@@ -405,7 +405,7 @@ int main3d(int argc, char *argv[])
 
 
 #ifdef MAIN2D
-int main2d(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG();

@@ -152,7 +152,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 #include "pztransfer.h"
 
-int main34(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -176,7 +176,7 @@ int main34(int argc, char *argv[])
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=1;p<2;p++)
+    for(p=1;p<4;p++)
     {
         int pq = p;
         int pp = p;
@@ -241,7 +241,20 @@ int main34(int argc, char *argv[])
             TPZAnalysis an(mphysics);
             
             SolveSystArctan(an, mphysics);
-            std::string plotfile("OurSolution.vtk");
+            
+            stringstream ref,grau;
+            grau << p;
+            ref << ndiv;
+            string strg = grau.str();
+            string strr = ref.str();
+            std::string plotname("OurSolutionArctan");
+            std::string Grau("P");
+            std::string Ref("H");
+            std::string VTK(".vtk");
+            std::string plotData;
+            plotData = plotname+Grau+strg+Ref+strr+VTK;
+            std::string plotfile(plotData);
+            
             PosProcessMultphysicsArctan(meshvec,  mphysics, an, plotfile);
             
             
@@ -272,7 +285,7 @@ int main34(int argc, char *argv[])
             string str = ss.str();
             
             std::cout<< " grau  polinomio " << p << " numero de divisoes " << ndiv << std::endl;
-            std::string filename("InputData");
+            std::string filename("InputDataArctan");
             std::string L2("L2.txt");
             std::string Hdiv("Hdiv.txt");
             std::string HdivData,L2Data;
@@ -282,7 +295,8 @@ int main34(int argc, char *argv[])
             PrintDebugMapForMathematicaArctan(HdivData,L2Data);
             
         }
-        
+        fDebugMapHdiv.clear();
+        fDebugMapL2.clear();
     }
     
 

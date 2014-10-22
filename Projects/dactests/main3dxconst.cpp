@@ -152,7 +152,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 #include "pztransfer.h"
 
-int main323(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -176,7 +176,7 @@ int main323(int argc, char *argv[])
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=2;p<3;p++)
+    for(p=1;p<4;p++)
     {
         int pq = p;
         int pp = p;
@@ -241,7 +241,21 @@ int main323(int argc, char *argv[])
             TPZAnalysis an(mphysics);
             
             SolveSystXconst(an, mphysics);
-            std::string plotfile("OurSolution.vtk");
+            
+            stringstream ref,grau;
+            grau << p;
+            ref << ndiv;
+            string strg = grau.str();
+            string strr = ref.str();
+            std::string plotname("OurSolutionXconst");
+            std::string Grau("P");
+            std::string Ref("H");
+            std::string VTK(".vtk");
+            std::string plotData;
+            plotData = plotname+Grau+strg+Ref+strr+VTK;
+            //std::string plotfile("OurSolution1.vtk");
+            std::string plotfile(plotData);
+            
             PosProcessMultphysicsXconst(meshvec,  mphysics, an, plotfile);
             
             
@@ -272,7 +286,7 @@ int main323(int argc, char *argv[])
             string str = ss.str();
             
             std::cout<< " grau  polinomio " << p << " numero de divisoes " << ndiv << std::endl;
-            std::string filename("InputData");
+            std::string filename("InputDataXconst");
             std::string L2("L2.txt");
             std::string Hdiv("Hdiv.txt");
             std::string HdivData,L2Data;
@@ -282,7 +296,8 @@ int main323(int argc, char *argv[])
             PrintDebugMapForMathematicaXconst(HdivData,L2Data);
             
         }
-        
+        fDebugMapL2.clear();
+        fDebugMapHdiv.clear();
     }
     
 

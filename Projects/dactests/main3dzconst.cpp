@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=2;p<3;p++)
+    for(p=1;p<4;p++)
     {
         int pq = p;
         int pp = p;
@@ -186,42 +186,41 @@ int main(int argc, char *argv[])
             pp = pq;
         }
         
-        for (ndiv=1; ndiv<2; ndiv++)
+        for (ndiv=0; ndiv<4; ndiv++)
         {
             
-            //TPZGeoMesh *gmesh = CreateOneCuboZconst(ndiv);
+            TPZGeoMesh *gmesh = CreateOneCuboZconst(ndiv);
             
-            TPZGeoMesh *gmesh2d = GMeshZconst(2, tipo, ndiv);
-            REAL layerthickness = 1.;
-            //UniformRefine(gmesh2d, ndiv);
-            
-            {
-                //  Print Geometrical Base Mesh
-                std::ofstream Dummyfile("GeometricMesh2D.vtk");
-                TPZVTKGeoMesh::PrintGMeshVTK(gmesh2d,Dummyfile, true);
-            }
-            
-            TPZExtendGridDimension extend(gmesh2d,layerthickness);
-            TPZGeoMesh *gmesh3d = extend.ExtendedMesh(1,bc0,bc5);
-//            ofstream arg("gmesh1.txt");
-//            gmesh2d->Print(arg);
+//            TPZGeoMesh *gmesh2d = GMeshZconst(2, tipo, ndiv);
+//            REAL layerthickness = 1.;
+//            //UniformRefine(gmesh2d, ndiv);
 //            
-//            ofstream arq3("gmesh3d.txt");
-//            gmesh3d->Print(arq3);
-//            TPZFMatrix<STATE> Tr(3,3,0.0);
-            
-            TPZGeoMesh *gmesh = gmesh3d;
+//            {
+//                //  Print Geometrical Base Mesh
+//                std::ofstream Dummyfile("GeometricMesh2D.vtk");
+//                TPZVTKGeoMesh::PrintGMeshVTK(gmesh2d,Dummyfile, true);
+//            }
+//            
+//            TPZExtendGridDimension extend(gmesh2d,layerthickness);
+//            TPZGeoMesh *gmesh3d = extend.ExtendedMesh(1,bc0,bc5);
+////            ofstream arg("gmesh1.txt");
+////            gmesh2d->Print(arg);
+////            
+////            ofstream arq3("gmesh3d.txt");
+////            gmesh3d->Print(arq3);
+////            TPZFMatrix<STATE> Tr(3,3,0.0);
+//            
+//            TPZGeoMesh *gmesh = gmesh3d;
             gmesh->SetDimension(dim);
             
             
-            //TPZGeoMesh *gmesh = GMesh( dim, tipo, ndiv);
-            ofstream arg1("gmesh.txt");
-            gmesh->Print(arg1);
-            {
-                //  Print Geometrical Base Mesh
-                std::ofstream Dummyfile("GeometricMesh3D.vtk");
-                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
-            }
+//            ofstream arg1("gmesh.txt");
+//            gmesh->Print(arg1);
+//            {
+//                //  Print Geometrical Base Mesh
+//                std::ofstream Dummyfile("GeometricMesh3D.vtk");
+//                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
+//            }
             
             TPZCompMesh *cmesh2 = CMeshPressureZconst(gmesh, pp, dim);
             TPZCompMesh *cmesh1 = CMeshFluxZconst(gmesh, pq, dim);
@@ -255,8 +254,8 @@ int main(int argc, char *argv[])
             
             
             TPZCompMesh * mphysics = CMeshMixedZconst(gmesh,meshvec);
-            ofstream arg5("cmeshmultiphysics.txt");
-            mphysics->Print(arg5);
+//            ofstream arg5("cmeshmultiphysics.txt");
+//            mphysics->Print(arg5);
             //            TPZCompEl *cel = mphysics->Element(0);
             //            TPZElementMatrix ek,ef;
             //            cel->CalcStiff(ek, ef);
@@ -264,7 +263,21 @@ int main(int argc, char *argv[])
             TPZAnalysis an(mphysics);
             
             SolveSystZconst(an, mphysics);
-            std::string plotfile("OurSolution1.vtk");
+            
+            stringstream ref,grau;
+            grau << p;
+            ref << ndiv;
+            string strg = grau.str();
+            string strr = ref.str();
+            std::string plotname("OurSolutionZconst");
+            std::string Grau("P");
+            std::string Ref("H");
+            std::string VTK(".vtk");
+            std::string plotData;
+            plotData = plotname+Grau+strg+Ref+strr+VTK;
+            //std::string plotfile("OurSolution1.vtk");
+            std::string plotfile(plotData);
+            
             PosProcessMultphysicsZconst(meshvec,  mphysics, an, plotfile);
             
             //Calculo do erro
@@ -294,7 +307,7 @@ int main(int argc, char *argv[])
             string str = ss.str();
             
             std::cout<< " grau  polinomio " << p << " numero de divisoes " << ndiv << std::endl;
-            std::string filename("InputData");
+            std::string filename("InputDataZconst");
             std::string L2("L2.txt");
             std::string Hdiv("Hdiv.txt");
             std::string HdivData,L2Data;
