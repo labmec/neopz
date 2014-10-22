@@ -131,7 +131,7 @@ void TPZConnect::AddDependency(long myindex, long dependindex,TPZFMatrix<STATE> 
 	TPZDepend *connect =0;
 	if(dependindex == -1) {
 		cout << "dependindex = -1 in " << __PRETTY_FUNCTION__ << "DebugStop() called!" << endl;
-    	DebugStop();
+	    DebugStop();
 	}
 	if(fDependList) connect = fDependList->HasDepend(dependindex);
 	if(!connect) {
@@ -148,8 +148,7 @@ void TPZConnect::AddDependency(long myindex, long dependindex,TPZFMatrix<STATE> 
 			cout << "TPZConnect::Dependency inconsistent \t"
 			<< "temp(r,c): (" << temp.Rows() << " , " << temp.Cols() << " )\t fDepMatrix(r,c): ( "
 			<< connect->fDepMatrix.Rows() << " , " << connect->fDepMatrix.Cols() << " )\n";
-			long a;
-			cin >> a;
+    	    DebugStop();
 			return;
 		}
 		
