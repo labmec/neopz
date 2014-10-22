@@ -542,51 +542,58 @@ TPZGeoMesh *CreateOneCuboArctan(int nref)
     coord[1] = -1.0;
     coord[2] = -1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     //c1
     coord[0] =  1.0;
     coord[1] = -1.0;
     coord[2] = -1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     //c2
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] = -1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     //c3
     coord[0] = -1.0;
     coord[1] =  1.0;
     coord[2] = -1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     
     //c4
     coord[0] = -1.0;
     coord[1] = -1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     //c5
     coord[0] =  1.0;
     coord[1] = -1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     //c6
     coord[0] =  1.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     //c7
     coord[0] = -1.0;
     coord[1] =  1.0;
     coord[2] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
-    
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     
     
     int index = 0;
@@ -598,42 +605,47 @@ TPZGeoMesh *CreateOneCuboArctan(int nref)
     TopologyQuad[1]=1;
     TopologyQuad[2]=2;
     TopologyQuad[3]=3;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index++,TopologyQuad,idf0,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf0,*gmesh);
+    index++;
     
     // Front
     TopologyQuad[0]=0;
     TopologyQuad[1]=1;
     TopologyQuad[2]=5;
     TopologyQuad[3]=4;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index++,TopologyQuad,idf1,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf1,*gmesh);
+    index++;
     
     // Rigth
     TopologyQuad[0]=1;
     TopologyQuad[1]=2;
     TopologyQuad[2]=6;
     TopologyQuad[3]=5;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index++,TopologyQuad,idf2,*gmesh);
-    
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf2,*gmesh);
+    index++;
     // Back
     TopologyQuad[0]=3;
     TopologyQuad[1]=2;
     TopologyQuad[2]=6;
     TopologyQuad[3]=7;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index++,TopologyQuad,idf3,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf3,*gmesh);
+    index++;
     
     // Left
     TopologyQuad[0]=0;
     TopologyQuad[1]=3;
     TopologyQuad[2]=7;
     TopologyQuad[3]=4;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index++,TopologyQuad,idf4,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf4,*gmesh);
+    index++;
     
     // Top
     TopologyQuad[0]=4;
     TopologyQuad[1]=5;
     TopologyQuad[2]=6;
     TopologyQuad[3]=7;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index++,TopologyQuad,idf5,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf5,*gmesh);
+    index++;
     
     TPZManVector<long,8> TopolCubo(8,0);
     TopolCubo[0] = 0;
@@ -646,8 +658,8 @@ TPZGeoMesh *CreateOneCuboArctan(int nref)
     TopolCubo[7] = 7;
     
     
-    new TPZGeoElRefPattern< pzgeom::TPZGeoCube> (index++, TopolCubo, matId, *gmesh);
-    
+    new TPZGeoElRefPattern< pzgeom::TPZGeoCube> (index, TopolCubo, matId, *gmesh);
+    index++;
     
     gmesh->BuildConnectivity();
     
