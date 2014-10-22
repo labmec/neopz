@@ -94,10 +94,8 @@ void TPZDarcyAnalysis::Run()
     // Malha geometrica
 //    fgmesh = CreateGMesh(nel);
   
-  int npropag = 10, hyref = 3;
-  REAL Ly = 150.0;
-  
-    this->CreateGeoMeshQuad(npropag,hyref,Ly);
+    const int npropag = fData->NPropagations();
+    this->CreateGeoMeshQuad(npropag,fData->Hy(),fData->Ly());
     this->PrintGeometricMesh(fgmesh);
     
 
@@ -886,12 +884,17 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
                 igel->CreateBCGeoEl(2, 20);
                 long rightnode=igel->NodeIndex(1);
               
+
+                fcmeshMixed->LoadReferences();
+                TPZCompEl *celneighel = Neigel->Reference();
+                fgmesh->DeleteElement(Neigel);
+                //Neigel->SetMaterialId(1000);
                 TPZGeoEl *newbcgel = igel->CreateBCGeoEl(1, 8);
               
-                fcmeshMixed->LoadReferences();
+
                 TPZCompEl * cel = igel->Reference();
-                SwitchTipElement(cel, Neigel->Reference(), newbcgel);
-                Neigel->SetMaterialId(1000);
+                SwitchTipElement(cel, celneighel, newbcgel);
+
                 break;
             }
             

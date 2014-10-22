@@ -43,9 +43,12 @@ int main()
   const int pOrdQFrac = 1;
   const int pOrdPFrac = 0;
   const int nel = 100;
+  const int npropag = 3;
+  const int hy = 2;
+  const REAL Ly = 100.;
   const REAL elsize = 50.0;
   std::string PostProcessFileName = "SemiCoupled.vtk";
-  const int nthreadsForAssemble = 8; // if 0, program is serial
+  const int nthreadsForAssemble = 0; // if 0, program is serial
   
   // Fluid Data
   const REAL mu = 1.0e-8; // 1.0e-3 Pa*s -> 1 Centipoise cp
@@ -88,8 +91,12 @@ int main()
   Data->SetVsp(vsp);
   Data->SetElSize(elsize);
   Data->SetDwDp();
-  Data->SetNThreadsForAssemble(nthreadsForAssemble);
+  Data->SetNPropagations(npropag);
+  Data->SetHy(hy);
+  Data->SetLy(Ly);
   
+  
+  Data->SetNThreadsForAssemble(nthreadsForAssemble);
   Data->SetPorderFlow(pOrdQFrac);
   Data->SetPorderPressure(pOrdPFrac);
   Data->SetPorderDarcyFlow(pOrdQDarcy);

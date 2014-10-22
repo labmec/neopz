@@ -80,7 +80,7 @@ private:
   // --------- Leak off ---------
   /** @brief Carter coefficient */
   REAL fCl;
-
+  
   /** @brief Static pressure */
   REAL fPe;
   
@@ -89,7 +89,7 @@ private:
   
   /** @brief Spurt loss */
   REAL fvsp;
-
+  
   /** @brief Vl for new element after propagation  */
   REAL fAccumVl;
   
@@ -98,15 +98,24 @@ private:
   
   /** @brief P order of flow (Q) analysis for fracturing simulation */
   int fPorderFlow;
-    
-    /** @brief P order of pressure (p) analysis for Darcy simulation */
-    int fPorderDarcyPressure;
-    
-    /** @brief P order of flow (Q) analysis for Darcy simulation */
-    int fPorderDarcyFlow;
+  
+  /** @brief P order of pressure (p) analysis for Darcy simulation */
+  int fPorderDarcyPressure;
+  
+  /** @brief P order of flow (Q) analysis for Darcy simulation */
+  int fPorderDarcyFlow;
   
   /** @brief Number of threads used in assemble */
   int fNThreadsForAssemble;
+  
+  /** @brief Number propagations allowed */
+  int fnpropag;
+  
+  /** @brief Number of refinements in y */
+  int fhyref;
+  
+  /** @brief size of darcy domain in y */
+  REAL fLy;
   
   /** @brief Number of elements in the fracture */
   int fnelFrac;
@@ -130,7 +139,7 @@ public:
   
   /** @brief Returns w based on pfrac */
   REAL GetW(REAL pfrac) const;
-
+  
   /** @brief Returns dwdp based on pfrac */
   REAL GetDwDp() const;
   
@@ -268,27 +277,27 @@ public:
   
   /** @brief Returns p order of the flow */
   int PorderFlow() const {return this->fPorderFlow;}
-    
-    
-/** @brief Defines p order of the flow in hdiv space */
-void SetPorderDarcyFlow(int PorderDarcyFlow){ this->fPorderDarcyFlow = PorderDarcyFlow;}
-
-/** @brief Returns p order of the Darcy flow */
-int PorderDarcyFlow() const {return this->fPorderDarcyFlow;}
-
-/** @brief Defines p order of the Darcy pressure in L2 space */
-void SetPorderDarcyPressure(int PorderDarcyPressure){ this->fPorderDarcyPressure = PorderDarcyPressure;}
-
-/** @brief Returns p order of the Darcy pressure */
-int PorderDarcyPressure(){return this->fPorderDarcyPressure;}
-    
+  
+  
+  /** @brief Defines p order of the flow in hdiv space */
+  void SetPorderDarcyFlow(int PorderDarcyFlow){ this->fPorderDarcyFlow = PorderDarcyFlow;}
+  
+  /** @brief Returns p order of the Darcy flow */
+  int PorderDarcyFlow() const {return this->fPorderDarcyFlow;}
+  
+  /** @brief Defines p order of the Darcy pressure in L2 space */
+  void SetPorderDarcyPressure(int PorderDarcyPressure){ this->fPorderDarcyPressure = PorderDarcyPressure;}
+  
+  /** @brief Returns p order of the Darcy pressure */
+  int PorderDarcyPressure(){return this->fPorderDarcyPressure;}
+  
   
   /** @brief Defines Number of elements in the fracture */
   void SetNelFrac(int NelFrac){ this->fnelFrac = NelFrac;}
   
   /** @brief Returns number of elements in the fracture */
   int NelFrac() const {return this->fnelFrac;}
-
+  
   /** @brief Defines p order of the flow in H1 space */
   void SetElSize(REAL elSize){ this->felSize = elSize;}
   
@@ -300,13 +309,13 @@ int PorderDarcyPressure(){return this->fPorderDarcyPressure;}
   
   /** @brief Set evaluating step n + 1 */
   void SetCurrentState(){ State = nplusone;}
-
+  
   /** @brief Returns true if is last state */
   bool IsLastState() const { return State == n;}
   
   /** @brief Sets Carter coefficient */
   void SetCl(REAL Cl) {fCl = Cl;}
-
+  
   /** @brief Return Carter coefficient */
   REAL Cl() const {return fCl;}
   
@@ -324,7 +333,7 @@ int PorderDarcyPressure(){return this->fPorderDarcyPressure;}
   
   /** @brief Sets spurt loss */
   void SetVsp(REAL vsp){fvsp = vsp;}
-
+  
   /** @brief Returns spurt loss */
   REAL Vsp() const {return fvsp;}
   
@@ -334,37 +343,57 @@ int PorderDarcyPressure(){return this->fPorderDarcyPressure;}
   /** @brief Returns vl of the element to be propagated */
   REAL AccumVl() const {return fAccumVl;}
   
+  /** @brief Sets number of threads used for assemble */
   void SetNThreadsForAssemble(int nthreads) { fNThreadsForAssemble = nthreads; } const
   
+  /** @brief Returns number of threads used for assemble */
   int NThreadsForAssemble() { return fNThreadsForAssemble; } const
 
+  /** @brief Sets maximum number of propagations allowerd */
+  void SetNPropagations(int npropag) { fnpropag = npropag; } const
+  
+  /** @brief Returns number of threads used for assemble */
+  int NPropagations() { return fnpropag; } const
+
+  /** @brief Sets number of refinements in y */
+  void SetHy(int Hy) { fhyref = Hy; } const
+  
+  /** @brief Returns number of refinements in y */
+  int Hy() { return fhyref; } const
+  
   /** @brief Sets last q tip */
   void SetLastQtip(REAL lastQtip){fLastQtip = lastQtip;}
   
   /** @brief Returns last q tip */
   REAL LastQtip() const {return fLastQtip;}
+
+  /** @brief Sets size of domain in y */
+  void SetLy(REAL Ly) {fLy = Ly;}
+  
+  /** @brief Returns size of domain in y */
+  REAL Ly() const {return fLy;}
   
   /** @brief Return vl based on exposition time and pressure */
   REAL VlFtau(REAL pfrac, REAL tau) const;
-
+  
   /** @brief Return the "ficticious time" based on acumulated volume and pressure */
   REAL FictitiousTime(REAL VlAcum, REAL pfrac) const;
-
+  
   /** @brief Return the seapage velocity ql (mm/s) */
   REAL QlFVl(REAL VlAcum, REAL pfrac) const;
   
   /** @brief Return the seapage velocity derivative */
   REAL dQlFVl(REAL VlAcum, REAL pfrac) const;
-
+  
   /** @brief Return debug map */
   std::map<REAL,REAL> & DebugMap() {return fDebugMap;}
-
+  
   /** @brief Prints debug map in Mathematica style */
   void PrintDebugMapForMathematica(std::string filename);
   
   /** @brief Return debug map */
   std::map<REAL,REAL> & DebugMap2() {return fDebugMap2;}
-
+  
 };
 
 #endif
