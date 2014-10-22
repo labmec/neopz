@@ -89,6 +89,9 @@ public:
     /** @brief sets the memory of the new integration points */
     void SetIntPointMemory();
   
+    /** @brief Creates a quadrilateral conform gmesh with max_edge defined by param */
+    void CreateGeoMeshQuad(int npropag, int nrefy, REAL ly);
+  
     /** @brief adjust mtid's for propagation */
     void DarcyGmesh(TPZGeoMesh * gmesh);
     
@@ -130,7 +133,13 @@ public:
     
     /** @brief Return the flow criteria used to decide if propagates fracture */
     REAL PropagationFlowCriteria(REAL qFreshNewEl, REAL ql);
-    
+  
+    /** @brief switch hdivboud element to discontinuous galerkin element */
+    void SwitchTipElement(TPZCompEl * cel, TPZCompEl *celpoint, TPZGeoEl *gelpoint);
+  
+    /** @brief Sets the fconnectvec of interface multiphysics elements */
+    void SetInterfaceConnects();
+  
 private:
     
     /** @brief bool which indicates if the end of time is reached */
@@ -143,7 +152,7 @@ private:
     TPZGeoMesh * fgmesh;
     
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
-    TPZVec<TPZCompMesh *> fmeshvec;
+    TPZManVector<TPZCompMesh * , 2> fmeshvec;
     
     /** @brief Multphysics cmesh for mixed analysis */
     TPZCompMesh * fcmeshMixed;

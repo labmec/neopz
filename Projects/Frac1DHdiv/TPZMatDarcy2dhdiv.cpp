@@ -56,7 +56,7 @@ void TPZMatDarcy2dhdiv::Print(std::ostream &out) {
 // Contribute methods
 
 void TPZMatDarcy2dhdiv::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
-    DebugStop();
+  DebugStop(); // Should be datavec
 }
 
 
@@ -284,8 +284,8 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
 //  Residual vector contribution
 void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
 {
-    DebugStop();
-    
+  TPZFMatrix<STATE> ekfake(ef.Rows(),ef.Rows(),0.);
+  this->Contribute(datavec, weight, ekfake, ef);
 }
 
 
@@ -491,9 +491,10 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
 
 void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef)
 {
-    
-    DebugStop();
-    
+  
+  TPZFMatrix<STATE> ekfake(ef.Rows(),ef.Rows(),0.);
+  this->ContributeInterface(data, dataleft, dataright, weight, ekfake, ef);
+  
 }
 
 void TPZMatDarcy2dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
@@ -508,16 +509,8 @@ void TPZMatDarcy2dhdiv::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMat
 
 void TPZMatDarcy2dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
-    
-#ifdef DEBUG
-    int nref =  datavec.size();
-    if (nref != 2 ) {
-        std::cout << " Error.!! datavec size not equal to 4 \n";
-        DebugStop();
-    }
-#endif
-    
-    
+
+    return; // This method is called but shouldn t do anything
     
 }
 

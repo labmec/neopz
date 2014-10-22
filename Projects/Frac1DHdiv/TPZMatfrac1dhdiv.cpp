@@ -101,11 +101,12 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   
   
   // Leak off
+  /*
   const int intGlobPtIndex = datavec[0].intGlobPtIndex;
   TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
   const REAL ql = 2.*fData->QlFVl(Vl(0,0),p);
   const REAL dqldp = 2.*fData->dQlFVl(Vl(0,0), p);
-  
+*/
   //  Contribution of domain integrals for Jacobian matrix and Residual vector
   //  n + 1 time step
   if(!fData->IsLastState())
@@ -124,7 +125,7 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
       }
     }
     for (int ip = 0; ip < phrP ; ip++) { // Conservation of Mass
-      const REAL res = - dQdx * phiP(ip,0) - 1./DeltaT * w * phiP(ip,0);//- ql * phiP(ip,0);
+      const REAL res = - dQdx * phiP(ip,0) - 1./DeltaT * w * phiP(ip,0);// - ql * phiP(ip,0);
       ef(FirstP+ip,0) += weight * res;
       for (int jq = 0; jq < phrQ; jq++) {
         const REAL jac = - dphiQ(0,jq) * phiP(ip,0);
@@ -162,8 +163,27 @@ void TPZMatfrac1dhdiv::UpdateMemory(TPZVec<TPZMaterialData> &datavec)
   this->MemItem(intGlobPtIndex) = Vl;
 }
 
+void TPZMatfrac1dhdiv::UpdateMemory(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavec)
+{
+  const int intGlobPtIndex = data.intGlobPtIndex;
+  TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
+  const STATE pfrac = datavec[1].sol[0][0];
+  const REAL deltaT = fData->TimeStep();
+  
+  REAL tStar = fData->FictitiousTime(Vl(0,0), pfrac);
+  REAL Vlnext = fData->VlFtau(pfrac, tStar + deltaT);
+  
+  Vl(0,0) = Vlnext;
+  this->MemItem(intGlobPtIndex) = Vl;
+}
+
 void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
+  
+  if(fUpdateMem){
+    this->UpdateMemory(data, dataright);
+    return;
+  }
   
   // ---------------------- Getting Data for Darcy Flow BC ----------------------
   TPZFMatrix<REAL> &phiQL = dataleft[0].phi;

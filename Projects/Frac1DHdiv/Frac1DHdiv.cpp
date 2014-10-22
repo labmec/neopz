@@ -45,6 +45,7 @@ int main()
   const int nel = 100;
   const REAL elsize = 50.0;
   std::string PostProcessFileName = "SemiCoupled.vtk";
+  const int nthreadsForAssemble = 8; // if 0, program is serial
   
   // Fluid Data
   const REAL mu = 1.0e-8; // 1.0e-3 Pa*s -> 1 Centipoise cp
@@ -87,6 +88,7 @@ int main()
   Data->SetVsp(vsp);
   Data->SetElSize(elsize);
   Data->SetDwDp();
+  Data->SetNThreadsForAssemble(nthreadsForAssemble);
   
   Data->SetPorderFlow(pOrdQFrac);
   Data->SetPorderPressure(pOrdPFrac);

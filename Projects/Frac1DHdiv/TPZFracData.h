@@ -105,6 +105,9 @@ private:
     /** @brief P order of flow (Q) analysis for Darcy simulation */
     int fPorderDarcyFlow;
   
+  /** @brief Number of threads used in assemble */
+  int fNThreadsForAssemble;
+  
   /** @brief Number of elements in the fracture */
   int fnelFrac;
   
@@ -330,6 +333,10 @@ int PorderDarcyPressure(){return this->fPorderDarcyPressure;}
   
   /** @brief Returns vl of the element to be propagated */
   REAL AccumVl() const {return fAccumVl;}
+  
+  void SetNThreadsForAssemble(int nthreads) { fNThreadsForAssemble = nthreads; } const
+  
+  int NThreadsForAssemble() { return fNThreadsForAssemble; } const
 
   /** @brief Sets last q tip */
   void SetLastQtip(REAL lastQtip){fLastQtip = lastQtip;}

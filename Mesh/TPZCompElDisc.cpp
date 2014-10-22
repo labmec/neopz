@@ -346,6 +346,7 @@ void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REA
 void TPZCompElDisc::Print(std::ostream &out) const{
 	
 	out << "\nDiscontinous element : \n";
+	TPZCompEl::Print(out);
 	if(Reference()) out << "\tGeometric reference index : " << Reference()->Index() << endl;
 	out << "\tMaterial id : " << Reference()->MaterialId() << endl
 	<< "\tDegree of interpolation : " <<  this->Degree() << endl

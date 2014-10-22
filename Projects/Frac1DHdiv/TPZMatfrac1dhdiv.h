@@ -85,6 +85,9 @@ public:
   
   /** @brief Updates the leak off memory */
   void UpdateMemory(TPZVec<TPZMaterialData> &datavec);
+
+  /** @brief Updates the leak off memory */
+  void UpdateMemory(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavec);
   
   /** @brief Fill material data parameter with necessary requirements for the Contribute method*/
   virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
