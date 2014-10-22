@@ -130,9 +130,8 @@ void TPZConnect::AddDependency(long myindex, long dependindex,TPZFMatrix<STATE> 
 	if(dependindex == myindex) return;
 	TPZDepend *connect =0;
 	if(dependindex == -1) {
-		cout << "Chabuuuuu\n";
-		long b;
-		cin >> b;
+		cout << "dependindex = -1 in " << __PRETTY_FUNCTION__ << "DebugStop() called!" << endl;
+    	DebugStop();
 	}
 	if(fDependList) connect = fDependList->HasDepend(dependindex);
 	if(!connect) {
