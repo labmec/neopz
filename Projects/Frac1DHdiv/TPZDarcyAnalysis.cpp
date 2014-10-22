@@ -23,6 +23,8 @@
 #include "pzl2projection.h"
 #include "TPZMatfrac1dhdiv.h"
 #include "pzcompelwithmem.h"
+#include "pzelchdiv.h"
+
 #ifdef USING_BOOST
 #include <boost/math/special_functions/erf.hpp>
 #endif
@@ -910,6 +912,7 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
   {
     TPZGeoEl *gel = fgmesh->ElementVec()[el];
     if(!gel) continue;
+    
     if(gel->MaterialId() == 20)
     {
       TPZGeoElSide rightside(gel,1);
@@ -956,6 +959,74 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
       break;
     }
   }
+    
+    // Colocando a dependencia entre a ponta da fratura e o elemento de darcy a frente
+    fgmesh->ResetReference();
+    fcmeshMixed->LoadReferences();
+    for(int el = 0; el < nel; el++)
+    {
+        TPZGeoEl *gel = fgmesh->ElementVec()[el];
+        if(!gel) continue;
+        if(gel->MaterialId() == 6)
+        {
+            TPZGeoElSide rightside(gel,1);
+            TPZGeoElSide rightneigh = rightside.Neighbour();
+            while (rightside != rightneigh) {
+                if (rightneigh.Element()->MaterialId() == 8) {
+                    break;
+                }
+                rightneigh = rightneigh.Neighbour();
+            }
+            if (rightside == rightneigh) {
+                continue;
+            }
+            TPZCompEl *cel = gel->Reference();
+            TPZMultiphysicsElement *mcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+            if (!mcel) {
+                DebugStop();
+            }
+            if (mcel->Element(0)->NConnects() != 3) {
+                DebugStop(); // Should be H1 flux element
+            }
+            long ctipindex = mcel->Element(0)->ConnectIndex(1);
+            TPZConnect &ctip = mcel->Element(0)->Connect(1);
+            
+            rightneigh = rightside.Neighbour();
+            TPZMultiphysicsElement *mcelhdiv = NULL;
+            while (rightside != rightneigh) {
+                if (rightneigh.Element()->Reference()) {
+                    rightneigh.Element()->Reference()->Print();
+                }
+                if (rightneigh.Element()->MaterialId() == 2 && rightneigh.Element()->Dimension() == 1) {
+                    mcelhdiv = dynamic_cast<TPZMultiphysicsElement *>(rightneigh.Element()->Reference());
+                    if (mcelhdiv) {
+                        break;
+                    }
+                }
+                rightneigh = rightneigh.Neighbour();
+            }
+            if (rightside == rightneigh) {
+                DebugStop();
+            }
+            
+            if (mcelhdiv->NConnects() != 1) {
+                DebugStop(); // should be hdiv bc
+            }
+            
+            long cdarcyindex = mcelhdiv->ConnectIndex(0);
+            TPZConnect &cdarcy = mcelhdiv->Connect(0);
+            
+            if (cdarcy.NShape() != 2 || ctip.NShape() != 1) {
+                DebugStop();
+            }
+            REAL area = mcelhdiv->Reference()->SideArea(2);
+            TPZFNMatrix<2,REAL> depend(2,1,0.5/area);
+            cdarcy.AddDependency(cdarcyindex, ctipindex, depend, 0, 0, 2, 1);
+            
+            
+        }
+    }
+
 }
 
 void TPZDarcyAnalysis::DarcyGmesh(TPZGeoMesh * gmesh)
