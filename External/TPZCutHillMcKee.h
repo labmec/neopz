@@ -15,9 +15,9 @@ class TPZCutHillMcKee : public TPZRenumbering {
 
   struct SGraph{
 
-    TPZManVector<long> fnodegraph;
+    TPZManVector<int> fnodegraph;
 
-    TPZManVector<long> fnodegraphindex;
+    TPZManVector<int> fnodegraphindex;
 
     int NNodes(){
       return fnodegraphindex.NElements()-1;
@@ -27,43 +27,29 @@ class TPZCutHillMcKee : public TPZRenumbering {
       return fnodegraphindex[node+1]-fnodegraphindex[node];
     }
 
-    int SmallestDegree(TPZVec<int> &ExploredNodes){
-      std::cout << "TPZCutHillMcKee::SGraph::SmallestDegree\n";std::cout.flush();
-      int mindegree = 1000000;
-      int found = -1;
-      const int n = this->NNodes();
-      for(int i = 0; i < n; i++){
-        if(ExploredNodes[i] == 1) continue;
-        int degree = this->Degree(i);
-        if(degree < mindegree){
-          mindegree = degree;
-          found = i;
-        }
-      }//for
-      return found;
-    }
+  //accorging to suggestion of INTERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING, VOL. 28,2651-2679 (1989)
+  //A FORTRAN PROGRAM FOR PROFILE AND WAVEFRONT REDUCTION by S. W. SLOAN
+  //removing nodes with same degree
+  //Previously, Sloan had suggested LastLevel.Resize( (LastLevel.NElements()+2)/2 );
+    void ShrinkLastLevel(TPZVec<int> &LastLevel);
 
-    void AdjacentNodesOrdered(int parent, TPZVec<int> &adjNodes){
-      std::multimap<int,int> order;
+    void RootedLevelStructure(int rootNode, TPZStack< TPZVec<int> > &LevelStructure);
 
-      const int n = this->Degree(parent);
-      for(int i = 0; i < n; i++){
-        const int adj = fnodegraph[fnodegraphindex[parent]+i];
-        const int adjDegree = this->Degree(adj);
-        order.insert(std::make_pair(adjDegree,adj));
-      }//for
-      adjNodes.Resize(n);
-#ifdef DEBUG
-      if(n!= (int)(order.size()) ){
-        DebugStop();
-      }
-#endif
-      std::multimap<int,int>::const_iterator mapIt;
-      int i;
-      for(i = 0, mapIt = order.begin(); mapIt != order.end(); i++, mapIt++){
-        adjNodes[i] = mapIt->second;
-      }
-    }//void
+    int SmallestDegree(TPZVec<int> &ExploredNodes);
+
+    void AdjacentNodes(int parent, TPZVec<int> &adjNodes);
+
+    void GetAdjacentNodes(const TPZVec<int> &parents,
+                          const TPZVec< int > &exceptedNodes,
+                          std::set<int> &adjNodes);
+
+    void AdjacentNodesOrdered(int parent, TPZVec<int> &adjNodes);
+
+    void SortNodes(TPZVec<int> &nodes);
+
+    void PseudoPeripheralNodes(int &startNode, int &endNode);
+
+    void Set2Vec(const std::set<int> &myset, TPZVec<int> &myVec) const;
 
   };//SGraph
 
@@ -77,15 +63,21 @@ class TPZCutHillMcKee : public TPZRenumbering {
 
   bool fReverse;
 
+  virtual void Resequence(TPZVec<int> &permGather, TPZVec<int> &permScatter,
+                          TPZVec<int> &permGatherReverse, TPZVec<int> &permScatterReverse);
+
   public:
 
-    virtual void Resequence(TPZVec<int> &permGather, TPZVec<int> &permScatter);
+
+    virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm);
 
     TPZCutHillMcKee();
 
     TPZCutHillMcKee(int NElements, int NNodes, bool Reverse = true);
 
     virtual ~TPZCutHillMcKee();
+
+    bool fVerbose;
 
 };
 //---------------------------------------------------------------------------
