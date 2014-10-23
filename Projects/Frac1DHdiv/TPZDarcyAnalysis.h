@@ -128,9 +128,6 @@ public:
     /** @brief Verifies if has to propagate, ie, the qtip is bigger than leak off of the next element */
     bool VerifyIfPropagate(REAL qtip);
     
-    /** @brief Find the pressure BC geo element */
-    TPZGeoEl * FindPressureBCElement();
-    
     /** @brief Return the flow criteria used to decide if propagates fracture */
     REAL PropagationFlowCriteria(REAL qFreshNewEl, REAL ql);
   

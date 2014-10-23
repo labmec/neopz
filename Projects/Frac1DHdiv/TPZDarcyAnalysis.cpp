@@ -78,10 +78,7 @@ void PressureAnal(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &sol, TPZFMat
 
 void TPZDarcyAnalysis::Run()
 {
-    // Parametros
-    const int nel = 1;
-    
-    
+  
     // Computing vl as the first memory value on each integration point
     REAL vl = this->RunUntilOpen();
     TPZFMatrix<REAL> vlMatrix(1,1,vl);
@@ -273,9 +270,9 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
 
 TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
 {
-    const int matId2d = 1, matId1d = 6, bcBottomId = 2, bcRightId = 3, bcTopId = 4, bcLeftId = 5, bcBottomIdAux = 10;
-    const int MatINterface = 20;
-    const int bcinlet = 7, bcoutlet = 8;
+    const int matId2d = TPZFracData::EMatDarcy, bcBottomId = TPZFracData::EBCBottom, bcRightId = TPZFracData::EBCRight, bcTopId = TPZFracData::EBCTop, bcLeftId = TPZFracData::EBCLeft, bcBottomIdAux = 10;
+    const int matId1d = TPZFracData::EMatFrac, MatINterface = TPZFracData::EMatInterFrac;
+    const int bcinlet = TPZFracData::EBCInlet, bcoutlet = TPZFracData::EBCOutlet;
     const int typeFlux = 0, typePressure = 1;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
@@ -356,9 +353,9 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
 TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
 {
 
-    const int matId2d = 1, matId1d = 6, bcBottomId = 2, bcRightId = 3, bcTopId = 4, bcLeftId = 5, bcBottomIdAux = 10;
-    const int MatINterface = 20;
-    const int bcinlet = 7, bcoutlet = 8;
+    const int matId2d = TPZFracData::EMatDarcy, bcBottomId = TPZFracData::EBCBottom, bcRightId = TPZFracData::EBCRight, bcTopId = TPZFracData::EBCTop, bcLeftId = TPZFracData::EBCLeft, bcBottomIdAux = 10;
+    const int matId1d = TPZFracData::EMatFrac, MatINterface = TPZFracData::EMatInterFrac;
+    const int bcinlet = TPZFracData::EBCInlet, bcoutlet = TPZFracData::EBCOutlet;
     const int typeFlux = 0, typePressure = 1;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
@@ -453,9 +450,9 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
 TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed(TPZFMatrix<REAL> Vl)
 {
     // Definicao de ids e tipos
-    const int matId2d = 1, matId1d = 6, bcBottomId = 2, bcRightId = 3, bcTopId = 4, bcLeftId = 5, bcBottomIdAux = 10;
-    const int MatINterface = 20;    
-    const int bcinlet = 7, bcoutlet = 8;
+    const int matId2d = TPZFracData::EMatDarcy, bcBottomId = TPZFracData::EBCBottom, bcRightId = TPZFracData::EBCRight, bcTopId = TPZFracData::EBCTop, bcLeftId = TPZFracData::EBCLeft, bcBottomIdAux = 10;
+    const int matId1d = TPZFracData::EMatFrac, MatINterface = TPZFracData::EMatInterFrac;
+    const int bcinlet = TPZFracData::EBCInlet, bcoutlet = TPZFracData::EBCOutlet;
     const int typeFlux = 0, typePressure = 1;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
@@ -843,13 +840,13 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
         if (igel->HasSubElement()) {
             continue;
         }
-        if(igel->MaterialId()== 2)
+      if(igel->MaterialId()== TPZFracData::EBCBottom)
         {
             TPZGeoElSide igelside(igel,0);
             TPZGeoElSide neigh = igelside.Neighbour();
             
             while (igelside != neigh) {
-                if (neigh.Element()->Dimension() == 0 || (neigh.Element()->MaterialId()== 5 && neigh.Element()->Dimension() == 1)) {
+                if (neigh.Element()->Dimension() == 0 || (neigh.Element()->MaterialId()== TPZFracData::EBCLeft && neigh.Element()->Dimension() == 1)) {
                     break;
                 }
                 neigh = neigh.Neighbour();
@@ -859,34 +856,32 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
             }
             
             TPZGeoEl *Neigel = neigh.Element();
-            if (Neigel->MaterialId()==5) {
-                igel->SetMaterialId(6);
+            if (Neigel->MaterialId() == TPZFracData::EBCLeft) {
+                igel->SetMaterialId(TPZFracData::EMatFrac);
                 long rightnode=igel->NodeIndex(1);
                 TPZVec<long> topopoint(1,rightnode);
                 long OutLetindex;
-                fgmesh->CreateGeoElement(EPoint, topopoint, 8, OutLetindex);
+                fgmesh->CreateGeoElement(EPoint, topopoint, TPZFracData::EBCOutlet, OutLetindex);
                 
                 long leftnode=igel->NodeIndex(0);
                 topopoint=leftnode;
-                fgmesh->CreateGeoElement(EPoint, topopoint, 7, OutLetindex);
-                igel->CreateBCGeoEl(2, 20);
-                fgmesh->AddInterfaceMaterial(1, 6, 20);
-                fgmesh->AddInterfaceMaterial(6, 1, 20);
+                fgmesh->CreateGeoElement(EPoint, topopoint, TPZFracData::EBCInlet, OutLetindex);
+                igel->CreateBCGeoEl(2, TPZFracData::EMatInterFrac);
+                fgmesh->AddInterfaceMaterial(TPZFracData::EMatDarcy, TPZFracData::EMatFrac, TPZFracData::EMatInterFrac);
+                fgmesh->AddInterfaceMaterial(TPZFracData::EMatFrac, TPZFracData::EMatDarcy, TPZFracData::EMatInterFrac);
                 break;
-            }else if (Neigel->MaterialId()==8)
+            }else if (Neigel->MaterialId()==TPZFracData::EBCOutlet)
             {
-                igel->SetMaterialId(6);
-                igel->CreateBCGeoEl(2, 20);
+                igel->SetMaterialId(TPZFracData::EMatFrac);
+                igel->CreateBCGeoEl(2, TPZFracData::EMatInterFrac);
                 long rightnode=igel->NodeIndex(1);
               
-
                 fcmeshMixed->LoadReferences();
                 TPZCompEl *celneighel = Neigel->Reference();
                 fgmesh->DeleteElement(Neigel);
                 //Neigel->SetMaterialId(1000);
-                TPZGeoEl *newbcgel = igel->CreateBCGeoEl(1, 8);
+                TPZGeoEl *newbcgel = igel->CreateBCGeoEl(1, TPZFracData::EBCOutlet);
               
-
                 TPZCompEl * cel = igel->Reference();
                 SwitchTipElement(cel, celneighel, newbcgel);
 
@@ -913,12 +908,12 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
     TPZGeoEl *gel = fgmesh->ElementVec()[el];
     if(!gel) continue;
     
-    if(gel->MaterialId() == 20)
+    if(gel->MaterialId() == TPZFracData::EMatInterFrac)
     {
       TPZGeoElSide rightside(gel,1);
       TPZGeoElSide rightneigh = rightside.Neighbour();
       while (rightside != rightneigh) {
-        if (rightneigh.Element()->MaterialId() == 8) {
+        if (rightneigh.Element()->MaterialId() == TPZFracData::EBCOutlet) {
           break;
         }
         rightneigh = rightneigh.Neighbour();
@@ -935,10 +930,10 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
       gelside.EqualLevelCompElementList(neigh, onlyinterpolated, removeduplicates);
       TPZCompElSide darcyside, fracside;
       for (int i = 0; i < neigh.size(); i++) {
-        if (neigh[i].Element()->Reference()->MaterialId() == 1) {
+        if (neigh[i].Element()->Reference()->MaterialId() == TPZFracData::EMatDarcy) {
           darcyside = neigh[i];
         }
-        if (neigh[i].Element()->Reference()->MaterialId() == 6) {
+        if (neigh[i].Element()->Reference()->MaterialId() == TPZFracData::EMatFrac) {
           fracside = neigh[i];
         }
       }
@@ -953,7 +948,7 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
       
       // Preparando os index dos pontos de integracao.
       TPZFMatrix<> Vl(1,1,fData->AccumVl());
-      TPZMatfrac1dhdiv *matfrac = dynamic_cast<TPZMatfrac1dhdiv *> (fcmeshMixed->FindMaterial(20));
+      TPZMatfrac1dhdiv *matfrac = dynamic_cast<TPZMatfrac1dhdiv *> (fcmeshMixed->FindMaterial(TPZFracData::EMatInterFrac));
       matfrac->SetDefaultMem(Vl);
       new TPZCompElWithMem <TPZMultiphysicsInterfaceElement >(*cmesh, gel, gelindex, darcyside, fracside);
       break;
@@ -961,18 +956,19 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
   }
     
     // Colocando a dependencia entre a ponta da fratura e o elemento de darcy a frente
+  if(0){
     fgmesh->ResetReference();
     fcmeshMixed->LoadReferences();
     for(int el = 0; el < nel; el++)
     {
         TPZGeoEl *gel = fgmesh->ElementVec()[el];
         if(!gel) continue;
-        if(gel->MaterialId() == 6)
+        if(gel->MaterialId() == TPZFracData::EMatDarcy)
         {
             TPZGeoElSide rightside(gel,1);
             TPZGeoElSide rightneigh = rightside.Neighbour();
             while (rightside != rightneigh) {
-                if (rightneigh.Element()->MaterialId() == 8) {
+                if (rightneigh.Element()->MaterialId() == TPZFracData::EBCOutlet) {
                     break;
                 }
                 rightneigh = rightneigh.Neighbour();
@@ -997,7 +993,7 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
                 if (rightneigh.Element()->Reference()) {
                     rightneigh.Element()->Reference()->Print();
                 }
-                if (rightneigh.Element()->MaterialId() == 2 && rightneigh.Element()->Dimension() == 1) {
+                if (rightneigh.Element()->MaterialId() == TPZFracData::EBCBottom && rightneigh.Element()->Dimension() == 1) {
                     mcelhdiv = dynamic_cast<TPZMultiphysicsElement *>(rightneigh.Element()->Reference());
                     if (mcelhdiv) {
                         break;
@@ -1026,6 +1022,7 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
             
         }
     }
+  }
 
 }
 
@@ -1038,13 +1035,13 @@ void TPZDarcyAnalysis::DarcyGmesh(TPZGeoMesh * gmesh)
         if (igel->HasSubElement()) {
             continue;
         }
-        if(igel->MaterialId()== 2)
+        if(igel->MaterialId()== TPZFracData::EBCBottom)
         {
             TPZGeoElSide igelside(igel,0);
             TPZGeoElSide neigh = igelside.Neighbour();
             
             while (igelside != neigh) {
-                if (neigh.Element()->MaterialId()==5 && neigh.Element()->Dimension() == 1) {
+                if (neigh.Element()->MaterialId()==TPZFracData::EBCLeft && neigh.Element()->Dimension() == 1) {
                     break;
                 }
                 neigh = neigh.Neighbour();
@@ -1052,7 +1049,7 @@ void TPZDarcyAnalysis::DarcyGmesh(TPZGeoMesh * gmesh)
             if (igelside == neigh) {
                 continue;
             }
-            igel->SetMaterialId(10);
+            igel->SetMaterialId(10); // Not being used
         }
     }
     
@@ -1063,7 +1060,7 @@ REAL TPZDarcyAnalysis::Qtip()
 {
     fgmesh->ResetReference();
     fcmeshMixed->LoadReferences();
-    const int bcOfTip = 8;
+    const int bcOfTip = TPZFracData::EBCOutlet;
     const long nel = fcmeshMixed->NElements();
     TPZCompEl *cel = NULL;
     for (long iel = 0; iel < nel; iel++) {
@@ -1088,7 +1085,7 @@ REAL TPZDarcyAnalysis::Qtip()
     }
     
     //Here mat 6 means fracture elements
-    TPZMaterial *Material = fcmeshMixed->FindMaterial(6);
+    TPZMaterial *Material = fcmeshMixed->FindMaterial(TPZFracData::EMatFrac);
     TPZMatfrac1dhdiv * MaterialOfFract = dynamic_cast<TPZMatfrac1dhdiv *>(Material);
 
     
@@ -1166,24 +1163,6 @@ REAL  TPZDarcyAnalysis::RunUntilOpen()
   return fData->AccumVl();
 }
 
-TPZGeoEl * TPZDarcyAnalysis::FindPressureBCElement()
-{
-  TPZGeoEl *gel = NULL;
-  const int bcpressureid = -2;
-  for (long iel = 0; iel < fgmesh->NElements(); iel++) {
-    gel = fgmesh->ElementVec()[iel];
-    if (gel->MaterialId() == bcpressureid) {
-      break;
-    }
-  }
-#ifdef DEBUG
-  if (gel == NULL) {
-    DebugStop();
-  }
-#endif
-  return gel;
-}
-
 REAL TPZDarcyAnalysis::QOfAFreshNewElement()
 {
   const REAL dt = fData->TimeStep();
@@ -1208,7 +1187,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
         if (!cel) continue;
         TPZGeoEl * gel = cel->Reference();
         
-        if (gel->Dimension() != 1 || gel->MaterialId() != 6) {
+      if (gel->Dimension() != 1 || gel->MaterialId() != TPZFracData::EMatFrac) {
             continue;
         }
         
@@ -1218,7 +1197,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
         
         // Seeking for condition 1
         while (gelside!= neigh) {
-            if (neigh.Element()->Dimension()==0 && neigh.Element()->MaterialId() == 8) {
+            if (neigh.Element()->Dimension()==0 && neigh.Element()->MaterialId() == TPZFracData::EBCOutlet) {
                 break;
             }
             neigh = neigh.Neighbour();
@@ -1233,7 +1212,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
         
         // Seeking for condition 2
         while (gelsideleft != neighTip) {
-            if (neighTip.Element()->Dimension() == 1 && neighTip.Element()->MaterialId() == 6 ) {
+            if (neighTip.Element()->Dimension() == 1 && neighTip.Element()->MaterialId() == TPZFracData::EMatFrac ) {
                 break;
             }
             neighTip = neighTip.Neighbour();
@@ -1275,7 +1254,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
         TPZGeoElSide gelsidesecondleft(gelleft,0);
         TPZGeoElSide neighsecondeleft = gelsidesecondleft.Neighbour();
         while (gelsidesecondleft != neighsecondeleft) {
-            if (neighsecondeleft.Element()->Dimension() == 1 && neighsecondeleft.Element()->MaterialId() == 6 ) {
+            if (neighsecondeleft.Element()->Dimension() == 1 && neighsecondeleft.Element()->MaterialId() == TPZFracData::EMatFrac) {
                 break;
             }
             neighsecondeleft = neighsecondeleft.Neighbour();
@@ -1314,7 +1293,7 @@ int TPZDarcyAnalysis::HowManyFracElement()
     long nfracel = 0;
     for (long iel = 0; iel < nel; iel++) {
         TPZGeoEl *gel = fgmesh->Element(iel);
-        if (gel->MaterialId() == 6) {
+        if (gel->MaterialId() == TPZFracData::EMatFrac) {
             nfracel++;
         }
     }
@@ -1364,9 +1343,9 @@ void TPZDarcyAnalysis::SetIntPointMemory()
 void TPZDarcyAnalysis::AcceptSolution(TPZAnalysis *an)
 {
     //Here mat 6 means fracture elements
-    TPZMaterial *material = fcmeshMixed->FindMaterial(20);
+    TPZMaterial *material = fcmeshMixed->FindMaterial(TPZFracData::EMatInterFrac);
     TPZMatfrac1dhdiv * materialOfFract = dynamic_cast<TPZMatfrac1dhdiv *>(material);
-    material = fcmeshMixed->FindMaterial(1);
+    material = fcmeshMixed->FindMaterial(TPZFracData::EMatDarcy);
     TPZMatDarcy2dhdiv * materialOfDarcy = dynamic_cast<TPZMatDarcy2dhdiv *>(material);
     materialOfFract->SetUpdateMem();
     materialOfDarcy->SetNotContribute();
@@ -1388,7 +1367,7 @@ void TPZDarcyAnalysis::ComputeFirstSolForOneELement(TPZAnalysis * an)
     TPZGeoEl *gel = NULL;
     for (int iel = 0; iel < nel; iel++) {
         gel = fgmesh->Element(iel);
-        if (gel->MaterialId() == 6) {
+        if (gel->MaterialId() == TPZFracData::EMatFrac) {
             break;
         }
     }
@@ -1461,7 +1440,7 @@ void TPZDarcyAnalysis::SetPressureOnNewElement(TPZAnalysis *an)
         
         // Seeking for condition 1
         while (gelside!= neigh) {
-            if (neigh.Element()->Dimension()==0 && neigh.Element()->MaterialId() == 8) {
+            if (neigh.Element()->Dimension()==0 && neigh.Element()->MaterialId() == TPZFracData::EBCOutlet) {
                 break;
             }
             neigh = neigh.Neighbour();
@@ -1500,7 +1479,7 @@ void TPZDarcyAnalysis::SetPressureOnNewElement(TPZAnalysis *an)
 void TPZDarcyAnalysis::CreateGeoMeshQuad(int npropag, int nrefy, REAL ly)
 {
   fgmesh = new TPZGeoMesh;
-  const int matiddarcy = 1, bcbot = 2, bcright = 3, bctop = 4, bcleft = 5;
+  const int matiddarcy = TPZFracData::EMatDarcy, bcbot = TPZFracData::EBCBottom, bcright = TPZFracData::EBCRight, bctop = TPZFracData::EBCTop, bcleft = TPZFracData::EBCLeft;
   
   
   int ndivV = npropag;
@@ -1651,7 +1630,7 @@ void TPZDarcyAnalysis::SwitchTipElement(TPZCompEl * cel, TPZCompEl *celpoint, TP
   for (int iel=0; iel < nel; iel++) {
     TPZCompEl *cel = fmeshvec[0]->Element(iel);
     if (!cel) continue;
-    if (cel->Reference()->MaterialId() == 6) {
+    if (cel->Reference()->MaterialId() == TPZFracData::EMatFrac) {
       cel->LoadElementReference();
     }
   }

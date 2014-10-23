@@ -137,6 +137,9 @@ private:
   
 public:
   
+  /** @brief Enum for materials Ids */
+  enum MadIds {EMatDarcy = 1, EBCBottom = 2, EBCRight = 3, EBCTop = 4, EBCLeft = 5, EMatFrac = 6, EMatInterFrac = 20, EBCInlet = 7, EBCOutlet = 8};
+  
   /** @brief Returns w based on pfrac */
   REAL GetW(REAL pfrac) const;
   
