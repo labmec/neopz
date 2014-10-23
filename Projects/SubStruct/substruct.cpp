@@ -44,6 +44,8 @@
 #include <fstream>
 #include <string>
 
+#include "pzfstrmatrix.h"
+
 #ifdef LOG4CXX
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
 static LoggerPtr logger(Logger::getLogger("main"));
@@ -143,6 +145,14 @@ int main1(int argc, char *argv[])
 		int numthread_assemble = 4;
 		int numthread_decompose = 4;
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
+        //
+        TPZFStructMatrix fullstruct(cmeshauto);
+        fullstruct.SetNumThreads(nu)
+        long sz = cmeshauto->NEquations();
+        TPZFMatrix<STATE> rhs_t(sz, 1);
+        fullstruct.Assemble(rhs_t, 0);
+        return 0;
+        
 		TPZDohrStructMatrix dohrstruct(cmeshauto);
 		
 		dohrstruct.IdentifyExternalConnectIndexes();

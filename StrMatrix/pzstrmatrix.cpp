@@ -47,7 +47,7 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 
 #define SCA_PERF
 
-//#define NEW_MULTI_THREAD_ASSEMBLE
+#define NEW_MULTI_THREAD_ASSEMBLE
 
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
 	fMesh = mesh;
@@ -1312,8 +1312,6 @@ void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointe
         tht::CreateThread( allthreads[itr], ThreadData::ThreadWorkResidual, &threaddata);
     }
     
-    ThreadData::ThreadAssembly(&threaddata);
-    
     for(itr=0; itr<numthreads; itr++)
     {
         tht::ThreadWaitFor(allthreads[itr]);
@@ -1491,7 +1489,7 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
                 data->fNextElement++;
             }
             else if (data->felBlocked.size() || data->felBlocked.begin()->first <= localiel){
-                //std::cout << "Vou dormir!--------------" << std::endl;
+                std::cout << "Vou dormir!--------------" << std::endl;
                 //        std::cout << "data->fNextElement = " << localiel << std::endl;
                 //        std::cout << "data->felBlocked.begin().first = " << data->felBlocked.begin()->first << std::endl;
                 //SleepConditionVariableCS(&data->fCondition, &data->fAccessElement, INFINITE);
@@ -1602,7 +1600,8 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
     return 0;
 }
 
-// The function which will compute the assembly
+
+// The function which willcompute the assembly
 void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 {ThreadData *data = (ThreadData *) threaddata;
     TPZCompMesh *cmesh = data->fStruct->Mesh();
