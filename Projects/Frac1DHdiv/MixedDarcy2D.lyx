@@ -1,30 +1,32 @@
-#LyX 2.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 474
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
 \textclass article
 \begin_preamble
-\usepackage[round]{natbib}
 % Use this for SI units system
-\usepackage{siunitx}
-\usepackage{multirow}
+\usepackage{siunitx}\usepackage{multirow}
+
+
+
+\usepackage{babel}
 \end_preamble
-\use_default_options true
+\use_default_options false
 \maintain_unincluded_children false
 \language english
 \language_package default
-\inputencoding auto
+\inputencoding latin9
 \fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
-\font_math auto
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
+
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -35,25 +37,16 @@
 \use_hyperref false
 \papersize default
 \use_geometry true
-\use_package amsmath 1
-\use_package amssymb 1
-\use_package cancel 0
-\use_package esint 1
-\use_package mathdots 1
-\use_package mathtools 0
-\use_package mhchem 1
-\use_package stackrel 0
-\use_package stmaryrd 0
-\use_package undertilde 0
-\cite_engine basic
-\cite_engine_type default
-\biblio_style plain
+\use_amsmath 2
+\use_esint 2
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine natbib_authoryear
 \use_bibtopic false
 \use_indices false
 \paperorientation portrait
 \suppress_date false
-\justification true
-\use_refstyle 1
+\use_refstyle 0
 \index Index
 \shortcut idx
 \color #008000
@@ -93,11 +86,11 @@ Philippe R.
 \begin_inset Newline newline
 \end_inset
 
-Nathan Shauer
+ Nathan Shauer
 \begin_inset Newline newline
 \end_inset
 
-Omar Duran.
+ Omar Duran.
 \end_layout
 
 \begin_layout Section
@@ -109,18 +102,6 @@ Volumetric Flux
 \end_layout
 
 \begin_layout Standard
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\strikeout off
-\uuline off
-\uwave off
-\noun off
-\color none
 \begin_inset Formula 
 \begin{equation}
 \mathbf{\tilde{v}}=-K\frac{1}{\mu_{f}}grad\left(P\right)
@@ -252,7 +233,7 @@ defining
 \begin_inset Formula $\left\{ \underset{\gamma_{e}}{\int}\left[\left[P\right]\right]\; v_{n}\;\partial\gamma_{e}\right\} =0$
 \end_inset
 
- 
+
 \end_layout
 
 \begin_layout Standard
