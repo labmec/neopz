@@ -62,11 +62,11 @@ void InitialPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
     //    REAL x = pt[0];
     //    REAL y = pt[1];
-    disp[0] = 20.0e6;// 20 MPa
+    disp[0] = 20;// this->fData->SigmaConf()
 }
 
 /** @brief Analytic pressure field */
-void PressureAnal(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux)
+void PressureAnalytic(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &sol, TPZFMatrix<STATE> &flux)
 {
 #ifdef USING_BOOST
     REAL x = pt[0], t=time;
@@ -122,7 +122,8 @@ void TPZDarcyAnalysis::Run()
     while (fmustStop == false)
     {
         bool propagate = SolveSistTransientWithFracture(an);
-        if (this->HowManyFracElement() == npropag){ // So it can not propagate further than domain in x
+        const int nfracel = this->HowManyFracElement();
+        if (nfracel == npropag - 1){ // So it can not propagate further than domain in x
           propagate = false;
           fmustStop = true;
         }
@@ -270,7 +271,7 @@ TPZGeoMesh * TPZDarcyAnalysis::CreateGMesh(const int nel)
 
 TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
 {
-    const int matId2d = TPZFracData::EMatDarcy, bcBottomId = TPZFracData::EBCBottom, bcRightId = TPZFracData::EBCRight, bcTopId = TPZFracData::EBCTop, bcLeftId = TPZFracData::EBCLeft, bcBottomIdAux = 10;
+    const int matId2d = TPZFracData::EMatDarcy, bcBottomId = TPZFracData::EBCBottom, bcRightId = TPZFracData::EBCRight, bcTopId = TPZFracData::EBCTop, bcLeftId = TPZFracData::EBCLeft, bcBottomIdAux = TPZFracData::EBCAuxBottom;
     const int matId1d = TPZFracData::EMatFrac, MatINterface = TPZFracData::EMatInterFrac;
     const int bcinlet = TPZFracData::EBCInlet, bcoutlet = TPZFracData::EBCOutlet;
     const int typeFlux = 0, typePressure = 1;
@@ -298,9 +299,9 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
     cmesh->InsertMaterialObject(bcLeft);
     
-    // Bc Left
-    TPZBndCond * AuxbcLeft = mat->CreateBC(mat, bcBottomIdAux, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(AuxbcLeft);
+    // Bc Bottom being used for insert Qtip
+    TPZBndCond * Auxbcbottom = mat->CreateBC(mat, bcBottomIdAux, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(Auxbcbottom);
 
     // Interface material
     TPZMatfrac1dhdiv *mat1d = new TPZMatfrac1dhdiv(matId1d);
@@ -353,7 +354,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshFluxHdiv()
 TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
 {
 
-    const int matId2d = TPZFracData::EMatDarcy, bcBottomId = TPZFracData::EBCBottom, bcRightId = TPZFracData::EBCRight, bcTopId = TPZFracData::EBCTop, bcLeftId = TPZFracData::EBCLeft, bcBottomIdAux = 10;
+    const int matId2d = TPZFracData::EMatDarcy, bcBottomId = TPZFracData::EBCBottom, bcRightId = TPZFracData::EBCRight, bcTopId = TPZFracData::EBCTop, bcLeftId = TPZFracData::EBCLeft, bcBottomIdAux = TPZFracData::EBCAuxBottom;
     const int matId1d = TPZFracData::EMatFrac, MatINterface = TPZFracData::EMatInterFrac;
     const int bcinlet = TPZFracData::EBCInlet, bcoutlet = TPZFracData::EBCOutlet;
     const int typeFlux = 0, typePressure = 1;
@@ -382,9 +383,9 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
     
-    // Bc Left
-    TPZBndCond * AuxbcLeft = mat->CreateBC(mat, bcBottomIdAux, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(AuxbcLeft);
+    // Bc Bottom being used for insert Qtip
+    TPZBndCond * Auxbcbottom = mat->CreateBC(mat, bcBottomIdAux, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(Auxbcbottom);
     
     // Material da fratura
     TPZMatfrac1dhdiv *matInterface1d = new TPZMatfrac1dhdiv(MatINterface);
@@ -450,7 +451,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
 TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed(TPZFMatrix<REAL> Vl)
 {
     // Definicao de ids e tipos
-    const int matId2d = TPZFracData::EMatDarcy, bcBottomId = TPZFracData::EBCBottom, bcRightId = TPZFracData::EBCRight, bcTopId = TPZFracData::EBCTop, bcLeftId = TPZFracData::EBCLeft, bcBottomIdAux = 10;
+    const int matId2d = TPZFracData::EMatDarcy, bcBottomId = TPZFracData::EBCBottom, bcRightId = TPZFracData::EBCRight, bcTopId = TPZFracData::EBCTop, bcLeftId = TPZFracData::EBCLeft, bcBottomIdAux = TPZFracData::EBCAuxBottom;
     const int matId1d = TPZFracData::EMatFrac, MatINterface = TPZFracData::EMatInterFrac;
     const int bcinlet = TPZFracData::EBCInlet, bcoutlet = TPZFracData::EBCOutlet;
     const int typeFlux = 0, typePressure = 1;
@@ -464,7 +465,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed(TPZFMatrix<REAL> Vl)
     mat->SetSimulationData(fData);
     cmesh->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact = new TPZDummyFunction<STATE>(PressureAnal);
+    TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact = new TPZDummyFunction<STATE>(PressureAnalytic);
     mat->SetTimeDependentFunctionExact(TimeDepFExact);
     
     // Bc Bottom
@@ -477,7 +478,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed(TPZFMatrix<REAL> Vl)
     // Bc Right
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
+    val2(2,0) = 20.0;
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
     
@@ -495,12 +496,12 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed(TPZFMatrix<REAL> Vl)
     TPZBndCond * bcLeft = mat->CreateBC(mat, bcLeftId, typeFlux, val1, val2);
  	cmesh->InsertMaterialObject(bcLeft);
     
-    // Bc Left
-    val2(0,0) = 0.0;// Massic flux 5.0 kg/s over 100000 m2
-    val2(1,0) = Vl(0,0)/fData->Time();
+    // Bc Bottom being used for insert Qtip
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZBndCond * AuxbcLeft = mat->CreateBC(mat, bcBottomIdAux, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(AuxbcLeft);
+    TPZBndCond * Auxbcbottom = mat->CreateBC(mat, bcBottomIdAux, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(Auxbcbottom);
     
     // Material da fratura
     TPZMatfrac1dhdiv *matInterface1d = new TPZMatfrac1dhdiv(MatINterface);
@@ -630,7 +631,10 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
   
   TPZAutoPointer< TPZMatrix<REAL> > matK; // getting X(Uatn)
   
-  while(error > tol && iter < numiter) {
+  bool updateQtipBC = false, notconverged = true;
+  const int numberofstepsafterqtip = 2;
+  int stepsafterqtip = 0;
+  while(notconverged && iter < numiter) {
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -661,11 +665,9 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     }
 #endif
     
-    
     an->LoadSolution(Uatk); // Loading Uatk
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
     an->Assemble();
-    
     
     //#ifdef LOG4CXX
     //    if(logger->isDebugEnabled())
@@ -693,11 +695,24 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     double norm = NormOfDeltaU; //ResidualNorm;
     out << "Iteration n : " << (iter+1) << " : norms ||DeltaU|| e ||[R(Uatk)]|| : " << NormOfDeltaU << " / " << ResidualNorm << std::endl;
     
-    if(norm < tol /*|| NormResLambda < tol*/) {
+    if(norm < tol /*|| NormResLambda < tol*/ && updateQtipBC == false) {
       out << "\nNewton Converged! Tolerance Of Norm(DeltaU) at n : " << (iter+1) << std::endl;
       out << "Norm ||DeltaU|| - USED : " << NormOfDeltaU << std::endl;
       out << "Norm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
-      
+      out << "-------------------- DOING ONE MORE STEP IN ORDER TO CONVERGE THE QTIP ON DARCY MESH --------------------" << std::endl;
+      TPZMaterial *mat = fcmeshMixed->FindMaterial(TPZFracData::EBCAuxBottom);
+      TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+      bnd->Val2()(1,0) = this->Qtip()/fData->ElSize()/2.0;
+      updateQtipBC = true;
+    }
+    else if (updateQtipBC && norm < tol){
+      out << "\nNewton Converged! Tolerance Of Norm(DeltaU) at n : " << (iter+1) << std::endl;
+      out << "Norm ||DeltaU|| - USED : " << NormOfDeltaU << std::endl;
+      out << "Norm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
+      if (stepsafterqtip == numberofstepsafterqtip) {
+        notconverged = false;
+      }
+      stepsafterqtip++;
     }
     else if( (ResidualNorm - NormResLambdaLast) > 1.e-4 ) {
       out << "\nDivergent Method\n" << "Implement Line Search Please!!!!!!!!!!!!!!!!!!!!" << std::endl;
@@ -724,6 +739,11 @@ void TPZDarcyAnalysis::PrintGeometricMesh(TPZGeoMesh * gmesh)
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
 }
 
+void TPZDarcyAnalysis::PrintComputatiolaMeshInfo(TPZCompMesh * cmesh)
+{
+  std::ofstream argument("ComputationalMesh.txt");
+  cmesh->Print(argument);
+}
 
 void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
 {
@@ -840,7 +860,7 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
         if (igel->HasSubElement()) {
             continue;
         }
-      if(igel->MaterialId()== TPZFracData::EBCBottom)
+      if(igel->MaterialId()== TPZFracData::EBCBottom || igel->MaterialId()== TPZFracData::EBCAuxBottom)
         {
             TPZGeoElSide igelside(igel,0);
             TPZGeoElSide neigh = igelside.Neighbour();
@@ -869,6 +889,7 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
                 igel->CreateBCGeoEl(2, TPZFracData::EMatInterFrac);
                 fgmesh->AddInterfaceMaterial(TPZFracData::EMatDarcy, TPZFracData::EMatFrac, TPZFracData::EMatInterFrac);
                 fgmesh->AddInterfaceMaterial(TPZFracData::EMatFrac, TPZFracData::EMatDarcy, TPZFracData::EMatInterFrac);
+                this->SwitchBCInFrontOfFrac(igel);
                 break;
             }else if (Neigel->MaterialId()==TPZFracData::EBCOutlet)
             {
@@ -884,6 +905,7 @@ void TPZDarcyAnalysis::InsertFracGeoMesh()
               
                 TPZCompEl * cel = igel->Reference();
                 SwitchTipElement(cel, celneighel, newbcgel);
+                this->SwitchBCInFrontOfFrac(igel);
 
                 break;
             }
@@ -954,7 +976,9 @@ void TPZDarcyAnalysis::InsertFracCompMesh()
       break;
     }
   }
-    
+  
+// this->PrintComputatiolaMeshInfo(fcmeshMixed);
+  
     // Colocando a dependencia entre a ponta da fratura e o elemento de darcy a frente
   if(0){
     fgmesh->ResetReference();
@@ -1049,7 +1073,7 @@ void TPZDarcyAnalysis::DarcyGmesh(TPZGeoMesh * gmesh)
             if (igelside == neigh) {
                 continue;
             }
-            igel->SetMaterialId(10); // Not being used
+          igel->SetMaterialId(TPZFracData::EBCAuxBottom); // Not being used
         }
     }
     
@@ -1305,13 +1329,13 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(TPZFMatrix<REAL> Vl)
     fmeshvec[0] = CreateCMeshFluxHdiv();
     fmeshvec[1] = CreateCMeshPressureL2();
     
-    //    // Initial Pressure
-    //    TPZVec<STATE> solini(1,0.0);
-    //    TPZCompMesh  * cmeshL2 = L2ProjectionP(fgmesh, fData->PorderPressure(), solini);
-    //    TPZAnalysis anL2(cmeshL2);
-    //    SolveSyst(anL2, cmeshL2);
-    //    fmeshvec[1]->LoadSolution(anL2.Solution());
-    
+    // Initial Pressure
+    TPZVec<STATE> solini(1,0.0);
+    TPZCompMesh  * cmeshL2 = L2ProjectionP(fgmesh, fData->PorderPressure(), solini);
+    TPZAnalysis anL2(cmeshL2);
+    SolveSyst(anL2, cmeshL2);
+    fmeshvec[1]->LoadSolution(anL2.Solution());
+  
     fcmeshMixed = CreateCMeshMixed(Vl);
     
     // Transferindo para a multifisica
@@ -1605,6 +1629,7 @@ void TPZDarcyAnalysis::SwitchTipElement(TPZCompEl * cel, TPZCompEl *celpoint, TP
   while (gelside != neigh) {
     TPZMultiphysicsInterfaceElement * intel = dynamic_cast<TPZMultiphysicsInterfaceElement *> (neigh.Element()->Reference());
     if (intel) {
+      intel->Reference()->Print();
       delete intel;
       break;
     }
@@ -1695,3 +1720,47 @@ void TPZDarcyAnalysis::SetInterfaceConnects()
     
   }
 }
+
+void TPZDarcyAnalysis::SwitchBCInFrontOfFrac(TPZGeoEl * gel)
+{
+  if (!gel) {
+    DebugStop();
+  }
+  
+  TPZGeoElSide gelside(gel,1);
+  TPZGeoElSide neigh = gelside.Neighbour();
+  fgmesh->ResetReference();
+  int count = 0;
+  if (fcmeshMixed) fcmeshMixed->LoadReferences();
+  while (gelside != neigh) {
+    if (neigh.Element()->MaterialId() == TPZFracData::EBCBottom && neigh.Element()->Dimension() == 1 ) {
+      if (fcmeshMixed) {
+        TPZMultiphysicsElement *mcel = dynamic_cast<TPZMultiphysicsElement *>(neigh.Element()->Reference());
+        TPZMultiphysicsInterfaceElement * intmcel = dynamic_cast<TPZMultiphysicsInterfaceElement *>(neigh.Element()->Reference());
+        if (mcel) {
+          neigh.Element()->SetMaterialId(TPZFracData::EBCAuxBottom);
+          count++;
+        }
+        if (intmcel) {
+          neigh.Element()->SetMaterialId(TPZFracData::EBCAuxBottom);
+          count++;
+        }
+        
+        if (count == 2) {
+          break;
+        }
+        
+      }
+      else{
+        neigh.Element()->SetMaterialId(TPZFracData::EBCAuxBottom);
+        break;
+      }
+    }
+    neigh = neigh.Neighbour();
+  }
+  if (gelside == neigh){
+    DebugStop();
+  }
+  
+}
+

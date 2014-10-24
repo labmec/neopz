@@ -80,6 +80,9 @@ public:
     /** @brief Print geometric mesh in VTK */
     void PrintGeometricMesh(TPZGeoMesh * gmesh);
 
+    /** @brief Print geometric mesh in VTK */
+    void PrintComputatiolaMeshInfo(TPZCompMesh * cmesh);
+
     /** @brief adjust mtid's for propagation */
     void InsertFracGeoMesh();
   
@@ -136,6 +139,9 @@ public:
   
     /** @brief Sets the fconnectvec of interface multiphysics elements */
     void SetInterfaceConnects();
+  
+    /** @brief Switch hdivboud element to auxiliar qtip inlet */
+    void SwitchBCInFrontOfFrac(TPZGeoEl * gel);
   
 private:
     

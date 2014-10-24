@@ -300,7 +300,7 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
     }
   }
   
-  REAL qN = -1.0;  // HERE -> Normal Flux
+  REAL qN = -ql;  // HERE -> Normal Flux
   
   
   for(int iq=0; iq < QRowsleft; iq++)
