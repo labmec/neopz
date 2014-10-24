@@ -15,9 +15,9 @@ class TPZCutHillMcKee : public TPZRenumbering {
 
   struct SGraph{
 
-    TPZManVector<int> fnodegraph;
+    TPZManVector<long> fnodegraph;
 
-    TPZManVector<int> fnodegraphindex;
+    TPZManVector<long> fnodegraphindex;
 
     int NNodes(){
       return fnodegraphindex.NElements()-1;
