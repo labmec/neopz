@@ -18,14 +18,14 @@ int main()
   InitializePZLOG(FileName);
 #endif
   
-  TPZMaterial::gBigNumber = 1.e9;
+  TPZMaterial::gBigNumber = 1.e7;
   
   // ---------- Parametros ----------
   // Reservoir Data
   const REAL phi = 0.1;
   TPZFMatrix<STATE> Kabolute(2,2,0.0);
-  Kabolute(0,0) = 4.93466e-14;// 4.93466e-14 m2 -> 50 md
-  Kabolute(1,1) = 4.93466e-14;// 4.93466e-14 m2 -> 50 md
+  Kabolute(0,0) = (1.0e6)*4.93466e-14;// 4.93466e-14 m2 -> 50 md
+  Kabolute(1,1) = (1.0e6)*4.93466e-14;// 4.93466e-14 m2 -> 50 md
   REAL day    = 86400.0;
   REAL year    = 365.0*day;
   
@@ -43,12 +43,12 @@ int main()
   const int pOrdQFrac = 1;
   const int pOrdPFrac = 0;
   const int nel = 100;
-  const int npropag = 3;
-  const int hy = 2;
-  const REAL Ly = 100.;
+  const int npropag = 5;
+  const int hy = 4;
+  const REAL Ly = 100.0;
   const REAL elsize = 50.0;
   std::string PostProcessFileName = "SemiCoupled.vtk";
-  const int nthreadsForAssemble = 0; // if 0, program is serial
+  const int nthreadsForAssemble = 8; // if 0, program is serial
   
   // Fluid Data
   const REAL mu = 1.0e-8; // 1.0e-3 Pa*s -> 1 Centipoise cp
