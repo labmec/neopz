@@ -19,6 +19,8 @@
 
 #include "pzgnode.h"
 #include "TPZTimer.h"
+#include "TPZThreadTools.h"
+
 
 #include "pzcheckconsistency.h"
 #include "pzmaterial.h"
@@ -41,7 +43,11 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.strmatrix.checkconsistency"))
 static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
-#define NEW_MULTI_THREAD_ASSEMBLE
+#ifdef USING_TBB
+using namespace tbb::flow;
+#endif
+
+//#define NEW_MULTI_THREAD_ASSEMBLE
 
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
     fMesh = mesh;
@@ -50,6 +56,10 @@ TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilt
     TPZManVector<int> ElementOrder;
     TPZStructMatrix::OrderElement(this->Mesh(), ElementOrder);
     TPZStructMatrix::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
+#endif
+    
+#ifdef USING_TBB
+    fAssembleThreadGraph=new GraphThreadData(this, fMaterialIds, 0);
 #endif
 }
 
@@ -60,6 +70,10 @@ TPZStructMatrix::TPZStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(
     TPZManVector<int> ElementOrder;
     TPZStructMatrix::OrderElement(this->Mesh(), ElementOrder);
     TPZStructMatrix::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
+#endif
+    
+#ifdef USING_TBB
+    fAssembleThreadGraph=new GraphThreadData(this, fMaterialIds, 0);
 #endif
 }
 
@@ -74,9 +88,19 @@ TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy) : fMesh(copy.fMesh
     felSequenceColor = copy.felSequenceColor;
     fnextBlocked = copy.fnextBlocked;
 #endif
+    
+#ifdef USING_TBB
+    fAssembleThreadGraph=new GraphThreadData(this, fMaterialIds, 0);
+#endif
 }
 
-TPZStructMatrix::~TPZStructMatrix() {}
+TPZStructMatrix::~TPZStructMatrix() {
+#ifdef USING_TBB
+    if (fAssembleThreadGraph) {
+        delete fAssembleThreadGraph;
+    }
+#endif
+}
 
 TPZMatrix<STATE> *TPZStructMatrix::Create() {
     cout << "TPZStructMatrix::Create should never be called\n";
@@ -547,6 +571,8 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<ST
 
 void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
+    
+#ifndef USING_TBB
     //please implement me
     //	this->Serial_Assemble(rhs, guiInterface);
     ThreadData threaddata(this,rhs,fMaterialIds,guiInterface);
@@ -571,6 +597,11 @@ void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointe
     {
         PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
     }
+#else
+    fAssembleThreadGraph->fGlobRhs=&rhs;
+    fAssembleThreadGraph->fStart.try_put(continue_msg());
+    fAssembleThreadGraph->fAssembleGraph.wait_for_all();
+#endif
     
 }
 
@@ -951,278 +982,6 @@ void TPZStructMatrix::ThreadData::ComputedElementMatrix(long iel, TPZAutoPointer
 }
 
 #else
-
-#include "TPZThreadTools.h"
-
-static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<int> &elContribute)
-{
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        if (elContribute[connectlist[i]] >= 0){
-            return false;
-        }
-    }
-    return true;
-}
-
-static void AssembleColor(int el,TPZStack<long> &connectlist, TPZVec<int> &elContribute)
-{
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        elContribute[connectlist[i]] = el;
-    }
-}
-
-static int WhoBlockedMe(TPZStack<long> &connectlist, TPZVec<int> &elContribute, TPZVec<int> &elSeqinv)
-{
-    int el = -1;
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        int elBlocked = elContribute[connectlist[i]];
-        if (elBlocked == -1) continue;
-        int elBlockedIndex = elSeqinv[elBlocked];
-        if (el == -1) el = elBlockedIndex;
-        if (elBlockedIndex < el) el = elBlockedIndex;
-    }
-    return el;
-}
-
-static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<int> &elContribute,int elSequence)
-{
-    TPZCompEl *cel = cmesh->ElementVec()[el];
-    if(!cel) DebugStop();
-    TPZStack<long> connectlist;
-    cel->BuildConnectList(connectlist);
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        int conindex = connectlist[i];
-        if (elContribute[conindex] != elSequence){
-            DebugStop();
-        }
-        elContribute[conindex] = -1;
-    }
-}
-
-static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<int> &elContribute, TPZVec<int> &passIndex)
-{
-    int minPassIndex = -1;
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        int elcont = elContribute[connectlist[i]];
-        int passindex = -1;
-        if (elcont != -1){
-            passindex = passIndex[elcont];
-            if (minPassIndex == -1) minPassIndex = passindex;
-        }
-        if (minPassIndex < passindex) minPassIndex = passindex;
-    }
-    return minPassIndex;
-}
-
-void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
-{
-    if(mat.Rows() != rhs.Rows())
-    {
-        DebugStop();
-    }
-    
-    ThreadData threaddata(this, mat, rhs, fMaterialIds, guiInterface);
-    threaddata.fnextBlocked=&fnextBlocked;
-    threaddata.felSequenceColor=&felSequenceColor;
-    
-    const int numthreads = this->fNumThreads;
-    TPZVec<pz_thread_t> allthreads(numthreads);
-    
-    int itr;
-    if(guiInterface){
-        if(guiInterface->AmIKilled()){
-            return;
-        }
-    }
-    
-    
-    
-    for(itr=0; itr<numthreads; itr++)
-    {
-        tht::CreateThread( allthreads[itr], ThreadData::ThreadWork, &threaddata);
-    }
-    
-    for(itr=0; itr<numthreads; itr++)
-    {
-        tht::ThreadWaitFor(allthreads[itr]);
-    }
-    
-}
-void TPZStructMatrix::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor,
-                                      TPZVec<int> &elBlocked)
-{
-    
-    const int nnodes = cmesh->NConnects();
-    const int nel = cmesh->ElementVec().NElements();
-    
-    TPZManVector<int> elContribute(nnodes,-1), passIndex(nel,-1), elSequenceColorInv(nel,-1);
-    elSequenceColor.Resize(nel);
-    elSequenceColor.Fill(-1);
-    elBlocked.Resize(nel);
-    elBlocked.Fill(-1);
-    int nelProcessed = 0;
-    int currentEl = 0;
-    int currentPassIndex = 0;
-    while (nelProcessed < elSequence.NElements()){
-        
-        int elindex = elSequence[currentEl];
-        
-        if(elSequenceColorInv[elindex] == -1)
-        {
-            TPZCompEl *cel = cmesh->ElementVec()[elindex];
-            
-            
-            if(!cel) continue;
-            TPZStack<long> connectlist;
-            cel->BuildConnectList(connectlist);
-            //      std::cout << "elcontribute " << elContribute << std::endl;
-            //      std::cout << "connectlist " << connectlist << std::endl;
-            int minPass = MinPassIndex(connectlist,elContribute,passIndex);
-            if (minPass == -1){
-                passIndex[elindex] = currentPassIndex;
-                AssembleColor(elindex,connectlist,elContribute);
-                elSequenceColor[nelProcessed] = elindex;
-                elSequenceColorInv[elindex] = nelProcessed;
-                nelProcessed++;
-            }
-            else if (minPass == currentPassIndex){
-            }
-            else if (minPass < currentPassIndex){
-                while (!CanAssemble(connectlist,elContribute)){
-                    const int el = WhoBlockedMe(connectlist,elContribute, elSequenceColorInv);
-                    if (elBlocked[el] == -1) elBlocked[el] = nelProcessed;
-                    int locindex = elSequenceColor[el];
-                    RemoveEl(locindex,cmesh,elContribute,locindex);
-                    //          std::cout << "elcontribute " << elContribute << std::endl;
-                }
-                passIndex[elindex] = currentPassIndex;
-                AssembleColor(elindex,connectlist,elContribute);
-                elSequenceColor[nelProcessed] = elindex;
-                elSequenceColorInv[elindex] = nelProcessed;
-                nelProcessed++;
-            }
-            else{
-                DebugStop();
-            }
-        }
-        currentEl++;
-        if (currentEl == elSequence.NElements()){
-            currentEl = 0;
-            currentPassIndex++;
-        }
-    }
-    
-    //std::cout << "sequence: " << elSequence << std::endl;
-    //std::cout << "color: " << elSequenceColorInv << std::endl;
-    
-    
-    //    exit(101);
-    /*
-     std::ofstream toto("c:\\Temp\\output\\ColorMeshDebug.txt");
-     toto << "elSequence\n" << elSequence << std::endl;
-     toto << "elSequenceColor\n" << elSequenceColor << std::endl;
-     toto << "elSequenceColorInv\n" << elSequenceColorInv << std::endl;
-     toto << "elBlocked\n" << elBlocked << std::endl;
-     toto << "elContribute\n" << elContribute << std::endl;
-     toto << "passIndex\n" << passIndex << std::endl;
-     toto.close();
-     */
-}
-
-void TPZStructMatrix::OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder)
-{
-    
-    int numelconnected = 0;
-    int nconnect = cmesh->ConnectVec().NElements();
-    int ic;
-    //firstelconnect contains the first element index in the elconnect vector
-    TPZVec<int> firstelconnect(nconnect+1);
-    firstelconnect[0] = 0;
-    for(ic=0; ic<nconnect; ic++) {
-        numelconnected += cmesh->ConnectVec()[ic].NElConnected();
-        firstelconnect[ic+1] = firstelconnect[ic]+cmesh->ConnectVec()[ic].NElConnected();
-    }
-    //cout << "numelconnected " << numelconnected << endl;
-    //cout << "firstelconnect ";
-    //  for(ic=0; ic<nconnect; ic++) cout << firstelconnect[ic] << ' ';
-    TPZVec<int> elconnect(numelconnected,-1);
-    int el;
-    TPZCompEl *cel;
-    for(el=0; el<cmesh->ElementVec().NElements(); el++) {
-        cel = cmesh->ElementVec()[el];
-        if(!cel) continue;
-        TPZStack<long> connectlist;
-        cel->BuildConnectList(connectlist);
-        int nc = connectlist.NElements();
-        int ic;
-        for(ic=0; ic<nc; ic++) {
-            int cindex = connectlist[ic];
-            elconnect[firstelconnect[cindex]] = el;
-            firstelconnect[cindex]++;
-        }
-    }
-    //  for(ic=0; ic<numelconnected; ic++) cout << elconnect[ic] << endl;
-    firstelconnect[0] = 0;
-    for(ic=0; ic<nconnect; ic++) {
-        firstelconnect[ic+1] = firstelconnect[ic]+cmesh->ConnectVec()[ic].NElConnected();
-    }
-    //cout << "elconnect\n";
-    //  int no;
-    //  for(no=0; no< fMesh->ConnectVec().NElements(); no++) {
-    //cout << "no numero " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
-    //       for(ic=firstelconnect[no]; ic<firstelconnect[no+1];ic++) cout << elconnect[ic] << ' ';
-    //cout << endl;
-    //  }
-    
-    ElementOrder.Resize(cmesh->ElementVec().NElements(),-1);
-    ElementOrder.Fill(-1);
-    TPZVec<int> nodeorder(cmesh->ConnectVec().NElements(),-1);
-    firstelconnect[0] = 0;
-    for(ic=0; ic<nconnect; ic++) {
-        int seqnum = cmesh->ConnectVec()[ic].SequenceNumber();
-        if(seqnum >= 0) nodeorder[seqnum] = ic;
-    }
-    //  cout << "nodeorder ";
-    /*  for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) cout << nodeorder[ic] << ' ';
-     cout << endl;
-     cout.flush();*/
-    int seq;
-    int elsequence = 0;
-    TPZVec<int> elorderinv(cmesh->ElementVec().NElements(),-1);
-    for(seq=0; seq<nconnect; seq++) {
-        ic = nodeorder[seq];
-        if(ic == -1) continue;
-        int firstind = firstelconnect[ic];
-        int lastind = firstelconnect[ic+1];
-        int ind;
-        for(ind=firstind; ind<lastind; ind++) {
-            el = elconnect[ind];
-            if(el == -1) {
-                continue;
-            }
-            if(elorderinv[el]==-1) elorderinv[el] = elsequence++;
-        }
-    }
-    //  cout << "elorderinv ";
-    //  for(seq=0;seq<fMesh->ElementVec().NElements();seq++) cout << elorderinv[seq] << ' ';
-    //  cout << endl;
-    elsequence = 0;
-    for(seq=0;seq<cmesh->ElementVec().NElements();seq++) {
-        if(elorderinv[seq] == -1) continue;
-        ElementOrder[elorderinv[seq]] = seq;
-    }
-    
-    for(seq=0;seq<cmesh->ElementVec().NElements();seq++) {
-        if(ElementOrder[seq]==-1) break;
-    }
-    
-    ElementOrder.Resize(seq);
-}
 
 void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
@@ -1718,4 +1477,308 @@ void TPZStructMatrix::ThreadData::ComputedElementMatrix(long iel, TPZAutoPointer
 
 #endif
 
+#ifdef USING_TBB
+TPZStructMatrix::GraphThreadData::GraphThreadData(TPZStructMatrix *strmat, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface)
+:fStart(fAssembleGraph), fStruct(strmat), fGuiInterface(guiInterface)
+{
+    
+    TPZManVector<int> ElementOrder;
+    TPZStructMatrix::OrderElement(fStruct->Mesh(), ElementOrder);
+    TPZStructMatrix::ElementColoring(fStruct->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
+    
+    fGraphNodes.resize(felSequenceColor.NElements());
+    for (int i=0; i<felSequenceColor.NElements(); i++) {
+        fGraphNodes[i]= new continue_node<continue_msg>(fAssembleGraph, GraphThreadNode(this, i));
+    }
+    // initial edges to independent nodes
+    for (int i=0; i<felSequenceColor.NElements(); i++) {
+        make_edge(fStart, *fGraphNodes[i]);
+    }
+    // edges from sucessors to nextBlockedElements
+    for (int i=0; i<felSequenceColor.NElements(); i++) {
+        int next=fnextBlocked[i];
+        if (next>0) make_edge(*fGraphNodes[i], *fGraphNodes[next]);
+    }
+    
+}
+
+void TPZStructMatrix::GraphThreadNode::operator()(tbb::flow::continue_msg) const {
+    //    sleep(1);
+    //    printf("processing element: %d -> %d\n", iel, data->felSequenceColor[iel]);
+    
+    
+    TPZCompMesh *cmesh = data->fStruct->Mesh();
+    TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
+    
+    int element = data->felSequenceColor[iel];
+    
+    if (iel >= 0){
+        TPZCompEl *el = cmesh->ElementVec()[element];
+        
+        el->CalcResidual(ef);
+        
+        if(!el->HasDependency()) {
+            ef.ComputeDestinationIndices();
+            data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+        } else {
+            // the element has dependent nodes
+            ef.ApplyConstraints();
+            ef.ComputeDestinationIndices();
+            data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+        }
+        
+        // assemble the matrix
+        if(data->fGlobMatrix){
+            if(!ef.HasDependency()) {
+                data->fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+            } else {
+                data->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+            }
+        }
+    }
+    
+}
+// destructor
+TPZStructMatrix::GraphThreadData::~GraphThreadData() {
+    for (int i=0; i<felSequenceColor.NElements(); i++) {
+        delete fGraphNodes[i];
+    }
+}
+#endif
+
+static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<int> &elContribute)
+{
+    for (int i = 0 ; i < connectlist.NElements() ; i++)
+    {
+        if (elContribute[connectlist[i]] >= 0){
+            return false;
+        }
+    }
+    return true;
+}
+
+static void AssembleColor(int el,TPZStack<long> &connectlist, TPZVec<int> &elContribute)
+{
+    for (int i = 0 ; i < connectlist.NElements() ; i++)
+    {
+        elContribute[connectlist[i]] = el;
+    }
+}
+
+static int WhoBlockedMe(TPZStack<long> &connectlist, TPZVec<int> &elContribute, TPZVec<int> &elSeqinv)
+{
+    int el = -1;
+    for (int i = 0 ; i < connectlist.NElements() ; i++)
+    {
+        int elBlocked = elContribute[connectlist[i]];
+        if (elBlocked == -1) continue;
+        int elBlockedIndex = elSeqinv[elBlocked];
+        if (el == -1) el = elBlockedIndex;
+        if (elBlockedIndex < el) el = elBlockedIndex;
+    }
+    return el;
+}
+
+static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<int> &elContribute,int elSequence)
+{
+    TPZCompEl *cel = cmesh->ElementVec()[el];
+    if(!cel) DebugStop();
+    TPZStack<long> connectlist;
+    cel->BuildConnectList(connectlist);
+    for (int i = 0 ; i < connectlist.NElements() ; i++)
+    {
+        int conindex = connectlist[i];
+        if (elContribute[conindex] != elSequence){
+            DebugStop();
+        }
+        elContribute[conindex] = -1;
+    }
+}
+
+static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<int> &elContribute, TPZVec<int> &passIndex)
+{
+    int minPassIndex = -1;
+    for (int i = 0 ; i < connectlist.NElements() ; i++)
+    {
+        int elcont = elContribute[connectlist[i]];
+        int passindex = -1;
+        if (elcont != -1){
+            passindex = passIndex[elcont];
+            if (minPassIndex == -1) minPassIndex = passindex;
+        }
+        if (minPassIndex < passindex) minPassIndex = passindex;
+    }
+    return minPassIndex;
+}
+
+void TPZStructMatrix::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor,
+                                      TPZVec<int> &elBlocked)
+{
+    
+    const int nnodes = cmesh->NConnects();
+    const int nel = cmesh->ElementVec().NElements();
+    
+    TPZManVector<int> elContribute(nnodes,-1), passIndex(nel,-1), elSequenceColorInv(nel,-1);
+    elSequenceColor.Resize(nel);
+    elSequenceColor.Fill(-1);
+    elBlocked.Resize(nel);
+    elBlocked.Fill(-1);
+    int nelProcessed = 0;
+    int currentEl = 0;
+    int currentPassIndex = 0;
+    while (nelProcessed < elSequence.NElements()){
+        
+        int elindex = elSequence[currentEl];
+        
+        if(elSequenceColorInv[elindex] == -1)
+        {
+            TPZCompEl *cel = cmesh->ElementVec()[elindex];
+            
+            
+            if(!cel) continue;
+            TPZStack<long> connectlist;
+            cel->BuildConnectList(connectlist);
+            //      std::cout << "elcontribute " << elContribute << std::endl;
+            //      std::cout << "connectlist " << connectlist << std::endl;
+            int minPass = MinPassIndex(connectlist,elContribute,passIndex);
+            if (minPass == -1){
+                passIndex[elindex] = currentPassIndex;
+                AssembleColor(elindex,connectlist,elContribute);
+                elSequenceColor[nelProcessed] = elindex;
+                elSequenceColorInv[elindex] = nelProcessed;
+                nelProcessed++;
+            }
+            else if (minPass == currentPassIndex){
+            }
+            else if (minPass < currentPassIndex){
+                while (!CanAssemble(connectlist,elContribute)){
+                    const int el = WhoBlockedMe(connectlist,elContribute, elSequenceColorInv);
+                    if (elBlocked[el] == -1) elBlocked[el] = nelProcessed;
+                    int locindex = elSequenceColor[el];
+                    RemoveEl(locindex,cmesh,elContribute,locindex);
+                    //          std::cout << "elcontribute " << elContribute << std::endl;
+                }
+                passIndex[elindex] = currentPassIndex;
+                AssembleColor(elindex,connectlist,elContribute);
+                elSequenceColor[nelProcessed] = elindex;
+                elSequenceColorInv[elindex] = nelProcessed;
+                nelProcessed++;
+            }
+            else{
+                DebugStop();
+            }
+        }
+        currentEl++;
+        if (currentEl == elSequence.NElements()){
+            currentEl = 0;
+            currentPassIndex++;
+        }
+    }
+    
+    //std::cout << "sequence: " << elSequence << std::endl;
+    //std::cout << "color: " << elSequenceColorInv << std::endl;
+    
+    
+    //    exit(101);
+    /*
+     std::ofstream toto("c:\\Temp\\output\\ColorMeshDebug.txt");
+     toto << "elSequence\n" << elSequence << std::endl;
+     toto << "elSequenceColor\n" << elSequenceColor << std::endl;
+     toto << "elSequenceColorInv\n" << elSequenceColorInv << std::endl;
+     toto << "elBlocked\n" << elBlocked << std::endl;
+     toto << "elContribute\n" << elContribute << std::endl;
+     toto << "passIndex\n" << passIndex << std::endl;
+     toto.close();
+     */
+}
+
+void TPZStructMatrix::OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder)
+{
+    
+    int numelconnected = 0;
+    int nconnect = cmesh->ConnectVec().NElements();
+    int ic;
+    //firstelconnect contains the first element index in the elconnect vector
+    TPZVec<int> firstelconnect(nconnect+1);
+    firstelconnect[0] = 0;
+    for(ic=0; ic<nconnect; ic++) {
+        numelconnected += cmesh->ConnectVec()[ic].NElConnected();
+        firstelconnect[ic+1] = firstelconnect[ic]+cmesh->ConnectVec()[ic].NElConnected();
+    }
+    //cout << "numelconnected " << numelconnected << endl;
+    //cout << "firstelconnect ";
+    //  for(ic=0; ic<nconnect; ic++) cout << firstelconnect[ic] << ' ';
+    TPZVec<int> elconnect(numelconnected,-1);
+    int el;
+    TPZCompEl *cel;
+    for(el=0; el<cmesh->ElementVec().NElements(); el++) {
+        cel = cmesh->ElementVec()[el];
+        if(!cel) continue;
+        TPZStack<long> connectlist;
+        cel->BuildConnectList(connectlist);
+        int nc = connectlist.NElements();
+        int ic;
+        for(ic=0; ic<nc; ic++) {
+            int cindex = connectlist[ic];
+            elconnect[firstelconnect[cindex]] = el;
+            firstelconnect[cindex]++;
+        }
+    }
+    //  for(ic=0; ic<numelconnected; ic++) cout << elconnect[ic] << endl;
+    firstelconnect[0] = 0;
+    for(ic=0; ic<nconnect; ic++) {
+        firstelconnect[ic+1] = firstelconnect[ic]+cmesh->ConnectVec()[ic].NElConnected();
+    }
+    //cout << "elconnect\n";
+    //  int no;
+    //  for(no=0; no< fMesh->ConnectVec().NElements(); no++) {
+    //cout << "no numero " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
+    //       for(ic=firstelconnect[no]; ic<firstelconnect[no+1];ic++) cout << elconnect[ic] << ' ';
+    //cout << endl;
+    //  }
+    
+    ElementOrder.Resize(cmesh->ElementVec().NElements(),-1);
+    ElementOrder.Fill(-1);
+    TPZVec<int> nodeorder(cmesh->ConnectVec().NElements(),-1);
+    firstelconnect[0] = 0;
+    for(ic=0; ic<nconnect; ic++) {
+        int seqnum = cmesh->ConnectVec()[ic].SequenceNumber();
+        if(seqnum >= 0) nodeorder[seqnum] = ic;
+    }
+    //  cout << "nodeorder ";
+    /*  for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) cout << nodeorder[ic] << ' ';
+     cout << endl;
+     cout.flush();*/
+    int seq;
+    int elsequence = 0;
+    TPZVec<int> elorderinv(cmesh->ElementVec().NElements(),-1);
+    for(seq=0; seq<nconnect; seq++) {
+        ic = nodeorder[seq];
+        if(ic == -1) continue;
+        int firstind = firstelconnect[ic];
+        int lastind = firstelconnect[ic+1];
+        int ind;
+        for(ind=firstind; ind<lastind; ind++) {
+            el = elconnect[ind];
+            if(el == -1) {
+                continue;
+            }
+            if(elorderinv[el]==-1) elorderinv[el] = elsequence++;
+        }
+    }
+    //  cout << "elorderinv ";
+    //  for(seq=0;seq<fMesh->ElementVec().NElements();seq++) cout << elorderinv[seq] << ' ';
+    //  cout << endl;
+    elsequence = 0;
+    for(seq=0;seq<cmesh->ElementVec().NElements();seq++) {
+        if(elorderinv[seq] == -1) continue;
+        ElementOrder[elorderinv[seq]] = seq;
+    }
+    
+    for(seq=0;seq<cmesh->ElementVec().NElements();seq++) {
+        if(ElementOrder[seq]==-1) break;
+    }
+    
+    ElementOrder.Resize(seq);
+}
 

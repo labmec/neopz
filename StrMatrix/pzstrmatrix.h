@@ -26,6 +26,11 @@ class TPZFMatrix;
 
 #include "TPZGuiInterface.h"
 
+#ifdef USING_TBB
+#include "tbb/tbb.h"
+#include "tbb/flow_graph.h"
+#endif
+
 /**
  * @brief Refines geometrical mesh (all the elements) num times 
  * @ingroup geometry
@@ -79,11 +84,11 @@ public:
 	virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     /** @brief Find the order to assemble the elements */
-    void OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder);
+    static void OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder);
     
     /** @brief Create blocks of elements to parallel processing */
     
-    void ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor, TPZVec<int> &elBlocked);
+    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor, TPZVec<int> &elBlocked);
     
 protected:
 	
@@ -206,12 +211,51 @@ protected:
         static void *ThreadWorkResidual(void *datavoid);
 		
 	};
-    	
+#ifdef USING_TBB
+    struct GraphThreadData {
+        // create tbb::flow::graph
+        GraphThreadData(TPZStructMatrix *strmat, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        // destructor
+        ~GraphThreadData();
+        // tbb tasks graph
+        tbb::flow::graph fAssembleGraph;
+        // initial node
+        tbb::flow::broadcast_node<tbb::flow::continue_msg> fStart;
+        // store all the nodes
+        std::vector<tbb::flow::continue_node<tbb::flow::continue_msg>* > fGraphNodes;
+        // vector for coloring mesh
+        TPZVec<int> fnextBlocked, felSequenceColor;
+        
+        
+        /// current structmatrix object
+        TPZStructMatrix *fStruct;
+        /// gui interface object
+        TPZAutoPointer<TPZGuiInterface> fGuiInterface;
+        /// global matrix
+        TPZMatrix<STATE> *fGlobMatrix;
+        /// global rhs vector
+        TPZFMatrix<STATE> *fGlobRhs;
+    };
+    
+    struct GraphThreadNode {
+        GraphThreadData *data;
+        int iel;
+        GraphThreadNode(GraphThreadData *data, int el)
+        : data(data), iel(el) {}
+        void operator()(tbb::flow::continue_msg) const;
+    };
+    
+#endif
+    
 	friend struct ThreadData;
 protected:
 	
 	/** @brief Pointer to the computational mesh from which the matrix will be generated */
 	TPZCompMesh * fMesh;
+#ifdef USING_TBB
+    /** @brief Pointer to the tbb::parallel graph structure */
+    GraphThreadData *fAssembleThreadGraph;
+#endif
     
     /** @brief Autopointer control of the computational mesh */
     TPZAutoPointer<TPZCompMesh> fCompMesh;

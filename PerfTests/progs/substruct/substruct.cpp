@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
         
         VERBOSE(1, "Number of equations " << cmeshauto->NEquations() << endl);
 
-#define ASSEMBLE_PERF
+//#define ASSEMBLE_PERF
 #ifdef ASSEMBLE_PERF
         TPZFStructMatrix fullstruct(cmeshauto);
         fullstruct.SetNumThreads(nt_a.get_value());
