@@ -206,18 +206,7 @@ protected:
         static void *ThreadWorkResidual(void *datavoid);
 		
 	};
-    
-#ifdef USING_TBB
-    class StructMatrixTask {
-    public:
-        ThreadData *threaddata;
-        StructMatrixTask( ThreadData *data) : threaddata(data) {}
-        void operator()() {
-            ThreadData::ThreadWork(threaddata);
-        }
-    };
-#endif
-	
+    	
 	friend struct ThreadData;
 protected:
 	

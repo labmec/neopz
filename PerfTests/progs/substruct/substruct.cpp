@@ -216,8 +216,6 @@ struct likwid_manager_t {
 
 #endif
 
-
-
 int main(int argc, char *argv[])
 {
     
@@ -227,9 +225,6 @@ int main(int argc, char *argv[])
     
 #ifdef LOG4CXX
     InitializePZLOG("log4cxx.cfg");
-#endif
-#ifdef USING_TBB
-    task_scheduler_init init;
 #endif
     
 #ifdef USING_BLAS
@@ -252,6 +247,12 @@ int main(int argc, char *argv[])
         help(argv[0]);
         return 1;
     }
+    
+#ifdef USING_TBB
+    int number_tbb=nt_a.get_value();
+    if(number_tbb<=0)number_tbb=1;
+    task_scheduler_init init(number_tbb);
+#endif
     
     /* Verbose macro. */
     unsigned verbose = verb_level.get_value();
@@ -329,13 +330,15 @@ int main(int argc, char *argv[])
         
         VERBOSE(1, "Number of equations " << cmeshauto->NEquations() << endl);
 
-//#define ASSEMBLE_PERF
+#define ASSEMBLE_PERF
 #ifdef ASSEMBLE_PERF
         TPZFStructMatrix fullstruct(cmeshauto);
         fullstruct.SetNumThreads(nt_a.get_value());
         long sz = cmeshauto->NEquations();
         TPZFMatrix<STATE> rhs_t(sz, 1);
+        PERF_START(assemble_rst);
         fullstruct.Assemble(rhs_t, 0);
+        PERF_STOP(assemble_rst);
         return 0;
 #endif
         
