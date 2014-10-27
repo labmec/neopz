@@ -467,6 +467,11 @@ public:
     {
         fCurrentConfig.fFluidModel = fmodel;
     }
+
+    void SetWellConfig(EWellConfiguration fwconfig)
+    {
+        fCurrentConfig.fWellConfig = fwconfig;
+    }
     
    void SetSanderDiMaggioParameters(REAL poisson, REAL Elast, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)
     {
