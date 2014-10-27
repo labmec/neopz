@@ -630,19 +630,18 @@ void Config4()
     well.SetConfinementEffectiveStresses(confinement, effectiveWellPressure);
     well.SetInnerOuterRadius(innerradius, outerradius);
     
-    bool modelMC =false;
-    if (modelMC)
+    bool modelMC = false;
+    EPlasticModel Emodel = EMohrCoulomb;
+    if (Emodel == EMohrCoulomb)
     {
         REAL poisson = 0.203;
         REAL elast = 29269.;
         REAL cohesion = 13.;
         REAL Phi = 0.52;
-        well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
-        
+        well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);        
     }
-    else
+    else if (Emodel == ESandler)
     {
-        
         REAL poisson = 0.203;
         REAL elast = 29269.;
         REAL A = 152.54;
@@ -652,7 +651,14 @@ void Config4()
         REAL D = 0.018768;
         REAL W = 0.006605;
         well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
-        
+    }
+    else if (Emodel == EElastic){ // Mohr-Coulomb with a VERY far way surface
+      REAL poisson = 0.203;
+      REAL elast = 29269.;
+      REAL cohesion = 1.e8; // Very very big
+      REAL Phi = 1.5533430342749532; // 89 degrees
+      well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
+      well.GetCurrentConfig()->fModel = EElastic;
     }
     
     

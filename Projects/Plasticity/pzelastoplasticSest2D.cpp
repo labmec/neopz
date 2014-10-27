@@ -144,7 +144,7 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::VariableIndex(const std::string &name)
   if(!strcmp("PlStrainXZ",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainXZ;
   if(!strcmp("PlStrainYZ",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainYZ;
   if(!strcmp("PlStrainSqJ2",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainSqJ2;
-  if(!strcmp("PlStrainSqJ2El",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainSqJ2El;
+  if(!strcmp("PlStrainSqJ2El",		name.c_str()))  return 100;//return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainSqJ2El;
   if(!strcmp("PlAlpha",			name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlAlpha;
   if(!strcmp("DisplacementX",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementX;
   if(!strcmp("DisplacementY",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementY;
@@ -243,7 +243,7 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::NSolutionVariables(int var)
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress3)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface1)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface2)		 return 1;
-  if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface3)		 return -1;
+  if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface3)		 return -1; // Should never be called
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPOrder)			 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ENSteps)			 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPorePressure)		 return 1;
@@ -264,19 +264,24 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
   plasticloc.SetState(Memory.fPlasticState);
   TPZTensor<REAL> & totalStrain = Memory.fPlasticState.fEpsT;
   TPZTensor<REAL> & plasticStrain = Memory.fPlasticState.fEpsP;
-  
+
+  //Elastic Strain
   TPZTensor<REAL> elasticStrain = totalStrain; // Look at line below
   elasticStrain -= plasticStrain; // here it becomes elasticStrain
   
   TPZTensor<REAL> & Sigma = Memory.fSigma;
+
+  //Total Stress
+  TPZTensor<REAL> totalStress = Sigma;
   
-  if (!this->fForcingFunction) {
-    DebugStop();
-  }
   TPZManVector<STATE,3> AlphagradP(2);
   TPZFNMatrix<1,STATE> AlphaP(1,1);
-  this->fForcingFunction->Execute(data.x,AlphagradP,AlphaP);
-  
+  if (this->fForcingFunction) {
+    this->fForcingFunction->Execute(data.x,AlphagradP,AlphaP);
+    totalStress.XX() -= AlphaP(0,0);
+    totalStress.YY() -= AlphaP(0,0);
+    totalStress.ZZ() -= AlphaP(0,0);
+  }
   
   switch (var) {
     // Total Strain
@@ -360,58 +365,146 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
       Solout[0] = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[0];
       break;
     case EDisplacementY:
-      Solout[1] = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[1];
+      Solout[0] = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[1];
       break;
     case EDisplacementZ:
-      Solout[2] = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[2];
+      Solout[0] = 0.; //DUVIDA
       break;
     case EDisplacementTotal:
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i < 2; i++) {
         Solout[i] = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i];
       }
       break;
       // Total Stress
     case ETotStressI1:
+      Solout[0] = totalStress.I1();
+      break;
     case ETotStressJ2:
+      Solout[0] = totalStress.J2();
+      break;
     case ETotStressXX:
+      Solout[0] = totalStress.XX();
+      break;
     case ETotStressYY:
-      DebugStop();
+      Solout[0] = totalStress.YY();
       break;
     case ETotStressZZ:
-      Solout[0] = Sigma.ZZ()-AlphaP(0,0);
+      Solout[0] = totalStress.ZZ();
       break;
     case ETotStressXY:
+      Solout[0] = totalStress.XY();
+      break;
     case ETotStressXZ:
+      Solout[0] = totalStress.XZ();
+      break;
     case ETotStressYZ:
+      Solout[0] = totalStress.YZ();
+      break;
     case ETotStress1:
+      {
+        TPZTensor<STATE> eigenval;
+        totalStress.EigenValue(eigenval);
+        Solout[0] = eigenval.XX();
+      }
+      break;
     case ETotStress2:
+      {
+        TPZTensor<STATE> eigenval;
+        totalStress.EigenValue(eigenval);
+        Solout[0] = eigenval.YY();
+      }
+      break;
     case ETotStress3:
-      // Effective stress
+      {
+        TPZTensor<STATE> eigenval;
+        totalStress.EigenValue(eigenval);
+        Solout[0] = eigenval.ZZ();
+      }
+      break;
+    // Effective stress
     case EEffStressI1:
+      Solout[0] = Sigma.I1();
+      break;
     case EEffStressJ2:
+      Solout[0] = Sigma.J2();
+      break;
     case EEffStressXX:
+      Solout[0] = Sigma.XX();
+      break;
     case EEffStressYY:
+      Solout[0] = Sigma.YY();
+      break;
     case EEffStressZZ:
+      Solout[0] = Sigma.ZZ();
+      break;
     case EEffStressXY:
+      Solout[0] = Sigma.XY();
+      break;
     case EEffStressXZ:
+      Solout[0] = Sigma.XZ();
+      break;
     case EEffStressYZ:
+      Solout[0] = Sigma.YZ();
+      break;
     case EEffStress1:
+      {
+        TPZTensor<STATE> eigenval;
+        Sigma.EigenValue(eigenval);
+        Solout[0] = eigenval.XX();
+      }
+      break;
     case EEffStress2:
+      {
+        TPZTensor<STATE> eigenval;
+        Sigma.EigenValue(eigenval);
+        Solout[0] = eigenval.YY();
+      }
+      break;
     case EEffStress3:
-      // Yield Surface
+      {
+        TPZTensor<STATE> eigenval;
+        Sigma.EigenValue(eigenval);
+        Solout[0] = eigenval.ZZ();
+      }
+      break;
+    // Yield Surface
     case EYieldSurface1:
+      {
+        TPZManVector<STATE,3> yieldVal(3,0.);
+        plasticloc.Phi(elasticStrain,yieldVal);
+        Solout[0] = yieldVal[0];
+      }
+      break;
     case EYieldSurface2:
+      {
+        TPZManVector<STATE,3> yieldVal(3,0.);
+        plasticloc.Phi(elasticStrain,yieldVal);
+        Solout[0] = yieldVal[1];
+      }
+      break;
     case EYieldSurface3:
-      // Simulation
+      DebugStop();
+      break;
+    // Simulation
     case EPOrder:
+      Solout[0] = data.p;
+      break;
     case ENSteps:
+   		Solout[0] = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps;
+      break;
       // Pore pressure
     case EPorePressure:
+      Solout[0] = AlphaP(0,0)/fbiot;
+      break;
       // Material
     case EMatPorosity:
+      Solout[0] = 6378; // AQUINATHAN raio da terra
+      break;
     case EMatE:
+      Solout[0] = plasticloc.fER.E();
+      break;
     case EMatPoisson:
-      DebugStop();
+      Solout[0] = plasticloc.fER.Poisson();
       break;
     default:
       DebugStop();

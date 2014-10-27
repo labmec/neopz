@@ -498,7 +498,7 @@ public:
 		fCurrentConfig.fMCPV.fYC.SetUp(Phi, Psi, c, ER);
 		fCurrentConfig.fMCPV.fER.SetUp(Elast,poisson);
 
-        fCurrentConfig.fModel = EMohrCoulomb;
+    fCurrentConfig.fModel = EMohrCoulomb;
 #else
 		PZError << "You have to define PV to use MohrCoulombPV!" << std::endl;
 		DebugStop();

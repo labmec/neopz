@@ -748,7 +748,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         
         std::set<int> matids;
         matids.insert(1);
-        TPZVec<STATE> verticalForce = analysis.Integrate("ETotStressZZ", matids);
+        TPZVec<STATE> verticalForce = analysis.Integrate("TotStressZZ", matids);
         REAL MeshArea = workablemesh->Reference()->Area();
         STATE verticalStress = verticalForce[0]/(M_PI_4*(fCurrentConfig.fOuterRadius*fCurrentConfig.fOuterRadius-fCurrentConfig.fInnerRadius*fCurrentConfig.fInnerRadius));
         std::cout << "Vertical force " << verticalForce << std::endl;
@@ -1051,8 +1051,8 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE factor)
     mat = fCMesh.FindMaterial(1);
     TPZAutoPointer<TPZFunction<STATE> > force = mat->ForcingFunction();
     if (!force) {
-        force = new TPBrBiotForce();
-		mat->SetForcingFunction(force);
+      force = new TPBrBiotForce();
+      mat->SetForcingFunction(force);
     }
     
     TPBrBiotForce *biotforce = dynamic_cast<TPBrBiotForce *>(force.operator->());
@@ -1510,7 +1510,7 @@ STATE TPZWellBoreAnalysis::TConfig::AverageVerticalStress()
 {
     std::set<int> matids;
     matids.insert(1);
-    TPZVec<STATE> verticalForce = fCMesh.Integrate("ETotStressZZ", matids);
+    TPZVec<STATE> verticalForce = fCMesh.Integrate("TotStressZZ", matids);
     REAL MeshArea = fCMesh.Reference()->Area();
     return verticalForce[0]/MeshArea;
 }
@@ -2046,7 +2046,7 @@ void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, s
     }
 #endif
     // force the post process mesh to be regenerated
-    fPostprocess.SetCompMesh(0);
+    fPostprocess.SetCompMesh(0); //AQUIPHIL
 }
 
 /// Divide the element using the plastic deformation as threshold
@@ -2301,38 +2301,80 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 /// Get the post processing variables
 void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames, TPZStack<std::string> &vecNames)
 {
-    scalNames.Resize(0);
-    vecNames.Resize(0);
+  scalNames.Resize(0);
+  vecNames.Resize(0);
+  
+  scalNames.Push("StrainVol");
+  scalNames.Push("StrainXX");
+  scalNames.Push("StrainYY");
+  scalNames.Push("StrainZZ");
+  scalNames.Push("StrainXY");
+  scalNames.Push("StrainXZ");
+  scalNames.Push("StrainYZ");
 
-//    scalNames.Push("Alpha");
-//    scalNames.Push("PlasticSqJ2");
-//    scalNames.Push("PlasticSqJ2El");
-//    scalNames.Push("POrder");
-//    scalNames.Push("I1Stress");
-//    scalNames.Push("J2Stress");
-//
-//    scalNames.Push("VolElasticStrain");
-//    scalNames.Push("VolPlasticStrain");
-//    scalNames.Push("VolTotalStrain");
-//    scalNames.Push("PlasticSteps");
-    scalNames.Push("ETotStressZZ");
-    
+  scalNames.Push("ElStrainVol");
+  scalNames.Push("ElStrainXX");
+  scalNames.Push("ElStrainYY");
+  scalNames.Push("ElStrainZZ");
+  scalNames.Push("ElStrainXY");
+  scalNames.Push("ElStrainXZ");
+  scalNames.Push("ElStrainYZ");
 
-//    vecNames.Push("TotalPlasticStrain"); // x y z
-//    vecNames.Push("ShearStress"); //xy xz yz
-//    vecNames.Push("ShearStrain"); //xy xz yz
-//    vecNames.Push("NormalStress");//
-//    vecNames.Push("ShearStress");//
-//    vecNames.Push("PrincipalStress");//
-//    vecNames.Push("ShearStrain");//
-//    vecNames.Push("TotalPlasticStrain");//
+  scalNames.Push("PlStrainVol");
+  scalNames.Push("PlStrainXX");
+  scalNames.Push("PlStrainYY");
+  scalNames.Push("PlStrainZZ");
+  scalNames.Push("PlStrainXY");
+  scalNames.Push("PlStrainXZ");
+  scalNames.Push("PlStrainYZ");
+  
+  scalNames.Push("PlStrainSqJ2");
+  scalNames.Push("PlStrainSqJ2El");
+  scalNames.Push("PlAlpha");
 
-//    vecNames.Push("NormalStress");// x y z
-//    vecNames.Push("NormalStrain"); // x y z
-//    vecNames.Push("PrincipalStress"); //1 2 3
-//    //vecNames.Push("PrincipalStrain"); //1 2 3
-//    vecNames.Push("DisplacementMem"); // x y z
-//    vecNames.Push("YieldSurface");
+  scalNames.Push("DisplacementX");
+  scalNames.Push("DisplacementY");
+  scalNames.Push("DisplacementZ");
+  vecNames.Push("DisplacementTotal");
+
+  scalNames.Push("TotStressI1");
+  scalNames.Push("TotStressJ2");
+  scalNames.Push("TotStressXX");
+  scalNames.Push("TotStressYY");
+  scalNames.Push("TotStressZZ");
+  scalNames.Push("TotStressXY");
+  scalNames.Push("TotStressXZ");
+  scalNames.Push("TotStressYZ");
+  
+  scalNames.Push("TotStress1");
+  scalNames.Push("TotStress2");
+  scalNames.Push("TotStress3");
+  
+  scalNames.Push("EffStressI1");
+  scalNames.Push("EffStressJ2");
+  scalNames.Push("EffStressXX");
+  scalNames.Push("EffStressYY");
+  scalNames.Push("EffStressZZ");
+  scalNames.Push("EffStressXY");
+  scalNames.Push("EffStressXZ");
+  scalNames.Push("EffStressYZ");
+  
+  scalNames.Push("EffStress1");
+  scalNames.Push("EffStress2");
+  scalNames.Push("EffStress3");
+
+  scalNames.Push("YieldSurface1");
+  scalNames.Push("YieldSurface2");
+  
+  scalNames.Push("POrder");
+  scalNames.Push("NSteps");
+
+  scalNames.Push("PorePressure");
+
+  scalNames.Push("MatPorosity");
+  scalNames.Push("MatE");
+  scalNames.Push("MatPoisson");
+  
 }
 
 
@@ -3183,11 +3225,12 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     
 #ifdef PV
 	
-    if (fModel == EMohrCoulomb) {
+    if (fModel == EMohrCoulomb || fModel == EElastic) {
 
         bool planestrain=true;
         TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> &MC = fMCPV;
         TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlasticSest2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain,boundarytensor.ZZ());
+        PlasticMC->SetBiot(fBiotCoef);
 
 
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
@@ -3220,6 +3263,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
         bool planestrain=true;
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> &SD =fSDPV;
         TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> > *PlasticSD = new TPZMatElastoPlasticSest2D< TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> >(materialid,planestrain,boundarytensor.ZZ());
+        PlasticSD->SetBiot(fBiotCoef);
 
 
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
@@ -3383,7 +3427,7 @@ void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterialSest2D &m
 {
     REAL E,nu, lambda,G;
 #ifdef PV
-    if (fCurrentConfig.fModel == EMohrCoulomb) {
+    if (fCurrentConfig.fModel == EMohrCoulomb || fCurrentConfig.fModel == EElastic) {
         G = fCurrentConfig.fMCPV.fER.fMu;
         lambda = fCurrentConfig.fMCPV.fER.fLambda;
     }

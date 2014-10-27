@@ -35,7 +35,7 @@ class  TPZMatElastoPlasticSest2D : public TPZMatElastoPlastic2D<T,TMEM> //, TPZM
 {
 public:
   
-        enum SOLUTIONVARS{ENone = -1,
+    enum SOLUTIONVARS{ENone = -1,
 	  // Strain
 	  EStrainVol = 0,
 	  EStrainXX = 1,
@@ -169,7 +169,23 @@ public:
     {
         return fZDeformation;
     }
+
+    /**
+     * Set the biot coefficient
+     */
+    void SetBiot(STATE biot)
+    {
+      fbiot = biot;
+    }
     
+    /**
+     * @brief return the biot coefficient
+     */
+    STATE Biot()
+    {
+      return fbiot;
+    }
+  
     /**returns the variable index associated with the name*/
     virtual int VariableIndex(const std::string &name);
     
@@ -188,7 +204,9 @@ private:
      * @brief ZDeformation of the mesh
      */
     STATE fZDeformation;
-    
+  
+    /// constante de Biot
+    STATE fbiot;
 
 
 };
