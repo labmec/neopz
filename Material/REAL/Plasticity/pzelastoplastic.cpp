@@ -279,7 +279,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 
 	}//ENormalStress 
 	else
-    if(var == TPZMatElastoPlastic<T,TMEM>::EXStress){
+    if(var == TPZMatElastoPlastic<T,TMEM>::EYStress){
         TPZTensor<REAL> & Sigma = Memory.fSigma;
         Solout[0] = Sigma.YY();
     }
