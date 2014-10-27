@@ -1,144 +1,88 @@
 /**
  * @file
- * @brief Tests for sub structuration
- * @author Philippe Devloo
- * @since 2006
+ * @brief Example to Run Model Problem from Oden's Chapter I in a NeoPZ Environment
+ * @author Francisco Orlandini & Nathan Shauer
+ * @since 2014
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
+///Bibliotecas utilizadas por este programa
 #include <iostream>
-#include <cstdlib>
 #include <fstream>
 #include <string>
-#include "tpzgeoelrefpattern.h"
-#include "TPZGeoLinear.h"
-#include "pzgeopoint.h"
 #include "pzgmesh.h"
 #include "TPZVTKGeoMesh.h"
-#include "pzmat1dlin.h"
-#include "pzbndcond.h"
 #include "pzanalysis.h"
-#include "pzskylstrmatrix.h"
-#include "pzstepsolver.h"
-#include "pzelasmat.h"
-#include "TPZVTKGeoMesh.h"
+#include "pzbndcond.h"
+#include "TPZMatModelProblem.h"
 
+//------------------PROBLEMA MODELO------------------------
 
-#ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
-#endif
-
+/**
+ * @brief Funcao para criar a malha geometrica do problema a ser simulado
+ * @note A malha sera unidimensional formada por nel elementos de tamanho elsize
+ * @param nel numero de elementos
+ * @param elsize tamanho dos elementos
+ */
 TPZGeoMesh *CreateGMesh(long nel, REAL elsize);
+
+/**
+ * @brief Funcao para criar a malha computacional do problema a ser simulado
+ * @note Responsavel pela criacao dos espacos de aproximacao do problema
+ * @param gmesh malha geometrica
+ * @param pOrder ordem polinomial de aproximacao
+ */
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder);
 
-int mainEla2D();
-int mainSimples();
-int mainRascunho();
-
-TPZGeoMesh * GMesh2D();
-TPZCompMesh *CMesh2D(TPZGeoMesh *gmesh, const int porder);
-
-
+///Adiciona namespace std
 using namespace std;
 
+///Funcao principal do programa
 int main(int argc, char *argv[])
 {
-	return mainEla2D();
-}
+    int dim = 1;//dimensao do problema
+	REAL dom = 1.; //comprimento do dominio unidimensional com inicio na origem zero
+	int nel = 4; //numero de elementos a serem utilizados
+    int pOrder = 1; //ordem polinomial de aproximacao
+	REAL elsize = dom/nel; //tamanho de cada elemento
+	TPZGeoMesh *gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
+	
+	std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
+	
+	TPZCompMesh *cmesh = CMesh(gmesh, pOrder); //funcao para criar a malha computacional
 
-int mainEla2D()
-{
-	const int porder = 1;
-	TPZGeoMesh *gmesh = GMesh2D();
-	ofstream file("gMeshElast.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file, true);
-	TPZCompMesh *cmesh = CMesh2D(gmesh,porder);
-	
-	TPZCompEl *cel = cmesh->ElementVec()[0];
-	int ncon = cel->NConnects();
-	std::cout << "NCon = " << ncon << std::endl;
-	int ord = cel->Connect(8).Order();
-	std::cout << "ord = " << ord << std::endl;
-	int nstate = cel->Connect(8).NState();
-	std::cout << "nstate = " << nstate << std::endl;
-	
-	TPZAnalysis an(cmesh);
-	TPZStepSolver <REAL> step;
-	step.SetDirect(ECholesky);
-	an.SetSolver(step);
-	TPZSkylineStructMatrix skylstr(cmesh);
-	an.SetStructuralMatrix(skylstr);
-	an.Run();
-	std::cout << cmesh->Solution() << std::endl;
-	
-	TPZStack <std::string> vecnames,scalnames;
-	
-	vecnames.Push("displacement");
-	vecnames.Push("Strain");
-	scalnames.Push("SigmaY");
-  an.DefineGraphMesh(2, scalnames, vecnames, "outElast.vtk");
-	int resolution = 2;
-	an.PostProcess(resolution);
-	
-	return 0;
-}
-
-int mainRascunho()
-{
-	return 0;
-}
-
-int mainSimples(int argc, char *argv[])
-{
-	
-	// Gerar Problema Simples
-	
-	REAL dom = 1.;
-	long nel = 3, pOrder = 1;
-	REAL elsize = dom/nel;
-	TPZGeoMesh *gmesh = CreateGMesh(nel, elsize);
-	
-	std::ofstream out("gmesh.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
-	
-	TPZCompMesh *cmesh = CMesh(gmesh, pOrder);
-	
 	// Resolvendo o Sistema
-	TPZAnalysis an(cmesh);
-	TPZSkylineStructMatrix skyl(cmesh);
-	an.SetStructuralMatrix(skyl);
-	TPZStepSolver<REAL> step;
-	step.SetDirect(ECholesky);
-	an.SetSolver(step);
-	an.Run();
-	TPZFMatrix<REAL> solucao;
-	solucao = cmesh->Solution();
-	std::ofstream outomar("omar.nb");
-	solucao.Print("Sol",outomar,EMathematicaInput);
-	solucao.Print("Sol");
+    bool optimizeBandwidth = false; //impede a renumeracao das equacoes do problema(para obter o mesmo resultado do Oden)
+	TPZAnalysis an(cmesh, optimizeBandwidth); //cria objeto de analise que gerenciaria a analise do problema
+	an.Run();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
+    
+	TPZFMatrix<REAL> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
+	solucao.Print("Sol",cout,EMathematicaInput);//imprime na formatacao do Mathematica
 	
-	//Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
-	// PosProcessamentoiag
-	
-	 
+    //fazendo pos processamento para paraview
+    TPZStack<string> scalnames, vecnames;
+    scalnames.Push("State");//setando para imprimir u
+    string plotfile= "ModelProblemSol.vtk";//arquivo de saida que estara na pasta debug
+    an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
+	int postProcessResolution = 0;//define resolucao do pos processamento
+    an.PostProcess(postProcessResolution);//realiza pos processamento
+    
 	std::cout << "FINISHED!" << std::endl;
 	
 	return 0;
 }
 
 
-	 
+
 TPZGeoMesh *CreateGMesh(long nel, REAL elsize)
 {
-	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	TPZGeoMesh * gmesh = new TPZGeoMesh;//Inicializa objeto da classe TPZGeoMesh
 	
-	long nnodes = nel + 1;
-	gmesh->NodeVec().Resize(nnodes);
-	long mat1d = 1, bc0 = -1, bc1 = -2;
+	long nnodes = nel + 1; //numero de nos do problema
+	gmesh->NodeVec().Resize(nnodes); //Redimensiona o tamanho do vetor de nos da malha geometrica
+	int mat1d = 1; //define id para um material(formulacao fraca)
+    int bc0 = -1; //define id para um material(cond contorno esq)
+    int bc1 = -2; //define id para um material(cond contorno dir)
 	
 	// Colocando nos na malha
 	for (long i = 0 ; i < nnodes; i++) 
@@ -146,13 +90,14 @@ TPZGeoMesh *CreateGMesh(long nel, REAL elsize)
 		const REAL pos = i * elsize;
 		TPZVec <REAL> coord(3,0.);
 		coord[0] = pos;
-		gmesh->NodeVec()[i].SetCoord(coord);
-		gmesh->NodeVec()[i].SetNodeId(i);
+		gmesh->NodeVec()[i].SetCoord(coord); //seta coordenada de um no no vetor de nos da malha
+		gmesh->NodeVec()[i].SetNodeId(i); //atribui identificacao para um no
 	}
 	
 	// Criando Elementos
-	TPZVec <long> topol(2), TopolPoint(1);
-	long id = 0;
+	TPZVec <long> topol(2); //vetor que sera inicializado com o indice dos nos de um elemento unidimensional
+    TPZVec <long> TopolPoint(1); //vetor que sera inicializado com o indice do no de um elemento zero-dimensional
+	long id; //id do elemento que sera preenchido pelo metodo CreateGeoElement
 	
 	for (long iel = 0; iel < nel; iel++) 
 	{
@@ -160,177 +105,53 @@ TPZGeoMesh *CreateGMesh(long nel, REAL elsize)
 		const long ino2 = iel + 1;
 		topol[0] = ino1;
 		topol[1] = ino2;
-		
-		new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,topol,mat1d,*gmesh);
-		id++;
+        gmesh->CreateGeoElement(EOned, topol, mat1d, id);//cria elemento unidimensional
+        gmesh->ElementVec()[id];
 	}
 	
 	// Cond Contorno esquerda
 	TopolPoint[0] = 0;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc0,*gmesh);
-	id++;
+    gmesh->CreateGeoElement(EPoint, TopolPoint, bc0, id);
 
 	// Cond Contorno Direita
 	TopolPoint[0] = nnodes-1;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc1,*gmesh);
+	gmesh->CreateGeoElement(EPoint, TopolPoint, bc1, id);
 	
-	gmesh->BuildConnectivity();
+	gmesh->BuildConnectivity(); //constroi a conectividade de vizinhanca da malha
 	
-	return gmesh;
-}
-
-TPZGeoMesh * GMesh2D()
-{
-	TPZGeoMesh *gmesh = new TPZGeoMesh;
-	const long nnodes = 4;
-	gmesh->NodeVec().Resize(nnodes);
-	const long matid = 1, bc0 = -1, bc1 = -2;
-	
-	long ino = 0;
-	TPZManVector <REAL,3> coord(3,0.);
-	// no 0
-	coord[0] = 0.;
-	coord[1] = 0.1;
-	gmesh->NodeVec()[ino].SetCoord(coord);
-	gmesh->NodeVec()[ino].SetNodeId(ino);
-	ino++;
-
-	// no 1
-	coord[0] = 1.;
-	coord[1] = 0.;
-	gmesh->NodeVec()[ino].SetCoord(coord);
-	gmesh->NodeVec()[ino].SetNodeId(ino);
-	ino++;
-	
-	// no 2
-	coord[0] = 1.;
-	coord[1] = 1.;
-	gmesh->NodeVec()[ino].SetCoord(coord);
-	gmesh->NodeVec()[ino].SetNodeId(ino);
-	ino++;
-	
-	// no 3
-	coord[0] = 0.;
-	coord[1] = 1.;
-	gmesh->NodeVec()[ino].SetCoord(coord);
-	gmesh->NodeVec()[ino].SetNodeId(ino);
-	ino++;
-	
-	TPZManVector <long,4> TopolQuad(4);
-	TPZManVector <long,1> TopolPoint(1);
-	TPZManVector <long,2> TopolLine(2);
-	
-	long id = 0;
-	const long nel = 1;
-
-	for (long ip = 0; ip < 4; ip++) {
-		TopolQuad[ip] = ip;
-	}
-	new TPZGeoElRefPattern < pzgeom::TPZGeoQuad > (id, TopolQuad, matid, *gmesh);
-	id++;
-	
-	// Cond Contorno esquerda baixo
-	TopolPoint[0] = 0;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc0,*gmesh);
-	id++;
-
-	// Cond Contorno esquerda baixo
-	TopolPoint[0] = 1;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc0,*gmesh);
-	id++;
-
-	
-	// Cond Contorno esquerda baixo
-	TopolPoint[0] = 2;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc1,*gmesh);
-	id++;
-	
-	// Cond Contorno esquerda baixo
-	TopolPoint[0] = 3;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc1,*gmesh);
-	id++;
-	 
-	/*
-	TopolLine[0] = 2;
-	TopolLine[1] = 3;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear> (id,TopolLine,bc1,*gmesh);
-	*/
-	gmesh->BuildConnectivity();
-
 	return gmesh;
 }
 
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 {
-	const int dim = 1, k = 1, c = 0, b = 1, f = 1;
-	const int matId = 1, bc0 = -1, bc1 = -2;
-	const int dirichlet = 0, neumann = 1, mixed = 2;
-	TPZFMatrix <REAL> xk(1,1,k), xc(1,1,c), xb(1,1,b), xf(1,1,f);
+	const int dim = 1; //coeficientes da eq diferencial unidimensional
+	const int matId = 1, bc0 = -1, bc1 = -2; //MESMOS ids da malha geometrica
+	const int dirichlet = 0, neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita 
 	
 	// Criando material
-	TPZMat1dLin *material;
-	material = new TPZMat1dLin(matId);
-	material->SetMaterial(xk,xc,xb,xf);
-	TPZMaterial * mat(material);
-	material->NStateVariables();
+	TPZMatModelProblem *material = new TPZMatModelProblem(matId);//criando material que implementa a formulacao fraca do problema modelo
 	
 	///criar malha computacional
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-	cmesh->SetDefaultOrder(pOrder);
-	cmesh->SetDimModel(dim);
+	cmesh->SetDefaultOrder(pOrder);//seta ordem polimonial de aproximacao
+	cmesh->SetDimModel(dim);//seta dimensao do modelo
 	
 	// Inserindo material na malha
-	cmesh->InsertMaterialObject(mat);
+	cmesh->InsertMaterialObject(material);
 		
 	///Inserir condicao de contorno esquerda
 	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
-	TPZMaterial * BCond0 = material->CreateBC(mat, bc0, dirichlet, val1, val2);
+	TPZMaterial * BCond0 = material->CreateBC(material, bc0, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da esquerda
 	
 	// Condicao de contorno da direita
-	TPZMaterial * BCond1 = material->CreateBC(mat, bc1, dirichlet, val1, val2);
+	TPZMaterial * BCond1 = material->CreateBC(material, bc1, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da direita
 	
-	//cmesh->SetAllCreateFunctionsContinuous();
-	//cmesh->InsertMaterialObject(mat);
-	cmesh->InsertMaterialObject(BCond0);
-	cmesh->InsertMaterialObject(BCond1);
+	cmesh->InsertMaterialObject(BCond0);//insere material na malha
+	cmesh->InsertMaterialObject(BCond1);//insere material na malha
 	
-	//Ajuste da estrutura de dados computacional
-	cmesh->AutoBuild();
-	//cmesh->AdjustBoundaryElements();
-	//cmesh->CleanUpUnconnectedNodes();
-	
-	return cmesh;    
-	
-	
-}
-
-
-TPZCompMesh *CMesh2D(TPZGeoMesh *gmesh, const int porder)
-{
-	const int dim = 2;
-	const int matid = 1, bc0 = -1, bc1 = -2;
-	const int dirichlet = 0, neumann = 1, mixed = 2;
-	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-	cmesh->SetDefaultOrder(porder);
-	cmesh->SetDimModel(dim);
-
-	REAL Elast = 1000.;
-	REAL nu = 0.;
-	REAL fx(0.),fy(0.);
-	
-	TPZElasticityMaterial *elast2d = new TPZElasticityMaterial(matid,Elast,nu,fx,fy);
-	
-	cmesh->InsertMaterialObject(elast2d);
-	
-	TPZFNMatrix <4> val1(2,2,0.), val2(2,1,0.);
-	TPZMaterial *BCcond0 = elast2d->CreateBC(elast2d,bc0,dirichlet,val1,val2);
-	cmesh->InsertMaterialObject(BCcond0);
-	
-	val2(1,0) = -10.;
-	TPZMaterial *BCcond1 = elast2d->CreateBC(elast2d,bc1,neumann,val1,val2);
-	cmesh->InsertMaterialObject(BCcond1);
-	
+	//Cria elementos computacionais que gerenciarao o espaco de aproximacao da malha
 	cmesh->AutoBuild();
 	
 	return cmesh;
+	
 }
