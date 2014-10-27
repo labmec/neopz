@@ -165,7 +165,7 @@ public:
         /// this method will modify the boundary condition of the computational mesh and the forcing function
         // factor is a transition parameter between the confinement tension and well pressure
         // factor = 1 corresponds to pure well pressure
-        void SetWellPressure(STATE wellpressure, STATE factor = 1.);
+        void SetWellPressure(STATE factor = 1.);
         
         /// Set the Z deformation (for adapting the compaction)
         void SetZDeformation(STATE epsZ);

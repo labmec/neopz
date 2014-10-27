@@ -66,7 +66,8 @@ public:
 	
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                                               unsigned numthreads_assemble, unsigned numthreads_decompose) {
-        return NULL;
+        SetNumThreads(numthreads_assemble);
+        return CreateAssemble(rhs, guiInterface);
     }
 	
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);

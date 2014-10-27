@@ -660,7 +660,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 #ifdef DEBUG
         std::cout << "Execute Initial Simulation Step = " << istep << " out of " << nsteps << std::endl;
 #endif
-        fCurrentConfig.SetWellPressure(fCurrentConfig.fWellboreEffectivePressure,istep*1./(nsteps-1));
+        fCurrentConfig.SetWellPressure(istep*1./(nsteps-1));
         
 //        if ( istep == 0) {
 //            TestLinearMaterial();
@@ -957,7 +957,8 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int nsteps,REAL pwb)
         std::cout << "Simulation Step " << i << " out of " << nsteps << std::endl;
 #endif
         STATE pressure = pressureinit+i*(pwb-pressureinit);
-        fCurrentConfig.SetWellPressure(pressure);
+        fCurrentConfig.fWellboreEffectivePressure = pressure;
+        fCurrentConfig.SetWellPressure();
 
         bool linesearch = true;
         bool checkconv=false;
@@ -1039,7 +1040,7 @@ void TPZWellBoreAnalysis::TConfig::SetZDeformation(STATE epsZ)
 
 
 /// this method will modify the boundary condition of the computational mesh and the forcing function
-void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE welleffectivepressure, STATE factor)
+void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE factor)
 {
     int BCId=-2;
     TPZMaterial * mat = fCMesh.FindMaterial(BCId);
@@ -1065,7 +1066,7 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE welleffectivepressure, 
         DebugStop();
     }
     REAL biot = fBiotCoef;
-    REAL wellpressure = welleffectivepressure/(1.-biot);
+    REAL wellpressure = fWellboreEffectivePressure/(1.-biot);
     REAL reservoirpressure = reservoireffectivepress/(1.-biot);
     
     TPZTensor<STATE> boundarytensor;
@@ -1075,8 +1076,8 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE welleffectivepressure, 
     {
         biotforce->SetConstants(inner, outer, wellpressure, reservoirpressure,factor*biot);
         TPZFNMatrix<9,STATE> mattemp(3,3,0.);
-        mattemp(0,0) = factor*(-welleffectivepressure)+(1.-factor)*boundarytensor.XX();
-        mattemp(1,1) = factor*(-welleffectivepressure)+(1.-factor)*boundarytensor.YY();
+        mattemp(0,0) = factor*(-fWellboreEffectivePressure)+(1.-factor)*boundarytensor.XX();
+        mattemp(1,1) = factor*(-fWellboreEffectivePressure)+(1.-factor)*boundarytensor.YY();
         pBC->Val1()=mattemp;
     }
     else{
@@ -2776,7 +2777,7 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
     CreateMesh();
 
     CreateComputationalMesh(2);
-    SetWellPressure(fWellboreEffectivePressure);
+    SetWellPressure();
 
     
 }
@@ -3260,7 +3261,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
                 biot = 0.;
             }
             
-            SetWellPressure(fWellboreEffectivePressure);
+            SetWellPressure();
         }
 
         
@@ -3317,7 +3318,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
             biot = 0.;
         }
         
-        SetWellPressure(fWellboreEffectivePressure);
+        SetWellPressure();
     }
     
     CmeshWell(compmesh1, plastic, boundarytensor, fWellboreEffectivePressure);
