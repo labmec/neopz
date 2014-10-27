@@ -433,7 +433,7 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 
 
 TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinementEffective(),  fWellboreEffectivePressure(0.),
-    fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2(), fHistoryLog(), fBiotCoef(0.), fModel(ESandler), fFluidModel(ENonPenetrating), fWellConfig(ENoConfig)
+    fGMesh(), fCMesh(), fAllSol(), fPlasticDeformSqJ2(), fHistoryLog(), fBiotCoef(-1.), fModel(ESandler), fFluidModel(ENonPenetrating), fWellConfig(ENoConfig)
 #ifdef PV
   , fSDPV(), fMCPV()
 #else
@@ -748,7 +748,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         
         std::set<int> matids;
         matids.insert(1);
-        TPZVec<STATE> verticalForce = analysis.Integrate("ZStress", matids);
+        TPZVec<STATE> verticalForce = analysis.Integrate("ETotStressZZ", matids);
         REAL MeshArea = workablemesh->Reference()->Area();
         STATE verticalStress = verticalForce[0]/(M_PI_4*(fCurrentConfig.fOuterRadius*fCurrentConfig.fOuterRadius-fCurrentConfig.fInnerRadius*fCurrentConfig.fInnerRadius));
         std::cout << "Vertical force " << verticalForce << std::endl;
@@ -1061,6 +1061,9 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE welleffectivepressure, 
     REAL inner = fInnerRadius;
     REAL outer = fOuterRadius;
     REAL reservoireffectivepress = fEffectivePorePressure;
+    if (fBiotCoef < 0.) {
+        DebugStop();
+    }
     REAL biot = fBiotCoef;
     REAL wellpressure = welleffectivepressure/(1.-biot);
     REAL reservoirpressure = reservoireffectivepress/(1.-biot);
@@ -1506,7 +1509,7 @@ STATE TPZWellBoreAnalysis::TConfig::AverageVerticalStress()
 {
     std::set<int> matids;
     matids.insert(1);
-    TPZVec<STATE> verticalForce = fCMesh.Integrate("ZStress", matids);
+    TPZVec<STATE> verticalForce = fCMesh.Integrate("ETotStressZZ", matids);
     REAL MeshArea = fCMesh.Reference()->Area();
     return verticalForce[0]/MeshArea;
 }
@@ -2300,34 +2303,35 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
     scalNames.Resize(0);
     vecNames.Resize(0);
 
-    scalNames.Push("Alpha");
-    scalNames.Push("PlasticSqJ2");
-    scalNames.Push("PlasticSqJ2El");
-    scalNames.Push("POrder");
-    scalNames.Push("I1Stress");
-    scalNames.Push("J2Stress");
-
-    scalNames.Push("VolElasticStrain");
-    scalNames.Push("VolPlasticStrain");
-    scalNames.Push("VolTotalStrain");
-    scalNames.Push("PlasticSteps");
+//    scalNames.Push("Alpha");
+//    scalNames.Push("PlasticSqJ2");
+//    scalNames.Push("PlasticSqJ2El");
+//    scalNames.Push("POrder");
+//    scalNames.Push("I1Stress");
+//    scalNames.Push("J2Stress");
+//
+//    scalNames.Push("VolElasticStrain");
+//    scalNames.Push("VolPlasticStrain");
+//    scalNames.Push("VolTotalStrain");
+//    scalNames.Push("PlasticSteps");
+    scalNames.Push("ETotStressZZ");
     
 
-    vecNames.Push("TotalPlasticStrain"); // x y z
-    vecNames.Push("ShearStress"); //xy xz yz
-    vecNames.Push("ShearStrain"); //xy xz yz
-    vecNames.Push("NormalStress");//
-    vecNames.Push("ShearStress");//
-    vecNames.Push("PrincipalStress");//
-    vecNames.Push("ShearStrain");//
-    vecNames.Push("TotalPlasticStrain");//
+//    vecNames.Push("TotalPlasticStrain"); // x y z
+//    vecNames.Push("ShearStress"); //xy xz yz
+//    vecNames.Push("ShearStrain"); //xy xz yz
+//    vecNames.Push("NormalStress");//
+//    vecNames.Push("ShearStress");//
+//    vecNames.Push("PrincipalStress");//
+//    vecNames.Push("ShearStrain");//
+//    vecNames.Push("TotalPlasticStrain");//
 
-    vecNames.Push("NormalStress");// x y z
-    vecNames.Push("NormalStrain"); // x y z
-    vecNames.Push("PrincipalStress"); //1 2 3
-    //vecNames.Push("PrincipalStrain"); //1 2 3
-    vecNames.Push("DisplacementMem"); // x y z
-    vecNames.Push("YieldSurface");
+//    vecNames.Push("NormalStress");// x y z
+//    vecNames.Push("NormalStrain"); // x y z
+//    vecNames.Push("PrincipalStress"); //1 2 3
+//    //vecNames.Push("PrincipalStrain"); //1 2 3
+//    vecNames.Push("DisplacementMem"); // x y z
+//    vecNames.Push("YieldSurface");
 }
 
 
@@ -3245,6 +3249,9 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
             REAL outer = fOuterRadius;
             REAL wellpress = fWellboreEffectivePressure;
             REAL reservoirpress = fEffectivePorePressure;
+            if (fBiotCoef < 0.) {
+                DebugStop();
+            }
             REAL biot = fBiotCoef;
             
             if (fFluidModel == ENonPenetrating) {
@@ -3299,6 +3306,9 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
         REAL outer = fOuterRadius;
         REAL wellpress = fWellboreEffectivePressure;
         REAL reservoirpress = fEffectivePorePressure;
+        if (fBiotCoef < 0.) {
+            DebugStop();
+        }
         REAL biot = fBiotCoef;
         
         if (fFluidModel == ENonPenetrating) {
@@ -3390,6 +3400,9 @@ void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterialSest2D &m
     mat.SetElasticity(E, nu);
     mat.SetPlaneStrain();
 
+    if (fCurrentConfig.fBiotCoef < 0.) {
+        DebugStop();
+    }
     
     REAL wellpress = FromEffectivePorePressuretoTotal(fCurrentConfig.fWellboreEffectivePressure,fCurrentConfig.fBiotCoef);
     REAL reservoirpress = FromEffectivePorePressuretoTotal(fCurrentConfig.fEffectivePorePressure,fCurrentConfig.fBiotCoef);

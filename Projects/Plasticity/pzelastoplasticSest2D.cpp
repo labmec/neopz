@@ -190,68 +190,167 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::VariableIndex(const std::string &name)
 template <class T, class TMEM>
 int TPZMatElastoPlasticSest2D<T,TMEM>::NSolutionVariables(int var)
 {
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainVol)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainXX	)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainYY)			 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainZZ)			 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainXY)			 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainXZ)			 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainYZ)			 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainVol)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainXX)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainYY)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainZZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainXY)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainXZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainYZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainVol)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainXX)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainYY)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainZZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainXY)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainXZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainYZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainSqJ2)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainSqJ2El)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlAlpha)			 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementX)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementY)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementTotal)	 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressI1)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressJ2)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressXX)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressYY)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressZZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressXY)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressXZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressYZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStress1)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStress2)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStress3)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressI1)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressJ2)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressXX)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressYY)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressZZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressXY)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressXZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressYZ)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress1)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress2)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress3)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface1)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface2)		 return -1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainVol)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainXX	)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainYY)			 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainZZ)			 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainXY)			 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainXZ)			 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainYZ)			 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainVol)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainXX)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainYY)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainZZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainXY)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainXZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainYZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainVol)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainXX)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainYY)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainZZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainXY)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainXZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainYZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainSqJ2)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainSqJ2El)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlAlpha)			 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementX)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementY)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementTotal)	 return 2;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressI1)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressJ2)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressXX)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressYY)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressZZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressXY)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressXZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressYZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStress1)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStress2)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStress3)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressI1)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressJ2)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressXX)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressYY)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressZZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressXY)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressXZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressYZ)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress1)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress2)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress3)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface1)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface2)		 return 1;
 	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface3)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPOrder)			 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ENSteps)			 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPorePressure)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EMatPorosity)		 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EMatE)			 return -1;
-	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EMatPoisson)		 return -1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPOrder)			 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ENSteps)			 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPorePressure)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EMatPorosity)		 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EMatE)			 return 1;
+	if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EMatPoisson)		 return 1;
 
 	if(var == 100) return 1;
 	return TPZMatWithMem<TMEM>::NSolutionVariables(var);
+}
+
+template <class T, class TMEM>
+void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+    int intPt = data.intGlobPtIndex;
+    TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[intPt];
+    T plasticloc(this->fPlasticity);
+    plasticloc.SetState(Memory.fPlasticState);
+    TPZTensor<REAL> & totalStrain = Memory.fPlasticState.fEpsT;
+    TPZTensor<REAL> & Sigma = Memory.fSigma;
+
+    if (!this->fForcingFunction) {
+        DebugStop();
+    }
+    TPZManVector<STATE,3> AlphagradP(2);
+    TPZFNMatrix<1,STATE> AlphaP(1,1);
+    this->fForcingFunction->Execute(data.x,AlphagradP,AlphaP);
+    
+
+    switch (var) {
+        case EStrainVol:
+            Solout[0] = totalStrain.XX()+totalStrain.YY()+totalStrain.ZZ();
+            break;
+        case EStrainXX:
+        case EStrainYY:
+            case EStrainZZ:
+            case EStrainXY:
+            case EStrainXZ:
+            case EStrainYZ:
+            // Elastic Strain
+            case EElStrainVol:
+            case EElStrainXX:
+            case EElStrainYY:
+            case EElStrainZZ:
+            case EElStrainXY:
+            case EElStrainXZ:
+            case EElStrainYZ:
+            // Plastic Strain
+            case EPlStrainVol:
+            case EPlStrainXX:
+            case EPlStrainYY:
+            case EPlStrainZZ:
+            case EPlStrainXY:
+            case EPlStrainXZ:
+            case EPlStrainYZ:
+            case EPlStrainSqJ2:
+            case EPlStrainSqJ2El:
+            case EPlAlpha:
+            // Displacement
+            case EDisplacementX:
+            case EDisplacementY:
+            case EDisplacementZ:
+            case EDisplacementTotal:
+            // Total Stress
+            case ETotStressI1:
+            case ETotStressJ2:
+            case ETotStressXX:
+        case ETotStressYY:
+            DebugStop();
+            break;
+        case ETotStressZZ:
+            Solout[0] = Sigma.ZZ()-AlphaP(0,0);
+            break;
+        case ETotStressXY:
+            case ETotStressXZ:
+            case ETotStressYZ:
+            case ETotStress1:
+            case ETotStress2:
+            case ETotStress3:
+            // Effective stress
+            case EEffStressI1:
+            case EEffStressJ2:
+            case EEffStressXX:
+            case EEffStressYY:
+            case EEffStressZZ:
+            case EEffStressXY:
+            case EEffStressXZ:
+            case EEffStressYZ:
+            case EEffStress1:
+            case EEffStress2:
+            case EEffStress3:
+            // Yield Surface
+            case EYieldSurface1:
+            case EYieldSurface2:
+            case EYieldSurface3:
+            // Simulation
+            case EPOrder:
+            case ENSteps:
+            // Pore pressure
+            case EPorePressure:
+            // Material
+            case EMatPorosity:
+            case EMatE:
+        case EMatPoisson:
+            DebugStop();
+        default:
+            break;
+    }
 }
 
 

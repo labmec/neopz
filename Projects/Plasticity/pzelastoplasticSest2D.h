@@ -177,6 +177,12 @@ public:
 	  indexed by var.  var is obtained by calling VariableIndex*/
       virtual int NSolutionVariables(int var);
 
+    
+    
+    /**returns the solution associated with the var index based on
+     * the finite element approximation*/
+    virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+
 private:
     /**
      * @brief ZDeformation of the mesh

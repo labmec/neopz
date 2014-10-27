@@ -60,8 +60,8 @@ public:
 	/**
 	 * @brief Performs function computation
 	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-	 * @param f function values
-	 * @param df function derivatives
+	 * @param f function values returns the gradient of the pressure multiplied by biot
+	 * @param df pressure function multiplied by biot
 	 */
 	virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df)
     {

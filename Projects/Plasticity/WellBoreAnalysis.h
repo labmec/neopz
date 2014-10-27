@@ -413,6 +413,9 @@ public:
     /// Define the geological stress state and well pressure
     void SetConfinementEffectiveStresses(TPZVec<STATE> &stress, STATE Effectivewellpressure)
     {
+        if (fCurrentConfig.fBiotCoef < 0.) {
+            DebugStop();
+        }
         fCurrentConfig.fConfinementEffective.XX() = stress[ESh];
         fCurrentConfig.fConfinementEffective.YY() = stress[ESH];
         fCurrentConfig.fConfinementEffective.ZZ() = stress[ESV];

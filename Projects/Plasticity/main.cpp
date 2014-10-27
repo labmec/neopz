@@ -624,7 +624,9 @@ void Config4()
     confinement[TPZWellBoreAnalysis::ESH] = SH;
     confinement[TPZWellBoreAnalysis::ESV] = SV;
     
-    REAL effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
+    STATE effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
+    STATE biotcoef = 0.659;
+    well.SetBiotCoefficient(biotcoef);
     well.SetConfinementEffectiveStresses(confinement, effectiveWellPressure);
     well.SetInnerOuterRadius(innerradius, outerradius);
     
