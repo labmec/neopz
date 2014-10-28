@@ -26,16 +26,37 @@ TPZMatElasticity2D::TPZMatElasticity2D():TPZMaterial(), ff(0), fnu(0.), fPlaneSt
     ff[0]=0.;
     ff[1]=0.;
     fPlaneStress = 1.;
+    fPreStressXX = 0.0;
+    fPreStressXY = 0.0;
+    fPreStressYY = 0.0;
     
 }
 
 TPZMatElasticity2D::TPZMatElasticity2D(int matid):TPZMaterial(matid), ff(0), fnu(0.),fPlaneStress(0) {
     fE = 0.;
+    fmatId = matid;
     ff.resize(2);
     ff[0]=0.;
     ff[1]=0.;
     fPlaneStress = 1;
+    fPreStressXX = 0.0;
+    fPreStressXY = 0.0;
+    fPreStressYY = 0.0;
+}
+
+TPZMatElasticity2D::TPZMatElasticity2D(int matid, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZMaterial(matid){
+    fE = E;
+    fnu = nu;
+    flambda = 
+    
     fmatId = matid;
+    ff.resize(2);
+    ff[0]=fx;
+    ff[1]=fy;
+    fPlaneStress = plainstress;
+    fPreStressXX = 0.0;
+    fPreStressXY = 0.0;
+    fPreStressYY = 0.0;
 }
 
 TPZMatElasticity2D::~TPZMatElasticity2D(){
@@ -140,6 +161,7 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     //  Elastic equation
     //  Linear strain operator
     //  Ke Matrix
+    
     TPZFMatrix<REAL>    du(2,2);
     TPZFMatrix<REAL>    dux(2,2);
     TPZFMatrix<REAL>    duy(2,2);
@@ -160,8 +182,8 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         du(1,0) = dphiU(0,iu)*data.axes(0,1)+dphiU(1,iu)*data.axes(1,1);
         
 //          Vector Force right hand term
-             ef(2*iu + FirstU)     +=    weight*ff[0]*phiU(iu, 0);
-             ef(2*iu+1 + FirstU)   +=    weight*ff[1]*phiU(iu, 0);
+             ef(2*iu + FirstU)     +=    weight*ff[0]*phiU(iu, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY;    // direcao x
+             ef(2*iu+1 + FirstU)   +=    weight*ff[1]*phiU(iu, 0)- du(0,0)*fPreStressXY - du(1,0)*fPreStressYY;    // direcao y
         
         if (fPlaneStress == 1)
         {

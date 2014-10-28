@@ -63,6 +63,11 @@ protected:
     /** @brief Second Lame Parameter */
     REAL fmu;
     
+    /** @brief Initial Stress */
+    REAL fPreStressXX;
+    REAL fPreStressXY;
+    REAL fPreStressYY;
+    
     /** @brief Uses plain stress
      * @note \f$fPlaneStress = 1\f$ => Plain stress state
      * @note \f$fPlaneStress != 1\f$ => Plain Strain state
@@ -75,6 +80,17 @@ protected:
     
 public:
     TPZMatElasticity2D();
+    
+    /**
+     * @brief Creates an elastic material with:
+     * @param id material id
+     * @param E elasticity modulus
+     * @param nu poisson coefficient
+     * @param fx forcing function \f$ -x = fx \f$
+     * @param fy forcing function \f$ -y = fy \f$
+     * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
+     */
+    TPZMatElasticity2D(int matid, REAL E, REAL nu, REAL fx, REAL fy, int plainstress = 1);
     
     TPZMatElasticity2D(int matid);
     
