@@ -243,7 +243,7 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::NSolutionVariables(int var)
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress3)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface1)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface2)		 return 1;
-  if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface3)		 return -1; // Should never be called
+  if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface3)		 return 1; // Should never be called
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPOrder)			 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ENSteps)			 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPorePressure)		 return 1;
@@ -483,7 +483,7 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
       }
       break;
     case EYieldSurface3:
-      DebugStop();
+      Solout[0] = 0.;
       break;
     // Simulation
     case EPOrder:

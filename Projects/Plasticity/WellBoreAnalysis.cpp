@@ -2365,6 +2365,7 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
 
   scalNames.Push("YieldSurface1");
   scalNames.Push("YieldSurface2");
+  scalNames.Push("YieldSurface3");
   
   scalNames.Push("POrder");
   scalNames.Push("NSteps");
@@ -2454,7 +2455,7 @@ void TPZWellBoreAnalysis::GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & po
             TPZVec< TPZVec<REAL> > qsiNode(nnodes);
             
             TPZVec<STATE> sol(1);
-            int var = cel->Material()->VariableIndex("PlasticSqJ2");
+            int var = cel->Material()->VariableIndex("PlStrainSqJ2");
             REAL Tol = 1.e-6;
 			//ZeroTolerance(Tol);
             for(int n = 0; n < nnodes; n++)
