@@ -39,6 +39,12 @@ TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<TPZFracData> Data)
 {
     fData = Data;
     fmeshvec.Resize(2);
+    fgmesh = NULL;
+    fcmeshMixed = NULL;
+    for (int i = 0; i < 2; i++) {
+      fmeshvec[i] = NULL;
+    }
+    fLastStepRhs.Redim(0, 0);
     fmustStop = false;
 }
 
@@ -88,8 +94,6 @@ void TPZDarcyAnalysis::Run()
     
     // Solving initial darcy
   
-  
-  
     // Malha geometrica
 //    fgmesh = CreateGMesh(nel);
   
@@ -102,6 +106,7 @@ void TPZDarcyAnalysis::Run()
 //    DarcyGmesh(fgmesh);
 //    this->PrintGeometricMesh(fgmesh);
 //    CreateMultiphysicsMesh(vlMatrix);
+  
 
     this->InsertFracGeoMesh();
     this->PrintGeometricMesh(fgmesh);
@@ -1717,7 +1722,9 @@ void TPZDarcyAnalysis::SwitchBCInFrontOfFrac(TPZGeoEl * gel)
   TPZGeoElSide neigh = gelside.Neighbour();
   fgmesh->ResetReference();
   int count = 0;
-  if (fcmeshMixed) fcmeshMixed->LoadReferences();
+  if (fcmeshMixed){
+    fcmeshMixed->LoadReferences();
+  }
   while (gelside != neigh) {
     if (neigh.Element()->MaterialId() == TPZFracData::EBCBottom && neigh.Element()->Dimension() == 1 ) {
       if (fcmeshMixed) {
