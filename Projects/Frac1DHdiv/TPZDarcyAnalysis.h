@@ -142,6 +142,7 @@ public:
   
     /** @brief Switch hdivboud element to auxiliar qtip inlet */
     void SwitchBCInFrontOfFrac(TPZGeoEl * gel);
+
   
 private:
     

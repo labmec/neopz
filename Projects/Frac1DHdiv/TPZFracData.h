@@ -119,6 +119,9 @@ private:
   
   /** @brief Number of elements in the fracture */
   int fnelFrac;
+
+  /** @brief bool to determine if we are coupling fracture with darcy */
+  bool fIsCoupled;
   
   /** @brief Size of the elements in the fracture */
   REAL felSize;
@@ -163,8 +166,6 @@ public:
   
   /** @brief Returns fluid viscosity. */
   REAL Viscosity() const {return this->fmu;}
-  
-  // Nathan: Our indentation setting are different
   
   /** @brief Set fluid density. */
   void SetDensity(REAL rho){this->fRho = rho;}
@@ -268,12 +269,18 @@ public:
   
   /** @brief Returns simulation G */
   REAL G() const;
+
+  /** @brief Defines if coupled simulation */
+  void SetIsCoupled(bool isCoupled){ this->fIsCoupled = isCoupled;}
+  
+  /** @brief Returns if using coupled simulation */
+  bool IsCoupled() const {return this->fIsCoupled;}
   
   /** @brief Defines p order of the pressure in L2 space */
   void SetPorderPressure(int PorderPressure){ this->fPorderPressure = PorderPressure;}
   
   /** @brief Returns p order of the pressure */
-  int PorderPressure(){return this->fPorderPressure;}
+  int PorderPressure() const {return this->fPorderPressure;}
   
   /** @brief Defines p order of the flow in H1 space */
   void SetPorderFlow(int PorderFlow){ this->fPorderFlow = PorderFlow;}
@@ -377,16 +384,22 @@ public:
   REAL Ly() const {return fLy;}
   
   /** @brief Return vl based on exposition time and pressure */
-  REAL VlFtau(REAL pfrac, REAL tau) const;
+  REAL VlFtau(REAL pfrac, REAL tau, REAL pe = -1.) const;
   
   /** @brief Return the "ficticious time" based on acumulated volume and pressure */
-  REAL FictitiousTime(REAL VlAcum, REAL pfrac) const;
+  REAL FictitiousTime(REAL VlAcum, REAL pfrac, REAL pe = -1.) const;
+
+  /** @brief Corrects Cl based on the pe and pfrac */
+  REAL ClCorrected(REAL pfrac, REAL pe) const;
   
   /** @brief Return the seapage velocity ql (mm/s) */
-  REAL QlFVl(REAL VlAcum, REAL pfrac) const;
+  REAL QlFVl(REAL VlAcum, REAL pfrac, REAL pe = -1.) const;
   
   /** @brief Return the seapage velocity derivative */
-  REAL dQlFVl(REAL VlAcum, REAL pfrac) const;
+  REAL dQlFVl(REAL VlAcum, REAL pfrac, REAL pe = -1.) const;
+  
+  /** @brief Return seapage velocity derivative for pore pressure */
+  REAL dQlFVlPoros(REAL VlAcum, REAL pfrac, REAL pe = -1.) const;
   
   /** @brief Return debug map */
   std::map<REAL,REAL> & DebugMap() {return fDebugMap;}

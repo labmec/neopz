@@ -140,60 +140,79 @@ std::string TPZFracData::PostProcessFileName()
   return fpostProcessFileName;
 }
 
-REAL TPZFracData::VlFtau(REAL pfrac, REAL tau) const
+REAL TPZFracData::VlFtau(REAL pfrac, REAL tau, REAL pe) const
 {
-  const REAL Cl = this->Cl();
-  REAL Pe = this->Pe();
-  REAL Pref = this->Pref();
   REAL vsp = this->Vsp();
   
-  REAL Pcalc = (pfrac - Pe)/Pref;
-  if(Pcalc < 0.)
-  {
-    Pcalc = 0.;
+  REAL Clcorr;
+  if (pe > -1.e-8) {
+    Clcorr = this->ClCorrected(pfrac, pe);
   }
-  
-  REAL Clcorr = Cl;// * sqrt(Pcalc);
+  else{
+    Clcorr = this->ClCorrected(this->SigmaConf(), this->Pe());
+  }
   REAL Vl = 2. * Clcorr * sqrt(tau) + vsp;
-  
+
   return Vl;
 }
 
-REAL TPZFracData::FictitiousTime(REAL VlAcum, REAL pfrac) const
+REAL TPZFracData::FictitiousTime(REAL VlAcum, REAL pfrac, REAL pe) const
 {
-  REAL Cl = this->Cl();
-  REAL Pe = this->Pe();
-  REAL Pref = this->Pref();
   REAL vsp = this->Vsp();
   
   REAL tStar = 0.;
   if(VlAcum > vsp)
   {
-    REAL Pcalc = (pfrac - Pe)/Pref;
-    if(Pcalc < 0.)
-    {
-      Pcalc = 0.;
+    REAL Clcorr;
+    if (pe > -1.e-8){
+      Clcorr = this->ClCorrected(pfrac, pe);
     }
-    REAL Clcorr = Cl;// * sqrt(Pcalc);
+    else{
+      Clcorr = this->ClCorrected(this->SigmaConf(), this->Pe());
+    }
+    
     tStar = (VlAcum - vsp)*(VlAcum - vsp)/( (2. * Clcorr) * (2. * Clcorr) );
   }
   
   return tStar;
 }
 
-REAL TPZFracData::QlFVl(REAL VlAcum, REAL pfrac) const
+REAL TPZFracData::ClCorrected(REAL pfrac, REAL pe) const
+{
+  REAL pRef = this->Pref();
+  REAL Cl = this->Cl();
+  REAL pCalc = (pfrac - pe)/pRef;
+  if(pCalc < 0.)
+  {
+    pCalc = 0.;
+  }
+  REAL Clcorr = Cl * sqrt(pCalc);
+  
+  return Clcorr;
+}
+
+REAL TPZFracData::QlFVl(REAL VlAcum, REAL pfrac, REAL pe) const
 {
   REAL deltaT = this->TimeStep();
   
-  REAL tStar = FictitiousTime(VlAcum, pfrac);
-  REAL Vlnext = VlFtau(pfrac, tStar + deltaT);
+  REAL tStar;
+  REAL Vlnext;
+  if (this->IsCoupled()) {
+    tStar =FictitiousTime(VlAcum, pfrac, pe);
+    Vlnext = VlFtau(pfrac, tStar + deltaT, pe);
+  }
+  else{
+    tStar = FictitiousTime(VlAcum, pfrac);
+    Vlnext = VlFtau(pfrac, tStar + deltaT);
+  }
+
   REAL Ql = (Vlnext - VlAcum)/deltaT;
   
   return Ql;
   
 }
 
-REAL TPZFracData::dQlFVl(REAL VlAcum, REAL pfrac) const
+REAL TPZFracData::dQlFVl(REAL VlAcum, REAL pfrac, REAL pe) const
 {
   
   REAL deltaPfrac = fabs(pfrac/10000.);
@@ -209,23 +228,90 @@ REAL TPZFracData::dQlFVl(REAL VlAcum, REAL pfrac) const
   REAL deltaT = this->TimeStep();
   /////////////////////////////////////////////////Ql maior
   REAL pfracUP = pfrac + deltaPfrac;
-  REAL tStar1 = FictitiousTime(VlAcum, pfracUP);
-  REAL Vlnext1 = VlFtau(pfracUP, tStar1 + deltaT);
+  REAL tStar1;
+  REAL Vlnext1;
+  if (this->IsCoupled()) {
+    tStar1 = FictitiousTime(VlAcum, pfracUP, pe);
+    Vlnext1 = VlFtau(pfracUP, tStar1 + deltaT, pe);
+  }
+  else{
+    tStar1 = FictitiousTime(VlAcum, pfracUP);
+    Vlnext1 = VlFtau(pfracUP, tStar1 + deltaT);
+  }
   REAL Ql1 = (Vlnext1 - VlAcum )/deltaT;
   //...
   
   /////////////////////////////////////////////////Ql menor
   REAL pfracDOWN = pfrac - deltaPfrac;
-  REAL tStar0 = FictitiousTime(VlAcum, pfracDOWN);
-  REAL Vlnext0 = VlFtau(pfracDOWN, tStar0 + deltaT);
+  REAL tStar0;
+  REAL Vlnext0;
+  if (this->IsCoupled()) {
+    tStar0 = FictitiousTime(VlAcum, pfracDOWN, pe);
+    Vlnext0 = VlFtau(pfracDOWN, tStar0 + deltaT, pe);
+  }
+  else{
+    tStar0 = FictitiousTime(VlAcum, pfracDOWN);
+    Vlnext0 = VlFtau(pfracDOWN, tStar0 + deltaT);
+  }
   REAL Ql0 = (Vlnext0 - VlAcum)/deltaT;
   //...
   
   REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPfrac);
   
   return dQldpfrac;
-
 }
+
+REAL TPZFracData::dQlFVlPoros(REAL VlAcum, REAL pfrac, REAL pe) const
+{
+  
+  REAL deltaPporos = fabs(pe/10000.);
+  if(deltaPporos < 1.E-10)
+  {
+    deltaPporos = 1.E-10;
+  }
+  else if(deltaPporos > 1.E-3)
+  {
+    deltaPporos = 1.E-3;
+  }
+  
+  REAL deltaT = this->TimeStep();
+  /////////////////////////////////////////////////Ql maior
+  REAL pporosUP = pe + deltaPporos;
+  REAL tStar1;
+  REAL Vlnext1;
+  if (this->IsCoupled()) {
+    tStar1 = FictitiousTime(VlAcum, pfrac, pporosUP);
+    Vlnext1 = VlFtau(pfrac, tStar1 + deltaT, pporosUP);
+  }
+  else{
+    DebugStop();
+    tStar1 = FictitiousTime(VlAcum, pfrac);
+    Vlnext1 = VlFtau(pfrac, tStar1 + deltaT);
+  }
+  REAL Ql1 = (Vlnext1 - VlAcum )/deltaT;
+  //...
+  
+  /////////////////////////////////////////////////Ql menor
+  REAL pporosDOWN = pe - deltaPporos;
+  REAL tStar0;
+  REAL Vlnext0;
+  if (this->IsCoupled()) {
+    tStar0 = FictitiousTime(VlAcum, pfrac, pporosDOWN);
+    Vlnext0 = VlFtau(pfrac, tStar0 + deltaT, pporosDOWN);
+  }
+  else{
+    DebugStop();
+    tStar0 = FictitiousTime(VlAcum, pfrac);
+    Vlnext0 = VlFtau(pfrac, tStar0 + deltaT);
+  }
+  REAL Ql0 = (Vlnext0 - VlAcum)/deltaT;
+  //...
+  
+  REAL dQldpfrac = (Ql1-Ql0)/(2.*deltaPporos);
+  
+  return dQldpfrac;
+}
+
 
 void TPZFracData::PrintDebugMapForMathematica(std::string filename)
 {
@@ -241,6 +327,11 @@ void TPZFracData::PrintDebugMapForMathematica(std::string filename)
   out << "};" << std::endl;
   out << "g1 = ListPlot[DebugMap,Joined -> True,PlotMarkers -> Automatic, PlotRange -> All]" << std::endl;
 
+  if (fDebugMap2.size() == 0){
+    out.close();
+    return;
+  }
+  
   it = fDebugMap2.begin();
   
   out << "DebugMap2 = ";

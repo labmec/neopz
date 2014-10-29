@@ -1,4 +1,4 @@
-
+ 
 //  TPZDarcyAnalysis.cpp
 //  PZ
 //
@@ -62,7 +62,7 @@ void InitialPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
 {
     //    REAL x = pt[0];
     //    REAL y = pt[1];
-    disp[0] = 20;// this->fData->SigmaConf()
+    disp[0] = 15.;
 }
 
 /** @brief Analytic pressure field */
@@ -133,7 +133,7 @@ void TPZDarcyAnalysis::Run()
           // Novo comprimento de fratura
           REAL newLfrac = fData->Lfrac() + fData->ElSize();
           fData->SetLfrac(newLfrac);
-          std::cout << "Lfrac = " << newLfrac << std::endl;
+          std::cout << " ------> New Lfrac = " << newLfrac << std::endl;
           
           this->InsertFracGeoMesh();
           this->InsertFracCompMesh();
@@ -201,6 +201,7 @@ bool TPZDarcyAnalysis::SolveSistTransientWithFracture(TPZAnalysis *an)
         IterativeProcess(an, std::cout, 50);
       
         const REAL qtip = this->Qtip();
+        std::cout << "\nqtip = " << qtip << std::endl;
         
         if (qtip < 0.) {
             DebugStop();
@@ -478,7 +479,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshMixed(TPZFMatrix<REAL> Vl)
     // Bc Right
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    val2(2,0) = 20.0;
+    val2(2,0) = fData->Pe();
     TPZBndCond * bcRight = mat->CreateBC(mat, bcRightId, typePressure, val1, val2);
  	cmesh->InsertMaterialObject(bcRight);
     
@@ -563,6 +564,7 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZ
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
     TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialPressure);
+  
     material->SetForcingFunction(forcef);
     cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->SetDefaultOrder(pOrder);
@@ -631,9 +633,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
   
   TPZAutoPointer< TPZMatrix<REAL> > matK; // getting X(Uatn)
   
-  bool updateQtipBC = false, notconverged = true;
-  const int numberofstepsafterqtip = 2;
-  int stepsafterqtip = 0;
+  bool notconverged = true;
   while(notconverged && iter < numiter) {
     
 #ifdef LOG4CXX
@@ -665,20 +665,18 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     }
 #endif
     
+    // Loading Sol
     an->LoadSolution(Uatk); // Loading Uatk
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
+    
+    // Putting last Qtip as bc to darcy mesh
+    TPZMaterial *mat = fcmeshMixed->FindMaterial(TPZFracData::EBCAuxBottom);
+    TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
+    bnd->Val2()(1,0) = this->Qtip()/fData->ElSize()/2.0;
+    //std::cout << "qtip = " << this->Qtip() << std::endl;
+    
+    // Assembling
     an->Assemble();
-    
-    //#ifdef LOG4CXX
-    //    if(logger->isDebugEnabled())
-    //    {
-    //      std::stringstream sout;
-    //      fLastStepRhs.Print("ResAtn = ", sout,EMathematicaInput);
-    //      an->Rhs().Print("Respone = ", sout,EMathematicaInput);
-    //      LOGPZ_DEBUG(logger,sout.str())
-    //    }
-    //#endif
-    
     an->Rhs() += fLastStepRhs;
     an->Rhs() *= -1.0; //- [R(U0)];
     
@@ -695,27 +693,17 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     double norm = NormOfDeltaU; //ResidualNorm;
     out << "Iteration n : " << (iter+1) << " : norms ||DeltaU|| e ||[R(Uatk)]|| : " << NormOfDeltaU << " / " << ResidualNorm << std::endl;
     
-    if(norm < tol /*|| NormResLambda < tol*/ && updateQtipBC == false) {
+    if(norm < tol) {
       out << "\nNewton Converged! Tolerance Of Norm(DeltaU) at n : " << (iter+1) << std::endl;
       out << "Norm ||DeltaU|| - USED : " << NormOfDeltaU << std::endl;
       out << "Norm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
-      out << "-------------------- DOING ONE MORE STEP IN ORDER TO CONVERGE THE QTIP ON DARCY MESH --------------------" << std::endl;
-      TPZMaterial *mat = fcmeshMixed->FindMaterial(TPZFracData::EBCAuxBottom);
-      TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
-      bnd->Val2()(1,0) = this->Qtip()/fData->ElSize()/2.0;
-      updateQtipBC = true;
+      out << "--------------------  --------------------" << std::endl;
+      notconverged = false;
     }
-    else if (updateQtipBC && norm < tol){
-      out << "\nNewton Converged! Tolerance Of Norm(DeltaU) at n : " << (iter+1) << std::endl;
-      out << "Norm ||DeltaU|| - USED : " << NormOfDeltaU << std::endl;
-      out << "Norm ||[R(Uatk)]||  : " << ResidualNorm << std::endl;
-      if (stepsafterqtip == numberofstepsafterqtip) {
-        notconverged = false;
-      }
-      stepsafterqtip++;
-    }
+
     else if( (ResidualNorm - NormResLambdaLast) > 1.e-4 ) {
-      out << "\nDivergent Method\n" << "Implement Line Search Please!!!!!!!!!!!!!!!!!!!!" << std::endl;
+      out << "\nDivergent Method\n" << "You can try implementing Line Search" << std::endl;
+      out << " ***** BE AWARE ***** - It may be also a problem due to delayed Qtip. It will most likely fix itself on next iterations" << std::endl;
     }
     
     NormResLambdaLast = ResidualNorm;
@@ -726,7 +714,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
   }
   
   if (error > tol) {
-    DebugStop(); // Something is very wrong
+    DebugStop(); // Something is very wrong (spooky :O)
   }
   
 }
@@ -1117,7 +1105,6 @@ REAL TPZDarcyAnalysis::Qtip()
     const int varQ = MaterialOfFract->VariableIndex("Flow");
     cel->Solution(qsi, varQ, sol);
     const REAL qTip = sol[0];
-    std::cout << "\nqtip = " << qTip << std::endl;
     
     return qTip;
 }
@@ -1629,7 +1616,6 @@ void TPZDarcyAnalysis::SwitchTipElement(TPZCompEl * cel, TPZCompEl *celpoint, TP
   while (gelside != neigh) {
     TPZMultiphysicsInterfaceElement * intel = dynamic_cast<TPZMultiphysicsInterfaceElement *> (neigh.Element()->Reference());
     if (intel) {
-      intel->Reference()->Print();
       delete intel;
       break;
     }

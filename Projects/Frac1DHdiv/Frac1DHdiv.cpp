@@ -10,6 +10,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.frac"));
 
 int main()
 {
+  
 #ifdef LOG4CXX
   std::string dirname = PZSOURCEDIR;
   std::string FileName = dirname;
@@ -18,54 +19,54 @@ int main()
   InitializePZLOG(FileName);
 #endif
   
-  TPZMaterial::gBigNumber = 1.e7;
+  TPZMaterial::gBigNumber = 1.e7; // so flow imposition in fracture can have low residuum
   
-  // ---------- Parametros ----------
+  // ---------- Parameters ----------
+  
   // Reservoir Data
   const REAL phi = 0.1;
   TPZFMatrix<STATE> Kabolute(2,2,0.0);
   Kabolute(0,0) = (1.0e6)*4.93466e-14;// 4.93466e-14 m2 -> 50 md
   Kabolute(1,1) = (1.0e6)*4.93466e-14;// 4.93466e-14 m2 -> 50 md
-  REAL day    = 86400.0;
-  REAL year    = 365.0*day;
   
   const REAL nu = 0.2;
   const REAL E = 1.e4;
-  const REAL SigmaConf = 20.;
+  const REAL SigmaConf = 20.; // Sigma min
   
   // Simulation Data
-  const REAL theta = 1.;
-  const REAL InitTime = 0.;
+  const REAL theta = 1.; // MUST BE ALWAYS 1
+  const REAL InitTime = 0.; // Of course 0
   const REAL timeStep = 1.;
   const REAL Ttot = 100.0;
   const int pOrdQDarcy = 1;
   const int pOrdPDarcy = 1;
   const int pOrdQFrac = 1;
   const int pOrdPFrac = 0;
-  const int nel = 100;
+  const int nel = 100; // Deprecated
   const int npropag = 5;
   const int hy = 4;
   const REAL Ly = 100.0;
   const REAL elsize = 50.0;
   std::string PostProcessFileName = "SemiCoupled.vtk";
-  const int nthreadsForAssemble = 8; // if 0, program is serial
+  const int nthreadsForAssemble = 8; // if 0, program is serial in assemble
+  bool isCoupled = true;
   
   // Fluid Data
-  const REAL mu = 1.0e-8; // 1.0e-3 Pa*s -> 1 Centipoise cp
-  const REAL Density = 1000.0; //1000.0 kg/m3 -> 1.0 gr/cm3
+  const REAL mu = 1.0e-8; // N/mm2 * s = 1.0e-2 Pa*s -> 1 Centipoise cp ->
+  const REAL Density = 1000.0; // 1000.0 kg/m3 -> 1.0 gr/cm3
   
   // Fracture Data
-  const REAL Lfrac = 1000.; // mm
+  const REAL Lfrac = 1000.; // mm // Deprecated
   const REAL hf = 50000.; // mm
   const REAL Q = 100.; // mm3/s/mm
   
   // Leak off data
-  const REAL Cl = 0.3; // Carter coefficient
+  const REAL Cl = 0.5; // Carter coefficient
   const REAL Pe = 15.; // Should come from darcy simulation
   const REAL Pref = 10.; // pressure where Cl was measured
-  const REAL vsp = 0.*0.002; // spurt loss
+  const REAL vsp = 0.*0.002; // spurt loss - Better keep 0 for now. I havent debugged it
   
-  // Preenchendo estrutura TPZFracData
+  // Filling TPZFracData structure. Every object has an autopointer to this structure called fData
   TPZAutoPointer<TPZFracData> Data = new TPZFracData;
   Data->SetPostProcessFileName(PostProcessFileName);
   Data->SetK(Kabolute);
@@ -90,10 +91,11 @@ int main()
   Data->SetPref(Pref);
   Data->SetVsp(vsp);
   Data->SetElSize(elsize);
-  Data->SetDwDp();
+  Data->SetDwDp(); // Has to be called after setting frac parameters
   Data->SetNPropagations(npropag);
   Data->SetHy(hy);
   Data->SetLy(Ly);
+  Data->SetIsCoupled(isCoupled);
   
   
   Data->SetNThreadsForAssemble(nthreadsForAssemble);
@@ -106,7 +108,7 @@ int main()
 //  TPZFracAnalysis fracAn(Data);
 //  fracAn.Run();
   
-  // Reservoir Simulation uncoupled
+  // Reservoir Simulation coupled
   TPZDarcyAnalysis DarcyAn(Data);
   DarcyAn.Run();
   

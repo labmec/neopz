@@ -235,8 +235,16 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
   // Leak off
   const int intGlobPtIndex = data.intGlobPtIndex;
   TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
-  const REAL ql = 2.*fData->QlFVl(Vl(0,0),p);
-  const REAL dqldp = 2.*fData->dQlFVl(Vl(0,0), p);
+  REAL ql, dqldp, dqldpomar;
+  if (fData->IsCoupled()) {
+    ql = 2.*fData->QlFVl(Vl(0,0), p, PressureL);
+    dqldp = 2.*fData->dQlFVl(Vl(0,0), p, PressureL);
+    dqldpomar = 2.*fData->dQlFVlPoros(Vl(0,0), p, PressureL);
+  }
+  else{
+    ql = 2.*fData->QlFVl(Vl(0,0), p);
+    dqldp = 2.*fData->dQlFVl(Vl(0,0), p);
+  }
   
   // ************************ Leak Off Contribution for Integral *************************************
   
@@ -252,6 +260,12 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
       for (int jp = 0; jp < phrPR; jp++) {
         const REAL jac = - dqldp * phiPR(jp,0) * phiPR(ip,0);
         ek(FirstPR+ip+iblock,FirstPR+jp+jblock) += weight * jac;
+      }
+      if (fData->IsCoupled()) {
+        for (int jpomar = 0; jpomar < PRowsleft; jpomar++) {
+          const REAL jac = - dqldpomar * phiPR(ip,0) * phiPL(jpomar,0);
+          ek(FirstPR+ip+iblock, jpomar + FirstPL) += weight * jac;
+        }
       }
     }
   }
