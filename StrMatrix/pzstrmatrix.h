@@ -105,6 +105,10 @@ protected:
 	
 	/** @brief Assemble the global system of equations into the matrix which has already been created */
 	virtual void MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+  
+  /** @brief Calculate each element and put them into the global matrix through critical section */
+  void Parallel_Assemble_CS(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+  void Parallel_Assemble_CS(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 public:
 	
@@ -174,6 +178,10 @@ protected:
 		TPZAutoPointer<TPZGuiInterface> fGuiInterface;
 		/// Mutexes (to choose which element is next)
 		pthread_mutex_t fAccessElement;
+    /// Mutexes (to choose which element is next)
+    pthread_mutex_t fAccessElementK;
+    /// Mutexes (to choose which element is next)
+    pthread_mutex_t fAccessElementF;
 		/// Semaphore (to wake up assembly thread)
 		TPZSemaphore fAssembly;
 		/// Global matrix
@@ -188,10 +196,14 @@ protected:
 		long fNextElement;
 		/// Look for an element index which needs to be computed and put it on the stack
 		long NextElement();
+		/// Look for an element index which needs to be computed and put it on the stack optimized for case that does not use ThreadAssembly
+    long NextElementCS();
 		/// Put the computed element matrices in the map
 		void ComputedElementMatrix(long iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef);
 		/// The function which will compute the matrices
-		static void *ThreadWork(void *threaddata);
+		static void *ThreadWorkCS(void *threaddata);
+    /// The function which will compute the matrices
+    static void *ThreadWork(void *threaddata);
 		/// The function which will compute the assembly
 		static void *ThreadAssembly(void *threaddata);
 		

@@ -135,6 +135,7 @@ void TPZStructMatrix::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> &
     {
         if(this->fNumThreads){
             this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+            //this->Parallel_Assemble_CS(stiffness, rhs, guiInterface); //AQUINATHAN
         }
         else{
             this->Serial_Assemble(stiffness,rhs,guiInterface);
@@ -165,7 +166,8 @@ void TPZStructMatrix::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInte
     else
     {
         if(this->fNumThreads){
-            this->MultiThread_Assemble(rhs,guiInterface);
+          this->MultiThread_Assemble(rhs,guiInterface);
+          //this->Parallel_Assemble_CS(rhs, guiInterface); //AQUINATHAN
         }
         else{
             this->Serial_Assemble(rhs,guiInterface);
@@ -531,6 +533,71 @@ void TPZStructMatrix::SetMaterialIds(const std::set<int> &materialids)
  }
  */
 
+void TPZStructMatrix::Parallel_Assemble_CS(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+{
+  ThreadData threaddata(this,mat,rhs,fMaterialIds,guiInterface);
+  const int numthreads = this->fNumThreads;
+  TPZVec<pthread_t> allthreads(numthreads);
+  int itr;
+  if(guiInterface){
+    if(guiInterface->AmIKilled()){
+      return;
+    }
+  }
+  for(itr=0; itr<numthreads; itr++)
+  {
+    PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWorkCS,
+                      &threaddata, __FUNCTION__);
+  }
+  
+  for(itr=0; itr<numthreads; itr++)
+  {
+    PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
+  }
+  
+#ifdef LOG4CXX
+  if(loggerCheck->isDebugEnabled())
+  {
+    std::stringstream sout;
+    //stiffness.Print("Matriz de Rigidez: ",sout);
+    mat.Print("Matriz de Rigidez: ",sout,EMathematicaInput);
+    rhs.Print("Right Handside", sout,EMathematicaInput);
+    LOGPZ_DEBUG(loggerCheck,sout.str())
+  }
+#endif
+}
+
+void TPZStructMatrix::Parallel_Assemble_CS(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+{
+  
+  //please implement me
+  //	this->Serial_Assemble(rhs, guiInterface);
+  ThreadData threaddata(this,rhs,fMaterialIds,guiInterface);
+  const int numthreads = this->fNumThreads;
+  TPZVec<pthread_t> allthreads(numthreads);
+  int itr;
+  if(guiInterface){
+    if(guiInterface->AmIKilled()){
+      return;
+    }
+  }
+  
+  for(itr=0; itr<numthreads; itr++)
+  {
+    PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWorkCS,
+                      &threaddata, __FUNCTION__);
+  }
+  
+  
+  for(itr=0; itr<numthreads; itr++)
+  {
+    PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
+  }
+
+  
+}
+
+
 #ifndef NEW_MULTI_THREAD_ASSEMBLE
 
 void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
@@ -549,7 +616,7 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<ST
         PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork,
                           &threaddata, __FUNCTION__);
     }
-    
+  
     ThreadData::ThreadAssembly(&threaddata);
     
     for(itr=0; itr<numthreads; itr++)
@@ -568,6 +635,7 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<ST
     }
 #endif
 }
+
 
 void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
@@ -615,6 +683,8 @@ TPZStructMatrix::ThreadData::ThreadData(TPZStructMatrix *strmat, TPZMatrix<STATE
 {
     
     PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrix::ThreadData::ThreadData()");
+    PZ_PTHREAD_MUTEX_INIT(&fAccessElementK,NULL,"");
+    PZ_PTHREAD_MUTEX_INIT(&fAccessElementF,NULL,"");
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -648,6 +718,8 @@ TPZStructMatrix::ThreadData::ThreadData(TPZStructMatrix *strmat,
 {
     
     PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrix::ThreadData::ThreadData()");
+    PZ_PTHREAD_MUTEX_INIT(&fAccessElementK,NULL,"");
+    PZ_PTHREAD_MUTEX_INIT(&fAccessElementF,NULL,"");
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -676,6 +748,8 @@ TPZStructMatrix::ThreadData::ThreadData(TPZStructMatrix *strmat,
 TPZStructMatrix::ThreadData::~ThreadData()
 {
     PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrix::ThreadData::~ThreadData()");
+    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElementK,"");
+    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElementF,"");
     /*
      #ifdef MACOSX
      sem_close(fAssembly);
@@ -684,6 +758,130 @@ TPZStructMatrix::ThreadData::~ThreadData()
      #endif
      */
 }
+
+void *TPZStructMatrix::ThreadData::ThreadWorkCS(void *datavoid)
+{
+  ThreadData *data = (ThreadData *) datavoid;
+  // compute the next element (this method is threadsafe)
+  long iel = data->NextElementCS();
+  TPZCompMesh *cmesh = data->fStruct->fMesh;
+  TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
+  long nel = cmesh->NElements();
+  while(iel < nel)
+  {
+    
+    TPZAutoPointer<TPZElementMatrix> ek;
+    TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrix(cmesh,TPZElementMatrix::EF);
+    if (data->fGlobMatrix) {
+      ek = new TPZElementMatrix(cmesh,TPZElementMatrix::EK);
+    }
+    else
+    {
+      ek = ef;
+    }
+    
+    TPZCompEl *el = cmesh->ElementVec()[iel];
+    TPZElementMatrix *ekp = ek.operator->();
+    TPZElementMatrix *efp = ef.operator->();
+    TPZElementMatrix &ekr = *ekp;
+    TPZElementMatrix &efr = *efp;
+    
+    if (data->fGlobMatrix) {
+      el->CalcStiff(ekr,efr);
+    }
+    else
+    {
+      el->CalcResidual(efr);
+    }
+    
+    if(guiInterface) if(guiInterface->AmIKilled()){
+      break;
+    }
+    
+    if(!el->HasDependency()) {
+      ek->ComputeDestinationIndices();
+      
+      if(data->fStruct->HasRange())
+      {
+        data->fStruct->FilterEquations(ek->fSourceIndex,ek->fDestinationIndex);
+      }
+#ifdef LOG4CXX
+      if(loggerel->isDebugEnabled())
+      {
+        std::stringstream sout;
+        sout << "Element index " << iel << std::endl;
+        ek->fMat.Print("Element stiffness matrix",sout);
+        ef->fMat.Print("Element right hand side", sout);
+        LOGPZ_DEBUG(loggerel,sout.str())
+      }
+#endif
+    } else {
+      // the element has dependent nodes
+      if (data->fGlobMatrix) {
+        ek->ApplyConstraints();
+      }
+      ef->ApplyConstraints();
+      ek->ComputeDestinationIndices();
+      if(data->fStruct->HasRange())
+      {
+        data->fStruct->FilterEquations(ek->fSourceIndex,ek->fDestinationIndex);
+      }
+#ifdef LOG4CXX
+      if(loggerel2->isDebugEnabled() && el->Reference() &&  el->Reference()->MaterialId() == 1 && el->IsInterface())
+      {
+        std::stringstream sout;
+        el->Reference()->Print(sout);
+        el->Print(sout);
+        ek->Print(sout);
+        //			ef->Print(sout);
+        LOGPZ_DEBUG(loggerel2,sout.str())
+      }
+#endif
+#ifdef LOG4CXX
+      if(loggerel->isDebugEnabled())
+      {
+        std::stringstream sout;
+        sout << "Element index " << iel << std::endl;
+        ek->fConstrMat.Print("Element stiffness matrix",sout);
+        ef->fConstrMat.Print("Element right hand side", sout);
+        LOGPZ_DEBUG(loggerel,sout.str())
+      }
+#endif
+    }
+    
+    // Assemble the matrix
+    
+    if(!ek->HasDependency())
+    {
+      if (data->fGlobMatrix) {
+        PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementK,"");
+        data->fGlobMatrix->AddKel(ek->fMat,ek->fSourceIndex,ek->fDestinationIndex);
+        PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementK,"");
+        
+      }
+      PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementF,"");
+      data->fGlobRhs->AddFel(ef->fMat,ek->fSourceIndex,ek->fDestinationIndex);
+      PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementF,"");
+    }
+    else
+    {
+      if (data->fGlobMatrix) {
+        PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementK,"");
+        data->fGlobMatrix->AddKel(ek->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
+        PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementK,"");
+      }
+      PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementF,"");
+      data->fGlobRhs->AddFel(ef->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
+      PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementF,"");
+    }
+    
+    // compute the next element (this method is threadsafe)
+    iel = data->NextElementCS();
+  }
+  
+  return 0;
+}
+
 
 void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 {
@@ -695,7 +893,7 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
     long nel = cmesh->NElements();
     while(iel < nel)
     {
-        
+      
         TPZAutoPointer<TPZElementMatrix> ek;
         TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrix(cmesh,TPZElementMatrix::EF);
         if (data->fGlobMatrix) {
@@ -919,49 +1117,94 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 
 long TPZStructMatrix::ThreadData::NextElement()
 {
-    PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
-    long iel;
-    long nextel = fNextElement;
-    TPZCompMesh *cmesh = fStruct->fMesh;
-    TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
-    long nel = elementvec.NElements();
-    for(iel=fNextElement; iel < nel; iel++)
+  PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
+  long iel;
+  long nextel = fNextElement;
+  TPZCompMesh *cmesh = fStruct->fMesh;
+  TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
+  long nel = elementvec.NElements();
+  for(iel=fNextElement; iel < nel; iel++)
+  {
+    TPZCompEl *el = elementvec[iel];
+    if(!el) continue;
+    if(fStruct->fMaterialIds.size() == 0) break;
+    TPZMaterial * mat = el->Material();
+    TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
+    if(!mat)
     {
-        TPZCompEl *el = elementvec[iel];
-        if(!el) continue;
-        if(fStruct->fMaterialIds.size() == 0) break;
-        TPZMaterial * mat = el->Material();
-        TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
-        if(!mat)
-        {
-            if(!submesh)
-            {
-                continue;
-            }
-            else if(submesh->NeedsComputing(fStruct->fMaterialIds) == false) continue;
-        }
-        else
-        {
-            int matid = mat->Id();
-            if(this->ShouldCompute(matid) == false) continue;
-        }
-        break;
+      if(!submesh)
+      {
+        continue;
+      }
+      else if(submesh->NeedsComputing(fStruct->fMaterialIds) == false) continue;
     }
-    fNextElement = iel+1;
-    nextel = iel;
-    if(iel<nel) fProcessed.insert(iel);
-    PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
+    else
+    {
+      int matid = mat->Id();
+      if(this->ShouldCompute(matid) == false) continue;
+    }
+    break;
+  }
+  fNextElement = iel+1;
+  nextel = iel;
+  if(iel<nel) fProcessed.insert(iel); //AQUIBORIN pelo que percebi, aqui tem que acontecer antes do unlock no caso sem Critical Section
+  PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
 #ifdef LOG4CXX
+  {
+    if(logger->isDebugEnabled())
     {
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout << __PRETTY_FUNCTION__ << " returning " << nextel << " fNextElement " << fNextElement;
-            LOGPZ_DEBUG(logger,sout.str())
-        }
+      std::stringstream sout;
+      sout << __PRETTY_FUNCTION__ << " returning " << nextel << " fNextElement " << fNextElement;
+      LOGPZ_DEBUG(logger,sout.str())
     }
+  }
 #endif
-    return nextel;
+  return nextel;
+}
+
+
+long TPZStructMatrix::ThreadData::NextElementCS()
+{
+  TPZCompMesh *cmesh = fStruct->fMesh;
+  TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
+
+  long nel = elementvec.NElements();
+  long my_el;
+
+  while (1) {
+  
+    PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
+    my_el = fNextElement++;
+    PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
+  
+    if (my_el >= nel-1)
+      break;
+    
+    TPZCompEl *el = elementvec[my_el];
+    if(!el) continue;
+    if(fStruct->fMaterialIds.size() == 0) break;
+    TPZMaterial * mat = el->Material();
+    TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
+    if(!mat)
+    {
+      if(!submesh)
+      {
+        continue;
+      }
+      else if(submesh->NeedsComputing(fStruct->fMaterialIds) == false) continue;
+    }
+    else
+    {
+      int matid = mat->Id();
+      if(this->ShouldCompute(matid) == false) continue;
+    }
+    break;
+  }
+  
+  if(my_el<nel)
+    fProcessed.insert(my_el);
+
+  return my_el;
 }
 
 // put the computed element matrices in the map
