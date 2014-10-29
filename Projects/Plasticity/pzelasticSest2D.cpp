@@ -8,7 +8,7 @@
 
 #include "pzelasticSest2D.h"
 
-TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D():TPZElasticityMaterial()
+TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D():TPZMatElasticity2D()
 {
 }
 /**
@@ -20,18 +20,18 @@ TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D():TPZElasticityMaterial
  * @param fy forcing function \f$ -y = fy \f$
  * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
  */
-TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZElasticityMaterial(id,E,nu,fx,fy,plainstress)
+TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZMatElasticity2D(id,E,nu,fx,fy,plainstress)
 {
  
     
 }
 
-TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id):TPZElasticityMaterial(id)
+TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id):TPZMatElasticity2D(id)
 {
 }
 
 /** @brief Copies the data of one TPZElasticityMaterial object to another */
-TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(const TPZElasticityMaterial &copy):TPZElasticityMaterial(copy)
+TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(const TPZMatElasticity2D &copy):TPZMatElasticity2D(copy)
 {
 }
 

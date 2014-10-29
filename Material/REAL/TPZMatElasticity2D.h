@@ -70,6 +70,7 @@ protected:
     REAL fPreStressXX;
     REAL fPreStressXY;
     REAL fPreStressYY;
+    REAL fPreStressZZ;    
     
     /** @brief Uses plain stress
      * @note \f$fPlaneStress = 1\f$ => Plain stress state
@@ -99,6 +100,9 @@ public:
     
     virtual ~TPZMatElasticity2D();
     
+    /** @brief Copy constructor */
+    TPZMatElasticity2D(const TPZMatElasticity2D &cp);    
+    
     virtual void Print(std::ostream & out);
     
     virtual std::string Name() { return "TPZMatElasticity2D"; }
@@ -126,6 +130,23 @@ public:
         ff[1] = fy;
     }
     
+    /**
+     * @brief Set parameters of elastic material:
+     * @param First  Lame Parameter Lambda
+     * @param Second Lame Parameter Mu -> G
+     * @param fx forcing function \f$ -x = fx \f$
+     * @param fy forcing function \f$ -y = fy \f$
+     * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
+     */
+    void SetElasticity(REAL Ey, REAL nu)
+    {
+        fE = Ey;
+        fnu = nu;
+        flambda = (Ey*nu)/((1+nu)*(1-2*nu));
+        fmu = Ey/(2*(1+nu));
+
+    }    
+    
     /** @brief Set plane problem
      * planestress = 1 => Plain stress state
      * planestress != 1 => Plain Strain state
@@ -135,12 +156,22 @@ public:
         fPlaneStress = planestress;
     }
     
+    /** @brief Set plane problem
+     * planestress = 1 => Plain stress state
+     * planestress != 1 => Plain Strain state
+     */
+    void SetPlaneStrain()
+    {
+        fPlaneStress = 0;
+    }    
+    
     /** @brief Set Initial Stress */
-    void SetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY)
+    void SetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
     {
         fPreStressXX = SigmaXX;
 	fPreStressXY = SigmaXY;
 	fPreStressYY = SigmaYY;
+	fPreStressZZ = SigmaZZ;
     }    
     
     /** @brief Set Initial Stress */
@@ -157,6 +188,14 @@ public:
         Lambda =  flambda;
         G = fmu;
     }
+    
+    /** @brief Get lame parameters
+     * Lambda first lame
+     * Mu Second lame
+     */
+    STATE GetLambda() {return flambda;}
+    STATE GetMU() {return fmu;}    
+
     
     virtual void FillDataRequirements(TPZMaterialData &data);
     

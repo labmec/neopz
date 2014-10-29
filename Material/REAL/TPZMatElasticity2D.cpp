@@ -47,8 +47,8 @@ TPZMatElasticity2D::TPZMatElasticity2D(int matid):TPZMaterial(matid), ff(0), fnu
 TPZMatElasticity2D::TPZMatElasticity2D(int matid, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZMaterial(matid){
     fE = E;
     fnu = nu;
-    flambda = 
-    
+    flambda = (E*nu)/((1+nu)*(1-2*nu));
+    fmu = E/(2*(1+nu));
     fmatId = matid;
     ff.resize(2);
     ff[0]=fx;
@@ -62,6 +62,22 @@ TPZMatElasticity2D::TPZMatElasticity2D(int matid, REAL E, REAL nu, REAL fx, REAL
 TPZMatElasticity2D::~TPZMatElasticity2D(){
 }
 
+TPZMatElasticity2D::TPZMatElasticity2D(const TPZMatElasticity2D &copy) :
+TPZMaterial(copy),
+fE(copy.fE),
+fnu(copy.fnu),
+flambda(copy.flambda),
+fmu(copy.fmu),
+fPreStressXX(copy.fPreStressXX),
+fPreStressYY(copy.fPreStressYY),
+fPreStressXY(copy.fPreStressXY),
+fPreStressZZ(copy.fPreStressZZ)
+{
+	ff[0]=copy.ff[0];
+	ff[1]=copy.ff[1];
+	fPlaneStress = copy.fPlaneStress;
+
+}
 
 int TPZMatElasticity2D::NStateVariables() {
     return 2;
