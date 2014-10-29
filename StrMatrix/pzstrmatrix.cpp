@@ -1008,6 +1008,30 @@ void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointe
     }
 }
 
+void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+{
+    ThreadData threaddata(this,mat,rhs,fMaterialIds,guiInterface);
+    
+    threaddata.fnextBlocked=&fnextBlocked;
+    threaddata.felSequenceColor=&felSequenceColor;
+    
+    const int numthreads = this->fNumThreads;
+    TPZVec<pz_thread_t> allthreads(numthreads);
+    int itr;
+    if(guiInterface){
+        if(guiInterface->AmIKilled()){
+            return;
+        }
+    }
+    for(itr=0; itr<numthreads; itr++)
+    {
+        tht::CreateThread( allthreads[itr], ThreadData::ThreadWork, &threaddata);
+    }
+    for(itr=0; itr<numthreads; itr++)
+    {
+        tht::ThreadWaitFor(allthreads[itr]);
+    }
+}
 void *TPZStructMatrix::ThreadData::ThreadWorkResidual(void *datavoid)
 {
     
