@@ -82,6 +82,7 @@ void UniformRefinement(TPZGeoMesh  *gMesh, int nh);
 void UniformRefinement(TPZGeoMesh *gMesh, int nh, int MatId);
 void RefinElemComp(TPZCompMesh  *cMesh, int indexEl);
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
+void ReservoirPressure(const TPZVec<STATE> &x, TPZVec<STATE> &p,  TPZFMatrix<STATE> &gradp);
 
 int main(int argc, char *argv[])
 {
@@ -101,12 +102,12 @@ int main(int argc, char *argv[])
     GeometryInfo.SetfDimensionlessL(1.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     
-    
     TPZVec<long> PointTopology(1);
     PointTopology[0]=0;
     int matPoint = 6;
     long index;
     gmesh->CreateGeoElement(EPoint, PointTopology, matPoint, index);
+    
 #ifdef LOG4CXX
     {
         //  Print Geometrical Base Mesh
@@ -117,7 +118,7 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    int Href = 4;
+    int Href = 1;
     int PElasticity = 2;
 	UniformRefinement(gmesh, Href);
 	
@@ -138,10 +139,10 @@ int main(int argc, char *argv[])
 	
 	
 	// Visualization of computational meshes
-    bool mustOptimizeBandwidth = false;
-	TPZAnalysis * ElasticAnalysis = new TPZAnalysis(ComputationalMeshElasticity,mustOptimizeBandwidth);
+      bool mustOptimizeBandwidth = false;
+      TPZAnalysis * ElasticAnalysis = new TPZAnalysis(ComputationalMeshElasticity,mustOptimizeBandwidth);
     
-    SolveSist(ElasticAnalysis, ComputationalMeshElasticity);
+      SolveSist(ElasticAnalysis, ComputationalMeshElasticity);
 	
 	std::string ElasticityOutput;
 	ElasticityOutput = "ComputationalMeshElasticity";
@@ -170,6 +171,14 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
     material->SetfPlaneProblem(planestress);
     REAL lamelambda = 2.0e9,lamemu = 1.0e9, fx= 0, fy = 0;
     material->SetParameters(lamelambda,lamemu, fx, fy);
+    REAL Sigmaxx = 0.0, Sigmayx = 0.0, Sigmayy = 0.0;
+    material->SetPreStress(Sigmaxx,Sigmayx,Sigmayy);
+    REAL Alpha = 1.0;
+    material->SetBiotAlpha(Alpha);
+    
+    TPZAutoPointer<TPZFunction<STATE> > Pressure;
+    Pressure = new TPZDummyFunction<STATE>(ReservoirPressure);
+    material->SetForcingFunction(Pressure);
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDefaultOrder(pOrder);
@@ -384,4 +393,9 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
         DebugStop(); // Something is very wrong
     }
     
+}
+
+void ReservoirPressure(const TPZVec<STATE> &x, TPZVec<STATE> &p,  TPZFMatrix<STATE> &gradp)
+{
+  p[0] = 1.0;
 }
