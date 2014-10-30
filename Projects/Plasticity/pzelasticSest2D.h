@@ -20,6 +20,7 @@
 #include "pzdiscgal.h"
 #include "pzelasmat.h"
 #include "TPZMatElasticity2D.h"
+#include "pzelastoplasticSest2D.h"
 
 
 /**
@@ -29,6 +30,78 @@
 class TPZElasticityMaterialSest2D : public TPZMatElasticity2D {
 	
     public :
+      
+    enum SOLUTIONVARS{
+	  ENone = -1,
+	  // Strain
+	  EStrainVol = 0,
+	  EStrainXX = 1,
+	  EStrainYY = 2,
+	  EStrainZZ = 3,
+	  EStrainXY = 4,
+	  EStrainXZ = 5,
+	  EStrainYZ = 6,
+	  // Elastic Strain
+	  EElStrainVol = 7,
+	  EElStrainXX = 8,
+	  EElStrainYY = 9,
+	  EElStrainZZ = 10,
+	  EElStrainXY = 11,
+	  EElStrainXZ = 12,
+	  EElStrainYZ = 13,
+	  // Plastic Strain
+	  EPlStrainVol = 14,
+	  EPlStrainXX = 15,
+	  EPlStrainYY = 16,
+	  EPlStrainZZ = 17,
+	  EPlStrainXY = 18,
+	  EPlStrainXZ = 19,
+	  EPlStrainYZ = 20,
+	  EPlStrainSqJ2 = 21,
+	  EPlStrainSqJ2El = 22,
+	  EPlAlpha = 23,
+	  // Displacement
+	  EDisplacementX = 24,
+	  EDisplacementY = 25,
+	  EDisplacementZ = 26,
+	  EDisplacementTotal = 27,
+	  // Total Stress
+	  ETotStressI1 = 28,
+	  ETotStressJ2 = 29,
+	  ETotStressXX = 30,
+	  ETotStressYY = 31,
+	  ETotStressZZ = 32,
+	  ETotStressXY = 33,
+	  ETotStressXZ = 34,
+	  ETotStressYZ = 35,
+	  ETotStress1 = 36,
+	  ETotStress2 = 37,
+	  ETotStress3 = 38,
+	  // Effective stress
+	  EEffStressI1 = 39,
+	  EEffStressJ2 = 40,
+	  EEffStressXX = 41,
+	  EEffStressYY = 42,
+	  EEffStressZZ = 43,
+	  EEffStressXY = 44,
+	  EEffStressXZ = 45,
+	  EEffStressYZ = 46,
+	  EEffStress1 = 47,
+	  EEffStress2 = 48,
+	  EEffStress3 = 49,
+	  // Yield Surface
+	  EYieldSurface1 = 50,
+	  EYieldSurface2 = 51,
+	  EYieldSurface3 = 52,
+	  // Simulation
+	  EPOrder = 53,
+	  ENSteps = 54,
+	  // Pore pressure
+	  EPorePressure = 55,
+	  // Material
+	  EMatPorosity = 56,
+	  EMatE = 57,
+	  EMatPoisson = 58 };
 
     /** @brief Default constructor */
     TPZElasticityMaterialSest2D();
@@ -48,19 +121,16 @@ class TPZElasticityMaterialSest2D : public TPZMatElasticity2D {
     /** @brief Copies the data of one TPZElasticityMaterial object to another */
     TPZElasticityMaterialSest2D(const TPZMatElasticity2D &copy);
     
-    /// Compute post processed values
-    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-
-	
-	/** @brief Creates a new material from the current object  */
-	virtual TPZMaterial * NewMaterial() {
-        return new TPZElasticityMaterialSest2D(*this);
-    }
+    int VariableIndex(const std::string &name);
     
-	virtual int ClassId() const
-    {
-        return TPZElasticityMaterialSest2DID;
-    }
+    int NSolutionVariables(int var);
+    
+    void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+
+    /** @brief Creates a new material from the current object  */
+    virtual TPZMaterial * NewMaterial() { return new TPZElasticityMaterialSest2D(*this);}
+    
+    virtual int ClassId() const { return TPZElasticityMaterialSest2DID; }
 
 };
 

@@ -165,14 +165,18 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
     // Getting mesh dimension
     int dim = 2;
     int matId1 = 1;
-    TPZMatElasticity2D *material;
-    material = new TPZMatElasticity2D(matId1);
+    
+//    TPZElasticityMaterialSest2D * material = new TPZElasticityMaterialSest2D(matId1);    
+
+     TPZMatElasticity2D *material;
+     material = new TPZMatElasticity2D(matId1);
+    
     // Setting up paremeters
     material->SetfPlaneProblem(planestress);
     REAL lamelambda = 2.0e9,lamemu = 1.0e9, fx= 0, fy = 0;
     material->SetParameters(lamelambda,lamemu, fx, fy);
-    REAL Sigmaxx = 0.0, Sigmayx = 0.0, Sigmayy = 0.0;
-    material->SetPreStress(Sigmaxx,Sigmayx,Sigmayy);
+    REAL Sigmaxx = 0.0, Sigmayx = 0.0, Sigmayy = 0.0, Sigmazz = 0.0;
+    material->SetPreStress(Sigmaxx,Sigmayx,Sigmayy,Sigmazz);
     REAL Alpha = 1.0;
     material->SetBiotAlpha(Alpha);
     
