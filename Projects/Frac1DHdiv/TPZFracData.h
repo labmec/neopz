@@ -122,6 +122,12 @@ private:
 
   /** @brief bool to determine if we are coupling fracture with darcy */
   bool fIsCoupled;
+
+  /** @brief bool to determine if we want to plot VTK. It is way faster without it */
+  bool fplotVTK;
+    
+  /** @brief Refinement for postprocessing */
+  int fhrefPost;
   
   /** @brief Size of the elements in the fracture */
   REAL felSize;
@@ -139,7 +145,7 @@ private:
   std::map<REAL,REAL> fDebugMap, fDebugMap2;
   
 public:
-  
+    
   /** @brief Enum for materials Ids */
   enum MadIds {EMatDarcy = 1, EBCBottom = 2, EBCRight = 3, EBCTop = 4, EBCLeft = 5, EMatFrac = 6, EMatInterFrac = 20, EBCInlet = 7, EBCOutlet = 8 , EBCAuxBottom = 10};
   
@@ -275,7 +281,19 @@ public:
   
   /** @brief Returns if using coupled simulation */
   bool IsCoupled() const {return this->fIsCoupled;}
-  
+
+  /** @brief Defines if plot vtk */
+  void SetIsPlotVTK(bool plotVTK){ this->fplotVTK = plotVTK;}
+
+  /** @brief Returns if ploting vtk */
+  bool IsPlotVTK() const {return this->fplotVTK;}
+    
+  /** @brief Defines if plot vtk */
+  void SetHrefPostPro(int hrefpost){ this->fhrefPost = hrefpost;}
+    
+  /** @brief Returns if ploting vtk */
+  int HrefPostPro() const {return this->fhrefPost;}
+    
   /** @brief Defines p order of the pressure in L2 space */
   void SetPorderPressure(int PorderPressure){ this->fPorderPressure = PorderPressure;}
   

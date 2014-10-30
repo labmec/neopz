@@ -43,22 +43,25 @@ int main()
   const int pOrdQFrac = 1;
   const int pOrdPFrac = 0;
   const int nel = 100; // Deprecated
-  const int npropag = 5;
+  const int npropag = 20;
   const int hy = 4;
-  const REAL Ly = 100.0;
-  const REAL elsize = 50.0;
-  std::string PostProcessFileName = "SemiCoupled.vtk";
-  const int nthreadsForAssemble = 8; // if 0, program is serial in assemble
-  bool isCoupled = true;
-  
+  const REAL Ly = 2000.0;
+  const REAL elsize = 200.0; // mm
+  const int nthreadsForAssemble = 16; // if 0, program is serial in assemble
+  bool isCoupled = false;
+  bool plotVTK = true; // it is faster is false
+  int hrefvtk = 0;
+  std::string PostProcessFileName = "NoCoupledk.vtk";
+    if (isCoupled) { PostProcessFileName = "Coupledk.vtk";}
+    
   // Fluid Data
   const REAL mu = 1.0e-8; // N/mm2 * s = 1.0e-2 Pa*s -> 1 Centipoise cp ->
-  const REAL Density = 1000.0; // 1000.0 kg/m3 -> 1.0 gr/cm3
+  const REAL Density = 5000.0; // 1000.0 kg/m3 -> 1.0 gr/cm3
   
   // Fracture Data
   const REAL Lfrac = 1000.; // mm // Deprecated
   const REAL hf = 50000.; // mm
-  const REAL Q = 100.; // mm3/s/mm
+  const REAL Q = 500.; // mm3/s/mm
   
   // Leak off data
   const REAL Cl = 0.5; // Carter coefficient
@@ -96,7 +99,8 @@ int main()
   Data->SetHy(hy);
   Data->SetLy(Ly);
   Data->SetIsCoupled(isCoupled);
-  
+  Data->SetIsPlotVTK(plotVTK);
+  Data->SetHrefPostPro(hrefvtk);
   
   Data->SetNThreadsForAssemble(nthreadsForAssemble);
   Data->SetPorderFlow(pOrdQFrac);

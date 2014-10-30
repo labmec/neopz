@@ -171,7 +171,7 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
             (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) +
             (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) ;
 
-            ef(iq + FirstQ) +=  OneOverLambda * weight * Kqdotv;
+            ef(iq + FirstQ) +=  OneOverLambda * weight * Kqdotv;    //  dot(K q,v)
 
             
             for (int jq=0; jq<phrQ; jq++)
@@ -184,7 +184,7 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
 
                 REAL Kvdotv =
                 (phiQ(ishapeindex,0) * vec1) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(0,jvectorindex)) +
-                (phiQ(ishapeindex,0) * vec2) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex)) ;  //  dot(K q,v)
+                (phiQ(ishapeindex,0) * vec2) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex)) ;    //  dot(K vj,vi)
 
                 ek(iq + FirstQ,jq + FirstQ) += weight * OneOverLambda * Kvdotv;
             }

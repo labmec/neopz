@@ -84,13 +84,14 @@ void PressureAnalytic(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &sol, TPZ
 
 void TPZDarcyAnalysis::Run()
 {
-  
+    fData->DebugMap()[fData->Time()] = 0.;
     // Computing vl as the first memory value on each integration point
     REAL vl = this->RunUntilOpen();
     TPZFMatrix<REAL> vlMatrix(1,1,vl);
     
     const REAL lFrac = fData->ElSize();
     fData->SetLfrac(lFrac);
+    fData->DebugMap()[fData->Time()] = lFrac;
     
     // Solving initial darcy
   
@@ -122,7 +123,10 @@ void TPZDarcyAnalysis::Run()
     an->SetSolver(step);
     an->SetStructuralMatrix(skyl);
 //    SolveSistTransient(an,true);
-
+    if(fData->IsPlotVTK())
+    {
+        this->PostProcessVTK(an);
+    }
     
     while (fmustStop == false)
     {
@@ -139,6 +143,7 @@ void TPZDarcyAnalysis::Run()
           REAL newLfrac = fData->Lfrac() + fData->ElSize();
           fData->SetLfrac(newLfrac);
           std::cout << " ------> New Lfrac = " << newLfrac << std::endl;
+          fData->DebugMap()[fData->Time()] = newLfrac;
           
           this->InsertFracGeoMesh();
           this->InsertFracCompMesh();
@@ -168,10 +173,17 @@ void TPZDarcyAnalysis::Run()
           an->StructMatrix()->EquationFilter() = newEquationFilter; //AQUINATHAN
           
           an->LoadSolution(fcmeshMixed->Solution());
-          this->PostProcessVTK(an);
-            
+            if (fData->IsPlotVTK()) {
+              this->PostProcessVTK(an);
+            }
         }
     }
+    
+
+    
+    std::string filename = "lfracNoCoupled.nb";
+    if (fData->IsCoupled()) { filename = "lfracCoupled.nb";}
+    fData->PrintDebugMapForMathematica(filename);
     
     delete an;
     
@@ -227,7 +239,9 @@ bool TPZDarcyAnalysis::SolveSistTransientWithFracture(TPZAnalysis *an)
         else{
             fData->SetNextTime();
             AcceptSolution(an); // updates leak off
-            this->PostProcessVTK(an);
+            if (fData->IsPlotVTK()){
+                this->PostProcessVTK(an);
+            }
         }
         
         REAL peteleco = 1.e-8;
@@ -623,7 +637,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
 {
   int iter = 0;
   REAL error = 1.e10, NormResLambdaLast = 1.e10;;
-  const REAL tol = 1.e-6; // because the SI unit system
+  const REAL tol = 5.e-10; // because the SI unit system
   
   fData->SetCurrentState();
   int numeq = an->Mesh()->NEquations();
@@ -741,7 +755,7 @@ void TPZDarcyAnalysis::PrintComputatiolaMeshInfo(TPZCompMesh * cmesh)
 void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
 {
     const int dim = 2;
-    int div = 0;
+    int div = fData->HrefPostPro();
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile = "2DMixedDarcy.vtk";
     scalnames.Push("Pressure");
@@ -763,11 +777,10 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
 void TPZDarcyAnalysis::SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {
     
-    TPZSkylineStructMatrix full(Cmesh);
-    an.SetStructuralMatrix(full);
+    TPZSkylineStructMatrix skymat(Cmesh);
+    an.SetStructuralMatrix(skymat);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
-    //step.SetDirect(ELU);
     an.SetSolver(step);
     an.Run();
 
@@ -1323,7 +1336,7 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(TPZFMatrix<REAL> Vl)
     
     // Initial Pressure
     TPZVec<STATE> solini(1,0.0);
-    TPZCompMesh  * cmeshL2 = L2ProjectionP(fgmesh, fData->PorderPressure(), solini);
+    TPZCompMesh  * cmeshL2 = L2ProjectionP(fgmesh, fData->PorderDarcyPressure(), solini);
     TPZAnalysis anL2(cmeshL2);
     SolveSyst(anL2, cmeshL2);
     fmeshvec[1]->LoadSolution(anL2.Solution());
@@ -1343,6 +1356,7 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(TPZFMatrix<REAL> Vl)
   
     std::ofstream dumpfile("ComputationaMeshMultiphysics.txt");
     fcmeshMixed->Print(dumpfile);
+    
 }
 
 void TPZDarcyAnalysis::SetIntPointMemory()

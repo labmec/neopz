@@ -47,9 +47,9 @@ TPZFracData::~TPZFracData()
 
 void TPZFracData::Porosity(REAL p, REAL &porosity, REAL &dPorosityDp) const
 {
-  const REAL Rockcomp = 0.0*(5.09858e-10);// 5.09858e-10 (Pa)-1 -> 50e-6 (kgf/m2)-1
-  const REAL pref = (18.0e6);// 1.0 Mpa
-  const bool islinear = true;
+  const REAL Rockcomp = (1.0e6)*(5.09858e-10);// 5.09858e-10 (Pa)-1 -> 50e-6 (kgf/m2)-1
+  const REAL pref = (this->Pe());// 1.0 Mpa
+  const bool islinear = false;
     if (islinear) {
         // Linear model
         porosity = fPhi*(1.0+Rockcomp*(p-pref));
