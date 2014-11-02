@@ -47,6 +47,9 @@ public:
     /// order in which formation stresses are stored
     enum MFormationOrder {ESh = 0, ESH = 1, ESV = 2};
     
+    /// boundary condition numbers
+    enum MWellBCs {EInner = -2, EBottom = -4, ELeft = -5, EOuter = -3};
+    
     /// this class represents a particular stage of the wellbore analysis
     struct TConfig
     {
@@ -63,6 +66,9 @@ public:
         
         /// Read the data from the input stream
         void Read(TPZStream &input);
+        
+        /// Load the solution stored in TConfig into the CompMesh and set the ZDeformation of the material
+        void LoadSolution();
         
         /// Apply the deformation of the configuration to the element
         void ApplyDeformation(TPZCompEl *cel);
@@ -134,9 +140,6 @@ public:
         /// Initialize the Sandler DiMaggio object and create the computational mesh
         void CreateComputationalMesh(int porder);
         
-        /// Create the multiphysics mesh to acount for subsidence in vertical wells
-        void CreateMultiphysicsMesh();
-        
         /// Setup post processing mesh
         void CreatePostProcessingMesh();
         
@@ -166,6 +169,9 @@ public:
         // factor is a transition parameter between the confinement tension and well pressure
         // factor = 1 corresponds to pure well pressure
         void SetWellPressure(STATE factor = 1.);
+        
+        /// this method will configure the forcing function and boundary condition of the computational mesh
+        void ConfigureBoundaryConditions();
         
         /// Set the Z deformation (for adapting the compaction)
         void SetZDeformation(STATE epsZ);
@@ -200,7 +206,7 @@ public:
         TPZManVector<REAL,3> fSmaller;
         
         /// confinement stress in the physical domain
-        TPZTensor<STATE> fConfinementEffective;
+        TPZTensor<STATE> fConfinementTotal;
         
         /// Parameters
         //TPZElasticityMaterial fEl;
@@ -226,10 +232,10 @@ public:
 #endif
 
         /// Wellbore effective pressure
-        REAL fWellboreEffectivePressure;
+        REAL fWellborePressure;
         
         /// Far field pore pressure
-        REAL fEffectivePorePressure;
+        REAL fReservoirPressure;
         
         /// Geometric mesh3
         TPZGeoMesh fGMesh;
@@ -238,7 +244,10 @@ public:
         TPZCompMesh fCMesh;
         
         /// Matrix of incremental solutions
-        TPZFMatrix<STATE> fAllSol;
+        TPZFMatrix<STATE> fSolution;
+        
+        /// Z Deformation associated with the solution
+        STATE fZDeformation;
         
         /// Vector containing maximum element plastic deformation
         TPZVec<REAL> fPlasticDeformSqJ2;
@@ -278,8 +287,11 @@ public:
     void ExecuteSimulation();
     
     /// Computes the given pressure in the specified steps
-    void ExecuteSimulation(int steps,REAL pwb);
-    
+    void EvolveWellborePressure(int steps, REAL WellborePressure);
+
+    /// Computes the given pressure in the specified steps
+    void EvolveReservoirPressure(int steps, REAL WellborePressure);
+
     /// verify the integrity of the elasto plastic material that is being used
     static void CheckDeformation(std::string filename = "deform.nb");
     
@@ -312,7 +324,7 @@ public:
         ApplyHistory(elindices);
         
         fCurrentConfig.fCMesh.Solution().Zero();
-        fCurrentConfig.fAllSol = fCurrentConfig.fCMesh.Solution();
+        fCurrentConfig.fSolution = fCurrentConfig.fCMesh.Solution();
 
         return elindices.size();
     }
@@ -411,20 +423,21 @@ public:
     }
     
     /// Define the geological stress state and well pressure
-    void SetConfinementEffectiveStresses(TPZVec<STATE> &stress, STATE Effectivewellpressure)
+    void SetConfinementTotalStresses(TPZVec<STATE> &stress, STATE wellpressure)
     {
         if (fCurrentConfig.fBiotCoef < 0.) {
             DebugStop();
         }
-        fCurrentConfig.fConfinementEffective.XX() = stress[ESh];
-        fCurrentConfig.fConfinementEffective.YY() = stress[ESH];
-        fCurrentConfig.fConfinementEffective.ZZ() = stress[ESV];
-        fCurrentConfig.fWellboreEffectivePressure = Effectivewellpressure;
+        fCurrentConfig.fConfinementTotal.XX() = stress[ESh];
+        fCurrentConfig.fConfinementTotal.YY() = stress[ESH];
+        fCurrentConfig.fConfinementTotal.ZZ() = stress[ESV];
+        fCurrentConfig.fWellborePressure = wellpressure;
     }
     
-    void SetEffectivePorePressure(STATE effectiveporepressure)
+    
+    void SetReservoirPressure(STATE reservoirpressure)
     {
-        fCurrentConfig.fEffectivePorePressure = effectiveporepressure;
+        fCurrentConfig.fReservoirPressure = reservoirpressure;
     }
 
     static TPZVec<STATE> FromTotaltoEffective(TPZVec<STATE> &totalstress, STATE biot, STATE totalporepressure)
@@ -466,6 +479,7 @@ public:
     void SetFluidModel(EFluidModel fmodel)
     {
         fCurrentConfig.fFluidModel = fmodel;
+        fCurrentConfig.SetWellPressure();
     }
 
     void SetWellConfig(EWellConfiguration fwconfig)

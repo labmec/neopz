@@ -32,7 +32,7 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlast
  *  vector
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress, STATE sigmaZ):TPZMatElastoPlastic2D<T, TMEM>(id,PlaneStrainOrPlaneStress, sigmaZ), fZDeformation(0.)
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress):TPZMatElastoPlastic2D<T, TMEM>(id,PlaneStrainOrPlaneStress), fZDeformation(0.)
 {
 }
 
@@ -81,6 +81,30 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialDa
     DebugStop();
   }
 }
+
+/**
+ * Save the element data to a stream
+ */
+template <class T, class TMEM>
+void TPZMatElastoPlasticSest2D<T,TMEM>::Write(TPZStream &buf, int withclassid)
+{
+    TPZMatElastoPlastic2D<T,TMEM>::Write(buf,withclassid);
+    buf.Write(&fZDeformation);
+    buf.Write(&fbiot);
+}
+
+/**
+ * Read the element data from a stream
+ */
+template <class T, class TMEM>
+void TPZMatElastoPlasticSest2D<T,TMEM>::Read(TPZStream &buf, void *context)
+{
+    TPZMatElastoPlastic2D<T,TMEM>::Read(buf,context);
+    buf.Read(&fZDeformation);
+    buf.Read(&fbiot);
+    
+}
+
 
 
 template <class T, class TMEM>
@@ -262,14 +286,28 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
   TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[intPt];
   T plasticloc(this->fPlasticity);
   plasticloc.SetState(Memory.fPlasticState);
-  TPZTensor<REAL> & totalStrain = Memory.fPlasticState.fEpsT;
-  TPZTensor<REAL> & plasticStrain = Memory.fPlasticState.fEpsP;
+    TPZTensor<STATE> Sigma = Memory.fSigma;
+    STATE normdsol = Norm(data.dsol[0]);
+    if (normdsol != 0.) {
+        TPZTensor<REAL> EpsT;
+        TPZFNMatrix<6,STATE> deltastrain(6,1,0.);
+        ComputeDeltaStrainVector(data, deltastrain);
+        
+        EpsT.CopyFrom(deltastrain);
+        EpsT.Add(plasticloc.GetState().fEpsT, 1.);
+        
+        plasticloc.ApplyStrainComputeSigma(EpsT, Sigma);
+    }
+    TPZPlasticState<STATE> PState = plasticloc.GetState();
+    TPZTensor<REAL> totalStrain = PState.fEpsT;
+    TPZTensor<REAL> plasticStrain = PState.fEpsP;
+    
+    
 
   //Elastic Strain
   TPZTensor<REAL> elasticStrain = totalStrain; // Look at line below
   elasticStrain -= plasticStrain; // here it becomes elasticStrain
   
-  TPZTensor<REAL> & Sigma = Memory.fSigma;
 
   //Total Stress
   TPZTensor<REAL> totalStress = Sigma;

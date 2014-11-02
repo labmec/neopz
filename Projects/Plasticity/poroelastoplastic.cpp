@@ -104,17 +104,27 @@ int main2 ()
     if (startfrom == 0)
     {
         well.SetInnerOuterRadius(innerradius, outerradius);
-        TPZManVector<STATE,3> confinement(3,0.);
-        confinement[0] = -45.9;
-        confinement[1] = -62.1;
-        confinement[2] = -48.2;
         
+        TPZManVector<STATE,3> confinementEffective(3,0.), confinementTotal(3,0.);
+        REAL SH,Sh,SV;
+        Sh=-62.1;
+        SH=-45.9;
+        SV=-48.2;
         
-        //well.SetConfinementStresses(confinement, 28.9);
-        //
-        //REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
-        REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
-        well.SetConfinementEffectiveStresses(confinement, effectivePressure);
+        confinementEffective[0] = Sh;
+        confinementEffective[1] = SH;
+        confinementEffective[2] = SV;
+        REAL effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
+        STATE biotcoef = 0.659;
+        well.SetBiotCoefficient(biotcoef);
+        
+        STATE WellPressure = effectiveWellPressure/(1.-biotcoef);
+        for (int i=0; i<3; i++) {
+            confinementTotal[i] = confinementEffective[i]-biotcoef*WellPressure;
+        }
+        
+        well.SetConfinementTotalStresses(confinementTotal, WellPressure);
+        
         REAL poisson = 0.203;
         REAL elast = 29269.;
         REAL A = 152.54;

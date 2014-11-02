@@ -84,17 +84,25 @@ void Config2()
     REAL sqj2_refine=1.e-7;
     REAL sqj2_ellips = 1.e-7;
     std::cout << std::setprecision(15);
-    TPZManVector<STATE,3> confinement(3,0.);
+    TPZManVector<STATE,3> confinementEffective(3,0.), confinementTotal(3,0.);
     REAL SH,Sh,SV;
     Sh=-62.1;
     SH=-45.9;
     SV=-48.2;
     
-    confinement[0] = Sh;
-    confinement[1] = SH;
-    confinement[2] = SV;
+    confinementEffective[0] = Sh;
+    confinementEffective[1] = SH;
+    confinementEffective[2] = SV;
     REAL effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
-    well.SetConfinementEffectiveStresses(confinement, effectiveWellPressure);
+    STATE biotcoef = 0.659;
+    well.SetBiotCoefficient(biotcoef);
+
+    STATE WellPressure = effectiveWellPressure/(1.-biotcoef);
+    for (int i=0; i<3; i++) {
+        confinementTotal[i] = confinementEffective[i]-biotcoef*WellPressure;
+    }
+    
+    well.SetConfinementTotalStresses(confinementTotal, WellPressure);
     well.SetInnerOuterRadius(innerradius, outerradius);
     
     bool modelMC =false;
@@ -249,17 +257,28 @@ void Config1()
     REAL computedquarter = 7.05761678496926;
     REAL sqj2_refine=0.0001;
     std::cout << std::setprecision(15);
-    TPZManVector<STATE,3> confinement(3,0.);
+    
+    TPZManVector<STATE,3> confinementEffective(3,0.), confinementTotal(3,0.);
     REAL SH,Sh,SV;
     Sh=-62.1;
     SH=-45.9;
     SV=-48.2;
     
-    confinement[0] = SH;
-    confinement[1] = Sh;
-    confinement[2] = SV;
-    REAL effectivePressure = 19.5; // 19.5 ou 23.4 ou 28.9
-    well.SetConfinementEffectiveStresses(confinement, effectivePressure);
+    confinementEffective[0] = Sh;
+    confinementEffective[1] = SH;
+    confinementEffective[2] = SV;
+    REAL effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
+    STATE biotcoef = 0.659;
+    well.SetBiotCoefficient(biotcoef);
+    
+    STATE WellPressure = effectiveWellPressure/(1.-biotcoef);
+    for (int i=0; i<3; i++) {
+        confinementTotal[i] = confinementEffective[i]-biotcoef*WellPressure;
+    }
+    
+    well.SetConfinementTotalStresses(confinementTotal, WellPressure);
+
+    
     int Startfrom=0;
     if (Startfrom == 0)
     {
@@ -477,18 +496,28 @@ void Config3()
     REAL sqj2_refine=1.e-7;
     REAL sqj2_ellips = 1.e-7;
     std::cout << std::setprecision(15);
-    TPZManVector<STATE,3> confinement(3,0.);
+    
+    TPZManVector<STATE,3> confinementEffective(3,0.), confinementTotal(3,0.);
     REAL SH,Sh,SV;
     Sh=-62.1;
     SH=-45.9;
     SV=-48.2;
     
-    confinement[TPZWellBoreAnalysis::ESh] = Sh;
-    confinement[TPZWellBoreAnalysis::ESH] = SH;
-    confinement[TPZWellBoreAnalysis::ESV] = SV;
-    
+    confinementEffective[0] = Sh;
+    confinementEffective[1] = SH;
+    confinementEffective[2] = SV;
     REAL effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
-    well.SetConfinementEffectiveStresses(confinement, effectiveWellPressure);
+    STATE biotcoef = 0.659;
+    well.SetBiotCoefficient(biotcoef);
+    
+    STATE WellPressure = effectiveWellPressure/(1.-biotcoef);
+    for (int i=0; i<3; i++) {
+        confinementTotal[i] = confinementEffective[i]-biotcoef*WellPressure;
+    }
+    
+    well.SetConfinementTotalStresses(confinementTotal, WellPressure);
+
+    
     well.SetInnerOuterRadius(innerradius, outerradius);
     
     bool modelMC =false;
@@ -614,24 +643,34 @@ void Config4()
     REAL sqj2_refine=1.e-7;
     REAL sqj2_ellips = 1.e-7;
     std::cout << std::setprecision(15);
-    TPZManVector<STATE,3> confinement(3,0.);
+    
+    TPZManVector<STATE,3> confinementEffective(3,0.), confinementTotal(3,0.);
     REAL SH,Sh,SV;
-    Sh=-62.1;
-    SH=-45.9;
+    SH=-62.1;
+    Sh=-45.9;
     SV=-48.2;
     
-    confinement[TPZWellBoreAnalysis::ESh] = Sh;
-    confinement[TPZWellBoreAnalysis::ESH] = SH;
-    confinement[TPZWellBoreAnalysis::ESV] = SV;
-    
-    STATE effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
+    confinementEffective[0] = Sh;
+    confinementEffective[1] = SH;
+    confinementEffective[2] = SV;
+    REAL effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
     STATE biotcoef = 0.659;
     well.SetBiotCoefficient(biotcoef);
-    well.SetConfinementEffectiveStresses(confinement, effectiveWellPressure);
+    STATE reservoirPressure = 57.2;
+    well.SetReservoirPressure(reservoirPressure);
+
+    
+    STATE WellPressure = effectiveWellPressure/(1.-biotcoef);
+    for (int i=0; i<3; i++) {
+        confinementTotal[i] = confinementEffective[i]-biotcoef*reservoirPressure;
+    }
+    
+    well.SetConfinementTotalStresses(confinementTotal, WellPressure);
+
     well.SetInnerOuterRadius(innerradius, outerradius);
     
     bool modelMC = false;
-    EPlasticModel Emodel = EMohrCoulomb;
+    EPlasticModel Emodel = ESandler;
     if (Emodel == EMohrCoulomb)
     {
         REAL poisson = 0.203;
@@ -662,18 +701,18 @@ void Config4()
     }
     
     
-    int Startfrom=0;
+    int Startfrom=1;
     if (Startfrom == 0)
     {
         int porder = 1;
-        int nrad=40;
-        int ncircle = 20;
+        int nrad=20;
+        int ncircle = 40;
         REAL delx = 0.5*innerradius*M_PI_2/ncircle;
         TPZManVector<int,2> numdiv(2);
         numdiv[0] = nrad;
         numdiv[1] = ncircle;
         well.SetMeshTopology(delx, numdiv);
-        well.GetCurrentConfig()->fWellConfig = EHorizontalWellalongh;
+        well.GetCurrentConfig()->fWellConfig = EVerticalWell;
         well.GetCurrentConfig()->CreateMesh();
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
@@ -712,6 +751,17 @@ void Config4()
         well.PRefineElementAbove(0.0001, 2);
         well.ExecuteSimulation();
         
+        cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
+        
+        well.SetFluidModel(EPenetrating);
+        well.ExecuteSimulation();
+        cout << "Penetrating fluid Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
+        
+        well.EvolveWellborePressure(4, WellPressure*1.1);
+        cout << "Higher well pressure Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
+        
+        well.EvolveReservoirPressure(4, reservoirPressure*0.9);
+        cout << "Lower reservoir pressure Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
         TPZBFileStream save;
         save.OpenWrite("wellbore1.bin");

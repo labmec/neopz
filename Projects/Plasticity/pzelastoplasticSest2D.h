@@ -117,7 +117,7 @@ public:
 	 *  contains the index of the material object within the
 	 *  vector
 	 */
-	TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress, STATE sigmaZ);
+	TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress);
 	
 	/** Creates a material object based on the referred object and
 	 *  inserts it in the vector of material pointers of the mesh.
@@ -130,6 +130,16 @@ public:
     virtual TPZMaterial * NewMaterial() {
         return new TPZMatElastoPlasticSest2D<T,TMEM>(*this);
     }
+    
+    /**
+     * Save the element data to a stream
+     */
+    virtual void Write(TPZStream &buf, int withclassid);
+    
+    /**
+     * Read the element data from a stream
+     */
+    virtual void Read(TPZStream &buf, void *context);
     
 
 	/**

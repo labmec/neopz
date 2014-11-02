@@ -1247,6 +1247,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 			buf.Read(vals,3);
 			fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
 		}
+        buf.Read(&fDim);
 	}
 	catch(const exception& e)
 	{
@@ -1285,6 +1286,7 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 			vals[2] = it->second;
 			buf.Write(vals,3);
 		}
+        buf.Write(&fDim);
 		
 	}
 	catch(const exception& e)
