@@ -51,8 +51,10 @@ void TPZSloanRenumbering::Resequence(TPZVec<int> &permGather, TPZVec<int> &permS
   TPZStack<int> R;
   TPZManVector<int,10000> adjNodes, adjNodes2J;
   std::list<int> Q;
+  TPZVec<int> HistoryOfQ(nnodes,0);
   Status[startNode] = EPreActive;
   Q.push_back( startNode );
+  HistoryOfQ[ startNode ] = 1;
   while(Q.size()){
     const int currnode = this->FindHighestPriority(Q,priority);
     Q.remove(currnode);
@@ -63,7 +65,10 @@ void TPZSloanRenumbering::Resequence(TPZVec<int> &permGather, TPZVec<int> &permS
         priority[ adjNode ] += this->W2();//no artigo de 86 o sloan soma W1, no de de 89 soma W2. To seguindo a notacao de 89
         if(Status[ adjNode] == EInactive){
           Status[ adjNode] = EPreActive;
-          Q.push_back( adjNode );
+          if(HistoryOfQ[adjNode] == 0){
+            Q.push_back( adjNode );
+            HistoryOfQ[ adjNode ] = 1;
+          }
         }
       }//jadj
     }//not a preactive node
@@ -85,7 +90,10 @@ void TPZSloanRenumbering::Resequence(TPZVec<int> &permGather, TPZVec<int> &permS
           }//if ! post active
           if( Status[knode] == EInactive){
             Status[knode] = EPreActive;
-            Q.push_back(knode);
+            if(HistoryOfQ[knode] == 0){
+              Q.push_back( knode );
+              HistoryOfQ[ knode ] = 1;
+            }
           }// if inactive
         }//loop of k nodes
       }//if
