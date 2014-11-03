@@ -156,7 +156,8 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(int &startNode, int &endNode
 #endif
 
   int count = 0;
-  while(1){
+  const int maxCount = 10;
+  while(count < maxCount){
     count++;
     const int cpStart = startNode;
     const int cpEnd = endNode;
