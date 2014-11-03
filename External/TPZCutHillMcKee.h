@@ -11,7 +11,7 @@
 
 class TPZCutHillMcKee : public TPZRenumbering {
 
-  private:
+  public:
 
   struct SGraph{
 
@@ -53,6 +53,7 @@ class TPZCutHillMcKee : public TPZRenumbering {
 
   };//SGraph
 
+  private:
 
   void ProcessParentNode(int Parent,
                          SGraph &graph,
