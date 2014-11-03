@@ -44,15 +44,18 @@ a single framework.
 
 More recently, the concept of generality has been extended in that the NeoPZ library allows its user 
 to choose the approximation space as well. One can approximate a differential equation with continuous
-or discontinuous approximation spaces. We are working on incorporating HDiv and HCurl spaces as well.
+or discontinuous approximation spaces. Denise Siqueira implemented two dimensional HDiv spaces in the library.
+ Douglas Castro is working on its three dimensional extension.
+ We are working on incorporating HCurl spaces as well.
 
+ 
 \section sec_obective Objectives
 
 The objective of the NeoPZ environment is to provide its user access to advanced finite element
 technologies within a coherent framework. Wherever possible those technologies should be able
 to interact with each other.
 
-What is meant by "advanced technologies" is documented in the section \ref sec_advanced
+What is meant by "advanced technologies" is documented in the section \ref adv_technologies
 
 \section sec_doc_structure Structure of the Documentation
 There are many ways to define a library of classes. A global view of the NeoPZ environment is
@@ -62,7 +65,7 @@ The section \ref page_finite_element_different is dedicated to describing which 
 environment are different from regular finite element codes
 
 
- \page init INITIAL INFORMATION
+ \page init Initial Information
  
  The information over utilitaries to work, update and get documentation is in the following pages:
  \li Utilities needed to configure the NeoPZ environment \ref utilitaries
@@ -288,20 +291,83 @@ This affine transformation is returned in the SideToSideTransform method
 
 \page page_structure - Structure of the Environment
 
-\page adv_technologies - Advance Finite element Technologies
+\page adv_technologies - Advanced Finite element Technologies
 
-\section sec_advanced Advanced Finite Element Technologies
-As advanced finite element technologies we denominate finite element techniques which are 
+As advanced finite element technologies we denominate finite element techniques which are
 generally not available in textbook finite element codes. 
 NeoPZ is able to generate adaptive meshes, interpolation between meshes, nonlinear geometric maps,
 multigrid iterations, continuous and discontinuous approximation spaces, among others.
 
-\subsection sec_nonlinear Nonlinear Geometric Maps
-\subsection sec_uniformh Geometric Element Uniform Refinement
-\subsection sec_patternref Goemetric Element and Refinement Patterns
-\subsection sec_prefinement Shape Functions of Arbitrary Order
-\subsection sec_restraints Shape Function Restraints
-\subsection sec_discontinous Discontinous Approximation Spaces
+\section sec_nonlinear Nonlinear Geometric Maps
+ 
+Commercial finite element libraries allow the user to choose between linear or quadratic elements. In most finite element
+textbooks, the map between the master element and its actual location in space is computed using the same shape functions
+that are used to approximate the solution. These elements are consequently called \em isoparametric elements.
+
+The appproximation spaces implemented in NeoPZ use hierarchical shape functions that are not easily used for mapping the
+geometry of the elements. Therefore, in NeoPZ the definition of the geometric map is strongly separated from the definition of the approximation space.
+This approach allows us to implement any geometric map between a master element and a deformed element.
+ 
+In his master's thesis Cesar Lucci implemented an extension of the concept of transfinite blending functions originally conceived by Gordon and Hall in 1973
+ to the complete family of known element topologies. This effort, developed under the sponsorship of ANP/Petrobras, allows to develop high order approximations
+ of differential equations on curved domains.
+ 
+\section sec_uniformh Geometric Element Uniform Refinement
+ 
+ Considering one the first motivations for developing NeoPZ was to develop a library which applies adaptive finite elements to different families of partial
+ differential equations, it is natural that h-adaptivity is \em built \em in its structure.
+ 
+ In early versions each type of element (linear, quadrilateral, triangular, etc) was implemented using its proper class, derived from the abstract TPZGeoEl class.
+ This approach was very intuitive, but very difficult to maintain. Each change in the interface of the geometric element had to be repeated in each element topology.
+ Frequently a feature implemented in a topology that was frequently used did not work for other topologies. This was one of the main motivations for reimplementing
+ the geometric maps within a template structure. In its current version, a single c++ class, specialized by a template implements the complete family of finite elements.
+ 
+ A geometric element is responsible for implementing/computing the mapping between the master element and deformed element. Within an adaptive context, the geometric
+ element keeps track of its father and children. 
+ 
+ One possibility of refining geometric elements is to divide the elements in a given pattern: a one dimensional element is divided in two elements, a quadrilateral element
+ is divided into four elements, a hexahedral element is divided into eight elements, etc. Within the NeoPZ context this refinement pattern is called \em uniform, because
+ each element is divided using elements.
+ 
+ The refinement of the individual elements is also specialized by a template class, allowing linear or nonlinear geometric maps to be divided alike.
+ 
+ In order to understand the concepts of the geometric map, the advanced user should consult the paper published by Calle, Devloo, Bravo and Gomes. There, the essential
+ concepts which guide the development are explained.
+ 
+ One key feature of the implementation of the geometric refinement is that the elements division is performed without dynamic memory allocation.
+ 
+ A data structure item which distinguishes NeoPZ from traditional finite element codes is that within NeoPZ each element keeps track of its neighbours. The size of 
+ this data structure is also constant for each element type.
+ 
+\section sec_patternref Geometric Element and Refinement Patterns
+ 
+ Adaptive geometric refinement using uniform refinement patterns is capable of improving the efficiency of the computations, but in most cases the singularity of
+ the functions that are being approximated are one dimensional in nature. A typical example is a problem with boundary layers.
+ 
+ This was the motivation for developing a more advanced procedure for dividing geometric elements. In the concept of refinement patterns, each element can be divided
+ in an arbitrary number of sub elements, as long as the sub elements form a partition of the original element. Although this concept is relatively simple, it
+ creates issues with respect to the compatibility of the refinements of neighbouring elements.
+ 
+ This research effort was sponsored by FAPESP in a collaborative project with Embraer as a PICTA project.
+ 
+ Using refinement patterns very specialized meshes can be created starting from an essential geometric description of the computational domain.
+ 
+ On the downside is that creating refined meshes now becomes a programming issue instead of a decision of which element to refine. One technique which has worked well
+ is to dicide on the most appropriate refinement pattern based on identifying the edges which need to be halfed.
+ 
+ The technology of refinement patterns was further extended by Cesar Lucci when applying refinement patterns to the numerical simulation of hydraulic fracturing. In 
+ this effort, refinement patterns are dynamically created to represent the edge of the fracture.
+ 
+\section sec_prefinement Shape Functions of Arbitrary Order
+ 
+ Within NeoPZ the approximation space is implemented in a separate class structure. One of the main reasons is that different approximation spaces can be generated
+ based on a single geometry. At the geometry level the full refinement tree is kept. The approximation space at the other hand is a partition of the computational domain.
+ 
+ The definition of the approximation space, similarly to the geometry, is implemented as a specialization of computational element class. The geometry and approximation space
+ class are derived from a single topology class. As such the pzgeom::TPZGeoQuad class and the pzshape::TPZShapeQuad classes are derived from pztopology::TPZQuadrilateral class
+ 
+\section sec_restraints Shape Function Restraints
+\section sec_discontinous Discontinous Approximation Spaces
 
  \page teoria - Theorical concepts implemented in NeoPZ
  
@@ -337,7 +403,7 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
  \section tut_testtwodim To solve two-dimensional differential equation
  \section tut_analysis Solving differential equation
  
- \page pg_unit_projects DESCRIPTION OF THE UNIT TEST PROJECTS FOR VALIDATION
+ \page pg_unit_projects Unit tests used for project validation
 
  In this projects we are using Boost framework for unit test boost_unit_test_framework. See information in \ref boost Boost .
 
