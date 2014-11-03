@@ -632,33 +632,22 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 }
 
 /// Computes the given pressure in the specified steps
-void TPZWellBoreAnalysis::EvolveWellborePressure(int nsteps, REAL WellborePressure)
+void TPZWellBoreAnalysis::EvolveBothPressures(int nsteps, STATE TargetWellborePressure, STATE TargetReservoirPressure)
 {
-    STATE InitPressure = fCurrentConfig.fWellborePressure;
+    STATE InitWellPressure = fCurrentConfig.fWellborePressure;
+    STATE InitReservoirPressure = fCurrentConfig.fReservoirPressure;
     for (int istep = 1; istep <= nsteps; istep++) {
-        STATE pressure = InitPressure+istep*(WellborePressure-InitPressure)/nsteps;
-        fCurrentConfig.fWellborePressure = pressure;
+        STATE WellPressure = InitWellPressure+istep*(TargetWellborePressure-InitWellPressure)/nsteps;
+        fCurrentConfig.fWellborePressure = WellPressure;
+        
+        STATE ReservoirPressure = InitReservoirPressure+istep*(TargetReservoirPressure-InitReservoirPressure)/nsteps;
+        fCurrentConfig.fReservoirPressure = ReservoirPressure;
+        
         // adjust the boundary conditions and forcing function
         fCurrentConfig.SetWellPressure();
         ExecuteSimulation();
     }
 }
-
-/// Computes the given pressure in the specified steps
-void TPZWellBoreAnalysis::EvolveReservoirPressure(int nsteps, REAL ReservoirPressure)
-{
-    STATE InitPressure = fCurrentConfig.fReservoirPressure;
-    for (int istep = 1; istep <= nsteps; istep++) {
-        STATE pressure = InitPressure+istep*(ReservoirPressure-InitPressure)/nsteps;
-        fCurrentConfig.fReservoirPressure = pressure;
-        // adjust the boundary condition and forcing function
-        fCurrentConfig.SetWellPressure();
-        ExecuteSimulation();
-    }
-    
-}
-
-
 
 void TPZWellBoreAnalysis::ExecuteSimulation()
 {

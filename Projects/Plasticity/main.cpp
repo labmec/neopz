@@ -654,9 +654,9 @@ void Config4()
     confinementEffective[1] = SH;
     confinementEffective[2] = SV;
     REAL effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
-    STATE biotcoef = 0.659;
+    STATE biotcoef = 0.;//0.659;
     well.SetBiotCoefficient(biotcoef);
-    STATE reservoirPressure = 57.2;
+    STATE reservoirPressure =0.;// 57.2;
     well.SetReservoirPressure(reservoirPressure);
 
     
@@ -701,7 +701,7 @@ void Config4()
     }
     
     
-    int Startfrom=1;
+    int Startfrom=0;
     if (Startfrom == 0)
     {
         int porder = 1;

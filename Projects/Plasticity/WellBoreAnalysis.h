@@ -285,12 +285,10 @@ public:
     
     /// Computes an equilibrium state corresponding to the current boundary conditions
     void ExecuteSimulation();
-    
-    /// Computes the given pressure in the specified steps
-    void EvolveWellborePressure(int steps, REAL WellborePressure);
 
-    /// Computes the given pressure in the specified steps
-    void EvolveReservoirPressure(int steps, REAL WellborePressure);
+    
+    /// Evelves the reservoir and well pressure to target pressure
+    void EvolveBothPressures(int nsteps, STATE TargetWellborePressure, STATE TargetReservoirPressure);
 
     /// verify the integrity of the elasto plastic material that is being used
     static void CheckDeformation(std::string filename = "deform.nb");
