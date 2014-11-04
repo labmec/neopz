@@ -63,9 +63,6 @@ protected:
     /** @brief Second Lame Parameter */
     REAL fmu;
     
-    /** @brief Second Lame Parameter */
-    REAL fBiotAlpha;    
-    
     /** @brief Initial Stress */
     REAL fPreStressXX;
     REAL fPreStressXY;
@@ -77,9 +74,6 @@ protected:
      * @note \f$fPlaneStress != 1\f$ => Plain Strain state
      */
     int fPlaneStress;
-    
-    /** @brief Second Lame Parameter */
-    REAL fmatId;
     
     
 public:
@@ -134,6 +128,20 @@ public:
      * @brief Set parameters of elastic material:
      * @param First  Lame Parameter Lambda
      * @param Second Lame Parameter Mu -> G
+     * @param fx forcing function \f$ -x = 0 \f$
+     * @param fy forcing function \f$ -y = 0 \f$
+     */
+    void SetElasticParameters(REAL Eyoung, REAL nu)
+    {
+        this->SetElasticity(Eyoung,nu);
+        ff[0] = 0;
+        ff[1] = 0;
+    }
+    
+    /**
+     * @brief Set parameters of elastic material:
+     * @param First  Lame Parameter Lambda
+     * @param Second Lame Parameter Mu -> G
      * @param fx forcing function \f$ -x = fx \f$
      * @param fy forcing function \f$ -y = fy \f$
      * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
@@ -174,11 +182,6 @@ public:
 	fPreStressZZ = SigmaZZ;
     }    
     
-    /** @brief Set Initial Stress */
-    void SetBiotAlpha(REAL Alpha)
-    {
-        fBiotAlpha = Alpha;
-    }     
     
     // Get Elastic Materials Parameters
     void GetElasticParameters(REAL &Ey, REAL &nu, REAL &Lambda, REAL &G)
@@ -189,12 +192,19 @@ public:
         G = fmu;
     }
     
+    /** @brief Get Eyoung and Poisson
+     * fE young modulus
+     * fnu Poisson ratio
+     */
+    STATE GetEyoung() {return fE;}
+    STATE GetNu() {return fnu;}
+    
     /** @brief Get lame parameters
      * Lambda first lame
      * Mu Second lame
      */
     STATE GetLambda() {return flambda;}
-    STATE GetMU() {return fmu;}    
+    STATE GetMu() {return fmu;}
 
     
     virtual void FillDataRequirements(TPZMaterialData &data);
@@ -222,6 +232,16 @@ public:
     virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) {
         DebugStop();
     }
+    
+    /**
+     * Save the element data to a stream
+     */
+    void Write(TPZStream &buf, int withclassid);
+    
+    /**
+     * Read the element data from a stream
+     */
+    void Read(TPZStream &buf, void *context);
 
 };
 

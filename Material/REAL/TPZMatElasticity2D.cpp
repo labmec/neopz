@@ -21,7 +21,6 @@ static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 
 TPZMatElasticity2D::TPZMatElasticity2D():TPZMaterial(), ff(0), fnu(0.), fPlaneStress(0) {
     fE = 0.;
-    fmatId = 0;
     ff.resize(2);
     ff[0]=0.;
     ff[1]=0.;
@@ -34,7 +33,6 @@ TPZMatElasticity2D::TPZMatElasticity2D():TPZMaterial(), ff(0), fnu(0.), fPlaneSt
 
 TPZMatElasticity2D::TPZMatElasticity2D(int matid):TPZMaterial(matid), ff(0), fnu(0.),fPlaneStress(0) {
     fE = 0.;
-    fmatId = matid;
     ff.resize(2);
     ff[0]=0.;
     ff[1]=0.;
@@ -49,7 +47,6 @@ TPZMatElasticity2D::TPZMatElasticity2D(int matid, REAL E, REAL nu, REAL fx, REAL
     fnu = nu;
     flambda = (E*nu)/((1+nu)*(1-2*nu));
     fmu = E/(2*(1+nu));
-    fmatId = matid;
     ff.resize(2);
     ff[0]=fx;
     ff[1]=fy;
@@ -233,24 +230,13 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         }
     }
     
-    //  Matrix Qc
-    //  Coupling matrix for Elastic equation
-    for(int in = 0; in < phrU; in++ )
-    {
-        du(0,0) = dphiU(0,in)*data.axes(0,0)+dphiU(1,in)*data.axes(1,0);
-        du(1,0) = dphiU(0,in)*data.axes(0,1)+dphiU(1,in)*data.axes(1,1);
-        
-        ef(2*in + FirstU)    += (-1.0)* fBiotAlpha * weight * (Pressure*du(0,0));
-        ef(2*in+1 + FirstU)  += (-1.0)* fBiotAlpha * weight * (Pressure*du(1,0));
-    }
-    
     //  ////////////////////////// Residual Vector ///////////////////////////////////
     
 }
 
 void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
-    
+    /*
     if (bc.Val2().Rows() != 2)
     {
         std::cout << " Error:: This material need boundary conditions for ux, uy and p (pore pressure).\n";
@@ -263,6 +249,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
         std::cout << " Error:: This material need boundary conditions for ux, uy and p (pore pressure).\n";
         DebugStop();
     }
+     */
     
     
     TPZFMatrix<REAL>  &phiu = data.phi;
@@ -314,8 +301,8 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumann boundary
-                ef(2*in,0)	+= v2[0]*phiu(in,0)*weight;		//	Tnx
-                ef(2*in+1,0)	+= v2[1]*phiu(in,0)*weight;		//	Tny
+                ef(2*in,0)	+= -1.0*v2[0]*phiu(in,0)*weight;		//	Tnx
+                ef(2*in+1,0)	+= -1.0*v2[1]*phiu(in,0)*weight;		//	Tny
             }
             break;
         }
@@ -385,12 +372,16 @@ void TPZMatElasticity2D::Print(std::ostream &out)
 {
     out << "Material Name : " << Name() << "\n";
     out << "Plane Problem (fPlaneStress = 0, for Plane Strain conditions) " << fPlaneStress << std::endl;
-    out << "Properties for Poroelasticity: \n";
+    out << "Properties for elasticity: \n";
     out << "\t Young modulus   = "											<< fE		<< std::endl;
     out << "\t Poisson Ratio   = "											<< fnu		<< std::endl;
     out << "\t First Lamé Parameter   = "									<< flambda	<< std::endl;
     out << "\t Second Lamé Parameter   = "									<< fmu		<< std::endl;
     out << "\t Body force vector B {X-direction, Y-direction}   = "			<< ff[0] << ' ' << ff[1]   << std::endl;
+    out << "\t fPreStressXX   = "			<< fPreStressXX << std::endl;
+    out << "\t fPreStressXY   = "			<< fPreStressXY << std::endl;
+    out << "\t fPreStressYY   = "			<< fPreStressYY << std::endl;
+    out << "\t fPreStressZZ   = "			<< fPreStressZZ << std::endl;
     out << "Class properties :";
     TPZMaterial::Print(out);
     out << "\n";
@@ -411,6 +402,48 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     return -1;
     
     return TPZMaterial::VariableIndex(name);
+}
+
+/**
+ * Save the element data to a stream
+ */
+void TPZMatElasticity2D::Write(TPZStream &buf, int withclassid)
+{
+    TPZMaterial::Write(buf,withclassid);
+    buf.Write(&fE);
+    buf.Write(&fnu);
+    buf.Write(&flambda);
+    buf.Write(&fmu);
+    buf.Write(&ff[0]);
+    buf.Write(&ff[1]);
+    buf.Write(&ff[2]);
+    buf.Write(&fPreStressXX);
+    buf.Write(&fPreStressXY);
+    buf.Write(&fPreStressYY);
+    buf.Write(&fPreStressZZ);
+    buf.Write(&fPlaneStress);
+    
+}
+
+/**
+ * Read the element data from a stream
+ */
+void TPZMatElasticity2D::Read(TPZStream &buf, void *context)
+{
+    TPZMaterial::Read(buf,context);
+    buf.Read(&fE);
+    buf.Read(&fnu);
+    buf.Read(&flambda);
+    buf.Read(&fmu);
+    buf.Read(&ff[0]);
+    buf.Read(&ff[1]);
+    buf.Read(&ff[2]);
+    buf.Read(&fPreStressXX);
+    buf.Read(&fPreStressXY);
+    buf.Read(&fPreStressYY);
+    buf.Read(&fPreStressZZ);
+    buf.Read(&fPlaneStress);
+    
 }
 
 int TPZMatElasticity2D::NSolutionVariables(int var){
