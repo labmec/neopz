@@ -19,61 +19,97 @@ static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 #endif
 
 
-TPZMatElasticity2D::TPZMatElasticity2D():TPZMaterial(), ff(0), fnu(0.), fPlaneStress(0) {
+TPZMatElasticity2D::TPZMatElasticity2D():TPZMaterial()
+{
     fE = 0.;
-    ff.resize(2);
+    fnu = 0.;
+    flambda = 0.;
+    fmu = 0.;
+    ff.resize(3);
     ff[0]=0.;
     ff[1]=0.;
+    ff[2]=0.;
     fPlaneStress = 1.;
     fPreStressXX = 0.0;
     fPreStressXY = 0.0;
     fPreStressYY = 0.0;
+    fPreStressZZ = 0.0;
     
 }
 
-TPZMatElasticity2D::TPZMatElasticity2D(int matid):TPZMaterial(matid), ff(0), fnu(0.),fPlaneStress(0) {
+TPZMatElasticity2D::TPZMatElasticity2D(int matid):TPZMaterial(matid)
+{
     fE = 0.;
-    ff.resize(2);
+    fnu = 0.;
+    flambda = 0.;
+    fmu = 0.;
+    ff.resize(3);
     ff[0]=0.;
     ff[1]=0.;
-    fPlaneStress = 1;
+    ff[2]=0.;
+    fPlaneStress = 1.;
     fPreStressXX = 0.0;
     fPreStressXY = 0.0;
     fPreStressYY = 0.0;
+    fPreStressZZ = 0.0;
 }
 
-TPZMatElasticity2D::TPZMatElasticity2D(int matid, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZMaterial(matid){
+TPZMatElasticity2D::TPZMatElasticity2D(int matid, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZMaterial(matid)
+{
     fE = E;
     fnu = nu;
     flambda = (E*nu)/((1+nu)*(1-2*nu));
     fmu = E/(2*(1+nu));
-    ff.resize(2);
+    ff.resize(3);
     ff[0]=fx;
     ff[1]=fy;
+    ff[2]=0.0;
     fPlaneStress = plainstress;
     fPreStressXX = 0.0;
     fPreStressXY = 0.0;
     fPreStressYY = 0.0;
+    fPreStressZZ = 0.0;
 }
 
-TPZMatElasticity2D::~TPZMatElasticity2D(){
-}
-
-TPZMatElasticity2D::TPZMatElasticity2D(const TPZMatElasticity2D &copy) :
-TPZMaterial(copy),
-fE(copy.fE),
-fnu(copy.fnu),
-flambda(copy.flambda),
-fmu(copy.fmu),
-fPreStressXX(copy.fPreStressXX),
-fPreStressYY(copy.fPreStressYY),
-fPreStressXY(copy.fPreStressXY),
-fPreStressZZ(copy.fPreStressZZ)
+TPZMatElasticity2D::~TPZMatElasticity2D()
 {
-	ff[0]=copy.ff[0];
-	ff[1]=copy.ff[1];
-	fPlaneStress = copy.fPlaneStress;
+}
 
+
+TPZMatElasticity2D::TPZMatElasticity2D(const TPZMatElasticity2D &copy) : TPZMaterial(copy)
+{
+    fE = copy.fE;
+    fnu = copy.fnu;
+    flambda = copy.flambda;
+    fmu = copy.fmu;
+    ff.resize(copy.ff.size());
+    for (int i = 0; i < copy.ff.size(); i++) {
+        ff[i] = copy.ff[i];
+    }
+    fPlaneStress = copy.fPlaneStress;
+    fPreStressXX = copy.fPreStressXX;
+    fPreStressXY = copy.fPreStressXY;
+    fPreStressYY = copy.fPreStressYY;
+    fPreStressZZ = copy.fPreStressZZ;
+}
+
+TPZMatElasticity2D & TPZMatElasticity2D::operator=(const TPZMatElasticity2D &copy)
+{
+	TPZMaterial::operator = (copy);
+    fE = copy.fE;
+    fnu = copy.fnu;
+    flambda = copy.flambda;
+    fmu = copy.fmu;
+    fPreStressXX = copy.fPreStressXX;
+    fPreStressXY = copy.fPreStressXY;
+    fPreStressYY = copy.fPreStressYY;
+    fPreStressZZ = copy.fPreStressZZ;
+    ff.resize(copy.ff.size());
+    for (int i = 0; i < copy.ff.size(); i++) {
+        ff[i] = copy.ff[i];
+    }
+    fPlaneStress = copy.fPlaneStress;
+    return *this;
 }
 
 int TPZMatElasticity2D::NStateVariables() {
@@ -348,7 +384,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             DebugStop();
             
         }
-                break;
+            break;
     }
     
 }
@@ -414,9 +450,7 @@ void TPZMatElasticity2D::Write(TPZStream &buf, int withclassid)
     buf.Write(&fnu);
     buf.Write(&flambda);
     buf.Write(&fmu);
-    buf.Write(&ff[0]);
-    buf.Write(&ff[1]);
-    buf.Write(&ff[2]);
+    TPZSaveable::WriteObjects(buf, ff);
     buf.Write(&fPreStressXX);
     buf.Write(&fPreStressXY);
     buf.Write(&fPreStressYY);
@@ -435,9 +469,7 @@ void TPZMatElasticity2D::Read(TPZStream &buf, void *context)
     buf.Read(&fnu);
     buf.Read(&flambda);
     buf.Read(&fmu);
-    buf.Read(&ff[0]);
-    buf.Read(&ff[1]);
-    buf.Read(&ff[2]);
+    TPZSaveable::ReadObjects(buf, ff);
     buf.Read(&fPreStressXX);
     buf.Read(&fPreStressXY);
     buf.Read(&fPreStressYY);

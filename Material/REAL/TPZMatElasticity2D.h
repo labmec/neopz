@@ -92,6 +92,8 @@ public:
     
     TPZMatElasticity2D(int matid);
     
+    TPZMatElasticity2D &operator=(const TPZMatElasticity2D &copy);
+    
     virtual ~TPZMatElasticity2D();
     
     /** @brief Copy constructor */
@@ -134,8 +136,6 @@ public:
     void SetElasticParameters(REAL Eyoung, REAL nu)
     {
         this->SetElasticity(Eyoung,nu);
-        ff[0] = 0;
-        ff[1] = 0;
     }
     
     /**
