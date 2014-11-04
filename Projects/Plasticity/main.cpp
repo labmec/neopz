@@ -654,9 +654,9 @@ void Config4()
     confinementEffective[1] = SH;
     confinementEffective[2] = SV;
     REAL effectiveWellPressure = 19.5; // 19.5 ou 23.4 ou 28.9
-    STATE biotcoef = 0.;//0.659;
+    STATE biotcoef = 0.659;
     well.SetBiotCoefficient(biotcoef);
-    STATE reservoirPressure =0.;// 57.2;
+    STATE reservoirPressure = 57.2;
     well.SetReservoirPressure(reservoirPressure);
 
     
@@ -757,10 +757,11 @@ void Config4()
         well.ExecuteSimulation();
         cout << "Penetrating fluid Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
-        well.EvolveWellborePressure(4, WellPressure*1.1);
+        
+        well.EvolveBothPressures(4, WellPressure*1.2,reservoirPressure);
         cout << "Higher well pressure Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
-        well.EvolveReservoirPressure(4, reservoirPressure*0.9);
+        well.EvolveBothPressures(4,WellPressure,reservoirPressure*0.8);
         cout << "Lower reservoir pressure Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
         TPZBFileStream save;
