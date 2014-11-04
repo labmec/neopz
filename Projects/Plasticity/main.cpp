@@ -669,7 +669,6 @@ void Config4()
 
     well.SetInnerOuterRadius(innerradius, outerradius);
     
-    bool modelMC = false;
     EPlasticModel Emodel = ESandler;
     if (Emodel == EMohrCoulomb)
     {
@@ -696,7 +695,11 @@ void Config4()
       REAL elast = 29269.;
       REAL cohesion = 1.e8; // Very very big
       REAL Phi = 1.5533430342749532; // 89 degrees
+#ifdef PlasticPQP
       well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
+#else
+      well.SetElasticParameters(poisson, elast);
+#endif
       well.GetCurrentConfig()->fModel = EElastic;
     }
     

@@ -29,10 +29,6 @@
  */
 class TPZElasticityMaterialSest2D : public TPZMatElasticity2D {
     
-private:
-    
-    /** @brief M. Biot Parameter */
-    REAL fBiotAlpha;
     
     public :
     
@@ -124,7 +120,12 @@ private:
     TPZElasticityMaterialSest2D(int id);
     
     /** @brief Copies the data of one TPZElasticityMaterial object to another */
-    TPZElasticityMaterialSest2D(const TPZMatElasticity2D &copy);
+    TPZElasticityMaterialSest2D(const TPZElasticityMaterialSest2D &copy);
+    
+    /// Destructor
+    virtual ~TPZElasticityMaterialSest2D();
+    
+    TPZElasticityMaterialSest2D &operator=(const TPZElasticityMaterialSest2D &copy);
     
     int VariableIndex(const std::string &name);
     
@@ -177,11 +178,6 @@ private:
     }
     
     /**
-     * @brief ZDeformation of the mesh
-     */
-    STATE fZDeformation;
-    
-    /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
      * @param datavec [in] stores all input data
      * @param weight [in] is the weight of the integration rule
@@ -195,6 +191,15 @@ private:
      * @brief Print Method */
     virtual void Print(std::ostream &out);
     
+private:
+    
+    /**
+     * @brief ZDeformation of the mesh
+     */
+    STATE fZDeformation;
+    
+    /** @brief M. Biot Parameter */
+    REAL fBiotAlpha;
 };
 
 

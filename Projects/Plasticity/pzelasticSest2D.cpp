@@ -10,29 +10,39 @@
 
 TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D():TPZMatElasticity2D()
 {
+    fBiotAlpha = 0.;
+    fZDeformation = 0.;
 }
-/**
- * @brief Creates an elastic material with:
- * @param id material id
- * @param E elasticity modulus
- * @param nu poisson coefficient
- * @param fx forcing function \f$ -x = fx \f$
- * @param fy forcing function \f$ -y = fy \f$
- * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
- */
+
 TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZMatElasticity2D(id,E,nu,fx,fy,plainstress)
 {
-    
-    
+    fBiotAlpha = 0.;
+    fZDeformation = 0.;
 }
 
 TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id):TPZMatElasticity2D(id)
 {
+    fBiotAlpha = 0.;
+    fZDeformation = 0.;
 }
 
-/** @brief Copies the data of one TPZElasticityMaterial object to another */
-TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(const TPZMatElasticity2D &copy):TPZMatElasticity2D(copy)
+TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(const TPZElasticityMaterialSest2D &copy) : TPZMatElasticity2D(copy)
 {
+    fBiotAlpha = copy.fBiotAlpha;
+    fZDeformation = copy.fZDeformation;
+}
+
+TPZElasticityMaterialSest2D::~TPZElasticityMaterialSest2D()
+{
+    
+}
+
+TPZElasticityMaterialSest2D & TPZElasticityMaterialSest2D::operator=(const TPZElasticityMaterialSest2D &copy)
+{
+    TPZMatElasticity2D::operator=(copy);
+    fBiotAlpha = copy.fBiotAlpha;
+    fZDeformation = copy.fZDeformation;
+    return *this;
 }
 
 int TPZElasticityMaterialSest2D::VariableIndex(const std::string &name)
@@ -319,12 +329,11 @@ void TPZElasticityMaterialSest2D::Solution(TPZMaterialData &data, int var, TPZVe
             Solout[0] = SolU[1];}
             break;
         case EDisplacementZ:{
-            Solout[0] = 0.; // Always usnig plane strain
+            Solout[0] = 0.;} // Always usnig plane strain
             break;
         case EDisplacementTotal:{
             for (int i = 0; i < 2; i++){
                 Solout[i] = SolU[i];}
-        }
         }
             break;
             // Total Stress
@@ -463,13 +472,7 @@ void TPZElasticityMaterialSest2D::Solution(TPZMaterialData &data, int var, TPZVe
     
 }
 
-/**
- * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
- * @param datavec [in] stores all input data
- * @param weight [in] is the weight of the integration rule
- * @param ek [out] is the stiffness matrix
- * @param ef [out] is the load vector
- */
+
 void TPZElasticityMaterialSest2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
@@ -581,31 +584,26 @@ void TPZElasticityMaterialSest2D::Contribute(TPZMaterialData &data, REAL weight,
 }
 
 
-/**
- * Save the element data to a stream
- */
 void TPZElasticityMaterialSest2D::Write(TPZStream &buf, int withclassid)
 {
     TPZMatElasticity2D::Write(buf,withclassid);
     buf.Write(&fBiotAlpha);
+    buf.Write(&fZDeformation);
 }
 
-/**
- * Read the element data from a stream
- */
 void TPZElasticityMaterialSest2D::Read(TPZStream &buf, void *context)
 {
     TPZMatElasticity2D::Read(buf,context);
     buf.Read(&fBiotAlpha);
-    
+    buf.Read(&fZDeformation);
 }
 
 void TPZElasticityMaterialSest2D::Print(std::ostream &out)
 {
     out << "TPZElasticityMaterialSest2D :" << std::endl;
     out << "\t fBiotAlpha   = "			<< fBiotAlpha << std::endl;
+    out << "\t fZDeformation   = "      << fZDeformation<< std::endl;
     out << "Father properties :";
     TPZMatElasticity2D::Print(out);
     out << "\n";
-    
 }

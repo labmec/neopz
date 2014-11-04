@@ -171,7 +171,7 @@ void TPZWellBoreAnalysis::TConfig::ConfigureBoundaryConditions()
 }
 
 
-TPZWellBoreAnalysis::TPZWellBoreAnalysis() : fCurrentConfig(), fSequence(), fPostProcessNumber(0)
+TPZWellBoreAnalysis::TPZWellBoreAnalysis() : fCurrentConfig(), fSequence(), fPostProcessNumber(0), fLinearMatrix()
 {
     
 }
@@ -246,6 +246,8 @@ void TPZWellBoreAnalysis::Read(TPZStream &input)
 
 void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
 {
+    DebugStop(); // Am i beeing used? If so, please treat elastic material TPZElasticityMaterialSest2D
+    
     TPZGeoMesh *gmesh = &obj.fCurrentConfig.fGMesh;
     //GeoMeshClass::WellBore2d(&obj.fCurrentConfig.fGMesh);
     obj.fCurrentConfig.fInnerRadius = 4.25*0.0254;//0.1;
@@ -282,9 +284,6 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
     obj.SetConfinementTotalStresses(confinementTotal, WellPressure);
 
 
-#ifdef PV
-
-
 
         int materialid=1;
         bool planestrain=true;
@@ -319,26 +318,7 @@ void TPZWellBoreAnalysis::StandardConfiguration(TPZWellBoreAnalysis &obj)
         TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlasticSest2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain);
     PlasticMC->SetBiot(biotcoef);
 
-#else
-    
-    //TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(obj.fCurrentConfig.fSD);
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &SD = obj.fCurrentConfig.fSD;
-    SD.SetResidualTolerance(1.e-10);
-    SD.fIntegrTol = 10.;
 
-   REAL poisson = 0.203;
-   REAL elast = 29269.;
-   REAL A = 152.54;
-   REAL B = 0.0015489;
-   REAL C = 146.29;
-   REAL R = 0.91969;
-   REAL D = 0.018768;
-   REAL W = 0.006605;
-   SD.SetUp(poisson, elast, A, B, C, R, D, W);
-
-	TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(1,1);
-    
-#endif
 
     
     
@@ -403,15 +383,8 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
     
     for (int i=0; i<nangles; i++) {
         
-#ifdef PV
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > SD;
         SD.fYC.PreSMat(SD.fYC);
-#else
-        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> SD;
-        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::PRSMatMPa(SD);
-        SD.SetResidualTolerance(1.e-10);
-        SD.fIntegrTol = 1.;
-#endif
 
 
         const int nincrements = 100;
@@ -441,9 +414,7 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
             }
             epst[j].first = ca*scale;
             epst[j].second = sa*scale;
-#ifndef PV
-            SD.fYC.fIsonCap = false;
-#endif
+
             SD.ApplyStrainComputeSigma(epstotal,sigma);
             // print I1 and sqrt(J2)
             REAL i1sigma = sigma.I1();
@@ -461,11 +432,8 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 
 TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinementTotal(),  fWellborePressure(0.),
     fGMesh(), fCMesh(), fSolution(), fZDeformation(0.), fPlasticDeformSqJ2(), fHistoryLog(), fModel(ESandler), fWellConfig(ENoConfig), fFluidModel(ENonPenetrating), fBiotCoef(-1.)
-#ifdef PV
-  , fSDPV(), fMCPV()
-#else
-    , fSD()
-#endif
+  , fSDPV(), fMCPV(), fMatEla()
+
 
 {
     fCMesh.SetReference(&fGMesh);
@@ -476,19 +444,12 @@ TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.f
         fConfinementTotal(conf.fConfinementTotal), fWellborePressure(conf.fWellborePressure),
         fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fSolution(conf.fSolution), fZDeformation(conf.fZDeformation),
     fModel(conf.fModel), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2), fHistoryLog(conf.fHistoryLog), fFluidModel(conf.fFluidModel), fWellConfig(conf.fWellConfig), fBiotCoef(conf.fBiotCoef)
-#ifdef PV
-  , fSDPV(conf.fSDPV), fMCPV(conf.fMCPV)
-#endif
+  , fSDPV(conf.fSDPV), fMCPV(conf.fMCPV), fMatEla(conf.fMatEla)
 {
-#ifdef PV
     fSDPV = conf.fSDPV;
-#else
-    fSD = conf.fSD;
-#endif
     fGMesh.ResetReference();
     fCMesh.SetReference(&fGMesh);
     fCMesh.LoadReferences();
-    
 }
 
 TPZWellBoreAnalysis::TConfig::~TConfig()
@@ -506,14 +467,11 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fInnerRadius = copy.fInnerRadius;
     fOuterRadius = copy.fOuterRadius;
     fConfinementTotal = copy.fConfinementTotal;
-#ifdef PV
     fSDPV = copy.fSDPV;
     fMCPV = copy.fMCPV;
-#else
-    fSD = copy.fSD;
-#endif
+    fMatEla = copy.fMatEla;
 
-		fDelx = copy.fDelx;
+    fDelx = copy.fDelx;
     fNx = copy.fNx;
     fSmaller = copy.fSmaller;
     fGreater = copy.fGreater;
@@ -547,12 +505,10 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     TPZSaveable::WriteObjects(out, fGreater);
     TPZSaveable::WriteObjects(out, fSmaller);
     fConfinementTotal.Write(out);
-#ifdef PV
     fSDPV.Write(out);
-		fMCPV.Write(out);
-#else
-    fSD.Write(out);
-#endif
+    fMCPV.Write(out);
+    fMatEla.Write(out,TPZElasticityMaterialSest2DID); //AQUIPHIL
+
 		int IntEPlasticModel = fModel;
 		out.Write(&IntEPlasticModel);
 
@@ -587,12 +543,10 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     TPZSaveable::ReadObjects(input, fSmaller);
     
     fConfinementTotal.Read(input);
-#ifdef PV
     fSDPV.Read(input);
     fMCPV.Read(input);
-#else
-    fSD.Read(input);
-#endif
+    fMatEla.Read(input,0); //AQUIPHIL
+
     int IntEPlasticModel;
     input.Read(&IntEPlasticModel);
     fModel = (EPlasticModel) IntEPlasticModel;
@@ -660,7 +614,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     STATE SecondZStress = 0.;
     STATE SecondZDeformation = 0.;
     STATE elasticity = 0.;
-#ifdef PV
+
     if (LocalConfig.fModel == ESandler) {
         elasticity = LocalConfig.fSDPV.fER.E();
     }
@@ -668,15 +622,19 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     {
         elasticity = LocalConfig.fMCPV.fER.E();
     }
+    else if(LocalConfig.fModel == EElastic)
+    {
+#ifdef PlasticPQP
+        elasticity = LocalConfig.fMCPV.fER.E();
+#else
+        elasticity = LocalConfig.fMatEla.GetEyoung();
+#endif
+    }
     else
     {
         DebugStop();
     }
-#else
-    DebugStop();
-#endif
-    
-    
+
     LocalConfig.SetZDeformation(zdeformation);
     
     TPZElastoPlasticAnalysis analysis(&LocalConfig.fCMesh,std::cout);
@@ -821,9 +779,11 @@ void TPZWellBoreAnalysis::TConfig::SetZDeformation(STATE epsZ)
     TPZMaterial *mat = fCMesh.FindMaterial(1);
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> mattype1;
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem> mattype2;
+    typedef TPZElasticityMaterialSest2D mattype3;
 
     mattype1 *matposs1 = dynamic_cast<mattype1 *>(mat);
     mattype2 *matposs2 = dynamic_cast<mattype2 *>(mat);
+    mattype3 *matposs3 = dynamic_cast<mattype3 *>(mat);
 
     if (matposs1) {
         matposs1->SetZDeformation(epsZ);
@@ -831,7 +791,10 @@ void TPZWellBoreAnalysis::TConfig::SetZDeformation(STATE epsZ)
     if (matposs2) {
         matposs2->SetZDeformation(epsZ);
     }
-    if (!matposs1 && !matposs2) {
+    if (matposs3) {
+        matposs3->SetZDeformation(epsZ);
+    }
+    if (!matposs1 && !matposs2 && !matposs3) {
         DebugStop();
     }
     fZDeformation = epsZ;
@@ -1058,13 +1021,8 @@ void TPZWellBoreAnalysis::TConfig::VerifyPlasticTangent(TPZCompEl *cel)
     TPZCompMesh *cmesh2 = cel2->Mesh();
     
     
-#ifdef PV
     TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > > *pMatWithMem2 =
     dynamic_cast<TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse > > *>(cmesh2->MaterialVec()[1]);
-#else
-    TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *pMatWithMem2 =
-    dynamic_cast<TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *>(cmesh2->MaterialVec()[1]);
-#endif
 
     
     if (intel2->Material() != pMatWithMem2) {
@@ -1847,7 +1805,7 @@ void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, s
     }
 #endif
     // force the post process mesh to be regenerated
-    fPostprocess.SetCompMesh(0); //AQUIPHIL
+    fPostprocess.SetCompMesh(0);
 }
 
 /// Divide the element using the plastic deformation as threshold
@@ -2184,11 +2142,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
 {
     fCurrentConfig.CreatePostProcessingMesh();
 
-#ifdef PV
     std::string vtkFile = "out.vtk";
-#else
-    std::string vtkFile = "pocoplasticoErickII.vtk";
-#endif
 
     TPZStack<std::string> scalNames,vecNames;
     PostProcessVariables(scalNames,vecNames);
@@ -3018,7 +2972,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     int defaultporder = porder;
     fCMesh.SetDefaultOrder(defaultporder);
     TPZCompMesh *compmesh1 = &fCMesh;
-    int materialid=1;
+    int materialid = 1;
     
 #ifdef DEBUG
     std::ofstream sout("CreateComputationalMesh.vtk");
@@ -3028,11 +2982,14 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     TPZTensor<STATE> boundarytensor;
     FromPhysicalDomaintoComputationalDomainStress(fConfinementTotal, boundarytensor);
     
-#ifdef PV
-	
+    
+#ifdef PlasticPQP
     if (fModel == EMohrCoulomb || fModel == EElastic) {
+#else
+    if (fModel == EMohrCoulomb) {
+#endif
 
-        bool planestrain=true;
+        bool planestrain = true;
         TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> &MC = fMCPV;
         TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> > *PlasticMC = new TPZMatElastoPlasticSest2D< TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> >(materialid,planestrain);
         PlasticMC->SetBiot(fBiotCoef);
@@ -3063,9 +3020,28 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
 
         ConfigureBoundaryConditions();
         compmesh1->AutoBuild();
-
     }
-    else
+#ifndef PlasticPQP
+    else if (fModel == EElastic)
+    {
+        fMatEla.SetPlaneStrain(); // It must be planestrain because elastoplastic is only planestrain
+        fMatEla.SetBiotAlpha(fBiotCoef);
+        fMatEla.SetId(materialid);
+        
+        TPZTensor<REAL> finalstress(0.);
+        FromPhysicalDomaintoComputationalDomainStress(fConfinementTotal,finalstress);
+        finalstress.XX() += fReservoirPressure*fBiotCoef;
+        finalstress.YY() += fReservoirPressure*fBiotCoef;
+        finalstress.ZZ() += fReservoirPressure*fBiotCoef;
+        fMatEla.SetPreStress(finalstress.XX(), finalstress.XY(), finalstress.YY(), finalstress.ZZ());
+        TPZMaterial *mat = &fMatEla;
+        compmesh1->InsertMaterialObject(mat);
+        
+        ConfigureBoundaryConditions();
+        compmesh1->AutoBuild();
+    }
+#endif
+    else if (fModel == ESandler)
     {
     
         bool planestrain=true;
@@ -3119,62 +3095,11 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
 
 
     }
-#else
-    //    //TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>::UncDeepSandTest(obj.fCurrentConfig.fSD);
-    TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> &SD = fSD;
-    
-    SD.SetResidualTolerance(1.e-10);
-    SD.fIntegrTol = 10.;
-    bool planestrain = true;
-    TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> > *PlasticSD = new TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> >(materialid,planestrain);
-    
-    TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
-    
-    
-    
-    
-    TPZTensor<REAL> initstress,finalstress;
-    REAL hydro = boundarytensor.I1();
-    hydro -= SD.fYC.fA*SD.fYC.fR;
-    hydro /= 3.;
-    finalstress.XX() = hydro;
-    finalstress.YY() = hydro;
-    finalstress.ZZ() = hydro;
-    
-    PrepareInitialMat(SD, initstress, finalstress, 10);
-    initstress = finalstress;
-    finalstress = boundarytensor;
-    PrepareInitialMat(SD, initstress, finalstress, 10);
-    SD.ResetPlasticMem();
-    
-    TPZMaterial *plastic(PlasticSD);
-    
-    PlasticSD->SetPlasticity(SD);
-    compmesh1->InsertMaterialObject(plastic);
+    else
     {
-        TPZMaterial *plastic = compmesh1->FindMaterial(materialid);
-        REAL inner = fInnerRadius;
-        REAL outer = fOuterRadius;
-        REAL wellpress = fWellboreEffectivePressure;
-        REAL reservoirpress = fEffectivePorePressure;
-        if (fBiotCoef < 0.) {
-            DebugStop();
-        }
-        REAL biot = fBiotCoef;
-        
-        if (fFluidModel == ENonPenetrating) {
-            // TODO TODO TODO
-            // here we should modify the boundary condition value
-            biot = 0.;
-        }
-        
-        SetWellPressure();
+        DebugStop();
     }
-    
-    CmeshWell(compmesh1, plastic, boundarytensor, fWellboreEffectivePressure);
-    compmesh1->AutoBuild();
-    
-#endif
+
     
 }
 
@@ -3202,7 +3127,6 @@ void TPZWellBoreAnalysis::TConfig::FromPhysicalDomaintoComputationalDomainStress
             DebugStop();
             break;
     }
-    
 }
 
 
@@ -3231,20 +3155,33 @@ void TPZWellBoreAnalysis::LinearConfiguration(int porder)
 void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterialSest2D &mat)
 {
     REAL E,nu, lambda,G;
-#ifdef PV
-    if (fCurrentConfig.fModel == EMohrCoulomb || fCurrentConfig.fModel == EElastic) {
+
+    if (fCurrentConfig.fModel == EMohrCoulomb) {
         G = fCurrentConfig.fMCPV.fER.fMu;
         lambda = fCurrentConfig.fMCPV.fER.fLambda;
     }
-    else
+    else if (fCurrentConfig.fModel == EElastic)
+    {
+#ifdef PlasticPQP
+        G = fCurrentConfig.fMCPV.fER.fMu;
+        lambda = fCurrentConfig.fMCPV.fER.fLambda;
+#else
+        G = fCurrentConfig.fMatEla.GetMu();
+        lambda = fCurrentConfig.fMatEla.GetLambda();
+#endif
+        
+    }
+    else if (fCurrentConfig.fModel == ESandler)
     {
         G = fCurrentConfig.fSDPV.fER.fMu;
         lambda = fCurrentConfig.fSDPV.fER.fLambda;
     }
-#else
-    G = fCurrentConfig.fSD.fER.fMu;
-    lambda = fCurrentConfig.fSD.fER.fLambda;
-#endif
+    else
+    {
+        DebugStop();
+    }
+
+    
     E=G*(3.*lambda+2.*G)/(lambda+G);
     nu = lambda/(2.*(lambda+G));
     mat.SetElasticity(E, nu);
@@ -3472,15 +3409,14 @@ void TPZWellBoreAnalysis::TConfig::Print(ostream &out)
     out << "fGreater " << fGreater << endl;
     out << "fSmaller " << fSmaller << endl;
     out << "fConfinementTotal " << fConfinementTotal << endl;
-#ifdef PV
+
     out << "fSDPV ";
     fSDPV.Print(out);
-		out << "fMCPV ";
-		fMCPV.Print(out);
-#else
-    out << "fSD ";
-    fSD.Print(out);
-#endif
+	out << "fMCPV ";
+	fMCPV.Print(out);
+//    out << "fMatEla ";
+//    fMatEla.Print(out); //AQUIOMAR
+
     out << "fWellborePressure " << fWellborePressure << endl;
     out << "fGMesh ";
     fGMesh.Print(out);

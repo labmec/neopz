@@ -9,7 +9,7 @@
 #ifndef PZ_WellBoreAnalysis_h
 #define PZ_WellBoreAnalysis_h
 
-#define PV
+#define PlasticPQP //AQUIPHIL
 #define Elastic
 
 #include "pzcmesh.h"
@@ -20,11 +20,10 @@
 #include "pzsandlerextPV.h"
 #include "TPZPlasticStepPV.h"
 #include "pzstack.h"
-//#include "TPZMohrCoulomb.h"
-//#include "TPZMohrCoulombNeto.h"
 #include "TPZYCMohrCoulombPV.h"
+#include "pzelasticSest2D.h"
 
-class TPZElasticityMaterialSest2D;
+//class TPZElasticityMaterialSest2D;
 
 /// create de standard mesh
 void AddBoundaryConditions(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
@@ -220,16 +219,14 @@ public:
         /// Biot coefficient
         REAL fBiotCoef;
         
-#ifdef PV
         // Sandler Dimaggio PV
         TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> fSDPV;
 
         //Mohr PV
         TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> fMCPV;
-#else
-        /// Parameters of the Sandler DiMaggio plasticity
-        TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2> fSD;
-#endif
+        
+        //object of Elastic Material
+        TPZElasticityMaterialSest2D fMatEla; 
 
         /// Wellbore effective pressure
         REAL fWellborePressure;
@@ -488,34 +485,31 @@ public:
    void SetSanderDiMaggioParameters(REAL poisson, REAL Elast, REAL A, REAL B, REAL C, REAL R, REAL D, REAL W)
     {
 
-#ifdef PV
         STATE G=Elast/(2.*(1.+poisson));
         STATE K=Elast/(3.*(1.-2*poisson));
         STATE phi=0,psi=1.,N=0.;
         fCurrentConfig.fSDPV.fYC.SetUp( A,  B, C,  D, K, G, W, R, phi, N, psi);
         fCurrentConfig.fSDPV.fER.SetUp(Elast,poisson);
-#else
-        fCurrentConfig.fSD.SetUp(poisson, Elast , A, B, C, R, D, W);
-#endif
 
         fCurrentConfig.fModel = ESandler;
-
     }
 		
 	void SetMohrCoulombParameters(REAL poisson, REAL Elast, REAL c, REAL Phi, REAL Psi)
 	{
-#ifdef PV
 		TPZElasticResponse ER;
 		ER.SetUp(Elast,poisson);
 		fCurrentConfig.fMCPV.fYC.SetUp(Phi, Psi, c, ER);
 		fCurrentConfig.fMCPV.fER.SetUp(Elast,poisson);
 
-    fCurrentConfig.fModel = EMohrCoulomb;
-#else
-		PZError << "You have to define PV to use MohrCoulombPV!" << std::endl;
-		DebugStop();
-#endif
+        fCurrentConfig.fModel = EMohrCoulomb;
 	}
+    
+    void SetElasticParameters(REAL poisson, REAL Elast)
+    {
+        //fCurrentConfig.fMatEla.SetElasticParameters(Elast, poisson); 
+        
+        fCurrentConfig.fModel = EElastic;
+    }
 	
     void Print(std::ostream &out);
     
