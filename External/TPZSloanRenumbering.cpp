@@ -63,12 +63,10 @@ void TPZSloanRenumbering::Resequence(TPZVec<int> &permGather, TPZVec<int> &permS
       for(int jadj = 0; jadj < adjNodes.NElements(); jadj++){
         const int adjNode = adjNodes[jadj];
         priority[ adjNode ] += this->W2();//no artigo de 86 o sloan soma W1, no de de 89 soma W2. To seguindo a notacao de 89
-        if(Status[ adjNode] == EInactive){
+        if(HistoryOfQ[adjNode] == 0 && Status[ adjNode] == EInactive){
           Status[ adjNode] = EPreActive;
-          if(HistoryOfQ[adjNode] == 0){
-            Q.push_back( adjNode );
-            HistoryOfQ[ adjNode ] = 1;
-          }
+          Q.push_back( adjNode );
+          HistoryOfQ[ adjNode ] = 1;
         }
       }//jadj
     }//not a preactive node
@@ -88,12 +86,10 @@ void TPZSloanRenumbering::Resequence(TPZVec<int> &permGather, TPZVec<int> &permS
           if(Status[knode] != EPostActive){
             priority[knode] += this->W2();
           }//if ! post active
-          if( Status[knode] == EInactive){
+          if( HistoryOfQ[knode] == 0 && Status[knode] == EInactive){
             Status[knode] = EPreActive;
-            if(HistoryOfQ[knode] == 0){
-              Q.push_back( knode );
-              HistoryOfQ[ knode ] = 1;
-            }
+            Q.push_back( knode );
+            HistoryOfQ[ knode ] = 1;
           }// if inactive
         }//loop of k nodes
       }//if
