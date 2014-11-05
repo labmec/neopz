@@ -731,11 +731,13 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
 {
     TPZCompMesh *multiMesh = mfcel->Mesh();
     TPZInterpolationSpace *hdivel = dynamic_cast<TPZInterpolationSpace *> (mfcel->Element(0));
-    TPZCompElDisc *discel = dynamic_cast<TPZCompElDisc *>(mfcel->Element(1));
+    TPZCompEl *cel = dynamic_cast<TPZCompEl *>(mfcel->Element(1));
+    MElementType celType = cel->Type();
+    
     TPZGeoEl *gel = mfcel->Reference();
     
     int dimMesh = mfcel->Mesh()->Dimension();
-    if (!hdivel || !discel || gel->Dimension() != dimMesh) {
+    if (!hdivel || !cel || gel->Dimension() != dimMesh) {
         DebugStop();
     }
     
@@ -799,7 +801,14 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
         TPZMultiphysicsElement *locMF = dynamic_cast<TPZMultiphysicsElement *>(newMFBound);
         
         locMF->AddElement(bound, 0);
-        locMF->AddElement(TPZCompElSide(discel,side), 1);
+        
+        if(celType==EDiscontinuous){
+            TPZCompElDisc *discel = dynamic_cast<TPZCompElDisc *>(mfcel->Element(1));
+            locMF->AddElement(TPZCompElSide(discel,side), 1);
+        }else{
+            TPZInterpolationSpace *contcel = dynamic_cast<TPZInterpolationSpace *>(mfcel->Element(1));
+            locMF->AddElement(TPZCompElSide(contcel,side), 1);
+        }
         
         wrapEl.push_back(locMF);
     }
