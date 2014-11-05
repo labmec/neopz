@@ -1229,7 +1229,7 @@ void RunBilinear(MElementType eltype)
         fluxorder = 3;
     }
     if (eltype == EPrisma) {
-        fluxorder = 1;
+        fluxorder = 2;
     }
     int ndiv = 0; // para refinar a malha
     TPZVec<TPZCompMesh *>  meshvec(2);
