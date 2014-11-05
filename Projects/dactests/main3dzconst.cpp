@@ -64,7 +64,6 @@
 #include "pzshapelinear.h"
 #include "pzshapetriang.h"
 
-
 #include "TestHDivMesh.h"
 #include "TPZLagrangeMultiplier.h"
 #include "pzmatmixedpoisson3d.h"
@@ -95,7 +94,7 @@ int matskeleton = -7;
 std::map<REAL,REAL> fDebugMapL2, fDebugMapHdiv;
 
 
-TPZGeoMesh *GMeshZconst(int dimensao, int tipo, int ndiv);
+TPZGeoMesh *GMeshZconst(int dimensao, bool ftriang, int ndiv);
 TPZGeoMesh *GMeshDeformedZconst();
 TPZGeoMesh *CreateOneCuboZconst(int nref=0);
 
@@ -191,46 +190,41 @@ int main(int argc, char *argv[])
     {
         int pq = p;
         int pp = p;
-        //        if(ftriang==true){
-        //            pp = pq-1;
-        //        }else{
-        //            pp = pq;
-        //        }
         
-        for (ndiv=0; ndiv<3; ndiv++)
+        for (ndiv=0; ndiv<5; ndiv++)
         {
             
             //TPZGeoMesh *gmesh = CreateOneCuboZconst(ndiv);
             
             TPZGeoMesh *gmesh2d = GMeshZconst(2, ftriang, ndiv);
             REAL layerthickness = 1.;
-            //
-            //            {
-            //                //  Print Geometrical Base Mesh
-            //                std::ofstream Dummyfile("GeometricMesh2D.vtk");
-            //                TPZVTKGeoMesh::PrintGMeshVTK(gmesh2d,Dummyfile, true);
-            //            }
+//            
+//            {
+//                //  Print Geometrical Base Mesh
+//                std::ofstream Dummyfile("GeometricMesh2D.vtk");
+//                TPZVTKGeoMesh::PrintGMeshVTK(gmesh2d,Dummyfile, true);
+//            }
             
             TPZExtendGridDimension extend(gmesh2d,layerthickness);
             TPZGeoMesh *gmesh3d = extend.ExtendedMesh(1,bc0,bc5);
-            //            ofstream arg("gmesh1.txt");
-            //            gmesh2d->Print(arg);
-            ////
-            ////            ofstream arq3("gmesh3d.txt");
-            ////            gmesh3d->Print(arq3);
-            ////            TPZFMatrix<STATE> Tr(3,3,0.0);
-            //
+//            ofstream arg("gmesh1.txt");
+//            gmesh2d->Print(arg);
+////
+////            ofstream arq3("gmesh3d.txt");
+////            gmesh3d->Print(arq3);
+////            TPZFMatrix<STATE> Tr(3,3,0.0);
+//            
             TPZGeoMesh *gmesh = gmesh3d;
             gmesh->SetDimension(dim);
             
             
-            //            ofstream arg1("gmesh.txt");
-            //            gmesh->Print(arg1);
-            //            {
-            //                //  Print Geometrical Base Mesh
-            //                std::ofstream Dummyfile("GeometricMesh3D.vtk");
-            //                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
-            //            }
+//            ofstream arg1("gmesh.txt");
+//            gmesh->Print(arg1);
+            {
+                //  Print Geometrical Base Mesh
+                std::ofstream Dummyfile("GeometricMesh3D.vtk");
+                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
+            }
             
             TPZCompMesh *cmesh2 = CMeshPressureZconst(gmesh, pp, dim);
             TPZCompMesh *cmesh1 = CMeshFluxZconst(gmesh, pq, dim);
@@ -267,6 +261,11 @@ int main(int argc, char *argv[])
             
             //TestMesh(mphysics);
             
+//            ofstream arg5("cmeshmultiphysics.txt");
+//            mphysics->Print(arg5);
+            
+            //TestMesh(mphysics);
+            
             
             //            ofstream arg1("cmeshflux2.txt");
             //            cmesh1->Print(arg1);
@@ -287,23 +286,23 @@ int main(int argc, char *argv[])
             //            TPZElementMatrix ek,ef;
             //            cel->CalcStiff(ek, ef);
             
-            TPZAnalysis an(mphysics);
+            TPZAnalysis an(mphysics,false);
             
             SolveSystZconst(an, mphysics);
             
-//            stringstream ref,grau;
-//            grau << p;
-//            ref << ndiv;
-//            string strg = grau.str();
-//            string strr = ref.str();
-//            std::string plotname("OurSolutionZconst");
-//            std::string Grau("P");
-//            std::string Ref("H");
-//            std::string VTK(".vtk");
-//            std::string plotData;
-//            plotData = plotname+Grau+strg+Ref+strr+VTK;
-//            //std::string plotfile("OurSolution1.vtk");
-//            std::string plotfile(plotData);
+            stringstream ref,grau;
+            grau << p;
+            ref << ndiv;
+            string strg = grau.str();
+            string strr = ref.str();
+            std::string plotname("OurSolutionZconst");
+            std::string Grau("P");
+            std::string Ref("H");
+            std::string VTK(".vtk");
+            std::string plotData;
+            plotData = plotname+Grau+strg+Ref+strr+VTK;
+            //std::string plotfile("OurSolution1.vtk");
+            std::string plotfile(plotData);
 //            
 //            PosProcessMultphysicsZconst(meshvec,  mphysics, an, plotfile);
             
@@ -349,13 +348,13 @@ int main(int argc, char *argv[])
         
     }
     
-    
+
     std::cout<< " fim " << std::endl;
     
     return EXIT_SUCCESS;
 }
 
-TPZGeoMesh *GMeshZconst(int dim, int tipo, int ndiv)
+TPZGeoMesh *GMeshZconst(int dim, bool ftriang, int ndiv)
 {
     
     if(dim!=2)
@@ -840,7 +839,7 @@ TPZCompMesh *CMeshPressureZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     cmesh->SetDefaultOrder(pOrder);
     //cmesh->SetDimModel(dim);
     
-    bool h1function = false;
+    bool h1function = true;//false em triangulo
     if(h1function){
         cmesh->SetAllCreateFunctionsContinuous();
         cmesh->ApproxSpace().CreateDisconnectedElements(true);
@@ -983,7 +982,8 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0DZconst);
+//    BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0NZconst);
     BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
     BCond0->SetForcingFunction(FBCond0);
@@ -1142,7 +1142,7 @@ void PosProcessMultphysicsZconst(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mph
     scalnames[1] = "ExactPressure";
     
     //const int dim = 3;
-    int div =0;
+    int div = 2;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     std::ofstream out("malha.txt");
