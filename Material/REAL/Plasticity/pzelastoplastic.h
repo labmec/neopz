@@ -188,6 +188,12 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 	   */
 	  void ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress);
 	
+    /** Method that checks DEP consistency
+     *  @param data [in]
+     *  @param DeltaStrain [in]
+     */
+    void CheckConvergence(TPZMaterialData & data,TPZFMatrix<REAL> & DeltaStrain);
+    
 	  /** Calls the plasticity template aggregate applyStrainComputeDep method
 	   *  @param data [in]
 	   *  @param DeltaStrain [in]

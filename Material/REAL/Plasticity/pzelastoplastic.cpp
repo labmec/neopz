@@ -14,6 +14,7 @@
 #ifdef LOG4CXX
 static LoggerPtr elastoplasticLogger(Logger::getLogger("pz.material.pzElastoPlastic"));
 static LoggerPtr updatelogger(Logger::getLogger("pz.material.pzElastoPlastic.update"));
+static LoggerPtr ceckconvlogger(Logger::getLogger("checkconvmaterial"));
 #endif
 
 
@@ -907,7 +908,80 @@ void TPZMatElastoPlastic<T,TMEM>::ComputeStressVector(TPZMaterialData & data, TP
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
+void TPZMatElastoPlastic<T,TMEM>::CheckConvergence(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain)
+{
+    int intPt = data.intGlobPtIndex;//, plasticSteps;
+    T plasticloc(fPlasticity);
+    plasticloc.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
+    TPZTensor<REAL> deps, sigma1,sigma2,sigmatrash,sigma3;
+    deps.CopyFrom(DeltaStrain);
+    
+    REAL alfa =1.e-6;
+    REAL alfa2 = 2.e-6;
+    TPZTensor<REAL> part1,part2,part3,temp;
+    TPZTensor<REAL> Alfa1DeltaEps, Alfa2DeltaEps,Eps(plasticloc.GetState().fEpsT);
+    Alfa1DeltaEps.CopyFrom(DeltaStrain);
+    Alfa2DeltaEps.CopyFrom(DeltaStrain);
+    TPZFNMatrix<36,REAL> DEP(6,6);
+    
+    
+    Alfa1DeltaEps*=alfa;
+    Alfa2DeltaEps*=alfa2;
+    temp=Eps;
+    temp+=Alfa1DeltaEps;
+    plasticloc.ApplyStrainComputeSigma(temp,part1);
+    plasticloc.ApplyStrainComputeDep(Eps,part2,DEP);
+    TPZFNMatrix<6,REAL> part3temp(6,1),tempAlfa1DeltaEps(6,1);
+    for(int i=0;i<6;i++)
+    {
+        tempAlfa1DeltaEps(i,0)=Alfa1DeltaEps.fData[i];
+    }
+    DEP.Multiply(tempAlfa1DeltaEps, part3temp);
+    part3.CopyFrom(part3temp);
+    TPZTensor<REAL> e1(part1);
+    e1-=part2;
+    e1-=part3;
+    
+    part1*=0.;
+    part3*=0.;
+    part3temp*=0.;
+    temp*=0.;
+    
+    temp=Eps;
+    temp+=Alfa2DeltaEps;
+    plasticloc.ApplyStrainComputeSigma(temp,part1);
+    for(int i=0;i<6;i++)
+    {
+        tempAlfa1DeltaEps(i,0)=Alfa2DeltaEps.fData[i];
+    }
+    DEP.Multiply(tempAlfa1DeltaEps, part3temp);
+    part3.CopyFrom(part3temp);
+    TPZTensor<REAL> e2(part1);
+    e2-=part2;
+    e2-=part3;
+    REAL n = (log10(Norm(e1))-log10(Norm(e2)))/(log10(alfa)-log10(alfa2));
+    
+#ifdef LOG4CXX
+    if(ceckconvlogger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        TPZManVector<REAL,3> phi(3,1);
+        plasticloc.Phi(Eps,phi);
+        sout << "DEP "<< DEP << std::endl;
+        sout << "tempAlfa1DeltaEps "<< tempAlfa1DeltaEps << std::endl;
+        sout << "Phi "<< phi << std::endl;
+        sout << "Integration Point "<< intPt << std::endl;
+        sout << "n = " << n << std::endl;
+        LOGPZ_DEBUG(ceckconvlogger, sout.str())
+    }
+#endif
+    
+    
+    
+}
+
+template <class T, class TMEM>
+void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,
 												TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
 	int intPt = data.intGlobPtIndex;//, plasticSteps;
@@ -927,6 +1001,9 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
 	TPZTensor<REAL> EpsT, Sigma;
 	EpsT.CopyFrom(DeltaStrain);
 	EpsT.Add(plasticloc.GetState().fEpsT, 1.);
+#ifdef debug
+    CheckConvergence(data,DeltaStrain);
+#endif
 	
     plasticloc.ApplyStrainComputeDep(EpsT, Sigma, Dep);
 	
