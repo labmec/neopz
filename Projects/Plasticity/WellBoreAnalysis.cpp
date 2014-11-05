@@ -2142,7 +2142,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
 {
     fCurrentConfig.CreatePostProcessingMesh();
 
-    std::string vtkFile = "out.vtk";
+    std::string vtkFile = fVtkFile;
 
     TPZStack<std::string> scalNames,vecNames;
     PostProcessVariables(scalNames,vecNames);

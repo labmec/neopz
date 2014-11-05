@@ -175,6 +175,8 @@ public:
         /// Set the Z deformation (for adapting the compaction)
         void SetZDeformation(STATE epsZ);
         
+
+        
         /// Compute the average vertical stress of the configuration
         STATE AverageVerticalStress();
         
@@ -253,6 +255,8 @@ public:
         TPZPostProcAnalysis fPostprocess;
 
         std::string fHistoryLog;
+        
+
         
         static int gNumThreads;
 
@@ -540,6 +544,11 @@ public:
 
     void SaveConfig(stringstream &strout);
     
+    inline void SetVtkOutPutName(string output)
+    {
+        fVtkFile=output;
+    }
+    
 private:
     /// The object with the current configuration
     TConfig fCurrentConfig;
@@ -552,6 +561,8 @@ private:
     
     /// Linear Elastic Stiffness matrix
     TPZAutoPointer<TPZMatrix<STATE> > fLinearMatrix;
+    
+    std::string fVtkFile;
     
     
 };
