@@ -1557,6 +1557,17 @@ void TPZInterpolationSpace::ExpandShapeFunctions(TPZVec<long> &connectlist, TPZV
 	}
 }
 
+int TPZInterpolationSpace::GetSideOrient(int side){
+    
+    TPZGeoEl *gel = this->Reference();
+    int nsides = gel->NSides();
+    int nnos = gel->NNodes();
+    if(side < nnos || side ==nsides-1) DebugStop();
+    
+    int sideorient = gel->NormalOrientation(side);
+    return sideorient;
+}
+
 /** Read the element data from a stream */
 void TPZInterpolationSpace::Read(TPZStream &buf, void *context)
 {

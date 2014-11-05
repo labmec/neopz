@@ -59,6 +59,13 @@
 #include "pznumeric.h"
 
 #include "TPZExtendGridDimension.h"
+#include "pzelchdivbound2.h"
+#include "pzshapequad.h"
+#include "pzshapelinear.h"
+#include "pzshapetriang.h"
+
+#include "TPZLagrangeMultiplier.h"
+#include "pzmatmixedpoisson3d.h"
 
 #include <iostream>
 #include <string>
@@ -79,6 +86,7 @@ int bc2 = -3;
 int bc3 = -4;
 int bc4 = -5;
 int bc5 = -6;
+int matskeleton = -7;
 
 // just for print data
 /** @brief Map used norms */
@@ -127,7 +135,10 @@ void ForcingBC3NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void ForcingBC4NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void ForcingBC5NZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
-int dim = 3;
+//criar elementos esqueleto
+void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack< TPZMultiphysicsElement *, 7> > &ListGroupEl);
+
+int dim = 2;
 REAL aa = 0.0;
 REAL bb = 0.0;
 REAL cc = 0.0;
@@ -141,8 +152,8 @@ REAL const Pi = M_PI;//4.*atan(1.);
 // Para dimensao 2
 // tipo 1 triangulo
 // tipo 2 quadrilatero
-int tipo = 2;
-bool ftriang = false;//true
+int tipo = 1;
+bool ftriang = true;
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
@@ -163,20 +174,17 @@ int main(int argc, char *argv[])
     int ndiv = 0;
     
     // Hard coded
-    for (int id = 0; id < dim; id++){
+    for (int id = 0; id < dim; id++)
+    {
         TP(id,id) = 1.0;
         InvTP(id,id) = 1.0;
     }
-    
-    
-    
-    
     
     ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=1;p<4;p++)
+    for(p=1;p<5;p++)
     {
         int pq = p;
         int pp = p;
@@ -186,12 +194,16 @@ int main(int argc, char *argv[])
             pp = pq;
         }
         
-        for (ndiv=0; ndiv<4; ndiv++)
+        for (ndiv=0; ndiv<5; ndiv++)
         {
             
-            TPZGeoMesh *gmesh = CreateOneCuboZconst(ndiv);
+            //TPZGeoMesh *gmesh = CreateOneCuboZconst(ndiv);//3d
+            TPZGeoMesh *gmesh = GMeshZconst(2, tipo, ndiv);//2d
+//            ofstream arg("gmesh.txt");
+//            gmesh->Print(arg);
+
             
-//            TPZGeoMesh *gmesh2d = GMeshZconst(2, tipo, ndiv);
+//            TPZGeoMesh *gmesh = GMeshZconst(2, tipo, ndiv);
 //            REAL layerthickness = 1.;
 //            //UniformRefine(gmesh2d, ndiv);
 //            
@@ -203,9 +215,9 @@ int main(int argc, char *argv[])
 //            
 //            TPZExtendGridDimension extend(gmesh2d,layerthickness);
 //            TPZGeoMesh *gmesh3d = extend.ExtendedMesh(1,bc0,bc5);
-////            ofstream arg("gmesh1.txt");
-////            gmesh2d->Print(arg);
-////            
+//            ofstream arg("gmesh1.txt");
+//            gmesh2d->Print(arg);
+////
 ////            ofstream arq3("gmesh3d.txt");
 ////            gmesh3d->Print(arq3);
 ////            TPZFMatrix<STATE> Tr(3,3,0.0);
@@ -226,12 +238,12 @@ int main(int argc, char *argv[])
             TPZCompMesh *cmesh1 = CMeshFluxZconst(gmesh, pq, dim);
             
             
-            
-            //            ofstream arg1("cmeshflux.txt");
-            //            cmesh1->Print(arg1);
-            //
-            //            ofstream arg2("cmeshpressure.txt");
-            //            cmesh2->Print(arg2);
+//            
+//                        ofstream arg1("cmeshflux.txt");
+//                        cmesh1->Print(arg1);
+//            //
+//                        ofstream arg3("cmeshpressure.txt");
+//                        cmesh2->Print(arg3);
             //
             //            ofstream arg4("gmesh2.txt");
             //            gmesh->Print(arg4);
@@ -254,8 +266,23 @@ int main(int argc, char *argv[])
             
             
             TPZCompMesh * mphysics = CMeshMixedZconst(gmesh,meshvec);
+//            
+//            ofstream arg4("cmeshflux2.txt");
+//            cmesh1->Print(arg4);
+//
+//    
 //            ofstream arg5("cmeshmultiphysics.txt");
 //            mphysics->Print(arg5);
+//            
+//            ofstream arg2("gmesh2.txt");
+//            gmesh->Print(arg2);
+            
+//            {
+//                //  Print Geometrical Base Mesh
+//                std::ofstream Dummyfile("GeometricMesh3D.vtk");
+//                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
+//            }
+            
             //            TPZCompEl *cel = mphysics->Element(0);
             //            TPZElementMatrix ek,ef;
             //            cel->CalcStiff(ek, ef);
@@ -389,12 +416,12 @@ TPZGeoMesh *GMeshZconst(int d, int tipo, int ndiv)
     gmesh->NodeVec()[in].SetCoord(coord);
     gmesh->NodeVec()[in].SetNodeId(in++);
     //c2
-    coord[0] =  1.0;
+    coord[0] =  0.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
     gmesh->NodeVec()[in].SetNodeId(in++);
     //c3
-    coord[0] = 0.0;
+    coord[0] = 1.0;
     coord[1] =  1.0;
     gmesh->NodeVec()[in].SetCoord(coord);
     gmesh->NodeVec()[in].SetNodeId(in++);
@@ -409,9 +436,9 @@ TPZGeoMesh *GMeshZconst(int d, int tipo, int ndiv)
         new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,TopolTriang,matId,*gmesh);
         id++;
         
-        TopolTriang[0] = 2;
-        TopolTriang[1] = 1;
-        TopolTriang[2] = 3;
+        TopolTriang[0] = 0;
+        TopolTriang[1] = 3;
+        TopolTriang[2] = 2;
         new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
         id++;
         
@@ -420,8 +447,8 @@ TPZGeoMesh *GMeshZconst(int d, int tipo, int ndiv)
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
         id++;
         
-        TopolLine[0] = 2;
-        TopolLine[1] = 1;
+        TopolLine[0] = 1;
+        TopolLine[1] = 3;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
         id++;
         
@@ -430,7 +457,7 @@ TPZGeoMesh *GMeshZconst(int d, int tipo, int ndiv)
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
         id++;
         
-        TopolLine[0] = 3;
+        TopolLine[0] = 2;
         TopolLine[1] = 0;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc4,*gmesh);
     }
@@ -438,8 +465,8 @@ TPZGeoMesh *GMeshZconst(int d, int tipo, int ndiv)
         
         TopolQuad[0] = 0;
         TopolQuad[1] = 1;
-        TopolQuad[2] = 2;
-        TopolQuad[3] = 3;
+        TopolQuad[2] = 3;
+        TopolQuad[3] = 2;
         new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
         id++;
         
@@ -449,16 +476,16 @@ TPZGeoMesh *GMeshZconst(int d, int tipo, int ndiv)
         id++;
         
         TopolLine[0] = 1;
-        TopolLine[1] = 2;
+        TopolLine[1] = 3;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
         id++;
         
-        TopolLine[0] = 2;
-        TopolLine[1] = 3;
+        TopolLine[0] = 3;
+        TopolLine[1] = 2;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
         id++;
         
-        TopolLine[0] = 3;
+        TopolLine[0] = 2;
         TopolLine[1] = 0;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc4,*gmesh);
     }
@@ -734,12 +761,12 @@ TPZCompMesh *CMeshFluxZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     
     ///Inserir condicao de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
+    //TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
-    TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
+    //TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
     
     cmesh->InsertMaterialObject(mat);
     
@@ -748,14 +775,18 @@ TPZCompMesh *CMeshFluxZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     cmesh->SetAllCreateFunctionsHDiv();
     
     
-    cmesh->InsertMaterialObject(BCond0);
+    //cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
     cmesh->InsertMaterialObject(BCond4);
-    cmesh->InsertMaterialObject(BCond5);
+    //cmesh->InsertMaterialObject(BCond5);
     
     cmesh->SetDefaultOrder(pOrder);
+    
+    TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(matskeleton, dim-1, 1);
+    TPZMaterial * mat2(matskelet);
+    cmesh->InsertMaterialObject(mat2);
     
     
     //Ajuste da estrutura de dados computacional
@@ -773,6 +804,7 @@ TPZCompMesh *CMeshFluxZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     
     return cmesh;
 }
+
 
 TPZCompMesh *CMeshPressureZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
 {
@@ -851,9 +883,6 @@ TPZCompMesh *CMeshPressureZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
         
     }
     
-    
-    
-    
 #ifdef DEBUG
     int ncel = cmesh->NElements();
     for(int i =0; i<ncel; i++){
@@ -879,6 +908,8 @@ TPZCompMesh *CMeshPressureZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     return cmesh;
 }
 
+#include "pzcondensedcompel.h"
+#include "pzelementgroup.h"
 TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 {
     
@@ -888,22 +919,23 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     
     //criando material
     int dim = gmesh->Dimension();
-    bool interface;
-    TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); interface = true; // nesse material tem que ser true
-//    TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); interface = false; // nesse material tem que ser false
     
+    bool hdivantigo;
+    
+    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(matId,dim); hdivantigo = false; // nesse material tem que ser false
+    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); hdivantigo = true;; // nesse material tem que ser true
     //incluindo os dados do problema
-    //    if (!interface) {
-    //        TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
-    //        TPZFNMatrix<2,REAL> InvPermTensor(dim,dim,0.);
-    //
-    //        for (int i=0; i<dim; i++)
-    //        {
-    //            PermTensor(i,i) = 1.0;
-    //        }
-    //        InvPermTensor=PermTensor;
-    //        material->SetPermeabilityTensor(PermTensor, InvPermTensor);
-    //    }
+    if (hdivantigo) {
+        TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
+        TPZFNMatrix<2,REAL> InvPermTensor(dim,dim,0.);
+
+        for (int i=0; i<dim; i++)
+        {
+            PermTensor(i,i) = 1.0;
+        }
+        InvPermTensor=PermTensor;
+        material->SetPermeabilityTensor(PermTensor, InvPermTensor);
+    }
     
     //incluindo os dados do problema
     TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
@@ -916,7 +948,6 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     material->SetPermeabilityTensor(PermTensor, InvPermTensor);
     
     //solucao exata
-    
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     
     solexata = new TPZDummyFunction<STATE>(SolExataZconst);
@@ -935,59 +966,58 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     
     
     //Criando condicoes de contorno
-    TPZMaterial * BCond0;
+   // TPZMaterial * BCond0;
     TPZMaterial * BCond1;
     TPZMaterial * BCond2;
     TPZMaterial * BCond3;
     TPZMaterial * BCond4;
-    TPZMaterial * BCond5;
+   // TPZMaterial * BCond5;
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0NZconst);
-    BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
-    //BCond0->SetForcingFunction(FBCond0);
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0NZconst);
+//    BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
+//    BCond0->SetForcingFunction(FBCond0);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1DZconst);
     BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-    //BCond1->SetForcingFunction(FBCond1);
+    BCond1->SetForcingFunction(FBCond1);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2DZconst);
     BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    //BCond2->SetForcingFunction(FBCond2);
+    BCond2->SetForcingFunction(FBCond2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3DZconst);
     BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-    //BCond3->SetForcingFunction(FBCond3);
+    BCond3->SetForcingFunction(FBCond3);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4DZconst);
     BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
-   // BCond4->SetForcingFunction(FBCond4);
+    BCond4->SetForcingFunction(FBCond4);
 
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5NZconst);
-    BCond5 = material->CreateBC(mat, bc5,neumann, val1, val2);
-    //BCond5->SetForcingFunction(FBCond5);
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5NZconst);
+//    BCond5 = material->CreateBC(mat, bc5,neumann, val1, val2);
+//    BCond5->SetForcingFunction(FBCond5);
 
-    
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
-    mphysics->InsertMaterialObject(BCond0);
+  //  mphysics->InsertMaterialObject(BCond0);
     mphysics->InsertMaterialObject(BCond1);
     mphysics->InsertMaterialObject(BCond2);
     mphysics->InsertMaterialObject(BCond3);
     mphysics->InsertMaterialObject(BCond4);
-    mphysics->InsertMaterialObject(BCond5);
+  //  mphysics->InsertMaterialObject(BCond5);
     
     //Fazendo auto build
     mphysics->AutoBuild();
@@ -995,31 +1025,44 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     mphysics->CleanUpUnconnectedNodes();
     
     // Creating multiphysic elements into mphysics computational mesh
-    TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
-    TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-    
-    
-    // Creation of interface elements
-    if (interface)
+    if(hdivantigo==true){
+        TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+        TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    }
+    //Creating multiphysic elements containing skeletal elements.
+    else
     {
-        mphysics->Reference()->ResetReference();
-        mphysics->LoadReferences();
+        TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+        
+//        TPZMaterial * skeletonEl = material->CreateBC(mat, matskeleton, 3, val1, val2);
+//        mphysics->InsertMaterialObject(skeletonEl);
+    
+//        TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(matskeleton, dim-1, 1);
+//        TPZMaterial * mat2(matskelet);
+//        mphysics->InsertMaterialObject(mat2);
         
         int nel = mphysics->ElementVec().NElements();
+        TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
         for(int el = 0; el < nel; el++)
         {
-            TPZCompEl * compEl = mphysics->ElementVec()[el];
-            if(!compEl) continue;
-            int index = compEl ->Index();
-            if(compEl->Dimension() == mphysics->Dimension())
-            {
-                TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(mphysics->ElementVec()[index]);
-                if(!InterpEl) continue;
-                InterpEl->CreateInterfaces();
+            TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
+            if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, matId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
+        }
+        meshvec[0]->CleanUpUnconnectedNodes();
+        TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+        
+        //------- Create and add group elements -------
+        long index, nenvel;
+        nenvel = wrapEl.NElements();
+        for(int ienv=0; ienv<nenvel; ienv++){
+            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
+            nel = wrapEl[ienv].NElements();
+            for(int jel=0; jel<nel; jel++){
+                elgr->AddElement(wrapEl[ienv][jel]);
             }
         }
-        
     }
     
     return mphysics;
@@ -1053,7 +1096,7 @@ void PosProcessZconst(TPZAnalysis &an, std::string plotfile){
     TPZManVector<std::string,10> scalnames(1), vecnames(0);
     scalnames[0]= "Solution";
     //const int dim = 3;
-    int div = 2;
+    int div = 0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     //    std::ofstream out("malhaNormal.txt");
@@ -1073,7 +1116,7 @@ void PosProcessMultphysicsZconst(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mph
     scalnames[1] = "ExactPressure";
     
     //const int dim = 3;
-    int div =2;
+    int div =0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     std::ofstream out("malha.txt");
@@ -1097,9 +1140,15 @@ void SolExataZconst(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STAT
     double y = pt[1];
     for(int d=0; d<dim;d++) flux(d,0)=0.;
     solp[0] = sin(Pi*x)*sin(Pi*y);
-    flux(0,0)=-Pi*(   cos(Pi*y)*sin(Pi*x)*TP(0,1) + cos(Pi*x)*sin(Pi*y)*TP(0,0) );
-    flux(1,0)=-Pi*(   cos(Pi*y)*sin(Pi*x)*TP(1,1) + cos(Pi*x)*sin(Pi*y)*TP(1,0) );
-    flux(2,0)=-Pi*(   cos(Pi*y)*sin(Pi*x)*TP(2,1) + cos(Pi*x)*sin(Pi*y)*TP(2,0) );
+    if(dim==2)
+    {
+        flux(0,0)=-Pi*(cos(Pi*y)*sin(Pi*x)*TP(0,1) + cos(Pi*x)*sin(Pi*y)*TP(0,0));
+        flux(1,0)=-Pi*(cos(Pi*y)*sin(Pi*x)*TP(1,1) + cos(Pi*x)*sin(Pi*y)*TP(1,0));
+    }else{
+        flux(0,0)=-Pi*(   cos(Pi*y)*sin(Pi*x)*TP(0,1) + cos(Pi*x)*sin(Pi*y)*TP(0,0) );
+        flux(1,0)=-Pi*(   cos(Pi*y)*sin(Pi*x)*TP(1,1) + cos(Pi*x)*sin(Pi*y)*TP(1,0) );
+        flux(2,0)=-Pi*(   cos(Pi*y)*sin(Pi*x)*TP(2,1) + cos(Pi*x)*sin(Pi*y)*TP(2,0) );
+    }
     
 #else
     
@@ -1559,3 +1608,85 @@ TPZGeoMesh *GMeshDeformedZconst(){
     
     return gmesh;
 }
+
+#include "pzstack.h"
+void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<TPZMultiphysicsElement *,7> > &ListGroupEl)
+{
+    TPZCompMesh *multiMesh = mfcel->Mesh();
+    TPZInterpolationSpace *hdivel = dynamic_cast<TPZInterpolationSpace *> (mfcel->Element(0));
+    TPZCompElDisc *discel = dynamic_cast<TPZCompElDisc *>(mfcel->Element(1));
+    TPZGeoEl *gel = mfcel->Reference();
+    
+    int dimMesh = mfcel->Mesh()->Dimension();
+    if (!hdivel || !discel || gel->Dimension() != dimMesh) {
+        DebugStop();
+    }
+    
+    //wrap element
+    TPZStack<TPZMultiphysicsElement *, 7> wrapEl;
+    wrapEl.push_back(mfcel);
+
+    for (int side = 0; side < gel->NSides(); side++)
+    {
+        if (gel->SideDimension(side) != gel->Dimension()-1) {
+            continue;
+        }
+        TPZGeoEl *gelbound = gel->CreateBCGeoEl(side, matskeleton);
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(hdivel);
+        int loccon = intel->SideConnectLocId(0,side);
+        long index;
+        
+        TPZInterpolationSpace *bound;
+        MElementType elType = gel->Type(side);
+        switch(elType)
+        {
+            case(EOned)://line
+            {
+                bound = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(* intel->Mesh(),gelbound,index);
+                int sideorient = intel->GetSideOrient(side);
+                TPZCompElHDivBound2<pzshape::TPZShapeLinear> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeLinear> *>(bound);
+                hdivbound->SetSideOrient(sideorient);
+                break;
+            }
+            case(ETriangle)://triangle
+            {
+                bound = new TPZCompElHDivBound2<pzshape::TPZShapeTriang>(* intel->Mesh(),gelbound,index);
+                int sideorient = intel->GetSideOrient(side);
+                TPZCompElHDivBound2<pzshape::TPZShapeTriang> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeTriang> *>(bound);
+                hdivbound->SetSideOrient(sideorient);
+                break;
+            }
+            case(EQuadrilateral)://quadrilateral
+            {
+                bound = new TPZCompElHDivBound2<pzshape::TPZShapeQuad>(* intel->Mesh(),gelbound,index);
+                int sideorient = intel->GetSideOrient(side);
+                TPZCompElHDivBound2<pzshape::TPZShapeQuad> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeQuad> *>(bound);
+                hdivbound->SetSideOrient(sideorient);
+                break;
+            }
+            
+            default:
+            {
+                bound=0;
+                std::cout << "ElementType not found!";
+                DebugStop();
+                break;
+            }
+        }
+
+        long sideconnectindex = intel->ConnectIndex(loccon);
+        bound->SetConnectIndex(0, sideconnectindex);
+        //bound->Print(std::cout);
+        
+        TPZCompEl *newMFBound = multiMesh->CreateCompEl(gelbound, index);
+        TPZMultiphysicsElement *locMF = dynamic_cast<TPZMultiphysicsElement *>(newMFBound);
+        
+        locMF->AddElement(bound, 0);
+        locMF->AddElement(TPZCompElSide(discel,side), 1);
+        
+        wrapEl.push_back(locMF);
+    }
+    
+    ListGroupEl.push_back(wrapEl);
+}
+

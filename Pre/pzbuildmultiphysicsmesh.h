@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "pzcompel.h"
+#include "pzmultiphysicselement.h"
 class TPZAnalysis;
 
 /**
@@ -74,18 +75,26 @@ public:
 	static void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, std::set<int> &BCMaterialIds, int LagrangeMat, int InterfaceMat);
 	
 	/**
-	 * brief Uniform refinement of the computational mesh
+	 * @brief Uniform refinement of the computational mesh
 	 * @param cMesh [in]: computational mesh
 	 * @param ndiv [in]: number of refinements
 	 */
 	static void UniformRefineCompMesh(TPZCompMesh  *cMesh, int ndiv, bool isLagrMult=true);
 	
 	/**
-	 * brief Uniform refinement of the computational element
+	 * @brief Uniform refinement of the computational element
 	 * @param cMesh [in] : computational mesh
 	 * @param indexEl [in]: index of the element
 	 */
 	static void UniformRefineCompEl(TPZCompMesh  *cMesh, long indexEl, bool isLagrMult);
+    
+    /**
+     *@brief Create skeleton elements of the wrap of me.
+     *@param mfcel [in] : multifysics element
+     *@param matskeleton [in]: Material Id for skeleton elements
+     *@param ListGroupEl [out]: List of me and my elements of wrap
+     */
+    static void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<TPZMultiphysicsElement *,7> > &ListGroupEl);
     
 };
 

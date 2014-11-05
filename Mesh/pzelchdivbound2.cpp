@@ -39,10 +39,9 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 				LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-		
-		mesh.ConnectVec()[this->fConnectIndexes[0]].IncrementElConnected();
-			
-		
+    
+    mesh.ConnectVec()[this->fConnectIndexes[0]].IncrementElConnected();
+    
 		
 	//TPZGeoElSide myInnerSide(gel,gel->NSides()-1);
 //	TPZGeoElSide neigh = myInnerSide.Neighbour();
@@ -202,9 +201,10 @@ MElementType TPZCompElHDivBound2<TSHAPE>::Type() {
 
 // NAO TESTADO
 template<class TSHAPE>
-int TPZCompElHDivBound2<TSHAPE>::SetSideOrient(int side)
+void TPZCompElHDivBound2<TSHAPE>::SetSideOrient(int sideorient)
 {
-    fSideOrient = this->Reference()->NormalOrientation(side);
+    //fSideOrient = this->Reference()->NormalOrientation(side);
+    fSideOrient = sideorient;
 }
 
 // NAO TESTADO
@@ -511,7 +511,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     TPZFNMatrix<50,REAL> philoc(phi.Rows(),phi.Cols()),dphiloc(dphi.Rows(),dphi.Cols());
     TSHAPE::Shape(point,id,ord,philoc,dphiloc);
     
-    int idsize = id.size();
+    //int idsize = id.size();
     TPZManVector<int,9> permutegather(TSHAPE::NSides);
     int transformid = TSHAPE::GetTransformId(id);
     TSHAPE::GetSideHDivPermutation(transformid, permutegather);
@@ -520,15 +520,16 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     FirstShapeIndex(FirstIndex);
    
 
+    int signQn = fSideOrient;
     int order = this->Connect(0).Order();
     for (int side=0; side < TSHAPE::NSides; side++) {
         int ifirst = FirstIndex[side];
         int kfirst = FirstIndex[permutegather[side]];
         int nshape = TSHAPE::NConnectShapeF(side,order);
         for (int i=0; i<nshape; i++) {
-            phi(ifirst+i,0) = philoc(kfirst+i,0);
+            phi(ifirst+i,0) = signQn*philoc(kfirst+i,0);
             for (int d=0; d< TSHAPE::Dimension; d++) {
-                dphi(d,ifirst+i) = dphiloc(d,kfirst+i);
+                dphi(d,ifirst+i) = signQn*dphiloc(d,kfirst+i);
             }
         }
     }

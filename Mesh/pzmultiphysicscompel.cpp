@@ -603,7 +603,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule;
 	
-	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
+	TPZManVector<REAL,3> intpointtemp(3,0.);
 	REAL weight = 0.;
 	
 	TPZManVector<int,3> ordervec;
@@ -827,15 +827,14 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<TPZMaterialDat
                                                         TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
 {
 	long ElemVecSize = fElementVec.size();
-	TPZManVector<REAL,3> intpoint(this->Dimension(),0.);
 	for (long iref = 0; iref < ElemVecSize; iref++)
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
 		if (!msp) {
 			continue;
 		}
+        TPZManVector<REAL,3> intpoint(msp->Reference()->Dimension(),0.);
 		trvec[iref].Apply(intpointtemp, intpoint);
-		
 		
 		msp->ComputeRequiredData(datavec[iref], intpoint);
 	}

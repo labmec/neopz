@@ -291,6 +291,13 @@ public:
 	 * of formulation and the neighbours of the element
 	 */
 	virtual void PRefine ( int order ) = 0;
+    
+    /**
+     * @brief It returns the normal orientation of the reference element by the side.
+     * Only side that has dimention larger than zero and smaller than me.
+     * @param side: side of the reference elemen
+     */
+    int GetSideOrient(int side);
 	
 public:
 	

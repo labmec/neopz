@@ -8,8 +8,13 @@
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzmaterial.h"
 #include "pzanalysis.h"
-
+#include "pzstack.h"
 #include "TPZInterfaceEl.h"
+
+#include "pzelchdivbound2.h"
+#include "pzshapequad.h"
+#include "pzshapelinear.h"
+#include "pzshapetriang.h"
 
 #include "pzlog.h"
 
@@ -720,3 +725,85 @@ void TPZBuildMultiphysicsMesh::ShowShape(TPZVec<TPZCompMesh *> &cmeshVec, TPZCom
     analysis.LoadSolution();
 
 }
+
+
+void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<TPZMultiphysicsElement *,7> > &ListGroupEl)
+{
+    TPZCompMesh *multiMesh = mfcel->Mesh();
+    TPZInterpolationSpace *hdivel = dynamic_cast<TPZInterpolationSpace *> (mfcel->Element(0));
+    TPZCompElDisc *discel = dynamic_cast<TPZCompElDisc *>(mfcel->Element(1));
+    TPZGeoEl *gel = mfcel->Reference();
+    
+    int dimMesh = mfcel->Mesh()->Dimension();
+    if (!hdivel || !discel || gel->Dimension() != dimMesh) {
+        DebugStop();
+    }
+    
+    //wrap element
+    TPZStack<TPZMultiphysicsElement *, 7> wrapEl;
+    wrapEl.push_back(mfcel);
+    
+    for (int side = 0; side < gel->NSides(); side++)
+    {
+        if (gel->SideDimension(side) != gel->Dimension()-1) {
+            continue;
+        }
+        TPZGeoEl *gelbound = gel->CreateBCGeoEl(side, matskeleton);
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(hdivel);
+        int loccon = intel->SideConnectLocId(0,side);
+        long index;
+        
+        TPZInterpolationSpace *bound;
+        MElementType elType = gel->Type(side);
+        switch(elType)
+        {
+            case(EOned)://line
+            {
+                bound = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(* intel->Mesh(),gelbound,index);
+                int sideorient = intel->GetSideOrient(side);
+                TPZCompElHDivBound2<pzshape::TPZShapeLinear> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeLinear> *>(bound);
+                hdivbound->SetSideOrient(sideorient);
+                break;
+            }
+            case(ETriangle)://triangle
+            {
+                bound = new TPZCompElHDivBound2<pzshape::TPZShapeTriang>(* intel->Mesh(),gelbound,index);
+                int sideorient = intel->GetSideOrient(side);
+                TPZCompElHDivBound2<pzshape::TPZShapeTriang> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeTriang> *>(bound);
+                hdivbound->SetSideOrient(sideorient);
+                break;
+            }
+            case(EQuadrilateral)://quadrilateral
+            {
+                bound = new TPZCompElHDivBound2<pzshape::TPZShapeQuad>(* intel->Mesh(),gelbound,index);
+                int sideorient = intel->GetSideOrient(side);
+                TPZCompElHDivBound2<pzshape::TPZShapeQuad> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeQuad> *>(bound);
+                hdivbound->SetSideOrient(sideorient);
+                break;
+            }
+                
+            default:
+            {
+                bound=0;
+                std::cout << "ElementType not found!";
+                DebugStop();
+                break;
+            }
+        }
+        
+        long sideconnectindex = intel->ConnectIndex(loccon);
+        bound->SetConnectIndex(0, sideconnectindex);
+        //bound->Print(std::cout);
+        
+        TPZCompEl *newMFBound = multiMesh->CreateCompEl(gelbound, index);
+        TPZMultiphysicsElement *locMF = dynamic_cast<TPZMultiphysicsElement *>(newMFBound);
+        
+        locMF->AddElement(bound, 0);
+        locMF->AddElement(TPZCompElSide(discel,side), 1);
+        
+        wrapEl.push_back(locMF);
+    }
+    
+    ListGroupEl.push_back(wrapEl);
+}
+

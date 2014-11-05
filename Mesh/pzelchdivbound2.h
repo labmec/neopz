@@ -89,8 +89,8 @@ public:
 	virtual int SideConnectLocId(int node, int side) const;
     
     
-    virtual int SetSideOrient(int side);
-    virtual int GetSideOrient( );//
+    void SetSideOrient(int sideorient);
+    int GetSideOrient( );//
 	
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
