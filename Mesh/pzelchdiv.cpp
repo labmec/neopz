@@ -58,10 +58,13 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
     
 	
     int sideorder = SideOrder(TSHAPE::NSides-1);
-    if(TSHAPE::Type()==EQuadrilateral)
-    {
-        sideorder++;
-    }
+//    if(TSHAPE::Type()==EQuadrilateral)
+//    {
+//        sideorder++;
+//    }
+    
+    sideorder++;
+
 	sideorder = 2*sideorder;
 	if (sideorder > this->fIntRule.GetMaxOrder()) sideorder = this->fIntRule.GetMaxOrder();
 	TPZManVector<int,3> order(3,sideorder);
@@ -165,9 +168,9 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
 #endif
 }
 
- template<class TSHAPE>
- int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
- {
+template<class TSHAPE>
+int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
+{
      if (connect < this->NConnects()-1) {
          const int nfaces = TSHAPE::NumSides(TSHAPE::Dimension-1);
          int face = TSHAPE::NSides-nfaces+connect-1;
@@ -190,13 +193,18 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
      
      TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
      TSHAPE::GetSideDirections(vecside,directions,bilinear);
-     int pressureorder;
-     if (TSHAPE::Type()==ETriangle) {
-         pressureorder=this->fPreferredOrder-1;
-     }
-     else {
-         pressureorder=this->fPreferredOrder;
-     }
+     int pressureorder = this->fPreferredOrder;
+//     if (TSHAPE::Type()==ETriangle||TSHAPE::Type()==ETetraedro) {
+////         pressureorder=this->fPreferredOrder-1;
+//     }
+//     else if (TSHAPE::Type()==ECube||TSHAPE::Type()==EQuadrilateral||TSHAPE::Type()==EPrisma) {
+//         pressureorder=this->fPreferredOrder;
+//     }
+//     else
+//     {
+//         // Tipo nao implementado
+//         DebugStop();
+//     }
      TPZManVector<int,27> order(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
      FillOrder(order);
      int nshape = TSHAPE::NShapeF(order);
@@ -207,15 +215,16 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
      }
      
      
+     int nexternalvectors = 0;
+     nexternalvectors = nvecignore;
+     
      TPZGenMatrix<int> shapeorders(nshape,3);
      TSHAPE::ShapeOrder(id, order, shapeorders);
-     
-     int count = 0;
      
      // VectorSide indicates the side associated with each vector entry
      TPZManVector<long,27> FirstIndex(TSHAPE::NSides+1);
      // the first index of the shape functions
-     FirstShapeIndex(FirstIndex); // Nao preenche para o cubo????
+     FirstShapeIndex(FirstIndex); 
      //FirstIndex.Print();
      
 #ifdef LOG4CXX
@@ -227,18 +236,22 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
      }
 #endif
      
-     MElementType tipo = TSHAPE::Type();
-     
+     int count = 0;
+    
      long nvec = vecside.NElements();
-     for (int ivec = nvecignore; ivec<nvec; ivec++) {
-         int side = vecside[ivec];
-         int bil = bilinear[ivec];
-         int dir = directions[ivec];
+     for (int locvec = nexternalvectors; locvec<nvec; locvec++)
+     {
+         int side = vecside[locvec];
+         int bil = bilinear[locvec];
+         int dir = directions[locvec];
+
+         MElementType tipo = TSHAPE::Type(side);
          
          int firstshape = FirstIndex[side];
          int lastshape = FirstIndex[side+1];
          
-         for (int ish = firstshape; ish<lastshape; ish++) {
+         for (int ish = firstshape; ish<lastshape; ish++)
+         {
              int sidedimension = TSHAPE::SideDimension(side);
              int maxorder[3] = {pressureorder,pressureorder,pressureorder};
              if (bil) {
@@ -247,7 +260,7 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
              int include=true;
              for (int d=0; d<sidedimension; d++)
              {
-                 if (tipo==ETriangle)
+                 if (tipo==ETriangle||tipo==ETetraedro)//
                  {
                      if (shapeorders(ish,d) > maxorder[d]+1) {
                          include = false;
@@ -265,6 +278,27 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
                          include = false;
                      }
                  }
+                 else if (tipo==EPrisma)
+                 {
+                     //DebugStop();
+                     if (shapeorders(ish,d) > maxorder[d]) {
+                         include = false;
+                     }
+                 }
+                 else if (tipo == EOned)
+                 {
+                     if (shapeorders(ish,0) > maxorder[d]) {
+                         include = false;
+                     }
+                 }
+                 else if (tipo == EPoint)
+                 {
+                     DebugStop();
+                 }
+                 else
+                 {
+                     DebugStop();
+                 }
              }
              if (include)
              {
@@ -272,198 +306,8 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
              }
          }
      }
-     return count;
+    return count;
 	
-//     if(connect >= this->NConnects())
-//     {
-//         PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: there is not this connect " <<  endl;
-//         return -1;
-//     }
-//     
-//     //------------------ 2014 09 17  --- 
-//     // essas linhas visam substituir as linhas abaixo, especificas para quadrilatero e triangulo
-//     
-//     int lado = connect + TSHAPE::NSides - TSHAPE::NumSides(TSHAPE::Dimension-1)-1;
-//     
-//     if(TSHAPE::SideDimension(lado) < TSHAPE::Dimension-2)
-//     {
-//         PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<  endl;
-//         return -1;
-//     }
-//     
-//     TPZStack<int> lowersides;
-//     TSHAPE::LowerDimensionSides(lado,lowersides);
-//     lowersides.Push(lado);
-//     int nshapef = 0;
-//     int order = ConnectOrder(connect);
-//     
-//     int nsides = lowersides.size();
-//     for (int i = 0; i<nsides; i++)
-//     {
-//         int locside = lowersides[i];
-//         int nshapelado = TSHAPE::NConnectShapeF(locside, order);
-//         if (lado == TSHAPE::NSides-1) {
-//             nshapelado *= TSHAPE::SideDimension(locside);
-//         }
-//         nshapef += nshapelado ;
-//     }
-//     if (lado == TSHAPE::NSides-1)
-//     {
-//         int bil = TSHAPE::NBilinearSides() > 1 ? 1 : 0;
-//         int quadordem1 = 0;
-//         if (TSHAPE::Type()==EQuadrilateral && order==1)
-//         {
-//             quadordem1 = -TSHAPE::Dimension;
-//         }
-//         int correcao = order < 2 ? quadordem1 : (bil)*TSHAPE::Dimension*(order-2);// acrescento mais alguns para cada direcao bilinear
-//         nshapef += TSHAPE::NBilinearSides() + correcao;
-//     }
-//     
-//     return nshapef;
-//     
-//     
-//     //------------------
-//     // ocodigo abaixo foi substituido pelo codigo acima
-//     
-// 
-//     if (TSHAPE::Type()==EQuadrilateral)
-//     {
-//         int iside = connect+TSHAPE::NCornerNodes;
-//         if(TSHAPE::SideDimension(iside)< this->Dimension()-2)
-//         {
-//             PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<  endl;
-//             return -1;
-//             
-//         }
-//         int order = ConnectOrder(connect);
-//         if(order < 0) return 0;
-//         
-//         TPZStack<int> smallsides;
-//         TSHAPE::LowerDimensionSides(iside,smallsides);
-//         //i.e., trata-se do lado de mesma dimensao que o elemento
-//         if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension){
-//             
-//             ///------
-//             if (order==1) {
-//                 int NShapeFace = 0;
-//                 // funcoes para os lados menor que o proprio elemento
-//                 for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++)
-//                 {
-//                     NShapeFace += TSHAPE::NConnectShapeF(nside,order+1);
-//                 }
-//                 cout << "ordem = " << order << " nshapef = " << nshapef << " nshape = " << NShapeFace << endl;
-//                 return(NShapeFace);
-//             }
-//             else{
-//                 int nshape=(order-1)*(order-1)+(order)*(order) + 4*(order)-1;
-//                 cout << "ordem = " << order << " nshapef = " << nshapef << " nshape = " << nshape << endl;
-//                 if (nshapef!=nshape) {
-//                     DebugStop();
-//                 }
-//                 return(nshape);
-//             }
-//             
-//             
-//        
-//         }
-//		 
-//         if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension-1)
-//         {
-//             int NShapeF = 0;
-//             for(int j=0;j< smallsides.NElements();j++)
-//             {
-//                 NShapeF += TSHAPE::NConnectShapeF(j,order);
-//             }
-//             
-//             int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
-//             cout << "ordem = " << order << " nshapef = " << nshapef << " nshape = " << result << endl;
-//             return(result);
-//         }
-//         
-//     }
-//     
-//     if (TSHAPE::Type()==ETriangle){
-//         
-//         if(connect< NConnects()){
-//             int iside = connect+TSHAPE::NCornerNodes;
-//             if(TSHAPE::SideDimension(iside)< this->Dimension()-2)
-//             {
-//                 PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<  endl;
-//                 return -1;
-//                 
-//             }
-//             int order = ConnectOrder(connect);
-//             
-//             if(order < 0) return 0;
-//             
-//             TPZStack<int> smallsides;
-//             TSHAPE::LowerDimensionSides(iside,smallsides);
-//             if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension)//i.e., trata-se do lado de mesma dimensao que o elemento
-//             {
-//                 
-//                 int result= order*order-1;
-//                 cout << "ordem = " << order << " nshapef = " << nshapef << " nshape = " << result << endl;
-//                 
-//                 return (result)  ;
-//                 
-//             }
-//             else if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension-1)//i.e., trata-se do lado de 1 dimensao a menos que a dimensao do elemento
-//             {
-//                 int NShapeF = 0;
-//                 for(int j=0;j< smallsides.NElements();j++)
-//                 {
-//                     NShapeF += TSHAPE::NConnectShapeF(j,order);
-//                 }
-//                 int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
-//                 cout << "ordem = " << order << " nshapef = " << nshapef << " nshape = " << result << endl;
-//                 return (result);
-//             }
-//         }
-//     }
-//     
-//     else {
-//         std::cout<< "No implemented yet"<<std::endl;
-//         DebugStop();
-//         
-//         int lado = connect + TSHAPE::NSides - TSHAPE::NumSides(TSHAPE::Dimension-1)-1;
-//         
-//         if(TSHAPE::SideDimension(lado) < TSHAPE::Dimension-2)
-//         {
-//             PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<  endl;
-//             return -1;
-//         }
-//         
-//         TPZStack<int> lowersides;
-//         TSHAPE::LowerDimensionSides(lado,lowersides);
-//         lowersides.Push(lado);
-//         int nshapef = 0;
-//         int order = ConnectOrder(connect);
-//         
-//         int nsides = lowersides.size();
-//         for (int i = 0; i<nsides; i++)
-//         {
-//             int locside = lowersides[i];
-//             int nshapelado = TSHAPE::NConnectShapeF(locside, order);
-//             if (lado == TSHAPE::NSides-1) {
-//                 nshapelado *= TSHAPE::SideDimension(locside);
-//             }
-//             nshapef += nshapelado ;
-//         }
-//         if (lado == TSHAPE::NSides-1)
-//         {
-//             int bil = TSHAPE::NBilinearSides() > 1 ? 1 : 0;
-//             int quadordem1 = 0;
-//             if (TSHAPE::Type()==EQuadrilateral && order==1)
-//             {
-//                 quadordem1 = -TSHAPE::Dimension;
-//             }
-//             int correcao = order < 2 ? quadordem1 : (bil)*TSHAPE::Dimension*(order-2);// acrescento mais alguns para cada direcao bilinear
-//             nshapef += TSHAPE::NBilinearSides() + correcao;
-//         }
-//         
-//         return nshapef;
-//         
-//     }
  
  #ifdef LOG4CXX
      {
@@ -716,88 +560,8 @@ int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,long> > & IndexVecShape, int pressureorder)
 {
-    TPZManVector<int,27> order(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
-    FillOrder(order);
-    int nshape = TSHAPE::NShapeF(order);
     
-    TPZManVector<long, TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes);
-    for (int i=0; i<id.size(); i++) {
-        id[i] = this->Reference()->NodePtr(i)->Id();
-    }
-    
-
-    TPZGenMatrix<int> shapeorders(nshape,3);
-    TSHAPE::ShapeOrder(id, order, shapeorders);
-
-    int nshapeflux = NFluxShapeF();
-    IndexVecShape.Resize(nshapeflux);
-    int count = 0;
-    
-    // VectorSide indicates the side associated with each vector entry
-    TPZManVector<long,27> FirstIndex(TSHAPE::NSides+1);
-    // the first index of the shape functions
-    FirstShapeIndex(FirstIndex); // Nao preenche para o cubo????
-    //FirstIndex.Print();
-    
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        sout << "FirstIndex "<<FirstIndex << std::endl;
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-
-    MElementType tipo = TSHAPE::Type();
-
-    long nvec = VectorSide.NElements();
-    for (int ivec = 0; ivec<nvec; ivec++) {
-        int side = VectorSide[ivec];
-        int bil = bilinear[ivec];
-        int dir = direction[ivec];
-        
-        int firstshape = FirstIndex[side];
-        int lastshape = FirstIndex[side+1];
-        
-        for (int ish = firstshape; ish<lastshape; ish++) {
-            int sidedimension = TSHAPE::SideDimension(side);
-            int maxorder[3] = {pressureorder,pressureorder,pressureorder};
-            if (bil) {
-                maxorder[dir]++;
-            }
-            int include=true;
-            for (int d=0; d<sidedimension; d++)
-            {
-                if (tipo==ETriangle)
-                {
-                    if (shapeorders(ish,d) > maxorder[d]+1) {
-                        include = false;
-                    }
-                }
-                else if(tipo==EQuadrilateral)
-                {
-                    if (shapeorders(ish,d) > maxorder[d]) {
-                        include = false;
-                    }
-                }
-                else if(tipo==ECube)
-                {
-                    if (shapeorders(ish,d) > maxorder[d]) {
-                        include = false;
-                    }
-                }
-            }
-            if (include)
-            {
-                IndexVecShape[count] = std::make_pair(ivec, ish);
-                count++;
-            }
-        }
-    }
-    
-    if (count != IndexVecShape.size()) {
         DebugStop();
-    }
         
 }
 
@@ -805,7 +569,7 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,long> > & IndexVecShape, int pressureorder)
 {
     TPZManVector<int,27> order(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
-    FillOrder(order);
+    FillOrder(order); // aqui incrementa a ordem p do lado bilinear
     int nshape = TSHAPE::NShapeF(order);
     
     TPZManVector<long, TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes);
@@ -813,6 +577,8 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
         id[i] = this->Reference()->NodePtr(i)->Id();
     }
     
+    int nexternalvectors = 0;
+    TPZManVector<int> facevector(VectorSide.size(),TSHAPE::NSides-1);
     // compute the permutation which needs to be applied to the vectors to enforce compatibility between neighbours
     TPZManVector<int,81> vecpermute(TSHAPE::NSides*TSHAPE::Dimension);
     int count = 0;
@@ -827,9 +593,12 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
         int counthold = count;
         for (int i=0; i<nlowdim; i++) {
             vecpermute[counthold+i] = permgather[i]+counthold;
+            facevector[count] = side;
             count++;
         }
     }
+    
+    nexternalvectors = count;
     for (; count < TSHAPE::NSides*TSHAPE::Dimension; count++) {
         vecpermute[count] = count;
     }
@@ -838,12 +607,11 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     
     int nshapeflux = NFluxShapeF();
     IndexVecShape.Resize(nshapeflux);
-    count = 0;
     
     // VectorSide indicates the side associated with each vector entry
     TPZManVector<long,27> FirstIndex(TSHAPE::NSides+1);
     // the first index of the shape functions
-    FirstShapeIndex(FirstIndex); // Nao preenche para o cubo????
+    FirstShapeIndex(FirstIndex); 
     //FirstIndex.Print();
     
 #ifdef LOG4CXX
@@ -855,14 +623,45 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     }
 #endif
     
-    MElementType tipo = TSHAPE::Type();
+    
     
     long nvec = VectorSide.NElements();
-    for (int locvec = 0; locvec<nvec; locvec++) {
+    count = 0;
+
+    for (int locvec = 0; locvec<nexternalvectors; locvec++) {
+        int ivec = vecpermute[locvec];
+        int side = VectorSide[ivec];
+        int face = facevector[locvec];
+        int connectindex = SideConnectLocId(0, face);
+        int order = this->Connect(connectindex).Order();
+        
+        int firstshape = FirstIndex[side];
+        int lastshape = FirstIndex[side+1];
+        
+        for (int ish = firstshape; ish<lastshape; ish++) {
+            int sidedimension = TSHAPE::SideDimension(side);
+            int include=true;
+            for (int d=0; d<sidedimension; d++)
+            {
+                if (shapeorders(ish,d) > order) {
+                    include = false;
+                }
+            }
+            if (include)
+            {
+                IndexVecShape[count] = std::make_pair(ivec, ish);
+                count++;
+            }
+        }
+    }
+
+    
+    for (int locvec = nexternalvectors; locvec<nvec; locvec++) {
         int ivec = vecpermute[locvec];
         int side = VectorSide[ivec];
         int bil = bilinear[ivec];
         int dir = direction[ivec];
+        MElementType tipo = TSHAPE::Type(side);
         
         int firstshape = FirstIndex[side];
         int lastshape = FirstIndex[side+1];
@@ -876,7 +675,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
             int include=true;
             for (int d=0; d<sidedimension; d++)
             {
-                if (tipo==ETriangle||tipo==EPrisma)
+                if (tipo==ETriangle||tipo==ETetraedro)//
                 {
                     if (shapeorders(ish,d) > maxorder[d]+1) {
                         include = false;
@@ -894,6 +693,27 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
                         include = false;
                     }
                 }
+                else if (tipo==EPrisma)
+                {
+                    //DebugStop();
+                    if (shapeorders(ish,d) > maxorder[d]) {
+                        include = false;
+                    }
+                }
+                else if (tipo == EOned)
+                {
+                    if (shapeorders(ish,0) > maxorder[d]) {
+                        include = false;
+                    }
+                }
+                else if (tipo == EPoint)
+                {
+                    DebugStop();
+                }
+                else
+                {
+                    DebugStop();
+                }
             }
             if (include)
             {
@@ -902,353 +722,36 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
             }
         }
     }
-    
-    if (count != IndexVecShape.size()) {
+    int ivs =  IndexVecShape.size();
+    if (count != ivs) {
         DebugStop();
     }
-    
+//    //shapeorders.Print("shapeorders");
+//    cout << "vec|shapeindex|ordem" << endl;
+//    for (int i=0; i< nshapeflux; i++)
+//    {
+//        if (IndexVecShape[i].second<nshape)
+//        {
+//            cout << IndexVecShape[i] << " (  ";
+//            for (int j=0; j<3; j++)
+//            {
+//                cout << shapeorders(IndexVecShape[i].second,j) << "  " ;
+//            }
+//            cout << ")  " << i  << endl;
+//        }
+//        else
+//        {cout<<"opa"<< i << endl;}
+//        
+//    }
+//    cout <<  " foi  " << endl;
 }
 
 
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & ShapeAndVec, int pressureorder){
-//		{	
-//		#ifdef LOG4CXX
-//												std::stringstream sout;
-//												sout << "VectorSide "<<VectorSide << std::endl;
-//												LOGPZ_DEBUG(logger,sout.str())
-//		#endif
-//		}
-       
-    // VectorSide indicates the side associated with each vector entry
-    TPZManVector<long,27> FirstIndex(TSHAPE::NSides+1);
-    // the first index of the shape functions
-    FirstShapeIndex(FirstIndex);
-
-    int nshapeflux = NFluxShapeF();
-		
-    ShapeAndVec.Resize(nshapeflux);    
-    if (TSHAPE::Type()==EQuadrilateral)
-    {
-        long count = 0;
-        TPZManVector<long,4> ids(4,0);
-        TPZGeoEl *gel = this->Reference();
-        
-        for (int  id=0; id<4; id++)
-        {
-            ids[id] = gel->NodePtr(id)->Id();
-        }
-        
-        long vectorsidenelem = VectorSide.NElements();
-        for(long jvec = 0; jvec < vectorsidenelem; jvec++)
-        {
-            // tentativa simplificar -- 2014 09 09 -- dac
-/**            if(jvec==16 || jvec ==17)
-            {
-                int lside = VectorSide[jvec];
-
-                int conectside = SideConnectLocId(0,lside);
-                int order = ConnectOrder(conectside);
-                int nshape = TSHAPE::NConnectShapeF(lside,order+1);
-                TPZFNMatrix<25> sideorders(2,nshape);
-                int ksi,eta;
-                int loccount = 0;
-                int transid = TSHAPE::GetTransformId(ids);
-                switch (transid)
-                {
-                    case 0:
-                    case 3:
-                    case 4:
-                    case 7:
-                        for (ksi=0; ksi<order; ksi++) {
-                            for (eta=0; eta<order; eta++) {
-                                sideorders(0,loccount) = ksi+2;
-                                sideorders(1,loccount) = eta+2;
-                                loccount++;
-                            }
-                        }
-                        break;
-                    case 2:
-                    case 6:
-                    case 1:
-                    case 5:
-                        for (eta=0; eta<order; eta++) {
-                            for (ksi=0; ksi<order; ksi++) {
-                                sideorders(0,loccount) = ksi+2;
-                                sideorders(1,loccount) = eta+2;
-                                loccount++;
-                            }
-                        }
-
-                        break;
-                    default:
-                        DebugStop();
-                        break;
-                }
-                
-                long ish = 0;
-                long fshape1 = FirstIndex[lside];
-
-                for (ish=0; ish<nshape; ish++)
-                {
-                    int orderksi = sideorders(0,ish);
-                    int ordereta = sideorders(1,ish);
-
-                    if (jvec == 16)
-                    {
-                        //bool etacheck = ordereta <= pressureorder;
-                        if (ordereta <= pressureorder) //(etacheck)
-                        {
-                            if (ordereta == pressureorder+1 && orderksi == pressureorder) DebugStop();
-                            //if (!(ordereta == pressureorder+1 && orderksi == pressureorder))
-                            //{
-                                ShapeAndVec[count++]=std::pair<int,long>(jvec,fshape1+ish);
-                            //}
-                        }
-                    }
-                    else // (jvec == 17)
-                    {
-                        if (orderksi<=pressureorder)
-                        {
-                            if (orderksi == pressureorder+1 && ordereta == pressureorder) DebugStop();
-                            
-                            //if (!(orderksi == pressureorder+1 && ordereta == pressureorder))
-                            //{
-                                ShapeAndVec[count++]=std::pair<int,long>(jvec,fshape1+ish);
-                            //}
-                        }
-                    }
-                }
-            }
-            else
-            {
-                int lside = VectorSide[jvec];
-                long fshape1 = FirstIndex[lside];
-                long correcao = (jvec==2||jvec==5||jvec==8||jvec==11) ? -1 : 0;
-                long fshape2 = FirstIndex[lside+1] + correcao;
-                
-                for (long ishape=fshape1; ishape<fshape2; ishape++)
-                {
-                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
-                }
-            }
-*/
-            
-    
-            //original
-            if (jvec==2||jvec==5||jvec==8||jvec==11)
-            {
-                int lside = VectorSide[jvec];
-                int nconside = SideConnectLocId(0,lside);
-                int nshapecon = NConnectShapeF(nconside);
-                if (nshapecon > 2)
-                {
-                    long fshape1 = FirstIndex[lside];
-                    long fshape2 = fshape1 + nshapecon-2; //
-                    long fshape2a  = FirstIndex[lside+1]-1;
-                    if (fshape2!=fshape2a)
-                    {
-                        DebugStop();
-                    }
-//#ifdef LOG4CXX
-//                    std::stringstream sout;
-//                    sout << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
-//                    LOGPZ_DEBUG(logger,sout.str())
-//#endif
-                    for (long ishape=fshape1; ishape<fshape2; ishape++)
-                    {
-//#ifdef LOG4CXX
-//                        std::stringstream sout;
-//                        sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-//                        LOGPZ_DEBUG(logger,sout.str())
-//#endif
-                        ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
-                    }
-                }
-            }
-            else if(jvec==16 || jvec ==17)
-            {
-                int lside = VectorSide[jvec];
-
-                int conectside = SideConnectLocId(0,lside);
-                int order = ConnectOrder(conectside);
-                int nshape = TSHAPE::NConnectShapeF(lside,order+1);//order-1);
-                TPZFNMatrix<25> sideorders(2,nshape);
-                int ksi,eta;
-                int loccount = 0;
-                int transid = TSHAPE::GetTransformId(ids);
-                switch (transid)
-                {
-                    case 0:
-                    case 3:
-                    case 4:
-                    case 7:
-                        for (ksi=0; ksi<order/*-1*/; ksi++) {
-                            for (eta=0; eta<order/*-1*/; eta++) {
-                                sideorders(0,loccount) = ksi+2;
-                                sideorders(1,loccount) = eta+2;
-                                loccount++;
-                            }
-                        }
-                        break;
-                    case 2:
-                    case 6:
-                    case 1:
-                    case 5:
-                        for (eta=0; eta<order/*-1*/; eta++) {
-                            for (ksi=0; ksi<order/*-1*/; ksi++) {
-                                sideorders(0,loccount) = ksi+2;
-                                sideorders(1,loccount) = eta+2;
-                                loccount++;
-                            }
-                        }
-                        
-                        break;
-                    default:
-                        DebugStop();
-                        break;
-                }
-                long ish=0;
-                long fshape1 = FirstIndex[lside];
-//#ifdef LOG4CXX
-//                {
-//                    std::stringstream sout;
-//                    sideorders.Print("SideOrders= ", sout ,EFormatted);
-//                    LOGPZ_DEBUG(logger,sout.str())
-//                }
-//#endif
-								
-								
-                for (ish=0; ish<nshape; ish++)
-                {
-                    int orderksi = sideorders(0,ish);
-                    int ordereta = sideorders(1,ish);
-                    
-                    if (jvec ==16)
-                    {
-                        bool etacheck = ordereta <= pressureorder;
-                        if (etacheck)
-                        {
-                            if (!(ordereta == pressureorder+1 && orderksi == pressureorder))
-                            {
-                                ShapeAndVec[count++]=std::pair<int,long>(jvec,fshape1+ish);
-												
-//#ifdef LOG4CXX
-//                                std::stringstream sout;
-//                                sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
-//                                sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
-//                                LOGPZ_DEBUG(logger,sout.str())
-//#endif
-                            }
-                        }
-                    }
-                    if (jvec ==17) {
-                        if (orderksi<=pressureorder) {
-                            if (!(orderksi == pressureorder+1 && ordereta == pressureorder))
-                            {
-//#ifdef LOG4CXX
-//                                std::stringstream sout;
-//                                sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
-//                                sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
-//                                LOGPZ_DEBUG(logger,sout.str())
-//#endif
-                                ShapeAndVec[count++]=std::pair<int,long>(jvec,fshape1+ish);
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                int lside = VectorSide[jvec];
-                long fshape1 = FirstIndex[lside];
-                long fshape2 = FirstIndex[lside+1];
-//#ifdef LOG4CXX
-//                std::stringstream sout;
-//                sout << " lside "<< lside << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
-//                LOGPZ_DEBUG(logger,sout.str())
-//#endif
-                for (long ishape=fshape1; ishape<fshape2; ishape++)
-                {
-//#ifdef LOG4CXX
-//                    std::stringstream sout;
-//                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-//                    LOGPZ_DEBUG(logger,sout.str())
-//#endif
-                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
-                }
-            }
-            
-        }
-    }//end to EQuadrilateral 
-    else {
-        long count = 0;
-        long vectorsidenelem = VectorSide.NElements();
-        for(long jvec = 0; jvec < vectorsidenelem; jvec++)
-        {
-            // DAC -- tetativa de simplificar o codigo - dica Phil - 2014 09 09
-/**
-            int lside = VectorSide[jvec];
-            long fshape1 = FirstIndex[lside];
-            long fshape2 = FirstIndex[lside+1];
-            for (long ishape = fshape1; ishape < fshape2; ishape++)
-            {
-                ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
-            }
-            //std::cout<<" resultado estranho? olhe aqui. " << std::endl;
-*/            
-//#ifdef LOG4CXX
-//            std::stringstream sout;
-//            sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-//            LOGPZ_DEBUG(logger,sout.str())
-//#endif
-            
-  //  Original
-            if (jvec==2||jvec==5||jvec==8)
-            {
-                int lside = VectorSide[jvec];
-                long fshape1 = FirstIndex[lside];
-                int nconside = SideConnectLocId(0,lside);
-                int nshapecon = NConnectShapeF(nconside);
-                long fshape2 = fshape1 + nshapecon-2;
-                //long fshape2 = FirstIndex[lside+1];
-                for (long ishape = fshape1; ishape<fshape2; ishape++)
-                {
-//#ifdef LOG4CXX
-//                    std::stringstream sout;
-//                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-//                    LOGPZ_DEBUG(logger,sout.str())
-//#endif
-                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
-                }
-            }
-            else
-            {
-                int lside = VectorSide[jvec];
-                long fshape1 = FirstIndex[lside];
-                long fshape2 = FirstIndex[lside+1];
-                for (long ishape = fshape1; ishape < fshape2; ishape++)
-                {
-//#ifdef LOG4CXX
-//                   std::stringstream sout;
-//                   sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-//                    LOGPZ_DEBUG(logger,sout.str())
-//#endif
-                    ShapeAndVec[count++]=std::pair<int,long>(jvec,ishape);
-                }
-            }
- /**/
-        }
-    }
-
-    
-#ifdef LOG4CXX
-    std::stringstream sout;
-    sout << " ShapeAndVec " << ShapeAndVec;
-    LOGPZ_DEBUG(logger,sout.str())
-#endif
-    
+void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & ShapeAndVec, int pressureorder)
+{
+    DebugStop();
 }
 
 
@@ -1650,10 +1153,47 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     
 #endif
     
+//    cout << " Normais = " << endl;
+//    int nlin = data.fNormalVec.Rows();
+//    int ncol = data.fNormalVec.Cols();
+//    cout << "{";
+//    for (int j=0; j<ncol; j++) {
+//        cout << "{ ";
+//        for (int i=0; i<nlin; i++) {
+//            cout << data.fNormalVec(i,j);
+//            if (i<nlin-1) {
+//                cout << ",";
+//            }
+//        }
+//        cout << "} ";
+//        if (j<ncol-1) {
+//            cout << ",";
+//        }
+//    }
+//    cout << "};" << endl;
+
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         data.fNormalVec.Print("Normal Vectors " , sout,EMathematicaInput);
+        sout << " Normais = " << endl;
+        int nlin = data.fNormalVec.Rows();
+        int ncol = data.fNormalVec.Cols();
+        sout << "{";
+        for (int j=0; j<ncol; j++) {
+            sout << "{ ";
+            for (int i=0; i<nlin; i++) {
+                sout << data.fNormalVec(i,j);
+                if (i<nlin-1) {
+                    sout << ",";
+                }
+            }
+            sout << "} ";
+            if (j<ncol-1) {
+                sout << ",";
+            }
+        }
+        sout << "};" << endl;
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -1702,20 +1242,8 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	//data.numberdualfunctions = NConnectShapeF(NConnects()-1);
 		
     int pressureorder=0;
-//    if (TSHAPE::Type()==EQuadrilateral) {
-//        pressureorder=this->fPreferredOrder;//ver como melhorar..?
-//    }
-//    else {
-//        pressureorder=this->fPreferredOrder-1;
-//    }
-    
-    if (TSHAPE::Type()==ETriangle||TSHAPE::Type()==EPrisma) {
-        pressureorder=this->fPreferredOrder-1;
-    }
-    else {
-        pressureorder=this->fPreferredOrder;
-    }
 
+    pressureorder=this->fPreferredOrder;
 
 //    IndexShapeToVec(normalsides,data.fVecShapeIndex,pressureorder);
     
@@ -1734,6 +1262,9 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 #endif
     
     data.fShapeType = TPZMaterialData::EVecShape;
+    
+//    cout << "vecShape " << endl;
+//    cout << data.fVecShapeIndex << endl;;
 
     
 #ifdef LOG4CXX
@@ -1744,7 +1275,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         for (int i=0; i<TSHAPE::NCornerNodes; i++) {
             sout << "Id[" << i << "] = " << this->Reference()->NodePtr(i)->Id() << " ";
         }
-        sout << "Sides associated with the normals\n";
+        sout << "\n\nSides associated with the normals\n";
         for (int i=0; i<normalsidesDG.size(); i++) {
             sout << i << '|' << normalsidesDG[i] << " ";
         }
@@ -1760,7 +1291,6 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	}
 #endif    
     
-     
 }
 
 
@@ -1870,11 +1400,7 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::MaxOrder(){
     
     int maxorder = TPZInterpolationSpace::MaxOrder();
-    if(TSHAPE::Type()==EQuadrilateral || TSHAPE::Type() == ECube){
-        return maxorder+1;
-    }
-    
-    return maxorder;
+    return maxorder+1;
 }
 
 #include "pzshapecube.h"

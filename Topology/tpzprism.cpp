@@ -299,14 +299,23 @@ namespace pztopology {
         20,20,20
     };
 	
+//    static int bilinearounao [63] =   {
+//        0,0,0,0,0,0,0,0,0,0,
+//        0,0,0,0,0,0,0,0,0,0,
+//        0,0,0,0,0,0,0,0,0,0,
+//        0,0,0,0,0,0,0,0,0,0,
+//        0,0,0,0,1,1,1,0,0,0,
+//        0,0,1,1,1,1,1,1,0,0,
+//        1,1,1//1,1,1
+//    };
     static int bilinearounao [63] =   {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,1,1,1,0,0,0,
-        0,0,0,0,0,0,0,0,0,0,//0,0,1,1,1,1,1,1,0,0,
-        0,0,1//1,1,1
+        0,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,
+        0,0,1
     };
     
     static int direcaoksioueta [63] = {
@@ -963,8 +972,13 @@ namespace pztopology {
 				JacToSide(0,0) = 1.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
 				JacToSide(1,0) = 0.; JacToSide(1,1) = 1.; JacToSide(1,2) = 0.;
 				break;
+            case 20:
+                SidePar = InternalPar;
+                JacToSide.Resize(3, 3);
+                JacToSide.Identity();
+                break;
 		}
-		if(side > 19)
+		if(side > 20)
 		{
 			cout << "Cant compute MapToSide method in TPZGeoPrism class!\nParameter (SIDE) must be between 6 and 19!\nMethod Aborted!\n";
 			DebugStop();
@@ -1309,51 +1323,58 @@ namespace pztopology {
                 directions(i,iv) = -v3[i]*Nv1v2;
                 directions(i,iv+34) = v3[i]*Nv1v2;
             }
-            for (int iv=0; iv<9; iv++)
-            {
-                directions(i,iv+7) = -v2[i]*Nv3v1;
-                directions(i,iv+25) = -v1[i]*Nv2v3;
-            }
-            
-            directions(i,8) = (v1[i]-v2[i])*Nv3v1/2.;
-            directions(i,9) = (v1[i]-v2[i])*Nv3v1/2.;
-            directions(i,12) = (v1[i]-v2[i])*Nv3v1/2.;
-            
+            //face 1
+            directions(i,7) = -v2[i]*Nv3v1;
+            directions(i,8) = (v1[i]-v2[i])*Nv3v1;
+            directions(i,9) = (v1[i]-v2[i])*Nv3v1;
+            directions(i,10) = -v2[i]*Nv3v1;
+            directions(i,11) = ( directions(i,7)+directions(i,8) )/2.;
+            directions(i,12) = (v1[i]-v2[i])*Nv3v1;
+            directions(i,13) = ( directions(i,9)+directions(i,10) )/2.;
+            directions(i,14) = -v2[i]*Nv3v1;
+            directions(i,15) = ( directions(i,12)+directions(i,14) )/2.;
+            //face 2
+            directions(i,16) = v1[i]*Nv3vdiag;
             directions(i,17) = v2[i]*Nv3vdiag;
             directions(i,18) = v2[i]*Nv3vdiag;
-            directions(i,21) = v2[i]*Nv3vdiag;
-            directions(i,16) = v1[i]*Nv3vdiag;
             directions(i,19) = v1[i]*Nv3vdiag;
+            directions(i,20) = (directions(i,16) + directions(i,17))/2.;
+            directions(i,21) = v2[i]*Nv3vdiag;
+            directions(i,22) = (directions(i,18) + directions(i,19))/2.;
             directions(i,23) = v1[i]*Nv3vdiag;
-            directions(i,20) = (v1[i]+v2[i])*Nv3vdiag/2.;
-            directions(i,22) = (v1[i]+v2[i])*Nv3vdiag/2.;
-            directions(i,24) = (v1[i]+v2[i])*Nv3vdiag/2.;
-
-            directions(i,26) = (v2[i]-v1[i])*Nv2v3/2.;
-            directions(i,27) = (v2[i]-v1[i])*Nv2v3/2.;
-            directions(i,30) = (v2[i]-v1[i])*Nv2v3/2.;
+            directions(i,24) = (directions(i,21) + directions(i,23))/2.;
+            //face 3
+            directions(i,25) = -v1[i]*Nv2v3;
+            directions(i,26) = (v2[i]-v1[i])*Nv2v3;
+            directions(i,27) = (v2[i]-v1[i])*Nv2v3;
+            directions(i,28) = -v1[i]*Nv2v3;
+            directions(i,29) = ( directions(i,25)+directions(i,26) )/2.;
+            directions(i,30) = (v2[i]-v1[i])*Nv2v3;
+            directions(i,31) = ( directions(i,27)+directions(i,28) )/2.;
+            directions(i,32) = -v1[i]*Nv2v3;
+            directions(i,33) = ( directions(i,30)+directions(i,32) )/2.;
             
             //arestas
-            directions(i,41) = v1[i]*Nv2v3;
+            directions(i,41) = v1[i]*Nv2v3;//
             directions(i,42) = (v2[i]-v1[i])/2.;//*Nvdiag
-            directions(i,43) = -v2[i]*Nv3v1;
+            directions(i,43) = -v2[i]*Nv3v1;//
             
             directions(i,44) = v3[i]*Nv1v2;
             directions(i,45) = v3[i]*Nv1v2;
             directions(i,46) = v3[i]*Nv1v2;
             
-            directions(i,47) = v1[i]*Nv2v3;
+            directions(i,47) = v1[i]*Nv2v3;//
             directions(i,48) = (v2[i]-v1[i])/2.;//*Nvdiag
-            directions(i,49) = -v2[i]*Nv3v1;
+            directions(i,49) = -v2[i]*Nv3v1;//
             
             //faces
             directions(i,50) = v1[i]*Nv2v3;
             directions(i,51) = v2[i]*Nv3v1;
-            directions(i,52) = v1[i]*Nv2v3;
+            directions(i,52) = v1[i]*Nv2v3/2.;//
             directions(i,53) = v3[i]*Nv1v2;
             directions(i,54) = (v2[i]-v1[i])/2.;//*Nvdiag
             directions(i,55) = v3[i]*Nv1v2;
-            directions(i,56) = v2[i]*Nv3v1;
+            directions(i,56) = v2[i]*Nv3v1/2.;
             directions(i,57) = v3[i]*Nv1v2;
             directions(i,58) = v1[i]*Nv2v3;
             directions(i,59) = v2[i]*Nv3v1;
@@ -1364,7 +1385,6 @@ namespace pztopology {
             directions(i,62) = v3[i]*Nv1v2;
             
         }
-        cout<< "Direcoes "<< directions << endl;
         
     }
 

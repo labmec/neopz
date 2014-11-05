@@ -452,19 +452,20 @@ namespace pzshape {
                 DebugStop();
             }
             int count = 0;
-            int orderplus1 = order + 1;
-            int orderplus2 = order + 2;
-            for (int i=3; i<orderplus1; i++) {
-                for (int j=3; j<orderplus1; j++) {
-                    for (int k=3; k<orderplus2; k++) {
+            int ord1 = order - 2;
+            int ord2 = order - 1;
+            for (int i=0; i<ord1; i++) {
+                for (int j=0; j<ord1; j++) {
+                    for (int k=0; k<ord2; k++) {
                         int a = i;
                         int b = j;
                         int c = k;
-                        if (   ( (a+b)<orderplus1 )  && (c < orderplus2)   ) // Duvida
+                        int maxAB = a+b;//a>b? a : b;
+                        if (   ( (a+b)<ord1 )  && (c < ord2)   ) // Duvida
                         {
-                            shapeorders(count,0) = a;
-                            shapeorders(count,1) = b;
-                            shapeorders(count,2) = c;
+                            shapeorders(count,0) = 3 + maxAB;
+                            shapeorders(count,1) = 3 + maxAB;
+                            shapeorders(count,2) = 2 + c;
                             count++;
                         }
                         
@@ -472,6 +473,27 @@ namespace pzshape {
                     
                 }
             }
+
+//            int orderplus1 = order + 2;
+//            int orderplus2 = order + 1;
+//            for (int i=3; i<orderplus1; i++) {
+//                for (int j=3; j<orderplus1; j++) {
+//                    for (int k=3; k<orderplus2; k++) {
+//                        int a = i;
+//                        int b = j;
+//                        int c = k;
+//                        if (   ( (a+b)<orderplus1 )  && (c < orderplus2)   ) // Duvida
+//                        {
+//                            shapeorders(count,0) = a;
+//                            shapeorders(count,1) = b;
+//                            shapeorders(count,2) = c;
+//                            count++;
+//                        }
+//                        
+//                    }
+//                    
+//                }
+//            }
 
         }
 
