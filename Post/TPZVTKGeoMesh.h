@@ -30,6 +30,12 @@ public:
 	/** @brief Generate an output of all geomesh to VTK */
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = false);
 	
+	/** @brief Generate an output of all geomesh to VTK */
+	static void PrintGMeshVTK(TPZAutoPointer<TPZGeoMesh> gmesh, std::ofstream &file, bool matColor = false)
+    {
+        PrintGMeshVTK(gmesh.operator->(), file, matColor );
+    }
+	
 	/** @brief Generate an output of all geometric elements that have a computational counterpart to VTK */
 	static void PrintCMeshVTK(TPZCompMesh *gmesh, std::ofstream &file, bool matColor = false);
 	
