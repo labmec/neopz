@@ -147,7 +147,7 @@ int main1(int argc, char *argv[])
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
         //
         TPZFStructMatrix fullstruct(cmeshauto);
-        fullstruct.SetNumThreads(nu)
+        fullstruct.SetNumThreads(numthread_assemble);
         long sz = cmeshauto->NEquations();
         TPZFMatrix<STATE> rhs_t(sz, 1);
         fullstruct.Assemble(rhs_t, 0);

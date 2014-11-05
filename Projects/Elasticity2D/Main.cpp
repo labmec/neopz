@@ -125,16 +125,16 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
 	{
 		//	Print Geometrical refined Base Mesh
-		ofstream argument("RefinedGeometricMesh.txt");
+        std::ofstream argument("RefinedGeometricMesh.txt");
 		gmesh->Print(argument);
-		ofstream Dummyfile("RefinedGeometricMesh.vtk");
+        std::ofstream Dummyfile("RefinedGeometricMesh.vtk");
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);	
 	}	
 #endif
 	
 	TPZCompMesh * ComputationalMeshElasticity = ComputationalElasticityMesh(gmesh, PElasticity);
 	//	Print First computational mesh
-	ofstream ArgumentElasticity("DumpFolder/ComputationalMeshForElasticity.txt");
+    std::ofstream ArgumentElasticity("DumpFolder/ComputationalMeshForElasticity.txt");
 	ComputationalMeshElasticity->Print(ArgumentElasticity);
 	
 	
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 	PostProcessElasticity(*ElasticAnalysis, ElasticityPlotfile);
 	
 	
-	cout << "Check:: Calculation finished successfully" << endl;	
+    std::cout << "Check:: Calculation finished successfully" << std::endl;
 	return EXIT_SUCCESS;
 }
 
@@ -178,7 +178,7 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
     REAL Sigmaxx = 0.0, Sigmayx = 0.0, Sigmayy = 0.0, Sigmazz = 0.0;
     material->SetPreStress(Sigmaxx,Sigmayx,Sigmayy,Sigmazz);
     REAL Alpha = 1.0;
-    material->SetBiotAlpha(Alpha);
+    //material->SetBiotAlpha(Alpha);cade o metodo?
     
     TPZAutoPointer<TPZFunction<STATE> > Pressure;
     Pressure = new TPZDummyFunction<STATE>(ReservoirPressure);
