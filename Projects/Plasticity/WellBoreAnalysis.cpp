@@ -581,7 +581,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
     for (int istep = 1; istep <= nsteps; istep++) {
         REAL factor = istep*1./nsteps;
         fCurrentConfig.SetWellPressure(factor);
-        ExecuteSimulation();
+        ExecuteSimulation(factor);
     }
 }
 
@@ -599,11 +599,14 @@ void TPZWellBoreAnalysis::EvolveBothPressures(int nsteps, STATE TargetWellborePr
         
         // adjust the boundary conditions and forcing function
         fCurrentConfig.SetWellPressure();
+#ifdef DEBUG
+        std::cout << "&&&&&&&&&&&&&&&&&&&&&EVOLVEBOTHPRESSURE&&&&&&&&&&&&&&&&&&&&&&&&&&& Running with WellborePressure = " << fCurrentConfig.fWellborePressure << "  and ReservoirPressure = " << fCurrentConfig.fReservoirPressure;
+#endif
         ExecuteSimulation();
     }
 }
 
-void TPZWellBoreAnalysis::ExecuteSimulation()
+void TPZWellBoreAnalysis::ExecuteSimulation(REAL factor)
 {
     
     TConfig &LocalConfig = fCurrentConfig;
@@ -736,7 +739,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation()
     
 
     std::stringstream strout;
-    strout << "Step " << fPostProcessNumber-1 << " pwb (total) = " << fCurrentConfig.fWellborePressure << " MPa";
+    strout << "    Step " << GetConfigListSize() << " pwb (total) = " << fCurrentConfig.fWellborePressure * factor << " MPa";
     fCurrentConfig.fHistoryLog = strout.str();
 
     fSequence.push_back(LocalConfig);
