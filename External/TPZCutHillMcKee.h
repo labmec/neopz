@@ -27,23 +27,28 @@ class TPZCutHillMcKee : public TPZRenumbering {
       return fnodegraphindex[node+1]-fnodegraphindex[node];
     }
 
-  //accorging to suggestion of INTERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING, VOL. 28,2651-2679 (1989)
+  //accorging to suggestion of longERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING, VOL. 28,2651-2679 (1989)
   //A FORTRAN PROGRAM FOR PROFILE AND WAVEFRONT REDUCTION by S. W. SLOAN
   //removing nodes with same degree
   //Previously, Sloan had suggested LastLevel.Resize( (LastLevel.NElements()+2)/2 );
     void ShrinkLastLevel(TPZVec<long> &LastLevel);
 
-    void RootedLevelStructure(long rootNode, TPZStack< TPZVec<long> > &LevelStructure);
+    void RootedLevelStructure(long rootNode, TPZStack< TPZStack<long> > &LevelStructure);
 
     long SmallestDegree(TPZVec<long> &ExploredNodes);
 
     void AdjacentNodes(long parent, TPZVec<long> &adjNodes);
 
+    long * AdjacentNodesPtr(long parent, long &n){
+        n = this->Degree(parent);
+       return & ( fnodegraph[ fnodegraphindex[parent] ] );
+    }//method
+
     void GetAdjacentNodes(const TPZVec<long> &parents,
                           const TPZVec< long > &exceptedNodes,
-                          std::set<long> &adjNodes);
+                          TPZStack<long> &adjNodes);
 
-    void AdjacentNodesOrdered(long parent, TPZVec<long> &adjNodes);
+    void AdjacentNodesOrdered(long parent, const TPZVec<long> &exceptedNodes, TPZVec<long> &adjNodes);
 
     void SortNodes(TPZVec<long> &nodes);
 
