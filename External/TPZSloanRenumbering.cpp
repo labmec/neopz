@@ -3,7 +3,7 @@
 #include "TPZSloanRenumbering.h"
 #include "TPZCutHillMcKee.h"
 
-TPZSloanRenumbering::TPZSloanRenumbering(int NElements, int NNodes):TPZRenumbering(NElements,NNodes){
+TPZSloanRenumbering::TPZSloanRenumbering(long NElements, long NNodes):TPZRenumbering(NElements,NNodes){
 
 }
 
@@ -11,7 +11,7 @@ TPZSloanRenumbering::~TPZSloanRenumbering(){
 
 }
 
-void TPZSloanRenumbering::Resequence(TPZVec<int> &permGather, TPZVec<int> &permScatter){
+void TPZSloanRenumbering::Resequence(TPZVec<long> &permGather, TPZVec<long> &permScatter){
 
   //computing graph
   TPZCutHillMcKee::SGraph graph;
@@ -20,48 +20,48 @@ void TPZSloanRenumbering::Resequence(TPZVec<int> &permGather, TPZVec<int> &permS
   graph.fnodegraphindex.Shrink();
 
   //finding pseudo peripheral nodes
-  const int nnodes = graph.NNodes();
-  int startNode = -1, endNode = -1;
+  const long nnodes = graph.NNodes();
+  long startNode = -1, endNode = -1;
   graph.PseudoPeripheralNodes(startNode, endNode);
 
   //computing distances to end node
-  TPZStack< TPZVec<int> > LevelStructure;
+  TPZStack< TPZVec<long> > LevelStructure;
   graph.RootedLevelStructure(endNode, LevelStructure);
-  TPZVec<int> DistanceToEndNode( nnodes, -1 );
-  for(int ilevel = 0; ilevel < LevelStructure.NElements(); ilevel++){
-    for(int iel = 0; iel < LevelStructure[ ilevel ].NElements(); iel++){
-      const int node = LevelStructure[ ilevel ][ iel ];
+  TPZVec<long> DistanceToEndNode( nnodes, -1 );
+  for(long ilevel = 0; ilevel < LevelStructure.NElements(); ilevel++){
+    for(long iel = 0; iel < LevelStructure[ ilevel ].NElements(); iel++){
+      const long node = LevelStructure[ ilevel ][ iel ];
       DistanceToEndNode[ node ] = ilevel;
     }//for iel
   }//for ilevel
 #ifdef DEBUG
-  for(int i = 0; i < DistanceToEndNode.NElements(); i++){
+  for(long i = 0; i < DistanceToEndNode.NElements(); i++){
     if(DistanceToEndNode[i] == -1) DebugStop();
   }
 #endif
 
   //assigning initial status and priority
-  TPZVec<int> priority( nnodes, -1);
-  for(int i = 0; i < nnodes; i++){
-    const int degree = graph.Degree(i);
+  TPZVec<long> priority( nnodes, -1);
+  for(long i = 0; i < nnodes; i++){
+    const long degree = graph.Degree(i);
     priority[i] = this->W1()*DistanceToEndNode[i] - this->W2()*(degree+1);
   }//for i
 
-  TPZVec<int> Status(nnodes,EInactive);
-  TPZStack<int> R;
-  TPZManVector<int,10000> adjNodes, adjNodes2J;
-  std::list<int> Q;
-  TPZVec<int> HistoryOfQ(nnodes,0);
+  TPZVec<long> Status(nnodes,EInactive);
+  TPZStack<long> R;
+  TPZManVector<long,10000> adjNodes, adjNodes2J;
+  std::list<long> Q;
+  TPZVec<long> HistoryOfQ(nnodes,0);
   Status[startNode] = EPreActive;
   Q.push_back( startNode );
   HistoryOfQ[ startNode ] = 1;
   while(Q.size()){
-    const int currnode = this->FindHighestPriority(Q,priority);
+    const long currnode = this->FindHighestPriority(Q,priority);
     Q.remove(currnode);
     if(Status[currnode] == EPreActive){
       graph.AdjacentNodes(currnode, adjNodes);
-      for(int jadj = 0; jadj < adjNodes.NElements(); jadj++){
-        const int adjNode = adjNodes[jadj];
+      for(long jadj = 0; jadj < adjNodes.NElements(); jadj++){
+        const long adjNode = adjNodes[jadj];
         priority[ adjNode ] += this->W2();//no artigo de 86 o sloan soma W1, no de de 89 soma W2. To seguindo a notacao de 89
         if(HistoryOfQ[adjNode] == 0 && Status[ adjNode] == EInactive){
           Status[ adjNode] = EPreActive;
@@ -75,14 +75,14 @@ void TPZSloanRenumbering::Resequence(TPZVec<int> &permGather, TPZVec<int> &permS
 
     //step 9: updating priorities and queue
     graph.AdjacentNodes(currnode, adjNodes);
-    for(int jadj = 0; jadj < adjNodes.NElements(); jadj++){
-      const int adjNode = adjNodes[jadj];
+    for(long jadj = 0; jadj < adjNodes.NElements(); jadj++){
+      const long adjNode = adjNodes[jadj];
       if( Status[ adjNode ] == EPreActive ){
         Status[ adjNode ] = EActive;
         priority[ adjNode ] += this->W2();//no artigo de 86 o sloan soma W1, no de de 89 soma W2. To seguindo a notacao de 89
         graph.AdjacentNodes(adjNode, adjNodes2J);
-        for(int k = 0; k < adjNodes2J.NElements(); k++){
-          const int knode = adjNodes2J[k];
+        for(long k = 0; k < adjNodes2J.NElements(); k++){
+          const long knode = adjNodes2J[k];
           if(Status[knode] != EPostActive){
             priority[knode] += this->W2();
           }//if ! post active
@@ -107,25 +107,25 @@ void TPZSloanRenumbering::Resequence(TPZVec<int> &permGather, TPZVec<int> &permS
 
 #ifdef DEBUG
 {//verificando se ha duplicados
-  std::set<int> check;
-  for(int i = 0; i < nnodes; i++) check.insert(R[i]);
-  if( ((int)(check.size())) != nnodes) DebugStop();
+  std::set<long> check;
+  for(long i = 0; i < nnodes; i++) check.insert(R[i]);
+  if( ((long)(check.size())) != nnodes) DebugStop();
 }
 #endif
 
   permScatter = R;
   permGather.Resize(nnodes);
-  for(int i = 0; i < nnodes; i++) permGather[ permScatter[i] ] = i;
+  for(long i = 0; i < nnodes; i++) permGather[ permScatter[i] ] = i;
 
 }//void
 
-int TPZSloanRenumbering::FindHighestPriority(const std::list<int> &Q, const TPZVec<int> &priority) const{
+long TPZSloanRenumbering::FindHighestPriority(const std::list<long> &Q, const TPZVec<long> &priority) const{
   if(Q.size() == 0) DebugStop();
-  std::list<int>::const_iterator w = Q.begin(), e = Q.end();
-  int result = *w;
-  int nodepriority = priority[result];
+  std::list<long>::const_iterator w = Q.begin(), e = Q.end();
+  long result = *w;
+  long nodepriority = priority[result];
   for( ; w != e; w++){
-    int lcnode = *w;
+    long lcnode = *w;
     if(priority[lcnode] > nodepriority){
       result = lcnode;
       nodepriority = priority[lcnode];
@@ -133,7 +133,7 @@ int TPZSloanRenumbering::FindHighestPriority(const std::list<int> &Q, const TPZV
   }
   return result;
 
-}//int
+}//long
 
 
 

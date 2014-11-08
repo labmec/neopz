@@ -13,8 +13,8 @@ class TPZSloanRenumbering : public TPZRenumbering {
 
   private:
 
-    int W1() const{ return 1; }
-    int W2() const{ return 2; }
+    long W1() const{ return 1; }
+    long W2() const{ return 2; }
 
     enum ENodeStatus
     {
@@ -24,16 +24,16 @@ class TPZSloanRenumbering : public TPZRenumbering {
       EPostActive = 3
     };
 
-    int FindHighestPriority(const std::list<int> &Q,const TPZVec<int> &priority) const;
+    long FindHighestPriority(const std::list<long> &Q,const TPZVec<long> &priority) const;
 
 
 
   public:
 
 
-    virtual void Resequence(TPZVec<int> &permGather, TPZVec<int> &permScatter);
+    virtual void Resequence(TPZVec<long> &permGather, TPZVec<long> &permScatter);
 
-    TPZSloanRenumbering(int NElements, int NNodes);
+    TPZSloanRenumbering(long NElements, long NNodes);
 
     virtual ~TPZSloanRenumbering();
 

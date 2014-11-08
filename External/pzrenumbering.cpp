@@ -13,6 +13,8 @@
 #include "pzlog.h"
 #include <algorithm>
 
+#include "TPZTimer.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.renumbering"));
 #endif
@@ -50,13 +52,25 @@ void TPZRenumbering::NodeToElGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphi
                 PZError << __PRETTY_FUNCTION__ << " wrong data structure\n";
             }
 #endif
-		    
-	}
-
-}
+            /*
+			int firstel= nodtoelgraphindex[gnod];
+			int lastel = nodtoelgraphindex[gnod+1];
+			while(firstel<lastel && nodtoelgraph[firstel] != -1) firstel++;
+			if(firstel == lastel) {
+				PZError << "TPZCompMesh::ComputeConnecttoElGraph wrong data structure\n";
+				continue;
+			} else {
+				nodtoelgraph[firstel] = el;
+			}
+            */
+		}
+  	}
 }
 
 void TPZRenumbering::ConvertGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphindex, TPZVec<long> &nodegraph, TPZVec<long> &nodegraphindex) {
+    
+    TPZTimer convert("Converting graph");
+    convert.start();
 	long nod,el;
 	TPZVec<long> nodtoelgraphindex;
 	TPZVec<long> nodtoelgraph;
@@ -85,6 +99,8 @@ void TPZRenumbering::ConvertGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphin
         for(it = nodecon.begin(); it!= nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
 		nodegraphindex[nod+1] = nextfreeindex;
   	}
+    convert.stop();
+    std::cout << convert.processName().c_str() << ' ' << convert << std::endl;
 }
 
 TPZRenumbering::TPZRenumbering(long NElements, long NNodes){
