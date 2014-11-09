@@ -9,6 +9,7 @@
 #include <list>
 #include "pzstack.h"
 
+//#define _OPTSET4History_
 class TPZSloanRenumbering : public TPZRenumbering {
 
   private:
@@ -22,12 +23,18 @@ class TPZSloanRenumbering : public TPZRenumbering {
       long fSize;
 
       //history: stores every element that has been in the list ever
+#ifdef _OPTSET4History_
       std::set<long> fHistory;
+#else
+     TPZVec<long> fHistory;
+#endif
 
       SList(long nnodes){
         fList.Resize(nnodes);
-        //fHistory.Resize(nnodes);
-        //fHistory.Fill(0);
+#ifndef _OPTSET4History_
+        fHistory.Resize(nnodes);
+        fHistory.Fill(0);
+#endif
         fSize = 0;
       }
       ~SList(){
@@ -36,13 +43,22 @@ class TPZSloanRenumbering : public TPZRenumbering {
 
 
       void Reset(){
+#ifdef _OPTSET4History_
         fHistory.clear();
+#else
+        fHistory.Fill(0);
+#endif
         fSize = 0;
       }
 
       //returns true if object is inserted or false otherwise (i.e. already existed)
       bool push_back(long val){
+#ifdef _OPTSET4History_
         if( (fHistory.insert(val)).second == true){
+#else
+        if( fHistory[val] == 0 ){
+          fHistory[val] = 1;
+#endif
           fList[fSize] = val;
           fSize++;
           return true;
