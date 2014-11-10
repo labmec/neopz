@@ -63,11 +63,7 @@ static LoggerPtr loggerEllipse(Logger::getLogger("LogEllipse"));
 #endif
 
 
-RunStatsTable plast_tot("-tpz_plast_tot", "Raw data table statistics for Plasticity::FindBug");
-
-#ifdef USING_TBB
-#include "tbb/task_scheduler_init.h"
-#endif
+RunStatsTable plast_tot("-tpz_plast_tot", "Raw data table statistics for the main execution.");
 
 void Config1()
 {
@@ -170,16 +166,7 @@ void Config1()
         int nsteps = 5;
         int numnewton = 90;
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
-#ifdef SCA_PERF
-        printf("perf, initial simulation, 0\n");
-        ClockTimer t1;
-        t1.start();
-#endif
         well.ExecuteInitialSimulation(nsteps, numnewton);
-#ifdef SCA_PERF
-        t1.stop();
-        printf("perf, initial simulation, %.2f\n", t1.getUnits());
-#endif
         well.PostProcess(0);
         TPZBFileStream save;
         save.OpenWrite("Config1-0.bin");
@@ -201,16 +188,7 @@ void Config1()
         
         well.PRefineElementAbove(sqj2_refine, 3);
         well.DivideElementsAbove(sqj2_refine);
-#ifdef SCA_PERF
-        printf("perf, simulation 1, 0\n");
-        ClockTimer t1;
-        t1.start();
-#endif
         well.ExecuteSimulation();
-#ifdef SCA_PERF
-        t1.stop();
-        printf("perf, simulation 1, %.2f\n", t1.getUnits());
-#endif
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
@@ -329,9 +307,6 @@ void Config1()
 
 void Config2()
 {
-#ifdef USING_TBB
-    tbb::task_scheduler_init init(12);
-#endif
     //EHorizontalWellalongH
     //ENonPenetrating
     InitializePZLOG();
@@ -598,12 +573,6 @@ void Config2()
 
 void Config3()
 {
-#ifdef USING_TBB
-    tbb::task_scheduler_init init(12);
-#endif
-#ifdef USING_TBB
-    tbb::task_scheduler_init init(12);
-#endif
     //EHorizontalWellalongh
     //ENonPenetrating
     InitializePZLOG();
@@ -870,10 +839,6 @@ void Config3()
 
 void Config4()
 {
-#ifdef USING_TBB
-    tbb::task_scheduler_init init(12);
-#endif
-    
     InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -1012,6 +977,12 @@ void Config4()
 int main(int argc, char **argv)
 {
     clarg::parse_arguments(argc, argv);
+    
+#ifdef USING_TBB
+    int number_tbb=nt_a.get_value();
+    if(number_tbb<=0)number_tbb=1;
+    tbb::task_scheduler_init init(number_tbb);
+#endif
     
     plast_tot.start();
     Config1();

@@ -45,7 +45,7 @@ TPZPlasticFrac2D<T,TMEM>::TPZPlasticFrac2D() : TPZMatElastoPlastic2D<T,TMEM>()
 }
 
 template<class T,class TMEM>
-TPZPlasticFrac2D<T,TMEM>::TPZPlasticFrac2D(int matid, int dim, REAL young, REAL poiss, REAL visc) : TPZMatElastoPlastic2D<T,TMEM>(matid,1,0.)
+TPZPlasticFrac2D<T,TMEM>::TPZPlasticFrac2D(int matid, int dim, REAL young, REAL poiss, REAL visc) : TPZMatElastoPlastic2D<T,TMEM>(matid,1)
 {
 	fmatId = matid;
 	fE = young;
