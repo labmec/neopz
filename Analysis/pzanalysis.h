@@ -30,7 +30,8 @@ class TPZMaterial;
 #include "pzfmatrix.h"
 #include "TPZGuiInterface.h"
 
-class TPZStructMatrix;
+#include "pzstrmatrix.h"
+
 template<class T, int N> class TPZStack;
 
 /**

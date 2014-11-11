@@ -15,7 +15,7 @@
 #include "TPZSemaphore.h"
 #include "pzstrmatrix.h"
 
-class TPZStructMatrix;
+//class TPZStructMatrix;
 
 /**
  * @ingroup substructure

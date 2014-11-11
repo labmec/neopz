@@ -978,12 +978,6 @@ int main(int argc, char **argv)
 {
     clarg::parse_arguments(argc, argv);
     
-#ifdef USING_TBB
-    int number_tbb=nt_a.get_value();
-    if(number_tbb<=0)number_tbb=1;
-    tbb::task_scheduler_init init(number_tbb);
-#endif
-    
     plast_tot.start();
     Config1();
     Config2();

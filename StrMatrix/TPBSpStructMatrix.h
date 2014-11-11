@@ -14,7 +14,7 @@ template<class TVar>
 class TPZFMatrix;
 template<class TVar>
 class TPZMatrix;
-class TPZStructMatrix;
+//class TPZStructMatrix;
 
 /** 
  * @ingroup structural
