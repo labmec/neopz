@@ -27,7 +27,7 @@ class TPZCutHillMcKee : public TPZRenumbering {
       return fnodegraphindex[node+1]-fnodegraphindex[node];
     }
 
-  //accorging to suggestion of longERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING, VOL. 28,2651-2679 (1989)
+  //accorging to suggestion of INTERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING, VOL. 28,2651-2679 (1989)
   //A FORTRAN PROGRAM FOR PROFILE AND WAVEFRONT REDUCTION by S. W. SLOAN
   //removing nodes with same degree
   //Previously, Sloan had suggested LastLevel.Resize( (LastLevel.NElements()+2)/2 );

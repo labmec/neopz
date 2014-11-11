@@ -14,7 +14,8 @@ void TPZCutHillMcKee::SGraph::Set2Vec(const std::set<long> &myset,
 }//void
 
 long TPZCutHillMcKee::SGraph::SmallestDegree(TPZVec<long> &ExploredNodes){
-  std::cout << "TPZCutHillMcKee::SGraph::SmallestDegree\n";std::cout.flush();
+    std::cout << "TPZCutHillMcKee::SGraph::SmallestDegree size = " << this->NNodes() << std::endl;
+    std::cout.flush();
   long mindegree = 1000000;
   long found = -1;
   const long n = this->NNodes();
@@ -137,7 +138,7 @@ void TPZCutHillMcKee::SGraph::ShrinkLastLevel(TPZVec<long> &LastLevel){
 
   const long nelsOrig = LastLevel.NElements();
 
-  //accorging to suggestion of longERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING, VOL. 28,2651-2679 (1989)
+  //accorging to suggestion of INTERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING, VOL. 28,2651-2679 (1989)
   //A FORTRAN PROGRAM FOR PROFILE AND WAVEFRONT REDUCTION by S. W. SLOAN
   //removing nodes with same degree
   std::map< long, long > mymap;
