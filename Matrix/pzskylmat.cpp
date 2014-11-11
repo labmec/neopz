@@ -2913,6 +2913,9 @@ int
 TPZSkylMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const {
     if ( (B->Rows() != this->Dim()) || this->fDecomposed != ELDLt) return( 0 );
     long dimension = this->Dim();
+    if (!dimension) {
+        return 1;
+    }
     for ( long j = 0; j < B->Cols(); j++ ) {
         TVar *BPtr = &(*B)(0,j);
         long k=0;
