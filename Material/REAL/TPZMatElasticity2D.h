@@ -222,6 +222,7 @@ public:
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
     
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     virtual int VariableIndex(const std::string &name);
     

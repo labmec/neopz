@@ -297,15 +297,15 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
     
     int phru = phiu.Rows();
     short in,jn;
-    STATE v2[3];
+    STATE v2[3]; TPZFMatrix<STATE> &v1 = bc.Val1();
     v2[0] = bc.Val2()(0,0);	//	Ux displacement or Tnx
     v2[1] = bc.Val2()(1,0);	//	Uy displacement or Tny
     
     //	Here each digit represent an individual boundary condition corresponding to each state variable.
     //	0 means Dirichlet condition on x-y
     //	1 means Neumann condition
-    //	2 means Dirichlet condition on x
-    //	3 means Dirichlet condition on y
+    //	7 means Dirichlet condition on x
+    //	8 means Dirichlet condition on y
     
     const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
     switch (bc.Type())
@@ -317,13 +317,13 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)	+= BIGNUMBER*(ux - v2[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(2*in,0)      += BIGNUMBER*(ux - v2[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(2*in+1,0)	+= BIGNUMBER*(uy - v2[1])*phiu(in,0)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(2*in,2*jn)       += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(2*in+1,2*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
@@ -337,12 +337,126 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumann boundary
-                ef(2*in,0)	+= -1.0*v2[0]*phiu(in,0)*weight;		//	Tnx
+                ef(2*in,0)      += -1.0*v2[0]*phiu(in,0)*weight;		//	Tnx
                 ef(2*in+1,0)	+= -1.0*v2[1]*phiu(in,0)*weight;		//	Tny
             }
             break;
         }
         case 2 :
+        {
+            //	Mixed condition for each state variable no used here
+            //	Elasticity Equation
+            TPZFNMatrix<2,STATE> res(2,1,0.);
+            for(int i=0; i<2; i++) for(int j=0; j<2; j++)
+            {
+                res(i,0) += bc.Val1()(i,j)*data.sol[0][j];
+            }
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ef(2*in+0,0) += weight * (v2[0]-res(0,0)) * phiu(in,0);
+                ef(2*in+1,0) += weight * (v2[1]-res(1,0)) * phiu(in,0);
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    for(int idf=0; idf < this->Dimension(); idf++) for(int jdf=0; jdf< this->Dimension(); jdf++)
+                    {
+                        ek(2*in+idf,2*jn+jdf) += v1(idf,jdf)*phiu(in,0)*phiu(jn,0)*weight;
+                        //      Not Complete with val2? HERE! PHIL!!!!
+                        //      DebugStop();
+                    }
+                }
+            }
+            
+            break;
+        }
+        case 3 :
+        {
+            //	Null Dirichlet condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(2*in,0)      += BIGNUMBER*(0.0 - v2[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(2*in+1,0)	+= BIGNUMBER*(0.0 - v2[1])*phiu(in,0)*weight;	// y displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(2*in,2*jn)       += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(2*in+1,2*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                }
+            }
+            
+            break;
+        }
+        case 4 :
+        {
+            //	Stress Field as Neumann condition for each state variable
+            //	Elasticity Equation
+            
+            for(in = 0; in < this->Dimension(); in ++){ v2[in] = ( v1(in,0) * data.normal[0] + v1(in,1) * data.normal[1]);}
+            
+            for(in = 0 ; in <phru; in++)
+            {
+                //	Normal Tension Components on neumann boundary
+                ef(2*in,0)      += -1.0*v2[0]*phiu(in,0)*weight;        //	Tnx
+                ef(2*in+1,0)	+= -1.0*v2[1]*phiu(in,0)*weight;		//	Tny
+            }
+            
+            break;
+        }
+        case 5 :
+            //	Normal Pressure condition Pressure value Should be inserted in v2[0]
+            //	Elasticity Equation
+            {
+                TPZFNMatrix<2,STATE> res(2,1,0.);
+                for(int i=0; i<2; i++) for(int j=0; j<2; j++)
+                {
+                    res(i,0) += data.normal[i]*bc.Val1()(i,j)*data.sol[0][j]*data.normal[j];
+                }
+                for(int in = 0 ; in < phru; in++)
+                {
+                    ef(2*in+0,0) += (v2[0]*data.normal[0]-res(0,0)) * phiu(in,0) * weight ;
+                    ef(2*in+1,0) += (v2[0]*data.normal[1]-res(1,0)) * phiu(in,0) * weight ;
+                    for(int jn=0; jn< phru; jn++)
+                    {
+                        for(int idf=0; idf < this->Dimension(); idf++) for(int jdf=0; jdf < this->Dimension(); jdf++)
+                        {
+                            ek(2*in+idf,2*jn+jdf) += bc.Val1()(idf,jdf)*data.normal[idf]*data.normal[jdf]*phiu(in,0)*phiu(jn,0)*weight;
+                            //      Not Complete with val2? HERE! PHIL!!!!
+                            //      DebugStop();
+                        }
+                    }
+                }
+            }
+            break;
+        case 6 :
+            //	Normal Pressure condition Pressure value Should be inserted in v2[0]
+            //	Elasticity Equation
+            {
+                TPZFNMatrix<2,STATE> res(2,1,0.);
+                for(int i=0; i<2; i++) for(int j=0; j<2; j++)
+                {
+                    res(i,0) += data.normal[i]*bc.Val1()(i,j)*data.sol[0][j]*data.normal[j];
+                }
+                for(int in = 0 ; in < phru; in++)
+                {
+                    ef(2*in+0,0) += (v2[0]*data.normal[0]-res(0,0)) * phiu(in,0) * weight ;
+                    ef(2*in+1,0) += (v2[0]*data.normal[1]-res(1,0)) * phiu(in,0) * weight ;
+                    for(int jn=0; jn< phru; jn++)
+                    {
+                        for(int idf=0; idf < this->Dimension(); idf++) for(int jdf=0; jdf < this->Dimension(); jdf++)
+                        {
+                            ek(2*in+idf,2*jn+jdf) += bc.Val1()(idf,jdf)*data.normal[idf]*data.normal[jdf]*phiu(in,0)*phiu(jn,0)*weight;
+                            //      Not Complete
+                            //      DebugStop();
+                        }
+                    }
+                }
+            }
+            break;
+        case 7 :
         {
             //	Dirichlet condition for each state variable
             //	Elasticity Equation
@@ -360,7 +474,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             
             break;
         }
-        case 3 :
+        case 8 :
         {
             //	Dirichlet condition for each state variable
             //	Elasticity Equation
@@ -380,9 +494,189 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
         }
         default:
         {
-            std::cout << "Bc not impemented!" << std::endl;
+            PZError << "TPZMatElasticity2D::ContributeBC error - Wrong boundary condition type" << std::endl;
             DebugStop();
+        }
+            break;
+    }
+
+}
+
+void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+{
+    /*
+     if (bc.Val2().Rows() != 2)
+     {
+     std::cout << " Error:: This material need boundary conditions for ux, uy and p (pore pressure).\n";
+     std::cout << " give me one matrix with this form Val2(3,1).\n";
+     DebugStop();
+     }
+     
+     if (bc.Val1().Rows() != 2)
+     {
+     std::cout << " Error:: This material need boundary conditions for ux, uy and p (pore pressure).\n";
+     DebugStop();
+     }
+     */
+    
+    
+    TPZFMatrix<REAL>  &phiu = data.phi;
+    TPZManVector<REAL,3> sol_u = data.sol[0];
+    TPZFMatrix<REAL> dsol_u = data.dsol[0];
+    
+    REAL ux = sol_u[0];
+    REAL uy = sol_u[1];
+    
+    int phru = phiu.Rows();
+    short in,jn;
+    STATE v2[3]; TPZFMatrix<STATE> &v1 = bc.Val1();
+    v2[0] = bc.Val2()(0,0);	//	Ux displacement or Tnx
+    v2[1] = bc.Val2()(1,0);	//	Uy displacement or Tny
+    
+    //	Here each digit represent an individual boundary condition corresponding to each state variable.
+    //	0 means Dirichlet condition on x-y
+    //	1 means Neumann condition
+    //	7 means Dirichlet condition on x
+    //	8 means Dirichlet condition on y
+    
+    const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
+    switch (bc.Type())
+    {
+        case 0 :
+        {
+            //	Dirichlet condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(2*in,0)      += BIGNUMBER*(ux - v2[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(2*in+1,0)	+= BIGNUMBER*(uy - v2[1])*phiu(in,0)*weight;	// y displacement Value
+
+            }
             
+            break;
+        }
+        case 1 :
+        {
+            //	Neumann condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //	Normal Tension Components on neumann boundary
+                ef(2*in,0)      += -1.0*v2[0]*phiu(in,0)*weight;		//	Tnx
+                ef(2*in+1,0)	+= -1.0*v2[1]*phiu(in,0)*weight;		//	Tny
+            }
+            break;
+        }
+        case 2 :
+        {
+            //	Mixed condition for each state variable no used here
+            //	Elasticity Equation
+            TPZFNMatrix<2,STATE> res(2,1,0.);
+            for(int i=0; i<2; i++) for(int j=0; j<2; j++)
+            {
+                res(i,0) += bc.Val1()(i,j)*data.sol[0][j];
+            }
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ef(2*in+0,0) += weight * (v2[0]-res(0,0)) * phiu(in,0);
+                ef(2*in+1,0) += weight * (v2[1]-res(1,0)) * phiu(in,0);
+                
+            }
+            
+            break;
+        }
+        case 3 :
+        {
+            //	Null Dirichlet condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(2*in,0)      += BIGNUMBER*(0.0 - v2[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(2*in+1,0)	+= BIGNUMBER*(0.0 - v2[1])*phiu(in,0)*weight;	// y displacement Value
+
+            }
+            
+            break;
+        }
+        case 4 :
+        {
+            //	Stress Field as Neumann condition for each state variable
+            //	Elasticity Equation
+            
+            for(in = 0; in < this->Dimension(); in ++){ v2[in] = ( v1(in,0) * data.normal[0] + v1(in,1) * data.normal[1]);}
+            
+            for(in = 0 ; in <phru; in++)
+            {
+                //	Normal Tension Components on neumann boundary
+                ef(2*in,0)      += -1.0*v2[0]*phiu(in,0)*weight;        //	Tnx
+                ef(2*in+1,0)	+= -1.0*v2[1]*phiu(in,0)*weight;		//	Tny
+            }
+            
+            break;
+        }
+        case 5 :
+            //	Normal Pressure condition Pressure value Should be inserted in v2[0]
+            //	Elasticity Equation
+        {
+            TPZFNMatrix<2,STATE> res(2,1,0.);
+            for(int i=0; i<2; i++) for(int j=0; j<2; j++)
+            {
+                res(i,0) += data.normal[i]*bc.Val1()(i,j)*data.sol[0][j]*data.normal[j];
+            }
+            for(int in = 0 ; in < phru; in++)
+            {
+                ef(2*in+0,0) += (v2[0]*data.normal[0]-res(0,0)) * phiu(in,0) * weight ;
+                ef(2*in+1,0) += (v2[0]*data.normal[1]-res(1,0)) * phiu(in,0) * weight ;
+            }
+        }
+            break;
+        case 6 :
+            //	Normal Pressure condition Pressure value Should be inserted in v2[0]
+            //	Elasticity Equation
+        {
+            TPZFNMatrix<2,STATE> res(2,1,0.);
+            for(int i=0; i<2; i++) for(int j=0; j<2; j++)
+            {
+                res(i,0) += data.normal[i]*bc.Val1()(i,j)*data.sol[0][j]*data.normal[j];
+            }
+            for(int in = 0 ; in < phru; in++)
+            {
+                ef(2*in+0,0) += (v2[0]*data.normal[0]-res(0,0)) * phiu(in,0) * weight ;
+                ef(2*in+1,0) += (v2[0]*data.normal[1]-res(1,0)) * phiu(in,0) * weight ;
+            }
+        }
+            break;
+        case 7 :
+        {
+            //	Dirichlet condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(2*in,0)		+= BIGNUMBER*(ux - v2[0])*phiu(in,0)*weight;	// X displacement Value
+            }
+            
+            break;
+        }
+        case 8 :
+        {
+            //	Dirichlet condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(2*in+1,0)	+= BIGNUMBER*(uy - v2[1])*phiu(in,0)*weight;	// y displacement Value
+            }
+            
+            break;
+        }
+        default:
+        {
+            PZError << "TPZMatElasticity2D::ContributeBC error - Wrong boundary condition type" << std::endl;
+            DebugStop();
         }
             break;
     }
