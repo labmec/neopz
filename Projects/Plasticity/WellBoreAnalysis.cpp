@@ -44,6 +44,8 @@ static LoggerPtr loggerEllipse(Logger::getLogger("LogEllipse"));
 int TPZWellBoreAnalysis::TConfig::gNumThreads = 8;
 clarg::argInt NumberOfThreads("-nt", "Number of threads for WellBoreAnalysis", 8);
 
+
+
 /// this method will configure the forcing function and boundary condition of the computational mesh
 void TPZWellBoreAnalysis::TConfig::ConfigureBoundaryConditions()
 {

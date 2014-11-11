@@ -873,7 +873,7 @@ void Config4()
     
     std::string output = "Config3.vtk";
     well.SetVtkOutPutName(output);
-    EPlasticModel Emodel = ESandler;
+    EPlasticModel Emodel = EElastic;
     if (Emodel == EMohrCoulomb)
     {
         REAL poisson = 0.203;
@@ -895,12 +895,18 @@ void Config4()
         well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
     }
     else if (Emodel == EElastic){ // Mohr-Coulomb with a VERY far way surface
-      REAL poisson = 0.203;
-      REAL elast = 29269.;
-      REAL cohesion = 1.e8; // Very very big
-      REAL Phi = 1.5533430342749532; // 89 degrees
+        REAL poisson = 0.203;
+        REAL elast = 29269.;
+        REAL cohesion = 1.e8; // Very very big
+        REAL Phi = 1.5533430342749532; // 89 degrees
+        
+#ifdef PlasticPQP
       well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
       well.GetCurrentConfig()->fModel = EElastic;
+#else
+      well.SetElasticParameters(poisson, elast);
+      well.GetCurrentConfig()->fModel = EElastic;
+#endif
     }
     
     
@@ -979,9 +985,9 @@ int main(int argc, char **argv)
     clarg::parse_arguments(argc, argv);
     
     plast_tot.start();
-    Config1();
-    Config2();
-    Config3();
+//    Config1();
+//    Config2();
+//    Config3();
     Config4();
     plast_tot.stop();
     

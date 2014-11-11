@@ -9,8 +9,7 @@
 #ifndef PZ_WellBoreAnalysis_h
 #define PZ_WellBoreAnalysis_h
 
-#define PlasticPQP //AQUIPHIL
-#define Elastic
+#define PlasticPQP
 
 #include "pzcmesh.h"
 #include "TPZSandlerDimaggio.h"
@@ -510,8 +509,7 @@ public:
     
     void SetElasticParameters(REAL poisson, REAL Elast)
     {
-        //fCurrentConfig.fMatEla.SetElasticParameters(Elast, poisson); 
-        
+        fCurrentConfig.fMatEla.SetElasticParameters(Elast, poisson);
         fCurrentConfig.fModel = EElastic;
     }
 	

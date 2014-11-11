@@ -695,6 +695,7 @@ void TPZMatElasticity2D::FillDataRequirements(TPZMaterialData &data)
 void TPZMatElasticity2D::FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data){
     data.SetAllRequirements(false);
     data.fNeedsSol = true;
+    data.fNeedsNormal = true;
 }
 
 
