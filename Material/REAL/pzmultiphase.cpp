@@ -11,6 +11,7 @@
 #include "pzbndcond.h"
 #include "pzfmatrix.h"
 #include "pzaxestools.h"
+#include <math.h> 
 
 #include <iostream>
 
@@ -117,7 +118,7 @@ STATE TPZMultiphase::LameMu()
  */
 STATE TPZMultiphase::BiotAlpha()
 {
-    REAL alpha = 1.0;
+    REAL alpha = 0.0;
     return alpha;
 }
 
@@ -127,15 +128,22 @@ STATE TPZMultiphase::BiotAlpha()
  */
 STATE TPZMultiphase::Se()
 {
-    REAL Se = 1.0;
+    REAL Se = 0.0;
     return Se;
 }
 
 
 /** Capilar pressure \f$ pc = pc( Sw ) \f$ */
-void TPZMultiphase::CapillaryPressure(REAL So, REAL &pc, REAL &DpcDSo){
-    pc = 0.0;
-    DpcDSo = 0.0;
+void TPZMultiphase::CapillaryPressure(REAL Sw, REAL &pc, REAL &DpcDSo){
+//   Bentsen and Anli Capillary Pressure model
+    REAL PsiToPa = 6894.76;
+    REAL Pct = 1.0, Pcs = 0.5, Swi = 0.0;
+    
+//     pc = 0.0;
+//     DpcDSo = 0.0;    
+    
+     pc = (Pct - Pcs * log ((0.000000001 + Sw - Swi)/(1.0 - Swi)))*PsiToPa/this->fPref;
+     DpcDSo = -(Pcs/(0.000000001 + Sw - Swi))*PsiToPa/this->fPref;
 }
 
 /** Oil relative permeability \f$ Kro = 1 - Sw \f$ */
@@ -1986,7 +1994,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         for(int isat=0; isat<phrS; isat++)
         {
             // Here rockporosity is the poroelastic contribution            
-            ef(isat + FirstS) = (-1.0) * weight * (rockporosity * waterdensity) * phiS(isat,0) * SaturationAtnTimeStep;
+            ef(isat + FirstS) += (-1.0) * weight * (rockporosity * waterdensity) * phiS(isat,0) * SaturationAtnTimeStep;
         }
         
         //  Third Vector Block (Equation three)
@@ -2077,8 +2085,8 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     REAL dotqgnR = (qgxR*n1) + (qgyR*n2);    
     
     //  Getting S solution for left and right side
-    //      REAL SaturationL    =   sol_sL[0];
-    //      REAL SaturationR    =   sol_sR[0];
+    REAL SaturationL    =   sol_sL[0];
+    REAL SaturationR    =   sol_sR[0];
     
     //  Getting another required data
     REAL TimeStep = this->fDeltaT;
@@ -2128,6 +2136,12 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     REAL dbulkfStardpr;
     REAL dbulkfStardsr;     
     
+    REAL Pcl;
+    REAL dPcdSl;
+    
+    REAL Pcr;
+    REAL dPcdSr;    
+    
     // Functions computed at point x_{k} for each integration point
     int VecPos= 0;
     //  REAL PressureRef = 1.0e6;
@@ -2141,7 +2155,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     this->Labmda(bulklambdal, sol_pL[VecPos], sol_sL[VecPos], dbulklambdadpl, dbulklambdadsl);
     this->fOil(bulkfoill, sol_pL[VecPos], sol_sL[VecPos], dbulkfoildpl, dbulkfoildsl);
     this->fWater(bulkfwaterl, sol_pL[VecPos], sol_sL[VecPos], dbulkfwaterdpl, dbulkfwaterdsl);
-    
+    this->CapillaryPressure(sol_sL[VecPos],Pcl,dPcdSl);
     
     this->Porosity(sol_pR[VecPos], rockporosityr, drockporositydpr);
     this->RhoOil(sol_pR[VecPos], oildensityr, doildensitydpr);
@@ -2153,6 +2167,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     this->Labmda(bulklambdar, sol_pR[VecPos], sol_sR[VecPos], dbulklambdadpr, dbulklambdadsr);
     this->fOil(bulkfoilr, sol_pR[VecPos], sol_sR[VecPos], dbulkfoildpr, dbulkfoildsr);
     this->fWater(bulkfwaterr, sol_pR[VecPos], sol_sR[VecPos], dbulkfwaterdpr, dbulkfwaterdsr);
+    this->CapillaryPressure(sol_sR[VecPos],Pcr,dPcdSr);    
     
     if (fYorN)
     {
@@ -2326,8 +2341,40 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
             
         }
         
+        REAL dSwPcdSL = SaturationL * dPcdSl + Pcl;
+        REAL dSwPcdSR = SaturationR * dPcdSr + Pcr;
         
+        //This block was verified
+        //  First Block (Equation One) constitutive law Capillary Pressure
+        // Integrate[Sw Pc dot( v, n), Gamme_{e}]  (Equation One) Left-Left part
+        for (int iq=0; iq < QRowsleft; iq++)
+        {
+            int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+            int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
+            for (int jsat=0; jsat < SRowsleft; jsat++)
+            {
+		REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+		REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
+		ek(iq + FirstQL, jsat + FirstSL) += (-1.0) * (-1.0) * weight * dSwPcdSL * (e1e1 + e2e2 ) * phiSL(jsat,0);
+            }            
+        }
         
+        //This block was verified
+        //  First Block (Equation One) constitutive law Capillary Pressure
+        // Integrate[Sw Pc dot(v, n), Gamme_{e}]  (Equation One) Right-Right Part
+        for (int iq=0; iq < QRowsRight; iq++)
+        {
+            int iRvectorindex       = dataright[1].fVecShapeIndex[iq].first;
+            int iRshapeindex        = dataright[1].fVecShapeIndex[iq].second;
+	    
+            for (int jsat=0; jsat < SRowsleft; jsat++)
+            {
+		REAL e1e1   =   (phiQR(iRshapeindex,0)*dataright[1].fNormalVec(0,iRvectorindex))*(n1);
+		REAL e2e2   =   (phiQR(iRshapeindex,0)*dataright[1].fNormalVec(1,iRvectorindex))*(n2);                    
+		ek(iq + FirstQR + iRightInterfaceBlock,jsat + FirstSR + jRightInterfaceBlock) += (-1.0) * (1.0) * weight * dSwPcdSR * (e1e1 + e2e2 ) * phiSR(jsat,0) ;
+            }
+            
+        }        
         
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[L dot(v, n), Gamma_{e}]    (Equation Two) Left-Left Part
@@ -2753,7 +2800,13 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     
     REAL bulkfStarr;
     REAL dbulkfStardpr;
-    REAL dbulkfStardsr;    
+    REAL dbulkfStardsr;
+    
+    REAL Pcl;
+    REAL dPcdSl;
+    
+    REAL Pcr;
+    REAL dPcdSr;     
     
     // Functions computed at point x_{k} for each integration point
     int VecPos= 0;
@@ -2768,7 +2821,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     this->Labmda(bulklambdal, sol_pL[VecPos], sol_sL[VecPos], dbulklambdadpl, dbulklambdadsl);
     this->fOil(bulkfoill, sol_pL[VecPos], sol_sL[VecPos], dbulkfoildpl, dbulkfoildsl);
     this->fWater(bulkfwaterl, sol_pL[VecPos], sol_sL[VecPos], dbulkfwaterdpl, dbulkfwaterdsl);
-    
+    this->CapillaryPressure(sol_sL[VecPos],Pcl,dPcdSl);
     
     this->Porosity(sol_pR[VecPos], rockporosityr, drockporositydpr);
     this->RhoOil(sol_pR[VecPos], oildensityr, doildensitydpr);
@@ -2780,6 +2833,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     this->Labmda(bulklambdar, sol_pR[VecPos], sol_sR[VecPos], dbulklambdadpr, dbulklambdadsr);
     this->fOil(bulkfoilr, sol_pR[VecPos], sol_sR[VecPos], dbulkfoildpr, dbulkfoildsr);
     this->fWater(bulkfwaterr, sol_pR[VecPos], sol_sR[VecPos], dbulkfwaterdpr, dbulkfwaterdsr);
+    this->CapillaryPressure(sol_sR[VecPos],Pcr,dPcdSr);    
     
     if (fYorN)
     {
@@ -2948,6 +3002,35 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
             
         }
         
+        
+        REAL SwPcL = SaturationL * Pcl;
+        REAL SwPcR = SaturationR * Pcr;
+	
+        //This block was verified
+        //  First Block (Equation One) constitutive law Capillary Pressure
+        // Integrate[Sw Pc dot( v, n), Gamme_{e}]  (Equation One) Left-Left part
+        for (int iq=0; iq < QRowsleft; iq++)
+        {
+            int iLvectorindex       = dataleft[1].fVecShapeIndex[iq].first;
+            int iLshapeindex        = dataleft[1].fVecShapeIndex[iq].second;
+	    REAL e1e1   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(0,iLvectorindex))*(n1);
+	    REAL e2e2   =   (phiQL(iLshapeindex,0)*dataleft[1].fNormalVec(1,iLvectorindex))*(n2);
+	    ef(iq + FirstQL) += (-1.0) * (-1.0) * weight * (e1e1 + e2e2 ) * SwPcL;
+
+        }
+        
+        //This block was verified
+        //  First Block (Equation One) constitutive law Capillary Pressure
+        // Integrate[Sw Pc dot(v, n), Gamme_{e}]  (Equation One) Right-Right Part
+        for (int iq=0; iq < QRowsRight; iq++)
+        {
+            int iRvectorindex       = dataright[1].fVecShapeIndex[iq].first;
+            int iRshapeindex        = dataright[1].fVecShapeIndex[iq].second;    
+	    REAL e1e1   =   (phiQR(iRshapeindex,0)*dataright[1].fNormalVec(0,iRvectorindex))*(n1);
+	    REAL e2e2   =   (phiQR(iRshapeindex,0)*dataright[1].fNormalVec(1,iRvectorindex))*(n2);
+
+	    ef(iq + iRightInterfaceBlock + FirstQR) += (-1.0) * (1.0) * weight * (e1e1 + e2e2 ) * SwPcR;
+        }        
         
         //  Second Block (Equation Two) Bulk flux  equation
         // Integrate[L dot(q, n), Gamme_{e}]    (Equation Two) Left-Left Part
@@ -4281,7 +4364,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
                 
 //              if (dotqnL > 0.0)
 //              {
-//                    this->fWater(bulkfwaterl, sol_pL[VecPos], v2[3], dbulkfwaterdpl, dbulkfwaterdsl);
+//                    this->fWater(bulkfwaterl, sol_pL[VecPos], v2[5], dbulkfwaterdpl, dbulkfwaterdsl);
 //                    UpwindSaturation = bulkfwaterl;
 //                  
 //                  //  Theta * TimeStep * Integrate[L L^{upwind} dot(v, n), Gamme_{e}] (Equation three) Bc-Left Part
@@ -4300,11 +4383,11 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 //              else
 //              {
                     this->fWater(bulkfwaterl, sol_pL[VecPos], v2[5], dbulkfwaterdpl, dbulkfwaterdsl);
-                    UpwindSaturation = bulkfwaterl;
+                    UpwindSaturation = bulkfwaterl;		    
                     
 //              }
-//              
-//              
+             
+             
 //              //  Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]  (Equation three) Right-Left Part
 //              for (int isat=0; isat < SRowsleft; isat++) {
 //                  
@@ -4317,7 +4400,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 //                      (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(0,jLvectorindex)) * (n1) +
 //                      (phiQL(jLshapeindex,0)*dataleft[1].fNormalVec(1,jLvectorindex)) * (n2) ;//+
 //                      
-//                      ek(isat+QRowsleft+PRowsleft,jq) -= (-0.0) * weight * (Theta) * (TimeStep) * phiSL(isat,0) * (UpwindSaturation) * dotprodL;
+//                      ek(isat+QRowsleft+PRowsleft,jq) -= (-1.0) * weight * (Theta) * (TimeStep) * phiSL(isat,0) * (UpwindSaturation) * dotprodL;
 //                      
 //                  }
 //                  
@@ -4466,8 +4549,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         else
             
         {
-            UpwindSaturation = 0.0;
-            if (dotqnL < 0.0 && fabs(dotqnL) > 1.0e-12) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
+            UpwindSaturation = bulkfwaterl;
+            if (dotqnL < 0.0 && fabs(dotqnL) > 1.0e-10) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
         }
         
         //  Theta * TimeStep * Integrate[L S dot(v, n), Gamme_{e}]  (Equation three) Right-Left Part
@@ -4757,7 +4840,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         }
         else
         {
-            UpwindSaturation = 0.0;
+            UpwindSaturation = bulkfwaterl;
             if (dotqnL < 0.0 && fabs(dotqnL) > 1.0e-12) {std::cout << "Boundary condition error: inflow detected in outflow boundary condition: dotqnL = " << dotqnL << "\n";}
         }
         

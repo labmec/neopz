@@ -118,10 +118,10 @@ int main()
     //  Reading mesh
     std::string GridFileName;
     GridFileName = dirname + "/Projects/OilWaterSystem/";
-    GridFileName += "OilWaterSystemUnit.dump";
+//    GridFileName += "OilWaterSystemUnit.dump";
 //    GridFileName += "Labyrinth.dump";
 //    GridFileName += "BaseGeometryMazeOne.dump";
-//    GridFileName += "BaseGeometryDakeThin.dump";
+    GridFileName += "BaseGeometryDakeThin.dump";
 
 //  GridFileName = "Labyrinth.dump";    
     //  GridFileName = "OilWaterSystemUnitTwo.dump";
@@ -129,7 +129,7 @@ int main()
     //  GridFileName = "OilWaterSystemUnitTwoHRef.dump";
     
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(100.0);
+    GeometryInfo.SetfDimensionlessL(500.0);
     TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     RotateGeomesh(gmesh, angle);
     {
@@ -145,11 +145,11 @@ int main()
     
     int Href = 0;
     int div = 0;
-    int POrderElasticity = 2;
-    int POrderBulkFlux = 2;
+    int POrderElasticity = 1;
+    int POrderBulkFlux = 1;
     int POrderGravitationalFlux = 1;
-    int POrderPseudopressure = 2;
-    int POrderWaterSaturation = 1;
+    int POrderPseudopressure = 1;
+    int POrderWaterSaturation = 0;
     
     UniformRefinement(gmesh, Href);
     
@@ -323,8 +323,8 @@ int main()
     REAL day = 24.0*hour;
     REAL year = 365.0*day;
     
-    REAL deltaT = 0.0025;
-    REAL maxTime = 0.5;
+    REAL deltaT = 0.005;
+    REAL maxTime = 1.0;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, MultiphysicsAnTan, meshvec, MultiphysicsMesh);
     return 0;
     
@@ -717,7 +717,7 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     GridFileName = dirname + "/Projects/OilWaterSystem/";
     GridFileName += "LabyrinthKvalues.txt";
     
-    material1->SetXiBalance(0.0001);
+    material1->SetXiBalance(0.01);
     material1->SetTimeStep(1.0);
     material1->SetTime(0.0);
     material1->fnewWS=true; 
@@ -746,7 +746,7 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     val2(2,0)=1.0*0.0020*cos(angle);// qx
     val2(3,0)=1.0*0.0020*sin(angle);// qy
     val2(4,0)=0.0*20.0*MPa;// P
-    val2(5,0)=0.0*1.0;// S
+    val2(5,0)=1.0*1.0;// S
     TPZMaterial * BCond5 = material1->CreateBC(mat1,5,1, val1, val2);
     
 //  val2(0,0)=0.0;// qx
@@ -776,13 +776,13 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 //    TPZMaterial * BCond4 = material1->CreateBC(mat1,2,3, val1, val2);
 //    TPZMaterial * BCond6 = material1->CreateBC(mat1,2,3, val1, val2);
     
-    val2(0,0)=0.50*cos(angle);// ux
-    val2(1,0)=0.50*sin(angle);// uy    
+    val2(0,0)=0.5*cos(angle);// ux
+    val2(1,0)=0.5*sin(angle);// uy    
     val2(2,0)=0.000;// qx
     val2(3,0)=0.000;// qy
-    val2(4,0)=0.0*18.0*MPa;// P
+    val2(4,0)=1.0*18.0*MPa;// P
     val2(5,0)=0.0;// S       
-    TPZMaterial * BCond4 = material1->CreateBC(mat1,3,14, val1, val2);
+    TPZMaterial * BCond4 = material1->CreateBC(mat1,3,13, val1, val2);
         
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();       
@@ -914,7 +914,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //    RotateGeomesh(mphysics->Reference(),angle);
 
     TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);   
-    std::string OutPutFile = "TransientSolution";
+    std::string OutPutFile = "TransientSolutionPc";
     TPZMaterial *mat1 = mphysics->FindMaterial(1);
     //    TPZMaterial *mat2 = mphysics->FindMaterial(2);    
     
@@ -933,7 +933,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     
     
     REAL TimeValue = 0.0;
-    REAL Tolerance = 1.0e-6;
+    REAL Tolerance = 1.0e-8;
     REAL ToleranceDelta = 1.0e-8;
     int cent = 0;
     int MaxIterations = 20;
@@ -966,14 +966,19 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     FilterHigherOrderSaturations(NoGradients,WithGradients,meshvec,mphysics);
     AllConnects = NoGradients;
 
-	TPZManVector<STATE> PrintStep(6);
-	int control = 0; 
-	PrintStep[0]=0.1;
-	PrintStep[1]=0.2;
-	PrintStep[2]=0.3;
-    PrintStep[3]=0.4;    
-    PrintStep[4]=0.5;	
-     
+    TPZManVector<STATE> PrintStep(11);
+    int control = 0; 
+    PrintStep[0]=1.0;
+    PrintStep[1]=2.0;
+    PrintStep[2]=3.0;
+    PrintStep[3]=4.0;    
+    PrintStep[4]=5.0;
+    PrintStep[5]=6.0;
+    PrintStep[6]=7.0;    
+    PrintStep[7]=8.0;
+    PrintStep[8]=9.0;    
+    PrintStep[9]=10.0; 
+    
      AllConnects.Resize(NoGradients.size()+WithGradients.size());
      for (int i=0; i<(WithGradients.size()); i++) 
      {
@@ -1385,10 +1390,10 @@ void InitialSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     
     if (y>=0.5)
     {
-         disp[0] = 1.0;
+         disp[0] = 0.0;
     }else
     {
-        disp[0] = 1.0;
+        disp[0] = 0.0;
     }
     
 /*    if (y<=0.25) {
