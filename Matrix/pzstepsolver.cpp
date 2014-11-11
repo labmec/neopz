@@ -121,6 +121,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			TPZFMatrix<TVar> H(fNumVectors+1,fNumVectors+1,0.);
 			mat->SolveGMRES(numiterations,*fPrecond,H,fNumVectors,F,result,residual,tol,fFromCurrent);
             fNumIterations = numiterations;
+            cout << "Number of GMRES iterations " << numiterations << " tol = " << tol;
 			if(numiterations == fMaxIterations || tol >= fTol)
 			{
 				std::cout << "GMRes tolerance was not achieved : numiter " << numiterations <<
