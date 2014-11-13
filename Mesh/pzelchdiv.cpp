@@ -1452,10 +1452,10 @@ using namespace pztopology;
 using namespace pzgeom;
 using namespace pzshape;
 
-template<>
-void TPZCompElHDiv<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-	if(dimension == 0) std::cout << "A point element has no graphical representation\n";
-}
+//template<>
+//void TPZCompElHDiv<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+//	if(dimension == 0) std::cout << "A point element has no graphical representation\n";
+//}
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
@@ -1464,11 +1464,11 @@ void TPZCompElHDiv<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int d
 	}
 }
 
-template<>
-int TPZCompElHDiv<TPZShapePoint>::ClassId() const
-{
-	return TPZHDIVPOINTID;
-}
+//template<>
+//int TPZCompElHDiv<TPZShapePoint>::ClassId() const
+//{
+//	return TPZHDIVPOINTID;
+//}
 
 template<>
 int TPZCompElHDiv<TPZShapeLinear>::ClassId() const
@@ -1506,8 +1506,8 @@ int TPZCompElHDiv<TPZShapePiram>::ClassId() const
 	return TPZHDIVPYRAMID;
 }
 
-template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>, TPZHDIVPOINTID>;
+//template class
+//TPZRestoreClass< TPZCompElHDiv<TPZShapePoint>, TPZHDIVPOINTID>;
 
 template class
 TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>, TPZHDIVLINEARID>;
@@ -1534,7 +1534,7 @@ TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>, TPZHDIVPYRAMID>;
 
 
 template class TPZCompElHDiv<TPZShapeTriang>;
-template class TPZCompElHDiv<TPZShapePoint>;
+//template class TPZCompElHDiv<TPZShapePoint>;
 template class TPZCompElHDiv<TPZShapeLinear>;
 template class TPZCompElHDiv<TPZShapeQuad>;
 //

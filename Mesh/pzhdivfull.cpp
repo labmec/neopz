@@ -566,10 +566,10 @@ using namespace pztopology;
 using namespace pzgeom;
 using namespace pzshape;
 
-template<>
-void TPZCompElHDivFull<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-	if(dimension == 0) std::cout << "A point element has no graphical representation\n";
-}
+//template<>
+//void TPZCompElHDivFull<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+//	if(dimension == 0) std::cout << "A point element has no graphical representation\n";
+//}
 
 template<class TSHAPE>
 void TPZCompElHDivFull<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
@@ -582,16 +582,14 @@ void TPZCompElHDivFull<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, i
 
 //------
 
-template<>
-int TPZCompElHDivFull<pzshape::TPZShapePoint>::ClassId() const
-{
-    return TPZHDIVPOINT_FULL_ID;
-}
+//template<>
+//int TPZCompElHDivFull<pzshape::TPZShapePoint>::ClassId() const
+//{
+//    return TPZHDIVPOINT_FULL_ID;
+//}
 
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePoint>, TPZHDIVPOINT_FULL_ID>;
-#endif
+//template class
+//TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePoint>, TPZHDIVPOINT_FULL_ID>;
 
 template<>
 int TPZCompElHDivFull<pzshape::TPZShapeLinear>::ClassId() const
@@ -672,7 +670,7 @@ TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePiram>, TPZHDIVPYRAM_FULL_ID
 
 
 template class TPZCompElHDivFull<pzshape::TPZShapeTriang>;
-template class TPZCompElHDivFull<pzshape::TPZShapePoint>;
+//template class TPZCompElHDivFull<pzshape::TPZShapePoint>;
 template class TPZCompElHDivFull<pzshape::TPZShapeLinear>;
 template class TPZCompElHDivFull<pzshape::TPZShapeQuad>;
 template class TPZCompElHDivFull<pzshape::TPZShapeTetra>;
@@ -681,9 +679,9 @@ template class TPZCompElHDivFull<pzshape::TPZShapePiram>;
 template class TPZCompElHDivFull<pzshape::TPZShapeCube>;
 
 
-TPZCompEl * CreateHDivFullPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
-    return new TPZCompElHDivBound2<pzshape::TPZShapePoint>(mesh,gel,index);
-}
+//TPZCompEl * CreateHDivFullPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//    return new TPZCompElHDivBound2<pzshape::TPZShapePoint>(mesh,gel,index);
+//}
 
 
 TPZCompEl * CreateHDivFullLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {

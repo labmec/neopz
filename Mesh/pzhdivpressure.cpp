@@ -637,10 +637,10 @@ using namespace pztopology;
 using namespace pzgeom;
 using namespace pzshape;
 
-template<>
-void TPZCompElHDivPressure<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-		if(dimension == 0) std::cout << "A point element has no graphical representation\n";
-}
+//template<>
+//void TPZCompElHDivPressure<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+//		if(dimension == 0) std::cout << "A point element has no graphical representation\n";
+//}
 
 
 
@@ -651,16 +651,14 @@ void TPZCompElHDivPressure<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgri
 		}
 }
 
-template<>
-int TPZCompElHDivPressure<TPZShapePoint>::ClassId() const
-{
-		return TPZHDIVPOINT_PRESSURE_ID;
-}
+//template<>
+//int TPZCompElHDivPressure<TPZShapePoint>::ClassId() const
+//{
+//		return TPZHDIVPOINT_PRESSURE_ID;
+//}
 
-#ifndef BORLAND
-template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapePoint>, TPZHDIVPOINT_PRESSURE_ID>;
-#endif
+//template class
+//TPZRestoreClass< TPZCompElHDivPressure<TPZShapePoint>, TPZHDIVPOINT_PRESSURE_ID>;
 
 template<>
 int TPZCompElHDivPressure<TPZShapeLinear>::ClassId() const
@@ -741,7 +739,7 @@ TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>, TPZHDIVPYRAM_PRESSURE_ID>
 
 
 template class TPZCompElHDivPressure<TPZShapeTriang>;
-template class TPZCompElHDivPressure<TPZShapePoint>;
+//template class TPZCompElHDivPressure<TPZShapePoint>;
 template class TPZCompElHDivPressure<TPZShapeLinear>;
 template class TPZCompElHDivPressure<TPZShapeQuad>;
 template class TPZCompElHDivPressure<TPZShapeTetra>;
@@ -750,9 +748,9 @@ template class TPZCompElHDivPressure<TPZShapePiram>;
 template class TPZCompElHDivPressure<TPZShapeCube>;
 
 
-TPZCompEl * CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
-		return new TPZCompElHDivPressure<TPZShapePoint>(mesh,gel,index);
-}
+//TPZCompEl * CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
+//		return new TPZCompElHDivPressure<TPZShapePoint>(mesh,gel,index);
+//}
 
 
 TPZCompEl * CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {

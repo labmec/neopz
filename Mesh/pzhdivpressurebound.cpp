@@ -339,6 +339,6 @@ TPZRestoreClass< TPZCompElHDivPressureBound<TPZShapeQuad>, TPZHDIVPRESSUREBOUNDQ
 
 
 template class TPZCompElHDivPressureBound<TPZShapeTriang>;
-template class TPZCompElHDivPressureBound<TPZShapePoint>;
+//template class TPZCompElHDivPressureBound<TPZShapePoint>;
 template class TPZCompElHDivPressureBound<TPZShapeLinear>;
 template class TPZCompElHDivPressureBound<TPZShapeQuad>;
