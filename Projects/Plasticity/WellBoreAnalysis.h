@@ -284,7 +284,7 @@ public:
     void ExecuteInitialSimulation(int nsteps, int numnewton);
     
     /// Computes an equilibrium state corresponding to the current boundary conditions
-    void ExecuteSimulation(REAL factor=1.);
+    void ExecuteSimulation(int substeps, REAL factor=1.);
 
     
     /// Evelves the reservoir and well pressure to target pressure

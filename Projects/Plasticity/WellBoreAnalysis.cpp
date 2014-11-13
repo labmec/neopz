@@ -580,16 +580,26 @@ RunStatsTable well_init("-tpz_well_init", "Raw data table statistics for TPZElas
 
 void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 {
+    std::stringstream strout;
+    strout << "InitialSimulation";
+    fCurrentConfig.fHistoryLog = strout.str();
+    fSequence.push_back(fCurrentConfig);
+
     for (int istep = 1; istep <= nsteps; istep++) {
         REAL factor = istep*1./nsteps;
         fCurrentConfig.SetWellPressure(factor);
-        ExecuteSimulation(factor);
+        ExecuteSimulation(istep,factor);
     }
 }
 
 /// Computes the given pressure in the specified steps
 void TPZWellBoreAnalysis::EvolveBothPressures(int nsteps, STATE TargetWellborePressure, STATE TargetReservoirPressure)
 {
+    std::stringstream strout;
+    strout << "Evolve";
+    fCurrentConfig.fHistoryLog = strout.str();
+    fSequence.push_back(fCurrentConfig);
+
     STATE InitWellPressure = fCurrentConfig.fWellborePressure;
     STATE InitReservoirPressure = fCurrentConfig.fReservoirPressure;
     for (int istep = 1; istep <= nsteps; istep++) {
@@ -604,11 +614,11 @@ void TPZWellBoreAnalysis::EvolveBothPressures(int nsteps, STATE TargetWellborePr
 #ifdef DEBUG
         std::cout << "&&&&&&&&&&&&&&&&&&&&&EVOLVEBOTHPRESSURE&&&&&&&&&&&&&&&&&&&&&&&&&&& Running with WellborePressure = " << fCurrentConfig.fWellborePressure << "  and ReservoirPressure = " << fCurrentConfig.fReservoirPressure;
 #endif
-        ExecuteSimulation();
+        ExecuteSimulation(istep);
     }
 }
 
-void TPZWellBoreAnalysis::ExecuteSimulation(REAL factor)
+void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
 {
     
     TConfig &LocalConfig = fCurrentConfig;
@@ -741,7 +751,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(REAL factor)
     
 
     std::stringstream strout;
-    strout << "    Step " << GetConfigListSize() << " pwb (total) = " << fCurrentConfig.fWellborePressure * factor << " MPa";
+    strout << "    SubStep " << substeps << " pwb (total) = " << fCurrentConfig.fWellborePressure * factor << " MPa";
     fCurrentConfig.fHistoryLog = strout.str();
 
     fSequence.push_back(LocalConfig);
