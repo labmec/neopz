@@ -36,6 +36,8 @@ ENABLE_TESTING()
 
 			#Project to test the method hdiv stabilized.
 			add_subdirectory(HDivEstabilizado)
+			add_subdirectory(HDivEstabHHetero)
+
 
 			#Example of the hybrid mesh
 			add_subdirectory(HybridMesh)
@@ -189,6 +191,8 @@ add_subdirectory(proDG)
 			add_subdirectory(StabilizedHybridElasticity)
 			
 			add_subdirectory(Bima1)
+#			add_subdirectory(EstabSUPG)
+#			add_subdirectory(MetodosEstab)
 			#
 			#
 			
