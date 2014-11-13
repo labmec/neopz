@@ -702,11 +702,14 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
         ncycles = 2;
     }
     
+    std::stringstream strout;
+    
     for (int cycle = 0; cycle < ncycles; cycle++)
     {
     
+        
         well_init.start();
-        analysis.IterativeProcess(cout, tol, NumIter,linesearch,checkconv,conv);
+        analysis.IterativeProcess(strout, tol, NumIter,linesearch,checkconv,conv);
         well_init.stop();
         
         if (conv==false) {
@@ -715,7 +718,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
             analysis.Solver().SetMatrix(fLinearMatrix);
             
             well_init.start();
-            analysis.IterativeProcess(cout, fLinearMatrix, tol, NumIter, linesearch);
+            analysis.IterativeProcess(strout, fLinearMatrix, tol, NumIter, linesearch);
             well_init.stop();
         }
         if (LocalConfig.fWellConfig == EVerticalWell && cycle == 0)
@@ -750,8 +753,21 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
     LocalConfig.ComputeElementDeformation();
     
 
-    std::stringstream strout;
-    strout << "    SubStep " << substeps << " pwb (total) = " << fCurrentConfig.fWellborePressure * factor << " MPa";
+    int BCId=EInner;
+    TPZMaterial * mat = fCurrentConfig.fCMesh.FindMaterial(BCId);
+    TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+    if (!pBC) {
+#ifdef DEBUG
+        DebugStop();
+#endif
+    }
+    STATE SX=pBC->Val1().GetVal(0,0);//effective
+    STATE SY=pBC->Val1().GetVal(1,1);//effective
+    SX=SX-fCurrentConfig.fBiotCoef*fCurrentConfig.fReservoirPressure;//total
+    SY=SY-fCurrentConfig.fBiotCoef*fCurrentConfig.fReservoirPressure;//total
+
+    strout << " Substep " << substeps << " - (total stresses) "<< " SX  = " << SX << " SY  = " << SY;
+
     fCurrentConfig.fHistoryLog = strout.str();
 
     fSequence.push_back(LocalConfig);
@@ -2602,7 +2618,10 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
 
 void TPZWellBoreAnalysis::TConfig::CreateMesh()
 {
-    if ((fGMesh.NElements() != 0) || (fGMesh.NNodes() != 0)) DebugStop();
+    if ((fGMesh.NElements() != 0) || (fGMesh.NNodes() != 0))
+    {
+        DebugStop();
+    }
 
     TPZTensor<STATE> boundarytensor;
     FromPhysicalDomaintoComputationalDomainStress(fConfinementTotal, boundarytensor);
