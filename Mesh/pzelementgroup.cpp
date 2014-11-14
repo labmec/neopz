@@ -61,6 +61,7 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
     long elindex = cel->Index();
     Mesh()->ElementVec()[elindex] = 0;
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Hiding element index " << elindex << " from the mesh data structure";

@@ -298,7 +298,7 @@ void TPZCompEl::Print(std::ostream & out) const {
 	}
 	
 	out << "Number of connects = " << NConnects();
-    out<< "\nNode indexes : ";
+    out<< "\nConnect indexes : ";
 	int nod;
 	for(nod=0; nod< NConnects(); nod++)
 	{
