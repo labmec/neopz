@@ -583,6 +583,7 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
     std::stringstream strout;
     strout << "InitialSimulation";
     fCurrentConfig.fHistoryLog = strout.str();
+    fCurrentConfig.fSolution.Redim(fCurrentConfig.fCMesh.NEquations(), 1);
     fSequence.push_back(fCurrentConfig);
 
     for (int istep = 1; istep <= nsteps; istep++) {
@@ -781,9 +782,11 @@ void TPZWellBoreAnalysis::TConfig::LoadSolution()
     TPZMaterial *mat = fCMesh.FindMaterial(1);
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> mattype1;
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem> mattype2;
+    typedef TPZElasticityMaterialSest2D mattype3;
     
     mattype1 *matposs1 = dynamic_cast<mattype1 *>(mat);
     mattype2 *matposs2 = dynamic_cast<mattype2 *>(mat);
+    mattype3 *matposs3 = dynamic_cast<mattype3 *>(mat);
     
     if (matposs1) {
         matposs1->SetZDeformation(fZDeformation);
@@ -791,7 +794,10 @@ void TPZWellBoreAnalysis::TConfig::LoadSolution()
     if (matposs2) {
         matposs2->SetZDeformation(fZDeformation);
     }
-    if (!matposs1 && !matposs2) {
+    if (matposs3) {
+        matposs3->SetZDeformation(fZDeformation);
+    }
+    if (!matposs1 && !matposs2 && !matposs3) {
         DebugStop();
     }
 #ifdef DEBUG
