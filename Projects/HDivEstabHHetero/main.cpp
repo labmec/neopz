@@ -53,6 +53,8 @@ using namespace std;
 
 int MatId = 1;
 
+#define KConstant
+
 int bcdirichlet = 0;
 int bcneumann = 1;
 
@@ -96,8 +98,12 @@ TPZCompMesh *CmeshPresTeo = NULL;
 //erros
 void SolExataFluxo(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
 void SolExataPress(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
-void ComputeFluxError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &out);
+void ComputeFluxError(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out);
 void ComputePressureError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &out);
+void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out, bool IsFlux);
+
+void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonqsi, TPZManVector<REAL,3> &Fatherqsi, TPZTransform &Transformation);
+
 
 //void NeumannBound1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 //void DirichletXIgualDeis(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
@@ -126,7 +132,7 @@ int main(int argc, char *argv[]){
     
     ofstream saidaerro( "erros-hdiv-estab.txt");
 
-    for(int p =2; p<3;p++){
+    for(int p =1; p<2;p++){
         int ndiv;
         int pq = p+1;
         int pp = p;
@@ -173,18 +179,18 @@ int main(int argc, char *argv[]){
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             
             if( ndiv == NivelMaxi ){
-                CmeshFluxTeo = cmesh1;
-                CmeshPresTeo = cmesh2;
+                CmeshFluxTeo = mphysics;
+                CmeshPresTeo = mphysics;
             }
             else{
 //            ofstream SolPressFile("SolPress.nb");
 //            SolPress.Print("Press=",SolPressFile,EMathematicaInput);
             
                 //saidaerro<<"\nErro da simulacao multifisica do fluxo (q)" <<endl;
-                ComputeFluxError(cmesh1,ndiv,saidaerro);
+                ComputeErrorNomrs(mphysics,ndiv,saidaerro,true);
                 
                 //saidaerro<<"\nErro da simulacao multifisica da pressao (p)" <<endl;
-                ComputePressureError(cmesh2,ndiv,saidaerro);
+                ComputeErrorNomrs(mphysics,ndiv,saidaerro,false);
                 
             //Plot da solucao aproximada
                 string plotfile("Solution_mphysics.vtk");
@@ -510,6 +516,7 @@ TPZCompMesh *CMeshMixed(TPZVec<TPZCompMesh*> meshvec,TPZGeoMesh * gmesh){
     mphysics->InsertMaterialObject(BCond5);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
+    mphysics->SetDimModel(dim);
     
     mphysics->AutoBuild();
     mphysics->AdjustBoundaryElements();
@@ -524,6 +531,9 @@ TPZCompMesh *CMeshMixed(TPZVec<TPZCompMesh*> meshvec,TPZGeoMesh * gmesh){
 }
 
 void PermeabilityTensor(const TPZVec<REAL> &pt,TPZVec<STATE> &kabs,TPZFMatrix<STATE> &tensorK){
+    
+#ifndef KConstant
+    
     REAL x = pt[0];
     REAL y = pt[1];
     tensorK.Resize(4,2);
@@ -574,6 +584,22 @@ void PermeabilityTensor(const TPZVec<REAL> &pt,TPZVec<STATE> &kabs,TPZFMatrix<ST
     else{
         DebugStop();
     }
+    
+#else
+    
+    tensorK.Resize(4,2);
+    tensorK.Zero();
+    
+    //K
+    tensorK(0,0) = 1.0;
+    tensorK(1,1) = 1.0;
+    
+    //Kinv
+    tensorK(2,0) = 1.0;
+    tensorK(3,1) = 1.0;
+    
+#endif
+    
 }
 
 void ForcingHighHeter(const TPZVec<REAL> &pt,TPZVec<STATE> &disp){
@@ -669,109 +695,378 @@ void SolExataPress(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE
 }
 
 
-void ComputeFluxError(TPZCompMesh *CmeshFlux,long NivelRef, std::ostream &out){
+void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out, bool IsFlux){
     
-    TPZCompMesh * cmesh = CmeshFluxTeo;
     
+    TPZCompMesh * CMixedFine = CmeshFluxTeo;
+    CMixedFine->Reference()->ResetReference();
+    CMixedFine->LoadReferences();
+    TPZGeoMesh * GmeshFine = CMixedFine->Reference();
+    
+    bool noisymode = false;
+    
+    TPZMaterial *material = CMixedFine->FindMaterial(1); // Here Juan fixed for MatId  == 1
+    TPZMixedPoisson *matp = dynamic_cast<TPZMixedPoisson *>(material);
+    
+    if (!matp) {
+        DebugStop();
+    }
+
+    CMixedCoarse->Reference()->ResetReference();
+    CMixedCoarse->LoadReferences();
+    TPZGeoMesh * GmeshCoarse = CMixedCoarse->Reference();
+    
+    int nFcel = CMixedFine->NElements();
+    int nCcel = CMixedCoarse->NElements();
+    int nFgel = GmeshFine->NElements();
+    int nCgel = GmeshCoarse->NElements();
+
     TPZManVector<REAL,2> errors(3,0.);
-    int dimmesh = cmesh->Dimension();
-    int nel = cmesh->NElements();
+    int dimmesh = CMixedFine->Dimension();
+    int nel = CMixedFine->NElements();
     int iel;
     long nivel = NivelMaxi-1;
     
-    for(iel=0; iel<nel; iel++)
-    {
-        TPZCompEl *cel = cmesh->ElementVec()[iel];
-        if(!cel) continue;
+    for (int  icel = 0; icel < nFcel; icel++) {
+        TPZCompEl *celF = CMixedFine->Element(icel);
+        int celFdim= celF->Dimension();
         
-        int dimcel = cel->Dimension();
-        if(dimcel != dimmesh) continue;
+        // Conditions to be avoided
+        if (!celF) continue;
+        if (dimmesh != celF->Dimension()) continue;
         
-        TPZGeoEl *gel = cel->Reference();
-        TPZGeoEl *FatherGel=gel->Father();
+        TPZGeoEl * gelF = celF->Reference();
+        if(!gelF) continue;
         
-        while (nivel > NivelRef) {
-            TPZGeoEl *FatherGel=FatherGel->Father();
-            nivel--;
-        }
+        TPZGeoEl * gelC = GmeshCoarse->Element(gelF->Father()->Index());
+        if(!gelC) continue;
         
-        long ielt = FatherGel->Id();
-        std::cout<<iel<<std::endl;
-        std::cout<<ielt<<std::endl;
+        TPZCompEl *celC = gelC->Reference();
+        if (!celC) continue;
+        
+        if (CMixedCoarse->Element(celC->Index()) != celC) continue;
+        if (dimmesh != celC->Dimension()) continue;
+        
+        celC->Print();
+        CMixedCoarse->Element(celC->Index())->Print();
         
         
-        TPZCompEl *celn = CmeshFlux->Element(FatherGel->Id());
-        
-        TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(gel->NSides()-1, 2);
-        TPZManVector<int,3> prevorder(dimcel), maxorder(dimcel,intrule->GetMaxOrder());
+        TPZAutoPointer<TPZIntPoints> intrule = gelF->CreateSideIntegrationRule(gelF->NSides()-1, 2);
+        TPZManVector<int,3> prevorder(dimmesh), maxorder(dimmesh,intrule->GetMaxOrder());
         intrule->GetOrder(prevorder);
         intrule->SetOrder(maxorder);
-        
-        TPZInterpolationSpace *spt = dynamic_cast<TPZInterpolationSpace *>(cel);
-        TPZInterpolationSpace *spn = dynamic_cast<TPZInterpolationSpace *>(celn);
-        
-        TPZMaterialData datat,datan;
-        spt->InitMaterialData(datat);
-        spn->InitMaterialData(datan);
-        
-        const int npoints = intrule->NPoints();
-        TPZManVector<REAL,3> qsi(dimcel), xVec(3);
-        
-        for(int ip = 0; ip < npoints; ip++)
-        {
-            REAL weight;
-            intrule->Point(ip,qsi,weight);
-            spt->ComputeShape(qsi, datat.x, datat.jacobian, datat.axes, datat.detjac, datat.jacinv, datat.phi, datat.dphix);
-            spn->ComputeShape(qsi, datan.x, datan.jacobian, datan.axes, datan.detjac, datan.jacinv, datan.phi, datan.dphix);
-            
-            weight *= fabs(datat.detjac);
-            spt->ComputeSolution(qsi,datat);
-            spn->ComputeSolution(qsi,datan);
-            
-            TPZManVector<REAL,2> fluxn(2,0.);
-            REAL divfluxon;
-            fluxn[0]=datan.sol[0][0];
-            fluxn[1]=datan.sol[0][1];
-            divfluxon =  datan.dsol[0](0,0)+datan.dsol[0](1,1);
 
-            TPZManVector<REAL,2> fluxt(2,0.);
-            REAL divfluxot;
-            fluxt[0]=datat.sol[0][0];
-            fluxt[1]=datat.sol[0][1];
-            divfluxot =  datat.dsol[0](0,0)+datat.dsol[0](1,1);
+        const int npoints = intrule->NPoints();
+        TPZManVector<REAL,3> qsiC(dimmesh), qsiF(dimmesh), xVecC(3), xVecF(3);
+        
+        for (int ipoint = 0; ipoint < npoints; ipoint++) {
+            REAL weight;
+            intrule->Point(ipoint, qsiF, weight);
             
-            TPZManVector<REAL,2> diff(2,0.);
-            diff[0] = fluxn[0] - fluxt[0] ;
-            diff[1] = fluxn[1] - fluxt[1] ;
+            TPZTransform Transformation;
+            ComputeFatherqsi(gelF, gelF->Father(), qsiF, qsiC, Transformation);
             
-            //erro L2 do fluxo
-            errors[0] += weight*(diff[0]*diff[0] + diff[1]*diff[1]);
             
-            //erro L2 do divergente do fluxo
-            REAL diffDiv = abs(divfluxon - divfluxot);
-            errors[1] += weight*diffDiv*diffDiv;
+            if (IsFlux) {
+                
+                int qfluxindex = matp->VariableIndex("Flux");
+                int Gqxfluxindex = matp->VariableIndex("GradFluxX");
+                int Gqyfluxindex = matp->VariableIndex("GradFluxY");
+                int Divqfluxindex = matp->VariableIndex("DivFlux");
+                
+                TPZVec<STATE> qfluxF, dqfluxdxF, dqfluxdyF, divqfluxF;
+                TPZVec<STATE> qfluxC, dqfluxdxC, dqfluxdyC, divqfluxC;
+                
+                celF->Solution(qsiF, qfluxindex, qfluxF);
+                celC->Solution(qsiC, qfluxindex, qfluxC);
+                
+                celF->Solution(qsiF, Divqfluxindex, divqfluxF);
+                celC->Solution(qsiC, Divqfluxindex, divqfluxC);
+                
+                celF->Solution(qsiF, Gqxfluxindex, dqfluxdxF);
+                celC->Solution(qsiC, Gqxfluxindex, dqfluxdxC);
+                
+                celF->Solution(qsiF, Gqyfluxindex, dqfluxdyF);
+                celC->Solution(qsiC, Gqyfluxindex, dqfluxdyC);
+                
+
+                if (noisymode) {
+                    
+                    gelF->X(qsiF, xVecF);
+                    gelC->X(qsiC, xVecC);
+                    
+                    std::cout << "qsiF " << qsiF[0] << "  " << qsiF[1] << std::endl;
+                    std::cout << "qsiC " << qsiC[0] << "  " << qsiC[1] << std::endl;
+                    std::cout << "xVecF " << xVecF[0] << "  " << xVecF[1] << "  " << xVecF[2] << std::endl;
+                    std::cout << "xVecC " << xVecC[0] << "  " << xVecC[1] << "  " << xVecC[2] << std::endl;
+                    
+                    
+                    
+                    std::cout << "qfluxF " << qfluxF << std::endl;
+                    std::cout << "qfluxC " << qfluxC << std::endl;
+                    
+                    std::cout << "divqfluxF " << divqfluxF << std::endl;
+                    std::cout << "divqfluxC " << divqfluxC << std::endl;
+                    
+                    std::cout << "dqfluxdxF " << dqfluxdxF << std::endl;
+                    std::cout << "dqfluxdxC " << dqfluxdxC << std::endl;
+                    
+                    std::cout << "dqfluxdyF " << dqfluxdyF << std::endl;
+                    std::cout << "dqfluxdyC " << dqfluxdyC << std::endl;
+                }
+                
+                TPZManVector<REAL,2> diff(2,0.);
+                diff[0] = qfluxC[0] - qfluxF[0] ;
+                diff[1] = qfluxC[1] - qfluxF[1] ;
+                
+                //erro L2 do fluxo
+                errors[0] += weight*(diff[0]*diff[0] + diff[1]*diff[1]);
+                
+                //erro L2 do divergente do fluxo
+                REAL diffDiv = abs(divqfluxC[0] - divqfluxF[0]);
+                errors[1] += weight*diffDiv*diffDiv;
+                
+            }else{
+
+                int Pressureindex = matp->VariableIndex("Pressure");
+                int GradPressureindex = matp->VariableIndex("GradPressure");
+                TPZVec<STATE> PressureF, GradPressureF;
+                TPZVec<STATE> PressureC, GradPressureC;
+                
+                celF->Solution(qsiF, Pressureindex, PressureF);
+                celC->Solution(qsiC, Pressureindex, PressureC);
+                
+                celF->Solution(qsiF, GradPressureindex, GradPressureF);
+                celC->Solution(qsiC, GradPressureindex, GradPressureC);
+                
+                
+                if (noisymode) {
+                    
+                    gelF->X(qsiF, xVecF);
+                    gelC->X(qsiC, xVecC);
+                    
+                    std::cout << "qsiF " << qsiF[0] << "  " << qsiF[1] << std::endl;
+                    std::cout << "qsiC " << qsiC[0] << "  " << qsiC[1] << std::endl;
+                    std::cout << "xVecF " << xVecF[0] << "  " << xVecF[1] << "  " << xVecF[2] << std::endl;
+                    std::cout << "xVecC " << xVecC[0] << "  " << xVecC[1] << "  " << xVecC[2] << std::endl;
+                    
+                    std::cout << "PressureF " << PressureF << std::endl;
+                    std::cout << "PressureC " << PressureC << std::endl;
+                    
+                    std::cout << "GradPressureF " << GradPressureF << std::endl;
+                    std::cout << "GradPressureC " << GradPressureC << std::endl;
+                }
+                
+                //erro L2 da pressao
+                REAL diffP = 0;
+                diffP = PressureC[0] - PressureF[0];
+                errors[1] += weight*(diffP*diffP);
+
+                //erro semi H1 da pressao
+                TPZManVector<REAL,2> diffGrad(2,0.);
+                diffGrad[0] = GradPressureC[0]-GradPressureF[0];
+                diffGrad[1] = GradPressureC[1]-GradPressureF[1];
+                errors[2] += weight*(diffGrad[0]*diffGrad[0] + diffGrad[1]*diffGrad[1]);
+
+                //erro H1 para a pressao
+                //errors[0] += errors[1] + errors[2];
+                
+            }
             
-            //erro Hdiv para o fluxo
-            //            errors[2] += errors[0] + errors[1];
+
+            
         }
-        intrule->SetOrder(prevorder);
+        
     }
     
-    //erro Hdiv para o fluxo
-    errors[2] = errors[0] + errors[1];
+    if (IsFlux) {
+        errors[2] = errors[0] + errors[1];
+        errors[0] = sqrt(errors[0]);
+        errors[1] = sqrt(errors[1]);
+        errors[2] = sqrt(errors[2]);
+        out << "\n";
+        out << "Erros associados ao fluxo na norma L2\n";
+        out << "Norma L2  para fluxo = " << errors[0] << endl;
+        out << "Norma L2 para divergente = " << errors[1] << endl;
+        out << "Norma Hdiv para o fluxo = " << errors[2] << endl;
+    }
+    else
+    {
+        //erro H1 para a pressao
+        errors[0] = errors[1] + errors[2];
+        errors[0] = sqrt(errors[0]);
+        errors[1] = sqrt(errors[1]);
+        errors[2] = sqrt(errors[2]);
+        out << "\n";
+        out << "Erros associados a pressao nas normas L2 e H1\n";
+        out << "Norma H1 para a pressao = " << errors[0] << endl;
+        out << "Norma L2 para a pressao = " << errors[1] << endl;
+        out << "Norma semi-H1 para a pressao = " << errors[2] << endl;
+    }
     
-    errors[0] = sqrt(errors[0]);
-    errors[1] = sqrt(errors[1]);
-    errors[2] = sqrt(errors[2]);
-    
-    out << "\n";
-    out << "Erros associados ao fluxo na norma L2\n";
-    out << "Norma L2  para fluxo = " << errors[0] << endl;
-    out << "Norma L2 para divergente = " << errors[1] << endl;
-    out << "Norma Hdiv para o fluxo = " << errors[2] << endl;
-    
-}///method
+}
 
+void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonqsi, TPZManVector<REAL,3> &Fatherqsi, TPZTransform &Transformation)
+{
+    
+    if ((!Son && !Father) && (Sonqsi.size() != Fatherqsi.size() && Father != Son->Father())) {
+        DebugStop();
+    }
+    
+    int side, dimSon, dimFather;
+    dimSon      = Son->Dimension();
+    dimFather   = Father->Dimension();
+    side = Father->NSides()-1;
+    
+    if (dimSon == dimFather) {
+        TPZTransform tr(dimSon);
+        Transformation = Son->BuildTransform2(side, Father, tr);
+        //        int son = Father->WhichSubel();
+        //        Transformation = Father->GetTransform(side, son);
+    }
+    else
+    {
+        std::cout<< "This method works just for volumetri-volumetric transformation ";
+        DebugStop();
+        
+    }
+    
+    Transformation.Apply(Sonqsi, Fatherqsi);
+    
+    
+}
+
+//void ComputeFluxError(TPZCompMesh *CmeshFlux,long NivelRef, std::ostream &out){
+//    
+//    TPZCompMesh * cmesh = CmeshFluxTeo;
+//
+//
+//    TPZManVector<REAL,2> errors(3,0.);
+//    int dimmesh = cmesh->Dimension();
+//    int nel = cmesh->NElements();
+//    int iel;
+//    long nivel = NivelMaxi-1;
+//    
+//    for(iel=0; iel<nel; iel++)
+//    {
+//        TPZCompEl *cel = cmesh->ElementVec()[iel];
+//        if(!cel) continue;
+//        
+//        int dimcel = cel->Dimension();
+//        if(dimcel != dimmesh) continue;
+//        
+//        TPZGeoEl *gel = cel->Reference();
+//        TPZGeoEl *FatherGel=gel->Father();
+//        
+//        while (nivel > NivelRef) {
+//            TPZGeoEl *FatherGel=FatherGel->Father();
+//            nivel--;
+//        }
+//        
+//        long ielt = FatherGel->Id();
+//        std::cout<<iel<<std::endl;
+//        std::cout<<ielt<<std::endl;
+//        
+//        
+//        TPZCompEl *celn = CmeshFlux->Element(FatherGel->Id());
+//        
+//        TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(gel->NSides()-1, 2);
+//        TPZManVector<int,3> prevorder(dimcel), maxorder(dimcel,intrule->GetMaxOrder());
+//        intrule->GetOrder(prevorder);
+//        intrule->SetOrder(maxorder);
+//        
+//        TPZInterpolationSpace *spt = dynamic_cast<TPZInterpolationSpace *>(cel);
+//        TPZInterpolationSpace *spn = dynamic_cast<TPZInterpolationSpace *>(celn);
+//        
+//        TPZMaterialData datat,datan;
+//        spt->InitMaterialData(datat);
+//        spn->InitMaterialData(datan);
+//        
+//        const int npoints = intrule->NPoints();
+//        TPZManVector<REAL,3> qsi(dimcel), qsiFather(dimcel), xVec(3), XVecFather(3);
+//        
+//        
+//        int Matid = cel->Reference()->MaterialId();
+//        TPZMaterial  *material = cmesh->FindMaterial(MatId);
+//        TPZMatPoisson3d *matp = dynamic_cast<TPZMatPoisson3d *>(material);
+//        int qindex = matp->VariableIndex("Flux");
+//        
+//        TPZVec<STATE> QfluxSon,QfluxFather;
+//        
+//        for(int ip = 0; ip < npoints; ip++)
+//        {
+//            REAL weight;
+//            intrule->Point(ip,qsi,weight);
+//            
+//            TPZTransform Transformation;
+//            ComputeFatherqsi(gel, FatherGel, qsi, qsiFather, Transformation);
+//            
+//            gel->X(qsi, xVec);
+//            FatherGel->X(qsiFather, XVecFather);
+//            
+//            std::cout << "qsi " << qsi[0] << "  " << qsi[1] << std::endl;
+//            std::cout << "qsiFather " << qsiFather[0] << "  " << qsiFather[1] << std::endl;
+//            std::cout << "xVec " << xVec[0] << "  " << xVec[1] << "  " << xVec[2] << std::endl;
+//            std::cout << "XVecFather " << XVecFather[0] << "  " << XVecFather[1] << "  " << XVecFather[2] << std::endl;
+//            
+////            spt->ComputeShape(qsi, datat.x, datat.jacobian, datat.axes, datat.detjac, datat.jacinv, datat.phi, datat.dphix);
+////            spn->ComputeShape(qsiFather, datan.x, datan.jacobian, datan.axes, datan.detjac, datan.jacinv, datan.phi, datan.dphix);
+////            
+////            weight *= fabs(datat.detjac);
+////            spt->ComputeSolution(qsi,datat);
+//            
+//            
+////            cel->Solution(qsi, qindex, QfluxSon);
+////            celn->Solution(qsiFather, qindex, QfluxFather);
+//            
+//            std::cout << "QfluxSon " << QfluxSon[0] << "  " << QfluxSon[1] << std::endl;
+//            std::cout << "QfluxFather " << QfluxFather[0] << "  " << QfluxFather[1] << std::endl;
+//            
+//            
+////            TPZManVector<REAL,2> fluxn(2,0.);
+////            REAL divfluxon;
+////            fluxn[0]=datan.sol[0][0];
+////            fluxn[1]=datan.sol[0][1];
+////            divfluxon =  datan.dsol[0](0,0)+datan.dsol[0](1,1);
+////
+////            TPZManVector<REAL,2> fluxt(2,0.);
+////            REAL divfluxot;
+////            fluxt[0]=datat.sol[0][0];
+////            fluxt[1]=datat.sol[0][1];
+////            divfluxot =  datat.dsol[0](0,0)+datat.dsol[0](1,1);
+////            
+////            TPZManVector<REAL,2> diff(2,0.);
+////            diff[0] = fluxn[0] - fluxt[0] ;
+////            diff[1] = fluxn[1] - fluxt[1] ;
+////            
+////            //erro L2 do fluxo
+////            errors[0] += weight*(diff[0]*diff[0] + diff[1]*diff[1]);
+////            
+////            //erro L2 do divergente do fluxo
+////            REAL diffDiv = abs(divfluxon - divfluxot);
+////            errors[1] += weight*diffDiv*diffDiv;
+//            
+//            //erro Hdiv para o fluxo
+//            //            errors[2] += errors[0] + errors[1];
+//        }
+//        intrule->SetOrder(prevorder);
+//    }
+//    
+//    //erro Hdiv para o fluxo
+//    errors[2] = errors[0] + errors[1];
+//    
+//    errors[0] = sqrt(errors[0]);
+//    errors[1] = sqrt(errors[1]);
+//    errors[2] = sqrt(errors[2]);
+//    
+//    out << "\n";
+//    out << "Erros associados ao fluxo na norma L2\n";
+//    out << "Norma L2  para fluxo = " << errors[0] << endl;
+//    out << "Norma L2 para divergente = " << errors[1] << endl;
+//    out << "Norma Hdiv para o fluxo = " << errors[2] << endl;
+//    
+//}///method
+//
 
 void ComputePressureError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &out){
  
@@ -879,4 +1174,5 @@ void PosProcessMultph(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZA
     //	an.Print("nothing",out);
     
 }
+
 
