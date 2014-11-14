@@ -242,7 +242,7 @@ void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *M
     TPZCompEl *celorig  = NULL;
     TPZMultiphysicsElement *cel = NULL;
     TPZCompEl *celref = NULL;
-    TPZMultiphysicsInterfaceElement *interface = NULL;
+    TPZMultiphysicsInterfaceElement *interface1 = NULL;
     
     long iel;
     TPZVec<long> FirstConnect(nmeshes,0);
@@ -276,8 +276,8 @@ void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *M
 	{
         celorig = MFMesh->ElementVec()[iel];
 		cel = dynamic_cast<TPZMultiphysicsElement *> (celorig);
-		interface = dynamic_cast<TPZMultiphysicsInterfaceElement *> (celorig);
-		if (interface) {
+		interface1 = dynamic_cast<TPZMultiphysicsInterfaceElement *> (celorig);
+		if (interface1) {
 			continue;
 		}
 		if (!cel) {

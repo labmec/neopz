@@ -77,6 +77,7 @@ bool TPZHierarquicalGrid::operator==(const TPZHierarquicalGrid& other) const
 {
     DebugStop();
 ///TODO: return ...;
+	return 0; //to fix WIN compiler error
 }
 
 TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(STATE t, STATE dt, int n)
