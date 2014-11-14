@@ -713,7 +713,7 @@ void *TPZStructMatrixGC::ThreadData::ThreadWork(void *datavoid)
                     el->Reference()->Print(sout);
                     el->Print(sout);
                     ek.Print(sout);
-                    ef->Print(sout);
+                    ef.Print(sout);
                     LOGPZ_DEBUG(loggerel2,sout.str())
                 }
 #endif

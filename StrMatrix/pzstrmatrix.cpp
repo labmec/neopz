@@ -250,7 +250,7 @@ void TPZStructMatrixST::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         
         calcstiff.stop();
         assemble.start();
-        
+
         if(!el->HasDependency()) {
             ek.ComputeDestinationIndices();
             fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
@@ -314,7 +314,7 @@ void TPZStructMatrixST::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         assemble.stop();
     }//fim for iel
     if(count > 20) std::cout << std::endl;
-    
+
 #ifdef LOG4CXX
     if(loggerCheck->isDebugEnabled())
     {
@@ -831,7 +831,6 @@ void *TPZStructMatrixST::ThreadData::ThreadAssembly(void *threaddata)
     {
         std::stringstream sout;
         sout << "nextel = " << nextel << " numprocessed = " << numprocessed << " submitted " << data->fSubmitted.size() << std::endl;
-        sout << "The comparaison results are : consistency check " << globalresult;
         LOGPZ_DEBUG(loggerCheck,sout.str())
     }
 #endif

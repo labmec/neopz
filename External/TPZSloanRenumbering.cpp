@@ -282,6 +282,7 @@ void TPZSloanRenumbering::Resequence2(TPZVec<long> &permGather, TPZVec<long> &pe
                         int priority = fAllNodes[knode].fPriority;
                         priority += this->W2();
                         if (fAllNodes[knode].fStatus == EInactive) {
+                            fAllNodes[knode].fPriority = priority;
                             InsertNode(&fAllNodes[knode]);
                             fAllNodes[knode].fStatus = EPreActive;
                             numactive++;
@@ -295,7 +296,7 @@ void TPZSloanRenumbering::Resequence2(TPZVec<long> &permGather, TPZVec<long> &pe
             }//if
         }//for jadj
 
-        if(countnumbered % 100000 == 0){
+        if(countnumbered % 1000000 == 0){
             std::cout << countnumbered << "\tActive size = " << numactive << ", %done = " << 100.*countnumbered/nnodes << "\n";
         }
 
