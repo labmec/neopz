@@ -13,6 +13,7 @@
 #include "TPZYCDruckerPrager.h"
 #include "TPZThermoForceA.h"
 #include "poroelastoplasticid.h"
+#include "TPBrBiotForce.h"
 
 
 #define SANDLERDIMAGGIOSTEP1 TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
@@ -34,6 +35,7 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlast
 template <class T, class TMEM>
 TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress):TPZMatElastoPlastic2D<T, TMEM>(id,PlaneStrainOrPlaneStress), fZDeformation(0.), fbiot(0.)
 {
+  
 }
 
 /** Creates a material object based on the referred object and
@@ -44,7 +46,11 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int Plane
 template <class T, class TMEM>
 TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(const TPZMatElastoPlasticSest2D<T,TMEM> &mat):TPZMatElastoPlastic2D<T, TMEM>(mat), fZDeformation(mat.fZDeformation), fbiot(mat.fbiot)
 {
-  
+  TPBrBiotForce * func = dynamic_cast<TPBrBiotForce *>(this->fForcingFunction.operator->());
+  if (func) {
+    TPZAutoPointer<TPZFunction<STATE> > clonefunc = new TPBrBiotForce(*func);
+    this->fForcingFunction = clonefunc;
+  }
 }
 
 template <class T, class TMEM>

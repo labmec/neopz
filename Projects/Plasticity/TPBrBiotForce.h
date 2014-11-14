@@ -36,11 +36,18 @@ class TPBrBiotForce : public TPZFunction<STATE>
     
 public:
     /** @brief Class constructor */
-	TPBrBiotForce() : fRwell(1.), fRreservoir(1.), fPwell(1.), fPreservoir(10.), fBiot(1.)
+    TPBrBiotForce() : fRwell(1.), fRreservoir(1.), fPwell(1.), fPreservoir(10.), fBiot(1.)
     {
         ComputeConstant();
     }
-	
+
+  /** @brief Class copy constructor */
+  TPBrBiotForce(const TPBrBiotForce &cp) : TPZFunction(cp), fRwell(cp.fRwell), fRreservoir(cp.fRreservoir), fPwell(cp.fPwell), fPreservoir(cp.fPreservoir), fBiot(cp.fBiot), fConstant(cp.fConstant)
+  {
+
+  }
+  
+  
 	/** @brief Class destructor */
 	virtual ~TPBrBiotForce()
     {
