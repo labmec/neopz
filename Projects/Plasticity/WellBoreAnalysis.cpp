@@ -801,7 +801,7 @@ void TPZWellBoreAnalysis::TConfig::LoadSolution()
         DebugStop();
     }
 #ifdef DEBUG
-    if (fSolution.Cols() != 1) {
+    if (fSolution.Cols() > 1) {
         DebugStop();
     }
 #endif
@@ -2191,7 +2191,7 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
 
     fPostProcessNumber++;
 
-    
+      
 #ifdef TESTPOLYCHAIN
     //*** DANGER (definido pelo programador) ***
     //******************************************

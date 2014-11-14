@@ -22,7 +22,7 @@
  * Default constructor
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlastic2D<T, TMEM>(), fZDeformation(0.)
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlastic2D<T, TMEM>(), fZDeformation(0.), fbiot(0.)
 {
 }
 
@@ -32,7 +32,7 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlast
  *  vector
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress):TPZMatElastoPlastic2D<T, TMEM>(id,PlaneStrainOrPlaneStress), fZDeformation(0.)
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress):TPZMatElastoPlastic2D<T, TMEM>(id,PlaneStrainOrPlaneStress), fZDeformation(0.), fbiot(0.)
 {
 }
 
@@ -42,7 +42,7 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int Plane
  *  object within the vector
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(const TPZMatElastoPlasticSest2D<T,TMEM> &mat):TPZMatElastoPlastic2D<T, TMEM>(mat), fZDeformation(mat.fZDeformation)
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(const TPZMatElastoPlasticSest2D<T,TMEM> &mat):TPZMatElastoPlastic2D<T, TMEM>(mat), fZDeformation(mat.fZDeformation), fbiot(mat.fbiot)
 {
   
 }

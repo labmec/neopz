@@ -869,10 +869,10 @@ void Config4()
     well.SetInnerOuterRadius(innerradius, outerradius);
     
     
-    std::string output = "Config3.vtk";
+    std::string output = "Config4.vtk";
     const int nubsteps = 5;
     well.SetVtkOutPutName(output);
-    EPlasticModel Emodel = EElastic;
+    EPlasticModel Emodel = EMohrCoulomb;
     if (Emodel == EMohrCoulomb)
     {
         REAL poisson = 0.203;
@@ -958,11 +958,13 @@ void Config4()
         
         well.PRefineElementAbove(0.0001, 2);
         well.ExecuteSimulation(nubsteps);
+        well.PostProcess(0);
         
         cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
         well.SetFluidModel(EPenetrating);
         well.ExecuteSimulation(nubsteps);
+        well.PostProcess(0);
         cout << "Penetrating fluid Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
         
