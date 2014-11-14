@@ -226,7 +226,15 @@ namespace pztopology {
         14,14,14
     };
     
-    static int bilinearounao [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    static int bilinearounao [45] =
+    {
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,1,1,
+        1,1,1,1,1,1,1,1,1,1,
+        1,1,0,0,0
+    };
+//    static int bilinearounao [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     static int direcaoksioueta [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,2};
     
 	int TPZTetrahedron::NBilinearSides()
@@ -769,8 +777,13 @@ namespace pztopology {
                     JacToSide(1,0) = zeta/((qsi-1.)*(qsi-1.)); JacToSide(1,1) = 0.; JacToSide(1,2) = 1/(1.-qsi);
 				}
 				break;
+            case 14: //Interno para interno ? douglas aqui
+                SidePar = InternalPar;
+                JacToSide.Resize(3, 3);
+                JacToSide.Identity();
+                break;
 		}
-		if(side > 13)
+		if(side > 14)
 		{
 			cout << "Cant compute MapToSide method in TPZGeoTetrahedra class!\nParameter (SIDE) must be between 4 and 13!\nMethod Aborted!\n";
 			DebugStop();
@@ -1042,70 +1055,85 @@ namespace pztopology {
     void TPZTetrahedron::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
     {
         REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
-        TPZManVector<REAL,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vec1(3),vec2(3),vec3(3);
+        detgrad = fabs(detgrad);
+        
+        TPZManVector<REAL,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vdiagxy(3),vi(3),vivdiagxy(3);
+        
         for (int i=0; i<3; i++) {
             v1[i] = gradx(i,0);
             v2[i] = gradx(i,1);
             v3[i] = gradx(i,2);
+            vdiagxy[i] = (gradx(i,0)-gradx(i,1));
+            vi[i] = gradx(i,2)-0.5*(gradx(i,0)+gradx(i,1));
         }
+        
         TPZNumeric::ProdVetorial(v1,v2,v1v2);
         TPZNumeric::ProdVetorial(v2,v3,v2v3);
         TPZNumeric::ProdVetorial(v3,v1,v3v1);
+        TPZNumeric::ProdVetorial(vi,vdiagxy,vivdiagxy);
         
         REAL Nv1v2 = TPZNumeric::Norma(v1v2);
         REAL Nv2v3 = TPZNumeric::Norma(v2v3);
         REAL Nv3v1 = TPZNumeric::Norma(v3v1);
+        REAL Nvivdiagb = TPZNumeric::Norma(vivdiagxy);
         
         for (int i=0; i<3; i++) {
-            v1[i] *= Nv2v3/detgrad;
-            v2[i] *= Nv3v1/detgrad;
-            v3[i] *= Nv1v2/detgrad;
+            v1[i] /= detgrad;
+            v2[i] /= detgrad;
+            v3[i] /= detgrad;
         }
         for (int i=0; i<3; i++)
         {
-            for (int iv=0; iv<7; iv++)
-            {
-                directions(i,iv) = -v3[i];
-                directions(i,iv+7) = -v2[i];
-                directions(i,iv+21) = -v1[i];
-            }
             
-            directions(i,1) = (v1[i]-v3[i])/sqrt(2.);
-            directions(i,2) = (v2[i]-v3[i])/sqrt(2.);
-            directions(i,4) = (v1[i]+v2[i]-2.0*v3[i])/sqrt(6.);
+            //face 0
+            directions(i,0) = -v3[i]*Nv1v2;
+            directions(i,1) = (v1[i]-v3[i])*Nv1v2;                
+            directions(i,2) = (v2[i]-v3[i])*Nv1v2;                
+            directions(i,3) = (directions(i,0)+directions(i,1))/2.;
+            directions(i,4) = (directions(i,1)+directions(i,2))/2.;
+            directions(i,5) = (directions(i,0)+directions(i,2))/2.;
+            directions(i,6) = (directions(i,3)+directions(i,4)+directions(i,5))/3.;
+            //face 1
+            directions(i,7) = -v2[i]*Nv3v1;
+            directions(i,8) = (v1[i]-v2[i])*Nv3v1;                
+            directions(i,9) = (v3[i]-v2[i])*Nv3v1;                
+            directions(i,10) = (directions(i,7)+directions(i,8))/2.;
+            directions(i,11) = (directions(i,8)+directions(i,9))/2.;     
+            directions(i,12) = (directions(i,7)+directions(i,9))/2.;    
+            directions(i,13) = (directions(i,10)+directions(i,11)+directions(i,12))/3.;
+            //face 2
             
-            directions(i,8) = (v1[i]-v2[i])/sqrt(2.);
-            directions(i,9) = (v3[i]-v2[i])/sqrt(2.);
-            directions(i,11) = (v1[i]-2.0*v2[i]+v3[i])/sqrt(6.);
-            
-            directions(i,14) = v1[i];
-            directions(i,15) = v2[i];
-            directions(i,16) = v3[i];
-            directions(i,17) = (v1[i]+v2[i])/sqrt(2.);
-            directions(i,18) = (v2[i]+v3[i])/sqrt(2.);
-            directions(i,19) = (v1[i]+v3[i])/sqrt(2.);
-            directions(i,20) = (v1[i]+v2[i]+v3[i])/sqrt(3.);
-            
-            
-            directions(i,22) = (v2[i]-v1[i])/sqrt(2.);
-            directions(i,23) = (v3[i]-v1[i])/sqrt(2.);
-            directions(i,25) = (v2[i]-2.0*v1[i]+v3[i])/sqrt(6.);
+            directions(i,14) = v1[i]*Nvivdiagb; 
+            directions(i,15) = v2[i]*Nvivdiagb; 
+            directions(i,16) = v3[i]*Nvivdiagb; 
+            directions(i,17) = (directions(i,14)+directions(i,15))/2.;              
+            directions(i,18) = (directions(i,15)+directions(i,16))/2.;               
+            directions(i,19) = (directions(i,14)+directions(i,16))/2.;              
+            directions(i,20) = (directions(i,17)+directions(i,18)+directions(i,19))/3.; 
+            //face 3
+            directions(i,21) = -v1[i]*Nv2v3;
+            directions(i,22) = (v2[i]-v1[i])*Nv2v3;               
+            directions(i,23) = (v3[i]-v1[i])*Nv2v3;
+            directions(i,24) = (directions(i,21)+directions(i,22))/2.;
+            directions(i,25) = (directions(i,22)+directions(i,23))/2.;
+            directions(i,26) = (directions(i,21)+directions(i,23))/2.;
+            directions(i,27) = (directions(i,24)+directions(i,25)+directions(i,26))/3.;
             
             //arestas
             directions(i,28) = v1[i];
-            directions(i,29) = (v2[i]-v1[i])/sqrt(2.);            
+            directions(i,29) = (v2[i]-v1[i]);                           
             directions(i,30) = -v2[i];
             directions(i,31) = v3[i];
-            directions(i,32) = (v3[i]-v1[i])/sqrt(2.);
-            directions(i,33) = (v3[i]-v2[i])/sqrt(2.);
+            directions(i,32) = (v3[i]-v1[i]);               
+            directions(i,33) = (v3[i]-v2[i]);               
             
             //faces
             directions(i,34) = v1[i];
             directions(i,35) = v2[i];
             directions(i,36) = v1[i];
             directions(i,37) = v3[i];
-            directions(i,38) = (v2[i]-v1[i])/sqrt(2.);  
-            directions(i,39) = (-v1[i]-v2[i]+2.0*v3[i])/sqrt(6.);
+            directions(i,38) = (v2[i]-v1[i]);                
+            directions(i,39) = (v3[i]-v1[i]); 
             directions(i,40) = v2[i];
             directions(i,41) = v3[i];
             
@@ -1113,8 +1141,7 @@ namespace pztopology {
             directions(i,43) = v2[i];
             directions(i,44) = v3[i];
             
-        }
-        
+        }        
         
     }
 

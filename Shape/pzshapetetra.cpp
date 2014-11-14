@@ -461,28 +461,46 @@ namespace pzshape {
                 DebugStop();
             }
             int count = 0;
-            int orderplus1 = order+1;
-            for (int i=4; i<orderplus1; i++)
-            {
-                for (int j=4; j<orderplus1; j++)
-                {
-                    for (int k=4; k<orderplus1; k++)
-                    {
+            int ord = order-3;
+            for (int i=0;i<ord;i++) {
+                for (int j=0;j<ord;j++) {
+                    for (int k=0;k<ord;k++) {
                         int a = i;
                         int b = j;
                         int c = k;
-                        if ((a+b+c)<orderplus1)// Duvida
-                        {
-                            shapeorders(count,0) = a;
-                            shapeorders(count,1) = b;
-                            shapeorders(count,2) = c;
+                        int soma = a+b+c;
+                        if( soma < ord ) { // Duvida
+                            shapeorders(count,0) = 4 + soma;
+                            shapeorders(count,1) = 4 + soma;
+                            shapeorders(count,2) = 4 + soma;
                             count++;
                         }
                     }
-                    
                 }
             }
-            
+//            int orderplus1 = order+1;
+//            for (int i=4; i<orderplus1; i++)
+//            {
+//                for (int j=4; j<orderplus1; j++)
+//                {
+//                    for (int k=4; k<orderplus1; k++)
+//                    {
+//                        int a = i;
+//                        int b = j;
+//                        int c = k;
+//                        int soma = a+b+c;
+//                        if ((soma)<orderplus1)// Duvida
+//                        {
+//                            shapeorders(count,0) = soma;
+//                            shapeorders(count,1) = soma;
+//                            shapeorders(count,2) = soma;
+//                            count++;
+//                        }
+//                    }
+//                    
+//                }
+//            }
+
         }
     }
 	
