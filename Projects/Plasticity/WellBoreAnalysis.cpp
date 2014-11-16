@@ -175,7 +175,6 @@ void TPZWellBoreAnalysis::TConfig::ConfigureBoundaryConditions()
 
 TPZWellBoreAnalysis::TPZWellBoreAnalysis() : fCurrentConfig(), fSequence(), fPostProcessNumber(0), fLinearMatrix()
 {
-    
 }
 
 TPZWellBoreAnalysis::TPZWellBoreAnalysis(const TPZWellBoreAnalysis &copy) : fCurrentConfig(copy.fCurrentConfig), fSequence(copy.fSequence), fPostProcessNumber(copy.fPostProcessNumber), fLinearMatrix(copy.fLinearMatrix)
@@ -581,10 +580,10 @@ RunStatsTable well_init("-tpz_well_init", "Raw data table statistics for TPZElas
 void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 {
     std::stringstream strout;
-    strout << "InitialSimulation";
-    fCurrentConfig.fHistoryLog = strout.str();
+    strout << "Initial Simulation";
     fCurrentConfig.fSolution.Redim(fCurrentConfig.fCMesh.NEquations(), 1);
-    fSequence.push_back(fCurrentConfig);
+    SaveConfig(strout);
+//    fSequence.push_back(fCurrentConfig);
 
     for (int istep = 1; istep <= nsteps; istep++) {
         REAL factor = istep*1./nsteps;
@@ -598,8 +597,9 @@ void TPZWellBoreAnalysis::EvolveBothPressures(int nsteps, STATE TargetWellborePr
 {
     std::stringstream strout;
     strout << "Evolve";
-    fCurrentConfig.fHistoryLog = strout.str();
-    fSequence.push_back(fCurrentConfig);
+    SaveConfig(strout);
+//    fCurrentConfig.fHistoryLog = strout.str();
+//    fSequence.push_back(fCurrentConfig);
 
     STATE InitWellPressure = fCurrentConfig.fWellborePressure;
     STATE InitReservoirPressure = fCurrentConfig.fReservoirPressure;
@@ -767,11 +767,14 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
     SX=SX-fCurrentConfig.fBiotCoef*fCurrentConfig.fReservoirPressure;//total
     SY=SY-fCurrentConfig.fBiotCoef*fCurrentConfig.fReservoirPressure;//total
 
+    
     strout << " Substep " << substeps << " - (total stresses) "<< " SX  = " << SX << " SY  = " << SY;
 
-    fCurrentConfig.fHistoryLog = strout.str();
+    SaveConfig(strout);
+//    fCurrentConfig.fHistoryLog = strout.str();
 
-    fSequence.push_back(LocalConfig);
+    
+//    fSequence.push_back(LocalConfig);
 }
 
 
@@ -2064,6 +2067,28 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<long> &elindices)
 #endif
     }
 }
+
+/// Debugging method, printing the parameters of the forcing function
+void TPZWellBoreAnalysis::TConfig::PrintForcingFunction(std::ostream &out)
+{
+    TPZMaterial *matplast = fCMesh.FindMaterial(1);
+    if(!matplast)
+    {
+        out << __PRETTY_FUNCTION__ << " no material\n";
+        return;
+    }
+    TPZAutoPointer<TPZFunction<STATE> > force = matplast->ForcingFunction();
+    TPBrBiotForce *biot = dynamic_cast<TPBrBiotForce *>(force.operator->());
+    if (!biot) {
+        out << "No biot force configured\n";
+    }
+    else
+    {
+        biot->Print(out);
+    }
+}
+
+
 
 void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 {
@@ -3437,7 +3462,15 @@ void TPZWellBoreAnalysis::SaveConfig(std::stringstream &strout) {
     {
         fCurrentConfig.fSolution = fCurrentConfig.fCMesh.Solution();
     }
+//#ifdef DEBUG
+//    std::cout << "Before putting the current config in the list\n";
+//    fCurrentConfig.PrintForcingFunction();
+//#endif
     fSequence.push_back(fCurrentConfig);
+//#ifdef DEBUG
+//    std::cout << "After putting the current config in the list\n";
+//    fSequence.rbegin()->PrintForcingFunction();
+//#endif
 }
 
 void TPZWellBoreAnalysis::TConfig::Print(ostream &out)

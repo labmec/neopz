@@ -179,6 +179,9 @@ public:
         /// Compute the average vertical stress of the configuration
         STATE AverageVerticalStress();
         
+        /// Debugging method, printing the parameters of the forcing function
+        void PrintForcingFunction(std::ostream &out = std::cout);
+        
         /// Return gmesh
         TPZGeoMesh * GetGeoMesh();
 
@@ -386,9 +389,12 @@ public:
         list<TPZWellBoreAnalysis::TConfig>::iterator inte;
         int i=0;
         for (inte=fSequence.begin(); inte!=fSequence.end(); ++inte, i++)
+        {
             if (i == index)
+            {
                 return &(*inte);
-
+            }
+        }
         DebugStop();
         return 0;
     }

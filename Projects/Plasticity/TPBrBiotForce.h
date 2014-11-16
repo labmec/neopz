@@ -47,6 +47,18 @@ public:
 
   }
   
+    /** @brief Class copy constructor */
+    TPBrBiotForce & operator=(const TPBrBiotForce &cp)
+    {
+        TPZFunction::operator=(cp);
+        fRwell = cp.fRwell;
+        fRreservoir = cp.fRreservoir;
+        fPwell = cp.fPwell;
+        fPreservoir = cp.fPreservoir;
+        fBiot = cp.fBiot;
+        fConstant = cp.fConstant;
+        return *this;
+    }
   
 	/** @brief Class destructor */
 	virtual ~TPBrBiotForce()
@@ -118,7 +130,19 @@ public:
     /** @brief Print a brief statement */
     virtual void Print(std::ostream &out)
     {
-        out << __PRETTY_FUNCTION__ << std::endl;
+        out << __PRETTY_FUNCTION__ << (void *) this << std::endl;
+        /// pressao do poco
+        out << "Pressao do poco " <<  fPwell << std::endl;
+        /// pressao do reservatorio
+        out << "Pressao dos poros " << fPreservoir << std::endl;
+        /// raio do poco
+        out << "Raio do poco " <<  fRwell << std::endl;
+        /// raio do reservatorio
+        out << "Raio do reservatorio " <<  fRreservoir << std::endl;
+        /// constante de Biot
+        out << "Constante de biot " <<  fBiot << std::endl;
+        /// constant combination of above parameters
+        out << "Constante " << fConstant << std::endl;
         out << "NFunctions = " << NFunctions() << std::endl;
         out << "Polynomial Order = " << PolynomialOrder() << std::endl;
     }
