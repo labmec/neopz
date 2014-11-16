@@ -47,10 +47,14 @@ template <class T, class TMEM>
 TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(const TPZMatElastoPlasticSest2D<T,TMEM> &mat):TPZMatElastoPlastic2D<T, TMEM>(mat), fZDeformation(mat.fZDeformation), fbiot(mat.fbiot)
 {
   TPBrBiotForce * func = dynamic_cast<TPBrBiotForce *>(this->fForcingFunction.operator->());
+    
   if (func) {
     TPZAutoPointer<TPZFunction<STATE> > clonefunc = new TPBrBiotForce(*func);
     this->fForcingFunction = clonefunc;
   }
+    else
+    {
+    }
 }
 
 template <class T, class TMEM>
@@ -318,8 +322,8 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
   //Total Stress
   TPZTensor<REAL> totalStress = Sigma;
   
-  TPZManVector<STATE,3> AlphagradP(2);
-  TPZFNMatrix<1,STATE> AlphaP(1,1);
+  TPZManVector<STATE,3> AlphagradP(2,0.);
+  TPZFNMatrix<1,STATE> AlphaP(1,1,0.);
   if (this->fForcingFunction) {
     this->fForcingFunction->Execute(data.x,AlphagradP,AlphaP);
     totalStress.XX() -= AlphaP(0,0);
