@@ -111,6 +111,11 @@ public:
     virtual void start() = 0;
     /* Stop recording the execution statistics and accumulate the partial result. */
     virtual void stop() = 0;
+    
+    virtual ~RunStat()
+    {
+        
+    }
     /**
      * Print the statistics
      */
