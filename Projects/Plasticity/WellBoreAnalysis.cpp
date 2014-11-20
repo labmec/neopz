@@ -508,7 +508,7 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     fConfinementTotal.Write(out);
     fSDPV.Write(out);
     fMCPV.Write(out);
-    fMatEla.Write(out,TPZElasticityMaterialSest2DID); //AQUIPHIL
+    fMatEla.Write(out,0); //AQUIPHIL
 
 		int IntEPlasticModel = fModel;
 		out.Write(&IntEPlasticModel);
