@@ -981,6 +981,160 @@ void Config4()
     
 }
 
+void Config5()
+{
+    InitializePZLOG();
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    std::cout << std::setprecision(15);
+    
+    TPZWellBoreAnalysis well;
+    
+    STATE biotcoef = 0.659;
+    well.SetBiotCoefficient(biotcoef);
+    
+    REAL reservoirPressure=57.2;
+    well.SetReservoirPressure(reservoirPressure);
+    
+    
+    REAL SH,Sh,SV;
+    Sh=-83.5;
+    SH=-99.8;
+    SV=-85.9;
+    TPZManVector<STATE,3> confinementTotal(3,0.);
+    confinementTotal[0] = Sh;
+    confinementTotal[1] = SH;
+    confinementTotal[2] = SV;
+    REAL WellPressure = 57.2; //66.6 61.1 57.2
+    well.SetConfinementTotalStresses(confinementTotal, WellPressure);
+    
+    
+    REAL innerradius = 4.25*0.0254;
+    REAL outerradius = 3.;
+    well.SetInnerOuterRadius(innerradius, outerradius);
+    
+    
+    std::string output = "Config4.vtk";
+    const int nubsteps = 5;
+    well.SetVtkOutPutName(output);
+    EPlasticModel Emodel = ESandler;
+    if (Emodel == EMohrCoulomb)
+    {
+        REAL poisson = 0.203;
+        REAL elast = 29269.;
+        REAL cohesion = 13.;
+        REAL Phi = 0.52;
+        well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);        
+    }
+    else if (Emodel == ESandler)
+    {
+        REAL poisson = 0.203;
+        REAL elast = 29269.;
+        REAL A = 152.54;
+        REAL B = 0.0015489;
+        REAL C = 146.29;
+        REAL R = 0.91969;
+        REAL D = 0.018768;
+        REAL W = 0.006605;
+        well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
+    }
+    else if (Emodel == EElastic){ // Mohr-Coulomb with a VERY far way surface
+        REAL poisson = 0.203;
+        REAL elast = 29269.;
+        REAL cohesion = 1.e8; // Very very big
+        REAL Phi = 1.5533430342749532; // 89 degrees
+        
+#ifdef PlasticPQP
+      well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
+      well.GetCurrentConfig()->fModel = EElastic;
+#else
+      well.SetElasticParameters(poisson, elast);
+      well.GetCurrentConfig()->fModel = EElastic;
+#endif
+    }
+    
+    
+    int Startfrom=0;
+    if (Startfrom == 0)
+    {
+        int porder = 2;
+        int nrad=20;
+        int ncircle = 40;
+        REAL delx = 0.5*innerradius*M_PI_2/ncircle;
+        TPZManVector<int,2> numdiv(2);
+        numdiv[0] = nrad;
+        numdiv[1] = ncircle;
+        well.SetMeshTopology(delx, numdiv);
+        well.GetCurrentConfig()->fWellConfig = EVerticalWell;
+        well.GetCurrentConfig()->CreateMesh();
+        
+        well.GetCurrentConfig()->CreateComputationalMesh(porder);
+        std::cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
+        well.GetCurrentConfig()->CreatePostProcessingMesh();
+        //REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
+        //well.PostProcess(0);
+        
+    }
+    if (Startfrom ==0)
+    {
+        
+        int nsteps = 5;
+        int numnewton = 80;
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteInitialSimulation(nsteps, numnewton);
+        well.PostProcess(0);
+        TPZBFileStream save;
+        save.OpenWrite("wellbore0.bin");
+        well.Write(save);
+        
+    }
+    
+    if (Startfrom ==1)
+    {
+        TPZBFileStream read;
+        read.OpenRead("wellbore0.bin");
+        well.Read(read);
+    }
+    
+    
+    if (Startfrom <=1)
+    {
+        std::cout << "\n ------- 1 -------- "<<std::endl;
+        
+        well.PRefineElementAbove(0.0001, 2);
+        well.ExecuteSimulation(nubsteps);
+        well.PostProcess(0);
+        
+        cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
+        
+        well.SetFluidModel(EPenetrating);
+        well.ExecuteSimulation(nubsteps);
+        well.PostProcess(0);
+        cout << "Penetrating fluid Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
+        
+        
+//         well.EvolveBothPressures(4, WellPressure*1.2,reservoirPressure);
+//         cout << "Higher well pressure Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
+//         
+//         well.EvolveBothPressures(4,WellPressure,reservoirPressure*0.8);
+//         cout << "Lower reservoir pressure Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
+//         
+        TPZBFileStream save;
+        save.OpenWrite("wellbore1.bin");
+        well.Write(save);
+    }
+    
+//QUEBRA AKI
+    {
+        TPZBFileStream read;
+        read.OpenRead("wellbore1.bin");
+        well.Read(read);
+    }
+    
+}
+
+
 int main(int argc, char **argv)
 {
     clarg::parse_arguments(argc, argv);
@@ -989,7 +1143,8 @@ int main(int argc, char **argv)
 //    Config1();
 //    Config2();
 //    Config3();
-    Config4();
+//    Config4();
+    Config5();
     plast_tot.stop();
     
     
