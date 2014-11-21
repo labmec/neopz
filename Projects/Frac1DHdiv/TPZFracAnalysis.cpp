@@ -207,14 +207,14 @@ void TPZFracAnalysis::Run()
     TPZEquationFilter newEquationFilter(fcmeshMixed->NEquations());
     an->StructMatrix()->EquationFilter() = newEquationFilter; //AQUINATHAN
     
-    std::cout << "\nSolucao apos a propagacao:" << std::endl;
-    fcmeshMixed->Solution().Print("sol");
+    //std::cout << "\nSolucao apos a propagacao:" << std::endl;
+    //fcmeshMixed->Solution().Print("sol");
     
     an->LoadSolution(fcmeshMixed->Solution());
     this->PostProcessVTK(an);
   }
   
-  fData->PrintDebugMapForMathematica("DebugMapQl.nb");
+  fData->PrintDebugMapForMathematica("LfracO.nb");
   
   delete an;
 }
@@ -515,7 +515,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
       int itls = 0;
       while (NormResLambda > NormResLambdaLast) {
         SoliterK = prevsol - scale * DeltaU;
-        SoliterK.Print("Sol");
+        //SoliterK.Print("Sol");
         an->LoadSolution(SoliterK);
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
         an->Assemble();
@@ -559,22 +559,22 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
     
     AssembleLastStep(an);
     TPZFMatrix<> lastSol = an->Solution();
-    fLastStepRhs.Print("Rhsatn: ");
-    lastSol.Print("SOlLast: ");
+    //fLastStepRhs.Print("Rhsatn: ");
+    //lastSol.Print("SOlLast: ");
     //    TPZEquationFilter eqF(fcmeshMixed->NEquations());
     if (it == 0) { // aqui inicializo chutes iniciais para newton depois da propagacao
       
       if(nfracel == 1){ // esse caso eh para o primeiro elemento da simulacao
-        an->Solution().Print("anBefore");
+        //an->Solution().Print("anBefore");
         this->ComputeFirstSolForOneELement(an);
-        an->Solution().Print("anAfter");
+        //an->Solution().Print("anAfter");
         
         
       }
       else{ // aqui eh quando ha mais de 1 elemento
-        an->Solution().Print("anBefore");
+        //an->Solution().Print("anBefore");
         this->SetPressureOnLastElement(an);
-        an->Solution().Print("anAfter");
+        //an->Solution().Print("anAfter");
         
         //        // Fixo a pressao no ultimo elemento, e o resultado eh o chute inicial para o newton
         //        TPZCompEl *cel = fcmeshMixed->Element(fcmeshMixed->ElementVec().NElements()-2);
@@ -619,18 +619,13 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
     //      an->Rhs()(0,0) = 0.;
     //
     //    }while (Norm(an->Rhs()) > tol);
-    
+
+      
     IterativeProcess(an, std::cout);
     
     
-    
-    
     const REAL qtip = this->Qtip();
-    
-    if (it == 0 && nfracel != 1) {
-      fData->DebugMap().insert(std::pair<REAL, REAL> (fData->Lfrac(),qtip));
-    }
-    
+      
     if (qtip < 0.) {
       DebugStop();
       propagate = false;
@@ -638,10 +633,11 @@ bool TPZFracAnalysis::SolveSistTransient(TPZAnalysis *an)
     else{
       propagate = this->VerifyIfPropagate(qtip);
     }
-    
+      
     if (propagate) {
-      fData->DebugMap2().insert(std::pair<REAL, REAL> (fData->Lfrac(),qtip));
+      fData->DebugMap().insert(std::pair<REAL, REAL> (fData->Time(),fData->Lfrac()));
     }
+    
     
     if (propagate) {
       fData->SetLastQtip(qtip);
@@ -833,7 +829,7 @@ REAL TPZFracAnalysis::RunUntilOpen()
 }
 
 REAL TPZFracAnalysis::PropagationFlowCriteria(REAL qFreshNewEl, REAL ql){
-  return MAX(qFreshNewEl/3., 4.*ql);
+  return MAX(qFreshNewEl/5.0, 3.*ql);
 }
 
 TPZGeoEl * TPZFracAnalysis::FindPressureBCElement()
