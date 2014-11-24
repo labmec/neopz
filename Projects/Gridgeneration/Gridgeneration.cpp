@@ -37,13 +37,23 @@
 void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void BasicForm();
+void GIDExtrusion();
 
 bool ftriang = false;
 REAL angle = 0.0*M_PI/4.0;
 
 int main()
 {   
+//    BasicForm();
+    GIDExtrusion();
 
+ 
+    return 0;
+}
+
+void BasicForm(){
+    
     // Creating a 0D element to be extruded
     TPZGeoMesh * GeoMesh1 = new TPZGeoMesh;
     GeoMesh1->NodeVec().Resize(1);
@@ -59,11 +69,12 @@ int main()
     
     new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,matid,*GeoMesh1);
     GeoMesh1->BuildConnectivity();
+    GeoMesh1->SetDimension(0);
     {
         //  Print Geometrical Base Mesh
-        std::ofstream argument("GeometicMesh1.txt");
+        std::ofstream argument("GeometicMeshNew1.txt");
         GeoMesh1->Print(argument);
-        std::ofstream Dummyfile("GeometricMesh1.vtk");
+        std::ofstream Dummyfile("GeometricMeshNew1.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh1,Dummyfile, true);
     }
     
@@ -72,8 +83,8 @@ int main()
     TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
     CreateGridFrom.SetParametricFunction(ParFunc);
     REAL t=0.0;
-    REAL dt = 0.05;
-    int n = 50;
+    REAL dt = 0.04;
+    int n = 25.0;
     
     // Computing Mesh extruded along the parametric curve Parametricfunction
     TPZGeoMesh * GeoMesh2 = CreateGridFrom.ComputeExtrusion(t, dt, n);
@@ -85,6 +96,8 @@ int main()
         std::ofstream Dummyfile("GeometricMeshNew2.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh2,Dummyfile, true);
     }
+    
+    
     
     TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
     TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
@@ -100,10 +113,12 @@ int main()
         TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh3,Dummyfile, true);
     }
     
+    
+    
     TPZHierarquicalGrid CreateGridFrom3(GeoMesh3);
     TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction3);
     CreateGridFrom3.SetParametricFunction(ParFunc3);
-
+    
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh4 = CreateGridFrom3.ComputeExtrusion(t, dt, n);
     {
@@ -113,19 +128,59 @@ int main()
         std::ofstream Dummyfile("GeometricMeshNew4.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh4,Dummyfile, true);
     }
- 
-    return 0;
+    
 }
+void GIDExtrusion(){
+    
+   	std::string dirname = PZSOURCEDIR;
+    //  Reading mesh
+    std::string GridFileName;
+    GridFileName = dirname + "/Projects/Gridgeneration/";
+    //    GridFileName += "OilWaterSystemUnit.dump";
+    GridFileName += "BaseGeometryDakeThin.dump";
+
+    TPZReadGIDGrid GeometryInfo;
+    GeometryInfo.SetfDimensionlessL(100.0);
+    TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
+    gmesh->SetDimension(2);
+    {
+        //  Print Geometrical Base Mesh
+        std::ofstream argument("GeometicGIDMesh1.txt");
+        gmesh->Print(argument);
+        std::ofstream Dummyfile("GeometricGIDMesh1.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
+    }
+    
+    REAL t=0.0;
+    REAL dt = 0.1;
+    int n = 10.0;
+    
+    TPZHierarquicalGrid CreateGridFrom3(gmesh);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction3);
+    CreateGridFrom3.SetParametricFunction(ParFunc3);
+    
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    TPZGeoMesh * GeoMesh2 = CreateGridFrom3.ComputeExtrusion(t, dt, n);
+    {
+        //  Print Geometrical Base Mesh
+        std::ofstream argument("GeometicGIDMesh2.txt");
+        GeoMesh2->Print(argument);
+        std::ofstream Dummyfile("GeometricGIDMesh2.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh2,Dummyfile, true);
+    }
+    
+}
+
 void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
-    X[0] = par[0];
-    X[1] = cos(par[0]);
+    X[0] = cos(par[0]);
+    X[1] = sin(par[0]);
     X[2] = 0.0;
 }
 
 void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
-    X[0] = 0.0;
+    X[0] = par[0];
     X[1] = par[0];
     X[2] = 0.0;
 }
@@ -133,6 +188,6 @@ void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;
-    X[1] = cos(par[0]);
-    X[2] = par[0];
+    X[1] = 0.0;//cos(par[0]);
+    X[2] = par[0];//par[0];
 }
