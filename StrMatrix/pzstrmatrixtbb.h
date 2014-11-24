@@ -160,6 +160,8 @@ protected:
     struct TPZGraphThreadData {
         // create tbb::flow::graph
         TPZGraphThreadData(TPZStructMatrixTBB *strmat, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        // copy constructor
+        TPZGraphThreadData(TPZGraphThreadData *copy);
         // destructor
         ~TPZGraphThreadData();
         // tbb tasks graph

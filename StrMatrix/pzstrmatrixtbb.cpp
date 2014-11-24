@@ -57,9 +57,9 @@ TPZStructMatrixTBB::TPZStructMatrixTBB(TPZCompMesh *mesh) : fMesh(mesh), fEquati
     fMesh = mesh;
     this->SetNumThreads(0);
     stat_ass_graph_tbb.start();
-    TPZManVector<int> ElementOrder;
-    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
-    TPZStructMatrixTBB::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
+    //    TPZManVector<int> ElementOrder;
+    //    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
+    //    TPZStructMatrixTBB::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
 #ifdef USING_TBB
     fAssembleThreadGraph=new TPZGraphThreadData(this, fMaterialIds, 0);
 #endif
@@ -70,9 +70,9 @@ TPZStructMatrixTBB::TPZStructMatrixTBB(TPZAutoPointer<TPZCompMesh> cmesh) : fCom
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
     stat_ass_graph_tbb.start();
-    TPZManVector<int> ElementOrder;
-    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
-    TPZStructMatrixTBB::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
+    //    TPZManVector<int> ElementOrder;
+    //    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
+    //    TPZStructMatrixTBB::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
 #ifdef USING_TBB
     fAssembleThreadGraph=new TPZGraphThreadData(this, fMaterialIds, 0);
 #endif
@@ -89,7 +89,7 @@ TPZStructMatrixTBB::TPZStructMatrixTBB(const TPZStructMatrixTBB &copy) : fMesh(c
     felSequenceColor = copy.felSequenceColor;
     fnextBlocked = copy.fnextBlocked;
 #ifdef USING_TBB
-    fAssembleThreadGraph = copy.fAssembleThreadGraph;
+    fAssembleThreadGraph  = new TPZGraphThreadData(copy.fAssembleThreadGraph);
 #endif
 }
 
@@ -435,10 +435,10 @@ void TPZStructMatrixTBB::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &
 TPZMatrix<STATE> * TPZStructMatrixTBB::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
     TPZMatrix<STATE> *stiff = Create();
-    
-    //long neq = stiff->Rows();
+
     long cols = MAX(1, rhs.Cols());
     rhs.Redim(fEquationFilter.NEqExpand(),cols);
+    
     Assemble(*stiff,rhs,guiInterface);
     
 #ifdef LOG4CXX2
@@ -503,40 +503,18 @@ void TPZStructMatrixTBB::SetMaterialIds(const std::set<int> &materialids)
 
 void TPZStructMatrixTBB::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-    //    ThreadData threaddata(this,mat,rhs,fMaterialIds,guiInterface);
-    //
-    //    threaddata.fnextBlocked=&fnextBlocked;
-    //    threaddata.felSequenceColor=&felSequenceColor;
-    //
-    //    const int numthreads = this->fNumThreads;
-    //    TPZVec<pthread_t> allthreads(numthreads);
-    //    int itr;
-    //    if(guiInterface){
-    //        if(guiInterface->AmIKilled()){
-    //            return;
-    //        }
-    //    }
-    //    for(itr=0; itr<numthreads; itr++)
-    //    {
-    //        PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork,
-    //                          &threaddata, __FUNCTION__);
-    //    }
-    //
-    //    for(itr=0; itr<numthreads; itr++)
-    //    {
-    //        PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
-    //    }
-    //
-    //#ifdef LOG4CXX
-    //    if(loggerCheck->isDebugEnabled())
-    //    {
-    //        std::stringstream sout;
-    //        //stiffness.Print("Matriz de Rigidez: ",sout);
-    //        mat.Print("Matriz de Rigidez: ",sout,EMathematicaInput);
-    //        rhs.Print("Right Handside", sout,EMathematicaInput);
-    //        LOGPZ_DEBUG(loggerCheck,sout.str())
-    //    }
-    //#endif
+#ifdef USING_TBB
+    
+    delete fAssembleThreadGraph;
+    fAssembleThreadGraph=new TPZGraphThreadData(this, fMaterialIds, 0);
+    
+    fAssembleThreadGraph->fGlobMatrix=&mat;
+    fAssembleThreadGraph->fGlobRhs=&rhs;
+    fAssembleThreadGraph->fStart.try_put(continue_msg());
+    fAssembleThreadGraph->fAssembleGraph.wait_for_all();
+    fAssembleThreadGraph->fGlobMatrix=0;
+    fAssembleThreadGraph->fGlobRhs=0;
+#endif
 }
 
 
@@ -546,6 +524,8 @@ void TPZStructMatrixTBB::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoi
     fAssembleThreadGraph->fGlobRhs=&rhs;
     fAssembleThreadGraph->fStart.try_put(continue_msg());
     fAssembleThreadGraph->fAssembleGraph.wait_for_all();
+    fAssembleThreadGraph->fGlobMatrix=0;
+    fAssembleThreadGraph->fGlobRhs=0;
 #endif
 }
 
@@ -821,51 +801,91 @@ void TPZStructMatrixTBB::TPZGraphThreadNode::operator()(tbb::flow::continue_msg)
     
     int element = data->felSequenceColor[iel];
     
-    if (element >= 0) {
-        
-        TPZCompEl *el = cmesh->ElementVec()[element];
-        
-        if (data->fGlobMatrix) {
-            el->CalcStiff(ek,ef);
-        } else {
-            el->CalcResidual(ef);
-        }
-        
-        if(!el->HasDependency()) {
-            ef.ComputeDestinationIndices();
-            data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
-        } else {
-            // the element has dependent nodes
-            ef.ApplyConstraints();
-            ef.ComputeDestinationIndices();
-            data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+            if (element >= 0){
             
-            if (data->fGlobMatrix) {
-                ek.ApplyConstraints();
-                ek.ComputeDestinationIndices();
+            TPZCompEl *el = cmesh->ElementVec()[element];
+            
+            if (data->fGlobMatrix)
+                el->CalcStiff(ek,ef);
+            else
+                el->CalcResidual(ef);
+            
+            if(!el->HasDependency()) {
+                
+                if (data->fGlobMatrix) {
+                    ek.ComputeDestinationIndices();
+                    data->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+                } else {
+                    ef.ComputeDestinationIndices();
+                    data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+                }
+                
+            } else {
+                // the element has dependent nodes
+                if (data->fGlobMatrix) {
+                    ek.ApplyConstraints();
+                    ef.ApplyConstraints();
+                    ek.ComputeDestinationIndices();
+                    data->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+                } else {
+                    ef.ApplyConstraints();
+                    ef.ComputeDestinationIndices();
+                    data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+                }
+                
             }
-        }
+            
+            
+            if(data->fGlobMatrix) {
+                // assemble the matrix
+                if(!ek.HasDependency()) {
+                    data->fGlobMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+                    data->fGlobRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+                } else {
+                    data->fGlobMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+                    data->fGlobRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+                }
+            } else {
+                if(!ef.HasDependency()) {
+                    data->fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+                } else {
+                    data->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+                }
+            }
+                
+        } // outsided if
         
-        if(!ef.HasDependency()) {
-            data->fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
-            if (data->fGlobMatrix) {
-                data->fGlobMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            }
-        }
-        else {
-            data->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
-            if (data->fGlobMatrix) {
-                data->fGlobMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-            }
-        }
-    }
-    
 }
 
 // destructor
 TPZStructMatrixTBB::TPZGraphThreadData::~TPZGraphThreadData() {
-    for (int i=0; i<felSequenceColor.NElements(); i++) {
+    for (int i=0; i<fGraphNodes.size(); i++) {
         delete fGraphNodes[i];
     }
 }
+
+TPZStructMatrixTBB::TPZGraphThreadData::TPZGraphThreadData(TPZGraphThreadData *copy)
+: fStart(fAssembleGraph), fStruct(copy->fStruct), fGuiInterface(copy->fGuiInterface), fGlobMatrix(0) {
+    
+    fnextBlocked = copy->fnextBlocked;
+    felSequenceColor = copy->felSequenceColor;
+    
+    fGraphNodes.resize(felSequenceColor.NElements());
+    for (int i=0; i<felSequenceColor.NElements(); i++) {
+        fGraphNodes[i]= new continue_node<continue_msg>(fAssembleGraph, TPZGraphThreadNode(this, i));
+    }
+    // initial edges to independent nodes
+    for (int i=0; i<felSequenceColor.NElements(); i++) {
+        make_edge(fStart, *fGraphNodes[i]);
+    }
+    // edges from sucessors to nextBlockedElements
+    for (int i=0; i<felSequenceColor.NElements(); i++) {
+        int next=fnextBlocked[i];
+        if (next>0) make_edge(*fGraphNodes[i], *fGraphNodes[next]);
+    }
+    
+    
+}
+
+
 #endif
