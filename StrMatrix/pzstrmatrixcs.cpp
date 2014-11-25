@@ -807,6 +807,9 @@ void TPZStructMatrixCS::AssembleTask::operator()(const tbb::blocked_range<size_t
         }
         
         TPZCompEl *el = cmesh->ElementVec()[iel];
+        
+        if (el) {
+            
         TPZElementMatrix *ekp = ek.operator->();
         TPZElementMatrix *efp = ef.operator->();
         TPZElementMatrix &ekr = *ekp;
@@ -900,7 +903,7 @@ void TPZStructMatrixCS::AssembleTask::operator()(const tbb::blocked_range<size_t
             data->fGlobRhs->AddFel(ef->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
             PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementF,"");
         }
-        
+        }
     }
 }
 #endif
