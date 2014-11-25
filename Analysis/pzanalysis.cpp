@@ -97,42 +97,66 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 
 
 void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
-	fCompMesh = mesh;
-	fGeoMesh = mesh->Reference();
-	fGraphMesh[0] = 0;
-	fGraphMesh[1] = 0;
-	fGraphMesh[2] = 0;
-	if(fSolver) fSolver->ResetMatrix();
-    fCompMesh->ExpandSolution();
-    fSolution = fCompMesh->Solution();
-    long neq = fCompMesh->NEquations();
-    fSolution.Resize(neq,1);
-    if(neq > 20000)
+    if(mesh)
     {
-        std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth\n";
-        std::cout.flush();
+        fCompMesh = mesh;
+        fGeoMesh = mesh->Reference();
+        fGraphMesh[0] = 0;
+        fGraphMesh[1] = 0;
+        fGraphMesh[2] = 0;
+        if(fSolver) fSolver->ResetMatrix();
+        fCompMesh->ExpandSolution();
+        fSolution = fCompMesh->Solution();
+        long neq = fCompMesh->NEquations();
+        fSolution.Resize(neq,1);
+        if(neq > 20000)
+        {
+            std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth\n";
+            std::cout.flush();
+        }
+        if(mustOptimizeBandwidth)
+        {
+            OptimizeBandwidth();
+        }
+        if(neq > 20000)
+        {
+            std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth finished\n";
+            std::cout.flush();
+        }
     }
-	if(mustOptimizeBandwidth)
+    else
     {
-        OptimizeBandwidth();
-    }
-    if(neq > 20000)
-    {
-        std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth finished\n";
-        std::cout.flush();
+        CleanUp();
     }
 	fStep = 0;
 	fTime = 0.;
 }
 
 TPZAnalysis::~TPZAnalysis(void){
-	if(fSolver) delete fSolver;
-	int dim;
-	for(dim=0; dim<3; dim++) {
-		if(fGraphMesh[dim]) delete fGraphMesh[dim];
-		fGraphMesh[dim] = 0;
-	}
+    CleanUp();
 }
+
+/// deletes all data structures
+void TPZAnalysis::CleanUp()
+{
+    if(fSolver) delete fSolver;
+    int dim;
+    for(dim=0; dim<3; dim++) {
+        if(fGraphMesh[dim]) delete fGraphMesh[dim];
+        fGraphMesh[dim] = 0;
+        fScalarNames[dim].resize(0);
+        fVectorNames[dim].resize(0);
+    }
+    fCompMesh = 0;
+    fGeoMesh = 0;
+    fSolution.Redim(0,0);
+    fRhs.Redim(0,0);
+    fStructMatrix = 0;
+    fRenumber = 0;
+    fGuiInterface = 0;
+    
+}
+
 
 void TPZAnalysis::OptimizeBandwidth() {
 	//enquanto nao compilamos o BOOST no windows, vai o sloan antigo

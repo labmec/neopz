@@ -27,6 +27,10 @@ public:
 TPZPostProcAnalysis(TPZCompMesh * pRef);
 
 TPZPostProcAnalysis();
+    
+    TPZPostProcAnalysis(const TPZPostProcAnalysis &copy);
+    
+    TPZPostProcAnalysis &operator=(const TPZPostProcAnalysis &copy);
 
 virtual ~TPZPostProcAnalysis();
 	

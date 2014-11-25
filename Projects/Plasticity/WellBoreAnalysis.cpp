@@ -451,10 +451,13 @@ TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.f
     fGMesh.ResetReference();
     fCMesh.SetReference(&fGMesh);
     fCMesh.LoadReferences();
+    std::cout << "Copy constructor from " << (void *) &conf << " to " << (void *) this << std::endl;
+
 }
 
 TPZWellBoreAnalysis::TConfig::~TConfig()
 {
+    std::cout << "Deleting config " << (void *) this << std::endl;
     fPostprocess.SetCompMesh(0);
     fCMesh.CleanUp();
     fCMesh.SetReference(0);
@@ -491,6 +494,7 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fBiotCoef = copy.fBiotCoef;
     fWellConfig = copy.fWellConfig;
     
+    std::cout << "Copying " << (void *) &copy << " to " << (void *) this << std::endl;
     return *this;
 }
 

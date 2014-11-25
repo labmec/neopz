@@ -30,43 +30,20 @@ TPZPostProcAnalysis::TPZPostProcAnalysis() : fpMainMesh(NULL)
 
 TPZPostProcAnalysis::TPZPostProcAnalysis(TPZCompMesh * pRef):TPZAnalysis(), fpMainMesh(pRef)
 {
-//    
-//    TPZCompMesh* pcMainMesh = fpMainAnalysis->Mesh();
-//    //TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcMainMesh);
-//    
-//    TPZGeoMesh * pgmesh = pcMainMesh->Reference();
-//
-//    
-//    TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
-//    
-//    
-//    //TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
-//    
-//    //pcPostProcMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuousReferred();
-//    //SetAllCreateFunctionsDiscontiunous(pcPostProcMesh);
-//    //pcPostProcMesh->LoadReferred(pcMainMesh);
-//    
-//    pcPostProcMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
-//    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
-//
-//    fCompMesh = pcPostProcMesh;
     
     SetCompMesh(pRef);
+    
+}
 
-//    TPZCompMesh* pcMainMesh = fpMainMesh;
-//    
-//    TPZGeoMesh * pgmesh = pcMainMesh->Reference();
-//
-//   // TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
-//    
-//    TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
-//    
-//    fCompMesh = pcPostProcMesh;
-//
-//    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
+TPZPostProcAnalysis::TPZPostProcAnalysis(const TPZPostProcAnalysis &copy) : TPZAnalysis(), fpMainMesh(0)
+{
     
-    
-    
+}
+
+TPZPostProcAnalysis &TPZPostProcAnalysis::operator=(const TPZPostProcAnalysis &copy)
+{
+    SetCompMesh(0);
+    return *this;
 }
 
 TPZPostProcAnalysis::~TPZPostProcAnalysis()
@@ -74,6 +51,7 @@ TPZPostProcAnalysis::~TPZPostProcAnalysis()
     if (fCompMesh) {
         delete fCompMesh;
     }
+    
 }
 
 /// Set the computational mesh we are going to post process
@@ -85,8 +63,10 @@ void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
     }
     
     if (fCompMesh) {
+        std::cout << "PostProcAnalysis deleting the mesh " << (void *) fCompMesh << std::endl;
         delete fCompMesh;
         fCompMesh = 0;
+        TPZAnalysis::CleanUp();
     }
 
     fpMainMesh = pRef;

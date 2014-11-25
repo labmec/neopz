@@ -30,7 +30,7 @@ TPZPostProcMat::TPZPostProcMat(const TPZPostProcMat &mat) : /*TPZMaterial*/TPZDi
 
 TPZPostProcMat::~TPZPostProcMat()
 {
-	PZError << "\nMaterial " << Id() << " killed\n";
+    std::cout << "\nMaterial " << Id() << " killed\n";
 
 }
 

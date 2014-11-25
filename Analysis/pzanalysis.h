@@ -128,6 +128,10 @@ protected:
 	
 	/** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
+    
+    /// deletes all data structures
+    void CleanUp();
+    
 	/** @brief Sets the computer connection block number from the graphical connections block number otimization */
 	void OptimizeBandwidth();
 	
