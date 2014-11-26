@@ -189,7 +189,8 @@ add_subdirectory(proDG)
 			add_subdirectory(ReducedSpace)
 			add_subdirectory(ReducedSpacePlasticity)
 			add_subdirectory(StabilizedHybridElasticity)
-			
+			add_subdirectory(GlobalPostPro)
+
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
