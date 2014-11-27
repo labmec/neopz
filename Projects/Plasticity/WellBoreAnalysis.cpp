@@ -110,7 +110,12 @@ void TPZWellBoreAnalysis::TConfig::ConfigureBoundaryConditions()
     prevbnd = dynamic_cast<TPZBndCond *>(prev);
     if (!prevbnd || prevbnd->Material() != mat) {
 //        DebugStop();
-        TPZMaterial * bc3 = mat->CreateBC(mat,EOuter,4,k3,f3);
+//        TPZMaterial * bc3 = mat->CreateBC(mat,EOuter,4,k3,f3);
+        k3(0,0)=TPZMaterial::gBigNumber;
+        k3(1,1)=TPZMaterial::gBigNumber;
+        k3(2,2)=TPZMaterial::gBigNumber;
+        f3.Zero();
+        TPZMaterial * bc3 = mat->CreateBC(mat,EOuter,0,k3,f3);
         fCMesh.InsertMaterialObject(bc3);
     }
     else

@@ -419,9 +419,9 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
       Solout[0] = 0.; //DUVIDA
       break;
     case EDisplacementTotal:
-      for (int i = 0; i < 2; i++) {
-        Solout[i] = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[i];
-      }
+          STATE ux = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[0];
+          STATE uy = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[1];
+          Solout[0] = sqrt(ux*ux+uy*uy);
       break;
       // Total Stress
     case ETotStressI1:
