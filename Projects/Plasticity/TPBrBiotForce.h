@@ -42,7 +42,7 @@ public:
     }
 
   /** @brief Class copy constructor */
-  TPBrBiotForce(const TPBrBiotForce &cp) : TPZFunction(cp), fRwell(cp.fRwell), fRreservoir(cp.fRreservoir), fPwell(cp.fPwell), fPreservoir(cp.fPreservoir), fBiot(cp.fBiot), fConstant(cp.fConstant)
+  TPBrBiotForce(const TPBrBiotForce &cp) : TPZFunction<STATE>(cp), fRwell(cp.fRwell), fRreservoir(cp.fRreservoir), fPwell(cp.fPwell), fPreservoir(cp.fPreservoir), fBiot(cp.fBiot), fConstant(cp.fConstant)
   {
 
   }
@@ -50,7 +50,7 @@ public:
     /** @brief Class copy constructor */
     TPBrBiotForce & operator=(const TPBrBiotForce &cp)
     {
-        TPZFunction::operator=(cp);
+        TPZFunction<STATE>::operator=(cp);
         fRwell = cp.fRwell;
         fRreservoir = cp.fRreservoir;
         fPwell = cp.fPwell;
