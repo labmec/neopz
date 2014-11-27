@@ -331,6 +331,9 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
     totalStress.ZZ() -= AlphaP(0,0);
   }
   
+    STATE ux = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[0];
+    STATE uy = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[1];
+    
   switch (var) {
     // Total Strain
     case EStrainVol:
@@ -419,8 +422,9 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
       Solout[0] = 0.; //DUVIDA
       break;
     case EDisplacementTotal:
-          STATE ux = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[0];
-          STATE uy = TPZMatWithMem<TMEM>::fMemory[intPt].fDisplacement[1];
+          
+
+          
           Solout[0] = sqrt(ux*ux+uy*uy);
       break;
       // Total Stress
