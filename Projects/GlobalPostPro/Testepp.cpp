@@ -19,7 +19,7 @@
 #include "pzbfilestream.h"
 #include "pzbndcond.h"
 #include <TPZMatLaplacian.h>
-#include "tpzdifureac.h"
+//#include "tpzdifureac.h"
 #include "pzgeopoint.h"
 #include "TPZGeoLinear.h"
 #include "TPZRefPattern.h"

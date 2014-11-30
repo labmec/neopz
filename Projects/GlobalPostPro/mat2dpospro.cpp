@@ -91,7 +91,7 @@ void Mat2Dpospro::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STAT
     TPZFMatrix<REAL> &phiTau = data.phi;
     TPZFMatrix<REAL> &dphiTau = data.dphix;
     TPZVec<REAL>  &x = data.x;
-    TPZVec<REAL> divphi[fDim];//zerar
+    TPZVec<REAL> divphi(fDim);//zerar
     //    TPZFMatrix<REAL> &axes = data.axes;
     //    TPZFMatrix<REAL> &jacinv = data.jacinv;
     int phr = data.fVecShapeIndex.NElements();
