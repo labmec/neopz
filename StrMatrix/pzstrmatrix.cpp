@@ -25,6 +25,7 @@
 
 #include "pzcheckconsistency.h"
 #include "pzmaterial.h"
+#include "run_stats_table.h"
 
 using namespace std;
 
@@ -75,7 +76,11 @@ TPZStructMatrixST *TPZStructMatrixST::Clone() {
 }
 
 
+RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
+RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
+
 void TPZStructMatrixST::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+	ass_stiff.start();
     if (fEquationFilter.IsActive()) {
         long neqcondense = fEquationFilter.NActiveEquations();
 #ifdef DEBUG
@@ -102,9 +107,11 @@ void TPZStructMatrixST::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE>
             this->Serial_Assemble(stiffness,rhs,guiInterface);
         }
     }
+	ass_stiff.stop();
 }
 
 void TPZStructMatrixST::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+	ass_rhs.start();
     if(fEquationFilter.IsActive())
     {
         long neqcondense = fEquationFilter.NActiveEquations();
@@ -132,7 +139,8 @@ void TPZStructMatrixST::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
         else{
             this->Serial_Assemble(rhs,guiInterface);
         }
-    }
+    }	
+	ass_rhs.stop();
 }
 
 

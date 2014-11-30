@@ -1140,11 +1140,11 @@ int main(int argc, char **argv)
     clarg::parse_arguments(argc, argv);
     
     plast_tot.start();
-//    Config1();
+    Config1();
 //    Config2();
 //    Config3();
 //    Config4();
-    Config5();
+//    Config5();
     plast_tot.stop();
     
     
