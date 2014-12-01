@@ -944,6 +944,8 @@ void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSeque
     const int nnodes = cmesh->NConnects();
     const int nel = cmesh->ElementVec().NElements();
     
+    if (!nel) return;
+    
     elColors.Resize(nel, -1);
     
     TPZManVector<int> elContribute(nnodes,-1), passIndex(nel,-1), elSequenceColorInv(nel,-1);

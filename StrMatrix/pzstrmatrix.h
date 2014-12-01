@@ -217,13 +217,13 @@ protected:
 #ifndef TPZStructMatrix_H
 #define TPZStructMatrix_H
 
-//#include "pzstrmatrixcs.h"
-//#include "pzstrmatrixgc.h"
-//#include "pzstrmatrixot.h"
-//#include "pzstrmatrixtbb.h"
+#include "pzstrmatrixcs.h"
+#include "pzstrmatrixgc.h"
+#include "pzstrmatrixot.h"
+#include "pzstrmatrixtbb.h"
 
 /** This is the original and stable version of multi_thread_assemble (producer-consumer) */
-typedef TPZStructMatrixST TPZStructMatrix;
+//typedef TPZStructMatrixST TPZStructMatrix;
 
 /** This version uses locks in the assemble contribuition with tbb (Nathan-Borin) */
 //typedef TPZStructMatrixCS TPZStructMatrix;
@@ -236,7 +236,7 @@ typedef TPZStructMatrixST TPZStructMatrix;
 //typedef TPZStructMatrixOT TPZStructMatrix;
 
 /** This version uses the graph coloring and create a tbb::flow::graph to process in parallel */
-//typedef TPZStructMatrixTBB TPZStructMatrix;
+typedef TPZStructMatrixTBB TPZStructMatrix;
 
 
 #endif
