@@ -214,8 +214,8 @@ protected:
  * @brief Contains the TPZStructMatrix class which responsible for a interface among Matrix and Finite Element classes.
  */
 
-#ifndef TPZStructMatrix_H
-#define TPZStructMatrix_H
+#ifndef TPZ_STRUCT_MATRIX_H
+#define TPZ_STRUCT_MATRIX_H
 
 #include "pzstrmatrixcs.h"
 #include "pzstrmatrixgc.h"
@@ -223,7 +223,7 @@ protected:
 #include "pzstrmatrixtbb.h"
 
 /** This is the original and stable version of multi_thread_assemble (producer-consumer) */
-//typedef TPZStructMatrixST TPZStructMatrix;
+typedef TPZStructMatrixST TPZStructMatrix;
 
 /** This version uses locks in the assemble contribuition with tbb (Nathan-Borin) */
 //typedef TPZStructMatrixCS TPZStructMatrix;
@@ -236,7 +236,7 @@ protected:
 //typedef TPZStructMatrixOT TPZStructMatrix;
 
 /** This version uses the graph coloring and create a tbb::flow::graph to process in parallel */
-typedef TPZStructMatrixTBB TPZStructMatrix;
+//typedef TPZStructMatrixTBB TPZStructMatrix;
 
 
 #endif
