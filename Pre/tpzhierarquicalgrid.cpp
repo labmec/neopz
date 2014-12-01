@@ -141,7 +141,7 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
 {
     int jump =  fBase->NNodes();
     int dim = fBase->Dimension();
-    bool IsQuad= true;
+    bool IsQuad= false;
     
     TPZGeoEl *gel =  fBase->ElementVec()[iel];
     int gelNodes = gel->NNodes();
@@ -168,13 +168,13 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                         if (il==1){
                             TPZVec<long> Topology(gelNodes);
                             Topology[0]=NewGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
-                            new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elid++, Topology, -1,*NewGeomesh);
+                            new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elid++, Topology, -5,*NewGeomesh);
                         }
                         if (il==n)
                         {
                             TPZVec<long> Topology(gelNodes);
                             Topology[0]=NewGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
-                            new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elid++, Topology, -2,*NewGeomesh);
+                            new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elid++, Topology, -3,*NewGeomesh);
                         }
                     }
                     
@@ -209,7 +209,7 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                             TPZVec<long> Topology(gelNodes+1);
                             Topology[0]=NewGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
                             Topology[1]=NewGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
-                            new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elid++, Topology, -3,*NewGeomesh);
+                            new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elid++, Topology, -2,*NewGeomesh);
                         }
                         if (il==n)
                         {
@@ -260,7 +260,7 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                                 Topology[1]=NewGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
                                 Topology[2]=NewGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
                                 Topology[3]=NewGeomesh->NodeVec()[CTopology[3] + (il - 1) * jump].Id();
-                                new TPZGeoElRefPattern < pzgeom::TPZGeoQuad > (elid++, Topology, -5,*NewGeomesh);
+                                new TPZGeoElRefPattern < pzgeom::TPZGeoQuad > (elid++, Topology, -1,*NewGeomesh);
                             }
                             else{
                                 // triangles
@@ -268,7 +268,7 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                                 Topology[0]=NewGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
                                 Topology[1]=NewGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
                                 Topology[2]=NewGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
-                                new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle > (elid++, Topology, -5,*NewGeomesh);
+                                new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle > (elid++, Topology, -1,*NewGeomesh);
 
                             }
                         }

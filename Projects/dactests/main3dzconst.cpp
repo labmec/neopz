@@ -182,7 +182,8 @@ REAL const Pi = M_PI;//4.*atan(1.);
 // tipo 1 triangulo
 // tipo 2 quadrilatero
 
-bool ftriang = true;//true;//
+bool ftriang = false;//true;//
+bool IsCube = false;
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
@@ -208,18 +209,18 @@ int main(int argc, char *argv[])
         TP(id,id) = 1.0;
         InvTP(id,id) = 1.0;
     }
-    
-    ofstream saidaerro("../ErroPoissonHdivMalhaPrisma.txt",ios::app);
+    ofstream saidaerro("../ErroPoissonHdivMalhaTetra.txt",ios::app);
+    //ofstream saidaerro("../ErroPoissonHdivMalhaPrisma.txt",ios::app);
     //ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=2;p<3;p++)
+    for(p=1;p<4;p++)
     {
         int pq = p;
         int pp = p;
-        bool IsCube = true;
-        for (ndiv=1; ndiv<2; ndiv++)
+        
+        for (ndiv=0; ndiv<4; ndiv++)
         {
             TPZGeoMesh *gmesh;
             if (IsCube) {
@@ -233,7 +234,9 @@ int main(int argc, char *argv[])
             else
             {
                 //TPZGeoMesh *gmesh = CreateOneCuboZconst(ndiv);
-                int nref = pow(2., ndiv);
+                REAL dndiv = ndiv;
+                int nref = (int) pow(2., dndiv);
+                
                 gmesh = CreateOneCuboWithTetraedronsZconst(nref, matId);
             }
             
@@ -332,8 +335,8 @@ int main(int argc, char *argv[])
             
             //TestMesh(mphysics);
             
-            ofstream arg5("cmeshmultiphysics.txt");
-            mphysics->Print(arg5);
+//            ofstream arg5("cmeshmultiphysics.txt");
+//            mphysics->Print(arg5);
             
             //TestMesh(mphysics);
             
@@ -1192,19 +1195,19 @@ TPZCompMesh *CMeshPressureZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     
     ///Inserir condicao de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-    TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
-    TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
-
-    cmesh->InsertMaterialObject(BCond0);
-    cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond2);
-    cmesh->InsertMaterialObject(BCond3);
-    cmesh->InsertMaterialObject(BCond4);
-    cmesh->InsertMaterialObject(BCond5);
+//    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
+//    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
+//    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
+//    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+//    TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
+//    TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
+//
+//    cmesh->InsertMaterialObject(BCond0);
+//    cmesh->InsertMaterialObject(BCond1);
+//    cmesh->InsertMaterialObject(BCond2);
+//    cmesh->InsertMaterialObject(BCond3);
+//    cmesh->InsertMaterialObject(BCond4);
+//    cmesh->InsertMaterialObject(BCond5);
     
     cmesh->SetDefaultOrder(pOrder);
     //cmesh->SetDimModel(dim);
@@ -1391,13 +1394,14 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     BCond5->SetForcingFunction(FBCond5);
     
     
+    mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond0);
     mphysics->InsertMaterialObject(BCond1);
     mphysics->InsertMaterialObject(BCond2);
     mphysics->InsertMaterialObject(BCond3);
     mphysics->InsertMaterialObject(BCond4);
     mphysics->InsertMaterialObject(BCond5);
-    mphysics->SetAllCreateFunctionsMultiphysicElem();
+    
     
     //Fazendo auto build
     mphysics->AutoBuild();
@@ -1405,12 +1409,10 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     mphysics->CleanUpUnconnectedNodes();
     
     // Creating multiphysic elements into mphysics computational mesh
-    if(hdivantigo==true){
+    if(hdivantigo){
         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-//        mphysics->Reference()->ResetReference();
-//        mphysics->LoadReferences();
     }
     //Creating multiphysic elements containing skeletal elements.
     else
@@ -1452,6 +1454,7 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 
 void SolveSystZconst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
+    cout <<"Numero de equacoes "<< fCmesh->NEquations()<< endl;
     
     bool isdirect = true;
     if (isdirect) {
@@ -1485,7 +1488,7 @@ void SolveSystZconst(TPZAnalysis &an, TPZCompMesh *fCmesh)
         an.Run();
     }
     
-    cout <<"Numero de equacoes "<< fCmesh->NEquations()<< endl;
+    
     
     //Saida de Dados: solucao e  grafico no VT
     //	ofstream file("Solutout");

@@ -232,8 +232,9 @@ namespace pztopology {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,1,1,
         1,1,1,1,1,1,1,1,1,1,
-        1,1,0,0,0
+        1,1,1,1,1
     };
+
 //    static int bilinearounao [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     static int direcaoksioueta [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,2};
     
@@ -777,7 +778,7 @@ namespace pztopology {
                     JacToSide(1,0) = zeta/((qsi-1.)*(qsi-1.)); JacToSide(1,1) = 0.; JacToSide(1,2) = 1/(1.-qsi);
 				}
 				break;
-            case 14: //Interno para interno ? douglas aqui
+            case 14: //Interno para interno ? aquidouglas aqui
                 SidePar = InternalPar;
                 JacToSide.Resize(3, 3);
                 JacToSide.Identity();
@@ -1064,7 +1065,7 @@ namespace pztopology {
             v2[i] = gradx(i,1);
             v3[i] = gradx(i,2);
             vdiagxy[i] = (gradx(i,0)-gradx(i,1));
-            vi[i] = gradx(i,2)-0.5*(gradx(i,0)+gradx(i,1));
+            vi[i] = gradx(i,2)-gradx(i,0);//gradx(i,2)-0.5*(gradx(i,0)+gradx(i,1));
         }
         
         TPZNumeric::ProdVetorial(v1,v2,v1v2);
@@ -1133,7 +1134,7 @@ namespace pztopology {
             directions(i,36) = v1[i];
             directions(i,37) = v3[i];
             directions(i,38) = (v2[i]-v1[i]);                
-            directions(i,39) = (v3[i]-v1[i]); 
+            directions(i,39) = (v3[i]-v1[i]);//v3[i]-0.5*(v1[i]+v2[i]);//
             directions(i,40) = v2[i];
             directions(i,41) = v3[i];
             
