@@ -62,8 +62,18 @@ static LoggerPtr logger(Logger::getLogger("plasticity.main"));
 static LoggerPtr loggerEllipse(Logger::getLogger("LogEllipse"));
 #endif
 
+#ifdef USING_TBB
+#include "tbb/task_scheduler_init.h"
+using namespace tbb;
+// If you have issues with: dyld: Library not loaded: libtbb.dylib
+// try setting the LD path. Ex:
+//   export DYLD_FALLBACK_LIBRARY_PATH=/Users/borin/Desktop/neopz/tbb40_297oss/lib/
+#endif
+
 
 RunStatsTable plast_tot("-tpz_plast_tot", "Raw data table statistics for the main execution.");
+clarg::argInt NumberOfThreads("-nt", "Number of threads for WellBoreAnalysis", 8);
+
 
 void Config1()
 {
@@ -76,6 +86,17 @@ void Config1()
     std::cout << std::setprecision(15);
     
     TPZWellBoreAnalysis well;
+    
+#ifndef USING_TBB
+    if (NumberOfThreads.get_value()>=0) {
+        TPZWellBoreAnalysis::TConfig::gNumThreads=NumberOfThreads.get_value();
+    }
+#else
+    int number_tbb=NumberOfThreads.get_value();
+    if(number_tbb<=0)number_tbb=1;
+    task_scheduler_init init(number_tbb);
+#endif
+
     
     STATE biotcoef = 0.659;
     well.SetBiotCoefficient(biotcoef);

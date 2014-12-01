@@ -671,8 +671,8 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
     STATE betaguess = atan(sigstar[2]/sigstar[1]);
     for (STATE xiguess=-2*guessxi; xiguess <= 2*guessxi; xiguess += 2*guessxi/20.)
     {
-        for(STATE betaguess=0;betaguess<=2*M_PI;betaguess+=M_PI/20.)
-        {
+//        for(STATE betaguess=0;betaguess<=2*M_PI;betaguess+=M_PI/20.)
+//        {
             distnew=DistF1(sigmatrial, xiguess,betaguess);
             if (fabs(distnew) < fabs(distxi))
             {
@@ -680,7 +680,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
                 beta=betaguess;
                 distxi = distnew;
             }
-       }
+//       }
     }
 	
     

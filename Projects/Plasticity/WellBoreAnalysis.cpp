@@ -42,9 +42,6 @@ static LoggerPtr loggerEllipse(Logger::getLogger("LogEllipse"));
 #endif
 
 int TPZWellBoreAnalysis::TConfig::gNumThreads = 8;
-clarg::argInt NumberOfThreads("-nt", "Number of threads for WellBoreAnalysis", 8);
-
-
 
 /// this method will configure the forcing function and boundary condition of the computational mesh
 void TPZWellBoreAnalysis::TConfig::ConfigureBoundaryConditions()
@@ -665,7 +662,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
     TPZElastoPlasticAnalysis analysis(&LocalConfig.fCMesh,std::cout);
     
 	TPZSkylineStructMatrix full(&fCurrentConfig.fCMesh);
-    full.SetNumThreads(NumberOfThreads.get_value());
+    full.SetNumThreads(TPZWellBoreAnalysis::TConfig::gNumThreads);
     
     analysis.AddNoPenetration(-5, 0);
     analysis.AddNoPenetration(-4, 1);
@@ -1658,7 +1655,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsExceptMatid(int matid, TPZFMatrix<S
     }
     allmaterials.erase(matid);
     TPZFStructMatrix str(&fCMesh);
-    str.SetNumThreads(NumberOfThreads.get_value());
+    str.SetNumThreads(TPZWellBoreAnalysis::TConfig::gNumThreads);
     str.SetMaterialIds(allmaterials);
     str.Assemble(rhs, 0);
     FilterRhs(rhs);
@@ -1674,7 +1671,7 @@ void TPZWellBoreAnalysis::TConfig::ComputeRhsForMatid(int matid, TPZFMatrix<STAT
     allmaterials.insert(matid);
     TPZFStructMatrix str(&fCMesh);
     str.SetMaterialIds(allmaterials);
-    str.SetNumThreads(NumberOfThreads.get_value());
+    str.SetNumThreads(TPZWellBoreAnalysis::TConfig::gNumThreads);
     str.Assemble(rhs, 0);
     FilterRhs(rhs);
 }
@@ -2106,7 +2103,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 
         fPostprocess.SetCompMesh(&fCMesh);
         TPZFStructMatrix structmatrix(fPostprocess.Mesh());
-        structmatrix.SetNumThreads(NumberOfThreads.get_value());
+        structmatrix.SetNumThreads(TPZWellBoreAnalysis::TConfig::gNumThreads);
         fPostprocess.SetStructuralMatrix(structmatrix);
         
         TPZVec<int> PostProcMatIds(1,1);
@@ -3351,7 +3348,7 @@ void TPZWellBoreAnalysis::ComputeLinearMatrix(TPZVec<long> &activeEquations)
     compmesh1 = &fCurrentConfig.fCMesh;
     
     TPZSkylineStructMatrix skylstr(compmesh1);
-    skylstr.SetNumThreads(NumberOfThreads.get_value());
+    skylstr.SetNumThreads(TPZWellBoreAnalysis::TConfig::gNumThreads);
     skylstr.EquationFilter().SetActiveEquations(activeEquations);
     TPZFMatrix<STATE> rhs;
 
