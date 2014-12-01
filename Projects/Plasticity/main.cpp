@@ -1192,7 +1192,7 @@ void Config6()
     
     
     std::string output = "Config6.vtk";
-    const int nubsteps = 5;
+    const int nubsteps = 1;
     well.SetVtkOutPutName(output);
     REAL poisson = 0.2;
     REAL elast = 30000.;
@@ -1245,7 +1245,7 @@ int main(int argc, char **argv)
     clarg::parse_arguments(argc, argv);
     
     plast_tot.start();
-    Config1();
+//    Config1();
 //    Config2();
 //    Config3();
 //    Config4();
