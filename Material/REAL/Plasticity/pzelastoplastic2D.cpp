@@ -426,7 +426,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
                                                  TPZBndCond &bc)
 {
 	TPZFMatrix<REAL> &phi = data.phi;
-	const REAL BIGNUMBER  = 1.e12;
+	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
 	int dim = Dimension();
 	int nstate = NStateVariables();
   
@@ -441,8 +441,6 @@ void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
   }
   
 	TPZFMatrix<REAL> &v1 = bc.Val1();
-	//bc.Print(cout);
-	//cout << "val2:  " << v2[0]          << ' ' << v2[1]          << ' ' << v2[2]          << endl;
 	switch (bc.Type()){
 		case 0: // Dirichlet condition
 			for(in = 0 ; in < phr; in++){
@@ -481,7 +479,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
 					{
 						ek(nstate*in+idf,nstate*jn+jdf) += bc.Val1()(idf,jdf)*phi(in,0)*phi(jn,0)*weight;
             //BUG FALTA COLOCAR VAL2
-            //                        DebugStop();
+            //DebugStop();
 					}
 				}
 			}//in
