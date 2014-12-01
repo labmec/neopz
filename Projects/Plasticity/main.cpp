@@ -977,7 +977,7 @@ void Config4()
     {
         std::cout << "\n ------- 1 -------- "<<std::endl;
         
-        well.PRefineElementAbove(0.0001, 2);
+        well.PRefineElementAbove(0.000001, 2);
         well.ExecuteSimulation(nubsteps);
         well.PostProcess(0);
         
@@ -1036,7 +1036,7 @@ void Config5()
     well.SetInnerOuterRadius(innerradius, outerradius);
     
     
-    std::string output = "Config4.vtk";
+    std::string output = "Config5.vtk";
     const int nubsteps = 5;
     well.SetVtkOutPutName(output);
     EPlasticModel Emodel = ESandler;
@@ -1156,6 +1156,90 @@ void Config5()
 }
 
 
+//Reprodução do bug do erick para Philippe
+void Config6()
+{
+    InitializePZLOG();
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    std::cout << std::setprecision(15);
+    
+    TPZWellBoreAnalysis well;
+    
+    STATE biotcoef = 0.6666666;
+    well.SetBiotCoefficient(biotcoef);
+    
+    REAL reservoirPressure=57.2;
+    well.SetReservoirPressure(reservoirPressure);
+    
+    
+    REAL SH,Sh,SV;
+    Sh=-83.5;
+    SH=-99.8;
+    SV=-85.9;
+    TPZManVector<STATE,3> confinementTotal(3,0.);
+    confinementTotal[0] = Sh;
+    confinementTotal[1] = SH;
+    confinementTotal[2] = SV;
+    REAL WellPressure = 70.0; //66.6 61.1 57.2
+    well.SetConfinementTotalStresses(confinementTotal, WellPressure);
+    
+    
+    REAL innerradius = 4.25*0.0254;
+    REAL outerradius = 100.;
+    well.SetInnerOuterRadius(innerradius, outerradius);
+    
+    
+    std::string output = "Config6.vtk";
+    const int nubsteps = 5;
+    well.SetVtkOutPutName(output);
+    REAL poisson = 0.2;
+    REAL elast = 30000.;
+    REAL cohesion = 1.e8; // Very very big
+    REAL Phi = 1.5533430342749532; // 89 degrees
+
+    well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
+    well.GetCurrentConfig()->fModel = EElastic;
+    
+    int Startfrom=0;
+
+    if(Startfrom == 0){
+        int porder = 2;
+        int nrad=100;
+        int ncircle = 20;
+        REAL delx = 0.5*innerradius*M_PI_2/ncircle;
+        TPZManVector<int,2> numdiv(2);
+        numdiv[0] = nrad;
+        numdiv[1] = ncircle;
+        well.SetMeshTopology(delx, numdiv);
+        well.GetCurrentConfig()->fWellConfig = EVerticalWell;
+        well.GetCurrentConfig()->CreateMesh();
+        
+        well.GetCurrentConfig()->CreateComputationalMesh(porder);
+        std::cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
+        well.GetCurrentConfig()->CreatePostProcessingMesh();
+        //REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
+        //well.PostProcess(0);
+        
+    }
+
+    if(Startfrom ==0){
+        
+        int nsteps = 1;
+        int numnewton = 80;
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteInitialSimulation(nsteps, numnewton);
+        well.PostProcess(0);
+        TPZBFileStream save;
+        save.OpenWrite("wellbore0.bin");
+        well.Write(save);
+        
+    }
+    
+}
+
+
 int main(int argc, char **argv)
 {
     clarg::parse_arguments(argc, argv);
@@ -1165,7 +1249,7 @@ int main(int argc, char **argv)
 //    Config2();
 //    Config3();
 //    Config4();
-//    Config5();
+    Config6();
     plast_tot.stop();
     
     
