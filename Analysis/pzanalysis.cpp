@@ -33,7 +33,7 @@
 #include "tpzsparseblockdiagonal.h"
 #include "pzseqsolver.h"
 #include "pzbdstrmatrix.h"
-
+#include "pzfstrmatrix.h"
 
 #include "pzlog.h"
 
@@ -128,8 +128,16 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
     {
         CleanUp();
     }
-	fStep = 0;
-	fTime = 0.;
+    fStep = 0;
+    fTime = 0.;
+    //seta default do stepsolver como LU
+    TPZStepSolver<STATE> defaultSolver;
+    defaultSolver.SetDirect(ELU);
+    this->SetSolver(defaultSolver);
+    //seta default do StructMatrix como Full Matrix
+    TPZFStructMatrix defaultMatrix(mesh);
+    this->SetStructuralMatrix(defaultMatrix);
+
 }
 
 TPZAnalysis::~TPZAnalysis(void){
