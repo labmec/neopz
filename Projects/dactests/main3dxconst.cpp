@@ -68,6 +68,12 @@
 #include "TPZLagrangeMultiplier.h"
 #include "pzmatmixedpoisson3d.h"
 
+#include "tpzhierarquicalgrid.h"
+#include "pzfunction.h"
+
+#include "pzcondensedcompel.h"
+#include "pzelementgroup.h"
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -93,10 +99,27 @@ int matskeleton = -7;
 /** @brief Map used norms */
 std::map<REAL,REAL> fDebugMapL2, fDebugMapHdiv;
 
+int tetraedra_2[6][4]=
+{
+    {1,2,5,4},
+    {4,7,3,2},
+    {0,1,2,4},
+    {0,2,3,4},
+    {4,5,6,2},
+    {4,6,7,2}
+};
+
+bool MyDoubleComparer(REAL a, REAL b);
+
+void GenerateNodes(TPZGeoMesh *gmesh, long nelem);
+
+
 
 TPZGeoMesh *GMeshXconst(int dimensao, int tipo, int ndiv);
 TPZGeoMesh *GMeshDeformedXconst();
 TPZGeoMesh *CreateOneCuboXconst(int nref=0);
+TPZGeoMesh *CreateOneCuboWithTetraedronsXconst(long nelem=1, int MaterialId=1);
+void RotateGeomeshX(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
 
 TPZCompMesh *CMeshFluxXconst(TPZGeoMesh *gmesh, int pOrder, int dim);
 TPZCompMesh *CMeshPressureXconst(TPZGeoMesh *gmesh, int pOrder, int dim);
@@ -139,6 +162,11 @@ void ForcingBC5NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 //criar elementos esqueleto
 void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack< TPZMultiphysicsElement *, 7> > &ListGroupEl);
 
+TPZGeoMesh * BasicForm(int n, REAL t, REAL dt);
+void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+
 int dim = 3;
 REAL aa = 0.0;
 REAL bb = 0.0;
@@ -153,8 +181,10 @@ REAL const Pi = M_PI;//4.*atan(1.);
 // Para dimensao 2
 // tipo 1 triangulo
 // tipo 2 quadrilatero
-int tipo = 1;
-bool ftriang = true;//false;//
+
+bool ftriang = false;//true;//
+bool IsCube = false;
+
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
@@ -192,27 +222,40 @@ int main(int argc, char *argv[])
         for (ndiv=0; ndiv<5; ndiv++)
         {
             
-            //TPZGeoMesh *gmesh = CreateOneCuboXconst(ndiv);
+            TPZGeoMesh *gmesh;
+            if (IsCube) {
+                
+                TPZGeoMesh *gmesh2d = GMeshXconst(2, ftriang, ndiv);
+                if (dim==2)
+                {
+                    gmesh = gmesh2d;
+                }
+                else
+                {
+                    REAL layerthickness = 1.;
+                    TPZExtendGridDimension extend(gmesh2d,layerthickness);
+                    TPZGeoMesh *gmesh3d = extend.ExtendedMesh(1,bc0,bc5);
+                    gmesh = gmesh3d;
+                }
+                
+            }
+            else
+            {
+                //TPZGeoMesh *gmesh = CreateOneCuboZconst(ndiv);
+                REAL dndiv = ndiv;
+                int nref = (int) pow(2., dndiv);
+                
+                gmesh = CreateOneCuboWithTetraedronsXconst(nref, matId);
+            }
             
-            TPZGeoMesh *gmesh2d = GMeshXconst(2, tipo, ndiv);
-            REAL layerthickness = 1.;
-//
-//            {
-//                //  Print Geometrical Base Mesh
-//                std::ofstream Dummyfile("GeometricMesh2D.vtk");
-//                TPZVTKGeoMesh::PrintGMeshVTK(gmesh2d,Dummyfile, true);
-//            }
-
-            TPZExtendGridDimension extend(gmesh2d,layerthickness);
-            TPZGeoMesh *gmesh3d = extend.ExtendedMesh(1,bc0,bc5);
-//            ofstream arg("gmesh1.txt");
-//            gmesh2d->Print(arg);
-////
-////            ofstream arq3("gmesh3d.txt");
-////            gmesh3d->Print(arq3);
-////            TPZFMatrix<STATE> Tr(3,3,0.0);
-//
-            TPZGeoMesh *gmesh = gmesh3d;
+            std::cout<< " Dimensao == " << dim << std::endl;
+            
+//            int n = ndiv;
+//            REAL t= 0.0;
+//            REAL dt = 1./(pow(2.0, 1.0*n));
+//            int nt= int(1/dt);
+//            TPZGeoMesh *gmesh =  BasicForm(nt,t,dt);
+            
             gmesh->SetDimension(dim);
             
             
@@ -223,6 +266,24 @@ int main(int argc, char *argv[])
                 std::ofstream Dummyfile("GeometricMesh3D.vtk");
                 TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
             }
+            
+            
+            // rotacao da malha geometrica
+            int Axis;
+            REAL theta, dump = 0.0;
+            
+            theta = 48.0;
+            Axis = 1;
+            RotateGeomeshX(gmesh, theta*dump, Axis);
+            
+            theta = -45.0;
+            Axis = 2;
+            RotateGeomeshX(gmesh, theta*dump, Axis);
+            
+            theta = 120.0;
+            Axis = 3;
+            RotateGeomeshX(gmesh, theta*dump, Axis);
+            
             
             TPZCompMesh *cmesh2 = CMeshPressureXconst(gmesh, pp, dim);
             TPZCompMesh *cmesh1 = CMeshFluxXconst(gmesh, pq, dim);
@@ -329,6 +390,83 @@ int main(int argc, char *argv[])
     
     return EXIT_SUCCESS;
 }
+
+TPZGeoMesh * BasicForm(int n, REAL t, REAL dt){
+    
+    // Creating a 0D element to be extruded
+    TPZGeoMesh * GeoMesh1 = new TPZGeoMesh;
+    GeoMesh1->NodeVec().Resize(1);
+    TPZGeoNode Node;
+    TPZVec<REAL> coors(3,0.0);
+    Node.SetCoord(coors);
+    Node.SetNodeId(0);
+    GeoMesh1->NodeVec()[0]=Node;
+    
+    TPZVec<long> Topology(1,0);
+    int elid=0;
+    int matid=1;
+    
+    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,matid,*GeoMesh1);
+    GeoMesh1->BuildConnectivity();
+    GeoMesh1->SetDimension(0);
+    {
+        //  Print Geometrical Base Mesh
+        std::ofstream argument("GeometicMeshNew1.txt");
+        GeoMesh1->Print(argument);
+        std::ofstream Dummyfile("GeometricMeshNew1.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh1,Dummyfile, true);
+    }
+    
+    
+    TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
+    CreateGridFrom.SetParametricFunction(ParFunc);
+    
+    // Computing Mesh extruded along the parametric curve Parametricfunction
+    TPZGeoMesh * GeoMesh2 = CreateGridFrom.ComputeExtrusion(t, dt, n);
+    
+    {
+        //  Print Geometrical Base Mesh
+        std::ofstream argument("GeometicMeshNew2.txt");
+        GeoMesh2->Print(argument);
+        std::ofstream Dummyfile("GeometricMeshNew2.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh2,Dummyfile, true);
+    }
+    
+    
+    
+    TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
+    CreateGridFrom2.SetParametricFunction(ParFunc2);
+    
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    TPZGeoMesh * GeoMesh3 = CreateGridFrom2.ComputeExtrusion(t, dt, n);
+    {
+        //  Print Geometrical Base Mesh
+        std::ofstream argument("GeometicMeshNew3.txt");
+        GeoMesh3->Print(argument);
+        std::ofstream Dummyfile("GeometricMeshNew3.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh3,Dummyfile, true);
+    }
+    
+    
+    
+    TPZHierarquicalGrid CreateGridFrom3(GeoMesh3);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc3 = new TPZDummyFunction<STATE>(Parametricfunction3);
+    CreateGridFrom3.SetParametricFunction(ParFunc3);
+    
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    TPZGeoMesh * GeoMesh4 = CreateGridFrom3.ComputeExtrusion(t, dt, n);
+    {
+        //  Print Geometrical Base Mesh
+        std::ofstream argument("GeometicMeshNew4.txt");
+        GeoMesh4->Print(argument);
+        std::ofstream Dummyfile("GeometricMeshNew4.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh4,Dummyfile, true);
+    }
+    return GeoMesh4;
+}
+
 
 TPZGeoMesh *GMeshXconst(int d, int tipo, int ndiv)
 {
@@ -494,6 +632,222 @@ TPZGeoMesh *GMeshXconst(int d, int tipo, int ndiv)
     
     return gmesh;
 }
+
+TPZGeoMesh *CreateOneCuboWithTetraedronsXconst(long nelem, int MaterialId)
+{
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    GenerateNodes(gmesh,nelem);
+    
+    for (long i=0; i<nelem; i++) {
+        for (long j=0; j<nelem; j++) {
+            for (long k=0; k<nelem; k++) {
+                TPZManVector<long,8> nodes(8,0);
+                nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
+                nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
+                nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
+                nodes[3] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
+                nodes[4] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
+                nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
+                nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
+                nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
+#ifdef LOG4CXX
+                if(logdata->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "Tetrahedral nodes " << nodes;
+                    LOGPZ_DEBUG(logdata, sout.str())
+                }
+#endif
+                for (int el=0; el<6; el++)
+                {
+                    TPZManVector<long,4> elnodes(4);
+                    long index;
+                    for (int il=0; il<4; il++) {
+                        elnodes[il] = nodes[tetraedra_2[el][il]];
+                    }
+                    gmesh->CreateGeoElement(ETetraedro, elnodes, MaterialId, index);
+                }
+            }
+        }
+    }
+    gmesh->BuildConnectivity();
+    
+    // Boundary Conditions
+    const int numelements = gmesh->NElements();
+    //    const int bczMinus = -3, bczplus = -2, bcids = -1;
+    //    const int bczMinus = -1, bczplus = -1, bcids = -1;
+    
+    for(int el=0; el<numelements; el++)
+    {
+        TPZManVector <TPZGeoNode,4> Nodefinder(4);
+        TPZManVector <REAL,3> nodecoord(3);
+        TPZGeoEl *tetra = gmesh->ElementVec()[el];
+        TPZVec<long> ncoordVec(0); long sizeOfVec = 0;
+        
+        // na face z = 0
+        for (int i = 0; i < 4; i++)
+        {
+            long pos = tetra->NodeIndex(i);
+            Nodefinder[i] = gmesh->NodeVec()[pos];
+            Nodefinder[i].GetCoordinates(nodecoord);
+            if (MyDoubleComparer(nodecoord[2],0.))
+            {
+                sizeOfVec++;
+                ncoordVec.Resize(sizeOfVec);
+                ncoordVec[sizeOfVec-1] = pos;
+            }
+        }
+        if(ncoordVec.NElements() == 3)
+        {
+            int lado = tetra->WhichSide(ncoordVec);
+            TPZGeoElSide tetraSide(tetra, lado);
+            TPZGeoElBC(tetraSide,bc0);
+        }
+        
+        ncoordVec.clear();
+        sizeOfVec = 0;
+        // na face y = 0
+        for (int i = 0; i < 4; i++)
+        {
+            long pos = tetra->NodeIndex(i);
+            Nodefinder[i] = gmesh->NodeVec()[pos];
+            Nodefinder[i].GetCoordinates(nodecoord);
+            if (MyDoubleComparer(nodecoord[1],0.))
+            {
+                sizeOfVec++;
+                ncoordVec.Resize(sizeOfVec);
+                ncoordVec[sizeOfVec-1] = pos;
+            }
+        }
+        if(ncoordVec.NElements() == 3)
+        {
+            int lado = tetra->WhichSide(ncoordVec);
+            TPZGeoElSide tetraSide(tetra, lado);
+            TPZGeoElBC(tetraSide,bc1);
+        }
+        
+        ncoordVec.clear();
+        sizeOfVec = 0;
+        // na face x = 1
+        for (int i = 0; i < 4; i++)
+        {
+            long pos = tetra->NodeIndex(i);
+            Nodefinder[i] = gmesh->NodeVec()[pos];
+            Nodefinder[i].GetCoordinates(nodecoord);
+            if (MyDoubleComparer(nodecoord[0],1.))
+            {
+                sizeOfVec++;
+                ncoordVec.Resize(sizeOfVec);
+                ncoordVec[sizeOfVec-1] = pos;
+            }
+        }
+        if(ncoordVec.NElements() == 3)
+        {
+            int lado = tetra->WhichSide(ncoordVec);
+            TPZGeoElSide tetraSide(tetra, lado);
+            TPZGeoElBC(tetraSide,bc2);
+        }
+        
+        ncoordVec.clear();
+        sizeOfVec = 0;
+        // na face y = 1
+        for (int i = 0; i < 4; i++)
+        {
+            long pos = tetra->NodeIndex(i);
+            Nodefinder[i] = gmesh->NodeVec()[pos];
+            Nodefinder[i].GetCoordinates(nodecoord);
+            if (MyDoubleComparer(nodecoord[1],1.))
+            {
+                sizeOfVec++;
+                ncoordVec.Resize(sizeOfVec);
+                ncoordVec[sizeOfVec-1] = pos;
+            }
+        }
+        if(ncoordVec.NElements() == 3)
+        {
+            int lado = tetra->WhichSide(ncoordVec);
+            TPZGeoElSide tetraSide(tetra, lado);
+            TPZGeoElBC(tetraSide,bc3);
+        }
+        
+        
+        ncoordVec.clear();
+        sizeOfVec = 0;
+        // na face x = 0
+        for (int i = 0; i < 4; i++)
+        {
+            long pos = tetra->NodeIndex(i);
+            Nodefinder[i] = gmesh->NodeVec()[pos];
+            Nodefinder[i].GetCoordinates(nodecoord);
+            if (MyDoubleComparer(nodecoord[0],0.))
+            {
+                sizeOfVec++;
+                ncoordVec.Resize(sizeOfVec);
+                ncoordVec[sizeOfVec-1] = pos;
+            }
+        }
+        if(ncoordVec.NElements() == 3)
+        {
+            int lado = tetra->WhichSide(ncoordVec);
+            TPZGeoElSide tetraSide(tetra, lado);
+            TPZGeoElBC(tetraSide,bc4);
+        }
+        
+        ncoordVec.clear();
+        sizeOfVec = 0;
+        // na face z = 1
+        for (int i = 0; i < 4; i++)
+        {
+            long pos = tetra->NodeIndex(i);
+            Nodefinder[i] = gmesh->NodeVec()[pos];
+            Nodefinder[i].GetCoordinates(nodecoord);
+            if (MyDoubleComparer(nodecoord[2],1.))
+            {
+                sizeOfVec++;
+                ncoordVec.Resize(sizeOfVec);
+                ncoordVec[sizeOfVec-1] = pos;
+            }
+        }
+        if(ncoordVec.NElements() == 3)
+        {
+            int lado = tetra->WhichSide(ncoordVec);
+            TPZGeoElSide tetraSide(tetra, lado);
+            TPZGeoElBC(tetraSide,bc5);
+        }
+        
+        
+        
+    }
+    
+    return gmesh;
+}
+
+bool MyDoubleComparer(REAL a, REAL b)
+{
+    if (IsZero(a-b)){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+void GenerateNodes(TPZGeoMesh *gmesh, long nelem)
+{
+    gmesh->NodeVec().Resize((nelem+1)*(nelem+1)*(nelem+1));
+    for (long i=0; i<=nelem; i++) {
+        for (long j=0; j<=nelem; j++) {
+            for (long k=0; k<=nelem; k++) {
+                TPZManVector<REAL,3> x(3);
+                x[0] = k*1./nelem;
+                x[1] = j*1./nelem;
+                x[2] = i*1./nelem;
+                gmesh->NodeVec()[i*(nelem+1)*(nelem+1)+j*(nelem+1)+k].Initialize(x, *gmesh);
+            }
+        }
+    }
+}
+
 
 TPZGeoMesh *CreateOneCuboXconst(int nref)
 {
@@ -775,6 +1129,10 @@ TPZCompMesh *CMeshFluxXconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     
     cmesh->SetDefaultOrder(pOrder);
     
+    TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(matskeleton, dim-1, 1);
+    TPZMaterial * mat2(matskelet);
+    cmesh->InsertMaterialObject(mat2);
+    
     
     //Ajuste da estrutura de dados computacional
     cmesh->AutoBuild();
@@ -809,25 +1167,31 @@ TPZCompMesh *CMeshPressureXconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     
     ///Inserir condicao de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-    TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
-    TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
-    
-    cmesh->InsertMaterialObject(BCond0);
-    cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond2);
-    cmesh->InsertMaterialObject(BCond3);
-    cmesh->InsertMaterialObject(BCond4);
-    cmesh->InsertMaterialObject(BCond5);
+//    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
+//    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
+//    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
+//    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+//    TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
+//    TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
+//    
+//    cmesh->InsertMaterialObject(BCond0);
+//    cmesh->InsertMaterialObject(BCond1);
+//    cmesh->InsertMaterialObject(BCond2);
+//    cmesh->InsertMaterialObject(BCond3);
+//    cmesh->InsertMaterialObject(BCond4);
+//    cmesh->InsertMaterialObject(BCond5);
     
     cmesh->SetDefaultOrder(pOrder);
     //cmesh->SetDimModel(dim);
     
-    cmesh->SetAllCreateFunctionsDiscontinuous();
-    
+    bool h1function = true;//false em triangulo
+    if(h1function){
+        cmesh->SetAllCreateFunctionsContinuous();
+        cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    }
+    else{
+        cmesh->SetAllCreateFunctionsDiscontinuous();
+    }
     
     //Ajuste da estrutura de dados computacional
     cmesh->AutoBuild();
@@ -841,35 +1205,37 @@ TPZCompMesh *CMeshPressureXconst(TPZGeoMesh *gmesh, int pOrder, int dim)
         newnod.SetLagrangeMultiplier(1);
     }
     
-    int nel = cmesh->NElements();
-    for(int i=0; i<nel; i++){
-        TPZCompEl *cel = cmesh->ElementVec()[i];
-        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
-        celdisc->SetConstC(1.);
-        celdisc->SetCenterPoint(0, 0.);
-        celdisc->SetCenterPoint(1, 0.);
-        celdisc->SetCenterPoint(2, 0.);
-        celdisc->SetTrueUseQsiEta();
-        //celdisc->SetFalseUseQsiEta();
+    if(!h1function)
+    {
         
-        //            TPZVec<REAL> qsi(3,0.);
-        //            qsi[0] = 0.5;
-        //            qsi[1] = 0.5;
-        //            TPZFMatrix<REAL> phi;
-        //            TPZFMatrix<REAL> dphi;
-        //            celdisc->Shape(qsi, phi,dphi);
-        //            phi.Print("phi = ");
-        
-        
-        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
-        {
-            if(ftriang==true) celdisc->SetTotalOrderShape();
-            else celdisc->SetTensorialShape();
+        int nel = cmesh->NElements();
+        for(int i=0; i<nel; i++){
+            TPZCompEl *cel = cmesh->ElementVec()[i];
+            TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+            celdisc->SetConstC(1.);
+            celdisc->SetCenterPoint(0, 0.);
+            celdisc->SetCenterPoint(1, 0.);
+            celdisc->SetCenterPoint(2, 0.);
+            celdisc->SetTrueUseQsiEta();
+            //celdisc->SetFalseUseQsiEta();
+            
+            //            TPZVec<REAL> qsi(3,0.);
+            //            qsi[0] = 0.5;
+            //            qsi[1] = 0.5;
+            //            TPZFMatrix<REAL> phi;
+            //            TPZFMatrix<REAL> dphi;
+            //            celdisc->Shape(qsi, phi,dphi);
+            //            phi.Print("phi = ");
+            
+            
+            if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+            {
+                if(ftriang==true) celdisc->SetTotalOrderShape();
+                else celdisc->SetTensorialShape();
+            }
+            
         }
-        
     }
-    
-    
     
     
 #ifdef DEBUG
@@ -1076,7 +1442,7 @@ void SolveSystXconst(TPZAnalysis &an, TPZCompMesh *fCmesh)
     else
     {
         TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
-        skylstr.SetNumThreads(2);
+        skylstr.SetNumThreads(10);
         an.SetStructuralMatrix(skylstr);
         
         TPZAutoPointer<TPZMatrix<STATE> > matbeingcopied = skylstr.Create();
@@ -1287,6 +1653,7 @@ void ForcingBC3NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     disp[0] = -2.0*(-1.0 + z)*(1.0 + z)*TP(1,1);
 #endif
 }
+
 void ForcingBC4NXconst(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[0];
     double y = pt[1];
@@ -1568,3 +1935,174 @@ TPZGeoMesh *GMeshDeformedXconst(){
     
     return gmesh;
 }
+
+#include "pzstack.h"
+void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<TPZMultiphysicsElement *,7> > &ListGroupEl)
+{
+    TPZCompMesh *multiMesh = mfcel->Mesh();
+    TPZInterpolationSpace *hdivel = dynamic_cast<TPZInterpolationSpace *> (mfcel->Element(0));
+    TPZCompElDisc *discel = dynamic_cast<TPZCompElDisc *>(mfcel->Element(1));
+    TPZGeoEl *gel = mfcel->Reference();
+    
+    int dimMesh = mfcel->Mesh()->Dimension();
+    if (!hdivel || !discel || gel->Dimension() != dimMesh) {
+        DebugStop();
+    }
+    
+    //wrap element
+    TPZStack<TPZMultiphysicsElement *, 7> wrapEl;
+    wrapEl.push_back(mfcel);
+    
+    for (int side = 0; side < gel->NSides(); side++)
+    {
+        if (gel->SideDimension(side) != gel->Dimension()-1) {
+            continue;
+        }
+        TPZGeoEl *gelbound = gel->CreateBCGeoEl(side, matskeleton);
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(hdivel);
+        int loccon = intel->SideConnectLocId(0,side);
+        long index;
+        
+        TPZInterpolationSpace *bound;
+        MElementType elType = gel->Type(side);
+        switch(elType)
+        {
+            case(EOned)://line
+            {
+                bound = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(* intel->Mesh(),gelbound,index);
+                int sideorient = intel->GetSideOrient(side);
+                TPZCompElHDivBound2<pzshape::TPZShapeLinear> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeLinear> *>(bound);
+                hdivbound->SetSideOrient(sideorient);
+                break;
+            }
+            case(ETriangle)://triangle
+            {
+                bound = new TPZCompElHDivBound2<pzshape::TPZShapeTriang>(* intel->Mesh(),gelbound,index);
+                int sideorient = intel->GetSideOrient(side);
+                TPZCompElHDivBound2<pzshape::TPZShapeTriang> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeTriang> *>(bound);
+                hdivbound->SetSideOrient(sideorient);
+                break;
+            }
+            case(EQuadrilateral)://quadrilateral
+            {
+                bound = new TPZCompElHDivBound2<pzshape::TPZShapeQuad>(* intel->Mesh(),gelbound,index);
+                int sideorient = intel->GetSideOrient(side);
+                TPZCompElHDivBound2<pzshape::TPZShapeQuad> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeQuad> *>(bound);
+                hdivbound->SetSideOrient(sideorient);
+                break;
+            }
+                
+            default:
+            {
+                bound=0;
+                std::cout << "ElementType not found!";
+                DebugStop();
+                break;
+            }
+        }
+        
+        long sideconnectindex = intel->ConnectIndex(loccon);
+        bound->SetConnectIndex(0, sideconnectindex);
+        //bound->Print(std::cout);
+        
+        TPZCompEl *newMFBound = multiMesh->CreateCompEl(gelbound, index);
+        TPZMultiphysicsElement *locMF = dynamic_cast<TPZMultiphysicsElement *>(newMFBound);
+        
+        locMF->AddElement(bound, 0);
+        locMF->AddElement(TPZCompElSide(discel,side), 1);
+        
+        wrapEl.push_back(locMF);
+    }
+    
+    ListGroupEl.push_back(wrapEl);
+}
+
+void RotateGeomeshX(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
+{
+    REAL theta =  (M_PI/180.0)*CounterClockwiseAngle;
+    // It represents a 3D rotation around the z axis.
+    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+    
+    switch (Axis) {
+        case 1:
+        {
+            RotationMatrix(0,0) = 1.0;
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(1,2) =   -sin(theta);
+            RotationMatrix(2,1) =   +sin(theta);
+            RotationMatrix(2,2) =   +cos(theta);
+        }
+            break;
+        case 2:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,2) =   +sin(theta);
+            RotationMatrix(1,1) = 1.0;
+            RotationMatrix(2,0) =   -sin(theta);
+            RotationMatrix(2,2) =   +cos(theta);
+        }
+            break;
+        case 3:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,1) =   -sin(theta);
+            RotationMatrix(1,0) =   +sin(theta);
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(2,2) = 1.0;
+        }
+            break;
+        default:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,1) =   -sin(theta);
+            RotationMatrix(1,0) =   +sin(theta);
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(2,2) = 1.0;
+        }
+            break;
+    }
+    
+    TPZVec<STATE> iCoords(3,0.0);
+    TPZVec<STATE> iCoordsRotated(3,0.0);
+    
+    //RotationMatrix.Print("Rotation = ");
+    
+    int NumberofGeoNodes = gmesh->NNodes();
+    for (int inode = 0; inode < NumberofGeoNodes; inode++)
+    {
+        TPZGeoNode GeoNode = gmesh->NodeVec()[inode];
+        GeoNode.GetCoordinates(iCoords);
+        // Apply rotation
+        iCoordsRotated[0] = RotationMatrix(0,0)*iCoords[0]+RotationMatrix(0,1)*iCoords[1]+RotationMatrix(0,2)*iCoords[2];
+        iCoordsRotated[1] = RotationMatrix(1,0)*iCoords[0]+RotationMatrix(1,1)*iCoords[1]+RotationMatrix(1,2)*iCoords[2];
+        iCoordsRotated[2] = RotationMatrix(2,0)*iCoords[0]+RotationMatrix(2,1)*iCoords[1]+RotationMatrix(2,2)*iCoords[2];
+        GeoNode.SetCoord(iCoordsRotated);
+        gmesh->NodeVec()[inode] = GeoNode;
+    }
+    
+}
+
+void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+{
+    X[0] = par[0];
+    X[1] = 0.0;
+    X[2] = 0.0;
+}
+
+void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+{
+    X[0] = 0.0;
+    X[1] = par[0];
+    X[2] = 0.0;
+}
+
+void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+{
+    X[0] = 0.0;
+    X[1] = 0.0;
+    X[2] = par[0];
+}
+
+
+
+

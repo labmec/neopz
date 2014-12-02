@@ -71,7 +71,8 @@
 #include "tpzhierarquicalgrid.h"
 #include "pzfunction.h"
 
-
+#include "pzcondensedcompel.h"
+#include "pzelementgroup.h"
 
 #include <iostream>
 #include <string>
@@ -209,26 +210,35 @@ int main(int argc, char *argv[])
         TP(id,id) = 1.0;
         InvTP(id,id) = 1.0;
     }
+    
     ofstream saidaerro("../ErroPoissonHdivMalhaTetra.txt",ios::app);
     //ofstream saidaerro("../ErroPoissonHdivMalhaPrisma.txt",ios::app);
     //ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=1;p<4;p++)
+    for(p=2;p<3;p++)
     {
         int pq = p;
         int pp = p;
         
-        for (ndiv=0; ndiv<4; ndiv++)
+        for (ndiv=2; ndiv<3; ndiv++)
         {
             TPZGeoMesh *gmesh;
             if (IsCube) {
+                
                 TPZGeoMesh *gmesh2d = GMeshZconst(2, ftriang, ndiv);
-                REAL layerthickness = 1.;
-                TPZExtendGridDimension extend(gmesh2d,layerthickness);
-                TPZGeoMesh *gmesh3d = extend.ExtendedMesh(1,bc0,bc5);
-                 gmesh = gmesh3d;
+                if (dim==2)
+                {
+                    gmesh = gmesh2d;
+                }
+                else
+                {
+                    REAL layerthickness = 1.;
+                    TPZExtendGridDimension extend(gmesh2d,layerthickness);
+                    TPZGeoMesh *gmesh3d = extend.ExtendedMesh(1,bc0,bc5);
+                    gmesh = gmesh3d;
+                }
 
             }
             else
@@ -239,6 +249,8 @@ int main(int argc, char *argv[])
                 
                 gmesh = CreateOneCuboWithTetraedronsZconst(nref, matId);
             }
+            
+            std::cout<< " Dimensao == " << dim << std::endl;
             
 //            int n = ndiv;
 //            REAL t= 0.0;
@@ -360,7 +372,7 @@ int main(int argc, char *argv[])
             //            TPZElementMatrix ek,ef;
             //            cel->CalcStiff(ek, ef);
             
-            TPZAnalysis an(mphysics,false);
+            TPZAnalysis an(mphysics,true); // false
             
             
             
@@ -1173,6 +1185,7 @@ TPZCompMesh *CMeshFluxZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     //        LOGPZ_DEBUG(logdata,sout.str())
     //	}
     //#endif
+
     
     return cmesh;
 }
@@ -1288,8 +1301,7 @@ TPZCompMesh *CMeshPressureZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     return cmesh;
 }
 
-#include "pzcondensedcompel.h"
-#include "pzelementgroup.h"
+
 TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 {
     
@@ -1447,7 +1459,27 @@ TPZCompMesh *CMeshMixedZconst(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
                 elgr->AddElement(wrapEl[ienv][jel]);
             }
         }
+        
+//        { // aqui douglas (sera que isso faz sentido?) /// condensa mas esta dando matriz singular.
+//
+//            mphysics->ComputeNodElCon();
+//            nel = mphysics->NElements();
+//            for (long el=0; el<nel; el++) {
+//                TPZCompEl *cel = mphysics->ElementVec()[el];
+//                if (!cel) continue;
+//                TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+//                if(elgr) {
+//                    TPZCondensedCompEl *cond = NULL;
+//                    cond = new TPZCondensedCompEl(elgr);
+//                }
+//            }
+//            mphysics->CleanUpUnconnectedNodes();
+//        
+//        }
+
     }
+    
+
     
     return mphysics;
 }
@@ -1456,7 +1488,7 @@ void SolveSystZconst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
     cout <<"Numero de equacoes "<< fCmesh->NEquations()<< endl;
     
-    bool isdirect = true;
+    bool isdirect = true;//false;// 
     if (isdirect) {
         //TPZBandStructMatrix full(fCmesh);
         TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
@@ -1472,7 +1504,7 @@ void SolveSystZconst(TPZAnalysis &an, TPZCompMesh *fCmesh)
     else
     {
         TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
-        skylstr.SetNumThreads(2);
+        skylstr.SetNumThreads(10);
         an.SetStructuralMatrix(skylstr);
         
         TPZAutoPointer<TPZMatrix<STATE> > matbeingcopied = skylstr.Create();
