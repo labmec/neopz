@@ -51,6 +51,8 @@
 
 #include "pzhdivfull.h"
 #include "pzelchdiv.h"
+#include "pzelchdivbound2.h"
+#include "pzshapequad.h"
 
 #include "pzgeopyramid.h"
 
@@ -1152,6 +1154,7 @@ TPZCompMesh *CMeshFluxZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
     TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
+    TPZMaterial * BCond6 = material->CreateBC(mat, bc6,dirichlet, val1, val2);
     
     cmesh->InsertMaterialObject(mat);
     
@@ -1175,6 +1178,7 @@ TPZCompMesh *CMeshFluxZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     
     //Ajuste da estrutura de dados computacional
     cmesh->AutoBuild();
+    
     
     //#ifdef LOG4CXX
     //	if(logdata->isDebugEnabled())

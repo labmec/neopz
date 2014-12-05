@@ -256,7 +256,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 	
 	long numeq = ef.fMat.Rows();
-	TPZFMatrix<STATE> efTemp(numeq,1,0.);
+	TPZFNMatrix<600,STATE> efTemp(numeq,1,0.);
 	
 	TPZMaterialData data, dataRef;
 	this->InitMaterialData(data);
@@ -281,9 +281,9 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	}
 	
 	int nshape = this->NShapeF();
-	TPZFMatrix<STATE> ekTemp(nshape, nshape, 0.);
+	TPZFNMatrix<90,STATE> ekTemp(nshape, nshape, 0.);
 	
-	TPZManVector<int,10> varIndex;
+	TPZManVector<int,100> varIndex;
 	int stackedVarSize = pPostProcMat->NStateVariables();
 	pPostProcMat->GetPostProcessVarIndexList(varIndex);
 	TPZVec<STATE> Sol;
@@ -354,9 +354,9 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		
 	}//loop over integration points
 	
-	TPZFMatrix<STATE> ekCopy(ekTemp);
+	TPZFNMatrix<90,STATE> ekCopy(ekTemp);
 	
-	TPZFMatrix<STATE> rhsTemp(nshape, 1, 0.);
+	TPZFNMatrix<10,STATE> rhsTemp(nshape, 1, 0.);
 	for(int i_st = 0; i_st < stackedVarSize; i_st++)
 	{
 		

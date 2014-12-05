@@ -664,16 +664,16 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
 	TPZSkylineStructMatrix full(&fCurrentConfig.fCMesh);
     full.SetNumThreads(TPZWellBoreAnalysis::TConfig::gNumThreads);
     
-    analysis.AddNoPenetration(-5, 0);
-    analysis.AddNoPenetration(-4, 1);
+    analysis.AddNoPenetration(ELeft, 0);
+    analysis.AddNoPenetration(EBottom, 1);
     
     if (fCurrentConfig.fWellConfig == EVerticalWell) {
-        analysis.AddNoPenetration(-3, 0);
-        analysis.AddNoPenetration(-3, 1);
+        analysis.AddNoPenetration(EOuter, 0);
+        analysis.AddNoPenetration(EOuter, 1);
     }
     else if (fCurrentConfig.fWellConfig == EHorizontalWellalongH || fCurrentConfig.fWellConfig == EHorizontalWellalongh)
     {
-        analysis.AddNoPenetration(-3, 1);
+        analysis.AddNoPenetration(EOuter, 1);
     }
     else
     {
