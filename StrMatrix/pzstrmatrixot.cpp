@@ -78,6 +78,7 @@ TPZStructMatrixOT::TPZStructMatrixOT(const TPZStructMatrixOT &copy) : fMesh(copy
     fNumThreads = copy.fNumThreads;
     felSequenceColor = copy.felSequenceColor;
     fnextBlocked = copy.fnextBlocked;
+    ColorsToProcess = copy.ColorsToProcess;
 }
 
 TPZMatrix<STATE> *TPZStructMatrixOT::Create() {
@@ -535,6 +536,7 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoin
     
 #ifdef USING_TBB
     int begin=0;
+    
     for(int color=0; color<ColorsToProcess.NElements(); color++) {
         tbb::task_group tg;
         for (int t=begin; t<ColorsToProcess[color]; t++) {
@@ -1009,6 +1011,8 @@ void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSeque
     elColors[currentPassIndex]=elColors[currentPassIndex-1]+1;
     
     elColors.Resize(currentPassIndex+1);
+    
+    
     
     /*
      std::ofstream toto("c:\\Temp\\output\\ColorMeshDebug.txt");
