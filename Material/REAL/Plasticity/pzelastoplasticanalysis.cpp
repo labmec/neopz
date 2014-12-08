@@ -961,15 +961,21 @@ void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()
         if (fMaterialIds.find(matid) == fMaterialIds.end()) {
             continue;
         }
-        int direction = fMaterialIds[matid];
-        long nc = cel->NConnects();
-        for (long ic=0; ic<nc; ic++) {
-            TPZConnect &c = cel->Connect(ic);
-            long seqnum = c.SequenceNumber();
-            long pos = fCompMesh->Block().Position(seqnum);
-            int blsize = fCompMesh->Block().Size(seqnum);
-            for (long i=pos+direction; i<pos+blsize; i+=2) {
-                fEquationstoZero.insert(i);
+        std::pair<std::multimap<int, int>::iterator,std::multimap<int, int>::iterator> ret;
+        ret = fMaterialIds.equal_range(matid);
+        std::multimap<int, int>::iterator it;
+        for (it=ret.first; it != ret.second; it++)
+        {
+            int direction = it->second;
+            long nc = cel->NConnects();
+            for (long ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                long seqnum = c.SequenceNumber();
+                long pos = fCompMesh->Block().Position(seqnum);
+                int blsize = fCompMesh->Block().Size(seqnum);
+                for (long i=pos+direction; i<pos+blsize; i+=2) {
+                    fEquationstoZero.insert(i);
+                }
             }
         }
     }

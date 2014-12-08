@@ -706,7 +706,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
     
     int ncycles = 1;
     if (LocalConfig.fWellConfig == EVerticalWell) {
-        ncycles = 2;
+        ncycles = 3;
     }
     
     std::stringstream strout;
@@ -2680,13 +2680,13 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
     gengrid.SetGeometricProgression(geoprogressionvec);
     gengrid.Read(&fGMesh);
     /// bottom side
-    gengrid.SetBC(&fGMesh, 4, -4);
+    gengrid.SetBC(&fGMesh, 4, EBottom);
     /// outer side
-    gengrid.SetBC(&fGMesh, 5, -3);
+    gengrid.SetBC(&fGMesh, 5, EOuter);
     /// left side
-    gengrid.SetBC(&fGMesh, 6, -5);
+    gengrid.SetBC(&fGMesh, 6, ELeft);
     /// inner radius
-    gengrid.SetBC(&fGMesh, 7, -2);
+    gengrid.SetBC(&fGMesh, 7, EInner);
     
     /// wrap the mesh around
     int nnodes = fGMesh.NNodes();

@@ -94,7 +94,7 @@ public:
 	
     void AddNoPenetration(int matid, int direction)
     {
-        fMaterialIds[matid] = direction;
+        fMaterialIds.insert(std::pair<int,int>(matid, direction));
     }
     
     /// build the fEquationstoZero datastructure based on the fMaterialIds data structure
@@ -165,7 +165,7 @@ protected:
     
     /// Materials with no penetration boundary conditions
     // the second value of the map indicates x (0) or y (1) restraint
-    std::map<int,int> fMaterialIds;
+    std::multimap<int,int> fMaterialIds;
     
     /// The multiphysics mesh
     TPZCompMesh *fMultiPhysics;
