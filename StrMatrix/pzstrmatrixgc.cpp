@@ -89,8 +89,12 @@ TPZStructMatrixGC *TPZStructMatrixGC::Clone() {
     return 0;
 }
 
+RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
+RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
+
 
 void TPZStructMatrixGC::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    ass_stiff.start();
     if (fEquationFilter.IsActive()) {
         long neqcondense = fEquationFilter.NActiveEquations();
 #ifdef DEBUG
@@ -117,9 +121,11 @@ void TPZStructMatrixGC::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE>
             this->Serial_Assemble(stiffness,rhs,guiInterface);
         }
     }
+    ass_stiff.stop();
 }
 
 void TPZStructMatrixGC::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    ass_rhs.start();
     if(fEquationFilter.IsActive())
     {
         long neqcondense = fEquationFilter.NActiveEquations();
@@ -148,6 +154,7 @@ void TPZStructMatrixGC::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
             this->Serial_Assemble(rhs,guiInterface);
         }
     }
+    ass_rhs.stop();
 }
 
 

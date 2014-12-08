@@ -32,6 +32,8 @@ using namespace std;
 
 #include "pz_pthread.h"
 
+#include "run_stats_table.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.TPZStructMatrixCS"));
 static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
@@ -74,8 +76,13 @@ TPZStructMatrixCS *TPZStructMatrixCS::Clone() {
     return 0;
 }
 
+RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
+RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 void TPZStructMatrixCS::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+
+    ass_stiff.start();
+
     if (fEquationFilter.IsActive()) {
         long neqcondense = fEquationFilter.NActiveEquations();
 #ifdef DEBUG
@@ -102,9 +109,11 @@ void TPZStructMatrixCS::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE>
             this->Serial_Assemble(stiffness,rhs,guiInterface);
         }
     }
+    ass_stiff.stop();
 }
 
 void TPZStructMatrixCS::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    ass_rhs.start();
     if(fEquationFilter.IsActive())
     {
         long neqcondense = fEquationFilter.NActiveEquations();
@@ -133,6 +142,7 @@ void TPZStructMatrixCS::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
             this->Serial_Assemble(rhs,guiInterface);
         }
     }
+    ass_rhs.stop();
 }
 
 
