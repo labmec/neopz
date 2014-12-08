@@ -57,7 +57,9 @@ TPZStructMatrixTBB::TPZStructMatrixTBB(TPZCompMesh *mesh) : fMesh(mesh), fEquati
     fMesh = mesh;
     this->SetNumThreads(0);
     stat_ass_graph_tbb.start();
+#ifdef USING_TBB
     fAssembleThreadGraph=0;
+#endif
     //    TPZManVector<int> ElementOrder;
     //    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
     //    TPZStructMatrixTBB::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
@@ -70,7 +72,9 @@ TPZStructMatrixTBB::TPZStructMatrixTBB(TPZCompMesh *mesh) : fMesh(mesh), fEquati
 TPZStructMatrixTBB::TPZStructMatrixTBB(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
+#ifdef USING_TBB
     fAssembleThreadGraph=0;
+#endif
     stat_ass_graph_tbb.start();
     //    TPZManVector<int> ElementOrder;
     //    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
@@ -88,7 +92,9 @@ TPZStructMatrixTBB::TPZStructMatrixTBB(const TPZStructMatrixTBB &copy) : fMesh(c
     }
     fMaterialIds = copy.fMaterialIds;
     fNumThreads = copy.fNumThreads;
+#ifdef USING_TBB
     fAssembleThreadGraph=0;
+#endif
     
 //    felSequenceColor = copy.felSequenceColor;
 //    fnextBlocked = copy.fnextBlocked;
