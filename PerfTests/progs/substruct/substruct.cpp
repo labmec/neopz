@@ -335,10 +335,9 @@ int main(int argc, char *argv[])
         TPZFStructMatrix fullstruct(cmeshauto);
         fullstruct.SetNumThreads(nt_a.get_value());
         long sz = cmeshauto->NEquations();
-        TPZFMatrix<STATE> rhs_t(sz, 1);
-        fullstruct.Assemble(rhs_t, 0);
-        
         // serial
+//        TPZFMatrix<STATE> rhs_t(sz, 1);
+//        fullstruct.Assemble(rhs_t, 0);
 //        fullstruct.SetNumThreads(0);
 //        TPZFMatrix<STATE> rhs_b(sz, 1);
 //        fullstruct.Assemble(rhs_b, 0);
@@ -348,11 +347,10 @@ int main(int argc, char *argv[])
 //                DebugStop();
 //            }
 //        }
-        
-        return 0;
+//        return 0;
         
         PERF_START(assemble_rst);
-	for(int k=0; k<10; k++) {
+	for(int k=0; k<50; k++) {
         	TPZFMatrix<STATE> rhs_t(sz, 1);
         	fullstruct.Assemble(rhs_t, 0);
 	}
