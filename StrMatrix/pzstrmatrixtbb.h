@@ -158,10 +158,8 @@ protected:
     
 #ifdef USING_TBB
     struct TPZGraphThreadData {
-        // create tbb::flow::graph
-        TPZGraphThreadData(TPZStructMatrixTBB *strmat, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         // copy constructor
-        TPZGraphThreadData(TPZGraphThreadData *copy);
+        TPZGraphThreadData(TPZVec<int> fnextBlocked, TPZVec<int> felSequenceColor);
         // destructor
         ~TPZGraphThreadData();
         // tbb tasks graph
@@ -171,7 +169,8 @@ protected:
         // store all the nodes
         std::vector<tbb::flow::continue_node<tbb::flow::continue_msg>* > fGraphNodes;
         // vector for coloring mesh
-        TPZVec<int> fnextBlocked, felSequenceColor;
+        TPZVec<int> felSequenceColor;
+        
         
         
         /// current structmatrix object

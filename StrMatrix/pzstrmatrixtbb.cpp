@@ -56,33 +56,25 @@ RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the
 TPZStructMatrixTBB::TPZStructMatrixTBB(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
     fMesh = mesh;
     this->SetNumThreads(0);
-    stat_ass_graph_tbb.start();
 #ifdef USING_TBB
-    fAssembleThreadGraph=0;
-#endif
-    //    TPZManVector<int> ElementOrder;
-    //    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
-    //    TPZStructMatrixTBB::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
-//#ifdef USING_TBB
-//    fAssembleThreadGraph=new TPZGraphThreadData(this, fMaterialIds, 0);
-//#endif
+    stat_ass_graph_tbb.start();
+    TPZManVector<int> ElementOrder;
+    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
+    TPZStructMatrixTBB::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
     stat_ass_graph_tbb.stop();
+#endif
 }
 
 TPZStructMatrixTBB::TPZStructMatrixTBB(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
 #ifdef USING_TBB
-    fAssembleThreadGraph=0;
-#endif
     stat_ass_graph_tbb.start();
-    //    TPZManVector<int> ElementOrder;
-    //    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
-    //    TPZStructMatrixTBB::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
-//#ifdef USING_TBB
-//    fAssembleThreadGraph=new TPZGraphThreadData(this, fMaterialIds, 0);
-//#endif
+    TPZManVector<int> ElementOrder;
+    TPZStructMatrixTBB::OrderElement(this->Mesh(), ElementOrder);
+    TPZStructMatrixTBB::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
     stat_ass_graph_tbb.stop();
+#endif
 }
 
 TPZStructMatrixTBB::TPZStructMatrixTBB(const TPZStructMatrixTBB &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
@@ -92,15 +84,9 @@ TPZStructMatrixTBB::TPZStructMatrixTBB(const TPZStructMatrixTBB &copy) : fMesh(c
     }
     fMaterialIds = copy.fMaterialIds;
     fNumThreads = copy.fNumThreads;
-#ifdef USING_TBB
-    fAssembleThreadGraph=0;
-#endif
-    
-//    felSequenceColor = copy.felSequenceColor;
-//    fnextBlocked = copy.fnextBlocked;
-//#ifdef USING_TBB
-//    fAssembleThreadGraph  = new TPZGraphThreadData(copy.fAssembleThreadGraph);
-//#endif
+    felSequenceColor = copy.felSequenceColor;
+    fnextBlocked = copy.fnextBlocked;
+
 }
 
 TPZStructMatrixTBB::~TPZStructMatrixTBB()
@@ -521,18 +507,13 @@ void TPZStructMatrixTBB::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix
 {
 #ifdef USING_TBB
     
-    if(fAssembleThreadGraph) delete fAssembleThreadGraph;
-    fAssembleThreadGraph=new TPZGraphThreadData(this, fMaterialIds, 0);
+    TPZGraphThreadData AssembleThreadGraph(fnextBlocked, felSequenceColor);
     
-    fAssembleThreadGraph->fGlobMatrix=&mat;
-    fAssembleThreadGraph->fGlobRhs=&rhs;
-    fAssembleThreadGraph->fStart.try_put(continue_msg());
-    fAssembleThreadGraph->fAssembleGraph.wait_for_all();
-    fAssembleThreadGraph->fGlobMatrix=0;
-    fAssembleThreadGraph->fGlobRhs=0;
-    
-    if(fAssembleThreadGraph) delete fAssembleThreadGraph;
-    fAssembleThreadGraph=0;
+    AssembleThreadGraph.fStruct=this;
+    AssembleThreadGraph.fGlobMatrix=&mat;
+    AssembleThreadGraph.fGlobRhs=&rhs;
+    AssembleThreadGraph.fStart.try_put(continue_msg());
+    AssembleThreadGraph.fAssembleGraph.wait_for_all();
     
 #endif
 }
@@ -541,18 +522,13 @@ void TPZStructMatrixTBB::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix
 void TPZStructMatrixTBB::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 #ifdef USING_TBB
+    TPZGraphThreadData AssembleThreadGraph(fnextBlocked, felSequenceColor);
     
-    if(fAssembleThreadGraph) delete fAssembleThreadGraph;
-    fAssembleThreadGraph=new TPZGraphThreadData(this, fMaterialIds, 0);
-    
-    fAssembleThreadGraph->fGlobRhs=&rhs;
-    fAssembleThreadGraph->fStart.try_put(continue_msg());
-    fAssembleThreadGraph->fAssembleGraph.wait_for_all();
-    fAssembleThreadGraph->fGlobMatrix=0;
-    fAssembleThreadGraph->fGlobRhs=0;
-    
-    if(fAssembleThreadGraph) delete fAssembleThreadGraph;
-    fAssembleThreadGraph=0;
+    AssembleThreadGraph.fStruct=this;
+    AssembleThreadGraph.fGlobMatrix=0;
+    AssembleThreadGraph.fGlobRhs=&rhs;
+    AssembleThreadGraph.fStart.try_put(continue_msg());
+    AssembleThreadGraph.fAssembleGraph.wait_for_all();
     
 #endif
 }
@@ -796,29 +772,6 @@ void TPZStructMatrixTBB::OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOr
 }
 
 #ifdef USING_TBB
-TPZStructMatrixTBB::TPZGraphThreadData::TPZGraphThreadData(TPZStructMatrixTBB *strmat, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface)
-:fStart(fAssembleGraph), fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(0)
-{
-    
-    TPZManVector<int> ElementOrder;
-    TPZStructMatrixTBB::OrderElement(fStruct->Mesh(), ElementOrder);
-    TPZStructMatrixTBB::ElementColoring(fStruct->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
-    
-    fGraphNodes.resize(felSequenceColor.NElements());
-    for (int i=0; i<felSequenceColor.NElements(); i++) {
-        fGraphNodes[i]= new continue_node<continue_msg>(fAssembleGraph, TPZGraphThreadNode(this, i));
-    }
-    // initial edges to independent nodes
-    for (int i=0; i<felSequenceColor.NElements(); i++) {
-        make_edge(fStart, *fGraphNodes[i]);
-    }
-    // edges from sucessors to nextBlockedElements
-    for (int i=0; i<felSequenceColor.NElements(); i++) {
-        int next=fnextBlocked[i];
-        if (next>0) make_edge(*fGraphNodes[i], *fGraphNodes[next]);
-    }
-    
-}
 
 void TPZStructMatrixTBB::TPZGraphThreadNode::operator()(tbb::flow::continue_msg) const{
     
@@ -832,6 +785,8 @@ void TPZStructMatrixTBB::TPZGraphThreadNode::operator()(tbb::flow::continue_msg)
             if (element >= 0){
             
             TPZCompEl *el = cmesh->ElementVec()[element];
+                
+            if(!el) return;
             
             if (data->fGlobMatrix)
                 el->CalcStiff(ek,ef);
@@ -887,17 +842,15 @@ void TPZStructMatrixTBB::TPZGraphThreadNode::operator()(tbb::flow::continue_msg)
 
 // destructor
 TPZStructMatrixTBB::TPZGraphThreadData::~TPZGraphThreadData() {
-//    for (int i=0; i<fGraphNodes.size(); i++) {
-//        delete fGraphNodes[i];
-//    }
+    for (int i=0; i<fGraphNodes.size(); i++) {
+        delete fGraphNodes[i];
+    }
 }
 
-TPZStructMatrixTBB::TPZGraphThreadData::TPZGraphThreadData(TPZGraphThreadData *copy)
-: fStart(fAssembleGraph), fStruct(copy->fStruct), fGuiInterface(copy->fGuiInterface), fGlobMatrix(0) {
-    
-    fnextBlocked = copy->fnextBlocked;
-    felSequenceColor = copy->felSequenceColor;
-    
+TPZStructMatrixTBB::TPZGraphThreadData::TPZGraphThreadData(TPZVec<int> fnextBlocked, TPZVec<int> felSequenceColor)
+: fStart(fAssembleGraph)
+{
+    this->felSequenceColor=felSequenceColor;
     fGraphNodes.resize(felSequenceColor.NElements());
     for (int i=0; i<felSequenceColor.NElements(); i++) {
         fGraphNodes[i]= new continue_node<continue_msg>(fAssembleGraph, TPZGraphThreadNode(this, i));
@@ -911,9 +864,7 @@ TPZStructMatrixTBB::TPZGraphThreadData::TPZGraphThreadData(TPZGraphThreadData *c
         int next=fnextBlocked[i];
         if (next>0) make_edge(*fGraphNodes[i], *fGraphNodes[next]);
     }
-    
-    
+ 
 }
-
 
 #endif
