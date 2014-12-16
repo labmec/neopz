@@ -39,6 +39,7 @@
 #include "TPZMohrCoulombNeto.h"
 #include "TPZSandlerDimaggio.h"
 #include "clock_timer.h"
+#include "TPBrAcidFunc.h"
 
 using namespace pzshape; // needed for TPZShapeCube and related classes
 
@@ -1205,9 +1206,9 @@ void Config6()
     int Startfrom=0;
 
     if(Startfrom == 0){
-        int porder = 2;
-        int nrad=100;
-        int ncircle = 20;
+        int porder = 1;
+        int nrad=20;
+        int ncircle = 40;
         REAL delx = 0.5*innerradius*M_PI_2/ncircle;
         TPZManVector<int,2> numdiv(2);
         numdiv[0] = nrad;
@@ -1220,7 +1221,7 @@ void Config6()
         std::cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         //REAL farfieldwork = well.GetCurrentConfig()->ComputeFarFieldWork();
-        //well.PostProcess(0);
+        well.PostProcess(0);
         
     }
 
@@ -1229,6 +1230,7 @@ void Config6()
         int nsteps = 1;
         int numnewton = 80;
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        TPZWellBoreAnalysis::TConfig::gNumThreads = 8;
         well.ExecuteInitialSimulation(nsteps, numnewton);
         well.PostProcess(0);
         TPZBFileStream save;
@@ -1239,17 +1241,24 @@ void Config6()
     
 }
 
+void Config7()
+{
+    TPBrAcidFunc acidfunc;
+    acidfunc.StandarParameters();
+    acidfunc.CalculaDerivados();
+}
 
 int main(int argc, char **argv)
 {
     clarg::parse_arguments(argc, argv);
     
     plast_tot.start();
-    Config1();
+//    Config1();
 //    Config2();
 //    Config3();
 //    Config4();
 //    Config6();
+    Config7();
     plast_tot.stop();
     
     

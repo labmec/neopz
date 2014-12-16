@@ -63,7 +63,7 @@ void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef)
     }
     
     if (fCompMesh) {
-        std::cout << "PostProcAnalysis deleting the mesh " << (void *) fCompMesh << std::endl;
+//        std::cout << "PostProcAnalysis deleting the mesh " << (void *) fCompMesh << std::endl;
         delete fCompMesh;
         fCompMesh = 0;
         TPZAnalysis::CleanUp();

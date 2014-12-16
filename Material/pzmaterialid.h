@@ -89,6 +89,11 @@ const int TPZMatElastoPlasticSest2DID = 334;
 /** @brief Id of the elastic material included in Sest2D */
 const int TPZElasticityMaterialSest2DID = 335;
 
+/** @brief Id of a forcing function representing a poro elastic drag force */
+const int TPBrAcidFuncID = 336;
+
+
+
 /** @} */
 
 #endif //PZMATERIALIDH
