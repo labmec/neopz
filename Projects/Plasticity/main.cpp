@@ -54,6 +54,32 @@ using namespace pzshape; // needed for TPZShapeCube and related classes
 #include "arglib.h"
 #include "run_stats_table.h"
 
+#define MACOS
+#ifdef MACOS
+
+#include <iostream>
+#include <math.h>
+#include <signal.h>
+#include <fenv.h>
+#include <xmmintrin.h>
+
+#define ENABLE_FPO_EXCEPTIONS _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_INVALID);
+
+
+#define DECLARE_FPO_HANDLER_FUNC void InvalidFPOHandler(int signo) {\
+switch(signo) {\
+case SIGFPE: std::cout << "ERROR : Invalid Arithmetic operation." << std::endl; break;\
+}\
+exit(signo);\
+}
+
+#define ATTACH_FPO_SIGNAL struct sigaction act = {};\
+act.sa_handler = InvalidFPOHandler;\
+sigaction(SIGFPE, &act, NULL);
+
+
+DECLARE_FPO_HANDLER_FUNC;
+#endif
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("plasticity.main"));
@@ -73,7 +99,7 @@ using namespace tbb;
 
 
 RunStatsTable plast_tot("-tpz_plast_tot", "Raw data table statistics for the main execution.");
-clarg::argInt NumberOfThreads("-nt", "Number of threads for WellBoreAnalysis", 8);
+clarg::argInt NumberOfThreads("-nt", "Number of threads for WellBoreAnalysis", 1);
 
 
 void Config1()
@@ -1251,6 +1277,19 @@ void Config7()
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     std::cout << std::setprecision(15);
     
+    TPBrAcidFunc acidfunc;
+    acidfunc.StandardParameters();
+    acidfunc.CalculaDerivados();
+    REAL innerradius = 4.25*0.0254;
+    REAL outerradius = 3.;
+    TPZVec<REAL> x(2,0.);
+    for (REAL r=innerradius; r <= outerradius; r += (outerradius-innerradius)/15.) {
+        x[0] = r;
+        TPZManVector<REAL,3> func(1);
+        acidfunc.Execute(x, func);
+        std::cout << "r = " << r << " Elast " << func[0] << std::endl;
+    }
+
     TPZWellBoreAnalysis well;
     
 #ifndef USING_TBB
@@ -1283,8 +1322,6 @@ void Config7()
     well.SetConfinementTotalStresses(confinementTotal, WellPressure);
     
     
-    REAL innerradius = 4.25*0.0254;
-    REAL outerradius = 3.;
     well.SetInnerOuterRadius(innerradius, outerradius);
     
     
@@ -1293,7 +1330,7 @@ void Config7()
     
     
     REAL sqj2_refine=0.0001;
-    int Startfrom=0;
+    int Startfrom=1;
     const int nsubsteps = 5;
     if (Startfrom == 0)
     {
@@ -1355,6 +1392,9 @@ void Config7()
         int numnewton = 90;
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteInitialSimulation(nsteps, numnewton);
+        well.PRefineElementAbove(sqj2_refine, 3);
+        well.DivideElementsAbove(sqj2_refine);
+        well.ExecuteSimulation(nsubsteps);
         well.PostProcess(0);
         TPZBFileStream save;
         save.OpenWrite("Config7-0.bin");
@@ -1374,24 +1414,20 @@ void Config7()
     {
         std::cout << "\n ------- 1 -------- "<<std::endl;
         
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
-        well.PostProcess(0);
         
         well.GetCurrentConfig()->fAcidParameters.StandardParameters();
         well.GetCurrentConfig()->ActivateAcidification();
         
         well.ExecuteSimulation(1);
+        
+        well.PostProcess(1);
+        
         TPZBFileStream save;
         save.OpenWrite("Config7-1.bin");
         well.Write(save);
         
         
     }
-    TPBrAcidFunc acidfunc;
-    acidfunc.StandardParameters();
-    acidfunc.CalculaDerivados();
 }
 
 int main(int argc, char **argv)

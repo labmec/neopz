@@ -532,7 +532,7 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     out.Write(&fZDeformation);
     TPZSaveable::WriteObjects(out,fPlasticDeformSqJ2);
     out.Write(&fHistoryLog);
-    fAcidParameters.TPZSaveable::Write(out, 0);
+    fAcidParameters.Write(out, 0);
     out.Write(&fAcidModelisActive);
 
     int verify = 83562;
@@ -737,6 +737,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
         {
             InitialZStress = LocalConfig.AverageVerticalStress();
             InitialZDeformation = zdeformation;
+            std::cout << "InitialZDeformation = " << InitialZDeformation << " InitialZStress = " << InitialZStress << std::endl;
             zdeformation = (targetZStress-InitialZStress)/elasticity;
             if (fabs(zdeformation) < 1.e-4) {
                 zdeformation = (zdeformation < 0.) ? -1.e-4 : 1.e-4;
@@ -747,8 +748,15 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
         {
             SecondZStress = LocalConfig.AverageVerticalStress();
             SecondZDeformation = zdeformation;
+            std::cout << "SecondZDeformation = " << SecondZDeformation << " SecondZStress = " << SecondZStress << std::endl;
             zdeformation = InitialZDeformation + (SecondZDeformation-InitialZDeformation)*(targetZStress-InitialZStress)/(SecondZStress-InitialZStress);
             LocalConfig.SetZDeformation(zdeformation);
+        }
+        else
+        {
+            STATE FinalZStress = LocalConfig.AverageVerticalStress();
+            std::cout << "ZDeformation = " << zdeformation << " FinalZStress = " << FinalZStress << std::endl;
+
         }
     }
         
@@ -3307,6 +3315,10 @@ void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterialSest2D &m
     
     REAL sigzz = boundarytensor.ZZ()+ fCurrentConfig.fBiotCoef*fCurrentConfig.fReservoirPressure;
     mat.SetPreStress(sigxx, sigyy, sigxy, sigzz);
+    
+    if (fCurrentConfig.fAcidModelisActive) {
+        mat.ActivateAcidification(fCurrentConfig.fAcidParameters);
+    }
     
 }
 

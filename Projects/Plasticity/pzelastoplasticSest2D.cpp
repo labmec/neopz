@@ -85,7 +85,9 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialDa
         TPZManVector<STATE,2> func(1);
         fYoungModulus.Execute(data.x, func);
         REAL poisson = ER.Poisson();
-        ER.SetUp(func[0], poisson);
+        REAL young = ER.E();
+        REAL youngnovo = func[0];
+        ER.SetUp(youngnovo, poisson);
         this->fPlasticity.SetElasticResponse(ER);
     }
   if (DeltaStrain.Rows() != 6) {
@@ -115,7 +117,8 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data,
         TPZManVector<STATE,2> func(1);
         fYoungModulus.Execute(data.x, func);
         REAL poisson = ER.Poisson();
-        ER.SetUp(func[0], poisson);
+        REAL youngnovo = func[0];
+        ER.SetUp(youngnovo, poisson);
         this->fPlasticity.SetElasticResponse(ER);
     }
 
