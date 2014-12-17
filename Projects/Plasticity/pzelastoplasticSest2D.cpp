@@ -23,7 +23,7 @@
  * Default constructor
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlastic2D<T, TMEM>(), fZDeformation(0.), fbiot(0.)
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlastic2D<T, TMEM>(), fZDeformation(0.), fbiot(0.), fVariableYoung(false), fYoungModulus()
 {
 }
 
@@ -33,7 +33,8 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D():TPZMatElastoPlast
  *  vector
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress):TPZMatElastoPlastic2D<T, TMEM>(id,PlaneStrainOrPlaneStress), fZDeformation(0.), fbiot(0.)
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int PlaneStrainOrPlaneStress):TPZMatElastoPlastic2D<T, TMEM>(id,PlaneStrainOrPlaneStress), fZDeformation(0.), fbiot(0.),
+    fVariableYoung(false), fYoungModulus()
 {
   
 }
@@ -44,7 +45,8 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(int id ,  int Plane
  *  object within the vector
  */
 template <class T, class TMEM>
-TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(const TPZMatElastoPlasticSest2D<T,TMEM> &mat):TPZMatElastoPlastic2D<T, TMEM>(mat), fZDeformation(mat.fZDeformation), fbiot(mat.fbiot)
+TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(const TPZMatElastoPlasticSest2D<T,TMEM> &mat):TPZMatElastoPlastic2D<T, TMEM>(mat), fZDeformation(mat.fZDeformation), fbiot(mat.fbiot),
+    fVariableYoung(mat.fVariableYoung), fYoungModulus(mat.fYoungModulus)
 {
   TPBrBiotForce * func = dynamic_cast<TPBrBiotForce *>(this->fForcingFunction.operator->());
     
@@ -78,6 +80,14 @@ template <class T, class TMEM>
 void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
   
+    if (fVariableYoung) {
+        TPZElasticResponse ER = this->fPlasticity.fER;
+        TPZManVector<STATE,2> func(1);
+        fYoungModulus.Execute(data.x, func);
+        REAL poisson = ER.Poisson();
+        ER.SetUp(func[0], poisson);
+        this->fPlasticity.SetElasticResponse(ER);
+    }
   if (DeltaStrain.Rows() != 6) {
     DebugStop();
   }
@@ -92,6 +102,29 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialDa
   }
 }
 
+template <class T, class TMEM>
+void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress)
+{
+    
+    
+    if (DeltaStrain.Rows() != 6) {
+        DebugStop();
+    }
+    if (fVariableYoung) {
+        TPZElasticResponse ER = this->fPlasticity.fER;
+        TPZManVector<STATE,2> func(1);
+        fYoungModulus.Execute(data.x, func);
+        REAL poisson = ER.Poisson();
+        ER.SetUp(func[0], poisson);
+        this->fPlasticity.SetElasticResponse(ER);
+    }
+
+    
+    TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrain(data,DeltaStrain,Stress);//
+}
+
+
+
 /**
  * Save the element data to a stream
  */
@@ -101,6 +134,8 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Write(TPZStream &buf, int withclassid)
     TPZMatElastoPlastic2D<T,TMEM>::Write(buf,withclassid);
     buf.Write(&fZDeformation);
     buf.Write(&fbiot);
+    buf.Write(&fVariableYoung);
+    fYoungModulus.TPZSaveable::Write(buf, 0);
 }
 
 /**
@@ -112,6 +147,8 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Read(TPZStream &buf, void *context)
     TPZMatElastoPlastic2D<T,TMEM>::Read(buf,context);
     buf.Read(&fZDeformation);
     buf.Read(&fbiot);
+    buf.Read(&fVariableYoung);
+    fYoungModulus.TPZSaveable::Read(buf, 0);
     
 }
 

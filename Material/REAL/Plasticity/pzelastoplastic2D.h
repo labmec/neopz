@@ -106,19 +106,13 @@ public:
      * @param bc [in] is the boundary condition material
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-    
+
 	
 	/** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
-	 * @param DeltaStrain [out] 
+	 * @param DeltaStrain [out]
 	 * @param data [in]
 	 */
 	virtual void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
-	
-    /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
-     * @param DeltaStrain [out]
-     * @param data [in]
-     */
-    virtual void ComputeDeltaStrainVector(TPZVec<TPZMaterialData> & data, TPZFMatrix<REAL> &DeltaStrain);
     
 	
 	/** Calls the plasticity template aggregate applyStrainComputeDep method

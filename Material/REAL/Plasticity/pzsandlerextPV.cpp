@@ -103,6 +103,16 @@ void TPZSandlerExtended::SetUp(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G
     
 }
 
+void TPZSandlerExtended::SetElasticResponse(TPZElasticResponse &ER)
+{
+    fElasticResponse = ER;
+    fE = ER.E();
+    fnu = ER.Poisson();
+    fK = ER.K();
+    fG = ER.G();
+}
+
+
 void TPZSandlerExtended::Read(TPZStream &buf)
 {
     buf.Read(&fA);

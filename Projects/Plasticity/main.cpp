@@ -1243,8 +1243,154 @@ void Config6()
 
 void Config7()
 {
+    //EVertical
+    //ENonPenetrating
+    InitializePZLOG();
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    std::cout << std::setprecision(15);
+    
+    TPZWellBoreAnalysis well;
+    
+#ifndef USING_TBB
+    if (NumberOfThreads.get_value()>=0) {
+        TPZWellBoreAnalysis::TConfig::gNumThreads=NumberOfThreads.get_value();
+    }
+#else
+    int number_tbb=NumberOfThreads.get_value();
+    if(number_tbb<=0)number_tbb=1;
+    task_scheduler_init init(number_tbb);
+#endif
+    
+    
+    STATE biotcoef = 0.659;
+    well.SetBiotCoefficient(biotcoef);
+    
+    REAL reservoirPressure=57.2;
+    well.SetReservoirPressure(reservoirPressure);
+    
+    
+    REAL SH,Sh,SV;
+    Sh=-83.5;
+    SH=-99.8;
+    SV=-85.9;
+    TPZManVector<STATE,3> confinementTotal(3,0.);
+    confinementTotal[0] = Sh;
+    confinementTotal[1] = SH;
+    confinementTotal[2] = SV;
+    REAL WellPressure = 57.2; //66.6 61.1 57.2
+    well.SetConfinementTotalStresses(confinementTotal, WellPressure);
+    
+    
+    REAL innerradius = 4.25*0.0254;
+    REAL outerradius = 3.;
+    well.SetInnerOuterRadius(innerradius, outerradius);
+    
+    
+    std::string output = "Config7.vtk";
+    well.SetVtkOutPutName(output);
+    
+    
+    REAL sqj2_refine=0.0001;
+    int Startfrom=0;
+    const int nsubsteps = 5;
+    if (Startfrom == 0)
+    {
+        well.SetInnerOuterRadius(innerradius, outerradius);
+        
+        REAL poisson = 0.203;
+        REAL elast = 29269.;
+        REAL A = 152.54;
+        REAL B = 0.0015489;
+        REAL C = 146.29;
+        REAL R = 0.91969;
+        REAL D = 0.018768;
+        REAL W = 0.006605;
+        
+        bool modelMC =false;
+        
+        if (modelMC)
+        {
+            REAL cohesion = 13.;
+            REAL Phi = 0.52;
+            well.SetMohrCoulombParameters(poisson, elast, cohesion, Phi, Phi);
+            
+        }
+        else
+        {
+            well.SetSanderDiMaggioParameters(poisson, elast, A, B, C, R, D, W);
+            
+            
+        }
+        
+        int porder = 2;
+        int nrad=20;
+        int ncircle = 40;
+        REAL delx = 0.5*innerradius*M_PI_2/ncircle;
+        TPZManVector<int,2> numdiv(2);
+        numdiv[0] = nrad;
+        numdiv[1] = ncircle;
+        well.SetMeshTopology(delx, numdiv);
+        
+        
+        well.GetCurrentConfig()->fWellConfig = EVerticalWell;
+        
+        
+        well.GetCurrentConfig()->CreateMesh();
+        
+        
+        well.GetCurrentConfig()->CreateComputationalMesh(porder);
+        
+        
+        well.GetCurrentConfig()->CreatePostProcessingMesh();
+        
+        well.PostProcess(0);
+        
+    }
+    if (Startfrom ==0)
+    {
+        
+        int nsteps = 5;
+        int numnewton = 90;
+        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        well.ExecuteInitialSimulation(nsteps, numnewton);
+        well.PostProcess(0);
+        TPZBFileStream save;
+        save.OpenWrite("Config7-0.bin");
+        well.Write(save);
+        
+    }
+    
+    if (Startfrom ==1)
+    {
+        TPZBFileStream read;
+        read.OpenRead("Config7-0.bin");
+        well.Read(read);
+    }
+    
+    
+    if (Startfrom <=1)
+    {
+        std::cout << "\n ------- 1 -------- "<<std::endl;
+        
+        well.PRefineElementAbove(sqj2_refine, 3);
+        well.DivideElementsAbove(sqj2_refine);
+        well.ExecuteSimulation(nsubsteps);
+        well.PostProcess(0);
+        
+        well.GetCurrentConfig()->fAcidParameters.StandardParameters();
+        well.GetCurrentConfig()->ActivateAcidification();
+        
+        well.ExecuteSimulation(1);
+        TPZBFileStream save;
+        save.OpenWrite("Config7-1.bin");
+        well.Write(save);
+        
+        
+    }
     TPBrAcidFunc acidfunc;
-    acidfunc.StandarParameters();
+    acidfunc.StandardParameters();
     acidfunc.CalculaDerivados();
 }
 

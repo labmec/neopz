@@ -435,7 +435,7 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 
 TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinementTotal(),  fWellborePressure(0.),
     fGMesh(), fCMesh(), fSolution(), fZDeformation(0.), fPlasticDeformSqJ2(), fHistoryLog(), fModel(ESandler), fWellConfig(ENoConfig), fFluidModel(ENonPenetrating), fBiotCoef(-1.)
-  , fSDPV(), fMCPV(), fMatEla()
+  , fSDPV(), fMCPV(), fMatEla(), fAcidModelisActive(0)
 
 
 {
@@ -447,7 +447,7 @@ TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.f
         fConfinementTotal(conf.fConfinementTotal), fWellborePressure(conf.fWellborePressure),
         fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fSolution(conf.fSolution), fZDeformation(conf.fZDeformation),
     fModel(conf.fModel), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2), fHistoryLog(conf.fHistoryLog), fFluidModel(conf.fFluidModel), fWellConfig(conf.fWellConfig), fBiotCoef(conf.fBiotCoef)
-  , fSDPV(conf.fSDPV), fMCPV(conf.fMCPV), fMatEla(conf.fMatEla)
+  , fSDPV(conf.fSDPV), fMCPV(conf.fMCPV), fMatEla(conf.fMatEla), fAcidParameters(conf.fAcidParameters), fAcidModelisActive(conf.fAcidModelisActive)
 {
     fSDPV = conf.fSDPV;
     fGMesh.ResetReference();
@@ -495,8 +495,9 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fFluidModel = copy.fFluidModel;
     fBiotCoef = copy.fBiotCoef;
     fWellConfig = copy.fWellConfig;
+    fAcidParameters = copy.fAcidParameters;
+    fAcidModelisActive = copy.fAcidModelisActive;
     
-    std::cout << "Copying " << (void *) &copy << " to " << (void *) this << std::endl;
     return *this;
 }
 
@@ -531,6 +532,8 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     out.Write(&fZDeformation);
     TPZSaveable::WriteObjects(out,fPlasticDeformSqJ2);
     out.Write(&fHistoryLog);
+    fAcidParameters.TPZSaveable::Write(out, 0);
+    out.Write(&fAcidModelisActive);
 
     int verify = 83562;
     out.Write(&verify);
@@ -571,6 +574,8 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     input.Read(&fZDeformation);
     TPZSaveable::ReadObjects(input,fPlasticDeformSqJ2);
     input.Read(&fHistoryLog);
+    fAcidParameters.Read(input, 0);
+    input.Read(&fAcidModelisActive);
     
     int verify = 0;
     input.Read(&verify);
@@ -2008,6 +2013,35 @@ void TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<long>
     }
 #endif
 }
+
+/// Set the configuration of the plastic material to use acid parameters
+void TPZWellBoreAnalysis::TConfig::ActivateAcidification()
+{
+    TPZMaterial *mat = fCMesh.FindMaterial(1);
+    typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> mattype1;
+    typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem> mattype2;
+    typedef TPZElasticityMaterialSest2D mattype3;
+    
+    mattype1 *matposs1 = dynamic_cast<mattype1 *>(mat);
+    mattype2 *matposs2 = dynamic_cast<mattype2 *>(mat);
+    mattype3 *matposs3 = dynamic_cast<mattype3 *>(mat);
+    
+    if (matposs1) {
+        matposs1->ActivateAcidification(fAcidParameters);
+    }
+    if (matposs2) {
+        matposs2->ActivateAcidification(fAcidParameters);
+    }
+    if (matposs3) {
+        matposs3->ActivateAcidification(fAcidParameters);
+    }
+    if (!matposs1 && !matposs2 && !matposs3) {
+        DebugStop();
+    }
+    
+}
+
+
 
 TPZGeoMesh * TPZWellBoreAnalysis::TConfig::GetGeoMesh() {
   return &this->fGMesh;

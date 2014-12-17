@@ -130,7 +130,7 @@ public:
     }
     
     /// preencha valores default para os parametros
-    void StandarParameters();
+    void StandardParameters();
     
     /// preencha valores invalidos para os parametros
     void VoidParameters();

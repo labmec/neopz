@@ -121,6 +121,10 @@ public:
 		out << "Still have to implement the print" << std::endl;
 	}
 	
+    void SetElasticResponse(TPZElasticResponse &ER)
+    {
+        fER = ER;
+    }
 	/**
 	 * @brief Calculates the value c(epsp) and its derivative
 	 */

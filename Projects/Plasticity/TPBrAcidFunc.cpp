@@ -11,7 +11,7 @@
 
 
 /// preencha valores default para os parametros
-void TPBrAcidFunc::StandarParameters()
+void TPBrAcidFunc::StandardParameters()
 {
     /// porosidade inicial
     fPorosidadeInicial = 0.2;
@@ -23,7 +23,7 @@ void TPBrAcidFunc::StandarParameters()
     /// Vazao de tratamento
     fVazaoTratamento = 20.; // bpm
     /// volume de fluido de tratamento
-    fVolumeFluidoTratamento = 1500; // bbl
+    fVolumeFluidoTratamento = 0; // bbl
     /// tempo de injecao de tratamento
     fTempodeTratamento = -1; // calculado
     /// comprimento de trecho tratado
@@ -55,6 +55,7 @@ void TPBrAcidFunc::StandarParameters()
     /// constante do modelo de reducao de rigidez
     fb = 17.415;
 
+    CalculaDerivados();
 }
 
 void TPBrAcidFunc::CalculaDerivados()

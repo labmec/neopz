@@ -21,6 +21,7 @@
 #include "pzelasmat.h"
 #include "TPZMatElasticity2D.h"
 #include "TPZTensor.h"
+#include "TPBrAcidFunc.h"
 
 
 /**
@@ -177,6 +178,13 @@ class TPZElasticityMaterialSest2D : public TPZMatElasticity2D {
         return fZDeformation;
     }
     
+    /// Set a function which computes the Young elasticity modulus as a function of the coordinate
+    void ActivateAcidification(TPBrAcidFunc &func)
+    {
+        fVariableYoung = true;
+        fYoungModulus = func;
+    }
+
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
      * @param datavec [in] stores all input data
@@ -186,6 +194,8 @@ class TPZElasticityMaterialSest2D : public TPZMatElasticity2D {
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+    
+    
     
     /**
      * @brief Print Method */
@@ -200,6 +210,14 @@ private:
     
     /** @brief M. Biot Parameter */
     REAL fBiotAlpha;
+
+    /// boolean indicating whether the Young modulus needs to be computed at each point
+    int fVariableYoung;
+    
+    /// function that computes the young modulus as a function of the coordinate
+    TPBrAcidFunc fYoungModulus;
+    
+
 };
 
 

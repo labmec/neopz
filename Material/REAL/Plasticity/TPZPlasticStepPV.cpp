@@ -627,6 +627,13 @@ void TPZPlasticStepPV<YC_t, ER_t>::CopyFromTensorToFMatrix(TPZTensor<STATE> tens
     copy(5,0)=tensor.ZZ();
 }
 
+template <class YC_t, class ER_t>
+void TPZPlasticStepPV<YC_t, ER_t>::SetElasticResponse(TPZElasticResponse &ER)
+{
+    fER = ER;
+    fYC.SetElasticResponse(ER);
+}
+
 template class TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>;
 template class TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>;
 

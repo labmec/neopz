@@ -24,6 +24,7 @@
 #include "pzporoelastoplasticmem.h"
 #include "pzelastoplastic2D.h"
 #include "pzmaterial.h"
+#include "TPBrAcidFunc.h"
 
 /**
  * Implements an elastoplastic material and uses the memory feature to store the damage variables
@@ -162,8 +163,20 @@ public:
     void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,
                                     TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
     
+    
+    /** Calls the plasticity template aggregate applyStrainComputeDep method
+     *  @param data [in]
+     *  @param DeltaStrain [in]
+     *  @param Stress [out]
+     */
+    void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress);
 
-        
+    /// Set a function which computes the Young elasticity modulus as a function of the coordinate
+    void ActivateAcidification(TPBrAcidFunc &func)
+    {
+        fVariableYoung = true;
+        fYoungModulus = func;
+    }
     /**
      * Set the deformation in the Z direction
      */
@@ -217,6 +230,12 @@ private:
   
     /// constante de Biot
     STATE fbiot;
+    
+    /// boolean indicating whether the Young modulus needs to be computed at each point
+    int fVariableYoung;
+    
+    /// function that computes the young modulus as a function of the coordinate
+    TPBrAcidFunc fYoungModulus;
 
 
 };

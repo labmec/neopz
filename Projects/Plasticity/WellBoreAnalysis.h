@@ -21,6 +21,7 @@
 #include "pzstack.h"
 #include "TPZYCMohrCoulombPV.h"
 #include "pzelasticSest2D.h"
+#include "TPBrAcidFunc.h"
 
 //class TPZElasticityMaterialSest2D;
 
@@ -174,7 +175,8 @@ public:
         /// Set the Z deformation (for adapting the compaction)
         void SetZDeformation(STATE epsZ);
         
-
+        /// Set the configuration of the plastic material to use acid parameters
+        void ActivateAcidification();
         
         /// Compute the average vertical stress of the configuration
         STATE AverageVerticalStress();
@@ -258,7 +260,9 @@ public:
 
         std::string fHistoryLog;
         
-
+        TPBrAcidFunc fAcidParameters;
+        
+        int fAcidModelisActive;
         
         static int gNumThreads;
 

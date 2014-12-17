@@ -92,7 +92,6 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
         TPZNonLinearAnalysis::LoadSolution(NextW);
         AssembleResidual();
         {
-            std::cout << "Vertical strain change" << fSolution(fSolution.Rows()-1,0) << std::endl;
             static int count = 0;
             {
                 std::stringstream filename,varname;

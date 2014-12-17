@@ -14,6 +14,8 @@
 #include "TPZPlasticStep.h"
 #include "pzlog.h"
 #include "pzstepsolver.h"
+#include "TPZElasticResponse.h"
+
 #include <set>
 #include <ostream>
 
@@ -157,7 +159,7 @@ public:
 	 */
 	virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
 
-    
+    virtual void SetElasticResponse(TPZElasticResponse &ER);
     
     /**
 	 * @brief Update the damage values

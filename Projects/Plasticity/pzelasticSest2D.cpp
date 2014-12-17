@@ -8,25 +8,25 @@
 
 #include "pzelasticSest2D.h"
 
-TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D():TPZMatElasticity2D()
+TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D():TPZMatElasticity2D() , fVariableYoung(false)
 {
     fBiotAlpha = 0.;
     fZDeformation = 0.;
 }
 
-TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZMatElasticity2D(id,E,nu,fx,fy,plainstress)
+TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id, REAL E, REAL nu, REAL fx, REAL fy, int plainstress):TPZMatElasticity2D(id,E,nu,fx,fy,plainstress), fVariableYoung(false)
 {
     fBiotAlpha = 0.;
     fZDeformation = 0.;
 }
 
-TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id):TPZMatElasticity2D(id)
+TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(int id):TPZMatElasticity2D(id), fVariableYoung(false)
 {
     fBiotAlpha = 0.;
     fZDeformation = 0.;
 }
 
-TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(const TPZElasticityMaterialSest2D &copy) : TPZMatElasticity2D(copy)
+TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D(const TPZElasticityMaterialSest2D &copy) : TPZMatElasticity2D(copy), fYoungModulus(copy.fYoungModulus), fVariableYoung(copy.fVariableYoung)
 {
     fBiotAlpha = copy.fBiotAlpha;
     fZDeformation = copy.fZDeformation;
@@ -42,6 +42,8 @@ TPZElasticityMaterialSest2D & TPZElasticityMaterialSest2D::operator=(const TPZEl
     TPZMatElasticity2D::operator=(copy);
     fBiotAlpha = copy.fBiotAlpha;
     fZDeformation = copy.fZDeformation;
+    fVariableYoung = copy.fVariableYoung;
+    fYoungModulus = copy.fYoungModulus;
     return *this;
 }
 
@@ -589,6 +591,8 @@ void TPZElasticityMaterialSest2D::Write(TPZStream &buf, int withclassid)
     TPZMatElasticity2D::Write(buf,withclassid);
     buf.Write(&fBiotAlpha);
     buf.Write(&fZDeformation);
+    buf.Write(&fVariableYoung);
+    fYoungModulus.Write(buf, 0);
 }
 
 void TPZElasticityMaterialSest2D::Read(TPZStream &buf, void *context)
@@ -596,6 +600,8 @@ void TPZElasticityMaterialSest2D::Read(TPZStream &buf, void *context)
     TPZMatElasticity2D::Read(buf,context);
     buf.Read(&fBiotAlpha);
     buf.Read(&fZDeformation);
+    buf.Read(&fVariableYoung);
+    fYoungModulus.Read(buf, 0);
 }
 
 void TPZElasticityMaterialSest2D::Print(std::ostream &out)
@@ -603,6 +609,7 @@ void TPZElasticityMaterialSest2D::Print(std::ostream &out)
     out << "TPZElasticityMaterialSest2D :" << std::endl;
     out << "\t fBiotAlpha   = "			<< fBiotAlpha << std::endl;
     out << "\t fZDeformation   = "      << fZDeformation<< std::endl;
+    out << "\t fVariableYoung = " << fVariableYoung << std::endl;
     out << "Father properties :";
     TPZMatElasticity2D::Print(out);
     out << "\n";
