@@ -308,6 +308,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
     }
 	
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		JacTemp.Print("Jabobian before contributing the nodes",sout);
@@ -334,7 +335,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
         TPZFNMatrix<9> axest;
         JacTemp.GramSchmidt(axest,jacobian);
         axest.Transpose(&axes);
-        
+        jacinv.Resize(jacobian.Rows(), jacobian.Cols());
         detjac = jacobian(0,0);
         if(IsZero(detjac)){
             detjac = ZeroTolerance();
@@ -345,6 +346,8 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
         TPZFNMatrix<9> axest;
         JacTemp.GramSchmidt(axest,jacobian);
         axest.Transpose(&axes);
+        
+        jacinv.Resize(jacobian.Rows(), jacobian.Cols());
         
         detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
         if(IsZero(detjac)){
@@ -359,6 +362,9 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
     {
         jacobian = JacTemp;
         axes.Resize(3,3); axes.Zero();
+        
+        jacinv.Resize(jacobian.Rows(), jacobian.Cols());
+        
         axes(0,0) = 1.; axes(1,1) = 1.; axes(2,2) = 1.;
         detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0);//- a02 a11 a20
         detjac += jacobian(0,1)*jacobian(1,2)*jacobian(2,0);//+ a01 a12 a20
@@ -370,9 +376,12 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
         if(IsZero(detjac))
 		{
 #ifdef DEBUG
-			std::stringstream sout;
-			sout << "Singular Jacobian " << detjac;
-			LOGPZ_ERROR(logger, sout.str())
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Singular Jacobian " << detjac;
+                LOGPZ_ERROR(logger, sout.str())
+            }
 #endif
 			detjac = ZeroTolerance();
 		}
