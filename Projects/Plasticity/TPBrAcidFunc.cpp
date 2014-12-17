@@ -137,14 +137,53 @@ int TPBrAcidFunc::ClassId() const
 void TPBrAcidFunc::Write(TPZStream &buf, int withclassid) 
 {
     TPZFunction<STATE>::Write(buf,withclassid);
-//    buf.Write(&fRwell);
+    buf.Write(&fPorosidadeInicial);
+    buf.Write(&fPorosidadeMaximaAdmissivel);
+    buf.Write(&fConcentracaoMolar);
+    buf.Write(&fVazaoTratamento);
+    buf.Write(&fVolumeFluidoTratamento);
+    buf.Write(&fTempodeTratamento);
+    buf.Write(&fComprimentoTratamento);
+    buf.Write(&fRaioPoco);
+    buf.Write(&fRhoM);
+    buf.Write(&fMassaMolar);
+    buf.Write(&fAreaSuperficialPoros);
+    buf.Write(&fElectroValenciaFluido);
+    buf.Write(&fElectroValenciaMineral);
+    buf.Write(&fBetaEstequimetrico);
+    buf.Write(&fks);
+    buf.Write(&fkc);
+    buf.Write(&fkeff);
+    buf.Write(&fEInicial);
+    buf.Write(&fa);
+    buf.Write(&fb);
+    
 }
 
 /** @brief read objects from the stream */
 void TPBrAcidFunc::Read(TPZStream &buf, void *context)
 {
     TPZFunction<STATE>::Read(buf,context);
-//    buf.Read(&fRwell);
+    buf.Read(&fPorosidadeInicial);
+    buf.Read(&fPorosidadeMaximaAdmissivel);
+    buf.Read(&fConcentracaoMolar);
+    buf.Read(&fVazaoTratamento);
+    buf.Read(&fVolumeFluidoTratamento);
+    buf.Read(&fTempodeTratamento);
+    buf.Read(&fComprimentoTratamento);
+    buf.Read(&fRaioPoco);
+    buf.Read(&fRhoM);
+    buf.Read(&fMassaMolar);
+    buf.Read(&fAreaSuperficialPoros);
+    buf.Read(&fElectroValenciaFluido);
+    buf.Read(&fElectroValenciaMineral);
+    buf.Read(&fBetaEstequimetrico);
+    buf.Read(&fks);
+    buf.Read(&fkc);
+    buf.Read(&fkeff);
+    buf.Read(&fEInicial);
+    buf.Read(&fa);
+    buf.Read(&fb);
 }
 
 template class TPZRestoreClass<TPBrAcidFunc,TPBrAcidFuncID>;

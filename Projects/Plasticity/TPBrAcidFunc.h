@@ -60,23 +60,66 @@ public:
     
     
 public:
+    
+    
+    
     /** @brief Class constructor */
     TPBrAcidFunc()
     {
         VoidParameters();
     }
 
-  /** @brief Class copy constructor */
-  TPBrAcidFunc(const TPBrAcidFunc &cp) : TPZFunction<STATE>(cp)
-  {
-      DebugStop();
-  }
-  
+
+    /** @brief Class copy constructor */
+    TPBrAcidFunc(const TPBrAcidFunc &cp) : TPZFunction<STATE>(cp)
+    {
+        fPorosidadeInicial=cp.fPorosidadeInicial;
+        fPorosidadeMaximaAdmissivel=cp.fPorosidadeMaximaAdmissivel;
+        fConcentracaoMolar=cp.fConcentracaoMolar;
+        fVazaoTratamento=cp.fVazaoTratamento;
+        fVolumeFluidoTratamento=cp.fVolumeFluidoTratamento;
+        fTempodeTratamento=cp.fTempodeTratamento;
+        fComprimentoTratamento=cp.fComprimentoTratamento;
+        fRaioPoco=cp.fRaioPoco;
+        fRhoM=cp.fRhoM;
+        fMassaMolar=cp.fMassaMolar;
+        fAreaSuperficialPoros=cp.fAreaSuperficialPoros;
+        fElectroValenciaFluido=cp.fElectroValenciaFluido;
+        fElectroValenciaMineral=cp.fElectroValenciaMineral;
+        fBetaEstequimetrico=cp.fBetaEstequimetrico;
+        fks=cp.fks;
+        fkc=cp.fkc;
+        fkeff=cp.fkeff;
+        fEInicial=cp.fEInicial;
+        fa=cp.fa;
+        fb=cp.fb;
+    }
+    
+
     /** @brief Class copy constructor */
     TPBrAcidFunc & operator=(const TPBrAcidFunc &cp)
     {
         TPZFunction<STATE>::operator=(cp);
-        DebugStop();
+        fPorosidadeInicial=cp.fPorosidadeInicial;
+        fPorosidadeMaximaAdmissivel=cp.fPorosidadeMaximaAdmissivel;
+        fConcentracaoMolar=cp.fConcentracaoMolar;
+        fVazaoTratamento=cp.fVazaoTratamento;
+        fVolumeFluidoTratamento=cp.fVolumeFluidoTratamento;
+        fTempodeTratamento=cp.fTempodeTratamento;
+        fComprimentoTratamento=cp.fComprimentoTratamento;
+        fRaioPoco=cp.fRaioPoco;
+        fRhoM=cp.fRhoM;
+        fMassaMolar=cp.fMassaMolar;
+        fAreaSuperficialPoros=cp.fAreaSuperficialPoros;
+        fElectroValenciaFluido=cp.fElectroValenciaFluido;
+        fElectroValenciaMineral=cp.fElectroValenciaMineral;
+        fBetaEstequimetrico=cp.fBetaEstequimetrico;
+        fks=cp.fks;
+        fkc=cp.fkc;
+        fkeff=cp.fkeff;
+        fEInicial=cp.fEInicial;
+        fa=cp.fa;
+        fb=cp.fb;
         return *this;
     }
   
