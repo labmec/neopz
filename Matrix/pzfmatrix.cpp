@@ -396,8 +396,8 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 	if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		sout << "Output this = ";
-		Print("Output GS",sout);
+		sout << endl;
+        sout << "Output GS" << endl;
 		Orthog.Print("Orthog matrix",sout);
 		TransfToOrthog.Print("TransfToOrthog matrix",sout);
 		LOGPZ_DEBUG(logger,sout.str())
