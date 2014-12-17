@@ -185,7 +185,7 @@ REAL const Pi = M_PI;//4.*atan(1.);
 // tipo 2 quadrilatero
 
 bool ftriang = false;//true;//
-bool IsCube = false;
+bool IsCube = true;
 
 
 #ifdef LOG4CXX
@@ -214,13 +214,13 @@ int main(int argc, char *argv[])
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=1;p<5;p++)
+    for(p=1;p<2;p++)
     {
         int pq = p;
         int pp = p;
 
         
-        for (ndiv=0; ndiv<5; ndiv++)
+        for (ndiv=0; ndiv<1; ndiv++)
         {
             
             TPZGeoMesh *gmesh;
@@ -324,7 +324,7 @@ int main(int argc, char *argv[])
             //            TPZElementMatrix ek,ef;
             //            cel->CalcStiff(ek, ef);
             
-            TPZAnalysis an(mphysics);
+            TPZAnalysis an(mphysics, true);
             
             SolveSystArctan(an, mphysics);
             
