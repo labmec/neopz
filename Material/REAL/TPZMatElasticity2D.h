@@ -177,10 +177,10 @@ public:
     void SetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
     {
         fPreStressXX = SigmaXX;
-	fPreStressXY = SigmaXY;
-	fPreStressYY = SigmaYY;
-	fPreStressZZ = SigmaZZ;
-    }    
+        fPreStressXY = SigmaXY;
+        fPreStressYY = SigmaYY;
+        fPreStressZZ = SigmaZZ;
+    }
     
     
     // Get Elastic Materials Parameters

@@ -55,6 +55,7 @@
 #include "TPZReadGIDGrid.h"
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
+#include "pzelasticSest2D.h"
 
 
 #include <cmath>
@@ -64,10 +65,11 @@
 static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 #endif
 
-// Dymmy Boundary Conditions
+// Dummy Boundary Conditions
 const int dirichlet = 0;
 const int neumann = 1;
 
+static bool oldmat = false;
 
 // Defintions of Implemented Methods
 TPZCompMesh *ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder);
@@ -108,7 +110,13 @@ int main(int argc, char *argv[])
     long index;
     gmesh->CreateGeoElement(EPoint, PointTopology, matPoint, index);
     
-#ifdef LOG4CXX
+    PointTopology[0]=1;
+    int matPoint2 = 7;
+    gmesh->CreateGeoElement(EPoint, PointTopology, matPoint2, index);
+    
+    gmesh->BuildConnectivity();
+    
+
     {
         //  Print Geometrical Base Mesh
         std::ofstream argument("GeometicMesh.txt");
@@ -116,7 +124,6 @@ int main(int argc, char *argv[])
         std::ofstream Dummyfile("GeometricMesh.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
     }
-#endif
 
     int Href = 1;
     int PElasticity = 2;
@@ -166,15 +173,20 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
     int dim = 2;
     int matId1 = 1;
     
-//    TPZElasticityMaterialSest2D * material = new TPZElasticityMaterialSest2D(matId1);    
+//    TPZMatElasticity2D *material;
+//    material = new TPZMatElasticity2D(matId1);
+    
+    TPZElasticityMaterialSest2D * material = new TPZElasticityMaterialSest2D(matId1);
 
-     TPZMatElasticity2D *material;
-     material = new TPZMatElasticity2D(matId1);
+
+
+
     
     // Setting up paremeters
     material->SetfPlaneProblem(planestress);
-    REAL lamelambda = 2.0e9,lamemu = 1.0e9, fx= 0, fy = 0;
+    REAL lamelambda = 0.0e9,lamemu = 0.5e9, fx= 0, fy = 0;
     material->SetParameters(lamelambda,lamemu, fx, fy);
+    //material->SetElasticParameters(40.0,0.0);
     REAL Sigmaxx = 0.0, Sigmayx = 0.0, Sigmayy = 0.0, Sigmazz = 0.0;
     material->SetPreStress(Sigmaxx,Sigmayx,Sigmayy,Sigmazz);
     REAL Alpha = 1.0;
@@ -188,37 +200,40 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     
-    TPZMaterial * mat(material);
-    
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZMaterial * BCond2 = material->CreateBC(mat,2,3, val1, val2);
+    TPZMaterial * BCond2 = material->CreateBC(material,2,1, val1, val2);
 
-    val2(0,0) = -1.0;
+    val2(0,0) = 1.0*1000.0;
     val2(1,0) = 0.0;
-    TPZMaterial * BCond3 = material->CreateBC(mat,3,1, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(material,3,1, val1, val2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZMaterial * BCond4 = material->CreateBC(mat,4,1, val1, val2);
+    TPZMaterial * BCond4 = material->CreateBC(material,4,1, val1, val2);
     
-    val2(0,0) = 1.0;
+    val2(0,0) = -1.0*1000.0;
     val2(1,0) = 0.0;
-    TPZMaterial * BCond5 = material->CreateBC(mat,5,1, val1, val2);
+    TPZMaterial * BCond5 = material->CreateBC(material,5,1, val1, val2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZMaterial * BCond6 = material->CreateBC(mat,6,2, val1, val2);
+    TPZMaterial * BCond6 = material->CreateBC(material,6,0, val1, val2);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZMaterial * BCond7 = material->CreateBC(material,7,8, val1, val2);
     
     cmesh->SetAllCreateFunctionsContinuous();
-    cmesh->InsertMaterialObject(mat);
+    cmesh->InsertMaterialObject(material);
     cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
     cmesh->InsertMaterialObject(BCond4);
     cmesh->InsertMaterialObject(BCond5);
     cmesh->InsertMaterialObject(BCond6);
+    cmesh->InsertMaterialObject(BCond7);
     cmesh->AutoBuild();
     return cmesh;
     
@@ -239,11 +254,24 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *fCmesh)
 
 void PostProcessElasticity(TPZAnalysis &an, std::string plotfile)
 {
-	TPZManVector<std::string,10> scalnames(2), vecnames(1);
-	scalnames[0] = "SigmaX";
-	scalnames[1] = "SigmaY";
-	vecnames[0]= "Displacement";
-	
+	TPZManVector<std::string,10> scalnames(0), vecnames(0);
+    
+        
+    if (oldmat) {
+        scalnames.Resize(2);
+        vecnames.Resize(1);
+        scalnames[0] = "SigmaX";
+        scalnames[1] = "SigmaY";
+        vecnames[0]= "Displacement";
+    }else{
+        scalnames.Resize(4);
+        vecnames.Resize(1);
+        scalnames[0] = "TotStressXX";
+        scalnames[1] = "TotStressYY";
+        scalnames[2] = "EffStressXX";
+        scalnames[3] = "EffStressYY";
+        vecnames[0]= "DisplacementTotal";
+    }
 	
 	const int dim = 2;
 	int div = 2;
@@ -401,5 +429,5 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
 
 void ReservoirPressure(const TPZVec<STATE> &x, TPZVec<STATE> &p,  TPZFMatrix<STATE> &gradp)
 {
-  p[0] = 1.0;
+  p[0] = 1.0e7;
 }
