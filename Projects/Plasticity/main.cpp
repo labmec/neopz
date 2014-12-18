@@ -920,7 +920,7 @@ void Config4()
     std::string output = "Config4.vtk";
     const int nubsteps = 5;
     well.SetVtkOutPutName(output);
-    EPlasticModel Emodel = EMohrCoulomb;
+    EPlasticModel Emodel = EElastic;
     if (Emodel == EMohrCoulomb)
     {
         REAL poisson = 0.203;
@@ -1438,9 +1438,9 @@ int main(int argc, char **argv)
 //    Config1();
 //    Config2();
 //    Config3();
-//    Config4();
+    Config4();
 //    Config6();
-    Config7();
+//    Config7();
     plast_tot.stop();
     
     

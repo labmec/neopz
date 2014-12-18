@@ -177,11 +177,12 @@ void TPZWellBoreAnalysis::TConfig::ConfigureBoundaryConditions()
 
 TPZWellBoreAnalysis::TPZWellBoreAnalysis() : fCurrentConfig(), fSequence(), fPostProcessNumber(0), fLinearMatrix()
 {
+  fVtkFile = "defaultVTKFileName.vtk";
 }
 
 TPZWellBoreAnalysis::TPZWellBoreAnalysis(const TPZWellBoreAnalysis &copy) : fCurrentConfig(copy.fCurrentConfig), fSequence(copy.fSequence), fPostProcessNumber(copy.fPostProcessNumber), fLinearMatrix(copy.fLinearMatrix)
 {
-
+  fVtkFile = copy.fVtkFile;
 }
 
 TPZWellBoreAnalysis &TPZWellBoreAnalysis::operator=(const TPZWellBoreAnalysis &copy)
@@ -193,6 +194,7 @@ TPZWellBoreAnalysis &TPZWellBoreAnalysis::operator=(const TPZWellBoreAnalysis &c
     fSequence = copy.fSequence;
     fPostProcessNumber = copy.fPostProcessNumber;
     fLinearMatrix = copy.fLinearMatrix;
+    fVtkFile = copy.fVtkFile;
     return *this;
 }
 
@@ -515,7 +517,7 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     fConfinementTotal.Write(out);
     fSDPV.Write(out);
     fMCPV.Write(out);
-    fMatEla.Write(out,0); //AQUIPHIL
+    fMatEla.Write(out); //AQUIPHIL
 
 		int IntEPlasticModel = fModel;
 		out.Write(&IntEPlasticModel);
@@ -555,7 +557,7 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     fConfinementTotal.Read(input);
     fSDPV.Read(input);
     fMCPV.Read(input);
-    fMatEla.Read(input,0); //AQUIPHIL
+    fMatEla.Read(input);
 
     int IntEPlasticModel;
     input.Read(&IntEPlasticModel);
@@ -654,7 +656,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, REAL factor)
 #ifdef PlasticPQP
         elasticity = LocalConfig.fMCPV.fER.E();
 #else
-        elasticity = LocalConfig.fMatEla.GetEyoung();
+        elasticity = LocalConfig.fMatEla.fER.E();
 #endif
     }
     else
@@ -838,7 +840,7 @@ void TPZWellBoreAnalysis::TConfig::SetZDeformation(STATE epsZ)
     TPZMaterial *mat = fCMesh.FindMaterial(1);
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> mattype1;
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem> mattype2;
-    typedef TPZElasticityMaterialSest2D mattype3;
+    typedef TPZMatElastoPlasticSest2D<TPZElasticCriteria , TPZElastoPlasticMem> mattype3;
 
     mattype1 *matposs1 = dynamic_cast<mattype1 *>(mat);
     mattype2 *matposs2 = dynamic_cast<mattype2 *>(mat);
@@ -3137,9 +3139,23 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
 #ifndef PlasticPQP
     else if (fModel == EElastic)
     {
-        fMatEla.SetPlaneStrain(); // It must be planestrain because elastoplastic is only planestrain
-        fMatEla.SetBiotAlpha(fBiotCoef);
-        fMatEla.SetId(materialid);
+        bool planestrain = true;
+        TPZMatElastoPlasticSest2D<TPZElasticCriteria>  *elastic = new TPZMatElastoPlasticSest2D< TPZElasticCriteria >(materialid,planestrain);
+        elastic->SetPlasticity(fMatEla);
+        elastic->SetBiot(fBiotCoef);
+      
+        TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
+        
+        TPZMaterial *plastic(elastic);
+      
+        compmesh1->InsertMaterialObject(plastic);
+        
+        ConfigureBoundaryConditions();
+        compmesh1->AutoBuild();
+      
+      /*
+        elastic.SetBiotAlpha(fBiotCoef);
+        elastic.SetId(materialid);
         
         TPZTensor<REAL> finalstress(0.);
         FromPhysicalDomaintoComputationalDomainStress(fConfinementTotal,finalstress);
@@ -3152,6 +3168,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
         
         ConfigureBoundaryConditions();
         compmesh1->AutoBuild();
+       */
     }
 #endif
     else if (fModel == ESandler)
@@ -3279,8 +3296,8 @@ void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterialSest2D &m
         G = fCurrentConfig.fMCPV.fER.fMu;
         lambda = fCurrentConfig.fMCPV.fER.fLambda;
 #else
-        G = fCurrentConfig.fMatEla.GetMu();
-        lambda = fCurrentConfig.fMatEla.GetLambda();
+        G = fCurrentConfig.fMatEla.fER.G();
+        lambda = fCurrentConfig.fMatEla.fER.Lambda();
 #endif
         
     }

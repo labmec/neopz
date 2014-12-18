@@ -23,6 +23,7 @@
 #include "TPZYCDruckerPrager.h"
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
+#include "TPZElasticCriteria.h"
 #ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
 #endif
@@ -877,3 +878,6 @@ template class TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElas
 
 template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>, TPZMOHRCOULOMBPV_ID + NUMPLASTICMODELS >;
 template class TPZRestoreClass< TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem>,TPZSANDLERDIMAGGIOPV_ID + NUMPLASTICMODELS>;
+
+template class TPZMatElastoPlastic2D<TPZElasticCriteria , TPZElastoPlasticMem>;
+

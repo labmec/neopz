@@ -22,6 +22,7 @@
 #include "TPZYCMohrCoulombPV.h"
 #include "pzelasticSest2D.h"
 #include "TPBrAcidFunc.h"
+#include "TPZElasticCriteria.h"
 
 //class TPZElasticityMaterialSest2D;
 
@@ -232,7 +233,8 @@ public:
         TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> fMCPV;
         
         //object of Elastic Material
-        TPZElasticityMaterialSest2D fMatEla; 
+        //TPZElasticityMaterialSest2D fMatEla;
+        TPZElasticCriteria fMatEla;
 
         /// Wellbore effective pressure
         REAL fWellborePressure;
@@ -519,7 +521,7 @@ public:
     
     void SetElasticParameters(REAL poisson, REAL Elast)
     {
-        fCurrentConfig.fMatEla.SetElasticParameters(Elast, poisson);
+        fCurrentConfig.fMatEla.fER.SetUp(Elast, poisson);
         fCurrentConfig.fModel = EElastic;
     }
 	

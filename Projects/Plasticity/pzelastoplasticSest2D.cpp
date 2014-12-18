@@ -14,6 +14,7 @@
 #include "TPZThermoForceA.h"
 #include "poroelastoplasticid.h"
 #include "TPBrBiotForce.h"
+#include "TPZElasticCriteria.h"
 
 
 #define SANDLERDIMAGGIOSTEP1 TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>
@@ -461,9 +462,6 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
       Solout[0] = 0.; //DUVIDA
       break;
     case EDisplacementTotal:
-          
-
-          
           Solout[0] = ux;
           Solout[1] = uy;
       break;
@@ -621,4 +619,6 @@ template class TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZ
 template class TPZRestoreClass< TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>, TPZMOHRCOULOMBPV_ID + NUMPLASTICMODELS+20>;
 template class TPZRestoreClass< TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem>,TPZSANDLERDIMAGGIOPV_ID + NUMPLASTICMODELS+20>;
 
+
+template class TPZMatElastoPlasticSest2D<TPZElasticCriteria , TPZElastoPlasticMem>;
 

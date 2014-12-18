@@ -1261,6 +1261,7 @@ void TPZMatElastoPlastic<T,TMEM>::FillBoundaryConditionDataRequirement(int type,
 #include "pzsandlerextPV.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
+#include "TPZElasticCriteria.h"
 //#include "TPZModifiedMohrCoulomb.h"
 
 template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>, TPZElastoPlasticMem>;
@@ -1294,5 +1295,7 @@ template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoF
 
 template class TPZMatElastoPlastic<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
+
+template class TPZMatElastoPlastic<TPZElasticCriteria , TPZElastoPlasticMem>;
 
 
