@@ -375,7 +375,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
         
         if(IsZero(detjac))
 		{
-#ifdef DEBUG
+#ifdef LOG4CXX
             if(logger->isDebugEnabled())
             {
                 std::stringstream sout;
