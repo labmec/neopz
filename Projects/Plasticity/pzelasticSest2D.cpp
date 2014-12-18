@@ -11,6 +11,7 @@
 TPZElasticityMaterialSest2D::TPZElasticityMaterialSest2D():TPZMatElasticity2D() , fVariableYoung(false)
 {
     fBiotAlpha = 0.;
+    
     fZDeformation = 0.;
 }
 
@@ -501,12 +502,12 @@ void TPZElasticityMaterialSest2D::Contribute(TPZMaterialData &data, REAL weight,
     MuL     = fmu;
     
     TPZVec<STATE> P(2,0.0);
-    TPZFMatrix<STATE> GradP(2,1,0.0);
+    TPZManVector<STATE,2> GradP(2,0.0);
     
     if(this->HasForcingFunction())
     {
-        fForcingFunction->Execute(data.x,P,GradP);
-        Pressure = P[0];
+        this->fForcingFunction->Execute(data.x,GradP);
+//        Pressure = P[0];
     }
     
     TPZFMatrix<REAL>    du(2,2);
@@ -528,9 +529,12 @@ void TPZElasticityMaterialSest2D::Contribute(TPZMaterialData &data, REAL weight,
         du(0,0) = dphiU(0,in)*data.axes(0,0)+dphiU(1,in)*data.axes(1,0);
         du(1,0) = dphiU(0,in)*data.axes(0,1)+dphiU(1,in)*data.axes(1,1);
         
-        ef(2*in + FirstU)    += (-1.0)* fBiotAlpha * weight * (Pressure*du(0,0));
-        ef(2*in+1 + FirstU)  += (-1.0)* fBiotAlpha * weight * (Pressure*du(1,0));
+//        ef(2*in + FirstU)    += (-1.0)* fBiotAlpha * weight * (Pressure*du(0,0));
+//        ef(2*in+1 + FirstU)  += (-1.0)* fBiotAlpha * weight * (Pressure*du(1,0));
+//        ef(2*in + FirstU)    += (1.0) * weight * (GradP[0]*phiU(in,0));
+//        ef(2*in+1 + FirstU)  += (1.0) * weight * (GradP[1]*phiU(in,0));
     }
+    
     
 }
 void TPZElasticityMaterialSest2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef)
