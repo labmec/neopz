@@ -3297,6 +3297,7 @@ void TPZWellBoreAnalysis::ConfigureLinearMaterial(TPZElasticityMaterialSest2D &m
     
     E=G*(3.*lambda+2.*G)/(lambda+G);
     nu = lambda/(2.*(lambda+G));
+    std::cout << "Linear material E " << E << " poisson " << nu << std::endl;
     mat.SetElasticity(E, nu);
     mat.SetPlaneStrain();
 

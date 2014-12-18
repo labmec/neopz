@@ -76,20 +76,27 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData
   DeltaStrain(_ZZ_,0) = fZDeformation;
 }
 
+
 template <class T, class TMEM>
-void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
+void TPZMatElastoPlasticSest2D<T,TMEM>::UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity)
 {
-  
     if (fVariableYoung) {
-        TPZElasticResponse ER = this->fPlasticity.fER;
+        TPZElasticResponse ER = plasticity.fER;
         TPZManVector<STATE,2> func(1);
-        fYoungModulus.Execute(data.x, func);
+        fYoungModulus.Execute(x, func);
         REAL poisson = ER.Poisson();
         REAL young = ER.E();
         REAL youngnovo = func[0];
         ER.SetUp(youngnovo, poisson);
-        this->fPlasticity.SetElasticResponse(ER);
+        plasticity.SetElasticResponse(ER);
     }
+    
+}
+
+template <class T, class TMEM>
+void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
+{
+  
   if (DeltaStrain.Rows() != 6) {
     DebugStop();
   }
@@ -111,15 +118,6 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data,
     
     if (DeltaStrain.Rows() != 6) {
         DebugStop();
-    }
-    if (fVariableYoung) {
-        TPZElasticResponse ER = this->fPlasticity.fER;
-        TPZManVector<STATE,2> func(1);
-        fYoungModulus.Execute(data.x, func);
-        REAL poisson = ER.Poisson();
-        REAL youngnovo = func[0];
-        ER.SetUp(youngnovo, poisson);
-        this->fPlasticity.SetElasticResponse(ER);
     }
 
     
@@ -336,6 +334,7 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
   TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[intPt];
   T plasticloc(this->fPlasticity);
   plasticloc.SetState(Memory.fPlasticState);
+    UpdateMaterialCoeficients(data.x, plasticloc);
     TPZTensor<STATE> Sigma = Memory.fSigma;
     STATE normdsol = Norm(data.dsol[0]);
     if (normdsol != 0.) {

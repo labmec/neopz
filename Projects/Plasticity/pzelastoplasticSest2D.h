@@ -177,6 +177,9 @@ public:
         fVariableYoung = true;
         fYoungModulus = func;
     }
+    
+    virtual void UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity);
+
     /**
      * Set the deformation in the Z direction
      */

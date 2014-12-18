@@ -23,7 +23,7 @@ void TPBrAcidFunc::StandardParameters()
     /// Vazao de tratamento
     fVazaoTratamento = 20.; // bpm
     /// volume de fluido de tratamento
-    fVolumeFluidoTratamento = 100; // bbl
+    fVolumeFluidoTratamento = 1500; // bbl
     /// tempo de injecao de tratamento
     fTempodeTratamento = -1; // calculado
     /// comprimento de trecho tratado
