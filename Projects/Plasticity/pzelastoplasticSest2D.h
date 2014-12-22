@@ -81,31 +81,54 @@ public:
 	  ETotStress1 = 36,
 	  ETotStress2 = 37,
 	  ETotStress3 = 38,
+      ETotStressRR=39,
+      ETotStressRT=40,
+      ETotStressTT=41,
 	  // Effective stress
-	  EEffStressI1 = 39,
-	  EEffStressJ2 = 40,
-	  EEffStressXX = 41,
-	  EEffStressYY = 42,
-	  EEffStressZZ = 43,
-	  EEffStressXY = 44,
-	  EEffStressXZ = 45,
-	  EEffStressYZ = 46,
-	  EEffStress1 = 47,
-	  EEffStress2 = 48,
-	  EEffStress3 = 49,
+	  EEffStressI1 = 42,
+	  EEffStressJ2 = 43,
+	  EEffStressXX = 44,
+	  EEffStressYY = 45,
+	  EEffStressZZ = 46,
+	  EEffStressXY = 47,
+	  EEffStressXZ = 48,
+	  EEffStressYZ = 49,
+      EEffStressRR = 50,
+      EEffStressRT=51,
+      EEffStressTT=52,
+	  EEffStress1 = 53,
+	  EEffStress2 = 54,
+	  EEffStress3 = 55,
 	  // Yield Surface
-	  EYieldSurface1 = 50,
-	  EYieldSurface2 = 51,
-	  EYieldSurface3 = 52,
+	  EYieldSurface1 = 56,
+	  EYieldSurface2 = 57,
+	  EYieldSurface3 = 58,
 	  // Simulation
-	  EPOrder = 53,
-	  ENSteps = 54,
+	  EPOrder = 59,
+	  ENSteps = 60,
 	  // Pore pressure
-	  EPorePressure = 55,
+	  EPorePressure = 61,
 	  // Material
-	  EMatPorosity = 56,
-	  EMatE = 57,
-	  EMatPoisson = 58
+	  EMatPorosity = 62,
+	  EMatE = 63,
+	  EMatPoisson = 64,
+        
+      UR=65,
+      UT=66,
+        
+      EStrainR=67,
+      EStrainRT=68,
+      EStrainTT=69,
+        
+      EElStrainR=70,
+      EElStrainRT=71,
+      EElStrainTT=72,
+        
+      EPlStrainR=73,
+      EPlStrainRT=74,
+      EPlStrainTT=75
+        
+        
 };
 	
 	/**

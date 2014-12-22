@@ -260,6 +260,31 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::VariableIndex(const std::string &name)
   if(!strcmp("MatPorosity",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EMatPorosity;
   if(!strcmp("MatE",			name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EMatE;
   if(!strcmp("MatPoisson",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EMatPoisson;
+    
+  if(!strcmp("ETotStressRR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressRR;
+  if(!strcmp("ETotStressRT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressRT;
+  if(!strcmp("ETotStressTT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressTT;
+
+  if(!strcmp("EEffStressRR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressRR;
+  if(!strcmp("EEffStressRT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressRT;
+  if(!strcmp("EEffStressTT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressTT;
+  if(!strcmp("EDisplacementR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::UR;
+  if(!strcmp("EDisplacementT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::UT;
+    
+    
+
+  if(!strcmp("EStrainR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EStrainR;
+  if(!strcmp("EStrainRT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EStrainRT;
+  if(!strcmp("EStrainTT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EStrainTT;
+    
+  if(!strcmp("EElStrainR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainR;
+  if(!strcmp("EElStrainRT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainRT;
+  if(!strcmp("EElStrainTT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainTT;
+    
+  if(!strcmp("EPlStrainR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainR;
+  if(!strcmp("EPlStrainRT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainRT;
+  if(!strcmp("EPlStrainTT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainTT;
+    
   
   //return TPZMatWithMem<TMEM>::VariableIndex(name);
   PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
@@ -319,7 +344,8 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::NSolutionVariables(int var)
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressYZ)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress1)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress2)		 return 1;
-  if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress3)		 return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStress3)		 return 1;
+
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface1)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface2)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EYieldSurface3)		 return 1; // Should never be called
@@ -329,6 +355,31 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::NSolutionVariables(int var)
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EMatPorosity)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EMatE)			 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EMatPoisson)		 return 1;
+    
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressRR)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressRT)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressTT)     return 1;
+    
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::UR)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::UT)     return 1;
+    
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressRR)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressRT)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressTT)     return 1;
+    
+    
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainR)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainRT)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainTT)     return 1;
+    
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainR)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainRT)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainTT)     return 1;
+    
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainR)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainRT)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainTT)     return 1;
+
   
   if(var == 100) return 1;
   return TPZMatWithMem<TMEM>::NSolutionVariables(var);
@@ -379,6 +430,50 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
   
     STATE ux = Memory.fDisplacement[0];
     STATE uy = Memory.fDisplacement[1];
+    
+    TPZFNMatrix<9> Rot(3,3,0.), RT(3,3,0.);
+    REAL costheta = data.x[0]/sqrt(data.x[0]*data.x[0]+data.x[1]*data.x[1]);
+    REAL sintheta = data.x[1]/sqrt(data.x[0]*data.x[0]+data.x[1]*data.x[1]);
+    Rot(0,0)=costheta;
+    Rot(0,1)=-sintheta;
+    Rot(1,0)=sintheta;
+    Rot(1,1)=costheta;
+    Rot(2,2)=1.;
+    Rot.Transpose(&RT);
+    
+    //Computing cylindrical stresses
+    TPZFNMatrix<9> SigRadTotal(3,3,0.),temp(3,3,0.);
+    RT.Multiply(totalStress,temp);
+    temp.Multiply(Rot, SigRadTotal);
+
+    //Computing cylindrical effective stresses
+    TPZFNMatrix<9> SigRad(3,3,0.);
+    RT.Multiply(Sigma,temp);
+    temp.Multiply(Rot, SigRad);
+    
+    //Computing cylindricaldisplacements
+    REAL ur,utheta;
+    ur=ux*costheta-uy*sintheta;
+    utheta=ux*sintheta+uy*costheta;
+    
+    //Computing cylindrical total strain
+    TPZFNMatrix<9> epsRadTotal(3,3,0.);
+    RT.Multiply(totalStrain,temp);
+    temp.Multiply(Rot, epsRadTotal);
+    
+    //Computing cylindrical plastic strain
+    TPZFNMatrix<9> epsRadPlastic(3,3,0.);
+    RT.Multiply(plasticStrain,temp);
+    temp.Multiply(Rot, epsRadPlastic);
+    
+    //Computing cylindrical elastic strain
+    TPZFNMatrix<9> epsRadElastic(3,3,0.);
+    RT.Multiply(plasticStrain,temp);
+    temp.Multiply(Rot, epsRadElastic);
+    
+    
+    
+
     
   switch (var) {
     // Total Strain
@@ -602,6 +697,61 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
     case EMatPoisson:
       Solout[0] = plasticloc.fER.Poisson();
       break;
+      case ETotStressRR:{
+          Solout[0] = SigRadTotal(0,0);}
+          break;
+      case ETotStressRT:{
+          Solout[0] = SigRadTotal(0,1);}
+          break;
+      case ETotStressTT:{
+          Solout[0] = SigRadTotal(1,1);}
+          break;
+      case EEffStressRR:{
+          Solout[0] = SigRad(0,0);}
+          break;
+      case EEffStressRT:{
+          Solout[0] = SigRad(0,1);}
+          break;
+      case EEffStressTT:{
+          Solout[0] = SigRad(1,1);}
+          break;
+      case UR:{
+          Solout[0] = ur;}
+          break;
+      case UT:{
+          Solout[0] =utheta;}
+          break;
+          
+      case EStrainR:{
+          Solout[0] = epsRadTotal(0,0);}
+          break;
+      case EStrainRT:{
+          Solout[0] = epsRadTotal(0,1);}
+          break;
+      case EStrainTT:{
+          Solout[0] = epsRadTotal(1,1);}
+          break;
+          
+      case EElStrainR:{
+          Solout[0] = epsRadElastic(0,0);}
+          break;
+      case EElStrainRT:{
+          Solout[0] = epsRadElastic(0,1);}
+          break;
+      case EElStrainTT:{
+          Solout[0] = epsRadElastic(1,1);}
+          break;
+          
+      case EPlStrainR:{
+          Solout[0] = epsRadPlastic(0,0);}
+          break;
+      case EPlStrainRT:{
+          Solout[0] = epsRadPlastic(0,1);}
+          break;
+      case EPlStrainTT:{
+          Solout[0] = epsRadPlastic(1,1);}
+          break;
+          
     default:
       DebugStop();
       break;

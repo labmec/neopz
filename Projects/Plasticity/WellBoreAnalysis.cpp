@@ -2178,6 +2178,20 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
 {
   scalNames.Resize(0);
   vecNames.Resize(0);
+    
+    
+  scalNames.Push("EStrainR");
+    scalNames.Push("EStrainRT");
+    scalNames.Push("EStrainTT");
+    
+    scalNames.Push("EElStrainR");
+    scalNames.Push("EElStrainRT");
+    scalNames.Push("EElStrainTT");
+    
+    scalNames.Push("EPlStrainR");
+    scalNames.Push("EPlStrainRT");
+    scalNames.Push("EPlStrainTT");
+    
   
   scalNames.Push("StrainVol");
   scalNames.Push("StrainXX");
@@ -2211,6 +2225,8 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
   scalNames.Push("DisplacementY");
   scalNames.Push("DisplacementZ");
   vecNames.Push("DisplacementTotal");
+  scalNames.Push("EDisplacementR");
+  scalNames.Push("EDisplacementT");
 
   scalNames.Push("TotStressI1");
   scalNames.Push("TotStressJ2");
@@ -2220,10 +2236,15 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
   scalNames.Push("TotStressXY");
   scalNames.Push("TotStressXZ");
   scalNames.Push("TotStressYZ");
+
   
   scalNames.Push("TotStress1");
   scalNames.Push("TotStress2");
   scalNames.Push("TotStress3");
+    
+    scalNames.Push("ETotStressRR");
+    scalNames.Push("ETotStressRT");
+    scalNames.Push("ETotStressTT");
   
   scalNames.Push("EffStressI1");
   scalNames.Push("EffStressJ2");
@@ -2237,6 +2258,10 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
   scalNames.Push("EffStress1");
   scalNames.Push("EffStress2");
   scalNames.Push("EffStress3");
+    
+  scalNames.Push("EEffStressRR");
+  scalNames.Push("EEffStressRT");
+  scalNames.Push("EEffStressTT");
 
   scalNames.Push("YieldSurface1");
   scalNames.Push("YieldSurface2");
@@ -2250,6 +2275,9 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
   scalNames.Push("MatPorosity");
   scalNames.Push("MatE");
   scalNames.Push("MatPoisson");
+
+
+    
   
 }
 
@@ -2724,6 +2752,7 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
     REAL minsize = fDelx;//fCurrentConfig.fInnerRadius*M_PI_2/numdiv;
     REAL domainsize = fOuterRadius-fInnerRadius;
     REAL geoprogression = gengrid.GeometricProgression(minsize, domainsize, nx[0]);
+    //REAL geoprogression = sqrt(2.);
     TPZManVector<REAL,2> geoprogressionvec(2,1.);
     geoprogressionvec[0] = geoprogression;
     gengrid.SetGeometricProgression(geoprogressionvec);
