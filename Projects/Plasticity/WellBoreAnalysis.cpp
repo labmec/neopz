@@ -807,10 +807,12 @@ void TPZWellBoreAnalysis::TConfig::LoadSolution()
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> mattype1;
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem> mattype2;
     typedef TPZElasticityMaterialSest2D mattype3;
+    typedef TPZMatElastoPlasticSest2D<TPZElasticCriteria , TPZElastoPlasticMem> mattype4;
     
     mattype1 *matposs1 = dynamic_cast<mattype1 *>(mat);
     mattype2 *matposs2 = dynamic_cast<mattype2 *>(mat);
     mattype3 *matposs3 = dynamic_cast<mattype3 *>(mat);
+    mattype4 *matposs4 = dynamic_cast<mattype4 *>(mat);
     
     if (matposs1) {
         matposs1->SetZDeformation(fZDeformation);
@@ -821,7 +823,10 @@ void TPZWellBoreAnalysis::TConfig::LoadSolution()
     if (matposs3) {
         matposs3->SetZDeformation(fZDeformation);
     }
-    if (!matposs1 && !matposs2 && !matposs3) {
+    if (matposs4) {
+        matposs4->SetZDeformation(fZDeformation);
+    }
+    if (!matposs1 && !matposs2 && !matposs3 && !matposs4) {
         DebugStop();
     }
 #ifdef DEBUG
@@ -2147,7 +2152,7 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
 
         fPostprocess.SetCompMesh(&fCMesh);
         TPZFStructMatrix structmatrix(fPostprocess.Mesh());
-        structmatrix.SetNumThreads(0);
+        structmatrix.SetNumThreads(16);
         fPostprocess.SetStructuralMatrix(structmatrix);
         
         TPZVec<int> PostProcMatIds(1,1);
@@ -3141,7 +3146,16 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     {
         bool planestrain = true;
         TPZMatElastoPlasticSest2D<TPZElasticCriteria>  *elastic = new TPZMatElastoPlasticSest2D< TPZElasticCriteria >(materialid,planestrain);
+
+        TPZTensor<REAL> initstress(0.),finalstress(0.);
+        FromPhysicalDomaintoComputationalDomainStress(fConfinementTotal,finalstress);
+        finalstress.XX() += fReservoirPressure*fBiotCoef;
+        finalstress.YY() += fReservoirPressure*fBiotCoef;
+        finalstress.ZZ() += fReservoirPressure*fBiotCoef;
+        PrepareInitialMat(fMatEla, initstress, finalstress, 10);
+
         elastic->SetPlasticity(fMatEla);
+        
         elastic->SetBiot(fBiotCoef);
       
         TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);

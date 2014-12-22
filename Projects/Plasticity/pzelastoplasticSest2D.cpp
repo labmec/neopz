@@ -163,6 +163,12 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::ClassId() const
   return TPZSANDLERDIMAGGIOL_ID + NUMPLASTICMODELS+20;
 }
 
+template <>
+int TPZMatElastoPlasticSest2D<TPZElasticCriteria, TPZElastoPlasticMem>::ClassId() const
+{
+    return TPZELASTICPV_ID + NUMPLASTICMODELS+20;
+}
+
 
 template <>
 int TPZMatElastoPlasticSest2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>::ClassId() const
@@ -618,6 +624,8 @@ template class TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZ
 
 template class TPZRestoreClass< TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>, TPZMOHRCOULOMBPV_ID + NUMPLASTICMODELS+20>;
 template class TPZRestoreClass< TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse>, TPZElastoPlasticMem>,TPZSANDLERDIMAGGIOPV_ID + NUMPLASTICMODELS+20>;
+
+template class TPZRestoreClass< TPZMatElastoPlasticSest2D<TPZElasticCriteria, TPZElastoPlasticMem>,TPZELASTICPV_ID + NUMPLASTICMODELS+20>;
 
 
 template class TPZMatElastoPlasticSest2D<TPZElasticCriteria , TPZElastoPlasticMem>;

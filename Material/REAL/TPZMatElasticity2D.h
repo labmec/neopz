@@ -19,7 +19,7 @@
  * @ingroup material
  * @author Omar Duran
  * @since 10/27/2014.
- * @brief Material to solve a 2D linear elasticcity
+ * @brief Material to solve a 2D linear elasticity
  * @brief Here is used H1.
  */
 

@@ -9,7 +9,7 @@
 #ifndef PZ_WellBoreAnalysis_h
 #define PZ_WellBoreAnalysis_h
 
-#define PlasticPQP
+//#define PlasticPQP
 
 #include "pzcmesh.h"
 #include "TPZSandlerDimaggio.h"

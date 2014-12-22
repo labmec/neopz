@@ -5,25 +5,28 @@ TPZElasticCriteria::TPZElasticCriteria()
   
 }
 
-TPZElasticCriteria::TPZElasticCriteria(const TPZElasticCriteria &cp)
+TPZElasticCriteria::TPZElasticCriteria(const TPZElasticCriteria &cp) : fN(cp.fN), fER(cp.fER)
 {
-  TPZElasticCriteria::operator=(cp);
 }
 
 TPZElasticCriteria & TPZElasticCriteria::operator=(const TPZElasticCriteria &cp)
 {
-  return *this;
+    fN = cp.fN;
+    fER = cp.fER;
+    return *this;
 }
 
 
 void TPZElasticCriteria::Read(TPZStream &buf)
 {
-  // Please implement me
+    fN.Read(buf);
+    fER.Read(buf);
 }
 
 void TPZElasticCriteria::Write(TPZStream &buf) const
 {
-  // Please implement me
+    fN.Write(buf);
+    fER.Write(buf);
 }
 
 
@@ -76,7 +79,24 @@ void TPZElasticCriteria::ApplyStrain(const TPZTensor<REAL> &epsTotal)
 
 void TPZElasticCriteria::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal)
 {
-  DebugStop();
+    TPZFNMatrix<36,REAL> Dep(6,6);
+    TPZTensor<REAL> eps(0.),sigma;
+    ApplyStrainComputeDep(eps, sigma, Dep);
+    TPZFNMatrix<6,REAL> stressmat(6,1),epsmat(6,1);
+    stressmat(_XX_) = GivenStress[_XX_];
+    stressmat(_YY_) = GivenStress[_YY_];
+    stressmat(_XY_) = GivenStress[_XY_];
+    stressmat(_ZZ_) = GivenStress[_ZZ_];
+    stressmat(_XZ_) = GivenStress[_XZ_];
+    stressmat(_YZ_) = GivenStress[_YZ_];
+    Dep.Solve_LDLt(&stressmat);
+    epsTotal[_XX_] = stressmat(_XX_);
+    epsTotal[_YY_] = stressmat(_YY_);
+    epsTotal[_XY_] = stressmat(_XY_);
+    epsTotal[_XZ_] = stressmat(_XZ_);
+    epsTotal[_YZ_] = stressmat(_YZ_);
+    epsTotal[_ZZ_] = stressmat(_ZZ_);
+    fN.fEpsT = epsTotal;
 }
 
 
