@@ -242,9 +242,10 @@ int main2 ()
     if (startfrom <= 2) {
         
         //well.PRefineElementAbove(0.0001, 3);
-        well.DivideElementsAbove(0.0001);
-        well.PRefineElementAbove(0.0001, 3);
-        well.ExecuteSimulation(nsubsteps);
+        std::stringstream out;
+        well.DivideElementsAbove(0.0001,out);
+        well.PRefineElementAbove(0.0001, 3,out);
+        well.ExecuteSimulation(nsubsteps,out);
         REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
         REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
         REAL openingangle = well.GetCurrentConfig()->OpeningAngle(0.00000001);
@@ -280,6 +281,7 @@ int main2 ()
     
     if (startfrom <= 3)
     {
+        std::stringstream out;
         // valor de a e b para sqJ2 = 0.00025 E USANDO Pef = 23.4
         //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.010;
         //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.79;
@@ -308,16 +310,17 @@ int main2 ()
             verify[1] = ratios[1]/well.GetCurrentConfig()->fInnerRadius;
             REAL a = ratios[0];
             REAL b = ratios[1];
-            well.AddEllipticBreakout(a, b);
+            well.AddEllipticBreakout(a, b,out);
             
         }
-        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
+        {
         //well.PostProcess(1);
-        well.ExecuteSimulation(nsubsteps);
-        well.DivideElementsAbove(0.0001);
-        well.PRefineElementAbove(0.0001, 3);
-        well.ExecuteSimulation(nsubsteps);
-        
+            well.ExecuteSimulation(nsubsteps,out);
+            well.DivideElementsAbove(0.0001,out);
+            well.PRefineElementAbove(0.0001, 3,out);
+            well.ExecuteSimulation(nsubsteps,out);
+            well.AppendExecutionLog(out);
+        }
         REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
         REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
         REAL openingangle = well.GetCurrentConfig()->OpeningAngle(0.0001);
@@ -377,6 +380,8 @@ int main2 ()
         //vvalor de a e b para sqJ2 = 0.0007 Pef = 19.5
         //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.044;
         //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.66;
+        std::stringstream out;
+        out << "Computing a breakout configuration manually\n";
         std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
         well.GetJ2Isoline(sqj2_refine, polygonalChainbase);
         REAL innerradius = well.GetCurrentConfig()->fInnerRadius;
@@ -388,7 +393,7 @@ int main2 ()
             co[0] = 0.;
             co[1] = it->second;
             well.GetCurrentConfig()->ProjectNode(co);
-            std::cout << "distance " << (it->first-co[0])/innerradius << endl;
+            out << "distance " << (it->first-co[0])/innerradius << endl;
             if (it->second < maxy && it->first-co[0] > 0.01*innerradius) {
                 polygonalChain.insert(std::make_pair(it->first,it->second));
                 numgood++;
@@ -398,16 +403,16 @@ int main2 ()
             }
         }
         TPZFMatrix<REAL> polybase(polygonalChainbase.size(),2);
-        cout << "base chain\n";
+        out << "base chain\n";
         int i=0;
         for (std::multimap<REAL, REAL>::iterator it = polygonalChainbase.begin(); it != polygonalChainbase.end(); it++,i++) {
-            std::cout << it->first << " " << it->second << endl;
+            out << it->first << " " << it->second << endl;
             polybase(i,0) = it->first;
             polybase(i,1) = it->second;
         }
-        polybase.Print("Polybase = " , cout , EMathematicaInput);
+        polybase.Print("Polybase = " , out , EMathematicaInput);
         TPZFMatrix<REAL> poly(polygonalChain.size(),2);
-        cout << "filtered chain\n";
+        out << "filtered chain\n";
         
         i=0;
         for (std::multimap<REAL, REAL>::iterator it = polygonalChain.begin(); it != polygonalChain.end(); it++,i++) {
@@ -415,23 +420,23 @@ int main2 ()
             poly(i,0) = it->first;
             poly(i,1) = it->second;
         }
-        poly.Print("Poly = " , cout , EMathematicaInput);
+        poly.Print("Poly = " , out , EMathematicaInput);
         TPZProjectEllipse ellips(polygonalChain);
         TPZManVector<REAL,2> center(2),ratios(2),verify(2);
         ellips.StandardFormatForSimpleEllipse(center, ratios);
-        cout << "chain fitting\n";
+        out << "chain fitting\n";
         for (std::multimap<REAL, REAL>::iterator it = polygonalChain.begin(); it != polygonalChain.end(); it++) {
             REAL xellips = ratios[0]*sqrt(1-it->second*it->second/ratios[1]/ratios[1]);
-            std::cout << it->first << " " << xellips << " error " <<  (it->first-xellips)/innerradius << endl;
+            out << it->first << " " << xellips << " error " <<  (it->first-xellips)/innerradius << endl;
         }
-        well.AddEllipticBreakout(ratios[0], ratios[1]);
+        well.AddEllipticBreakout(ratios[0], ratios[1],out);
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         well.PostProcess(1);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
-        well.ExecuteSimulation(nsubsteps);
-        well.DivideElementsAbove(0.0001);
-        well.PRefineElementAbove(0.0001, 3);
-        well.ExecuteSimulation(nsubsteps);
+        well.ExecuteSimulation(nsubsteps,out);
+        well.DivideElementsAbove(0.0001,out);
+        well.PRefineElementAbove(0.0001, 3,out);
+        well.ExecuteSimulation(nsubsteps,out);
         
         REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
         REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
@@ -459,6 +464,9 @@ int main2 ()
     }
     if (startfrom <= 5)
     {
+        std::stringstream out;
+        out << "Applying an elliptic break manually\n";
+        out << __PRETTY_FUNCTION__ << " at line " << __LINE__ << std::endl;
         // valor de a e b para sqJ2 = 0.00025 E USANDO Pef = 23.4
         //        REAL a = well.GetCurrentConfig()->fInnerRadius*1.082;
         //        REAL b = well.GetCurrentConfig()->fInnerRadius*0.30;
@@ -477,7 +485,7 @@ int main2 ()
             co[0] = 0.;
             co[1] = it->second;
             well.GetCurrentConfig()->ProjectNode(co);
-            std::cout << "distance " << (it->first-co[0])/innerradius << endl;
+            out << "distance " << (it->first-co[0])/innerradius << endl;
             
             if (it->second < maxy && it->first-co[0] > 0.01*innerradius) {
                 polygonalChain.insert(std::make_pair(it->first,it->second));
@@ -486,14 +494,14 @@ int main2 ()
         TPZProjectEllipse ellips(polygonalChain);
         TPZManVector<REAL,2> center(2),ratios(2),verify(2);
         ellips.StandardFormatForSimpleEllipse(center, ratios);
-        well.AddEllipticBreakout(ratios[0], ratios[1]);
+        well.AddEllipticBreakout(ratios[0], ratios[1],out);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         well.PostProcess(1);
-        well.ExecuteSimulation(nsubsteps);
-        well.DivideElementsAbove(0.0001);
-        well.PRefineElementAbove(0.0001, 3);
-        well.ExecuteSimulation(nsubsteps);
+        well.ExecuteSimulation(nsubsteps,out);
+        well.DivideElementsAbove(0.0001,out);
+        well.PRefineElementAbove(0.0001, 3,out);
+        well.ExecuteSimulation(nsubsteps,out);
         
         REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
         REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
@@ -563,10 +571,12 @@ int main2 ()
             valuetable.Print("Post processed I1=J2",std::cout);
         }
         
+        std::stringstream out;
+        out << "Applying breakout by deleting elements\n";
         //well.ChangeMaterialId(-2, -6);
         well.DeleteElementsAbove(0.0001);
         well.ChangeMaterialId(-6, -2);
-        well.ExecuteSimulation(nsubsteps);
+        well.ExecuteSimulation(nsubsteps,out);
         std::cout << "Saving Wellbore7.bin\n";
         TPZBFileStream save;
         save.OpenWrite("Wellbore7.bin");

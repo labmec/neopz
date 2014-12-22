@@ -23,6 +23,7 @@
 #include "pzelasticSest2D.h"
 #include "TPBrAcidFunc.h"
 #include "TPZElasticCriteria.h"
+#include "pzstring.h"
 
 //class TPZElasticityMaterialSest2D;
 
@@ -101,7 +102,8 @@ public:
         void PRefineElementsAbove(REAL sqj2, int porder, set<long> &elindices);
         
         /// Divide the element using the plastic deformation as threshold
-        void DivideElementsAbove(REAL sqj2, set<long> &elindices);
+        // returns the number of elements divided
+        int DivideElementsAbove(REAL sqj2, set<long> &elindices);
         
         /// Initialize the plastic history of the integration points of the element
         void InitializeElement(TConfig &from, TPZCompEl *cel);
@@ -164,6 +166,7 @@ public:
         
         /// print the configuration
         void Print(ostream &out);
+        
         
         /// this method will modify the boundary condition of the computational mesh and the forcing function
         // factor is a transition parameter between the confinement tension and well pressure
@@ -260,7 +263,11 @@ public:
         /// The post processing mesh with the transferred solution
         TPZPostProcAnalysis fPostprocess;
 
+        /// Log que apareca na tela de execucao
         std::string fHistoryLog;
+        
+        /// Log de execucao do codigo
+        TPZStack<std::string > fExecutionLog;
         
         TPBrAcidFunc fAcidParameters;
         
@@ -293,7 +300,7 @@ public:
     void ExecuteInitialSimulation(int nsteps, int numnewton);
     
     /// Computes an equilibrium state corresponding to the current boundary conditions
-    void ExecuteSimulation(int substeps, REAL factor=1.);
+    void ExecuteSimulation(int substeps, std::ostream &out);
 
     
     /// Evelves the reservoir and well pressure to target pressure
@@ -320,13 +327,12 @@ public:
     }
     
     /// Set the polynomial order of the elements which exceed plastic deformation
-    unsigned int PRefineElementAbove(REAL sqj2, int porder)
+    unsigned int PRefineElementAbove(REAL sqj2, int porder, std::ostream &out)
     {
         std::set<long> elindices;
         fCurrentConfig.PRefineElementsAbove(sqj2, porder,elindices);
-#ifdef DEBUG
-        std::cout << "Number of elements prefined: " << elindices.size() << std::endl;
-#endif
+        out << "PRefine target order " << porder << " sqj2 threshold " << sqj2 << std::endl;
+        out << "Number of elements prefined: " << elindices.size() << std::endl;
         // subject to integration points to the deformation history
         ApplyHistory(elindices);
         
@@ -337,7 +343,7 @@ public:
     }
     
     /// Modify the geometry of the domain simulating an elliptic breakout
-    void AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis);
+    void AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis, std::ostream &out);
     
     /// change the material id of the geometric elements of the current configuration
     void ChangeMaterialId(long idFrom, long idTo)
@@ -355,7 +361,7 @@ public:
     }
     
     /// Divide the element using the plastic deformation as threshold
-    unsigned int DivideElementsAbove(REAL sqj2);
+    unsigned int DivideElementsAbove(REAL sqj2, std::ostream &out);
     
     /// Post process the results of the current configuration
     void PostProcess(int resolution);
@@ -527,6 +533,12 @@ public:
 	
     void Print(std::ostream &out);
     
+    void PrintInitialConfiguration(std::ostream &out);
+    
+    /// print the execution log
+    void PrintExecutionLog(std::ostream &out);
+
+    
 private:
     
     /// Compute the linear elastic stiffness matrix
@@ -552,7 +564,11 @@ public:
         return fPostProcessNumber;
     }
 
+    /// stores the string associated with strout in the local data structure
     void SaveConfig(stringstream &strout);
+    
+    /// append the string associated with the execution log
+    void AppendExecutionLog(std::stringstream &sout);
     
     inline void SetVtkOutPutName(string output)
     {

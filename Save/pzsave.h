@@ -543,6 +543,27 @@ public:
 		}
 	}
 	
+    static void ReadObjects(TPZStream &buf, std::string &vec)
+    {
+        int nel;
+        buf.Read(&nel,1);
+        TPZManVector<char,1000> bufstr(nel+1);
+        buf.Read(&bufstr[0]);
+        bufstr[nel] = '\0';
+        if(nel) buf.Read(&bufstr[0],nel);
+        vec = & bufstr[0];
+    }
+    
+    static void ReadObjects(TPZStream &buf, TPZVec<std::string > &vec)
+    {
+        int nel;
+        buf.Read(&nel,1);
+        for (int i=0; i<nel; i++) {
+            ReadObjects(buf,vec[i]);
+        }
+    }
+    
+
 	template<class T>
 	static void ReadObjectPointers(TPZStream &buf, TPZVec<T *> &vec, void *context)
 	{
@@ -718,7 +739,6 @@ public:
 		if(nel) buf.Write(&vec[0],vec.size());
 	}
 
-#ifndef ELLIPS
 	static void WriteObjects(TPZStream &buf, TPZVec<TPZFlopCounter> &vec)
 	{
 		long nel = vec.NElements();
@@ -732,7 +752,6 @@ public:
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.size());
 	}
-#endif
 	
 	static void WriteObjects(TPZStream &buf, TPZVec<int> &vec)
 	{
@@ -767,6 +786,24 @@ public:
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.size());
 	}
+    
+    static void WriteObjects(TPZStream &buf, std::string &vec)
+    {
+        int nel = vec.size();
+        buf.Write(&nel,1);
+        if(nel) buf.Write(&vec[0],vec.size());
+    }
+    
+    static void WriteObjects(TPZStream &buf, TPZVec<std::string > &vec)
+    {
+        int nel = vec.size();
+        buf.Write(&nel,1);
+        for (int i=0; i<nel; i++) {
+            WriteObjects(buf,vec[i]);
+        }
+    }
+    
+    
 	
 	static void Register(int classid, TPZRestore_t fun);
 	

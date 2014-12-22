@@ -235,16 +235,20 @@ void Config1()
     {
         std::cout << "\n ------- 1 -------- "<<std::endl;
         
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        std::stringstream out;
+        out << "First pass\n";
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        int substepsloc  = 1;
+        well.ExecuteSimulation(substepsloc,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nsubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            int substepsloc = 1;
+            well.ExecuteSimulation(substepsloc,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -265,18 +269,23 @@ void Config1()
     {
         
         std::cout << "\n ------- 2 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        std::stringstream out;
+        out << "Applying second pass\n";
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        int substepsloc = 1;
+        well.ExecuteSimulation(substepsloc,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nsubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            int substepsloc = 1;
+            well.ExecuteSimulation(substepsloc,out);
             well.PostProcess(0);
         }
+        well.AppendExecutionLog(out);
         TPZBFileStream save;
         save.OpenWrite("Config1-2.bin");
         well.Write(save);
@@ -296,18 +305,22 @@ void Config1()
     {
         
         std::cout << "\n ------- 3 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        std::stringstream out;
+        out << "Applying third pass\n";
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        int substepsloc =1;
+        well.ExecuteSimulation(substepsloc,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nsubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(substepsloc,out);
             well.PostProcess(0);
         }
+        well.AppendExecutionLog(out);
         TPZBFileStream save;
         save.OpenWrite("Config1-3.bin");
         well.Write(save);
@@ -328,24 +341,29 @@ void Config1()
     {
         
         std::cout << "\n ------- 4 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        std::stringstream out;
+        out << "Applying fourth pass\n";
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        int substepsloc =1;
+        well.ExecuteSimulation(substepsloc,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nsubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(substepsloc,out);
             well.PostProcess(0);
         }
+        well.AppendExecutionLog(out);
         TPZBFileStream save;
         save.OpenWrite("Config1-4.bin");
         well.Write(save);
         
         
     }
+    well.PrintExecutionLog(std::cout);
 }
 
 
@@ -470,17 +488,19 @@ void Config2()
     if (Startfrom <=1)
     {
         std::cout << "\n ------- 1 -------- "<<std::endl;
-        
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        std::stringstream out;
+        out << "Applying 1st pass\n";
+
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nsubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -499,18 +519,20 @@ void Config2()
     
     if (Startfrom <=2)
     {
+        std::stringstream out;
+        out << "Applying 2nd pass\n";
         
         std::cout << "\n ------- 2 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nsubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -532,16 +554,18 @@ void Config2()
     {
         
         std::cout << "\n ------- 3 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        std::stringstream out;
+        out << "Applying 3nd pass\n";
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nsubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -564,16 +588,18 @@ void Config2()
     {
         
         std::cout << "\n ------- 4 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        std::stringstream out;
+        out << "Applying 4th pass\n";
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nsubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -594,16 +620,18 @@ void Config2()
     {
         
         std::cout << "\n ------- 5 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        std::stringstream out;
+        out << "Applying 5th pass\n";
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nsubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -657,7 +685,7 @@ void Config3()
     
     
     REAL sqj2_refine=0.0001;
-    const int nubsteps = 5;
+    const int nsubsteps = 5;
     int Startfrom=0;
     if (Startfrom == 0)
     {
@@ -738,16 +766,18 @@ void Config3()
     {
         std::cout << "\n ------- 1 -------- "<<std::endl;
         
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nubsteps);
+        std::stringstream out;
+        out << "Applying 1st pass\n";
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -766,18 +796,20 @@ void Config3()
     
     if (Startfrom <=2)
     {
+        std::stringstream out;
+        out << "Applying 2nd pass\n";
         
         std::cout << "\n ------- 2 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nubsteps);
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -799,16 +831,18 @@ void Config3()
     {
         
         std::cout << "\n ------- 3 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nubsteps);
+        std::stringstream out;
+        out << "Applying 3rd pass\n";
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -829,18 +863,20 @@ void Config3()
     
     if (Startfrom <=4)
     {
+        std::stringstream out;
+        out << "Applying 4th pass\n";
         
         std::cout << "\n ------- 4 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nubsteps);
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
         TPZBFileStream save;
@@ -860,17 +896,19 @@ void Config3()
     if (Startfrom <=5)
     {
         
+        std::stringstream out;
+        out << "Applying 5th pass\n";
         std::cout << "\n ------- 5 -------- "<<std::endl;
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nubsteps);
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         REAL a, b;
         well.ComputeAandB(sqj2_refine, a,b);
         if(a >innerradius )
         {
-            well.AddEllipticBreakout(a, b);
-            well.ExecuteSimulation(nubsteps);
+            well.AddEllipticBreakout(a, b,out);
+            well.ExecuteSimulation(nsubsteps,out);
             well.PostProcess(0);
         }
 
@@ -918,7 +956,7 @@ void Config4()
     
     
     std::string output = "Config4.vtk";
-    const int nubsteps = 5;
+    const int nsubsteps = 5;
     well.SetVtkOutPutName(output);
     EPlasticModel Emodel = EElastic;
     if (Emodel == EMohrCoulomb)
@@ -1002,16 +1040,18 @@ void Config4()
     
     if (Startfrom <=1)
     {
+        std::stringstream out;
+        out << "Applying 1st pass\n";
         std::cout << "\n ------- 1 -------- "<<std::endl;
         
-        well.PRefineElementAbove(0.000001, 2);
-        well.ExecuteSimulation(nubsteps);
+        well.PRefineElementAbove(0.000001, 2,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         
         cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
         well.SetFluidModel(EPenetrating);
-        well.ExecuteSimulation(nubsteps);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         cout << "Penetrating fluid Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
@@ -1064,7 +1104,7 @@ void Config5()
     
     
     std::string output = "Config5.vtk";
-    const int nubsteps = 5;
+    const int nsubsteps = 5;
     well.SetVtkOutPutName(output);
     EPlasticModel Emodel = ESandler;
     if (Emodel == EMohrCoulomb)
@@ -1148,16 +1188,18 @@ void Config5()
     
     if (Startfrom <=1)
     {
+        std::stringstream out;
+        out << "Applying 1st pass\n";
         std::cout << "\n ------- 1 -------- "<<std::endl;
         
-        well.PRefineElementAbove(0.0001, 2);
-        well.ExecuteSimulation(nubsteps);
+        well.PRefineElementAbove(0.0001, 2,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         
         cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
         well.SetFluidModel(EPenetrating);
-        well.ExecuteSimulation(nubsteps);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         cout << "Penetrating fluid Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
         
@@ -1219,7 +1261,7 @@ void Config6()
     
     
     std::string output = "Config6.vtk";
-    const int nubsteps = 1;
+    const int nsubsteps = 1;
     well.SetVtkOutPutName(output);
     REAL poisson = 0.2;
     REAL elast = 30000.;
@@ -1388,13 +1430,15 @@ void Config7()
     if (Startfrom ==0)
     {
         
+        std::stringstream out;
+        out << "Applying 0th pass\n";
         int nsteps = 5;
         int numnewton = 90;
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteInitialSimulation(nsteps, numnewton);
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         TPZBFileStream save;
         save.OpenWrite("Config7-0.bin");
@@ -1413,12 +1457,14 @@ void Config7()
     if (Startfrom <=1)
     {
         std::cout << "\n ------- 1 -------- "<<std::endl;
+        std::stringstream out;
+        out << "Applying 1st pass\n";
         
         
         well.GetCurrentConfig()->fAcidParameters.StandardParameters();
         well.GetCurrentConfig()->ActivateAcidification();
         
-        well.ExecuteSimulation(1);
+        well.ExecuteSimulation(1,out);
         
         well.PostProcess(1);
         
@@ -1514,6 +1560,12 @@ void Config8()
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         
+        {
+            std::stringstream sout;
+            well.PrintInitialConfiguration(sout);
+            well.AppendExecutionLog(sout);
+        }
+
         
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         
@@ -1525,7 +1577,6 @@ void Config8()
         
         int nsteps = 5;
         int numnewton = 90;
-        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteInitialSimulation(nsteps, numnewton);
         well.PostProcess(0);
         TPZBFileStream save;
@@ -1545,17 +1596,21 @@ void Config8()
     if (Startfrom <=1)
     {
         std::cout << "\n ------- 1 -------- "<<std::endl;
+        std::stringstream out;
+        out << "Applying 1st pass\n";
         
-        well.PRefineElementAbove(sqj2_refine, 3);
-        well.DivideElementsAbove(sqj2_refine);
-        well.ExecuteSimulation(nsubsteps);
+        well.PRefineElementAbove(sqj2_refine, 3,out);
+        well.DivideElementsAbove(sqj2_refine,out);
+        well.ExecuteSimulation(nsubsteps,out);
         well.PostProcess(0);
         TPZBFileStream save;
         save.OpenWrite("Config1-1.bin");
         well.Write(save);
         
-        
+        well.AppendExecutionLog(out);
     }
+    
+    well.PrintExecutionLog(std::cout);
     
 }
 
@@ -1565,10 +1620,10 @@ int main(int argc, char **argv)
     clarg::parse_arguments(argc, argv);
     
     plast_tot.start();
-//    Config1();
+    Config1();
 //    Config2();
 //    Config3();
-    Config8();
+//    Config8();
 //    Config6();
 //    Config7();
     plast_tot.stop();

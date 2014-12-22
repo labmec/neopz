@@ -136,12 +136,11 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
     fSolution.Zero();
     LoadSolution();
 	
+    out << "Iterative process using the linear stiffness matrix\n";
+    
 	TPZFMatrix<REAL> prevsol(fSolution);
 	if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
     
-    if (linearmatrix) {
-        std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << linearmatrix->IsDecomposed() << std::endl;
-    }
     
 #ifdef LOG4CXX
     if(EPAnalysisLogger->isDebugEnabled())
@@ -161,30 +160,20 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 		
 		//fSolution.Redim(0,0);
         REAL RhsNormResult = 0.;
-#ifdef DEBUG
-        if (linearmatrix) {
-            std::cout << __FILE__ << ":" << __LINE__ << "Decomposed " << linearmatrix->IsDecomposed() << std::endl;
-        }
-#endif
 		Solve();
         TPZFMatrix<STATE> solkeep(fSolution);
-//        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 		if (linesearch){
             {
-//                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
                 TPZFMatrix<STATE> nextsol(prevsol);
                 nextsol += solkeep;
                 TPZNonLinearAnalysis::LoadSolution(nextsol);
                 AssembleResidual();
                 RhsNormResult = Norm(fRhs);
-//                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
-//                std::cout << "RhsNormResult " << RhsNormResult << std::endl;
             }
             if (RhsNormResult > tol && RhsNormResult > RhsNormPrev) {
                 fSolution = prevsol;
                 LoadSolution();
                 TPZFMatrix<REAL> nextSol;
-//                std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 #ifdef LOG4CXX
                 if (EPAnalysisLogger->isDebugEnabled()) {
                     std::stringstream sout;
@@ -198,8 +187,6 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
             }
             else
             {
-//                fSolution = solkeep;
-//                fSolution += prevsol;
             }
 		}
 		else{
@@ -210,10 +197,8 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 		}
 		
 		prevsol -= fSolution;
-//        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 		REAL normDeltaSol = Norm(prevsol);
 		prevsol = fSolution;
-//        std::cout << __LINE__ << " Norm prevsol " << Norm(prevsol) << std::endl;
 		REAL norm = RhsNormResult;
         
 #ifdef DEBUG
@@ -233,10 +218,13 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 		if(norm < tol) {
             std::cout << "\nTolerancia atingida na iteracao : " << (iter+1) << endl;
             std::cout << "\n\nNorma da solucao |Delta(Un)|  : " << norm << endl << endl;
+            out << "Tolerance obtained at Iteration No : " << (iter+1) << endl;
+            out << "Solution Norm |Delta(Un)|  : " << norm << endl;
 			
 		} else
 			if( (norm - error) > 1.e-9 ) {
                 std::cout << "\nDivergent Method\n";
+                out << "Divergent Method norm = " << norm << "\n";
 			}
 		error = norm;
 		iter++;
@@ -324,6 +312,9 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 //        std::cout << "Iteracao n : " << (iter+1) << " : fRhs : " << fRhs << endl;
 		
 		if(norm < tol) {
+            out << "Tolerancia atingida na iteracao : " << (iter+1) << endl;
+            out << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << RhsNormResult << endl;
+//            out << "Norma da solucao |Delta(Un)|  : " << norm << endl << endl;
 			 std::cout << "\nTolerancia atingida na iteracao : " << (iter+1) << endl;
 			 std::cout << "\n\nNorma da solucao |Delta(Un)|  : " << norm << endl << endl;
             ConvOrDiverg=true;
@@ -331,6 +322,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 		} else
 			if( (norm - error) > 1.e-9  || linesearchconv ==false) {
                 std::cout << "\nDivergent Method -- Exiting Consistent Tangent Iterative Process \n";
+                out << "Divergent Method -- Exiting Consistent Tangent Iterative Process \n";
                 std::cout << "\n Trying linearMatrix IterativeProcess \n\n";
                 ConvOrDiverg=false;
                 return;
