@@ -619,8 +619,9 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
 void TPZWellBoreAnalysis::EvolveBothPressures(int nsteps, STATE TargetWellborePressure, STATE TargetReservoirPressure)
 {
     std::stringstream strout;
-    strout << "Evolving pressures\n";
+    strout << "Evolving pressures";
     SaveConfig(strout);
+    strout << "\n";
 //    fCurrentConfig.fHistoryLog = strout.str();
 //    fSequence.push_back(fCurrentConfig);
 
@@ -803,7 +804,10 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, std::ostream &out)
     // dont forget the vertical deformation
     LocalConfig.ComputeElementDeformation();
     
-
+    // It is like a label for each configuration ( mainly used in GUI )
+    std::stringstream strout;
+    strout << " Substep " << substeps << " - (total stresses) "<< " SX  = " << SX << " SY  = " << SY;
+    SaveConfig(strout);
 
 //    fCurrentConfig.fHistoryLog = strout.str();
 
