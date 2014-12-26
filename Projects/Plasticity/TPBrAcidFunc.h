@@ -175,7 +175,7 @@ public:
         STATE b = exp(c*d);
         STATE VariacaoPorosidade = a*b;
         
-        STATE phiajust = std::min(fPorosidadeInicial+VariacaoPorosidade,fPorosidadeMaximaAdmissivel);
+        STATE phiajust = min(fPorosidadeInicial+VariacaoPorosidade,fPorosidadeMaximaAdmissivel);
         STATE youngnovo = fEInicial*exp(fa*fPorosidadeInicial+fb*(phiajust-fPorosidadeInicial));
 //        youngnovo  = 12000.;
         f[0] = youngnovo;
