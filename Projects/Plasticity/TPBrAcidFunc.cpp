@@ -71,7 +71,7 @@ void TPBrAcidFunc::CalculaDerivados()
     STATE b = exp(c*d);
     STATE VariacaoPorosidade = a*b;
     
-    STATE phiajust = min(fPorosidadeInicial+VariacaoPorosidade,fPorosidadeMaximaAdmissivel);
+    STATE phiajust = MIN(fPorosidadeInicial+VariacaoPorosidade,fPorosidadeMaximaAdmissivel);
     STATE elast = fEInicial*exp(fa*fPorosidadeInicial+fb*phiajust);
 }
 
