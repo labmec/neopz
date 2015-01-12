@@ -253,13 +253,13 @@ namespace pztopology {
         1,2,4,6,11,10,15,//face 2
         3,2,4,7,11,12,16,//face 3
         0,3,4,8,12,9,17,//face 4
+        5,6,7,
+        8,9,10,11,12,
         13,13,//tg face 0
         14,14,//tg face 1
         15,15,//tg face 2
         16,16,//tg face 3
         17,17,//tg face 3
-        5,6,7,
-        8,9,10,11,12,
         18,18,18
     };
     
@@ -267,22 +267,22 @@ namespace pztopology {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,1,1,0,
-        0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0};
+        0,0,0,0,0,0,0,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1};
     
     static int direcaoksioueta [58] = {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,1,0,
-        1,0,1,0,1,0,1,0,0,0,
-        0,0,0,0,0,0,1,2};
+        0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,1,0,1,0,
+        1,0,1,0,1,0,1,2};
 
     int TPZPyramid:: NBilinearSides()
     {
         DebugStop();
-        return 2;
+        return 21;
     }
     
 	void TPZPyramid::LowerDimensionSides(int side,TPZStack<int> &smallsides)
@@ -1018,8 +1018,15 @@ namespace pztopology {
                     JacToSide(1,2) = (2. - 2.*qsi)/((1. - qsi + zeta)*(1. - qsi + zeta));
 				}
 				break;
+            case 18:
+            {
+                SidePar = InternalPar;
+                JacToSide.Resize(3, 3);
+                JacToSide.Identity();
+            }
+                break;
 		}
-		if(side > 17)
+		if(side > 18)
 		{
 			cout << "Cant compute MapToSide method in TPZGeoPyramid class!\nParameter (SIDE) must be between 5 and 17!\nMethod Aborted!\n";
 			DebugStop();
@@ -1269,6 +1276,105 @@ namespace pztopology {
         }
 
 	}
+    
+    void TPZPyramid::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    {
+        REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
+        detgrad = fabs(detgrad);
+        
+        TPZManVector<REAL,3> v1(3),v2(3),v3(3),ar9(3),ar10(3),ar11(3),ar12(3);
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+            v3[i] = gradx(i,2);
+        }
+        
+        for (int i=0; i<3; i++) {
+            v1[i] /= detgrad;
+            v2[i] /= detgrad;
+            v3[i] /= detgrad;
+            ar9[i] = v3[i]-(-v1[i]-v2[i]);
+            ar10[i] = v3[i]-(v1[i]-v2[i]);
+            ar11[i] = v3[i]-(v1[i]+v2[i]);
+            ar12[i] = v3[i]-(v2[i]-v1[i]);
+        }
+        
+        
+        
+        for (int i=0; i<3; i++)
+        {
+            //face 0
+            directions(i,0) = -ar9[i];
+            directions(i,1) = -ar10[i];
+            directions(i,2) = -ar11[i];
+            directions(i,3) = -ar12[i];
+            directions(i,4) = ( directions(i,0)+directions(i,1) )/2.;
+            directions(i,5) = ( directions(i,1)+directions(i,2) )/2.;
+            directions(i,6) = ( directions(i,2)+directions(i,3) )/2.;
+            directions(i,7) = ( directions(i,3)+directions(i,0) )/2.;
+            directions(i,8) = ( directions(i,4)+directions(i,5)+directions(i,6)+directions(i,7) )/4.;
+            //face 1
+            directions(i,9)  = -v2[i];
+            directions(i,10) = -v2[i];
+            directions(i,11) = ar12[i];
+            directions(i,12) = ( directions(i,9) + directions(i,10) )/2.;
+            directions(i,13) = ( directions(i,10)+ directions(i,11) )/2.;
+            directions(i,14) = ( directions(i,9) + directions(i,11) )/2.;
+            directions(i,15) = ( directions(i,12)+ directions(i,13) + directions(i,14))/3.;
+            //face 2
+            directions(i,16) = v1[i];
+            directions(i,17) = v1[i];
+            directions(i,18) = ar9[i];
+            directions(i,19) = (directions(i,16) + directions(i,17))/2.;
+            directions(i,20) = (directions(i,17) + directions(i,18))/2.;
+            directions(i,21) = (directions(i,18) + directions(i,16))/2.;
+            directions(i,22) = (directions(i,19) + directions(i,20) + directions(i,21))/3.;
+            //face 3
+            directions(i,23) = v2[i];
+            directions(i,24) = v2[i];
+            directions(i,25) = ar10[i];
+            directions(i,26) = (directions(i,23) + directions(i,24))/2.;
+            directions(i,27) = (directions(i,24) + directions(i,25))/2.;
+            directions(i,28) = (directions(i,25) + directions(i,23))/2.;
+            directions(i,29) = (directions(i,26) + directions(i,27) + directions(i,28))/3.;
+            //face 4
+            directions(i,30) = -v1[i];
+            directions(i,31) = -v1[i];
+            directions(i,32) = ar11[i];
+            directions(i,33) = ( directions(i,30) + directions(i,31) )/2.;
+            directions(i,34) = ( directions(i,31) + directions(i,32) )/2.;
+            directions(i,35) = ( directions(i,30) + directions(i,32) )/2.;
+            directions(i,36) = (directions(i,33) + directions(i,34) + directions(i,35))/3.;
+            
+            //arestas
+            directions(i,37) = v1[i];
+            directions(i,38) = v2[i];
+            directions(i,39) = -v1[i];
+            directions(i,40) = -v2[i];
+            
+            directions(i,41) = ar9[i];
+            directions(i,42) = ar10[i];
+            directions(i,43) = ar11[i];
+            directions(i,44) = ar12[i];
+            //faces
+            directions(i,45) = v1[i];
+            directions(i,46) = v2[i];
+            directions(i,47) = v1[i];
+            directions(i,48) = ar9[i];
+            directions(i,49) = v2[i];
+            directions(i,50) = ar10[i];
+            directions(i,51) = v1[i];
+            directions(i,52) = ar12[i];
+            directions(i,53) = v2[i];
+            directions(i,54) = ar9[i];
+            //volume
+            directions(i,55) = v1[i];
+            directions(i,56) = v2[i];
+            directions(i,57) = v3[i];
+            
+        }
+
+    }
     
     void TPZPyramid::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
