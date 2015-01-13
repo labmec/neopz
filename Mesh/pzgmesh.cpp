@@ -1359,7 +1359,31 @@ void TPZGeoMesh::ResetConnectivities()
 }
 
 /// Compute the area of the domain
+REAL TPZGeoMesh::Area(int matid)
+{
+    std::set<int> matids;
+    matids.insert(matid);
+    return Area(matids);
+}
+
+/// Compute the area of the domain
 REAL TPZGeoMesh::Area()
+{
+    long nel = NElements();
+    int meshdim = Dimension();
+    std::set<int> matids;
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = Element(el);
+        if (!gel || gel->Dimension() != meshdim) {
+            continue;
+        }
+        matids.insert(gel->MaterialId());
+    }
+    return Area(matids);
+}
+
+/// Compute the area of the domain
+REAL TPZGeoMesh::Area(std::set<int> &matids)
 {
     TPZVec<int> NeedsComputing(NElements(),1);
     int meshdim = Dimension();
@@ -1370,7 +1394,7 @@ REAL TPZGeoMesh::Area()
         if (!gel || !NeedsComputing[el]) {
             continue;
         }
-        if (gel->Dimension() != meshdim) {
+        if (gel->Dimension() != meshdim || matids.find(gel->MaterialId()) == matids.end()) {
             NeedsComputing[el] = 0;
             continue;
         }

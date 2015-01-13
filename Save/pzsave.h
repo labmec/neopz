@@ -548,9 +548,8 @@ public:
         int nel;
         buf.Read(&nel,1);
         TPZManVector<char,1000> bufstr(nel+1);
-        buf.Read(&bufstr[0]);
-        bufstr[nel] = '\0';
         if(nel) buf.Read(&bufstr[0],nel);
+        bufstr[nel] = '\0';
         vec = & bufstr[0];
     }
     
@@ -558,6 +557,7 @@ public:
     {
         int nel;
         buf.Read(&nel,1);
+        vec.resize(nel);
         for (int i=0; i<nel; i++) {
             ReadObjects(buf,vec[i]);
         }

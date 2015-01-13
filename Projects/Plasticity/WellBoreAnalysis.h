@@ -49,7 +49,10 @@ public:
     enum MFormationOrder {ESh = 0, ESH = 1, ESV = 2};
     
     /// boundary condition numbers
-    enum MWellBCs {EInner = -2, EBottom = -4, ELeft = -5, EOuter = -3};
+    enum MWellBCs {EInner = -2, EBottom = -4, ELeft = -5, EOuter = -3, EBottomLiner = -7, ELeftLiner = -8, EInnerLiner = -9};
+    
+    /// material ids of the reservoir and pipe materials
+    enum MSolidIds {EReservoir = 1, ELiner = 2};
     
     /// this class represents a particular stage of the wellbore analysis
     struct TConfig
@@ -132,7 +135,10 @@ public:
         void AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis);
 
         /// Create the geometric and computational mesh based on the configuration parameters
-        void CreateMesh();
+        void CreateGeometricMesh();
+        
+        /// Add the completion ring to the geometric mesh
+        void AddGeometricRingElements();
         
         /// Return the mesh used for computations (multiphysics mesh or fCMesh)
         TPZCompMesh *CompMeshUsed();
@@ -256,6 +262,15 @@ public:
         
         /// Z Deformation associated with the solution
         STATE fZDeformation;
+        
+        /// variable indicating if there is an internal ring (completion)
+        int fHasCompletion;
+        
+        /// Elastic material with the steel properties
+        TPZElasticCriteria fCompletionElastic;
+        
+        /// Inner radius of the liner ring
+        REAL fLinerRadius;
         
         /// Vector containing maximum element plastic deformation
         TPZVec<REAL> fPlasticDeformSqJ2;
@@ -430,6 +445,12 @@ public:
     {
         fCurrentConfig.fInnerRadius = inner;
         fCurrentConfig.fOuterRadius = outer;
+    }
+    
+    /// Define the geometry of the liner
+    void SetInnerLiner(REAL innerliner)
+    {
+        fCurrentConfig.fLinerRadius = innerliner;
     }
     
     void SetMeshTopology(REAL delx, TPZVec<int> &nx)

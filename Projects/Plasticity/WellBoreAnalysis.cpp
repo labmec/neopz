@@ -15,6 +15,8 @@
 
 #include "pzvisualmatrix.h"
 
+#include "tpzquadraticquad.h"
+
 #include "BrazilianTestGeoMesh.h"
 #include "tpzchangeel.h"
 //#include "poroelastoplastic.h"
@@ -436,7 +438,7 @@ void TPZWellBoreAnalysis::CheckDeformation(std::string filename)
 
 
 TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fNx(2,0),fDelx(0.),fGreater(),fSmaller(),fConfinementTotal(),  fWellborePressure(0.),
-    fGMesh(), fCMesh(), fSolution(), fZDeformation(0.), fPlasticDeformSqJ2(), fHistoryLog(), fModel(ESandler), fWellConfig(ENoConfig), fFluidModel(ENonPenetrating), fBiotCoef(-1.)
+    fGMesh(), fCMesh(), fSolution(), fZDeformation(0.), fHasCompletion(0), fLinerRadius(-1.), fPlasticDeformSqJ2(), fHistoryLog(), fModel(ESandler), fWellConfig(ENoConfig), fFluidModel(ENonPenetrating), fBiotCoef(-1.)
   , fSDPV(), fMCPV(), fMatEla(), fAcidModelisActive(0)
 
 
@@ -447,7 +449,8 @@ TPZWellBoreAnalysis::TConfig::TConfig() : fInnerRadius(0.), fOuterRadius(0.), fN
 TPZWellBoreAnalysis::TConfig::TConfig(const TConfig &conf) : fInnerRadius(conf.fInnerRadius), fOuterRadius(conf.fOuterRadius),fNx(conf.fNx),fDelx(conf.fDelx),
     fGreater(conf.fGreater),fSmaller(conf.fSmaller),
         fConfinementTotal(conf.fConfinementTotal), fWellborePressure(conf.fWellborePressure),
-        fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fSolution(conf.fSolution), fZDeformation(conf.fZDeformation),
+        fGMesh(conf.fGMesh), fCMesh(conf.fCMesh), fSolution(conf.fSolution), fZDeformation(conf.fZDeformation), fHasCompletion(conf.fHasCompletion),
+        fCompletionElastic(conf.fCompletionElastic), fLinerRadius(conf.fLinerRadius),
     fModel(conf.fModel), fPlasticDeformSqJ2(conf.fPlasticDeformSqJ2), fHistoryLog(conf.fHistoryLog), fFluidModel(conf.fFluidModel), fWellConfig(conf.fWellConfig), fBiotCoef(conf.fBiotCoef)
   , fSDPV(conf.fSDPV), fMCPV(conf.fMCPV), fMatEla(conf.fMatEla), fExecutionLog(conf.fExecutionLog), fAcidParameters(conf.fAcidParameters), fAcidModelisActive(conf.fAcidModelisActive)
 {
@@ -491,6 +494,9 @@ TPZWellBoreAnalysis::TConfig &TPZWellBoreAnalysis::TConfig::operator=(const TPZW
     fCMesh.SetReference(&fGMesh);
     fSolution = copy.fSolution;
     fZDeformation = copy.fZDeformation;
+    fHasCompletion = copy.fHasCompletion;
+    fCompletionElastic = copy.fCompletionElastic;
+    fLinerRadius = copy.fLinerRadius;
     fPlasticDeformSqJ2 = copy.fPlasticDeformSqJ2;
     fHistoryLog = copy.fHistoryLog;
     fModel = copy.fModel;
@@ -533,6 +539,13 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     fCMesh.Write(out, 0);
     fSolution.Write(out, 0);
     out.Write(&fZDeformation);
+    
+    out.Write(&fHasCompletion);
+    fCompletionElastic.Write(out);
+    out.Write(&fLinerRadius);
+    
+    
+
     TPZSaveable::WriteObjects(out,fPlasticDeformSqJ2);
     out.Write(&fHistoryLog);
     TPZSaveable::WriteObjects(out, fExecutionLog);
@@ -576,6 +589,11 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     fCMesh.Read(input, &fGMesh);
     fSolution.Read(input, 0);
     input.Read(&fZDeformation);
+    
+    input.Read(&fHasCompletion);
+    fCompletionElastic.Read(input);
+    input.Read(&fLinerRadius);
+
     TPZSaveable::ReadObjects(input,fPlasticDeformSqJ2);
     input.Read(&fHistoryLog);
     TPZSaveable::ReadObjects(input, fExecutionLog);
@@ -997,7 +1015,7 @@ void TPZWellBoreAnalysis::TConfig::ApplyDeformation(TPZCompEl *cel)
         intpoints.Point(ip, point, weight);
         data2.intLocPtIndex = ip;
         intel2->ComputeRequiredData(data2, point);
-#ifdef LOG4CXX2
+#ifdef LOG4CXX
         if(logger->isDebugEnabled())
         {
             int memoryindex = data2.intGlobPtIndex;
@@ -1353,7 +1371,7 @@ STATE TPZWellBoreAnalysis::TConfig::AverageVerticalStress()
     std::set<int> matids;
     matids.insert(1);
     TPZVec<STATE> verticalForce = fCMesh.Integrate("TotStressZZ", matids);
-    REAL MeshArea = fCMesh.Reference()->Area();
+    REAL MeshArea = fCMesh.Reference()->Area(EReservoir);
     return verticalForce[0]/MeshArea;
 }
 
@@ -2356,6 +2374,10 @@ void TPZWellBoreAnalysis::PostProcess(int resolution)
 void TPZWellBoreAnalysis::GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & polygonalChain)
 {
     TPZCompMesh *cmesh = fCurrentConfig.fPostprocess.Mesh();
+    if (!cmesh) {
+        fCurrentConfig.CreatePostProcessingMesh();
+    }
+    cmesh = fCurrentConfig.fPostprocess.Mesh();
     REAL tol = 0.01*J2val;
     
     TPZTensor<STATE> boundarytensor;
@@ -2742,7 +2764,7 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
     fPostprocess.SetCompMesh(0);
     fCMesh.CleanUp();
     fGMesh.CleanUp();
-    CreateMesh();
+    CreateGeometricMesh();
 
     CreateComputationalMesh(2);
     SetWellPressure();
@@ -2753,7 +2775,7 @@ void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL Mino
 #include "pzgengrid.h"
 #include "TPZVTKGeoMesh.h"
 
-void TPZWellBoreAnalysis::TConfig::CreateMesh()
+void TPZWellBoreAnalysis::TConfig::CreateGeometricMesh()
 {
     if ((fGMesh.NElements() != 0) || (fGMesh.NNodes() != 0))
     {
@@ -2798,14 +2820,9 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
         cart[1] = cyl[0]*sin(cyl[1]);
         fGMesh.NodeVec()[in].SetCoord(cart);
     }
-#ifdef DEBUG
-    std::ofstream out("Wellbore.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, out,true);
-#endif
     
-    if (fGreater.size() == 0) {
-        return;
-    }
+    std::ofstream ssout("WellboreBefore.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, ssout,true);
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
@@ -2814,11 +2831,14 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    
-    std::ofstream ssout("WellboreBefore.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, ssout,true);
+
+//    if (fGreater.size() == 0) {
+//        return;
+//    }
     
     /// number of elements in the radial and circumferential direction = nx
+    ModifyWellElementsToQuadratic();
+    AddGeometricRingElements();
     
     // project the nodes on the elliptic boundaries
    for (int iy=0; iy < nx[1]+1; iy++) {//loop over the circumferential
@@ -2864,8 +2884,184 @@ void TPZWellBoreAnalysis::TConfig::CreateMesh()
             }
         }
     }
-    ModifyWellElementsToQuadratic();
+
+    
+    // adjust the coordinates of the quadratic elements
+    long nel = fGMesh.NElements();
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh.Element(el);
+        
+        // only the one dimensional well elements
+        if (!gel || gel->MaterialId() != EInner) {
+            continue;
+        }
+        if (gel->Dimension() != 1) {
+            DebugStop();
+        }
+        TPZGeoElSide gelside(gel,2);
+        TPZManVector<REAL,3> co(3);
+        long index1d = gel->NodeIndex(2);
+        gel->NodePtr(2)->GetCoordinates(co);
+        bool adjusted = ProjectNode(co);
+        if (adjusted) {
+            gel->NodePtr(2)->SetCoord(co);
+        }
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        while (neighbour != gelside) {
+            if (neighbour.Element()->Dimension() != 2) {
+                DebugStop();
+            }
+            int locindex = neighbour.Side();
+            long nodeindex2d = neighbour.Element()->NodeIndex(locindex);
+            if (nodeindex2d != index1d) {
+                DebugStop();
+            }
+            neighbour.Element()->NodePtr(locindex)->GetCoordinates(co);
+            adjusted = ProjectNode(co);
+            if (adjusted) {
+                neighbour.Element()->NodePtr(locindex)->SetCoord(co);
+            }
+            TPZManVector<REAL,3> co1(3),co2(3);
+            neighbour.Element()->NodePtr(0)->GetCoordinates(co1);
+            neighbour.Element()->NodePtr(1)->GetCoordinates(co2);
+            for (int i=0; i<3; i++) co1[i] = (co1[i]+co2[i])/2.;
+            neighbour.Element()->NodePtr(4)->SetCoord(co1);
+            neighbour.Element()->NodePtr(2)->GetCoordinates(co1);
+            neighbour.Element()->NodePtr(3)->GetCoordinates(co2);
+            for (int i=0; i<3; i++) co1[i] = (co1[i]+co2[i])/2.;
+            neighbour.Element()->NodePtr(6)->SetCoord(co1);
+            if (neighbour.Side() == 7) {
+                neighbour.Element()->NodePtr(1)->GetCoordinates(co1);
+                neighbour.Element()->NodePtr(2)->GetCoordinates(co2);
+                for (int i=0; i<3; i++) co1[i] = (co1[i]+co2[i])/2.;
+                neighbour.Element()->NodePtr(5)->SetCoord(co1);
+            }
+            neighbour = neighbour.Neighbour();
+        }
+    }
+     
+#ifdef DEBUG
+    std::ofstream outg("gmesh.txt");
+    fGMesh.Print(outg);
+    std::ofstream out("Wellbore.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, out,true);
+#endif
+
 }
+
+static long newnode(TPZGeoMesh &mesh, TPZVec<REAL> &coord)
+{
+    long newnode = mesh.NodeVec().AllocateNewElement();
+    mesh.NodeVec()[newnode].Initialize(coord, mesh);
+    return newnode;
+}
+
+/// Add the completion ring to the geometric mesh
+void TPZWellBoreAnalysis::TConfig::AddGeometricRingElements()
+{
+    REAL innerRadius = this->fLinerRadius;
+    long firstelindex = 0;
+    long elincrement = fNx[0];
+    long bottomnodeindexes[2];
+    long topindexes[2];
+    int numcircularelements = fNx[1];
+    TPZManVector<REAL,3> coord(3,0.);
+    coord[0] = innerRadius;
+    topindexes[0] = newnode(fGMesh,coord);
+    coord[0] = (innerRadius+this->fInnerRadius)/2.;
+    topindexes[1] = newnode(fGMesh, coord);
+    TPZGeoEl *PreviousElement = 0;
+    for (long el = 0; el<numcircularelements; el++)
+    {
+        long reservoirelindex = firstelindex+el*elincrement;
+        TPZGeoEl *gelreservoir = fGMesh.Element(reservoirelindex);
+        int nnodes = gelreservoir->NNodes();
+        if (nnodes != 8) {
+            DebugStop();
+        }
+        // create/identify the nodes and create the element
+        REAL angle = (el+1.)*M_PI_2/numcircularelements;
+        bottomnodeindexes[0] = topindexes[0];
+        bottomnodeindexes[1] = topindexes[1];
+        coord[0] = innerRadius*cos(angle);
+        coord[1] = innerRadius*sin(angle);
+        topindexes[0] = newnode(fGMesh,coord);
+        coord[0] = cos(angle)*(innerRadius+this->fInnerRadius)/2.;
+        coord[1] = sin(angle)*(innerRadius+this->fInnerRadius)/2.;
+        topindexes[1] = newnode(fGMesh, coord);
+        angle = (el+0.5)*M_PI_2/numcircularelements;
+        coord[0] = cos(angle)*(innerRadius+this->fInnerRadius)/2.;
+        coord[1] = sin(angle)*(innerRadius+this->fInnerRadius)/2.;
+        long middleindex = newnode(fGMesh, coord);
+        TPZManVector<long,8> nodeindexes(8,-1);
+        nodeindexes[0] = bottomnodeindexes[0];
+        nodeindexes[4] = bottomnodeindexes[1];
+        nodeindexes[1] = gelreservoir->NodeIndex(0);
+        nodeindexes[2] = gelreservoir->NodeIndex(3);
+        nodeindexes[5] = gelreservoir->NodeIndex(7);
+        nodeindexes[3] = topindexes[0];
+        nodeindexes[6] = topindexes[1];
+        nodeindexes[7] = middleindex;
+        TPZGeoEl *NewElem = new TPZGeoElRefPattern<pzgeom::TPZQuadraticQuad>(nodeindexes,ELiner,fGMesh);
+
+        // establish the connectivities of the new element
+        // establish the connectivity with the reservoir element
+        {
+            TPZGeoElSide gelside(NewElem,1);
+            TPZGeoElSide neigh(gelreservoir,0);
+            neigh.SetConnectivity(gelside);
+            gelside.SetSide(2);
+            neigh.SetSide(3);
+            neigh.SetConnectivity(gelside);
+            gelside.SetSide(5);
+            neigh.SetSide(7);
+            neigh.SetConnectivity(gelside);
+#ifdef DEBUG
+            {
+                neigh = gelside.Neighbour();
+                while (neigh != gelside) {
+                    neigh = neigh.Neighbour();
+                }
+            }
+#endif
+        }
+        if (el > 0) {
+            // if the element is not the bottom element
+            TPZGeoElSide gelside(NewElem,0);
+            TPZGeoElSide neigh(PreviousElement,3);
+            neigh.SetConnectivity(gelside);
+            gelside.SetSide(1);
+            neigh.SetSide(2);
+            neigh.SetConnectivity(gelside);
+            gelside.SetSide(4);
+            neigh.SetSide(6);
+            neigh.SetConnectivity(gelside);
+        }
+        else
+        {
+            // initialize the neighbouring information
+            TPZGeoElSide gelside(NewElem,0);
+            gelside.SetNeighbour(gelside);
+            gelside.SetSide(4);
+            gelside.SetNeighbour(gelside);
+            TPZGeoElBC(NewElem,4,EBottomLiner);
+        }
+        if (el == numcircularelements-1) {
+            // initialize the neighbouring information
+            TPZGeoElSide gelside(NewElem,3);
+            gelside.SetNeighbour(gelside);
+            gelside.SetSide(6);
+            gelside.SetNeighbour(gelside);
+            TPZGeoElBC(NewElem,6,ELeftLiner);
+
+        }
+        NewElem->SetSideDefined(7);
+        NewElem->SetSideDefined(8);
+        TPZGeoElBC(NewElem,7,EInnerLiner);
+        PreviousElement = NewElem;
+    }
+}
+
 
 void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
 {
@@ -2892,7 +3088,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
         }
 #endif
         
-        if(bcGel->MaterialId() != -2)
+        if(bcGel->MaterialId() != EInner)
         {
             continue;
         }
@@ -2939,7 +3135,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
         
         TPZManVector<REAL,3> nodeCoord(3,0.);
         fGMesh.NodeVec()[nodeIdnodevec].GetCoordinates(nodeCoord);
-        bool adjusted = ProjectNode(nodeCoord);
+        bool adjusted = false;  //ProjectNode(nodeCoord);
         
 #ifdef DEBUG
 #ifdef LOG4CXX

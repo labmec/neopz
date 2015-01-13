@@ -143,6 +143,12 @@ public:
     /// Compute the area of the domain
     REAL Area();
     
+    /// Compute the area of the domain
+    REAL Area(int matid);
+    
+    /// Compute the area of the domain
+    REAL Area(std::set<int> &matids);
+    
 	/** @brief Resets all load references in elements and nodes */
 	void ResetReference();
 	

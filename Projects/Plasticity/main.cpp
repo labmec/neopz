@@ -154,7 +154,7 @@ void Config1()
  
 
     REAL sqj2_refine=0.0001;
-    int Startfrom=0;
+    int Startfrom=1;
     const int nsubsteps = 5;
     if (Startfrom == 0)
     {
@@ -198,7 +198,7 @@ void Config1()
         well.GetCurrentConfig()->fWellConfig = EVerticalWell;
         
         
-        well.GetCurrentConfig()->CreateMesh();
+        well.GetCurrentConfig()->CreateGeometricMesh();
         
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
@@ -214,9 +214,11 @@ void Config1()
         
         int nsteps = 5;
         int numnewton = 90;
-        well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.ExecuteInitialSimulation(nsteps, numnewton);
+
+        
         well.PostProcess(0);
+        
         TPZBFileStream save;
         save.OpenWrite("Config1-0.bin");
         well.Write(save);
@@ -239,6 +241,15 @@ void Config1()
         out << "First pass\n";
         well.PRefineElementAbove(sqj2_refine, 3,out);
         well.DivideElementsAbove(sqj2_refine,out);
+        
+        {
+            std::ofstream out("gmesh_good.txt");
+            well.GetCurrentConfig()->fGMesh.Print(out);
+            std::ofstream co("cmesh_good.txt");
+            well.GetCurrentConfig()->fCMesh.Print(co);
+        }
+        
+        
         int substepsloc  = 1;
         well.ExecuteSimulation(substepsloc,out);
         well.PostProcess(0);
@@ -452,7 +463,7 @@ void Config2()
         well.GetCurrentConfig()->fWellConfig = EHorizontalWellalongH;
         
         
-        well.GetCurrentConfig()->CreateMesh();
+        well.GetCurrentConfig()->CreateGeometricMesh();
         
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
@@ -729,7 +740,7 @@ void Config3()
         well.GetCurrentConfig()->fWellConfig = EHorizontalWellalongh;
         
         
-        well.GetCurrentConfig()->CreateMesh();
+        well.GetCurrentConfig()->CreateGeometricMesh();
         
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
@@ -1007,7 +1018,7 @@ void Config4()
         numdiv[1] = ncircle;
         well.SetMeshTopology(delx, numdiv);
         well.GetCurrentConfig()->fWellConfig = EVerticalWell;
-        well.GetCurrentConfig()->CreateMesh();
+        well.GetCurrentConfig()->CreateGeometricMesh();
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         std::cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
@@ -1155,7 +1166,7 @@ void Config5()
         numdiv[1] = ncircle;
         well.SetMeshTopology(delx, numdiv);
         well.GetCurrentConfig()->fWellConfig = EVerticalWell;
-        well.GetCurrentConfig()->CreateMesh();
+        well.GetCurrentConfig()->CreateGeometricMesh();
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         std::cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
@@ -1283,7 +1294,7 @@ void Config6()
         numdiv[1] = ncircle;
         well.SetMeshTopology(delx, numdiv);
         well.GetCurrentConfig()->fWellConfig = EVerticalWell;
-        well.GetCurrentConfig()->CreateMesh();
+        well.GetCurrentConfig()->CreateGeometricMesh();
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         std::cout << "Average vertical stress " << well.GetCurrentConfig()->AverageVerticalStress() << std::endl;
@@ -1416,7 +1427,7 @@ void Config7()
         well.GetCurrentConfig()->fWellConfig = EVerticalWell;
         
         
-        well.GetCurrentConfig()->CreateMesh();
+        well.GetCurrentConfig()->CreateGeometricMesh();
         
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
@@ -1555,7 +1566,7 @@ void Config8()
         well.GetCurrentConfig()->fWellConfig = EVerticalWell;
         
         
-        well.GetCurrentConfig()->CreateMesh();
+        well.GetCurrentConfig()->CreateGeometricMesh();
         
         
         well.GetCurrentConfig()->CreateComputationalMesh(porder);

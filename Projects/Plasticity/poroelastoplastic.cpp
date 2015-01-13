@@ -161,7 +161,7 @@ int main2 ()
         TPZManVector<int,2> numdiv(2,divisions);
         numdiv[1] = 40;
         well.SetMeshTopology(delx, numdiv);
-        well.GetCurrentConfig()->CreateMesh();
+        well.GetCurrentConfig()->CreateGeometricMesh();
         int porder = 2;
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         well.GetCurrentConfig()->CreatePostProcessingMesh();
