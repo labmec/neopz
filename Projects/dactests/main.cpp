@@ -11,6 +11,8 @@
 
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
+#include "TPZRefPatternDataBase.h"
+#include "TPZRefPatternTools.h"
 #include "pzgeopoint.h"
 #include "TPZGeoLinear.h"
 #include "TPZGeoCube.h"
@@ -21,6 +23,10 @@
 #include "tpzarc3d.h"
 #include "pzgeotetrahedra.h"
 #include "pzgeoelrefless.h"
+#include "tpzquadraticquad.h"
+#include "tpzquadraticline.h"
+
+#include "tpzchangeel.h"
 
 #include "pzvec.h"
 #include "pzstack.h"
@@ -121,9 +127,19 @@ TPZGeoMesh *GMesh(int dimensao, bool ftriang, int ndiv);
 TPZGeoMesh *GMeshDeformed(int dimensao, bool ftriang, int ndiv);
 TPZGeoMesh *GMeshDeformed2(int dimensao, bool triang, int ndiv);
 TPZGeoMesh *GMeshDeformed3(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshDeformed4(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshDeformed5(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshDeformed6(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshDeformed7(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshDeformed8(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshDeformed9(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshDeformed10(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshDeformed11(int dimensao, bool triang, int ndiv);
+
 TPZGeoMesh *CreateOneCubo(int nref=0);
 TPZGeoMesh *CreateOneCuboWithTetraedrons(long nelem=1, int MaterialId=1);
 
+TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim);
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim);
 TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec);
@@ -142,7 +158,8 @@ void PrintDebugMapForMathematica(std::string filenameHdiv, std::string filenameL
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
 
 //lado direito da equacao
-void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
+void ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff, TPZFMatrix<STATE> &flux);
 
 //Para condicao de contorno de Dirichlet
 void ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
@@ -187,6 +204,7 @@ REAL const Pi = M_PI;//4.*atan(1.);
 bool ftriang = false;//true;//
 bool IsCube = true;
 bool isgeoblend = true;
+bool isH1 = false;
 
 
 #ifdef LOG4CXX
@@ -201,6 +219,8 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     
+//  gRefDBase.InitializeAllUniformRefPatterns();
+//	gRefDBase.InitializeRefPatterns();
 
     int p = 1;
     int ndiv = 0;
@@ -215,12 +235,12 @@ int main(int argc, char *argv[])
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=2;p<3;p++)
+    for(p=1;p<2;p++)
     {
         int pq = p;
         int pp = p;
         
-        for (ndiv=0; ndiv<1; ndiv++)
+        for (ndiv=3; ndiv<4; ndiv++)
         {
             std::cout<< " INICIO - grau  polinomio " << p << " numero de divisoes " << ndiv << std::endl;
 
@@ -230,7 +250,7 @@ int main(int argc, char *argv[])
                 //TPZGeoMesh *gmesh2d = GMesh(2, ftriang, ndiv);
                 TPZGeoMesh *gmesh2d;
                 if (isgeoblend) {
-                    gmesh2d = GMeshDeformed3(2, ftriang, ndiv);
+                    gmesh2d = GMeshDeformed10(2, ftriang, ndiv);
                 }
                 else
                 {
@@ -289,7 +309,7 @@ int main(int argc, char *argv[])
             int Axis;
             REAL theta, dump = 0.0;
             
-            theta = 48.0;
+            theta = 45.0;
             Axis = 1;
             RotateGeomesh(gmesh, theta*dump, Axis);
             
@@ -297,14 +317,40 @@ int main(int argc, char *argv[])
             Axis = 2;
             RotateGeomesh(gmesh, theta*dump, Axis);
             
-            theta = 120.0;
+            theta = 90.0;
             Axis = 3;
             RotateGeomesh(gmesh, theta*dump, Axis);
             
             TPZCompMesh *cmesh2 = CMeshPressure(gmesh, pp, dim);
             TPZCompMesh *cmesh1 = CMeshFlux(gmesh, pq, dim);
 
-
+// Um teste para a solucao via H1, sem hdiv
+            if (isH1) {
+                TPZCompMesh *cmeshH1 = CMeshH1(gmesh, pq, dim);
+                TPZAnalysis anh1(cmeshH1, true);
+                
+                SolveSyst(anh1, cmeshH1);
+                
+                stringstream refh1,grauh1;
+                grauh1 << p;
+                refh1 << ndiv;
+                string strgh1 = grauh1.str();
+                string strrh1 = refh1.str();
+                std::string plotnameh1("OurSolutionH1");
+                std::string Grauh1("P");
+                std::string Refh1("H");
+                std::string VTKh1(".vtk");
+                std::string plotDatah1;
+                plotDatah1 = plotnameh1+Grauh1+strgh1+Refh1+strrh1+VTKh1;
+                std::string plotfileh1(plotDatah1);
+                
+                PosProcess(anh1, plotfileh1);
+                
+                return EXIT_SUCCESS;
+            }
+            
+// exit
+            
             
             ofstream arg1("cmeshflux.txt");
             cmesh1->Print(arg1);
@@ -540,25 +586,28 @@ TPZGeoMesh *GMesh(int d, bool ftriang, int ndiv)
     TPZManVector<REAL,3> coord(2,0.);
     int in = 0;
     //c0
-    coord[0] = 0.0;
-    coord[1] = 0.0;
+    coord[0] = -1.0;//0.0; //
+    coord[1] = -1.0;//0.0; //
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     //c1
-    coord[0] =  1.0;
-    coord[1] = 0.0;
+    coord[0] =   1.0;//1.0;//
+    coord[1] =  -1.0;//0.0;//
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     //c2
-    coord[0] =  0.0;
-    coord[1] =  1.0;
+    coord[0] =   1.0;//0.0;//
+    coord[1] =   1.0;//1.0;//
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
     //c3
-    coord[0] = 1.0;
-    coord[1] =  1.0;
+    coord[0] =  -1.0;//1.0;//
+    coord[1] =   1.0;//1.0;//
     gmesh->NodeVec()[in].SetCoord(coord);
-    gmesh->NodeVec()[in].SetNodeId(in++);
+    gmesh->NodeVec()[in].SetNodeId(in);
     //indice dos elementos
     id = 0;
     
@@ -566,13 +615,13 @@ TPZGeoMesh *GMesh(int d, bool ftriang, int ndiv)
     {
         TopolTriang[0] = 0;
         TopolTriang[1] = 1;
-        TopolTriang[2] = 3;
+        TopolTriang[2] = 2;
         new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,TopolTriang,matId,*gmesh);
         id++;
         
         TopolTriang[0] = 0;
-        TopolTriang[1] = 3;
-        TopolTriang[2] = 2;
+        TopolTriang[1] = 2;
+        TopolTriang[2] = 3;
         new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,matId,*gmesh);
         id++;
         
@@ -582,16 +631,16 @@ TPZGeoMesh *GMesh(int d, bool ftriang, int ndiv)
         id++;
         
         TopolLine[0] = 1;
-        TopolLine[1] = 3;
+        TopolLine[1] = 2;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
         id++;
         
-        TopolLine[0] = 3;
-        TopolLine[1] = 2;
+        TopolLine[0] = 2;
+        TopolLine[1] = 3;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
         id++;
         
-        TopolLine[0] = 2;
+        TopolLine[0] = 3;
         TopolLine[1] = 0;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc4,*gmesh);
         id++;
@@ -600,8 +649,8 @@ TPZGeoMesh *GMesh(int d, bool ftriang, int ndiv)
         
         TopolQuad[0] = 0;
         TopolQuad[1] = 1;
-        TopolQuad[2] = 3;
-        TopolQuad[3] = 2;
+        TopolQuad[2] = 2;
+        TopolQuad[3] = 3;
         new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
         id++;
         
@@ -611,16 +660,16 @@ TPZGeoMesh *GMesh(int d, bool ftriang, int ndiv)
         id++;
         
         TopolLine[0] = 1;
-        TopolLine[1] = 3;
+        TopolLine[1] = 2;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
         id++;
         
-        TopolLine[0] = 3;
-        TopolLine[1] = 2;
+        TopolLine[0] = 2;
+        TopolLine[1] = 3;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
         id++;
         
-        TopolLine[0] = 2;
+        TopolLine[0] = 3;
         TopolLine[1] = 0;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc4,*gmesh);
     }
@@ -1101,6 +1150,69 @@ void UniformRefinement(TPZGeoMesh* gmesh, int nDiv)
     //	gmesh->BuildConnectivity();
 }
 
+TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim)
+{
+    /// criar materiais
+    TPZMatPoisson3d *material = new TPZMatPoisson3d(matId,dim);
+    TPZMaterial * mat(material);
+    material->NStateVariables();
+    
+//    //solucao exata
+    TPZAutoPointer<TPZFunction<STATE> > solexata;
+    solexata = new TPZDummyFunction<STATE>(SolExata);
+    material->SetForcingFunctionExact(solexata);
+    
+    //funcao do lado direito da equacao do problema
+//    TPZAutoPointer<TPZFunction<STATE> > forcef;
+//    forcef = new TPZDummyFunction<STATE>(Forcing);
+//    material->SetForcingFunction(forcef);
+    
+    //funcao do lado direito da equacao do problema
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingH1);
+    TPZAutoPointer<TPZFunction<STATE> > forcef;
+    dum->SetPolynomialOrder(20);
+    forcef = dum;
+    material->SetForcingFunction(forcef);
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(pOrder);
+    
+    ///Inserir condicao de contorno
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZMaterial * BCond0;
+    TPZMaterial * BCond1;
+    TPZMaterial * BCond2;
+    TPZMaterial * BCond3;
+    TPZMaterial * BCond4;
+    TPZMaterial * BCond5;
+    
+    if( dim == 3 ) { BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);}
+    BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
+    BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
+    BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+    BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
+    if( dim == 3 ) { BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);}
+    
+    cmesh->InsertMaterialObject(mat);
+ 
+    cmesh->SetAllCreateFunctionsContinuous(); 
+    if( dim == 3 ) { cmesh->InsertMaterialObject(BCond0); }
+    cmesh->InsertMaterialObject(BCond1);
+    cmesh->InsertMaterialObject(BCond2);
+    cmesh->InsertMaterialObject(BCond3);
+    cmesh->InsertMaterialObject(BCond4);
+    if( dim == 3 ) { cmesh->InsertMaterialObject(BCond5); }
+    
+    //Ajuste da estrutura de dados computacional
+    cmesh->AutoBuild();
+    
+    return cmesh;
+    
+}
+
 
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim)
 {
@@ -1303,8 +1415,8 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     
     bool hdivantigo;
     
-    //TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(matId,dim); hdivantigo = false; // nesse material tem que ser false
-    TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); hdivantigo = true;; // nesse material tem que ser true
+    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(matId,dim); hdivantigo = false; // nesse material tem que ser false
+    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); hdivantigo = true;; // nesse material tem que ser true
     //incluindo os dados do problema
     if (hdivantigo) {
         TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
@@ -1337,7 +1449,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     //funcao do lado direito da equacao do problema
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(10);
+    dum->SetPolynomialOrder(1);
     forcef = dum;
     material->SetForcingFunction(forcef);
     
@@ -1369,24 +1481,32 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D);
     BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     BCond1->SetForcingFunction(FBCond1);
+//    BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
     BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     BCond2->SetForcingFunction(FBCond2);
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
+//    BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
+//    BCond2->SetForcingFunction(FBCond2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D);
     BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     BCond3->SetForcingFunction(FBCond3);
+//    BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D);
     BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
     BCond4->SetForcingFunction(FBCond4);
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N);
+//    BCond4 = material->CreateBC(mat, bc4,neumann, val1, val2);
+//    BCond4->SetForcingFunction(FBCond4);
     
     if (dim==3)
     {
@@ -1517,7 +1637,7 @@ void PosProcess(TPZAnalysis &an, std::string plotfile){
     TPZManVector<std::string,10> scalnames(1), vecnames(0);
     scalnames[0] = "Solution";
     //const int dim = 3;
-    int div = 2;
+    int div = 0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
 //    std::ofstream out("malhaNormal.txt");
@@ -1537,7 +1657,7 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
     scalnames[1] = "ExactPressure";
     
     //const int dim = 3;
-    int div = 2;
+    int div = 4;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     
@@ -1562,28 +1682,38 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &fl
         double x = pt[0];
         double y = pt[1];
         REAL raio = sqrt( x*x + y*y );
-        if (raio <= 1.0)
+        if (raio < 1.0)
         {
-            //centro da gaussiana
-            REAL cx = 0.0, cy = 0.0;
-            //constantes
-            REAL sigma = 0.2;
-            REAL c = sigma;
-            
-            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
-            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
-            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
-            
-            solp[0] = AA * exp( -expx-expy );
-            
-            flux(0,0) = AA *( (x-cx)*TP(0,0) + (y-cy)*TP(0,1) )*exp( -expx-expy );
-            flux(1,0) = AA *( (x-cx)*TP(1,0) + (y-cy)*TP(1,1) )*exp( -expx-expy );
+            solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+            solp[0] = 1.0-x;
+            flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+            flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+            flux(0,0) = 1.0;//TP(0,0);
+            flux(1,0) = 0.0;//TP(1,0);
+//            //centro da gaussiana
+//            REAL cx = 0.0, cy = 0.0;
+//            //constantes
+//            REAL sigma = 0.2;
+//            REAL c = sigma;
+//            
+//            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
+//            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
+//            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
+//            
+//            solp[0] = AA * exp( -expx-expy );
+//            
+//            flux(0,0) = AA *( (x-cx)*TP(0,0) + (y-cy)*TP(0,1) )*exp( -expx-expy );
+//            flux(1,0) = AA *( (x-cx)*TP(1,0) + (y-cy)*TP(1,1) )*exp( -expx-expy );
         }
         else
         {
             solp[0] = 0.0;
             flux(0,0)= 0.0;
             flux(1,0)= 0.0;
+            
+            solp[0] = 1.0-x;
+            flux(0,0) = TP(0,0);
+            flux(1,0) = TP(1,0);
         }
         
     }
@@ -1597,7 +1727,7 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &fl
     
 }
 
-void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     // TP e o tensor de pemearbilidade.
     
     if (dim==2)
@@ -1605,24 +1735,27 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
         double x = pt[0];
         double y = pt[1];
         REAL raio = sqrt( x*x + y*y );
-        if (raio <= 1.0)
+        if (raio < 1.0)
         {
-            //centro da gaussiana
-            REAL cx = 0.0, cy = 0.0;
-            //constantes
-            REAL sigma = 0.2;
-            REAL c = sigma;
+            ff[0] = 0.0;//-6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
             
-            REAL AA = 1.0/(c*c*c*c*sigma*sqrt(2.0*Pi));
-            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
-            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
-            
-            disp[0] = AA * exp( -expx-expy )*(-cx*cx*TP(0,0) - x*(x*TP(0,0) - (cy - y)*(TP(0,1) + TP(1,0))) +  cx*(2.0*x*TP(0,0) - (cy - y)*(TP(0,1) + TP(1,0))) - (cy - y)*(cy - y)*TP(1,1) + c*c*(TP(0,0) + TP(1,1)));
+//            //centro da gaussiana
+//            REAL cx = 0.0, cy = 0.0;
+//            //constantes
+//            REAL sigma = 0.2;
+//            REAL c = sigma;
+//            
+//            REAL AA = 1.0/(c*c*c*c*sigma*sqrt(2.0*Pi));
+//            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
+//            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
+//            
+//            ff[0] = AA * exp( -expx-expy )*(-cx*cx*TP(0,0) - x*(x*TP(0,0) - (cy - y)*(TP(0,1) + TP(1,0))) +  cx*(2.0*x*TP(0,0) - (cy - y)*(TP(0,1) + TP(1,0))) - (cy - y)*(cy - y)*TP(1,1) + c*c*(TP(0,0) + TP(1,1)));
             
         }
         else
         {
-            disp[0] = 0.0;
+            ff[0] = 0.0;
+            
         }
         
     }
@@ -1636,30 +1769,62 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	
 }
 
-void ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff, TPZFMatrix<STATE> &flux)
+{
+    flux.Resize(dim, 1);
     if (dim==2)
     {
         double x = pt[0];
         double y = pt[1];
         REAL raio = sqrt( x*x + y*y );
-        if (raio <= 1.0)
+        if (raio < 1.0)
         {
-            //centro da gaussiana
-            REAL cx = 0.0, cy = 0.0;
-            //constantes
-            REAL sigma = 0.2;
-            REAL c = sigma;
-            
-            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
-            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
-            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
-            
-            disp[0] = AA * exp( -expx-expy );
+            ff[0] = 6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
+            flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+            flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+ 
+        }
+        else
+        {
+            ff[0] = 0.0;
+            flux(0,0)= 0.0;
+            flux(1,0)= 0.0;
+        }
+        
+    }
+    else
+    {
+        // Dimensao 3
+        // Implementar
+        DebugStop();
+    }
+
+}
+void ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
+    if (dim==2)
+    {
+        double x = pt[0];
+        double y = pt[1];
+        REAL raio = sqrt( x*x + y*y );
+        if (raio < 1.0)
+        {
+            solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+//            //centro da gaussiana
+//            REAL cx = 0.0, cy = 0.0;
+//            //constantes
+//            REAL sigma = 0.2;
+//            REAL c = sigma;
+//            
+//            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
+//            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
+//            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
+//            
+//            disp[0] = AA * exp( -expx-expy );
             
         }
         else
         {
-            disp[0] = 0.0;
+            solp[0] = 0.0;
         }
         
     }
@@ -1672,30 +1837,33 @@ void ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 }
 
-void ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     if (dim==2)
     {
         double x = pt[0];
         double y = pt[1];
         REAL raio = sqrt( x*x + y*y );
-        if (raio <= 1.0)
+        if (raio < 1.0)
         {
-            //centro da gaussiana
-            REAL cx = 0.0, cy = 0.0;
-            //constantes
-            REAL sigma = 0.2;
-            REAL c = sigma;
-            
-            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
-            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
-            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
-            
-            disp[0] = AA * exp( -expx-expy );
+            solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+            solp[0] = 1.0-x;//fora
+//            //centro da gaussiana
+//            REAL cx = 0.0, cy = 0.0;
+//            //constantes
+//            REAL sigma = 0.2;
+//            REAL c = sigma;
+//            
+//            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
+//            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
+//            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
+//            
+//            disp[0] = AA * exp( -expx-expy );
             
         }
         else
         {
-            disp[0] = 0.0;
+            solp[0] = 0.0;
+            solp[0] = 1.0-x;//fora
         }
         
     }
@@ -1707,30 +1875,34 @@ void ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     }
 }
 
-void ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     if (dim==2)
     {
         double x = pt[0];
         double y = pt[1];
         REAL raio = sqrt( x*x + y*y );
-        if (raio <= 1.0)
+        if (raio < 1.0)
         {
-            //centro da gaussiana
-            REAL cx = 0.0, cy = 0.0;
-            //constantes
-            REAL sigma = 0.2;
-            REAL c = sigma;
-            
-            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
-            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
-            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
-            
-            disp[0] = AA * exp( -expx-expy );
+            solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+            solp[0] = 0.0;//fora
+            solp[0] = 1.0-x;
+//            //centro da gaussiana
+//            REAL cx = 0.0, cy = 0.0;
+//            //constantes
+//            REAL sigma = 0.2;
+//            REAL c = sigma;
+//            
+//            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
+//            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
+//            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
+//            
+//            disp[0] = AA * exp( -expx-expy );
             
         }
         else
         {
-            disp[0] = 0.0;
+            solp[0] = 0.0;
+            solp[0] = 1.0-x;
         }
         
     }
@@ -1742,30 +1914,33 @@ void ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     }
 }
 
-void ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     if (dim==2)
     {
         double x = pt[0];
         double y = pt[1];
         REAL raio = sqrt( x*x + y*y );
-        if (raio <= 1.0)
+        if (raio < 1.0)
         {
-            //centro da gaussiana
-            REAL cx = 0.0, cy = 0.0;
-            //constantes
-            REAL sigma = 0.2;
-            REAL c = sigma;
-            
-            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
-            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
-            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
-            
-            disp[0] = AA * exp( -expx-expy );
+            solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+            solp[0] = 1.0-x;//fora
+//            //centro da gaussiana
+//            REAL cx = 0.0, cy = 0.0;
+//            //constantes
+//            REAL sigma = 0.2;
+//            REAL c = sigma;
+//            
+//            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
+//            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
+//            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
+//            
+//            disp[0] = AA * exp( -expx-expy );
             
         }
         else
         {
-            disp[0] = 0.0;
+            solp[0] = 0.0;
+            solp[0] = 1.0-x;//fora
         }
         
     }
@@ -1777,30 +1952,35 @@ void ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     }
 }
 
-void ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     if (dim==2)
     {
         double x = pt[0];
         double y = pt[1];
         REAL raio = sqrt( x*x + y*y );
-        if (raio <= 1.0)
+        if (raio < 1.0)
         {
-            //centro da gaussiana
-            REAL cx = 0.0, cy = 0.0;
-            //constantes
-            REAL sigma = 0.2;
-            REAL c = sigma;
-            
-            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
-            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
-            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
-            
-            disp[0] = AA * exp( -expx-expy );
+            solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+            solp[0] = 1.0;//fora
+            solp[0] = 1.0-x;
+//            //centro da gaussiana
+//            REAL cx = 0.0, cy = 0.0;
+//            //constantes
+//            REAL sigma = 0.2;
+//            REAL c = sigma;
+//            
+//            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
+//            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
+//            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
+//            
+//            disp[0] = AA * exp( -expx-expy );
             
         }
         else
         {
-            disp[0] = 0.0;
+            solp[0] = 0.0;
+            solp[0] = 1.0;//fora
+            solp[0] = 1.0-x;
         }
         
     }
@@ -1812,7 +1992,7 @@ void ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     }
 }
 
-void ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     if (dim==2)
     {
         double x = pt[0];
@@ -1820,22 +2000,23 @@ void ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
         REAL raio = sqrt( x*x + y*y );
         if (raio <= 1.0)
         {
-            //centro da gaussiana
-            REAL cx = 0.0, cy = 0.0;
-            //constantes
-            REAL sigma = 0.2;
-            REAL c = sigma;
-            
-            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
-            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
-            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
-            
-            disp[0] = AA * exp( -expx-expy );
+            solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+//            //centro da gaussiana
+//            REAL cx = 0.0, cy = 0.0;
+//            //constantes
+//            REAL sigma = 0.2;
+//            REAL c = sigma;
+//            
+//            REAL AA = 1.0/(sigma*sqrt(2.0*Pi));
+//            REAL expx = (x-cx)*(x-cx)/(2.0*c*c);
+//            REAL expy = (y-cy)*(y-cy)/(2.0*c*c);
+//            
+//            disp[0] = AA * exp( -expx-expy );
             
         }
         else
         {
-            disp[0] = 0.0;
+            solp[0] = 0.0;
         }
         
     }
@@ -1849,10 +2030,11 @@ void ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 
 void ForcingBC0N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
+    
     //double z = -1.;
 #ifdef PROBARCTAN
+    double x = pt[0];
+    double y = pt[1];
     disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(1,0)+TP(1,1)+TP(1,2))  )/( (exp((2.*(1.+aa+bb+cc))/Epsilon)+exp((2.*(x+y))/Epsilon))*Epsilon );
     //    disp[0] = (x*y*z)*(x*y*z)
 #else
@@ -1865,9 +2047,10 @@ void ForcingBC0N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC1N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    
+#ifdef PROBARCTAN
     double x = pt[0];
     double y = pt[2];
-#ifdef PROBARCTAN
     disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(0,0)+TP(0,1)+TP(0,2))  )/( (exp((2.*(1.+aa+bb+cc))/Epsilon)+exp((2.*(x+y))/Epsilon))*Epsilon );
     //    disp[0] = (x*y*z)*(x*y*z)
 #else
@@ -1881,7 +2064,7 @@ void ForcingBC1N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void ForcingBC2N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     double x = pt[1];
     double y = pt[2];
-    disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(1,0)+TP(1,1)+TP(1,2))  )/( (exp((2.*(aa+bb+cc))/Epsilon)+exp((2.*(1.+x+y))/Epsilon))*Epsilon );
+    disp[0] =  0.0; //(  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(1,0)+TP(1,1)+TP(1,2))  )/( (exp((2.*(aa+bb+cc))/Epsilon)+exp((2.*(1.+x+y))/Epsilon))*Epsilon );
 }
 
 void ForcingBC3N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
@@ -1891,11 +2074,12 @@ void ForcingBC3N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[1];
-    double y = pt[2];
+    
     
 #ifdef PROBARCTAN
-    disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(2,0)+TP(2,1)+TP(2,2))  )/( (exp((2.*(1.+aa+bb+cc))/Epsilon)+exp((2.*(x+y))/Epsilon))*Epsilon );
+    double x = pt[1];
+    double y = pt[2];
+    disp[0] = 0.0; // (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(2,0)+TP(2,1)+TP(2,2))  )/( (exp((2.*(1.+aa+bb+cc))/Epsilon)+exp((2.*(x+y))/Epsilon))*Epsilon );
     //    disp[0] = (x*y*z)*(x*y*z)
 #else
     
@@ -1905,10 +2089,11 @@ void ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    double x = pt[0];
-    double y = pt[1];
+    
     
 #ifdef PROBARCTAN
+    double x = pt[0];
+    double y = pt[1];
     disp[0] =  (  exp((1.+aa+bb+cc+x+y)/Epsilon)*(TP(2,0)+TP(2,1)+TP(2,2))  )/( (exp((2.*(aa+bb+cc))/Epsilon)+exp((2.*(1.+x+y))/Epsilon))*Epsilon );
     //    disp[0] = (x*y*z)*(x*y*z)
 #else
@@ -2020,7 +2205,7 @@ TPZGeoMesh *GMeshDeformed(int dimensao, bool triang, int ndiv)
 //        int WellPoint = -5;//5;
         
         int nodenumber = 9;
-        REAL ModelRadius = 1.5;
+        REAL ModelRadius = 1.02;
         
         gmesh = new TPZGeoMesh;
         gmesh->NodeVec().Resize(nodenumber);
@@ -2232,7 +2417,7 @@ TPZGeoMesh *GMeshDeformed2(int dimensao, bool triang, int ndiv)
     //        int WellPoint = -5;//5;
     
     int nodenumber = 13;//17; //
-    REAL ModelRadius = 1.5;
+    REAL ModelRadius = 1.02;
     REAL ModelRadiusInt2 = 0.5;//ModelRadius/2.;
     //REAL ModelRadiusInt4 = ModelRadius/4.;
     
@@ -2341,9 +2526,9 @@ TPZGeoMesh *GMeshDeformed2(int dimensao, bool triang, int ndiv)
     
     // Create Geometrical Quad #2
     nodeindex[0] = 2;
-    nodeindex[1] = 10;
+    nodeindex[1] = 3;
     nodeindex[2] = 11;
-    nodeindex[3] = 3;
+    nodeindex[3] = 10;
     //TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > * Quad1 =
     new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
     elementid++;
@@ -2359,9 +2544,9 @@ TPZGeoMesh *GMeshDeformed2(int dimensao, bool triang, int ndiv)
     
     // Create Geometrical Quad #4
     nodeindex[0] = 4;
-    nodeindex[1] = 12;
+    nodeindex[1] = 1;
     nodeindex[2] = 9;
-    nodeindex[3] = 1;
+    nodeindex[3] = 12;
     //TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > * Quad1 =
     new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
     elementid++;
@@ -2401,8 +2586,8 @@ TPZGeoMesh *GMeshDeformed2(int dimensao, bool triang, int ndiv)
     elementid++;
     
     // Create Geometrical Arc #2
-    nodeindex[0] = 3;
-    nodeindex[1] = 2;
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
     nodeindex[2] = 6;
     new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2,*gmesh);
     elementid++;
@@ -2415,8 +2600,8 @@ TPZGeoMesh *GMeshDeformed2(int dimensao, bool triang, int ndiv)
     elementid++;
     
     // Create Geometrical Arc #4
-    nodeindex[0] = 1;
-    nodeindex[1] = 4;
+    nodeindex[0] = 4;
+    nodeindex[1] = 1;
     nodeindex[2] = 8;
     new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4,*gmesh);
 //    elementid++;
@@ -2562,7 +2747,7 @@ TPZGeoMesh *GMeshDeformed2(int dimensao, bool triang, int ndiv)
     return gmesh;
 }
 
-
+// malha que representa um circulo de raio R formado por 4 quadrilateros com geoblends
 TPZGeoMesh *GMeshDeformed3(int dimensao, bool triang, int ndiv)
 {
     if(dim != 2)
@@ -2688,9 +2873,9 @@ TPZGeoMesh *GMeshDeformed3(int dimensao, bool triang, int ndiv)
     
     // Create Geometrical Quad #5
     nodeindex[0] = 8;
-    nodeindex[1] = 11;
+    nodeindex[1] = 9;
     nodeindex[2] = 10;
-    nodeindex[3] = 9;
+    nodeindex[3] = 11;
     new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
     elementid++;
     
@@ -2747,6 +2932,1595 @@ TPZGeoMesh *GMeshDeformed3(int dimensao, bool triang, int ndiv)
     return gmesh;
 }
 
+// malha que representa um circulo de raio R formado por 4 quadrilateros com quadraticos
+TPZGeoMesh *GMeshDeformed4(int dimensao, bool triang, int ndiv)
+{
+    if(dim != 2)
+    {
+        DebugStop();
+    }
+
+    TPZGeoMesh * gmesh;// = new TPZGeoMesh;
+
+    // description of Geometry and application
+    // 2D Cylindrical Domain boundaries
+    //int matId = 1;
+    int arc1 = bc1; // -1;
+    int arc2 = bc2; // -2;
+    int arc3 = bc3; // -3;
+    int arc4 = bc4; // -4;
+
+    int nodenumber = 20;
+    REAL ModelRadius = 1.5;
+    REAL ModelRadiusInt2 = 0.5;//ModelRadius/2.;
+
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+
+    // Setting node coordantes for Arc3D 1
+    int id = 0;
+    //0
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //1
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+    id++;
+    //2
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //3
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y
+    id++;
+    //4
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //5
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //6
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //7
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //8
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //9
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadiusInt2);//coord Y
+    id++;
+    //10
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //11
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadiusInt2);//coord Y
+    id++;
+    //12
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadiusInt2/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadiusInt2/2.0);//coord Y
+    id++;
+    //13
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadiusInt2/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadiusInt2/2.0);//coord Y
+    id++;
+    //14
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadiusInt2/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadiusInt2/2.0);//coord Y
+    id++;
+    //15
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadiusInt2/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadiusInt2/2.0);//coord Y
+    id++;
+    //16
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,(ModelRadiusInt2+ModelRadius)/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //17
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,(ModelRadiusInt2+ModelRadius)/2.0);//coord Y
+    id++;
+    //18
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-(ModelRadiusInt2+ModelRadius)/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //19
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-(ModelRadiusInt2+ModelRadius)/2.0);//coord Y
+
+
+
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0.0);
+    nodeindex.resize(8);
+
+    // Create Quadratic Quad #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 9;
+    nodeindex[3] = 8;
+    nodeindex[4] = 4;
+    nodeindex[5] = 17;
+    nodeindex[6] = 12;
+    nodeindex[7] = 16;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+
+    // Create Quadratic Quad #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 10;
+    nodeindex[3] = 9;
+    nodeindex[4] = 5;
+    nodeindex[5] = 18;
+    nodeindex[6] = 13;
+    nodeindex[7] = 17;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+
+    // Create Quadratic Quad #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 11;
+    nodeindex[3] = 10;
+    nodeindex[4] = 6;
+    nodeindex[5] = 19;
+    nodeindex[6] = 14;
+    nodeindex[7] = 18;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+
+    // Create Quadratic Quad #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 8;
+    nodeindex[3] = 11;
+    nodeindex[4] = 7;
+    nodeindex[5] = 16;
+    nodeindex[6] = 15;
+    nodeindex[7] = 19;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+
+    // Create Quadratic Quad #5
+    nodeindex[0] = 8;
+    nodeindex[1] = 9;
+    nodeindex[2] = 10;
+    nodeindex[3] = 11;
+    nodeindex[4] = 12;
+    nodeindex[5] = 13;
+    nodeindex[6] = 14;
+    nodeindex[7] = 15;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+
+    // Definition of Arc coordenates
+    nodeindex.resize(3);
+    
+    // Create Quadratic Arc #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 4;
+    //new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc1, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1, *gmesh);
+    elementid++;
+
+    // Create Quadratic Arc #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 5;
+    //new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc2, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+
+    // Create Quadratic Arc #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 6;
+    //new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc3, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc3, *gmesh);
+    elementid++;
+
+    // Create Quadratic Arc #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 7;
+    //new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc4, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4, *gmesh);
+
+
+
+    gmesh->BuildConnectivity();
+
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+
+
+    std::ofstream out("CurvoDAC.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+
+    return gmesh;
+}
+// malha que representa um circulo de raio R formado por 4 quadrilateros com quadraticos
+TPZGeoMesh *GMeshDeformed5(int dimensao, bool triang, int ndiv)
+{
+    if(dim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * gmesh;// = new TPZGeoMesh;
+    
+    // description of Geometry and application
+    // 2D Cylindrical Domain boundaries
+    //int matId = 1;
+    int arc1 = bc1; // -1;
+    int arc2 = bc2; // -2;
+    int arc3 = bc3; // -3;
+    int arc4 = bc4; // -4;
+    int Point1 = -10; // para o refinamento direcional
+    
+    int nodenumber = 21;
+    REAL ModelRadius = 1.5;
+    REAL ModelRadiusInt2 = 0.5;//ModelRadius/2.;
+    
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+    
+    // Setting node coordantes for Arc3D 1
+    int id = 0;
+    //0
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //1
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+    id++;
+    //2
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //3
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y
+    id++;
+    //4
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //5
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //6
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //7
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //8
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //9
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadiusInt2);//coord Y
+    id++;
+    //10
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //11
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadiusInt2);//coord Y
+    id++;
+    // para que o meio fique circular
+    //12
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadiusInt2/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadiusInt2/2.0);//coord Y
+    id++;
+    //13
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadiusInt2/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadiusInt2/2.0);//coord Y
+    id++;
+    //14
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadiusInt2/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadiusInt2/2.0);//coord Y
+    id++;
+    //15
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadiusInt2/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadiusInt2/2.0);//coord Y
+    id++;
+    // ateaqui
+    //para que o meio fique quadrado
+//    //12
+//    gmesh->NodeVec()[id].SetNodeId(id);
+//    gmesh->NodeVec()[id].SetCoord(0,ModelRadiusInt2/2.0);//coord X
+//    gmesh->NodeVec()[id].SetCoord(1,ModelRadiusInt2/2.0);//coord Y
+//    id++;
+//    //13
+//    gmesh->NodeVec()[id].SetNodeId(id);
+//    gmesh->NodeVec()[id].SetCoord(0,-ModelRadiusInt2/2.0);//coord X
+//    gmesh->NodeVec()[id].SetCoord(1,ModelRadiusInt2/2.0);//coord Y
+//    id++;
+//    //14
+//    gmesh->NodeVec()[id].SetNodeId(id);
+//    gmesh->NodeVec()[id].SetCoord(0,-ModelRadiusInt2/2.0);//coord X
+//    gmesh->NodeVec()[id].SetCoord(1,-ModelRadiusInt2/2.0);//coord Y
+//    id++;
+//    //15
+//    gmesh->NodeVec()[id].SetNodeId(id);
+//    gmesh->NodeVec()[id].SetCoord(0,ModelRadiusInt2/2.0);//coord X
+//    gmesh->NodeVec()[id].SetCoord(1,-ModelRadiusInt2/2.0);//coord Y
+//    id++;
+
+    
+    //16
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,(ModelRadiusInt2+ModelRadius)/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //17
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,(ModelRadiusInt2+ModelRadius)/2.0);//coord Y
+    id++;
+    //18
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-(ModelRadiusInt2+ModelRadius)/2.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //19
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-(ModelRadiusInt2+ModelRadius)/2.0);//coord Y
+    id++;
+    //20 // PAra fazer refinamento uniforme
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    
+    
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0.0);
+    nodeindex.resize(8);
+    
+    // Create Quadratic Quad #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 9;
+    nodeindex[3] = 8;
+    nodeindex[4] = 4;
+    nodeindex[5] = 17;
+    nodeindex[6] = 12;
+    nodeindex[7] = 16;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Quadratic Quad #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 10;
+    nodeindex[3] = 9;
+    nodeindex[4] = 5;
+    nodeindex[5] = 18;
+    nodeindex[6] = 13;
+    nodeindex[7] = 17;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Quadratic Quad #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 11;
+    nodeindex[3] = 10;
+    nodeindex[4] = 6;
+    nodeindex[5] = 19;
+    nodeindex[6] = 14;
+    nodeindex[7] = 18;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Quadratic Quad #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 8;
+    nodeindex[3] = 11;
+    nodeindex[4] = 7;
+    nodeindex[5] = 16;
+    nodeindex[6] = 15;
+    nodeindex[7] = 19;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Quadratic Quad #5
+    nodeindex[0] = 8;
+    nodeindex[1] = 9;
+    nodeindex[2] = 10;
+    nodeindex[3] = 11;
+    nodeindex[4] = 12;
+    nodeindex[5] = 13;
+    nodeindex[6] = 14;
+    nodeindex[7] = 15;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticQuad>  (elementid,nodeindex, matId,*gmesh);
+    //new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Definition of Arc coordenates
+    nodeindex.resize(3);
+    
+    // Create Quadratic Arc #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 4;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc1, *gmesh);
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1, *gmesh);
+    elementid++;
+    
+    // Create Quadratic Arc #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 5;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc2, *gmesh);
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+    
+    // Create Quadratic Arc #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 6;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc3, *gmesh);
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc3, *gmesh);
+    elementid++;
+    
+    // Create Quadratic Arc #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 7;
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc4, *gmesh);
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Point #1
+    nodeindex.resize(1);
+    nodeindex[0] = 20;
+    //TPZGeoElRefPattern < pzgeom::TPZGeoPoint > * elpoint1 =
+    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elementid,nodeindex, Point1, *gmesh);
+    
+    gmesh->BuildConnectivity();
+    
+    // refinamento direcional
+    //------------------ fazer refinamento direcional ------------------------------------
+
+//    int ndirectdivp = 0;
+//    
+//    set<int> SETmatPointRefDir2;
+//    for(int j = 0; j < ndirectdivp; j++)
+//    {
+//        long nel = gmesh->NElements();
+//        for (long iref = 0; iref < nel; iref++)
+//        {
+//            TPZVec<TPZGeoEl*> filhos;
+//            TPZGeoEl * gelP2 = gmesh->ElementVec()[iref];
+//            if(!gelP2 || gelP2->HasSubElement()) continue;
+//            SETmatPointRefDir2.insert(Point1);
+//            TPZRefPatternTools::RefineDirectional(gelP2, SETmatPointRefDir2);
+//        }
+//    }
+    
+    //--------------------------- RefinamentoUniforme() ------------------------------------
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("CurvoDAC.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
+// malha que representa um circulo de raio R formado por 4 quadrilateros com geoblend e 4 triangulos no centro
+TPZGeoMesh *GMeshDeformed6(int dimensao, bool triang, int ndiv)
+{
+    if(dim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * gmesh;// = new TPZGeoMesh;
+    
+    // description of Geometry and application
+    // 2D Cylindrical Domain boundaries
+    //int matId = 1;
+    int arc1 = bc1; // -1;
+    int arc2 = bc2; // -2;
+    int arc3 = bc3; // -3;
+    int arc4 = bc4; // -4;
+    int matPoint1 = 2; // para o refinamento direcional
+    
+    int nodenumber = 13;
+    REAL ModelRadius = 1.5;
+    REAL ModelRadiusInt2 = 0.5;//ModelRadius/2.;
+    
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+    
+    // Setting node coordantes for Arc3D 1
+    int id = 0;
+    //0
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //1
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+    id++;
+    //2
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //3
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y
+    id++;
+    //4
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //5
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //6
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //7
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //8
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //9
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadiusInt2);//coord Y
+    id++;
+    //10
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //11
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadiusInt2);//coord Y
+    id++;
+
+    //12 // PAra fazer refinamento uniforme
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    
+    
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0.0);
+    nodeindex.resize(4);
+    
+    // Create Quad #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 9;
+    nodeindex[3] = 8;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Quad #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 10;
+    nodeindex[3] = 9;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Quad #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 11;
+    nodeindex[3] = 10;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Quad #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 8;
+    nodeindex[3] = 11;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+//    // Create Quad #5
+//    nodeindex[0] = 8;
+//    nodeindex[1] = 9;
+//    nodeindex[2] = 10;
+//    nodeindex[3] = 11;
+//    new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
+//    elementid++;
+    
+    // Create Geometrical Triang #5
+    nodeindex.resize(3);
+    nodeindex[0] = 8;
+    nodeindex[1] = 9;
+    nodeindex[2] = 12;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Triang #6
+    nodeindex[0] = 9;
+    nodeindex[1] = 10;
+    nodeindex[2] = 12;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Triang #7
+    nodeindex[0] = 10;
+    nodeindex[1] = 11;
+    nodeindex[2] = 12;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Triang #8
+    nodeindex[0] = 11;
+    nodeindex[1] = 8;
+    nodeindex[2] = 12;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Definition of Arc coordenates
+    nodeindex.resize(3);
+    
+    // Create Arc #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 4;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1, *gmesh);
+    elementid++;
+    
+    // Create Arc #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 5;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+    
+    // Create Arc #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 6;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc3, *gmesh);
+    elementid++;
+    
+    // Create Arc #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 7;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Point #1
+    nodeindex.resize(1);
+    nodeindex[0] = 12;
+    //TPZGeoElRefPattern < pzgeom::TPZGeoPoint > * elpoint1 =
+    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elementid,nodeindex, matPoint1, *gmesh);
+    
+    gmesh->BuildConnectivity();
+    
+    // refinamento direcional
+    //------------------ fazer refinamento direcional ------------------------------------
+    // parece que para esse refinamento funcionar precisamos que o no (nesse caso) seja um vertice
+    int ndirectdivp = 2;
+    set<int> SETmatPointRefDir2;
+    for(int j = 0; j < ndirectdivp; j++)
+    {
+        long nel = gmesh->NElements();
+        for (long iref = 0; iref < nel; iref++)
+        {
+            TPZVec<TPZGeoEl*> filhos;
+            TPZGeoEl * gelP2 = gmesh->ElementVec()[iref];
+            if(!gelP2 || gelP2->HasSubElement()) continue;
+            SETmatPointRefDir2.insert(matPoint1);
+            TPZRefPatternTools::RefineDirectional(gelP2, SETmatPointRefDir2);
+        }
+    }
+    
+    //--------------------------- Refinamento Uniforme ------------------------------------
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("CurvoDAC.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
+
+// malha que representa um circulo de raio R formado por 4 triangulos com geoblend
+TPZGeoMesh *GMeshDeformed7(int dimensao, bool triang, int ndiv)
+{
+    if(dim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * gmesh;// = new TPZGeoMesh;
+    
+    // description of Geometry and application
+    // 2D Cylindrical Domain boundaries
+    //int matId = 1;
+    int arc1 = bc1; // -1;
+    int arc2 = bc2; // -2;
+    int arc3 = bc3; // -3;
+    int arc4 = bc4; // -4;
+    int matPoint1 = 2; // para o refinamento direcional
+    
+    int nodenumber = 9;
+    REAL ModelRadius = 1.02;//1.5;
+    
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+    
+    // Setting node coordantes for Arc3D 1
+    int id = 0;
+    //0
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //1
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+    id++;
+    //2
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //3
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y
+    id++;
+    //4
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //5
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //6
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //7
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //8
+    //Para fazer refinamento uniforme
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    
+    
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0.0);
+    nodeindex.resize(4);
+    
+    // Create Geometrical Triang #1
+    nodeindex.resize(3);
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 8;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Triang #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 8;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Triang #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 8;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Triang #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 8;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Definition of Arc coordenates
+    nodeindex.resize(3);
+    
+    // Create Arc #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 4;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1, *gmesh);
+    elementid++;
+    
+    // Create Arc #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 5;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+    
+    // Create Arc #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 6;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc3, *gmesh);
+    elementid++;
+    
+    // Create Arc #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 7;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4, *gmesh);
+    //elementid++;
+    
+//    // Create Geometrical Point #1
+//    nodeindex.resize(1);
+//    nodeindex[0] = 8;
+//    //TPZGeoElRefPattern < pzgeom::TPZGeoPoint > * elpoint1 =
+//    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elementid,nodeindex, matPoint1, *gmesh);
+    
+    gmesh->BuildConnectivity();
+    
+    // refinamento direcional
+//    //------------------ fazer refinamento direcional ------------------------------------
+//    // parece que para esse refinamento funcionar precisamos que o no (nesse caso) seja um vertice
+//    int ndirectdivp = 0;
+//    set<int> SETmatPointRefDir2;
+//    for(int j = 0; j < ndirectdivp; j++)
+//    {
+//        long nel = gmesh->NElements();
+//        for (long iref = 0; iref < nel; iref++)
+//        {
+//            TPZVec<TPZGeoEl*> filhos;
+//            TPZGeoEl * gelP2 = gmesh->ElementVec()[iref];
+//            if(!gelP2 || gelP2->HasSubElement()) continue;
+//            SETmatPointRefDir2.insert(matPoint1);
+//            TPZRefPatternTools::RefineDirectional(gelP2, SETmatPointRefDir2);
+//        }
+//    }
+    
+    //--------------------------- Refinamento Uniforme ------------------------------------
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+
+    
+    std::ofstream out("CurvoDAC.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
+
+// circulo de raio R formado por 4 quadrilateros com geoblend e 1 quadri
+TPZGeoMesh *GMeshDeformed8(int dimensao, bool triang, int ndiv)
+{
+    if(dim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * gmesh;// = new TPZGeoMesh;
+    
+    // description of Geometry and application
+    // 2D Cylindrical Domain boundaries
+    //int matId = 1;
+    int arc1 = bc1; // -1;
+    int arc2 = bc2; // -2;
+    int arc3 = bc3; // -3;
+    int arc4 = bc4; // -4;
+    
+    int nodenumber = 12;
+    REAL ModelRadius = 1.5;
+    REAL ModelRadiusInt2 = 0.5;//ModelRadius/2.;
+    
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+    
+    // Setting node coordantes for Arc3D 1
+    int id = 0;
+    //0
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //1
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+    id++;
+    //2
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //3
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y
+    id++;
+    //4
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius/2.);//coord Y
+    id++;
+    //5
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius/2.);//coord Y
+    id++;
+    //6
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius/2.);//coord Y
+    id++;
+    //7
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius/2.);//coord Y
+    id++;
+    //8
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //9
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadiusInt2);//coord Y
+    id++;
+    //10
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //11
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadiusInt2);//coord Y
+    
+    
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0.0);
+    nodeindex.resize(4);
+    
+    // Create Geometrical Quad #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 9;
+    nodeindex[3] = 8;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 10;
+    nodeindex[3] = 9;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 11;
+    nodeindex[3] = 10;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 8;
+    nodeindex[3] = 11;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #5
+    nodeindex[0] = 8;
+    nodeindex[1] = 9;
+    nodeindex[2] = 10;
+    nodeindex[3] = 11;
+    new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Definition of Arc coordenates
+    nodeindex.resize(3);
+    // Create Geometrical Arc #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 4;
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc1, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 5;
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 6;
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc3, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc3, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 7;
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZQuadraticLine > (elementid,nodeindex, arc4, *gmesh);
+    
+    
+    
+    gmesh->BuildConnectivity();
+    
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("CurvoDAC.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
+
+TPZGeoMesh *GMeshDeformed9(int dimensao, bool triang, int ndiv)
+{
+    if(dim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * gmesh;// = new TPZGeoMesh;
+    
+    // description of Geometry and application
+    // 2D Cylindrical Domain boundaries
+    //int matId = 1;
+    int arc1 = bc1; // -1;
+    int arc2 = bc2; // -2;
+    int arc3 = bc3; // -3;
+    int arc4 = bc4; // -4;
+    
+    int nodenumber = 8;
+    REAL ModelRadius = 1.5;
+    REAL ModelRadiusInt2 = 0.5;//ModelRadius/2.;
+    
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+    
+    // Setting node coordantes 
+    int id = 0;
+    //0
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //1
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+    id++;
+    //2
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //3
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y
+    id++;
+    //4 
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //5
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadiusInt2);//coord Y
+    id++;
+    //6
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //7
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadiusInt2);//coord Y
+    
+    
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0.0);
+    nodeindex.resize(4);
+    
+    // Create Geometrical Quad #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 5;
+    nodeindex[3] = 4;
+    new TPZGeoElRefPattern<  pzgeom::TPZGeoQuad  > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 6;
+    nodeindex[3] = 5;
+    new TPZGeoElRefPattern<  pzgeom::TPZGeoQuad  > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 7;
+    nodeindex[3] = 6;
+    new TPZGeoElRefPattern<  pzgeom::TPZGeoQuad  > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 4;
+    nodeindex[3] = 7;
+    new TPZGeoElRefPattern<  pzgeom::TPZGeoQuad  > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #5
+    nodeindex[0] = 4;
+    nodeindex[1] = 5;
+    nodeindex[2] = 6;
+    nodeindex[3] = 7;
+    new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Definition of Arc coordenates
+    nodeindex.resize(2);
+    // Create Geometrical Arc #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc1, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc3, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc4, *gmesh);
+    
+    
+    
+    gmesh->BuildConnectivity();
+    
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("CurvoDAC.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
+
+TPZGeoMesh *GMeshDeformed10(int dimensao, bool triang, int ndiv)
+{
+    if(dim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * gmesh;
+    
+    // description of Geometry and application
+    // 2D Cylindrical Domain boundaries
+    //int matId = 1;
+    int arc1 = bc1; // -1;
+    int arc2 = bc2; // -2;
+    int arc3 = bc3; // -3;
+    int arc4 = bc4; // -4;
+    
+    int nodenumber = 4;
+    REAL ModelRadius = 1.0;
+    REAL ModelRadius2 = ModelRadius/2.0;
+    
+    
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+    
+    // Setting node coordantes
+    int id = 0;
+    //0
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y
+    id++;
+    //1
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+    id++;
+    //2
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius2);//coord Y
+    id++;
+    //3
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius2);//coord Y
+    
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0.0);
+    nodeindex.resize(4);
+    
+    // Create Geometrical Quad #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 2;
+    nodeindex[3] = 3;
+    new TPZGeoElRefPattern<  pzgeom::TPZGeoQuad  > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Definition of Arc coordenates
+    nodeindex.resize(2);
+    // Create Geometrical Arc #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc3, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc4, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc1, *gmesh);
+    
+    
+    
+    gmesh->BuildConnectivity();
+    
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("CurvoDAC.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
+
+TPZGeoMesh *GMeshDeformed11(int dimensao, bool triang, int ndiv)
+{
+    if(dim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * gmesh;
+    
+    // description of Geometry and application
+    // 2D Cylindrical Domain boundaries
+    //int matId = 1;
+    int arc1 = bc1; // -1;
+    int arc2 = bc2; // -2;
+    int arc3 = bc3; // -3;
+    int arc4 = bc4; // -4;
+    
+    int nodenumber = 6;
+    REAL ModelRadius = 1.0;
+    REAL ModelRadius2 = ModelRadius/2.0;
+    
+    
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+    
+    // Setting node coordantes
+    int id = 0;
+    //0
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y
+    id++;
+    //1
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+    id++;
+    //2
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius2);//coord Y
+    id++;
+    //3
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius2);//coord Y
+    id++;
+    //4
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius2);//coord Y
+    id++;
+    //5
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius2);//coord Y
+    
+    
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0.0);
+    nodeindex.resize(4);
+    
+    // Create Geometrical Quad #1
+    nodeindex[0] = 4;
+    nodeindex[1] = 5;
+    nodeindex[2] = 2;
+    nodeindex[3] = 3;
+    new TPZGeoElRefPattern<  pzgeom::TPZGeoQuad  > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    nodeindex.resize(3);
+    
+    // Create Geometrical triang #1
+    nodeindex[0] = 2;
+    nodeindex[1] = 5;
+    nodeindex[2] = 1;
+    new TPZGeoElRefPattern<  pzgeom::TPZGeoTriangle  > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical triang #1
+    nodeindex[0] = 3;
+    nodeindex[1] = 4;
+    nodeindex[2] = 0;
+    new TPZGeoElRefPattern<  pzgeom::TPZGeoTriangle  > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Definition of Arc coordenates
+    nodeindex.resize(2);
+    // Create Geometrical Arc #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 4;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+    nodeindex[0] = 4;
+    nodeindex[1] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+    nodeindex[0] = 5;
+    nodeindex[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc2, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc3, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc4, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,nodeindex, arc1, *gmesh);
+    
+    
+    
+    gmesh->BuildConnectivity();
+    
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("CurvoDAC.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
 
 #include "pzstack.h"
 void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<TPZMultiphysicsElement *,7> > &ListGroupEl)
