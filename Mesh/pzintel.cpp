@@ -252,11 +252,14 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
 				equal = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
 				if (!equal) continue;
 				equalside = elvec[il].Side();
-				if(equal->ConnectIndex(equalside) != -1) {
+				//if(equal->ConnectIndex(equalside) != -1)
+                if(equal->MidSideConnectLocId(equalside) != -1) 
+                {
 					equal->SetSideOrder(equalside,neworder);
 				}
 			}
-			if(largel->ConnectIndex(large.Side()) != -1) {
+            //if(largel->ConnectIndex(large.Side()) != -1)
+			if(largel->MidSideConnectLocId(large.Side()) != -1) {
 				RestrainSide(side,largel,large.Side());
 			}
 		}
@@ -684,7 +687,7 @@ long TPZInterpolatedElement::CreateMidSideConnect(int side) {
 		newnodeindex = cmesh->AllocateNewConnect(nshape,nvar,order);
 		TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
 		long seqnum = newnod.SequenceNumber();
-		SetConnectIndex(nodloc,newnodeindex);
+        SetConnectIndex(nodloc,newnodeindex);
         nshape = NConnectShapeF(nodloc);
         newnod.SetNShape(nshape);
 		cmesh->Block().Set(seqnum,nvar*nshape);

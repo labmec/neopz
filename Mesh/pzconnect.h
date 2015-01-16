@@ -178,10 +178,12 @@ public:
     /** @brief Set the number of shape functions associated with the connect */
     void SetNShape(int nshape)
     {
-        if(nshape < 0 || nshape > 600)   /// Jorge to work with p = 20 for quadrilaterals or p>8 for 3D problems
+#ifdef DEBUG
+        if(nshape < 0 )
         {
             DebugStop();
         }
+#endif
 		fNShape = nshape;
     }
 	

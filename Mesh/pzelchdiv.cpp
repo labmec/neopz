@@ -172,13 +172,22 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
 {
      if (connect < this->NConnects()-1) {
+         long connectindex = ConnectIndex(connect);
+         int order = 0;
+         if (connectindex >= 0) {
+             order = this->Connect(connect).Order();
+         }
+         else
+         {
+             order = this->fPreferredOrder;
+         }
          const int nfaces = TSHAPE::NumSides(TSHAPE::Dimension-1);
          int face = TSHAPE::NSides-nfaces+connect-1;
          TPZStack<int> lowerdimensionsides;
          TSHAPE::LowerDimensionSides(face,lowerdimensionsides);
-         int nshape = TSHAPE::NConnectShapeF(face,this->fPreferredOrder);
+         int nshape = TSHAPE::NConnectShapeF(face,order);
          for (int is=0; is<lowerdimensionsides.size(); is++) {
-             nshape += TSHAPE::NConnectShapeF(lowerdimensionsides[is],this->fPreferredOrder);
+             nshape += TSHAPE::NConnectShapeF(lowerdimensionsides[is],order);
          }
          return nshape;
      }
@@ -410,7 +419,24 @@ long TPZCompElHDiv<TSHAPE>::ConnectIndex(int con) const{
 	}
 	
 #endif
-	
+    
+//    #ifndef NODEBUG
+//    	if(con<0) {
+//    		std::cout << "TPZCompElHDiv::ConnectIndex wrong parameter connect " << con <<
+//    		" NConnects " << this-> NConnects() << std::endl;
+//    		DebugStop();
+//    		return -1;
+//    	}
+//    	
+//    #endif
+//    
+//   
+//    if(con>= this->NConnects())
+//    {
+//        int con2= con-TSHAPE::NCornerNodes;
+//        return this->fConnectIndexes[con2];
+//    }
+    
 	return this->fConnectIndexes[con];
 }
 
@@ -486,6 +512,7 @@ int TPZCompElHDiv<TSHAPE>::SideOrder(int side) const
 	int conectaux;
 	if(corder>=0 || corder <= NConnects()) return ConnectOrder(corder);
     
+    DebugStop();
 	TPZStack< int > high;
 	TSHAPE::HigherDimensionSides(side, high);
 	int highside= high.NElements();
@@ -782,7 +809,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 #endif
     
     TPZGeoEl *gel = this->Reference();
-    int nc = gel->NCornerNodes();
+    //int nc = gel->NCornerNodes();
     int nsn = TSHAPE::NSideNodes(side);
     TPZManVector<long,8> id(nsn);
     for (int ic=0; ic<nsn; ic++) {
@@ -790,7 +817,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         id[ic] = gel->Node(locid).Id();
     }
     
-    int idsize = id.size();
+    //int idsize = id.size();
     TPZManVector<int,9> permutegather(ncontained);
     int transformid;
 
@@ -814,8 +841,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
             break;
     }
     
-    TPZManVector<int,TSHAPE::NSides> ord(TSHAPE::NSides);
-    this->GetInterpolationOrder(ord);
+    TPZManVector<int,TSHAPE::NSides> ord(TSHAPE::NSides,order);
     
     int sidedimension = TSHAPE::SideDimension(side);
     TPZFNMatrix<50,REAL> philoc(nsideshape,1),dphiloc(sidedimension,nsideshape);

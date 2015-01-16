@@ -774,14 +774,17 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
 	for(i=0;i<nelems;i++) locexpand.Push(expandvec[i]);
 	expandvec.Resize(0);
 	for(k=0;k<nelems;k++){
-		TPZCompEl *kel = locexpand[k].Element();
+		//TPZCompEl *kel = locexpand[k].Element();
+        TPZInterpolatedElement *kel = dynamic_cast<TPZInterpolatedElement *> (locexpand[k].Element());
 		if(!kel) continue;
 		int kside = locexpand[k].Side();
 		i=k+1;
 		while(i<nelems){
-			TPZCompEl *iel = locexpand[i].Element();
+			//TPZCompEl *iel = locexpand[i].Element();
+            TPZInterpolatedElement *iel = dynamic_cast<TPZInterpolatedElement *> (locexpand[i].Element());
 			int iside = locexpand[i].Side();
-			if(iel && kel->ConnectIndex(kside) == iel->ConnectIndex(iside))
+			//if(iel && kel->ConnectIndex(kside) == iel->ConnectIndex(iside))
+            if(iel && kel->MidSideConnectLocId(kside) == iel->MidSideConnectLocId(iside))
 				locexpand[i] = TPZCompElSide();
 			i++;
 		}

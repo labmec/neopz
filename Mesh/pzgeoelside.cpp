@@ -636,7 +636,8 @@ void TPZGeoElSide::HigherDimensionElementList(TPZStack<TPZCompElSide> &elsidevec
 		if(onlyinterpolated) {
 			TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (cels.Element());
 			if(!cel) continue;
-			long conind = cel->ConnectIndex(cels.Side());
+			//long conind = cel->ConnectIndex(cels.Side());
+            long conind = cel->MidSideConnectLocId(cels.Side());
 			if(conind < 0) continue;
 		}
 		elsidevec.Push(cels);
