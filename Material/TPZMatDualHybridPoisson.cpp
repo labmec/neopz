@@ -207,7 +207,7 @@ int TPZMatDualHybridPoisson::VariableIndex(const std::string &name){
 }
 
 int TPZMatDualHybridPoisson::NSolutionVariables(int var){
-	if(var == 1) return 1;
+	if(var == 1 || var==99) return 1;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -218,6 +218,11 @@ void TPZMatDualHybridPoisson::Solution(TPZMaterialData &data, int var, TPZVec<ST
 		Solout[0] = data.sol[0][0];//solution - escalar
 		return;
 	}
+    
+    if(var == 99){
+        Solout[0] = data.p;//solution - escalar
+        return;
+    }
     
     TPZMaterial::Solution(data,var,Solout);
 }

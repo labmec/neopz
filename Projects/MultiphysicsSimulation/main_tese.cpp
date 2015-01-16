@@ -72,7 +72,7 @@ const int bc0 = -1;
 const int bc1 = -2;
 const int bc2 = -3;
 const int bc3 = -4;
-bool fTriang = false;
+bool fTriang = true;
 
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly,bool triang_elements);
 
@@ -107,16 +107,16 @@ int main(int argc, char *argv[])
     TPZVec<REAL> erros;
     ofstream saidaerros("Erros.txt");
     saidaerros << "\nCalculo do Erro\n";
-    for(int p=1; p<5; p++){
+    for(int p=1; p<2; p++){
         saidaerros << "\n";
         
         int pq = p;
-        int pp;
-        if(fTriang==true){
-            pp = pq-1;
-        }else{
-            pp = p;
-        }
+        int pp = p;
+//        if(fTriang==true){
+//            pp = pq-1;
+//        }else{
+//            pp = p;
+//        }
         
         saidaerros<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
         for(int h=0; h<5; h++){
