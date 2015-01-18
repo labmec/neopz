@@ -928,15 +928,6 @@ inline int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B ) {
 
 
 template<class TVar>
-inline int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<long> &singular ) {
-	
-	return(
-		   ( !Decompose_LDLt(singular) )? 0 :
-		   ( Subst_LForward( B ) && Subst_Diag( B ) && Subst_LBackward( B ) )
-		   );
-}
-
-template<class TVar>
 inline void
 TPZMatrix<TVar>::Swap( long *a, long *b )
 {

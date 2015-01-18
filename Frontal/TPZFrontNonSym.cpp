@@ -32,10 +32,6 @@ using namespace std;
 static LoggerPtr logger(Logger::getLogger("pz.frontstrmatrix.frontnonsym"));
 #endif
 
-template<class TVar>
-DecomposeType TPZFrontNonSym<TVar>::GetDecomposeType() const{
-	return fDecomposeType;
-}
 
 template<class TVar>
 void TPZFrontNonSym<TVar>::PrintGlobal(const char *name, std::ostream& out){
@@ -324,7 +320,7 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqn
 // #endif
 	
     FreeGlobal(ieq);
-    fDecomposeType=ELU;
+    this->fDecomposeType=ELU;
 	//	PrintGlobal("After", output);
 }
 
@@ -473,18 +469,18 @@ void TPZFrontNonSym<TVar>::DecomposeEquations(long mineq, long maxeq, TPZEqnArra
 template<class TVar>
 TPZFrontNonSym<TVar>::TPZFrontNonSym(long GlobalSize) : TPZFront<TVar>(GlobalSize)
 {
-	fDecomposeType=ELU;
+	this->fDecomposeType=ELU;
 	this->fWork=0;
 }
 
 template<class TVar>
 TPZFrontNonSym<TVar>::TPZFrontNonSym() : TPZFront<TVar>() {
-	fDecomposeType=ELU;
+	this->fDecomposeType=ELU;
 	this->fWork=0;
 }
 
 template<class TVar>
-TPZFrontNonSym<TVar>::TPZFrontNonSym(const TPZFrontNonSym &cp) : TPZFront<TVar>(cp) , fDecomposeType(cp.fDecomposeType) {
+TPZFrontNonSym<TVar>::TPZFrontNonSym(const TPZFrontNonSym &cp) : TPZFront<TVar>(cp)  {
 }
 
 template<class TVar>

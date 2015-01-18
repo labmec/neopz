@@ -34,6 +34,7 @@
 #include "pzseqsolver.h"
 #include "pzbdstrmatrix.h"
 #include "TPZSkylineNSymStructMatrix.h"
+#include "TPZSloanRenumbering.h"
 
 #include "pzlog.h"
 
@@ -47,13 +48,13 @@ static LoggerPtr logger(Logger::getLogger("pz.analysis"));
  * @brief To renumbering will use boost library.
  * @ingroup analysis
  */
-#define RENUMBER TPZBoostGraph(TPZBoostGraph::KMCExpensive)
+#define RENUMBER TPZSloanRenumbering()
 #else
 /**
  * @brief To renumbering will use sloan library.
  * @ingroup analysis
  */
-#define RENUMBER TPZSloan()
+#define RENUMBER TPZSloanRenumbering()
 #endif
 
 #include <fstream>
@@ -213,7 +214,11 @@ void TPZAnalysis::OptimizeBandwidth() {
 	fRenumber->SetElementGraph(elgraph,elgraphindex);
 	fRenumber->Resequence(perm,iperm);
 	fCompMesh->Permute(perm);
+    if (nel > 100000) {
+        std::cout << "Applying Saddle Permute\n";
+    }
     fCompMesh->SaddlePermute();
+//    fCompMesh->SaddlePermute2();
 	
 #endif
 	

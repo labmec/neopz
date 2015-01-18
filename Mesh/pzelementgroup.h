@@ -49,10 +49,10 @@ public:
     {
         out << __PRETTY_FUNCTION__ << std::endl;
         TPZCompEl::Print(out);
-        int nel = fElGroup.size();
-        for (int el=0; el<nel; el++) {
-            fElGroup[el]->Print(out);
-        }
+//        int nel = fElGroup.size();
+//        for (int el=0; el<nel; el++) {
+//            fElGroup[el]->Print(out);
+//        }
         out << "End of " << __PRETTY_FUNCTION__ << std::endl;
     }
 

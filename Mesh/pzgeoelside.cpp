@@ -303,9 +303,6 @@ void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const{
 	TPZGeoElSide neighneigh, currentneigh;
 	neighneigh = neighbour.Neighbour();
 	currentneigh = Neighbour();
-	/**The neighbour has the same level as the current element
-     the neighbour of the neighbour has a smaller level (i.e. larger element)
-     the neighbour will now point to the current element and vice versa*/
 	if (!neighneigh.Exists() && !currentneigh.Exists()) {
 		SetNeighbour(neighbour);
 		neighbour.SetNeighbour(*this);
@@ -531,6 +528,16 @@ int TPZGeoElSide::Dimension() const {
 
 void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform &t)	{
 	//t : atual -> neighbour
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << __FUNCTION__ << " this = \n";
+        Print(sout);
+        sout << "neighbour\n";
+        neighbour.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	TPZGeoElSide father(*this);
 	if(!father.Exists()) {
 		PZError << "TPZGeoElSide::SideTransform3 I dont understand\n";
@@ -567,6 +574,16 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform &t)	{
 			secondcase++;
 			t = start.NeighbourSideTransform(neighbourwithfather).Multiply(t);
 		}
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "neighbourwithfather\n";
+            neighbourwithfather.Print(sout);
+            sout << "neighbour\n";
+            neighbour.Print(sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 		neighbourwithfather.SideTransform3(neighbour,t);
 		return;
 	}

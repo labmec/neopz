@@ -92,6 +92,15 @@ public:
 		DebugStop();
 	}
 	
+    /** @brief Returns decomposition type. \n Default LU*/
+    DecomposeType GetDecomposeType() const
+    {
+        return fDecomposeType;
+    }
+    
+    /// Set the decomposition type
+    virtual void SetDecomposeType(DecomposeType dectype) = 0;
+
 	/** @brief Return the number of equations in the condensed front matrix
 	 * It would be equal to FrontSize if the front is compressed.
 	 */
@@ -153,7 +162,13 @@ protected:
     
     /** @brief Expansion Ratio of frontal matrix */
     int fExpandRatio;
-	
+
+protected:
+    
+    /** @brief Used Decomposition method */
+    DecomposeType fDecomposeType;
+    
+
 public:
 	
 	///struct para paralelizar a decomposicao da matriz
@@ -176,6 +191,9 @@ public:
 		
 		///vetores de operacao
 		TPZVec<TVar> * fAuxVecCol, * fAuxVecRow;
+        
+        ///valor da diagonal
+        TVar fDiagonal;
 		
 		///num threads
 		int NThreads(){ return fThreads.NElements(); };

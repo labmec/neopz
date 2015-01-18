@@ -206,7 +206,8 @@ void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZComp
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
     
- 	out <<"\nOutput for a computable element index: " << fIndex;
+    out << __PRETTY_FUNCTION__ << std::endl;
+    TPZCompEl::Print(out);
 	if(this->Reference())
 	{
 		out << "\nCenter coordinate: ";

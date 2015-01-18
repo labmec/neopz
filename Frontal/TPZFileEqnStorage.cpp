@@ -135,8 +135,7 @@ template<class TVar>
 void TPZFileEqnStorage<TVar>::Forward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
 	TPZEqnArray<TVar> REqnArray;
-	int i;
-	for(i=0;i<fBlockPos.NElements();i++) {
+	for(long i=0;i<fBlockPos.NElements();i++) {
 		if (fBlockPos[i]) {
 			if(fseek(fIOStream,fBlockPos[i],SEEK_SET)){
 				cout << "fseek fail on Element " << i << " Position " << fBlockPos[i] << endl;
@@ -155,9 +154,9 @@ void TPZFileEqnStorage<TVar>::Forward(TPZFMatrix<TVar> &f, DecomposeType dec) co
 			}
 			
 			REqnArray.Read(fIOStream);
-			REqnArray.EqnForward(f,dec); 
+			REqnArray.EqnForward(f,dec);
 		}
-	} 
+	}
 }
 
 template<class TVar>

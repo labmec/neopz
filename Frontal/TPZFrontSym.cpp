@@ -27,7 +27,7 @@ using namespace std;
 template<class TVar>
 DecomposeType TPZFrontSym<TVar>::GetDecomposeType() const
 {
-	return fDecomposeType;
+	return this->fDecomposeType;
 }
 template<class TVar>
 void TPZFrontSym<TVar>::PrintGlobal(const char *name, std::ostream& out){
@@ -170,16 +170,24 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarr
 	
 	long i, ilocal;
 	ilocal = Local(ieq);
-	TPZVec<TVar> AuxVec(this->fFront);
+	TPZManVector<TVar> AuxVec(this->fFront);
 	
 	for(i=0;i<ilocal;i++) AuxVec[i]=Element(i,ilocal);
 	for(i=ilocal;i<this->fFront;i++) AuxVec[i]=Element(ilocal,i);
 	
-	if(AuxVec[ilocal]<0) {
+	if(AuxVec[ilocal]<0 && this->fDecomposeType == ECholesky) {
 		cout << "TPZFront::DecomposeOneEquation AuxVec[ilocal] < 0 " << AuxVec[ilocal] << " ilocal=" << ilocal << " fGlobal=" << this->fGlobal[ilocal] << endl;
 	}
-	TVar diag = sqrt(AuxVec[ilocal]);
-	for(i=0;i<this->fFront;i++) AuxVec[i]/=diag;
+    TVar diag;
+    if (this->fDecomposeType == ECholesky) {
+        diag = sqrt(AuxVec[ilocal]);
+        for(i=0;i<this->fFront;i++) AuxVec[i]/=diag;
+    }
+    else
+    {
+        diag = AuxVec[ilocal];
+        for(i=0;i<this->fFront;i++) AuxVec[i]/=diag;
+    }
 	
 	eqnarray.BeginEquation(ieq);       
 	eqnarray.AddTerm(ieq, diag);
@@ -213,18 +221,35 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarr
 //		}
 //	}
 	
-	long j=0;
-	if(this->fProductMTData){
-		this->ProductTensorMT( AuxVec, AuxVec );
-	}
-	else {
-		for(j=0;j<this->fFront;j++){
-			for(i=0;i<=j;i++){
-				Element(i,j)-=AuxVec[i]*AuxVec[j];
-			}
-		}		
-	}
+    if (this->fDecomposeType == ECholesky)
+    {
+        if(this->fProductMTData){
+            this->ProductTensorMT( AuxVec, AuxVec );
+        }
+        else {
+            for(long j=0;j<this->fFront;j++){
+                for(long i=0;i<=j;i++){
+                    Element(i,j)-=AuxVec[i]*AuxVec[j];
+                }
+            }		
+        }
 
+    }
+    else
+    {
+        if(this->fProductMTData){
+            this->fProductMTData->fDiagonal = diag;
+            this->ProductTensorMT( AuxVec, AuxVec );
+        }
+        else {
+            for(long j=0;j<this->fFront;j++){
+                for(long i=0;i<=j;i++){
+                    Element(i,j)-=AuxVec[i]*AuxVec[j]*diag;
+                }
+            }
+        }
+        
+    }
 		// #endif
 	// #endif
 	
@@ -237,7 +262,6 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarr
 	for(i=ilocal;i<this->fFront;i++) Element(ilocal,i)=0.;
 	
 	FreeGlobal(ieq);
-	fDecomposeType=ECholesky;
 	//	PrintGlobal("After", output);
 }
 
@@ -254,7 +278,21 @@ void TPZFrontSym<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::STe
     if(!data->fRunning) break;
     const int n = data->fAuxVecCol->NElements();
     const int Nthreads = data->NThreads();
-		
+      
+      if (data->fMat->GetDecomposeType() == ELDLt) {
+          for(int j = 0+ithread; j < n; j += Nthreads){
+              int i = 0;
+              const TVar RowVal = data->fAuxVecRow->operator[](j)*data->fDiagonal;
+              TVar * ColValPtr = &(data->fAuxVecCol->operator[](i));
+              TVar * elemPtr = &this->Element4JGreatEqualI(i,j);
+              for( ; i <= j; i++, ColValPtr++, elemPtr++ ){
+                  (*elemPtr) -= (*ColValPtr) * RowVal;
+              }///i
+          }///j
+
+      }
+		else if(data->fMat->GetDecomposeType() == ECholesky)
+        {
     for(int j = 0+ithread; j < n; j += Nthreads){
       int i = 0;
       const TVar RowVal = data->fAuxVecRow->operator[](j);
@@ -264,7 +302,7 @@ void TPZFrontSym<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::STe
         (*elemPtr) -= (*ColValPtr) * RowVal;
       }///i
     }///j
-		
+        }
     data->WorkDone();
   }///while
 }///void
@@ -402,11 +440,11 @@ void TPZFrontSym<TVar>::DecomposeEquations(long mineq, long maxeq, TPZEqnArray<T
 template<class TVar>
 TPZFrontSym<TVar>::TPZFrontSym(long GlobalSize) : TPZFront<TVar>(GlobalSize)
 {
-	fDecomposeType=ECholesky;
+	this->fDecomposeType=ECholesky;
 }
 template<class TVar>
 TPZFrontSym<TVar>::TPZFrontSym(){
-	fDecomposeType=ECholesky;
+	this->fDecomposeType=ECholesky;
 }
 
 

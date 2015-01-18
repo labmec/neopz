@@ -25,6 +25,7 @@ TPZFront<TVar>::TPZFront(){
 	fWork = 0;
 	fNextRigidBodyMode = 0;
 	fProductMTData = NULL;
+    fDecomposeType = ELU;
 }
 
 template<class TVar>
@@ -39,12 +40,14 @@ TPZFront<TVar>::TPZFront(long GlobalSize)
 	fWork = 0;
 	fNextRigidBodyMode = GlobalSize;
 	fProductMTData = NULL;
+    fDecomposeType = ELU;
 }
 
 template<class TVar>
 TPZFront<TVar>::TPZFront(const TPZFront<TVar> &cp) : fMaxFront(cp.fMaxFront),
 fGlobal(cp.fGlobal), fLocal(cp.fLocal),fFront(cp.fFront),fFree(cp.fFree),
-fData(cp.fData)
+fData(cp.fData),
+fDecomposeType(cp.fDecomposeType)
 {
 	fNextRigidBodyMode = cp.fNextRigidBodyMode;
 	fExpandRatio = cp.fExpandRatio;

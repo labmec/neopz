@@ -137,7 +137,7 @@ void TPZEqnArray<TVar>::EqnForward(TPZFMatrix<TVar> & F, DecomposeType dec) {
 			if(fEqValues[index] == (TVar)0.) {
 				cout << "Diagonal Value = 0 >> Aborting on Index = " << index << " Equation = " << j << endl;
 				DebugStop();
-			}          
+			}
 			int last_term;
 			if(j==fNumEq-1){
 				last_term=fEqValues.NElements();
@@ -182,8 +182,6 @@ void TPZEqnArray<TVar>::EqnForward(TPZFMatrix<TVar> & F, DecomposeType dec) {
 			
 			int i;
 			for(i = index + 1; i < last_term; i++) F(fIndex[i],0) -= udiag * fEqValues[i];
-			/** finalizacao para ldlt */
-			if(dec == ELDLt) F(fIndex[index],0) /= fEqValues[index];
 		}
 	}
 }

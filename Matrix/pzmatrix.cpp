@@ -1833,6 +1833,52 @@ void TPZMatrix<TVar>::AutoFill() {
 	}
 }
 
+template<class TVar>
+int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<long> &singular ) {
+    
+    int result = Decompose_LDLt(singular);
+    if (result == 0) {
+        return result;
+    }
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        B->Print("On input " , sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    Subst_LForward( B );
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        B->Print("Only forward " , sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    Subst_Diag( B );
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        B->Print("After forward and diagonal " , sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    result = Subst_LBackward( B );
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        B->Print("Final result " , sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    return result;
+}
+
+
 #include <complex>
 template class TPZMatrix< std::complex<float> >;
 template class TPZMatrix< std::complex<double> >;

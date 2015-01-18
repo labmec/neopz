@@ -43,6 +43,9 @@
 #include "pzstepsolver.h"
 #include "TPZSkylineNSymStructMatrix.h"
 
+#include "TPZFrontStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
+
 #include "pzanalysis.h"
 
 #include "pzmultiphysicselement.h"
@@ -220,11 +223,10 @@ int main(int argc, char *argv[])
         InvTP(id,id) = 1.0;
     }
     
-    ofstream saidaerro("../ErroMalhaTetraedro.txt",ios::app);
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=1;p<2;p++)
+    for(p=1;p<3;p++)
     {
         int pq = p;
         int pp = p;
@@ -327,14 +329,17 @@ int main(int argc, char *argv[])
             
             
             TPZCompMesh * mphysics = CMeshMixedTetra(gmesh,meshvec);
-            //            ofstream arg5("cmeshmultiphysics.txt");
-            //            mphysics->Print(arg5);
             //            TPZCompEl *cel = mphysics->Element(0);
             //            TPZElementMatrix ek,ef;
             //            cel->CalcStiff(ek, ef);
             
             TPZAnalysis an(mphysics);
-            
+
+            {
+                ofstream arg5("cmeshmultiphysics.txt");
+                mphysics->Print(arg5);
+            }
+
             SolveSystTetra(an, mphysics);
             
             stringstream ref,grau;
@@ -366,13 +371,15 @@ int main(int argc, char *argv[])
             //            saidaerro << "Numero de threads " << numthreads << std::endl;
 			int nDofs;
             nDofs=mphysics->NEquations();
-            
-            saidaerro<< " Ordem " <<p<<" NRefinamento "<<ndiv<< "   NDofs "<<nDofs<<std::endl;
-            saidaerro<<" \nErro da simulacao multifisica do Fluxo (q)" <<endl;
+            ofstream saidaerro("../ErroMalhaTetraedro.txt",ios::app);
+
+            saidaerro<< "\nOrdem " <<p<<" NRefinamento "<<ndiv<< "   NDofs "<<nDofs<<std::endl;
+            saidaerro<<" Erro da simulacao multifisica do Fluxo (q) \n";
             ErrorHDivTetra(cmesh1, saidaerro, p, ndiv);
             
-            saidaerro<<" Erro da simulacao multifisica da Pressao (p)" <<endl;
+            saidaerro<<" Erro da simulacao multifisica da Pressao (p) \n";
             ErrorL2Tetra(cmesh2, saidaerro, p, ndiv);
+            saidaerro << std::endl;
             //
             std::cout << "Postprocessed\n";
             
@@ -1441,6 +1448,7 @@ TPZCompMesh *CMeshMixedTetra(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         }
     }
     
+    mphysics->ComputeNodElCon();
     return mphysics;
 }
 
@@ -1449,9 +1457,17 @@ void SolveSystTetra(TPZAnalysis &an, TPZCompMesh *fCmesh)
     bool isdirect = true;
     if (isdirect) {
         //TPZBandStructMatrix full(fCmesh);
-        TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
+//#define one
+#ifdef one
+        TPZSkylineStructMatrix strmat(fCmesh); //caso simetrico
         //    TPZSkylineNSymStructMatrix full(fCmesh);
-        an.SetStructuralMatrix(skylstr);
+#else
+        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+        strmat.SetDecomposeType(ELDLt);
+#endif
+        strmat.SetNumThreads(8);
+        
+        an.SetStructuralMatrix(strmat);
         TPZStepSolver<STATE> step;
         step.SetDirect(ELDLt); //caso simetrico
         //	step.SetDirect(ELU);
@@ -1719,7 +1735,7 @@ void ErrorHDivTetra(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
         
     }
     out << "Errors associated with HDiv space - ordem polinomial = " << p << "- divisoes = " << ndiv << endl;
-    out << "L2 Norm for flux - "<< endl; //L2 Norm for divergence - Hdiv Norm for flux " << endl;
+    out << "L2 Norm for flux - "; //L2 Norm for divergence - Hdiv Norm for flux " << endl;
     out <<  setw(16) << sqrt(globalerrors[1]) <<endl;// setw(25)  << sqrt(globalerrors[2]) << setw(21)  << sqrt(globalerrors[3]) << endl;
     //
     //    out << "L2 Norm for flux = "    << sqrt(globalerrors[1]) << endl;

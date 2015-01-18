@@ -52,6 +52,9 @@ protected:
 	/** @brief Resequence the connects according to the element order*/
 	void AdjustSequenceNumbering();
 	
+    /** @brief Used Decomposition method */
+    DecomposeType fDecomposeType;
+
 public:
 
     /**
@@ -61,15 +64,23 @@ public:
      */ 
 	TPZFrontStructMatrix(TPZCompMesh *);
 	
-	TPZFrontStructMatrix(const TPZFrontStructMatrix &copy) : TPZStructMatrix(copy), fElementOrder(copy.fElementOrder),f_quiet(copy.f_quiet)
+	TPZFrontStructMatrix(const TPZFrontStructMatrix &copy) : TPZStructMatrix(copy), fElementOrder(copy.fElementOrder),f_quiet(copy.f_quiet), fDecomposeType(copy.fDecomposeType)
 	{
 	}
 	
-	
+    /// Set the decomposition type
+    virtual void SetDecomposeType(DecomposeType dectype)
+    {
+        fDecomposeType = dectype;
+    }
+    
+
 	static int main();
 	
     /** @brief Class destructor */ 
 	virtual ~TPZFrontStructMatrix();
+    
+    
 	
 	/** @brief Returns a pointer to TPZMatrix<STATE> */
 	TPZMatrix<STATE> * Create();

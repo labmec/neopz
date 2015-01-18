@@ -205,6 +205,8 @@ private:
         
         TPZSloanRenumbering(long NElements, long NNodes);
         
+        TPZSloanRenumbering();
+        
         virtual ~TPZSloanRenumbering();
         
     };

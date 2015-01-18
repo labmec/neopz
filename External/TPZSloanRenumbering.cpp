@@ -7,6 +7,10 @@ TPZSloanRenumbering::TPZSloanRenumbering(long NElements, long NNodes):TPZRenumbe
 
 }
 
+TPZSloanRenumbering::TPZSloanRenumbering():TPZRenumbering(){
+}
+
+
 TPZSloanRenumbering::~TPZSloanRenumbering(){
 
 }

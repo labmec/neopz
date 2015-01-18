@@ -304,6 +304,12 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
                  {
                      DebugStop();
                  }
+                 else if (tipo == EPiramide)
+                 {
+                     if (shapeorders(ish,0) > maxorder[d]) {
+                         include = false;
+                     }                     
+                 }
                  else
                  {
                      DebugStop();
@@ -733,9 +739,11 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
                         include = false;
                     }
                 }
-                else if (tipo == EPoint)
+                else if (tipo == EPiramide)
                 {
-                    DebugStop();
+                    if (shapeorders(ish,0) > maxorder[d]) {
+                        include = false;
+                    }
                 }
                 else
                 {
@@ -1283,6 +1291,9 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 #else
     TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsidesDG);
     data.fNormalVec.Resize(3, TSHAPE::Dimension*TSHAPE::NSides);
+    if (TSHAPE::Type() == EPiramide) {
+        data.fNormalVec.Resize(3, TSHAPE::Dimension*TSHAPE::NSides+1);
+    }
 //    TPZIntelGen<TSHAPE>::Reference()->Directions(pt,NormalsDouglas,normalsidesDG);
     IndexShapeToVec2(normalsidesDG, bilinear, directions,data.fVecShapeIndex,pressureorder);
 #endif

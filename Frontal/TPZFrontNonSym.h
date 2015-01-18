@@ -63,6 +63,20 @@ public:
 	TPZFrontNonSym(long GlobalSize);
 	
 	TPZFrontNonSym(const TPZFrontNonSym &cp);
+    
+    /// Set the decomposition type
+    virtual void SetDecomposeType(DecomposeType dectype)
+    {
+        if (dectype == ELU) {
+            this->fDecomposeType = dectype;
+        }
+        else
+        {
+            DebugStop();
+        }
+    }
+    
+
     /**
      * @brief Decompose these equations and put the result in eqnarray. \n
      * Default decompose method is LU
@@ -156,14 +170,9 @@ public:
     /** @brief It prints TPZFront data */
 	void Print(const char *name, std::ostream& out) const;
 	void PrintGlobal(const char *name, std::ostream& out);
-	/** @brief Returns decomposition type. \n Default LU*/
-	DecomposeType GetDecomposeType() const;
-	
 	
 	
 private:
-    /** @brief Used Decomposition method */
-    DecomposeType fDecomposeType;
 	
     /** @link dependency */
     /*#  TPZStackEqnStorage lnkTPZStackEqnStorage; */

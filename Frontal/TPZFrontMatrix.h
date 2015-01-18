@@ -16,9 +16,11 @@
 #include "pzvec.h"
 #include "TPZFileEqnStorage.h"
 #include "pzmatrix.h"
+#include "pzlog.h"
 
 template<class TVar>
 class TPZFMatrix;
+
 
 /**
  * \addtogroup frontal
@@ -136,7 +138,8 @@ public:
 	 */
     virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < long > & sourceindex, TPZVec < long > & destinationindex);
 	
-    /** 
+    virtual int SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<long> &singular);
+    /**
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution
 	 */

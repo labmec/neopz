@@ -19,8 +19,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.frontal.frontmatrix"));
-static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmatrix.fw"));
+static LoggerPtr logger(Logger::getLogger("pz.frontal.frontmerda"));
+static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmerdatotal"));
 #endif
 
 using namespace std;
@@ -283,6 +283,42 @@ void TPZFrontMatrix<TVar,store, front>::CheckCompress()
 }
 
 template<class TVar, class store, class front>
+int TPZFrontMatrix<TVar,store, front>::SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<long> &singular) {
+    if (fFront.GetDecomposeType() != dt) {
+        DebugStop();
+    }
+#ifdef LOG4CXX2
+    if (logger->isDebugEnabled())
+    {
+        
+        std::stringstream sout;
+        B.Print("On input " , sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    Subst_Forward(&B);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        B.Print("After forward and diagonal " , sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    Subst_Backward(&B);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        B.Print("Final result " , sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    return 1;
+}
+
+
+template<class TVar, class store, class front>
 void TPZFrontMatrix<TVar,store, front>::AllocData()
 {
 	fFront.AllocData();
@@ -301,7 +337,7 @@ int TPZFrontMatrix<TVar,store, front>::Subst_Forward(TPZFMatrix<TVar> *b) const 
 	cout << "Entering Forward Substitution\n";
 	cout.flush();
 	DecomposeType dec = fFront.GetDecomposeType();
-	if(dec != ECholesky) cout << "TPZFrontMatrix::Subst_Forward non matching decomposition\n";
+//	if(dec != ECholesky) cout << "TPZFrontMatrix::Subst_Forward non matching decomposition\n";
 	fStorage.Forward(*b, dec);
 	return 1;
 }
@@ -311,7 +347,7 @@ int TPZFrontMatrix<TVar,store, front>::Subst_Backward(TPZFMatrix<TVar> *b) const
 	cout << "Entering Backward Substitution\n";
 	cout.flush();
 	DecomposeType dec = fFront.GetDecomposeType();
-	if(dec != ECholesky) cout << "TPZFrontMatrix::Subst_Forward non matching decomposition\n";
+//	if(dec != ECholesky) cout << "TPZFrontMatrix::Subst_Forward non matching decomposition\n";
 	fStorage.Backward(*b, dec);
 	return 1;
 }

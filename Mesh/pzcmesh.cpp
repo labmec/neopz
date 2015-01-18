@@ -2148,7 +2148,8 @@ static void switchEq(long eqsmall, long eqlarge, TPZVec<long> &permutegather, TP
     }
 }
 
-void TPZCompMesh::SaddlePermute2()
+
+void TPZCompMesh::SaddlePermute()
 {
     TPZVec<long> permutegather,permutescatter;
     long numinternalconnects = NIndependentConnects();
@@ -2165,11 +2166,11 @@ void TPZCompMesh::SaddlePermute2()
             continue;
         }
         int nc = cel->NConnects();
-        if (nc == 0) {
+        if (nc <= 1) {
             continue;
         }
         
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
         if(logger->isDebugEnabled())
         {
             std::stringstream sout;
@@ -2200,6 +2201,7 @@ void TPZCompMesh::SaddlePermute2()
                     maxseq = eq;
                 }
             }
+            std::set<long> seteq;
             for (int ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
                 int eq = permutescatter[c.SequenceNumber()];
@@ -2209,9 +2211,24 @@ void TPZCompMesh::SaddlePermute2()
                         DebugStop();
                     }
 #endif
-                    // we have to switch
-                    switchEq(eq, maxseq, permutegather, permutescatter);
+                    seteq.insert(eq);
                 }
+            }
+            std::set<long>::reverse_iterator it;
+            long count = 0;
+            for (it = seteq.rbegin(); it != seteq.rend(); it++) {
+                long eq = *it;
+#ifdef LOG4CXX2
+                if (logger->isDebugEnabled()) {
+                    std::stringstream sout;
+                    sout << "Switch ceq = " << eq << " with maxeq = " << maxseq-count;
+                    //                    sout << permute;
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+                // we have to switch
+                switchEq(eq, maxseq-count, permutegather, permutescatter);
+                count++;
             }
 
 #ifdef DEBUG
@@ -2242,7 +2259,7 @@ void TPZCompMesh::SaddlePermute2()
 #endif
         }
         
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
         if(logger->isDebugEnabled())
         {
             std::stringstream sout;
@@ -2254,6 +2271,26 @@ void TPZCompMesh::SaddlePermute2()
         }
 #endif
     }
+#ifdef LOG4CXX2
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Saddle permute new permutation ";
+        for (int i = 0; i< permutescatter.size(); i++) {
+            long jmax = i+10;
+            if (jmax > permutescatter.size()) {
+                jmax = permutescatter.size();
+            }
+            for (long j=i; j< jmax; j++) {
+                sout << permutescatter[j] << ' ';
+            }
+            sout << std::endl;
+            i+= 10;
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
     Permute(permutescatter);
 #ifdef DEBUG
     
@@ -2309,7 +2346,7 @@ void TPZCompMesh::SaddlePermute2()
 #endif
 }
 
-void TPZCompMesh::SaddlePermute()
+void TPZCompMesh::SaddlePermute2()
 {
     TPZVec<long> permute;
     long numinternalconnects = NIndependentConnects();
@@ -2372,18 +2409,20 @@ void TPZCompMesh::SaddlePermute()
                 }
             }
             std::set<long>::reverse_iterator it;
+            long count = 0;
             for (it = lagrangeseqnum.rbegin(); it != lagrangeseqnum.rend(); it++) {
                 long ceq = permute[*it];
-                ModifyPermute(permute, ceq, maxeq);
+                ModifyPermute(permute, ceq, maxeq-count);
 #ifdef LOG4CXX
                 if(logger->isDebugEnabled())
                 {
                     std::stringstream sout;
-                    sout << "Put ceq = " << ceq << "after maxeq = " << maxeq << std::endl;
-                    sout << permute;
+                    sout << "Switch ceq = " << ceq << " with maxeq = " << maxeq-count;
+//                    sout << permute;
                     LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif
+                count++;
             }
 #ifdef LOG4CXX
             if(logger->isDebugEnabled())
@@ -2406,7 +2445,7 @@ void TPZCompMesh::SaddlePermute()
 #endif
         }
     }
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
     if(logger->isDebugEnabled())
     {
         for (long el=0L; el<nel; el++) {
@@ -2427,12 +2466,24 @@ void TPZCompMesh::SaddlePermute()
             LOGPZ_DEBUG(logger, sout.str())
         }
     }
-    if (logger->isDebugEnabled()) 
+#endif
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
-        sout << "Saddle permute permutation ";
-        sout << permute ;
-        LOGPZ_DEBUG(logger, sout.str())        
+        sout << "Saddle permute old permutation ";
+        for (int i = 0; i< permute.size(); i++) {
+            long jmax = i+10;
+            if (jmax > permute.size()) {
+                jmax = permute.size();
+            }
+            for (long j=i; j< jmax; j++) {
+                sout << permute[j] << ' ';
+            }
+            sout << std::endl;
+            i+= 10;
+        }
+        LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
     Permute(permute );
@@ -2472,7 +2523,7 @@ void TPZCompMesh::ModifyPermute(TPZVec<long> &permute, long lagrangeq, long maxe
         permute[i] = accpermute[input[i]];
     }
     
-#ifdef DEBUG
+#ifdef DEBUG22
     {
         std::set<long> acc;
         for (long i=0; i<neq; i++) {

@@ -49,13 +49,25 @@ public:
     /** @brief Simple constructor */
     TPZFrontSym();
     
-    TPZFrontSym(const TPZFrontSym<TVar> &cp) : TPZFront<TVar>(cp),
-    fDecomposeType(cp.fDecomposeType)
+    TPZFrontSym(const TPZFrontSym<TVar> &cp) : TPZFront<TVar>(cp)
     {
     }
     /** @brief Constructor with a initial size parameter */
 	TPZFrontSym(long GlobalSize);
 	
+    /// Set the decomposition type
+    virtual void SetDecomposeType(DecomposeType dectype)
+    {
+        if (dectype == ECholesky || dectype == ELDLt) {
+            this->fDecomposeType = dectype;
+        }
+        else
+        {
+            DebugStop();
+        }
+    }
+    
+
     /**
      * @brief Decompose these equations and put the result in eqnarray \n
      * Default decompose method is Cholesky
@@ -153,11 +165,6 @@ public:
 	
 	/** @brief Does the tensor product betweem two vectors in the positions dependent of ithread*/
 	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data);
-	
-private:
-	
-    /** @brief Used Decomposition method */
-    DecomposeType fDecomposeType;
 	
     /** @link dependency */
     /*#  TPZFileEqnStorage lnkTPZFileEqnStorage; */

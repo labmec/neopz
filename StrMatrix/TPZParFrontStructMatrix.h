@@ -118,6 +118,8 @@ private:
 	TPZStack <long> felnum;
 	TPZStack <TPZElementMatrix *> fekstack;
 	TPZStack <TPZElementMatrix *> fefstack;
+    
+    
 	
 };
 

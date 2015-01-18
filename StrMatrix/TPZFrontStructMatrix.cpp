@@ -67,7 +67,8 @@ void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected
 }
 
 template<class front>
-TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh) {
+TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh),
+        fDecomposeType(ENoDecompose) {
 	f_quiet = 0;
 }
 
@@ -158,7 +159,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
         if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
-			sout<< "no numero " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
+			sout<< "Node index " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
@@ -209,6 +210,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
+        sout << "element order " << fElementOrder << std::endl;
 		sout<< "elorderinv " << elorderinv << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
@@ -223,10 +225,10 @@ TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE>
 	
     long neq = fEquationFilter.NActiveEquations();
 	TPZManVector <int> numelconnected(neq,0);
-	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(neq);//(fMesh->NEquations());
+	TPZFrontMatrix<STATE,TPZStackEqnStorage<STATE>, front> *mat = new TPZFrontMatrix<STATE,TPZStackEqnStorage<STATE>, front>(neq);//(fMesh->NEquations());
 	
-	TPZFrontMatrix<STATE,TPZFileEqnStorage<STATE>, front> *mat = new TPZFrontMatrix<STATE,TPZFileEqnStorage<STATE>, front>(neq);
-	
+//	TPZFrontMatrix<STATE,TPZFileEqnStorage<STATE>, front> *mat = new TPZFrontMatrix<STATE,TPZFileEqnStorage<STATE>, front>(neq);
+    mat->GetFront().SetDecomposeType(fDecomposeType);
 	// if the frontal matrix is applied to a submesh, we assume there may be rigid body modes
 	TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (fMesh);	
 	if (subcmesh) {
@@ -250,7 +252,7 @@ TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE>
 		std::stringstream sout;
         mat->FinishWriting();
         mat->ReOpen();
-		//mat->Print("Frontal matrix", sout);
+//		mat->Print("Frontal matrix", sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -348,8 +350,9 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMat
 	
 	for(iel=0; iel < nelem; iel++) {
 		
-		if(fElementOrder[iel] < 0) continue;
-		TPZCompEl *el = elementvec[fElementOrder[iel]];
+        long elindex = fElementOrder[iel];
+		if(elindex < 0) continue;
+		TPZCompEl *el = elementvec[elindex];
 		if(!el) continue;
 		TPZMaterial * mat = el->Material();
 		if(mat)
@@ -362,11 +365,6 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMat
 		}
 		else
 		{
-			TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
-			if(!submesh)
-			{
-				continue;
-			}
 		}
 		
 		//		int dim = el->NumNodes();

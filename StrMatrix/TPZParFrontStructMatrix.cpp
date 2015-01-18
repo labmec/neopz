@@ -439,7 +439,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	
 	this->OrderElement();
 	
-	this->AdjustSequenceNumbering();
+//	this->AdjustSequenceNumbering();
     
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
@@ -734,6 +734,10 @@ TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STA
 #else
     TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = new TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>(neq);
 #endif
+    if (this->fDecomposeType != ENoDecompose)
+    {
+        mat->GetFront().SetDecomposeType(this->fDecomposeType);
+    }
 	rhs.Redim(neq,1);
 	
 	Assemble(*mat,rhs,guiInterface);
