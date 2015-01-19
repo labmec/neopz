@@ -1381,8 +1381,8 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
     int nnodes = this->Reference()->NNodes();
     for(icon=0; icon<nnodes+1; icon++)
     {//somente para os conects de fluxo
-        TPZConnect &con = this->Connect(icon);
-        con.SetOrder(order);
+//        TPZConnect &con = this->Connect(icon);
+//        con.SetOrder(order);
         side= ConnectSideLocId(icon);
         
 #ifdef LOG4CXX
