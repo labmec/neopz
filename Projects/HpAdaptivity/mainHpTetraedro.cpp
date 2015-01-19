@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=1;p<3;p++)
+    for(p=3;p<4;p++)
     {
         int pq = p;
         int pp = p;
@@ -1417,6 +1417,8 @@ TPZCompMesh *CMeshMixedTetra(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     else
     {
         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+        mphysics->Reference()->ResetReference();
+        mphysics->LoadReferences();
         
         //        TPZMaterial * skeletonEl = material->CreateBC(mat, matskeleton, 3, val1, val2);
         //        mphysics->InsertMaterialObject(skeletonEl);
@@ -1424,31 +1426,94 @@ TPZCompMesh *CMeshMixedTetra(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         //        TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(matskeleton, dim-1, 1);
         //        TPZMaterial * mat2(matskelet);
         //        mphysics->InsertMaterialObject(mat2);
+        std::map<long, long> bctoel, eltowrap;
+        long nel = mphysics->ElementVec().NElements();
+        for (long el=0; el<nel; el++) {
+            TPZCompEl *cel = mphysics->Element(el);
+            TPZGeoEl *gel = cel->Reference();
+            int matid = gel->MaterialId();
+            if (matid < 0) {
+                TPZGeoElSide gelside(gel,gel->NSides()-1);
+                TPZGeoElSide neighbour = gelside.Neighbour();
+                while (neighbour != gelside) {
+                    if (neighbour.Element()->Dimension() == dim && neighbour.Element()->Reference()) {
+                        // got you!!
+                        bctoel[el] = neighbour.Element()->Reference()->Index();
+                        break;
+                    }
+                    neighbour = neighbour.Neighbour();
+                }
+                if (neighbour == gelside) {
+                    DebugStop();
+                }
+            }
+        }
         
-        int nel = mphysics->ElementVec().NElements();
+        
         TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-        for(int el = 0; el < nel; el++)
+        for(long el = 0; el < nel; el++)
         {
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
             if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, matId2, wrapEl);//criei elementos com o mesmo matId2 interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
         }
+        for (long el =0; el < wrapEl.size(); el++) {
+            TPZCompEl *cel = wrapEl[el][0];
+            long index = cel->Index();
+            eltowrap[index] = el;
+        }
+        
         meshvec[0]->CleanUpUnconnectedNodes();
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
+        std::map<long, long>::iterator it;
+        for (it = bctoel.begin(); it != bctoel.end(); it++) {
+            long bcindex = it->first;
+            long elindex = it->second;
+            if (eltowrap.find(elindex) == eltowrap.end()) {
+                DebugStop();
+            }
+            long wrapindex = eltowrap[elindex];
+            TPZCompEl *bcel = mphysics->Element(bcindex);
+            TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
+            if (!bcmf) {
+                DebugStop();
+            }
+            wrapEl[wrapindex].Push(bcmf);
+            
+        }
         //------- Create and add group elements -------
         long index, nenvel;
         nenvel = wrapEl.NElements();
-        for(int ienv=0; ienv<nenvel; ienv++){
+        TPZStack<TPZElementGroup *> elgroups;
+        for(long ienv=0; ienv<nenvel; ienv++){
             TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
+            elgroups.Push(elgr);
             nel = wrapEl[ienv].NElements();
             for(int jel=0; jel<nel; jel++){
                 elgr->AddElement(wrapEl[ienv][jel]);
             }
         }
+        mphysics->ComputeNodElCon();
+        // create condensed elements
+        // increase the NumElConnected of one pressure connects in order to prevent condensation
+        for (long ienv=0; ienv<nenvel; ienv++) {
+            TPZElementGroup *elgr = elgroups[ienv];
+            int nc = elgr->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = elgr->Connect(ic);
+                if (c.LagrangeMultiplier() > 0) {
+                    c.IncrementElConnected();
+                    break;
+                }
+            }
+            TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
+        }
     }
     
-    mphysics->ComputeNodElCon();
+    
+    
+    
     return mphysics;
 }
 

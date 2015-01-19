@@ -2186,7 +2186,7 @@ void TPZCompMesh::SaddlePermute()
         int maxlagrange = c0.LagrangeMultiplier();
         for (int ic=0; ic<nc; ic++) {
             TPZConnect &c = cel->Connect(ic);
-            if(c.HasDependency()) continue;
+            if(c.HasDependency() || c.IsCondensed()) continue;
             int lagrange = c.LagrangeMultiplier();
             minlagrange = min(lagrange, minlagrange);
             maxlagrange = max(lagrange,maxlagrange);
@@ -2196,6 +2196,9 @@ void TPZCompMesh::SaddlePermute()
             long maxseq = -1;
             for (int ic=0; ic<nc ; ic++) {
                 TPZConnect &c = cel->Connect(ic);
+                if (c.HasDependency() || c.IsCondensed()) {
+                    continue;
+                }
                 long eq = permutescatter[c.SequenceNumber()];
                 if (!c.HasDependency() && c.LagrangeMultiplier() < lagr && eq > maxseq) {
                     maxseq = eq;
@@ -2204,6 +2207,9 @@ void TPZCompMesh::SaddlePermute()
             std::set<long> seteq;
             for (int ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
+                if (c.HasDependency() || c.IsCondensed()) {
+                    continue;
+                }
                 int eq = permutescatter[c.SequenceNumber()];
                 if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
 #ifdef DEBUG
@@ -2243,6 +2249,9 @@ void TPZCompMesh::SaddlePermute()
             maxseq = -1;
             for (int ic=0; ic<nc ; ic++) {
                 TPZConnect &c = cel->Connect(ic);
+                if (c.IsCondensed() || c.HasDependency()) {
+                    continue;
+                }
                 long eq = permutescatter[c.SequenceNumber()];
                 if (c.LagrangeMultiplier() < lagr && eq < maxseq) {
                     maxseq = eq;
@@ -2250,6 +2259,9 @@ void TPZCompMesh::SaddlePermute()
             }
             for (int ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
+                if (c.HasDependency() || c.IsCondensed()) {
+                    continue;
+                }
                 int eq = permutescatter[c.SequenceNumber()];
                 if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
                     // we have to switch
@@ -2312,7 +2324,7 @@ void TPZCompMesh::SaddlePermute()
         int maxlagrange = c0.LagrangeMultiplier();
         for (int ic=0; ic<nc; ic++) {
             TPZConnect &c = cel->Connect(ic);
-            if(c.HasDependency()) continue;
+            if(c.HasDependency() || c.IsCondensed()) continue;
             int lagrange = c.LagrangeMultiplier();
             minlagrange = min(lagrange, minlagrange);
             maxlagrange = max(lagrange,maxlagrange);
@@ -2322,6 +2334,9 @@ void TPZCompMesh::SaddlePermute()
             long maxseq = -1;
             for (int ic=0; ic<nc ; ic++) {
                 TPZConnect &c = cel->Connect(ic);
+                if (c.HasDependency() || c.IsCondensed()) {
+                    continue;
+                }
                 long eq = permutescatter[c.SequenceNumber()];
                 if (!c.HasDependency() && c.LagrangeMultiplier() < lagr && eq > maxseq) {
                     maxseq = eq;
@@ -2329,6 +2344,9 @@ void TPZCompMesh::SaddlePermute()
             }
             for (int ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
+                if (c.HasDependency() || c.IsCondensed()) {
+                    continue;
+                }
                 int eq = permutescatter[c.SequenceNumber()];
                 if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
                     // we have to switch

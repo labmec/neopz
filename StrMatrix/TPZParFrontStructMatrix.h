@@ -34,7 +34,7 @@ class TPZCompMesh;
 template<class TVar>
 class TPZFileEqnStorage;
 
-#define STACKSTORAGE
+//#define STACKSTORAGE
 
 /**
  * @brief Is a structural matrix with parallel techniques included. \ref structural "Structural Matrix" \ref frontal "Frontal"
