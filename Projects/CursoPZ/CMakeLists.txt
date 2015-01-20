@@ -24,6 +24,8 @@ if(BUILD_TUTORIAL)
 
 	#Example : 
 	add_subdirectory(ExemploSimples)
+	#Example : 
+	add_subdirectory(ExemploSimples2D)
 	#Example : Geometric Mapping
 	add_subdirectory(ExemploMapeamentoGeometrico)
 

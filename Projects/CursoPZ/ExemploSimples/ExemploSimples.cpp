@@ -124,7 +124,7 @@ TPZGeoMesh *CreateGMesh(long nel, REAL elsize)
 
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 {
-	const int dim = 1; //coeficientes da eq diferencial unidimensional
+	const int dim = 1; //dimensao do problema
 	const int matId = 1, bc0 = -1, bc1 = -2; //MESMOS ids da malha geometrica
 	const int dirichlet = 0, neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita 
 	
