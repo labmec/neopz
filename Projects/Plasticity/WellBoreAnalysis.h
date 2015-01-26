@@ -31,7 +31,7 @@
 void AddBoundaryConditions(TPZCompMesh *CMesh, TPZMaterial * mat, TPZTensor<STATE> &Confinement, STATE pressure);
 
 /// Simulation models
-enum EPlasticModel  {ESandler, EMohrCoulomb, EElastic};
+enum EPlasticModel  {ESandler=2, EMohrCoulomb=1, EElastic=0};
 
 /// Fluid model indicates whether the fluid pressure evolves around the well
 enum EFluidModel  {ENonPenetrating=0,EPenetrating=1};
