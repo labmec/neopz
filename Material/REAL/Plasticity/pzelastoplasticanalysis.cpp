@@ -91,6 +91,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
         NextW += Interval;
         TPZNonLinearAnalysis::LoadSolution(NextW);
         AssembleResidual();
+#ifdef DEBUG
         {
             static int count = 0;
             {
@@ -106,6 +107,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
             ofstream out(filename.str().c_str());
             fRhs.Print(varname.str().c_str(),out,EMathematicaInput);
         }
+#endif
         RhsNormResult = Norm(fRhs);
 #ifndef PLASTICITY_CLEAN_OUT
         std::cout << "Scale factor " << scalefactor << " resnorm " << RhsNormResult << std::endl;
