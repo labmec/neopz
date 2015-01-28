@@ -199,9 +199,11 @@ public:
 	void SideTransform3(TPZGeoElSide neighbour,TPZTransform &t);
 	
 	void SetConnectivity(const TPZGeoElSide &neighbour) const;
+    
 	/** @brief This method inserts the element/side and all lowerdimension sides into the connectivity loop */
 	void InsertConnectivity(TPZGeoElSide &neighbour);
 	
+    /// Remove the element from the connectivity loop
 	void RemoveConnectivity();
 	
 	static void BuildConnectivities(TPZVec<TPZGeoElSide> &elvec, TPZVec<TPZGeoElSide> &neighvec);
@@ -281,6 +283,8 @@ public:
      * if onlymultiphysicelement == 1 only elements TPZMultiphysicsElement will be put on the stack \n
      * if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
 	void HigherLevelCompElementList3(TPZStack<TPZCompElSide> &elsidevec, int onlymultiphysicelement, int removeduplicates);
+    
+    int GelLocIndex(int index) const;
 };
 
 /** @brief Overload operator << to print geometric element side data */

@@ -1129,3 +1129,10 @@ void TPZGeoElSide::Print(std::ostream &out) const
     out << "Center coordinate " << centerX << std::endl;
 }
 
+int TPZGeoElSide::GelLocIndex(int index) const
+{
+    if (!fGeoEl) {
+        DebugStop();
+    }
+    return fGeoEl->SideNodeLocIndex(fSide,index);
+}
