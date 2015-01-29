@@ -49,7 +49,7 @@ namespace pzgeom {
 		{
 		}
         
-        void SetData(TPZVec<REAL> &Xc, const REAL R)
+        void SetData(const REAL R, TPZVec<REAL> &Xc)
         {
 #ifdef DEBUG
             if (Xc.size() != 3 || R == 0.0 ) {
@@ -61,7 +61,7 @@ namespace pzgeom {
         }
 
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "Wavy";}
+		static std::string TypeName() { return "TPZTriangleSphere";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const

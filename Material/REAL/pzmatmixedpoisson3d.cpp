@@ -359,13 +359,13 @@ int TPZMatMixedPoisson3D::VariableIndex(const std::string &name){
 }
 
 int TPZMatMixedPoisson3D::NSolutionVariables(int var){
-    if(var == 1) return fDim;
+    if(var == 1) return 3;
     if(var == 2) return 1;
     if(var == 3) return 3;
     if(var == 4) return 3;
     if(var == 5) return 3;
     if(var == 6) return 1;
-    if(var == 7) return fDim;
+    if(var == 7) return 3;
     return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -380,7 +380,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     SolP = datavec[1].sol[0];
     
     if(var == 1){ //function (state variable Q)
-        for (int ip = 0; ip<Dimension(); ip++)
+        for (int ip = 0; ip<3; ip++)
         {
             Solout[ip] = datavec[0].sol[0][ip];
         }
@@ -418,7 +418,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     TPZVec<REAL> ptx(3);
     TPZVec<STATE> solExata(1);
-    TPZFMatrix<STATE> flux(fDim,1);
+    TPZFMatrix<STATE> flux(3,1);
     
     //Exact soluion
     if(var == 6){
@@ -429,7 +429,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     if(var == 7){
         fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
-        for (int ip = 0; ip<Dimension(); ip++)
+        for (int ip = 0; ip<3; ip++)
         {
             Solout[ip] = flux(ip,0);
         }

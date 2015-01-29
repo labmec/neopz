@@ -932,12 +932,16 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 {
-    const int dim = this->Reference()->Dimension();
+    const int dim = data.fNormalVec.Rows(); //this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
     long numbersol = MeshSol.Cols();
+    if(numbersol != 1)
+    {
+        DebugStop();
+    }
     data.sol.Resize(numbersol);
     data.dsol.Resize(numbersol);
     
@@ -980,7 +984,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 //                    data.dsol[is](ilinha,1)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);//(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);
 //                     data.dsol[is](ilinha,2)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(2,ishape)*MeshSol(pos+jn,is);//
                     for (int kdim = 0 ; kdim < Dimension(); kdim++) {
-                         data.dsol[is](ilinha,kdim)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(kdim,ishape)*MeshSol(pos+jn,is);//
+                        // validar divergente para o caso 2d(dominio) -> 3d (solucao do problema)
+                        data.dsol[is](ilinha,kdim)+=0.0;//(STATE)data.axes(kdim,j)*ivecdir(j,0)*(STATE)data.dphix(kdim,ishape)*MeshSol(pos+jn,is);//
                     }
                 }
             }

@@ -33,6 +33,7 @@ static int piramide_2[6][5]=
 
 PyramidalMesh::PyramidalMesh(TPZGeoMesh *gmesh, int ndiv)
 {
+    gmesh = new TPZGeoMesh;
     REAL dndiv = ndiv;
     int nref = (int) pow(2., dndiv);
     gmesh = CreateGMeshCubeWithPyramids( nref, matId);

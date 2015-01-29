@@ -129,7 +129,7 @@ namespace pzgeom {
 		GradX *= 1./delx;
 		*/
 		
-		GradX.Print("GradX");
+		//GradX.Print("GradX");
 		
 		GradX.GramSchmidt(axest,jacobian);
 		axest.Transpose(&axes);
