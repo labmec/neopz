@@ -116,7 +116,7 @@ public:
      * @param block_col Contains block column
      * @param block Block to be inserted
 	 */
-	int GetBlock(const int block_row,const int block_col, TPZFMatrix<TVar> *const block ) const;
+	int GetBlock(const int block_row,const int block_col, TPZFMatrix<TVar> & block ) const;
 	/**
      * @brief Adds a block on current matrix
      * @param block_row Contains block row

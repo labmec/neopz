@@ -105,6 +105,8 @@ void TPZGeoMesh::CleanUp()
 	fElementVec.CompactDataStructure(1);
 	fNodeVec.Resize(0);
 	fNodeVec.CompactDataStructure(1);
+    this->fNodeMaxId = -1;
+    this->fElementMaxId = -1;
 }
 
 void TPZGeoMesh::SetName (const std::string &nm)

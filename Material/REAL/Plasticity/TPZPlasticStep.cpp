@@ -2872,6 +2872,33 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::Read(TPZStream &buf)
     buf.Read(&fInterfaceTensionSign);
 }
 
+/// modify the elastic response. Needs to be reimplemented for each instantiation
+template <class YC_t, class TF_t, class ER_t>
+void TPZPlasticStep<YC_t, TF_t, ER_t>::SetElasticResponse(TPZElasticResponse &ER)
+{
+    fER = ER;
+}
+
+template<>
+void TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>::SetElasticResponse(TPZElasticResponse &ER)
+{
+    DebugStop();
+}
+
+
+template <class YC_t, class TF_t, class ER_t>
+TPZElasticResponse TPZPlasticStep<YC_t, TF_t, ER_t>::GetElasticResponse() const
+{
+    return fER;
+}
+
+template<>
+TPZElasticResponse TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>::GetElasticResponse() const
+{
+    DebugStop();
+}
+
+
 
 template <class YC_t, class TF_t, class ER_t>
 TPZTensor<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::gRefDeform;
@@ -2910,7 +2937,6 @@ PlasticResidual<REAL, TFad<14,REAL> >(TPZPlasticState<REAL> const &,
                                       TPZVec<TFad<14,REAL> > const &,
                                       TPZVec<TFad<14,REAL> > &,
                                       REAL &, int)const;
-
 
 
 //template void TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>::

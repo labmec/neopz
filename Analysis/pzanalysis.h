@@ -265,6 +265,10 @@ public:
 	
 	/** @brief Print connect and solution information */
 	void Print( const std::string &name , std::ostream &out );
+    
+    /// Print the residual vector for those elements with entry above a given tolerance
+    void PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec, REAL tol = 1.e-10);
+    
 	/** @brief Get the solver matrix */
 	TPZMatrixSolver<STATE> & Solver();
 	/** @brief Run and print the solution step by step */

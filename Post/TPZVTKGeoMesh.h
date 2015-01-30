@@ -28,7 +28,7 @@ public:
 	~TPZVTKGeoMesh();
 	
 	/** @brief Generate an output of all geomesh to VTK */
-	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = false);
+	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = true);
 	
 	/** @brief Generate an output of all geomesh to VTK */
 	static void PrintGMeshVTK(TPZAutoPointer<TPZGeoMesh> gmesh, std::ofstream &file, bool matColor = false)
@@ -72,7 +72,7 @@ public:
     static void SetMaterialVTK(TPZGeoEl * gel, int mat);
 	
 	/** @brief Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file */
-	static void PrintGMeshVTKmy_material(TPZGeoMesh *gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor = false);
+	static void PrintGMeshVTKmy_material(TPZGeoMesh *gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor = true);
 	
 	/** @brief Get type of the geometric element */
 	static int GetVTK_ElType(TPZGeoEl *gel);

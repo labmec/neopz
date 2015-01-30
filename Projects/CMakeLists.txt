@@ -121,6 +121,8 @@ add_subdirectory(proDG)
 			add_subdirectory(Plasticity)
 
 			#add_subdirectory(projteste)
+			
+			add_subdirectory(Itasca)
 
 			# MHM project
 			add_subdirectory(MHM)

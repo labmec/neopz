@@ -307,7 +307,8 @@ void TPZAnalysis::Assemble()
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
-        fRhs.Print("Rhs",sout);
+        PrintVectorByElement(sout, fRhs, 1.e-6);
+//        fRhs.Print("Rhs",sout);
         LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
@@ -1065,5 +1066,73 @@ TPZVec<STATE> TPZAnalysis::Integrate(const std::string &varname, const std::set<
         }
     }
     return result;
+}
+
+/// extract the values corresponding to the connect from the vector
+static void ConnectSolution(long cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol)
+{
+    int blsize = cmesh->Block().Size(cindex);
+    int position = cmesh->Block().Position(cindex);
+    sol.resize(blsize);
+    for (long i=position; i< position+blsize; i++) {
+        sol[i-position] = glob(i,0);
+    }
+}
+
+static STATE ConnectNorm(long cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob)
+{
+    TPZManVector<STATE,20> cvec;
+    ConnectSolution(cindex, cmesh, glob, cvec);
+    STATE norm = 0.;
+    for (long i=0; i<cvec.size(); i++) {
+        norm += cvec[i]*cvec[i];
+    }
+    norm = sqrt(norm);
+    return norm;
+}
+
+/// Print the residual vector for those elements with entry above a given tolerance
+void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec, REAL tol)
+{
+    long nel = fCompMesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fCompMesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        int nc = cel->NConnects();
+        int ic;
+        for (ic=0; ic<nc; ic++) {
+            long cindex = cel->ConnectIndex(ic);
+            if (ConnectNorm(cindex, fCompMesh, vec) >= tol) {
+                break;
+            }
+        }
+        // if all connects have norm below tol, do not print the element
+        if (ic == nc) {
+            continue;
+        }
+        bool hasgeometry = false;
+        TPZManVector<REAL> xcenter(3,0.);
+        TPZGeoEl *gel = cel->Reference();
+        // if a geometric element exists, extract its center coordinate
+        if (gel) {
+            hasgeometry = true;
+            TPZManVector<REAL,3> xicenter(gel->Dimension(),0.);
+            gel->CenterPoint(gel->NSides()-1, xicenter);
+            gel->X(xicenter,xcenter);
+        }
+        out << "CompEl " << el;
+        if (hasgeometry) {
+            out << " Gel " << gel->Index() << " matid " << gel->MaterialId() << " Center " << xcenter << std::endl;
+        }
+        for (ic = 0; ic<nc; ic++) {
+            TPZManVector<STATE> connectsol;
+            long cindex = cel->ConnectIndex(ic);
+            ConnectSolution(cindex, fCompMesh, vec, connectsol);
+            out << ic << " index " << cindex << " values " << connectsol << std::endl;
+        }
+    }
+
 }
 

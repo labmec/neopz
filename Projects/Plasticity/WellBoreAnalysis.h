@@ -49,7 +49,8 @@ public:
     enum MFormationOrder {ESh = 0, ESH = 1, ESV = 2};
     
     /// boundary condition numbers
-    enum MWellBCs {EInner = -2, EBottom = -4, ELeft = -5, EOuter = -3, EBottomLiner = -7, ELeftLiner = -8, EInnerLiner = -9};
+    enum MWellBCs {EInner = -2, EBottom = -4, ELeft = -5, EOuter = -3, EBottomLiner = -7, ELeftLiner = -8, EInnerLiner = -9, ECavityReservoir = -10,
+            ECavityLiner = -11};
     
     /// material ids of the reservoir and pipe materials
     enum MSolidIds {EReservoir = 1, ELiner = 2};
@@ -148,6 +149,9 @@ public:
         /// Initialize the Sandler DiMaggio object and create the computational mesh
         void CreateComputationalMesh(int porder);
         
+        /// Initialize the Liner material object and create the computational elements
+        void AddLinerComputationalElements(int porder);
+        
         /// Setup post processing mesh
         void CreatePostProcessingMesh();
         
@@ -181,6 +185,12 @@ public:
         
         /// this method will configure the forcing function and boundary condition of the computational mesh
         void ConfigureBoundaryConditions();
+        
+        /// this method will configure the forcing function and boundary condition of the computational mesh
+        void ConfigureBoundaryConditionsNoCompletion();
+        
+        /// this method will configure the forcing function and boundary condition of the computational mesh
+        void ConfigureBoundaryConditionsWithCompletion();
         
         /// Set the Z deformation (for adapting the compaction)
         void SetZDeformation(STATE epsZ);
@@ -271,6 +281,16 @@ public:
         
         /// Inner radius of the liner ring
         REAL fLinerRadius;
+        
+        /// Initial axial stress of the liner
+        REAL fInitialAxialLinerStress;
+        
+        /// Number of elements in the radial direction
+        int fNumElementsRadialLiner;
+        
+        /// Initial p-order of the liner elements
+        int fInitialPOrderLiner;
+        
         
         /// Vector containing maximum element plastic deformation
         TPZVec<REAL> fPlasticDeformSqJ2;
@@ -452,6 +472,14 @@ public:
     {
         fCurrentConfig.fLinerRadius = innerliner;
     }
+    
+    /// Define the initial axial stress of the liner
+    void SetLinerAxialStress(REAL stress)
+    {
+        fCurrentConfig.fInitialAxialLinerStress = stress;
+    }
+    
+
     
     void SetMeshTopology(REAL delx, TPZVec<int> &nx)
     {

@@ -203,7 +203,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
 	
 	for(i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
-		if(!gel) continue;
+		if(!gel || gel->Reference()) continue;
 		if(!gel->HasSubElement()) {
 			int matid = gel->MaterialId();
 			TPZMaterial * mat = cmesh.FindMaterial(matid);
@@ -219,7 +219,10 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
 			
 			//checking material in MaterialIDs
             std::set<int>::const_iterator found = MaterialIDs.find(matid);
-            if (found == MaterialIDs.end()) continue;
+            if (found == MaterialIDs.end())
+            {
+                continue;
+            }
 			
 			if(!gel->Reference() && gel->NumInterfaces() == 0)
 			{

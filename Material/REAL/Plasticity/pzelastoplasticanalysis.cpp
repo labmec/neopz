@@ -270,6 +270,14 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
     bool precond = false;
     Assemble();
     REAL RhsNormPrev = Norm(fRhs);
+    
+#ifdef LOG4CXX
+    if (EPAnalysisLogger->isDebugEnabled()) {
+        std::stringstream sout;
+        PrintVectorByElement(sout, fRhs,1.e-5);
+        LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
+    }
+#endif
     std::cout << "Rhs norm on entry " << RhsNormPrev << std::endl;
 //    {
 //        std::ofstream out("../RhsIn.txt");

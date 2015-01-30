@@ -112,6 +112,10 @@ void TPZSandlerExtended::SetElasticResponse(TPZElasticResponse &ER)
     fG = ER.G();
 }
 
+TPZElasticResponse TPZSandlerExtended::GetElasticResponse() const {
+    return fElasticResponse;
+}
+
 
 void TPZSandlerExtended::Read(TPZStream &buf)
 {

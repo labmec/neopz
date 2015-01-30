@@ -356,14 +356,14 @@ TPZBlock<TVar>::PutBlock(const int bRow,const int bCol,const TPZFMatrix<TVar> & 
 /*** Get Block ***/
 template<class TVar>
 int
-TPZBlock<TVar>::GetBlock(const int bRow,const int bCol, TPZFMatrix<TVar> *const block ) const
+TPZBlock<TVar>::GetBlock(const int bRow,const int bCol, TPZFMatrix<TVar> &block ) const
 {
 	int row = fBlock[bRow].pos;
 	int col = fBlock[bCol].pos;
 	int rowDim = fBlock[bRow].dim;
 	int colDim = fBlock[bCol].dim;
 	if ( rowDim && colDim )
-		return( fpMatrix->GetSub( row, col, rowDim, colDim, *block ) );
+		return( fpMatrix->GetSub( row, col, rowDim, colDim, block ) );
 	else
 		return( 0 );
 }

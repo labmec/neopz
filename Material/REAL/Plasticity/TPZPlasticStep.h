@@ -44,6 +44,7 @@ public:
         return 1;
     }
     virtual void SetElasticResponse(TPZElasticResponse &ER) = 0;
+    virtual TPZElasticResponse GetElasticResponse() const = 0;
 //	virtual void SetIntegrTol(REAL integrTol)=0;
 	virtual const char * Name()const = 0;
 	virtual void Print(std::ostream & out)const = 0;
@@ -273,11 +274,9 @@ public:
     int IsStrainElastic(const TPZPlasticState<REAL> &state)const;
 	
     /// modify the elastic response. Needs to be reimplemented for each instantiation
-    virtual void SetElasticResponse(TPZElasticResponse &ER)
-    {
-        DebugStop();
-    }
-    
+    virtual void SetElasticResponse(TPZElasticResponse &ER);
+
+    virtual TPZElasticResponse GetElasticResponse() const;
     /**
 	 * @brief Update the damage values
 	 * @param[in] state Plastic state proposed

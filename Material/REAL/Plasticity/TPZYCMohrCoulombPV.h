@@ -125,6 +125,10 @@ public:
     {
         fER = ER;
     }
+    virtual TPZElasticResponse GetElasticResponse() const
+    {
+        return fER;
+    }
 	/**
 	 * @brief Calculates the value c(epsp) and its derivative
 	 */

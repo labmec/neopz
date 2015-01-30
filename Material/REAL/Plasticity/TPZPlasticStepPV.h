@@ -160,7 +160,12 @@ public:
 	virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
 
     virtual void SetElasticResponse(TPZElasticResponse &ER);
-    
+
+    virtual TPZElasticResponse GetElasticResponse() const
+    {
+        return fER;
+    }
+ 
     /**
 	 * @brief Update the damage values
 	 * @param[in] state Plastic state proposed

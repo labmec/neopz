@@ -117,9 +117,13 @@ public:
   
   virtual void SetElasticResponse(TPZElasticResponse &ER)
   {
-    DebugStop();
+      fER = ER;
   }
   
+    virtual TPZElasticResponse GetElasticResponse() const
+    {
+        return fER;
+    }
   /**
    * @brief Update the damage values
    * @param[in] state Plastic state proposed

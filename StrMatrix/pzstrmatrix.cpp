@@ -181,6 +181,11 @@ void TPZStructMatrixST::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     for(iel=0; iel < nelem; iel++) {
         TPZCompEl *el = elementvec[iel];
         if(!el) continue;
+        int matid = 0;
+        TPZGeoEl *gel = el->Reference();
+        if (gel) {
+            matid = gel->MaterialId();
+        }
         int matidsize = fMaterialIds.size();
         if(matidsize){
             TPZMaterial * mat = el->Material();
@@ -194,7 +199,6 @@ void TPZStructMatrixST::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             }
             else
             {
-                int matid = mat->Id();
                 if (this->ShouldCompute(matid) == false) continue;
             }
         }
@@ -284,13 +288,13 @@ void TPZStructMatrixST::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
                     TPZManVector<REAL> center(gel->Dimension()),xcenter(3,0.);
                     gel->CenterPoint(gel->NSides()-1, center);
                     gel->X(center, xcenter);
-                    sout << "Stiffness for computational element index " << el->Index() << std::endl;
+                    sout << "Stiffness for computational element index " << el->Index() << " material id " << gel->MaterialId() << std::endl;
                     sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
                 }
                 else {
                     sout << "Stiffness for computational element without associated geometric element\n";
                 }
-                ek.Print(sout);
+//                ek.Print(sout);
                 ef.Print(sout);
                 LOGPZ_DEBUG(loggerel,sout.str())
             }

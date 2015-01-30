@@ -60,6 +60,8 @@ public:
     
     void SetElasticResponse(TPZElasticResponse &ER);
     
+    virtual TPZElasticResponse GetElasticResponse() const;
+
     STATE GetR();
     
     void YieldFunction(const TPZVec<STATE>  &sigma, STATE kprev, TPZVec<STATE> &yield) const;
