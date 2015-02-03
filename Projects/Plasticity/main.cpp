@@ -205,6 +205,8 @@ void Config1()
         well.GetCurrentConfig()->CreateGeometricMesh();
         
         
+        well.GetCurrentConfig()->fHasCompletion = 0;
+		
         well.GetCurrentConfig()->CreateComputationalMesh(porder);
         
         
@@ -1667,22 +1669,21 @@ void Config9()
     confinementTotal[0] = Sh;
     confinementTotal[1] = SH;
     confinementTotal[2] = SV;
-    REAL WellPressure = 57.2; //66.6 61.1 57.2
+    REAL WellPressure = 55.; //66.6 61.1 57.2
     well.SetConfinementTotalStresses(confinementTotal, WellPressure);
-    
     
     REAL innerradius = 4.25*0.0254;
     REAL outerradius = 3.;
     well.SetInnerOuterRadius(innerradius, outerradius);
     
     
-    std::string output = "Config9.vtk";
+    std::string output = "Config99.vtk";
     well.SetVtkOutPutName(output);
     
     
     REAL sqj2_refine=0.0001;
     
-    int Startfrom=3;
+    int Startfrom=1;
     
     const int nsubsteps = 5;
     if (Startfrom == 0)
@@ -1738,6 +1739,8 @@ void Config9()
         
         
         well.GetCurrentConfig()->CreatePostProcessingMesh();
+		
+		well.GetCurrentConfig()->SetWellPressure(0.);
         
         well.PostProcess(0);
         
@@ -1774,6 +1777,19 @@ void Config9()
         out << "First pass\n";
 
         
+		well.GetCurrentConfig()->fHasCompletion = 1;
+        well.GetCurrentConfig()->fPostprocess.SetCompMesh(0);
+        
+        TPZElasticResponse ER;
+        ER.SetUp(210000., 0.27);
+        well.GetCurrentConfig()->fCompletionElastic.SetElasticResponse(ER);
+        well.GetCurrentConfig()->AddLinerComputationalElements(well.GetCurrentConfig()->fInitialPOrderLiner);
+		
+		
+//		WellPressure = 55.; //66.6 61.1 57.2
+//		well.GetCurrentConfig()->fWellborePressure = WellPressure;
+//		well.GetCurrentConfig()->SetWellPressure();
+		
         
         int substepsloc  = 1;
         well.PostProcess(0);
@@ -1818,13 +1834,13 @@ void Config9()
     }
     if (Startfrom <=3)
     {
-//        well.GetCurrentConfig()->fHasCompletion = 1;
-//        well.GetCurrentConfig()->fPostprocess.SetCompMesh(0);
-//        
-//        TPZElasticResponse ER;
-//        ER.SetUp(210000., 0.27);
-//        well.GetCurrentConfig()->fCompletionElastic.SetElasticResponse(ER);
-//        well.GetCurrentConfig()->AddLinerComputationalElements(well.GetCurrentConfig()->fInitialPOrderLiner);
+        well.GetCurrentConfig()->fHasCompletion = 1;
+        well.GetCurrentConfig()->fPostprocess.SetCompMesh(0);
+        
+        TPZElasticResponse ER;
+        ER.SetUp(210000., 0.27);
+        well.GetCurrentConfig()->fCompletionElastic.SetElasticResponse(ER);
+        well.GetCurrentConfig()->AddLinerComputationalElements(well.GetCurrentConfig()->fInitialPOrderLiner);
         
         well.ExecuteSimulation(1, std::cout);
         

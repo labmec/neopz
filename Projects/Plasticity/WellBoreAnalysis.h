@@ -140,7 +140,6 @@ public:
         
         /// Add the completion ring to the geometric mesh
         void AddGeometricRingElements();
-        
         /// Return the mesh used for computations (multiphysics mesh or fCMesh)
         TPZCompMesh *CompMeshUsed();
         
@@ -183,6 +182,13 @@ public:
         // factor = 1 corresponds to pure well pressure
         void SetWellPressure(STATE factor = 1.);
         
+        /// this method will modify the boundary condition of the computational mesh and the forcing function
+		void SetWellPressureWithCompletion(STATE factor = 1.);
+
+		/// this method will modify the boundary condition of the computational mesh and the forcing function
+		void SetWellPressureNoCompletion(STATE factor = 1.);
+
+		
         /// this method will configure the forcing function and boundary condition of the computational mesh
         void ConfigureBoundaryConditions();
         

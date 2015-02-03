@@ -243,7 +243,8 @@ void TPZWellBoreAnalysis::TConfig::ConfigureBoundaryConditionsWithCompletion()
     k2(0,0)=(1.-fBiotCoef)*fWellborePressure;
     k2(1,1)=(1.-fBiotCoef)*fWellborePressure;
     k2(2,2)=0.;
-    prev = fCMesh.FindMaterial(EInner);
+    //prev = fCMesh.FindMaterial(EInner); //Ta certo isso Philippe?
+	prev = fCMesh.FindMaterial(ECavityReservoir);//Mudamos para isso	
     prevbnd = dynamic_cast<TPZBndCond *>(prev);
     if(!prevbnd || prevbnd->Material() != matreservoir)
     {
@@ -1137,12 +1138,86 @@ void TPZWellBoreAnalysis::TConfig::SetZDeformation(STATE epsZ)
     fZDeformation = epsZ;
 }
 
-
-
 /// this method will modify the boundary condition of the computational mesh and the forcing function
 void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE factor)
 {
-    // nao pode mudar a condicao de contorno com este metodo quando ha completacao
+    if (fHasCompletion == 0) {
+        SetWellPressureNoCompletion(factor);
+    }
+    else
+    {
+        SetWellPressureWithCompletion(factor);
+    }
+}
+
+
+void TPZWellBoreAnalysis::TConfig::SetWellPressureNoCompletion(STATE factor)
+{
+	if (fHasCompletion) {
+		 DebugStop();
+    }
+    
+    TPZMaterial *matreservoir = fCMesh.FindMaterial(EReservoir);    
+    if (!matreservoir) {
+        DebugStop();
+    }
+	
+	TPZMaterial * mat;
+		
+	mat = fCMesh.FindMaterial(EInner);
+    TPZBndCond * pBCInner = dynamic_cast<TPZBndCond *>(mat);
+	
+	mat = fCMesh.FindMaterial(ECavityReservoir);
+    TPZBndCond * pBCCavityReservoir = dynamic_cast<TPZBndCond *>(mat);
+		
+	
+    if (!pBCInner || !pBCCavityReservoir) {
+        DebugStop();
+    }
+		
+    TPZAutoPointer<TPZFunction<STATE> > force = matreservoir->ForcingFunction();
+    if (!force) {
+        force = new TPBrBiotForce();
+        matreservoir->SetForcingFunction(force);
+    }
+	
+    TPBrBiotForce *biotforce = dynamic_cast<TPBrBiotForce *>(force.operator->());
+    if (!biotforce) {
+        DebugStop();
+    }
+	
+	REAL porePressureAtWellbore, porePressureAtFarfield;
+	
+	if (fFluidModel == EPenetrating){
+		porePressureAtWellbore = fWellborePressure * factor + fReservoirPressure * (1. - factor);
+		porePressureAtFarfield = fReservoirPressure;
+	}else{
+		porePressureAtWellbore = fReservoirPressure;
+		porePressureAtFarfield = fReservoirPressure;
+	}
+	
+	biotforce->SetConstants(fInnerRadius, fOuterRadius, porePressureAtWellbore, porePressureAtFarfield, fBiotCoef);
+	
+	// Total to Effective Farfield Stress calculation
+	TPZTensor<STATE> boundarytensor;
+    FromPhysicalDomaintoComputationalDomainStress(fConfinementTotal, boundarytensor);
+    boundarytensor.XX() += fBiotCoef*fReservoirPressure;
+    boundarytensor.YY() += fBiotCoef*fReservoirPressure;
+	
+	TPZFNMatrix<9,STATE> mattemp(3,3,0.);
+	
+	mattemp(0,0) = factor*(-(fWellborePressure-fBiotCoef*porePressureAtWellbore))+(1.-factor)*boundarytensor.XX();
+	mattemp(1,1) = factor*(-(fWellborePressure-fBiotCoef*porePressureAtWellbore))+(1.-factor)*boundarytensor.YY();
+	
+	pBCInner->Val1()=mattemp;
+	if (pBCCavityReservoir) {
+		pBCCavityReservoir->Val1() = mattemp;
+	}
+	
+	
+	
+	
+ /*   // nao pode mudar a condicao de contorno com este metodo quando ha completacao
     if (fHasCompletion) {
         DebugStop();
     }
@@ -1182,7 +1257,7 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE factor)
     
     if (fFluidModel == EPenetrating)
     {
-        biotforce->SetConstants(inner, outer, wellpressure, reservoirpressure,factor*biot);
+        biotforce->SetConstants(inner, outer, wellpressure, reservoirpressure,factor*biot); //Phil, porque factor * biot? 10 linhas abaixo apenas biot? 
         TPZFNMatrix<9,STATE> mattemp(3,3,0.);
         mattemp(0,0) = factor*(-(1.-biot)*fWellborePressure)+(1.-factor)*boundarytensor.XX();
         mattemp(1,1) = factor*(-(1.-biot)*fWellborePressure)+(1.-factor)*boundarytensor.YY();
@@ -1201,7 +1276,94 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressure(STATE factor)
             pBC2->Val1() = mattemp;
         }
     }
+    */
+	
+}
+
+void TPZWellBoreAnalysis::TConfig::SetWellPressureWithCompletion(STATE factor)
+{
+    if (!fHasCompletion) {
+	    DebugStop();
+    }
     
+    TPZMaterial *matreservoir = fCMesh.FindMaterial(EReservoir);
+    TPZMaterial *matliner = fCMesh.FindMaterial(ELiner);
+		
+    if (!matliner || !matreservoir) {
+        DebugStop();
+    }
+		
+	TPZMaterial * mat;
+	
+	mat = fCMesh.FindMaterial(EInnerLiner);
+    TPZBndCond * pBCInnerLiner = dynamic_cast<TPZBndCond *>(mat);
+
+	mat = fCMesh.FindMaterial(ECavityLiner);
+    TPZBndCond * pBCCavityLiner = dynamic_cast<TPZBndCond *>(mat);
+
+	mat = fCMesh.FindMaterial(EInner);
+    TPZBndCond * pBCInner = dynamic_cast<TPZBndCond *>(mat);
+
+	mat = fCMesh.FindMaterial(ECavityReservoir);
+    TPZBndCond * pBCCavityReservoir = dynamic_cast<TPZBndCond *>(mat);
+	
+
+	
+    if (!pBCInnerLiner || !pBCCavityLiner || !pBCInner || !pBCCavityReservoir) {
+        DebugStop();
+    }
+
+	
+    TPZAutoPointer<TPZFunction<STATE> > force = matreservoir->ForcingFunction();
+    if (!force) {
+        force = new TPBrBiotForce();
+        matreservoir->SetForcingFunction(force);
+    }
+	
+    TPBrBiotForce *biotforce = dynamic_cast<TPBrBiotForce *>(force.operator->());
+    if (!biotforce) {
+        DebugStop();
+    }
+	
+	
+	REAL porePressureAtWellbore, porePressureAtFarfield;
+	
+	if (fFluidModel == EPenetrating){
+		porePressureAtWellbore = fWellborePressure * factor + fReservoirPressure * (1. - factor);
+		porePressureAtFarfield = fReservoirPressure;
+	}else{
+		porePressureAtWellbore = fReservoirPressure;
+		porePressureAtFarfield = fReservoirPressure;
+	}
+	
+	biotforce->SetConstants(fInnerRadius, fOuterRadius, porePressureAtWellbore, porePressureAtFarfield, fBiotCoef);
+		
+	// Total to Effective Farfield Stress calculation
+	TPZTensor<STATE> boundarytensor;
+    FromPhysicalDomaintoComputationalDomainStress(fConfinementTotal, boundarytensor);
+    boundarytensor.XX() += fBiotCoef*fReservoirPressure;
+    boundarytensor.YY() += fBiotCoef*fReservoirPressure;
+	
+	TPZFNMatrix<9,STATE> mattemp(3,3,0.);
+	
+	//interface entre revestimento e reservatorio
+	mattemp(0,0) = factor*(fBiotCoef*porePressureAtWellbore)+(1.-factor)*boundarytensor.XX();
+	mattemp(1,1) = factor*(fBiotCoef*porePressureAtWellbore)+(1.-factor)*boundarytensor.YY();
+	pBCInner->Val1() = mattemp;
+	
+	//face livre do reservatorio no breakout
+	mattemp(0,0) = factor*(-(fWellborePressure-fBiotCoef*porePressureAtWellbore))+(1.-factor)*boundarytensor.XX();
+	mattemp(1,1) = factor*(-(fWellborePressure-fBiotCoef*porePressureAtWellbore))+(1.-factor)*boundarytensor.YY();
+	pBCCavityReservoir->Val1() = mattemp;
+	
+	//face livre do liner no breakout  
+	mattemp(0,0) = factor*(-fWellborePressure)+(1.-factor)*boundarytensor.XX();
+	mattemp(1,1) = factor*(-fWellborePressure)+(1.-factor)*boundarytensor.YY();
+	pBCCavityLiner->Val1() = mattemp;
+	
+	//face livre do liner no interior do poco
+	pBCInnerLiner->Val1() = mattemp;
+
 }
 
 
