@@ -455,8 +455,8 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
     
     //Computing cylindricaldisplacements
     REAL ur,utheta;
-    ur=ux*costheta-uy*sintheta;
-    utheta=ux*sintheta+uy*costheta;
+    ur=    ux*RT(0,0) + uy*RT(0,1);
+    utheta=ux*RT(1,0) + uy*RT(1,1);
     
     //Computing cylindrical total strain
     TPZFNMatrix<9> epsRadTotal(3,3,0.);
@@ -470,7 +470,7 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
     
     //Computing cylindrical elastic strain
     TPZFNMatrix<9> epsRadElastic(3,3,0.);
-    RT.Multiply(plasticStrain,temp);
+    RT.Multiply(elasticStrain,temp);
     temp.Multiply(Rot, epsRadElastic);
     
     

@@ -994,7 +994,8 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, std::ostream &out)
     int NumIter = 50;
     bool linesearch = true;
     bool checkconv = false;
-    REAL tol =1.e-5;
+    //REAL tol =1.e-5;
+    REAL tol =1.e-6;
     bool conv;
     
     int ncycles = 1;
