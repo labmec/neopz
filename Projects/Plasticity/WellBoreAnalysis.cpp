@@ -907,19 +907,36 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, std::ostream &out)
     TConfig &LocalConfig = fCurrentConfig;
     
     /// compute the total stresses applied at the well boundary
-    int BCId=EInner;
-    TPZMaterial * mat = fCurrentConfig.fCMesh.FindMaterial(BCId);
-    TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
-    if (!pBC) {
-#ifdef DEBUG
-        DebugStop();
-#endif
+
+    STATE SX, SY;
+
+    if(! GetCurrentConfig()->fHasCompletion)
+    {
+        int BCId=EInner;
+        TPZMaterial * mat = fCurrentConfig.fCMesh.FindMaterial(BCId);
+        TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+        if (!pBC) {
+    #ifdef DEBUG
+            DebugStop();
+    #endif
+        }
+        SX=pBC->Val1().GetVal(0,0);//effective
+        SY=pBC->Val1().GetVal(1,1);//effective
+        SX=SX-fCurrentConfig.fBiotCoef*fCurrentConfig.fReservoirPressure;//total
+        SY=SY-fCurrentConfig.fBiotCoef*fCurrentConfig.fReservoirPressure;//total
+    }else{
+        //HasCompletion
+        int BCId=EInnerLiner;
+        TPZMaterial * mat = fCurrentConfig.fCMesh.FindMaterial(BCId);
+        TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+        if (!pBC) {
+    #ifdef DEBUG
+            DebugStop();
+    #endif
+        }
+        SX=pBC->Val1().GetVal(0,0);//Already Total
+        SY=pBC->Val1().GetVal(1,1);//Already Total
     }
-    STATE SX=pBC->Val1().GetVal(0,0);//effective
-    STATE SY=pBC->Val1().GetVal(1,1);//effective
-    SX=SX-fCurrentConfig.fBiotCoef*fCurrentConfig.fReservoirPressure;//total
-    SY=SY-fCurrentConfig.fBiotCoef*fCurrentConfig.fReservoirPressure;//total
-    
     
     out << " Substep " << substeps << " - (total stresses) "<< " SX  = " << SX << " SY  = " << SY << std::endl;
     
