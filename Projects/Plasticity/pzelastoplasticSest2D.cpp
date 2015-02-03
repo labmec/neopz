@@ -229,6 +229,7 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::VariableIndex(const std::string &name)
   if(!strcmp("DisplacementY",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementY;
   if(!strcmp("DisplacementZ",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementZ;
   if(!strcmp("DisplacementTotal",	name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementTotal;
+  if(!strcmp("DisplacementVec",	name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementVec;
   if(!strcmp("TotStressI1",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressI1;
   if(!strcmp("TotStressJ2",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressJ2;
   if(!strcmp("TotStressXX",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressXX;
@@ -322,7 +323,8 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::NSolutionVariables(int var)
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementX)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementY)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementZ)		 return 1;
-  if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementTotal)	 return 2;
+  if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementTotal)	 return 1;
+  if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EDisplacementVec)	 return 2;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressI1)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressJ2)		 return 1;
   if(var == TPZMatElastoPlasticSest2D<T,TMEM>::ETotStressXX)		 return 1;
@@ -563,9 +565,12 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
       Solout[0] = 0.; //DUVIDA
       break;
     case EDisplacementTotal:
-          Solout[0] = ux;
-          Solout[1] = uy;
-      break;
+      Solout[0] = sqrt(ux*ux+uy*uy);
+	  break;
+	case EDisplacementVec:
+      Solout[0] = ux;
+	  Solout[0] = uy;
+	  break;
       // Total Stress
     case ETotStressI1:
       Solout[0] = totalStress.I1();

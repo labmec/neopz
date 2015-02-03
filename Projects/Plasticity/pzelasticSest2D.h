@@ -103,7 +103,9 @@ class TPZElasticityMaterialSest2D : public TPZMatElasticity2D {
         // Material
         EMatPorosity = 56,
         EMatE = 57,
-        EMatPoisson = 58 };
+        EMatPoisson = 58,
+	
+	    EDisplacementVec = 77};
     
     /** @brief Default constructor */
     TPZElasticityMaterialSest2D();

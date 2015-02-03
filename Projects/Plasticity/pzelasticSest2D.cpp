@@ -78,6 +78,7 @@ int TPZElasticityMaterialSest2D::VariableIndex(const std::string &name)
     if(!strcmp("DisplacementY",		name.c_str()))  return TPZElasticityMaterialSest2D::EDisplacementY;
     if(!strcmp("DisplacementZ",		name.c_str()))  return TPZElasticityMaterialSest2D::EDisplacementZ;
     if(!strcmp("DisplacementTotal",	name.c_str()))  return TPZElasticityMaterialSest2D::EDisplacementTotal;
+    if(!strcmp("DisplacementVec",	name.c_str()))  return TPZElasticityMaterialSest2D::EDisplacementVec;
     if(!strcmp("TotStressI1",		name.c_str()))  return TPZElasticityMaterialSest2D::ETotStressI1;
     if(!strcmp("TotStressJ2",		name.c_str()))  return TPZElasticityMaterialSest2D::ETotStressJ2;
     if(!strcmp("TotStressXX",		name.c_str()))  return TPZElasticityMaterialSest2D::ETotStressXX;
@@ -145,7 +146,8 @@ int TPZElasticityMaterialSest2D::NSolutionVariables(int var)
     if(var == TPZElasticityMaterialSest2D::EDisplacementX)	 return 1;
     if(var == TPZElasticityMaterialSest2D::EDisplacementY)	 return 1;
     if(var == TPZElasticityMaterialSest2D::EDisplacementZ)	 return 1;
-    if(var == TPZElasticityMaterialSest2D::EDisplacementTotal)	 return 2;
+	if(var == TPZElasticityMaterialSest2D::EDisplacementTotal)	 return 1;
+    if(var == TPZElasticityMaterialSest2D::EDisplacementVec)	 return 2;
     if(var == TPZElasticityMaterialSest2D::ETotStressI1)		 return 1;
     if(var == TPZElasticityMaterialSest2D::ETotStressJ2)		 return 1;
     if(var == TPZElasticityMaterialSest2D::ETotStressXX)		 return 1;
@@ -334,10 +336,12 @@ void TPZElasticityMaterialSest2D::Solution(TPZMaterialData &data, int var, TPZVe
         case EDisplacementZ:{
             Solout[0] = 0.;} // Always usnig plane strain
             break;
-        case EDisplacementTotal:{
-            for (int i = 0; i < 2; i++){
-                Solout[i] = SolU[i];}
-        }
+        case EDisplacementTotal:
+		    Solout[0] = sqrt(SolU[0]*SolU[0]+SolU[1]*SolU[1]);
+		    break;
+		case EDisplacementVec:
+		    Solout[0] = SolU[0];
+			Solout[1] = SolU[1];
             break;
             // Total Stress
         case ETotStressI1:{

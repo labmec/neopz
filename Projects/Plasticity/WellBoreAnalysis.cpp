@@ -1309,7 +1309,7 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressureWithCompletion(STATE factor)
 	
 
 	
-    if (!pBCInnerLiner || !pBCCavityLiner || !pBCInner || !pBCCavityReservoir) {
+    if (!pBCInnerLiner || !pBCInner ) {
         DebugStop();
     }
 
@@ -1351,19 +1351,23 @@ void TPZWellBoreAnalysis::TConfig::SetWellPressureWithCompletion(STATE factor)
 	mattemp(1,1) = factor*(fBiotCoef*porePressureAtWellbore)+(1.-factor)*boundarytensor.YY();
 	pBCInner->Val1() = mattemp;
 	
-	//face livre do reservatorio no breakout
-	mattemp(0,0) = factor*(-(fWellborePressure-fBiotCoef*porePressureAtWellbore))+(1.-factor)*boundarytensor.XX();
-	mattemp(1,1) = factor*(-(fWellborePressure-fBiotCoef*porePressureAtWellbore))+(1.-factor)*boundarytensor.YY();
-	pBCCavityReservoir->Val1() = mattemp;
-	
-	//face livre do liner no breakout  
+	//face livre do liner no interior do poco
 	mattemp(0,0) = factor*(-fWellborePressure)+(1.-factor)*boundarytensor.XX();
 	mattemp(1,1) = factor*(-fWellborePressure)+(1.-factor)*boundarytensor.YY();
-	pBCCavityLiner->Val1() = mattemp;
-	
-	//face livre do liner no interior do poco
 	pBCInnerLiner->Val1() = mattemp;
-
+	
+	if (pBCCavityLiner && pBCCavityReservoir) {
+	    //face livre do liner no breakout  
+		mattemp(0,0) = factor*(-fWellborePressure)+(1.-factor)*boundarytensor.XX();
+		mattemp(1,1) = factor*(-fWellborePressure)+(1.-factor)*boundarytensor.YY();
+		pBCCavityLiner->Val1() = mattemp;
+		
+		//face livre do reservatorio no breakout
+		mattemp(0,0) = factor*(-(fWellborePressure-fBiotCoef*porePressureAtWellbore))+(1.-factor)*boundarytensor.XX();
+		mattemp(1,1) = factor*(-(fWellborePressure-fBiotCoef*porePressureAtWellbore))+(1.-factor)*boundarytensor.YY();
+		pBCCavityReservoir->Val1() = mattemp;
+    }
+	
 }
 
 
