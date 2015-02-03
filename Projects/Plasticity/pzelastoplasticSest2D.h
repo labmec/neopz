@@ -116,15 +116,15 @@ public:
       UR=65,
       UT=66,
         
-      EStrainR=67,
+      EStrainRR=67,
       EStrainRT=68,
       EStrainTT=69,
         
-      EElStrainR=70,
+      EElStrainRR=70,
       EElStrainRT=71,
       EElStrainTT=72,
         
-      EPlStrainR=73,
+      EPlStrainRR=73,
       EPlStrainRT=74,
       EPlStrainTT=75,
 		
