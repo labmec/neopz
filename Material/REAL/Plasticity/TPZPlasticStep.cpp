@@ -2896,6 +2896,9 @@ template<>
 TPZElasticResponse TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>::GetElasticResponse() const
 {
     DebugStop();
+	//Must return something
+	TPZElasticResponse ret;
+	return ret;
 }
 
 

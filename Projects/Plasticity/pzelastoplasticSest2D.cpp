@@ -274,15 +274,15 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::VariableIndex(const std::string &name)
     
     
 
-  if(!strcmp("EStrainR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EStrainR;
+  if(!strcmp("EStrainRR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EStrainRR;
   if(!strcmp("EStrainRT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EStrainRT;
   if(!strcmp("EStrainTT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EStrainTT;
     
-  if(!strcmp("EElStrainR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainR;
+  if(!strcmp("EElStrainRR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainRR;
   if(!strcmp("EElStrainRT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainRT;
   if(!strcmp("EElStrainTT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainTT;
     
-  if(!strcmp("EPlStrainR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainR;
+  if(!strcmp("EPlStrainRR",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainRR;
   if(!strcmp("EPlStrainRT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainRT;
   if(!strcmp("EPlStrainTT",		name.c_str()))  return TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainTT;
     
@@ -370,15 +370,15 @@ int TPZMatElastoPlasticSest2D<T,TMEM>::NSolutionVariables(int var)
     if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EEffStressTT)     return 1;
     
     
-    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainR)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainRR)     return 1;
     if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainRT)     return 1;
     if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EStrainTT)     return 1;
     
-    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainR)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainRR)     return 1;
     if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainRT)     return 1;
     if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EElStrainTT)     return 1;
     
-    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainR)     return 1;
+    if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainRR)     return 1;
     if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainRT)     return 1;
     if(var == TPZMatElastoPlasticSest2D<T,TMEM>::EPlStrainTT)     return 1;
 
@@ -727,7 +727,7 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
           Solout[0] =utheta;}
           break;
           
-      case EStrainR:{
+      case EStrainRR:{
           Solout[0] = epsRadTotal(0,0);}
           break;
       case EStrainRT:{
@@ -737,7 +737,7 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
           Solout[0] = epsRadTotal(1,1);}
           break;
           
-      case EElStrainR:{
+      case EElStrainRR:{
           Solout[0] = epsRadElastic(0,0);}
           break;
       case EElStrainRT:{
@@ -747,7 +747,7 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
           Solout[0] = epsRadElastic(1,1);}
           break;
           
-      case EPlStrainR:{
+      case EPlStrainRR:{
           Solout[0] = epsRadPlastic(0,0);}
           break;
       case EPlStrainRT:{
