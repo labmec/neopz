@@ -2621,15 +2621,15 @@ void TPZWellBoreAnalysis::PostProcessVariables(TPZStack<std::string> &scalNames,
     vecNames.Resize(0);
     
     
-    scalNames.Push("EStrainR");
+    scalNames.Push("EStrainRR");
     scalNames.Push("EStrainRT");
     scalNames.Push("EStrainTT");
     
-    scalNames.Push("EElStrainR");
+    scalNames.Push("EElStrainRR");
     scalNames.Push("EElStrainRT");
     scalNames.Push("EElStrainTT");
     
-    scalNames.Push("EPlStrainR");
+    scalNames.Push("EPlStrainRR");
     scalNames.Push("EPlStrainRT");
     scalNames.Push("EPlStrainTT");
     
