@@ -207,7 +207,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 #include "pztransfer.h"
 
-int main(int argc, char *argv[])
+int main3(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG();
