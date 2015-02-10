@@ -418,6 +418,7 @@ int TPZMatPoisson3d::VariableIndex(const std::string &name){
     if(!strcmp("GradFluxX",name.c_str()))       return  19;
     if(!strcmp("GradFluxY",name.c_str()))       return  20;
      if(!strcmp("FluxL2",name.c_str()))            return  21;//Only To calculate l2 error
+	 if(!strcmp("OrdemP",name.c_str()))        return  99;
 	return TPZMaterial::VariableIndex(name);
 }
 
