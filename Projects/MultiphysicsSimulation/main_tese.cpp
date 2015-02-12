@@ -57,6 +57,7 @@
 
 #include <math.h>
 #include <set>
+#include "TPZVTKGeoMesh.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
@@ -72,7 +73,7 @@ const int bc0 = -1;
 const int bc1 = -2;
 const int bc2 = -3;
 const int bc3 = -4;
-bool fTriang = true;
+bool fTriang = false;
 
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly,bool triang_elements);
 
@@ -80,6 +81,9 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh);
 TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh);
 TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh);
 void UniformRefine2(TPZGeoMesh* gmesh, int nDiv);
+
+TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh, int p_ordem);
+void SolSuaveH1(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
 void PrintGMeshVTK2(TPZGeoMesh * gmesh, std::ofstream &file);
 
@@ -89,6 +93,7 @@ void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out);
 void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out);
 
+//void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp,TPZFMatrix<STATE> &du);
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
@@ -99,7 +104,7 @@ void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 
 int main(int argc, char *argv[])
 {
-    //InitializePZLOG();
+    InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -119,28 +124,45 @@ int main(int argc, char *argv[])
 //        }
         
         saidaerros<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for(int h=0; h<5; h++){
+        for(int h=1; h<5; h++){
             saidaerros << "\nRefinamento: h = "<< h <<"\n";
             
             /*------------ Etapa 1 ------------*/
             
             // Criando a malha geométrica
             TPZGeoMesh * gmesh = MalhaGeom(1,1,fTriang);
-            UniformRefine2(gmesh,h);
             
-            // Criando a primeira malha computacional
+            std::ofstream myfile1("malhageo.txt");
+            gmesh->Print(myfile1);
+            
+            //Refinamento da malha geometrica
+            UniformRefine2(gmesh,1);
+            
+            std::ofstream myfile2("malhageo2D.vtk");
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh,myfile2,true);
+            
+            ///Criando a primeira malha computacional
             TPZCompMesh * cmesh1= CMeshFlux(pq,gmesh);
             
-            // Criando a segunda malha computacional
+            std::ofstream myfile3("malha-comp1.txt");
+            cmesh1->Print(myfile3);
+            
+            ///Criando a segunda malha computacional
             TPZCompMesh * cmesh2 = CMeshPressure(pp,gmesh);
             
+            std::ofstream myfile4("malha-comp2.txt");
+            cmesh2->Print(myfile4);
 
-            // Criando a malha computacional multifísica
-            //malha multifisica
+            
+
+            ///Criando a malha computacional multifísica
             TPZVec<TPZCompMesh *> meshvec(2);
             meshvec[0] = cmesh1;
             meshvec[1] = cmesh2;
+            
             TPZCompMesh * mphysics = MalhaCompMultifisica(meshvec,gmesh);
+            std::ofstream myfile5("malha-multifisica.txt");
+            mphysics->Print(myfile5);
 
           
             /*---------- Etapa 4 ----------*/
@@ -153,8 +175,8 @@ int main(int argc, char *argv[])
 
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             // Arquivo de saida para plotar a solução
-            //string plotfile("Solution_mphysics.vtk");
-            //SaidaSolucao(an, plotfile);
+            string plotfile("Solution_mphysics.vtk");
+            SaidaSolucao(an, plotfile);
             
             saidaerros<<"\n\nErro da simulacao multifisica  para o flux";
             //TPZAnalysis an1(cmesh1);
@@ -174,22 +196,119 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+///MEF H1
+
+//int main(int argc, char *argv[])
+//{
+//    InitializePZLOG();
+//    gRefDBase.InitializeUniformRefPattern(EOned);
+//    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+//    gRefDBase.InitializeUniformRefPattern(ETriangle);
+//    
+//    TPZVec<REAL> erros;
+//    ofstream saidaerros("Erros.txt");
+//    saidaerros << "\nCalculo do Erro\n";
+//    for(int p=1; p<2; p++){
+//        saidaerros << "\n";
+//        
+//        int pq = p;
+//        int pp = p;
+//        //        if(fTriang==true){
+//        //            pp = pq-1;
+//        //        }else{
+//        //            pp = p;
+//        //        }
+//        
+//        saidaerros<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
+//        for(int h=0; h<5; h++){
+//            saidaerros << "\nRefinamento: h = "<< h <<"\n";
+//            
+//            // Criando a malha geométrica
+//            TPZGeoMesh * gmesh = MalhaGeom(1,1,fTriang);
+//            
+//            std::ofstream myfile1("malhageo1.txt");
+//            gmesh->Print(myfile1);
+//            
+//            
+//            std::ofstream myfile2("malhageo2D.vtk");
+//            TPZVTKGeoMesh::PrintGMeshVTK(gmesh,myfile2,true);
+//            
+//            //Refinamento da malha geometrica
+//            UniformRefine2(gmesh,3);
+//            
+//            std::ofstream myfile3("malhageo2.txt");
+//            gmesh->Print(myfile3);
+//            
+//            std::ofstream myfile4("malhageo2D2.vtk");
+//            TPZVTKGeoMesh::PrintGMeshVTK(gmesh,myfile4,true);
+//            
+//            TPZCompMesh *cmesh = MalhaCompH1(gmesh, 2);
+//            std::ofstream myfile5("malha-comp.txt");
+//            cmesh->Print(myfile5);
+//
+//            
+//
+//            ///Construção do problema algébrico e inversão do sistema
+//            TPZAnalysis an(cmesh,false);
+//            
+//            ///Criando a estrutura da matrix
+//            TPZSkylineStructMatrix full(cmesh); //caso simetrico
+//            an.SetStructuralMatrix(full);
+//            
+//            ///Decomposicao LDLt
+//            TPZStepSolver<STATE> step;
+//            step.SetDirect(ELDLt);
+//            an.SetSolver(step);
+//            
+//            ///Assemblagem da mariz de rigidez e vetor de carga
+//            an.Assemble();
+//            
+//            ///Resolucao do sistema
+//            an.Solve();
+//
+/////Pos-processamento da solucao -------------
+//            
+//            ///Exportando para Paraview
+//            TPZManVector<std::string,10> scalnames(1), vecnames(1);
+//            string plotfile("Saida_Solution.vtk");
+//            scalnames[0] = "Solution";
+//            vecnames[0] = "Derivative";
+//            an.DefineGraphMesh(2,scalnames,vecnames,plotfile);
+//            an.PostProcess(0,2);
+//            
+//            ///Calculando erro de aproximação
+//            an.SetExact(*SolSuaveH1);
+//            an.PostProcessError(erros, saidaerros);
+//            
+//        }
+//    }
+//    
+//    return EXIT_SUCCESS;
+//}
+
 #include "pzgengrid.h"
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
 {
+    ///Criando malha geometrica
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    
+    //Construcao do dominio retangular
     TPZManVector<int,2> nx(2,1);
-    TPZManVector<REAL,3> x0(3,0.),x1(3,0);
+    TPZManVector<REAL,3> x0(3,0.),x1(3,0.);
+    //ponto inicial
+    x0[0] = x0[1] = 0.;
+    //ponto final
     x1[0] = Lx;
     x1[1] = Ly;
+    
     TPZGenGrid gengrid(nx,x0,x1);
-    TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(fTriang)
     {
         gengrid.SetElementType(ETriangle);
     }
     gengrid.Read(gmesh);
     
-    //elementos de contorno
+    //Elementos de contorno
     TPZManVector<REAL,3> firstpoint(3,0.),secondpoint(3,0.);
     
     secondpoint[0] = Lx;
@@ -207,42 +326,51 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
     secondpoint[1] = 0.;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc3);
     
+    //Construindo conectividade da malha
+    gmesh->BuildConnectivity();
+    
     return gmesh;
 }
 
         
 TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
 {
-    /// criar materiais
+    
     int dim = 2;
+    
+    ///Criar material
     TPZMatPoisson3d *material;
     material = new TPZMatPoisson3d(MatId,dim);
-    TPZMaterial * mat(material);
     material->NStateVariables();
+    TPZMaterial * mat(material);
     
     
+    ///Malha computacional
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDimModel(dim);
-    
-    cmesh->SetAllCreateFunctionsHDiv();
-    
     cmesh->InsertMaterialObject(mat);
+    
+     cmesh->SetDimModel(dim);
+    
+    ///Funcoes do tipo Hdiv
+    cmesh->SetAllCreateFunctionsHDiv();
     
     ///Criar condicoes de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,bcdirichlet, val1, val2);
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,bcdirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,bcdirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,bcdirichlet, val1, val2);
+    int type = 0;//bcdirichlet
+    TPZMaterial * BC0 = material->CreateBC(mat, bc0, type, val1, val2);
+    TPZMaterial * BC1 = material->CreateBC(mat, bc1, type, val1, val2);
+    TPZMaterial * BC2 = material->CreateBC(mat, bc2, type, val1, val2);
+    TPZMaterial * BC3 = material->CreateBC(mat, bc3, type, val1, val2);
+    cmesh->InsertMaterialObject(BC0);
+    cmesh->InsertMaterialObject(BC1);
+    cmesh->InsertMaterialObject(BC2);
+    cmesh->InsertMaterialObject(BC3);
     
-    cmesh->InsertMaterialObject(BCond0);
-    cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond2);
-    cmesh->InsertMaterialObject(BCond3);
-   
+    ///Inserir ordem polinomial
     cmesh->SetDefaultOrder(pOrder);
-    cmesh->SetDimModel(dim);
-    cmesh->AutoBuild();//Ajuste da estrutura de dados computacional
+    
+    //Ajuste da estrutura de dados computacional
+    cmesh->AutoBuild();
     
     //#ifdef LOG4CXX
     //	if(logdata->isDebugEnabled())
@@ -259,36 +387,25 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
         
 TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh)
 {
-    /// criar materiais
     int dim = 2;
+    
+    ///Criar material
     TPZMatPoisson3d *material;
     material = new TPZMatPoisson3d(MatId,dim);
     material->NStateVariables();
-
-    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
+
+    ///Malha computacional
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->InsertMaterialObject(mat);
-
-    ///Inserir condicao de contorno
-    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-
-    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,bcdirichlet, val1, val2);
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,bcdirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,bcdirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,bcdirichlet, val1, val2);
-
-    cmesh->InsertMaterialObject(BCond0);
-    cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond2);
-    cmesh->InsertMaterialObject(BCond3);
-
     
-    cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
 
-
+    ///Funcoes do tipo L2
     cmesh->SetAllCreateFunctionsDiscontinuous();
+    
+    ///Inserir ordem polinomial
+    cmesh->SetDefaultOrder(pOrder);
     
     //Ajuste da estrutura de dados computacional
     cmesh->AutoBuild();
@@ -423,6 +540,67 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     return mphysics;
 }
 
+TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh, int p_ordem){
+    
+    int dim =2;
+    
+    //Criando malha computacional
+    TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDefaultOrder(p_ordem);
+    cmesh->SetDimModel(dim);
+    
+    
+    //Criando material
+    TPZMatPoisson3d *material;
+    material = new TPZMatPoisson3d(MatId,dim);
+    
+    
+    //Inserindo o material na malha computacional
+    TPZMaterial *mat(material);
+    cmesh->InsertMaterialObject(mat);
+    
+    //Inserindo dados do problema
+    TPZVec<REAL> convdir(2,0.);
+    material->SetParameters(-1., 0.,convdir);
+    //Funcao do lado direito da equacao do problema
+    TPZAutoPointer<TPZFunction<STATE> > force;
+    TPZDummyFunction<STATE> *dum;
+    dum = new TPZDummyFunction<STATE>(ForcingF);
+    dum->SetPolynomialOrder(20);
+    force = dum;
+    material->SetForcingFunction(force);
+    
+    
+    //Inserindo as condicoes de contorno
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    
+    TPZMaterial * BCond1;
+    TPZMaterial * BCond2;
+    TPZMaterial * BCond3;
+    TPZMaterial * BCond4;
+    
+    BCond1 = material->CreateBC(mat, bc0,bcdirichlet, val1, val2);
+    BCond2 = material->CreateBC(mat, bc1,bcdirichlet, val1, val2);
+    BCond3 = material->CreateBC(mat, bc2,bcdirichlet, val1, val2);
+    BCond4 = material->CreateBC(mat, bc3,bcdirichlet, val1, val2);
+    
+    cmesh->InsertMaterialObject(BCond1);
+    cmesh->InsertMaterialObject(BCond2);
+    cmesh->InsertMaterialObject(BCond3);
+    cmesh->InsertMaterialObject(BCond4);
+    
+    
+    //Criando malha com funcoes do tipo H1
+    cmesh->SetAllCreateFunctionsContinuous();
+    
+    
+    //Criando elementos computacionais
+    cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    return cmesh;
+}
 
 #define VTK
 void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh)
@@ -438,11 +616,12 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	
     
 	//Saida de Dados: solucao e  grafico no VTK
-	ofstream file("Solution.out");
-	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
+	//ofstream file("Solution.out");
+	//an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
 	
 }
 
+//void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix<STATE> &du){
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 	double x = pt[0];
     double y = pt[1];
@@ -462,8 +641,24 @@ void SolSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     
     du(0,0) = -M_PI*cos(M_PI*x)*sin(M_PI*y);//-k*Grad(u)[[0]]
     du(1,0) = -M_PI*cos(M_PI*y)*sin(M_PI*x);////-k*Grad(u)[[1]]
-    du(2,0) = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
+   du(2,0) = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
 }
+
+void SolSuaveH1(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
+    
+    const REAL x = loc[0];
+    const REAL y = loc[1];
+    u.Resize(1, 0.);
+    du.Resize(2, 1.);
+    du(0,0)=du(1,0)=0.;
+    
+    const REAL sol = sin(M_PI*x)*sin(M_PI*y);
+    u[0] = sol;
+    
+    du(0,0) = M_PI*cos(M_PI*x)*sin(M_PI*y);//Grad(u)[[0]]
+    du(1,0) = M_PI*cos(M_PI*y)*sin(M_PI*x);//Grad(u)[[1]]
+}
+
 
 void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,-1.};
