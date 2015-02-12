@@ -1821,12 +1821,14 @@ void ErrorL2Zconst(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
     long nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
     TPZManVector<STATE,10> globalerrors(10,0.);
+    globalerrors.Fill(0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<STATE,10> elerror(10,0.);
+        elerror.Fill(0.);
         cel->EvaluateError(SolExataZconst, elerror, NULL);
         int nerr = elerror.size();
-        globalerrors.resize(nerr);
+       // globalerrors.resize(nerr);
 #ifdef LOG4CXX
         if (logdata->isDebugEnabled()) {
             std::stringstream sout;
