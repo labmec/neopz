@@ -97,6 +97,11 @@ namespace pzgeom {
             buf.Write(&fR,1);
 		}
 
+        bool IsLinearMapping() const
+        {
+            return false;
+        }
+
 		
 	};
 

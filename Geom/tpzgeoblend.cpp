@@ -28,13 +28,14 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 	else
 	{
 #ifdef LOG4CXX
+        
 		std::stringstream mess;
 		mess << "Trying to SetNeighbourInfo for an already set element\n";
 		mess << "* this * = " << __PRETTY_FUNCTION__ << "\n";
 		this->Print(mess);
 		mess << "* neigh * = \n";
 		neigh.Element()->Print(mess);
-		LOGPZ_DEBUG(logger,mess.str());
+		LOGPZ_WARN(logger,mess.str());
 #endif
 	}
 }
@@ -417,13 +418,13 @@ void pzgeom::TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
     for(int byside = TGeo::NNodes; byside < (TGeo::NSides); byside++)
     {
         TPZGeoElSide ElemSide(refel,byside);
-        TPZGeoElSide NextSide(refel,byside);
-        if(!NextSide.Neighbour().Element()) continue;
-        while(NextSide.Neighbour().Element() != ElemSide.Element())
+        TPZGeoElSide NextSide(ElemSide.Neighbour());
+        if(!NextSide.Element()) continue;
+        while(NextSide.Element() != ElemSide.Element())
         {
-            if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
+            if(NextSide.Exists() && !NextSide.Element()->IsLinearMapping() && !NextSide.Element()->IsGeoBlendEl())
             {
-                TPZGeoElSide NeighSide = NextSide.Neighbour();
+                TPZGeoElSide NeighSide = NextSide;
                 TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
                 ElemSide.SideTransform3(NeighSide,NeighTransf);
                 SetNeighbourInfo(byside,NeighSide,NeighTransf);

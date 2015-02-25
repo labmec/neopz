@@ -111,7 +111,7 @@ namespace pzgeom
 										  TPZVec<long>& nodeindexes,
 										  int matid,
 										  long& index);
-		void Print(std::ostream &out)
+		void Print(std::ostream &out) const
 		{
 			pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Print(out);
 			out << "fCenter3D " << fCenter3D << " finitialVector " << finitialVector << std::endl;

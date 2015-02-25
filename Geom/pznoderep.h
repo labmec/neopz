@@ -54,7 +54,8 @@ namespace pzgeom {
                         DebugStop();
                 }
                
-                bool IsLinearMapping() const { return true; }
+                bool IsLinearMapping() const;
+            
                 bool IsGeoBlendEl() const
                 {
                         return false;

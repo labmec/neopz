@@ -23,6 +23,13 @@
 using namespace pztopology;
 using namespace pzgeom;
 
+template<int N, class Topology>
+bool TPZNodeRep<N,Topology>::IsLinearMapping() const
+{
+    return true;
+}
+
+
 template class TPZNodeRep<1,TPZPoint>;
 template class TPZNodeRep<2,TPZLine>;
 template class TPZNodeRep<3,TPZTriangle>;
