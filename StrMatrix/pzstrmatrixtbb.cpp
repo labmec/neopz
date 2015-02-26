@@ -850,21 +850,41 @@ TPZStructMatrixTBB::TPZGraphThreadData::~TPZGraphThreadData() {
 TPZStructMatrixTBB::TPZGraphThreadData::TPZGraphThreadData(TPZVec<int> fnextBlocked, TPZVec<int> felSequenceColor)
 : fStart(fAssembleGraph)
 {
+    int numberOfElements=felSequenceColor.NElements();
     this->felSequenceColor=felSequenceColor;
     fGraphNodes.resize(felSequenceColor.NElements());
     for (int i=0; i<felSequenceColor.NElements(); i++) {
         fGraphNodes[i]= new continue_node<continue_msg>(fAssembleGraph, TPZGraphThreadNode(this, i));
-    }
-    // initial edges to independent nodes
-    for (int i=0; i<felSequenceColor.NElements(); i++) {
+    }    
+    // creating a set of the elements that will be locked
+    std::set<int> lockedELements;
+    for (int i=0; i<numberOfElements; i++)
+        if (fnextBlocked[i]!=-1)
+            lockedELements.insert(fnextBlocked[i]);
+    // create root
+    for (int i=0; i<(*lockedELements.begin()); i++) {
         make_edge(fStart, *fGraphNodes[i]);
     }
-    // edges from sucessors to nextBlockedElements
-    for (int i=0; i<felSequenceColor.NElements(); i++) {
-        int next=fnextBlocked[i];
-        if (next>0) make_edge(*fGraphNodes[i], *fGraphNodes[next]);
+    // percorre os pares de intervalos (construindo intervalos de coloração)
+    std::set<int>::iterator first=lockedELements.begin();
+    std::set<int>::iterator second=lockedELements.begin();
+    // o segundo elemento no conjunto (std::set)
+    second++;
+    while (second!=lockedELements.end()) {
+        // criando arestas
+        for (int dest=(*first)+1; dest<=(*second); dest++) {
+            make_edge(*fGraphNodes[(*first)], *fGraphNodes[dest]);
+        }
+        // incrementando iteradores
+        first++;
+        second++;
     }
- 
+    
+        for (int i=0; i<numberOfElements; i++) {
+            int next=fnextBlocked[i];
+            if (next>0)
+                make_edge(*fGraphNodes[i], *fGraphNodes[next]);
+        }
 }
 
 #endif
