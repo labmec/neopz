@@ -88,7 +88,16 @@ public:
 	
 	// Contribute Methods
 	
-	/**
+    /** @brief Not used contribute methods */
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+    {
+        DebugStop();
+    }
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+    {
+        DebugStop();
+    }
+    /**
 	 * It computes a contribution to the stiffness matrix and load vector at one integration point.
 	 * @param data[in] stores all input data
 	 * @param weight[in] is the weight of the integration rule
@@ -96,7 +105,16 @@ public:
 	 * @param ef[out] is the load vector
 	 * @since April 16, 2007
 	 */
-	void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
+    /**
+     * It computes a contribution to the load vector at one integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ef[out] is the load vector
+     * @since April 16, 2007
+     */
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
 	
 	/**
 	 * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -107,7 +125,7 @@ public:
 	 * @param bc[in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
-	void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
 	
 	/**
 	 * Unique identifier for serialization purposes

@@ -1,5 +1,5 @@
-#ifndef TPZProblemDATAH
-#define TPZProblemDATAH
+#ifndef TPZSimulationDATAH
+#define TPZSimulationDATAH
 /*
  *  SimulationData.h
  *  PZ
@@ -60,6 +60,7 @@ private:
     
     /** @brief Broyden iterations */
     bool fIsBroyden;
+
 	
 public:
 
@@ -75,20 +76,31 @@ public:
     /** @brief Get Time - s */
     REAL GetTime() const {return this->fTime;}
     
+    /** @brief Set Tolerance for  Delta X */
+    void SetToleranceDX(REAL dxtol) {this->ftoleranceDeltaX = dxtol;}
+    
+    /** @brief Get Tolerance for  Delta X */
+    REAL GetToleranceDX() const {return this->ftoleranceDeltaX;}
+    
+    /** @brief Set Tolerance for  Residual vector */
+    void SetToleranceRes(REAL restol) {this->ftoleranceResiual = restol;}
+    
+    /** @brief Get Tolerance for  Residual vector */
+    REAL GetToleranceRes() const {return this->ftoleranceResiual;}
+    
     /** @brief Set Maximum newton iterations - - */
     void SetMaxiterations(int Maxiterations){this->fMaxiterations = Maxiterations;}
     
     /** @brief Get Maximum newton iterations - - */
     int GetMaxiterations() const {return this->fMaxiterations;}
     
-    /** @brief Set Maximum newton iterations - - */
-    void SetMaxiterations(REAL Maxiterations){this->fMaxiterations = Maxiterations;}
-    
     /** @brief Using Broyden iterations */
     void SetIsBroyden(bool Broyden) {fIsBroyden = Broyden;}
     
     /** @brief Using Broyden iterations */
     bool GetIsBroyden() {return fIsBroyden;}
+
+
     
 };
 

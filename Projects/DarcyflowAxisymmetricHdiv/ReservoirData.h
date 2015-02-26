@@ -1,5 +1,5 @@
-#ifndef TPZProblemDATAH
-#define TPZProblemDATAH
+#ifndef TPZReservoirDATAH
+#define TPZReservoirDATAH
 /*
  *  ReservoirData.h
  *  PZ
@@ -41,15 +41,22 @@ public:
     
     /** @brief Characteristic viscosity - Pa s */
     REAL fEtaref;
-    
-    /** @brief Density at P of reference - kg/m3 */
-    REAL fRhoRef;
+
     
     /** @brief Porosity at P of reference - */
-    REAL fPhiRef;
+    REAL fPhiref;
+    
+    /** @brief Rock Compressibility 1/pa - */
+    REAL fcrock;
+    
+    /** @brief Fluid Compressibility 1/pa - */
+    REAL fcfluid;
     
     /** @brief absolute permeability */
     TPZFMatrix<REAL> fKab;
+    
+    /** @brief absolute permeability inverse */
+    TPZFMatrix<REAL> fKabinv;
 	
 	ReservoirData();
 	
@@ -65,13 +72,13 @@ public:
 	 * @brief \f$ Oil density RhoOil = RhoOil( P ) \f$
 	 * @param P fluid pressure
 	 */
-	void RhoOil(REAL P, REAL &Rho, REAL &dRhoDpo);
+	void Density(REAL P, REAL &Rho, REAL &dRhoDpo);
 
 	/**
 	 * @brief Oil viscosity. \f$ OilViscosity = ViscOil( P ) \f$
 	 * @param P fluid pressure
 	 */
-	void OilViscosity(REAL P, REAL &Viscosity, REAL &dViscosityDpo);
+	void Viscosity(REAL P, REAL &Viscosity, REAL &dViscosityDpo);
 
     /** @brief Set the characteristic length - m */
     void SetLref(REAL Lref) {fLref = Lref; }
@@ -104,11 +111,57 @@ public:
     REAL Etaref() {return fEtaref;}
 
     /** @brief Porosity at P of reference - */
-    void SetPhiRef(REAL PhiRef) {fPhiRef = PhiRef;}
+    void SetPhiRef(REAL Phiref) {fPhiref = Phiref;}
     
     /** @brief Porosity at P of reference - */
-    REAL PhiRef() {return fPhiRef;}
+    REAL PhiRef() {return fPhiref;}
+    
+    /** @brief Set rock compressibility 1/pa- */
+    void SetcRock(REAL cr) {fcrock = cr;}
+    
+    /** @brief Get rock compressibility 1/pa - */
+    REAL CRock() {return fcrock;}
+    
+    /** @brief Set fluid compressibility 1/pa- */
+    void SetcFluid(REAL cf) {fcfluid = cf;}
+    
+    /** @brief Get fluid compressibility 1/pa - */
+    REAL CFluid() {return fcfluid;}
+    
+    /** @brief Material indexes */
+    TPZVec<int> fmaterialIds;
 	
+    /** @brief Set the absolute Permeability - m2 */
+    void SetKabsolute(TPZFMatrix<REAL> Kab)
+    {
+        fKab = Kab;
+        STATE detKab;
+        detKab = fKab(0,0)*fKab(1,1)-fKab(1,0)*fKab(0,1);
+        
+        if (fabs(detKab) <= 1.0*10-14) {
+            std::cout << " Kab Matrix doesn't have Inverse, det =  " << detKab << std::endl;
+            DebugStop();
+        }
+        
+        fKabinv(0,0) = +1.0*fKab(1,1)/detKab;
+        fKabinv(0,0) = -1.0*fKab(0,1)/detKab;
+        fKabinv(0,0) = -1.0*fKab(1,0)/detKab;
+        fKabinv(0,0) = +1.0*fKab(0,0)/detKab;
+        
+    }
+    
+    /** @brief Get the absolute Permeability - m2 */
+    TPZFMatrix<REAL> Kabsolute() {return fKab;}
+    
+    /** @brief Get the absolute Permeability inverse - 1/m2 */
+    TPZFMatrix<REAL> KabsoluteInv() {return fKabinv;}
+    
+    /** @brief Get the material indexes */
+    void SetMatIDs(TPZVec<int> &matids) {fmaterialIds=matids;}
+    
+    /** @brief Get the material indexes */
+    TPZVec<int> GetMatIDs() {return fmaterialIds;}
+    
 };
 
 

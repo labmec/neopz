@@ -27,14 +27,27 @@ ReservoirData::ReservoirData()
     fEtaref=0;
     
     /** @brief Density at P of reference - kg/m3 */
-    fRhoRef=0;
+    fRhoref=0;
     
     /** @brief Porosity at P of reference - */
-    fPhiRef=0;
+    fPhiref=0;
+    
+    /** @brief Rock Compressibility 1/pa - */
+    fcrock=0;
+    
+    /** @brief Fluid Compressibility 1/pa - */
+    fcfluid=0;
+    
+    /** @brief Material indexes */
+    fmaterialIds.Resize(0);
     
     /** @brief absolute permeability */
     fKab.Resize(2,2);
     fKab.Zero();
+    
+    /** @brief absolute permeability inverse */
+    fKabinv.Resize(2,2);
+    fKabinv.Zero();
 	
 }
 
@@ -50,28 +63,26 @@ ReservoirData::~ReservoirData()
  */
 void ReservoirData::Porosity(REAL P, REAL &poros, REAL &dPorosDp)
 {
-    REAL cR = 1.0e-10;
-    poros = fPhiRef*(1.0+cR*(P-fPref));
-    dPorosDp = fPhiRef*cR;
+    poros = fPhiref*(1.0+fcrock*(P-fPref));
+    dPorosDp = fPhiref*fcrock;
 }
 
 /**
  * @brief \f$ Oil density RhoOil = RhoOil( P ) \f$
  * @param P fluid pressure
  */
-void ReservoirData::RhoOil(REAL P, REAL &Rho, REAL &dRhoDp)
+void ReservoirData::Density(REAL P, REAL &rho, REAL &drhoDp)
 {
-    REAL cf = 1.0e-8;
-    Rho = fRhoref*(1.0+cf*(P-fPref));
-    dRhoDp = fRhoRef*cf;
+    rho = fRhoref*(1.0+fcfluid*(P-fPref));
+    drhoDp = fRhoref*fcfluid;
 }
 
 /**
  * @brief Oil viscosity. \f$ OilViscosity = ViscOil( P ) \f$
  * @param P fluid pressure
  */
-void ReservoirData::OilViscosity(REAL P, REAL &Viscosity, REAL &dViscosityDp)
+void ReservoirData::Viscosity(REAL P, REAL &eta, REAL &detaDp)
 {
-    Viscosity = 0.005; // 5 [cP] -> 0.005 [Pa s]
-    dViscosityDp = 0.0;
+    eta = fEtaref;
+    detaDp = 0.0;
 }

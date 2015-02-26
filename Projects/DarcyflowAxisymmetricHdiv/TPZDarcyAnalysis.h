@@ -2,6 +2,7 @@
 #define TPZDarcyAnalysisH
 
 #include "SimulationData.h"
+#include "ReservoirData.h"
 #include "pznonlinanalysis.h"
 
 #include "tpzautopointer.h"
@@ -32,11 +33,24 @@ private:
     
     // Simulation data required for complete the analysis
     TPZAutoPointer<SimulationData> fSimulationData;
+    
+    // Reservoir datas required for metrial definition
+    TPZVec<TPZAutoPointer<ReservoirData > > fLayers;
+    
+    /** @brief Geometric mesh */
+    TPZGeoMesh * fgmesh;
+    
+    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
+    TPZManVector<TPZCompMesh * , 2> fmeshvec;
+    
+    /** @brief Multphysics cmesh for mixed analysis */
+    TPZCompMesh * fcmeshMixed;
+    
 	
 public:
 	
 	/// Constructor which already sets the cmesh
-	TPZDarcyAnalysis(TPZCompMesh *Computationalmesh, std::ostream &out = std::cout);
+    TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers);
 	
 	/// Destructor
 	~TPZDarcyAnalysis();
@@ -91,6 +105,52 @@ public:
      * Get the simulation data,
      */
     TPZAutoPointer<SimulationData> GetSimulationData() {return fSimulationData;}
+    
+    /**
+     * Rotate the geometric mesh around Z axis
+     */
+    void RotateGeomesh(REAL CounterClockwiseAngle);
+    
+    /**
+     * Uniform Refinement
+     */
+    void UniformRefinement(int nh);
+
+    /**
+     * Read the geometric from dump file
+     */
+    void ReadGeoMesh(std::string GridFileName);
+
+    /**
+     * Print geometric
+     */
+    void PrintGeoMesh();
+
+    /**
+     * Create the computational mesh for flux Q
+     */
+    TPZCompMesh * CmeshFlux(int qorder);
+    
+    /**
+     * Create the computational mesh for flux P
+     */
+    TPZCompMesh * CmeshPressure(int Porder);
+    
+    /**
+     * Create the computational mixed
+     */
+    TPZCompMesh * CmeshMixed();
+    
+    /**
+     * Create the computational mixed
+     */
+    void CreateMultiphysicsMesh(int q, int p);
+    
+    /**
+     * Create vtk file
+     */
+    void PostProcessVTK(TPZAnalysis *an);
+
     
 };
 
