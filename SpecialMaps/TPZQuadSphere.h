@@ -109,6 +109,10 @@ namespace pzgeom {
 			DebugStop();
 		}
 		
+        bool IsLinearMapping() const
+        {
+            return false;
+        }
 		
 	};
 	
