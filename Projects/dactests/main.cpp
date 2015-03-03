@@ -141,6 +141,7 @@ void RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis);
 TPZGeoMesh *GMesh(int dimensao, bool ftriang, int ndiv);
 
 TPZGeoMesh *GMeshCirculoGeob(int dimensao, int ndiv);
+TPZGeoMesh *GMeshCirculoGeobTriang(int dimensao, int ndiv);
 TPZGeoMesh *GMeshCirculoQuad(int dimensao, int ndiv);
 
 TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv);
@@ -276,6 +277,7 @@ int main(int argc, char *argv[])
                 if (isgeoblend) {
 
                     gmesh = GMeshCirculoGeob(2, ndiv);
+                    //gmesh = GMeshCirculoGeobTriang(2, ndiv);
 //                    {
 //                        //  Print Geometrical Base Mesh
 //                        std::ofstream Dummyfile("GeometricMesh2DH0.vtk");
@@ -2406,13 +2408,240 @@ TPZGeoMesh *GMeshCirculoGeob(int dimensao, int ndiv)
     new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
     elementid++;
     
+    // Create Geometrical Quad #5
+    nodeindex[0] = 8;
+    nodeindex[1] = 9;
+    nodeindex[2] = 10;
+    nodeindex[3] = 11;
+    new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
 //    // Create Geometrical Quad #5
+//    nodeindex.resize(3);
 //    nodeindex[0] = 8;
 //    nodeindex[1] = 9;
-//    nodeindex[2] = 10;
-//    nodeindex[3] = 11;
-//    new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
+//    nodeindex[2] = 12;
+//    new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle >  (elementid,nodeindex, matId,*gmesh);
 //    elementid++;
+//    // Create Geometrical Quad #5
+//    nodeindex[0] = 9;
+//    nodeindex[1] = 10;
+//    nodeindex[2] = 12;
+//    new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle >  (elementid,nodeindex, matId,*gmesh);
+//    elementid++;
+//    // Create Geometrical Quad #5
+//    nodeindex[0] = 10;
+//    nodeindex[1] = 11;
+//    nodeindex[2] = 12;
+//    new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle >  (elementid,nodeindex, matId,*gmesh);
+//    elementid++;
+//    // Create Geometrical Quad #5
+//    nodeindex[0] = 11;
+//    nodeindex[1] = 8;
+//    nodeindex[2] = 12;
+//    new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle >  (elementid,nodeindex, matId,*gmesh);
+//    elementid++;
+    
+    // Definition of Arc coordenates
+    nodeindex.resize(3);
+    // Create Geometrical Arc #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 4;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc3, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #2
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 5;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #3
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 6;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1, *gmesh);
+    elementid++;
+    
+    // Create Geometrical Arc #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 7;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2, *gmesh);
+    
+    
+    
+    gmesh->BuildConnectivity();
+    
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("CurvoCirculo.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
+
+TPZGeoMesh *GMeshCirculoGeobTriang(int dimensao, int ndiv)
+{
+    if(dim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * gmesh;// = new TPZGeoMesh;
+    
+    // description of Geometry and application
+    // 2D Cylindrical Domain boundaries
+    //int matId = 1;
+    int arc1 = bc1; // -1;
+    int arc2 = bc2; // -2;
+    int arc3 = bc3; // -3;
+    int arc4 = bc4; // -4;
+    
+    int nodenumber = 13;
+    REAL ModelRadius = 1.5;
+    REAL ModelRadiusInt2 = 0.5;//ModelRadius/2.;
+    
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+    
+    // Setting node coordantes for Arc3D 1
+    int id = 0;
+    //0
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //1
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+    id++;
+    //2
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //3
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y
+    id++;
+    //4
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //5
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //6
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //7
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,sqrt(2.)*ModelRadius/2.);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-sqrt(2.)*ModelRadius/2.);//coord Y
+    id++;
+    //8
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //9
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,ModelRadiusInt2);//coord Y
+    id++;
+    //10
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,-ModelRadiusInt2 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    id++;
+    //11
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,-ModelRadiusInt2);//coord Y
+    id++;
+    //12
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+    
+    int elementid = 0;
+    TPZVec < long > nodeindex(3,0.0);
+    nodeindex.resize(3);
+    
+    // Create Geometrical Quad #1
+    nodeindex[0] = 0;
+    nodeindex[1] = 1;
+    nodeindex[2] = 9;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #2
+    nodeindex[0] = 0;
+    nodeindex[1] = 9;
+    nodeindex[2] = 8;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #3
+    nodeindex[0] = 1;
+    nodeindex[1] = 2;
+    nodeindex[2] = 10;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #4
+    nodeindex[0] = 1;
+    nodeindex[1] = 10;
+    nodeindex[2] = 9;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    
+    // Create Geometrical Quad #4
+    nodeindex[0] = 2;
+    nodeindex[1] = 3;
+    nodeindex[2] = 11;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Quad #4
+    nodeindex[0] = 2;
+    nodeindex[1] = 11;
+    nodeindex[2] = 10;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Quad #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 0;
+    nodeindex[2] = 8;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Quad #4
+    nodeindex[0] = 3;
+    nodeindex[1] = 8;
+    nodeindex[2] = 11;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+    elementid++;
     
     // Create Geometrical Quad #5
     nodeindex.resize(3);
@@ -2487,8 +2716,8 @@ TPZGeoMesh *GMeshCirculoGeob(int dimensao, int ndiv)
     }
     
     
-    std::ofstream out("CurvoCirculo.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    std::ofstream out("CurvoCirculoCTriang.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
     
     return gmesh;
 }
