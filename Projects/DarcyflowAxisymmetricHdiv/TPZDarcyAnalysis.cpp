@@ -16,6 +16,9 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSkylineNSymStructMatrix.h"
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
+#endif
 
 TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation,TPZVec<TPZAutoPointer<ReservoirData> > Layers)
 {
@@ -98,7 +101,7 @@ void TPZDarcyAnalysis::Run()
     #ifdef LOG4CXX
         std::string FileName = dirname;
         FileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-        FileName += "DarcyFlow.cfg";
+        FileName += "DarcyFlowLog.cfg";
         InitializePZLOG(FileName);
     #endif
     
@@ -106,7 +109,8 @@ void TPZDarcyAnalysis::Run()
     //  Reading mesh
     std::string GridFileName;
     GridFileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-    GridFileName += "SingleLayer.dump";
+//    GridFileName += "SingleLayer.dump";
+    GridFileName += "BatatacoarseQ.dump";
     
     ReadGeoMesh(GridFileName);
     this->UniformRefinement(0);
@@ -126,10 +130,48 @@ void TPZDarcyAnalysis::Run()
     an->SetSolver(step);
     an->SetStructuralMatrix(skyl);
     
+//    this->PrintLS(an);
+    
     an->Run();
+    
+//    an->AssembleResidual();
+//    TPZFMatrix<STATE> Res = an->Rhs();
+//    
+//    std::cout << "Residual norm " << Norm(Res) << std::endl;
+    
+    
+//    NewtonIterations(an);
+    
+//#ifdef LOG4CXX
+//    if (logger->isDebugEnabled()) {
+//        std::stringstream out;
+//        an->Solution().Print(" Alphas = ",out,EMathematicaInput);
+////        Res.Print(" Res = ",out,EMathematicaInput);
+//        LOGPZ_DEBUG(logger, out.str());
+//    }
+//#endif
     
     this->PostProcessVTK(an);
     
+}
+
+void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
+{
+    an->Assemble();
+    TPZAutoPointer< TPZMatrix<REAL> > matK;
+    TPZFMatrix<STATE> fvec;
+    matK=an->Solver().Matrix();
+    fvec = an->Rhs();
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        matK->Print("matK = ", sout,EMathematicaInput);
+        fvec.Print("fvec = ", sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
     
 }
 
@@ -150,6 +192,58 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p)
     
 }
 
+void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
+{
+
+    TPZFMatrix<STATE> Residual(an->Rhs().Rows(),1,0.0);
+    
+    an->Assemble();
+    Residual = an->Rhs();
+    
+    TPZFMatrix<STATE> X(an->Rhs().Rows(),1,0.0);
+    TPZFMatrix<STATE> DeltaX(an->Rhs().Rows(),1,0.0);
+    
+    STATE error=1;
+    int iterations=0;
+    
+    while (error >= fSimulationData->GetToleranceRes() && iterations <= fSimulationData->GetMaxiterations()) {
+        
+        
+        an->Solve();
+        DeltaX = an->Solution();
+        
+        X += DeltaX;
+        
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+            X.Print("X = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+        
+        fcmeshMixed->LoadSolution(X);
+        
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
+
+        an->AssembleResidual();
+        Residual = an->Rhs();
+        
+        error = Norm(Residual);
+        iterations++;
+        
+        if (iterations == fSimulationData->GetMaxiterations()) {
+            std::cout << "leaving newto process ... " << std::endl;
+            break;
+        }
+        
+    }
+    
+
+}
+
 TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
 {
     int dim = 2;
@@ -160,8 +254,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     int topId = fLayers[ilayer]->GetMatIDs()[3];
     int leftId = fLayers[ilayer]->GetMatIDs()[4];
     
-    const int typeFlux = 0, typePressure = 1;
-    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
+    const int typeFlux = 1, typePressure = 0;
+    TPZFMatrix<STATE> val1(1,2,0.), val2(1,1,0.);
     
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
@@ -177,29 +271,21 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     // Bc Bottom
     val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
     TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
     cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    val2(2,0) = 1.0*10e+6;
+    val2(0,0) = 0.1;
     TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
     cmesh->InsertMaterialObject(bcRight);
     
     // Bc Top
     val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
     TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
     cmesh->InsertMaterialObject(bcTop);
     
     // Bc Left
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    val2(2,0) = -0.002;
+    val2(0,0) = 0.1;
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
     cmesh->InsertMaterialObject(bcLeft);
     
@@ -252,9 +338,12 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
     
     // Setando Hdiv
     cmesh->SetDimModel(2);
-    cmesh->AutoBuild();    
     cmesh->SetDefaultOrder(qorder);
     cmesh->SetAllCreateFunctionsHDiv();
+    
+    
+    cmesh->AutoBuild();
+
     
 #ifdef DEBUG
     std::ofstream out("cmeshFlux.txt");
@@ -336,11 +425,15 @@ void TPZDarcyAnalysis::ReadGeoMesh(std::string GridFileName)
 
 void TPZDarcyAnalysis::PrintGeoMesh()
 {
+    
+#ifdef DEBUG
     //  Print Geometrical Base Mesh
     std::ofstream argument("GeometicMesh.txt");
     fgmesh->Print(argument);
     std::ofstream Dummyfile("GeometricMesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(fgmesh,Dummyfile, true);
+    
+#endif
 }
 
 void TPZDarcyAnalysis::RotateGeomesh(REAL CounterClockwiseAngle)
@@ -391,7 +484,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile = "2DMixedDarcy.vtk";
     scalnames.Push("Pressure");
-//    vecnames.Push("Velocity");
+    vecnames.Push("Velocity");
     an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an->PostProcess(div);
 }

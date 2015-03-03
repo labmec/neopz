@@ -132,9 +132,10 @@ public:
     TPZVec<int> fmaterialIds;
 	
     /** @brief Set the absolute Permeability - m2 */
-    void SetKabsolute(TPZFMatrix<REAL> Kab)
+    void SetKabsolute(TPZFMatrix<REAL> &Kab)
     {
         fKab = Kab;
+        fKabinv = Kab;
         STATE detKab;
         detKab = fKab(0,0)*fKab(1,1)-fKab(1,0)*fKab(0,1);
         
@@ -144,9 +145,9 @@ public:
         }
         
         fKabinv(0,0) = +1.0*fKab(1,1)/detKab;
-        fKabinv(0,0) = -1.0*fKab(0,1)/detKab;
-        fKabinv(0,0) = -1.0*fKab(1,0)/detKab;
-        fKabinv(0,0) = +1.0*fKab(0,0)/detKab;
+        fKabinv(0,1) = -1.0*fKab(0,1)/detKab;
+        fKabinv(1,0) = -1.0*fKab(1,0)/detKab;
+        fKabinv(1,1) = +1.0*fKab(0,0)/detKab;
         
     }
     

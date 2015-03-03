@@ -3,12 +3,15 @@
 #include "ReservoirData.h"
 #include "SimulationData.h"
 #include "TPZDarcyAnalysis.h"
+#include "pzlog.h"
 
 
 #include <time.h>
 
 
-
+#ifdef LOG4CXX
+static LoggerPtr logdata(Logger::getLogger("pz.DarcyFlow"));
+#endif
 
 int main()
 {
@@ -17,7 +20,7 @@ int main()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 20;
+    int maxiter     = 5;
     bool broyden    = false;
     
     REAL hour       = 3600;

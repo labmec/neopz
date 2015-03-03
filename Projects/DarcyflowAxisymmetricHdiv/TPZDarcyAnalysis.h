@@ -151,6 +151,15 @@ public:
      */
     void PostProcessVTK(TPZAnalysis *an);
 
+    /**
+     * Print the global linear system
+     */
+    void PrintLS(TPZAnalysis *an);
+    
+    /**
+     * Computes the newton Iterations
+     */
+    void NewtonIterations(TPZAnalysis *an);
     
 };
 

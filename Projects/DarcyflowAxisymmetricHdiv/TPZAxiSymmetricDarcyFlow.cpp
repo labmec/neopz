@@ -136,7 +136,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     int nPhiL2   = WL2.Rows();                                  // For L2
     
     // Getting required Data
-    TPZFMatrix<STATE> KInverse = fReservoirdata->fKabinv;
+    TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
     STATE visosity, porosity, density;
     STATE dvisositydp, dporositydp, ddensitydp;
     fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
@@ -169,16 +169,16 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         iPhiHdiv(0,0) = PhiH1(ishapeindex,0) * datavec[Qblock].fNormalVec(0,ivectorindex);
         iPhiHdiv(1,0) = PhiH1(ishapeindex,0) * datavec[Qblock].fNormalVec(1,ivectorindex);
         
-        etaKinvQi(0,0) = (visosity)* (KInverse(0,0)*iPhiHdiv(0,0) + KInverse(0,1)*iPhiHdiv(1,0));
-        etaKinvQi(1,0) = (visosity)* (KInverse(1,0)*iPhiHdiv(0,0) + KInverse(1,1)*iPhiHdiv(1,0));
+        etaKinvQi(0,0) = (visosity) * ( KInverse(0,0)*iPhiHdiv(0,0) + KInverse(0,1)*iPhiHdiv(1,0) );
+        etaKinvQi(1,0) = (visosity) * ( KInverse(1,0)*iPhiHdiv(0,0) + KInverse(1,1)*iPhiHdiv(1,0) );
         
         GradofPhiH1(0,0) = dPhiH1(0,ishapeindex)*datavec[Qblock].axes(0,0) + dPhiH1(1,ishapeindex)*datavec[Qblock].axes(1,0);
         GradofPhiH1(1,0) = dPhiH1(0,ishapeindex)*datavec[Qblock].axes(0,1) + dPhiH1(1,ishapeindex)*datavec[Qblock].axes(1,1);
         
-        NormalVectTensorProGradofPhiH1(0,0) = iPhiHdiv(0,0)*GradofPhiH1(0,0);
-        NormalVectTensorProGradofPhiH1(0,1) = iPhiHdiv(0,0)*GradofPhiH1(1,0);
-        NormalVectTensorProGradofPhiH1(1,0) = iPhiHdiv(1,0)*GradofPhiH1(0,0);
-        NormalVectTensorProGradofPhiH1(1,1) = iPhiHdiv(1,0)*GradofPhiH1(1,0);
+        NormalVectTensorProGradofPhiH1(0,0) = datavec[Qblock].fNormalVec(0,ivectorindex)*GradofPhiH1(0,0);
+        NormalVectTensorProGradofPhiH1(0,1) = datavec[Qblock].fNormalVec(0,ivectorindex)*GradofPhiH1(1,0);
+        NormalVectTensorProGradofPhiH1(1,0) = datavec[Qblock].fNormalVec(2,ivectorindex)*GradofPhiH1(0,0);
+        NormalVectTensorProGradofPhiH1(1,1) = datavec[Qblock].fNormalVec(1,ivectorindex)*GradofPhiH1(1,0);
 
         divofPhiHdiv = NormalVectTensorProGradofPhiH1(0,0) + NormalVectTensorProGradofPhiH1(1,1);
         
@@ -200,8 +200,8 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         for (int jp = 0; jp < nPhiL2; jp++)
         {
 
-            ek(iq,jp) += -1.0 * weight * (WL2(jp,0)*divofPhiHdiv);
-            ek(jp,iq) += -1.0 * weight * (WL2(jp,0)*divofPhiHdiv);
+            ek(iq,jp + nPhiHdiv) += -1.0 * weight * (WL2(jp,0)*divofPhiHdiv);
+            ek(jp + nPhiHdiv,iq) += -1.0 * weight * (WL2(jp,0)* density * divofPhiHdiv);
             
         }
             
@@ -250,7 +250,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     
     TPZFMatrix<STATE> Gravity(2,1);
     Gravity(0,0) = -0.0;
-    Gravity(1,0) = -9.8 * density;
+    Gravity(1,0) = -0.0 * density;
     
     int ishapeindex;
     int ivectorindex;
@@ -259,6 +259,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     TPZFMatrix<STATE> GradofPhiH1(2,1);
     TPZFMatrix<STATE> NormalVectTensorProGradofPhiH1(2,2);
     STATE divofPhiHdiv = 0.0;
+    STATE divofPhiHdiv2 = 0.0;
     STATE divofQ = 0.0;
     
     for (int iq = 0; iq < nPhiHdiv; iq++)
@@ -266,16 +267,16 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         ivectorindex = datavec[Qblock].fVecShapeIndex[iq].first;
         ishapeindex = datavec[Qblock].fVecShapeIndex[iq].second;
         
-        PhiHdiv(0,0) = PhiH1(ishapeindex,0) * datavec[Qblock].fNormalVec(0,ishapeindex);
-        PhiHdiv(1,0) = PhiH1(ishapeindex,0) * datavec[Qblock].fNormalVec(1,ishapeindex);
+        PhiHdiv(0,0) = PhiH1(ishapeindex,0) * datavec[Qblock].fNormalVec(0,ivectorindex);
+        PhiHdiv(1,0) = PhiH1(ishapeindex,0) * datavec[Qblock].fNormalVec(1,ivectorindex);
         
         GradofPhiH1(0,0) = dPhiH1(0,ishapeindex)*datavec[Qblock].axes(0,0) + dPhiH1(1,ishapeindex)*datavec[Qblock].axes(1,0);
         GradofPhiH1(1,0) = dPhiH1(0,ishapeindex)*datavec[Qblock].axes(0,1) + dPhiH1(1,ishapeindex)*datavec[Qblock].axes(1,1);
         
-        NormalVectTensorProGradofPhiH1(0,0) = PhiHdiv(0,0)*GradofPhiH1(0,0);
-        NormalVectTensorProGradofPhiH1(0,1) = PhiHdiv(0,0)*GradofPhiH1(1,0);
-        NormalVectTensorProGradofPhiH1(1,0) = PhiHdiv(1,0)*GradofPhiH1(0,0);
-        NormalVectTensorProGradofPhiH1(1,1) = PhiHdiv(1,0)*GradofPhiH1(1,0);
+        NormalVectTensorProGradofPhiH1(0,0) = datavec[Qblock].fNormalVec(0,ivectorindex)*GradofPhiH1(0,0);
+        NormalVectTensorProGradofPhiH1(0,1) = datavec[Qblock].fNormalVec(0,ivectorindex)*GradofPhiH1(1,0);
+        NormalVectTensorProGradofPhiH1(1,0) = datavec[Qblock].fNormalVec(1,ivectorindex)*GradofPhiH1(0,0);
+        NormalVectTensorProGradofPhiH1(1,1) = datavec[Qblock].fNormalVec(1,ivectorindex)*GradofPhiH1(1,0);
         
         divofPhiHdiv = NormalVectTensorProGradofPhiH1(0,0) + NormalVectTensorProGradofPhiH1(1,1);
         
@@ -287,7 +288,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     {
         divofQ = dQdx(0,0) + dQdx(1,1);
         
-        ef(ip + nPhiHdiv) += weight * (/*density */ divofQ * WL2(ip,0));
+        ef(ip + nPhiHdiv) += weight * (density * divofQ * WL2(ip,0));
         
     }
     
@@ -309,18 +310,15 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
 //    TPZManVector<REAL,3> &normal = datavec[Qblock].normal; // does It make sense? normal
     
     // Getting Linear combinations of basis functions
-    TPZVec<STATE> Q = datavec[Qblock].sol[0];
-    TPZVec<STATE> P = datavec[Pblock].sol[0];
+    TPZManVector<REAL,3> Q = datavec[Qblock].sol[0];
+    TPZManVector<REAL,3> P = datavec[Pblock].sol[0];
     
     TPZFMatrix<STATE> dQdx = datavec[Qblock].dsol[0];
     TPZFMatrix<STATE> dPdx = datavec[Pblock].dsol[0];
     
     // Number of phis
-    int nPhiHdiv = datavec[Qblock].fVecShapeIndex.NElements();  // For Hdiv
+    int nPhiHdiv = PhiH1.Rows();  // For Hdiv
     int nPhiL2   = WL2.Rows();                                  // For L2
-    
-    int ishapeindex, jshapeindex;
-    int ivectorindex, jvectorindex;
     
     STATE Value[1];
     switch (bc.Type()) {
@@ -329,10 +327,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             Value[0] = bc.Val2()(0,0);         //  Pressure
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
-                ivectorindex = datavec[Qblock].fVecShapeIndex[iq].first;
-                ishapeindex = datavec[Qblock].fVecShapeIndex[iq].second;
-                
-                ef(iq) += weight * (Value[0] * PhiH1(ishapeindex,0));
+               
+                ef(iq) += -1.0*weight * (Value[0] * PhiH1(iq,0));
                 
             }
         }
@@ -344,21 +340,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
-                ivectorindex = datavec[Qblock].fVecShapeIndex[iq].first;
-                ishapeindex = datavec[Qblock].fVecShapeIndex[iq].second;
-
                 
-                ef(iq) += gBigNumber * weight * (Q[0] - Value[0]) * PhiH1(ishapeindex,0); // does It make sense? Q[1]
-                
+                ef(iq) += gBigNumber * weight * (Q[0] - Value[0]) * PhiH1(iq,0);
                 
                 for (int jq = 0; jq < nPhiHdiv; jq++)
                 {
-                    
-                    jvectorindex = datavec[Qblock].fVecShapeIndex[jq].first;
-                    jshapeindex = datavec[Qblock].fVecShapeIndex[jq].second;
-
-                    ek(iq,jq) += gBigNumber * weight * (PhiH1(jshapeindex,0)) * PhiH1(ishapeindex,0);
-                    
+                    ek(iq,jq) += gBigNumber * weight * (PhiH1(jq,0)) * PhiH1(iq,0);
                 }
                 
             }

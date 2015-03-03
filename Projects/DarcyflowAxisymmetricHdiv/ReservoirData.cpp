@@ -63,8 +63,8 @@ ReservoirData::~ReservoirData()
  */
 void ReservoirData::Porosity(REAL P, REAL &poros, REAL &dPorosDp)
 {
-    poros = fPhiref*(1.0+fcrock*(P-fPref));
-    dPorosDp = fPhiref*fcrock;
+    poros = fPhiref;//*(1.0+fcrock*(P-fPref));
+    dPorosDp = 0.0;//fPhiref*fcrock;
 }
 
 /**
@@ -73,8 +73,8 @@ void ReservoirData::Porosity(REAL P, REAL &poros, REAL &dPorosDp)
  */
 void ReservoirData::Density(REAL P, REAL &rho, REAL &drhoDp)
 {
-    rho = fRhoref*(1.0+fcfluid*(P-fPref));
-    drhoDp = fRhoref*fcfluid;
+    rho = fRhoref;//*(1.0+fcfluid*(P-fPref));
+    drhoDp = 0.0;//fRhoref*fcfluid;
 }
 
 /**
