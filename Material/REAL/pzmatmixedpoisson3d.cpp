@@ -212,6 +212,11 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     // Coupling terms between flux and pressure inside the element. Matrix B
     // A matriz de rigidez é tal que B{ij}=\int_\Omega \nabla\phi_j\cdot\varphi_i d\Omega
     
+    REAL x = datavec[0].x[0];
+    REAL y = datavec[0].x[1];
+    REAL z = datavec[0].x[2];
+    REAL r = sqrt(x*x+y*y+z*z);
+    
     TPZFNMatrix<200,REAL> dphip(3,datavec[1].dphix.Cols(),0.0);
     for (int ip = 0; ip<dphip.Cols(); ip++) {
         for (int d = 0; d<dphipLoc.Rows(); d++) {
@@ -269,6 +274,7 @@ void TPZMatMixedPoisson3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL w
 //        DebugStop();
 //    }
 #endif
+    
     
     TPZFMatrix<REAL>  &phiQ = datavec[0].phi;
     int phrq = phiQ.Rows();
@@ -354,6 +360,7 @@ int TPZMatMixedPoisson3D::VariableIndex(const std::string &name){
     if(!strcmp("GradFluxZ",name.c_str()))      return 5;
     if(!strcmp("ExactPressure",name.c_str()))  return 6;
     if(!strcmp("ExactFlux",name.c_str()))      return 7;
+    if(!strcmp("Rhs",name.c_str()))            return 8;
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -366,6 +373,7 @@ int TPZMatMixedPoisson3D::NSolutionVariables(int var){
     if(var == 5) return 3;
     if(var == 6) return 1;
     if(var == 7) return 3;
+    if(var == 8) return 1;
     return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -376,6 +384,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     TPZVec<STATE> SolP, SolQ;
     
+
     // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
     
@@ -435,7 +444,21 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
         }
         return;
     }//var7
+
+    if(var == 8){
+        REAL force = fF;
+        if(fForcingFunction) {
+            TPZManVector<STATE> res(1);
+            fForcingFunction->Execute(datavec[1].x,res);
+            force = res[0];
+        }
+        Solout[0] = force;
+
+        return;
+    }//var8
     
+    
+
 }
 
 

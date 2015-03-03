@@ -569,8 +569,8 @@ void TPZMatPoissonD3::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMa
     int nref = datavec.size();
 	for(int i = 0; i<nref; i++)
 	{
-        datavec[i].fNeedsSol = true;
-		datavec[i].fNeedsNormal = true;
+        datavec[i].fNeedsSol = false;//true;
+		datavec[i].fNeedsNormal = false;//true;
 	}
 }
 
@@ -583,18 +583,20 @@ int TPZMatPoissonD3::VariableIndex(const std::string &name){
     if(!strcmp("GradFluxZ",name.c_str()))      return 5;
     if(!strcmp("ExactPressure",name.c_str()))  return 6;
     if(!strcmp("ExactFlux",name.c_str()))      return 7;
+    if(!strcmp("Rhs",name.c_str()))            return 8;
 	
 	return TPZMaterial::VariableIndex(name);
 }
 
 int TPZMatPoissonD3::NSolutionVariables(int var){
-	if(var == 1) return fDim;
+	if(var == 1) return 3;
 	if(var == 2) return 1;
     if(var == 3) return 3;
     if(var == 4) return 3;
     if(var == 5) return 3;
     if(var == 6) return 1;
-    if(var == 7) return fDim;
+    if(var == 7) return 3;
+    if(var == 8) return 1;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -674,7 +676,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     SolP = datavec[1].sol[0];
     
     if(var == 1){ //function (state variable Q)
-        for (int ip = 0; ip<Dimension(); ip++)
+        for (int ip = 0; ip<3; ip++)
         {
             Solout[ip] = datavec[0].sol[0][ip];
         }
@@ -726,7 +728,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     TPZVec<REAL> ptx(3);
 	TPZVec<STATE> solExata(1);
-	TPZFMatrix<STATE> flux(fDim,1);
+	TPZFMatrix<STATE> flux(3,1);
     
     //Exact soluion
 	if(var == 6){
@@ -737,7 +739,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     if(var == 7){
 		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
-        for (int ip = 0; ip<Dimension(); ip++)
+        for (int ip = 0; ip<3; ip++)
         {
             Solout[ip] = flux(ip,0);
         }
@@ -746,6 +748,18 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 //        Solout[2] = flux(2,0);
 		return;
 	}//var7
+    
+    if(var == 8){
+        REAL force = fF;
+        if(fForcingFunction) {
+            TPZManVector<STATE> res(1);
+            fForcingFunction->Execute(datavec[1].x,res);
+            force = res[0];
+        }
+        Solout[0] = force;
+        
+        return;
+    }//var8
     
 }
 

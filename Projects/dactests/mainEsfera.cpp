@@ -32,6 +32,7 @@
 #include "tpzchangeel.h"
 
 #include "pzvec.h"
+#include "pzvec_extras.h"
 #include "pzstack.h"
 #include "pzfmatrix.h"
 #include "pzfstrmatrix.h"
@@ -136,8 +137,15 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
 void RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis);
 
 
-TPZGeoMesh *GMeshSphericalShell(int dimensao, int ndiv);
-TPZGeoMesh *GMeshSphericalShellGeob(int dimensao, int ndiv);
+TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv);
+TPZGeoMesh *GMeshSphericalShellGeob(int dimensao, int ndiv); // nao presta!
+TPZGeoMesh *GMeshSphericalRing(int dimensao, bool triang,int ndiv);
+TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang,int ndiv);
+TPZVec<REAL> SphereToKartesian(REAL r, REAL theta, REAL phi);
+TPZGeoMesh * GMeshTropicodeCancer(int ndiv);
+
 
 TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim);
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim);
@@ -200,6 +208,8 @@ bool ftriang = false;
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
 
+#define RING
+
 #include "pztransfer.h"
 
 int main(int argc, char *argv[])
@@ -224,23 +234,32 @@ int main(int argc, char *argv[])
     }
     
     
-    for(p=2;p<3;p++)
+    for(p=1;p<2;p++)
     {
         int pq = p;
         int pp = p;
         
-        for (ndiv=3; ndiv<4; ndiv++)
+        for (ndiv=0; ndiv<1; ndiv++)
         {
             std::cout<< " INICIO - grau  polinomio " << p << " numero de divisoes " << ndiv << std::endl;
             std::cout<< " Dimensao == " << dim << std::endl;
-
-            TPZGeoMesh *gmesh = GMeshSphericalShell(2, ndiv);;
+#ifdef RING
+            //TPZGeoMesh *gmesh = GMeshSphericalRing(2, ftriang, ndiv);
+            //TPZGeoMesh *gmesh = GMeshSphericalRingQuarter(2, ftriang, ndiv);
+            //TPZGeoMesh *gmesh = GMeshSliceSphericalShell(2, ftriang, ndiv);
+            TPZGeoMesh *gmesh = GMeshTropicodeCancer( ndiv);
+#else
             
+            //TPZGeoMesh *gmesh = GMeshSphericalShell(2, ftriang, ndiv);
+            //TPZGeoMesh *gmesh = GMeshSphericalShell2(2, ftriang, ndiv);
+            TPZGeoMesh *gmesh = GMeshSliceSphericalShell(2, ftriang, ndiv);
+#endif
+           
             
-                gmesh->SetDimension(dim);
-//                ofstream arg1("gmesh2d.txt");
-//                gmesh->Print(arg1);
-                
+            gmesh->SetDimension(dim);
+            ofstream arg1("gmesh2d.txt");
+            gmesh->Print(arg1);
+            
 
             
             TPZCompMesh *cmesh2 = CMeshPressure(gmesh, pp, dim);
@@ -257,9 +276,7 @@ int main(int argc, char *argv[])
 //                IntegraloverS=anh1.Rhs();
 //                std::stringstream fileout;
 //                IntegraloverS.Print("IntegraloverS = ",std::cout,EMathematicaInput);
-                
-                
-                
+
                 
                 SolveSyst(anh1, cmeshH1);
                 
@@ -286,15 +303,12 @@ int main(int argc, char *argv[])
 // exit
             
             
-//            ofstream arg1("cmeshflux.txt");
-//            cmesh1->Print(arg1);
+//            ofstream argf("cmeshflux.txt");
+//            cmesh1->Print(argf);
 //
-//            ofstream arg2("cmeshpressure.txt");
-//            cmesh2->Print(arg2);
-//            
-//            ofstream arg4("gmesh2.txt");
-//            gmesh->Print(arg4);
-//            
+//            ofstream argp("cmeshpressure.txt");
+//            cmesh2->Print(argp);
+            
             
             //malha multifisica
             TPZVec<TPZCompMesh *> meshvec(2);
@@ -319,10 +333,17 @@ int main(int argc, char *argv[])
 //            mphysics->Print(arg5);
     
             
-            TPZAnalysis an(mphysics, true);
+            TPZAnalysis an(mphysics, false);
 
             SolveSyst(an, mphysics);
 
+//            mphysics->Solution()(0,0)=1.0;
+//            mphysics->Solution()(1,0)=1.0;
+//            mphysics->Solution()(2,0)=-1.0;
+//            mphysics->Solution()(3,0)=-1.0;
+//            mphysics->Solution()(15,0)=1.0;
+            mphysics->Solution().Print(std::cout);
+            an.Rhs().Print(std::cout);
             
             stringstream ref,grau;
             grau << p;
@@ -545,7 +566,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim)
     cmesh->SetDefaultOrder(pOrder);
     //cmesh->SetDimModel(dim);
     
-    bool h1function = true;//false em triangulo
+    bool h1function = false;//false em triangulo
     if(h1function){
         cmesh->SetAllCreateFunctionsContinuous();
         cmesh->ApproxSpace().CreateDisconnectedElements(true);
@@ -641,8 +662,8 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     bool hdivantigo;
     
     //TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); hdivantigo = true; // nesse material tem que ser true
-    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(matId,dim); hdivantigo = false; // nesse material tem que ser false
-    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); hdivantigo = true;; // nesse material tem que ser true
+    //TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(matId,dim); hdivantigo = false; // nesse material tem que ser false
+    TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); hdivantigo = true;; // nesse material tem que ser true
     
     //incluindo os dados do problema
     if (hdivantigo) {
@@ -721,10 +742,11 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D);
-    BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3N);
+//    BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+    BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
     BCond3->SetForcingFunction(FBCond3);
-//    BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
+//
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
@@ -870,7 +892,7 @@ void PosProcess(TPZAnalysis &an, std::string plotfile){
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    TPZManVector<std::string,10> scalnames(2), vecnames(2);
+    TPZManVector<std::string,10> scalnames(3), vecnames(2);
     vecnames[0]  = "Flux";
     vecnames[1]  = "ExactFlux";
     //    vecnames[1]  = "GradFluxX";
@@ -878,10 +900,10 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
     //    vecnames[2]  = "GradFluxz";
     scalnames[0] = "Pressure";
     scalnames[1] = "ExactPressure";
-    //scalnames[2] = "Rhs";
+    scalnames[2] = "Rhs";
     
     //const int dim = 3;
-    int div = 2;
+    int div = 4;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     
@@ -919,17 +941,30 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &fl
     //REAL theta = (atan2(sqrt(x*x+y*y),z));
     REAL theta = (atan2(sqrt(x*x+y*y),z));// acos(z/r); //
     REAL phi = atan2(y,x);
+
+#ifdef RING
+    // Anel
+    solp[0] = (a-theta);
+    flux(0,0)= (cos(phi)*cos(theta))/r;
+    flux(1,0)= (cos(theta)*sin(phi))/r;
+    flux(2,0)= -(sin(theta))/r;
+    
+#else
+    
+    // problema na casca
     
     solp[0] = (a-theta)*sin(theta)*sin(theta);
-    flux(0,0)= -(cos(phi)*cos(theta)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
-    flux(1,0)= -(cos(theta)*sin(phi)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
-    flux(2,0)= -(sin(theta)*sin(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta)))/r;
+    flux(0,0)= (cos(phi)*cos(theta)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
+    flux(1,0)= (cos(theta)*sin(phi)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
+    flux(2,0)= (sin(theta)*sin(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta)))/r;
     
     /* Problem with phi */
 //    solp[0] = (a-theta)*phi*phi*sin(theta)*sin(theta);
 //    flux(0,0)= (phi*sin(theta)*(2.0*(-a + theta)*sin(phi)-phi*cos(phi)*cos(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta))))/r;
 //    flux(1,0)= (phi*sin(theta)*(2.0*(a - theta)*(cos(phi) + phi*cos(theta)*cos(theta)*sin(phi)) -phi*cos(theta)*sin(phi)*sin(theta)))/r;
 //    flux(2,0)= (phi*phi*sin(theta)*sin(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta)))/r;
+    
+#endif
     
     // Problema na circunferencia
 //    r = sqrt(x*x+y*y);
@@ -966,6 +1001,12 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     REAL theta = (atan2(sqrt(x*x+y*y),z));// acos(z/r); //
     REAL phi = atan2(y,x);
     
+#ifdef RING
+    // anel
+    ff[0] = (1.0/(r*r))*(1.0/tan(theta));
+    
+#else
+    // casca
     ff[0] = (-1.0/(2.0*r*r))*(2.0*(a-theta)*(1.0+3.0*cos(2.0*theta))- 5.0*sin(2.0*theta));
 //
 //    std::cout << " x =" << x << "y =" << y << "z =" << z << std::endl;
@@ -974,6 +1015,8 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     
 //    /* Problem with phi */
 //      ff[0] = (-1.0/(r*r))*((a-theta)*(2.0-phi*phi+3.0*phi*phi*cos(2.0*theta))- 5.0*phi*phi*cos(theta)*sin(theta));
+    
+#endif
     
     // Problema na circunferencia
 //    r = sqrt(x*x+y*y);
@@ -1023,19 +1066,92 @@ void ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
 void ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    solp[0]=0.0;//0.5; // When theta-> pi/2;
+    REAL x,y,z;
+    // Defining data
+    REAL a=M_PI/2.0;
+    
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    REAL theta = (atan2(sqrt(x*x+y*y),z));// acos(z/r); //
+    
+    
+#ifdef RING
+    // Anel
+    solp[0] = (a-theta);
+    
+#else
+    
+    // problema na casca
+    REAL t = (a-theta)*sin(theta)*sin(theta);
+    
+    solp[0] = (a-theta)*sin(theta)*sin(theta);
+    
+    /* Problem with phi */
+    //    solp[0] = (a-theta)*phi*phi*sin(theta)*sin(theta);
+    
+#endif
 }
 
 
 void ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    solp[0]=0.0;//0.5; // When theta-> pi/2;
+    REAL x,y,z;
+    // Defining data
+    REAL a=M_PI/2.0;
+    
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    REAL theta = (atan2(sqrt(x*x+y*y),z));// acos(z/r); //
+    
+#ifdef RING
+    // Anel
+    solp[0] = (a-theta);
+    
+#else
+    
+    // problema na casca
+    
+    solp[0] = (a-theta)*sin(theta)*sin(theta);
+    
+    /* Problem with phi */
+    //    solp[0] = (a-theta)*phi*phi*sin(theta)*sin(theta);
+    
+#endif
+    
 }
 
 
 void ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    solp[0]=0.0; // When theta-> pi/2;
+    REAL x,y,z;
+    // Defining data
+    REAL a=M_PI/2.0;
+    
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    REAL theta = (atan2(sqrt(x*x+y*y),z));// acos(z/r); //
+    
+    
+#ifdef RING
+    // Anel
+    solp[0] = (a-theta);
+    
+#else
+    
+    // problema na casca
+    
+    solp[0] = (a-theta)*sin(theta)*sin(theta);
+    
+    /* Problem with phi */
+    //    solp[0] = (a-theta)*phi*phi*sin(theta)*sin(theta);
+    
+#endif
 }
 
 
@@ -1068,7 +1184,7 @@ void ForcingBC2N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC3N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    DebugStop();
+    disp[0] = 0.0;
 }
 
 void ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
@@ -1152,11 +1268,364 @@ void PrintDebugMapForMathematica(std::string filenameHdiv, std::string filenameL
     outHdiv.close();
 }
 
-
-
-TPZGeoMesh *GMeshSphericalShell(int dimensao, int ndiv)
+TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
 {
     
+    bool ftriangulo = triang;
+    
+    ///INSTANCIACAO DA MALHA GEOMETRICA
+    TPZGeoMesh * geomesh = new TPZGeoMesh;
+    
+    /// Materiais
+    long materialId = matId;
+    long arc1 = bc1; // -1;
+    long arc2 = bc2; // -2;
+    long arc3 = bc3; // -3;
+    long arc4 = bc4; // -4;
+    
+    int nnodes = 4;//quantidade de nos da malha geometrica
+    geomesh->NodeVec().Resize(nnodes);
+    geomesh->SetDimension(dim);
+    
+    
+    
+    ///INICIALIZACAO DA MALHA GEOMETRICA PELA INSTANCIACAO E INICIALIZACAO DOS NOS
+    TPZGeoNode node;
+    TPZVec<REAL> coord(3,0.);
+    const REAL r = 1.;
+    REAL z = 0.5;
+    TPZManVector<REAL,3> xc(3,0.);
+    xc[0] = 0.;
+    xc[1] = 0.;
+    xc[2] = 0.;
+    
+    int Axis = 3;
+    REAL theta = 0.0;
+    
+    int id = 0;
+    //no 0
+    coord[0] = xc[0] + r;
+    coord[1] = xc[1] + 0.;
+    coord[2] = xc[2] + 0.;
+    RotateNode(coord, theta, Axis);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    //no 1
+    coord[0] = xc[0] + 0.;
+    coord[1] = xc[1] + r;
+    coord[2] = xc[2] + 0.;
+    RotateNode(coord, theta, Axis);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    //no 2
+    coord[0] = xc[0] + 0.;
+    coord[2] = xc[2] + z;
+    coord[1] = xc[1] + sqrt(r*r - coord[0]*coord[0] - coord[2]*coord[2]);
+    RotateNode(coord, theta, Axis);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    
+    //no 3
+    coord[1] = xc[1] + 0.;
+    coord[2] = xc[2] + z;
+    coord[0] = xc[0] + sqrt(r*r - coord[2]*coord[2] - coord[1]*coord[1]);
+    RotateNode(coord, theta, Axis);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    //id++;
+    
+    int elementid = 0;
+
+    // Using triangle to sphere special map
+    TPZVec<long> topology(4);
+    
+    if (ftriangulo)
+    {
+        
+        
+        topology.Resize(3);
+        
+        // El 0
+        topology[0] = 0;
+        topology[1] = 1;
+        topology[2] = 2;
+        
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereEighth1 =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        SphereEighth1->Geom().SetData(r,xc);
+        elementid++;
+        
+        // El 0
+        topology[0] = 0;
+        topology[1] = 2;
+        topology[2] = 3;
+        
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereEighth2 =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        SphereEighth2->Geom().SetData(r,xc);
+        //elementid++;
+
+        
+    }
+    else
+    {
+        
+        topology.Resize(4);
+        
+        // El 0
+        topology[0] = 0;
+        topology[1] = 1;
+        topology[2] = 2;
+        topology[3] = 3;
+        
+        TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereEighth1 =
+        new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+        SphereEighth1->Geom().SetData(r,xc);
+        elementid++;
+        
+    }
+    
+    // El linha
+    // Definition of Arc coordenates
+    topology.resize(2);
+    // Create Geometrical Arc #1
+    topology[0] = 0;
+    topology[1] = 1;
+    {
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1, *geomesh);
+        //arc->Geom().Print(std::cout);
+    }
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc3, *geomesh);
+    elementid++;
+    
+    // Create Geometrical Arc #2
+    topology[0] = 1;
+    topology[1] = 2;
+    {
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc3, *geomesh);
+        // arc->Geom().Print(std::cout);
+    }
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc4, *geomesh);
+    elementid++;
+    
+    // Create Geometrical Arc #3
+    topology[0] = 2;
+    topology[1] = 3;
+    {
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1, *geomesh);
+        //arc->Geom().Print(std::cout);
+    }
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc1, *geomesh);
+    elementid++;
+    
+    // Create Geometrical Arc #4
+    topology[0] = 3;
+    topology[1] = 0;
+    {
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc3, *geomesh);
+        //arc->Geom().Print(std::cout);
+    }
+    //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc2, *geomesh);
+    //    elementid++;
+    
+    
+    //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
+    geomesh->BuildConnectivity();
+
+    
+    
+    
+    TPZVec<TPZGeoEl *> sons;
+    const int nref = ndiv;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = geomesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = geomesh->ElementVec()[iel];
+            if(!gel->HasSubElement())
+            {
+                gel->Divide(sons);
+            }
+        }
+    }
+    
+    std::ofstream outfile("malhaCascaesferaQuarto.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
+    
+    return geomesh;
+    
+    
+}
+
+
+TPZGeoMesh *GMeshTropicodeCancer(int ndiv)
+{
+    
+    
+    ///INSTANCIACAO DA MALHA GEOMETRICA
+    TPZGeoMesh * geomesh = new TPZGeoMesh;
+    
+    /// Materiais
+    long materialId = matId;
+    long arc1 = bc1; // -1;
+    long arc2 = bc2; // -2;
+    long arc3 = bc3; // -3;
+    long arc4 = bc4; // -4;
+    
+    int nnodes = 8;//quantidade de nos da malha geometrica
+    geomesh->NodeVec().Resize(nnodes);
+    geomesh->SetDimension(dim);
+    
+    
+    
+    ///INICIALIZACAO DA MALHA GEOMETRICA PELA INSTANCIACAO E INICIALIZACAO DOS NOS
+    TPZGeoNode node;
+    int id=0;
+    TPZVec<REAL> coord(3,0.);
+
+    //no 0
+    coord = SphereToKartesian(1.0, M_PI/2.0, 0.0);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    //no 1
+    coord = SphereToKartesian(1.0, M_PI/2.0, M_PI/4.0);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    //no 2
+    coord = SphereToKartesian(1.0, M_PI/2.0, M_PI/2.0);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    //no 3
+    coord = SphereToKartesian(1.0, M_PI/6.0, 0);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    //no 4
+    coord = SphereToKartesian(1.0, M_PI/6.0, M_PI/4.0);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    //no 5
+    coord = SphereToKartesian(1.0, M_PI/6.0, M_PI/2.0);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    //no 6
+    coord = SphereToKartesian(1.0, M_PI/3.0, 0.0);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    //no 7
+    coord = SphereToKartesian(1.0, M_PI/3.0, M_PI/2.0);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    id++;
+    
+    int elementid = 0;
+    // Using triangle to sphere special map
+    TPZVec<long> topology(3);
+    
+    topology[0] = 0;
+    topology[1] = 2;
+    topology[2] = 1;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc1, *geomesh);
+    elementid++;
+    
+    topology[0] = 3;
+    topology[1] = 5;
+    topology[2] = 4;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc1, *geomesh);
+    elementid++;
+
+    topology[0] = 2;
+    topology[1] = 5;
+    topology[2] = 7;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc3, *geomesh);
+    elementid++;
+    
+    topology[0] = 3;
+    topology[1] = 0;
+    topology[2] = 6;
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc3, *geomesh);
+    elementid++;
+    
+    
+    // Create Geometrical Quad #1
+    topology.Resize(4);
+    topology[0] = 0;
+    topology[1] = 2;
+    topology[2] = 5;
+    topology[3] = 3;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,topology, materialId,*geomesh);
+    elementid++;
+    
+    
+    //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
+    geomesh->BuildConnectivity();
+    
+    TPZVec<TPZGeoEl *> sons;
+    const int nref = ndiv;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = geomesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = geomesh->ElementVec()[iel];
+            if(!gel->HasSubElement())
+            {
+                gel->Divide(sons);
+            }
+        }
+    }
+    
+    std::ofstream outfileAnel("TropicodeCancer.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfileAnel, true);
+    
+    return geomesh;
+    
+
+}
+
+TPZVec<REAL> SphereToKartesian(REAL r, REAL theta, REAL phi)
+{
+    TPZVec<REAL> xyz(3,0.0);
+    xyz[0] = r*cos(phi)*sin(theta);
+    xyz[1] = r*sin(theta)*sin(phi);
+    xyz[2] = r*cos(theta);
+    return xyz;
+}
+
+
+TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
+{
+    
+    
+    bool ftriangulo = triang;
     
     ///INSTANCIACAO DA MALHA GEOMETRICA
     TPZGeoMesh * geomesh = new TPZGeoMesh;
@@ -1177,7 +1646,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, int ndiv)
     ///INICIALIZACAO DA MALHA GEOMETRICA PELA INSTANCIACAO E INICIALIZACAO DOS NOS
     TPZGeoNode node;
     TPZVec<REAL> coord(3,0.);
-    const REAL r = 2.;
+    const REAL r = 1.;
+    REAL z = r/2.;
     TPZManVector<REAL,3> xc(3,0.);
     xc[0] = 0.;
     xc[1] = 0.;
@@ -1228,9 +1698,9 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, int ndiv)
     id++;
     
     //no 4
-    coord[0] = xc[0] + 0.;
     coord[1] = xc[1] + 0.;
-    coord[2] = xc[2] + r;
+    coord[2] = xc[2] + z;
+    coord[0] = xc[0] + sqrt(r*r - coord[2]*coord[2] - coord[1]*coord[1]);
     RotateNode(coord, theta, Axis);
     node.SetNodeId(id);
     node.SetCoord(coord);
@@ -1238,9 +1708,9 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, int ndiv)
     id++;
     
     //no 5
-    coord[0] = xc[0] + r*sqrt(2.)/2.;
-    coord[1] = xc[1] + r*sqrt(2.)/2.;
-    coord[2] = xc[2] + 0.;
+    coord[0] = xc[0] + 0.;
+    coord[2] = xc[2] + z;
+    coord[1] = xc[1] + sqrt(r*r - coord[0]*coord[0] - coord[2]*coord[2]);
     RotateNode(coord, theta, Axis);
     node.SetNodeId(id);
     node.SetCoord(coord);
@@ -1248,9 +1718,9 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, int ndiv)
     id++;
     
     //no 6
-    coord[0] = xc[0] + -r*sqrt(2.)/2.;
-    coord[1] = xc[1] + r*sqrt(2.)/2.;
-    coord[2] = xc[2] + 0.;
+    coord[1] = xc[1] + 0.;
+    coord[2] = xc[2] + z;
+    coord[0] = xc[0] + -sqrt(r*r - coord[2]*coord[2] - coord[1]*coord[1]);
     RotateNode(coord, theta, Axis);
     node.SetNodeId(id);
     node.SetCoord(coord);
@@ -1258,9 +1728,9 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, int ndiv)
     id++;
     
     //no 7
-    coord[0] = xc[0] + -r*sqrt(2.)/2.;
-    coord[1] = xc[1] + -r*sqrt(2.)/2.;
-    coord[2] = xc[2] + 0.;
+    coord[0] = xc[0] + 0.;
+    coord[2] = xc[2] + z;
+    coord[1] = xc[1] + -sqrt(r*r - coord[0]*coord[0] - coord[2]*coord[2]);
     RotateNode(coord, theta, Axis);
     node.SetNodeId(id);
     node.SetCoord(coord);
@@ -1268,125 +1738,245 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, int ndiv)
     id++;
     
     //no 8
-    coord[0] = xc[0] + r*sqrt(2.)/2.;
-    coord[1] = xc[1] + -r*sqrt(2.)/2.;
-    coord[2] = xc[2] + 0.;
+    coord[0] = xc[0] + 0.;
+    coord[1] = xc[1] + 0.;
+    coord[2] = xc[2] + r;
     RotateNode(coord, theta, Axis);
     node.SetNodeId(id);
     node.SetCoord(coord);
     geomesh->NodeVec()[id] = node;
-    id++;
-
+    //id++;
     
     int elementid = 0;
     // Using triangle to sphere special map
-    TPZVec<long> topology(3);
+    TPZVec<long> topology(4);
     
-    // El 0
-    topology[0] = 0;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
-    topology[1] = 1;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
-    topology[2] = 4;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
     
-    TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereEighth1 =
-    new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
-    SphereEighth1->Geom().SetData(r,xc);
-    elementid++;
-
-    // El 1
-    topology[0] = 1;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
-    topology[1] = 2;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
-    topology[2] = 4;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
+    if (ftriangulo)
+    {
+        
+        topology.resize(3);
+        
+        // El 0
+        topology[0] = 0;
+        topology[1] = 1;
+        topology[2] = 5;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 1
+        topology[0] = 0;
+        topology[1] = 5;
+        topology[2] = 4;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 2
+        topology[0] = 1;
+        topology[1] = 2;
+        topology[2] = 6;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 3
+        topology[0] = 1;
+        topology[1] = 6;
+        topology[2] = 5;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 4
+        topology[0] = 2;
+        topology[1] = 3;
+        topology[2] = 7;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 5
+        topology[0] = 2;
+        topology[1] = 7;
+        topology[2] = 6;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 6
+        topology[0] = 3;
+        topology[1] = 0;
+        topology[2] = 4;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 7
+        topology[0] = 3;
+        topology[1] = 4;
+        topology[2] = 7;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+    }
+    else
+    {
+        
+        topology.resize(4);
+        
+        // El 0
+        topology[0] = 0;
+        topology[1] = 1;
+        topology[2] = 5;
+        topology[3] = 4;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
+            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingQ->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 1
+        topology[0] = 1;
+        topology[1] = 2;
+        topology[2] = 6;
+        topology[3] = 5;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
+            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingQ->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 2
+        topology[0] = 2;
+        topology[1] = 3;
+        topology[2] = 7;
+        topology[3] = 6;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
+            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingQ->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 3
+        topology[0] = 3;
+        topology[1] = 0;
+        topology[2] = 4;
+        topology[3] = 7;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
+            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingQ->Geom().SetData(r,xc);
+            elementid++;
+        }
+        
+    }
     
-    TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereEighth2 =
-    new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
-    SphereEighth2->Geom().SetData(r,xc);
-    elementid++;//
-    
-    // El 2
-    topology[0] = 2;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
-    topology[1] = 3;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
-    topology[2] = 4;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
-    
-    TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereEighth3 =
-    new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
-    SphereEighth3->Geom().SetData(r,xc);
-    elementid++;//
-    
-    // El 3
-    topology[0] = 3;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
-    topology[1] = 0;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
-    topology[2] = 4;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
-    
-    TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereEighth4 =
-    new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
-    SphereEighth4->Geom().SetData(r,xc);
-    elementid++;//
+    topology.resize(3);
+    // El 4
+    topology[0] = 4;
+    topology[1] = 5;
+    topology[2] = 8;
+    {
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereTriangQ =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        SphereTriangQ->Geom().SetData(r,xc);
+        elementid++;
+    }
+    // El 5
+    topology[0] = 5;
+    topology[1] = 6;
+    topology[2] = 8;
+    {
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereTriangQ =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        SphereTriangQ->Geom().SetData(r,xc);
+        elementid++;
+    }
+    // El 6
+    topology[0] = 6;
+    topology[1] = 7;
+    topology[2] = 8;
+    {
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereTriangQ =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        SphereTriangQ->Geom().SetData(r,xc);
+        elementid++;
+    }
+    // El 4
+    topology[0] = 7;
+    topology[1] = 4;
+    topology[2] = 8;
+    {
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereTriangQ =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        SphereTriangQ->Geom().SetData(r,xc);
+        elementid++;
+    }
     
     // El linha
     // Definition of Arc coordenates
-    topology.resize(3);
-    // Create Geometrical Arc #1
+    topology.resize(2);
+    // Create Geometrical Arc #0
     topology[0] = 0;
     topology[1] = 1;
-    topology[2] = 5;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc3, *geomesh);
+    {
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc3 */, *geomesh);
+        //arc->Geom().Print(std::cout);
+    }
     elementid++;
-
-    // Create Geometrical Arc #2
+    
+    // Create Geometrical Arc #1
     topology[0] = 1;
     topology[1] = 2;
-    topology[2] = 6;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc4, *geomesh);
+    {
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc4 */, *geomesh);
+        // arc->Geom().Print(std::cout);
+    }
+    elementid++;
+    
+    // Create Geometrical Arc #2
+    topology[0] = 2;
+    topology[1] = 3;
+    {
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc1 */, *geomesh);
+        //arc->Geom().Print(std::cout);
+    }
     elementid++;
     
     // Create Geometrical Arc #3
-    topology[0] = 2;
-    topology[1] = 3;
-    topology[2] = 7;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc1, *geomesh);
-    elementid++;
-    
-    // Create Geometrical Arc #4
     topology[0] = 3;
     topology[1] = 0;
-    topology[2] = 8;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc2, *geomesh);
-    
-    
-//    // El linha
-//    // Definition of Arc coordenates
-//    topology.resize(2);
-//    // Create Geometrical Arc #1
-//    topology[0] = 0;
-//    topology[1] = 1;
-//    
-//    new TPZGeoElRefPattern < pzgeom::TPZGeoBlend< pzgeom::TPZGeoLinear > > (elementid,topology, arc3, *geomesh);
-//    elementid++;
-//    
-//    // Create Geometrical Arc #2
-//    topology[0] = 1;
-//    topology[1] = 2;
-//    new TPZGeoElRefPattern < pzgeom::TPZGeoBlend< pzgeom::TPZGeoLinear > > (elementid,topology, arc4, *geomesh);
-//    elementid++;
-//    
-//    // Create Geometrical Arc #3
-//    topology[0] = 2;
-//    topology[1] = 3;
-//    new TPZGeoElRefPattern < pzgeom::TPZGeoBlend< pzgeom::TPZGeoLinear > > (elementid,topology, arc1, *geomesh);
-//    elementid++;
-//    
-//    // Create Geometrical Arc #4
-//    topology[0] = 3;
-//    topology[1] = 0;
-//    new TPZGeoElRefPattern < pzgeom::TPZGeoBlend< pzgeom::TPZGeoLinear > > (elementid,topology, arc2, *geomesh);
-//    
+    {
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc2 */, *geomesh);
+        //arc->Geom().Print(std::cout);
+    }
+
     
     //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
     geomesh->BuildConnectivity();
     
     
     TPZVec<TPZGeoEl *> sons;
-    const int nref = 2;
+    const int nref = ndiv;
     for (int iref = 0; iref < nref; iref++) {
         int nel = geomesh->NElements();
         for (int iel = 0; iel < nel; iel++) {
@@ -1403,7 +1993,695 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, int ndiv)
     
     return geomesh;
     
+    
+}
 
+
+
+TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
+{
+    
+    
+    bool ftriangulo = triang;
+    
+    ///INSTANCIACAO DA MALHA GEOMETRICA
+    TPZGeoMesh * geomesh = new TPZGeoMesh;
+    
+    /// Materiais
+    long materialId = matId;
+    long arc1 = bc1; // -1;
+    long arc2 = bc2; // -2;
+    long arc3 = bc3; // -3;
+    long arc4 = bc4; // -4;
+    
+    int nnodes = 37;//quantidade de nos da malha geometrica
+    geomesh->NodeVec().Resize(nnodes);
+    geomesh->SetDimension(dim);
+    
+    
+    
+    ///INICIALIZACAO DA MALHA GEOMETRICA PELA INSTANCIACAO E INICIALIZACAO DOS NOS
+    TPZGeoNode node;
+    TPZVec<REAL> coord(3,0.);
+    const REAL r = 1.;
+    REAL z = r/2.;
+    TPZManVector<REAL,3> xc(3,0.);
+    xc[0] = 0.;
+    xc[1] = 0.;
+    xc[2] = 0.;
+    
+    int Axis = 3;
+    REAL theta = 0.0;
+    
+    int sind = (nnodes+1)/3;
+    
+    TPZManVector<int> indinf(sind);
+    TPZManVector<int> indmid(sind);
+    TPZManVector<int> indsup(sind);
+    int cont = 0;
+    
+    int id = 0;
+    for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < 12; i++) {
+            //no id
+            coord[0] = xc[0] + r*cos(i*Pi/6.0)*sin(Pi/2.0 - j*Pi/6.0);
+            coord[1] = xc[1] + r*sin(i*Pi/6.0)*sin(Pi/2.0 - j*Pi/6.0);
+            coord[2] = xc[2] + r*cos(Pi/2.0 - j*Pi/6.0);
+            RotateNode(coord, theta, Axis);
+            node.SetNodeId(id);
+            node.SetCoord(coord);
+            geomesh->NodeVec()[id] = node;
+            if (j==0) {
+                indinf[cont] = id;
+                cont++;
+            }
+            else if (j==1)
+            {
+                indmid[cont] = id;
+                cont++;
+            }
+            else
+            {
+                indsup[cont] = id;
+                cont++;
+            }
+            id++;
+            
+        }
+        cont = 0;
+    }
+    
+    //no polo norte
+    coord[0] = xc[0] + 0.;
+    coord[1] = xc[1] + 0.;
+    coord[2] = xc[2] + r;
+    RotateNode(coord, theta, Axis);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    int polo = id;
+    //id++;
+    
+    int elementid = 0;
+    // Using triangle to sphere special map
+    TPZVec<long> topology(4);
+    
+    
+    if (ftriangulo)
+    {
+        
+        topology.resize(3);
+        
+        // El 0
+        topology[0] = 0;
+        topology[1] = 1;
+        topology[2] = 5;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 1
+        topology[0] = 0;
+        topology[1] = 5;
+        topology[2] = 4;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 2
+        topology[0] = 1;
+        topology[1] = 2;
+        topology[2] = 6;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 3
+        topology[0] = 1;
+        topology[1] = 6;
+        topology[2] = 5;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 4
+        topology[0] = 2;
+        topology[1] = 3;
+        topology[2] = 7;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 5
+        topology[0] = 2;
+        topology[1] = 7;
+        topology[2] = 6;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 6
+        topology[0] = 3;
+        topology[1] = 0;
+        topology[2] = 4;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 7
+        topology[0] = 3;
+        topology[1] = 4;
+        topology[2] = 7;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+    }
+    else
+    {
+        
+        topology.resize(4);
+        
+        for (int nelinf = 0; nelinf < 12; nelinf++) {
+            // El nel
+            
+            topology[0] = indinf[nelinf];
+            topology[1] = indinf[(nelinf+1)%12];
+            topology[2] = indmid[(nelinf+1)%12];
+            topology[3] = indmid[nelinf];
+            {
+                TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
+                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+                SphereRingQ->Geom().SetData(r,xc);
+                elementid++;
+            }
+        }
+        
+        for (int nelmid = 0; nelmid < 12; nelmid++) {
+            // El nel
+            topology[0] = indmid[nelmid];
+            topology[1] = indmid[(nelmid+1)%12];
+            topology[2] = indsup[(nelmid+1)%12];
+            topology[3] = indsup[nelmid];
+            {
+                TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
+                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+                SphereRingQ->Geom().SetData(r,xc);
+                elementid++;
+            }
+        }
+        
+        topology.resize(3);
+        
+//        for (int nelsup = 0; nelsup < 12; nelsup++) {
+//            // El nel
+////            int a = indsup[nelsup];
+////            int b = indsup[(nelsup+1)%12];
+////            int c = polo;
+//            topology[0] = indsup[nelsup];
+//            topology[1] = indsup[(nelsup+1)%12];
+//            topology[2] = polo;
+//            {
+//                TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingQ =
+//                new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+//                SphereRingQ->Geom().SetData(r,xc);
+//                elementid++;
+//            }
+//        }
+        
+        
+    }
+    
+    // El linha
+    // Definition of Arc
+    topology.resize(2);
+    
+    for (int nelinf = 0; nelinf < 12; nelinf++) {
+        // El nel
+        topology[0] = indinf[nelinf];
+        topology[1] = indinf[(nelinf+1)%12];
+        {
+            TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc3 */, *geomesh);
+            //arc->Geom().Print(std::cout);
+            elementid++;
+        }
+    }
+    
+    // arcos do topo
+    for (int nelsup = 0; nelsup < 12; nelsup++) {
+        // El nel
+        topology[0] = indsup[nelsup];
+        topology[1] = indsup[(nelsup+1)%12];
+        {
+            TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc3 */, *geomesh);
+            //arc->Geom().Print(std::cout);
+            elementid++;
+        }
+    }
+    
+    
+    
+//    // Create Geometrical Arc #0
+//    topology[0] = 0;
+//    topology[1] = 1;
+//    {
+//        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc3 */, *geomesh);
+//        //arc->Geom().Print(std::cout);
+//    }
+//    elementid++;
+//    
+//    // Create Geometrical Arc #1
+//    topology[0] = 1;
+//    topology[1] = 2;
+//    {
+//        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc4 */, *geomesh);
+//        // arc->Geom().Print(std::cout);
+//    }
+//    elementid++;
+//    
+//    // Create Geometrical Arc #2
+//    topology[0] = 2;
+//    topology[1] = 3;
+//    {
+//        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc1 */, *geomesh);
+//        //arc->Geom().Print(std::cout);
+//    }
+//    elementid++;
+//    
+//    // Create Geometrical Arc #3
+//    topology[0] = 3;
+//    topology[1] = 0;
+//    {
+//        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc2 */, *geomesh);
+//        //arc->Geom().Print(std::cout);
+//    }
+    
+    
+    //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
+    geomesh->BuildConnectivity();
+    
+    
+    TPZVec<TPZGeoEl *> sons;
+    const int nref = ndiv;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = geomesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = geomesh->ElementVec()[iel];
+            if(!gel->HasSubElement())
+            {
+                gel->Divide(sons);
+            }
+        }
+    }
+    
+    std::ofstream outfile("malhaCascaesfera.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
+    
+    return geomesh;
+    
+    
+}
+
+TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
+{
+    
+    int nfatias = 1;
+    const REAL r = 1.;
+    // centro da esfera
+    TPZManVector<REAL,3> xc(3,0.);
+    xc[0] = 0.;
+    xc[1] = 0.;
+    xc[2] = 0.;
+    
+    // para rotacao da malha, se quiser
+    int Axis = 3;
+    REAL theta = 0.0;
+    
+    
+    bool ftriangulo = triang;
+    
+    ///INSTANCIACAO DA MALHA GEOMETRICA
+    TPZGeoMesh * geomesh = new TPZGeoMesh;
+    
+    /// Materiais
+    long materialId = matId;
+    long arc1 = bc1; // -1;
+    long arc2 = bc2; // -2;
+    long arc3 = bc3; // -3;
+    long arc4 = bc4; // -4;
+    
+    int nnodes = nfatias == 12 ? 37 :(nfatias+1)*3+1;//quantidade de nos da malha geometrica
+    geomesh->NodeVec().Resize(nnodes);
+    geomesh->SetDimension(dim);
+    
+    
+    
+    ///INICIALIZACAO DA MALHA GEOMETRICA PELA INSTANCIACAO E INICIALIZACAO DOS NOS
+    TPZGeoNode node;
+    TPZVec<REAL> coord(3,0.);
+    
+    // quantidade de indices
+    int sind = (nnodes+1)/3;
+    
+    TPZManVector<int> indinf(sind);
+    TPZManVector<int> indmid(sind);
+    TPZManVector<int> indsup(sind);
+    int cont = 0;
+    int npts = nfatias == 12 ? 12 : nfatias + 1;
+    
+    int id = 0;
+    for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < npts; i++) {
+            //no id
+            coord[0] = xc[0] + r*cos(i*Pi/6.0)*sin(Pi/2.0 - j*Pi/6.0);
+            coord[1] = xc[1] + r*sin(i*Pi/6.0)*sin(Pi/2.0 - j*Pi/6.0);
+            coord[2] = xc[2] + r*cos(Pi/2.0 - j*Pi/6.0);
+            RotateNode(coord, theta, Axis);
+            node.SetNodeId(id);
+            node.SetCoord(coord);
+            geomesh->NodeVec()[id] = node;
+            if (j==0) {
+                indinf[cont] = id;
+                cont++;
+            }
+            else if (j==1)
+            {
+                indmid[cont] = id;
+                cont++;
+            }
+            else
+            {
+                indsup[cont] = id;
+                cont++;
+            }
+            id++;
+            
+        }
+        cont = 0;
+    }
+    
+    //no polo norte
+    coord[0] = xc[0] + 0.;
+    coord[1] = xc[1] + 0.;
+    coord[2] = xc[2] + r;
+    RotateNode(coord, theta, Axis);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    geomesh->NodeVec()[id] = node;
+    int polo = id;
+    //id++;
+    
+    int elementid = 0;
+    // Using triangle to sphere special map
+    TPZVec<long> topology(4);
+    
+    
+    if (ftriangulo)
+    {
+        DebugStop();
+        topology.resize(3);
+        
+        // El 0
+        topology[0] = 0;
+        topology[1] = 1;
+        topology[2] = 5;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 1
+        topology[0] = 0;
+        topology[1] = 5;
+        topology[2] = 4;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 2
+        topology[0] = 1;
+        topology[1] = 2;
+        topology[2] = 6;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 3
+        topology[0] = 1;
+        topology[1] = 6;
+        topology[2] = 5;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 4
+        topology[0] = 2;
+        topology[1] = 3;
+        topology[2] = 7;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 5
+        topology[0] = 2;
+        topology[1] = 7;
+        topology[2] = 6;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 6
+        topology[0] = 3;
+        topology[1] = 0;
+        topology[2] = 4;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT1->Geom().SetData(r,xc);
+            elementid++;
+        }
+        // El 7
+        topology[0] = 3;
+        topology[1] = 4;
+        topology[2] = 7;
+        {
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            SphereRingT2->Geom().SetData(r,xc);
+            elementid++;
+        }
+    }
+    else
+    {
+        
+        topology.resize(4);
+        
+        for (int nelinf = 0; nelinf < nfatias; nelinf++) {
+            // El nel
+            int a = indinf[nelinf];
+            int b = indinf[(nelinf+1)%npts];
+            int c = indmid[(nelinf+1)%npts];
+            int d = indmid[nelinf];
+            
+            topology[0] = indinf[nelinf];
+            topology[1] = indinf[(nelinf+1)%npts];
+            topology[2] = indmid[(nelinf+1)%npts];
+            topology[3] = indmid[nelinf];
+            {
+                TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
+                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+                SphereRingQ->Geom().SetData(r,xc);
+                elementid++;
+            }
+        }
+        
+        for (int nelmid = 0; nelmid < nfatias; nelmid++) {
+            // El nel
+            int a = indmid[nelmid];
+            int b = indmid[(nelmid+1)%npts];
+            int c = indsup[(nelmid+1)%npts];
+            int d = indsup[nelmid];
+            topology[0] = indmid[nelmid];
+            topology[1] = indmid[(nelmid+1)%npts];
+            topology[2] = indsup[(nelmid+1)%npts];
+            topology[3] = indsup[nelmid];
+            {
+                TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
+                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+                SphereRingQ->Geom().SetData(r,xc);
+                elementid++;
+            }
+        }
+        
+        topology.resize(3);
+        
+        //        for (int nelsup = 0; nelsup < nfatias; nelsup++) {
+        //            // El nel
+        ////            int a = indsup[nelsup];
+        ////            int b = indsup[(nelsup+1)%npts];
+        ////            int c = polo;
+        //            topology[0] = indsup[nelsup];
+        //            topology[1] = indsup[(nelsup+1)%npts];
+        //            topology[2] = polo;
+        //            {
+        //                TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingQ =
+        //                new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        //                SphereRingQ->Geom().SetData(r,xc);
+        //                elementid++;
+        //            }
+        //        }
+        
+        
+    }
+    
+    // El linha
+    // Definition of Arc
+    topology.resize(2);
+    
+    for (int nelinf = 0; nelinf < nfatias; nelinf++) {
+        // El nel
+        topology[0] = indinf[nelinf];
+        topology[1] = indinf[(nelinf+1)%npts];
+        {
+            TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc3 */, *geomesh);
+            //arc->Geom().Print(std::cout);
+            elementid++;
+        }
+    }
+    
+    // arcos do topo
+    for (int nelsup = 0; nelsup < nfatias; nelsup++) {
+        // El nel
+        topology[0] = indsup[nelsup];
+        topology[1] = indsup[(nelsup+1)%npts];
+        {
+            TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc3 */, *geomesh);
+            //arc->Geom().Print(std::cout);
+            elementid++;
+        }
+    }
+    
+    
+    // condicoes lado
+    if (nfatias<12) {
+        topology[0] = 1;
+        topology[1] = 3;
+        {
+            TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc3 /** arc3 */, *geomesh);
+            //arc->Geom().Print(std::cout);
+            elementid++;
+        }
+        topology[0] = 3;
+        topology[1] = 5;
+        {
+            TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc3 /** arc3 */, *geomesh);
+            //arc->Geom().Print(std::cout);
+            elementid++;
+        }
+        topology[0] = 0;
+        topology[1] = 2;
+        {
+            TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc3 /** arc3 */, *geomesh);
+            //arc->Geom().Print(std::cout);
+            elementid++;
+        }
+        topology[0] = 2 ;
+        topology[1] = 4;
+        {
+            TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc3 /** arc3 */, *geomesh);
+            //arc->Geom().Print(std::cout);
+            elementid++;
+        }
+    }
+    
+    
+    
+    //    // Create Geometrical Arc #0
+    //    topology[0] = 0;
+    //    topology[1] = 1;
+    //    {
+    //        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc3 */, *geomesh);
+    //        //arc->Geom().Print(std::cout);
+    //    }
+    //    elementid++;
+    //
+    //    // Create Geometrical Arc #1
+    //    topology[0] = 1;
+    //    topology[1] = 2;
+    //    {
+    //        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc4 */, *geomesh);
+    //        // arc->Geom().Print(std::cout);
+    //    }
+    //    elementid++;
+    //
+    //    // Create Geometrical Arc #2
+    //    topology[0] = 2;
+    //    topology[1] = 3;
+    //    {
+    //        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc1 */, *geomesh);
+    //        //arc->Geom().Print(std::cout);
+    //    }
+    //    elementid++;
+    //
+    //    // Create Geometrical Arc #3
+    //    topology[0] = 3;
+    //    topology[1] = 0;
+    //    {
+    //        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1 /** arc2 */, *geomesh);
+    //        //arc->Geom().Print(std::cout);
+    //    }
+    
+    
+    //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
+    geomesh->BuildConnectivity();
+    
+    
+    TPZVec<TPZGeoEl *> sons;
+    const int nref = ndiv;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = geomesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = geomesh->ElementVec()[iel];
+            if(!gel->HasSubElement())
+            {
+                gel->Divide(sons);
+            }
+        }
+    }
+    
+    std::ofstream outfile("malhaFatiaCascaEsfera.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
+    
+    return geomesh;
+    
+    
 }
 
 

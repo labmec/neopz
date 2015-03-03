@@ -218,8 +218,8 @@ bool IsPrism = false;
 bool IsTetra = false;
 bool IsPiram = true;
 
-bool isspherical = true, isgeoblend = false, iscilindro = false;
-//bool isgeoblend = true, isspherical = false, iscilindro = false;
+//bool isspherical = true, isgeoblend = false, iscilindro = false;
+bool isgeoblend = true, isspherical = false, iscilindro = false;
 //bool iscilindro = true, isgeoblend = false, isspherical = false;
 
 bool isH1 = false;
@@ -254,16 +254,16 @@ int main(int argc, char *argv[])
         InvTP(id,id) = 1.0;
     }
     
-    //ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
+    ofstream saidaerro("../ErroPoissonHdivMalhaQuad.txt",ios::app);
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=2;p<3;p++)
+    for(p=1;p<5;p++)
     {
         int pq = p;
         int pp = p;
         
-        for (ndiv=3; ndiv<4; ndiv++)
+        for (ndiv=0; ndiv<6; ndiv++)
         {
             std::cout<< " INICIO - grau  polinomio " << p << " numero de divisoes " << ndiv << std::endl;
             std::cout<< " Dimensao == " << dim << std::endl;
@@ -528,11 +528,11 @@ int main(int argc, char *argv[])
             
             //            saidaerro << "Valor de epsilone " << EPSILON << std::endl;
             //            saidaerro << "Numero de threads " << numthreads << std::endl;
-            //saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
-            //ErrorHDiv(cmesh1, saidaerro, p, ndiv);
+            saidaerro<<" \nErro da simulacao multifisica do fluxo (q)" <<endl;
+            ErrorHDiv(cmesh1, saidaerro, p, ndiv);
             
-            //saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
-            //ErrorL2(cmesh2, saidaerro, p, ndiv);
+            saidaerro<<" Erro da simulacao multifisica da pressao (p)" <<endl;
+            ErrorL2(cmesh2, saidaerro, p, ndiv);
 
             std::cout << "Postprocessed\n";
             
@@ -2036,14 +2036,14 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &fl
     
     
     REAL r = sqrt(x*x+y*y+z*z);
-    //REAL theta = (atan2(sqrt(x*x+y*y),z));
-    REAL theta = (atan2(sqrt(x*x+y*y),z));// acos(z/r); //
-    REAL phi = atan2(y,x);
-    
-    solp[0] = (a-theta)*sin(theta)*sin(theta);
-    flux(0,0)= -(cos(phi)*cos(theta)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
-    flux(1,0)= -(cos(theta)*sin(phi)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
-    flux(2,0)= -(sin(theta)*sin(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta)))/r;
+//    //REAL theta = (atan2(sqrt(x*x+y*y),z));
+//    REAL theta = (atan2(sqrt(x*x+y*y),z));// acos(z/r); //
+//    REAL phi = atan2(y,x);
+//    
+//    solp[0] = (a-theta)*sin(theta)*sin(theta);
+//    flux(0,0)= -(cos(phi)*cos(theta)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
+//    flux(1,0)= -(cos(theta)*sin(phi)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
+//    flux(2,0)= -(sin(theta)*sin(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta)))/r;
     
     /* Problem with phi */
 //    solp[0] = (a-theta)*phi*phi*sin(theta)*sin(theta);
@@ -2052,22 +2052,22 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &fl
 //    flux(2,0)= (phi*phi*sin(theta)*sin(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta)))/r;
     
     // Problema na circunferencia
-//    r = sqrt(x*x+y*y);
-//    if (r<1) {
-//        solp[0] = 3.0*exp(1.0/(x*x+y*y-1.0));
-//        flux(0,0) = 6.0*x*exp(1.0/(x*x+y*y-1.0))/((x*x+y*y-1.0)*(x*x+y*y-1.0));
-//        flux(1,0) = 6.0*y*exp(1.0/(x*x+y*y-1.0))/((x*x+y*y-1.0)*(x*x+y*y-1.0));
-//        //flux(2,0) = 0.0;
-//    }
-//    else
-//    {
-//        solp[0] = 0.0;
-//        flux(0,0) = 0.0;
-//        flux(1,0) = 0.0;
-//      //  flux(2,0) = 0.0;
-//    }
-//
-//    
+    r = sqrt(x*x+y*y);
+    if (r<1.0) {
+        solp[0] = 3.0*exp(1.0/(x*x+y*y-1.0));
+        flux(0,0) = 6.0*x*exp(1.0/(x*x+y*y-1.0))/((x*x+y*y-1.0)*(x*x+y*y-1.0));
+        flux(1,0) = 6.0*y*exp(1.0/(x*x+y*y-1.0))/((x*x+y*y-1.0)*(x*x+y*y-1.0));
+        //flux(2,0) = 0.0;
+    }
+    else
+    {
+        solp[0] = 0.0;
+        flux(0,0) = 0.0;
+        flux(1,0) = 0.0;
+      //  flux(2,0) = 0.0;
+    }
+
+    
 }
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
@@ -2096,14 +2096,14 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
 //      ff[0] = (-1.0/(r*r))*((a-theta)*(2.0-phi*phi+3.0*phi*phi*cos(2.0*theta))- 5.0*phi*phi*cos(theta)*sin(theta));
     
     // Problema na circunferencia
-//    r = sqrt(x*x+y*y);
-//    if (r<1) {
-//        ff[0] = -12.0*(-1.0+x*x*x*x+y*y+y*y*y*y+x*x*(1.0+2.0*y*y))*exp(1.0/(x*x+y*y-1.0))/((x*x+y*y-1.0)*(x*x+y*y-1.0)*(x*x+y*y-1.0)*(x*x+y*y-1.0));
-//    }
-//    else
-//    {
-//        ff[0] = 0.0;
-//    }
+    r = sqrt(x*x+y*y);
+    if (r<1.0) {
+        ff[0] = -12.0*(-1.0 + x*x*x*x + y*y + y*y*y*y + x*x*(1.0+2.0*y*y))*exp(1.0/(x*x+y*y-1.0))/((x*x+y*y-1.0)*(x*x+y*y-1.0)*(x*x+y*y-1.0)*(x*x+y*y-1.0));
+    }
+    else
+    {
+        ff[0] = 0.0;
+    }
 
 
 }
@@ -2226,6 +2226,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out, int p, int ndiv)
     //    out << "L2 Norm for divergence = "    << sqrt(globalerrors[2])  <<endl;
     //    out << "Hdiv Norm for flux = "    << sqrt(globalerrors[3])  <<endl;
     //
+    fDebugMapHdiv.insert(std::pair<REAL, REAL> (ndiv,sqrt(globalerrors[1])));
 }
 
 void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
@@ -2233,12 +2234,14 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
     long nel = l2mesh->NElements();
     //int dim = l2mesh->Dimension();
     TPZManVector<STATE,10> globalerrors(10,0.);
+    globalerrors.Fill(0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         TPZManVector<STATE,10> elerror(10,0.);
+        elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
-        globalerrors.resize(nerr);
+        // globalerrors.resize(nerr);
 #ifdef LOG4CXX
         if (logdata->isDebugEnabled()) {
             std::stringstream sout;
@@ -2253,6 +2256,9 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
     }
     out << "Errors associated with L2 space - ordem polinomial = " << p << "- divisoes = " << ndiv << endl;
     out << "L2 Norm = "    << sqrt(globalerrors[1]) << endl;
+    
+    fDebugMapL2.insert(std::pair<REAL, REAL> (ndiv,sqrt(globalerrors[1])));
+
 }
 
 void PrintDebugMapForMathematica(std::string filenameHdiv, std::string filenameL2)
@@ -2290,7 +2296,7 @@ TPZGeoMesh *GMeshCirculoGeob(int dimensao, int ndiv)
     int arc3 = bc3; // -3;
     int arc4 = bc4; // -4;
     
-    int nodenumber = 12;
+    int nodenumber = 13;
     REAL ModelRadius = 1.5;
     REAL ModelRadiusInt2 = 0.5;//ModelRadius/2.;
     
@@ -2358,7 +2364,11 @@ TPZGeoMesh *GMeshCirculoGeob(int dimensao, int ndiv)
     gmesh->NodeVec()[id].SetNodeId(id);
     gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
     gmesh->NodeVec()[id].SetCoord(1,-ModelRadiusInt2);//coord Y
-
+    id++;
+    //12
+    gmesh->NodeVec()[id].SetNodeId(id);
+    gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+    gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
     
     int elementid = 0;
     TPZVec < long > nodeindex(3,0.0);
@@ -2396,12 +2406,38 @@ TPZGeoMesh *GMeshCirculoGeob(int dimensao, int ndiv)
     new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, matId,*gmesh);
     elementid++;
     
+//    // Create Geometrical Quad #5
+//    nodeindex[0] = 8;
+//    nodeindex[1] = 9;
+//    nodeindex[2] = 10;
+//    nodeindex[3] = 11;
+//    new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
+//    elementid++;
+    
     // Create Geometrical Quad #5
+    nodeindex.resize(3);
     nodeindex[0] = 8;
     nodeindex[1] = 9;
-    nodeindex[2] = 10;
-    nodeindex[3] = 11;
-    new TPZGeoElRefPattern < pzgeom::TPZGeoQuad >  (elementid,nodeindex, matId,*gmesh);
+    nodeindex[2] = 12;
+    new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle >  (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Quad #5
+    nodeindex[0] = 9;
+    nodeindex[1] = 10;
+    nodeindex[2] = 12;
+    new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle >  (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Quad #5
+    nodeindex[0] = 10;
+    nodeindex[1] = 11;
+    nodeindex[2] = 12;
+    new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle >  (elementid,nodeindex, matId,*gmesh);
+    elementid++;
+    // Create Geometrical Quad #5
+    nodeindex[0] = 11;
+    nodeindex[1] = 8;
+    nodeindex[2] = 12;
+    new TPZGeoElRefPattern < pzgeom::TPZGeoTriangle >  (elementid,nodeindex, matId,*gmesh);
     elementid++;
     
     // Definition of Arc coordenates
@@ -2451,7 +2487,7 @@ TPZGeoMesh *GMeshCirculoGeob(int dimensao, int ndiv)
     }
     
     
-    std::ofstream out("CurvoDAC3.vtk");
+    std::ofstream out("CurvoCirculo.vtk");
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
     
     return gmesh;
