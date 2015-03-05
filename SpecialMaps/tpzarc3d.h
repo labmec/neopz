@@ -72,7 +72,7 @@ namespace pzgeom
 		void Initialize(TPZGeoEl *refel)
 		{
 			int nnod = 3;
-			TPZFMatrix<REAL> coord(3,nnod);
+			TPZFNMatrix<9,REAL> coord(3,nnod);
 			int nod, co;
 			for(nod=0; nod<3; nod++)
 			{

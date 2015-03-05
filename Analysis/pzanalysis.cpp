@@ -1071,8 +1071,9 @@ TPZVec<STATE> TPZAnalysis::Integrate(const std::string &varname, const std::set<
 /// extract the values corresponding to the connect from the vector
 static void ConnectSolution(long cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol)
 {
-    int blsize = cmesh->Block().Size(cindex);
-    int position = cmesh->Block().Position(cindex);
+    long seqnum =  cmesh->ConnectVec()[cindex].SequenceNumber();
+    int blsize = cmesh->Block().Size(seqnum);
+    int position = cmesh->Block().Position(seqnum);
     sol.resize(blsize);
     for (long i=position; i< position+blsize; i++) {
         sol[i-position] = glob(i,0);

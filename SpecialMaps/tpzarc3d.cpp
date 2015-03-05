@@ -7,6 +7,7 @@
 
 #include "pzfmatrix.h"
 #include "pzvec.h"
+#include "pzvec_extras.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "pznoderep.h"
@@ -93,6 +94,66 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix<REAL> &coord)
 	/** Computing (Center->First_Point) vector */
 	finitialVector.Resize(2,0.);
 	finitialVector[0] = Xa - fXcenter; finitialVector[1] = Ya - fYcenter;
+    
+    
+    
+#ifdef DEBUG2
+    
+    TPZFNMatrix<9,REAL> nodes=coord;
+    TPZManVector<REAL,1> loc(1,0.0);
+    TPZManVector<REAL,3> result(3.);
+    
+    REAL resultlocminus1, resultloc0,resultlocplus1;
+    
+    loc[0] = -1.;
+    X(nodes,loc,result);
+    for (int i=0; i<3; i++) {
+        result[i] -= nodes(i,0);
+    }
+    resultlocminus1 = Norm(result);
+    
+    //cout << result << endl;
+    
+    loc[0] = 1.;
+    X(nodes,loc,result);
+    for (int i=0; i<3; i++) {
+        result[i] -= nodes(i,1);
+    }
+    resultlocplus1 = Norm(result);
+    
+    //cout << result << endl;
+    loc[0] = 0.;
+    X(nodes,loc,result);
+    for (int i=0; i<3; i++) {
+        result[i] -= nodes(i,2);
+    }
+    resultloc0 = Norm(result);
+    //cout << result << endl;
+
+    
+    // testes
+    /** If result* !=0 , o ponto mapeados e diferente da coordenada recebida  */
+    if(resultlocminus1 >= 1.E-6 ) // loc = -1 ponto da esquerda do arco
+    {
+        cout << "Method aborted!";
+        
+        DebugStop();
+    }
+    if(resultlocplus1 >= 1.E-6) // loc = 1 ponto da direita do arco
+    {
+        cout << "Method aborted!";
+        
+        DebugStop();
+    }
+    if(resultloc0 >= 1.E-6) // loc = 0 ponto do centro do arco
+    {
+
+        cout << "Method aborted!";
+        
+        DebugStop();
+    }
+#endif
+    
 }
 
 
@@ -100,7 +161,7 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix<REAL> &coord)
 void TPZArc3D::ComputeR2Points(TPZFMatrix<REAL> &coord, double &xa, double &ya, double &xb, double &yb)
 {
 	/** vector (ini - middle) written in new R2 base */
-	TPZVec<REAL> Axe(3,0.), Temp(3,0.);
+	TPZManVector<REAL,3> Axe(3,0.), Temp(3,0.);
 	int i, j;
 	for(i = 0; i < 3; i++) Axe[i] = coord(i,0) - coord(i,2);
 	for(i = 0; i < 3; i++)

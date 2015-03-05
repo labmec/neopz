@@ -144,7 +144,8 @@ TPZGeoMesh *GMeshSphericalShellGeob(int dimensao, int ndiv); // nao presta!
 TPZGeoMesh *GMeshSphericalRing(int dimensao, bool triang,int ndiv);
 TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang,int ndiv);
 TPZVec<REAL> SphereToKartesian(REAL r, REAL theta, REAL phi);
-TPZGeoMesh * GMeshTropicodeCancer(int ndiv);
+TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isPlane, int plane);
+void PrintLS(TPZAnalysis *an);
 
 
 TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim);
@@ -205,7 +206,7 @@ bool isgeoblend = false;
 bool ftriang = false;
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material"));
+static LoggerPtr logdata(Logger::getLogger("pz.douglas"));
 #endif
 
 #define RING
@@ -214,7 +215,12 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
+    std::string dirname = PZSOURCEDIR;
 #ifdef LOG4CXX
+    std::string FileName = dirname;
+    FileName = dirname + "/Projects/dactests/";
+    FileName += "Douglas.cfg";
+    //InitializePZLOG(FileName);
     InitializePZLOG();
 #endif
 
@@ -223,7 +229,7 @@ int main(int argc, char *argv[])
     int ndiv = 0;
 
     // Hard coded
-    int sizeTP = dim;
+    int sizeTP = 3;
     
     TP.Resize(sizeTP, sizeTP);
     InvTP.Resize(sizeTP, sizeTP);
@@ -234,12 +240,12 @@ int main(int argc, char *argv[])
     }
     
     
-    for(p=1;p<2;p++)
+    for(p=4;p<5;p++)
     {
         int pq = p;
         int pp = p;
         
-        for (ndiv=0; ndiv<1; ndiv++)
+        for (ndiv=2; ndiv<3; ndiv++)
         {
             std::cout<< " INICIO - grau  polinomio " << p << " numero de divisoes " << ndiv << std::endl;
             std::cout<< " Dimensao == " << dim << std::endl;
@@ -247,7 +253,25 @@ int main(int argc, char *argv[])
             //TPZGeoMesh *gmesh = GMeshSphericalRing(2, ftriang, ndiv);
             //TPZGeoMesh *gmesh = GMeshSphericalRingQuarter(2, ftriang, ndiv);
             //TPZGeoMesh *gmesh = GMeshSliceSphericalShell(2, ftriang, ndiv);
-            TPZGeoMesh *gmesh = GMeshTropicodeCancer( ndiv);
+            
+            // caso horizontal arestas retas
+            TPZVec<bool> CurvesSides(4,true);
+//            CurvesSides[1] = false;
+//            CurvesSides[3] = false;
+            TPZGeoMesh *gmesh = GMeshTropicodeCancer(ndiv,CurvesSides,false,3);
+            
+            // caso inclinado arestas retas
+//            TPZVec<bool> CurvesSides(4,false);
+//            CurvesSides[1] = false;
+//            CurvesSides[3] = false;
+//            TPZGeoMesh *gmesh = GMeshTropicodeCancer(ndiv,CurvesSides,false);
+            
+            // arestas tortas
+//            TPZVec<bool> CurvesSides(4,true);
+//            TPZGeoMesh *gmesh = GMeshTropicodeCancer(ndiv,CurvesSides,false);
+            
+            
+            //TPZGeoMesh *gmesh = GMeshTropicodeCancer(ndiv,CurvesSides,false);
 #else
             
             //TPZGeoMesh *gmesh = GMeshSphericalShell(2, ftriang, ndiv);
@@ -255,11 +279,11 @@ int main(int argc, char *argv[])
             TPZGeoMesh *gmesh = GMeshSliceSphericalShell(2, ftriang, ndiv);
 #endif
            
-            
-            gmesh->SetDimension(dim);
-            ofstream arg1("gmesh2d.txt");
-            gmesh->Print(arg1);
-            
+            {
+                gmesh->SetDimension(dim);
+                ofstream arg1("gmesh2d.txt");
+                gmesh->Print(arg1);
+            }
 
             
             TPZCompMesh *cmesh2 = CMeshPressure(gmesh, pp, dim);
@@ -336,14 +360,8 @@ int main(int argc, char *argv[])
             TPZAnalysis an(mphysics, false);
 
             SolveSyst(an, mphysics);
-
-//            mphysics->Solution()(0,0)=1.0;
-//            mphysics->Solution()(1,0)=1.0;
-//            mphysics->Solution()(2,0)=-1.0;
-//            mphysics->Solution()(3,0)=-1.0;
-//            mphysics->Solution()(15,0)=1.0;
-            mphysics->Solution().Print(std::cout);
-            an.Rhs().Print(std::cout);
+            
+//            PrintLS(&an);
             
             stringstream ref,grau;
             grau << p;
@@ -367,7 +385,13 @@ int main(int argc, char *argv[])
             TPZVec<REAL> erros;
 
             std::cout << "Postprocessed\n";
-
+            {
+                ofstream argp("cmeshpressure.txt");
+                cmesh2->Print(argp);
+                
+                ofstream arg5("cmeshmultiphysics.txt");
+                mphysics->Print(arg5);
+            }
             
             stringstream ss;
             ss << p;
@@ -395,6 +419,26 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+
+void PrintLS(TPZAnalysis *an)
+{
+    an->Assemble();
+    TPZAutoPointer< TPZMatrix<REAL> > Kglob;
+    TPZFMatrix<STATE> Fglob;
+    Kglob=an->Solver().Matrix();
+    Fglob = an->Rhs();
+    
+#ifdef LOG4CXX
+    if(logdata->isDebugEnabled())
+    {
+        std::stringstream sout;
+        Kglob->Print("matK = ", sout,EMathematicaInput);
+        Fglob.Print("fvec = ", sout,EMathematicaInput);
+        LOGPZ_DEBUG(logdata,sout.str())
+    }
+#endif
+    
+}
 
 TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim)
 {
@@ -566,7 +610,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim)
     cmesh->SetDefaultOrder(pOrder);
     //cmesh->SetDimModel(dim);
     
-    bool h1function = false;//false em triangulo
+    bool h1function = true;//false em triangulo
     if(h1function){
         cmesh->SetAllCreateFunctionsContinuous();
         cmesh->ApproxSpace().CreateDisconnectedElements(true);
@@ -662,8 +706,8 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     bool hdivantigo;
     
     //TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); hdivantigo = true; // nesse material tem que ser true
-    //TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(matId,dim); hdivantigo = false; // nesse material tem que ser false
-    TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); hdivantigo = true;; // nesse material tem que ser true
+    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(matId,dim); hdivantigo = false; // nesse material tem que ser false
+    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); hdivantigo = true;; // nesse material tem que ser true
     
     //incluindo os dados do problema
     if (hdivantigo) {
@@ -679,8 +723,8 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     }
     
     //incluindo os dados do problema
-    TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
-    TPZFNMatrix<2,REAL> InvPermTensor(dim,dim,0.);
+    TPZFNMatrix<9,REAL> PermTensor(3,3,0.);
+    TPZFNMatrix<9,REAL> InvPermTensor(3,3,0.);
     
     PermTensor = TP;
     InvPermTensor = InvTP;
@@ -697,7 +741,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     //funcao do lado direito da equacao do problema
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(20);
+    dum->SetPolynomialOrder(0);
     forcef = dum;
     material->SetForcingFunction(forcef);
     
@@ -724,6 +768,8 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         BCond0->SetForcingFunction(FBCond0);
     }
 
+    
+    
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D);
@@ -733,8 +779,8 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
-    BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
+    BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
     BCond2->SetForcingFunction(FBCond2);
 //    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
 //    BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
@@ -742,20 +788,22 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3N);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D);
 //    BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-    BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     BCond3->SetForcingFunction(FBCond3);
 //
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D);
-    BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N);
+    BCond4 = material->CreateBC(mat, bc4,neumann, val1, val2);
     BCond4->SetForcingFunction(FBCond4);
 //    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N);
 //    BCond4 = material->CreateBC(mat, bc4,neumann, val1, val2);
 //    BCond4->SetForcingFunction(FBCond4);
+    
+    
     
     if (dim==3)
     {
@@ -803,22 +851,24 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         for(int el = 0; el < nel; el++)
         {
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
-            if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, matId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
+            if(mfcel->Dimension()==dim) {
+                TPZBuildMultiphysicsMesh::AddWrap(mfcel, matId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
+            }
         }
         meshvec[0]->CleanUpUnconnectedNodes();
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
-        //------- Create and add group elements -------
-        long index, nenvel;
-        nenvel = wrapEl.NElements();
-        for(int ienv=0; ienv<nenvel; ienv++){
-            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
-            nel = wrapEl[ienv].NElements();
-            for(int jel=0; jel<nel; jel++){
-                elgr->AddElement(wrapEl[ienv][jel]);
-            }
-        }
+//        //------- Create and add group elements -------
+//        long index, nenvel;
+//        nenvel = wrapEl.NElements();
+//        for(int ienv=0; ienv<nenvel; ienv++){
+//            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
+//            nel = wrapEl[ienv].NElements();
+//            for(int jel=0; jel<nel; jel++){
+//                elgr->AddElement(wrapEl[ienv][jel]);
+//            }
+//        }
     }
     
     return mphysics;
@@ -892,9 +942,10 @@ void PosProcess(TPZAnalysis &an, std::string plotfile){
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    TPZManVector<std::string,10> scalnames(3), vecnames(2);
+    TPZManVector<std::string,10> scalnames(3), vecnames(3);
     vecnames[0]  = "Flux";
     vecnames[1]  = "ExactFlux";
+    vecnames[2]  = "GradP";
     //    vecnames[1]  = "GradFluxX";
     //    vecnames[2]  = "GradFluxY";
     //    vecnames[2]  = "GradFluxz";
@@ -925,7 +976,7 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &fl
     
     REAL x,y,z;
     // Defining data
-    REAL a=M_PI/2.0;
+    REAL a=5.0*M_PI/16.0;
     
     x = pt[0];
     y = pt[1];
@@ -941,6 +992,9 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &fl
     //REAL theta = (atan2(sqrt(x*x+y*y),z));
     REAL theta = (atan2(sqrt(x*x+y*y),z));// acos(z/r); //
     REAL phi = atan2(y,x);
+    
+    
+    
 
 #ifdef RING
     // Anel
@@ -949,20 +1003,28 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &fl
     flux(1,0)= (cos(theta)*sin(phi))/r;
     flux(2,0)= -(sin(theta))/r;
     
+//    // teste 1
+//    solp[0] = 0.5*(x*x);
+//    flux(0,0) = -1.0;
+//    flux(1,0) = -1.0;
+//    flux(2,0) = 0.0;
+    
 #else
     
     // problema na casca
     
-    solp[0] = (a-theta)*sin(theta)*sin(theta);
-    flux(0,0)= (cos(phi)*cos(theta)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
-    flux(1,0)= (cos(theta)*sin(phi)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
-    flux(2,0)= (sin(theta)*sin(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta)))/r;
+//    solp[0] = (a-theta)*sin(theta)*sin(theta);
+//    flux(0,0)= (cos(phi)*cos(theta)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
+//    flux(1,0)= (cos(theta)*sin(phi)*(2.0*(a - theta)*cos(theta) - sin(theta))*sin(theta))/r;
+//    flux(2,0)= (sin(theta)*sin(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta)))/r;
     
     /* Problem with phi */
 //    solp[0] = (a-theta)*phi*phi*sin(theta)*sin(theta);
 //    flux(0,0)= (phi*sin(theta)*(2.0*(-a + theta)*sin(phi)-phi*cos(phi)*cos(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta))))/r;
 //    flux(1,0)= (phi*sin(theta)*(2.0*(a - theta)*(cos(phi) + phi*cos(theta)*cos(theta)*sin(phi)) -phi*cos(theta)*sin(phi)*sin(theta)))/r;
 //    flux(2,0)= (phi*phi*sin(theta)*sin(theta)*(2.0*(-a + theta)*cos(theta) + sin(theta)))/r;
+    
+    
     
 #endif
     
@@ -1004,6 +1066,7 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
 #ifdef RING
     // anel
     ff[0] = (1.0/(r*r))*(1.0/tan(theta));
+    ff[0] = 0.0;
     
 #else
     // casca
@@ -1080,6 +1143,7 @@ void ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 #ifdef RING
     // Anel
     solp[0] = (a-theta);
+    solp[0] = -4.0;
     
 #else
     
@@ -1141,6 +1205,7 @@ void ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 #ifdef RING
     // Anel
     solp[0] = (a-theta);
+    solp[0] = 4.0;
     
 #else
     
@@ -1180,16 +1245,17 @@ void ForcingBC1N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 void ForcingBC2N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-        DebugStop();
+    
+    disp[0] = 0.0;
 }
 
 void ForcingBC3N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    disp[0] = 0.0;
+    disp[0] = -1.0;
 }
 
 void ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
-    DebugStop();
+    disp[0] = 0.0;
 }
 
 void ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
@@ -1268,6 +1334,12 @@ void PrintDebugMapForMathematica(std::string filenameHdiv, std::string filenameL
     outHdiv.close();
 }
 
+
+void comparapontos()
+{
+    
+}
+
 TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
 {
     
@@ -1299,35 +1371,39 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     xc[1] = 0.;
     xc[2] = 0.;
     
+    REAL theta = Pi/2.0 ;
+    REAL phi = Pi/6.0;
+    
     int Axis = 3;
-    REAL theta = 0.0;
+    REAL angulo = 0.0;
     
     int id = 0;
     //no 0
-    coord[0] = xc[0] + r;
-    coord[1] = xc[1] + 0.;
-    coord[2] = xc[2] + 0.;
-    RotateNode(coord, theta, Axis);
+    coord[0] = xc[0] + r*sin(theta + Pi/6.0)*cos(-phi);
+    coord[1] = xc[1] + r*sin(theta + Pi/6.0)*sin(-phi);
+    coord[2] = xc[2] + r*cos(theta + Pi/6.0);
+    
+    RotateNode(coord, angulo, Axis);
     node.SetNodeId(id);
     node.SetCoord(coord);
     geomesh->NodeVec()[id] = node;
     id++;
     
     //no 1
-    coord[0] = xc[0] + 0.;
-    coord[1] = xc[1] + r;
-    coord[2] = xc[2] + 0.;
-    RotateNode(coord, theta, Axis);
+    coord[0] = xc[0] + r*sin(theta + Pi/6.0)*cos(phi);
+    coord[1] = xc[1] + r*sin(theta + Pi/6.0)*sin(phi);
+    coord[2] = xc[2] + r*cos(theta + Pi/6.0);
+    RotateNode(coord, angulo, Axis);
     node.SetNodeId(id);
     node.SetCoord(coord);
     geomesh->NodeVec()[id] = node;
     id++;
     
     //no 2
-    coord[0] = xc[0] + 0.;
-    coord[2] = xc[2] + z;
-    coord[1] = xc[1] + sqrt(r*r - coord[0]*coord[0] - coord[2]*coord[2]);
-    RotateNode(coord, theta, Axis);
+    coord[0] = xc[0] + r*sin(theta - Pi/6.0)*cos(phi);
+    coord[1] = xc[1] + r*sin(theta - Pi/6.0)*sin(phi);
+    coord[2] = xc[2] + r*cos(theta - Pi/6.0);
+    RotateNode(coord, angulo, Axis);
     node.SetNodeId(id);
     node.SetCoord(coord);
     geomesh->NodeVec()[id] = node;
@@ -1335,10 +1411,10 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     
     
     //no 3
-    coord[1] = xc[1] + 0.;
-    coord[2] = xc[2] + z;
-    coord[0] = xc[0] + sqrt(r*r - coord[2]*coord[2] - coord[1]*coord[1]);
-    RotateNode(coord, theta, Axis);
+    coord[0] = xc[0] + r*sin(theta - Pi/6.0)*cos(-phi);
+    coord[1] = xc[1] + r*sin(theta - Pi/6.0)*sin(-phi);
+    coord[2] = xc[2] + r*cos(theta - Pi/6.0);
+    RotateNode(coord, angulo, Axis);
     node.SetNodeId(id);
     node.SetCoord(coord);
     geomesh->NodeVec()[id] = node;
@@ -1388,8 +1464,8 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
         topology[2] = 2;
         topology[3] = 3;
         
-        TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereEighth1 =
-        new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+        TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > * SphereEighth1 =
+        new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > (elementid, topology,materialId,*geomesh);
         SphereEighth1->Geom().SetData(r,xc);
         elementid++;
         
@@ -1412,7 +1488,7 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     topology[0] = 1;
     topology[1] = 2;
     {
-        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc3, *geomesh);
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc2, *geomesh);
         // arc->Geom().Print(std::cout);
     }
     //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc4, *geomesh);
@@ -1422,7 +1498,7 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     topology[0] = 2;
     topology[1] = 3;
     {
-        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc1, *geomesh);
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc3, *geomesh);
         //arc->Geom().Print(std::cout);
     }
     //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc1, *geomesh);
@@ -1432,7 +1508,7 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     topology[0] = 3;
     topology[1] = 0;
     {
-        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc3, *geomesh);
+        TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > *arc = new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (elementid,topology, arc4, *geomesh);
         //arc->Geom().Print(std::cout);
     }
     //new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc2, *geomesh);
@@ -1441,8 +1517,30 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     
     //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
     geomesh->BuildConnectivity();
-
     
+    
+
+    const unsigned int nel = 1;//geomesh->NElements();
+    for (int i = 0 ; i < nel ; i++){
+        TPZGeoEl *gel = geomesh->Element(i);
+        if (!gel) {
+            continue;
+        }
+        const int npt = 5;
+        TPZManVector<REAL,3> qsi(3,0.), x(3,0.);
+        for (int iqsi = 0; iqsi < npt; iqsi++) {
+            for (int ieta = 0; ieta < npt; ieta++) {
+                qsi[0] = -1 + iqsi * 2./(npt-1);
+                qsi[1] = -1 + ieta * 2./(npt-1);
+                gel->X(qsi, x);
+                //calcula a funcao e ve se zero
+                cout << " qsi = " << qsi << " x = " << x << endl;
+                cout << " r = " << sqrt(x[0]*x[0]+x[1]*x[1]) << endl;
+                cout << " R = " << sqrt(x[0]*x[0]+x[1]*x[1]+x[2]*x[2]) << endl;
+                //cout << " phi
+            }
+        }
+    }
     
     
     TPZVec<TPZGeoEl *> sons;
@@ -1467,7 +1565,7 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
 }
 
 
-TPZGeoMesh *GMeshTropicodeCancer(int ndiv)
+TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isPlane, int plane)
 {
     
     
@@ -1485,110 +1583,354 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv)
     geomesh->NodeVec().Resize(nnodes);
     geomesh->SetDimension(dim);
     
+    if (CurvesSides.size() != 4) {
+        DebugStop();
+    }
     
     
     ///INICIALIZACAO DA MALHA GEOMETRICA PELA INSTANCIACAO E INICIALIZACAO DOS NOS
     TPZGeoNode node;
+//    REAL beta = M_PI/16.0;
+//    REAL alpha = M_PI/4.0;
+//    REAL h = M_PI/4.0;
+//    REAL k = M_PI/4.0;
+    
+    REAL beta = M_PI/3.0;
+    REAL alpha = M_PI/2.0;
+    REAL h = M_PI/2.0;
+    REAL k = 0.0;
+    
     int id=0;
     TPZVec<REAL> coord(3,0.);
 
-    //no 0
-    coord = SphereToKartesian(1.0, M_PI/2.0, 0.0);
-    node.SetNodeId(id);
-    node.SetCoord(coord);
-    geomesh->NodeVec()[id] = node;
-    id++;
-    
-    //no 1
-    coord = SphereToKartesian(1.0, M_PI/2.0, M_PI/4.0);
-    node.SetNodeId(id);
-    node.SetCoord(coord);
-    geomesh->NodeVec()[id] = node;
-    id++;
-    
-    //no 2
-    coord = SphereToKartesian(1.0, M_PI/2.0, M_PI/2.0);
-    node.SetNodeId(id);
-    node.SetCoord(coord);
-    geomesh->NodeVec()[id] = node;
-    id++;
-    
-    //no 3
-    coord = SphereToKartesian(1.0, M_PI/6.0, 0);
-    node.SetNodeId(id);
-    node.SetCoord(coord);
-    geomesh->NodeVec()[id] = node;
-    id++;
-    
-    //no 4
-    coord = SphereToKartesian(1.0, M_PI/6.0, M_PI/4.0);
-    node.SetNodeId(id);
-    node.SetCoord(coord);
-    geomesh->NodeVec()[id] = node;
-    id++;
-    
-    //no 5
-    coord = SphereToKartesian(1.0, M_PI/6.0, M_PI/2.0);
-    node.SetNodeId(id);
-    node.SetCoord(coord);
-    geomesh->NodeVec()[id] = node;
-    id++;
-    
-    //no 6
-    coord = SphereToKartesian(1.0, M_PI/3.0, 0.0);
-    node.SetNodeId(id);
-    node.SetCoord(coord);
-    geomesh->NodeVec()[id] = node;
-    id++;
-    
-    //no 7
-    coord = SphereToKartesian(1.0, M_PI/3.0, M_PI/2.0);
-    node.SetNodeId(id);
-    node.SetCoord(coord);
-    geomesh->NodeVec()[id] = node;
-    id++;
+    if (isPlane) {
+        
+        switch (plane) {
+            case 1:
+            {
+                //no 0
+                coord = SphereToKartesian(1.0, h-beta, k-alpha);
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+                //no 1
+                coord = SphereToKartesian(1.0, h-beta, k+alpha);
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+                //no 2
+                coord = SphereToKartesian(1.0, h-beta, k+alpha + 2.0*(h-alpha));
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+                //no 3
+                coord = SphereToKartesian(1.0, h-beta, k-alpha - 2.0*(h-alpha));
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+            }
+                break;
+                
+                case 2:
+            {
+                //no 0
+                coord = SphereToKartesian(1.0, h-beta, k-alpha);
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+                //no 1
+                coord = SphereToKartesian(1.0, h-beta, k+alpha);
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+                //no 2
+                coord = SphereToKartesian(1.0, h+beta, k+alpha);
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+                //no 3
+                coord = SphereToKartesian(1.0, h+beta, k-alpha);
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+            }
+                break;
+                
+            case 3:
+            {
+                //no 0
+                coord = SphereToKartesian(1.0, h-beta, k+alpha + 2.0*(h-alpha));
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+                //no 1
+                coord = SphereToKartesian(1.0, h-beta, k + alpha);
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+                //no 2
+                coord = SphereToKartesian(1.0, h+beta, k + alpha);
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+                //no 3
+                coord = SphereToKartesian(1.0, h+beta, k + alpha + 2.0*(h-alpha));
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                cout << coord << endl;
+            }
+                break;
+                
+            case 4:
+            {
+                // domain with equal lentgh
+                //no 0
+                coord[0] = -M_PI/8.0;
+                coord[1] = -sqrt(3.0)/2.0;
+                coord[2] = 0.0;
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+
+                //no 1
+                coord[0] = M_PI/8.0;
+                coord[1] = -sqrt(3.0)/2.0;
+                coord[2] = 0.0;
+                
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+                
+                //no 2
+                coord[0] = M_PI/8.0;
+                coord[1] = sqrt(3.0)/2.0;
+                coord[2] = 0.0;
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+
+                //no 3
+                coord[0] = -M_PI/8.0;
+                coord[1] = sqrt(3.0)/2.0;
+                coord[2] = 0.0;
+                node.SetNodeId(id);
+                node.SetCoord(coord);
+                geomesh->NodeVec()[id] = node;
+                id++;
+
+            }
+                break;
+                
+            default:
+            {
+                DebugStop();
+            }
+                break;
+        }
+        
+    }
+    else{
+        //no 0
+        coord = SphereToKartesian(1.0, h + beta , k  ); //k + M_PI/22.0
+        node.SetNodeId(id);
+        node.SetCoord(coord);
+        geomesh->NodeVec()[id] = node;
+        id++;
+        
+        //no 1
+        coord = SphereToKartesian(1.0, h + beta , k + alpha  );//k + alpha - M_PI/22.0
+        node.SetNodeId(id);
+        node.SetCoord(coord);
+        geomesh->NodeVec()[id] = node;
+        id++;
+        
+        //no 2
+        coord = SphereToKartesian(1.0, h - beta , k + alpha );
+        node.SetNodeId(id);
+        node.SetCoord(coord);
+        geomesh->NodeVec()[id] = node;
+        id++;
+        
+        //no 3
+        coord = SphereToKartesian(1.0, h - beta , k);
+        node.SetNodeId(id);
+        node.SetCoord(coord);
+        geomesh->NodeVec()[id] = node;
+        id++;
+        
+        //no 4
+        coord = SphereToKartesian(1.0, h + beta , k + alpha/2.0);
+        node.SetNodeId(id);
+        node.SetCoord(coord);
+        geomesh->NodeVec()[id] = node;
+        id++;
+        
+        //no 5
+        coord = SphereToKartesian(1.0, h, k + alpha);
+        node.SetNodeId(id);
+        node.SetCoord(coord);
+        geomesh->NodeVec()[id] = node;
+        id++;
+        
+        //no 6
+        coord = SphereToKartesian(1.0, h - beta , k + alpha/2.0);
+        node.SetNodeId(id);
+        node.SetCoord(coord);
+        geomesh->NodeVec()[id] = node;
+        id++;
+        
+        //no 7
+        coord = SphereToKartesian(1.0, h, k);
+        node.SetNodeId(id);
+        node.SetCoord(coord);
+        geomesh->NodeVec()[id] = node;
+        id++;
+    }
     
     int elementid = 0;
     // Using triangle to sphere special map
     TPZVec<long> topology(3);
+    TPZVec<long> topologyLine(2);
     
-    topology[0] = 0;
-    topology[1] = 2;
-    topology[2] = 1;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc1, *geomesh);
-    elementid++;
-    
-    topology[0] = 3;
-    topology[1] = 5;
-    topology[2] = 4;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc1, *geomesh);
-    elementid++;
 
-    topology[0] = 2;
-    topology[1] = 5;
-    topology[2] = 7;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc3, *geomesh);
-    elementid++;
+    // Side 0
+    if (CurvesSides[0]) {
+        topology[0] = 0;
+        topology[1] = 1;
+        topology[2] = 4;
+        new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc1, *geomesh);
+        elementid++;
+    }
+    else{
+        topologyLine[0] = 0;
+        topologyLine[1] = 1;
+        new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,topologyLine, arc1, *geomesh);
+        elementid++;
+    }
     
-    topology[0] = 3;
-    topology[1] = 0;
-    topology[2] = 6;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc3, *geomesh);
-    elementid++;
+    // Side 1
+    if (CurvesSides[1]) {
+        topology[0] = 1;
+        topology[1] = 2;
+        topology[2] = 5;
+        new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc2, *geomesh);
+        elementid++;
+    }
+    else{
+        topologyLine[0] = 1;
+        topologyLine[1] = 2;
+        new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,topologyLine, arc2, *geomesh);
+        elementid++;
+    }
+    
+    // Side 2
+    if (CurvesSides[2]) {
+        topology[0] = 2;
+        topology[1] = 3;
+        topology[2] = 6;
+        new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc3, *geomesh);
+        elementid++;
+    }
+    else{
+        topologyLine[0] = 2;
+        topologyLine[1] = 3;
+        new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,topologyLine, arc3, *geomesh);
+        elementid++;
+    }
+    
+    // Side 3
+    if (CurvesSides[3]) {
+        topology[0] = 3;
+        topology[1] = 0;
+        topology[2] = 7;
+        new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,topology, arc4, *geomesh);
+        elementid++;
+    }
+    else{
+        topologyLine[0] = 3;
+        topologyLine[1] = 0;
+        new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,topologyLine, arc4, *geomesh);
+        elementid++;
+    }
+    
+    REAL r = 1.0;
+    TPZManVector<REAL,3> xc(3,0.0);
     
     
     // Create Geometrical Quad #1
-    topology.Resize(4);
+    topology.Resize(4);    
     topology[0] = 0;
-    topology[1] = 2;
-    topology[2] = 5;
+    topology[1] = 1;
+    topology[2] = 2;
     topology[3] = 3;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,topology, materialId,*geomesh);
+    TPZGeoElRefPattern< pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > > * SphereEighth1 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > > (elementid, topology,materialId,*geomesh);
+    SphereEighth1->Geom().SetData(r,xc);
     elementid++;
     
     
     //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
     geomesh->BuildConnectivity();
+    
+//    topology.Resize(4);
+//    topology[0] = 0;
+//    topology[1] = 1;
+//    topology[2] = 2;
+//    topology[3] = 3;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,topology, materialId,*geomesh);
+    
+//    TPZGeoElRefPattern< pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > > * SphereEighth1 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > > (elementid, topology,materialId,*geomesh);
+//    SphereEighth1->Geom().SetData(r,xc);
+//    elementid++;
+    
+    
+//    const unsigned int nel = geomesh->NElements();
+//    for (int i = 0 ; i < nel ; i++){
+//        TPZGeoEl *gel = geomesh->Element(i);
+//        if (!gel) {
+//            continue;
+//        }
+//        const int npt = 3;
+//        TPZManVector<REAL,3> qsi(3,0.), x(3,0.);
+//        for (int iqsi = 0; iqsi < npt; iqsi++) {
+//            for (int ieta = 0; ieta < npt; ieta++) {
+//                qsi[0] = -1 + iqsi * 2./(npt-1);
+//                qsi[1] = -1 + ieta * 2./(npt-1);
+//                gel->X(qsi, x);
+//                //calcula a funcao e ve se zero
+//                cout << " qsi = " << qsi << " x = " << x << endl;
+//                cout << " r = " << sqrt(x[0]*x[0]+x[1]*x[1]) << endl;
+//                cout << " R = " << sqrt(x[0]*x[0]+x[1]*x[1]+x[2]*x[2]) << endl;
+//                
+//            }
+//        }
+//    }
     
     TPZVec<TPZGeoEl *> sons;
     const int nref = ndiv;
@@ -1849,8 +2191,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[2] = 5;
         topology[3] = 4;
         {
-            TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
-            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > * SphereRingQ =
+            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > (elementid, topology,materialId,*geomesh);
             SphereRingQ->Geom().SetData(r,xc);
             elementid++;
         }
@@ -1860,8 +2202,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[2] = 6;
         topology[3] = 5;
         {
-            TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
-            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > * SphereRingQ =
+            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > (elementid, topology,materialId,*geomesh);
             SphereRingQ->Geom().SetData(r,xc);
             elementid++;
         }
@@ -1871,8 +2213,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[2] = 7;
         topology[3] = 6;
         {
-            TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
-            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > * SphereRingQ =
+            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > (elementid, topology,materialId,*geomesh);
             SphereRingQ->Geom().SetData(r,xc);
             elementid++;
         }
@@ -1882,8 +2224,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[2] = 4;
         topology[3] = 7;
         {
-            TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
-            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > * SphereRingQ =
+            new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > (elementid, topology,materialId,*geomesh);
             SphereRingQ->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2186,8 +2528,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
             topology[2] = indmid[(nelinf+1)%12];
             topology[3] = indmid[nelinf];
             {
-                TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
-                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+                TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > * SphereRingQ =
+                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > (elementid, topology,materialId,*geomesh);
                 SphereRingQ->Geom().SetData(r,xc);
                 elementid++;
             }
@@ -2200,8 +2542,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
             topology[2] = indsup[(nelmid+1)%12];
             topology[3] = indsup[nelmid];
             {
-                TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
-                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+                TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > * SphereRingQ =
+                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > (elementid, topology,materialId,*geomesh);
                 SphereRingQ->Geom().SetData(r,xc);
                 elementid++;
             }
@@ -2515,8 +2857,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
             topology[2] = indmid[(nelinf+1)%npts];
             topology[3] = indmid[nelinf];
             {
-                TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
-                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+                TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > * SphereRingQ =
+                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > (elementid, topology,materialId,*geomesh);
                 SphereRingQ->Geom().SetData(r,xc);
                 elementid++;
             }
@@ -2533,8 +2875,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
             topology[2] = indsup[(nelmid+1)%npts];
             topology[3] = indsup[nelmid];
             {
-                TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * SphereRingQ =
-                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (elementid, topology,materialId,*geomesh);
+                TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > * SphereRingQ =
+                new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<> > (elementid, topology,materialId,*geomesh);
                 SphereRingQ->Geom().SetData(r,xc);
                 elementid++;
             }

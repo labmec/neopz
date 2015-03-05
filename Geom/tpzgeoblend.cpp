@@ -462,6 +462,7 @@ TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoEl(TPZGeoEl *orig, int side,int 
 {
 	TPZStack<int> LowAllSides;
 	TGeo::LowerDimensionSides(side,LowAllSides);
+    LowAllSides.Push(side);
 	if(side < 0 || side > TGeo::NSides-1)
 	{
 		DebugStop();

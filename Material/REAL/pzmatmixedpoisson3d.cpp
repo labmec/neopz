@@ -134,6 +134,9 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     TPZFMatrix<REAL>  &phip =  datavec[1].phi;
     TPZFMatrix<REAL> &dphipLoc = datavec[1].dphix;
     
+    TPZFNMatrix<660> GradofPhiL2;
+    TPZAxesTools<REAL>::Axes2XYZ(datavec[1].dphix, GradofPhiL2, datavec[1].axes);
+    
     
     int phrq, phrp;
     phrp = phip.Rows();
@@ -183,7 +186,7 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
         ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
         ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
         
-        TPZFNMatrix<3,REAL> jvecZ(fDim,1,0.);
+        TPZFNMatrix<3,REAL> jvecZ(3,1,0.);
         
         for (int jq=0; jq<phrq; jq++)
         {
@@ -197,13 +200,13 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
             
             //dot product between Kinv[u]v
             jvecZ.Zero();
-            for(int id=0; id<fDim; id++){
-                for(int jd=0; jd<fDim; jd++){
+            for(int id=0; id<3; id++){
+                for(int jd=0; jd<3; jd++){
                     jvecZ(id,0) += InvPermTensor(id,jd)*jvec(jd,0);
                 }
             }
             REAL prod = 0.;
-            for(int id=0; id < fDim;id++) prod += ivec(id,0)*jvecZ(id,0);
+            for(int id=0; id < 3;id++) prod += ivec(id,0)*jvecZ(id,0);
             ek(iq,jq) += fvisc*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
             
         }
@@ -211,11 +214,6 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     // Coupling terms between flux and pressure inside the element. Matrix B
     // A matriz de rigidez é tal que B{ij}=\int_\Omega \nabla\phi_j\cdot\varphi_i d\Omega
-    
-    REAL x = datavec[0].x[0];
-    REAL y = datavec[0].x[1];
-    REAL z = datavec[0].x[2];
-    REAL r = sqrt(x*x+y*y+z*z);
     
     TPZFNMatrix<200,REAL> dphip(3,datavec[1].dphix.Cols(),0.0);
     for (int ip = 0; ip<dphip.Cols(); ip++) {
@@ -241,7 +239,7 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
             REAL prod = 0.;
             for(int iloc=0; iloc<3; iloc++)
             {
-                prod += (ivec(iloc,0)*phiQ(ishapeind,0))*dphip(iloc,jp);
+                prod += (ivec(iloc,0)*phiQ(ishapeind,0))*GradofPhiL2(iloc,jp);
             }
             
             REAL fact = weight*prod;
@@ -361,6 +359,7 @@ int TPZMatMixedPoisson3D::VariableIndex(const std::string &name){
     if(!strcmp("ExactPressure",name.c_str()))  return 6;
     if(!strcmp("ExactFlux",name.c_str()))      return 7;
     if(!strcmp("Rhs",name.c_str()))            return 8;
+    if(!strcmp("GradP",name.c_str()))          return 9;
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -374,7 +373,8 @@ int TPZMatMixedPoisson3D::NSolutionVariables(int var){
     if(var == 6) return 1;
     if(var == 7) return 3;
     if(var == 8) return 1;
-    return TPZMaterial::NSolutionVariables(var);
+    if(var == 9) return 3;
+        return TPZMaterial::NSolutionVariables(var);
 }
 
 
@@ -383,6 +383,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     Solout.Resize( this->NSolutionVariables(var));
     
     TPZVec<STATE> SolP, SolQ;
+    
     
 
     // SolQ = datavec[0].sol[0];
@@ -457,6 +458,19 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
         return;
     }//var8
     
+    if(var==9){
+        
+        TPZFNMatrix<660> GradofP;
+        TPZAxesTools<REAL>::Axes2XYZ(datavec[1].dsol[0], GradofP, datavec[1].axes);
+//        int nc = GradofP.Cols();
+//        int nl = GradofP.Rows();
+        
+        for (int ip = 0; ip<3; ip++)
+        {
+            Solout[ip] = -1.0*GradofP(ip,0);
+        }
+        return;
+    }
     
 
 }

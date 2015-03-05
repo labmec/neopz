@@ -219,12 +219,12 @@ int main(int argc, char *argv[])
     //int tipo = 1;
     //ofstream saidaerro("../ErroPoissonHdivMalhaTriang.txt",ios::app);
     
-    for(p=2;p<3;p++)
+    for(p=1;p<2;p++)
     {
         int pq = p;
         int pp = p;
         
-        for (ndiv=2; ndiv<3; ndiv++)
+        for (ndiv=1; ndiv<2; ndiv++)
         {
             TPZGeoMesh *gmesh;
             if (IsCube) {
@@ -1154,7 +1154,7 @@ TPZCompMesh *CMeshFluxZconst(TPZGeoMesh *gmesh, int pOrder, int dim)
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
     TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
-    TPZMaterial * BCond6 = material->CreateBC(mat, bc6,dirichlet, val1, val2);
+    //TPZMaterial * BCond6 = material->CreateBC(mat, bc6,dirichlet, val1, val2);
     
     cmesh->InsertMaterialObject(mat);
     

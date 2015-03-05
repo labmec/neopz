@@ -136,7 +136,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 	for(long el = 0; el < nelements; el++)
 	{
 		gel = gmesh->ElementVec()[el];
-		if(!gel || (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
+		if(!gel )//|| (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
 		{
 			continue;
 		}

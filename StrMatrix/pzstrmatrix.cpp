@@ -294,7 +294,7 @@ void TPZStructMatrixST::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
                 else {
                     sout << "Stiffness for computational element without associated geometric element\n";
                 }
-//                ek.Print(sout);
+                ek.Print(sout);
                 ef.Print(sout);
                 LOGPZ_DEBUG(loggerel,sout.str())
             }
