@@ -27,16 +27,15 @@ void TPZMatExSimples2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatri
 {
     TPZFMatrix<STATE> &phi = data.phi;
     TPZFMatrix<STATE> &dphi = data.dphix;
-    TPZVec<STATE> &x = data.x;
-    int nshape=phi.Rows();
+    int nshape = phi.Rows();
     
     for(int i = 0 ; i<nshape ; i++)
     {
-        const STATE rhs = x[0]*phi(i,0);
+        const STATE rhs = 0;
         ef(i,0) += rhs*weight;
         for(int j=0;j<nshape;j++)
         {
-            const STATE stiff = dphi(0,i)*dphi(0,j)+phi(i,0)*phi(j,0);
+            const STATE stiff = dphi(0,i)*dphi(0,j)+dphi(1,i)*dphi(1,j);
             ek(i,j) += stiff*weight;
         }
     }
@@ -76,7 +75,7 @@ void TPZMatExSimples2D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMat
             break;
             
         case 2: // Mista
-            for(int i = 0 ; i<nshape ; i++)
+            for(int i = 0 ; i<nshape ; i++) 
             {
                 const STATE rhs = phi(i,0)*v2;
                 ef(i,0) += rhs*weight;

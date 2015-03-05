@@ -1,4 +1,4 @@
-\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\documentclass[11pt, oneside, hidelinks]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
 \usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
 \usepackage[portuguese]{babel}
 \usepackage[utf8]{inputenc}
@@ -68,41 +68,64 @@ Já na segunda parte, através da leitura de capítulos do livro Finite Elements
 
 \section{Programação orientada a objeto e introdução a C++}
 \subsection{Programação orientada a objeto}
-Conforme explicado em \citet{deitel12}:\emph{``Objects, or more precisely[...], the classes objects come from, are essentially reusable software components. There are date objects, time objects, audio objects, video objects, automobile objects, people objects, etc. Almost any noun can be reasonably represented as a software object in terms of attributes (e.g., name, color and size) and behaviours (e.g., calculating, moving and communicating). Software developers are discovering that using a modular, object$-$oriented design and implementation approach can make software$-$development groups much more productive than was possible with earlier popular techniques like ``structured programming''$-$ object$-$oriented programs are often easier to understand, correct and modify.''}. O conceito de herança entre classes também é extensivamente utilizado no pacote NeoPZ.
+Conforme explicado em \citet{deitel12}:\emph{``Objects, or more precisely[...], the classes objects come from, are essentially reusable software components. There are date objects, time objects, audio objects, video objects, automobile objects, people objects, etc. Almost any noun can be reasonably represented as a software object in terms of attributes (e.g., name, color and size) and behaviours (e.g., calculating, moving and communicating). Software developers are discovering that using a modular, object$-$oriented design and implementation approach can make software$-$development groups much more productive than was possible with earlier popular techniques like ``structured programming''$-$ object$-$oriented programs are often easier to understand, correct and modify.''}. Para uma maior compreensão dos paradigmas envolvidos na filosofia de programação orientada a objeto, é sugerida a leitura de \citet{eckel00}. O conceito de herança entre classes também é extensivamente utilizado no pacote NeoPZ.
 \subsection{A linguagem de programação C++}
 \subsection{Exercício}
 \subsubsection{Ambientação}
-
 \begin{itemize}
 \item Criar um projeto novo em XCode 
 \item Rodar o programa principal que ele mesmo criou 
-\item Acrescentar uma função $f(x) = Sin(3\pi x) $
+\item Acrescentar uma função que realize a operação $f(x) = Sin(3\pi x) $ 
 \item Imprimir o resultado para $0\leq x\leq \pi$ 
-\item Executar o programa passo a passo
+\item Executar o programa passo a passo utilizando o \emph{debugger}
 \item Documentar um código utilizando Doxygen 
 \end{itemize}
-
 \subsubsection{Estudo prático da linguagem C++}
+\subsubsection*{Classe Vetor}
+Primeiramente, o aluno deve criar uma classe que implementa um vetor de números reais. No \emph{header} da classe, os objetivos da classe, assim como os de quaisquer métodos que venham a ser criados, devem estar bem explicados. A classe criada deve conter, pelo menos:
+\begin{samepage}
 \begin{itemize}
-\item Criar uma classe que implementa um vetor de números reais 
-\item Descrever os objetivos da classe 
-\item Aplicar nessa classe: Construtor e destrutor 
-\item Acrescentar método que calcula a norma do vetor 
-\item Acrescentar métodos do tipo GetVal, SetVal 
-\item Implementar construtor de cópia 
-\item Implementar seleção de elemento através de operador [ ] 
-\item Implementar operador = 
-\item Criar uma classe que implementa uma matriz 
-\item Descrever os objetivos da classe 
-\item Aplicar nessa classe: Construtor e destrutor
-\item Acrescentar método que calcula a norma da matriz 
-\item Acrescentar métodos do tipo GetVal, SetVal 
+\item Construtor e destrutor 
+\item Método que calcula a norma do vetor 
+\item Métodos do tipo GetVal, SetVal 
 \item Construtor de cópia 
-\item Implementar seleção de elemento através de operador () 
-\item Implementar operador = 
-\item Implementar o produto matriz vetor 
-\item Implementar a decomposição de Gauss 
+\item Seleção de elemento através de operador [ ] 
+\item Operador = 
+\item Operador + e operador -
+\item Operador ==
 \end{itemize}
+\emph{Obs: O livro \citet{deitel12} é fortemente recomendado para eventuais dúvidas, tanto relativas à sintaxe da linguagem quanto à ideia da classe em si}
+\end{samepage}
+\subsubsection*{Classe Matriz}
+Em seguida, o aluno deve criar uma classe que implementa uma matriz. Obviamente, alguns dos métodos criados no exercício anterior podem vir a ser aproveitados (diretamente ou não). Os atributos e métodos necessários para a classe devem ser pensados pelo aluno, sendo livre a forma da implementação e as estruturas de dado envolvidas. Entretanto, assim como na classe de vetor, alguns objetivos devem ser cumpridos:
+\newpage
+
+\begin{itemize}
+\begin{samepage}
+\item A matriz deve ter elementos do tipo $REAL$ ( Ver $typedef$ em \citet{deitel12})
+\item Construtor vazio;    
+\item Construtor que cria uma matriz com $m$ linhas e $n$ colunas
+\item Construtor de cópia
+\item Destrutor
+\item Método para redimensionamento da matriz ($Resize$)
+\item Método que transpõe a matriz ($Transpose$)
+\item Métodos do tipo $GetVal$ e $PutVal$
+\item Operador () para seleção de elemento da matriz
+\item Operador = para atribuição
+\item Operador == para comparação
+\item Operações de adição, subtração e multiplicação de matrizes (assim como seus respectivos operadores)
+\item Operação do produto entre matriz e vetor
+\item Uma função do tipo $debugStop()$
+\end{samepage}
+\end{itemize}
+O aluno é incentivado a criar quaisquer métodos que venham a ser necessários para cumprir o objetivo. A classe deve ser testada com o auxílio de uma rotina que teste operações básicas possíveis de ser realizadas com ela. Ao final do exercício, o aluno deve rtesponder as seguintes questões:
+\begin{enumerate}
+  \item Qual o significado de $const$ após a assinatura de um método?
+  \item Qual o significado de passar uma variável $const$ por referência?
+  \item Quando são chamados os construtores e destrutores (\emph{Dica: utilizando a função std::cout, faça que os construtores e o destrutor de sua classe imprimam uma mensagem quando forem chamados e o endereço do objeto responsável pela sua chamada})?
+  \item Existe utilidade dos métodos $GetVal$ e $PutVal$ se há o operador parênteses para seleção de elemento?
+  \item Por que a utilização do $typedef\ double\ REAL;$?
+\end{enumerate}
 \newpage
 \section{O Método dos Elementos Finitos (FEM): Uma introdução}
 \subsection*{Introdução}

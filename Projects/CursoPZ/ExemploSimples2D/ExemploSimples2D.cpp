@@ -43,9 +43,9 @@ int main(int argc, char *argv[])
 {
     int dim = 2;//dimensao do problema
     int uNDiv=3,
-    vNDiv=2;//numero de divisoes feitas no dominio
+    vNDiv=4;//numero de divisoes feitas no dominio
 	int nel = uNDiv*vNDiv; //numero de elementos a serem utilizados
-    int pOrder = 1; //ordem polinomial de aproximacao
+    int pOrder = 4; //ordem polinomial de aproximacao
 	TPZGeoMesh *gmesh = CreateGMesh(nel, uNDiv, vNDiv); //funcao para criar a malha geometrica
 	
 	TPZCompMesh *cmesh = CMesh(gmesh, pOrder); //funcao para criar a malha computacional
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     scalnames.Push("State");//setando para imprimir u
     string plotfile = "ModelProblemSol.vtk";//arquivo de saida que estara na pasta debug
     an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
-	int postProcessResolution = 0;//define resolucao do pos processamento
+	int postProcessResolution = 3;//define resolucao do pos processamento
     an.PostProcess(postProcessResolution);//realiza pos processamento
     
 	std::cout << "FINISHED!" << std::endl;
@@ -163,14 +163,15 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 	const int matId = 1, bc0 = -1, bc1 = -2, bc2=-3, bc3=-4; //MESMOS ids da malha geometrica
 	const int dirichlet = 0, neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita 
 	
-	// Criando material
-	TPZMatExSimples2D *material = new TPZMatExSimples2D(matId);//criando material que implementa a formulacao fraca do problema modelo
-	
+    
 	///criar malha computacional
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDefaultOrder(pOrder);//seta ordem polimonial de aproximacao
 	cmesh->SetDimModel(dim);//seta dimensao do modelo
 	
+    // Criando material
+    TPZMatExSimples2D *material = new TPZMatExSimples2D(matId);//criando material que implementa a formulacao fraca do problema modelo
+    
 	// Inserindo material na malha
 	cmesh->InsertMaterialObject(material);
 		
@@ -185,13 +186,13 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     
     cmesh->InsertMaterialObject(BCond1);//insere material na malha
     
-    val2(0,0) = 0.;//potencial na placa inferior
+    val2(0,0) = 1.0;//potencial na placa inferior
     // Condicao de contorno da placa inferior
     TPZMaterial * BCond2 = material->CreateBC(material, bc2, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da placa inferior
     
     cmesh->InsertMaterialObject(BCond2);//insere material na malha
     
-    val2(0,0) = 1.;//potencial na placa superior
+    val2(0,0) = 1.5;//potencial na placa superior
     // Condicao de contorno da placa superior
     TPZMaterial * BCond3 = material->CreateBC(material, bc3, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da placa superior
 	
