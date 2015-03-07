@@ -1,4 +1,4 @@
-
+#include "pzlog.h"
 #include "tpzautopointer.h"
 #include "ReservoirData.h"
 #include "SimulationData.h"
@@ -8,6 +8,9 @@
 
 #include <time.h>
 
+// #ifdef LOG4CXX
+// static LoggerPtr logdata(Logger::getLogger("pz.darcy"));
+// #endif
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.DarcyFlow"));
@@ -20,15 +23,15 @@ int main()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 5;
+    int maxiter     = 20;
     bool broyden    = false;
     
     REAL hour       = 3600;
     REAL day        = hour * 24;
     REAL dt         = 1.0*day;
     REAL time       = 100.0*day;
-    REAL TolDeltaX  = 1.0*10e-5;
-    REAL TolRes     = 1.0*10e-5;
+    REAL TolDeltaX  = 1.0*10e-6;
+    REAL TolRes     = 1.0*10e-6;
 
     Dataset->SetDeltaT(dt);
     Dataset->SetTime(time);
@@ -42,7 +45,7 @@ int main()
     TPZAutoPointer<ReservoirData> Layer = new ReservoirData;
     
     REAL porosityref    = 0.1;
-    REAL densityref     = 900.0;
+    REAL densityref     = 1000.0;
     REAL viscosityref   = 0.001;
     REAL pressureref    = 1.0*10e6;
     REAL lengthref      = 1.0;
@@ -59,8 +62,8 @@ int main()
     
     TPZFMatrix<STATE> Kabsolute(2,2);
     Kabsolute.Zero();
-    Kabsolute(0,0) = 1.0;
-    Kabsolute(1,1) = 1.0;
+    Kabsolute(0,0) = 1.0e-14;
+    Kabsolute(1,1) = 1.0e-14;
     
     Layer->SetLref(lengthref);
     Layer->SetKref(kref);

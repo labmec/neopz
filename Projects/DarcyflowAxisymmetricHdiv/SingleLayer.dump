@@ -29,9 +29,9 @@ STATIC Plane_stress Title_name SI Iter Normal GID 1
 
 --- NODES ---
 1 1            0            0
-2 1            2            0
-3 1            2            2
-4 1            0            2
+2 1            1000            0
+3 1            1000            100
+4 1            0            100
 
 
 --- ELEMENTS ---

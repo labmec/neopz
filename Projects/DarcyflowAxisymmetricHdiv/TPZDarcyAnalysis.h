@@ -119,7 +119,7 @@ public:
     /**
      * Read the geometric from dump file
      */
-    void ReadGeoMesh(std::string GridFileName);
+    void ReadGeoMesh(std::string GridFileName);   
 
     /**
      * Print geometric
@@ -151,6 +151,11 @@ public:
      */
     void PostProcessVTK(TPZAnalysis *an);
 
+    /**
+     * Create interfaces in the multiphysics mesh
+     */    
+    void CreateInterfaces();
+    
     /**
      * Print the global linear system
      */

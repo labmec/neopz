@@ -15,6 +15,7 @@
 #include "TPZAxiSymmetricDarcyFlow.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSkylineNSymStructMatrix.h"
+#include "math.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
@@ -109,51 +110,59 @@ void TPZDarcyAnalysis::Run()
     //  Reading mesh
     std::string GridFileName;
     GridFileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-//    GridFileName += "SingleLayer.dump";
-    GridFileName += "BatatacoarseQ.dump";
+    GridFileName += "SingleLayer.dump";
+//    GridFileName += "BatatacoarseQ.dump";
     
     ReadGeoMesh(GridFileName);
-    this->UniformRefinement(0);
+    RotateGeomesh(0.0*M_PI/8.0);
+    this->UniformRefinement(2);
     this->PrintGeoMesh();
     
-    int q = 1;
-    int p = 1;
+    int q = 2;
+    int p = 2;
     CreateMultiphysicsMesh(q,p);
+    CreateInterfaces();    // insert interfaces between bc and domain
     
     // Analysis
     bool mustOptimizeBandwidth = false;
     TPZAnalysis *an = new TPZAnalysis(fcmeshMixed,mustOptimizeBandwidth);
     TPZSkylineNSymStructMatrix skyl(fcmeshMixed);
-    skyl.SetNumThreads(8);
+    skyl.SetNumThreads(2);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELU);
     an->SetSolver(step);
     an->SetStructuralMatrix(skyl);
     
-//    this->PrintLS(an);
+    this->PrintLS(an);
     
-    an->Run();
-    
-//    an->AssembleResidual();
-//    TPZFMatrix<STATE> Res = an->Rhs();
-//    
-//    std::cout << "Residual norm " << Norm(Res) << std::endl;
-    
-    
-//    NewtonIterations(an);
-    
-//#ifdef LOG4CXX
-//    if (logger->isDebugEnabled()) {
-//        std::stringstream out;
-//        an->Solution().Print(" Alphas = ",out,EMathematicaInput);
-////        Res.Print(" Res = ",out,EMathematicaInput);
-//        LOGPZ_DEBUG(logger, out.str());
-//    }
-//#endif
+    NewtonIterations(an);
     
     this->PostProcessVTK(an);
     
 }
+
+
+void TPZDarcyAnalysis::CreateInterfaces()
+{
+    fgmesh->ResetReference();
+    fcmeshMixed->LoadReferences();
+    
+    // Creation of interface elements
+    int nel = fcmeshMixed->ElementVec().NElements();
+    for(int el = 0; el < nel; el++)
+    {
+        TPZCompEl * compEl = fcmeshMixed->ElementVec()[el];
+        if(!compEl) continue;
+        int index = compEl ->Index();
+        if(compEl->Dimension() == fcmeshMixed->Dimension() - 1)
+        {
+            TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(fcmeshMixed->ElementVec()[index]);
+            if(!InterpEl) continue;
+            InterpEl->CreateInterfaces();
+        }
+    }
+}
+
 
 void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
 {
@@ -204,14 +213,15 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     TPZFMatrix<STATE> DeltaX(an->Rhs().Rows(),1,0.0);
     
     STATE error=1;
+    STATE normdx=1;
     int iterations=0;
     
     while (error >= fSimulationData->GetToleranceRes() && iterations <= fSimulationData->GetMaxiterations()) {
         
-        
+        an->Rhs() *= -1.0;
         an->Solve();
         DeltaX = an->Solution();
-        
+        normdx = Norm(DeltaX);
         X += DeltaX;
         
 #ifdef LOG4CXX
@@ -225,20 +235,27 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
 #endif
         
         fcmeshMixed->LoadSolution(X);
-        
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
-
-        an->AssembleResidual();
+        an->Assemble(); // or residual
         Residual = an->Rhs();
         
         error = Norm(Residual);
         iterations++;
+	
+	if(error <= fSimulationData->GetToleranceRes())
+	{	  
+	  std::cout << "Converged with iterations:  " << iterations << std::endl;
+	  std::cout << "error norm: " << error << std::endl;  
+	  std::cout << "error of dx: " << normdx << std::endl;		  
+	}
         
         if (iterations == fSimulationData->GetMaxiterations()) {
-            std::cout << "leaving newto process ... " << std::endl;
+            std::cout << "Out max iterations " << iterations << std::endl;
+            std::cout << "error norm " << error << std::endl;	    
             break;
         }
         
+
     }
     
 
@@ -275,7 +292,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
-    val2(0,0) = 0.1;
+    val2(0,0) = 10.0*1e6;
     TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
     cmesh->InsertMaterialObject(bcRight);
     
@@ -285,7 +302,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     cmesh->InsertMaterialObject(bcTop);
     
     // Bc Left
-    val2(0,0) = 0.1;
+    val2(0,0) = -0.00000001;
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
     cmesh->InsertMaterialObject(bcLeft);
     
