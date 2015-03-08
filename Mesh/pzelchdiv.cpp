@@ -974,18 +974,41 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 			ivecDiv(2,0) = data.fNormalVec(2,ivec);
 			TPZFNMatrix<3> axesvec(3,1);
 			data.axes.Multiply(ivecDiv,axesvec);
-			
+
+            //  Compute grad(PhiH1)
+			TPZFNMatrix<3> GradofPhiH1(dim,1);
+            TPZFMatrix<STATE> NormalVectorTensorProGradofiPhiH1(dim,dim);
+            GradofPhiH1.Zero();
+            NormalVectorTensorProGradofiPhiH1.Zero();
+            
+            for (int iaxes=0; iaxes<data.axes.Rows(); iaxes++)
+            {
+                GradofPhiH1(0,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,0);
+                GradofPhiH1(1,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,1);
+                GradofPhiH1(2,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,2);
+            }
+
+            
+            //  Compute grad(PhiHdiv) = V (outerTimes) grad(PhiH1) Note: Assume Constant vector basis V
+            NormalVectorTensorProGradofiPhiH1(0,0) = data.fNormalVec(0,ivec)*GradofPhiH1(0,0);
+            NormalVectorTensorProGradofiPhiH1(0,1) = data.fNormalVec(0,ivec)*GradofPhiH1(1,0);
+            NormalVectorTensorProGradofiPhiH1(0,2) = data.fNormalVec(0,ivec)*GradofPhiH1(2,0);
+            
+            NormalVectorTensorProGradofiPhiH1(1,0) = data.fNormalVec(1,ivec)*GradofPhiH1(0,0);
+            NormalVectorTensorProGradofiPhiH1(1,1) = data.fNormalVec(1,ivec)*GradofPhiH1(1,0);
+            NormalVectorTensorProGradofiPhiH1(1,2) = data.fNormalVec(1,ivec)*GradofPhiH1(2,0);
+            
+            NormalVectorTensorProGradofiPhiH1(2,0) = data.fNormalVec(2,ivec)*GradofPhiH1(0,0);
+            NormalVectorTensorProGradofiPhiH1(2,1) = data.fNormalVec(2,ivec)*GradofPhiH1(1,0);
+            NormalVectorTensorProGradofiPhiH1(2,2) = data.fNormalVec(2,ivec)*GradofPhiH1(2,0);
+            
             for (long is=0; is<numbersol; is++)
             {
                 cols=jv%numdof;
                 for (int ilinha=0; ilinha<dim; ilinha++) {
                     data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
-//                    data.dsol[is](ilinha,0)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);//(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);
-//                    data.dsol[is](ilinha,1)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);//(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(1,ishape)*MeshSol(pos+jn,is);
-//                     data.dsol[is](ilinha,2)+=(STATE)axesvec(ilinha,0)*(STATE)data.dphix(2,ishape)*MeshSol(pos+jn,is);//
                     for (int kdim = 0 ; kdim < Dimension(); kdim++) {
-                        // validar divergente para o caso 2d(dominio) -> 3d (solucao do problema)
-                        data.dsol[is](ilinha,kdim)+=0.0;//(STATE)data.axes(kdim,j)*ivecdir(j,0)*(STATE)data.dphix(kdim,ishape)*MeshSol(pos+jn,is);//
+                        data.dsol[is](ilinha,kdim)+=(STATE) MeshSol(pos+jn,is) * NormalVectorTensorProGradofiPhiH1(ilinha,kdim);
                     }
                 }
             }
