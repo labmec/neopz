@@ -38,6 +38,21 @@ ReservoirData::ReservoirData()
     /** @brief Fluid Compressibility 1/pa - */
     fcfluid=0;
     
+    /** @brief Layer average thickness - m */
+    fh = 0.0;
+    
+    /** @brief Layer average radius - m */
+    fr = 0.0;
+    
+    /** @brief well radius - m */
+    frw = 0.0;
+    
+    /** @brief Layer Top depth  - m */
+    fDepth = 0.0;
+    
+    /** @brief Is GID geometry - */
+    fIsGIDGeometry = false;
+    
     /** @brief Material indexes */
     fmaterialIds.Resize(0);
     
@@ -63,7 +78,7 @@ ReservoirData::~ReservoirData()
  */
 void ReservoirData::Porosity(REAL P, REAL &poros, REAL &dPorosDp)
 {
-    poros = fPhiref*(1.0+fcrock*(P-fPref));
+    poros = fPhiref*(1.0+(fcrock*P-fcrock*fPref));
     dPorosDp = fPhiref*fcrock;
 }
 
@@ -73,7 +88,7 @@ void ReservoirData::Porosity(REAL P, REAL &poros, REAL &dPorosDp)
  */
 void ReservoirData::Density(REAL P, REAL &rho, REAL &drhoDp)
 {
-    rho = fRhoref*(1.0+fcfluid*(P-fPref));
+    rho = fRhoref*(1.0+(fcfluid*P-fcfluid*fPref));
     drhoDp = fRhoref*fcfluid;
 }
 

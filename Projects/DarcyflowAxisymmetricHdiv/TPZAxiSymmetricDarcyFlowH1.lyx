@@ -152,32 +152,39 @@ the fluid mobility
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial\left(\phi\rho_{f}\right)}{\partial t}+div\left(-K\;\lambda\nabla\left(P-\rho_{f}g\; z\right)\right)=0,\;\;\forall\;\mathbf{x}\in\Omega,\;\;\forall\; t\in\;\Re\label{eq:MassConservationPrimalForm}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 State variables
 \end_layout
 
 \begin_layout Standard
 Here we choose 
-\begin_inset Formula $\mathbf{q}$
-\end_inset
-
- and 
 \begin_inset Formula $P$
 \end_inset
 
- as state variables with the following units on SI:
+ as state variable with the following units on SI:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Float table
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="3" columns="2">
+<lyxtabular version="3" rows="2" columns="2">
 <features rotate="0" tabularvalignment="middle">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
@@ -196,29 +203,6 @@ var
 
 \begin_layout Plain Layout
 Symbol/unit
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-Mass velocity
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-\begin_inset Formula $\mathbf{q}\;\;\left[\frac{kg}{s\; m^{2}}\right]$
-\end_inset
-
-
 \end_layout
 
 \end_inset
@@ -258,7 +242,7 @@ Pressure
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-State variables
+State variable
 \end_layout
 
 \end_inset
@@ -280,24 +264,13 @@ Weak formulation with gravity
 \end_layout
 
 \begin_layout Standard
-Defining the approximations spaces:
+Defining the approximation space:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\mathbf{V}=\left\{ \mathbf{z}\in Hdiv\left(\Omega\right)\mbox{such as}\;\mathbf{z}\cdot\mathbf{n}=0\;\mbox{over}\;\Gamma_{N}\right\} 
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-W=\left\{ \mathbf{z}\in L^{2}\left(\Omega\right)\right\} 
+\Phi=\left\{ \mathbf{z}\in H_{1}\left(\Omega\right)\right\} 
 \end{equation}
 
 \end_inset
@@ -307,11 +280,7 @@ W=\left\{ \mathbf{z}\in L^{2}\left(\Omega\right)\right\}
 
 \begin_layout Standard
 and 
-\begin_inset Formula $\mathbf{v}\in\mathbf{V}$
-\end_inset
-
- and 
-\begin_inset Formula $w\in W$
+\begin_inset Formula $\phi\in\Phi$
 \end_inset
 
 .
@@ -323,13 +292,13 @@ and
 \end_layout
 
 \begin_layout Subsubsection*
-Constitutive Law:
+Primal formulation:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega+\underset{\Omega}{\int}\nabla\left(P-\rho_{f}g\; z\right)\cdot\mathbf{v}\;\partial\Omega_{e}=0
+\underset{\Omega}{\int}div\left(-K\;\lambda\nabla\left(P-\rho_{f}g\; z\right)\right)\phi\;\partial\Omega=0
 \end{equation}
 
 \end_inset
@@ -340,7 +309,7 @@ Constitutive Law:
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega+\underset{\Omega}{\int}\nabla\left(P\right)\cdot\mathbf{v}-\underset{\Omega}{\int}\nabla\left(\rho_{f}g\; z\right)\cdot\mathbf{v}\;\partial\Omega_{e}=0
+\underset{\Omega}{\int}div\left(-K\;\lambda\nabla\left(P-\rho_{f}g\; z\right)\phi\right)\;\partial\Omega-\underset{\Omega}{\int}\left(-K\;\lambda\nabla\left(P-\rho_{f}g\; z\right)\right)\cdot\nabla\phi\;\partial\Omega=0
 \end{equation}
 
 \end_inset
@@ -351,7 +320,7 @@ Constitutive Law:
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega+\underset{\Omega}{\int}div\left(P\;\mathbf{v}\right)\partial\Omega-\underset{\Omega}{\int}P\; div\left(\mathbf{v}\right)\partial\Omega-\underset{\Omega}{\int}\nabla\left(\rho_{f}g\; z\right)\cdot\mathbf{v}=0
+\underset{\Gamma}{\int}\left(-K\;\lambda\nabla\left(P-\rho_{f}g\; z\right)\phi\right)\cdot\mathbf{n}\;\partial\Gamma+\underset{\Omega}{\int}\left(K\;\lambda\nabla\left(P\right)\right)\cdot\nabla\phi\;\partial\Omega-\underset{\Omega}{\int}\left(K\;\lambda\nabla\left(\rho_{f}g\; z\right)\right)\cdot\nabla\phi\;\partial\Omega=0
 \end{equation}
 
 \end_inset
@@ -360,23 +329,20 @@ Constitutive Law:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-\underset{\Omega}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega+\underset{\Gamma}{\int}P\; v_{n}\;\partial\Gamma-\underset{\Omega}{\int}P\; div\left(\mathbf{v}\right)\partial\Omega-\underset{\Omega}{\int}\nabla\left(\rho_{f}g\; z\right)\cdot\mathbf{v}=0
-\end{equation}
-
+the quantity 
+\begin_inset Formula $\left(-K\;\lambda\nabla\left(P-\rho_{f}g\; z\right)\right)\cdot\mathbf{n}=\sigma\left(s\right)$
 \end_inset
 
-
+ is the normal flux
 \end_layout
 
 \begin_layout Standard
 By sub-dividing the spatial domain in finite elements and defining 
-\begin_inset Formula $\left[\left[P\right]\right]=P_{R}-P_{L}$
+\begin_inset Formula $\left[\left[\sigma\left(s\right)\right]\right]=\sigma\left(s\right)_{R}-\sigma\left(s\right)_{L}$
 \end_inset
 
  assuming that 
-\begin_inset Formula $\underset{\gamma_{e}}{\int}\left[\left[P\right]\right]\; v_{n}\;\partial\gamma_{e}=0$
+\begin_inset Formula $\underset{\gamma_{e}}{\int}\left[\left[\sigma\left(s\right)\right]\right]\; v_{n}\;\partial\gamma_{e}=0$
 \end_inset
 
 
@@ -385,7 +351,7 @@ By sub-dividing the spatial domain in finite elements and defining
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega_{e}}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega_{e}+\underset{\Gamma_{e}}{\int}P\; v_{n}\;\partial\Gamma_{e}+\underset{\gamma_{e}}{\int}\left[\left[P\right]\right]\; v_{n}\;\partial\gamma_{e}-\underset{\Omega_{e}}{\int}P\; div\left(\mathbf{v}\right)\partial\Omega-\underset{\Omega_{e}}{\int}\nabla\left(\rho_{f}g\; z\right)\cdot\mathbf{v}=0
+\underset{\Gamma_{Ne}}{\int}\left(\sigma\left(s\right)\phi\right)\;\partial\Gamma_{e}+\underset{\Omega_{e}}{\int}\left(K\;\lambda\nabla\left(P\right)\right)\cdot\nabla\phi\;\partial\Omega_{e}-\underset{\Omega_{e}}{\int}\left(K\;\lambda\nabla\left(\rho_{f}g\; z\right)\right)\cdot\nabla\phi\;\partial\Omega_{e}=0
 \end{equation}
 
 \end_inset
@@ -395,15 +361,15 @@ By sub-dividing the spatial domain in finite elements and defining
 
 \begin_layout Standard
 Here we add 
-\begin_inset Formula $\underset{\partial\Omega_{N}}{\int}Big\left(q_{n}-q_{D}\right)v_{n}\;\partial\gamma_{e}$
+\begin_inset Formula $\underset{\partial\Gamma_{D}}{\int}Big\left(P-P_{D}\right)\phi\;\partial\Gamma_{e}$
 \end_inset
 
  in order to approximated the restriction of the 
-\begin_inset Formula $\mathbf{v}\cdot\mathbf{n}=0$
+\begin_inset Formula $\phi=0$
 \end_inset
 
  over 
-\begin_inset Formula $\Gamma_{N}$
+\begin_inset Formula $\Gamma_{D}$
 \end_inset
 
 .
@@ -412,22 +378,7 @@ Here we add
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega_{e}}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega_{e}+\underset{\partial\Omega_{N}}{\int}Big\left(q_{n}-q_{D}\right)v_{n}\;\partial\gamma_{e}+\underset{\Gamma_{e}}{\int}P\; v_{n}\;\partial\Gamma_{e}+\underset{\gamma_{e}}{\int}\left[\left[P\right]\right]\; v_{n}\;\partial\gamma_{e}-\underset{\Omega_{e}}{\int}P\; div\left(\mathbf{v}\right)\partial\Omega-\underset{\Omega_{e}}{\int}\nabla\left(\rho_{f}g\; z\right)\cdot\mathbf{v}=0
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsubsection*
-Mass conservation equation:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-\underset{\Omega}{\int}w\frac{\partial\left(\phi\rho_{f}\right)}{\partial t}\partial\Omega+\underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega=0
+\underset{\partial\Gamma_{De}}{\int}Big\left(P-P_{D}\right)\phi\;\partial\Gamma_{e}+\underset{\Gamma_{Ne}}{\int}\left(\sigma\left(s\right)\phi\right)\;\partial\Gamma_{e}+\underset{\Omega_{e}}{\int}\left(K\;\lambda\nabla\left(P\right)\right)\cdot\nabla\phi\;\partial\Omega_{e}-\underset{\Omega_{e}}{\int}\left(K\;\lambda\nabla\left(\rho_{f}g\; z\right)\right)\cdot\nabla\phi\;\partial\Omega_{e}=0
 \end{equation}
 
 \end_inset
@@ -436,13 +387,13 @@ Mass conservation equation:
 \end_layout
 
 \begin_layout Standard
-By sub-dividing the spatial domain in finite elements
+For volumetric contributions
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega_{e}}{\int}w\frac{\partial\left(\phi\rho_{f}\right)}{\partial t}\partial\Omega_{e}+\underset{\Omega_{e}}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega_{e}=0
+\underset{\Omega_{e}}{\int}\left(K\;\lambda\nabla\left(P\right)\right)\cdot\nabla\phi\;\partial\Omega_{e}-\underset{\Omega_{e}}{\int}\left(K\;\lambda\nabla\left(\rho_{f}g\; z\right)\right)\cdot\nabla\phi\;\partial\Omega_{e}=0
 \end{equation}
 
 \end_inset

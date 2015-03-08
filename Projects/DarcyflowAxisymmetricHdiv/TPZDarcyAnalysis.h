@@ -43,8 +43,8 @@ private:
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 2> fmeshvec;
     
-    /** @brief Multphysics cmesh for mixed analysis */
-    TPZCompMesh * fcmeshMixed;
+    /** @brief Cmesh for Darcy analysis */
+    TPZCompMesh * fcmeshdarcy;
     
 	
 public:
@@ -110,6 +110,11 @@ public:
      * Rotate the geometric mesh around Z axis
      */
     void RotateGeomesh(REAL CounterClockwiseAngle);
+
+    /**
+     * Create geometric Mesh Based on layer average thickness and layer radius
+     */
+    void CreatedGeoMesh();
     
     /**
      * Uniform Refinement
@@ -137,9 +142,14 @@ public:
     TPZCompMesh * CmeshPressure(int Porder);
     
     /**
-     * Create the computational mixed
+     * Create the computational mixed mesh
      */
     TPZCompMesh * CmeshMixed();
+    
+    /**
+     * Create the computational continuous mesh
+     */
+    void CmeshH1(int porder);
     
     /**
      * Create the computational mixed

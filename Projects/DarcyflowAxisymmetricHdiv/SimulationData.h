@@ -60,6 +60,9 @@ private:
     
     /** @brief Broyden iterations */
     bool fIsBroyden;
+    
+    /** @brief Computes a H1 approximation */
+    bool fIsH1approx;
 
 	
 public:
@@ -99,6 +102,12 @@ public:
     
     /** @brief Using Broyden iterations */
     bool GetIsBroyden() {return fIsBroyden;}
+    
+    /** @brief Using Broyden iterations */
+    void SetIsH1approx(bool H1) {fIsH1approx = H1;}
+    
+    /** @brief Using Broyden iterations */
+    bool GetIsH1approx() {return fIsH1approx;}
 
 
     

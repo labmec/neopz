@@ -28,6 +28,9 @@ SimulationData::SimulationData()
     
     /** @brief Broyden iterations */
     fIsBroyden = false;
+    
+    /** @brief Computes a H1 approximation */
+    fIsH1approx = false;
 	
 }
 

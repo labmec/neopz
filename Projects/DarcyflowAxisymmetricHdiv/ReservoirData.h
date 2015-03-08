@@ -41,8 +41,19 @@ public:
     
     /** @brief Characteristic viscosity - Pa s */
     REAL fEtaref;
-
     
+    /** @brief Layer average thickness - m */
+    REAL fh;
+    
+    /** @brief Layer average radius - m */
+    REAL fr;
+    
+    /** @brief well radius - m */
+    REAL frw;
+    
+    /** @brief Layer Top depth  - m */
+    REAL fDepth;
+
     /** @brief Porosity at P of reference - */
     REAL fPhiref;
     
@@ -51,6 +62,9 @@ public:
     
     /** @brief Fluid Compressibility 1/pa - */
     REAL fcfluid;
+    
+    /** @brief Is GID geometry - */
+    bool fIsGIDGeometry;
     
     /** @brief absolute permeability */
     TPZFMatrix<REAL> fKab;
@@ -85,7 +99,37 @@ public:
     
     /** @brief Characteristic length - m */
     REAL Lref() {return fLref; }
+    
+    /** @brief Set the geometry source */
+    void SetIsGIDGeometry(bool isGIDgeom) {fIsGIDGeometry = isGIDgeom; }
+    
+    /** @brief Get the geometry source */
+    bool GetIsGIDGeometry() {return fIsGIDGeometry; }
+    
+    /** @brief Set the average thickness - m */
+    void SetLayerTop(REAL D) {fDepth = D; }
+    
+    /** @brief Get the average thickness - m */
+    REAL LayerTop() {return fDepth; }
+    
+    /** @brief Set the average thickness - m */
+    void SetLayerh(REAL h) {fh = h; }
+    
+    /** @brief Get the average thickness - m */
+    REAL Layerh() {return fh; }
 
+    /** @brief Set the average radius - m */
+    void SetLayerr(REAL r) {fr = r; }
+    
+    /** @brief Get the average radius - m */
+    REAL Layerr() {return fr; }
+    
+    /** @brief Set the well radius - m */
+    void SetLayerrw(REAL rw) {frw = rw; }
+    
+    /** @brief Get the well radius - m */
+    REAL Layerrw() {return frw; }
+    
     /** @brief Set the characteristic Permeability - m2 */
     void SetKref(REAL Kref) {fKref = Kref;}
     
