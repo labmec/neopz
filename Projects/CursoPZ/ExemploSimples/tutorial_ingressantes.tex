@@ -14,6 +14,9 @@
 \usepackage{amsmath}
 \usepackage{natbib}
 \usepackage[section]{placeins}
+\usepackage{pdfpages}
+\usepackage[nottoc,numbib]{tocbibind}
+
 \bibpunct{(}{)}{;}{a}{,}{,}
 \title{Ambiente de programação científica orientada a objetos NeoPZ: Uma introdução para novos alunos}
 \author{Francisco T. Orlandini\\
@@ -24,6 +27,9 @@ Supervisionado por Nathan Shauer e Philippe Devloo
 \\
 francisco.orlandini@gmail.com}
 \date{Outubro 2014}							% Activate to display a given date or no date
+
+
+
 
 \begin{document}
 \maketitle
@@ -185,7 +191,7 @@ Conforme explicado no capítulo 2 do livro de \citet{oden81}, todas as computaç
 \centerline{$Kel_{j,k}=\int_{x[i]}^{x[i+1]}[\phi_{j}(x)\phi_{k}(x)+\frac{d\phi_{j}(x)}{dx}\frac{d\phi_{k}(x)}{dx}]dx$}
 \centerline{$=\int_{-1}^{1}[\psi_{j}(\xi)\psi_{k}(\xi)+\frac{d\psi_{j}(\xi)}{d\xi}\frac{d\xi}{dx}\frac{d\psi_{k}(\xi)}{d\xi}\frac{d\xi}{dx}]\frac{d\xi}{dx}^{-1}d\xi$}
 
-\subsubsection{Funções de Forma Lagrangianas}
+\subsubsection{Funções de Forma Lagrangianas}x
 As funções de forma utilizadas no algoritmo devem ser lagrangianas. Conforme definidas no Capítulo 2 de \citet{oden81}, se deseja-se utilizar funções de ordem $p$ e da subdivisão do elemento obtém-se $p+1$  pontos equidistantes $x_{i},i=1,2,...,p+1$(que são mapeados no domínio $\xi$) as funções de forma são, portanto:
 
 \centerline{$\psi_{i}(\xi)=\prod_{j=1,j\neq i}^{p+1}\frac{\xi-\xi_{j}}{\xi_{i}-\xi_{j}}$} 
@@ -226,4 +232,8 @@ Após a instalação do pacote NeoPZ o aluno deve executar o programa \emph{Exem
 \newpage
 \bibliographystyle{plainnat}
 \bibliography{bibliografia}
-\end{document}  
+\newpage
+\appendix
+\section{Phillipe R. B. Devloo - Simulação Numérica}\label{app:devloo}
+\includepdf[pages=-]{Devloo_Simulacao.pdf}
+\end{document}
