@@ -168,7 +168,7 @@ void TPZCondensedCompEl::Resequence()
     int ncon = NConnects();
     for (int i=0; i<ncon ; ++i) {
         TPZConnect &c = Connect(i);
-        if(c.NElConnected() == 1)
+        if(c.NElConnected() == 1 && c.HasDependency() == 0)
         {
             c.SetCondensed(true);
         }

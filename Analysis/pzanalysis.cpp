@@ -1071,7 +1071,7 @@ TPZVec<STATE> TPZAnalysis::Integrate(const std::string &varname, const std::set<
 /// extract the values corresponding to the connect from the vector
 static void ConnectSolution(long cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol)
 {
-    long seqnum =  cmesh->ConnectVec()[cindex].SequenceNumber();
+    long seqnum = cmesh->ConnectVec()[cindex].SequenceNumber();
     int blsize = cmesh->Block().Size(seqnum);
     int position = cmesh->Block().Position(seqnum);
     sol.resize(blsize);
@@ -1105,6 +1105,11 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
         int ic;
         for (ic=0; ic<nc; ic++) {
             long cindex = cel->ConnectIndex(ic);
+            TPZConnect &c = cel->Connect(ic);
+            if(c.HasDependency() || c.IsCondensed())
+            {
+                continue;
+            }
             if (ConnectNorm(cindex, fCompMesh, vec) >= tol) {
                 break;
             }
@@ -1130,6 +1135,11 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
         for (ic = 0; ic<nc; ic++) {
             TPZManVector<STATE> connectsol;
             long cindex = cel->ConnectIndex(ic);
+            TPZConnect &c = fCompMesh->ConnectVec()[cindex];
+            if(c.HasDependency() || c.IsCondensed()) {
+                out << "connect " << ic << " is restrained\n";
+                continue;
+            }
             ConnectSolution(cindex, fCompMesh, vec, connectsol);
             out << ic << " index " << cindex << " values " << connectsol << std::endl;
         }

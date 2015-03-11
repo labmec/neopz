@@ -189,12 +189,12 @@ void TPZCompEl::LoadSolution() {
 	totalconnects = connectlist.NElements();
 	TPZManVector<int> dependenceorder(totalconnects);
 	TPZConnect::BuildDependencyOrder(connectlist,dependenceorder,*this->Mesh());
-	TPZMaterial * mat = Material();
-	if(!mat) {
-		LOGPZ_WARN(logger, "Exiting LoadSolution because a null material was reached.");
-		return;
-	}
-	//int numstate = mat->NStateVariables(); 
+//	TPZMaterial * mat = Material();
+//	if(!mat) {
+//		LOGPZ_WARN(logger, "Exiting LoadSolution because a null material was reached.");
+//		return;
+//	}
+	//int numstate = mat->NStateVariables();
 	//TPZBlock<REAL> &block = Mesh()->Block();
 	TPZBlock<STATE> &block = Mesh()->Block();
 	//TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
