@@ -127,7 +127,7 @@ private:
     const int fbc3 = -4;
     const int fbc4 = -5;
     const int fbc5 = -6;
-//    int fmatskeleton = -7;
+    int fmatskeleton = -7;
     
     bool isH1 = false;
     
@@ -142,6 +142,24 @@ public:
     int getDimension() const {return fDim;};
     
     TPZGeoMesh *GMeshSphericalShell( int ndiv);
+    
+//---------------
+    
+    TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv);
+    
+    TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isPlane, int plane);
+    
+    TPZGeoMesh *GMeshCirculoPolarArtico(int ndiv , TPZVec<bool>  &CurvesSides, bool isPlane, int plane);
+    
+    TPZVec<REAL> SphereToKartesian(REAL r, REAL theta, REAL phi);
+
+    TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv);
+    
+    TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv);
+    
+    TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv);
+    
+//--------------------
 
     /* Malhas computacionais */
     TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim);

@@ -140,12 +140,17 @@ TPZGeoMesh *LaplaceInCylinder::GMeshCilindricalMesh( int ndiv)
     long arc4 = fbc4; // -4;
     
     int nodenumber = 6;
-    REAL ModelRadius = 0.5;
+    REAL r = 1.0;
+    // o angulo theta varia de theta0 a theta1
+    REAL theta0 = 0.0;
+    REAL theta1 = M_PI;
+    // z varia de z0 a z1
+    REAL z0 = -M_PI/2.0;
+    REAL z1 = M_PI/2.0;
     
-    TPZVec<STATE> CurrentNode(3,0.0);
+    TPZVec<STATE> coord(3,0.0);
     int Axis = 3;
-    REAL theta, dump = 0.0;
-    theta = 0.0;
+    REAL angrot, dump = 0.0;
     
     gmesh = new TPZGeoMesh;
     gmesh->NodeVec().Resize(nodenumber);
@@ -153,75 +158,75 @@ TPZGeoMesh *LaplaceInCylinder::GMeshCilindricalMesh( int ndiv)
     // Setting node coordinates
     int id = 0;
     //0
-    CurrentNode[0] = -ModelRadius;
-    CurrentNode[1] = -ModelRadius;
-    CurrentNode[2] = 0.0;
-    tools::RotateNode(CurrentNode, theta, Axis);
+    coord[0] = r*cos(theta0);
+    coord[1] = r*sin(theta0);
+    coord[2] = z0;
+    tools::RotateNode(coord, angrot, Axis);
     
     gmesh->NodeVec()[id].SetNodeId(id);
-    gmesh->NodeVec()[id].SetCoord(0,CurrentNode[0]);//coord X
-    gmesh->NodeVec()[id].SetCoord(1,CurrentNode[1]);//coord Y
-    gmesh->NodeVec()[id].SetCoord(2,CurrentNode[2]);//coord Z
+    gmesh->NodeVec()[id].SetCoord(0,coord[0]);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,coord[1]);//coord Y
+    gmesh->NodeVec()[id].SetCoord(2,coord[2]);//coord Z
     id++;
     
     //1
-    CurrentNode[0] = ModelRadius;
-    CurrentNode[1] = -ModelRadius;
-    CurrentNode[2] = 0.0;
-    tools::RotateNode(CurrentNode, theta, Axis);
+    coord[0] = r*cos(theta1);
+    coord[1] = r*sin(theta1);
+    coord[2] = z0;
+    tools::RotateNode(coord, angrot, Axis);
     
     gmesh->NodeVec()[id].SetNodeId(id);
-    gmesh->NodeVec()[id].SetCoord(0,CurrentNode[0]);//coord X
-    gmesh->NodeVec()[id].SetCoord(1,CurrentNode[1]);//coord Y
-    gmesh->NodeVec()[id].SetCoord(2,CurrentNode[2]);//coord Z
+    gmesh->NodeVec()[id].SetCoord(0,coord[0]);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,coord[1]);//coord Y
+    gmesh->NodeVec()[id].SetCoord(2,coord[2]);//coord Z
     id++;
     
     //2
-    CurrentNode[0] = ModelRadius;
-    CurrentNode[1] = ModelRadius;
-    CurrentNode[2] = 0.0;
-    tools::RotateNode(CurrentNode, theta, Axis);
+    coord[0] = r*cos(theta1);
+    coord[1] = r*sin(theta1);
+    coord[2] = z1;
+    tools::RotateNode(coord, angrot, Axis);
     
     gmesh->NodeVec()[id].SetNodeId(id);
-    gmesh->NodeVec()[id].SetCoord(0,CurrentNode[0]);//coord X
-    gmesh->NodeVec()[id].SetCoord(1,CurrentNode[1]);//coord Y
-    gmesh->NodeVec()[id].SetCoord(2,CurrentNode[2]);//coord Z
+    gmesh->NodeVec()[id].SetCoord(0,coord[0]);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,coord[1]);//coord Y
+    gmesh->NodeVec()[id].SetCoord(2,coord[2]);//coord Z
     id++;
     
     //3
-    CurrentNode[0] = -ModelRadius;
-    CurrentNode[1] = ModelRadius;
-    CurrentNode[2] = 0.0;
-    tools::RotateNode(CurrentNode, theta, Axis);
+    coord[0] = r*cos(theta0);
+    coord[1] = r*sin(theta0);
+    coord[2] = z1;
+    tools::RotateNode(coord, angrot, Axis);
     
     gmesh->NodeVec()[id].SetNodeId(id);
-    gmesh->NodeVec()[id].SetCoord(0,CurrentNode[0]);//coord X
-    gmesh->NodeVec()[id].SetCoord(1,CurrentNode[1]);//coord Y
-    gmesh->NodeVec()[id].SetCoord(2,CurrentNode[2]);//coord Z
+    gmesh->NodeVec()[id].SetCoord(0,coord[0]);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,coord[1]);//coord Y
+    gmesh->NodeVec()[id].SetCoord(2,coord[2]);//coord Z
     id++;
     
     //4
-    CurrentNode[0] = ModelRadius;
-    CurrentNode[1] = 0.0;
-    CurrentNode[2] = ModelRadius/20;
-    tools::RotateNode(CurrentNode, theta, Axis);
+    coord[0] = r*cos(0.5*(theta0+theta1));
+    coord[1] = r*sin(0.5*(theta0+theta1));
+    coord[2] = z0;
+    tools::RotateNode(coord, angrot, Axis);
     
     gmesh->NodeVec()[id].SetNodeId(id);
-    gmesh->NodeVec()[id].SetCoord(0,CurrentNode[0]);//coord X
-    gmesh->NodeVec()[id].SetCoord(1,CurrentNode[1]);//coord Y
-    gmesh->NodeVec()[id].SetCoord(2,CurrentNode[2]);//coord Z
+    gmesh->NodeVec()[id].SetCoord(0,coord[0]);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,coord[1]);//coord Y
+    gmesh->NodeVec()[id].SetCoord(2,coord[2]);//coord Z
     id++;
     
     //5
-    CurrentNode[0] = -ModelRadius;
-    CurrentNode[1] = 0.0;
-    CurrentNode[2] = ModelRadius/1.1;
-    tools::RotateNode(CurrentNode, theta, Axis);
+    coord[0] = r*cos(0.5*(theta0+theta1));
+    coord[1] = r*sin(0.5*(theta0+theta1));
+    coord[2] = z1;
+    tools::RotateNode(coord, angrot, Axis);
     
     gmesh->NodeVec()[id].SetNodeId(id);
-    gmesh->NodeVec()[id].SetCoord(0,CurrentNode[0]);//coord X
-    gmesh->NodeVec()[id].SetCoord(1,CurrentNode[1]);//coord Y
-    gmesh->NodeVec()[id].SetCoord(2,CurrentNode[2]);//coord Z
+    gmesh->NodeVec()[id].SetCoord(0,coord[0]);//coord X
+    gmesh->NodeVec()[id].SetCoord(1,coord[1]);//coord Y
+    gmesh->NodeVec()[id].SetCoord(2,coord[2]);//coord Z
     id++;
     
     int elementid = 0;
@@ -301,17 +306,36 @@ void LaplaceInCylinder::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TP
     flux.Resize(3,1);
     
     REAL x = pt[0];
-    solp[0] = 1.0-x;
-    flux(0,0) = 1.0;
-    flux(1,0) = 0.0;
-    flux(2,0) = 0.0;
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y);
+    REAL theta = atan2(y,x);
+    
+    solp[0] = sin(theta)*sin(z + M_PI/2.0);
+    flux(0,0) = -((cos(theta)*cos(z)*sin(theta))/r);
+    flux(1,0) = (cos(theta)*cos(theta)*cos(z))/r;
+    flux(2,0) = -sin(theta)*sin(z);
+    
+//    REAL x = pt[0];
+//    solp[0] = 1.0-x;
+//    flux(0,0) = 1.0;
+//    flux(1,0) = 0.0;
+//    flux(2,0) = 0.0;
     
     
 }
 
 void  LaplaceInCylinder::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     
-	ff[0] = 0.0;
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y);
+    REAL theta = atan2(y,x);
+    
+	ff[0] = ((1.0 + r*r)*cos(z)*sin(theta))/(r*r);
 }
 
 void  LaplaceInCylinder::ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff, TPZFMatrix<STATE> &flux)
@@ -322,37 +346,64 @@ void  LaplaceInCylinder::ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff, TP
     flux(0,0) = 0.0;
     flux(1,0) = 0.0;
     flux(2,0) = 0.0;
+    // verifique os dados acima
+    DebugStop();
 
 }
 
 void  LaplaceInCylinder::ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
-    REAL x = pt[0];
-    solp[0] = 1.0-x;
+    DebugStop();
     
 }
 
 void  LaplaceInCylinder::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
     REAL x = pt[0];
-    solp[0] = 1.0-x;
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y);
+    REAL theta = atan2(y,x);
+    
+    solp[0] = sin(theta)*sin(z + M_PI/2.0);
 }
 
 void  LaplaceInCylinder::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    solp[0] = 0.0;
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y);
+    REAL theta = atan2(y,x);
+    
+    solp[0] = sin(theta)*sin(z + M_PI/2.0);
     
 }
 
 void  LaplaceInCylinder::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
     REAL x = pt[0];
-    solp[0] = 1.0-x;
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y);
+    REAL theta = atan2(y,x);
+    
+    solp[0] = sin(theta)*sin(z + M_PI/2.0);
 }
 
 void  LaplaceInCylinder::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
-    solp[0] = 1.0;
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y);
+    REAL theta = atan2(y,x);
+    
+    solp[0] = sin(theta)*sin(z + M_PI/2.0);
     
 }
 
@@ -361,33 +412,33 @@ void  LaplaceInCylinder::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp
 }
 
 
-void  LaplaceInCylinder::ForcingBC0N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void  LaplaceInCylinder::ForcingBC0N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
     
     DebugStop();
 }
 
-void  LaplaceInCylinder::ForcingBC1N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    
-    disp[0] = 0.0;
-    
-}
-
-void  LaplaceInCylinder::ForcingBC2N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    DebugStop();
-}
-
-void  LaplaceInCylinder::ForcingBC3N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    
-    disp[0] = 0.0;
-    
-}
-
-void  LaplaceInCylinder::ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void  LaplaceInCylinder::ForcingBC1N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
     
     DebugStop();
 }
 
-void  LaplaceInCylinder::ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void  LaplaceInCylinder::ForcingBC2N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
+    
+    DebugStop();
+}
+
+void  LaplaceInCylinder::ForcingBC3N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
+    
+    DebugStop();
+}
+
+void  LaplaceInCylinder::ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
+    
+    DebugStop();
+}
+
+
+void  LaplaceInCylinder::ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
     
     DebugStop();
 }

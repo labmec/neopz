@@ -170,9 +170,9 @@ bool IsPrism = false;
 bool IsTetra = false;
 bool IsPiram = true;
 
-//bool isspherical = true, isgeoblend = false, iscilindro = false;
-//bool isgeoblend = true, isspherical = false, iscilindro = false;
-bool iscylinder = true, iscircle = false, issphere = false;
+bool issphere = true, iscircle = false, iscylinder = false;
+//bool iscircle = true, issphere = false, iscylinder = false;
+//bool iscylinder = true, iscircle = false, issphere = false;
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     int ndiv = 0;
     
     
-    for(p=3;p<4;p++)
+    for(p=1;p<2;p++)
     {
         for (ndiv=4; ndiv<5; ndiv++)
         {

@@ -207,12 +207,19 @@ namespace pzgeom {
 		{
 			std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
 			DebugStop();
+            // ???
+            pzgeom::TPZGeoQuad::Read(buf, 0);
+            buf.Read(&fR,1);
+            
 		}
 		
 		void Write(TPZStream &buf)
 		{
 			std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
 			DebugStop();
+            // ???
+            pzgeom::TPZGeoQuad::Write(buf);
+            buf.Write(&fR,1);
 		}
 		
         bool IsLinearMapping() const
