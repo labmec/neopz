@@ -140,7 +140,6 @@ void RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis);
 TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv);
 TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv);
 TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv);
-TPZGeoMesh *GMeshSphericalShellGeob(int dimensao, int ndiv); // nao presta!
 TPZGeoMesh *GMeshSphericalRing(int dimensao, bool triang,int ndiv);
 TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang,int ndiv);
 TPZVec<REAL> SphereToKartesian(REAL r, REAL theta, REAL phi);
@@ -859,16 +858,16 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
-//        //------- Create and add group elements -------
-//        long index, nenvel;
-//        nenvel = wrapEl.NElements();
-//        for(int ienv=0; ienv<nenvel; ienv++){
-//            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
-//            nel = wrapEl[ienv].NElements();
-//            for(int jel=0; jel<nel; jel++){
-//                elgr->AddElement(wrapEl[ienv][jel]);
-//            }
-//        }
+        //------- Create and add group elements -------
+        long index, nenvel;
+        nenvel = wrapEl.NElements();
+        for(int ienv=0; ienv<nenvel; ienv++){
+            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
+            nel = wrapEl[ienv].NElements();
+            for(int jel=0; jel<nel; jel++){
+                elgr->AddElement(wrapEl[ienv][jel]);
+            }
+        }
     }
     
     return mphysics;
@@ -1334,11 +1333,6 @@ void PrintDebugMapForMathematica(std::string filenameHdiv, std::string filenameL
     outHdiv.close();
 }
 
-
-void comparapontos()
-{
-    
-}
 
 TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
 {
@@ -1898,16 +1892,7 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isP
     //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
     geomesh->BuildConnectivity();
     
-//    topology.Resize(4);
-//    topology[0] = 0;
-//    topology[1] = 1;
-//    topology[2] = 2;
-//    topology[3] = 3;
-//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,topology, materialId,*geomesh);
-    
-//    TPZGeoElRefPattern< pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > > * SphereEighth1 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > > (elementid, topology,materialId,*geomesh);
-//    SphereEighth1->Geom().SetData(r,xc);
-//    elementid++;
+
     
     
 //    const unsigned int nel = geomesh->NElements();

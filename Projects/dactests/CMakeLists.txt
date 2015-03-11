@@ -1,11 +1,7 @@
 
 file(GLOB header *.h)
 
-file(GLOB sourceEsfera mainEsfera.cpp )
-add_executable(dacEsfera ${sourceEsfera} ${header})
-target_link_libraries(dacEsfera pz ${CBLAS_LIB} ${LAPACK_LIB})
-
-file(GLOB sourceMeta PZMatPoissonD3.cpp TestHDivMesh.cpp main.cpp)
+file(GLOB sourceMeta pyramidalmesh.cpp LaplaceInCircle.cpp LaplaceInCylinder.cpp LaplaceInSphere.cpp tools.cpp main.cpp)
 add_executable(dacMeta ${sourceMeta} ${header})
 target_link_libraries(dacMeta pz ${CBLAS_LIB} ${LAPACK_LIB})
 
