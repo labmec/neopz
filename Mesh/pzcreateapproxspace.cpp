@@ -790,7 +790,7 @@ void TPZCreateApproximationSpace::CreateInterfaceElements(TPZCompMesh *mesh, boo
 }
 
 /// this method will substitute all interface elements with materialid within the set by three elements : one H1 element and two interface elements
-void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<int> &matids)
+void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<int> &matids, bool isconnectedElem)
 {
     cmesh.ApproxSpace().SetAllCreateFunctionsContinuous();
     cmesh.Reference()->ResetReference();
@@ -817,9 +817,24 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
         gelface = gelface->CreateBCGeoEl(gelface->NSides()-1, matid);
         delete face;
         long index;
+        
+        //hp mesh
+        TPZInterpolationSpace *leftint = dynamic_cast<TPZInterpolationSpace *>(left.Element());
+        TPZInterpolationSpace *rightint = dynamic_cast<TPZInterpolationSpace *>(right.Element());
+        int leftorder = leftint->MaxOrder();
+        int rightorder = rightint->MaxOrder();
+        int neworder =  MIN(leftorder,rightorder);
+        if(neworder<0) neworder = MAX(leftorder,rightorder);
+        cmesh.SetDefaultOrder(neworder);
+//        int neworder = MAX(leftorder,rightorder);
+//        cmesh.SetDefaultOrder(neworder);
+       
+        
         cmesh.ApproxSpace().CreateCompEl(gelface, cmesh, index);
         TPZCompEl *newcel = cmesh.ElementVec()[index];
-        gelface->ResetReference();
+        if(!isconnectedElem){
+            gelface->ResetReference();
+        }
         TPZCompElSide center(newcel,gelface->NSides()-1);
         //        
         TPZGeoEl *leftgelface = gelface->CreateBCGeoEl(gelface->NSides()-1, leftmatid);
@@ -829,5 +844,6 @@ void TPZCreateApproximationSpace::Hybridize(TPZCompMesh &cmesh,const std::set<in
         TPZInterfaceElement *faceright = new TPZInterfaceElement(cmesh,rightgelface,index,right,center);
         
     }
+    cmesh.CleanUpUnconnectedNodes();
     cmesh.ExpandSolution();
 }
