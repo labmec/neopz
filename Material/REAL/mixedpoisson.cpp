@@ -579,7 +579,7 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
     if(!strcmp("ExactPressure",name.c_str()))  return 6;
     if(!strcmp("ExactFlux",name.c_str()))  return 7;
     
-    if(!strcmp("OrdemP",name.c_str()))        return  8;
+    if(!strcmp("POrder",name.c_str()))        return  8;
     if(!strcmp("GradPressure",name.c_str()))        return  9;
 	
 	return TPZMaterial::VariableIndex(name);
