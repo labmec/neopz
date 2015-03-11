@@ -753,8 +753,13 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
         TPZGeoEl *gelbound = gel->CreateBCGeoEl(side, matskeleton);
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(hdivel);
         int loccon = intel->SideConnectLocId(0,side);
-        long index;
         
+        //Impose that the skeleton element has the same polynomial order  to the element of side.
+        TPZConnect &conside = intel->Connect(loccon);
+        int sideorder = conside.Order();
+        intel->Mesh()->SetDefaultOrder(sideorder);
+        
+        long index;
         TPZInterpolationSpace *bound;
         MElementType elType = gel->Type(side);
         switch(elType)
@@ -794,6 +799,13 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
         }
         
         long sideconnectindex = intel->ConnectIndex(loccon);
+        
+        TPZConnect &co = bound->Connect(0);
+        if(co.HasDependency()){
+            if(bound->NConnects()!=1) DebugStop();
+            //long cindex_bound = bound->ConnectIndex(0);
+            co.RemoveDepend();
+        }
         bound->SetConnectIndex(0, sideconnectindex);
         //bound->Print(std::cout);
         
@@ -801,6 +813,7 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
         TPZMultiphysicsElement *locMF = dynamic_cast<TPZMultiphysicsElement *>(newMFBound);
         
         locMF->AddElement(bound, 0);
+        //locMF->Print(std::cout);
         
         if(celType==EDiscontinuous){
             TPZCompElDisc *discel = dynamic_cast<TPZCompElDisc *>(mfcel->Element(1));
