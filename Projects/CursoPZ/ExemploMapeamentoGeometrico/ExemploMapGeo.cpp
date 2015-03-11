@@ -73,7 +73,7 @@ void QuadWavy()
 	topology[2] = 2;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
 	topology[3] = 3;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
 	
-	long materialId = 1;
+	int materialId = 1;
 	
 	TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > * quadrilatero =
 	new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > (topology,materialId,*geomesh);
@@ -84,7 +84,7 @@ void QuadWavy()
 	topologyWavy[0] = 1;//no local 0 do quadrilatero corresponde ao no 0 da malha geometrica
 	topologyWavy[1] = 2;//no local 1 do quadrilatero corresponde ao no 1 da malha geometrica
 	
-	long materialIdW = -1;
+	int materialIdW = -1;
 	
 	TPZGeoElRefPattern< pzgeom::TPZWavyLine > * wavy =
 	new TPZGeoElRefPattern< pzgeom::TPZWavyLine > (topologyWavy,materialIdW,*geomesh);
@@ -185,7 +185,7 @@ void QuadSphere()
 	node5.SetCoord(coord);
 	geomesh->NodeVec()[5] = node5;
 	
-	long materialId = 1;
+	int materialId = 1;
 	
 	// El 0
 	//INSTANCIACAO E INICIALIZACAO DO ELEMENTO QUADRILATERAL
@@ -195,8 +195,8 @@ void QuadSphere()
 	topology[2] = 2;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
 	topology[3] = 3;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
 	
-	TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * quadrilatero =
-	new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (topology,materialId,*geomesh);
+	TPZGeoElRefPattern< pzgeom::TPZQuadSphere <> > * quadrilatero =
+	new TPZGeoElRefPattern< pzgeom::TPZQuadSphere <> > (topology,materialId,*geomesh);
 	
 	quadrilatero->Geom().SetData(r,xc);
 	
@@ -206,8 +206,8 @@ void QuadSphere()
 	topology[2] = 5;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
 	topology[3] = 3;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
 	
-	TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * quadrilatero2 =
-	new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (topology,materialId,*geomesh);
+	TPZGeoElRefPattern< pzgeom::TPZQuadSphere <> > * quadrilatero2 =
+	new TPZGeoElRefPattern< pzgeom::TPZQuadSphere <> > (topology,materialId,*geomesh);
 	
 	quadrilatero2->Geom().SetData(r,xc);
 	
@@ -217,8 +217,8 @@ void QuadSphere()
 	topology[2] = 4;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
 	topology[3] = 3;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
 	
-	TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * quadrilatero3 =
-	new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (topology,materialId,*geomesh);
+	TPZGeoElRefPattern< pzgeom::TPZQuadSphere <> > * quadrilatero3 =
+	new TPZGeoElRefPattern< pzgeom::TPZQuadSphere <> > (topology,materialId,*geomesh);
 	
 	quadrilatero3->Geom().SetData(r,xc);
 	
@@ -228,8 +228,8 @@ void QuadSphere()
 	topology[2] = 0;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
 	topology[3] = 3;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
 	
-	TPZGeoElRefPattern< pzgeom::TPZQuadSphere > * quadrilatero4 =
-	new TPZGeoElRefPattern< pzgeom::TPZQuadSphere > (topology,materialId,*geomesh);
+	TPZGeoElRefPattern< pzgeom::TPZQuadSphere <> > * quadrilatero4 =
+	new TPZGeoElRefPattern< pzgeom::TPZQuadSphere <> > (topology,materialId,*geomesh);
 	
 	quadrilatero4->Geom().SetData(r,xc);
 	
@@ -368,7 +368,7 @@ void ExemploIni()
     topology[2] = 2;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
     topology[3] = 3;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
     
-    long materialId = 1;
+    int materialId = 1;
     
     TPZGeoElRefPattern< pzgeom::TPZGeoQuad > * quadrilatero =
         new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (topology,materialId,*geomesh);

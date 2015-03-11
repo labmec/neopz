@@ -1343,7 +1343,7 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = matId;
+    int materialId = matId;
     long arc1 = bc1; // -1;
     long arc2 = bc2; // -2;
     long arc3 = bc3; // -3;
@@ -1414,7 +1414,7 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     geomesh->NodeVec()[id] = node;
     //id++;
     
-    int elementid = 0;
+    long elementid = 0;
 
     // Using triangle to sphere special map
     TPZVec<long> topology(4);
@@ -1567,7 +1567,7 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isP
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = matId;
+    int materialId = matId;
     long arc1 = bc1; // -1;
     long arc2 = bc2; // -2;
     long arc3 = bc3; // -3;
@@ -1808,7 +1808,7 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isP
         id++;
     }
     
-    int elementid = 0;
+    long elementid = 0;
     // Using triangle to sphere special map
     TPZVec<long> topology(3);
     TPZVec<long> topologyLine(2);
@@ -2074,7 +2074,7 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
     geomesh->NodeVec()[id] = node;
     //id++;
     
-    int elementid = 0;
+    long elementid = 0;
     // Using triangle to sphere special map
     TPZVec<long> topology(4);
     
@@ -2335,7 +2335,7 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = matId;
+    int materialId = matId;
     long arc1 = bc1; // -1;
     long arc2 = bc2; // -2;
     long arc3 = bc3; // -3;
@@ -2667,7 +2667,7 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = matId;
+    int materialId = matId;
     long arc1 = bc1; // -1;
     long arc2 = bc2; // -2;
     long arc3 = bc3; // -3;
@@ -3227,7 +3227,7 @@ TPZGeoMesh *GMeshCilindricalMesh( int ndiv)
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = matId;
+    int materialId = matId;
     long arc1 = bc1; // -1;
     long arc2 = bc2; // -2;
     long arc3 = bc3; // -3;
@@ -3477,7 +3477,7 @@ TPZGeoMesh *GMeshCilindricalMeshF( int ndiv)
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = matId;
+    int materialId = matId;
     long arc1 = bc1; // -1;
     long arc2 = bc2; // -2;
     long arc3 = bc3; // -3;
