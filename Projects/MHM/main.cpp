@@ -119,6 +119,13 @@ void ForceSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &force);
 void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 bool problemasuave = false;
 
+//problema arctan
+void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux);
+void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+REAL feps= 1000.;
+REAL flambda = 50.;
+bool problemaarctan=true;
+
 int main(int argc, char *argv[])
 {
     InitializePZLOG();
@@ -128,7 +135,7 @@ int main(int argc, char *argv[])
     
     
     TPZAutoPointer<TPZGeoMesh> gmesh;
-    if(problemasuave){
+    if(problemasuave || problemaarctan){
         gmesh= MalhaGeom2(1, 1);}
     else gmesh = GMeshSteklov(false);
     
@@ -141,7 +148,7 @@ int main(int argc, char *argv[])
     //1 refinamento uniforme
     TPZVec<int> dims(2,0);
     dims[0]=1; dims[1]=2;
-    int nref = 2;
+    int nref = 4;
     RefinamentoUniforme(gmesh, nref, dims);
     
     if(!problemasuave){
@@ -171,7 +178,7 @@ int main(int argc, char *argv[])
     mhm.SetInternalPOrder(3);
     mhm.SetSkeletonPOrder(1);
     mhm.CreateCoarseInterfaces(matCoarse);
-    if(problemasuave){
+    if(problemasuave || problemaarctan){
         InsertMaterialObjectsSuave(mhm.CMesh());
     }else {
         InsertMaterialObjects(mhm.CMesh());
@@ -226,7 +233,7 @@ int main(int argc, char *argv[])
     an.ShowShape("Shapes.vtk", equationindices);
     an.SetStep(0);
     
-    if(problemasuave){
+    if(problemasuave || problemaarctan){
         std::string plotfile("result.vtk");
         TPZStack<std::string> scalnames,vecnames;
         scalnames.Push("Solution");
@@ -496,9 +503,21 @@ void InsertMaterialObjectsSuave(TPZCompMesh &cmesh)
 	/// criar materiais
 	int dim = cmesh.Dimension();
     TPZMatLaplacianLagrange *materialFiner = new TPZMatLaplacianLagrange(matInterno,dim);
-    TPZAutoPointer<TPZFunction<REAL> > forcef = new TPZDummyFunction<REAL>(ForceSuave);
+    
+    TPZAutoPointer<TPZFunction<REAL> > forcef;
+    TPZAutoPointer<TPZFunction<STATE> > solExata;
+    
+    if(problemaarctan)
+    {
+        forcef = new TPZDummyFunction<REAL>(ForcingTang);
+        solExata = new TPZDummyFunction<STATE>(SolArcTan);
+    }else
+    {
+        forcef = new TPZDummyFunction<REAL>(ForceSuave);
+        solExata = new TPZDummyFunction<STATE>(SolSuave);
+    }
+    
     materialFiner->SetForcingFunction(forcef);
-    TPZAutoPointer<TPZFunction<STATE> > solExata= new TPZDummyFunction<STATE>(SolSuave);
     materialFiner->SetForcingFunctionExact(solExata);
     
 	TPZMaterial * mat1(materialFiner);
@@ -512,29 +531,45 @@ void InsertMaterialObjectsSuave(TPZCompMesh &cmesh)
 	
 	///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,1.), val2(2,1,0.);
-	
-    //BC -1
-    TPZMaterial * BCondD1 = materialFiner->CreateBC(mat1, bc1,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletSuave);
-    BCondD1->SetForcingFunction(bcmatDirichlet1);
+    TPZMaterial * BCondD1;
+    TPZMaterial * BCondD2;
+    TPZMaterial * BCondD3;
+    TPZMaterial * BCondD4;
+    
+    if(problemaarctan)
+    {
+        //u=0 no contorno de Omega
+        BCondD1 = materialFiner->CreateBC(mat1, bc1,neumann, val1, val2);
+        BCondD2 = materialFiner->CreateBC(mat1, bc2,neumann, val1, val2);
+        BCondD3 = materialFiner->CreateBC(mat1, bc3,neumann, val1, val2);
+        BCondD4 = materialFiner->CreateBC(mat1, bc4,neumann, val1, val2);
+    }
+    else
+    {
+        //BC -1
+        BCondD1 = materialFiner->CreateBC(mat1, bc1,neumann, val1, val2);
+        TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletSuave);
+        BCondD1->SetForcingFunction(bcmatDirichlet1);
+        
+        //BC -2
+        BCondD2 = materialFiner->CreateBC(mat1, bc2,neumann, val1, val2);
+        TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(DirichletSuave);
+        BCondD2->SetForcingFunction(bcmatDirichlet2);
+        
+        //BC -3
+        BCondD3 = materialFiner->CreateBC(mat1, bc3,neumann, val1, val2);
+        TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(DirichletSuave);
+        BCondD3->SetForcingFunction(bcmatDirichlet3);
+        
+        //BC -4
+        BCondD4 = materialFiner->CreateBC(mat1, bc4,neumann, val1, val2);
+        TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(DirichletSuave);
+        BCondD4->SetForcingFunction(bcmatDirichlet4);
+    }
+    
     cmesh.InsertMaterialObject(BCondD1);
-    
-    //BC -2
-	TPZMaterial * BCondD2 = materialFiner->CreateBC(mat1, bc2,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(DirichletSuave);
-    BCondD2->SetForcingFunction(bcmatDirichlet2);
     cmesh.InsertMaterialObject(BCondD2);
-    
-    //BC -3
-	TPZMaterial * BCondD3 = materialFiner->CreateBC(mat1, bc3,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(DirichletSuave);
-    BCondD3->SetForcingFunction(bcmatDirichlet3);
     cmesh.InsertMaterialObject(BCondD3);
-    
-    //BC -4
-	TPZMaterial * BCondD4 = materialFiner->CreateBC(mat1, bc4,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(DirichletSuave);
-    BCondD4->SetForcingFunction(bcmatDirichlet4);
     cmesh.InsertMaterialObject(BCondD4);
 }
 
@@ -1076,3 +1111,45 @@ void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     SolSuave(loc,result,du);
 }
 
+#define Power pow
+#define ArcTan atan
+#define Sqrt sqrt
+
+void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux){
+    REAL x = pt[0];
+    REAL y = pt[1];
+    
+    p[0]=0;
+    flux(0,0)=0;
+    flux(1,0)=0;
+    
+    REAL eps = feps;
+    REAL lambda = flambda;//frequencia
+    
+    
+    REAL temp1 = (x-0.5)*(x-0.5) + (y-0.5)*(y-0.5);
+    REAL temp2 = 1. + (2./M_PI)*ArcTan(Sqrt(eps)*1./16. - sqrt(eps)*temp1);
+    
+    p[0] = 5.*x*(x - 1.)*y*(y - 1.)*(0.1*cos(lambda*M_PI*x)*cos(lambda*M_PI*y) + temp2);
+    
+    
+    //px
+    flux(0,0)=5*(-1 + y)*y*(-0.6366197723675814*(-1. + x)*(-1.5707963267948966 + 1.*ArcTan(1.*Sqrt(eps)*(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2))) - 0.15707963267948966*cos(lambda*M_PI*x)*cos(lambda*M_PI*y)) - 0.6366197723675814*x*(-1.5707963267948966 + 1.*ArcTan(1.*Sqrt(eps)*(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2))) - 0.15707963267948966*cos(lambda*M_PI*x)*cos(lambda*M_PI*y)) + (-1 + x)*x*((Sqrt(eps)*(0.6366197723675814 - 1.2732395447351628*x))/(1 + eps*Power(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2),2)) - 0.3141592653589793*lambda*cos(lambda*M_PI*y)*sin(lambda*M_PI*x)));
+    
+    
+    //py
+    flux(1,0)= 5*(-1 + x)*x*(-0.6366197723675814*(-1. + y)*(-1.5707963267948966 + 1.*ArcTan(1.*Sqrt(eps)*(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2))) - 0.15707963267948966*cos(lambda*M_PI*x)*cos(lambda*M_PI*y)) - 0.6366197723675814*y*(-1.5707963267948966 + 1.*ArcTan(1.*Sqrt(eps)*(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2))) - 0.15707963267948966*cos(lambda*M_PI*x)*cos(lambda*M_PI*y)) + (-1 + y)*y*((Sqrt(eps)*(0.6366197723675814 - 1.2732395447351628*y))/(1 + eps*Power(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2),2)) - 0.3141592653589793*lambda*cos(lambda*M_PI*x)*sin(lambda*M_PI*y)));
+}
+
+
+void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    
+    double x = pt[0];
+    double y = pt[1];
+    
+    disp[0] = 0.;
+    REAL eps = feps;
+    REAL lambda = flambda;
+    
+    disp[0]= 6.366197723675814*(-1. + y)*y*(-1.5707963267948966 + 1.*ArcTan(1.*Sqrt(eps)*(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2))) - 0.15707963267948966*cos(lambda*M_PI*x)*cos(lambda*M_PI*y)) - 5*(-1 + x)*x*(-1 + y)*y* ((4*Sqrt(eps)*(-1 + 4.*eps*Power(-0.5 + x,2)*(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2)) - 1.*eps*Power(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2),2)))/(M_PI*Power(1 + eps*Power(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2),2),2)) - 0.9869604401089358*Power(lambda,2)*cos(lambda*M_PI*x)*cos(lambda*M_PI*y)) - 2*(-5 + 10*x)*(-1 + y)*y*((Sqrt(eps)*(0.6366197723675814 - 1.2732395447351628*x))/(1 + eps*Power(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2),2)) - 0.3141592653589793*lambda*cos(lambda*M_PI*y)*sin(lambda*M_PI*x)) - 5*(-1 + x)*x*(2. - 1.2732395447351628*ArcTan(1.*Sqrt(eps)*(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2))) + 0.19999999999999998*cos(lambda*M_PI*x)*cos(lambda*M_PI*y) + (-1 + y)*y* ((4*Sqrt(eps)*(-1 + 4.*eps*Power(-0.5 + y,2)*(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2)) - 1.*eps*Power(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2),2)))/(M_PI*Power(1 + eps*Power(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2),2),2)) - 0.9869604401089358*Power(lambda,2)*cos(lambda*M_PI*x)*cos(lambda*M_PI*y)) + 2*(-1 + 2*y)*((Sqrt(eps)*(0.6366197723675814 - 1.2732395447351628*y))/(1 + eps*Power(0.4375 - 1.*x + Power(x,2) - 1.*y + Power(y,2),2)) - 0.3141592653589793*lambda*cos(lambda*M_PI*x)*sin(lambda*M_PI*y)));
+}
