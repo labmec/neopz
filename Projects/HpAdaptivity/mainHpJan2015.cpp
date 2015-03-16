@@ -83,7 +83,7 @@ const int bc0 = -1;
 const int bc1 = -2;
 const int bc2 = -3;
 const int bc3 = -4;
-bool fTriang = true;
+bool fTriang = false;
 const int eps=100000;
 const REAL Pi=M_PI;
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly,bool ftriang);
@@ -130,6 +130,7 @@ void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &d
 
 int EquationsElementosConectados(TPZCompMesh *cmesh);
 void PrefinamentoTeste(TPZCompMesh * cmesh, int porder);
+void ChangeOrderExternalConnects(TPZCompMesh *mesh);
 
 bool fmetodomisto;
 
@@ -150,7 +151,7 @@ int main()
     ofstream saidaerrosH1("../ErroHP-H1.txt",ios::app);
     
     
-    int p = 2;
+    int p = 5;
     int pq = p;
     int pp = p;
     
@@ -167,11 +168,11 @@ int main()
         saidaerrosH1<< "\nSaida do erro hp-adptativo para formulacão H1, com ordem p inicial = " << p << "\n\n";
     }
     //refinamentos h adptativos
-    for(int ref_adpth = 0; ref_adpth<1; ref_adpth++){
+    for(int ref_adpth = 2; ref_adpth<6; ref_adpth++){
         
         TPZGeoMesh * gmesh = MalhaGeom(1,1,fTriang);
         //TPZGeoMesh * gmesh = MalhaGeomTeste();
-        UniformRefine(gmesh,flevel);
+        UniformRefine(gmesh,/*flevel+*/ref_adpth);
         
 //        std::ofstream filemesh("MalhaGeometricaInicial.vtk");
 //        TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filemesh, true);
@@ -190,7 +191,8 @@ int main()
             // Criando a primeira malha computacional
             TPZCompMesh * cmesh1= CMeshFlux(pq, gmesh);
             //Prefinamento(cmesh1, ref_adpth, pq);
-//            PrefinamentoTeste(cmesh1, pq);
+            //PrefinamentoTeste(cmesh1, pq);
+            ChangeOrderExternalConnects(cmesh1);
             
 //            std::ofstream filemesh2("MalhaFluxAposPRef.txt");
 //            cmesh1->Print(filemesh2);
@@ -254,7 +256,7 @@ int main()
         else{
             
             TPZCompMesh * cmesh= MalhaCompH1(gmesh,p);
-            Prefinamento(cmesh, ref_adpth, p);
+            //Prefinamento(cmesh, ref_adpth, p);
             
             ofstream arg("MalhaCompH1.txt");
             cmesh->Print(arg);
@@ -268,42 +270,42 @@ int main()
             //saidaerrosH1<< "\nGrau de Liberdade Condensado = " << nDofCondensed<<std::endl;
             
             //ELementos por gau polinomial
-            int NElk2 = 0;
-            int NElk3 = 0;
-            int NElk4 = 0;
-            int NElk5 = 0;
-            int NElk6 = 0;
-            int NElk7 = 0;
-            
-            int nel = cmesh->NElements();
-            for(int iel = 0; iel < nel; iel++){
-                TPZCompEl *cel = cmesh->ElementVec()[iel];
-                if(!cel) continue;
-                
-                TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace *>(cel);
-                if(!sp) continue;
-                TPZGeoEl * gel = sp->Reference();
-                
-                if(gel->Dimension()==2)
-                {
-                    int level = sp->Reference()->Level();
-                    
-                    if(level==flevel) NElk2 +=1;
-                    if(level==flevel+1) NElk3 +=1;
-                    if(level==flevel+2) NElk4 +=1;
-                    if(level==flevel+3) NElk5 +=1;
-                    if(level==flevel+4) NElk6 +=1;
-                    if(level==flevel+5) NElk7 +=1;
-                }
-            }
+//            int NElk2 = 0;
+//            int NElk3 = 0;
+//            int NElk4 = 0;
+//            int NElk5 = 0;
+//            int NElk6 = 0;
+//            int NElk7 = 0;
+//            
+//            int nel = cmesh->NElements();
+//            for(int iel = 0; iel < nel; iel++){
+//                TPZCompEl *cel = cmesh->ElementVec()[iel];
+//                if(!cel) continue;
+//                
+//                TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace *>(cel);
+//                if(!sp) continue;
+//                TPZGeoEl * gel = sp->Reference();
+//                
+//                if(gel->Dimension()==2)
+//                {
+//                    int level = sp->Reference()->Level();
+//                    
+//                    if(level==flevel) NElk2 +=1;
+//                    if(level==flevel+1) NElk3 +=1;
+//                    if(level==flevel+2) NElk4 +=1;
+//                    if(level==flevel+3) NElk5 +=1;
+//                    if(level==flevel+4) NElk6 +=1;
+//                    if(level==flevel+5) NElk7 +=1;
+//                }
+//            }
 
-            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 2: "<< NElk2 <<std::endl;
-            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 3: "<< NElk3 <<std::endl;
-            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 4: "<< NElk4 <<std::endl;
-            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 5: "<< NElk5 <<std::endl;
-            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 6: "<< NElk6 <<std::endl;
-            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 7: "<< NElk7 <<std::endl;
-                
+//            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 2: "<< NElk2 <<std::endl;
+//            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 3: "<< NElk3 <<std::endl;
+//            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 4: "<< NElk4 <<std::endl;
+//            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 5: "<< NElk5 <<std::endl;
+//            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 6: "<< NElk6 <<std::endl;
+//            saidaerrosH1<< "\nQuantidade de Elementos de Ordem k = 7: "<< NElk7 <<std::endl;
+            
             
             // Resolvendo o sistema linear
             TPZAnalysis an(cmesh);
@@ -1416,20 +1418,24 @@ void SolArcTan2(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flu
     flux(1,0)=0;
     //flux(2,0)=0;
     
-    p[0]= 5.*(-1. + x)*x*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))));
+//    p[0]= 5.*(-1. + x)*x*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))));
+//    
+//    
+//    //px
+//    flux(0,0)=(12.732395447351628*Sqrt(eps)*(-1. + x)*(-0.5 + x)*x*(-1. + y)*y)/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
+//    5.*(-1. + x)*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))) -
+//    5.*x*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))));
+//    
+//    
+//    //py
+//    flux(1,0)= (12.732395447351628*Sqrt(eps)*(-1. + x)*x*(-1. + y)*(-0.5 + y)*y)/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
+//    5.*(-1. + x)*x*(-1. + y)*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))) -
+//    5.*(-1. + x)*x*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))));
     
     
-    //px
-    flux(0,0)=(12.732395447351628*Sqrt(eps)*(-1. + x)*(-0.5 + x)*x*(-1. + y)*y)/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
-    5.*(-1. + x)*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))) -
-    5.*x*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))));
-    
-    
-    //py
-    flux(1,0)= (12.732395447351628*Sqrt(eps)*(-1. + x)*x*(-1. + y)*(-0.5 + y)*y)/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
-    5.*(-1. + x)*x*(-1. + y)*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))) -
-    5.*(-1. + x)*x*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))));
-    
+    p[0] = sin(M_PI*x)*sin(M_PI*y);
+    flux(0,0) = (-1.)*M_PI*cos(M_PI*x)*sin(M_PI*y);
+    flux(1,0) = (-1.)*M_PI*cos(M_PI*y)*sin(M_PI*x);
     
     if(fmetodomisto==false){
         flux(0,0) *=-1.;
@@ -1444,16 +1450,18 @@ void ForcingTang2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     disp[0] = 0.;
     
-    disp[0]= (-1.)*((3.183098861837907*Sqrt(eps)*(-1. + x)*x*(-4.*(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
-                                                              64.*eps*Power(-0.5 + x,2)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))*(-1. + y)*y)/
-                    Power(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2),2) -
-                    (5.092958178940651*Sqrt(eps)*(-0.5 + x)*(-5. + 10.*x)*(-1. + y)*y)/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) +
-                    10.*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))) +
-                    5.*(-1. + x)*x*(2. + (0.6366197723675814*Sqrt(eps)*(-4.*(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
-                                                                        64.*eps*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))*Power(-0.5 + y,2))*(-1. + y)*y)/
-                                    Power(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2),2) -
-                                    (5.092958178940651*Sqrt(eps)*(-0.5 + y)*(-1. + 2*y))/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) +
-                                    1.2732395447351628*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))));
+//    disp[0]= (-1.)*((3.183098861837907*Sqrt(eps)*(-1. + x)*x*(-4.*(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
+//                                                              64.*eps*Power(-0.5 + x,2)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))*(-1. + y)*y)/
+//                    Power(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2),2) -
+//                    (5.092958178940651*Sqrt(eps)*(-0.5 + x)*(-5. + 10.*x)*(-1. + y)*y)/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) +
+//                    10.*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))) +
+//                    5.*(-1. + x)*x*(2. + (0.6366197723675814*Sqrt(eps)*(-4.*(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
+//                                                                        64.*eps*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))*Power(-0.5 + y,2))*(-1. + y)*y)/
+//                                    Power(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2),2) -
+//                                    (5.092958178940651*Sqrt(eps)*(-0.5 + y)*(-1. + 2*y))/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) +
+//                                    1.2732395447351628*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))));
+    
+    disp[0] = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
 }
 
 void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp){
@@ -1463,18 +1471,18 @@ void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &d
     disp.Resize(2, 2);
     
     res[0] = 0.;
-    res[0]= ((3.183098861837907*Sqrt(eps)*(-1. + x)*x*(-4.*(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
-                                                       64.*eps*Power(-0.5 + x,2)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))*(-1. + y)*y)/
-             Power(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2),2) -
-             (5.092958178940651*Sqrt(eps)*(-0.5 + x)*(-5. + 10.*x)*(-1. + y)*y)/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) +
-             10.*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))) +
-             5.*(-1. + x)*x*(2. + (0.6366197723675814*Sqrt(eps)*(-4.*(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
-                                                                 64.*eps*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))*Power(-0.5 + y,2))*(-1. + y)*y)/
-                             Power(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2),2) -
-                             (5.092958178940651*Sqrt(eps)*(-0.5 + y)*(-1. + 2*y))/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) +
-                             1.2732395447351628*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))));
+//    res[0]= ((3.183098861837907*Sqrt(eps)*(-1. + x)*x*(-4.*(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
+//                                                       64.*eps*Power(-0.5 + x,2)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))*(-1. + y)*y)/
+//             Power(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2),2) -
+//             (5.092958178940651*Sqrt(eps)*(-0.5 + x)*(-5. + 10.*x)*(-1. + y)*y)/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) +
+//             10.*(-1. + y)*y*(1. + 0.6366197723675814*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))) +
+//             5.*(-1. + x)*x*(2. + (0.6366197723675814*Sqrt(eps)*(-4.*(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) -
+//                                                                 64.*eps*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2))*Power(-0.5 + y,2))*(-1. + y)*y)/
+//                             Power(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2),2) -
+//                             (5.092958178940651*Sqrt(eps)*(-0.5 + y)*(-1. + 2*y))/(1 + 4.*eps*Power(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2),2)) +
+//                             1.2732395447351628*ArcTan(2.*Sqrt(eps)*(0.0625 - 1.*Power(-0.5 + x,2) - 1.*Power(-0.5 + y,2)))));
     
-    
+    res[0] = (-1.)*2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
 }
 
 //void Prefinamento(TPZCompMesh * cmesh, int ndiv, int porder){
@@ -1804,8 +1812,40 @@ void TesteMesh(TPZCompMesh *mesh,std::ostream &out){
         }
         
     }
-    
 }
+
+void ChangeOrderExternalConnects(TPZCompMesh *mesh){
+    
+    int nEl= mesh-> NElements();
+    int dim = mesh->Dimension();
+    
+    int cordermin = -1;
+    for (int iel=0; iel<nEl; iel++) {
+        TPZCompEl *cel = mesh->ElementVec()[iel];
+        if (!cel) continue;
+        int ncon = cel->NConnects();
+        int corder = 0;
+        int nshape = 0;
+        
+        if(cel->Dimension()== dim){
+            for (int icon=0; icon<ncon-1; icon++){
+                TPZConnect &co  = cel->Connect(icon);
+                corder = co.Order();
+                nshape = co.NShape();
+                if(corder!=cordermin){
+                    cordermin = corder-1;
+                    co.SetOrder(cordermin);
+                    co.SetNShape(nshape-1);
+                    mesh->Block().Set(co.SequenceNumber(),nshape-1);
+                }
+            }
+        }
+    }
+    mesh->ExpandSolution();
+    mesh->CleanUpUnconnectedNodes();
+}
+
+
 
 int EquationsElementosConectados(TPZCompMesh *cmesh){
     
