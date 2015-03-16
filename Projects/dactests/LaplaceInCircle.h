@@ -144,6 +144,12 @@ public:
      */
     TPZGeoMesh *GMeshCirculoQuad( int ndiv);
     
+    
+    TPZGeoMesh *GmeshCirculoPorElementosRetos( int ndiv);
+    TPZVec<REAL> PolarToKartesian(REAL r, REAL theta, TPZManVector<REAL> xc);
+    
+    
+    
     /* Malhas computacionais */
     TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim);
     TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim);

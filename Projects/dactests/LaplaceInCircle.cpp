@@ -14,7 +14,8 @@ LaplaceInCircle::LaplaceInCircle(int ordemP, int ndiv, std::map<REAL, REAL> &fDe
     std::cout<< " INICIO(CASCA CIRCULO) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     std::cout<< " Dimensao == " << fDim << std::endl;
     
-    TPZGeoMesh *gmesh = this->GMeshCirculoGeob(ndiv);
+    //TPZGeoMesh *gmesh = this->GMeshCirculoGeob(ndiv);
+    TPZGeoMesh *gmesh = this->GmeshCirculoPorElementosRetos(ndiv);
     
     gmesh->SetDimension(fDim);
     {
@@ -794,13 +795,194 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuad( int ndiv)
     return gmesh;
 }
 
+TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
+{
+    if(fDim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * gmesh;// = new TPZGeoMesh;
+    
+    // description of Geometry and application
+    //int matId = 1;
+    int arc1 = fbc1; // -1;
+    int arc2 = fbc2; // -2;
+    int arc3 = fbc3; // -3;
+    int arc4 = fbc4; // -4;
+    
+    int numberoflevels = (ndiv+1); // exceto centro
+    int nodesperlevel = 4*(ndiv+1);
+    int nodenumber = nodesperlevel*(ndiv+1) + 1;
+     
+    REAL R = 1.0;
+    REAL stepR = R/((REAL)numberoflevels);
+    TPZManVector<REAL,3> xc(3,0.0);
+    
+    
+    REAL theta = (M_PI/2.0)/((REAL)numberoflevels);
+    
+    // Para rotacao
+    int Axis = 3;
+    REAL angulo = 0.0;
+    
+    gmesh = new TPZGeoMesh;
+    gmesh->NodeVec().Resize(nodenumber);
+    
+    TPZManVector<REAL,3> coord(3,0.);
+    
+    TPZManVector<int,220> nodeindex(nodenumber,0);
+    TPZManVector<int,20> firstnodeindexlevel(numberoflevels+1,0);
+    
+    int contador = 0;
+    
+    TPZGeoNode node;
+    
+    // Setting node coordantes
+    long id = 0;
+    
+    for (int nivel = 0 ; nivel < numberoflevels; nivel++)
+    {
+        REAL r = R  - ((REAL)nivel)*stepR;
+        
+        firstnodeindexlevel[nivel] = id;
+        
+        for (int no = 0; no < nodesperlevel; no++)
+        {
+            
+            coord = PolarToKartesian(r, no*theta, xc);
+            tools::RotateNode(coord, angulo, Axis);
+            node.SetNodeId(id);
+            node.SetCoord(coord);
+            gmesh->NodeVec()[id] = node;
+            
+            nodeindex[id] = id;
+            
+            id++;
+        }
+        contador++;
+    }
+    
+    // Centro do circulo
+    coord = PolarToKartesian(0.0, 0.0, xc);
+    tools::RotateNode(coord, angulo, Axis);
+    node.SetNodeId(id);
+    node.SetCoord(coord);
+    gmesh->NodeVec()[id] = node;
+    nodeindex[id] = id;
+    firstnodeindexlevel[contador] = id;
+    
+    
+    int elementid = 0;
+    TPZVec < long > topology(4,0);
+    contador = 0;
+    // Building 2d elements
+    for (int nivel = 0 ; nivel < numberoflevels-1; nivel++)
+    {
+        for (int no = 0; no < nodesperlevel; no++)
+        {
+
+            // Create Geometrical Quad #1
+            long nodoproximonivel = firstnodeindexlevel[contador+1];
+            //int nodoproximonivelp1 = firstnodeindexlevel[contador+2];
+            
+            long correcao = no < (nodesperlevel - 1) ? (no+nivel+nodoproximonivel+1) : nodoproximonivel;
+
+            long a = nodeindex[  no+nivel ];
+            long b = nodeindex[(no+nivel+1)%nodoproximonivel];
+            long c = nodeindex[correcao];
+            long d = nodeindex[(no+nivel+nodoproximonivel)];//%nodoproximonivelp1
+            
+            std::cout << a << " " << b << " " << c << " " << d << std::endl;
+            
+            topology[0] = a;
+            topology[1] = b;
+            topology[2] = c;
+            topology[3] = d;
+            new TPZGeoElRefPattern<  pzgeom::TPZGeoQuad  > (elementid, topology, fmatId,*gmesh);
+            elementid++;
+
+        }
+        contador++;
+    }
+    
+    topology.resize(3);
+    
+    for (int no = 0; no < nodesperlevel; no++)
+    {
+        
+        // Create Geometrical Quad #1
+        long nodesteonivel = firstnodeindexlevel[contador];
+        long nodoproximonivel = firstnodeindexlevel[contador+1];
+        
+        long correcao = no < (nodesperlevel - 1) ? (no+nodesteonivel+1) : nodesteonivel;
+        
+        long a = nodeindex[no+nodesteonivel];
+        long b = nodeindex[ correcao ];
+        long c = nodeindex[nodoproximonivel];
+        
+        std::cout << a << " " << b << " " << c << std::endl;
+        
+        topology[0] = a;
+        topology[1] = b;
+        topology[2] = c;
+        new TPZGeoElRefPattern<  pzgeom::TPZGeoTriangle  > (elementid, topology, fmatId,*gmesh);
+        elementid++;
+        
+    }
+    
+    
+    //Creating elements 1d
+    topology.resize(2);
+    
+    for (int no = 0; no < nodesperlevel; no++)
+    {
+        
+        // Create Geometrical Quad #1
+        long nodesteonivel = firstnodeindexlevel[contador];
+        
+        long correcao = (no+1)%nodesteonivel;
+        
+        long a = nodeindex[no];
+        long b = nodeindex[ correcao ];
+
+        std::cout << a << " " << b << std::endl;
+        
+        topology[0] = a;
+        topology[1] = b;
+        new TPZGeoElRefPattern<  pzgeom::TPZGeoLinear  > (elementid, topology, arc1, *gmesh);
+        elementid++;
+        
+    }
+    
+    gmesh->BuildConnectivity();
+    
+    {
+               ofstream argm("gmesh2d-circulo.txt");
+                gmesh->Print(argm);
+    }
+    
+    std::ofstream out("DiscoPorElLineares.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    
+    return gmesh;
+}
+
+TPZVec<REAL> LaplaceInCircle::PolarToKartesian(REAL r, REAL theta, TPZManVector<REAL> xc)
+{
+    TPZVec<REAL> xyz(3,0.0);
+    xyz[0] = xc[0] + r*cos(theta);
+    xyz[1] = xc[1] + r*sin(theta);
+    xyz[2] = xc[2];
+    return xyz;
+}
 
 void LaplaceInCircle::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     
     solp.resize(1);
     solp[0]=0.;
     
-    int dim = 2; //getDimension();
+    int dim = 3; //getDimension();
     
     // tensor de permutacao
     TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
@@ -838,6 +1020,16 @@ void LaplaceInCircle::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZF
         
     }
     
+#ifdef LINEAR
+    
+    double x = pt[0];
+    double y = pt[1];
+    REAL r = sqrt( x*x + y*y );
+    solp[0] = r*r*(1.0 - r*r);
+    flux(0,0)= (2.0*r - 4.0*r*r*r)*cos(theta);
+    flux(1,0)=  (2.0*r - 4.0*r*r*r)*sin(theta);
+    
+#endif
 
     
 }
@@ -871,7 +1063,14 @@ void LaplaceInCircle::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
         
     }
         
-   
+#ifdef LINEAR
+    
+    double x = pt[0];
+    double y = pt[1];
+    REAL r = sqrt( x*x + y*y );
+    ff[0] = -(4.0 - 16.0*r*r);
+    
+#endif
     
 }
 
@@ -931,6 +1130,11 @@ void LaplaceInCircle::ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     }
     
 
+#ifdef LINEAR
+    
+    solp[0] = 0.0;
+    
+#endif
     
 
     
@@ -951,6 +1155,12 @@ void LaplaceInCircle::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     {
         solp[0] = 0.0;
     }
+    
+#ifdef LINEAR
+    
+    solp[0] = 0.0;
+    
+#endif
 }
 
 void LaplaceInCircle::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
@@ -970,6 +1180,11 @@ void LaplaceInCircle::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     {
         solp[0] = 0.0;
     }
+#ifdef LINEAR
+    
+    solp[0] = 0.0;
+    
+#endif
 
 }
 
@@ -989,6 +1204,11 @@ void LaplaceInCircle::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     {
         solp[0] = 0.0;
     }
+#ifdef LINEAR
+    
+    solp[0] = 0.0;
+    
+#endif
 
 }
 
@@ -1008,7 +1228,11 @@ void LaplaceInCircle::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     {
         solp[0] = 0.0;
     }
-
+#ifdef LINEAR
+    
+    solp[0] = 0.0;
+    
+#endif
 }
 
 void LaplaceInCircle::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
@@ -1028,7 +1252,11 @@ void LaplaceInCircle::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     {
         solp[0] = 0.0;
     }
-
+#ifdef LINEAR
+    
+    solp[0] = 0.0;
+    
+#endif
 }
 
 

@@ -23,8 +23,7 @@ tools::~tools()
 
 void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
-//    std::cout <<"Numero de equacoes "<< fCmesh->NEquations()<< std::endl;
-//    std::cout <<"Numero de equacoes Omar"<< an.Solver().Matrix().operator->()->Rows() << std::endl;
+    std::cout <<"Numero de equacoes "<< fCmesh->NEquations()<< std::endl;
     
 	bool isdirect = true;
     bool simetrico = true;
@@ -71,8 +70,7 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
         an.Run();
     }
     
-    std::cout <<"Numero de equacoes "<< fCmesh->NEquations()<< std::endl;
-    std::cout <<"Numero de equacoes Omar"<< an.Solver().Matrix().operator->()->Rows() << std::endl;
+    
     
 }
 

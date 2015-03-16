@@ -170,8 +170,8 @@ bool IsPrism = false;
 bool IsTetra = false;
 bool IsPiram = true;
 
-bool issphere = true, iscircle = false, iscylinder = false;
-//bool iscircle = true, issphere = false, iscylinder = false;
+//bool issphere = true, iscircle = false, iscylinder = false;
+bool iscircle = true, issphere = false, iscylinder = false;
 //bool iscylinder = true, iscircle = false, issphere = false;
 
 #ifdef LOG4CXX
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     
     for(p=1;p<2;p++)
     {
-        for (ndiv=4; ndiv<5; ndiv++)
+        for (ndiv=1; ndiv<2; ndiv++)
         {
             
             if (dim==2)
