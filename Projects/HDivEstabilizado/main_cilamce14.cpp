@@ -107,12 +107,12 @@ void PermeabilityTensor(const TPZVec<REAL> &pt, TPZVec<STATE> &kabs, TPZFMatrix<
 REAL const pi = 4.*atan(1.);
 bool fTriang = false;
 bool IsStab = true;
-bool IsContinuou = false;
-bool Useh2 = false;
+bool IsContinuou = true;
+bool Useh2 = true;
 REAL Delta1 = 0.5;
 REAL Delta2 = 0.5;
-bool IsFullHdiv=true;
-bool IsHomogeneo=true;
+bool IsFullHdiv = true;
+bool IsHomogeneo = false;
 
 //erros
 void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out);
@@ -149,10 +149,18 @@ int main(int argc, char *argv[])
     
     //ofstream saidaerro( "../erros-hdiv-estab.txt",ios::app);
     ofstream saidaerro( "erros-hdiv-estab.txt");
+    
+    saidaerro<<"\n";
+    saidaerro <<"IFORMACOES DO TESTE: (0)->False e (1)->True \n";
+    saidaerro <<"Malha Triangular: "<<fTriang<<"\n";
+    saidaerro <<"Problema eh homogeneo: "<< IsHomogeneo<<"\n";
+    saidaerro <<"Metodo estabilizado: " <<IsStab<< ".    Usa parametro h2: "<< Useh2<<"\n";
+    saidaerro <<"Espaco do fluxo eh full Hdiv: "<<IsContinuou<<"\n";
+    saidaerro <<"Espaco da pressao eh continuo: "<<IsContinuou<<"\n\n";
 
-    for(int p = 1; p<7; p++)
+    for(int p = 1; p<6; p++)
     {
-        int pq = p+1;
+        int pq = p;
         int pp;
         if(fTriang==true){
             pp = pq-1;
@@ -162,7 +170,7 @@ int main(int argc, char *argv[])
         
         int ndiv;
         saidaerro<<"\n CALCULO DO ERRO, COM ORDEM POLINOMIAL pq = " << pq << " e pp = "<< pp <<endl;
-        for (ndiv = 0; ndiv < 7; ndiv++)
+        for (ndiv = 1; ndiv < 6; ndiv++)
         {
             
             //std::cout << "p order " << p << " number of divisions " << ndiv << std::endl;
@@ -203,14 +211,19 @@ int main(int argc, char *argv[])
 //            ofstream arg4("gmeshMulti.txt");
 //            mphysics->Print(arg4);
             
-            std::cout << "Number of equations " << mphysics->NEquations() << std::endl;
+            saidaerro << "Number of equations of flux " << cmesh1->NEquations() << std::endl;
+
+            saidaerro << "Number of equations of pressure " << cmesh2->NEquations() << std::endl;
+
+            saidaerro << "Number of equations TOTAL " << mphysics->NEquations() << "\n\n";
+
             int numthreads = 8;
             std::cout << "Number of threads " << numthreads << std::endl;
 
             
             bool opti = true;
             TPZAnalysis  * an = new TPZAnalysis(mphysics,opti);
-            ResolverSistema(*an, mphysics,numthreads, false);
+            ResolverSistema(*an, mphysics,numthreads, true);
             
             
 //            ofstream arg5("cmeshmultiphysics.txt");
@@ -227,12 +240,14 @@ int main(int argc, char *argv[])
             ErrorL22(cmesh2, saidaerro);
             
             //Plot da solucao aproximada
-           // string plotfile("Solution_mphysics.vtk");
+            //string plotfile("Solution_mphysics.vtk");
             
 //            char buf[256] ;
 //            sprintf(buf,"ProblemaJuanGC_porder%d_h%d.vtk",p,ndiv);
 //            PosProcessMultph(meshvec,  mphysics, *an, buf);
+ 
         }
+   
     }
     
 	return EXIT_SUCCESS;
@@ -556,6 +571,7 @@ TPZCompMesh *CMeshFlux2(int pOrder,TPZGeoMesh *gmesh)
     }
 
     cmesh->InsertMaterialObject(mat);
+    cmesh->SetDefaultOrder(pOrder);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -610,7 +626,6 @@ TPZCompMesh *CMeshFlux2(int pOrder,TPZGeoMesh *gmesh)
         cmesh->InsertMaterialObject(BCond5);
     }
     
-	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
 	cmesh->AutoBuild();//Ajuste da estrutura de dados computacional
     
@@ -642,6 +657,7 @@ TPZCompMesh *CMeshPressure2(int pOrder,TPZGeoMesh *gmesh)
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
+    cmesh->SetDefaultOrder(pOrder);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -672,7 +688,6 @@ TPZCompMesh *CMeshPressure2(int pOrder,TPZGeoMesh *gmesh)
         cmesh->InsertMaterialObject(BCond5);
     }
     
-	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     
     if(IsContinuou==false)
@@ -772,7 +787,9 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
         material->SetStabilizedMethod();
         material->SetStabilizationCoeficients(Delta1,Delta2);
 	}
-    if(IsStab==true && Useh2==true) material->SetHdois();
+    if(IsStab==true && Useh2==true){
+        material->SetHdois();
+    }
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
@@ -881,17 +898,28 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     return mphysics;
 }
 
+#include "TPZParFrontStructMatrix.h"
 void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads, bool direct)
 {
     
     if (direct)
     {
-        TPZSkylineStructMatrix full(fCmesh); //caso simetrico
-        full.SetNumThreads(numthreads);
-        an.SetStructuralMatrix(full);
+//        TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+//        full.SetNumThreads(numthreads);
+//        an.SetStructuralMatrix(full);
+//        TPZStepSolver<STATE> step;
+//        step.SetDirect(ELDLt); //caso simetrico
+//        //  step.SetDirect(ELU);
+//        an.SetSolver(step);
+//        an.Run();
+        
+        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+        strmat.SetDecomposeType(ELDLt);
+        strmat.SetNumThreads(numthreads);
+        an.SetStructuralMatrix(strmat);
         TPZStepSolver<STATE> step;
         step.SetDirect(ELDLt); //caso simetrico
-        //  step.SetDirect(ELU);
+        //	step.SetDirect(ELU);
         an.SetSolver(step);
         an.Run();
     }
