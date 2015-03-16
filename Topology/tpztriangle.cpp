@@ -109,8 +109,8 @@ namespace pztopology {
 
     static int vectorsideorder [14] = {0,1,3,1,2,4,2,0,5,3,4,5,6,6};
     
-//    static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,1,1,1,1,1};
+    //static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};//Pk+1Pk
+    static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,1,1,1,1,1};//Pk*Pk
     
     static int direcaoksioueta [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,1};
     
