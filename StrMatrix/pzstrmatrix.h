@@ -224,10 +224,10 @@ protected:
 #include "pzstrmatrixst.h"
 
 /** This is the original and stable version of multi_thread_assemble (producer-consumer) */
-//typedef TPZStructMatrixOR TPZStructMatrix;
+typedef TPZStructMatrixOR TPZStructMatrix;
 
 /** This version has a clean code with openmp parallism */
-typedef TPZStructMatrixST TPZStructMatrix;
+//typedef TPZStructMatrixST TPZStructMatrix;
 
 /** This version uses locks in the assemble contribuition with tbb (Nathan-Borin) */
 //typedef TPZStructMatrixCS TPZStructMatrix;
