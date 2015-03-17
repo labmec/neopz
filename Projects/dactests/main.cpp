@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     
     for(p=1;p<2;p++)
     {
-        for (ndiv=1; ndiv<2; ndiv++)
+        for (ndiv=3; ndiv<4; ndiv++)
         {
             
             if (dim==2)

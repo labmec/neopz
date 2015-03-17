@@ -9,13 +9,19 @@
 #include "LaplaceInCircle.h"
 #include "tools.h"
 
+#define LINEAR
+
 LaplaceInCircle::LaplaceInCircle(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
 {
-    std::cout<< " INICIO(CASCA CIRCULO) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
+    std::cout<< " INICIO(CIRCULO) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     std::cout<< " Dimensao == " << fDim << std::endl;
     
-    //TPZGeoMesh *gmesh = this->GMeshCirculoGeob(ndiv);
+#ifdef LINEAR
     TPZGeoMesh *gmesh = this->GmeshCirculoPorElementosRetos(ndiv);
+#else
+    TPZGeoMesh *gmesh = this->GMeshCirculoGeob(ndiv);
+#endif
+    
     
     gmesh->SetDimension(fDim);
     {
@@ -83,7 +89,12 @@ LaplaceInCircle::LaplaceInCircle(int ordemP, int ndiv, std::map<REAL, REAL> &fDe
     ref << ndiv;
     string strg = grau.str();
     string strr = ref.str();
+#ifdef LINEAR
+    std::string plotname("OurSolutionMetaCirculoLINEAR");
+#else
     std::string plotname("OurSolutionMetaCirculo");
+#endif
+    
     std::string Grau("P");
     std::string Ref("H");
     std::string VTK(".vtk");
@@ -104,7 +115,11 @@ LaplaceInCircle::LaplaceInCircle(int ordemP, int ndiv, std::map<REAL, REAL> &fDe
     string str = ss.str();
     
     std::cout<< " grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
+#ifdef LINEAR
+    std::string filename("InputDataMetaCirculoLINEAR");
+#else
     std::string filename("InputDataMetaCirculo");
+#endif
     std::string L2("L2.txt");
     std::string Hdiv("Hdiv.txt");
     std::string HdivData,L2Data;
@@ -832,7 +847,7 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
     TPZManVector<REAL,3> coord(3,0.);
     
     TPZManVector<int,220> nodeindex(nodenumber,0);
-    TPZManVector<int,20> firstnodeindexlevel(numberoflevels+1,0);
+    TPZManVector<int,220> firstnodeindexlevel(numberoflevels+1,0);
     
     int contador = 0;
     
@@ -879,21 +894,24 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
     // Building 2d elements
     for (int nivel = 0 ; nivel < numberoflevels-1; nivel++)
     {
+        contador++;
         for (int no = 0; no < nodesperlevel; no++)
         {
 
             // Create Geometrical Quad #1
-            long nodoproximonivel = firstnodeindexlevel[contador+1];
+            long nodestenivel = firstnodeindexlevel[nivel];
+            long nodoproximonivel = firstnodeindexlevel[contador];
             //int nodoproximonivelp1 = firstnodeindexlevel[contador+2];
             
-            long correcao = no < (nodesperlevel - 1) ? (no+nivel+nodoproximonivel+1) : nodoproximonivel;
+            long correcao1 = no < (nodesperlevel - 1) ? (no+nodestenivel+1)%nodoproximonivel : nodestenivel;
+            long correcao2 = no < (nodesperlevel - 1) ? (no+nodoproximonivel+1) : nodoproximonivel;
 
-            long a = nodeindex[  no+nivel ];
-            long b = nodeindex[(no+nivel+1)%nodoproximonivel];
-            long c = nodeindex[correcao];
-            long d = nodeindex[(no+nivel+nodoproximonivel)];//%nodoproximonivelp1
+            long a = nodeindex[  no+nodestenivel ];
+            long b = nodeindex[correcao1];//(no+nodestenivel+1)%nodoproximonivel
+            long c = nodeindex[correcao2];
+            long d = nodeindex[(no+nodoproximonivel)];//%nodoproximonivelp1
             
-            std::cout << a << " " << b << " " << c << " " << d << std::endl;
+            //std::cout << a << " " << b << " " << c << " " << d << std::endl;
             
             topology[0] = a;
             topology[1] = b;
@@ -903,7 +921,6 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
             elementid++;
 
         }
-        contador++;
     }
     
     topology.resize(3);
@@ -921,7 +938,7 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
         long b = nodeindex[ correcao ];
         long c = nodeindex[nodoproximonivel];
         
-        std::cout << a << " " << b << " " << c << std::endl;
+        //std::cout << a << " " << b << " " << c << std::endl;
         
         topology[0] = a;
         topology[1] = b;
@@ -939,14 +956,14 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
     {
         
         // Create Geometrical Quad #1
-        long nodesteonivel = firstnodeindexlevel[contador];
+        long nodesteonivel = firstnodeindexlevel[1];
         
         long correcao = (no+1)%nodesteonivel;
         
         long a = nodeindex[no];
         long b = nodeindex[ correcao ];
 
-        std::cout << a << " " << b << std::endl;
+        //std::cout << a << " " << b << std::endl;
         
         topology[0] = a;
         topology[1] = b;
@@ -958,8 +975,8 @@ TPZGeoMesh *LaplaceInCircle::GmeshCirculoPorElementosRetos( int ndiv)
     gmesh->BuildConnectivity();
     
     {
-               ofstream argm("gmesh2d-circulo.txt");
-                gmesh->Print(argm);
+//               ofstream argm("gmesh2d-circulo.txt");
+//                gmesh->Print(argm);
     }
     
     std::ofstream out("DiscoPorElLineares.vtk");
@@ -996,40 +1013,48 @@ void LaplaceInCircle::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZF
     }
     
     flux.Resize(dim, 1);
+    
 
-    flux(0,0)=flux(1,0)=0.;
-    double x = pt[0];
-    double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        
-        
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-        flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-        
-    }
-    else
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 0.0;
-        flux(0,0)= 0.0;
-        flux(1,0)= 0.0;
-        
-    }
-    
-#ifdef LINEAR
     
     double x = pt[0];
     double y = pt[1];
+    
     REAL r = sqrt( x*x + y*y );
+    REAL theta = atan2(y,x);
+    
     solp[0] = r*r*(1.0 - r*r);
     flux(0,0)= (2.0*r - 4.0*r*r*r)*cos(theta);
     flux(1,0)=  (2.0*r - 4.0*r*r*r)*sin(theta);
     
-#endif
+
+    
+//    flux(0,0)=flux(1,0)=0.;
+//    double x = pt[0];
+//    double y = pt[1];
+//    REAL raio = sqrt( x*x + y*y );
+//    if (raio < 1.0)
+//    {
+//        
+//        
+//        // para a Lap p = f no circulo
+//        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+//        flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+//        flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+//        
+//    }
+//    else
+//    {
+//        // para a Lap p = f no circulo
+//        solp[0] = 0.0;
+//        flux(0,0)= 0.0;
+//        flux(1,0)= 0.0;
+//        
+//    }
+
+
+    
+    
+
 
     
 }
@@ -1048,29 +1073,27 @@ void LaplaceInCircle::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
         TP(id,id) = 1.0;
         InvTP(id,id) = 1.0;
     }
-   
-    double x = pt[0];
-    double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        ff[0] = -6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
-        
-    }
-    else
-    {
-        ff[0] = 0.0;
-        
-    }
-        
-#ifdef LINEAR
     
     double x = pt[0];
     double y = pt[1];
     REAL r = sqrt( x*x + y*y );
     ff[0] = -(4.0 - 16.0*r*r);
     
-#endif
+   
+//    double x = pt[0];
+//    double y = pt[1];
+//    REAL raio = sqrt( x*x + y*y );
+//    if (raio < 1.0)
+//    {
+//        ff[0] = -6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
+//        
+//    }
+//    else
+//    {
+//        ff[0] = 0.0;
+//        
+//    }
+    
     
 }
 
@@ -1117,24 +1140,31 @@ void LaplaceInCircle::ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
     double x = pt[0];
     double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
     
-
-#ifdef LINEAR
+    REAL r = sqrt( x*x + y*y );
     
+    //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
-    
-#endif
+
+
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //        
+    //    }
     
 
     
@@ -1144,23 +1174,32 @@ void LaplaceInCircle::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     double x = pt[0];
     double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
     
-#ifdef LINEAR
+    REAL r = sqrt( x*x + y*y );
     
+    //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
     
-#endif
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
+    
 }
 
 void LaplaceInCircle::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
@@ -1169,22 +1208,31 @@ void LaplaceInCircle::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     double x = pt[0];
     double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
-#ifdef LINEAR
     
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
     
-#endif
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
 
 }
 
@@ -1193,22 +1241,31 @@ void LaplaceInCircle::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     double x = pt[0];
     double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
-#ifdef LINEAR
     
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
     
-#endif
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
 
 }
 
@@ -1217,46 +1274,61 @@ void LaplaceInCircle::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     double x = pt[0];
     double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
-#ifdef LINEAR
     
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
     
-#endif
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
 }
 
 void LaplaceInCircle::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
-    
-    
     double x = pt[0];
     double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
-#ifdef LINEAR
     
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
     
-#endif
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
 }
 
 
