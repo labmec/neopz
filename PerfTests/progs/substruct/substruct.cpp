@@ -332,30 +332,35 @@ int main(int argc, char *argv[])
 
 //#define ASSEMBLE_PERF
 #ifdef ASSEMBLE_PERF
-        TPZFStructMatrix fullstruct(cmeshauto);
-        fullstruct.SetNumThreads(nt_a.get_value());
-        long sz = cmeshauto->NEquations();
-        // serial
-//        TPZFMatrix<STATE> rhs_t(sz, 1);
-//        fullstruct.Assemble(rhs_t, 0);
-//        fullstruct.SetNumThreads(0);
-//        TPZFMatrix<STATE> rhs_b(sz, 1);
-//        fullstruct.Assemble(rhs_b, 0);
-//        for (int i=0; i<sz; i++) {
-//            if(fabs(rhs_b(i,0)-rhs_t(i,0))>1.e-9) {
-//                printf("%.5f %.5f", rhs_b(i,0),rhs_t(i,0));
-//                DebugStop();
-//            }
-//        }
-//        return 0;
-        
-        PERF_START(assemble_rst);
-	for(int k=0; k<50; k++) {
-        	TPZFMatrix<STATE> rhs_t(sz, 1);
-        	fullstruct.Assemble(rhs_t, 0);
-	}
-        PERF_STOP(assemble_rst);
-        return 0;
+		TPZFStructMatrix fullstruct(cmeshauto);
+		fullstruct.SetNumThreads(nt_a.get_value());
+
+		long sz = cmeshauto->NEquations();
+
+		/*
+		// ************** PARALELO **************
+		TPZFMatrix<STATE> rhs_t(sz, 1, 0.);
+		fullstruct.Assemble(rhs_t, 0);
+
+		// ************** SERIAL *************
+		fullstruct.SetNumThreads(0);
+		TPZFMatrix<STATE> rhs_b(sz, 1, 0.);
+		fullstruct.Assemble(rhs_b, 0);
+
+		for (int i=0; i<sz; i++) {
+			if(fabs(rhs_b(i,0)-rhs_t(i,0))>1.e-9) {
+				printf("%d - %.5f %.5f\n",i, rhs_b(i,0),rhs_t(i,0));
+				exit(101);
+			}
+		}
+		return 0;
+*/
+		TPZFMatrix<STATE> rhs_t(sz, 1, 0.);
+		PERF_START(assemble_rst);
+		fullstruct.Assemble(rhs_t, 0);
+		PERF_STOP(assemble_rst);
+
+		return 0;
 #endif
         
         dohrstruct = new TPZDohrStructMatrix(cmeshauto);

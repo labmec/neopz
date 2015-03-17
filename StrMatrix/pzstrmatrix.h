@@ -1,10 +1,10 @@
 /**
  * @file
- * @brief Contains the TPZStructMatrixST class which responsible for a interface among Matrix and Finite Element classes.
+ * @brief Contains the TPZStructMatrixOR class which responsible for a interface among Matrix and Finite Element classes.
  */
 
-#ifndef TPZStructMatrixST_H
-#define TPZStructMatrixST_H
+#ifndef TPZStructMatrixOR_H
+#define TPZStructMatrixOR_H
 
 #include <set>
 #include <map>
@@ -33,17 +33,17 @@ class TPZFMatrix;
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZStructMatrixST {
+class TPZStructMatrixOR {
     
 public:
     
-    TPZStructMatrixST(TPZCompMesh *);
+    TPZStructMatrixOR(TPZCompMesh *);
     
-    TPZStructMatrixST(TPZAutoPointer<TPZCompMesh> cmesh);
+    TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh);
     
-    TPZStructMatrixST(const TPZStructMatrixST &copy);
+    TPZStructMatrixOR(const TPZStructMatrixOR &copy);
     
-    virtual ~TPZStructMatrixST(){};
+    virtual ~TPZStructMatrixOR(){};
     
     /** @brief Sets number of threads in Assemble process */
     void SetNumThreads(int n){
@@ -64,7 +64,7 @@ public:
     
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
-    virtual TPZStructMatrixST * Clone();
+    virtual TPZStructMatrixOR * Clone();
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
     virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
@@ -147,9 +147,9 @@ protected:
     struct ThreadData
     {
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrixST *strmat,TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrixOR *strmat,TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrixST *strmat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrixOR *strmat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Destructor: Destroy the mutex semaphores and others */
         ~ThreadData();
         /** @brief Look for an element index which needs to be computed and put it on the stack */
@@ -167,7 +167,7 @@ protected:
         }
         
         /** @brief Current structmatrix object */
-        TPZStructMatrixST *fStruct;
+        TPZStructMatrixOR *fStruct;
         /** @brief Gui interface object */
         TPZAutoPointer<TPZGuiInterface> fGuiInterface;
         /** @brief Global matrix */
@@ -221,8 +221,12 @@ protected:
 #include "pzstrmatrixgc.h"
 #include "pzstrmatrixot.h"
 #include "pzstrmatrixtbb.h"
+#include "pzstrmatrixst.h"
 
 /** This is the original and stable version of multi_thread_assemble (producer-consumer) */
+//typedef TPZStructMatrixOR TPZStructMatrix;
+
+/** This version has a clean code with openmp parallism */
 typedef TPZStructMatrixST TPZStructMatrix;
 
 /** This version uses locks in the assemble contribuition with tbb (Nathan-Borin) */
