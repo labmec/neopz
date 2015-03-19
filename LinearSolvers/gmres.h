@@ -73,7 +73,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	  Real &tol, Vector *residual,const int FromCurrent)
 {
 	Real resid;
-	long i, j = 1, k;
+	long j = 1, k;
 	Vector s(m+1), cs(m+1), sn(m+1), w1,w;
 	
 	//  Real normb = norm(M.Solve(b));
@@ -122,7 +122,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 //		s = REAL(0.0);
 		s(0) = beta;
 		
-		for (i = 0; i < m && j <= max_iter; i++, j++) {
+		for (long i = 0; i < m && j <= max_iter; i++, j++) {
 			A.Multiply(v[i],w1);
 			M.Solve(w1,w);
 			for (k = 0; k <= i; k++) {

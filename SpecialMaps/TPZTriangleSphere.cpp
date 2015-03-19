@@ -190,10 +190,11 @@ int TPZGeoElRefPattern<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoTriangle > >::Cl
 
 template class pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle >;
 
-template class TPZRestoreClass< TPZGeoElRefPattern< pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle > >, TPZGEOELEMENTTRIANGLESPHEREID>;
-
+template class pzgeom::TPZTriangleSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoTriangle > >;
 
 template class TPZGeoElRefLess<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoTriangle > >;
+
+template class TPZRestoreClass< TPZGeoElRefPattern< pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle > >, TPZGEOELEMENTTRIANGLESPHEREID>;
 
 
 template<>

@@ -92,6 +92,8 @@ int TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >::ClassId() co
 
 template class pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>;
 
+template class pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad > >;
+
 template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >, TPZGEOELEMENTQUADSPHEREID>;
 
 
@@ -102,6 +104,7 @@ template<>
 int TPZGeoElRefPattern<pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >::ClassId() const {
     return TPZGEOELEMENTQUADSPHEREBLENDID;
 }
+
 
 template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > >, TPZGEOELEMENTQUADSPHEREBLENDID>;
 
