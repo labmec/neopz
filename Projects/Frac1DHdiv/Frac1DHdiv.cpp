@@ -109,12 +109,12 @@ int main()
     Data->SetPorderDarcyPressure(pOrdPDarcy);
     
     // Fracture Simulation uncoupled
-    TPZFracAnalysis fracAn(Data);
-    fracAn.Run();
+//    TPZFracAnalysis fracAn(Data);
+//    fracAn.Run();
     
     // Reservoir Simulation coupled
-    //  TPZDarcyAnalysis DarcyAn(Data);
-    //  DarcyAn.Run();
+      TPZDarcyAnalysis DarcyAn(Data);
+      DarcyAn.Run();
     
     return 0;
 }

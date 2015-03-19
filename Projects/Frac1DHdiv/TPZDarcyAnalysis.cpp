@@ -610,27 +610,22 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionP(TPZGeoMesh *gmesh, int pOrder, TPZ
 void TPZDarcyAnalysis::CreateInterfaces()
 {
     fgmesh->ResetReference();
-    TPZCompMesh *cmesh = this->fcmeshMixed;
-    cmesh->LoadReferences();
-    cmesh->SetAllCreateFunctionsMultiphysicElem();
+   
     // Creation of interface elements
-    int nel = cmesh->ElementVec().NElements();
+    int nel = fcmeshMixed->ElementVec().NElements();
     for(int el = 0; el < nel; el++)
     {
-        TPZCompEl * compEl = cmesh->ElementVec()[el];
+        TPZCompEl * compEl = fcmeshMixed->ElementVec()[el];
         if(!compEl) continue;
         int index = compEl ->Index();
-        if(compEl->Dimension() == cmesh->Dimension())
+        if(compEl->Dimension() == fcmeshMixed->Dimension())
         {
-            TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(cmesh->ElementVec()[index]);
+            TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(fcmeshMixed->ElementVec()[index]);
             if(!InterpEl) continue;
             InterpEl->CreateInterfaces();
         }
 
     }
-    
-
-    
 }
 
 void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)

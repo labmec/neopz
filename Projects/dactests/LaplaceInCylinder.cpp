@@ -11,6 +11,25 @@
 
 LaplaceInCylinder::LaplaceInCylinder(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
 {
+ 
+    fDim = 2;
+    
+    fmatId = 1;
+    
+    fdirichlet = 0;
+    fneumann = 1;
+    
+    fbc0 = -1;
+    fbc1 = -2;
+    fbc2 = -3;
+    fbc3 = -4;
+    fbc4 = -5;
+    fbc5 = -6;
+    fmatskeleton = -7;
+    isH1 = false;
+    ftriang = false;
+    isgeoblend = true;  
+  
     std::cout<< " INICIO(CASCA CILINDRO) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     std::cout<< " Dimensao == " << fDim << std::endl;
     

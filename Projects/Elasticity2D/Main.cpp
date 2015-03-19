@@ -55,7 +55,6 @@
 #include "TPZReadGIDGrid.h"
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
-#include "pzelasticSest2D.h"
 
 
 #include <cmath>
@@ -173,13 +172,8 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
     int dim = 2;
     int matId1 = 1;
     
-//    TPZMatElasticity2D *material;
-//    material = new TPZMatElasticity2D(matId1);
-    
-    TPZElasticityMaterialSest2D * material = new TPZElasticityMaterialSest2D(matId1);
-
-
-
+   TPZMatElasticity2D *material;
+   material = new TPZMatElasticity2D(matId1);
 
     
     // Setting up paremeters

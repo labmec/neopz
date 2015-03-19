@@ -202,15 +202,15 @@ int main(int argc, char *argv[])
             {
                 //TPZGeoMesh *gmesh2d = GMesh(2, ftriang, ndiv);
                 if (iscircle) {
-                    LaplaceInCircle::LaplaceInCircle( p, ndiv, fDebugMapL2, fDebugMapHdiv);
+                    LaplaceInCircle  * laplaceInCircle = new LaplaceInCircle( p, ndiv, fDebugMapL2, fDebugMapHdiv);
                 }
                 else if (iscylinder)
                 {
-                    LaplaceInCylinder::LaplaceInCylinder( p, ndiv, fDebugMapL2, fDebugMapHdiv);
+                    LaplaceInCylinder * laplaceInCylinder = new LaplaceInCylinder( p, ndiv, fDebugMapL2, fDebugMapHdiv);
                 }
                 else  if(issphere)
                 {
-                    LaplaceInSphere::LaplaceInSphere( p, ndiv, fDebugMapL2, fDebugMapHdiv);
+                    LaplaceInSphere * laplaceInSphere = new LaplaceInSphere( p, ndiv, fDebugMapL2, fDebugMapHdiv);
                 }
                 else
                 {

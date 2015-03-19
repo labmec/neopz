@@ -105,26 +105,26 @@ using namespace pzshape;
 
 class LaplaceInCircle{
 private:
-    int fDim = 2;
+    int fDim;
     
-    int fmatId = 1;
+    int fmatId;
     
-    int fdirichlet = 0;
-    int fneumann = 1;
+    int fdirichlet;
+    int fneumann;
     
-    int fbc0 = -1;
-    int fbc1 = -2;
-    int fbc2 = -3;
-    int fbc3 = -4;
-    int fbc4 = -5;
-    int fbc5 = -6;
-    int fmatskeleton = -7;
+    int fbc0;
+    int fbc1;
+    int fbc2;
+    int fbc3;
+    int fbc4;
+    int fbc5;
+    int fmatskeleton;
     
-    bool isH1 = false;
+    bool isH1;
     
-    bool ftriang = false;
+    bool ftriang;
     
-    bool isgeoblend = true;
+    bool isgeoblend;
     
     
 public:
