@@ -1417,7 +1417,7 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
     long elementid = 0;
 
     // Using triangle to sphere special map
-    TPZVec<long> topology(4);
+    TPZVec<long> topology;
     
     if (ftriangulo)
     {
@@ -1430,8 +1430,8 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
         topology[1] = 1;
         topology[2] = 2;
         
-        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereEighth1 =
-        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereEighth1 =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
         SphereEighth1->Geom().SetData(r,xc);
         elementid++;
         
@@ -1440,8 +1440,8 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
         topology[1] = 2;
         topology[2] = 3;
         
-        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereEighth2 =
-        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereEighth2 =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
         SphereEighth2->Geom().SetData(r,xc);
         //elementid++;
 
@@ -2089,8 +2089,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 1;
         topology[2] = 5;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2099,8 +2099,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 5;
         topology[2] = 4;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2109,8 +2109,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 2;
         topology[2] = 6;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <>  > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2119,8 +2119,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 6;
         topology[2] = 5;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2129,8 +2129,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 3;
         topology[2] = 7;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2139,8 +2139,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 7;
         topology[2] = 6;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2149,8 +2149,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 0;
         topology[2] = 4;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2159,8 +2159,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 4;
         topology[2] = 7;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2223,8 +2223,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
     topology[1] = 5;
     topology[2] = 8;
     {
-        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereTriangQ =
-        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereTriangQ =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
         SphereTriangQ->Geom().SetData(r,xc);
         elementid++;
     }
@@ -2233,8 +2233,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
     topology[1] = 6;
     topology[2] = 8;
     {
-        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereTriangQ =
-        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereTriangQ =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
         SphereTriangQ->Geom().SetData(r,xc);
         elementid++;
     }
@@ -2243,8 +2243,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
     topology[1] = 7;
     topology[2] = 8;
     {
-        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereTriangQ =
-        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereTriangQ =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
         SphereTriangQ->Geom().SetData(r,xc);
         elementid++;
     }
@@ -2253,8 +2253,8 @@ TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv)
     topology[1] = 4;
     topology[2] = 8;
     {
-        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereTriangQ =
-        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+        TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereTriangQ =
+        new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
         SphereTriangQ->Geom().SetData(r,xc);
         elementid++;
     }
@@ -2424,8 +2424,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
         topology[1] = 1;
         topology[2] = 5;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2434,8 +2434,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
         topology[1] = 5;
         topology[2] = 4;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2444,8 +2444,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
         topology[1] = 2;
         topology[2] = 6;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2454,8 +2454,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
         topology[1] = 6;
         topology[2] = 5;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2464,8 +2464,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
         topology[1] = 3;
         topology[2] = 7;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2474,8 +2474,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
         topology[1] = 7;
         topology[2] = 6;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2484,8 +2484,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
         topology[1] = 0;
         topology[2] = 4;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2494,8 +2494,8 @@ TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv)
         topology[1] = 4;
         topology[2] = 7;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2749,8 +2749,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 1;
         topology[2] = 5;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2759,8 +2759,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 5;
         topology[2] = 4;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2769,8 +2769,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 2;
         topology[2] = 6;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2779,8 +2779,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 6;
         topology[2] = 5;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2789,8 +2789,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 3;
         topology[2] = 7;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2799,8 +2799,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 7;
         topology[2] = 6;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2809,8 +2809,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 0;
         topology[2] = 4;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT1 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT1 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT1->Geom().SetData(r,xc);
             elementid++;
         }
@@ -2819,8 +2819,8 @@ TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv)
         topology[1] = 4;
         topology[2] = 7;
         {
-            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > * SphereRingT2 =
-            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere > (elementid, topology,materialId,*geomesh);
+            TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereRingT2 =
+            new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
             SphereRingT2->Geom().SetData(r,xc);
             elementid++;
         }
