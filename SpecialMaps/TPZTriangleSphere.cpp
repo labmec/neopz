@@ -188,6 +188,8 @@ int TPZGeoElRefPattern<pzgeom::TPZTriangleSphere< pzgeom::TPZGeoTriangle > >::Cl
 	return TPZGEOELEMENTTRIANGLESPHEREID;
 }
 
+template class pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle >;
+
 template class TPZRestoreClass< TPZGeoElRefPattern< pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle > >, TPZGEOELEMENTTRIANGLESPHEREID>;
 
 

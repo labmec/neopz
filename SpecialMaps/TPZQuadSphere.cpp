@@ -90,6 +90,8 @@ int TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >::ClassId() co
 	return TPZGEOELEMENTQUADSPHEREID;
 }
 
+template class pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>;
+
 template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad> >, TPZGEOELEMENTQUADSPHEREID>;
 
 
