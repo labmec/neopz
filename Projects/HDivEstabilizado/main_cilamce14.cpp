@@ -123,6 +123,7 @@ void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out);
 
 TPZFMatrix<STATE> * ComputeInverse(TPZCompMesh * mphysics);
 
+void NEquationsCondensed(TPZCompMesh *cmesh, long &neqglob,long &neqcond, bool ismisto);
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.hdiv"));
@@ -151,14 +152,14 @@ int main(int argc, char *argv[])
     ofstream saidaerro( "erros-hdiv-estab.txt");
     
     saidaerro<<"\n";
-    saidaerro <<"IFORMACOES DO TESTE: (0)->False e (1)->True \n";
+    saidaerro <<"INFORMACOES DO TESTE: (0)->False e (1)->True \n";
     saidaerro <<"Malha Triangular: "<<fTriang<<"\n";
     saidaerro <<"Problema eh homogeneo: "<< IsHomogeneo<<"\n";
     saidaerro <<"Metodo estabilizado: " <<IsStab<< ".    Usa parametro h2: "<< Useh2<<"\n";
-    saidaerro <<"Espaco do fluxo eh full Hdiv: "<<IsContinuou<<"\n";
+    saidaerro <<"Espaco do fluxo eh full Hdiv: "<<IsFullHdiv<<"\n";
     saidaerro <<"Espaco da pressao eh continuo: "<<IsContinuou<<"\n\n";
 
-    for(int p = 1; p<6; p++)
+    for(int p = 1; p<5; p++)
     {
         int pq = p;
         int pp;
@@ -190,13 +191,13 @@ int main(int argc, char *argv[])
             
             TPZCompMesh *cmesh1 = CMeshFlux2(pq,gmesh);
             TPZCompMesh *cmesh2 = CMeshPressure2(pp,gmesh);
-            
+//            
 //            ofstream arg1("cmeshflux.txt");
 //            cmesh1->Print(arg1);
 //            
 //            ofstream arg2("cmeshpressure.txt");
 //            cmesh2->Print(arg2);
-//
+
 //            ofstream arg4("gmesh2.txt");
 //            gmesh->Print(arg4);
             
@@ -208,15 +209,31 @@ int main(int argc, char *argv[])
             
             TPZCompMesh * mphysics = CMeshMixed2(meshvec,gmesh);
             
+            mphysics->ExpandSolution();
+            mphysics->CleanUpUnconnectedNodes();
+            
+            
 //            ofstream arg4("gmeshMulti.txt");
 //            mphysics->Print(arg4);
             
-            saidaerro << "Number of equations of flux " << cmesh1->NEquations() << std::endl;
-
-            saidaerro << "Number of equations of pressure " << cmesh2->NEquations() << std::endl;
-
-            saidaerro << "Number of equations TOTAL " << mphysics->NEquations() << "\n\n";
-
+//            saidaerro << "Number of equations of flux " << cmesh1->NEquations() << std::endl;
+//            saidaerro << "Number of equations of pressure " << cmesh2->NEquations() << std::endl;
+//            saidaerro << "Number of equations TOTAL " << mphysics->NEquations() << "\n\n";
+            
+//            long neq_flux, neq_pres, neqcond_flux, neqcond_pres;
+//            NEquationsCondensed(cmesh1, neq_flux, neqcond_flux);
+//            NEquationsCondensed(cmesh2, neq_pres, neqcond_pres);
+//            saidaerro << "Number of equations total flux: " <<neq_flux<< "\n";
+//            saidaerro << "Number of equations condensadas flux: " <<neqcond_flux<< "\n";
+//            saidaerro << "Number of equations total pressao: " <<neq_pres<< "\n";
+//            saidaerro << "Number of equations condensadas pressao: " << neqcond_pres<< "\n\n";
+            
+            long neq_misto, neqcond_misto;
+            NEquationsCondensed(mphysics, neq_misto, neqcond_misto,true);
+            saidaerro << "Numero total de equacoes: " <<neq_misto<< "\n";
+            saidaerro << "Numero de equacoes condensaveis: " <<neqcond_misto<< "\n";
+            saidaerro << "Numero de equacoes final: " << neq_misto - neqcond_misto<< "\n\n";
+/*
             int numthreads = 8;
             std::cout << "Number of threads " << numthreads << std::endl;
 
@@ -245,7 +262,7 @@ int main(int argc, char *argv[])
 //            char buf[256] ;
 //            sprintf(buf,"ProblemaJuanGC_porder%d_h%d.vtk",p,ndiv);
 //            PosProcessMultph(meshvec,  mphysics, *an, buf);
- 
+*/
         }
    
     }
@@ -816,7 +833,7 @@ TPZCompMesh *CMeshMixed2(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh){
     //inserindo o material na malha computacional
     TPZMaterial *mat(material);
     mphysics->InsertMaterialObject(mat);
-    
+    mphysics->SetDimModel(dim);
     //Criando condicoes de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
@@ -1506,3 +1523,39 @@ void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out){
     
 
 }///method
+
+void NEquationsCondensed(TPZCompMesh *cmesh, long &neqglob,long &neqcond, bool ismisto){
+    
+    long ncon = cmesh->NConnects();
+    neqglob = 0;
+    neqcond = 0;
+    for(int i = 0; i< ncon; i++){
+        TPZConnect &co  = cmesh->ConnectVec()[i];
+        //if(co.HasDependency()) continue;
+        if(co.HasDependency()  || co.IsCondensed() || !co.NElConnected() || co.SequenceNumber() == -1) continue;
+        
+        int nelc = co.NElConnected();
+        if (nelc==0) DebugStop();
+        
+        int dofsize = co.NShape()*co.NState();
+        neqglob += dofsize;
+        
+        //equacoes condensaveis
+        if (nelc == 1){
+            neqcond += dofsize;
+        }
+    }
+    
+    if(ismisto && IsContinuou==false){
+        int nel2D =0;
+        for(int i=0; i<cmesh->NElements(); i++){
+            TPZCompEl *cel = cmesh->ElementVec()[i];
+            if(!cel) continue;
+            if(cel->Reference()->Dimension() == cmesh->Dimension()){
+                nel2D++;
+            }
+        }
+        neqcond = neqcond - nel2D;
+    }
+}
+

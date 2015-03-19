@@ -126,7 +126,7 @@ REAL feps= 1000.;
 REAL flambda = 50.;
 bool problemaarctan=true;
 
-int main(int argc, char *argv[])
+int main2(int argc, char *argv[])
 {
     InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
