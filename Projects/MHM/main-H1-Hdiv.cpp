@@ -125,8 +125,8 @@ int main()
     fmetodomisto = false; //false --> formulacao H1
     fsolsuave = true;
     
-    ofstream saidaerrosHdiv("../ErroHP-Misto.txt",ios::app);
-    ofstream saidaerrosH1("../ErroHP-H1.txt",ios::app);
+    ofstream saidaerrosHdiv("../Erro-Misto.txt",ios::app);
+    ofstream saidaerrosH1("../Erro-H1.txt",ios::app);
     
     
     for(int p = 2; p<5; p++)
@@ -141,7 +141,7 @@ int main()
             saidaerrosH1<< "\nSaida do erro para formulacão H1, com ordem p  = " << p << "\n\n";
         }
         //refinamentos h adptativos
-        for(int nref = 2; nref<8; nref++){
+        for(int nref = 2; nref<6; nref++){
             
             TPZGeoMesh * gmesh = MalhaGeom(1,1,fTriang);
             UniformRefine2(gmesh, nref);
