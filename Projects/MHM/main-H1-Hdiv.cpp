@@ -123,7 +123,7 @@ int main()
     TPZVec<REAL> erros;
     
     fmetodomisto = false; //false --> formulacao H1
-    fsolsuave = false;
+    fsolsuave = true;
     
     ofstream saidaerrosHdiv("../ErroHP-Misto.txt",ios::app);
     ofstream saidaerrosH1("../ErroHP-H1.txt",ios::app);
