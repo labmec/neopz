@@ -78,6 +78,7 @@
 
 #include "TPZLagrangeMultiplier.h"
 #include "pzmatmixedpoisson3d.h"
+#include "PZMatPoissonD3.h"
 
 #include "tpzhierarquicalgrid.h"
 #include "pzfunction.h"
@@ -155,6 +156,7 @@ public:
     TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim);
     TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim);
     TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec);
+    TPZCompMesh *CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec);
     
     //solucao exata
     static void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);

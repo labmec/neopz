@@ -240,3 +240,13 @@ void tools::PrintDebugMapForMathematica(std::string filenameHdiv, std::string fi
     outHdiv.close();
 }
 
+
+bool tools::MyDoubleComparer(REAL a, REAL b)
+{
+    if (IsZero(a-b)){
+        return true;
+    }
+    else{
+        return false;
+    }
+}

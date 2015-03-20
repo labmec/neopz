@@ -152,11 +152,6 @@ TPZGeoMesh *LaplaceInCylinder::GMeshCilindricalMesh( int ndiv)
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
     /// Materiais
-    long materialId = fmatId;
-    long arc1 = fbc1; // -1;
-    long arc2 = fbc2; // -2;
-    long arc3 = fbc3; // -3;
-    long arc4 = fbc4; // -4;
     
     int nodenumber = 6;
     REAL r = 1.0;
@@ -169,7 +164,7 @@ TPZGeoMesh *LaplaceInCylinder::GMeshCilindricalMesh( int ndiv)
     
     TPZVec<STATE> coord(3,0.0);
     int Axis = 3;
-    REAL angrot, dump = 0.0;
+    REAL angrot = 0.0;
     
     gmesh = new TPZGeoMesh;
     gmesh->NodeVec().Resize(nodenumber);
@@ -269,7 +264,7 @@ TPZGeoMesh *LaplaceInCylinder::GMeshCilindricalMesh( int ndiv)
     // Create Geometrical Arc #2
     nodeindex[0] = 0;
     nodeindex[1] = 1;
-    new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, arc1, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc1, *gmesh);
     elementid++;
     
     nodeindex.resize(3);
@@ -277,14 +272,14 @@ TPZGeoMesh *LaplaceInCylinder::GMeshCilindricalMesh( int ndiv)
     nodeindex[0] = 1;
     nodeindex[1] = 2;
     nodeindex[2] = 4;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, fbc2, *gmesh);
     elementid++;
     
     nodeindex.resize(2);
     // Create Geometrical Arc #4
     nodeindex[0] = 2;
     nodeindex[1] = 3;
-    new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, arc3, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc3, *gmesh);
     
     
     nodeindex.resize(3);
@@ -293,7 +288,7 @@ TPZGeoMesh *LaplaceInCylinder::GMeshCilindricalMesh( int ndiv)
     nodeindex[0] = 3;
     nodeindex[1] = 0;
     nodeindex[2] = 5;
-    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, fbc4, *gmesh);
     elementid++;
     
     
@@ -382,7 +377,7 @@ void  LaplaceInCylinder::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp
     REAL y = pt[1];
     REAL z = pt[2];
     
-    REAL r = sqrt(x*x+y*y);
+    //REAL r = sqrt(x*x+y*y);
     REAL theta = atan2(y,x);
     
     solp[0] = sin(theta)*sin(z + M_PI/2.0);
@@ -394,7 +389,7 @@ void  LaplaceInCylinder::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp
     REAL y = pt[1];
     REAL z = pt[2];
     
-    REAL r = sqrt(x*x+y*y);
+    //REAL r = sqrt(x*x+y*y);
     REAL theta = atan2(y,x);
     
     solp[0] = sin(theta)*sin(z + M_PI/2.0);
@@ -407,7 +402,7 @@ void  LaplaceInCylinder::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp
     REAL y = pt[1];
     REAL z = pt[2];
     
-    REAL r = sqrt(x*x+y*y);
+    //REAL r = sqrt(x*x+y*y);
     REAL theta = atan2(y,x);
     
     solp[0] = sin(theta)*sin(z + M_PI/2.0);
@@ -419,7 +414,7 @@ void  LaplaceInCylinder::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp
     REAL y = pt[1];
     REAL z = pt[2];
     
-    REAL r = sqrt(x*x+y*y);
+    //REAL r = sqrt(x*x+y*y);
     REAL theta = atan2(y,x);
     
     solp[0] = sin(theta)*sin(z + M_PI/2.0);

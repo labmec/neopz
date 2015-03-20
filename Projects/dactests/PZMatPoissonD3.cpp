@@ -576,27 +576,29 @@ void TPZMatPoissonD3::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMa
 
 /** Returns the variable index associated with the name */
 int TPZMatPoissonD3::VariableIndex(const std::string &name){
-	if(!strcmp("Flux",name.c_str()))           return 1;
-	if(!strcmp("Pressure",name.c_str()))       return 2;
+    if(!strcmp("Flux",name.c_str()))           return 1;
+    if(!strcmp("Pressure",name.c_str()))       return 2;
     if(!strcmp("GradFluxX",name.c_str()))      return 3;
     if(!strcmp("GradFluxY",name.c_str()))      return 4;
     if(!strcmp("GradFluxZ",name.c_str()))      return 5;
     if(!strcmp("ExactPressure",name.c_str()))  return 6;
     if(!strcmp("ExactFlux",name.c_str()))      return 7;
     if(!strcmp("Rhs",name.c_str()))            return 8;
+    if(!strcmp("GradP",name.c_str()))          return 9;
 	
 	return TPZMaterial::VariableIndex(name);
 }
 
 int TPZMatPoissonD3::NSolutionVariables(int var){
-	if(var == 1) return 3;
-	if(var == 2) return 1;
+    if(var == 1) return 3;
+    if(var == 2) return 1;
     if(var == 3) return 3;
     if(var == 4) return 3;
     if(var == 5) return 3;
     if(var == 6) return 1;
     if(var == 7) return 3;
     if(var == 8) return 1;
+    if(var == 9) return 3;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -697,9 +699,6 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         {
             Solout[ip] = datavec[0].dsol[0](ip,0);
         }
-//        Solout[0]=datavec[0].dsol[0](0,0);
-//        Solout[1]=datavec[0].dsol[0](1,0);
-//        Solout[2]=datavec[0].dsol[0](2,0);
         return;
     }
     
@@ -708,9 +707,6 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         {
             Solout[ip] = datavec[0].dsol[0](ip,1);
         }
-//        Solout[0]=datavec[0].dsol[0](0,1);
-//        Solout[1]=datavec[0].dsol[0](1,1);
-//        Solout[2]=datavec[0].dsol[0](2,1);
         return;
     }
     
@@ -719,10 +715,6 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         {
             Solout[ip] = datavec[0].dsol[0](ip,2);
         }
-
-//        Solout[0]=datavec[0].dsol[0](0,2);
-//        Solout[1]=datavec[0].dsol[0](1,2);
-//        Solout[2]=datavec[0].dsol[0](2,2);
         return;
     }
     
@@ -743,9 +735,6 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         {
             Solout[ip] = flux(ip,0);
         }
-//		Solout[0] = flux(0,0);
-//        Solout[1] = flux(1,0);
-//        Solout[2] = flux(2,0);
 		return;
 	}//var7
     
@@ -760,7 +749,19 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         
         return;
     }//var8
-    
+    if(var==9){
+        
+        TPZFNMatrix<660> GradofP;
+        TPZAxesTools<REAL>::Axes2XYZ(datavec[1].dsol[0], GradofP, datavec[1].axes);
+        //        int nc = GradofP.Cols();
+        //        int nl = GradofP.Rows();
+        
+        for (int ip = 0; ip<3; ip++)
+        {
+            Solout[ip] = -1.0*GradofP(ip,0);
+        }
+        return;
+    }
 }
 
 

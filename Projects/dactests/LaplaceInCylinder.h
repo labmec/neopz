@@ -78,6 +78,7 @@
 
 #include "TPZLagrangeMultiplier.h"
 #include "pzmatmixedpoisson3d.h"
+#include "PZMatPoissonD3.h"
 
 #include "tpzhierarquicalgrid.h"
 #include "pzfunction.h"
