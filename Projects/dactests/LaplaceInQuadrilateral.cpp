@@ -1,0 +1,1388 @@
+//
+//  LaplaceInQuadrilateral.cpp
+//  PZ
+//
+//  Created by Douglas Castro on 18/03/15.
+//
+//
+
+#include "LaplaceInQuadrilateral.h"
+#include "tools.h"
+
+#define DEFORMED
+
+LaplaceInQuadrilateral::LaplaceInQuadrilateral(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
+{
+    std::cout<< " INICIO(Quadrilatero) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
+    std::cout<< " Dimensao == " << fDim << std::endl;
+    
+#ifdef DEFORMED
+    TPZGeoMesh *gmesh = this->GMeshDeformed(fDim, ftriang, ndiv);
+#else
+    TPZGeoMesh *gmesh = this->GMesh(fDim, ftriang, ndiv);
+#endif
+    
+    
+    gmesh->SetDimension(fDim);
+    {
+        //        ofstream argm("gmesh2d-circulo.txt");
+        //        gmesh->Print(argm);
+    }
+    
+    TPZCompMesh *cmesh2 = this->CMeshPressure(gmesh, ordemP, fDim);
+    TPZCompMesh *cmesh1 = this->CMeshFlux(gmesh, ordemP, fDim);
+    
+    // Um teste para a solucao via H1, sem hdiv
+    if (isH1) {
+        TPZCompMesh *cmeshH1 = this->CMeshH1(gmesh, ordemP, fDim);
+        TPZAnalysis anh1(cmeshH1, true);
+        
+        tools::SolveSyst(anh1, cmeshH1);
+        
+        stringstream refh1,grauh1;
+        grauh1 << ordemP;
+        refh1 << ndiv;
+        string strgh1 = grauh1.str();
+        string strrh1 = refh1.str();
+        std::string plotnameh1("OurSolutionH1");
+        std::string Grauh1("P");
+        std::string Refh1("H");
+        std::string VTKh1(".vtk");
+        std::string plotDatah1;
+        plotDatah1 = plotnameh1+Grauh1+strgh1+Refh1+strrh1+VTKh1;
+        std::string plotfileh1(plotDatah1);
+        
+        tools::PosProcess(anh1, plotfileh1, fDim);
+        
+        return ;
+    }
+    // exit
+    
+    {
+        //        ofstream arg1("cmeshflux.txt");
+        //        cmesh1->Print(arg1);
+        //
+        //        ofstream arg2("cmeshpressure.txt");
+        //        cmesh2->Print(arg2);
+        //
+        //        ofstream arg4("gmesh2.txt");
+        //        gmesh->Print(arg4);
+    }
+    
+    //malha multifisica
+    TPZVec<TPZCompMesh *> meshvec(2);
+    meshvec[0] = cmesh1;
+    meshvec[1] = cmesh2;
+    
+    TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
+    {
+        //        ofstream arg5("cmeshmultiphysics.txt");
+        //        mphysics->Print(arg5);
+    }
+    
+    TPZAnalysis an(mphysics, true);
+    
+    tools::SolveSyst(an, mphysics);
+    
+    stringstream ref,grau;
+    grau << ordemP;
+    ref << ndiv;
+    string strg = grau.str();
+    string strr = ref.str();
+#ifdef DEFORMED
+    std::string plotname("OurSolutionMetaQuadDeformed");
+#else
+    std::string plotname("OurSolutionMetaQuad");
+#endif
+    
+    std::string Grau("P");
+    std::string Ref("H");
+    std::string VTK(".vtk");
+    std::string plotData;
+    plotData = plotname+Grau+strg+Ref+strr+VTK;
+    std::string plotfile(plotData);
+    
+    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
+    
+    //Calculo do erro
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+    TPZVec<REAL> erros;
+    
+    std::cout << "Postprocessed\n";
+    
+    stringstream ss;
+    ss << ordemP;
+    string str = ss.str();
+    
+    std::cout<< " grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
+#ifdef DEFORMED
+    std::string filename("InputDataMetaQuadDEFORMED");
+#else
+    std::string filename("InputDataMetaQuad");
+#endif
+    std::string L2("L2.txt");
+    std::string Hdiv("Hdiv.txt");
+    std::string HdivData,L2Data;
+    HdivData = filename+str+Hdiv;
+    L2Data = filename+str+L2;
+    
+    ErrorHDiv(cmesh1, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
+    
+    ErrorL2(cmesh2, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
+    
+    tools::PrintDebugMapForMathematica(HdivData, L2Data, fDebugMapL2, fDebugMapHdiv);
+    
+    std::cout<< " FIM (QUAD) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
+    
+}
+
+LaplaceInQuadrilateral::~LaplaceInQuadrilateral()
+{
+    
+}
+
+
+TPZGeoMesh *LaplaceInQuadrilateral::GMesh(int dim, bool ftriang, int ndiv)
+{
+    
+    if(dim!=2)
+    {
+        std::cout << "dimensao errada" << std::endl;
+        dim = 2;
+        DebugStop();
+    }
+    
+    int Qnodes =  4;
+    
+    TPZGeoMesh * gmesh = new TPZGeoMesh;
+    gmesh->SetMaxNodeId(Qnodes-1);
+    gmesh->NodeVec().Resize(Qnodes);
+    TPZVec<TPZGeoNode> Node(Qnodes);
+    
+    gmesh->SetDimension(dim);
+    
+    TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+    TPZVec <long> TopolLine(2);
+    TPZVec <long> TopolPoint(1);
+    
+    //indice dos nos
+    long id = 0;
+    //    REAL valx;
+    //    for(int xi = 0; xi < Qnodes/2; xi++)
+    //    {
+    //        valx = xi*Lx;
+    //        Node[id].SetNodeId(id);
+    //        Node[id].SetCoord(0 ,valx );//coord X
+    //        Node[id].SetCoord(1 ,0. );//coord Y
+    //        gmesh->NodeVec()[id] = Node[id];
+    //        id++;
+    //    }
+    //
+    //    for(int xi = 0; xi < Qnodes/2; xi++)
+    //    {
+    //        valx = Lx - xi*Lx;
+    //        Node[id].SetNodeId(id);
+    //        Node[id].SetCoord(0 ,valx );//coord X
+    //        Node[id].SetCoord(1 ,Ly);//coord Y
+    //        gmesh->NodeVec()[id] = Node[id];
+    //        id++;
+    //    }
+    //
+    TPZManVector<REAL,3> coord(2,0.);
+    int in = 0;
+    //c0
+    coord[0] = 0.0;
+    coord[1] = 0.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c1
+    coord[0] =  1.0;
+    coord[1] = 0.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c2
+    coord[0] =  0.0;
+    coord[1] =  1.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c3
+    coord[0] = 1.0;
+    coord[1] =  1.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //indice dos elementos
+    id = 0;
+    
+    if(ftriang==true) // triangulo
+    {
+        TopolTriang[0] = 0;
+        TopolTriang[1] = 1;
+        TopolTriang[2] = 3;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle > (id,TopolTriang,fmatId,*gmesh);
+        id++;
+        
+        TopolTriang[0] = 0;
+        TopolTriang[1] = 3;
+        TopolTriang[2] = 2;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,fmatId,*gmesh);
+        id++;
+        
+        TopolLine[0] = 0;
+        TopolLine[1] = 1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc1,*gmesh);
+        id++;
+        
+        TopolLine[0] = 1;
+        TopolLine[1] = 3;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc2,*gmesh);
+        id++;
+        
+        TopolLine[0] = 3;
+        TopolLine[1] = 2;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc3,*gmesh);
+        id++;
+        
+        TopolLine[0] = 2;
+        TopolLine[1] = 0;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc4,*gmesh);
+        id++;
+    }
+    else{
+        
+        TopolQuad[0] = 0;
+        TopolQuad[1] = 1;
+        TopolQuad[2] = 3;
+        TopolQuad[3] = 2;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,fmatId,*gmesh);
+        id++;
+        
+        TopolLine[0] = 0;
+        TopolLine[1] = 1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc1,*gmesh);
+        id++;
+        
+        TopolLine[0] = 1;
+        TopolLine[1] = 3;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc2,*gmesh);
+        id++;
+        
+        TopolLine[0] = 3;
+        TopolLine[1] = 2;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc3,*gmesh);
+        id++;
+        
+        TopolLine[0] = 2;
+        TopolLine[1] = 0;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc4,*gmesh);
+    }
+    
+    gmesh->BuildConnectivity();
+    
+    /// gmesh para aqui
+    
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < ndiv; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Geometrica Inicial\n ";
+    //        gmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str())
+    //	}
+    //#endif
+    
+    return gmesh;
+}
+
+
+TPZGeoMesh *LaplaceInQuadrilateral::GMeshDeformed(int dim, bool ftriang, int ndiv)
+{
+    
+    if(dim!=2)
+    {
+        std::cout << "dimensao errada" << std::endl;
+        dim = 2;
+        DebugStop();
+    }
+    
+    int Qnodes =  10;
+    
+    TPZGeoMesh * gmesh = new TPZGeoMesh;
+    gmesh->SetMaxNodeId(Qnodes-1);
+    gmesh->NodeVec().Resize(Qnodes);
+    TPZVec<TPZGeoNode> Node(Qnodes);
+    
+    gmesh->SetDimension(dim);
+    
+    TPZVec <long> TopolQuad(4);
+    TPZVec <long> TopolTriang(3);
+    TPZVec <long> TopolLine(2);
+    TPZVec <long> TopolArc(3);
+    
+    //indice dos nos
+    long id = 0;
+    //    REAL valx;
+    //    for(int xi = 0; xi < Qnodes/2; xi++)
+    //    {
+    //        valx = xi*Lx;
+    //        Node[id].SetNodeId(id);
+    //        Node[id].SetCoord(0 ,valx );//coord X
+    //        Node[id].SetCoord(1 ,0. );//coord Y
+    //        gmesh->NodeVec()[id] = Node[id];
+    //        id++;
+    //    }
+    //
+    //    for(int xi = 0; xi < Qnodes/2; xi++)
+    //    {
+    //        valx = Lx - xi*Lx;
+    //        Node[id].SetNodeId(id);
+    //        Node[id].SetCoord(0 ,valx );//coord X
+    //        Node[id].SetCoord(1 ,Ly);//coord Y
+    //        gmesh->NodeVec()[id] = Node[id];
+    //        id++;
+    //    }
+    //
+    TPZManVector<REAL,3> coord(2,0.);
+    int in = 0;
+    //c0
+    coord[0] = -1.0;
+    coord[1] = -1.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c1
+    coord[0] = 0.0;
+    coord[1] = -0.5;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c2
+    coord[0] =  1.0;
+    coord[1] = -1.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c3
+    coord[0] = 2.0;
+    coord[1] = -1.5;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c4
+    coord[0] =  3.0;
+    coord[1] = -1.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c5
+    coord[0] = 3.0;
+    coord[1] =  1.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c6
+    coord[0] =  2.0;
+    coord[1] =  0.5;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c7
+    coord[0] =  1.0;
+    coord[1] =  1.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c8
+    
+    coord[0] =  0.0;
+    coord[1] =  1.5;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    //c9
+    
+    coord[0] =  -1.0;
+    coord[1] =   1.0;
+    gmesh->NodeVec()[in].SetCoord(coord);
+    gmesh->NodeVec()[in].SetNodeId(in);
+    in++;
+    
+    
+    
+    
+    //indice dos elementos
+    id = 0;
+    
+    TopolArc[0] = 0;
+    TopolArc[1] = 2;
+    TopolArc[2] = 1;
+    new TPZGeoElRefPattern<pzgeom::TPZArc3D> (id, TopolArc, fbc1, *gmesh);
+    id++;
+    
+    TopolArc[0] = 2;
+    TopolArc[1] = 4;
+    TopolArc[2] = 3;
+    new TPZGeoElRefPattern<pzgeom::TPZArc3D> (id, TopolArc, fbc1, *gmesh);
+    id++;
+    
+    TopolLine[0] = 4;
+    TopolLine[1] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc2,*gmesh);
+    id++;
+    
+    TopolArc[0] = 5;
+    TopolArc[1] = 7;
+    TopolArc[2] = 6;
+    new TPZGeoElRefPattern<pzgeom::TPZArc3D> (id, TopolArc, fbc3, *gmesh);
+    id++;
+    
+    TopolArc[0] = 7;
+    TopolArc[1] = 9;
+    TopolArc[2] = 8;
+    new TPZGeoElRefPattern<pzgeom::TPZArc3D> (id, TopolArc, fbc3, *gmesh);
+    id++;
+    
+    TopolLine[0] = 9;
+    TopolLine[1] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbc4,*gmesh);
+    id++;
+    
+    
+    if(ftriang==true) // triangulo
+    {
+        TopolTriang[0] = 0;
+        TopolTriang[1] = 2;
+        TopolTriang[2] = 7;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > (id,TopolQuad,fmatId,*gmesh);
+        id++;
+        
+        TopolTriang[0] = 0;
+        TopolTriang[1] = 7;
+        TopolTriang[2] = 9;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > (id,TopolQuad,fmatId,*gmesh);
+        id++;
+        
+        TopolTriang[0] = 2;
+        TopolTriang[1] = 4;
+        TopolTriang[2] = 5;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > (id,TopolQuad,fmatId,*gmesh);
+        id++;
+        
+        TopolTriang[0] = 2;
+        TopolTriang[1] = 5;
+        TopolTriang[2] = 7;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle> > (id,TopolQuad,fmatId,*gmesh);
+        id++;
+        
+    }
+    else{
+        
+        
+        TopolQuad[0] = 0;
+        TopolQuad[1] = 2;
+        TopolQuad[2] = 7;
+        TopolQuad[3] = 9;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,TopolQuad,fmatId,*gmesh);
+        id++;
+        
+        TopolQuad[0] = 2;
+        TopolQuad[1] = 4;
+        TopolQuad[2] = 5;
+        TopolQuad[3] = 7;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad> > (id,TopolQuad,fmatId,*gmesh);
+        id++;
+        
+    
+    }
+    
+    gmesh->BuildConnectivity();
+    
+    /// gmesh para aqui
+    
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < ndiv; iref++) {
+        int nel = gmesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = gmesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Geometrica Inicial\n ";
+    //        gmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str())
+    //	}
+    //#endif
+    
+    std::ofstream outfile("malhaQuadDeform.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outfile, true);
+    
+    return gmesh;
+}
+
+
+void LaplaceInQuadrilateral::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
+    
+    solp.resize(1);
+    solp[0]=0.;
+    
+    int dim = 3; //getDimension();
+    
+    // tensor de permutacao
+    TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
+    TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
+    
+    
+    // Hard coded
+    for (int id = 0; id < dim; id++){
+        TP(id,id) = 1.0;
+        InvTP(id,id) = 1.0;
+    }
+    
+    flux.Resize(dim, 1);
+    
+    
+    
+    double x = pt[0];
+    double y = pt[1];
+    
+    REAL r = sqrt( x*x + y*y );
+    REAL theta = atan2(y,x);
+    
+    solp[0] = r*r*(1.0 - r*r);
+    flux(0,0)= (2.0*r - 4.0*r*r*r)*cos(theta);
+    flux(1,0)=  (2.0*r - 4.0*r*r*r)*sin(theta);
+    
+    
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //        flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+    //        flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //        flux(0,0)= 0.0;
+    //        flux(1,0)= 0.0;
+    //
+    //    }
+    
+    
+    
+    
+    
+    
+    
+}
+
+void LaplaceInQuadrilateral::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
+    
+    int dim = 3; //getDimension();
+    
+    // tensor de permutacao
+    TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
+    TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
+    
+    
+    // Hard coded
+    for (int id = 0; id < dim; id++){
+        TP(id,id) = 1.0;
+        InvTP(id,id) = 1.0;
+    }
+    
+    double x = pt[0];
+    double y = pt[1];
+    REAL r = sqrt( x*x + y*y );
+    ff[0] = -(4.0 - 16.0*r*r);
+    
+    
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //        ff[0] = -6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
+    //
+    //    }
+    //    else
+    //    {
+    //        ff[0] = 0.0;
+    //
+    //    }
+    
+    
+}
+
+void LaplaceInQuadrilateral::ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff, TPZFMatrix<STATE> &flux)
+{
+    int dim = 2; //getDimension();
+    
+    // tensor de permutacao
+    TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
+    TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
+    
+    
+    // Hard coded
+    for (int id = 0; id < dim; id++){
+        TP(id,id) = 1.0;
+        InvTP(id,id) = 1.0;
+    }
+    
+    flux.Resize(dim, 1);
+    
+    double x = pt[0];
+    double y = pt[1];
+    REAL raio = sqrt( x*x + y*y );
+    if (raio < 1.0)
+    {
+        ff[0] = 6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
+        flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+        flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
+        
+    }
+    else
+    {
+        ff[0] = 0.0;
+        flux(0,0)= 0.0;
+        flux(1,0)= 0.0;
+    }
+    
+    
+    
+}
+
+void LaplaceInQuadrilateral::ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
+    
+    
+    double x = pt[0];
+    double y = pt[1];
+    
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
+    solp[0] = 0.0;
+    
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
+    
+    
+    
+}
+
+void LaplaceInQuadrilateral::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
+    
+    double x = pt[0];
+    double y = pt[1];
+    
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
+    solp[0] = 0.0;
+    
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
+    
+}
+
+void LaplaceInQuadrilateral::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
+    
+    
+    
+    double x = pt[0];
+    double y = pt[1];
+    
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
+    solp[0] = 0.0;
+    
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
+    
+}
+
+void LaplaceInQuadrilateral::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
+    
+    
+    double x = pt[0];
+    double y = pt[1];
+    
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
+    solp[0] = 0.0;
+    
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
+    
+}
+
+void LaplaceInQuadrilateral::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
+    
+    
+    double x = pt[0];
+    double y = pt[1];
+    
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
+    solp[0] = 0.0;
+    
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
+}
+
+void LaplaceInQuadrilateral::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
+    
+    double x = pt[0];
+    double y = pt[1];
+    
+    REAL r = sqrt( x*x + y*y );
+    
+    //solp[0] = r*r*(1.0 - r*r);
+    solp[0] = 0.0;
+    
+    //    flux(0,0)=flux(1,0)=0.;
+    //    double x = pt[0];
+    //    double y = pt[1];
+    //    REAL raio = sqrt( x*x + y*y );
+    //    if (raio < 1.0)
+    //    {
+    //
+    //
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
+    //
+    //    }
+    //    else
+    //    {
+    //        // para a Lap p = f no circulo
+    //        solp[0] = 0.0;
+    //
+    //    }
+}
+
+
+void LaplaceInQuadrilateral::ForcingBC0N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
+    
+    DebugStop();
+}
+
+void LaplaceInQuadrilateral::ForcingBC1N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
+    
+    DebugStop();
+    
+}
+
+void LaplaceInQuadrilateral::ForcingBC2N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
+    DebugStop();
+}
+
+void LaplaceInQuadrilateral::ForcingBC3N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
+    
+    DebugStop();
+    
+}
+
+void LaplaceInQuadrilateral::ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
+    
+    DebugStop();
+}
+
+void LaplaceInQuadrilateral::ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
+    
+    DebugStop();
+}
+
+TPZCompMesh *LaplaceInQuadrilateral::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim)
+{
+    /// criar materiais
+    TPZMatPoisson3d *material = new TPZMatPoisson3d(fmatId,fDim);
+    TPZMaterial * mat(material);
+    material->NStateVariables();
+    
+    //    //solucao exata
+    TPZAutoPointer<TPZFunction<STATE> > solexata;
+    solexata = new TPZDummyFunction<STATE>(SolExata);
+    material->SetForcingFunctionExact(solexata);
+    
+    //funcao do lado direito da equacao do problema
+    //    TPZAutoPointer<TPZFunction<STATE> > forcef;
+    //    forcef = new TPZDummyFunction<STATE>(Forcing);
+    //    material->SetForcingFunction(forcef);
+    
+    //funcao do lado direito da equacao do problema
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingH1);
+    TPZAutoPointer<TPZFunction<STATE> > forcef;
+    dum->SetPolynomialOrder(20);
+    forcef = dum;
+    material->SetForcingFunction(forcef);
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(fDim);
+    cmesh->SetDefaultOrder(pOrder);
+    
+    ///Inserir condicao de contorno
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZMaterial * BCond0;
+    TPZMaterial * BCond1;
+    TPZMaterial * BCond2;
+    TPZMaterial * BCond3;
+    TPZMaterial * BCond4;
+    TPZMaterial * BCond5;
+    
+    if( fDim == 3 ) { BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);}
+    BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);
+    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
+    BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
+    BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
+    if( fDim == 3 ) { BCond5 = material->CreateBC(mat, fbc5,fdirichlet, val1, val2);}
+    
+    cmesh->InsertMaterialObject(mat);
+    
+    cmesh->SetAllCreateFunctionsContinuous();
+    if( fDim == 3 ) { cmesh->InsertMaterialObject(BCond0); }
+    cmesh->InsertMaterialObject(BCond1);
+    cmesh->InsertMaterialObject(BCond2);
+    cmesh->InsertMaterialObject(BCond3);
+    cmesh->InsertMaterialObject(BCond4);
+    if( fDim == 3 ) { cmesh->InsertMaterialObject(BCond5); }
+    
+    //Ajuste da estrutura de dados computacional
+    cmesh->AutoBuild();
+    
+    return cmesh;
+    
+}
+
+
+TPZCompMesh *LaplaceInQuadrilateral::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim)
+{
+    /// criar materiais
+    //TPZMatPoisson3d *material = new TPZMatPoisson3d(matId,fDim);
+    TPZMatPoisson3d *material = new TPZMatPoisson3d(fmatId,fDim);
+    TPZMaterial * mat(material);
+    material->NStateVariables();
+    
+    //  TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
+    //	material->SetForcingFunction(force1);
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    
+    ///Inserir condicao de contorno
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    TPZMaterial * BCond0;
+    TPZMaterial * BCond1;
+    TPZMaterial * BCond2;
+    TPZMaterial * BCond3;
+    TPZMaterial * BCond4;
+    TPZMaterial * BCond5;
+    
+    if( fDim == 3 ) { BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);}
+    BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);
+    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
+    BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
+    BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
+    if( fDim == 3 ) { BCond5 = material->CreateBC(mat, fbc5,fdirichlet, val1, val2);}
+    
+    cmesh->InsertMaterialObject(mat);
+    
+    cmesh->SetDimModel(fDim);
+    
+    cmesh->SetAllCreateFunctionsHDiv();
+    
+    
+    if( fDim == 3 ) { cmesh->InsertMaterialObject(BCond0); }
+    cmesh->InsertMaterialObject(BCond1);
+    cmesh->InsertMaterialObject(BCond2);
+    cmesh->InsertMaterialObject(BCond3);
+    cmesh->InsertMaterialObject(BCond4);
+    if( fDim == 3 ) { cmesh->InsertMaterialObject(BCond5); }
+    
+    cmesh->SetDefaultOrder(pOrder);
+    
+    
+    if (!isgeoblend) {
+        TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(fmatskeleton, fDim-1, 1);
+        TPZMaterial * mat2(matskelet);
+        cmesh->InsertMaterialObject(mat2);
+    }
+    
+    
+    
+    //Ajuste da estrutura de dados computacional
+    cmesh->AutoBuild();
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
+    //        cmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str())
+    //	}
+    //#endif
+    
+    return cmesh;
+    
+}
+
+TPZCompMesh *LaplaceInQuadrilateral::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim)
+{
+    /// criar materiais
+    TPZMatPoisson3d *material = new TPZMatPoisson3d(fmatId,fDim);
+    material->NStateVariables();
+    
+    //  TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
+    //	material->SetForcingFunction(force1);
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(fDim);
+    TPZMaterial * mat(material);
+    cmesh->InsertMaterialObject(mat);
+    
+    ///Inserir condicao de contorno
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    //    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
+    //    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
+    //    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
+    //    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+    //    TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
+    //    TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
+    //
+    //    cmesh->InsertMaterialObject(BCond0);
+    //    cmesh->InsertMaterialObject(BCond1);
+    //    cmesh->InsertMaterialObject(BCond2);
+    //    cmesh->InsertMaterialObject(BCond3);
+    //    cmesh->InsertMaterialObject(BCond4);
+    //    cmesh->InsertMaterialObject(BCond5);
+    
+    cmesh->SetDefaultOrder(pOrder);
+    //cmesh->SetDimModel(fDim);
+    
+    bool h1function = true;// com esqueleto precisa disso
+    if(h1function){
+        cmesh->SetAllCreateFunctionsContinuous();
+        cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    }
+    else{
+        cmesh->SetAllCreateFunctionsDiscontinuous();
+    }
+    
+    
+    //Ajuste da estrutura de dados computacional
+    cmesh->AutoBuild();
+    
+    
+    int ncon = cmesh->NConnects();
+    for(int i=0; i<ncon; i++)
+    {
+        TPZConnect &newnod = cmesh->ConnectVec()[i];
+        //newnod.SetPressure(true);
+        newnod.SetLagrangeMultiplier(1);
+    }
+    
+    if(!h1function)
+    {
+        
+        int nel = cmesh->NElements();
+        for(int i=0; i<nel; i++){
+            TPZCompEl *cel = cmesh->ElementVec()[i];
+            TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+            celdisc->SetConstC(1.);
+            celdisc->SetCenterPoint(0, 0.);
+            celdisc->SetCenterPoint(1, 0.);
+            celdisc->SetCenterPoint(2, 0.);
+            celdisc->SetTrueUseQsiEta();
+            //celdisc->SetFalseUseQsiEta();
+            
+            //            TPZVec<REAL> qsi(3,0.);
+            //            qsi[0] = 0.5;
+            //            qsi[1] = 0.5;
+            //            TPZFMatrix<REAL> phi;
+            //            TPZFMatrix<REAL> dphi;
+            //            celdisc->Shape(qsi, phi,dphi);
+            //            phi.Print("phi = ");
+            
+            
+            if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+            {
+                if(ftriang==true) celdisc->SetTotalOrderShape();
+                else celdisc->SetTensorialShape();
+            }
+            
+        }
+    }
+    
+#ifdef DEBUG
+    int ncel = cmesh->NElements();
+    for(int i =0; i<ncel; i++){
+        TPZCompEl * compEl = cmesh->ElementVec()[i];
+        if(!compEl) continue;
+        TPZInterfaceElement * facel = dynamic_cast<TPZInterfaceElement *>(compEl);
+        if(facel)DebugStop();
+        
+    }
+#endif
+    
+    
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Computacional_2 pressure\n ";
+    //        cmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str());
+    //	}
+    //#endif
+    return cmesh;
+    
+}
+
+TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
+{
+    
+    //Creating computational mesh for multiphysic elements
+    gmesh->ResetReference();
+    TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
+    
+    //criando material
+    int dim = gmesh->Dimension();
+    
+    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(fmatId,dim);
+    
+    //incluindo os dados do problema
+    TPZFNMatrix<9,REAL> PermTensor(3,3,0.);
+    TPZFNMatrix<9,REAL> InvPermTensor(3,3,0.);
+    
+    
+    // tensor de permutacao
+    TPZFNMatrix<9,REAL> TP(3,3,0.0);
+    TPZFNMatrix<9,REAL> InvTP(3,3,0.0);
+    
+    // Hard coded
+    for (int id = 0; id < 3; id++){
+        TP(id,id) = 1.0;
+        InvTP(id,id) = 1.0;
+    }
+    
+    PermTensor = TP;
+    InvPermTensor = InvTP;
+    
+    material->SetPermeabilityTensor(PermTensor, InvPermTensor);
+    
+    //solucao exata
+    TPZAutoPointer<TPZFunction<STATE> > solexata;
+    
+    solexata = new TPZDummyFunction<STATE>(SolExata);
+    material->SetForcingFunctionExact(solexata);
+    mphysics->SetDimModel(dim);
+    //funcao do lado direito da equacao do problema
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
+    TPZAutoPointer<TPZFunction<STATE> > forcef;
+    dum->SetPolynomialOrder(1);
+    forcef = dum;
+    material->SetForcingFunction(forcef);
+    
+    //inserindo o material na malha computacional
+    TPZMaterial *mat(material);
+    mphysics->InsertMaterialObject(mat);
+    
+    
+    //Criando condicoes de contorno
+    TPZMaterial * BCond0;
+    TPZMaterial * BCond1;
+    TPZMaterial * BCond2;
+    TPZMaterial * BCond3;
+    TPZMaterial * BCond4;
+    TPZMaterial * BCond5;
+    
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    if (dim==3)
+    {
+        val2(0,0) = 0.0;
+        val2(1,0) = 0.0;
+        TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0D);
+        BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);
+        BCond0->SetForcingFunction(FBCond0);
+    }
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D);
+    BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);
+    BCond1->SetForcingFunction(FBCond1);
+    //    BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
+    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
+    BCond2->SetForcingFunction(FBCond2);
+    //    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
+    //    BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
+    //    BCond2->SetForcingFunction(FBCond2);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D);
+    BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
+    BCond3->SetForcingFunction(FBCond3);
+    //    BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D);
+    BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
+    BCond4->SetForcingFunction(FBCond4);
+    //    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N);
+    //    BCond4 = material->CreateBC(mat, bc4,neumann, val1, val2);
+    //    BCond4->SetForcingFunction(FBCond4);
+    
+    if (dim==3)
+    {
+        val2(0,0) = 0.0;
+        val2(1,0) = 0.0;
+        TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5D);
+        BCond5 = material->CreateBC(mat, fbc5,fdirichlet, val1, val2);
+        BCond5->SetForcingFunction(FBCond5);
+    }
+    
+    
+    mphysics->SetAllCreateFunctionsMultiphysicElem();
+    if( dim == 3 ) { mphysics->InsertMaterialObject(BCond0); }
+    mphysics->InsertMaterialObject(BCond1);
+    mphysics->InsertMaterialObject(BCond2);
+    mphysics->InsertMaterialObject(BCond3);
+    mphysics->InsertMaterialObject(BCond4);
+    if( dim == 3 ) { mphysics->InsertMaterialObject(BCond5); }
+    
+    //Fazendo auto build
+    mphysics->AutoBuild();
+    mphysics->AdjustBoundaryElements();
+    mphysics->CleanUpUnconnectedNodes();
+    
+    
+    TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+    
+    //        TPZMaterial * skeletonEl = material->CreateBC(mat, matskeleton, 3, val1, val2);
+    //        mphysics->InsertMaterialObject(skeletonEl);
+    
+    //        TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(matskeleton, dim-1, 1);
+    //        TPZMaterial * mat2(matskelet);
+    //        mphysics->InsertMaterialObject(mat2);
+    
+    int nel = mphysics->ElementVec().NElements();
+    TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
+    for(int el = 0; el < nel; el++)
+    {
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
+        if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
+    }
+    meshvec[0]->CleanUpUnconnectedNodes();
+    TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    
+    //------- Create and add group elements -------
+    long index, nenvel;
+    nenvel = wrapEl.NElements();
+    for(int ienv=0; ienv<nenvel; ienv++){
+        TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
+        nel = wrapEl[ienv].NElements();
+        for(int jel=0; jel<nel; jel++){
+            elgr->AddElement(wrapEl[ienv][jel]);
+        }
+    }
+    
+    
+    return mphysics;
+    
+}
+
+
+void LaplaceInQuadrilateral::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
+{
+    long nel = hdivmesh->NElements();
+    int dim = hdivmesh->Dimension();
+    TPZManVector<STATE,10> globalerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = hdivmesh->ElementVec()[el];
+        if(cel->Reference()->Dimension()!=dim) continue;
+        TPZManVector<STATE,10> elerror(10,0.);
+        elerror.Fill(0.);
+        cel->EvaluateError(SolExata, elerror, NULL);
+        int nerr = elerror.size();
+        for (int i=0; i<nerr; i++) {
+            globalerrors[i] += elerror[i]*elerror[i];
+        }
+        
+    }
+    //    out << "Errors associated with HDiv space - ordem polinomial = " << p << "- divisoes = " << ndiv << endl;
+    //    out << "L2 Norm for flux - "<< endl; //L2 Norm for divergence - Hdiv Norm for flux " << endl;
+    //    out <<  setw(16) << sqrt(globalerrors[1]) <<endl;// setw(25)  << sqrt(globalerrors[2]) << setw(21)  << sqrt(globalerrors[3]) << endl;
+    //
+    //    out << "L2 Norm for flux = "    << sqrt(globalerrors[1]) << endl;
+    //    out << "L2 Norm for divergence = "    << sqrt(globalerrors[2])  <<endl;
+    //    out << "Hdiv Norm for flux = "    << sqrt(globalerrors[3])  <<endl;
+    //
+    fDebugMapHdiv.insert(std::pair<REAL, REAL> (ndiv,sqrt(globalerrors[1])));
+}
+
+void LaplaceInQuadrilateral::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
+{
+    long nel = l2mesh->NElements();
+    //int dim = l2mesh->Dimension();
+    TPZManVector<STATE,10> globalerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = l2mesh->ElementVec()[el];
+        TPZManVector<STATE,10> elerror(10,0.);
+        cel->EvaluateError(SolExata, elerror, NULL);
+        int nerr = elerror.size();
+        globalerrors.resize(nerr);
+        //#ifdef LOG4CXX
+        //        if (logdata->isDebugEnabled()) {
+        //            std::stringstream sout;
+        //            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
+        //            LOGPZ_DEBUG(logdata, sout.str())
+        //        }
+        //#endif
+        for (int i=0; i<nerr; i++) {
+            globalerrors[i] += elerror[i]*elerror[i];
+        }
+        
+    }
+    //    out << "Errors associated with L2 space - ordem polinomial = " << p << "- divisoes = " << ndiv << endl;
+    //    out << "L2 Norm = "    << sqrt(globalerrors[1]) << endl;
+    fDebugMapL2.insert(std::pair<REAL, REAL> (ndiv,sqrt(globalerrors[1])));
+}
+
+
+
+
+
+
