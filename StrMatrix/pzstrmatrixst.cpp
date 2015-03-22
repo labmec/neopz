@@ -126,70 +126,72 @@ void TPZStructMatrixST::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
 
 
 void TPZStructMatrixST::ExecuteAssemble(TPZMatrix<STATE> *fGlobMatrix, TPZFMatrix<STATE> *fGlobRhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
-    
-    
-    TPZElementMatrix ek(fMesh,TPZElementMatrix::EK);
-    TPZElementMatrix ef(fMesh,TPZElementMatrix::EF);
+    	
+	
+	TPZElementMatrix ek(fMesh,TPZElementMatrix::EK);
+	TPZElementMatrix ef(fMesh,TPZElementMatrix::EF);
+
 
     
+#pragma omp parallel for private(ek, ef) schedule(dynamic, 1)
     for(int iel=0; iel<fMesh->NElements(); iel++)
-    {
-        
-            TPZCompEl *el = fMesh->ElementVec()[iel];
-            
-            if(!el) continue;
-            
-            if (fGlobMatrix)
-                el->CalcStiff(ek,ef);
-            else
-                el->CalcResidual(ef);
-            
-            if(!el->HasDependency()) {
-                
-                if (fGlobMatrix) {
-                    ek.ComputeDestinationIndices();
-                    this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-                } else {
-                    ef.ComputeDestinationIndices();
-                    this->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
-                }
-                
-            } else {
-                // the element has dependent nodes
-                if (fGlobMatrix) {
-                    ek.ApplyConstraints();
-                    ef.ApplyConstraints();
-                    ek.ComputeDestinationIndices();
-                    this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-                } else {
-                    ef.ApplyConstraints();
-                    ef.ComputeDestinationIndices();
-                    this->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
-                }
-                
-            }
-            
-            
-            if(fGlobMatrix) {
-                // assemble the matrix
-                if(!ek.HasDependency()) {
-                    fGlobMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                    fGlobRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                } else {
-                    fGlobMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                    fGlobRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                }
-            } else {
-                if(!ef.HasDependency()) {
-                    fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
-                } else {
-                    fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
-                }
-            }
+	{
+	
+		TPZCompEl *el = fMesh->ElementVec()[iel];
+
+		if(el) {
+
+		if (fGlobMatrix)
+			el->CalcStiff(ek,ef);
+		else
+			el->CalcResidual(ef);
+
+		if(!el->HasDependency()) {
+
+			if (fGlobMatrix) {
+				ek.ComputeDestinationIndices();
+				this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+			} else {
+				ef.ComputeDestinationIndices();
+				this->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+			}
+
+		} else {
+			// the element has dependent nodes
+			if (fGlobMatrix) {
+				ek.ApplyConstraints();
+				ef.ApplyConstraints();
+				ek.ComputeDestinationIndices();
+				this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+			} else {
+				ef.ApplyConstraints();
+				ef.ComputeDestinationIndices();
+				this->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+			}
+
+		}
 
 
-        
-    }
+		if(fGlobMatrix) {
+			// assemble the matrix
+			if(!ek.HasDependency()) {
+				fGlobMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+				fGlobRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+			} else {
+				fGlobMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+				fGlobRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+			}
+		} else {
+			if(!ef.HasDependency()) {
+				fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+			} else {
+				fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+			}
+		}
+
+		}
+
+	}
     
 }
 
