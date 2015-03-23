@@ -168,6 +168,7 @@ public:
     TPZSkylMatrix &operator*=( TVar value );
 	
     TPZSkylMatrix operator-() const { return operator*(-1.0); }
+    
 	
     /**
      @brief Resize the skyline matrix, but keep it's original elements. The
@@ -430,6 +431,14 @@ public:
 	
 	// Zera os Elementos da matriz
 	int Zero();
+    
+    /**
+     * @brief Add a contribution of a stiffness matrix
+     * @param elmat Element matrix to be contributed
+     * @param sourceindex Contains source indexes on current matrix
+     * @param destinationindex Contains destine indexes on current matrix
+     */
+    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
 	
 	
 	/*** @brief To Solve Linear Equations ***/

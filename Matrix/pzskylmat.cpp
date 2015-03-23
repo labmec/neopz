@@ -2136,6 +2136,176 @@ TPZSkylMatrix<TVar>::operator-(const TPZSkylMatrix<TVar> &A ) const
 	return( res );
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+template<class TVar>
+void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
+                                 TPZVec<long> &source,
+                                 TPZVec<long> &destination)
+{
+    long nelem = source.NElements();
+    long icoef,jcoef,ieq,jeq,ieqs,jeqs;
+    for(icoef=0; icoef<nelem; icoef++) {
+        ieq = destination[icoef];
+        ieqs = source[icoef];
+        for(jcoef=icoef; jcoef<nelem; jcoef++) {
+            jeq = destination[jcoef];
+            jeqs = source[jcoef];
+            long row(ieq), col(jeq);
+            // invertendo linha-coluna para triangular superior
+            if (row > col)
+                this->Swap(&row, &col);
+#ifdef DEBUG
+            // checando limites
+            if(row >= this->Dim() || col >= this->Dim()) {
+                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
+                row << " col = " << col << endl;
+                DebugStop();
+            }
+#endif
+            // indice do vetor coluna
+            long index = col - row;
+#ifdef DEBUG
+            // checando limite da coluna
+            if (index >= Size(col)) {
+                cerr << "Try TPZSkylMatrix gZero." << endl;
+                DebugStop();
+            }
+#endif
+            // executando contribuição
+            fElem[col][index] += elmat(ieqs,jeqs);
+
+        }
+    }
+}
+
+
+template<>
+void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
+                                 TPZVec<long> &source,
+                                 TPZVec<long> &destination)
+{
+    long nelem = source.NElements();
+    long icoef,jcoef,ieq,jeq,ieqs,jeqs;
+    for(icoef=0; icoef<nelem; icoef++) {
+        ieq = destination[icoef];
+        ieqs = source[icoef];
+        for(jcoef=icoef; jcoef<nelem; jcoef++) {
+            jeq = destination[jcoef];
+            jeqs = source[jcoef];
+            long row(ieq), col(jeq);
+            // invertendo linha-coluna para triangular superior
+            if (row > col)
+                this->Swap(&row, &col);
+#ifdef DEBUG
+            // checando limites
+            if(row >= this->Dim() || col >= this->Dim()) {
+                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
+                row << " col = " << col << endl;
+                DebugStop();
+            }
+#endif
+            // indice do vetor coluna
+            long index = col - row;
+#ifdef DEBUG
+            // checando limite da coluna
+            if (index >= Size(col)) {
+                cerr << "Try TPZSkylMatrix gZero." << endl;
+                DebugStop();
+            }
+#endif
+            // executando contribuição
+#pragma omp atomic
+            fElem[col][index] += elmat(ieqs,jeqs);
+            
+        }
+    }
+}
+
+
+template<>
+void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
+                                   TPZVec<long> &source,
+                                   TPZVec<long> &destination)
+{
+    long nelem = source.NElements();
+    long icoef,jcoef,ieq,jeq,ieqs,jeqs;
+    for(icoef=0; icoef<nelem; icoef++) {
+        ieq = destination[icoef];
+        ieqs = source[icoef];
+        for(jcoef=icoef; jcoef<nelem; jcoef++) {
+            jeq = destination[jcoef];
+            jeqs = source[jcoef];
+            long row(ieq), col(jeq);
+            // invertendo linha-coluna para triangular superior
+            if (row > col)
+                this->Swap(&row, &col);
+#ifdef DEBUG
+            // checando limites
+            if(row >= this->Dim() || col >= this->Dim()) {
+                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
+                row << " col = " << col << endl;
+                DebugStop();
+            }
+#endif
+            // indice do vetor coluna
+            long index = col - row;
+#ifdef DEBUG
+            // checando limite da coluna
+            if (index >= Size(col)) {
+                cerr << "Try TPZSkylMatrix gZero." << endl;
+                DebugStop();
+            }
+#endif
+            // executando contribuição
+#pragma omp atomic
+            fElem[col][index] += elmat(ieqs,jeqs);
+            
+        }
+    }
+}
+
 /*******************/
 /*** Operator += ***/
 
