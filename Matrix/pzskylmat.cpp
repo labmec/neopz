@@ -2136,49 +2136,6 @@ TPZSkylMatrix<TVar>::operator-(const TPZSkylMatrix<TVar> &A ) const
 	return( res );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 template<class TVar>
 void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
                                  TPZVec<long> &source,
@@ -2219,7 +2176,6 @@ void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
         }
     }
 }
-
 
 template<>
 void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,

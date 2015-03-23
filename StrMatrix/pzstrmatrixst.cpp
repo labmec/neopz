@@ -131,8 +131,6 @@ void TPZStructMatrixST::ExecuteAssemble(TPZMatrix<STATE> *fGlobMatrix, TPZFMatri
 	TPZElementMatrix ek(fMesh,TPZElementMatrix::EK);
 	TPZElementMatrix ef(fMesh,TPZElementMatrix::EF);
 
-
-    
 #pragma omp parallel for private(ek, ef) schedule(dynamic, 1)
     for(int iel=0; iel<fMesh->NElements(); iel++)
 	{
@@ -172,6 +170,7 @@ void TPZStructMatrixST::ExecuteAssemble(TPZMatrix<STATE> *fGlobMatrix, TPZFMatri
 		}
 
 
+
 		if(fGlobMatrix) {
 			// assemble the matrix
 			if(!ek.HasDependency()) {
@@ -189,12 +188,12 @@ void TPZStructMatrixST::ExecuteAssemble(TPZMatrix<STATE> *fGlobMatrix, TPZFMatri
 			}
 		}
 
+
 		}
 
 	}
     
 }
-
 
 void TPZStructMatrixST::OnlyAssemble(TPZMatrix<STATE> *stiffness, TPZFMatrix<STATE> *rhs, TPZAutoPointer<TPZGuiInterface> guiInterface ) {
     // Checking if the interface still exists

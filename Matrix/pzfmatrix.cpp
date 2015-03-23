@@ -182,24 +182,6 @@ void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &destination) {
 	}
 }
 
-template <>
-void TPZFMatrix<double>::AddFel(TPZFMatrix<double> &rhs,TPZVec<long> &destination) {
-	if(rhs.Cols() != this->Cols()) {
-		PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-		DebugStop();
-		return;
-	}
-	long ncol = this->Cols();
-	long nrow = rhs.Rows();
-	long i,j;
-	for(j=0; j<ncol; j++) {
-		for(i=0; i<nrow; i++) {
-#pragma omp atomic
-			operator()(destination[i],j) += rhs(i,j);
-		}
-	}
-}
-
 template<class TVar>
 void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &source, TPZVec<long> &destination) {
 	if(rhs.Cols() != this->Cols() && source.NElements()) {
@@ -216,6 +198,45 @@ void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &source, TPZVec
 		}
 	}
 }
+
+template<>
+void TPZFMatrix<double>::AddFel(TPZFMatrix<double> &rhs,TPZVec<long> &source, TPZVec<long> &destination) {
+	if(rhs.Cols() != this->Cols() && source.NElements()) {
+		PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
+		DebugStop();
+		return;
+	}
+	long ncol = this->Cols();
+	long nrow = source.NElements();
+	long i,j;
+	for(j=0; j<ncol; j++) {
+		for(i=0; i<nrow; i++) {
+#pragma omp atomic
+			operator()(destination[i],j) += rhs(source[i],j);
+		}
+	}
+}
+
+template<>
+void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<long> &source, TPZVec<long> &destination) {
+	if(rhs.Cols() != this->Cols() && source.NElements()) {
+		PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
+		DebugStop();
+		return;
+	}
+	long ncol = this->Cols();
+	long nrow = source.NElements();
+	long i,j;
+	for(j=0; j<ncol; j++) {
+		for(i=0; i<nrow; i++) {
+#pragma omp atomic
+			operator()(destination[i],j) += rhs(source[i],j);
+		}
+	}
+}
+
+
+
 /*******************************/
 /*** Operator+( TPZFMatrix>& ) ***/
 
