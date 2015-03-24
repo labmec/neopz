@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 	// File with integration values calculated previously
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult1D.txt";
+	filename += "Line.txt";
 	std::ifstream olddata(filename.c_str());
 
 	// Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 BOOST_AUTO_TEST_CASE(numinteg2DQ_tests) {
 	
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult2DQ.txt";
+	filename += "Quadrilateral.txt";
 	std::ifstream olddata(filename.c_str());
 
 	// Quadrilateral parametric space
@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE(numinteg2DQ_tests) {
 BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult2DT.txt";
+	filename += "Triangle.txt";
 	std::ifstream olddata(filename.c_str());
 	
 //	int NDigits = NDigitsPrec;
@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 BOOST_AUTO_TEST_CASE(numinteg3DC_tests) {
 
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult3DC.txt";
+	filename += "Cube.txt";
 	std::ifstream olddata(filename.c_str());
 
 	// Cube
@@ -352,11 +352,11 @@ BOOST_AUTO_TEST_CASE(numinteg3DC_tests) {
 		olddata.open(filename.c_str());
 	}
 }
-
+ 
 BOOST_AUTO_TEST_CASE(numinteg3DT_tests) {
 	
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult3DT.txt";
+	filename += "Tetrahedral.txt";
 	std::ifstream olddata(filename.c_str());
 
 //	int NDigits = NDigitsPrec;
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(numinteg3DT_tests) {
 BOOST_AUTO_TEST_CASE(numinteg3DPy_tests) {
 	
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult3DPy.txt";
+	filename += "Pyramid.txt";
 	std::ifstream olddata(filename.c_str());
 
 //	int NDigits = NDigitsPrec;
@@ -380,7 +380,7 @@ BOOST_AUTO_TEST_CASE(numinteg3DPy_tests) {
 BOOST_AUTO_TEST_CASE(numinteg3DPr_tests) {
 	
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult3DPr.txt";
+	filename += "Prism.txt";
 	std::ifstream olddata(filename.c_str());
 
 //	int NDigits = NDigitsPrec;
