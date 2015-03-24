@@ -43,6 +43,7 @@
 #include "TPZParSkylineStructMatrix.h"
 #include "pzskylstrmatrix.h"
 #include "TPBSpStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "TPZSkylineNSymStructMatrix.h"

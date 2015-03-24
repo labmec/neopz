@@ -27,14 +27,31 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
     
 	bool isdirect = true;
     bool simetrico = true;
+    bool isfrontal = true;
     if (isdirect)
     {
         if (simetrico)
         {
-            //TPZBandStructMatrix full(fCmesh);
-            TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
-            //    TPZSkylineNSymStructMatrix full(fCmesh);
-            an.SetStructuralMatrix(skylstr);
+            //TPZSkylineStructMatrix strmat(fCmesh);
+            if (isfrontal) {
+                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+                strmat.SetDecomposeType(ELDLt);
+                
+                int numthreads = 1;
+                
+                strmat.SetNumThreads(numthreads);
+                
+                an.SetStructuralMatrix(strmat);
+            }
+            else
+            {
+                //TPZBandStructMatrix full(fCmesh);
+                TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
+                //    TPZSkylineNSymStructMatrix full(fCmesh);
+                an.SetStructuralMatrix(skylstr);
+            }
+            
+            
             TPZStepSolver<STATE> step;
             step.SetDirect(ELDLt); //caso simetrico
             an.SetSolver(step);
@@ -75,9 +92,11 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 }
 
 void tools::PosProcess(TPZAnalysis &an, std::string plotfile, int dim){
-    TPZManVector<std::string,10> scalnames(1), vecnames(0);
+    TPZManVector<std::string,10> scalnames(2), vecnames(0);
     scalnames[0] = "Solution";
-    int div = 3;
+    scalnames[1] = "ExactPressure";
+    
+    int div = 0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
 
@@ -93,12 +112,12 @@ void tools::PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mp
     scalnames[0] = "Pressure";
     scalnames[1] = "ExactPressure";
     
-    int div = 2;
+    int div = 0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     
-    std::ofstream out("malha.txt");
-    an.Print("nothing",out);
+//    std::ofstream out("malha.txt");
+//    an.Print("nothing",out);
     
     //    mphysics->Solution().Print("Solucao");
     

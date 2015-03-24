@@ -11,58 +11,134 @@
 
 
 
-LaplaceInCube::LaplaceInCube(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
+LaplaceInCube::LaplaceInCube()
 {
+    
+    fDim = 3;
+    
+    fmatId = 1;
+    
+    fdirichlet = 0;
+    fneumann = 1;
+    
+    fbc0 = -1;
+    fbc1 = -2;
+    fbc2 = -3;
+    fbc3 = -4;
+    fbc4 = -5;
+    fbc5 = -6;
+    fmatskeleton = -7;
+    
+    fisH1 = false;
+    
+    ftetra = false;
+    
+    fprisma = false;
+    
+  }
+
+LaplaceInCube::~LaplaceInCube()
+{
+    
+}
+
+void LaplaceInCube::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv, std::ofstream &saidaErro, bool HdivMaisMais)
+{
+    
+    
     std::cout<< " INICIO(CUBO) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     std::cout<< " Dimensao == " << fDim << std::endl;
     
-    //TPZGeoMesh *gmesh = this->GMeshCirculoGeob(ndiv);
-    TPZGeoMesh *gmesh = this->GMeshWithPrism(ndiv);
+    TPZGeoMesh *gmesh;
+    if (fprisma)
+    {
+        gmesh = this->GMeshWithPrism( ndiv);
+    }
+    else if(ftetra)
+    {
+        REAL dndiv = ndiv;
+        int nref = (int) pow(2., dndiv);
+        gmesh = this->CreateOneCuboWithTetraedrons(nref);
+    }
+    else
+    {
+        gmesh = this->CreateOneCubo(ndiv);
+    }
+
     
     gmesh->SetDimension(fDim);
-    {
-        //        ofstream argm("gmesh2d-cubo.txt");
-        //        gmesh->Print(argm);
-    }
-    
-    TPZCompMesh *cmesh2 = this->CMeshPressure(gmesh, ordemP, fDim);
-    TPZCompMesh *cmesh1 = this->CMeshFlux(gmesh, ordemP, fDim);
     
     // Um teste para a solucao via H1, sem hdiv
-    if (isH1) {
+    if (fisH1) {
         TPZCompMesh *cmeshH1 = this->CMeshH1(gmesh, ordemP, fDim);
+        //        {
+        //         ofstream arg1("cmeshH1.txt");
+        //         cmeshH1->Print(arg1);
+        //        }
+        
+        int dofTotal = cmeshH1->NEquations();
+        
+        //condensar
+        for (long iel=0; iel<cmeshH1->NElements(); iel++) {
+            TPZCompEl *cel = cmeshH1->Element(iel);
+            if(!cel) continue;
+            TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
+        }
+        
+        cmeshH1->ExpandSolution();
+        cmeshH1->CleanUpUnconnectedNodes();
+        
+        int dofCondensed = cmeshH1->NEquations();
+        
+        
         TPZAnalysis anh1(cmeshH1, true);
         
         tools::SolveSyst(anh1, cmeshH1);
         
-        stringstream refh1,grauh1;
-        grauh1 << ordemP;
-        refh1 << ndiv;
-        string strgh1 = grauh1.str();
-        string strrh1 = refh1.str();
-        std::string plotnameh1("OurSolutionH1");
-        std::string Grauh1("P");
-        std::string Refh1("H");
-        std::string VTKh1(".vtk");
-        std::string plotDatah1;
-        plotDatah1 = plotnameh1+Grauh1+strgh1+Refh1+strrh1+VTKh1;
-        std::string plotfileh1(plotDatah1);
+//        stringstream refh1,grauh1;
+//        grauh1 << ordemP;
+//        refh1 << ndiv;
+//        string strgh1 = grauh1.str();
+//        string strrh1 = refh1.str();
+//        std::string plotnameh1("OurSolutionH1");
+//        std::string Grauh1("P");
+//        std::string Refh1("H");
+//        std::string VTKh1(".vtk");
+//        std::string plotDatah1;
+//        plotDatah1 = plotnameh1+Grauh1+strgh1+Refh1+strrh1+VTKh1;
+//        std::string plotfileh1(plotDatah1);
+//
+//        tools::PosProcess(anh1, plotfileh1, fDim);
         
-        tools::PosProcess(anh1, plotfileh1, fDim);
+        ErrorH1(cmeshH1, ordemP, ndiv, saidaErro, dofTotal, dofCondensed);
         
         return ;
     }
     // exit
     
+    TPZCompMesh *cmesh1 = this->CMeshFlux(gmesh, ordemP, fDim);
+    
+    TPZCompMesh *cmesh2 = this->CMeshPressure(gmesh, ordemP, fDim);
     {
-        //        ofstream arg1("cmeshflux.txt");
-        //        cmesh1->Print(arg1);
-        //
-        //        ofstream arg2("cmeshpressure.txt");
-        //        cmesh2->Print(arg2);
-        //
-        //        ofstream arg4("gmesh2.txt");
-        //        gmesh->Print(arg4);
+//        ofstream arg1("cmeshfluxAntes.txt");
+//        cmesh1->Print(arg1);
+    }
+    
+    if (HdivMaisMais) {
+        // para rodar P**
+        ChangeExternalOrderConnects(cmesh1);
+    }
+    int DofCond, DoFT;
+    DoFT = cmesh1->NEquations() + cmesh2->NEquations();
+    {
+//        ofstream arg1("cmeshflux.txt");
+//        cmesh1->Print(arg1);
+//
+//        ofstream arg2("cmeshpressure.txt");
+//        cmesh2->Print(arg2);
+//
+//        ofstream arg4("gmesh2.txt");
+//        gmesh->Print(arg4);
     }
     
     //malha multifisica
@@ -75,56 +151,55 @@ LaplaceInCube::LaplaceInCube(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugM
         //        ofstream arg5("cmeshmultiphysics.txt");
         //        mphysics->Print(arg5);
     }
+    DofCond = mphysics->NEquations();
     
     TPZAnalysis an(mphysics, true);
     
     tools::SolveSyst(an, mphysics);
+
     
-    stringstream ref,grau;
-    grau << ordemP;
-    ref << ndiv;
-    string strg = grau.str();
-    string strr = ref.str();
-    std::string plotname("OurSolutionMetaCubo");
-    std::string Grau("P");
-    std::string Ref("H");
-    std::string VTK(".vtk");
-    std::string plotData;
-    plotData = plotname+Grau+strg+Ref+strr+VTK;
-    std::string plotfile(plotData);
+//    stringstream ref,grau;
+//    grau << ordemP;
+//    ref << ndiv;
+//    string strg = grau.str();
+//    string strr = ref.str();
+//    std::string plotname("OurSolutionMetaCubo");
+//    std::string Grau("P");
+//    std::string Ref("H");
+//    std::string VTK(".vtk");
+//    std::string plotData;
+//    plotData = plotname+Grau+strg+Ref+strr+VTK;
+//    std::string plotfile(plotData);
     
-    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
+//    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
     
     //Calculo do erro
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     TPZVec<REAL> erros;
     
-    std::cout << "Postprocessed\n";
+//    std::cout << "Postprocessed\n";
+//    
+//    stringstream ss;
+//    ss << ordemP;
+//    string str = ss.str();
+//    
+//    std::cout<< "Calculando erro - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
+//    std::string filename("InputDataMetaCubo");
+//    std::string L2("L2.txt");
+//    std::string Hdiv("Hdiv.txt");
+//    std::string HdivData,L2Data;
+//    HdivData = filename+str+Hdiv;
+//    L2Data = filename+str+L2;
     
-    stringstream ss;
-    ss << ordemP;
-    string str = ss.str();
+    //ErrorHDiv(cmesh1, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
     
-    std::cout<< " grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
-    std::string filename("InputDataMetaCubo");
-    std::string L2("L2.txt");
-    std::string Hdiv("Hdiv.txt");
-    std::string HdivData,L2Data;
-    HdivData = filename+str+Hdiv;
-    L2Data = filename+str+L2;
+    //ErrorL2(cmesh2, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
     
-    ErrorHDiv(cmesh1, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
+    //tools::PrintDebugMapForMathematica(HdivData, L2Data, fDebugMapL2, fDebugMapHdiv);
     
-    ErrorL2(cmesh2, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
-    
-    tools::PrintDebugMapForMathematica(HdivData, L2Data, fDebugMapL2, fDebugMapHdiv);
+    ErrorPrimalDual( cmesh2, cmesh1,  ordemP, ndiv, saidaErro, DoFT, DofCond);
     
     std::cout<< " FIM (CUBO) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
-    
-}
-
-LaplaceInCube::~LaplaceInCube()
-{
     
 }
 
@@ -261,6 +336,24 @@ TPZGeoMesh *LaplaceInCube::GMeshWithPrism( int ndiv)
     TopolTriang[1] = 6;
     TopolTriang[2] = 7;
     new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (id,TopolTriang,fbc5,*gmesh);
+    id++;
+    
+    TopolPrism[0] = 0;
+    TopolPrism[1] = 1;
+    TopolPrism[2] = 2;
+    TopolPrism[3] = 4;
+    TopolPrism[4] = 5;
+    TopolPrism[5] = 6;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPrism > (id, TopolPrism,fmatId,*gmesh);
+    id++;
+    
+    TopolPrism[0] = 0;
+    TopolPrism[1] = 2;
+    TopolPrism[2] = 3;
+    TopolPrism[3] = 4;
+    TopolPrism[4] = 6;
+    TopolPrism[5] = 7;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPrism > (id, TopolPrism,fmatId,*gmesh);
     id++;
     
     
@@ -726,282 +819,107 @@ void LaplaceInCube::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMa
     
     solp.resize(1);
     solp[0]=0.;
-    
-    int dim = 3; //getDimension();
-    
-    // tensor de permutacao
-    TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
-    TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
-    
-    
-    // Hard coded
-    for (int id = 0; id < dim; id++){
-        TP(id,id) = 1.0;
-        InvTP(id,id) = 1.0;
-    }
-    
-    flux.Resize(dim, 1);
-    
-    flux(0,0)=flux(1,0)=0.;
+    flux.Resize(3, 1);
     double x = pt[0];
     double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
+    double z = pt[2];
+    for(int d=0; d<3;d++)
     {
-        
-        
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-        flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-        
-    }
-    else
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 0.0;
-        flux(0,0)= 0.0;
-        flux(1,0)= 0.0;
-        
+        flux(d,0)=0.;
     }
     
-#ifdef LINEAR
     
-    double x = pt[0];
-    double y = pt[1];
-    REAL r = sqrt( x*x + y*y );
-    solp[0] = r*r*(1.0 - r*r);
-    flux(0,0)= (2.0*r - 4.0*r*r*r)*cos(theta);
-    flux(1,0)=  (2.0*r - 4.0*r*r*r)*sin(theta);
-    
-#endif
+    solp[0] = sin(M_PI*x)*sin(M_PI*y)*sin(M_PI*z);
+    flux(0,0) = -M_PI*(cos(M_PI*x)*sin(M_PI*y)*sin(M_PI*z));
+    flux(1,0) = -M_PI*(sin(M_PI*x)*cos(M_PI*y)*sin(M_PI*z));
+    flux(2,0) = -M_PI*(sin(M_PI*x)*sin(M_PI*y)*cos(M_PI*z));
     
     
 }
 
 void LaplaceInCube::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     
-    int dim = 3; //getDimension();
-    
-    // tensor de permutacao
-    TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
-    TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
-    
-    
-    // Hard coded
-    for (int id = 0; id < dim; id++){
-        TP(id,id) = 1.0;
-        InvTP(id,id) = 1.0;
-    }
-    
     double x = pt[0];
     double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        ff[0] = -6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
-        
-    }
-    else
-    {
-        ff[0] = 0.0;
-        
-    }
+    double z = pt[2];
     
-#ifdef LINEAR
+    ff[0] = 3.0*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y)*sin(M_PI*z);
     
+}
+
+void LaplaceInCube::SolExataH1(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
+    
+    solp.resize(1);
+    solp[0]=0.;
+    flux.Resize(3, 1);
     double x = pt[0];
     double y = pt[1];
-    REAL r = sqrt( x*x + y*y );
-    ff[0] = -(4.0 - 16.0*r*r);
+    double z = pt[2];
+    for(int d=0; d<3;d++)
+    {
+        flux(d,0)=0.;
+    }
     
-#endif
+    
+    solp[0] = sin(M_PI*x)*sin(M_PI*y)*sin(M_PI*z);
+    flux(0,0) = M_PI*(cos(M_PI*x)*sin(M_PI*y)*sin(M_PI*z));
+    flux(1,0) = M_PI*(sin(M_PI*x)*cos(M_PI*y)*sin(M_PI*z));
+    flux(2,0) = M_PI*(sin(M_PI*x)*sin(M_PI*y)*cos(M_PI*z));
+    
     
 }
 
 void LaplaceInCube::ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff, TPZFMatrix<STATE> &flux)
 {
-    int dim = 2; //getDimension();
-    
-    // tensor de permutacao
-    TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
-    TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
-    
-    
-    // Hard coded
-    for (int id = 0; id < dim; id++){
-        TP(id,id) = 1.0;
-        InvTP(id,id) = 1.0;
-    }
-    
-    flux.Resize(dim, 1);
-    
     double x = pt[0];
     double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        ff[0] = 6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
-        flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-        flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-        
-    }
-    else
-    {
-        ff[0] = 0.0;
-        flux(0,0)= 0.0;
-        flux(1,0)= 0.0;
-    }
+    double z = pt[2];
     
+    ff[0] = -3.0*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y)*sin(M_PI*z);
     
     
 }
 
 void LaplaceInCube::ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    
-    double x = pt[0];
-    double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
-    
-    
-#ifdef LINEAR
-    
-    solp[0] = 0.0;
-    
-#endif
-    
-    
+    solp.resize(1);
+    solp[0]=0.;
     
 }
 
 void LaplaceInCube::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    double x = pt[0];
-    double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
+    solp.resize(1);
+    solp[0]=0.;
     
-#ifdef LINEAR
-    
-    solp[0] = 0.0;
-    
-#endif
 }
 
 void LaplaceInCube::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    
-    
-    double x = pt[0];
-    double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
-#ifdef LINEAR
-    
-    solp[0] = 0.0;
-    
-#endif
+    solp.resize(1);
+    solp[0]=0.;
     
 }
 
 void LaplaceInCube::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    
-    double x = pt[0];
-    double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
-#ifdef LINEAR
-    
-    solp[0] = 0.0;
-    
-#endif
+    solp.resize(1);
+    solp[0]=0.;
     
 }
 
 void LaplaceInCube::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
+    solp.resize(1);
+    solp[0]=0.;
     
-    double x = pt[0];
-    double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
-#ifdef LINEAR
-    
-    solp[0] = 0.0;
-    
-#endif
 }
 
 void LaplaceInCube::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
+    solp.resize(1);
+    solp[0]=0.;
     
-    
-    double x = pt[0];
-    double y = pt[1];
-    REAL raio = sqrt( x*x + y*y );
-    if (raio < 1.0)
-    {
-        // para a Lap p = f no circulo
-        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-        
-    }
-    else
-    {
-        solp[0] = 0.0;
-    }
-#ifdef LINEAR
-    
-    solp[0] = 0.0;
-    
-#endif
 }
 
 
@@ -1045,7 +963,7 @@ TPZCompMesh *LaplaceInCube::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim)
     
     //    //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolExata);
+    solexata = new TPZDummyFunction<STATE>(SolExataH1);
     material->SetForcingFunctionExact(solexata);
     
     //funcao do lado direito da equacao do problema
@@ -1063,6 +981,8 @@ TPZCompMesh *LaplaceInCube::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim)
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(fDim);
     cmesh->SetDefaultOrder(pOrder);
+    
+    cmesh->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -1082,9 +1002,6 @@ TPZCompMesh *LaplaceInCube::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim)
     BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
     if( fDim == 3 ) { BCond5 = material->CreateBC(mat, fbc5,fdirichlet, val1, val2);}
     
-    cmesh->InsertMaterialObject(mat);
-    
-    cmesh->SetAllCreateFunctionsContinuous();
     if( fDim == 3 ) { cmesh->InsertMaterialObject(BCond0); }
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond2);
@@ -1092,9 +1009,23 @@ TPZCompMesh *LaplaceInCube::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim)
     cmesh->InsertMaterialObject(BCond4);
     if( fDim == 3 ) { cmesh->InsertMaterialObject(BCond5); }
     
+    
+    cmesh->SetAllCreateFunctionsContinuous();
+    
     //Ajuste da estrutura de dados computacional
     cmesh->AutoBuild();
     
+    //    cout<<"\nNumero total de Equacoes: "<<cmesh->NEquations()<<"\n";
+    //    //condensar
+    //    for (long iel=0; iel<cmesh->NElements(); iel++) {
+    //        TPZCompEl *cel = cmesh->Element(iel);
+    //        if(!cel) continue;
+    //        TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
+    //    }
+    //    cout<<"Numero Equacoes apos condensar: "<<cmesh->NEquations()<<"\n";
+    //
+    //    cmesh->ExpandSolution();
+    //    cmesh->CleanUpUnconnectedNodes();
     return cmesh;
     
 }
@@ -1147,11 +1078,9 @@ TPZCompMesh *LaplaceInCube::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim)
     cmesh->SetDefaultOrder(pOrder);
     
     
-    if (!isgeoblend) {
-        TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(fmatskeleton, fDim-1, 1);
-        TPZMaterial * mat2(matskelet);
-        cmesh->InsertMaterialObject(mat2);
-    }
+    TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(fmatskeleton, fDim-1, 1);
+    TPZMaterial * mat2(matskelet);
+    cmesh->InsertMaterialObject(mat2);
     
     
     
@@ -1206,7 +1135,7 @@ TPZCompMesh *LaplaceInCube::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim
     //cmesh->SetDimModel(fDim);
     
     bool h1function = true;// com esqueleto precisa disso
-    if(h1function){
+    if(pOrder>0/*h1function*/){
         cmesh->SetAllCreateFunctionsContinuous();
         cmesh->ApproxSpace().CreateDisconnectedElements(true);
     }
@@ -1252,8 +1181,9 @@ TPZCompMesh *LaplaceInCube::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim
             
             if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
             {
-                if(ftriang==true) celdisc->SetTotalOrderShape();
-                else celdisc->SetTensorialShape();
+//                if(ftetra==true){ celdisc->SetTotalOrderShape();}
+//                else if(fprisma){ /* o codigo se vira */ }
+//                else {celdisc->SetTensorialShape();}
             }
             
         }
@@ -1326,7 +1256,7 @@ TPZCompMesh *LaplaceInCube::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *>
     //funcao do lado direito da equacao do problema
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(1);
+    dum->SetPolynomialOrder(10);
     forcef = dum;
     material->SetForcingFunction(forcef);
     
@@ -1408,37 +1338,131 @@ TPZCompMesh *LaplaceInCube::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *>
     mphysics->AdjustBoundaryElements();
     mphysics->CleanUpUnconnectedNodes();
     
-    
+    //Creating multiphysic elements containing skeletal elements.
     TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+    mphysics->Reference()->ResetReference();
+    mphysics->LoadReferences();
     
-    //        TPZMaterial * skeletonEl = material->CreateBC(mat, matskeleton, 3, val1, val2);
-    //        mphysics->InsertMaterialObject(skeletonEl);
+    long nel = mphysics->ElementVec().NElements();
     
-    //        TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(matskeleton, dim-1, 1);
-    //        TPZMaterial * mat2(matskelet);
-    //        mphysics->InsertMaterialObject(mat2);
+    std::map<long, long> bctoel, eltowrap;
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = mphysics->Element(el);
+        TPZGeoEl *gel = cel->Reference();
+        int matid = gel->MaterialId();
+        if (matid < 0) {
+            TPZGeoElSide gelside(gel,gel->NSides()-1);
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            while (neighbour != gelside) {
+                if (neighbour.Element()->Dimension() == dim && neighbour.Element()->Reference()) {
+                    // got you!!
+                    bctoel[el] = neighbour.Element()->Reference()->Index();
+                    break;
+                }
+                neighbour = neighbour.Neighbour();
+            }
+            if (neighbour == gelside) {
+                DebugStop();
+            }
+        }
+    }
     
-    int nel = mphysics->ElementVec().NElements();
     TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-    for(int el = 0; el < nel; el++)
+    for(long el = 0; el < nel; el++)
     {
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
         if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
     }
+    
+    for (long el =0; el < wrapEl.size(); el++) {
+        TPZCompEl *cel = wrapEl[el][0];
+        long index = cel->Index();
+        eltowrap[index] = el;
+    }
+    
     meshvec[0]->CleanUpUnconnectedNodes();
     TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     
+    std::map<long, long>::iterator it;
+    for (it = bctoel.begin(); it != bctoel.end(); it++) {
+        long bcindex = it->first;
+        long elindex = it->second;
+        if (eltowrap.find(elindex) == eltowrap.end()) {
+            DebugStop();
+        }
+        long wrapindex = eltowrap[elindex];
+        TPZCompEl *bcel = mphysics->Element(bcindex);
+        TPZMultiphysicsElement *bcmf = dynamic_cast<TPZMultiphysicsElement *>(bcel);
+        if (!bcmf) {
+            DebugStop();
+        }
+        wrapEl[wrapindex].Push(bcmf);
+        
+    }
+    
     //------- Create and add group elements -------
     long index, nenvel;
     nenvel = wrapEl.NElements();
-    for(int ienv=0; ienv<nenvel; ienv++){
+    TPZStack<TPZElementGroup *> elgroups;
+    for(long ienv=0; ienv<nenvel; ienv++){
         TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
+        elgroups.Push(elgr);
         nel = wrapEl[ienv].NElements();
         for(int jel=0; jel<nel; jel++){
             elgr->AddElement(wrapEl[ienv][jel]);
         }
     }
+    
+    mphysics->ComputeNodElCon();
+    // create condensed elements
+    // increase the NumElConnected of one pressure connects in order to prevent condensation
+    for (long ienv=0; ienv<nenvel; ienv++) {
+        TPZElementGroup *elgr = elgroups[ienv];
+        int nc = elgr->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            TPZConnect &c = elgr->Connect(ic);
+            if (c.LagrangeMultiplier() > 0) {
+                c.IncrementElConnected();
+                break;
+            }
+        }
+        TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
+    }
+    
+    mphysics->CleanUpUnconnectedNodes();
+    mphysics->ExpandSolution();
+    
+    //    TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+    //
+    //    //        TPZMaterial * skeletonEl = material->CreateBC(mat, matskeleton, 3, val1, val2);
+    //    //        mphysics->InsertMaterialObject(skeletonEl);
+    //
+    //    //        TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(matskeleton, dim-1, 1);
+    //    //        TPZMaterial * mat2(matskelet);
+    //    //        mphysics->InsertMaterialObject(mat2);
+    //
+    //    int nel = mphysics->ElementVec().NElements();
+    //    TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
+    //    for(int el = 0; el < nel; el++)
+    //    {
+    //        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
+    //        if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
+    //    }
+    //    meshvec[0]->CleanUpUnconnectedNodes();
+    //    TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+    //    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    //
+    //    //------- Create and add group elements -------
+    //    long index, nenvel;
+    //    nenvel = wrapEl.NElements();
+    //    for(int ienv=0; ienv<nenvel; ienv++){
+    //        TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
+    //        nel = wrapEl[ienv].NElements();
+    //        for(int jel=0; jel<nel; jel++){
+    //            elgr->AddElement(wrapEl[ienv][jel]);
+    //        }
+    //    }
     
     
     return mphysics;
@@ -1502,6 +1526,151 @@ void LaplaceInCube::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL,
     fDebugMapL2.insert(std::pair<REAL, REAL> (ndiv,sqrt(globalerrors[1])));
 }
 
+
+void LaplaceInCube::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
+{
+    
+    long nel = l2mesh->NElements();
+    int dim = l2mesh->Dimension();
+    TPZManVector<STATE,10> globalerrors(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = l2mesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        TPZManVector<STATE,10> elerror(10,0.);
+        elerror.Fill(0.);
+        cel->EvaluateError(SolExataH1, elerror, NULL);
+        
+        int nerr = elerror.size();
+        globalerrors.resize(nerr);
+        //#ifdef LOG4CXX
+        //        if (logger->isDebugEnabled()) {
+        //            std::stringstream sout;
+        //            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
+        //            LOGPZ_DEBUG(logger, sout.str())
+        //        }
+        //#endif
+        for (int i=0; i<nerr; i++) {
+            globalerrors[i] += elerror[i]*elerror[i];
+        }
+    }
+    
+    
+    //    long nel = l2mesh->NElements();
+    //    //int dim = l2mesh->Dimension();
+    //    TPZManVector<STATE,10> globalerrors(10,0.);
+    //    for (long el=0; el<nel; el++) {
+    //        TPZCompEl *cel = l2mesh->ElementVec()[el];
+    //        TPZManVector<STATE,10> elerror(10,0.);
+    //        cel->EvaluateError(SolExata, elerror, NULL);
+    //        int nerr = elerror.size();
+    //        globalerrors.resize(nerr);
+    //        //#ifdef LOG4CXX
+    //        //        if (logdata->isDebugEnabled()) {
+    //        //            std::stringstream sout;
+    //        //            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
+    //        //            LOGPZ_DEBUG(logdata, sout.str())
+    //        //        }
+    //        //#endif
+    //        for (int i=0; i<nerr; i++) {
+    //            globalerrors[i] += elerror[i]*elerror[i];
+    //        }
+    //
+    //    }
+    //    out << "Errors associated with L2 space - ordem polinomial = " << p << "- divisoes = " << ndiv << endl;
+    //    out << "L2 Norm = "    << sqrt(globalerrors[1]) << endl;
+    out << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(28) << sqrt(globalerrors[1]) << setw(35)  << sqrt(globalerrors[2])  << endl;
+    
+    
+    //out << "\nSemi H1 Norm = "    << sqrt(globerrors[2]) << endl;
+}
+
+
+void LaplaceInCube::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
+{
+    long nel = hdivmesh->NElements();
+    int dim = hdivmesh->Dimension();
+    TPZManVector<STATE,10> globalerrorsDual(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = hdivmesh->ElementVec()[el];
+        if(cel->Reference()->Dimension()!=dim) continue;
+        TPZManVector<STATE,10> elerror(10,0.);
+        elerror.Fill(0.);
+        cel->EvaluateError(SolExata, elerror, NULL);
+        int nerr = elerror.size();
+        for (int i=0; i<nerr; i++) {
+            globalerrorsDual[i] += elerror[i]*elerror[i];
+        }
+        
+        
+    }
+    
+    
+    nel = l2mesh->NElements();
+    //int dim = l2mesh->Dimension();
+    TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = l2mesh->ElementVec()[el];
+        TPZManVector<STATE,10> elerror(10,0.);
+        cel->EvaluateError(SolExata, elerror, NULL);
+        int nerr = elerror.size();
+        globalerrorsPrimal.resize(nerr);
+        //#ifdef LOG4CXX
+        //        if (logdata->isDebugEnabled()) {
+        //            std::stringstream sout;
+        //            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
+        //            LOGPZ_DEBUG(logdata, sout.str())
+        //        }
+        //#endif
+        for (int i=0; i<nerr; i++) {
+            globalerrorsPrimal[i] += elerror[i]*elerror[i];
+        }
+        
+    }
+    
+    out << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(28) << sqrt(globalerrorsPrimal[1]) << setw(35)  << sqrt(globalerrorsDual[1])  << endl;
+    
+}
+
+void LaplaceInCube::ChangeExternalOrderConnects(TPZCompMesh *mesh){
+    
+    int nEl= mesh-> NElements();
+    int dim = mesh->Dimension();
+    int cordermin = -1;
+    for (int iel=0; iel<nEl; iel++) {
+        TPZCompEl *cel = mesh->ElementVec()[iel];
+        if (!cel) continue;
+        int ncon = cel->NConnects();
+        int corder = 0;
+        int nshape = 0;
+        
+        if(cel->Dimension()== dim){
+            for (int icon=0; icon<ncon-1; icon++){
+                TPZConnect &co  = cel->Connect(icon);
+            
+                corder = co.Order();
+                nshape = co.NShape();
+                if(corder!=cordermin){
+                    cordermin = corder-1;
+                    co.SetOrder(cordermin);
+                    
+                    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+                    nshape = intel->NConnectShapeF(icon);
+                    
+                    co.SetNShape(nshape);
+                    mesh->Block().Set(co.SequenceNumber(),nshape);
+                }
+            }
+        }
+    }
+    mesh->ExpandSolution();
+    mesh->CleanUpUnconnectedNodes();
+}
 
 
 

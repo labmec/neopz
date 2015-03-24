@@ -100,34 +100,36 @@ using namespace pzshape;
 
 class LaplaceInQuadrilateral{
 private:
-    int fDim = 2;
+    int fDim;
     
-    int fmatId = 1;
+    int fmatId;
     
-    int fdirichlet = 0;
-    int fneumann = 1;
+    int fdirichlet;
+    int fneumann;
     
-    int fbc0 = -1;
-    int fbc1 = -2;
-    int fbc2 = -3;
-    int fbc3 = -4;
-    int fbc4 = -5;
-    int fbc5 = -6;
-    int fmatskeleton = -7;
+    int fbc0;
+    int fbc1;
+    int fbc2;
+    int fbc3;
+    int fbc4;
+    int fbc5;
+    int fmatskeleton;
     
-    bool isH1 = false;
+    bool ftriang;
     
-    bool ftriang = false;
-    
-    bool isgeoblend = true;
+    bool isgeoblend;
     
     
 public:
     
+    bool fisH1;
     
-    LaplaceInQuadrilateral(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    
+    LaplaceInQuadrilateral();
     
     ~LaplaceInQuadrilateral();
+    
+    void Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv, std::ofstream &saidaErro, bool HdivMaisMais);
     
     /*  Malhas geometricas */
     TPZGeoMesh *GMesh(int dim, bool ftriang, int ndiv);
@@ -142,6 +144,7 @@ public:
     
     //solucao exata
     static void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
+    static void SolExataH1(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
     
     //lado direito da equacao
     static void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
@@ -163,11 +166,27 @@ public:
     static void ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     static void ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     
-    static void ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    void ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
     
-    static void ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    void ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
     
+    void ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
     
+    void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
+    
+    void ChangeExternalOrderConnects(TPZCompMesh *mesh);
+    
+    void setTriangTrue()
+    {
+        ftriang = true;
+    }
+    void setH1True()
+    {
+        fisH1 = true;
+    }
+    bool getIsH1(bool &EH1){
+        EH1 = fisH1;
+    }
 };
 
 

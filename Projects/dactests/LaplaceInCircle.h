@@ -131,14 +131,18 @@ private:
 public:
     
     
-    LaplaceInCircle(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    LaplaceInCircle();
     
     ~LaplaceInCircle();
+    
+    void Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv, std::ofstream &saidaErro, bool HdivMaisMais);
     
     /**
      * Cria uma malha geometrica formada por elementos do tipo Geoblend 
      */
     TPZGeoMesh *GMeshCirculoGeob( int ndiv);
+    TPZGeoMesh *GMeshCirculoGeobQuart( int ndiv);
+    
     TPZGeoMesh *GMeshCirculoTriangGeob( int ndiv);
     /**
      * Cria uma malha geometrica formada por elementos do tipo Geoblend
@@ -185,6 +189,7 @@ public:
     
     static void ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
     
+    static void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
     
 };
 

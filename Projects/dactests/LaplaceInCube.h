@@ -106,26 +106,28 @@ using namespace pzshape;
 
 class LaplaceInCube{
 private:
-    int fDim = 2;
+    int fDim;
     
-    int fmatId = 1;
+    int fmatId;
     
-    int fdirichlet = 0;
-    int fneumann = 1;
+    int fdirichlet;
+    int fneumann ;
     
-    int fbc0 = -1;
-    int fbc1 = -2;
-    int fbc2 = -3;
-    int fbc3 = -4;
-    int fbc4 = -5;
-    int fbc5 = -6;
-    int fmatskeleton = -7;
+    int fbc0;
+    int fbc1;
+    int fbc2;
+    int fbc3;
+    int fbc4;
+    int fbc5 ;
+    int fmatskeleton;
     
-    bool isH1 = false;
+    bool fisH1;
     
-    bool ftriang = false;
+    bool ftetra;
     
-    bool isgeoblend = true;
+    bool fprisma;
+    
+    bool isgeoblend;
     
     
     int tetraedra_2[6][4]=
@@ -142,9 +144,11 @@ private:
 public:
     
     
-    LaplaceInCube(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    LaplaceInCube();
     
     ~LaplaceInCube();
+    
+    void Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv, std::ofstream &saidaErro, bool HdivMaisMais);
     
     TPZGeoMesh *GMeshWithPrism( int ndiv);
 
@@ -165,6 +169,7 @@ public:
     
     //solucao exata
     static void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
+    static void SolExataH1(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
     
     //lado direito da equacao
     static void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
@@ -190,6 +195,28 @@ public:
     
     static void ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
     
+    void ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
+    
+    void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
+    
+    void ChangeExternalOrderConnects(TPZCompMesh *mesh);
+    
+    void setTetraTrue()
+    {
+        ftetra = true;
+    }
+    void setPrismaTrue()
+    {
+        fprisma = true;
+    }
+    void setH1True()
+    {
+        fisH1 = true;
+    }
+    bool getIsH1(bool &EH1){
+        EH1 = fisH1;
+    }
+
     
 };
 

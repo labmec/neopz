@@ -86,6 +86,8 @@
 #include "LaplaceInCylinder.h"
 #include "LaplaceInCircle.h"
 #include "LaplaceInSphere.h"
+#include "LaplaceInQuadrilateral.h"
+#include "LaplaceInCube.h"
 
 #include <iostream>
 #include <string>
@@ -111,6 +113,8 @@ using namespace pzshape;
 //// just for print data
 ///** @brief Map used norms */
 std::map<REAL,REAL> fDebugMapL2, fDebugMapHdiv;
+///** @brief Map used Degrees of Freedom */
+std::map<int,int> fDebugDoF;
 
 int tetraedra_2[6][4]=
 {
@@ -153,7 +157,7 @@ int piramide_2[6][5]=
 //void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 //void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 
-int dim = 2;
+int dim = 3;
 REAL aa = 0.0;
 REAL bb = 0.0;
 REAL cc = 0.0;
@@ -165,10 +169,10 @@ REAL Epsilon = 0.4;
 
 
 bool ftriang = false;//true;//
-bool IsCube = false;
+bool IsCube = true;
 bool IsPrism = false;
 bool IsTetra = false;
-bool IsPiram = true;
+bool IsPiram = false;
 
 //bool issphere = true, iscircle = false, iscylinder = false;
 bool iscircle = true, issphere = false, iscylinder = false, isquad = false;
@@ -193,18 +197,24 @@ int main(int argc, char *argv[])
 
     int p = 1;
     int ndiv = 0;
-    
+    ofstream saidaerros("ErroNormas.txt",ios::app);
     
     for(p=2;p<3;p++)
     {
-        for (ndiv=0; ndiv<5; ndiv++)
+        saidaerros << "\nPARA p = " << p << " \n " << endl;
+        saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
+        
+        for (ndiv=0; ndiv<3; ndiv++)
         {
             
             if (dim==2)
             {
                 //TPZGeoMesh *gmesh2d = GMesh(2, ftriang, ndiv);
                 if (iscircle) {
-                    LaplaceInCircle  * laplaceInCircle = new LaplaceInCircle( p, ndiv, fDebugMapL2, fDebugMapHdiv);
+                    LaplaceInCircle  * circ = new LaplaceInCircle();
+                    bool HdivMaisMais = false;
+                    int k = HdivMaisMais ? p+1 : p;
+                    circ->Run( k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
                 }
                 else if (iscylinder)
                 {
@@ -216,7 +226,12 @@ int main(int argc, char *argv[])
                 }
                 else if(isquad)
                 {
-                    //LaplaceInQuadrilateral *laplaceInQuadrilateral = new LaplaceInQuadrilateral(p, ndiv, fDebugMapL2, fDebugMapHdiv);
+                    LaplaceInQuadrilateral * quad = new LaplaceInQuadrilateral();
+                    //quad->setTriangTrue();
+                    //quad->setH1True();
+                    bool HdivMaisMais = false;
+                    int k = HdivMaisMais ? p+1 : p;
+                    quad->Run(k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
                 }
                 else
                 {
@@ -228,14 +243,13 @@ int main(int argc, char *argv[])
             {
                 if (IsCube)
                 {
-                    // Tem que escolher a malha certa.
-                    DebugStop();
-                    //TPZGeoMesh *gmesh2d = GMesh(2, ftriang, ndiv);
-                    
-                    //REAL layerthickness = 1.;
-                    //TPZExtendGridDimension extend(gmesh2d,layerthickness);
-                    //TPZGeoMesh *gmesh3d = extend.ExtendedMesh(1,bc0,bc5);
-                    //gmesh = gmesh3d;
+                    LaplaceInCube * cubo = new LaplaceInCube();
+                    //cubo->setTetraTrue();
+                    //cubo->setPrismaTrue();
+                    cubo->setH1True();
+                    bool HdivMaisMais = false;
+                    int k = HdivMaisMais ? p+1 : p;
+                    cubo->Run(k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
 
                 }
                 else if(IsTetra)
@@ -280,6 +294,7 @@ int main(int argc, char *argv[])
             std::cout<< " FIM - grau  polinomio " << p << " numero de divisoes " << ndiv << std::endl;
             
         }
+        saidaerros << "\n ----------------------------------------------------------------------------- " << endl;
         fDebugMapHdiv.clear();
         fDebugMapL2.clear();
     }
