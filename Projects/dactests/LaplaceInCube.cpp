@@ -35,6 +35,40 @@ LaplaceInCube::LaplaceInCube()
     
     fprisma = false;
     
+    tetraedra_2.Resize(6, 4);
+    
+    tetraedra_2(0,0) = 1;
+    tetraedra_2(0,1) = 2;
+    tetraedra_2(0,2) = 5;
+    tetraedra_2(0,3) = 4;
+    
+    tetraedra_2(1,0) = 4;
+    tetraedra_2(1,1) = 7;
+    tetraedra_2(1,2) = 3;
+    tetraedra_2(1,3) = 2;
+    
+    tetraedra_2(2,0) = 0;
+    tetraedra_2(2,1) = 1;
+    tetraedra_2(2,2) = 2;
+    tetraedra_2(2,3) = 4;
+    
+    tetraedra_2(3,0) = 0;
+    tetraedra_2(3,1) = 2;
+    tetraedra_2(3,2) = 3;
+    tetraedra_2(3,3) = 4;
+
+    tetraedra_2(4,0) = 4;
+    tetraedra_2(4,1) = 5;
+    tetraedra_2(4,2) = 6;
+    tetraedra_2(4,3) = 2;
+    
+    tetraedra_2(5,0) = 4;
+    tetraedra_2(5,1) = 6;
+    tetraedra_2(5,2) = 7;
+    tetraedra_2(5,3) = 2;
+    
+    //tetraedra_2[6][4] = { {1,2,5,4}, {4,7,3,2}, {0,1,2,4}, {0,2,3,4}, {4,5,6,2},{4,6,7,2} };
+    
   }
 
 LaplaceInCube::~LaplaceInCube()
@@ -130,6 +164,7 @@ void LaplaceInCube::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2,
     }
     int DofCond, DoFT;
     DoFT = cmesh1->NEquations() + cmesh2->NEquations();
+    
     {
 //        ofstream arg1("cmeshflux.txt");
 //        cmesh1->Print(arg1);
@@ -410,7 +445,7 @@ TPZGeoMesh *LaplaceInCube::CreateOneCuboWithTetraedrons(long nelem)
                     TPZManVector<long,4> elnodes(4);
                     long index;
                     for (int il=0; il<4; il++) {
-                        elnodes[il] = nodes[tetraedra_2[el][il]];
+                        elnodes[il] = nodes[tetraedra_2(el,il)];//nodes[tetraedra_2[el][il]];
                     }
                     gmesh->CreateGeoElement(ETetraedro, elnodes, fmatId, index);
                 }

@@ -129,17 +129,8 @@ private:
     
     bool isgeoblend;
     
-    
-    int tetraedra_2[6][4]=
-    {
-        {1,2,5,4},
-        {4,7,3,2},
-        {0,1,2,4},
-        {0,2,3,4},
-        {4,5,6,2},
-        {4,6,7,2}
-    };
-
+    TPZFMatrix< int > tetraedra_2;
+    //int tetraedra_2[6][4];
     
 public:
     

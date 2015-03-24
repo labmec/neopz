@@ -111,7 +111,7 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 {
 	this->fFront.AddKel(elmat, sourceindex, destinationindex);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (loggerfw->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Frondwidth after AddKel "<< this->fFront.FrontSize();
