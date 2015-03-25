@@ -50,6 +50,8 @@
 #include <time.h>
 #include <stdio.h>
 
+#include "TPZBlackOilProperties.h"
+
 // Using Log4cXX as logging tool
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
@@ -107,6 +109,8 @@ int main()
     InitializePZLOG(FileName);
 //     InitializePZLOG();
 #endif
+    
+    TPZBlackOilProperties * Fluid = new TPZBlackOilProperties; 
     
 //  
 //#ifdef LOG4CXX
