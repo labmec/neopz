@@ -173,7 +173,7 @@ long double QUAD_TETRAH_P6_pts[Length(QUAD_TETRAH_P6_wts) * 4] = {
 			.60300566479164914136743113906093969L)
 };
 
-long double QUAD_TETRAH_P7_wts[] = {
+long double QUAD_TETRAH_P7_wts[35] = {
     Dup4(.09548528946413084886057843611722638L),
     Dup31(.04232958120996702907628617079854674L),
     Dup22(.03189692783285757993427482408294246L),
@@ -446,7 +446,7 @@ long double QUAD_TETRAH_P14_pts[Length(QUAD_TETRAH_P14_wts) * 4] = {
 
 void TPZIntRuleT3D::ComputingSymmetricCubatureRule(int order) {
 	if(order > 14) order = 14; 
-	int NRGAUPO[15] = { 1, 1, 4, 8, 14, 14, 24, 36, 46, 61, 81, 109, 140, 171, 236};
+	int NRGAUPO[15] = { 1, 1, 4, 8, 14, 14, 24, 35, 46, 61, 81, 109, 140, 171, 236};
 	fNumInt = NRGAUPO[order];
 	fLocationKsi.Resize(fNumInt,0.0L);
 	fLocationEta.Resize(fNumInt,0.0L);
