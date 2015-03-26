@@ -32,11 +32,11 @@
 #endif
 
 std::string dirname = PZSOURCEDIR;
-unsigned int NDigitsPrec = 15;
+unsigned int NDigitsPrec = 13;
 int NTypes = 2;
 // For cubature rules
 // Conclusion:	Use 4 to run with REAL = float
-//				Use 15 to run with REAL = double
+//				Use 13 to run with REAL = double
 //				Use 15 to run with REAL = long double
 
 /** 
