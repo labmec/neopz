@@ -90,7 +90,7 @@ void LaplaceInCube::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2,
     }
     else if(ftetra)
     {
-        REAL dndiv = ndiv;
+        double dndiv = ndiv;
         int nref = (int) pow(2., dndiv);
         gmesh = this->CreateOneCuboWithTetraedrons(nref);
     }

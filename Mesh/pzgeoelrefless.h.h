@@ -493,7 +493,7 @@ void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &direc
     REAL detjac;
     
     this->Jacobian(pt,jac,axes,detjac,jacinv);
-    
+
     // ou eh isso?   grad =  (jac  * axes)ˆT
     TPZFNMatrix<9> gradxt(TGeo::Dimension,3,0.);
     for (int il=0; il<TGeo::Dimension; il++)

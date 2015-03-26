@@ -1235,8 +1235,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 //    cout << "};" << endl;
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
-        std::stringstream sout;
+//    if (logger->isDebugEnabled()) {
+//        std::stringstream sout;
 //        data.fNormalVec.Print("Normal Vectors " , sout,EMathematicaInput);
 //        sout << " Normais = " << endl;
 //        int nlin = data.fNormalVec.Rows();
@@ -1256,8 +1256,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 //            }
 //        }
 //        sout << "};" << endl;
-        LOGPZ_DEBUG(logger, sout.str())
-    }
+//        LOGPZ_DEBUG(logger, sout.str())
+//    }
 #endif
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     

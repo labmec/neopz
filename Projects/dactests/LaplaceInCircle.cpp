@@ -57,8 +57,8 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     
     gmesh->SetDimension(fDim);
     {
-        ofstream argm("gmesh2d-circulo.txt");
-        gmesh->Print(argm);
+        //ofstream argm("gmesh2d-circulo.txt");
+        //gmesh->Print(argm);
     }
     
     // Um teste para a solucao via H1, sem hdiv
@@ -87,21 +87,22 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     }
     // exit
     
-    {
-        //        ofstream arg1("cmeshflux.txt");
-        //        cmesh1->Print(arg1);
-        //
-        //        ofstream arg2("cmeshpressure.txt");
-        //        cmesh2->Print(arg2);
-        //
-        //        ofstream arg4("gmesh2.txt");
-        //        gmesh->Print(arg4);
-    }
+    
     
     
     TPZCompMesh *cmesh2 = this->CMeshPressure(gmesh, ordemP, fDim);
     TPZCompMesh *cmesh1 = this->CMeshFlux(gmesh, ordemP, fDim);
     
+    {
+        ofstream arg1("cmeshflux.txt");
+        cmesh1->Print(arg1);
+
+        ofstream arg2("cmeshpressure.txt");
+        cmesh2->Print(arg2);
+
+//        ofstream arg4("gmesh2.txt");
+//        gmesh->Print(arg4);
+    }
     
     //malha multifisica
     TPZVec<TPZCompMesh *> meshvec(2);
@@ -115,13 +116,18 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
 #endif
     
     {
-        //        ofstream arg5("cmeshmultiphysics.txt");
-        //        mphysics->Print(arg5);
+        ofstream arg5("cmeshmultiphysics.txt");
+        mphysics->Print(arg5);
     }
     
     TPZAnalysis an(mphysics, true);
     
     tools::SolveSyst(an, mphysics);
+    
+    {
+        ofstream arg5("saida.txt");
+        mphysics->Print(arg5);
+    }
     
     stringstream ref,grau;
     grau << ordemP;
@@ -168,7 +174,7 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     ErrorHDiv(cmesh1, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
     
     ErrorL2(cmesh2, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
-    ErrorPrimalDual(cmesh2, cmesh1, ordemP, ndiv, saidaErro, 0, 0);
+    //ErrorPrimalDual(cmesh2, cmesh1, ordemP, ndiv, saidaErro, 0, 0);
     
     tools::PrintDebugMapForMathematica(HdivData, L2Data, fDebugMapL2, fDebugMapHdiv);
     
@@ -229,7 +235,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuart( int ndiv)
     id++;
     
     int elementid = 0;
-    TPZVec < long > nodeindex(3,0.0);
+    TPZVec < long > nodeindex(2,0);
     
     // Definition of Arc coordenates
     nodeindex.resize(3);
@@ -245,7 +251,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuart( int ndiv)
     // Create Geometrical Arc #2
     nodeindex[0] = 1;
     nodeindex[1] = 2;
-    new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc1, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc2, *gmesh);
     elementid++;
 
     // Create Geometrical Arc #2
@@ -254,13 +260,13 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuart( int ndiv)
     nodeindex[1] = 3;
     nodeindex[2] = 5;
     new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, fbc1, *gmesh);
-//    new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc1, *gmesh);
+    //new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc1, *gmesh);
     elementid++;
     
     nodeindex.resize(2);
     nodeindex[0] = 3;
     nodeindex[1] = 0;
-    new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc1, *gmesh);
+    new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc2, *gmesh);
     elementid++;
     
     nodeindex.resize(4);
@@ -271,7 +277,8 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuart( int ndiv)
     nodeindex[1] = 1;
     nodeindex[2] = 2;
     nodeindex[3] = 3;
-    TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > * Quarter =   new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, fmatId,*gmesh);
+    //TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > * Quarter =
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,nodeindex, fmatId,*gmesh);
     elementid++;
     
 //    gmesh->BuildConnectivity();
@@ -1167,11 +1174,16 @@ void LaplaceInCircle::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZF
     flux(0,0)= (2.0*r - 4.0*r*r*r)*cos(theta);
     flux(1,0)= (2.0*r - 4.0*r*r*r)*sin(theta);
     flux(2,0)= 0.0;
-
-    solp[0] = -(-1.0+x*x+y*y)*(x*x+y*y);
-    flux(0,0)= -2.0*x+4.0*x*x*x+4.0*x*y*y;
-    flux(1,0)= -2.0*y+4.0*x*x*y+4.0*y*y*y;
+    
+    solp[0] = r;
+    flux(0,0)= cos(theta);
+    flux(1,0)= sin(theta);
     flux(2,0)= 0.0;
+
+//    solp[0] = -(-1.0+x*x+y*y)*(x*x+y*y);
+//    flux(0,0)= -2.0*x+4.0*x*x*x+4.0*x*y*y;
+//    flux(1,0)= -2.0*y+4.0*x*x*y+4.0*y*y*y;
+//    flux(2,0)= 0.0;
     
 //    flux(0,0)=flux(1,0)=0.;
 //    double x = pt[0];
@@ -1218,7 +1230,8 @@ void LaplaceInCircle::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     double y = pt[1];
     REAL r = sqrt( x*x + y*y );
     ff[0] = -(4.0 - 16.0*r*r);
-    ff[0] = 4.0*(-1.0+4.0*x*x+4.0*y*y);
+    ff[0] = -1.0/r;
+//    ff[0] = 4.0*(-1.0+4.0*x*x+4.0*y*y);
     
    
 //    double x = pt[0];
@@ -1324,8 +1337,10 @@ void LaplaceInCircle::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     REAL r = sqrt( x*x + y*y );
     solp[0] = r*r*(1.0 - r*r);
     
+    solp[0] = r;
+    
     //solp[0] = 0.0;
-    solp[0] =  -(-1.0+x*x+y*y)*(x*x+y*y);
+    //solp[0] =  -(-1.0+x*x+y*y)*(x*x+y*y);
     
     //    flux(0,0)=flux(1,0)=0.;
     //    double x = pt[0];
@@ -1486,7 +1501,8 @@ void LaplaceInCircle::ForcingBC1N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflu
 }
 
 void LaplaceInCircle::ForcingBC2N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
-    DebugStop();
+    normflux[0] = 0.0;
+    //DebugStop();
 }
 
 void LaplaceInCircle::ForcingBC3N(const TPZVec<REAL> &pt, TPZVec<STATE> &normflux){
@@ -1811,7 +1827,7 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     //funcao do lado direito da equacao do problema
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(10);
+    dum->SetPolynomialOrder(1);
     forcef = dum;
     material->SetForcingFunction(forcef);
     
@@ -1847,12 +1863,12 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
-    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
+//    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
+//    BCond2->SetForcingFunction(FBCond2);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
+    BCond2 = material->CreateBC(mat, fbc2,fneumann, val1, val2);
     BCond2->SetForcingFunction(FBCond2);
-    //    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
-    //    BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
-    //    BCond2->SetForcingFunction(FBCond2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
@@ -1926,7 +1942,7 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 
 TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 {
-    bool condensacaoestatica = true;
+    bool condensacaoestatica = false;
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
     TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
@@ -2001,12 +2017,12 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
-    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
+//    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
+//    BCond2->SetForcingFunction(FBCond2);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
+    BCond2 = material->CreateBC(mat, fbc2,fneumann, val1, val2);
     BCond2->SetForcingFunction(FBCond2);
-    //    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
-    //    BCond2 = material->CreateBC(mat, bc2,neumann, val1, val2);
-    //    BCond2->SetForcingFunction(FBCond2);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
@@ -2033,14 +2049,14 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
         BCond5->SetForcingFunction(FBCond5);
     }
     
-    
-    mphysics->SetAllCreateFunctionsMultiphysicElem();
     if( dim == 3 ) { mphysics->InsertMaterialObject(BCond0); }
     mphysics->InsertMaterialObject(BCond1);
     mphysics->InsertMaterialObject(BCond2);
     mphysics->InsertMaterialObject(BCond3);
     mphysics->InsertMaterialObject(BCond4);
     if( dim == 3 ) { mphysics->InsertMaterialObject(BCond5); }
+    
+    mphysics->SetAllCreateFunctionsMultiphysicElem();
     
     //Fazendo auto build
     mphysics->AutoBuild();
@@ -2146,6 +2162,8 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     else
     {
         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+        mphysics->Reference()->ResetReference();
+        mphysics->LoadReferences();
         
         //        TPZMaterial * skeletonEl = material->CreateBC(mat, matskeleton, 3, val1, val2);
         //        mphysics->InsertMaterialObject(skeletonEl);
@@ -2161,6 +2179,7 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
             if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
         }
+        
         meshvec[0]->CleanUpUnconnectedNodes();
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
@@ -2178,6 +2197,10 @@ TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompM
 
     }
     
+    mphysics->ComputeNodElCon();
+    mphysics->CleanUpUnconnectedNodes();
+    mphysics->ExpandSolution();
+    
     return mphysics;
     
 }
@@ -2194,6 +2217,7 @@ void LaplaceInCircle::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map
         TPZManVector<STATE,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
+        std::cout << "element index " << el << " erro " << elerror << std::endl;
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
             globalerrors[i] += elerror[i]*elerror[i];
