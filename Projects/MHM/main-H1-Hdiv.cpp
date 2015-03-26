@@ -122,11 +122,11 @@ int main()
     
     TPZVec<REAL> erros;
     
-    fmetodomisto = false; //false --> formulacao H1
+    fmetodomisto = true; //false --> formulacao H1
     fsolsuave = true;
     
-    ofstream saidaerrosHdiv("../Erro-Misto.txt",ios::app);
-    ofstream saidaerrosH1("../Erro-H1.txt",ios::app);
+    ofstream saidaerrosHdiv("Erro-Misto.txt",ios::app);
+    ofstream saidaerrosH1("Erro-H1.txt",ios::app);
     
     
     for(int p = 2; p<5; p++)
@@ -141,7 +141,7 @@ int main()
             saidaerrosH1<< "\nSaida do erro para formulacão H1, com ordem p  = " << p << "\n\n";
         }
         //refinamentos h adptativos
-        for(int nref = 2; nref<6; nref++){
+        for(int nref = 1; nref<6; nref++){
             
             TPZGeoMesh * gmesh = MalhaGeom(1,1,fTriang);
             UniformRefine2(gmesh, nref);
@@ -154,8 +154,17 @@ int main()
                 
                 // Criando a primeira malha computacional
                 TPZCompMesh * cmesh1= CMeshFlux(pq, gmesh);
+                {
+                    ofstream filemesh2("MalhaFluxAntes.txt");
+                    cmesh1->Print(filemesh2);
+                }
+                
                 ChangeExternalOrderConnects(cmesh1);
                 
+                {
+                    ofstream filemesh2("MalhaFlux.txt");
+                    cmesh1->Print(filemesh2);
+                }
     //            ofstream filemesh2("MalhaFlux.txt");
     //            cmesh1->Print(filemesh2);
                 
@@ -1038,6 +1047,78 @@ void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &d
     res[0] *=-1.;
 }
 
+//void ChangeExternalOrderConnects(TPZCompMesh *mesh){
+//    
+//    int nEl= mesh-> NElements();
+//    int dim = mesh->Dimension();
+//    
+//    int cordermin = -1;
+//    for (int iel=0; iel<nEl; iel++) {
+//        TPZCompEl *cel = mesh->ElementVec()[iel];
+//        if (!cel) continue;
+//        int corder = 0;
+//        int nshape = 0;
+//        
+//        TPZGeoEl *gel = cel->Reference();
+//        int nsides = gel->NSides();
+//        int nnodes = gel->NCornerNodes();
+//        
+//        if(cel->Dimension()== dim)
+//        {
+//            for(int is = nnodes; is<nsides-1; is++)
+//            {
+//                TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+//                TPZConnect &conside = intel->MidSideConnect(is);
+//                
+//                corder = conside.Order();
+//                if(corder!=cordermin)
+//                {
+//                    cordermin = corder-1;
+//                    conside.SetOrder(cordermin);
+//                    
+//                    TPZGeoEl *gelface = gel->CreateBCGeoEl(is, -100);
+//                    
+//                    if(gelface->Type()==EQuadrilateral)
+//                    {
+//                        nshape = (cordermin+1)*(cordermin+1);
+//                    }
+//                    else if (gelface->Type()==ETriangle)
+//                    {
+//                        nshape = (cordermin+1)*(cordermin+2)/2;
+//                    }
+//                    else
+//                    {
+//                        //caso linera
+//                        if(gelface->Type()!= EOned) DebugStop();
+//                        nshape = cordermin+1;
+//                    }
+//                    delete gelface;
+//                    
+//                    conside.SetNShape(nshape);
+//                    mesh->Block().Set(conside.SequenceNumber(), nshape);
+//                }
+//
+//                
+//                
+////                TPZConnect &conel  = cel->Connect(icon);
+////                corder = conel.Order();
+////                nshape = conel.NShape();
+////                if(corder!=cordermin)
+////                {
+////                    cordermin = corder-1;
+////                    conel.SetOrder(cordermin);
+////                    
+////                                        conel.SetNShape(nshape-1);
+////                    mesh->Block().Set(conel.SequenceNumber(),nshape-1);
+////                }
+//            }
+//        }
+//    }
+//    mesh->ExpandSolution();
+//    mesh->CleanUpUnconnectedNodes();
+//}
+
+
 void ChangeExternalOrderConnects(TPZCompMesh *mesh){
     
     int nEl= mesh-> NElements();
@@ -1051,16 +1132,21 @@ void ChangeExternalOrderConnects(TPZCompMesh *mesh){
         int corder = 0;
         int nshape = 0;
         
-        if(cel->Dimension()== dim){
-            for (int icon=0; icon<ncon-1; icon++){
-                TPZConnect &co  = cel->Connect(icon);
-                corder = co.Order();
-                nshape = co.NShape();
-                if(corder!=cordermin){
+        if(cel->Dimension()== dim)
+        {
+            for (int icon=0; icon<ncon-1; icon++)
+            {
+                TPZConnect &conel  = cel->Connect(icon);
+                corder = conel.Order();
+                nshape = conel.NShape();
+                if(corder!=cordermin)
+                {
                     cordermin = corder-1;
-                    co.SetOrder(cordermin);
-                    co.SetNShape(nshape-1);
-                    mesh->Block().Set(co.SequenceNumber(),nshape-1);
+                    conel.SetOrder(cordermin);
+                    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+                    nshape = intel->NConnectShapeF(icon);
+                    conel.SetNShape(nshape);
+                    mesh->Block().Set(conel.SequenceNumber(),nshape);
                 }
             }
         }
