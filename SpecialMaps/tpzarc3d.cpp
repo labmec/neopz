@@ -261,7 +261,6 @@ void TPZArc3D::X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
 			vectRotated += fIBaseCn.GetVal(i,j)*MappedBASE2D[j];
 		}
 		result[i] = vectRotated + nodes(i,2);
-//		if( fabs(result[i]) < 0.001) result[i] = 0.;
 	}
 }
 
