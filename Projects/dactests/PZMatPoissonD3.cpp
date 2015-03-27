@@ -14,11 +14,13 @@
 #include "pzaxestools.h"
 #include "pzlog.h"
 
+#include <cmath>
+
 
 #include <iostream>
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.tpzmatpoissonD3.data"));
+static LoggerPtr logdata(Logger::getLogger("pz.tpzmatpoissonD3"));
 #endif
 
 using namespace std;
@@ -602,72 +604,7 @@ int TPZMatPoissonD3::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMatPoissonD3::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
-	
-#ifndef STATE_COMPLEX
-	Solout.Resize( this->NSolutionVariables( var ) );
-	
-	if(var == 1){
-		Solout[0] = Sol[0];//function
-		return;
-	}
-	if(var == 2) {
-		int id;
-		for(id=0 ; id<fDim; id++) {
-			TPZFNMatrix<9,STATE> dsoldx;
-			TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
-			Solout[id] = dsoldx(id,0);//derivate
-		}
-		return;
-	}//var == 2
-	if (var == 3){ //KDuDx
-		TPZFNMatrix<9,STATE> dsoldx;
-		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
-		Solout[0] = dsoldx(0,0) * this->fK;
-		return;
-	}//var ==3
-	if (var == 4){ //KDuDy
-		TPZFNMatrix<9,STATE> dsoldx;
-		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
-		Solout[0] = dsoldx(1,0) * this->fK;
-		return;
-	}//var == 4
-	if (var == 5){ //KDuDz
-		TPZFNMatrix<9,STATE> dsoldx;
-		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
-		Solout[0] = dsoldx(2,0) * this->fK;
-		return;
-	}//var == 5
-	if (var == 6){ //NormKDu
-		int id;
-		REAL val = 0.;
-		for(id=0 ; id<fDim; id++){
-			val += (DSol(id,0) * this->fK) * (DSol(id,0) * this->fK);
-		}
-		Solout[0] = sqrt(val);
-		return;
-	}//var == 6
-	if (var == 7){ //MinusKGradU
-		int id;
-		//REAL val = 0.;
-		TPZFNMatrix<9,STATE> dsoldx;
-		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
-		for(id=0 ; id<fDim; id++) {
-			Solout[id] = -1. * this->fK * dsoldx(id,0);
-		}
-		return;
-	}//var == 7
-	if(var == 9){//Laplac
-		Solout.Resize(1);
-		Solout[0] = DSol(2,0);
-		return;
-	}//Laplac
-	
-#endif
-	TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
-	
-}//method
-
+// metodo para gerar vtk
 void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables(var));
@@ -695,7 +632,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 	}
     
     if(var==3){
-        for (int ip = 0; ip<Dimension(); ip++)
+        for (int ip = 0; ip<3; ip++)
         {
             Solout[ip] = datavec[0].dsol[0](ip,0);
         }
@@ -703,7 +640,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     if(var==4){
-        for (int ip = 0; ip<Dimension(); ip++)
+        for (int ip = 0; ip<3; ip++)
         {
             Solout[ip] = datavec[0].dsol[0](ip,1);
         }
@@ -711,7 +648,7 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     if(var==5){
-        for (int ip = 0; ip<Dimension(); ip++)
+        for (int ip = 0; ip<3; ip++)
         {
             Solout[ip] = datavec[0].dsol[0](ip,2);
         }
@@ -764,6 +701,59 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
 }
 
+// metodo para computar erros
+void TPZMatPoissonD3::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
+    
+    Solout.Resize( this->NSolutionVariables(var));
+
+    
+    if(var == 1){ //function (state variable Q)
+        for (int ip = 0; ip<3; ip++)
+        {
+            Solout[ip] = data.sol[0][ip];
+        }
+        
+        return;
+    }
+    
+    if(var == 2){ //function (state variable p)
+        
+        TPZVec<STATE> SolP;
+        SolP = data.sol[0];
+        
+        Solout[0] = SolP[0];
+        return;
+    }
+    
+    
+}
+
+#include "pzaxestools.h"
+void TPZMatPoissonD3::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<STATE> &Solout){
+    
+#ifndef STATE_COMPLEX
+    Solout.Resize( this->NSolutionVariables( var ) );
+    
+    if(var == 1){
+        int id;
+        for(id=0 ; id<fDim; id++) {
+            TPZFNMatrix<9,STATE> dsoldx;
+            TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
+            Solout[id] = dsoldx(id,0);//derivate
+        }
+        return;
+    }
+    if(var == 2) {
+        Solout[0] = Sol[0];//function
+        return;
+    }//var == 2
+    
+#endif
+    TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
+    
+}//method
+
+
 
 void TPZMatPoissonD3::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 {
@@ -779,41 +769,52 @@ void TPZMatPoissonD3::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 }
 
 
-//void TPZMatPoissonD3::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
-//	
-//    values.Fill(0.0);
-//	TPZVec<STATE> sol(1),dsol(fDim),div(1);
-//	if(data.numberdualfunctions) Solution(data,2,sol);//pressao
-//	Solution(data,1,dsol);//fluxo
-//	//Solution(data,14,div);//divergente
-//    
-//#ifdef LOG4CXX
-//    if(logdata->isDebugEnabled()){
-//		std::stringstream sout;
-//		sout<< "\n";
-//		sout << " Pto  " << data.x << std::endl;
-//		sout<< " pressao exata " <<u_exact <<std::endl;
-//		sout<< " pressao aprox " <<sol <<std::endl;
-//		sout<< " ---- "<<std::endl;
-//		sout<< " fluxo exato " <<du_exact(0,0)<<", " << du_exact(1,0)<<std::endl;
-//		sout<< " fluxo aprox " <<dsol<<std::endl;
-//		sout<< " ---- "<<std::endl;
-//		LOGPZ_DEBUG(logdata,sout.str())
+
+
+void TPZMatPoissonD3::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
+    
+    values.Fill(0.0);
+    TPZVec<STATE> sol(1),dsol(3),div(1);
+//    if(data.numberdualfunctions) Solution(data,2,sol);//pressao
+    Solution(data,1,dsol);//fluxo
+    //Solution(data,14,div);//divergente
+    
+#ifdef LOG4CXX
+//    if(logger->isDebugEnabled()){
+//        std::stringstream sout;
+//        sout<< "\n";
+//        sout << " Pto  " << data.x << std::endl;
+//        sout<< " pressao exata " <<u_exact <<std::endl;
+//        sout<< " pressao aprox " <<sol <<std::endl;
+//        sout<< " ---- "<<std::endl;
+//        sout<< " fluxo exato " <<du_exact(0,0)<<", " << du_exact(1,0)<<std::endl;
+//        sout<< " fluxo aprox " <<dsol<<std::endl;
+//        sout<< " ---- "<<std::endl;
+//        if(du_exact.Rows()>fDim) sout<< " div exato " <<du_exact(2,0)<<std::endl;
+//        sout<< " div aprox " <<div<<std::endl;
+//        LOGPZ_DEBUG(logger,sout.str())
 //    }
-//#endif
-//	
-//    
-//	//values[0] : pressure error using L2 norm
-//	if(data.numberdualfunctions){
-//		REAL diffP = abs(u_exact[0]-sol[0]);
-//		values[0]  = diffP*diffP;
-//	}
-//	//values[1] : flux error using L2 norm
-//	for(int id=0; id<fDim; id++) {
-//        REAL diffFlux = abs(dsol[id] - du_exact(id,0));
-//		values[1]  += diffFlux*diffFlux;
-//	}
-//}
+#endif
+    
+    
+//    //values[0] : pressure error using L2 norm
+//    if(data.numberdualfunctions){
+//        REAL diffP = abs(u_exact[0]-sol[0]);
+//        values[0]  = diffP*diffP;
+//    }
+    //values[1] : flux error using L2 norm
+    for(int id=0; id<3; id++) {
+        REAL diffFlux = abs(dsol[id] - du_exact(id,0));
+        values[1]  += diffFlux*diffFlux;
+    }
+//    if(du_exact.Rows()>3){
+//        //values[2] : divergence using L2 norm
+//        REAL diffDiv = abs(div[0] - du_exact(2,0));
+//        values[2]=diffDiv*diffDiv;
+//        //values[3] : Hdiv norm => values[1]+values[2];
+//        values[3]= values[1]+values[2];
+//    }
+}
 
 
 
@@ -821,46 +822,24 @@ void TPZMatPoissonD3::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
-	values.Resize(NEvalErrors());
+    values.Resize(NEvalErrors());
     values.Fill(0.0);
-	TPZManVector<STATE> dudxEF(1,0.), dudyEF(1,0.),dudzEF(1,0.);
-	this->Solution(u,dudx,axes,VariableIndex("KDuDx"), dudxEF);
-    STATE fraq = dudxEF[0]/fK;
-    fraq = fraq - du_exact(0,0);
-    REAL diff = fabs(fraq);
-	values[3] = diff*diff;
-	if(fDim > 1) {
-		this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
-        fraq = dudyEF[0]/fK;
-        fraq = fraq - du_exact(1,0);
-		diff = fabs(fraq);
-		values[4] = diff*diff;
-		if(fDim > 2) {
-			this->Solution(u,dudx,axes, this->VariableIndex("KDuDz"), dudzEF);
-			fraq = dudzEF[0]/fK;
-            fraq = fraq - du_exact(2,0);
-            diff = fabs(fraq);
-			values[5] = diff*diff;
-		}
-	}
     
-    std::cout << " entrou " << std::endl;
-    
-	TPZManVector<STATE> sol(1),dsol(3,0.);
-	Solution(u,dudx,axes,1,sol);
-	Solution(u,dudx,axes,2,dsol);
-	int id;
-	//values[1] : eror em norma L2
-    diff = fabs(sol[0] - u_exact[0]);
-	values[1]  = diff*diff;
-	//values[2] : erro em semi norma H1
-	values[2] = 0.;
-	for(id=0; id<fDim; id++) {
+    TPZManVector<STATE> sol(1),dsol(3,0.);
+    Solution(u,dudx,axes,2,sol);
+    Solution(u,dudx,axes,1,dsol);
+    int id;
+    //values[1] : eror em norma L2
+    REAL  diff = fabs(sol[0] - u_exact[0]);
+    values[1]  = diff*diff;
+    //values[2] : erro em semi norma H1
+    values[2] = 0.;
+    for(id=0; id<fDim; id++) {
         diff = fabs(dsol[id] - du_exact(id,0));
-		values[2]  += abs(fK)*diff*diff;
-	}
-	//values[0] : erro em norma H1 <=> norma Energia
-	values[0]  = values[1]+values[2];
+        values[2]  += abs(fK)*diff*diff;
+    }
+    //values[0] : erro em norma H1 <=> norma Energia
+    values[0]  = values[1]+values[2];
 }
 
 
