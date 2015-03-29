@@ -423,23 +423,23 @@ BOOST_AUTO_TEST_SUITE(numinteg_tests)
 
 BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
-    int href = 10;
+    int href = 0;
 //  Check taylor convergence for all curve elements
     TPZCurve * Curve = new TPZCurve;
-    Curve->SetRadius(5.0);
+    Curve->SetRadius(1.0);
 
-//     Curve->MakeRhombus();
-//     Curve->RefineMe(href);
-//     IntegrateCurve(*Curve);
+    Curve->MakeRhombus();
+    Curve->RefineMe(href);
+    IntegrateCurve(*Curve);
 
-    Curve->MakeCircleWave();
+/*    Curve->MakeCircleWave();
     Curve->RefineMe(href);
     Curve->PrintMe();
-    IntegrateCurve(*Curve);     
+    IntegrateCurve(*Curve); */    
     
-//     Curve->MakeCircleFromArc();
-//     Curve->RefineMe(href);
-//     IntegrateCurve(*Curve); 
+    Curve->MakeCircleFromArc();
+    Curve->RefineMe(href);
+    IntegrateCurve(*Curve);
 
 
 }
