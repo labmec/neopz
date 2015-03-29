@@ -423,7 +423,7 @@ BOOST_AUTO_TEST_SUITE(numinteg_tests)
 
 BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
-    int href = 0;
+    int href = 5;
 //  Check taylor convergence for all curve elements
     TPZCurve * Curve = new TPZCurve;
     Curve->SetRadius(1.0);
@@ -432,10 +432,10 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
     Curve->RefineMe(href);
     IntegrateCurve(*Curve);
 
-/*    Curve->MakeCircleWave();
+    Curve->MakeCircleWave();
     Curve->RefineMe(href);
     Curve->PrintMe();
-    IntegrateCurve(*Curve); */    
+    IntegrateCurve(*Curve);
     
     Curve->MakeCircleFromArc();
     Curve->RefineMe(href);
