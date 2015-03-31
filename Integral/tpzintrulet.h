@@ -8,6 +8,7 @@
 
 #include "pzreal.h"
 #include "pzvec.h"
+#include "pzmanvector.h"
 
 /**
  * @ingroup integral
@@ -22,11 +23,11 @@ class TPZIntRuleT {
 	/** @brief Number of integration points for this object */
     int	   fNumInt;
 	/** @brief Location of the integration point Ksi */
-    TPZVec<long double>	fLocationKsi;
+    TPZManVector<long double>	fLocationKsi;
 	/** @brief Location of the integration point Eta */
-    TPZVec<long double>	fLocationEta;
+    TPZManVector<long double>	fLocationEta;
 	/** @brief Weight of the integration point */
-    TPZVec<long double>	fWeight;
+    TPZManVector<long double>	fWeight;
 
 	/**
 	 * @brief Constructor of integration rule for triangle.

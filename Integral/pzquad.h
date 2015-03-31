@@ -149,7 +149,10 @@ public:
 	 * @param OrdK Order for \f$ \xi \f$ axe
 	 * @param OrdE Order for \f$ \eta \f$ axe at master element.
 	 */
-	TPZIntQuad(int OrdK = 2,int OrdE = 2);
+	TPZIntQuad(int OrdK,int OrdE);
+    
+	TPZIntQuad(int OrdK = 1);
+    
 	/** @brief Copy constructor */
 	TPZIntQuad(const TPZIntQuad &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fIntKsi(copy.fIntKsi),fIntEta(copy.fIntEta) {
 	}

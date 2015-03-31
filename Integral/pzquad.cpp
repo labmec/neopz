@@ -128,6 +128,14 @@ TPZIntQuad::TPZIntQuad(int OrdK, int OrdE){
 	fOrdEta = OrdE;
 }
 
+//**************************************
+TPZIntQuad::TPZIntQuad(int OrdK){
+    fIntKsi = gIntRuleList.GetRule(OrdK);
+    fIntEta = gIntRuleList.GetRule(OrdK);
+    fOrdKsi = OrdK;
+    fOrdEta = OrdK;
+}
+
 int TPZIntQuad::NPoints() const {
 	if (!fIntKsi || !fIntEta){
 		PZError << "Null Pointer passed to method TPZInt1d::TPZInt1d(TPZGaussRule *)\n";
