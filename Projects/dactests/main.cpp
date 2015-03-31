@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
     int ndiv = 0;
     ofstream saidaerros("ErroNormas.txt",ios::app);
     
-    for(p=1;p<4;p++)
+    for(p=2;p<3;p++)
     {
         saidaerros << "\nPARA p = " << p << " \n " << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
