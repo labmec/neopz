@@ -375,9 +375,9 @@ void TaylorCheck(TPZManVector<STATE,3> &coordinate,TPZGeoEl * GeometricEl)
   
 }
 
-void IntegrateCurve(TPZCurve &curve)
+REAL IntegrateCurve(TPZCurve &curve)
 {
-  int IntegrationOrder = 4;
+  int IntegrationOrder = 10;
   int type = 0;  
   TPZVec<int> order(3,IntegrationOrder);
   
@@ -406,7 +406,6 @@ void IntegrateCurve(TPZCurve &curve)
     // Creating the integration rule
     TPZInt1d IntegrationRule(IntegrationOrder);
     IntegrationRule.SetType(type,IntegrationOrder);
-    int dimension = IntegrationRule.Dimension();
     int npoints = IntegrationRule.NPoints();
     STATE weight = 0.0;
 
@@ -419,8 +418,8 @@ void IntegrateCurve(TPZCurve &curve)
     }
     
   }
-
-  std::cout << "Curve Length = " << Length << std:: endl;
+    
+    return Length;
   
 }
 
@@ -457,7 +456,6 @@ REAL IntegrateSurface(TPZSurface &surface)
             // Creating the integration rule
             TPZIntQuad IntegrationRule(IntegrationOrder);
             IntegrationRule.SetType(type,IntegrationOrder);
-            int dimension = IntegrationRule.Dimension();
             int npoints = IntegrationRule.NPoints();
             STATE weight = 0.0;
             
@@ -476,7 +474,6 @@ REAL IntegrateSurface(TPZSurface &surface)
             // Creating the integration rule
             TPZIntTriang IntegrationRule(IntegrationOrder);
             IntegrationRule.SetType(type,IntegrationOrder);
-            int dimension = IntegrationRule.Dimension();
             int npoints = IntegrationRule.NPoints();
             STATE weight = 0.0;
             
@@ -493,8 +490,6 @@ REAL IntegrateSurface(TPZSurface &surface)
 
         
     }
-    
-//    std::cout << "Surface Area = " << Area << std:: endl;
 
     return Area;
     
@@ -505,60 +500,68 @@ BOOST_AUTO_TEST_SUITE(numinteg_tests)
 
 BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
-    int href = 0;
+    int href    = 0;
+    REAL Lentgh = 0.0;
+    REAL Area   = 0.0;
     
     InitializePZLOG();
     
     //  Check taylor convergence for all curve elements
-//    TPZCurve * Curve = new TPZCurve;
-//    Curve->SetRadius(1.0);
-//
-//    Curve->MakeRhombus();
-//    Curve->RefineMe(href);
-//    Curve->PrintMe();
-//    IntegrateCurve(*Curve);
-//    //
-//    //    Curve->MakeCircleWave();
-//    //    Curve->RefineMe(href);
-//    //    Curve->PrintMe();
-//    //    IntegrateCurve(*Curve);
-//    //
-//    Curve->MakeCircleFromArc();
-//    Curve->RefineMe(href);
-//    Curve->PrintMe();
-//    IntegrateCurve(*Curve);
-//
-//    Curve->MakeCircleQuadratic();
-//    Curve->RefineMe(href);
-//    Curve->PrintMe();
-//    IntegrateCurve(*Curve);
+    TPZCurve * Curve = new TPZCurve;
+    Curve->SetRadius(1.0);
 
+    Curve->MakeRhombus();
+    Curve->RefineMe(href);
+    Curve->PrintMe();
+    Lentgh = IntegrateCurve(*Curve);
+    std::cout << "  Lentgh = " << Lentgh << std::endl;
+
+//    Curve->MakeCircleWave();
+//    Curve->RefineMe(href);
+//    Curve->PrintMe();
+//    Lentgh = IntegrateCurve(*Curve);
+//    std::cout << "  Lentgh = " << Lentgh << std::endl;
+
+    Curve->MakeCircleFromArc();
+    Curve->RefineMe(href);
+    Curve->PrintMe();
+    Lentgh = IntegrateCurve(*Curve);
+    std::cout << "  Lentgh = " << Lentgh << std::endl;
+
+    Curve->MakeCircleQuadratic();
+    Curve->RefineMe(href);
+    Curve->PrintMe();
+    Lentgh = IntegrateCurve(*Curve);
+    std::cout << "  Lentgh = " << Lentgh << std::endl;
+
+    
+    
     TPZSurface * Surface = new TPZSurface;
     Surface->SetRadius(1.0);
-    
-//    Surface->MakeCube();
-//    Surface->RefineMe(href);
-//    Surface->PrintMe();
-//    IntegrateSurface(*Surface);
-//    
-//    Surface->MakeRhombohedron();
-//    Surface->RefineMe(href);
-//    Surface->PrintMe();
-//    IntegrateSurface(*Surface);
 
-    REAL area =0.0;
+    Surface->MakeCube();
+    Surface->RefineMe(href);
+    Surface->PrintMe();
+    Area = IntegrateSurface(*Surface);
+    std::cout << "  Area = " << Area << std::endl;
+
+    Surface->MakeRhombohedron();
+    Surface->RefineMe(href);
+    Surface->PrintMe();
+    Area = IntegrateSurface(*Surface);
+    std::cout << "  Area = " << Area << std::endl;
     
     Surface->MakeSphereFromQuadrilateral();
     Surface->RefineMe(href);
     Surface->PrintMe();
-    area = IntegrateSurface(*Surface);
-    std::cout << "  Area = " << area << std::endl;
+    Area = IntegrateSurface(*Surface);
+    std::cout << "  Area = " << Area << std::endl;
 
     Surface->MakeSphereFromTriangle();
     Surface->RefineMe(href);
     Surface->PrintMe();
-    area = IntegrateSurface(*Surface);
-    std::cout << "  Area = " << area << std::endl;
+    Area = IntegrateSurface(*Surface);
+    std::cout << "  Area = " << Area << std::endl;
     
     
     return;
