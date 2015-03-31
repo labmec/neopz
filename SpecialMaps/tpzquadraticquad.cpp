@@ -90,7 +90,7 @@ void TPZQuadraticQuad::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TP
 		}
 	}
 	
-	TPZFMatrix<REAL> axest;
+	TPZFNMatrix<9,REAL> axest;
 	VecMatrix.GramSchmidt(axest,jacobian);
 	axest.Transpose(&axes);
 	
