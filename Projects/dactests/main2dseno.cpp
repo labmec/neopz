@@ -141,8 +141,8 @@ REAL const Pi = M_PI;//4.*atan(1.);
 // Para dimensao 2
 // tipo 1 triangulo
 // tipo 2 quadrilatero
-int tipo = 2;
-bool ftriang = false;//true
+int tipo = 1;
+bool ftriang = true;//true
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
@@ -180,13 +180,13 @@ int main(int argc, char *argv[])
     {
         int pq = p;
         int pp = p;
-        if(ftriang==true){
-            pp = pq-1;
-        }else{
-            pp = pq;
-        }
+//        if(ftriang==true){
+//            pp = pq-1;
+//        }else{
+//            pp = pq;
+//        }
         
-        for (ndiv=1; ndiv<2; ndiv++)
+        for (ndiv=0; ndiv<4; ndiv++)
         {
             
             //            TPZGeoMesh *gmesh = CreateOneCubo(ndiv);
@@ -1081,15 +1081,16 @@ void PosProcessMultphysics2dseno(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mph
 void SolExata2dseno(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     
     solp.Resize(1, 0.);
-    flux.Resize(dim, 1);
+    flux.Resize(3, 1);
     double x = pt[0];
     double y = pt[1];
-    for(int d=0; d<dim;d++) flux(d,0)=0.;
+    for(int d=0; d<3;d++) flux(d,0)=0.;
 
     solp[0] = sin(Pi*x)*sin(Pi*y);
     
     flux(0,0)=-Pi*cos(Pi*x)*sin(Pi*y);
     flux(1,0)=-Pi*cos(Pi*y)*sin(Pi*x);
+    flux(2,0)=0.0;
 
     
 }

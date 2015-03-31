@@ -121,7 +121,7 @@ private:
     int fbc5;
     int fmatskeleton;
     
-    bool isH1;
+    bool fisH1;
     
     bool ftriang;
     
@@ -142,7 +142,7 @@ public:
      */
     TPZGeoMesh *GMeshCirculoGeob( int ndiv);
     TPZGeoMesh *GMeshCirculoGeobQuart( int ndiv);
-    
+    TPZGeoMesh *GMeshCirculoGeobQuartT( int ndiv);
     TPZGeoMesh *GMeshCirculoTriangGeob( int ndiv);
     /**
      * Cria uma malha geometrica formada por elementos do tipo Geoblend
@@ -190,6 +190,21 @@ public:
     static void ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
     
     static void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
+    
+    void ChangeExternalOrderConnects(TPZCompMesh *mesh);
+    
+    void setTriangTrue()
+    {
+        ftriang = true;
+    }
+    void setH1True()
+    {
+        fisH1 = true;
+    }
+    bool getIsH1(bool &EH1){
+        EH1 = fisH1;
+    }
+
     
 };
 

@@ -1440,6 +1440,7 @@ TPZGeoMesh *GMeshSphericalRingQuarter(int dimensao, bool triang, int ndiv)
         topology[1] = 2;
         topology[2] = 3;
         
+
         TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > * SphereEighth2 =
         new TPZGeoElRefPattern< pzgeom::TPZTriangleSphere <> > (elementid, topology,materialId,*geomesh);
         SphereEighth2->Geom().SetData(r,xc);

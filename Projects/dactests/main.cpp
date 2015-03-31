@@ -116,25 +116,25 @@ std::map<REAL,REAL> fDebugMapL2, fDebugMapHdiv;
 ///** @brief Map used Degrees of Freedom */
 std::map<int,int> fDebugDoF;
 
-int tetraedra_2[6][4]=
-{
-    {1,2,5,4},
-    {4,7,3,2},
-    {0,1,2,4},
-    {0,2,3,4},
-    {4,5,6,2},
-    {4,6,7,2}
-};
-
-int piramide_2[6][5]=
-{
-    {0,1,2,3,8},
-    {0,1,5,4,8},
-    {1,2,6,5,8},
-    {3,2,6,7,8},
-    {0,3,7,4,8},
-    {4,5,6,7,8}
-};
+//int tetraedra_2[6][4]=
+//{
+//    {1,2,5,4},
+//    {4,7,3,2},
+//    {0,1,2,4},
+//    {0,2,3,4},
+//    {4,5,6,2},
+//    {4,6,7,2}
+//};
+//
+//int piramide_2[6][5]=
+//{
+//    {0,1,2,3,8},
+//    {0,1,5,4,8},
+//    {1,2,6,5,8},
+//    {3,2,6,7,8},
+//    {0,3,7,4,8},
+//    {4,5,6,7,8}
+//};
 
 
 //bool MyDoubleComparer(REAL a, REAL b);
@@ -157,7 +157,7 @@ int piramide_2[6][5]=
 //void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 //void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 
-int dim = 3;
+int dim = 2;
 REAL aa = 0.0;
 REAL bb = 0.0;
 REAL cc = 0.0;
@@ -168,7 +168,7 @@ REAL Epsilon = 0.4;
 
 
 
-bool ftriang = false;//true;//
+//bool ftriang = false;//true;//
 bool IsCube = true;
 bool IsPrism = false;
 bool IsTetra = false;
@@ -199,12 +199,12 @@ int main(int argc, char *argv[])
     int ndiv = 0;
     ofstream saidaerros("ErroNormas.txt",ios::app);
     
-    for(p=2;p<3;p++)
+    for(p=1;p<4;p++)
     {
         saidaerros << "\nPARA p = " << p << " \n " << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
         
-        for (ndiv=0; ndiv<3; ndiv++)
+        for (ndiv=0; ndiv<5; ndiv++)
         {
             
             if (dim==2)

@@ -27,7 +27,7 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
     
 	bool isdirect = true;
     bool simetrico = true;
-    bool isfrontal = true;
+    bool isfrontal = false;
     if (isdirect)
     {
         if (simetrico)
