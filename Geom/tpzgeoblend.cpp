@@ -405,7 +405,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Print(std::ostream &out) const
 	TGeo::Print(out);
 	out << "Neighbours/transformations used for mapping the sides :\n";
 	int is;
-	for(is=TGeo::NNodes; is<TGeo::NSides-1; is++)
+	for(is=TGeo::NNodes; is<TGeo::NSides; is++)
 	{
         out << "Side: " << is << " El/side: " << fNeighbours[is-TGeo::NNodes].ElementIndex() << ":" <<
         fNeighbours[is-TGeo::NNodes].Side() << '\n';

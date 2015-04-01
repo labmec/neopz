@@ -30,6 +30,7 @@
 #include "pzgeotetrahedra.h"
 #include "pzgeoelrefless.h"
 #include "tpzquadraticquad.h"
+#include "tpzquadratictrig.h"
 #include "tpzquadraticline.h"
 #include "TPZQuadSphere.h"
 #include "TPZTriangleSphere.h"
@@ -144,6 +145,8 @@ public:
     TPZGeoMesh *GMeshCirculoGeobQuart( int ndiv);
     TPZGeoMesh *GMeshCirculoGeobQuartT( int ndiv);
     TPZGeoMesh *GMeshCirculoTriangGeob( int ndiv);
+    TPZGeoMesh *GMeshQuartoCirculoGeobAT( int ndiv);
+    TPZGeoMesh *GMeshCirculoQuadraticQuartT( int ndiv);
     /**
      * Cria uma malha geometrica formada por elementos do tipo Geoblend
      */

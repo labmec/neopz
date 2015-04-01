@@ -192,7 +192,7 @@ template<class TGeo>
 TPZGeoEl *
 TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
 	TPZGeoEl * result = fGeo.CreateBCGeoEl(this,side,bc);
-	//result->BuildBlendConnectivity();
+	result->BuildBlendConnectivity();
 	return result;  
 }
 

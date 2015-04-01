@@ -106,13 +106,15 @@ void tools::PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mp
 {
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    TPZManVector<std::string,10> scalnames(2), vecnames(2);
+    TPZManVector<std::string,10> scalnames(3), vecnames(3);
     vecnames[0]  = "Flux";
     vecnames[1]  = "ExactFlux";
+    vecnames[2]  = "GradP";
     scalnames[0] = "Pressure";
     scalnames[1] = "ExactPressure";
+    scalnames[2] = "Rhs";
     
-    int div = 0;
+    int div = 3;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     

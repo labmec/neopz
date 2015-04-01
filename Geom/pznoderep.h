@@ -30,7 +30,7 @@ namespace pzgeom {
          * @ingroup topology
          * @brief Initializing tolerance to TPZNodeRep.
          */
-        const double pzgeom_TPZNodeRep_tol = 1.E-6;
+        const double pzgeom_TPZNodeRep_tol = 1.E-12;
        
         /**
          * @ingroup geometry

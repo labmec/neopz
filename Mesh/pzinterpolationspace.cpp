@@ -1567,7 +1567,7 @@ int TPZInterpolationSpace::GetSideOrient(int side){
     
     TPZGeoEl *gel = this->Reference();
     int nsides = gel->NSides();
-    int nnos = gel->NNodes();
+    int nnos = gel->NCornerNodes();
     // para elemento quadratico, ie, quadrilatero de 8 nos
     if (gel->Type()==EQuadrilateral && nnos>side) {
         int sideorient = gel->NormalOrientation(side);
