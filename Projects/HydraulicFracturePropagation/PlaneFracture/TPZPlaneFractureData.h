@@ -21,9 +21,7 @@
 #include <map>
 
 
-
-
-const REAL globStressScale = 1.E-7;//DO NOT TOUCH!!!
+const REAL globStressScale = 1.E-6;//DO NOT TOUCH!!! (Para escalonar para MPa e melhorar estabilidade numerica do sistema nao linear)
 
 
 
@@ -54,7 +52,7 @@ public:
     
     void SetTimeControl(REAL Ttot)
     {
-        fdeltaTstep = 5.;
+        fdeltaTstep = 10.;
         fTtot = Ttot;
         factTime = 0.;
         
@@ -156,7 +154,7 @@ public:
             DebugStop();
         }
         
-        bool isCloseEnough = (fDeltaT_right - fDeltaT_left) < 0.1;
+        bool isCloseEnough = (fDeltaT_right - fDeltaT_left) < 0.5;
         
         if(isCloseEnough && fwasLeftLastTime)
         {
@@ -324,9 +322,9 @@ public:
     
     int InsideFractMatId(int layer, int stripe)
     {
-        if(stripe < 0 || stripe > 2009)
+        if(stripe < 0 || stripe > 9)
         {
-            std::cout << "\n\n\nA faixa máxima é 2009, e foi solicitado faixa " << stripe << " no gerador de materialId\n\n\n";
+            //Soh pode ter 10 faixas de pressao (de 0 a 9)
             DebugStop();
         }
         
@@ -335,37 +333,37 @@ public:
     
     int OutSideFractMatId(int layer)
     {
-        return -(RockMatId(layer) + 3000);
+        return -(RockMatId(layer) + 2000);
     }
     
     int FarfieldMatId(int layer)
     {
-        return -(RockMatId(layer) + 4000);
+        return -(RockMatId(layer) + 3000);
     }
     
     int LeftMatId(int layer)
     {
-        return -(RockMatId(layer) + 5000);
+        return -(RockMatId(layer) + 4000);
     }
     
     int RightMatId(int layer)
     {
-        return -(RockMatId(layer) + 6000);
+        return -(RockMatId(layer) + 5000);
     }
     
     int TopMatId()
     {
-        return -7010;
+        return -6010;
     }
     
     int BottomMatId()
     {
-        return -8010;
+        return -7010;
     }
     
     bool IsInsideFractMat(int matId)
     {
-        if(matId <= -1010 && matId >= -3009)
+        if(matId <= -1010 && matId >= -2009)
         {
             return true;
         }
@@ -375,23 +373,23 @@ public:
         }
     }
     
-    int WhatStripe(int matId)
-    {
-        if(IsInsideFractMat(matId) == false)
-        {
-            std::cout << "\n\nGiven materialId (" << matId << ") does NOT belong to InsideFracture!!!\n\n";
-            DebugStop();
-        }
-        
-        int val = matId/10.;
-        int lastDigit = matId - val*10;
-        
-        return fabs(lastDigit);//Last digit corresponds to the stripe
-    }
+//    int WhatStripe(int matId)
+//    {
+//        if(IsInsideFractMat(matId) == false)
+//        {
+//            std::cout << "\n\nGiven materialId (" << matId << ") does NOT belong to InsideFracture!!!\n\n";
+//            DebugStop();
+//        }
+//        
+//        int val = matId/10.;
+//        int lastDigit = matId - val*10;
+//        
+//        return fabs(lastDigit);//Last digit corresponds to the stripe
+//    }
     
     bool IsOutsideFractMat(int matId)
     {
-        if(matId <= -3010 && matId >= -4000)
+        if(matId <= -2010 && matId >= -3000)
         {
             return true;
         }
@@ -403,7 +401,7 @@ public:
     
     bool IsBoundaryMaterial(int matId)
     {
-        if(matId <= -4010 && matId >= -8010)
+        if(matId <= -3010 && matId >= -7010)
         {//is 2D BC between: left, right, farfield, top or bottom
             return true;
         }
@@ -474,9 +472,8 @@ public:
     }
     
     LayerProperties(REAL Young, REAL Poisson, REAL SigYY, REAL TVDi, REAL TVDf,
-                    REAL KIc, REAL Cl, REAL Pe, REAL gradPref, REAL vsp)
+                    REAL KIc, REAL Cl, REAL Pe, REAL gradPref, REAL vsp, bool pressureINdependent)
     {
-#ifdef DEBUG
         REAL tol = 1.E-9;
         if(SigYY > 0.)
         {
@@ -484,19 +481,22 @@ public:
             std::cout << "\n\nSee " << __PRETTY_FUNCTION__ << "\n\n";
             DebugStop();
         }
-        if(Pe < 0. - tol)
+        
+        if(pressureINdependent == false)
         {
-            std::cout << "\n\nStatic pressure (Pe) must be null or positive!\n";
-            std::cout << "\n\nSee " << __PRETTY_FUNCTION__ << "\n\n";
-            DebugStop();
+            if(Pe < 0. - tol)
+            {
+                std::cout << "\n\nStatic pressure (Pe) must be null or positive!\n";
+                std::cout << "\n\nSee " << __PRETTY_FUNCTION__ << "\n\n";
+                DebugStop();
+            }
+            if(gradPref < 0. + tol)
+            {
+                std::cout << "\n\nReference pressure (gradPref) must be positive!\n";
+                std::cout << "\n\nSee " << __PRETTY_FUNCTION__ << "\n\n";
+                DebugStop();
+            }
         }
-        if(gradPref < 0. + tol)
-        {
-            std::cout << "\n\nReference pressure (gradPref) must be positive!\n";
-            std::cout << "\n\nSee " << __PRETTY_FUNCTION__ << "\n\n";
-            DebugStop();
-        }
-#endif
         
         this->fYoung = Young;
         this->fPoisson = Poisson;
@@ -670,6 +670,7 @@ public:
     
     int NTimes();
     void InsertTAcumVolW(REAL time, REAL vol);
+    void InsertTmeanW(REAL time, REAL meanW);
     void InsertTAcumVolLeakoff(REAL time, REAL vol);
     void InsertTNetPressure(REAL time, REAL netpressure);
 
@@ -685,6 +686,7 @@ public:
     std::stringstream fKI_KI_history;
     
     std::map<REAL,REAL> fTAcumVolW;
+    std::map<REAL,REAL> fTmeanW;
     std::map<REAL,REAL> fTAcumVolLeakoff;
     std::map<REAL,REAL> fTNetPressure;
     

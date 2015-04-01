@@ -204,26 +204,29 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
     this->Mesh2D();
     
     TPZCompMesh * cmesh_elast = this->CMeshElastic();
-    TPZFMatrix<STATE> solutions(0,0);
+    TPZFMatrix<STATE> solutions(cmesh_elast->Solution().Rows(),2);
     
     TPZAnalysis * an = new TPZAnalysis;
-    int NStripes = globFractInputData.NStripes();
-    for(int stripe = 0; stripe < NStripes; stripe++)
+    
+    an->SetCompMesh(cmesh_elast, true);
+    this->SolveInitialElasticity(*an, cmesh_elast);
+    
+    for(int r = 0; r < cmesh_elast->Solution().Rows(); r++)
+    {
+        solutions(r,0) = cmesh_elast->Solution()(r,0);
+    }
+    
     {
         /** Resolvendo um problema modelo de elastica linear para utilizar a
             solucao como espaco de aproximacao do problema nao linear (acoplado) */
-        SetSigmaNStripeNum(cmesh_elast,stripe);
+        SetSigmaNStripeNum(cmesh_elast,0);
         
-        bool mustOptimizeBandwidth = (stripe == 0);
-        an->SetCompMesh(cmesh_elast, mustOptimizeBandwidth);
+        an->SetCompMesh(cmesh_elast, false);
         this->SolveInitialElasticity(*an, cmesh_elast);
-        if(stripe == 0)
-        {
-            solutions.Resize(cmesh_elast->Solution().Rows(), NStripes);
-        }
+
         for(int r = 0; r < cmesh_elast->Solution().Rows(); r++)
         {
-            solutions(r,stripe) = cmesh_elast->Solution()(r,0);
+            solutions(r,1) = cmesh_elast->Solution()(r,0) - solutions(r,0);
         }
     }
     cmesh_elast->LoadSolution(solutions);

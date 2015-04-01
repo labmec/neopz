@@ -258,7 +258,9 @@ public:
 	
 	/** @brief Integrate a variable over the element. */
 	virtual TPZVec<STATE> IntegrateSolution(int variable) const;
-	
+    
+    virtual void Integrate(int variable, TPZVec<REAL> & value);
+    
 	/** @brief Integrate the solution over the element */
 //	virtual void IntegrateSolution(TPZVec<STATE> & value);
 	

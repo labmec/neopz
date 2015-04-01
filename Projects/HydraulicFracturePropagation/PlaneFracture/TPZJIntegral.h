@@ -176,9 +176,9 @@ protected:
 class Path3D
 {
 public:
-
+    
     Path3D();
-
+    
     /**
      * Given unidimensional element reffers to the cracktip element that will be used
      * to compute J-integral around it.
@@ -245,7 +245,7 @@ protected:
     
     REAL fKI;
     REAL fKIc;
-
+    
     TPZVec<REAL> fJDirection;
     REAL fJintegral;
 };

@@ -219,6 +219,8 @@ public:
 
 	/** @brief Return a pointer to the element referenced by the geometric element*/
 	TPZCompEl *Reference() const;
+    
+    virtual void GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons);
 
 	/** @brief Returns the element type acording to pzeltype.h */
 	virtual MElementType Type() const = 0;

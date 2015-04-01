@@ -172,9 +172,13 @@ public:
     /** @brief Returns the nearest node to the coordinate. This method is VERY INEFFICIENT */
 	TPZGeoNode* FindNode(TPZVec<REAL> &co);
     
-    /** by Caju 2012 */
+    /** by Phil */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
     TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
+    
+    /** by Caju */
+    /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
+    TPZGeoEl * FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);
     
     /** @brief find an element/parameter close to the point */
     TPZGeoEl *FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim);

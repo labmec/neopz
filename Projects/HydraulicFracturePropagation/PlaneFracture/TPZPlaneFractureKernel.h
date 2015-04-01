@@ -24,10 +24,10 @@ public:
     
     TPZPlaneFractureKernel();
     /**
-	 * @brief Constructor
-	 * @param layerVec [in] : vector of layers
-	 * @param bulletTVDIni [in] : bullets perforation initial (TVD) depth
-	 * @param bulletTVDFin [in] : bullets perforation final (TVD) depth
+     * @brief Constructor
+     * @param layerVec [in] : vector of layers
+     * @param bulletTVDIni [in] : bullets perforation initial (TVD) depth
+     * @param bulletTVDFin [in] : bullets perforation final (TVD) depth
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      * @param yLength [in] : Reservoir length in y direction (tickness of reservoir that couple fracture plane)
      * @param Lmax    [in] : Maximum element edge length
@@ -38,14 +38,17 @@ public:
      * @param porder [in] : polinomial order of simulation
      * @param MaxDispl [in] : Maximum displacement when fracture propagate
      * @param pressureIndependent [in] : Flag that mean if leakoff is pressure independent
+     * @param just1stripe [in] : Flag that mean if reduced space will be a unique stripe
      *
      * TVD: True Vertical Depth (positive positions)
-	 */
+     */
     TPZPlaneFractureKernel(TPZVec<LayerProperties> & layerVec, REAL bulletTVDIni, REAL bulletTVDFin,
                            REAL xLength, REAL yLength, REAL Lmax, REAL Qinj_well, REAL visc,
                            REAL Jradius,
                            REAL MaxDispl,
-                           bool pressureIndependent);
+                           bool pressureIndependent,
+                           bool just1stripe,
+                           bool layersStripesToo);
     
     ~TPZPlaneFractureKernel();
     
@@ -111,7 +114,7 @@ protected:
     
     /** Compute the volume of the interior of the fracture (by w=2*uy integral) */
     void PostProcessAcumVolW();
-
+    
     /** Compute the volume of the leakoff */
     void PostProcessLeakoff(int num = -1);
     
@@ -120,7 +123,7 @@ protected:
     
     /** Generate vtk for stress tensor invariants post process */
     void PostProcessInvariants(int num = -1);
-
+    
     /** Generate vtk for pressure post process */
     void PostProcessPressure(int num = -1);
     
@@ -187,8 +190,12 @@ protected:
     REAL fvisc;
     
     REAL fResTop, fResBottom, fResRight;//Limits of reservoir domain in z and x
+    REAL fZbulletTop, fZbulletBottom;
     
     REAL fMaxDispl;
+    
+    bool fjust1stripe;
+    bool flayersStripesToo;
     
     JIntegral3D fPath3D;
 };

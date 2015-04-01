@@ -164,7 +164,7 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         qsi = it->second.second;
     }
 
-    TPZGeoEl * geoEl = this->fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
+    TPZGeoEl * geoEl = this->fcmeshElastic->Reference()->FindElementCaju(xt, qsi, InitialElementIndex, 3);
     
     if(!geoEl)
     {
@@ -199,7 +199,7 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     GradUtxy = data.dsol[0];
     
     {
-        TPZGeoEl * geoEl2D = this->fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 2);
+        TPZGeoEl * geoEl2D = this->fcmeshElastic->Reference()->FindElementCaju(xt, qsi, InitialElementIndex, 2);
         int insideMatId = geoEl2D->MaterialId();
         
         if(globMaterialIdGen.IsInsideFractMat(insideMatId) == false)
@@ -278,7 +278,7 @@ REAL LinearPath3D::ComputeNetPressure(REAL t, TPZVec<REAL> & xt, REAL prestress)
         qsi = it->second.second;
     }
 
-    TPZGeoEl * geoEl = this->fcmeshFluid->Reference()->FindElement(xt, qsi, InitialElementIndex, 2);
+    TPZGeoEl * geoEl = this->fcmeshFluid->Reference()->FindElementCaju(xt, qsi, InitialElementIndex, 2);
     
     if(!geoEl)
     {
@@ -310,7 +310,7 @@ bool LinearPath3D::ThereIsNegativeNetPressure()
         this->fcmeshFluid->LoadReferences();
     }
     
-    REAL t = 0.90;
+    REAL t = 0.95;
     TPZVec<REAL> xt(3,0.);
     this->X(t,xt);
     
@@ -493,7 +493,7 @@ REAL ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
     {
         qsi.Resize(this->fcmeshElastic->Reference()->ElementVec()[InitialElementIndex]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = this->fcmeshElastic->Reference()->FindElement(xt, qsi, InitialElementIndex, 3);
+    TPZGeoEl * geoEl = this->fcmeshElastic->Reference()->FindElementCaju(xt, qsi, InitialElementIndex, 3);
     
     if(!geoEl)
     {

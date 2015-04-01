@@ -1882,6 +1882,24 @@ int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides)
 	return -1;
 }
 
+void TPZGeoEl::GetHigherSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
+{
+    int nsons = this->NSubElements();
+    for(int s = 0; s < nsons; s++)
+    {
+        TPZGeoEl * son = this->SubElement(s);
+        if(son->HasSubElement() == false)
+        {
+            int oldSize = unrefinedSons.NElements();
+            unrefinedSons.Resize(oldSize+1, son);
+        }
+        else
+        {
+            son->GetHigherSubElements(unrefinedSons);
+        }
+    }
+}
+
 // Compute the permutation for an HDiv side
 void TPZGeoEl::HDivPermutation(int side, TPZVec<int> &permutegather)
 {

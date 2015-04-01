@@ -44,7 +44,7 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, bool
 		{
 			continue;
 		}
-		if(! gel->Reference())
+		if(!gel->Reference())
 		{
 			continue;
 		}
@@ -377,7 +377,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 }
 
 /** @brief Generate an output of all geometric elements that have a computational counterpart to VTK */
-void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, TPZVec<REAL> &elData)
+void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, TPZVec<REAL> &elData, std::string dataName)
 {
 	cmesh->LoadReferences();
     
@@ -455,7 +455,7 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, TPZV
 	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
 	file << "FIELD FieldData 1" << std::endl;
 	
-	file << "Substructure 1 " << nVALIDelements << " float" << std::endl;
+	file << dataName << " 1 " << nVALIDelements << " float" << std::endl;
 	
 	file << material.str();
 	

@@ -519,6 +519,10 @@ int TPZElasticity3D::VariableIndex(const std::string &name) {
 	if(!strcmp("StressX",name.c_str()))  return TPZElasticity3D::EStressX;
 	if(!strcmp("StressY",name.c_str()))  return TPZElasticity3D::EStressY;
 	if(!strcmp("StressZ",name.c_str()))  return TPZElasticity3D::EStressZ;
+	if(!strcmp("I1",name.c_str()))  return TPZElasticity3D::EI1;
+	if(!strcmp("I2",name.c_str()))  return TPZElasticity3D::EI2;
+	if(!strcmp("I3",name.c_str()))  return TPZElasticity3D::EI3;
+    
 	//   cout << "TPZElasticityMaterial::VariableIndex Error\n";
 	return TPZMaterial::VariableIndex(name);
 }
@@ -545,6 +549,9 @@ int TPZElasticity3D::NSolutionVariables(int var) {
 		case TPZElasticity3D::EStressX :
 		case TPZElasticity3D::EStressY :
 		case TPZElasticity3D::EStressZ :
+        case TPZElasticity3D::EI1 :
+        case TPZElasticity3D::EI2 :
+        case TPZElasticity3D::EI3 :
 			return 1;
 		default:
 			return TPZMaterial::NSolutionVariables(var);
@@ -753,6 +760,34 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		Solout[0] = Stress(2,2);
 		return;
 	}//TPZElasticity3D::EStressZ
+    
+    if(var == TPZElasticity3D::EI1){
+		TPZFNMatrix<9,STATE> Stress(3,3);
+		this->ComputeStressTensor(Stress, DSol);
+        Solout[0] = Stress(0,0) + Stress(1,1) + Stress(2,2);//Calculado no Mathematica
+        
+        return;
+    }//I1
+    
+    if(var == TPZElasticity3D::EI2){
+		TPZFNMatrix<9,STATE> Stress(3,3);
+		this->ComputeStressTensor(Stress, DSol);
+
+        Solout[0] = -(Stress(0,1)*Stress(1,0)) - Stress(0,2)*Stress(2,0) - Stress(1,2)*Stress(2,1) +
+                      Stress(1,1)*Stress(2,2) + Stress(0,0)*(Stress(1,1) + Stress(2,2));//Calculado no Mathematica
+        
+        return;
+    }//I2
+    
+    if(var == TPZElasticity3D::EI3){
+		TPZFNMatrix<9,STATE> Stress(3,3);
+		this->ComputeStressTensor(Stress, DSol);
+        Solout[0] = -(Stress(0,2)*Stress(1,1)*Stress(2,0)) + Stress(0,1)*Stress(1,2)*Stress(2,0) +
+                      Stress(0,2)*Stress(1,0)*Stress(2,1) - Stress(0,0)*Stress(1,2)*Stress(2,1) -
+                      Stress(0,1)*Stress(1,0)*Stress(2,2) + Stress(0,0)*Stress(1,1)*Stress(2,2);//Calculado no Mathematica
+        
+        return;
+    }//I3
 	
 }//Solution
 

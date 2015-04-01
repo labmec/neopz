@@ -190,6 +190,7 @@ add_subdirectory(proDG)
 			add_subdirectory(Testes_Agnaldo)
 			add_subdirectory(ReducedSpace)
 			add_subdirectory(ReducedSpacePlasticity)
+			add_subdirectory(HydraulicFracturePropagation)
 			add_subdirectory(StabilizedHybridElasticity)
 			add_subdirectory(GlobalPostPro)
 

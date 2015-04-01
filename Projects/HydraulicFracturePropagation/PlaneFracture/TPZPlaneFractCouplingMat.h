@@ -58,7 +58,7 @@ public:
         
         TPZGeoMesh * gmesh = this->flastElastCMesh->Reference();
         TPZVec<REAL> qsi(3,0.);
-        TPZGeoEl * gel = gmesh->FindElement(x, qsi, this->finiElIndex, 3);
+        TPZGeoEl * gel = gmesh->FindElementCaju(x, qsi, this->finiElIndex, 3);
         
         if(!gel)
         {

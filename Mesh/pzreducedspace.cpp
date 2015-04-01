@@ -166,7 +166,6 @@ void TPZReducedSpace::ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data){
 }
 
 void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi,TPZMaterialData &data){
-    
     ComputeSolution(qsi, data.phi, data.dphix, data.axes,data.sol,data.dsol);
 }
 

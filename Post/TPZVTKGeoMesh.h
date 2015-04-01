@@ -46,7 +46,7 @@ public:
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<REAL> &elData);
 
     /** @brief Generate an output of all geometric elements that have a computational counterpart to VTK */
-	static void PrintCMeshVTK(TPZCompMesh *cmesh, std::ofstream &file, TPZVec<REAL> &elData);
+	static void PrintCMeshVTK(TPZCompMesh *cmesh, std::ofstream &file, TPZVec<REAL> &elData, std::string dataName);
     
 	/** @brief Generate an output of all geomesh to VTK, associating to each one the given data (int), creates a file with filename given */
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, char *filename, TPZChunkVector<int> &elData);

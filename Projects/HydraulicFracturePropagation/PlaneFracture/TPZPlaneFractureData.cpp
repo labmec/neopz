@@ -64,12 +64,12 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
         if(cel->Reference()->Type() == ETriangle)
         {
             TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle> * celmp = dynamic_cast<TPZMultiphysicsCompEl< pzgeom::TPZGeoTriangle> * >(cel);
-            sp = dynamic_cast <TPZInterpolatedElement*> (celmp->ElementVec()[1]);
+            sp = dynamic_cast <TPZInterpolatedElement*> (celmp->ElementVec()[1].Element());
         }
         else
         {
             TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad> * celmp = dynamic_cast<TPZMultiphysicsCompEl< pzgeom::TPZGeoQuad> * >(cel);
-            sp = dynamic_cast <TPZInterpolatedElement*> (celmp->ElementVec()[1]);
+            sp = dynamic_cast <TPZInterpolatedElement*> (celmp->ElementVec()[1].Element());
         }
         
 #ifdef DEBUG
@@ -265,6 +265,7 @@ Output3DDataStruct::Output3DDataStruct() : actColor(0)
 {
     fQinj1wing = 0.;
     fTAcumVolW.clear();
+    fTmeanW.clear();
     fTAcumVolLeakoff.clear();
     fFractContour.clear();
     fTNetPressure.clear();
@@ -281,6 +282,7 @@ void Output3DDataStruct::SetQinj1wing(REAL Qinj1wing)
 Output3DDataStruct::~Output3DDataStruct()
 {
     fTAcumVolW.clear();
+    fTmeanW.clear();
     fTAcumVolLeakoff.clear();
     fTNetPressure.clear();
 }
@@ -294,6 +296,11 @@ int Output3DDataStruct::NTimes()
 void Output3DDataStruct::InsertTAcumVolW(REAL time, REAL vol)
 {
     fTAcumVolW[time] = vol;
+}
+
+void Output3DDataStruct::InsertTmeanW(REAL time, REAL meanW)
+{
+    fTmeanW[time] = meanW;
 }
 
 void Output3DDataStruct::InsertTAcumVolLeakoff(REAL time, REAL vol)
@@ -406,9 +413,9 @@ void Output3DDataStruct::PrintFractureGeometry(int num,
     {   //Preamble for PostProcessFractGeometry method
         outF << "(* colors = {Red,Green,Blue,Black,Gray,Cyan,Magenta,Yellow,Brown,Orange,Pink,Purple} *)\n";
         outF << "AllPolChains={};\n";
-        outF << "Lgr={};\n";
-        outF << "Hsupgr={};\n";
-        outF << "Hinfgr={};\n\n";
+        outF << "Lgr={{0,0}};\n";
+        outF << "Hsupgr={{0,0}};\n";
+        outF << "Hinfgr={{0,0}};\n\n";
     }
     
     std::stringstream nmMath, nmAux;
@@ -449,7 +456,23 @@ void Output3DDataStruct::PrintFractureGeometry(int num,
     outF << "ListPlot[Lgr,Joined->True,AxesOrigin->{0,0},PlotStyle->Green]};\n";
     outF << "hs={ListPlot[Hsupgr,Filling->Axis,AxesOrigin->{0,0}],ListPlot[Hsupgr,Joined->True]};\n";
     outF << "hi={ListPlot[Hinfgr,PlotStyle->Red,Filling->Axis,AxesOrigin->{0,0}],ListPlot[Hinfgr,Joined->True,PlotStyle->Red]};\n";
-    outF << "Show[l,hs,hi,PlotRange->All]\n";
+    outF << "Show[l,hs,hi,PlotRange->All]\n\n";
+    
+    outF << "meanW = {{0,0},";
+    std::map<REAL,REAL>::iterator itw, itwlast = fTmeanW.end();
+    itwlast--;
+    for(itw = fTmeanW.begin(); itw != fTmeanW.end(); itw++)
+    {
+        outF << "{" << itw->first << "," << itw->second << "}";
+        if(itw != itwlast)
+        {
+            outF << ",";
+        }
+    }
+    outF << "};\n";
+    outF << "meanWgr = ListPlot[meanW, Joined -> True, PlotStyle -> Brown, Filling -> Axis,AxesLabel -> {\"Time (min)\", \"Wmed (mm)\"}];\n";
+    outF << "Show[meanWgr]\n\n";
+    
     outF.close();
 }
 

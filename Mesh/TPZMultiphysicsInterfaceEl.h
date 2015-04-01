@@ -33,7 +33,8 @@ protected:
 	
 public:
 	/** @brief Default constructor */
-	TPZMultiphysicsInterfaceElement();	
+	TPZMultiphysicsInterfaceElement();
+	
 	/** @brief Constructor */
 	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index, TPZCompElSide left, TPZCompElSide right);
     

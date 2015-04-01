@@ -559,6 +559,147 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & I
     return res;
 }
 
+TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long & InitialElIndex, int targetDim)
+{
+    FindCloseElement(x, InitialElIndex, targetDim);
+    TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
+    
+    qsi.Resize(targetDim, 0.);
+    
+    REAL Tol;
+    ZeroTolerance(Tol);
+    
+    if(gel->Dimension() != targetDim)
+    {
+        bool foundDim = false;
+        for(int s = 0; s < gel->NSides(); s++)
+        {
+            TPZGeoElSide gelSide(gel,s);
+            TPZGeoElSide neighSide(gelSide.Neighbour());
+            while(neighSide != gelSide)
+            {
+                if(neighSide.Element()->Dimension() == targetDim)
+                {
+                    gel = neighSide.Element();
+                    foundDim = true;
+                    break;
+                }
+                neighSide = neighSide.Neighbour();
+            }
+            if(foundDim)
+            {
+                break;
+            }
+        }
+    }
+    if(gel->Dimension() != targetDim)
+    {
+        return NULL;
+    }
+    else if(gel->ComputeXInverse(x, qsi, Tol) == true)
+    {
+        gel = FindSubElement(gel, x, qsi, InitialElIndex);
+        return gel;
+    }
+    
+    TPZManVector<REAL,3> projection(gel->Dimension());
+    long count = 0;
+    bool mustStop = false;
+    bool projectOrthogonal = true;
+    int bissectionCalled = 0;
+    while(gel->ComputeXInverse(x, qsi, Tol) == false &&
+          mustStop == false)
+    {
+        int side = -1;
+        if(projectOrthogonal)
+        {
+            side = gel->ProjectInParametricDomain(qsi, projection);
+        }
+        else
+        {
+            side = gel->ProjectBissectionInParametricDomain(qsi, projection);
+            projectOrthogonal = true;
+        }
+        TPZGeoElSide mySide(gel,side);
+        TPZGeoElSide neighSide(mySide.Neighbour());
+        bool targetNeighFound = false;
+        while(mySide != neighSide && targetNeighFound == false)
+        {
+            if(neighSide.Element()->LowestFather() == mySide.Element()->LowestFather())
+            {   // it means that neighSide->element is my own Lowest father, so
+                // is not the targetNeigh... its better keep searching!!!
+                neighSide = neighSide.Neighbour();
+            }
+            else if(neighSide.Element()->Dimension() != targetDim)
+            {
+                // it means that neighSide->element() dont have the targetDim,
+                // is not the targetNeigh... its better keep searching!!!
+                neighSide = neighSide.Neighbour();
+            }
+            else
+            {
+                // it means that this neighbour is a good candidate!!!
+                // (because is not my ancestor, not even with dimension != targetDim)
+                targetNeighFound = true;
+            }
+        }
+        TPZGeoEl * neighgel = neighSide.Element()->LowestFather();
+        if(neighgel != gel)
+        {
+            gel = neighgel;
+            if(qsi.NElements() != gel->Dimension())
+            {
+                qsi.Resize(gel->Dimension(), 0.);
+            }
+            bissectionCalled = 0;
+        }
+        else
+        {
+            projectOrthogonal = false;
+            bissectionCalled++;
+            if(bissectionCalled == 2)
+            {
+                mustStop = true;
+            }
+        }
+        
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            TPZManVector<REAL,3> par(neighSide.Dimension()),xloc(3,0.);
+            neighSide.CenterPoint(par);
+            neighSide.X(par, xloc);
+            REAL dist = 0.;
+            for (int i=0; i<3; i++) {
+                dist += (x[i]-xloc[i])*(x[i]-xloc[i]);
+            }
+            dist = sqrt(dist);
+            sout << "within element " << gel->Index() << " parameter is " << qsi << " projected parameter " << projection;
+            sout << "\nBest guess is on side " << side << " which gives neighSide " << neighSide << std::endl;
+            sout << "Distance of the center point is " << dist;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        
+        count++;
+        if(count > NElements())
+        {
+            mustStop = true;
+        }
+    }
+    
+    if(mustStop)
+    {
+#ifdef DEBUG
+        DebugStop();
+#endif
+        return NULL;//not found...
+    }
+    
+    gel = FindSubElement(gel, x, qsi, InitialElIndex);
+    return gel;
+}
 
 
 /** @brief find an element/parameter close to the point */

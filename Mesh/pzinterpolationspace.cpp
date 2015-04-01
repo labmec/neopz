@@ -1163,6 +1163,12 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
     return value;
 }//method
 
+
+void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value)
+{
+    value = IntegrateSolution(variable);
+}
+
 //void TPZInterpolationSpace::IntegrateSolution(TPZVec<STATE> & value){
 //	TPZMaterial * material = Material();
 //	if(!material){
