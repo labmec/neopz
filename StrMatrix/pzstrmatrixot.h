@@ -129,10 +129,10 @@ public:
     }
     
     /** @brief Find the order to assemble the elements */
-    static void OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder);
+    static void OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOrder);
     
     /** @brief Create blocks of elements to parallel processing */
-    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor, TPZVec<int> &elBlocked, TPZVec<int> &elColors);
+    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequence, TPZVec<long> &elSequenceColor, TPZVec<long> &elBlocked, TPZVec<long> &NumelColors);
     
     
     /** @brief Filter out the equations which are out of the range */
@@ -159,9 +159,9 @@ protected:
     struct ThreadData
     {
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrixOT *strmat,TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrixOT *strmat,int seqnum, TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrixOT *strmat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrixOT *strmat, int seqnum, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Destructor: Destroy the mutex semaphores and others */
         ~ThreadData();
         /** @brief The function which will compute the matrices */
@@ -180,24 +180,24 @@ protected:
         TPZMatrix<STATE> *fGlobMatrix;
         /** @brief Global rhs vector */
         TPZFMatrix<STATE> *fGlobRhs;
-        /** @brief List of computed element matrices (autopointers?) */
-        std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > > fSubmitted;
-        /** @brief Elements which are being processed */
-        std::set<int> fProcessed;
-        /** @brief  Current element */
-        long fNextElement;
+        /** @brief sequence number of the thread */
+        int fThreadSeqNum;
+        /** @brief vector indicating whether an element has been computed */
+        TPZVec<long> *fComputedElements;
         /** @brief Mutexes (to choose which element is next) */
         pthread_mutex_t fAccessElement;
         /** @brief Semaphore (to wake up assembly thread) */
         TPZSemaphore fAssembly;
         
         pthread_cond_t fCondition;
-        bool fSleeping;
         
-        // Vectors for mesh coloring
-        std::map<int,int> felBlocked;
+        int *fSomeoneIsSleeping;
+        
         /// Vector for mesh coloring
-        TPZVec<int> *fnextBlocked, *felSequenceColor;
+        TPZVec<long> *fElBlocked, *fElSequenceColor;
+        
+        /// All elements below or equal this index have been computed
+        long *fElementCompleted;
         
         static void *ThreadWorkResidual(void *datavoid);
     };
@@ -224,9 +224,16 @@ protected:
     /** @brief Object which will determine which equations will be assembled */
     TPZEquationFilter fEquationFilter;
     /** @brief Vectors for mesh coloring */
-    TPZVec<int> fnextBlocked, felSequenceColor;
+    TPZVec<long> fElBlocked, fElSequenceColor;
     
-    TPZManVector<int> ColorsToProcess;
+    /// vector of the size of the elements containing 0 or 1 if the element has been computed (in the order of computation sequence)
+    TPZVec<long> fElementsComputed;
+    
+    /// All elements below or equal this index have been computed
+    long fElementCompleted;
+    
+    /// variable indicating if a thread is sleeping
+    int fSomeoneIsSleeping;
     
 protected:
     

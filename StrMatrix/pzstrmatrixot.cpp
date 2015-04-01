@@ -51,22 +51,12 @@ RunStatsTable stat_ass_graph_ot("-ass_graph_ot", "Run statistics table for the g
 TPZStructMatrixOT::TPZStructMatrixOT(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
     fMesh = mesh;
     this->SetNumThreads(0);
-    stat_ass_graph_ot.start();
-    TPZManVector<int> ElementOrder;
-    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
-    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked, ColorsToProcess);
-    stat_ass_graph_ot.stop();
 }
 
 TPZStructMatrixOT::TPZStructMatrixOT(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
     
-    stat_ass_graph_ot.start();
-    TPZManVector<int> ElementOrder;
-    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
-    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked, ColorsToProcess);
-    stat_ass_graph_ot.stop();
 }
 
 TPZStructMatrixOT::TPZStructMatrixOT(const TPZStructMatrixOT &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
@@ -76,9 +66,8 @@ TPZStructMatrixOT::TPZStructMatrixOT(const TPZStructMatrixOT &copy) : fMesh(copy
     }
     fMaterialIds = copy.fMaterialIds;
     fNumThreads = copy.fNumThreads;
-    felSequenceColor = copy.felSequenceColor;
-    fnextBlocked = copy.fnextBlocked;
-    ColorsToProcess = copy.ColorsToProcess;
+    fElSequenceColor = copy.fElSequenceColor;
+    fElBlocked = copy.fElBlocked;
 }
 
 TPZMatrix<STATE> *TPZStructMatrixOT::Create() {
@@ -138,7 +127,16 @@ void TPZStructMatrixOT::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
         TPZFMatrix<STATE> rhsloc(neqcondense,1,0.);
         if(this->fNumThreads)
         {
+#ifdef DEBUG
+            TPZFMatrix<STATE> rhsserial(rhsloc);
+            this->Serial_Assemble(rhsserial, guiInterface);
+#endif
             this->MultiThread_Assemble(rhsloc,guiInterface);
+#ifdef DEBUG
+            rhsserial -= rhsloc;
+            REAL norm = Norm(rhsserial);
+            std::cout << "difference between serial and parallel " << norm << std::endl;
+#endif
         }
         else
         {
@@ -149,7 +147,19 @@ void TPZStructMatrixOT::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
     else
     {
         if(this->fNumThreads){
+#ifdef DEBUG
+            TPZFMatrix<STATE> rhsserial(rhs);
+            this->Serial_Assemble(rhsserial, guiInterface);
+#endif
             this->MultiThread_Assemble(rhs,guiInterface);
+#ifdef DEBUG
+            REAL normrhs = Norm(rhs);
+            REAL normrhsserial = Norm(rhsserial);
+            std::cout << "normrhs = " << normrhs << " normrhsserial " << normrhsserial << std::endl;
+            rhsserial -= rhs;
+            REAL norm = Norm(rhsserial);
+            std::cout << "difference between serial and parallel " << norm << std::endl;
+#endif
         }
         else{
             this->Serial_Assemble(rhs,guiInterface);
@@ -363,7 +373,16 @@ void TPZStructMatrixOT::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
     
     TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
     
-    for(iel=0; iel < nelem; iel++) {
+    stat_ass_graph_ot.start();
+    TPZManVector<long> ElementOrder;
+    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
+    TPZVec<long> elcolors;
+    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
+    stat_ass_graph_ot.stop();
+
+    long elseqsize = fElSequenceColor.size();
+    for (long index = 0; index < elseqsize; index++) {
+        iel = fElSequenceColor[index];
         TPZCompEl *el = elementvec[iel];
         if(!el) continue;
         
@@ -490,10 +509,6 @@ void TPZStructMatrixOT::SetMaterialIds(const std::set<int> &materialids)
 
 void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-    ThreadData threaddata(this,mat,rhs,fMaterialIds,guiInterface);
-    
-    threaddata.fnextBlocked=&fnextBlocked;
-    threaddata.felSequenceColor=&felSequenceColor;
     
     const int numthreads = this->fNumThreads;
     TPZVec<pthread_t> allthreads(numthreads);
@@ -503,8 +518,31 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
             return;
         }
     }
+    
+    stat_ass_graph_ot.start();
+    TPZManVector<long> ElementOrder;
+    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
+    TPZVec<long> elcolors;
+    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
+    stat_ass_graph_ot.stop();
+    
+    fElementCompleted = -1;
+    fElementsComputed.Resize(fMesh->NElements());
+    fElementsComputed.Fill(0);
+    fSomeoneIsSleeping = 0;
+    TPZManVector<ThreadData*> allthreaddata(numthreads);
+
+
     for(itr=0; itr<numthreads; itr++)
     {
+        allthreaddata[itr] = new ThreadData(this, itr, mat, rhs, fMaterialIds, guiInterface);
+        ThreadData &threaddata = *allthreaddata[itr];
+        
+        threaddata.fElBlocked=&fElBlocked;
+        threaddata.fElSequenceColor=&fElSequenceColor;
+        threaddata.fElementCompleted = &fElementCompleted;
+        threaddata.fComputedElements = &fElementsComputed;
+        threaddata.fSomeoneIsSleeping = &fSomeoneIsSleeping;
         PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork,
                           &threaddata, __FUNCTION__);
     }
@@ -513,7 +551,12 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
     {
         PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
     }
-    
+
+    for(itr=0; itr<numthreads; itr++)
+    {
+        delete allthreaddata[itr];
+    }
+
 #ifdef LOG4CXX
     if(loggerCheck->isDebugEnabled())
     {
@@ -529,27 +572,57 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
 
 void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-    ThreadData threaddata(this,rhs,fMaterialIds,guiInterface);
-    
-    threaddata.fnextBlocked=&fnextBlocked;
-    threaddata.felSequenceColor=&felSequenceColor;
-    
+    const int numthreads = this->fNumThreads;
+    TPZVec<pthread_t> allthreads(numthreads);
+    int itr;
     if(guiInterface){
         if(guiInterface->AmIKilled()){
             return;
         }
     }
+    stat_ass_graph_ot.start();
+    TPZManVector<long> ElementOrder;
+    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
+    TPZVec<long> elcolors;
+    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
+    stat_ass_graph_ot.stop();
+
+    fElementCompleted = -1;
+    fElementsComputed.Resize(fMesh->NElements());
+    fElementsComputed.Fill(0);
+    fSomeoneIsSleeping = 0;
+    TPZManVector<ThreadData*> allthreaddata(numthreads);
+
+    for(itr=0; itr<numthreads; itr++)
+    {
+        allthreaddata[itr] = new ThreadData(this, itr, rhs, fMaterialIds, guiInterface);
+        ThreadData &threaddata = *allthreaddata[itr];
+        threaddata.fElBlocked=&fElBlocked;
+        threaddata.fElSequenceColor=&fElSequenceColor;
+        threaddata.fElementCompleted = &fElementCompleted;
+        threaddata.fComputedElements = &fElementsComputed;
+        threaddata.fSomeoneIsSleeping = &fSomeoneIsSleeping;
+        PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWorkResidual,
+                          &threaddata, __FUNCTION__);
+    }
     
-#ifdef USING_TBB
-    int begin=0;
+    for(itr=0; itr<numthreads; itr++)
+    {
+        PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
+    }
     
-    for(int color=0; color<ColorsToProcess.NElements(); color++) {
-        tbb::task_group tg;
-        for (int t=begin; t<ColorsToProcess[color]; t++) {
-            tg.run(WorkResidualTBB(t, &threaddata));
-        }
-        tg.wait();
-        begin=ColorsToProcess[color];
+    for(itr=0; itr<numthreads; itr++)
+    {
+        delete allthreaddata[itr];
+    }
+
+#ifdef LOG4CXX
+    if(loggerCheck->isDebugEnabled())
+    {
+        std::stringstream sout;
+        //stiffness.Print("Matriz de Rigidez: ",sout);
+        rhs.Print("Right Handside", sout,EMathematicaInput);
+        LOGPZ_DEBUG(loggerCheck,sout.str())
     }
 #endif
     
@@ -557,11 +630,11 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoin
 
 
 
-TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, TPZMatrix<STATE> &mat,
+TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum, TPZMatrix<STATE> &mat,
                                           TPZFMatrix<STATE> &rhs,
                                           std::set<int> &MaterialIds,
                                           TPZAutoPointer<TPZGuiInterface> guiInterface)
-: fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fNextElement(0)
+: fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
     
     PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixOT::ThreadData::ThreadData()");
@@ -591,11 +664,11 @@ TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, TPZMatrix<S
      */
 }
 
-TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat,
+TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum,
                                           TPZFMatrix<STATE> &rhs,
                                           std::set<int> &MaterialIds,
                                           TPZAutoPointer<TPZGuiInterface> guiInterface)
-: fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fNextElement(0)
+: fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
     
     PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixOT::ThreadData::ThreadData()");
@@ -641,51 +714,22 @@ TPZStructMatrixOT::ThreadData::~ThreadData()
 void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
+    TPZStructMatrixOT *strmat = data->fStruct;
+    int nthreads = strmat->fNumThreads;
+    TPZVec<long> &ComputedElements = *(data->fComputedElements);
+    TPZVec<long> &ElBlocked = *(data->fElBlocked);
+
+    int &SomeoneIsSleeping = *(data->fSomeoneIsSleeping);
+    
     TPZCompMesh *cmesh = data->fStruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
-    int nel = cmesh->NElements();
-    bool hasWork = true;
-    int iel = 0;
     TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
-    while(hasWork)
+    long numelements = data->fElSequenceColor->size();
+    for (long index = data->fThreadSeqNum; index < numelements; index += nthreads)
     {
-        tht::EnterCriticalSection(data->fAccessElement);
         
-        int localiel = data->fNextElement;
-        if(data->fNextElement < nel){
-            if (!data->felBlocked.size() || data->felBlocked.begin()->first > localiel){
-                iel = (*data->felSequenceColor)[localiel];
-                
-                if(localiel==-1) DebugStop();
-                
-                int elBl = (*data->fnextBlocked)[localiel];
-                if (elBl >= 0){
-                    data->felBlocked[elBl]++;
-                    hasWork = true;
-                }
-                
-                data->fNextElement++;
-            }
-            else if (data->felBlocked.size() || data->felBlocked.begin()->first <= localiel){
-                data->fSleeping=true;
-                while(data->fSleeping){
-                    pthread_cond_wait(&data->fCondition, &data->fAccessElement);
-                }
-                iel = -1;
-                hasWork = true;
-            }
-            else{
-                DebugStop();
-            }
-        }
-        else{
-            hasWork = false;
-            iel = -1;
-        }
-        
-        tht::LeaveCriticalSection(data->fAccessElement);
-        
+        long iel = data->fElSequenceColor->operator[](index);
         
         if (iel >= 0){
             TPZCompEl *el = cmesh->ElementVec()[iel];
@@ -726,7 +770,27 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 }
 #endif
             }
+            long localcompleted = *(data->fElementCompleted);
+            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+                localcompleted++;
+            }
+            long needscomputed = ElBlocked[index];
             
+            
+            while (needscomputed > localcompleted) {
+                // block the thread till the element needed has been assembled
+                tht::EnterCriticalSection(data->fAccessElement);
+                SomeoneIsSleeping = 1;
+                pthread_cond_wait(&data->fCondition, &data->fAccessElement);
+                tht::LeaveCriticalSection( data->fAccessElement );
+                
+                localcompleted = *data->fElementCompleted;
+                while (ComputedElements[localcompleted+1] == 1) {
+                    localcompleted++;
+                }
+
+
+            }
             
             if(data->fGlobMatrix){
                 // Assemble the matrix
@@ -743,83 +807,69 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 
             }
             
-            tht::EnterCriticalSection( data->fAccessElement );
-            
-            int elBl = (*data->fnextBlocked)[localiel];
-            if (elBl >= 0 && data->felBlocked.find(elBl) != data->felBlocked.end()){
-                data->felBlocked[elBl]--;
-                if (data->felBlocked[elBl] == 0){
-                    data->felBlocked.erase(elBl);
-                    if(data->fSleeping) {
-                        data->fSleeping=false;
-                    }
-                    pthread_cond_broadcast(&data->fCondition);
-                }
+            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+                localcompleted++;
             }
-            else if(elBl >= 0){
-                DebugStop();
+            if (localcompleted == index-1) {
+                localcompleted++;
             }
-            
+            if (*data->fElementCompleted < localcompleted) {
+//                std::cout << "Updating element completed " << localcompleted << std::endl;
+                *data->fElementCompleted = localcompleted;
+            }
+            ComputedElements[index] = 1;
+            if (data->fSomeoneIsSleeping) {
+                tht::EnterCriticalSection( data->fAccessElement );
+                pthread_cond_broadcast(&data->fCondition);
+                SomeoneIsSleeping = 0;
+                tht::LeaveCriticalSection( data->fAccessElement );
+            }
+
             tht::LeaveCriticalSection( data->fAccessElement );
         }
+        else
+        {
+            std::cout << "the element in ElColorSequence is negative???\n";
+            DebugStop();
+        }
     }
+    // just make sure threads that were accidentally blocked get woken up
+    tht::EnterCriticalSection( data->fAccessElement );
+    pthread_cond_broadcast(&data->fCondition);
+    SomeoneIsSleeping = 0;
+    tht::LeaveCriticalSection( data->fAccessElement );
     return 0;
 }
 
 void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
+    TPZStructMatrixOT *strmat = data->fStruct;
+    int nthreads = strmat->fNumThreads;
+    
     TPZCompMesh *cmesh = data->fStruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
     int nel = cmesh->NElements();
     bool hasWork = true;
     int iel = 0;
+    TPZVec<long> &ComputedElements = *data->fComputedElements;
+    TPZVec<long> &ElBlocked = *data->fElBlocked;
+    int SomeoneIsSleeping = *(data->fSomeoneIsSleeping);
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
-    while(hasWork)
+    long numelements = data->fElSequenceColor->size();
+    for (long index = data->fThreadSeqNum; index < numelements; index += nthreads)
     {
-        tht::EnterCriticalSection(data->fAccessElement);
-        int localiel = data->fNextElement;
-        if(data->fNextElement < nel){
-            if (!data->felBlocked.size() || data->felBlocked.begin()->first > localiel){
-                iel = (*data->felSequenceColor)[localiel];
-                
-                if(localiel==-1) DebugStop();
-                
-                int elBl = (*data->fnextBlocked)[localiel];
-                if (elBl >= 0){
-                    data->felBlocked[elBl]++;
-                    hasWork = true;
-                }
-                
-                data->fNextElement++;
-            }
-            else if (data->felBlocked.size() || data->felBlocked.begin()->first <= localiel){
-                data->fSleeping=true;
-                while(data->fSleeping){
-                    pthread_cond_wait(&data->fCondition, &data->fAccessElement);
-                }
-                iel = -1;
-                hasWork = true;
-            }
-            else{
-                DebugStop();
-            }
-        }
-        else{
-            hasWork = false;
-            iel = -1;
-        }
         
-        tht::LeaveCriticalSection(data->fAccessElement);
+        long iel = data->fElSequenceColor->operator[](index);
+        
         if (iel >= 0){
             TPZCompEl *el = cmesh->ElementVec()[iel];
-            
             el->CalcResidual(ef);
-            
             if(guiInterface) if(guiInterface->AmIKilled()){
                 break;
             }
             if(!el->HasDependency()) {
+                
                 ef.ComputeDestinationIndices();
                 data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
                 
@@ -836,15 +886,39 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                 ef.ApplyConstraints();
                 ef.ComputeDestinationIndices();
                 data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+                
 #ifdef LOG4CXX
                 if(loggerel2->isDebugEnabled() && el->Reference() &&  el->Reference()->MaterialId() == 1 && el->IsInterface())
                 {
                     std::stringstream sout;
                     el->Reference()->Print(sout);
                     el->Print(sout);
+                    ef.Print(sout);
                     LOGPZ_DEBUG(loggerel2,sout.str())
                 }
 #endif
+            }
+            long localcompleted = *(data->fElementCompleted);
+            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+                localcompleted++;
+            }
+            long needscomputed = ElBlocked[index];
+            
+            
+            while (needscomputed > localcompleted) {
+                // block the thread till the element needed has been assembled
+                tht::EnterCriticalSection(data->fAccessElement);
+                SomeoneIsSleeping = 1;
+                std::cout << "thread " << data->fThreadSeqNum << " entering sleep at index " << index << " waiting for " << needscomputed << std::endl;
+                pthread_cond_wait(&data->fCondition, &data->fAccessElement);
+                tht::LeaveCriticalSection( data->fAccessElement );
+                
+                localcompleted = *data->fElementCompleted;
+                while (ComputedElements[localcompleted+1] == 1) {
+                    localcompleted++;
+                }
+                
+                
             }
             
             if(data->fGlobRhs){
@@ -857,26 +931,42 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                 {
                     data->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
                 }
+                
             }
-            tht::EnterCriticalSection( data->fAccessElement );
-            int elBl = (*data->fnextBlocked)[localiel];
-            if (elBl >= 0 && data->felBlocked.find(elBl) != data->felBlocked.end()){
-                data->felBlocked[elBl]--;
-                if (data->felBlocked[elBl] == 0){
-                    data->felBlocked.erase(elBl);
-                    if(data->fSleeping) {
-                        data->fSleeping=false;
-                    }
-                    pthread_cond_broadcast(&data->fCondition);
-                }
+            
+            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+                localcompleted++;
             }
-            else if(elBl >= 0){
-                DebugStop();
+            if (localcompleted == index-1) {
+                localcompleted++;
             }
-            tht::LeaveCriticalSection(data->fAccessElement);
+            if (*data->fElementCompleted < localcompleted) {
+//                std::cout << "Updating element completed " << localcompleted << std::endl;
+
+                *data->fElementCompleted = localcompleted;
+            }
+            ComputedElements[index] = 1;
+            if (SomeoneIsSleeping) {
+                tht::EnterCriticalSection( data->fAccessElement );
+                std::cout << "thread " << data->fThreadSeqNum << " flagging element computed " << index << std::endl;
+                pthread_cond_broadcast(&data->fCondition);
+                SomeoneIsSleeping = 0;
+                tht::LeaveCriticalSection( data->fAccessElement );
+            }
+            
+            tht::LeaveCriticalSection( data->fAccessElement );
+        }
+        else
+        {
+            std::cout << "the element in ElColorSequence is negative???\n";
+            DebugStop();
         }
     }
-    
+    // just make sure threads that were accidentally blocked get woken up
+    tht::EnterCriticalSection( data->fAccessElement );
+    pthread_cond_broadcast(&data->fCondition);
+    SomeoneIsSleeping = 0;
+    tht::LeaveCriticalSection( data->fAccessElement );
     return 0;
 }
 
@@ -945,8 +1035,12 @@ static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<int> &elContribute, T
     return minPassIndex;
 }
 
-void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor,
-                                        TPZVec<int> &elBlocked, TPZVec<int> &elColors)
+// elSequence (input) element sequence acording to the connect sequence numbers
+// elSequenceColor (output) the coloured element sequence
+// elBlocked the element index which needs to have been computed before assembling the element
+// elColors (output) number of elements in each color
+void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequence, TPZVec<long> &elSequenceColor,
+                                        TPZVec<long> &elBlocked, TPZVec<long> &NumelColors)
 {
     
     const int nnodes = cmesh->NConnects();
@@ -954,8 +1048,10 @@ void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSeque
     
     if (!nel) return;
     
-    elColors.Resize(nel, -1);
+    NumelColors.Resize(nel, -1);
     
+    // elContribute contains the element index which last contributed to the node
+    // passIndex essentially contains the color of the element (?)
     TPZManVector<int> elContribute(nnodes,-1), passIndex(nel,-1), elSequenceColorInv(nel,-1);
     elSequenceColor.Resize(nel);
     elSequenceColor.Fill(-1);
@@ -968,6 +1064,7 @@ void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSeque
         
         int elindex = elSequence[currentEl];
         
+        // if this element hasn t been computed in a previous pass
         if(elSequenceColorInv[elindex] == -1)
         {
             TPZCompEl *cel = cmesh->ElementVec()[elindex];
@@ -978,24 +1075,30 @@ void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSeque
             cel->BuildConnectList(connectlist);
             //      std::cout << "elcontribute " << elContribute << std::endl;
             //      std::cout << "connectlist " << connectlist << std::endl;
+            
+            // compute the lowest color (pass index) of the elements that hava contributed to this set of nodes
             int minPass = MinPassIndex(connectlist,elContribute,passIndex);
+            // no element has ever seen any of these nodes
             if (minPass == -1){
                 passIndex[elindex] = currentPassIndex;
+                // the element index is put into elContribute (from there it is possible to know the colour as well)
                 AssembleColor(elindex,connectlist,elContribute);
+                // initialize the data structures
                 elSequenceColor[nelProcessed] = elindex;
                 elSequenceColorInv[elindex] = nelProcessed;
                 nelProcessed++;
             }
+            // this element cannot be computed as it is connected to another element of the current colour
             else if (minPass == currentPassIndex){
             }
+            // the elements connected to this node are from a previous colour
             else if (minPass < currentPassIndex){
-                while (!CanAssemble(connectlist,elContribute)){
-                    const int el = WhoBlockedMe(connectlist,elContribute, elSequenceColorInv);
-                    if (elBlocked[el] == -1) elBlocked[el] = nelProcessed;
-                    int locindex = elSequenceColor[el];
-                    RemoveEl(locindex,cmesh,elContribute,locindex);
-                    //          std::cout << "elcontribute " << elContribute << std::endl;
-                }
+                // the element with largest index which contributes to the set of nodes
+                // el is given in the new sequence order
+                const int el = WhoBlockedMe(connectlist,elContribute, elSequenceColorInv);
+                // elblocked means the future element the element el will block
+                if (elBlocked[nelProcessed] != -1) DebugStop();
+                elBlocked[nelProcessed] = el;
                 passIndex[elindex] = currentPassIndex;
                 AssembleColor(elindex,connectlist,elContribute);
                 elSequenceColor[nelProcessed] = elindex;
@@ -1009,19 +1112,18 @@ void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSeque
         currentEl++;
         if (currentEl == elSequence.NElements()){
             currentEl = 0;
-            elColors[currentPassIndex]=nelProcessed;
+            NumelColors[currentPassIndex]=nelProcessed;
             currentPassIndex++;
         }
     }
     
-    elColors[currentPassIndex]=elColors[currentPassIndex-1]+1;
+    NumelColors[currentPassIndex]=NumelColors[currentPassIndex-1]+1;
     
-    elColors.Resize(currentPassIndex+1);
+    NumelColors.Resize(currentPassIndex+1);
     
     
     
-    /*
-     std::ofstream toto("c:\\Temp\\output\\ColorMeshDebug.txt");
+     std::ofstream toto("../ColorMeshDebug.txt");
      toto << "elSequence\n" << elSequence << std::endl;
      toto << "elSequenceColor\n" << elSequenceColor << std::endl;
      toto << "elSequenceColorInv\n" << elSequenceColorInv << std::endl;
@@ -1029,10 +1131,9 @@ void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSeque
      toto << "elContribute\n" << elContribute << std::endl;
      toto << "passIndex\n" << passIndex << std::endl;
      toto.close();
-     */
 }
 
-void TPZStructMatrixOT::OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder)
+void TPZStructMatrixOT::OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOrder)
 {
     
     int numelconnected = 0;

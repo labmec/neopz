@@ -152,12 +152,14 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         DebugStop();
     }
 #ifdef LOG4CXX
-    if(dynamic_cast<TPZSubCompMesh * >(fMesh))
+    if (loggerelmat->isDebugEnabled())
     {
-        std::stringstream sout;
-        sout << "AllEig = {};";
-        LOGPZ_DEBUG(loggerelmat,sout.str())
-        
+        if(dynamic_cast<TPZSubCompMesh * >(fMesh))
+        {
+            std::stringstream sout;
+            sout << "AllEig = {};";
+            LOGPZ_DEBUG(loggerelmat,sout.str())
+        }
     }
 #endif
 #ifdef DEBUG
@@ -222,27 +224,29 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         }
         
 #ifdef LOG4CXX
-        if(dynamic_cast<TPZSubCompMesh * >(fMesh))
+        if (loggerelmat->isDebugEnabled())
         {
-            std::stringstream objname;
-            objname << "Element" << iel;
-            std::string name = objname.str();
-            objname << " = ";
-            std::stringstream sout;
-            ek.fMat.Print(objname.str().c_str(),sout,EMathematicaInput);
-            sout << "AppendTo[AllEig,Eigenvalues[" << name << "]];";
-            
-            LOGPZ_DEBUG(loggerelmat,sout.str())
-            /*		  if(iel == 133)
-             {
-             std::stringstream sout2;
-             el->Reference()->Print(sout2);
-             el->Print(sout2);
-             LOGPZ_DEBUG(logger,sout2.str())
-             }
-             */
+            if(dynamic_cast<TPZSubCompMesh * >(fMesh))
+            {
+                std::stringstream objname;
+                objname << "Element" << iel;
+                std::string name = objname.str();
+                objname << " = ";
+                std::stringstream sout;
+                ek.fMat.Print(objname.str().c_str(),sout,EMathematicaInput);
+                sout << "AppendTo[AllEig,Eigenvalues[" << name << "]];";
+                
+                LOGPZ_DEBUG(loggerelmat,sout.str())
+                /*		  if(iel == 133)
+                 {
+                 std::stringstream sout2;
+                 el->Reference()->Print(sout2);
+                 el->Print(sout2);
+                 LOGPZ_DEBUG(logger,sout2.str())
+                 }
+                 */
+            }
         }
-        
 #endif
         
 #ifdef CHECKCONSISTENCY
@@ -325,7 +329,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         
         assemble.stop();
     }//fim for iel
-    if(count > 20) std::cout << std::endl;
+    if(count > 1000) std::cout << std::endl;
 
 #ifdef LOG4CXX
     if(loggerCheck->isDebugEnabled())

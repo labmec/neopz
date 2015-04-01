@@ -124,10 +124,10 @@ public:
     }
     
     /** @brief Find the order to assemble the elements */
-    static void OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder);
+    static void OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOrder);
     
     /** @brief Create blocks of elements to parallel processing */
-    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor, TPZVec<int> &elBlocked);
+    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequence, TPZVec<long> &elSequenceColor, TPZVec<long> &elBlocked);
     
     
     /** @brief Filter out the equations which are out of the range */
@@ -192,7 +192,7 @@ protected:
         // Vectors for mesh coloring
         std::map<int,int> felBlocked;
         /// Vector for mesh coloring
-        TPZVec<int> *fnextBlocked, *felSequenceColor;
+        TPZVec<long> *fnextBlocked, *felSequenceColor;
         
         static void *ThreadWorkResidual(void *datavoid);
     };
@@ -207,7 +207,7 @@ protected:
     /** @brief Object which will determine which equations will be assembled */
     TPZEquationFilter fEquationFilter;
     /** @brief Vectors for mesh coloring */
-    TPZVec<int> fnextBlocked, felSequenceColor;
+    TPZVec<long> fnextBlocked, felSequenceColor;
     
 protected:
     

@@ -52,7 +52,7 @@ TPZStructMatrixGC::TPZStructMatrixGC(TPZCompMesh *mesh) : fMesh(mesh), fEquation
     fMesh = mesh;
     this->SetNumThreads(0);
     stat_ass_graph.start();
-    TPZManVector<int> ElementOrder;
+    TPZManVector<long> ElementOrder;
     TPZStructMatrixGC::OrderElement(this->Mesh(), ElementOrder);
     TPZStructMatrixGC::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
     stat_ass_graph.stop();
@@ -62,7 +62,7 @@ TPZStructMatrixGC::TPZStructMatrixGC(TPZAutoPointer<TPZCompMesh> cmesh) : fCompM
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
     stat_ass_graph.start();
-    TPZManVector<int> ElementOrder;
+    TPZManVector<long> ElementOrder;
     TPZStructMatrixGC::OrderElement(this->Mesh(), ElementOrder);
     TPZStructMatrixGC::ElementColoring(this->Mesh(), ElementOrder, felSequenceColor, fnextBlocked);
     stat_ass_graph.stop();
@@ -879,7 +879,7 @@ void *TPZStructMatrixGC::ThreadData::ThreadWorkResidual(void *datavoid)
     return 0;
 }
 
-static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<int> &elContribute)
+static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<long> &elContribute)
 {
     for (int i = 0 ; i < connectlist.NElements() ; i++)
     {
@@ -890,7 +890,7 @@ static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<int> &elContribute)
     return true;
 }
 
-static void AssembleColor(int el,TPZStack<long> &connectlist, TPZVec<int> &elContribute)
+static void AssembleColor(int el,TPZStack<long> &connectlist, TPZVec<long> &elContribute)
 {
     for (int i = 0 ; i < connectlist.NElements() ; i++)
     {
@@ -898,7 +898,7 @@ static void AssembleColor(int el,TPZStack<long> &connectlist, TPZVec<int> &elCon
     }
 }
 
-static int WhoBlockedMe(TPZStack<long> &connectlist, TPZVec<int> &elContribute, TPZVec<int> &elSeqinv)
+static int WhoBlockedMe(TPZStack<long> &connectlist, TPZVec<long> &elContribute, TPZVec<long> &elSeqinv)
 {
     int el = -1;
     for (int i = 0 ; i < connectlist.NElements() ; i++)
@@ -912,7 +912,7 @@ static int WhoBlockedMe(TPZStack<long> &connectlist, TPZVec<int> &elContribute, 
     return el;
 }
 
-static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<int> &elContribute,int elSequence)
+static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<long> &elContribute,long elSequence)
 {
     TPZCompEl *cel = cmesh->ElementVec()[el];
     if(!cel) DebugStop();
@@ -928,7 +928,7 @@ static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<int> &elContribute,int elS
     }
 }
 
-static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<int> &elContribute, TPZVec<int> &passIndex)
+static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<long> &elContribute, TPZVec<int> &passIndex)
 {
     int minPassIndex = -1;
     for (int i = 0 ; i < connectlist.NElements() ; i++)
@@ -944,14 +944,15 @@ static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<int> &elContribute, T
     return minPassIndex;
 }
 
-void TPZStructMatrixGC::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor,
-                                      TPZVec<int> &elBlocked)
+void TPZStructMatrixGC::ElementColoring(TPZCompMesh *cmesh, TPZVec<long> &elSequence, TPZVec<long> &elSequenceColor,
+                                      TPZVec<long> &elBlocked)
 {
     
     const int nnodes = cmesh->NConnects();
     const int nel = cmesh->ElementVec().NElements();
     
-    TPZManVector<int> elContribute(nnodes,-1), passIndex(nel,-1), elSequenceColorInv(nel,-1);
+    TPZManVector<long> elContribute(nnodes,-1), elSequenceColorInv(nel,-1);
+    TPZManVector<int> passIndex(nel,-1);
     elSequenceColor.Resize(nel);
     elSequenceColor.Fill(-1);
     elBlocked.Resize(nel);
@@ -1025,7 +1026,7 @@ void TPZStructMatrixGC::ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSeque
      */
 }
 
-void TPZStructMatrixGC::OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder)
+void TPZStructMatrixGC::OrderElement(TPZCompMesh *cmesh, TPZVec<long> &ElementOrder)
 {
     
     int numelconnected = 0;
