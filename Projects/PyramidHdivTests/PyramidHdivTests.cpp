@@ -94,8 +94,8 @@ int main()
     // Parametros
     const int dim = 3;
     const int plevel = 1;
-    const int numthreads = 4;
-    const int nref = 2;
+    const int numthreads = 2;
+    const int nref = 2; //AQUIPHIL se troca para 1 funciona
     
     // Malha Geometrica
     cout << "\nCriando a gmesh... ";
