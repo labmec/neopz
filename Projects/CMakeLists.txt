@@ -159,6 +159,8 @@ add_subdirectory(proDG)
 			
 			#projeto agnaldo 09-09-2011
 			add_subdirectory(DoubleProjection)
+                        add_subdirectory(artigoPira)
+			add_subdirectory(TrabalhosLNCC15)
 			#projeto omar duran 16-12-2012
 			add_subdirectory(PoroElasticAnalysis)
 			add_subdirectory(Poisson2DGID)
