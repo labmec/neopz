@@ -985,8 +985,6 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                 SomeoneIsSleeping = 0;
                 tht::LeaveCriticalSection( *data->fAccessElement );
             }
-            
-            tht::LeaveCriticalSection( *data->fAccessElement );
         }
         else
         {
