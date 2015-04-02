@@ -51,11 +51,26 @@ RunStatsTable stat_ass_graph_ot("-ass_graph_ot", "Run statistics table for the g
 TPZStructMatrixOT::TPZStructMatrixOT(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
     fMesh = mesh;
     this->SetNumThreads(0);
+    stat_ass_graph_ot.start();
+    TPZManVector<long> ElementOrder;
+    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
+    TPZVec<long> elcolors;
+    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
+    stat_ass_graph_ot.stop();
+    
+
 }
 
 TPZStructMatrixOT::TPZStructMatrixOT(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
+    stat_ass_graph_ot.start();
+    TPZManVector<long> ElementOrder;
+    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
+    TPZVec<long> elcolors;
+    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
+    stat_ass_graph_ot.stop();
+    
     
 }
 
@@ -64,10 +79,16 @@ TPZStructMatrixOT::TPZStructMatrixOT(const TPZStructMatrixOT &copy) : fMesh(copy
     if (copy.fCompMesh) {
         fCompMesh = copy.fCompMesh;
     }
+    fMesh = copy.fMesh;
     fMaterialIds = copy.fMaterialIds;
     fNumThreads = copy.fNumThreads;
     fElSequenceColor = copy.fElSequenceColor;
     fElBlocked = copy.fElBlocked;
+    fEquationFilter = copy.fEquationFilter;
+    fElementsComputed = copy.fElementsComputed;
+    fElementCompleted = copy.fElementCompleted;
+    fSomeoneIsSleeping = copy.fSomeoneIsSleeping;
+    
 }
 
 TPZMatrix<STATE> *TPZStructMatrixOT::Create() {
@@ -511,6 +532,7 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
 {
     
     const int numthreads = this->fNumThreads;
+    std::cout << "Assemble numthreads = " << numthreads << std::endl;
     TPZVec<pthread_t> allthreads(numthreads);
     int itr;
     if(guiInterface){
@@ -518,13 +540,9 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
             return;
         }
     }
-    
-    stat_ass_graph_ot.start();
-    TPZManVector<long> ElementOrder;
-    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
-    TPZVec<long> elcolors;
-    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
-    stat_ass_graph_ot.stop();
+    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixOT::ThreadData::ThreadData()");
+    pthread_cond_init(&fCondition, NULL);
+
     
     fElementCompleted = -1;
     fElementsComputed.Resize(fMesh->NElements());
@@ -543,6 +561,8 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
         threaddata.fElementCompleted = &fElementCompleted;
         threaddata.fComputedElements = &fElementsComputed;
         threaddata.fSomeoneIsSleeping = &fSomeoneIsSleeping;
+        threaddata.fCondition = &fCondition;
+        threaddata.fAccessElement = &fAccessElement;
         PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork,
                           &threaddata, __FUNCTION__);
     }
@@ -556,6 +576,8 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
     {
         delete allthreaddata[itr];
     }
+    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixOT::ThreadData::~ThreadData()");
+    pthread_cond_destroy(&fCondition);
 
 #ifdef LOG4CXX
     if(loggerCheck->isDebugEnabled())
@@ -580,12 +602,9 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoin
             return;
         }
     }
-    stat_ass_graph_ot.start();
-    TPZManVector<long> ElementOrder;
-    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
-    TPZVec<long> elcolors;
-    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
-    stat_ass_graph_ot.stop();
+    
+    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixOT::ThreadData::ThreadData()");
+    pthread_cond_init(&fCondition, NULL);
 
     fElementCompleted = -1;
     fElementsComputed.Resize(fMesh->NElements());
@@ -602,6 +621,9 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoin
         threaddata.fElementCompleted = &fElementCompleted;
         threaddata.fComputedElements = &fElementsComputed;
         threaddata.fSomeoneIsSleeping = &fSomeoneIsSleeping;
+        threaddata.fCondition = &fCondition;
+        threaddata.fAccessElement = &fAccessElement;
+
         PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWorkResidual,
                           &threaddata, __FUNCTION__);
     }
@@ -615,6 +637,9 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoin
     {
         delete allthreaddata[itr];
     }
+
+    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixOT::ThreadData::~ThreadData()");
+    pthread_cond_destroy(&fCondition);
 
 #ifdef LOG4CXX
     if(loggerCheck->isDebugEnabled())
@@ -637,8 +662,6 @@ TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum,
 : fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
     
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixOT::ThreadData::ThreadData()");
-    pthread_cond_init(&fCondition, NULL);
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -671,8 +694,6 @@ TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum,
 : fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
     
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixOT::ThreadData::ThreadData()");
-    pthread_cond_init(&fCondition, NULL);
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -700,8 +721,6 @@ TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum,
 
 TPZStructMatrixOT::ThreadData::~ThreadData()
 {
-    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixOT::ThreadData::~ThreadData()");
-    pthread_cond_destroy(&fCondition);
     /*
      #ifdef MACOSX
      sem_close(fAssembly);
@@ -726,6 +745,13 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
     TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
     long numelements = data->fElSequenceColor->size();
+//    tht::EnterCriticalSection(*data->fAccessElement);
+    PZ_PTHREAD_MUTEX_LOCK(data->fAccessElement,0);
+    std::cout << "ThreadData starting with " << data->fThreadSeqNum << " total elements " << numelements << std::endl;
+    std::cout.flush();
+    PZ_PTHREAD_MUTEX_UNLOCK(data->fAccessElement,0);
+//    tht::LeaveCriticalSection(*data->fAccessElement);
+
     for (long index = data->fThreadSeqNum; index < numelements; index += nthreads)
     {
         
@@ -776,20 +802,25 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
             }
             long needscomputed = ElBlocked[index];
             
-            
+            bool hadtowait = false;
             while (needscomputed > localcompleted) {
                 // block the thread till the element needed has been assembled
-                tht::EnterCriticalSection(data->fAccessElement);
+                tht::EnterCriticalSection(*data->fAccessElement);
                 SomeoneIsSleeping = 1;
-                pthread_cond_wait(&data->fCondition, &data->fAccessElement);
-                tht::LeaveCriticalSection( data->fAccessElement );
+                hadtowait = true;
+                std::cout << "thread " <<data->fThreadSeqNum << " Index " << index << " going to sleep waiting for " << needscomputed << std::endl;
+                std::cout.flush();
+                pthread_cond_wait(data->fCondition, data->fAccessElement);
+                tht::LeaveCriticalSection( *data->fAccessElement );
                 
                 localcompleted = *data->fElementCompleted;
                 while (ComputedElements[localcompleted+1] == 1) {
                     localcompleted++;
                 }
-
-
+            }
+            
+            if (hadtowait) {
+                std::cout << "thread " <<data->fThreadSeqNum << " Index " << index << " continuing\n";
             }
             
             if(data->fGlobMatrix){
@@ -818,14 +849,15 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 *data->fElementCompleted = localcompleted;
             }
             ComputedElements[index] = 1;
-            if (data->fSomeoneIsSleeping) {
-                tht::EnterCriticalSection( data->fAccessElement );
-                pthread_cond_broadcast(&data->fCondition);
+            if (SomeoneIsSleeping) {
+                tht::EnterCriticalSection( *data->fAccessElement );
+                std::cout << "thread " <<data->fThreadSeqNum <<  " Computed index " << index << " Waking up ElementsCompleted " << *data->fElementCompleted << std::endl;
+                std::cout.flush();
                 SomeoneIsSleeping = 0;
-                tht::LeaveCriticalSection( data->fAccessElement );
+                pthread_cond_broadcast(data->fCondition);
+                tht::LeaveCriticalSection( *data->fAccessElement );
             }
 
-            tht::LeaveCriticalSection( data->fAccessElement );
         }
         else
         {
@@ -834,10 +866,10 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
         }
     }
     // just make sure threads that were accidentally blocked get woken up
-    tht::EnterCriticalSection( data->fAccessElement );
-    pthread_cond_broadcast(&data->fCondition);
+    tht::EnterCriticalSection( *data->fAccessElement );
+    pthread_cond_broadcast(data->fCondition);
     SomeoneIsSleeping = 0;
-    tht::LeaveCriticalSection( data->fAccessElement );
+    tht::LeaveCriticalSection( *data->fAccessElement );
     return 0;
 }
 
@@ -907,11 +939,11 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
             
             while (needscomputed > localcompleted) {
                 // block the thread till the element needed has been assembled
-                tht::EnterCriticalSection(data->fAccessElement);
+                tht::EnterCriticalSection(*data->fAccessElement);
                 SomeoneIsSleeping = 1;
                 std::cout << "thread " << data->fThreadSeqNum << " entering sleep at index " << index << " waiting for " << needscomputed << std::endl;
-                pthread_cond_wait(&data->fCondition, &data->fAccessElement);
-                tht::LeaveCriticalSection( data->fAccessElement );
+                pthread_cond_wait(data->fCondition, data->fAccessElement);
+                tht::LeaveCriticalSection( *data->fAccessElement );
                 
                 localcompleted = *data->fElementCompleted;
                 while (ComputedElements[localcompleted+1] == 1) {
@@ -947,14 +979,14 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
             }
             ComputedElements[index] = 1;
             if (SomeoneIsSleeping) {
-                tht::EnterCriticalSection( data->fAccessElement );
+                tht::EnterCriticalSection( *data->fAccessElement );
                 std::cout << "thread " << data->fThreadSeqNum << " flagging element computed " << index << std::endl;
-                pthread_cond_broadcast(&data->fCondition);
+                pthread_cond_broadcast(data->fCondition);
                 SomeoneIsSleeping = 0;
-                tht::LeaveCriticalSection( data->fAccessElement );
+                tht::LeaveCriticalSection( *data->fAccessElement );
             }
             
-            tht::LeaveCriticalSection( data->fAccessElement );
+            tht::LeaveCriticalSection( *data->fAccessElement );
         }
         else
         {
@@ -963,10 +995,10 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
         }
     }
     // just make sure threads that were accidentally blocked get woken up
-    tht::EnterCriticalSection( data->fAccessElement );
-    pthread_cond_broadcast(&data->fCondition);
+    tht::EnterCriticalSection( *data->fAccessElement );
+    pthread_cond_broadcast(data->fCondition);
     SomeoneIsSleeping = 0;
-    tht::LeaveCriticalSection( data->fAccessElement );
+    tht::LeaveCriticalSection( *data->fAccessElement );
     return 0;
 }
 

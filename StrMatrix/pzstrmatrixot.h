@@ -185,11 +185,9 @@ protected:
         /** @brief vector indicating whether an element has been computed */
         TPZVec<long> *fComputedElements;
         /** @brief Mutexes (to choose which element is next) */
-        pthread_mutex_t fAccessElement;
-        /** @brief Semaphore (to wake up assembly thread) */
-        TPZSemaphore fAssembly;
+        pthread_mutex_t *fAccessElement;
         
-        pthread_cond_t fCondition;
+        pthread_cond_t *fCondition;
         
         int *fSomeoneIsSleeping;
         
@@ -234,6 +232,13 @@ protected:
     
     /// variable indicating if a thread is sleeping
     int fSomeoneIsSleeping;
+    
+    /** @brief Mutexes (to choose which element is next) */
+    pthread_mutex_t fAccessElement;
+    
+    pthread_cond_t fCondition;
+    
+
     
 protected:
     
