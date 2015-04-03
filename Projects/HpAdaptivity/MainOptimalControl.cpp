@@ -82,6 +82,8 @@ void SolutionControl(TPZAnalysis &an, std::string plotfile);
 void EstadoAd(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 const int eps=100000;
 const REAL Pi=M_PI;
+void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads);
+
 
 
 ///Metodos para o ArcTangente
@@ -138,7 +140,7 @@ int main5(int argc, char *argv[])
       
 				int numthreads=1;
 				SolveSyst(anh1, cmeshH1,numthreads);
-               
+            
                 stringstream refh1,grauh1;
                 grauh1 << p;
                 refh1 << h;
@@ -220,7 +222,8 @@ TPZCompMesh *MeshH1(TPZGeoMesh *gmesh, int pOrder, int dim)
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
-    dum = new TPZDummyFunction<STATE>(ForcingH1);
+    
+    dum = new TPZDummyFunction<STATE>(Forcing);
     dum->SetPolynomialOrder(20);
     force = dum;
     material->SetForcingFunction(force);

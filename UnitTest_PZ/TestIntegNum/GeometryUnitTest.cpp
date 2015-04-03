@@ -26,7 +26,7 @@
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
 #endif
-#define BOOST_TEST_MAIN pz numericintegration tests
+#define BOOST_TEST_MAIN pz numericintegration geomtests
 
 #include "boost/test/unit_test.hpp"
 #include "boost/test/floating_point_comparison.hpp"
@@ -418,10 +418,10 @@ void IntegrateCurve(TPZCurve &curve)
 }
 
 
-BOOST_AUTO_TEST_SUITE(numinteg_tests)
+BOOST_AUTO_TEST_SUITE(geomtests)
 
 
-BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
+BOOST_AUTO_TEST_CASE(geom_integration_tests) {
 
     int href = 5;
 //  Check taylor convergence for all curve elements

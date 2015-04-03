@@ -20,10 +20,6 @@
 // Using Unit Test of the Boost Library
 #ifdef USING_BOOST
 
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz numericintegration tests
 
 #include "boost/test/unit_test.hpp"
 #include "boost/test/floating_point_comparison.hpp"
@@ -31,9 +27,9 @@
 
 #endif
 
-std::string dirname = PZSOURCEDIR;
-unsigned int NDigitsPrec = 13;
-int NTypes = 2;
+static std::string dirname = PZSOURCEDIR;
+static unsigned int NDigitsPrec = 13;
+static int NTypes = 2;
 // For cubature rules
 // Conclusion:	Use 4 to run with REAL = float
 //				Use 13 to run with REAL = double
@@ -45,7 +41,7 @@ int NTypes = 2;
  * @{ 
  */
 
-REAL power(int s, REAL x)
+static REAL power(int s, REAL x)
 {
     REAL fun = 1.0; for (int is = 0; is < s; is++) { fun *= x;}
     return fun;
@@ -57,7 +53,7 @@ REAL power(int s, REAL x)
  \f$
 */
 
-REAL Function(TPZManVector<REAL,3> &point, int p, int dim) {
+static REAL Function(TPZManVector<REAL,3> &point, int p, int dim) {
 	REAL functionvalue = (REAL)(0.0L);
 	REAL xi = point[0];
 	REAL eta = point[1];
@@ -110,7 +106,7 @@ REAL Function(TPZManVector<REAL,3> &point, int p, int dim) {
  * @brief Compute the value of polinomial \f$ P(x) = (N+1)*x^N + N^2 \f$. \n
  * The integral over \f$ [a,b] \f$ is \f$ \int[P(x)dx]\sub{a} = (b^{N+1} - a^{N+1}) + N^2 (b-a) \f$
  */
-REAL PolinomialN(int N,REAL x)
+static REAL PolinomialN(int N,REAL x)
 {
 	REAL valuex = 1.0L;
     for(int i=0;i<N;i++){ valuex *= x; }
@@ -121,7 +117,7 @@ REAL PolinomialN(int N,REAL x)
  * @brief Compute the integral value of PolinomialN over the interval \f$[LimInf=a, LimSup=b]\f$ 
  * @param N Degree of the polinomial
  */
-REAL IntegralOfPolinomialN(int N,REAL LimInf, REAL LimSup)
+static REAL IntegralOfPolinomialN(int N,REAL LimInf, REAL LimSup)
 {
 	REAL A = 1.0L, B = 1.0L;
     for(int i=0;i<(N+1);i++) { A *= LimInf; B *= LimSup; }
@@ -134,7 +130,7 @@ REAL IntegralOfPolinomialN(int N,REAL LimInf, REAL LimSup)
  * @param LimInf Initial point of the interval image of the master
  * @param LimSup Final point of the interval image of the master
  */
-REAL LinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) {
+static REAL LinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) {
 	return (0.5L * ((LimSup - LimInf)*point + (LimSup + LimInf)));
 }
 
@@ -144,7 +140,7 @@ REAL LinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) {
  * @param LimInf Initial point of the interval image of the master
  * @param LimSup Final point of the interval image of the master
  */
-REAL DifferenceOfLinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) {
+static REAL DifferenceOfLinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) {
 	return (0.5L * (LimSup - LimInf));
 }
 

@@ -210,7 +210,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 #include "pztransfer.h"
 
-int main(int argc, char *argv[])
+int mainHpTetraedro(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG();
