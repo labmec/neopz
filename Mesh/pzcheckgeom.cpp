@@ -13,50 +13,62 @@
 
 using namespace std;
 
-TPZCheckGeom::TPZCheckGeom() {
-	fMesh = 0;
+TPZCheckGeom::TPZCheckGeom(TPZGeoMesh *gmesh) : fMesh(gmesh) {
 }
 
 int TPZCheckGeom::CheckElement(TPZGeoEl *gel) {
 	
 	int check = 0;
-	int nsides = gel->NSides();
-	int geldim = gel->Dimension();
-	int is;
-	for(is=nsides-1; is>=0; is--) {
-		TPZStack<TPZGeoElSide> highdim;
-		int dim;
-		int sidedim = gel->SideDimension(is);
-		for(dim = sidedim+1; dim<= geldim; dim++) {
-			gel->AllHigherDimensionSides(is,dim,highdim);
-		}
-		int nhighdim = highdim.NElements();
-		int idim;
-		for(idim=0; idim<nhighdim; idim++) {
-			check = (CheckSideTransform(gel,is,highdim[idim].Side()) || check);
-		}
-	}
+    check = check || CheckInternalTransforms(gel);
+    check = check || CheckRefinement(gel);
+    check = check || CheckNeighbourMap(gel);
 	return check;
+}
+
+/// check the internal side transformations
+int TPZCheckGeom::CheckInternalTransforms(TPZGeoEl *gel)
+{
+    int check = 0;
+    int nsides = gel->NSides();
+    int geldim = gel->Dimension();
+    int is;
+    for(is=nsides-1; is>=0; is--) {
+        TPZStack<TPZGeoElSide> highdim;
+        int dim;
+        int sidedim = gel->SideDimension(is);
+        for(dim = sidedim+1; dim<= geldim; dim++) {
+            gel->AllHigherDimensionSides(is,dim,highdim);
+        }
+        int nhighdim = highdim.NElements();
+        int idim;
+        for(idim=0; idim<nhighdim; idim++) {
+            check = (CheckSideTransform(gel,is,highdim[idim].Side()) || check);
+        }
+    }
+    return check;
+}
+
+/// divide all elements and call PerformCheck
+int TPZCheckGeom::DivideandCheck()
+{
+    long nel = fMesh->NElements();
+    int check = 0;
+    for(long iel = 0; iel<nel; iel++) {
+        TPZGeoEl *gel = fMesh->ElementVec()[iel];
+        if(!gel) continue;
+        TPZStack<TPZGeoEl *> subel;
+        gel->Divide(subel);		
+    }
+    return PerformCheck();
 }
 
 int TPZCheckGeom::PerformCheck() {
 	long nel = fMesh->NElements();
-	long iel;
 	int check = 0;
-	for(iel = 0; iel<nel; iel++) {
+	for(long iel = 0; iel<nel; iel++) {
 		TPZGeoEl *gel = fMesh->ElementVec()[iel];
 		if(!gel) continue;
-		TPZStack<TPZGeoEl *> subel;
-		gel->Divide(subel);		
-		if(iel==3){//TESTE
-			cout << "\nElemento Piramide\n";
-		}//TESTE
-		if(iel == 4)
-			cout << "\nElemento de Linha";
-		if(iel == 5)
-			cout << "\nElemento Quadrilatero\n";
 		check = (CheckElement(gel) || check);
-		check = (CheckRefinement(gel) || check);
 	}
 	return check;
 }
@@ -225,7 +237,7 @@ int TPZCheckGeom::main() {
 	local.CreateMesh();
 	ofstream meshfile("mesh.txt");
 	local.fMesh->Print(meshfile);
-	local.PerformCheck();
+	local.DivideandCheck();
 	return 1;
 }
 
@@ -258,7 +270,7 @@ static int numnos[7] = {8,5,4,6,2,4,3};
 
 void TPZCheckGeom::CreateMesh() {
 	
-	if(fMesh) delete fMesh;
+	if(fMesh) DebugStop();
 	fMesh = new TPZGeoMesh();
 	long noind[12];
 	int no;
@@ -307,4 +319,48 @@ void TPZCheckGeom::CreateMesh() {
 		}
 	}
 	fMesh->BuildConnectivity();
+}
+
+/// verify if the mapping between neighbouring elements is conforming
+int TPZCheckGeom::CheckNeighbourMap(TPZGeoEl *gel)
+{
+    int check = 0;
+    int nsides = gel->NSides();
+    for (int is=0; is<nsides; is++) {
+        int sidedim = gel->SideDimension(is);
+        if (sidedim == 0) {
+            continue;
+        }
+        int order = 4;
+        TPZIntPoints *integ = gel->CreateSideIntegrationRule(is, order);
+        int npoints = integ->NPoints();
+        REAL w;
+        TPZManVector<REAL,3> X1(3),X2(3);
+        TPZGeoElSide gelside(gel,is);
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        while (neighbour != gelside)
+        {
+            TPZTransform tr(sidedim);
+            gelside.SideTransform3(neighbour, tr);
+            TPZManVector<REAL,3> pt1(sidedim),pt2(sidedim);
+            for (int ip = 0; ip < npoints; ip++) {
+                integ->Point(ip, pt1, w);
+                tr.Apply(pt1, pt2);
+                gelside.X(pt1, X1);
+                neighbour.X(pt2, X2);
+                REAL norm = 0;
+                for (int i=0; i<3; i++) {
+                    norm += (X1[i]-X2[i])*(X1[i]-X2[i]);
+                }
+                if (norm > 1.e-12) {
+                    std::cout << "Incompatible geometry between neighbours pt1 = " << pt1 << " pt2 = " << pt2 << " X1 = " << X1 << " X2 = " << X2 << "\n";
+                    gelside.Print(std::cout);
+                    neighbour.Print(std::cout);
+                    check = 1;
+                }
+            }
+            neighbour = neighbour.Neighbour();
+        }
+    }
+    return check;
 }

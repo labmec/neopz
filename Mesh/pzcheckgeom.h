@@ -18,11 +18,25 @@ class TPZCheckGeom {
 	TPZGeoMesh *fMesh;
 	
 public:
-	TPZCheckGeom();
+	TPZCheckGeom(TPZGeoMesh *gmesh = NULL);
 	
+    /// verify compatibility between elements and their father and between elements and their neighbours
 	int PerformCheck();
+    
+    /// divide all elements and call PerformCheck
+    int DivideandCheck();
+    
 	int CheckElement(TPZGeoEl *gel);
+    
+    /// check the internal side transformations
+    int CheckInternalTransforms(TPZGeoEl *);
+    
+    /// check the maps between the element and its father
 	int CheckRefinement(TPZGeoEl *gel);
+    
+    /// verify if the mapping between neighbouring elements is conforming
+    int CheckNeighbourMap(TPZGeoEl *gel);
+    
 	int CheckSideTransform(TPZGeoEl *gel, int sidefrom, int sideto);
 	int CheckSubFatherTransform(TPZGeoEl *subel, int sidesub);
 	void CreateMesh();
