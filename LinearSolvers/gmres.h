@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the implementation of the CMRES function which solves the unsymmetric linear system using the Generalized Minimum Residual method. 
+ * @brief Contains the implementation of the CMRES function which solves the unsymmetric linear system using the Generalized Minimum Residual method.
  */
 
 /** @ingroup util */
@@ -18,20 +18,20 @@ void ApplyPlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn);
  * @brief Computes back solve. Updates on v vector.
  */
 template < class Matrix, class Vector >
-void 
+void
 Update(Vector &x, long k, Matrix &h, Vector &s, Vector v[])
 {
-	Vector y(s);
-	
-	// Backsolve:  
-	for (long i = k; i >= 0; i--) {
-		y(i) /= h(i,i);
-		for (long j = i - 1; j >= 0; j--)
-			y(j) -= h(j,i) * y(i);
-	}
-	
-	for (long j = 0; j <= k; j++)
-		x.ZAXPY(y(j),v[j]);
+    Vector y(s);
+    
+    // Backsolve:
+    for (long i = k; i >= 0; i--) {
+        y(i) /= h(i,i);
+        for (long j = i - 1; j >= 0; j--)
+            y(j) -= h(j,i) * y(i);
+    }
+    
+    for (long j = 0; j <= k; j++)
+        x.ZAXPY(y(j),v[j]);
 }
 
 /**
@@ -42,7 +42,7 @@ template < class Real >
 Real
 abs(Real x)
 {
-	return (x > ((Real)0.) ? x : -x);
+    return (x > ((Real)0.) ? x : -x);
 }
 
 /**
@@ -67,48 +67,48 @@ abs(Real x)
  */
 template < class Operator, class Vector, class Preconditioner,
 class Matrix, class Real >
-int 
+int
 GMRES( Operator &A, Vector &x, const Vector &b,
-	  Preconditioner &M, Matrix &H, int &m, long &max_iter,
-	  Real &tol, Vector *residual,const int FromCurrent)
+      Preconditioner &M, Matrix &H, int &m, long &max_iter,
+      Real &tol, Vector *residual,const int FromCurrent)
 {
-	Real resid;
-	long j = 1, k;
-	Vector s(m+1), cs(m+1), sn(m+1), w1,w;
-	
-	//  Real normb = norm(M.Solve(b));
-	Vector resbackup;
-	Vector *res = residual;
-	if(!res) res = &resbackup;
-	Vector &r = *res;
+    Real resid;
+    long j = 1, k;
+    Vector s(m+1), cs(m+1), sn(m+1), w1,w;
+    
+    //  Real normb = norm(M.Solve(b));
+    Vector resbackup;
+    Vector *res = residual;
+    if(!res) res = &resbackup;
+    Vector &r = *res;
     M.Solve(b,r);
-	Real normb = Norm(r);	//  Vector r = b - A*x;
-	if(FromCurrent) 
+    Real normb = Norm(r);	//  Vector r = b - A*x;
+    if(FromCurrent)
     {
         A.MultAdd(x,b,r,-1.,1.);
-    } 
-    else 
+    }
+    else
     {
-		x.Zero();
-		r = b;
-	}
-	M.Solve(r,w);
-	r=w;
-	Real beta = Norm(r);
-	
-	if (normb == 0.0)
-		normb = 1;
-	
-	if ((resid = ((Real)Norm(r)) / normb) <= tol) {
-		tol = resid;
-		x+=r;
-		max_iter = 0;
-		return 0;
-	}
-	
-	Vector *v = new Vector[m+1];
-	
-	while (j <= max_iter) {
+        x.Zero();
+        r = b;
+    }
+    M.Solve(r,w);
+    r=w;
+    Real beta = Norm(r);
+    
+    if (normb == 0.0)
+        normb = 1;
+    
+    if ((resid = ((Real)Norm(r)) / normb) <= tol) {
+        tol = resid;
+        x+=r;
+        max_iter = 0;
+        return 0;
+    }
+    
+    Vector *v = new Vector[m+1];
+    
+    while (j <= max_iter) {
         long rows = r.Rows();
         v[0].Resize(rows,1);
         for (long i=0; i<rows; i++) {
@@ -118,53 +118,54 @@ GMRES( Operator &A, Vector &x, const Vector &b,
         for (long i=0; i<srows; i++) {
             s(i) = REAL(0.);
         }
-//		v[0] = r * (REAL(1.0 / beta));    // ??? r / beta
-//		s = REAL(0.0);
-		s(0) = beta;
-		
-		for (long i = 0; i < m && j <= max_iter; i++, j++) {
-			A.Multiply(v[i],w1);
-			M.Solve(w1,w);
-			for (k = 0; k <= i; k++) {
-				H(k, i) = Dot(w, v[k]);
-				w.ZAXPY(-H(k, i), v[k]);
-			}
-			H(i+1, i) = Norm(w);
-			v[i+1] = w;
-			v[i+1] *= (1.0)/H(i+1,i);
-			
-			for (k = 0; k < i; k++)
-				ApplyPlaneRotation(H(k,i), H(k+1,i), cs(k), sn(k));
-			
-			GeneratePlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
-			ApplyPlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
-			ApplyPlaneRotation(s(i), s(i+1), cs(i), sn(i));
-			resid = ((Real)fabs(s(i+1)))/normb;
-			if (resid < tol) {
-				Update(x, i, H, s, v);
-				tol = resid;
-				max_iter = j;
-				delete [] v;
-				return 0;
-			}
-		}
-		Update(x, m - 1, H, s, v);
-		A.MultAdd(x,b,r,-1.,1.);
-		M.Solve(r,r);
-		beta = Norm(r);
+        //		v[0] = r * (REAL(1.0 / beta));    // ??? r / beta
+        //		s = REAL(0.0);
+        s(0) = beta;
+        
+        for (long i = 0; i < m && j <= max_iter; i++, j++) {
+            A.Multiply(v[i],w1);
+            M.Solve(w1,w);
+            for (k = 0; k <= i; k++) {
+                H(k, i) = Dot(w, v[k]);
+                w.ZAXPY(-H(k, i), v[k]);
+            }
+            H(i+1, i) = Norm(w);
+            v[i+1] = w;
+            v[i+1] *= (1.0)/H(i+1,i);
+            
+            for (k = 0; k < i; k++)
+                ApplyPlaneRotation(H(k,i), H(k+1,i), cs(k), sn(k));
+            
+            GeneratePlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
+            ApplyPlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
+            ApplyPlaneRotation(s(i), s(i+1), cs(i), sn(i));
+            resid = ((Real)fabs(s(i+1)))/normb;
+            if (resid < tol) {
+                Update(x, i, H, s, v);
+                tol = resid;
+                max_iter = j;
+                delete [] v;
+                std::cout << "GMRES iter " << j << " resid :  " << resid << std::endl;
+                return 0;
+            }
+        }
+        Update(x, m - 1, H, s, v);
+        A.MultAdd(x,b,r,-1.,1.);
+        M.Solve(r,r);
+        beta = Norm(r);
         resid = beta/normb;
-		if (resid < tol) {
+        if (resid < tol) {
             std::cout << "iter " << j << " - " << resid << std::endl;
-			tol = resid;
-			max_iter = j;
-			delete [] v;
-			return 0;
-		}
-	}
-	
-	tol = resid;
-	delete [] v;
-	return 1;
+            tol = resid;
+            max_iter = j;
+            delete [] v;
+            return 0;
+        }
+    }
+    
+    tol = resid;
+    delete [] v;
+    return 1;
 }
 
 
@@ -175,18 +176,18 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 template<class Real>
 void GeneratePlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
 {
-	if (dy == ((Real)0.0)) {
-		cs = 1.0;
-		sn = 0.0;
-	} else if (abs(dy) > abs(dx)) {
-		Real temp = dx / dy;
-		sn = ((Real)1.0) / sqrt( ((Real)1.0) + temp*temp );
-		cs = temp * sn;
-	} else {
-		Real temp = dy / dx;
-		cs = ((Real)1.0) / sqrt( ((Real)1.0) + temp*temp );
-		sn = temp * cs;
-	}
+    if (dy == ((Real)0.0)) {
+        cs = 1.0;
+        sn = 0.0;
+    } else if (abs(dy) > abs(dx)) {
+        Real temp = dx / dy;
+        sn = ((Real)1.0) / sqrt( ((Real)1.0) + temp*temp );
+        cs = temp * sn;
+    } else {
+        Real temp = dy / dx;
+        cs = ((Real)1.0) / sqrt( ((Real)1.0) + temp*temp );
+        sn = temp * cs;
+    }
 }
 
 /** @ingroup util */
@@ -194,8 +195,8 @@ void GeneratePlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
 template<class Real>
 void ApplyPlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn)
 {
-	Real temp  =  cs * dx + sn * dy;
-	dy = -sn * dx + cs * dy;
-	dx = temp;
+    Real temp  =  cs * dx + sn * dy;
+    dy = -sn * dx + cs * dy;
+    dx = temp;
 }
 

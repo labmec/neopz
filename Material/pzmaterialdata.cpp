@@ -20,8 +20,8 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctions(0){
-	this->SetAllRequirements(false);
-	this->intLocPtIndex = -1;
+    this->SetAllRequirements(false);
+    this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
     this->NintPts = -1;
     this->sol.Resize(1);
@@ -30,91 +30,98 @@ TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctio
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : fShapeType(cp.fShapeType) {
-	this->operator =(cp);
+    this->operator =(cp);
 }
 
 TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fShapeType = cp.fShapeType;
-	this->fNeedsSol = cp.fNeedsSol;
-	this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
-	this->fNeedsHSize = cp.fNeedsHSize;
-	this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter; 
-	this->fNeedsNormal = cp.fNeedsNormal; 
-	this->phi = cp.phi;
-	this->dphix = cp.dphix;
-	this->axes = cp.axes;
-	this->jacobian = cp.jacobian;
-	this->jacinv = cp.jacinv;
-	this->normal = cp.normal;
-	this->x = cp.x;
-	this->p = cp.p;
-	this->sol = cp.sol;
-	this->dsol = cp.dsol;
-	this->HSize = cp.HSize;
-	this->detjac = cp.detjac;
-	this->intLocPtIndex = cp.intLocPtIndex;
-	this->intGlobPtIndex = cp.intGlobPtIndex;
+    this->fNeedsSol = cp.fNeedsSol;
+    this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
+    this->fNeedsHSize = cp.fNeedsHSize;
+    this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
+    this->fNeedsNormal = cp.fNeedsNormal;
+    this->phi = cp.phi;
+    this->dphi = cp.dphi;
+    this->dphix = cp.dphix;
+    this->axes = cp.axes;
+    this->jacobian = cp.jacobian;
+    this->jacinv = cp.jacinv;
+    this->normal = cp.normal;
+    this->x = cp.x;
+    this->p = cp.p;
+    this->sol = cp.sol;
+    this->dsol = cp.dsol;
+    this->HSize = cp.HSize;
+    this->detjac = cp.detjac;
+    this->intLocPtIndex = cp.intLocPtIndex;
+    this->intGlobPtIndex = cp.intGlobPtIndex;
     this->NintPts = cp.NintPts;
     this->XCenter = cp.XCenter;
-	this->fVecShapeIndex = cp.fVecShapeIndex;
-	this->fNormalVec = cp.fNormalVec;
-	this->numberdualfunctions = cp.numberdualfunctions;
+    this->fVecShapeIndex = cp.fVecShapeIndex;
+    this->fNormalVec = cp.fNormalVec;
+    this->numberdualfunctions = cp.numberdualfunctions;
     this->gelElId = cp.gelElId;
-	
-	return *this;
+    
+    return *this;
 }
 
 TPZMaterialData::~TPZMaterialData(){
-	//NOTHING TO BE DONE!
+    //NOTHING TO BE DONE!
 }
 
 void TPZMaterialData::SetAllRequirements(bool set){
-	this->fNeedsSol = set;
-	this->fNeedsNeighborSol = set;
-	this->fNeedsHSize = set;
-	this->fNeedsNeighborCenter = set;
-	this->fNeedsNormal = set;
+    this->fNeedsSol = set;
+    this->fNeedsNeighborSol = set;
+    this->fNeedsHSize = set;
+    this->fNeedsNeighborCenter = set;
+    this->fNeedsNormal = set;
 }
 
 /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
 /** compare both objects bitwise for identity. Put an entry in the log file if different overwrite the calling object if the override flag is true */
 bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
 {
-	TPZMaterialData *comp = dynamic_cast<TPZMaterialData *>(copy);
-	if(!comp) return false;
-	bool result = true;
-	bool locres;
-	locres = phi.Compare(&comp->phi,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"phi different")
-	}
-	result = result && locres;
-	locres = dphix.Compare(&comp->dphix,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"dphix different")
-	}
-	result = result && locres;
-	locres = axes.Compare(&comp->axes,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"axes different")
-	}
-	result = result && locres;
-	locres = jacobian.Compare(&comp->jacobian,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"jacobian different")
-	}
-	result = result && locres;
-	locres = jacinv.Compare(&comp->jacinv,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"jacinv different")
-	}
-	result = result && locres;
-	return result;
+    TPZMaterialData *comp = dynamic_cast<TPZMaterialData *>(copy);
+    if(!comp) return false;
+    bool result = true;
+    bool locres;
+    locres = phi.Compare(&comp->phi,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"phi different")
+    }
+    result = result && locres;
+    locres = dphi.Compare(&comp->dphi,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"dphi different")
+    }
+    result = result && locres;
+    locres = dphix.Compare(&comp->dphix,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"dphix different")
+    }
+    result = result && locres;
+    locres = axes.Compare(&comp->axes,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"axes different")
+    }
+    result = result && locres;
+    locres = jacobian.Compare(&comp->jacobian,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"jacobian different")
+    }
+    result = result && locres;
+    locres = jacinv.Compare(&comp->jacinv,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"jacinv different")
+    }
+    result = result && locres;
+    return result;
 }
 
 // Compare the object for identity with the object pointed to, eventually copy the object
@@ -125,32 +132,33 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
 bool TPZMaterialData::Compare(TPZSaveable *copy, bool override) const
 {
     DebugStop();
-	return true;
+    return true;
 }
 
 /** Print the data */
 void TPZMaterialData::Print(std::ostream &out) const
 {
-	phi.Print("phi",out);
-	dphix.Print("dphix",out);
-	axes.Print("axes",out);
-	jacobian.Print("jacobian",out);
-	jacinv.Print("jacinv",out);
-	out << "normal " << normal << std::endl;
-	out << "x " << x << std::endl;
-	out << "p " << p << std::endl;
-	out << "sol " << sol << std::endl;
+    phi.Print("phi",out);
+    dphi.Print("dphi",out);
+    dphix.Print("dphix",out);
+    axes.Print("axes",out);
+    jacobian.Print("jacobian",out);
+    jacinv.Print("jacinv",out);
+    out << "normal " << normal << std::endl;
+    out << "x " << x << std::endl;
+    out << "p " << p << std::endl;
+    out << "sol " << sol << std::endl;
     int nsol = dsol.size();
     for (int is=0; is<nsol; is++) {
         dsol[is].Print("dsol",out);
-		
+        
     }
-	
-	out << "HSize " << HSize << std::endl;
-	out << "detjac " << detjac << std::endl;
+    
+    out << "HSize " << HSize << std::endl;
+    out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
-	out << "intLocPtIndex " << intLocPtIndex << std::endl;
-	out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
+    out << "intLocPtIndex " << intLocPtIndex << std::endl;
+    out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
     out << "NintPts " << NintPts << std::endl;
     out << "gelElId " << gelElId << std::endl;
 }
@@ -158,27 +166,28 @@ void TPZMaterialData::Print(std::ostream &out) const
 /** Print the data in a format suitable for Mathematica */
 void TPZMaterialData::PrintMathematica(std::ostream &out) const
 {
-	phi.Print("phi = ",out,EMathematicaInput);
-	dphix.Print("dphix = ",out,EMathematicaInput);
-	axes.Print("axes = ",out,EMathematicaInput);
-	jacobian.Print("jacobian = ",out,EMathematicaInput);
-	jacinv.Print("jacinv = ",out,EMathematicaInput);
-	out << "normal = {" << normal << "};" << std::endl;
-	out << "x = {" << x << "};" << std::endl;
-	out << "p = " << p << ";" << std::endl;
-	out << "sol = { " << sol << "};" << std::endl;
+    phi.Print("phi = ",out,EMathematicaInput);
+    dphi.Print("dphi = ",out,EMathematicaInput);
+    dphix.Print("dphix = ",out,EMathematicaInput);
+    axes.Print("axes = ",out,EMathematicaInput);
+    jacobian.Print("jacobian = ",out,EMathematicaInput);
+    jacinv.Print("jacinv = ",out,EMathematicaInput);
+    out << "normal = {" << normal << "};" << std::endl;
+    out << "x = {" << x << "};" << std::endl;
+    out << "p = " << p << ";" << std::endl;
+    out << "sol = { " << sol << "};" << std::endl;
     int nsol=dsol.size();
     for (int is=0; is<nsol; is++) {
         std::stringstream sout;
         sout << "dsol" << is << " = ";
         dsol[is].Print(sout.str().c_str(),out,EMathematicaInput);
     }
-	
-	out << "HSize = " << HSize << ";" << std::endl;
-	out << "detjac = " << detjac << ";" << std::endl;
+    
+    out << "HSize = " << HSize << ";" << std::endl;
+    out << "detjac = " << detjac << ";" << std::endl;
     out << "XCenter = {" << XCenter << "};" << std::endl;
-	out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
-	out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
+    out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
+    out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
     out << "NintPts = " << NintPts << ";" <<std::endl;
     out << "gelElId = " << gelElId << ";" <<std::endl;
 }
@@ -188,31 +197,32 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid)
 {
     int shapetype = fShapeType;
     buf.Write(&shapetype);
-	phi.Write(buf,0);
-	dphix.Write(buf,0);
-	axes.Write(buf,0);
-	jacobian.Write(buf,0);
-	jacinv.Write(buf,0);
-	buf.Write(normal.begin(),normal.size());
-	buf.Write(x.begin(),x.size());
-	buf.Write(&p,1);
+    phi.Write(buf,0);
+    dphi.Write(buf,0);
+    dphix.Write(buf,0);
+    axes.Write(buf,0);
+    jacobian.Write(buf,0);
+    jacinv.Write(buf,0);
+    buf.Write(normal.begin(),normal.size());
+    buf.Write(x.begin(),x.size());
+    buf.Write(&p,1);
     int nsol = sol.size();
     buf.Write(&nsol);
     for (int is=0; is<nsol; is++) {
         buf.Write(sol[is].begin(),sol[is].size());
     }
-	
+    
     nsol = dsol.size();
     buf.Write(&nsol);
     for (int is=0; is<nsol; is++) {
         dsol[is].Write(buf,0);
     }
-	
-	buf.Write(&HSize,1);
-	buf.Write(&detjac,1);
+    
+    buf.Write(&HSize,1);
+    buf.Write(&detjac,1);
     buf.Write(XCenter.begin(),XCenter.size());
-	buf.Write(&intLocPtIndex,1);
-	buf.Write(&intGlobPtIndex,1);
+    buf.Write(&intLocPtIndex,1);
+    buf.Write(&intGlobPtIndex,1);
     buf.Write(&NintPts,1);
     buf.Write(&gelElId,1);
 }
@@ -223,14 +233,15 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     int shapetype;
     buf.Read(&shapetype);
     fShapeType = (MShapeFunctionType) shapetype;
-	phi.Read(buf,0);
-	dphix.Read(buf,0);
-	axes.Read(buf,0);
-	jacobian.Read(buf,0);
-	jacinv.Read(buf,0);
-	TPZSaveable::ReadObjects(buf,normal);
-	TPZSaveable::ReadObjects(buf,x);
-	buf.Read(&p,1);
+    phi.Read(buf,0);
+    dphi.Read(buf,0);
+    dphix.Read(buf,0);
+    axes.Read(buf,0);
+    jacobian.Read(buf,0);
+    jacinv.Read(buf,0);
+    TPZSaveable::ReadObjects(buf,normal);
+    TPZSaveable::ReadObjects(buf,x);
+    buf.Read(&p,1);
     int nsol;
     buf.Read(&nsol,1);
     for (int is=0; is<nsol; is++) {
@@ -240,12 +251,12 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     for (int is = 0; is<nsol; is++) {
         dsol[is].Read(buf,0);
     }
-	
-	buf.Read(&HSize,1);
-	buf.Read(&detjac,1);
+    
+    buf.Read(&HSize,1);
+    buf.Read(&detjac,1);
     TPZSaveable::ReadObjects(buf,XCenter);
-	buf.Read(&intLocPtIndex,1);
-	buf.Read(&intGlobPtIndex,1);
+    buf.Read(&intLocPtIndex,1);
+    buf.Read(&intGlobPtIndex,1);
     buf.Read(&NintPts,1);
     buf.Read(&gelElId,1);
 }

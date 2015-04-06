@@ -419,6 +419,14 @@ if(WIN32)
 	add_definitions(-DPTW32_STATIC_LIB)
 endif()
 
+#enabling to use HDIVPIOLA the contravariant Piola Mapping 
+option(USING_HDIVPIOLA "Whether the HDIVPIOLA is being used" OFF)
+if(USING_HDIVPIOLA)
+	#Adding a variable to hold this definition
+	set(HDIVPIOLA HDIVPIOLA)
+	add_definitions(-D${HDIVPIOLA})  
+endif(USING_HDIVPIOLA)
+
 # Begin of config.h part
 # This file contains all definitions used to compile the library pz
 # this will be saved at include diretory in the install target
@@ -492,4 +500,5 @@ add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 
 #To force XCode to use standard library c++ = libstdc++ (Required after upgrading to XCode 5)
 SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
+
 

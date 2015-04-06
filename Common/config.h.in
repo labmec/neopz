@@ -74,6 +74,10 @@
 #cmakedefine VC
 #endif
 
+#ifndef HDIVPIOLA
+#cmakedefine HDIVPIOLA
+#endif
+
 //Type defs
 #ifndef @REAL_TYPE_DEF@
 #define @REAL_TYPE_DEF@

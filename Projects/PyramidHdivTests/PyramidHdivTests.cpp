@@ -32,7 +32,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.pyramtests"));
 #endif
 
-TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref);
+TPZGeoMesh *MalhaCubo(std::string &projectpath, const int &nref);
 void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
 void InsertElasticityCubo(TPZCompMesh *mesh);
 

@@ -158,6 +158,7 @@ add_subdirectory(proDG)
 			#projeto agnaldo 09-09-2011
 			add_subdirectory(DoubleProjection)
                         add_subdirectory(artigoPira)
+            
 			add_subdirectory(TrabalhosLNCC15)
 			#projeto omar duran 16-12-2012
 			add_subdirectory(PoroElasticAnalysis)
@@ -182,7 +183,7 @@ add_subdirectory(proDG)
 
 			#Projeto Denise
 			#add_subdirectory(HdivPressureTeste)
-			add_subdirectory(HpAdaptivity)
+			#add_subdirectory(HpAdaptivity)
 			add_subdirectory(HDiv)
 			add_subdirectory(Hdiv3D)
 			add_subdirectory(AcoplamentoH1Hdiv)

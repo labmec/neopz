@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZTetrahedron methods. 
+ * @brief Contains the implementation of the TPZTetrahedron methods.
  */
 
 #include "tpztetrahedron.h"
@@ -22,135 +22,135 @@ static LoggerPtr logger(Logger::getLogger("pz.topology.pztetrahedron"));
 using namespace std;
 
 namespace pztopology {
-
-	static int nhighdimsides[15] = {7,7,7,7,3,3,3,3,3,3,1,1,1,1,0};
-	
-	int TPZTetrahedron::FaceNodes[4][3]  = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };
-	
-	int TPZTetrahedron::SideNodes[6][2]  = { {0,1},{1,2},{2,0},{0,3},{1,3},{2,3} };
-	
-	int TPZTetrahedron::ShapeFaceId[4][3] = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };
-	
-	static int sidedimension[15] = {0,0,0,0,1,1,1,1,1,1,2,2,2,2,3};
-	
-	
-	static int FaceConnectLocId[4][7] = { {0,1,2,4,5,6,10},{0,1,3,4,8,7,11},
-		{1,2,3,5,9,8,12},{0,2,3,6,9,7,13} };
-	
-	static int highsides[15][7] = {
-		{4,6,7,10,11,13,14},
-		{4,5,8,10,11,12,14},
-		{5,6,9,10,12,13,14},
-		{7,8,9,11,12,13,14},
-		{10,11,14},
-		{10,12,14},
-		{10,13,14},
-		{11,13,14},
-		{11,12,14},
-		{12,13,14},
-		{14},
-		{14},
-		{14},
-		{14},
-		{-999}
-	};
-	
-	static int nsidenodes[15] = 
-	{
-		1,1,1,1,
-		2,2,2,2,2,2,
-		3,3,3,3,
-		4};
-	
-	static REAL sidetosidetransforms[15][7][4][3] = {
-		{
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,0}}
-		},
-		{
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,0}}
-		},
-		{
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,0}}
-		},
-		{
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,-99}},
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,1}}
-		},
-		{
-			{{0.5,0,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0,-99}},
-			{{0.5,0,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0,-99}},
-			{{0.5,0,0},{-99,-99,-99},{-99,-99,-99},{0.5,0,0}}
-		},
-		{
-			{{-0.5,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,-99}},
-			{{0.5,0,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0,-99}},
-			{{-0.5,0.5,0},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,0}}
-		},
-		{
-			{{0,-0.5,-99},{-99,-99,-99},{-99,-99,-99},{0,0.5,-99}},
-			{{-0.5,0,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0,-99}},
-			{{0,-0.5,0},{-99,-99,-99},{-99,-99,-99},{0,0.5,0}}
-		},
-		{
-			{{0,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0,0.5,-99}},
-			{{0,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0,0.5,-99}},
-			{{0,0,0.5},{-99,-99,-99},{-99,-99,-99},{0,0,0.5}}
-		},
-		{
-			{{-0.5,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,-99}},
-			{{0,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0,0.5,-99}},
-			{{-0.5,0,0.5},{-99,-99,-99},{-99,-99,-99},{0.5,0,0.5}}
-		},
-		{
-			{{-0.5,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,-99}},
-			{{-0.5,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,-99}},
-			{{0,-0.5,0.5},{-99,-99,-99},{-99,-99,-99},{0,0.5,0.5}}
-		},
-		{
-			{{1,0,0},{0,1,0},{-99,-99,-99},{0,0,0}}
-		},
-		{
-			{{1,0,0},{0,0,1},{-99,-99,-99},{0,0,0}}
-		},
-		{
-			{{-1,1,0},{-1,0,1},{-99,-99,-99},{1,0,0}}
-		},
-		{
-			{{0,1,0},{0,0,1},{-99,-99,-99},{0,0,0}}
-		},
-		{
-			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-99,-99,-99}}
-		}
-	};
-	
-	static REAL MidSideNode[15][3] = {
-		/*00*/{.0,.0,.0},/*01*/{1.,.0,.0},/*02*/{0.,1.,.0},/*03*/{.0,0.,1.0},/*04*/{.5,.0,.0},
-		/*05*/{.5,.5,.0},/*06*/{0.,.5,.0},/*07*/{0.,0.,.5},/*08*/{.5,0.,0.5},/*09*/{.0,.5,.5},
-		/*10*/{1./3.,1./3., 0.  }  ,/*11*/{1./3., .0  ,1./3.},
-		/*12*/{1./3.,1./3.,1./3.}  ,/*13*/{ 0.  ,1./3.,1./3.},/*14*/{1./4.,1./4.,1./4.} };
+    
+    static int nhighdimsides[15] = {7,7,7,7,3,3,3,3,3,3,1,1,1,1,0};
+    
+    int TPZTetrahedron::FaceNodes[4][3]  = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };
+    
+    int TPZTetrahedron::SideNodes[6][2]  = { {0,1},{1,2},{2,0},{0,3},{1,3},{2,3} };
+    
+    int TPZTetrahedron::ShapeFaceId[4][3] = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };
+    
+    static int sidedimension[15] = {0,0,0,0,1,1,1,1,1,1,2,2,2,2,3};
+    
+    
+    static int FaceConnectLocId[4][7] = { {0,1,2,4,5,6,10},{0,1,3,4,8,7,11},
+        {1,2,3,5,9,8,12},{0,2,3,6,9,7,13} };
+    
+    static int highsides[15][7] = {
+        {4,6,7,10,11,13,14},
+        {4,5,8,10,11,12,14},
+        {5,6,9,10,12,13,14},
+        {7,8,9,11,12,13,14},
+        {10,11,14},
+        {10,12,14},
+        {10,13,14},
+        {11,13,14},
+        {11,12,14},
+        {12,13,14},
+        {14},
+        {14},
+        {14},
+        {14},
+        {-999}
+    };
+    
+    static int nsidenodes[15] =
+    {
+        1,1,1,1,
+        2,2,2,2,2,2,
+        3,3,3,3,
+        4};
+    
+    static REAL sidetosidetransforms[15][7][4][3] = {
+        {
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,0}}
+        },
+        {
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,0}}
+        },
+        {
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,0,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,0}}
+        },
+        {
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,1,-99}},
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{0,0,1}}
+        },
+        {
+            {{0.5,0,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0,-99}},
+            {{0.5,0,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0,-99}},
+            {{0.5,0,0},{-99,-99,-99},{-99,-99,-99},{0.5,0,0}}
+        },
+        {
+            {{-0.5,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,-99}},
+            {{0.5,0,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0,-99}},
+            {{-0.5,0.5,0},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,0}}
+        },
+        {
+            {{0,-0.5,-99},{-99,-99,-99},{-99,-99,-99},{0,0.5,-99}},
+            {{-0.5,0,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0,-99}},
+            {{0,-0.5,0},{-99,-99,-99},{-99,-99,-99},{0,0.5,0}}
+        },
+        {
+            {{0,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0,0.5,-99}},
+            {{0,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0,0.5,-99}},
+            {{0,0,0.5},{-99,-99,-99},{-99,-99,-99},{0,0,0.5}}
+        },
+        {
+            {{-0.5,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,-99}},
+            {{0,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0,0.5,-99}},
+            {{-0.5,0,0.5},{-99,-99,-99},{-99,-99,-99},{0.5,0,0.5}}
+        },
+        {
+            {{-0.5,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,-99}},
+            {{-0.5,0.5,-99},{-99,-99,-99},{-99,-99,-99},{0.5,0.5,-99}},
+            {{0,-0.5,0.5},{-99,-99,-99},{-99,-99,-99},{0,0.5,0.5}}
+        },
+        {
+            {{1,0,0},{0,1,0},{-99,-99,-99},{0,0,0}}
+        },
+        {
+            {{1,0,0},{0,0,1},{-99,-99,-99},{0,0,0}}
+        },
+        {
+            {{-1,1,0},{-1,0,1},{-99,-99,-99},{1,0,0}}
+        },
+        {
+            {{0,1,0},{0,0,1},{-99,-99,-99},{0,0,0}}
+        },
+        {
+            {{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-99,-99,-99}}
+        }
+    };
+    
+    static REAL MidSideNode[15][3] = {
+        /*00*/{.0,.0,.0},/*01*/{1.,.0,.0},/*02*/{0.,1.,.0},/*03*/{.0,0.,1.0},/*04*/{.5,.0,.0},
+        /*05*/{.5,.5,.0},/*06*/{0.,.5,.0},/*07*/{0.,0.,.5},/*08*/{.5,0.,0.5},/*09*/{.0,.5,.5},
+        /*10*/{1./3.,1./3., 0.  }  ,/*11*/{1./3., .0  ,1./3.},
+        /*12*/{1./3.,1./3.,1./3.}  ,/*13*/{ 0.  ,1./3.,1./3.},/*14*/{1./4.,1./4.,1./4.} };
     
     static REAL bTetra[45][3] = // direcao perpendicular ao lado
     {
@@ -210,7 +210,7 @@ namespace pztopology {
         {1,0,0} ,
         {0,1,0}
     };
-
+    
     static int vectorsideorderTe [45] =
     {
         0,1,2,4,5,6,10, //face 0
@@ -234,385 +234,385 @@ namespace pztopology {
         1,1,1,1,1,1,1,1,1,1,
         1,1,1,1,1
     };
-
-//    static int bilinearounao [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    
+    //    static int bilinearounao [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     static int direcaoksioueta [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,2};
     
-	int TPZTetrahedron::NBilinearSides()
+    int TPZTetrahedron::NBilinearSides()
     {
         DebugStop();
         return 0;
     }
     
-	void TPZTetrahedron::LowerDimensionSides(int side,TPZStack<int> &smallsides)
-	{
-		smallsides.Resize(0);
-		int nsidecon = NContainedSides(side);
-		int is;
-		for(is=0; is<nsidecon-1; is++)
-			smallsides.Push(ContainedSideLocId(side,is));
-	}
-	
-	void TPZTetrahedron::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
-	{
-		smallsides.Resize(0);
-		int nsidecon = NContainedSides(side);
-		for(int is = 0; is < nsidecon - 1; is++) {
-			if (SideDimension(ContainedSideLocId(side,is)) == DimTarget) smallsides.Push(ContainedSideLocId(side,is));
-		}
-	}
-	
-	void TPZTetrahedron::HigherDimensionSides(int side, TPZStack<int> &high)
-	{
-		if(side <0 || side >= NSides) {
-			PZError << "TPZTetrahedron::HigherDimensionSides side "<< side << endl;
-		}
-		int is;
-		for(is=0; is<nhighdimsides[side]; is++) high.Push(highsides[side][is]);
-		
-	}
-	
-	int TPZTetrahedron::NSideNodes(int side)
-	{
-		return nsidenodes[side];
-	}
-	//Tentando criar o metodo
-	int TPZTetrahedron::NumSides(int dimension) {		if(dimension<0 || dimension> 3) {
-		PZError << "TPZTetrahedron::NumSides. Bad parameter i.\n";
-		return 0;
-	}
-		if(dimension==0) return 4;
-		if(dimension==1) return 6;
-		if(dimension==2) return 4;
-		if(dimension==3) return 1;
-		return -1;
-	}
-	
-	int TPZTetrahedron::SideNodeLocId(int side, int node)
-	{
-		if(side<4 && node == 0) return side;
-		if(side>=4 && side < 10 && node <2) return SideNodes[side-4][node];
-		if(side >= 10 && side < 14 && node <3) return FaceNodes[side-10][node];
-		if(side ==14 && node < 4) return node;
-		PZError << "TPZTetrahedron::SideNodeLocId inconsistent side or node " << side
-		<< ' ' << node << endl;
+    void TPZTetrahedron::LowerDimensionSides(int side,TPZStack<int> &smallsides)
+    {
+        smallsides.Resize(0);
+        int nsidecon = NContainedSides(side);
+        int is;
+        for(is=0; is<nsidecon-1; is++)
+            smallsides.Push(ContainedSideLocId(side,is));
+    }
+    
+    void TPZTetrahedron::LowerDimensionSides(int side,TPZStack<int> &smallsides, int DimTarget)
+    {
+        smallsides.Resize(0);
+        int nsidecon = NContainedSides(side);
+        for(int is = 0; is < nsidecon - 1; is++) {
+            if (SideDimension(ContainedSideLocId(side,is)) == DimTarget) smallsides.Push(ContainedSideLocId(side,is));
+        }
+    }
+    
+    void TPZTetrahedron::HigherDimensionSides(int side, TPZStack<int> &high)
+    {
+        if(side <0 || side >= NSides) {
+            PZError << "TPZTetrahedron::HigherDimensionSides side "<< side << endl;
+        }
+        int is;
+        for(is=0; is<nhighdimsides[side]; is++) high.Push(highsides[side][is]);
+        
+    }
+    
+    int TPZTetrahedron::NSideNodes(int side)
+    {
+        return nsidenodes[side];
+    }
+    //Tentando criar o metodo
+    int TPZTetrahedron::NumSides(int dimension) {		if(dimension<0 || dimension> 3) {
+        PZError << "TPZTetrahedron::NumSides. Bad parameter i.\n";
+        return 0;
+    }
+        if(dimension==0) return 4;
+        if(dimension==1) return 6;
+        if(dimension==2) return 4;
+        if(dimension==3) return 1;
+        return -1;
+    }
+    
+    int TPZTetrahedron::SideNodeLocId(int side, int node)
+    {
+        if(side<4 && node == 0) return side;
+        if(side>=4 && side < 10 && node <2) return SideNodes[side-4][node];
+        if(side >= 10 && side < 14 && node <3) return FaceNodes[side-10][node];
+        if(side ==14 && node < 4) return node;
+        PZError << "TPZTetrahedron::SideNodeLocId inconsistent side or node " << side
+        << ' ' << node << endl;
         DebugStop();
-		return -1;
-		
-	}
-	
-	void TPZTetrahedron::CenterPoint(int side, TPZVec<REAL> &center) {
-		//center.Resize(Dimension);
-		int i;
-		for(i=0; i<Dimension; i++) {
-			center[i] = MidSideNode[side][i];
-		}
-	}
-	
-	int TPZTetrahedron::SideDimension(int side) {
-		if(side<0 || side >= NSides) {
-			PZError << "TPZTetrahedron::SideDimension side " << side << endl;
-			return -1;
-		}
-		return sidedimension[side];
-	}
-	
-	TPZTransform TPZTetrahedron::SideToSideTransform(int sidefrom, int sideto)
-	{
-		if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {
-			PZError << "TPZTetrahedron::HigherDimensionSides sidefrom "<< sidefrom << 
-			' ' << sideto << endl;
-			return TPZTransform(0);
-		}
-		if(sidefrom == sideto) {
-			return TPZTransform(sidedimension[sidefrom]);
-		}
-		if(sidefrom == NSides-1) {
-			return TransformElementToSide(sideto);
-		}
-		int nhigh = nhighdimsides[sidefrom];
-		int is;
-		for(is=0; is<nhigh; is++) {
-			if(highsides[sidefrom][is] == sideto) {
-				int dfr = sidedimension[sidefrom];
-				int dto = sidedimension[sideto];
-				TPZTransform trans(dto,dfr);
-				int i,j;
-				for(i=0; i<dto; i++) {
-					for(j=0; j<dfr; j++) {
-						trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
-					}
-					trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
-				}
-				return trans;
-			}
-		}
-		PZError << "TPZTetrahedron::SideToSideTransform highside not found sidefrom "
-		<< sidefrom << ' ' << sideto << endl;
-		return TPZTransform(0);
-	}
-	
-	TPZTransform TPZTetrahedron::TransformElementToSide(int side){
-		
-		if(side<0 || side>14){
-			PZError << "TPZTetrahedron::TransformElementToSide called with side error\n";
-			return TPZTransform(0,0);
-		}
-		
-		TPZTransform t(sidedimension[side],3);
-		t.Mult().Zero();
-		t.Sum().Zero();
-		
-		switch(side){
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-				return t;
-			case 4:
-				t.Mult()(0,0) =  2.0;
-				t.Sum()(0,0)  = -1.0;
-				return t;
-			case 5:
-				t.Mult()(0,0) = -1.0;
-				t.Mult()(0,1) =  1.0;
-				return t;
-			case 6:
-				t.Mult()(0,1) = -2.0;
-				t.Sum()(0,0)  =  1.0;
-				return t;
-			case 7:
-				t.Mult()(0,2) =  2.0;
-				t.Sum()(0,0)  = -1.0;
-				return t;
-			case 8:
-				t.Mult()(0,0) = -1.0;
-				t.Mult()(0,2) =  1.0;
-				return t;
-			case 9:
-				t.Mult()(0,1) = -1.0;
-				t.Mult()(0,2) =  1.0;
-				return t;
-			case 10:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
-				return t;
-			case 11:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,2) =  1.0;
-				return t;
-			case 12:
-			case 13:
-				t.Mult()(0,1) =  1.0;
-				t.Mult()(1,2) =  1.0;
-				return t;
-			case 14:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
-				t.Mult()(2,2) =  1.0;
-				return t;
-		}
-		return TPZTransform(0,0);
-	}
-	
-	TPZTransform TPZTetrahedron::TransformSideToElement(int side){
-		
-		if(side<0 || side>14){
-			PZError << "TPZTetrahedron::TransformSideToElement side out range\n";
-			return TPZTransform(0,0);
-		}
-		TPZTransform t(3,sidedimension[side]);
-		t.Mult().Zero();
-		t.Sum().Zero();
-		
-		switch(side){
-			case 0:
-				return t;
-			case 1:
-				t.Sum()(0,0) =  1.0;
-				return t;
-			case 2:
-				t.Sum()(1,0) =  1.0;
-				return t;
-			case 3:
-				t.Sum()(2,0) =  1.0;
-				return t;
-			case 4:
-				t.Mult()(0,0) =  0.5;
-				t.Sum() (0,0) =  0.5;
-				return t;
-			case 5:
-				t.Mult()(0,0) = -0.5;
-				t.Mult()(1,0) =  0.5;
-				t.Sum() (0,0) =  0.5;
-				t.Sum() (1,0) =  0.5;
-				return t;
-			case 6:
-				t.Mult()(1,0) = -0.5;
-				t.Sum() (1,0) =  0.5;
-				return t;
-			case 7:
-				t.Mult()(2,0) =  0.5;
-				t.Sum() (2,0) =  0.5;
-				return t;
-			case 8:
-				t.Mult()(0,0) = -0.5;
-				t.Mult()(2,0) =  0.5;
-				t.Sum() (0,0) =  0.5;
-				t.Sum() (2,0) =  0.5;
-				return t;
-			case 9:
-				t.Mult()(1,0) = -0.5;
-				t.Mult()(2,0) =  0.5;
-				t.Sum() (1,0) =  0.5;
-				t.Sum() (2,0) =  0.5;
-				return t;
-			case 10:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
-				return t;
-			case 11:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(2,1) =  1.0;
-				return t;
-			case 12:
-				t.Mult()(0,0) = -1.0;
-				t.Mult()(0,1) = -1.0;
-				t.Mult()(1,0) =  1.0;
-				t.Mult()(2,1) =  1.0;
-				t.Sum() (0,0) =  1.0;
-				return t;
-			case 13:
-				t.Mult()(1,0) =  1.0;
-				t.Mult()(2,1) =  1.0;
-				return t;
-			case 14:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
-				t.Mult()(2,2) =  1.0;
-				return t;
-				
-		}
-		return TPZTransform(0,0);
-	}
-	
-	TPZIntPoints * TPZTetrahedron::CreateSideIntegrationRule(int side, int order) {
-		if(side<0 || side>15) {
-			PZError << "TPZTetrahedron::CreateSideIntegrationRule. bad side number.\n";
-			return 0;
-		}
-		if(side<4)   return new TPZInt1Point(order);    // sides 0 to 3 are points (vertices)
-		if(side<10)  return new TPZInt1d(order);   // sides 4 to 9 are lines
-		if(side<14)  {                             // sides 10 to 13 are triangles
-			return new TPZIntTriang(order);
-		}
-		if(side==14) {                            // integration of the element
-			return new IntruleType(order);
-		}
-		return 0;
-	}
-	
-	
-	MElementType TPZTetrahedron::Type()
-	{
-		return ETetraedro;
-	}
-	
-	MElementType TPZTetrahedron::Type(int side)
-	{
-		switch(side) {
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-				return EPoint;
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-			case 9:
-				return EOned;
-			case 10:
-			case 11:
-			case 12:
-			case 13:
-				return ETriangle;
-			case 14:
-				return ETetraedro;
-			default:
-				return ENoType;
-		}
-	}
-	
-	
-	int TPZTetrahedron::NumSides() {
-		return NSides;
-	}
-	
-	
-	int TPZTetrahedron::NContainedSides(int side) {
-		if(side<0)   return -1;
-		if(side<4)   return 1;//cantos : 0 a 3
-		if(side<10)  return 3;//lados : 4 a 9
-		if(side<14)	 return 7;//faces : 10 a 13
-		if(side==14) return 15;//centro : 14
-		return -1;
-	}
-	
-	int TPZTetrahedron::ContainedSideLocId(int side, int node) {
-		if(side<0 || side>15) return -1;
-		if(side<4) {
-			if(node==0) return side;
-		} else
-			if(side<7) {//4,5,6
-				int s = side-4;//0,1,2
-				if(!node) return s;//0,1,2
-				if(node==1) return (s+1)%3;//1,2,0
-				if(node==2) return side;//4,5,6
-			} else
-				if(side<10) {//7,8,9
-					int s = side-7;//0,1,2
-					if(!node) return s;//0,1,2
-					if(node==1) return 3;//4,4,4
-					if(node==2) return side;//7,8,9
-				} else
-					if(side<14) {//10 a 13
-						int s = side-10;
-						if(node<7) return FaceConnectLocId[s][node];
-					} else
-						if(side==14 && node<15){
-							return node;
-						}
-		PZError << "TPZShapeTetra::ContainedSideLocId called for node = "
-		<< node << " and side = " << side << "\n";
-		return -1;
-	}
-	
-	bool TPZTetrahedron::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
-		const REAL qsi = pt[0];
-		const REAL eta = pt[1];
-		const REAL zeta = pt[2];
-		if( (qsi < 0. - tol) || (qsi > 1. + tol) ||
-		   (eta < 0. - tol) || (eta > 1. + tol) || 
-		   (zeta < 0. -tol) || (zeta > 1. +tol) || 
-		   (qsi+eta+zeta > 1.+tol) ) {
-			return false;
-		}
-		else{
-			return true;
-		}
-		
-	}//method
+        return -1;
+        
+    }
+    
+    void TPZTetrahedron::CenterPoint(int side, TPZVec<REAL> &center) {
+        //center.Resize(Dimension);
+        int i;
+        for(i=0; i<Dimension; i++) {
+            center[i] = MidSideNode[side][i];
+        }
+    }
+    
+    int TPZTetrahedron::SideDimension(int side) {
+        if(side<0 || side >= NSides) {
+            PZError << "TPZTetrahedron::SideDimension side " << side << endl;
+            return -1;
+        }
+        return sidedimension[side];
+    }
+    
+    TPZTransform TPZTetrahedron::SideToSideTransform(int sidefrom, int sideto)
+    {
+        if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {
+            PZError << "TPZTetrahedron::HigherDimensionSides sidefrom "<< sidefrom <<
+            ' ' << sideto << endl;
+            return TPZTransform(0);
+        }
+        if(sidefrom == sideto) {
+            return TPZTransform(sidedimension[sidefrom]);
+        }
+        if(sidefrom == NSides-1) {
+            return TransformElementToSide(sideto);
+        }
+        int nhigh = nhighdimsides[sidefrom];
+        int is;
+        for(is=0; is<nhigh; is++) {
+            if(highsides[sidefrom][is] == sideto) {
+                int dfr = sidedimension[sidefrom];
+                int dto = sidedimension[sideto];
+                TPZTransform trans(dto,dfr);
+                int i,j;
+                for(i=0; i<dto; i++) {
+                    for(j=0; j<dfr; j++) {
+                        trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
+                    }
+                    trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
+                }
+                return trans;
+            }
+        }
+        PZError << "TPZTetrahedron::SideToSideTransform highside not found sidefrom "
+        << sidefrom << ' ' << sideto << endl;
+        return TPZTransform(0);
+    }
+    
+    TPZTransform TPZTetrahedron::TransformElementToSide(int side){
+        
+        if(side<0 || side>14){
+            PZError << "TPZTetrahedron::TransformElementToSide called with side error\n";
+            return TPZTransform(0,0);
+        }
+        
+        TPZTransform t(sidedimension[side],3);
+        t.Mult().Zero();
+        t.Sum().Zero();
+        
+        switch(side){
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                return t;
+            case 4:
+                t.Mult()(0,0) =  2.0;
+                t.Sum()(0,0)  = -1.0;
+                return t;
+            case 5:
+                t.Mult()(0,0) = -1.0;
+                t.Mult()(0,1) =  1.0;
+                return t;
+            case 6:
+                t.Mult()(0,1) = -2.0;
+                t.Sum()(0,0)  =  1.0;
+                return t;
+            case 7:
+                t.Mult()(0,2) =  2.0;
+                t.Sum()(0,0)  = -1.0;
+                return t;
+            case 8:
+                t.Mult()(0,0) = -1.0;
+                t.Mult()(0,2) =  1.0;
+                return t;
+            case 9:
+                t.Mult()(0,1) = -1.0;
+                t.Mult()(0,2) =  1.0;
+                return t;
+            case 10:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+                return t;
+            case 11:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,2) =  1.0;
+                return t;
+            case 12:
+            case 13:
+                t.Mult()(0,1) =  1.0;
+                t.Mult()(1,2) =  1.0;
+                return t;
+            case 14:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+                t.Mult()(2,2) =  1.0;
+                return t;
+        }
+        return TPZTransform(0,0);
+    }
+    
+    TPZTransform TPZTetrahedron::TransformSideToElement(int side){
+        
+        if(side<0 || side>14){
+            PZError << "TPZTetrahedron::TransformSideToElement side out range\n";
+            return TPZTransform(0,0);
+        }
+        TPZTransform t(3,sidedimension[side]);
+        t.Mult().Zero();
+        t.Sum().Zero();
+        
+        switch(side){
+            case 0:
+                return t;
+            case 1:
+                t.Sum()(0,0) =  1.0;
+                return t;
+            case 2:
+                t.Sum()(1,0) =  1.0;
+                return t;
+            case 3:
+                t.Sum()(2,0) =  1.0;
+                return t;
+            case 4:
+                t.Mult()(0,0) =  0.5;
+                t.Sum() (0,0) =  0.5;
+                return t;
+            case 5:
+                t.Mult()(0,0) = -0.5;
+                t.Mult()(1,0) =  0.5;
+                t.Sum() (0,0) =  0.5;
+                t.Sum() (1,0) =  0.5;
+                return t;
+            case 6:
+                t.Mult()(1,0) = -0.5;
+                t.Sum() (1,0) =  0.5;
+                return t;
+            case 7:
+                t.Mult()(2,0) =  0.5;
+                t.Sum() (2,0) =  0.5;
+                return t;
+            case 8:
+                t.Mult()(0,0) = -0.5;
+                t.Mult()(2,0) =  0.5;
+                t.Sum() (0,0) =  0.5;
+                t.Sum() (2,0) =  0.5;
+                return t;
+            case 9:
+                t.Mult()(1,0) = -0.5;
+                t.Mult()(2,0) =  0.5;
+                t.Sum() (1,0) =  0.5;
+                t.Sum() (2,0) =  0.5;
+                return t;
+            case 10:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+                return t;
+            case 11:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(2,1) =  1.0;
+                return t;
+            case 12:
+                t.Mult()(0,0) = -1.0;
+                t.Mult()(0,1) = -1.0;
+                t.Mult()(1,0) =  1.0;
+                t.Mult()(2,1) =  1.0;
+                t.Sum() (0,0) =  1.0;
+                return t;
+            case 13:
+                t.Mult()(1,0) =  1.0;
+                t.Mult()(2,1) =  1.0;
+                return t;
+            case 14:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+                t.Mult()(2,2) =  1.0;
+                return t;
+                
+        }
+        return TPZTransform(0,0);
+    }
+    
+    TPZIntPoints * TPZTetrahedron::CreateSideIntegrationRule(int side, int order) {
+        if(side<0 || side>15) {
+            PZError << "TPZTetrahedron::CreateSideIntegrationRule. bad side number.\n";
+            return 0;
+        }
+        if(side<4)   return new TPZInt1Point(order);    // sides 0 to 3 are points (vertices)
+        if(side<10)  return new TPZInt1d(order);   // sides 4 to 9 are lines
+        if(side<14)  {                             // sides 10 to 13 are triangles
+            return new TPZIntTriang(order);
+        }
+        if(side==14) {                            // integration of the element
+            return new IntruleType(order);
+        }
+        return 0;
+    }
+    
+    
+    MElementType TPZTetrahedron::Type()
+    {
+        return ETetraedro;
+    }
+    
+    MElementType TPZTetrahedron::Type(int side)
+    {
+        switch(side) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                return EPoint;
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                return EOned;
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+                return ETriangle;
+            case 14:
+                return ETetraedro;
+            default:
+                return ENoType;
+        }
+    }
+    
+    
+    int TPZTetrahedron::NumSides() {
+        return NSides;
+    }
+    
+    
+    int TPZTetrahedron::NContainedSides(int side) {
+        if(side<0)   return -1;
+        if(side<4)   return 1;//cantos : 0 a 3
+        if(side<10)  return 3;//lados : 4 a 9
+        if(side<14)	 return 7;//faces : 10 a 13
+        if(side==14) return 15;//centro : 14
+        return -1;
+    }
+    
+    int TPZTetrahedron::ContainedSideLocId(int side, int node) {
+        if(side<0 || side>15) return -1;
+        if(side<4) {
+            if(node==0) return side;
+        } else
+            if(side<7) {//4,5,6
+                int s = side-4;//0,1,2
+                if(!node) return s;//0,1,2
+                if(node==1) return (s+1)%3;//1,2,0
+                if(node==2) return side;//4,5,6
+            } else
+                if(side<10) {//7,8,9
+                    int s = side-7;//0,1,2
+                    if(!node) return s;//0,1,2
+                    if(node==1) return 3;//4,4,4
+                    if(node==2) return side;//7,8,9
+                } else
+                    if(side<14) {//10 a 13
+                        int s = side-10;
+                        if(node<7) return FaceConnectLocId[s][node];
+                    } else
+                        if(side==14 && node<15){
+                            return node;
+                        }
+        PZError << "TPZShapeTetra::ContainedSideLocId called for node = "
+        << node << " and side = " << side << "\n";
+        return -1;
+    }
+    
+    bool TPZTetrahedron::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+        const REAL qsi = pt[0];
+        const REAL eta = pt[1];
+        const REAL zeta = pt[2];
+        if( (qsi < 0. - tol) || (qsi > 1. + tol) ||
+           (eta < 0. - tol) || (eta > 1. + tol) ||
+           (zeta < 0. -tol) || (zeta > 1. +tol) ||
+           (qsi+eta+zeta > 1.+tol) ) {
+            return false;
+        }
+        else{
+            return true;
+        }
+        
+    }//method
     
     bool TPZTetrahedron::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
-		
-		double zero = 1.E-5;
-		
-		REAL qsi = InternalPar[0]; REAL eta = InternalPar[1]; REAL zeta = InternalPar[2];
-		bool regularmap = true;
-		switch(side)
-		{
+        
+        double zero = 1.E-5;
+        
+        REAL qsi = InternalPar[0]; REAL eta = InternalPar[1]; REAL zeta = InternalPar[2];
+        bool regularmap = true;
+        switch(side)
+        {
             case 0:
             case 1:
             case 2:
@@ -621,176 +621,176 @@ namespace pztopology {
                 SidePar.Resize(0); JacToSide.Resize(0,0);
                 break;
             }
-			case 4://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(eta + zeta - 1.) < zero)
-				{
+            case 4://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs(eta + zeta - 1.) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = -(2.*qsi + eta + zeta -1.)/(eta + zeta -1.);
                     JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
-				}
-				break;
-				
-			case 5://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(qsi + eta) < zero)
-				{
+                }
+                break;
+                
+            case 5://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs(qsi + eta) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = (eta - qsi)/(eta + qsi);
                     JacToSide(0,0) = -2.*eta/((qsi + eta)*(qsi + eta)); JacToSide(0,1) = 2.*qsi/((qsi + eta)*(qsi + eta)); JacToSide(0,2) = 0.;
-				}
-				break;
-				
-			case 6://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(qsi + zeta - 1.) < zero)
-				{
+                }
+                break;
+                
+            case 6://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs(qsi + zeta - 1.) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = (qsi + 2*eta + zeta -1.)/(qsi + zeta -1.);
                     JacToSide(0,0) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.)); JacToSide(0,1) = 2./(qsi + zeta - 1.); JacToSide(0,2) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.));
-				}
-				break;
-				
-			case 7://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(qsi + eta - 1.) < zero)
-				{
+                }
+                break;
+                
+            case 7://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs(qsi + eta - 1.) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = -(qsi + eta + 2*zeta -1.)/(qsi + eta -1.);
                     JacToSide(0,0) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,1) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,2) = -2./(qsi + eta -1.);
-				}
-				break;
-				
-			case 8://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(qsi + zeta) < zero)
-				{
+                }
+                break;
+                
+            case 8://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs(qsi + zeta) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = (zeta - qsi)/(zeta + qsi);
                     JacToSide(0,0) = -2.*zeta/(qsi + zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = 2.*qsi/((qsi + zeta)*(qsi + zeta));
-				}
-				break;
-				
-			case 9://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs(eta + zeta) < zero)
-				{
+                }
+                break;
+                
+            case 9://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs(eta + zeta) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = (zeta - eta)/(zeta + eta);
                     JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
-				}
-				break;
-				
-			case 10://2D
-				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs(zeta - 1.) < zero)
-				{
+                }
+                break;
+                
+            case 10://2D
+                SidePar.Resize(2); JacToSide.Resize(2,3);
+                if(fabs(zeta - 1.) < zero)
+                {
                     SidePar[0] = 1./3.; SidePar[1] = 1./3.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = qsi/(1.-zeta); SidePar[1] = eta/(1.-zeta);
                     JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = qsi/((zeta-1.)*(zeta-1.));
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = eta/((zeta-1.)*(zeta-1.));
-				}
-				break;
-				
-			case 11://2D
-				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs(eta - 1.) < zero)
-				{
+                }
+                break;
+                
+            case 11://2D
+                SidePar.Resize(2); JacToSide.Resize(2,3);
+                if(fabs(eta - 1.) < zero)
+                {
                     SidePar[0] = 1./3.; SidePar[1] = 1./3.;
                     JacToSide(0,0) = 1./(1.-eta); JacToSide(0,1) = qsi/((eta-1.)*(eta-1.)); JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = zeta/((eta-1.)*(eta-1.)); JacToSide(1,2) = 1./(1.-eta);
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = qsi/(1.-eta); SidePar[1] = zeta/(1.-eta);
                     JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 1/(1.-zeta); JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 1/(1.-zeta); JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = 0.;
-				}
-				break;
-				
-			case 12://2D
-				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs(qsi+eta+zeta) < zero)
-				{
+                }
+                break;
+                
+            case 12://2D
+                SidePar.Resize(2); JacToSide.Resize(2,3);
+                if(fabs(qsi+eta+zeta) < zero)
+                {
                     SidePar[0] = 1./6.; SidePar[1] = 1./3.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = eta/(qsi+eta+zeta); SidePar[1] = zeta/(qsi+eta+zeta);
                     JacToSide(0,0) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,1) = (qsi+zeta)/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,2) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta));
                     JacToSide(1,0) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,1) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,2) = (qsi+eta)/((qsi+eta+zeta)*(qsi+eta+zeta));
-				}
-				break;
-				
-			case 13://2D
-				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs(qsi - 1.) < zero)
-				{
+                }
+                break;
+                
+            case 13://2D
+                SidePar.Resize(2); JacToSide.Resize(2,3);
+                if(fabs(qsi - 1.) < zero)
+                {
                     SidePar[0] = 1./3.; SidePar[1] = 1./3.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
+                    regularmap = false;
+                }
+                else
+                {
                     SidePar[0] = eta/(1.-qsi); SidePar[1] = zeta/(1.-qsi);
                     JacToSide(0,0) = eta/((qsi-1.)*(qsi-1.)); JacToSide(0,1) = 1/(1.-qsi); JacToSide(0,2) = 0.;
                     JacToSide(1,0) = zeta/((qsi-1.)*(qsi-1.)); JacToSide(1,1) = 0.; JacToSide(1,2) = 1/(1.-qsi);
-				}
-				break;
+                }
+                break;
             case 14: //Interno para interno ? aquidouglas aqui
                 SidePar = InternalPar;
                 JacToSide.Resize(3, 3);
                 JacToSide.Identity();
                 break;
-		}
-		if(side > 14)
-		{
-			cout << "Cant compute MapToSide method in TPZGeoTetrahedra class!\nParameter (SIDE) must be between 4 and 13!\nMethod Aborted!\n";
-			DebugStop();
-		}
-		return regularmap;
-	}
+        }
+        if(side > 14)
+        {
+            cout << "Cant compute MapToSide method in TPZGeoTetrahedra class!\nParameter (SIDE) must be between 4 and 13!\nMethod Aborted!\n";
+            DebugStop();
+        }
+        return regularmap;
+    }
     
     void TPZTetrahedron::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
     {
@@ -835,63 +835,63 @@ namespace pztopology {
             }
         }
     }
-	
-	/**
-	 * Method which identifies the transformation based on the IDs
-	 * of the corner nodes
-	 * @param id indexes of the corner nodes
-	 * @return index of the transformation of the point corresponding to the topology
-	 */
-	int TPZTetrahedron::GetTransformId(TPZVec<long> &id)
-	{
-		LOGPZ_ERROR(logger,"Please implement me")
-		return -1;
-	}
-	
-	/**
-	 * Method which identifies the transformation of a side based on the IDs
-	 * of the corner nodes
-	 * @param id indexes of the corner nodes
-	 * @return index of the transformation of the point corresponding to the topology
-	 */	
-	int TPZTetrahedron::GetTransformId(int side, TPZVec<long> &id)
-	{
-		LOGPZ_ERROR(logger,"Please implement me")
-		return -1;
-	}
-	
-	/**
-	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
-	 * in terms of order of shape functions
-	 * @param side : side for which the permutation is needed
-	 * @param id : ids of the corner nodes of the elements
-	 * @param permgather : permutation vector in a gather order
-	 */
-	void TPZTetrahedron::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
-	{
-	// Not complete
+    
+    /**
+     * Method which identifies the transformation based on the IDs
+     * of the corner nodes
+     * @param id indexes of the corner nodes
+     * @return index of the transformation of the point corresponding to the topology
+     */
+    int TPZTetrahedron::GetTransformId(TPZVec<long> &id)
+    {
+        LOGPZ_ERROR(logger,"Please implement me")
+        return -1;
+    }
+    
+    /**
+     * Method which identifies the transformation of a side based on the IDs
+     * of the corner nodes
+     * @param id indexes of the corner nodes
+     * @return index of the transformation of the point corresponding to the topology
+     */
+    int TPZTetrahedron::GetTransformId(int side, TPZVec<long> &id)
+    {
+        LOGPZ_ERROR(logger,"Please implement me")
+        return -1;
+    }
+    
+    /**
+     * Identifies the permutation of the nodes needed to make neighbouring elements compatible
+     * in terms of order of shape functions
+     * @param side : side for which the permutation is needed
+     * @param id : ids of the corner nodes of the elements
+     * @param permgather : permutation vector in a gather order
+     */
+    void TPZTetrahedron::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
+    {
+        // Not complete
         DebugStop();
         
-//#ifdef DEBUG
-//        if (SideDimension(side) != 2) {
-//            DebugStop();
-//        }
-//#endif
-//        permgather.Resize(7);
-//        TPZManVector<long,7> locids(3);
-//        for (int in=0; in<3; in++) {
-//            locids[in] = id[SideNodeLocId(side, in)];
-//        }
-//        int transformid = pztopology::TPZTriangle::GetTransformId(locids);
-//        pztopology::TPZTriangle::GetHDivGatherPermute(transformid,permgather);
+        //#ifdef DEBUG
+        //        if (SideDimension(side) != 2) {
+        //            DebugStop();
+        //        }
+        //#endif
+        //        permgather.Resize(7);
+        //        TPZManVector<long,7> locids(3);
+        //        for (int in=0; in<3; in++) {
+        //            locids[in] = id[SideNodeLocId(side, in)];
+        //        }
+        //        int transformid = pztopology::TPZTriangle::GetTransformId(locids);
+        //        pztopology::TPZTriangle::GetHDivGatherPermute(transformid,permgather);
     }
     
     
     void computedirectionsT3(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
-                           TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+                             TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
     
     void computedirectionsT3(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
-                           TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
+                             TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
     {
         REAL detgrad = 0.0;
         TPZVec<REAL> u(3);
@@ -958,7 +958,7 @@ namespace pztopology {
         
         
     }
-
+    
     
     void TPZTetrahedron::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
     {
@@ -1049,9 +1049,9 @@ namespace pztopology {
             default:
                 break;
         }
-                
-                
-	}
+        
+        
+    }
     
     void TPZTetrahedron::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
     {
@@ -1068,6 +1068,19 @@ namespace pztopology {
             vi[i] = gradx(i,2)-gradx(i,0);//gradx(i,2)-0.5*(gradx(i,0)+gradx(i,1));
         }
         
+#ifdef HDIVPIOLA
+        
+        /**
+         * @file
+         * @brief Computing mapped vector with scaling factor equal 1.0.
+         * using contravariant piola mapping.
+         */
+        
+        REAL Nv1v2 = 1.0;
+        REAL Nv2v3 = 1.0;
+        REAL Nv3v1 = 1.0;
+        REAL Nvivdiagb = 1.0;
+#else
         TPZNumeric::ProdVetorial(v1,v2,v1v2);
         TPZNumeric::ProdVetorial(v2,v3,v2v3);
         TPZNumeric::ProdVetorial(v3,v1,v3v1);
@@ -1077,6 +1090,8 @@ namespace pztopology {
         REAL Nv2v3 = TPZNumeric::Norma(v2v3);
         REAL Nv3v1 = TPZNumeric::Norma(v3v1);
         REAL Nvivdiagb = TPZNumeric::Norma(vivdiagxy);
+        
+#endif
         
         for (int i=0; i<3; i++) {
             v1[i] /= detgrad;
@@ -1145,7 +1160,7 @@ namespace pztopology {
         }        
         
     }
-
+    
     
     void TPZTetrahedron::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
@@ -1183,6 +1198,6 @@ namespace pztopology {
     }
     
     
-
-
+    
+    
 }
