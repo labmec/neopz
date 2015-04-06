@@ -32,6 +32,8 @@
 static LoggerPtr logger(Logger::getLogger("pz.pyramtests"));
 #endif
 
+using namespace std;
+
 TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref);
 void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
 void InsertElasticityCubo(TPZCompMesh *mesh);
@@ -60,10 +62,11 @@ struct TTimer {
     
 };
 
-using namespace std;
 
 int main()
 {
+    int variavelTesteParaVerSeSeiComitar;
+    
     TPZTimer tref;
     tref.start();
     gRefDBase.InitializeUniformRefPattern(ETetraedro);
