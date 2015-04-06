@@ -34,6 +34,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.pyramtests"));
 #endif
 
+
 using namespace std;
 
 TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref);
@@ -170,7 +171,7 @@ int main()
     an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an.PostProcess(0);
     
-    std::cout << "FINISHED" << std::endl;git
+    std::cout << "FINISHED" << std::endl;
 	return 0;
 }
 
