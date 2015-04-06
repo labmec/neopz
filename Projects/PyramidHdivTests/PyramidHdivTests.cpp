@@ -28,6 +28,8 @@
 #include "pzskylstrmatrix.h"
 #include "TPZTimer.h"
 
+#include <sys/time.h>
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.pyramtests"));
 #endif
@@ -39,7 +41,7 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
 void InsertElasticityCubo(TPZCompMesh *mesh);
 
 struct TTimer {
-    time_t fini, fend;
+    struct timeval fini, fend;
     REAL fsec;
     
     TTimer(){
@@ -49,25 +51,28 @@ struct TTimer {
     ~TTimer(){}
     
     void start(){
-        fini = time(NULL);
+        gettimeofday(&fini, NULL);
     }
     
     void stop(){
-        fend = time(NULL);
+        gettimeofday(&fend, NULL);
+        fsec = fend.tv_sec - fini.tv_sec;
+        fsec += (fend.tv_usec - fini.tv_usec)/1000000.;
     }
     
     REAL seconds(){
-        return difftime(fend, fini);
+        return fsec;
     }
     
 };
+
 
 
 int main()
 {
     int variavelTesteParaVerSeSeiComitar;
     
-    TPZTimer tref;
+    TTimer tref;
     tref.start();
     gRefDBase.InitializeUniformRefPattern(ETetraedro);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -96,13 +101,13 @@ int main()
     
     // Parametros
     const int dim = 3;
-    const int plevel = 1;
-    const int numthreads = 2;
-    const int nref = 2; //AQUIPHIL se troca para 1 funciona
+    const int plevel = 3;
+    const int numthreads = 4;
+    const int nref = 3;
     
     // Malha Geometrica
     cout << "\nCriando a gmesh... ";
-    TPZTimer timer;
+    TTimer timer;
     timer.start();
     TPZGeoMesh *gmesh = MalhaCubo(projectpath,nref);
     if (0) {
@@ -146,10 +151,15 @@ int main()
     timer.stop();
     cout << timer.seconds() << " s" << endl;
     
+    stringstream ss;
+    ss << numthreads;
+    string strnthreads = ss.str();
+    string filename = "Tempo_nthreads_" + strnthreads + ".txt";
+    ofstream out(filename.c_str());
+    out << "nthreads = " << numthreads << endl;
+    out << "T assemble = " << timer.seconds() << endl;
+    
     return 0;
-    
-    
-    
     
     an.Solve();
     // Pos Processamento
@@ -160,7 +170,7 @@ int main()
     an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an.PostProcess(0);
     
-    std::cout << "FINISHED" << std::endl;
+    std::cout << "FINISHED" << std::endl;git
 	return 0;
 }
 
