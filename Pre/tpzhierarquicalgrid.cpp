@@ -80,7 +80,7 @@ bool TPZHierarquicalGrid::operator==(const TPZHierarquicalGrid& other) const
 	return 0; //to fix WIN compiler error
 }
 
-TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(STATE t, STATE dt, int n)
+TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(REAL t, REAL dt, int n)
 {
     fSubBases.Resize(n+1);
     TPZGeoMesh * NewGeomesh = new TPZGeoMesh;

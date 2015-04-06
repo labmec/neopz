@@ -88,12 +88,12 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh()
 	return extendedmesh;
 }
 
-void TPZExtendGridDimension::DeformMesh(TPZFMatrix<STATE> &Tr, TPZGeoMesh * GeoSurface)
+void TPZExtendGridDimension::DeformMesh(TPZFMatrix<REAL> &Tr, TPZGeoMesh * GeoSurface)
 {
     // It represents a 3D Linear transformation around the z axis.
 
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsTr(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsTr(3,0.0);
     
     Tr.Print("Rotation = ");
     

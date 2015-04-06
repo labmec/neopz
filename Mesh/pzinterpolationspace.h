@@ -259,7 +259,7 @@ public:
 	/** @brief Integrate a variable over the element. */
 	virtual TPZVec<STATE> IntegrateSolution(int variable) const;
     
-    virtual void Integrate(int variable, TPZVec<REAL> & value);
+    virtual void Integrate(int variable, TPZVec<STATE> & value);//AQUIFRAN
     
 	/** @brief Integrate the solution over the element */
 //	virtual void IntegrateSolution(TPZVec<STATE> & value);

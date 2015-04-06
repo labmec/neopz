@@ -69,7 +69,7 @@ public:
     /**
      * @brief Apply transformation to a given geomesh
      */
-    static  void DeformMesh(TPZFMatrix<STATE> &Tr, TPZGeoMesh * GeoSurface);
+    static  void DeformMesh(TPZFMatrix<REAL> &Tr, TPZGeoMesh * GeoSurface);
     
 	/**
 	 * @brief It reads the mesh since the archive of entrance finemesh, or since the fFineGeoMesh

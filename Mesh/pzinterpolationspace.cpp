@@ -1164,7 +1164,7 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
 }//method
 
 
-void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value)
+void TPZInterpolationSpace::Integrate(int variable, TPZVec<STATE> & value)//AQUIFRAN
 {
     value = IntegrateSolution(variable);
 }

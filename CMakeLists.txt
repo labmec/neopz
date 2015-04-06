@@ -432,7 +432,6 @@ install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE})
 
 #increment all the directories where the sources files is
 if(NOT BUILD_COMPLEX_PROJECTS)
-    add_subdirectory(PerfUtil)
     if(BUILD_PERF_TESTS)
         add_subdirectory(PerfTests)
     endif()
@@ -441,6 +440,7 @@ if(NOT BUILD_COMPLEX_PROJECTS)
     endif()
 endif()
 
+add_subdirectory(PerfUtil)
 add_subdirectory(Util)
 add_subdirectory(Common)
 add_subdirectory(Save)

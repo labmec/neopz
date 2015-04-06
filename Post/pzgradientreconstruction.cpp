@@ -5,7 +5,7 @@
 //  Created by Agnaldo Farias on 4/10/13.
 //
 //
-
+#ifndef STATE_COMPLEX //AQUIFRAN
 #include "pzgradientreconstruction.h"
 #include "pzgradient.h"
 #include "tpzintpoints.h"
@@ -1191,3 +1191,4 @@ void TPZGradientReconstruction::TPZGradientData::InsertWeights(TPZFMatrix<REAL> 
 }
 
 
+#endif
