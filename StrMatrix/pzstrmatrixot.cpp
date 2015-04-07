@@ -1269,7 +1269,7 @@ void TPZStructMatrixOT::WorkResidualTBB::operator()()
     TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
     
-    int element = (*data->felSequenceColor)[fElem];
+    int element = (*data->fElSequenceColor)[fElem];
     
     if (element >= 0) {
         
