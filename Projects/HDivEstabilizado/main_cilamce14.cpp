@@ -1393,7 +1393,7 @@ void ComputeFluxError(TPZCompMesh *cmesh, std::ostream &out){
         {
             REAL weight;
             intrule->Point(ip,qsi,weight);
-            sp->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            sp->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
             weight *= fabs(data.detjac);
             sp->ComputeSolution(qsi,data);
             
@@ -1473,7 +1473,7 @@ void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out){
         {
             REAL weight;
             intrule->Point(ip,qsi,weight);
-            sp->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            sp->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
             weight *= fabs(data.detjac);
             sp->ComputeSolution(qsi,data);
             

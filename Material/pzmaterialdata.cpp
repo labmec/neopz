@@ -41,6 +41,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
 	this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter; 
 	this->fNeedsNormal = cp.fNeedsNormal; 
 	this->phi = cp.phi;
+	this->dphi = cp.dphi;
 	this->dphix = cp.dphix;
 	this->axes = cp.axes;
 	this->jacobian = cp.jacobian;
@@ -89,6 +90,12 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
 	{
 		LOGPZ_DEBUG(loggerCheck,"phi different")
 	}
+    result = result && locres;
+    locres = dphi.Compare(&comp->dphi,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"dphi different")
+    }
 	result = result && locres;
 	locres = dphix.Compare(&comp->dphix,override);
 	if(!locres)

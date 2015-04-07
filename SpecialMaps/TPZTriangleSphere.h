@@ -96,7 +96,7 @@ namespace pzgeom {
             TPZManVector<REAL,3> Xsphere(3,0.0);
             for(int i=0; i<3; i++)
             {
-                result[i] = (fR/NormValue)*(XtminusXc[i]+Xc[i]);
+                result[i] = (fR/NormValue)*(XtminusXc[i])+ Xc[i];
             }
 //            Xsphere[0] = (fR/NormValue)*(XtminusXc(0,0)+Xc[0]);
 //            Xsphere[1] = (fR/NormValue)*(XtminusXc(1,0)+Xc[1]);

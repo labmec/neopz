@@ -48,7 +48,9 @@ public:
     
     /// vector of shapefunctions (format is dependent on the value of shapetype)
 	TPZFNMatrix<220, REAL> phi;
-    /// values of the derivative of the shape functions
+    /// values of the derivative of the shape functions on master element
+    TPZFNMatrix<660, REAL> dphi;
+    /// values of the derivative of the shape functions on deformed element
 	TPZFNMatrix<660, REAL> dphix;
     /// axes indicating the directions of the derivatives of the shapefunctions
 	TPZFNMatrix<9,REAL> axes;

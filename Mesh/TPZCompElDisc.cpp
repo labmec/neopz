@@ -219,7 +219,7 @@ REAL TPZCompElDisc::NormalizeConst()
 void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
                                  TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                                  REAL &detjac, TPZFMatrix<REAL> &jacinv,
-                                 TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix){
+                                 TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphix){
 	TPZGeoEl * ref = this->Reference();
 	if (!ref){
 		PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
@@ -228,12 +228,11 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 	
     if(fUseQsiEta==true){
-        TPZFNMatrix<660,REAL> dphidxi;
-        dphidxi.Resize(dphix.Rows(), dphix.Cols());
-        this->Shape(intpoint,phi,dphidxi);
-        this->Convert2Axes(dphidxi,jacinv,dphix);
+        this->Shape(intpoint,phi,dphi);
+        this->Convert2Axes(dphi,jacinv,dphix);
         ref->X(intpoint, X);
     }else{
+        dphi.Zero();
         ref->X(intpoint, X);
         this->ShapeX(X,phi,dphix);
         //axes is identity in discontinuous elements
@@ -245,7 +244,7 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 }
 
 void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint,TPZMaterialData &data){
-    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes,data.detjac, data.jacinv, data.phi, data.dphix);
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes,data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
 }
 
 

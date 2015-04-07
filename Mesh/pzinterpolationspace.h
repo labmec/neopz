@@ -117,10 +117,10 @@ public:
     
 	/** @brief Compute shape functions based on master element in the classical FEM manner. */
 	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
-							  REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphidaxes);
+							  REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx);
 
     /// convert a shapefunction derivative in xi-eta to a function derivative in axes
-    static void Convert2Axes(const TPZFMatrix<REAL> &dphidxi, const TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &dphidaxes);
+    static void Convert2Axes(const TPZFMatrix<REAL> &dphi, const TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &dphidx);
 
 	
 	/** @brief Compute the values of the shape function along the side*/

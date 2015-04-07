@@ -1406,7 +1406,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             tr.Apply(qsi, qsih);
             geoside.Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
             weight *= fabs(data.detjac);
-            sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
             //TPZFNMatrix<660> dphi(data.dphix.Rows(), data.dphix.Cols(), 0.);
             //sp->Shape(qsih,data.phi,dphi);
             //sp->Convert2Axes(dphi, data.jacinv, data.dphix);
@@ -1471,7 +1471,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             tr.Apply(qsi, qsih);
             geoside.Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
             weight *= fabs(data.detjac);
-            sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
             //TPZFNMatrix<660> dphi(data.dphix.Rows(), data.dphix.Cols(), 0.);
             //sp->Shape(qsih,data.phi,dphi);
             //sp->Convert2Axes(dphi, data.jacinv, data.dphix);
@@ -1537,7 +1537,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             tr.Apply(qsi, qsih);
             geoside.Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
             weight *= fabs(data.detjac);
-            sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
             //TPZFNMatrix<660> dphi(data.dphix.Rows(), data.dphix.Cols(), 0.);
             //sp->Shape(qsih,data.phi,dphi);
             //sp->Convert2Axes(dphi, data.jacinv, data.dphix);
@@ -1605,7 +1605,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
                 tr.Apply(qsi, qsih);
                 geoside.Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
                 weight *= fabs(data.detjac);
-                sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+                sp->ComputeShape(qsih, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
                 //TPZFNMatrix<660> dphi(data.dphix.Rows(), data.dphix.Cols(), 0.);
                 //sp->Shape(qsih,data.phi,dphi);
                 //sp->Convert2Axes(dphi, data.jacinv, data.dphix);
@@ -1712,7 +1712,7 @@ REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
         {
             REAL weight;
             intrule->Point(ip,qsi,weight);
-            sp->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            sp->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
             weight *= fabs(data.detjac);
             sp->ComputeSolution(qsi,data);
             

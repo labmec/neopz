@@ -440,6 +440,14 @@ if(NOT BUILD_COMPLEX_PROJECTS)
     endif()
 endif()
 
+#enabling to use HDIVPIOLA the contravariant Piola Mapping 
+option(USING_HDIVPIOLA "Whether the HDIVPIOLA is being used" OFF)
+if(USING_HDIVPIOLA)
+	#Adding a variable to hold this definition
+	set(HDIVPIOLA HDIVPIOLA)
+	add_definitions(-D${HDIVPIOLA})  
+endif(USING_HDIVPIOLA)
+
 add_subdirectory(PerfUtil)
 add_subdirectory(Util)
 add_subdirectory(Common)

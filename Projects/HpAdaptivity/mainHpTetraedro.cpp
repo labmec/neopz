@@ -203,7 +203,7 @@ bool IsCube = false;
 
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material"));
+static LoggerPtr logger(Logger::getLogger("pz.material"));
 #endif
 
 #define PROBSENO
@@ -688,11 +688,11 @@ TPZGeoMesh *CreateOneCuboWithTetraedrons(long nelem, int MaterialId)
                 nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
                 nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
 #ifdef LOG4CXX
-                if(logdata->isDebugEnabled())
+                if(logger->isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Tetrahedral nodes " << nodes;
-                    LOGPZ_DEBUG(logdata, sout.str())
+                    LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif
                 for (int el=0; el<6; el++)
@@ -1963,10 +1963,10 @@ void ErrorL2Tetra(TPZCompMesh *l2mesh, std::ostream &out, int p, int ndiv)
         int nerr = elerror.size();
         globalerrors.resize(nerr);
 #ifdef LOG4CXX
-        if (logdata->isDebugEnabled()) {
+        if (logger->isDebugEnabled()) {
             std::stringstream sout;
             sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
-            LOGPZ_DEBUG(logdata, sout.str())
+            LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
         for (int i=0; i<nerr; i++) {
