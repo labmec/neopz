@@ -30,6 +30,13 @@
 
 #include <sys/time.h>
 
+#include "run_stats_table.h"
+#ifdef USING_TBB
+#include <tbb/tbb.h>
+#endif
+
+
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.pyramtests"));
 #endif
@@ -68,10 +75,8 @@ struct TTimer {
 };
 
 
-
-int main()
+int main(int argc, char *argv[])
 {
-    int variavelTesteParaVerSeSeiComitar;
     
     TTimer tref;
     tref.start();
@@ -85,11 +90,13 @@ int main()
     string projectpath = "/Projects/PyramidHdivTests/";
 
 #ifdef LOG4CXX
-    std::string dirname = PZSOURCEDIR;
-    std::string FileName = dirname;
-    FileName = dirname + projectpath;
-    FileName += "pyramlogfile.cfg";
-    InitializePZLOG(FileName);
+    if (logger->isDebugEnabled()){
+        std::string dirname = PZSOURCEDIR;
+        std::string FileName = dirname;
+        FileName = dirname + projectpath;
+        FileName += "pyramlogfile.cfg";
+        InitializePZLOG(FileName);
+    }
 #endif
     
 #ifdef LOG4CXX
@@ -102,12 +109,32 @@ int main()
     
     // Parametros
     const int dim = 3;
-    const int plevel = 3;
-    const int numthreads = 4;
-    const int nref = 3;
+    int plevel = 3;
+    int numthreads = 0;
+    int nref = 2;
+    if (argc == 1) {
+        cout << "\nATENCAO: voce nao passou argumentos, rodando c/ parametros hardcode!";
+    }
+    else if (argc == 4) {
+        nref = atoi(argv[1]);
+        plevel = atoi(argv[2]);
+        numthreads = atoi(argv[3]);
+        cout << "\nRodando com:" << endl;
+        cout << "nref = " << nref << endl;
+        cout << "plevel = " << plevel << endl;
+        cout << "numthreads = " << numthreads << endl;
+    }
+    else{
+        cout << "\nERRO - Num de argumento nao especificado" << endl;
+        DebugStop();
+    }
+    
+#ifdef USING_TBB
+    tbb::task_scheduler_init init(numthreads);
+#endif
     
     // Malha Geometrica
-    cout << "\nCriando a gmesh... ";
+    cout << "\nCriando a gmesh... "; cout.flush();
     TTimer timer;
     timer.start();
     TPZGeoMesh *gmesh = MalhaCubo(projectpath,nref);
@@ -119,7 +146,7 @@ int main()
     cout << timer.seconds() << " s" << endl;
 
     // Malha computacional
-    cout << "\nCriando a cmesh... ";
+    cout << "\nCriando a cmesh... "; cout.flush();
     timer.start();
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     cmesh = new TPZCompMesh(gmesh);
@@ -132,7 +159,7 @@ int main()
     std::cout << "Numero de equacoes = " << cmesh->NEquations() << std::endl;
     
     // Analysis
-    cout << "\nCriando o analysis... ";
+    cout << "\nCriando o analysis... "; cout.flush();
     timer.start();
     TPZAnalysis an(cmesh);
     TPZStepSolver<STATE> step;
@@ -145,19 +172,29 @@ int main()
     cout << timer.seconds() << " s" << endl;
     
     // Resolvendo
-    cout << "\nComecando o assemble... ";
+    cout << "\nComecando o assemble... "; cout.flush();
     timer.start();
     an.Assemble();
     timer.stop();
-    timer.stop();
     cout << timer.seconds() << " s" << endl;
     
+    
+    std::string exePath(argv[0]);
     stringstream ss;
     ss << numthreads;
     string strnthreads = ss.str();
-    string filename = "Tempo_nthreads_" + strnthreads + ".txt";
-    ofstream out(filename.c_str());
-    out << "nthreads = " << numthreads << endl;
+    string filename = exePath + ".txt";// + "_nthreads_" + strnthreads + ".txt";
+    ofstream out;
+    if (numthreads == 0) {
+        out.open(filename.c_str());
+    }else{
+        out.open(filename.c_str(), ofstream::out | ofstream::app);
+    }
+
+    out << "\nRodando com:" << endl;
+    out << "nref = " << nref << endl;
+    out << "plevel = " << plevel << endl;
+    out << "numthreads = " << numthreads << endl;
     out << "T assemble = " << timer.seconds() << endl;
     
     return 0;
