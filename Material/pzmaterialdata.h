@@ -28,9 +28,9 @@ typedef TPZManVector<TPZFemGradSol,20> TPZGradSolVec;
 
 
 class TPZMaterialData : public TPZSaveable {
-	
+    
 public:
-	
+    
     
     enum MShapeFunctionType {EScalarShape, EVecandShape, EVecShape};
     // EScalarShape : regular shape functions: one shape function used for all state variables (default)
@@ -38,110 +38,119 @@ public:
     // EVecShape : a vector valued shape function
     
     MShapeFunctionType fShapeType;
-	/** @name Flags indicating whether some attributes shall be computed or not */
-	/** @{ */
-	bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter, fNeedsNormal;
-	/** @} */
-	
-	/** @name Attributes to be computed in CalcStiff */
-	/** @{ */
+    /** @name Flags indicating whether some attributes shall be computed or not */
+    /** @{ */
+    bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter, fNeedsNormal;
+    /** @} */
+    
+    /** @name Attributes to be computed in CalcStiff */
+    /** @{ */
     
     /// vector of shapefunctions (format is dependent on the value of shapetype)
+<<<<<<< Updated upstream
 	TPZFNMatrix<220, REAL> phi;
     /// values of the derivative of the shape functions on master element
     TPZFNMatrix<660, REAL> dphi;
     /// values of the derivative of the shape functions on deformed element
 	TPZFNMatrix<660, REAL> dphix;
+=======
+    TPZFNMatrix<220, REAL> phi;
+    /// values of the derivative of the shape functions over the master element
+    TPZFNMatrix<660, REAL> dphi;
+    /// values of the derivative of the shape functions
+    TPZFNMatrix<660, REAL> dphix;
+>>>>>>> Stashed changes
     /// axes indicating the directions of the derivatives of the shapefunctions
-	TPZFNMatrix<9,REAL> axes;
+    TPZFNMatrix<9,REAL> axes;
     /// value of the jacobian at the integration point
-	TPZFNMatrix<9,REAL> jacobian;
+    TPZFNMatrix<9,REAL> jacobian;
     /// value of the inverse of the jacobian at the integration point
-	TPZFNMatrix<9,REAL> jacinv;
+    TPZFNMatrix<9,REAL> jacinv;
     /// normal to the element at the integration point
-	TPZManVector<REAL,3> normal;
+    TPZManVector<REAL,3> normal;
     /// value of the coordinate at the integration point
-	TPZManVector<REAL,3> x;
+    TPZManVector<REAL,3> x;
     /// maximum polinomial order of the shape functions
-	int p;
+    int p;
     /// vector of the solutions at the integration point
-	TPZSolVec sol;
+    TPZSolVec sol;
     /// vector of the derivatives of the solution at the integration point
-	TPZGradSolVec dsol;
+    TPZGradSolVec dsol;
     /// measure of the size of the element
-	REAL HSize;
+    REAL HSize;
     /// determinant of the jacobian
-	REAL detjac;
+    REAL detjac;
     /// value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
-	
+    
     /// number of dual function (e.g. pressure in HDiv approximations)
-	int numberdualfunctions;
+    int numberdualfunctions;
     
     //Id of associated geo element
     int gelElId;
     
     /// correspondence between normal vector index and index of the shape functions
-	TPZManVector<std::pair<int,long> > fVecShapeIndex;
+    TPZManVector<std::pair<int,long> > fVecShapeIndex;
     /// list of normal vectors
-	TPZFNMatrix<100> fNormalVec;
-	/** @} */
-	
-	
-	/** @brief Index of the current integration point being evaluated **/
-	/** Needed for materials with memory **/
-	int intLocPtIndex;
+    TPZFNMatrix<100> fNormalVec;
+    /** @} */
+    
+    
+    
+    /** @brief Index of the current integration point being evaluated **/
+    /** Needed for materials with memory **/
+    int intLocPtIndex;
     
     /** @brief global point index */
     int intGlobPtIndex;
     
     /** @brief amount of points in the integrstion rule */
     int NintPts;
-	
-	/** @brief Default constructor */
-	TPZMaterialData();
-	
-	/** @brief Copy constructor */
-	TPZMaterialData( const TPZMaterialData &cp );
-	
-	/** @brief Default destructor */
-	~TPZMaterialData();
-	
-	/** @brief Set all flags at once */
-	void SetAllRequirements(bool set);
-	
-	//void InvertLeftRightData();
-	
-	TPZMaterialData &operator= (const TPZMaterialData &cp );
-	
-	/** @brief Prints the data */
-	void Print(std::ostream &out) const;
-	/** @brief Prints the data in a format suitable for Mathematica */
-	void PrintMathematica(std::ostream &out) const;
-	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid);
-	
-	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
-	
-	/** @brief Compares the object for identity with the object pointed to, eventually copy the object */
-	/**
-	 * Compares both objects bitwise for identity. Put an entry in the log file if different
-	 * overwrite the calling object if the override flag is true
-	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false);
-	
-	/** @brief Compares the object for identity with the object pointed to, eventually copy the object */
-	/**
-	 * Compares both objects bitwise for identity. Put an entry in the log file if different
-	 * overwrite the calling object if the override flag is true
-	 */
-	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
-	
-	virtual int ClassId() const
-	{
-		return TPZMATERIALDATAID;
-	}
+    
+    /** @brief Default constructor */
+    TPZMaterialData();
+    
+    /** @brief Copy constructor */
+    TPZMaterialData( const TPZMaterialData &cp );
+    
+    /** @brief Default destructor */
+    ~TPZMaterialData();
+    
+    /** @brief Set all flags at once */
+    void SetAllRequirements(bool set);
+    
+    //void InvertLeftRightData();
+    
+    TPZMaterialData &operator= (const TPZMaterialData &cp );
+    
+    /** @brief Prints the data */
+    void Print(std::ostream &out) const;
+    /** @brief Prints the data in a format suitable for Mathematica */
+    void PrintMathematica(std::ostream &out) const;
+    /** @brief Saves the element data to a stream */
+    virtual void Write(TPZStream &buf, int withclassid);
+    
+    /** @brief Reads the element data from a stream */
+    virtual void Read(TPZStream &buf, void *context);
+    
+    /** @brief Compares the object for identity with the object pointed to, eventually copy the object */
+    /**
+     * Compares both objects bitwise for identity. Put an entry in the log file if different
+     * overwrite the calling object if the override flag is true
+     */
+    virtual bool Compare(TPZSaveable *copy, bool override = false);
+    
+    /** @brief Compares the object for identity with the object pointed to, eventually copy the object */
+    /**
+     * Compares both objects bitwise for identity. Put an entry in the log file if different
+     * overwrite the calling object if the override flag is true
+     */
+    virtual bool Compare(TPZSaveable *copy, bool override = false) const;
+    
+    virtual int ClassId() const
+    {
+        return TPZMATERIALDATAID;
+    }
 };
 
 #endif
