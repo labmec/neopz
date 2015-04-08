@@ -60,7 +60,7 @@ virtual bool operator==(const TPZHierarquicalGrid& other) const;
     TPZVec<TPZAutoPointer<TPZGeoMesh> > fSubBases;
     
     /** @brief Pointer to parametric function of t parameter */
-    TPZAutoPointer<TPZFunction<STATE> > fParametricFunction;    
+    TPZAutoPointer<TPZFunction<REAL> > fParametricFunction;
     
     /**
      * @brief Prints the generated mesh
@@ -69,12 +69,12 @@ virtual bool operator==(const TPZHierarquicalGrid& other) const;
 
     // Set Get Methods
     
-    void SetParametricFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    void SetParametricFunction(TPZAutoPointer<TPZFunction<REAL> > fp)
     {
         fParametricFunction = fp;
     }
     
-    TPZGeoMesh * ComputeExtrusion(STATE t, STATE dt, int n);
+    TPZGeoMesh * ComputeExtrusion(REAL t, REAL dt, int n);
     
     void CreateGeometricElement(int n, int iel, int eldim, int elmatid, int &elid, TPZGeoMesh * ngmesh);
     

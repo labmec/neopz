@@ -914,9 +914,24 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             v2[i] = gradx(i,1);
             vdiag[i] = (gradx(i,0)-gradx(i,1));
         }
+
+#ifdef HDIVPIOLA
+        
+        /**
+         * @file
+         * @brief Computing mapped vector with scaling factor equal 1.0.
+         * using contravariant piola mapping.
+         */
+        
+        REAL Nv1 = 1.0;
+        REAL Nv2 = 1.0;
+        REAL Nvdiag = 1.0;
+#else
         REAL Nv1 = TPZNumeric::Norma(v1);
         REAL Nv2 = TPZNumeric::Norma(v2);
         REAL Nvdiag = TPZNumeric::Norma(vdiag);
+        
+#endif
         
         for (int i=0; i<3; i++) {
             v1[i] /= detjac;

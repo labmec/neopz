@@ -95,7 +95,8 @@ add_subdirectory(proDG)
 
 			#Example to work with scalar as complex
 			add_subdirectory(Helmholtz1D)
-
+			add_subdirectory(TesteComplexo1D)
+			
 			#add_subdirectory(HDiv_demo)
 
 			#Examples used as tutorial for FEEC group (Prof Hugo)

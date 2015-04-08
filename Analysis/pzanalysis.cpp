@@ -1110,9 +1110,11 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
             {
                 continue;
             }
+#ifndef STATE_COMPLEX
             if (ConnectNorm(cindex, fCompMesh, vec) >= tol) {
                 break;
             }
+#endif
         }
         // if all connects have norm below tol, do not print the element
         if (ic == nc) {

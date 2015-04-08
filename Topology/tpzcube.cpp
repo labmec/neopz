@@ -1195,6 +1195,19 @@ namespace pztopology {
             v2[i] = gradx(i,1);
             v3[i] = gradx(i,2);
         }
+
+#ifdef HDIVPIOLA
+        
+        /**
+         * @file
+         * @brief Computing mapped vector with scaling factor equal 1.0.
+         * using contravariant piola mapping.
+         */
+        
+        REAL Nv1v2 = 1.0;
+        REAL Nv2v3 = 1.0;
+        REAL Nv3v1 = 1.0;
+#else
         TPZNumeric::ProdVetorial(v1,v2,v1v2);
         TPZNumeric::ProdVetorial(v2,v3,v2v3);
         TPZNumeric::ProdVetorial(v3,v1,v3v1);
@@ -1202,6 +1215,9 @@ namespace pztopology {
         REAL Nv1v2 = TPZNumeric::Norma(v1v2);
         REAL Nv2v3 = TPZNumeric::Norma(v2v3);
         REAL Nv3v1 = TPZNumeric::Norma(v3v1);
+        
+#endif
+        
         
         for (int i=0; i<3; i++) {
             v1[i] *= Nv2v3/detgrad;

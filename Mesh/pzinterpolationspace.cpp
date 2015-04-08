@@ -71,26 +71,23 @@ void TPZInterpolationSpace::Print(std::ostream &out) const {
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
                                          TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                                          REAL &detjac, TPZFMatrix<REAL> &jacinv,
-                                         TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix){
+                                         TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx){
 	TPZGeoEl * ref = this->Reference();
 	if (!ref){
 		PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
 		return;
 	}//if
-	TPZFNMatrix<660> dphi(dphix.Rows(), dphix.Cols(), 0.);
-    //	int dim = this->Dimension();
-	
+
 	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 	this->Shape(intpoint,phi,dphi);
-    
-    Convert2Axes(dphi, jacinv, dphix);
+    this->Convert2Axes(dphi, jacinv, dphidx);
     
 }
 
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
     
 	
-    this->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphix);
+    this->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphi,data.dphix);
     
 }
 
@@ -109,6 +106,7 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 	const int nshape = this->NShapeF();
 	const int nstate = this->Material()->NStateVariables();
 	data.phi.Redim(nshape,1);
+	data.dphi.Redim(dim,nshape);
 	data.dphix.Redim(dim,nshape);
 	data.axes.Redim(dim,3);
 	data.jacobian.Redim(dim,dim);
@@ -511,6 +509,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	
 	TPZFNMatrix<220> locphi(locmatsize,1);
 	TPZFNMatrix<660> locdphi(dimension,locmatsize);//derivative of the shape function in the master domain
+	TPZFNMatrix<660> locdphidx(dimension,locmatsize);//derivative of the shape function in the deformed domain
 	
 	TPZFNMatrix<220> corphi(cormatsize,1);
 	TPZFNMatrix<660> cordphi(dimension,cormatsize);//derivative of the shape function in the master domain
@@ -536,7 +535,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 		intrule->Point(int_ind,int_point,weight);
 		REAL jac_det = 1.;
-		this->ComputeShape(int_point, x, jacobian, axes, jac_det, jacinv, locphi, locdphi);
+		this->ComputeShape(int_point, x, jacobian, axes, jac_det, jacinv, locphi, locdphi, locdphidx);
 		weight *= jac_det;
 		t.Apply(int_point,coarse_int_point);
 		coarsel.ComputeSolution(coarse_int_point, u, du, coarseaxes);
@@ -1042,7 +1041,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
         }
         else
         {
-            this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+            this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
         }
 		weight *= fabs(data.detjac);
 		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
@@ -1107,7 +1106,7 @@ void TPZInterpolationSpace::ComputeError(int errorid,
 	int npoints = intrule->NPoints(), ip;
 	for(ip=0;ip<npoints;ip++){
 		intrule->Point(ip,intpoint,weight);
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.phi, data.dphix);
 		weight *= fabs(data.detjac);
 		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		material->ContributeErrors(data,weight,error,errorid);
@@ -1164,7 +1163,7 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
 }//method
 
 
-void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value)
+void TPZInterpolationSpace::Integrate(int variable, TPZVec<STATE> & value)//AQUIFRAN
 {
     value = IntegrateSolution(variable);
 }
@@ -1246,7 +1245,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 	for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
 		
 		intrule.Point(int_ind,intpoint,weight);
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
 		weight *= fabs(data.detjac);
 		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		
@@ -1588,34 +1587,45 @@ void TPZInterpolationSpace::Read(TPZStream &buf, void *context)
 }
 
 /// convert a shapefunction derivative in xi-eta to a function derivative in x,y,z
-void TPZInterpolationSpace::Convert2Axes(const TPZFMatrix<REAL> &dphidxi, const TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &dphidaxes)
+void TPZInterpolationSpace::Convert2Axes(const TPZFMatrix<REAL> &dphi, const TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &dphidx)
 {
-	int nshape = dphidxi.Cols();
-    int dim = dphidxi.Rows();
-    dphidaxes.Resize(dim,nshape);
+	int nshape = dphi.Cols();
+    int dim = dphi.Rows();
+    dphidx.Resize(dim,nshape);
 	int ieq;
 	switch(dim){
 		case 0:
+        {
+            
+        }
 			break;
 		case 1:
-			dphidaxes = dphidxi;
-			dphidaxes *= jacinv.GetVal(0,0);
+        {
+			dphidx = dphi;
+			dphidx *= jacinv.GetVal(0,0);
+        }
 			break;
 		case 2:
+        {
 			for(ieq = 0; ieq < nshape; ieq++) {
-				dphidaxes(0,ieq) = jacinv.GetVal(0,0)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,0)*dphidxi.GetVal(1,ieq);
-				dphidaxes(1,ieq) = jacinv.GetVal(0,1)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,1)*dphidxi.GetVal(1,ieq);
+				dphidx(0,ieq) = jacinv.GetVal(0,0)*dphi.GetVal(0,ieq) + jacinv.GetVal(1,0)*dphi.GetVal(1,ieq);
+				dphidx(1,ieq) = jacinv.GetVal(0,1)*dphi.GetVal(0,ieq) + jacinv.GetVal(1,1)*dphi.GetVal(1,ieq);
 			}
+        }
 			break;
 		case 3:
+        {
 			for(ieq = 0; ieq < nshape; ieq++) {
-				dphidaxes(0,ieq) = jacinv.GetVal(0,0)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,0)*dphidxi.GetVal(1,ieq) + jacinv.GetVal(2,0)*dphidxi.GetVal(2,ieq);
-				dphidaxes(1,ieq) = jacinv.GetVal(0,1)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,1)*dphidxi.GetVal(1,ieq) + jacinv.GetVal(2,1)*dphidxi.GetVal(2,ieq);
-				dphidaxes(2,ieq) = jacinv.GetVal(0,2)*dphidxi.GetVal(0,ieq) + jacinv.GetVal(1,2)*dphidxi.GetVal(1,ieq) + jacinv.GetVal(2,2)*dphidxi.GetVal(2,ieq);
+				dphidx(0,ieq) = jacinv.GetVal(0,0)*dphi.GetVal(0,ieq) + jacinv.GetVal(1,0)*dphi.GetVal(1,ieq) + jacinv.GetVal(2,0)*dphi.GetVal(2,ieq);
+				dphidx(1,ieq) = jacinv.GetVal(0,1)*dphi.GetVal(0,ieq) + jacinv.GetVal(1,1)*dphi.GetVal(1,ieq) + jacinv.GetVal(2,1)*dphi.GetVal(2,ieq);
+				dphidx(2,ieq) = jacinv.GetVal(0,2)*dphi.GetVal(0,ieq) + jacinv.GetVal(1,2)*dphi.GetVal(1,ieq) + jacinv.GetVal(2,2)*dphi.GetVal(2,ieq);
 			}
+        }
 			break;
 		default:
+        {
 			PZError << "Error at " << __PRETTY_FUNCTION__ << " please implement the " << dim << "d Jacobian and inverse\n";
+        }
 	} //switch
     
 }

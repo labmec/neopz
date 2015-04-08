@@ -463,7 +463,7 @@ void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<RE
 
     this->Jacobian(pt,jac,axes,detjac,jacinv);
     
-    // ou eh isso?   grad =  (jac  * axes)ˆT 
+    //  gradX =  ( AxesˆT * jac )
     TPZFNMatrix<9> gradxt(TGeo::Dimension,3,0.);
     for (int il=0; il<TGeo::Dimension; il++)
     {
@@ -471,7 +471,7 @@ void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<RE
         {
             for (int i = 0 ; i<TGeo::Dimension; i++)
             {
-                gradx(jc,il) += jac(i,il) * axes(i,jc);
+                gradx(jc,il) +=  axes(i,jc) * jac(i,il);    //  gradX =  ( AxesˆT * jac )
             }
         }
     }
