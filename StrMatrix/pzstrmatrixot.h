@@ -23,9 +23,13 @@ class TPZMatrix;
 template<class TVar>
 class TPZFMatrix;
 
-#ifdef USING_TBB
-#include "tbb/tbb.h"
-#include "tbb/task_group.h"
+//#ifdef USING_TBB
+//#include "tbb/tbb.h"
+//#include "tbb/task_group.h"
+//#endif
+
+#ifdef USING_BOOST
+#include <boost/atomic.hpp>
 #endif
 
 /**
@@ -180,8 +184,14 @@ protected:
         TPZMatrix<STATE> *fGlobMatrix;
         /** @brief Global rhs vector */
         TPZFMatrix<STATE> *fGlobRhs;
+        
+#ifdef USING_BOOST
+        boost::atomic<long> *fCurrentIndex;
+#else
+#endif
         /** @brief sequence number of the thread */
         int fThreadSeqNum;
+
         /** @brief vector indicating whether an element has been computed */
         TPZVec<long> *fComputedElements;
         /** @brief Mutexes (to choose which element is next) */
@@ -200,18 +210,18 @@ protected:
         static void *ThreadWorkResidual(void *datavoid);
     };
     
-#ifdef USING_TBB
-    struct WorkResidualTBB {
-        
-        int fElem;
-        ThreadData *data;
-        
-        WorkResidualTBB(int elem, ThreadData *data);
-        void operator()();
-    
-    };
-    
-#endif
+//#ifdef USING_TBB
+//    struct WorkResidualTBB {
+//        
+//        int fElem;
+//        ThreadData *data;
+//        
+//        WorkResidualTBB(int elem, ThreadData *data);
+//        void operator()();
+//    
+//    };
+//    
+//#endif
     friend struct ThreadData;
 protected:
     
@@ -232,6 +242,11 @@ protected:
     
     /// variable indicating if a thread is sleeping
     int fSomeoneIsSleeping;
+    
+#ifdef USING_BOOST
+    boost::atomic<long> fCurrentIndex;
+#endif
+
     
     /** @brief Mutexes (to choose which element is next) */
     pthread_mutex_t fAccessElement;
