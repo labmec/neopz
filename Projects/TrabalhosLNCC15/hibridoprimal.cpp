@@ -223,10 +223,9 @@ int main(int argc, char *argv[])
             
             //            std::ofstream out("cmeshHib22.txt");
             //            cmesh->Print(out);
-#ifdef USING_BOOST
+            
             myerrorfile <<"Tempo para Assemblagem:  " << t2-t1 << std::endl;
             myerrorfile <<"Tempo para Resolução:  " << t3-t2 << std::endl;
-#endif
             
             TPZVec<std::string> scalnames(2),vecnames(0);
             scalnames[0] = "Solution";

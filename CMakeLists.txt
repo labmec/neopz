@@ -57,7 +57,7 @@ if(${val} LESS 0)
 endif()
 
 # Location to search files or libraries
-set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/pthread ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib /opt/local/include /opt/local/lib )
+set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/pthread ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
 
 # INSTALL part
 #To install neopz/include
@@ -81,11 +81,6 @@ include_directories(${PTHREAD_INCLUDE})
 #enabling Boost library 
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
 if(USING_BOOST)
-	
-	set(Boost_INCLUDE_DIR /opt/local/include)
-	message (STATUS "Boost include = ${Boost_INCLUDE_DIR}")
-	message (STATUS "Boost lib = ${Boost_LIBRARY_DIRS}")
-	
 	IF (WIN32)
 		set(Boost_USE_STATIC_LIBS   ON)
 		set(Boost_USE_MULTITHREADED ON)
@@ -504,5 +499,5 @@ file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
 add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 
 #To force XCode to use standard library c++ = libstdc++ (Required after upgrading to XCode 5)
-#SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
+SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 

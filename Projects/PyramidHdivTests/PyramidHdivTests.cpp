@@ -86,14 +86,17 @@ int main(int argc, char *argv[])
     tref.stop();
     cout << "\ntempo de refpattern = " << tref.seconds() << endl;
     
+    
     string projectpath = "/Projects/PyramidHdivTests/";
 
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled()){
         std::string dirname = PZSOURCEDIR;
         std::string FileName = dirname;
         FileName = dirname + projectpath;
         FileName += "pyramlogfile.cfg";
         InitializePZLOG(FileName);
+    }
 #endif
     
 #ifdef LOG4CXX
@@ -107,7 +110,7 @@ int main(int argc, char *argv[])
     // Parametros
     const int dim = 3;
     int plevel = 3;
-    int numthreads = 8;
+    int numthreads = 0;
     int nref = 2;
     if (argc == 1) {
         cout << "\nATENCAO: voce nao passou argumentos, rodando c/ parametros hardcode!";
@@ -127,10 +130,6 @@ int main(int argc, char *argv[])
     }
     
 #ifdef USING_TBB
-    if(numthreads == 0)
-    {
-        numthreads = 1;
-    }
     tbb::task_scheduler_init init(numthreads);
 #endif
     
@@ -162,12 +161,7 @@ int main(int argc, char *argv[])
     // Analysis
     cout << "\nCriando o analysis... "; cout.flush();
     timer.start();
-#define NOORDER
-#ifdef NOORDER
-    TPZAnalysis an(cmesh,false);
-#else
     TPZAnalysis an(cmesh);
-#endif
     TPZStepSolver<STATE> step;
     step.SetDirect(ECholesky);
     TPZSkylineStructMatrix skyl(cmesh);
@@ -191,7 +185,6 @@ int main(int argc, char *argv[])
     string strnthreads = ss.str();
     string filename = exePath + ".txt";// + "_nthreads_" + strnthreads + ".txt";
     ofstream out;
-    std::cout << "Output filename " << filename.c_str() << std::endl;
     if (numthreads == 0) {
         out.open(filename.c_str());
     }else{
