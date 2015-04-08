@@ -224,7 +224,7 @@ protected:
 #include "pzstrmatrixst.h"
 
 /** This is the original and stable version of multi_thread_assemble (producer-consumer) */
-typedef TPZStructMatrixOR TPZStructMatrix;
+//typedef TPZStructMatrixOR TPZStructMatrix;
 
 /** This version has a clean code with openmp parallism */
 //typedef TPZStructMatrixST TPZStructMatrix;
@@ -237,7 +237,7 @@ typedef TPZStructMatrixOR TPZStructMatrix;
 
 /** This version uses graph coloring to define the order to process the elements (Devloo-Gilvan) and
  * each color is processed and syncronized */
-//typedef TPZStructMatrixOT TPZStructMatrix;
+typedef TPZStructMatrixOT TPZStructMatrix;
 
 /** This version uses the graph coloring and create a tbb::flow::graph to process in parallel */
 //typedef TPZStructMatrixTBB TPZStructMatrix;
