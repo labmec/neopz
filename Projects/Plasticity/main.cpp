@@ -123,7 +123,8 @@ void Config1()
     if(number_tbb<=0)number_tbb=1;
     task_scheduler_init init(number_tbb);
 #endif
-    
+    // tottotototo
+    TPZWellBoreAnalysis::TConfig::gNumThreads = 20;
     
     STATE biotcoef = 0.659;
     well.SetBiotCoefficient(biotcoef);
@@ -154,7 +155,7 @@ void Config1()
     
     
     REAL sqj2_refine=0.0001;
-    int Startfrom=0;
+    int Startfrom=1;
     const int nsubsteps = 5;
     if (Startfrom == 0)
     {
@@ -1881,13 +1882,13 @@ int main(int argc, char **argv)
     clarg::parse_arguments(argc, argv);
     
     plast_tot.start();
-    //    Config1();
+    Config1();
     //    Config2();
     //    Config3();
     //    Config8();
     //    Config6();
     //    Config7();
-    Config9();
+//    Config9();
     plast_tot.stop();
     
     
