@@ -47,19 +47,11 @@ public:
     /** @{ */
     
     /// vector of shapefunctions (format is dependent on the value of shapetype)
-<<<<<<< Updated upstream
-	TPZFNMatrix<220, REAL> phi;
-    /// values of the derivative of the shape functions on master element
-    TPZFNMatrix<660, REAL> dphi;
-    /// values of the derivative of the shape functions on deformed element
-	TPZFNMatrix<660, REAL> dphix;
-=======
     TPZFNMatrix<220, REAL> phi;
     /// values of the derivative of the shape functions over the master element
     TPZFNMatrix<660, REAL> dphi;
     /// values of the derivative of the shape functions
     TPZFNMatrix<660, REAL> dphix;
->>>>>>> Stashed changes
     /// axes indicating the directions of the derivatives of the shapefunctions
     TPZFNMatrix<9,REAL> axes;
     /// value of the jacobian at the integration point

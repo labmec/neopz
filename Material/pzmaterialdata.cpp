@@ -35,28 +35,6 @@ TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : fShapeType(cp.fS
 
 TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fShapeType = cp.fShapeType;
-<<<<<<< Updated upstream
-	this->fNeedsSol = cp.fNeedsSol;
-	this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
-	this->fNeedsHSize = cp.fNeedsHSize;
-	this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter; 
-	this->fNeedsNormal = cp.fNeedsNormal; 
-	this->phi = cp.phi;
-	this->dphi = cp.dphi;
-	this->dphix = cp.dphix;
-	this->axes = cp.axes;
-	this->jacobian = cp.jacobian;
-	this->jacinv = cp.jacinv;
-	this->normal = cp.normal;
-	this->x = cp.x;
-	this->p = cp.p;
-	this->sol = cp.sol;
-	this->dsol = cp.dsol;
-	this->HSize = cp.HSize;
-	this->detjac = cp.detjac;
-	this->intLocPtIndex = cp.intLocPtIndex;
-	this->intGlobPtIndex = cp.intGlobPtIndex;
-=======
     this->fNeedsSol = cp.fNeedsSol;
     this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
     this->fNeedsHSize = cp.fNeedsHSize;
@@ -77,7 +55,6 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->detjac = cp.detjac;
     this->intLocPtIndex = cp.intLocPtIndex;
     this->intGlobPtIndex = cp.intGlobPtIndex;
->>>>>>> Stashed changes
     this->NintPts = cp.NintPts;
     this->XCenter = cp.XCenter;
     this->fVecShapeIndex = cp.fVecShapeIndex;
@@ -104,17 +81,6 @@ void TPZMaterialData::SetAllRequirements(bool set){
 /** compare both objects bitwise for identity. Put an entry in the log file if different overwrite the calling object if the override flag is true */
 bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
 {
-<<<<<<< Updated upstream
-	TPZMaterialData *comp = dynamic_cast<TPZMaterialData *>(copy);
-	if(!comp) return false;
-	bool result = true;
-	bool locres;
-	locres = phi.Compare(&comp->phi,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"phi different")
-	}
-=======
     TPZMaterialData *comp = dynamic_cast<TPZMaterialData *>(copy);
     if(!comp) return false;
     bool result = true;
@@ -124,41 +90,12 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
     {
         LOGPZ_DEBUG(loggerCheck,"phi different")
     }
->>>>>>> Stashed changes
     result = result && locres;
     locres = dphi.Compare(&comp->dphi,override);
     if(!locres)
     {
         LOGPZ_DEBUG(loggerCheck,"dphi different")
     }
-<<<<<<< Updated upstream
-	result = result && locres;
-	locres = dphix.Compare(&comp->dphix,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"dphix different")
-	}
-	result = result && locres;
-	locres = axes.Compare(&comp->axes,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"axes different")
-	}
-	result = result && locres;
-	locres = jacobian.Compare(&comp->jacobian,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"jacobian different")
-	}
-	result = result && locres;
-	locres = jacinv.Compare(&comp->jacinv,override);
-	if(!locres)
-	{
-		LOGPZ_DEBUG(loggerCheck,"jacinv different")
-	}
-	result = result && locres;
-	return result;
-=======
     result = result && locres;
     locres = dphix.Compare(&comp->dphix,override);
     if(!locres)
@@ -185,7 +122,6 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
     }
     result = result && locres;
     return result;
->>>>>>> Stashed changes
 }
 
 // Compare the object for identity with the object pointed to, eventually copy the object
