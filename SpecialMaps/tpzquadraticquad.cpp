@@ -131,7 +131,7 @@ TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	TPZGeoElSide newelside(newel,newel->NSides()-1);
 	
 	newelside.InsertConnectivity(me);
-	newel->Initialize();
+//	newel->Initialize();
 	
 	return newel;
 	
