@@ -129,10 +129,6 @@ int main(int argc, char *argv[])
         DebugStop();
     }
     
-#ifdef USING_TBB
-    tbb::task_scheduler_init init(numthreads);
-#endif
-    
     // Malha Geometrica
     cout << "\nCriando a gmesh... "; cout.flush();
     TTimer timer;
@@ -144,6 +140,7 @@ int main(int argc, char *argv[])
     }
     timer.stop();
     cout << timer.seconds() << " s" << endl;
+    cout << "Num elements = " << endl;
 
     // Malha computacional
     cout << "\nCriando a cmesh... "; cout.flush();
