@@ -219,13 +219,15 @@ int main(int argc, char *argv[])
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
+            
+            myerrorfile <<"Tempo para Assemblagem:  " << t2-t1 << std::endl;
+            myerrorfile <<"Tempo para Resolução:  " << t3-t2 << std::endl;
 #endif
             
             //            std::ofstream out("cmeshHib22.txt");
             //            cmesh->Print(out);
             
-            myerrorfile <<"Tempo para Assemblagem:  " << t2-t1 << std::endl;
-            myerrorfile <<"Tempo para Resolução:  " << t3-t2 << std::endl;
+
             
             TPZVec<std::string> scalnames(2),vecnames(0);
             scalnames[0] = "Solution";

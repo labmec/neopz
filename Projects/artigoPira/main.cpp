@@ -257,9 +257,11 @@ int main(int argc, char *argv[])
 #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
             std::cout << "Time for assembly " << t2-t1 << " Time for solving " << t3-t2 << std::endl;
-#endif
             
             myerrorfile << "Time for assembly " << t2-t1 << " Time for solving " << t3-t2 << std::endl;
+#endif
+            
+            
             
             TPZVec<std::string> scalnames(2),vecnames(0);
             scalnames[0] = "Solution";
