@@ -10,6 +10,7 @@
 #include "pzcreateapproxspace.h"
 
 #include "pzlog.h"
+#include <cmath>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.topology.pztriangle"));
@@ -923,15 +924,20 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
          * using contravariant piola mapping.
          */
         
-        REAL Nv1 = 1.0;
-        REAL Nv2 = 1.0;
-        REAL Nvdiag = 1.0;
+        REAL Nv1 = 2.0;
+        REAL Nv2 = 2.0;
+        REAL Nvdiag = 2.0*sqrt(2.0)/2.0;
 #else
         REAL Nv1 = TPZNumeric::Norma(v1);
         REAL Nv2 = TPZNumeric::Norma(v2);
         REAL Nvdiag = TPZNumeric::Norma(vdiag);
         
 #endif
+        //cout << "directions = " << directions << endl;
+        std::cout << "Nv1 " << TPZNumeric::Norma(v1) << std::endl;
+        std::cout << "Nv2 " << TPZNumeric::Norma(v2) << std::endl;
+        std::cout << "Nvdiag " << TPZNumeric::Norma(vdiag) << std::endl;
+        
         
         for (int i=0; i<3; i++) {
             v1[i] /= detjac;
@@ -956,7 +962,6 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             directions(i,12) = v1[i]*Nv2;
             directions(i,13) = v2[i]*Nv1;
         }
-        //cout << "directions = " << directions << endl;
     }
     
     void TPZTriangle::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)

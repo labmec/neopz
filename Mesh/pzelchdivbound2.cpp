@@ -450,7 +450,7 @@ void TPZCompElHDivBound2<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<l
 		}
 	}
 	shapeindex.Resize(count);
-#ifdef LOG4CXX
+    #ifdef LOG4CXXTPZCompElHDivBound2
 	{
 		std::stringstream sout;
 		sout << "count = " << count << " nshape " << nshape;
@@ -547,6 +547,29 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
     phi.Resize(nshape, 1);
     dphi.Resize(TSHAPE::Dimension, nshape);
     SideShapeFunction(TSHAPE::NSides-1, pt, phi, dphi);
+
+
+#ifdef HDIVPIOLA
+
+    TPZVec<REAL> coord(3,0.0);
+    TPZGeoEl *gel = this->Reference();
+
+    if(!gel) {DebugStop();}
+
+    TPZFMatrix<REAL> jacobian;
+    TPZFMatrix<REAL> axes;
+    REAL detjac;
+    TPZFMatrix<REAL> jacinv;
+    
+    gel->X(pt,coord);
+    gel->Jacobian(coord,jacobian,axes,detjac,jacinv);
+
+    phi *= 1.0/fabs(detjac);
+    dphi *= 1.0/fabs(detjac);
+
+#endif
+    
+    
     return;
 	/*
   TPZCompElSide thisside(this,TSHAPE::NSides-1);
