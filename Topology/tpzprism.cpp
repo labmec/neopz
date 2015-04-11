@@ -1302,7 +1302,6 @@ namespace pztopology {
             vdiag[i] = (gradx(i,0)-gradx(i,1));
         }
 
-#ifdef HDIVPIOLA
         
         /**
          * @file
@@ -1315,18 +1314,22 @@ namespace pztopology {
         REAL Nv3v1 = 1.0;
         REAL Nv3vdiag = 1.0;
         
-#else
-        TPZNumeric::ProdVetorial(v1,v2,v1v2);
-        TPZNumeric::ProdVetorial(v2,v3,v2v3);
-        TPZNumeric::ProdVetorial(v3,v1,v3v1);
-        TPZNumeric::ProdVetorial(v3,vdiag,v3vdiag);
-        
-        REAL Nv1v2 = TPZNumeric::Norma(v1v2);
-        REAL Nv2v3 = TPZNumeric::Norma(v2v3);
-        REAL Nv3v1 = TPZNumeric::Norma(v3v1);
-        REAL Nv3vdiag = TPZNumeric::Norma(v3vdiag);
-        
-#endif
+        if (HDivPiola) {
+            // the above constants are wrong
+            DebugStop();
+        }
+        else
+        {
+            TPZNumeric::ProdVetorial(v1,v2,v1v2);
+            TPZNumeric::ProdVetorial(v2,v3,v2v3);
+            TPZNumeric::ProdVetorial(v3,v1,v3v1);
+            TPZNumeric::ProdVetorial(v3,vdiag,v3vdiag);
+            
+            Nv1v2 = TPZNumeric::Norma(v1v2);
+            Nv2v3 = TPZNumeric::Norma(v2v3);
+            Nv3v1 = TPZNumeric::Norma(v3v1);
+            Nv3vdiag = TPZNumeric::Norma(v3vdiag);
+        }
         
         for (int i=0; i<3; i++) {
             v1[i] /= detgrad;

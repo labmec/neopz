@@ -9,6 +9,8 @@
 
 using namespace std;
 
+int HDivPiola = 1;
+
 #ifndef ELLIPS
 
 TPZCounter TPZFlopCounter::gCount;

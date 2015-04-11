@@ -916,27 +916,32 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             vdiag[i] = (gradx(i,0)-gradx(i,1));
         }
 
-#ifdef HDIVPIOLA
         
         /**
          * @file
          * @brief Computing mapped vector with scaling factor equal 1.0.
          * using contravariant piola mapping.
          */
+        TPZManVector<REAL,3> NormalScales(3,1.);
         
-        REAL Nv1 = 2.0;
-        REAL Nv2 = 2.0;
-        REAL Nvdiag = 2.0*sqrt(2.0)/2.0;
-#else
         REAL Nv1 = TPZNumeric::Norma(v1);
         REAL Nv2 = TPZNumeric::Norma(v2);
         REAL Nvdiag = TPZNumeric::Norma(vdiag);
-        
-#endif
-        //cout << "directions = " << directions << endl;
-        std::cout << "Nv1 " << TPZNumeric::Norma(v1) << std::endl;
-        std::cout << "Nv2 " << TPZNumeric::Norma(v2) << std::endl;
-        std::cout << "Nvdiag " << TPZNumeric::Norma(vdiag) << std::endl;
+        if (HDivPiola)
+        {
+            NormalScales[0] = 2./Nv1;
+            NormalScales[1] = 2./Nv2;
+            NormalScales[2] = 2./Nvdiag;
+        }
+        else
+        {
+            
+        }
+//        cout << "directions = " << directions << endl;
+//        std::cout << "Nv1 " << TPZNumeric::Norma(v1) << std::endl;
+//        std::cout << "Nv2 " << TPZNumeric::Norma(v2) << std::endl;
+//        std::cout << "Nvdiag " << TPZNumeric::Norma(vdiag) << std::endl;
+//        std::cout << "NormalScales " << NormalScales << std::endl;
         
         
         for (int i=0; i<3; i++) {
@@ -947,20 +952,20 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         
         for (int i=0; i<3; i++)
         {
-            directions(i,0) = -v2[i]*Nv1;
-            directions(i,1) = (v1[i]-v2[i])*Nv1; 
+            directions(i,0) = -v2[i]*Nv1*NormalScales[0];
+            directions(i,1) = (v1[i]-v2[i])*Nv1*NormalScales[0];
             directions(i,2) = (directions(i,0)+directions(i,1))/2.;
-            directions(i,3) = v1[i]*Nvdiag;
-            directions(i,4) = v2[i]*Nvdiag;
+            directions(i,3) = v1[i]*Nvdiag*NormalScales[1];
+            directions(i,4) = v2[i]*Nvdiag*NormalScales[1];
             directions(i,5) = (directions(i,3)+directions(i,4))/2.;
-            directions(i,6) = (v2[i]-v1[i])*Nv2;
-            directions(i,7) = -v1[i]*Nv2;
+            directions(i,6) = (v2[i]-v1[i])*Nv2*NormalScales[2];
+            directions(i,7) = -v1[i]*Nv2*NormalScales[2];
             directions(i,8) = (directions(i,6)+directions(i,7))/2.;
-            directions(i,9) = v1[i]*Nv1;
-            directions(i,10) = (v2[i]-v1[i])*Nvdiag/2.;
-            directions(i,11) = -v2[i]*Nv2;
-            directions(i,12) = v1[i]*Nv2;
-            directions(i,13) = v2[i]*Nv1;
+            directions(i,9) = v1[i]*Nv1*NormalScales[0];
+            directions(i,10) = (v2[i]-v1[i])*Nvdiag*NormalScales[1]/2.;
+            directions(i,11) = -v2[i]*Nv2*NormalScales[2];
+            directions(i,12) = v1[i]*Nv2*NormalScales[0];
+            directions(i,13) = v2[i]*Nv1*NormalScales[1];
         }
     }
     

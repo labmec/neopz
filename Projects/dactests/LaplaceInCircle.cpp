@@ -9,7 +9,7 @@
 #include "LaplaceInCircle.h"
 #include "tools.h"
 
-//#define LINEAR
+#define LINEAR
 #define WRAP
 
 LaplaceInCircle::LaplaceInCircle()

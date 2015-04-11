@@ -998,7 +998,6 @@ namespace pztopology {
             v2[i] = gradx(i,1);
         }
 
-#ifdef HDIVPIOLA
         
         /**
          * @file
@@ -1008,11 +1007,11 @@ namespace pztopology {
         
         REAL Nv1 = 1.0;
         REAL Nv2 = 1.0;
-#else
-        REAL Nv1 = TPZNumeric::Norma(v1);
-        REAL Nv2 = TPZNumeric::Norma(v2);
-        
-#endif
+        if (!HDivPiola)
+        {
+            Nv1 = TPZNumeric::Norma(v1);
+            Nv2 = TPZNumeric::Norma(v2);
+        }
         
         for (int i=0; i<3; i++) {
             v1[i] *= Nv2/detjac;

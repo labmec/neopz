@@ -72,6 +72,10 @@ enum MElementType
 	/*18*/	EInterfaceDisc = EInterface
 };
 
+/// constant which defines the type of HDiv approximation space
+// this variable is instantiated in pzreal.cpp
+extern int HDivPiola;
+
 /** @brief Returns the number of nodes according to the type of the element */
 inline int MElementType_NNodes(MElementType elType)
 {
