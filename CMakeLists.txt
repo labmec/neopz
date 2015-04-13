@@ -34,6 +34,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/LinearSolvers"
 	"${PROJECT_SOURCE_DIR}/External" 
 	"${PROJECT_SOURCE_DIR}/External/sloan"
+	"${PROJECT_SOURCE_DIR}/Publications"
 )
 
 ## inserting main definitions
@@ -470,6 +471,8 @@ add_subdirectory(Frontal)
 add_subdirectory(StrMatrix)
 add_subdirectory(Pre)
 add_subdirectory(SubStruct)
+add_subdirectory(Publications)
+
 
 add_subdirectory(lib)
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
