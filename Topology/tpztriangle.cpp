@@ -914,7 +914,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             v1[i] = gradx(i,0);
             v2[i] = gradx(i,1);
             vdiag[i] = (gradx(i,0)-gradx(i,1));
-        }
+       }
 
         
         /**
@@ -930,14 +930,16 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         if (HDivPiola)
         {
             NormalScales[0] = 2./Nv1;
-            NormalScales[1] = 2./Nv2;
-            NormalScales[2] = 2./Nvdiag;
+            NormalScales[1] = 2./Nvdiag;
+            NormalScales[2] = 2./Nv2;
         }
         else
         {
             
         }
-//        cout << "directions = " << directions << endl;
+//        std::cout << "v1 "<< v1 << std::endl;
+//        std::cout << "v2 " << v2 << std::endl;
+//        std::cout << "vdiag " << vdiag << std::endl;
 //        std::cout << "Nv1 " << TPZNumeric::Norma(v1) << std::endl;
 //        std::cout << "Nv2 " << TPZNumeric::Norma(v2) << std::endl;
 //        std::cout << "Nvdiag " << TPZNumeric::Norma(vdiag) << std::endl;
@@ -961,12 +963,15 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             directions(i,6) = (v2[i]-v1[i])*Nv2*NormalScales[2];
             directions(i,7) = -v1[i]*Nv2*NormalScales[2];
             directions(i,8) = (directions(i,6)+directions(i,7))/2.;
+
             directions(i,9) = v1[i]*Nv1*NormalScales[0];
-            directions(i,10) = (v2[i]-v1[i])*Nvdiag*NormalScales[1]/2.;
+            directions(i,10) = (v2[i]-v1[i])*Nvdiag*NormalScales[2];
             directions(i,11) = -v2[i]*Nv2*NormalScales[2];
+
             directions(i,12) = v1[i]*Nv2*NormalScales[0];
             directions(i,13) = v2[i]*Nv1*NormalScales[1];
         }
+//        cout << "directions = " << directions << endl;
     }
     
     void TPZTriangle::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
