@@ -88,6 +88,7 @@
 #include "pzcondensedcompel.h"
 #include "pzelementgroup.h"
 
+#include "pzcheckgeom.h"
 
 
 #include "pyramidalmesh.h"
@@ -130,7 +131,7 @@ private:
     int fbc5;
     int fmatskeleton;
     
-    bool isH1;
+    bool fisH1;
     
     bool ftriang;
     
@@ -138,9 +139,11 @@ private:
     
     
 public:
-    LaplaceInSphere(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    LaplaceInSphere( );
     
     ~LaplaceInSphere();
+    
+    void Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv, std::ofstream &saidaErro, bool HdivMaisMais);
     
     int getDimension() const {return fDim;};
     
@@ -154,9 +157,12 @@ public:
     
     TPZGeoMesh *GMeshCirculoPolarArtico(int ndiv , TPZVec<bool>  &CurvesSides, bool isPlane, int plane);
     
+    // theta (0,pi) angulo que se inicia no polo norte. phi (0,2pi) o angulo no plano xy
     TPZVec<REAL> SphereToKartesian(REAL r, REAL theta, REAL phi);
+    TPZVec<REAL> SphereToKartesian(TPZManVector<REAL> xc, REAL r, REAL theta, REAL phi);
 
     TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv);
+    TPZGeoMesh *GMeshSphericalShellBlendQ(int dimensao, bool triang, int ndiv);
     
     TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv);
     
@@ -197,6 +203,18 @@ public:
     
     static void ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
     
+    static void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
+    
+    void ChangeExternalOrderConnects(TPZCompMesh *mesh);
+    
+    void setTriangTrue()
+    {
+        ftriang = true;
+    }
+    void setH1True()
+    {
+        fisH1 = true;
+    }
 
     
 };

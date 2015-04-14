@@ -88,20 +88,20 @@ void LaplaceInQuadrilateral::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDe
         
         tools::SolveSyst(anh1, cmeshH1);
         
-//        stringstream refh1,grauh1;
-//        grauh1 << ordemP;
-//        refh1 << ndiv;
-//        string strgh1 = grauh1.str();
-//        string strrh1 = refh1.str();
-//        std::string plotnameh1("OurSolutionH1");
-//        std::string Grauh1("P");
-//        std::string Refh1("H");
-//        std::string VTKh1(".vtk");
-//        std::string plotDatah1;
-//        plotDatah1 = plotnameh1+Grauh1+strgh1+Refh1+strrh1+VTKh1;
-//        std::string plotfileh1(plotDatah1);
-//        
-//        tools::PosProcess(anh1, plotfileh1, fDim);
+        stringstream refh1,grauh1;
+        grauh1 << ordemP;
+        refh1 << ndiv;
+        string strgh1 = grauh1.str();
+        string strrh1 = refh1.str();
+        std::string plotnameh1("OurSolutionH1");
+        std::string Grauh1("P");
+        std::string Refh1("H");
+        std::string VTKh1(".vtk");
+        std::string plotDatah1;
+        plotDatah1 = plotnameh1+Grauh1+strgh1+Refh1+strrh1+VTKh1;
+        std::string plotfileh1(plotDatah1);
+        
+        tools::PosProcess(anh1, plotfileh1, fDim);
         
         ErrorH1(cmeshH1, ordemP, ndiv, saidaErro, dofTotal, dofCondensed);
         
@@ -164,7 +164,7 @@ void LaplaceInQuadrilateral::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDe
     plotData = plotname+Grau+strg+Ref+strr+VTK;
     std::string plotfile(plotData);
     
-    //tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
+    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
     
     //Calculo do erro
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
@@ -172,30 +172,30 @@ void LaplaceInQuadrilateral::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDe
     
     std::cout << "Postprocessed\n";
     
-//    stringstream ss;
-//    ss << ordemP;
-//    string str = ss.str();
-//    
-//    std::cout<< " grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
-//#ifdef DEFORMED
-//    std::string filename("InputDataMetaQuadDEFORMED");
-//#else
-//    std::string filename("InputDataMetaQuad");
-//#endif
-//    std::string L2("L2.txt");
-//    std::string Hdiv("Hdiv.txt");
-//    std::string HdivData,L2Data;
-//    HdivData = filename+str+Hdiv;
-//    L2Data = filename+str+L2;
-//    
-//    ErrorHDiv(cmesh1, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv );
-//    
-//    ErrorL2(cmesh2, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
+    stringstream ss;
+    ss << ordemP;
+    string str = ss.str();
+    
+    std::cout<< " grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
+#ifdef DEFORMED
+    std::string filename("InputDataMetaQuadDEFORMED");
+#else
+    std::string filename("InputDataMetaQuad");
+#endif
+    std::string L2("L2.txt");
+    std::string Hdiv("Hdiv.txt");
+    std::string HdivData,L2Data;
+    HdivData = filename+str+Hdiv;
+    L2Data = filename+str+L2;
+    
+    ErrorHDiv(cmesh1, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv );
+    
+    ErrorL2(cmesh2, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
     
     ErrorPrimalDual( cmesh2, cmesh1,  ordemP, ndiv, saidaErro, DoFT, DofCond);
 
     
-//    tools::PrintDebugMapForMathematica(HdivData, L2Data, fDebugMapL2, fDebugMapHdiv);
+    tools::PrintDebugMapForMathematica(HdivData, L2Data, fDebugMapL2, fDebugMapHdiv);
     
     std::cout<< " FIM (QUAD) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
 }
@@ -646,34 +646,6 @@ void LaplaceInQuadrilateral::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &sol
     
 #endif
     
-    //    flux(0,0)=flux(1,0)=0.;
-    //    double x = pt[0];
-    //    double y = pt[1];
-    //    REAL raio = sqrt( x*x + y*y );
-    //    if (raio < 1.0)
-    //    {
-    //
-    //
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-    //        flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-    //        flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-    //
-    //    }
-    //    else
-    //    {
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 0.0;
-    //        flux(0,0)= 0.0;
-    //        flux(1,0)= 0.0;
-    //
-    //    }
-    
-    
-    
-    
-    
-    
     
 }
 
@@ -703,21 +675,6 @@ void LaplaceInQuadrilateral::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     REAL r = sqrt( x*x + y*y );
     ff[0] = -(4.0 - 16.0*r*r);
 #endif
-    
-    
-    //    double x = pt[0];
-    //    double y = pt[1];
-    //    REAL raio = sqrt( x*x + y*y );
-    //    if (raio < 1.0)
-    //    {
-    //        ff[0] = -6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
-    //
-    //    }
-    //    else
-    //    {
-    //        ff[0] = 0.0;
-    //
-    //    }
     
     
 }
@@ -1153,7 +1110,9 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, in
 {
     /// criar materiais
     //TPZMatPoisson3d *material = new TPZMatPoisson3d(matId,fDim);
-    TPZMatPoisson3d *material = new TPZMatPoisson3d(fmatId,fDim);
+    //TPZMatPoissonD3 *material = new TPZMatPoissonD3(fmatId,fDim);
+    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(fmatId,fDim);
+    
     TPZMaterial * mat(material);
     material->NStateVariables();
     
@@ -1222,7 +1181,9 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, in
 TPZCompMesh *LaplaceInQuadrilateral::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim)
 {
     /// criar materiais
-    TPZMatPoisson3d *material = new TPZMatPoisson3d(fmatId,fDim);
+    //TPZMatPoisson3d *material = new TPZMatPoisson3d(fmatId,fDim);
+    //TPZMatPoissonD3 *material = new TPZMatPoissonD3(fmatId,fDim);
+    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(fmatId,fDim);
     material->NStateVariables();
     
     //  TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);

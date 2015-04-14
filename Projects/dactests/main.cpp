@@ -169,15 +169,15 @@ REAL Epsilon = 0.4;
 
 
 //bool ftriang = false;//true;//
-bool IsCube = true;
+bool IsCubedomain = true;
 bool IsPrism = false;
 bool IsTetra = false;
 bool IsPiram = false;
 
-//bool issphere = true, iscircle = false, iscylinder = false;
-bool iscircle = true, issphere = false, iscylinder = false, isquad = false;
-//bool iscylinder = true, iscircle = false, issphere = false;
-//bool isquad = true, iscircle = false, issphere = false, iscylinder = false;
+//bool isspheredomain = true, iscircledomain = false, iscylinderdomain = false, isquaddomain = false;
+//bool iscircledomain = true, isspheredomain = false, iscylinderdomain = false, isquaddomain = false;
+//bool iscylinderdomain = true, iscircledomain = false, isspheredomain = false;
+bool isquaddomain = true, iscircledomain = false, isspheredomain = false, iscylinderdomain = false;
 
 
 #ifdef LOG4CXX
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
     HDivPiola = 0;
     ofstream saidaerros("ErroNormas.txt",ios::app);
     
-    for(p=1;p<2;p++)
+    for(p=2;p<3;p++)
     {
         saidaerros << "\nPARA p = " << p << " \n " << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
@@ -211,24 +211,27 @@ int main(int argc, char *argv[])
             if (dim==2)
             {
                 //TPZGeoMesh *gmesh2d = GMesh(2, ftriang, ndiv);
-                if (iscircle) {
+                if (iscircledomain) {
                     LaplaceInCircle  * circ = new LaplaceInCircle();
                     bool HdivMaisMais = false;
                     int k = HdivMaisMais ? p+1 : p;
                     circ->Run( k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
                 }
-                else if (iscylinder)
+                else if (iscylinderdomain)
                 {
                     LaplaceInCylinder * laplaceInCylinder = new LaplaceInCylinder( p, ndiv, fDebugMapL2, fDebugMapHdiv);
                 }
-                else  if(issphere)
+                else  if(isspheredomain)
                 {
-                    LaplaceInSphere * laplaceInSphere = new LaplaceInSphere( p, ndiv, fDebugMapL2, fDebugMapHdiv);
+                    LaplaceInSphere * sphere = new LaplaceInSphere( );
+                    bool HdivMaisMais = false;
+                    int k = HdivMaisMais ? p+1 : p;
+                    sphere->Run( k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
                 }
-                else if(isquad)
+                else if(isquaddomain)
                 {
                     LaplaceInQuadrilateral * quad = new LaplaceInQuadrilateral();
-                    //quad->setTriangTrue();
+                    quad->setTriangTrue();
                     //quad->setH1True();
                     bool HdivMaisMais = false;
                     int k = HdivMaisMais ? p+1 : p;
@@ -242,7 +245,7 @@ int main(int argc, char *argv[])
             }
             else // dim == 3
             {
-                if (IsCube)
+                if (IsCubedomain)
                 {
                     LaplaceInCube * cubo = new LaplaceInCube();
                     //cubo->setTetraTrue();

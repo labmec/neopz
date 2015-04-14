@@ -96,7 +96,8 @@ void LaplaceInCube::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2,
     }
     else
     {
-        gmesh = this->CreateOneCubo(ndiv);
+        //gmesh = this->CreateOneCubo(ndiv);
+        gmesh = this->CreateOneQuadraticCube(ndiv);
     }
 
     
@@ -627,12 +628,6 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     int nnodes = 8;
-    int idf0=-1;
-    int idf1=-2;
-    int idf2=-3;
-    int idf3=-4;
-    int idf4=-5;
-    int idf5=-6;
     
     gmesh->SetDimension(3);
     gmesh->NodeVec().Resize(nnodes);
@@ -768,7 +763,7 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
     TopologyQuad[1] = 1;
     TopologyQuad[2] = 2;
     TopologyQuad[3] = 3;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf0,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,fbc0,*gmesh);
     index++;
     
     // Front
@@ -776,7 +771,7 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
     TopologyQuad[1] = 1;
     TopologyQuad[2] = 5;
     TopologyQuad[3] = 4;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf1,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,fbc1,*gmesh);
     index++;
     
     // Rigth
@@ -784,14 +779,14 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
     TopologyQuad[1] = 2;
     TopologyQuad[2] = 6;
     TopologyQuad[3] = 5;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf2,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,fbc2,*gmesh);
     index++;
     // Back
     TopologyQuad[0] = 3;
     TopologyQuad[1] = 2;
     TopologyQuad[2] = 6;
     TopologyQuad[3] = 7;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf3,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,fbc3,*gmesh);
     index++;
     
     // Left
@@ -799,7 +794,7 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
     TopologyQuad[1] = 3;
     TopologyQuad[2] = 7;
     TopologyQuad[3] = 4;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf4,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,fbc4,*gmesh);
     index++;
     
     // Top
@@ -807,7 +802,7 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
     TopologyQuad[1] = 5;
     TopologyQuad[2] = 6;
     TopologyQuad[3] = 7;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,idf5,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad>(index,TopologyQuad,fbc5,*gmesh);
     index++;
     
     TPZManVector<long,8> TopolCubo(8,0);
@@ -848,7 +843,10 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
     return gmesh;
 }
 
-
+TPZGeoMesh *LaplaceInCube::CreateOneQuadraticCube(int nref)
+{
+    
+}
 
 void LaplaceInCube::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     

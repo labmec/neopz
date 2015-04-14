@@ -150,6 +150,7 @@ public:
     
     
     TPZGeoMesh *CreateOneCubo(int nref);
+    TPZGeoMesh *CreateOneQuadraticCube(int nref);
     
     
     /* Malhas computacionais */

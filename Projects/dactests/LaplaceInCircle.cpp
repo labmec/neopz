@@ -9,7 +9,7 @@
 #include "LaplaceInCircle.h"
 #include "tools.h"
 
-#define LINEAR
+//#define LINEAR
 #define WRAP
 
 LaplaceInCircle::LaplaceInCircle()
@@ -654,7 +654,8 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
 //        for (int i =0; i<3; i++) {
 //            coord[i] = 0.5*(A[i]+B[i]);
 //        }
-        coord = PolarToKartesian(1.1*M_SQRT1_2*r/2.0, M_PI/4.0, xc);
+        //coord = PolarToKartesian(1.1*M_SQRT1_2*r/2.0, M_PI/4.0, xc);
+        coord = PolarToKartesian(r/2.0, M_PI/4.0, xc);
         gmesh->NodeVec()[id].SetNodeId(id);
         gmesh->NodeVec()[id].SetCoord(coord );
         id++;
@@ -742,12 +743,12 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         gmesh->NodeVec()[id].SetCoord(coord );
         id++;
         //1
-        //coord = PolarToKartesian(r, M_PI/8.0, xc);
-        A = PolarToKartesian(r, 0.0, xc);
-        B = PolarToKartesian(r, M_PI/4.0, xc);
-        for (int i =0; i<3; i++) {
-            coord[i] = 0.5*(A[i]+B[i]);
-        }
+//        A = PolarToKartesian(r, 0.0, xc);
+//        B = PolarToKartesian(r, M_PI/4.0, xc);
+//        for (int i =0; i<3; i++) {
+//            coord[i] = 0.5*(A[i]+B[i]);
+//        }
+        coord = PolarToKartesian(r, M_PI/8.0, xc);
         gmesh->NodeVec()[id].SetNodeId(id);
         gmesh->NodeVec()[id].SetCoord(coord );
         id++;
@@ -757,12 +758,12 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         gmesh->NodeVec()[id].SetCoord(coord );
         id++;
         //3
-        //coord = PolarToKartesian(r, 3.0*M_PI/8.0, xc);
-        A = PolarToKartesian(r, M_PI/2.0, xc);
-        B = PolarToKartesian(r, M_PI/4.0, xc);
-        for (int i =0; i<3; i++) {
-            coord[i] = 0.5*(A[i]+B[i]);
-        }
+        coord = PolarToKartesian(r, 3.0*M_PI/8.0, xc);
+//        A = PolarToKartesian(r, M_PI/2.0, xc);
+//        B = PolarToKartesian(r, M_PI/4.0, xc);
+//        for (int i =0; i<3; i++) {
+//            coord[i] = 0.5*(A[i]+B[i]);
+//        }
         gmesh->NodeVec()[id].SetNodeId(id);
         gmesh->NodeVec()[id].SetCoord(coord );
         id++;
@@ -778,12 +779,12 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         id++;
         //6
         
-        A = PolarToKartesian(r/2.0, 0.0, xc);
-        B = PolarToKartesian(r/2.0, M_PI/2.0, xc);
-        for (int i =0; i<3; i++) {
-            coord[i] = 0.5*(A[i]+B[i]);
-        }
-        //coord = PolarToKartesian(r/2.0, M_PI/4.0, xc);
+//        A = PolarToKartesian(r/2.0, 0.0, xc);
+//        B = PolarToKartesian(r/2.0, M_PI/2.0, xc);
+//        for (int i =0; i<3; i++) {
+//            coord[i] = 0.5*(A[i]+B[i]);
+//        }
+        coord = PolarToKartesian(r/2.0, M_PI/4.0, xc);
         
         gmesh->NodeVec()[id].SetNodeId(id);
         gmesh->NodeVec()[id].SetCoord(coord );
@@ -856,7 +857,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         // Create Geometrical Arc #2
         nodeindex[0] = 4;
         nodeindex[1] = 5;
-        new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc2, *gmesh);
+        new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, /*fbc2*/fbc1, *gmesh);
         elementid++;
         
         nodeindex.resize(3);
@@ -871,7 +872,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
         // Create Geometrical Arc #2
         nodeindex[0] = 7;
         nodeindex[1] = 0;
-        new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc2, *gmesh);
+        new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, /*fbc2*/fbc1, *gmesh);
         elementid++;
         
         nodeindex.resize(6);
@@ -1077,7 +1078,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         DebugStop();
     }
     REAL r = 1.0;
-    bool anel = true;
+    bool anel = false;
     bool umtriang = true;
     
     TPZGeoMesh * gmesh;// = new TPZGeoMesh;
@@ -1114,12 +1115,8 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         gmesh->NodeVec()[id].SetCoord(coord );
         id++;
         //2
-        //        A = PolarToKartesian(r/2.0, 0.0, xc);
-        //        B = PolarToKartesian(r/2.0, M_PI/2.0, xc);
-        //        for (int i =0; i<3; i++) {
-        //            coord[i] = 0.5*(A[i]+B[i]);
-        //        }
-        coord = PolarToKartesian(1.1*M_SQRT1_2*r/2.0, M_PI/4.0, xc);
+        //coord = PolarToKartesian(1.0*M_SQRT1_2*r/2.0, M_PI/4.0, xc);
+        coord = PolarToKartesian(r/2.0, M_PI/4.0, xc);
         gmesh->NodeVec()[id].SetNodeId(id);
         gmesh->NodeVec()[id].SetCoord(coord );
         id++;
@@ -1163,9 +1160,6 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         nodeindex[0] = 0;
         nodeindex[1] = 1;
         nodeindex[2] = 3;
-        nodeindex[3] = 5;
-        nodeindex[4] = 2;
-        nodeindex[5] = 4;
         //TPZGeoElRefPattern<pzgeom::TPZQuadraticTrig  > * Quarter =
         new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoTriangle > > (elementid,nodeindex, fmatId,*gmesh);
         //elementid++;
@@ -1235,14 +1229,12 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         nodeindex[1] = 2;
         nodeindex[2] = 1;
         new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, fbc1, *gmesh);
-        //new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc1, *gmesh);
         elementid++;
         
         nodeindex[0] = 2;
         nodeindex[1] = 4;
         nodeindex[2] = 3;
         new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, fbc1, *gmesh);
-        //new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc1, *gmesh);
         elementid++;
         
         nodeindex.resize(2);
@@ -1257,7 +1249,6 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         nodeindex[1] = 7;
         nodeindex[2] = 6;
         new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, fbc1, *gmesh);
-        //new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, fbc1, *gmesh);
         elementid++;
         
         nodeindex.resize(2);
@@ -1272,27 +1263,27 @@ TPZGeoMesh *LaplaceInCircle::GMeshQuartoCirculoGeobAT( int ndiv)
         nodeindex[0] = 0;
         nodeindex[1] = 2;
         nodeindex[2] = 7;
-        //TPZGeoElRefPattern<pzgeom::TPZGeoTriangle  > * Quarter =
+        //TPZGeoElRefPattern<pzgeom::TPZGeoTriangle  > * tQuarter1 =
         new TPZGeoElRefPattern<  pzgeom::TPZGeoBlend< pzgeom::TPZGeoTriangle >  > (elementid,nodeindex, fmatId,*gmesh);
         elementid++;
         // Create Geometrical t #1
         nodeindex[0] = 2;
         nodeindex[1] = 4;
         nodeindex[2] = 5;
-        //TPZGeoElRefPattern<pzgeom::TPZGeoTriangle  > * Quarter =
+        //TPZGeoElRefPattern<pzgeom::TPZGeoTriangle  > * tQuarter2 =
         new TPZGeoElRefPattern<  pzgeom::TPZGeoBlend< pzgeom::TPZGeoTriangle > > (elementid,nodeindex, fmatId,*gmesh);
         elementid++;
         // Create Geometrical t #1
         nodeindex[0] = 7;
         nodeindex[1] = 5;
         nodeindex[2] = 2;
-        //TPZGeoElRefPattern<pzgeom::TPZGeoTriangle  > * Quarter =
+        //TPZGeoElRefPattern<pzgeom::TPZGeoTriangle  > * tQuarter3 =
         new TPZGeoElRefPattern<  pzgeom::TPZGeoBlend< pzgeom::TPZGeoTriangle > > (elementid,nodeindex, fmatId,*gmesh);
         //elementid++;
         
     }
     else
-    {
+    { //quatro triangulos (anel e ponta)
         int nodenumber = 9;
         
         

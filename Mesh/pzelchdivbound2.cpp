@@ -549,25 +549,25 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
     SideShapeFunction(TSHAPE::NSides-1, pt, phi, dphi);
 
 
-#ifdef HDIVPIOLA
-
-    TPZVec<REAL> coord(3,0.0);
-    TPZGeoEl *gel = this->Reference();
-
-    if(!gel) {DebugStop();}
-
-    TPZFMatrix<REAL> jacobian;
-    TPZFMatrix<REAL> axes;
-    REAL detjac;
-    TPZFMatrix<REAL> jacinv;
+    if (HDivPiola)
+    {
+        TPZVec<REAL> coord(3,0.0);
+        TPZGeoEl *gel = this->Reference();
+        
+        if(!gel) {DebugStop();}
+        
+        TPZFMatrix<REAL> jacobian;
+        TPZFMatrix<REAL> axes;
+        REAL detjac;
+        TPZFMatrix<REAL> jacinv;
+        
+        gel->X(pt,coord);
+        gel->Jacobian(coord,jacobian,axes,detjac,jacinv);
+        
+        phi *= 1.0/fabs(detjac);
+        dphi *= 1.0/fabs(detjac);
+    }
     
-    gel->X(pt,coord);
-    gel->Jacobian(coord,jacobian,axes,detjac,jacinv);
-
-    phi *= 1.0/fabs(detjac);
-    dphi *= 1.0/fabs(detjac);
-
-#endif
     
     
     return;
