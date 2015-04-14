@@ -34,17 +34,17 @@ TPZAxiSymmetricDarcyFlowH1::~TPZAxiSymmetricDarcyFlowH1()
 
 void TPZAxiSymmetricDarcyFlowH1::FillDataRequirements(TPZMaterialData &data)
 {
-        data.SetAllRequirements(false);
-        data.fNeedsSol = true;
+    data.SetAllRequirements(false);
+    data.fNeedsSol = true;
 }
 
 void TPZAxiSymmetricDarcyFlowH1::FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
 {
-
+    
     data.SetAllRequirements(false);
     data.fNeedsSol = true;
     data.fNeedsNormal = true;
-
+    
 }
 
 void TPZAxiSymmetricDarcyFlowH1::Print(std::ostream &out) {
@@ -87,11 +87,11 @@ int TPZAxiSymmetricDarcyFlowH1::NSolutionVariables(int var) {
 
 void TPZAxiSymmetricDarcyFlowH1::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) {
     
-
+    
     
     TPZVec<REAL> P = data.sol[0];
     TPZFMatrix<STATE> dPdx = data.dsol[0];
-
+    
     
     TPZFNMatrix<660> GradofP;
     TPZAxesTools<REAL>::Axes2XYZ(dPdx, GradofP, data.axes);
@@ -184,7 +184,7 @@ void TPZAxiSymmetricDarcyFlowH1::Contribute(TPZMaterialData &data, REAL weight,T
     dlambdadp = (ddensitydp/visosity) - ((1/(visosity*visosity))*(density*dvisositydp));
     
     // Defining local variables
-
+    
     TPZFMatrix<STATE> dlambdadpKGradofP(2,1);
     dlambdadpKGradofP(0,0) = (dlambdadp)* (K(0,0)*GradofP(0,0) + K(0,1)*GradofP(1,0));
     dlambdadpKGradofP(1,0) = (dlambdadp)* (K(1,0)*GradofP(0,0) + K(1,1)*GradofP(1,0));
@@ -203,9 +203,9 @@ void TPZAxiSymmetricDarcyFlowH1::Contribute(TPZMaterialData &data, REAL weight,T
     
     TPZFMatrix<STATE> lambdaKGradofPhiH1(2,1);
     
-
     
-
+    
+    
     
     TPZFMatrix<STATE> iPhiHdiv(2,1);
     TPZFMatrix<STATE> GradofiPhiH1(2,1);
@@ -220,12 +220,12 @@ void TPZAxiSymmetricDarcyFlowH1::Contribute(TPZMaterialData &data, REAL weight,T
             lambdaKGradofPhiH1(1,0) = (labmda)* (K(1,0)*GradofPhiH1(0,jp) + K(1,1)*GradofPhiH1(1,jp));
             
             ek(ip,jp) += weight * ( ( ( PhiH1(jp,0)*dlambdadpKGradofP(0,0) + lambdaKGradofPhiH1(0,0) ) * GradofPhiH1(0,ip) +  ( PhiH1(jp,0)* dlambdadpKGradofP(1,0) + lambdaKGradofPhiH1(1,0) ) * GradofPhiH1(1,ip))
-
+                                   
                                    -  PhiH1(jp,0)*((( ddensitydp*lambdaKGravity(0,0)+dlambdadpKGravity(0,0))*GradofPhiH1(0,ip)+(ddensitydp*lambdaKGravity(1,0)+dlambdadpKGravity(1,0))* GradofPhiH1(1,ip))));
         }
     }
     
-
+    
     this->Contribute(data,weight,ef);
     
 }
@@ -280,13 +280,17 @@ void TPZAxiSymmetricDarcyFlowH1::Contribute(TPZMaterialData &data, REAL weight, 
     TPZFMatrix<STATE> iPhiHdiv(2,1);
     TPZFMatrix<STATE> GradofiPhiH1(2,1);
     TPZFMatrix<STATE> NormalVectTensorProGradofiPhiH1(2,2);
-
+    
+    TPZManVector<STATE,1> fvalue(1,0.0);
+    if(fForcingFunction) {
+        fForcingFunction->Execute(data.x,fvalue);
+    }
     
     for (int ip = 0; ip < nPhiH1; ip++)
     {
         /* $ \underset{\Omega_{e}}{\int}\left(K\;\lambda\nabla\left(P\right)\right)\cdot\nabla\phi\;\partial\Omega_{e}-\underset{\Omega_{e}}{\int}\left(K\;\lambda\nabla\left(\rho_{f}g\; z\right)\right)\cdot\nabla\phi\;\partial\Omega_{e} $ */
         
-        ef(ip) += weight * ((lambdaKGradofP(0,0)*GradofPhiH1(0,ip)+lambdaKGradofP(1,0)*GradofPhiH1(1,ip)) -  density * (lambdaKGravity(0,0)*GradofPhiH1(0,ip)+lambdaKGravity(1,0)*GradofPhiH1(1,ip)));
+        ef(ip) += weight * ((lambdaKGradofP(0,0)*GradofPhiH1(0,ip)+lambdaKGradofP(1,0)*GradofPhiH1(1,ip)) -  density * (lambdaKGravity(0,0)*GradofPhiH1(0,ip)+lambdaKGravity(1,0)*GradofPhiH1(1,ip)) - fvalue[0]*PhiH1(ip,0));
         
     }
     
@@ -294,8 +298,8 @@ void TPZAxiSymmetricDarcyFlowH1::Contribute(TPZMaterialData &data, REAL weight, 
 }
 
 void TPZAxiSymmetricDarcyFlowH1::ContributeBC(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) {
- 
-
+    
+    
     
     // Getting test and basis functions
     TPZFMatrix<STATE> PhiH1 = data.phi; // For H1   test functions
@@ -329,6 +333,14 @@ void TPZAxiSymmetricDarcyFlowH1::ContributeBC(TPZMaterialData &data, REAL weight
     
     STATE Qn = lambdaKGradofP(0,0)*normal[0] + lambdaKGradofP(1,0)*normal[1];
     
+    //    std::cout << "Solution for P " <<  P[0] << std::endl;
+    //    std::cout << "Solution for Qn " <<  Qn << std::endl;
+    //    std::cout << "Solution for labmda " <<  labmda << std::endl;
+    //    std::cout << "Solution for normal " <<  normal << std::endl;
+    //    std::cout << "Solution for lambdaKGradofP " <<  lambdaKGradofP << std::endl;
+    //    std::cout << "Solution for GradofP " <<  GradofP << std::endl;
+    //    std::cout << "Solution for dPdx " <<  dPdx << std::endl;
+    
     // Number of phis
     int nPhiH1 = PhiH1.Rows();  // For Hdiv
     
@@ -343,7 +355,7 @@ void TPZAxiSymmetricDarcyFlowH1::ContributeBC(TPZMaterialData &data, REAL weight
             Value[0] = bc.Val2()(0,0);         //  Pressure
             for (int ip = 0; ip < nPhiH1; ip++)
             {
-                ef(ip) += weight * gBigNumber * ( P[0] - Value[0]) * PhiH1(ip,0);
+                ef(ip) += weight * gBigNumber * ( P[0] - Value[0] + Qn) * PhiH1(ip,0);
                 
                 for (int jp = 0; jp < nPhiH1; jp++)
                 {

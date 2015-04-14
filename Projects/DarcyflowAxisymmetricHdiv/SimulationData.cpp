@@ -20,21 +20,39 @@ SimulationData::SimulationData()
     /** @brief Maximum number of newton iterations */
     fMaxiterations = 0;
     
+    /** @brief Maximum number of newton iterations */
+    fFixedJacobianIterations = 0;
+    
     /** @brief DeltaX tolerance for newton iterations */
     ftoleranceDeltaX = 0.0;
     
     /** @brief Residual tolerance for newton iterations */
     ftoleranceResiual = 0.0;
     
+    /** @brief Number of uniform mesh refinement */
+    fHref = 0;
+    
+    /** @brief Approximation Order for velocity */
+    fqorder = 1;
+    
+    /** @brief Approximation Order for pressure */
+    fporder = 1;
+    
+    /** @brief Used a direct Solver */
+    fIsDirect = false;
+    
+    /** @brief Use Conjugated Gradient method */
+    fIsCG = false;
+    
     /** @brief Broyden iterations */
     fIsBroyden = false;
     
     /** @brief Computes a H1 approximation */
     fIsH1approx = false;
-	
+    
 }
 
 SimulationData::~SimulationData()
 {
-	
+    
 }

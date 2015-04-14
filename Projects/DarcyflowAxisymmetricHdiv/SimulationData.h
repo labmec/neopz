@@ -16,7 +16,7 @@
 
 
 class SimulationData {
-	
+    
 public:
     
     /** @brief Default Constructor */
@@ -41,32 +41,51 @@ private:
      * @ingroup Simulation Parameters
      * @brief Define simulation parameters for Transient.
      * @since December 08, 2014
-    */
+     */
     
-	/** @brief Delta t - s */
-	REAL fDeltaT;
-	
-	/** @brief Time - s */
-	REAL fTime;
-
+    /** @brief Delta t - s */
+    REAL fDeltaT;
+    
+    /** @brief Time - s */
+    REAL fTime;
+    
     /** @brief Maximum number of newton iterations */
     int fMaxiterations;
     
-	/** @brief DeltaX tolerance for newton iterations */
-	REAL ftoleranceDeltaX;
+    /** @brief Maximum number of newton iterations */
+    int fFixedJacobianIterations;
+    
+    /** @brief DeltaX tolerance for newton iterations */
+    REAL ftoleranceDeltaX;
     
     /** @brief Residual tolerance for newton iterations */
     REAL ftoleranceResiual;
+    
+    /** @brief Number of uniform mesh refinement */
+    int fHref;
+    
+    /** @brief Approximation order for velocity */
+    int fqorder;
+    
+    /** @brief Approximation order for pressure */
+    int fporder;
+    
+    /** @brief Use of direct solver */
+    bool fIsDirect;
+    
+    /** @brief Use of Conjugated Gradient method */
+    bool fIsCG;
+    
     
     /** @brief Broyden iterations */
     bool fIsBroyden;
     
     /** @brief Computes a H1 approximation */
     bool fIsH1approx;
-
-	
+    
+    
 public:
-
+    
     /** @brief Set Time step - s */
     void SetDeltaT(REAL DeltaT){this->fDeltaT = DeltaT;}
     
@@ -97,6 +116,30 @@ public:
     /** @brief Get Maximum newton iterations - - */
     int GetMaxiterations() const {return this->fMaxiterations;}
     
+    /** @brief Set Maximum newton iterations - - */
+    void SetFixediterations(int Fixediterations){this->fFixedJacobianIterations = Fixediterations;}
+    
+    /** @brief Get Maximum newton iterations - - */
+    int GetFixediterations() const {return this->fFixedJacobianIterations;}
+    
+    /** @brief Set the Number of uniform mesh refinement */
+    void SetHrefinement(int h){this->fHref = h;}
+    
+    /** @brief Set the Number of uniform mesh refinement */
+    int GetHrefinement() const {return this->fHref;}
+    
+    /** @brief Set the approximation order for velocity */
+    void Setqorder(int qp){this->fqorder = qp;}
+    
+    /** @brief Get the approximation order for velocity */
+    int Getqorder() const {return this->fqorder;}
+    
+    /** @brief Set the approximation order for pressure */
+    void Setporder(int pp){this->fporder = pp;}
+    
+    /** @brief Get the approximation order for pressure */
+    int Getporder() const {return this->fporder;}
+    
     /** @brief Using Broyden iterations */
     void SetIsBroyden(bool Broyden) {fIsBroyden = Broyden;}
     
@@ -108,8 +151,19 @@ public:
     
     /** @brief Using Broyden iterations */
     bool GetIsH1approx() {return fIsH1approx;}
-
-
+    
+    /** @brief Set the use of direct Solver */
+    void SetIsDirect(bool isdirect) {fIsDirect = isdirect;}
+    
+    /** @brief Get the use of direct Solver */
+    bool GetIsDirect() {return fIsDirect;}
+    
+    /** @brief Set the use of CG method (false is GMRES) */
+    void SetIsCG(bool IsCG) {fIsCG = IsCG;}
+    
+    /** @brief Get the use of CG method (false is GMRES) */
+    bool GetIsCG() {return fIsCG;}
+    
     
 };
 

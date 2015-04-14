@@ -1018,17 +1018,21 @@ namespace pztopology {
             v2[i] *= Nv1/detjac;
         }
         
-        for (int i=0; i<3; i++) {
-            for (int v=0; v<3; v++) {
+        for (int i=0; i<3; i++)
+        {
+            for (int v=0; v<3; v++)
+            {
                 directions(i,v) = -v2[i];
                 directions(i,v+3) = v1[i];
                 directions(i,v+6) = v2[i];
                 directions(i,v+9) = -v1[i];
             }
+            
             directions(i,12) = v1[i];
             directions(i,13) = v2[i];
             directions(i,14) = -v1[i];
             directions(i,15) = -v2[i];
+            
             directions(i,16) = v1[i];
             directions(i,17) = v2[i];
         }

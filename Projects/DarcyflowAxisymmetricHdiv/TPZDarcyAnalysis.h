@@ -21,15 +21,15 @@ class TPZCompMesh;
 class TPZDarcyAnalysis : public TPZNonLinearAnalysis
 {
 private:
-	
-	// Sets the material on the last state (n)
-	void SetLastState();
-	
-	// Sets the material on the next state (n+1)
-	void SetNextState();
-	
-	// Vector which will store tha residuum in the last state (n)
-	TPZFMatrix<STATE> fResidualLastState;
+    
+    // Sets the material on the last state (n)
+    void SetLastState();
+    
+    // Sets the material on the next state (n+1)
+    void SetNextState();
+    
+    // Vector which will store tha residuum in the last state (n)
+    TPZFMatrix<STATE> fResidualLastState;
     
     // Simulation data required for complete the analysis
     TPZAutoPointer<SimulationData> fSimulationData;
@@ -46,61 +46,61 @@ private:
     /** @brief Cmesh for Darcy analysis */
     TPZCompMesh * fcmeshdarcy;
     
-	
+    
 public:
-	
-	/// Constructor which already sets the cmesh
+    
+    /// Constructor which already sets the cmesh
     TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers);
-	
-	/// Destructor
-	~TPZDarcyAnalysis();
-	
-	/**
-	 * Assemble the stiffness matrix and rhs
-	 **/
-	void Assemble();
-	
-	/**
-	 * Assemble last step residuum
-	 **/
-	void AssembleLastStep();
-	
-	/**
-	 * Assemble the Residuum
-	 */
-	void AssembleResidual();
-	
-	/**
-	 * Computes the residuum. Used for checkconv
-	 */
-	void Residual(TPZFMatrix<STATE> &residual, int icase);
-	
-	/**
-	 * Sets next state and computes the tangent
-	 */
-	void ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &coefs, int icase);
-	
-	/**
-	 * Run the simulation,
-	 */
-	void Run();
-	
+    
+    /// Destructor
+    ~TPZDarcyAnalysis();
+    
+    /**
+     * Assemble the stiffness matrix and rhs
+     **/
+    void Assemble();
+    
+    /**
+     * Assemble last step residuum
+     **/
+    void AssembleLastStep();
+    
+    /**
+     * Assemble the Residuum
+     */
+    void AssembleResidual();
+    
+    /**
+     * Computes the residuum. Used for checkconv
+     */
+    void Residual(TPZFMatrix<STATE> &residual, int icase);
+    
+    /**
+     * Sets next state and computes the tangent
+     */
+    void ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &coefs, int icase);
+    
+    /**
+     * Run the simulation,
+     */
+    void Run();
+    
     /**
      * Compute the time forward at each timestep
      */
     void TimeForward(TPZFMatrix<STATE> &AlphasAtNplusOne, TPZFMatrix<STATE> &AlphasAtN);
     
-	/**
-	 * Is is necessary to fill the vector FSolution with the correct alphaj of
-	 * the initial condition.
-	 */
-	void InitializeFirstSolution(TPZFMatrix<STATE> &AlphasAtN, REAL &ReferencePressure);
-	
+    /**
+     * Is is necessary to fill the vector FSolution with the correct alphaj of
+     * the initial condition.
+     */
+    void InitializeFirstSolution(TPZFMatrix<STATE> &AlphasAtN, REAL &ReferencePressure);
+    
     /**
      * Set the simulation data,
      */
     void SetSimulationData(TPZAutoPointer<SimulationData> SimData){fSimulationData = SimData;}
-
+    
     /**
      * Get the simulation data,
      */
@@ -110,7 +110,7 @@ public:
      * Rotate the geometric mesh around Z axis
      */
     void RotateGeomesh(REAL CounterClockwiseAngle);
-
+    
     /**
      * Create geometric Mesh Based on layer average thickness and layer radius
      */
@@ -120,17 +120,27 @@ public:
      * Uniform Refinement
      */
     void UniformRefinement(int nh);
-
+    
+    /**
+     * Uniform Refinement for specific material
+     */
+    void UniformRefinement(int nh, int MatId);
+    
+    /**
+     * Uniform Refinement towards specific materials
+     */
+    void UniformRefinement(int nh, std::set<int> &MatToRef);
+    
     /**
      * Read the geometric from dump file
      */
-    void ReadGeoMesh(std::string GridFileName);   
-
+    void ReadGeoMesh(std::string GridFileName);
+    
     /**
      * Print geometric
      */
     void PrintGeoMesh();
-
+    
     /**
      * Create the computational mesh for flux Q
      */
@@ -160,10 +170,10 @@ public:
      * Create vtk file
      */
     void PostProcessVTK(TPZAnalysis *an);
-
+    
     /**
      * Create interfaces in the multiphysics mesh
-     */    
+     */
     void CreateInterfaces();
     
     /**
@@ -175,6 +185,23 @@ public:
      * Computes the newton Iterations
      */
     void NewtonIterations(TPZAnalysis *an);
+    
+    /**
+     * Computes the broyden Iterations
+     */
+    void BroydenIterations(TPZAnalysis *an);
+    
+    /**
+     * Computes the outer product
+     */
+    TPZFMatrix<STATE>  TensorProduct(TPZFMatrix<STATE> &g, TPZFMatrix<STATE> &d);
+    
+    /**
+     * Rhs function of the mass conservation equation
+     */
+    static  void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
+    
+    TPZFMatrix<STATE> * ComputeInverse();
     
 };
 

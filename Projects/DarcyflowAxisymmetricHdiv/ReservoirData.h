@@ -15,9 +15,9 @@
 #include <math.h>
 
 class ReservoirData {
-	
+    
 public:
-
+    
     /** @brief State: Stiffness or Mass Matrix Calculations */
     enum EState { ELastState = 0, ECurrentState = 1 };
     
@@ -53,7 +53,7 @@ public:
     
     /** @brief Layer Top depth  - m */
     REAL fDepth;
-
+    
     /** @brief Porosity at P of reference - */
     REAL fPhiref;
     
@@ -71,29 +71,29 @@ public:
     
     /** @brief absolute permeability inverse */
     TPZFMatrix<REAL> fKabinv;
-	
-	ReservoirData();
-	
-	~ReservoirData();
-
-	/**
-	 * @brief \f$ Rock porosity. \f$ Phi = Phi( P ) \f$
-	 * @param P fluid pressure
-	 */	
-	void Porosity(REAL P, REAL &poros, REAL &dPorosDp);
-
-	/** 
-	 * @brief \f$ Oil density RhoOil = RhoOil( P ) \f$
-	 * @param P fluid pressure
-	 */
-	void Density(REAL P, REAL &Rho, REAL &dRhoDpo);
-
-	/**
-	 * @brief Oil viscosity. \f$ OilViscosity = ViscOil( P ) \f$
-	 * @param P fluid pressure
-	 */
-	void Viscosity(REAL P, REAL &Viscosity, REAL &dViscosityDpo);
-
+    
+    ReservoirData();
+    
+    ~ReservoirData();
+    
+    /**
+     * @brief \f$ Rock porosity. \f$ Phi = Phi( P ) \f$
+     * @param P fluid pressure
+     */
+    void Porosity(REAL P, REAL &poros, REAL &dPorosDp);
+    
+    /**
+     * @brief \f$ Oil density RhoOil = RhoOil( P ) \f$
+     * @param P fluid pressure
+     */
+    void Density(REAL P, REAL &Rho, REAL &dRhoDpo);
+    
+    /**
+     * @brief Oil viscosity. \f$ OilViscosity = ViscOil( P ) \f$
+     * @param P fluid pressure
+     */
+    void Viscosity(REAL P, REAL &Viscosity, REAL &dViscosityDpo);
+    
     /** @brief Set the characteristic length - m */
     void SetLref(REAL Lref) {fLref = Lref; }
     
@@ -117,7 +117,7 @@ public:
     
     /** @brief Get the average thickness - m */
     REAL Layerh() {return fh; }
-
+    
     /** @brief Set the average radius - m */
     void SetLayerr(REAL r) {fr = r; }
     
@@ -135,25 +135,25 @@ public:
     
     /** @brief Characteristic Permeability - m2 */
     REAL Kref() {return fKref;}
-
+    
     /** @brief Set the characteristic Pressure - Pa */
     void SetPref(REAL Pref) {fPref = Pref;}
     
     /** @brief Characteristic Pressure - Pa */
     REAL Pref() {return fPref;}
-
+    
     /** @brief Set the characteristic Density - kg/m3 */
     void Rhoref(REAL Rhoref) {fRhoref = Rhoref;}
     
     /** @brief Characteristic Density - kg/m3 */
     REAL Rhoref() {return fRhoref;}
-
+    
     /** @brief Set the characteristic viscosity - Pa s */
     void SetEtaref(REAL Etaref) {fEtaref = Etaref;}
     
     /** @brief Characteristic viscosity - Pa s */
     REAL Etaref() {return fEtaref;}
-
+    
     /** @brief Porosity at P of reference - */
     void SetPhiRef(REAL Phiref) {fPhiref = Phiref;}
     
@@ -174,12 +174,13 @@ public:
     
     /** @brief Material indexes */
     TPZVec<int> fmaterialIds;
-	
+    
     /** @brief Set the absolute Permeability - m2 */
     void SetKabsolute(TPZFMatrix<REAL> &Kab)
     {
         fKab = Kab;
         fKabinv = Kab;
+        fKabinv.Zero();
         STATE detKab;
         detKab = fKab(0,0)*fKab(1,1)-fKab(1,0)*fKab(0,1);
         

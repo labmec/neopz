@@ -18,45 +18,60 @@ static LoggerPtr logdata(Logger::getLogger("pz.DarcyFlow"));
 
 int main()
 {
-
+    
     // This code works only for linear mapps
+    
+    HDivPiola = 0;
     
     // Simulation Data SI units
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 20;
-    bool broyden    = false;
-    bool h1         = true;
+    int maxiter     = 10;
+    bool broyden    = false; // Use this when more than 10000 DOF are required
+    bool h1         = false ;
+    bool IsDirect   = true; //Not Used broyden with Iterative !!!
+    bool IsCG       = false;
+    int fixedJac    = 0;
+    
+    int qorder      = 1;
+    int porder      = 1;
+    int hrefinement = 2;
     
     REAL hour       = 3600;
     REAL day        = hour * 24;
     REAL dt         = 1.0*day;
     REAL time       = 100.0*day;
-    REAL TolDeltaX  = 1.0*10e-8;
-    REAL TolRes     = 1.0*10e-5;
-
+    REAL TolDeltaX  = 1.0*1e-4;
+    REAL TolRes     = 1.0*1e-5;
+    
     Dataset->SetIsH1approx(h1);
+    Dataset->SetIsDirect(IsDirect);
+    Dataset->SetIsCG(IsCG);
+    Dataset->Setqorder(qorder);
+    Dataset->Setporder(porder);
+    Dataset->SetHrefinement(hrefinement);
     Dataset->SetDeltaT(dt);
     Dataset->SetTime(time);
     Dataset->SetToleranceDX(TolDeltaX);
     Dataset->SetToleranceRes(TolRes);
     Dataset->SetMaxiterations(maxiter);
+    Dataset->SetFixediterations(fixedJac);
     Dataset->SetIsBroyden(broyden);
     
     // Reservoir Data SI units
     
     TPZAutoPointer<ReservoirData> Layer = new ReservoirData;
     
-    bool isGIDGeom      = false;
-    REAL porosityref    = 0.1;
-    REAL densityref     = 1000.0;
-    REAL viscosityref   = 0.001;
+    bool isGIDGeom      = true;
+    REAL porosityref    = 1.0;//0.1;
+    REAL densityref     = 1.0;//1000.0;
+    REAL viscosityref   = 1.0;//0.001;
     REAL pressureref    = 1.0*10e6;
     REAL lengthref      = 1.0;
     REAL kref           = 1.0;
-    REAL crock          = 1.0*10e-10;
-    REAL cfluid         = 0.0*10e-9;
+    REAL crock          = 0.0*1e-10;
+    REAL cfluid         = 0.0*1e-8;
     REAL Hres           = 100.0;
     REAL Rres           = 1000.0;
     REAL Top            = -3000.0;
@@ -71,8 +86,8 @@ int main()
     
     TPZFMatrix<STATE> Kabsolute(2,2);
     Kabsolute.Zero();
-    Kabsolute(0,0) = 1.0e-14;
-    Kabsolute(1,1) = 1.0e-14;
+    Kabsolute(0,0) = 1.0;//1.0e-14;
+    Kabsolute(1,1) = 1.0;//1.0e-14;
     
     Layer->SetIsGIDGeometry(isGIDGeom);
     Layer->SetLayerTop(Top);
@@ -99,7 +114,9 @@ int main()
     TPZDarcyAnalysis SandStone(Dataset,Layers);
     SandStone.Run();
     
-	return 0;
+    
+    std::cout << " Process complete normally." << std::endl;
+    return 0;
 }
 
 
