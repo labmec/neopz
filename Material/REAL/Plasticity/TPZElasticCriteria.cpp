@@ -39,6 +39,7 @@ void TPZElasticCriteria::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal
 void TPZElasticCriteria::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 {
   fER.Compute(epsTotal, sigma);
+    fN.fEpsT = epsTotal;
   const REAL lambda = fER.Lambda();
   const REAL mu = fER.G();
   Dep.Redim(6,6);
