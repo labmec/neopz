@@ -1010,8 +1010,8 @@ namespace pztopology {
         
         if (HDivPiola)
         {
-            NormalScales[0] = 1.;
-            NormalScales[1] = 1.;
+            Nv1 = 1.;
+            Nv1 = 1.;
         }
         
         for (int i=0; i<3; i++) {
