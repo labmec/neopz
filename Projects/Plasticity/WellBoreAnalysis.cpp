@@ -2475,7 +2475,7 @@ void TPZWellBoreAnalysis::TConfig::ActivateAcidification()
     TPZMaterial *mat = fCMesh.FindMaterial(1);
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> mattype1;
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem> mattype2;
-    typedef TPZElasticityMaterialSest2D mattype3;
+    typedef TPZMatElastoPlasticSest2D<TPZElasticCriteria , TPZElastoPlasticMem> mattype3;
     
     mattype1 *matposs1 = dynamic_cast<mattype1 *>(mat);
     mattype2 *matposs2 = dynamic_cast<mattype2 *>(mat);
