@@ -135,7 +135,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
   //		DebugStop();
   //	}
   //
-  if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 1)
+  if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 0)
   {
     // Loop over the solutions if update memory is true
     TPZSolVec locsol(data.sol);
@@ -305,7 +305,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
   //		DebugStop();
   //	}
   //
-  if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 1)
+  if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 0)
   {
     // Loop over the solutions if update memory is true
     TPZFNMatrix<9> Dep(3,3);

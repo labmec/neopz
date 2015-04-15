@@ -430,6 +430,8 @@ void TPZElastoPlasticAnalysis::SetUpdateMem(int update)
 	
 	TPZMatWithMem<TPZElastoPlasticMem> * pMatWithMem; // defined in file pzelastoplastic.h
 	TPZMatWithMem<TPZPoroElastoPlasticMem> * pMatWithMem2; // define in file pzporous.h
+    
+//    TPZMatElastoPlasticSest2D< TPZElasticCriteria >
 
     for(mit=refMatVec.begin(); mit!= refMatVec.end(); mit++)
     {

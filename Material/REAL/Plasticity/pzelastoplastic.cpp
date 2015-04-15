@@ -1003,7 +1003,10 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
 
     TPZTensor<REAL> EpsT, Sigma;
 	EpsT.CopyFrom(DeltaStrain);
-	EpsT.Add(plasticloc.GetState().fEpsT, 1.);
+    TPZPlasticState<REAL> locstate(plasticloc.GetState());
+	EpsT.Add(locstate.fEpsT, 1.);
+    locstate.fEpsT = EpsT;
+    plasticloc.SetState(locstate);
 #ifdef debug
     CheckConvergence(data,DeltaStrain);
 #endif
@@ -1016,6 +1019,9 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
 	{
     	TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = plasticloc.GetState();
+        
+//        std::cout << "point " << intPt << ' ' << TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT << std::endl;
+        
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticSteps = plasticloc.IntegrationSteps();
         int solsize = data.sol[0].size();
 		for(int i=0; i<solsize; i++) 
