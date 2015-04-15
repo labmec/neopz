@@ -246,7 +246,7 @@ void TPZDarcyAnalysis::Run()
     }
     
     
-    //this->PrintLS(an);
+//    this->PrintLS(an);
     
     if (fSimulationData->GetIsBroyden())
     {
@@ -304,10 +304,6 @@ void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
     TPZFMatrix<STATE> FGlobal;
     KGlobal =   an->Solver().Matrix();
     FGlobal =   an->Rhs();
-    
-    std::stringstream sout;
-    KGlobal->Print("KGlobal = ", std::cout,EMathematicaInput);
-    FGlobal.Print("FGlobal = ", std::cout,EMathematicaInput);
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())

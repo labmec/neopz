@@ -19,7 +19,18 @@ tools::~tools()
     
 }
 
-
+void tools::PrintLS(TPZAnalysis *an)
+{
+    an->Assemble();
+    TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
+    TPZFMatrix<STATE> FGlobal;
+    KGlobal =   an->Solver().Matrix();
+    FGlobal =   an->Rhs();
+    
+    std::stringstream sout;
+    KGlobal->Print("KGlobal = ", std::cout,EMathematicaInput);
+    FGlobal.Print("FGlobal = ", std::cout,EMathematicaInput);
+}
 
 void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {

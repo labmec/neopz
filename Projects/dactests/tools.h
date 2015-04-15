@@ -113,6 +113,8 @@ public:
 //    //criar elementos esqueleto
 //    static void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack< TPZMultiphysicsElement *, 7> > &ListGroupEl);
     
+    static void PrintLS(TPZAnalysis *an);
+    
     static void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh);
     
     static void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile, int dim);

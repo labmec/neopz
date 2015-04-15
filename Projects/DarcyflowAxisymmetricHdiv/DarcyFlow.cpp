@@ -21,7 +21,7 @@ int main()
     
     // This code works only for linear mapps
     
-    HDivPiola = 0;
+    HDivPiola = 1;
     
     // Simulation Data SI units
     

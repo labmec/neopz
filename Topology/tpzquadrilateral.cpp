@@ -1005,12 +1005,13 @@ namespace pztopology {
          * using contravariant piola mapping.
          */
         
-        REAL Nv1 = 1.0;
-        REAL Nv2 = 1.0;
-        if (!HDivPiola)
+        REAL Nv1 = TPZNumeric::Norma(v1);
+        REAL Nv2 = TPZNumeric::Norma(v2);
+        
+        if (HDivPiola)
         {
-            Nv1 = TPZNumeric::Norma(v1);
-            Nv2 = TPZNumeric::Norma(v2);
+            NormalScales[0] = 1.;
+            NormalScales[1] = 1.;
         }
         
         for (int i=0; i<3; i++) {

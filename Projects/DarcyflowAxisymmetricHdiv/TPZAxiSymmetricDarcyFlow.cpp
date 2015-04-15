@@ -171,11 +171,13 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
     
+//    std::cout << " Qaxes " << Qaxes << std::endl;
 //    std::cout << " GradOfX " << GradOfX << std::endl;
 //    std::cout << " GradOfXInverse = " << GradOfXInverse << std::endl;
 //    std::cout << " JacobianDet = " << JacobianDet << std::endl;
 //    std::cout << " XYZ = " << datavec[Qblock].x << std::endl;
 //    std::cout << "dPhiH1 = " << dPhiH1 << std::endl;
+//    std::cout << "dPhiH1x = " << dPhiH1x << std::endl;
     
     
     for (int iq = 0; iq < nPhiHdiv; iq++)
@@ -194,7 +196,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
 //        std::cout << "VectorOnXYZ = " << VectorOnXYZ << std::endl;
         
         /* Contravariant Piola mapping preserves the divergence */
-        DivergenceofPhi(ishapeindex,0) = (1.0/JacobianDet) * ( dPhiH1(0,ishapeindex)*VectorOnMaster(0,0) + dPhiH1(1,ishapeindex)*VectorOnMaster(1,0) );
+        DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * ( dPhiH1(0,ishapeindex)*VectorOnMaster(0,0) + dPhiH1(1,ishapeindex)*VectorOnMaster(1,0) );
         
     }
     
@@ -299,9 +301,24 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         
         divofiPhiHdiv = NormalVectTensorProGradofiPhiH1(0,0) + NormalVectTensorProGradofiPhiH1(1,1);
         
+
+        
+        if (fabs(divofiPhiHdiv - DivergenceOnDeformed(iq,0)) > 1.0e-6 ) {
+            
+            std::cout << "ishapeindex " << ishapeindex << std::endl;
+            
+            std::cout << "GradofiPhiH1 " << GradofiPhiH1 << std::endl;
+            std::cout << "dPhiH1 " << dPhiH1 << std::endl;
+            
+            std::cout << "div diference " << divofiPhiHdiv - DivergenceOnDeformed(iq,0) << std::endl;
+            std::cout << "divofiPhiHdiv " << divofiPhiHdiv << std::endl;
+            std::cout << "divofiPhiHdiv2 " << DivergenceOnDeformed(iq,0) << std::endl;
+            datavec[Qblock].axes.Print(std::cout);
+        }
+        
         if (HDivPiola)
         {
-            divofiPhiHdiv = DivergenceOnDeformed(ishapeindex,0);
+            divofiPhiHdiv = DivergenceOnDeformed(iq,0);
         }
         
 
@@ -382,7 +399,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
             
             if (HDivPiola)
             {
-                divofjPhiHdiv = DivergenceOnDeformed(jshapeindex,0);
+                divofjPhiHdiv = DivergenceOnDeformed(jq,0);
             }
             
             ek(ip + nPhiHdiv,jq) += -1.0 * weight *  divofjPhiHdiv * WL2(ip,0);
@@ -495,7 +512,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         
         if (HDivPiola)
         {
-            divofiPhiHdiv = DivergenceOnDeformed(ishapeindex,0);
+            divofiPhiHdiv = DivergenceOnDeformed(iq,0);
         }
         
         /* $ \underset{\Omega_{e}}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega_{e}-\underset{\Omega_{e}}{\int}P\; div\left(\mathbf{v}\right)\partial\Omega-\underset{\Omega_{e}}{\int}\nabla\left(\rho_{f}g\; z\right)\cdot\mathbf{v} $ */

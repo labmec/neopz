@@ -953,7 +953,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             directions(i,8) = (directions(i,6)+directions(i,7))/2.;
 
             directions(i,9) = v1[i]*Nv1*NormalScales[0];
-            directions(i,10) = (v2[i]-v1[i])*Nvdiag*NormalScales[2];
+            directions(i,10) = (v2[i]-v1[i])*Nvdiag*NormalScales[1];
             directions(i,11) = -v2[i]*Nv2*NormalScales[2];
 
             directions(i,12) = v1[i]*Nv2*NormalScales[0];

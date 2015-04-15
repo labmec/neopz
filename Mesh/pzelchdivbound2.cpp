@@ -564,8 +564,8 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
         gel->X(pt,coord);
         gel->Jacobian(coord,jacobian,axes,detjac,jacinv);
         
-        phi *= 1.0/fabs(detjac);
-        dphi *= 1.0/fabs(detjac);
+        phi *= 1.0/detjac;
+        dphi *= 1.0/detjac;
     }
     
     
