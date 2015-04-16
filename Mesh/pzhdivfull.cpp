@@ -663,10 +663,8 @@ int TPZCompElHDivFull<pzshape::TPZShapePiram>::ClassId() const
     return TPZHDIVPYRAM_FULL_ID;
 }
 
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivFull<pzshape::TPZShapePiram>, TPZHDIVPYRAM_FULL_ID>;
-#endif
 
 
 template class TPZCompElHDivFull<pzshape::TPZShapeTriang>;

@@ -732,10 +732,8 @@ int TPZCompElHDivPressure<TPZShapePiram>::ClassId() const
 		return TPZHDIVPYRAM_PRESSURE_ID;
 }
 
-#ifndef BORLAND
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>, TPZHDIVPYRAM_PRESSURE_ID>;
-#endif
 
 
 template class TPZCompElHDivPressure<TPZShapeTriang>;

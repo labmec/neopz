@@ -16,22 +16,17 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, long &index) :
 TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
-	int i;
-	for(i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
+
+	for(int i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
 	//  RemoveSideRestraintsII(EInsert);
 	gel->SetReference(this);
-	for(i=0;i<TSHAPE::NCornerNodes;i++) {
-		fConnectIndexes[i] = CreateMidSideConnect(i);
-		mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
-	}
-	for(;i<TSHAPE::NSides;i++) {
+	for(int i=0;i<TSHAPE::NSides;i++) {
 		fConnectIndexes[i] = CreateMidSideConnect(i);
 		mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
 		IdentifySideOrder(i);
 	}
 	
 	// Comp
-	int sideorder = SideOrder(TSHAPE::NSides-1);
     TPZMaterial *mat = Material();
     if (Material())
     {
@@ -139,7 +134,7 @@ void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, long connectindex){
 
 template<class TSHAPE>
 int TPZIntelGen<TSHAPE>::NConnectShapeF(int connect) const{
-	if(connect < TSHAPE::NCornerNodes) return 1;
+    if(connect < TSHAPE::NCornerNodes) return TSHAPE::NConnectShapeF(connect,0);
 	int order = SideOrder(connect);
 	if(order < 0) return 0;
     int nshape = TSHAPE::NConnectShapeF(connect, order);
@@ -464,11 +459,23 @@ int TPZIntelGen<TPZShapePiram>::ClassId() const
 	return TPZINTELPYRAMID;
 }
 
+#include "pzshapepiramhdiv.h"
+template<>
+int TPZIntelGen<TPZShapePiramHdiv>::ClassId() const
+{
+    return TPZINTELPYRAMIDHDIV;
+}
+
+
 #ifndef BORLAND
 template class
 TPZRestoreClass< TPZIntelGen<TPZShapePiram>, TPZINTELPYRAMID>;
 #endif
 
+#ifndef BORLAND
+template class
+TPZRestoreClass< TPZIntelGen<TPZShapePiramHdiv>, TPZINTELPYRAMIDHDIV>;
+#endif
 
 #include "TPZRefCube.h"
 
@@ -517,5 +524,6 @@ template class TPZIntelGen<TPZShapeQuad>;
 template class TPZIntelGen<TPZShapeTetra>;
 template class TPZIntelGen<TPZShapePrism>;
 template class TPZIntelGen<TPZShapePiram>;
+template class TPZIntelGen<TPZShapePiramHdiv>;
 template class TPZIntelGen<TPZShapeCube>;
 

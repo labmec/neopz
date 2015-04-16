@@ -242,6 +242,10 @@ const int TPZMPCOMPELWITHMEMPIRAMID = 427;
 /** @brief Id of computational memory interface multiphysics element (?) */
 const int TPZMPCOMPELWITHMEMINTERFACE = 428;
 
+/** @brief Id of pyramidal hdiv interpolated element */
+const int TPZINTELPYRAMIDHDIV = 429;
+
+
 /** @} */
 
 #endif

@@ -1596,8 +1596,6 @@ template class
 TPZRestoreClass< TPZCompElHDiv<TPZShapePiram>, TPZHDIVPYRAMID>;
 
 
-
-
 template class TPZCompElHDiv<TPZShapeTriang>;
 //template class TPZCompElHDiv<TPZShapePoint>;
 template class TPZCompElHDiv<TPZShapeLinear>;

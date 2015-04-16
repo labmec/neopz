@@ -176,7 +176,11 @@ namespace pzshape {
 		CornerShape(pt,phi,dphi);
 		bool linear = true;
 		int is,d;
-		for(is=NCornerNodes; is<NSides; is++) if(order[is-NCornerNodes] > 1) linear = false;
+        for(is=NCornerNodes; is<NSides; is++){
+            if(order[is-NCornerNodes] > 1){
+                linear = false;
+            }
+        }
 		if(linear) return;
 		
 		TPZFNMatrix<100> phiblend(NSides,1),dphiblend(Dimension,NSides);
