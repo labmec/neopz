@@ -678,6 +678,22 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 #endif
 }
 
+template<class TSHAPE>
+void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
+    
+    this->Shape(intpoint, data.phi, data.dphi);
+    
+}
+
+template<class TSHAPE>
+void TPZCompElHDivBound2<TSHAPE>::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
+                                         REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx){
+    
+    std::cout << "Method not implement call the architec." << std::endl;
+    DebugStop();
+    
+}
+
 /** Read the element data from a stream */
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Read(TPZStream &buf, void *context)

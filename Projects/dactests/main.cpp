@@ -177,7 +177,7 @@ bool IsPiram = false;
 //bool isspheredomain = true, iscircledomain = false, iscylinderdomain = false, isquaddomain = false;
 //bool iscircledomain = true, isspheredomain = false, iscylinderdomain = false, isquaddomain = false;
 //bool iscylinderdomain = true, iscircledomain = false, isspheredomain = false;
-bool isquaddomain = true, iscircledomain = false, isspheredomain = false, iscylinderdomain = false;
+bool isquaddomain = true, iscircledomain = true, isspheredomain = false, iscylinderdomain = false;
 
 
 #ifdef LOG4CXX
@@ -197,10 +197,10 @@ int main(int argc, char *argv[])
 
     int p = 1;
     int ndiv = 0;
-    HDivPiola = 0;
+    HDivPiola = 1;
     ofstream saidaerros("ErroNormas.txt",ios::app);
     
-    for(p=2;p<3;p++)
+    for(p=1;p<2;p++)
     {
         saidaerros << "\nPARA p = " << p << " \n " << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;

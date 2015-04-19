@@ -111,6 +111,14 @@ public:
 	 * of state variables and material definitions */
 	virtual void InitMaterialData(TPZMaterialData &data);
 	
+    
+    /** @brief Compute Shape for boundary of a hdiv computational element */
+    void ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data);
+    
+    /** @brief Compute the correspondence between the normal vectors and the shape functions */
+    void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
+                      REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx);
+    
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &shapeindex);
 	

@@ -8,6 +8,7 @@
 
 #include "LaplaceInCircle.h"
 #include "tools.h"
+#include "pzcheckgeom.h"
 
 //#define LINEAR
 #define WRAP
@@ -58,6 +59,12 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     //TPZGeoMesh *gmesh = this->GMeshCirculoGeob( ndiv);
 #endif
     
+    TPZCheckGeom * Geometrytest = new TPZCheckGeom(gmesh);
+    int isBadMeshQ = Geometrytest->PerformCheck();
+    
+    if (isBadMeshQ) {
+        DebugStop();
+    }
     
     gmesh->SetDimension(fDim);
     {
@@ -145,6 +152,7 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     
     TPZAnalysis an(mphysics, true);
     
+///    tools::PrintLS(&an);
     tools::SolveSyst(an, mphysics);
     
     {

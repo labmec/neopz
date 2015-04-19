@@ -124,7 +124,6 @@ public:
     
     static void PrintDebugMapForMathematica(std::string filenameHdiv, std::string filenameL2, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
     
-    
     static bool MyDoubleComparer(REAL a, REAL b);
     
 };

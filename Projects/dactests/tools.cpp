@@ -58,6 +58,7 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
             {
                 //TPZBandStructMatrix full(fCmesh);
                 TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
+                skylstr.SetNumThreads(0);
                 //    TPZSkylineNSymStructMatrix full(fCmesh);
                 an.SetStructuralMatrix(skylstr);
             }
