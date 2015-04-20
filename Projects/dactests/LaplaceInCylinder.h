@@ -129,7 +129,7 @@ private:
     int fbc5;
     int fmatskeleton;
     
-    bool isH1;
+    bool fisH1;
     
     bool ftriang;
     
@@ -137,12 +137,15 @@ private:
     
 public:
     
-    LaplaceInCylinder(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    LaplaceInCylinder( );
     
     ~LaplaceInCylinder();
     
+    void Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv, std::ofstream &saidaErro, bool HdivMaisMais);
+    
     void setTensors(TPZFNMatrix<2,REAL> &TP, TPZFNMatrix<2,REAL> &InvTP);
     
+    TPZGeoMesh *GMesh(int dim, bool ftriang, int ndiv);
     TPZGeoMesh *GMeshCilindricalMesh( int ndiv);
     
     /* Malhas computacionais */
@@ -153,6 +156,7 @@ public:
     
     //solucao exata
     static void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
+    static void SolExataH1(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);
     
     //lado direito da equacao
     static void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
@@ -174,9 +178,25 @@ public:
     static void ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     static void ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     
-    static void ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    void ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
     
-    static void ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    void ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
+    
+    void ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
+    
+    void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
+    
+    void ChangeExternalOrderConnects(TPZCompMesh *mesh);
+    
+    void setTriangTrue()
+    {
+        ftriang = true;
+    }
+    void setH1True()
+    {
+        fisH1 = true;
+    }
+
 };
 
 #endif /* defined(__PZ__LapaceInCylinder__) */

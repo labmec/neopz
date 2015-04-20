@@ -366,6 +366,9 @@ TPZGeoMesh *LaplaceInQuadrilateral::GMesh(int dim, bool ftriang, int ndiv)
     //	}
     //#endif
     
+    std::ofstream outfile("malhaQuadm.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outfile, true);
+    
     return gmesh;
 }
 
@@ -804,10 +807,10 @@ void LaplaceInQuadrilateral::ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff
 void LaplaceInQuadrilateral::ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     
-    double x = pt[0];
-    double y = pt[1];
+    //double x = pt[0];
+    //double y = pt[1];
     
-    REAL r = sqrt( x*x + y*y );
+    //REAL r = sqrt( x*x + y*y );
     
     //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
@@ -838,10 +841,10 @@ void LaplaceInQuadrilateral::ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &
 
 void LaplaceInQuadrilateral::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    double x = pt[0];
-    double y = pt[1];
+    //double x = pt[0];
+    //double y = pt[1];
     
-    REAL r = sqrt( x*x + y*y );
+    //REAL r = sqrt( x*x + y*y );
     
     //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
@@ -872,10 +875,10 @@ void LaplaceInQuadrilateral::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &
     
     
     
-    double x = pt[0];
-    double y = pt[1];
+    //double x = pt[0];
+    //double y = pt[1];
     
-    REAL r = sqrt( x*x + y*y );
+    //REAL r = sqrt( x*x + y*y );
     
     //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
@@ -905,10 +908,10 @@ void LaplaceInQuadrilateral::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &
 void LaplaceInQuadrilateral::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     
-    double x = pt[0];
-    double y = pt[1];
+    //double x = pt[0];
+    //double y = pt[1];
     
-    REAL r = sqrt( x*x + y*y );
+    //REAL r = sqrt( x*x + y*y );
     
     //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
@@ -938,10 +941,10 @@ void LaplaceInQuadrilateral::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &
 void LaplaceInQuadrilateral::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     
-    double x = pt[0];
-    double y = pt[1];
+    //double x = pt[0];
+    //double y = pt[1];
     
-    REAL r = sqrt( x*x + y*y );
+    //REAL r = sqrt( x*x + y*y );
     
     //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;
@@ -969,10 +972,10 @@ void LaplaceInQuadrilateral::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &
 
 void LaplaceInQuadrilateral::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
-    double x = pt[0];
-    double y = pt[1];
+    //double x = pt[0];
+    //double y = pt[1];
     
-    REAL r = sqrt( x*x + y*y );
+    //REAL r = sqrt( x*x + y*y );
     
     //solp[0] = r*r*(1.0 - r*r);
     solp[0] = 0.0;

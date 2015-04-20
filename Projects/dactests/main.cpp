@@ -176,8 +176,8 @@ bool IsPiram = false;
 
 //bool isspheredomain = true, iscircledomain = false, iscylinderdomain = false, isquaddomain = false;
 //bool iscircledomain = true, isspheredomain = false, iscylinderdomain = false, isquaddomain = false;
-//bool iscylinderdomain = true, iscircledomain = false, isspheredomain = false;
-bool isquaddomain = true, iscircledomain = true, isspheredomain = false, iscylinderdomain = false;
+bool iscylinderdomain = true, iscircledomain = false, isspheredomain = false, isquaddomain = false;
+//bool isquaddomain = true, iscircledomain = false, isspheredomain = false, iscylinderdomain = false;
 
 
 #ifdef LOG4CXX
@@ -197,15 +197,15 @@ int main(int argc, char *argv[])
 
     int p = 1;
     int ndiv = 0;
-    HDivPiola = 1;
+    HDivPiola = 0;
     ofstream saidaerros("ErroNormas.txt",ios::app);
     
-    for(p=1;p<2;p++)
+    for(p=1;p<5;p++)
     {
         saidaerros << "\nPARA p = " << p << " \n " << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
         
-        for (ndiv=0; ndiv<1; ndiv++)
+        for (ndiv=0; ndiv<6; ndiv++)
         {
             
             if (dim==2)
@@ -219,7 +219,10 @@ int main(int argc, char *argv[])
                 }
                 else if (iscylinderdomain)
                 {
-                    LaplaceInCylinder * laplaceInCylinder = new LaplaceInCylinder( p, ndiv, fDebugMapL2, fDebugMapHdiv);
+                    LaplaceInCylinder * cilind = new LaplaceInCylinder( );
+                    bool HdivMaisMais = false;
+                    int k = HdivMaisMais ? p+1 : p;
+                    cilind->Run( k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
                 }
                 else  if(isspheredomain)
                 {

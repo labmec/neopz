@@ -168,6 +168,8 @@ public:
     
     TPZGeoMesh *GMeshSliceSphericalShell(int dimensao, bool triang, int ndiv);
     
+    TPZGeoMesh *GMeshOitavoCasca(int ndiv);
+    
 //--------------------
 
     /* Malhas computacionais */
