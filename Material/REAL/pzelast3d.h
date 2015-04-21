@@ -12,6 +12,7 @@
 #include "pzvec.h"
 #include <vector>
 
+
 /**
  * @ingroup material
  * @brief This class implements a 3D isotropic elasticity material.
@@ -177,11 +178,9 @@ public:
 	
 	void SetC()
 	{
-#ifndef CODE1
 		C1 = fE / (2.+ 2.*fPoisson);
 		C2 = fE * fPoisson / (-1. + fPoisson + 2.*fPoisson*fPoisson);
 		C3 = fE * (fPoisson - 1.) / (-1. + fPoisson +2. * fPoisson * fPoisson);
-#endif
 	}
 	
 	void SetForce(TPZVec <STATE> force)
@@ -224,11 +223,9 @@ public:
 	/** @brief Poisson's ratio */
 	STATE fPoisson;
 	
-#ifndef CODE1
 	STATE C1; /**< \f$ C1 = E / (2.+ 2.*nu) \f$ */
 	STATE C2; /**< \f$ C2 = E * nu / (-1. + nu + 2.*nu*nu) \f$ */
 	STATE C3; /**< \f$ C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu) \f$ */
-#endif
 	/** @brief External forces */
 	TPZManVector<STATE,3> fForce;
 	

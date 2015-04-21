@@ -12,11 +12,14 @@
 #include <math.h>
 #include <fstream>
 
+#define CODE3
+
+
 STATE TPZElasticity3D::gTolerance = 1.e-11;
 
 TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
                                  STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
-                                            TPZMaterial(nummat), C1(-999.), C2(-999.), C3(-999.)
+                                            TPZMaterial(nummat)
 {
 	this->fE = E;
 	this->fPoisson = poisson;
@@ -32,11 +35,6 @@ TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STAT
 	this->fPostProcessDirection[0] = 1.;
 	this->SetYieldingStress(1.);
     SetC();
-#ifndef CODE1
-	C1 = E / (2.+ 2.*poisson);
-	C2 = E * poisson / (-1. + poisson + 2.*poisson*poisson);
-	C3 = E * (poisson - 1.) / (-1. + poisson +2. * poisson * poisson);
-#endif
     
     fPreStress.Resize(3);
     fPreStress[0] = preStressXX;
@@ -46,7 +44,7 @@ TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STAT
 }//method
 
 TPZElasticity3D::TPZElasticity3D(int nummat) : TPZMaterial(nummat), fE(0.), fPoisson(0.),
-                                               C1(-999.), C2(-999.), C3(-999.), fForce(3,0.),
+                                               fForce(3,0.),
                                                fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.)
 {
     SetC();
@@ -60,7 +58,7 @@ TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.), C1(-999
 TPZElasticity3D::~TPZElasticity3D(){}
 
 TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),
-                                                              C1(-999.),C2(-999.),C3(-999.),fForce(cp.fForce),
+                                                              fForce(cp.fForce),
                                                               fPostProcessDirection(cp.fPostProcessDirection), fFy(cp.fFy),
                                                               fPreStress(cp.fPreStress)
 {
@@ -81,7 +79,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
                                  REAL weight,
                                  TPZFMatrix<STATE> &ek,
                                  TPZFMatrix<STATE> &ef){
-    
+
     TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
     if(shapetype == data.EVecShape){
         ContributeVecShape(data,weight,ek,ef);
@@ -96,8 +94,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 	if(this->fForcingFunction){
 		this->fForcingFunction->Execute(x,fForce);
 	}
-	
-#ifdef CODE1
+#ifdef CODE0
 	TPZFNMatrix<9> Deriv(3,3);
 	const STATE E  = this->fE;
 	const STATE nu = this->fPoisson;
@@ -157,17 +154,18 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 			
 		}//jn
 	}//in
-#else
+#endif
+#ifdef CODE1
 	STATE Deriv[3][3];
-	int in;
-	for(in = 0; in < phr; in++)
+
+	for(int jn = 0; jn < phr; jn++)
     {
 		int kd;
 		for(kd = 0; kd < 3; kd++)
         {
-			ef(in*3+kd, 0) += weight * ( fForce[kd] * phi(in,0) - fPreStress[kd] * dphi(kd,in) );
+			ef(jn*3+kd, 0) += weight * ( fForce[kd] * phi(jn,0) - fPreStress[kd] * dphi(kd,jn) );
 		}//kd
-		for( int jn = 0; jn < phr; jn++ )
+		for( int in = 0; in < phr; in++ )
         {
 			//Compute Deriv matrix
 			for(int ud = 0; ud < 3; ud++)
@@ -206,7 +204,197 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 	}//in
 	
 #endif
-#ifdef DEBUG   
+#ifdef CODE2
+    
+    for(int jn = 0; jn < phr; jn++)
+    {
+        STATE dphij[3];
+        int kd;
+        for(kd = 0; kd < 3; kd++)
+        {
+            dphij[kd] = dphi(kd,jn);
+            ef(jn*3+kd, 0) += weight * ( fForce[kd] * phi(jn,0) - fPreStress[kd] * dphi(kd,jn) );
+        }//kd
+        for( int in = 0; in < phr; in++ )
+        {
+            STATE Deriv[3][3];
+            //Compute Deriv matrix
+            for(int ud = 0; ud < 3; ud++)
+            {
+                for(int vd = 0; vd < 3; vd++)
+                {
+                    Deriv[vd][ud] = dphi(vd,in)*dphij[ud];
+                }//ud
+            }//vd
+            
+            //First equation Dot[Sigma1, gradV1]
+            STATE *ptr1 = &ek(in*3,jn*3);
+            STATE *ptr2 = &ek(in*3+0, jn*3+1);
+            STATE *ptr3 = &ek(in*3+0, jn*3+2);
+            /*ek(in*3+0,jn*3+0)*/ ptr1[0] += weight * (( Deriv[1][1] + Deriv[2][2] ) * C1 + Deriv[0][0] * C3);
+            
+            //Second equation Dot[Sigma2, gradV2]
+            /*ek(in*3+1,jn*3+0)*/ ptr1[1] += weight * (Deriv[0][1] * C1 - Deriv[1][0] * C2);
+            
+            //Third equation Dot[Sigma3, gradV3]
+            /*ek(in*3+2,jn*3+0)*/ ptr1[2] += weight * (Deriv[0][2] * C1 - Deriv[2][0] * C2);
+            
+            /*ek(in*3+0,jn*3+1)*/ ptr2[0] += weight * (Deriv[1][0] * C1 - Deriv[0][1] * C2);
+            
+            /*ek(in*3+1,jn*3+1)*/ ptr2[1] += weight * (( Deriv[0][0] + Deriv[2][2] ) * C1 + Deriv[1][1] * C3);
+            
+            /*ek(in*3+2,jn*3+1)*/ ptr2[2] += weight * (Deriv[1][2] * C1 - Deriv[2][1] * C2);
+            
+            /*ek(in*3+0,jn*3+2)*/ ptr3[0] += weight * (Deriv[2][0] * C1 - Deriv[0][2] * C2);
+            
+            /*ek(in*3+1,jn*3+2)*/ ptr3[1] += weight * (Deriv[2][1] * C1 - Deriv[1][2] * C2);
+            
+            /*ek(in*3+2,jn*3+2)*/ ptr3[2] += weight * (( Deriv[0][0] + Deriv[1][1] ) * C1 + Deriv[2][2] * C3);
+            
+        }//jn
+    }//in
+    
+#endif
+#ifdef CODE3
+    
+    for(int jn = 0; jn < phr; jn++)
+    {
+        STATE dphij[3];
+        int kd;
+        for(kd = 0; kd < 3; kd++)
+        {
+            dphij[kd] = dphi(kd,jn);
+            ef(jn*3+kd, 0) += weight * ( fForce[kd] * phi(jn,0) - fPreStress[kd] * dphi(kd,jn) );
+        }//kd
+        
+        const int stride = 3;
+        int phmax = (phr/stride)*stride;
+        int in=0;
+        for(in = 0; in < phmax; in+=stride )
+        {
+            STATE Deriv[3*stride][3];
+            //Compute Deriv matrix
+            for(int ud = 0; ud < 3; ud++)
+            {
+                for (int istr=0; istr<stride; istr++)
+                {
+                    for(int vd = 0; vd < 3; vd++)
+                    {
+                        Deriv[vd+istr*stride][ud] = dphi(vd,in+istr)*dphij[ud];
+                    }//ud
+                }
+            }//vd
+            
+            //First equation Dot[Sigma1, gradV1]
+            STATE *ptr1 = &ek(in*3,jn*3);
+            STATE *ptr2 = &ek(in*3+0, jn*3+1);
+            STATE *ptr3 = &ek(in*3+0, jn*3+2);
+            ptr1[0] += weight * (( Deriv[1][1] + Deriv[2][2] ) * C1 + Deriv[0][0] * C3);
+            ptr1[1] += weight * (Deriv[0][1] * C1 - Deriv[1][0] * C2);
+            ptr1[2] += weight * (Deriv[0][2] * C1 - Deriv[2][0] * C2);
+            ptr2[0] += weight * (Deriv[1][0] * C1 - Deriv[0][1] * C2);
+            ptr2[1] += weight * (( Deriv[0][0] + Deriv[2][2] ) * C1 + Deriv[1][1] * C3);
+            ptr2[2] += weight * (Deriv[1][2] * C1 - Deriv[2][1] * C2);
+            ptr3[0] += weight * (Deriv[2][0] * C1 - Deriv[0][2] * C2);
+            ptr3[1] += weight * (Deriv[2][1] * C1 - Deriv[1][2] * C2);
+            ptr3[2] += weight * (( Deriv[0][0] + Deriv[1][1] ) * C1 + Deriv[2][2] * C3);
+            const int add1 = 3;
+            ptr1[0+add1] += weight * (( Deriv[1+add1][1] + Deriv[2+add1][2] ) * C1 + Deriv[0+add1][0] * C3);
+            ptr1[1+add1] += weight * (Deriv[0+add1][1] * C1 - Deriv[1+add1][0] * C2);
+            ptr1[2+add1] += weight * (Deriv[0+add1][2] * C1 - Deriv[2+add1][0] * C2);
+            ptr2[0+add1] += weight * (Deriv[1+add1][0] * C1 - Deriv[0+add1][1] * C2);
+            ptr2[1+add1] += weight * (( Deriv[0+add1][0] + Deriv[2+add1][2] ) * C1 + Deriv[1+add1][1] * C3);
+            ptr2[2+add1] += weight * (Deriv[1+add1][2] * C1 - Deriv[2+add1][1] * C2);
+            ptr3[0+add1] += weight * (Deriv[2+add1][0] * C1 - Deriv[0+add1][2] * C2);
+            ptr3[1+add1] += weight * (Deriv[2+add1][1] * C1 - Deriv[1+add1][2] * C2);
+            ptr3[2+add1] += weight * (( Deriv[0+add1][0] + Deriv[1+add1][1] ) * C1 + Deriv[2+add1][2] * C3);
+            const int add2 = 6;
+            ptr1[0+add2] += weight * (( Deriv[1+add2][1] + Deriv[2+add2][2] ) * C1 + Deriv[0+add2][0] * C3);
+            ptr1[1+add2] += weight * (Deriv[0+add2][1] * C1 - Deriv[1+add2][0] * C2);
+            ptr1[2+add2] += weight * (Deriv[0+add2][2] * C1 - Deriv[2+add2][0] * C2);
+            ptr2[0+add2] += weight * (Deriv[1+add2][0] * C1 - Deriv[0+add2][1] * C2);
+            ptr2[1+add2] += weight * (( Deriv[0+add2][0] + Deriv[2+add2][2] ) * C1 + Deriv[1+add2][1] * C3);
+            ptr2[2+add2] += weight * (Deriv[1+add2][2] * C1 - Deriv[2+add2][1] * C2);
+            ptr3[0+add2] += weight * (Deriv[2+add2][0] * C1 - Deriv[0+add2][2] * C2);
+            ptr3[1+add2] += weight * (Deriv[2+add2][1] * C1 - Deriv[1+add2][2] * C2);
+            ptr3[2+add2] += weight * (( Deriv[0+add2][0] + Deriv[1+add2][1] ) * C1 + Deriv[2+add2][2] * C3);
+        }//jn
+        for(; in < phr; in++ )
+        {
+            STATE Deriv[3][3];
+            //Compute Deriv matrix
+            for(int ud = 0; ud < 3; ud++)
+            {
+                for(int vd = 0; vd < 3; vd++)
+                {
+                    Deriv[vd][ud] = dphi(vd,in)*dphij[ud];
+                }//ud
+            }//vd
+            
+            //First equation Dot[Sigma1, gradV1]
+            STATE *ptr1 = &ek(in*3,jn*3);
+            STATE *ptr2 = &ek(in*3+0, jn*3+1);
+            STATE *ptr3 = &ek(in*3+0, jn*3+2);
+            /*ek(in*3+0,jn*3+0)*/ ptr1[0] += weight * (( Deriv[1][1] + Deriv[2][2] ) * C1 + Deriv[0][0] * C3);
+            
+            //Second equation Dot[Sigma2, gradV2]
+            /*ek(in*3+1,jn*3+0)*/ ptr1[1] += weight * (Deriv[0][1] * C1 - Deriv[1][0] * C2);
+            
+            //Third equation Dot[Sigma3, gradV3]
+            /*ek(in*3+2,jn*3+0)*/ ptr1[2] += weight * (Deriv[0][2] * C1 - Deriv[2][0] * C2);
+            
+            /*ek(in*3+0,jn*3+1)*/ ptr2[0] += weight * (Deriv[1][0] * C1 - Deriv[0][1] * C2);
+            
+            /*ek(in*3+1,jn*3+1)*/ ptr2[1] += weight * (( Deriv[0][0] + Deriv[2][2] ) * C1 + Deriv[1][1] * C3);
+            
+            /*ek(in*3+2,jn*3+1)*/ ptr2[2] += weight * (Deriv[1][2] * C1 - Deriv[2][1] * C2);
+            
+            /*ek(in*3+0,jn*3+2)*/ ptr3[0] += weight * (Deriv[2][0] * C1 - Deriv[0][2] * C2);
+            
+            /*ek(in*3+1,jn*3+2)*/ ptr3[1] += weight * (Deriv[2][1] * C1 - Deriv[1][2] * C2);
+            
+            /*ek(in*3+2,jn*3+2)*/ ptr3[2] += weight * (( Deriv[0][0] + Deriv[1][1] ) * C1 + Deriv[2][2] * C3);
+            
+        }//jn
+    }//in
+    
+#endif
+
+#ifdef CODE4
+    static TPZFNMatrix<300,STATE> BMatrix(6,ek.Rows(),0.),DBMatrix(6,ek.Rows(),0.);
+    long nphi = data.phi.Rows();
+    for (long iph=0; iph<nphi; iph++) {
+        BMatrix(0,3*iph) = data.dphix(0,iph);
+        BMatrix(1,3*iph+1) = data.dphix(1,iph);
+        BMatrix(2,3*iph+2) = data.dphix(2,iph);
+        BMatrix(3,3*iph) = data.dphix(1,iph);
+        BMatrix(3,3*iph+1) = data.dphix(0,iph);
+        BMatrix(4,3*iph) = data.dphix(2,iph);
+        BMatrix(4,3*iph+2) = data.dphix(0,iph);
+        BMatrix(5,3*iph+1) = data.dphix(2,iph);
+        BMatrix(5,3*iph+2) = data.dphix(1,iph);
+        DBMatrix(0,3*iph) = data.dphix(0,iph)*(1.-fPoisson);
+        DBMatrix(0,3*iph+1) = data.dphix(1,iph)*fPoisson;
+        DBMatrix(0,3*iph+2) = data.dphix(2,iph)*fPoisson;
+        DBMatrix(1,3*iph) = data.dphix(0,iph)*fPoisson;
+        DBMatrix(1,3*iph+1) = data.dphix(1,iph)*(1.-fPoisson);
+        DBMatrix(1,3*iph+2) = data.dphix(2,iph)*fPoisson;
+        DBMatrix(2,3*iph) = data.dphix(0,iph)*fPoisson;
+        DBMatrix(2,3*iph+1) = data.dphix(1,iph)*fPoisson;
+        DBMatrix(2,3*iph+2) = data.dphix(2,iph)*(1.-fPoisson);
+        DBMatrix(3,3*iph) = data.dphix(1,iph)*(1.-2.*fPoisson)/2.;
+        DBMatrix(3,3*iph+1) = data.dphix(0,iph)*(1.-2.*fPoisson)/2.;
+        DBMatrix(4,3*iph) = data.dphix(2,iph)*(1.-2.*fPoisson)/2.;
+        DBMatrix(4,3*iph+2) = data.dphix(0,iph)*(1.-2.*fPoisson)/2.;
+        DBMatrix(5,3*iph+1) = data.dphix(2,iph)*(1.-2.*fPoisson)/2.;
+        DBMatrix(5,3*iph+2) = data.dphix(1,iph)*(1.-2.*fPoisson)/2.;
+        const STATE mult= fE/((1+fPoisson)*(1.-2.*fPoisson));
+    }
+#endif
+#if !defined CODE0 && !defined CODE1 && !defined CODE2 && !defined CODE3
+    DebugStop();
+#endif
+#ifdef DEBUG
 	if ( !ek.VerifySymmetry( 1.e-8 ) ) PZError << __PRETTY_FUNCTION__ << "\nERROR - NON SYMMETRIC MATRIX" << std::endl;
 #endif
 }//method
