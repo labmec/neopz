@@ -39,6 +39,7 @@ static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 static LoggerPtr loggerel2(Logger::getLogger("pz.strmatrix.elementinterface"));
 static LoggerPtr loggerelmat(Logger::getLogger("pz.strmatrix.elementmat"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.strmatrix.checkconsistency"));
+static LoggerPtr loggerGlobStiff(Logger::getLogger("pz.strmatrix.globalstiffness"));
 #endif
 
 #ifdef CHECKCONSISTENCY
@@ -216,6 +217,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             std::cout << "\n";
         }
         calcstiff.start();
+        int elindex = el->Index();
         
         el->CalcStiff(ek,ef);
         
@@ -336,10 +338,14 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     {
         std::stringstream sout;
         sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
-        //stiffness.Print("Matriz de Rigidez: ",sout);
-        stiffness.Print("Matriz de Rigidez: ",sout,EMathematicaInput);
-        rhs.Print("Right Handside", sout,EMathematicaInput);
         LOGPZ_DEBUG(loggerCheck,sout.str())
+    }
+    if (loggerGlobStiff->isDebugEnabled())
+    {
+        std::stringstream sout;
+        stiffness.Print("GK = ",sout,EMathematicaInput);
+        rhs.Print("GR = ", sout,EMathematicaInput);
+        LOGPZ_DEBUG(loggerGlobStiff,sout.str())
     }
     
 #endif
