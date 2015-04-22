@@ -8,7 +8,7 @@
  */
 
 #include "TPZDarcyAnalysis.h"
-
+#include "pzcheckgeom.h"
 #include "pzlog.h"
 
 #include "TPZReadGIDGrid.h"
@@ -21,6 +21,7 @@
 #include "TPZVTKGeoMesh.h"
 #include "TPZAxiSymmetricDarcyFlow.h"
 #include "TPZAxiSymmetricDarcyFlowH1.h"
+#include "pzpoisson3d.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "pzfstrmatrix.h"
@@ -93,7 +94,6 @@ void TPZDarcyAnalysis::TimeForward(TPZFMatrix<STATE> &AlphasAtNplusOne, TPZFMatr
     
     REAL tol = 1.e-6;
     int numiter = 2;
-    
     this->IterativeProcess(std::cout,tol,numiter,false,false);
     
     AlphasAtNplusOne = fSolution;
@@ -124,9 +124,9 @@ void TPZDarcyAnalysis::Run()
     std::string GridFileName;
     GridFileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
     GridFileName += "SingleLayer.dump";
-    //    GridFileName += "MixLayer.dump";
-    //    GridFileName += "BatatacoarseQ.dump";
-    //    GridFileName += "QUAD4.dump";
+    //GridFileName += "MixLayer.dump";
+    //GridFileName += "BatatacoarseQ.dump";
+    //GridFileName += "QUAD4.dump";
     
     if(fLayers[0]->GetIsGIDGeometry())
     {
@@ -136,6 +136,13 @@ void TPZDarcyAnalysis::Run()
     {
         CreatedGeoMesh();
     }
+    
+//    TPZCheckGeom * GeomTest= new TPZCheckGeom(fgmesh);
+//    int goodmeshQ = GeomTest->PerformCheck();
+//    if (!goodmeshQ) {
+//        std::cout << "Give me a descent mesh " << std::endl;
+//        DebugStop();
+//    }
     
     REAL deg = 0.0;
     int hcont = 0;
@@ -163,7 +170,7 @@ void TPZDarcyAnalysis::Run()
     else
     {
         CreateMultiphysicsMesh(q,p);
-        CreateInterfaces();    // insert interfaces between bc and domain
+        //CreateInterfaces();    // insert interfaces between bc and domain
     }
     
     
@@ -247,6 +254,7 @@ void TPZDarcyAnalysis::Run()
     
     
 //    this->PrintLS(an);
+    
     
     if (fSimulationData->GetIsBroyden())
     {
@@ -814,7 +822,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
     
-    TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
+    TPZMatPoisson3d * mat = new TPZMatPoisson3d(RockId,dim);
     cmesh->InsertMaterialObject(mat);
     
     // Bc Bottom
@@ -837,9 +845,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(porder);
     
-    //    cmesh->SetAllCreateFunctionsContinuous();
-    //    cmesh->ApproxSpace().CreateDisconnectedElements(true);
-    cmesh->SetAllCreateFunctionsDiscontinuous();
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->ApproxSpace().CreateDisconnectedElements(false);
+//    cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->AutoBuild();
     
     cmesh->AdjustBoundaryElements();
@@ -864,6 +872,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     //    }
     
     
+    
+    
 #ifdef DEBUG
     std::ofstream out("cmeshPress.txt");
     cmesh->Print(out);
@@ -879,6 +889,7 @@ void TPZDarcyAnalysis::ReadGeoMesh(std::string GridFileName)
     TPZReadGIDGrid GeometryInfo;
     GeometryInfo.SetfDimensionlessL(1.0);
     fgmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
+    fgmesh->SetDimension(3);
 }
 
 void TPZDarcyAnalysis::CreatedGeoMesh()
@@ -1059,7 +1070,7 @@ void TPZDarcyAnalysis::UniformRefinement(int nh, int MatId)
 void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
 {
     const int dim = 2;
-    int div = 2;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->GetIsH1approx()) {

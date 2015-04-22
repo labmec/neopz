@@ -19,8 +19,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.DarcyFlow"));
 int main()
 {
     
-    // This code works only for linear mapps
-    
+    // This code use piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
     
     // Simulation Data SI units
@@ -28,21 +27,21 @@ int main()
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
     int maxiter     = 10;
-    bool broyden    = false; // Use this when more than 10000 DOF are required
+    bool broyden    = false;    // Use this when more than 10000 DOF are required
     bool h1         = false ;
-    bool IsDirect   = true; //Not Used broyden with Iterative !!!
-    bool IsCG       = false;
-    int fixedJac    = 0;
+    bool IsDirect   = false;     //  Not Used broyden with Iterative !!!
+    bool IsCG       = true;
+    int fixedJac    = 1;
     
-    int qorder      = 1;
-    int porder      = 1;
+    int qorder      = 2;
+    int porder      = 2;
     int hrefinement = 2;
     
     REAL hour       = 3600;
     REAL day        = hour * 24;
     REAL dt         = 1.0*day;
     REAL time       = 100.0*day;
-    REAL TolDeltaX  = 1.0*1e-4;
+    REAL TolDeltaX  = 1.0*1e-5;
     REAL TolRes     = 1.0*1e-5;
     
     Dataset->SetIsH1approx(h1);
