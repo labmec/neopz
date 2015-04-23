@@ -184,10 +184,10 @@ namespace pztopology {
     static REAL bPiram[58][3] =
     {
         {-1,-1,-1}, {1,-1,-1}, {1,1,-1}, {-1,1,-1}, {0,-1,-1}, {1,0,-1}, {0,1,-1}, {-1,0,-1}, {0,0,-1},// face 0
-        {0,-1,0}, {0,-1,0}, {-1,-1,1}, {0,-1,0}, {-1,-3,1}, {1,-3,1}, {0,-1,1},// face 1
-        {1,0,0}, {1,0,0}, {1,1,1}, {1,0,0}, {3,-1,1}, {3,1,1}, {1,0,1}, // face 2
-        {0,1,0}, {0,1,0}, {1,1,1}, {0,1,0}, {-1,3,1}, {1,3,1}, {0,1,1}, // face 3
-        {-1,0,0}, {-1,0,0}, {-1,1,1}, {-1,0,0}, {-3,-1,1}, {-3,1,1}, {-1,0,1},// face 4
+        {0,-1,0}, {0,-1,0}, {-1,1,1}, {0,-1,0}, {-1,-3,1}, {1,-3,1}, {0,-1,1},// face 1
+        {1,0,0}, {1,0,0}, {-1,0,0}, {1,0,0}, {3,-1,1}, {3,1,1}, {1,0,1}, // face 2
+        {0,1,0}, {0,1,0}, {1,1,-1}, {0,1,0}, {-1,3,1}, {1,3,1}, {0,1,1}, // face 3
+        {-1,0,0}, {-1,0,0}, {0,0,0}, {-1,0,0}, {-3,-1,1}, {-3,1,1}, {-1,0,1},// face 4
         //internos
         //faces
         {-1,0,0}, {0,1,0}, // tang da face 0
@@ -1197,6 +1197,7 @@ namespace pztopology {
         
         // calcula os vetores
         switch (side) {
+                // bottom face
             case 13:
             {
                 directions.Resize(3, 9);
@@ -1210,6 +1211,7 @@ namespace pztopology {
                 
             }
                 break;
+                // front face
             case 14:
             {
                 directions.Resize(3, 7);
@@ -1222,6 +1224,7 @@ namespace pztopology {
                 }
             }
                 break;
+                // right face
             case 15:
             {
                 directions.Resize(3, 7);
@@ -1234,6 +1237,7 @@ namespace pztopology {
                 }
             }
                 break;
+                // back face
             case 16:
             {
                 directions.Resize(3, 7);
@@ -1246,6 +1250,7 @@ namespace pztopology {
                 }
             }
                 break;
+                // left face
             case 17:
             {
                 directions.Resize(3, 7);
@@ -1258,6 +1263,7 @@ namespace pztopology {
                 }
             }
                 break;
+                // volume
             case 18:
             {
                 directions.Resize(3, 21);
@@ -1316,7 +1322,8 @@ namespace pztopology {
             //face 1
             directions(i,9)  = -v2[i];
             directions(i,10) = -v2[i];
-            directions(i,11) = ar12[i];
+            // needs improvement
+            directions(i,11) = ar11[i];
             directions(i,12) = ( directions(i,9) + directions(i,10) )/2.;
             directions(i,13) = ( directions(i,10)+ directions(i,11) )/2.;
             directions(i,14) = ( directions(i,9) + directions(i,11) )/2.;
@@ -1329,6 +1336,7 @@ namespace pztopology {
             directions(i,20) = (directions(i,17) + directions(i,18))/2.;
             directions(i,21) = (directions(i,18) + directions(i,16))/2.;
             directions(i,22) = (directions(i,19) + directions(i,20) + directions(i,21))/3.;
+            directions(i,18) = -v1[i];
             //face 3
             directions(i,23) = v2[i];
             directions(i,24) = v2[i];
@@ -1345,6 +1353,7 @@ namespace pztopology {
             directions(i,34) = ( directions(i,31) + directions(i,32) )/2.;
             directions(i,35) = ( directions(i,30) + directions(i,32) )/2.;
             directions(i,36) = (directions(i,33) + directions(i,34) + directions(i,35))/3.;
+            directions(i,32) = 0.;
             
             //arestas
             directions(i,37) = v1[i];
