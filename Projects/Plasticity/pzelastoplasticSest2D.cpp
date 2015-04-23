@@ -61,6 +61,26 @@ TPZMatElastoPlasticSest2D<T,TMEM>::TPZMatElastoPlasticSest2D(const TPZMatElastoP
 }
 
 template <class T, class TMEM>
+TPZMatElastoPlasticSest2D<T,TMEM> &TPZMatElastoPlasticSest2D<T,TMEM>::operator=(const TPZMatElastoPlasticSest2D<T,TMEM> &mat)
+{
+    TPZMatElastoPlastic2D<T,TMEM>::operator=(mat);
+    fZDeformation = mat.fZDeformation;
+    fbiot = mat.fbiot;
+    fVariableYoung = mat.fVariableYoung;
+    TPBrBiotForce * func = dynamic_cast<TPBrBiotForce *>(this->fForcingFunction.operator->());
+    
+    if (func) {
+        TPZAutoPointer<TPZFunction<STATE> > clonefunc = new TPBrBiotForce(*func);
+        this->fForcingFunction = clonefunc;
+    }
+    else
+    {
+    }
+    return *this;
+}
+
+
+template <class T, class TMEM>
 void TPZMatElastoPlasticSest2D<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
 {
   TPZFNMatrix<9> DSolXYZ(3,3,0.);
@@ -474,7 +494,13 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Solution(TPZMaterialData &data, int var,
     temp.Multiply(Rot, epsRadElastic);
     
     
-    
+//    {
+//        static int prepoint = -100;
+//        if (prepoint != intPt) {
+//            std::cout << "x = " << data.x << " totstrain " << totalStrain << " elaststrain " << elasticStrain << std::endl;
+//            prepoint = intPt;
+//        }
+//    }
 
     
   switch (var) {
