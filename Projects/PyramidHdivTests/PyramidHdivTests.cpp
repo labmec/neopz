@@ -31,6 +31,8 @@
 #include "mixedpoisson.h"
 #include "pzelctemp.h"
 #include "pzbuildmultiphysicsmesh.h"
+#include "pzgengrid.h"
+#include "pzpoisson3d.h"
 
 
 #include <sys/time.h>
@@ -50,8 +52,10 @@ static LoggerPtr logger(Logger::getLogger("pz.pyramtests"));
 using namespace std;
 
 TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref);
+TPZGeoMesh *MalhaQuadrada(int &nelx, int &nely);
 void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
 void InsertElasticityCubo(TPZCompMesh *mesh);
+void InsertBidimensionalPoisson(TPZCompMesh *cmesh, int &dim);
 TPZGeoMesh * CreateGeoMesh1Pir();
 TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p);
 TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int &p);
@@ -398,12 +402,19 @@ int main1(int argc, char *argv[])
 #endif
     
     // Parametros
-    const int dim = 3;
-    int plevel = 6;
-    int numthreads = 0;
+    int dim = 2;
+    int plevel = 4;
+    int numthreads = 2;
+
+    // Para 2D
+    int nelx = 100;
+    int nely = 100;
+
+    // Para 3D
     int nref = 2;
+    
     if (argc == 1) {
-        cout << "\nATENCAO: voce nao passou argumentos, rodando c/ parametros hardcode!";
+        cout << "\nATENCAO: voce nao passou argumentos, rodando c/ parametros hardcode!" << endl;
     }
     else if (argc == 4) {
         nref = atoi(argv[1]);
@@ -419,13 +430,38 @@ int main1(int argc, char *argv[])
         DebugStop();
     }
     
+    if (dim == 2) {
+        cout << "\n-> Setado para rodar problema 2D com poisson simples. Parametros:" << endl;
+        cout << "nelX = " << nelx << endl;
+        cout << "nely = " << nely << endl;
+        cout << "plevel = " << plevel << endl;
+        cout << "numthreads = " << numthreads << endl;
+    }
+    else if (dim == 3){
+        cout << "\n-> Setado para rodar problema do cubo 3D com elasticidade lienar. Parametros:" << endl;
+        cout << "nref = " << nref << endl;
+        cout << "plevel = " << plevel << endl;
+        cout << "numthreads = " << numthreads << endl;
+    }
+    
     // Malha Geometrica
     cout << "\nCriando a gmesh... "; cout.flush();
     TTimer timer;
     timer.start();
-    TPZGeoMesh *gmesh = MalhaCubo(projectpath,nref);
+    TPZGeoMesh *gmesh = NULL;
+    if (dim == 3){
+        gmesh = MalhaCubo(projectpath,nref);
+    }
+    else if (dim == 2){
+        gmesh = MalhaQuadrada(nelx,nely);
+    }
+    else{
+        DebugStop();
+    }
+
     if (0) {
-        std::ofstream out("Cube.vtk");
+        std::cout << "CUIDADO - Voce esta fazendo print da gmesh em vtk !!!!!!!!!!!!!!!" << std::endl;
+        std::ofstream out("GeometricMesh.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
     }
     timer.stop();
@@ -439,7 +475,16 @@ int main1(int argc, char *argv[])
     cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(plevel);
-    InsertElasticityCubo(cmesh);
+    if (dim == 3) {
+        InsertElasticityCubo(cmesh);
+    }
+    else if (dim == 2){
+        InsertBidimensionalPoisson(cmesh,dim);
+    }
+    else{
+        DebugStop();
+    }
+
     cmesh->AutoBuild();
     timer.stop();
     cout << timer.seconds() << " s" << endl;
@@ -489,9 +534,15 @@ int main1(int argc, char *argv[])
     an.Solve();
     // Pos Processamento
     TPZStack<string> scalnames, vecnames;
-    scalnames.Push("StressX");
-    vecnames.Push("state");
-    string plotfile = "cubovtk.vtk";
+    if (dim == 3) {
+        scalnames.Push("StressX");
+        vecnames.Push("state");
+    }
+    else if (dim == 2){
+        scalnames.Push("Solution");
+    }
+
+    string plotfile = "ResultMesh.vtk";
     an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an.PostProcess(0);
     
@@ -502,6 +553,42 @@ int main1(int argc, char *argv[])
 
 
 // ------------------------ Para testes do assemble -----------------------------
+
+TPZGeoMesh *MalhaQuadrada(int &nelx, int &nely)
+{
+    const int bcid1 = -1, bcid2 = -2;
+    TPZManVector<int,2> nelxy(2,0);
+    nelxy[0] = nelx;
+    nelxy[1] = nely;
+    TPZManVector<REAL,3> x0(3,0.),x1(3,0.); // dois pontos nos 2 cantos do quadrado
+    x1[0] = 1.;
+    x1[1] = 1.;
+    TPZGenGrid gengrid(nelxy,x0,x1);
+    TPZGeoMesh * gmesh = new TPZGeoMesh;
+    gengrid.Read(gmesh);
+    gengrid.SetBC(gmesh,7,bcid1); // na direita
+    gengrid.SetBC(gmesh,5,bcid2); // na esquerda
+
+    gmesh->BuildConnectivity();
+    return gmesh;
+}
+
+void InsertBidimensionalPoisson(TPZCompMesh *cmesh, int &dim)
+{
+    int matid = 1;
+    const int bcidLeft = -1, bcidRight = -2;
+    const int diri = 0;
+    TPZMatPoisson3d *mat = new TPZMatPoisson3d(matid,dim);
+    cmesh->InsertMaterialObject(mat);
+    
+    TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
+    TPZBndCond *bcLeft = mat->CreateBC(mat, bcidLeft, diri, val1, val2);
+    cmesh->InsertMaterialObject(bcLeft);
+    
+    val2(0,0) = 2.;
+    TPZBndCond *bcRight = mat->CreateBC(mat, bcidRight, diri, val1, val2);
+    cmesh->InsertMaterialObject(bcRight);
+}
 
 TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref)
 {
@@ -770,5 +857,4 @@ void InsertElasticityCubo(TPZCompMesh *mesh)
     TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
     TPZMaterial * bcauto3(bc3);
     mesh->InsertMaterialObject(bcauto3);
-    
 }
