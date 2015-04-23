@@ -2493,6 +2493,7 @@ void TPZWellBoreAnalysis::TConfig::ActivateAcidification()
     if (!matposs1 && !matposs2 && !matposs3) {
         DebugStop();
     }
+    fAcidModelisActive = true;
     
 }
 
