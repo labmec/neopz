@@ -151,6 +151,8 @@ public:
 	 *  object within the vector
 	 */
 	TPZMatElastoPlasticSest2D(const TPZMatElastoPlasticSest2D<T,TMEM> &mat);
+    
+    TPZMatElastoPlasticSest2D &operator=(const TPZMatElastoPlasticSest2D<T,TMEM> &mat);
 	
     /** @brief Creates a new material from the current object  */
     virtual TPZMaterial * NewMaterial() {
