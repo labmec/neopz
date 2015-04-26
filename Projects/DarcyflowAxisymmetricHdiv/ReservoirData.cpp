@@ -17,26 +17,14 @@ ReservoirData::ReservoirData()
     /** @brief Characteristic Permeability - m2 */
     fKref=0;
     
-    /** @brief Characteristic Pressure - Pa */
-    fPref=0;
-    
-    /** @brief Characteristic Density - kg/m3 */
-    fRhoref=0;
-    
-    /** @brief Characteristic viscosity - Pa s */
-    fEtaref=0;
-    
-    /** @brief Density at P of reference - kg/m3 */
-    fRhoref=0;
-    
     /** @brief Porosity at P of reference - */
     fPhiref=0;
     
+    /** @brief Characteristic Pressure - Pa */
+    fPref=0;
+    
     /** @brief Rock Compressibility 1/pa - */
     fcrock=0;
-    
-    /** @brief Fluid Compressibility 1/pa - */
-    fcfluid=0;
     
     /** @brief Layer average thickness - m */
     fh = 0.0;
@@ -82,22 +70,3 @@ void ReservoirData::Porosity(REAL P, REAL &poros, REAL &dPorosDp)
     dPorosDp = fPhiref*fcrock;
 }
 
-/**
- * @brief \f$ Oil density RhoOil = RhoOil( P ) \f$
- * @param P fluid pressure
- */
-void ReservoirData::Density(REAL P, REAL &rho, REAL &drhoDp)
-{
-    rho = fRhoref*(1.0+(fcfluid*P-fcfluid*fPref));
-    drhoDp = fRhoref*fcfluid;
-}
-
-/**
- * @brief Oil viscosity. \f$ OilViscosity = ViscOil( P ) \f$
- * @param P fluid pressure
- */
-void ReservoirData::Viscosity(REAL P, REAL &eta, REAL &detaDp)
-{
-    eta = fEtaref;
-    detaDp = 0.0;
-}

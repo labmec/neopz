@@ -14,17 +14,23 @@
 TPZAxiSymmetricDarcyFlowH1::TPZAxiSymmetricDarcyFlowH1() : TPZDiscontinuousGalerkin()
 {
     fReservoirdata=NULL;
+    fPetrophysicdata=NULL;
+    fFluidmodeldata=NULL;
 }
 
 TPZAxiSymmetricDarcyFlowH1::TPZAxiSymmetricDarcyFlowH1(int matid) : TPZDiscontinuousGalerkin(matid)
 {
     fReservoirdata=NULL;
+    fPetrophysicdata=NULL;
+    fFluidmodeldata=NULL;
 }
 
 
 TPZAxiSymmetricDarcyFlowH1::TPZAxiSymmetricDarcyFlowH1(const TPZAxiSymmetricDarcyFlowH1 &mat) : TPZDiscontinuousGalerkin(mat)
 {
     fReservoirdata = mat.fReservoirdata;
+    fPetrophysicdata = mat.fPetrophysicdata;
+    fFluidmodeldata = mat.fFluidmodeldata;
 }
 
 TPZAxiSymmetricDarcyFlowH1::~TPZAxiSymmetricDarcyFlowH1()
@@ -98,12 +104,26 @@ void TPZAxiSymmetricDarcyFlowH1::Solution(TPZMaterialData &data, int var, TPZVec
     
     // Computing normal flux
     // Getting required Data
-    TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
-    STATE visosity, porosity, density, labmda;
-    STATE dvisositydp, dporositydp, ddensitydp, dlambdadp;
-    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
-    fReservoirdata->Porosity(P[0], porosity, dporositydp);
-    fReservoirdata->Density(P[0], density, ddensitydp);
+    
+    // Reservoir Data
+    TPZFMatrix<REAL> K = fReservoirdata->Kabsolute();
+    
+    // Petrophysics Data
+    
+    REAL pcow, pcgo, pcgw;
+    REAL krw, kro, krg;
+    REAL dpcowdSw, dpcgodSo, dpcgwdSg;
+    REAL dkrwdSw, dkrodSo, dkrgdSg;
+    
+    
+    // Fluid Data
+    
+    REAL visosity, porosity, density, labmda;
+    REAL dvisositydp, dporositydp, ddensitydp, dlambdadp;
+    
+//    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
+//    fReservoirdata->Porosity(P[0], porosity, dporositydp);
+//    fReservoirdata->Density(P[0], density, ddensitydp);
     
     // Computing the fluid mobility
     labmda = density/visosity;
@@ -175,9 +195,9 @@ void TPZAxiSymmetricDarcyFlowH1::Contribute(TPZMaterialData &data, REAL weight,T
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
     STATE visosity, porosity, density, labmda;
     STATE dvisositydp, dporositydp, ddensitydp, dlambdadp;
-    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
-    fReservoirdata->Porosity(P[0], porosity, dporositydp);
-    fReservoirdata->Density(P[0], density, ddensitydp);
+//    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
+//    fReservoirdata->Porosity(P[0], porosity, dporositydp);
+//    fReservoirdata->Density(P[0], density, ddensitydp);
     
     // Computing the fluid mobility
     labmda = density/visosity;
@@ -255,9 +275,9 @@ void TPZAxiSymmetricDarcyFlowH1::Contribute(TPZMaterialData &data, REAL weight, 
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
     STATE visosity, porosity, density, labmda;
     STATE dvisositydp, dporositydp, ddensitydp, dlambdadp;
-    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
-    fReservoirdata->Porosity(P[0], porosity, dporositydp);
-    fReservoirdata->Density(P[0], density, ddensitydp);
+//    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
+//    fReservoirdata->Porosity(P[0], porosity, dporositydp);
+//    fReservoirdata->Density(P[0], density, ddensitydp);
     
     // Computing the fluid mobility
     labmda = density/visosity;
@@ -319,9 +339,9 @@ void TPZAxiSymmetricDarcyFlowH1::ContributeBC(TPZMaterialData &data, REAL weight
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
     STATE visosity, porosity, density, labmda;
     STATE dvisositydp, dporositydp, ddensitydp, dlambdadp;
-    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
-    fReservoirdata->Porosity(P[0], porosity, dporositydp);
-    fReservoirdata->Density(P[0], density, ddensitydp);
+//    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
+//    fReservoirdata->Porosity(P[0], porosity, dporositydp);
+//    fReservoirdata->Density(P[0], density, ddensitydp);
     
     // Computing the fluid mobility
     labmda = density/visosity;

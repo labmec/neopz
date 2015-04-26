@@ -31,16 +31,30 @@
 static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
 #endif
 
-TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation,TPZVec<TPZAutoPointer<ReservoirData> > Layers)
+TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel)
 {
     
-    fgmesh=NULL;
     fmeshvec.Resize(2);
+    
+    fgmesh=NULL;
     fcmeshdarcy=NULL;
-    fResidualLastState.Resize(1, 1);
-    fResidualLastState.Zero();
-    fSimulationData = DataSimulation;
-    fLayers = Layers;
+    
+    // Vector which will store tha residuum in the last state (n)
+    fResidualAtn.Resize(0, 0);
+    
+    // Vector which will store tha residuum in the last state (n+1)
+    fResidualAtnplusOne.Resize(0, 0);
+    
+    fSimulationData     = DataSimulation;
+    fLayers             = Layers;
+    fRockPetroPhysic    = PetroPhysic;
+    fFluidData          = FluidModel;
+    
+    /** @brief unknowns for n time step */
+    falphaAtn.Resize(0, 0);
+    
+    /** @brief unknowns for n+1 time step */
+    falphaAtnplusOne.Resize(0, 0);
     
 }
 
@@ -52,12 +66,12 @@ TPZDarcyAnalysis::~TPZDarcyAnalysis()
 
 void TPZDarcyAnalysis::SetLastState()
 {
-    
+    fSimulationData->SetnStep(true);
 }
 
 void TPZDarcyAnalysis::SetNextState()
 {
-    
+    fSimulationData->SetnStep(false);
 }
 
 void TPZDarcyAnalysis::Assemble()
@@ -65,20 +79,30 @@ void TPZDarcyAnalysis::Assemble()
     
 }
 
-void TPZDarcyAnalysis::AssembleLastStep()
+void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
 {
+    fcmeshdarcy->LoadSolution(falphaAtn);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+    SetLastState();
+    an->AssembleResidual();
+    fResidualAtn = an->Rhs();
     
 }
 
-void TPZDarcyAnalysis::AssembleResidual()
+void TPZDarcyAnalysis::AssembleResidual(TPZAnalysis *an)
 {
+    fcmeshdarcy->LoadSolution(falphaAtnplusOne);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+    SetNextState();
+    an->AssembleResidual();
+    fResidualAtnplusOne = an->Rhs();
     
 }
 
 void TPZDarcyAnalysis::Residual(TPZFMatrix<STATE> &residual, int icase)
 {
-    TPZNonLinearAnalysis::Residual(residual, icase);
-    residual = fResidualLastState + residual;
+//    TPZNonLinearAnalysis::Residual(residual, icase);
+//    residual = fResidualLastState + residual;
 }
 
 void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &coefs, int icase)
@@ -87,20 +111,13 @@ void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &
     TPZDarcyAnalysis::ComputeTangent(tangent, coefs, icase);
 }
 
-void TPZDarcyAnalysis::TimeForward(TPZFMatrix<STATE> &AlphasAtNplusOne, TPZFMatrix<STATE> &AlphasAtN)
+void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 {
-    this->LoadSolution(AlphasAtN);
-    this->AssembleLastStep();
-    
-    REAL tol = 1.e-6;
-    int numiter = 2;
-    this->IterativeProcess(std::cout,tol,numiter,false,false);
-    
-    AlphasAtNplusOne = fSolution;
-}
-
-void TPZDarcyAnalysis::InitializeFirstSolution(TPZFMatrix<STATE> &AlphasAtN, REAL &ReferencePressure)
-{
+    // Compute the intial saturation distribution
+    int nalpha = fcmeshdarcy->Solution().Rows();
+    falphaAtn.Resize(nalpha, 1);
+    falphaAtn.Zero();
+    an->LoadSolution(falphaAtn);
     
 }
 
@@ -145,7 +162,7 @@ void TPZDarcyAnalysis::Run()
 //    }
     
     REAL deg = 0.0;
-    int hcont = 0;
+    int hcont = 1;
     RotateGeomesh(deg * M_PI/180.0);
     this->UniformRefinement(fSimulationData->GetHrefinement());
     
@@ -162,15 +179,16 @@ void TPZDarcyAnalysis::Run()
     
     int q = fSimulationData->Getqorder();
     int p = fSimulationData->Getporder();
+    int s = 0;
     
-    if (fSimulationData->GetIsH1approx())
+//    if (fSimulationData->GetIsH1approx())
+    if (false)
     {
-        CmeshH1(p);
+//        CmeshH1(p);
     }
     else
     {
-        CreateMultiphysicsMesh(q,p);
-        //CreateInterfaces();    // insert interfaces between bc and domain
+        CreateMultiphysicsMesh(q,p,s);
     }
     
     
@@ -254,28 +272,8 @@ void TPZDarcyAnalysis::Run()
     
     
 //    this->PrintLS(an);
-    
-    
-    if (fSimulationData->GetIsBroyden())
-    {
-        const clock_t tinia = clock();
-        BroydenIterations(an);
-        const clock_t tenda = clock();
-        const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
-        std::cout << "Time for Broyden: " << timea << std::endl;
-        
-    }
-    else
-    {
-        const clock_t tinia = clock();
-        NewtonIterations(an);
-        const clock_t tenda = clock();
-        const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
-        std::cout << "Time for Newton: " << timea << std::endl;
-    }
-    
-    std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
-    this->PostProcessVTK(an);
+    this->InitializeSolution(an);
+    this->TimeForward(an);
     
 }
 
@@ -325,10 +323,12 @@ void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
     
 }
 
-void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p)
+void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
 {
     fmeshvec[0] = CmeshFlux(q);
     fmeshvec[1] = CmeshPressure(p);
+    fmeshvec[2] = CmeshSw(s);
+    fmeshvec[3] = CmeshSo(s);
     
     fcmeshdarcy = CmeshMixed();
     
@@ -342,13 +342,54 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p)
     
 }
 
+void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
+{
+    int nsteps = fSimulationData->GetTime() / fSimulationData->GetDeltaT();
+    
+    for (int istep ; istep <=  nsteps; istep++) {
+        
+        this->AssembleLastStep(an);
+        this->AssembleResidual(an);
+
+        
+        if (fSimulationData->GetIsBroyden())
+        {
+            
+            const clock_t tinia = clock();
+            BroydenIterations(an);
+            const clock_t tenda = clock();
+            const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
+            std::cout << "Time for Broyden: " << timea << std::endl;
+            std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
+            this->PostProcessVTK(an);
+            
+        }
+        else
+        {
+            const clock_t tinia = clock();
+            NewtonIterations(an);
+            const clock_t tenda = clock();
+            const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
+            std::cout << "Time for Newton: " << timea << std::endl;
+            std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
+            this->PostProcessVTK(an);
+        }
+        
+        falphaAtn = falphaAtnplusOne;
+        std::cout << "Current time step: " << istep << std::endl;
+    }
+    
+
+    
+}
+
+
 void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
 {
     
     TPZFMatrix<STATE> Residual(an->Rhs().Rows(),1,0.0);
-    
-    an->Assemble();
-    Residual = an->Rhs();
+
+    an->Rhs() = fResidualAtn+fResidualAtnplusOne;
     
     TPZFMatrix<STATE> X(an->Rhs().Rows(),1,0.0);
     TPZFMatrix<STATE> DeltaX(an->Rhs().Rows(),1,0.0);
@@ -374,7 +415,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         X += DeltaX;
         
         fcmeshdarcy->LoadSolution(X);
-        if (!fSimulationData->GetIsH1approx())
+        if (true)
         {
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
         }
@@ -387,7 +428,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
             centinel++;
         }
         else{
-            an->AssembleResidual();
+            this->AssembleResidual(an);
             
         }
         
@@ -396,7 +437,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         //        const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
         //        std::cout << "Time for assemble: " << timea << std::endl;
         
-        Residual = an->Rhs();
+        Residual = fResidualAtn + fResidualAtnplusOne;
         error = Norm(Residual);
         iterations++;
         
@@ -423,9 +464,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
 
 void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
 {
-    
-    // Initializing the required data
-    an->Assemble();
+
     
     int m = an->Solution().Rows();
     
@@ -458,7 +497,7 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
     // Computing the first Newton iteration
     
     
-    Residual = an->Rhs();       // g(X0)
+    an->Rhs() = fResidualAtn + fResidualAtnplusOne;       // g(X0)
     
     
     an->Rhs() *= -1.0;
@@ -504,8 +543,8 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
         }
         
-        an->AssembleResidual();
-        Residual = an->Rhs();       // g(Xk)
+        AssembleResidual(an);
+        Residual = fResidualAtn + fResidualAtnplusOne;       // g(Xk)
         error = Norm(Residual);     // g(Xk)*g(Xk)
         
         if(error <= fSimulationData->GetToleranceRes() || normdx <= fSimulationData->GetToleranceDX())
@@ -566,7 +605,7 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
         //            LOGPZ_DEBUG(logger,sout.str())
         //        }
         //#endif
-        
+        an->Rhs() = fResidualAtn + fResidualAtnplusOne;
         an->Rhs() *= -1.0;
         
         if (IsShermanMorrison) {
@@ -639,7 +678,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     int leftId = fLayers[ilayer]->GetMatIDs()[4];
     
     const int typeFlux = 1, typePressure = 0;
-    TPZFMatrix<STATE> val1(1,2,0.), val2(1,1,0.);
+    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
@@ -662,7 +701,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
     
     // Bc Right
-    val2(0,0) = 1.0;//10.0*1e6;
+    val2(0,0) = 10.0*1e6;
     TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
     
     // Bc Top
@@ -670,7 +709,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
     
     // Bc Left
-    val2(0,0) = -1.0;//-0.00002;
+    val2(0,0) = -0.0002;
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
     
     cmesh->InsertMaterialObject(bcBottom);
@@ -883,6 +922,117 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     
 }
 
+TPZCompMesh * TPZDarcyAnalysis::CmeshSw(int Sworder)
+{
+    
+    int dim = 2;
+    int ilayer = 0;
+    int RockId = fLayers[ilayer]->GetMatIDs()[0];
+    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
+    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
+    int topId = fLayers[ilayer]->GetMatIDs()[3];
+    int leftId = fLayers[ilayer]->GetMatIDs()[4];
+    
+    const int typeFlux = 0, typePressure = 1;
+    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
+    
+    // Malha computacional
+    TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
+    
+    TPZMatPoisson3d * mat = new TPZMatPoisson3d(RockId,dim);
+    cmesh->InsertMaterialObject(mat);
+    
+    // Bc Bottom
+    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(bcBottom);
+    
+    // Bc Right
+    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
+    cmesh->InsertMaterialObject(bcRight);
+    
+    // Bc Top
+    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(bcTop);
+    
+    // Bc Left
+    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(bcLeft);
+    
+    // Setando L2
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(Sworder);
+    
+    cmesh->SetAllCreateFunctionsDiscontinuous();
+    cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    
+#ifdef DEBUG
+    std::ofstream out("cmeshSw.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
+}
+
+TPZCompMesh * TPZDarcyAnalysis::CmeshSo(int Soorder)
+{
+    
+    int dim = 2;
+    int ilayer = 0;
+    int RockId = fLayers[ilayer]->GetMatIDs()[0];
+    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
+    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
+    int topId = fLayers[ilayer]->GetMatIDs()[3];
+    int leftId = fLayers[ilayer]->GetMatIDs()[4];
+    
+    const int typeFlux = 0, typePressure = 1;
+    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
+    
+    // Malha computacional
+    TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
+    
+    TPZMatPoisson3d * mat = new TPZMatPoisson3d(RockId,dim);
+    cmesh->InsertMaterialObject(mat);
+    
+    // Bc Bottom
+    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(bcBottom);
+    
+    // Bc Right
+    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
+    cmesh->InsertMaterialObject(bcRight);
+    
+    // Bc Top
+    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(bcTop);
+    
+    // Bc Left
+    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
+    cmesh->InsertMaterialObject(bcLeft);
+    
+    // Setando L2
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(Soorder);
+    
+    cmesh->SetAllCreateFunctionsDiscontinuous();
+    cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    
+#ifdef DEBUG
+    std::ofstream out("cmeshSo.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+}
+
 
 void TPZDarcyAnalysis::ReadGeoMesh(std::string GridFileName)
 {
@@ -894,6 +1044,8 @@ void TPZDarcyAnalysis::ReadGeoMesh(std::string GridFileName)
 
 void TPZDarcyAnalysis::CreatedGeoMesh()
 {
+    
+    
     long Qnodes = 4;
     int ilayer = 0;
     
@@ -975,6 +1127,8 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (elid,TopolQuad,RockId,*gmesh);
     
     
+    
+    
     gmesh->BuildConnectivity();
     fgmesh = gmesh;
     
@@ -1042,9 +1196,7 @@ void TPZDarcyAnalysis::UniformRefinement(int nh, std::set<int> &MatToRef)
         for ( long i = 0; i < n; i++ ){
             TPZGeoEl * gel = fgmesh->ElementVec() [i];
             if(!gel){continue;}
-            if (/* gel->Dimension() == 2 || */ gel->Dimension() == 2){
-                TPZRefPatternTools::RefineDirectional(gel,MatToRef);
-            }
+            TPZRefPatternTools::RefineDirectional(gel,MatToRef);
         }//for i
     }//ref
 }
@@ -1070,7 +1222,7 @@ void TPZDarcyAnalysis::UniformRefinement(int nh, int MatId)
 void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
 {
     const int dim = 2;
-    int div = 0;
+    int div = fSimulationData->GetHPostrefinement();
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->GetIsH1approx()) {
@@ -1080,11 +1232,14 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
         plotfile = "2DMixedDarcy.vtk";
     }
     
-    scalnames.Push("Pressure");
-    scalnames.Push("Density");
+    scalnames.Push("WeightedPressure");
+    scalnames.Push("WaterSaturation");
+    scalnames.Push("OilSaturation");
+    scalnames.Push("WaterDensity");
+    scalnames.Push("OilDensity");
     scalnames.Push("Porosity");
-    scalnames.Push("DivofVeclocity");
-    vecnames.Push("Velocity");
+    scalnames.Push("DivOfBulkVeclocity");
+    vecnames.Push("BulkVelocity");
     an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an->PostProcess(div);
 }

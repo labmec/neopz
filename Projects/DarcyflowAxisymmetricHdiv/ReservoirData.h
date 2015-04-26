@@ -18,9 +18,6 @@ class ReservoirData {
     
 public:
     
-    /** @brief State: Stiffness or Mass Matrix Calculations */
-    enum EState { ELastState = 0, ECurrentState = 1 };
-    
     /**
      * @ingroup Characteristic Parameters
      * @brief Define characteristic parameters for Darcy linear flow.
@@ -32,15 +29,9 @@ public:
     
     /** @brief Characteristic Permeability - m2 */
     REAL fKref;
-    
+
     /** @brief Characteristic Pressure - Pa */
     REAL fPref;
-    
-    /** @brief Characteristic Density - kg/m3 */
-    REAL fRhoref;
-    
-    /** @brief Characteristic viscosity - Pa s */
-    REAL fEtaref;
     
     /** @brief Layer average thickness - m */
     REAL fh;
@@ -59,9 +50,6 @@ public:
     
     /** @brief Rock Compressibility 1/pa - */
     REAL fcrock;
-    
-    /** @brief Fluid Compressibility 1/pa - */
-    REAL fcfluid;
     
     /** @brief Is GID geometry - */
     bool fIsGIDGeometry;
@@ -82,20 +70,14 @@ public:
      */
     void Porosity(REAL P, REAL &poros, REAL &dPorosDp);
     
-    /**
-     * @brief \f$ Oil density RhoOil = RhoOil( P ) \f$
-     * @param P fluid pressure
-     */
-    void Density(REAL P, REAL &Rho, REAL &dRhoDpo);
-    
-    /**
-     * @brief Oil viscosity. \f$ OilViscosity = ViscOil( P ) \f$
-     * @param P fluid pressure
-     */
-    void Viscosity(REAL P, REAL &Viscosity, REAL &dViscosityDpo);
-    
     /** @brief Set the characteristic length - m */
     void SetLref(REAL Lref) {fLref = Lref; }
+    
+    /** @brief Set the characteristic Pressure - Pa */
+    void SetPref(REAL Pref) {fPref = Pref;}
+    
+    /** @brief Characteristic Pressure - Pa */
+    REAL Pref() {return fPref;}
     
     /** @brief Characteristic length - m */
     REAL Lref() {return fLref; }
@@ -136,24 +118,6 @@ public:
     /** @brief Characteristic Permeability - m2 */
     REAL Kref() {return fKref;}
     
-    /** @brief Set the characteristic Pressure - Pa */
-    void SetPref(REAL Pref) {fPref = Pref;}
-    
-    /** @brief Characteristic Pressure - Pa */
-    REAL Pref() {return fPref;}
-    
-    /** @brief Set the characteristic Density - kg/m3 */
-    void Rhoref(REAL Rhoref) {fRhoref = Rhoref;}
-    
-    /** @brief Characteristic Density - kg/m3 */
-    REAL Rhoref() {return fRhoref;}
-    
-    /** @brief Set the characteristic viscosity - Pa s */
-    void SetEtaref(REAL Etaref) {fEtaref = Etaref;}
-    
-    /** @brief Characteristic viscosity - Pa s */
-    REAL Etaref() {return fEtaref;}
-    
     /** @brief Porosity at P of reference - */
     void SetPhiRef(REAL Phiref) {fPhiref = Phiref;}
     
@@ -165,12 +129,6 @@ public:
     
     /** @brief Get rock compressibility 1/pa - */
     REAL CRock() {return fcrock;}
-    
-    /** @brief Set fluid compressibility 1/pa- */
-    void SetcFluid(REAL cf) {fcfluid = cf;}
-    
-    /** @brief Get fluid compressibility 1/pa - */
-    REAL CFluid() {return fcfluid;}
     
     /** @brief Material indexes */
     TPZVec<int> fmaterialIds;

@@ -14,6 +14,8 @@
 
 #include "tpzautopointer.h"
 #include "ReservoirData.h"
+#include "PetroPhysicData.h"
+#include "ReducedPVT.h"
 
 
 #ifndef TPZDARCYFLOWH1
@@ -26,6 +28,8 @@ class TPZAxiSymmetricDarcyFlowH1 : public TPZDiscontinuousGalerkin {
 private:
 	
     TPZAutoPointer<ReservoirData> fReservoirdata;
+    TPZAutoPointer<PetroPhysicData> fPetrophysicdata;
+    TPZAutoPointer<ReducedPVT> fFluidmodeldata;
 		
 public:
 	
@@ -158,6 +162,26 @@ public:
      * Get the simulation data,
      */
     TPZAutoPointer<ReservoirData> GetReservoirData() {return fReservoirdata;}
+    
+    /**
+     * Set the simulation data,
+     */
+    void SetPetroPhysicsData(TPZAutoPointer<PetroPhysicData> Petrophysicdata){fPetrophysicdata = Petrophysicdata;}
+    
+    /**
+     * Get the simulation data,
+     */
+    TPZAutoPointer<PetroPhysicData> SetPetroPhysicsData() {return fPetrophysicdata;}
+    
+    /**
+     * Set the simulation data,
+     */
+    void SetfFluidModelData(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fFluidmodeldata = Fluidmodeldata;}
+    
+    /**
+     * Get the simulation data,
+     */
+    TPZAutoPointer<ReducedPVT> GetfFluidModelData() {return fFluidmodeldata;}
 	
 };
 

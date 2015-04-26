@@ -32,6 +32,9 @@ SimulationData::SimulationData()
     /** @brief Number of uniform mesh refinement */
     fHref = 0;
     
+    /** @brief Number of uniform mesh refinement in postprocessing */
+    fHrefpost = 0;
+    
     /** @brief Approximation Order for velocity */
     fqorder = 1;
     
@@ -49,6 +52,9 @@ SimulationData::SimulationData()
     
     /** @brief Computes a H1 approximation */
     fIsH1approx = false;
+    
+    /** @brief State: n or n+1 temporal state */
+    fnStep = true;
     
 }
 

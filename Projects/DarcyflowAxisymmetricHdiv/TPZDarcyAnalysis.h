@@ -3,6 +3,8 @@
 
 #include "SimulationData.h"
 #include "ReservoirData.h"
+#include "PetroPhysicData.h"
+#include "ReducedPVT.h"
 #include "pznonlinanalysis.h"
 
 #include "tpzautopointer.h"
@@ -29,13 +31,22 @@ private:
     void SetNextState();
     
     // Vector which will store tha residuum in the last state (n)
-    TPZFMatrix<STATE> fResidualLastState;
+    TPZFMatrix<STATE> fResidualAtn;
+    
+    // Vector which will store tha residuum in the last state (n+1)
+    TPZFMatrix<STATE> fResidualAtnplusOne;
     
     // Simulation data required for complete the analysis
     TPZAutoPointer<SimulationData> fSimulationData;
     
-    // Reservoir datas required for metrial definition
+    // Reservoir datas required for material definition
     TPZVec<TPZAutoPointer<ReservoirData > > fLayers;
+    
+    // PetroPhysic data associated to each reservoir layer
+    TPZVec<TPZAutoPointer<PetroPhysicData > > fRockPetroPhysic;
+    
+    // Reduced PVT data required for
+    TPZAutoPointer<ReducedPVT> fFluidData;
     
     /** @brief Geometric mesh */
     TPZGeoMesh * fgmesh;
@@ -46,11 +57,17 @@ private:
     /** @brief Cmesh for Darcy analysis */
     TPZCompMesh * fcmeshdarcy;
     
+    /** @brief unknowns for n time step */
+    TPZFMatrix<REAL> falphaAtn;
+    
+    /** @brief unknowns for n+1 time step */
+    TPZFMatrix<REAL> falphaAtnplusOne;
+    
     
 public:
     
     /// Constructor which already sets the cmesh
-    TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers);
+    TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel);
     
     /// Destructor
     ~TPZDarcyAnalysis();
@@ -63,12 +80,12 @@ public:
     /**
      * Assemble last step residuum
      **/
-    void AssembleLastStep();
+    void AssembleLastStep(TPZAnalysis *an);
     
     /**
      * Assemble the Residuum
      */
-    void AssembleResidual();
+    void AssembleResidual(TPZAnalysis *an);
     
     /**
      * Computes the residuum. Used for checkconv
@@ -88,13 +105,13 @@ public:
     /**
      * Compute the time forward at each timestep
      */
-    void TimeForward(TPZFMatrix<STATE> &AlphasAtNplusOne, TPZFMatrix<STATE> &AlphasAtN);
+    void TimeForward(TPZAnalysis *an);
     
     /**
      * Is is necessary to fill the vector FSolution with the correct alphaj of
      * the initial condition.
      */
-    void InitializeFirstSolution(TPZFMatrix<STATE> &AlphasAtN, REAL &ReferencePressure);
+    void InitializeSolution(TPZAnalysis *an);
     
     /**
      * Set the simulation data,
@@ -105,6 +122,18 @@ public:
      * Get the simulation data,
      */
     TPZAutoPointer<SimulationData> GetSimulationData() {return fSimulationData;}
+    
+    
+    /**
+     * Set the fluid model,
+     */
+    void SetFluidData(TPZAutoPointer<ReducedPVT> PVTData){fFluidData = PVTData;}
+    
+    /**
+     * Get the fluid model,
+     */
+    TPZAutoPointer<ReducedPVT> GetFluidData() {return fFluidData;}
+    
     
     /**
      * Rotate the geometric mesh around Z axis
@@ -142,14 +171,24 @@ public:
     void PrintGeoMesh();
     
     /**
-     * Create the computational mesh for flux Q
+     * Create the computational mesh for Q
      */
     TPZCompMesh * CmeshFlux(int qorder);
     
     /**
-     * Create the computational mesh for flux P
+     * Create the computational mesh for P
      */
     TPZCompMesh * CmeshPressure(int Porder);
+    
+    /**
+     * Create the computational mesh for Sw
+     */
+    TPZCompMesh * CmeshSw(int Sworder);
+    
+    /**
+     * Create the computational mesh for So
+     */
+    TPZCompMesh * CmeshSo(int Soorder);
     
     /**
      * Create the computational mixed mesh
@@ -164,7 +203,7 @@ public:
     /**
      * Create the computational mixed
      */
-    void CreateMultiphysicsMesh(int q, int p);
+    void CreateMultiphysicsMesh(int q, int p, int s);
     
     /**
      * Create vtk file

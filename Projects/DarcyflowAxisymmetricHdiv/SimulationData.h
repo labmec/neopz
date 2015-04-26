@@ -31,10 +31,6 @@ public:
     /** @brief operator equal */
     SimulationData &operator=(const SimulationData &copy);
     
-    /** @brief State: n or n+1 temporal state */
-    enum nState { n = 0, nplusone = 1 };
-    nState State;
-    
 private:
     
     /**
@@ -64,6 +60,9 @@ private:
     /** @brief Number of uniform mesh refinement */
     int fHref;
     
+    /** @brief Number of uniform mesh refinement in postprocessing */
+    int fHrefpost;
+    
     /** @brief Approximation order for velocity */
     int fqorder;
     
@@ -82,6 +81,9 @@ private:
     
     /** @brief Computes a H1 approximation */
     bool fIsH1approx;
+    
+    /** @brief State: n or n+1 temporal state */
+    bool fnStep;
     
     
 public:
@@ -128,6 +130,12 @@ public:
     /** @brief Set the Number of uniform mesh refinement */
     int GetHrefinement() const {return this->fHref;}
     
+    /** @brief Set the Number of uniform mesh refinement in postprocessing */
+    void SetHPostrefinement(int h){this->fHrefpost = h;}
+    
+    /** @brief Set the Number of uniform mesh refinement in postprocessing */
+    int GetHPostrefinement() const {return this->fHrefpost;}
+    
     /** @brief Set the approximation order for velocity */
     void Setqorder(int qp){this->fqorder = qp;}
     
@@ -163,6 +171,12 @@ public:
     
     /** @brief Get the use of CG method (false is GMRES) */
     bool GetIsCG() {return fIsCG;}
+    
+    /** @brief Set the use of CG method (false is GMRES) */
+    void SetnStep(bool nstep) {fnStep = nstep;}
+    
+    /** @brief Get the use of CG method (false is GMRES) */
+    bool IsnStep() {return fnStep;}
     
     
 };
