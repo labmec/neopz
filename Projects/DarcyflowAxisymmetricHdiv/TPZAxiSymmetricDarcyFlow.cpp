@@ -1187,16 +1187,16 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
         case 2 :    // Dirichlet BC  PD outflow
         {
-            Value[1] = bc.Val2()(1,0);         //  Sw out
-            Value[2] = bc.Val2()(2,0);         //  So out
+//            Value[1] = bc.Val2()(1,0);         //  Sw out
+//            Value[2] = bc.Val2()(2,0);         //  So out
 
         }
             break;
             
         case 3 :    // Neumann BC  QN outflow
         {
-            Value[1] = bc.Val2()(1,0);         //  Sw out
-            Value[2] = bc.Val2()(2,0);         //  So out
+//            Value[1] = bc.Val2()(1,0);         //  Sw out
+//            Value[2] = bc.Val2()(2,0);         //  So out
             
 
             
