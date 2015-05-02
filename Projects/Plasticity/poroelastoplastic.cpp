@@ -245,7 +245,7 @@ int main2 ()
         std::stringstream out;
         well.DivideElementsAbove(0.0001,out);
         well.PRefineElementAbove(0.0001, 3,out);
-        well.ExecuteSimulation(nsubsteps,out);
+        well.ExecuteSimulation(nsubsteps,50,out);
         REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
         REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
         REAL openingangle = well.GetCurrentConfig()->OpeningAngle(0.00000001);
@@ -315,10 +315,11 @@ int main2 ()
         }
         {
         //well.PostProcess(1);
-            well.ExecuteSimulation(nsubsteps,out);
+            int niter = 100;
+            well.ExecuteSimulation(nsubsteps,niter,out);
             well.DivideElementsAbove(0.0001,out);
             well.PRefineElementAbove(0.0001, 3,out);
-            well.ExecuteSimulation(nsubsteps,out);
+            well.ExecuteSimulation(nsubsteps,niter,out);
             well.AppendExecutionLog(out);
         }
         REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
@@ -433,10 +434,11 @@ int main2 ()
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         well.PostProcess(1);
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
-        well.ExecuteSimulation(nsubsteps,out);
+        int niter = 100;
+        well.ExecuteSimulation(nsubsteps,niter,out);
         well.DivideElementsAbove(0.0001,out);
         well.PRefineElementAbove(0.0001, 3,out);
-        well.ExecuteSimulation(nsubsteps,out);
+        well.ExecuteSimulation(nsubsteps,niter,out);
         
         REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
         REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
@@ -498,10 +500,11 @@ int main2 ()
         well.GetCurrentConfig()->ModifyWellElementsToQuadratic();
         well.GetCurrentConfig()->CreatePostProcessingMesh();
         well.PostProcess(1);
-        well.ExecuteSimulation(nsubsteps,out);
+        int niter = 100;
+        well.ExecuteSimulation(nsubsteps,niter,out);
         well.DivideElementsAbove(0.0001,out);
         well.PRefineElementAbove(0.0001, 3,out);
-        well.ExecuteSimulation(nsubsteps,out);
+        well.ExecuteSimulation(nsubsteps,niter,out);
         
         REAL analyticarea = M_PI*(outerradius*outerradius-innerradius*innerradius)/4.;
         REAL originalarea = well.GetCurrentConfig()->ComputeTotalArea();
@@ -576,7 +579,8 @@ int main2 ()
         //well.ChangeMaterialId(-2, -6);
         well.DeleteElementsAbove(0.0001);
         well.ChangeMaterialId(-6, -2);
-        well.ExecuteSimulation(nsubsteps,out);
+        int niter = 100;
+        well.ExecuteSimulation(nsubsteps,niter,out);
         std::cout << "Saving Wellbore7.bin\n";
         TPZBFileStream save;
         save.OpenWrite("Wellbore7.bin");

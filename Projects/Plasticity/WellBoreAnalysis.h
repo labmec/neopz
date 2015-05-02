@@ -341,11 +341,11 @@ public:
     void ExecuteInitialSimulation(int nsteps, int numnewton);
     
     /// Computes an equilibrium state corresponding to the current boundary conditions
-    void ExecuteSimulation(int substeps, std::ostream &out);
+    void ExecuteSimulation(int substeps, int numnewton, std::ostream &out);
 
     
     /// Evelves the reservoir and well pressure to target pressure
-    void EvolveBothPressures(int nsteps, STATE TargetWellborePressure, STATE TargetReservoirPressure);
+    void EvolveBothPressures(int nsteps, int NumIter, STATE TargetWellborePressure, STATE TargetReservoirPressure);
 
     /// verify the integrity of the elasto plastic material that is being used
     static void CheckDeformation(std::string filename = "deform.nb");

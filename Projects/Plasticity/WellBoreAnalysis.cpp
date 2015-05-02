@@ -867,13 +867,13 @@ void TPZWellBoreAnalysis::ExecuteInitialSimulation(int nsteps, int numnewton)
         REAL factor = istep*1./nsteps;
         sout << "Proportionality factor " << factor << std::endl;
         fCurrentConfig.SetWellPressure(factor);
-        ExecuteSimulation(istep,sout);
+        ExecuteSimulation(istep, numnewton, sout);
     }
     AppendExecutionLog(sout);
 }
 
 /// Computes the given pressure in the specified steps
-void TPZWellBoreAnalysis::EvolveBothPressures(int nsteps, STATE TargetWellborePressure, STATE TargetReservoirPressure)
+void TPZWellBoreAnalysis::EvolveBothPressures(int nsteps, int NumIter, STATE TargetWellborePressure, STATE TargetReservoirPressure)
 {
     std::stringstream strout;
     strout << "Evolving pressures";
@@ -896,12 +896,12 @@ void TPZWellBoreAnalysis::EvolveBothPressures(int nsteps, STATE TargetWellborePr
         // adjust the boundary conditions and forcing function
         fCurrentConfig.SetWellPressure();
         strout << "Running with WellborePressure = " << fCurrentConfig.fWellborePressure << "  and ReservoirPressure = " << fCurrentConfig.fReservoirPressure;
-        ExecuteSimulation(istep, strout);
+        ExecuteSimulation(istep, NumIter, strout);
     }
     AppendExecutionLog(strout);
 }
 
-void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, std::ostream &out)
+void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, int NumIter, std::ostream &out)
 {
     
     TConfig &LocalConfig = fCurrentConfig;
@@ -1008,31 +1008,41 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, std::ostream &out)
     
     
     LocalConfig.fSolution.Redim(neq, 1);
-    int NumIter = 50;
     bool linesearch = true;
     bool checkconv = false;
     //REAL tol =1.e-5;
     REAL tol =1.e-6;
-    bool conv;
+    bool conv = false;
     
     int ncycles = 1;
     if (LocalConfig.fWellConfig == EVerticalWell) {
         ncycles = 3;
     }
+    fLinearMatrix = NULL;
     
     
     for (int cycle = 0; cycle < ncycles; cycle++)
     {
-        
-        
-        well_init.start();
-        analysis.IterativeProcess(out, tol, NumIter,linesearch,checkconv,conv);
-        well_init.stop();
-        
+        // put conv = true to start with the consistent tangent matrix
+        conv = false;
+        if (conv)
+        {
+            well_init.start();
+            analysis.IterativeProcess(out, tol, NumIter,linesearch,checkconv,conv);
+            well_init.stop();
+        }
         if (conv==false) {
-            // the data of the config object indicates whether there is a vertical strain to model
-            ComputeLinearMatrix(activeEquations);
-            analysis.Solver().SetMatrix(fLinearMatrix);
+            
+            if (!fLinearMatrix) {
+                // the data of the config object indicates whether there is a vertical strain to model
+                ComputeLinearMatrix(activeEquations);
+                analysis.Solver().SetMatrix(fLinearMatrix);
+                TPZStepSolver<STATE> *step = dynamic_cast<TPZStepSolver<STATE> *>(&analysis.Solver());
+                if (!step) {
+                    DebugStop();
+                }
+                step->SetDirect(ECholesky);
+            }
             
             well_init.start();
             analysis.IterativeProcess(out, fLinearMatrix, tol, NumIter, linesearch);
@@ -2472,6 +2482,7 @@ int TPZWellBoreAnalysis::TConfig::DivideElementsAbove(REAL sqj2, std::set<long> 
 /// Set the configuration of the plastic material to use acid parameters
 void TPZWellBoreAnalysis::TConfig::ActivateAcidification()
 {
+    fAcidParameters.Print(std::cout);
     TPZMaterial *mat = fCMesh.FindMaterial(1);
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> mattype1;
     typedef TPZMatElastoPlasticSest2D<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem> mattype2;
@@ -2592,9 +2603,6 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
     {
         
         fPostprocess.SetCompMesh(&fCMesh);
-        TPZFStructMatrix structmatrix(fPostprocess.Mesh());
-        structmatrix.SetNumThreads(TPZWellBoreAnalysis::TConfig::gNumThreads);
-        fPostprocess.SetStructuralMatrix(structmatrix);
         
         TPZVec<int> PostProcMatIds(2,EReservoir);
         PostProcMatIds[1] = ELiner;
@@ -2609,6 +2617,9 @@ void TPZWellBoreAnalysis::TConfig::CreatePostProcessingMesh()
         }
         //
         fPostprocess.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+        TPZFStructMatrix structmatrix(fPostprocess.Mesh());
+        structmatrix.SetNumThreads(TPZWellBoreAnalysis::TConfig::gNumThreads);
+        fPostprocess.SetStructuralMatrix(structmatrix);
     }
     //
     fPostprocess.TransferSolution();

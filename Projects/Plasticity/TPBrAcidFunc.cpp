@@ -185,6 +185,7 @@ void TPBrAcidFunc::Read(TPZStream &buf, void *context)
     buf.Read(&fEInicial);
     buf.Read(&fa);
     buf.Read(&fb);
+    CalculaDerivados();
 }
 
 template class TPZRestoreClass<TPBrAcidFunc,TPBrAcidFuncID>;

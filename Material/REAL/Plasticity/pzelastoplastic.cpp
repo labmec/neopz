@@ -1244,6 +1244,8 @@ void TPZMatElastoPlastic<T,TMEM>::FillDataRequirements(TPZMaterialData &data){
 	
 	data.fNeedsSol = true;
 	data.fNeedsNormal = false;
+    data.fNeedsHSize = false;
+    data.fNeedsNeighborCenter = false;
 }
 
 template <class T, class TMEM>

@@ -157,7 +157,7 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Write(TPZStream &buf, int withclassid)
     buf.Write(&fZDeformation);
     buf.Write(&fbiot);
     buf.Write(&fVariableYoung);
-    fYoungModulus.TPZSaveable::Write(buf, 0);
+    fYoungModulus.Write(buf, 0);
 }
 
 /**
@@ -170,7 +170,7 @@ void TPZMatElastoPlasticSest2D<T,TMEM>::Read(TPZStream &buf, void *context)
     buf.Read(&fZDeformation);
     buf.Read(&fbiot);
     buf.Read(&fVariableYoung);
-    fYoungModulus.TPZSaveable::Read(buf, 0);
+    fYoungModulus.Read(buf, 0);
     
 }
 

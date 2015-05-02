@@ -199,6 +199,46 @@ public:
         out << __PRETTY_FUNCTION__ << (void *) this << std::endl;
         out << "NFunctions = " << NFunctions() << std::endl;
         out << "Polynomial Order = " << PolynomialOrder() << std::endl;
+        /// porosidade inicial
+        out << "Porosidade inicial " << fPorosidadeInicial << std::endl;
+        /// porosidade maxima admissivel
+        out << "Porosidade maxima " <<  fPorosidadeMaximaAdmissivel << std::endl;
+        /// area superficial especifica dos poros
+        out << "Area superficial dos poros " <<  fAreaSuperficialPoros << std::endl;
+        /// concentracao molar inicial do reagente
+        out << "Concentracao molar " <<  fConcentracaoMolar << std::endl;
+        /// massa molar do mineral soluvel
+        out << "Massa molar do mineral soluvel " <<  fMassaMolar << std::endl;
+        /// massa especifica do mineral soluvel
+        out << "Massa especifica do mineral soluvel " << fRhoM << std::endl;
+        /// electro valencia do fluido em dissociacao
+        out << "Eletro valencia do fluido " << fElectroValenciaFluido << std::endl;
+        /// electro valencai do mineral em dissociacao
+        out << "Eletro valencia do mineral " <<  fElectroValenciaMineral << std::endl;
+        /// constante de reacao
+        out << "constante de reacao " << fks << std::endl;
+        /// coeficiente de transferencia de massa local
+        out << "coeficiente de transferencia de massa local " << fkc << std::endl;
+        /// coeficiente estequiometrico, representando quantos mols do mineral sao dissolvidos por um mol de reagente
+        out << "coeficiente estequiometrico " <<  fBetaEstequimetrico << std::endl;
+        /// constante efetiva de reacao
+        out << "constante efetiva de reacao " <<  fkeff << std::endl;
+        /// Vazao de tratamento
+        out << "Vazao de tratamento " <<  fVazaoTratamento << std::endl;
+        /// volume de fluido de tratamento
+        out << "Volume fluido tratamento " <<  fVolumeFluidoTratamento << std::endl;
+        /// tempo de injecao de tratamento
+        out << "Tempo de tratamento " << fTempodeTratamento << std::endl;
+        /// comprimento de trecho tratado
+        out << "Comprimento de tratamento " <<  fComprimentoTratamento << std::endl;
+        /// raio do poco
+        out << "Raio do poco " << fRaioPoco << std::endl;
+        /// modulo inicial de rigidez
+        out << "modulo inicial de rigidez " <<  fEInicial << std::endl;
+        /// constante do modelo de reducao de rigidez
+        out << "constante a do modelo de reducao de rigidez " <<  fa << std::endl;
+        /// constante do modelo de reducao de rigidez
+        out << "constante b do modelo de reducao de rigidez " <<  fb << std::endl;
     }
     
     /** @brief Define the class id associated with the class */
