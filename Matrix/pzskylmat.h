@@ -184,6 +184,15 @@ public:
     int Redim(const long newDim) {return Redim(newDim,newDim);}
 	
     /**
+     * @brief Add a contribution of a stiffness matrix
+     * @param elmat Element matrix to be contributed
+     * @param sourceindex Contains source indexes on current matrix
+     * @param destinationindex Contains destine indexes on current matrix
+     */
+    
+    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
+
+    /**
      @brief Replace the values by zeros.
      */
     int Zero();
@@ -438,6 +447,7 @@ public:
      * @param sourceindex Contains source indexes on current matrix
      * @param destinationindex Contains destine indexes on current matrix
      */
+
     void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<long> &sourceindex,  TPZVec<long> &destinationindex);
 	
 	

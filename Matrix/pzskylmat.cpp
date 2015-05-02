@@ -5,7 +5,6 @@
 #include "pzbfilestream.h"
 #include "arglib.h"
 
-#define USIN_NEW_SKYLMAT
 
 #ifdef USING_NEW_SKYLMAT
 
@@ -123,7 +122,6 @@ TPZSkylMatrix<TVar>::PutVal(const long r,const long c,const TVar & value )
     // See pzskylmat.h for more info on how to compute the index.
     long index = r + sz - 1 - c;
     fElem[c][index] = value;
-    this->fDecomposed = 0;
     return 1;
 }
 
@@ -593,6 +591,116 @@ void TPZSkylMatrix<TVar>::SolveSOR(long & numiterations,const TPZFMatrix<TVar> &
     }
     numiterations = it;
     tol = res;
+}
+
+template<class TVar>
+void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
+                                 TPZVec<long> &source,
+                                 TPZVec<long> &destination)
+{
+    
+    std::cout << "Passei por aqui\n";
+    long nelem = source.NElements();
+    long icoef,jcoef,ieq,jeq,ieqs,jeqs;
+    for(icoef=0; icoef<nelem; icoef++) {
+        ieq = destination[icoef];
+        ieqs = source[icoef];
+        for(jcoef=icoef; jcoef<nelem; jcoef++) {
+            jeq = destination[jcoef];
+            jeqs = source[jcoef];
+            long row(ieq), col(jeq);
+            // invertendo linha-coluna para triangular superior
+            if (row > col)
+                this->Swap(&row, &col);
+#ifdef DEBUG
+            // checando limites
+            if(row >= this->Dim() || col >= this->Dim()) {
+                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
+                row << " col = " << col << endl;
+                DebugStop();
+            }
+#endif
+            long sz = Size(col);
+            
+            long index = row + sz - 1 - col;
+#pragma omp atomic
+            fElem[col][index] += elmat(ieqs,jeqs);
+
+            
+        }
+    }
+}
+
+template<>
+void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
+                                   TPZVec<long> &source,
+                                   TPZVec<long> &destination)
+{
+    long nelem = source.NElements();
+    long icoef,jcoef,ieq,jeq,ieqs,jeqs;
+    for(icoef=0; icoef<nelem; icoef++) {
+        ieq = destination[icoef];
+        ieqs = source[icoef];
+        for(jcoef=icoef; jcoef<nelem; jcoef++) {
+            jeq = destination[jcoef];
+            jeqs = source[jcoef];
+            long row(ieq), col(jeq);
+            // invertendo linha-coluna para triangular superior
+            if (row > col)
+                this->Swap(&row, &col);
+#ifdef DEBUG
+            // checando limites
+            if(row >= this->Dim() || col >= this->Dim()) {
+                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
+                row << " col = " << col << endl;
+                DebugStop();
+            }
+#endif
+            long sz = Size(col);
+
+            long index = row + sz - 1 - col;
+#pragma omp atomic
+            fElem[col][index] += elmat(ieqs,jeqs);
+        }
+    }
+}
+
+
+template<>
+void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
+                                  TPZVec<long> &source,
+                                  TPZVec<long> &destination)
+{
+    long nelem = source.NElements();
+    long icoef,jcoef,ieq,jeq,ieqs,jeqs;
+    for(icoef=0; icoef<nelem; icoef++) {
+        ieq = destination[icoef];
+        ieqs = source[icoef];
+        for(jcoef=icoef; jcoef<nelem; jcoef++) {
+            jeq = destination[jcoef];
+            jeqs = source[jcoef];
+            long row(ieq), col(jeq);
+            // invertendo linha-coluna para triangular superior
+            if (row > col)
+                this->Swap(&row, &col);
+#ifdef DEBUG
+            // checando limites
+            if(row >= this->Dim() || col >= this->Dim()) {
+                cout << "TPZSkylMatrix::GetVal index out of range row = " <<
+                row << " col = " << col << endl;
+                DebugStop();
+            }
+#endif
+            // executando contribuição
+            long sz = Size(col);
+
+            long index = row + sz - 1 - col;
+#pragma omp atomic
+            fElem[col][index] += elmat(ieqs,jeqs);
+
+            
+        }
+    }
 }
 
 template<>
