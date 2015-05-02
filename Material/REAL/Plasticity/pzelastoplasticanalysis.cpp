@@ -91,7 +91,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
         NextW += Interval;
         TPZNonLinearAnalysis::LoadSolution(NextW);
         AssembleResidual();
-#ifdef DEBUG
+#ifdef DEBUGBIG
         {
             static int count = 0;
             {
@@ -241,8 +241,8 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 	int iter = 0;
 	REAL error = 1.e10;
 	int numeq = fCompMesh->NEquations();
-	//Mesh()->Solution().Zero();
-	//fSolution->Zero();
+	Mesh()->Solution().Zero();
+	fSolution.Zero();
     
 
 	

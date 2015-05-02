@@ -282,9 +282,11 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 {
 	
-	TPZFMatrix<REAL> &dphi = data.dphix, dphiXY;
+	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi  = data.phi;
-	TPZFMatrix<REAL> &axes = data.axes, axesT;
+    TPZFMatrix<REAL> &axes = data.axes;
+    TPZFNMatrix<9,REAL> axesT;
+    TPZFNMatrix<50,REAL> dphiXY;
 	
 	axes.Transpose(&axesT);
 	axesT.Multiply(dphi,dphiXY);

@@ -185,6 +185,7 @@ void TPZSandlerExtended::Firstk(STATE &epsp,STATE &k) const
     int counter =1;
     resnorm=1;
     kn=epsp;//chute inicial
+    kn1=kn;
     while (resnorm>ftol && counter<30) {
         
         f=EpsEqk(kn)-epsp;
@@ -359,9 +360,9 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
 {
     TPZManVector<STATE> sigHWCyl(3);
     FromPrincipalToHWCyl(sigproj, sigHWCyl);
-    STATE xi,rho;
-    xi=sigHWCyl[0];
-    rho=sigHWCyl[1];
+//    STATE xi,rho;
+//    xi=sigHWCyl[0];
+//    rho=sigHWCyl[1];
     STATE I1 = sigHWCyl[0]*sqrt(3.);
     beta = sigHWCyl[2];
     STATE Fk = F(k);
@@ -482,7 +483,6 @@ void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta,
     Gamma =(1 + sin3b+(1 - sin3b)/fPsi )/2.;
     DFf=-(exp(fB*I1)*fB*fC) - fPhi;
     DGamma=(3*cos3b - (3*cos3b)/fPsi)/2.;
-    DGamma=(3*cos3b - (3*cos3b)/fPsi)/2.;
     Gamma2=Gamma*Gamma;
     Gamma3=Gamma*Gamma2;
     Sqrt2=sqrt(2);
@@ -496,14 +496,14 @@ void TPZSandlerExtended::DDistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta,
 
 void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta, TPZFMatrix<STATE> &tangentf1) const
 {
-    STATE sig1,sig2,sig3,DFf,Gamma,Ff,I1,sb,cb,D2Ff,DGamma,D2Gamma,Gamma2,Gamma3,Sqrt2,D2Gamma2,Sqrt3;
+    STATE sig2,sig3,DFf,Gamma,Ff,I1,sb,cb,D2Ff,DGamma,D2Gamma,Gamma2,Gamma3,Sqrt2,Sqrt3;
     TPZVec<STATE> ptcart(3);
     sb=sin(beta);
     cb=cos(beta);
     STATE sin3b=sin(3*beta);
     STATE cos3b=cos(3*beta);
     FromPrincipalToHWCart(pt,ptcart);
-    sig1 = ptcart[0];
+//    STATE sig1 = ptcart[0];
     sig2 = ptcart[1];
     sig3 = ptcart[2];
     I1=xi*sqrt(3);
@@ -515,7 +515,7 @@ void TPZSandlerExtended::D2DistFunc1(const TPZVec<STATE> &pt,STATE xi,STATE beta
     D2Gamma=(-9.*sin(3.*beta) + (9.*sin(3.*beta))/fPsi)/2.;
     Gamma2=Gamma*Gamma;
     Gamma3=Gamma*Gamma2;
-    D2Gamma2=D2Gamma*D2Gamma;
+//    STATE D2Gamma2=D2Gamma*D2Gamma;
     Sqrt2=sqrt(2);
     Sqrt3=sqrt(3);
     
@@ -574,7 +574,7 @@ void TPZSandlerExtended::DDistFunc2(const TPZVec<T> &pt,T theta,T beta,T k,T kpr
 
 void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE beta,STATE k, TPZFMatrix<STATE> &tangentf2)const
 {
-    STATE sig1,sig2,sig3,Gamma,sb,cb,DGamma,D2Gamma,Gamma2,Gamma3,Sqrt2,D2Gamma2,Sqrt3,FfAlpha,c2t,st,ct,DFAlpha,expBC;
+    STATE sig1,sig2,sig3,Gamma,sb,cb,DGamma,D2Gamma,Gamma2,Gamma3,Sqrt2,Sqrt3,FfAlpha,c2t,st,ct,DFAlpha,expBC;
     TPZVec<STATE> ptcart(3);
     sb=sin(beta);
     cb=cos(beta);
@@ -594,7 +594,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
     D2Gamma=(-9.*sin(3.*beta) + (9.*sin(3.*beta))/fPsi)/2.;
     Gamma2=Gamma*Gamma;
     Gamma3=Gamma*Gamma2;
-    D2Gamma2=D2Gamma*D2Gamma;
+//    STATE D2Gamma2=D2Gamma*D2Gamma;
     Sqrt2=sqrt(2);
     Sqrt3=sqrt(3);
     expBC=exp(fB*k)*fB*fC + fPhi;
@@ -622,7 +622,7 @@ void TPZSandlerExtended::D2DistFunc2(const TPZVec<STATE> &pt,STATE theta,STATE b
 void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, TPZVec<STATE> &yield) const
 {
     yield.resize(2);
-    STATE II1,JJ2,JJ3,ggamma,temp1,temp3,f2,sqrtj2,f1,beta;
+    STATE II1,JJ2,ggamma,temp1,temp3,f2,sqrtj2,f1,beta;
     TPZManVector<STATE,3> cylstress(3);
     FromPrincipalToHWCyl(sigma,cylstress);
     beta=cylstress[2];
@@ -632,7 +632,7 @@ void TPZSandlerExtended::YieldFunction(const TPZVec<STATE> &sigma, STATE kprev, 
     sigten.ZZ() = sigma[2];
     II1 = sigten.I1();
     JJ2 = sigten.J2();
-    JJ3 = sigten.J3();
+//    STATE JJ3 = sigten.J3();
     if (JJ2<1.e-6) {
         JJ2=1.e-6;
     }
@@ -793,7 +793,7 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
     }
 #endif
 
-    STATE theta,beta=0.,distnew;
+    STATE theta = 0.,beta=0.,distnew;
     STATE resnorm,disttheta;
     disttheta=1.e8;
     TPZManVector<STATE,3> vectempcyl(3);
@@ -864,14 +864,14 @@ void TPZSandlerExtended::ProjectF2(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
 void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj,STATE &kproj) const
 {
-    STATE theta,beta=0.,distnew;
+    STATE beta=0.,distnew;
     STATE resnorm,disttheta;
     disttheta=1.e8;
     
     for (STATE betaguess=0; betaguess <= 2*M_PI; betaguess += M_PI/20.) {
         distnew=DistF2(sigmatrial,M_PI/2,betaguess,kprev);
         if (fabs(distnew) < fabs(disttheta)) {
-            theta = M_PI/2;
+//            STATE theta = M_PI/2;
             beta=betaguess;
             disttheta = distnew;
         }
@@ -939,7 +939,7 @@ void TPZSandlerExtended::ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STA
     //    }
     //#endif
     
-    STATE theta,beta=0.,distnew;
+    STATE theta = 0.,beta=0.,distnew;
     STATE resnorm,disttheta;
     disttheta=1.e8;
     STATE betaconst =0;
@@ -1375,7 +1375,6 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             SurfaceParamF2(sigproj, kproj, theta, beta);
             // theta should be Pi
             // for hydrostatic stress beta doesn't mean anything
-            beta=0;
 #ifdef LOG4CXX
             if (logger->isDebugEnabled())
             {

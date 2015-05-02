@@ -35,6 +35,7 @@
 #include "pzbdstrmatrix.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSloanRenumbering.h"
+#include "TPZCutHillMcKee.h"
 
 #include "pzlog.h"
 
@@ -55,6 +56,7 @@ static LoggerPtr logger(Logger::getLogger("pz.analysis"));
  * @ingroup analysis
  */
 #define RENUMBER TPZSloanRenumbering()
+//#define RENUMBER TPZCutHillMcKee()
 #endif
 
 #include <fstream>

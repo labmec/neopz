@@ -199,7 +199,7 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     
     TPZManVector<REAL,3> sol_u =data.sol[0];
     TPZFMatrix<REAL> dsol_u = data.dsol[0];
-    REAL LambdaL, MuL, Pressure;
+    REAL LambdaL, MuL;
     
     LambdaL = flambda;
     MuL     = fmu;
@@ -209,8 +209,8 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     
     if(this->HasffBCForcingFunction())
     {
-	fForcingFunction->Execute(data.x,P,GradP);
-	Pressure = P[0];
+        fForcingFunction->Execute(data.x,P,GradP);
+//        REAL Pressure = P[0];
     }
     
     //  ////////////////////////// Residual Vector ///////////////////////////////////
@@ -981,16 +981,16 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     REAL R = sqrt( ((SigX - SigY)/2)*((SigX - SigY)/2) + Tau*Tau);
     REAL C = (SigX + SigY)/2;
-    REAL Sigma1 = C + R;
-    REAL Sigma2 = C - R;
+//    REAL Sigma1 = C + R;
+//    REAL Sigma2 = C - R;
     
     // Sigma1 is the largest stress regadless of sign
-    if (abs(Sigma2) > abs(Sigma1)) 
-    {
-        REAL tmp = Sigma1;
-        Sigma1 = Sigma2;
-        Sigma2 = tmp;
-    }
+//    if (abs(Sigma2) > abs(Sigma1)) 
+//    {
+//        REAL tmp = Sigma1;
+//        Sigma1 = Sigma2;
+//        Sigma2 = tmp;
+//    }
     
     //	Hydrostatic stress
     if(var == 2) 

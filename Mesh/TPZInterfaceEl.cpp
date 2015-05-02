@@ -547,6 +547,7 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
 		if(!gel){
 			PZError << "TPZInterfaceElement::FreeInterface computational element with null reference\n";
 			DebugStop();
+            continue;
 		}
 		int nsides = gel->NSides();
 		TPZCompElSide compside(cel,nsides-1);//face ou aresta
@@ -1025,10 +1026,10 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	const int dim = this->Dimension();
 	const int diml = left->Dimension();
 	const int dimr = right->Dimension();
-	int nshapel = left ->NShapeF();
-	int nshaper = right->NShapeF();
-	const int nstatel = left->Material()->NStateVariables();
-	const int nstater = right->Material()->NStateVariables();
+//	int nshapel = left ->NShapeF();
+//	int nshaper = right->NShapeF();
+//	const int nstatel = left->Material()->NStateVariables();
+//	const int nstater = right->Material()->NStateVariables();
 	
 	TPZMaterialData dataright;
 	TPZMaterialData dataleft;
