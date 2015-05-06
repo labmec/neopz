@@ -390,7 +390,7 @@ inline const TVar &TPZFMatrix<TVar>::GetVal( const long row, const long col ) co
 		return this->gZero;
 	}
 #endif
-	return( fElem[ ((unsigned)col) *  this->Rows() + row ] );
+	return( fElem[ col*this->fRow + row ] );
 }
 
 template<class TVar>
