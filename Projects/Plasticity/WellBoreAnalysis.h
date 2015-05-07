@@ -613,7 +613,7 @@ public:
     /// Returns a set of points that belongs to the isoline defined by the ginen J2 value
     void GetJ2Isoline(REAL J2val, std::multimap<REAL,REAL> & polygonalChain);
     
-    void ComputeAandB(REAL sqj2_refine,REAL &a,REAL &b);
+    int ComputeAandB(REAL sqj2_refine,REAL &a,REAL &b);
 
     int GetPostProcessNumber () {
         return fPostProcessNumber;

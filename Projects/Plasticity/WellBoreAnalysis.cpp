@@ -787,6 +787,8 @@ void TPZWellBoreAnalysis::TConfig::Write(TPZStream &out)
     fAcidParameters.Write(out, 0);
     out.Write(&fAcidModelisActive);
     
+    out.Write(&fReservoirPressure);
+    
     int verify = 83562;
     out.Write(&verify);
 }
@@ -839,6 +841,8 @@ void TPZWellBoreAnalysis::TConfig::Read(TPZStream &input)
     
     fAcidParameters.Read(input, 0);
     input.Read(&fAcidModelisActive);
+    
+    input.Read(&fReservoirPressure);
     
     int verify = 0;
     input.Read(&verify);
@@ -3076,7 +3080,7 @@ void TPZWellBoreAnalysis::PostProcessedValues(TPZVec<REAL> &x, TPZVec<std::strin
     
 }
 
-void TPZWellBoreAnalysis::ComputeAandB(REAL sqj2_refine, REAL &a,REAL &b)
+int TPZWellBoreAnalysis::ComputeAandB(REAL sqj2_refine, REAL &a,REAL &b)
 {
     std::multimap<REAL, REAL> polygonalChainbase, polygonalChain;
     GetJ2Isoline(sqj2_refine, polygonalChainbase);
@@ -3150,7 +3154,11 @@ void TPZWellBoreAnalysis::ComputeAandB(REAL sqj2_refine, REAL &a,REAL &b)
             LOGPZ_DEBUG(loggerEllipse, sout.str())
         }
 #endif
-        
+        return true;
+    }
+    else
+    {
+        return false;
     }
     
 }

@@ -183,7 +183,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
                     LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
                 }
 #endif
-                const int niter = 10;
+                const int niter = 2;
                 this->LineSearch(prevsol, solkeep, nextSol, RhsNormPrev, RhsNormResult, niter,linesearchconv);
                 fSolution = nextSol;
             }
