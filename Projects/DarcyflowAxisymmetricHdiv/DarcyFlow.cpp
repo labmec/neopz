@@ -1,4 +1,4 @@
-#include "pzlog.h"
+  #include "pzlog.h"
 #include "tpzautopointer.h"
 #include "ReservoirData.h"
 
@@ -10,10 +10,6 @@
 
 
 #include <time.h>
-
-// #ifdef LOG4CXX
-// static LoggerPtr logdata(Logger::getLogger("pz.darcy"));
-// #endif
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.DarcyFlow"));
@@ -29,24 +25,24 @@ int main()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 10;
+    int maxiter     = 30;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool h1         = false;    // Deprecated
-    bool IsDirect   = true;     //  Not Used broyden with Iterative !!!
-    bool IsCG       = false;      //  false means GMRES
+    bool IsDirect   = true;     // Not Used broyden with Iterative !!!
+    bool IsCG       = false;    // false means GMRES
     int fixedJac    = 0;
     
-    int qorder      = 2;
-    int porder      = 2;
+    int qorder      = 1;
+    int porder      = 1;
     int hrefinement = 0;
     int hpostref    = 0;
     
     REAL hour       = 3600;
     REAL day        = hour * 24;
-    REAL dt         = 1.0*day;
+    REAL dt         = 2.0*day;
     REAL maxtime    = 100.0*day;
     REAL TolDeltaX  = 1.0*1e-5;
-    REAL TolRes     = 1.0*1e-5;
+    REAL TolRes     = 1.0*1e-6;
     
     Dataset->SetIsH1approx(h1);
     Dataset->SetIsDirect(IsDirect);
@@ -79,22 +75,22 @@ int main()
     REAL pressureref    = 1.0*10e6;
     REAL lengthref      = 1.0;
     REAL kref           = 1.0;
-    REAL crock          = 1.0*1e-10;
+    REAL crock          = 0.0*1e-10;
     REAL Hres           = 100.0;
     REAL Rres           = 1000.0;
     REAL Top            = -3000.0;
     REAL Rw             = 0.0;
 
     // Reservoir Description linear tracer configuration
-    REAL waterdensity     = 1000.0;
-    REAL waterviscosity   = 0.001;
-    REAL cwater         = 0.0*1e-8;
-    REAL oildensity     = 1000.0;
-    REAL oilviscosity   = 0.001;
-    REAL coil           = 0.0*1e-8;
-    REAL gasdensity     = 0.0;
-    REAL gasviscosity   = 0.0;
-    REAL cgas         = 0.0;
+    REAL waterdensity       = 1000.0;
+    REAL waterviscosity     = 0.001;
+    REAL cwater             = 0.0*1e-8;
+    REAL oildensity         = 1000.0;
+    REAL oilviscosity       = 0.001;
+    REAL coil               = 0.0*1e-8;
+    REAL gasdensity         = 0.0;
+    REAL gasviscosity       = 0.0;
+    REAL cgas               = 0.0;
     
     
     TPZVec<int> MatIds(5);

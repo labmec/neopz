@@ -92,61 +92,61 @@ public:
     void SetDeltaT(REAL DeltaT){this->fDeltaT = DeltaT;}
     
     /** @brief Get Time step - s */
-    REAL GetDeltaT() const {return this->fDeltaT;}
+    REAL GetDeltaT() {return this->fDeltaT;}
     
     /** @brief Set Time - s */
     void SetTime(REAL Time) {this->fTime = Time;}
     
     /** @brief Get Time - s */
-    REAL GetTime() const {return this->fTime;}
+    REAL GetTime() {return this->fTime;}
     
     /** @brief Set Tolerance for  Delta X */
     void SetToleranceDX(REAL dxtol) {this->ftoleranceDeltaX = dxtol;}
     
     /** @brief Get Tolerance for  Delta X */
-    REAL GetToleranceDX() const {return this->ftoleranceDeltaX;}
+    REAL GetToleranceDX() {return this->ftoleranceDeltaX;}
     
     /** @brief Set Tolerance for  Residual vector */
     void SetToleranceRes(REAL restol) {this->ftoleranceResiual = restol;}
     
     /** @brief Get Tolerance for  Residual vector */
-    REAL GetToleranceRes() const {return this->ftoleranceResiual;}
+    REAL GetToleranceRes() {return this->ftoleranceResiual;}
     
     /** @brief Set Maximum newton iterations - - */
     void SetMaxiterations(int Maxiterations){this->fMaxiterations = Maxiterations;}
     
     /** @brief Get Maximum newton iterations - - */
-    int GetMaxiterations() const {return this->fMaxiterations;}
+    int GetMaxiterations() {return this->fMaxiterations;}
     
     /** @brief Set Maximum newton iterations - - */
     void SetFixediterations(int Fixediterations){this->fFixedJacobianIterations = Fixediterations;}
     
     /** @brief Get Maximum newton iterations - - */
-    int GetFixediterations() const {return this->fFixedJacobianIterations;}
+    int GetFixediterations() {return this->fFixedJacobianIterations;}
     
     /** @brief Set the Number of uniform mesh refinement */
     void SetHrefinement(int h){this->fHref = h;}
     
     /** @brief Set the Number of uniform mesh refinement */
-    int GetHrefinement() const {return this->fHref;}
+    int GetHrefinement() {return this->fHref;}
     
     /** @brief Set the Number of uniform mesh refinement in postprocessing */
     void SetHPostrefinement(int h){this->fHrefpost = h;}
     
     /** @brief Set the Number of uniform mesh refinement in postprocessing */
-    int GetHPostrefinement() const {return this->fHrefpost;}
+    int GetHPostrefinement() {return this->fHrefpost;}
     
     /** @brief Set the approximation order for velocity */
     void Setqorder(int qp){this->fqorder = qp;}
     
     /** @brief Get the approximation order for velocity */
-    int Getqorder() const {return this->fqorder;}
+    int Getqorder() {return this->fqorder;}
     
     /** @brief Set the approximation order for pressure */
     void Setporder(int pp){this->fporder = pp;}
     
     /** @brief Get the approximation order for pressure */
-    int Getporder() const {return this->fporder;}
+    int Getporder() {return this->fporder;}
     
     /** @brief Using Broyden iterations */
     void SetIsBroyden(bool Broyden) {fIsBroyden = Broyden;}

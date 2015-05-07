@@ -210,11 +210,13 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     int Swblock = 2;
     int Soblock = 3;
     
-    TPZVec<REAL> Q = datavec[Qblock].sol[0];
+    TPZManVector<REAL,3> Q = datavec[Qblock].sol[0];
     REAL P = datavec[Pblock].sol[0][0];
     REAL Sw = datavec[Swblock].sol[0][0];
     REAL So = datavec[Soblock].sol[0][0];
     REAL Sg = 1.0 - So - Sw;
+    
+    this->UpdateStateVariables(Q,P, Sw, So);
     
     TPZFMatrix<STATE> dQdx = datavec[Qblock].dsol[0];
     TPZFMatrix<STATE> dPdx = datavec[Pblock].dsol[0];
@@ -308,7 +310,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
     TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
 
     TPZFNMatrix<660> GradphiuH1;
-    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1, GradphiuH1, datavec[ublock].axes);
+    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
     
     int nphiuHdiv = datavec[ublock].fVecShapeIndex.NElements();
     
@@ -419,7 +421,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     //  Compute axuliar functions for the current values of time, u, P, Sw and So
     REAL deltat = fSimulationData->GetDeltaT();
     this->UpdateStateVariables(u, P, Sw, So);
-    this->TotalMobility();
+    this->PhaseFractionalFlows();
     
     // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
@@ -607,7 +609,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     //  Compute axuliar functions for the current values of time, u, P, Sw and So
     REAL deltat = fSimulationData->GetDeltaT();
     this->UpdateStateVariables(u, P, Sw, So);
-    this->TotalMobility();
+    this->PhaseFractionalFlows();
 
     // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
@@ -678,6 +680,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         ef(ip + iniP) += -1.0 * weight * (divu - fvalue[0]) * phiPL2(ip,0);
     }
     
+    
     // Transport equations
     
     for (int isw = 0; isw < nphiSwL2; isw++)
@@ -694,6 +697,11 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
+
+    if (fSimulationData->IsnStep()) {
+        
+        return;
+    }
     
     // Getting data from different approximation spaces
     
@@ -788,7 +796,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     if (uLn >= 0.0 )
     {
         this->UpdateStateVariables(uL, PL, SwL, SoL);
-        this->TotalMobility();
+        this->PhaseFractionalFlows();
         
         phiuH1 = phiuH1L;  // For H1  test functions u
         phiPL2 = phiPL2L;  // For L2  test functions P
@@ -813,7 +821,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     else
     {
         this->UpdateStateVariables(uR, PR, SwR, SoR);
-        this->TotalMobility();
+        this->PhaseFractionalFlows();
         
         phiuH1 = phiuH1R;  // For H1  test functions u
         phiPL2 = phiPL2R;  // For L2  test functions P
@@ -986,11 +994,20 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         
     }
     
+    this->ContributeInterface(data, datavecleft, datavecright, weight, ef);
+    
+    return;
 
 }
 
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
+    
+
+    if (fSimulationData->IsnStep()) {
+        
+        return;
+    }
     
     // Getting data from different approximation spaces
     
@@ -1059,12 +1076,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     
     if (uLn >= 0.0 ) {
         this->UpdateStateVariables(uL, PL, SwL, SoL);
-        this->TotalMobility();
+        this->PhaseFractionalFlows();
     }
     else
     {
         this->UpdateStateVariables(uR, PR, SwR, SoR);
-        this->TotalMobility();
+        this->PhaseFractionalFlows();
     }
     
     //  Compute axuliar functions for the current values of time, u, P, Sw and So
@@ -1091,6 +1108,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
+
+    if (fSimulationData->IsnStep()) {
+        
+        return;
+    }
     
     // Getting data from different approximation spaces
     
@@ -1134,42 +1156,71 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
+    REAL  Value, Sw, So;
+    Value = bc.Val2()(0,0);         //  un ou P
+    Sw = bc.Val2()(1,0);         //  Sw in
+    So = bc.Val2()(2,0);         //  So in
     
-    if (uLn >= 0.0 ) {
-        this->UpdateStateVariables(uL, PL, SwL, SoL);
-        this->TotalMobility();
-    }
-    else
-    {
-        std::cout << " Detected outflow on bc. Warning: using this->UpdateStateVariables(uL, PL, 0.0, 0.0)." << std::endl;
-        this->UpdateStateVariables(uL, PL, 0.0, 0.0);
-        this->TotalMobility();
-    }
+
+
     
     //  Compute axuliar functions for the current values of time, u, P, Sw and So
-    
-    for (int isw = 0; isw < nphiSwL2L; isw++)
-    {
-        ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
-    }
+    TPZFMatrix<REAL> jphiuHdiv(3,1,0.0);
 
-    
-    for (int iso = 0; iso < nphiSoL2L; iso++)
-    {
-        ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * uLn;
-    }
-
-
-    
-    REAL Sw, So;
     switch (bc.Type()) {
         case 0 :    // Dirichlet BC  PD inflow
         {
-            Sw = bc.Val2()(1,0);         //  Sw in
-            So = bc.Val2()(2,0);         //  So in
+            if (uLn >= 0.0 ) {
+                // Outflow boundary condition
+                this->UpdateStateVariables(uL, PL, SwL, SoL);
+                this->PhaseFractionalFlows();
+            }
+            else
+            {
+                // Inflow boundary condition
+                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+                this->UpdateStateVariables(uL, PL, Sw, So);
+                this->PhaseFractionalFlows();
+            }
+
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
-                ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
+                //ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
+                
+                // duL/dalphauL
+                for (int jq = 0; jq < nphiuHdivL; jq++)
+                {
+                    int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
+                    int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
+                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
+                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
+                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+                    
+                    REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
+                    
+                    ek(isw + iniSwL, jq + iniuL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * jphiuHdivn;
+                }
+                
+            }
+            
+            for (int iso = 0; iso < nphiSoL2L; iso++)
+            {
+                //ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * uLn;
+                
+                // duL/dalphauL
+                for (int jq = 0; jq < nphiuHdivL; jq++)
+                {
+                    int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
+                    int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
+                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
+                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
+                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+                    
+                    REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
+                    
+                    ek(iso + iniSoL, jq + iniuL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * jphiuHdivn;
+                }
+                
             }
 
         }
@@ -1177,29 +1228,222 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
         case 1 :    // Neumann BC  QN inflow
         {
-            Sw = bc.Val2()(1,0);         //  Sw in
-            So = bc.Val2()(2,0);         //  So in
             
+//            if (Value >= 0.0 ) {
+//                // Outflow boundary condition
+//                this->UpdateStateVariables(uL, PL, SwL, SoL);
+//                this->PhaseFractionalFlows();
+//            }
+//            else
+//            {
+//                // Inflow boundary condition
+//                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+                this->UpdateStateVariables(uL, PL, Sw, So);
+                this->PhaseFractionalFlows();
+//            }
 
+            for (int isw = 0; isw < nphiSwL2L; isw++)
+            {
+                //ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
+                
+                // dP/dalphaP
+                for (int jp = 0; jp < nphiPL2L; jp++)
+                {
+                    ek(isw + iniSwL, jp + iniPL) += 1.0 * weight * fFWater[1] * phiPL2L(jp,0) * phiSwL2L(isw,0) * Value;
+                }
+                
+                // dSw/dalphaSw
+                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
+                {
+                    ek(isw + iniSwL, jsw + iniSwL) += 1.0 * weight * fFWater[2] * phiSwL2L(jsw,0) * phiSwL2L(isw,0) * Value;
+                }
+                
+                // dSo/dalphaSo
+                for (int jso = 0; jso < nphiSoL2L; jso++)
+                {
+                    ek(isw + iniSwL, jso + iniSoL) += 1.0 * weight * fFWater[3] * phiSoL2L(jso,0) * phiSwL2L(isw,0) * Value;
+                }
+                
+            }
+            
+            for (int iso = 0; iso < nphiSoL2L; iso++)
+            {
+                //ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * uLn;
+                
+                // dP/dalphaP
+                for (int jp = 0; jp < nphiPL2L; jp++)
+                {
+                    ek(iso + iniSoL, jp + iniPL) += 1.0 * weight * fFOil[1] * phiPL2L(jp,0) * phiSoL2L(iso,0) * Value;
+                }
+                
+                // dSw/dalphaSw
+                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
+                {
+                    ek(iso + iniSoL, jsw + iniSwL) += 1.0 * weight * fFOil[2] * phiSwL2L(jsw,0) * phiSoL2L(iso,0) * Value;
+                }
+                
+                // dSo/dalphaSo
+                for (int jso = 0; jso < nphiSoL2L; jso++)
+                {
+                    ek(iso + iniSoL, jso + iniSoL) += 1.0 * weight * fFOil[3] * phiSoL2L(jso,0) * phiSoL2L(iso,0) * Value;
+                }
+                
+            }
+            
             
         }
             break;
             
         case 2 :    // Dirichlet BC  PD outflow
         {
-//            Value[1] = bc.Val2()(1,0);         //  Sw out
-//            Value[2] = bc.Val2()(2,0);         //  So out
+
+            if (uLn >= 0.0 ) {
+                // Outflow boundary condition
+                this->UpdateStateVariables(uL, PL, SwL, SoL);
+                this->PhaseFractionalFlows();
+            }
+            else
+            {
+                // Inflow boundary condition
+                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+                this->UpdateStateVariables(uL, PL, Sw, So);
+                this->PhaseFractionalFlows();
+            }
+
+            for (int isw = 0; isw < nphiSwL2L; isw++)
+            {
+                //ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
+                
+                // duL/dalphauL
+                for (int jq = 0; jq < nphiuHdivL; jq++)
+                {
+                    int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
+                    int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
+                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
+                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
+                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+                    
+                    REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
+                    
+                    ek(isw + iniSwL, jq + iniuL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * jphiuHdivn;
+                }
+                
+                // dSw/dalphaSw
+                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
+                {
+                    ek(isw + iniSwL, jsw + iniSwL) += 1.0 * weight * fFWater[2] * phiSwL2L(jsw,0) * phiSwL2L(isw,0) * uLn;
+                }
+                
+                // dSo/dalphaSo
+                for (int jso = 0; jso < nphiSoL2L; jso++)
+                {
+                    ek(isw + iniSwL, jso + iniSoL) += 1.0 * weight * fFWater[3] * phiSoL2L(jso,0) * phiSwL2L(isw,0) * uLn;
+                }
+                
+            }
+            
+            for (int iso = 0; iso < nphiSoL2L; iso++)
+            {
+                //ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * uLn;
+                
+                // duL/dalphauL
+                for (int jq = 0; jq < nphiuHdivL; jq++)
+                {
+                    int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
+                    int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
+                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
+                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
+                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+                    
+                    REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
+                    
+                    ek(iso + iniSoL, jq + iniuL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * jphiuHdivn;
+                }
+                
+                // dSw/dalphaSw
+                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
+                {
+                    ek(iso + iniSoL, jsw + iniSwL) += 1.0 * weight * fFOil[2] * phiSwL2L(jsw,0) * phiSoL2L(iso,0) * uLn;
+                }
+                
+                // dSo/dalphaSo
+                for (int jso = 0; jso < nphiSoL2L; jso++)
+                {
+                    ek(iso + iniSoL, jso + iniSoL) += 1.0 * weight * fFOil[3] * phiSoL2L(jso,0) * phiSoL2L(iso,0) * uLn;
+                }
+                
+            }
+            
 
         }
             break;
             
         case 3 :    // Neumann BC  QN outflow
         {
-//            Value[1] = bc.Val2()(1,0);         //  Sw out
-//            Value[2] = bc.Val2()(2,0);         //  So out
+
+
+//            if (uLn >= 0.0 ) {
+                // Outflow boundary condition
+                this->UpdateStateVariables(uL, PL, SwL, SoL);
+                this->PhaseFractionalFlows();
+//            }
+//            else
+//            {
+//                // Inflow boundary condition
+//                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+//                this->UpdateStateVariables(uL, PL, Sw, So);
+//                this->PhaseFractionalFlows();
+//            }
+            
+            for (int isw = 0; isw < nphiSwL2L; isw++)
+            {
+                //ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
+                
+                // dP/dalphaP
+                for (int jp = 0; jp < nphiPL2L; jp++)
+                {
+                    ek(isw + iniSwL, jp + iniPL) += 1.0 * weight * fFWater[1] * phiPL2L(jp,0) * phiSwL2L(isw,0) * Value;
+                }
+                
+                // dSw/dalphaSw
+                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
+                {
+                    ek(isw + iniSwL, jsw + iniSwL) += 1.0 * weight * fFWater[2] * phiSwL2L(jsw,0) * phiSwL2L(isw,0) * Value;
+                }
+                
+                // dSo/dalphaSo
+                for (int jso = 0; jso < nphiSoL2L; jso++)
+                {
+                    ek(isw + iniSwL, jso + iniSoL) += 1.0 * weight * fFWater[3] * phiSoL2L(jso,0) * phiSwL2L(isw,0) * Value;
+                }
+                
+            }
+            
+            for (int iso = 0; iso < nphiSoL2L; iso++)
+            {
+                //ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * uLn;
+                
+                // dP/dalphaP
+                for (int jp = 0; jp < nphiPL2L; jp++)
+                {
+                    ek(iso + iniSoL, jp + iniPL) += 1.0 * weight * fFOil[1] * phiPL2L(jp,0) * phiSoL2L(iso,0) * Value;
+                }
+                
+                // dSw/dalphaSw
+                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
+                {
+                    ek(iso + iniSoL, jsw + iniSwL) += 1.0 * weight * fFOil[2] * phiSwL2L(jsw,0) * phiSoL2L(iso,0) * Value;
+                }
+                
+                // dSo/dalphaSo
+                for (int jso = 0; jso < nphiSoL2L; jso++)
+                {
+                    ek(iso + iniSoL, jso + iniSoL) += 1.0 * weight * fFOil[3] * phiSoL2L(jso,0) * phiSoL2L(iso,0) * Value;
+                }
+                
+            }
             
 
-            
         }
             break;
             
@@ -1210,13 +1454,215 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
         break;
     }
     
+    this->ContributeBCInterface(data, datavecleft, weight, ef, bc);
+    
     return;
     
 }
 
+
+void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+{
+
+    if (fSimulationData->IsnStep()) {
+        
+        return;
+    }
+    
+    // Getting data from different approximation spaces
+    
+    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    int Swblock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
+    int Soblock = 3;        // So Oil Saturation needs L2 scalar functions      (phiSoL2)
+    
+    // Getting test and basis functions for the left side
+    TPZFMatrix<REAL> phiuH1L         = datavecleft[ublock].phi;  // For H1  test functions u
+    TPZFMatrix<REAL> phiPL2L         = datavecleft[Pblock].phi;  // For L2  test functions P
+    TPZFMatrix<REAL> phiSwL2L        = datavecleft[Swblock].phi; // For L2  test functions Sw
+    TPZFMatrix<REAL> phiSoL2L        = datavecleft[Soblock].phi; // For L2  test functions So
+    TPZFMatrix<STATE> dphiuH1L   = datavecleft[ublock].dphix; // Derivative For H1  test functions
+    TPZFMatrix<STATE> dphiPL2L   = datavecleft[Pblock].dphix; // Derivative For L2  test functions
+    
+    
+    
+    
+    // Blocks dimensions and lengths for the left side
+    int nphiuHdivL   = datavecleft[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+    int nphiPL2L     = phiPL2L.Rows();                                    // For L2   P
+    int nphiSwL2L    = phiSwL2L.Rows();                                   // For L2   Sw
+    int nphiSoL2L    = phiSoL2L.Rows();                                   // For L2   So
+    int iniuL    = 0;
+    int iniPL    = nphiuHdivL     + iniuL;
+    int iniSwL   = nphiPL2L       + iniPL;
+    int iniSoL   = nphiSwL2L      + iniSwL;
+    
+    
+    int iblock = iniSoL + nphiSoL2L;
+    int jblock = iniSoL + nphiSoL2L;
+    
+    // Getting linear combinations from different approximation spaces for the left side
+    TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
+    REAL PL              = datavecleft[Pblock].sol[0][0];
+    REAL SwL             = datavecleft[Swblock].sol[0][0];
+    REAL SoL             = datavecleft[Soblock].sol[0][0];
+    REAL SgL             = 1.0 - SoL - SwL;
+    
+    
+    TPZManVector<REAL,3> n =  data.normal;
+    REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
+    REAL  Value, Sw, So;
+    Value = bc.Val2()(0,0);         //  un ou P
+    Sw = bc.Val2()(1,0);         //  Sw in
+    So = bc.Val2()(2,0);         //  So in
+    
+
+    
+
+    //  Compute axuliar functions for the current values of time, u, P, Sw and So
+    TPZFMatrix<REAL> jphiuHdiv(3,1,0.0);
+    
+    switch (bc.Type()) {
+        case 0 :    // Dirichlet BC  PD inflow
+        {
+            
+            if (uLn >= 0.0 ) {
+                // Outflow boundary condition
+                this->UpdateStateVariables(uL, PL, SwL, SoL);
+                this->PhaseFractionalFlows();
+            }
+            else
+            {
+                // Inflow boundary condition
+                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+                this->UpdateStateVariables(uL, PL, Sw, So);
+                this->PhaseFractionalFlows();
+            }
+            
+            for (int isw = 0; isw < nphiSwL2L; isw++)
+            {
+                ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
+            }
+            
+            for (int iso = 0; iso < nphiSoL2L; iso++)
+            {
+                ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * uLn;
+            }
+            
+        }
+            break;
+            
+        case 1 :    // Neumann BC  QN inflow
+        {
+
+//            if (uLn >= 0.0 ) {
+//                // Outflow boundary condition
+//                this->UpdateStateVariables(uL, PL, SwL, SoL);
+//                this->PhaseFractionalFlows();
+//            }
+//            else
+//            {
+//                // Inflow boundary condition
+//                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+                this->UpdateStateVariables(uL, PL, Sw, So);
+                this->PhaseFractionalFlows();
+//            }
+            
+            for (int isw = 0; isw < nphiSwL2L; isw++)
+            {
+                ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * Value;
+                
+            }
+            
+            for (int iso = 0; iso < nphiSoL2L; iso++)
+            {
+                ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * Value;
+                
+            }
+            
+            
+        }
+            break;
+            
+        case 2 :    // Dirichlet BC  PD outflow
+        {
+            
+            if (uLn >= 0.0 ) {
+                // Outflow boundary condition
+                this->UpdateStateVariables(uL, PL, SwL, SoL);
+                this->PhaseFractionalFlows();
+            }
+            else
+            {
+                // Inflow boundary condition
+                if (uLn < 0.0 && fabs(uLn) > 1.0e-8) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+                this->UpdateStateVariables(uL, PL, Sw, So);
+                this->PhaseFractionalFlows();
+            }
+            
+            for (int isw = 0; isw < nphiSwL2L; isw++)
+            {
+                ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
+                
+            }
+            
+            for (int iso = 0; iso < nphiSoL2L; iso++)
+            {
+                ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * uLn;
+                
+            }
+            
+            
+        }
+            break;
+            
+        case 3 :    // Neumann BC  QN outflow
+        {
+            
+//            if (uLn >= 0.0 ) {
+                // Outflow boundary condition
+                this->UpdateStateVariables(uL, PL, SwL, SoL);
+                this->PhaseFractionalFlows();
+//            }
+//            else
+//            {
+//                // Inflow boundary condition
+//                if (uLn < 0.0 && fabs(uLn) > 1.0e-8) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+//                this->UpdateStateVariables(uL, PL, Sw, So);
+//                this->PhaseFractionalFlows();
+//            }
+            
+            for (int isw = 0; isw < nphiSwL2L; isw++)
+            {
+                ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * Value;
+                
+            }
+            
+            for (int iso = 0; iso < nphiSoL2L; iso++)
+            {
+                ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * Value;
+                
+            }
+            break;
+        }
+        default: std::cout << "This BC doesn't exist." << std::endl;
+            {
+                DebugStop();
+            }
+            break;
+    }
+    return;
+    
+}
+
+
 void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-    
+
+    if (fSimulationData->IsnStep()) {
+        
+        return;
+    }
     
     // At each Integration Point.
     
@@ -1226,8 +1672,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     int Soblock = 3;
     
     // Getting test and basis functions
-    TPZFMatrix<STATE> PhiH1 = datavec[Qblock].phi; // For H1   test functions
-    TPZFMatrix<STATE> WL2   = datavec[Pblock].phi; // For HL2  test functions
+    TPZFNMatrix<9,STATE> PhiH1 = datavec[Qblock].phi; // For H1   test functions
+    TPZFNMatrix<9,STATE> WL2   = datavec[Pblock].phi; // For HL2  test functions
     
     TPZFMatrix<STATE> dPhiH1 = datavec[Qblock].dphix; // Derivative For H1   test functions
     TPZFMatrix<STATE> dWL2   = datavec[Pblock].dphix; // Derivative For HL2  test functions
@@ -1257,28 +1703,26 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     STATE jphinormal;
     
     
-    TPZManVector<STATE,1> Value(1,0.0);
+    REAL Value;
     switch (bc.Type()) {
         case 0 :    // Dirichlet BC  PD inflow
         {
-            Value[0] = bc.Val2()(0,0);         //  Pressure
+            Value = bc.Val2()(0,0);         //  Pressure
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
-                
-                ef(iq) += weight * ( (Value[0] ) * PhiH1(iq,0));
-                
+                ef(iq) += weight * ( (Value ) * PhiH1(iq,0));
             }
         }
             break;
             
         case 1 :    // Neumann BC  QN inflow
         {
-            Value[0] = bc.Val2()(0,0);         //  NormalFlux
+            Value = bc.Val2()(0,0);         //  NormalFlux
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 
-                ef(iq) += weight * (gBigNumber * (Qn - Value[0]) + P[0]) * PhiH1(iq,0);
+                ef(iq) += weight * (gBigNumber * (Qn - Value) + P[0]) * PhiH1(iq,0);
                 
                 for (int jq = 0; jq < nPhiHdiv; jq++)
                 {
@@ -1299,11 +1743,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             
         case 2 :    // Dirichlet BC  PD outflow
         {
-            Value[0] = bc.Val2()(0,0);         //  Pressure
+            Value = bc.Val2()(0,0);         //  Pressure
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 
-                ef(iq) += weight * ( (Value[0] ) * PhiH1(iq,0));
+                ef(iq) += weight * ( (Value ) * PhiH1(iq,0));
                 
             }
         }
@@ -1311,12 +1755,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             
         case 3 :    // Neumann BC  QN outflow
         {
-            Value[0] = bc.Val2()(0,0);         //  NormalFlux
+            Value = bc.Val2()(0,0);         //  NormalFlux
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 
-                ef(iq) += weight * (gBigNumber * (Qn - Value[0]) + P[0]) * PhiH1(iq,0);
+                ef(iq) += weight * (gBigNumber * (Qn - Value) + P[0]) * PhiH1(iq,0);
                 
                 for (int jq = 0; jq < nPhiHdiv; jq++)
                 {
@@ -1449,9 +1893,9 @@ void TPZAxiSymmetricDarcyFlow::PhaseMobilities()
     this->fFluidmodeldata->OilViscosity(fOilPressure[0], oilviscosity, doilviscositydPo);
     this->fFluidmodeldata->GasViscosity(fGasPressure[0], gasviscosity, dgasviscositydPg);
     
-    this->fPetrophysicdata->Krw(Sw, krw, dkrwdSw);
-    this->fPetrophysicdata->Kro(So, kro, dkrodSo);
-    this->fPetrophysicdata->Krg(Sg, krg, dkrgdSg);
+    this->fPetrophysicdata->Krw(1.0-So, krw, dkrwdSw);
+    this->fPetrophysicdata->Kro(1.0-Sw, kro, dkrodSo); // here appears the two-phase dependence
+    this->fPetrophysicdata->Krg(1.0-(1.0-Sw)-Sw, krg, dkrgdSg);   // here appears the two-phase dependence
     
     // Computing fluid mobilities and derivatives for two-phase
     
@@ -1463,7 +1907,7 @@ void TPZAxiSymmetricDarcyFlow::PhaseMobilities()
     fOilMobility[0] = oildensity * kro / oilviscosity;
     fOilMobility[1] = kro*(doildensitydP/oilviscosity) - kro*((oildensity * doilviscositydPo)/(oilviscosity*oilviscosity));
     fOilMobility[2] = (-1.0)*dkrodSo*(oildensity/oilviscosity);         // here appears the two-phase dependence
-    fOilMobility[3] = dkrodSo*(oildensity/oilviscosity);
+    fOilMobility[3] = 1.0*dkrodSo*(oildensity/oilviscosity);
     
     fGasMobility[0] = 0.0;
     fGasMobility[1] = 0.0;
@@ -1512,27 +1956,26 @@ void TPZAxiSymmetricDarcyFlow::TotalMobility()
     fTotalMobility[0] = fWaterMobility[0] + fOilMobility[0] + fGasMobility[0];
     fTotalMobility[1] = fWaterMobility[1] + fOilMobility[1] + fGasMobility[1];
     fTotalMobility[2] = fWaterMobility[2] + fOilMobility[2] + fGasMobility[2];
-    fTotalMobility[3] = fWaterMobility[3] + fOilMobility[4] + fGasMobility[4];
+    fTotalMobility[3] = fWaterMobility[3] + fOilMobility[3] + fGasMobility[3];
     
     
 }
 
 void TPZAxiSymmetricDarcyFlow::PhaseFractionalFlows()
 {
-    this->PhaseMobilities();
     this->TotalMobility();
     
-    fFWater[0] = fWaterMobility[0] / fTotalMobility[0];
+    fFWater[0] = (fWaterMobility[0] / fTotalMobility[0]);
     fFWater[1] = (fWaterMobility[1] / fTotalMobility[0]) - ((fWaterMobility[0] * fTotalMobility[1])/(fTotalMobility[0]*fTotalMobility[0])) ;
     fFWater[2] = (fWaterMobility[2] / fTotalMobility[0]) - ((fWaterMobility[0] * fTotalMobility[2])/(fTotalMobility[0]*fTotalMobility[0])) ;
     fFWater[3] = (fWaterMobility[3] / fTotalMobility[0]) - ((fWaterMobility[0] * fTotalMobility[3])/(fTotalMobility[0]*fTotalMobility[0])) ;
     
-    fFOil[0] = fOilMobility[0] / fTotalMobility[0];
+    fFOil[0] = (fOilMobility[0] / fTotalMobility[0]);
     fFOil[1] = (fOilMobility[1] / fTotalMobility[0]) - ((fOilMobility[0] * fTotalMobility[1])/(fTotalMobility[0]*fTotalMobility[0])) ;
     fFOil[2] = (fOilMobility[2] / fTotalMobility[0]) - ((fOilMobility[0] * fTotalMobility[2])/(fTotalMobility[0]*fTotalMobility[0])) ;
     fFOil[3] = (fOilMobility[3] / fTotalMobility[0]) - ((fOilMobility[0] * fTotalMobility[3])/(fTotalMobility[0]*fTotalMobility[0])) ;
     
-    fFGas[0] = fGasMobility[0] / fTotalMobility[0];
+    fFGas[0] = (fGasMobility[0] / fTotalMobility[0]);
     fFGas[1] = (fGasMobility[1] / fTotalMobility[0]) - ((fGasMobility[0] * fTotalMobility[1])/(fTotalMobility[0]*fTotalMobility[0])) ;
     fFGas[2] = (fGasMobility[2] / fTotalMobility[0]) - ((fGasMobility[0] * fTotalMobility[2])/(fTotalMobility[0]*fTotalMobility[0])) ;
     fFGas[3] = (fGasMobility[3] / fTotalMobility[0]) - ((fGasMobility[0] * fTotalMobility[3])/(fTotalMobility[0]*fTotalMobility[0])) ;

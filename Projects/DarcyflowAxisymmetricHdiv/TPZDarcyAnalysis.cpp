@@ -17,6 +17,9 @@
 #include "TPZGeoLinear.h"
 #include "tpztriangle.h"
 #include "pzgeoquad.h"
+#include "pzgeopoint.h"
+
+#include "tpzhierarquicalgrid.h"
 
 #include "TPZVTKGeoMesh.h"
 #include "TPZAxiSymmetricDarcyFlow.h"
@@ -27,14 +30,16 @@
 #include "pzfstrmatrix.h"
 #include "math.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
+#ifdef DEBUG
+    #ifdef LOG4CXX
+    static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
+    #endif
 #endif
 
 TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel)
 {
     
-    fmeshvec.Resize(2);
+    fmeshvec.Resize(4);
     
     fgmesh=NULL;
     fcmeshdarcy=NULL;
@@ -87,15 +92,56 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
     an->AssembleResidual();
     fResidualAtn = an->Rhs();
     
+#ifdef DEBUG
+    #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+    #endif
+#endif
+    
 }
 
-void TPZDarcyAnalysis::AssembleResidual(TPZAnalysis *an)
+void TPZDarcyAnalysis::AssembleNextStep(TPZAnalysis *an)
 {
     fcmeshdarcy->LoadSolution(falphaAtnplusOne);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
     SetNextState();
-    an->AssembleResidual();
+    an->Assemble();
     fResidualAtnplusOne = an->Rhs();
+    
+#ifdef DEBUG
+    #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+    #endif
+#endif
+    
+}
+
+void TPZDarcyAnalysis::UpDateAlphaVec(TPZFMatrix<REAL> &alpha)
+{
+    falphaAtn = alpha;
+    falphaAtnplusOne = alpha;
+    
+#ifdef DEBUG
+    #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
+            falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+    #endif
+#endif
     
 }
 
@@ -113,11 +159,34 @@ void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &
 
 void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 {
+    
     // Compute the intial saturation distribution
     int nalpha = fcmeshdarcy->Solution().Rows();
     falphaAtn.Resize(nalpha, 1);
+    falphaAtnplusOne.Resize(nalpha, 1);
     falphaAtn.Zero();
+    falphaAtnplusOne.Zero();
     an->LoadSolution(falphaAtn);
+    
+    int nsoil = fmeshvec[3]->Solution().Rows();
+    TPZFMatrix<REAL> SOil(nsoil,1,1.0);
+    fmeshvec[3]->LoadSolution(SOil);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
+    
+    falphaAtn = fcmeshdarcy->Solution();
+    falphaAtnplusOne = fcmeshdarcy->Solution();
+   
+#ifdef DEBUG
+    #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
+            falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+    #endif
+#endif
     
 }
 
@@ -125,17 +194,20 @@ void TPZDarcyAnalysis::Run()
 {
     
     std::string dirname = PZSOURCEDIR;
-    gRefDBase.InitializeRefPatterns();
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);    
     
-#ifdef LOG4CXX
-    
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-    FileName += "DarcyFlowLog.cfg";
-    InitializePZLOG(FileName);
-    
+#ifdef DEBUG
+    #ifdef LOG4CXX
+        
+        std::string FileName = dirname;
+        FileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
+        FileName += "DarcyFlowLog.cfg";
+        InitializePZLOG(FileName);
+        
+    #endif
 #endif
-    
     
     //  Reading mesh
     std::string GridFileName;
@@ -151,18 +223,15 @@ void TPZDarcyAnalysis::Run()
     }
     else
     {
-        CreatedGeoMesh();
+        int nx = 80;
+        int ny = 1;
+        GeometryLine(nx,ny);
+//        CreatedGeoMesh();
     }
     
-//    TPZCheckGeom * GeomTest= new TPZCheckGeom(fgmesh);
-//    int goodmeshQ = GeomTest->PerformCheck();
-//    if (!goodmeshQ) {
-//        std::cout << "Give me a descent mesh " << std::endl;
-//        DebugStop();
-//    }
     
     REAL deg = 0.0;
-    int hcont = 1;
+    int hcont = 0;
     RotateGeomesh(deg * M_PI/180.0);
     this->UniformRefinement(fSimulationData->GetHrefinement());
     
@@ -170,6 +239,7 @@ void TPZDarcyAnalysis::Run()
     //    matidstoRef.insert(2);
 //    matidstoRef.insert(3);
     //    matidstoRef.insert(4);
+    matidstoRef.insert(3);
     matidstoRef.insert(5);
     
     this->UniformRefinement(hcont, matidstoRef);
@@ -189,6 +259,7 @@ void TPZDarcyAnalysis::Run()
     else
     {
         CreateMultiphysicsMesh(q,p,s);
+        CreateInterfaces();
     }
     
     
@@ -270,8 +341,6 @@ void TPZDarcyAnalysis::Run()
         
     }
     
-    
-//    this->PrintLS(an);
     this->InitializeSolution(an);
     this->TimeForward(an);
     
@@ -293,7 +362,7 @@ void TPZDarcyAnalysis::CreateInterfaces()
         if(!gel) {continue;}
         if(gel->HasSubElement()) {continue;}
         int index = compEl ->Index();
-        if(compEl->Dimension() == fcmeshdarcy->Dimension() - 1)
+        if(compEl->Dimension() == fcmeshdarcy->Dimension())
         {
             TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(fcmeshdarcy->ElementVec()[index]);
             if(!InterpEl) continue;
@@ -305,20 +374,22 @@ void TPZDarcyAnalysis::CreateInterfaces()
 
 void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
 {
-    an->Assemble();
+//    an->Assemble();
     TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
     TPZFMatrix<STATE> FGlobal;
     KGlobal =   an->Solver().Matrix();
     FGlobal =   an->Rhs();
     
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        KGlobal->Print("KGlobal = ", sout,EMathematicaInput);
-        FGlobal.Print("FGlobal = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(logger,sout.str())
-    }
+#ifdef DEBUG
+    #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            KGlobal->Print("KGlobal = ", sout,EMathematicaInput);
+            FGlobal.Print("FGlobal = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+    #endif
 #endif
     
 }
@@ -337,8 +408,10 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
     TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshdarcy);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
     
+#ifdef DEBUG
     std::ofstream dumpfile("ComputationaMeshMultiphysics.txt");
     fcmeshdarcy->Print(dumpfile);
+#endif
     
 }
 
@@ -346,10 +419,12 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
 {
     int nsteps = fSimulationData->GetTime() / fSimulationData->GetDeltaT();
     
-    for (int istep ; istep <=  nsteps; istep++) {
+    this->PostProcessVTK(an);
+    for (int istep = 0 ; istep <  nsteps; istep++) {
         
+        std::cout << "Begin of time step: " << istep << std::endl;
         this->AssembleLastStep(an);
-        this->AssembleResidual(an);
+        this->AssembleNextStep(an);
 
         
         if (fSimulationData->GetIsBroyden())
@@ -375,8 +450,6 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             this->PostProcessVTK(an);
         }
         
-        falphaAtn = falphaAtnplusOne;
-        std::cout << "Current time step: " << istep << std::endl;
     }
     
 
@@ -388,23 +461,34 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
 {
     
     TPZFMatrix<STATE> Residual(an->Rhs().Rows(),1,0.0);
+    
+    
+//    TPZManVector<long> Actives(0),NoActives(0);
+//    
+//    this->FilterSaturations(Actives, NoActives);
+//    an->StructMatrix()->EquationFilter().Reset();
+//    an->StructMatrix()->EquationFilter().SetActiveEquations(Actives);
 
-    an->Rhs() = fResidualAtn+fResidualAtnplusOne;
+    Residual = fResidualAtn + fResidualAtnplusOne;
+//    an->Rhs() = Residual;
+//    this->PrintLS(an);
     
-    TPZFMatrix<STATE> X(an->Rhs().Rows(),1,0.0);
-    TPZFMatrix<STATE> DeltaX(an->Rhs().Rows(),1,0.0);
+    TPZFMatrix<STATE> X = falphaAtn;
+    TPZFMatrix<STATE> DeltaX = falphaAtn;
     
-    STATE error     =1;
-    STATE normdx    =1;
-    int iterations  =0;
-    int centinel    =0;
-    int fixed       =fSimulationData->GetFixediterations();
+    STATE error     =   1;
+    STATE normdx    =   1;
+    int iterations  =   0;
+    int centinel    =   0;
+    int fixed       =   fSimulationData->GetFixediterations();
     
     while (error >= fSimulationData->GetToleranceRes() && iterations <= fSimulationData->GetMaxiterations()) {
         
+        an->Rhs() = Residual;
         an->Rhs() *= -1.0;
         
         //        const clock_t tini = clock();
+        
         an->Solve();
         //        const clock_t tend = clock();
         //        const REAL time = REAL(REAL(tend - tini)/CLOCKS_PER_SEC);
@@ -428,10 +512,10 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
             centinel++;
         }
         else{
-            this->AssembleResidual(an);
+            this->AssembleResidual();
             
         }
-        
+        fResidualAtnplusOne = an->Rhs();
         
         //        const clock_t tenda = clock();
         //        const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
@@ -441,18 +525,33 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         error = Norm(Residual);
         iterations++;
         
+#ifdef DEBUG
+    #ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
+                fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
+                DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+                X.Print("X = ", sout,EMathematicaInput);
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+    #endif
+#endif
         
         if(error < fSimulationData->GetToleranceRes() || normdx < fSimulationData->GetToleranceDX())
         {
             std::cout << "Converged with iterations:  " << iterations << std::endl;
             std::cout << "error norm: " << error << std::endl;
             std::cout << "error of dx: " << normdx << std::endl;
+            this->UpDateAlphaVec(X);
             break;
         }
         
         if (iterations == fSimulationData->GetMaxiterations()) {
             std::cout << "Out max iterations " << iterations << std::endl;
             std::cout << "error norm " << error << std::endl;
+            this->UpDateAlphaVec(X);
             break;
         }
         
@@ -506,17 +605,19 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
         DInverse = ComputeInverse();
         DInverse->Multiply(Residual, DeltaX);
         D.operator->()->Multiply(*DInverse, Identity);
-        
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
-            Residual.Print("Residual = ", sout,EMathematicaInput);
-            Identity.Print("Identity = ", sout,EMathematicaInput);
-            DInverse->Print("DInverse = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
+      
+#ifdef DEBUG
+    #ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+                Residual.Print("Residual = ", sout,EMathematicaInput);
+                Identity.Print("Identity = ", sout,EMathematicaInput);
+                DInverse->Print("DInverse = ", sout,EMathematicaInput);
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+    #endif
 #endif
         
     }
@@ -543,7 +644,7 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
         }
         
-        AssembleResidual(an);
+        this->AssembleResidual();
         Residual = fResidualAtn + fResidualAtnplusOne;       // g(Xk)
         error = Norm(Residual);     // g(Xk)*g(Xk)
         
@@ -554,15 +655,16 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
             std::cout << "error of dx: " << normdx << std::endl;
             break;
         }
-        
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
-            Residual.Print("Residual = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
+#ifdef DEBUG
+    #ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+                Residual.Print("Residual = ", sout,EMathematicaInput);
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+    #endif
 #endif
         
         if (((fixed+1) * (centinel) == iterations)) {
@@ -677,7 +779,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     int topId = fLayers[ilayer]->GetMatIDs()[3];
     int leftId = fLayers[ilayer]->GetMatIDs()[4];
     
-    const int typeFlux = 1, typePressure = 0;
+    int typeFluxin = 1, typePressurein = 0;
+    int typeFluxout = 3, typePressureout = 2;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
     // Malha computacional
@@ -685,7 +788,10 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     // Material medio poroso
     TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
+    mat->SetSimulationData(fSimulationData);
     mat->SetReservoirData(fLayers[ilayer]);
+    mat->SetPetroPhysicsData(fRockPetroPhysic[ilayer]);
+    mat->SetFluidModelData(fFluidData);
     cmesh->InsertMaterialObject(mat);
     
     
@@ -698,19 +804,27 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     // Bc Bottom
     val2(0,0) = 0.0;
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
+    val2(1,0) = 0.0;
+    val2(2,0) = 0.0;
+    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFluxin, val1, val2);
     
     // Bc Right
     val2(0,0) = 10.0*1e6;
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
+    val2(1,0) = 0.0;
+    val2(2,0) = 0.0;
+    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressureout, val1, val2);
     
     // Bc Top
     val2(0,0) = 0.0;
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
+    val2(1,0) = 0.0;
+    val2(2,0) = 0.0;
+    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFluxin, val1, val2);
     
     // Bc Left
-    val2(0,0) = -0.0002;
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
+    val2(0,0) = -0.00001;
+    val2(1,0) = 1.0;
+    val2(2,0) = 0.0;
+    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
     
     cmesh->InsertMaterialObject(bcBottom);
     cmesh->InsertMaterialObject(bcRight);
@@ -1134,8 +1248,74 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
     
 }
 
+void TPZDarcyAnalysis::Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+{
+    X[0] = par[0];//cos(par[0]);
+    X[1] = 0.0;//sin(par[0]);
+    X[2] = 0.0;
+}
+
+void TPZDarcyAnalysis::Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+{
+    X[0] = 0.0;//par[0];
+    X[1] = par[0];
+    X[2] = 0.0;
+}
+
+void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
+{
+    REAL t=0.0;
+    REAL dt = 50.0;
+    int n = nx;
+    
+    // Creating a 0D element to be extruded
+    TPZGeoMesh * GeoMesh1 = new TPZGeoMesh;
+    GeoMesh1->NodeVec().Resize(1);
+    TPZGeoNode Node;
+    TPZVec<REAL> coors(3,0.0);
+    Node.SetCoord(coors);
+    Node.SetNodeId(0);
+    GeoMesh1->NodeVec()[0]=Node;
+    
+    TPZVec<long> Topology(1,0);
+    int elid=0;
+    int matid=1;
+    
+    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,matid,*GeoMesh1);
+    GeoMesh1->BuildConnectivity();
+    GeoMesh1->SetDimension(0);
+    
+    TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
+    CreateGridFrom.SetParametricFunction(ParFunc);
+    CreateGridFrom.SetFrontBackMatId(5,3);
+    
+    
+    // Computing Mesh extruded along the parametric curve Parametricfunction
+    TPZGeoMesh * GeoMesh2 = CreateGridFrom.ComputeExtrusion(t, dt, n);
+    
+    TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
+    CreateGridFrom2.SetParametricFunction(ParFunc2);
+    CreateGridFrom2.SetFrontBackMatId(2,4);
+    
+    dt = 100.0;
+    n = ny;
+    
+    
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    fgmesh = CreateGridFrom2.ComputeExtrusion(t, dt, n);
+    
+    TPZCheckGeom * GeometryTest = new TPZCheckGeom;
+    int isBadMesh = 0;
+    bool CheckGeometry = false;
+    
+    
+}
+
 void TPZDarcyAnalysis::PrintGeoMesh()
 {
+    
     
 #ifdef DEBUG
     //  Print Geometrical Base Mesh
@@ -1186,6 +1366,7 @@ void TPZDarcyAnalysis::UniformRefinement(int nh)
             if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (filhos);
         }//for i
     }//ref
+    fgmesh->BuildConnectivity();
 }
 
 void TPZDarcyAnalysis::UniformRefinement(int nh, std::set<int> &MatToRef)
@@ -1196,28 +1377,131 @@ void TPZDarcyAnalysis::UniformRefinement(int nh, std::set<int> &MatToRef)
         for ( long i = 0; i < n; i++ ){
             TPZGeoEl * gel = fgmesh->ElementVec() [i];
             if(!gel){continue;}
+//            int reflevel = gel->Level();
+//            if (reflevel == ref + 1) {
+//                continue;
+//            }
             TPZRefPatternTools::RefineDirectional(gel,MatToRef);
         }//for i
     }//ref
+    fgmesh->BuildConnectivity();
 }
 
 void TPZDarcyAnalysis::UniformRefinement(int nh, int MatId)
 {
-    for ( int ref = 0; ref < nh; ref++ ){
-        TPZVec<TPZGeoEl *> filhos;
-        long n = fgmesh->NElements();
-        for ( long i = 0; i < n; i++ ){
-            TPZGeoEl * gel = fgmesh->ElementVec() [i];
-            if(!gel){continue;}
-            if (gel->Dimension() == 1){
-                if (gel->MaterialId() == MatId) {
-                    gel->Divide(filhos);
+//    for ( int ref = 0; ref < nh; ref++ ){
+//        TPZVec<TPZGeoEl *> filhos;
+//        long n = fgmesh->NElements();
+//        for ( long i = 0; i < n; i++ ){
+//            TPZGeoEl * gel = fgmesh->ElementVec() [i];
+//            if(!gel){continue;}
+//            if (gel->Dimension() == 1){
+//                if (gel->MaterialId() == MatId) {
+//                    gel->Divide(filhos);
+//                }
+//                
+//            }
+//        }//for i
+//    }//ref
+    
+    ///Refinamento
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    
+    
+    for (int idivide = 0; idivide < nh; idivide++){
+        const int nels = fgmesh->NElements();
+        TPZVec< TPZGeoEl * > allEls(nels);
+        for(int iel = 0; iel < nels; iel++){
+            allEls[iel] = fgmesh->ElementVec()[iel];
+        }
+        
+        for(int iel = 0; iel < nels; iel++){
+            TPZGeoEl * gel = allEls[iel];
+            if(!gel) continue;
+            if(gel->HasSubElement()) continue;
+            int nnodes = gel->NNodes();
+            int found = -1;
+            for(int in = 0; in < nnodes; in++){
+                if(gel->NodePtr(in)->Id() == MatId){
+                    found = in;
+                    break;
                 }
-                
+            }///for in
+            if(found == -1) continue;
+            
+            MElementType gelT = gel->Type();
+            TPZAutoPointer<TPZRefPattern> uniform = gRefDBase.GetUniformRefPattern(gelT);
+            if(!uniform){
+                DebugStop();
             }
-        }//for i
-    }//ref
+            gel->SetRefPattern(uniform);
+            TPZVec<TPZGeoEl*> filhos;
+            gel->Divide(filhos);
+            
+        }///for iel
+    }//idivide
+    
+    fgmesh->BuildConnectivity();
+    
 }
+
+////refinamento uniforme em direcao ao no
+//void DirectionalRef(int nh, int MatId){
+//    
+//    ///Refinamento
+//    gRefDBase.InitializeUniformRefPattern(EOned);
+//    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+//    
+//    
+//    for (int idivide = 0; idivide < nh; idivide++){
+//        const int nels = fgmesh->NElements();
+//        TPZVec< TPZGeoEl * > allEls(nels);
+//        for(int iel = 0; iel < nels; iel++){
+//            allEls[iel] = gmesh->ElementVec()[iel];
+//        }
+//        
+//        for(int iel = 0; iel < nels; iel++){
+//            TPZGeoEl * gel = allEls[iel];
+//            if(!gel) continue;
+//            if(gel->HasSubElement()) continue;
+//            int nnodes = gel->NNodes();
+//            int found = -1;
+//            for(int in = 0; in < nnodes; in++){
+//                if(gel->NodePtr(in)->Id() == nodeAtOriginId){
+//                    found = in;
+//                    break;
+//                }
+//            }///for in
+//            if(found == -1) continue;
+//            
+//            MElementType gelT = gel->Type();
+//            TPZAutoPointer<TPZRefPattern> uniform = gRefDBase.GetUniformRefPattern(gelT);
+//            if(!uniform){
+//                DebugStop();
+//            }
+//            gel->SetRefPattern(uniform);
+//            TPZVec<TPZGeoEl*> filhos;
+//            gel->Divide(filhos);
+//            
+//        }///for iel
+//    }//idivide
+//    
+//    gmesh->BuildConnectivity();
+//    
+//#ifdef LOG4CXX
+//    if (logger->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        sout<<"gmesh depois de refinar direcionalmente\n";
+//        gmesh->Print(sout);
+//        LOGPZ_DEBUG(logger, sout.str());
+//    }
+//#endif
+//    
+//}///void
+
+
 
 void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
 {
@@ -1270,18 +1554,90 @@ TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
     oldmat.Inverse( * PreInverse);
     oldmat.Multiply(*PreInverse, Identity);
     
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        sout << "Is decomposed=  " << MatG->IsDecomposed() << std::endl;
-        oldmat.Print("oldmat = ", sout,EMathematicaInput);
-        PreInverse->Print("PreInverse = ", sout,EMathematicaInput);
-        Identity.Print("Identity = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(logger,sout.str())
-    }
+#ifdef DEBUG
+    #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Is decomposed=  " << MatG->IsDecomposed() << std::endl;
+            oldmat.Print("oldmat = ", sout,EMathematicaInput);
+            PreInverse->Print("PreInverse = ", sout,EMathematicaInput);
+            Identity.Print("Identity = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+    #endif
 #endif
     
     return PreInverse;
+    
+}
+
+void TPZDarcyAnalysis::FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive)
+{
+    int ncon_flux       = fmeshvec[0]->NConnects();
+    int ncon_pressure   = fmeshvec[1]->NConnects();
+    int ncon_sw = fmeshvec[2]->NConnects();
+    int ncon_so    = fmeshvec[3]->NConnects();
+    int ncon = fcmeshdarcy->NConnects();
+    
+    for(int i = 0; i < ncon-ncon_sw-ncon_so; i++)
+    {
+        TPZConnect &con = fcmeshdarcy->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = fcmeshdarcy->Block().Position(seqnum);
+        int blocksize = fcmeshdarcy->Block().Size(seqnum);
+        
+        int vs = active.size();
+        active.Resize(vs+blocksize);
+        for(int ieq = 0; ieq<blocksize; ieq++)
+        {
+            active[vs+ieq] = pos+ieq;
+        }
+    }
+    
+//    for(int i = ncon-ncon_gravity; i < ncon; i++)
+//    {
+//        TPZConnect &con = mphysics->ConnectVec()[i];
+//        int seqnum = con.SequenceNumber();
+//        if (seqnum == -1) {
+//            continue;
+//        }
+//        int pos = mphysics->Block().Position(seqnum);
+//        int blocksize = mphysics->Block().Size(seqnum);
+//        int vs = active.size();
+//        active.Resize(vs+blocksize);
+//        for(int ieq = 0; ieq<blocksize; ieq++){
+//            active[vs+ieq] = pos+ieq;
+//        }
+//        
+//    }
+//    
+//    for(int i = ncon-ncon_saturation-ncon_gravity; i<ncon-ncon_gravity; i++)
+//    {
+//        TPZConnect &con = mphysics->ConnectVec()[i];
+//        int seqnum = con.SequenceNumber();
+//        int pos = mphysics->Block().Position(seqnum);
+//        int blocksize = mphysics->Block().Size(seqnum);
+//        int vs = active.size();
+//        active.Resize(vs+1);
+//        
+//        int ieq = blocksize-1;
+//        active[vs] = pos+ieq;
+//    }
+//    
+//    for(int i = ncon-ncon_saturation-ncon_gravity; i<ncon-ncon_gravity; i++)
+//    {
+//        TPZConnect &con = mphysics->ConnectVec()[i];
+//        int seqnum = con.SequenceNumber();
+//        int pos = mphysics->Block().Position(seqnum);
+//        int blocksize = mphysics->Block().Size(seqnum);
+//        int vs = nonactive.size();
+//        nonactive.Resize(vs+blocksize-1);
+//        for(int ieq = 0; ieq<blocksize-1; ieq++)
+//        {
+//            nonactive[vs+ieq] = pos+ieq;
+//        }
+//        
+//    }
     
 }

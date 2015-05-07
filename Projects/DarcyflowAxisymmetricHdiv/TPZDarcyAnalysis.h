@@ -85,7 +85,7 @@ public:
     /**
      * Assemble the Residuum
      */
-    void AssembleResidual(TPZAnalysis *an);
+    void AssembleNextStep(TPZAnalysis *an);
     
     /**
      * Computes the residuum. Used for checkconv
@@ -144,6 +144,11 @@ public:
      * Create geometric Mesh Based on layer average thickness and layer radius
      */
     void CreatedGeoMesh();
+    
+    /**
+     * Create geometric Mesh for one-dimensional displacement
+     */
+    void GeometryLine(int nx, int ny);
     
     /**
      * Uniform Refinement
@@ -236,11 +241,34 @@ public:
     TPZFMatrix<STATE>  TensorProduct(TPZFMatrix<STATE> &g, TPZFMatrix<STATE> &d);
     
     /**
+     * Parametric function to compute x direction
+     */    
+    static  void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+    
+    /**
+     * Parametric function to compute y direction
+     */    
+    static  void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+    
+    /**
      * Rhs function of the mass conservation equation
      */
     static  void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
     
+    /**
+     * Computes the inverse of the Global matrix
+     */    
     TPZFMatrix<STATE> * ComputeInverse();
+    
+    /**
+     * FilterEquations
+     */      
+    void FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive);
+    
+    /**
+     * Update state variables
+     */      
+    void UpDateAlphaVec(TPZFMatrix<REAL> &alpha);
     
 };
 
