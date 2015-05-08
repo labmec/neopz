@@ -171,6 +171,7 @@ int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("OilDensity", name.c_str())) return 5;
     if (!strcmp("Porosity", name.c_str())) return 6;
     if (!strcmp("DivOfBulkVeclocity", name.c_str())) return 7;
+    if (!strcmp("ExactSaturation", name.c_str())) return 8;    
     std::cout  << " Var index not implemented " << std::endl;
     DebugStop();
     return 0;
@@ -194,6 +195,8 @@ int TPZAxiSymmetricDarcyFlow::NSolutionVariables(int var) {
             return 1; // Scalar
         case 7:
             return 1; // Scalar
+        case 8:
+            return 1; // Scalar            
         default:
         {
             std::cout  << " Var index not implemented " << std::endl;
@@ -220,6 +223,10 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     TPZFMatrix<STATE> dQdx = datavec[Qblock].dsol[0];
     TPZFMatrix<STATE> dPdx = datavec[Pblock].dsol[0];
+    
+    REAL time;
+    TPZVec<STATE> Saturation(1,0.0);
+    TPZFMatrix<STATE> GradS(1,0);   
 
     // Petrophysics data
     
@@ -291,6 +298,14 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             Solout[0] = dQdx(0,0) + dQdx(1,1) + dQdx(2,2);
         }
             break;
+        case 8:
+        {
+	    time=this->fSimulationData->GetTime();
+	    fTimedependentFunctionExact->Execute(datavec[Swblock].x, time, Saturation,GradS);
+	    Solout[0] = Saturation[0];
+
+        }
+            break;	    
         default:
         {
             std::cout  << " Var index not implemented " << std::endl;

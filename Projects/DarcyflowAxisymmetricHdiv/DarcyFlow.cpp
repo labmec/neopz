@@ -15,9 +15,20 @@
 static LoggerPtr logdata(Logger::getLogger("pz.DarcyFlow"));
 #endif
 
+void LinearTracer();
+
 int main()
 {
-    
+
+  LinearTracer();
+  
+  std::cout << " Process complete normally." << std::endl;
+  return 0; 
+}
+
+void LinearTracer()
+{
+  
     // This code use piola contravariant mapping for nonlinear mappings
     HDivPiola = 0;
     
@@ -25,12 +36,12 @@ int main()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 30;
+    int maxiter     = 20;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool h1         = false;    // Deprecated
     bool IsDirect   = true;     // Not Used broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    int fixedJac    = 0;
+    int fixedJac    = 10;
     
     int qorder      = 1;
     int porder      = 1;
@@ -40,9 +51,10 @@ int main()
     REAL hour       = 3600;
     REAL day        = hour * 24;
     REAL dt         = 2.0*day;
-    REAL maxtime    = 100.0*day;
+    REAL maxtime    = 200.0*day;
+    REAL t0	    = 0.0*day;
     REAL TolDeltaX  = 1.0*1e-5;
-    REAL TolRes     = 1.0*1e-6;
+    REAL TolRes     = 1.0*1e-5;
     
     Dataset->SetIsH1approx(h1);
     Dataset->SetIsDirect(IsDirect);
@@ -52,7 +64,8 @@ int main()
     Dataset->SetHrefinement(hrefinement);
     Dataset->SetHPostrefinement(hpostref);
     Dataset->SetDeltaT(dt);
-    Dataset->SetTime(maxtime);
+    Dataset->SetMaxTime(maxtime);    
+    Dataset->SetTime(t0);
     Dataset->SetToleranceDX(TolDeltaX);
     Dataset->SetToleranceRes(TolRes);
     Dataset->SetMaxiterations(maxiter);
@@ -143,9 +156,6 @@ int main()
     TPZDarcyAnalysis SandStone(Dataset,Layers,Rocks,FluidModel);
     SandStone.Run();
     
-    
-    std::cout << " Process complete normally." << std::endl;
-    return 0;
+ 
+  
 }
-
-

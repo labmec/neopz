@@ -92,16 +92,16 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
     an->AssembleResidual();
     fResidualAtn = an->Rhs();
     
-#ifdef DEBUG
-    #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-    #endif
-#endif
+// #ifdef DEBUG
+//     #ifdef LOG4CXX
+//         if(logger->isDebugEnabled())
+//         {
+//             std::stringstream sout;
+//             fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
+//             LOGPZ_DEBUG(logger,sout.str())
+//         }
+//     #endif
+// #endif
     
 }
 
@@ -113,16 +113,16 @@ void TPZDarcyAnalysis::AssembleNextStep(TPZAnalysis *an)
     an->Assemble();
     fResidualAtnplusOne = an->Rhs();
     
-#ifdef DEBUG
-    #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-    #endif
-#endif
+// #ifdef DEBUG
+//     #ifdef LOG4CXX
+//         if(logger->isDebugEnabled())
+//         {
+//             std::stringstream sout;
+//             fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
+//             LOGPZ_DEBUG(logger,sout.str())
+//         }
+//     #endif
+// #endif
     
 }
 
@@ -131,17 +131,17 @@ void TPZDarcyAnalysis::UpDateAlphaVec(TPZFMatrix<REAL> &alpha)
     falphaAtn = alpha;
     falphaAtnplusOne = alpha;
     
-#ifdef DEBUG
-    #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
-            falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-    #endif
-#endif
+// #ifdef DEBUG
+//     #ifdef LOG4CXX
+//         if(logger->isDebugEnabled())
+//         {
+//             std::stringstream sout;
+//             falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
+//             falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
+//             LOGPZ_DEBUG(logger,sout.str())
+//         }
+//     #endif
+// #endif
     
 }
 
@@ -176,17 +176,17 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     falphaAtn = fcmeshdarcy->Solution();
     falphaAtnplusOne = fcmeshdarcy->Solution();
    
-#ifdef DEBUG
-    #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
-            falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-    #endif
-#endif
+// #ifdef DEBUG
+//     #ifdef LOG4CXX
+//         if(logger->isDebugEnabled())
+//         {
+//             std::stringstream sout;
+//             falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
+//             falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
+//             LOGPZ_DEBUG(logger,sout.str())
+//         }
+//     #endif
+// #endif
     
 }
 
@@ -223,7 +223,7 @@ void TPZDarcyAnalysis::Run()
     }
     else
     {
-        int nx = 80;
+        int nx = 2;
         int ny = 1;
         GeometryLine(nx,ny);
 //        CreatedGeoMesh();
@@ -417,12 +417,21 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
 
 void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
 {
-    int nsteps = fSimulationData->GetTime() / fSimulationData->GetDeltaT();
+    int nsteps = fSimulationData->GetMaxTime() / fSimulationData->GetDeltaT();
     
+    REAL tk = 0;
+    
+    this->fSimulationData->SetTime(tk);
     this->PostProcessVTK(an);
-    for (int istep = 0 ; istep <  nsteps; istep++) {
-        
-        std::cout << "Begin of time step: " << istep << std::endl;
+    
+    for (int istep = 1 ; istep <=  nsteps; istep++) {
+        tk = istep*this->fSimulationData->GetDeltaT();
+        this->fSimulationData->SetTime(tk);        
+      
+        std::cout << "Begin of time (days): " << tk/86400.0 << std::endl;
+        std::cout<<  "Time step: " << istep << std::endl;
+
+	
         this->AssembleLastStep(an);
         this->AssembleNextStep(an);
 
@@ -449,6 +458,8 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
             this->PostProcessVTK(an);
         }
+        
+
         
     }
     
@@ -512,7 +523,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
             centinel++;
         }
         else{
-            this->AssembleResidual();
+            an->AssembleResidual();
             
         }
         fResidualAtnplusOne = an->Rhs();
@@ -524,6 +535,8 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         Residual = fResidualAtn + fResidualAtnplusOne;
         error = Norm(Residual);
         iterations++;
+	
+	this->PrintLS(an);
         
 #ifdef DEBUG
     #ifdef LOG4CXX
@@ -802,6 +815,12 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     forcef = dum;
     mat->SetForcingFunction(forcef);
     
+    // Setting up linear tracer solution
+    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
+    TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
+    mat->SetTimeDependentFunctionExact(fLTracer);
+
+    
     // Bc Bottom
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
@@ -822,7 +841,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     // Bc Left
     val2(0,0) = -0.00001;
-    val2(1,0) = 1.0;
+    val2(1,0) = 0.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
     
@@ -1523,6 +1542,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     scalnames.Push("OilDensity");
     scalnames.Push("Porosity");
     scalnames.Push("DivOfBulkVeclocity");
+    scalnames.Push("ExactSaturation");
     vecnames.Push("BulkVelocity");
     an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an->PostProcess(div);
@@ -1641,3 +1661,23 @@ void TPZDarcyAnalysis::FilterSaturations(TPZManVector<long> &active, TPZManVecto
 //    }
     
 }
+
+void TPZDarcyAnalysis::LinearTracer(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& Saturation, TPZFMatrix< STATE >& Grad)
+{
+   REAL x = pt[0];
+   REAL v = 0.00001;
+   REAL Porosity = 0.1;
+   REAL xshock = v*time/Porosity;
+   
+   if(x <= xshock)
+   {
+     Saturation[0] = 1.0;
+   }
+   else
+   {
+     Saturation[0] = 0.0;
+   }
+   
+   return;
+}
+

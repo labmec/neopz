@@ -52,7 +52,7 @@ private:
     TPZGeoMesh * fgmesh;
     
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
-    TPZManVector<TPZCompMesh * , 2> fmeshvec;
+    TPZManVector<TPZCompMesh * , 4> fmeshvec;
     
     /** @brief Cmesh for Darcy analysis */
     TPZCompMesh * fcmeshdarcy;
@@ -254,6 +254,11 @@ public:
      * Rhs function of the mass conservation equation
      */
     static  void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
+    
+    /**
+     * Exact Soltuion for linear tracer
+     */
+    static  void LinearTracer(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Saturation, TPZFMatrix<STATE> &Grad);
     
     /**
      * Computes the inverse of the Global matrix

@@ -14,6 +14,9 @@ SimulationData::SimulationData()
     /** @brief Delta t - s */
     fDeltaT = 0.0;
     
+    /** @brief Max Time - s */
+    fMaxTime = 0.0;    
+    
     /** @brief Time - s */
     fTime = 0.0;
     

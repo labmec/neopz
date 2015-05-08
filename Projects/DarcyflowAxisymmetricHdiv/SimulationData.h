@@ -42,6 +42,9 @@ private:
     /** @brief Delta t - s */
     REAL fDeltaT;
     
+    /** @brief Max Time - s */
+    REAL fMaxTime;    
+    
     /** @brief Time - s */
     REAL fTime;
     
@@ -99,6 +102,12 @@ public:
     
     /** @brief Get Time - s */
     REAL GetTime() {return this->fTime;}
+    
+    /** @brief Set Time - s */
+    void SetMaxTime(REAL MaxTime) {this->fMaxTime = MaxTime;}
+    
+    /** @brief Get Time - s */
+    REAL GetMaxTime() {return this->fMaxTime;}    
     
     /** @brief Set Tolerance for  Delta X */
     void SetToleranceDX(REAL dxtol) {this->ftoleranceDeltaX = dxtol;}
