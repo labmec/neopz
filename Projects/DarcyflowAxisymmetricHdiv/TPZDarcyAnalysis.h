@@ -242,12 +242,12 @@ public:
     
     /**
      * Parametric function to compute x direction
-     */    
+     */
     static  void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X);
     
     /**
      * Parametric function to compute y direction
-     */    
+     */
     static  void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
     
     /**
@@ -262,17 +262,17 @@ public:
     
     /**
      * Computes the inverse of the Global matrix
-     */    
+     */
     TPZFMatrix<STATE> * ComputeInverse();
     
     /**
      * FilterEquations
-     */      
+     */
     void FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive);
     
     /**
      * Update state variables
-     */      
+     */
     void UpDateAlphaVec(TPZFMatrix<REAL> &alpha);
     
 };

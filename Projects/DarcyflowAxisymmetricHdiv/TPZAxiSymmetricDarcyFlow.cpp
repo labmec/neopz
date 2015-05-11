@@ -30,11 +30,11 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
     fWaterPressure.Resize(4,0.0);
     fOilPressure.Resize(4,0.0);
     fGasPressure.Resize(4,0.0);
-
+    
     fWaterDensity.Resize(4,0.0);
     fOilDensity.Resize(4,0.0);
     fGasDensity.Resize(4,0.0);
-
+    
     flWater.Resize(4,0.0);
     flOil.Resize(4,0.0);
     flGas.Resize(4,0.0);
@@ -42,11 +42,11 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
     fFWater.Resize(4,0.0);
     fFOil.Resize(4,0.0);
     fFGas.Resize(4,0.0);
-
+    
     fWaterMobility.Resize(4,0.0);
     fOilMobility.Resize(4,0.0);
     fGasMobility.Resize(4,0.0);
-
+    
     fTotalMobility.Resize(4,0.0);
     fTotalMobility.Resize(4,0.0);
 }
@@ -171,7 +171,7 @@ int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("OilDensity", name.c_str())) return 5;
     if (!strcmp("Porosity", name.c_str())) return 6;
     if (!strcmp("DivOfBulkVeclocity", name.c_str())) return 7;
-    if (!strcmp("ExactSaturation", name.c_str())) return 8;    
+    if (!strcmp("ExactSaturation", name.c_str())) return 8;
     std::cout  << " Var index not implemented " << std::endl;
     DebugStop();
     return 0;
@@ -196,7 +196,7 @@ int TPZAxiSymmetricDarcyFlow::NSolutionVariables(int var) {
         case 7:
             return 1; // Scalar
         case 8:
-            return 1; // Scalar            
+            return 1; // Scalar
         default:
         {
             std::cout  << " Var index not implemented " << std::endl;
@@ -226,8 +226,8 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     REAL time;
     TPZVec<STATE> Saturation(1,0.0);
-    TPZFMatrix<STATE> GradS(1,0);   
-
+    TPZFMatrix<STATE> GradS(1,0);
+    
     // Petrophysics data
     
     REAL Po, Pw, Pg;
@@ -252,7 +252,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     this->fReservoirdata->Porosity(P, rockporosity, drockporositydP);
     this->fFluidmodeldata->WaterDensity(Pw, waterdensity, dwaterdensitydPw);
     this->fFluidmodeldata->OilDensity(Po, oildensity, doildensitydPo);
-
+    
     
     Solout.Resize(this->NSolutionVariables(var));
     
@@ -300,12 +300,12 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             break;
         case 8:
         {
-	    time=this->fSimulationData->GetTime();
-	    fTimedependentFunctionExact->Execute(datavec[Swblock].x, time, Saturation,GradS);
-	    Solout[0] = Saturation[0];
-
+            time=this->fSimulationData->GetTime();
+            fTimedependentFunctionExact->Execute(datavec[Swblock].x, time, Saturation,GradS);
+            Solout[0] = Saturation[0];
+            
         }
-            break;	    
+            break;
         default:
         {
             std::cout  << " Var index not implemented " << std::endl;
@@ -323,7 +323,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
     TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
     TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
-
+    
     TPZFNMatrix<660> GradphiuH1;
     TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
     
@@ -345,7 +345,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
     Qaxes.Transpose(&QaxesT);
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
-
+    
     int ivectorindex = 0;
     int ishapeindex = 0;
     
@@ -353,18 +353,18 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
     {
         for (int iq = 0; iq < nphiuHdiv; iq++)
         {
-                ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-                ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
-
-                VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
-                VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
-                VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
-
-                GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
-                VectorOnMaster *= JacobianDet;
-
-                /* Contravariant Piola mapping preserves the divergence */
-                DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) + dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) );
+            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
+            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+            
+            VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
+            VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
+            VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
+            
+            GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
+            VectorOnMaster *= JacobianDet;
+            
+            /* Contravariant Piola mapping preserves the divergence */
+            DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) + dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) );
         }
     }
     else
@@ -373,7 +373,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
         {
             ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
-
+            
             /* Computing the divergence for constant jacobian elements */
             DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) + datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex);
         }
@@ -565,10 +565,10 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
             ek(iso  + iniSo, jso  + iniSo) += weight * (1.0/deltat) * rockporosity * phiSoL2(jso,0) * phiSoL2(iso,0);
         }
     }
-
-
+    
+    
     this->Contribute(datavec,weight,ef);
-
+    
 }
 
 // Residual contribution
@@ -618,14 +618,14 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     
     TPZFNMatrix<660> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
-
+    
     
     
     //  Compute axuliar functions for the current values of time, u, P, Sw and So
     REAL deltat = fSimulationData->GetDeltaT();
     this->UpdateStateVariables(u, P, Sw, So);
     this->PhaseFractionalFlows();
-
+    
     // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
     REAL rockporosity, drockporositydP;
@@ -647,7 +647,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     int ishapeindex;
     int ivectorindex;
     
-
+    
     if (fSimulationData->IsnStep()) {
         
         //  n state computations
@@ -686,7 +686,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         fForcingFunction->Execute(datavec[Pblock].x,fvalue);
     }
     
-
+    
     divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // uses this for constant jacobian elements
     
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
@@ -712,7 +712,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
-
+    
     if (fSimulationData->IsnStep()) {
         
         return;
@@ -1012,13 +1012,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     this->ContributeInterface(data, datavecleft, datavecright, weight, ef);
     
     return;
-
+    
 }
 
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
     
-
+    
     if (fSimulationData->IsnStep()) {
         
         return;
@@ -1109,7 +1109,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     {
         ef(iblock + isw + iniSwR) += -1.0 * weight * fFWater[0] * phiSwL2R(isw,0) * uLn;
     }
-
+    
     for (int iso = 0; iso < nphiSoL2L; iso++)
     {
         ef(iso + iniSoL) += 1.0 * weight * fFOil[0] * phiSoL2L(iso,0) * uLn;
@@ -1123,7 +1123,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-
+    
     if (fSimulationData->IsnStep()) {
         
         return;
@@ -1176,12 +1176,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     Sw = bc.Val2()(1,0);         //  Sw in
     So = bc.Val2()(2,0);         //  So in
     
-
-
+    
+    
     
     //  Compute axuliar functions for the current values of time, u, P, Sw and So
     TPZFMatrix<REAL> jphiuHdiv(3,1,0.0);
-
+    
     switch (bc.Type()) {
         case 0 :    // Dirichlet BC  PD inflow
         {
@@ -1197,7 +1197,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
                 this->UpdateStateVariables(uL, PL, Sw, So);
                 this->PhaseFractionalFlows();
             }
-
+            
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
                 //ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
@@ -1237,26 +1237,26 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
                 }
                 
             }
-
+            
         }
             break;
             
         case 1 :    // Neumann BC  QN inflow
         {
             
-//            if (Value >= 0.0 ) {
-//                // Outflow boundary condition
-//                this->UpdateStateVariables(uL, PL, SwL, SoL);
-//                this->PhaseFractionalFlows();
-//            }
-//            else
-//            {
-//                // Inflow boundary condition
-//                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
-                this->UpdateStateVariables(uL, PL, Sw, So);
-                this->PhaseFractionalFlows();
-//            }
-
+            //            if (Value >= 0.0 ) {
+            //                // Outflow boundary condition
+            //                this->UpdateStateVariables(uL, PL, SwL, SoL);
+            //                this->PhaseFractionalFlows();
+            //            }
+            //            else
+            //            {
+            //                // Inflow boundary condition
+            //                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+            this->UpdateStateVariables(uL, PL, Sw, So);
+            this->PhaseFractionalFlows();
+            //            }
+            
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
                 //ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
@@ -1311,7 +1311,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
         case 2 :    // Dirichlet BC  PD outflow
         {
-
+            
             if (uLn >= 0.0 ) {
                 // Outflow boundary condition
                 this->UpdateStateVariables(uL, PL, SwL, SoL);
@@ -1324,7 +1324,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
                 this->UpdateStateVariables(uL, PL, Sw, So);
                 this->PhaseFractionalFlows();
             }
-
+            
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
                 //ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
@@ -1389,26 +1389,26 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
                 
             }
             
-
+            
         }
             break;
             
         case 3 :    // Neumann BC  QN outflow
         {
-
-
-//            if (uLn >= 0.0 ) {
-                // Outflow boundary condition
-                this->UpdateStateVariables(uL, PL, SwL, SoL);
-                this->PhaseFractionalFlows();
-//            }
-//            else
-//            {
-//                // Inflow boundary condition
-//                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
-//                this->UpdateStateVariables(uL, PL, Sw, So);
-//                this->PhaseFractionalFlows();
-//            }
+            
+            
+            //            if (uLn >= 0.0 ) {
+            // Outflow boundary condition
+            this->UpdateStateVariables(uL, PL, SwL, SoL);
+            this->PhaseFractionalFlows();
+            //            }
+            //            else
+            //            {
+            //                // Inflow boundary condition
+            //                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+            //                this->UpdateStateVariables(uL, PL, Sw, So);
+            //                this->PhaseFractionalFlows();
+            //            }
             
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
@@ -1458,7 +1458,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
                 
             }
             
-
+            
         }
             break;
             
@@ -1466,7 +1466,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
         {
             DebugStop();
         }
-        break;
+            break;
     }
     
     this->ContributeBCInterface(data, datavecleft, weight, ef, bc);
@@ -1478,7 +1478,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-
+    
     if (fSimulationData->IsnStep()) {
         
         return;
@@ -1531,9 +1531,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     Sw = bc.Val2()(1,0);         //  Sw in
     So = bc.Val2()(2,0);         //  So in
     
-
     
-
+    
+    
     //  Compute axuliar functions for the current values of time, u, P, Sw and So
     TPZFMatrix<REAL> jphiuHdiv(3,1,0.0);
     
@@ -1569,19 +1569,19 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
         case 1 :    // Neumann BC  QN inflow
         {
-
-//            if (uLn >= 0.0 ) {
-//                // Outflow boundary condition
-//                this->UpdateStateVariables(uL, PL, SwL, SoL);
-//                this->PhaseFractionalFlows();
-//            }
-//            else
-//            {
-//                // Inflow boundary condition
-//                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
-                this->UpdateStateVariables(uL, PL, Sw, So);
-                this->PhaseFractionalFlows();
-//            }
+            
+            //            if (uLn >= 0.0 ) {
+            //                // Outflow boundary condition
+            //                this->UpdateStateVariables(uL, PL, SwL, SoL);
+            //                this->PhaseFractionalFlows();
+            //            }
+            //            else
+            //            {
+            //                // Inflow boundary condition
+            //                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+            this->UpdateStateVariables(uL, PL, Sw, So);
+            this->PhaseFractionalFlows();
+            //            }
             
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
@@ -1634,18 +1634,18 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
         case 3 :    // Neumann BC  QN outflow
         {
             
-//            if (uLn >= 0.0 ) {
-                // Outflow boundary condition
-                this->UpdateStateVariables(uL, PL, SwL, SoL);
-                this->PhaseFractionalFlows();
-//            }
-//            else
-//            {
-//                // Inflow boundary condition
-//                if (uLn < 0.0 && fabs(uLn) > 1.0e-8) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
-//                this->UpdateStateVariables(uL, PL, Sw, So);
-//                this->PhaseFractionalFlows();
-//            }
+            //            if (uLn >= 0.0 ) {
+            // Outflow boundary condition
+            this->UpdateStateVariables(uL, PL, SwL, SoL);
+            this->PhaseFractionalFlows();
+            //            }
+            //            else
+            //            {
+            //                // Inflow boundary condition
+            //                if (uLn < 0.0 && fabs(uLn) > 1.0e-8) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
+            //                this->UpdateStateVariables(uL, PL, Sw, So);
+            //                this->PhaseFractionalFlows();
+            //            }
             
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
@@ -1661,9 +1661,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             break;
         }
         default: std::cout << "This BC doesn't exist." << std::endl;
-            {
-                DebugStop();
-            }
+        {
+            DebugStop();
+        }
             break;
     }
     return;
@@ -1673,7 +1673,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 
 void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-
+    
     if (fSimulationData->IsnStep()) {
         
         return;
@@ -1855,12 +1855,12 @@ void TPZAxiSymmetricDarcyFlow::PhasePressures()
     fGasPressure[2] = 0.0;
     fGasPressure[3] = 0.0;
     
-//    // Computing fluid mobilities and derivatives for three-phase
-//    
-//    fGasPressure[0] = P + So * pcgo + So * pcgw;
-//    fGasPressure[1] = 1.0;
-//    fGasPressure[2] = pcgo + Sw * dPcowdSw + pcow;
-//    fGasPressure[3] = pcgo + So * dPcgodSo + Sw * dPcgodSo;
+    //    // Computing fluid mobilities and derivatives for three-phase
+    //
+    //    fGasPressure[0] = P + So * pcgo + So * pcgw;
+    //    fGasPressure[1] = 1.0;
+    //    fGasPressure[2] = pcgo + Sw * dPcowdSw + pcow;
+    //    fGasPressure[3] = pcgo + So * dPcgodSo + Sw * dPcgodSo;
     
 }
 
@@ -1868,7 +1868,7 @@ void TPZAxiSymmetricDarcyFlow::PhaseDensities()
 {
     
     this->PhasePressures();
-
+    
     fFluidmodeldata->WaterDensity(fWaterPressure[0], fWaterDensity[0], fWaterDensity[1]);
     fFluidmodeldata->OilDensity(fOilPressure[0], fOilDensity[0], fOilDensity[1]);
     fFluidmodeldata->GasDensity(fGasPressure[0], fGasDensity[0], fGasDensity[1]);
@@ -1929,22 +1929,22 @@ void TPZAxiSymmetricDarcyFlow::PhaseMobilities()
     fGasMobility[2] = 0.0;
     fGasMobility[3] = 0.0;
     
-//    // Computing fluid mobilities and derivatives for three-phase
-//    
-//    fWaterMobility[0] = waterdensity * krw / waterviscosity;
-//    fWaterMobility[1] = krw*(dwaterdensitydP/waterviscosity) - krw*((waterdensity * dwaterviscositydPw)/(waterviscosity*waterviscosity));
-//    fWaterMobility[2] = dkrwdSw*(waterdensity/waterviscosity);
-//    fWaterMobility[3] = 0.0;
-//    
-//    fOilMobility[0] = oildensity * kro / oilviscosity;
-//    fOilMobility[1] = kro*(doildensitydP/oilviscosity) - kro*((oildensity * doilviscositydPo)/(oilviscosity*oilviscosity));
-//    fOilMobility[2] = 0.0;
-//    fOilMobility[3] = dkrodSo*(oildensity/oilviscosity);
-//    
-//    fGasMobility[0] = gasdensity * krg / gasviscosity;
-//    fGasMobility[1] = krg*(dgasdensitydP/gasviscosity) - krw*((gasdensity * dgasviscositydPg)/(gasviscosity*gasviscosity));
-//    fGasMobility[2] = (dkrgdSg*(-1.0)*(gasdensity/gasviscosity));
-//    fGasMobility[3] = (dkrgdSg*(-1.0)*(gasdensity/gasviscosity));
+    //    // Computing fluid mobilities and derivatives for three-phase
+    //
+    //    fWaterMobility[0] = waterdensity * krw / waterviscosity;
+    //    fWaterMobility[1] = krw*(dwaterdensitydP/waterviscosity) - krw*((waterdensity * dwaterviscositydPw)/(waterviscosity*waterviscosity));
+    //    fWaterMobility[2] = dkrwdSw*(waterdensity/waterviscosity);
+    //    fWaterMobility[3] = 0.0;
+    //
+    //    fOilMobility[0] = oildensity * kro / oilviscosity;
+    //    fOilMobility[1] = kro*(doildensitydP/oilviscosity) - kro*((oildensity * doilviscositydPo)/(oilviscosity*oilviscosity));
+    //    fOilMobility[2] = 0.0;
+    //    fOilMobility[3] = dkrodSo*(oildensity/oilviscosity);
+    //
+    //    fGasMobility[0] = gasdensity * krg / gasviscosity;
+    //    fGasMobility[1] = krg*(dgasdensitydP/gasviscosity) - krw*((gasdensity * dgasviscositydPg)/(gasviscosity*gasviscosity));
+    //    fGasMobility[2] = (dkrgdSg*(-1.0)*(gasdensity/gasviscosity));
+    //    fGasMobility[3] = (dkrgdSg*(-1.0)*(gasdensity/gasviscosity));
     
 }
 

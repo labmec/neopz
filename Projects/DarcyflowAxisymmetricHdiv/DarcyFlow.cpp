@@ -52,7 +52,7 @@ void LinearTracer()
     REAL day        = hour * 24;
     REAL dt         = 2.0*day;
     REAL maxtime    = 200.0*day;
-    REAL t0	    = 0.0*day;
+    REAL t0         = 0.0*day;
     REAL TolDeltaX  = 1.0*1e-5;
     REAL TolRes     = 1.0*1e-5;
     

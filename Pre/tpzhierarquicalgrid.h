@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2014  <copyright holder> <email>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ <one line to give the program's name and a brief idea of what it does.>
+ Copyright (C) 2014  <copyright holder> <email>
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef TPZHIERARQUICALGRID_H
@@ -30,24 +30,44 @@ class TPZGeoMesh;
 
 class TPZHierarquicalGrid
 {
-
+    
 public:
-TPZHierarquicalGrid();
-TPZHierarquicalGrid(TPZGeoMesh *Geomesh);
-TPZHierarquicalGrid(const TPZHierarquicalGrid& other);
-virtual ~TPZHierarquicalGrid();
-virtual TPZHierarquicalGrid& operator=(const TPZHierarquicalGrid& other);
-virtual bool operator==(const TPZHierarquicalGrid& other) const;
-
+    TPZHierarquicalGrid();
+    TPZHierarquicalGrid(TPZGeoMesh *Geomesh);
+    TPZHierarquicalGrid(const TPZHierarquicalGrid& other);
+    virtual ~TPZHierarquicalGrid();
+    virtual TPZHierarquicalGrid& operator=(const TPZHierarquicalGrid& other);
+    virtual bool operator==(const TPZHierarquicalGrid& other) const;
+    
     /**
      * @brief Thickness of the mesh (+  or -)
      */
     REAL fThickness;
     
     /**
+     * @brief 2d extrusion is based on quadrilaterals
+     */
+    bool fIsQuad;
+    
+    /**
+     * @brief Extrusion front material id
+     */
+    int ffrontMatID;
+    
+    /**
+     * @brief Extrusion back material id
+     */
+    int fbackMatID;
+    
+    /**
      * @brief Name of the fine mesh to be extended
      */
     std::string fFileName;
+    
+    /**
+     * @brief A geometric mesh being computed
+     */
+    TPZGeoMesh * fComputedGeomesh;
     
     /**
      * @brief A geometric mesh generated from other sources
@@ -65,8 +85,8 @@ virtual bool operator==(const TPZHierarquicalGrid& other) const;
     /**
      * @brief Prints the generated mesh
      */
-    void PrintGeneratedMesh(std::ostream &out = std::cout);    
-
+    void PrintGeneratedMesh(std::ostream &out = std::cout);
+    
     // Set Get Methods
     
     void SetParametricFunction(TPZAutoPointer<TPZFunction<REAL> > fp)
@@ -76,7 +96,13 @@ virtual bool operator==(const TPZHierarquicalGrid& other) const;
     
     TPZGeoMesh * ComputeExtrusion(REAL t, REAL dt, int n);
     
-    void CreateGeometricElement(int n, int iel, int eldim, int elmatid, int &elid, TPZGeoMesh * ngmesh);
+    void SetFrontBackMatId(int front, int back) {ffrontMatID = front; fbackMatID = back;}
+    
+    void SetTriangleExtrusion() {fIsQuad = false;}
+    
+    void SetGridFileName(std::string &FileName) {fFileName = FileName;}
+    
+    void CreateGeometricElement(int n, int iel, int eldim, int elmatid, int &elid);
     
 };
 

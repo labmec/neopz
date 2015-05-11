@@ -49,11 +49,11 @@ private:
     TPZManVector<REAL,4> fWaterPressure;
     TPZManVector<REAL,4> fOilPressure;
     TPZManVector<REAL,4> fGasPressure;
-
+    
     TPZManVector<REAL,4> fWaterDensity;
     TPZManVector<REAL,4> fOilDensity;
     TPZManVector<REAL,4> fGasDensity;
-
+    
     TPZManVector<REAL,4> flWater;
     TPZManVector<REAL,4> flOil;
     TPZManVector<REAL,4> flGas;
@@ -61,11 +61,11 @@ private:
     TPZManVector<REAL,4> fFWater;
     TPZManVector<REAL,4> fFOil;
     TPZManVector<REAL,4> fFGas;
-
+    
     TPZManVector<REAL,4> fWaterMobility;
     TPZManVector<REAL,4> fOilMobility;
     TPZManVector<REAL,4> fGasMobility;
-
+    
     TPZManVector<REAL,4> fTotalMobility;
     TPZManVector<REAL,4> fTotalDensity;
     
@@ -136,8 +136,8 @@ public:
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){DebugStop();}
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){DebugStop();}
     virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){DebugStop();}
-     virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc){DebugStop();}
-     virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){DebugStop();}
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc){DebugStop();}
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){DebugStop();}
     
     
     // Contribute Methods being used
@@ -182,7 +182,7 @@ public:
      * @since April 16, 2007
      */
     virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-
+    
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
      * @param data[in] stores all input data
