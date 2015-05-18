@@ -84,7 +84,17 @@ void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform
 		dim =  geoel->Dimension();
         if (dim == dimmf) {
             TPZTransform tr(dim);
-            trVec[i] = gelmf->BuildTransform2(side, geoel, tr);
+            TPZGeoElSide gelside(geoel,geoel->NSides()-1);
+            TPZGeoElSide gelmfside(gelmf,side);
+            if (gelside.NeighbourExists(gelmfside))
+            {
+                trVec[i] = tr;
+                gelmfside.SideTransform3(gelside, trVec[i]);
+            }
+            else
+            {
+                trVec[i] = gelmf->BuildTransform2(side, geoel, tr);
+            }
         }
         else
         {

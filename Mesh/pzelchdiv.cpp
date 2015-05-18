@@ -790,6 +790,36 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 }
 
 
+/**
+ * @brief It returns the normal orientation of the reference element by the side.
+ * Only side that has dimension larger than zero and smaller than me.
+ * @param side: side of the reference elemen
+ */
+template<class TSHAPE>
+int TPZCompElHDiv<TSHAPE>::GetSideOrient(int side){
+    
+    int firstside = TSHAPE::NSides-TSHAPE::NFaces-1;
+    if (side < firstside || side >= TSHAPE::NSides - 1) {
+        DebugStop();
+    }
+    return fSideOrient[side-firstside];
+}
+
+/**
+ * @brief It set the normal orientation of the element by the side.
+ * Only side that has dimension equal to my dimension minus one.
+ * @param side: side of the reference elemen
+ */
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::SetSideOrient(int side, int sideorient){
+    
+    int firstside = TSHAPE::NSides-TSHAPE::NFaces-1;
+    if (side < firstside || side >= TSHAPE::NSides - 1) {
+        DebugStop();
+    }
+    fSideOrient[side-firstside] = sideorient;
+}
+
 //compute the values of the shape function of the side
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {

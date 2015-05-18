@@ -93,6 +93,9 @@ public:
 	
 	/** @brief Returns the max order of interpolation. */
 	virtual int MaxOrder();
+    
+    /** @brief Adjust the integration rule according to the polynomial order of shape functions. */
+    virtual void AdjustIntegrationRule();
 	
 	/** 
 	 * @brief Computes the shape function set at the point x. 
@@ -296,10 +299,17 @@ public:
     
     /**
      * @brief It returns the normal orientation of the reference element by the side.
-     * Only side that has dimention larger than zero and smaller than me.
+     * Only side that has dimension larger than zero and smaller than me.
      * @param side: side of the reference elemen
      */
-    int GetSideOrient(int side);
+    virtual int GetSideOrient(int side);
+    
+    /**
+     * @brief It set the normal orientation of the element by the side.
+     * Only side that has dimension equal to my dimension minus one.
+     * @param side: side of the reference elemen
+     */
+    virtual void SetSideOrient(int side, int sideorient);
 	
 public:
 	

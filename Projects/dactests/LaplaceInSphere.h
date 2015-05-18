@@ -160,8 +160,11 @@ public:
     // theta (0,pi) angulo que se inicia no polo norte. phi (0,2pi) o angulo no plano xy
     TPZVec<REAL> SphereToKartesian(REAL r, REAL theta, REAL phi);
     TPZVec<REAL> SphereToKartesian(TPZManVector<REAL> xc, REAL r, REAL theta, REAL phi);
+    TPZManVector<STATE,3> ParametricSphere(REAL radius, REAL phi,REAL theta);
+    
 
     TPZGeoMesh *GMeshSphericalShell(int dimensao, bool triang, int ndiv);
+    TPZGeoMesh *MakeSphereFromQuadrilateral(int dimensao, bool triang, int ndiv);
     TPZGeoMesh *GMeshSphericalShellBlendQ(int dimensao, bool triang, int ndiv);
     
     TPZGeoMesh *GMeshSphericalShell2(int dimensao, bool triang, int ndiv);
@@ -177,6 +180,9 @@ public:
     TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim);
     TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim);
     TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec);
+    
+    void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
+    void SetupDisconnectedHdivboud(const int left,const int rigth, TPZCompMesh * cmesh);
     
     //solucao exata
     static void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux);

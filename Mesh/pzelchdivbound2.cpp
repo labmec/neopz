@@ -201,16 +201,21 @@ MElementType TPZCompElHDivBound2<TSHAPE>::Type() {
 
 // NAO TESTADO
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::SetSideOrient(int sideorient)
+void TPZCompElHDivBound2<TSHAPE>::SetSideOrient(int side, int sideorient)
 {
-    //fSideOrient = this->Reference()->NormalOrientation(side);
+    if (side != TSHAPE::NSides - 1) {
+        DebugStop();
+    }
     fSideOrient = sideorient;
 }
 
 // NAO TESTADO
 template<class TSHAPE>
-int TPZCompElHDivBound2<TSHAPE>::GetSideOrient( )
+int TPZCompElHDivBound2<TSHAPE>::GetSideOrient(int side)
 {
+    if (side != TSHAPE::NSides - 1) {
+        DebugStop();
+    }
     return fSideOrient;
 }
 

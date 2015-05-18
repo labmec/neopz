@@ -108,6 +108,20 @@ public:
 	
 	virtual long ConnectIndex(int con) const;
     
+    /**
+     * @brief It returns the normal orientation of the reference element by the side.
+     * Only side that has dimension larger than zero and smaller than me.
+     * @param side: side of the reference elemen
+     */
+    virtual int GetSideOrient(int side);
+    
+    /**
+     * @brief It set the normal orientation of the element by the side.
+     * Only side that has dimension equal to my dimension minus one.
+     * @param side: side of the reference elemen
+     */
+    virtual void SetSideOrient(int side, int sideorient);
+    
 	
 	virtual void SetIntegrationRule(int ord);
 	

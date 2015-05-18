@@ -287,6 +287,9 @@ void TPZMatMixedPoisson3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL w
     {
         v2 = bc.Val2()(0,0);
     }
+    
+    
+
     switch (bc.Type()) {
         case 0 :		// Dirichlet condition
             //primeira equacao
@@ -383,8 +386,6 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     Solout.Resize( this->NSolutionVariables(var));
     
     TPZVec<STATE> SolP, SolQ;
-    
-    
 
     // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];

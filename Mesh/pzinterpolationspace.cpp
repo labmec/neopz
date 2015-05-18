@@ -62,6 +62,24 @@ int TPZInterpolationSpace::MaxOrder(){
 	return result;
 }
 
+/** @brief Adjust the integration rule according to the polynomial order of shape functions. */
+void TPZInterpolationSpace::AdjustIntegrationRule()
+{
+    int order = MaxOrder();
+    int integrationruleorder = 0;
+    TPZMaterial * mat = this->Material();
+    if (mat) {
+        integrationruleorder = mat->IntegrationRuleOrder(order);
+    }else
+    {
+        integrationruleorder = order + order;
+    }
+    TPZManVector<int,3> vecorder(3,integrationruleorder);
+    GetIntegrationRule().SetOrder(vecorder);
+    
+}
+
+
 void TPZInterpolationSpace::Print(std::ostream &out) const {
     out << __PRETTY_FUNCTION__ << std::endl;
     TPZCompEl::Print(out);
@@ -1578,6 +1596,16 @@ int TPZInterpolationSpace::GetSideOrient(int side){
     int sideorient = gel->NormalOrientation(side);
     return sideorient;
 }
+
+/**
+ * @brief It set the normal orientation of the element by the side.
+ * Only side that has dimension equal to my dimension minus one.
+ * @param side: side of the reference elemen
+ */
+void TPZInterpolationSpace::SetSideOrient(int side, int sideorient){
+    DebugStop();
+}
+
 
 /** Read the element data from a stream */
 void TPZInterpolationSpace::Read(TPZStream &buf, void *context)

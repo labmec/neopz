@@ -59,6 +59,8 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
                 // if the geometric element has a reference, it is an obvious candidate
                 if (gel->Reference()) {
                     celstack.Push(gelside.Reference());
+                    mfcel->AddElement(gel->Reference(), imesh);
+                    continue;
                 }
                 // put all large and small elements on the stack
                 gelside.ConnectedCompElementList(celstack, 0, 0);
@@ -769,7 +771,7 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
                 bound = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(* intel->Mesh(),gelbound,index);
                 int sideorient = intel->GetSideOrient(side);
                 TPZCompElHDivBound2<pzshape::TPZShapeLinear> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeLinear> *>(bound);
-                hdivbound->SetSideOrient(sideorient);
+                hdivbound->SetSideOrient(pzshape::TPZShapeLinear::NSides-1,sideorient);
                 break;
             }
             case(ETriangle)://triangle
@@ -777,7 +779,7 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
                 bound = new TPZCompElHDivBound2<pzshape::TPZShapeTriang>(* intel->Mesh(),gelbound,index);
                 int sideorient = intel->GetSideOrient(side);
                 TPZCompElHDivBound2<pzshape::TPZShapeTriang> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeTriang> *>(bound);
-                hdivbound->SetSideOrient(sideorient);
+                hdivbound->SetSideOrient(pzshape::TPZShapeTriang::NSides-1,sideorient);
                 break;
             }
             case(EQuadrilateral)://quadrilateral
@@ -785,7 +787,7 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
                 bound = new TPZCompElHDivBound2<pzshape::TPZShapeQuad>(* intel->Mesh(),gelbound,index);
                 int sideorient = intel->GetSideOrient(side);
                 TPZCompElHDivBound2<pzshape::TPZShapeQuad> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeQuad> *>(bound);
-                hdivbound->SetSideOrient(sideorient);
+                hdivbound->SetSideOrient(pzshape::TPZShapeQuad::NSides-1,sideorient);
                 break;
             }
                 

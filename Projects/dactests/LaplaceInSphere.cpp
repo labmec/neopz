@@ -10,6 +10,7 @@
 #include "tools.h"
 
 //#define TROPICO
+#define CompleteShpere
 
 LaplaceInSphere::LaplaceInSphere()
 {
@@ -53,7 +54,8 @@ void LaplaceInSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     TPZGeoMesh *gmesh = GMeshCirculoPolarArtico(ndiv, CurvesSides, false, 1);
 #else
     //TPZGeoMesh *gmesh = GMeshSphericalShell(ndiv);
-    TPZGeoMesh *gmesh = GMeshOitavoCasca( ndiv);
+    //TPZGeoMesh *gmesh = GMeshOitavoCasca( ndiv);
+    TPZGeoMesh *gmesh = MakeSphereFromQuadrilateral(2, false, ndiv);
     //TPZGeoMesh *gmesh = GMeshSphericalRingQuarter(2, false, ndiv);
     //TPZGeoMesh *gmesh = GMeshSphericalShell(2, true, ndiv);
     //TPZGeoMesh *gmesh = GMeshSphericalShell(2,false, ndiv);
@@ -129,6 +131,13 @@ void LaplaceInSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     meshvec[1] = cmesh2;
     
     TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
+    
+    std::ofstream sout("FluxcmeshFinal.txt");
+    meshvec[0]->Print(sout);
+    
+    
+    std::ofstream sout2("cmeshmphysics.txt");
+    mphysics->Print(sout2);
     
     DofCond = mphysics->NEquations();
     
@@ -1253,6 +1262,163 @@ TPZVec<REAL> LaplaceInSphere::SphereToKartesian(TPZManVector<REAL> xc, REAL r, R
     xyz[1] = xc[1] + r*sin(theta)*sin(phi);
     xyz[2] = xc[2] + r*cos(theta);
     return xyz;
+}
+
+TPZGeoMesh *LaplaceInSphere::MakeSphereFromQuadrilateral(int dimensao, bool triang, int ndiv)
+{
+    TPZGeoMesh * geomesh = new TPZGeoMesh;
+    
+    int nodes =  8;
+    REAL radius = 1.0;
+    geomesh->SetMaxNodeId(nodes-1);
+    geomesh->NodeVec().Resize(nodes);
+    TPZManVector<TPZGeoNode,4> Node(nodes);
+    
+    TPZManVector<long,2> TopolQuad(4);
+    TPZManVector<long,1> TopolPoint(1);
+    TPZManVector<long,2> TopolLine(2);
+    TPZManVector<REAL,3> coord(3,0.);
+    TPZVec<REAL> xc(3,0.);
+    
+    REAL cphi = atan(sqrt(2.0));
+    
+    int nodeindex = 0;
+    
+    coord = ParametricSphere(radius,M_PI-cphi,M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    coord = ParametricSphere(radius,cphi,M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    coord = ParametricSphere(radius,cphi,-M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    coord = ParametricSphere(radius,M_PI-cphi,-M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    
+    coord = ParametricSphere(radius,M_PI-cphi,3.0*M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    coord = ParametricSphere(radius,cphi,3.0*M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    coord = ParametricSphere(radius,cphi,-3.0*M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    coord = ParametricSphere(radius,M_PI-cphi,-3.0*M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    
+    int id = 0;
+    int matid = 1;
+    
+    TopolQuad[0] = 0;
+    TopolQuad[1] = 1;
+    TopolQuad[2] = 2;
+    TopolQuad[3] = 3;
+    TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad1 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
+    quad1->Geom().SetData(radius, xc);
+    id++;
+    
+    TopolQuad[0] = 4;
+    TopolQuad[1] = 5;
+    TopolQuad[2] = 6;
+    TopolQuad[3] = 7;
+    TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad2 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
+    quad2->Geom().SetData(radius, xc);
+    id++;
+    
+    TopolQuad[0] = 0;
+    TopolQuad[1] = 4;
+    TopolQuad[2] = 5;
+    TopolQuad[3] = 1;
+    TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad3 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
+    quad3->Geom().SetData(radius, xc);
+    id++;
+    
+    TopolQuad[0] = 3;
+    TopolQuad[1] = 7;
+    TopolQuad[2] = 6;
+    TopolQuad[3] = 2;
+    TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad4 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
+    quad4->Geom().SetData(radius, xc);
+    id++;
+    
+    TopolQuad[0] = 0;
+    TopolQuad[1] = 4;
+    TopolQuad[2] = 7;
+    TopolQuad[3] = 3;
+    TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad5 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
+    quad5->Geom().SetData(radius, xc);
+    id++;
+    
+    TopolQuad[0] = 1;
+    TopolQuad[1] = 5;
+    TopolQuad[2] = 6;
+    TopolQuad[3] = 2;
+    TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad6 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
+    quad6->Geom().SetData(radius, xc);
+    id++;
+    
+    TopolLine[0] = 0;
+    TopolLine[1] = 4;
+    new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,TopolLine, fbc0, *geomesh);
+    id++;
+    
+    TopolLine[0] = 0;
+    TopolLine[1] = 4;
+    new TPZGeoElRefPattern < pzgeom::TPZGeoBlend<pzgeom::TPZGeoLinear> > (id,TopolLine, fbc1, *geomesh);
+    id++;
+    
+    geomesh->BuildConnectivity();
+    
+    TPZVec<TPZGeoEl *> sons;
+    const int nref = ndiv;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = geomesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = geomesh->ElementVec()[iel];
+            if(!gel->HasSubElement())
+            {
+                gel->Divide(sons);
+            }
+        }
+    }
+    
+    int axis = 1;
+    REAL angle = -45.0;
+    this->RotateGeomesh(geomesh, angle, axis);
+    
+    std::ofstream outfile("NiceSphere.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
+    
+    return geomesh;
+}
+
+TPZManVector<STATE,3> LaplaceInSphere::ParametricSphere(REAL radius,REAL phi,REAL theta)
+{
+    TPZManVector<STATE,3> xcoor(3,0.0);
+    xcoor[0] = radius * cos(theta) * sin(phi);
+    xcoor[1] = radius * sin(theta) * sin(phi);
+    xcoor[2] = radius * cos(phi) ;
+    return xcoor;
 }
 
 // um anel de quadrilateros e topo que pode ser quadilatero ou triangulo
@@ -2736,6 +2902,48 @@ void LaplaceInSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZF
     REAL x = pt[0];
     REAL y = pt[1];
     REAL z = pt[2];
+    
+    
+#ifdef CompleteShpere
+    
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = acos(z/r);
+    REAL phi = atan2(y,x);
+
+    REAL costheta = cos(theta);
+    REAL sintheta = sin(theta);
+    REAL sin2theta = sin(2.0*theta);
+    
+
+    
+    REAL sinphi = sin(phi);
+    REAL cosphi = cos(phi);
+    REAL sin2phi = sin(2.0*phi);
+    
+    REAL oneminuscosphicosphi = (1.0-cosphi*cosphi);
+    solp[0] = sintheta*sintheta*cosphi;
+    
+    // Gradient computations
+    REAL Phiunitx = cosphi*costheta;
+    REAL Phiunity = cosphi*sintheta;
+    REAL Phiunitz = -sinphi;
+
+    REAL Thetaunitx = -sintheta;
+    REAL Thetaunity = costheta;
+    REAL Thetaunitz = 0.0;
+    
+    REAL dfdTheta   = (1.0/r)*sin2theta*cosphi;
+    REAL dfdPhi     = (-1.0/r)*sintheta*sinphi;
+
+    flux(0,0) = -1.0*(dfdTheta * Thetaunitx + dfdPhi * Phiunitx);
+    flux(1,0) = -1.0*(dfdTheta * Thetaunity + dfdPhi * Phiunity);
+    flux(2,0) = -1.0*(dfdTheta * Thetaunitz + dfdPhi * Phiunitz);
+    
+
+    
+    return;
+
+#else
  
     // sobre a casca da esfera -- conferir o raio aqui usado com o da malha geometrica
 
@@ -2771,6 +2979,8 @@ void LaplaceInSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZF
     flux(1,0)= ( cos(theta)*sin(phi) )/r;
     flux(2,0)= -( sin(theta) )/r;
 #endif
+    
+#endif
 }
 
 void LaplaceInSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
@@ -2780,7 +2990,22 @@ void LaplaceInSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     x = pt[0];
     y = pt[1];
     z = pt[2];
+    
+#ifdef CompleteShpere
+    
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = acos(z/r);
+    REAL phi = atan2(y,x);
 
+    REAL cosphi = cos(phi);
+    REAL cos2theta = cos(2.0*theta);
+    
+    ff[0] = -(1/(r*r))*(3.0*cos2theta*cosphi);
+//    ff[0] = -(1/(2.0*r*r))*(1.0+3.0*cos2theta+6.0*cos2phi+sintheta*sintheta);
+
+    return;
+    
+#else
     REAL r = sqrt(x*x+y*y+z*z);
     REAL theta = atan2(sqrt(x*x+y*y),z);
 //    REAL phi = atan2(y,x);
@@ -2795,6 +3020,8 @@ void LaplaceInSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     //ff[0] = -1.0;
     
     //ff[0] = 0.0;
+    
+#endif
 }
 
 void LaplaceInSphere::ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff, TPZFMatrix<STATE> &flux)
@@ -2961,16 +3188,29 @@ void LaplaceInSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     REAL y = pt[1];
     REAL z = pt[2];
     
-    // sobre a casca da esfera -- conferir o raio aqui usado com o da malha geometrica
     
-//    REAL r = sqrt(x*x+y*y+z*z);
-    REAL theta = atan2(sqrt(x*x+y*y),z);
-//    REAL phi = atan2(y,x);
-//    REAL cot = 1.0/tan(theta);
-    REAL a = M_PI;
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = acos(z/r);
+    REAL phi = atan2(y,x);
+    REAL sintheta = sin(theta);
     
-    solp[0] = (a-theta)*sin(theta)*sin(theta);
-    solp[0] = 0.0;
+    
+    
+    REAL cosphi = cos(phi);
+    
+    REAL oneminuscosphicosphi = (1.0-cosphi*cosphi);
+    solp[0] = sintheta*sintheta*cosphi;
+    
+//    // sobre a casca da esfera -- conferir o raio aqui usado com o da malha geometrica
+//    
+////    REAL r = sqrt(x*x+y*y+z*z);
+//    REAL theta = atan2(sqrt(x*x+y*y),z);
+////    REAL phi = atan2(y,x);
+////    REAL cot = 1.0/tan(theta);
+//    REAL a = M_PI;
+//    
+//    solp[0] = (a-theta)*sin(theta)*sin(theta);
+//    solp[0] = 0.0;
 }
 
 
@@ -3093,31 +3333,36 @@ TPZCompMesh *LaplaceInSphere::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim)
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     TPZMaterial * BCond0;
     TPZMaterial * BCond1;
-    TPZMaterial * BCond2;
-    TPZMaterial * BCond3;
-    TPZMaterial * BCond4;
-    TPZMaterial * BCond5;
+//    TPZMaterial * BCond2;
+//    TPZMaterial * BCond3;
+//    TPZMaterial * BCond4;
+//    TPZMaterial * BCond5;
     
-    if( dim == 3 ) { BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);}
-    BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);
-    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
-    BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
-    BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
-    if( dim == 3 ) { BCond5 = material->CreateBC(mat, fbc5,fdirichlet, val1, val2);}
+//    if( dim == 3 ) { BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);}
+//    BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);
+//    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
+//    BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
+//    BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
+//    if( dim == 3 ) { BCond5 = material->CreateBC(mat, fbc5,fdirichlet, val1, val2);}
+    
+
     
     cmesh->InsertMaterialObject(mat);
-    
     cmesh->SetDimModel(dim);
-    
     cmesh->SetAllCreateFunctionsHDiv();
     
-    
-    if( dim == 3 ) { cmesh->InsertMaterialObject(BCond0); }
+    BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);
+    BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);
+    cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond2);
-    cmesh->InsertMaterialObject(BCond3);
-    cmesh->InsertMaterialObject(BCond4);
-    if( dim == 3 ) { cmesh->InsertMaterialObject(BCond5); }
+    
+    
+//    if( dim == 3 ) { cmesh->InsertMaterialObject(BCond0); }
+//    cmesh->InsertMaterialObject(BCond1);
+//    cmesh->InsertMaterialObject(BCond2);
+//    cmesh->InsertMaterialObject(BCond3);
+//    cmesh->InsertMaterialObject(BCond4);
+//    if( dim == 3 ) { cmesh->InsertMaterialObject(BCond5); }
     
     cmesh->SetDefaultOrder(pOrder);
     
@@ -3144,8 +3389,78 @@ TPZCompMesh *LaplaceInSphere::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim)
     //	}
     //#endif
     
+    
+    this->SetupDisconnectedHdivboud(fbc0,fbc1,cmesh);
+    
+    std::ofstream sout("Fluxcmesh.txt");
+    cmesh->Print(sout);
+    
+    
+    
     return cmesh;
     
+}
+
+void LaplaceInSphere::SetupDisconnectedHdivboud(const int left,const int rigth, TPZCompMesh * cmesh)
+{
+    
+    long ncels = cmesh->NElements();
+    for (long icel = 0; icel < ncels; icel++) {
+        TPZCompEl * cel = cmesh->Element(icel);
+        if (!cel) {
+            DebugStop();
+        }
+        
+        if (cel->Dimension() != 1) {
+            continue;
+        }
+        
+        if (cel->Reference()->MaterialId() == fbc0)
+        {
+            TPZConnect & connect = cel->Connect(0);
+            long newindex = cmesh->AllocateNewConnect(connect);
+            TPZGeoEl * gel = cel->Reference();
+            if (!gel) {
+                DebugStop();
+            }
+            
+            TPZGeoElSide gelside(gel,gel->NSides()-1);
+            
+            TPZStack<TPZCompElSide > celstack;
+            gelside.EqualLevelCompElementList(celstack, 1, 0);
+            
+            long sz = celstack.size();
+            if (sz == 0) {
+                DebugStop();
+            }
+            
+            for (long iside=0; iside < sz; iside++) {
+                TPZCompElSide cels = celstack[iside];
+                
+                if(cels.Element()->Dimension() == 2)
+                {
+                    TPZInterpolationSpace * InterpElside = dynamic_cast<TPZInterpolationSpace *>(cels.Element());
+                    int nsideconnects = InterpElside->NSideConnects(cels.Side());
+                    if(nsideconnects != 1 )
+                    {
+                        DebugStop();
+                    }
+                    int localindex = InterpElside->SideConnectLocId(0, cels.Side());
+                    InterpElside->SetConnectIndex(localindex, newindex);
+                    int orientside = InterpElside->GetSideOrient(cels.Side());
+                    InterpElside->SetSideOrient(cels.Side(),-1*orientside);
+                    
+                    cel->SetConnectIndex(0, newindex);
+                    TPZInterpolationSpace * celbound  = dynamic_cast<TPZInterpolationSpace *>(cel);
+                    celbound->SetSideOrient(2, -1*orientside);
+                    cmesh->ExpandSolution();
+//                    cmesh->CleanUpUnconnectedNodes();
+                    break;
+                }
+            }
+        }
+    }
+
 }
 
 TPZCompMesh *LaplaceInSphere::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int dim)
@@ -3172,7 +3487,7 @@ TPZCompMesh *LaplaceInSphere::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int d
     //    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     //    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
     //    TPZMaterial * BCond4 = material->CreateBC(mat, bc4,dirichlet, val1, val2);
-    //    TPZMaterial * BCond5 = material->CreateBC(mat, bc5,dirichlet, val1, val2);
+    //    TPZMaterial * BCond5 = material->CreateBC(mat,fbc5,10, val1, val2);
     //
     //    cmesh->InsertMaterialObject(BCond0);
     //    cmesh->InsertMaterialObject(BCond1);
@@ -3300,7 +3615,7 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     //funcao do lado direito da equacao do problema
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(10);
+    dum->SetPolynomialOrder(20);
     forcef = dum;
     material->SetForcingFunction(forcef);
     
@@ -3312,78 +3627,80 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     //Criando condicoes de contorno
     TPZMaterial * BCond0;
     TPZMaterial * BCond1;
-    TPZMaterial * BCond2;
-    TPZMaterial * BCond3;
-    TPZMaterial * BCond4;
-    TPZMaterial * BCond5;
+//    TPZMaterial * BCond2;
+//    TPZMaterial * BCond3;
+//    TPZMaterial * BCond4;
+//    TPZMaterial * BCond5;
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    if (dim==3)
-    {
-        val2(0,0) = 0.0;
-        val2(1,0) = 0.0;
-        TPZAutoPointer<TPZFunction<STATE> > FBCond0 = new TPZDummyFunction<STATE>(ForcingBC0D);
-        BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);
-        BCond0->SetForcingFunction(FBCond0);
-    }
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZDummyFunction<STATE> * FBCond0D = new TPZDummyFunction<STATE>(ForcingBC5D);
+    FBCond0D->SetPolynomialOrder(10);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond0 = FBCond0D;
+    BCond0 = material->CreateBC(mat, fbc0,fdirichlet, val1, val2);
+    BCond0->SetForcingFunction(FBCond0);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC1D);
+    TPZAutoPointer<TPZFunction<STATE> > FBCond1 = new TPZDummyFunction<STATE>(ForcingBC5D);
     BCond1 = material->CreateBC(mat, fbc1,fdirichlet, val1, val2);
-    BCond1->SetForcingFunction(FBCond1);
-    //    BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
+    BCond1->SetForcingFunction(FBCond0);
     
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
-    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
-    BCond2->SetForcingFunction(FBCond2);
-//    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
-//    BCond2 = material->CreateBC(mat, fbc2,fneumann, val1, val2);
+    mphysics->InsertMaterialObject(BCond0);
+    mphysics->InsertMaterialObject(BCond1);
+
+    
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
+//    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
 //    BCond2->SetForcingFunction(FBCond2);
-    
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D);
-    BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
-    BCond3->SetForcingFunction(FBCond3);
-//    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3N);
-//    BCond3 = material->CreateBC(mat, fbc3,fneumann, val1, val2);
+////    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
+////    BCond2 = material->CreateBC(mat, fbc2,fneumann, val1, val2);
+////    BCond2->SetForcingFunction(FBCond2);
+//    
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D);
+//    BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
 //    BCond3->SetForcingFunction(FBCond3);
-    
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D);
-    BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
-    BCond4->SetForcingFunction(FBCond4);
-//    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N);
-//    BCond4 = material->CreateBC(mat, fbc4,fneumann, val1, val2);
+////    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3N);
+////    BCond3 = material->CreateBC(mat, fbc3,fneumann, val1, val2);
+////    BCond3->SetForcingFunction(FBCond3);
+//    
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D);
+//    BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
 //    BCond4->SetForcingFunction(FBCond4);
+////    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N);
+////    BCond4 = material->CreateBC(mat, fbc4,fneumann, val1, val2);
+////    BCond4->SetForcingFunction(FBCond4);
+//    
+//    if (dim==3)
+//    {
+//        val2(0,0) = 0.0;
+//        val2(1,0) = 0.0;
+//        TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5D);
+//        BCond5 = material->CreateBC(mat, fbc5,10, val1, val2);
+//        BCond5->SetForcingFunction(FBCond5);
+//    }
     
-    if (dim==3)
-    {
-        val2(0,0) = 0.0;
-        val2(1,0) = 0.0;
-        TPZAutoPointer<TPZFunction<STATE> > FBCond5 = new TPZDummyFunction<STATE>(ForcingBC5D);
-        BCond5 = material->CreateBC(mat, fbc5,fdirichlet, val1, val2);
-        BCond5->SetForcingFunction(FBCond5);
-    }
+//    if( dim == 3 ) { mphysics->InsertMaterialObject(BCond0); }
+//    mphysics->InsertMaterialObject(BCond0);
+//    mphysics->InsertMaterialObject(BCond1);
+//    mphysics->InsertMaterialObject(BCond3);
+//    mphysics->InsertMaterialObject(BCond4);
+//    if( dim == 3 ) { mphysics->InsertMaterialObject(BCond5); }
     
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
-    if( dim == 3 ) { mphysics->InsertMaterialObject(BCond0); }
-    mphysics->InsertMaterialObject(BCond1);
-    mphysics->InsertMaterialObject(BCond2);
-    mphysics->InsertMaterialObject(BCond3);
-    mphysics->InsertMaterialObject(BCond4);
-    if( dim == 3 ) { mphysics->InsertMaterialObject(BCond5); }
     
     //Fazendo auto build
     mphysics->AutoBuild();
     mphysics->AdjustBoundaryElements();
     mphysics->CleanUpUnconnectedNodes();
-    
     
     if (condensacaoestatica) {
         //Creating multiphysic elements containing skeletal elements.
@@ -3475,6 +3792,7 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
                     break;
                 }
             }
+            
             TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
         }
         
@@ -3505,19 +3823,21 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
         meshvec[0]->CleanUpUnconnectedNodes();
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-        
-        //------- Create and add group elements -------
-        long index, nenvel;
-        nenvel = wrapEl.NElements();
-        for(int ienv=0; ienv<nenvel; ienv++){
-            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
-            nel = wrapEl[ienv].NElements();
-            for(int jel=0; jel<nel; jel++){
-                elgr->AddElement(wrapEl[ienv][jel]);
-            }
-        }
+
+//        //------- Create and add group elements -------
+//        long index, nenvel;
+//        nenvel = wrapEl.NElements();
+//        for(int ienv=0; ienv<nenvel; ienv++){
+//            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
+//            nel = wrapEl[ienv].NElements();
+//            for(int jel=0; jel<nel; jel++){
+//                elgr->AddElement(wrapEl[ienv][jel]);
+//            }
+//        }
         
     }
+
+    
     
     mphysics->ComputeNodElCon();
     mphysics->CleanUpUnconnectedNodes();
@@ -3661,6 +3981,72 @@ void LaplaceInSphere::ChangeExternalOrderConnects(TPZCompMesh *mesh){
     mesh->CleanUpUnconnectedNodes();
 }
 
+
+
+void LaplaceInSphere::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
+{
+    REAL theta =  (M_PI/180.0)*CounterClockwiseAngle;
+    // It represents a 3D rotation around the z axis.
+    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+    
+    switch (Axis) {
+        case 1:
+        {
+            RotationMatrix(0,0) = 1.0;
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(1,2) =   -sin(theta);
+            RotationMatrix(2,1) =   +sin(theta);
+            RotationMatrix(2,2) =   +cos(theta);
+        }
+            break;
+        case 2:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,2) =   +sin(theta);
+            RotationMatrix(1,1) = 1.0;
+            RotationMatrix(2,0) =   -sin(theta);
+            RotationMatrix(2,2) =   +cos(theta);
+        }
+            break;
+        case 3:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,1) =   -sin(theta);
+            RotationMatrix(1,0) =   +sin(theta);
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(2,2) = 1.0;
+        }
+            break;
+        default:
+        {
+            RotationMatrix(0,0) =   +cos(theta);
+            RotationMatrix(0,1) =   -sin(theta);
+            RotationMatrix(1,0) =   +sin(theta);
+            RotationMatrix(1,1) =   +cos(theta);
+            RotationMatrix(2,2) = 1.0;
+        }
+            break;
+    }
+    
+    TPZVec<STATE> iCoords(3,0.0);
+    TPZVec<STATE> iCoordsRotated(3,0.0);
+    
+    //RotationMatrix.Print("Rotation = ");
+    
+    int NumberofGeoNodes = gmesh->NNodes();
+    for (int inode = 0; inode < NumberofGeoNodes; inode++)
+    {
+        TPZGeoNode GeoNode = gmesh->NodeVec()[inode];
+        GeoNode.GetCoordinates(iCoords);
+        // Apply rotation
+        iCoordsRotated[0] = RotationMatrix(0,0)*iCoords[0]+RotationMatrix(0,1)*iCoords[1]+RotationMatrix(0,2)*iCoords[2];
+        iCoordsRotated[1] = RotationMatrix(1,0)*iCoords[0]+RotationMatrix(1,1)*iCoords[1]+RotationMatrix(1,2)*iCoords[2];
+        iCoordsRotated[2] = RotationMatrix(2,0)*iCoords[0]+RotationMatrix(2,1)*iCoords[1]+RotationMatrix(2,2)*iCoords[2];
+        GeoNode.SetCoord(iCoordsRotated);
+        gmesh->NodeVec()[inode] = GeoNode;
+    }
+    
+}
 
 
 

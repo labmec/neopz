@@ -174,9 +174,9 @@ bool IsPrism = false;
 bool IsTetra = false;
 bool IsPiram = false;
 
-//bool isspheredomain = true, iscircledomain = false, iscylinderdomain = false, isquaddomain = false;
+bool isspheredomain = true, iscircledomain = false, iscylinderdomain = false, isquaddomain = false;
 //bool iscircledomain = true, isspheredomain = false, iscylinderdomain = false, isquaddomain = false;
-bool iscylinderdomain = true, iscircledomain = false, isspheredomain = false, isquaddomain = false;
+//bool iscylinderdomain = true, iscircledomain = false, isspheredomain = false, isquaddomain = false;
 //bool isquaddomain = true, iscircledomain = false, isspheredomain = false, iscylinderdomain = false;
 
 
@@ -200,12 +200,12 @@ int main(int argc, char *argv[])
     HDivPiola = 0;
     ofstream saidaerros("ErroNormas.txt",ios::app);
     
-    for(p=1;p<5;p++)
+    for(p=4;p<5;p++)
     {
         saidaerros << "\nPARA p = " << p << " \n " << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
         
-        for (ndiv=0; ndiv<6; ndiv++)
+        for (ndiv=2; ndiv<3; ndiv++)
         {
             
             if (dim==2)

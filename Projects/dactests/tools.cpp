@@ -126,7 +126,7 @@ void tools::PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mp
     scalnames[1] = "ExactPressure";
     scalnames[2] = "Rhs";
     
-    int div = 0;
+    int div = 2;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
     

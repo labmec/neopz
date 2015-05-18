@@ -1695,8 +1695,8 @@ void TPZDarcyAnalysis::SwitchTipElement(TPZCompEl * cel, TPZCompEl *celpoint, TP
   fcmeshMixed->LoadReferences();
   TPZCompEl *celmpbc = fcmeshMixed->CreateCompEl(gelpoint, index);
   TPZMultiphysicsElement *mcelptnew = dynamic_cast<TPZMultiphysicsElement *>(celmpbc);
-  mcelptnew->AddElement(celpth1, 0);
-  mcelptnew->AddElement(celDiscpt, 1);
+  mcelptnew->AddElement(celpth1,0);
+  mcelptnew->AddElement(celDiscpt,1);
   delete mcelpoint;
   
 }

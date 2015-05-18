@@ -163,8 +163,9 @@ add_subdirectory(proDG)
 			#projeto omar duran 16-12-2012
 			add_subdirectory(PoroElasticAnalysis)
 			add_subdirectory(Poisson2DGID)
-			add_subdirectory(OilWaterSystem)
-			#add_subdirectory(DarcyflowAxisymmetricHdiv)
+			#add_subdirectory(OilWaterSystem)
+			add_subdirectory(DarcyflowAxisymmetricHdiv)
+			add_subdirectory(DarcyflowHdiv3D)
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			add_subdirectory(iRMS)
 			add_subdirectory(Elasticity2D)
