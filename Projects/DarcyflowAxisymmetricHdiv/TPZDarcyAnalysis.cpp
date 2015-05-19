@@ -223,7 +223,7 @@ void TPZDarcyAnalysis::Run()
     }
     else
     {
-        int nx = 2;
+        int nx = 100;
         int ny = 1;
         GeometryLine(nx,ny);
         //        CreatedGeoMesh();
@@ -472,8 +472,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
 {
     
     TPZFMatrix<STATE> Residual(an->Rhs().Rows(),1,0.0);
-    
-    
+
     //    TPZManVector<long> Actives(0),NoActives(0);
     //
     //    this->FilterSaturations(Actives, NoActives);
@@ -481,8 +480,6 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     //    an->StructMatrix()->EquationFilter().SetActiveEquations(Actives);
     
     Residual = fResidualAtn + fResidualAtnplusOne;
-    //    an->Rhs() = Residual;
-    //    this->PrintLS(an);
     
     TPZFMatrix<STATE> X = falphaAtn;
     TPZFMatrix<STATE> DeltaX = falphaAtn;
@@ -498,12 +495,8 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         an->Rhs() = Residual;
         an->Rhs() *= -1.0;
         
-        //        const clock_t tini = clock();
-        
         an->Solve();
-        //        const clock_t tend = clock();
-        //        const REAL time = REAL(REAL(tend - tini)/CLOCKS_PER_SEC);
-        //        std::cout << "Time for solving: " << time << std::endl;
+
         
         DeltaX = an->Solution();
         normdx = Norm(DeltaX);
@@ -515,9 +508,6 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
         }
         
-        
-        //        const clock_t tinia = clock();
-        
         if (((fixed+1) * (centinel) == iterations)) {
             an->Assemble();
             centinel++;
@@ -528,29 +518,23 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         }
         fResidualAtnplusOne = an->Rhs();
         
-        //        const clock_t tenda = clock();
-        //        const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
-        //        std::cout << "Time for assemble: " << timea << std::endl;
-        
         Residual = fResidualAtn + fResidualAtnplusOne;
         error = Norm(Residual);
         iterations++;
         
-        this->PrintLS(an);
-        
-#ifdef DEBUG
-    #ifdef LOG4CXX
-            if(logger->isDebugEnabled())
-            {
-                std::stringstream sout;
-                fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
-                fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
-                DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
-                X.Print("X = ", sout,EMathematicaInput);
-                LOGPZ_DEBUG(logger,sout.str())
-            }
-    #endif
-#endif
+//#ifdef DEBUG
+//    #ifdef LOG4CXX
+//            if(logger->isDebugEnabled())
+//            {
+//                std::stringstream sout;
+//                fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
+//                fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
+//                DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+//                X.Print("X = ", sout,EMathematicaInput);
+//                LOGPZ_DEBUG(logger,sout.str())
+//            }
+//    #endif
+//#endif
         
         if(error < fSimulationData->GetToleranceRes() || normdx < fSimulationData->GetToleranceDX())
         {
@@ -840,7 +824,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     // Bc Left
     val2(0,0) = -0.00001;
-    val2(1,0) = 0.0;
+    val2(1,0) = 1.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
     

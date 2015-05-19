@@ -50,15 +50,15 @@ void PetroPhysicData::Pcgw(REAL Sw, REAL &Pcgw, REAL &dPcgwdSw)
 /** @brief Water Relative permeabilities  $K_{rw}$ */
 void PetroPhysicData::Krw(REAL Sw, REAL &krw, REAL &dkrwdSw)
 {
-    krw = Sw;
-    dkrwdSw = 1.0;
+    krw = Sw*Sw*Sw;
+    dkrwdSw = 3.0*Sw*Sw;
 }
 
 /** @brief Oil Relative permeabilities  $K_{ro}$ */
 void PetroPhysicData::Kro(REAL So, REAL &kro, REAL &dkrodSo)
 {
-    kro = So;
-    dkrodSo = 1.0;
+    kro = So*So*So;
+    dkrodSo = 3.0*So*So;
 }
 
 /** @brief Gas Relative permeabilities  $K_{rg}$ */

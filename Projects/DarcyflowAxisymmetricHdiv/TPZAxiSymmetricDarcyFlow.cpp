@@ -35,9 +35,9 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
     fOilDensity.Resize(4,0.0);
     fGasDensity.Resize(4,0.0);
     
-    flWater.Resize(4,0.0);
-    flOil.Resize(4,0.0);
-    flGas.Resize(4,0.0);
+//    flWater.Resize(4,0.0);
+//    flOil.Resize(4,0.0);
+//    flGas.Resize(4,0.0);
     
     fFWater.Resize(4,0.0);
     fFOil.Resize(4,0.0);
@@ -75,9 +75,9 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(int matid) : TPZDiscontinuous
     fOilDensity.Resize(4,0.0);
     fGasDensity.Resize(4,0.0);
     
-    flWater.Resize(4,0.0);
-    flOil.Resize(4,0.0);
-    flGas.Resize(4,0.0);
+//    flWater.Resize(4,0.0);
+//    flOil.Resize(4,0.0);
+//    flGas.Resize(4,0.0);
     
     fFWater.Resize(4,0.0);
     fFOil.Resize(4,0.0);
@@ -116,9 +116,9 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(const TPZAxiSymmetricDarcyFlo
     fOilDensity         = mat.fOilDensity;
     fGasDensity         = mat.fGasDensity;
     
-    flWater             = mat.flWater;
-    flOil               = mat.flOil;
-    flGas               = mat.flGas;
+//    flWater             = mat.flWater;
+//    flOil               = mat.flOil;
+//    flGas               = mat.flGas;
     
     fFWater             = mat.fFWater;
     fFOil               = mat.fFOil;
@@ -1917,12 +1917,12 @@ void TPZAxiSymmetricDarcyFlow::PhaseMobilities()
     fWaterMobility[0] = waterdensity * krw / waterviscosity;
     fWaterMobility[1] = krw*(dwaterdensitydP/waterviscosity) - krw*((waterdensity * dwaterviscositydPw)/(waterviscosity*waterviscosity));
     fWaterMobility[2] = dkrwdSw*(waterdensity/waterviscosity);
-    fWaterMobility[3] = (-1.0)*dkrwdSw*(waterdensity/waterviscosity);   // here appears the two-phase dependence
+    fWaterMobility[3] = (-0.0)*dkrwdSw*(waterdensity/waterviscosity);   // here appears the two-phase dependence
     
     fOilMobility[0] = oildensity * kro / oilviscosity;
     fOilMobility[1] = kro*(doildensitydP/oilviscosity) - kro*((oildensity * doilviscositydPo)/(oilviscosity*oilviscosity));
     fOilMobility[2] = (-1.0)*dkrodSo*(oildensity/oilviscosity);         // here appears the two-phase dependence
-    fOilMobility[3] = 1.0*dkrodSo*(oildensity/oilviscosity);
+    fOilMobility[3] = 0.0*dkrodSo*(oildensity/oilviscosity);
     
     fGasMobility[0] = 0.0;
     fGasMobility[1] = 0.0;

@@ -54,9 +54,9 @@ private:
     TPZManVector<REAL,4> fOilDensity;
     TPZManVector<REAL,4> fGasDensity;
     
-    TPZManVector<REAL,4> flWater;
-    TPZManVector<REAL,4> flOil;
-    TPZManVector<REAL,4> flGas;
+//    TPZManVector<REAL,4> flWater;
+//    TPZManVector<REAL,4> flOil;
+//    TPZManVector<REAL,4> flGas;
     
     TPZManVector<REAL,4> fFWater;
     TPZManVector<REAL,4> fFOil;
