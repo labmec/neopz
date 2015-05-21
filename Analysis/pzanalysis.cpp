@@ -415,17 +415,24 @@ void TPZAnalysis::LoadSolution() {
 
 void TPZAnalysis::Print( const std::string &name, std::ostream &out) {
 	out<<endl<<name<<endl;
-	long i,nelements = fCompMesh->ConnectVec().NElements();
-	for(i=0;i<nelements;i++) {
-		TPZConnect &gnod = fCompMesh->ConnectVec()[i];
-		if(gnod.SequenceNumber()!=-1) {
-			out << "Connect index " << i << endl;
-			gnod.Print(*fCompMesh,out);
-		}
-	}
-	
+    if (!fCompMesh) {
+        out << "No computational mesh\n";
+    }
+    else
+    {
+        long i,nelements = fCompMesh->ConnectVec().NElements();
+        for(i=0;i<nelements;i++) {
+            TPZConnect &gnod = fCompMesh->ConnectVec()[i];
+            if(gnod.SequenceNumber()!=-1) {
+                out << "Connect index " << i << endl;
+                gnod.Print(*fCompMesh,out);
+            }
+        }
+    }
 	fSolution.Print("fSolution",out);
-	fCompMesh->ConnectSolution(out);
+    if (fCompMesh) {
+        fCompMesh->ConnectSolution(out);
+    }
 }
 
 

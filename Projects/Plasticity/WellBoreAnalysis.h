@@ -132,6 +132,10 @@ public:
         /// Compute the resultant x and y force
         void ComputeXYForce(TPZFMatrix<STATE> &rhs, TPZVec<STATE> &force);
         
+        /// checks whether the axis sizes are compatible with the current configuration
+        // returns 1 is OK, 0 elsewise
+        int CheckAxisValidity(REAL MaiorAxis, REAL MinorAxis);
+
         /// Add elliptic breakout
         void AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis);
 
@@ -143,7 +147,14 @@ public:
         /// Return the mesh used for computations (multiphysics mesh or fCMesh)
         TPZCompMesh *CompMeshUsed();
         
+        /// Modify the elements along the well to quadratic
         void ModifyWellElementsToQuadratic();
+        
+        /// Identify the nodes of the ring and qualify them according to the radius
+        void ClassifyNodesofRing();
+        
+        /// Change the radius of the liner
+        void SetRadiusLiner(REAL linerradius);
         
         /// Initialize the Sandler DiMaggio object and create the computational mesh
         void CreateComputationalMesh(int porder);
@@ -382,6 +393,7 @@ public:
 
         return elindices.size();
     }
+    
     
     /// Modify the geometry of the domain simulating an elliptic breakout
     void AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis, std::ostream &out);

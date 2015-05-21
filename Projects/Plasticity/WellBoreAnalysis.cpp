@@ -3163,6 +3163,27 @@ int TPZWellBoreAnalysis::ComputeAandB(REAL sqj2_refine, REAL &a,REAL &b)
     
 }
 
+/// checks whether the axis sizes are compatible with the current configuration
+// returns 1 is OK, 0 elsewise
+int TPZWellBoreAnalysis::TConfig::CheckAxisValidity(REAL MaiorAxis, REAL MinorAxis)
+{
+    if (fGreater.size() && fGreater[fGreater.size()-1] > MaiorAxis) {
+        return 0;
+    }
+    if (MaiorAxis < fInnerRadius) {
+        return 0;
+    }
+    fGreater.Resize(fGreater.size()+1, MaiorAxis);
+    if (fSmaller.size() && fSmaller[fSmaller.size()-1] < MinorAxis) {
+        return 0;
+    }
+    if (MinorAxis > fInnerRadius) {
+        return 0;
+    }
+    
+    return 1;
+}
+
 
 /// Add elliptic breakout
 void TPZWellBoreAnalysis::TConfig::AddEllipticBreakout(REAL MaiorAxis, REAL MinorAxis)
@@ -3242,8 +3263,8 @@ void TPZWellBoreAnalysis::TConfig::CreateGeometricMesh()
         fGMesh.NodeVec()[in].SetCoord(cart);
     }
     
-    std::ofstream ssout("WellboreBefore.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, ssout,true);
+//    std::ofstream ssout("WellboreBefore.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, ssout,true);
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
@@ -3471,9 +3492,10 @@ void TPZWellBoreAnalysis::TConfig::CreateGeometricMesh()
         std::cout << "from " << it->first << " to " << it->second << std::endl;
     }
     fGMesh.BuildConnectivity();
-#ifdef DEBUG
+#ifdef DEBUG2
     std::ofstream outg("gmesh.txt");
     fGMesh.Print(outg);
+    ClassifyNodesofRing();
     std::ofstream out("Wellbore.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, out,true);
 #endif
@@ -3729,6 +3751,137 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+}
+
+/// Change the radius of the liner
+void TPZWellBoreAnalysis::TConfig::SetRadiusLiner(REAL newlinerradius)
+{
+    long nel = fGMesh.NElements();
+    REAL wellradius = fInnerRadius;
+    REAL linerradius = fLinerRadius;
+    set<long> wellnodes,linernodes,middlenodes;
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh.Element(el);
+        if (gel->MaterialId() != ELiner) {
+            continue;
+        }
+        if (gel->Father()) {
+            continue;
+        }
+        int nelnodes = gel->NNodes();
+        TPZManVector<REAL,3> xco(3);
+        for (int n=0; n<nelnodes; n++) {
+            gel->NodePtr(n)->GetCoordinates(xco);
+            REAL r = sqrt(xco[0]*xco[0]+xco[1]*xco[1]);
+            if (fabs(r-wellradius) < 1.e-6) {
+                wellnodes.insert(gel->NodeIndex(n));
+            }
+            else if(fabs(r-linerradius) < 1.e-6)
+            {
+                linernodes.insert(gel->NodeIndex(n));
+            }
+            else if (fabs(r-0.5*(wellradius+linerradius)) < 1.e-6)
+            {
+                middlenodes.insert(gel->NodeIndex(n));
+            }
+            else
+            {
+                std::cout << "r = " << r << " well radius " << wellradius << " liner radius " << linerradius << std::endl;
+            }
+        }
+    }
+
+    /// correct the coordinates of the liner elements
+    std::set<long>::iterator it;
+    for (it = linernodes.begin(); it != linernodes.end(); it++) {
+        TPZGeoNode *node = &fGMesh.NodeVec()[*it];
+        TPZManVector<REAL,3> xco;
+        node->GetCoordinates(xco);
+        for (int i=0; i<3; i++) {
+            xco[i] *= newlinerradius/linerradius;
+        }
+    }
+    REAL middleradius = (wellradius+newlinerradius)/2.;
+    REAL prevmiddle = (wellradius+linerradius)/2.;
+    for (it = middlenodes.begin(); it != middlenodes.end(); it++) {
+        TPZGeoNode *node = &fGMesh.NodeVec()[*it];
+        TPZManVector<REAL,3> xco;
+        node->GetCoordinates(xco);
+        for (int i=0; i<3; i++) {
+            xco[i] *= middleradius/prevmiddle;
+        }
+    }
+    
+    /// project the nodes of the mapped elements
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh.Element(el);
+        if (!gel || gel->MaterialId() != ELiner || !gel->Father()) {
+            continue;
+        }
+        int nnodes = gel->NNodes();
+        if (nnodes != gel->NCornerNodes()) {
+            DebugStop();
+        }
+        for (int in=0; in<nnodes; in++)
+        {
+
+            TPZGeoElSide fatherside = gel->Father2(in);
+            if (fatherside.Dimension() == 0) {
+                continue;
+            }
+            while (fatherside.Father2()) {
+                fatherside = fatherside.Father2();
+            }
+            TPZTransform tr;
+            gel->BuildTransform2(in, fatherside.Element(), tr);
+            TPZManVector<REAL,3> xi(0), xibar(fatherside.Dimension()), xco(3);
+            tr.Apply(xi, xibar);
+            fatherside.X(xibar, xco);
+            gel->NodePtr(in)->SetCoord(xco);
+        }
+    }
+    
+}
+
+
+
+/// Identify the nodes of the ring and qualify them according to the radius
+void TPZWellBoreAnalysis::TConfig::ClassifyNodesofRing()
+{
+    REAL wellradius = fInnerRadius;
+    REAL linerradius = fLinerRadius;
+    set<long> wellnodes,linernodes,middlenodes;
+    long nel = fGMesh.NElements();
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = fGMesh.Element(el);
+        if (gel->MaterialId() != ELiner) {
+            continue;
+        }
+        if (gel->Father()) {
+            continue;
+        }
+        int nelnodes = gel->NNodes();
+        TPZManVector<REAL,3> xco(3);
+        for (int n=0; n<nelnodes; n++) {
+            gel->NodePtr(n)->GetCoordinates(xco);
+            REAL r = sqrt(xco[0]*xco[0]+xco[1]*xco[1]);
+            if (fabs(r-wellradius) < 1.e-6) {
+                wellnodes.insert(gel->NodeIndex(n));
+            }
+            else if(fabs(r-linerradius) < 1.e-6)
+            {
+                linernodes.insert(gel->NodeIndex(n));
+            }
+            else if (fabs(r-0.5*(wellradius+linerradius)) < 1.e-6)
+            {
+                middlenodes.insert(gel->NodeIndex(n));
+            }
+            else
+            {
+                std::cout << "r = " << r << " well radius " << wellradius << " liner radius " << linerradius << std::endl;
+            }
+        }
+    }
 }
 
 /// project the node on the boundary
