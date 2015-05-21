@@ -4152,6 +4152,10 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
         compmesh1->AutoBuild();
     }
     
+    if (this->fAcidModelisActive) {
+        this->ActivateAcidification();
+    }
+    
 }
 
 /// Initialize the Liner material object and create the computational elements
