@@ -28,6 +28,9 @@ public:
     
 	int CheckElement(TPZGeoEl *gel);
     
+    /*** @brief  Check if all node and elements ids are unique */
+	int CheckIds();
+    
     /// check the internal side transformations
     int CheckInternalTransforms(TPZGeoEl *);
     

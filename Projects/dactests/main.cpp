@@ -200,12 +200,12 @@ int main(int argc, char *argv[])
     HDivPiola = 0;
     ofstream saidaerros("ErroNormas.txt",ios::app);
     
-    for(p=4;p<5;p++)
+    for(p=1;p<6;p++)
     {
         saidaerros << "\nPARA p = " << p << " \n " << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
         
-        for (ndiv=2; ndiv<3; ndiv++)
+        for (ndiv=1; ndiv<7; ndiv++)
         {
             
             if (dim==2)

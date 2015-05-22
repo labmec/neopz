@@ -1662,5 +1662,90 @@ void TPZDarcyAnalysis::LinearTracer(const TPZVec< REAL >& pt, REAL time, TPZVec<
     }
     
     return;
+    
+}
+
+
+void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& Saturation, TPZFMatrix< STATE >& Grad)
+{
+    REAL x = pt[0];
+    REAL v = 0.00001;
+    REAL Porosity = 0.1;
+    REAL xshock = 0.0;
+    REAL Swshock = 0.0;
+    REAL epsilon = 1.0*10-6;
+    REAL ds = 1.0*10-4;
+    REAL qt = 0.00001;
+    REAL Area = 1.0;
+    REAL muw= 0.001;
+    REAL muo= 0.001;
+    
+    REAL lambdaw, lambdao;
+    REAL lambdat, fw, dfwdSw;
+    
+    Swshock = SwatShock(epsilon,ds);
+    
+    dfwdSw = -((2.0*(Swshock-1.0) * Swshock * muw * muo)/((muw - 2.0 * Swshock * muw + Swshock * Swshock * (muw + muo))*(muw - 2.0 * Swshock * muw + Swshock * Swshock *(muw + muo))));
+    
+    xshock      = (qt*time)/(Porosity*Area)*dfwdSw;
+    
+    if(x <= xshock)
+    {
+        Saturation[0] = 1.0;
+    }
+    else
+    {
+        Saturation[0] = 0.0;
+    }
+    
+    return;
+    
+}
+
+
+/**
+ * Computes the saturation at shock using the Welge method
+ */
+REAL TPZDarcyAnalysis::SwatShock(REAL epsilon, REAL ds){
+    REAL muw= 0.001;
+    REAL muo= 0.001;
+    REAL value = 0.0;
+    int npoints  = int(1.0/ds);
+    int pos = 0;
+    TPZFMatrix<REAL> points(npoints,2,0.0);
+    TPZManVector<REAL> secants(npoints,0.0);
+    REAL S = 0.0;
+    for (int ip = 0; ip < npoints; ip++) {
+        S = ds*ip;
+        points(ip,0) = S;
+        points(ip,1) = ((S*S*muo)/(muw - 2.0 * S * muw + S * S * (muw + muo)));
+        
+    }
+    
+    for (int ip = 0; ip < npoints - 1; ip++) {
+        secants[ip] = (points(ip + 1,1)-points(0,1))/(points(ip+1,0)-points(0,0));
+        
+    }
+    
+    // computing the max value
+    
+    
+    
+    pos = Extract(epsilon, secants, value);
+    return points(pos,1);
+    
+}
+
+/**
+ * Extract a value from a given list
+ */
+int TPZDarcyAnalysis::Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value){
+    
+    for (int i = 0; i<list.size(); i++) {
+        if (fabs(list[i]-value) <= epsilon) {
+            return i;
+        }
+    }
+    return 0;
 }
 

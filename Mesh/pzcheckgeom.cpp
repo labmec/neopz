@@ -62,6 +62,33 @@ int TPZCheckGeom::DivideandCheck()
     return PerformCheck();
 }
 
+/*** @brief  Check if all node and elements ids are unique */
+int TPZCheckGeom::CheckIds()
+{
+    long numnodes   =   fMesh->NNodes();
+    long numels     =   fMesh->NElements();
+    
+    std::set<long> nodeids;
+    std::set<long> elsids;
+    
+    for (long inode = 0; inode < numnodes; inode++) {
+        nodeids.insert(fMesh->NodeVec()[inode].Id());
+    }
+    if (nodeids.size() != numnodes) {
+        return 1;
+    }
+    
+    
+    for (long iel = 0; iel < numels; iel++) {
+        elsids.insert(fMesh->ElementVec()[iel]->Id());
+    }
+    if (elsids.size() != numels) {
+        return 1;
+    }
+    
+    return 0;
+}
+
 int TPZCheckGeom::PerformCheck() {
 	long nel = fMesh->NElements();
 	int check = 0;
@@ -70,8 +97,11 @@ int TPZCheckGeom::PerformCheck() {
 		if(!gel) continue;
 		check = (CheckElement(gel) || check);
 	}
-	return check;
+    check = (CheckIds() || check);
+    return check;
 }
+
+
 
 int TPZCheckGeom::CheckRefinement(TPZGeoEl *gel){
 	

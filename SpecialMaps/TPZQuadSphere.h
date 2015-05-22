@@ -208,7 +208,7 @@ namespace pzgeom {
 			std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
 			DebugStop();
             // ???
-            pzgeom::TPZGeoQuad::Read(buf, 0);
+//            pzgeom::TPZGeoQuad::Read(buf, 0);
             buf.Read(&fR,1);
             
 		}
@@ -218,7 +218,7 @@ namespace pzgeom {
 			std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
 			DebugStop();
             // ???
-            pzgeom::TPZGeoQuad::Write(buf);
+//            pzgeom::TPZGeoQuad::Write(buf);
             buf.Write(&fR,1);
 		}
 		

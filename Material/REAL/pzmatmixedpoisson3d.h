@@ -113,13 +113,13 @@ public:
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const {
         
-        return 10;
+        return 20;
     }
     
     /** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */
     virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const{
         
-        return 10;
+        return 20;
     }
     
     void Print(std::ostream &out);

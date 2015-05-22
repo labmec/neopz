@@ -261,6 +261,21 @@ public:
     static  void LinearTracer(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Saturation, TPZFMatrix<STATE> &Grad);
     
     /**
+     * Exact Soltuion for bluckley and leverett
+     */
+    static  void BluckleyAndLeverett(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Saturation, TPZFMatrix<STATE> &Grad);
+    
+    /**
+     * Computes the saturation at shock using the Welge method
+     */
+    static REAL SwatShock(REAL epsilon, REAL ds);
+    
+    /**
+     * Extract a value from a given list
+     */
+    static int Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value);
+    
+    /**
      * Computes the inverse of the Global matrix
      */
     TPZFMatrix<STATE> * ComputeInverse();

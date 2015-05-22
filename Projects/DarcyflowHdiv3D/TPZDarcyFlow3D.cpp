@@ -718,6 +718,8 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
 void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
     
+    DebugStop();
+    
     if (fSimulationData->IsnStep()) {
         
         return;
@@ -1022,7 +1024,7 @@ void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateri
 
 void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
-    
+    DebugStop();
     
     if (fSimulationData->IsnStep()) {
         
@@ -1128,6 +1130,7 @@ void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateri
 
 void TPZDarcyFlow3D::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
+    DebugStop();
     
     if (fSimulationData->IsnStep()) {
         
