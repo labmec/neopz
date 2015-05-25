@@ -389,7 +389,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
 void TPZStructMatrixOT::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
     
     long iel;
-    long nelem = fMesh->NElements();
+//    long nelem = fMesh->NElements();
     
     TPZTimer calcresidual("Computing the residual vector");
     TPZTimer assemble("Assembling the residual vector");
@@ -746,8 +746,8 @@ TPZStructMatrixOT::ThreadData::~ThreadData()
 void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
-    TPZStructMatrixOT *strmat = data->fStruct;
-    int nthreads = strmat->fNumThreads;
+//    TPZStructMatrixOT *strmat = data->fStruct;
+//    int nthreads = strmat->fNumThreads;
     TPZVec<long> &ComputedElements = *(data->fComputedElements);
     TPZVec<long> &ElBlocked = *(data->fElBlocked);
 
@@ -916,14 +916,14 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
-    TPZStructMatrixOT *strmat = data->fStruct;
-    int nthreads = strmat->fNumThreads;
+//    TPZStructMatrixOT *strmat = data->fStruct;
+//    int nthreads = strmat->fNumThreads;
     
     TPZCompMesh *cmesh = data->fStruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
-    int nel = cmesh->NElements();
-    bool hasWork = true;
-    int iel = 0;
+//    int nel = cmesh->NElements();
+//    bool hasWork = true;
+//    int iel = 0;
     TPZVec<long> &ComputedElements = *data->fComputedElements;
     TPZVec<long> &ElBlocked = *data->fElBlocked;
     int &SomeoneIsSleeping = *(data->fSomeoneIsSleeping);

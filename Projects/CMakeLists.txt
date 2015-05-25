@@ -166,6 +166,7 @@ add_subdirectory(proDG)
 			#add_subdirectory(OilWaterSystem)
 			add_subdirectory(DarcyflowAxisymmetricHdiv)
 			add_subdirectory(DarcyflowHdiv3D)
+			add_subdirectory(MonophasicWell)
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			add_subdirectory(iRMS)
 			add_subdirectory(Elasticity2D)

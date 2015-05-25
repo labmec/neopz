@@ -126,7 +126,7 @@ TPZGeoMesh * TPZHierarquicalGrid::ComputeExtrusion(REAL t, REAL dt, int n)
         }
     }
     
-    int fbasedim = fBase->Dimension();
+//    int fbasedim = fBase->Dimension();
     
     int elid=0;
     for(int iel = 0; iel < fBase->NElements(); iel++)

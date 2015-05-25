@@ -599,7 +599,7 @@ inline bool IsZero( long double a ) {
 #ifdef WIN32
 	return ( fabs( a ) < 1.e-12 );
 #else
-	return ( fabs( a ) < 1.e-16 );
+	return ( std::fabs( a ) < 1.e-16 );
 #endif
 }
 //template<>

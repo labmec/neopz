@@ -36,7 +36,7 @@ class TPZMatOrthotropic : public TPZMaterial {
 		fXf = xkin;
 	}
 	
-	int Dimension() { return 3;}
+//	int Dimension() { return 3;}
 	
 	int NStateVariables();
 	

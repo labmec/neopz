@@ -28,8 +28,6 @@ class TPZMatHybrid : public TPZMaterial {
 		fXf = xkin;
 	}
 	
-	int Dimension() { return fXf.Rows();}
-	
 	int NStateVariables();
 	
 	virtual void Print(std::ostream & out);

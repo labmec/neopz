@@ -217,7 +217,6 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             std::cout << "\n";
         }
         calcstiff.start();
-        int elindex = el->Index();
         
         el->CalcStiff(ek,ef);
         

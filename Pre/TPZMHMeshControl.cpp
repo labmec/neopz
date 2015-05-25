@@ -392,7 +392,6 @@ void TPZMHMeshControl::CreateInterfaceElements()
         long rightelindex = it->second.second;
         
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
-        int matid = gel->MaterialId();
 //        if (matid != fSkeletonMatId) {
 //            DebugStop();
 //        }

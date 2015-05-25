@@ -35,7 +35,7 @@ class TPZMaterialTest : public TPZMaterial {
 		fXf = xkin;
 	}
 	
-	int Dimension() { return 2;}
+//	int Dimension() { return 2;}
 	
 	int NStateVariables();
 	

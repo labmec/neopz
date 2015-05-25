@@ -655,16 +655,16 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     
     if (fSimulationData->IsnStep()) {
         
-        //  n state computations
-        for (int isw = 0; isw < nphiSwL2; isw++)
-        {
-            ef(isw  + iniSw ) += -1.0 * weight * (1.0/deltat) * rockporosity * Sw * phiSwL2(isw,0);
-        }
-        
-        for (int iso = 0; iso < nphiSoL2; iso++)
-        {
-            ef(iso  + iniSo ) += -1.0 * weight * (1.0/deltat) * rockporosity * So * phiSoL2(iso,0);
-        }
+//        //  n state computations
+//        for (int isw = 0; isw < nphiSwL2; isw++)
+//        {
+//            ef(isw  + iniSw ) += -1.0 * weight * (1.0/deltat) * rockporosity * Sw * phiSwL2(isw,0);
+//        }
+//        
+//        for (int iso = 0; iso < nphiSoL2; iso++)
+//        {
+//            ef(iso  + iniSo ) += -1.0 * weight * (1.0/deltat) * rockporosity * So * phiSoL2(iso,0);
+//        }
         
         return;
     }
@@ -702,17 +702,17 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     
     
     // Transport equations
-    
-    for (int isw = 0; isw < nphiSwL2; isw++)
-    {
-        ef(isw  + iniSw ) += weight * (1.0/deltat) * rockporosity * Sw * phiSwL2(isw,0);
-    }
-    
-    for (int iso = 0; iso < nphiSoL2; iso++)
-    {
-        ef(iso  + iniSo ) += weight * (1.0/deltat) * rockporosity * So * phiSoL2(iso,0);
-    }
-    
+//    
+//    for (int isw = 0; isw < nphiSwL2; isw++)
+//    {
+//        ef(isw  + iniSw ) += weight * (1.0/deltat) * rockporosity * Sw * phiSwL2(isw,0);
+//    }
+//    
+//    for (int iso = 0; iso < nphiSoL2; iso++)
+//    {
+//        ef(iso  + iniSo ) += weight * (1.0/deltat) * rockporosity * So * phiSoL2(iso,0);
+//    }
+//    
 }
 
 void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)

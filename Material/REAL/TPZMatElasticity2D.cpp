@@ -653,7 +653,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatr
     REAL uy = sol_u[1];
     
     int phru = phiu.Rows();
-    short in,jn;
+    short in;
     STATE v2[3]; TPZFMatrix<STATE> &v1 = bc.Val1();
     v2[0] = bc.Val2()(0,0);	//	Ux displacement or Tnx
     v2[1] = bc.Val2()(1,0);	//	Uy displacement or Tny
@@ -979,18 +979,6 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Tau = 2.0*fmu*epsxy;		
     }
     
-    REAL R = sqrt( ((SigX - SigY)/2)*((SigX - SigY)/2) + Tau*Tau);
-    REAL C = (SigX + SigY)/2;
-//    REAL Sigma1 = C + R;
-//    REAL Sigma2 = C - R;
-    
-    // Sigma1 is the largest stress regadless of sign
-//    if (abs(Sigma2) > abs(Sigma1)) 
-//    {
-//        REAL tmp = Sigma1;
-//        Sigma1 = Sigma2;
-//        Sigma2 = tmp;
-//    }
     
     //	Hydrostatic stress
     if(var == 2) 
