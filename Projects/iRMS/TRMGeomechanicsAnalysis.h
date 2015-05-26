@@ -11,4 +11,9 @@
 
 #include <stdio.h>
 
+class TRMGeomechanicsAnalysis{
+    
+    
+};
+
 #endif /* defined(__PZ__TRMGeomechanicsAnalysis__) */

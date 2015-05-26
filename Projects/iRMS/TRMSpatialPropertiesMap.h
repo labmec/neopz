@@ -11,4 +11,15 @@
 
 #include <stdio.h>
 
+class TRMSpatialPropertiesMap{
+    
+public:
+    
+    // Here, given a x, it will return the permeability, porosity and dphidp
+    
+private:
+    
+    
+};
+
 #endif /* defined(__PZ__TRMSpatialPropertiesMap__) */

@@ -11,4 +11,13 @@
 
 #include <stdio.h>
 
+class TRMFluxPressureAnalysis;
+
+class TRMTransportAnalysis{
+    
+public:
+    void UpdateSolution(TRMFluxPressureAnalysis &fluxPressureAnalysis); // no pior dos casos pega o ponto de integracao chama o solution e atualiza o ponto
+    
+};
+
 #endif /* defined(__PZ__TRMTransportAnalysis__) */

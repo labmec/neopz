@@ -10,5 +10,12 @@
 #define __PZ__TRMPhaseTransport__
 
 #include <stdio.h>
+#include "pzmatwithmem.h"
+#include "TRMMemory.h"
+
+class TRMPhaseTransport : public TPZMatWithMem<TRMMemory> {
+    
+    
+};
 
 #endif /* defined(__PZ__TRMPhaseTransport__) */

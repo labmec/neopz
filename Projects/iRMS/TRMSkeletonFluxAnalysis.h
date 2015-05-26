@@ -11,4 +11,16 @@
 
 #include <stdio.h>
 
+class TRMSkeletonFluxAnalysis{
+
+protected:
+    
+
+    
+public:
+
+    
+    
+};
+
 #endif /* defined(__PZ__TRMSkeletonFluxAnalysis__) */

@@ -11,4 +11,9 @@
 
 #include <stdio.h>
 
+class TRMRockProperties{
+    
+    
+};
+
 #endif /* defined(__PZ__TRMRockProperties__) */

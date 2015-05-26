@@ -11,4 +11,9 @@
 
 #include <stdio.h>
 
+class TRMBlackOilProperties{
+    
+    
+};
+
 #endif /* defined(__PZ__TRMBlackOilProperties__) */

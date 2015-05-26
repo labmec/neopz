@@ -11,4 +11,9 @@
 
 #include <stdio.h>
 
+class TRMPetrophysicsProperties{
+    
+    
+};
+
 #endif /* defined(__PZ__TRMPetrophysicsProperties__) */
