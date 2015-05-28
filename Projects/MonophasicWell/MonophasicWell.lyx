@@ -160,6 +160,142 @@ P(s_{n},t)\;on\;\Gamma_{D}\label{eq:Pressurebc}
 
 \end_layout
 
+\begin_layout Section
+Strong formulation hangen Poisselle
+\end_layout
+
+\begin_layout Standard
+Dropping the terms 
+\begin_inset Formula $\frac{\partial\left(\rho\;\mathbf{u}\right)}{\partial t}+\frac{\partial\left(\left(\rho\;\mathbf{u}\right)\mathbf{u}\right)}{\partial s}=0$
+\end_inset
+
+, because we have considere 
+\end_layout
+
+\begin_layout Standard
+For the conservation of mass:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial\left(\rho\right)}{\partial t}+\frac{\partial\left(\rho\;\mathbf{u}\right)}{\partial s}=0\label{eq:MassConservationHP}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For the conservation of momentum linear:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+0=-\frac{\partial\left(\rho\:g\:z\right)}{\partial s}-\frac{\partial\left(P\right)}{\partial s}-\frac{\tau\pi d}{A_{p}}\label{eq:MomentumConservationHP}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+with the following boundary conditions:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{u}(s_{0},t)\;on\;\Gamma_{N}\label{eq:Velocitybc-2}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+P(s_{n},t)\;on\;\Gamma_{D}\label{eq:Pressurebc-3}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Strong formulation
+\end_layout
+
+\begin_layout Standard
+Following the vast literature in chemical and petroleum industry for multi-phasi
+c flow for pipes.
+ we start by writing the following conservations laws and realize and suitable
+ form of the equations in an mixed formulation.
+ All the variables are described for simplicity by the SI unit system.
+\end_layout
+
+\begin_layout Standard
+For the conservation of mass:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial\left(\rho\right)}{\partial t}+\frac{\partial\left(\rho\;\mathbf{u}\right)}{\partial s}=0\label{eq:MassConservation-1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For the conservation of momentum linear:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\partial\left(\rho\;\mathbf{u}\right)}{\partial t}+\frac{\partial\left(\left(\rho\;\mathbf{u}\right)\mathbf{u}\right)}{\partial s}=-\frac{\partial\left(\rho\:g\:z\right)}{\partial s}-\frac{\partial\left(P\right)}{\partial s}-\frac{\tau\pi d}{A_{p}}\label{eq:MomentumConservation-1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+with the following boundary conditions:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{u}(s_{0},t)\;on\;\Gamma_{N}\label{eq:Velocitybc-1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+P(s_{n},t)\;on\;\Gamma_{D}\label{eq:Pressurebc-2}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Standard
 where 
 \begin_inset Float table

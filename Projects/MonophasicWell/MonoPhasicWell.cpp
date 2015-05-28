@@ -75,6 +75,7 @@ int main()
     
     
     // Setting up the analysis configuration
+    
     int numofThreads = 0;
     TPZNonLinearAnalysis * an = new TPZNonLinearAnalysis(cmeshwell,std::cout);
     TPZSkylineNSymStructMatrix skylnsym(cmeshwell);
