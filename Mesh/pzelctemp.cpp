@@ -459,7 +459,7 @@ int TPZIntelGen<TPZShapePiram>::ClassId() const
 	return TPZINTELPYRAMID;
 }
 
-#include "pzshapepiramhdiv.h"
+#include "pzshapepiramHdiv.h"
 template<>
 int TPZIntelGen<TPZShapePiramHdiv>::ClassId() const
 {
