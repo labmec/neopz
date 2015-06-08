@@ -268,13 +268,15 @@ public:
     /**
      * Computes the saturation at shock using the Welge method
      */
-    static REAL SwatShock(REAL epsilon, REAL ds);
+    static REAL SwatShock(REAL epsilon, REAL &ds);
     
     /**
      * Extract a value from a given list
      */
     static int Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value);
     
+    
+    static REAL Ssaturation( REAL S);
     /**
      * Computes the inverse of the Global matrix
      */

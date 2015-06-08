@@ -11,10 +11,6 @@
 
 #include <time.h>
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.DarcyFlow"));
-#endif
-
 void LinearTracer();
 
 int main()
@@ -50,11 +46,14 @@ void LinearTracer()
     
     REAL hour       = 3600;
     REAL day        = hour * 24;
-    REAL dt         = 2.0*day;
-    REAL maxtime    = 200.0*day;
+    REAL dt         = 0.25*day;
+
+    REAL maxtime    = 7.5*day;
     REAL t0         = 0.0*day;
     REAL TolDeltaX  = 1.0*1e-4;
     REAL TolRes     = 1.0*1e-4;
+
+
     
     Dataset->SetIsH1approx(h1);
     Dataset->SetIsDirect(IsDirect);
@@ -99,7 +98,7 @@ void LinearTracer()
     REAL waterviscosity     = 0.001;
     REAL cwater             = 0.0*1e-8;
     REAL oildensity         = 1000.0;
-    REAL oilviscosity       = 0.001;
+    REAL oilviscosity       = 0.01;
     REAL coil               = 0.0*1e-8;
     REAL gasdensity         = 0.0;
     REAL gasviscosity       = 0.0;

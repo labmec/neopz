@@ -223,6 +223,7 @@ void TPZDarcyAnalysis::Run()
     }
     else
     {
+
         int nx = 100;
         int ny = 1;
         GeometryLine(nx,ny);
@@ -340,7 +341,7 @@ void TPZDarcyAnalysis::Run()
         }
         
     }
-    
+
     this->InitializeSolution(an);
     this->TimeForward(an);
     
@@ -374,12 +375,11 @@ void TPZDarcyAnalysis::CreateInterfaces()
 
 void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
 {
-    //    an->Assemble();
+    an->Assemble();
     TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
     TPZFMatrix<STATE> FGlobal;
     KGlobal =   an->Solver().Matrix();
     FGlobal =   an->Rhs();
-    
 #ifdef DEBUG
     #ifdef LOG4CXX
         if(logger->isDebugEnabled())
@@ -434,7 +434,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         
         this->AssembleLastStep(an);
         this->AssembleNextStep(an);
-        
+//         this->PrintLS(an);
         
         if (fSimulationData->GetIsBroyden())
         {
@@ -544,7 +544,8 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
             this->UpDateAlphaVec(X);
             break;
         }
-        
+       
+       
         if (iterations == fSimulationData->GetMaxiterations()) {
             std::cout << "Out max iterations " << iterations << std::endl;
             std::cout << "error norm " << error << std::endl;
@@ -799,7 +800,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetForcingFunction(forcef);
     
     // Setting up linear tracer solution
-    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
+    //TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
+   TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);    
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
     
@@ -826,6 +828,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     val2(0,0) = -0.00001;
     val2(1,0) = 1.0;
     val2(2,0) = 0.0;
+
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
     
     cmesh->InsertMaterialObject(bcBottom);
@@ -1267,7 +1270,7 @@ void TPZDarcyAnalysis::Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STAT
 void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
 {
     REAL t=0.0;
-    REAL dt = 50.0;
+    REAL dt = 10.0;
     int n = nx;
     
     // Creating a 0D element to be extruded
@@ -1287,26 +1290,26 @@ void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
     GeoMesh1->BuildConnectivity();
     GeoMesh1->SetDimension(0);
     
-    TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
+    TPZHierarquicalGrid *CreateGridFrom = new TPZHierarquicalGrid(GeoMesh1);
     TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
-    CreateGridFrom.SetParametricFunction(ParFunc);
-    CreateGridFrom.SetFrontBackMatId(5,3);
+    CreateGridFrom->SetParametricFunction(ParFunc);
+    CreateGridFrom->SetFrontBackMatId(5,3);
     
     
     // Computing Mesh extruded along the parametric curve Parametricfunction
-    TPZGeoMesh * GeoMesh2 = CreateGridFrom.ComputeExtrusion(t, dt, n);
+    TPZGeoMesh * GeoMesh2 = CreateGridFrom->ComputeExtrusion(t, dt, n);
     
-    TPZHierarquicalGrid CreateGridFrom2(GeoMesh2);
+    TPZHierarquicalGrid * CreateGridFrom2 = new TPZHierarquicalGrid(GeoMesh2);
     TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
-    CreateGridFrom2.SetParametricFunction(ParFunc2);
-    CreateGridFrom2.SetFrontBackMatId(2,4);
+    CreateGridFrom2->SetParametricFunction(ParFunc2);
+    CreateGridFrom2->SetFrontBackMatId(2,4);
     
-    dt = 100.0;
+    dt = 1.0;
     n = ny;
     
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
-    fgmesh = CreateGridFrom2.ComputeExtrusion(t, dt, n);
+    fgmesh = CreateGridFrom2->ComputeExtrusion(t, dt, n);
     
     TPZCheckGeom * GeometryTest = new TPZCheckGeom;
     int isBadMesh = 0;
@@ -1673,8 +1676,8 @@ void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, 
     REAL Porosity = 0.1;
     REAL xshock = 0.0;
     REAL Swshock = 0.0;
-    REAL epsilon = 1.0*10-6;
-    REAL ds = 1.0*10-4;
+    REAL epsilon = 1.0e-3;
+    REAL ds = 1.0e-1;
     REAL qt = 0.00001;
     REAL Area = 1.0;
     REAL muw= 0.001;
@@ -1683,30 +1686,52 @@ void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, 
     REAL lambdaw, lambdao;
     REAL lambdat, fw, dfwdSw;
     
-    Swshock = SwatShock(epsilon,ds);
+    Swshock = SwatShock(epsilon,ds);   
+    dfwdSw = -((2.0*(Swshock-1.0) * Swshock * muw * muo)/((muw - 2.0 * Swshock * muw + Swshock * Swshock * (muw + muo))*(muw - 2.0 * Swshock * muw + Swshock * Swshock *(muw + muo))));//CUadratico
+   // dfwdSw = -(( muw * muo)/(((Swshock *(muo-muw)+muw)*(Swshock *(muo-muw)+muw));//LInear
+   //     dfwdSw = 1.0; //???
     
-    dfwdSw = -((2.0*(Swshock-1.0) * Swshock * muw * muo)/((muw - 2.0 * Swshock * muw + Swshock * Swshock * (muw + muo))*(muw - 2.0 * Swshock * muw + Swshock * Swshock *(muw + muo))));
-    
+    REAL j;
+    REAL xp;
+    int indexsat=0;
+    int nsx=(1.0-Swshock)/0.000001;
+    TPZFMatrix<REAL> xs(nsx,2,0.0);
     xshock      = (qt*time)/(Porosity*Area)*dfwdSw;
+    j=Ssaturation(0.1);
+    xp     = (qt*time)/(Porosity*Area)*j;
+    //std::cout<<"RESPUE "<<j<<"RESPUE "<<xp<<std::endl;
+   
+     for (int sx = 1; sx < nsx ; sx++) {
+       xs(sx,0)=Swshock+0.000001*sx;
+       xs(sx,1)=(qt*time)/(Porosity*Area)*Ssaturation(xs(sx,0));
+     }
+     
+    
     
     if(x <= xshock)
     {
-        Saturation[0] = 1.0;
+      for (int index = 0; index < nsx; index++) {
+	if (x< xs(index,1)){
+        indexsat=index;
+	}
+    }
+        Saturation[0] =xs(indexsat,0);  
+	indexsat=0;
     }
     else
     {
         Saturation[0] = 0.0;
     }
-    
+   // std::cout<<x<<std::endl;
     return;
-    
+ 
 }
 
 
 /**
  * Computes the saturation at shock using the Welge method
  */
-REAL TPZDarcyAnalysis::SwatShock(REAL epsilon, REAL ds){
+REAL TPZDarcyAnalysis::SwatShock(REAL epsilon, REAL &ds){
     REAL muw= 0.001;
     REAL muo= 0.001;
     REAL value = 0.0;
@@ -1718,20 +1743,30 @@ REAL TPZDarcyAnalysis::SwatShock(REAL epsilon, REAL ds){
     for (int ip = 0; ip < npoints; ip++) {
         S = ds*ip;
         points(ip,0) = S;
-        points(ip,1) = ((S*S*muo)/(muw - 2.0 * S * muw + S * S * (muw + muo)));
-        
+        points(ip,1) = ((S*S*muo)/(muw - 2.0 * S * muw + S * S * (muw + muo))); //Cuadratico
+	//points(ip,1) = ((S*muo)/(S*(muo-muw) +muw )); //Linear       
     }
+    
     
     for (int ip = 0; ip < npoints - 1; ip++) {
         secants[ip] = (points(ip + 1,1)-points(0,1))/(points(ip+1,0)-points(0,0));
         
     }
     
-    // computing the max value
+    // computing the max 
+      int maxpos =0;
+      int value2=0;
+      REAL maxval=0;
+    for (int i=0;i<=npoints-1;i++){
+      if (secants[maxpos]< secants[i]){
+	maxval=secants[i];
+	maxpos=i;
+      }
+	
+    }
+
     
-    
-    
-    pos = Extract(epsilon, secants, value);
+    pos = Extract(epsilon, secants, maxval);
     return points(pos,1);
     
 }
@@ -1749,3 +1784,14 @@ int TPZDarcyAnalysis::Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value
     return 0;
 }
 
+REAL TPZDarcyAnalysis::Ssaturation( REAL S){
+
+  REAL muw= 0.001;
+  REAL dfwdSwS;
+  REAL muo= 0.001;
+  REAL deriv;
+       deriv = -((2.0*(S-1.0) * S * muw * muo)/((muw - 2.0 * S * muw + S * S * (muw + muo))*(muw - 2.0 * S * muw + S * S *(muw + muo))));
+     // deriv=-(( muw * muo)/(((Swshock *(muo-muw)+muw)*(Swshock *(muo-muw)+muw)); //Linear
+       return (deriv);
+}
+ 
