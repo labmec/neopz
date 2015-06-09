@@ -1017,7 +1017,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
-    
+
     
     if (fSimulationData->IsnStep()) {
         
@@ -1243,7 +1243,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
         case 1 :    // Neumann BC  QN inflow
         {
-            
+
             //            if (Value >= 0.0 ) {
             //                // Outflow boundary condition
             //                this->UpdateStateVariables(uL, PL, SwL, SoL);
@@ -1267,17 +1267,17 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
                     ek(isw + iniSwL, jp + iniPL) += 1.0 * weight * fFWater[1] * phiPL2L(jp,0) * phiSwL2L(isw,0) * Value;
                 }
                 
-                // dSw/dalphaSw
-                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
-                {
-                    ek(isw + iniSwL, jsw + iniSwL) += 1.0 * weight * fFWater[2] * phiSwL2L(jsw,0) * phiSwL2L(isw,0) * Value;
-                }
-                
-                // dSo/dalphaSo
-                for (int jso = 0; jso < nphiSoL2L; jso++)
-                {
-                    ek(isw + iniSwL, jso + iniSoL) += 1.0 * weight * fFWater[3] * phiSoL2L(jso,0) * phiSwL2L(isw,0) * Value;
-                }
+//                // dSw/dalphaSw
+//                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
+//                {
+//                    ek(isw + iniSwL, jsw + iniSwL) += 1.0 * weight * fFWater[2] * phiSwL2L(jsw,0) * phiSwL2L(isw,0) * Value;
+//                }
+//                
+//                // dSo/dalphaSo
+//                for (int jso = 0; jso < nphiSoL2L; jso++)
+//                {
+//                    ek(isw + iniSwL, jso + iniSoL) += 1.0 * weight * fFWater[3] * phiSoL2L(jso,0) * phiSwL2L(isw,0) * Value;
+//                }
                 
             }
             
@@ -1291,17 +1291,17 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
                     ek(iso + iniSoL, jp + iniPL) += 1.0 * weight * fFOil[1] * phiPL2L(jp,0) * phiSoL2L(iso,0) * Value;
                 }
                 
-                // dSw/dalphaSw
-                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
-                {
-                    ek(iso + iniSoL, jsw + iniSwL) += 1.0 * weight * fFOil[2] * phiSwL2L(jsw,0) * phiSoL2L(iso,0) * Value;
-                }
-                
-                // dSo/dalphaSo
-                for (int jso = 0; jso < nphiSoL2L; jso++)
-                {
-                    ek(iso + iniSoL, jso + iniSoL) += 1.0 * weight * fFOil[3] * phiSoL2L(jso,0) * phiSoL2L(iso,0) * Value;
-                }
+//                // dSw/dalphaSw
+//                for (int jsw = 0; jsw < nphiSwL2L; jsw++)
+//                {
+//                    ek(iso + iniSoL, jsw + iniSwL) += 1.0 * weight * fFOil[2] * phiSwL2L(jsw,0) * phiSoL2L(iso,0) * Value;
+//                }
+//                
+//                // dSo/dalphaSo
+//                for (int jso = 0; jso < nphiSoL2L; jso++)
+//                {
+//                    ek(iso + iniSoL, jso + iniSoL) += 1.0 * weight * fFOil[3] * phiSoL2L(jso,0) * phiSoL2L(iso,0) * Value;
+//                }
                 
             }
             
@@ -1311,7 +1311,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
         case 2 :    // Dirichlet BC  PD outflow
         {
-            
+
             if (uLn >= 0.0 ) {
                 // Outflow boundary condition
                 this->UpdateStateVariables(uL, PL, SwL, SoL);

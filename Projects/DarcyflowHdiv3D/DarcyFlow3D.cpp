@@ -12,7 +12,7 @@
 #include <time.h>
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.DarcyFlow"));
+static LoggerPtr logdata(Logger::getLogger("pz.DarcyFlow3D"));
 #endif
 
 void Laplacian3D();
@@ -51,7 +51,7 @@ void Laplacian3D()
     REAL hour       = 3600;
     REAL day        = hour * 24;
     REAL dt         = 2.0*day;
-    REAL maxtime    = 200.0*day;
+    REAL maxtime    = 4.0*day;
     REAL t0         = 0.0*day;
     REAL TolDeltaX  = 1.0*1e-5;
     REAL TolRes     = 1.0*1e-5;

@@ -32,12 +32,12 @@ void LinearTracer()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 20;
+    int maxiter     = 30;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool h1         = false;    // Deprecated
     bool IsDirect   = true;     // Not Used broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    int fixedJac    = 10;
+    int fixedJac    = 0;
     
     int qorder      = 1;
     int porder      = 1;
@@ -46,12 +46,12 @@ void LinearTracer()
     
     REAL hour       = 3600;
     REAL day        = hour * 24;
-    REAL dt         = 0.25*day;
+    REAL dt         = 1.0*day;
 
-    REAL maxtime    = 50*day;
+    REAL maxtime    = 5.0*day;
     REAL t0         = 0.0*day;
-    REAL TolDeltaX  = 1.0*1e-4;
-    REAL TolRes     = 1.0*1e-4;
+    REAL TolDeltaX  = 1.0*1e-7;
+    REAL TolRes     = 1.0*1e-7;
 
 
     
@@ -98,7 +98,7 @@ void LinearTracer()
     REAL waterviscosity     = 0.001;
     REAL cwater             = 0.0*1e-8;
     REAL oildensity         = 1000.0;
-    REAL oilviscosity       = 0.01;
+    REAL oilviscosity       = 0.001;
     REAL coil               = 0.0*1e-8;
     REAL gasdensity         = 0.0;
     REAL gasviscosity       = 0.0;

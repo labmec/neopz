@@ -224,7 +224,7 @@ void TPZDarcyAnalysis::Run()
     else
     {
 
-        int nx = 100;
+        int nx = 50;
         int ny = 1;
         GeometryLine(nx,ny);
         //        CreatedGeoMesh();
@@ -265,7 +265,7 @@ void TPZDarcyAnalysis::Run()
     
     
     // Analysis
-    bool mustOptimizeBandwidth = false;
+    bool mustOptimizeBandwidth = true;
     TPZAnalysis *an = new TPZAnalysis(fcmeshdarcy,mustOptimizeBandwidth);
     int numofThreads = 0;
     
@@ -375,7 +375,7 @@ void TPZDarcyAnalysis::CreateInterfaces()
 
 void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
 {
-    an->Assemble();
+//    an->Assemble();
     TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
     TPZFMatrix<STATE> FGlobal;
     KGlobal =   an->Solver().Matrix();
@@ -434,7 +434,6 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         
         this->AssembleLastStep(an);
         this->AssembleNextStep(an);
-//         this->PrintLS(an);
         
         if (fSimulationData->GetIsBroyden())
         {
@@ -445,7 +444,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
             std::cout << "Time for Broyden: " << timea << std::endl;
             std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
-            this->PostProcessVTK(an);
+//            this->PostProcessVTK(an);
             
         }
         else
@@ -456,13 +455,11 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
             std::cout << "Time for Newton: " << timea << std::endl;
             std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
-            this->PostProcessVTK(an);
+//            this->PostProcessVTK(an);
         }
         
-        
-        
     }
-    
+     this->PostProcessVTK(an);
     
     
 }
@@ -496,7 +493,8 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         an->Rhs() *= -1.0;
         
         an->Solve();
-
+        
+//        this->PrintLS(an);
         
         DeltaX = an->Solution();
         normdx = Norm(DeltaX);
@@ -800,8 +798,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetForcingFunction(forcef);
     
     // Setting up linear tracer solution
-    //TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
-   TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);    
+//TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
+   TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
     
@@ -1270,7 +1268,7 @@ void TPZDarcyAnalysis::Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STAT
 void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
 {
     REAL t=0.0;
-    REAL dt = 10.0;
+    REAL dt = 1.0;
     int n = nx;
     
     // Creating a 0D element to be extruded
