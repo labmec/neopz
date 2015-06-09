@@ -13,9 +13,12 @@
 #include "tpzautopointer.h"
 #include "TRMSimulationData.h"
 
+#include "pzgmesh.h"
+
 class TRMSpaceOdissey{
     
     // Create the computational meshes
+    
     // Initializate the TRMSimulationData
     
     TPZAutoPointer<TRMSimulationData> fSimulationData;

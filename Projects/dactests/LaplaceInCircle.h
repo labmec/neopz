@@ -57,6 +57,7 @@
 
 #include "pzpoisson3d.h"
 #include "mixedpoisson.h"
+#include "pzmatmixedpoisson3d.h"
 #include "TPZReadGIDGrid.h"
 #include "pzanalysis.h"
 
@@ -147,10 +148,14 @@ public:
     TPZGeoMesh *GMeshCirculoTriangGeob( int ndiv);
     TPZGeoMesh *GMeshQuartoCirculoGeobAT( int ndiv);
     TPZGeoMesh *GMeshCirculoQuadraticQuartT( int ndiv);
+    TPZGeoMesh *MakeQuarterOfCircle( int ndiv);
+    TPZGeoMesh *MakeCircle( int ndiv);    
     /**
      * Cria uma malha geometrica formada por elementos do tipo Geoblend
      */
     TPZGeoMesh *GMeshCirculoQuad( int ndiv);
+    
+    TPZManVector<STATE,3> ParametricCircle(REAL radius,REAL theta);
     
     
     TPZGeoMesh *GmeshCirculoPorElementosRetos( int ndiv);

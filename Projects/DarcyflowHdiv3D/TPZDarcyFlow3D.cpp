@@ -215,8 +215,8 @@ void TPZDarcyFlow3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     
     TPZManVector<REAL,3> Q = datavec[Qblock].sol[0];
     REAL P = datavec[Pblock].sol[0][0];
-    REAL Sw = datavec[Swblock].sol[0][0];
-    REAL So = datavec[Soblock].sol[0][0];
+    REAL Sw = 1.0;//datavec[Swblock].sol[0][0];
+    REAL So = 1.0;//datavec[Soblock].sol[0][0];
     REAL Sg = 1.0 - So - Sw;
     
     this->UpdateStateVariables(Q,P, Sw, So);
@@ -292,6 +292,7 @@ void TPZDarcyFlow3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
         {
             Solout[0] = rockporosity;
         }
+            
             break;
         case 7:
         {
@@ -301,7 +302,7 @@ void TPZDarcyFlow3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
         case 8:
         {
             time=this->fSimulationData->GetTime();
-            fTimedependentFunctionExact->Execute(datavec[Swblock].x, time, Saturation,GradS);
+            fTimedependentFunctionExact->Execute(datavec[Pblock].x, time, Saturation,GradS);
             Solout[0] = Saturation[0];
             
         }
@@ -364,7 +365,9 @@ void TPZDarcyFlow3D::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datave
             VectorOnMaster *= JacobianDet;
             
             /* Contravariant Piola mapping preserves the divergence */
-            DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) + dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) );
+            DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) +
+                                                           dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) +
+                                                           dphiuH1(2,ishapeindex)*VectorOnMaster(2,0) );
         }
     }
     else
@@ -375,7 +378,9 @@ void TPZDarcyFlow3D::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datave
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
             /* Computing the divergence for constant jacobian elements */
-            DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) + datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex);
+            DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
+                                     datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
+                                     datavec[ublock].fNormalVec(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
         }
     }
     
@@ -391,14 +396,10 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TP
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
-//    int Swblock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
-//    int Soblock = 3;        // So Oil Saturation needs L2 scalar functions      (phiSoL2)
     
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
     TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
-//    TPZFMatrix<REAL> phiSwL2        = datavec[Swblock].phi; // For L2  test functions Sw
-//    TPZFMatrix<REAL> phiSoL2        = datavec[Soblock].phi; // For L2  test functions So
     TPZFMatrix<STATE> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions
     TPZFMatrix<STATE> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions
     
@@ -410,48 +411,28 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TP
     // Blocks dimensions and lengths
     int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
     int nphiPL2     = phiPL2.Rows();                                    // For L2   P
-//    int nphiSwL2    = phiSwL2.Rows();                                   // For L2   Sw
-//    int nphiSoL2    = phiSoL2.Rows();                                   // For L2   So
     int iniu    = 0;
     int iniP    = nphiuHdiv     + iniu;
-//    int iniSw   = nphiPL2       + iniP;
-//    int iniSo   = nphiSwL2      + iniSw;
     
     
     // Getting linear combinations from different approximation spaces
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
-    REAL P              = datavec[Pblock].sol[0][0];
-    REAL Sw             = 0.0;//datavec[Swblock].sol[0][0];
-    REAL So             = 0.0;//datavec[Soblock].sol[0][0];
-    REAL Sg             = 1.0 - So - Sw;
+    REAL                 P      = datavec[Pblock].sol[0][0];
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
-    
     TPZFNMatrix<660> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
-    
-    
-    
-    //  Compute axuliar functions for the current values of time, u, P, Sw and So
-//    REAL deltat = fSimulationData->GetDeltaT();
-//    this->UpdateStateVariables(u, P, Sw, So);
-//    this->PhaseFractionalFlows();
-    
-    // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
-    REAL rockporosity, drockporositydP;
-    this->fReservoirdata->Porosity(fAveragePressure, rockporosity, drockporositydP);
-    
     
     // Defining local variables
     TPZFMatrix<STATE> oneoverlambda_Kinv_u(3,1);
     TPZFMatrix<STATE> oneoverlambda_Kinv_jphiuHdiv(3,1);
     TPZFMatrix<STATE> Gravity(3,1);
     
-    oneoverlambda_Kinv_u(0,0) = (1.0/fTotalMobility[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1] + KInverse(0,2)*u[2]);
-    oneoverlambda_Kinv_u(1,0) = (1.0/fTotalMobility[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1] + KInverse(1,2)*u[2]);
-    oneoverlambda_Kinv_u(2,0) = (1.0/fTotalMobility[0])* (KInverse(2,0)*u[0] + KInverse(2,1)*u[1] + KInverse(2,2)*u[2]);
+    oneoverlambda_Kinv_u(0,0) = (1.0/1.0)* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1] + KInverse(0,2)*u[2]);
+    oneoverlambda_Kinv_u(1,0) = (1.0/1.0)* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1] + KInverse(1,2)*u[2]);
+    oneoverlambda_Kinv_u(2,0) = (1.0/1.0)* (KInverse(2,0)*u[0] + KInverse(2,1)*u[1] + KInverse(2,2)*u[2]);
     
     Gravity(0,0) = -0.0;
     Gravity(1,0) = -0.0;
@@ -464,7 +445,6 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TP
     int ivectorindex;
     int jshapeindex;
     int jvectorindex;
-    
     
     if (fSimulationData->IsnStep()) {
         
@@ -502,7 +482,7 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TP
         
         iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
         iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
-        iphiuHdiv(2,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        iphiuHdiv(2,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(2,ivectorindex);
         
         // du/dalphau terms
         for (int jq = 0; jq < nphiuHdiv; jq++)
@@ -512,14 +492,22 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TP
             
             jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
             jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
-            jphiuHdiv(2,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+            jphiuHdiv(2,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(2,jvectorindex);
             
-            oneoverlambda_Kinv_jphiuHdiv(0,0) = (1.0/fTotalMobility[0]) * (KInverse(0,0)*jphiuHdiv(0,0) + KInverse(0,1)*jphiuHdiv(1,0) + KInverse(0,2)*jphiuHdiv(2,0));
-            oneoverlambda_Kinv_jphiuHdiv(1,0) = (1.0/fTotalMobility[0]) * (KInverse(1,0)*jphiuHdiv(0,0) + KInverse(1,1)*jphiuHdiv(1,0) + KInverse(1,2)*jphiuHdiv(2,0));
-            oneoverlambda_Kinv_jphiuHdiv(2,0) = (1.0/fTotalMobility[0]) * (KInverse(2,0)*jphiuHdiv(0,0) + KInverse(2,1)*jphiuHdiv(1,0) + KInverse(2,2)*jphiuHdiv(2,0));
+            oneoverlambda_Kinv_jphiuHdiv(0,0) = (1.0/1.0) * (KInverse(0,0)*jphiuHdiv(0,0) + KInverse(0,1)*jphiuHdiv(1,0) + KInverse(0,2)*jphiuHdiv(2,0));
+            oneoverlambda_Kinv_jphiuHdiv(1,0) = (1.0/1.0) * (KInverse(1,0)*jphiuHdiv(0,0) + KInverse(1,1)*jphiuHdiv(1,0) + KInverse(1,2)*jphiuHdiv(2,0));
+            oneoverlambda_Kinv_jphiuHdiv(2,0) = (1.0/1.0) * (KInverse(2,0)*jphiuHdiv(0,0) + KInverse(2,1)*jphiuHdiv(1,0) + KInverse(2,2)*jphiuHdiv(2,0));
             
             ek(iq + iniu,jq + iniu) += weight * ((oneoverlambda_Kinv_jphiuHdiv(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_jphiuHdiv(1,0)*iphiuHdiv(1,0)) + oneoverlambda_Kinv_jphiuHdiv(2,0)*iphiuHdiv(2,0));
         }
+        
+        
+        // du/dalphau terms
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(iq + iniu, jp + iniP) += -1.0 * weight * phiPL2(jp,0) * DivergenceOnDeformed(iq,0);
+        }
+        
         
 //        // dp/dalphap terms
 //        for (int jp = 0; jp < nphiPL2; jp++)
@@ -541,16 +529,16 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TP
     }
     
     
-//    /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
-//    for (int ip = 0; ip < nphiPL2; ip++)
-//    {
-//        // du/dalphau terms
-//        for (int jq = 0; jq < nphiuHdiv; jq++)
-//        {
-//            ek(ip + iniP, jq + iniu) += -1.0 * weight * DivergenceOnDeformed(jq,0) * phiPL2(ip,0);
-//        }
-//    }
-//    
+    /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
+    for (int ip = 0; ip < nphiPL2; ip++)
+    {
+        // du/dalphau terms
+        for (int jq = 0; jq < nphiuHdiv; jq++)
+        {
+            ek(ip + iniP, jq + iniu) += -1.0 * weight * DivergenceOnDeformed(jq,0) * phiPL2(ip,0);
+        }
+    }
+//
 //    // Transport equations
 //    //  n+1 state computations
 //    for (int isw = 0; isw < nphiSwL2; isw++)
@@ -584,14 +572,10 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
-    int Swblock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
-    int Soblock = 3;        // So Oil Saturation needs L2 scalar functions      (phiSoL2)
     
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
     TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
-//    TPZFMatrix<REAL> phiSwL2        = datavec[Swblock].phi; // For L2  test functions Sw
-//    TPZFMatrix<REAL> phiSoL2        = datavec[Soblock].phi; // For L2  test functions So
     TPZFMatrix<STATE> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions
     TPZFMatrix<STATE> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions
     
@@ -603,8 +587,6 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     // Blocks dimensions and lengths
     int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
     int nphiPL2     = phiPL2.Rows();                                    // For L2   P
-//    int nphiSwL2    = phiSwL2.Rows();                                   // For L2   Sw
-//    int nphiSoL2    = phiSoL2.Rows();                                   // For L2   So
     int iniu    = 0;
     int iniP    = nphiuHdiv     + iniu;
 //    int iniSw   = nphiPL2       + iniP;
@@ -614,8 +596,8 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     // Getting linear combinations from different approximation spaces
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
     REAL P              = datavec[Pblock].sol[0][0];
-    REAL Sw             = datavec[Swblock].sol[0][0];
-    REAL So             = datavec[Soblock].sol[0][0];
+    REAL Sw             = 1.0;//datavec[Swblock].sol[0][0];
+    REAL So             = 0.0;//datavec[Soblock].sol[0][0];
     REAL Sg             = 1.0 - So - Sw;
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
@@ -638,17 +620,19 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     
     
     // Defining local variables
-    TPZFMatrix<STATE> oneoverlambda_Kinv_u(2,1);
-    TPZFMatrix<STATE> Gravity(2,1);
+    TPZFMatrix<STATE> oneoverlambda_Kinv_u(3,1);
+    TPZFMatrix<STATE> Gravity(3,1);
     
-    oneoverlambda_Kinv_u(0,0) = (1.0/fTotalMobility[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
-    oneoverlambda_Kinv_u(1,0) = (1.0/fTotalMobility[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
+    oneoverlambda_Kinv_u(0,0) = (1.0/1.0)* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1] + KInverse(0,2)*u[2]);
+    oneoverlambda_Kinv_u(1,0) = (1.0/1.0)* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1] + KInverse(1,2)*u[2]);
+    oneoverlambda_Kinv_u(2,0) = (1.0/1.0)* (KInverse(2,0)*u[0] + KInverse(2,1)*u[1] + KInverse(2,2)*u[2]);
     
     Gravity(0,0) = -0.0;
     Gravity(1,0) = -0.0;
+    Gravity(2,0) = -0.0;
     
     REAL divu = 0.0;
-    TPZFMatrix<STATE> iphiuHdiv(2,1);
+    TPZFMatrix<STATE> iphiuHdiv(3,1);
     int ishapeindex;
     int ivectorindex;
     
@@ -681,7 +665,7 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
         iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
         iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
         
-        ef(iq + iniu) += weight * ((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0)) - P * DivergenceOnDeformed(iq,0)  );
+        ef(iq + iniu) += weight * ((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0) + oneoverlambda_Kinv_u(2,0)*iphiuHdiv(2,0)) - P * DivergenceOnDeformed(iq,0)  );
         
     }
     
@@ -1082,8 +1066,8 @@ void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateri
     // Getting linear combinations from different approximation spaces for the left side
     TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
     REAL PL              = datavecleft[Pblock].sol[0][0];
-    REAL SwL             = datavecleft[Swblock].sol[0][0];
-    REAL SoL             = datavecleft[Soblock].sol[0][0];
+    REAL SwL             = 1.0;//datavecleft[Swblock].sol[0][0];
+    REAL SoL             = 0.0;//datavecleft[Soblock].sol[0][0];
     REAL SgL             = 1.0 - SoL - SwL;
     
     // Getting linear combinations from different approximation spaces for the right side
@@ -1486,6 +1470,7 @@ void TPZDarcyFlow3D::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMate
 
 void TPZDarcyFlow3D::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
+    DebugStop();
     
     if (fSimulationData->IsnStep()) {
         
@@ -1691,8 +1676,8 @@ void TPZDarcyFlow3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,
     
     int Qblock = 0;
     int Pblock = 1;
-    int Swblock = 2;
-    int Soblock = 3;
+//    int Swblock = 2;
+//    int Soblock = 3;
     
     // Getting test and basis functions
     TPZFNMatrix<9,STATE> PhiH1 = datavec[Qblock].phi; // For H1   test functions
@@ -1719,8 +1704,8 @@ void TPZDarcyFlow3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,
     int ishapeindex, jshapeindex;
     int ivectorindex, jvectorindex;
     
-    TPZFMatrix<STATE> iPhiHdiv(2,1);
-    TPZFMatrix<STATE> jPhiHdiv(2,1);
+//    TPZFMatrix<STATE> iPhiHdiv(3,1);
+//    TPZFMatrix<STATE> jPhiHdiv(3,1);
     
     STATE iphinormal;
     STATE jphinormal;
@@ -1751,7 +1736,7 @@ void TPZDarcyFlow3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,
                 {
                     
                     
-                    ek(iq,jq) += gBigNumber * weight * (PhiH1(jq,0)) * PhiH1(iq,0);
+                    ek(iq,jq) += weight * ( gBigNumber * PhiH1(jq,0)) * PhiH1(iq,0);
                 }
                 
                 for (int jp = 0; jp < nPhiL2; jp++)

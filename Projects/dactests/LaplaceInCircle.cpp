@@ -53,7 +53,9 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
 #else
     //TPZGeoMesh *gmesh = this->GMeshCirculoGeobQuart(ndiv);
     //TPZGeoMesh *gmesh = this->GMeshCirculoGeobQuartT( ndiv);
-    TPZGeoMesh *gmesh = this->GMeshQuartoCirculoGeobAT( ndiv);//com geoblends
+    //TPZGeoMesh *gmesh = this->GMeshQuartoCirculoGeobAT( ndiv);//com geoblends
+    //TPZGeoMesh *gmesh = this->MakeQuarterOfCircle(ndiv);//com geoblends
+    TPZGeoMesh *gmesh = this->MakeCircle(ndiv);//com geoblends
     //TPZGeoMesh *gmesh = this->GMeshCirculoQuadraticQuartT( ndiv);// com quadraticos
     //TPZGeoMesh *gmesh = this->GMeshCirculoTriangGeob( ndiv);
     //TPZGeoMesh *gmesh = this->GMeshCirculoGeob( ndiv);
@@ -413,6 +415,338 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuart( int ndiv)
 }
 
 
+TPZGeoMesh *LaplaceInCircle::MakeQuarterOfCircle( int ndiv)
+{
+    if(fDim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * geomesh = new TPZGeoMesh;
+    
+    int nodes =  7;
+    REAL radius = 1.0;
+    REAL innerradius = radius/2.0;
+    geomesh->SetMaxNodeId(nodes-1);
+    geomesh->NodeVec().Resize(nodes);
+    TPZManVector<TPZGeoNode,7> Node(nodes);
+    
+    TPZManVector<long,4> TopolQuadrilateral(4);
+    TPZManVector<long,3> TopolTriangle(3);
+    TPZManVector<long,2> TopolLine(2);
+    TPZManVector<long,3> TopolArc(3);
+    TPZManVector<REAL,3> coord(3,0.);
+    TPZVec<REAL> xc(3,0.);
+    
+    
+    int nodeindex = 0;
+
+    // 0 node
+    coord = ParametricCircle(0.0,0.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    // 1 node
+    coord = ParametricCircle(innerradius,0.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    // 2 node
+    coord = ParametricCircle(radius,0.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    // 3 node
+    coord = ParametricCircle(innerradius,M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    // 4 node
+    coord = ParametricCircle(radius,M_PI/4.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    // 5 node
+    coord = ParametricCircle(innerradius,M_PI/2.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    // 6 node
+    coord = ParametricCircle(radius,M_PI/2.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    
+    int elementid = 0;
+    
+    
+    TopolQuadrilateral[0] = 1;
+    TopolQuadrilateral[1] = 2;
+    TopolQuadrilateral[2] = 6;
+    TopolQuadrilateral[3] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
+    elementid++;
+    
+    TopolTriangle[0] = 0;
+    TopolTriangle[1] = 1;
+    TopolTriangle[2] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,TopolTriangle, fmatId,*geomesh);
+    elementid++;
+    
+    TopolArc[0] = 1;
+    TopolArc[1] = 5;
+    TopolArc[2] = 3;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fmatId,*geomesh);
+    elementid++;
+    
+    TopolArc[0] = 2;
+    TopolArc[1] = 6;
+    TopolArc[2] = 4;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc0,*geomesh);
+    elementid++;
+    
+    
+    TopolLine[0] = 0;
+    TopolLine[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,TopolLine, fbc0,*geomesh);
+    elementid++;
+
+    TopolLine[0] = 1;
+    TopolLine[1] = 2;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,TopolLine, fbc0,*geomesh);
+    elementid++;
+
+    TopolLine[0] = 0;
+    TopolLine[1] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,TopolLine, fbc0,*geomesh);
+    elementid++;
+    
+    TopolLine[0] = 5;
+    TopolLine[1] = 6;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementid,TopolLine, fbc0,*geomesh);
+    elementid++;
+    
+    geomesh->BuildConnectivity();
+    
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = geomesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = geomesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("CircleQuarterMixed.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, out, true);
+    
+    return geomesh;
+}
+
+TPZGeoMesh *LaplaceInCircle::MakeCircle( int ndiv)
+{
+    if(fDim != 2)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoMesh * geomesh = new TPZGeoMesh;
+    
+    int nodes =  17;
+    REAL radius = 1.0;
+    REAL innerradius = radius/2.0;
+    geomesh->SetMaxNodeId(nodes-1);
+    geomesh->NodeVec().Resize(nodes);
+    TPZManVector<TPZGeoNode,7> Node(nodes);
+    
+    TPZManVector<long,4> TopolQuadrilateral(4);
+    TPZManVector<long,3> TopolTriangle(3);
+    TPZManVector<long,2> TopolLine(2);
+    TPZManVector<long,3> TopolArc(3);
+    TPZManVector<REAL,3> coord(3,0.);
+    TPZVec<REAL> xc(3,0.);
+    
+    
+    int nodeindex = 0;
+    
+    for (int inode = 0; inode < 8 ; inode++) {
+        // i node
+        coord = ParametricCircle(innerradius, inode * M_PI/4.0);
+        geomesh->NodeVec()[nodeindex].SetCoord(coord);
+        geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+        nodeindex++;
+    }
+
+    for (int inode = 0; inode < 8 ; inode++) {
+        // i node
+        coord = ParametricCircle(radius, inode * M_PI/4.0);
+        geomesh->NodeVec()[nodeindex].SetCoord(coord);
+        geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+        nodeindex++;
+    }
+    
+    // 16 node the center
+    coord = ParametricCircle(0.0,0.0);
+    geomesh->NodeVec()[nodeindex].SetCoord(coord);
+    geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+    nodeindex++;
+    
+    int elementid = 0;
+    
+//    TopolQuadrilateral[0] = 0;
+//    TopolQuadrilateral[1] = 8;
+//    TopolQuadrilateral[2] = 10;
+//    TopolQuadrilateral[3] = 2;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
+//    elementid++;
+//    
+//    TopolQuadrilateral[0] = 2;
+//    TopolQuadrilateral[1] = 10;
+//    TopolQuadrilateral[2] = 12;
+//    TopolQuadrilateral[3] = 4;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
+//    elementid++;
+//    
+//    TopolQuadrilateral[0] = 4;
+//    TopolQuadrilateral[1] = 12;
+//    TopolQuadrilateral[2] = 14;
+//    TopolQuadrilateral[3] = 6;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
+//    elementid++;
+//    
+//    TopolQuadrilateral[0] = 6;
+//    TopolQuadrilateral[1] = 14;
+//    TopolQuadrilateral[2] = 8;
+//    TopolQuadrilateral[3] = 0;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
+//    elementid++;
+    
+    // inner domain
+    
+    
+    TopolTriangle[0] = 0;
+    TopolTriangle[1] = 2;
+    TopolTriangle[2] = 16;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,TopolTriangle, fmatId,*geomesh);
+    elementid++;
+    
+    TopolTriangle[0] = 2;
+    TopolTriangle[1] = 4;
+    TopolTriangle[2] = 16;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,TopolTriangle, fmatId,*geomesh);
+    elementid++;
+    
+    TopolTriangle[0] = 4;
+    TopolTriangle[1] = 6;
+    TopolTriangle[2] = 16;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,TopolTriangle, fmatId,*geomesh);
+    elementid++;
+    
+    TopolTriangle[0] = 6;
+    TopolTriangle[1] = 0;
+    TopolTriangle[2] = 16;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,TopolTriangle, fmatId,*geomesh);
+    elementid++;
+    
+    
+    // inner arcs
+    
+    TopolArc[0] = 0;
+    TopolArc[1] = 2;
+    TopolArc[2] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+    elementid++;
+    
+    TopolArc[0] = 2;
+    TopolArc[1] = 4;
+    TopolArc[2] = 3;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+    elementid++;
+    
+    TopolArc[0] = 4;
+    TopolArc[1] = 6;
+    TopolArc[2] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+    elementid++;
+    
+    TopolArc[0] = 6;
+    TopolArc[1] = 0;
+    TopolArc[2] = 7;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+    elementid++;
+    
+    // outer arcs bc's
+    
+//    TopolArc[0] = 8;
+//    TopolArc[1] = 10;
+//    TopolArc[2] = 9;
+//    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+//    elementid++;
+//    
+//    TopolArc[0] = 10;
+//    TopolArc[1] = 12;
+//    TopolArc[2] = 11;
+//    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+//    elementid++;
+//    
+//    TopolArc[0] = 12;
+//    TopolArc[1] = 14;
+//    TopolArc[2] = 13;
+//    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+//    elementid++;
+//    
+//    TopolArc[0] = 14;
+//    TopolArc[1] = 8;
+//    TopolArc[2] = 15;
+//    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+//    elementid++;
+    
+    
+    
+    geomesh->BuildConnectivity();
+    
+    int nref = ndiv;
+    TPZVec<TPZGeoEl *> sons;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = geomesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = geomesh->ElementVec()[iel];
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            gel->Divide(sons);
+        }
+    }
+    
+    
+    std::ofstream out("CircleMixed.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, out, true);
+    
+    return geomesh;
+}
+
+
+TPZManVector<STATE,3> LaplaceInCircle::ParametricCircle(REAL radius,REAL theta)
+{
+    TPZManVector<STATE,3> xcoor(3,0.0);
+    xcoor[0] = radius * cos(theta);
+    xcoor[1] = radius * sin(theta);
+    xcoor[2] = 0.0 ;
+    return xcoor;
+}
+
 // malha que representa um quarto circulo de raio R formado por 1 triangulo com geoblends ou 1 triang e 1 quad
 TPZGeoMesh *LaplaceInCircle::GMeshCirculoGeobQuartT( int ndiv)
 {
@@ -626,7 +960,7 @@ TPZGeoMesh *LaplaceInCircle::GMeshCirculoQuadraticQuartT( int ndiv)
     }
     REAL r = 1.0;
     bool umtriang = true;
-    bool anel = false;
+    bool anel = true;
     
     TPZGeoMesh * gmesh;// = new TPZGeoMesh;
     
@@ -2510,118 +2844,64 @@ TPZVec<REAL> LaplaceInCircle::PolarToKartesian(REAL r, REAL theta, TPZManVector<
 void LaplaceInCircle::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     
     solp.resize(1);
+    flux.Resize(3, 1);
+    
     solp[0]=0.;
+    flux(0,0)=0.0;
+    flux(1,0)=0.0;
+    flux(2,0)=0.0;
     
-    int dim = 3; //getDimension();
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
     
-    // tensor de permutacao
-    TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
-    TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = atan2(y,x);
     
-    
-    // Hard coded
-    for (int id = 0; id < dim; id++){
-        TP(id,id) = 1.0;
-        InvTP(id,id) = 1.0;
-    }
-    
-    flux.Resize(dim, 1);
+    REAL costheta = cos(theta);
+    REAL sintheta = sin(theta);
+    REAL cos2theta = cos(2.0*theta);
+    REAL sin2theta = sin(2.0*theta);
+    REAL r4 = r*r*r*r;
     
     
-    double x = pt[0];
-    double y = pt[1];
     
-    REAL r = sqrt( x*x + y*y );
-    REAL theta = M_PI + atan2(y,x);
+    solp[0] = r4*cos2theta*sin2theta;
     
-    solp[0] = r*r*(1.0 - r*r);
-    flux(0,0)= (2.0*r - 4.0*r*r*r)*cos(theta);
-    flux(1,0)= (2.0*r - 4.0*r*r*r)*sin(theta);
-    flux(2,0)= 0.0;
+    // Gradient computations
     
-    solp[0] = r*r-0.25;
-    flux(0,0)= (2.0*r)*cos(theta);
-    flux(1,0)= (2.0*r)*sin(theta);
-    flux(2,0)= 0.0;
+    REAL Runitx = costheta;
+    REAL Runity = sintheta;
+    REAL Runitz = 0.0;
     
-    solp[0] = r;
-    flux(0,0)= cos(theta);
-    flux(1,0)= sin(theta);
-    flux(2,0)= 0.0;
+    REAL Thetaunitx = -sintheta;
+    REAL Thetaunity = costheta;
+    REAL Thetaunitz = 0.0;
     
-//    solp[0] = r;
-//    flux(0,0)= cos(theta);
-//    flux(1,0)= sin(theta);
-//    flux(2,0)= 0.0;
-
-//    solp[0] = -(-1.0+x*x+y*y)*(x*x+y*y);
-//    flux(0,0)= -2.0*x+4.0*x*x*x+4.0*x*y*y;
-//    flux(1,0)= -2.0*y+4.0*x*x*y+4.0*y*y*y;
-//    flux(2,0)= 0.0;
+    REAL Zunitx = 0.0;
+    REAL Zunity = 0.0;
+    REAL Zunitz = 1.0;
     
-//    flux(0,0)=flux(1,0)=0.;
-//    double x = pt[0];
-//    double y = pt[1];
-//    REAL raio = sqrt( x*x + y*y );
-//    if (raio < 1.0)
-//    {
-//        
-//        
-//        // para a Lap p = f no circulo
-//        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-//        flux(0,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(0,0)+y*TP(0,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-//        flux(1,0) = 6.0*exp(1.0/(x*x + y*y-1.0))*(x*TP(1,0)+y*TP(1,1))/( (x*x + y*y-1.0)*(x*x + y*y-1.0) );
-//        
-//    }
-//    else
-//    {
-//        // para a Lap p = f no circulo
-//        solp[0] = 0.0;
-//        flux(0,0)= 0.0;
-//        flux(1,0)= 0.0;
-//        
-//    }
+    REAL dfdR           = 4.0*r*r*r*cos2theta*sin2theta;
+    REAL dfdTheta       = (1.0/r)*(2.0*r4*(cos2theta*cos2theta-sin2theta*sin2theta));
+    REAL dfdZ           = 0.0;
+    
+    flux(0,0) = -1.0*(dfdR * Runitx + dfdTheta * Thetaunitx + dfdZ * Zunitx);
+    flux(1,0) = -1.0*(dfdR * Runity + dfdTheta * Thetaunity + dfdZ * Zunity);
+    flux(2,0) = -1.0*(dfdR * Runitz + dfdTheta * Thetaunitz + dfdZ * Zunitz);
 
     
 }
 
 void LaplaceInCircle::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
 
-    int dim = 3; //getDimension();
-    
-    // tensor de permutacao
-    TPZFNMatrix<2,REAL> TP(dim,dim,0.0);
-    TPZFNMatrix<2,REAL> InvTP(dim,dim,0.0);
-    
-    
-    // Hard coded
-    for (int id = 0; id < dim; id++){
-        TP(id,id) = 1.0;
-        InvTP(id,id) = 1.0;
-    }
-    
-    double x = pt[0];
-    double y = pt[1];
-    REAL r = sqrt( x*x + y*y );
-    ff[0] = -(4.0 - 16.0*r*r);
-    ff[0] = -4.0;
-    ff[0] = -1.0/r;
-//    ff[0] = 4.0*(-1.0+4.0*x*x+4.0*y*y);
-    
    
-//    double x = pt[0];
-//    double y = pt[1];
-//    REAL raio = sqrt( x*x + y*y );
-//    if (raio < 1.0)
-//    {
-//        ff[0] = -6.0*exp(1.0/(x*x + y*y-1.0))*((-1.0 + 3.0*x*x*x*x + 2.0*(1.0 + x*x)*y*y - y*y*y*y)*TP(0,0) +2.0*x*y*(-1.0 + 2.0*x*x + 2.0*y*y)*(TP(0,1) + TP(1,0)) + (-1.0 - x*x*x*x +3.0*y*y*y*y + 2.0*x*x*(1.0 + y*y))*TP(1,1));
-//        
-//    }
-//    else
-//    {
-//        ff[0] = 0.0;
-//        
-//    }
+//    REAL x = pt[0];
+//    REAL y = pt[1];
+//    REAL z = pt[2];
+    
+    ff[0] = 0.0;
+
     
     
 }
@@ -2674,32 +2954,22 @@ void LaplaceInCircle::ForcingH1(const TPZVec<REAL> &pt, TPZVec<STATE> &ff, TPZFM
 void LaplaceInCircle::ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
 
-    double x = pt[0];
-    double y = pt[1];
-    REAL r = sqrt( x*x + y*y );
-    solp[0] = r*r*(1.0 - r*r);
+    solp.resize(1);
     
-    //solp[0] = 0.0;
-
-
-    //    flux(0,0)=flux(1,0)=0.;
-    //    double x = pt[0];
-    //    double y = pt[1];
-    //    REAL raio = sqrt( x*x + y*y );
-    //    if (raio < 1.0)
-    //    {
-    //
-    //
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-    //
-    //    }
-    //    else
-    //    {
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 0.0;
-    //        
-    //    }
+    solp[0]=0.;
+    
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = atan2(y,x);
+    
+    REAL cos2theta = cos(2.0*theta);
+    REAL sin2theta = sin(2.0*theta);
+    REAL r4 = r*r*r*r;
+    
+    solp[0] = r4*cos2theta*sin2theta;
     
 
     
@@ -2707,34 +2977,22 @@ void LaplaceInCircle::ForcingBC0D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
 void LaplaceInCircle::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
+    solp.resize(1);
     
-    double x = pt[0];
-    double y = pt[1];
-    REAL r = sqrt( x*x + y*y );
-    solp[0] = r*r*(1.0 - r*r);
-    solp[0] = r*r-0.25;
-     solp[0] = r;
-    //solp[0] = r;
+    solp[0]=0.;
     
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
     
-    //    flux(0,0)=flux(1,0)=0.;
-    //    double x = pt[0];
-    //    double y = pt[1];
-    //    REAL raio = sqrt( x*x + y*y );
-    //    if (raio < 1.0)
-    //    {
-    //
-    //
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-    //
-    //    }
-    //    else
-    //    {
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 0.0;
-    //
-    //    }
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = atan2(y,x);
+    
+    REAL cos2theta = cos(2.0*theta);
+    REAL sin2theta = sin(2.0*theta);
+    REAL r4 = r*r*r*r;
+    
+    solp[0] = r4*cos2theta*sin2theta;
     
     
     
@@ -2743,33 +3001,20 @@ void LaplaceInCircle::ForcingBC1D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 void LaplaceInCircle::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     
-    double x = pt[0];
-    double y = pt[1];
-    REAL r = sqrt( x*x + y*y );
-    solp[0] = r*r*(1.0 - r*r);
-    solp[0] = r*r-0.25;
-     solp[0] = r;
-    //solp[0] = 0.0;
+    solp.resize(1);
     
+    solp[0]=0.;
     
-    //    flux(0,0)=flux(1,0)=0.;
-    //    double x = pt[0];
-    //    double y = pt[1];
-    //    REAL raio = sqrt( x*x + y*y );
-    //    if (raio < 1.0)
-    //    {
-    //
-    //
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-    //
-    //    }
-    //    else
-    //    {
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 0.0;
-    //
-    //    }
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = atan2(y,x);
+    
+    REAL costheta = cos(theta);
+    
+    solp[0] = r*r*costheta;
     
     
     
@@ -2778,33 +3023,20 @@ void LaplaceInCircle::ForcingBC2D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 void LaplaceInCircle::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     
-    double x = pt[0];
-    double y = pt[1];
-    REAL r = sqrt( x*x + y*y );
-    solp[0] = r*r*(1.0 - r*r);
-    solp[0] = r*r-0.25;
-     solp[0] = r;
-    //solp[0] = 0.0;
+    solp.resize(1);
     
+    solp[0]=0.;
     
-    //    flux(0,0)=flux(1,0)=0.;
-    //    double x = pt[0];
-    //    double y = pt[1];
-    //    REAL raio = sqrt( x*x + y*y );
-    //    if (raio < 1.0)
-    //    {
-    //
-    //
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-    //
-    //    }
-    //    else
-    //    {
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 0.0;
-    //
-    //    }
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = atan2(y,x);
+    
+    REAL costheta = cos(theta);
+    
+    solp[0] = r*r*costheta;
     
     
     
@@ -2812,33 +3044,20 @@ void LaplaceInCircle::ForcingBC3D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 void LaplaceInCircle::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
     
-    double x = pt[0];
-    double y = pt[1];
-    REAL r = sqrt( x*x + y*y );
-    solp[0] = r*r*(1.0 - r*r);
-    solp[0] = r*r-0.25;
-     solp[0] = r;
-    //solp[0] = 0.0;
+    solp.resize(1);
     
+    solp[0]=0.;
     
-    //    flux(0,0)=flux(1,0)=0.;
-    //    double x = pt[0];
-    //    double y = pt[1];
-    //    REAL raio = sqrt( x*x + y*y );
-    //    if (raio < 1.0)
-    //    {
-    //
-    //
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-    //
-    //    }
-    //    else
-    //    {
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 0.0;
-    //
-    //    }
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
+    
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = atan2(y,x);
+    
+    REAL costheta = cos(theta);
+    
+    solp[0] = r*r*costheta;
     
     
     
@@ -2846,33 +3065,20 @@ void LaplaceInCircle::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
 
 void LaplaceInCircle::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
+    solp.resize(1);
     
-    double x = pt[0];
-    double y = pt[1];
-    REAL r = sqrt( x*x + y*y );
-    solp[0] = r*r*(1.0 - r*r);
+    solp[0]=0.;
     
-    //solp[0] = 0.0;
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL z = pt[2];
     
+    REAL r = sqrt(x*x+y*y+z*z);
+    REAL theta = atan2(y,x);
     
-    //    flux(0,0)=flux(1,0)=0.;
-    //    double x = pt[0];
-    //    double y = pt[1];
-    //    REAL raio = sqrt( x*x + y*y );
-    //    if (raio < 1.0)
-    //    {
-    //
-    //
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 3.0*exp(1.0/(x*x + y*y-1.0));
-    //
-    //    }
-    //    else
-    //    {
-    //        // para a Lap p = f no circulo
-    //        solp[0] = 0.0;
-    //
-    //    }
+    REAL costheta = cos(theta);
+    
+    solp[0] = r*r*costheta;
     
     
     
@@ -3185,7 +3391,8 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     //criando material
     int dim = gmesh->Dimension();
     bool interface;
-    TPZMatPoissonD3 *material = new TPZMatPoissonD3(fmatId,dim); interface = true; // nesse material tem que ser true
+//    TPZMatPoissonD3 *material = new TPZMatPoissonD3(fmatId,dim); interface = true; // nesse material tem que ser true
+    TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(fmatId,dim); interface = true; // nesse material tem que ser true
     //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); interface = false; // nesse material tem que ser false
     
     //incluindo os dados do problema
@@ -3206,11 +3413,11 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     TPZFNMatrix<2,REAL> InvPermTensor(dim,dim,0.);
     
     // tensor de permutacao
-    TPZFNMatrix<9,REAL> TP(3,3,0.0);
-    TPZFNMatrix<9,REAL> InvTP(3,3,0.0);
+    TPZFNMatrix<9,REAL> TP(dim,dim,0.0);
+    TPZFNMatrix<9,REAL> InvTP(dim,dim,0.0);
     
     // Hard coded
-    for (int id = 0; id < 3; id++){
+    for (int id = 0; id < dim; id++){
         TP(id,id) = 1.0;
         InvTP(id,id) = 1.0;
     }
@@ -3229,7 +3436,7 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     //funcao do lado direito da equacao do problema
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(4);
+    dum->SetPolynomialOrder(20);
     forcef = dum;
     material->SetForcingFunction(forcef);
     
@@ -3344,7 +3551,7 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
 
 TPZCompMesh *LaplaceInCircle::CMeshMixedWrap(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 {
-    bool condensacaoestatica = false; //true; //
+    bool condensacaoestatica = true; //true; //
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
     TPZCompMesh *mphysics = new TPZCompMesh(gmesh);

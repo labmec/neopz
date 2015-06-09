@@ -3751,7 +3751,8 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     mphysics->AdjustBoundaryElements();
     mphysics->CleanUpUnconnectedNodes();
     
-    if (condensacaoestatica) {
+    if (condensacaoestatica)
+    {
         //Creating multiphysic elements containing skeletal elements.
         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
         mphysics->Reference()->ResetReference();

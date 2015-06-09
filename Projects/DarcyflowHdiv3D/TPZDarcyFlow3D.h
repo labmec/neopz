@@ -105,11 +105,11 @@ public:
     
     /** returns the name of the material */
     std::string Name() {
-        return "TPZAxiSymmetricDarcyFlow";
+        return "TPZDarcyFlow3D";
     }
     
     /** returns the integrable dimension of the material */
-    int Dimension() const {return 2;}
+    int Dimension() const {return 3;}
     
     /** returns the number of state variables associated with the material */
     int NStateVariables() {return 1;} // for hdiv are 3

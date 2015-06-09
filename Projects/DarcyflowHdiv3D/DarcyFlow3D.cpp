@@ -106,12 +106,14 @@ void Laplacian3D()
     REAL cgas               = 0.0;
     
     
-    TPZVec<int> MatIds(5);
+    TPZVec<int> MatIds(7);
     MatIds[0]=1;
     MatIds[1]=2;
     MatIds[2]=3;
     MatIds[3]=4;
     MatIds[4]=5;
+    MatIds[5]=6;
+    MatIds[6]=7;
     
     TPZFMatrix<STATE> Kabsolute(3,3);
     Kabsolute.Zero();
