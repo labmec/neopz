@@ -54,13 +54,14 @@ TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation
     fLayers             = Layers;
     fRockPetroPhysic    = PetroPhysic;
     fFluidData          = FluidModel;
-    
+    //MuWater = fFluidData->GetMuWater();
     /** @brief unknowns for n time step */
     falphaAtn.Resize(0, 0);
     
     /** @brief unknowns for n+1 time step */
     falphaAtnplusOne.Resize(0, 0);
-    
+    Muo = fFluidData->GetMuOil();
+   
 }
 
 
@@ -91,7 +92,7 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
     SetLastState();
     an->AssembleResidual();
     fResidualAtn = an->Rhs();
-    
+   
     // #ifdef DEBUG
     //     #ifdef LOG4CXX
     //         if(logger->isDebugEnabled())
@@ -224,8 +225,8 @@ void TPZDarcyAnalysis::Run()
     else
     {
 
-        int nx = 50;
-        int ny = 1;
+        int nx = fSimulationData->GetnElementsx();
+        int ny = fSimulationData->GetnElementsy();
         GeometryLine(nx,ny);
         //        CreatedGeoMesh();
     }
@@ -434,6 +435,9 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         
         this->AssembleLastStep(an);
         this->AssembleNextStep(an);
+//         this->PrintLS(an);
+        this->AssembleLastStep(an);
+        this->AssembleNextStep(an);
         
         if (fSimulationData->GetIsBroyden())
         {
@@ -444,7 +448,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
             std::cout << "Time for Broyden: " << timea << std::endl;
             std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
-//            this->PostProcessVTK(an);
+            this->PostProcessVTK(an);
             
         }
         else
@@ -455,7 +459,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
             std::cout << "Time for Newton: " << timea << std::endl;
             std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
-//            this->PostProcessVTK(an);
+            this->PostProcessVTK(an);
         }
         
     }
@@ -799,7 +803,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     // Setting up linear tracer solution
 //TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
-   TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+ TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
     
@@ -1268,7 +1272,7 @@ void TPZDarcyAnalysis::Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STAT
 void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
 {
     REAL t=0.0;
-    REAL dt = 1.0;
+    REAL dt = fSimulationData->GetLengthElementx();
     int n = nx;
     
     // Creating a 0D element to be extruded
@@ -1302,7 +1306,7 @@ void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
     CreateGridFrom2->SetParametricFunction(ParFunc2);
     CreateGridFrom2->SetFrontBackMatId(2,4);
     
-    dt = 1.0;
+    dt = fSimulationData->GetLengthElementx();
     n = ny;
     
     
@@ -1667,19 +1671,22 @@ void TPZDarcyAnalysis::LinearTracer(const TPZVec< REAL >& pt, REAL time, TPZVec<
 }
 
 
-void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& Saturation, TPZFMatrix< STATE >& Grad)
+ void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& Saturation, TPZFMatrix< STATE >& Grad)
 {
+  
+   //definir globalmente:
+  REAL Porosity = 0.1;
+  
     REAL x = pt[0];
-    REAL v = 0.00001;
-    REAL Porosity = 0.1;
+    
     REAL xshock = 0.0;
     REAL Swshock = 0.0;
     REAL epsilon = 1.0e-3;
     REAL ds = 1.0e-1;
     REAL qt = 0.00001;
-    REAL Area = 1.0;
-    REAL muw= 0.001;
-    REAL muo= 0.001;
+    REAL muw=0.001;
+    REAL muo= 0.001;//FluidData->GetMuOil();
+   
     
     REAL lambdaw, lambdao;
     REAL lambdat, fw, dfwdSw;
@@ -1689,32 +1696,34 @@ void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, 
    // dfwdSw = -(( muw * muo)/(((Swshock *(muo-muw)+muw)*(Swshock *(muo-muw)+muw));//LInear
    //     dfwdSw = 1.0; //???
     
-    REAL j;
-    REAL xp;
-    int indexsat=0;
-    int nsx=(1.0-Swshock)/0.000001;
-    TPZFMatrix<REAL> xs(nsx,2,0.0);
+   // REAL j;
+   // REAL xp;
+   // int indexsat=0;
+   // int nsx=(1.0-Swshock)/0.000001;
+    //TPZFMatrix<REAL> xs(nsx,2,0.0);
+    REAL Area=1;
     xshock      = (qt*time)/(Porosity*Area)*dfwdSw;
-    j=Ssaturation(0.1);
-    xp     = (qt*time)/(Porosity*Area)*j;
+    //j=Ssaturation(0.1);
+    //xp     = (qt*time)/(Porosity*Area)*j;
     //std::cout<<"RESPUE "<<j<<"RESPUE "<<xp<<std::endl;
    
-     for (int sx = 1; sx < nsx ; sx++) {
-       xs(sx,0)=Swshock+0.000001*sx;
-       xs(sx,1)=(qt*time)/(Porosity*Area)*Ssaturation(xs(sx,0));
-     }
+     //for (int sx = 1; sx < nsx ; sx++) {
+       //xs(sx,0)=Swshock+0.000001*sx;
+       //xs(sx,1)=(qt*time)/(Porosity*Area)*Ssaturation(xs(sx,0));
+     //}
      
     
     
     if(x <= xshock)
     {
-      for (int index = 0; index < nsx; index++) {
-	if (x< xs(index,1)){
-        indexsat=index;
-	}
-    }
-        Saturation[0] =xs(indexsat,0);  
-	indexsat=0;
+     // for (int index = 0; index < nsx; index++) {
+	//if (x< xs(index,1)){
+        //indexsat=index;
+	//}
+    //}
+
+        Saturation[0] =SaturationNewton(x,time,muo,muw,1,qt);  
+	//indexsat=0;
     }
     else
     {
@@ -1782,14 +1791,54 @@ int TPZDarcyAnalysis::Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value
     return 0;
 }
 
-REAL TPZDarcyAnalysis::Ssaturation( REAL S){
+//REAL TPZDarcyAnalysis::Ssaturation( REAL S){
 
-  REAL muw= 0.001;
-  REAL dfwdSwS;
-  REAL muo= 0.001;
-  REAL deriv;
-       deriv = -((2.0*(S-1.0) * S * muw * muo)/((muw - 2.0 * S * muw + S * S * (muw + muo))*(muw - 2.0 * S * muw + S * S *(muw + muo))));
+  //REAL muw= 0.001;
+ // REAL dfwdSwS;
+ // REAL muo= 0.001;
+ // REAL deriv;
+   //    deriv = -((2.0*(S-1.0) * S * muw * muo)/((muw - 2.0 * S * muw + S * S * (muw + muo))*(muw - 2.0 * S * muw + S * S *(muw + muo))));
      // deriv=-(( muw * muo)/(((Swshock *(muo-muw)+muw)*(Swshock *(muo-muw)+muw)); //Linear
-       return (deriv);
+     //  return (deriv);
+//}
+REAL TPZDarcyAnalysis::SaturationNewton(REAL x,REAL t,REAL muo, REAL muw, REAL Area, REAL q)
+{
+  REAL Sin=0.8;
+  REAL Swplusone=0;
+  REAL fx;
+  REAL derivatS;
+  REAL deriv2atS;
+  REAL sin2=0.0;
+ 
+
+    
+while ( (Sin-sin2) > 0.0001){
+       sin2=Sin;
+       derivatS = dfdsw(Sin,muo,muw);
+       deriv2atS = df2dsw(Sin,muo,muw);
+       fx= dfdsw(Sin,muo,muw) - (Area * 0.1 * x)/(q * t);
+       Swplusone= Sin - (fx)/(df2dsw(Sin,muo,muw));
+       Sin = Swplusone;
+         
+  }
+       
+             return (Swplusone);
 }
+
+REAL TPZDarcyAnalysis::dfdsw(REAL Sw,REAL muo,REAL muw)
+{
+  REAL dfwdSwS;
+    
+       dfwdSwS = -((2.0*(Sw-1.0) * Sw * muw * muo)/((muw - 2.0 * Sw * muw + Sw * Sw * (muw + muo))*(muw - 2.0 * Sw * muw + Sw * Sw *(muw + muo))));
+            
+     return (dfwdSwS);
+}
+REAL TPZDarcyAnalysis::df2dsw(REAL Sw, REAL muo,REAL muw)
+{
+  REAL dfw2dSwS2;
+       dfw2dSwS2 = (2* muo * muw *(muw + (Sw * Sw)*((2 * Sw) - 3)*(muo + muw)))/((muw - (2 * Sw * muw)+(Sw*Sw)*(muo + muw))*(muw - (2*Sw*muw)+(Sw*Sw)*(muo + muw))*(muw - (2*Sw*muw)+(Sw*Sw)*(muo + muw)));
+       return (dfw2dSwS2);
+}
+  
+
  

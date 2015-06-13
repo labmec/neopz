@@ -87,12 +87,36 @@ private:
     
     /** @brief State: n or n+1 temporal state */
     bool fnStep;
-    
+    int fNelmx;
+    int fNelmy;
+    REAL fLengthElementx;
+    REAL fLengthElementy;
     
 public:
     
     /** @brief Set Time step - s */
     void SetDeltaT(REAL DeltaT){this->fDeltaT = DeltaT;}
+    
+    /** @brief Set nElements x -  */
+    void SetnElementsx (int Nelem){this-> fNelmx = Nelem;}
+      /** @brief Get nElements x -  */
+    int GetnElementsx (){return this-> fNelmx;}
+    
+    
+    /** @brief Set nElements x -  */
+    void SetnElementsy (int Nelem){this-> fNelmy = Nelem;}
+      /** @brief Get nElements x -  */
+    int GetnElementsy (){return this-> fNelmy;}
+    
+    /** @brief Set LengthElementx  x -  */
+    void SetLengthElementx (REAL LengthElementx){this-> fLengthElementx = LengthElementx;}
+      /** @brief Get LengthElementx  x -  */
+    int GetLengthElementx (){return this-> fLengthElementx;}
+
+    /** @brief Set LengthElementy  y -  */
+    void SetLengthElementy (REAL LengthElementy){this-> fLengthElementy = LengthElementy;}
+      /** @brief Get LengthElementy  y -  */
+    int GetLengthElementy (){return this-> fLengthElementy;}
     
     /** @brief Get Time step - s */
     REAL GetDeltaT() {return this->fDeltaT;}

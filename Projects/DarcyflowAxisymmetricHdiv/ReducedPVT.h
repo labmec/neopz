@@ -141,19 +141,19 @@ public:
     void SetRhoWater(REAL RhoWater){this->fRhoWater = RhoWater;}
     
     /** @brief Get Water Density - kg/m3  $\rho_{w}$ */
-    REAL GetRhoWater(REAL RhoWater){return this->fRhoWater ;}
+    REAL GetRhoWater(){return this->fRhoWater ;}
     
     /** @brief Set Water viscosity - pa s  $\mu_{w}$ */
     void SetMuWater(REAL MuWater){this->fMuWater = MuWater;}
     
     /** @brief Get Water viscosity - pa s  $\mu_{w}$ */
-    REAL GetMuWater(REAL MuWater){return this->fMuWater ;}
+    REAL GetMuWater(){return this->fMuWater ;}
     
     /** @brief Set Water Compressibility - 1/pa   $C_{w}$ */
     void SetcWater(REAL cWater){this->fcWater = cWater;}
     
     /** @brief Get Water Compressibility - 1/pa   $C_{w}$ */
-    REAL GetcWater(REAL cWater){return this->fcWater ;}
+    REAL GetcWater(){return this->fcWater ;}
     
     
     
@@ -164,19 +164,19 @@ public:
     void SetRhoOil(REAL RhoOil){this->fRhoOil = RhoOil;}
     
     /** @brief Get Oil Density - kg/m3  $\rho_{o}$ */
-    REAL GetRhoOil(REAL RhoOil){return this->fRhoOil ;}
+    REAL GetRhoOil(){return this->fRhoOil ;}
     
     /** @brief Set Oil viscosity - pa s  $\mu_{o}$ */
     void SetMuOil(REAL MuOil){this->fMuOil = MuOil;}
     
     /** @brief Get Oil viscosity - pa s  $\mu_{o}$ */
-    REAL GetMuOil(REAL MuOil){return this->fMuOil ;}
+    REAL GetMuOil(){return this->fMuOil ;}
     
     /** @brief Set Oil Compressibility - 1/pa   $C_{o}$ */
     void SetcOil(REAL cOil){this->fcOil = cOil;}
     
     /** @brief Get Oil Compressibility - 1/pa   $C_{o}$ */
-    REAL GetcOil(REAL cOil){return this->fcOil ;}
+    REAL GetcOil(){return this->fcOil ;}
     
     
     
@@ -187,19 +187,19 @@ public:
     void SetRhoGas(REAL RhoGas){this->fRhoGas = RhoGas;}
     
     /** @brief Get Gas Density - kg/m3  $\rho_{g}$ */
-    REAL GetRhoGas(REAL RhoGas){return this->fRhoGas ;}
+    REAL GetRhoGas(){return this->fRhoGas ;}
     
     /** @brief Set Gas viscosity - pa s  $\mu_{g}$ */
     void SetMuGas(REAL MuGas){this->fMuGas = MuGas;}
     
     /** @brief Get Gas viscosity - pa s  $\mu_{g}$ */
-    REAL GetMuGas(REAL MuGas){return this->fMuGas ;}
+    REAL GetMuGas(){return this->fMuGas ;}
     
     /** @brief Set Gas Compressibility - 1/pa   $C_{g}$ */
     void SetcGas(REAL cGas){this->fcGas = cGas;}
     
     /** @brief Get Gas Compressibility - 1/pa   $C_{g}$ */
-    REAL GetcGas(REAL cGas){return this->fcGas ;}
+    REAL GetcGas(){return this->fcGas ;}
 
     
     

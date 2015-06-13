@@ -47,10 +47,11 @@ private:
     
     // Reduced PVT data required for
     TPZAutoPointer<ReducedPVT> fFluidData;
-    
-    /** @brief Geometric mesh */
+   
+        /** @brief Geometric mesh */
     TPZGeoMesh * fgmesh;
     
+      
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 4> fmeshvec;
     
@@ -65,7 +66,7 @@ private:
     
     
 public:
-    
+    REAL Muo;
     /// Constructor which already sets the cmesh
     TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel);
     
@@ -81,6 +82,8 @@ public:
      * Assemble last step residuum
      **/
     void AssembleLastStep(TPZAnalysis *an);
+    
+    
     
     /**
      * Assemble the Residuum
@@ -263,7 +266,7 @@ public:
     /**
      * Exact Soltuion for bluckley and leverett
      */
-    static  void BluckleyAndLeverett(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Saturation, TPZFMatrix<STATE> &Grad);
+    static void BluckleyAndLeverett(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Saturation, TPZFMatrix<STATE> &Grad);
     
     /**
      * Computes the saturation at shock using the Welge method
@@ -276,7 +279,11 @@ public:
     static int Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value);
     
     
-    static REAL Ssaturation( REAL S);
+    //static REAL Ssaturation( REAL S);
+    
+    static REAL SaturationNewton( REAL x,REAL t,REAL muo, REAL muw, REAL Area,REAL q);
+    static REAL dfdsw( REAL Sw, REAL muo,REAL muw);
+    static REAL df2dsw( REAL Sw, REAL muo,REAL muw);
     /**
      * Computes the inverse of the Global matrix
      */
