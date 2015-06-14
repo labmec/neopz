@@ -34,7 +34,7 @@ void LinearTracer()
     
     int maxiter     = 30;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
-    bool h1         = false;    // Deprecated
+    bool GR         = true;    // Use Gradient Reconstruction
     bool IsDirect   = true;     // Not Used broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
     int fixedJac    = 0;
@@ -46,22 +46,22 @@ void LinearTracer()
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = 0.0005*day;
+    REAL dt         = 0.01*day;
 
-    REAL maxtime    = 20.0*day;
+    REAL maxtime    = 1.0*day;
     REAL t0         = 0.0*day;
-    REAL TolDeltaX  = 1.0*1e-7;
-    REAL TolRes     = 1.0*1e-7;
+    REAL TolDeltaX  = 1.0*1e-8;
+    REAL TolRes     = 1.0*1e-8;
     
-    int  nelemX     =100;
-    REAL lengthX    =2;
+    int  nelemX     =10;
+    REAL lengthX    =10.0;
     
-    int nelemY      =1;
-    REAL lengthY    =10.0;
+    int nelemY      =2;
+    REAL lengthY    =1.0;
 
 
     
-    Dataset->SetIsH1approx(h1);
+    Dataset->SetGR(GR);
     Dataset->SetIsDirect(IsDirect);
     Dataset->SetIsCG(IsCG);
     Dataset->Setqorder(qorder);

@@ -587,8 +587,10 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
     TPZFMatrix<REAL> phiSwL2        = datavec[Swblock].phi; // For L2  test functions Sw
     TPZFMatrix<REAL> phiSoL2        = datavec[Soblock].phi; // For L2  test functions So
-    TPZFMatrix<STATE> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions
-    TPZFMatrix<STATE> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions
+    TPZFMatrix<STATE> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
+    TPZFMatrix<STATE> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
+    TPZFMatrix<STATE> dphiSwL2   = datavec[Swblock].dphix; // Derivative For L2  test functions Sw
+    TPZFMatrix<STATE> dphiSoL2   = datavec[Soblock].dphix; // Derivative For L2  test functions So
     
     TPZFMatrix<STATE> DivergenceOnDeformed;
     // Compute the divergence on deformed element by piola contravariant transformation
@@ -615,9 +617,15 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
+    TPZFMatrix<STATE> GradSwaxes = datavec[Swblock].dsol[0];
+    TPZFMatrix<STATE> GradSoaxes = datavec[Soblock].dsol[0];
     
     TPZFNMatrix<660> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
+    TPZFNMatrix<660> GradSw;
+    TPZAxesTools<REAL>::Axes2XYZ(GradSwaxes, GradSw, datavec[Swblock].axes);
+    TPZFNMatrix<660> GradSo;
+    TPZAxesTools<REAL>::Axes2XYZ(GradSoaxes, GradSo, datavec[Soblock].axes);
     
     
     
@@ -701,11 +709,15 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     for (int isw = 0; isw < nphiSwL2; isw++)
     {
         ef(isw  + iniSw ) += weight * (1.0/deltat) * rockporosity * Sw * phiSwL2(isw,0);
+//        ef(isw  + iniSw ) += weight * (-1.0 * fFWater[2] *(u[0]*GradSw[0]) + (u[1]*GradSw[1])) * phiSwL2(isw,0);
+//        ef(isw  + iniSw ) += weight * (-1.0 * fFWater[0] *(u[0]*dphiSwL2(0,isw)) + (u[1]*dphiSwL2(1,isw)));
     }
     
     for (int iso = 0; iso < nphiSoL2; iso++)
     {
         ef(iso  + iniSo ) += weight * (1.0/deltat) * rockporosity * So * phiSoL2(iso,0);
+//        ef(iso  + iniSo ) += weight * (-1.0 * fFOil[2] *(u[0]*GradSo[0]) + (u[1]*GradSo[1])) * phiSoL2(iso,0);
+//        ef(iso  + iniSo ) += weight * (-1.0 * fFOil[0] *(u[0]*dphiSoL2(0,iso)) + (u[1]*dphiSoL2(1,iso)));
     }
     
 }

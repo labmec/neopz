@@ -53,11 +53,15 @@ SimulationData::SimulationData()
     /** @brief Broyden iterations */
     fIsBroyden = false;
     
-    /** @brief Computes a H1 approximation */
-    fIsH1approx = false;
+    /** @brief Define the use of a linear approxiamtion of S using a gradient reconstruction procedure */
+    fUseGR = false;
+    
+    /** @brief void material being used for GR */
+    fMatL2 = 1000;
     
     /** @brief State: n or n+1 temporal state */
     fnStep = true;
+    
     
 }
 

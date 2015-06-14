@@ -82,17 +82,22 @@ private:
     /** @brief Broyden iterations */
     bool fIsBroyden;
     
-    /** @brief Computes a H1 approximation */
-    bool fIsH1approx;
+    /** @brief Define the use of a linear approxiamtion of S using a gradient reconstruction procedure */
+    bool fUseGR;
     
     /** @brief State: n or n+1 temporal state */
     bool fnStep;
+    
+    
     int fNelmx;
     int fNelmy;
     REAL fLengthElementx;
     REAL fLengthElementy;
     
 public:
+    
+    /** @brief void material being used for GR */
+    int fMatL2;
     
     /** @brief Set Time step - s */
     void SetDeltaT(REAL DeltaT){this->fDeltaT = DeltaT;}
@@ -187,12 +192,6 @@ public:
     /** @brief Using Broyden iterations */
     bool GetIsBroyden() {return fIsBroyden;}
     
-    /** @brief Using Broyden iterations */
-    void SetIsH1approx(bool H1) {fIsH1approx = H1;}
-    
-    /** @brief Using Broyden iterations */
-    bool GetIsH1approx() {return fIsH1approx;}
-    
     /** @brief Set the use of direct Solver */
     void SetIsDirect(bool isdirect) {fIsDirect = isdirect;}
     
@@ -210,6 +209,12 @@ public:
     
     /** @brief Get the use of CG method (false is GMRES) */
     bool IsnStep() {return fnStep;}
+    
+    /** @brief Using GR iterations */
+    void SetGR(bool GR) {fUseGR = GR;}
+    
+    /** @brief Using GR iterations */
+    bool GetGR() {return fUseGR;}
     
     
 };

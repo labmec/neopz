@@ -12,6 +12,9 @@
 #include "pzintel.h"
 #include "pzstepsolver.h"
 
+#include "pzl2projection.h"
+#include "pzgradientreconstruction.h"
+
 
 class TPZCompMesh;
 
@@ -292,7 +295,12 @@ public:
     /**
      * FilterEquations
      */
-    void FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive);
+    void FilterSaturationGradients(TPZManVector<long> &active, TPZManVector<long> &nonactive);
+    
+    /**
+     * Compute saturation reconstruction for Sw and So
+     */
+    void SaturationReconstruction(TPZAnalysis *an);
     
     /**
      * Update state variables

@@ -161,7 +161,7 @@ void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &
 void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 {
     
-    // Compute the intial saturation distribution
+    // Compute the constant initial saturation distribution for Oil
     int nalpha = fcmeshdarcy->Solution().Rows();
     falphaAtn.Resize(nalpha, 1);
     falphaAtnplusOne.Resize(nalpha, 1);
@@ -170,25 +170,27 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     an->LoadSolution(falphaAtn);
     
     int nsoil = fmeshvec[3]->Solution().Rows();
-    TPZFMatrix<REAL> SOil(nsoil,1,1.0);
+    TPZFMatrix<REAL> SOil(nsoil,1,0.0);
+    
+    
+    // DOF Related with S constant
+    for(int i = 0; i< fmeshvec[3]->NConnects(); i++)
+    {
+        TPZConnect &con = fmeshvec[3]->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = fmeshvec[3]->Block().Position(seqnum);
+        int blocksize = fmeshvec[3]->Block().Size(seqnum);
+        int ieq = blocksize-1;
+        SOil(pos+ieq,0) = 1.0;
+    }
+    
     fmeshvec[3]->LoadSolution(SOil);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
     
     falphaAtn = fcmeshdarcy->Solution();
     falphaAtnplusOne = fcmeshdarcy->Solution();
     
-    // #ifdef DEBUG
-    //     #ifdef LOG4CXX
-    //         if(logger->isDebugEnabled())
-    //         {
-    //             std::stringstream sout;
-    //             falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
-    //             falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
-    //             LOGPZ_DEBUG(logger,sout.str())
-    //         }
-    //     #endif
-    // #endif
-    
+
 }
 
 void TPZDarcyAnalysis::Run()
@@ -251,7 +253,7 @@ void TPZDarcyAnalysis::Run()
     
     int q = fSimulationData->Getqorder();
     int p = fSimulationData->Getporder();
-    int s = 0;
+    int s = 1;
     
     //    if (fSimulationData->GetIsH1approx())
     if (false)
@@ -422,8 +424,19 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     
     REAL tk = 0;
     
+    TPZManVector<long> NoSaturationGradients(0),SaturationGradients(0);
+    this->FilterSaturationGradients(NoSaturationGradients,SaturationGradients);
+    an->StructMatrix()->EquationFilter().Reset();
+    an->StructMatrix()->EquationFilter().SetActiveEquations(NoSaturationGradients);
+    
     this->fSimulationData->SetTime(tk);
     this->PostProcessVTK(an);
+    
+   
+    if (fSimulationData->GetGR())
+    {
+        this->SaturationReconstruction(an);
+    }
     
     for (int istep = 1 ; istep <=  nsteps; istep++) {
         tk = istep*this->fSimulationData->GetDeltaT();
@@ -433,9 +446,6 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         std::cout<<  "Time step: " << istep << std::endl;
         
         
-        this->AssembleLastStep(an);
-        this->AssembleNextStep(an);
-//         this->PrintLS(an);
         this->AssembleLastStep(an);
         this->AssembleNextStep(an);
         
@@ -463,23 +473,34 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         }
         
     }
-     this->PostProcessVTK(an);
+    
+//    this->PostProcessVTK(an);
     
     
 }
 
+void TPZDarcyAnalysis::SaturationReconstruction(TPZAnalysis *an)
+{
+    TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
+    
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+    
+    fmeshvec[2]->Reference()->ResetReference();
+    fmeshvec[2]->LoadReferences();
+    gradreconst->ProjectionL2GradientReconstructed(fmeshvec[2], fSimulationData->fMatL2);
+    
+    fmeshvec[3]->Reference()->ResetReference();
+    fmeshvec[3]->LoadReferences();
+    gradreconst->ProjectionL2GradientReconstructed(fmeshvec[3], fSimulationData->fMatL2);
+    
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
+    an->LoadSolution(fcmeshdarcy->Solution());
+}
 
 void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
 {
     
     TPZFMatrix<STATE> Residual(an->Rhs().Rows(),1,0.0);
-
-    //    TPZManVector<long> Actives(0),NoActives(0);
-    //
-    //    this->FilterSaturations(Actives, NoActives);
-    //    an->StructMatrix()->EquationFilter().Reset();
-    //    an->StructMatrix()->EquationFilter().SetActiveEquations(Actives);
-    
     Residual = fResidualAtn + fResidualAtnplusOne;
     
     TPZFMatrix<STATE> X = falphaAtn;
@@ -498,17 +519,18 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         
         an->Solve();
         
-//        this->PrintLS(an);
-        
         DeltaX = an->Solution();
         normdx = Norm(DeltaX);
         X += DeltaX;
         
         fcmeshdarcy->LoadSolution(X);
-        if (true)
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+        
+        if (fSimulationData->GetGR())
         {
-            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+            this->SaturationReconstruction(an);
         }
+
         
         if (((fixed+1) * (centinel) == iterations)) {
             an->Assemble();
@@ -529,8 +551,8 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
 //            if(logger->isDebugEnabled())
 //            {
 //                std::stringstream sout;
-//                fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
-//                fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
+////                fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
+//                fcmeshdarcy->Solution().Print("fcmeshdarcy->Solution() = ", sout,EMathematicaInput);
 //                DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
 //                X.Print("X = ", sout,EMathematicaInput);
 //                LOGPZ_DEBUG(logger,sout.str())
@@ -638,10 +660,10 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
         
         
         fcmeshdarcy->LoadSolution(X);
-        if (!fSimulationData->GetIsH1approx())
-        {
-            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
-        }
+//        if (!fSimulationData->GetIsH1approx())
+//        {
+//            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+//        }
         
         this->AssembleResidual();
         Residual = fResidualAtn + fResidualAtnplusOne;       // g(Xk)
@@ -1079,6 +1101,12 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSw(int Sworder)
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
     cmesh->InsertMaterialObject(bcLeft);
     
+    // Void material
+    int matIdL2Proj = fSimulationData->fMatL2;
+    TPZVec<STATE> sol(1,0.);
+    TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,mat->NStateVariables(),sol);
+    cmesh->InsertMaterialObject(matl2proj);
+    
     // Setando L2
     cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(Sworder);
@@ -1134,6 +1162,12 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSo(int Soorder)
     // Bc Left
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
     cmesh->InsertMaterialObject(bcLeft);
+    
+    // Void material
+    int matIdL2Proj = fSimulationData->fMatL2;
+    TPZVec<STATE> sol(1,0.);
+    TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,mat->NStateVariables(),sol);
+    cmesh->InsertMaterialObject(matl2proj);
     
     // Setando L2
     cmesh->SetDimModel(dim);
@@ -1516,8 +1550,8 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     int div = fSimulationData->GetHPostrefinement();
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
-    if (fSimulationData->GetIsH1approx()) {
-        plotfile = "2DH1Darcy.vtk";
+    if (fSimulationData->GetGR()) {
+        plotfile = "2DMixedDarcyGR.vtk";
     }
     else{
         plotfile = "2DMixedDarcy.vtk";
@@ -1580,7 +1614,7 @@ TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
     
 }
 
-void TPZDarcyAnalysis::FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive)
+void TPZDarcyAnalysis::FilterSaturationGradients(TPZManVector<long> &active, TPZManVector<long> &nonactive)
 {
     int ncon_flux       = fmeshvec[0]->NConnects();
     int ncon_pressure   = fmeshvec[1]->NConnects();
@@ -1588,6 +1622,8 @@ void TPZDarcyAnalysis::FilterSaturations(TPZManVector<long> &active, TPZManVecto
     int ncon_so    = fmeshvec[3]->NConnects();
     int ncon = fcmeshdarcy->NConnects();
     
+    
+    // DOF related with the Q-P system
     for(int i = 0; i < ncon-ncon_sw-ncon_so; i++)
     {
         TPZConnect &con = fcmeshdarcy->ConnectVec()[i];
@@ -1603,50 +1639,35 @@ void TPZDarcyAnalysis::FilterSaturations(TPZManVector<long> &active, TPZManVecto
         }
     }
     
-    //    for(int i = ncon-ncon_gravity; i < ncon; i++)
-    //    {
-    //        TPZConnect &con = mphysics->ConnectVec()[i];
-    //        int seqnum = con.SequenceNumber();
-    //        if (seqnum == -1) {
-    //            continue;
-    //        }
-    //        int pos = mphysics->Block().Position(seqnum);
-    //        int blocksize = mphysics->Block().Size(seqnum);
-    //        int vs = active.size();
-    //        active.Resize(vs+blocksize);
-    //        for(int ieq = 0; ieq<blocksize; ieq++){
-    //            active[vs+ieq] = pos+ieq;
-    //        }
-    //
-    //    }
-    //
-    //    for(int i = ncon-ncon_saturation-ncon_gravity; i<ncon-ncon_gravity; i++)
-    //    {
-    //        TPZConnect &con = mphysics->ConnectVec()[i];
-    //        int seqnum = con.SequenceNumber();
-    //        int pos = mphysics->Block().Position(seqnum);
-    //        int blocksize = mphysics->Block().Size(seqnum);
-    //        int vs = active.size();
-    //        active.Resize(vs+1);
-    //
-    //        int ieq = blocksize-1;
-    //        active[vs] = pos+ieq;
-    //    }
-    //
-    //    for(int i = ncon-ncon_saturation-ncon_gravity; i<ncon-ncon_gravity; i++)
-    //    {
-    //        TPZConnect &con = mphysics->ConnectVec()[i];
-    //        int seqnum = con.SequenceNumber();
-    //        int pos = mphysics->Block().Position(seqnum);
-    //        int blocksize = mphysics->Block().Size(seqnum);
-    //        int vs = nonactive.size();
-    //        nonactive.Resize(vs+blocksize-1);
-    //        for(int ieq = 0; ieq<blocksize-1; ieq++)
-    //        {
-    //            nonactive[vs+ieq] = pos+ieq;
-    //        }
-    //
-    //    }
+    // DOF Related with S constant
+    for(int i = ncon-ncon_sw-ncon_so; i< ncon; i++)
+    {
+        TPZConnect &con = fcmeshdarcy->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = fcmeshdarcy->Block().Position(seqnum);
+        int blocksize = fcmeshdarcy->Block().Size(seqnum);
+        int vs = active.size();
+        active.Resize(vs+1);
+        
+        int ieq = blocksize-1;
+        active[vs] = pos+ieq;
+    }
+    
+    // DOF Related with S grandients
+    for(int i = ncon-ncon_sw-ncon_so; i< ncon; i++)
+    {
+        TPZConnect &con = fcmeshdarcy->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = fcmeshdarcy->Block().Position(seqnum);
+        int blocksize = fcmeshdarcy->Block().Size(seqnum);
+        int vs = nonactive.size();
+        nonactive.Resize(vs+blocksize-1);
+        for(int ieq = 0; ieq<blocksize-1; ieq++)
+        {
+            nonactive[vs+ieq] = pos+ieq;
+        }
+        
+    }
     
 }
 
