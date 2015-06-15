@@ -10,15 +10,33 @@
 #define __PZ__TRMRawData__
 
 #include <stdio.h>
-
+#include "pzreal.h"
 class TRMRawData {
     
-    // It is quite similar to data transfer from simworx
-    // it is composed of structs
-    // Contains all the data required for everything
-    // Read and write xml files with tiny xml
-    // Here the boundary conditions are defined
+public:
     
+    REAL fLw;
+    bool fHasLiner;
+    bool fHasCasing;
+    
+    REAL fReservoirWidth;
+    REAL fReservoirLength;
+    REAL fReservoirHeight;
+    REAL fProdVertPosition;
+    
+    TRMRawData()
+    {
+        fLw = 0.;
+        fHasLiner = true;
+        fHasCasing = true;
+        
+        fReservoirWidth = 0.;
+        fReservoirLength = 0.;
+        fReservoirHeight = 0.;
+        fProdVertPosition = 0.;
+    }
+    
+    ~TRMRawData(){}
 };
 
 #endif /* defined(__PZ__TRMRawData__) */
