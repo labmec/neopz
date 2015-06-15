@@ -29,10 +29,7 @@ public:
     
     //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
-	bool IsLinearMapping() const {
-		return false;
-	}
-	
+
 	TPZQuadraticPrism(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZPrism>(nodeindexes)
 	{
 	}
@@ -54,7 +51,12 @@ public:
 	}
 	
 	/** @brief Returns the type name of the element */
-	static std::string TypeName() { return "Prism";} 
+	static std::string TypeName() { return "Prism";}
+    
+    static bool IsLinearMapping(int side)
+    {
+        return false;
+    }
 	
 	static void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	

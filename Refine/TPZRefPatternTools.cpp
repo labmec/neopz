@@ -219,6 +219,173 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 	return NULL;
 }
 
+TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::GetRefPatternBasedOnRealMeshElements(TPZVec<TPZGeoEl *> & realMeshElementVec)
+{
+    //Criando uma malha local a partir do vetor de elementos.
+    TPZGeoMesh refGMesh;
+    GenerateGMeshFromElementVec(realMeshElementVec,refGMesh);
+    
+    TPZAutoPointer<TPZRefPattern> refp = new TPZRefPattern(refGMesh);
+    TPZAutoPointer<TPZRefPattern> refpFound = gRefDBase.FindRefPattern(refp);
+    if(refpFound)
+    {
+        ModifyElementsBasedOnRefpFound(refpFound,refp,realMeshElementVec);
+        return refpFound;
+    }
+    else
+    {
+        gRefDBase.InsertRefPattern(refp);
+        return refp;
+    }
+    
+    return NULL;
+}
+
+void TPZRefPatternTools::GenerateGMeshFromElementVec(const TPZVec<TPZGeoEl *> & elementVec, TPZGeoMesh & refGMesh)
+{
+    std::map<long,long> gl2lcNdIdx;//global to local node index
+    std::map<long,long> gl2lcElIdx;//global to local element index
+    
+    refGMesh.ElementVec().Resize(elementVec.NElements());
+    for(int el = 0; el < elementVec.NElements(); el++)
+    {
+        TPZGeoEl *gel = elementVec[el];
+        gl2lcElIdx[gel->Index()] = el;
+    }
+    for(int el = 0; el < elementVec.NElements(); el++)
+    {
+        TPZGeoEl *gel = elementVec[el];
+        if(!gel) DebugStop();
+        for(int n = 0; n < gel->NCornerNodes(); n++)
+        {
+            int nodeindex = gel->NodeIndex(n);
+            if(gl2lcNdIdx.find(nodeindex) != gl2lcNdIdx.end())
+            {
+                continue;
+            }
+            
+            TPZManVector<REAL,3> sonNodeCoord(3);
+            gel->NodePtr(n)->GetCoordinates(sonNodeCoord);
+            
+            int oldSize = refGMesh.NNodes();
+            refGMesh.NodeVec().Resize(oldSize+1);
+            refGMesh.NodeVec()[oldSize].SetCoord(sonNodeCoord);
+            refGMesh.NodeVec()[oldSize].SetNodeId(oldSize);
+            
+            gl2lcNdIdx[nodeindex] = oldSize;
+        }
+        gel->ClonePatchEl(refGMesh,gl2lcNdIdx,gl2lcElIdx);
+    }
+}
+
+void TPZRefPatternTools::ModifyElementsBasedOnRefpFound(TPZAutoPointer<TPZRefPattern> & refpFound,
+                                                        TPZAutoPointer<TPZRefPattern> & refp,
+                                                        TPZVec<TPZGeoEl *> &elementVec)
+{
+    TPZGeoMesh & refpGMesh = refp->RefPatternMesh();
+    TPZGeoMesh & refpFoundGMesh = refpFound->RefPatternMesh();
+    
+    //pareando nohs
+    std::map<int,int> Node_RefpFound2Refp;
+    for(int n = 0; n < refpGMesh.NNodes(); n++)
+    {
+        TPZManVector<REAL,3> coord(3);
+        refpGMesh.NodeVec()[n].GetCoordinates(coord);
+        
+        int nodeIndex;
+        TPZGeoNode * node = refpFoundGMesh.FindNode(coord,nodeIndex);
+        if(!node)
+        {
+            DebugStop();
+        }
+        
+        Node_RefpFound2Refp[nodeIndex] = n;
+    }
+    
+    TPZManVector<TPZGeoEl *> subels(elementVec.size()-1,0);
+    for(int el=1; el < refpGMesh.NElements(); el++)
+    {
+        TPZManVector<int> nodeIndicesVecRefp;
+        std::set<int> nodeindicesRefp;
+        refpGMesh.ElementVec()[el]->GetNodeIndices(nodeIndicesVecRefp);
+        if(nodeIndicesVecRefp.NElements())
+        {
+            int sz = nodeIndicesVecRefp.size();
+            int *zero = &nodeIndicesVecRefp[0];
+            nodeindicesRefp.insert(zero,zero+sz);
+        }
+        else
+        {
+            DebugStop();
+        }
+        
+        //pareando subelemento
+        int el2 = 1;
+        TPZManVector<int> nodeIndicesVecRefpFound;
+        for(el2 = 1; el2 < refpFoundGMesh.NElements(); el2++)
+        {
+            refpFoundGMesh.ElementVec()[el2]->GetNodeIndices(nodeIndicesVecRefpFound);
+            std::set<int> nodeindicesRefpFound;
+            for(int n = 0; n < nodeIndicesVecRefpFound.NElements(); n++)
+            {
+#ifdef DEBUG
+                if(Node_RefpFound2Refp.find(nodeIndicesVecRefpFound[n]) == Node_RefpFound2Refp.end())
+                {
+                    DebugStop();
+                }
+#endif
+                
+                nodeindicesRefpFound.insert(Node_RefpFound2Refp[nodeIndicesVecRefpFound[n]]);
+            }
+            if(nodeindicesRefp == nodeindicesRefpFound)
+            {
+                break;
+            }
+        }
+        if(el2 == refpFoundGMesh.NElements())
+        {
+            DebugStop();
+        }
+        subels[el2-1] = elementVec[el];
+        
+        //Elementos pareados
+        TPZManVector<int,8> newTopol(refpFoundGMesh.ElementVec()[el2]->NNodes());
+        for(int n = 0; n < refpFoundGMesh.ElementVec()[el2]->NNodes(); n++)
+        {
+            std::map<int,int>::iterator it = Node_RefpFound2Refp.find(refpFoundGMesh.ElementVec()[el2]->NodeIndex(n));
+            if(it == Node_RefpFound2Refp.end())
+            {
+                DebugStop();
+            }
+            int newNodeIndex = -1;
+            for(int nn = 0; nn < refpGMesh.ElementVec()[el]->NNodes(); nn++)
+            {
+                if(refpGMesh.ElementVec()[el]->NodeIndex(nn) == it->second)
+                {
+                    newNodeIndex = nn;
+                    break;
+                }
+            }
+            if(newNodeIndex == -1)
+            {
+                DebugStop();
+            }
+            newTopol[n] = elementVec[el]->NodeIndex(newNodeIndex);
+        }
+        for(int n = 0; n < elementVec[el]->NNodes(); n++)
+        {
+            elementVec[el]->SetNodeIndex(n,newTopol[n]);
+        }
+    }
+    
+    for(int el = 1; el < elementVec.NElements(); el++)
+    {
+        elementVec[el] = subels[el-1];
+    }
+    //Lembre-se de chamar elementVec[0]->Mesh()->BuildConnectivity(), uma vez que houve alteracao
+    //das declaracoes topologicas dos elementos do elementVec, modificando conectividades (vizinhanca).
+}
+
 TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoEl *gel)
 {
 	if(!gel)

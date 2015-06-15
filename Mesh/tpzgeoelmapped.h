@@ -84,14 +84,16 @@ public:
         fCornerCo.Read(buf,0);
     }
 	
-
+    virtual bool IsLinearMapping(int side) const;
 	
+    /*
 	virtual bool IsLinearMapping() const
 	{
 		TPZGeoEl *father = (TBase::fFatherIndex == -1) ? 0 : TBase::Mesh()->ElementVec()[TBase::fFatherIndex];
 		if(father) return father->IsLinearMapping();
 		else return TBase::IsLinearMapping();
 	}
+     */
 	
 	/** @brief Returns if is a TPZGeoElMapped< T > element */
 	/** It is necessary due to the lack of dynamic cast for these elements */
@@ -467,6 +469,19 @@ private:
 	}
 	
 };
+
+template<class TBase>
+inline bool TPZGeoElMapped<TBase>::IsLinearMapping(int side) const
+{
+    TPZGeoElSide fatherside = this->Father2(side);
+    if (fatherside.Element()) {
+        return fatherside.IsLinearMapping();
+    }
+    else
+    {
+        return TBase::IsLinearMapping(side);
+    }
+}
 
 /** 
  * @brief Creates geometric element of the specified type 

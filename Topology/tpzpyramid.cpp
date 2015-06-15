@@ -1309,7 +1309,7 @@ namespace pztopology {
         
         for (int i=0; i<3; i++)
         {
-            //face 0
+            //face 0 inferior square
             directions(i,0) = -ar9[i];
             directions(i,1) = -ar10[i];
             directions(i,2) = -ar11[i];
@@ -1319,7 +1319,7 @@ namespace pztopology {
             directions(i,6) = ( directions(i,2)+directions(i,3) )/2.;
             directions(i,7) = ( directions(i,3)+directions(i,0) )/2.;
             directions(i,8) = ( directions(i,4)+directions(i,5)+directions(i,6)+directions(i,7) )/4.;
-            //face 1
+            //face 1 front face
             directions(i,9)  = -v2[i];
             directions(i,10) = -v2[i];
             // needs improvement
@@ -1328,7 +1328,7 @@ namespace pztopology {
             directions(i,13) = ( directions(i,10)+ directions(i,11) )/2.;
             directions(i,14) = ( directions(i,9) + directions(i,11) )/2.;
             directions(i,15) = ( directions(i,12)+ directions(i,13) + directions(i,14))/3.;
-            //face 2
+            //face 2 
             directions(i,16) = v1[i];
             directions(i,17) = v1[i];
             directions(i,18) = ar9[i];
@@ -1336,7 +1336,7 @@ namespace pztopology {
             directions(i,20) = (directions(i,17) + directions(i,18))/2.;
             directions(i,21) = (directions(i,18) + directions(i,16))/2.;
             directions(i,22) = (directions(i,19) + directions(i,20) + directions(i,21))/3.;
-            directions(i,18) = -v1[i];
+            //directions(i,18) = -v1[i]; AQUINATHAN Acho que esta errado
             //face 3
             directions(i,23) = v2[i];
             directions(i,24) = v2[i];
@@ -1355,17 +1355,19 @@ namespace pztopology {
             directions(i,36) = (directions(i,33) + directions(i,34) + directions(i,35))/3.;
             directions(i,32) = 0.;
             
-            //arestas
+            //arestas da face inferior
             directions(i,37) = v1[i];
             directions(i,38) = v2[i];
             directions(i,39) = -v1[i];
             directions(i,40) = -v2[i];
             
+            //arestas ascendentes  da piramede
             directions(i,41) = ar9[i];
             directions(i,42) = ar10[i];
             directions(i,43) = ar11[i];
             directions(i,44) = ar12[i];
-            //faces
+            
+            //vetores internos tangenciais das faces 
             directions(i,45) = v1[i];
             directions(i,46) = v2[i];
             directions(i,47) = v1[i];
@@ -1376,6 +1378,7 @@ namespace pztopology {
             directions(i,52) = ar12[i];
             directions(i,53) = v2[i];
             directions(i,54) = ar9[i];
+            
             //volume
             directions(i,55) = v1[i];
             directions(i,56) = v2[i];

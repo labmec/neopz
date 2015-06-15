@@ -53,6 +53,11 @@ namespace pzgeom {
 		TPZGeoPyramid(const TPZGeoPyramid &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPyramid>(cp)
 		{
 		}
+        
+        static bool IsLinearMapping(int side)
+        {
+            return true;
+        }
 		
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Pyramid";}
@@ -104,6 +109,18 @@ namespace pzgeom {
 										  TPZVec<long>& nodeindexes,
 										  int matid,
 										  long& index);
+        
+        /* Given side and gradx the method returns directions needed for Hdiv space */
+        static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+        {
+            DebugStop(); // coloquei porque estava dando erro para compilar no meu. Acho que alguem esqueceu de comitar
+        }
+        
+        /// Compute the directions of the HDiv vectors
+        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+        {
+            DebugStop(); // coloquei porque estava dando erro para compilar no meu. Acho que alguem esqueceu de comitar
+        }
 	};
 	
 };

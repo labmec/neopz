@@ -16,6 +16,34 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
 #endif
 
+template<class TGeo>
+bool pzgeom::TPZGeoBlend<TGeo>::IsLinearMapping(int side) const
+{
+    TPZStack<int> LowAllSides;
+    TGeo::LowerDimensionSides(side,LowAllSides);
+    if(side < 0 || side > TGeo::NSides-1)
+    {
+        DebugStop();
+        return 0;
+    }
+    bool straight = true;
+    
+    if(side >= TGeo::NNodes && fNeighbours[side-TGeo::NNodes].ElementIndex() != -1)
+    {
+        straight = false;
+        return straight;
+    }
+    for(int lowside = 0; lowside < LowAllSides.NElements(); lowside++)
+    {
+        if(LowAllSides[lowside] >= TGeo::NNodes && fNeighbours[LowAllSides[lowside]-TGeo::NNodes].ElementIndex() != -1)
+        {
+            straight = false;
+            return straight;
+        }
+    }
+    return straight;
+}
+
 
 template <class TGeo>
 void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)

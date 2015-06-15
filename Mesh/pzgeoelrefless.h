@@ -250,7 +250,7 @@ public:
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
 	virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;
 	
-	virtual bool IsLinearMapping() const;
+	virtual bool IsLinearMapping( int side) const;
 	virtual bool IsGeoBlendEl() const;
 	TGeo &Geom() { return fGeo; }
 	
@@ -259,7 +259,7 @@ public:
 	/** @brief It returns the coordinates of the center of the side of the element */
 	virtual void CenterPoint(int side, TPZVec<REAL> &masscent) const;
 	
-	virtual TPZGeoElSide Father2(int side);
+	virtual TPZGeoElSide Father2(int side) const;
 	
 	virtual int FatherSide(int side, int son) {
 		return side;

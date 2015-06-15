@@ -322,9 +322,9 @@ TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
 }
 
 template<class TGeo>
-bool TPZGeoElRefLess<TGeo>::IsLinearMapping() const 
+bool TPZGeoElRefLess<TGeo>::IsLinearMapping(int side) const
 { 
-	return fGeo.IsLinearMapping();
+	return fGeo.IsLinearMapping(side);
 }
 
 template<class TGeo>
@@ -367,7 +367,7 @@ TPZGeoElRefLess<TGeo>::CenterPoint(int side, TPZVec<REAL> &cent) const {
 
 template<class TGeo>
 TPZGeoElSide
-TPZGeoElRefLess<TGeo>::Father2(int side)
+TPZGeoElRefLess<TGeo>::Father2(int side) const
 {
 	//std::cout << " Father2 teste Cedric: 08/05/2003\n";
 	TPZGeoEl *father = Father();

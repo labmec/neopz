@@ -66,6 +66,11 @@ namespace pzgeom {
 
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "TPZTriangleSphere";}
+        
+        static bool IsLinearMapping(int side)
+        {
+            return false;
+        }
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
@@ -222,10 +227,7 @@ namespace pzgeom {
             buf.Write(&fR,1);
 		}
 
-        bool IsLinearMapping() const
-        {
-            return false;
-        }
+
 
 		
 	};

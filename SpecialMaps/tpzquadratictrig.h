@@ -26,9 +26,11 @@ namespace pzgeom {
         //irtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         
 		/** @brief It is a quadratic mapping */
-		bool IsLinearMapping() const {
-			return false;
-		}
+        static bool IsLinearMapping(int side)
+        {
+            return false;
+        }
+        
 		/** @brief Constructor for node indexes given */
 		TPZQuadraticTrig(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes) {
 		}

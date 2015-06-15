@@ -21,8 +21,7 @@ namespace pzgeom {
 
     public:
 			
-		bool IsLinearMapping() const { return false; }
-        
+       
         /** @brief Constructor with list of nodes */
 		TPZWavyLine(TPZVec<long> &nodeindexes) : TPZGeoLinear(nodeindexes), fNumWaves(0), fWaveDir()
 		{
@@ -58,6 +57,11 @@ namespace pzgeom {
 #endif
             fWaveDir = wavedir;
             fNumWaves = numwaves;
+        }
+        
+        static bool IsLinearMapping(int side)
+        {
+            return false;
         }
 
 		/** @brief Returns the type name of the element */

@@ -66,6 +66,9 @@ protected:
 	
 public:
 	
+    /** Returns the eldest ancestor of this geoel
+     */
+    TPZGeoEl * EldestAncestor() const;
     
     virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
     
@@ -165,6 +168,10 @@ public:
 	
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const = 0;
 	
+    void GetNodeIndices( TPZVec<int> &nodeindices );
+    
+    void GetNodeIndices( std::set<int> &nodeindices );
+    
 	/**
 	 * @brief Creates a clone of this element into a new patch mesh
 	 * @param DestMesh destination patch mesh
@@ -235,8 +242,10 @@ public:
 	
 	virtual bool IsLinearMapping() const
 	{
-		return true;
+		return IsLinearMapping(NSides()-1);
 	}
+    
+    virtual bool IsLinearMapping(int side) const = 0;
 	
 	virtual bool  IsGeoBlendEl() const
 	{
@@ -482,7 +491,7 @@ public:
 	 */
 	
 	/** @brief Returns the father/side of the father which contains the side of the sub element */
-	virtual TPZGeoElSide Father2(int side);
+	virtual TPZGeoElSide Father2(int side) const;
 	
 	virtual int FatherSide(int side, int son);
 	
@@ -522,7 +531,7 @@ public:
 	void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dimension) const;
 	
 	/** @brief Returns the son number of the sub element gel*/
-	int WhichSubel();
+	int WhichSubel() const;
 	
 	/** @brief Checks the structure of the Father() and GetSubelement2() */
 	void CheckSubelDataStructure();

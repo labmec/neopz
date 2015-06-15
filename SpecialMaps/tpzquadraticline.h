@@ -26,10 +26,7 @@ namespace pzgeom {
 		enum {NNodes = 3};
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
-		
-		bool IsLinearMapping() const {
-			return false;
-		}
+
 		
 		TPZQuadraticLine(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes)
 		{
@@ -52,7 +49,12 @@ namespace pzgeom {
 		}
 		
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "Line";} 
+		static std::string TypeName() { return "Line";}
+        
+        static bool IsLinearMapping(int side)
+        {
+            return false;
+        }
 		
 		/**
 		 * @brief Method which creates a geometric boundary condition 

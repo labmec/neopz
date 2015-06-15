@@ -90,7 +90,7 @@ public:
 	TPZGeoElSide StrictFather();
     
     /// returns the father/side pair which contains the set of points associated with this/side
-	TPZGeoElSide Father2();
+	TPZGeoElSide Father2() const;
     
     /// return the element/side pair which contains this/side and has a computational element associated
 	TPZCompElSide LowerLevelCompElementList2(int onlyinterpolated);
@@ -285,6 +285,9 @@ public:
 	void HigherLevelCompElementList3(TPZStack<TPZCompElSide> &elsidevec, int onlymultiphysicelement, int removeduplicates);
     
     int GelLocIndex(int index) const;
+    
+    void Read(TPZStream &buf);
+    void Write(TPZStream &buf);
 };
 
 /** @brief Overload operator << to print geometric element side data */

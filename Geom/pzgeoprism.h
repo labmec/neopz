@@ -55,6 +55,11 @@ namespace pzgeom {
 		TPZGeoPrism(const TPZGeoPrism &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
 		{
 		}
+        
+        static bool IsLinearMapping(int side)
+        {
+            return true;
+        }
 		
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Prism";}

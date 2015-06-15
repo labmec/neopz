@@ -29,7 +29,8 @@ namespace pzgeom {
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         
-        bool IsLinearMapping() const {
+        static bool IsLinearMapping(int side)
+        {
             return false;
         }
         

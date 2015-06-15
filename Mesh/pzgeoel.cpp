@@ -347,7 +347,7 @@ int TPZGeoEl::ElementExists(TPZGeoEl *elem,long id) {
 	return -1;
 }
 
-TPZGeoElSide TPZGeoEl::Father2(int /*side*/){//Augusto:09/01/01
+TPZGeoElSide TPZGeoEl::Father2(int /*side*/) const{//Augusto:09/01/01
 	PZError << "TPZGeoEl::Father2 should never be called\n";
 	return TPZGeoElSide();
 }
@@ -398,7 +398,7 @@ void TPZGeoEl::GetAllSiblings(TPZStack<TPZGeoEl*> &unrefinedSons)
     }
 }
 
-int TPZGeoEl::WhichSubel(){
+int TPZGeoEl::WhichSubel() const{
 	
 	if(fFatherIndex == -1) {
 		PZError << "TPZGeoEl::WhichSubel called with null element\n";
@@ -1398,6 +1398,24 @@ TPZTransform TPZGeoEl::Projection(int side)
 	return tr3;
 }
 
+TPZGeoEl * TPZGeoEl::EldestAncestor() const
+{
+    TPZGeoEl *father = this->Father();
+    if(!father)
+    {
+        return NULL;
+    }
+    TPZGeoEl *nextfather = NULL;
+    if(father) nextfather = father->Father();
+    while(nextfather)
+    {
+        father = nextfather;
+        nextfather = father->Father();
+    }
+    
+    return father;
+}///method
+
 void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 {
 	//TPZGeoEl *gel = LC.Element();
@@ -1918,4 +1936,18 @@ void TPZGeoEl::HDivPermutation(int side, TPZVec<int> &permutegather)
     DebugStop();
 }
 
+void TPZGeoEl::GetNodeIndices( TPZVec<int> &nodeindices ){
+    const int nnodes = this->NNodes();
+    nodeindices.Resize( nnodes );
+    for(int i = 0; i < nnodes; i++){
+        nodeindices[i] = this->NodeIndex(i);
+    }
+}///void
 
+void TPZGeoEl::GetNodeIndices( std::set<int> &nodeindices ){
+    nodeindices.clear();
+    const int nnodes = this->NNodes();
+    for(int i = 0; i < nnodes; i++){
+        nodeindices.insert(this->NodeIndex(i));
+    }
+}///void

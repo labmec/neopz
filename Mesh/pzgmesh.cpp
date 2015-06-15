@@ -426,6 +426,33 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 	return gnkeep;
 }
 
+TPZGeoNode* TPZGeoMesh::FindNode(TPZVec<REAL> &co, int &nodeFoundIndex)
+{
+    int i=0, in, nnodes = fNodeVec.NElements();
+    while(i<nnodes && fNodeVec[i].Id() == -1) i++;
+    if(i == nnodes) return 0;
+    TPZGeoNode *gnkeep = &fNodeVec[i];
+    nodeFoundIndex = i;
+    
+    REAL distkeep = 0.;
+    for(in=0;in<3;in++)
+        distkeep += (co[in]-(gnkeep->Coord(in)))*(co[in]-(gnkeep->Coord(in)));
+    while(i< nnodes) {
+        TPZGeoNode *gn = &fNodeVec[i];
+        REAL dist = 0.;
+        for(in=0;in<3;in++) dist += (co[in]-gn->Coord(in))*(co[in]-gn->Coord(in));
+        if(dist < distkeep)
+        {
+            gnkeep = gn;
+            distkeep = dist;
+            nodeFoundIndex = i;
+        }
+        i++;
+        while(i<nnodes && fNodeVec[i].Id() == -1) i++;
+    }
+    return gnkeep;
+}
+
 /** by Philippe 2013 */
 /** @brief Returns the element that is close to the given point x */
 TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, long & InitialElIndex, int targetDim) const

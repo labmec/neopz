@@ -28,10 +28,7 @@ public:
     
     //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
     
-	/** @brief It is not linear mapping, is quadratic */
-	bool IsLinearMapping() const {
-		return false;
-	}
+
 	/** @brief Constructor from node indexes */
 	TPZQuadraticCube(TPZVec<long> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(nodeindexes)
 	{
@@ -54,7 +51,12 @@ public:
 	}
 	
 	/** @brief Returns the type name of the element */
-	static std::string TypeName() { return "Hexa";} 
+	static std::string TypeName() { return "Hexa";}
+    
+    static bool IsLinearMapping(int side)
+    {
+        return false;
+    }
 	
     /* brief compute the coordinate of a point given in parameter space */
     void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const

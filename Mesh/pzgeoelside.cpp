@@ -778,7 +778,7 @@ TPZCompElSide TPZGeoElSide::LowerLevelCompElementList2(int onlyinterpolated)
 	return TPZCompElSide();
 }
 
-TPZGeoElSide TPZGeoElSide::Father2()
+TPZGeoElSide TPZGeoElSide::Father2() const
 {
 	if(!fGeoEl) return TPZGeoElSide();
 	return fGeoEl->Father2(fSide);

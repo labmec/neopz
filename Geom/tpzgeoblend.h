@@ -29,9 +29,8 @@ namespace pzgeom
 		
 	public:
 		
-		bool IsLinearMapping() const { 
-			return false; 
-		}
+        bool IsLinearMapping(int side) const;
+        
 		bool IsGeoBlendEl() const { 
 			return true; 
 		}
@@ -137,6 +136,7 @@ namespace pzgeom
 		/// Project the InternalPar parameter to the parameter of the neighbour along side. Return true if the map is nonsingular
 		bool MapToNeighSide(int side, int sidedim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix<REAL> &JacNeighSide) const;
 		/** @brief Vector of indexes of the neighbours */
+		//TPZGeoElSideIndex fNeighbours[1+TGeo::NSides - TGeo::NNodes];
 		TPZGeoElSideIndex fNeighbours[1+TGeo::NSides - TGeo::NNodes];
 		TPZTransform fTrans[1+TGeo::NSides - TGeo::NNodes];
 	};

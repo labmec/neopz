@@ -52,6 +52,11 @@ namespace pzgeom {
 		/** @brief declare geometry as blended element */
         bool IsGeoBlendEl() const;
 
+        static bool IsLinearMapping(int side)
+        {
+            return false;
+        }
+        
 		
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "QuadSphere";}
@@ -222,11 +227,7 @@ namespace pzgeom {
             buf.Write(&fR,1);
 		}
 		
-        bool IsLinearMapping() const
-        {
-            return false;
-        }
-		
+
 	};
 	
 	

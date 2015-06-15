@@ -57,6 +57,11 @@ namespace pzgeom {
 		TPZGeoCube(const TPZGeoCube &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZCube>(cp)
 		{
 		}
+        
+        static bool IsLinearMapping(int side)
+        {
+            return true;
+        }
 		
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Hexa";}

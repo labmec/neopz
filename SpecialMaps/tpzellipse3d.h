@@ -30,10 +30,6 @@ namespace pzgeom
         
         virtual void ParametricDomainNodeCoord(long node, TPZVec<REAL> &nodeCoord);
         
-		bool IsLinearMapping() const
-		{
-			return false;
-		}
 		/** @brief Constructor */
 		TPZEllipse3D(const TPZEllipse3D &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 		}
@@ -94,6 +90,11 @@ namespace pzgeom
 		/** @brief Computes the jacobian matrix to X mapping */
 		void Jacobian(TPZFMatrix<REAL> &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix<REAL> &jac, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
 		
+        static bool IsLinearMapping(int side)
+        {
+            return false;
+        }
+        
 		static std::string TypeName() { return "Linear";}
 		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 		

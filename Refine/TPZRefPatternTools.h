@@ -67,7 +67,24 @@ public:
 	 * @note IF THERE IS NO NEIGHBOUR ALREADY REFINED, IT RETURNS NULL
 	 */
 	static TPZAutoPointer<TPZRefPattern> PerfectMatchRefPattern(TPZGeoEl *gel);
+    
+    /**
+     * This method receives an vector of real mesh elements (index0=FATHER , index1...=SONS) and returns the corresponding refinement pattern.
+     * ONCE THE REFPATTERN COULD PRESENT PERMUTATIONS OF SONS, THIS METHOD FIX THE TOPOLOGICAL SEQUENCE OF REAL MESH ELEMENTS.
+     * This implies the call BuildConnectivity() method after this whole operation (which should be done by the programmer).
+     */
+    static TPZAutoPointer<TPZRefPattern> GetRefPatternBasedOnRealMeshElements(TPZVec<TPZGeoEl *> & realMeshElementVec);
+
+    
+    static void GenerateGMeshFromElementVec(const TPZVec<TPZGeoEl *> & elementVec, TPZGeoMesh & refGMesh);    
 	
+    /**
+     * A partir de um padrao encontrado, corrige a sequencia topologica dos elementos originais
+     */
+    static void ModifyElementsBasedOnRefpFound(TPZAutoPointer<TPZRefPattern> & refpFound,
+                                               TPZAutoPointer<TPZRefPattern> & refp,
+                                               TPZVec<TPZGeoEl *> &elementVec);    
+    
 	/**
 	 * @brief Return an refpattern based on a gived one (modelPat), whose midnodes was dragged to match with a geoel neighbourhood refinement
 	 * @param gel - input data: geometric element for which the model refpattern nodes will be dragged

@@ -56,7 +56,11 @@ namespace pzgeom {
 		TPZGeoLinear(const TPZGeoLinear &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
 		{
 		}
-		
+        
+        static bool IsLinearMapping(int side)
+        {
+            return true;
+        }
 		
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Linear";}

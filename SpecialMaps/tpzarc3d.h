@@ -28,8 +28,7 @@ namespace pzgeom
 	public:
 		/** @brief Number of nodes (connects) */
 		enum {NNodes = 3};
-		/** @brief It is not linear mapping */
-		bool IsLinearMapping() const { return false; }
+
 		/** @brief Copy constructor with map of nodes */
 		TPZArc3D(const TPZArc3D &cp,std::map<long,long> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 			this->fICnBase = cp.fICnBase;
@@ -103,6 +102,12 @@ namespace pzgeom
 
 		
         static std::string TypeName() { return "Linear";}
+        
+        static bool IsLinearMapping(int side)
+        {
+            return false;
+        }
+        
 		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 		
 	public:
