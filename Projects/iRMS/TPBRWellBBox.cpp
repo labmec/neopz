@@ -10,7 +10,7 @@
 #include "tpzgeoblend.h"
 #include "tpzgeoelrefpattern.h"
 #include "TPZGeoCube.h"
-#include "TPBRThermalTwoPhaseFlowConstants.h"
+#include "TRMFlowConstants.h"
 #include "TPZRefPatternTools.h"
 #include "tpzarc3d.h"
 

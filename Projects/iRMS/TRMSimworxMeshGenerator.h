@@ -130,7 +130,7 @@ public:
                                                      const TPZVec<REAL> & espacamentoZ,
                                                      const bool thereIsCutPlane,
                                                      TRMRawData &rawdata);
-    TPZGeoMesh * CreateSimworxGeoMesh(TRMRawData &rawdata);
+    TPZAutoPointer<TPZGeoMesh> CreateSimworxGeoMesh(TRMRawData &rawdata);
     
     void Pair_Miolo_Reserv_Nodes(TPZGeoMesh * reservGMesh, const std::set<int> & reservNodeIndices,
                                  TPZAutoPointer<TPZGeoMesh> mioloGMesh,

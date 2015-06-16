@@ -15,6 +15,7 @@
 
 class TRMRockProperties{
     
+public:
     /** @brief TRMRockProperties constructor */
     TRMRockProperties();
 
@@ -26,7 +27,7 @@ class TRMRockProperties{
      * @brief Define characteristic parameters for flow in porous media.
      * @since June 09, 2015
      */
-    
+private:
     /** @brief Characteristic length - m */
     REAL fLref;
     
@@ -63,7 +64,7 @@ class TRMRockProperties{
     /** @brief absolute permeability inverse */
     TPZFMatrix<REAL> fKabinv;
 
-    
+public:
     /**
      * @brief \f$ Rock porosity. \f$ Phi = Phi( P ) \f$
      * @param P fluid pressure

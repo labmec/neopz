@@ -24,6 +24,7 @@ private:
     TPZGeoMesh fgmesh;
     
     TRMFluxPressureAnalysis fFluxPressureAnalysis;
+    
     TRMTransportAnalysis fTransportAnalysis;
     
     TPZAutoPointer<TRMSimulationData> fSimulationData;

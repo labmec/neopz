@@ -1,4 +1,7 @@
 #include "pzlog.h"
+#include "tpzautopointer.h"
+#include "TPZIntQuadQuarterPoint.h"
+#include <time.h>
 #include "pzgmesh.h"
 #include "TPZRefPatternTools.h"
 
@@ -13,6 +16,8 @@ static LoggerPtr logdata(Logger::getLogger("pz.iRMS"));
 #endif
 
 void LinearTracer();
+
+void CheckQuarterPoint();
 
 void CreateExampleRawData(TRMRawData &data)
 {
@@ -39,12 +44,31 @@ int main()
     CreateExampleRawData(rawdata);
     
     TRMSimworxMeshGenerator meshGen;
-    TPZGeoMesh *gmesh = meshGen.CreateSimworxGeoMesh(rawdata);
+    // Fluid description Data SI units
     
-    std::cout << " Process complete normally." << std::endl;
+    std::cout << "Process complete normally." << std::endl;
     return 0;
 }
 
+void CheckQuarterPoint()
+{
+    TPZIntQuadQuarterPoint qt(10);
+    qt.SetCorner(1);
+//    TPZIntQuad qt(60);
+    int np = qt.NPoints();
+    TPZManVector<REAL,2> pt(2,0.);
+    std::cout << "Numpoints = " << np << std::endl;
+    REAL weight;
+    REAL integral = 0.;
+    for (int ip = 0; ip<np; ip++) {
+        qt.Point(ip, pt, weight);
+        std::cout << "ip " << ip << " pt " << pt << " weight " << weight << std::endl;
+        REAL r = sqrt((pt[0]-1)*(pt[0]-1)+(pt[1]+1)*(pt[1]+1));
+        integral += weight/r;
+    }
+    std::cout << "Integral " << integral << std::endl;
+    
+    std::cout << "Integral " << integral << std::endl;
 
 void LinearTracer()
 {

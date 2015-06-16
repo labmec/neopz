@@ -30,15 +30,7 @@ class TPZGeoMesh;
 
 class TPZHierarquicalGrid
 {
-    
-public:
-    TPZHierarquicalGrid();
-    TPZHierarquicalGrid(TPZGeoMesh *Geomesh);
-    TPZHierarquicalGrid(const TPZHierarquicalGrid& other);
-    virtual ~TPZHierarquicalGrid();
-    virtual TPZHierarquicalGrid& operator=(const TPZHierarquicalGrid& other);
-    virtual bool operator==(const TPZHierarquicalGrid& other) const;
-    
+
     /**
      * @brief Thickness of the mesh (+  or -)
      */
@@ -81,6 +73,15 @@ public:
     
     /** @brief Pointer to parametric function of t parameter */
     TPZAutoPointer<TPZFunction<REAL> > fParametricFunction;
+    
+
+public:
+    TPZHierarquicalGrid();
+    TPZHierarquicalGrid(TPZGeoMesh *Geomesh);
+    TPZHierarquicalGrid(const TPZHierarquicalGrid& other);
+    virtual ~TPZHierarquicalGrid();
+    virtual TPZHierarquicalGrid& operator=(const TPZHierarquicalGrid& other);
+    virtual bool operator==(const TPZHierarquicalGrid& other) const;
     
     /**
      * @brief Prints the generated mesh

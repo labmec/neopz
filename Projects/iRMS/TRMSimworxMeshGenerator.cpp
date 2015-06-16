@@ -8,7 +8,7 @@
 
 #include "TRMSimworxMeshGenerator.h"
 #include "TRMRawData.h"
-#include "TPBRThermalTwoPhaseFlowConstants.h"
+#include "TRMFlowConstants.h"
 #include "TPBRWellBBox.h"
 
 #include "TPZVTKGeoMesh.h"
@@ -90,7 +90,7 @@ void TRMSimworxMeshGenerator::FillCaseHolesData(TPZFMatrix<> &caseHolesData)
     
 }
 
-TPZGeoMesh * TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRawData &rawdata)
+TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRawData &rawdata)
 {
     const REAL reservoirWidth = rawdata.fReservoirWidth;
     const REAL reservoirLength = rawdata.fReservoirLength;
@@ -123,7 +123,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRawData &rawdata)
     
     TPZAutoPointer<TPZGeoMesh> reservoirGMesh = ReallyGenerateGeoMesh(reservoirSemiAxeX,reservoirSemiAxeY,mioloWidth,espacamentoReservY,espacamentoZ,thereIsCutPlane,rawdata);
     
-    return reservoirGMesh.operator->();
+    return reservoirGMesh;
 }
 
 TPZAutoPointer<TPZGeoMesh> TRMSimworxMeshGenerator::ReallyGenerateGeoMesh(const REAL semiAxeX,
