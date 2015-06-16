@@ -68,7 +68,7 @@ void CheckQuarterPoint()
     }
     std::cout << "Integral " << integral << std::endl;
     
-    std::cout << "Integral " << integral << std::endl;
+}
 
 void LinearTracer()
 {
