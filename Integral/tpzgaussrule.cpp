@@ -105,7 +105,7 @@ void TPZGaussRule::Print(std::ostream &out) {
 void TPZGaussRule::SetType(int &type,int order) {
 	if(order < 0) order = 1;
 	if(type < 0 || type > 3) type = 0;
-	if(fType != type) {
+//	if(fType != type) {
 		fLocation.Resize(0);
 		fWeight.Resize(0);
 		fType = type;
@@ -134,7 +134,7 @@ void TPZGaussRule::SetType(int &type,int order) {
 			}
 				break;
 		}
-	}
+//	}
 }
 
 /** GAUSS LEGENDRE QUADRATURE */
