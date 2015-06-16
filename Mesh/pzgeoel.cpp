@@ -410,17 +410,17 @@ int TPZGeoEl::WhichSubel() const{
 	for(son=0;son<nsub;son++) if(father->SubElement(son) == this) break;
 	if(son > (nsub-1)){
 		PZError << "TPZGeoEl::WhichSubel son not exist\n";
-#ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			sout << "Father element\n";
-			father->Print(sout);
-			sout << "Son element\n";
-			Print(sout);
-            Mesh()->Print(sout);
-			LOGPZ_ERROR(logger,sout.str())
-		}
-#endif
+//#ifdef LOG4CXX
+//		{
+//			std::stringstream sout;
+//			sout << "Father element\n";
+//			father->Print(sout);
+//			sout << "Son element\n";
+//			Print(sout);
+//            Mesh()->Print(sout);
+//			LOGPZ_ERROR(logger,sout.str())
+//		}
+//#endif
 		DebugStop();
 		return -1;
 	}
