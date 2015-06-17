@@ -67,6 +67,12 @@ private:
     /** @brief unknowns for n+1 time step */
     TPZFMatrix<REAL> falphaAtnplusOne;
     
+    /** @brief Store DOF associated with Constant Saturations */    
+    TPZManVector<long> fConstantSaturations;
+   
+    /** @brief Store DOF associated with  Saturation gradients */    
+    TPZManVector<long> fGradientSaturations;    
+    
     
 public:
     REAL Muo;
@@ -301,6 +307,11 @@ public:
      * Compute saturation reconstruction for Sw and So
      */
     void SaturationReconstruction(TPZAnalysis *an);
+    
+    /**
+     * Clean up reconstructed gradient saturation for Sw and So
+     */
+    void CleanUpGradients(TPZAnalysis *an);    
     
     /**
      * Update state variables

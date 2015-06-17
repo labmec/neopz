@@ -60,7 +60,12 @@ TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation
     
     /** @brief unknowns for n+1 time step */
     falphaAtnplusOne.Resize(0, 0);
-    Muo = fFluidData->GetMuOil();
+    
+    /** @brief Store DOF associated with Constant Saturations */    
+    fConstantSaturations.Resize(0);
+   
+    /** @brief Store DOF associated with  Saturation gradients */    
+    fGradientSaturations.Resize(0);     
    
 }
 
@@ -268,7 +273,7 @@ void TPZDarcyAnalysis::Run()
     
     
     // Analysis
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = false;
     TPZAnalysis *an = new TPZAnalysis(fcmeshdarcy,mustOptimizeBandwidth);
     int numofThreads = 0;
     
@@ -424,19 +429,18 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     
     REAL tk = 0;
     
-    TPZManVector<long> NoSaturationGradients(0),SaturationGradients(0);
-    this->FilterSaturationGradients(NoSaturationGradients,SaturationGradients);
+    this->FilterSaturationGradients(fConstantSaturations,fGradientSaturations);
     an->StructMatrix()->EquationFilter().Reset();
-    an->StructMatrix()->EquationFilter().SetActiveEquations(NoSaturationGradients);
+    an->StructMatrix()->EquationFilter().SetActiveEquations(fConstantSaturations);
+    
+    if (fSimulationData->GetGR())
+    {
+        this->SaturationReconstruction(an);
+    }    
     
     this->fSimulationData->SetTime(tk);
     this->PostProcessVTK(an);
     
-   
-    if (fSimulationData->GetGR())
-    {
-        this->SaturationReconstruction(an);
-    }
     
     for (int istep = 1 ; istep <=  nsteps; istep++) {
         tk = istep*this->fSimulationData->GetDeltaT();
@@ -479,11 +483,23 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     
 }
 
+
+void TPZDarcyAnalysis::CleanUpGradients(TPZAnalysis *an){
+  
+  long numofdof = fGradientSaturations.size();
+  TPZFMatrix<REAL> SolToLoad = an->Solution();
+  for(long i=0; i < numofdof; i++)
+  {
+      SolToLoad(fGradientSaturations[i],0) = 0.0;
+  }
+  an->LoadSolution(SolToLoad);
+//   TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec,fcmeshdarcy);
+  
+}
+
 void TPZDarcyAnalysis::SaturationReconstruction(TPZAnalysis *an)
 {
     TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
-    
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
     
     fmeshvec[2]->Reference()->ResetReference();
     fmeshvec[2]->LoadReferences();
@@ -524,41 +540,45 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         X += DeltaX;
         
         fcmeshdarcy->LoadSolution(X);
-        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
         
-        if (fSimulationData->GetGR())
-        {
-            this->SaturationReconstruction(an);
-        }
-
-        
-        if (((fixed+1) * (centinel) == iterations)) {
-            an->Assemble();
+	TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec,fcmeshdarcy);
+	
+	if (fSimulationData->GetGR())
+	{
+	  this->SaturationReconstruction(an);
+	  CleanUpGradients(an);
+	} 	
+    
+        if (((fixed+1) * (centinel) == iterations)) { 
+            
+	    an->Assemble();   
             centinel++;
         }
         else{
-            an->AssembleResidual();
-            
+            an->AssembleResidual();  
         }
+	
         fResidualAtnplusOne = an->Rhs();
         
         Residual = fResidualAtn + fResidualAtnplusOne;
         error = Norm(Residual);
         iterations++;
         
-//#ifdef DEBUG
-//    #ifdef LOG4CXX
-//            if(logger->isDebugEnabled())
-//            {
-//                std::stringstream sout;
-////                fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
-//                fcmeshdarcy->Solution().Print("fcmeshdarcy->Solution() = ", sout,EMathematicaInput);
-//                DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
-//                X.Print("X = ", sout,EMathematicaInput);
-//                LOGPZ_DEBUG(logger,sout.str())
-//            }
-//    #endif
-//#endif
+// 	this->PrintLS(an);
+	
+#ifdef DEBUG
+   #ifdef LOG4CXX
+           if(logger->isDebugEnabled())
+           {
+               std::stringstream sout;
+//                fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
+               fcmeshdarcy->Solution().Print("fcmeshdarcy->Solution() = ", sout,EMathematicaInput);
+               DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+               X.Print("X = ", sout,EMathematicaInput);
+               LOGPZ_DEBUG(logger,sout.str())
+           }
+   #endif
+#endif
         
         if(error < fSimulationData->GetToleranceRes() || normdx < fSimulationData->GetToleranceDX())
         {
@@ -1557,15 +1577,15 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
         plotfile = "2DMixedDarcy.vtk";
     }
     
-    scalnames.Push("WeightedPressure");
+//     scalnames.Push("WeightedPressure");
     scalnames.Push("WaterSaturation");
     scalnames.Push("OilSaturation");
-    scalnames.Push("WaterDensity");
-    scalnames.Push("OilDensity");
-    scalnames.Push("Porosity");
-    scalnames.Push("DivOfBulkVeclocity");
+//     scalnames.Push("WaterDensity");
+//     scalnames.Push("OilDensity");
+//     scalnames.Push("Porosity");
+//     scalnames.Push("DivOfBulkVeclocity");
     scalnames.Push("ExactSaturation");
-    vecnames.Push("BulkVelocity");
+//     vecnames.Push("BulkVelocity");
     an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an->PostProcess(div);
 }
