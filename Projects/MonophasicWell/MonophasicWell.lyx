@@ -160,26 +160,14 @@ P(s_{n},t)\;on\;\Gamma_{D}\label{eq:Pressurebc}
 
 \end_layout
 
-\begin_layout Section
-Strong formulation hangen Poisselle
-\end_layout
-
 \begin_layout Standard
-Dropping the terms 
-\begin_inset Formula $\frac{\partial\left(\rho\;\mathbf{u}\right)}{\partial t}+\frac{\partial\left(\left(\rho\;\mathbf{u}\right)\mathbf{u}\right)}{\partial s}=0$
-\end_inset
-
-, because we have considere 
-\end_layout
-
-\begin_layout Standard
-For the conservation of mass:
+With 
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\frac{\partial\left(\rho\right)}{\partial t}+\frac{\partial\left(\rho\;\mathbf{u}\right)}{\partial s}=0\label{eq:MassConservationHP}
+\tau=\frac{f\:\rho\;\mathbf{u}^{2}}{8}=\frac{f\:\rho\;\mathbf{w}^{2}}{8\;\rho}\label{eq:ShearStressatPipeWalls}
 \end{equation}
 
 \end_inset
@@ -188,116 +176,6 @@ For the conservation of mass:
 \end_layout
 
 \begin_layout Standard
-For the conservation of momentum linear:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-0=-\frac{\partial\left(\rho\:g\:z\right)}{\partial s}-\frac{\partial\left(P\right)}{\partial s}-\frac{\tau\pi d}{A_{p}}\label{eq:MomentumConservationHP}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-with the following boundary conditions:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-\mathbf{u}(s_{0},t)\;on\;\Gamma_{N}\label{eq:Velocitybc-2}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-P(s_{n},t)\;on\;\Gamma_{D}\label{eq:Pressurebc-3}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
-Strong formulation
-\end_layout
-
-\begin_layout Standard
-Following the vast literature in chemical and petroleum industry for multi-phasi
-c flow for pipes.
- we start by writing the following conservations laws and realize and suitable
- form of the equations in an mixed formulation.
- All the variables are described for simplicity by the SI unit system.
-\end_layout
-
-\begin_layout Standard
-For the conservation of mass:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-\frac{\partial\left(\rho\right)}{\partial t}+\frac{\partial\left(\rho\;\mathbf{u}\right)}{\partial s}=0\label{eq:MassConservation-1}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-For the conservation of momentum linear:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-\frac{\partial\left(\rho\;\mathbf{u}\right)}{\partial t}+\frac{\partial\left(\left(\rho\;\mathbf{u}\right)\mathbf{u}\right)}{\partial s}=-\frac{\partial\left(\rho\:g\:z\right)}{\partial s}-\frac{\partial\left(P\right)}{\partial s}-\frac{\tau\pi d}{A_{p}}\label{eq:MomentumConservation-1}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-with the following boundary conditions:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-\mathbf{u}(s_{0},t)\;on\;\Gamma_{N}\label{eq:Velocitybc-1}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-P(s_{n},t)\;on\;\Gamma_{D}\label{eq:Pressurebc-2}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-where 
 \begin_inset Float table
 placement H
 wide false
@@ -598,13 +476,13 @@ Variables involved
 
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+ 
 \end_layout
 
 \begin_layout Subsection
@@ -730,7 +608,7 @@ reference "eq:MomentumConservationW"
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\frac{\partial\left(\mathbf{w}\right)}{\partial t}+\frac{2\mathbf{w}}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(1/\rho\right)}{\partial s}=-\frac{\partial\left(\rho\:g\:z\right)}{\partial s}-\frac{\partial\left(P\right)}{\partial s}-\frac{\tau\pi d}{A_{p}}\label{eq:MomentumConservationWStep1}
+\frac{\partial\left(\mathbf{w}\right)}{\partial t}+\frac{2\mathbf{w}}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\frac{\partial\left(P\right)}{\partial s}+\frac{\partial\left(\rho\:g\:z\right)}{\partial s}+\frac{\partial\left(P\right)}{\partial s}+\frac{\tau\pi d}{A_{p}}=\label{eq:MomentumConservationWStep1}
 \end{equation}
 
 \end_inset
@@ -741,7 +619,18 @@ reference "eq:MomentumConservationW"
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\frac{\partial\left(\mathbf{w}\right)}{\partial t}+\mathbf{w}\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}-\frac{\mathbf{w}}{\rho^{2}}\frac{\partial\left(1/\rho\right)}{\partial s}\right)=-\frac{\partial\left(\rho\:g\:z\right)}{\partial s}-\frac{\partial\left(P\right)}{\partial s}-\frac{\tau\pi d}{A_{p}}\label{eq:MomentumConservationWStep2}
+\frac{\partial\left(\mathbf{w}\right)}{\partial t}+\mathbf{w}\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}+\frac{f\:\mathbf{w}}{8}\frac{\pi d}{A_{p}}\right)+\frac{\partial\left(\rho\:g\:z\right)}{\partial s}+\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)\frac{\partial\left(P\right)}{\partial s}=0\label{eq:MomentumConservationWStep2}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{1}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\frac{\partial\left(\mathbf{w}\right)}{\partial t}+\mathbf{w}\frac{\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}+\frac{f\;\mathbf{w}}{8}\frac{\pi d}{A_{p}}\right)}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}+\frac{1}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\frac{\partial\left(\rho\:g\:z\right)}{\partial s}+\frac{\partial\left(P\right)}{\partial s}=0\label{eq:MomentumConservationWStep3}
 \end{equation}
 
 \end_inset
@@ -798,7 +687,7 @@ For the conservation of momentum linear:
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega_{e}}{\int}\frac{\partial\left(\mathbf{w}\right)}{\partial t}\mathbf{v}\;dV+\underset{\Omega_{e}}{\int}\mathbf{w}\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}-\frac{\mathbf{w}}{\rho^{2}}\frac{\partial\left(1/\rho\right)}{\partial s}\right)\mathbf{v}\;dV=-\underset{\Omega_{e}}{\int}\frac{\partial\left(\rho\:g\:z\right)}{\partial s}\mathbf{v}\;dV-\underset{\Omega_{e}}{\int}\frac{\partial\left(P\right)}{\partial s}\mathbf{v}\;dV-\underset{\Omega_{e}}{\int}\frac{\tau\pi d}{A_{p}}\mathbf{v}\;dV\label{eq:ConservationofMomentumWFStep1}
+\underset{\Omega_{e}}{\int}\frac{1}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\frac{\partial\left(\mathbf{w}\right)}{\partial t}\mathbf{v}\;dV+\underset{\Omega_{e}}{\int}\mathbf{w}\frac{\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}+\frac{f\;\mathbf{w}}{8\;}\frac{\pi d}{A_{p}}\right)}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\underset{\Omega_{e}}{\int}\frac{1}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\frac{\partial\left(\rho\:g\:z\right)}{\partial s}\mathbf{v}\;dV+\underset{\Omega_{e}}{\int}\frac{\partial\left(P\right)}{\partial s}\mathbf{v}\;dV=0\label{eq:ConservationofMomentumWFStep1}
 \end{equation}
 
 \end_inset
@@ -807,13 +696,17 @@ For the conservation of momentum linear:
 \end_layout
 
 \begin_layout Standard
-Integrating by parts 
+Integrating by parts the term 
+\begin_inset Formula $\underset{\Omega_{e}}{\int}\frac{\partial\left(P\right)}{\partial s}\mathbf{v}\;dV$
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega_{e}}{\int}\frac{\partial\left(\mathbf{w}\right)}{\partial t}\mathbf{v}\;dV+\underset{\Omega_{e}}{\int}\mathbf{w}\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}-\frac{\mathbf{w}}{\rho^{2}}\frac{\partial\left(1/\rho\right)}{\partial s}\right)\mathbf{v}\;dV=-\underset{\Omega_{e}}{\int}\left(\frac{\partial\left(\rho\:g\:z\right)}{\partial s}+\frac{\tau\pi d}{A_{p}}\right)\mathbf{v}\;dV-\left(\underset{\partial\Omega_{e}}{\int}\left(\mathbf{v}\;P\right)\cdot\mathbf{n}\;dA-\underset{\Omega_{e}}{\int}\frac{\partial\left(\mathbf{v}\right)}{\partial s}P\;dV\right)\label{eq:ConservationofMomentumWFStep2}
+\underset{\Omega_{e}}{\int}\frac{\frac{\partial\left(\mathbf{w}\right)}{\partial t}}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\underset{\Omega_{e}}{\int}\mathbf{w}\frac{\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}+\frac{f\;\mathbf{w}}{8}\frac{\pi d}{A_{p}}\right)}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\underset{\Omega_{e}}{\int}\frac{\frac{\partial\left(\rho\:g\:z\right)}{\partial s}}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\left(\underset{\partial\Omega_{e}}{\int}\left(\mathbf{v}\;P\right)\cdot\mathbf{n}\;dA-\underset{\Omega_{e}}{\int}\frac{\partial\left(\mathbf{v}\right)}{\partial s}P\;dV\right)=0\label{eq:ConservationofMomentumWFStep2}
 \end{equation}
 
 \end_inset
@@ -829,8 +722,8 @@ by summing all the element contributions
 \begin_inset Formula 
 \begin{equation}
 \begin{array}{ccc}
-\underset{\Omega}{\int}\frac{\partial\left(\mathbf{w}\right)}{\partial t}\mathbf{v}\;dV+ & \underset{\Omega}{\int}\mathbf{w}\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}-\frac{\mathbf{w}}{\rho^{2}}\frac{\partial\left(1/\rho\right)}{\partial s}\right)\mathbf{v}\;dV & =\\
- & -\underset{\Omega}{\int}\left(\frac{\partial\left(\rho\:g\:z\right)}{\partial s}+\frac{\tau\pi d}{A_{p}}\right)\mathbf{v}\;dV & -\left(\underset{\Gamma_{D}}{\int}\left(\mathbf{v}\;P\right)\cdot\mathbf{n}\;dA+\underset{\gamma}{\int}\left[\left[P\right]\right]\left(\mathbf{v}\right)\cdot\mathbf{n}\;dA-\underset{\Omega}{\int}\frac{\partial\left(\mathbf{v}\right)}{\partial s}P\;dV\right)
+\underset{\Omega}{\int}\frac{\frac{\partial\left(\mathbf{w}\right)}{\partial t}}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\underset{\Omega}{\int}\mathbf{w}\frac{\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}+\frac{f\;\mathbf{w}}{8}\frac{\pi d}{A_{p}}\right)}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+ &  & =\\
+ & \underset{\Omega}{\int}\frac{\frac{\partial\left(\rho\:g\:z\right)}{\partial s}}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\left(\underset{\gamma}{\int}\left[\left[P\right]\right]\left(\mathbf{v}\right)\cdot\mathbf{n}\;dA-\underset{\Omega}{\int}\frac{\partial\left(\mathbf{v}\right)}{\partial s}P\;dV\right)= & 0
 \end{array}\label{eq:ConservationofMomentumWFStep3}
 \end{equation}
 
@@ -840,8 +733,8 @@ by summing all the element contributions
 \end_layout
 
 \begin_layout Standard
-It is call special attention to the internal element boundary contributions
- being weakly zero 
+Taking special attention to the internal element boundary contributions,
+ they are weakly zero 
 \begin_inset Formula $\underset{\gamma}{\int}\left[\left[P\right]\right]\left(\mathbf{v}\right)\cdot\mathbf{n}\;dA=0$
 \end_inset
 
@@ -851,7 +744,18 @@ It is call special attention to the internal element boundary contributions
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega}{\int}\frac{\partial\left(\mathbf{w}\right)}{\partial t}\mathbf{v}\;dV+\underset{\Omega}{\int}\mathbf{w}\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}-\frac{\mathbf{w}}{\rho^{2}}\frac{\partial\left(1/\rho\right)}{\partial s}\right)\mathbf{v}\;dV+\underset{\Omega}{\int}\left(\frac{\partial\left(\rho\:g\:z\right)}{\partial s}+\frac{\tau\pi d}{A_{p}}\right)\mathbf{v}\;dV+\underset{\Gamma_{D}}{\int}\left(\mathbf{v}\;P\right)\cdot\mathbf{n}\;dA-\underset{\Omega}{\int}\frac{\partial\left(\mathbf{v}\right)}{\partial s}P\;dV=0\label{eq:ConservationofMomentumWFStep4}
+\underset{\Omega}{\int}\frac{\frac{\partial\left(\mathbf{w}\right)}{\partial t}}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\underset{\Omega}{\int}\mathbf{w}\frac{\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}+\frac{f\;\mathbf{w}}{8}\frac{\pi d}{A_{p}}\right)}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\underset{\Omega}{\int}\frac{\frac{\partial\left(\rho\:g\:z\right)}{\partial s}}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\left(\underset{\gamma}{\int}\left[\left[P\right]\right]\left(\mathbf{v}\right)\cdot\mathbf{n}\;dA-\underset{\Omega}{\int}\frac{\partial\left(\mathbf{v}\right)}{\partial s}P\;dV\right)=0\label{eq:ConservationofMomentumWFStep4}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\underset{\Omega}{\int}\frac{\frac{\partial\left(\mathbf{w}\right)}{\partial t}}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\underset{\Omega}{\int}\mathbf{w}\frac{\left(\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}+\frac{f\;\mathbf{w}}{8}\frac{\pi d}{A_{p}}\right)}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\underset{\Omega}{\int}\frac{\frac{\partial\left(\rho\:g\:z\right)}{\partial s}}{\left(1-\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\right)}\mathbf{v}\;dV+\underset{\Gamma}{\int}P\left(\mathbf{v}\right)\cdot\mathbf{n}\;dA-\underset{\Omega}{\int}\frac{\partial\left(\mathbf{v}\right)}{\partial s}P\;dV=0\label{eq:ConservationofMomentumWFStep4-2}
 \end{equation}
 
 \end_inset
@@ -866,12 +770,112 @@ For the conservation of mass:
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\underset{\Omega_{e}}{\int}\frac{\partial\left(\rho\right)}{\partial t}\phi\;dV+\underset{\Omega_{e}}{\int}\frac{\partial\left(\mathbf{w}\right)}{\partial s}\phi\;dV=0\label{eq:MassConservationwithWWFStep1}
+\underset{\Omega}{\int}\frac{\partial\left(\rho\right)}{\partial t}\phi\;dV+\underset{\Omega}{\int}\frac{\partial\left(\mathbf{w}\right)}{\partial s}\phi\;dV=0\label{eq:MassConservationwithWWFStep1}
 \end{equation}
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Finite element formulation for Hagen Poiseille relationship
+\end_layout
+
+\begin_layout Standard
+Hagen Poiseille relationship is a special condition of a full developed
+ flow under the following conditions:
+\end_layout
+
+\begin_layout Itemize
+Steady state.
+\end_layout
+
+\begin_layout Itemize
+Drop the inertia terms 
+\begin_inset Formula $\frac{\mathbf{w}^{2}}{\rho^{2}}\frac{\partial\left(\rho\right)}{\partial P}\approx0$
+\end_inset
+
+ and 
+\begin_inset Formula $\frac{2}{\rho}\frac{\partial\left(\mathbf{w}\right)}{\partial s}\approx0$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+Laminar flow 
+\begin_inset Formula $f=\frac{64}{Re}=\frac{64\mu}{\mathbf{w}d}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+For the conservation of linear momentum:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\underset{\Omega}{\int}\frac{\partial\left(\mathbf{w}\right)}{\partial t}\mathbf{v}\;dV+\underset{\Omega}{\int}\mathbf{w}\frac{8\mu\pi}{A_{p}}\mathbf{v}\;dV+\underset{\Omega}{\int}\frac{\partial\left(\rho\:g\:z\right)}{\partial s}\mathbf{v}\;dV+\underset{\Gamma}{\int}P\left(\mathbf{v}\right)\cdot\mathbf{n}\;dA-\underset{\Omega}{\int}\frac{\partial\left(\mathbf{v}\right)}{\partial s}P\;dV=0\label{eq:ConservationofMomentumWFHPStep1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For the conservation of mass:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\underset{\Omega}{\int}\frac{\partial\left(\rho\right)}{\partial t}\phi\;dV+\underset{\Omega}{\int}\frac{\partial\left(\mathbf{w}\right)}{\partial s}\phi\;dV=0\label{eq:MassConservationwithWWFHPStep1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Remark: for the geometry with cross sectional area constant 
+\begin_inset Formula $A_{p}$
+\end_inset
+
+, the element the integrals became: 
+\begin_inset Formula $\underset{\Omega}{\int}\left(\cdot\right)\;dV=\underset{dl}{\int}\left(\cdot\right)A_{p}\;dl$
+\end_inset
+
+ and 
+\begin_inset Formula $\underset{\Gamma}{\int}\left(\cdot\right)\;dA=\left(\cdot\right)A_{p}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Linearization
+\end_layout
+
+\begin_layout Standard
+Because the inertial terms changes slowly with iterations, we use the last
+ inertial terms to contibute integrals.
+\end_layout
+
+\begin_layout Section
+Simulation Cases
+\end_layout
+
+\begin_layout Itemize
+Case 1: Set dt as big as possible and test the stationary state.
+\end_layout
+
+\begin_layout Itemize
+Case 2: Run a unsteade state to arrive the stationary state.
 \end_layout
 
 \end_body
