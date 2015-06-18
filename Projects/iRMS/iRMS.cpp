@@ -17,7 +17,8 @@
 static LoggerPtr logdata(Logger::getLogger("pz.iRMS"));
 #endif
 
-void LinearTracer();
+void LinearTracerPrimal();
+void LinearTracerDual();
 void CheckQuarterPoint();
 void CreateExampleRawData(TRMRawData &data);
 
@@ -25,38 +26,34 @@ int main()
 {
     
     // This code use normalized piola contravariant mapping for nonlinear mappings
-    // HDivPiola = 0;
+    HDivPiola = 0;
     
-    gRefDBase.ReadRefPatternDBase("../RefPatterns.rpt");
-    TRMRawData rawdata;
-    CreateExampleRawData(rawdata);
-    TRMSimworxMeshGenerator meshGen;
-    
-    TRMSpaceOdissey * spacegenerator = new TRMSpaceOdissey;
-    
-    TPZManVector<int,2> dx(2,10), dy(2,1), dz(2,1);
-    dx[0] = 100;
-    dy[0] = 100;
-    dz[0] = 100;
 
-    spacegenerator->CreateGeometricBoxMesh(dx, dy, dz);
-    spacegenerator->PrintGeometry();
+
+    // Running primal problem
+    LinearTracerPrimal();
+    LinearTracerDual();
+    
     
     std::cout << "Process complete normally." << std::endl;
     return 0;
 }
 
-void LinearTracer()
+void LinearTracerPrimal()
 {
-    // Simulation Data in SI units
+
+    TRMSpaceOdissey SpaceGenerator;
+    TRMOrchestra  * SymphonyX = new TRMOrchestra;
+    SymphonyX->CreateAnalPrimal(SpaceGenerator);
     
+}
+
+void LinearTracerDual()
+{
     
-    
-    // Rock petrophysical description Data in SI units
-    
-    
-    
-    // Fluid description Data in SI units
+    TRMSpaceOdissey SpaceGenerator;
+    TRMOrchestra  * SymphonyX = new TRMOrchestra;
+    SymphonyX->CreateAnalDual(SpaceGenerator);
     
 }
 
@@ -80,14 +77,3 @@ void CheckQuarterPoint()
     
 }
 
-void CreateExampleRawData(TRMRawData &data)
-{
-    data.fLw = 500.;
-    data.fHasLiner = true;
-    data.fHasCasing = true;
-    
-    data.fReservoirWidth = 500.;
-    data.fReservoirLength = 1000.;
-    data.fReservoirHeight = 50.;
-    data.fProdVertPosition = 25;
-}

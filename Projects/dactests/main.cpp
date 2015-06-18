@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
         saidaerros << "\nPARA p = " << p << " \n " << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
         
-        for (ndiv=0; ndiv<7; ndiv++)
+        for (ndiv=0; ndiv<6; ndiv++)
         {
             
             if (dim==2)

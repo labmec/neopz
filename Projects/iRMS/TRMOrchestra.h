@@ -13,42 +13,66 @@
 #include "pzgmesh.h"
 #include "tpzautopointer.h"
 
+// Type of structural matrices
+#include "TPZSkylineNSymStructMatrix.h"
 
 #include "TRMSimulationData.h"
 #include "TRMFluxPressureAnalysis.h"
 #include "TRMTransportAnalysis.h"
+#include "TRMSpaceOdissey.h"
 
 class TRMRawData;
 
 class TRMOrchestra{
     
 private:
-    // Defines the global geometry
-    TPZAutoPointer<TPZGeoMesh >  fgmesh;
-    
+
+    /** @brief Define the global geometry being used */
+    TPZAutoPointer<TPZGeoMesh > fgmesh;
+
+    /** @brief Define the mixed system analysis */
     TRMFluxPressureAnalysis fFluxPressureAnalysis;
     
+    /** @brief Define the transpor equation analysis */
     TRMTransportAnalysis fTransportAnalysis;
     
+    /** @brief Define simulation data */
     TPZAutoPointer<TRMSimulationData> fSimulationData;
     
 protected:
     
-    void InitializePressure(); //  Solve the initial conditions for pressure using a l2 projection
+    /** @brief Solve the initial conditions for pressure using a l2 projection */
+    void InitializePressure();
     
 public:
+
+    /** @brief Default constructor */
+    TRMOrchestra();
+
+    /** @brief Default desconstructor */
+    ~TRMOrchestra();
     
     void SetGMesh(TPZAutoPointer<TPZGeoMesh > gmesh)
     {
         fgmesh = gmesh;
     }
     
-    void CreateCompMeshes(TRMRawData &rawdata); //will create comp meshes using space odissey. RawData may or may not be needed
+    /** @brief Create computational meshes using space odissey */
+    void CreateCompMeshes(TRMRawData &rawdata);
     
-    void RunSimulation(); // Run the time steps set in the simulation data
+    /** @brief Create a primal analysis using space odissey */
+    void CreateAnalPrimal(TRMSpaceOdissey spacegenerator);
     
+    /** @brief Create a dual analysis using space odissey */
+    void CreateAnalDual(TRMSpaceOdissey spacegenerator);
+    
+    /** @brief Run the time steps set in the simulation data */
+    void RunSimulation();
+    
+    /** @brief Run a single time step */
     void ExecuteOneTimeStep();
     
+    /** @brief Computes the post processed results */
     void PostProcess();
     
 };

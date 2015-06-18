@@ -17,7 +17,11 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 
+#include "pzbuildmultiphysicsmesh.h"
+
 #include "TPZVTKGeoMesh.h"
+
+
 
 class TRMSpaceOdissey{
     
@@ -35,19 +39,22 @@ private:
     TPZAutoPointer<TPZGeoMesh> fGeoMesh;
     
     /** @brief H1 computational mesh for validation */
-    TPZAutoPointer<TPZCompMesh> fH1Mesh;
+    TPZAutoPointer<TPZCompMesh> fH1Cmesh;
     
     /** @brief Autopointer of Simulation data */
     TPZAutoPointer<TRMSimulationData> fSimulationData;
     
     /** @brief Hdiv computational mesh conservative vector field */
-    TPZAutoPointer<TPZCompMesh> fFluxMesh;
+    TPZAutoPointer<TPZCompMesh> fFluxCmesh;
     
     /** @brief L2 computational mesh the restriction equation */
-    TPZAutoPointer<TPZCompMesh> fPressureMesh;
+    TPZAutoPointer<TPZCompMesh> fPressureCmesh;
+    
+    /** @brief Mixed computational mesh for a dual analysis */
+    TPZAutoPointer<TPZCompMesh> fMixedFluxPressureCmesh;
     
     /** @brief H1 computational mesh for Maurice Biot Linear Poroelasticity */
-    TPZAutoPointer<TPZCompMesh> fGeoMechanicsMesh;
+    TPZAutoPointer<TPZCompMesh> fGeoMechanicsCmesh;
     
 
 public:
@@ -55,14 +62,23 @@ public:
     /** @brief Default constructor */
     TRMSpaceOdissey();
     
+    /** @brief Default desconstructor */
+    ~TRMSpaceOdissey();
+    
     /** @brief Initialize the simulation data */
     void InitializeSimulationData(TRMRawData &rawdata);
     
     /** @brief Create a H1 computational mesh */
-    void CreateH1Mesh();
+    void CreateH1Cmesh();
+    
+    /** @brief Create a Hdiv computational mesh Hdiv */
+    void CreateFluxCmesh();
+
+    /** @brief Create a Discontinuous computational mesh L2 */
+    void CreatePressureCmesh();
     
     /** @brief Create a Mixed computational mesh Hdiv-L2 */
-    void CreateMixedMesh();
+    void CreateMixedCmesh();
     
     /** @brief Create a computational mesh L2 */
     void CreateTransportMesh();
@@ -88,6 +104,35 @@ public:
     /** @brief Parametric function that computes elements in the z direction */
     static  void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X);
     
+    /**
+     * @ingroup Acces methods
+     * @brief Set and Get fucntion attributes
+     * @since June 09, 2015
+     */
+    
+    /** @brief Autopointer of the Geometric mesh shared with all the classes involved */
+    void SetGmesh(TPZAutoPointer<TPZGeoMesh> GeoMesh){
+        fGeoMesh = GeoMesh;
+    }
+    TPZAutoPointer<TPZGeoMesh>  GetGmesh(){
+        return fGeoMesh;
+    }
+    
+    /** @brief H1 computational mesh for validation */
+    void SetH1Cmesh(TPZAutoPointer<TPZCompMesh> H1Cmesh){
+        fH1Cmesh = H1Cmesh;
+    }
+    TPZAutoPointer<TPZCompMesh>  GetH1Cmesh(){
+        return fH1Cmesh;
+    }
+    
+    /** @brief Mixed computational mesh for validation */
+    void SetMixedCmesh(TPZAutoPointer<TPZCompMesh> MixedCmesh){
+        fMixedFluxPressureCmesh = MixedCmesh;
+    }
+    TPZAutoPointer<TPZCompMesh>  GetMixedCmesh(){
+        return fMixedFluxPressureCmesh;
+    }
     
 };
 
