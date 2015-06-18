@@ -4,7 +4,7 @@
 //
 //  Created by omar duran on 5/05/2015.
 //
-//
+// This class defines the proper approximation space in accordance to the model. Steady state, parabolic, MHM, MHM++.
 
 #ifndef __PZ__TRMSpaceOdissey__
 #define __PZ__TRMSpaceOdissey__
@@ -12,70 +12,81 @@
 #include <stdio.h>
 #include "tpzautopointer.h"
 #include "TRMSimulationData.h"
+#include "TRMRawData.h"
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 
-/// Create the computational meshes
+#include "TPZVTKGeoMesh.h"
+
 class TRMSpaceOdissey{
     
 public:
     
+    /** @brief Define the type of geometry being used */
     enum MGeoMeshType {ENone = 0,EBox = 1, EReservoir = 2};
     
 private:
-    /// Type of geometric mesh to be generated
+    
+    /** @brief Define the type of geometry being used */
     MGeoMeshType fMeshType;
     
-    /// Geometric mesh shared by everybody
+    /** @brief Autopointer of the Geometric mesh shared with all the classes involved */
     TPZAutoPointer<TPZGeoMesh> fGeoMesh;
     
-    /// H1 Mesh for initial validation
+    /** @brief H1 computational mesh for validation */
     TPZAutoPointer<TPZCompMesh> fH1Mesh;
     
-    /// SimulationData, unique object for the execution
+    /** @brief Autopointer of Simulation data */
     TPZAutoPointer<TRMSimulationData> fSimulationData;
     
-    /// HDiv approximation
-    TPZAutoPointer<TPZCompMesh> fHDivMesh;
+    /** @brief Hdiv computational mesh conservative vector field */
+    TPZAutoPointer<TPZCompMesh> fFluxMesh;
     
-    /// Pressure mesh
+    /** @brief L2 computational mesh the restriction equation */
     TPZAutoPointer<TPZCompMesh> fPressureMesh;
     
-    /// Elastic deformation mesh
+    /** @brief H1 computational mesh for Maurice Biot Linear Poroelasticity */
     TPZAutoPointer<TPZCompMesh> fGeoMechanicsMesh;
     
-    /// Compound mesh
-    TPZAutoPointer<TPZCompMesh> fFluxAndPressureMesh;
 
 public:
     
-    /// Default constructor
-    TRMSpaceOdissey() : fMeshType(EBox)
-    {
-        
-    }
+    /** @brief Default constructor */
+    TRMSpaceOdissey();
     
-    /// Initialize the TRMSimulationData
+    /** @brief Initialize the simulation data */
     void InitializeSimulationData(TRMRawData &rawdata);
     
-    /// Create a H1 approximation mesh
+    /** @brief Create a H1 computational mesh */
     void CreateH1Mesh();
     
-    /// Create a flux and pressure multiphysics mesh
-    void CreateFluxPressureMesh();
+    /** @brief Create a Mixed computational mesh Hdiv-L2 */
+    void CreateMixedMesh();
     
-    /// Create a mesh for saturation transport
+    /** @brief Create a computational mesh L2 */
     void CreateTransportMesh();
     
-    /// Create a computational mesh for elastic deformation
+    /** @brief Create a H1 computational mesh for Maurice Biot Linear Poroelasticity */
     void CreateGeoMechanicMesh();
     
-    /// Create a geometric mesh of a reservoir simulation
+    /** @brief Create the reservoir geometry */
     void CreateGeometricReservoirMesh();
     
-    /// Create a box mesh for initial testing
-    void CreateGeometricBoxMesh();
+    /** @brief Print the reservoir geometry */
+    void PrintGeometry();
+    
+    /** @brief Create a reservoir-box geometry */
+    void CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVector<int,2> dy, TPZManVector<int,2> dz);
+    
+    /** @brief Parametric function that computes elements in the x direction */
+    static  void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+    
+    /** @brief Parametric function that computes elements in the y direction */
+    static  void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+    
+    /** @brief Parametric function that computes elements in the z direction */
+    static  void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X);
     
     
 };

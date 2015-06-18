@@ -11,6 +11,9 @@
 
 #include <stdio.h>
 #include "pzgmesh.h"
+#include "tpzautopointer.h"
+
+
 #include "TRMSimulationData.h"
 #include "TRMFluxPressureAnalysis.h"
 #include "TRMTransportAnalysis.h"
@@ -21,7 +24,7 @@ class TRMOrchestra{
     
 private:
     // Defines the global geometry
-    TPZGeoMesh fgmesh;
+    TPZAutoPointer<TPZGeoMesh >  fgmesh;
     
     TRMFluxPressureAnalysis fFluxPressureAnalysis;
     
@@ -35,10 +38,10 @@ protected:
     
 public:
     
-    void SetGMesh(TPZGeoMesh &gmesh){
+    void SetGMesh(TPZAutoPointer<TPZGeoMesh > gmesh)
+    {
         fgmesh = gmesh;
     }
-    
     
     void CreateCompMeshes(TRMRawData &rawdata); //will create comp meshes using space odissey. RawData may or may not be needed
     

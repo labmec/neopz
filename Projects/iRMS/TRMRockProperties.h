@@ -16,18 +16,21 @@
 class TRMRockProperties{
     
 public:
-    /** @brief TRMRockProperties constructor */
+    /** @brief Default constructor */
     TRMRockProperties();
 
-    /** @brief TRMRockProperties destructor */
+    /** @brief Default destructor */
     ~TRMRockProperties();
+    
+
+private:
     
     /**
      * @ingroup Characteristic Parameters in SI
      * @brief Define characteristic parameters for flow in porous media.
      * @since June 09, 2015
      */
-private:
+    
     /** @brief Characteristic length - m */
     REAL fLref;
     
@@ -65,11 +68,6 @@ private:
     TPZFMatrix<REAL> fKabinv;
 
 public:
-    /**
-     * @brief \f$ Rock porosity. \f$ Phi = Phi( P ) \f$
-     * @param P fluid pressure
-     */
-    void Porosity(REAL P, REAL &poros, REAL &dPorosDp);
     
     /** @brief Set the characteristic length - m */
     void SetLref(REAL Lref) {fLref = Lref; }
@@ -133,6 +131,15 @@ public:
     
     /** @brief Material indexes */
     TPZVec<int> fmaterialIds;
+    
+    
+    /**
+     * @brief \f$ Rock porosity. \f$ Phi = Phi( P ) \f$
+     * @param P fluid pressure
+     * @param poros porosity
+     * @param dPorosDp porosity derivative
+     */
+    void Porosity(REAL P, REAL &poros, REAL &dPorosDp);
     
     /** @brief Set the absolute Permeability - m2 */
     void SetKabsolute(TPZFMatrix<REAL> &Kab)

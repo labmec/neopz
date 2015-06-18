@@ -7,6 +7,8 @@
 
 #include "TRMRawData.h"
 #include "TRMSimworxMeshGenerator.h"
+#include "TRMOrchestra.h"
+#include "TRMSpaceOdissey.h"
 
 
 // iRMS (i rise for / innovatory Reservoir Muli-scale Simulator)
@@ -16,20 +18,8 @@ static LoggerPtr logdata(Logger::getLogger("pz.iRMS"));
 #endif
 
 void LinearTracer();
-
 void CheckQuarterPoint();
-
-void CreateExampleRawData(TRMRawData &data)
-{
-    data.fLw = 500.;
-    data.fHasLiner = true;
-    data.fHasCasing = true;
-    
-    data.fReservoirWidth = 500.;
-    data.fReservoirLength = 1000.;
-    data.fReservoirHeight = 50.;
-    data.fProdVertPosition = 25;
-}
+void CreateExampleRawData(TRMRawData &data);
 
 int main()
 {
@@ -38,16 +28,36 @@ int main()
     // HDivPiola = 0;
     
     gRefDBase.ReadRefPatternDBase("../RefPatterns.rpt");
-    
     TRMRawData rawdata;
-    
     CreateExampleRawData(rawdata);
-    
     TRMSimworxMeshGenerator meshGen;
-    // Fluid description Data SI units
+    
+    TRMSpaceOdissey * spacegenerator = new TRMSpaceOdissey;
+    
+    TPZManVector<int,2> dx(2,10), dy(2,1), dz(2,1);
+    dx[0] = 100;
+    dy[0] = 100;
+    dz[0] = 100;
+
+    spacegenerator->CreateGeometricBoxMesh(dx, dy, dz);
+    spacegenerator->PrintGeometry();
     
     std::cout << "Process complete normally." << std::endl;
     return 0;
+}
+
+void LinearTracer()
+{
+    // Simulation Data in SI units
+    
+    
+    
+    // Rock petrophysical description Data in SI units
+    
+    
+    
+    // Fluid description Data in SI units
+    
 }
 
 void CheckQuarterPoint()
@@ -70,16 +80,14 @@ void CheckQuarterPoint()
     
 }
 
-void LinearTracer()
+void CreateExampleRawData(TRMRawData &data)
 {
-    // Simulation Data in SI units
+    data.fLw = 500.;
+    data.fHasLiner = true;
+    data.fHasCasing = true;
     
-    
-    
-    // Rock petrophysical description Data in SI units
-    
-    
-    
-    // Fluid description Data in SI units
-    
+    data.fReservoirWidth = 500.;
+    data.fReservoirLength = 1000.;
+    data.fReservoirHeight = 50.;
+    data.fProdVertPosition = 25;
 }
