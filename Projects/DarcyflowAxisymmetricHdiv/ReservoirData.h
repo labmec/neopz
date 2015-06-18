@@ -16,7 +16,7 @@
 
 class ReservoirData {
     
-public:
+private:
     
     /**
      * @ingroup Characteristic Parameters
@@ -59,6 +59,8 @@ public:
     
     /** @brief absolute permeability inverse */
     TPZFMatrix<REAL> fKabinv;
+   
+public:
     
     ReservoirData();
     

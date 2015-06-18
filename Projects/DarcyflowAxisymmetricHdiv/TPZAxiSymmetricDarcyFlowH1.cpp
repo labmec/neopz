@@ -419,8 +419,6 @@ int TPZAxiSymmetricDarcyFlowH1::ClassId() const {
 void TPZAxiSymmetricDarcyFlowH1::Write(TPZStream &buf, int withclassid) {
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
-    buf.Write(&fReservoirdata->fPref);
-    buf.Write(&fReservoirdata->fKab(0,0));
     
 }
 
@@ -428,7 +426,5 @@ void TPZAxiSymmetricDarcyFlowH1::Write(TPZStream &buf, int withclassid) {
 
 void TPZAxiSymmetricDarcyFlowH1::Read(TPZStream &buf, void *context) {
     TPZDiscontinuousGalerkin::Read(buf, context);
-    buf.Read(&fReservoirdata->fPref);
-    buf.Read(&fReservoirdata->fKab(0,0));
     
 }

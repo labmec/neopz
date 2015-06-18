@@ -44,8 +44,14 @@ SimulationData::SimulationData()
     /** @brief Approximation Order for pressure */
     fporder = 1;
     
+    /** @brief Approximation Order for saturations */
+    fsorder = 0;
+    
     /** @brief Used a direct Solver */
     fIsDirect = false;
+    
+    /** @brief Optimize band width */
+    fOptband = false;
     
     /** @brief Use Conjugated Gradient method */
     fIsCG = false;

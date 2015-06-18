@@ -180,7 +180,7 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     plotData = plotname+Grau+strg+Ref+strr+VTK;
     std::string plotfile(plotData);
     
-    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
+//    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
     
     //Calculo do erro
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
@@ -564,15 +564,16 @@ TPZGeoMesh *LaplaceInCircle::MakeCircle( int ndiv)
     
     TPZGeoMesh * geomesh = new TPZGeoMesh;
     
-    int nodes =  17;
+    int nodes =  17 + 8;
     REAL radius = 1.0;
     REAL innerradius = radius/2.0;
     geomesh->SetMaxNodeId(nodes-1);
     geomesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,7> Node(nodes);
     
-    TPZManVector<long,4> TopolQuadrilateral(4);
-    TPZManVector<long,3> TopolTriangle(3);
+    TPZManVector<long,8> TopolQQuadrilateral(8);
+    TPZManVector<long,8> TopolQuadrilateral(4);
+    TPZManVector<long,6> TopolQTriangle(6);
     TPZManVector<long,2> TopolLine(2);
     TPZManVector<long,3> TopolArc(3);
     TPZManVector<REAL,3> coord(3,0.);
@@ -597,7 +598,23 @@ TPZGeoMesh *LaplaceInCircle::MakeCircle( int ndiv)
         nodeindex++;
     }
     
-    // 16 node the center
+    for (int inode = 0; inode < 4 ; inode++) {
+        // i node
+        coord = ParametricCircle(0.5*innerradius, inode * M_PI/2.0);
+        geomesh->NodeVec()[nodeindex].SetCoord(coord);
+        geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+        nodeindex++;
+    }
+    
+    for (int inode = 0; inode < 4 ; inode++) {
+        // i node
+        coord = ParametricCircle(1.5*innerradius, inode * M_PI/2.0);
+        geomesh->NodeVec()[nodeindex].SetCoord(coord);
+        geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+        nodeindex++;
+    }
+    
+    // 24 node id at circle center
     coord = ParametricCircle(0.0,0.0);
     geomesh->NodeVec()[nodeindex].SetCoord(coord);
     geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
@@ -605,113 +622,104 @@ TPZGeoMesh *LaplaceInCircle::MakeCircle( int ndiv)
     
     int elementid = 0;
     
-//    TopolQuadrilateral[0] = 0;
-//    TopolQuadrilateral[1] = 8;
-//    TopolQuadrilateral[2] = 10;
-//    TopolQuadrilateral[3] = 2;
-//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
-//    elementid++;
-//    
-//    TopolQuadrilateral[0] = 2;
-//    TopolQuadrilateral[1] = 10;
-//    TopolQuadrilateral[2] = 12;
-//    TopolQuadrilateral[3] = 4;
-//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
-//    elementid++;
-//    
-//    TopolQuadrilateral[0] = 4;
-//    TopolQuadrilateral[1] = 12;
-//    TopolQuadrilateral[2] = 14;
-//    TopolQuadrilateral[3] = 6;
-//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
-//    elementid++;
-//    
-//    TopolQuadrilateral[0] = 6;
-//    TopolQuadrilateral[1] = 14;
-//    TopolQuadrilateral[2] = 8;
-//    TopolQuadrilateral[3] = 0;
-//    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
-//    elementid++;
+    // outer domain
+    
+    TopolQuadrilateral[0] = 0;
+    TopolQuadrilateral[1] = 8;
+    TopolQuadrilateral[2] = 10;
+    TopolQuadrilateral[3] = 2;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
+    elementid++;
+    
+    TopolQuadrilateral[0] = 2;
+    TopolQuadrilateral[1] = 10;
+    TopolQuadrilateral[2] = 12;
+    TopolQuadrilateral[3] = 4;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
+    elementid++;
+    
+    TopolQuadrilateral[0] = 4;
+    TopolQuadrilateral[1] = 12;
+    TopolQuadrilateral[2] = 14;
+    TopolQuadrilateral[3] = 6;
+
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
+    elementid++;
+    
+    TopolQuadrilateral[0] = 6;
+    TopolQuadrilateral[1] = 14;
+    TopolQuadrilateral[2] = 8;
+    TopolQuadrilateral[3] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad > > (elementid,TopolQuadrilateral, fmatId,*geomesh);
+    elementid++;
+    
     
     // inner domain
     
     
-    TopolTriangle[0] = 0;
-    TopolTriangle[1] = 2;
-    TopolTriangle[2] = 16;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,TopolTriangle, fmatId,*geomesh);
+    TopolQTriangle[0] = 0;
+    TopolQTriangle[1] = 2;
+    TopolQTriangle[2] = 24;
+    TopolQTriangle[3] = 1;
+    TopolQTriangle[4] = 17;
+    TopolQTriangle[5] = 16;
+    new TPZGeoElRefPattern<  pzgeom::TPZQuadraticTrig  > (elementid,TopolQTriangle, fmatId,*geomesh);
+    elementid++;
+
+    TopolQTriangle[0] = 2;
+    TopolQTriangle[1] = 4;
+    TopolQTriangle[2] = 24;
+    TopolQTriangle[3] = 3;
+    TopolQTriangle[4] = 18;
+    TopolQTriangle[5] = 17;
+    new TPZGeoElRefPattern<  pzgeom::TPZQuadraticTrig  > (elementid,TopolQTriangle, fmatId,*geomesh);
+    elementid++;
+
+    TopolQTriangle[0] = 4;
+    TopolQTriangle[1] = 6;
+    TopolQTriangle[2] = 24;
+    TopolQTriangle[3] = 5;
+    TopolQTriangle[4] = 19;
+    TopolQTriangle[5] = 18;
+    new TPZGeoElRefPattern<  pzgeom::TPZQuadraticTrig  > (elementid,TopolQTriangle, fmatId,*geomesh);
     elementid++;
     
-    TopolTriangle[0] = 2;
-    TopolTriangle[1] = 4;
-    TopolTriangle[2] = 16;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,TopolTriangle, fmatId,*geomesh);
-    elementid++;
-    
-    TopolTriangle[0] = 4;
-    TopolTriangle[1] = 6;
-    TopolTriangle[2] = 16;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,TopolTriangle, fmatId,*geomesh);
-    elementid++;
-    
-    TopolTriangle[0] = 6;
-    TopolTriangle[1] = 0;
-    TopolTriangle[2] = 16;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,TopolTriangle, fmatId,*geomesh);
+    TopolQTriangle[0] = 6;
+    TopolQTriangle[1] = 0;
+    TopolQTriangle[2] = 24;
+    TopolQTriangle[3] = 7;
+    TopolQTriangle[4] = 16;
+    TopolQTriangle[5] = 19;
+    new TPZGeoElRefPattern<  pzgeom::TPZQuadraticTrig  > (elementid,TopolQTriangle, fmatId,*geomesh);
     elementid++;
     
     
-    // inner arcs
-    
-    TopolArc[0] = 0;
-    TopolArc[1] = 2;
-    TopolArc[2] = 1;
-    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
-    elementid++;
-    
-    TopolArc[0] = 2;
-    TopolArc[1] = 4;
-    TopolArc[2] = 3;
-    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
-    elementid++;
-    
-    TopolArc[0] = 4;
-    TopolArc[1] = 6;
-    TopolArc[2] = 5;
-    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
-    elementid++;
-    
-    TopolArc[0] = 6;
-    TopolArc[1] = 0;
-    TopolArc[2] = 7;
-    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
-    elementid++;
     
     // outer arcs bc's
     
-//    TopolArc[0] = 8;
-//    TopolArc[1] = 10;
-//    TopolArc[2] = 9;
-//    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
-//    elementid++;
-//    
-//    TopolArc[0] = 10;
-//    TopolArc[1] = 12;
-//    TopolArc[2] = 11;
-//    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
-//    elementid++;
-//    
-//    TopolArc[0] = 12;
-//    TopolArc[1] = 14;
-//    TopolArc[2] = 13;
-//    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
-//    elementid++;
-//    
-//    TopolArc[0] = 14;
-//    TopolArc[1] = 8;
-//    TopolArc[2] = 15;
-//    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
-//    elementid++;
+    TopolArc[0] = 8;
+    TopolArc[1] = 10;
+    TopolArc[2] = 9;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+    elementid++;
+
+    TopolArc[0] = 10;
+    TopolArc[1] = 12;
+    TopolArc[2] = 11;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+    elementid++;
+    
+    TopolArc[0] = 12;
+    TopolArc[1] = 14;
+    TopolArc[2] = 13;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+    elementid++;
+    
+    TopolArc[0] = 14;
+    TopolArc[1] = 8;
+    TopolArc[2] = 15;
+    new TPZGeoElRefPattern< pzgeom::TPZArc3D > (elementid,TopolArc, fbc1,*geomesh);
+    elementid++;
     
     
     
@@ -2883,13 +2891,12 @@ void LaplaceInCircle::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZF
     REAL Zunitz = 1.0;
     
     REAL dfdR           = 4.0*r*r*r*cos2theta*sin2theta;
-    REAL dfdTheta       = (1.0/r)*(2.0*r4*(cos2theta*cos2theta-sin2theta*sin2theta));
+    REAL dfdTheta       = (1.0)*(2.0*r*r*r*(cos2theta*cos2theta-sin2theta*sin2theta));
     REAL dfdZ           = 0.0;
     
     flux(0,0) = -1.0*(dfdR * Runitx + dfdTheta * Thetaunitx + dfdZ * Zunitx);
     flux(1,0) = -1.0*(dfdR * Runity + dfdTheta * Thetaunity + dfdZ * Zunity);
     flux(2,0) = -1.0*(dfdR * Runitz + dfdTheta * Thetaunitz + dfdZ * Zunitz);
-
     
 }
 
@@ -3470,30 +3477,30 @@ TPZCompMesh *LaplaceInCircle::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     BCond1->SetForcingFunction(FBCond1);
     //    BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
     
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
-    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
-    BCond2->SetForcingFunction(FBCond2);
-//    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
-//    BCond2 = material->CreateBC(mat, fbc2,fneumann, val1, val2);
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2D);
+//    BCond2 = material->CreateBC(mat, fbc2,fdirichlet, val1, val2);
 //    BCond2->SetForcingFunction(FBCond2);
-    
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D);
-    BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
-    BCond3->SetForcingFunction(FBCond3);
-    //    BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
-    
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D);
-    BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
-    BCond4->SetForcingFunction(FBCond4);
-//    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N);
-//    BCond4 = material->CreateBC(mat, fbc4,fneumann, val1, val2);
+////    TPZAutoPointer<TPZFunction<STATE> > FBCond2 = new TPZDummyFunction<STATE>(ForcingBC2N);
+////    BCond2 = material->CreateBC(mat, fbc2,fneumann, val1, val2);
+////    BCond2->SetForcingFunction(FBCond2);
+//    
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond3 = new TPZDummyFunction<STATE>(ForcingBC3D);
+//    BCond3 = material->CreateBC(mat, fbc3,fdirichlet, val1, val2);
+//    BCond3->SetForcingFunction(FBCond3);
+//    //    BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
+//    
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4D);
+//    BCond4 = material->CreateBC(mat, fbc4,fdirichlet, val1, val2);
 //    BCond4->SetForcingFunction(FBCond4);
+////    TPZAutoPointer<TPZFunction<STATE> > FBCond4 = new TPZDummyFunction<STATE>(ForcingBC4N);
+////    BCond4 = material->CreateBC(mat, fbc4,fneumann, val1, val2);
+////    BCond4->SetForcingFunction(FBCond4);
     
     if (dim==3)
     {

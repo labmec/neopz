@@ -746,8 +746,8 @@ TPZStructMatrixOT::ThreadData::~ThreadData()
 void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
-//    TPZStructMatrixOT *strmat = data->fStruct;
-//    int nthreads = strmat->fNumThreads;
+    TPZStructMatrixOT *strmat = data->fStruct;
+    int nthreads = strmat->fNumThreads;
     TPZVec<long> &ComputedElements = *(data->fComputedElements);
     TPZVec<long> &ElBlocked = *(data->fElBlocked);
 
@@ -916,8 +916,8 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
-//    TPZStructMatrixOT *strmat = data->fStruct;
-//    int nthreads = strmat->fNumThreads;
+    TPZStructMatrixOT *strmat = data->fStruct;
+    int nthreads = strmat->fNumThreads;
     
     TPZCompMesh *cmesh = data->fStruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;

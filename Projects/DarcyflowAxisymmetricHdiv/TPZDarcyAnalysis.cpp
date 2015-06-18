@@ -253,7 +253,7 @@ void TPZDarcyAnalysis::Run()
     
     int q = fSimulationData->Getqorder();
     int p = fSimulationData->Getporder();
-    int s = 1;
+    int s = fSimulationData->Getsorder();
     
     //    if (fSimulationData->GetIsH1approx())
     if (false)
@@ -268,7 +268,7 @@ void TPZDarcyAnalysis::Run()
     
     
     // Analysis
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = fSimulationData->GetOptband();
     TPZAnalysis *an = new TPZAnalysis(fcmeshdarcy,mustOptimizeBandwidth);
     int numofThreads = 0;
     
@@ -792,6 +792,14 @@ TPZFMatrix<STATE>  TPZDarcyAnalysis::TensorProduct(TPZFMatrix<STATE> &g, TPZFMat
 
 TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
 {
+    
+    int typeFluxin = 1, typePressurein = 0;
+    int typeFluxout = 3, typePressureout = 2;
+    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
+    
+    // Malha computacional
+    TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
+    
     int dim = 2;
     int ilayer = 0;
     int RockId = fLayers[ilayer]->GetMatIDs()[0];
@@ -800,12 +808,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     int topId = fLayers[ilayer]->GetMatIDs()[3];
     int leftId = fLayers[ilayer]->GetMatIDs()[4];
     
-    int typeFluxin = 1, typePressurein = 0;
-    int typeFluxout = 3, typePressureout = 2;
-    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
-    
-    // Malha computacional
-    TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
+
     
     // Material medio poroso
     TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
@@ -825,7 +828,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     // Setting up linear tracer solution
 //TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
- TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
     
@@ -837,20 +840,20 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFluxin, val1, val2);
     
     // Bc Right
-    val2(0,0) = 10.0*1e6;
-    val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressureout, val1, val2);
-    
-    // Bc Top
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFluxin, val1, val2);
+    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typeFluxin, val1, val2);
+    
+    // Bc Top
+    val2(0,0) = 10.0*1e6;
+    val2(1,0) = 0.0;
+    val2(2,0) = 0.0;
+    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typePressurein, val1, val2);
     
     // Bc Left
-    val2(0,0) = -0.00001;
-    val2(1,0) = 1.0;
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
     val2(2,0) = 0.0;
 
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
@@ -871,19 +874,21 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
 
 void TPZDarcyAnalysis::CmeshH1(int porder)
 {
-    int dim = 2;
-    int ilayer = 0;
-    int RockId = fLayers[ilayer]->GetMatIDs()[0];
-    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
-    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
-    int topId = fLayers[ilayer]->GetMatIDs()[3];
-    int leftId = fLayers[ilayer]->GetMatIDs()[4];
-    
     const int typeFlux = 1, typePressure = 0;
     TPZFMatrix<STATE> val1(1,2,0.), val2(1,1,0.);
     
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
+    
+    int dim = 2;
+    int ilayer = 0;
+    
+    
+    int RockId = fLayers[ilayer]->GetMatIDs()[0];
+    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
+    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
+    int topId = fLayers[ilayer]->GetMatIDs()[3];
+    int leftId = fLayers[ilayer]->GetMatIDs()[4];
     
     // Material medio poroso
     TPZAxiSymmetricDarcyFlowH1 * mat = new TPZAxiSymmetricDarcyFlowH1(RockId);
@@ -938,18 +943,21 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
 {
     
     int dim = 2;
-    int ilayer = 0;
-    int RockId = fLayers[ilayer]->GetMatIDs()[0];
-    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
-    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
-    int topId = fLayers[ilayer]->GetMatIDs()[3];
-    int leftId = fLayers[ilayer]->GetMatIDs()[4];
-    
     const int typeFlux = 0, typePressure = 1;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
+    
+    int ilayer = 0;
+    
+    
+    int RockId = fLayers[ilayer]->GetMatIDs()[0];
+    
+    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
+    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
+    int topId = fLayers[ilayer]->GetMatIDs()[3];
+    int leftId = fLayers[ilayer]->GetMatIDs()[4];
     
     TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
     cmesh->InsertMaterialObject(mat);
@@ -990,7 +998,15 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
 TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
 {
     
+    const int typeFlux = 0, typePressure = 1;
+    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
+    
+    // Malha computacional
+    TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
+    
     int dim = 2;
+    
+    
     int ilayer = 0;
     int RockId = fLayers[ilayer]->GetMatIDs()[0];
     int bottomId = fLayers[ilayer]->GetMatIDs()[1];
@@ -998,11 +1014,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     int topId = fLayers[ilayer]->GetMatIDs()[3];
     int leftId = fLayers[ilayer]->GetMatIDs()[4];
     
-    const int typeFlux = 0, typePressure = 1;
-    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
-    
-    // Malha computacional
-    TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
+
     
     TPZMatPoisson3d * mat = new TPZMatPoisson3d(RockId,dim);
     cmesh->InsertMaterialObject(mat);
@@ -1340,16 +1352,11 @@ void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
     CreateGridFrom2->SetParametricFunction(ParFunc2);
     CreateGridFrom2->SetFrontBackMatId(2,4);
     
-    dt = fSimulationData->GetLengthElementx();
+    dt = fSimulationData->GetLengthElementy();
     n = ny;
-    
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     fgmesh = CreateGridFrom2->ComputeExtrusion(t, dt, n);
-    
-    TPZCheckGeom * GeometryTest = new TPZCheckGeom;
-    int isBadMesh = 0;
-    bool CheckGeometry = false;
     
     
 }

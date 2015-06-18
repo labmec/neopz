@@ -3615,7 +3615,7 @@ void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<
                 bound = new TPZCompElHDivBound2<pzshape::TPZShapeLinear>(* intel->Mesh(),gelbound,index);
                 int sideorient = intel->GetSideOrient(side);
                 TPZCompElHDivBound2<pzshape::TPZShapeLinear> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeLinear> *>(bound);
-                hdivbound->SetSideOrient(sideorient);
+                hdivbound->SetSideOrient(3,sideorient);
                 break;
             }
             case(ETriangle)://triangle
@@ -3623,7 +3623,7 @@ void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<
                 bound = new TPZCompElHDivBound2<pzshape::TPZShapeTriang>(* intel->Mesh(),gelbound,index);
                 int sideorient = intel->GetSideOrient(side);
                 TPZCompElHDivBound2<pzshape::TPZShapeTriang> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeTriang> *>(bound);
-                hdivbound->SetSideOrient(sideorient);
+                hdivbound->SetSideOrient(6,sideorient);
                 break;
             }
             case(EQuadrilateral)://quadrilateral
@@ -3631,7 +3631,7 @@ void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<
                 bound = new TPZCompElHDivBound2<pzshape::TPZShapeQuad>(* intel->Mesh(),gelbound,index);
                 int sideorient = intel->GetSideOrient(side);
                 TPZCompElHDivBound2<pzshape::TPZShapeQuad> *hdivbound = dynamic_cast< TPZCompElHDivBound2<pzshape::TPZShapeQuad> *>(bound);
-                hdivbound->SetSideOrient(sideorient);
+                hdivbound->SetSideOrient(8,sideorient);
                 break;
             }
                 

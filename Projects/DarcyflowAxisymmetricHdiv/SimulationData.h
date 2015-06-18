@@ -72,8 +72,14 @@ private:
     /** @brief Approximation order for pressure */
     int fporder;
     
+    /** @brief Approximation order for saturations */
+    int fsorder;
+    
     /** @brief Use of direct solver */
     bool fIsDirect;
+    
+    /** @brief Optimize band width */
+    bool fOptband;
     
     /** @brief Use of Conjugated Gradient method */
     bool fIsCG;
@@ -186,6 +192,12 @@ public:
     /** @brief Get the approximation order for pressure */
     int Getporder() {return this->fporder;}
     
+    /** @brief Set the approximation order for saturations */
+    void Setsorder(int pp){this->fsorder = pp;}
+    
+    /** @brief Get the approximation order for saturations */
+    int Getsorder() {return this->fsorder;}
+    
     /** @brief Using Broyden iterations */
     void SetIsBroyden(bool Broyden) {fIsBroyden = Broyden;}
     
@@ -197,6 +209,12 @@ public:
     
     /** @brief Get the use of direct Solver */
     bool GetIsDirect() {return fIsDirect;}
+    
+    /** @brief Set the use of band optimization */
+    void SetOptband(bool Optband) {fOptband = Optband;}
+    
+    /** @brief Get the use of band optimization */
+    bool GetOptband() {return fOptband;}
     
     /** @brief Set the use of CG method (false is GMRES) */
     void SetIsCG(bool IsCG) {fIsCG = IsCG;}

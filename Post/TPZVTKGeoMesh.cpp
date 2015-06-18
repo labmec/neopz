@@ -95,15 +95,15 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, bool
 	file << "CELL_TYPES " << nVALIDelements << std::endl;
 	file << type.str() << std::endl;
 	
-	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
-	file << "FIELD FieldData 1" << std::endl;
+	file << "CELL_DATA " << " " << nVALIDelements << std::endl;
+	file << "FIELD FieldData 1 " << std::endl;
 	if(matColor == true)
 	{
-		file << "material 1 " << nVALIDelements << " int" << std::endl;
+		file << "material 1 " << nVALIDelements << " int " << std::endl;
 	}
 	else
 	{
-		file << "ElementType 1 " << nVALIDelements << " int" << std::endl;
+		file << "ElementType 1 " << nVALIDelements << " int " << std::endl;
 	}
 	file << material.str();
 	

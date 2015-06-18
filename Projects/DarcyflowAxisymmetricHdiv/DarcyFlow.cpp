@@ -24,6 +24,9 @@ int main()
 
 void LinearTracer()
 {
+    // Important notes:
+    // This code consider a homogeneus absolute permeability when Gravitational segregational function is active!
+    
   
     // This code use piola contravariant mapping for nonlinear mappings
     HDivPiola = 0;
@@ -34,19 +37,21 @@ void LinearTracer()
     
     int maxiter     = 30;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
-    bool GR         = true;    // Use Gradient Reconstruction
+    bool GR         = false;    // Use Gradient Reconstruction
     bool IsDirect   = true;     // Not Used broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
+    bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
     int qorder      = 1;
     int porder      = 1;
+    int sorder      = 0;
     int hrefinement = 0;
     int hpostref    = 0;
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = 0.01*day;
+    REAL dt         = 0.5*day;
 
     REAL maxtime    = 1.0*day;
     REAL t0         = 0.0*day;
@@ -54,18 +59,20 @@ void LinearTracer()
     REAL TolRes     = 1.0*1e-8;
     
     int  nelemX     =10;
-    REAL lengthX    =10.0;
+    REAL lengthX    =100.0;
     
     int nelemY      =2;
-    REAL lengthY    =1.0;
+    REAL lengthY    =50.0;
 
 
     
     Dataset->SetGR(GR);
     Dataset->SetIsDirect(IsDirect);
     Dataset->SetIsCG(IsCG);
+    Dataset->SetOptband(OptBand);
     Dataset->Setqorder(qorder);
     Dataset->Setporder(porder);
+    Dataset->Setsorder(sorder);
     Dataset->SetHrefinement(hrefinement);
     Dataset->SetHPostrefinement(hpostref);
     Dataset->SetDeltaT(dt);
@@ -107,7 +114,7 @@ void LinearTracer()
     REAL waterdensity       = 1000.0;
     REAL waterviscosity     = 0.001;
     REAL cwater             = 0.0*1e-8;
-    REAL oildensity         = 1000.0;
+    REAL oildensity         = 800.0;
     REAL oilviscosity       = 0.001;
     REAL coil               = 0.0*1e-8;
     REAL gasdensity         = 0.0;

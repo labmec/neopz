@@ -547,8 +547,8 @@ void TPZdifureac::ContributeInterface(TPZMaterialData &data, TPZMaterialData &da
     TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
     TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
     
-    int &LeftPOrder=dataleft.p;
-    int &RightPOrder=dataright.p;
+//    int &LeftPOrder=dataleft.p;
+//    int &RightPOrder=dataright.p;
     
     REAL &faceSize=data.HSize;
     
@@ -753,10 +753,8 @@ void TPZdifureac::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-	int POrder= dataleft.p;
 	REAL faceSize=data.HSize;
 	REAL penaljumpuv = 2*this->fsigma/pow(faceSize,this->fbeta);
-	STATE BigNum =0.;// 1.;//0e+12;    
 	
 	REAL sign = 1.0; 
     

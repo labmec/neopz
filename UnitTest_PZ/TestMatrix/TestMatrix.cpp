@@ -38,7 +38,7 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
 			if(i!=j)
 				sum += fabs(matr.GetVal(i,j));
 		}
-		if(!fabs(matr.GetVal(i,i)) > sum) return 0;
+		if(!(fabs(matr.GetVal(i,i)) > sum)) return 0;
 	}
 	return 1;
 }

@@ -126,15 +126,15 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
         
         //load the matrix ek and vector ef of the element
         cel->CalcStiff(ek,ef);
-        
-        //        ek.fMat.Print("ek = ");
-        //        ef.fMat.Print("ef = ");
-        
+//        
+//        ek.fMat.Print("ek = ");
+//        ef.fMat.Print("ef = ");
+//        
         //assemble pos l2 projection
         AssembleGlobalMatrix(cel, ek, ef, *stiffmatrix, rhs);
         
-        //        stiffmatrix->Print("Matriz de Rigidez: ");
-        //        rhs.Print("Right Handside: ");
+//        stiffmatrix->Print("Matriz de Rigidez: ");
+//        rhs.Print("Right Handside: ");
         
         //Return for original material and current solution of the mesh
         ChangeMaterialIdIntoCompElement(cel, matidl2proj, matid);
