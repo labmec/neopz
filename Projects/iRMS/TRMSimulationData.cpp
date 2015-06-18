@@ -7,3 +7,14 @@
 //
 
 #include "TRMSimulationData.h"
+
+
+/** @brief Initialize the raw data */
+TRMSimulationData::TRMSimulationData(TRMRawData &RawData){
+    
+}
+
+/** @brief destructor */
+TRMSimulationData::~TRMSimulationData(){
+    
+}

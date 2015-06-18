@@ -39,6 +39,48 @@ public:
     
 private:
     
+    /**
+     * @name Well atributes and methods
+     * @{
+     */
+    
+    /** @brief Well cross sectional area */
+    REAL fAp;
+    
+    /** @brief Well diameter */
+    REAL fd;
+    
+    /** @brief Pipe roughness */
+    REAL fepsilon;
+    
+    /** @brief Pipe inclination */
+    REAL ftheta;
+    
+    /** @brief atribute for derivative computations */
+    REAL fdelta;
+    
+    /** @brief time step */
+    REAL fdt;
+    
+    /** @brief Gravity constant */
+    REAL fg;
+    
+    /** @brief time step */
+    bool  fNextStep;
+    
+    /** @brief friction factor using Haaland friction factor because it is a explicit expression of f */
+    void friction(REAL &f, REAL P, REAL w, REAL &dfdw, REAL &dfdP);
+    
+    
+    /** @brief Fluid density  */
+    void Rho(REAL &rho, REAL P, REAL &drhodw, REAL &drhodP);
+    
+    
+    /** @brief Fluid density  */
+    void Mu(REAL &mu, REAL P, REAL &dmudw, REAL &dmudP);
+    
+    /** @} */
+    
     /** @brief Returns the name of the material */
     std::string Name() { return "TPZMonoPhaseWell";}
     
@@ -48,6 +90,11 @@ private:
     /** @brief Returns the number of state variables associated with the material */
     int NStateVariables() {return 1;}
     
+    /** @brief returns the minimum number of load cases for this material */
+    int MinimumNumberofLoadCases()
+    {
+        return 1;
+    }
     
     /**
      * @name Contribute methods (weak formulation)
@@ -101,9 +148,7 @@ private:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
-        DebugStop();
-    }
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
 
     
     /**
@@ -164,6 +209,13 @@ private:
      */
     void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
+    /**
+     * @brief Fill material data parameter with necessary requirements for the
+     * ContributeBC method. Here, in base class, all requirements are considered as necessary.
+     * Each derived class may optimize performance by selecting only the necessary data.
+     */
+    void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
+    
     /** @brief Print out the data associated with the material */
     void Print(std::ostream &out = std::cout);
     
@@ -173,9 +225,7 @@ private:
     int NSolutionVariables(int var);
 
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-    
-    /** @brief Reads data of the material from a istream (file data) */
-    void SetData(std::istream &data);
+
     
     /** @{
      * @name Save and Load methods
@@ -189,6 +239,42 @@ private:
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);
+    
+    /** @} */
+    
+public:
+    
+    /** @{
+     * @name Set and Get methods
+     */
+    
+    /** @brief Well cross sectional area */
+    void SetAp(REAL A){ fAp = A;}
+    REAL GetAp(){ return fAp;}
+    
+    /** @brief Well diameter */
+    void Setd(REAL d){ fd = d;}
+    REAL Getd(){ return fd;}
+    
+    /** @brief Pipe roughness */
+    void Setepsilon(REAL epsilon){ fepsilon = epsilon;}
+    REAL Getepsilon(){ return fepsilon;}
+    
+    /** @brief Pipe inclination */
+    void Settheta(REAL theta){ ftheta = theta;}
+    REAL Gettheta(){ return ftheta;}
+    
+    /** @brief atribute for derivative computations */
+    void Setdelta(REAL delta){ fdelta = delta;}
+    REAL Getdelta(){ return fdelta;}
+    
+    /** @brief time step */
+    void Setdt(REAL dt){ fdt = dt;}
+    REAL Getdt(){ return fdt;}
+    
+    /** @brief time step */
+    void SetNextStep(bool nextstep) {fNextStep = nextstep;}
+    bool GetNextStep() {return fNextStep;}
     
     /** @} */
     

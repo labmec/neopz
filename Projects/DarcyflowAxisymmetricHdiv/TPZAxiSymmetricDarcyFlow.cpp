@@ -10,6 +10,7 @@
 #include "TPZAxiSymmetricDarcyFlow.h"
 #include "pzbndcond.h"
 #include "pzaxestools.h"
+#include "pzfmatrix.h"
 
 TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin()
 {
@@ -324,7 +325,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
     TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
     TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
     
-    TPZFNMatrix<660> GradphiuH1;
+    TPZFNMatrix<660,REAL> GradphiuH1;
     TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
     
     int nphiuHdiv = datavec[ublock].fVecShapeIndex.NElements();
@@ -428,7 +429,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
     
-    TPZFNMatrix<660> GradP;
+    TPZFNMatrix<660,REAL> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
     
     
@@ -624,11 +625,11 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     TPZFMatrix<STATE> GradSwaxes = datavec[Swblock].dsol[0];
     TPZFMatrix<STATE> GradSoaxes = datavec[Soblock].dsol[0];
     
-    TPZFNMatrix<660> GradP;
+    TPZFNMatrix<660,REAL> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
-    TPZFNMatrix<660> GradSw;
+    TPZFNMatrix<660,REAL> GradSw;
     TPZAxesTools<REAL>::Axes2XYZ(GradSwaxes, GradSw, datavec[Swblock].axes);
-    TPZFNMatrix<660> GradSo;
+    TPZFNMatrix<660,REAL> GradSo;
     TPZAxesTools<REAL>::Axes2XYZ(GradSoaxes, GradSo, datavec[Soblock].axes);
     
     

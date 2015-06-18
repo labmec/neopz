@@ -261,8 +261,9 @@ template<class TGeo>
 TPZGeoEl * TPZGeoElRefPattern<TGeo>::SubElement(int is) const {
 	if (!fRefPattern) return 0;
 	int nsubel = this->GetRefPattern()->NSubElements();
-	if(is<0 || is>nsubel){
+	if(is<0 || is>= nsubel){
 		std::cout << "TPZGeoElRefPattern::SubElement index error is= " << is << std::endl;
+        DebugStop();
 	}
 	return (fSubEl[is] == -1) ? 0 : this->Mesh()->ElementVec()[fSubEl[is]];
 }

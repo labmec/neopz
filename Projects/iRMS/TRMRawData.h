@@ -4,7 +4,7 @@
 //
 //  Created by Philippe Devloo on 5/25/15.
 //
-//
+// This class store the computational information required for iRMS
 
 #ifndef __PZ__TRMRawData__
 #define __PZ__TRMRawData__
@@ -24,19 +24,8 @@ public:
     REAL fReservoirHeight;
     REAL fProdVertPosition;
     
-    TRMRawData()
-    {
-        fLw = 0.;
-        fHasLiner = true;
-        fHasCasing = true;
-        
-        fReservoirWidth = 0.;
-        fReservoirLength = 0.;
-        fReservoirHeight = 0.;
-        fProdVertPosition = 0.;
-    }
-    
-    ~TRMRawData(){}
+    TRMRawData();
+    ~TRMRawData();
 };
 
 #endif /* defined(__PZ__TRMRawData__) */

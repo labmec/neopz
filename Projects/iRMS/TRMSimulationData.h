@@ -15,28 +15,46 @@
 #include "TRMRockProperties.h"
 #include "TRMPetrophysicsProperties.h"
 #include "TRMSpatialPropertiesMap.h"
+#include "TRMRawData.h"
 
-class TRMRawData;
 
 class TRMSimulationData {
     
 protected:
     
+    /** @brief Stores all the petrophysics data */
     TRMPetrophysicsProperties fPetroProp;
+    
+    /** @brief Stores all the blackoil fluid properties */
     TRMBlackOilProperties fBlackOilProp;
+    
+    /** @brief Stores all the rock and geomechanic properties */
     TRMRockProperties fRockProp;
+    
+    /** @brief Stores the spatial information given in maps */
     TRMSpatialPropertiesMap fSpatialProp;
     
     
 public:
     
-    enum EMaterialIds {}; // All this materials ids are related with physical boundary conditions.
     
-    // Initializes the simulation data based on a raw data
-    TRMSimulationData(TRMRawData &rawData);
+    /** @brief Initialize the raw data */
+    TRMSimulationData(TRMRawData &RawData);
     
-    // Set get methods
+    /** @brief destructor */
+    ~TRMSimulationData();
     
+    /**
+     * @defgroup Water Properties of water from few field parameters
+     * @brief    Implements several set/get attributes for the simulation data:
+     *           TRMPetrophysicsProperties
+     *           TRMBlackOilProperties
+     *           TRMSpatialPropertiesMap
+     *
+     * @{
+     */
+    
+    /** @brief Stores all the petrophysics data */
     void SetPetroProp(TRMPetrophysicsProperties PetroProp)
     {
         fPetroProp = PetroProp;
@@ -47,6 +65,7 @@ public:
         return fPetroProp;
     }
 
+    /** @brief Stores all the blackoil fluid properties */
     void SetBlackOilProp(TRMBlackOilProperties BlackOilProp)
     {
         fBlackOilProp = BlackOilProp;
@@ -57,6 +76,7 @@ public:
         return fBlackOilProp;
     }
   
+    /** @brief Stores all the rock and geomechanic properties */
     void SetRockProp(TRMRockProperties RockProp)
     {
         fRockProp = RockProp;
@@ -67,6 +87,7 @@ public:
         return fRockProp;
     }
     
+    /** @brief Stores the spatial information given in maps */
     void SetSpatialProp(TRMSpatialPropertiesMap SpatialProp)
     {
         fSpatialProp = SpatialProp;
@@ -78,6 +99,8 @@ public:
     }
     
     static REAL Gravity();
+    
+    // @}
     
 
 };

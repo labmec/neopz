@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------
 
-#ifndef TPBRThermalTwoPhaseFlowConstantsH
-#define TPBRThermalTwoPhaseFlowConstantsH
+#ifndef TRMFlowConstantsH
+#define TRMFlowConstantsH
 
 
 const int _ReservMatId = 1;
@@ -42,6 +42,12 @@ const int _Water_extremidades1 = 32;//temporary material id
 const int _Water_extremidades2 = 33;//temporary material id
 const int _WaterMioloBottomMat = 34;//temporary material id
 const int _ellipseArcMat = 35;
+
+//Additional constants
+const int _ReservoirInletPressure = 36;
+const int _ReservoirOutletPressure = 37;
+const int _ReservoirNonFluxBoundary = 38;
+
 
 
 //---------------------------------------------------------------------------

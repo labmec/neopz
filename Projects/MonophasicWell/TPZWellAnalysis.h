@@ -1,19 +1,12 @@
 #ifndef TPZDarcyAnalysisH
 #define TPZDarcyAnalysisH
 
-#include "SimulationData.h"
-#include "ReservoirData.h"
-#include "PetroPhysicData.h"
-#include "ReducedPVT.h"
-#include "pznonlinanalysis.h"
 
+#include "pznonlinanalysis.h"
 #include "tpzautopointer.h"
 #include "pzcmesh.h"
 #include "pzintel.h"
 #include "pzstepsolver.h"
-
-#include "pzl2projection.h"
-#include "pzgradientreconstruction.h"
 
 
 class TPZCompMesh;
@@ -23,7 +16,7 @@ class TPZCompMesh;
  */
 
 
-class TPZDarcyAnalysis : public TPZNonLinearAnalysis
+class TPZWellAnalysis : public TPZNonLinearAnalysis
 {
 private:
     
@@ -39,22 +32,10 @@ private:
     // Vector which will store tha residuum in the last state (n+1)
     TPZFMatrix<STATE> fResidualAtnplusOne;
     
-    // Simulation data required for complete the analysis
-    TPZAutoPointer<SimulationData> fSimulationData;
     
-    // Reservoir datas required for material definition
-    TPZVec<TPZAutoPointer<ReservoirData > > fLayers;
-    
-    // PetroPhysic data associated to each reservoir layer
-    TPZVec<TPZAutoPointer<PetroPhysicData > > fRockPetroPhysic;
-    
-    // Reduced PVT data required for
-    TPZAutoPointer<ReducedPVT> fFluidData;
-   
-        /** @brief Geometric mesh */
+    /** @brief Geometric mesh */
     TPZGeoMesh * fgmesh;
     
-      
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 4> fmeshvec;
     
@@ -67,20 +48,14 @@ private:
     /** @brief unknowns for n+1 time step */
     TPZFMatrix<REAL> falphaAtnplusOne;
     
-    /** @brief Store DOF associated with Constant Saturations */    
-    TPZManVector<long> fConstantSaturations;
-   
-    /** @brief Store DOF associated with  Saturation gradients */    
-    TPZManVector<long> fGradientSaturations;    
-    
     
 public:
-    REAL Muo;
+    
     /// Constructor which already sets the cmesh
-    TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel);
+    TPZWellAnalysis();
     
     /// Destructor
-    ~TPZDarcyAnalysis();
+    ~TPZWellAnalysis();
     
     /**
      * Assemble the stiffness matrix and rhs
@@ -92,8 +67,6 @@ public:
      **/
     void AssembleLastStep(TPZAnalysis *an);
     
-    
-    
     /**
      * Assemble the Residuum
      */
@@ -103,11 +76,6 @@ public:
      * Computes the residuum. Used for checkconv
      */
     void Residual(TPZFMatrix<STATE> &residual, int icase);
-    
-    /**
-     * Sets next state and computes the tangent
-     */
-    void ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &coefs, int icase);
     
     /**
      * Run the simulation,
@@ -125,27 +93,6 @@ public:
      */
     void InitializeSolution(TPZAnalysis *an);
     
-    /**
-     * Set the simulation data,
-     */
-    void SetSimulationData(TPZAutoPointer<SimulationData> SimData){fSimulationData = SimData;}
-    
-    /**
-     * Get the simulation data,
-     */
-    TPZAutoPointer<SimulationData> GetSimulationData() {return fSimulationData;}
-    
-    
-    /**
-     * Set the fluid model,
-     */
-    void SetFluidData(TPZAutoPointer<ReducedPVT> PVTData){fFluidData = PVTData;}
-    
-    /**
-     * Get the fluid model,
-     */
-    TPZAutoPointer<ReducedPVT> GetFluidData() {return fFluidData;}
-    
     
     /**
      * Rotate the geometric mesh around Z axis
@@ -160,7 +107,7 @@ public:
     /**
      * Create geometric Mesh for one-dimensional displacement
      */
-    void GeometryLine(int nx, int ny);
+    void GeometryLine(int ns);
     
     /**
      * Uniform Refinement
@@ -268,31 +215,15 @@ public:
     static  void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
     
     /**
-     * Exact Soltuion for linear tracer
-     */
-    static  void LinearTracer(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Saturation, TPZFMatrix<STATE> &Grad);
-    
-    /**
-     * Exact Soltuion for bluckley and leverett
-     */
-    static void BluckleyAndLeverett(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Saturation, TPZFMatrix<STATE> &Grad);
-    
-    /**
      * Computes the saturation at shock using the Welge method
      */
-    static REAL SwatShock(REAL epsilon, REAL &ds);
+    static REAL SwatShock(REAL epsilon, REAL ds);
     
     /**
      * Extract a value from a given list
      */
     static int Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value);
     
-    
-    //static REAL Ssaturation( REAL S);
-    
-    static REAL SaturationNewton( REAL x,REAL t,REAL muo, REAL muw, REAL Area,REAL q);
-    static REAL dfdsw( REAL Sw, REAL muo,REAL muw);
-    static REAL df2dsw( REAL Sw, REAL muo,REAL muw);
     /**
      * Computes the inverse of the Global matrix
      */
@@ -301,17 +232,7 @@ public:
     /**
      * FilterEquations
      */
-    void FilterSaturationGradients(TPZManVector<long> &active, TPZManVector<long> &nonactive);
-    
-    /**
-     * Compute saturation reconstruction for Sw and So
-     */
-    void SaturationReconstruction(TPZAnalysis *an);
-    
-    /**
-     * Clean up reconstructed gradient saturation for Sw and So
-     */
-    void CleanUpGradients(TPZAnalysis *an);    
+    void FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive);
     
     /**
      * Update state variables

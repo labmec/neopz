@@ -20,6 +20,7 @@ class TRMPetrophysicsProperties{
      * @since June 09, 2015
      */
     
+public:
     
     TRMPetrophysicsProperties();
     

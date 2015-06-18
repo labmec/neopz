@@ -8,3 +8,19 @@
 
 #include "TRMRawData.h"
 
+
+TRMRawData::TRMRawData()
+{
+    fLw = 0.;
+    fHasLiner = true;
+    fHasCasing = true;
+    
+    fReservoirWidth = 0.;
+    fReservoirLength = 0.;
+    fReservoirHeight = 0.;
+    fProdVertPosition = 0.;
+}
+
+TRMRawData::~TRMRawData()
+{
+}
