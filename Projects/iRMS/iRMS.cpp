@@ -32,6 +32,8 @@ int main()
 
     // Running primal problem
     LinearTracerPrimal();
+    
+    // Running dual problem
     LinearTracerDual();
     
     
@@ -45,6 +47,7 @@ void LinearTracerPrimal()
     TRMSpaceOdissey SpaceGenerator;
     TRMOrchestra  * SymphonyX = new TRMOrchestra;
     SymphonyX->CreateAnalPrimal(SpaceGenerator);
+    std::cout << "Primal complete normally." << std::endl;
     
 }
 
@@ -54,6 +57,7 @@ void LinearTracerDual()
     TRMSpaceOdissey SpaceGenerator;
     TRMOrchestra  * SymphonyX = new TRMOrchestra;
     SymphonyX->CreateAnalDual(SpaceGenerator);
+    std::cout << "Dual complete normally." << std::endl;       
     
 }
 

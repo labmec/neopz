@@ -34,10 +34,10 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create a primal analysis using space odissey */
 void TRMOrchestra::CreateAnalPrimal(TRMSpaceOdissey spacegenerator){
     
-    TPZManVector<int,2> dx(2,10), dy(2,1), dz(2,1);
-    dx[0] = 100;
-    dy[0] = 100;
-    dz[0] = 100;
+    TPZManVector<int,2> dx(2,20), dy(2,5), dz(2,5);
+    dx[0] = 50.0;
+    dy[0] = 50.0;
+    dz[0] = 50.0;
     
     spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
 //    spacegenerator.CreateGeometricReservoirMesh();
@@ -59,9 +59,10 @@ void TRMOrchestra::CreateAnalPrimal(TRMSpaceOdissey spacegenerator){
     AnalPrimal->SetStructuralMatrix(skylnsym);
     AnalPrimal->SetSolver(step);;
     AnalPrimal->Run();
+    std::cout << "Primal dof: " << AnalPrimal->Rhs().Rows() << std::endl;
     
     const int dim = 3;
-    int div = 2;
+    int div = 1;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "PrimalDarcy.vtk";
     scalnames.Push("Pressure");
@@ -74,10 +75,10 @@ void TRMOrchestra::CreateAnalPrimal(TRMSpaceOdissey spacegenerator){
 /** @brief Create a dual analysis using space odissey */
 void TRMOrchestra::CreateAnalDual(TRMSpaceOdissey spacegenerator){
     
-    TPZManVector<int,2> dx(2,10), dy(2,1), dz(2,1);
-    dx[0] = 100;
-    dy[0] = 100;
-    dz[0] = 100;
+    TPZManVector<int,2> dx(2,20), dy(2,5), dz(2,5);
+    dx[0] = 50.0;
+    dy[0] = 50.0;
+    dz[0] = 50.0;
     
     spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
     spacegenerator.PrintGeometry();
@@ -100,9 +101,10 @@ void TRMOrchestra::CreateAnalDual(TRMSpaceOdissey spacegenerator){
     AnalDual->Assemble();
     AnalDual->Rhs() *= -1.0;
     AnalDual->Solve();
+    std::cout << "Dual dof: " << AnalDual->Rhs().Rows() << std::endl;
     
     const int dim = 3;
-    int div = 2;
+    int div = 1;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "DualDarcy.vtk";
     scalnames.Push("WeightedPressure");

@@ -330,7 +330,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
     CreateGridFrom1D.SetFrontBackMatId(_ReservoirNonFluxBoundary,_ReservoirNonFluxBoundary);
-//    CreateGridFrom1D.SetTriangleExtrusion();
+    CreateGridFrom1D.SetTriangleExtrusion();
     
     dt = dy[0];
     n = dy[1];
@@ -342,7 +342,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(_ReservoirNonFluxBoundary,_ReservoirNonFluxBoundary);
-//    CreateGridFrom2D.SetTriangleExtrusion();
+    CreateGridFrom2D.SetTriangleExtrusion();
     
     dt = dz[0];
     n = dz[1];
@@ -354,7 +354,7 @@ void TRMSpaceOdissey::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE
 {
     X[0] = par[0];
     X[1] = 0.0;
-    X[2] = 0.0;
+    X[2] = 25.0*sin(0.1*par[0]);
 }
 
 void TRMSpaceOdissey::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
