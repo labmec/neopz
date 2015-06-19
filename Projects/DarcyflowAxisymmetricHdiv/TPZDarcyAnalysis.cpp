@@ -174,22 +174,35 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     falphaAtnplusOne.Zero();
     an->LoadSolution(falphaAtn);
     
+    int nswil = fmeshvec[2]->Solution().Rows();
     int nsoil = fmeshvec[3]->Solution().Rows();
-    TPZFMatrix<REAL> SOil(nsoil,1,0.0);
+    TPZFMatrix<REAL> Swater(nswil,1,0.0);
+    TPZFMatrix<REAL> Soil(nsoil,1,0.0);
     
     
     // DOF Related with S constant
     for(int i = 0; i< fmeshvec[3]->NConnects(); i++)
     {
-        TPZConnect &con = fmeshvec[3]->ConnectVec()[i];
-        int seqnum = con.SequenceNumber();
-        int pos = fmeshvec[3]->Block().Position(seqnum);
-        int blocksize = fmeshvec[3]->Block().Size(seqnum);
-        int ieq = blocksize-1;
-        SOil(pos+ieq,0) = 1.0;
+        REAL so = ((double) rand() / (RAND_MAX));
+        
+        TPZConnect &conSw = fmeshvec[2]->ConnectVec()[i];
+        int seqnumSw = conSw.SequenceNumber();
+        int posSw = fmeshvec[2]->Block().Position(seqnumSw);
+        int blocksizeSw = fmeshvec[2]->Block().Size(seqnumSw);
+        int ieqSw = blocksizeSw-1;
+        
+        TPZConnect &conSo = fmeshvec[3]->ConnectVec()[i];
+        int seqnumSo = conSo.SequenceNumber();
+        int posSo = fmeshvec[3]->Block().Position(seqnumSo);
+        int blocksizeSo = fmeshvec[3]->Block().Size(seqnumSo);
+        int ieqSo = blocksizeSo-1;
+        
+        Swater(posSw+ieqSw,0) =  1.0-so;
+        Soil(posSo+ieqSo,0) =  so;
     }
-    
-    fmeshvec[3]->LoadSolution(SOil);
+
+    fmeshvec[2]->LoadSolution(Swater);
+    fmeshvec[3]->LoadSolution(Soil);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
     
     falphaAtn = fcmeshdarcy->Solution();
@@ -273,11 +286,7 @@ void TPZDarcyAnalysis::Run()
     
     
     // Analysis
-<<<<<<< HEAD
     bool mustOptimizeBandwidth = fSimulationData->GetOptband();
-=======
-    bool mustOptimizeBandwidth = false;
->>>>>>> origin/master
     TPZAnalysis *an = new TPZAnalysis(fcmeshdarcy,mustOptimizeBandwidth);
     int numofThreads = 0;
     
@@ -1588,7 +1597,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
         plotfile = "2DMixedDarcy.vtk";
     }
     
-//     scalnames.Push("WeightedPressure");
+    scalnames.Push("WeightedPressure");
     scalnames.Push("WaterSaturation");
     scalnames.Push("OilSaturation");
 //     scalnames.Push("WaterDensity");
@@ -1596,7 +1605,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
 //     scalnames.Push("Porosity");
 //     scalnames.Push("DivOfBulkVeclocity");
     scalnames.Push("ExactSaturation");
-//     vecnames.Push("BulkVelocity");
+    vecnames.Push("BulkVelocity");
     an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an->PostProcess(div);
 }

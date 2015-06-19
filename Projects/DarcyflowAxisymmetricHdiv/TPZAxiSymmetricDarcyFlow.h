@@ -28,6 +28,8 @@ class TPZAxiSymmetricDarcyFlow : public TPZDiscontinuousGalerkin {
     
 private:
     
+    REAL fepsilon;
+    
     TPZAutoPointer<SimulationData> fSimulationData;
     TPZAutoPointer<ReservoirData> fReservoirdata;
     TPZAutoPointer<PetroPhysicData> fPetrophysicdata;
