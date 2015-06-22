@@ -33,8 +33,8 @@ int main()
     // Running primal problem
     LinearTracerPrimal();
     
-    // Running dual problem
-    LinearTracerDual();
+//    // Running dual problem
+//    LinearTracerDual();
     
     
     std::cout << "Process complete normally." << std::endl;

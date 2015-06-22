@@ -19,6 +19,7 @@ TRMRawData::TRMRawData()
     fReservoirLength = 0.;
     fReservoirHeight = 0.;
     fProdVertPosition = 0.;
+    fWellDiam = 0.;
 }
 
 TRMRawData::~TRMRawData()

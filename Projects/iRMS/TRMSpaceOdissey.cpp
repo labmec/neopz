@@ -23,13 +23,14 @@
 static void CreateExampleRawData(TRMRawData &data)
 {
     data.fLw = 500.;
-    data.fHasLiner = true;
-    data.fHasCasing = true;
+    data.fHasLiner = false; //AQUINATHAN esta false para gerar uma malha sem os refinamentos do meio que geram hangnodes
+    data.fHasCasing = false; //AQUINATHAN esta false para gerar uma malha sem os refinamentos do meio que geram hangnodes
     
     data.fReservoirWidth = 500.;
     data.fReservoirLength = 1000.;
     data.fReservoirHeight = 50.;
     data.fProdVertPosition = 25;
+    data.fWellDiam = 0.2159;
 }
 
 
@@ -262,15 +263,15 @@ void TRMSpaceOdissey::CreateH1Cmesh()
     TPZMatLaplacian *material = new TPZMatLaplacian(_ReservMatId,3);
     fH1Cmesh->InsertMaterialObject(material);
 
-//    TPZFNMatrix<1> val1(1,1,0.),val2(1,1,20);
-//    TPZBndCond *inflow = new TPZBndCond(material,_ConfinementReservBCbottom,0,val1,val2);
-//    val2(0,0) = 10.;
-//    TPZBndCond *outflow = new TPZBndCond(material,_ConfinementReservBCtop,0,val1,val2);
-    
     TPZFNMatrix<1> val1(1,1,0.),val2(1,1,20);
-    TPZBndCond *inflow = new TPZBndCond(material,_ReservoirInletPressure,0,val1,val2);
+    TPZBndCond *inflow = new TPZBndCond(material,_ConfinementReservBCbottom,0,val1,val2);
     val2(0,0) = 10.;
-    TPZBndCond *outflow = new TPZBndCond(material,_ReservoirOutletPressure,0,val1,val2);
+    TPZBndCond *outflow = new TPZBndCond(material,_ConfinementReservBCtop,0,val1,val2);
+    
+//    TPZFNMatrix<1> val1(1,1,0.),val2(1,1,20);
+//    TPZBndCond *inflow = new TPZBndCond(material,_ReservoirInletPressure,0,val1,val2);
+//    val2(0,0) = 10.;
+//    TPZBndCond *outflow = new TPZBndCond(material,_ReservoirOutletPressure,0,val1,val2);
     
     fH1Cmesh->InsertMaterialObject(inflow);
     fH1Cmesh->InsertMaterialObject(outflow);
@@ -281,6 +282,11 @@ void TRMSpaceOdissey::CreateH1Cmesh()
     fH1Cmesh->ApproxSpace() = space;
     
     fH1Cmesh->AutoBuild();
+    
+#ifdef DEBUG
+    std::ofstream out("CmeshPressH1.txt");
+    fH1Cmesh->Print(out);
+#endif
     
 }
 

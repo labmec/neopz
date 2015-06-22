@@ -23,6 +23,7 @@ public:
     REAL fReservoirLength;
     REAL fReservoirHeight;
     REAL fProdVertPosition;
+    REAL fWellDiam;
     
     TRMRawData();
     ~TRMRawData();

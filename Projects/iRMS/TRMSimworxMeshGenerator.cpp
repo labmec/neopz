@@ -186,12 +186,13 @@ TPZAutoPointer<TPZGeoMesh> TRMSimworxMeshGenerator::ReallyGenerateGeoMesh(const 
     reservoirGMesh->Print(out);
     
     //Miolo GeoMesh
-    REAL welldiam = 0.2159;
+    REAL welldiam = rawdata.fWellDiam;
     REAL Lx = mioloData.m_Lx;
     REAL Ly = mioloData.m_Ly;
     REAL ZBottom = -mioloData.m_LzBottom;
     REAL ZTop = mioloData.m_LzTop;
     
+   
     TPBRWellBBox box(welldiam,Lx,Ly,ZBottom,ZTop);
     int numdiv = 3;
     
@@ -200,7 +201,17 @@ TPZAutoPointer<TPZGeoMesh> TRMSimworxMeshGenerator::ReallyGenerateGeoMesh(const 
     {
         box.SetCutPlane(mioloData.m_CutPlaneZ);
     }
+    
+    
     TPZAutoPointer<TPZGeoMesh> boxGMesh = box.GenerateMesh();
+    
+#ifdef DEBUG
+    {
+        std::ofstream outGMesh("../MalhaGeometricaCheckPoint1.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(boxGMesh.operator->(), outGMesh);
+        std::cout << "Arquivo MalhaGeometricaWellProducer.vtk concluido" << std::endl;
+    }
+#endif
     
     //Matching nodes between reserv and miolo GeoMeshes
     std::map<int,int> miolo_reserv_nodeIndices;
@@ -1335,7 +1346,7 @@ void TRMSimworxMeshGenerator::FillStructMiolo(const REAL mioloLx,
         DebugStop();
     }
     
-    const bool hasLiner = rawdata.fHasLiner;
+    bool hasLiner = rawdata.fHasLiner;
     if(hasLiner)
     {
         //Segundo documentacao TPBRDataKernel.h --> class TLiner.
@@ -1363,7 +1374,7 @@ void TRMSimworxMeshGenerator::FillStructMiolo(const REAL mioloLx,
         }
     }
     
-    const bool hasCasing = rawdata.fHasCasing;
+    bool hasCasing = rawdata.fHasCasing;
     if(hasCasing)
     {
         //Segundo documentacao TPBRDataKernel.h --> class TCaseData.
