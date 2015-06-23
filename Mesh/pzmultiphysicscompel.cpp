@@ -502,7 +502,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 		(ek.fConnect)[i] = ConnectIndex(i);
 		(ef.fConnect)[i] = ConnectIndex(i);
 	}
-	
+    ek.fOneRestraints = GetShapeRestraints();
+    ef.fOneRestraints = GetShapeRestraints();
 }//void
 
 template <class TGeometry>
@@ -554,7 +555,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     for(i=0; i<ncon; i++){
         (ef.fConnect)[i] = ConnectIndex(i);
     }
-    
+    ef.fOneRestraints = GetShapeRestraints();
 }//void
 
 template <class TGeometry>

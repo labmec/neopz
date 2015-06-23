@@ -7,6 +7,7 @@
 #define PZGEOELREFLESS_H_H
 
 #include "pzgeoelrefless.h"
+#include "tpzpyramid.h"
 
 #include <sstream>
 
@@ -488,7 +489,7 @@ void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<RE
 }
 
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions)
+void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace)
 {
     TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
     REAL detjac;
@@ -509,6 +510,10 @@ void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &direc
     }
     //    gradxt.Transpose(&gradx);
     TGeo::ComputeDirections(gradx, detjac, directions);
+    
+    if (TGeo::Type() == EPiramide) {
+        pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradx, detjac, directions);
+    }
     
 }
 

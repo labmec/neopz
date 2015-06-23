@@ -15,6 +15,7 @@ class TPZIntPoints;
 template <class TVar>
 class TPZBlockDiagonal;
 #include "TPZCompElDisc.h"
+#include "TPZOneShapeRestraint.h"
 
 /**
  * @brief Implements computational element based on an interpolation space. \ref CompElement "Computational Element"
@@ -357,6 +358,12 @@ private:
 	/** This method will be called for a side when a connected lower dimension side is changing order */
 	void RecomputeRestraints(int side);
 	
+    /// Add a shape restraint (meant to fit the pyramid to restraint
+    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
+    {
+        DebugStop();
+    }
+    
 	/**
 	 * @brief Accumulates the transfer coefficients between the current element and the
 	 * coarse element into the transfer matrix, using the transformation t
@@ -423,10 +430,10 @@ private:
 	
 public:
 	
-	/** @brief To enable to work with discontinuous element that can to have interface elements*/
+	/** @brief To enable to work with discontinuous element that can have interface elements*/
 	virtual void SetInterface(int /*side*/, long /*index*/) { }
 	virtual int Interface(int /*side*/) { return -1; }
-	virtual int CanToHaveInterface() { return 0; }
+	virtual int CanHaveInterface() { return 0; }
 	virtual void DeleteInterfaces() { }
 	/** @brief Returns total mass contained into the element */
 	REAL MeanSolution(int var);

@@ -7,6 +7,7 @@
 #define PZELCHDIVHTT
 
 #include "pzelctemp.h"
+#include "TPZOneShapeRestraint.h"
 
 
 /**
@@ -20,12 +21,19 @@
 template<class TSHAPE>
 class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
 	
+    /// vector which defines whether the normal is outward or not
     TPZManVector<int, TSHAPE::NFaces> fSideOrient;
     
-	/** @brief To append vectors */
+    /// Data structure which defines the restraints
+    std::list<TPZOneShapeRestraint> fRestraints;
+
+    /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 public:
 	
+
+public:
+    
 	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
 	
 	TPZCompElHDiv(TPZCompMesh &mesh, const TPZCompElHDiv<TSHAPE> &copy);
@@ -75,6 +83,9 @@ public:
 	
 	virtual void SetConnectIndex(int i, long connectindex);
 	
+    /// return the first one dof restraint
+    int RestrainedFace();
+    
     /**
      * @brief Number of shapefunctions of the connect associated
      * @param connect connect number
@@ -108,6 +119,17 @@ public:
 	
 	virtual long ConnectIndex(int con) const;
     
+    /// Add a shape restraint (meant to fit the pyramid to restraint
+    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
+    {
+        fRestraints.push_back(restraint);
+    }
+    
+    /// Return a list with the shape restraints
+    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const
+    {
+        return fRestraints;
+    }
     /**
      * @brief It returns the normal orientation of the reference element by the side.
      * Only side that has dimension larger than zero and smaller than me.
@@ -159,6 +181,16 @@ public:
     /// Return the maximum order??
     virtual int MaxOrder();
     
+    /// the orientation of the face
+    int SideOrient(int face)
+    {
+#ifdef DEBUG
+        if (face < 0 || face >= TSHAPE::NFaces) {
+            DebugStop();
+        }
+#endif
+        return fSideOrient[face];
+    }
 	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
@@ -235,8 +267,8 @@ public:
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-		/** @brief Refinement along the element */
-		virtual void PRefine(int order);
+    /** @brief Refinement along the element */
+    virtual void PRefine(int order);
 	
 };
 

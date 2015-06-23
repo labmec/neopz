@@ -13,6 +13,7 @@
 #include "pzfmatrix.h"
 #include "pzmanvector.h"
 #include "pzstack.h"
+#include "TPZOneShapeRestraint.h"
 
 
 /**
@@ -52,6 +53,9 @@ struct TPZElementMatrix {
 	TPZManVector<long> fDestinationIndex, fSourceIndex;
 	
 	int fNumStateVars;
+    
+    /// list of one degree of freedom restraints
+    std::list<TPZOneShapeRestraint> fOneRestraints;
 	
 	/// Reset the data structure
 	void Reset(TPZCompMesh *mesh = NULL, MType type=Unknown)
@@ -106,6 +110,12 @@ struct TPZElementMatrix {
 	
 	/** @brief Apply the constraints applied to the nodes by transforming the tangent matrix and right hand side */
 	void ApplyConstraints();
+    
+    /// Apply the constraint of the one shape restraints
+    void ApplyOneShapeConstraints(int constraintindex);
+    
+    /// Compute the dependency order of the connects, considering the one shape restraints
+    void BuildDependencyOrder(TPZVec<long> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
 	
 };
 

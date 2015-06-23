@@ -7,6 +7,7 @@
 #define PZELCHDIVBOUND_H_
 
 #include "pzelctemp.h"
+#include "TPZOneShapeRestraint.h"
 
 /** \addtogroup CompElement */
 /** @{ */
@@ -27,6 +28,9 @@ class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
     
     TPZCompElSide fneighbour;
+    
+    /// Restraint on a single shape function for pyramid implementation
+    TPZOneShapeRestraint fRestraint;
 public:
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, long &index);
@@ -134,6 +138,22 @@ public:
 	
 	/** @brief Returns a matrix index of the shape and vector  associate to element*/
 	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,long> > & IndexVecShape);
+    
+    /// Add a shape restraint (meant to fit the pyramid to restraint
+    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
+    {
+        fRestraint = restraint;
+    }
+
+    /// Return a list with the shape restraints
+    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const
+    {
+        std::list<TPZOneShapeRestraint> loc;
+        if (fRestraint.IsInitialized()) {
+            loc.push_back(fRestraint);
+        }
+        return loc;
+    }
 
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;

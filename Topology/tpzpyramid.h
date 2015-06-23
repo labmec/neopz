@@ -187,6 +187,9 @@ namespace pztopology {
         /// Compute the directions of the HDiv vectors
         static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
         
+        /// Adjust the directions associated with the tip of the pyramid, considering that one of the faces is constrained
+        static void AdjustTopDirections(int ConstrainedFace,TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
+        
 
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )

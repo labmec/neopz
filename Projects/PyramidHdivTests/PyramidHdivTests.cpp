@@ -33,6 +33,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzgengrid.h"
 #include "pzpoisson3d.h"
+#include "TPZCompMeshTools.h"
 
 
 #include <sys/time.h>
@@ -63,36 +64,11 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> meshvec);
 int main1(int argc, char *argv[]);
 int main2(int argc, char *argv[]);
 
-struct TTimer {
-    struct timeval fini, fend;
-    REAL fsec;
-    
-    TTimer(){
-        fsec = 0.;
-    }
-    
-    ~TTimer(){}
-    
-    void start(){
-        gettimeofday(&fini, NULL);
-    }
-    
-    void stop(){
-        gettimeofday(&fend, NULL);
-        fsec = fend.tv_sec - fini.tv_sec;
-        fsec += (fend.tv_usec - fini.tv_usec)/1000000.;
-    }
-    
-    REAL seconds(){
-        return fsec;
-    }
-    
-};
 
 
 int main(int argc, char *argv[])
 {
-    bool assembleTests = true;
+    bool assembleTests = false;
     if (assembleTests) {
         main1(argc, argv);
     }
@@ -114,7 +90,7 @@ int main2(int argc, char *argv[])
     std::string FileName = dirname;
     FileName = dirname + projectpath;
     FileName += "pyramlogfile.cfg";
-    InitializePZLOG();
+    InitializePZLOG(FileName);
 #endif
     
 #ifdef LOG4CXX
@@ -125,6 +101,7 @@ int main2(int argc, char *argv[])
     }
 #endif
 
+    HDivPiola = 1;
     TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
     
     int pPressure = 1;
@@ -133,12 +110,17 @@ int main2(int argc, char *argv[])
     TPZManVector<TPZCompMesh*,2> meshvec(2);
     meshvec[1] = CreateCmeshPressure(gmesh, pPressure);
     meshvec[0] = CreateCmeshFlux(gmesh, pFlux);
+    TPZCompMeshTools tool;
+    tool.AddHDivPyramidRestraints(meshvec[0]);
 
 #ifdef LOG4CXX
-    std::stringstream sout;
-    meshvec[0]->Print(sout);
-    meshvec[1]->Print(sout);
-    LOGPZ_DEBUG(logger, sout.str())
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        meshvec[0]->Print(sout);
+        meshvec[1]->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
 #endif
     
     TPZCompMesh *cmeshMult = CreateCmeshMulti(meshvec);
@@ -191,6 +173,7 @@ int main2(int argc, char *argv[])
 
 TPZGeoMesh * CreateGeoMesh1Pir()
 {
+    long nodeids[]={1,2,3,4,0,1,2,3};
     const int dim = 3;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     gmesh->SetDimension(dim);
@@ -208,7 +191,7 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     nodecoord[1] = -1.;
     nodecoord[2] = 0.;
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
-    gmesh->NodeVec()[ino].SetNodeId(ino);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
                     
     // noh 1
@@ -216,7 +199,7 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     nodecoord[1] = -1.;
     nodecoord[2] = 0.;
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
-    gmesh->NodeVec()[ino].SetNodeId(ino);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
     
     // noh 2
@@ -224,7 +207,7 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     nodecoord[1] = 1.;
     nodecoord[2] = 0.;
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
-    gmesh->NodeVec()[ino].SetNodeId(ino);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
     
     // noh 3
@@ -232,7 +215,7 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     nodecoord[1] = 1.;
     nodecoord[2] = 0.;
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
-    gmesh->NodeVec()[ino].SetNodeId(ino);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
     
     // noh 4
@@ -240,7 +223,7 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     nodecoord[1] = 0.;
     nodecoord[2] = 1.;
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
-    gmesh->NodeVec()[ino].SetNodeId(ino);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
     
     // Criando elemento
@@ -336,7 +319,7 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> meshvec)
     
     
     //Criando condicoes de contorno
-    TPZFMatrix<> val1(3,3,0.), val2(3,1,0.);
+    TPZFMatrix<> val1(3,3,0.), val2(3,1,1.);
     TPZBndCond * BCond0 = mat->CreateBC(mat, bc0,dirichlet, val1, val2);
     mphysics->InsertMaterialObject(BCond0);
     
@@ -372,13 +355,13 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> meshvec)
 int main1(int argc, char *argv[])
 {
     
-    TTimer tref;
-    tref.start();
+//    TTimer tref;
+//    tref.start();
     gRefDBase.InitializeUniformRefPattern(ETetraedro);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
     gRefDBase.InitializeUniformRefPattern(EPiramide);
-    tref.stop();
-    cout << "\ntempo de refpattern = " << tref.seconds() << endl;
+//    tref.stop();
+//    cout << "\ntempo de refpattern = " << tref.seconds() << endl;
     
     
     string projectpath = "/Projects/PyramidHdivTests/";
@@ -446,8 +429,8 @@ int main1(int argc, char *argv[])
     
     // Malha Geometrica
     cout << "\nCriando a gmesh... "; cout.flush();
-    TTimer timer;
-    timer.start();
+//    TTimer timer;
+//    timer.start();
     TPZGeoMesh *gmesh = NULL;
     if (dim == 3){
         gmesh = MalhaCubo(projectpath,nref);
@@ -464,13 +447,12 @@ int main1(int argc, char *argv[])
         std::ofstream out("GeometricMesh.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
     }
-    timer.stop();
-    cout << timer.seconds() << " s" << endl;
-    cout << "Num elements = " << gmesh->NElements() << endl;
+//    timer.stop();
+//    cout << timer.seconds() << " s" << endl;
 
     // Malha computacional
     cout << "\nCriando a cmesh... "; cout.flush();
-    timer.start();
+//    timer.start();
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
@@ -486,13 +468,14 @@ int main1(int argc, char *argv[])
     }
 
     cmesh->AutoBuild();
-    timer.stop();
-    cout << timer.seconds() << " s" << endl;
+//    timer.stop();
+//    cout << timer.seconds() << " s" << endl;
     std::cout << "Numero de equacoes = " << cmesh->NEquations() << std::endl;
+    cout << "Num elements = " << cmesh->NElements() << endl;
     
     // Analysis
     cout << "\nCriando o analysis... "; cout.flush();
-    timer.start();
+//    timer.start();
     TPZAnalysis an(cmesh);
     TPZStepSolver<STATE> step;
     step.SetDirect(ECholesky);
@@ -500,15 +483,20 @@ int main1(int argc, char *argv[])
     skyl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(skyl);
     an.SetSolver(step);
-    timer.stop();
-    cout << timer.seconds() << " s" << endl;
+//    timer.stop();
+//    cout << timer.seconds() << " s" << endl;
     
     // Resolvendo
     cout << "\nComecando o assemble... "; cout.flush();
-    timer.start();
+//    timer.start();
     an.Assemble();
-    timer.stop();
-    cout << timer.seconds() << " s" << endl;
+//    timer.stop();
+    cout << "\nRodando com:" << endl;
+    cout << "nref = " << nref << endl;
+    cout << "plevel = " << plevel << endl;
+    cout << "numthreads = " << numthreads << endl;
+    std::cout << "Numero de equacoes = " << cmesh->NEquations() << std::endl;
+//    cout << "Assemble executado em " <<  timer.seconds() << " s" << endl;
     
     
     std::string exePath(argv[0]);
@@ -527,7 +515,7 @@ int main1(int argc, char *argv[])
     out << "nref = " << nref << endl;
     out << "plevel = " << plevel << endl;
     out << "numthreads = " << numthreads << endl;
-    out << "T assemble = " << timer.seconds() << endl;
+//    out << "T assemble = " << timer.seconds() << endl;
     
     return 0;
     

@@ -10,6 +10,8 @@
 #define __PZ__TPZOneShapeRestraint__
 
 #include <stdio.h>
+#include "pzmanvector.h"
+#include "pzsave.h"
 
 #include <list>
 
@@ -19,10 +21,70 @@
 struct TPZOneShapeRestraint
 {
     /// Faces which are related. First item is the connect index, second item is the degree of freedom
-    std::pair<long,int> fFaces[4];
+    TPZManVector<std::pair<long,int>,4> fFaces;
     
     /// Orientation of each face
-    int fOrient[4];
+    TPZManVector<int,4> fOrient;
+    
+    TPZOneShapeRestraint() : fFaces(4), fOrient(4,-1)
+    {
+        for(int i=0; i<4; i++)
+        {
+            fFaces[i] = std::make_pair<long,int>(-1, -1);
+        }
+    }
+    TPZOneShapeRestraint(const TPZOneShapeRestraint &copy) : fFaces(copy.fFaces), fOrient(copy.fOrient)
+    {
+        
+    }
+    
+    TPZOneShapeRestraint &operator=(const TPZOneShapeRestraint &copy)
+    {
+        fFaces = copy.fFaces;
+        fOrient = copy.fOrient;
+        return *this;
+    }
+    
+    bool IsInitialized() const
+    {
+        return fFaces[0].first != -1;
+    }
+    
+    void Print(std::ostream &out) const
+    {
+        out << "TPZOneShapeRestraint ConnectIndex/Degree of freedom : ";
+        for(int i=0; i<4; i++) out << fFaces[i].first << "/" << fFaces[i].second << " ";
+        out << std::endl;
+        out << "Orientation of each face ";
+        for(int i=0; i<4; i++) out << fOrient[i] << " ";
+        out << std::endl;
+    }
+    void Write(TPZStream &buf) const
+    {
+        TPZManVector<long,4> seqnums(4);
+        TPZManVector<int,4> faces(4);
+        for (int i=0; i<4; i++)
+        {
+            seqnums[i] = fFaces[i].first;
+            faces[i] = fFaces[i].second;
+        }
+        buf.Write(&seqnums[0],4);
+        buf.Write(&faces[0],4);
+        buf.Write(&fOrient[0],4);
+    }
+    void Read(TPZStream &buf)
+    {
+        TPZManVector<long,4> seqnums(4);
+        TPZManVector<int,4> faces(4);
+        buf.Read(&seqnums[0],4);
+        buf.Read(&faces[0],4);
+        buf.Read(&fOrient[0],4);
+        for (int i=0; i<4; i++)
+        {
+            fFaces[i] = std::make_pair<long,int>(seqnums[i], faces[i]);
+        }
+    }
+    
     
 };
 

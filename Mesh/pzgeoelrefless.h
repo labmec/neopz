@@ -110,7 +110,7 @@ public:
     
     virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides);
     
-    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions);
+    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace = -1);
     
 	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector);
 	

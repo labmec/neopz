@@ -1320,35 +1320,36 @@ namespace pztopology {
             directions(i,7) = ( directions(i,3)+directions(i,0) )/2.;
             directions(i,8) = ( directions(i,4)+directions(i,5)+directions(i,6)+directions(i,7) )/4.;
             //face 1 front face
-            directions(i,9)  = -v2[i];
-            directions(i,10) = -v2[i];
+            static REAL scale = 1./(2);
+            directions(i,9)  = -v2[i]*scale;
+            directions(i,10) = -v2[i]*scale;
             // needs improvement
-            directions(i,11) = ar11[i];
+            directions(i,11) = -v2[i]*scale;
             directions(i,12) = ( directions(i,9) + directions(i,10) )/2.;
             directions(i,13) = ( directions(i,10)+ directions(i,11) )/2.;
             directions(i,14) = ( directions(i,9) + directions(i,11) )/2.;
             directions(i,15) = ( directions(i,12)+ directions(i,13) + directions(i,14))/3.;
             //face 2 
-            directions(i,16) = v1[i];
-            directions(i,17) = v1[i];
-            directions(i,18) = ar9[i];
+            directions(i,16) = v1[i]*scale;
+            directions(i,17) = v1[i]*scale;
+            directions(i,18) = v1[i]*scale;
             directions(i,19) = (directions(i,16) + directions(i,17))/2.;
             directions(i,20) = (directions(i,17) + directions(i,18))/2.;
             directions(i,21) = (directions(i,18) + directions(i,16))/2.;
             directions(i,22) = (directions(i,19) + directions(i,20) + directions(i,21))/3.;
             //directions(i,18) = -v1[i]; AQUINATHAN Acho que esta errado
             //face 3
-            directions(i,23) = v2[i];
-            directions(i,24) = v2[i];
-            directions(i,25) = ar10[i];
+            directions(i,23) = v2[i]*scale;
+            directions(i,24) = v2[i]*scale;
+            directions(i,25) = v2[i]*scale;
             directions(i,26) = (directions(i,23) + directions(i,24))/2.;
             directions(i,27) = (directions(i,24) + directions(i,25))/2.;
             directions(i,28) = (directions(i,25) + directions(i,23))/2.;
             directions(i,29) = (directions(i,26) + directions(i,27) + directions(i,28))/3.;
             //face 4
-            directions(i,30) = -v1[i];
-            directions(i,31) = -v1[i];
-            directions(i,32) = ar11[i];
+            directions(i,30) = -v1[i]*scale;
+            directions(i,31) = -v1[i]*scale;
+            directions(i,32) = -v1[i]*scale;
             directions(i,33) = ( directions(i,30) + directions(i,31) )/2.;
             directions(i,34) = ( directions(i,31) + directions(i,32) )/2.;
             directions(i,35) = ( directions(i,30) + directions(i,32) )/2.;
@@ -1388,6 +1389,78 @@ namespace pztopology {
 
     }
     
+    /// Adjust the directions associated with the tip of the pyramid, considering that one of the faces is constrained
+    void TPZPyramid::AdjustTopDirections(int ConstrainedFace,TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    {
+#ifdef DEBUG
+        if (directions.Cols() != 58 || ConstrainedFace < 1 || ConstrainedFace > 4) {
+            DebugStop();
+        }
+#endif
+        int vectors[] = {11,18,25,32};
+        REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
+        detgrad = fabs(detgrad);
+        
+        TPZManVector<REAL,3> v1(3),v2(3),v3(3),ar9(3),ar10(3),ar11(3),ar12(3);
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+            v3[i] = gradx(i,2);
+        }
+        
+        for (int i=0; i<3; i++) {
+            v1[i] /= detgrad;
+            v2[i] /= detgrad;
+            v3[i] /= detgrad;
+            ar9[i] = v3[i]-(-v1[i]-v2[i]);
+            ar10[i] = v3[i]-(v1[i]-v2[i]);
+            ar11[i] = v3[i]-(v1[i]+v2[i]);
+            ar12[i] = v3[i]-(v2[i]-v1[i]);
+        }
+
+        switch (ConstrainedFace) {
+            case 1:
+                for (int i=0; i<3; i++) {
+                    directions(i,vectors[0]) = 0.;
+                    directions(i,vectors[1]) = ar12[i]/4.;
+                    directions(i,vectors[2]) = v2[i]/2.;
+                    directions(i,vectors[3]) = ar11[i]/4.;
+                }
+                break;
+            case 2:
+
+                for (int i=0; i<3; i++) {
+                    directions(i,vectors[0]) = ar12[i]/4.;
+                    directions(i,vectors[1]) = 0.;
+                    directions(i,vectors[2]) = ar9[i]/4.;
+                    directions(i,vectors[3]) = -v1[i]/2.;
+                }
+                    
+                break;
+            case 3:
+                for (int i=0; i<3; i++) {
+                    directions(i,vectors[0]) = -v2[i]/2.;
+                    directions(i,vectors[1]) = ar9[i]/4.;
+                    directions(i,vectors[2]) = 0.;
+                    directions(i,vectors[3]) = ar10[i]/4.;
+                }
+                break;
+            case 4:
+                for (int i=0; i<3; i++) {
+                    directions(i,vectors[0]) = ar11[i]/4.;
+                    directions(i,vectors[1]) = v1[i]/2.;
+                    directions(i,vectors[2]) = ar10[i]/4.;
+                    directions(i,vectors[3]) = 0.;
+                }
+                break;
+                
+            default:
+                DebugStop();
+                break;
+        }
+    }
+    
+
     void TPZPyramid::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*3;

@@ -721,6 +721,9 @@ void TPZCompElHDivBound2<TSHAPE>::Print(std::ostream &out) const
 {
     out << __PRETTY_FUNCTION__ << std::endl;
     out << "Side orientation " << fSideOrient << std::endl;
+    if (fRestraint.IsInitialized()) {
+        fRestraint.Print(out);
+    }
     TPZIntelGen<TSHAPE>::Print(out);
     
     

@@ -268,7 +268,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         calcstiff.stop();
         assemble.start();
 
-        if(!el->HasDependency()) {
+        if(!ek.HasDependency()) {
             ek.ComputeDestinationIndices();
             fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
             //			TPZSFMatrix<STATE> test(stiffness);
@@ -380,7 +380,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
         
         assemble.start();
         
-        if(!el->HasDependency()) {
+        if(!ef.HasDependency()) {
             ef.ComputeDestinationIndices();
             fEquationFilter.Filter(ef.fSourceIndex, ef.fDestinationIndex);
             rhs.AddFel(ef.fMat, ef.fSourceIndex, ef.fDestinationIndex);

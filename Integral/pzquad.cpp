@@ -161,10 +161,17 @@ void TPZIntQuad::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 }
 
 void TPZIntQuad::SetOrder(TPZVec<int> &ord,int type) {
-	fOrdKsi = ord[0];
-	fOrdEta = ord[1];
-	fIntKsi = gIntRuleList.GetRule(fOrdKsi,type);
-	fIntEta = gIntRuleList.GetRule(fOrdEta,type);
+    int prevtype = fIntKsi->Type();
+    if (fOrdKsi != ord[0] || type != prevtype) {
+        fOrdKsi = ord[0];
+        fIntKsi = gIntRuleList.GetRule(fOrdKsi,type);
+
+    }
+    prevtype = fIntEta->Type();
+    if (fOrdEta != ord[1] || prevtype != type) {
+        fOrdEta = ord[1];
+        fIntEta = gIntRuleList.GetRule(fOrdEta,type);
+    }
 }
 
 void TPZIntQuad::GetOrder(TPZVec<int> &ord) const {
@@ -179,10 +186,13 @@ TPZIntTriang::TPZIntTriang(int OrdK) {
 }
 
 int TPZIntTriang::NPoints() const {
+#ifdef DEBUG
 	if (!fIntKsi){
 		PZError << "Null Pointer passed to method TPZIntTriang::NPoints()\n";
+        DebugStop();
 		return 0;
 	}
+#endif
 	return fIntKsi->NInt();
 }
 
@@ -199,6 +209,11 @@ void TPZIntTriang::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 }
 
 void TPZIntTriang::SetOrder(TPZVec<int> &ord,int type) {
+#ifdef DEBUG
+    if (type != 0) {
+        DebugStop();
+    }
+#endif
 	fOrdKsi = ord[0];
 	if(ord[1] > ord[0]) fOrdKsi = ord[1];
 	if(ord[0] < 0 || ord[0] > TPZIntRuleT::NRULESTRIANGLE_ORDER || ord[1] < 0 || ord[1] > TPZIntRuleT::NRULESTRIANGLE_ORDER) 

@@ -15,6 +15,9 @@ class TPZMultiphysicsInterfaceElement;
 
 class TPZMultiphysicsElement : public TPZCompEl {
 	
+    /// list of restraints applied to one shape function
+    std::list<TPZOneShapeRestraint> fRestraints;
+    
 public:
 	/** @brief Default constructor */
 	TPZMultiphysicsElement() : TPZCompEl()
@@ -95,6 +98,19 @@ public:
     }
 
     virtual void TransferMultiphysicsElementSolution();
+    
+    /// Add a shape restraint (meant to fit the pyramid to restraint
+    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
+    {
+        fRestraints.push_back(restraint);
+    }
+    
+    /// Return a list with the shape restraints
+    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const
+    {
+        return fRestraints;
+    }
+
 };
 
 #endif

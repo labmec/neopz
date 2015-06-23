@@ -14,6 +14,8 @@
 #include "TPZCompElDisc.h"
 #include "pzmaterialdata.h"
 #include "pzhdivpressure.h"
+#include "pzshapepiram.h"
+
 
 //#define OLDVERSION
 
@@ -74,6 +76,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
     {
         fSideOrient[side-firstside] = this->Reference()->NormalOrientation(side);
     }
+    
 }
 
 template<class TSHAPE>
@@ -1219,7 +1222,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     TPZIntelGen<TSHAPE>::Reference()->ComputeNormalsDG(qsi,data.fNormalVec, normalsidesDG);
 #else
 
-    TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec);
+    int restrainedface = this->RestrainedFace();
+    TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec,restrainedface);
     
     
     // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
@@ -1240,6 +1244,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         }
         cont += nvec;
     }
+    
     
     
     
@@ -1400,6 +1405,11 @@ void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
 	buf.Write(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Write(&this->fPreferredOrder,1);
     this->WriteObjects(buf,fSideOrient);
+    int sz = fRestraints.size();
+    buf.Write(&sz);
+    for (std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin(); it != fRestraints.end(); it++) {
+        it->Write(buf);
+    }
 	int classid = this->ClassId();
 	buf.Write ( &classid, 1 );
 }
@@ -1418,13 +1428,21 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
     fSideOrient = SideOrient;
 	buf.Read(this->fConnectIndexes.begin(),TSHAPE::NSides);
 	buf.Read(&this->fPreferredOrder,1);
+    this->ReadObjects(buf,fSideOrient);
+    int sz;
+    buf.Read(&sz);
+    for (int i=0; i<sz; i++) {
+        TPZOneShapeRestraint one;
+        one.Read(buf);
+        fRestraints.push_back(one);
+    }
 	int classid = -1;
 	buf.Read( &classid, 1 );
 	if ( classid != this->ClassId() )
 	{
 		std::stringstream sout;
 		sout << "ERROR - " << __PRETTY_FUNCTION__
-        << " trying to restore an object id " << this->ClassId() << " for an package of id = " << classid;
+        << " trying to restore an object id " << this->ClassId() << " and classid read = " << classid;
 		LOGPZ_ERROR ( logger, sout.str().c_str() );
 	}
 }
@@ -1486,6 +1504,14 @@ void TPZCompElHDiv<TSHAPE>::Print(std::ostream &out) const
 {
     out << __PRETTY_FUNCTION__ << std::endl;
     out << "Side orientation " << fSideOrient << std::endl;
+    if (fRestraints.size()) {
+        out << "One shape restraints associated with the element\n";
+        for (std::list<TPZOneShapeRestraint>::const_iterator it = fRestraints.begin(); it != fRestraints.end(); it++)
+        {
+            it->Print(out);
+        }
+    }
+    
     TPZIntelGen<TSHAPE>::Print(out);
 
     
@@ -1538,7 +1564,6 @@ using namespace pztopology;
 #include "tpzcube.h"
 #include "tpztetrahedron.h"
 #include "tpzprism.h"
-#include "tpzpyramid.h"
 
 #include "pzmeshid.h"
 
@@ -1557,6 +1582,35 @@ void TPZCompElHDiv<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int d
 	if(dimension == TSHAPE::Dimension && this->Material()->Id() > 0) {
 		new typename TSHAPE::GraphElType(this,&grafgrid);
 	}
+}
+
+/// return the first one dof restraint
+template<class TSHAPE>
+int TPZCompElHDiv<TSHAPE>::RestrainedFace()
+{
+    return -1;
+}
+
+template<>
+int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
+{
+    if (fRestraints.size() == 0) {
+        DebugStop();
+    }
+    std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin();
+    long connectindex = it->fFaces[0].first;
+    long cindex = -1;
+    int is;
+    for (is = 14; is<18; is++) {
+        cindex = ConnectIndex(is-13);
+        if (connectindex == cindex) {
+            break;
+        }
+    }
+    if (cindex == -1) {
+        DebugStop();
+    }
+    return is;
 }
 
 //template<>

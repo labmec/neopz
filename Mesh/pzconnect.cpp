@@ -226,10 +226,10 @@ void TPZConnect::SetDependenceOrder(long myindex, TPZCompMesh &mesh, int Current
 	while(in<cap && ConnectList[in] != myindex) in++;
 	if(in== cap) {
 		cout << "TPZConnect::SetDependenceOrder node not encountered in list\n";
+        DebugStop();
 		return;
 	}
-	DependenceOrder[in] = (DependenceOrder[in] < CurrentOrder) ?
-    CurrentOrder : DependenceOrder[in];
+	DependenceOrder[in] = (DependenceOrder[in] < CurrentOrder) ? CurrentOrder : DependenceOrder[in];
 	TPZDepend *dl = fDependList;
 	while(dl) {
 		int depindex = dl->fDepConnectIndex;

@@ -15,6 +15,7 @@
 #include "pzsave.h"
 #include "pzcreateapproxspace.h"
 #include "pzmaterialdata.h"
+#include "TPZOneShapeRestraint.h"
 
 
 template <class TVar>
@@ -392,6 +393,19 @@ public:
         // Nothing to be done here
     }
 	
+    /// Add a shape restraint (meant to fit the pyramid to restraint
+    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
+    {
+        DebugStop();
+    }
+
+    /// Return a list with the shape restraints
+    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const
+    {
+        std::list<TPZOneShapeRestraint> loc;
+        return loc;
+    }
+
 	/**
 	 * @brief Calculates the solution - sol - for the variable var
 	 * at point qsi, where qsi is expressed in terms of the

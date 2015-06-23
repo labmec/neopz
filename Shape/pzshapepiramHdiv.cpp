@@ -15,7 +15,8 @@ namespace pzshape {
         TPZShapePiram::Shape(pt, id, order, phi, dphi);
 
         
-        TPZFMatrix<REAL> phicp(phi), dphicp(dphi);
+        TPZFNMatrix<20,REAL> phicp(phi);
+        TPZFNMatrix<60,REAL> dphicp(dphi);
         for (int i = 4; i > 0; i--) {
             phicp(i) = phicp(i-1);
             for (int j=0; j<3; j++) {
@@ -25,7 +26,7 @@ namespace pzshape {
         
         // I decided to put the four new functions (without * (1-z)) in the begining of the vector
         const int stride = 4;
-        for (int i = 0 ; i < phicp.Rows() - 5; i++) {
+        for (int i = 0 ; i < phicp.Rows() - 4; i++) {
             phi(i+stride,0) = phicp(i+1,0);
             for (int j = 0; j < 3; j++) {
                 dphi(j,i+stride) = dphicp(j,i+1);

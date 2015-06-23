@@ -93,6 +93,8 @@ public:
  * @brief Handles the numerical integration for two-dimensional problems using triangular elements. \ref integral "Numerical Integration"
  */
 class TPZIntTriang : public TPZIntPoints{
+    
+protected:
 	int fOrdKsi;
 	TPZIntRuleT *fIntKsi;
 
@@ -163,11 +165,24 @@ public:
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
 
+    /// Set the order and the type of integration rule :
+    // type 0 : Gauss Legendre
+    // type 1 : Gauss Lobatto
+    // type 2 : Jacobi
+    // type 3 : Chebyshev
 	virtual void SetType(int type,int order) {
 		fIntKsi->SetType(type,order);
 		fIntEta->SetType(type,order);
 	}
+    
+    /// Set the order and the type of integration rule :
+    // type 0 : Gauss Legendre
+    // type 1 : Gauss Lobatto
+    // type 2 : Jacobi
+    // type 3 : Chebyshev
 	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
+    
+    /// Return the order of the integration rule
 	virtual void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetRealMaxOrder() const;  
 	
