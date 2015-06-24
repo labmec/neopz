@@ -16,6 +16,7 @@
 #include "tpzgeoblend.h"
 #include "tpzarc3d.h"
 #include "tpzellipse3d.h"
+#include "pzgeoelbc.h"
 
 const int arcEllip = -1;
 const int mioloMat  = 1;
@@ -39,6 +40,7 @@ StructMioloData::StructMioloData()
 TRMSimworxMeshGenerator::TRMSimworxMeshGenerator()
 {
     m_auxGMesh = NULL;
+    fRibs.clear();
 }
 
 TRMSimworxMeshGenerator::~TRMSimworxMeshGenerator()
@@ -1528,4 +1530,133 @@ TPZGeoEl * TRMSimworxMeshGenerator::CreateBCGeoBlendEl(TPZGeoEl *orig, int side,
     newel->Initialize();
     
     return newel;
+}
+
+/// adiciona elementos unidimensionais no poco tri dimensional
+void TRMSimworxMeshGenerator::AddRibElements(TPZGeoMesh *gmesh, int WellMatId1D, int WellMatFake1D)
+{
+#ifdef LOGANDO
+    std::ofstream check("../testribs.txt");
+#endif
+    int nel = gmesh->NElements();
+    TPZStack<TPZGeoEl *> createdwell1d;
+    // loop over the 3d well elements
+    for(int el=0; el<nel; el++)
+    {
+        TPZGeoEl *gel = gmesh->ElementVec()[el];
+        if(!gel) continue;
+        if(gel->MaterialId() != _WellMatId3D)
+        {
+            continue;
+        }
+        
+        // data structure to keep track of the 4 ribs and associated faces
+        TWellRibs newrib(el);
+        // data structure to keep track of faces that have been considered
+        std::set<int> facesides;
+        int nsides = gel->NSides();
+        int ribcount = 0;
+        for(int is=0; is<nsides; is++)
+        {
+            int dim = gel->SideDimension(is);
+            if(dim != 1)
+            {
+                continue;
+            }
+            TPZManVector<REAL,3> x1(3),x2(3),diff(3);
+            int nod1 = gel->SideNodeIndex(is,0);
+            int nod2 = gel->SideNodeIndex(is,1);
+            gmesh->NodeVec()[nod1].GetCoordinates(x1);
+            gmesh->NodeVec()[nod2].GetCoordinates(x2);
+            // look for the ribs along the y axis
+            // create elements along the ribs
+            // along the main rib the material id = WellMatId1d
+            // along the three other ribs it is WellMatFake1D
+            // Computational elements of this type will have their connects restrained
+            for(int i=0; i<3; i++) diff[i] = x2[i]-x1[i];
+            if(abs(diff[0]) < 1.e-3 && abs(diff[2]) < 1.e-3)
+            {
+#ifdef LOGANDO
+                check << "Element " << gel->Index() << " co1 " << x1 << " co2 " << x2 << std::endl;
+#endif
+                if(ribcount == 0)
+                {
+                    
+                    TPZGeoElBC gbc(gel,is,WellMatId1D);
+#ifdef LOGANDO
+                    gbc.CreatedElement()->Print(check);
+#endif
+                    createdwell1d.Push(gbc.CreatedElement());
+                    newrib.fRibElements[ribcount] = gbc.CreatedElement()->Index();
+                    TPZStack<TPZGeoElSide> faces;
+                    gel->AllHigherDimensionSides(is,2,faces);
+                    if(faces.NElements() != 2) DebugStop();
+                    // find a face that hasnt been found yet
+                    int correctface = -1;
+                    for(int i=0; i<2; i++)
+                    {
+                        if(facesides.find(faces[i].Side()) == facesides.end())
+                        {
+                            correctface = faces[i].Side();
+                            break;
+                        }
+                    }
+                    if(correctface == -1) DebugStop();
+                    facesides.insert(correctface);
+                    TPZGeoElSide gelside(gel,correctface);
+                    TPZGeoElSide neighbour = gelside.Neighbour();
+                    if(!neighbour.Element()) DebugStop();
+                    newrib.fReservoirSides[ribcount] = neighbour;
+                    ribcount++;
+                }
+                else
+                {
+                    TPZGeoElBC gbc(gel,is,WellMatFake1D);
+#ifdef LOGANDO
+                    gbc.CreatedElement()->Print(check);
+#endif
+                    newrib.fRibElements[ribcount] = gbc.CreatedElement()->Index();
+                    TPZStack<TPZGeoElSide> faces;
+                    gel->AllHigherDimensionSides(is,2,faces);
+                    if(faces.NElements() != 2) DebugStop();
+                    // find a face that hasnt been found yet
+                    int correctface = -1;
+                    for(int i=0; i<2; i++)
+                    {
+                        if(facesides.find(faces[i].Side()) == facesides.end())
+                        {
+                            correctface = faces[i].Side();
+                            break;
+                        }
+                    }
+                    if(correctface == -1) DebugStop();
+                    facesides.insert(correctface);
+                    TPZGeoElSide gelside(gel,correctface);
+                    TPZGeoElSide neighbour = gelside.Neighbour();
+                    if(!neighbour.Element()) DebugStop();
+                    newrib.fReservoirSides[ribcount] = neighbour;
+                    ribcount++;
+                }
+            }
+        }
+        fRibs.Push(newrib);
+    }
+    int nwell1d = createdwell1d.NElements();
+    int firstwell = fRibs[0].fRibElements[0];
+    TPZGeoEl *firstgel = gmesh->ElementVec()[firstwell];
+    TPZGeoElSide heelside(firstgel, 0);
+    int lastwell = fRibs[nwell1d-1].fRibElements[0];
+    TPZGeoEl *lastgel = gmesh->ElementVec()[lastwell];
+    TPZGeoElSide toeside(lastgel, 1);
+    TPZGeoElBC heelbc(heelside,_WellHeelMatId);
+    TPZGeoElBC toebc(toeside,_WellToeMatId);
+    
+#ifdef LOGANDO
+    int nr = fRibs.NElements();
+    check << "Output for " << nr << " detected well elements\n";
+    for(int ir=0; ir<nr; ir++)
+    {
+        fRibs[ir].Print(check);
+    }
+#endif
 }
