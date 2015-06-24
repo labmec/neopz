@@ -14,7 +14,7 @@
 #include "pzfmatrix.h"
 
 class TRMRawData;
-class TPZGeoElSide;
+class TPZGeoElSide; //a
 
 /**
  * @brief Struct to store data from the miolo of the mesh
