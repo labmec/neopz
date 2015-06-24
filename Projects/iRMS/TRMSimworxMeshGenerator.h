@@ -12,9 +12,11 @@
 #include <stdio.h>
 #include "pzgmesh.h"
 #include "pzfmatrix.h"
+#include "pzgeoelside.h"
+#include "TPZInterfaceEl.h"
 
 class TRMRawData;
-class TPZGeoElSide; //a
+class TPZGeoElSide;
 
 /**
  * @brief Struct to store data from the miolo of the mesh
@@ -49,15 +51,70 @@ public:
 };
 
 /**
+ * @brief Stores and groups the elements along the sides of the well elements
+ * @author Geo-Adapta
+ */
+struct TWellRibs
+{
+    /// Elemento do poco 3D
+    int fWellEl3D;
+    /// Elementos nas arrestas
+    TPZManVector<int,4> fRibElements;
+    
+    /// Elemento unidimensional de liner
+    int fLinerRibElement;
+    
+    /// Lados dos elementos de reservatorio
+    TPZManVector<TPZGeoElSideIndex,4> fReservoirSides;
+    
+    /// Elementos de interface associados
+    TPZManVector<TPZInterfaceElement *,4> fInterfaces;
+    
+    TWellRibs(int elindex = -1) : fWellEl3D(elindex), fRibElements(4,-1), fLinerRibElement(-1), fReservoirSides(4), fInterfaces(4,0)
+    {
+    }
+    TWellRibs(const TWellRibs &cp) : fWellEl3D(cp.fWellEl3D), fRibElements(cp.fRibElements), fLinerRibElement(cp.fLinerRibElement),
+    fReservoirSides(cp.fReservoirSides), fInterfaces(cp.fInterfaces)
+    {
+    }
+    TWellRibs &operator=(const TWellRibs &cp)
+    {
+        fWellEl3D = cp.fWellEl3D;
+        fRibElements = cp.fRibElements;
+        fLinerRibElement = cp.fLinerRibElement;
+        fReservoirSides = cp.fReservoirSides;
+        fInterfaces = cp.fInterfaces;
+        return *this;
+    }
+    
+    void Print(std::ostream &out) const
+    {
+        out << "3D Element index " << fWellEl3D << std::endl;
+        out << "Ribs Element Indices\n";
+        for(int i=0; i<4;i++) out << fRibElements[i] << " ";
+        out << "Liner Rib Element " << fLinerRibElement << std::endl;
+        out << "\nReservoir Element/sides\n";
+        //for(int i=0; i<4; i++) fReservoirSides[i].Print(out);
+        out << "Interface element indexes ";
+        for(int i=0; i<4; i++) if(fInterfaces[i]) out << fInterfaces[i]->Index() << " ";
+        out << std::endl;
+    }
+};
+
+
+/**
  * @brief Class that manages the generation of the simworx mesh
  * @author Geo-Adapta (Philippe Devloo more precisely)
  */
 class TRMSimworxMeshGenerator
 {
 private:
-
+    
     /// Auxilary geomesh
     TPZGeoMesh *m_auxGMesh = NULL;
+    
+    /// Ribs of the mesh
+    TPZStack<TWellRibs> fRibs;
     
 public:
     
@@ -135,6 +192,8 @@ public:
     void Pair_Miolo_Reserv_Nodes(TPZGeoMesh * reservGMesh, const std::set<int> & reservNodeIndices,
                                  TPZAutoPointer<TPZGeoMesh> mioloGMesh,
                                  std::map<int,int> & miolo_reserv_nodeIndices);
+    
+    void AddRibElements(TPZGeoMesh *gmesh, int WellMatId1D, int WellMatFake1D);
     
 };
 
