@@ -17,7 +17,7 @@ class TPZCompMeshTools
 {
 public:
     
-    void AddHDivPyramidRestraints(TPZCompMesh *cmesh);
+    static void AddHDivPyramidRestraints(TPZCompMesh *cmesh);
     
 };
 

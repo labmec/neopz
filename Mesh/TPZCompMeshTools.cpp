@@ -49,20 +49,21 @@ void TPZCompMeshTools::AddHDivPyramidRestraints(TPZCompMesh *cmesh)
             }
             // see if there is a pyramid element  neighbour of the pyramid
             gelside.EqualLevelCompElementList(celstack, 1, 0);
-            int el;
-            for (el=0; el<celstack.size(); el++) {
-                if (celstack[el].Reference().Element()->Type() == EPiramide) break;
+            int localel;
+            for (localel=0; localel<celstack.size(); localel++) {
+                if (celstack[localel].Reference().Element()->Type() == EPiramide) break;
             }
             TPZCompElHDiv<pzshape::TPZShapePiram> *pir;
             /// the pyramid has a neighbour of pyramid type
-            if (el < celstack.size()) {
+            if (localel < celstack.size()) {
                 // find out if the face is the restrained face
-                pir = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapePiram> *>(celstack[el].Element());
+                pir = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapePiram> *>(celstack[localel].Element());
                 if (pir == NULL) {
                     DebugStop();
                 }
-                int restrainedface = pir->RestrainedFace();
-                if (restrainedface == celstack[el].Side()) {
+                const int restrainedface = pir->RestrainedFace();
+                const int neighbourside = celstack[localel].Side();
+                if (restrainedface == neighbourside) {
                     continue;
                 }
             }

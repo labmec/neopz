@@ -1595,7 +1595,8 @@ template<>
 int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
 {
     if (fRestraints.size() == 0) {
-        DebugStop();
+        //return -1;
+        DebugStop(); //AQUIPHIL
     }
     std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin();
     long connectindex = it->fFaces[0].first;

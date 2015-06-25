@@ -12,6 +12,12 @@ namespace pzshape {
 	
     void TPZShapePiramHdiv::Shape(TPZVec<REAL> &pt, TPZVec<long> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 
+        REAL temp = 0.;
+        if (IsZero(pt[2] - 1.)){
+            temp = pt[2];
+            pt[2] -= 1.e-8;
+        }
+        
         TPZShapePiram::Shape(pt, id, order, phi, dphi);
 
         
@@ -39,6 +45,9 @@ namespace pzshape {
                 dphi(j,i) = dphi(j,i+stride)/(1.-pt[2]);
             }
             dphi(2,i) += phi(i,0)/(1-pt[2])/(1.-pt[2]);
+        }
+        if (!IsZero(temp)){
+            pt[2] = temp;
         }
     }
 	

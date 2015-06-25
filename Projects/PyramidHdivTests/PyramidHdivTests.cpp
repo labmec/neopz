@@ -34,6 +34,8 @@
 #include "pzgengrid.h"
 #include "pzpoisson3d.h"
 #include "TPZCompMeshTools.h"
+#include "TPZSkylineNSymStructMatrix.h"
+#include "pzfstrmatrix.h"
 
 
 #include <sys/time.h>
@@ -58,9 +60,16 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
 void InsertElasticityCubo(TPZCompMesh *mesh);
 void InsertBidimensionalPoisson(TPZCompMesh *cmesh, int &dim);
 TPZGeoMesh * CreateGeoMesh1Pir();
+TPZGeoMesh * CreateGeoMeshHexaOfPir();
 TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p);
 TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int &p);
 TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> meshvec);
+void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
+
+    f[0] = pt[0];
+    return;
+}
+
 int main1(int argc, char *argv[]);
 int main2(int argc, char *argv[]);
 
@@ -102,7 +111,8 @@ int main2(int argc, char *argv[])
 #endif
 
     HDivPiola = 1;
-    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
+    //TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
+    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
     
     int pPressure = 1;
     int pFlux = 1;
@@ -110,9 +120,8 @@ int main2(int argc, char *argv[])
     TPZManVector<TPZCompMesh*,2> meshvec(2);
     meshvec[1] = CreateCmeshPressure(gmesh, pPressure);
     meshvec[0] = CreateCmeshFlux(gmesh, pFlux);
-    TPZCompMeshTools tool;
-    tool.AddHDivPyramidRestraints(meshvec[0]);
-
+    TPZCompMeshTools::AddHDivPyramidRestraints(meshvec[0]);
+    
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -125,48 +134,27 @@ int main2(int argc, char *argv[])
     
     TPZCompMesh *cmeshMult = CreateCmeshMulti(meshvec);
     
-    TPZAnalysis an(cmeshMult);
+    TPZAnalysis an(cmeshMult,false);
     TPZStepSolver<STATE> step;
-    step.SetDirect(ECholesky);
+    step.SetDirect(ELDLt);
     TPZSkylineStructMatrix skyl(cmeshMult);
+    //TPZFStructMatrix skyl(cmeshMult);
     an.SetStructuralMatrix(skyl);
     an.SetSolver(step);
     
     an.Assemble();
+    an.Solve();
+    an.Solution().Print("sol");
     
+    int dim = 3;
+    TPZStack<std::string> scalnames, vecnames;
+    scalnames.Push("Pressure");
+    vecnames.Push("Flux");
+    std::string plotfile = "Pyramid_Solution.vtk";
+    an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     
-    return 0;
-    
-    // TESTANDO OS SHAPES DO PZ COM OS DO MATHEMATICA
-    TPZManVector<REAL,3> pt(3,0.);
-    pt[0] = 0.25;
-    pt[1] = -0.3;
-    pt[2] = 0.4;
-    
-    // p1
-    const int nshapep1 = 5;
-    TPZFMatrix<> phi(nshapep1,1), dphi(3,nshapep1);
-    TPZManVector<long,5> ids(5,0);
-    TPZManVector<int,50> order(14,1);
-    pzshape::TPZShapePiram::CornerShape(pt, phi, dphi);
-    phi.Print("phi");
-    dphi.Print("dphi");
-    
-    // p2
-    const int nshapep2 = 13;
-    phi.Resize(nshapep2, 1);
-    dphi.Resize(3, 13);
-    const int ncorner = TPZShapePiram::NCornerNodes;
-    const int nsides = TPZShapePiram::NSides;
-    for (int iside = ncorner ; iside < nsides - 6 ; iside++) {
-        order[iside - ncorner] = 2;
-    }
-    TPZShapePiram::Shape(pt, ids, order, phi, dphi);
-    phi.Print("phi2");
-    dphi.Print("dphi2");
-    
-    // hdiv
-    TPZShapePiramHdiv::Shape(pt, ids, order, phi, dphi);
+    int postprocessresolution = 0;
+    an.PostProcess(postprocessresolution);
     
     return 0;
 }
@@ -250,6 +238,119 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     
 }
 
+TPZGeoMesh * CreateGeoMeshHexaOfPir()
+{
+    const int dim = 3;
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    gmesh->SetDimension(dim);
+    
+    // Setando os nohs
+    int nnodes = 9;
+    gmesh->NodeVec().Resize(nnodes);
+    int ino = 0;
+    const int matid = 1;
+    long index = 0;
+    
+    // noh 0
+    TPZManVector<REAL, 3> nodecoord(3,0.);
+    nodecoord[0] = -1.;
+    nodecoord[1] = -1.;
+    nodecoord[2] = -1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 1
+    nodecoord[0] = 1.;
+    nodecoord[1] = -1.;
+    nodecoord[2] = -1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 2
+    nodecoord[0] = 1.;
+    nodecoord[1] = 1.;
+    nodecoord[2] = -1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 3
+    nodecoord[0] = -1.;
+    nodecoord[1] = 1.;
+    nodecoord[2] = -1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 4
+    nodecoord[0] = -1.;
+    nodecoord[1] = -1.;
+    nodecoord[2] = 1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+
+    // noh 5
+    nodecoord[0] = 1.;
+    nodecoord[1] = -1.;
+    nodecoord[2] = 1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 6
+    nodecoord[0] = 1.;
+    nodecoord[1] = 1.;
+    nodecoord[2] = 1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 7
+    nodecoord[0] = -1.;
+    nodecoord[1] = 1.;
+    nodecoord[2] = 1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 8
+    nodecoord[0] = 0.;
+    nodecoord[1] = 0.;
+    nodecoord[2] = 0.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    
+    // Criando elemento
+    TPZManVector<long,5> topolPyr(5);
+    int myels[6][5] = {{0,1,5,4,8},{1,2,6,5,8},{2,3,7,6,8},{0,3,7,4,8},{0,1,2,3,8},{4,5,6,7,8}};
+    //int myels[6][5] = {{0,1,5,4,8},{6,5,1,2,8},{2,3,7,6,8},{7,4,0,3,8},{0,1,2,3,8},{4,5,6,7,8}}; //Sequencia trocada soh para funcionar o AddHDivPyramidRestraints
+    for (int iel = 0; iel < 6; iel++) {
+        for (int i = 0; i < 5; i++) {
+            topolPyr[i] = myels[iel][i];
+        }
+        gmesh->CreateGeoElement(EPiramide, topolPyr, matid, index);
+    }
+    
+    const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
+    
+    const long nel = gmesh->NElements();
+    for (long iel = 0; iel < nel; iel++) {
+        gmesh->Element(iel)->CreateBCGeoEl(13, bc0);
+    }
+
+    gmesh->BuildConnectivity();
+    
+    std::ofstream out("HexaPyrGmesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+    
+    return gmesh;
+}
+
 TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p)
 {
     const int matid = 1;
@@ -321,6 +422,9 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> meshvec)
     //Criando condicoes de contorno
     TPZFMatrix<> val1(3,3,0.), val2(3,1,1.);
     TPZBndCond * BCond0 = mat->CreateBC(mat, bc0,dirichlet, val1, val2);
+//    TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(Forcing);
+//    BCond0->SetForcingFunction(0,force);
+    
     mphysics->InsertMaterialObject(BCond0);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
