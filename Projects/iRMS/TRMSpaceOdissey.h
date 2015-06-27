@@ -18,6 +18,7 @@
 #include "pzcmesh.h"
 
 #include "pzbuildmultiphysicsmesh.h"
+#include "pzcondensedcompel.h"
 
 #include "TPZVTKGeoMesh.h"
 

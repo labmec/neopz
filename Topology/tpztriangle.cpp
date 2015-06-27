@@ -915,7 +915,11 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             v2[i] = gradx(i,1);
             vdiag[i] = (gradx(i,0)-gradx(i,1));
        }
-
+        
+        REAL Nv1 = TPZNumeric::Norma(v1);
+        REAL Nv2 = TPZNumeric::Norma(v2);
+        REAL Nvdiag = TPZNumeric::Norma(vdiag);
+        
         
         /**
          * @file
@@ -924,9 +928,6 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
          */
         TPZManVector<REAL,3> NormalScales(3,1.);
         
-        REAL Nv1 = TPZNumeric::Norma(v1);
-        REAL Nv2 = TPZNumeric::Norma(v2);
-        REAL Nvdiag = TPZNumeric::Norma(vdiag);
         if (HDivPiola)
         {
             NormalScales[0] = 2./Nv1;

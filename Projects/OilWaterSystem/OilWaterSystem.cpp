@@ -217,14 +217,14 @@ int main()
     TPZVec<STATE> soliniQ(num,0.0);
     TPZCompMesh  * cmeshQL2 = L2ProjectionQ(gmesh, POrderBulkFlux, soliniQ);
     
-    TPZAnalysis anQL2(cmeshQL2);
+//    TPZAnalysis anQL2(cmeshQL2);
 //    SolveSyst(anQL2, cmeshQL2);
 //    Anbulkflux.LoadSolution(InitialQSolution);  
     PosProcessBulkflux(Anbulkflux,plotfilebuklflux);
     
     
     
-    TPZAnalysis AnPressure(CMeshPseudopressure);
+    TPZAnalysis AnPressure(CMeshPseudopressure,false);
     
     std::string outputfile2;
     outputfile2 = "SolutionPressure";
@@ -240,14 +240,14 @@ int main()
     TPZVec<STATE> solini(InitialPSolution.Rows(),0.0);
     TPZCompMesh  * cmeshL2 = L2ProjectionP(gmesh, POrderPseudopressure, solini);
     
-    TPZAnalysis anL2(cmeshL2);
+    TPZAnalysis anL2(cmeshL2,false);
     SolveSyst(anL2, cmeshL2);
     
     AnPressure.LoadSolution(anL2.Solution());
     PosProcessL2(AnPressure,plotfilePressure);  
     
     
-    TPZAnalysis AnSaturation(CMeshWaterSaturation);
+    TPZAnalysis AnSaturation(CMeshWaterSaturation,false);
     std::string outputfile3;
     outputfile3 = "SolutionSaturation";
     std::stringstream outputfiletemp3;
@@ -262,7 +262,7 @@ int main()
     TPZVec<STATE> solSini(InitialSSolution.Rows(),0.0);
     TPZCompMesh  * cmeshsatL2 = L2ProjectionS(gmesh, POrderWaterSaturation, solSini);
     
-    TPZAnalysis ansatL2(cmeshsatL2);
+    TPZAnalysis ansatL2(cmeshsatL2,false);
     SolveSyst(ansatL2, cmeshsatL2);
     
     AnSaturation.LoadSolution(ansatL2.Solution());
@@ -323,8 +323,8 @@ int main()
     REAL day = 24.0*hour;
     REAL year = 365.0*day;
     
-    REAL deltaT = 0.005;
-    REAL maxTime = 1.0;
+    REAL deltaT = 0.5;
+    REAL maxTime = 10.0;
     SolveSystemTransient(deltaT, maxTime, MultiphysicsAn, MultiphysicsAnTan, meshvec, MultiphysicsMesh);
     return 0;
     
@@ -538,23 +538,23 @@ TPZCompMesh *ComputationalMeshPseudopressure(TPZGeoMesh *gmesh, int pOrder)
         newnod.SetLagrangeMultiplier(1);
     }
     
-    ///set order total da shape
-    int nel = cmesh->NElements();
-    for(int i=0; i<nel; i++){
-        TPZCompEl *cel = cmesh->ElementVec()[i];
-        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
-        celdisc->SetConstC(1.);
-        celdisc->SetCenterPoint(0, 0.);
-        celdisc->SetCenterPoint(1, 0.);
-        celdisc->SetCenterPoint(2, 0.);
-        celdisc->SetTrueUseQsiEta();
-        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
-        {
-            if(ftriang==true || celdisc->Reference()->Type()==ETriangle) celdisc->SetTotalOrderShape();
-            else celdisc->SetTensorialShape();
-        }
-    }
-    //      
+//    ///set order total da shape
+//    int nel = cmesh->NElements();
+//    for(int i=0; i<nel; i++){
+//        TPZCompEl *cel = cmesh->ElementVec()[i];
+//        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+//        celdisc->SetConstC(1.);
+//        celdisc->SetCenterPoint(0, 0.);
+//        celdisc->SetCenterPoint(1, 0.);
+//        celdisc->SetCenterPoint(2, 0.);
+//        celdisc->SetTrueUseQsiEta();
+//        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+//        {
+//            if(ftriang==true || celdisc->Reference()->Type()==ETriangle) celdisc->SetTotalOrderShape();
+//            else celdisc->SetTensorialShape();
+//        }
+//    }
+    //
     //      
     //#ifdef DEBUG
     //      int ncel = cmesh->NElements();

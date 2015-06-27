@@ -29,12 +29,11 @@ int main()
     HDivPiola = 0;
     
 
-
     // Running primal problem
-    LinearTracerPrimal();
+    // LinearTracerPrimal();
     
 //    // Running dual problem
-//    LinearTracerDual();
+    LinearTracerDual();
     
     
     std::cout << "Process complete normally." << std::endl;
@@ -46,7 +45,7 @@ void LinearTracerPrimal()
 
     TRMSpaceOdissey SpaceGenerator;
     TRMOrchestra  * SymphonyX = new TRMOrchestra;
-    SymphonyX->CreateAnalPrimal(SpaceGenerator);
+    SymphonyX->CreateAnalysisPrimal(SpaceGenerator);
     std::cout << "Primal complete normally." << std::endl;
     
 }
@@ -56,7 +55,7 @@ void LinearTracerDual()
     
     TRMSpaceOdissey SpaceGenerator;
     TRMOrchestra  * SymphonyX = new TRMOrchestra;
-    SymphonyX->CreateAnalDual(SpaceGenerator);
+    SymphonyX->CreateAnalysisDual(SpaceGenerator);
     std::cout << "Dual complete normally." << std::endl;       
     
 }

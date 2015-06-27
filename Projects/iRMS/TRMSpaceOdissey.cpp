@@ -68,27 +68,27 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     fFluxCmesh->InsertMaterialObject(mat);
     
     // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, _ReservoirInletPressure, typeFlux, val1, val2);
+    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2);
     fFluxCmesh->InsertMaterialObject(bcN);
     
     // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, _ReservoirOutletPressure, typePressure, val1, val2);
+    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2);
     fFluxCmesh->InsertMaterialObject(bcS);
     
     // Bc E
-    TPZBndCond * bcE = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     fFluxCmesh->InsertMaterialObject(bcE);
     
     // Bc W
-    TPZBndCond * bcW = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     fFluxCmesh->InsertMaterialObject(bcW);
     
     // Bc B
-    TPZBndCond * bcB = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     fFluxCmesh->InsertMaterialObject(bcB);
     
     // Bc T
-    TPZBndCond * bcT = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     fFluxCmesh->InsertMaterialObject(bcT);
     
     // Setando Hdiv
@@ -126,27 +126,27 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     fPressureCmesh->InsertMaterialObject(mat);
     
     // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, _ReservoirInletPressure, typeFlux, val1, val2);
+    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2);
     fPressureCmesh->InsertMaterialObject(bcN);
     
     // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, _ReservoirOutletPressure, typePressure, val1, val2);
+    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2);
     fPressureCmesh->InsertMaterialObject(bcS);
     
     // Bc E
-    TPZBndCond * bcE = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     fPressureCmesh->InsertMaterialObject(bcE);
     
     // Bc W
-    TPZBndCond * bcW = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     fPressureCmesh->InsertMaterialObject(bcW);
     
     // Bc B
-    TPZBndCond * bcB = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     fPressureCmesh->InsertMaterialObject(bcB);
     
     // Bc T
-    TPZBndCond * bcT = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     fPressureCmesh->InsertMaterialObject(bcT);
     
     // Setando L2
@@ -182,7 +182,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         std::cout<< "Geometric mesh doesn't exist" << std::endl;
         DebugStop();
     }
-    
+    bool StaticCondensation = false;
     int dim = 3;
     
     const int typeFlux = 1, typePressure = 0;
@@ -198,27 +198,27 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     // Bc N
     val2(0,0) = 20.0;
-    TPZBndCond * bcN = mat->CreateBC(mat, _ReservoirInletPressure, typePressure, val1, val2);
+    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2);
     
     // Bc S
     val2(0,0) = 10.0;
-    TPZBndCond * bcS = mat->CreateBC(mat, _ReservoirOutletPressure, typePressure, val1, val2);
+    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2);
     
     // Bc E
     val2(0,0) = 0.0;
-    TPZBndCond * bcE = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     
     // Bc W
     val2(0,0) = 0.0;
-    TPZBndCond * bcW = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     
     // Bc B
     val2(0,0) = 0.0;
-    TPZBndCond * bcB = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     
     // Bc T
     val2(0,0) = 0.0;
-    TPZBndCond * bcT = mat->CreateBC(mat, _ReservoirNonFluxBoundary, typeFlux, val1, val2);
+    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     
     
     fMixedFluxPressureCmesh->InsertMaterialObject(bcN);
@@ -245,8 +245,48 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmesh.operator->());
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmesh.operator->());
     
+    if (StaticCondensation) {
+        if (!fMixedFluxPressureCmesh.operator->()) {
+            std::cout<< "No multiphysic computational mesh " << std::endl;
+            DebugStop();
+        }
+        
+        
+        fMixedFluxPressureCmesh.operator->()->Reference()->ResetReference();
+        fMixedFluxPressureCmesh.operator->()->LoadReferences();
+        
+        fMixedFluxPressureCmesh.operator->()->ComputeNodElCon();
+        // create condensed elements
+        // increase the NumElConnected of one pressure connects in order to prevent condensation
+        for (long icel=0; icel < fMixedFluxPressureCmesh.operator->()->NElements(); icel++) {
+            TPZCompEl  * cel = fMixedFluxPressureCmesh.operator->()->Element(icel);
+            
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                if (c.LagrangeMultiplier() > 0) {
+                    c.IncrementElConnected();
+                    break;
+                }
+            }
+            
+            new TPZCondensedCompEl(cel);
+            
+            
+        }
+        
+        int DOF = meshvector[0]->NEquations() + meshvector[1]->NEquations();
+        REAL PercentCondensedDOF = 100.0*(1.0 - REAL(fMixedFluxPressureCmesh.operator->()->NEquations())/REAL(DOF));
+        std::cout << "Degrees of freedom: " << DOF << std::endl;
+        std::cout << "Percent of condensed Degrees of freedom: " << PercentCondensedDOF << std::endl;
+
+    }
+    
+    
     
 }
+
+
 
 /** @brief Create a H1 computational mesh */
 void TRMSpaceOdissey::CreateH1Cmesh()
@@ -267,11 +307,6 @@ void TRMSpaceOdissey::CreateH1Cmesh()
     TPZBndCond *inflow = new TPZBndCond(material,_ConfinementReservBCbottom,0,val1,val2);
     val2(0,0) = 10.;
     TPZBndCond *outflow = new TPZBndCond(material,_ConfinementReservBCtop,0,val1,val2);
-    
-//    TPZFNMatrix<1> val1(1,1,0.),val2(1,1,20);
-//    TPZBndCond *inflow = new TPZBndCond(material,_ReservoirInletPressure,0,val1,val2);
-//    val2(0,0) = 10.;
-//    TPZBndCond *outflow = new TPZBndCond(material,_ReservoirOutletPressure,0,val1,val2);
     
     fH1Cmesh->InsertMaterialObject(inflow);
     fH1Cmesh->InsertMaterialObject(outflow);
@@ -325,7 +360,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     TPZHierarquicalGrid CreateGridFrom0D(GeoMesh0D);
     TPZAutoPointer<TPZFunction<STATE> > ParFuncX = new TPZDummyFunction<STATE>(ParametricfunctionX);
     CreateGridFrom0D.SetParametricFunction(ParFuncX);
-    CreateGridFrom0D.SetFrontBackMatId(_ReservoirInletPressure,_ReservoirOutletPressure);
+    CreateGridFrom0D.SetFrontBackMatId(_ConfinementReservBCbottom,_ConfinementReservBCtop);
     
     dt = dx[0];
     n = dx[1];
@@ -335,7 +370,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     TPZHierarquicalGrid CreateGridFrom1D(GeoMesh1D);
     TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
-    CreateGridFrom1D.SetFrontBackMatId(_ReservoirNonFluxBoundary,_ReservoirNonFluxBoundary);
+    CreateGridFrom1D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
     CreateGridFrom1D.SetTriangleExtrusion();
     
     dt = dy[0];
@@ -347,8 +382,8 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
     TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
-    CreateGridFrom2D.SetFrontBackMatId(_ReservoirNonFluxBoundary,_ReservoirNonFluxBoundary);
-    CreateGridFrom2D.SetTriangleExtrusion();
+    CreateGridFrom2D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
+    CreateGridFrom2D.SetPrismExtrusion();
     
     dt = dz[0];
     n = dz[1];
@@ -360,7 +395,7 @@ void TRMSpaceOdissey::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE
 {
     X[0] = par[0];
     X[1] = 0.0;
-    X[2] = 25.0*sin(0.1*par[0]);
+    X[2] = 0.0*25.0*sin(0.1*par[0]);
 }
 
 void TRMSpaceOdissey::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)

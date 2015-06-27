@@ -20,6 +20,7 @@
 #include "pzgeopoint.h"
 
 #include "tpzhierarquicalgrid.h"
+#include "pzelementgroup.h"
 
 #include "TPZVTKGeoMesh.h"
 #include "TPZAxiSymmetricDarcyFlow.h"
@@ -165,49 +166,69 @@ void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &
 
 void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 {
-    
-    // Compute the constant initial saturation distribution for Oil
-    int nalpha = fcmeshdarcy->Solution().Rows();
-    falphaAtn.Resize(nalpha, 1);
-    falphaAtnplusOne.Resize(nalpha, 1);
-    falphaAtn.Zero();
-    falphaAtnplusOne.Zero();
-    an->LoadSolution(falphaAtn);
-    
-    int nswil = fmeshvec[2]->Solution().Rows();
-    int nsoil = fmeshvec[3]->Solution().Rows();
-    TPZFMatrix<REAL> Swater(nswil,1,0.0);
-    TPZFMatrix<REAL> Soil(nsoil,1,0.0);
-    
-    
-    // DOF Related with S constant
-    for(int i = 0; i< fmeshvec[3]->NConnects(); i++)
-    {
-        REAL so = ((double) rand() / (RAND_MAX));
-        
-        TPZConnect &conSw = fmeshvec[2]->ConnectVec()[i];
-        int seqnumSw = conSw.SequenceNumber();
-        int posSw = fmeshvec[2]->Block().Position(seqnumSw);
-        int blocksizeSw = fmeshvec[2]->Block().Size(seqnumSw);
-        int ieqSw = blocksizeSw-1;
-        
-        TPZConnect &conSo = fmeshvec[3]->ConnectVec()[i];
-        int seqnumSo = conSo.SequenceNumber();
-        int posSo = fmeshvec[3]->Block().Position(seqnumSo);
-        int blocksizeSo = fmeshvec[3]->Block().Size(seqnumSo);
-        int ieqSo = blocksizeSo-1;
-        
-        Swater(posSw+ieqSw,0) =  1.0-so;
-        Soil(posSo+ieqSo,0) =  so;
-    }
 
-    fmeshvec[2]->LoadSolution(Swater);
-    fmeshvec[3]->LoadSolution(Soil);
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
+    TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
+    TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
+    TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
+    SolveProjection(L2Analysis,L2Sw);
     
+    
+    fmeshvec[2]->LoadSolution(L2Analysis->Solution());
+    TPZFMatrix<REAL> Soini = L2Analysis->Solution();
+    int SoDOF = Soini.Rows();
+    
+    for (int iso = 0; iso < SoDOF; iso++)
+    {
+        Soini(iso,0) = 1.0 - Soini(iso,0);
+    }
+    
+    fmeshvec[3]->LoadSolution(Soini);
+    
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
     falphaAtn = fcmeshdarcy->Solution();
     falphaAtnplusOne = fcmeshdarcy->Solution();
     
+//    // Compute the constant initial saturation distribution for Oil
+//    int nalpha = fcmeshdarcy->Solution().Rows();
+//    falphaAtn.Resize(nalpha, 1);
+//    falphaAtnplusOne.Resize(nalpha, 1);
+//    falphaAtn.Zero();
+//    falphaAtnplusOne.Zero();
+//    an->LoadSolution(falphaAtn);
+//    
+//    int nswil = fmeshvec[2]->Solution().Rows();
+//    int nsoil = fmeshvec[3]->Solution().Rows();
+//    TPZFMatrix<REAL> Swater(nswil,1,0.0);
+//    TPZFMatrix<REAL> Soil(nsoil,1,0.0);
+//    
+//    
+//    // DOF Related with S constant
+//    for(int i = 0; i< fmeshvec[3]->NConnects(); i++)
+//    {
+//        REAL so = 0.5;//((double) rand() / (RAND_MAX));
+//        
+//        TPZConnect &conSw = fmeshvec[2]->ConnectVec()[i];
+//        int seqnumSw = conSw.SequenceNumber();
+//        int posSw = fmeshvec[2]->Block().Position(seqnumSw);
+//        int blocksizeSw = fmeshvec[2]->Block().Size(seqnumSw);
+//        int ieqSw = blocksizeSw-1;
+//        
+//        TPZConnect &conSo = fmeshvec[3]->ConnectVec()[i];
+//        int seqnumSo = conSo.SequenceNumber();
+//        int posSo = fmeshvec[3]->Block().Position(seqnumSo);
+//        int blocksizeSo = fmeshvec[3]->Block().Size(seqnumSo);
+//        int ieqSo = blocksizeSo-1;
+//        
+//        Swater(posSw+ieqSw,0) =  1.0-so;
+//        Soil(posSo+ieqSo,0) =  so;
+//    }
+//    
+//    fmeshvec[2]->LoadSolution(Swater);
+//    fmeshvec[3]->LoadSolution(Soil);
+//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
+//    
+//    falphaAtn = fcmeshdarcy->Solution();
+//    falphaAtnplusOne = fcmeshdarcy->Solution();
 
 }
 
@@ -267,22 +288,16 @@ void TPZDarcyAnalysis::Run()
     this->UniformRefinement(hcont, matidstoRef);
     this->PrintGeoMesh();
     
-    
-    
     int q = fSimulationData->Getqorder();
     int p = fSimulationData->Getporder();
     int s = fSimulationData->Getsorder();
     
-    //    if (fSimulationData->GetIsH1approx())
-    if (false)
-    {
-        //        CmeshH1(p);
+    CreateMultiphysicsMesh(q,p,s);
+    CreateInterfaces();
+    if (fSimulationData->GetSC()) {
+        ApplyStaticCondensation();
     }
-    else
-    {
-        CreateMultiphysicsMesh(q,p,s);
-        CreateInterfaces();
-    }
+
     
     
     // Analysis
@@ -860,7 +875,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetForcingFunction(forcef);
     
     // Setting up linear tracer solution
-//TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
+    //  TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
     TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
@@ -885,10 +900,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZBndCond * bcTop = mat->CreateBC(mat, topId, typePressurein, val1, val2);
     
     // Bc Left
-    val2(0,0) = 0.0;
+    val2(0,0) = 0.0*0.000001;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
     
     cmesh->InsertMaterialObject(bcBottom);
@@ -896,13 +910,50 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     cmesh->InsertMaterialObject(bcTop);
     cmesh->InsertMaterialObject(bcLeft);
     
-    
     cmesh->SetDimModel(dim);
     cmesh->SetAllCreateFunctionsMultiphysicElem();
+    
     cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
     
     
     return cmesh;
+}
+
+void TPZDarcyAnalysis::ApplyStaticCondensation(){
+    
+    if (!fcmeshdarcy) {
+        std::cout<< "No multiphysic computational mesh " << std::endl;
+        DebugStop();
+    }
+    
+    fcmeshdarcy->Reference()->ResetReference();
+    fcmeshdarcy->LoadReferences();
+    
+    fcmeshdarcy->ComputeNodElCon();
+    // create condensed elements
+    // increase the NumElConnected of one pressure connects in order to prevent condensation
+    for (long icel=0; icel < fcmeshdarcy->NElements(); icel++) {
+        TPZCompEl  * cel = fcmeshdarcy->Element(icel);
+        int nc = cel->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            if (c.LagrangeMultiplier() > 0) {
+                c.IncrementElConnected();
+                break;
+            }
+        }
+        new TPZCondensedCompEl(cel);
+    }
+    
+    int DOF = fmeshvec[0]->NEquations() + fmeshvec[0]->NEquations();
+    REAL PercentCondensedDOF = 100.0*(1.0 - REAL(fcmeshdarcy->NEquations())/REAL(DOF));
+
+    std::cout << "Degrees of freedom: " << DOF << std::endl;
+    std::cout << "Percent of condensed Degrees of freedom: " << PercentCondensedDOF << std::endl;
+    
+    
 }
 
 void TPZDarcyAnalysis::CmeshH1(int porder)
@@ -913,7 +964,7 @@ void TPZDarcyAnalysis::CmeshH1(int porder)
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
     
-    int dim = 2;
+    int dim = fgmesh->Dimension();
     int ilayer = 0;
     
     
@@ -975,7 +1026,7 @@ void TPZDarcyAnalysis::CmeshH1(int porder)
 TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
 {
     
-    int dim = 2;
+    int dim = fgmesh->Dimension();
     const int typeFlux = 0, typePressure = 1;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
@@ -1012,7 +1063,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
     cmesh->InsertMaterialObject(bcLeft);
     
     // Setando Hdiv
-    cmesh->SetDimModel(2);
+    cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(qorder);
     cmesh->SetAllCreateFunctionsHDiv();
     
@@ -1037,7 +1088,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
     
-    int dim = 2;
+    int dim = fgmesh->Dimension();
     
     
     int ilayer = 0;
@@ -1087,20 +1138,6 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
         newnod.SetLagrangeMultiplier(1);
     }
     
-    //    int nel = cmesh->NElements();
-    //    for(int i=0; i<nel; i++){
-    //        TPZCompEl *cel = cmesh->ElementVec()[i];
-    //        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
-    //        celdisc->SetConstC(1.);
-    //        celdisc->SetCenterPoint(0, 0.);
-    //        celdisc->SetCenterPoint(1, 0.);
-    //        celdisc->SetCenterPoint(2, 0.);
-    //        celdisc->SetFalseUseQsiEta();
-    //    }
-    
-    
-    
-    
 #ifdef DEBUG
     std::ofstream out("cmeshPress.txt");
     cmesh->Print(out);
@@ -1113,7 +1150,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
 TPZCompMesh * TPZDarcyAnalysis::CmeshSw(int Sworder)
 {
     
-    int dim = 2;
+    int dim = fgmesh->Dimension();
     int ilayer = 0;
     int RockId = fLayers[ilayer]->GetMatIDs()[0];
     int bottomId = fLayers[ilayer]->GetMatIDs()[1];
@@ -1175,7 +1212,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSw(int Sworder)
 TPZCompMesh * TPZDarcyAnalysis::CmeshSo(int Soorder)
 {
     
-    int dim = 2;
+    int dim = fgmesh->Dimension();
     int ilayer = 0;
     int RockId = fLayers[ilayer]->GetMatIDs()[0];
     int bottomId = fLayers[ilayer]->GetMatIDs()[1];
@@ -1900,6 +1937,55 @@ REAL TPZDarcyAnalysis::df2dsw(REAL Sw, REAL muo,REAL muw)
        dfw2dSwS2 = (2* muo * muw *(muw + (Sw * Sw)*((2 * Sw) - 3)*(muo + muw)))/((muw - (2 * Sw * muw)+(Sw*Sw)*(muo + muw))*(muw - (2*Sw*muw)+(Sw*Sw)*(muo + muw))*(muw - (2*Sw*muw)+(Sw*Sw)*(muo + muw)));
        return (dfw2dSwS2);
 }
-  
 
- 
+
+// L2 projection
+
+void TPZDarcyAnalysis::SolveProjection(TPZAnalysis *an, TPZCompMesh *Cmesh)
+{
+    TPZSkylineStructMatrix full(Cmesh);
+    an->SetStructuralMatrix(full);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    //step.SetDirect(ELU);
+    an->SetSolver(step);
+    an->Run();
+    
+}
+
+
+TPZCompMesh * TPZDarcyAnalysis::L2ProjectionCmesh(TPZVec<STATE> &solini)
+{
+    /// criar materiais
+    int dim = 2;
+    TPZL2Projection *material;
+    material = new TPZL2Projection(1, dim, 1, solini, fSimulationData->Getsorder());
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(this->fgmesh);
+    cmesh->SetDimModel(dim);
+    TPZMaterial * mat(material);
+    cmesh->InsertMaterialObject(mat);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialWaterSaturation);
+    material->SetForcingFunction(forcef);
+    cmesh->SetAllCreateFunctionsDiscontinuous();
+    cmesh->SetDefaultOrder(fSimulationData->Getsorder());
+    cmesh->SetDimModel(dim);
+    cmesh->AutoBuild();
+    
+    return cmesh;
+    
+}
+
+void TPZDarcyAnalysis::InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    
+//    REAL x = pt[0];
+    REAL y = pt[1];
+    
+    disp.resize(1);
+    disp[0] = 1.0;
+    
+    if (y <=  200.0) {
+        disp[0] = 1.0;
+    }
+    
+}

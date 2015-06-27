@@ -7,6 +7,8 @@
 #include "ReducedPVT.h"
 #include "pznonlinanalysis.h"
 
+#include "pzcondensedcompel.h"
+
 #include "tpzautopointer.h"
 #include "pzcmesh.h"
 #include "pzintel.h"
@@ -233,6 +235,11 @@ public:
     void CreateInterfaces();
     
     /**
+     * Apply static condensation in the multiphysics mesh
+     */
+    void ApplyStaticCondensation();
+    
+    /**
      * Print the global linear system
      */
     void PrintLS(TPZAnalysis *an);
@@ -286,13 +293,22 @@ public:
      * Extract a value from a given list
      */
     static int Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value);
-    
-    
-    //static REAL Ssaturation( REAL S);
-    
+
+    /**
+     * Computes the inverse of the Global matrix
+     */
     static REAL SaturationNewton( REAL x,REAL t,REAL muo, REAL muw, REAL Area,REAL q);
+    
+    /**
+     * Computes the inverse of the Global matrix
+     */
     static REAL dfdsw( REAL Sw, REAL muo,REAL muw);
+
+    /**
+     * Computes the inverse of the Global matrix
+     */
     static REAL df2dsw( REAL Sw, REAL muo,REAL muw);
+    
     /**
      * Computes the inverse of the Global matrix
      */
@@ -317,6 +333,21 @@ public:
      * Update state variables
      */
     void UpDateAlphaVec(TPZFMatrix<REAL> &alpha);
+
+    /**
+     * Computes the L2 projection for saturations
+     */
+    void SolveProjection(TPZAnalysis *an, TPZCompMesh *Cmesh);
+
+    /**
+     * Computes computational mesh for L2 projection
+     */
+    TPZCompMesh * L2ProjectionCmesh(TPZVec<STATE> &solini);
+
+    /**
+     * Computes computational mesh for L2 projection
+     */
+    static void InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     
 };
 

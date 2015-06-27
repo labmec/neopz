@@ -42,6 +42,16 @@ class TPZHierarquicalGrid
     bool fIsQuad;
     
     /**
+     * @brief 3d extrusion is based on prisms
+     */
+    bool fIsPrism;
+    
+    /**
+     * @brief 3d extrusion is based on tetrahedrons
+     */
+    bool fIsTetrahedron;
+    
+    /**
      * @brief Extrusion front material id
      */
     int ffrontMatID;
@@ -100,6 +110,10 @@ public:
     void SetFrontBackMatId(int front, int back) {ffrontMatID = front; fbackMatID = back;}
     
     void SetTriangleExtrusion() {fIsQuad = false;}
+    
+    void SetTetrahedonExtrusion() {fIsTetrahedron = true;}
+    
+    void SetPrismExtrusion() {fIsPrism = true;}
     
     void SetGridFileName(std::string &FileName) {fFileName = FileName;}
     

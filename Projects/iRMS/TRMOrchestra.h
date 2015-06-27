@@ -61,10 +61,10 @@ public:
     void CreateCompMeshes(TRMRawData &rawdata);
     
     /** @brief Create a primal analysis using space odissey */
-    void CreateAnalPrimal(TRMSpaceOdissey spacegenerator);
+    void CreateAnalysisPrimal(TRMSpaceOdissey spacegenerator);
     
     /** @brief Create a dual analysis using space odissey */
-    void CreateAnalDual(TRMSpaceOdissey spacegenerator);
+    void CreateAnalysisDual(TRMSpaceOdissey spacegenerator);
     
     /** @brief Run the time steps set in the simulation data */
     void RunSimulation();

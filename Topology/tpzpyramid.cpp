@@ -1295,6 +1295,19 @@ namespace pztopology {
             v3[i] = gradx(i,2);
         }
         
+        /**
+         * @file
+         * @brief Computing mapped vector with scaling factor equal 1.0.
+         * using contravariant piola mapping.
+         */
+        TPZManVector<REAL,3> NormalScales(3,1.);
+        
+        if (HDivPiola)
+        {
+            std::cout << "Pyramid space not complete. Calling debugstop(). " << std::endl;
+            DebugStop();
+        }
+        
         for (int i=0; i<3; i++) {
             v1[i] /= detgrad;
             v2[i] /= detgrad;
@@ -1304,6 +1317,7 @@ namespace pztopology {
             ar11[i] = v3[i]-(v1[i]+v2[i]);
             ar12[i] = v3[i]-(v2[i]-v1[i]);
         }
+    
         
         
         

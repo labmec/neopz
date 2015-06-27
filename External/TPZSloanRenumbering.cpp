@@ -51,9 +51,11 @@ void TPZSloanRenumbering::Resequence(TPZVec<long> &permGather, TPZVec<long> &per
   //computing distances to end node
   TPZStack< TPZStack<long> > LevelStructure;
   graph.RootedLevelStructure(endNode, LevelStructure);
-  TPZVec<long> DistanceToEndNode( nnodes, -1 );
-  for(long ilevel = 0; ilevel < LevelStructure.NElements(); ilevel++){
-    for(long iel = 0; iel < LevelStructure[ ilevel ].NElements(); iel++){
+  TPZManVector<long> DistanceToEndNode( nnodes, -1 );
+  long nelslevel = LevelStructure.NElements();
+  for(long ilevel = 0; ilevel < nelslevel; ilevel++){
+      long nelsilevel= LevelStructure[ ilevel ].NElements();
+    for(long iel = 0; iel < nelsilevel; iel++){
       const long node = LevelStructure[ ilevel ][ iel ];
       DistanceToEndNode[ node ] = ilevel;
     }//for iel

@@ -101,6 +101,7 @@ void TPZCutHillMcKee::SGraph::RootedLevelStructure(long rootNode,
   thisLevel[0] = rootNode;
 
   TPZVec<long> ProcessedNodes(this->NNodes(),0);
+  long nodes = this->NNodes();
 
   for(long iLevel = 0; iLevel < this->NNodes(); iLevel++){
 

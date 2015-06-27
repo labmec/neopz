@@ -15,7 +15,7 @@
 TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin()
 {
     
-    fepsilon = 0.5;
+    fepsilon = 0.666666666666;
     
     fSimulationData=NULL;
     fReservoirdata=NULL;
@@ -38,10 +38,6 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
     fWaterDensity.Resize(4,0.0);
     fOilDensity.Resize(4,0.0);
     fGasDensity.Resize(4,0.0);
-    
-//    flWater.Resize(4,0.0);
-//    flOil.Resize(4,0.0);
-//    flGas.Resize(4,0.0);
     
     fFWater.Resize(4,0.0);
     fFOil.Resize(4,0.0);
@@ -57,7 +53,7 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
 
 TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(int matid) : TPZDiscontinuousGalerkin(matid)
 {
-    fepsilon = 0.5;
+    fepsilon = 0.666666666666;
     
     fSimulationData=NULL;
     fReservoirdata=NULL;
@@ -80,10 +76,6 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(int matid) : TPZDiscontinuous
     fWaterDensity.Resize(4,0.0);
     fOilDensity.Resize(4,0.0);
     fGasDensity.Resize(4,0.0);
-    
-//    flWater.Resize(4,0.0);
-//    flOil.Resize(4,0.0);
-//    flGas.Resize(4,0.0);
     
     fFWater.Resize(4,0.0);
     fFOil.Resize(4,0.0);
@@ -121,10 +113,6 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(const TPZAxiSymmetricDarcyFlo
     fWaterDensity       = mat.fWaterDensity;
     fOilDensity         = mat.fOilDensity;
     fGasDensity         = mat.fGasDensity;
-    
-//    flWater             = mat.flWater;
-//    flOil               = mat.flOil;
-//    flGas               = mat.flGas;
     
     fFWater             = mat.fFWater;
     fFOil               = mat.fFOil;
@@ -1070,6 +1058,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     if (ndotG <= 0.0) {
         // Expelling oil
         if (SoL < epsilon) {
+            this->UpdateStateVariables(uL, PL, SwL, SoL);
+            this->PhaseFractionalFlows();
             fstrL = fFOil[0] * fFWater[0];
             dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
             dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
@@ -1081,12 +1071,16 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
             this->PhaseFractionalFlows();
             fstrL = fFOil[0] * fFWater[0];
             dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
         }
     }
     else
     {
         // Expelling water
-        if (SwL < epsilon) {
+        if (SwL < 1.0 - epsilon) {
+            this->UpdateStateVariables(uL, PL, SwL, SoL);
+            this->PhaseFractionalFlows();
             fstrL = fFOil[0] * fFWater[0];
             dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
             dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
@@ -1094,10 +1088,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         }
         else
         {
-            this->UpdateStateVariables(uL, PL, epsilon, 1.0 - epsilon);
+            this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
             this->PhaseFractionalFlows();
             fstrL = fFOil[0] * fFWater[0];
             dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
         }
         
     }
@@ -1141,9 +1137,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     REAL dfstrRdSw = 0.0;
     REAL dfstrRdSo = 0.0;
     
-    if (-1.0 * ndotG <= 0.0) {
+    if (ndotG >= 0.0) {
         // Expelling oil
         if (SoR < epsilon) {
+            this->UpdateStateVariables(uR, PR, SwR, SoR);
+            this->PhaseFractionalFlows();
             fstrR = fFOil[0] * fFWater[0];
             dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
             dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
@@ -1155,12 +1153,16 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
             this->PhaseFractionalFlows();
             fstrR = fFOil[0] * fFWater[0];
             dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
         }
     }
     else
     {
         // Expelling water
-        if (SwR < epsilon) {
+        if (SwR < 1.0 - epsilon) {
+            this->UpdateStateVariables(uR, PR, SwR, SoR);
+            this->PhaseFractionalFlows();
             fstrR = fFOil[0] * fFWater[0];
             dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
             dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
@@ -1168,10 +1170,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         }
         else
         {
-            this->UpdateStateVariables(uR, PR, epsilon, 1.0 - epsilon);
+            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
             this->PhaseFractionalFlows();
             fstrR = fFOil[0] * fFWater[0];
             dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
         }
         
     }
@@ -1450,6 +1454,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     this->UpdateStateVariables(uL, PL, SwL, SoL);
     this->PhaseFractionalFlows();
     
+    //std::cout<<"gelElId= " << datavecright[Pblock].gelElId << std::endl;
+    
     KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
     KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
     REAL lambdaDensitydiffL = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
@@ -1460,6 +1466,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         
         // Expelling oil
         if (SoL < epsilon) {
+            this->UpdateStateVariables(uL, PL, SwL, SoL);
+            this->PhaseFractionalFlows();
             fstrL = fFOil[0] * fFWater[0];
         }
         else
@@ -1472,12 +1480,14 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     else
     {
         // Expelling water
-        if (SwL < epsilon) {
+        if (SwL < 1.0 - epsilon) {
+            this->UpdateStateVariables(uL, PL, SwL, SoL);
+            this->PhaseFractionalFlows();
             fstrL = fFOil[0] * fFWater[0];
         }
         else
         {
-            this->UpdateStateVariables(uL, PL, epsilon, 1.0 - epsilon);
+            this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
             this->PhaseFractionalFlows();
             fstrL = fFOil[0] * fFWater[0];
         }
@@ -1499,10 +1509,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     
     REAL fstrR = 0.0;
     
-    if (-1.0 * ndotG <= 0.0) {
+    if (ndotG >= 0.0) {
         
         // Expelling oil
         if (SoR < epsilon) {
+            this->UpdateStateVariables(uR, PR, SwR, SoR);
+            this->PhaseFractionalFlows();
             fstrR = fFOil[0] * fFWater[0];
         }
         else
@@ -1515,12 +1527,14 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     else
     {
         // Expelling water
-        if (SwR < epsilon) {
+        if (SwR < 1.0 - epsilon) {
+            this->UpdateStateVariables(uR, PR, SwR, SoR);
+            this->PhaseFractionalFlows();
             fstrR = fFOil[0] * fFWater[0];
         }
         else
         {
-            this->UpdateStateVariables(uR, PR, epsilon, 1.0 - epsilon);
+            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
             this->PhaseFractionalFlows();
             fstrR = fFOil[0] * fFWater[0];
         }
@@ -1543,6 +1557,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         gqdotn = qgRdotn;
     }
     
+
     
     for (int isw = 0; isw < nphiSwL2L; isw++)
     {
@@ -2536,6 +2551,7 @@ void TPZAxiSymmetricDarcyFlow::PhasePressures()
     fGasPressure[2] = 0.0;
     fGasPressure[3] = 0.0;
     
+    
     //    // Computing fluid mobilities and derivatives for three-phase
     //
     //    fGasPressure[0] = P + So * pcgo + So * pcgw;
@@ -2597,7 +2613,7 @@ void TPZAxiSymmetricDarcyFlow::PhaseMobilities()
     
     fWaterMobility[0] = waterdensity * krw / waterviscosity;
     fWaterMobility[1] = krw*(dwaterdensitydP/waterviscosity) - krw*((waterdensity * dwaterviscositydPw)/(waterviscosity*waterviscosity));
-    fWaterMobility[2] = dkrwdSw*(waterdensity/waterviscosity);
+    fWaterMobility[2] = 1.0*dkrwdSw*(waterdensity/waterviscosity);
     fWaterMobility[3] = (-0.0)*dkrwdSw*(waterdensity/waterviscosity);   // here appears the two-phase dependence
     
     fOilMobility[0] = oildensity * kro / oilviscosity;

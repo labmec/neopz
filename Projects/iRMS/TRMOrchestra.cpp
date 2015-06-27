@@ -32,15 +32,15 @@ TRMOrchestra::~TRMOrchestra(){
 }
 
 /** @brief Create a primal analysis using space odissey */
-void TRMOrchestra::CreateAnalPrimal(TRMSpaceOdissey spacegenerator){
+void TRMOrchestra::CreateAnalysisPrimal(TRMSpaceOdissey spacegenerator){
     
-    TPZManVector<int,2> dx(2,20), dy(2,5), dz(2,5);
+    TPZManVector<int,2> dx(2,1), dy(2,1), dz(2,1);
     dx[0] = 50.0;
     dy[0] = 50.0;
     dz[0] = 50.0;
     
-//    spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
-    spacegenerator.CreateGeometricReservoirMesh();
+    spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
+//    spacegenerator.CreateGeometricReservoirMesh();
     spacegenerator.PrintGeometry();
     fgmesh = spacegenerator.GetGmesh();
     spacegenerator.CreateH1Cmesh();
@@ -49,17 +49,17 @@ void TRMOrchestra::CreateAnalPrimal(TRMSpaceOdissey spacegenerator){
     
     // Analysis
     bool mustOptimizeBandwidth = true;
-    TPZAnalysis * AnalPrimal = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
+    TPZAnalysis * AnalysisPrimal = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
     int numofThreads = 8;
     
     TPZSkylineNSymStructMatrix skylnsym(Cmesh.operator->());
     TPZStepSolver<STATE> step;
     skylnsym.SetNumThreads(numofThreads);
     step.SetDirect(ELU);
-    AnalPrimal->SetStructuralMatrix(skylnsym);
-    AnalPrimal->SetSolver(step);;
-    AnalPrimal->Run();
-    std::cout << "Primal dof: " << AnalPrimal->Rhs().Rows() << std::endl;
+    AnalysisPrimal->SetStructuralMatrix(skylnsym);
+    AnalysisPrimal->SetSolver(step);;
+    AnalysisPrimal->Run();
+    std::cout << "Primal dof: " << AnalysisPrimal->Rhs().Rows() << std::endl;
     
     const int dim = 3;
     int div = 1;
@@ -67,20 +67,21 @@ void TRMOrchestra::CreateAnalPrimal(TRMSpaceOdissey spacegenerator){
     std::string plotfile =  "PrimalDarcy.vtk";
     scalnames.Push("Pressure");
     vecnames.Push("MinusKGradU");
-    AnalPrimal->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-    AnalPrimal->PostProcess(div);
+    AnalysisPrimal->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+    AnalysisPrimal->PostProcess(div);
     
 }
 
 /** @brief Create a dual analysis using space odissey */
-void TRMOrchestra::CreateAnalDual(TRMSpaceOdissey spacegenerator){
+void TRMOrchestra::CreateAnalysisDual(TRMSpaceOdissey spacegenerator){
     
-    TPZManVector<int,2> dx(2,20), dy(2,5), dz(2,5);
+    TPZManVector<int,2> dx(2,1), dy(2,1), dz(2,1);
     dx[0] = 50.0;
     dy[0] = 50.0;
     dz[0] = 50.0;
     
-    spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
+//    spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
+    spacegenerator.CreateGeometricReservoirMesh();
     spacegenerator.PrintGeometry();
     fgmesh = spacegenerator.GetGmesh();
     spacegenerator.CreateMixedCmesh();
@@ -89,19 +90,19 @@ void TRMOrchestra::CreateAnalDual(TRMSpaceOdissey spacegenerator){
     
     // Analysis
     bool mustOptimizeBandwidth = true;
-    TPZAnalysis * AnalDual = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
+    TPZAnalysis * AnalysisDual = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
     int numofThreads = 8;
     
     TPZSkylineNSymStructMatrix skylnsym(Cmesh.operator->());
     TPZStepSolver<STATE> step;
     skylnsym.SetNumThreads(numofThreads);
     step.SetDirect(ELU);
-    AnalDual->SetStructuralMatrix(skylnsym);
-    AnalDual->SetSolver(step);
-    AnalDual->Assemble();
-    AnalDual->Rhs() *= -1.0;
-    AnalDual->Solve();
-    std::cout << "Dual dof: " << AnalDual->Rhs().Rows() << std::endl;
+    AnalysisDual->SetStructuralMatrix(skylnsym);
+    AnalysisDual->SetSolver(step);
+    AnalysisDual->Assemble();
+    AnalysisDual->Rhs() *= -1.0;
+    AnalysisDual->Solve();
+    std::cout << "Dual dof: " << AnalysisDual->Rhs().Rows() << std::endl;
     
     const int dim = 3;
     int div = 1;
@@ -110,8 +111,8 @@ void TRMOrchestra::CreateAnalDual(TRMSpaceOdissey spacegenerator){
     scalnames.Push("WeightedPressure");
     scalnames.Push("DivOfBulkVeclocity");
     vecnames.Push("BulkVelocity");
-    AnalDual->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-    AnalDual->PostProcess(div);
+    AnalysisDual->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+    AnalysisDual->PostProcess(div);
     
 }
 

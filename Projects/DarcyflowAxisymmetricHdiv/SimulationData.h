@@ -91,6 +91,9 @@ private:
     /** @brief Define the use of a linear approxiamtion of S using a gradient reconstruction procedure */
     bool fUseGR;
     
+    /** @brief Define the use of static condensation */
+    bool fCondenseElements;
+    
     /** @brief State: n or n+1 temporal state */
     bool fnStep;
     
@@ -233,6 +236,12 @@ public:
     
     /** @brief Using GR iterations */
     bool GetGR() {return fUseGR;}
+    
+    /** @brief Using Static condensation */
+    void SetSC(bool SC) {fCondenseElements = SC;}
+    
+    /** @brief Using Static condensation */
+    bool GetSC() {return fCondenseElements;}
     
     
 };

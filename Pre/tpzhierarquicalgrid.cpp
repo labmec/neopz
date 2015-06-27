@@ -34,6 +34,8 @@ TPZHierarquicalGrid::TPZHierarquicalGrid()
     std::string Name = "untitled";
     fFileName   = Name;
     fIsQuad = true;
+    fIsPrism = false;
+    fIsTetrahedron = false;
     fComputedGeomesh = NULL;
     ffrontMatID = -999;
     fbackMatID = -1000;
@@ -58,6 +60,8 @@ TPZHierarquicalGrid::TPZHierarquicalGrid(TPZGeoMesh *Geomesh)
     std::string Name = "untitled";
     fFileName   = Name;
     fIsQuad = true;
+    fIsPrism = false;
+    fIsTetrahedron = false;
     fComputedGeomesh = NULL;
     ffrontMatID = -999;
     fbackMatID = -1000;
@@ -167,6 +171,8 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
         switch (eldim) {
             case 0:
             {
+                
+                //Defining boundaries
                 if (dim==0) {
                     if (il==1){
                         TPZVec<long> Topology(gelNodes);
@@ -298,40 +304,68 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
                     }
                 }
                 
-                if (fIsQuad) {
-                    // Cubes
-                    TPZVec<long> Topology(gelNodes+4);
-                    Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
-                    Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
-                    Topology[2]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
-                    Topology[3]=fComputedGeomesh->NodeVec()[CTopology[3] + (il - 1) * jump].Id();
-                    Topology[4]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
-                    Topology[5]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
-                    Topology[6]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 0) * jump].Id();
-                    Topology[7]=fComputedGeomesh->NodeVec()[CTopology[3] + (il - 0) * jump].Id();
-                    new TPZGeoElRefPattern < pzgeom::TPZGeoCube > (elid++, Topology, elmatid,*fComputedGeomesh);
+                if (!fIsTetrahedron) {
+
+                    if (fIsPrism) {
+                        // Prisms
+                        TPZVec<long> Topology(2*gelNodes);
+                        Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
+                        Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
+                        Topology[2]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
+                        Topology[3]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
+                        Topology[4]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
+                        Topology[5]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 0) * jump].Id();
+                        new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
+                    }
+                    else
+                    {
+                        // Cubes
+                        TPZVec<long> Topology(gelNodes+4);
+                        Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
+                        Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
+                        Topology[2]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
+                        Topology[3]=fComputedGeomesh->NodeVec()[CTopology[3] + (il - 1) * jump].Id();
+                        Topology[4]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
+                        Topology[5]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
+                        Topology[6]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 0) * jump].Id();
+                        Topology[7]=fComputedGeomesh->NodeVec()[CTopology[3] + (il - 0) * jump].Id();
+                        new TPZGeoElRefPattern < pzgeom::TPZGeoCube > (elid++, Topology, elmatid,*fComputedGeomesh);
+                    }
                 }
                 else
                 {
-                    // Tetrahedros
-                    TPZVec<long> Topology(gelNodes+1);
-                    Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
-                    Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
-                    Topology[2]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
-                    Topology[3]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
-                    new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
-                    
-                    Topology[0]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
-                    Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
-                    Topology[2]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
-                    Topology[3]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
-                    new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
-                    
-                    Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
-                    Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
-                    Topology[2]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 0) * jump].Id();
-                    Topology[3]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
-                    new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
+                    if (fIsPrism) {
+                        // Prisms
+                        TPZVec<long> Topology(2*gelNodes);
+                        Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
+                        Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
+                        Topology[2]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
+                        Topology[3]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
+                        Topology[4]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
+                        Topology[5]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 0) * jump].Id();
+                        new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
+                    }
+                    else{
+                        // Tetrahedros
+                        TPZVec<long> Topology(gelNodes+1);
+                        Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 1) * jump].Id();
+                        Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
+                        Topology[2]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
+                        Topology[3]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
+                        new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
+                        
+                        Topology[0]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 1) * jump].Id();
+                        Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
+                        Topology[2]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
+                        Topology[3]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
+                        new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
+                        
+                        Topology[0]=fComputedGeomesh->NodeVec()[CTopology[0] + (il - 0) * jump].Id();
+                        Topology[1]=fComputedGeomesh->NodeVec()[CTopology[1] + (il - 0) * jump].Id();
+                        Topology[2]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 0) * jump].Id();
+                        Topology[3]=fComputedGeomesh->NodeVec()[CTopology[2] + (il - 1) * jump].Id();
+                        new TPZGeoElRefPattern < pzgeom::TPZGeoTetrahedra > (elid++, Topology, elmatid,*fComputedGeomesh);
+                    }
                     
                 }
                 Is3D = true;

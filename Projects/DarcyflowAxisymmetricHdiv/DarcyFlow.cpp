@@ -29,7 +29,7 @@ void LinearTracer()
     
   
     // This code use piola contravariant mapping for nonlinear mappings
-    HDivPiola = 0;
+    HDivPiola = 1;
     
     // Simulation Data SI units
     
@@ -38,9 +38,10 @@ void LinearTracer()
     int maxiter     = 40;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
+    bool SC         = true;     // Use Static Condensation
     bool IsDirect   = true;     // Not Used broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    bool OptBand    = false;    // Band optimization
+    bool OptBand    = true;    // Band optimization
     int fixedJac    = 0;
     
     int qorder      = 1;
@@ -55,18 +56,19 @@ void LinearTracer()
 
     REAL maxtime    = 500.0*day;
     REAL t0         = 0.0*day;
-    REAL TolDeltaX  = 1.0*1e-4;
-    REAL TolRes     = 1.0*1e-4;
+    REAL TolDeltaX  = 1.0*1e-6;
+    REAL TolRes     = 1.0*1e-6;
     
-    int  nelemX     =3;
+    int  nelemX     =4;
     REAL lengthX    =100.0;
     
-    int nelemY      =3;
+    int nelemY      =4;
     REAL lengthY    =100.0;
 
 
     
     Dataset->SetGR(GR);
+    Dataset->SetSC(SC);
     Dataset->SetIsDirect(IsDirect);
     Dataset->SetIsCG(IsCG);
     Dataset->SetOptband(OptBand);
@@ -114,7 +116,7 @@ void LinearTracer()
     REAL waterdensity       = 1000.0;
     REAL waterviscosity     = 0.001;
     REAL cwater             = 0.0*1e-8;
-    REAL oildensity         = 800.0;
+    REAL oildensity         = 500.0;
     REAL oilviscosity       = 0.001;
     REAL coil               = 0.0*1e-8;
     REAL gasdensity         = 0.0;

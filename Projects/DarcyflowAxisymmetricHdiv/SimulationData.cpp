@@ -59,6 +59,9 @@ SimulationData::SimulationData()
     /** @brief Broyden iterations */
     fIsBroyden = false;
     
+    /** @brief Define the use of static condensation */
+    fCondenseElements = false;
+    
     /** @brief Define the use of a linear approxiamtion of S using a gradient reconstruction procedure */
     fUseGR = false;
     
