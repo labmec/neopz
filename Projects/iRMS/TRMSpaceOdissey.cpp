@@ -421,7 +421,7 @@ void TRMSpaceOdissey::CreateGeometricReservoirMesh(){
     TRMRawData rawdata;
     CreateExampleRawData(rawdata);
     TRMSimworxMeshGenerator meshGen;
-    fGeoMesh = meshGen.CreateSimworxGeoMesh(rawdata);
-    
+    const bool withwellbc = true;
+    fGeoMesh = meshGen.CreateSimworxGeoMesh(rawdata,withwellbc);
 }
 

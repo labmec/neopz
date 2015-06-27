@@ -92,7 +92,7 @@ void TRMSimworxMeshGenerator::FillCaseHolesData(TPZFMatrix<> &caseHolesData)
     
 }
 
-TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRawData &rawdata)
+TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRawData &rawdata, bool withwellbc)
 {
     const REAL reservoirWidth = rawdata.fReservoirWidth;
     const REAL reservoirLength = rawdata.fReservoirLength;
@@ -124,7 +124,9 @@ TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRaw
     bool thereIsCutPlane = true;
     
     TPZAutoPointer<TPZGeoMesh> reservoirGMesh = ReallyGenerateGeoMesh(reservoirSemiAxeX,reservoirSemiAxeY,mioloWidth,espacamentoReservY,espacamentoZ,thereIsCutPlane,rawdata);
-    
+    if (withwellbc) {
+        CreateWellBoundaries(reservoirGMesh);
+    }
     return reservoirGMesh;
 }
 
@@ -1659,4 +1661,52 @@ void TRMSimworxMeshGenerator::AddRibElements(TPZGeoMesh *gmesh, int WellMatId1D,
         fRibs[ir].Print(check);
     }
 #endif
+}
+
+void TRMSimworxMeshGenerator::CreateWellBoundaries(TPZAutoPointer<TPZGeoMesh> reservoirGMesh){
+    
+    const long nel =reservoirGMesh->NElements();
+    
+    for (long iel = 0 ; iel < nel ; iel++) {
+        
+        // filters
+        
+        TPZGeoEl * gel = reservoirGMesh->Element(iel);
+        if (!gel) {
+            continue;
+        }
+        
+        if (gel->MaterialId() != _WellMatId3D ) {
+            continue;
+        }
+        
+#ifdef DEBUG
+        if (gel->Type() != ECube) {
+            DebugStop();
+        }
+#endif
+        
+        const int nc = gel->NCornerNodes();
+        const int nedges = 12;
+        const int nfaces = 6;
+        
+        for (int ic = nc + nedges; ic < nc + nedges + nfaces; ic++) {
+            TPZGeoElSide gelside(gel,ic);
+            TPZGeoElSide neigh = gelside.Neighbour();
+            while (gelside != neigh) {
+                if (neigh.Dimension() == 3 && neigh.Element()->MaterialId() == _WellMatId3D) {
+                    break;
+                }
+                neigh = neigh.Neighbour();
+            }
+            
+            if (neigh == gelside) { // We are with the almost perfect candidate to create wellbc
+                // Filter heel and toe conditions and then create the bcgeoel
+            }
+            
+        }
+        
+        
+    }
+    
 }

@@ -30,9 +30,9 @@ int main()
     
 
     // Running primal problem
-    // LinearTracerPrimal();
+    LinearTracerPrimal();
     
-//    // Running dual problem
+    // Running dual problem
     LinearTracerDual();
     
     

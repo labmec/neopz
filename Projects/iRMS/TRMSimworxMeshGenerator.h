@@ -187,13 +187,15 @@ public:
                                                      const TPZVec<REAL> & espacamentoZ,
                                                      const bool thereIsCutPlane,
                                                      TRMRawData &rawdata);
-    TPZAutoPointer<TPZGeoMesh> CreateSimworxGeoMesh(TRMRawData &rawdata);
+    TPZAutoPointer<TPZGeoMesh> CreateSimworxGeoMesh(TRMRawData &rawdata, bool withwellbc);
     
     void Pair_Miolo_Reserv_Nodes(TPZGeoMesh * reservGMesh, const std::set<int> & reservNodeIndices,
                                  TPZAutoPointer<TPZGeoMesh> mioloGMesh,
                                  std::map<int,int> & miolo_reserv_nodeIndices);
     
     void AddRibElements(TPZGeoMesh *gmesh, int WellMatId1D, int WellMatFake1D);
+    
+    void CreateWellBoundaries(TPZAutoPointer<TPZGeoMesh> reservoirGMesh);
     
 };
 

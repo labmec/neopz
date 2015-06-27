@@ -39,8 +39,8 @@ void TRMOrchestra::CreateAnalysisPrimal(TRMSpaceOdissey spacegenerator){
     dy[0] = 50.0;
     dz[0] = 50.0;
     
-    spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
-//    spacegenerator.CreateGeometricReservoirMesh();
+//    spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
+    spacegenerator.CreateGeometricReservoirMesh();
     spacegenerator.PrintGeometry();
     fgmesh = spacegenerator.GetGmesh();
     spacegenerator.CreateH1Cmesh();
