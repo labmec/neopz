@@ -450,6 +450,10 @@ void TPZMultiphysicsCompEl<TGeometry>::SetConnectIndex(int inode, long index){
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
+    ek.fMesh = Mesh();
+    ef.fMesh = Mesh();
+    ek.fType = TPZElementMatrix::EK;
+    ef.fType = TPZElementMatrix::EF;
 	const int ncon = this->NConnects();
 	int numeq = 0;
 	int ic;

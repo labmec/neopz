@@ -142,8 +142,12 @@ public:
     /// Add a shape restraint (meant to fit the pyramid to restraint
     virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
     {
+        if (fRestraint.IsInitialized()) {
+            std::cout << "****************** Overwriting a constraint\n";
+        }
         fRestraint = restraint;
     }
+    
 
     /// Return a list with the shape restraints
     virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const
@@ -153,6 +157,12 @@ public:
             loc.push_back(fRestraint);
         }
         return loc;
+    }
+
+    /// Return a list with the shape restraints
+    virtual void ResetShapeRestraints()
+    {
+        fRestraint = TPZOneShapeRestraint();
     }
 
 	/** @brief Returns the unique identifier for reading/writing objects to streams */

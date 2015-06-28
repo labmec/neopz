@@ -402,6 +402,12 @@ void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
 	for(long i = 0; i < ncon; i++) {
 		buf.insert(connectlist[i]);
 	}
+    std::list<TPZOneShapeRestraint> mylist = GetShapeRestraints();
+    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++) {
+        for (int i=0; i<4; i++) {
+            buf2.insert(it->fFaces[i].first);
+        }
+    }
 	BuildConnectList(buf2);
 	ncon = buf2.size();
 	std::set<long>::iterator it = buf2.begin();
@@ -416,7 +422,7 @@ void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
 }
 
 void TPZCompEl::BuildConnectList(std::set<long> &connectlist) {
-	std::set<long> additional;
+	std::set<long> additional(connectlist);
 	const int ncon = this->NConnects();
 	for(int i = 0; i < ncon; i++) {
 		additional.insert(this->ConnectIndex(i));

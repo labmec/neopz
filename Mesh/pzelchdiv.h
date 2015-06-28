@@ -130,6 +130,13 @@ public:
     {
         return fRestraints;
     }
+    
+    /// Return a list with the shape restraints
+    virtual void ResetShapeRestraints()
+    {
+        fRestraints.clear();
+    }
+
     /**
      * @brief It returns the normal orientation of the reference element by the side.
      * Only side that has dimension larger than zero and smaller than me.

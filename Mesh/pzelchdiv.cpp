@@ -1595,23 +1595,31 @@ template<>
 int TPZCompElHDiv<TPZShapePiram>::RestrainedFace()
 {
     if (fRestraints.size() == 0) {
-        //return -1;
+        return -1;
         DebugStop(); //AQUIPHIL
     }
     std::list<TPZOneShapeRestraint>::iterator it = fRestraints.begin();
-    long connectindex = it->fFaces[0].first;
-    long cindex = -1;
-    int is;
-    for (is = 14; is<18; is++) {
-        cindex = ConnectIndex(is-13);
-        if (connectindex == cindex) {
-            break;
+    int foundis = -1;
+    bool found = false;
+    while (found == false && it != fRestraints.end()) {
+        long connectindex = it->fFaces[3].first;
+        long cindex = -1;
+        for (int is = 14; is<18; is++) {
+            cindex = ConnectIndex(is-13);
+            if (connectindex == cindex) {
+                found = true;
+                foundis = is+1;
+                if (foundis == 18) {
+                    foundis = 14;
+                }
+            }
         }
+        it++;
     }
-    if (cindex == -1) {
+    if (found == false) {
         DebugStop();
     }
-    return is;
+    return foundis;
 }
 
 //template<>

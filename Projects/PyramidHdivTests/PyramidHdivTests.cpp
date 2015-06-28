@@ -60,10 +60,13 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
 void InsertElasticityCubo(TPZCompMesh *mesh);
 void InsertBidimensionalPoisson(TPZCompMesh *cmesh, int &dim);
 TPZGeoMesh * CreateGeoMesh1Pir();
+TPZGeoMesh * CreateGeoMesh1Tet();
 TPZGeoMesh * CreateGeoMeshHexaOfPir();
+TPZGeoMesh * CreateGeoMeshHexaOfPirTetra();
+TPZGeoMesh * CreateGeoMeshPrism();
 TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p);
 TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int &p);
-TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> meshvec);
+TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec);
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
     f[0] = pt[0];
@@ -111,9 +114,11 @@ int main2(int argc, char *argv[])
 #endif
 
     HDivPiola = 1;
-    //TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
-    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
-    
+//    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
+//    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
+    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPirTetra();
+//    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
+//    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
     int pPressure = 1;
     int pFlux = 1;
     
@@ -138,7 +143,7 @@ int main2(int argc, char *argv[])
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     TPZSkylineStructMatrix skyl(cmeshMult);
-    //TPZFStructMatrix skyl(cmeshMult);
+//    TPZFStructMatrix skyl(cmeshMult);
     an.SetStructuralMatrix(skyl);
     an.SetSolver(step);
     
@@ -150,7 +155,7 @@ int main2(int argc, char *argv[])
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("Pressure");
     vecnames.Push("Flux");
-    std::string plotfile = "Pyramid_Solution.vtk";
+    std::string plotfile = "../Pyramid_Solution.vtk";
     an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     
     int postprocessresolution = 0;
@@ -161,7 +166,9 @@ int main2(int argc, char *argv[])
 
 TPZGeoMesh * CreateGeoMesh1Pir()
 {
-    long nodeids[]={1,2,3,4,0,1,2,3};
+    long nodeids[]={0,1,2,3,4};
+//    REAL coords[5][3]={{-1.,-1.,0},{1.,-1.,0.},{1.,1.,0.},{-1.,1.,0.},{0.,0.,1.}};
+    REAL coords[5][3]={{-1.,-1.,-1.},{1.,1.,-1.},{1.,1.,1.},{-1.,-1.,1.},{1.,-1.,-1.}};
     const int dim = 3;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     gmesh->SetDimension(dim);
@@ -175,41 +182,41 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     
     // noh 0
     TPZManVector<REAL, 3> nodecoord(3,0.);
-    nodecoord[0] = -1.;
-    nodecoord[1] = -1.;
-    nodecoord[2] = 0.;
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
     gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
                     
     // noh 1
-    nodecoord[0] = 1.;
-    nodecoord[1] = -1.;
-    nodecoord[2] = 0.;
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
     gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
     
     // noh 2
-    nodecoord[0] = 1.;
-    nodecoord[1] = 1.;
-    nodecoord[2] = 0.;
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
     gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
     
     // noh 3
-    nodecoord[0] = -1.;
-    nodecoord[1] = 1.;
-    nodecoord[2] = 0.;
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
     gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
     
     // noh 4
-    nodecoord[0] = 0.;
-    nodecoord[1] = 0.;
-    nodecoord[2] = 1.;
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
     gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
     ino++;
@@ -237,6 +244,189 @@ TPZGeoMesh * CreateGeoMesh1Pir()
     return gmesh;
     
 }
+
+TPZGeoMesh * CreateGeoMeshPrism()
+{
+//    long nodeids[]={0,1,2,3,4};
+    long nodeids[]={3,0,1,2,4};
+    long nodeidstet[] = {2,3,4,5};
+    long boundaryids[7][4] = {{0,4,3},{3,4,5},{0,4,1},{3,5,2},{4,1,2},{4,2,5},{0,1,2,3}};
+    //    REAL coords[5][3]={{-1.,-1.,0},{1.,-1.,0.},{1.,1.,0.},{-1.,1.,0.},{0.,0.,1.}};
+    REAL coords[6][3]={{-1.,-1.,-1.},{1.,1.,-1.},{1.,1.,1.},{-1.,-1.,1.},{1.,-1.,-1.},{1.,-1.,1.}};
+    const int dim = 3;
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    gmesh->SetDimension(dim);
+    
+    // Setando os nohs
+    int nnodes = 6;
+    gmesh->NodeVec().Resize(nnodes);
+    int ino = 0;
+    const int matid = 1;
+    long index = 0;
+    
+    // noh 0
+    TPZManVector<REAL, 3> nodecoord(3,0.);
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+    
+    // noh 1
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+    
+    // noh 2
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+    
+    // noh 3
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+    
+    // noh 4
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+    
+    // noh 5
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+
+    // Criando elemento
+    TPZManVector<long,5> topolPyr(5);
+    for (int i = 0; i < 5; i++) {
+        topolPyr[i] = nodeids[i];
+    }
+    
+    TPZGeoEl *gel = gmesh->CreateGeoElement(EPiramide, topolPyr, matid, index);
+    
+    TPZManVector<long,4> topolTet(4);
+    for (int i=0; i<4; i++) {
+        topolTet[i] = nodeidstet[i];
+    }
+    gel = gmesh->CreateGeoElement(ETetraedro, topolTet, matid, index);
+    
+    const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
+    for (int el=0; el<6; el++) {
+        TPZManVector<long,3> nodes(3);
+        for (int i=0; i<3; i++) {
+            nodes[i] = boundaryids[el][i];
+        }
+        long index;
+        gmesh->CreateGeoElement(ETriangle, nodes, bc0, index);
+    }
+    TPZManVector<long,4> nodes(4);
+    for (int i=0; i<4; i++) {
+        nodes[i] = boundaryids[6][i];
+    }
+    gmesh->CreateGeoElement(EQuadrilateral, nodes, bc0, index);
+    
+    gmesh->BuildConnectivity();
+    
+    std::ofstream out("../PrismGmesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+    
+    return gmesh;
+    
+}
+
+
+TPZGeoMesh * CreateGeoMesh1Tet()
+{
+    long nodeids[]={0,1,2,3};
+//    REAL coords[4][3]={{0.,0.,0.},{1.,0.,0.},{0.,1.,0.},{0.,0.,1.}};
+    REAL coords[4][3]={{-1.,-1.,1.},{1.,-1.,1.},{1.,1.,1.},{1.,-1.,-1.}};
+
+
+    const int dim = 3;
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    gmesh->SetDimension(dim);
+    
+    // Setando os nohs
+    int nnodes = 5;
+    gmesh->NodeVec().Resize(nnodes);
+    int ino = 0;
+    const int matid = 1;
+    long index = 0;
+    
+    // noh 0
+    TPZManVector<REAL, 3> nodecoord(3,0.);
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+    
+    // noh 1
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+    
+    // noh 2
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+    
+    // noh 3
+    for (int i=0; i<3; i++) {
+        nodecoord[i] = coords[ino][i];
+    }
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(nodeids[ino]);
+    ino++;
+    
+    
+    // Criando elemento
+    TPZManVector<long,5> topolTet(4);
+    for (int i = 0; i < 4; i++) {
+        topolTet[i] = i;
+    }
+    
+    TPZGeoEl *gel = gmesh->CreateGeoElement(ETetraedro, topolTet, matid, index);
+    
+    const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
+    gel->CreateBCGeoEl(10, bc0); // fundo
+    gel->CreateBCGeoEl(11, bc0); // frente (-1,-1 ateh 1,-1)
+    gel->CreateBCGeoEl(12, bc0); // direita
+    gel->CreateBCGeoEl(13, bc0); // atras
+    
+    gmesh->BuildConnectivity();
+    
+    std::ofstream out("../1TetGmesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+    
+    return gmesh;
+    
+}
+
 
 TPZGeoMesh * CreateGeoMeshHexaOfPir()
 {
@@ -351,6 +541,131 @@ TPZGeoMesh * CreateGeoMeshHexaOfPir()
     return gmesh;
 }
 
+TPZGeoMesh * CreateGeoMeshHexaOfPirTetra()
+{
+    const int dim = 3;
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    gmesh->SetDimension(dim);
+    
+    // Setando os nohs
+    int nnodes = 9;
+    gmesh->NodeVec().Resize(nnodes);
+    int ino = 0;
+    const int matid = 1;
+    long index = 0;
+    
+    // noh 0
+    TPZManVector<REAL, 3> nodecoord(3,0.);
+    nodecoord[0] = -1.;
+    nodecoord[1] = -1.;
+    nodecoord[2] = -1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 1
+    nodecoord[0] = 1.;
+    nodecoord[1] = -1.;
+    nodecoord[2] = -1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 2
+    nodecoord[0] = 1.;
+    nodecoord[1] = 1.;
+    nodecoord[2] = -1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 3
+    nodecoord[0] = -1.;
+    nodecoord[1] = 1.;
+    nodecoord[2] = -1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 4
+    nodecoord[0] = -1.;
+    nodecoord[1] = -1.;
+    nodecoord[2] = 1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 5
+    nodecoord[0] = 1.;
+    nodecoord[1] = -1.;
+    nodecoord[2] = 1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 6
+    nodecoord[0] = 1.;
+    nodecoord[1] = 1.;
+    nodecoord[2] = 1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 7
+    nodecoord[0] = -1.;
+    nodecoord[1] = 1.;
+    nodecoord[2] = 1.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    // noh 8
+    nodecoord[0] = 0.;
+    nodecoord[1] = 0.;
+    nodecoord[2] = 0.;
+    gmesh->NodeVec()[ino].SetCoord(nodecoord);
+    gmesh->NodeVec()[ino].SetNodeId(ino);
+    ino++;
+    
+    
+    // Criando elemento
+    TPZManVector<long,5> topolPyr(5), topolTet(4), topolTri(3);
+    int myelsp[2][5] = {{4,0,2,6,1},{4,0,2,6,7}};
+    int myelst[2][4] = {{4,6,5,1},{0,2,3,7}};
+    //                          front           right          top             back            left            bottom
+    int triangles[12][3] = {{0,1,4},{1,5,4},{1,2,6},{1,6,5},{4,5,6},{4,6,7},{2,6,7},{2,7,3},{0,3,7},{0,7,4},{0,1,2},{0,2,3} };
+    //int myels[6][5] = {{0,1,5,4,8},{6,5,1,2,8},{2,3,7,6,8},{7,4,0,3,8},{0,1,2,3,8},{4,5,6,7,8}}; //Sequencia trocada soh para funcionar o AddHDivPyramidRestraints
+    for (int iel = 0; iel < 2; iel++) {
+        for (int i = 0; i < 5; i++) {
+            topolPyr[i] = myelsp[iel][i];
+        }
+        gmesh->CreateGeoElement(EPiramide, topolPyr, matid, index);
+    }
+    for (int iel = 0; iel < 2; iel++) {
+        for (int i = 0; i < 4; i++) {
+            topolTet[i] = myelst[iel][i];
+        }
+        gmesh->CreateGeoElement(ETetraedro, topolTet, matid, index);
+    }
+    
+    const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
+    
+    for (long iel = 0; iel < 12; iel++) {
+        for (int i = 0; i < 3; i++) {
+            topolTri[i] = triangles[iel][i];
+        }
+        gmesh->CreateGeoElement(ETriangle, topolTri, bc0, index);
+    }
+    
+    gmesh->BuildConnectivity();
+    
+    std::ofstream out("../HexaPyrTetGmesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+    
+    return gmesh;
+}
+
+
 TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p)
 {
     const int matid = 1;
@@ -358,6 +673,8 @@ TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p)
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(p);
+    cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
     
     TPZMixedPoisson *mymat = new TPZMixedPoisson(matid, dim);
     cmesh->InsertMaterialObject(mymat);
@@ -367,9 +684,15 @@ TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p)
     for (long iel = 0; iel < nel; iel++) {
         TPZGeoEl *gel = gmesh->Element(iel);
         if (!gel || gel->Type() != EPiramide){
-            continue;
+            long index;
+            if (gel->Dimension() == gmesh->Dimension()) {
+                cmesh->ApproxSpace().CreateCompEl(gel, *cmesh, index);
+            }
         }
-        new TPZIntelGen<TPZShapePiramHdiv>(*cmesh,gel,index);
+        else
+        {
+            new TPZIntelGen<TPZShapePiramHdiv>(*cmesh,gel,index);
+        }
         gel->ResetReference();
     }
     cmesh->ExpandSolution();
@@ -400,7 +723,7 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int &p)
     return cmesh;
 }
 
-TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> meshvec)
+TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec)
 {
     const int matid = 1, bc0 = -1;
     const int dirichlet = 0;

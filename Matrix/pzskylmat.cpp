@@ -218,7 +218,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
             const TVar *p = &x.g((r-offset+1)*stride,ic);
             TVar *diag = fElem[r];
             TVar *diaglast = fElem[r+1]-1;
-            while( diag > diaglast ) {
+            while( diag < diaglast ) {
                 val += *diag++ * *p;
                 p += stride;
             }
@@ -230,7 +230,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
             TVar *zp = &z((r-offset+1)*stride,ic);
             val = x.g(r*stride,ic);
             diag = fElem[r];
-            while( diag > diaglast ) {
+            while( diag < diaglast ) {
                 *zp += alpha * *diag++ * val;
                 zp += stride;
             }

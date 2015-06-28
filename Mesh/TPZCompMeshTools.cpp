@@ -34,7 +34,7 @@ void TPZCompMeshTools::AddHDivPyramidRestraints(TPZCompMesh *cmesh)
         /// we need to identify the connect to restraint
         /// start with face 14
         int is;
-        for (is=14; is<18; is++) {
+        for (is=17; is>=14; is--) {
             TPZGeoElSide gelside(gel,is);
             TPZCompElSide large = gelside.LowerLevelCompElementList2(1);
             // if the side is constrained, it wont be used as a reference
@@ -69,7 +69,8 @@ void TPZCompMeshTools::AddHDivPyramidRestraints(TPZCompMesh *cmesh)
             }
             break;
         }
-        if (is == 18) {
+        if (is == 18 || is == 13) {
+            cmesh->Print();
             DebugStop();
         }
         TPZOneShapeRestraint rest = SetupPyramidRestraint(pyram, is);
@@ -83,7 +84,7 @@ void TPZCompMeshTools::AddHDivPyramidRestraints(TPZCompMesh *cmesh)
     }
     
         
-        
+    ExpandHDivPyramidRestraints(cmesh);
 }
 
 static int idf[6] = {2,1,1,2,0,0};
@@ -128,5 +129,68 @@ static TPZOneShapeRestraint SetupPyramidRestraint(TPZCompEl *cel, int side)
         mult *= -1;
     }
     return result;
+}
+
+void TPZCompMeshTools::ExpandHDivPyramidRestraints(TPZCompMesh *cmesh)
+{
+    /// Add the shapeonerestraints of all restrained connects build a map indexed on the restrained connect
+    std::map<long, TPZOneShapeRestraint> AllRestraints;
+    typedef std::list<TPZOneShapeRestraint>::iterator itlist;
+    if (!cmesh) {
+        DebugStop();
+    }
+    long nelem = cmesh->NElements();
+    for (long iel=0; iel<nelem; iel++) {
+        TPZCompEl *cel = cmesh->Element(iel);
+        std::list<TPZOneShapeRestraint> ellist;
+        ellist = cel->GetShapeRestraints();
+        for (itlist it = ellist.begin(); it != ellist.end(); it++) {
+            long elindex = it->fFaces[0].first;
+            AllRestraints[elindex] = *it;
+        }
+    }
+    /// For each element that has a oneshape restraint, add the oneshape restraints of all connects
+    for (long iel=0; iel<nelem; iel++) {
+        TPZCompEl *cel = cmesh->Element(iel);
+        std::list<TPZOneShapeRestraint> ellist;
+        std::map<long, TPZOneShapeRestraint> restraintmap;
+        std::set<long> connectset;
+        ellist = cel->GetShapeRestraints();
+        // we will insert the restraints afterwards
+        cel->ResetShapeRestraints();
+        for (itlist it = ellist.begin(); it != ellist.end(); it++) {
+            std::cout << "1 including connect index " << it->fFaces[0].first << " to restraint map\n";
+            it->Print(std::cout);
+            restraintmap[it->fFaces[0].first] = *it;
+            for (int i=1; i<4; i++) {
+                connectset.insert(it->fFaces[i].first);
+            }
+        }
+        while (connectset.size()) {
+            long cindex = *connectset.begin();
+            connectset.erase(cindex);
+            if (AllRestraints.find(cindex) != AllRestraints.end()) {
+                TPZOneShapeRestraint restloc = AllRestraints[cindex];
+                std::cout << "2 including connect index " << cindex << " to restraint map\n";
+                restloc.Print(std::cout);
+                restraintmap[cindex] = restloc;
+                for (int i=1; i<4; i++) {
+                    long locindex = restloc.fFaces[i].first;
+                    std::cout << "3 verifying connect index " << locindex << "\n";
+                    if (restraintmap.find(locindex) != restraintmap.end()) {
+                        std::cout << "********************* CIRCULAR RESTRAINT\n";
+                    }
+                    else
+                    {
+                        connectset.insert(locindex);
+                    }
+                }
+            }
+        }
+        for (std::map<long,TPZOneShapeRestraint>::iterator it = restraintmap.begin(); it != restraintmap.end(); it++) {
+            cel->AddShapeRestraint(it->second);
+        }
+    }
+    
 }
 

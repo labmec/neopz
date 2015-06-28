@@ -19,6 +19,8 @@ public:
     
     static void AddHDivPyramidRestraints(TPZCompMesh *cmesh);
     
+    static void ExpandHDivPyramidRestraints(TPZCompMesh *cmesh);
+    
 };
 
 #endif /* defined(__PZ__TPZCompMeshTools__) */

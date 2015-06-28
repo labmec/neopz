@@ -406,6 +406,10 @@ public:
         return loc;
     }
 
+    /// Return a list with the shape restraints
+    virtual void ResetShapeRestraints()
+    {
+    }
 	/**
 	 * @brief Calculates the solution - sol - for the variable var
 	 * at point qsi, where qsi is expressed in terms of the
