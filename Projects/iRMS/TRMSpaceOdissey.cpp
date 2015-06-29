@@ -193,13 +193,13 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
 //    fPressureCmesh->InsertMaterialObject(bcT);
     
     TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Flux);
-    fFluxCmesh->InsertMaterialObject(bcToe);
+    fPressureCmesh->InsertMaterialObject(bcToe);
     
     TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
-    fFluxCmesh->InsertMaterialObject(bcHeel);
+    fPressureCmesh->InsertMaterialObject(bcHeel);
     
     TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
-    fFluxCmesh->InsertMaterialObject(bcWellRes);
+    fPressureCmesh->InsertMaterialObject(bcWellRes);
     
 
     // Setando L2
@@ -207,7 +207,7 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     fPressureCmesh->SetDefaultOrder(porder);
     
     fPressureCmesh->SetAllCreateFunctionsContinuous();
-    fPressureCmesh->ApproxSpace().CreateDisconnectedElements(false);
+    fPressureCmesh->ApproxSpace().CreateDisconnectedElements(true);
     fPressureCmesh->AutoBuild();
     
     fPressureCmesh->AdjustBoundaryElements();
