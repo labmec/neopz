@@ -48,6 +48,9 @@ const int _ReservoirInletPressure = 36;
 const int _ReservoirOutletPressure = 37;
 const int _ReservoirNonFluxBoundary = 38;
 
+// two dimensional elements between the 3D well elements and the reservoir
+const int _Well3DReservoirFaces = 39;
+
 
 
 //---------------------------------------------------------------------------

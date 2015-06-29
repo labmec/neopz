@@ -1690,23 +1690,49 @@ void TRMSimworxMeshGenerator::CreateWellBoundaries(TPZAutoPointer<TPZGeoMesh> re
         const int nedges = 12;
         const int nfaces = 6;
         
+        
         for (int ic = nc + nedges; ic < nc + nedges + nfaces; ic++) {
+            bool hasinterface = false;
+            bool hasendpoint = false;
+            bool isinternal = false;
+            bool isinterfaceside = false;
             TPZGeoElSide gelside(gel,ic);
             TPZGeoElSide neigh = gelside.Neighbour();
             while (gelside != neigh) {
-                if (neigh.Dimension() == 3 && neigh.Element()->MaterialId() == _WellMatId3D) {
-                    break;
+                int neighmatid = neigh.Element()->MaterialId();
+                if (neigh.Element()->Dimension() == 2 && (neighmatid == _WellToeMatId || neighmatid == _WellHeelMatId)) {
+                    hasendpoint = true;
+                }
+                if (neigh.Element()->Dimension() == 3 && neigh.Element()->MaterialId() == _ReservMatId) {
+                    isinterfaceside = true;
+                }
+                if (neigh.Element()->Dimension() == 3 && neigh.Element()->MaterialId() == _WellMatId3D) {
+                    isinternal = true;
+                }
+                if (neighmatid == _Well3DReservoirFaces) {
+                    hasinterface = true;
                 }
                 neigh = neigh.Neighbour();
             }
-            
-            if (neigh == gelside) { // We are with the almost perfect candidate to create wellbc
-                // Filter heel and toe conditions and then create the bcgeoel
+            if (hasinterface == true)
+            {
+                std::cout << __PRETTY_FUNCTION__ << " called twice?\n";
             }
-            
+            if (hasinterface == true && (ic < 21 || ic > 25)) {
+                std::cout << __LINE__ << " I don't understand\n";
+            }
+            if (hasinterface == false && (ic >20 && ic < 25)) {
+                TPZGeoElBC(gelside, _Well3DReservoirFaces);
+            }
+            if (hasendpoint == true && ic != 20 && ic != 25) {
+                std::cout << __LINE__ << " I don't understand\n";
+            }
+            if (ic == 20 && ! hasendpoint && !isinternal) {
+                TPZGeoElBC(gelside,_WellHeelMatId);
+            }
+            if (ic == 25 && !hasendpoint && !isinternal) {
+                TPZGeoElBC(gelside,_WellToeMatId);
+            }
         }
-        
-        
-    }
-    
+    }    
 }

@@ -42,7 +42,39 @@ TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
 
 /** @brief Default desconstructor */
 TRMSpaceOdissey::~TRMSpaceOdissey(){
+    /** @brief H1 computational mesh for validation */
+    if(fH1Cmesh)
+    {
+        fH1Cmesh->CleanUp();
+    }
     
+    /** @brief Mixed computational mesh for a dual analysis */
+    if(fMixedFluxPressureCmesh)
+    {
+        fMixedFluxPressureCmesh->CleanUp();
+    }
+    
+    /** @brief Autopointer of Simulation data */
+    TPZAutoPointer<TRMSimulationData> fSimulationData;
+    
+    /** @brief Hdiv computational mesh conservative vector field */
+    if(fFluxCmesh)
+    {
+        fFluxCmesh->CleanUp();
+    }
+    
+    /** @brief L2 computational mesh the restriction equation */
+    if(fPressureCmesh)
+    {
+        fPressureCmesh->CleanUp();
+    }
+    
+    /** @brief H1 computational mesh for Maurice Biot Linear Poroelasticity */
+    if(fGeoMechanicsCmesh)
+    {
+        fGeoMechanicsCmesh->CleanUp();
+    }
+
 }
 
 
@@ -59,7 +91,7 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     int qorder = 1;
     
     const int typeFlux = 1, typePressure = 0;
-    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2Flux(1,1,0.), val2Pressure(1,1,100.);
     
     // Malha computacional
     fFluxCmesh = new TPZCompMesh(fGeoMesh);
@@ -68,28 +100,39 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     fFluxCmesh->InsertMaterialObject(mat);
     
     // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2);
+    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2Flux);
     fFluxCmesh->InsertMaterialObject(bcN);
     
     // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2);
+    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typeFlux, val1, val2Flux);
     fFluxCmesh->InsertMaterialObject(bcS);
     
     // Bc E
-    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
     fFluxCmesh->InsertMaterialObject(bcE);
     
     // Bc W
-    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-    fFluxCmesh->InsertMaterialObject(bcW);
+//    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+//    fFluxCmesh->InsertMaterialObject(bcW);
     
     // Bc B
-    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-    fFluxCmesh->InsertMaterialObject(bcB);
+//    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+//    fFluxCmesh->InsertMaterialObject(bcB);
     
     // Bc T
-    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-    fFluxCmesh->InsertMaterialObject(bcT);
+//    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+//    fFluxCmesh->InsertMaterialObject(bcT);
+
+    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Flux);
+    fFluxCmesh->InsertMaterialObject(bcToe);
+    
+    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
+    fFluxCmesh->InsertMaterialObject(bcHeel);
+    
+    TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
+    fFluxCmesh->InsertMaterialObject(bcWellRes);
+    
+
     
     // Setando Hdiv
     fFluxCmesh->SetDimModel(dim);
@@ -117,7 +160,7 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     int porder = 1;
     
     const int typeFlux = 1, typePressure = 0;
-    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2Pressure(1,1,0.), val2Flux(1,1,0.);
     
     // Malha computacional
     fPressureCmesh = new TPZCompMesh(fGeoMesh);
@@ -126,29 +169,39 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     fPressureCmesh->InsertMaterialObject(mat);
     
     // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2);
+    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2Flux);
     fPressureCmesh->InsertMaterialObject(bcN);
     
     // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2);
+    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typeFlux, val1, val2Flux);
     fPressureCmesh->InsertMaterialObject(bcS);
     
     // Bc E
-    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
     fPressureCmesh->InsertMaterialObject(bcE);
     
     // Bc W
-    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-    fPressureCmesh->InsertMaterialObject(bcW);
+//    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+//    fPressureCmesh->InsertMaterialObject(bcW);
     
     // Bc B
-    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-    fPressureCmesh->InsertMaterialObject(bcB);
+//    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+//    fPressureCmesh->InsertMaterialObject(bcB);
     
     // Bc T
-    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-    fPressureCmesh->InsertMaterialObject(bcT);
+//    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+//    fPressureCmesh->InsertMaterialObject(bcT);
     
+    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Flux);
+    fFluxCmesh->InsertMaterialObject(bcToe);
+    
+    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
+    fFluxCmesh->InsertMaterialObject(bcHeel);
+    
+    TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
+    fFluxCmesh->InsertMaterialObject(bcWellRes);
+    
+
     // Setando L2
     fPressureCmesh->SetDimModel(dim);
     fPressureCmesh->SetDefaultOrder(porder);
@@ -186,7 +239,8 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     int dim = 3;
     
     const int typeFlux = 1, typePressure = 0;
-    TPZFMatrix<STATE> val1(1,2,0.), val2(1,1,0.);
+    TPZFMatrix<STATE> val1(2,2,0.), val2Flux(2,1,0.), val2Pressure(2,1,0.);
+    val2Pressure(0,0) = 100.;
     
     // Malha computacional
     fMixedFluxPressureCmesh = new TPZCompMesh(fGeoMesh);
@@ -197,36 +251,39 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     
     // Bc N
-    val2(0,0) = 20.0;
-    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2);
+    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2Flux);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcN);
     
     // Bc S
-    val2(0,0) = 10.0;
-    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2);
+    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typeFlux, val1, val2Flux);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcS);
     
     // Bc E
-    val2(0,0) = 0.0;
-    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+//    val2(0,0) = 0.0;
+//    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     
     // Bc W
-    val2(0,0) = 0.0;
-    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+//    val2(0,0) = 0.0;
+//    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     
     // Bc B
-    val2(0,0) = 0.0;
-    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-    
-    // Bc T
-    val2(0,0) = 0.0;
-    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-    
-    
-    fMixedFluxPressureCmesh->InsertMaterialObject(bcN);
-    fMixedFluxPressureCmesh->InsertMaterialObject(bcS);
-    fMixedFluxPressureCmesh->InsertMaterialObject(bcE);
-    fMixedFluxPressureCmesh->InsertMaterialObject(bcW);
+    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcB);
-    fMixedFluxPressureCmesh->InsertMaterialObject(bcT);
+    // Bc T
+//    val2(0,0) = 0.0;
+//    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+    
+    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Flux);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcToe);
+    
+    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcHeel);
+    
+    TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcWellRes);
+    
+
+    
     
     fMixedFluxPressureCmesh->SetDimModel(dim);
     fMixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElem();

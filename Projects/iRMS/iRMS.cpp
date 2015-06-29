@@ -26,11 +26,11 @@ int main()
 {
     
     // This code use normalized piola contravariant mapping for nonlinear mappings
-    HDivPiola = 0;
+    HDivPiola = 1;
     
 
     // Running primal problem
-    LinearTracerPrimal();
+//    LinearTracerPrimal();
     
     // Running dual problem
     LinearTracerDual();
