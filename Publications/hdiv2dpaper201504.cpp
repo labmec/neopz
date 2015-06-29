@@ -1019,7 +1019,7 @@ void Hdiv2dPaper201504::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, int pos,  
     
     long nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
+    TPZManVector<REAL,10> globalerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
@@ -1029,7 +1029,7 @@ void Hdiv2dPaper201504::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, int pos,  
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExataH1, elerror, NULL);
         
@@ -1064,7 +1064,7 @@ void Hdiv2dPaper201504::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostre
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExataH1, elerror, NULL);
         
@@ -1085,11 +1085,11 @@ void Hdiv2dPaper201504::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivme
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsDual(10,0.);
+    TPZManVector<REAL,10> globalerrorsDual(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1103,10 +1103,10 @@ void Hdiv2dPaper201504::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivme
     
     nel = l2mesh->NElements();
     
-    TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
+    TPZManVector<REAL,10> globalerrorsPrimal(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
@@ -1134,7 +1134,7 @@ void Hdiv2dPaper201504::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivme
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -1151,7 +1151,7 @@ void Hdiv2dPaper201504::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivme
     TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
