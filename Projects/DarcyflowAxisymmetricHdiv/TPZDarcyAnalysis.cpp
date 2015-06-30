@@ -31,6 +31,8 @@
 #include "pzfstrmatrix.h"
 #include "math.h"
 
+#include "TPZMultiphysicsInterfaceEl.h"
+
 #ifdef DEBUG
     #ifdef LOG4CXX
     static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
@@ -294,17 +296,47 @@ void TPZDarcyAnalysis::Run()
     
     CreateMultiphysicsMesh(q,p,s);
     CreateInterfaces();
-    if (fSimulationData->GetSC()) {
-        ApplyStaticCondensation();
+    
+    std::cout << "nequations " << fcmeshdarcy->NEquations() << std::endl;;
+    long nel = fcmeshdarcy->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fcmeshdarcy->Element(el);
+        if (!cel) {
+            continue;
+        }
+        TPZMultiphysicsInterfaceElement *intface = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
+        if (!intface) {
+            continue;
+        }
+        TPZGeoEl *gel = intface->Reference();
+        if (gel->Dimension() != 1) {
+            DebugStop();
+        }
+        TPZManVector<REAL,2> ksi(1,0.);
+        TPZFNMatrix<9,REAL> jac(1,1),axes(1,3),jacinv(1,1);
+        REAL detjac;
+        gel->Jacobian(ksi, jac, axes, detjac, jacinv);
+//        delete cel;
+//        if (fabs(axes(0,1)) > 0.9) {
+//            delete cel;
+//        }
     }
 
-    
+
+//    if (fSimulationData->GetSC()) {
+//        ApplyStaticCondensation();
+//    }
+
     
     // Analysis
     bool mustOptimizeBandwidth = fSimulationData->GetOptband();
     TPZAnalysis *an = new TPZAnalysis(fcmeshdarcy,mustOptimizeBandwidth);
     int numofThreads = 0;
     
+//    {
+//        std::ofstream out("../Compmesh.txt");
+//        fcmeshdarcy->Print(out);
+//    }
     bool IsDirecSolver = fSimulationData->GetIsDirect();
     
     if (IsDirecSolver) {
@@ -445,8 +477,18 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
     
 #ifdef DEBUG
-    std::ofstream dumpfile("ComputationaMeshMultiphysics.txt");
-    fcmeshdarcy->Print(dumpfile);
+    {
+        std::ofstream dumpfile("../ComputationaMeshMultiphysics.txt");
+        dumpfile << "FLUX MESH\n";
+        fmeshvec[0]->Print(dumpfile);
+        dumpfile << "PRESSURE MESH\n";
+        fmeshvec[1]->Print(dumpfile);
+        dumpfile << "WATER SATURATION MESH\n";
+        fmeshvec[2]->Print(dumpfile);
+        dumpfile << "OIL SATURATION MESH\n";
+        fmeshvec[3]->Print(dumpfile);
+        fcmeshdarcy->Print(dumpfile);
+    }
 #endif
     
 }
@@ -497,6 +539,10 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         {
             const clock_t tinia = clock();
             NewtonIterations(an);
+            
+//            std::cout << "sol " << an->Solution() << std::endl;
+//            an->PrintVectorByElement(std::cout, an->Solution());
+            
             const clock_t tenda = clock();
             const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
             std::cout << "Time for Newton: " << timea << std::endl;
@@ -936,6 +982,7 @@ void TPZDarcyAnalysis::ApplyStaticCondensation(){
     // increase the NumElConnected of one pressure connects in order to prevent condensation
     for (long icel=0; icel < fcmeshdarcy->NElements(); icel++) {
         TPZCompEl  * cel = fcmeshdarcy->Element(icel);
+        if(!cel) continue;
         int nc = cel->NConnects();
         for (int ic=0; ic<nc; ic++) {
             TPZConnect &c = cel->Connect(ic);
@@ -1104,27 +1151,27 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     cmesh->InsertMaterialObject(mat);
     
     // Bc Bottom
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcBottom);
+//    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
+//    cmesh->InsertMaterialObject(bcBottom);
     
     // Bc Right
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
-    cmesh->InsertMaterialObject(bcRight);
+//    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
+//    cmesh->InsertMaterialObject(bcRight);
     
     // Bc Top
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcTop);
+//    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
+//    cmesh->InsertMaterialObject(bcTop);
     
     // Bc Left
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcLeft);
+//    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
+//    cmesh->InsertMaterialObject(bcLeft);
     
     // Setando L2
     cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(porder);
     
     cmesh->SetAllCreateFunctionsContinuous();
-    cmesh->ApproxSpace().CreateDisconnectedElements(false);
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
     //    cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->AutoBuild();
     
@@ -1139,7 +1186,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     }
     
 #ifdef DEBUG
-    std::ofstream out("cmeshPress.txt");
+    std::ofstream out("../cmeshPress.txt");
     cmesh->Print(out);
 #endif
     
