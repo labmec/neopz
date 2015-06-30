@@ -1415,10 +1415,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     
     //  Compute axuliar functions for the current values of time, u, P, Sw and So
     
+    // contribuicao para elemento esquerdo
     for (int isw = 0; isw < nphiSwL2L; isw++)
     {
         ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
     }
+    // contribuicao para elemento direito
     for (int isw = 0; isw < nphiSwL2R; isw++)
     {
         ef(iblock + isw + iniSwR) += -1.0 * weight * fFWater[0] * phiSwL2R(isw,0) * uLn;
@@ -2433,7 +2435,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 
-                ef(iq) += weight * (gBigNumber * (Qn - Value) + P[0]) * PhiH1(iq,0);
+                ef(iq) += weight * (gBigNumber * (Qn - Value) ) * PhiH1(iq,0);
                 
                 for (int jq = 0; jq < nPhiHdiv; jq++)
                 {
