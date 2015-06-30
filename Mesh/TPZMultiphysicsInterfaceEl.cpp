@@ -310,6 +310,10 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<TPZMaterialData
 
 void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
+    ek.fMesh = Mesh();
+    ef.fMesh = ek.fMesh;
+    ek.fType = TPZElementMatrix::EK;
+    ef.fType = TPZElementMatrix::EF;
 	const int ncon = this->NConnects();
 	long numeq = 0;
 	int ic;

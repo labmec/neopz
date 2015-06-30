@@ -514,6 +514,8 @@ template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix &ef)
 {
     const int ncon = this->NConnects();
+    ef.fMesh = Mesh();
+    ef.fType = TPZElementMatrix::EF;
     int numeq = 0;
     int ic;
     
