@@ -92,7 +92,8 @@ const int TPZElasticityMaterialSest2DID = 335;
 /** @brief Id of a forcing function representing a poro elastic drag force */
 const int TPBrAcidFuncID = 336;
 
-
+/** @brief ID of an L2 product of vector shape functions */
+const int TPZVECL2ID = 337;
 
 /** @} */
 

@@ -235,6 +235,30 @@ void TPZCompEl::LoadSolution() {
 		}
 		current_order--;
 	}
+    std::list<TPZOneShapeRestraint> mylist = this->GetShapeRestraints();
+    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++)
+    {
+        long connectdest = it->fFaces[0].first;
+        long seqnumdest = Mesh()->ConnectVec()[connectdest].SequenceNumber();
+        int destidf = it->fFaces[0].second;
+        REAL mult = -1./it->fOrient[0];
+#ifdef DEBUG
+        STATE prevval = Mesh()->Block()(seqnumdest,0,destidf,0);
+#endif
+        Mesh()->Block()(seqnumdest,0,destidf,0) = 0.;
+        for (int i=1; i<4; i++) {
+            long connectindex = it->fFaces[i].first;
+            long seqnum = Mesh()->ConnectVec()[connectindex].SequenceNumber();
+            int idf = it->fFaces[i].second;
+            STATE val = Mesh()->Block()(seqnum,0,idf,0);
+            REAL multorig = it->fOrient[i];
+            Mesh()->Block()(seqnumdest,0,destidf,0) += mult*multorig*val;
+        }
+#ifdef DEBUG
+        STATE finalval = Mesh()->Block()(seqnumdest,0,destidf,0);
+        finalval -= prevval;
+#endif
+    }
 }
 
 void TPZCompEl::SetMesh(TPZCompMesh *mesh) {
@@ -436,6 +460,9 @@ int TPZCompEl::HasDependency() {
 	for(in=0; in<nconnects; in++) if(Connect(in).HasDependency()){
 		return 1;
 	}
+    if (GetShapeRestraints().size()) {
+        return 1;
+    }
 	return 0;
 }
 

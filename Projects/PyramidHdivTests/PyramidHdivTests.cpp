@@ -36,6 +36,11 @@
 #include "TPZCompMeshTools.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "pzfstrmatrix.h"
+#include "pzelchdiv.h"
+#include "pzshapetetra.h"
+#include "pzelementgroup.h"
+
+#include "TPZVecL2.h"
 
 
 #include <sys/time.h>
@@ -67,10 +72,20 @@ TPZGeoMesh * CreateGeoMeshPrism();
 TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p);
 TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int &p);
 TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec);
+void LoadSolution(TPZCompMesh *cpressure);
+void ProjectFlux(TPZCompMesh *cfluxmesh);
+void GroupElements(TPZCompMesh *cmesh);
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
+
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
     f[0] = pt[0];
     return;
+}
+
+void FluxFunc(const TPZVec<REAL> &pt, TPZVec<STATE> &flux)
+{
+    flux[0] = -1.;
 }
 
 int main1(int argc, char *argv[]);
@@ -113,19 +128,34 @@ int main2(int argc, char *argv[])
     }
 #endif
 
+    gRefDBase.InitializeAllUniformRefPatterns();
     HDivPiola = 1;
 //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
 //    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
     TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPirTetra();
+    UniformRefine(gmesh, 1);
+    {
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, "../PyramidGMesh.vtk", true);
+    }
 //    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
 //    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
     int pPressure = 1;
     int pFlux = 1;
     
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     TPZManVector<TPZCompMesh*,2> meshvec(2);
     meshvec[1] = CreateCmeshPressure(gmesh, pPressure);
+    LoadSolution(meshvec[1]);
     meshvec[0] = CreateCmeshFlux(gmesh, pFlux);
     TPZCompMeshTools::AddHDivPyramidRestraints(meshvec[0]);
+    ProjectFlux(meshvec[0]);
     
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
@@ -138,6 +168,16 @@ int main2(int argc, char *argv[])
 #endif
     
     TPZCompMesh *cmeshMult = CreateCmeshMulti(meshvec);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, cmeshMult);
+//    GroupElements(cmeshMult);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        cmeshMult->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     
     TPZAnalysis an(cmeshMult,false);
     TPZStepSolver<STATE> step;
@@ -148,9 +188,33 @@ int main2(int argc, char *argv[])
     an.SetSolver(step);
     
     an.Assemble();
+    TPZAutoPointer<TPZMatrix<STATE> > mat = an.Solver().Matrix();
+    TPZFMatrix<STATE> solution = cmeshMult->Solution();
+    {
+        std::ofstream sol("../SolInterpolate.txt");
+        sol << "Solution obtained by interpolation\n";
+        an.PrintVectorByElement(sol, solution,1.e-8);
+    }
+    TPZFMatrix<STATE> rhs;
+    mat->Multiply(solution, rhs);
+    {
+        std::ofstream theory("../RhsbyMult.txt");
+        theory << "Rhs obtained by matrix vector multiply\n";
+        an.PrintVectorByElement(theory, rhs,1.e-8);
+    }
+    {
+        std::ofstream practice("../RhsComputed.txt");
+        practice << "Rhs obtained by assembly process\n";
+        an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
+    }
+
     an.Solve();
-    an.Solution().Print("sol");
-    
+    {
+        std::ofstream sol("../SolComputed.txt");
+        sol << "Solution obtained by matrix inversion\n";
+        an.PrintVectorByElement(sol, cmeshMult->Solution(),1.e-8);
+    }
+
     int dim = 3;
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("Pressure");
@@ -625,8 +689,8 @@ TPZGeoMesh * CreateGeoMeshHexaOfPirTetra()
     nodecoord[2] = 0.;
     gmesh->NodeVec()[ino].SetCoord(nodecoord);
     gmesh->NodeVec()[ino].SetNodeId(ino);
-    ino++;
-    
+//    ino++;
+    gmesh->SetNodeIdUsed(ino);
     
     // Criando elemento
     TPZManVector<long,5> topolPyr(5), topolTet(4), topolTri(3);
@@ -708,7 +772,8 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int &p)
     cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(p);
     
-    TPZMixedPoisson *mymat = new TPZMixedPoisson(matid, dim);
+    TPZVecL2 *mymat = new TPZVecL2(matid);
+    mymat->SetForcingFunction(FluxFunc);
     cmesh->InsertMaterialObject(mymat);
     
     TPZFMatrix<> val1(3,3,0.);
@@ -745,8 +810,8 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec)
     //Criando condicoes de contorno
     TPZFMatrix<> val1(3,3,0.), val2(3,1,1.);
     TPZBndCond * BCond0 = mat->CreateBC(mat, bc0,dirichlet, val1, val2);
-//    TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(Forcing);
-//    BCond0->SetForcingFunction(0,force);
+    TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(Forcing);
+    BCond0->SetForcingFunction(0,force);
     
     mphysics->InsertMaterialObject(BCond0);
     
@@ -1272,4 +1337,127 @@ void InsertElasticityCubo(TPZCompMesh *mesh)
     TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
     TPZMaterial * bcauto3(bc3);
     mesh->InsertMaterialObject(bcauto3);
+}
+
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
+{
+    for(int D = 0; D < nDiv; D++)
+    {
+        int nels = gmesh->NElements();
+        for(int elem = 0; elem < nels; elem++)
+        {
+            TPZVec< TPZGeoEl * > filhos;
+            TPZGeoEl * gel = gmesh->ElementVec()[elem];
+            gel->Divide(filhos);
+        }
+    }
+    // Re-constructing connectivities
+//    gmesh->ResetConnectivities();
+//    gmesh->BuildConnectivity();
+}
+
+void GroupElements(TPZCompMesh *cmesh)
+{
+    long nel = cmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (gel->Type() == EPiramide) {
+            std::list<TPZOneShapeRestraint> shape;
+            shape = cel->GetShapeRestraints();
+            if (shape.size() != 1) {
+                DebugStop();
+            }
+            TPZOneShapeRestraint local = *shape.begin();
+            TPZMultiphysicsElement *mult = dynamic_cast<TPZMultiphysicsElement *>(cel);
+            if (!mult) {
+                DebugStop();
+            }
+            TPZCompElHDiv<pzshape::TPZShapePiram> *hdiv = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapePiram> *>(mult->Element(0));
+            if (!hdiv) {
+                DebugStop();
+            }
+            int face = hdiv->RestrainedFace();
+            TPZGeoElSide gelside(gel,face);
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            TPZCompEl *celneigh = neighbour.Element()->Reference();
+            TPZMultiphysicsElement *multneigh = dynamic_cast<TPZMultiphysicsElement *>(celneigh);
+            if (!multneigh) {
+                DebugStop();
+            }
+            TPZCompElHDiv<pzshape::TPZShapeTetra> *hdivneigh = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapeTetra> *>(multneigh->Element(0));
+            if (!hdivneigh) {
+                DebugStop();
+            }
+            long index;
+            TPZElementGroup *grp = new TPZElementGroup(*cmesh,index);
+            grp->AddElement(cel);
+            grp->AddElement(celneigh);
+        }
+    }
+}
+
+void LoadSolution(TPZCompMesh *cpressure)
+{
+    long nel = cpressure->NElements();
+    for (long iel=0; iel<nel; iel++) {
+        TPZCompEl *cel = cpressure->Element(iel);
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (gel->Dimension() != 3) {
+            continue;
+        }
+        if (gel->Type() == EPiramide) {
+            TPZGeoNode *top = gel->NodePtr(4);
+            TPZManVector<REAL,3> topco(3),valvec(1);
+            top->GetCoordinates(topco);
+            Forcing(topco, valvec);
+            STATE topval = valvec[0];
+            TPZConnect &c = cel->Connect(0);
+            long seqnum = c.SequenceNumber();
+            for (int i=0; i<4; i++) {
+                cpressure->Block()(seqnum,0,i,0) = topval;
+            }
+            for (int i=0; i<4; i++) {
+                TPZConnect &c = cel->Connect(i+1);
+                TPZGeoNode *no = gel->NodePtr(i);
+                no->GetCoordinates(topco);
+                Forcing(topco, valvec);
+                STATE nodeval = valvec[0];
+                seqnum = c.SequenceNumber();
+                cpressure->Block()(seqnum,0,0,0) = nodeval-topval;
+            }
+        }
+        else if(gel->Type() == ETetraedro)
+        {
+            for (int i=0; i<4; i++) {
+                TPZConnect &c = cel->Connect(i);
+                TPZGeoNode *no = gel->NodePtr(i);
+                TPZManVector<REAL,3> topco(3);
+                no->GetCoordinates(topco);
+                TPZManVector<STATE,3> valvec(1);
+                Forcing(topco, valvec);
+                STATE nodeval = valvec[0];
+                long seqnum = c.SequenceNumber();
+                cpressure->Block()(seqnum,0,0,0) = nodeval;
+            }
+            
+        }
+    }
+}
+
+void ProjectFlux(TPZCompMesh *cfluxmesh)
+{
+    TPZAnalysis an(cfluxmesh,false);
+    TPZSkylineStructMatrix str(cfluxmesh);
+    an.SetStructuralMatrix(str);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ECholesky);
+    an.SetSolver(step);
+    an.Run();
 }
