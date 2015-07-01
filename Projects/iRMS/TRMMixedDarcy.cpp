@@ -448,6 +448,10 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
     TPZManVector<STATE> Q = datavec[Qblock].sol[0];
     TPZManVector<STATE> P = datavec[Pblock].sol[0];
     
+    if (P.size() == 0) {
+        DebugStop();
+    }
+    
     // Computing normal flux
     STATE Qn = Q[0];
     
