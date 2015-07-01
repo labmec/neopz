@@ -113,42 +113,43 @@ int main(int argc, char *argv[])
   TPZCompMesh *cmesh = CMesh(gmesh, pOrder, L, urMat,erMat, theta, lambda,e0); //funcao para criar a malha computacional
   bool optimizeBandwidth = true; //impede a renumeracao das equacoes do problema(para obter o mesmo resultado do Oden)
   TPZAnalysis an(cmesh,optimizeBandwidth);
+  an.Run();
   
-  for(int i=0;i<nIteracoes;i++)
-  {
-
-    // Resolvendo o Sistema
-    an.Run();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
-    
-    //Calcula coeficiente de reflexao para z = ?
-    TPZManVector<REAL,3> qsi(3,0.);
-    TPZManVector<STATE,3> sol(3,0.);
-    int var = 0;
-    TPZCompEl *cel = cmesh->Element(indexRBC[0]);
-    if (!cel){
-      DebugStop();
-    }
-    cel->Solution(qsi, var, sol);
-    STATE eZApprox = sol[0]+imaginary*sol[1];
-    
-    REAL R=abs((eZApprox-e0*exp(imaginary*kZero*L*cos(theta)))/(e0*exp(-1.*imaginary*kZero*L*cos(theta))));
-    results(i,0)=theta*180/M_PI;
-    results(i,1)=R;
-    
-    //Atualiza theta para a proxima iteracao
-    theta=((i+1.)/(nIteracoes-1))*M_PI/2.;
-    TPZMaterial *mat = cmesh->FindMaterial(1);
-    TPZMatComplexExample2D *mpmat = dynamic_cast<TPZMatComplexExample2D *>(mat);
-    mpmat->SetTheta(theta);
-    
-    //Atualiza condicoes de contorno
-    const STATE val1=-1.*imaginary*kZero*cos(theta);
-    const STATE val2=-2.*imaginary*kZero*cos(theta)*e0*exp(imaginary*kZero*L*cos(theta));
-    
-    TPZBndCond *mpmatbc = dynamic_cast<TPZBndCond *>(cmesh->FindMaterial(-2));
-    mpmatbc->Val1()(0,0) = val1;
-    mpmatbc->Val2()(0,0) = val2;
-  }
+//  for(int i=0;i<nIteracoes;i++)
+//  {
+//
+//    // Resolvendo o Sistema
+//    an.Run();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
+//    
+//    //Calcula coeficiente de reflexao para z = ?
+//    TPZManVector<REAL,3> qsi(3,0.);
+//    TPZManVector<STATE,3> sol(3,0.);
+//    int var = 0;
+//    TPZCompEl *cel = cmesh->Element(indexRBC[0]);
+//    if (!cel){
+//      DebugStop();
+//    }
+//    cel->Solution(qsi, var, sol);
+//    STATE eZApprox = sol[0]+imaginary*sol[1];
+//    
+//    REAL R=abs((eZApprox-e0*exp(imaginary*kZero*L*cos(theta)))/(e0*exp(-1.*imaginary*kZero*L*cos(theta))));
+//    results(i,0)=theta*180/M_PI;
+//    results(i,1)=R;
+//    
+//    //Atualiza theta para a proxima iteracao
+//    theta=((i+1.)/(nIteracoes-1))*M_PI/2.;
+//    TPZMaterial *mat = cmesh->FindMaterial(1);
+//    TPZMatComplexExample2D *mpmat = dynamic_cast<TPZMatComplexExample2D *>(mat);
+//    mpmat->SetTheta(theta);
+//    
+//    //Atualiza condicoes de contorno
+//    const STATE val1=-1.*imaginary*kZero*cos(theta);
+//    const STATE val2=-2.*imaginary*kZero*cos(theta)*e0*exp(imaginary*kZero*L*cos(theta));
+//    
+//    TPZBndCond *mpmatbc = dynamic_cast<TPZBndCond *>(cmesh->FindMaterial(-2));
+//    mpmatbc->Val1()(0,0) = val1;
+//    mpmatbc->Val2()(0,0) = val2;
+//  }
 
   timer.stop();
   
