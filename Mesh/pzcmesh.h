@@ -16,6 +16,7 @@
 #include "pzsave.h"
 #include "pzgmesh.h"
 #include "pzcreateapproxspace.h"
+#include "pzcheckgeom.h"
 
 #include <map>
 #include <iostream>
@@ -457,6 +458,13 @@ public:
 	
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	virtual void AutoBuild(){
+#ifdef DEBUG
+        {
+            TPZGeoMesh *gmesh = Reference();
+            TPZCheckGeom check(gmesh);
+            check.CheckUniqueId();
+        }
+#endif
 		fCreate.BuildMesh(*this);
 	}
 		

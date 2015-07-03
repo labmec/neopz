@@ -189,6 +189,13 @@ public:
                                                      TRMRawData &rawdata);
     TPZAutoPointer<TPZGeoMesh> CreateSimworxGeoMesh(TRMRawData &rawdata, bool withwellbc);
     
+    /**
+     * Os cornerNodes do retangulo inscrito na elipse sao movidos para um ponto que
+     * gera malha com melhor aspecto dos prismas para situacoes diversas de geometrias.
+     *
+     */
+    void AdjustPrismCoordinates(TPZGeoMesh * gmesh, REAL semiX, REAL semiY);
+    
     void Pair_Miolo_Reserv_Nodes(TPZGeoMesh * reservGMesh, const std::set<int> & reservNodeIndices,
                                  TPZAutoPointer<TPZGeoMesh> mioloGMesh,
                                  std::map<int,int> & miolo_reserv_nodeIndices);

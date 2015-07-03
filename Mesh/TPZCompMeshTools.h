@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include "pzcmesh.h"
+#include "pzfunction.h"
 
 /// class whose methods implement a functionality on a computational mesh
 class TPZCompMeshTools
@@ -20,6 +21,9 @@ public:
     static void AddHDivPyramidRestraints(TPZCompMesh *cmesh);
     
     static void ExpandHDivPyramidRestraints(TPZCompMesh *cmesh);
+    
+    static void LoadSolution(TPZCompMesh *cpressure, TPZFunction<STATE> &Forcing);
+
     
 };
 

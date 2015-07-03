@@ -18,6 +18,9 @@
 #include "tpzhierarquicalgrid.h"
 #include "pzgeopoint.h"
 #include "TRMSimworxMeshGenerator.h"
+#include "TPZCompMeshTools.h"
+#include "pzelchdivbound2.h"
+#include "pzshapequad.h"
 
 
 static void CreateExampleRawData(TRMRawData &data)
@@ -132,6 +135,9 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
     fFluxCmesh->InsertMaterialObject(bcWellRes);
     
+    TPZBndCond * bcWellFaces = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2Pressure);
+    fFluxCmesh->InsertMaterialObject(bcWellFaces);
+    
 
     
     // Setando Hdiv
@@ -140,6 +146,23 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     fFluxCmesh->SetAllCreateFunctionsHDiv();
     fFluxCmesh->AutoBuild();
     
+    long nel = fFluxCmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fFluxCmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        int matid = gel->MaterialId();
+        if (!gel || (matid != _Well3DReservoirFaces && matid != _WellHeelMatId && matid != _WellToeMatId)) {
+            continue;
+        }
+        TPZCompElHDivBound2<pzshape::TPZShapeQuad> *bound = dynamic_cast<TPZCompElHDivBound2<pzshape::TPZShapeQuad> *>(cel);
+        if (!bound) {
+            DebugStop();
+        }
+        bound->SetSideOrient(8, -1);
+    }
     
 #ifdef DEBUG
     std::ofstream out("CmeshFlux.txt");
@@ -147,6 +170,12 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
 #endif
     
 }
+
+void PressFunc(const TPZVec<REAL> &x, TPZVec<STATE> &func)
+{
+    func[0] = 100.;
+}
+
 
 /** @brief Create a Discontinuous computational mesh L2 */
 void TRMSpaceOdissey::CreatePressureCmesh(){
@@ -169,16 +198,16 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     fPressureCmesh->InsertMaterialObject(mat);
     
     // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2Flux);
-    fPressureCmesh->InsertMaterialObject(bcN);
+//    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2Flux);
+//    fPressureCmesh->InsertMaterialObject(bcN);
     
     // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typeFlux, val1, val2Flux);
-    fPressureCmesh->InsertMaterialObject(bcS);
+//    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typeFlux, val1, val2Flux);
+//    fPressureCmesh->InsertMaterialObject(bcS);
     
     // Bc E
-    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
-    fPressureCmesh->InsertMaterialObject(bcE);
+//    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
+//    fPressureCmesh->InsertMaterialObject(bcE);
     
     // Bc W
 //    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
@@ -192,14 +221,14 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
 //    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
 //    fPressureCmesh->InsertMaterialObject(bcT);
     
-    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Flux);
-    fPressureCmesh->InsertMaterialObject(bcToe);
+//    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Flux);
+//    fPressureCmesh->InsertMaterialObject(bcToe);
     
-    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
-    fPressureCmesh->InsertMaterialObject(bcHeel);
+//    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
+//    fPressureCmesh->InsertMaterialObject(bcHeel);
     
-    TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
-    fPressureCmesh->InsertMaterialObject(bcWellRes);
+//    TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
+//    fPressureCmesh->InsertMaterialObject(bcWellRes);
     
 
     // Setando L2
@@ -220,13 +249,15 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
         newnod.SetLagrangeMultiplier(1);
     }
     
-    
+    TPZDummyFunction<STATE> dummy(PressFunc);
+    TPZCompMeshTools::LoadSolution(fPressureCmesh.operator->(), dummy);
 #ifdef DEBUG
-    std::ofstream out("CmeshPress.txt");
+    std::ofstream out("../CmeshPress.txt");
     fPressureCmesh->Print(out);
 #endif
     
 }
+
 
 /** @brief Create a Mixed computational mesh Hdiv-L2 */
 void TRMSpaceOdissey::CreateMixedCmesh(){
@@ -251,11 +282,11 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     
     // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2Flux);
+    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2Pressure);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcN);
     
     // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typeFlux, val1, val2Flux);
+    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2Pressure);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcS);
     
     // Bc E
@@ -273,7 +304,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
 //    val2(0,0) = 0.0;
 //    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
     
-    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Flux);
+    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typePressure, val1, val2Pressure);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcToe);
     
     TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
@@ -281,6 +312,9 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcWellRes);
+    
+    TPZBndCond * bcWellFaces = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2Pressure);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcWellFaces);
     
 
     
@@ -385,9 +419,9 @@ void TRMSpaceOdissey::CreateH1Cmesh()
 void TRMSpaceOdissey::PrintGeometry()
 {
     //  Print Geometrical Base Mesh
-    std::ofstream argument("GeometicMesh.txt");
+    std::ofstream argument("../GeometricMesh.txt");
     fGeoMesh->Print(argument);
-    std::ofstream Dummyfile("GeometricMesh.vtk");
+    std::ofstream Dummyfile("../GeometricMesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh,Dummyfile, true);
 }
 

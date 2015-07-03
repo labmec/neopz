@@ -88,16 +88,24 @@ void TRMOrchestra::CreateAnalysisDual(TRMSpaceOdissey spacegenerator){
     
     TPZAutoPointer<TPZCompMesh > Cmesh = spacegenerator.GetMixedCmesh();
     
+#ifdef DEBUG
+    {
+        std::ofstream out("../MFCompMesh.txt");
+        Cmesh->Print(out);
+    }
+#endif
+    
     // Analysis
     bool mustOptimizeBandwidth = true;
     TPZAnalysis * AnalysisDual = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
-    int numofThreads = 8;
+    int numofThreads = 0;
     
-    TPZSkylineNSymStructMatrix skylnsym(Cmesh.operator->());
+    TPZSkylineStructMatrix strmat(Cmesh.operator->());
+//    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
     TPZStepSolver<STATE> step;
-    skylnsym.SetNumThreads(numofThreads);
+    strmat.SetNumThreads(numofThreads);
     step.SetDirect(ELU);
-    AnalysisDual->SetStructuralMatrix(skylnsym);
+    AnalysisDual->SetStructuralMatrix(strmat);
     AnalysisDual->SetSolver(step);
     AnalysisDual->Assemble();
     AnalysisDual->Rhs() *= -1.0;

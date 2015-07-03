@@ -75,6 +75,7 @@ int TPZCheckGeom::CheckIds()
         nodeids.insert(fMesh->NodeVec()[inode].Id());
     }
     if (nodeids.size() != numnodes) {
+        std::cout << "The nodes have duplicate ids - EXPECT TROUBLE!\n";
         return 1;
     }
     
@@ -83,6 +84,7 @@ int TPZCheckGeom::CheckIds()
         elsids.insert(fMesh->ElementVec()[iel]->Id());
     }
     if (elsids.size() != numels) {
+        std::cout << "The elements have duplicate ids - EXPECT TROUBLE!\n";
         return 1;
     }
     
@@ -394,3 +396,40 @@ int TPZCheckGeom::CheckNeighbourMap(TPZGeoEl *gel)
     }
     return check;
 }
+
+/// Verify is the ids of the elements and nodes are unique
+void TPZCheckGeom::CheckUniqueId()
+{
+    std::set<long> elementid, nodeid;
+    long nnode = fMesh->NNodes();
+    for (long in=0; in<nnode; in++) {
+        long id = fMesh->NodeVec()[in].Id();
+        if (id != -1) {
+            if (nodeid.find(id) == nodeid.end()) {
+                nodeid.insert(id);
+            }
+            else
+            {
+                std::cout << "Node id repetido id = " << id << std::endl;
+                DebugStop();
+            }
+        }
+    }
+    long nelem = fMesh->NElements();
+    for (long el=0; el<nelem; el++) {
+        TPZGeoEl *gel = fMesh->Element(el);
+        if (!gel) {
+            continue;
+        }
+        long id = gel->Id();
+        if (elementid.find(id) != elementid.end()) {
+            std::cout << "Duplicate element id = " << id << std::endl;
+            DebugStop();
+        }
+        else
+        {
+            elementid.insert(id);
+        }
+    }
+}
+

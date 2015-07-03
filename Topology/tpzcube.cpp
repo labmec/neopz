@@ -1214,17 +1214,22 @@ namespace pztopology {
         
         if (HDivPiola)
         {
-            NormalScales[0] = 1./Nv1v2;
-            NormalScales[1] = 1./Nv2v3;
-            NormalScales[2] = 1./Nv3v1;
+            for (int i=0; i<3; i++) {
+                v1[i] *= 1./detgrad;
+                v2[i] *= 1./detgrad;
+                v3[i] *= 1./detgrad;
+            }
+            
         }
-        
-        
-        for (int i=0; i<3; i++) {
+        else
+        {
+            for (int i=0; i<3; i++) {
             v1[i] *= Nv2v3/detgrad;
             v2[i] *= Nv3v1/detgrad;
             v3[i] *= Nv1v2/detgrad;
+            }
         }
+        
         for (int i=0; i<3; i++) {
             for (int iv=0; iv<9; iv++) {
                 directions(i,iv)        = -v3[i]*NormalScales[1];

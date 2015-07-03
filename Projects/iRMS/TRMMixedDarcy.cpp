@@ -322,7 +322,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZFMatrix<STATE> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions
     TPZFMatrix<STATE> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions
     
-    TPZFMatrix<STATE> DivergenceOnDeformed;
+    TPZFNMatrix<40,STATE> DivergenceOnDeformed;
     // Compute the divergence on deformed element by piola contravariant transformation
     this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
     
@@ -448,9 +448,6 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
     TPZManVector<STATE> Q = datavec[Qblock].sol[0];
     TPZManVector<STATE> P = datavec[Pblock].sol[0];
     
-    if (P.size() == 0) {
-        DebugStop();
-    }
     
     // Computing normal flux
     STATE Qn = Q[0];

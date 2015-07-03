@@ -374,6 +374,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::CreateEllipticalReservoirGeoMesh(const REA
     }
     
     gmesh->BuildConnectivity();
+    AdjustPrismCoordinates(gmesh,semiAxeX,semiAxeY);
     
     InsertEllipseArcs(gmesh, semiAxeX, semiAxeY, espacamentoZ[0]);
     
@@ -1735,4 +1736,33 @@ void TRMSimworxMeshGenerator::CreateWellBoundaries(TPZAutoPointer<TPZGeoMesh> re
             }
         }
     }    
+}
+
+void TRMSimworxMeshGenerator::AdjustPrismCoordinates(TPZGeoMesh * gmesh, REAL semiX, REAL semiY)
+{
+    const int nnodes = gmesh->NNodes();
+    
+    const REAL xnn2 = gmesh->NodeVec()[nnodes-2].Coord(0);
+    const REAL ynn2 = gmesh->NodeVec()[nnodes-2].Coord(1);
+    
+    const REAL xnn5 = gmesh->NodeVec()[nnodes-5].Coord(0);
+    const REAL ynn5 = gmesh->NodeVec()[nnodes-5].Coord(1);
+    
+    const REAL tempX = (semiY)*(semiY)*(xnn2 + xnn5)*(xnn2 + xnn5) + (semiX)*(semiX)*(ynn2 + ynn5)*(ynn2 + ynn5);
+    const REAL newX = (semiX*semiY*(xnn2 + xnn5))/sqrt(std::max(1.e-10,tempX));
+    
+    const REAL tempY = 1. - newX*newX/(semiX*semiX);
+    const REAL newY = semiY*sqrt(std::max(0.,tempY));
+    
+    gmesh->NodeVec()[0].SetCoord(0,-newX);
+    gmesh->NodeVec()[0].SetCoord(1,-newY);
+    
+    gmesh->NodeVec()[3].SetCoord(0,+newX);
+    gmesh->NodeVec()[3].SetCoord(1,-newY);
+    
+    gmesh->NodeVec()[nnodes-1].SetCoord(0,+newX);
+    gmesh->NodeVec()[nnodes-1].SetCoord(1,+newY);
+    
+    gmesh->NodeVec()[nnodes-4].SetCoord(0,-newX);
+    gmesh->NodeVec()[nnodes-4].SetCoord(1,+newY);
 }

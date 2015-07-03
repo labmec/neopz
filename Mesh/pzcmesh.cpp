@@ -29,6 +29,7 @@
 #include "TPZRefPattern.h"
 #include "pzcondensedcompel.h"
 #include "pzelementgroup.h"
+#include "pzcheckgeom.h"
 
 #include "pzvec.h"
 #include "pzadmchunk.h"
@@ -272,6 +273,13 @@ TPZMaterial * TPZCompMesh::FindMaterial(int matid){	// find the material object 
 }
 
 void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
+#ifdef DEBUG
+    {
+        TPZGeoMesh *gmesh = Reference();
+        TPZCheckGeom check(gmesh);
+        check.CheckIds();
+    }
+#endif
     if(MaterialIDs)
     {
         fCreate.BuildMesh(*this, *MaterialIDs);        
@@ -283,6 +291,13 @@ void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
 }
 
 void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous) {
+#ifdef DEBUG
+    {
+        TPZGeoMesh *gmesh = Reference();
+        TPZCheckGeom check(gmesh);
+        check.CheckIds();
+    }
+#endif
 	
 	TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
 	long nelem = elvec.NElements();

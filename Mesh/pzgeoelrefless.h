@@ -245,7 +245,7 @@ public:
 	virtual  TPZTransform BuildTransform2(int side, TPZGeoEl *father,TPZTransform &t);
 	
 	/** @brief Returns the Jacobian matrix at the point*/
-	virtual  void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
+	virtual  void Jacobian(TPZVec<REAL> &parameter,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
 	
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
 	virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;

@@ -1322,10 +1322,10 @@ namespace pztopology {
         
         if (HDivPiola)
         {
-            NormalScales[0] = 1./Nv1v2;
-            NormalScales[1] = 1./Nv2v3;
-            NormalScales[2] = 1./Nv3v1;
-            NormalScales[3] = 2./Nv3vdiag;
+            Nv1v2 = 1.;
+            Nv2v3 = 2.;
+            Nv3v1 = 2.;
+            Nv3vdiag = 2.;
         }
         
         

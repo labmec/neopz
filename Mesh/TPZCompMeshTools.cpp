@@ -11,6 +11,7 @@
 #include "pzshapepiram.h"
 #include "TPZOneShapeRestraint.h"
 #include "pzshapetriang.h"
+#include "pzshapetetra.h"
 
 static TPZOneShapeRestraint SetupPyramidRestraint(TPZCompEl *cel, int side);
 
@@ -34,7 +35,7 @@ void TPZCompMeshTools::AddHDivPyramidRestraints(TPZCompMesh *cmesh)
         /// we need to identify the connect to restraint
         /// start with face 14
         int is;
-        for (is=17; is>=14; is--) {
+        for (is=14; is<18; is++) {
             TPZGeoElSide gelside(gel,is);
             TPZCompElSide large = gelside.LowerLevelCompElementList2(1);
             // if the side is constrained, it wont be used as a reference
@@ -51,13 +52,13 @@ void TPZCompMeshTools::AddHDivPyramidRestraints(TPZCompMesh *cmesh)
             gelside.EqualLevelCompElementList(celstack, 1, 0);
             int localel;
             for (localel=0; localel<celstack.size(); localel++) {
-                if (celstack[localel].Reference().Element()->Type() == EPiramide) break;
+                if (celstack[localel].Reference().Element()->Type() == ETetraedro) break;
             }
-            TPZCompElHDiv<pzshape::TPZShapePiram> *pir;
+            TPZCompElHDiv<pzshape::TPZShapeTetra> *pir;
             /// the pyramid has a neighbour of pyramid type
             if (localel < celstack.size()) {
                 // find out if the face is the restrained face
-                pir = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapePiram> *>(celstack[localel].Element());
+                pir = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapeTetra> *>(celstack[localel].Element());
                 if (pir == NULL) {
                     DebugStop();
                 }
@@ -66,8 +67,8 @@ void TPZCompMeshTools::AddHDivPyramidRestraints(TPZCompMesh *cmesh)
                 if (restrainedface == neighbourside) {
                     continue;
                 }
+                break;
             }
-            break;
         }
         if (is == 18 || is == 13) {
             cmesh->Print();
@@ -192,5 +193,56 @@ void TPZCompMeshTools::ExpandHDivPyramidRestraints(TPZCompMesh *cmesh)
         }
     }
     
+}
+
+void TPZCompMeshTools::LoadSolution(TPZCompMesh *cpressure, TPZFunction<STATE> &Forcing)
+{
+    long nel = cpressure->NElements();
+    for (long iel=0; iel<nel; iel++) {
+        TPZCompEl *cel = cpressure->Element(iel);
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (gel->Dimension() != 3) {
+            continue;
+        }
+        if (gel->Type() == EPiramide) {
+            TPZGeoNode *top = gel->NodePtr(4);
+            TPZManVector<REAL,3> topco(3),valvec(1);
+            top->GetCoordinates(topco);
+            Forcing.Execute(topco, valvec);
+            STATE topval = valvec[0];
+            TPZConnect &c = cel->Connect(0);
+            long seqnum = c.SequenceNumber();
+            for (int i=0; i<4; i++) {
+                cpressure->Block()(seqnum,0,i,0) = topval;
+            }
+            for (int i=0; i<4; i++) {
+                TPZConnect &c = cel->Connect(i+1);
+                TPZGeoNode *no = gel->NodePtr(i);
+                no->GetCoordinates(topco);
+                Forcing.Execute(topco, valvec);
+                STATE nodeval = valvec[0];
+                seqnum = c.SequenceNumber();
+                cpressure->Block()(seqnum,0,0,0) = nodeval-topval;
+            }
+        }
+        else
+        {
+            int ncorner = gel->NCornerNodes();
+            for (int i=0; i<ncorner; i++) {
+                TPZConnect &c = cel->Connect(i);
+                TPZGeoNode *no = gel->NodePtr(i);
+                TPZManVector<REAL,3> topco(3);
+                no->GetCoordinates(topco);
+                TPZManVector<STATE,3> valvec(1);
+                Forcing.Execute(topco, valvec);
+                STATE nodeval = valvec[0];
+                long seqnum = c.SequenceNumber();
+                cpressure->Block()(seqnum,0,0,0) = nodeval;
+            }
+        }
+    }
 }
 

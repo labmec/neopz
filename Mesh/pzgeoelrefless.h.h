@@ -279,8 +279,8 @@ TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform &t
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const {
-	fGeo.Jacobian(*this,coordinate,jac,axes,detjac,jacinv);
+TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &par,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const {
+	fGeo.Jacobian(*this,par,jac,axes,detjac,jacinv);
 	
     
 #ifdef DEBUG

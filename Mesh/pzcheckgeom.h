@@ -41,7 +41,14 @@ public:
     int CheckNeighbourMap(TPZGeoEl *gel);
     
 	int CheckSideTransform(TPZGeoEl *gel, int sidefrom, int sideto);
+    
+    /// verify if the transformation between sons and father are conforming
 	int CheckSubFatherTransform(TPZGeoEl *subel, int sidesub);
+    
+    /// Verify is the ids of the elements and nodes are unique
+    void CheckUniqueId();
+    
+    
 	void CreateMesh();
 	static int main();
 	
