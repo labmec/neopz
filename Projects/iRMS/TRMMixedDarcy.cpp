@@ -458,13 +458,20 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
     // Number of phis
     int nPhiHdiv = PhiH1.Rows();  // For Hdiv
     int nPhiL2   = WL2.Rows();                                  // For L2
-    
+    TPZVec<STATE> &x = datavec[0].x;
     
     REAL Value;
+    TPZManVector<STATE,2> myval2(1,0.);
+    if (bc.HasForcingFunction()){
+        bc.ForcingFunction()->Execute(x, myval2);
+        Value = myval2[0];
+    }
+    else{
+        Value = bc.Val2()(0,0);
+    }
     switch (bc.Type()) {
         case 0 :    // Dirichlet BC  PD inflow
         {
-            Value = bc.Val2()(0,0);         //  Pressure
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 ef(iq) += weight * ( (Value ) * PhiH1(iq,0));
@@ -473,9 +480,7 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
             break;
             
         case 1 :    // Neumann BC  QN inflow
-        {
-            Value = bc.Val2()(0,0);         //  NormalFlux
-            
+        {            
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 

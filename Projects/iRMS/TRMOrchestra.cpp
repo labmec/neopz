@@ -82,7 +82,9 @@ void TRMOrchestra::CreateAnalysisDual(TRMSpaceOdissey spacegenerator){
     
 //    spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
     spacegenerator.CreateGeometricReservoirMesh();
+#ifdef DEBUG
     spacegenerator.PrintGeometry();
+#endif
     fgmesh = spacegenerator.GetGmesh();
     spacegenerator.CreateMixedCmesh();
     
@@ -104,7 +106,7 @@ void TRMOrchestra::CreateAnalysisDual(TRMSpaceOdissey spacegenerator){
 //    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
     TPZStepSolver<STATE> step;
     strmat.SetNumThreads(numofThreads);
-    step.SetDirect(ELU);
+    step.SetDirect(ELDLt);
     AnalysisDual->SetStructuralMatrix(strmat);
     AnalysisDual->SetSolver(step);
     AnalysisDual->Assemble();

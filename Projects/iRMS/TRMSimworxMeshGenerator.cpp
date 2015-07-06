@@ -127,6 +127,7 @@ TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRaw
     if (withwellbc) {
         CreateWellBoundaries(reservoirGMesh);
     }
+    
     return reservoirGMesh;
 }
 
@@ -186,8 +187,6 @@ TPZAutoPointer<TPZGeoMesh> TRMSimworxMeshGenerator::ReallyGenerateGeoMesh(const 
                                                                    mioloData,
                                                                    rawdata);
     
-    std::ofstream out("gmeshGSyd.txt");
-    reservoirGMesh->Print(out);
     
     //Miolo GeoMesh
     REAL welldiam = rawdata.fWellDiam;
@@ -209,28 +208,15 @@ TPZAutoPointer<TPZGeoMesh> TRMSimworxMeshGenerator::ReallyGenerateGeoMesh(const 
     
     TPZAutoPointer<TPZGeoMesh> boxGMesh = box.GenerateMesh();
     
-#ifdef DEBUG
-    {
-        std::ofstream outGMesh("../MalhaGeometricaCheckPoint1.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(boxGMesh.operator->(), outGMesh);
-        std::cout << "Arquivo MalhaGeometricaWellProducer.vtk concluido" << std::endl;
-    }
-#endif
     
     //Matching nodes between reserv and miolo GeoMeshes
     std::map<int,int> miolo_reserv_nodeIndices;
     Pair_Miolo_Reserv_Nodes(reservoirGMesh, mioloData.m_reservInterfaceNodeIndices,
                             boxGMesh, miolo_reserv_nodeIndices);
     
+    
     TPZGeoMesh * completeGMesh = MergeGeoMeshes(reservoirGMesh,boxGMesh,miolo_reserv_nodeIndices);
     
-#ifdef DEBUG
-    {
-        std::ofstream outGMesh("../MalhaGeometricaWellProducer.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(completeGMesh, outGMesh);
-        std::cout << "Arquivo MalhaGeometricaWellProducer.vtk concluido" << std::endl;
-    }
-#endif
     HangFacesTreatment(completeGMesh);
     return completeGMesh;
 }
