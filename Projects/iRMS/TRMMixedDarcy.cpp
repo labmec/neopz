@@ -480,7 +480,10 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
             break;
             
         case 1 :    // Neumann BC  QN inflow
-        {            
+        {
+            std::cout << " HERE!!!!! " << std::endl;
+            DebugStop();
+            
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 

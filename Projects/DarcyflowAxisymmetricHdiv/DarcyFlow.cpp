@@ -30,6 +30,7 @@ void LinearTracer()
   
     // This code use piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
+    TPZMaterial::gBigNumber = 1.0e18;
     
     // Simulation Data SI units
     
@@ -41,7 +42,7 @@ void LinearTracer()
     bool SC         = true;     // Use Static Condensation
     bool IsDirect   = true;     // Not Used broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    bool OptBand    = true;    // Band optimization
+    bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
     int qorder      = 1;
@@ -52,17 +53,17 @@ void LinearTracer()
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = 10.0*day;
+    REAL dt         = 1.0*day;
 
-    REAL maxtime    = 500.0*day;
+    REAL maxtime    = 1.0*day;
     REAL t0         = 0.0*day;
-    REAL TolDeltaX  = 1.0*1e-6;
-    REAL TolRes     = 1.0*1e-6;
+    REAL TolDeltaX  = 1.0*1e-3;
+    REAL TolRes     = 1.0*1e-3;
     
-    int  nelemX     =4;
+    int  nelemX     =1;
     REAL lengthX    =100.0;
     
-    int nelemY      =4;
+    int nelemY      =1;
     REAL lengthY    =100.0;
 
 
@@ -116,7 +117,7 @@ void LinearTracer()
     REAL waterdensity       = 1000.0;
     REAL waterviscosity     = 0.001;
     REAL cwater             = 0.0*1e-8;
-    REAL oildensity         = 500.0;
+    REAL oildensity         = 1000.0;
     REAL oilviscosity       = 0.001;
     REAL coil               = 0.0*1e-8;
     REAL gasdensity         = 0.0;
