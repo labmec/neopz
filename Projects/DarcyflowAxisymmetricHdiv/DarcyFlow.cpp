@@ -30,7 +30,7 @@ void LinearTracer()
   
     // This code use piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
-    TPZMaterial::gBigNumber = 1.0e18;
+//    TPZMaterial::gBigNumber = 1.0e15;
     
     // Simulation Data SI units
     

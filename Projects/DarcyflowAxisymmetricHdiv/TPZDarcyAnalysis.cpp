@@ -187,19 +187,19 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     fmeshvec[3]->LoadSolution(Soini);
     
     
-    TPZFMatrix<REAL> Qini = fmeshvec[0]->Solution();
-    Qini(0,0) = -0.00;
-    Qini(1,0) = -0.00;
-    Qini(2,0) = 0.00;
-    Qini(3,0) = 0.00;
-    fmeshvec[0]->LoadSolution(Qini);
+//    TPZFMatrix<REAL> Qini = fmeshvec[0]->Solution();
+//    Qini(0,0) = -0.05;
+//    Qini(1,0) = -0.05;
+//    Qini(2,0) = 0.05;
+//    Qini(3,0) = 0.05;
+//    fmeshvec[0]->LoadSolution(Qini);
     
-    TPZFMatrix<REAL> Pini = fmeshvec[1]->Solution();
-    Pini(0,0) = 1.0e7;
-    Pini(1,0) = 1.0e7;
-    Pini(2,0) = 1.0e7;
-    Pini(3,0) = 1.0e7;
-    fmeshvec[1]->LoadSolution(Pini);
+//    TPZFMatrix<REAL> Pini = fmeshvec[1]->Solution();
+//    Pini(0,0) = 1.0e7;
+//    Pini(1,0) = 1.0e7;
+//    Pini(2,0) = 1.0e7;
+//    Pini(3,0) = 1.0e7;
+//    fmeshvec[1]->LoadSolution(Pini);
     
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
     falphaAtn = fcmeshdarcy->Solution();
@@ -555,10 +555,6 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         {
             const clock_t tinia = clock();
             NewtonIterations(an);
-            
-//            std::cout << "sol " << an->Solution() << std::endl;
-//            an->PrintVectorByElement(std::cout, an->Solution());
-            
             const clock_t tenda = clock();
             const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
             std::cout << "Time for Newton: " << timea << std::endl;
@@ -617,55 +613,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     int iterations  =   0;
     int centinel    =   0;
     int fixed       =   fSimulationData->GetFixediterations();
-    
-//    // Inserting the desired solution
-//    X.Zero();
-//    X(0,0) = -0.05;
-//    X(1,0) = -0.05;
-//    X(2,0) = 0.05;
-//    X(3,0) = 0.05;
-//    
-//    X(12,0) = 20000000.0;
-//    X(13,0) = 10000000.0;
-//    X(14,0) = 10000000.0;
-//    X(15,0) = 20000000.0;
-//    
-//    X(16,0) = 1.0;
-//    X(17,0) = 0.0;
-//    
-//    fcmeshdarcy->LoadSolution(X);
-//    an->LoadSolution(X);
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec,fcmeshdarcy);
-//    
-//    std::cout << "flux:  " << fmeshvec[0]->Solution() << std::endl;
-//    std::cout << "P:  " << fmeshvec[1]->Solution() << std::endl;
-//    std::cout << "Sw:  " << fmeshvec[2]->Solution() << std::endl;
-//    std::cout << "So:  " << fmeshvec[3]->Solution() << std::endl;
-//    
-//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec,fcmeshdarcy);
-//
-//    AssembleLastStep(an);
-//    AssembleNextStep(an);
-//    
-//    
-//    this->PostProcessVTK(an);
-    
-    
-    
-#ifdef DEBUG
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        X.Print("X = ", sout,EMathematicaInput);
-        fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
-        fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-#endif
-    
-    this->PrintLS(an);
+
     
     while (error >= fSimulationData->GetToleranceRes() && iterations <= fSimulationData->GetMaxiterations()) {
         
@@ -1010,10 +958,10 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFluxin, val1, val2);
     
     // Bc Left
-    val2(0,0) = 10.0*1e6;
+    val2(0,0) = -0.001;
     val2(1,0) = 1.0;
     val2(2,0) = 0.0;
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typePressureout, val1, val2);
+    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
     
     cmesh->InsertMaterialObject(bcBottom);
     cmesh->InsertMaterialObject(bcRight);
@@ -1214,21 +1162,21 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     TPZMatPoisson3d * mat = new TPZMatPoisson3d(RockId,dim);
     cmesh->InsertMaterialObject(mat);
     
-    // Bc Bottom
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcBottom);
-    
-    // Bc Right
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
-    cmesh->InsertMaterialObject(bcRight);
-    
-    // Bc Top
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcTop);
-    
-    // Bc Left
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcLeft);
+//    // Bc Bottom
+//    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
+//    cmesh->InsertMaterialObject(bcBottom);
+//    
+//    // Bc Right
+//    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
+//    cmesh->InsertMaterialObject(bcRight);
+//    
+//    // Bc Top
+//    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
+//    cmesh->InsertMaterialObject(bcTop);
+//    
+//    // Bc Left
+//    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
+//    cmesh->InsertMaterialObject(bcLeft);
     
     // Setando L2
     cmesh->SetDimModel(dim);
@@ -1485,7 +1433,7 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
 void TPZDarcyAnalysis::Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
     X[0] = par[0];//cos(par[0]);
-    X[1] = 0.25 * par[0];//sin(par[0]);
+    X[1] = 0.0 * par[0];//sin(par[0]);
     X[2] = 0.0;
 }
 
