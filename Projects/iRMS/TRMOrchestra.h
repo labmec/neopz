@@ -39,6 +39,9 @@ private:
     /** @brief Define simulation data */
     TPZAutoPointer<TRMSimulationData> fSimulationData;
     
+    /** @brief The space generator */
+    TRMSpaceOdissey fSpaceGenerator;
+    
 protected:
     
     /** @brief Solve the initial conditions for pressure using a l2 projection */
@@ -64,16 +67,28 @@ public:
     void CreateAnalysisPrimal(TRMSpaceOdissey spacegenerator);
     
     /** @brief Create a dual analysis using space odissey */
-    void CreateAnalysisDual(TRMSpaceOdissey spacegenerator);
+    void CreateAnalysisDual();
     
     /** @brief Run the time steps set in the simulation data */
     void RunSimulation();
+    
+    /// Transfer the flux solution to the saturation mesh
+    void TransferToSaturationMesh();
     
     /** @brief Run a single time step */
     void ExecuteOneTimeStep();
     
     /** @brief Computes the post processed results */
     void PostProcess();
+    
+    /** @brief Project an exact solution */
+    void ProjectExactSolution();
+    
+    /** @brief exact pressure */
+    static void ExactPressure(const TPZVec<REAL> &x, TPZVec<STATE> &pressure);
+    
+    /** @brief exact pressure */
+    static void ExactFlux(const TPZVec<REAL> &x, TPZVec<STATE> &flux);
     
 };
 

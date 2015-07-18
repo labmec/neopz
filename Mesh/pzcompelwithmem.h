@@ -114,6 +114,7 @@ public:
 	/** @brief ClassId of the class. Is implemented for each type of compel in this .h */
 	virtual int ClassId() const
 	{
+        DebugStop();
 		return -1;
 	}
 	/**

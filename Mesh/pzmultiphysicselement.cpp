@@ -13,6 +13,7 @@
 #include "pzbndcond.h"
 #include "pzlog.h"
 #include "pzinterpolationspace.h"
+#include "pzcompelwithmem.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZMultiPhysicsElement"));
@@ -191,17 +192,30 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 			}
 #endif
 		}
+        bool withmem = fMesh->ApproxSpace().NeedsMemory();
 		if(Dimension() > list[is].Reference().Dimension()) {
 			//o de volume eh o direito caso um deles seja BC
 			//a normal aponta para fora do contorno
 			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide neighcompelside(list[is]);
-			newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
+            if (!withmem) {
+                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
+            }
+            else
+            {
+                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,index,thiscompelside,neighcompelside);
+            }
 		} else {
 			//caso contrario ou caso ambos sejam de volume
 			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide neighcompelside(list[is]);
-			newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
+            if (!withmem) {
+                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
+            }
+            else
+            {
+                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,index,neighcompelside,thiscompelside);
+            }
 		}
 		
 		
@@ -264,12 +278,19 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
 		long index;
 		
-		
+        bool withmem = fMesh->ApproxSpace().NeedsMemory();
+        
 		if(Dimension() > lowcel->Dimension()){
 			//para que o elemento esquerdo seja de volume
 			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide lowcelcompelside(lower);
-			newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,thiscompelside,lowcelcompelside);
+            if (!withmem) {
+                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,thiscompelside,lowcelcompelside);
+            }
+            else
+            {
+                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,index,thiscompelside,lowcelcompelside);
+            }
 		} else {
 			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide lowcelcompelside(lower);
@@ -286,7 +307,14 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 				LOGPZ_DEBUG(logger,sout.str())
 			}
 #endif
-			newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+            if (!withmem)
+            {
+                newcreatedinterface = new TPZMultiphysicsInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+            }
+            else
+            {
+                newcreatedinterface = new TPZCompElWithMem<TPZMultiphysicsInterfaceElement>(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+            }
 		}
 		
 		

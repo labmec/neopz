@@ -126,7 +126,18 @@ public:
     TPZAutoPointer<TPZCompMesh>  GetH1Cmesh(){
         return fH1Cmesh;
     }
+
+    /// Access method for the flux mesh
+    TPZAutoPointer<TPZCompMesh>  GetFluxCmesh(){
+        return fFluxCmesh;
+    }
     
+    /// Access method for the pressure mesh
+    TPZAutoPointer<TPZCompMesh>  GetPressureMesh(){
+        return fPressureCmesh;
+    }
+    
+
     /** @brief Mixed computational mesh for validation */
     void SetMixedCmesh(TPZAutoPointer<TPZCompMesh> MixedCmesh){
         fMixedFluxPressureCmesh = MixedCmesh;

@@ -22,7 +22,7 @@
 #include "pzlog.h"
 
 
-class TRMMixedDarcy : public TPZDiscontinuousGalerkin {
+class TRMMixedDarcy : public TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> {
     
     // This class it is derivated of MatWith MEM
     // The memory is the nonlinear part of the coefficients
@@ -75,6 +75,11 @@ public:
     /** returns the number of state variables associated with the material */
     int NStateVariables() {return 1;} // for hdiv are 3
     
+    virtual TPZMaterial *NewMaterial()
+    {
+        return new TRMMixedDarcy(*this);
+    }
+    
     /** print out the data associated with the material */
     void Print(std::ostream &out = std::cout);
     
@@ -120,7 +125,7 @@ public:
      * @param ef[out] is the load vector
      * @since April 16, 2007
      */
-     void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -191,6 +196,10 @@ public:
      * Read the element data from a stream
      */
     void Read(TPZStream &buf, void *context);
+    
+    
+    /// Copy the n+1 data to the n data
+    void UpdateMemory();
     
 };
 

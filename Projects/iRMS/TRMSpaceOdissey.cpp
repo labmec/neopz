@@ -484,19 +484,20 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
     CreateGridFrom1D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
-    CreateGridFrom1D.SetTriangleExtrusion();
+//    CreateGridFrom1D.SetTriangleExtrusion();
     
     dt = dy[0];
     n = dy[1];
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh2D = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
     
+    GeoMesh2D->Print();
     
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
     TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
-    CreateGridFrom2D.SetPrismExtrusion();
+//    CreateGridFrom2D.SetPrismExtrusion();
     
     dt = dz[0];
     n = dz[1];

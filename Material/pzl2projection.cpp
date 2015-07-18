@@ -172,7 +172,7 @@ int TPZL2Projection::NSolutionVariables(int var){
 	const int nvars = this->NStateVariables();
 	if(var == ESolution) return nvars;
 	
-	return 0;
+    return TPZMaterial::NSolutionVariables(var);
 }
 
 void TPZL2Projection::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
@@ -188,8 +188,7 @@ void TPZL2Projection::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
 #endif
 		return;
 	}
-	
-	Solout.Resize(0);
+    TPZMaterial::Solution(Sol , DSol, axes, var, Solout);
 }
 
 /** 

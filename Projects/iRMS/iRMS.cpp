@@ -30,7 +30,7 @@ int main()
     
 
     // Running primal problem
-    LinearTracerPrimal();
+//    LinearTracerPrimal();
     
     // Running dual problem
     LinearTracerDual();
@@ -53,9 +53,8 @@ void LinearTracerPrimal()
 void LinearTracerDual()
 {
     
-    TRMSpaceOdissey SpaceGenerator;
     TRMOrchestra  * SymphonyX = new TRMOrchestra;
-    SymphonyX->CreateAnalysisDual(SpaceGenerator);
+    SymphonyX->CreateAnalysisDual();
     std::cout << "Dual complete normally." << std::endl;       
     
 }

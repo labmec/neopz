@@ -34,15 +34,19 @@ class TPZCreateApproximationSpace
     
     /// flag indicating whether each element should have an aditional lagrange multiplier
     bool fCreateLagrangeMultiplier;
+    
+    /// flag indicating that the elements need to be created with memory
+    bool fCreateWithMemory;
 
 public:
     
-    TPZCreateApproximationSpace() : fCreateHybridMesh(false), fCreateLagrangeMultiplier(false)
+    TPZCreateApproximationSpace() : fCreateHybridMesh(false), fCreateLagrangeMultiplier(false), fCreateWithMemory(false)
     {
         SetAllCreateFunctionsContinuous();
     }
     
     TPZCreateApproximationSpace(const TPZCreateApproximationSpace &copy) : fCreateHybridMesh(copy.fCreateHybridMesh), fCreateLagrangeMultiplier(copy.fCreateLagrangeMultiplier)
+    ,fCreateWithMemory(copy.fCreateWithMemory)
     {
         for (int i=0; i<8; i++) {
             fp[i] = copy.fp[i];
@@ -56,6 +60,7 @@ public:
         }
         fCreateHybridMesh = copy.fCreateHybridMesh;
         fCreateLagrangeMultiplier = copy.fCreateLagrangeMultiplier;
+        fCreateWithMemory = copy.fCreateWithMemory;
         return *this;
     }
     
@@ -140,6 +145,11 @@ public:
     void CreateDisconnectedElements(bool create = false)
     {
         fCreateHybridMesh = create;
+    }
+    
+    bool NeedsMemory()
+    {
+        return fCreateWithMemory;
     }
     
     /// this method will substitute all interface elements with materialid within the set by three elements : one H1 element and two interface elements

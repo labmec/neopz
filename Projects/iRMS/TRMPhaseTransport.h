@@ -11,11 +11,13 @@
 
 #include <stdio.h>
 #include "pzmatwithmem.h"
-#include "TRMMemory.h"
+#include "TRMPhaseMemory.h"
+#include "TRMPhaseTransport.h"
+#include "pzdiscgal.h"
 
-class TRMPhaseTransport : public TPZMatWithMem<TRMMemory> {
+class TRMPhaseTransport : public TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> {
     
-    
+    /// Implementar principalemente ContributeInterface, porque a saturacao no interior do elemento é zero (por enquanto)
 };
 
 #endif /* defined(__PZ__TRMPhaseTransport__) */

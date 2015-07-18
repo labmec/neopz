@@ -133,12 +133,12 @@ int main2(int argc, char *argv[])
 //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
 //    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
     TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPirTetra();
+//    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
+//    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
     UniformRefine(gmesh, 1);
     {
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh, "../PyramidGMesh.vtk", true);
     }
-//    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
-//    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
     int pPressure = 1;
     int pFlux = 1;
     

@@ -163,6 +163,13 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         }
     }
 #endif
+    // tototototo
+//    TPZFNMatrix<51*51,STATE> GK(51,51,0.),GF(51,1,0.),Sol(51,1,0.),GKSol(51,1,0.);
+//    for (int i=0; i<4; i++) {
+//        Sol(47+i,0) = 1.;
+//        Sol(39+i,0) = 1.;
+//    }
+    // tototototo
 #ifdef DEBUG
     if (rhs.Rows() != fEquationFilter.NActiveEquations()) {
         DebugStop();
@@ -217,7 +224,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             std::cout << "\n";
         }
         calcstiff.start();
-        
+        ek.Reset();
+        ef.Reset();
         el->CalcStiff(ek,ef);
         
         if(guiInterface) if(guiInterface->AmIKilled()){
@@ -282,6 +290,11 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             //			test -= stiffness;
             //			test.Print("matriz de rigidez diference",std::cout);
             //			test2.Print("matriz de rigidez interface",std::cout);
+            // tototototo
+//            GK.Zero();
+//            GF.Zero();
+//            GK.AddKel(ek.fMat, ek.fSourceIndex,ek.fDestinationIndex);
+//            GF.AddFel(ef.fMat, ek.fSourceIndex,ek.fDestinationIndex);
             
 #ifdef LOG4CXX
             if(loggerel->isDebugEnabled())
@@ -312,22 +325,71 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
             stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
             rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            // tototototototo
+//            GK.Zero();
+//            GF.Zero();
+//            GK.AddKel(ek.fConstrMat, ek.fSourceIndex,ek.fDestinationIndex);
+//            GF.AddFel(ef.fConstrMat, ek.fSourceIndex,ek.fDestinationIndex);
+
 #ifdef LOG4CXX
             if(loggerel->isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(fMesh))
             {
                 std::stringstream sout;
                 TPZGeoEl *gel = el->Reference();
-                TPZManVector<REAL> center(gel->Dimension()),xcenter(3,0.);
-                gel->CenterPoint(gel->NSides()-1, center);
-                gel->X(center, xcenter);
-                sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
+                if (gel)
+                {
+                    TPZManVector<REAL> center(gel->Dimension()),xcenter(3,0.);
+                    gel->CenterPoint(gel->NSides()-1, center);
+                    gel->X(center, xcenter);
+                    sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
+                }
+                else{
+                    sout << "Stiffness for computational element index " << iel << std::endl;
+                }
                 ek.Print(sout);
                 ef.Print(sout);
                 LOGPZ_DEBUG(loggerel,sout.str())
             }
 #endif
         }
-        
+        // tototototo
+//        GK.Multiply(Sol, GKSol);
+//        GKSol -= GF;
+//        GKSol.Transpose();
+//        {
+//            std::stringstream sout;
+//            sout << "Element " << iel << std::endl;
+//            std::stringstream str;
+//            str << "GKSol" << iel << " = ";
+//            GKSol.Print(str.str().c_str(),sout,EMathematicaInput);
+//            LOGPZ_DEBUG(logger, sout.str())
+//        }
+//        stiffness.Multiply(Sol, GKSol);
+//        GKSol -= rhs;
+//        GKSol.Transpose();
+//        {
+//            std::stringstream sout;
+//            sout << "Element " << iel << std::endl;
+//            std::stringstream str;
+//            str << "StiffSol" << iel << " = ";
+//            GKSol.Print(str.str().c_str(),sout,EMathematicaInput);
+//            LOGPZ_DEBUG(logger, sout.str())
+//        }
+//        {
+//            std::stringstream sout;
+//            sout << "Element " << iel << std::endl;
+//            std::stringstream str;
+//            str << "GK" << iel << " = ";
+//            GK.Print(str.str().c_str(),sout,EMathematicaInput);
+//            std::stringstream str2;
+//            str2 << "ST" << iel << " = ";
+//            stiffness.Print(str2.str().c_str(),sout,EMathematicaInput);
+//            sout << "GK-ST\n";
+//            LOGPZ_DEBUG(logger, sout.str())
+//        }
+//        
+//        stiffness.Zero();
+//        rhs.Zero();
         assemble.stop();
     }//fim for iel
     if(count > 1000) std::cout << std::endl;
@@ -443,6 +505,7 @@ void TPZStructMatrixOR::SetMaterialIds(const std::set<int> &materialids)
 {
     fMaterialIds = materialids;
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::set<int>::const_iterator it;
         std::stringstream sout;

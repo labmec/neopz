@@ -30,6 +30,9 @@ protected:
     
     /** @brief indexes of the connects */
     TPZManVector<long,20> fConnectIndexes;
+    
+    /// Integration rule
+    TPZIntPoints *fIntegrationRule;
 	
 public:
 	/** @brief Default constructor */
@@ -131,6 +134,11 @@ public:
      */
     void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
+    /**
+     * Return max integration rule of this interface element
+     */
+    void CreateIntegrationRule();
+    
     /**
      * Return max integration rule of this interface element
      */

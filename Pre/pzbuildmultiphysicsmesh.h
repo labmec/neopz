@@ -53,6 +53,20 @@ public:
 	 */	
 	static void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 	
+    /**
+     * @brief Transfer information from a specific set of meshes for the current mesh multiphysics
+     * @param cmeshVec [in] vector of meshes. Transfers the information
+     * @param MFMesh [out] mesh pointer who will receive the information
+     */
+    static void TransferFromMeshes(TPZVec<TPZAutoPointer<TPZCompMesh> > &cmeshVec, TPZAutoPointer<TPZCompMesh> MFMesh)
+    {
+        TPZManVector<TPZCompMesh *,4> meshVecPtr(cmeshVec.size());
+        for (int i=0; i<cmeshVec.size(); i++) {
+            meshVecPtr[i] = cmeshVec[i].operator->();
+        }
+        TransferFromMeshes(meshVecPtr, MFMesh.operator->());
+    }
+    
 	/**
 	 * @brief Transfer information from a specific mesh multiphysics for the current specific set of meshes 
 	 * @param cmeshVec [out] vector of meshes that will receive the information.

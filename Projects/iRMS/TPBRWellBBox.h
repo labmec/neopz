@@ -65,7 +65,7 @@ class TPBRWellBBox
     void GenerateNodeLayers();
     
     /// generate 4 reservoir elements and one well element between both faces
-    void GenerateElementLayer(TFace &NodesLeft, TFace &NodesRight, bool createArc3DAtRight);
+    void GenerateElementLayer(TFace &NodesLeft, TFace &NodesRight, bool createArc3DAtLeft, bool createArc3DAtRight);
     
     /// add to left and right elements
     void AddElementClosure();

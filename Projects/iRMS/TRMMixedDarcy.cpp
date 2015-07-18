@@ -9,18 +9,18 @@
 #include "TRMMixedDarcy.h"
 
 
-TRMMixedDarcy::TRMMixedDarcy() : TPZDiscontinuousGalerkin()
+TRMMixedDarcy::TRMMixedDarcy() : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>()
 {
 
 }
 
-TRMMixedDarcy::TRMMixedDarcy(int matid) : TPZDiscontinuousGalerkin(matid)
+TRMMixedDarcy::TRMMixedDarcy(int matid) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(matid)
 {
 
 }
 
 
-TRMMixedDarcy::TRMMixedDarcy(const TRMMixedDarcy &mat) : TPZDiscontinuousGalerkin(mat)
+TRMMixedDarcy::TRMMixedDarcy(const TRMMixedDarcy &mat) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(mat)
 {
 
 }
@@ -222,7 +222,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
     
     // Getting linear combinations from different approximation spaces
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
-    REAL                 P      = datavec[Pblock].sol[0][0];
+//    REAL                 P      = datavec[Pblock].sol[0][0];
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
@@ -352,8 +352,8 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
     
     // Defining local variables
-    TPZFMatrix<STATE> oneoverlambda_Kinv_u(3,1);
-    TPZFMatrix<STATE> Gravity(3,1);
+    TPZFNMatrix<3,STATE> oneoverlambda_Kinv_u(3,1);
+    TPZFNMatrix<3,STATE> Gravity(3,1);
     
     oneoverlambda_Kinv_u(0,0) = (1.0/1.0)* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1] + KInverse(0,2)*u[2]);
     oneoverlambda_Kinv_u(1,0) = (1.0/1.0)* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1] + KInverse(1,2)*u[2]);
@@ -364,7 +364,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     Gravity(2,0) = -0.0;
     
     REAL divu = 0.0;
-    TPZFMatrix<STATE> iphiuHdiv(3,1);
+    TPZFNMatrix<3,STATE> iphiuHdiv(3,1);
     int ishapeindex;
     int ivectorindex;
     
@@ -378,6 +378,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         
         iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
         iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        iphiuHdiv(2,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(2,ivectorindex);
         
         ef(iq + iniu) += weight * ((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0) + oneoverlambda_Kinv_u(2,0)*iphiuHdiv(2,0)) - P * DivergenceOnDeformed(iq,0)  );
         
@@ -460,7 +461,13 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
     int nPhiL2   = WL2.Rows();                                  // For L2
     TPZVec<STATE> &x = datavec[0].x;
     
-    REAL Value;
+    REAL Value = bc.Val2()(0,0);
+    if (bc.HasForcingFunction()) {
+        TPZManVector<STATE,2> forceval(1);
+        bc.ForcingFunction()->Execute(datavec[0].x, forceval);
+        Value = forceval[0];
+    }
+    
     TPZManVector<STATE,2> myval2(1,0.);
     if (bc.HasForcingFunction()){
         bc.ForcingFunction()->Execute(x, myval2);
@@ -481,8 +488,6 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
             
         case 1 :    // Neumann BC  QN inflow
         {
-            std::cout << " HERE!!!!! " << std::endl;
-            DebugStop();
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
@@ -537,3 +542,13 @@ void TRMMixedDarcy::Read(TPZStream &buf, void *context) {
     TPZDiscontinuousGalerkin::Read(buf, context);
     
 }
+
+/// Copy the n+1 data to the n data
+void TRMMixedDarcy::UpdateMemory()
+{
+    long nel = fMemory.NElements();
+    for (long el=0; el<nel; el++) {
+        fMemory[el].UpdateSolutionMemory();
+    }
+}
+

@@ -30,12 +30,12 @@
 
 
 
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl(),fLeftElSide(0), fRightElSide(0)
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl(),fLeftElSide(0), fRightElSide(0), fIntegrationRule(0)
 {
 }
 
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index,
-                                                                    TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index)
+                                                                    TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index), fIntegrationRule(0)
 {
 	
 	ref->SetReference(this);
@@ -49,6 +49,8 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
 	this->SetLeftRightElement(leftside, rightside);
 	
 	this->IncrementElConnected();
+    
+    this->CreateIntegrationRule();
 	
 }
 
@@ -80,12 +82,17 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
     fLeftElSide = TPZCompElSide(leftel,leftside);
     fRightElSide = TPZCompElSide(rightel,rightside);
     SetLeftRightElement(fLeftElSide, fRightElSide);
+    if (copy.fIntegrationRule) {
+        fIntegrationRule = copy.fIntegrationRule->Clone();
+    }
 }
 
 /** @brief create a copy of the given element using index mapping */
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<long,long> & gl2lcConMap,
-                                std::map<long,long> & gl2lcElMap)
+                                                                 std::map<long,long> & gl2lcElMap) : TPZCompEl(mesh,copy,gl2lcElMap), fIntegrationRule(0)
 {
+    /// constructor not implemented right
+    DebugStop();
     TPZCompElSide left = copy.Left();
     TPZCompElSide right = copy.Right();
     if (!left || !right ) {
@@ -104,6 +111,7 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
         DebugStop();
     }
     SetLeftRightElement(TPZCompElSide(leftel,leftside), TPZCompElSide(rightel,rightside));
+    fIntegrationRule = copy.fIntegrationRule->Clone();
     
 }
 
@@ -269,18 +277,25 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 
 const TPZIntPoints & TPZMultiphysicsInterfaceElement::GetIntegrationRule()
 {
+    if (!fIntegrationRule) {
+        DebugStop();
+    }
+    return *fIntegrationRule;
+}
+
+
+void TPZMultiphysicsInterfaceElement::CreateIntegrationRule()
+{
+    if (fIntegrationRule) {
+        delete fIntegrationRule;
+    }
+    
     TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (this->Material());
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
         DebugStop();
     }
     
-    if (this->NConnects() == 0) {
-        // boundary discontinuous elements have this characteristic
-        TPZIntPoints *emptyrule=0;
-        const TPZIntPoints &intrule = *emptyrule;
-        return intrule;
-    };
     
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
@@ -297,9 +312,7 @@ const TPZIntPoints & TPZMultiphysicsInterfaceElement::GetIntegrationRule()
     TPZGeoEl *gel = Reference();
     int thisside = gel->NSides()-1;
     
-    const TPZIntPoints * intrulePtr = gel->CreateSideIntegrationRule(thisside, integrationorder);
-    const TPZIntPoints &intrule = *intrulePtr;
-    return intrule;
+    fIntegrationRule = gel->CreateSideIntegrationRule(thisside, integrationorder);
 }
 
 void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec,
