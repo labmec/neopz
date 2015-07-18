@@ -66,7 +66,7 @@ void TPBRWellBBox::GenerateNodeLayers()
 }
 
 /// generate 4 reservoir elements and one well element between both faces
-void TPBRWellBBox::GenerateElementLayer(TFace &NodesLeft, TFace &NodesRight, bool createArc3DAtRight)
+void TPBRWellBBox::GenerateElementLayer(TFace &NodesLeft, TFace &NodesRight, bool createArc3DAtLeft, bool createArc3DAtRight)
 {
     long elementid = 0;
     for (int volel=0; volel<4; volel++) {
@@ -99,25 +99,28 @@ void TPBRWellBBox::GenerateElementLayer(TFace &NodesLeft, TFace &NodesRight, boo
         new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >(nodeindices,_WellMatId3D,*gmesh);
         
         TPZManVector<long,3> arc3dIndices(3);
-        arc3dIndices[0] = NodesLeft.fWellNodeIndices[0];
-        arc3dIndices[1] = NodesLeft.fWellNodeIndices[1];
-        arc3dIndices[2] = NodesLeft.fArcNodes[0];
-        new TPZGeoElRefPattern<pzgeom::TPZArc3D>(arc3dIndices, _BlendArcMatId, *gmesh);
-        
-        arc3dIndices[0] = NodesLeft.fWellNodeIndices[1];
-        arc3dIndices[1] = NodesLeft.fWellNodeIndices[2];
-        arc3dIndices[2] = NodesLeft.fArcNodes[1];
-        new TPZGeoElRefPattern<pzgeom::TPZArc3D>(arc3dIndices, _BlendArcMatId, *gmesh);
-        
-        arc3dIndices[0] = NodesLeft.fWellNodeIndices[2];
-        arc3dIndices[1] = NodesLeft.fWellNodeIndices[3];
-        arc3dIndices[2] = NodesLeft.fArcNodes[2];
-        new TPZGeoElRefPattern<pzgeom::TPZArc3D>(arc3dIndices, _BlendArcMatId, *gmesh);
-        
-        arc3dIndices[0] = NodesLeft.fWellNodeIndices[3];
-        arc3dIndices[1] = NodesLeft.fWellNodeIndices[0];
-        arc3dIndices[2] = NodesLeft.fArcNodes[3];
-        new TPZGeoElRefPattern<pzgeom::TPZArc3D>(arc3dIndices, _BlendArcMatId, *gmesh);
+        if (createArc3DAtLeft)
+        {
+            arc3dIndices[0] = NodesLeft.fWellNodeIndices[0];
+            arc3dIndices[1] = NodesLeft.fWellNodeIndices[1];
+            arc3dIndices[2] = NodesLeft.fArcNodes[0];
+            new TPZGeoElRefPattern<pzgeom::TPZArc3D>(arc3dIndices, _BlendArcMatId, *gmesh);
+            
+            arc3dIndices[0] = NodesLeft.fWellNodeIndices[1];
+            arc3dIndices[1] = NodesLeft.fWellNodeIndices[2];
+            arc3dIndices[2] = NodesLeft.fArcNodes[1];
+            new TPZGeoElRefPattern<pzgeom::TPZArc3D>(arc3dIndices, _BlendArcMatId, *gmesh);
+            
+            arc3dIndices[0] = NodesLeft.fWellNodeIndices[2];
+            arc3dIndices[1] = NodesLeft.fWellNodeIndices[3];
+            arc3dIndices[2] = NodesLeft.fArcNodes[2];
+            new TPZGeoElRefPattern<pzgeom::TPZArc3D>(arc3dIndices, _BlendArcMatId, *gmesh);
+            
+            arc3dIndices[0] = NodesLeft.fWellNodeIndices[3];
+            arc3dIndices[1] = NodesLeft.fWellNodeIndices[0];
+            arc3dIndices[2] = NodesLeft.fArcNodes[3];
+            new TPZGeoElRefPattern<pzgeom::TPZArc3D>(arc3dIndices, _BlendArcMatId, *gmesh);
+        }
         
         if(createArc3DAtRight)
         {
@@ -201,10 +204,17 @@ TPZAutoPointer<TPZGeoMesh> TPBRWellBBox::GenerateMesh()
     fGMesh = new TPZGeoMesh;
     GenerateNodeLayers();
     int nlayer = this->fNodeLayers.size()-1;
-    for (int ilayer=0; ilayer < nlayer; ilayer++)
+    
+    int firstlayer = 0; // 0;
+    for (int ilayer=firstlayer; ilayer < nlayer; ilayer++)
     {
         bool createArc3DAtRight = (ilayer == (nlayer-1));
-        GenerateElementLayer(fNodeLayers[ilayer], fNodeLayers[ilayer+1],createArc3DAtRight);
+        createArc3DAtRight = false;
+        bool createArc3DAtLeft = true;
+        if (ilayer == 0) {
+            createArc3DAtLeft = false;
+        }
+        GenerateElementLayer(fNodeLayers[ilayer], fNodeLayers[ilayer+1],createArc3DAtLeft, createArc3DAtRight);
     }
     AddElementClosure();
     fGMesh->BuildConnectivity();
