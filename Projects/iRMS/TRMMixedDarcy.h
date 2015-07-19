@@ -91,7 +91,7 @@ public:
     int NSolutionVariables(int var);
     
     /** Computes the divergence over the parametric space */
-    void ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi);
+    void ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU);
     
     /** returns the solution associated with the var index based on
      * the finite element approximation */

@@ -209,16 +209,16 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     fPressureCmesh->InsertMaterialObject(mat);
     
     // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2Pressure);
-    fPressureCmesh->InsertMaterialObject(bcN);
+//    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2Pressure);
+//    fPressureCmesh->InsertMaterialObject(bcN);
     
     // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2Pressure);
-    fPressureCmesh->InsertMaterialObject(bcS);
+//    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2Pressure);
+//    fPressureCmesh->InsertMaterialObject(bcS);
     
     // Bc E
-    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
-    fPressureCmesh->InsertMaterialObject(bcE);
+//    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
+//    fPressureCmesh->InsertMaterialObject(bcE);
     
     // Bc W
 //    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
@@ -232,14 +232,14 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
 //    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
 //    fPressureCmesh->InsertMaterialObject(bcT);
     
-    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Pressure);
-    fPressureCmesh->InsertMaterialObject(bcToe);
+//    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Pressure);
+//    fPressureCmesh->InsertMaterialObject(bcToe);
     
-    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
-    fPressureCmesh->InsertMaterialObject(bcHeel);
+//    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
+//    fPressureCmesh->InsertMaterialObject(bcHeel);
     
-    TPZBndCond * bcWellRes = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2Pressure);
-    fPressureCmesh->InsertMaterialObject(bcWellRes);
+//    TPZBndCond * bcWellRes = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2Pressure);
+//    fPressureCmesh->InsertMaterialObject(bcWellRes);
     
 
     // Setando L2
@@ -490,9 +490,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     n = dy[1];
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh2D = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
-    
-    GeoMesh2D->Print();
-    
+        
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
     TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);

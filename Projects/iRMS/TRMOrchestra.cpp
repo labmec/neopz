@@ -85,7 +85,7 @@ void TRMOrchestra::CreateAnalysisDual(){
     dy[0] = 50.0;
     dz[0] = 50.0;
     
-//    spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
+//    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
     fSpaceGenerator.CreateGeometricReservoirMesh();
 #ifdef DEBUG
     fSpaceGenerator.PrintGeometry();
@@ -102,6 +102,8 @@ void TRMOrchestra::CreateAnalysisDual(){
     TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
     meshvec[0] = fSpaceGenerator.GetFluxCmesh();
     meshvec[1] = fSpaceGenerator.GetPressureMesh();
+    
+    
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
     
     
@@ -116,7 +118,9 @@ void TRMOrchestra::CreateAnalysisDual(){
         Cmesh->Print(out);
     }
 #endif
-    
+    fFluxPressureAnalysis.Solution().Zero();
+    fFluxPressureAnalysis.LoadSolution();
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
     TPZSkylineStructMatrix strmat(Cmesh.operator->());
 //    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
     TPZStepSolver<STATE> step;
@@ -124,11 +128,25 @@ void TRMOrchestra::CreateAnalysisDual(){
     step.SetDirect(ELDLt);
     fFluxPressureAnalysis.SetStructuralMatrix(strmat);
     fFluxPressureAnalysis.SetSolver(step);
-    fFluxPressureAnalysis.Assemble();
-    fFluxPressureAnalysis.Rhs() *= -1.0;
+    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
+    fFluxPressureAnalysis.Run();
     std::cout << "Dual dof: " << fFluxPressureAnalysis.Rhs().Rows() << std::endl;
     std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
-    fFluxPressureAnalysis.Solve();
+//    fFluxPressureAnalysis.Solution().Print(std::cout);
+    prevsol -= fFluxPressureAnalysis.Solution();
+    Cmesh->LoadSolution(prevsol);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+
+//    meshvec[0]->Print(std::cout);
+//    meshvec[1]->Print(std::cout);
+//    Cmesh->Print(std::cout);
+    fFluxPressureAnalysis.Run();
+    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
+    prevsol -= fFluxPressureAnalysis.Solution();
+    Cmesh->LoadSolution(prevsol);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+    fFluxPressureAnalysis.AssembleResidual();
+    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
     
     const int dim = 3;
     int div = 1;
@@ -223,6 +241,7 @@ void TRMOrchestra::ProjectExactSolution()
         step.SetDirect(ELDLt);
         an.SetSolver(step);
         an.Run();
+//        mesh->Print(std::cout);
         TPZStack<std::string> scalnames,vecnames;
         scalnames.Push("state");
         an.DefineGraphMesh(3, scalnames, vecnames, "../ProjectPressure.vtk");

@@ -1040,7 +1040,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                 cols=jv%numdof;
                 for (int ilinha=0; ilinha<dim; ilinha++) {
                     data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
-                    for (int kdim = 0 ; kdim < Dimension(); kdim++) {
+                    for (int kdim = 0 ; kdim < dim; kdim++) {
                         data.dsol[is](ilinha,kdim)+=(STATE) MeshSol(pos+jn,is) * NormalVectorTensorProGradofiPhiH1(ilinha,kdim);
                     }
                 }

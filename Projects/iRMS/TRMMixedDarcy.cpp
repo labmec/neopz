@@ -120,8 +120,8 @@ void TRMMixedDarcy::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<R
     }
 }
 
-// Divergence on deformed element
-void TRMMixedDarcy::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi)
+// Divergence on master element
+void TRMMixedDarcy::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
 {
     int ublock = 0;
     
@@ -129,6 +129,9 @@ void TRMMixedDarcy::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datavec
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
     TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
     TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
+    TPZFNMatrix<9,STATE> gradu = datavec[ublock].dsol[0];
+    TPZFNMatrix<9,STATE> graduMaster;
+    gradu.Transpose();
     
     TPZFNMatrix<660> GradphiuH1;
     TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
@@ -170,10 +173,14 @@ void TRMMixedDarcy::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datavec
             VectorOnMaster *= JacobianDet;
             
             /* Contravariant Piola mapping preserves the divergence */
-            DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) +
+            // the division by the jacobianDet is to make the integral on the master element???
+            DivergenceofPhi(iq,0) = ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) +
                                                           dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) +
                                                           dphiuH1(2,ishapeindex)*VectorOnMaster(2,0) );
         }
+        GradOfXInverse.Multiply(gradu, graduMaster);
+        graduMaster *= JacobianDet;
+        DivergenceofU = graduMaster(0,0)+graduMaster(1,1)+graduMaster(2,2);
     }
     else
     {
@@ -208,11 +215,13 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
     TPZFMatrix<STATE> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions
     TPZFMatrix<STATE> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions
     
-    TPZFMatrix<STATE> DivergenceOnDeformed;
+    TPZFMatrix<STATE> DivergenceOnMaster;
+    STATE divFlux;
     // Compute the divergence on deformed element by piola contravariant transformation
-    this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
+    this->ComputeDivergenceOnMaster(datavec, DivergenceOnMaster,divFlux);
     
-    
+    REAL JacobianDet = datavec[ublock].detjac;
+
     // Blocks dimensions and lengths
     int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
     int nphiPL2     = phiPL2.Rows();                                    // For L2   P
@@ -286,7 +295,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
         // du/dalphau terms
         for (int jp = 0; jp < nphiPL2; jp++)
         {
-            ek(iq + iniu, jp + iniP) += -1.0 * weight * phiPL2(jp,0) * DivergenceOnDeformed(iq,0);
+            ek(iq + iniu, jp + iniP) += -1.0 * weight/JacobianDet * phiPL2(jp,0) * DivergenceOnMaster(iq,0);
         }
 
     }
@@ -298,7 +307,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
         // du/dalphau terms
         for (int jq = 0; jq < nphiuHdiv; jq++)
         {
-            ek(ip + iniP, jq + iniu) += -1.0 * weight * DivergenceOnDeformed(jq,0) * phiPL2(ip,0);
+            ek(ip + iniP, jq + iniu) += -1.0 * weight/JacobianDet * DivergenceOnMaster(jq,0) * phiPL2(ip,0);
         }
     }
         
@@ -322,10 +331,13 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZFMatrix<STATE> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions
     TPZFMatrix<STATE> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions
     
-    TPZFNMatrix<40,STATE> DivergenceOnDeformed;
+    TPZFNMatrix<40,STATE> DivergenceOnMaster;
+    STATE divflux;
     // Compute the divergence on deformed element by piola contravariant transformation
-    this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
+    this->ComputeDivergenceOnMaster(datavec, DivergenceOnMaster,divflux);
     
+    REAL JacobianDet = datavec[ublock].detjac;
+
     
     // Blocks dimensions and lengths
     int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
@@ -380,7 +392,8 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
         iphiuHdiv(2,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(2,ivectorindex);
         
-        ef(iq + iniu) += weight * ((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0) + oneoverlambda_Kinv_u(2,0)*iphiuHdiv(2,0)) - P * DivergenceOnDeformed(iq,0)  );
+        ef(iq + iniu) += weight * ((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0) + oneoverlambda_Kinv_u(2,0)*iphiuHdiv(2,0)));
+        ef(iq + iniu) += weight/JacobianDet *(-P) * DivergenceOnMaster(iq,0);
         
     }
     

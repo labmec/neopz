@@ -109,9 +109,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         fGraphMesh[2] = 0;
         if(fSolver) fSolver->ResetMatrix();
         fCompMesh->ExpandSolution();
-        fSolution = fCompMesh->Solution();
         long neq = fCompMesh->NEquations();
-        fSolution.Resize(neq,1);
         if(neq > 20000)
         {
             std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth\n";
@@ -126,6 +124,8 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
             std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth finished\n";
             std::cout.flush();
         }
+        fSolution = fCompMesh->Solution();
+        fSolution.Resize(neq,1);
     }
     else
     {
@@ -343,11 +343,11 @@ void TPZAnalysis::Solve() {
         }
 #endif
     
-    //    {
-    //        std::ofstream out("Matrix.nb");
-    //        fSolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
-    //
-    //    }
+//        {
+//            std::ofstream out("Matrix.nb");
+//            fSolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
+//    
+//        }
         fSolver->Solve(residual, delu);
         fSolution = delu;
 #ifdef LOG4CXX
@@ -1152,6 +1152,11 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
                 continue;
             }
             ConnectSolution(cindex, fCompMesh, vec, connectsol);
+            for (int i=0; i<connectsol.size(); i++) {
+                if (fabs(connectsol[i]) < tol) {
+                    connectsol[i] = 0.;
+                }
+            }
             out << ic << " index " << cindex << " values " << connectsol << std::endl;
         }
     }
