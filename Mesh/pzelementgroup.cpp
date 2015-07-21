@@ -60,6 +60,11 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
     }
     long elindex = cel->Index();
     Mesh()->ElementVec()[elindex] = 0;
+    std::list<TPZOneShapeRestraint> ellist = cel->GetShapeRestraints();
+    for (std::list<TPZOneShapeRestraint>::iterator it=ellist.begin(); it != ellist.end(); it++) {
+        long cindex = it->fFaces[0].first;
+        fRestraints[cindex] = *it;
+    }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -126,6 +131,11 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
     ek.fMat.Redim(rows, rows);
     ek.fType = TPZElementMatrix::EK;
     InitializeElementMatrix(ef);
+    std::map<long,TPZOneShapeRestraint>::const_iterator it;
+    for (it = fRestraints.begin(); it != fRestraints.end(); it++) {
+        ek.fOneRestraints.push_back(it->second);
+        ef.fOneRestraints.push_back(it->second);
+    }
 }//void
 
 void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
@@ -147,6 +157,10 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
 	for(int i=0; i<ncon; i++){
 		(ef.fConnect)[i] = ConnectIndex(i);
 	}
+    std::map<long,TPZOneShapeRestraint>::const_iterator it;
+    for (it = fRestraints.begin(); it != fRestraints.end(); it++) {
+        ef.fOneRestraints.push_back(it->second);
+    }
 }//void
 
 

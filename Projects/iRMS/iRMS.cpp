@@ -43,9 +43,8 @@ int main()
 void LinearTracerPrimal()
 {
 
-    TRMSpaceOdissey SpaceGenerator;
     TRMOrchestra  * SymphonyX = new TRMOrchestra;
-    SymphonyX->CreateAnalysisPrimal(SpaceGenerator);
+    SymphonyX->CreateAnalysisPrimal();
     std::cout << "Primal complete normally." << std::endl;
     
 }

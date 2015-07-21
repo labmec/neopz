@@ -112,7 +112,7 @@ TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRaw
     espacamentoReservY[0] = -prop*wellength;
     espacamentoReservY[ndiv-1] = prop *wellength;
     for (int i=1; i<ndiv-1; i++) {
-        espacamentoReservY[i] = (-wellength/2.+i*(wellength/(ndiv-1)));
+        espacamentoReservY[i] = 1.397*(-wellength/2.+i*(wellength/(ndiv-1)));
     }
     
     TPZManVector<REAL,6> espacamentoZ(5);
@@ -197,7 +197,7 @@ TPZAutoPointer<TPZGeoMesh> TRMSimworxMeshGenerator::ReallyGenerateGeoMesh(const 
     
    
     TPBRWellBBox box(welldiam,Lx,Ly,ZBottom,ZTop);
-    int numdiv = 3;
+    int numdiv = 8;
     
     box.SetWellDivision(mioloData.m_wellPositionsY, numdiv);
     if(thereIsCutPlane)

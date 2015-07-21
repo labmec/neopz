@@ -10,6 +10,7 @@
 #include "pzmatred.h"
 #include "pzmanvector.h"
 #include "pzelmat.h"
+#include "TPZOneShapeRestraint.h"
 
 /**
  * @brief Class which groups elements to characterize dense matrices
@@ -21,7 +22,7 @@ class TPZElementGroup : public TPZCompEl
 
     TPZStack<TPZCompEl *,5> fElGroup;
     TPZManVector<long,27> fConnectIndexes;
-    
+    std::map<long,TPZOneShapeRestraint> fRestraints;
 
 public:
     

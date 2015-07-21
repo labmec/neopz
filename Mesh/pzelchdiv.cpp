@@ -912,7 +912,10 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol)
-{	
+{
+    if (var == 99) {
+        return TPZIntelGen<TSHAPE>::Solution(qsi,var,sol);
+    }
     TPZMaterialData data;
 	InitMaterialData(data);
 	//this->ComputeSolutionHDiv(data);
@@ -1454,8 +1457,13 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
     int side;
     int icon;
     int ncon=NConnects();
+    TPZCompElHDivPressure<TSHAPE> *hdivpressure = dynamic_cast<TPZCompElHDivPressure<TSHAPE> *>(this);
+
+    if (hdivpressure) {
+        ncon--;
+    }
     int nnodes = this->Reference()->NNodes();
-    for(icon=0; icon<nnodes+1; icon++)
+    for(icon=0; icon<ncon; icon++)
     {//somente para os conects de fluxo
 //        TPZConnect &con = this->Connect(icon);
 //        con.SetOrder(order);

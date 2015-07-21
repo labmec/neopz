@@ -44,7 +44,7 @@ static void CreateExampleRawData(TRMRawData &data)
 
 
 /** @brief Default constructor */
-TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
+TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox), fPOrder(4)
 {
     
 }
@@ -97,7 +97,7 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     }
     
     int dim = 3;
-    int qorder = 1;
+    int qorder = fPOrder;
     
     const int typeFlux = 1, typePressure = 0;
     TPZFMatrix<STATE> val1(1,1,0.), val2Flux(1,1,0.), val2Pressure(1,1,1000.);
@@ -197,7 +197,7 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     }
     
     int dim = 3;
-    int porder = 1;
+    int porder = fPOrder;
     
     const int typeFlux = 1, typePressure = 0;
     TPZFMatrix<STATE> val1(1,1,0.), val2Pressure(1,1,0.), val2Flux(1,1,1000.);
@@ -269,6 +269,10 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     
 }
 
+void One(const TPZVec<REAL> &x, TPZVec<STATE> &f)
+{
+    f[0] = 3.*M_PI*M_PI*sin(M_PI*x[0])*sin(M_PI*x[1])*sin(M_PI*x[2]);
+}
 
 /** @brief Create a Mixed computational mesh Hdiv-L2 */
 void TRMSpaceOdissey::CreateMixedCmesh(){
@@ -289,7 +293,9 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     // Material medio poroso
     TRMMixedDarcy * mat = new TRMMixedDarcy(_ReservMatId);
+//    mat->SetForcingFunction(One);
     fMixedFluxPressureCmesh->InsertMaterialObject(mat);
+    
     
     
     // Bc N
@@ -347,8 +353,6 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     TPZManVector<TPZCompMesh * ,2> meshvector(2);
     
-    this->CreateFluxCmesh();
-    this->CreatePressureCmesh();
     
     meshvector[0] = fFluxCmesh.operator->();
     meshvector[1] = fPressureCmesh.operator->();
@@ -409,18 +413,24 @@ void TRMSpaceOdissey::CreateH1Cmesh()
         std::cout<< "Geometric mesh doesn't exist" << std::endl;
         DebugStop();
     }
-    int porder  = 1;
+    int porder  = fPOrder;
     fH1Cmesh = new TPZCompMesh(fGeoMesh);
     fH1Cmesh->SetDimModel(3);
     
     TPZMatLaplacian *material = new TPZMatLaplacian(_ReservMatId,3);
+    material->SetForcingFunction(One);
     fH1Cmesh->InsertMaterialObject(material);
 
-    TPZFNMatrix<1> val1(1,1,0.),val2(1,1,20);
+    TPZFNMatrix<1> val1(1,1,0.),val2(1,1,0);
     TPZBndCond *inflow = new TPZBndCond(material,_ConfinementReservBCbottom,0,val1,val2);
-    val2(0,0) = 10.;
+    val2(0,0) = 0.;
     TPZBndCond *outflow = new TPZBndCond(material,_ConfinementReservBCtop,0,val1,val2);
     
+    // Bc B
+    TPZBndCond * bcB = material->CreateBC(material, _LateralReservBC, 0, val1, val2);
+//    bcB->SetForcingFunction(0, force);
+    fH1Cmesh->InsertMaterialObject(bcB);
+
     fH1Cmesh->InsertMaterialObject(inflow);
     fH1Cmesh->InsertMaterialObject(outflow);
     fH1Cmesh->SetDefaultOrder(porder);
@@ -432,7 +442,7 @@ void TRMSpaceOdissey::CreateH1Cmesh()
     fH1Cmesh->AutoBuild();
     
 #ifdef DEBUG
-    std::ofstream out("CmeshPressH1.txt");
+    std::ofstream out("../CmeshPressH1.txt");
     fH1Cmesh->Print(out);
 #endif
     
@@ -535,5 +545,165 @@ void TRMSpaceOdissey::CreateGeometricReservoirMesh(){
     TRMSimworxMeshGenerator meshGen;
     const bool withwellbc = true;
     fGeoMesh = meshGen.CreateSimworxGeoMesh(rawdata,withwellbc);
+}
+
+/** @brief Configure the boundary conditions of a well with reservoir boundary conditions */
+void TRMSpaceOdissey::ConfigureWellConstantPressure(STATE wellpressure, STATE farfieldpressure)
+{
+    
+    TPZMaterial *mat = fMixedFluxPressureCmesh->FindMaterial(_ReservMatId);
+    
+    const int typeFlux = 1, typePressure = 0;
+    TPZFMatrix<STATE> val1(1,1,0.), val2Flux(1,1,0.), val2PressureFarField(1,1,farfieldpressure), val2PressureWell(1,1,wellpressure);
+
+    // Bc N
+    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typeFlux, val1, val2Flux);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcN);
+    
+    // Bc S
+    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typeFlux, val1, val2Flux);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcS);
+    
+    // Bc E
+    //    val2(0,0) = 0.0;
+    //    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+    
+    // Bc W
+    //    val2(0,0) = 0.0;
+    //    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+    
+    // Bc B
+    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2PressureFarField);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcB);
+    // Bc T
+    //    val2(0,0) = 0.0;
+    //    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+    
+    
+    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Flux);
+//    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typePressure, val1, val2PressureWell);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcToe);
+    
+    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typeFlux, val1, val2Flux);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcHeel);
+    
+    /*
+     TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
+     fMixedFluxPressureCmesh->InsertMaterialObject(bcWellRes);
+     */
+    
+    TPZBndCond * bcWellFaces = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2PressureWell);
+    fMixedFluxPressureCmesh->InsertMaterialObject(bcWellFaces);
+    
+}
+
+static void IncludeNeighbours(TPZAutoPointer<TPZCompMesh> cmesh, long index, std::map<long,int> &extended)
+{
+    TPZCompEl *cel = cmesh->Element(index);
+    TPZGeoEl *gel = cel->Reference();
+    int nsides = gel->NSides();
+    for (int is=0; is<nsides; is++) {
+        if (gel->SideDimension(is) != 2) {
+            continue;
+        }
+        TPZGeoElSide gelside(gel,is);
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        TPZCompElSide celside = neighbour.Reference();
+        if (!celside) {
+            continue;
+        }
+        long celindex = celside.Element()->Index();
+        if (extended.find(celindex) == extended.end()) {
+            std::cout << "Including index " << celindex << " order " << extended[index] << std::endl;
+            extended[celindex] = extended[index];
+        }
+    }
+
+}
+
+void TRMSpaceOdissey::ModifyElementOrders(std::map<long,int> &elorders)
+{
+    // settle the orders of the pressure elements first
+    this->fMixedFluxPressureCmesh->Reference()->ResetReference();
+    for (std::map<long,int>::iterator it = elorders.begin(); it != elorders.end(); it++) {
+        long elindex = it->first;
+        TPZCompEl *cel = fMixedFluxPressureCmesh->Element(elindex);
+        TPZMultiphysicsElement *mcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mcel) {
+            DebugStop();
+        }
+        TPZCompEl *press = mcel->Element(1);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(press);
+        intel->PRefine(it->second);
+    }
+    fPressureCmesh->ExpandSolution();
+    fFluxCmesh->LoadReferences();
+    for (std::map<long,int>::iterator it = elorders.begin(); it != elorders.end(); it++) {
+        long elindex = it->first;
+        TPZCompEl *cel = fMixedFluxPressureCmesh->Element(elindex);
+        TPZMultiphysicsElement *mcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mcel) {
+            DebugStop();
+        }
+        TPZCompEl *press = mcel->Element(0);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(press);
+        intel->PRefine(it->second);
+    }
+    fFluxCmesh->ExpandSolution();
+    
+    CreateMixedCmesh();
+
+}
+
+/// Adjust the polinomial order of the elements
+void TRMSpaceOdissey::IncreaseOrderAroundWell(int numlayers)
+{
+    fGeoMesh->ResetReference();
+    this->fMixedFluxPressureCmesh->LoadReferences();
+    // find sell toe element
+    TPZGeoEl *geltoe = 0;
+    long nelem = fGeoMesh->NElements();
+    for (long el=0; el < nelem; el++) {
+        TPZGeoEl *gel = fGeoMesh->Element(el);
+        if (gel && gel->MaterialId() == _WellToeMatId) {
+            geltoe = gel;
+            break;
+        }
+    }
+    /// find a neighbouring element of type reservoir matid
+    if (geltoe->Type() != EQuadrilateral) {
+        DebugStop();
+    }
+    TPZGeoElSide gelside(geltoe,8);
+    TPZGeoElSide neighbour = gelside.Neighbour();
+    while (neighbour != gelside) {
+        if (neighbour.Element()->MaterialId() == _ReservMatId) {
+            break;
+        }
+        neighbour = neighbour.Neighbour();
+    }
+    if (neighbour == gelside) {
+        DebugStop();
+    }
+    // go up the refinement tree and assign an order to the included computational elements
+    TPZGeoEl *gelbase = neighbour.Element();
+    std::map<long,int> contemplated;
+    std::cout << "Including index " << gelbase->Reference()->Index() << " order " << fPOrder+numlayers << std::endl;
+
+    contemplated[gelbase->Reference()->Index()]= fPOrder+numlayers;
+    for (int i=1; i< numlayers; i++) {
+        gelbase = gelbase->Neighbour(25).Element();
+        if (!gelbase) {
+            DebugStop();
+        }
+        std::cout << "Including index " << gelbase->Reference()->Index() << " order " << fPOrder+numlayers-i << std::endl;
+        contemplated[gelbase->Reference()->Index()] = fPOrder+numlayers-i;
+    }
+    // include the neighbours of the elements within contemplated along faces
+    std::map<long,int> original(contemplated);
+    for (std::map<long,int>::iterator it = original.begin(); it != original.end(); it++) {
+        IncludeNeighbours(this->fMixedFluxPressureCmesh, it->first, contemplated);
+    }
+    ModifyElementOrders(contemplated);
 }
 

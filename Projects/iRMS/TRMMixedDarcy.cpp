@@ -59,9 +59,7 @@ int TRMMixedDarcy::VariableIndex(const std::string &name) {
     if (!strcmp("WeightedPressure", name.c_str())) return 0;
     if (!strcmp("BulkVelocity", name.c_str())) return 1;
     if (!strcmp("DivOfBulkVeclocity", name.c_str())) return 2;
-    std::cout  << " Var index not implemented " << std::endl;
-    DebugStop();
-    return 0;
+    return TPZMatWithMem::VariableIndex(name);
 }
 
 int TRMMixedDarcy::NSolutionVariables(int var) {
@@ -72,13 +70,8 @@ int TRMMixedDarcy::NSolutionVariables(int var) {
             return 3; // Vector
         case 2:
             return 1; // Scalar
-        default:
-        {
-            std::cout  << " Var index not implemented " << std::endl;
-            DebugStop();
-        }
     }
-    return 0;
+    return TPZMatWithMem::NSolutionVariables(var);
 }
 
 void TRMMixedDarcy::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
@@ -114,8 +107,7 @@ void TRMMixedDarcy::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<R
             break;
         default:
         {
-            std::cout  << " Var index not implemented " << std::endl;
-            DebugStop();
+            TPZMatWithMem::Solution(datavec, var, Solout);
         }
     }
 }

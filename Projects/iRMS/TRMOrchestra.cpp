@@ -12,6 +12,8 @@
 #include "pzl2projection.h"
 #include "pzbndcond.h"
 #include "TRMFlowConstants.h"
+#include "pzquad.h"
+#include "pzaxestools.h"
 
 
 /** @brief Default constructor */
@@ -37,30 +39,30 @@ TRMOrchestra::~TRMOrchestra(){
 }
 
 /** @brief Create a primal analysis using space odissey */
-void TRMOrchestra::CreateAnalysisPrimal(TRMSpaceOdissey spacegenerator){
+void TRMOrchestra::CreateAnalysisPrimal(){
     
     TPZManVector<int,2> dx(2,1), dy(2,1), dz(2,1);
-    dx[0] = 50.0;
-    dy[0] = 50.0;
-    dz[0] = 50.0;
+    dx[0] = 1;
+    dy[0] = 1;
+    dz[0] = 1;
     
-    spacegenerator.CreateGeometricBoxMesh(dx, dy, dz);
+    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
 //    spacegenerator.CreateGeometricReservoirMesh();
-    spacegenerator.PrintGeometry();
-    fgmesh = spacegenerator.GetGmesh();
-    spacegenerator.CreateH1Cmesh();
+    fSpaceGenerator.PrintGeometry();
+    fgmesh = fSpaceGenerator.GetGmesh();
+    fSpaceGenerator.CreateH1Cmesh();
     
-    TPZAutoPointer<TPZCompMesh > Cmesh = spacegenerator.GetH1Cmesh();
+    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetH1Cmesh();
     
     // Analysis
     bool mustOptimizeBandwidth = true;
     TPZAnalysis * AnalysisPrimal = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
     int numofThreads = 8;
     
-    TPZSkylineNSymStructMatrix skylnsym(Cmesh.operator->());
+    TPZSkylineStructMatrix skylnsym(Cmesh.operator->());
     TPZStepSolver<STATE> step;
     skylnsym.SetNumThreads(numofThreads);
-    step.SetDirect(ELU);
+    step.SetDirect(ECholesky);
     AnalysisPrimal->SetStructuralMatrix(skylnsym);
     AnalysisPrimal->SetSolver(step);;
     AnalysisPrimal->Run();
@@ -69,7 +71,7 @@ void TRMOrchestra::CreateAnalysisPrimal(TRMSpaceOdissey spacegenerator){
     const int dim = 3;
     int div = 1;
     TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile =  "PrimalDarcy.vtk";
+    std::string plotfile =  "../PrimalDarcy.vtk";
     scalnames.Push("Pressure");
     vecnames.Push("MinusKGradU");
     AnalysisPrimal->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
@@ -79,11 +81,11 @@ void TRMOrchestra::CreateAnalysisPrimal(TRMSpaceOdissey spacegenerator){
 
 /** @brief Create a dual analysis using space odissey */
 void TRMOrchestra::CreateAnalysisDual(){
-    
-    TPZManVector<int,2> dx(2,1), dy(2,1), dz(2,1);
-    dx[0] = 50.0;
-    dy[0] = 50.0;
-    dz[0] = 50.0;
+    int nel = 1;
+    TPZManVector<int,2> dx(2,nel), dy(2,nel), dz(2,nel);
+    dx[0] = 1;
+    dy[0] = 1;
+    dz[0] = 1;
     
 //    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
     fSpaceGenerator.CreateGeometricReservoirMesh();
@@ -91,17 +93,27 @@ void TRMOrchestra::CreateAnalysisDual(){
     fSpaceGenerator.PrintGeometry();
 #endif
     
+    fSpaceGenerator.SetDefaultPOrder(1);
+    
+    fSpaceGenerator.CreateFluxCmesh();
+    fSpaceGenerator.CreatePressureCmesh();
+
+    
     fSpaceGenerator.CreateMixedCmesh();
     
-    ProjectExactSolution();
+//    ProjectExactSolution();
     
     
-    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetMixedCmesh();
+    fSpaceGenerator.IncreaseOrderAroundWell(3);
+
+    fSpaceGenerator.ConfigureWellConstantPressure(0., 1000.);
+
     
     // transfer the solution from the meshes to the multiphysics mesh
     TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
     meshvec[0] = fSpaceGenerator.GetFluxCmesh();
     meshvec[1] = fSpaceGenerator.GetPressureMesh();
+    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetMixedCmesh();
     
     
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
@@ -121,6 +133,11 @@ void TRMOrchestra::CreateAnalysisDual(){
     fFluxPressureAnalysis.Solution().Zero();
     fFluxPressureAnalysis.LoadSolution();
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+    
+    std::map<REAL,STATE> RatebyPosition;
+    STATE TotalFlux = 0.;
+    ComputeProductionRate(RatebyPosition, TotalFlux);
+
     TPZSkylineStructMatrix strmat(Cmesh.operator->());
 //    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
     TPZStepSolver<STATE> step;
@@ -132,28 +149,35 @@ void TRMOrchestra::CreateAnalysisDual(){
     fFluxPressureAnalysis.Run();
     std::cout << "Dual dof: " << fFluxPressureAnalysis.Rhs().Rows() << std::endl;
     std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
-//    fFluxPressureAnalysis.Solution().Print(std::cout);
     prevsol -= fFluxPressureAnalysis.Solution();
     Cmesh->LoadSolution(prevsol);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
 
-//    meshvec[0]->Print(std::cout);
-//    meshvec[1]->Print(std::cout);
-//    Cmesh->Print(std::cout);
-    fFluxPressureAnalysis.Run();
-    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
-    prevsol -= fFluxPressureAnalysis.Solution();
-    Cmesh->LoadSolution(prevsol);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-    fFluxPressureAnalysis.AssembleResidual();
-    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
+    RatebyPosition.clear();
+    TotalFlux = 0.;
+    ComputeProductionRate(RatebyPosition, TotalFlux);    
+    std::cout << "Total flux " << TotalFlux << std::endl;
+    for (std::map<REAL,STATE>::iterator it = RatebyPosition.begin(); it != RatebyPosition.end(); it++) {
+        std::cout << "Y_position " << it->first << " rate " << it->second << std::endl;
+    }
     
+    if (0)
+    {
+        fFluxPressureAnalysis.Run();
+        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
+        prevsol -= fFluxPressureAnalysis.Solution();
+        Cmesh->LoadSolution(prevsol);
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+        fFluxPressureAnalysis.AssembleResidual();
+        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
+    }
     const int dim = 3;
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "../DualDarcy.vtk";
     scalnames.Push("WeightedPressure");
     scalnames.Push("DivOfBulkVeclocity");
+    scalnames.Push("POrder");
     vecnames.Push("BulkVelocity");
     fFluxPressureAnalysis.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     fFluxPressureAnalysis.PostProcess(div);
@@ -264,7 +288,7 @@ void TRMOrchestra::ProjectExactSolution()
 /** @brief exact pressure */
 void TRMOrchestra::ExactPressure(const TPZVec<REAL> &x, TPZVec<STATE> &pressure)
 {
-    pressure[0] = x[2];
+    pressure[0] = 0.;//x[2];
 }
 
 /** @brief exact pressure */
@@ -272,7 +296,73 @@ void TRMOrchestra::ExactFlux(const TPZVec<REAL> &x, TPZVec<STATE> &flux)
 {
     flux[0] = 0.;
     flux[1] = 0.;
-    flux[2] = -1.;
+    flux[2] = 0.;//-1.;
     
 }
 
+/** @brief Compute the production rate of the reservoir */
+void TRMOrchestra::ComputeProductionRate(std::map<REAL,STATE> &RatebyPosition, STATE &TotalIntegral)
+{
+    fSpaceGenerator.GetGmesh()->ResetReference();
+    fSpaceGenerator.GetFluxCmesh()->LoadReferences();
+    TPZAutoPointer<TPZGeoMesh> gmesh = fSpaceGenerator.GetGmesh();
+    TPZInt1d intrule(7);
+    int np = intrule.NPoints();
+    TotalIntegral = 0.;
+    long nel = gmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (gel->MaterialId() != _WellMatId3D) {
+            continue;
+        }
+        std::cout << "Accumulating for well3d = " << gel->Index() << std::endl;
+        TPZStack<long> faceElements;
+        for (int side=21; side < 25 ; side++) {
+            TPZGeoElSide gelside(gel,side);
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            while (neighbour.Element()->MaterialId() != _Well3DReservoirFaces && neighbour != gelside) {
+                neighbour = neighbour.Neighbour();
+            }
+            if (neighbour == gelside) {
+                DebugStop();
+            }
+            faceElements.Push(neighbour.Element()->Index());
+        }
+        for (int i=0; i<np; i++) {
+            REAL yIntegral = 0.;
+            REAL lineIntegral = 0.;
+            STATE flux1DIntegral = 0.;
+            TPZManVector<REAL,2> posi(1);
+            TPZStack<REAL> yvals;
+            REAL wi;
+            intrule.Point(i,posi,wi);
+            for (int iface=0; iface< faceElements.size(); iface++) {
+                for (int j=0; j<np; j++) {
+                    TPZGeoEl *gelface = gmesh->Element(faceElements[iface]);
+                    TPZCompEl *celface = gelface->Reference();
+                    TPZFNMatrix<9,REAL> jac(2,2),jacinv(2,2),axes(2,3),gradx(3,2);
+                    REAL detjac,wj;
+                    TPZManVector<REAL,3> posj(1),intpoint(2),xco(3);
+                    intrule.Point(j, posj, wj);
+                    intpoint[1] = posi[0];
+                    intpoint[0] = posj[0];
+                    gelface->Jacobian(intpoint, jac, axes, detjac, jacinv);
+                    gelface->X(intpoint, xco);
+//                    std::cout << "el index " << gelface->Index() << " intpoint " << intpoint << " xco " << xco << std::endl;
+                    TPZAxesTools<REAL>::ComputeGradX(jac, axes, gradx);
+                    REAL detjac1d = sqrt(gradx(0,0)*gradx(0,0)+gradx(1,0)*gradx(1,0)+gradx(2,0)*gradx(2,0));
+                    lineIntegral += detjac1d*wj;
+                    yIntegral += detjac1d*wj*xco[1];
+                    yvals.Push(xco[1]);
+                    TPZManVector<STATE,1> sol(1);
+                    celface->Solution(intpoint, 0, sol);
+                    flux1DIntegral += detjac1d*wj*sol[0];
+                    TotalIntegral += fabs(detjac)*wi*wj*sol[0];
+                }
+            }
+//            std::cout << "Y values " << yvals << std::endl;
+            REAL averageY = yIntegral/lineIntegral;
+            RatebyPosition[averageY] = flux1DIntegral;
+        }
+    }
+}

@@ -33,6 +33,9 @@ public:
     
 private:
     
+    /** @brief order of approximation */
+    int fPOrder;
+    
     /** @brief Define the type of geometry being used */
     MGeoMeshType fMeshType;
     
@@ -57,6 +60,8 @@ private:
     /** @brief H1 computational mesh for Maurice Biot Linear Poroelasticity */
     TPZAutoPointer<TPZCompMesh> fGeoMechanicsCmesh;
     
+    void ModifyElementOrders(std::map<long,int> &elorders);
+    
 
 public:
     
@@ -69,6 +74,12 @@ public:
     /** @brief Initialize the simulation data */
     void InitializeSimulationData(TRMRawData &rawdata);
     
+    /// Change the default polynomial order
+    void SetDefaultPOrder(int porder)
+    {
+        fPOrder = porder;
+    }
+    
     /** @brief Create a H1 computational mesh */
     void CreateH1Cmesh();
     
@@ -80,6 +91,9 @@ public:
     
     /** @brief Create a Mixed computational mesh Hdiv-L2 */
     void CreateMixedCmesh();
+    
+    /** @brief Configure the boundary conditions of a well with reservoir boundary conditions */
+    void ConfigureWellConstantPressure(STATE wellpressure, STATE farfieldpressure);
     
     /** @brief Create a computational mesh L2 */
     void CreateTransportMesh();
@@ -146,6 +160,8 @@ public:
         return fMixedFluxPressureCmesh;
     }
     
+    /// Adjust the polinomial order of the elements
+    void IncreaseOrderAroundWell(int numlayers);
 };
 
 #endif /* defined(__PZ__TRMSpaceOdissey__) */

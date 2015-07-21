@@ -85,6 +85,20 @@ public:
 		axes.Multiply(dudx,dudaxes);  
 	}
 	
+    /** @brief Compute GradX as a function of jac and axes */
+    static void ComputeGradX(TPZFMatrix<TVar> &jac, TPZFMatrix<TVar> &axes, TPZFMatrix<TVar> &gradx)
+    {
+        int nc = jac.Rows();
+        gradx.Redim(3, jac.Rows());
+        for (int i=0; i<3; i++) {
+            for (int j=0; j<nc; j++) {
+                for (int k=0; k<nc; k++) {
+                    gradx(i,j) += axes(k,i)*jac(k,j);
+                }
+            }
+        }
+    }
+    
 	/** Test code */
 	static int main(){
 		TPZFMatrix<> axes(2,3,0.);

@@ -64,7 +64,7 @@ public:
     void CreateCompMeshes(TRMRawData &rawdata);
     
     /** @brief Create a primal analysis using space odissey */
-    void CreateAnalysisPrimal(TRMSpaceOdissey spacegenerator);
+    void CreateAnalysisPrimal();
     
     /** @brief Create a dual analysis using space odissey */
     void CreateAnalysisDual();
@@ -83,6 +83,9 @@ public:
     
     /** @brief Project an exact solution */
     void ProjectExactSolution();
+    
+    /** @brief Compute the production rate of the reservoir */
+    void ComputeProductionRate(std::map<REAL,STATE> &RatebyPosition, STATE &Total);
     
     /** @brief exact pressure */
     static void ExactPressure(const TPZVec<REAL> &x, TPZVec<STATE> &pressure);

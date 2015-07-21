@@ -377,6 +377,12 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 		return;
 	}
 	
+    if (var == 99) {
+        TPZCompEl *cel = Element(0);
+        cel->Solution(qsi, var, sol);
+        return;
+    }
+    
 	TPZMaterial * material = this->Material();
 	if(!material){
 		sol.Resize(0);
