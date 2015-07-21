@@ -24,7 +24,9 @@ void CreateExampleRawData(TRMRawData &data);
 
 int main()
 {
+#ifdef LOG4CXX
     InitializePZLOG();
+#endif
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
     

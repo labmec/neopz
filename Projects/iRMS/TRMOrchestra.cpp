@@ -133,10 +133,13 @@ void TRMOrchestra::CreateAnalysisDual(){
     fFluxPressureAnalysis.Solution().Zero();
     fFluxPressureAnalysis.LoadSolution();
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+    std::cout << "Dual dof: " << fFluxPressureAnalysis.Rhs().Rows() << std::endl;
+    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
+    std::cout << "Total dof: " << prevsol.Rows() << std::endl;
     
     std::map<REAL,STATE> RatebyPosition;
     STATE TotalFlux = 0.;
-    ComputeProductionRate(RatebyPosition, TotalFlux);
+     ComputeProductionRate(RatebyPosition, TotalFlux);
 
     TPZSkylineStructMatrix strmat(Cmesh.operator->());
 //    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
@@ -145,9 +148,7 @@ void TRMOrchestra::CreateAnalysisDual(){
     step.SetDirect(ELDLt);
     fFluxPressureAnalysis.SetStructuralMatrix(strmat);
     fFluxPressureAnalysis.SetSolver(step);
-    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
     fFluxPressureAnalysis.Run();
-    std::cout << "Dual dof: " << fFluxPressureAnalysis.Rhs().Rows() << std::endl;
     std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
     prevsol -= fFluxPressureAnalysis.Solution();
     Cmesh->LoadSolution(prevsol);
@@ -306,7 +307,7 @@ void TRMOrchestra::ComputeProductionRate(std::map<REAL,STATE> &RatebyPosition, S
     fSpaceGenerator.GetGmesh()->ResetReference();
     fSpaceGenerator.GetFluxCmesh()->LoadReferences();
     TPZAutoPointer<TPZGeoMesh> gmesh = fSpaceGenerator.GetGmesh();
-    TPZInt1d intrule(7);
+    TPZInt1d intrule(14);
     int np = intrule.NPoints();
     TotalIntegral = 0.;
     long nel = gmesh->NElements();
@@ -350,7 +351,8 @@ void TRMOrchestra::ComputeProductionRate(std::map<REAL,STATE> &RatebyPosition, S
                     gelface->X(intpoint, xco);
 //                    std::cout << "el index " << gelface->Index() << " intpoint " << intpoint << " xco " << xco << std::endl;
                     TPZAxesTools<REAL>::ComputeGradX(jac, axes, gradx);
-                    REAL detjac1d = sqrt(gradx(0,0)*gradx(0,0)+gradx(1,0)*gradx(1,0)+gradx(2,0)*gradx(2,0));
+                    int xdir = 0;
+                    REAL detjac1d = sqrt(gradx(0,xdir)*gradx(0,xdir)+gradx(1,xdir)*gradx(1,xdir)+gradx(2,xdir)*gradx(2,xdir));
                     lineIntegral += detjac1d*wj;
                     yIntegral += detjac1d*wj*xco[1];
                     yvals.Push(xco[1]);

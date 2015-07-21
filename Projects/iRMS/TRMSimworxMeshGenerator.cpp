@@ -112,8 +112,12 @@ TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRaw
     espacamentoReservY[0] = -prop*wellength;
     espacamentoReservY[ndiv-1] = prop *wellength;
     for (int i=1; i<ndiv-1; i++) {
-        espacamentoReservY[i] = 1.397*(-wellength/2.+i*(wellength/(ndiv-1)));
+        // 8 -> 1.397
+        // 12 -> 1.2
+        espacamentoReservY[i] = 1.25*(-wellength/2.+i*(wellength/(ndiv-1)));
     }
+    espacamentoReservY[1] = -wellength/2.+0.3;
+    espacamentoReservY[ndiv-2] = wellength/2.-0.3;
     
     TPZManVector<REAL,6> espacamentoZ(5);
     espacamentoZ[0] = -reservoirheight/2.;
