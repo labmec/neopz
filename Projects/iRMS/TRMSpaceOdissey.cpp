@@ -660,50 +660,120 @@ void TRMSpaceOdissey::IncreaseOrderAroundWell(int numlayers)
 {
     fGeoMesh->ResetReference();
     this->fMixedFluxPressureCmesh->LoadReferences();
-    // find sell toe element
-    TPZGeoEl *geltoe = 0;
+    
+    // find well toe element
+    //TPZGeoEl *geltoe = 0;
+    TPZManVector<TPZGeoEl*,2> vecHellToe(2,NULL);
     long nelem = fGeoMesh->NElements();
+    int ilocal = 0;
     for (long el=0; el < nelem; el++) {
         TPZGeoEl *gel = fGeoMesh->Element(el);
         if (gel && gel->MaterialId() == _WellToeMatId) {
-            geltoe = gel;
-            break;
+            vecHellToe[ilocal] = gel;
+            //geltoe = gel;
+            ilocal++;
         }
-    }
-    /// find a neighbouring element of type reservoir matid
-    if (geltoe->Type() != EQuadrilateral) {
-        DebugStop();
-    }
-    TPZGeoElSide gelside(geltoe,8);
-    TPZGeoElSide neighbour = gelside.Neighbour();
-    while (neighbour != gelside) {
-        if (neighbour.Element()->MaterialId() == _ReservMatId) {
-            break;
+        if (gel && gel->MaterialId() == _WellHeelMatId) {
+            vecHellToe[ilocal] = gel;
+            //geltoe = gel;
+            ilocal++;
         }
-        neighbour = neighbour.Neighbour();
-    }
-    if (neighbour == gelside) {
-        DebugStop();
-    }
-    // go up the refinement tree and assign an order to the included computational elements
-    TPZGeoEl *gelbase = neighbour.Element();
-    std::map<long,int> contemplated;
-    std::cout << "Including index " << gelbase->Reference()->Index() << " order " << fPOrder+numlayers << std::endl;
 
-    contemplated[gelbase->Reference()->Index()]= fPOrder+numlayers;
-    for (int i=1; i< numlayers; i++) {
-        gelbase = gelbase->Neighbour(25).Element();
-        if (!gelbase) {
+        if (ilocal == 2){
+            break;
+        }
+    }
+    
+    /// find a neighbouring element of type reservoir matid
+    for (int i = 0; i < vecHellToe.NElements(); i++) {
+        if (vecHellToe[i]->Type() != EQuadrilateral) {
             DebugStop();
         }
-        std::cout << "Including index " << gelbase->Reference()->Index() << " order " << fPOrder+numlayers-i << std::endl;
-        contemplated[gelbase->Reference()->Index()] = fPOrder+numlayers-i;
+
+    }
+    
+    TPZManVector<TPZGeoElSide,2> vecGeoSide(2);
+    TPZManVector<TPZGeoElSide,2> vecGeoNeigh(2);
+    
+    for (int i = 0; i < vecGeoSide.size(); i++) {
+        vecGeoSide[i] = TPZGeoElSide(vecHellToe[i],vecHellToe[i]->NSides()-1);
+        vecGeoNeigh[i] = vecGeoSide[i].Neighbour();
+    }
+    for (int i = 0; i < vecGeoSide.size(); i++) {
+        while (vecGeoNeigh[i] != vecGeoSide[i]) {
+            if (vecGeoNeigh[i].Element()->MaterialId() == _ReservMatId) {
+                break;
+            }
+            vecGeoNeigh[i] = vecGeoNeigh[i].Neighbour();
+        }
+    }
+
+    int quadside = -1;
+    for (int i = 0; i < vecGeoSide.size(); i++) {
+        if (vecGeoSide[i].Element()->MaterialId() == _WellToeMatId) {
+            quadside = 20;
+        }
+        else if (vecGeoSide[i].Element()->MaterialId() == _WellHeelMatId){
+            quadside = 25;
+        }
+        else{
+            DebugStop();
+        }
+        if (vecGeoNeigh[i] == vecGeoSide[i] || vecGeoNeigh[i].Side() != quadside) {
+            DebugStop();
+        }
+    }
+    // go up the refinement tree and assign an order to the included computational elements
+    TPZManVector<TPZGeoEl*,2> vecGelBase(2);
+
+    for (int i = 0; i < vecGelBase.size(); i++) {
+        vecGelBase[i] = vecGeoNeigh[i].Element();
+    }
+    
+    TPZManVector<std::map<long,int>,2> contemplated(2);
+//    std::cout << "Including index " << gelbase->Reference()->Index() << " order " << fPOrder+numlayers << std::endl;
+
+    
+    contemplated[0][vecGelBase[0]->Reference()->Index()]= fPOrder+numlayers;
+    contemplated[1][vecGelBase[1]->Reference()->Index()]= fPOrder+numlayers;
+    int refside = -1;
+    for (int ic = 0; ic < vecGelBase.size(); ic++) {
+        if (vecGeoSide[ic].Element()->MaterialId() == _WellToeMatId) {
+            refside = 25;
+        }
+        else if (vecGeoSide[ic].Element()->MaterialId() == _WellHeelMatId) {
+            refside = 20;
+        }
+        else{
+            DebugStop();
+        }
+        for (int i=1; i< numlayers; i++) {
+            vecGelBase[ic] = vecGelBase[ic]->Neighbour(refside).Element();
+            if (!vecGelBase[ic]) {
+                DebugStop();
+            }
+            std::cout << "Including index " << vecGelBase[ic]->Reference()->Index() << " order " << fPOrder+numlayers-i << std::endl;
+            contemplated[ic][vecGelBase[ic]->Reference()->Index()] = fPOrder+numlayers-i;
+        }
+
     }
     // include the neighbours of the elements within contemplated along faces
-    std::map<long,int> original(contemplated);
-    for (std::map<long,int>::iterator it = original.begin(); it != original.end(); it++) {
-        IncludeNeighbours(this->fMixedFluxPressureCmesh, it->first, contemplated);
+    
+    TPZManVector<std::map<long,int>,2> original(2);
+    //TPZManVector<std::map<long,int>,2> original(contemplated[0]);
+    //std::map<long,int> original2(contemplated[1]);
+    
+    for (int i = 0; i < contemplated.size(); i++) {
+        original[i] = contemplated[i];
     }
-    ModifyElementOrders(contemplated);
+    
+    for (int i = 0; i < original.size(); i++) {
+        for (std::map<long,int>::iterator it = original[i].begin(); it != original[i].end(); it++) {
+            IncludeNeighbours(this->fMixedFluxPressureCmesh, it->first, contemplated[i]);
+        }
+    }
+    for (int i = 0 ; i < contemplated.size() ; i++){
+        ModifyElementOrders(contemplated[i]);
+    }
 }
 
