@@ -89,11 +89,11 @@ void TRMOrchestra::CreateAnalysisDual(){
     
 //    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
     fSpaceGenerator.CreateGeometricReservoirMesh();
-#ifdef DEBUG
+//#ifdef DEBUG
     fSpaceGenerator.PrintGeometry();
-#endif
+//#endif
     
-    fSpaceGenerator.SetDefaultPOrder(1);
+    fSpaceGenerator.SetDefaultPOrder(2);
     
     fSpaceGenerator.CreateFluxCmesh();
     fSpaceGenerator.CreatePressureCmesh();
@@ -108,6 +108,7 @@ void TRMOrchestra::CreateAnalysisDual(){
 
     fSpaceGenerator.ConfigureWellConstantPressure(0., 1000.);
 
+    fSpaceGenerator.StaticallyCondenseEquations();
     
     // transfer the solution from the meshes to the multiphysics mesh
     TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
@@ -123,7 +124,7 @@ void TRMOrchestra::CreateAnalysisDual(){
     bool mustOptimizeBandwidth = true;
     fFluxPressureAnalysis.SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
 //    TPZAnalysis * AnalysisDual = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
-    int numofThreads = 0;
+    int numofThreads = 8;
 #ifdef DEBUG
     {
         std::ofstream out("../MFCompMesh.txt");
@@ -133,7 +134,6 @@ void TRMOrchestra::CreateAnalysisDual(){
     fFluxPressureAnalysis.Solution().Zero();
     fFluxPressureAnalysis.LoadSolution();
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-    std::cout << "Dual dof: " << fFluxPressureAnalysis.Rhs().Rows() << std::endl;
     TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
     std::cout << "Total dof: " << prevsol.Rows() << std::endl;
     
@@ -316,7 +316,7 @@ void TRMOrchestra::ComputeProductionRate(std::map<REAL,STATE> &RatebyPosition, S
         if (gel->MaterialId() != _WellMatId3D) {
             continue;
         }
-        std::cout << "Accumulating for well3d = " << gel->Index() << std::endl;
+//        std::cout << "Accumulating for well3d = " << gel->Index() << std::endl;
         TPZStack<long> faceElements;
         for (int side=21; side < 25 ; side++) {
             TPZGeoElSide gelside(gel,side);

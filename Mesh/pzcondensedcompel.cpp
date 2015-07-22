@@ -303,7 +303,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     
     fCondensed.K00()->Subst_LBackward(&fCondensed.K01()); //Com SubstL_Back chegamos ao K01 desejado
     fCondensed.SetK01IsComputed(1);
-    
+    fCondensed.SetReduced();
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -344,6 +344,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
     
 	fCondensed.K11Reduced(K11, F1);
+    fCondensed.SetReduced();
     
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
     long dim0 = dim-K11.Rows();
@@ -411,6 +412,12 @@ void TPZCondensedCompEl::LoadSolution()
 {
     // initialize the solution of the constrained connects
     TPZCompEl::LoadSolution();
+    
+    // if the matrix has not been condensed then nothing to do
+    if (fCondensed.Rows() != fCondensed.Dim1())
+    {
+        return;
+    }
     // compute the solution of the internal equations
     int dim0=0, dim1=0;
     int nc = NConnects(),nc0 = 0, nc1 = 0;

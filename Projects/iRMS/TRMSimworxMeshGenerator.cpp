@@ -104,7 +104,7 @@ TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRaw
     const REAL mioloWidth = reservoirWidth/5.;
     const REAL reservoirheight = MyreservoirHeight;
     
-    const int ndiv = 8;
+    const int ndiv = 12;
     TPZManVector<REAL,ndiv> espacamentoReservY(ndiv);
     
     REAL prop = 0.70;

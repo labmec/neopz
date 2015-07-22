@@ -362,45 +362,49 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmesh.operator->());
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmesh.operator->());
     
-    if (StaticCondensation) {
-        if (!fMixedFluxPressureCmesh.operator->()) {
-            std::cout<< "No multiphysic computational mesh " << std::endl;
-            DebugStop();
-        }
-        
-        
-        fMixedFluxPressureCmesh.operator->()->Reference()->ResetReference();
-        fMixedFluxPressureCmesh.operator->()->LoadReferences();
-        
-        fMixedFluxPressureCmesh.operator->()->ComputeNodElCon();
-        // create condensed elements
-        // increase the NumElConnected of one pressure connects in order to prevent condensation
-        for (long icel=0; icel < fMixedFluxPressureCmesh.operator->()->NElements(); icel++) {
-            TPZCompEl  * cel = fMixedFluxPressureCmesh.operator->()->Element(icel);
-            
-            int nc = cel->NConnects();
-            for (int ic=0; ic<nc; ic++) {
-                TPZConnect &c = cel->Connect(ic);
-                if (c.LagrangeMultiplier() > 0) {
-                    c.IncrementElConnected();
-                    break;
-                }
-            }
-            
-            new TPZCondensedCompEl(cel);
-            
-            
-        }
-        
-        int DOF = meshvector[0]->NEquations() + meshvector[1]->NEquations();
-        REAL PercentCondensedDOF = 100.0*(1.0 - REAL(fMixedFluxPressureCmesh.operator->()->NEquations())/REAL(DOF));
-        std::cout << "Degrees of freedom: " << DOF << std::endl;
-        std::cout << "Percent of condensed Degrees of freedom: " << PercentCondensedDOF << std::endl;
+    
+    
+    
+}
 
+/** @brief Statically condense the internal equations of the elements */
+void TRMSpaceOdissey::StaticallyCondenseEquations()
+{
+    if (!fMixedFluxPressureCmesh.operator->()) {
+        std::cout<< "No multiphysic computational mesh " << std::endl;
+        DebugStop();
     }
     
     
+    fMixedFluxPressureCmesh.operator->()->Reference()->ResetReference();
+    fMixedFluxPressureCmesh.operator->()->LoadReferences();
     
+    fMixedFluxPressureCmesh.operator->()->ComputeNodElCon();
+    // create condensed elements
+    // increase the NumElConnected of one pressure connects in order to prevent condensation
+    for (long icel=0; icel < fMixedFluxPressureCmesh.operator->()->NElements(); icel++) {
+        TPZCompEl  * cel = fMixedFluxPressureCmesh.operator->()->Element(icel);
+        
+        int nc = cel->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            if (c.LagrangeMultiplier() > 0) {
+                c.IncrementElConnected();
+                break;
+            }
+        }
+        
+        new TPZCondensedCompEl(cel);
+    }
+            
+    TPZManVector<TPZCompMesh * ,2> meshvector(2);
+    meshvector[0] = fFluxCmesh.operator->();
+    meshvector[1] = fPressureCmesh.operator->();
+    
+    int DOF = meshvector[0]->NEquations() + meshvector[1]->NEquations();
+    REAL PercentCondensedDOF = 100.0*(1.0 - REAL(fMixedFluxPressureCmesh.operator->()->NEquations())/REAL(DOF));
+    std::cout << "Degrees of freedom: " << DOF << std::endl;
+    std::cout << "Percent of condensed Degrees of freedom: " << PercentCondensedDOF << std::endl;
 }
 
 
@@ -616,7 +620,26 @@ static void IncludeNeighbours(TPZAutoPointer<TPZCompMesh> cmesh, long index, std
         if (extended.find(celindex) == extended.end()) {
             std::cout << "Including index " << celindex << " order " << extended[index] << std::endl;
             extended[celindex] = extended[index];
+            // if celindex has neighbours of dimension 2, include them also
+            TPZGeoEl *gelindex = neighbour.Element();
+            // loop over all sides of dimension 2
+            for (int is=0; is<gelindex->NSides(); is++) {
+                if (gelindex->SideDimension(is) != 2) {
+                    continue;
+                }
+                TPZGeoElSide gelside(gelindex,is);
+                TPZGeoElSide neighbour = gelside.Neighbour();
+                while (neighbour != gelside) {
+                    if (neighbour.Element()->Dimension() == 2) {
+                        long neighindex = neighbour.Element()->Reference()->Index();
+                        std::cout << "Including index " << neighindex << " order " << extended[index] << std::endl;
+                        extended[neighindex] = extended[index];
+                    }
+                    neighbour = neighbour.Neighbour();
+                }
+            }
         }
+        
     }
 
 }
@@ -633,6 +656,9 @@ void TRMSpaceOdissey::ModifyElementOrders(std::map<long,int> &elorders)
             DebugStop();
         }
         TPZCompEl *press = mcel->Element(1);
+        if (!press) {
+            continue;
+        }
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(press);
         intel->PRefine(it->second);
     }
@@ -682,6 +708,11 @@ void TRMSpaceOdissey::IncreaseOrderAroundWell(int numlayers)
         if (ilocal == 2){
             break;
         }
+    }
+    
+    if(ilocal != 2)
+    {
+        DebugStop();
     }
     
     /// find a neighbouring element of type reservoir matid

@@ -92,6 +92,9 @@ public:
     /** @brief Create a Mixed computational mesh Hdiv-L2 */
     void CreateMixedCmesh();
     
+    /** @brief Statically condense the internal equations of the elements */
+    void StaticallyCondenseEquations();
+    
     /** @brief Configure the boundary conditions of a well with reservoir boundary conditions */
     void ConfigureWellConstantPressure(STATE wellpressure, STATE farfieldpressure);
     
