@@ -162,9 +162,11 @@ void TPZSkylParMatrix<TVar>::ColumnToWork(long &lcol) {
 		if(fDec[decomposeduntil] == decomposeduntil)
 		{
 #ifdef LOG4CXX
-			std::stringstream sout;
-			sout << "Will work column " << lcol;
-			LOGPZ_DEBUG(logger,sout.str())
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "Will work column " << lcol;
+                LOGPZ_DEBUG(logger,sout.str())
+            }
 #endif
 			return;
 		}
@@ -635,9 +637,12 @@ void TPZSkylParMatrix<TVar>::DecomposeColumnLDLt(long col, long prevcol){
 		*run2 /= *run1;
 	}else{
 #ifdef LOG4CXX
-		std::stringstream sout;
-		sout << "col = " << col << " diagonal " << *run2;
-		LOGPZ_DEBUG(logger,sout.str())
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "col = " << col << " diagonal " << *run2;
+            LOGPZ_DEBUG(logger,sout.str())
+        }
 #endif
 		//*run2=sqrt(*run2);
 	}
@@ -694,9 +699,12 @@ void TPZSkylParMatrix<TVar>::DecomposeColumnLDLt2(long col){
 			}
 			
 #ifdef LOG4CXX
-			std::stringstream sout;
-			sout << "col = " << col << " diagonal " << *run2;
-			LOGPZ_DEBUG(logger,sout.str())
+            if (logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "col = " << col << " diagonal " << *run2;
+                LOGPZ_DEBUG(logger,sout.str())
+            }
 #endif
 			//*run2=sqrt(*run2);
 		}

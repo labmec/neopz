@@ -142,7 +142,7 @@ public:
     /** @brief Determine if the mesh will be created with disconnected elements
      * After the mesh is created, interface elements need to be created "by hand"
      */
-    void CreateDisconnectedElements(bool create = false)
+    void CreateDisconnectedElements(bool create)
     {
         fCreateHybridMesh = create;
     }

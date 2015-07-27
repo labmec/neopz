@@ -100,7 +100,7 @@ void TPZRenumbering::ConvertGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphin
 		nodegraphindex[nod+1] = nextfreeindex;
   	}
     convert.stop();
-    std::cout << convert.processName().c_str()  << convert << std::endl;
+//    std::cout << convert.processName().c_str()  << convert << std::endl;
 }
 
 TPZRenumbering::TPZRenumbering(long NElements, long NNodes){

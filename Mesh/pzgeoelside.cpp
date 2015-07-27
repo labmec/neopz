@@ -638,7 +638,7 @@ void TPZGeoElSide::EqualLevelCompElementList3(TPZStack<TPZCompElSide> &elsidevec
     if(neighbour.Element() == this->Element())
     {
         ref = neighbour.Reference();
-        elsidevec.Push(ref);
+        if(ref.Exists()) elsidevec.Push(ref);
     }
 }
 

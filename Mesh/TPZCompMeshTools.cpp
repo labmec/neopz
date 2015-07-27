@@ -12,6 +12,9 @@
 #include "TPZOneShapeRestraint.h"
 #include "pzshapetriang.h"
 #include "pzshapetetra.h"
+#include "pzelementgroup.h"
+#include "pzsubcmesh.h"
+#include "pzcondensedcompel.h"
 
 static TPZOneShapeRestraint SetupPyramidRestraint(TPZCompEl *cel, int side);
 
@@ -246,3 +249,206 @@ void TPZCompMeshTools::LoadSolution(TPZCompMesh *cpressure, TPZFunction<STATE> &
     }
 }
 
+void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh, std::set<long> elbasis, std::set<long> &grouped)
+{
+    cmesh->Reference()->ResetReference();
+    cmesh->LoadReferences();
+    int dim = cmesh->Dimension();
+    long nel = cmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        if (elbasis.find(el) == elbasis.end()) {
+            continue;
+        }
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        std::set<long> elgroup;
+        
+        std::set<long> connectlist;
+        cel->BuildConnectList(connectlist);
+        std::cout << "cel " << cel->Index() << " connects ";
+        for (std::set<long>::iterator it=connectlist.begin(); it != connectlist.end(); it++) {
+            std::cout << *it << " ";
+        }
+        std::cout << std::endl;
+        int ns = gel->NSides();
+        for (int is=0; is<ns; is++) {
+            std::cout << "side " << is << std::endl;
+            TPZGeoElSide gelside(gel,is);
+            TPZStack<TPZCompElSide> celstack;
+            gelside.ConnectedCompElementList(celstack, 0, 0);
+            long nelstack = celstack.size();
+            for (long elst=0; elst<nelstack; elst++) {
+                TPZCompElSide celst=celstack[elst];
+//                TPZGeoElSide gelst =celst.Reference();
+                TPZCompEl *celsidelement = celst.Element();
+                if (elbasis.find(celsidelement->Index()) == elbasis.end()) {
+                    continue;
+                }
+                std::set<long> smallset;
+                celsidelement->BuildConnectList(smallset);
+                std::cout << "neigh " << celsidelement->Index() << " connects ";
+                for (std::set<long>::iterator it=smallset.begin(); it != smallset.end(); it++) {
+                    std::cout << *it << " ";
+                }
+                std::cout << std::endl;
+                if (std::includes(connectlist.begin(), connectlist.end(), smallset.begin(), smallset.end()))
+                {
+                    std::cout << "Is included\n";
+                    elgroup.insert(celsidelement->Index());
+                    elbasis.erase(celsidelement->Index());
+                }
+            }
+        }
+        if (elgroup.size()) {
+            elgroup.insert(el);
+            long grindex;
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,grindex);
+            for (std::set<long>::iterator it = elgroup.begin(); it != elgroup.end(); it++) {
+                elgr->AddElement(cmesh->Element(*it));
+            }
+            grouped.insert(grindex);
+        }
+        else
+        {
+            grouped.insert(el);
+        }
+    }
+}
+
+void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
+{
+    cmesh->Reference()->ResetReference();
+    cmesh->LoadReferences();
+    int dim = cmesh->Dimension();
+    long nel = cmesh->NElements();
+    // all elements that have been put in a group
+    std::set<long> grouped;
+    for (long el=0; el<nel; el++) {
+        if (grouped.find(el) != grouped.end()) {
+            continue;
+        }
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != dim) {
+            continue;
+        }
+        std::set<long> elgroup;
+        
+        std::set<long> connectlist;
+        cel->BuildConnectList(connectlist);
+//        std::cout << "cel " << cel->Index() << " connects ";
+//        for (std::set<long>::iterator it=connectlist.begin(); it != connectlist.end(); it++) {
+//            std::cout << *it << " ";
+//        }
+//        std::cout << std::endl;
+        int ns = gel->NSides();
+        for (int is=0; is<ns; is++) {
+//            std::cout << "side " << is << std::endl;
+            TPZGeoElSide gelside(gel,is);
+            TPZStack<TPZCompElSide> celstack;
+            gelside.ConnectedCompElementList(celstack, 0, 0);
+            long nelstack = celstack.size();
+            for (long elst=0; elst<nelstack; elst++) {
+                TPZCompElSide celst=celstack[elst];
+                //                TPZGeoElSide gelst =celst.Reference();
+                TPZCompEl *celsidelement = celst.Element();
+                if (grouped.find(celsidelement->Index()) != grouped.end()) {
+                    continue;
+                }
+                std::set<long> smallset;
+                celsidelement->BuildConnectList(smallset);
+//                std::cout << "neigh " << celsidelement->Index() << " connects ";
+//                for (std::set<long>::iterator it=smallset.begin(); it != smallset.end(); it++) {
+//                    std::cout << *it << " ";
+//                }
+//                std::cout << std::endl;
+                if (std::includes(connectlist.begin(), connectlist.end(), smallset.begin(), smallset.end()))
+                {
+//                    std::cout << "Is included\n";
+                    elgroup.insert(celsidelement->Index());
+                }
+            }
+        }
+        if (elgroup.size()) {
+            elgroup.insert(el);
+            long grindex;
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,grindex);
+            for (std::set<long>::iterator it = elgroup.begin(); it != elgroup.end(); it++) {
+                elgr->AddElement(cmesh->Element(*it));
+                grouped.insert(*it);
+            }
+            grouped.insert(grindex);
+        }
+    }
+}
+
+/// Put the element set into a subcompmesh and make the connects internal
+void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<long> &elindices, long &index, bool KeepOneLagrangian)
+{
+    TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh,index);
+    for (std::set<long>::iterator it = elindices.begin(); it != elindices.end(); it++) {
+        subcmesh->TransferElement(cmesh, *it);
+    }
+    cmesh->ComputeNodElCon();
+    if (KeepOneLagrangian)
+    {
+        long nconnects = cmesh->NConnects();
+        for (long ic=0; ic<nconnects; ic++) {
+            TPZConnect &c = cmesh->ConnectVec()[ic];
+            if (c.LagrangeMultiplier() > 0) {
+                c.IncrementElConnected();
+                break;
+            }
+        }
+    }
+    subcmesh->MakeAllInternal();
+//    int numthreads = 0;
+//    subcmesh->SetAnalysisSkyline(numthreads, 0, 0);
+}
+
+
+/// created condensed elements for the elements that have internal nodes
+void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian)
+{
+    long nel = cmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        int nc = cel->NConnects();
+        int ic;
+        if (KeepOneLagrangian) {
+            for (ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                if (c.LagrangeMultiplier() > 0) {
+                    c.IncrementElConnected();
+                    break;
+                }
+            }
+        }
+        for (ic=0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            if (c.HasDependency() || c.NElConnected() > 1) {
+                continue;
+            }
+            break;
+        }
+        bool cancondense = (ic != nc);
+        if(cancondense)
+        {
+            new TPZCondensedCompEl(cel);
+        }
+    }
+    cmesh->CleanUpUnconnectedNodes();
+    
+}

@@ -178,7 +178,7 @@ int TPZSubCompMesh::main() {
 
 TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, long &index) : TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
 fSingularConnect(-1) {
-	
+    SetDimModel(mesh.Dimension());
 	fAnalysis = NULL;
 	
 }
@@ -480,6 +480,7 @@ long TPZSubCompMesh::GetFromSuperMesh(long superind, TPZCompMesh *super){
 		j = it->second;
 		
 #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Connect in fathermesh " << superind << "  existing connect found : corresponds to connect " << j << " in subcompmesh";
@@ -640,7 +641,8 @@ void TPZSubCompMesh::MakeAllInternal(){
 		for (itset=cantransfer.begin(); itset!=cantransfer.end(); itset++) 
 		{
 #ifdef LOG4CXX
-			{
+            if (logger->isDebugEnabled())
+            {
 				std::stringstream sout;
 				sout << "Making the connect index " << *itset << " internal";
 				LOGPZ_DEBUG(logger,sout.str())				
@@ -958,6 +960,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 	else
 	{
+        std::cout << "The SubCompMesh needs a configured analysis\n";
 		DebugStop();//this->SetAnalysis();
 	}
 	std::set<int> matids = fAnalysis->StructMatrix()->MaterialIds();
@@ -1022,7 +1025,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	int globeq2 = 0;
 	for (ic=0; ic<fConnectVec.NElements(); ic++) {
 		TPZConnect &cn = fConnectVec[ic];
-		if (cn.HasDependency()) {
+		if (cn.HasDependency() || cn.IsCondensed()) {
 			nconstrconnects++;
 		}
 		else if(cn.SequenceNumber() >= 0) {
@@ -1076,14 +1079,14 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 				LOGPZ_ERROR(logger,sout.str())
 				DebugStop();
 			}
-			if ((eq >= numinteq || seqnum >= numintconnects) && blsize && !df.HasDependency() && fExternalLocIndex[in] == -1) {
+			if ((eq >= numinteq || seqnum >= numintconnects) && blsize && !df.HasDependency() && !df.IsCondensed() && fExternalLocIndex[in] == -1) {
 				std::stringstream sout;
 				sout << "Connect " << in << " has equation " << eq << " but is internal and has no dependencies ";
 				df.Print(*this,sout);
 				LOGPZ_ERROR(logger,sout.str())
 				DebugStop();
 			}
-			if((eq < globeq || seqnum < nconnects-nconstrconnects) && df.HasDependency())
+			if((eq < globeq || seqnum < nconnects-nconstrconnects) && (df.HasDependency() || df.IsCondensed()) )
 			{
 				std::stringstream sout;
 				sout << "Connect " << in << " with dependency was not put at the end of the stack equation " << eq << " global equations " << globeq;
@@ -1098,6 +1101,8 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	TPZMaterial * mat = MaterialVec().begin()->second;
 	int nstate = mat->NStateVariables();
     int numloadcases = mat->NumLoadCases();
+    ek.fMesh = Mesh();
+    ef.fMesh = Mesh();
 	ek.fNumStateVars = nstate;
 	ef.fNumStateVars = nstate;
 	ek.fMat.Redim(numeq,numeq);
@@ -1409,7 +1414,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 			
 			if(no.NElConnected() == 0) continue;
 			//se n�o tiver elemento conectado tambe'm
-			if(no.HasDependency())
+			if(no.HasDependency() || no.IsCondensed())
 			{
 				numconstraints++;
 			}
@@ -1436,6 +1441,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 		permute[*it] = seqnum++;
 	}
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << " numinternal " << numinternal << " numconstraints " << numconstraints << " numexternal " << numexternal << std::endl;
@@ -1458,7 +1464,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 		if (fExternalLocIndex[i] == -1){
 			//-> set permute[sequnum] to counter
 			// ->set permute[seqnum] = fExternalConnectIndex+numinternal
-			if(no.HasDependency())
+			if(no.HasDependency() || no.IsCondensed())
 			{
 				permute[seqnum] = countconstraint;
 				countconstraint++;
@@ -1475,6 +1481,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 		}
 	}
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Index = " << " Permutations " << permute << std::endl;

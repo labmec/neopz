@@ -63,6 +63,10 @@ TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGe
 
 template<class TGeometry>
 TPZMultiphysicsCompEl<TGeometry>::~TPZMultiphysicsCompEl(){
+    int nc = NConnects();
+    for (int ic=0; ic<nc; ic++) {
+        Connect(ic).RemoveDepend();
+    }
 }
 
 template <class TGeometry>
@@ -627,7 +631,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule;
 	
-	TPZManVector<REAL,3> intpointtemp(3,0.);
+    TPZManVector<REAL,3> intpointtemp(TGeometry::Dimension,0.);
 	REAL weight = 0.;
 	
 	TPZManVector<int,3> ordervec;

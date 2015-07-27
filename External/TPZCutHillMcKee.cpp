@@ -14,8 +14,8 @@ void TPZCutHillMcKee::SGraph::Set2Vec(const std::set<long> &myset,
 }//void
 
 long TPZCutHillMcKee::SGraph::SmallestDegree(TPZVec<long> &ExploredNodes){
-    std::cout << "TPZCutHillMcKee::SGraph::SmallestDegree size = " << this->NNodes() << std::endl;
-    std::cout.flush();
+//    std::cout << "TPZCutHillMcKee::SGraph::SmallestDegree size = " << this->NNodes() << std::endl;
+//    std::cout.flush();
   long mindegree = 1000000;
   long found = -1;
   const long n = this->NNodes();

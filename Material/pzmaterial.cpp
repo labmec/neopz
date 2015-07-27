@@ -251,6 +251,7 @@ void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZF
 	if (nref== 1) {
 		this->Contribute(datavec[0], weight, ek,ef);
 	}
+    DebugStop();
 }
 
 void TPZMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, 

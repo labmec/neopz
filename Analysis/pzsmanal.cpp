@@ -61,7 +61,7 @@ void TPZSubMeshAnalysis::Assemble(){
 	fStructMatrix->Assemble(fReducableStiff,fRhs,fGuiInterface);
 	time_t after = time(NULL);
 	double diff = difftime(after, before);
-	std::cout << __PRETTY_FUNCTION__ << " tempo " << diff << std::endl;
+//	std::cout << __PRETTY_FUNCTION__ << " tempo " << diff << std::endl;
 }
 
 void TPZSubMeshAnalysis::Run(std::ostream &out){
@@ -73,7 +73,7 @@ void TPZSubMeshAnalysis::Run(std::ostream &out){
 	time_t tempodepois = time(NULL);
 	double elapsedtime = difftime(tempodepois, tempo);
 	
-	std::cout << "Tempo para assemblagem " << elapsedtime << std::endl;
+//	std::cout << "Tempo para assemblagem " << elapsedtime << std::endl;
 	if (!fReducableStiff) {
         DebugStop();
     }
@@ -91,7 +91,7 @@ void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMatrix<STA
 	time_t tempodepois = time(NULL);
 	double elapsedtime = difftime(tempodepois, tempo);
 	
-	std::cout << "Tempo para inversao " << elapsedtime << std::endl;
+//	std::cout << "Tempo para inversao " << elapsedtime << std::endl;
 	
 }
 

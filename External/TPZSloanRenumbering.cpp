@@ -68,7 +68,7 @@ void TPZSloanRenumbering::Resequence(TPZVec<long> &permGather, TPZVec<long> &per
   }
 #endif
 
-    std::cout << "Computed DistanceToEndNode\n";
+//    std::cout << "Computed DistanceToEndNode\n";
   //assigning initial status and priority
     long maxpriority = 0;
   TPZVec<long> priority( nnodes, -1);
@@ -229,7 +229,7 @@ void TPZSloanRenumbering::Resequence2(TPZVec<long> &permGather, TPZVec<long> &pe
     }
 #endif
     
-    std::cout << "Computed DistanceToEndNode\n";
+//    std::cout << "Computed DistanceToEndNode\n";
     //assigning initial status and priority
     for(long i = 0; i < nnodes; i++){
         const int degree = graph.Degree(i);
