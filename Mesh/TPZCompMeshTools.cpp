@@ -15,6 +15,7 @@
 #include "pzelementgroup.h"
 #include "pzsubcmesh.h"
 #include "pzcondensedcompel.h"
+#include <algorithm>
 
 static TPZOneShapeRestraint SetupPyramidRestraint(TPZCompEl *cel, int side);
 
