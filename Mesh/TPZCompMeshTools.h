@@ -30,6 +30,9 @@ public:
     /// Put the element set into a subcompmesh and make the connects internal
     static void PutinSubmeshes(TPZCompMesh *cmesh, std::set<long> &elindices, long &index, bool KeepOneLagrangian);
     
+    /// Put the element set into a subcompmesh and make the connects internal
+    static void PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set<long> >&elindices, std::set<long> &indices, bool KeepOneLagrangian);
+    
     /// group all embedded elements of the computational mesh
     static void GroupElements(TPZCompMesh *cmesh);
     

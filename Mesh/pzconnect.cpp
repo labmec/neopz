@@ -296,9 +296,6 @@ int TPZConnect::NDof(TPZCompMesh &mesh) {
 	return mesh.Block().Size(fSequenceNumber);
 }
 
-long TPZConnect::SequenceNumber() const {
-	return fSequenceNumber;
-}
 
 int TPZConnect::CheckDependency(int nshape, TPZCompMesh *mesh, int nstate) {
 	

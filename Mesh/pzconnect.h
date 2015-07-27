@@ -149,8 +149,11 @@ public:
 
 	/** @brief Returns the Sequence number of the connect object */
 	/** If the \f$ sequence number == -1 \f$ this means that the node is unused */
-	long SequenceNumber() const;
-	
+	long SequenceNumber() const
+    {
+        return fSequenceNumber;
+    }
+
 	/** @brief Set the sequence number for the global system of equations of the connect object*/
 	/** If the argument \f$i==-1\f$ this means that the node is out of use*/
 	void SetSequenceNumber(long i) {fSequenceNumber = i;}

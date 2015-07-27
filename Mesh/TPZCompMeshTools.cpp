@@ -393,6 +393,41 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
 }
 
 /// Put the element set into a subcompmesh and make the connects internal
+void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set<long> >&elindices, std::set<long> &indices, bool KeepOneLagrangian)
+{
+    for (std::map<long,std::set<long> >::iterator it = elindices.begin(); it != elindices.end(); it++) {
+        long index;
+        TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh,index);
+        indices.insert(index);
+        for (std::set<long>::iterator itloc = it->second.begin(); itloc != it->second.end(); itloc++) {
+            subcmesh->TransferElement(cmesh, *itloc);
+        }
+    }
+    cmesh->ComputeNodElCon();
+    if (KeepOneLagrangian)
+    {
+        for (std::set<long>::iterator it = indices.begin(); it != indices.end(); it++) {
+            TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cmesh->Element(*it));
+            if (!subcmesh) {
+                DebugStop();
+            }
+            long nconnects = subcmesh->NConnects();
+            for (long ic=0; ic<nconnects; ic++) {
+                TPZConnect &c = subcmesh->Connect(ic);
+                if (c.LagrangeMultiplier() > 0) {
+                    c.IncrementElConnected();
+                    break;
+                }
+            }
+            subcmesh->MakeAllInternal();
+        }
+    }
+    
+}
+
+
+
+/// Put the element set into a subcompmesh and make the connects internal
 void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<long> &elindices, long &index, bool KeepOneLagrangian)
 {
     TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh,index);
@@ -402,9 +437,9 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<long> &elindi
     cmesh->ComputeNodElCon();
     if (KeepOneLagrangian)
     {
-        long nconnects = cmesh->NConnects();
+        long nconnects = subcmesh->NConnects();
         for (long ic=0; ic<nconnects; ic++) {
-            TPZConnect &c = cmesh->ConnectVec()[ic];
+            TPZConnect &c = subcmesh->Connect(ic);
             if (c.LagrangeMultiplier() > 0) {
                 c.IncrementElConnected();
                 break;

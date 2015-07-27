@@ -161,8 +161,8 @@ int main(int argc, char *argv[])
     TPZAutoPointer<TPZGeoMesh> gmesh;
     REAL Lx = 80.,Ly = 80., Lz = 8.;
     int nref = 1;
-    TPZManVector<int> nblocks(2,100);
-    nblocks[1] = 100;
+    TPZManVector<int> nblocks(2,30);
+    nblocks[1] = 30;
     gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref);
     
     int porder = 1;
@@ -1506,6 +1506,8 @@ void HideTheElements(TPZAutoPointer<TPZCompMesh> Multiphysics, bool KeepOneLagra
     }
     
     std::set<long> submeshindices;
+    TPZCompMeshTools::PutinSubmeshes(Multiphysics.operator->(), ElementGroups, submeshindices, KeepOneLagrangian);
+    /*
     int count =0;
     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
         long index;
@@ -1514,11 +1516,13 @@ void HideTheElements(TPZAutoPointer<TPZCompMesh> Multiphysics, bool KeepOneLagra
         submeshindices.insert(index);
         if (!(count%500)) {
             std::cout << count << " ";
+            std::cout.flush();
         }
     }
     if (count >= 500) {
         std::cout << std::endl;
     }
+     */
     std::cout << "After putting in substructures\n";
     Multiphysics->ComputeNodElCon();
     Multiphysics->CleanUpUnconnectedNodes();
