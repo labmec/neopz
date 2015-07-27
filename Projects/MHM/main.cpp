@@ -1506,10 +1506,18 @@ void HideTheElements(TPZAutoPointer<TPZCompMesh> Multiphysics, bool KeepOneLagra
     }
     
     std::set<long> submeshindices;
+    int count =0;
     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
         long index;
+        count++;
         TPZCompMeshTools::PutinSubmeshes(Multiphysics.operator->(), it->second, index,KeepOneLagrangian);
         submeshindices.insert(index);
+        if (!(count%500)) {
+            std::cout << count << " ";
+        }
+    }
+    if (count >= 500) {
+        std::cout << std::endl;
     }
     std::cout << "After putting in substructures\n";
     Multiphysics->ComputeNodElCon();
