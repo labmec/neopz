@@ -851,11 +851,13 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	}
 	int numint = intrule->NPoints();
 	int numshape = NSideShapeF(side);
+    int sidedimension = thisgeoside.Dimension();
+    int largesidedimension = largeside.Dimension();
 	int numshapel = large->NSideShapeF(neighbourside);
 	TPZFMatrix<REAL> phis(numshape,1),dphis(2,numshape),phil(numshapel,1),dphil(2,numshapel);
 	TPZFMatrix<STATE> MSL(numshape,numshapel,0.);
 	TPZFNMatrix<1000,STATE> *M = new TPZFNMatrix<1000,STATE>(numshape,numshape,0.);
-	TPZVec<REAL> par(3),pointl(3),point(3);
+    TPZManVector<REAL,3> par(sidedimension),pointl(largesidedimension);//,point(3);
 	long in,jn;
 	REAL weight;
 	for(int it=0; it<numint; it++) {

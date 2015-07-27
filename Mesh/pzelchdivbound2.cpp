@@ -190,7 +190,34 @@ TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2() : TPZIntelGen<TSHAPE>(),fneig
 // TESTADO
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
-	
+    TPZGeoEl *gel = this->Reference();
+    if (gel->Reference() != this) {
+        DebugStop();
+    }
+    int side = TSHAPE::NSides-1;
+    TPZGeoElSide gelside(this->Reference(),side);
+    TPZStack<TPZCompElSide> celstack;
+    TPZCompElSide largecel = gelside.LowerLevelCompElementList2(0);
+    if (largecel) {
+        int cindex = SideConnectLocId(0, side);
+        TPZConnect &c = this->Connect(cindex);
+        c.RemoveDepend();
+    }
+    gelside.HigherLevelCompElementList3(celstack, 0, 1);
+    long ncel = celstack.size();
+    for (long el=0; el<ncel; el++) {
+        TPZCompElSide celside = celstack[el];
+        TPZCompEl *cel = celside.Element();
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            DebugStop();
+        }
+        int cindex = intel->SideConnectLocId(0, celside.Side());
+        TPZConnect &c = intel->Connect(cindex);
+        c.RemoveDepend();
+    }
+    gel->ResetReference();
+
 }
 
 // NAO TESTADO
@@ -501,7 +528,7 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<long> &Index){
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
-	if(TSHAPE::SideDimension(side)!= TSHAPE::Dimension ){
+    if(TSHAPE::SideDimension(side)!= TSHAPE::Dimension || point.size() != TSHAPE::Dimension ){
 		DebugStop() ;
 	}
     TPZGeoEl *gel = this->Reference();
@@ -524,17 +551,23 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     TPZManVector<long,27> FirstIndex(TSHAPE::NSides+1);
     FirstShapeIndex(FirstIndex);
    
+    REAL detjac;
+    if (HDivPiola) {
+        int dim = gel->SideDimension(side);
+        TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
+        gel->Jacobian(point, jac, axes, detjac, jacinv);
+    }
 
-    int signQn = fSideOrient;
+
     int order = this->Connect(0).Order();
     for (int side=0; side < TSHAPE::NSides; side++) {
         int ifirst = FirstIndex[side];
         int kfirst = FirstIndex[permutegather[side]];
         int nshape = TSHAPE::NConnectShapeF(side,order);
         for (int i=0; i<nshape; i++) {
-            phi(ifirst+i,0) = signQn*philoc(kfirst+i,0);
+            phi(ifirst+i,0) = philoc(kfirst+i,0)/detjac;
             for (int d=0; d< TSHAPE::Dimension; d++) {
-                dphi(d,ifirst+i) = signQn*dphiloc(d,kfirst+i);
+                dphi(d,ifirst+i) = dphiloc(d,kfirst+i)/detjac;
             }
         }
     }
@@ -554,23 +587,9 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
     SideShapeFunction(TSHAPE::NSides-1, pt, phi, dphi);
 
 
-    if (HDivPiola)
-    {
-        TPZVec<REAL> coord(3,0.0);
-        TPZGeoEl *gel = this->Reference();
-        
-        if(!gel) {DebugStop();}
-        
-        TPZFMatrix<REAL> jacobian;
-        TPZFMatrix<REAL> axes;
-        REAL detjac;
-        TPZFMatrix<REAL> jacinv;
-        
-        gel->X(pt,coord);
-        gel->Jacobian(pt,jacobian,axes,detjac,jacinv);
-        
-        phi *= 1.0/detjac;
-        dphi *= 1.0/detjac;
+    if (fSideOrient == -1) {
+        phi *= -1.;
+        dphi *= -1.;
     }
     
     

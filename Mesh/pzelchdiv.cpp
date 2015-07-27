@@ -134,7 +134,37 @@ TPZIntelGen<TSHAPE>()
 
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
-	
+    TPZGeoEl *gel = this->Reference();
+    if (gel->Reference() != this) {
+        DebugStop();
+    }
+    for (int side=TSHAPE::NCornerNodes; side < TSHAPE::NSides; side++) {
+        if (TSHAPE::SideDimension(side) != TSHAPE::Dimension-1) {
+            continue;
+        }
+        TPZGeoElSide gelside(this->Reference(),side);
+        TPZStack<TPZCompElSide> celstack;
+        TPZCompElSide largecel = gelside.LowerLevelCompElementList2(0);
+        if (largecel) {
+            int cindex = SideConnectLocId(0, side);
+            TPZConnect &c = this->Connect(cindex);
+            c.RemoveDepend();
+        }
+        gelside.HigherLevelCompElementList3(celstack, 0, 1);
+        long ncel = celstack.size();
+        for (long el=0; el<ncel; el++) {
+            TPZCompElSide celside = celstack[el];
+            TPZCompEl *cel = celside.Element();
+            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+            if (!intel) {
+                DebugStop();
+            }
+            int cindex = intel->SideConnectLocId(0, celside.Side());
+            TPZConnect &c = intel->Connect(cindex);
+            c.RemoveDepend();
+        }
+    }
+    gel->ResetReference();
 }
 
 template<class TSHAPE>
@@ -827,7 +857,7 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrient(int side, int sideorient){
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
-    if(side==TSHAPE::NSides){
+    if(side==TSHAPE::NSides || point.size() != TSHAPE::Dimension-1){
         std::cout<<"Don't have side shape associated to this side";
         DebugStop();
     }
@@ -896,14 +926,22 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         FirstIndex[ls+1] = FirstIndex[ls]+TSHAPE::NConnectShapeF(localside,order);
     }
     
+    REAL detjac = 1.;
+    if (HDivPiola) {
+        TPZGeoElSide gelside = TPZGeoElSide(this->Reference(),side);
+        int dim = gel->SideDimension(side);
+        TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
+        gelside.Jacobian(point, jac, axes, detjac, jacinv);
+    }
+    
     for (int side=0; side < ncs; side++) {
         int ifirst = FirstIndex[side];
         int kfirst = FirstIndex[permutegather[side]];
         int nshape = FirstIndex[side+1]-FirstIndex[side];
         for (int i=0; i<nshape; i++) {
-            phi(ifirst+i,0) = philoc(kfirst+i,0);
+            phi(ifirst+i,0) = philoc(kfirst+i,0)/detjac;
             for (int d=0; d< sidedimension; d++) {
-                dphi(d,ifirst+i) = dphiloc(d,kfirst+i);
+                dphi(d,ifirst+i) = dphiloc(d,kfirst+i)/detjac;
             }
         }
     }

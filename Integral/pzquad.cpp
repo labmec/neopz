@@ -145,6 +145,13 @@ int TPZIntQuad::NPoints() const {
 }
 
 void TPZIntQuad::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
+    
+#ifdef DEBUG
+    if(pos.size() != 2)
+    {
+        DebugStop();
+    }
+#endif
 	if((fIntEta) && (fIntKsi) && ((ip >= 0) && (ip < NPoints()))){
 		int ik, ie;
 		ik = ip/fIntEta->NInt();
