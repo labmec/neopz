@@ -145,12 +145,13 @@ REAL feps= 1000.;
 REAL flambda = 50.;
 bool problemaarctan=false;
 
-bool bigmesh = true;
 
 int main(int argc, char *argv[])
 {
     HDivPiola = 1;
+#ifdef LOG4CXX
     InitializePZLOG();
+#endif
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -159,9 +160,9 @@ int main(int argc, char *argv[])
     
     TPZAutoPointer<TPZGeoMesh> gmesh;
     REAL Lx = 80.,Ly = 80., Lz = 8.;
-    int nref = 3;
-    TPZManVector<int> nblocks(2,10);
-    nblocks[1] = 30;
+    int nref = 1;
+    TPZManVector<int> nblocks(2,100);
+    nblocks[1] = 100;
     gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref);
     
     int porder = 1;
@@ -202,7 +203,9 @@ int main(int argc, char *argv[])
     //calculo solution
     TPZAnalysis an(CHDivPressureMesh);
     TPZSkylineStructMatrix skyl(CHDivPressureMesh);
+#ifndef DEBUG
     skyl.SetNumThreads(8);
+#endif
     an.SetStructuralMatrix(skyl);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
@@ -237,16 +240,9 @@ int mainMHM(int argc, char *argv[])
     TPZAutoPointer<TPZGeoMesh> gmesh;
     if(problemasuave || problemaarctan){
         gmesh= MalhaGeom2(1, 1);}
-    else if(!bigmesh)
-    {
-        gmesh = GMeshSteklov(false);
-    }
     else
     {
-        REAL Lx = 80.,Ly = 80., Lz = 8.;
-        int nref = 2;
-        TPZManVector<int> nblocks(2,5);
-        gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref);
+        gmesh = GMeshSteklov(false);
     }
     
 	//ofstream arg0("gmesh0.txt");

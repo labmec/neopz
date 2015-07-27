@@ -32,7 +32,17 @@ TPZSubMeshAnalysis::~TPZSubMeshAnalysis()
 
 void TPZSubMeshAnalysis::Assemble(){
 	
-	std::cout << "Assembling the SubCompMesh index " << fMesh->Index() << std::endl;
+
+    TPZCompMesh *mesh = Mesh();
+    TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(mesh);
+    if (!submesh) {
+        DebugStop();
+    }
+    TPZCompMesh *fathermesh = submesh->Mesh();
+    if (fathermesh->NElements() < 50)
+    {
+        std::cout << "Assembling the SubCompMesh index " << fMesh->Index() << std::endl;
+    }
 	int numeq = fCompMesh->NEquations();
 	int numinternal = fMesh->NumInternalEquations();
 	fReferenceSolution.Redim(numeq,1);

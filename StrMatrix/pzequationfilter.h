@@ -10,12 +10,12 @@ class TPZEquationFilter
 {
 public:
 
-    TPZEquationFilter(long numeq) : fNumEq(numeq), fActiveEqs(), fDestIndices()
+    TPZEquationFilter(long numeq) : fNumEq(numeq), fIsActive(false), fActiveEqs(), fDestIndices()
     {
 
     }
 
-    TPZEquationFilter(const TPZEquationFilter&cp):fNumEq(cp.fNumEq),
+    TPZEquationFilter(const TPZEquationFilter&cp):fNumEq(cp.fNumEq),fIsActive(cp.fIsActive),
            fActiveEqs(cp.fActiveEqs),fDestIndices(cp.fDestIndices)
     {
       ///nothing here
@@ -29,6 +29,7 @@ public:
     TPZEquationFilter & operator=(const TPZEquationFilter&cp)
     {
         this->fNumEq = cp.fNumEq;
+        this->fIsActive = cp.fIsActive;
         this->fActiveEqs = cp.fActiveEqs;
         this->fDestIndices = cp.fDestIndices;
         return *this;
@@ -56,6 +57,7 @@ public:
     {
         if(fActiveEqs.NElements()) DebugStop();///oops, call reset first
 
+        fIsActive = true;
         ///removendo duplicados e reordenando
         std::set<long> activeset;
         long neq = active.size();
@@ -76,6 +78,7 @@ public:
     /// Reset method
     void Reset()
     {
+        fIsActive = false;
         fActiveEqs.Resize(0);
         fDestIndices.Resize(0);
     }
@@ -148,12 +151,7 @@ public:
 	 */
     bool IsActive() const
     {
-        if (fActiveEqs.size() == fNumEq || fActiveEqs.size() == 0) {
-            return false;
-        }
-        else {
-            return true;
-        }
+        return fIsActive;
 
     }
 
@@ -259,6 +257,9 @@ private:
 
     /// Numero de equacoes do sistema original
     long fNumEq;
+    
+    /// Flag indicating whether the filter is active
+    bool fIsActive;
     
     /// Equacoes ativas
     TPZVec<long> fActiveEqs;
