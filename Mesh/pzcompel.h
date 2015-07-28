@@ -480,7 +480,9 @@ public:
 	 * @note Note : this method does not reset the set to zero. The calling
 	 * method should do this
 	 */
+//protected:
 	virtual void BuildConnectList(std::set<long> &indepconnectlist, std::set<long> &depconnectlist);
+public:
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects
@@ -495,7 +497,9 @@ public:
 	 * @param connectlist stack to receive the list
 	 * @note Note : this method ADDS connects to the set.
 	 */
+//protected:
 	virtual void BuildConnectList(std::set<long> &connectlist);
+public:
 	
 	/** @brief Returns 1 if the element has at least one dependent node. Returns 0 otherwise */
 	virtual int HasDependency();

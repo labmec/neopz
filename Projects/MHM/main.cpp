@@ -160,9 +160,9 @@ int main(int argc, char *argv[])
     
     TPZAutoPointer<TPZGeoMesh> gmesh;
     REAL Lx = 80.,Ly = 80., Lz = 8.;
-    int nref = 1;
-    TPZManVector<int> nblocks(2,30);
-    nblocks[1] = 30;
+    int nref = 0;
+    TPZManVector<int> nblocks(2,100);
+//    nblocks[1] = 30;
     gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref);
     
     int porder = 1;
@@ -210,9 +210,11 @@ int main(int argc, char *argv[])
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     an.SetSolver(step);
+    std::cout << "Assembling\n";
     an.Assemble();
+    std::cout << "Solving\n";
     an.Solve();
-    
+    std::cout << "Finished\n";
 #ifdef DEBUG
     {
         std::ofstream out("../MeshWithSol.txt");

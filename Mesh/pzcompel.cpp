@@ -421,37 +421,89 @@ void TPZCompEl::BuildConnectList(std::set<long> &indepconnectlist,
 }
 
 void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
-	std::set<long> buf,buf2;
 	long ncon = connectlist.NElements();
-	for(long i = 0; i < ncon; i++) {
-		buf.insert(connectlist[i]);
+    if (ncon) {
+        std::sort(&connectlist[0], &connectlist[0]+ncon);
+    }
+    long nconloc = NConnects();
+    TPZManVector<long> localcon(nconloc);
+	for(long i = 0; i < nconloc; i++) {
+        localcon[i] = this->ConnectIndex(i);
 	}
+    if (nconloc) {
+        std::sort(&localcon[0], &localcon[0]+nconloc);
+    }
+    
+    std::set<long> buf;
+    if (ncon > 0 && nconloc > 0)
+    {
+        std::set_union(&connectlist[0],&connectlist[0]+ncon,&localcon[0],&localcon[0]+nconloc,std::inserter(buf, buf.begin()));
+    }
+    else if (ncon > 0)
+    {
+        buf = std::set<long>(&connectlist[0],&connectlist[0]+ncon);
+    }
+    else if(nconloc > 0)
+    {
+        buf = std::set<long>(&localcon[0],&localcon[0]+nconloc);
+    }
+    std::set<long> buf2;
     std::list<TPZOneShapeRestraint> mylist = GetShapeRestraints();
     for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++) {
         for (int i=0; i<4; i++) {
             buf2.insert(it->fFaces[i].first);
         }
     }
-	BuildConnectList(buf2);
-	ncon = buf2.size();
-	std::set<long>::iterator it = buf2.begin();
-	for(it=buf2.begin() ; it != buf2.end(); it++) 
-	{
-        if(buf.find(*it) == buf.end())
-        {
-            connectlist.Push(*it);
-            buf.insert(*it);
+    for(long i = 0; i < nconloc; i++) {
+        TPZConnect &c = Connect(i);
+        if (c.HasDependency()) {
+            TPZConnect::TPZDepend * dep= c.FirstDepend();
+            buf2.insert(dep->fDepConnectIndex);
         }
-	}
+    }
+    TPZConnect::BuildConnectList(buf, buf2, *Mesh());
+    if (buf.size() != connectlist.size())
+    {
+        connectlist.Resize(buf.size());
+        std::copy(buf.begin(), buf.end(), &connectlist[0]);
+    }
 }
 
 void TPZCompEl::BuildConnectList(std::set<long> &connectlist) {
-	std::set<long> additional(connectlist);
-	const int ncon = this->NConnects();
-	for(int i = 0; i < ncon; i++) {
-		additional.insert(this->ConnectIndex(i));
-	}
-	TPZConnect::BuildConnectList(connectlist, additional, *this->Mesh());
+    long nconloc = NConnects();
+    TPZManVector<long> localcon(nconloc);
+    for(long i = 0; i < nconloc; i++) {
+        localcon[i] = this->ConnectIndex(i);
+    }
+    if (nconloc) {
+        std::sort(&localcon[0], &localcon[0]+nconloc);
+    }
+    
+    std::set<long> buf;
+    if (nconloc > 0)
+    {
+        std::set_union(connectlist.begin(),connectlist.end(),&localcon[0],&localcon[0]+nconloc,std::inserter(buf, buf.begin()));
+    }
+    else
+    {
+        buf = connectlist;
+    }
+    std::set<long> buf2;
+    std::list<TPZOneShapeRestraint> mylist = GetShapeRestraints();
+    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++) {
+        for (int i=0; i<4; i++) {
+            buf2.insert(it->fFaces[i].first);
+        }
+    }
+    for(std::set<long>::iterator it=buf.begin(); it != buf.end(); it++) {
+        TPZConnect &c = Mesh()->ConnectVec()[*it];
+        if (c.HasDependency()) {
+            TPZConnect::TPZDepend * dep= c.FirstDepend();
+            buf2.insert(dep->fDepConnectIndex);
+        }
+    }
+    TPZConnect::BuildConnectList(buf, buf2, *Mesh());
+    connectlist = buf;
 }
 
 int TPZCompEl::HasDependency() {
