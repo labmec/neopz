@@ -35,6 +35,7 @@ void LinearTracer()
     // Simulation Data SI units
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
+    TPZMaterial::gBigNumber = 1.0e12;
     
     int maxiter     = 40;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
@@ -53,18 +54,18 @@ void LinearTracer()
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = 1.0*day;
+    REAL dt         = 0.005*day;
 
-    REAL maxtime    = 1.0*day;
+    REAL maxtime    = 2.0*day;
     REAL t0         = 0.0*day;
-    REAL TolDeltaX  = 1.0*1e-3;
-    REAL TolRes     = 1.0*1e-3;
+    REAL TolDeltaX  = 1.0*1e-4;
+    REAL TolRes     = 1.0*1e-4;
     
-    int  nelemX     =1;
-    REAL lengthX    =100.0;
+    int  nelemX     =25;
+    REAL lengthX    =2.0;
     
     int nelemY      =1;
-    REAL lengthY    =100.0;
+    REAL lengthY    =5.0;
 
 
     

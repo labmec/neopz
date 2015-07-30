@@ -958,7 +958,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFluxin, val1, val2);
     
     // Bc Left
-    val2(0,0) = -0.001;
+    val2(0,0) = -0.00001;
     val2(1,0) = 1.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
@@ -1183,7 +1183,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     cmesh->SetDefaultOrder(porder);
     
     cmesh->SetAllCreateFunctionsContinuous();
-    cmesh->ApproxSpace().CreateDisconnectedElements(false);
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
 //    cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->AutoBuild();
     
@@ -2041,10 +2041,10 @@ void TPZDarcyAnalysis::InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STA
     REAL y = pt[1];
     
     disp.resize(1);
-    disp[0] = 1.0;
+    disp[0] = 0.0;
     
     if (y <=  200.0) {
-        disp[0] = 1.0;
+        disp[0] = 0.0;
     }
     
 }
