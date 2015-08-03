@@ -315,10 +315,10 @@ void TPZCompEl::Print(std::ostream & out) const {
 	}
 	if(this->Material())
 	{
-		out << "Material id " << this->Material()->Id() << "\n";
+		out << "\nMaterial id " << this->Material()->Id() << "\n";
 	}
 	else {
-		out << "No material\n";
+		out << "\nNo material\n";
 	}
 	
 	out << "Number of connects = " << NConnects();
