@@ -61,7 +61,7 @@ public:
 	void SetBothPenalty(){ this->fPenaltyType = EBoth; }
 
 	TPZMatLaplacian(int matid, int dim);
-
+    
   TPZMatLaplacian(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.),
      fSymmetry(0.), fPenaltyType(ENoPenalty)
   {
@@ -105,10 +105,9 @@ public:
 	 * Contribute method. Here, in base class, all requirements are considered as necessary.
 	 * Each derived class may optimize performance by selecting only the necessary data.
      */
-    virtual void FillDataRequirements(TPZMaterialData &data)
-    {
-        data.SetAllRequirements(false);
-    }
+    virtual void FillDataRequirements(TPZMaterialData &data);
+    
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data);
 
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
     virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
