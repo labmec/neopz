@@ -177,6 +177,5 @@ void LinearTracer()
     TPZDarcyAnalysis SandStone(Dataset,Layers,Rocks,FluidModel);
     SandStone.Run();
     
- 
   
 }
