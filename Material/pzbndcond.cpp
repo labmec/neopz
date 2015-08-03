@@ -217,17 +217,19 @@ void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STA
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
 	if(!mat) DebugStop();// return;
-	this->UpdateBCValues(data);
+    TPZBndCond copy(*this);
+    copy.UpdateBCValues(data);
+
 	
 	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
 		//left data should be filled instead of right data
         // shouldn't we invert the normal vector?
         for (int i=0; i<3; i++) data.normal[i] *= -1.;
-        mat->ContributeBCInterface(data,dataright,weight,ek,ef,*this);
+        mat->ContributeBCInterface(data,dataright,weight,ek,ef,copy);
 	}
     else
     {
-        mat->ContributeBCInterface(data,dataleft,weight,ek,ef,*this);
+        mat->ContributeBCInterface(data,dataleft,weight,ek,ef,copy);
     }
 }//void
 
