@@ -119,7 +119,7 @@ void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
     }
     
     if (this->IsSymetric()){
-        if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+        if ( !ek.VerifySymmetry(1.e-10) ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
     
 }
@@ -322,7 +322,7 @@ int TPZMatLaplacian::VariableIndex(const std::string &name){
 	if(!strcmp("Flux",name.c_str()))            return  10;
 	if(!strcmp("Pressure",name.c_str()))        return  11;
     
-	if(!strcmp("ExactPressure",name.c_str()))   return  12;
+	if(!strcmp("ExactSolution",name.c_str()))   return  12;
 	if(!strcmp("ExactFlux",name.c_str()))       return  13;
 	if(!strcmp("Divergence",name.c_str()))      return  14;
 	if(!strcmp("ExactDiv",name.c_str()))        return  15;
@@ -522,9 +522,9 @@ void TPZMatLaplacian::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	}
 	if(var == 2) {
 		int id;
+        TPZFNMatrix<50,STATE> dsoldx;
+        TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
 		for(id=0 ; id<fDim; id++) {
-			TPZFNMatrix<9,STATE> dsoldx;
-			TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
 			Solout[id] = dsoldx(id,0);//derivate
 		}
 		return;
@@ -641,10 +641,11 @@ void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 							 TPZFMatrix<STATE> &dudxaxes, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
-	values.Resize(3);
-  
-  TPZFMatrix<STATE> dudx(dudxaxes);
-  TPZAxesTools<STATE>::Axes2XYZ(dudxaxes, dudx, axes);
+    values.Resize(3);
+    values.Fill(0.0);
+
+    TPZFMatrix<STATE> dudx(dudxaxes);
+    TPZAxesTools<STATE>::Axes2XYZ(dudxaxes, dudx, axes);
     
 	///L2 norm
 	values[1] = (u[0] - u_exact[0])*(u[0] - u_exact[0]);
@@ -767,7 +768,7 @@ void TPZMatLaplacian::ContributeInterface(TPZMaterialData &data, TPZMaterialData
     }
     
     if (this->IsSymetric()){
-        if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+        if ( !ek.VerifySymmetry(1.e-10) ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
     
     if (this->fPenaltyConstant == 0.) return;
@@ -892,6 +893,15 @@ void TPZMatLaplacian::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 	int POrder= dataleft.p;
 	REAL faceSize=data.HSize;
     
+    STATE v2[1];
+    v2[0] = bc.Val2()(0,0);
+    
+    if(bc.HasForcingFunction()) {            // phi(in, 0) = phi_in
+        TPZManVector<STATE> res(1);
+        bc.ForcingFunction()->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
+        v2[0] = res[0];
+    }
+    
 	//  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
 	int il,jl,nrowl,id;
 	nrowl = phiL.Rows();
@@ -904,7 +914,7 @@ void TPZMatLaplacian::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 				for(id=0; id<fDim; id++) {
 					dphiLinormal += dphiL(id,il)*normal[id];
 				}
-				ef(il,0) += (STATE)(weight*dphiLinormal*fSymmetry)*fK*bc.Val2()(0,0);
+				ef(il,0) += (STATE)(weight*dphiLinormal*fSymmetry)*fK*v2[0];
 				for(jl=0; jl<nrowl; jl++) {
 					REAL dphiLjnormal = 0.;
 					for(id=0; id<fDim; id++) {
@@ -916,7 +926,7 @@ void TPZMatLaplacian::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
             
 		case 1: // Neumann
 			for(il=0; il<nrowl; il++) {
-				ef(il,0) += (STATE)(weight*phiL(il,0))*bc.Val2()(0,0);
+				ef(il,0) += (STATE)(weight*phiL(il,0))*v2[0];
 			}
 			break;
             
@@ -925,7 +935,7 @@ void TPZMatLaplacian::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 			break;
 	}
     if (this->IsSymetric()){
-		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+		if ( !ek.VerifySymmetry(1.e-10) ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
     
 	if (this->fPenaltyConstant == 0.) return;
@@ -938,7 +948,7 @@ void TPZMatLaplacian::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 		switch(bc.Type()) {
 			case 0: // DIRICHLET
 				for(il=0; il<nrowl; il++) {
-					ef(il,0) += (STATE)(weight * penalty * phiL(il,0)) * bc.Val2()(0,0);
+					ef(il,0) += (STATE)(weight*penalty*phiL(il,0))*v2[0];
 					for(jl=0; jl<nrowl; jl++) {
 						ek(il,jl) += weight * penalty * phiL(il,0) * phiL(jl,0);
 					}
@@ -967,6 +977,23 @@ void TPZMatLaplacian::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
     
 }
 
+
+void TPZMatLaplacian::FillDataRequirements(TPZMaterialData &data)
+{
+    data.SetAllRequirements(false);
+    data.fNeedsNeighborSol = false;
+    data.fNeedsNeighborCenter = false;
+    data.fNeedsNormal = true;
+}
+
+void TPZMatLaplacian::FillDataRequirementsInterface(TPZMaterialData &data)
+{
+    data.SetAllRequirements(false);
+    data.fNeedsNeighborSol = false;
+    data.fNeedsNeighborCenter = false;
+    data.fNeedsNormal = true;
+    data.fNeedsHSize = true;
+}
 
 REAL TPZMatLaplacian::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
 	// residual = -fK Laplac(u) - (fXf)
