@@ -1102,11 +1102,13 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 #ifdef LOG4CXX
 	{
-		std::stringstream sout;
-		sout << "ordem maxima na esquerda " << leftmaxp<<std::endl;
-		sout << "ordem maxima na direita " << rightmaxp<<std::endl;
-		
-		LOGPZ_DEBUG(logger, sout.str().c_str());
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "ordem maxima na esquerda " << leftmaxp<<std::endl;
+            sout << "ordem maxima na direita " << rightmaxp<<std::endl;
+            LOGPZ_DEBUG(logger, sout.str().c_str());
+        }
 	}
 #endif
 	
