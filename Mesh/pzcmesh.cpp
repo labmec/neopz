@@ -629,7 +629,10 @@ long TPZCompMesh::NEquations() {
 	long i, ncon = NConnects();
 	for(i=0; i<ncon; i++) {
 		TPZConnect &df = fConnectVec[i];
-		if(df.HasDependency() || df.IsCondensed() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
+        if(df.HasDependency() || df.IsCondensed() || !df.NElConnected() || df.SequenceNumber() == -1){
+            continue;
+        }
+        
         int dofsize = df.NShape()*df.NState();
 #ifdef DEBUG
         // check the consistency between the block size and the data structure of the connect
