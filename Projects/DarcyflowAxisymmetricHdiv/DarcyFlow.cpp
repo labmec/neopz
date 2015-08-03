@@ -54,18 +54,18 @@ void LinearTracer()
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = 0.005*day;
+    REAL dt         = 0.5*day;
 
-    REAL maxtime    = 2.0*day;
+    REAL maxtime    = 5.0*day;
     REAL t0         = 0.0*day;
     REAL TolDeltaX  = 1.0*1e-4;
     REAL TolRes     = 1.0*1e-4;
     
-    int  nelemX     =25;
-    REAL lengthX    =2.0;
+    int  nelemX     =1;
+    REAL lengthX    =100.0;
     
-    int nelemY      =1;
-    REAL lengthY    =5.0;
+    int nelemY      =2;
+    REAL lengthY    =50.0;
 
 
     
@@ -118,7 +118,7 @@ void LinearTracer()
     REAL waterdensity       = 1000.0;
     REAL waterviscosity     = 0.001;
     REAL cwater             = 0.0*1e-8;
-    REAL oildensity         = 1000.0;
+    REAL oildensity         = 500.0;
     REAL oilviscosity       = 0.001;
     REAL coil               = 0.0*1e-8;
     REAL gasdensity         = 0.0;

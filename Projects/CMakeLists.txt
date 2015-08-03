@@ -119,90 +119,11 @@ add_subdirectory(proDG)
 			endif()
 			##########################
 
-			#projeto Diogo
-			add_subdirectory(Plasticity)
-
-			#add_subdirectory(projteste)
-			
-			# MHM project
-			add_subdirectory(MHM)
-
-
-			add_subdirectory(MultipleLoad)
-
-			# add_subdirectory(adaptivity_refactor)
-						
-			add_subdirectory(Cubo_do_Nathan)
-
-			add_subdirectory(PyramidHdivTests)
-			
-			add_subdirectory(HyperElasticityFAD)
-
-			#Increment singular shape function: SingularShapeFunction
-			add_subdirectory(SingularShapeFunction)
-			add_subdirectory(angletest)
-			add_subdirectory(checkconv)
-
-			#Orthogonalization process of Gram-Schmidt
-			add_subdirectory(matrix)
-
-			#Inserting material and boundary conditions by function
-			add_subdirectory(termica)
-			add_subdirectory(Steam)
-			add_subdirectory(QuadraticElements)
-			add_subdirectory(ThermalStress)
-			Add_subdirectory(Conductivity)
-			add_subdirectory(ConsLaw)
-			add_subdirectory(Descontinuo2)
-
-			add_subdirectory(SteamInjection)
-			
-			#projeto agnaldo 09-09-2011
-			add_subdirectory(DoubleProjection)
-                        add_subdirectory(artigoPira)
-			add_subdirectory(TrabalhosLNCC15)
-			#projeto omar duran 16-12-2012
-			add_subdirectory(PoroElasticAnalysis)
-			add_subdirectory(Poisson2DGID)
+		
 			add_subdirectory(OilWaterSystem)
 			add_subdirectory(DarcyflowAxisymmetricHdiv)
 			add_subdirectory(DarcyflowHdiv3D)
-			add_subdirectory(MonophasicWell)
-			#collaborative project (NH GH PD, SG, OD) 18-04-2015
-			add_subdirectory(iRMS)
-			add_subdirectory(Elasticity2D)
-			add_subdirectory(Gridgeneration)
-			#add_subdirectory(Poisson2DLabyrinth)
-			add_subdirectory(Frac1DHdiv)
-			add_subdirectory(SubStruct)
-			add_subdirectory(MultiphysicsSimulation)
-			add_subdirectory(ProblemGirkmann)
-			
-			add_subdirectory(multplaca)
-
-			#Projeto Lua 2012
-			add_subdirectory(Lua01)
-
-			#teste nathan
-			add_subdirectory(PlasticityPV)
-
-			#Projeto Denise
-			#add_subdirectory(HdivPressureTeste)
-			add_subdirectory(HpAdaptivity)
-			add_subdirectory(HDiv)
-			add_subdirectory(Hdiv3D)
-			add_subdirectory(AcoplamentoH1Hdiv)
-			add_subdirectory(Validacao)
-
-			#add_subdirectory(prodindex)
-			#Projeto Agnaldo
-			add_subdirectory(Testes_Agnaldo)
-			add_subdirectory(ReducedSpace)
-			add_subdirectory(ReducedSpacePlasticity)
-			add_subdirectory(HydraulicFracturePropagation)
-			add_subdirectory(StabilizedHybridElasticity)
-			add_subdirectory(GlobalPostPro)
-
+	
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
