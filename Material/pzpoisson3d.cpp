@@ -406,7 +406,7 @@ int TPZMatPoisson3d::VariableIndex(const std::string &name){
 	if(!strcmp("Flux",name.c_str()))            return  10;
 	if(!strcmp("Pressure",name.c_str()))        return  11;
 	
-	if(!strcmp("ExactPressure",name.c_str()))   return  12;
+	if(!strcmp("ExactSolution",name.c_str()))   return  12;
 	if(!strcmp("ExactFlux",name.c_str()))       return  13;
 	if(!strcmp("Divergence",name.c_str()))      return  14;
 	if(!strcmp("ExactDiv",name.c_str()))        return  15;
