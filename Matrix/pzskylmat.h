@@ -504,7 +504,10 @@ public:
 		return fElem[column+1]-fElem[column];
 	}
 	
-	
+    long GetNelemts(){
+        return fStorage.size();
+    }
+    
 protected:
 	
 	/**
