@@ -8,6 +8,7 @@
 
 #ifndef __PZ__hdiv3dpaper201504__
 #define __PZ__hdiv3dpaper201504__
+
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
@@ -45,6 +46,7 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "TPZSkylineNSymStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
 
 #include "pzanalysis.h"
 
@@ -130,10 +132,9 @@ private:
     
 public:
     
-    
     enum ApproximationSpace { EH1, EHDiv, EHDivStar, EHDivStarStar };
     
-    enum Eltype { EQuad, ETriangle };
+    enum Eltype { ECub, EPrism, ETetra };
     
     Hdiv3dPaper201504();
     
@@ -147,15 +148,12 @@ private:
     
     TPZGeoMesh *GMeshWithPrism( int ndiv);
     
-    
     TPZGeoMesh *CreateOneCuboWithTetraedrons(long nelem);
     
     void GenerateNodes(TPZGeoMesh *gmesh, long nelem);
     
-    
     TPZGeoMesh *CreateOneCubo(int nref);
     TPZGeoMesh *CreateOneQuadraticCube(int nref);
-    
     
     /* Malhas computacionais */
     TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim);
@@ -187,15 +185,26 @@ private:
     static void ForcingBC4N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     static void ForcingBC5N(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     
-    static void ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
-    
-    static void ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv);
-    
+    void ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, int pos, TPZFMatrix< REAL > &errors );
     void ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
+    
+    void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, int pos, TPZFMatrix< REAL > &errors);
     
     void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond);
     
     void ChangeExternalOrderConnects(TPZCompMesh *mesh);
+    
+    void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh);
+    
+    bool MyDoubleComparer(REAL a, REAL b)
+    {
+	if (IsZero(a-b)){
+	    return true;
+	}
+	else{
+	    return false;
+	}
+    }
     
     void setTetraTrue()
     {
