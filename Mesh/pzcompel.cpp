@@ -40,6 +40,8 @@ using namespace std;
 
 #include "pzlog.h"
 
+#include <algorithm>
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
 static LoggerPtr loggerSide(Logger::getLogger("pz.mesh.tpzcompelside"));
@@ -423,7 +425,7 @@ void TPZCompEl::BuildConnectList(std::set<long> &indepconnectlist,
 void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
 	long ncon = connectlist.NElements();
     if (ncon) {
-        //std::sort(&connectlist[0], &connectlist[0]+ncon);
+        std::sort(&connectlist[0], &connectlist[0]+ncon);
     }
     long nconloc = NConnects();
     TPZManVector<long> localcon(nconloc);
@@ -431,13 +433,13 @@ void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
         localcon[i] = this->ConnectIndex(i);
 	}
     if (nconloc) {
-       // std::sort(&localcon[0], &localcon[0]+nconloc);
+        std::sort(&localcon[0], &localcon[0]+nconloc);
     }
     
     std::set<long> buf;
     if (ncon > 0 && nconloc > 0)
     {
-       // std::set_union(&connectlist[0],&connectlist[0]+ncon,&localcon[0],&localcon[0]+nconloc,std::inserter(buf, buf.begin()));
+        std::set_union(&connectlist[0],&connectlist[0]+ncon,&localcon[0],&localcon[0]+nconloc,std::inserter(buf, buf.begin()));
     }
     else if (ncon > 0)
     {
@@ -476,13 +478,13 @@ void TPZCompEl::BuildConnectList(std::set<long> &connectlist) {
         localcon[i] = this->ConnectIndex(i);
     }
     if (nconloc) {
-      //  std::sort(&localcon[0], &localcon[0]+nconloc);
+        std::sort(&localcon[0], &localcon[0]+nconloc);
     }
     
     std::set<long> buf;
     if (nconloc > 0)
     {
-       // std::set_union(connectlist.begin(),connectlist.end(),&localcon[0],&localcon[0]+nconloc,std::inserter(buf, buf.begin()));
+        std::set_union(connectlist.begin(),connectlist.end(),&localcon[0],&localcon[0]+nconloc,std::inserter(buf, buf.begin()));
     }
     else
     {
