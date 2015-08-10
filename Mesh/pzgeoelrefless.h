@@ -102,7 +102,14 @@ public:
 	virtual  int HasSubElement() const {return 0;}//fSubEl[0]!=0;}
 	
 	/** @brief Returns a pointer to the neighbour and the neighbourside along side of the current element */
-	virtual  TPZGeoElSide Neighbour(int side) { return TPZGeoElSide(fNeighbours[side],this->Mesh()); }
+	virtual  TPZGeoElSide Neighbour(int side) {
+#ifdef DEBUG
+        if (fNeighbours[side] < 0 || fNeighbours[side] >= this->Mesh()->NElements()) {
+            DebugStop();
+        }
+#endif
+        return TPZGeoElSide(fNeighbours[side],this->Mesh());
+    }
 	
 	virtual  long NodeIndex(int node) const;
 	

@@ -155,6 +155,10 @@ TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
         for (long el=0; el<ncel; el++) {
             TPZCompElSide celside = celstack[el];
             TPZCompEl *cel = celside.Element();
+            TPZGeoEl *gel = cel->Reference();
+            if (gel->SideDimension(celside.Side()) != gel->Dimension()-1) {
+                continue;
+            }
             TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
             if (!intel) {
                 DebugStop();

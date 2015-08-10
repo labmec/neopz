@@ -1040,7 +1040,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	int nflux = material->NFluxes();
 	TPZManVector<STATE,10> u_exact(ndof);
 	TPZFNMatrix<90,STATE> du_exact(dim+1,ndof);
-	TPZManVector<REAL,10> intpoint(3), values(NErrors);
+	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	values.Fill(0.0);
 	REAL weight;
 	TPZManVector<STATE,9> flux_el(nflux,0.);

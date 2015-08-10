@@ -353,7 +353,7 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, long ElemIndex, in
         }
     }
     
-    const REAL dist = 0.27;//0.25;
+    const REAL dist = 0.25;
     
     std::set<int>::iterator it;
     for(it = NOTtargetSideEdges_set.begin(); it != NOTtargetSideEdges_set.end(); it++)
