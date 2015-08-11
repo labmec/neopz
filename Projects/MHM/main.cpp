@@ -146,7 +146,7 @@ REAL flambda = 50.;
 bool problemaarctan=false;
 
 
-int main(int argc, char *argv[])
+int main2(int argc, char *argv[])
 {
     HDivPiola = 1;
 #ifdef LOG4CXX

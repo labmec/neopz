@@ -35,24 +35,18 @@ protected:
     /** Valor da funcao de carga */
     REAL fF; //fF
     
+    REAL fFad; //fFad
+    
     /** Dimensao do dominio */
     int fDim;
     
     /** Coeficiente que multiplica o gradiente */
     REAL fK;
     
-    /** @brief fluid viscosity*/
-	REAL fvisc;
+    /** @brief penalty term*/
+	REAL falpha;
     
-    /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
-	TPZFMatrix<REAL> fTensorK;
-    
-    /** @brief inverse of the permeability tensor.*/
-	TPZFMatrix<REAL> fInvK;
-    
-    /** @brief Pointer to forcing function, it is the Permeability and its inverse */
-    TPZAutoPointer<TPZFunction<STATE> > fPermeabilityFunction;
-	
+   
 public:
     
 	TPZMatPoissonControl();
@@ -77,33 +71,16 @@ public:
 	
 	virtual int NStateVariables();
     
-    void SetPermeability(REAL perm) {
-		fK = perm;
+    void SetParameters(REAL k, REAL alpha) {
+        fK = k;
+        falpha = alpha;
 	}
     
-    //Set the permeability tensor and inverser tensor
-    void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> invK){
-        
-        if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
-        if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
-        
-        fTensorK = K;
-        fInvK = invK;
+    void SetForceTerms(REAL floc, REAL fadloc) {
+        fF = floc;
+        fFad = fadloc;
     }
-	
-    void SetViscosity(REAL visc) {
-		fvisc = visc;
-	}
-    
-	void GetPermeability(REAL &perm) {
-		perm = fK;
-	}
-	
-	void SetInternalFlux(REAL flux) {
-		fF = flux;
-	}
 
-    
     void Print(std::ostream &out);
     
 	/** @name Contribute methods
@@ -225,11 +202,16 @@ public:
     int NSolutionVariables(int var);
     
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-    void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+    
+    void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
+        DebugStop();
+    }
     
     void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
                                  TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
-                TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+                TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
+        DebugStop();
+    }
 };
 
 

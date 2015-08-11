@@ -57,7 +57,7 @@ int const dirichlet =0;
 int const neumann = 1;
 
 REAL const Pi = 4.*atan(1.);
-TPZGeoMesh *GMesh();
+TPZGeoMesh *GMesh(bool QuarterPoint);
 
 //with hdiv
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
@@ -98,7 +98,7 @@ static LoggerPtr logger(Logger::getLogger("PiraHP.main"));
 
 #define print
 
-bool runhdiv = true;
+bool runhdiv = true;//hibrido ou hdiv
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -114,14 +114,15 @@ int main(int argc, char *argv[])
     
     int ndiv = 1;
     int p = 2;
+    bool QuarterPoint = true;
     
     //string outputfile("Solution_mphysics");
     std::stringstream name;
     if(runhdiv==true){
-        HDivPiola = 1;
+        HDivPiola = 1;//1- mapeamento piola, 0- sem piola
         std::ofstream myerrorfile("../Simulacao-MistaHdiv.txt");
-        for(ndiv=1; ndiv<3; ndiv++){
-            TPZGeoMesh *gmesh = GMesh();
+        for(ndiv=1; ndiv<9; ndiv++){
+            TPZGeoMesh *gmesh = GMesh(QuarterPoint);
             //malha inicial
             UniformRefine(gmesh,1);
 
@@ -193,7 +194,7 @@ int main(int argc, char *argv[])
         bool multiplicadorH1 = true;
         std::ofstream myerrorfile("Simulacao-Primal-LDGC.txt");
         
-        for(ndiv=1; ndiv<10; ndiv++){
+        for(ndiv=1; ndiv<9; ndiv++){
             TPZGeoMesh *gmesh = MalhaGeo(1);//malha geometrica
             
 // ------- refinamento proximo do no de id=1 -----
@@ -297,7 +298,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-TPZGeoMesh *GMesh(){
+TPZGeoMesh *GMesh(bool QuarterPoint){
     
     int dim = 2;
     int Qnodes = 6;
@@ -395,10 +396,12 @@ TPZGeoMesh *GMesh(){
 
 	gmesh->BuildConnectivity();
     
-    for (long el=0; el<toChange.size(); el++) {
-        TPZGeoEl *gel = toChange[el];
-        TPZChangeEl::ChangeToQuadratic(gmesh, gel->Index());
-//        TPZChangeEl::ChangeToQuarterPoint(gmesh, gel->Index(), targetSide[el]);
+    if(QuarterPoint){
+        for (long el=0; el<toChange.size(); el++) {
+            TPZGeoEl *gel = toChange[el];
+    //        TPZChangeEl::ChangeToQuadratic(gmesh, gel->Index());
+            TPZChangeEl::ChangeToQuarterPoint(gmesh, gel->Index(), targetSide[el]);
+        }
     }
    
 #ifdef LOG4CXX
