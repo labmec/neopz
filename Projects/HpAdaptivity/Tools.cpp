@@ -149,7 +149,8 @@ const REAL epsilon=1000.;
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
     REAL x = pt[0];
     REAL y = pt[1];
-    disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);
+//    disp[0]= 2.*pow(MyPi,2)*sin(MyPi*x)*sin(MyPi*y);
+  
     return;
 }
 void Forcing2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp) {
@@ -214,39 +215,40 @@ void SolArcTan(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux
     flux(0,0)=0;
     flux(1,0)=0;
     flux(2,0)=0;
+
     
-    p[0]=5*(-1 + x)*x*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))));//8*(1-x)*x*(1-y)*y*atan(0.0625+2*sqrt(epsilon)*(0.0625-pow(x-0.5, 2)-pow(y-0.5, 2)));
-    
-    //px
-    flux(0,0)=(10*Sqrt(eps)*(-1 + x)*(-0.5 + x)*x*(-1 + y)*y)/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -5*(-1 + x)*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*                                        (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))) -  5*x*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))));
-    //(-1.)*((-32*(1. - x)*(-0.5 + x)*x*(1. - y)*y*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) + 8*(1. - x)*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)) -                           8*x*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
-    //py
-    
-    flux(1,0)=(10*Sqrt(eps)*(-1 + x)*x*(-1 + y)*(-0.5 + y)*y)/
-    (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -
-    5*(-1 + x)*x*(-1 + y)*(Pi/2. + ArcTan(Sqrt(eps)*
-                                          (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))) -
-    5*(-1 + x)*x*y*(Pi/2. + ArcTan(Sqrt(eps)*
-                                   (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))));
-    //(-1.)*((-32*(1. - x)*x*(1. - y)*(-0.5 + y)*y*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) +8*(1. - x)*x*(1. - y)*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)) - 8*(1. - x)*x*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
-    //div
-    flux(2,0)=-5*(-1 + x)*x*((-2*Sqrt(eps))/
-                             (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -
-                             (8*Power(eps,1.5)*Power(-0.5 + x,2)*
-                              (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))/
-                             Power(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2),2))*
-    (-1 + y)*y + (4*Sqrt(eps)*(-0.5 + x)*(5*(-1 + x) + 5*x)*(-1 + y)*y)/
-    (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -
-    10*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*
-                                  (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))) -
-    5*(-1 + x)*x*(((-2*Sqrt(eps))/
-                   (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -
-                   (8*Power(eps,1.5)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))*
-                    Power(-0.5 + y,2))/
-                   Power(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2),2))*
-                  (-1 + y)*y - (4*Sqrt(eps)*(-0.5 + y)*(-1 + 2*y))/
-                  (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) +
-                  2*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))));
+//    p[0]=5*(-1 + x)*x*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))));//8*(1-x)*x*(1-y)*y*atan(0.0625+2*sqrt(epsilon)*(0.0625-pow(x-0.5, 2)-pow(y-0.5, 2)));
+//    
+//    //px
+//    flux(0,0)=(10*Sqrt(eps)*(-1 + x)*(-0.5 + x)*x*(-1 + y)*y)/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -5*(-1 + x)*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*                                        (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))) -  5*x*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))));
+//    //(-1.)*((-32*(1. - x)*(-0.5 + x)*x*(1. - y)*y*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) + 8*(1. - x)*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)) -                           8*x*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
+//    //py
+//    
+//    flux(1,0)=(10*Sqrt(eps)*(-1 + x)*x*(-1 + y)*(-0.5 + y)*y)/
+//    (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -
+//    5*(-1 + x)*x*(-1 + y)*(Pi/2. + ArcTan(Sqrt(eps)*
+//                                          (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))) -
+//    5*(-1 + x)*x*y*(Pi/2. + ArcTan(Sqrt(eps)*
+//                                   (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))));
+//    //(-1.)*((-32*(1. - x)*x*(1. - y)*(-0.5 + y)*y*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) +8*(1. - x)*x*(1. - y)*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)) - 8*(1. - x)*x*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
+//    //div
+//    flux(2,0)=-5*(-1 + x)*x*((-2*Sqrt(eps))/
+//                             (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -
+//                             (8*Power(eps,1.5)*Power(-0.5 + x,2)*
+//                              (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))/
+//                             Power(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2),2))*
+//    (-1 + y)*y + (4*Sqrt(eps)*(-0.5 + x)*(5*(-1 + x) + 5*x)*(-1 + y)*y)/
+//    (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -
+//    10*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*
+//                                  (0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))) -
+//    5*(-1 + x)*x*(((-2*Sqrt(eps))/
+//                   (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -
+//                   (8*Power(eps,1.5)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))*
+//                    Power(-0.5 + y,2))/
+//                   Power(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2),2))*
+//                  (-1 + y)*y - (4*Sqrt(eps)*(-0.5 + y)*(-1 + 2*y))/
+//                  (1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) +
+//                  2*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))));
     
     
     //(-1.)*((-8*(8*(1. - x) - 8*x)*(-0.5 + x)*(1. - y)*y*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) +8*(1. - x)*x*(1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) -(32*pow(-0.5 + x,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/ pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) + 8*(1. - x)*x*((-8*(1. - 2*y)*(-0.5 + y)*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) + (1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) - (32*pow(-0.5 + y,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) -  2*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))) -  16*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
@@ -312,9 +314,9 @@ void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     disp[0]=0;
     
-    disp[0]=-5*(-1 + x)*x*((-2*Sqrt(eps))/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -(8*Power(eps,1.5)*Power(-0.5 + x,2)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))/
-                           Power(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2),2))*(-1 + y)*y + (4*Sqrt(eps)*(-0.5 + x)*(5*(-1 + x) + 5*x)*(-1 + y)*y)/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -10*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))) -5*(-1 + x)*x*(((-2*Sqrt(eps))/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) - (8*Power(eps,1.5)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))*Power(-0.5 + y,2))/Power(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2),2))*(-1 + y)*y - (4*Sqrt(eps)*(-0.5 + y)*(-1 + 2*y))/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) +
-                                                                                                                                                                                                                                                                                                                                                      2*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))));//(-1.)*((-8*(8*(1. - x) - 8*x)*(-0.5 + x)*(1. - y)*y*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) +8*(1. - x)*x*(1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) -(32*pow(-0.5 + x,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/ pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) + 8*(1. - x)*x*((-8*(1. - 2*y)*(-0.5 + y)*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) + (1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) - (32*pow(-0.5 + y,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) -  2*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))) -  16*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
+//    disp[0]=-5*(-1 + x)*x*((-2*Sqrt(eps))/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -(8*Power(eps,1.5)*Power(-0.5 + x,2)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))/
+//                           Power(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2),2))*(-1 + y)*y + (4*Sqrt(eps)*(-0.5 + x)*(5*(-1 + x) + 5*x)*(-1 + y)*y)/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) -10*(-1 + y)*y*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))) -5*(-1 + x)*x*(((-2*Sqrt(eps))/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) - (8*Power(eps,1.5)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2))*Power(-0.5 + y,2))/Power(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2),2))*(-1 + y)*y - (4*Sqrt(eps)*(-0.5 + y)*(-1 + 2*y))/(1 + eps*Power(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2),2)) +
+//                                                                                                                                                                                                                                                                                                                                                      2*(Pi/2. + ArcTan(Sqrt(eps)*(0.0625 - Power(-0.5 + x,2) - Power(-0.5 + y,2)))));//(-1.)*((-8*(8*(1. - x) - 8*x)*(-0.5 + x)*(1. - y)*y*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) +8*(1. - x)*x*(1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) -(32*pow(-0.5 + x,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/ pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) + 8*(1. - x)*x*((-8*(1. - 2*y)*(-0.5 + y)*sqrt(epsilon))/ (1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) + (1. - y)*y*((-4*sqrt(epsilon))/(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2)) - (32*pow(-0.5 + y,2)*(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))*epsilon)/pow(1 + pow(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon),2),2)) -  2*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon))) -  16*(1. - y)*y*atan(0.0625 + 2*(0.0625 - pow(-0.5 + x,2) - pow(-0.5 + y,2))*sqrt(epsilon)));
     /*
      REAL F = 2*sqrt(epsilon);
      REAL arc = F*((0.25*0.25) - (x - 0.5)*(x - 0.5) - (y - 0.5)*(y - 0.5));
@@ -407,7 +409,7 @@ void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     //    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(x-0.5)*(x-0.5));
     //    f[0]= 8.*prodx*(1. + (2./MyPi)*atan(arc));
     
-    f[0]=8.*(1. - x)*x*atan(0.0625 + 2*sqrt(epsilon)*(-0.1875 - pow(-0.5 + x,2)));
+    f[0]=0.;//8.*(1. - x)*x*atan(0.0625 + 2*sqrt(epsilon)*(-0.1875 - pow(-0.5 + x,2)));
     
     
     
@@ -416,7 +418,7 @@ void CC1(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 void CC2(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     
     REAL y=pt[1];
-    f[0]=8.*(1. - y)*y*atan(0.0625 + 2*sqrt(epsilon)*(-0.1875 - pow(-0.5 + y,2)));
+    f[0]=0.;//8.*(1. - y)*y*atan(0.0625 + 2*sqrt(epsilon)*(-0.1875 - pow(-0.5 + y,2)));
     //    REAL prody=y*(y-1.);
     //    REAL arc=2.*sqrt(epsilon)*((-0.1875)-(y-0.5)*(y-0.5));
     //    f[0]= 8.*prody*(1 + (2./MyPi)*atan(arc));
