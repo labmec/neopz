@@ -147,6 +147,7 @@ void TPZVecL2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> 
 {
     
     TPZManVector<STATE,3> force(3);
+    force.Fill(0.);
     if(fForcingFunction) {
         fForcingFunction->Execute(data.x,force);
     }
@@ -188,6 +189,61 @@ void TPZVecL2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> 
             //jvecZ.Print("mat1 = ");
             REAL prod1 = ivec(0,0)*jvec(0,0) + ivec(1,0)*jvec(1,0) + ivec(2,0)*jvec(2,0);
             ek(iq,jq) += weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod1;
+           
         }
     }
 }
+
+void TPZVecL2::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+
+    
+    TPZFMatrix<REAL>  &phiQ = data.phi;
+    int phrq = phiQ.Rows();
+    
+    REAL v2;
+    if(bc.HasForcingFunction())
+    {
+        TPZManVector<STATE> res(3);
+        bc.ForcingFunction()->Execute(data.x,res);
+        v2 = res[0];
+    }else
+    {
+        v2 = bc.Val2()(0,0);
+    }
+    
+    switch (bc.Type()) {
+        case 0 :		// Dirichlet condition
+            //primeira equacao
+            for(int iq=0; iq<phrq; iq++)
+            {
+                //the contribution of the Dirichlet boundary condition appears in the flow equation
+                ef(iq,0) += (-1.)*v2*phiQ(iq,0)*weight;
+            }
+            break;
+            
+        case 1 :			// Neumann condition
+            //primeira equacao
+            for(int iq=0; iq<phrq; iq++)
+            {
+                ef(iq,0)+= gBigNumber*v2*phiQ(iq,0)*weight;
+                for (int jq=0; jq<phrq; jq++) {
+                    
+                    ek(iq,jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight;
+                }
+            }
+            break;
+            
+        case 2 :			// mixed condition
+            for(int iq = 0; iq < phrq; iq++) {
+                
+                ef(iq,0) += v2*phiQ(iq,0)*weight;
+                for (int jq = 0; jq < phrq; jq++) {
+                    ek(iq,jq) += weight*bc.Val1()(0,0)*phiQ(iq,0)*phiQ(jq,0);
+                }
+            }
+            
+            break;
+    }
+
+}
+
