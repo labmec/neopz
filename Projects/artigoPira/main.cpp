@@ -470,10 +470,11 @@ void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPo
     TPZBlock<STATE> blockMP = MPMesh->Block();
     TPZBlock<STATE> blockF = cmesh->Block();
    
+    
     blockF.SetMatrix(matF.operator->());
     blockMP.SetMatrix(matMP.operator->());
     
-    TPZFMatrix<long double> blocktemp;
+    TPZFMatrix<REAL> blocktemp;
     
     long nel = cmesh->NElements();
     for(int iel = 0; iel<nel; iel++){
@@ -506,6 +507,7 @@ void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPo
                         long seqnumj = conj.SequenceNumber();
                         TPZConnect &conMPj = MPMesh->ConnectVec()[jc];
                         long seqnumMPj = conMPj.SequenceNumber();
+                        
                         
                         blockF.GetBlock(seqnumi, seqnumj, blocktemp);
                         blockMP.PutBlock(seqnumMPi, seqnumMPj, blocktemp);
