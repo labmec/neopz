@@ -46,7 +46,10 @@ void TPZMatValidacaoHCurlFran1::Contribute(TPZMaterialData &data, REAL weight, T
   
   // Setting the phis
   TPZFMatrix<REAL> &phiQ = data.phi;
-  TPZFMatrix<REAL> &dphiQ = data.dphix; //AQUIFRAN
+  //TPZFMatrix<REAL> &dphiQ = data.dphix; //AQUIFRAN
+  TPZFMatrix<REAL> &dphiQdaxes = data.dphi;
+  TPZFNMatrix<3,REAL> dphiQ;
+  TPZAxesTools<REAL>::Axes2XYZ(dphiQdaxes, dphiQ, data.axes);
   
   TPZFNMatrix<9,REAL> auxMatrix(3,3,0.);
   auxMatrix(0,1) = -1.;
@@ -55,8 +58,6 @@ void TPZMatValidacaoHCurlFran1::Contribute(TPZMaterialData &data, REAL weight, T
   const TPZFNMatrix<9,REAL> rotationMatrix = auxMatrix;
   int phrq;
   phrq = data.fVecShapeIndex.NElements();
-  
-  //Calculate the matrix contribution for flux. Matrix A
   for(int iq=0; iq<phrq; iq++)
   {
     //ef(iq, 0) += 0.;
@@ -131,7 +132,10 @@ void TPZMatValidacaoHCurlFran1::ContributeBC(TPZMaterialData &data, REAL weight,
   
   // Setting the phis
   TPZFMatrix<REAL> &phiQ = data.phi;
-  TPZFMatrix<REAL> &dphiQ = data.dphix; //AQUIFRAN
+//  TPZFMatrix<REAL> &dphiQ = data.dphix; //AQUIFRAN
+  TPZFMatrix<REAL> &dphiQdaxes = data.dphi;
+  TPZFNMatrix<3,REAL> dphiQ;
+  TPZAxesTools<REAL>::Axes2XYZ(dphiQdaxes, dphiQ, data.axes);
   int nshape=phiQ.Rows();
   REAL BIG = TPZMaterial::gBigNumber;
   STATE v1 = bc.Val1()(0,0);//sera posto na matriz K no caso de condicao mista
@@ -141,7 +145,7 @@ void TPZMatValidacaoHCurlFran1::ContributeBC(TPZMaterialData &data, REAL weight,
     case 0:
       for(int i = 0 ; i<nshape ; i++)
       {
-        const STATE rhs = phiQ(i,0) * BIG * v2;
+        const STATE rhs = phiQ(i,0) * BIG * v1;
         ef(i,0) += rhs*weight;
         for(int j=0;j<nshape;j++)
         {

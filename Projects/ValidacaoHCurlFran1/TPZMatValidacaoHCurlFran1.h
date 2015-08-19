@@ -8,6 +8,7 @@
 #define TPZMatValidacaoHCurlFran1_H
 
 #include "TPZVecL2.h"
+#include "pzaxestools.h"
 
 const REAL M_C  (3*1e8); //velocidade da luz no vacuo
 const REAL M_UZERO  (4*M_PI*1e-7);//permeabilidade do meio livre

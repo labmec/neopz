@@ -96,12 +96,12 @@ int main(int argc, char *argv[])
   solucao.Print("Sol",std::cout,EMathematicaInput);//imprime na formatacao do Mathematica
   
   //fazendo pos processamento para paraview
-  TPZStack<std::string> scalnames, vecnames;
+ TPZStack<std::string> scalnames, vecnames;
   scalnames.Push("State");//setando para imprimir u
   std::string plotfile= "ValidacaoHCurlFran1EField.vtk";//arquivo de saida que estara na pasta debug
   an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
   int postProcessResolution = 0;//define resolucao do pos processamento
-  an.PostProcess(postProcessResolution);//realiza pos processamento
+  an.PostProcess(postProcessResolution);//realiza pos processamento*)
 
 
   std::cout <<"Tempo de simulacao total = "<<timer.seconds()<<" s\n";
