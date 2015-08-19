@@ -94,8 +94,10 @@ add_subdirectory(proDG)
 		if(BUILD_COMPLEX_PROJECTS)
 
 			#Example to work with scalar as complex
-			add_subdirectory(Helmholtz1D)
+			#add_subdirectory(Helmholtz1D)
 			add_subdirectory(TesteComplexo1D)
+			add_subdirectory(StriplineFran)
+			add_subdirectory(ValidacaoHCurlFran1)
 			
 			#add_subdirectory(HDiv_demo)
 
@@ -201,12 +203,15 @@ add_subdirectory(proDG)
 			add_subdirectory(HydraulicFracturePropagation)
 			add_subdirectory(StabilizedHybridElasticity)
 			add_subdirectory(GlobalPostPro)
+			# validacaoFranHCurl
+			add_subdirectory(ValidacaoHCurlFran1)
 
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
 			#
 			#
+			
 			
 
 		endif(BUILD_COMPLEX_PROJECTS)
