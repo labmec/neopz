@@ -2041,10 +2041,13 @@ void TPZDarcyAnalysis::InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STA
     REAL y = pt[1];
     
     disp.resize(1);
-    disp[0] = 1.0;
+    disp[0] = 0.0;
     
-    if (y >=  50.0) {
-        disp[0] = 0.0;
+    if (y >=  50.0 & y<100) {
+        disp[0] = 0.5;
+    }
+        if (y >=  100) {
+        disp[0] = 1.0;
     }
     
 }
