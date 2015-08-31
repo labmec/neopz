@@ -53,8 +53,8 @@ void PetroPhysicData::Krw(REAL Sw, REAL &krw, REAL &dkrwdSw)
    krw = Sw;
    dkrwdSw = 1;
   
-//   krw = Sw*Sw;
-//   dkrwdSw = 2.0*Sw;
+ // krw = Sw*Sw;
+ //  dkrwdSw = 2.0*Sw;
 }
 
 /** @brief Oil Relative permeabilities  $K_{ro}$ */

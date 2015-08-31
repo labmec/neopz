@@ -940,25 +940,25 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     
     // Bc Bottom
-    val2(0,0) = 0.0;
+    val2(0,0) = 10.0*1e6;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFluxin, val1, val2);
+    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typePressurein, val1, val2);
     
     // Bc Right
-    val2(0,0) = 0.0;
+    val2(0,0) = 0.0 * 10.0*1e6;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typeFluxin, val1, val2);
     
     // Bc Top
-    val2(0,0) = 10.0*1e6;
+    val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typePressureout, val1, val2);
+    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFluxin, val1, val2);
     
     // Bc Left
-    val2(0,0) = 0.0*-0.00001;
+    val2(0,0) = 0.0 * -0.00001;
     val2(1,0) = 1.0;
     val2(2,0) = 0.0;
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
@@ -2043,11 +2043,9 @@ void TPZDarcyAnalysis::InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STA
     disp.resize(1);
     disp[0] = 0.0;
     
-    if (y >=  50.0 & y<100) {
-        disp[0] = 0.5;
-    }
-        if (y >=  100) {
-        disp[0] = 1.0;
-    }
-    
+//     if (y >=  50.0 ) {
+//         disp[0] = 0.0;
+//     }
+   disp[0]= (rand() / (double)RAND_MAX);
+
 }

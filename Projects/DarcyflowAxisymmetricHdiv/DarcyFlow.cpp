@@ -15,7 +15,8 @@ void LinearTracer();
 
 int main()
 {
-
+  
+ TPZMaterial::gBigNumber = 10e20;
   LinearTracer();
   
   std::cout << " Process complete normally." << std::endl;
@@ -54,18 +55,18 @@ void LinearTracer()
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = 1.0*day;
+    REAL dt         = 0.5*day;
 
-    REAL maxtime    = 30.0*day;
+    REAL maxtime    = 10.0*day;
     REAL t0         = 0.0*day;
-    REAL TolDeltaX  = 1.0*1e-4;
-    REAL TolRes     = 1.0*1e-4;
+    REAL TolDeltaX  = 1.0*1e-5;
+    REAL TolRes     = 1.0*1e-5;
     
-    int  nelemX     =2;
-    REAL lengthX    =100.0;
+    int  nelemX     =10;
+    REAL lengthX    =25.0;
     
-    int nelemY      =3;
-    REAL lengthY    =50.0;
+    int nelemY      =6;
+    REAL lengthY    =25.0;
 
 
     
