@@ -447,7 +447,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     oneoverlambda_Kinv_u(1,0) = (1.0/fTotalMobility[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
     
     Gravity(0,0) = -0.0;
-    Gravity(1,0) = -9.8;
+    Gravity(1,0) = -0.0;
     
     REAL divu = 0.0;
     TPZFMatrix<STATE> iphiuHdiv(2,1);
@@ -647,7 +647,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     oneoverlambda_Kinv_u(1,0) = (1.0/fTotalMobility[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
     
     Gravity(0,0) = -0.0;
-    Gravity(1,0) = -9.8;
+    Gravity(1,0) = -0.0;
     
     gm(0,0) = (fFOil[0] * fOilDensity[0] + fFWater[0]* fWaterDensity[0]) * Gravity(0,0);
     gm(1,0) = (fFOil[0] * fOilDensity[0] + fFWater[0]* fWaterDensity[0]) * Gravity(1,0);
@@ -1032,7 +1032,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     TPZFMatrix<STATE> KGravityR(2,1);
     
     Gravity(0,0) = -0.0;
-    Gravity(1,0) = -9.8;
+    Gravity(1,0) = -0.0;
     
     REAL epsilon = fepsilon;
     
@@ -1446,7 +1446,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     TPZFMatrix<STATE> KGravityR(2,1);
     
     Gravity(0,0) = -0.0;
-    Gravity(1,0) = -9.8;
+    Gravity(1,0) = -0.0;
     
     TPZFMatrix<STATE> qgL(2,1);
     TPZFMatrix<STATE> qgR(2,1);
@@ -1652,7 +1652,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 //    TPZFMatrix<STATE> KGravityR(2,1);
 //    
 //    Gravity(0,0) = -0.0;
-//    Gravity(1,0) = -9.8;
+//    Gravity(1,0) = -0.0;
 //    
 //    REAL epsilon = fepsilon;
 //    
@@ -2197,7 +2197,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 //    TPZFMatrix<STATE> KGravityR(2,1);
 //    
 //    Gravity(0,0) = -0.0;
-//    Gravity(1,0) = -9.8;
+//    Gravity(1,0) = -0.0;
 //    
 //    TPZFMatrix<STATE> qgL(2,1);
 //    TPZFMatrix<STATE> qgR(2,1);
@@ -2501,11 +2501,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             
         case 1 :    // Neumann BC  QN inflow
         {
+
             
             Value = bc.Val2()(0,0);         //  NormalFlux
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
-                ef(iq) += weight * (gBigNumber * (Qn - Value) ) * PhiH1(iq,0);
+                ef(iq) += weight * (gBigNumber * (Qn - Value) + (5.0e6)/(1.0e7) ) * PhiH1(iq,0);
                 
                 for (int jq = 0; jq < nPhiHdiv; jq++)
                 {
@@ -2541,7 +2542,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
-                ef(iq) += weight * (gBigNumber * (Qn - Value)) * PhiH1(iq,0);
+                ef(iq) += weight * (gBigNumber * (Qn - Value) + (1.0e6)/(1.0e7)) * PhiH1(iq,0);
                 
                 for (int jq = 0; jq < nPhiHdiv; jq++)
                 {

@@ -62,6 +62,9 @@ SimulationData::SimulationData()
     /** @brief Define the use of static condensation */
     fCondenseElements = false;
     
+    /** @brief Define the use dimensionless formulation */
+    fIsDimensionless = false;
+    
     /** @brief Define the use of a linear approxiamtion of S using a gradient reconstruction procedure */
     fUseGR = false;
     

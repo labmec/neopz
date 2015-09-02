@@ -94,6 +94,9 @@ private:
     /** @brief Define the use of static condensation */
     bool fCondenseElements;
     
+    /** @brief Define the use dimensionless formulation */
+    bool fIsDimensionless;
+    
     /** @brief State: n or n+1 temporal state */
     bool fnStep;
     
@@ -125,12 +128,12 @@ public:
     /** @brief Set LengthElementx  x -  */
     void SetLengthElementx (REAL LengthElementx){this-> fLengthElementx = LengthElementx;}
       /** @brief Get LengthElementx  x -  */
-    int GetLengthElementx (){return this-> fLengthElementx;}
+    REAL GetLengthElementx (){return this-> fLengthElementx;}
 
     /** @brief Set LengthElementy  y -  */
     void SetLengthElementy (REAL LengthElementy){this-> fLengthElementy = LengthElementy;}
       /** @brief Get LengthElementy  y -  */
-    int GetLengthElementy (){return this-> fLengthElementy;}
+    REAL GetLengthElementy (){return this-> fLengthElementy;}
     
     /** @brief Get Time step - s */
     REAL GetDeltaT() {return this->fDeltaT;}
@@ -242,6 +245,12 @@ public:
     
     /** @brief Using Static condensation */
     bool GetSC() {return fCondenseElements;}
+    
+    /** @brief Using dimensionless formulation */
+    void SetIsDimensionless(bool isdimensionless) {fIsDimensionless = isdimensionless;}
+    
+    /** @brief Using dimensionless formulation */
+    bool GetIsDimensionless() {return fIsDimensionless;}
     
     
 };

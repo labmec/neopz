@@ -169,6 +169,9 @@ void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &
 void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 {
 
+    TPZFMatrix<REAL> Qini(fmeshvec[0]->Solution().Rows(),1,0.0);
+    fmeshvec[0]->LoadSolution(Qini);
+    
     TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
     TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
     TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
@@ -349,10 +352,6 @@ void TPZDarcyAnalysis::Run()
     TPZAnalysis *an = new TPZAnalysis(fcmeshdarcy,mustOptimizeBandwidth);
     int numofThreads = 0;
     
-    {
-        std::ofstream out("Computationalmesh.txt");
-        fcmeshdarcy->Print(out);
-    }
     bool IsDirecSolver = fSimulationData->GetIsDirect();
     
     if (IsDirecSolver) {
@@ -515,12 +514,12 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     
     REAL tk = 0;
     
-    this->FilterSaturationGradients(fConstantSaturations,fGradientSaturations);
-    an->StructMatrix()->EquationFilter().Reset();
-    an->StructMatrix()->EquationFilter().SetActiveEquations(fConstantSaturations);
-    
     if (fSimulationData->GetGR())
     {
+        this->FilterSaturationGradients(fConstantSaturations,fGradientSaturations);
+        an->StructMatrix()->EquationFilter().Reset();
+        an->StructMatrix()->EquationFilter().SetActiveEquations(fConstantSaturations);
+        
         this->SaturationReconstruction(an);
     }    
     
@@ -940,16 +939,16 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     
     // Bc Bottom
-    val2(0,0) = 10.0*1e6;
+    val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typePressurein, val1, val2);
+    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFluxin, val1, val2);
     
     // Bc Right
-    val2(0,0) = 0.0 * 10.0*1e6;
+    val2(0,0) = (1.0*1e6)/(1.0e7);
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typeFluxin, val1, val2);
+    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressureout, val1, val2);
     
     // Bc Top
     val2(0,0) = 0.0;
@@ -958,10 +957,10 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFluxin, val1, val2);
     
     // Bc Left
-    val2(0,0) = 0.0 * -0.00001;
+    val2(0,0) = (5.0*1e6)/(1.0e7);
     val2(1,0) = 1.0;
     val2(2,0) = 0.0;
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFluxin, val1, val2);
+    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typePressurein, val1, val2);
     
     cmesh->InsertMaterialObject(bcBottom);
     cmesh->InsertMaterialObject(bcRight);
@@ -1696,11 +1695,11 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     scalnames.Push("WeightedPressure");
     scalnames.Push("WaterSaturation");
     scalnames.Push("OilSaturation");
-//     scalnames.Push("WaterDensity");
-//     scalnames.Push("OilDensity");
-//     scalnames.Push("Porosity");
+     scalnames.Push("WaterDensity");
+     scalnames.Push("OilDensity");
+     scalnames.Push("Porosity");
 //     scalnames.Push("DivOfBulkVeclocity");
-    scalnames.Push("ExactSaturation");
+//    scalnames.Push("ExactSaturation");
     vecnames.Push("BulkVelocity");
     an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     an->PostProcess(div);
@@ -2046,6 +2045,6 @@ void TPZDarcyAnalysis::InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STA
 //     if (y >=  50.0 ) {
 //         disp[0] = 0.0;
 //     }
-   disp[0]= (rand() / (double)RAND_MAX);
+//   disp[0]= (rand() / (double)RAND_MAX);
 
 }
