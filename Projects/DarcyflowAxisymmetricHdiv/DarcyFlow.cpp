@@ -21,8 +21,8 @@ int main()
     TPZMaterial::gBigNumber = 10.0e20;
     
 //  LinearTracer();
-  NonlinearTracer();
-//  NonlinearTracerDimensionless();
+//  NonlinearTracer();
+  NonlinearTracerDimensionless();
   
     
   std::cout << " Process complete normally." << std::endl;
@@ -70,18 +70,18 @@ void NonlinearTracerDimensionless()
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 1.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
-    REAL maxtime    = 2.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL dt         = 100.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL maxtime    = 200.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL t0         = 0.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     
-    REAL TolDeltaX  = 1.0*1e-4;
-    REAL TolRes     = 1.0*1e-4;
+    REAL TolDeltaX  = 1.0*1e-5;
+    REAL TolRes     = 1.0*1e-5;
     
-    int  nelemX     =4;
-    REAL lengthX    =250.0/Lstr;
+    int  nelemX     =10;
+    REAL lengthX    =100.0/Lstr;
     
-    int nelemY      =1;
-    REAL lengthY    =100.0/Lstr;
+    int nelemY      =2;
+    REAL lengthY    =50.0/Lstr;
     
     
     
@@ -108,6 +108,38 @@ void NonlinearTracerDimensionless()
     Dataset->SetLengthElementx(lengthX);
     Dataset->SetLengthElementy(lengthY);
     
+//    int typeFluxin = 1, typePressurein = 0;
+//    int typeFluxout = 3, typePressureout = 2;
+    // BCs
+    
+    TPZVec<REAL> bottombc(4,0.0);
+    bottombc[0] = 1;
+    bottombc[1] = 0;
+    bottombc[2] = 0;
+    bottombc[3] = 0;
+    
+    TPZVec<REAL> rightbc(4,0.0);
+    rightbc[0] = 2;
+    rightbc[1] = (1.0*1e6)/(Pstr);
+    rightbc[2] = 0;
+    rightbc[3] = 0;
+    
+    TPZVec<REAL> topbc(4,0.0);
+    topbc[0] = 1;
+    topbc[1] = 0;
+    topbc[2] = 0;
+    topbc[3] = 0;
+    
+    TPZVec<REAL> leftbc(4,0.0);
+    leftbc[0] = 0;
+    leftbc[1] = (5.0*1e6)/(Pstr);
+    leftbc[2] = 1;
+    leftbc[3] = 0;
+    
+    Dataset->SetBottomBC(bottombc);
+    Dataset->SetRightBC(rightbc);
+    Dataset->SetTopBC(topbc);
+    Dataset->SetLeftBC(leftbc);
     
     
     // Reservoir Data SI units
@@ -261,7 +293,38 @@ void NonlinearTracer()
     Dataset->SetLengthElementx(lengthX);
     Dataset->SetLengthElementy(lengthY);
     
+    //    int typeFluxin = 1, typePressurein = 0;
+    //    int typeFluxout = 3, typePressureout = 2;
+    // BCs
     
+    TPZVec<REAL> bottombc(4,0.0);
+    bottombc[0] = 1;
+    bottombc[1] = 0;
+    bottombc[2] = 0;
+    bottombc[3] = 0;
+    
+    TPZVec<REAL> rightbc(4,0.0);
+    rightbc[0] = 2;
+    rightbc[1] = (1.0*1e6);
+    rightbc[2] = 0;
+    rightbc[3] = 0;
+    
+    TPZVec<REAL> topbc(4,0.0);
+    topbc[0] = 1;
+    topbc[1] = 0;
+    topbc[2] = 0;
+    topbc[3] = 0;
+    
+    TPZVec<REAL> leftbc(4,0.0);
+    leftbc[0] = 0;
+    leftbc[1] = (5.0*1e6);
+    leftbc[2] = 1;
+    leftbc[3] = 0;
+    
+    Dataset->SetBottomBC(bottombc);
+    Dataset->SetRightBC(rightbc);
+    Dataset->SetTopBC(topbc);
+    Dataset->SetLeftBC(leftbc);
     
     // Reservoir Data SI units
     
@@ -419,6 +482,38 @@ void LinearTracer()
     Dataset->SetLengthElementy(lengthY);
     
     
+    //    int typeFluxin = 1, typePressurein = 0;
+    //    int typeFluxout = 3, typePressureout = 2;
+    // BCs
+    
+    TPZVec<REAL> bottombc(4,0.0);
+    bottombc[0] = 1;
+    bottombc[1] = 0;
+    bottombc[2] = 0;
+    bottombc[3] = 0;
+    
+    TPZVec<REAL> rightbc(4,0.0);
+    rightbc[0] = 2;
+    rightbc[1] = (1.0*1e6);
+    rightbc[2] = 0;
+    rightbc[3] = 0;
+    
+    TPZVec<REAL> topbc(4,0.0);
+    topbc[0] = 1;
+    topbc[1] = 0;
+    topbc[2] = 0;
+    topbc[3] = 0;
+    
+    TPZVec<REAL> leftbc(4,0.0);
+    leftbc[0] = 0;
+    leftbc[1] = (5.0*1e6);
+    leftbc[2] = 1;
+    leftbc[3] = 0;
+    
+    Dataset->SetBottomBC(bottombc);
+    Dataset->SetRightBC(rightbc);
+    Dataset->SetTopBC(topbc);
+    Dataset->SetLeftBC(leftbc);
     
     // Reservoir Data SI units
     

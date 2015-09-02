@@ -937,30 +937,35 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
     
+    TPZManVector<REAL,4> Bottom     = fSimulationData->GetBottomBC();
+    TPZManVector<REAL,4> Right      = fSimulationData->GetRightBC();
+    TPZManVector<REAL,4> Top        = fSimulationData->GetTopBC();
+    TPZManVector<REAL,4> Left       = fSimulationData->GetLeftBC();
+    
     
     // Bc Bottom
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFluxin, val1, val2);
+    val2(0,0) = Bottom[1];
+    val2(1,0) = Bottom[2];
+    val2(2,0) = Bottom[3];
+    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, int(Bottom[0]), val1, val2);
     
     // Bc Right
-    val2(0,0) = (1.0*1e6)/(1.0e7);
-    val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressureout, val1, val2);
+    val2(0,0) = Right[1];
+    val2(1,0) = Right[2];
+    val2(2,0) = Right[3];
+    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, int(Right[0]), val1, val2);
     
     // Bc Top
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFluxin, val1, val2);
+    val2(0,0) = Top[1];
+    val2(1,0) = Top[2];
+    val2(2,0) = Top[3];
+    TPZBndCond * bcTop = mat->CreateBC(mat, topId, int(Top[0]), val1, val2);
     
     // Bc Left
-    val2(0,0) = (5.0*1e6)/(1.0e7);
-    val2(1,0) = 1.0;
-    val2(2,0) = 0.0;
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typePressurein, val1, val2);
+    val2(0,0) = Left[1];
+    val2(1,0) = Left[2];
+    val2(2,0) = Left[3];
+    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, int(Left[0]), val1, val2);
     
     cmesh->InsertMaterialObject(bcBottom);
     cmesh->InsertMaterialObject(bcRight);

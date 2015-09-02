@@ -100,11 +100,30 @@ private:
     /** @brief State: n or n+1 temporal state */
     bool fnStep;
     
-    
+    /** @brief State: n or n+1 temporal state */
     int fNelmx;
+
+    /** @brief State: n or n+1 temporal state */
     int fNelmy;
+    
+    /** @brief State: n or n+1 temporal state */
     REAL fLengthElementx;
+    
+    /** @brief State: n or n+1 temporal state */
     REAL fLengthElementy;
+    
+    /** @brief Definition of the Top bc */
+    TPZVec<REAL> fTopBC;
+    
+    /** @brief Definition of the Bottom bc */
+    TPZVec<REAL> fBottomBC;
+    
+    /** @brief Definition of the Right bc */
+    TPZVec<REAL> fRightBC;
+    
+    /** @brief Definition of the Left bc */
+    TPZVec<REAL> fLeftBC;
+    
     
 public:
     
@@ -251,6 +270,58 @@ public:
     
     /** @brief Using dimensionless formulation */
     bool GetIsDimensionless() {return fIsDimensionless;}
+    
+    /** @brief Set Top bc */
+    void SetTopBC(TPZVec<REAL> topbc){
+        
+        if (topbc.size() != 4) {
+            std::cout << "The number of parameter must to be equal 4, you give me = " << topbc.size() << std::endl;
+            DebugStop();
+        }
+        fTopBC = topbc;
+    }
+    
+    /** @brief Get Top bc */
+    TPZVec<REAL> GetTopBC(){return fTopBC;}
+    
+    /** @brief Set Top bc */
+    void SetBottomBC(TPZVec<REAL> bottombc){
+
+        if (bottombc.size() != 4) {
+            std::cout << "The number of parameter must to be equal 4, you give me = " << bottombc.size() << std::endl;
+            DebugStop();
+        }
+        fBottomBC = bottombc;
+    }
+    
+    /** @brief Get Top bc */
+    TPZVec<REAL> GetBottomBC(){return fBottomBC;}
+    
+    /** @brief Set Top bc */
+    void SetRightBC(TPZVec<REAL> rightbc){
+        
+        if (rightbc.size() != 4) {
+            std::cout << "The number of parameter must to be equal 4, you give me = " << rightbc.size() << std::endl;
+            DebugStop();
+        }
+        fRightBC = rightbc;
+    }
+    
+    /** @brief Get Top bc */
+    TPZVec<REAL> GetRightBC(){return fRightBC;}
+    
+    /** @brief Set Top bc */
+    void SetLeftBC(TPZVec<REAL> leftbc){
+        
+        if (leftbc.size() != 4) {
+            std::cout << "The number of parameter must to be equal 4, you give me = " << leftbc.size() << std::endl;
+            DebugStop();
+        }
+        fLeftBC = leftbc;
+    }
+    
+    /** @brief Get Top bc */
+    TPZVec<REAL> GetLeftBC(){return fLeftBC;}
     
     
 };

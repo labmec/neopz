@@ -2506,7 +2506,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             Value = bc.Val2()(0,0);         //  NormalFlux
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
-                ef(iq) += weight * (gBigNumber * (Qn - Value) + (5.0e6)/(1.0e7) ) * PhiH1(iq,0);
+                ef(iq) += weight * (gBigNumber * (Qn - Value) ) * PhiH1(iq,0);
                 
                 for (int jq = 0; jq < nPhiHdiv; jq++)
                 {
@@ -2542,7 +2542,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
-                ef(iq) += weight * (gBigNumber * (Qn - Value) + (1.0e6)/(1.0e7)) * PhiH1(iq,0);
+                ef(iq) += weight * (gBigNumber * (Qn - Value) ) * PhiH1(iq,0);
                 
                 for (int jq = 0; jq < nPhiHdiv; jq++)
                 {
