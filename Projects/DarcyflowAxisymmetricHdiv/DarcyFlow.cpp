@@ -18,7 +18,7 @@ void NonlinearTracerDimensionless();
 int main()
 {
   
-    TPZMaterial::gBigNumber = 10.0e15;
+    TPZMaterial::gBigNumber = 1.0e12;
     
 //  LinearTracer();
 //  NonlinearTracer();
@@ -61,27 +61,27 @@ void NonlinearTracerDimensionless()
     bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
-    int qorder      = 2;
-    int porder      = 2;
+    int qorder      = 1;
+    int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 3;
+    int hpostref    = 1;
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 100.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL dt         = 200.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL maxtime    = 200.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL t0         = 0.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     
-    REAL TolDeltaX  = 1.0*1e-5;
-    REAL TolRes     = 1.0*1e-5;
+    REAL TolDeltaX  = 1.0*1e-10;
+    REAL TolRes     = 1.0*1e-10;
     
-    int  nelemX     =10;
-    REAL lengthX    =100.0/Lstr;
+    int  nelemX     =1;
+    REAL lengthX    =1000.0/Lstr;
     
-    int nelemY      =2;
-    REAL lengthY    =50.0/Lstr;
+    int nelemY      =1;
+    REAL lengthY    =1000.0/Lstr;
     
     
     
@@ -165,10 +165,10 @@ void NonlinearTracerDimensionless()
     // Reservoir Description linear tracer configuration
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (1.0*1e-7)*Pstr;
+    REAL cwater             = (1.0*1e-9)*Pstr;
     REAL oildensity         = 1000.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (1.0*1e-7)*Pstr;
+    REAL coil               = (1.0*1e-9)*Pstr;
     REAL gasdensity         = 0.0/Rhostr;
     REAL gasviscosity       = 0.0/Mustr;
     REAL cgas               = (0.0)*Pstr;

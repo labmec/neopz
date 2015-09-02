@@ -343,6 +343,16 @@ public:
      * Computes computational mesh for L2 projection
      */
     TPZCompMesh * L2ProjectionCmesh(TPZVec<STATE> &solini);
+    
+    /**
+     * Computes convergence rate for an element
+     */
+    void CheckElementConvergence(int wichelement);
+    
+    /**
+     * Computes convergence rate for the global problem
+     */
+    void CheckGlobalConvergence(TPZAnalysis * an);
 
     /**
      * Computes computational mesh for L2 projection
