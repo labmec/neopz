@@ -18,7 +18,7 @@ void NonlinearTracerDimensionless();
 int main()
 {
   
-    TPZMaterial::gBigNumber = 10.0e20;
+    TPZMaterial::gBigNumber = 10.0e15;
     
 //  LinearTracer();
 //  NonlinearTracer();
@@ -132,7 +132,7 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 0;
-    leftbc[1] = (5.0*1e6)/(Pstr);
+    leftbc[1] = (10.0*1e6)/(Pstr);
     leftbc[2] = 1;
     leftbc[3] = 0;
     
@@ -165,10 +165,10 @@ void NonlinearTracerDimensionless()
     // Reservoir Description linear tracer configuration
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (1.0*1e-5)*Pstr;
+    REAL cwater             = (1.0*1e-7)*Pstr;
     REAL oildensity         = 1000.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (1.0*1e-5)*Pstr;
+    REAL coil               = (1.0*1e-7)*Pstr;
     REAL gasdensity         = 0.0/Rhostr;
     REAL gasviscosity       = 0.0/Mustr;
     REAL cgas               = (0.0)*Pstr;
@@ -317,7 +317,7 @@ void NonlinearTracer()
     
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 0;
-    leftbc[1] = (5.0*1e6);
+    leftbc[1] = (10.0*1e6);
     leftbc[2] = 1;
     leftbc[3] = 0;
     
