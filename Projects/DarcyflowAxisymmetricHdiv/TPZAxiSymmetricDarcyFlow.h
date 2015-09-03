@@ -288,7 +288,6 @@ public:
     void TotalDensity();
     
     
-    
 };
 
 #endif

@@ -381,6 +381,11 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
 void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
+    // Full implicit case: there is no n state computations here
+    if (fSimulationData->IsnStep()) {
+        return;
+    }
+    
     // Getting data from different approximation spaces
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
@@ -460,33 +465,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     REAL dgmcdP = (fFOil[0] * fOilDensity[1] + fFWater[1]* fWaterDensity[0] + fFOil[1] * fOilDensity[0] + fFWater[0]* fWaterDensity[1]);
     REAL dgmcdSw = (fFOil[0] * fOilDensity[2] + fFWater[2]* fWaterDensity[0] + fFOil[2] * fOilDensity[0] + fFWater[0]* fWaterDensity[2]);
     REAL dgmcdSo = (fFOil[0] * fOilDensity[3] + fFWater[3]* fWaterDensity[0] + fFOil[3] * fOilDensity[0] + fFWater[0]* fWaterDensity[3]);
-    
-    
-    if (fSimulationData->IsnStep()) {
-        
-       //  n state computations
-       for (int isw = 0; isw < nphiSwL2; isw++)
-       {
-           // dSw/dalphaSw terms
-           for (int jsw = 0; jsw < nphiSwL2; jsw++)
-           {
-               ek(isw  + iniSw, jsw  + iniSw) += -1.0 * weight * (1.0/deltat) * rockporosity * phiSwL2(jsw,0) * phiSwL2(isw,0);
-           }
-       }
-       
-       
-       for (int iso = 0; iso < nphiSoL2; iso++)
-       {
-           // dSo/dalphaSo terms
-           for (int jso = 0; jso < nphiSoL2; jso++)
-           {
-               ek(iso  + iniSo, jso  + iniSo) += -1.0 * weight * (1.0/deltat) * rockporosity * phiSoL2(jso,0) * phiSoL2(iso,0);
-           }
-       }
-        
-        return;
-    }
-    
+
     
     for (int iq = 0; iq < nphiuHdiv; iq++)
     {
@@ -656,22 +635,30 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     int ishapeindex;
     int ivectorindex;
     
-    
+    /////////////////////////////////
+    // Last State n
     if (fSimulationData->IsnStep()) {
         
         //  n state computations
+        for (int ip = 0; ip < nphiPL2; ip++)
+        {
+            ef(ip + iniP) += 1.0 * weight * (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] )*  phiPL2(ip,0);
+        }
+        
         for (int isw = 0; isw < nphiSwL2; isw++)
         {
-            ef(isw  + iniSw ) += -1.0 * weight * (1.0/deltat) * rockporosity * Sw * phiSwL2(isw,0);
+            ef(isw  + iniSw ) += -1.0 * weight * (1.0/deltat) * rockporosity * Sw * fWaterDensity[0] * phiSwL2(isw,0);
         }
         
         for (int iso = 0; iso < nphiSoL2; iso++)
         {
-            ef(iso  + iniSo ) += -1.0 * weight * (1.0/deltat) * rockporosity * So * phiSoL2(iso,0);
+            ef(iso  + iniSo ) += -1.0 * weight * (1.0/deltat) * rockporosity * So * fOilDensity[0] *  phiSoL2(iso,0);
         }
         
         return;
     }
+    // Last State n
+    /////////////////////////////////
     
     
     for (int iq = 0; iq < nphiuHdiv; iq++)
@@ -703,7 +690,8 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
     {
-        ef(ip + iniP) += -1.0 * weight * (divu - fvalue[0]) * phiPL2(ip,0);
+        ef(ip + iniP) += weight * (- divu + fvalue[0] - (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] ) ) * phiPL2(ip,0);
+
     }
     
 
@@ -711,14 +699,14 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     
     for (int isw = 0; isw < nphiSwL2; isw++)
     {
-        ef(isw  + iniSw ) += weight * (1.0/deltat) * rockporosity * Sw * phiSwL2(isw,0);
+        ef(isw  + iniSw ) += weight * (1.0/deltat) * rockporosity * Sw * fWaterDensity[0] * phiSwL2(isw,0);
         ef(isw  + iniSw ) += weight * (-1.0 * fFWater[2] *(u[0]*GradSw[0]) + (u[1]*GradSw[1])) * phiSwL2(isw,0);
         ef(isw  + iniSw ) += weight * (-1.0 * fFWater[0] *(u[0]*dphiSwL2(0,isw)) + (u[1]*dphiSwL2(1,isw)));
     }
     
     for (int iso = 0; iso < nphiSoL2; iso++)
     {
-        ef(iso  + iniSo ) += weight * (1.0/deltat) * rockporosity * So * phiSoL2(iso,0);
+        ef(iso  + iniSo ) += weight * (1.0/deltat) * rockporosity * So * fOilDensity[0] * phiSoL2(iso,0);
         ef(iso  + iniSo ) += weight * (-1.0 * fFOil[2] *(u[0]*GradSo[0]) + (u[1]*GradSo[1])) * phiSoL2(iso,0);
         ef(iso  + iniSo ) += weight * (-1.0 * fFOil[0] *(u[0]*dphiSoL2(0,iso)) + (u[1]*dphiSoL2(1,iso)));
     }
@@ -727,9 +715,9 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
-    //return;
+
+    // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
-        
         return;
     }
     
@@ -821,7 +809,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     
     int iblockt = 0;
     int jblockt = 0;
-    
     
     if (uLn >= 0.0 )
     {
@@ -1333,9 +1320,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
 
-   // return;
+    // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
-        
         return;
     }
     
@@ -1587,10 +1573,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
 
-//     if (fSimulationData->IsnStep()) {
-//         
-//         return;
-//     }
+    // Full implicit case: there is no n state computations here
+    if (fSimulationData->IsnStep()) {
+        return;
+    }
     
     // Getting data from different approximation spaces
     
@@ -2134,8 +2120,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
 
+    // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
-        
         return;
     }
     
@@ -2437,8 +2423,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
 
+    // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
-        
         return;
     }
     
