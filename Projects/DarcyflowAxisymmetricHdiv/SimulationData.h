@@ -124,6 +124,8 @@ private:
     /** @brief Definition of the Left bc */
     TPZVec<REAL> fLeftBC;
     
+     /** @brief Gravity  */
+    TPZFMatrix<REAL> fGravity;
     
 public:
     
@@ -322,6 +324,15 @@ public:
     
     /** @brief Get Top bc */
     TPZVec<REAL> GetLeftBC(){return fLeftBC;}
+    
+        /** @brief Set Gravity */
+    void SetGravity(TPZFMatrix< REAL > &gravity){
+        
+        fGravity = gravity;
+    }
+    
+    /** @brief Get Gravty */
+    TPZFMatrix<REAL> GetGravity(){return fGravity;}
     
     
 };

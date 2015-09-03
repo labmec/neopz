@@ -446,8 +446,8 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     oneoverlambda_Kinv_u(0,0) = (1.0/fTotalMobility[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
     oneoverlambda_Kinv_u(1,0) = (1.0/fTotalMobility[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
     
-    Gravity(0,0) = -0.0;
-    Gravity(1,0) = -0.0;
+    Gravity = fSimulationData->GetGravity();
+    
     
     REAL divu = 0.0;
     TPZFMatrix<STATE> iphiuHdiv(2,1);
@@ -646,8 +646,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     oneoverlambda_Kinv_u(0,0) = (1.0/fTotalMobility[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
     oneoverlambda_Kinv_u(1,0) = (1.0/fTotalMobility[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
     
-    Gravity(0,0) = -0.0;
-    Gravity(1,0) = -0.0;
+    Gravity = fSimulationData->GetGravity();
     
     gm(0,0) = (fFOil[0] * fOilDensity[0] + fFWater[0]* fWaterDensity[0]) * Gravity(0,0);
     gm(1,0) = (fFOil[0] * fOilDensity[0] + fFWater[0]* fWaterDensity[0]) * Gravity(1,0);
@@ -1031,8 +1030,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     TPZFMatrix<STATE> KGravityL(2,1);
     TPZFMatrix<STATE> KGravityR(2,1);
     
-    Gravity(0,0) = -0.0;
-    Gravity(1,0) = -0.0;
+    Gravity = fSimulationData->GetGravity();
     
     REAL epsilon = fepsilon;
     
@@ -1445,8 +1443,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     TPZFMatrix<STATE> KGravityL(2,1);
     TPZFMatrix<STATE> KGravityR(2,1);
     
-    Gravity(0,0) = -0.0;
-    Gravity(1,0) = -0.0;
+    Gravity=fSimulationData->GetGravity();
     
     TPZFMatrix<STATE> qgL(2,1);
     TPZFMatrix<STATE> qgR(2,1);
@@ -1651,8 +1648,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 //    TPZFMatrix<STATE> KGravityL(2,1);
 //    TPZFMatrix<STATE> KGravityR(2,1);
 //    
-//    Gravity(0,0) = -0.0;
-//    Gravity(1,0) = -0.0;
+//    Gravity(0,0) = fSimulationData->GetGravity();
 //    
 //    REAL epsilon = fepsilon;
 //    
@@ -2196,8 +2192,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 //    TPZFMatrix<STATE> KGravityL(2,1);
 //    TPZFMatrix<STATE> KGravityR(2,1);
 //    
-//    Gravity(0,0) = -0.0;
-//    Gravity(1,0) = -0.0;
+//    Gravity(0,0) = fSimulationData->GetGravity();
 //    
 //    TPZFMatrix<STATE> qgL(2,1);
 //    TPZFMatrix<STATE> qgR(2,1);

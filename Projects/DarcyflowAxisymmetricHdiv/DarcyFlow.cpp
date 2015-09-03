@@ -48,7 +48,7 @@ void NonlinearTracerDimensionless()
     REAL Mustr          = 0.001;
     REAL Rhostr         = ((Pstr)/(Lstr*gcstr));
     REAL Lambdastr      = Rhostr/Mustr;
-    
+    TPZFMatrix<REAL> Gravity(2,1);
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
@@ -83,6 +83,10 @@ void NonlinearTracerDimensionless()
     int nelemY      =1;
     REAL lengthY    =1000.0/Lstr;
     
+    Gravity(0,0)= -0.0;
+    Gravity(1,0)= -10.0;
+
+    
     
     
     Dataset->SetGR(GR);
@@ -107,7 +111,7 @@ void NonlinearTracerDimensionless()
     Dataset->SetnElementsy(nelemY);
     Dataset->SetLengthElementx(lengthX);
     Dataset->SetLengthElementy(lengthY);
-    
+    Dataset->SetGravity(Gravity);
 //    int typeFluxin = 1, typePressurein = 0;
 //    int typeFluxout = 3, typePressureout = 2;
     // BCs
@@ -237,7 +241,8 @@ void NonlinearTracer()
     // Simulation Data SI units
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
-    
+    TPZFMatrix<REAL> Gravity(2,1);
+	 
     int maxiter     = 40;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
@@ -268,6 +273,10 @@ void NonlinearTracer()
     int nelemY      =1;
     REAL lengthY    =100.0;
     
+    Gravity(0,0)= -0.0;
+    Gravity(1,0)= -10.0;
+
+    
     
     
     Dataset->SetGR(GR);
@@ -292,7 +301,7 @@ void NonlinearTracer()
     Dataset->SetnElementsy(nelemY);
     Dataset->SetLengthElementx(lengthX);
     Dataset->SetLengthElementy(lengthY);
-    
+    Dataset->SetGravity(Gravity);
     //    int typeFluxin = 1, typePressurein = 0;
     //    int typeFluxout = 3, typePressureout = 2;
     // BCs
@@ -424,6 +433,7 @@ void LinearTracer()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     TPZMaterial::gBigNumber = 1.0e12;
+    TPZFMatrix<REAL> Gravity(2,1);
     
     int maxiter     = 40;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
@@ -456,6 +466,8 @@ void LinearTracer()
     int nelemY      =6;
     REAL lengthY    =25.0;
 
+    Gravity(0,0)= -0.0;
+    Gravity(1,0)= -10.0;
 
     
     Dataset->SetGR(GR);
@@ -486,6 +498,8 @@ void LinearTracer()
     //    int typeFluxout = 3, typePressureout = 2;
     // BCs
     
+
+    
     TPZVec<REAL> bottombc(4,0.0);
     bottombc[0] = 1;
     bottombc[1] = 0;
@@ -514,6 +528,7 @@ void LinearTracer()
     Dataset->SetRightBC(rightbc);
     Dataset->SetTopBC(topbc);
     Dataset->SetLeftBC(leftbc);
+    Dataset->SetGravity(Gravity);
     
     // Reservoir Data SI units
     

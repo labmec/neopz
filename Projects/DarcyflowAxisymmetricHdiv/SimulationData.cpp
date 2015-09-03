@@ -86,6 +86,10 @@ SimulationData::SimulationData()
     /** @brief Definition of the Left bc */
     fLeftBC.Resize(4,0.0);
     
+    /** @brief Gravity */
+    fGravity.Resize(2,1);
+//    fGravity.Zero();
+    
     
 }
 
