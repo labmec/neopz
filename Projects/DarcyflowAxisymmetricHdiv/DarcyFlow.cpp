@@ -84,7 +84,7 @@ void NonlinearTracerDimensionless()
     REAL lengthY    =1000.0/Lstr;
     
     Gravity(0,0)= -0.0;
-    Gravity(1,0)= -10.0;
+    Gravity(1,0)= -0.0;
 
     
     
@@ -274,7 +274,7 @@ void NonlinearTracer()
     REAL lengthY    =100.0;
     
     Gravity(0,0)= -0.0;
-    Gravity(1,0)= -10.0;
+    Gravity(1,0)= -0.0;
 
     
     
@@ -467,7 +467,7 @@ void LinearTracer()
     REAL lengthY    =25.0;
 
     Gravity(0,0)= -0.0;
-    Gravity(1,0)= -10.0;
+    Gravity(1,0)= -0.0;
 
     
     Dataset->SetGR(GR);
