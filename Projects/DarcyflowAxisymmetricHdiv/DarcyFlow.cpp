@@ -18,7 +18,8 @@ void NonlinearTracerDimensionless();
 int main()
 {
   
-    TPZMaterial::gBigNumber = 1.0e12;
+    TPZMaterial::gBigNumber = -1.0e9; // Use this for check of convergence using neumann
+//    TPZMaterial::gBigNumber = 1.0e15;
     
 //  LinearTracer();
 //  NonlinearTracer();
@@ -52,36 +53,36 @@ void NonlinearTracerDimensionless()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 40;
+    int maxiter     = 20;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
-    bool SC         = true;     // Use Static Condensation
-    bool IsDirect   = true;     // Not Used broyden with Iterative !!!
-    bool IsCG       = false;    // false means GMRES
-    bool OptBand    = false;    // Band optimization
+    bool SC         = false;    // Use Static Condensation
+    bool IsDirect   = true;     // No Use broyden with Iterative !!!
+    bool IsCG       = true;    // false means GMRES
+    bool OptBand    = true;    // Band optimization
     int fixedJac    = 0;
     
-    int qorder      = 1;
-    int porder      = 1;
+    int qorder      = 2;
+    int porder      = 2;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 1;
+    int hpostref    = 2;
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 200.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
-    REAL maxtime    = 200.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL dt         = 1000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL maxtime    = 1000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL t0         = 0.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     
-    REAL TolDeltaX  = 1.0*1e-10;
-    REAL TolRes     = 1.0*1e-10;
+    REAL TolDeltaX  = 1.0*1e-8;
+    REAL TolRes     = 1.0*1e-8;
     
-    int  nelemX     =1;
-    REAL lengthX    =1000.0/Lstr;
+    int  nelemX     =5;
+    REAL lengthX    =200.0/Lstr;
     
-    int nelemY      =1;
-    REAL lengthY    =1000.0/Lstr;
+    int nelemY      =5;
+    REAL lengthY    =200.0/Lstr;
     
     Gravity(0,0)= -0.0;
     Gravity(1,0)= -0.0;
@@ -117,26 +118,26 @@ void NonlinearTracerDimensionless()
     // BCs
     
     TPZVec<REAL> bottombc(4,0.0);
-    bottombc[0] = 1;
+    bottombc[0] = 0;
     bottombc[1] = 0;
     bottombc[2] = 0;
     bottombc[3] = 0;
     
     TPZVec<REAL> rightbc(4,0.0);
-    rightbc[0] = 2;
-    rightbc[1] = (1.0*1e6)/(Pstr);
+    rightbc[0] = 0;
+    rightbc[1] = (0.0*1e6)/(Pstr);
     rightbc[2] = 0;
     rightbc[3] = 0;
     
     TPZVec<REAL> topbc(4,0.0);
-    topbc[0] = 1;
+    topbc[0] = 0;
     topbc[1] = 0;
     topbc[2] = 0;
     topbc[3] = 0;
     
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 0;
-    leftbc[1] = (10.0*1e6)/(Pstr);
+    leftbc[1] = (0.0*1e6)/(Pstr);
     leftbc[2] = 1;
     leftbc[3] = 0;
     
@@ -169,10 +170,10 @@ void NonlinearTracerDimensionless()
     // Reservoir Description linear tracer configuration
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (1.0*1e-9)*Pstr;
+    REAL cwater             = (1.0*1e-7)*Pstr;
     REAL oildensity         = 1000.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (1.0*1e-9)*Pstr;
+    REAL coil               = (1.0*1e-7)*Pstr;
     REAL gasdensity         = 0.0/Rhostr;
     REAL gasviscosity       = 0.0/Mustr;
     REAL cgas               = (0.0)*Pstr;
@@ -307,7 +308,7 @@ void NonlinearTracer()
     // BCs
     
     TPZVec<REAL> bottombc(4,0.0);
-    bottombc[0] = 1;
+    bottombc[0] = 0;
     bottombc[1] = 0;
     bottombc[2] = 0;
     bottombc[3] = 0;
@@ -319,7 +320,7 @@ void NonlinearTracer()
     rightbc[3] = 0;
     
     TPZVec<REAL> topbc(4,0.0);
-    topbc[0] = 1;
+    topbc[0] = 0;
     topbc[1] = 0;
     topbc[2] = 0;
     topbc[3] = 0;

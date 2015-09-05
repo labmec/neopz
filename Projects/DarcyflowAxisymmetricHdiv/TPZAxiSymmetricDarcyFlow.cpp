@@ -209,8 +209,8 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     TPZManVector<REAL,3> Q = datavec[Qblock].sol[0];
     REAL P = datavec[Pblock].sol[0][0];
-    REAL Sw = datavec[Swblock].sol[0][0];
-    REAL So = datavec[Soblock].sol[0][0];
+    REAL Sw = 1.0; //datavec[Swblock].sol[0][0];
+    REAL So = 0.0; // datavec[Soblock].sol[0][0];
     REAL Sg = 1.0 - So - Sw;
     
     this->UpdateStateVariables(Q,P, Sw, So);
@@ -279,12 +279,25 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             break;
         case 5:
         {
-            Solout[0] = oildensity;
+            REAL epsilon = 0.01;
+            REAL xc = 0.5;
+            REAL yc = 0.5;
+            REAL x = datavec[Pblock].x[0];
+            REAL y = datavec[Pblock].x[1];
+            
+            REAL Pressure = exp(-((x-xc)*(x-xc)+(y-yc)*(y-yc))/epsilon);
+            Solout[0] = Pressure;
+            //Solout[0] = oildensity;
         }
             break;
         case 6:
         {
-            Solout[0] = rockporosity;
+            TPZManVector<STATE,1> fvalue(1,0.0);
+            if(fForcingFunction)
+            {
+                fForcingFunction->Execute(datavec[Pblock].x,fvalue);
+            }
+            Solout[0] = fvalue[0];
         }
             break;
         case 7:
@@ -424,6 +437,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     REAL So             = datavec[Soblock].sol[0][0];
     REAL Sg             = 1.0 - So - Sw;
     
+    
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
     
@@ -498,7 +512,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         {
             ek(iq + iniu,jp + iniP) += weight * ((-(fTotalMobility[1]/fTotalMobility[0]))*((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))) - DivergenceOnDeformed(iq,0) - dgmcdP *(Gravity(0,0)*iphiuHdiv(0,0) + Gravity(1,0)*iphiuHdiv(1,0)) )* phiPL2(jp,0) ;
         }
-        
+
         // dSw/dalphaSw terms
         for (int jsw = 0; jsw < nphiSwL2; jsw++)
         {
@@ -527,19 +541,33 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     //  n+1 state computations
     for (int isw = 0; isw < nphiSwL2; isw++)
     {
+        
+        // dWaterDensity/dalphaP terms
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(isw  + iniSw, jp  + iniP) += weight * (1.0/deltat) * rockporosity * Sw * fWaterDensity[1] * phiPL2(jp,0) * phiSwL2(isw,0);
+        }
+        
         // dSw/dalphaSw terms
         for (int jsw = 0; jsw < nphiSwL2; jsw++)
         {
-            ek(isw  + iniSw, jsw  + iniSw) += weight * (1.0/deltat) * rockporosity * phiSwL2(jsw,0) * phiSwL2(isw,0);
+            ek(isw  + iniSw, jsw  + iniSw) += weight * (1.0/deltat) * rockporosity * phiSwL2(jsw,0) *  fWaterDensity[0] * phiSwL2(isw,0);
         }
     }
     
     for (int iso = 0; iso < nphiSoL2; iso++)
     {
+        
+        // dWaterDensity/dalphaP terms
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(iso  + iniSo, jp  + iniP) += weight * (1.0/deltat) * rockporosity * So * fOilDensity[1] * phiPL2(jp,0) * phiSoL2(iso,0);
+        }
+        
         // dSo/dalphaSo terms
         for (int jso = 0; jso < nphiSoL2; jso++)
         {
-            ek(iso  + iniSo, jso  + iniSo) += weight * (1.0/deltat) * rockporosity * phiSoL2(jso,0) * phiSoL2(iso,0);
+            ek(iso  + iniSo, jso  + iniSo) += weight * (1.0/deltat) * rockporosity * phiSoL2(jso,0) *  fOilDensity[0] * phiSoL2(iso,0);
         }
     }
     
@@ -591,6 +619,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     REAL Sw             = datavec[Swblock].sol[0][0];
     REAL So             = datavec[Soblock].sol[0][0];
     REAL Sg             = 1.0 - So - Sw;
+
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
@@ -639,11 +668,11 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     // Last State n
     if (fSimulationData->IsnStep()) {
         
-        //  n state computations
-        for (int ip = 0; ip < nphiPL2; ip++)
-        {
-            ef(ip + iniP) += 1.0 * weight * (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] )*  phiPL2(ip,0);
-        }
+//        //  n state computations
+//        for (int ip = 0; ip < nphiPL2; ip++)
+//        {
+//            ef(ip + iniP) += 1.0 * weight * (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] )*  phiPL2(ip,0);
+//        }
         
         for (int isw = 0; isw < nphiSwL2; isw++)
         {
@@ -652,7 +681,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         
         for (int iso = 0; iso < nphiSoL2; iso++)
         {
-            ef(iso  + iniSo ) += -1.0 * weight * (1.0/deltat) * rockporosity * So * fOilDensity[0] *  phiSoL2(iso,0);
+            ef(iso  + iniSo ) += -1.0 * weight * (1.0/deltat) * rockporosity * So *  fOilDensity[0] *  phiSoL2(iso,0);
         }
         
         return;
@@ -690,7 +719,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
     {
-        ef(ip + iniP) += weight * (- divu + fvalue[0] - (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] ) ) * phiPL2(ip,0);
+        ef(ip + iniP) += weight * (- divu + fvalue[0] /*- (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] )*/ ) * phiPL2(ip,0);
 
     }
     
@@ -1319,6 +1348,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
+    
+    DebugStop();
 
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
@@ -1572,7 +1603,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-
+    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -1716,15 +1747,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
         case 1 :    // Neumann BC  QN inflow
         {
 
-            //            if (Value >= 0.0 ) {
-            //                // Outflow boundary condition
-            //                this->UpdateStateVariables(uL, PL, SwL, SoL);
-            //                this->PhaseFractionalFlows();
-            //            }
-            //            else
-            //            {
-            //                // Inflow boundary condition
-            //                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Boundary condition error: inflow detected in outflow boundary condition: uLn = " << uLn << "\n";}
             this->UpdateStateVariables(uL, PL, Sw, So);
             this->PhaseFractionalFlows();
             //            }
@@ -1951,6 +1973,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
 
+    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -2017,7 +2040,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             else
             {
                 // Inflow boundary condition
-                if (uLn < 0.0 && fabs(uLn) < 1.0e-24) { std::cout << "Warning: Inflow boundary condition detected in outflow boundary condition: uLn = " << uLn << "\n";}
+                if (uLn < 0.0 && fabs(uLn) < 1.0e-24)
+                {
+                    std::cout << "Warning: Inflow boundary condition detected in outflow boundary condition: uLn = " << uLn << "\n";
+                }
+                
                 this->UpdateStateVariables(uL, Value, Sw, So);
                 this->PhaseFractionalFlows();
             }
@@ -2185,8 +2212,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     
     int Qblock = 0;
     int Pblock = 1;
-    int Swblock = 2;
-    int Soblock = 3;
+//    int Swblock = 2;
+//    int Soblock = 3;
     
     // Getting test and basis functions
     TPZFNMatrix<9,STATE> PhiH1 = datavec[Qblock].phi; // For H1   test functions

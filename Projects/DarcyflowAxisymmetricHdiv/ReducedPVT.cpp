@@ -76,6 +76,7 @@ void ReducedPVT::WaterDensity(REAL P, REAL &WaterRho, REAL &dWaterRhodP)
     // Linear model
     WaterRho = this->fRhoWater * (1.0 + fcWater * (P - fPref) );
     dWaterRhodP = this->fRhoWater * fcWater;
+    
 }
 
 /** @brief Water viscosity - Pa s  $\mu_{w}$ */
