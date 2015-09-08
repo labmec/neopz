@@ -48,6 +48,13 @@ public:
 	 * @brief Change points and all data to generate geometric mesh
 	 */
     void SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, MElementType eltype = EQuadrilateral, int numl = 1, REAL rot = 0.5);
+    
+    /** @brief Indicate whether the elements are generated in a zigzag pattern */
+    void SetZigZagPattern()
+    {
+        fZigZag = true;
+    }
+    
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
@@ -195,7 +202,11 @@ protected:
 	 */
     virtual int GlobalI(int ix, int iy, int layer);
     
+    /** @brief compute the nodes of the ith Element */
 	void ElementConnectivity(long iel, TPZVec<long> &nodes);
+    
+    /** @brief compute the nodes of the ith Element */
+    void ElementConnectivityZigZag(long iel, TPZVec<long> &nodes);
     
 	/**
 	 * @brief Creates the geometric nodes, it depends on fElementType, layer and fRotAngle
@@ -208,8 +219,15 @@ protected:
 	 * @param grid Object mesh in which will be stored the created elements
 	 * @param matid Material id to associate all geometric elements
 	 */
-    virtual bool GenerateElements(TPZGeoMesh *grid,int matid = 1);
-    
+    virtual bool GenerateElements(TPZGeoMesh *grid,int matid);
+
+    /**
+     * @brief Creates the geometric element: triangles or quadrilaterals
+     * @param grid Object mesh in which will be stored the created elements
+     * @param matid Material id to associate all geometric elements
+     */
+    virtual bool GenerateElementsZigZag(TPZGeoMesh *grid,int matid);
+
     /** @brief Number of elements in both directions */
 	TPZManVector<int> fNx;
     /** @brief Coordinate of the lower left point */
@@ -232,6 +250,9 @@ protected:
     int fNumLayers;
     /** @brief Rotation angle between the layers */
     REAL fRotAngle;
+    
+    /** @brief variable to generate a zigzag grid */
+    bool fZigZag;
 	
 };
 
