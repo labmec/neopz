@@ -14,10 +14,6 @@
 
 #include "pz_pthread.h"
 
-#ifdef DEBUG
-  #define DEBUG2
-#endif
-
 #include <iostream>
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>

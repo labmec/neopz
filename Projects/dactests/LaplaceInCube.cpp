@@ -8,7 +8,8 @@
 
 #include "LaplaceInCube.h"
 #include "tools.h"
-
+#include "pzgengrid.h"
+#include "TPZExtendGridDimension.h"
 
 
 LaplaceInCube::LaplaceInCube()
@@ -96,8 +97,8 @@ void LaplaceInCube::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2,
     }
     else
     {
-        //gmesh = this->CreateOneCubo(ndiv);
-        gmesh = this->CreateOneQuadraticCube(ndiv);
+        gmesh = this->CreateOneCubo(ndiv);
+//        gmesh = this->CreateOneQuadraticCube(ndiv);
     }
 
     
@@ -232,11 +233,15 @@ void LaplaceInCube::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL2,
     //ErrorL2(cmesh2, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
     
     //tools::PrintDebugMapForMathematica(HdivData, L2Data, fDebugMapL2, fDebugMapHdiv);
+    std::cout << "Computing errors\n";
     
     ErrorPrimalDual( cmesh2, cmesh1,  ordemP, ndiv, saidaErro, DoFT, DofCond);
     
     std::cout<< " FIM (CUBO) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
-    
+    delete mphysics;
+    delete cmesh1;
+    delete cmesh2;
+    delete gmesh;
 }
 
 
@@ -626,7 +631,42 @@ void LaplaceInCube::GenerateNodes(TPZGeoMesh *gmesh, long nelem)
 
 TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
 {
-    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    TPZGeoMesh *gmesh2d = new TPZGeoMesh;
+    
+    TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
+    x1[2] = 0.;
+    int nel = 1 << nref;
+    TPZManVector<int,2> nx(2,nel);
+    TPZGenGrid gengrid(nx,x0,x1);
+    gengrid.SetZigZagPattern();
+    gengrid.Read(gmesh2d);
+    REAL Lx = 1.;
+    REAL Ly = 1.;
+    x1[0] = Lx;
+    x1[1] = 0.;
+    gengrid.SetBC(gmesh2d, x0, x1, fbc1);
+    x0 = x1;
+    x1[0] = Lx;
+    x1[1] = Ly;
+    gengrid.SetBC(gmesh2d, x0, x1, fbc2);
+    x0 = x1;
+    x1[0] = 0.;
+    x1[1] = Ly;
+    gengrid.SetBC(gmesh2d, x0, x1, fbc3);
+    x0 = x1;
+    x1[0] = 0.;
+    x1[1] = 0.;
+    gengrid.SetBC(gmesh2d, x0, x1, fbc4);
+
+    TPZGeoMesh *gmesh;
+    {
+        TPZExtendGridDimension extend(gmesh2d, 1./nel);
+        gmesh2d = 0;
+    
+        gmesh = extend.ExtendedMesh(nel,fbc0,fbc5);
+    }
+    
+    /*
     int nnodes = 8;
     
     gmesh->SetDimension(3);
@@ -694,6 +734,7 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
     gmesh->NodeVec()[in].SetNodeId(in);
     in++;
     
+     */
     // cubo [-1,1]^3
     //    //c0
     //    coord[0] = -1.0;
@@ -752,7 +793,7 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
     //    gmesh->NodeVec()[in].SetNodeId(in);
     //    in++;
     
-    
+    /*
     
     int index = 0;
     
@@ -835,11 +876,12 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
             gel->Divide(sons);
         }
     }
+    */
+    {
     
-    
-    std::ofstream out("SingleCubeWithBcs.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
-    
+        std::ofstream out("../SingleCubeWithBcs.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+    }
     return gmesh;
 }
 

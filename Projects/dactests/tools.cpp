@@ -48,7 +48,7 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
                 TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
                 strmat.SetDecomposeType(ELDLt);
                 
-                int numthreads = 1;
+                int numthreads = 8;
                 
                 strmat.SetNumThreads(numthreads);
                 
@@ -58,7 +58,7 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
             {
                 //TPZBandStructMatrix full(fCmesh);
                 TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
-                skylstr.SetNumThreads(0);
+                skylstr.SetNumThreads(8);
                 //    TPZSkylineNSymStructMatrix full(fCmesh);
                 an.SetStructuralMatrix(skylstr);
             }

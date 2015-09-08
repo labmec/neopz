@@ -157,7 +157,7 @@ std::map<int,int> fDebugDoF;
 //void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 //void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 
-int dim = 2;
+int dim = 3;
 REAL aa = 0.0;
 REAL bb = 0.0;
 REAL cc = 0.0;
@@ -198,14 +198,14 @@ int main(int argc, char *argv[])
     int p = 1;
     int ndiv = 0;
     HDivPiola = 0;
-    ofstream saidaerros("ErroNormas.txt",ios::app);
+    ofstream saidaerros("../ErroNormas.txt",ios::app);
     
-    for(p=1;p<6;p++)
+    for(p=2;p<6;p++)
     {
-        saidaerros << "\nPARA p = " << p << " \n " << endl;
+        saidaerros << "\nPARA p = " << p << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
         
-        for (ndiv=0; ndiv<6; ndiv++)
+        for (ndiv=1; ndiv<7-p; ndiv++)
         {
             
             if (dim==2)
@@ -253,8 +253,8 @@ int main(int argc, char *argv[])
                     LaplaceInCube * cubo = new LaplaceInCube();
                     //cubo->setTetraTrue();
                     //cubo->setPrismaTrue();
-                    cubo->setH1True();
-                    bool HdivMaisMais = false;
+//                    cubo->setH1True();
+                    bool HdivMaisMais = true;
                     int k = HdivMaisMais ? p+1 : p;
                     cubo->Run(k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
 
