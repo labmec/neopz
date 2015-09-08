@@ -200,7 +200,8 @@ void TPZVecL2::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
     TPZFMatrix<REAL>  &phiQ = data.phi;
     int phrq = phiQ.Rows();
     
-    REAL v2;
+    //AQUIFRANREAL v2;
+  STATE v2;
     if(bc.HasForcingFunction())
     {
         TPZManVector<STATE> res(3);

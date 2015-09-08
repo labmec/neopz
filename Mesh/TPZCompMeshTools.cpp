@@ -213,7 +213,9 @@ void TPZCompMeshTools::LoadSolution(TPZCompMesh *cpressure, TPZFunction<STATE> &
         }
         if (gel->Type() == EPiramide) {
             TPZGeoNode *top = gel->NodePtr(4);
-            TPZManVector<REAL,3> topco(3),valvec(1);
+            //TPZManVector<REAL,3> topco(3),valvec(1);AQUIFRAN
+            TPZManVector<REAL,3>topco(3);
+            TPZManVector<STATE,3>valvec(1);
             top->GetCoordinates(topco);
             Forcing.Execute(topco, valvec);
             STATE topval = valvec[0];

@@ -13,7 +13,7 @@
 const REAL M_C  (3*1e8); //velocidade da luz no vacuo
 const REAL M_UZERO  (4*M_PI*1e-7);//permeabilidade do meio livre
 const REAL M_EZERO  (8.854*1e-12);//permissividade do meio livre
-#ifdef COMPLEX
+#ifdef STATE_COMPLEX
 const STATE imaginary(0.,1.);//unidade imaginaria
 #endif
 /**
@@ -173,6 +173,17 @@ public:
       datavec[iref].fNeedsNormal = true;
     }
   }
+  
+  virtual int VariableIndex(const std::string &name);
+  
+  /**
+   * @brief Returns the number of variables associated with the variable indexed by var.
+   * @param var Index variable into the solution, is obtained by calling VariableIndex
+   */
+  virtual int NSolutionVariables(int var);
+  
+  /** @brief Returns the solution associated with the var index based on the finite element approximation */
+  virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
   
 };
 
