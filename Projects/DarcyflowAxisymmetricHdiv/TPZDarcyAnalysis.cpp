@@ -33,16 +33,20 @@
 
 #include "TPZMultiphysicsInterfaceEl.h"
 
+
 #ifdef DEBUG
     #ifdef LOG4CXX
     static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
     #endif
 #endif
 
+//#define SolutionI
+#define SolutionII
+
 TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel)
 {
     
-    fmeshvec.Resize(4);
+    fmeshvec.Resize(2);
     
     fgmesh=NULL;
     fcmeshdarcy=NULL;
@@ -175,22 +179,22 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     TPZFMatrix<REAL> Pini(fmeshvec[1]->Solution().Rows(),1,0.0);
     fmeshvec[1]->LoadSolution(Pini);
     
-    TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
-    TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
-    TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
-    SolveProjection(L2Analysis,L2Sw);
-    
-    
-    fmeshvec[2]->LoadSolution(L2Analysis->Solution());
-    TPZFMatrix<REAL> Soini = L2Analysis->Solution();
-    int SoDOF = Soini.Rows();
-    
-    for (int iso = 0; iso < SoDOF; iso++)
-    {
-        Soini(iso,0) = 1.0 - Soini(iso,0);
-    }
-    
-    fmeshvec[3]->LoadSolution(Soini);
+//    TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
+//    TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
+//    TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
+//    SolveProjection(L2Analysis,L2Sw);
+//    
+//    
+//    fmeshvec[2]->LoadSolution(L2Analysis->Solution());
+//    TPZFMatrix<REAL> Soini = L2Analysis->Solution();
+//    int SoDOF = Soini.Rows();
+//    
+//    for (int iso = 0; iso < SoDOF; iso++)
+//    {
+//        Soini(iso,0) = 1.0 - Soini(iso,0);
+//    }
+//    
+//    fmeshvec[3]->LoadSolution(Soini);
     
     
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
@@ -406,8 +410,8 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
 {
     fmeshvec[0] = CmeshFlux(q);
     fmeshvec[1] = CmeshPressure(p);
-    fmeshvec[2] = CmeshSw(s);
-    fmeshvec[3] = CmeshSo(s);
+//    fmeshvec[2] = CmeshSw(s);
+//    fmeshvec[3] = CmeshSo(s);
     
     fcmeshdarcy = CmeshMixed();
     
@@ -846,7 +850,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     // Rigth hand side function
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(0);
+    dum->SetPolynomialOrder(40);
     forcef = dum;
     mat->SetForcingFunction(forcef);
     
@@ -1623,6 +1627,8 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
      scalnames.Push("WaterDensity");
      scalnames.Push("OilDensity");
      scalnames.Push("Porosity");
+    scalnames.Push("ExactP");
+    scalnames.Push("Frhs");
 //     scalnames.Push("DivOfBulkVeclocity");
 //    scalnames.Push("ExactSaturation");
     vecnames.Push("BulkVelocity");
@@ -1638,9 +1644,11 @@ void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff)
     REAL yc = 0.5;
     REAL x = pt[0];
     REAL y = pt[1];
-    REAL rho = 1000.0/((1.0e7)/(1000.0*9.8)); //check this value
+    REAL rho = 1000.0/((1.0e7)/(1000.0*9.81)); //check this value
     REAL c = 1.0;
     REAL Pref = 0.1;
+    
+#ifdef SolutionI
     
     REAL Pressure = exp(-((x-xc)*(x-xc)+(y-yc)*(y-yc))/epsilon);
     REAL Coefglob = exp(-2.0*(x*x-x*xc+xc*xc+(y-yc)*(y-yc))/epsilon);
@@ -1651,6 +1659,37 @@ void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff)
     REAL denominator    =epsilon*epsilon;
     
     ff[0] = 4.0*rho*Coefglob*((Coef1*numerator1-Coef2*numerator2)/denominator);
+    return;
+#endif
+    
+#ifdef SolutionII
+    
+    REAL Pressure = x*y*(1-x)*(1-y)*(sin(M_PI*x))*(cos(M_PI*y));
+    REAL cospix = cos(M_PI*x);
+    REAL sinpiy = sin(M_PI*y);
+    REAL cospiy = cos(M_PI*y);
+    REAL sinpix = sin(M_PI*x);
+    REAL x_1 = x-1;
+    REAL y_1 = y-1;
+    REAL x2_1 = 2.0*x-1.0;
+    REAL y2_1 = 2.0*y-1.0;
+    
+    REAL cPlusSomething = (c*(x_1*x*y_1*y*sinpix*cospiy-Pref));
+    REAL term1_1 = (2.0-M_PI*M_PI*x_1*x)*sinpix + 2.0*M_PI*x2_1*cospix;
+    REAL term2_1 = 2.0*M_PI*y2_1*sinpiy + (M_PI*M_PI*y_1*y - 2.0)* cospiy;
+    REAL term3_1 = M_PI*y_1*y*sinpiy + (1.0-2.0*y)*cospiy;
+    REAL term3_2 = x2_1*sinpix+M_PI*x_1*x*cospix;
+    
+    REAL Term1 = -y_1*y*cospiy*(term1_1)*(cPlusSomething + 1.0) ;
+    REAL Term2 = x_1*x*sinpix*(term2_1)*(cPlusSomething + 1.0);
+    REAL Term3 = -c*x_1*x_1*x*x*sinpix*sinpix*(term3_1*term3_1) - c*y_1*y_1*y*y*cospiy*cospiy * (term3_2*term3_2);
+    
+    
+    ff[0] = rho*(Term1+Term2+Term3);
+    return;
+#endif
+    
+    
 }
 
 TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
@@ -2183,11 +2222,11 @@ void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
 {
     
     long neq = fcmeshdarcy->NEquations();
-    int nsteps = 15;
-    REAL du=0.0001;
+    int nsteps = 5;
+    REAL du=0.001;
     REAL alpha = 0;
     
-    TPZFMatrix<STATE> U0(neq,1,(rand()/double(RAND_MAX)));
+    TPZFMatrix<STATE> U0(neq,1,(rand()/double(RAND_MAX)));//(rand()/double(RAND_MAX))
     TPZFMatrix<STATE> UPlusAlphaDU   = fcmeshdarcy->Solution();
     
     std::ofstream outfile("CheckConvergence.txt");
@@ -2221,7 +2260,7 @@ void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
 //    ResidualAtU0n.Print("ResidualAtU0n = ",outfile,EMathematicaInput);
 //    ResidualAtU0.Print("ResidualAtU0 = ",outfile,EMathematicaInput);
 //    ResidualU0.Print("ResidualU0 = ",outfile,EMathematicaInput);
-//    U0.Print("U0 = ",outfile,EMathematicaInput);    
+//    U0.Print("U0 = ",outfile,EMathematicaInput);
     
     TPZFNMatrix<4,REAL> alphas(nsteps,1,0.0),ElConvergenceOrder(nsteps-1,1,0.0);
     TPZFNMatrix<9,REAL> res(nsteps,1,0.0);
@@ -2239,8 +2278,8 @@ void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
 
         an->AssembleResidual();
         TPZFNMatrix<9,REAL> ResidualAtU0PlusAlphaDU = an->Rhs();
-        
         ResidualUPerturbed = ResidualAtU0PlusAlphaDU + ResidualAtU0n;
+
 //        Alpha_JacAtU0_DeltaU.Print("Alpha_JacAtU0_DeltaU = ",outfile,EMathematicaInput);
 //        DeltaU.Print("DeltaU = ",outfile,EMathematicaInput);
 //        outfile << alpha <<std::endl;
@@ -2257,8 +2296,6 @@ void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
     }
     
     ElConvergenceOrder.Print("CheckConv = ",outfile,EMathematicaInput);
-    res.Print("res = ",outfile,EMathematicaInput);
-    alphas.Print("alphas = ",outfile,EMathematicaInput);
     outfile.flush();
     
 }

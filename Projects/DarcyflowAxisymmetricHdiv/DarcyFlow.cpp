@@ -8,7 +8,6 @@
 #include "TPZDarcyAnalysis.h"
 #include "pzlog.h"
 
-
 #include <time.h>
 
 void LinearTracer();
@@ -59,14 +58,14 @@ void NonlinearTracerDimensionless()
     bool SC         = false;    // Use Static Condensation
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = true;    // false means GMRES
-    bool OptBand    = true;    // Band optimization
+    bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
-    int qorder      = 2;
-    int porder      = 2;
+    int qorder      = 1;
+    int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 2;
+    int hpostref    = 0;
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
@@ -78,11 +77,11 @@ void NonlinearTracerDimensionless()
     REAL TolDeltaX  = 1.0*1e-8;
     REAL TolRes     = 1.0*1e-8;
     
-    int  nelemX     =5;
-    REAL lengthX    =200.0/Lstr;
+    int  nelemX     =4;
+    REAL lengthX    =250.0/Lstr;
     
-    int nelemY      =5;
-    REAL lengthY    =200.0/Lstr;
+    int nelemY      =4;
+    REAL lengthY    =250.0/Lstr;
     
     Gravity(0,0)= -0.0;
     Gravity(1,0)= -0.0;
