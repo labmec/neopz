@@ -117,9 +117,17 @@ public:
     }
     
     /** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */
-    virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const{
-        
-        return 20;
+    virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const
+    {
+        int polorder = elPMaxOrder[0]*2;
+        int forceorder = 0;
+        if (fForcingFunction) {
+            forceorder = fForcingFunction->PolynomialOrder();
+        }
+        if (forceorder > elPMaxOrder[0]) {
+            polorder = forceorder+elPMaxOrder[0];
+        }
+        return polorder;
     }
     
     void Print(std::ostream &out);

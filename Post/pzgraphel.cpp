@@ -142,8 +142,14 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 			int iv;
 			for(iv=0; iv<numvar;iv++)
 			{
+#ifdef STATE_COMPLEX //AQUIFRAN
+        if(fabs(sol[iv]) < 1.0e-20) sol[iv] = 0.0;
+        fGraphMesh->Out() << std::real(sol[iv]) << " ";
+        //fGraphMesh->Out() << fabs(sol[iv]) << " ";
+#else
 				if(fabs(sol[iv]) < 1.0e-20) sol[iv] = 0.0;
-				fGraphMesh->Out() << sol[iv] << " ";
+        fGraphMesh->Out() << sol[iv] << " ";
+#endif
 			}
 			if((st == EMVStyle || st == EV3DStyle) && numvar ==2) fGraphMesh->Out() << 0. << " ";
 			if(st == EVTKStyle && numvar != 1)

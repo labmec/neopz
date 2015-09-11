@@ -28,7 +28,8 @@ static LoggerPtr logger(Logger::getLogger("pz.gengrid.tpzgengrid"));
 using namespace std;
 
 TPZGenGrid::TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0,TPZVec<REAL> &x1, int numl, REAL rot) : fNx(nx), fX0(x0), fX1(x1),
-fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot) {
+fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot), fZigZag(false)
+{
 	fDelx[0] = (x1[0]-x0[0])/(nx[0]);   // Delta x
 	fDelx[1] = (x1[1]-x0[1])/(nx[1]);   // Delta y
 	fNumNodes= (nx[0]+1)*(nx[1]+1)+(fNumLayers-1)*(nx[0])*(nx[1]+1);
@@ -76,9 +77,10 @@ short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid) {
         DebugStop();
     }
     grid->SetDimension(2);
+    int matid = 1;
 	if(!GenerateNodes(grid.operator->()))
 		return 1;
-    if(!GenerateElements(grid.operator->()))
+    if(!GenerateElements(grid.operator->(),matid))
 		return 1;
 	// computing the connectivity
 	grid->ResetConnectivities();
@@ -408,6 +410,11 @@ bool TPZGenGrid::GenerateNodes(TPZGeoMesh *grid) {
 
 bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid,int matid) {
 	if(!grid) return false;
+    if (fZigZag) {
+        bool res;
+        res = GenerateElementsZigZag(grid, matid);
+        return res;
+    }
 	// create the geometric elements (retangular)    
 	int num_rectangles=fNx[0]*fNx[1]*fNumLayers;
 	TPZVec<long> nos(9);
@@ -445,6 +452,44 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid,int matid) {
 	return true;
 }
 
+bool TPZGenGrid::GenerateElementsZigZag(TPZGeoMesh *grid,int matid)
+{
+    if(!grid) return false;
+    if (fNumLayers != 1 || fElementType != EQuadrilateral) {
+        DebugStop();
+    }
+    // create the geometric elements (retangular)
+    int num_rectangles=(fNx[0]+1)*fNx[1]*fNumLayers;
+    TPZManVector<long,9> nos(9);
+    if(fElementType == EQuadrilateral) nos.Resize(4);
+    long i, index;
+    
+    // grid can not to contain other elements
+    if(grid->NElements()) {
+#ifdef LOG4CXX
+        LOGPZ_DEBUG(logger,"Mesh is not empty");
+#endif
+        DebugStop();
+        return false;
+    }
+    for(i=0; i<num_rectangles; i++) {
+        ElementConnectivityZigZag(i,nos);
+        if(fElementType == EQuadrilateral && nos.size() == 4) {
+            grid->CreateGeoElement(EQuadrilateral,nos, matid, index,0);
+        }
+        else
+        {
+            TPZManVector<long> nodloc(3);
+            nodloc[0] = nos[0];
+            nodloc[1] = nos[1];
+            nodloc[2] = nos[2];
+            grid->CreateGeoElement(ETriangle,nodloc, matid, index,0);
+        }
+    }
+    grid->BuildConnectivity();
+    return true;
+
+}
 void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
 	int ix = 0;
 	int iy = 0;
@@ -533,6 +578,63 @@ void TPZGenGrid::ElementConnectivity(long i, TPZVec<long> &rectangle_nodes){
     }
 }
 
+void TPZGenGrid::ElementConnectivityZigZag(long i, TPZVec<long> &rectangle_nodes){
+    int yel = i/(fNx[0]+1);
+//    int firstnode = yel*(fNx[0]+2);
+    int xel = i%(fNx[0]+1);
+    int layer = 0;
+    if (xel < fNx[0]-1) {
+        rectangle_nodes.resize(4);
+        rectangle_nodes[0] = GlobalI(xel,yel,layer);
+        rectangle_nodes[1] = GlobalI(xel+1,yel,layer);
+        rectangle_nodes[2] = GlobalI(xel+1,yel+1,layer);
+        rectangle_nodes[3] = GlobalI(xel,yel+1,layer);
+        if (yel%2 == 0) {
+            rectangle_nodes[2]++;
+            rectangle_nodes[3]++;
+        }
+        else
+        {
+            rectangle_nodes[0]++;
+            rectangle_nodes[1]++;
+        }
+    }
+    else if(xel == fNx[0]-1 && yel%2 == 0)
+    {
+        rectangle_nodes.resize(3);
+        rectangle_nodes[0] = GlobalI(0,yel,layer);
+        rectangle_nodes[1] = GlobalI(0+1,yel+1,layer);
+        rectangle_nodes[2] = GlobalI(0,yel+1,layer);
+        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
+    }
+    else if (xel == fNx[0] && yel%2 == 0)
+    {
+        rectangle_nodes.resize(3);
+        xel = fNx[0]-1;
+        rectangle_nodes[0] = GlobalI(xel,yel,layer);
+        rectangle_nodes[1] = GlobalI(xel+1,yel,layer);
+        rectangle_nodes[2] = GlobalI(xel+1,yel+1,layer);
+        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
+    }
+    else if(xel == fNx[0]-1 && yel%2 == 1)
+    {
+        rectangle_nodes.resize(3);
+        rectangle_nodes[0] = GlobalI(0,yel,layer);
+        rectangle_nodes[1] = GlobalI(0+1,yel,layer);
+        rectangle_nodes[2] = GlobalI(0,yel+1,layer);
+        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
+    }
+    else if (xel == fNx[0] && yel%2 == 1)
+    {
+        rectangle_nodes.resize(3);
+        xel = fNx[0]-1;
+        rectangle_nodes[0] = GlobalI(xel+1,yel,layer);
+        rectangle_nodes[1] = GlobalI(xel+1,yel+1,layer);
+        rectangle_nodes[2] = GlobalI(xel,yel+1,layer);
+        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
+    }
+}
+
 void TPZGenGrid::Print( char *name , ostream &out  )
 {    
 	out<<"\n"<<name<<"\n";
@@ -543,6 +645,9 @@ void TPZGenGrid::Print( char *name , ostream &out  )
 }
 
 void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
+    if (fZigZag) {
+        DebugStop();
+    }
 	long ielfirst = 0;
 	long iellast = 0;
 	long ielinc;

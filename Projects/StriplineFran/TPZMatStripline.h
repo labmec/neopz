@@ -8,6 +8,7 @@
 #define TPZMatStripline_H
 
 #include "TPZVecL2.h"
+#include "pzaxestools.h"
 
 const REAL M_C  (3*1e8); //velocidade da luz no vacuo
 const REAL M_UZERO  (4*M_PI*1e-7);//permeabilidade do meio livre
@@ -126,6 +127,16 @@ public:
    */
   virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
   
+  virtual int VariableIndex(const std::string &name);
+  
+  /**
+   * @brief Returns the number of variables associated with the variable indexed by var.
+   * @param var Index variable into the solution, is obtained by calling VariableIndex
+   */
+  virtual int NSolutionVariables(int var);
+  
+  /** @brief Returns the solution associated with the var index based on the finite element approximation */
+  virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
 };
 
 STATE urDefault( TPZVec<REAL>x );//default material has ur=1

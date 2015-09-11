@@ -152,26 +152,27 @@ int main2(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    gRefDBase.InitializeUniformRefPattern(EOned);
-    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-    gRefDBase.InitializeUniformRefPattern(ETriangle);
-    gRefDBase.InitializeUniformRefPattern(ECube);
+//    gRefDBase.InitializeUniformRefPattern(EOned);
+//    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+//    gRefDBase.InitializeUniformRefPattern(ETriangle);
+//    gRefDBase.InitializeUniformRefPattern(ECube);
     
     
     TPZAutoPointer<TPZGeoMesh> gmesh;
     REAL Lx = 80.,Ly = 80., Lz = 8.;
-    int nref = 0;
+    int nref = 3;
     TPZManVector<int> nblocks(2,100);
 //    nblocks[1] = 30;
     gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref);
     
     int porder = 1;
-    
+    std::cout << "Geometric mesh created\n";
     TPZManVector<TPZAutoPointer<TPZCompMesh>,2 > cmeshes(2);
     cmeshes[0] = CreateHDivMHMMesh(gmesh, porder);
     DuplicateNeighbouringConnects(cmeshes[0]);
     cmeshes[1] = CreatePressureMHMMesh(gmesh, porder);
 
+    std::cout << "Computational meshes created\n";
 #ifdef DEBUG
     {
         std::ofstream out("../Pressure.txt");
@@ -182,6 +183,7 @@ int main2(int argc, char *argv[])
     TPZAutoPointer<TPZCompMesh> CHDivPressureMesh = CreateHDivPressureMHMMesh(cmeshes);
 
     std::cout << "Number of equations " << CHDivPressureMesh->NEquations() << std::endl;
+    
 #ifdef DEBUG
     {
         std::ofstream out("../MeshBeforeHide.txt");

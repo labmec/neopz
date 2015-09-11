@@ -1,14 +1,14 @@
 /**
- * @file TPZMatValidacaoHCurlFran1.h
- * @brief Header file for class TPZMatValidacaoHCurlFran1.\n
- * It implements the weak statement of the model problem from Oden's book, Chapter 1 within the PZ environment.
+ * @file TPZMatValidacaoHCurlFran2.h
+ * @brief Header file for class TPZMatValidacaoHCurlFran2.\n
  */
 
-#ifndef TPZMatValidacaoHCurlFran1_H
-#define TPZMatValidacaoHCurlFran1_H
+#ifndef TPZMatValidacaoHCurlFran2_H
+#define TPZMatValidacaoHCurlFran2_H
 
 #include "TPZVecL2.h"
 #include "pzaxestools.h"
+#include "pzvec_extras.h"
 
 const REAL M_C  (3*1e8); //velocidade da luz no vacuo
 const REAL M_UZERO  (4*M_PI*1e-7);//permeabilidade do meio livre
@@ -20,7 +20,7 @@ const STATE imaginary(0.,1.);//unidade imaginaria
  * @ingroup material
  * @brief This class implements the weak statement of the model problem from Oden's book, Chapter 1, within the PZ environment
  */
-class  TPZMatValidacaoHCurlFran1 : public TPZVecL2
+class  TPZMatValidacaoHCurlFran2 : public TPZVecL2
 {
     
 protected:
@@ -29,25 +29,26 @@ protected:
   STATE (& fUr)( TPZVec<REAL>);
   STATE (& fEr)( TPZVec<REAL>);
   REAL fFreq;//frequencia da onda
-  STATE fW;
+  REAL fW;
+  REAL fTheta;
    
 	
 public:
-    TPZMatValidacaoHCurlFran1(int id, REAL freq, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>));
+    TPZMatValidacaoHCurlFran2(int id, REAL freq, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>), REAL t);
   
-    TPZMatValidacaoHCurlFran1(int id);
+    TPZMatValidacaoHCurlFran2(int id);
   
     /** @brief Default constructor */
-    TPZMatValidacaoHCurlFran1();
+    TPZMatValidacaoHCurlFran2();
     
     /** @brief Creates a material object based on the referred object and inserts it in the vector of material pointers of the mesh. */
 	/** Upon return vectorindex contains the index of the material object within the vector */
-    TPZMatValidacaoHCurlFran1(const TPZMatValidacaoHCurlFran1 &mat);
+    TPZMatValidacaoHCurlFran2(const TPZMatValidacaoHCurlFran2 &mat);
     /** @brief Default destructor */
-    virtual ~TPZMatValidacaoHCurlFran1();
+    virtual ~TPZMatValidacaoHCurlFran2();
 	
     /** @brief Returns the name of the material */
-    virtual std::string Name() { return "TPZMatValidacaoHCurlFran1"; }
+    virtual std::string Name() { return "TPZMatValidacaoHCurlFran2"; }
     
     /** @brief Returns the integrable dimension of the material */
     virtual int Dimension() const {return 2;}
@@ -185,6 +186,7 @@ public:
   /** @brief Returns the solution associated with the var index based on the finite element approximation */
   virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
   
+  void SetTheta(REAL t) {fTheta=t;}
 };
 
 

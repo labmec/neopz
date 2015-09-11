@@ -17,6 +17,7 @@
 #include "pzanalysis.h"
 #include "pzbndcond.h"
 #include "TPZMatValidacaoHCurlFran1.h"
+#include "pzlog.h"
 #include "TPZTimer.h"
 
 //------First Validation of a HCurl Formulation-----------------
@@ -62,6 +63,9 @@ void forcedRHS (const TPZVec<REAL> &x, TPZVec<STATE> &out);
 int main(int argc, char *argv[])
 {
   TPZTimer timer;
+#ifdef LOG4CXX
+  InitializePZLOG();
+#endif
   
   //PARAMETROS FISICOS DO PROBLEMA
   REAL freq = 1./(2 * M_PI);
@@ -72,8 +76,8 @@ int main(int argc, char *argv[])
   //PARAMETROS DE SIMULACAO
   int pOrder = 1; //ordem polinomial de aproximacao
   int dim = 2;
-  int xDiv = 1;
-  int yDiv = 1;
+  int xDiv = 16;
+  int yDiv = 16;
   
   timer.start();
   
@@ -97,10 +101,10 @@ int main(int argc, char *argv[])
   
   //fazendo pos processamento para paraview
  TPZStack<std::string> scalnames, vecnames;
-  scalnames.Push("State");//setando para imprimir u
+  vecnames.Push("E");//setando para imprimir campoeletrico
   std::string plotfile= "ValidacaoHCurlFran1EField.vtk";//arquivo de saida que estara na pasta debug
   an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
-  int postProcessResolution = 0;//define resolucao do pos processamento
+  int postProcessResolution = 2;//define resolucao do pos processamento
   an.PostProcess(postProcessResolution);//realiza pos processamento*)
 
 
@@ -169,7 +173,7 @@ TPZGeoMesh *CreateGMesh(REAL hDomain, REAL wDomain, int xDiv, int yDiv)
   {
     topolLine[0] = i % xDiv + (i / xDiv) * yDiv * (xDiv + 1);
     topolLine[1] = i % xDiv + (i / xDiv) * yDiv * (xDiv + 1) + 1;
-    std::cout <<topolLine[0]<<" "<<topolLine[1]<<std::endl;
+    //std::cout <<topolLine[0]<<" "<<topolLine[1]<<std::endl;
     gmesh->CreateGeoElement(EOned, topolLine, bc0, index);//cria elemento unidimensional
     gmesh->ElementVec()[index];
   }

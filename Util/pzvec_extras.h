@@ -256,6 +256,24 @@ T Norm(const TPZVec< T > &one)
     return res;
 }
 
+template<class T>
+void Cross(const TPZVec <T> &x1, const TPZVec<T> &x2, TPZVec<T> &result)
+{
+#ifdef DEBUG
+  if (x1.size() != 3) {
+    DebugStop();
+  }
+  if (x2.size() != 3) {
+    DebugStop();
+  }
+  if (result.size() != 3) {
+    DebugStop();
+  }
+#endif
+  result[0] = x1[1]*x2[2] - x2[1]*x1[2];
+  result[1] = -x1[2]*x2[0] + x2[2]*x1[0];
+  result[2] = x1[0]*x2[1] - x2[0]*x1[1];
+}
 
 /** @} */
 
