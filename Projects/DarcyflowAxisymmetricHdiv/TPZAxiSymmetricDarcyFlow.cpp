@@ -215,8 +215,8 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     TPZManVector<REAL,3> Q = datavec[Qblock].sol[0];
     REAL P = datavec[Pblock].sol[0][0];
-    REAL Sw = 1.0; //datavec[Swblock].sol[0][0];
-    REAL So = 0.0; // datavec[Soblock].sol[0][0];
+    REAL Sw = datavec[Swblock].sol[0][0];
+    REAL So = datavec[Soblock].sol[0][0];
     REAL Sg = 1.0 - So - Sw;
     
     this->UpdateStateVariables(Q,P, Sw, So);
@@ -313,11 +313,11 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             REAL yc = 0.5;
             REAL x = datavec[Pblock].x[0];
             REAL y = datavec[Pblock].x[1];
-//            REAL Pressure = exp(-((x-xc)*(x-xc)+(y-yc)*(y-yc))/epsilon);
-
+            //            REAL Pressure = exp(-((x-xc)*(x-xc)+(y-yc)*(y-yc))/epsilon);
+            
             REAL Pressure = x*y*(1-x)*(1-y)*(sin(M_PI*x))*(cos(M_PI*y));
             Solout[0] = Pressure;
-
+            
         }
             break;
         case 10:
@@ -386,7 +386,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
             VectorOnMaster *= JacobianDet;
-
+            
             /* Contravariant Piola mapping preserves the divergence */
             DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) + dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) );
         }
@@ -420,14 +420,14 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
-//    int Swblock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
-//    int Soblock = 3;        // So Oil Saturation needs L2 scalar functions      (phiSoL2)
+    int Swblock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
+    int Soblock = 3;        // So Oil Saturation needs L2 scalar functions      (phiSoL2)
     
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
     TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
-//    TPZFMatrix<REAL> phiSwL2        = datavec[Swblock].phi; // For L2  test functions Sw
-//    TPZFMatrix<REAL> phiSoL2        = datavec[Soblock].phi; // For L2  test functions So
+    TPZFMatrix<REAL> phiSwL2        = datavec[Swblock].phi; // For L2  test functions Sw
+    TPZFMatrix<REAL> phiSoL2        = datavec[Soblock].phi; // For L2  test functions So
     TPZFMatrix<STATE> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions
     TPZFMatrix<STATE> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions
     
@@ -439,21 +439,20 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     // Blocks dimensions and lengths
     int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
     int nphiPL2     = phiPL2.Rows();                                    // For L2   P
-//    int nphiSwL2    = phiSwL2.Rows();                                   // For L2   Sw
-//    int nphiSoL2    = phiSoL2.Rows();                                   // For L2   So
+    int nphiSwL2    = phiSwL2.Rows();                                   // For L2   Sw
+    int nphiSoL2    = phiSoL2.Rows();                                   // For L2   So
     int iniu    = 0;
     int iniP    = nphiuHdiv     + iniu;
     int iniSw   = nphiPL2       + iniP;
-//    int iniSo   = nphiSwL2      + iniSw;
+    int iniSo   = nphiSwL2      + iniSw;
     
     
     // Getting linear combinations from different approximation spaces
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
     REAL P              = datavec[Pblock].sol[0][0];
-//    REAL Sw             = datavec[Swblock].sol[0][0];
+    REAL Sw             = datavec[Swblock].sol[0][0];
 //    REAL So             = datavec[Soblock].sol[0][0];
-    REAL Sw = 1.0;
-    REAL So = 0.0;
+    REAL So = 1.0 - Sw; // For bi-phasic system there is a restriction
     REAL Sg             = 1.0 - So - Sw;
     
     
@@ -498,7 +497,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     REAL dgmcdP = (fFOil[0] * fOilDensity[1] + fFWater[1]* fWaterDensity[0] + fFOil[1] * fOilDensity[0] + fFWater[0]* fWaterDensity[1]);
     REAL dgmcdSw = (fFOil[0] * fOilDensity[2] + fFWater[2]* fWaterDensity[0] + fFOil[2] * fOilDensity[0] + fFWater[0]* fWaterDensity[2]);
     REAL dgmcdSo = (fFOil[0] * fOilDensity[3] + fFWater[3]* fWaterDensity[0] + fFOil[3] * fOilDensity[0] + fFWater[0]* fWaterDensity[3]);
-
+    
     
     for (int iq = 0; iq < nphiuHdiv; iq++)
     {
@@ -531,18 +530,18 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         {
             ek(iq + iniu,jp + iniP) += weight * ((-(fTotalMobility[1]/fTotalMobility[0]))*((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))) - DivergenceOnDeformed(iq,0) - dgmcdP *(Gravity(0,0)*iphiuHdiv(0,0) + Gravity(1,0)*iphiuHdiv(1,0)) )* phiPL2(jp,0) ;
         }
+        
+        // dSw/dalphaSw terms
+        for (int jsw = 0; jsw < nphiSwL2; jsw++)
+        {
+            ek(iq + iniu, jsw + iniSw) += weight * (-(fTotalMobility[2]/fTotalMobility[0])* phiSwL2(jsw,0) *((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))) - dgmcdSw *(Gravity(0,0)*iphiuHdiv(0,0) + Gravity(1,0)*iphiuHdiv(1,0)) * phiSwL2(jsw,0));
+        }
 
-//        // dSw/dalphaSw terms
-//        for (int jsw = 0; jsw < nphiSwL2; jsw++)
-//        {
-//            ek(iq + iniu, jsw + iniSw) += weight * (-(fTotalMobility[2]/fTotalMobility[0])* phiSwL2(jsw,0) *((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))) - dgmcdSw *(Gravity(0,0)*iphiuHdiv(0,0) + Gravity(1,0)*iphiuHdiv(1,0)) * phiSwL2(jsw,0));
-//        }
-//        
-//        // dSo/dalphaSo terms
-//        for (int jso = 0; jso < nphiSoL2; jso++)
-//        {
-//            ek(iq + iniu, jso + iniSo) += weight * (-(fTotalMobility[3]/fTotalMobility[0])* phiSoL2(jso,0) *((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0)) ) - dgmcdSo *(Gravity(0,0)*iphiuHdiv(0,0) + Gravity(1,0)*iphiuHdiv(1,0)) * phiSoL2(jso,0) );
-//        }
+        // dSo/dalphaSo terms
+        for (int jso = 0; jso < nphiSoL2; jso++)
+        {
+            ek(iq + iniu, jso + iniSo) += weight * (-(fTotalMobility[3]/fTotalMobility[0])* phiSoL2(jso,0) *((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0)) ) - dgmcdSo *(Gravity(0,0)*iphiuHdiv(0,0) + Gravity(1,0)*iphiuHdiv(1,0)) * phiSoL2(jso,0) );
+        }
     }
     
     
@@ -554,41 +553,62 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         {
             ek(ip + iniP, jq + iniu) += -1.0 * weight * DivergenceOnDeformed(jq,0) * phiPL2(ip,0);
         }
+        
+        //- (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] )
+        
+        // dp/dalphap terms
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(ip + iniP,jp + iniP) += weight * ( - (1.0/deltat) * rockporosity * (Sw * fWaterDensity[1] +  So * fOilDensity[1] ) )* phiPL2(jp,0) * phiPL2(ip,0) ;
+        }
+
+        // dSw/dalphaSw terms
+        for (int jsw = 0; jsw < nphiSwL2; jsw++)
+        {
+            ek(ip + iniP, jsw  + iniSw) += weight * ( - (1.0/deltat) * rockporosity * (fWaterDensity[0])) * phiSwL2(jsw,0) * phiPL2(ip,0);
+        }
+        
+        // dSo/dalphaSw terms
+        for (int jso = 0; jso < nphiSoL2; jso++)
+        {
+            ek(ip + iniP, jso  + iniSo) += weight * ( + (1.0/deltat) * rockporosity * (fOilDensity[0])) * phiSoL2(jso,0) * phiPL2(ip,0);
+        }
+        
     }
     
-//    // Transport equations
-//    //  n+1 state computations
-//    for (int isw = 0; isw < nphiSwL2; isw++)
-//    {
-//        
-////        // dWaterDensity/dalphaP terms
-////        for (int jp = 0; jp < nphiPL2; jp++)
-////        {
-////            ek(isw  + iniSw, jp  + iniP) += weight * (1.0/deltat) * rockporosity * Sw * fWaterDensity[1] * phiPL2(jp,0) * phiSwL2(isw,0);
-////        }
-//        
-//        // dSw/dalphaSw terms
-//        for (int jsw = 0; jsw < nphiSwL2; jsw++)
+    // Transport equations
+    //  n+1 state computations
+    for (int isw = 0; isw < nphiSwL2; isw++)
+    {
+
+//        // dWaterDensity/dalphaP terms
+//        for (int jp = 0; jp < nphiPL2; jp++)
 //        {
-//            ek(isw  + iniSw, jsw  + iniSw) += weight * (1.0/deltat) * rockporosity * phiSwL2(jsw,0) * /* fWaterDensity[0] */ phiSwL2(isw,0);
+//            ek(isw  + iniSw, jp  + iniP) += weight * (1.0/deltat) * rockporosity * Sw * fWaterDensity[1] * phiPL2(jp,0) * phiSwL2(isw,0);
 //        }
-//    }
-//    
-//    for (int iso = 0; iso < nphiSoL2; iso++)
-//    {
-//        
-////        // dWaterDensity/dalphaP terms
-////        for (int jp = 0; jp < nphiPL2; jp++)
-////        {
-////            ek(iso  + iniSo, jp  + iniP) += weight * (1.0/deltat) * rockporosity * So * fOilDensity[1] * phiPL2(jp,0) * phiSoL2(iso,0);
-////        }
-//        
-//        // dSo/dalphaSo terms
-//        for (int jso = 0; jso < nphiSoL2; jso++)
+
+        // dSw/dalphaSw terms
+        for (int jsw = 0; jsw < nphiSwL2; jsw++)
+        {
+            ek(isw  + iniSw, jsw  + iniSw) += weight * (1.0/deltat) * rockporosity * phiSwL2(jsw,0) * fWaterDensity[0] * phiSwL2(isw,0);
+        }
+    }
+
+    for (int iso = 0; iso < nphiSoL2; iso++)
+    {
+
+//        // dWaterDensity/dalphaP terms
+//        for (int jp = 0; jp < nphiPL2; jp++)
 //        {
-//            ek(iso  + iniSo, jso  + iniSo) += weight * (1.0/deltat) * rockporosity * phiSoL2(jso,0) *  /* fOilDensity[0] */ phiSoL2(iso,0);
+//            ek(iso  + iniSo, jp  + iniP) += weight * (1.0/deltat) * rockporosity * So * fOilDensity[1] * phiPL2(jp,0) * phiSoL2(iso,0);
 //        }
-//    }
+
+        // dSo/dalphaSo terms
+        for (int jso = 0; jso < nphiSoL2; jso++)
+        {
+            ek(iso  + iniSo, jso  + iniSo) += weight * (1.0/deltat) * rockporosity * phiSoL2(jso,0) * fOilDensity[0] * phiSoL2(iso,0);
+        }
+    }
     
     
     this->Contribute(datavec,weight,ef);
@@ -603,18 +623,18 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
-//    int Swblock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
-//    int Soblock = 3;        // So Oil Saturation needs L2 scalar functions      (phiSoL2)
+    int Swblock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
+    int Soblock = 3;        // So Oil Saturation needs L2 scalar functions      (phiSoL2)
     
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
     TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
-//    TPZFMatrix<REAL> phiSwL2        = datavec[Swblock].phi; // For L2  test functions Sw
-//    TPZFMatrix<REAL> phiSoL2        = datavec[Soblock].phi; // For L2  test functions So
+    TPZFMatrix<REAL> phiSwL2        = datavec[Swblock].phi; // For L2  test functions Sw
+    TPZFMatrix<REAL> phiSoL2        = datavec[Soblock].phi; // For L2  test functions So
     TPZFMatrix<STATE> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
     TPZFMatrix<STATE> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
-//    TPZFMatrix<STATE> dphiSwL2   = datavec[Swblock].dphix; // Derivative For L2  test functions Sw
-//    TPZFMatrix<STATE> dphiSoL2   = datavec[Soblock].dphix; // Derivative For L2  test functions So
+    TPZFMatrix<STATE> dphiSwL2   = datavec[Swblock].dphix; // Derivative For L2  test functions Sw
+    TPZFMatrix<STATE> dphiSoL2   = datavec[Soblock].dphix; // Derivative For L2  test functions So
     
     TPZFMatrix<STATE> DivergenceOnDeformed;
     // Compute the divergence on deformed element by piola contravariant transformation
@@ -624,35 +644,34 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     // Blocks dimensions and lengths
     int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
     int nphiPL2     = phiPL2.Rows();                                    // For L2   P
-//    int nphiSwL2    = phiSwL2.Rows();                                   // For L2   Sw
-//    int nphiSoL2    = phiSoL2.Rows();                                   // For L2   So
+    int nphiSwL2    = phiSwL2.Rows();                                   // For L2   Sw
+    int nphiSoL2    = phiSoL2.Rows();                                   // For L2   So
     int iniu    = 0;
     int iniP    = nphiuHdiv     + iniu;
     int iniSw   = nphiPL2       + iniP;
-//    int iniSo   = nphiSwL2      + iniSw;
+    int iniSo   = nphiSwL2      + iniSw;
     
     
     // Getting linear combinations from different approximation spaces
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
     REAL P              = datavec[Pblock].sol[0][0];
-//    REAL Sw             = datavec[Swblock].sol[0][0];
+    REAL Sw             = datavec[Swblock].sol[0][0];
 //    REAL So             = datavec[Soblock].sol[0][0];
-    REAL Sw = 1.0;
-    REAL So = 0.0;
+    REAL So = 1.0 - Sw;
     REAL Sg             = 1.0 - So - Sw;
-
+    
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
-//    TPZFMatrix<STATE> GradSwaxes = datavec[Swblock].dsol[0];
-//    TPZFMatrix<STATE> GradSoaxes = datavec[Soblock].dsol[0];
+    TPZFMatrix<STATE> GradSwaxes = datavec[Swblock].dsol[0];
+    TPZFMatrix<STATE> GradSoaxes = datavec[Soblock].dsol[0];
     
     TPZFNMatrix<660,REAL> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
-//    TPZFNMatrix<660,REAL> GradSw;
-//    TPZAxesTools<REAL>::Axes2XYZ(GradSwaxes, GradSw, datavec[Swblock].axes);
-//    TPZFNMatrix<660,REAL> GradSo;
-//    TPZAxesTools<REAL>::Axes2XYZ(GradSoaxes, GradSo, datavec[Soblock].axes);
+    TPZFNMatrix<660,REAL> GradSw;
+    TPZAxesTools<REAL>::Axes2XYZ(GradSwaxes, GradSw, datavec[Swblock].axes);
+    TPZFNMatrix<660,REAL> GradSo;
+    TPZAxesTools<REAL>::Axes2XYZ(GradSoaxes, GradSo, datavec[Soblock].axes);
     
     
     
@@ -689,21 +708,21 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     // Last State n
     if (fSimulationData->IsnStep()) {
         
-//        //  n state computations
-//        for (int ip = 0; ip < nphiPL2; ip++)
-//        {
-//            ef(ip + iniP) += 1.0 * weight * (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] )*  phiPL2(ip,0);
-//        }
-        
-//        for (int isw = 0; isw < nphiSwL2; isw++)
-//        {
-//            ef(isw  + iniSw ) += -1.0 * weight * (1.0/deltat) * rockporosity * Sw * /*fWaterDensity[0]*/ phiSwL2(isw,0);
-//        }
-//        
-//        for (int iso = 0; iso < nphiSoL2; iso++)
-//        {
-//            ef(iso  + iniSo ) += -1.0 * weight * (1.0/deltat) * rockporosity * So *  /*fOilDensity[0]*/  phiSoL2(iso,0);
-//        }
+        //  n state computations
+        for (int ip = 0; ip < nphiPL2; ip++)
+        {
+            ef(ip + iniP) += 1.0 * weight * (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] )*  phiPL2(ip,0);
+        }
+
+        for (int isw = 0; isw < nphiSwL2; isw++)
+        {
+            ef(isw  + iniSw ) += -1.0 * weight * (1.0/deltat) * rockporosity * Sw * fWaterDensity[0]  * phiSwL2(isw,0);
+        }
+
+        for (int iso = 0; iso < nphiSoL2; iso++)
+        {
+            ef(iso  + iniSo ) += -1.0 * weight * (1.0/deltat) * rockporosity * So * fOilDensity[0] * phiSoL2(iso,0);
+        }
         
         return;
     }
@@ -740,32 +759,32 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
     {
-        ef(ip + iniP) += weight * (- divu + fvalue[0] /*- (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] )*/ ) * phiPL2(ip,0);
-
+        ef(ip + iniP) += weight * (- divu + fvalue[0] - (1.0/deltat) * rockporosity * (Sw * fWaterDensity[0] +  So * fOilDensity[0] ) ) * phiPL2(ip,0);
+        
     }
     
+    
+    // Transport equations
 
-//    // Transport equations
-//    
-//    for (int isw = 0; isw < nphiSwL2; isw++)
-//    {
-//        ef(isw  + iniSw ) += weight * (1.0/deltat) * rockporosity * Sw * /* fWaterDensity[0] */ phiSwL2(isw,0);
-////        ef(isw  + iniSw ) += weight * (-1.0 * fFWater[2] *(u[0]*GradSw[0]) + (u[1]*GradSw[1])) * phiSwL2(isw,0);
-////        ef(isw  + iniSw ) += weight * (-1.0 * fFWater[0] *(u[0]*dphiSwL2(0,isw)) + (u[1]*dphiSwL2(1,isw)));
-//    }
-//    
-//    for (int iso = 0; iso < nphiSoL2; iso++)
-//    {
-//        ef(iso  + iniSo ) += weight * (1.0/deltat) * rockporosity * So * /* fOilDensity[0] */ phiSoL2(iso,0);
-////        ef(iso  + iniSo ) += weight * (-1.0 * fFOil[2] *(u[0]*GradSo[0]) + (u[1]*GradSo[1])) * phiSoL2(iso,0);
-////        ef(iso  + iniSo ) += weight * (-1.0 * fFOil[0] *(u[0]*dphiSoL2(0,iso)) + (u[1]*dphiSoL2(1,iso)));
-//    }
+    for (int isw = 0; isw < nphiSwL2; isw++)
+    {
+        ef(isw  + iniSw ) += weight * (1.0/deltat) * rockporosity * Sw * fWaterDensity[0] * phiSwL2(isw,0);
+//        ef(isw  + iniSw ) += weight * (-1.0 * fFWater[2] *(u[0]*GradSw[0]) + (u[1]*GradSw[1])) * phiSwL2(isw,0);
+//        ef(isw  + iniSw ) += weight * (-1.0 * fFWater[0] *(u[0]*dphiSwL2(0,isw)) + (u[1]*dphiSwL2(1,isw)));
+    }
+
+    for (int iso = 0; iso < nphiSoL2; iso++)
+    {
+        ef(iso  + iniSo ) += weight * (1.0/deltat) * rockporosity * So * fOilDensity[0] * phiSoL2(iso,0);
+//        ef(iso  + iniSo ) += weight * (-1.0 * fFOil[2] *(u[0]*GradSo[0]) + (u[1]*GradSo[1])) * phiSoL2(iso,0);
+//        ef(iso  + iniSo ) += weight * (-1.0 * fFOil[0] *(u[0]*dphiSoL2(0,iso)) + (u[1]*dphiSoL2(1,iso)));
+    }
     
 }
 
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
-
+    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -1061,304 +1080,304 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         
     }
     
-    //Gravity
-    
-    TPZFMatrix<STATE> Gravity(2,1);
-    TPZFMatrix<STATE> KGravityL(2,1);
-    TPZFMatrix<STATE> KGravityR(2,1);
-    
-    Gravity = fSimulationData->GetGravity();
-    
-    REAL epsilon = fepsilon;
-    
-    TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
-    REAL ndotG = Gravity(0,0)*n[0] + Gravity(1,0)*n[1];
-    
-    // Computing Gravitational segregational function on the left side
-    
-    this->UpdateStateVariables(uL, PL, SwL, SoL);
-    this->PhaseFractionalFlows();
-    
-    KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
-    KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
-    REAL lambdaDensitydiffL = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
-    REAL dlambdaDensitydiffLdP  = fTotalMobility[0] * (fWaterDensity[1] - fOilDensity[1]) + fTotalMobility[1] * (fWaterDensity[0] - fOilDensity[0]);
-    REAL dlambdaDensitydiffLdSw = fTotalMobility[0] * (fWaterDensity[2] - fOilDensity[2]) + fTotalMobility[2] * (fWaterDensity[0] - fOilDensity[0]);
-    REAL dlambdaDensitydiffLdSo = fTotalMobility[0] * (fWaterDensity[3] - fOilDensity[3]) + fTotalMobility[3] * (fWaterDensity[0] - fOilDensity[0]);
-    
-    REAL fstrL = 0.0;
-    REAL dfstrLdP  = 0.0;
-    REAL dfstrLdSw = 0.0;
-    REAL dfstrLdSo = 0.0;
-    
-    if (ndotG <= 0.0) {
-        // Expelling oil
-        if (SoL < epsilon) {
-            this->UpdateStateVariables(uL, PL, SwL, SoL);
-            this->PhaseFractionalFlows();
-            fstrL = fFOil[0] * fFWater[0];
-            dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
-            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
-            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
-        }
-        else
-        {
-            this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
-            this->PhaseFractionalFlows();
-            fstrL = fFOil[0] * fFWater[0];
-            dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
-            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
-            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
-        }
-    }
-    else
-    {
-        // Expelling water
-        if (SwL < 1.0 - epsilon) {
-            this->UpdateStateVariables(uL, PL, SwL, SoL);
-            this->PhaseFractionalFlows();
-            fstrL = fFOil[0] * fFWater[0];
-            dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
-            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
-            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
-        }
-        else
-        {
-            this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
-            this->PhaseFractionalFlows();
-            fstrL = fFOil[0] * fFWater[0];
-            dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
-            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
-            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
-        }
-        
-    }
-    
-    TPZFMatrix<STATE> qgL(2,1);
-    TPZFMatrix<STATE> dqgLdP(2,1);
-    TPZFMatrix<STATE> dqgLdSw(2,1);
-    TPZFMatrix<STATE> dqgLdSo(2,1);
-    
-    qgL(0,0) = fstrL * lambdaDensitydiffL * KGravityL(0,0);
-    qgL(1,0) = fstrL * lambdaDensitydiffL * KGravityL(1,0);
-    
-    dqgLdP(0,0) = (dfstrLdP * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdP) * KGravityL(0,0);
-    dqgLdP(1,0) = (dfstrLdP * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdP) * KGravityL(1,0);
-    
-    dqgLdSw(0,0) = (dfstrLdSw * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdSw) * KGravityL(0,0);
-    dqgLdSw(1,0) = (dfstrLdSw * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdSw) * KGravityL(1,0);
-    
-    dqgLdSo(0,0) = (dfstrLdSo * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdSo) * KGravityL(0,0);
-    dqgLdSo(1,0) = (dfstrLdSo * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdSo) * KGravityL(1,0);
-    
-    REAL qgLdotn = qgL(0,0)*n[0] + qgL(1,0)*n[1];
-    REAL dqgLdotndP  = dqgLdP(0,0)*n[0] + dqgLdP(1,0)*n[1];
-    REAL dqgLdotndSw = dqgLdSw(0,0)*n[0] + dqgLdSw(1,0)*n[1];
-    REAL dqgLdotndSo = dqgLdSo(0,0)*n[0] + dqgLdSo(1,0)*n[1];
-   
-    
-    
-    // Computing Gravitational segregational function on the right side
-    
-    this->UpdateStateVariables(uR, PR, SwR, SoR);
-    this->PhaseFractionalFlows();
-    
-    KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
-    KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
-    REAL lambdaDensitydiffR = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
-    REAL dlambdaDensitydiffRdP  = fTotalMobility[0] * (fWaterDensity[1] - fOilDensity[1]) + fTotalMobility[1] * (fWaterDensity[0] - fOilDensity[0]);
-    REAL dlambdaDensitydiffRdSw = fTotalMobility[0] * (fWaterDensity[2] - fOilDensity[2]) + fTotalMobility[2] * (fWaterDensity[0] - fOilDensity[0]);
-    REAL dlambdaDensitydiffRdSo = fTotalMobility[0] * (fWaterDensity[3] - fOilDensity[3]) + fTotalMobility[3] * (fWaterDensity[0] - fOilDensity[0]);
-    
-    REAL fstrR = 0.0;
-    REAL dfstrRdP  = 0.0;
-    REAL dfstrRdSw = 0.0;
-    REAL dfstrRdSo = 0.0;
-// std::cout<<" data.normal: "<< data.normal<<std::endl;
-     if (ndotG >= 0.0) {
-        // Expelling oil
-        if (SoR < epsilon) {
-            this->UpdateStateVariables(uR, PR, SwR, SoR);
-            this->PhaseFractionalFlows();
-            fstrR = fFOil[0] * fFWater[0];
-            dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
-            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
-            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
-        }
-        else
-        {
-            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
-            this->PhaseFractionalFlows();
-            fstrR = fFOil[0] * fFWater[0];
-            dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
-            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
-            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
-        }
-    }
-    else
-    {
-        // Expelling water
-        if (SwR < 1.0 - epsilon) {
-            this->UpdateStateVariables(uR, PR, SwR, SoR);
-            this->PhaseFractionalFlows();
-            fstrR = fFOil[0] * fFWater[0];
-            dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
-            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
-            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
-        }
-        else
-        {
-            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
-            this->PhaseFractionalFlows();
-            fstrR = fFOil[0] * fFWater[0];
-            dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
-            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
-            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
-        }
-        
-    }
-
-    
-    TPZFMatrix<STATE> qgR(2,1);
-    TPZFMatrix<STATE> dqgRdP(2,1);
-    TPZFMatrix<STATE> dqgRdSw(2,1);
-    TPZFMatrix<STATE> dqgRdSo(2,1);
-    
-    qgR(0,0) = fstrR * lambdaDensitydiffR * KGravityR(0,0);
-    qgR(1,0) = fstrR * lambdaDensitydiffR * KGravityR(1,0);
-    
-    dqgRdP(0,0) = (dfstrRdP * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdP) * KGravityR(0,0);
-    dqgRdP(1,0) = (dfstrRdP * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdP) * KGravityR(1,0);
-    
-    dqgRdSw(0,0) = (dfstrRdSw * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdSw) * KGravityR(0,0);
-    dqgRdSw(1,0) = (dfstrRdSw * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdSw) * KGravityR(1,0);
-    
-    dqgRdSo(0,0) = (dfstrRdSo * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdSo) * KGravityR(0,0);
-    dqgRdSo(1,0) = (dfstrRdSo * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdSo) * KGravityR(1,0);
-    
-    REAL qgRdotn = qgR(0,0)*n[0] + qgR(1,0)*n[1];
-    REAL dqgRdotndP  = dqgRdP(0,0)*n[0] + dqgRdP(1,0)*n[1];
-    REAL dqgRdotndSw = dqgRdSw(0,0)*n[0] + dqgRdSw(1,0)*n[1];
-    REAL dqgRdotndSo = dqgRdSo(0,0)*n[0] + dqgRdSo(1,0)*n[1];
-    
-    // Computing the minimum flux at the edge
-    
-    REAL gqdotn = 0.0;
-    REAL dgqdotndP  = 0.0;
-    REAL dgqdotndSw = 0.0;
-    REAL dgqdotndSo = 0.0;
-    
-    int nphiu = 0;
-    int nphiP = 0;
-    int nphiSw = 0;
-    int nphiSo = 0;
-    TPZFMatrix<REAL> phiP;
-    TPZFMatrix<REAL> phiSw;
-    TPZFMatrix<REAL> phiSo;
-    int block = 0;
-    
-    if (fabs(qgRdotn) >= fabs(qgLdotn)) {
-        gqdotn = qgLdotn;
-        dgqdotndP  = dqgLdotndP;
-        dgqdotndSw = dqgLdotndSw;
-        dgqdotndSo = dqgLdotndSo;
-        nphiu = nphiuHdivL;
-        nphiP = nphiPL2L;
-        nphiSw = nphiSwL2L;
-        nphiSo = nphiSoL2L;
-        phiP  = phiPL2L;
-        phiSw = phiSwL2L;
-        phiSo = phiSoL2L;
-        block = 0;
-    }
-    else
-    {
-        gqdotn = qgRdotn;
-        dgqdotndP  = dqgRdotndP;
-        dgqdotndSw = dqgRdotndSw;
-        dgqdotndSo = dqgRdotndSo;
-        nphiu = nphiuHdivR;
-        nphiP = nphiPL2R;
-        nphiSw = nphiSwL2R;
-        nphiSo = nphiSoL2R;
-        phiP  = phiPL2R;
-        phiSw = phiSwL2R;
-        phiSo = phiSoL2R;
-        block = iblock;
-    }
-    
-    
-    for (int isw = 0; isw < nphiSwL2L; isw++)
-    {
-        for (int jp = 0; jp < nphiP; jp++)
-        {
-            ek(isw + iniSwL, jp + block + nphiu) += 1.0 * weight * dgqdotndP * phiP(jp,0) * phiSwL2L(isw,0);
-        }
-        
-        for (int jsw = 0; jsw < nphiSw; jsw++)
-        {
-            ek(isw + iniSwL, jsw + block + nphiP + nphiu) += 1.0 * weight * dgqdotndSw * phiSw(jsw,0) * phiSwL2L(isw,0);
-        }
-        
-        for (int jso = 0; jso < nphiSo; jso++)
-        {
-            ek(isw + iniSwL, jso + block + nphiSw + nphiP + nphiu) += 1.0 * weight * dgqdotndSo * phiSo(jso,0) * phiSwL2L(isw,0);
-        }
-        
-    }
-    for (int isw = 0; isw < nphiSwL2R; isw++)
-    {
-        for (int jp = 0; jp < nphiP; jp++)
-        {
-            ek(iblock + isw + iniSwR, jp + block + nphiu) += -1.0 * weight * dgqdotndP * phiP(jp,0) * phiSwL2R(isw,0);
-        }
-        
-        for (int jsw = 0; jsw < nphiSw; jsw++)
-        {
-            ek(iblock + isw + iniSwR, jsw + block + nphiP + nphiu) += -1.0 * weight * dgqdotndSw * phiSw(jsw,0) * phiSwL2R(isw,0);
-        }
-        
-        for (int jso = 0; jso < nphiSo; jso++)
-        {
-            ek(iblock + isw + iniSwR, jso + block + nphiSw + nphiP + nphiu) += -1.0 * weight * dgqdotndSo * phiSo(jso,0) * phiSwL2R(isw,0);
-        }
-    }
-    
-    
-    for (int iso = 0; iso < nphiSoL2L; iso++)
-    {
-        for (int jp = 0; jp < nphiP; jp++)
-        {
-            ek(iso + iniSoL, jp + block + nphiu) += -1.0 * weight * dgqdotndP * phiP(jp,0) * phiSoL2L(iso,0);
-        }
-        
-        for (int jsw = 0; jsw < nphiSw; jsw++)
-        {
-            ek(iso + iniSoL, jsw + block + nphiP + nphiu) += -1.0 * weight * dgqdotndSw * phiSw(jsw,0) * phiSoL2L(iso,0);
-        }
-        
-        for (int jso = 0; jso < nphiSo; jso++)
-        {
-            ek(iso + iniSoL, jso + block + nphiSw + nphiP + nphiu) += -1.0 * weight * dgqdotndSo * phiSo(jso,0) * phiSoL2L(iso,0);
-        }
-    }
-    for (int iso = 0; iso < nphiSoL2R; iso++)
-    {
-        for (int jp = 0; jp < nphiP; jp++)
-        {
-            ek(iblock + iso + iniSoR, jp + block + nphiu) += 1.0 * weight * dgqdotndP * phiP(jp,0) * phiSoL2R(iso,0);
-        }
-        
-        for (int jsw = 0; jsw < nphiSw; jsw++)
-        {
-            ek(iblock + iso + iniSoR, jsw + block + nphiP + nphiu) += 1.0 * weight * dgqdotndSw * phiSw(jsw,0) * phiSoL2R(iso,0);
-        }
-        
-        for (int jso = 0; jso < nphiSo; jso++)
-        {
-            ek(iblock + iso + iniSoR, jso + block + nphiSw + nphiP + nphiu) += 1.0 * weight * dgqdotndSo * phiSo(jso,0) * phiSoL2R(iso,0);
-        }
-    }
+//    //Gravity
+//    
+//    TPZFMatrix<STATE> Gravity(2,1);
+//    TPZFMatrix<STATE> KGravityL(2,1);
+//    TPZFMatrix<STATE> KGravityR(2,1);
+//    
+//    Gravity = fSimulationData->GetGravity();
+//    
+//    REAL epsilon = fepsilon;
+//    
+//    TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
+//    REAL ndotG = Gravity(0,0)*n[0] + Gravity(1,0)*n[1];
+//    
+//    // Computing Gravitational segregational function on the left side
+//    
+//    this->UpdateStateVariables(uL, PL, SwL, SoL);
+//    this->PhaseFractionalFlows();
+//    
+//    KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
+//    KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+//    REAL lambdaDensitydiffL = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
+//    REAL dlambdaDensitydiffLdP  = fTotalMobility[0] * (fWaterDensity[1] - fOilDensity[1]) + fTotalMobility[1] * (fWaterDensity[0] - fOilDensity[0]);
+//    REAL dlambdaDensitydiffLdSw = fTotalMobility[0] * (fWaterDensity[2] - fOilDensity[2]) + fTotalMobility[2] * (fWaterDensity[0] - fOilDensity[0]);
+//    REAL dlambdaDensitydiffLdSo = fTotalMobility[0] * (fWaterDensity[3] - fOilDensity[3]) + fTotalMobility[3] * (fWaterDensity[0] - fOilDensity[0]);
+//    
+//    REAL fstrL = 0.0;
+//    REAL dfstrLdP  = 0.0;
+//    REAL dfstrLdSw = 0.0;
+//    REAL dfstrLdSo = 0.0;
+//    
+//    if (ndotG <= 0.0) {
+//        // Expelling oil
+//        if (SoL < epsilon) {
+//            this->UpdateStateVariables(uL, PL, SwL, SoL);
+//            this->PhaseFractionalFlows();
+//            fstrL = fFOil[0] * fFWater[0];
+//            dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+//            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+//            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
+//        }
+//        else
+//        {
+//            this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
+//            this->PhaseFractionalFlows();
+//            fstrL = fFOil[0] * fFWater[0];
+//            dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+//            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+//            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
+//        }
+//    }
+//    else
+//    {
+//        // Expelling water
+//        if (SwL < 1.0 - epsilon) {
+//            this->UpdateStateVariables(uL, PL, SwL, SoL);
+//            this->PhaseFractionalFlows();
+//            fstrL = fFOil[0] * fFWater[0];
+//            dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+//            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+//            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
+//        }
+//        else
+//        {
+//            this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
+//            this->PhaseFractionalFlows();
+//            fstrL = fFOil[0] * fFWater[0];
+//            dfstrLdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+//            dfstrLdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+//            dfstrLdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
+//        }
+//        
+//    }
+//    
+//    TPZFMatrix<STATE> qgL(2,1);
+//    TPZFMatrix<STATE> dqgLdP(2,1);
+//    TPZFMatrix<STATE> dqgLdSw(2,1);
+//    TPZFMatrix<STATE> dqgLdSo(2,1);
+//    
+//    qgL(0,0) = fstrL * lambdaDensitydiffL * KGravityL(0,0);
+//    qgL(1,0) = fstrL * lambdaDensitydiffL * KGravityL(1,0);
+//    
+//    dqgLdP(0,0) = (dfstrLdP * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdP) * KGravityL(0,0);
+//    dqgLdP(1,0) = (dfstrLdP * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdP) * KGravityL(1,0);
+//    
+//    dqgLdSw(0,0) = (dfstrLdSw * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdSw) * KGravityL(0,0);
+//    dqgLdSw(1,0) = (dfstrLdSw * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdSw) * KGravityL(1,0);
+//    
+//    dqgLdSo(0,0) = (dfstrLdSo * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdSo) * KGravityL(0,0);
+//    dqgLdSo(1,0) = (dfstrLdSo * lambdaDensitydiffL + fstrL * dlambdaDensitydiffLdSo) * KGravityL(1,0);
+//    
+//    REAL qgLdotn = qgL(0,0)*n[0] + qgL(1,0)*n[1];
+//    REAL dqgLdotndP  = dqgLdP(0,0)*n[0] + dqgLdP(1,0)*n[1];
+//    REAL dqgLdotndSw = dqgLdSw(0,0)*n[0] + dqgLdSw(1,0)*n[1];
+//    REAL dqgLdotndSo = dqgLdSo(0,0)*n[0] + dqgLdSo(1,0)*n[1];
+//    
+//    
+//    
+//    // Computing Gravitational segregational function on the right side
+//    
+//    this->UpdateStateVariables(uR, PR, SwR, SoR);
+//    this->PhaseFractionalFlows();
+//    
+//    KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
+//    KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+//    REAL lambdaDensitydiffR = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
+//    REAL dlambdaDensitydiffRdP  = fTotalMobility[0] * (fWaterDensity[1] - fOilDensity[1]) + fTotalMobility[1] * (fWaterDensity[0] - fOilDensity[0]);
+//    REAL dlambdaDensitydiffRdSw = fTotalMobility[0] * (fWaterDensity[2] - fOilDensity[2]) + fTotalMobility[2] * (fWaterDensity[0] - fOilDensity[0]);
+//    REAL dlambdaDensitydiffRdSo = fTotalMobility[0] * (fWaterDensity[3] - fOilDensity[3]) + fTotalMobility[3] * (fWaterDensity[0] - fOilDensity[0]);
+//    
+//    REAL fstrR = 0.0;
+//    REAL dfstrRdP  = 0.0;
+//    REAL dfstrRdSw = 0.0;
+//    REAL dfstrRdSo = 0.0;
+//    // std::cout<<" data.normal: "<< data.normal<<std::endl;
+//    if (ndotG >= 0.0) {
+//        // Expelling oil
+//        if (SoR < epsilon) {
+//            this->UpdateStateVariables(uR, PR, SwR, SoR);
+//            this->PhaseFractionalFlows();
+//            fstrR = fFOil[0] * fFWater[0];
+//            dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+//            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+//            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
+//        }
+//        else
+//        {
+//            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
+//            this->PhaseFractionalFlows();
+//            fstrR = fFOil[0] * fFWater[0];
+//            dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+//            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+//            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
+//        }
+//    }
+//    else
+//    {
+//        // Expelling water
+//        if (SwR < 1.0 - epsilon) {
+//            this->UpdateStateVariables(uR, PR, SwR, SoR);
+//            this->PhaseFractionalFlows();
+//            fstrR = fFOil[0] * fFWater[0];
+//            dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+//            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+//            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
+//        }
+//        else
+//        {
+//            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
+//            this->PhaseFractionalFlows();
+//            fstrR = fFOil[0] * fFWater[0];
+//            dfstrRdP  = fFOil[0] * fFWater[1] + fFOil[1] * fFWater[0];
+//            dfstrRdSw = fFOil[0] * fFWater[2] + fFOil[2] * fFWater[0];
+//            dfstrRdSo = fFOil[0] * fFWater[3] + fFOil[3] * fFWater[0];
+//        }
+//        
+//    }
+//    
+//    
+//    TPZFMatrix<STATE> qgR(2,1);
+//    TPZFMatrix<STATE> dqgRdP(2,1);
+//    TPZFMatrix<STATE> dqgRdSw(2,1);
+//    TPZFMatrix<STATE> dqgRdSo(2,1);
+//    
+//    qgR(0,0) = fstrR * lambdaDensitydiffR * KGravityR(0,0);
+//    qgR(1,0) = fstrR * lambdaDensitydiffR * KGravityR(1,0);
+//    
+//    dqgRdP(0,0) = (dfstrRdP * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdP) * KGravityR(0,0);
+//    dqgRdP(1,0) = (dfstrRdP * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdP) * KGravityR(1,0);
+//    
+//    dqgRdSw(0,0) = (dfstrRdSw * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdSw) * KGravityR(0,0);
+//    dqgRdSw(1,0) = (dfstrRdSw * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdSw) * KGravityR(1,0);
+//    
+//    dqgRdSo(0,0) = (dfstrRdSo * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdSo) * KGravityR(0,0);
+//    dqgRdSo(1,0) = (dfstrRdSo * lambdaDensitydiffR + fstrR * dlambdaDensitydiffRdSo) * KGravityR(1,0);
+//    
+//    REAL qgRdotn = qgR(0,0)*n[0] + qgR(1,0)*n[1];
+//    REAL dqgRdotndP  = dqgRdP(0,0)*n[0] + dqgRdP(1,0)*n[1];
+//    REAL dqgRdotndSw = dqgRdSw(0,0)*n[0] + dqgRdSw(1,0)*n[1];
+//    REAL dqgRdotndSo = dqgRdSo(0,0)*n[0] + dqgRdSo(1,0)*n[1];
+//    
+//    // Computing the minimum flux at the edge
+//    
+//    REAL gqdotn = 0.0;
+//    REAL dgqdotndP  = 0.0;
+//    REAL dgqdotndSw = 0.0;
+//    REAL dgqdotndSo = 0.0;
+//    
+//    int nphiu = 0;
+//    int nphiP = 0;
+//    int nphiSw = 0;
+//    int nphiSo = 0;
+//    TPZFMatrix<REAL> phiP;
+//    TPZFMatrix<REAL> phiSw;
+//    TPZFMatrix<REAL> phiSo;
+//    int block = 0;
+//    
+//    if (fabs(qgRdotn) >= fabs(qgLdotn)) {
+//        gqdotn = qgLdotn;
+//        dgqdotndP  = dqgLdotndP;
+//        dgqdotndSw = dqgLdotndSw;
+//        dgqdotndSo = dqgLdotndSo;
+//        nphiu = nphiuHdivL;
+//        nphiP = nphiPL2L;
+//        nphiSw = nphiSwL2L;
+//        nphiSo = nphiSoL2L;
+//        phiP  = phiPL2L;
+//        phiSw = phiSwL2L;
+//        phiSo = phiSoL2L;
+//        block = 0;
+//    }
+//    else
+//    {
+//        gqdotn = qgRdotn;
+//        dgqdotndP  = dqgRdotndP;
+//        dgqdotndSw = dqgRdotndSw;
+//        dgqdotndSo = dqgRdotndSo;
+//        nphiu = nphiuHdivR;
+//        nphiP = nphiPL2R;
+//        nphiSw = nphiSwL2R;
+//        nphiSo = nphiSoL2R;
+//        phiP  = phiPL2R;
+//        phiSw = phiSwL2R;
+//        phiSo = phiSoL2R;
+//        block = iblock;
+//    }
+//    
+//    
+//    for (int isw = 0; isw < nphiSwL2L; isw++)
+//    {
+//        for (int jp = 0; jp < nphiP; jp++)
+//        {
+//            ek(isw + iniSwL, jp + block + nphiu) += 1.0 * weight * dgqdotndP * phiP(jp,0) * phiSwL2L(isw,0);
+//        }
+//        
+//        for (int jsw = 0; jsw < nphiSw; jsw++)
+//        {
+//            ek(isw + iniSwL, jsw + block + nphiP + nphiu) += 1.0 * weight * dgqdotndSw * phiSw(jsw,0) * phiSwL2L(isw,0);
+//        }
+//        
+//        for (int jso = 0; jso < nphiSo; jso++)
+//        {
+//            ek(isw + iniSwL, jso + block + nphiSw + nphiP + nphiu) += 1.0 * weight * dgqdotndSo * phiSo(jso,0) * phiSwL2L(isw,0);
+//        }
+//        
+//    }
+//    for (int isw = 0; isw < nphiSwL2R; isw++)
+//    {
+//        for (int jp = 0; jp < nphiP; jp++)
+//        {
+//            ek(iblock + isw + iniSwR, jp + block + nphiu) += -1.0 * weight * dgqdotndP * phiP(jp,0) * phiSwL2R(isw,0);
+//        }
+//        
+//        for (int jsw = 0; jsw < nphiSw; jsw++)
+//        {
+//            ek(iblock + isw + iniSwR, jsw + block + nphiP + nphiu) += -1.0 * weight * dgqdotndSw * phiSw(jsw,0) * phiSwL2R(isw,0);
+//        }
+//        
+//        for (int jso = 0; jso < nphiSo; jso++)
+//        {
+//            ek(iblock + isw + iniSwR, jso + block + nphiSw + nphiP + nphiu) += -1.0 * weight * dgqdotndSo * phiSo(jso,0) * phiSwL2R(isw,0);
+//        }
+//    }
+//    
+//    
+//    for (int iso = 0; iso < nphiSoL2L; iso++)
+//    {
+//        for (int jp = 0; jp < nphiP; jp++)
+//        {
+//            ek(iso + iniSoL, jp + block + nphiu) += -1.0 * weight * dgqdotndP * phiP(jp,0) * phiSoL2L(iso,0);
+//        }
+//        
+//        for (int jsw = 0; jsw < nphiSw; jsw++)
+//        {
+//            ek(iso + iniSoL, jsw + block + nphiP + nphiu) += -1.0 * weight * dgqdotndSw * phiSw(jsw,0) * phiSoL2L(iso,0);
+//        }
+//        
+//        for (int jso = 0; jso < nphiSo; jso++)
+//        {
+//            ek(iso + iniSoL, jso + block + nphiSw + nphiP + nphiu) += -1.0 * weight * dgqdotndSo * phiSo(jso,0) * phiSoL2L(iso,0);
+//        }
+//    }
+//    for (int iso = 0; iso < nphiSoL2R; iso++)
+//    {
+//        for (int jp = 0; jp < nphiP; jp++)
+//        {
+//            ek(iblock + iso + iniSoR, jp + block + nphiu) += 1.0 * weight * dgqdotndP * phiP(jp,0) * phiSoL2R(iso,0);
+//        }
+//        
+//        for (int jsw = 0; jsw < nphiSw; jsw++)
+//        {
+//            ek(iblock + iso + iniSoR, jsw + block + nphiP + nphiu) += 1.0 * weight * dgqdotndSw * phiSw(jsw,0) * phiSoL2R(iso,0);
+//        }
+//        
+//        for (int jso = 0; jso < nphiSo; jso++)
+//        {
+//            ek(iblock + iso + iniSoR, jso + block + nphiSw + nphiP + nphiu) += 1.0 * weight * dgqdotndSo * phiSo(jso,0) * phiSoL2R(iso,0);
+//        }
+//    }
     
     
     this->ContributeInterface(data, datavecleft, datavecright, weight, ef);
@@ -1370,8 +1389,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
     
-    DebugStop();
-
+    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -1490,7 +1508,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
     REAL ndotG = Gravity(0,0)*n[0] + Gravity(1,0)*n[1];
-
+    
     
     // Computing Gravitational segregational function on the left side
     
@@ -1502,7 +1520,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
     KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
     REAL lambdaDensitydiffL = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
-
+    
     REAL fstrL = 0.0;
     
     if (ndotG <= 0.0) {
@@ -1537,88 +1555,88 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         
     }
     
-    qgL(0,0) = fstrL * lambdaDensitydiffL * KGravityL(0,0);
-    qgL(1,0) = fstrL * lambdaDensitydiffL * KGravityL(1,0);
-    REAL qgLdotn = qgL(0,0)*n[0] + qgL(1,0)*n[1];
-    
-    // Computing Gravitational segregational function on the right side
-    
-    this->UpdateStateVariables(uR, PR, SwR, SoR);
-    this->PhaseFractionalFlows();
-    
-    KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
-    KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
-    REAL lambdaDensitydiffR = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
-    
-    REAL fstrR = 0.0;
-    
-    if (ndotG >= 0.0) {
-        
-        // Expelling oil
-        if (SoR < epsilon) {
-            this->UpdateStateVariables(uR, PR, SwR, SoR);
-            this->PhaseFractionalFlows();
-            fstrR = fFOil[0] * fFWater[0];
-        }
-        else
-        {
-            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
-            this->PhaseFractionalFlows();
-            fstrR = fFOil[0] * fFWater[0];
-        }
-    }
-    else
-    {
-        // Expelling water
-        if (SwR < 1.0 - epsilon) {
-            this->UpdateStateVariables(uR, PR, SwR, SoR);
-            this->PhaseFractionalFlows();
-            fstrR = fFOil[0] * fFWater[0];
-        }
-        else
-        {
-            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
-            this->PhaseFractionalFlows();
-            fstrR = fFOil[0] * fFWater[0];
-        }
-        
-    }
-    
-    qgR(0,0) = fstrR * lambdaDensitydiffR * KGravityR(0,0);
-    qgR(1,0) = fstrR * lambdaDensitydiffR * KGravityR(1,0);
-    REAL qgRdotn = qgR(0,0)*n[0] + qgR(1,0)*n[1];
-    
-    // Computing the minimum flux at the edge
-    
-    REAL gqdotn = 0.0;
-    
-    if (fabs(qgRdotn) >= fabs(qgLdotn)) {
-        gqdotn = qgLdotn;
-    }
-    else
-    {
-        gqdotn = qgRdotn;
-    }
-    
-
-    
-    for (int isw = 0; isw < nphiSwL2L; isw++)
-    {
-        ef(isw + iniSwL) += 1.0 * weight * gqdotn * phiSwL2L(isw,0);
-    }
-    for (int isw = 0; isw < nphiSwL2R; isw++)
-    {
-        ef(iblock + isw + iniSwR) += -1.0 * weight * gqdotn * phiSwL2R(isw,0);
-    }
-    
-    for (int iso = 0; iso < nphiSoL2L; iso++)
-    {
-        ef(iso + iniSoL) += -1.0 * weight * gqdotn * phiSoL2L(iso,0);
-    }
-    for (int iso = 0; iso < nphiSoL2R; iso++)
-    {
-        ef(iblock + iso + iniSoR) += 1.0 * weight * gqdotn * phiSoL2R(iso,0);
-    }
+//    qgL(0,0) = fstrL * lambdaDensitydiffL * KGravityL(0,0);
+//    qgL(1,0) = fstrL * lambdaDensitydiffL * KGravityL(1,0);
+//    REAL qgLdotn = qgL(0,0)*n[0] + qgL(1,0)*n[1];
+//    
+//    // Computing Gravitational segregational function on the right side
+//    
+//    this->UpdateStateVariables(uR, PR, SwR, SoR);
+//    this->PhaseFractionalFlows();
+//    
+//    KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
+//    KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+//    REAL lambdaDensitydiffR = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
+//    
+//    REAL fstrR = 0.0;
+//    
+//    if (ndotG >= 0.0) {
+//        
+//        // Expelling oil
+//        if (SoR < epsilon) {
+//            this->UpdateStateVariables(uR, PR, SwR, SoR);
+//            this->PhaseFractionalFlows();
+//            fstrR = fFOil[0] * fFWater[0];
+//        }
+//        else
+//        {
+//            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
+//            this->PhaseFractionalFlows();
+//            fstrR = fFOil[0] * fFWater[0];
+//        }
+//    }
+//    else
+//    {
+//        // Expelling water
+//        if (SwR < 1.0 - epsilon) {
+//            this->UpdateStateVariables(uR, PR, SwR, SoR);
+//            this->PhaseFractionalFlows();
+//            fstrR = fFOil[0] * fFWater[0];
+//        }
+//        else
+//        {
+//            this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
+//            this->PhaseFractionalFlows();
+//            fstrR = fFOil[0] * fFWater[0];
+//        }
+//        
+//    }
+//    
+//    qgR(0,0) = fstrR * lambdaDensitydiffR * KGravityR(0,0);
+//    qgR(1,0) = fstrR * lambdaDensitydiffR * KGravityR(1,0);
+//    REAL qgRdotn = qgR(0,0)*n[0] + qgR(1,0)*n[1];
+//    
+//    // Computing the minimum flux at the edge
+//    
+//    REAL gqdotn = 0.0;
+//    
+//    if (fabs(qgRdotn) >= fabs(qgLdotn)) {
+//        gqdotn = qgLdotn;
+//    }
+//    else
+//    {
+//        gqdotn = qgRdotn;
+//    }
+//    
+//    
+//    
+//    for (int isw = 0; isw < nphiSwL2L; isw++)
+//    {
+//        ef(isw + iniSwL) += 1.0 * weight * gqdotn * phiSwL2L(isw,0);
+//    }
+//    for (int isw = 0; isw < nphiSwL2R; isw++)
+//    {
+//        ef(iblock + isw + iniSwR) += -1.0 * weight * gqdotn * phiSwL2R(isw,0);
+//    }
+//    
+//    for (int iso = 0; iso < nphiSoL2L; iso++)
+//    {
+//        ef(iso + iniSoL) += -1.0 * weight * gqdotn * phiSoL2L(iso,0);
+//    }
+//    for (int iso = 0; iso < nphiSoL2R; iso++)
+//    {
+//        ef(iblock + iso + iniSoR) += 1.0 * weight * gqdotn * phiSoL2R(iso,0);
+//    }
     
 }
 
@@ -1683,7 +1701,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     switch (bc.Type()) {
         case 0 :    // Dirichlet BC  PD inflow
         {
-           // return;
+            // return;
             
             if (uLn >= 0.0 ) {
                 // Outflow boundary condition
@@ -1767,11 +1785,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
         case 1 :    // Neumann BC  QN inflow
         {
-
+            
             this->UpdateStateVariables(uL, PL, Sw, So);
             this->PhaseFractionalFlows();
             //            }
-              //  return;
+            //  return;
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
                 //ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
@@ -1826,7 +1844,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
         case 2 :    // Dirichlet BC  PD outflow
         {
-               // return;
+            // return;
             if (uLn >= 0.0 ) {
                 // Outflow boundary condition
                 this->UpdateStateVariables(uL, Value, SwL, SoL);
@@ -1924,7 +1942,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             //                this->UpdateStateVariables(uL, PL, Sw, So);
             //                this->PhaseFractionalFlows();
             //            }
-               // return;
+            // return;
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
                 //ef(isw + iniSwL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * uLn;
@@ -1993,7 +2011,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-
+    
     
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
@@ -2044,7 +2062,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     Value = bc.Val2()(0,0);         //  un ou P
     Sw = bc.Val2()(1,0);         //  Sw in
     So = bc.Val2()(2,0);         //  So in
-
+    
     
     //  Compute axuliar functions for the current values of time, u, P, Sw and So
     TPZFMatrix<REAL> jphiuHdiv(3,1,0.0);
@@ -2052,7 +2070,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     switch (bc.Type()) {
         case 0 :    // Dirichlet BC  PD inflow
         {
-           // return;
+            // return;
             if (uLn >= 0.0 ) {
                 // Outflow boundary condition
                 this->UpdateStateVariables(uL, Value, SwL, SoL);
@@ -2101,13 +2119,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
             for (int iq = 0; iq < nphiuHdivL; iq++)
             {
-             
+                
                 int ivectorindex = datavecleft[ublock].fVecShapeIndex[iq].first;
                 int ishapeindex = datavecleft[ublock].fVecShapeIndex[iq].second;
                 
                 iphiuHdiv(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
                 iphiuHdiv(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
-
+                
                 REAL iphiuHdivdotn = iphiuHdiv(0,0)*n[0] + iphiuHdiv(1,0)*n[1];
                 
                 ef(iq + iniuL) += 1.0 * weight * PL * iphiuHdivdotn;
@@ -2133,7 +2151,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
             
         case 2 :    // Dirichlet BC  PD outflow
         {
-           // return;
+            // return;
             if (uLn >= 0.0 ) {
                 // Outflow boundary condition
                 this->UpdateStateVariables(uL, Value, SwL, SoL);
@@ -2194,7 +2212,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
                 
             }
             
-           // return;
+            // return;
             
             for (int isw = 0; isw < nphiSwL2L; isw++)
             {
@@ -2223,7 +2241,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 
 void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-
+    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -2233,8 +2251,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     
     int Qblock = 0;
     int Pblock = 1;
-//    int Swblock = 2;
-//    int Soblock = 3;
+    //    int Swblock = 2;
+    //    int Soblock = 3;
     
     // Getting test and basis functions
     TPZFNMatrix<9,STATE> PhiH1 = datavec[Qblock].phi; // For H1   test functions
@@ -2283,7 +2301,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
             
         case 1 :    // Neumann BC  QN inflow
         {
-
+            
             
             Value = bc.Val2()(0,0);         //  NormalFlux
             for (int iq = 0; iq < nPhiHdiv; iq++)
@@ -2295,10 +2313,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
                     ek(iq,jq) += gBigNumber * weight * (PhiH1(jq,0)) * PhiH1(iq,0);
                 }
                 
-//                for (int jp = 0; jp < nPhiL2; jp++)
-//                {
-//                    ek(iq, jp + nPhiHdiv) += weight * WL2(jp,0) * PhiH1(iq,0);
-//                }
+                //                for (int jp = 0; jp < nPhiL2; jp++)
+                //                {
+                //                    ek(iq, jp + nPhiHdiv) += weight * WL2(jp,0) * PhiH1(iq,0);
+                //                }
                 
             }
             
@@ -2331,10 +2349,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
                     ek(iq,jq) += gBigNumber * weight * (PhiH1(jq,0)) * PhiH1(iq,0);
                 }
                 
-//                for (int jp = 0; jp < nPhiL2; jp++)
-//                {
-//                    ek(iq, jp + nPhiHdiv) += weight * WL2(jp,0) * PhiH1(iq,0);
-//                }
+                //                for (int jp = 0; jp < nPhiL2; jp++)
+                //                {
+                //                    ek(iq, jp + nPhiHdiv) += weight * WL2(jp,0) * PhiH1(iq,0);
+                //                }
                 
             }
             

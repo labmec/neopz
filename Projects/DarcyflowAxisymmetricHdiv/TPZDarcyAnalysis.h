@@ -355,6 +355,11 @@ public:
     void CheckGlobalConvergence(TPZAnalysis * an);
 
     /**
+     * Method to verify the jacobian
+     */
+    void CheckGlobalJacobian(TPZAnalysis * an);
+    
+    /**
      * Computes computational mesh for L2 projection
      */
     static void InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);

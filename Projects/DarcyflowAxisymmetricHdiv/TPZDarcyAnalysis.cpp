@@ -41,12 +41,12 @@
 #endif
 
 //#define SolutionI
-#define SolutionII
+//#define SolutionII
 
 TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel)
 {
     
-    fmeshvec.Resize(2);
+    fmeshvec.Resize(4);
     
     fgmesh=NULL;
     fcmeshdarcy=NULL;
@@ -179,22 +179,22 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     TPZFMatrix<REAL> Pini(fmeshvec[1]->Solution().Rows(),1,0.0);
     fmeshvec[1]->LoadSolution(Pini);
     
-//    TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
-//    TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
-//    TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
-//    SolveProjection(L2Analysis,L2Sw);
-//    
-//    
-//    fmeshvec[2]->LoadSolution(L2Analysis->Solution());
-//    TPZFMatrix<REAL> Soini = L2Analysis->Solution();
-//    int SoDOF = Soini.Rows();
-//    
-//    for (int iso = 0; iso < SoDOF; iso++)
-//    {
-//        Soini(iso,0) = 1.0 - Soini(iso,0);
-//    }
-//    
-//    fmeshvec[3]->LoadSolution(Soini);
+    TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
+    TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
+    TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
+    SolveProjection(L2Analysis,L2Sw);
+    
+    
+    fmeshvec[2]->LoadSolution(L2Analysis->Solution());
+    TPZFMatrix<REAL> Soini = L2Analysis->Solution();
+    int SoDOF = Soini.Rows();
+    
+    for (int iso = 0; iso < SoDOF; iso++)
+    {
+        Soini(iso,0) = 1.0 - Soini(iso,0);
+    }
+    
+    fmeshvec[3]->LoadSolution(Soini);
     
     
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
@@ -264,7 +264,7 @@ void TPZDarcyAnalysis::Run()
     int s = fSimulationData->Getsorder();
     
     CreateMultiphysicsMesh(q,p,s);
-    //CreateInterfaces();
+    CreateInterfaces();
 
 #ifdef DEBUG
     std::ofstream out("ComputationaMeshMultiphysics.txt");
@@ -351,8 +351,8 @@ void TPZDarcyAnalysis::Run()
     }
 
 
-    
-    this->CheckGlobalConvergence(an);
+//    this->CheckGlobalJacobian(an);
+//    this->CheckGlobalConvergence(an);
     
     this->InitializeSolution(an);
     this->TimeForward(an);
@@ -410,8 +410,8 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
 {
     fmeshvec[0] = CmeshFlux(q);
     fmeshvec[1] = CmeshPressure(p);
-//    fmeshvec[2] = CmeshSw(s);
-//    fmeshvec[3] = CmeshSo(s);
+    fmeshvec[2] = CmeshSw(s);
+    fmeshvec[3] = CmeshSo(s);
     
     fcmeshdarcy = CmeshMixed();
     
@@ -850,7 +850,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     // Rigth hand side function
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(40);
+    dum->SetPolynomialOrder(0);
     forcef = dum;
     mat->SetForcingFunction(forcef);
     
@@ -1689,6 +1689,8 @@ void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff)
     return;
 #endif
     
+    ff[0] = 0.0;
+    return;
     
 }
 
@@ -2021,7 +2023,7 @@ void TPZDarcyAnalysis::InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STA
     REAL y = pt[1];
     
     disp.resize(1);
-    disp[0] = 1.0;
+    disp[0] = 0.0;
     
 //     if (y >=  50.0 ) {
 //         disp[0] = 0.0;
@@ -2223,10 +2225,10 @@ void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
     
     long neq = fcmeshdarcy->NEquations();
     int nsteps = 5;
-    REAL du=0.001;
+    REAL du=1.0;
     REAL alpha = 0;
     
-    TPZFMatrix<STATE> U0(neq,1,(rand()/double(RAND_MAX)));//(rand()/double(RAND_MAX))
+    TPZFMatrix<STATE> U0(neq,1,0.5);//(rand()/double(RAND_MAX))
     TPZFMatrix<STATE> UPlusAlphaDU   = fcmeshdarcy->Solution();
     
     std::ofstream outfile("CheckConvergence.txt");
@@ -2247,7 +2249,7 @@ void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
     Jacobian =   an->Solver().Matrix();
     TPZFMatrix<REAL> JacobianAtU0 = *Jacobian.operator->();
     TPZFNMatrix<9,REAL> ResidualAtU0 = an->Rhs();
-    
+
     
     int SizeOfGlobalMat = JacobianAtU0.Rows();
     TPZFNMatrix<9,STATE> DeltaU(SizeOfGlobalMat,1,du),JacobianDeltaU(SizeOfGlobalMat,1,0.0);
@@ -2279,13 +2281,12 @@ void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
         an->AssembleResidual();
         TPZFNMatrix<9,REAL> ResidualAtU0PlusAlphaDU = an->Rhs();
         ResidualUPerturbed = ResidualAtU0PlusAlphaDU + ResidualAtU0n;
-
-//        Alpha_JacAtU0_DeltaU.Print("Alpha_JacAtU0_DeltaU = ",outfile,EMathematicaInput);
-//        DeltaU.Print("DeltaU = ",outfile,EMathematicaInput);
-//        outfile << alpha <<std::endl;
-//        ResidualUPerturbed.Print("ResidualUPerturbed = ",outfile,EMathematicaInput);
+        TPZFNMatrix<9,REAL> error = ResidualUPerturbed-(ResidualU0+Alpha_JacAtU0_DeltaU);
         
-        REAL NormValue = Norm(ResidualUPerturbed-(ResidualU0+Alpha_JacAtU0_DeltaU));
+//        outfile << alpha <<std::endl;
+//        error.Print("error = ",outfile,EMathematicaInput);
+        
+        REAL NormValue = Norm(error);
         res(j) = log(NormValue);
         alphas(j,0) = log(alpha);
         
@@ -2300,3 +2301,60 @@ void TPZDarcyAnalysis::CheckGlobalConvergence(TPZAnalysis * an)
     
 }
 
+void TPZDarcyAnalysis::CheckGlobalJacobian(TPZAnalysis * an)
+{
+    
+    long neq = fcmeshdarcy->NEquations();
+    REAL du=0.1;
+    
+    TPZFMatrix<STATE> U(neq,1,0.5);//(rand()/double(RAND_MAX))
+    TPZFMatrix<STATE> DeltaU(neq,1,du);
+    TPZFMatrix<STATE> Uk = U + DeltaU;
+    
+    std::ofstream outfile("CheckJacobian.txt");
+    
+    fcmeshdarcy->LoadSolution(U);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+    
+    this->SetLastState();
+    an->AssembleResidual();
+    TPZFNMatrix<9,REAL> ResidualAtUn = an->Rhs();
+    
+    fcmeshdarcy->LoadSolution(U);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+    
+    this->SetNextState();
+    an->Assemble();
+    TPZAutoPointer< TPZMatrix<REAL> > Jacobian;
+    Jacobian =   an->Solver().Matrix();
+    TPZFMatrix<REAL> JacobianAtU = *Jacobian.operator->();
+    TPZFNMatrix<9,REAL> ResidualAtU = an->Rhs();
+    
+    
+    int SizeOfGlobalMat = JacobianAtU.Rows();
+    TPZFNMatrix<9,STATE> JacobianDeltaU(SizeOfGlobalMat,1,0.0);
+    TPZFNMatrix<9,STATE> ResidualU(SizeOfGlobalMat,1,0.0),Jac_DeltaU(SizeOfGlobalMat,1,0.0);
+    TPZFNMatrix<9,STATE> Residual(SizeOfGlobalMat,1,0.0);
+    
+    ResidualU = ResidualAtU + ResidualAtUn;
+    
+    fcmeshdarcy->LoadSolution(Uk);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+    
+    an->AssembleResidual();
+    TPZFNMatrix<9,REAL> ResidualAtUk = an->Rhs() + ResidualAtUn;
+    JacobianAtU.Multiply(Uk-U,Jac_DeltaU);
+    Residual = ResidualAtUk - (ResidualU + JacobianDeltaU);
+    
+    JacobianAtU.Print("JacobianAtU = ",outfile,EMathematicaInput);
+    ResidualU.Print("ResidualU = ",outfile,EMathematicaInput);
+    ResidualAtUk.Print("ResidualAtUk = ",outfile,EMathematicaInput);
+    Residual.Print("Residual = ",outfile,EMathematicaInput);
+//    U.Print("U = ",outfile,EMathematicaInput);
+//    Uk.Print("Uk = ",outfile,EMathematicaInput);
+    outfile << std::endl;
+    outfile << "Norm DeltaU " << Norm(DeltaU) << std::endl;
+    outfile << "Norm Residual " << Norm(Residual) << std::endl;
+    outfile.flush();
+    
+}
