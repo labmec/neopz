@@ -17,7 +17,7 @@ void NonlinearTracerDimensionless();
 int main()
 {
   
-    TPZMaterial::gBigNumber = -1.0e9; // Use this for check of convergence using neumann
+    TPZMaterial::gBigNumber = 1.0e10; // Use this for check of convergence using neumann
 //    TPZMaterial::gBigNumber = 1.0e15;
     
 //  LinearTracer();
@@ -58,30 +58,30 @@ void NonlinearTracerDimensionless()
     bool SC         = false;    // Use Static Condensation
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = true;    // false means GMRES
-    bool OptBand    = true;    // Band optimization
+    bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
-    int qorder      = 2;
-    int porder      = 2;
+    int qorder      = 1;
+    int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 2;
+    int hpostref    = 4;
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 100.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL dt         = 1000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL maxtime    = 10000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL t0         = 0.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     
-    REAL TolDeltaX  = 1.0*1e-7;
-    REAL TolRes     = 1.0*1e-7;
+    REAL TolDeltaX  = 1.0*1e-5;
+    REAL TolRes     = 1.0*1e-5;
     
-    int  nelemX     =20;
-    REAL lengthX    =50.0/Lstr;
+    int  nelemX     =4;
+    REAL lengthX    =250.0/Lstr;
     
-    int nelemY      =1;
-    REAL lengthY    =100.0/Lstr;
+    int nelemY      =4;
+    REAL lengthY    =250.0/Lstr;
     
     Gravity(0,0)= -0.0;
     Gravity(1,0)= -0.0;
@@ -169,10 +169,10 @@ void NonlinearTracerDimensionless()
     // Reservoir Description linear tracer configuration
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (0.0*1e-7)*Pstr;
+    REAL cwater             = (1.0*1e-9)*Pstr;
     REAL oildensity         = 1000.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (0.0*1e-7)*Pstr;
+    REAL coil               = (1.0*1e-9)*Pstr;
     REAL gasdensity         = 0.0/Rhostr;
     REAL gasviscosity       = 0.0/Mustr;
     REAL cgas               = (0.0)*Pstr;

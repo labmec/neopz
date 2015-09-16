@@ -16,6 +16,7 @@
 
 #include "pzl2projection.h"
 #include "pzgradientreconstruction.h"
+#include "pzbfilestream.h"
 
 
 class TPZCompMesh;
@@ -90,16 +91,21 @@ public:
     void Assemble();
     
     /**
-     * Assemble last step residuum
+     * Assemble last step residuus
      **/
     void AssembleLastStep(TPZAnalysis *an);
     
     
     
     /**
-     * Assemble the Residuum
+     * Assemble the Jacobian and Residuus
      */
     void AssembleNextStep(TPZAnalysis *an);
+    
+    /**
+     * Assemble the Residuus
+     */
+    void AssembleResNextStep(TPZAnalysis *an);
     
     /**
      * Computes the residuum. Used for checkconv
