@@ -1,0 +1,224 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Fast information transfer between meshes through sparse matrix multiply
+\end_layout
+
+\begin_layout Author
+Philippe Devloo
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+When working with multiphysics problems, the numerical analyst is confronted
+ with the dilemna of whether to solve the numerical problem totally coupled
+ or implement an iterative scheme where the solution of one part of the
+ system becomes input of other parts configuring as such a low order iterative
+ method.
+\end_layout
+
+\begin_layout Standard
+As an example problem, a model of multi phase flow is presented with geomechanic
+ coupling.
+ In this system of equations three fenomena are coupled: the flow through
+ porous media, the transport of the fases and the deformation of the elastic
+ rock.
+ The flow through porous media is simulated using mixed finite elements
+ coupling the flux and pressure approximations.
+ The flux quantity is approximated using an HDiv conforming space and the
+ pressure quantity using an elementwise discontinuous space.
+ The fases are modeled by a saturation variable.
+ The saturations are modeled by a piecewise constant approximation space.
+ The elastic deformation of the porous matrix and surounding geomechanical
+ rock formation is modeled by continuous finite elements.
+\end_layout
+
+\begin_layout Standard
+Although it is feasable to transfer the information between the different
+ approximation spaces through interpolation of the variables on the different
+ approximation spaces, such an approach will not be numerically efficient:
+ too much data (e.g.
+ shape functions, solutions, coordinate transformations) has to be recomputed
+ at each solution transfer.
+\end_layout
+
+\begin_layout Standard
+The information which needs to be transferred from one mesh to the other
+ is linear and can be represented by a matrix vector multiplication.
+ But even this straightforward approach can be optimized by a sequence of
+ gather scatter operations.
+ It is the objective of this paper to describe the systematics of an efficient
+ information flow that models the transfer of the information of one mesh
+ to another.
+\end_layout
+
+\begin_layout Section
+The basics of a finite element computation
+\end_layout
+
+\begin_layout Standard
+In this section we demonstrate that the residual of a nonlinear finite element
+ computations can be configured as a sequence of a sparse matrix vector
+ multiply followed by 
+\emph on
+some
+\emph default
+ nonlinear computation and another sparse matrix multiplication.
+ This approach may accelerate the residual computation, at the cost of the
+ use of more computer memory.
+\end_layout
+
+\begin_layout Standard
+Assume that the form of the differential equation is
+\begin_inset Formula 
+\begin{eqnarray}
+-div(K(u)\nabla u) & = & f\;\; x\in\Omega\label{eq:strong}\\
+-K(u)\nabla u.n & = & g(s)\;\; s\in\partial\Omega_{N}\nonumber \\
+u(s) & = & u_{D}(s)\;\; s\in\partial\Omega_{D}\nonumber 
+\end{eqnarray}
+
+\end_inset
+
+where 
+\begin_inset Formula $K(u)$
+\end_inset
+
+ is a tensor which depends on the value of the solution.
+ The weak formulation of the equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:strong"
+
+\end_inset
+
+ can be written as: find 
+\begin_inset Formula $u\in V(\Omega)\subset H(\Omega)$
+\end_inset
+
+ such that 
+\begin_inset Formula 
+\[
+\int_{\Omega}\nabla\phi_{i}K(u)\nabla ud\Omega=\int_{\Omega}\phi_{i}fd\Omega\;\;\forall\phi_{i}\in V(\Omega)
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $u$
+\end_inset
+
+ can be written as
+\begin_inset Formula 
+\[
+u=\Sigma_{j}\alpha_{j}\phi_{i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The weak statement applied to a finite element discretization results in
+ the computation of element stiffness matrices and right hand sides of the
+ form
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+K_{ij}^{e} & = & \int_{\Omega_{e}}\nabla\phi_{i}\cdot K(u)\nabla\phi_{j}d\Omega\\
+F_{i}^{e} & = & \int_{\Omega_{e}}\phi_{i}fd\Omega
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+which is in turn transformed into a sum of contributions computed in integration
+ points
+\begin_inset Formula 
+\[
+K_{ij}^{e}=\sum_{l=0}^{l<np}\nabla\phi_{i}(\xi_{l})\cdot K(u(x(\xi_{l})))\nabla\phi_{j}(\xi_{l})|J(\xi_{l})|W_{l}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
