@@ -46,10 +46,13 @@
 TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel)
 {
     
+    fmeshvecini.Resize(4);
     fmeshvec.Resize(4);
     
     fgmesh=NULL;
+    fcmeshinitialdarcy=NULL;
     fcmeshdarcy=NULL;
+    fcmesh = NULL;
     
     // Vector which will store tha residuum in the last state (n)
     fResidualAtn.Resize(0, 0);
@@ -97,21 +100,83 @@ void TPZDarcyAnalysis::Assemble()
     
 }
 
+/**
+ * Push the initial cmesh
+ */
+void TPZDarcyAnalysis::PushInitialCmesh(){
+    fcmesh = NULL;
+    fcmesh = fcmeshinitialdarcy;
+    
+}
+
+/**
+ * Push the current cmesh
+ */
+void TPZDarcyAnalysis::PushCmesh(){
+   fcmesh = NULL;
+   fcmesh = fcmeshdarcy;
+    
+}
+
 void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
 {
-    fcmeshdarcy->LoadSolution(falphaAtn);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+    fcmesh->LoadSolution(falphaAtn);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmesh);
     SetLastState();
     an->AssembleResidual();
     fResidualAtn = an->Rhs();
    
+//#ifdef DEBUG
+//   #ifdef LOG4CXX
+//       if(logger->isDebugEnabled())
+//       {
+//           std::stringstream sout;
+//           falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
+//           fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
+//           LOGPZ_DEBUG(logger,sout.str())
+//       }
+//   #endif
+//#endif
+  
+}
+
+void TPZDarcyAnalysis::AssembleResNextStep(TPZAnalysis *an)
+{
+    fcmesh->LoadSolution(falphaAtnplusOne);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmesh);
+    SetNextState();
+    an->Assemble();
+    fResidualAtnplusOne = an->Rhs();
+    
+//#ifdef DEBUG
+//  #ifdef LOG4CXX
+//      if(logger->isDebugEnabled())
+//      {
+//          std::stringstream sout;
+//          falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
+//          fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
+//          LOGPZ_DEBUG(logger,sout.str())
+//      }
+//  #endif
+//#endif
+  
+}
+
+void TPZDarcyAnalysis::AssembleNextStep(TPZAnalysis *an)
+{
+    fcmesh->LoadSolution(falphaAtnplusOne);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmesh);
+    SetNextState();
+    an->Assemble();
+    fResidualAtnplusOne = an->Rhs();
+    
 // #ifdef DEBUG
 //     #ifdef LOG4CXX
 //         if(logger->isDebugEnabled())
 //         {
 //             std::stringstream sout;
-//             falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
-//             fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
+//             falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
+//             fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
 //             LOGPZ_DEBUG(logger,sout.str())
 //         }
 //     #endif
@@ -119,66 +184,10 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
     
 }
 
-void TPZDarcyAnalysis::AssembleResNextStep(TPZAnalysis *an)
-{
-    fcmeshdarcy->LoadSolution(falphaAtnplusOne);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
-    SetNextState();
-    an->Assemble();
-    fResidualAtnplusOne = an->Rhs();
-    
-//#ifdef DEBUG
-//#ifdef LOG4CXX
-//    if(logger->isDebugEnabled())
-//    {
-//        std::stringstream sout;
-//        falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
-//        fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
-//        LOGPZ_DEBUG(logger,sout.str())
-//    }
-//#endif
-//#endif
-    
-}
-
-void TPZDarcyAnalysis::AssembleNextStep(TPZAnalysis *an)
-{
-    fcmeshdarcy->LoadSolution(falphaAtnplusOne);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
-    SetNextState();
-    an->Assemble();
-    fResidualAtnplusOne = an->Rhs();
-    
- #ifdef DEBUG
-     #ifdef LOG4CXX
-         if(logger->isDebugEnabled())
-         {
-             std::stringstream sout;
-             falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
-             fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
-             LOGPZ_DEBUG(logger,sout.str())
-         }
-     #endif
- #endif
-    
-}
-
 void TPZDarcyAnalysis::UpDateAlphaVec(TPZFMatrix<REAL> &alpha)
 {
     falphaAtn = alpha;
     falphaAtnplusOne = alpha;
-    
-    // #ifdef DEBUG
-    //     #ifdef LOG4CXX
-    //         if(logger->isDebugEnabled())
-    //         {
-    //             std::stringstream sout;
-    //             falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
-    //             falphaAtnplusOne.Print("falphaAtnplusOne = ", sout,EMathematicaInput);
-    //             LOGPZ_DEBUG(logger,sout.str())
-    //         }
-    //     #endif
-    // #endif
     
 }
 
@@ -197,34 +206,49 @@ void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &
 void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 {
 
-    TPZFMatrix<REAL> Qini(fmeshvec[0]->Solution().Rows(),1,0.0);
-    fmeshvec[0]->LoadSolution(Qini);
-    
-    TPZFMatrix<REAL> Pini(fmeshvec[1]->Solution().Rows(),1,0.0);
-    fmeshvec[1]->LoadSolution(Pini);
     
     TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
     TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
     TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
     SolveProjection(L2Analysis,L2Sw);
     
-    
     fmeshvec[2]->LoadSolution(L2Analysis->Solution());
     TPZFMatrix<REAL> Soini = L2Analysis->Solution();
     int SoDOF = Soini.Rows();
-    
     for (int iso = 0; iso < SoDOF; iso++)
     {
         Soini(iso,0) = 1.0 - Soini(iso,0);
     }
     
     fmeshvec[3]->LoadSolution(Soini);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshinitialdarcy);
     
+    falphaAtn = fcmeshinitialdarcy->Solution();
+    falphaAtnplusOne = fcmeshinitialdarcy->Solution();
     
+    REAL TimeStep = fSimulationData->GetDeltaT();
+    REAL BigTimeStep = 1.0;
+    fSimulationData->SetDeltaT(BigTimeStep);
+    this->AssembleLastStep(an);
+    this->AssembleNextStep(an);
+    const clock_t tinia = clock();
+    NewtonIterations(an);
+    const clock_t tenda = clock();
+    const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
+    std::cout << "Time for Newton: " << timea << std::endl;
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshinitialdarcy);
+    
+    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, fcmeshdarcy);
+    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshdarcy);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
+    
+    fcmeshdarcy->LoadSolution(fcmeshinitialdarcy->Solution());
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
+    
+    fSimulationData->SetDeltaT(TimeStep);
     falphaAtn = fcmeshdarcy->Solution();
     falphaAtnplusOne = fcmeshdarcy->Solution();
-
+    
 }
 
 void TPZDarcyAnalysis::Run()
@@ -290,25 +314,38 @@ void TPZDarcyAnalysis::Run()
     CreateMultiphysicsMesh(q,p,s);
     CreateInterfaces();
     
-//#ifdef DEBUG
-//    std::ofstream out2("../BeforeComputationaMeshMultiphysics.txt");
-//    fcmeshdarcy->Print(out2);
-//#endif
-    
     if(fSimulationData->GetSC())
     {
         this->ApplyStaticCondensation();
     }
 
-//#ifdef DEBUG
-//    std::ofstream out("../ComputationaMeshMultiphysics.txt");
-//    fcmeshdarcy->Print(out);
-//#endif
+    // Analysis
+    
+    TPZAnalysis * Initialan = CreateAnalysis(fcmeshinitialdarcy);
+    this->PushInitialCmesh();
+    this->PrintCmesh();
+    this->InitializeSolution(Initialan);
+    delete Initialan;
+    
+    TPZAnalysis * an = CreateAnalysis(fcmeshdarcy);
+    this->PushCmesh();
+    this->PrintCmesh();    
+//    this->CheckGlobalJacobian(an);
+//    this->CheckGlobalConvergence(an);
+    this->TimeForward(an);
 
     
-    // Analysis
+}
+
+TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
+
+    if (!cmesh) {
+        std::cout << "NUll computational mesh " << std::endl;
+        DebugStop();
+    }
+    
     bool mustOptimizeBandwidth = fSimulationData->GetOptband();
-    TPZAnalysis *an = new TPZAnalysis(fcmeshdarcy,mustOptimizeBandwidth);
+    TPZAnalysis *an = new TPZAnalysis(cmesh,mustOptimizeBandwidth);
     int numofThreads = 0;
     
     bool IsDirecSolver = fSimulationData->GetIsDirect();
@@ -316,19 +353,19 @@ void TPZDarcyAnalysis::Run()
     if (IsDirecSolver) {
         
         if (fSimulationData->GetIsBroyden()) {
-            TPZFStructMatrix fullMatrix(fcmeshdarcy);
+            TPZFStructMatrix fullMatrix(cmesh);
             TPZStepSolver<STATE> step;
             fullMatrix.SetNumThreads(numofThreads);
-            step.SetDirect(ELU);
+            step.SetDirect(ELDLt);
             an->SetStructuralMatrix(fullMatrix);
             an->SetSolver(step);
         }
         else{
             
-            TPZSkylineNSymStructMatrix skylnsym(fcmeshdarcy);
+            TPZSkylineNSymStructMatrix skylnsym(cmesh);
             TPZStepSolver<STATE> step;
             skylnsym.SetNumThreads(numofThreads);
-            step.SetDirect(ELU);
+            step.SetDirect(ELDLt);
             an->SetStructuralMatrix(skylnsym);
             an->SetSolver(step);
         }
@@ -337,7 +374,7 @@ void TPZDarcyAnalysis::Run()
     else
     {
         if (fSimulationData->GetIsBroyden()) {
-            TPZFStructMatrix fullMatrix(fcmeshdarcy);
+            TPZFStructMatrix fullMatrix(cmesh);
             fullMatrix.SetNumThreads(numofThreads);
             
             TPZAutoPointer<TPZMatrix<STATE> > fullMatrixa = fullMatrix.Create();
@@ -346,7 +383,7 @@ void TPZDarcyAnalysis::Run()
             TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(fullMatrixaClone);
             TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(fullMatrixa);
             TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(fullMatrixa);
-            stepre->SetDirect(ELU);
+            stepre->SetDirect(ELDLt);
             stepre->SetReferenceMatrix(fullMatrixa);
             stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
             stepGC->SetCG(10, *stepre, 1.0e-10, 0);
@@ -360,7 +397,7 @@ void TPZDarcyAnalysis::Run()
         }
         else{
             
-            TPZSkylineNSymStructMatrix skylnsym(fcmeshdarcy);
+            TPZSkylineNSymStructMatrix skylnsym(cmesh);
             skylnsym.SetNumThreads(numofThreads);
             
             TPZAutoPointer<TPZMatrix<STATE> > skylnsyma = skylnsym.Create();
@@ -370,7 +407,7 @@ void TPZDarcyAnalysis::Run()
             TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(skylnsyma);
             TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(skylnsyma);
             
-            stepre->SetDirect(ELU);
+            stepre->SetDirect(ELDLt);
             stepre->SetReferenceMatrix(skylnsyma);
             stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
             stepGC->SetCG(10, *stepre, 1.0e-10, 0);
@@ -383,25 +420,38 @@ void TPZDarcyAnalysis::Run()
         }
         
     }
-
-
-//    this->CheckGlobalJacobian(an);
-//    this->CheckGlobalConvergence(an);
-//    
-    this->InitializeSolution(an);
-    this->TimeForward(an);
-
+    
+    return an;
     
 }
-
 
 void TPZDarcyAnalysis::CreateInterfaces()
 {
     fgmesh->ResetReference();
-    fcmeshdarcy->LoadReferences();
+    fcmeshinitialdarcy->LoadReferences();
     
     // Creation of interface elements
     int nel = fcmeshdarcy->ElementVec().NElements();
+    for(int el = 0; el < nel; el++)
+    {
+        TPZCompEl * compEl = fcmeshinitialdarcy->ElementVec()[el];
+        if(!compEl) continue;
+        TPZGeoEl * gel = compEl->Reference();
+        if(!gel) {continue;}
+        if(gel->HasSubElement()) {continue;}
+        int index = compEl ->Index();
+        if(compEl->Dimension() == fcmeshinitialdarcy->Dimension())
+        {
+            TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(fcmeshinitialdarcy->ElementVec()[index]);
+            if(!InterpEl) continue;
+            InterpEl->CreateInterfaces();
+        }
+    }
+    
+    fgmesh->ResetReference();
+    fcmeshdarcy->LoadReferences();
+    
+    // Creation of interface elements
     for(int el = 0; el < nel; el++)
     {
         TPZCompEl * compEl = fcmeshdarcy->ElementVec()[el];
@@ -417,6 +467,7 @@ void TPZDarcyAnalysis::CreateInterfaces()
             InterpEl->CreateInterfaces();
         }
     }
+    
 }
 
 
@@ -440,16 +491,34 @@ void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
     
 }
 
+void TPZDarcyAnalysis::PrintCmesh(){
+    
+    
+#ifdef DEBUG
+    #ifdef LOG4CXX
+    
+    std::ofstream out("ComputationalMesh.txt");
+    fcmesh->Print(out);
+    
+    #endif
+#endif
+    
+}
+
 void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
 {
     fmeshvec[0] = CmeshFlux(q);
     fmeshvec[1] = CmeshPressure(p);
     fmeshvec[2] = CmeshSw(s);
     fmeshvec[3] = CmeshSo(s);
-    
+
+    fcmeshinitialdarcy = CmeshMixedInitial();
     fcmeshdarcy = CmeshMixed();
     
-    // Transferindo para a multifisica
+    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, fcmeshinitialdarcy);
+    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshinitialdarcy);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshinitialdarcy);
+    
     TPZBuildMultiphysicsMesh::AddElements(fmeshvec, fcmeshdarcy);
     TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshdarcy);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
@@ -477,44 +546,25 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
 //    }
     
 //    TPZFMatrix<REAL> TrueSolution = fcmeshdarcy->Solution();
-//    TrueSolution(0,0) = -0.5 ;
-//    TrueSolution(1,0) = -0.5 ;
-//    TrueSolution(2,0) = 0.5;
-//    TrueSolution(3,0) = 0.5;
-//    
-////    TrueSolution(12,0) = 10.29367992;//10.29367992;
+//  TrueSolution *=0.0;
+////    TrueSolution(0,0) = -0.5 ;
+////    TrueSolution(1,0) = -0.5 ;
+////    TrueSolution(2,0) = 0.5;
+////    TrueSolution(3,0) = 0.5;
+//  
+////    TrueSolution(12,0) = 0.1;//10.29367992;
 ////    TrueSolution(13,0) = 0.1;
 ////    
 ////    TrueSolution(14,0) = 0.1;
-////    TrueSolution(15,0) = 10.29367992;//10.29367992;
-//    
-//    TrueSolution(16,0) = 0.0;
-//    TrueSolution(17,0) = 1.0;
+////    TrueSolution(15,0) = 0.1;//10.29367992;
+////  
+////    TrueSolution(16,0) = 1.0;
+////    TrueSolution(17,0) = 0.0;
 //    
 //    falphaAtn= TrueSolution;
 //    falphaAtnplusOne= TrueSolution;
 //
-//    
-////    X =
-////    {
-////        {      -0.50000000 },
-////        {      -0.50000000 },
-////        {       0.50000000 },
-////        {       0.50000000 },
-////        {       0.00000000 },
-////        {      -0.00000000 },
-////        {       0.00000000 },
-////        {      -0.00000000 },
-////        {       0.00000000 },
-////        {       0.00000000 },
-////        {      -0.00000000 },
-////        {       0.00000000 },
-////        {      10.29367992 },
-////        {       0.10000000 },
-////        {       0.10000000 },
-////        {      10.29367992 },
-////        {       1.00000000 },
-////        {       0.00000000 } };
+//
     
     if (fSimulationData->GetGR())
     {
@@ -527,7 +577,6 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     
     this->fSimulationData->SetTime(tk);
     this->PostProcessVTK(an);
-    
     
     for (int istep = 1 ; istep <=  nsteps; istep++) {
         tk = istep*this->fSimulationData->GetDeltaT();
@@ -628,7 +677,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     an->Rhs() = Residual;
     an->Rhs() *= -1.0;
     
-    this->PrintLS(an);
+//    this->PrintLS(an);
         
     an->Solve();
     
@@ -667,7 +716,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
            {
                std::stringstream sout;
                Residual.Print("Residual = ", sout,EMathematicaInput);
-               DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+//               DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
                X.Print("X = ", sout,EMathematicaInput);
                LOGPZ_DEBUG(logger,sout.str())
            }
@@ -904,11 +953,93 @@ TPZFMatrix<STATE>  TPZDarcyAnalysis::TensorProduct(TPZFMatrix<STATE> &g, TPZFMat
     
 }
 
+TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
+{
+    TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
+    
+    // Malha computacional
+    TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
+    
+    int dim = 2;
+    int ilayer = 0;
+    int RockId = fLayers[ilayer]->GetMatIDs()[0];
+    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
+    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
+    int topId = fLayers[ilayer]->GetMatIDs()[3];
+    int leftId = fLayers[ilayer]->GetMatIDs()[4];
+    
+    
+    
+    // Material medio poroso
+    TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
+    mat->SetSimulationData(fSimulationData);
+    mat->SetReservoirData(fLayers[ilayer]);
+    mat->SetPetroPhysicsData(fRockPetroPhysic[ilayer]);
+    mat->SetFluidModelData(fFluidData);
+    cmesh->InsertMaterialObject(mat);
+    
+    
+    // Rigth hand side function
+    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
+    TPZAutoPointer<TPZFunction<STATE> > forcef;
+    dum->SetPolynomialOrder(0);
+    forcef = dum;
+    mat->SetForcingFunction(forcef);
+    
+    // Setting up linear tracer solution
+    //  TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
+    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+    TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
+    mat->SetTimeDependentFunctionExact(fLTracer);
+    
+    TPZManVector<REAL,4> Bottom     = fSimulationData->GetBottomBCini();
+    TPZManVector<REAL,4> Right      = fSimulationData->GetRightBCini();
+    TPZManVector<REAL,4> Top        = fSimulationData->GetTopBCini();
+    TPZManVector<REAL,4> Left       = fSimulationData->GetLeftBCini();
+    
+    
+    // Bc Bottom
+    val2(0,0) = Bottom[1];
+    val2(1,0) = Bottom[2];
+    val2(2,0) = Bottom[3];
+    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, int(Bottom[0]), val1, val2);
+    
+    // Bc Right
+    val2(0,0) = Right[1];
+    val2(1,0) = Right[2];
+    val2(2,0) = Right[3];
+    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, int(Right[0]), val1, val2);
+    
+    // Bc Top
+    val2(0,0) = Top[1];
+    val2(1,0) = Top[2];
+    val2(2,0) = Top[3];
+    TPZBndCond * bcTop = mat->CreateBC(mat, topId, int(Top[0]), val1, val2);
+    
+    // Bc Left
+    val2(0,0) = Left[1];
+    val2(1,0) = Left[2];
+    val2(2,0) = Left[3];
+    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, int(Left[0]), val1, val2);
+    
+    cmesh->InsertMaterialObject(bcBottom);
+    cmesh->InsertMaterialObject(bcRight);
+    cmesh->InsertMaterialObject(bcTop);
+    cmesh->InsertMaterialObject(bcLeft);
+    
+    cmesh->SetDimModel(dim);
+    cmesh->SetAllCreateFunctionsMultiphysicElem();
+    
+    cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    
+    return cmesh;
+}
+
 TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
 {
-    
-    int typeFluxin = 1, typePressurein = 0;
-    int typeFluxout = 3, typePressureout = 2;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
     // Malha computacional
@@ -1155,7 +1286,6 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
 TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
 {
     
-    const int typeFlux = 0, typePressure = 1;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
     // Malha computacional
@@ -2110,7 +2240,7 @@ void TPZDarcyAnalysis::InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STA
     REAL y = pt[1];
     
     disp.resize(1);
-    disp[0] = 1.0;
+    disp[0] = 0.0;
     
 //     if (y >=  50.0 ) {
 //         disp[0] = 0.0;

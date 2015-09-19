@@ -59,10 +59,19 @@ private:
     
       
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
+    TPZManVector<TPZCompMesh * , 4> fmeshvecini;
+    
+    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 4> fmeshvec;
+
+    /** @brief Cmesh for Initial Darcy analysis */
+    TPZCompMesh * fcmeshinitialdarcy;
     
     /** @brief Cmesh for Darcy analysis */
     TPZCompMesh * fcmeshdarcy;
+    
+    /** @brief cmesh */
+    TPZCompMesh * fcmesh;
     
     /** @brief unknowns for n time step */
     TPZFMatrix<REAL> falphaAtn;
@@ -94,8 +103,6 @@ public:
      * Assemble last step residuus
      **/
     void AssembleLastStep(TPZAnalysis *an);
-    
-    
     
     /**
      * Assemble the Jacobian and Residuus
@@ -218,7 +225,32 @@ public:
     /**
      * Create the computational mixed mesh
      */
+    TPZCompMesh * CmeshMixedInitial();
+    
+    /**
+     * Create the computational mixed mesh
+     */
     TPZCompMesh * CmeshMixed();
+    
+    /**
+     * Create an analysis based on a given cmesh
+     */
+    TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh);
+    
+    /**
+     * Push the initial cmesh
+     */
+    void PushInitialCmesh();
+
+    /**
+     * Push the current cmesh
+     */
+    void PushCmesh();
+    
+    /**
+     * Print the Cmesh object
+     */
+    void PrintCmesh();
     
     /**
      * Create the computational continuous mesh

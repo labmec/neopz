@@ -75,6 +75,18 @@ SimulationData::SimulationData()
     fnStep = true;
     
     /** @brief Definition of the Top bc */
+    fTopBCini.Resize(4,0.0);
+    
+    /** @brief Definition of the Bottom bc */
+    fBottomBCini.Resize(4,0.0);
+    
+    /** @brief Definition of the Right bc */
+    fRightBCini.Resize(4,0.0);
+    
+    /** @brief Definition of the Left bc */
+    fLeftBCini.Resize(4,0.0);
+  
+    /** @brief Definition of the Top bc */
     fTopBC.Resize(4,0.0);
     
     /** @brief Definition of the Bottom bc */
@@ -85,7 +97,7 @@ SimulationData::SimulationData()
     
     /** @brief Definition of the Left bc */
     fLeftBC.Resize(4,0.0);
-    
+  
     /** @brief Gravity */
     fGravity.Resize(2,1);
 //    fGravity.Zero();

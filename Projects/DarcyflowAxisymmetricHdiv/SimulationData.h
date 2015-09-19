@@ -113,6 +113,18 @@ private:
     REAL fLengthElementy;
     
     /** @brief Definition of the Top bc */
+    TPZVec<REAL> fTopBCini;
+    
+    /** @brief Definition of the Bottom bc */
+    TPZVec<REAL> fBottomBCini;
+    
+    /** @brief Definition of the Right bc */
+    TPZVec<REAL> fRightBCini;
+    
+    /** @brief Definition of the Left bc */
+    TPZVec<REAL> fLeftBCini;
+  
+    /** @brief Definition of the Top bc */
     TPZVec<REAL> fTopBC;
     
     /** @brief Definition of the Bottom bc */
@@ -123,7 +135,7 @@ private:
     
     /** @brief Definition of the Left bc */
     TPZVec<REAL> fLeftBC;
-    
+  
      /** @brief Gravity  */
     TPZFMatrix<REAL> fGravity;
     
@@ -274,53 +286,69 @@ public:
     bool GetIsDimensionless() {return fIsDimensionless;}
     
     /** @brief Set Top bc */
-    void SetTopBC(TPZVec<REAL> topbc){
+    void SetTopBC(TPZVec<REAL> topbcini,TPZVec<REAL> topbc){
         
-        if (topbc.size() != 4) {
+        if (topbc.size() != 4 && topbcini.size() != 4) {
             std::cout << "The number of parameter must to be equal 4, you give me = " << topbc.size() << std::endl;
             DebugStop();
         }
+        fTopBCini = topbcini;
         fTopBC = topbc;
     }
+    
+    /** @brief Get Top bc for initial conditions */
+    TPZVec<REAL> GetTopBCini(){return fTopBCini;}
     
     /** @brief Get Top bc */
     TPZVec<REAL> GetTopBC(){return fTopBC;}
     
     /** @brief Set Top bc */
-    void SetBottomBC(TPZVec<REAL> bottombc){
+    void SetBottomBC(TPZVec<REAL> bottombcini, TPZVec<REAL> bottombc){
 
-        if (bottombc.size() != 4) {
+        if (bottombc.size() != 4 && bottombcini.size() != 4) {
             std::cout << "The number of parameter must to be equal 4, you give me = " << bottombc.size() << std::endl;
             DebugStop();
         }
+        fBottomBCini = bottombcini;
         fBottomBC = bottombc;
     }
     
     /** @brief Get Top bc */
+    TPZVec<REAL> GetBottomBCini(){return fBottomBCini;}
+
+    /** @brief Get Top bc */
     TPZVec<REAL> GetBottomBC(){return fBottomBC;}
     
     /** @brief Set Top bc */
-    void SetRightBC(TPZVec<REAL> rightbc){
+    void SetRightBC(TPZVec<REAL> rightbcini, TPZVec<REAL> rightbc){
         
-        if (rightbc.size() != 4) {
+        if (rightbc.size() != 4 && rightbcini.size() != 4 ) {
             std::cout << "The number of parameter must to be equal 4, you give me = " << rightbc.size() << std::endl;
             DebugStop();
         }
+        fRightBCini = rightbcini;
         fRightBC = rightbc;
     }
+    
+    /** @brief Get Top bc */
+    TPZVec<REAL> GetRightBCini(){return fRightBCini;}
     
     /** @brief Get Top bc */
     TPZVec<REAL> GetRightBC(){return fRightBC;}
     
     /** @brief Set Top bc */
-    void SetLeftBC(TPZVec<REAL> leftbc){
+    void SetLeftBC(TPZVec<REAL> leftbcini, TPZVec<REAL> leftbc){
         
-        if (leftbc.size() != 4) {
+        if (leftbc.size() != 4 && leftbcini.size() != 4) {
             std::cout << "The number of parameter must to be equal 4, you give me = " << leftbc.size() << std::endl;
             DebugStop();
         }
+        fLeftBCini = leftbcini;
         fLeftBC = leftbc;
     }
+    
+    /** @brief Get Top bc */
+    TPZVec<REAL> GetLeftBCini(){return fLeftBCini;}
     
     /** @brief Get Top bc */
     TPZVec<REAL> GetLeftBC(){return fLeftBC;}
