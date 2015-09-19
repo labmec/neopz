@@ -603,8 +603,8 @@ void TPZGenGrid::ElementConnectivityZigZag(long i, TPZVec<long> &rectangle_nodes
     {
         rectangle_nodes.resize(3);
         rectangle_nodes[0] = GlobalI(0,yel,layer);
-        rectangle_nodes[1] = GlobalI(0+1,yel+1,layer);
-        rectangle_nodes[2] = GlobalI(0,yel+1,layer);
+        rectangle_nodes[2] = GlobalI(0+1,yel+1,layer);
+        rectangle_nodes[1] = GlobalI(0,yel+1,layer);
         std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
     }
     else if (xel == fNx[0] && yel%2 == 0)
