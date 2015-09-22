@@ -211,13 +211,294 @@ F_{i}^{e} & = & \int_{\Omega_{e}}\phi_{i}fd\Omega
 which is in turn transformed into a sum of contributions computed in integration
  points
 \begin_inset Formula 
+\begin{eqnarray*}
+K_{ij}^{e} & = & \sum_{l=0}^{l<np}\nabla\phi_{i}(\xi_{l})\cdot K(u(x(\xi_{l})))\nabla\phi_{j}(\xi_{l})|J(\xi_{l})|W_{l}\\
+F_{i}^{e} & = & \sum_{l=0}^{l<np}\phi_{i}(\xi_{l})f(x(\xi_{i}))|J(\xi_{i})|W_{i}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When solving nonlinear problems the residual of the weak statement needs
+ to be computed frequently
+\begin_inset Formula 
 \[
-K_{ij}^{e}=\sum_{l=0}^{l<np}\nabla\phi_{i}(\xi_{l})\cdot K(u(x(\xi_{l})))\nabla\phi_{j}(\xi_{l})|J(\xi_{l})|W_{l}
+R_{i}^{e}=\sum_{l=0}^{l<np}\left(\phi_{i}(\xi_{l})f(x(\xi_{i}))-\nabla\phi_{i}(\xi_{l})K(u(x(\xi_{l}))\nabla u(x(\xi_{l}))\right)|J(\xi_{i})|W_{i}
 \]
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Computing the quantities of interest at the integration points
+\end_layout
+
+\begin_layout Standard
+As seen in the previous section, the quantities of interest which varie
+ from one iteration to another are the values of 
+\begin_inset Formula $u$
+\end_inset
+
+ and 
+\begin_inset Formula $\nabla u$
+\end_inset
+
+ computed at the integration points.
+ These quantities depend linearly on the multiplying coeficients 
+\begin_inset Formula $\alpha_{i}$
+\end_inset
+
+ of the finite element approximation and can therefore be represented by
+ a linear transformation.
+\end_layout
+
+\begin_layout Standard
+Assume that all integration points have a unique indexation such that
+\begin_inset Formula 
+\[
+\xi_{L}=\xi_{l}^{e}
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $\xi_{l}^{e}$
+\end_inset
+
+ represents the lth integration point of element 
+\emph on
+e
+\emph default
+.
+ Define the vector 
+\begin_inset Formula $u_{L}$
+\end_inset
+
+ and 
+\begin_inset Formula $\nabla u_{L}$
+\end_inset
+
+ as the vector of values 
+\begin_inset Formula $u$
+\end_inset
+
+ computed at the integration points 
+\begin_inset Formula $\xi_{L}$
+\end_inset
+
+.
+ The values of 
+\begin_inset Formula $u_{L}$
+\end_inset
+
+ and 
+\begin_inset Formula $\nabla u_{L}$
+\end_inset
+
+ can be computed as
+\begin_inset Formula 
+\begin{eqnarray*}
+u_{L} & = & M_{u}\alpha\\
+\nabla u_{L} & = & M_{\nabla u}\alpha
+\end{eqnarray*}
+
+\end_inset
+
+where 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ represents the vector of multiplying coeficients which define the finite
+ element approximation.
+ The elements of 
+\begin_inset Formula $M_{u}$
+\end_inset
+
+ are composed of the values of the element shapefunctions at the integration
+ point.
+ The elements of 
+\begin_inset Formula $M_{\nabla u}$
+\end_inset
+
+ are composed of the values of the gradients of the shapefunctions computed
+ at the integration points.
+\end_layout
+
+\begin_layout Standard
+Assuming that a vector associated with the integration points is computed
+ with values 
+\begin_inset Formula $f_{L}=f(x(\xi_{L}))|J(x_{L})|W_{L}$
+\end_inset
+
+ then the assembled load vector 
+\begin_inset Formula $F$
+\end_inset
+
+ can be computed as
+\begin_inset Formula 
+\[
+F=M_{u}^{T}f_{L}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Similarly, defining a vector 
+\begin_inset Formula $K_{L}$
+\end_inset
+
+ associated with the values of the conservation law 
+\begin_inset Formula $K_{L}=K(u_{L})\nabla u_{L}|J(x_{L})|W_{L}$
+\end_inset
+
+ where each value at an integration point is a vector, then the matrix vector
+ multiply 
+\begin_inset Formula $K\alpha$
+\end_inset
+
+ can be computed as
+\begin_inset Formula 
+\[
+K\alpha=M_{\nabla u}^{T}\alpha
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The apealing aspect of this approach to finite element computations is that
+ the computation of 
+\begin_inset Formula $u_{L}$
+\end_inset
+
+ and 
+\begin_inset Formula $\nabla u_{L}$
+\end_inset
+
+ are linear operations which potentially are efficiently executed on GPU's.
+ The nonlinear computations are performed on a 
+\emph on
+per point
+\emph default
+ basis and can be massively paralelized.
+ Finally the computation of the residual is also cast in a linear algebra
+ framework and is related to the first operation.
+ The second assembly operation may be much harder to paralelize due to the
+ concurrent write access to memory.
+\end_layout
+
+\begin_layout Section
+Multiphysics computations
+\end_layout
+
+\begin_layout Standard
+Multiphysics computations are defined as approximations of coupled systems
+ of partial differential equations where different state variables are represent
+ed by differing functional spaces.
+ For example, when approximation multiphase flow through porous media with
+ geomechanic coupling, an efficient strategy would envolve using
+\end_layout
+
+\begin_layout Itemize
+An HDiv space 
+\begin_inset Formula $Q$
+\end_inset
+
+ for approximating the global flux
+\end_layout
+
+\begin_layout Itemize
+A discontinuous space for the pressure variable 
+\begin_inset Formula $P$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+A low order discontinuous space for the saturation variables,
+\begin_inset Formula $S$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+A reduced approximation space for the displacement of the porous matrix
+ 
+\begin_inset Formula $U$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Although it is feasable to build a fully coupled system of equations, it
+ is computationally more efficient to solve the variables in groups, iterating
+ back and forth to convergence.
+ In the case of flow through porous media, good convergence results are
+ expected by grouping 
+\begin_inset Formula $Q,P,U$
+\end_inset
+
+ and 
+\begin_inset Formula $S$
+\end_inset
+
+.
+ But this implies that the values of 
+\begin_inset Formula $Q,P$
+\end_inset
+
+ need to be transferred to the integration points of the mesh representing
+ 
+\begin_inset Formula $S$
+\end_inset
+
+ and that the values of 
+\begin_inset Formula $S$
+\end_inset
+
+ need to be transferred to the integration points of the multiphysics mesh
+ involving 
+\begin_inset Formula $Q,P$
+\end_inset
+
+ and 
+\begin_inset Formula $U$
+\end_inset
+
+.
+ The integration points of the 
+\begin_inset Formula $S$
+\end_inset
+
+ mesh are associated with interfaces whereas the integration points associated
+ with 
+\begin_inset Formula $Q,P,U$
+\end_inset
+
+ are associated with the interior of the elements.
+\end_layout
+
+\begin_layout Standard
+The relevant fact of the solution transfer between the different meshes
+ is that the information that is required is linearly dependent on the multiplyi
+ng coeficients.
+ Hence, the information can be transferred by a matrix operation.
+ Interestingly, when integrating the saturation and in order to garantee
+ elementwise conservation, one requires the value of the average flux value
+ instead of the pointwise value.
 \end_layout
 
 \end_body
