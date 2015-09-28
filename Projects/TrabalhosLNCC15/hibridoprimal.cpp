@@ -126,23 +126,24 @@ void AjustarContorno(TPZGeoMesh *gmesh);
 #include "boost/date_time/posix_time/posix_time.hpp"
 #endif
 
-int dim_problema = 2;
+int dim_problema = 3;
 int nbc = dim_problema*2;
-bool fTriang = false;
-bool tetraedro = false;
-
+bool fTriang = true;
 int flevel=3;
 
-bool rodarH1 = true;
-bool rodarSIPGD = false;
+bool rodarH1 = false;
+bool rodarSIPGD = true;
 bool rodarHdiv = false;
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.hibridoprimal"));
+#endif
 
 int main(int argc, char *argv[])
 {
-//        #ifdef LOG4CXX
-//            InitializePZLOG();
-//        #endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     ///Refinamento
     gRefDBase.InitializeUniformRefPattern(EOned);
@@ -174,19 +175,19 @@ int main(int argc, char *argv[])
     TPZCompMesh *cmesh;
     TPZGeoMesh *gmesh;
     
-    int pini = 2;
-    for(int p = pini; p<2; p++)
+    int pini =1;
+    for(int p = pini; p<5; p++)
     {
         
         myerrorfile<<"\nORDEM p = "<<p <<"\n\n";
-        if(dim_problema==0){
+        if(dim_problema==2){
             myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(15)<<"NDoFCond" << setw(19)<< "Assemble"<< setw(20)<<
             "Solve" << setw(20) <<"Ttotal" << setw(18) <<"Error u" << setw(20)<<"Error gradU\n";
         }else{
             myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
             "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" << setw(12) <<"Error u" << setw(16)<<"Error gradU\n";
         }
-        for(int ndiv=1; ndiv<2; ndiv++){
+        for(int ndiv=0; ndiv<5; ndiv++){
             
             
             if(dim_problema==2){
@@ -198,8 +199,8 @@ int main(int argc, char *argv[])
                 
                 
             }else{
-                if(!tetraedro) gmesh = CreateOneCubo(ndiv);
-                if(tetraedro) gmesh = CreateOneCuboWithTetraedrons(ndiv);
+                //gmesh = CreateOneCubo(ndiv);
+                gmesh = CreateOneCuboWithTetraedrons(ndiv);
             }
             
 //            {
@@ -260,9 +261,8 @@ int main(int argc, char *argv[])
             }
             else {//Malha H1
                 cmesh = CMeshH1(gmesh, p, dim_problema, rodarSIPGD);
-                cmesh->CleanUpUnconnectedNodes();
-                cmesh->AdjustBoundaryElements();
                 cmesh->ExpandSolution();
+                cmesh->CleanUpUnconnectedNodes();
 //                {
 //                    std::ofstream out("cmeshH1-1.txt");
 //                    cmesh->Print(out);
@@ -302,12 +302,12 @@ int main(int argc, char *argv[])
             
             
             //Resolver problema
-            TPZAnalysis analysis(cmesh,true);
+            TPZAnalysis analysis(cmesh);
             if(dim_problema==2){
                 
                 TPZSkylineStructMatrix skylstr(cmesh); //caso simetrico
                 //TPZSkylineNSymStructMatrix skylstr(cmesh); //caso nao simetrico
-                //skylstr.SetNumThreads(8);
+                skylstr.SetNumThreads(8);
                 analysis.SetStructuralMatrix(skylstr);
                 
                 long neq = NDoFCond;
@@ -334,15 +334,15 @@ int main(int argc, char *argv[])
                 
             }else{
                 
-//                long neq = NDoFCond;
-//                TPZVec<long> skyline;
-//                cmesh->Skyline(skyline);
-//                TPZSkylMatrix<STATE> matsky(neq,skyline);
-//                nNzeros = matsky.GetNelemts();
+                long neq = NDoFCond;
+                TPZVec<long> skyline;
+                cmesh->Skyline(skyline);
+                TPZSkylMatrix<STATE> matsky(neq,skyline);
+                nNzeros = matsky.GetNelemts();
                 
                 TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(cmesh);
                 strmat.SetDecomposeType(ELDLt);
-                strmat.SetNumThreads(6);
+                strmat.SetNumThreads(8);
                 analysis.SetStructuralMatrix(strmat);
             }
             
@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
             TPZVec<REAL> erros(3);
             analysis.PostProcessError(erros);
             
-            if(dim_problema==0){
+            if(dim_problema==2){
                 //            myerrorfile << ndiv <<  setw(13) << NDoF << setw(15)<< NDoFCond <<"     "<< (t2-t1) << "     "<< (t3-t2) <<"     "<<(t2-t1)+(t3-t2) << setw(18) << erros[1]<< setw(19)<< erros[2]<<std::endl;
             }else{
                 
@@ -780,7 +780,7 @@ TPZGeoMesh *CreateOneCubo(int ndiv)
     
     gmesh->SetDimension(3);
     gmesh->NodeVec().Resize(nnodes);
-    gmesh->SetMaxNodeId(nnodes-1);
+    gmesh->SetMaxNodeId(8);
     
     TPZManVector<REAL,3> coord(3,0.);
     int in = 0;
@@ -938,9 +938,7 @@ TPZGeoMesh *CreateOneCubo(int ndiv)
 
 void GenerateNodes(TPZGeoMesh *gmesh, long nelem)
 {
-    long nnodes = (nelem+1)*(nelem+1)*(nelem+1);
-    gmesh->NodeVec().Resize(nnodes);
-    gmesh->SetMaxNodeId(nnodes-1);
+    gmesh->NodeVec().Resize((nelem+1)*(nelem+1)*(nelem+1));
     for (long i=0; i<=nelem; i++) {
         for (long j=0; j<=nelem; j++) {
             for (long k=0; k<=nelem; k++) {
@@ -1200,7 +1198,7 @@ void SetPOrderRibsHybridMesh(TPZCompMesh *cmesh, int porder){
 
 void Prefinamento(TPZCompMesh * cmesh, int ndiv, int porder){
     if(ndiv<1) return;
-    if(!rodarHdiv && !rodarH1 && !rodarSIPGD) cmesh->Reference()->ResetReference();
+    if(!rodarHdiv && !rodarH1) cmesh->Reference()->ResetReference();
     int nel = cmesh->NElements();
     for(int iel = 0; iel < nel; iel++){
         TPZCompEl *cel = cmesh->ElementVec()[iel];
@@ -1306,7 +1304,7 @@ void ForcingShockProblem(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix
         temp3 = 1. + (r - r0)*(r - r0)*alpha*alpha;
         
         sol = temp1/(temp2*temp3);
-        if(rodarH1 || rodarSIPGD) sol *=-1.;
+        //if(rodarH1) sol *=-1.;
         disp[0] = sol;
     }
     else
@@ -1641,7 +1639,7 @@ void GroupElements(TPZCompMesh *cmesh, int dimproblema)
         if (logger->isDebugEnabled())
         {
             std::stringstream sout;
-            for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
+            for (std::set<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
                 (*it)->Print(sout);
             }
             LOGPZ_DEBUG(logger, sout.str())
@@ -2004,9 +2002,6 @@ TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim, bool rodarSIPGD)
 //            celdisc->SetCenterPoint(1, 0.);
 //            celdisc->SetCenterPoint(2, 0.);
             celdisc->SetFalseUseQsiEta();
-            if (dim_problema==3 && tetraedro) {
-                TPZCompElDisc::SetTotalOrderShape(cmesh);
-            }
             if (dim_problema!=2) continue;
             if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
             {
