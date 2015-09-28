@@ -354,7 +354,7 @@ int main(int argc, char *argv[])
 #ifdef USING_BOOST
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #else
-            REAL t1=0.
+            REAL t1=0.;
 #endif
             analysis.Assemble();
             
