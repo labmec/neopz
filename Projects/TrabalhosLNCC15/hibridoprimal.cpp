@@ -353,16 +353,22 @@ int main(int argc, char *argv[])
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#else
+            REAL t1=0.
 #endif
             analysis.Assemble();
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#else
+            REAL t2 = 0.;
 #endif
             analysis.Solve();
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
+#else
+            REAL t3 = 0.;
 #endif
 
             //REAL t1=0., t2=0., t3=0.;
