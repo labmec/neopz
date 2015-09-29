@@ -52,12 +52,12 @@ void NonlinearTracerDimensionless()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 20;
+    int maxiter     = 15;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
-    bool IsCG       = true;    // false means GMRES
+    bool IsCG       = false;    // false means GMRES
     bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
@@ -70,12 +70,12 @@ void NonlinearTracerDimensionless()
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 1.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
-    REAL maxtime    = 2.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL dt         = 1000000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL maxtime    = 10000000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL t0         = 0.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     
-    REAL TolDeltaX  = 1.0*1e-6;
-    REAL TolRes     = 1.0*1e-6;
+    REAL TolDeltaX  = 1.0*1e-7;
+    REAL TolRes     = 1.0*1e-7;
     
     int  nelemX     =1;
     REAL lengthX    =1000.0/Lstr;
@@ -119,9 +119,9 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> bottombcini(4,0.0);
     bottombcini[0] = 1;
-    bottombcini[1] = 0.0*(1.0*1e6)/(Pstr);
-    bottombcini[2] = 1;
-    bottombcini[3] = 0;
+    bottombcini[1] = 0.0;
+    bottombcini[2] = 0;
+    bottombcini[3] = 1;
     
     TPZVec<REAL> rightbcini(4,0.0);
     rightbcini[0] = 2;
@@ -131,14 +131,14 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> topbcini(4,0.0);
     topbcini[0] = 1;
-    topbcini[1] = 0.0*(1.0*1e6)/(Pstr);
-    topbcini[2] = 1;
-    topbcini[3] = 0;
+    topbcini[1] = 0.0;
+    topbcini[2] = 0;
+    topbcini[3] = 1;
     
     TPZVec<REAL> leftbcini(4,0.0);
-    leftbcini[0] = 1;
-    leftbcini[1] = 0.0;
-    leftbcini[2] = 1;
+    leftbcini[0] = 2;
+    leftbcini[1] = (1.0*1e6)/(Pstr);
+    leftbcini[2] = 0;
     leftbcini[3] = 0;
     
     // BCs
@@ -200,10 +200,10 @@ void NonlinearTracerDimensionless()
     // Reservoir Description linear tracer configuration
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (0.0*1e-7)*Pstr;
+    REAL cwater             = (1.0*1e-7)*Pstr;
     REAL oildensity         = 1000.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (0.0*1e-7)*Pstr;
+    REAL coil               = (1.0*1e-7)*Pstr;
     REAL gasdensity         = 0.0/Rhostr;
     REAL gasviscosity       = 0.0/Mustr;
     REAL cgas               = (0.0)*Pstr;

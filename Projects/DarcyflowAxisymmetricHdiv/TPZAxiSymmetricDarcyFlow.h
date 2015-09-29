@@ -214,6 +214,39 @@ public:
      */
     virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef);
     
+    
+//   Contribute for Darcy system
+    
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ek[out] is the stiffness matrix
+     * @param ef[out] is the load vector
+     * @since April 16, 2007
+     */
+    void ContributeDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
+    /**
+     * It computes a contribution to the load vector at one integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ef[out] is the load vector
+     * @since April 16, 2007
+     */
+    void ContributeDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+    
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ek[out] is the stiffness matrix
+     * @param ef[out] is the load vector
+     * @param bc[in] is the boundary condition material
+     * @since April 16, 2007
+     */
+    void ContributeBCDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
     /**
      * Unique identifier for serialization purposes
      */

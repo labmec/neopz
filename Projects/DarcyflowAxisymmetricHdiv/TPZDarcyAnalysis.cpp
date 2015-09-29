@@ -206,7 +206,6 @@ void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &
 void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 {
 
-    
     TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
     TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
     TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
@@ -227,7 +226,7 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     falphaAtnplusOne = fcmeshinitialdarcy->Solution();
     
     REAL TimeStep = fSimulationData->GetDeltaT();
-    REAL BigTimeStep = 1.0;
+    REAL BigTimeStep = 1000000.0;
     fSimulationData->SetDeltaT(BigTimeStep);
     this->AssembleLastStep(an);
     this->AssembleNextStep(an);
@@ -237,6 +236,8 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
     std::cout << "Time for Newton: " << timea << std::endl;
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshinitialdarcy);
+    
+
     
     TPZBuildMultiphysicsMesh::AddElements(fmeshvec, fcmeshdarcy);
     TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshdarcy);
@@ -356,7 +357,7 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
             TPZFStructMatrix fullMatrix(cmesh);
             TPZStepSolver<STATE> step;
             fullMatrix.SetNumThreads(numofThreads);
-            step.SetDirect(ELDLt);
+            step.SetDirect(ELU);
             an->SetStructuralMatrix(fullMatrix);
             an->SetSolver(step);
         }
@@ -365,7 +366,7 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
             TPZSkylineNSymStructMatrix skylnsym(cmesh);
             TPZStepSolver<STATE> step;
             skylnsym.SetNumThreads(numofThreads);
-            step.SetDirect(ELDLt);
+            step.SetDirect(ELU);
             an->SetStructuralMatrix(skylnsym);
             an->SetSolver(step);
         }
@@ -383,7 +384,7 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
             TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(fullMatrixaClone);
             TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(fullMatrixa);
             TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(fullMatrixa);
-            stepre->SetDirect(ELDLt);
+            stepre->SetDirect(ELU);
             stepre->SetReferenceMatrix(fullMatrixa);
             stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
             stepGC->SetCG(10, *stepre, 1.0e-10, 0);
@@ -407,7 +408,7 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
             TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(skylnsyma);
             TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(skylnsyma);
             
-            stepre->SetDirect(ELDLt);
+            stepre->SetDirect(ELU);
             stepre->SetReferenceMatrix(skylnsyma);
             stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
             stepGC->SetCG(10, *stepre, 1.0e-10, 0);
@@ -677,7 +678,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     an->Rhs() = Residual;
     an->Rhs() *= -1.0;
     
-//    this->PrintLS(an);
+    this->PrintLS(an);
         
     an->Solve();
     
@@ -715,9 +716,9 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
            if(logger->isDebugEnabled())
            {
                std::stringstream sout;
-               Residual.Print("Residual = ", sout,EMathematicaInput);
-//               DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+               DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
                X.Print("X = ", sout,EMathematicaInput);
+               Residual.Print("Residual = ", sout,EMathematicaInput);
                LOGPZ_DEBUG(logger,sout.str())
            }
    #endif
