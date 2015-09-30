@@ -24,6 +24,8 @@ class TRMMemory {
     STATE fPressureN;
     /// Pressure at the last iteration
     STATE fPressureNp1;
+    /// Saturation at the current step
+    STATE fSaturation;
     
 public:
     

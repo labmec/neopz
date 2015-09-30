@@ -1,5 +1,5 @@
 //
-//  TRMPhaseMemory.h
+//  TRMPhaseInterfaceMemory.h
 //  PZ
 //
 //  Created by Philippe Devloo on 7/5/15.
@@ -20,13 +20,12 @@ class TRMPhaseMemory
     // Store the saturation at n step
     // Also it can store the nonlinear part of the flux at n step
     // Store the xyz of the spatial properties
-    /// Flux from left to right at the integration point
-    STATE fNormalFlux;
-    /// Saturation at the left
-    STATE fLeftSaturation;
-    
-    /// Saturation at the right
-    STATE fRightSaturation;
+    /// Pressure at the integration point
+    STATE fPressure;
+    /// Saturation at the previous time step
+    STATE fSaturationN;    
+    /// Saturation at the current time step
+    STATE fSaturationNP1;
 
 public:
 
@@ -34,7 +33,7 @@ public:
 void UpdateSolutionMemory()
 {
     //update saturation and pressure and total flux (un = unp1)
-//    fPressureN = fPressureNp1;
+    fSaturationN = fSaturationNP1;
 }
 
 void Write(TPZStream &buf, int withclassid)
@@ -66,4 +65,4 @@ inline std::ostream &operator<<(std::ostream &out,const TRMPhaseMemory &mem)
 
 
 
-#endif /* defined(__PZ__TRMPhaseMemory__) */
+#endif /* defined(__PZ__TRMPhaseInterfaceMemory__) */
