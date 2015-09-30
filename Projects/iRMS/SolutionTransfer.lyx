@@ -385,7 +385,7 @@ The apealing aspect of this approach to finite element computations is that
 \begin_inset Formula $\nabla u_{L}$
 \end_inset
 
- are linear operations which potentially are efficiently executed on GPU's.
+ are linear operations which potentially are efficiently computed on GPU's.
  The nonlinear computations are performed on a 
 \emph on
 per point
@@ -451,7 +451,7 @@ Although it is feasable to build a fully coupled system of equations, it
 \begin_inset Formula $Q,P,U$
 \end_inset
 
- and 
+ separately from 
 \begin_inset Formula $S$
 \end_inset
 
@@ -489,16 +489,105 @@ Although it is feasable to build a fully coupled system of equations, it
 \end_inset
 
  are associated with the interior of the elements.
+ When integrating the saturation and in order to garantee elementwise conservati
+on, one requires the value of the average flux value instead of the pointwise
+ value.
 \end_layout
 
 \begin_layout Standard
 The relevant fact of the solution transfer between the different meshes
  is that the information that is required is linearly dependent on the multiplyi
 ng coeficients.
- Hence, the information can be transferred by a matrix operation.
- Interestingly, when integrating the saturation and in order to garantee
- elementwise conservation, one requires the value of the average flux value
- instead of the pointwise value.
+ Hence, the information can be transferred by a matrix vector multiplication.
+ 
+\end_layout
+
+\begin_layout Section
+Building the transfer matrix
+\end_layout
+
+\begin_layout Subsection
+From the saturation mesh to the pressure/flux mesh
+\end_layout
+
+\begin_layout Standard
+Assume that the integration points of 
+\begin_inset Formula $Q,P,U$
+\end_inset
+
+ are numbered sequentially and that we want to fill them with the value
+ of the saturation(s).
+ Each integration point corresponds to an element and point defined in master
+ coordinates.
+ For this point, a corresponding point can be identified in the mesh that
+ defines the saturation approximation.
+ 
+\end_layout
+
+\begin_layout Standard
+Denote 
+\begin_inset Formula $i$
+\end_inset
+
+ as the index of the integration point and 
+\begin_inset Formula $j_{\phi_{S}k}$
+\end_inset
+
+ as the position of the 
+\begin_inset Formula $kth$
+\end_inset
+
+ shape function of the corresponding element in saturation space.
+ Let 
+\begin_inset Formula $\phi_{S}^{k}$
+\end_inset
+
+ represent the value of the 
+\begin_inset Formula $kth$
+\end_inset
+
+ shape function.
+ As such the values of the transfer matrix are defined as
+\begin_inset Formula 
+\[
+M_{S,ij_{\phi_{S}k}}=\phi_{S}^{k}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If the saturation is represented by constant values, only one entry of every
+ line will be different form zero.
+\end_layout
+
+\begin_layout Subsection
+From the pressure/flux mesh to the saturation
+\end_layout
+
+\begin_layout Standard
+The transport equation which characterizes the evolution of the saturation
+ involves, after discretization, integrals over the element and integrals
+ over the interfaces between elements.
+\end_layout
+
+\begin_layout Standard
+When transferring the information from the HDiv mesh to the saturation mesh,
+ it is noted that at each integration point, values of the left and right
+ hand pressure are needed.
+ These need to be computed by separate matrices.
+\end_layout
+
+\begin_layout Paragraph*
+Pressure values
+\end_layout
+
+\begin_layout Standard
+The pressure values are obtained by the linear combination of the pressure
+ shape functions multiplied by the corresponding multiplier coeficient of
+ the pressure solution
 \end_layout
 
 \end_body
