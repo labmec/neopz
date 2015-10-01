@@ -12,6 +12,8 @@
 #include "TRMMixedDarcy.h"
 #include "TPZMatLaplacian.h"
 #include "pzbndcond.h"
+#include "TRMPhaseTransport.h"
+#include "TRMPhaseInterfaceTransport.h"
 
 #include "tpzgeoelrefpattern.h"
 #include "TPZRefPatternTools.h"
@@ -348,7 +350,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     
     fMixedFluxPressureCmesh->SetDimModel(dim);
-    fMixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElem();
+    fMixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
     fMixedFluxPressureCmesh->AutoBuild();
     
     TPZManVector<TPZCompMesh * ,2> meshvector(2);
@@ -451,6 +453,32 @@ void TRMSpaceOdissey::CreateH1Cmesh()
 #endif
     
 }
+
+/** @brief Create a computational mesh L2 */
+void TRMSpaceOdissey::CreateTransportMesh()
+{
+    // criamos elementos descontinuos e de interface com memoria...
+    if (fSaturationMesh) {
+        DebugStop();
+    }
+    fSaturationMesh = new TPZCompMesh(fGeoMesh);
+    fSaturationMesh->SetDimModel(3);
+    fSaturationMesh->SetDefaultOrder(0);
+    fSaturationMesh->SetAllCreateFunctionsDiscontinuous();
+    
+    TRMPhaseTransport *mat = new TRMPhaseTransport(_ReservMatId);
+    fSaturationMesh->InsertMaterialObject(mat);
+    
+    TRMPhaseInterfaceTransport *matint = new TRMPhaseInterfaceTransport(_ReservoirInterface);
+    fGeoMesh->AddInterfaceMaterial(_ReservMatId, _ReservMatId,_ReservoirInterface);
+    
+    // WE NEED TO ADD THE BOUNDARY CONDITION MATERIALS
+    DebugStop();
+    
+    fSaturationMesh->ApproxSpace().CreateInterfaces(fSaturationMesh);
+}
+
+
 
 void TRMSpaceOdissey::PrintGeometry()
 {

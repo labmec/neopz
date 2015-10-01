@@ -1,17 +1,17 @@
 //
-//  TRMPhaseTransport.cpp
+//  TRMPhaseInterfaceTransport.cpp
 //  PZ
 //
 //  Created by omar duran on 5/05/2015.
 //
 //
 
-#include "TRMPhaseTransport.h"
+#include "TRMPhaseInterfaceTransport.h"
 
 /**
  * Empty Constructor
  */
-TRMPhaseTransport::TRMPhaseTransport() : TPZMatWithMem<TRMPhaseMemory, TPZDiscontinuousGalerkin>()
+TRMPhaseInterfaceTransport::TRMPhaseInterfaceTransport() : TPZMatWithMem<TRMPhaseInterfaceMemory, TPZDiscontinuousGalerkin>()
 {
     
 }
@@ -19,7 +19,7 @@ TRMPhaseTransport::TRMPhaseTransport() : TPZMatWithMem<TRMPhaseMemory, TPZDiscon
 /** Creates a material object and inserts it in the vector of
  *  material pointers of the mesh.
  */
-TRMPhaseTransport::TRMPhaseTransport(int matid) : TPZMatWithMem<TRMPhaseMemory, TPZDiscontinuousGalerkin>(matid)
+TRMPhaseInterfaceTransport::TRMPhaseInterfaceTransport(int matid) : TPZMatWithMem<TRMPhaseInterfaceMemory, TPZDiscontinuousGalerkin>(matid)
 {
     
 }
@@ -28,7 +28,7 @@ TRMPhaseTransport::TRMPhaseTransport(int matid) : TPZMatWithMem<TRMPhaseMemory, 
 /** Creates a material object based on the referred object and
  *  inserts it in the vector of material pointers of the mesh.
  */
-TRMPhaseTransport::TRMPhaseTransport(const TRMPhaseTransport &mat) : TPZMatWithMem<TRMPhaseMemory, TPZDiscontinuousGalerkin>(mat)
+TRMPhaseInterfaceTransport::TRMPhaseInterfaceTransport(const TRMPhaseInterfaceTransport &mat) : TPZMatWithMem<TRMPhaseInterfaceMemory, TPZDiscontinuousGalerkin>(mat)
 {
     
 }
@@ -36,7 +36,7 @@ TRMPhaseTransport::TRMPhaseTransport(const TRMPhaseTransport &mat) : TPZMatWithM
 /**
  * Destructor
  */
-TRMPhaseTransport::~TRMPhaseTransport()
+TRMPhaseInterfaceTransport::~TRMPhaseInterfaceTransport()
 {
     DebugStop();
 }
@@ -47,12 +47,12 @@ TRMPhaseTransport::~TRMPhaseTransport()
  * only the necessary data.
  * @since April 10, 2007
  */
-void TRMPhaseTransport::FillDataRequirements(TPZVec<TPZMaterialData> &datavec)
+void TRMPhaseInterfaceTransport::FillDataRequirements(TPZVec<TPZMaterialData> &datavec)
 {
     DebugStop();
 }
 
-void TRMPhaseTransport::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData> &datavec)
+void TRMPhaseInterfaceTransport::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData> &datavec)
 {
     DebugStop();
 }
@@ -60,14 +60,14 @@ void TRMPhaseTransport::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZ
 
 
 /** print out the data associated with the material */
-void TRMPhaseTransport::Print(std::ostream &out)
+void TRMPhaseInterfaceTransport::Print(std::ostream &out)
 {
     DebugStop();
 }
 
 
 /** returns the variable index associated with the name */
-int TRMPhaseTransport::VariableIndex(const std::string &name)
+int TRMPhaseInterfaceTransport::VariableIndex(const std::string &name)
 {
     DebugStop();
 }
@@ -75,14 +75,14 @@ int TRMPhaseTransport::VariableIndex(const std::string &name)
 
 /** returns the number of variables associated with the variable
  indexed by var.  var is obtained by calling VariableIndex */
-int TRMPhaseTransport::NSolutionVariables(int var)
+int TRMPhaseInterfaceTransport::NSolutionVariables(int var)
 {
     DebugStop();
 }
 
 
 /** Computes the divergence over the parametric space */
-void TRMPhaseTransport::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
+void TRMPhaseInterfaceTransport::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
 {
     DebugStop();
 }
@@ -90,7 +90,7 @@ void TRMPhaseTransport::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datav
 
 /** returns the solution associated with the var index based on
  * the finite element approximation */
-void TRMPhaseTransport::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout)
+void TRMPhaseInterfaceTransport::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout)
 {
     DebugStop();
 }
@@ -109,7 +109,7 @@ void TRMPhaseTransport::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
  * @param ef[out] is the load vector
  * @since April 16, 2007
  */
-void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+void TRMPhaseInterfaceTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     DebugStop();
 }
@@ -122,7 +122,7 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
  * @param ef[out] is the load vector
  * @since April 16, 2007
  */
-void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
+void TRMPhaseInterfaceTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
 {
     DebugStop();
 }
@@ -137,7 +137,7 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
  * @param bc[in] is the boundary condition material
  * @since April 16, 2007
  */
-void TRMPhaseTransport::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+void TRMPhaseInterfaceTransport::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     DebugStop();
 }
@@ -152,7 +152,7 @@ void TRMPhaseTransport::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
  * @param bc[in] is the boundary condition material
  * @since April 16, 2007
  */
-void TRMPhaseTransport::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+void TRMPhaseInterfaceTransport::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     DebugStop();
 }
@@ -167,7 +167,7 @@ void TRMPhaseTransport::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
  * @param bc[in] is the boundary condition material
  * @since April 16, 2007
  */
-void TRMPhaseTransport::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+void TRMPhaseInterfaceTransport::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     DebugStop();
 }
@@ -183,7 +183,7 @@ void TRMPhaseTransport::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
  * @param bc[in] is the boundary condition material
  * @since April 16, 2007
  */
-void TRMPhaseTransport::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
+void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
     DebugStop();
 }
@@ -197,7 +197,7 @@ void TRMPhaseTransport::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
  * @param bc[in] is the boundary condition material
  * @since April 16, 2007
  */
-void TRMPhaseTransport::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
+void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
     DebugStop();
 }
@@ -206,7 +206,7 @@ void TRMPhaseTransport::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
 /**
  * Unique identifier for serialization purposes
  */
-int TRMPhaseTransport::ClassId() const
+int TRMPhaseInterfaceTransport::ClassId() const
 {
     DebugStop();
 }
@@ -215,7 +215,7 @@ int TRMPhaseTransport::ClassId() const
 /**
  * Save the element data to a stream
  */
-void TRMPhaseTransport::Write(TPZStream &buf, int withclassid)
+void TRMPhaseInterfaceTransport::Write(TPZStream &buf, int withclassid)
 {
     DebugStop();
 }
@@ -224,7 +224,7 @@ void TRMPhaseTransport::Write(TPZStream &buf, int withclassid)
 /**
  * Read the element data from a stream
  */
-void TRMPhaseTransport::Read(TPZStream &buf, void *context)
+void TRMPhaseInterfaceTransport::Read(TPZStream &buf, void *context)
 {
     DebugStop();
 }
@@ -232,7 +232,7 @@ void TRMPhaseTransport::Read(TPZStream &buf, void *context)
 
 
 /// Copy the n+1 data to the n data
-void TRMPhaseTransport::UpdateMemory()
+void TRMPhaseInterfaceTransport::UpdateMemory()
 {
     DebugStop();
 }

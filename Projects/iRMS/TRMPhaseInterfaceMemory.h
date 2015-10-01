@@ -6,26 +6,27 @@
 //
 //
 
-#ifndef __PZ__TRMPhaseMemory__
-#define __PZ__TRMPhaseMemory__
+#ifndef __PZ__TRMPhaseInterfaceMemory__
+#define __PZ__TRMPhaseInterfaceMemory__
 
 #include <stdio.h>
 #include "pzreal.h"
 #include "pzfilebuffer.h"
 
 
-class TRMPhaseMemory
+class TRMPhaseInterfaceMemory
 {
     // Store all the data required for the integration points
     // Store the saturation at n step
     // Also it can store the nonlinear part of the flux at n step
     // Store the xyz of the spatial properties
-    /// Pressure at the integration point
-    STATE fPressure;
-    /// Saturation at the previous time step
-    STATE fSaturationN;    
-    /// Saturation at the current time step
-    STATE fSaturationNP1;
+    /// Flux from left to right at the integration point
+    STATE fNormalFlux;
+    /// Saturation at the left
+    STATE fLeftSaturation;
+    
+    /// Saturation at the right
+    STATE fRightSaturation;
 
 public:
 
@@ -33,7 +34,7 @@ public:
 void UpdateSolutionMemory()
 {
     //update saturation and pressure and total flux (un = unp1)
-    fSaturationN = fSaturationNP1;
+//    fPressureN = fPressureNp1;
 }
 
 void Write(TPZStream &buf, int withclassid)
@@ -57,7 +58,7 @@ void Print(std::ostream &out) const
 
 };
 
-inline std::ostream &operator<<(std::ostream &out,const TRMPhaseMemory &mem)
+inline std::ostream &operator<<(std::ostream &out,const TRMPhaseInterfaceMemory &mem)
 {
     mem.Print(out);
     return out;

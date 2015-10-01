@@ -51,6 +51,8 @@ const int _ReservoirNonFluxBoundary = 38;
 // two dimensional elements between the 3D well elements and the reservoir
 const int _Well3DReservoirFaces = 39;
 
+const int _ReservoirInterface = 40;
+
 
 
 //---------------------------------------------------------------------------

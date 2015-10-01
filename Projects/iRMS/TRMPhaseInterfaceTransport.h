@@ -6,39 +6,40 @@
 //
 //
 
-#ifndef __PZ__TRMPhaseTransport__
-#define __PZ__TRMPhaseTransport__
+#ifndef __PZ__TRMPhaseInterfaceTransport__
+#define __PZ__TRMPhaseInterfaceTransport__
 
 #include <stdio.h>
 #include "pzmatwithmem.h"
-#include "TRMPhaseMemory.h"
+#include "TRMPhaseInterfaceMemory.h"
 #include "TRMPhaseTransport.h"
 #include "pzdiscgal.h"
 
-class TRMPhaseTransport : public TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> {
+class TRMPhaseInterfaceTransport : public TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> {
+    
     
 public:
     /// Implementar principalemente ContributeInterface, porque a saturacao no interior do elemento é zero (por enquanto)
     /**
      * Empty Constructor
      */
-    TRMPhaseTransport();
+    TRMPhaseInterfaceTransport();
     
     /** Creates a material object and inserts it in the vector of
      *  material pointers of the mesh.
      */
-    TRMPhaseTransport(int matid);
+    TRMPhaseInterfaceTransport(int matid);
     
     
     /** Creates a material object based on the referred object and
      *  inserts it in the vector of material pointers of the mesh.
      */
-    TRMPhaseTransport(const TRMPhaseTransport &mat);
+    TRMPhaseInterfaceTransport(const TRMPhaseInterfaceTransport &mat);
     
     /**
      * Destructor
      */
-    ~TRMPhaseTransport();
+    ~TRMPhaseInterfaceTransport();
     
     /** Fill material data parameter with necessary requirements for the
      * Contribute method. Here, in base class, all requirements are considered
@@ -52,7 +53,7 @@ public:
     
     /** returns the name of the material */
     std::string Name() {
-        return "TRMMixedDarcy";
+        return "TRMPhaseInterfaceTransport";
     }
     
     /** returns the integrable dimension of the material */
@@ -63,7 +64,7 @@ public:
     
     virtual TPZMaterial *NewMaterial()
     {
-        return new TRMPhaseTransport(*this);
+        return new TRMPhaseInterfaceTransport(*this);
     }
     
     /** print out the data associated with the material */
@@ -186,8 +187,8 @@ public:
     
     /// Copy the n+1 data to the n data
     void UpdateMemory();
-
-
+    
+    
 };
 
 #endif /* defined(__PZ__TRMPhaseTransport__) */

@@ -57,6 +57,9 @@ private:
     /** @brief Mixed computational mesh for a dual analysis */
     TPZAutoPointer<TPZCompMesh> fMixedFluxPressureCmesh;
     
+    /** @brief Mesh with Saturation values */
+    TPZAutoPointer<TPZCompMesh> fSaturationMesh;
+    
     /** @brief H1 computational mesh for Maurice Biot Linear Poroelasticity */
     TPZAutoPointer<TPZCompMesh> fGeoMechanicsCmesh;
     
