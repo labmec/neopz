@@ -100,8 +100,18 @@ SimulationData::SimulationData()
   
     /** @brief Gravity */
     fGravity.Resize(2,1);
-//    fGravity.Zero();
     
+    /** @brief Definition of the flow system one - two and  ... three phase */
+    fSystemType.Resize(0);
+    
+    /** @brief Is one-phase flow? */
+    fIsOnePhaseQ = false;
+    
+    /** @brief Is two-phase flow? */
+    fIsTwoPhaseQ = false;
+    
+    /** @brief Is three-phase flow? */
+    fIsThreePhaseQ = false;
     
 }
 

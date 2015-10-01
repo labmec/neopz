@@ -3,8 +3,14 @@
 #include "ReservoirData.h"
 
 #include "ReducedPVT.h"
+
+#include "WaterPhase.h"
+#include "OilPhase.h"
+#include "GasPhase.h"
+
 #include "PetroPhysicData.h"
 #include "SimulationData.h"
+
 #include "TPZDarcyAnalysis.h"
 #include "pzlog.h"
 
@@ -20,12 +26,10 @@ int main()
     TPZMaterial::gBigNumber = 1.0e10; // Use this for check of convergence using neumann
 //    TPZMaterial::gBigNumber = 1.0e15;
     
-//  LinearTracer();
-//  NonlinearTracer();
   NonlinearTracerDimensionless();
   
     
-  std::cout << " Process complete normally." << std::endl;
+  std::cout << " finished." << std::endl;
   return 0; 
 }
 
@@ -86,7 +90,12 @@ void NonlinearTracerDimensionless()
     Gravity(0,0)= -0.0;
     Gravity(1,0)= -0.0;
     
+    TPZStack<std::string> system;
+    system.Push("Oil");
+    system.Push("Water");
+    system.Push("Gas");
     
+    Dataset->SetsystemType(system);
     Dataset->SetGR(GR);
     Dataset->SetSC(SC);
     Dataset->SetIsDirect(IsDirect);
@@ -179,9 +188,11 @@ void NonlinearTracerDimensionless()
     
     // Reservoir Data SI units
     
-    TPZAutoPointer<ReservoirData> Layer = new ReservoirData;
-    TPZAutoPointer<PetroPhysicData> RockModel = new PetroPhysicData;
-    TPZAutoPointer<ReducedPVT> FluidModel = new ReducedPVT;
+    TPZAutoPointer<ReservoirData> Layer         = new ReservoirData;
+    TPZAutoPointer<PetroPhysicData> RockModel   = new PetroPhysicData;
+    TPZAutoPointer<OilPhase> Oil          = new OilPhase;   // alpha
+    TPZAutoPointer<WaterPhase> Water        = new WaterPhase;   // beta
+    TPZAutoPointer<GasPhase> Gas          = new GasPhase;   // gamma
     
     // Complete data set
     
@@ -234,16 +245,22 @@ void NonlinearTracerDimensionless()
     Layer->SetKabsolute(Kabsolute);
     Layer->SetMatIDs(MatIds);
     
-    FluidModel->SetRhoWater(waterdensity);
-    FluidModel->SetMuWater(waterviscosity);
-    FluidModel->SetcWater(cwater);
-    FluidModel->SetRhoOil(oildensity);
-    FluidModel->SetMuOil(oilviscosity);
-    FluidModel->SetcOil(coil);
-    FluidModel->SetRhoGas(gasdensity);
-    FluidModel->SetMuGas(gasviscosity);
-    FluidModel->SetcGas(cgas);
-    FluidModel->SetPref(pressureref);
+    
+
+    Oil->SetRho(waterdensity);
+    Oil->SetMu(waterviscosity);
+    Oil->Setc(cwater);
+    Oil->SetPRef(pressureref);
+    
+    Water->SetRho(oildensity);
+    Water->SetMu(oilviscosity);
+    Water->Setc(coil);
+    Water->SetPRef(pressureref);
+    
+    Gas->SetRho(gasdensity);
+    Gas->SetMu(gasviscosity);
+    Gas->Setc(cgas);
+    Gas->SetPRef(pressureref);
     
     
     // Creating the analysis
@@ -256,7 +273,7 @@ void NonlinearTracerDimensionless()
     Rocks.Resize(1);
     Rocks[0] = RockModel;
     
-    TPZDarcyAnalysis SandStone(Dataset,Layers,Rocks,FluidModel);
+    TPZDarcyAnalysis SandStone(Dataset,Layers,Rocks);
     SandStone.Run();
     
 }

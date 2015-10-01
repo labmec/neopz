@@ -491,6 +491,10 @@ Although it is feasable to build a fully coupled system of equations, it
  are associated with the interior of the elements.
 \end_layout
 
+\begin_layout Subsection
+Remarks
+\end_layout
+
 \begin_layout Standard
 The relevant fact of the solution transfer between the different meshes
  is that the information that is required is linearly dependent on the multiplyi

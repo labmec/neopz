@@ -20,57 +20,87 @@ PetroPhysicData::~PetroPhysicData()
     
 }
 
-
 // Capillary Pressure
 
 /** @brief Oil-Water Capillary Pressure - Pa $P_{cow}$ */
-void PetroPhysicData::Pcow(REAL Sw, REAL &Pcow, REAL &dPcowdSw)
+void PetroPhysicData::Pcwo(TPZVec<REAL> &pc_wo, TPZVec<REAL> state_vars)
 {
-    Pcow = 0.0;
-    dPcowdSw = 0.0;
+    
+    REAL so = state_vars[2];
+    REAL sw = state_vars[3];
+    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+    
+    pc_wo[0] = 0.0;
+    pc_wo[3] = 0.0;
+    pc_wo[4] = 0.0;
 }
 
 /** @brief Gas-Oil Capillary Pressure - Pa $P_{cgo}$ */
-void PetroPhysicData::Pcgo(REAL So, REAL &Pcgo, REAL &dPcgodSo)
+void PetroPhysicData::Pcog(TPZVec<REAL> &pc_og, TPZVec<REAL> state_vars)
 {
-    Pcgo = 0.0;
-    dPcgodSo = 0.0;
+    
+    REAL so = state_vars[2];
+    REAL sw = state_vars[3];
+    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+    
+    pc_og[0] = 0.0;
+    pc_og[3] = 0.0;
+    pc_og[4] = 0.0;
 }
 
 /** @brief Gas-Oil Capillary Pressure - Pa $P_{cgw}$ */
-void PetroPhysicData::Pcgw(REAL Sw, REAL &Pcgw, REAL &dPcgwdSw)
+void PetroPhysicData::Pcwg(TPZVec<REAL> &pc_wg, TPZVec<REAL> state_vars)
 {
-    Pcgw = 0.0; // or Pcgo(So) + Pcow(Sw)
-    dPcgwdSw = 0.0;
+    
+    REAL so = state_vars[2];
+    REAL sw = state_vars[3];
+    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+    
+    pc_wg[0] = 0.0;// or Pcgo(So) + Pcow(Sw)
+    pc_wg[3] = 0.0;
+    pc_wg[4] = 0.0;
+
 }
 
 
 // Relative permeabilities
 
 /** @brief Water Relative permeabilities  $K_{rw}$ */
-void PetroPhysicData::Krw(REAL Sw, REAL &krw, REAL &dkrwdSw)
+void PetroPhysicData::Krw(TPZVec<REAL> &kr_w, TPZVec<REAL> state_vars)
 {
-   krw = Sw;
-   dkrwdSw = 1;
+    
+    REAL so = state_vars[2];
+    REAL sw = state_vars[3];
+    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+    
+    kr_w[0] = sw;
+    kr_w[3] = 0.0;
+    kr_w[4] = 1.0;
   
- // krw = Sw*Sw;
- //  dkrwdSw = 2.0*Sw;
 }
 
 /** @brief Oil Relative permeabilities  $K_{ro}$ */
-void PetroPhysicData::Kro(REAL So, REAL &kro, REAL &dkrodSo)
+void PetroPhysicData::Kro(TPZVec<REAL> &kr_o, TPZVec<REAL> state_vars)
 {
- kro = So;
- dkrodSo = 1;
     
- //   kro = So*So;
- //   dkrodSo = 2.0*So;
+    REAL so = state_vars[2];
+    REAL sw = state_vars[3];
+    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+    
+    kr_o[0] = so;
+    kr_o[3] = 1.0;
+    kr_o[4] = 0.0;
   
 }
 
 /** @brief Gas Relative permeabilities  $K_{rg}$ */
-void PetroPhysicData::Krg(REAL Sg, REAL &krg, REAL &dkrgdSw)
+void PetroPhysicData::Krg(TPZVec<REAL> &kr_g, TPZVec<REAL> state_vars)
 {
-    krg = 0.0;
-    dkrgdSw = 0.0;
+    REAL so = state_vars[2];
+    REAL sw = state_vars[3];
+    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+    
+    kr_g[0] = 1-so-sw;
+    kr_g[3] = -1.0;
+    kr_g[4] = -1.0;
 }

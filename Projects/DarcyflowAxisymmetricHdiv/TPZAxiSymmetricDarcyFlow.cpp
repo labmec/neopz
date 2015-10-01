@@ -20,7 +20,9 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
     fSimulationData=NULL;
     fReservoirdata=NULL;
     fPetrophysicdata=NULL;
-    fFluidmodeldata=NULL;
+    fluid_alpha=NULL;
+    fluid_beta=NULL;
+    fluid_gamma=NULL;
     
     fBulkVelocity.Resize(3,0.0);
     fAveragePressure = 0.0;
@@ -49,6 +51,7 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
     
     fTotalMobility.Resize(4,0.0);
     fTotalMobility.Resize(4,0.0);
+    
 }
 
 TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(int matid) : TPZDiscontinuousGalerkin(matid)
@@ -58,7 +61,6 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(int matid) : TPZDiscontinuous
     fSimulationData=NULL;
     fReservoirdata=NULL;
     fPetrophysicdata=NULL;
-    fFluidmodeldata=NULL;
     
     fBulkVelocity.Resize(3,0.0);
     fAveragePressure = 0.0;
@@ -95,7 +97,6 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(const TPZAxiSymmetricDarcyFlo
     fSimulationData     = mat.fSimulationData;
     fReservoirdata      = mat.fReservoirdata;
     fPetrophysicdata    = mat.fPetrophysicdata;
-    fFluidmodeldata     = mat.fFluidmodeldata;
     
     fBulkVelocity       = mat.fBulkVelocity;
     fAveragePressure    = mat.fAveragePressure;
@@ -235,14 +236,14 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     REAL dPcowdSw, dPcgodSo, dPcgwdSw;
     
     
-    this->fPetrophysicdata->Pcow(Sw, pcow, dPcowdSw);
-    this->fPetrophysicdata->Pcgo(So, pcgo, dPcgodSo);
-    this->fPetrophysicdata->Pcgw(Sw, pcgw, dPcgwdSw);
+//    this->fPetrophysicdata->Pcwo(Sw, pcow, dPcowdSw);
+//    this->fPetrophysicdata->Pcog(So, pcgo, dPcgodSo);
+//    this->fPetrophysicdata->Pcgo(Sw, pcgw, dPcgwdSw);
     
     // Recovering phase pressures
-    Po = P + Sw * pcow - Sg * pcgo;
-    Pw = P - So * pcow - Sg * pcgw;
-    Pg = P + So * pcgo + So * pcgw;
+//    Po = P + Sw * pcow - Sg * pcgo;
+//    Pw = P - So * pcow - Sg * pcgw;
+//    Pg = P + So * pcgo + So * pcgw;
     
     // Rock and fluids parameters
     
@@ -250,8 +251,8 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     REAL drockporositydP, dwaterdensitydPw, doildensitydPo;
     
     this->fReservoirdata->Porosity(P, rockporosity, drockporositydP);
-    this->fFluidmodeldata->WaterDensity(Pw, waterdensity, dwaterdensitydPw);
-    this->fFluidmodeldata->OilDensity(Po, oildensity, doildensitydPo);
+//    this->fFluidmodeldata->WaterDensity(Pw, waterdensity, dwaterdensitydPw);
+//    this->fFluidmodeldata->OilDensity(Po, oildensity, doildensitydPo);
     
     
     Solout.Resize(this->NSolutionVariables(var));
@@ -2424,10 +2425,78 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
 
 void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
+    
+    
 }
 
 
 void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+    
+//    // Getting data from different approximation spaces
+//    
+//    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+//    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+//    
+//    // Getting test and basis functions
+//    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
+//    TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
+//
+//    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
+//    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
+//    
+//    TPZFMatrix<STATE> DivergenceOnDeformed;
+//    // Compute the divergence on deformed element by piola contravariant transformation
+//    this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
+//    
+//    
+//    // Blocks dimensions and lengths
+//    int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+//    int nphiPL2     = phiPL2.Rows();                                    // For L2   P
+//    int iniu    = 0;
+//    int iniP    = nphiuHdiv     + iniu;
+//   
+//    
+//    // Getting linear combinations from different approximation spaces
+//    TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
+//    REAL P              = datavec[Pblock].sol[0][0];
+//    
+//    TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
+//    TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
+//   
+//    TPZFNMatrix<660,REAL> GradP;
+//    TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
+//    
+//    
+//    
+//    //  Compute axuliar functions for the current values of time, u, P, Sw and So
+//    REAL deltat = fSimulationData->GetDeltaT();
+//    this->UpdateStateVariables(u, P, Sw, So);
+//    this->PhaseFractionalFlows();
+//    
+//    // Rock and fluids parameters
+//    TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
+//    REAL rockporosity, drockporositydP;
+//    this->fReservoirdata->Porosity(fAveragePressure, rockporosity, drockporositydP);
+//    
+//    
+//    // Defining local variables
+//    TPZFMatrix<STATE> oneoverlambda_Kinv_u(2,1);
+//    TPZFMatrix<STATE> Gravity(2,1);
+//    TPZFMatrix<STATE> gm(2,1);
+//    
+//    oneoverlambda_Kinv_u(0,0) = (1.0/fTotalMobility[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
+//    oneoverlambda_Kinv_u(1,0) = (1.0/fTotalMobility[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
+//    
+//    Gravity = fSimulationData->GetGravity();
+//    
+//    gm(0,0) = (fFOil[0] * fOilDensity[0] + fFWater[0]* fWaterDensity[0]) * Gravity(0,0);
+//    gm(1,0) = (fFOil[0] * fOilDensity[0] + fFWater[0]* fWaterDensity[0]) * Gravity(1,0);
+//    
+//    REAL divu = 0.0;
+//    TPZFMatrix<STATE> iphiuHdiv(2,1);
+//    int ishapeindex;
+//    int ivectorindex;
+//    
     
 }
 
@@ -2464,9 +2533,9 @@ void TPZAxiSymmetricDarcyFlow::PhasePressures()
     REAL pcow, pcgo, pcgw;
     REAL dPcowdSw, dPcgodSo, dPcgwdSw;
     
-    this->fPetrophysicdata->Pcow(Sw, pcow, dPcowdSw);
-    this->fPetrophysicdata->Pcgo(So, pcgo, dPcgodSo);
-    this->fPetrophysicdata->Pcgw(Sw, pcgw, dPcgwdSw); // or Pcgo(So) + Pcow(Sw)
+//    this->fPetrophysicdata->Pcow(Sw, pcow, dPcowdSw);
+//    this->fPetrophysicdata->Pcgo(So, pcgo, dPcgodSo);
+//    this->fPetrophysicdata->Pcgw(Sw, pcgw, dPcgwdSw); // or Pcgo(So) + Pcow(Sw)
     
     // Recovering phase pressures and their derivatives
     
@@ -2502,9 +2571,9 @@ void TPZAxiSymmetricDarcyFlow::PhaseDensities()
     
     this->PhasePressures();
     
-    fFluidmodeldata->WaterDensity(fWaterPressure[0], fWaterDensity[0], fWaterDensity[1]);
-    fFluidmodeldata->OilDensity(fOilPressure[0], fOilDensity[0], fOilDensity[1]);
-    fFluidmodeldata->GasDensity(fGasPressure[0], fGasDensity[0], fGasDensity[1]);
+//    fFluidmodeldata->WaterDensity(fWaterPressure[0], fWaterDensity[0], fWaterDensity[1]);
+//    fFluidmodeldata->OilDensity(fOilPressure[0], fOilDensity[0], fOilDensity[1]);
+//    fFluidmodeldata->GasDensity(fGasPressure[0], fGasDensity[0], fGasDensity[1]);
     
     // Chain Rule
     fWaterDensity[1]    *= fWaterPressure[1];
@@ -2537,13 +2606,13 @@ void TPZAxiSymmetricDarcyFlow::PhaseMobilities()
     gasdensity          = fGasDensity[0];
     dgasdensitydP       = fGasDensity[1];
     
-    this->fFluidmodeldata->WaterViscosity(fWaterPressure[0], waterviscosity, dwaterviscositydPw);
-    this->fFluidmodeldata->OilViscosity(fOilPressure[0], oilviscosity, doilviscositydPo);
-    this->fFluidmodeldata->GasViscosity(fGasPressure[0], gasviscosity, dgasviscositydPg);
-    
-    this->fPetrophysicdata->Krw(Sw, krw, dkrwdSw);
-    this->fPetrophysicdata->Kro(1.0-Sw, kro, dkrodSo); // here appears the two-phase dependence
-    this->fPetrophysicdata->Krg(1.0-(1.0-Sw)-Sw, krg, dkrgdSg);   // here appears the two-phase dependence
+//    this->fFluidmodeldata->WaterViscosity(fWaterPressure[0], waterviscosity, dwaterviscositydPw);
+//    this->fFluidmodeldata->OilViscosity(fOilPressure[0], oilviscosity, doilviscositydPo);
+//    this->fFluidmodeldata->GasViscosity(fGasPressure[0], gasviscosity, dgasviscositydPg);
+//    
+//    this->fPetrophysicdata->Krw(Sw, krw, dkrwdSw);
+//    this->fPetrophysicdata->Kro(1.0-Sw, kro, dkrodSo); // here appears the two-phase dependence
+//    this->fPetrophysicdata->Krg(1.0-(1.0-Sw)-Sw, krg, dkrgdSg);   // here appears the two-phase dependence
     
     // Computing fluid mobilities and derivatives for two-phase
     
@@ -2650,3 +2719,27 @@ void TPZAxiSymmetricDarcyFlow::Read(TPZStream &buf, void *context) {
     TPZDiscontinuousGalerkin::Read(buf, context);
     
 }
+
+
+
+// System Properties
+
+void TPZAxiSymmetricDarcyFlow::Rho_alpha(TPZVec<REAL> P_alpha){
+    
+    rho_alpha(P_alpha);
+    
+}
+
+void TPZAxiSymmetricDarcyFlow::Rho_beta(TPZVec<REAL> P_beta){
+    
+    
+    
+}
+
+void TPZAxiSymmetricDarcyFlow::Rho_gamma(TPZVec<REAL> P_gamma){
+    
+    
+    
+}
+
+

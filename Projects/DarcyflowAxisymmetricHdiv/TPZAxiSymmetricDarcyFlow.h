@@ -33,7 +33,9 @@ private:
     TPZAutoPointer<SimulationData> fSimulationData;
     TPZAutoPointer<ReservoirData> fReservoirdata;
     TPZAutoPointer<PetroPhysicData> fPetrophysicdata;
-    TPZAutoPointer<ReducedPVT> fFluidmodeldata;
+    TPZAutoPointer<ReducedPVT> fluid_alpha;
+    TPZAutoPointer<ReducedPVT> fluid_beta;
+    TPZAutoPointer<ReducedPVT> fluid_gamma;
     
     // State variables used for weighted fluid blackoil formulation
     
@@ -294,14 +296,34 @@ public:
     TPZAutoPointer<PetroPhysicData> SetPetroPhysicsData() {return fPetrophysicdata;}
     
     /**
-     * Set the simulation data,
+     * Set fluid alpha data,
      */
-    void SetFluidModelData(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fFluidmodeldata = Fluidmodeldata;}
+    void SetFluidAlpha(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fluid_alpha = Fluidmodeldata;}
     
     /**
-     * Get the simulation data,
+     * Get fluid alpha data,
      */
-    TPZAutoPointer<ReducedPVT> GetFluidModelData() {return fFluidmodeldata;}
+    TPZAutoPointer<ReducedPVT> GetFluidAlpha() {return fluid_alpha;}
+    
+    /**
+     * Set fluid beta data,
+     */
+    void SetFluidBeta(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fluid_beta = Fluidmodeldata;}
+    
+    /**
+     * Get fluid beta data,
+     */
+    TPZAutoPointer<ReducedPVT> GetFluidBeta() {return fluid_beta;}
+    
+    /**
+     * Set fluid gamma data,
+     */
+    void SetFluidGamma(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fluid_gamma = Fluidmodeldata;}
+    
+    /**
+     * Get fluid gamma data,
+     */
+    TPZAutoPointer<ReducedPVT> GetFluidGamma() {return fluid_gamma;}
     
     
     // Axuliar methods computed based on the current u, p, Sw and So values.
@@ -320,6 +342,16 @@ public:
     
     void TotalDensity();
     
+    // System Properties 
+    
+    void Rho_alpha(TPZVec<REAL> P_alpha);
+    
+    void Rho_beta(TPZVec<REAL> P_beta);
+    
+    void Rho_gamma(TPZVec<REAL> P_gamma);
+    
+//    void (*rho_alpha)(TPZVec<REAL> P);
+    std::function<void(TPZVec<REAL> P)> rho_alpha;
     
 };
 

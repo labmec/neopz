@@ -43,16 +43,20 @@
 //#define SolutionI
 //#define SolutionII
 
-TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel)
+TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic)
 {
     
-    fmeshvecini.Resize(4);
-    fmeshvec.Resize(4);
+    fmeshvecini.Resize(2);
+    fmeshvec.Resize(2);
     
     fgmesh=NULL;
     fcmeshinitialdarcy=NULL;
     fcmeshdarcy=NULL;
     fcmesh = NULL;
+    
+    falpha_fluid=NULL;
+    fbeta_fluid=NULL;
+    fgamma_fluid=NULL;
     
     // Vector which will store tha residuum in the last state (n)
     fResidualAtn.Resize(0, 0);
@@ -63,8 +67,7 @@ TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation
     fSimulationData     = DataSimulation;
     fLayers             = Layers;
     fRockPetroPhysic    = PetroPhysic;
-    fFluidData          = FluidModel;
-    //MuWater = fFluidData->GetMuWater();
+
     /** @brief unknowns for n time step */
     falphaAtn.Resize(0, 0);
     
@@ -82,6 +85,38 @@ TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation
 
 TPZDarcyAnalysis::~TPZDarcyAnalysis()
 {
+    
+}
+
+
+void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<ReducedPVT> > PVTData){
+    
+    if(fSimulationData->IsOnePhaseQ()){
+        
+        falpha_fluid = PVTData[0];
+        
+    }
+    
+    if(fSimulationData->IsTwoPhaseQ()){
+        
+        falpha_fluid = PVTData[0];
+        fbeta_fluid = PVTData[1];
+        
+        fmeshvecini.Resize(3);
+        fmeshvec.Resize(3);
+        
+    }
+    
+    if(fSimulationData->IsThreePhaseQ()){
+        
+        falpha_fluid = PVTData[0];
+        fbeta_fluid = PVTData[1];
+        fgamma_fluid = PVTData[2];
+        
+        fmeshvecini.Resize(4);
+        fmeshvec.Resize(4);
+        
+    }
     
 }
 
@@ -314,6 +349,7 @@ void TPZDarcyAnalysis::Run()
     
     CreateMultiphysicsMesh(q,p,s);
     CreateInterfaces();
+
     
     if(fSimulationData->GetSC())
     {
@@ -510,8 +546,15 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
 {
     fmeshvec[0] = CmeshFlux(q);
     fmeshvec[1] = CmeshPressure(p);
-    fmeshvec[2] = CmeshSw(s);
-    fmeshvec[3] = CmeshSo(s);
+    
+    if (fSimulationData->IsTwoPhaseQ()) {
+        fmeshvec[2] = CmeshSw(s);
+    }
+    
+    if (fSimulationData->IsThreePhaseQ()) {
+        fmeshvec[2] = CmeshSw(s);
+        fmeshvec[3] = CmeshSo(s);
+    }
 
     fcmeshinitialdarcy = CmeshMixedInitial();
     fcmeshdarcy = CmeshMixed();
@@ -524,7 +567,7 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
     TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshdarcy);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
     
-    int DOF = fmeshvec[0]->NEquations() + fmeshvec[1]->NEquations() + fmeshvec[2]->NEquations() + fmeshvec[3]->NEquations();
+    int DOF = fcmeshdarcy->Solution().Rows();
     std::cout << "Degrees of freedom: " << DOF << std::endl;
     
 }
@@ -976,7 +1019,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
     mat->SetSimulationData(fSimulationData);
     mat->SetReservoirData(fLayers[ilayer]);
     mat->SetPetroPhysicsData(fRockPetroPhysic[ilayer]);
-    mat->SetFluidModelData(fFluidData);
+    mat->SetFluidAlpha(falpha_fluid);
+    mat->SetFluidBeta(fbeta_fluid);
+    mat->SetFluidGamma(fgamma_fluid);
     cmesh->InsertMaterialObject(mat);
     
     
@@ -1061,7 +1106,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetSimulationData(fSimulationData);
     mat->SetReservoirData(fLayers[ilayer]);
     mat->SetPetroPhysicsData(fRockPetroPhysic[ilayer]);
-    mat->SetFluidModelData(fFluidData);
+    mat->SetFluidAlpha(falpha_fluid);
+    mat->SetFluidBeta(fbeta_fluid);
+    mat->SetFluidGamma(fgamma_fluid);
     cmesh->InsertMaterialObject(mat);
     
     

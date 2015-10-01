@@ -135,6 +135,18 @@ private:
     
     /** @brief Definition of the Left bc */
     TPZVec<REAL> fLeftBC;
+    
+    /** @brief Definition of the flow system one - two and  ... three phase */
+    TPZStack<std::string> fSystemType;
+    
+    /** @brief Is one-phase flow? */
+    bool fIsOnePhaseQ;
+    
+    /** @brief Is two-phase flow? */
+    bool fIsTwoPhaseQ;
+    
+    /** @brief Is three-phase flow? */
+    bool fIsThreePhaseQ;
   
      /** @brief Gravity  */
     TPZFMatrix<REAL> fGravity;
@@ -362,6 +374,48 @@ public:
     /** @brief Get Gravty */
     TPZFMatrix<REAL> GetGravity(){return fGravity;}
     
+    
+    /** @brief Definition of the flow system one - two and  ... three phase */
+    void SetsystemType(TPZStack<std::string> SystemType){
+        
+        switch (SystemType.size()) {
+            case 1:
+            {
+                 fIsOnePhaseQ = true;
+            }
+                break;
+            case 2:
+            {
+                fIsTwoPhaseQ = true;
+            }
+                break;
+            case 3:
+            {
+                fIsThreePhaseQ = true;
+            }
+                break;
+                
+            default:
+            {
+                std::cout << "This code run just three-phasic systems" << std::endl;
+                DebugStop();
+            }
+                break;
+        }
+        fSystemType = SystemType;
+    }
+    
+    /** @brief Mono-phasic system */
+    bool IsOnePhaseQ() {return fIsOnePhaseQ;}
+   
+    /** @brief Two-phasic system */
+    bool IsTwoPhaseQ() {return fIsTwoPhaseQ;}
+    
+    /** @brief Three-phasic system */
+    bool IsThreePhaseQ() {return fIsThreePhaseQ;}
+    
+    /** @brief Definition of the flow system one - two and  ... three phase */
+    TPZStack<std::string> GetsystemType() {return fSystemType;}
     
 };
 

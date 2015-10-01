@@ -4,7 +4,12 @@
 #include "SimulationData.h"
 #include "ReservoirData.h"
 #include "PetroPhysicData.h"
+
 #include "ReducedPVT.h"
+#include "OilPhase.h"
+#include "WaterPhase.h"
+#include "GasPhase.h"
+
 #include "pznonlinanalysis.h"
 
 #include "pzcondensedcompel.h"
@@ -51,13 +56,18 @@ private:
     // PetroPhysic data associated to each reservoir layer
     TPZVec<TPZAutoPointer<PetroPhysicData > > fRockPetroPhysic;
     
-    // Reduced PVT data required for
-    TPZAutoPointer<ReducedPVT> fFluidData;
+    // Reduced PVT data required for alpha
+    TPZAutoPointer<ReducedPVT> falpha_fluid;
+    
+    // Reduced PVT data required for beta
+    TPZAutoPointer<ReducedPVT> fbeta_fluid;
+    
+    // Reduced PVT data required for gamma
+    TPZAutoPointer<ReducedPVT> fgamma_fluid;
    
-        /** @brief Geometric mesh */
+    /** @brief Geometric mesh */
     TPZGeoMesh * fgmesh;
     
-      
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 4> fmeshvecini;
     
@@ -89,7 +99,7 @@ private:
 public:
     REAL Muo;
     /// Constructor which already sets the cmesh
-    TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic, TPZAutoPointer<ReducedPVT> FluidModel);
+    TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic);
     
     /// Destructor
     ~TPZDarcyAnalysis();
@@ -152,15 +162,24 @@ public:
     
     
     /**
-     * Set the fluid model,
+     * Set the fluids following the system type
      */
-    void SetFluidData(TPZAutoPointer<ReducedPVT> PVTData){fFluidData = PVTData;}
+    void SetFluidData(TPZVec< TPZAutoPointer<ReducedPVT> > PVTData);
     
     /**
-     * Get the fluid model,
+     * Get the alpha fluid model,
      */
-    TPZAutoPointer<ReducedPVT> GetFluidData() {return fFluidData;}
+    TPZAutoPointer<ReducedPVT> GetFluidAlphaData() {return falpha_fluid;}
     
+    /**
+     * Get the beta fluid model,
+     */
+    TPZAutoPointer<ReducedPVT> GetFluidBetaData() {return fbeta_fluid;}
+    
+    /**
+     * Get the gamma fluid model,
+     */
+    TPZAutoPointer<ReducedPVT> GetFluidGammaData() {return fgamma_fluid;}
     
     /**
      * Rotate the geometric mesh around Z axis

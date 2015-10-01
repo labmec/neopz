@@ -1,20 +1,23 @@
 //
-//  ReducedPVT.h
+//  GasPhase.h
 //  PZ
 //
-//  Created by Omar on 4/24/15.
+//  Created by Omar on 9/30/15.
 //
 //
 
-#ifndef __PZ__ReducedPVT__
-#define __PZ__ReducedPVT__
+#ifndef __PZ__GasPhase__
+#define __PZ__GasPhase__
+
+#include <stdio.h>
+#include "ReducedPVT.h"
 
 #include "tpzautopointer.h"
 #include "pzfmatrix.h"
 #include <math.h>
 
 
-class ReducedPVT
+class GasPhase : public ReducedPVT
 
 {
     
@@ -45,63 +48,63 @@ private:
 public:
     
     /** @brief Default constructor $ */
-    ReducedPVT();
+    GasPhase();
     
     /** @brief Default desconstructor $ */
-    ~ReducedPVT();
+    ~GasPhase();
     
     /** @brief Set the temperature @ reservoir conditions  - F */
-    virtual void SetResT(REAL ResT);
+    void SetResT(REAL ResT) {fReservoirTemperature = ResT;}
     
     /** @brief Get the temperature @ reservoir conditions  - F */
-    virtual REAL ResT();
+    REAL ResT() {return fReservoirTemperature;}
     
     /** @brief Set the characteristic Pressure - Pa */
-    virtual void SetPRef(REAL Pref);
+    void SetPRef(REAL Pref) {fPRef = Pref;}
     
     /** @brief Characteristic Pressure - Pa */
-    virtual REAL PRef();
+    REAL PRef() {return fPRef;}
     
     /** @brief Set the characteristic Density - kg/m3 */
-    virtual void RhoRef(REAL Rhoref);
+    void RhoRef(REAL Rhoref) {fRhoRef = Rhoref;}
     
     /** @brief Characteristic Density - kg/m3 */
-    virtual REAL RhoRef();
+    REAL RhoRef() {return fRhoRef;}
     
     /** @brief Set the characteristic viscosity - Pa s */
-    virtual void SetMuRef(REAL Muref);
+    void SetMuRef(REAL Muref) {fMuRef = Muref;}
     
     /** @brief Characteristic viscosity - Pa s */
-    virtual REAL MuRef();
+    REAL MuRef() {return fMuRef;}
     
     /** @brief Density - kg/m3  $\rho$ */
-    virtual void Density(TPZVec<REAL> &rho, TPZVec<REAL> state_vars);
+    void Density(TPZVec<REAL> &rho, TPZVec<REAL> state_vars);
     
     /** @brief viscosity - Pa s  $\mu$ */
-    virtual void Viscosity(TPZVec<REAL> &mu, TPZVec<REAL> state_vars);
+    void Viscosity(TPZVec<REAL> &mu, TPZVec<REAL> state_vars);
     
     /** @brief Compressibility - 1/pa $c$ */
-    virtual void Compressibility(TPZVec<REAL> &c, TPZVec<REAL> state_vars);
+    void Compressibility(TPZVec<REAL> &c, TPZVec<REAL> state_vars);
     
     /** @brief Set Density - kg/m3  $\rho$ */
-    virtual void SetRho(REAL Rho){this->fRho = Rho;}
+    void SetRho(REAL Rho){this->fRho = Rho;}
     
     /** @brief Get Density - kg/m3  $\rho$ */
-    virtual REAL GetRho(){return this->fRho ;}
+    REAL GetRho(){return this->fRho ;}
     
     /** @brief Set viscosity - pa s  $\mu$ */
-    virtual void SetMu(REAL Mu){this->fMu = Mu;}
+    void SetMu(REAL Mu){this->fMu = Mu;}
     
     /** @brief Get viscosity - pa s  $\mu$ */
-    virtual REAL GetMu(){return this->fMu ;}
+    REAL GetMu(){return this->fMu ;}
     
     /** @brief Set Compressibility - 1/pa   $C$ */
-    virtual void Setc(REAL c){this->fc = c;}
+    void Setc(REAL c){this->fc = c;}
     
     /** @brief Get Compressibility - 1/pa   $C_$ */
-    virtual REAL Getc(){return this->fc ;}
+    REAL Getc(){return this->fc ;}
     
 };
 
 
-#endif /* defined(__PZ__ReducedPVT__) */
+#endif /* defined(__PZ__GasPhase__) */

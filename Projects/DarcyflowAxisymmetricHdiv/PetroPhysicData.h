@@ -32,25 +32,25 @@ public:
     // Capillary Pressure
     
     /** @brief Oil-Water Capillary Pressure - Pa $P_{cow}$ */
-    void Pcow(REAL Sw, REAL &Pcow, REAL &dPcowdSw);
+    void Pcwo(TPZVec<REAL> &pc_wo, TPZVec<REAL> state_vars);
     
     /** @brief Gas-Oil Capillary Pressure - Pa $P_{cgo}$ */
-    void Pcgo(REAL So, REAL &Pcgo, REAL &dPcgodSo);
+    void Pcog(TPZVec<REAL> &pc_og, TPZVec<REAL> state_vars);
     
     /** @brief Gas-Oil Capillary Pressure - Pa $P_{cgw}$ */
-    void Pcgw(REAL Sw, REAL &Pcgw, REAL &dPcgwdSw);
+    void Pcwg(TPZVec<REAL> &pc_wg, TPZVec<REAL> state_vars);
     
     
     // Relative permeabilities
     
     /** @brief Oil-Water Capillary Pressure - Pa $K_{rw}$ */
-    void Krw(REAL Sw, REAL &krw, REAL &dkrwdSw);
+    void Krw(TPZVec<REAL> &kr_w, TPZVec<REAL> state_vars);
     
     /** @brief Gas-Oil Capillary Pressure - Pa $K_{ro}$ */
-    void Kro(REAL So, REAL &kro, REAL &dkrodSo);
+    void Kro(TPZVec<REAL> &kr_o, TPZVec<REAL> state_vars);
     
     /** @brief Gas-Oil Capillary Pressure - Pa $K_{rg}$ */
-    void Krg(REAL Sg, REAL &krg, REAL &dkrgdSw);
+    void Krg(TPZVec<REAL> &kr_g, TPZVec<REAL> state_vars);
     
 };
 
