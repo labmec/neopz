@@ -23,13 +23,13 @@ void NonlinearTracerDimensionless();
 int main()
 {
   
-    TPZMaterial::gBigNumber = 1.0e10; // Use this for check of convergence using neumann
+    TPZMaterial::gBigNumber = 1.0e8; // Use this for check of convergence using neumann
 //    TPZMaterial::gBigNumber = 1.0e15;
     
   NonlinearTracerDimensionless();
   
     
-  std::cout << " finished." << std::endl;
+  std::cout << "Program successfully executed." << std::endl;
   return 0; 
 }
 
@@ -74,12 +74,12 @@ void NonlinearTracerDimensionless()
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 1000000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
-    REAL maxtime    = 10000000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL dt         = 1.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL maxtime    = 10.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL t0         = 0.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     
-    REAL TolDeltaX  = 1.0*1e-7;
-    REAL TolRes     = 1.0*1e-7;
+    REAL TolDeltaX  = 1.0*1e-6;
+    REAL TolRes     = 1.0*1e-6;
     
     int  nelemX     =1;
     REAL lengthX    =1000.0/Lstr;
@@ -92,8 +92,8 @@ void NonlinearTracerDimensionless()
     
     TPZStack<std::string> system;
     system.Push("Oil");
-    system.Push("Water");
-    system.Push("Gas");
+//    system.Push("Water");
+//    system.Push("Gas");
     
     Dataset->SetsystemType(system);
     Dataset->SetGR(GR);
@@ -176,7 +176,7 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 1;
-    leftbc[1] = (-10.0);
+    leftbc[1] = (-1.0);
     leftbc[2] = 1;
     leftbc[3] = 0;
     
@@ -211,10 +211,10 @@ void NonlinearTracerDimensionless()
     // Reservoir Description linear tracer configuration
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (1.0*1e-7)*Pstr;
+    REAL cwater             = (0.0*1e-7)*Pstr;
     REAL oildensity         = 1000.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (1.0*1e-7)*Pstr;
+    REAL coil               = (0.0*1e-7)*Pstr;
     REAL gasdensity         = 0.0/Rhostr;
     REAL gasviscosity       = 0.0/Mustr;
     REAL cgas               = (0.0)*Pstr;
@@ -246,7 +246,6 @@ void NonlinearTracerDimensionless()
     Layer->SetMatIDs(MatIds);
     
     
-
     Oil->SetRho(waterdensity);
     Oil->SetMu(waterviscosity);
     Oil->Setc(cwater);
@@ -262,9 +261,10 @@ void NonlinearTracerDimensionless()
     Gas->Setc(cgas);
     Gas->SetPRef(pressureref);
     
-    
-//    TPZAutoPointer<ReducedPVT> alphaFluid = Oil;
-    
+    TPZVec< TPZAutoPointer<ReducedPVT> > PVTData(3);
+    PVTData[1] = Oil.operator->();      // alpha
+    PVTData[0] = Water.operator->();    // beta
+    PVTData[2] = Gas.operator->();      // gamma
     
     // Creating the analysis
     
@@ -277,6 +277,7 @@ void NonlinearTracerDimensionless()
     Rocks[0] = RockModel;
     
     TPZDarcyAnalysis SandStone(Dataset,Layers,Rocks);
+    SandStone.SetFluidData(PVTData);
     SandStone.Run();
     
 }

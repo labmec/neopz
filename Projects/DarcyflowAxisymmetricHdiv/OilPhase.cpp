@@ -11,28 +11,7 @@
 
 OilPhase::OilPhase() : ReducedPVT()
 {
-    
-//    /** @brief Temperature @ reservoir conditions  - F */
-//    fReservoirTemperature = 180.0;
-//    
-//    /** @brief Characteristic Pressure - Pa */
-//    fPRef = 1.0;
-//    
-//    /** @brief Characteristic Density - kg/m3 */
-//    fRhoRef = 1.0;
-//    
-//    /** @brief Characteristic viscosity - Pa s */
-//    fMuRef = 1.0;
-//    
-//    /** @brief Density - kg/m3  $\rho$ */
-//    fRho = 0.0;
-//    
-//    /** @brief viscosity - Pa s  $\mu$ */
-//    fMu = 0.0;
-//    
-//    /** @brief Compressibility - 1/pa $c$ */
-//    fc = 0.0;
-    
+        
 }
 
 OilPhase::~OilPhase()
@@ -42,22 +21,24 @@ OilPhase::~OilPhase()
 
 
 /** @brief Density - kg/m3  $\rho$ */
-void OilPhase::Density(TPZVec<REAL> &rho, TPZVec<REAL> state_vars)
+void OilPhase::Density(TPZManVector<REAL> &rho, TPZManVector<REAL> state_vars)
 {
-    rho[0] = 0.0;
-    rho[2] = 0.0;
+    REAL Po = state_vars[1];
+    
+    rho[0] = GetRho() * ( 1.0 + Getc() * (Po - GetPRef() ));
+    rho[2] = GetRho() * Getc();
 }
 
 /** @brief viscosity - Pa s  $\mu$ */
-void OilPhase::Viscosity(TPZVec<REAL> &mu, TPZVec<REAL> state_vars)
+void OilPhase::Viscosity(TPZManVector<REAL> &mu, TPZManVector<REAL> state_vars)
 {
-    mu[0] = 0.0;
+    mu[0] = GetMu();
     mu[2] = 0.0;
 }
 
 /** @brief Compressibility - 1/pa $c$ */
-void OilPhase::Compressibility(TPZVec<REAL> &c, TPZVec<REAL> state_vars)
+void OilPhase::Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_vars)
 {
-    c[0] = 0.0;
+    c[0] = Getc();
     c[2] = 0.0;
 }

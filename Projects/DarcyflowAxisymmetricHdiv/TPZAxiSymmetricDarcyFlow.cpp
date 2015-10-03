@@ -24,6 +24,7 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
     fluid_beta=NULL;
     fluid_gamma=NULL;
     
+    fnstate_vars = 0;
     fBulkVelocity.Resize(3,0.0);
     fAveragePressure = 0.0;
     fWaterSaturation = 0.0;
@@ -211,13 +212,13 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     int Qblock = 0;
     int Pblock = 1;
-    int Swblock = 2;
-    int Soblock = 3;
+//    int Swblock = 2;
+//    int Soblock = 3;
     
     TPZManVector<REAL,3> Q = datavec[Qblock].sol[0];
     REAL P = datavec[Pblock].sol[0][0];
-    REAL Sw = datavec[Swblock].sol[0][0];
-    REAL So = datavec[Soblock].sol[0][0];
+    REAL Sw = 1.0;//datavec[Swblock].sol[0][0];
+    REAL So = 0.0;//datavec[Soblock].sol[0][0];
     REAL Sg = 1.0 - So - Sw;
     
     this->UpdateStateVariables(Q,P, Sw, So);
@@ -281,12 +282,12 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             break;
         case 4:
         {
-            Solout[0] = waterdensity;
+            Solout[0] = 0.0;
         }
             break;
         case 5:
         {
-            Solout[0] = oildensity;
+            Solout[0] = 0.0;
         }
             break;
         case 6:
@@ -302,7 +303,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
         case 8:
         {
             time=this->fSimulationData->GetTime();
-            fTimedependentFunctionExact->Execute(datavec[Swblock].x, time, Saturation,GradS);
+            fTimedependentFunctionExact->Execute(datavec[Qblock].x, time, Saturation,GradS);
             Solout[0] = Saturation[0];
             
         }
@@ -411,6 +412,10 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
 // Jacobian contribution
 void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
+    
+    this->ContributeDarcy(datavec, weight, ek, ef);
+    
+    return;
     
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
@@ -624,6 +629,10 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 // Residual contribution
 void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
 {
+    
+    this->ContributeDarcy(datavec, weight, ef);
+    
+    return;
     
     // Getting data from different approximation spaces
     
@@ -2301,6 +2310,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     
+    this->ContributeBCDarcy(datavec, weight, ek, ef, bc);
+    return;
+    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -2310,8 +2322,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     
     int Qblock = 0;
     int Pblock = 1;
-    //    int Swblock = 2;
-    //    int Soblock = 3;
     
     // Getting test and basis functions
     TPZFNMatrix<9,STATE> PhiH1 = datavec[Qblock].phi; // For H1   test functions
@@ -2319,7 +2329,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     
     TPZFMatrix<STATE> dPhiH1 = datavec[Qblock].dphix; // Derivative For H1   test functions
     TPZFMatrix<STATE> dWL2   = datavec[Pblock].dphix; // Derivative For HL2  test functions
-    TPZManVector<REAL,3> &normal = datavec[Qblock].normal; // does It make sense? normal
     
     // Getting Linear combinations of basis functions
     TPZManVector<STATE> Q = datavec[Qblock].sol[0];
@@ -2335,14 +2344,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     int nPhiHdiv = PhiH1.Rows();  // For Hdiv
     int nPhiL2   = WL2.Rows();                                  // For L2
     
-    int ishapeindex, jshapeindex;
-    int ivectorindex, jvectorindex;
-    
     TPZFMatrix<STATE> iPhiHdiv(2,1);
     TPZFMatrix<STATE> jPhiHdiv(2,1);
-    
-    STATE iphinormal;
-    STATE jphinormal;
     
     
     REAL Value;
@@ -2426,83 +2429,470 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
 void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     
+    // Full implicit case: there is no n state computations here
+    if (fSimulationData->IsnStep()) {
+        return;
+    }
+    
+    // Getting data for Mixed-Darcy flow problem
+    
+    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    
+    // Getting test and basis functions
+    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
+    TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
+    
+    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
+    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
+    
+    TPZFMatrix<STATE> DivergenceOnDeformed;
+    // Compute the divergence on deformed element by piola contravariant transformation
+    this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
+    
+    
+    // Blocks dimensions and lengths
+    int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+    int nphiPL2     = phiPL2.Rows();                                    // For L2   P
+    int iniu    = 0;
+    int iniP    = nphiuHdiv     + iniu;
+    
+    // Getting linear combinations from different approximation spaces
+    TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
+    REAL P              = datavec[Pblock].sol[0][0];
+    
+    TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0];
+    TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
+    TPZFNMatrix<660,REAL> GradP;
+    TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
+    
+    //  Compute the constitutive relations for the current values of: time, u, P, Sw, and So.
+    TPZManVector<REAL> state_vars(fnstate_vars,0.0);
+    TPZManVector<REAL> lambda(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rho(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rhof(fnstate_vars+1,0.0);
+    
+    // Rock and fluids parameters
+    TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
+    TPZFMatrix<STATE> Oneoverlambda_Kinv_u(2,1);
+    TPZFMatrix<REAL> Oneoverlambda_Kinv_Phiu(2,1);
+    TPZFMatrix<STATE> Gravity(2,1);
+    TPZFMatrix<STATE> gm(2,1);
+    TPZFMatrix<STATE> dgmdP(2,1);
+    
+    Gravity = fSimulationData->GetGravity();
+    
+    REAL phi, dphidP;
+    this->fReservoirdata->Porosity(P, phi, dphidP);
+    
+    // time
+    REAL dt = fSimulationData->GetDeltaT();
+    
+    int nphases = fnstate_vars - 1;
+    switch (nphases) {
+        case 1:
+        {
+            state_vars[1] = P;
+            TPZManVector<REAL> alpha_rho(fnstate_vars+1,0.0);
+            TPZManVector<REAL> alpha_mu(fnstate_vars+1,0.0);
+            fluid_alpha->Density(alpha_rho, state_vars);
+            fluid_alpha->Viscosity(alpha_mu, state_vars);
+            
+            // Rho computation
+            rho = alpha_rho;
+            
+            // Rhof computation
+            rhof = alpha_rho;
+            
+            // lambda computation
+            lambda[0] = alpha_rho[0]/alpha_mu[0];
+            lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
+            
+        }
+            break;
+        case 2:
+        {
+            std::cout << "2-phases system not implemented"<< std::endl;
+            DebugStop();
+            
+        }
+            break;
+        case 3:
+        {
+            std::cout<< "3-phases system not implemented"<< std::endl;
+            DebugStop();
+            
+        }
+            break;
+        default:
+        {
+            std::cout<< "4-phases system not implemented"<< std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+    
+    Oneoverlambda_Kinv_u(0,0) = (1.0/lambda[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
+    Oneoverlambda_Kinv_u(1,0) = (1.0/lambda[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
+    
+    gm(0,0) = rhof[0] * Gravity(0,0);
+    gm(1,0) = rhof[0] * Gravity(1,0);
+
+    dgmdP(0,0) = rhof[2] * Gravity(0,0);
+    dgmdP(1,0) = rhof[2] * Gravity(1,0);
+    
+    REAL divu = 0.0;
+    TPZFMatrix<STATE> iphiuHdiv(2,1);
+    int ishapeindex;
+    int ivectorindex;
+    TPZFMatrix<STATE> jphiuHdiv(2,1);
+    int jshapeindex;
+    int jvectorindex;
+    
+    
+    for (int iq = 0; iq < nphiuHdiv; iq++)
+    {
+        
+        /* $ \underset{\Omega_{e}}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega_{e}-\underset{\Omega_{e}}{\int}P\; div\left(\mathbf{v}\right)\partial\Omega-\underset{\Omega_{e}}{\int}\nabla\left(\rho_{f}g\; z\right)\cdot\mathbf{v} $ */
+        
+        ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
+        ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+        
+        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
+        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        
+        ef(iq + iniu) += weight * ((Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))
+                                   - P * DivergenceOnDeformed(iq,0)
+                                   - (gm(0,0)*iphiuHdiv(0,0) + gm(1,0)*iphiuHdiv(1,0)) );
+        
+        // du/dalphau terms
+        for (int jq = 0; jq < nphiuHdiv; jq++)
+        {
+            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
+            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
+            
+            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+            
+            Oneoverlambda_Kinv_Phiu(0,0) = (1.0/lambda[0]) * (KInverse(0,0)*jphiuHdiv(0,0) + KInverse(0,1)*jphiuHdiv(1,0));
+            Oneoverlambda_Kinv_Phiu(1,0) = (1.0/lambda[0]) * (KInverse(1,0)*jphiuHdiv(0,0) + KInverse(1,1)*jphiuHdiv(1,0));
+            
+            ek(iq + iniu,jq + iniu) +=  weight * ((Oneoverlambda_Kinv_Phiu(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_Phiu(1,0)*iphiuHdiv(1,0)));
+        }
+        
+        // du/dalphap terms
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(iq + iniu,jp + iniP) += weight * ((-(lambda[2]/lambda[0]))*((Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))) - DivergenceOnDeformed(iq,0) - (dgmdP(0,0)*iphiuHdiv(0,0) + dgmdP(1,0)*iphiuHdiv(1,0)) )* phiPL2(jp,0) ;
+        }
+        
+        
+    }
+    
+    TPZManVector<STATE,1> fvalue(1,0.0);
+    if(fForcingFunction)
+    {
+        fForcingFunction->Execute(datavec[Pblock].x,fvalue);
+    }
+    
+    
+    divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // Note::  uses this for constant jacobian elements
+    
+    /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
+    for (int ip = 0; ip < nphiPL2; ip++)
+    {
+        
+        ef(ip + iniP) += weight * (- divu + fvalue[0] - (1.0/dt) * phi * rho[0]) * phiPL2(ip,0);
+
+        for (int jq = 0; jq < nphiuHdiv; jq++)
+        {
+            ek(ip + iniP,jq + iniu) += weight * (- DivergenceOnDeformed(jq,0)) * phiPL2(ip,0);
+        }
+        
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(ip + iniP,jp + iniP) += weight * (- (1.0/dt) * phi * rho[2] * phiPL2(jp,0) ) * phiPL2(ip,0);
+        }
+        
+    }
+    
     
 }
 
 
 void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
-//    // Getting data from different approximation spaces
-//    
-//    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
-//    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
-//    
-//    // Getting test and basis functions
-//    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
-//    TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
-//
-//    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
-//    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
-//    
-//    TPZFMatrix<STATE> DivergenceOnDeformed;
-//    // Compute the divergence on deformed element by piola contravariant transformation
-//    this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
-//    
-//    
-//    // Blocks dimensions and lengths
-//    int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
-//    int nphiPL2     = phiPL2.Rows();                                    // For L2   P
-//    int iniu    = 0;
-//    int iniP    = nphiuHdiv     + iniu;
-//   
-//    
-//    // Getting linear combinations from different approximation spaces
-//    TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
-//    REAL P              = datavec[Pblock].sol[0][0];
-//    
-//    TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
-//    TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
-//   
-//    TPZFNMatrix<660,REAL> GradP;
-//    TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
-//    
-//    
-//    
-//    //  Compute axuliar functions for the current values of time, u, P, Sw and So
-//    REAL deltat = fSimulationData->GetDeltaT();
-//    this->UpdateStateVariables(u, P, Sw, So);
-//    this->PhaseFractionalFlows();
-//    
-//    // Rock and fluids parameters
-//    TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
-//    REAL rockporosity, drockporositydP;
-//    this->fReservoirdata->Porosity(fAveragePressure, rockporosity, drockporositydP);
-//    
-//    
-//    // Defining local variables
-//    TPZFMatrix<STATE> oneoverlambda_Kinv_u(2,1);
-//    TPZFMatrix<STATE> Gravity(2,1);
-//    TPZFMatrix<STATE> gm(2,1);
-//    
-//    oneoverlambda_Kinv_u(0,0) = (1.0/fTotalMobility[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
-//    oneoverlambda_Kinv_u(1,0) = (1.0/fTotalMobility[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
-//    
-//    Gravity = fSimulationData->GetGravity();
-//    
-//    gm(0,0) = (fFOil[0] * fOilDensity[0] + fFWater[0]* fWaterDensity[0]) * Gravity(0,0);
-//    gm(1,0) = (fFOil[0] * fOilDensity[0] + fFWater[0]* fWaterDensity[0]) * Gravity(1,0);
-//    
-//    REAL divu = 0.0;
-//    TPZFMatrix<STATE> iphiuHdiv(2,1);
-//    int ishapeindex;
-//    int ivectorindex;
-//    
+    // Getting data for Mixed-Darcy flow problem
+    
+    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    
+    // Getting test and basis functions
+    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
+    TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
+
+    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
+    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
+    
+    TPZFMatrix<STATE> DivergenceOnDeformed;
+    // Compute the divergence on deformed element by piola contravariant transformation
+    this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
+    
+    
+    // Blocks dimensions and lengths
+    int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+    int nphiPL2     = phiPL2.Rows();                                    // For L2   P
+    int iniu    = 0;
+    int iniP    = nphiuHdiv     + iniu;
+    
+    // Getting linear combinations from different approximation spaces
+    TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
+    REAL P              = datavec[Pblock].sol[0][0];
+    
+    TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0];
+    TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
+    TPZFNMatrix<660,REAL> GradP;
+    TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
+
+    //  Compute the constitutive relations for the current values of: time, u, P, Sw, and So.
+    TPZManVector<REAL> state_vars(fnstate_vars,0.0);
+    TPZManVector<REAL> lambda(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rho(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rhof(fnstate_vars+1,0.0);
+    
+    // Rock and fluids parameters
+    TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
+    TPZFMatrix<STATE> Oneoverlambda_Kinv_u(2,1);
+    TPZFMatrix<STATE> Gravity(2,1);
+    TPZFMatrix<STATE> gm(2,1);
+
+    Gravity = fSimulationData->GetGravity();
+    
+    REAL phi, dphidP;
+    this->fReservoirdata->Porosity(P, phi, dphidP);
+
+    // time
+    REAL dt = fSimulationData->GetDeltaT();
+    
+    int nphases = fnstate_vars - 1;
+    switch (nphases) {
+        case 1:
+        {
+            state_vars[1] = P;
+            TPZManVector<REAL> alpha_rho(fnstate_vars+1,0.0);
+            TPZManVector<REAL> alpha_mu(fnstate_vars+1,0.0);
+            fluid_alpha->Density(rho, state_vars);
+            fluid_alpha->Viscosity(alpha_mu, state_vars);
+            
+            // Rho computation
+            rho = alpha_rho;
+            
+            // Rhof computation
+            rhof = alpha_rho;
+            
+            // lambda computation
+            lambda[0] = alpha_rho[0]/alpha_mu[0];
+            lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
+            
+        }
+            break;
+        case 2:
+        {
+            std::cout << "2-phases system not implemented"<< std::endl;
+            DebugStop();
+            
+        }
+            break;
+        case 3:
+        {
+            std::cout<< "3-phases system not implemented"<< std::endl;
+            DebugStop();
+            
+        }
+            break;
+        default:
+        {
+            std::cout<< "4-phases system not implemented"<< std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+
+    Oneoverlambda_Kinv_u(0,0) = (1.0/lambda[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
+    Oneoverlambda_Kinv_u(1,0) = (1.0/lambda[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
+
+    gm(0,0) = rhof[0] * Gravity(0,0);
+    gm(1,0) = rhof[0] * Gravity(1,0);
+    
+    REAL divu = 0.0;
+    TPZFMatrix<STATE> iphiuHdiv(2,1);
+    int ishapeindex;
+    int ivectorindex;
+    
+    /////////////////////////////////
+    // Last State n
+    if (fSimulationData->IsnStep()) {
+        
+        //  n state computations
+        for (int ip = 0; ip < nphiPL2; ip++)
+        {
+            ef(ip + iniP) += 1.0 * weight * (1.0/dt) * phi * rho[0]*  phiPL2(ip,0);
+        }
+        
+        return;
+    }
+    // Last State n
+    /////////////////////////////////
+    
+    
+    for (int iq = 0; iq < nphiuHdiv; iq++)
+    {
+        
+        /* $ \underset{\Omega_{e}}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega_{e}-\underset{\Omega_{e}}{\int}P\; div\left(\mathbf{v}\right)\partial\Omega-\underset{\Omega_{e}}{\int}\nabla\left(\rho_{f}g\; z\right)\cdot\mathbf{v} $ */
+        
+        ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
+        ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+        
+        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
+        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        
+        ef(iq + iniu) += weight * ((Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))
+                                   - P * DivergenceOnDeformed(iq,0)
+                                   - (gm(0,0)*iphiuHdiv(0,0) + gm(1,0)*iphiuHdiv(1,0)) );
+        
+    }
+    
+    TPZManVector<STATE,1> fvalue(1,0.0);
+    if(fForcingFunction)
+    {
+        fForcingFunction->Execute(datavec[Pblock].x,fvalue);
+    }
+    
+    
+    divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // Note::  uses this for constant jacobian elements
+    
+    /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
+    for (int ip = 0; ip < nphiPL2; ip++)
+    {
+        ef(ip + iniP) += weight * (- divu + fvalue[0] - (1.0/dt) * phi * rho[0]) * phiPL2(ip,0);
+        
+    }
+    
+    return;
     
 }
 
 
 void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+
     
+    // Full implicit case: there is no n state computations here
+    if (fSimulationData->IsnStep()) {
+        return;
+    }
+    
+    // At each Integration Point.
+    
+    int Qblock = 0;
+    int Pblock = 1;
+    
+    // Getting test and basis functions
+    TPZFNMatrix<9,STATE> PhiH1 = datavec[Qblock].phi; // For H1   test functions
+    TPZFNMatrix<9,STATE> WL2   = datavec[Pblock].phi; // For HL2  test functions
+    
+    TPZFMatrix<STATE> dPhiH1 = datavec[Qblock].dphix; // Derivative For H1   test functions
+    TPZFMatrix<STATE> dWL2   = datavec[Pblock].dphix; // Derivative For HL2  test functions
+    
+    // Getting Linear combinations of basis functions
+    TPZManVector<STATE> Q = datavec[Qblock].sol[0];
+    TPZManVector<STATE> P = datavec[Pblock].sol[0];
+    
+    // Computing normal flux
+    REAL Qn = Q[0];
+    
+    TPZFMatrix<STATE> dQdx = datavec[Qblock].dsol[0];
+    TPZFMatrix<STATE> dPdx = datavec[Pblock].dsol[0];
+    
+    // Number of phis
+    int nPhiHdiv = PhiH1.Rows();  // For Hdiv
+    int nPhiL2   = WL2.Rows();                                  // For L2
+    
+    TPZFMatrix<STATE> iPhiHdiv(2,1);
+    TPZFMatrix<STATE> jPhiHdiv(2,1);
+    
+    REAL Value;
+    switch (bc.Type()) {
+        case 0 :    // Dirichlet BC  PD inflow
+        {
+            
+            Value = bc.Val2()(0,0);         //  Pressure
+            for (int iq = 0; iq < nPhiHdiv; iq++)
+            {
+                ef(iq) += weight * ( (Value ) * PhiH1(iq,0));
+            }
+        }
+            break;
+            
+        case 1 :    // Neumann BC  QN inflow
+        {
+            
+            
+            Value = bc.Val2()(0,0);         //  NormalFlux
+            for (int iq = 0; iq < nPhiHdiv; iq++)
+            {
+                ef(iq) += weight * (gBigNumber * (Qn - Value)) * PhiH1(iq,0);
+                
+                for (int jq = 0; jq < nPhiHdiv; jq++)
+                {
+                    ek(iq,jq) += gBigNumber * weight * (PhiH1(jq,0)) * PhiH1(iq,0);
+                }
+                
+            }
+            
+        }
+            break;
+            
+        case 2 :    // Dirichlet BC  PD outflow
+        {
+            
+            Value = bc.Val2()(0,0);         //  Pressure
+            for (int iq = 0; iq < nPhiHdiv; iq++)
+            {
+                
+                ef(iq) += weight * ( (Value ) * PhiH1(iq,0));
+                
+            }
+        }
+            break;
+            
+        case 3 :    // Neumann BC  QN outflow
+        {
+            Value = bc.Val2()(0,0);         //  NormalFlux
+            
+            for (int iq = 0; iq < nPhiHdiv; iq++)
+            {
+                ef(iq) += weight * (gBigNumber * (Qn - Value) ) * PhiH1(iq,0);
+                
+                for (int jq = 0; jq < nPhiHdiv; jq++)
+                {
+                    ek(iq,jq) += gBigNumber * weight * (PhiH1(jq,0)) * PhiH1(iq,0);
+                }
+                
+            }
+            
+        }
+            break;
+            
+        default: std::cout << "This BC doesn't exist." << std::endl;
+        {
+            DebugStop();
+        }
+            break;
+    }
+    
+    return;
 }
 
 

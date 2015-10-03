@@ -21,16 +21,10 @@ class ReducedPVT
 private:
     
     /** @brief Temperature @ reservoir conditions  - F */
-    REAL fReservoirTemperature;
+    REAL fTRes;
     
-    /** @brief Characteristic Pressure - Pa */
+    /** @brief Pressure for references values - Pa */
     REAL fPRef;
-    
-    /** @brief Characteristic Density - kg/m3 */
-    REAL fRhoRef;
-    
-    /** @brief Characteristic viscosity - Pa s */
-    REAL fMuRef;
     
     /** @brief Density - kg/m3  $\rho_{g}$ */
     REAL fRho;
@@ -49,21 +43,53 @@ public:
     
     /** @brief Default desconstructor $ */
     ~ReducedPVT();
-
     
+    /** @brief Copy constructor $ */
+    ReducedPVT(const ReducedPVT& other)
+    {
+        fTRes       = other.fTRes;
+        fPRef       = other.fPRef;
+        fRho        = other.fRho;
+        fMu         = other.fMu;
+        fc          = other.fc;
+        
+    }
+    
+    /** @brief Copy assignemnt operator $ */
+    ReducedPVT& operator = (const ReducedPVT& other)
+    {
+        if (this != & other) // prevent self-assignment
+        {
+            
+            fTRes       = other.fTRes;
+            fPRef       = other.fPRef;
+            fRho        = other.fRho;
+            fMu         = other.fMu;
+            fc          = other.fc;
+            
+        }
+        return *this;
+    }
+
     /** @brief Density - kg/m3  $\rho$ */
-    virtual void Density(TPZVec<REAL> &rho, TPZVec<REAL> state_vars) = 0;
+    virtual void Density(TPZManVector<REAL> &rho, TPZManVector<REAL> state_vars) = 0;
     
     /** @brief viscosity - Pa s  $\mu$ */
-    virtual void Viscosity(TPZVec<REAL> &mu, TPZVec<REAL> state_vars) = 0;
+    virtual void Viscosity(TPZManVector<REAL> &mu, TPZManVector<REAL> state_vars) = 0;
     
     /** @brief Compressibility - 1/pa $c$ */
-    virtual void Compressibility(TPZVec<REAL> &c, TPZVec<REAL> state_vars) = 0;
-        
-    /** @brief Set Density - kg/m3  $\rho$ */
+    virtual void Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_vars) = 0;
+    
+    /** @brief Set Reservoir T - F  $T_{res}$ */
+    void SetTRes(REAL TRes){this->fTRes = TRes;}
+    
+    /** @brief Get Reservoir T - F  $T_{res}$ */
+    REAL GetTRes(){return this->fTRes ;}
+    
+    /** @brief Set Reference Pressure - Pa  $P_{ref}$ */
     void SetPRef(REAL PRef){this->fPRef = PRef;}
     
-    /** @brief Get Density - kg/m3  $\rho$ */
+    /** @brief Get Reference Pressure - Pa  $P_{ref}$ */
     REAL GetPRef(){return this->fPRef ;}
     
     /** @brief Set Density - kg/m3  $\rho$ */

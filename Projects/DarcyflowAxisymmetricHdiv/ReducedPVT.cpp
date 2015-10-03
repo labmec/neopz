@@ -13,16 +13,10 @@ ReducedPVT::ReducedPVT()
 {
     
     /** @brief Temperature @ reservoir conditions  - F */
-    fReservoirTemperature = 180.0;
+    fTRes = 180.0;
     
-    /** @brief Characteristic Pressure - Pa */
+    /** @brief Pressure for references values - Pa */
     fPRef = 1.0;
-    
-    /** @brief Characteristic Density - kg/m3 */
-    fRhoRef = 1.0;
-    
-    /** @brief Characteristic viscosity - Pa s */
-    fMuRef = 1.0;
     
     /** @brief Density - kg/m3  $\rho$ */
     fRho = 0.0;

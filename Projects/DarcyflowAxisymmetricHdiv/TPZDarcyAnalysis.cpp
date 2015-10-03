@@ -91,16 +91,19 @@ TPZDarcyAnalysis::~TPZDarcyAnalysis()
 
 void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<ReducedPVT> > PVTData){
     
-    if(fSimulationData->IsOnePhaseQ()){
-        
-        falpha_fluid = PVTData[0];
-        
-    }
+    falpha_fluid = PVTData[0];
+    fbeta_fluid = PVTData[1];
+    fgamma_fluid = PVTData[2];
+    
+    
+    
+//    if(fSimulationData->IsOnePhaseQ()){
+//        
+//        falpha_fluid = PVTData[0];
+//        
+//    }
     
     if(fSimulationData->IsTwoPhaseQ()){
-        
-        falpha_fluid = PVTData[0];
-        fbeta_fluid = PVTData[1];
         
         fmeshvecini.Resize(3);
         fmeshvec.Resize(3);
@@ -108,15 +111,11 @@ void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<ReducedPVT> > PVTData
     }
     
     if(fSimulationData->IsThreePhaseQ()){
-        
-        falpha_fluid = PVTData[0];
-        fbeta_fluid = PVTData[1];
-        fgamma_fluid = PVTData[2];
-        
+
         fmeshvecini.Resize(4);
         fmeshvec.Resize(4);
         
-    }
+    }    
     
 }
 
@@ -180,7 +179,7 @@ void TPZDarcyAnalysis::AssembleResNextStep(TPZAnalysis *an)
     fcmesh->LoadSolution(falphaAtnplusOne);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmesh);
     SetNextState();
-    an->Assemble();
+    an->AssembleResidual();
     fResidualAtnplusOne = an->Rhs();
     
 //#ifdef DEBUG
@@ -241,20 +240,26 @@ void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &
 void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 {
 
-    TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
-    TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
-    TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
-    SolveProjection(L2Analysis,L2Sw);
-    
-    fmeshvec[2]->LoadSolution(L2Analysis->Solution());
-    TPZFMatrix<REAL> Soini = L2Analysis->Solution();
-    int SoDOF = Soini.Rows();
-    for (int iso = 0; iso < SoDOF; iso++)
-    {
-        Soini(iso,0) = 1.0 - Soini(iso,0);
+    if (fSimulationData->IsTwoPhaseQ()) {
+        TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
+        TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
+        TPZAnalysis * L2Analysis = new TPZAnalysis(L2Sw,false);
+        SolveProjection(L2Analysis,L2Sw);
+        fmeshvec[2]->LoadSolution(L2Analysis->Solution());
     }
     
-    fmeshvec[3]->LoadSolution(Soini);
+
+    if (fSimulationData->IsThreePhaseQ()) {
+        TPZFMatrix<REAL> Soini = fmeshvec[2]->Solution();
+        int SoDOF = Soini.Rows();
+        for (int iso = 0; iso < SoDOF; iso++)
+        {
+            Soini(iso,0) = 1.0 - Soini(iso,0);
+        }
+        fmeshvec[3]->LoadSolution(Soini);
+    }
+
+    
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshinitialdarcy);
     
     falphaAtn = fcmeshinitialdarcy->Solution();
@@ -371,7 +376,7 @@ void TPZDarcyAnalysis::Run()
 //    this->CheckGlobalConvergence(an);
     this->TimeForward(an);
 
-    
+    return;
 }
 
 TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
@@ -464,6 +469,10 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
 
 void TPZDarcyAnalysis::CreateInterfaces()
 {
+    if (fSimulationData->IsOnePhaseQ()) {
+        return;
+    }
+    
     fgmesh->ResetReference();
     fcmeshinitialdarcy->LoadReferences();
     
@@ -709,8 +718,8 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     TPZFMatrix<STATE> X = falphaAtn;
     TPZFMatrix<STATE> DeltaX = falphaAtn;
     
-    STATE error     =   1.0;//Norm(Residual);
-    STATE normdx    =   1;
+    STATE error     =   1.0;
+    STATE normdx    =   1.0;
     int iterations  =   0;
     int centinel    =   0;
     int fixed       =   fSimulationData->GetFixediterations();
@@ -721,7 +730,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     an->Rhs() = Residual;
     an->Rhs() *= -1.0;
     
-    this->PrintLS(an);
+//    this->PrintLS(an);
         
     an->Solve();
     
@@ -740,7 +749,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     
         if (((fixed+1) * (centinel) == iterations)) { 
             
-        this->AssembleNextStep(an);
+            this->AssembleNextStep(an);
             centinel++;
         }
         else{
@@ -1022,6 +1031,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
     mat->SetFluidAlpha(falpha_fluid);
     mat->SetFluidBeta(fbeta_fluid);
     mat->SetFluidGamma(fgamma_fluid);
+    int nvars = 2 + fSimulationData->GetsystemType().size() - 1;
+    mat->SetNvars(nvars);
     cmesh->InsertMaterialObject(mat);
     
     
@@ -1109,6 +1120,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetFluidAlpha(falpha_fluid);
     mat->SetFluidBeta(fbeta_fluid);
     mat->SetFluidGamma(fgamma_fluid);
+    int nvars = 2 + fSimulationData->GetsystemType().size() - 1;
+    mat->SetNvars(nvars);
     cmesh->InsertMaterialObject(mat);
     
     
@@ -1887,13 +1900,13 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     }
     
     scalnames.Push("WeightedPressure");
-    scalnames.Push("WaterSaturation");
-    scalnames.Push("OilSaturation");
-     scalnames.Push("WaterDensity");
-     scalnames.Push("OilDensity");
-     scalnames.Push("Porosity");
-    scalnames.Push("ExactP");
-    scalnames.Push("Frhs");
+//    scalnames.Push("WaterSaturation");
+//    scalnames.Push("OilSaturation");
+//     scalnames.Push("WaterDensity");
+//     scalnames.Push("OilDensity");
+//     scalnames.Push("Porosity");
+//    scalnames.Push("ExactP");
+//    scalnames.Push("Frhs");
 //     scalnames.Push("DivOfBulkVeclocity");
 //    scalnames.Push("ExactSaturation");
     vecnames.Push("BulkVelocity");

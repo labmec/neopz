@@ -38,6 +38,7 @@ private:
     TPZAutoPointer<ReducedPVT> fluid_gamma;
     
     // State variables used for weighted fluid blackoil formulation
+    int fnstate_vars;
     
     TPZManVector<REAL,3> fBulkVelocity;
     REAL fAveragePressure;
@@ -266,65 +267,90 @@ public:
     
     
     /**
-     * Set the simulation data,
+     * Set the simulation data
      */
     void SetSimulationData(TPZAutoPointer<SimulationData> simulationdata){fSimulationData = simulationdata;}
     
     /**
-     * Get the simulation data,
+     * Get the simulation data
      */
     TPZAutoPointer<SimulationData> GetSimulationData() {return fSimulationData;}
     
     /**
-     * Set the simulation data,
+     * Set the simulation data
      */
     void SetReservoirData(TPZAutoPointer<ReservoirData> ResData){fReservoirdata = ResData;}
     
     /**
-     * Get the simulation data,
+     * Get the simulation data
      */
     TPZAutoPointer<ReservoirData> GetReservoirData() {return fReservoirdata;}
     
     /**
-     * Set the simulation data,
+     * Set the simulation data
      */
     void SetPetroPhysicsData(TPZAutoPointer<PetroPhysicData> Petrophysicdata){fPetrophysicdata = Petrophysicdata;}
     
     /**
-     * Get the simulation data,
+     * Get the simulation data
      */
     TPZAutoPointer<PetroPhysicData> SetPetroPhysicsData() {return fPetrophysicdata;}
     
     /**
-     * Set fluid alpha data,
+     * Set fluid alpha data
      */
     void SetFluidAlpha(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fluid_alpha = Fluidmodeldata;}
     
     /**
-     * Get fluid alpha data,
+     * Get fluid alpha data
      */
     TPZAutoPointer<ReducedPVT> GetFluidAlpha() {return fluid_alpha;}
     
     /**
-     * Set fluid beta data,
+     * Set fluid beta data
      */
     void SetFluidBeta(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fluid_beta = Fluidmodeldata;}
     
     /**
-     * Get fluid beta data,
+     * Get fluid beta data
      */
     TPZAutoPointer<ReducedPVT> GetFluidBeta() {return fluid_beta;}
     
     /**
-     * Set fluid gamma data,
+     * Set fluid gamma data
      */
     void SetFluidGamma(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fluid_gamma = Fluidmodeldata;}
     
     /**
-     * Get fluid gamma data,
+     * Get fluid gamma data
      */
     TPZAutoPointer<ReducedPVT> GetFluidGamma() {return fluid_gamma;}
     
+    /**
+     * Set state vars.
+     */
+    void SetNvars(int nvars){fnstate_vars = nvars;}
+    
+    /**
+     * Get state vars.
+     */
+    int GetNvars() {return fnstate_vars;}
+    
+    
+    /**
+     * Compute Lambda coefficient
+     */
+    void ComputeLambda(TPZManVector<REAL> &lambda,TPZManVector<REAL> state_vars);
+    
+    /**
+     * Compute Rho coefficient
+     */
+    void ComputeRho(TPZManVector<REAL> &rho,TPZManVector<REAL> state_vars);
+    
+    /**
+     * Compute Rhof coefficient
+     */
+    void ComputeRhof(TPZManVector<REAL> &rhof,TPZManVector<REAL> state_vars);
     
     // Axuliar methods computed based on the current u, p, Sw and So values.
     
