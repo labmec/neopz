@@ -263,6 +263,9 @@ void NonlinearTracerDimensionless()
     Gas->SetPRef(pressureref);
     
     
+//    TPZAutoPointer<ReducedPVT> alphaFluid = Oil;
+    
+    
     // Creating the analysis
     
     TPZVec<TPZAutoPointer<ReservoirData> > Layers;

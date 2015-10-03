@@ -49,57 +49,40 @@ public:
     
     /** @brief Default desconstructor $ */
     ~ReducedPVT();
-    
-    /** @brief Set the temperature @ reservoir conditions  - F */
-    virtual void SetResT(REAL ResT);
-    
-    /** @brief Get the temperature @ reservoir conditions  - F */
-    virtual REAL ResT();
-    
-    /** @brief Set the characteristic Pressure - Pa */
-    virtual void SetPRef(REAL Pref);
-    
-    /** @brief Characteristic Pressure - Pa */
-    virtual REAL PRef();
-    
-    /** @brief Set the characteristic Density - kg/m3 */
-    virtual void RhoRef(REAL Rhoref);
-    
-    /** @brief Characteristic Density - kg/m3 */
-    virtual REAL RhoRef();
-    
-    /** @brief Set the characteristic viscosity - Pa s */
-    virtual void SetMuRef(REAL Muref);
-    
-    /** @brief Characteristic viscosity - Pa s */
-    virtual REAL MuRef();
+
     
     /** @brief Density - kg/m3  $\rho$ */
-    virtual void Density(TPZVec<REAL> &rho, TPZVec<REAL> state_vars);
+    virtual void Density(TPZVec<REAL> &rho, TPZVec<REAL> state_vars) = 0;
     
     /** @brief viscosity - Pa s  $\mu$ */
-    virtual void Viscosity(TPZVec<REAL> &mu, TPZVec<REAL> state_vars);
+    virtual void Viscosity(TPZVec<REAL> &mu, TPZVec<REAL> state_vars) = 0;
     
     /** @brief Compressibility - 1/pa $c$ */
-    virtual void Compressibility(TPZVec<REAL> &c, TPZVec<REAL> state_vars);
-    
+    virtual void Compressibility(TPZVec<REAL> &c, TPZVec<REAL> state_vars) = 0;
+        
     /** @brief Set Density - kg/m3  $\rho$ */
-    virtual void SetRho(REAL Rho){this->fRho = Rho;}
+    void SetPRef(REAL PRef){this->fPRef = PRef;}
     
     /** @brief Get Density - kg/m3  $\rho$ */
-    virtual REAL GetRho(){return this->fRho ;}
+    REAL GetPRef(){return this->fPRef ;}
+    
+    /** @brief Set Density - kg/m3  $\rho$ */
+    void SetRho(REAL Rho){this->fRho = Rho;}
+    
+    /** @brief Get Density - kg/m3  $\rho$ */
+    REAL GetRho(){return this->fRho ;}
     
     /** @brief Set viscosity - pa s  $\mu$ */
-    virtual void SetMu(REAL Mu){this->fMu = Mu;}
+    void SetMu(REAL Mu){this->fMu = Mu;}
     
     /** @brief Get viscosity - pa s  $\mu$ */
-    virtual REAL GetMu(){return this->fMu ;}
+    REAL GetMu(){return this->fMu ;}
     
     /** @brief Set Compressibility - 1/pa   $C$ */
-    virtual void Setc(REAL c){this->fc = c;}
+    void Setc(REAL c){this->fc = c;}
     
     /** @brief Get Compressibility - 1/pa   $C_$ */
-    virtual REAL Getc(){return this->fc ;}
+    REAL Getc(){return this->fc ;}
     
 };
 
