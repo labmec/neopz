@@ -139,13 +139,13 @@ int main()
     TPZFMatrix<int> numhref(maxhref,maxp-2);
     int nelx = 1;
     int nely = 1;
-    bool zigzag = false;
+    bool zigzag = true;
     
     for(int p = 2; p<maxp; p++)
     {
         int pq = p;
         int pp = p;
-        int order_reduce = 1;
+        int order_reduce = 0;
         
         //refinamentos h adptativos
         for(int nref = 0; nref<maxhref; nref++){
@@ -181,7 +181,7 @@ int main()
                     cmesh1->Print(filemesh2);
                 }
                 
-                ChangeSideConnectOrderConnects(cmesh1,pq-order_reduce);
+//                ChangeSideConnectOrderConnects(cmesh1,pq-order_reduce);
                 
                 {
                     ofstream filemesh2("../MalhaFlux.txt");
@@ -279,7 +279,7 @@ int main()
             }
         }
     }
-    std::ofstream errtable("../ErrorTable.txt");
+    std::ofstream errtable("../ErrorTable2D.txt");
     L2Errors.Print("L2Err = ",errtable);
     HDivErrors.Print("HDivErr = ",errtable);
     porders.Print("porder = ",errtable);
