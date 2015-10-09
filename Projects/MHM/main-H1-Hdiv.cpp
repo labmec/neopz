@@ -117,7 +117,7 @@ bool fmetodomisto;
 bool fsolsuave;
 int main()
 {
-    HDivPiola = 0;
+    HDivPiola = 1;
     InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
@@ -133,7 +133,7 @@ int main()
 
     
     int maxp = 3;
-    int maxhref = 6;
+    int maxhref = 4;
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1);
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1);
     TPZFMatrix<STATE> L2ErrorDivDual(maxhref,maxp-1);
@@ -304,6 +304,7 @@ int main()
     porders.Print("porder = ",errtable);
     numhref.Print("numhref = ",errtable);
 
+    std::cout << "Finished." << std::endl;
     return EXIT_SUCCESS;
 }
 
@@ -331,7 +332,7 @@ TPZGeoMesh *MalhaGeom(int nelx, int nely, REAL Lx, REAL Ly,bool ftriang, bool zi
         gengrid.SetElementType(ETriangle);
     }
     if (zigzag) {
-        gengrid.SetDistortion(0.3);
+       gengrid.SetDistortion(0.3);
 //        gengrid.SetZigZagPattern();
     }
     gengrid.Read(gmesh);
@@ -351,6 +352,30 @@ TPZGeoMesh *MalhaGeom(int nelx, int nely, REAL Lx, REAL Ly,bool ftriang, bool zi
     x1[1] = 0.;
     gengrid.SetBC(gmesh, x0, x1, bc3);
     
+    
+//    REAL theta = 0.0;
+//    // It represents a 3D rotation around the z axis.
+//    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+//    RotationMatrix(0,0) =   +cos(theta);
+//    RotationMatrix(0,1) =   -sin(theta);
+//    RotationMatrix(1,0) =   +sin(theta);
+//    RotationMatrix(1,1) =   +cos(theta);
+//    RotationMatrix(2,2) = 1.0;
+//    TPZVec<STATE> iCoords(3,0.0);
+//    TPZVec<STATE> iCoordsRotated(3,0.0);
+//    
+//    int NumberofGeoNodes = gmesh->NNodes();
+//    for (int inode = 0; inode < NumberofGeoNodes; inode++)
+//    {
+//        TPZGeoNode GeoNode = gmesh->NodeVec()[inode];
+//        GeoNode.GetCoordinates(iCoords);
+//        // Apply rotation
+//        iCoordsRotated[0] = RotationMatrix(0,0)*iCoords[0]+RotationMatrix(0,1)*iCoords[1]+RotationMatrix(0,2)*iCoords[2];
+//        iCoordsRotated[1] = RotationMatrix(1,0)*iCoords[0]+RotationMatrix(1,1)*iCoords[1]+RotationMatrix(1,2)*iCoords[2];
+//        iCoordsRotated[2] = RotationMatrix(2,0)*iCoords[0]+RotationMatrix(2,1)*iCoords[1]+RotationMatrix(2,2)*iCoords[2];
+//        GeoNode.SetCoord(iCoordsRotated);
+//        gmesh->NodeVec()[inode] = GeoNode;
+//    }
     
 /*
     int Qnodes = 4;
@@ -1086,13 +1111,13 @@ void SolProblema(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &fl
     flux(0,0)=0.;
     flux(1,0)=0.;
     flux(2,0)=0.;
-    
+    REAL alpha = M_PI;
     if(fsolsuave)
     {
-        p[0] = sin(M_PI*x)*sin(M_PI*y);
-        flux(0,0) = M_PI*cos(M_PI*x)*sin(M_PI*y);
-        flux(1,0) = M_PI*cos(M_PI*y)*sin(M_PI*x);
-        flux(2,0) = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y); //valor do divergente
+        p[0] = sin(alpha*x)*sin(alpha*y);
+        flux(0,0) = alpha*cos(alpha*x)*sin(alpha*y);
+        flux(1,0) =alpha*cos(alpha*y)*sin(alpha*x);
+        flux(2,0) = 2.*alpha*alpha*sin(alpha*x)*sin(alpha*y); //valor do divergente
     }
     else
     {
@@ -1123,13 +1148,35 @@ void SolProblema(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &fl
 
 void ForcingTang2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
+    
+    
+//    REAL theta = 0.0;
+//    // It represents a 3D rotation around the z axis.
+//    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+//    RotationMatrix(0,0) =   +cos(theta);
+//    RotationMatrix(0,1) =   -sin(theta);
+//    RotationMatrix(1,0) =   +sin(theta);
+//    RotationMatrix(1,1) =   +cos(theta);
+//    RotationMatrix(2,2) = 1.0;
+//    TPZVec<STATE> iCoords(3,0.0);
+//    TPZVec<STATE> iCoordsRotated(3,0.0);
+//    
+//    // Apply rotation
+//    iCoordsRotated[0] = RotationMatrix(0,0)*pt[0]+RotationMatrix(0,1)*pt[1]+RotationMatrix(0,2)*pt[2];
+//    iCoordsRotated[1] = RotationMatrix(1,0)*pt[0]+RotationMatrix(1,1)*pt[1]+RotationMatrix(1,2)*pt[2];
+//    iCoordsRotated[2] = RotationMatrix(2,0)*pt[0]+RotationMatrix(2,1)*pt[1]+RotationMatrix(2,2)*pt[2];
+    
+    
     double x = pt[0];
     double y = pt[1];
+    double z = pt[2];
+    
     disp[0] = 0.;
     
+    REAL alpha = M_PI;
     if(fsolsuave)
     {
-        disp[0] = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
+        disp[0] = 2.*alpha*alpha*sin(alpha*x)*sin(alpha*y);
     }
     else
     {
@@ -1146,9 +1193,10 @@ void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &d
     double y = pt[1];
     res[0] = 0.;
     
+     REAL pi = M_PI;
     if(fsolsuave)
     {
-        res[0] = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
+        res[0] = 2.*pi*pi*sin(pi*x)*sin(pi*y);
     }
     else
     {

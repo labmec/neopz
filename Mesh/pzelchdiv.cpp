@@ -1032,6 +1032,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
         data.dsol[is].Zero();
     }
     
+    TPZFMatrix<STATE> GradOfPhiHdiv(dim,dim);
+    GradOfPhiHdiv.Zero();
+    
     TPZBlock<STATE> &block =this->Mesh()->Block();
 	int iv = 0,ishape=0,ivec=0,cols,jv=0;
     for(int in=0; in<ncon; in++) 
@@ -1053,32 +1056,79 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 			TPZFNMatrix<3> axesvec(3,1);
 			data.axes.Multiply(ivecDiv,axesvec);
 
-            //  Compute grad(PhiH1)
-			TPZFNMatrix<3> GradofPhiH1(dim,1);
-            TPZFMatrix<STATE> NormalVectorTensorProGradofiPhiH1(dim,dim);
-            GradofPhiH1.Zero();
-            NormalVectorTensorProGradofiPhiH1.Zero();
+            if (HDivPiola) {
+                
+                // Using Contravariant Piola mapping preserves the divergence
+                
+                TPZFMatrix<REAL> GradOfX;
+                TPZFMatrix<REAL> GradOfXInverse;
+                TPZFMatrix<REAL> Qaxes = data.axes;
+                TPZFMatrix<REAL> QaxesT;
+                TPZFMatrix<REAL> Jacobian = data.jacobian;
+                TPZFMatrix<REAL> JacobianInverse = data.jacinv;
+                
+                Qaxes.Transpose(&QaxesT);
+                QaxesT.Multiply(data.jacobian, GradOfX);
+                JacobianInverse.Multiply(Qaxes, GradOfXInverse);
+                
+                TPZFMatrix<REAL> VectorOnMaster;
+                TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
+                
+                VectorOnXYZ(0,0) = data.fNormalVec(0,ivec);
+                VectorOnXYZ(1,0) = data.fNormalVec(1,ivec);
+                VectorOnXYZ(2,0) = data.fNormalVec(2,ivec);
+                
+                GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
+                VectorOnMaster *= data.detjac;
+                
+                TPZFNMatrix<3> GradofPhi(dim,1);
+                GradofPhi.Zero();
+                
+                //  Compute grad_{hat}(PhiHdiv) = V (outerTimes) grad(PhiH1) Note: On Master element a constant vector basis is defined.
+                
+                for (int ir = 0; ir < VectorOnMaster.Rows(); ir++) {
+                    
+                    //  Compute grad_{hat}(PhiH1)
+                    GradofPhi(ir,0) = data.dphi(ir,ishape);
+                    
+                    GradOfPhiHdiv(ir,0) = VectorOnMaster(ir,0)*GradofPhi(0,0);
+                    GradOfPhiHdiv(ir,1) = VectorOnMaster(ir,0)*GradofPhi(1,0);
+                    GradOfPhiHdiv(ir,2) = VectorOnMaster(ir,0)*GradofPhi(2,0);
+                    
+                }
             
-            for (int iaxes=0; iaxes<data.axes.Rows(); iaxes++)
-            {
-                GradofPhiH1(0,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,0);
-                GradofPhiH1(1,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,1);
-                GradofPhiH1(2,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,2);
+                GradOfPhiHdiv *= (1.0/data.detjac);
+                
             }
+            else{
+                // Using Normalized Piola
+            
+                //  Compute grad(PhiH1) on XYZ
+                TPZFNMatrix<3> GradOfPhiH1(dim,1);
+                GradOfPhiH1.Zero();
+                
+                for (int iaxes=0; iaxes<data.axes.Rows(); iaxes++)
+                {
+                    GradOfPhiH1(0,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,0);
+                    GradOfPhiH1(1,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,1);
+                    GradOfPhiH1(2,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,2);
+                }
 
-            
-            //  Compute grad(PhiHdiv) = V (outerTimes) grad(PhiH1) Note: Assume Constant vector basis V
-            NormalVectorTensorProGradofiPhiH1(0,0) = data.fNormalVec(0,ivec)*GradofPhiH1(0,0);
-            NormalVectorTensorProGradofiPhiH1(0,1) = data.fNormalVec(0,ivec)*GradofPhiH1(1,0);
-            NormalVectorTensorProGradofiPhiH1(0,2) = data.fNormalVec(0,ivec)*GradofPhiH1(2,0);
-            
-            NormalVectorTensorProGradofiPhiH1(1,0) = data.fNormalVec(1,ivec)*GradofPhiH1(0,0);
-            NormalVectorTensorProGradofiPhiH1(1,1) = data.fNormalVec(1,ivec)*GradofPhiH1(1,0);
-            NormalVectorTensorProGradofiPhiH1(1,2) = data.fNormalVec(1,ivec)*GradofPhiH1(2,0);
-            
-            NormalVectorTensorProGradofiPhiH1(2,0) = data.fNormalVec(2,ivec)*GradofPhiH1(0,0);
-            NormalVectorTensorProGradofiPhiH1(2,1) = data.fNormalVec(2,ivec)*GradofPhiH1(1,0);
-            NormalVectorTensorProGradofiPhiH1(2,2) = data.fNormalVec(2,ivec)*GradofPhiH1(2,0);
+                
+                //  Compute grad(PhiHdiv) = V (outerTimes) grad(PhiH1) Note: This construction needs constant vector basis V on deformed domain
+                GradOfPhiHdiv(0,0) = data.fNormalVec(0,ivec)*GradOfPhiH1(0,0);
+                GradOfPhiHdiv(0,1) = data.fNormalVec(0,ivec)*GradOfPhiH1(1,0);
+                GradOfPhiHdiv(0,2) = data.fNormalVec(0,ivec)*GradOfPhiH1(2,0);
+                
+                GradOfPhiHdiv(1,0) = data.fNormalVec(1,ivec)*GradOfPhiH1(0,0);
+                GradOfPhiHdiv(1,1) = data.fNormalVec(1,ivec)*GradOfPhiH1(1,0);
+                GradOfPhiHdiv(1,2) = data.fNormalVec(1,ivec)*GradOfPhiH1(2,0);
+                
+                GradOfPhiHdiv(2,0) = data.fNormalVec(2,ivec)*GradOfPhiH1(0,0);
+                GradOfPhiHdiv(2,1) = data.fNormalVec(2,ivec)*GradOfPhiH1(1,0);
+                GradOfPhiHdiv(2,2) = data.fNormalVec(2,ivec)*GradOfPhiH1(2,0);
+                
+            }
             
             for (long is=0; is<numbersol; is++)
             {
@@ -1086,7 +1136,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                 for (int ilinha=0; ilinha<dim; ilinha++) {
                     data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
                     for (int kdim = 0 ; kdim < dim; kdim++) {
-                        data.dsol[is](ilinha,kdim)+=(STATE) MeshSol(pos+jn,is) * NormalVectorTensorProGradofiPhiH1(ilinha,kdim);
+                        data.dsol[is](ilinha,kdim)+=(STATE) MeshSol(pos+jn,is) * GradOfPhiHdiv(ilinha,kdim);
                     }
                 }
             }
