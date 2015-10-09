@@ -928,7 +928,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
          */
         TPZManVector<REAL,3> NormalScales(3,1.);
         
-        if (HDivPiola)
+        if (HDivPiola == 1)
         {
             NormalScales[0] = 2./Nv1;
             NormalScales[1] = 2./Nvdiag;

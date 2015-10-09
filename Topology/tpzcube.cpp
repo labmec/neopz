@@ -1212,7 +1212,7 @@ namespace pztopology {
          */
         TPZManVector<REAL,3> NormalScales(3,1.);
         
-        if (HDivPiola)
+        if (HDivPiola == 1)
         {
             for (int i=0; i<3; i++) {
                 v1[i] *= 1./detgrad;

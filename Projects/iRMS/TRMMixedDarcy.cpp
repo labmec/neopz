@@ -150,7 +150,7 @@ void TRMMixedDarcy::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
     int ivectorindex = 0;
     int ishapeindex = 0;
     
-    if (HDivPiola)
+    if (HDivPiola == 1)
     {
         for (int iq = 0; iq < nphiuHdiv; iq++)
         {

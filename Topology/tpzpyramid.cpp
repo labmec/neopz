@@ -1302,7 +1302,7 @@ namespace pztopology {
          */
         TPZManVector<REAL,3> NormalScales(3,1.);
         
-        if (!HDivPiola)
+        if (HDivPiola != 1)
         {
             std::cout << "Pyramid space not complete. Calling debugstop(). " << std::endl;
             DebugStop();

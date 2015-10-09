@@ -1430,6 +1430,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	TPZManVector<REAL,3> dir(3,0.);
     
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
         std::stringstream sout;
         sout<< "Centro de LC "<<XLC<< " Centro de LS "<<XLS<<std::endl;
@@ -1450,6 +1451,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	LS.Jacobian(LSCenter,jacobian,axes,detjac,jacinv);
     
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
         std::stringstream sout;
         sout<< "vetor axes "<<axes<<std::endl;
@@ -1472,7 +1474,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
     
     
 #ifdef LOG4CXX
-    
+    if(logger->isDebugEnabled())
 	{
         std::stringstream sout;
 		sout << "axtrans = ";
@@ -1488,7 +1490,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
     
     
 #ifdef LOG4CXX
-    
+    if(logger->isDebugEnabled())
 	{
         std::stringstream sout;
 		sout << "Vetr Apos GramSchmidt = ";
@@ -1511,6 +1513,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
 {
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
         std::stringstream sout;
         sout<< "Normalize..u.n=1 "<<std::endl;
@@ -1605,11 +1608,12 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &
 			for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
 		}
 		TPZManVector<int,9> sidepermutationgather(nlowdim);
-		HDivPermutation(is,sidepermutationgather);
+//		HDivPermutation(is,sidepermutationgather);
+        for(int i=0; i< nlowdim; i++) sidepermutationgather[i] = i;
 		TPZFNMatrix<12> sidenormals(3,nlowdim);
 		TPZManVector<int> localvecsides(nlowdim);
 		// compute whether the side is from this element to the next or contrary
-		int sideorient = NormalOrientation(side);
+        int sideorient = 1;//NormalOrientation(side);
 		int i;
 		for(i=0; i<nlowdim; i++)
 		{

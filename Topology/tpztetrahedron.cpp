@@ -1080,7 +1080,7 @@ namespace pztopology {
         REAL Nv3v1 = 1.0;
         REAL Nvivdiagb = 1.0;
 
-        if (HDivPiola) {
+        if (HDivPiola == 1) {
             // the above constants are wrong
             for (int i=0; i<3; i++) {
                 v1[i] /= detgrad;

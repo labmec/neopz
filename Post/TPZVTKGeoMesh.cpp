@@ -759,7 +759,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<TPZ
 }
 
 // Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, int var)
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, const char *filename, int var)
 {
 	std::ofstream file(filename);
 #ifdef DEBUG
@@ -796,7 +796,10 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, int var)
 		//			continue;
         if(!gel) continue;
 		cel = gel->Reference();
-		if(!cel) continue;
+//		if(!cel) continue;
+        if (gel->HasSubElement()) {
+            continue;
+        }
 		if(gel->Type() == EOned && !gel->IsLinearMapping())//Exclude Arc3D and Ellipse3D
 			continue;
 		
@@ -818,10 +821,11 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, int var)
 		type << elType << std::endl;
 		
 		// calculando o valor da solucao para o elemento
-		cel->Solution(qsi,var,sol);
-		if(sol.NElements()) material << sol[0] << std::endl;
-		else material << 0.0 << std::endl;
-		
+//		cel->Solution(qsi,var,sol);
+//		if(sol.NElements()) material << sol[0] << std::endl;
+//		else material << 0.0 << std::endl;
+        material << gel->MaterialId() << std::endl;
+        
 		nVALIDelements++;
 	}
 	
