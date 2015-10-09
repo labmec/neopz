@@ -138,6 +138,7 @@ public:
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
+     * This method use normalized piola contravariant mapping for nonlinear mappings. With second integration by parts
      * @param datavec [in] stores all input data
      * @param weight [in] is the weight of the integration rule
      * @param ek [out] is the stiffness matrix
@@ -145,6 +146,9 @@ public:
      * @since June 2, 2014
      */
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
+    ///This method use piola contravariant mapping for nonlinear mappings
+    void ContributeWithoutSecondIntegration(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.

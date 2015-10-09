@@ -705,7 +705,7 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 	}
     if(du_exact.Rows()>fDim){
         //values[2] : divergence using L2 norm
-        REAL diffDiv = abs(div[0] - du_exact(2,0));
+        REAL diffDiv = abs(div[0] - du_exact(fDim,0));
         values[2]=diffDiv*diffDiv;
         //values[3] : Hdiv norm => values[1]+values[2];
         values[3]= values[1]+values[2];

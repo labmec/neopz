@@ -1009,7 +1009,7 @@ namespace pztopology {
          */
         TPZManVector<REAL,3> NormalScales(2,1.);
         
-        if (HDivPiola)
+        if (HDivPiola == 1)
         {
             NormalScales[0] = 1./Nv1;
             NormalScales[1] = 1./Nv2;

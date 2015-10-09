@@ -55,6 +55,18 @@ public:
         fZigZag = true;
     }
     
+    void SetDistortion(REAL distortion)
+    {
+        if (distortion) {
+            fTrapeze = true;
+            fDistortion = distortion;
+        }
+        else
+        {
+            fTrapeze = false;
+            fDistortion = 0.;
+        }
+    }
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
@@ -253,6 +265,9 @@ protected:
     
     /** @brief variable to generate a zigzag grid */
     bool fZigZag;
+    
+    bool fTrapeze;
+    REAL fDistortion;
 	
 };
 

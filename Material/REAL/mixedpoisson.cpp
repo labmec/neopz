@@ -581,6 +581,8 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
     
     if(!strcmp("POrder",name.c_str()))        return  8;
     if(!strcmp("GradPressure",name.c_str()))        return  9;
+    if(!strcmp("Divergence",name.c_str()))      return  10;
+    if(!strcmp("ExactDiv",name.c_str()))        return  11;
 	
 	return TPZMaterial::VariableIndex(name);
 }
@@ -594,6 +596,7 @@ int TPZMixedPoisson::NSolutionVariables(int var){
     if(var == 6) return 1;
     if(var == 7) return fDim;
     if(var == 9) return fDim;
+    if(var == 10 || var == 11) return 1;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -638,7 +641,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     TPZVec<REAL> ptx(3);
 	TPZVec<STATE> solExata(1);
-	TPZFMatrix<STATE> flux(2,1);
+	TPZFMatrix<STATE> flux(fDim+1,1);
     
     //Exact soluion
 	if(var == 6){
@@ -670,6 +673,16 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         return;
     }
     
+    if(var==10){
+        Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
+        return;
+    }
+    
+    if(var==11){
+        fForcingFunctionExact->Execute(datavec[0].x,solExata,flux);
+        Solout[0]=flux(2,0);
+        return;
+    }
 }
 
 

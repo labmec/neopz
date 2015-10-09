@@ -605,7 +605,7 @@ void TPZGenGrid::ElementConnectivityZigZag(long i, TPZVec<long> &rectangle_nodes
         rectangle_nodes[0] = GlobalI(0,yel,layer);
         rectangle_nodes[2] = GlobalI(0+1,yel+1,layer);
         rectangle_nodes[1] = GlobalI(0,yel+1,layer);
-        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
+//        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
     }
     else if (xel == fNx[0] && yel%2 == 0)
     {
@@ -614,7 +614,7 @@ void TPZGenGrid::ElementConnectivityZigZag(long i, TPZVec<long> &rectangle_nodes
         rectangle_nodes[0] = GlobalI(xel,yel,layer);
         rectangle_nodes[1] = GlobalI(xel+1,yel,layer);
         rectangle_nodes[2] = GlobalI(xel+1,yel+1,layer);
-        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
+//        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
     }
     else if(xel == fNx[0]-1 && yel%2 == 1)
     {
@@ -622,7 +622,7 @@ void TPZGenGrid::ElementConnectivityZigZag(long i, TPZVec<long> &rectangle_nodes
         rectangle_nodes[0] = GlobalI(0,yel,layer);
         rectangle_nodes[1] = GlobalI(0+1,yel,layer);
         rectangle_nodes[2] = GlobalI(0,yel+1,layer);
-        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
+//        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
     }
     else if (xel == fNx[0] && yel%2 == 1)
     {
@@ -631,7 +631,7 @@ void TPZGenGrid::ElementConnectivityZigZag(long i, TPZVec<long> &rectangle_nodes
         rectangle_nodes[0] = GlobalI(xel+1,yel,layer);
         rectangle_nodes[1] = GlobalI(xel+1,yel+1,layer);
         rectangle_nodes[2] = GlobalI(xel,yel+1,layer);
-        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
+//        std::cout << "yel = " << yel << " nodes " << rectangle_nodes << std::endl;
     }
 }
 

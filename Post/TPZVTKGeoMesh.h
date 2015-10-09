@@ -58,7 +58,7 @@ public:
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, char *filename, TPZVec<TPZVec<REAL> > &elData);
     
 	/** @brief Generate an output of all geomesh to VTK, associating to each one the given data. Print the values of the variable var */
-	static void PrintGMeshVTK(TPZGeoMesh *gmesh, char *filename, int var);
+	static void PrintGMeshVTK(TPZGeoMesh *gmesh, const char *filename, int var);
 	
 	/** @brief Based on a given geomesh, just the elements that have an neighbour with a given material id will be exported to an VTK file */
 	static void PrintGMeshVTKneighbour_material(TPZGeoMesh *gmesh, std::ofstream &file, int neighMaterial, bool matColor = false);
