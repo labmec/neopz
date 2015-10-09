@@ -239,7 +239,7 @@ int mainMHM(int argc, char *argv[])
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
-    
+
     
     TPZAutoPointer<TPZGeoMesh> gmesh;
     if(problemasuave || problemaarctan){

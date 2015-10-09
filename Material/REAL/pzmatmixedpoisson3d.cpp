@@ -112,8 +112,14 @@ void TPZMatMixedPoisson3D::Print(std::ostream &out) {
 
 // Contribute methods
 // esse metodo esta ok
+//This method use normalized piola contravariant mapping for nonlinear mappings. With second integration by parts
 void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
+
+    if(HDivPiola){
+        ContributeWithoutSecondIntegration(datavec,weight,ek,ef);
+        return;
+    }
     
 #ifdef DEBUG
     int nref =  datavec.size();
@@ -258,6 +264,137 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     }
 }
 
+///This method use piola contravariant mapping for nonlinear mappings
+void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+#ifdef DEBUG
+    int nref =  datavec.size();
+    if (nref != 2 ) {
+        std::cout << " Erro. The size of the datavec is different from 2 \n";
+        DebugStop();
+    }
+#endif
+    
+    STATE force = fF;
+    if(fForcingFunction) {
+        TPZManVector<STATE> res(1);
+        fForcingFunction->Execute(datavec[1].x,res);
+        force = res[0];
+    }
+    
+    TPZFNMatrix<9,REAL> PermTensor = fTensorK;
+    TPZFNMatrix<9,REAL> InvPermTensor = fInvK;
+    //int rtens = 2*fDim;
+    if(fPermeabilityFunction){
+        PermTensor.Redim(fDim,fDim);
+        InvPermTensor.Redim(fDim,fDim);
+        TPZFNMatrix<3,REAL> resultMat;
+        TPZManVector<STATE> res;
+        fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
+        
+        for(int id=0; id<fDim; id++){
+            for(int jd=0; jd<fDim; jd++){
+                
+                PermTensor(id,jd) = resultMat(id,jd);
+                InvPermTensor(id,jd) = resultMat(id+fDim,jd);
+            }
+        }
+    }
+    
+    // Setting the phis
+    TPZFMatrix<REAL> &phiQ = datavec[0].phi;
+    TPZFMatrix<REAL> &phip = datavec[1].phi;
+    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
+//    TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
+    
+    int phrq, phrp;
+    phrp = phip.Rows();
+    phrq = datavec[0].fVecShapeIndex.NElements();
+    
+    //Calculate the matrix contribution for flux. Matrix A
+    for(int iq=0; iq<phrq; iq++)
+    {
+        int ivecind = datavec[0].fVecShapeIndex[iq].first;
+        int ishapeind = datavec[0].fVecShapeIndex[iq].second;
+        TPZFNMatrix<3,REAL> ivec(3,1,0.);
+        for(int id=0; id<fDim; id++){
+            ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
+        }
+        
+        TPZFNMatrix<3,REAL> ivecZ(3,1,0.);
+        TPZFNMatrix<3,REAL> jvecZ(3,1,0.);
+        for (int jq=0; jq<phrq; jq++)
+        {
+            TPZFNMatrix<3,REAL> jvec(3,1,0.);
+            int jvecind = datavec[0].fVecShapeIndex[jq].first;
+            int jshapeind = datavec[0].fVecShapeIndex[jq].second;
+            
+            for(int id=0; id<fDim; id++){
+                jvec(id,0) = datavec[0].fNormalVec(id,jvecind);
+            }
+            
+            //dot product between Kinv[u]v
+            jvecZ.Zero();
+            for(int id=0; id<fDim; id++){
+                for(int jd=0; jd<fDim; jd++){
+                    jvecZ(id,0) += InvPermTensor(id,jd)*jvec(jd,0);
+                }
+            }
+            //jvecZ.Print("mat1 = ");
+            REAL prod1 = ivec(0,0)*jvecZ(0,0) + ivec(1,0)*jvecZ(1,0) + ivec(2,0)*jvecZ(2,0);
+            ek(iq,jq) += fvisc*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod1;
+        }
+    }
+    
+    
+    // Coupling terms between flux and pressure. Matrix B
+    for(int iq=0; iq<phrq; iq++)
+    {
+        int ivecind = datavec[0].fVecShapeIndex[iq].first;
+        int ishapeind = datavec[0].fVecShapeIndex[iq].second;
+        
+        TPZFNMatrix<3,REAL> ivec(3,1,0.);
+        for(int id=0; id<fDim; id++){
+            ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
+            //ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
+            //ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+        }
+        TPZFNMatrix<3,REAL> axesvec(3,1,0.);
+        datavec[0].axes.Multiply(ivec,axesvec);
+        
+        REAL divwq = 0.;
+        for(int iloc=0; iloc<fDim; iloc++)
+        {
+            divwq += axesvec(iloc,0)*dphiQ(iloc,ishapeind);
+        }
+        for (int jp=0; jp<phrp; jp++) {
+            
+            REAL fact = (-1.)*weight*phip(jp,0)*divwq;
+            // Matrix B
+            ek(iq, phrq+jp) += fact;
+            
+            // Matrix B^T
+            ek(phrq+jp,iq) += fact;
+        }
+    }
+    
+    //termo fonte referente a equacao da pressao
+    for(int ip=0; ip<phrp; ip++){
+        ef(phrq+ip,0) += (-1.)*weight*force*phip(ip,0);
+    }
+    
+    //
+    //#ifdef LOG4CXX
+    //    if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Matriz ek e vetor fk \n ";
+    //        ek.Print("ekmph = ",sout,EMathematicaInput);
+    //        ef.Print("efmph = ",sout,EMathematicaInput);
+    //        LOGPZ_DEBUG(logdata,sout.str());
+    //	}
+    //#endif
+
+}
 
 void TPZMatMixedPoisson3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
@@ -363,6 +500,8 @@ int TPZMatMixedPoisson3D::VariableIndex(const std::string &name){
     if(!strcmp("ExactFlux",name.c_str()))      return 7;
     if(!strcmp("Rhs",name.c_str()))            return 8;
     if(!strcmp("GradP",name.c_str()))          return 9;
+    if(!strcmp("Divergence",name.c_str()))      return  10;
+    if(!strcmp("ExactDiv",name.c_str()))        return  11;
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -375,7 +514,7 @@ int TPZMatMixedPoisson3D::NSolutionVariables(int var){
     if(var == 5) return 3;
     if(var == 6) return 1;
     if(var == 7) return 3;
-    if(var == 8) return 1;
+    if(var == 8 || var == 10 || var == 11) return 1;
     if(var == 9) return 3;
         return TPZMaterial::NSolutionVariables(var);
 }
@@ -440,7 +579,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     if(var == 7){
         fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = flux(ip,0);
         }
@@ -466,14 +605,23 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
 //        int nc = GradofP.Cols();
 //        int nl = GradofP.Rows();
         
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = -1.0*GradofP(ip,0);
         }
         return;
     }
     
-
+    if(var==10){
+        Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
+        return;
+    }
+    
+    if(var==11){
+        fForcingFunctionExact->Execute(datavec[0].x,solExata,flux);
+        Solout[0]=flux(fDim,0);
+        return;
+    }
 }
 
 // metodo para computar erros

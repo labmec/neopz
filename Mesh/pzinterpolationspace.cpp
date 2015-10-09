@@ -100,7 +100,6 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
 	this->Shape(intpoint,phi,dphi);
     this->Convert2Axes(dphi, jacinv, dphidx);
     
-    
 }
 
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
