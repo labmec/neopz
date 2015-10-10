@@ -184,8 +184,30 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         cel->CalcStiff(ekloc, efloc);
 #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
+            TPZGeoEl *gel = cel->Reference();
+            
+            int matid = 0;
+            if(gel) matid = gel->MaterialId();
             std::stringstream sout;
+            if (gel) {
+                sout << "Material id " << matid <<std::endl;
+            }
+            else
+            {
+                sout << "No associated geometry\n";
+            }
+            sout << "Connect indexes ";
+            for (int i=0; i<cel->NConnects(); i++) {
+                sout << cel->ConnectIndex(i) << " ";
+            }
+            sout << std::endl;
+            sout << "Local indexes ";
+            for (int i=0; i<cel->NConnects(); i++) {
+                sout << locindex[cel->ConnectIndex(i)] << " ";
+            }
+            sout << std::endl;
             ekloc.fMat.Print("Matriz elementar",sout);
+            efloc.fMat.Print("Vetor de carga",sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
         
