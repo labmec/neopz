@@ -83,6 +83,8 @@ const int bc1 = -2;
 const int bc2 = -3;
 const int bc3 = -4;
 
+bool fTriang = false;
+
 TPZGeoMesh *MalhaGeom(int nelx, int nely, REAL Lx, REAL Ly,bool ftriang, bool zigzag);
 TPZGeoMesh *MalhaGeomTeste();
 
@@ -99,7 +101,7 @@ void UniformRefine2(TPZGeoMesh* gmesh, int nDiv);
 void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh,int numthreads);
 void SaidaSolucao(TPZAnalysis &an, std::string plotfile);
 
-void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHDiv);
+void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, STATE &errorHDiv);
 void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2);
 
 void SolProblema(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux);
@@ -113,11 +115,8 @@ void NEquationsCondensed(TPZCompMesh *cmesh, long &neqglob,long &neqcond, bool i
 
 bool fmetodomisto;
 bool fsolsuave;
-bool fTriang = false;
-
 int main()
 {
-    HDivPiola = 0;
     InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
@@ -128,33 +127,29 @@ int main()
     fmetodomisto = true; //false --> formulacao H1
     fsolsuave = true;
     
-    
     ofstream saidaerrosHdiv("../Erro-Misto.txt",ios::app);
     ofstream saidaerrosH1("../Erro-H1.txt",ios::app);
-
-    
-    int maxp = 3;
+//    int maxp = 6;
+//    int maxhref = 6;
+    int maxp = 6;
     int maxhref = 6;
-    TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1);
-    TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1);
-    TPZFMatrix<STATE> L2ErrorDivDual(maxhref,maxp-1);
-    TPZFMatrix<STATE> HDivErrorDual(maxhref,maxp-1);
-    TPZFMatrix<int> porders(maxhref,maxp-1);
-    TPZFMatrix<int> numhref(maxhref,maxp-1);
+    TPZFMatrix<STATE> L2Errors(maxhref,maxp-2);
+    TPZFMatrix<STATE> HDivErrors(maxhref,maxp-2);
+    TPZFMatrix<int> porders(maxhref,maxp-2);
+    TPZFMatrix<int> numhref(maxhref,maxp-2);
     int nelx = 1;
     int nely = 1;
+    bool zigzag = false;
     fTriang = false;
-    bool zigzag = true;
-    HDivPiola = 1;
-    
     for (int divtype = 0; divtype <3; divtype++)
     {
         HDivPiola = divtype;
+
         for(int p = 2; p<maxp; p++)
         {
             int pq = p;
             int pp = p;
-            int order_reduce = 0;
+            int order_reduce = 1;
             
             //refinamentos h adptativos
             for(int nref = 0; nref<maxhref; nref++){
@@ -171,14 +166,16 @@ int main()
                         saidaerrosH1 << "Malha irregular - ZigZag\n";
                     }
                 }
+                std::cout << "divtype " << divtype << " p " << p << " nref " << nref << std::endl;
 
+                
                 nelx = 1 << nref;
                 nely = 1 << nref;
                 TPZGeoMesh * gmesh = MalhaGeom(nelx, nely, 1,1,fTriang,zigzag);
     //            UniformRefine2(gmesh, nref);
                 
-                ofstream filemesh1("../GMesh.txt");
-                gmesh->Print(filemesh1);
+        //        ofstream filemesh1("malhageometrica.txt");
+        //        gmesh->Print(filemesh1);
                 
                 //rodar formulacao mista
                 if(fmetodomisto==true){
@@ -190,20 +187,20 @@ int main()
                         cmesh1->Print(filemesh2);
                     }
                     
-    //                ChangeSideConnectOrderConnects(cmesh1,pq-order_reduce);
+                    ChangeSideConnectOrderConnects(cmesh1,pq-order_reduce);
                     
-                    {
-                        ofstream filemesh2("../MalhaFlux.txt");
-                        cmesh1->Print(filemesh2);
-                    }
+//                    {
+//                        ofstream filemesh2("../MalhaFlux.txt");
+//                        cmesh1->Print(filemesh2);
+//                    }
         //            ofstream filemesh2("MalhaFlux.txt");
         //            cmesh1->Print(filemesh2);
                     
                     // Criando a segunda malha computacional
                     TPZCompMesh * cmesh2 = CMeshPressure(pp, gmesh);
                     
-                    ofstream filemesh3("../MalhaPressao.txt");
-                    cmesh2->Print(filemesh3);
+//                    ofstream filemesh3("../MalhaPressao.txt");
+//                    cmesh2->Print(filemesh3);
                     
                     
                     // Criando a malha computacional multifísica
@@ -211,10 +208,11 @@ int main()
                     TPZManVector<TPZCompMesh *,2> meshvec(2);
                     meshvec[0] = cmesh1;
                     meshvec[1] = cmesh2;
-                    TPZCompMesh * mphysics = MalhaCompMultifisica(meshvec, gmesh,true);
+                    bool condense = true;
+                    TPZCompMesh * mphysics = MalhaCompMultifisica(meshvec, gmesh,condense);
                     
-                    //            ofstream filemesh4("MalhaMultifisica.txt");
-                    //            mphysics->Print(filemesh4);
+//                                ofstream filemesh4("MalhaMultifisica.txt");
+//                                mphysics->Print(filemesh4);
                     
                     int nDofTotal;
                     nDofTotal = meshvec[0]->NEquations() + meshvec[1]->NEquations();
@@ -227,9 +225,10 @@ int main()
                     saidaerrosHdiv<< "Grau de Liberdade Condensado = " << nDofCondensed<<std::endl;
                     
                     // Resolvendo o sistema linear
-                    TPZAnalysis an(mphysics);
-                    ResolverSistema(an, mphysics,0);
-                    
+                    TPZAnalysis an(mphysics,false);
+                    ResolverSistema(an, mphysics,8);
+//                    an.Rhs().Print("Rhs",std::cout);
+//                    an.Solution().Print("Solucao",std::cout);
         //            ofstream filemesh4("MalhaMultifisica.txt");
         //            mphysics->Print(filemesh4);
                     
@@ -297,11 +296,13 @@ int main()
             filename << "-Triangle";
         }
         filename << ".txt";
+        std::cout << "Generating file " << filename.str().c_str() << std::endl;
         std::ofstream errtable(filename.str().c_str());
         L2Errors.Print("L2Err = ",errtable);
         HDivErrors.Print("HDivErr = ",errtable);
         porders.Print("porder = ",errtable);
         numhref.Print("numhref = ",errtable);
+
     }
     return EXIT_SUCCESS;
 }
@@ -330,13 +331,13 @@ TPZGeoMesh *MalhaGeom(int nelx, int nely, REAL Lx, REAL Ly,bool ftriang, bool zi
         gengrid.SetElementType(ETriangle);
     }
     if (zigzag) {
-        gengrid.SetDistortion(0.3);
-//        gengrid.SetZigZagPattern();
+        gengrid.SetZigZagPattern();
     }
+//    gengrid.SetDistortion(0.75);
     gengrid.Read(gmesh);
     x1[0] = Lx;
     x1[1] = 0.;
-    gengrid.SetBC(gmesh, x0, x1, bc0);
+    gengrid.SetBC(gmesh, x0, x1, 4);
     x0 = x1;
     x1[0] = Lx;
     x1[1] = Ly;
@@ -350,8 +351,8 @@ TPZGeoMesh *MalhaGeom(int nelx, int nely, REAL Lx, REAL Ly,bool ftriang, bool zi
     x1[1] = 0.;
     gengrid.SetBC(gmesh, x0, x1, bc3);
     
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, "../GeoMesh.vtk", 1);
-/*;
+    
+/*
     int Qnodes = 4;
     gmesh->SetMaxNodeId(Qnodes-1);
     gmesh->NodeVec().Resize(Qnodes);
@@ -746,7 +747,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
     dum = new TPZDummyFunction<STATE>(ForcingTang2);
-    dum->SetPolynomialOrder(17);
+    dum->SetPolynomialOrder(20);
     force = dum;
     material->SetForcingFunction(force);
     
@@ -777,22 +778,11 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     mphysics->AdjustBoundaryElements();
     mphysics->CleanUpUnconnectedNodes();
     
-//    if(hdivskeleton==false){
-    if(HDivPiola){
+    if(hdivskeleton==false){
         // Creating multiphysic elements into mphysics computational mesh
         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-        
-        mphysics->CleanUpUnconnectedNodes();
-        mphysics->ExpandSolution();
-        
-        //condensar
-//        for (long iel=0; iel<mphysics->NElements(); iel++) {
-//            TPZCompEl *cel = mphysics->Element(iel);
-//            if(!cel) continue;
-//            TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
-//        }
     }
     
     //Creating multiphysic elements containing skeletal elements.
@@ -926,15 +916,12 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads)
 void SaidaSolucao(TPZAnalysis &an, std::string plotfile){
     
     if(fmetodomisto==true){
-        TPZManVector<std::string,10> scalnames(5), vecnames(2);
+        TPZManVector<std::string,10> scalnames(3), vecnames(2);
         scalnames[0] = "Pressure";
         scalnames[1] = "ExactPressure";
         scalnames[2]="POrder";
         vecnames[0]= "Flux";
         vecnames[1]= "ExactFlux";
-        
-        scalnames[3] = "Divergence";
-        scalnames[4] = "ExactDiv";
         
         const int dim = 2;
         int div = 0;
@@ -958,7 +945,7 @@ void SaidaSolucao(TPZAnalysis &an, std::string plotfile){
 }
 
 
-void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHDiv)
+void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, STATE &errorHDiv)
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
@@ -1008,10 +995,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
     
     //out << "Errors associated with HDiv space\n";
     out << "L2 Error Norm for flux = "    << sqrt(globerrors[1]) << endl;
-    errorHDiv.Resize(3,0.);
-    errorHDiv[0] = sqrt(globerrors[1]);
-    errorHDiv[1] = sqrt(globerrors[2]);
-    errorHDiv[2] = sqrt(globerrors[3]);
+    errorHDiv = sqrt(globerrors[1]);
     //out << "L2 Norm for divergence = "    << sqrt(globerrors[2])  <<endl;
     //out << "Hdiv Norm for flux = "    << sqrt(globerrors[3])  <<endl;
     
@@ -1053,7 +1037,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2)
     out << "L2 Error Norm = "    << sqrt(globerrors[1]) << endl;
     out << "Semi H1 Norm = "    << sqrt(globerrors[2]) << endl;
     out << "=============================\n"<<endl;
-    errorL2 = sqrt(globerrors[1]);
+    errorL2 = globerrors[1];
 }
 
 
@@ -1091,7 +1075,6 @@ void SolProblema(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &fl
         p[0] = sin(M_PI*x)*sin(M_PI*y);
         flux(0,0) = M_PI*cos(M_PI*x)*sin(M_PI*y);
         flux(1,0) = M_PI*cos(M_PI*y)*sin(M_PI*x);
-        flux(2,0) = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y); //valor do divergente
     }
     else
     {
