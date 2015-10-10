@@ -115,8 +115,14 @@ void TPZMatMixedPoisson3D::Print(std::ostream &out) {
 //This method use normalized piola contravariant mapping for nonlinear mappings. With second integration by parts
 void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
+    int phrq = datavec[0].fVecShapeIndex.NElements();
 
-    if(HDivPiola){
+    // tototototototototototo
+    if(HDivPiola ==  1 || HDivPiola == 2){
+        if(phrq == 0)
+        {
+            return;
+        }
         ContributeWithoutSecondIntegration(datavec,weight,ek,ef);
         return;
     }
@@ -144,9 +150,7 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     TPZAxesTools<REAL>::Axes2XYZ(datavec[1].dphix, GradofPhiL2, datavec[1].axes);
     
     
-    int phrq, phrp;
-    phrp = phip.Rows();
-    phrq = datavec[0].fVecShapeIndex.NElements();
+    int phrp = phip.Rows();
     
     //Matrix B: the contribution of skeletal elements is done by TPZLagrangeMultiplier material
     if(phrq==0) {
