@@ -72,6 +72,8 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<"  Order = " << orde << "  NState = " << nstate << "  NShape " << nshape << " IsCondensed " << IsCondensed() << " IsLagrMult " << (int) LagrangeMultiplier();
 	if(fSequenceNumber > -1)
 	{
+        long pos = mesh.Block().Position(fSequenceNumber);
+        out << "\tEquation = " << pos;
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
 		out << " Solution ";
 		long ieq;

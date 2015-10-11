@@ -17,7 +17,6 @@
 #include "pzshapepiram.h"
 
 
-//#define OLDVERSION
 
 #include "pzshtmat.h"
 
@@ -931,7 +930,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
     }
     
     REAL detjac = 1.;
-    if (HDivPiola) {
+    if (HDivPiola == 1) {
         TPZGeoElSide gelside = TPZGeoElSide(this->Reference(),side);
         int dim = gel->SideDimension(side);
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
@@ -1311,40 +1310,34 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
                                                 TPZVec<REAL> &qsi){
     
-    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
+//    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
 
-#ifdef OLDVERSION
-    TPZIntelGen<TSHAPE>::Reference()->ComputeNormalsDG(qsi,data.fNormalVec, normalsidesDG);
-#else
 
-    int restrainedface = this->RestrainedFace();
-    TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec,restrainedface);
-    
-    
-    // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
-    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1) 
-    int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
-    int lastface = TSHAPE::NSides - 1;
-    int cont = 0;
-    for(int side = firstface; side < lastface; side++)
+    if (HDivPiola != 2)
     {
-        int nvec = TSHAPE::NContainedSides(side);
-        for (int ivet = 0; ivet<nvec; ivet++)
+        int restrainedface = this->RestrainedFace();
+        TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec,restrainedface);
+        
+        
+        // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
+        // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1) 
+        int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
+        int lastface = TSHAPE::NSides - 1;
+        int cont = 0;
+        for(int side = firstface; side < lastface; side++)
         {
-            for (int il = 0; il<3; il++)
+            int nvec = TSHAPE::NContainedSides(side);
+            for (int ivet = 0; ivet<nvec; ivet++)
             {
-                data.fNormalVec(il,ivet+cont) *= fSideOrient[side-firstface];
+                for (int il = 0; il<3; il++)
+                {
+                    data.fNormalVec(il,ivet+cont) *= fSideOrient[side-firstface];
+                }
+                
             }
-            
+            cont += nvec;
         }
-        cont += nvec;
     }
-    
-    
-    
-    
-#endif
-    
 //    cout << " Normais = " << endl;
 //    int nlin = data.fNormalVec.Rows();
 //    int ncol = data.fNormalVec.Cols();
@@ -1365,9 +1358,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 //    cout << "};" << endl;
 
 #ifdef LOG4CXX
-//    if (logger->isDebugEnabled()) {
-//        std::stringstream sout;
-//        data.fNormalVec.Print("Normal Vectors " , sout,EMathematicaInput);
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        data.fNormalVec.Print("Normal Vectors " , sout,EMathematicaInput);
 //        sout << " Normais = " << endl;
 //        int nlin = data.fNormalVec.Rows();
 //        int ncol = data.fNormalVec.Cols();
@@ -1386,8 +1379,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 //            }
 //        }
 //        sout << "};" << endl;
-//        LOGPZ_DEBUG(logger, sout.str())
-//    }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
 #endif
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     
@@ -1415,47 +1408,52 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
     
     TPZFNMatrix<TSHAPE::NSides*TSHAPE::Dimension*3> NormalsDouglas(3,TSHAPE::Dimension*TSHAPE::NSides);
-	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
+	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsides(TSHAPE::Dimension*TSHAPE::NSides);
     TPZManVector<REAL,TSHAPE::Dimension> pt(TSHAPE::Dimension,0.);
     
-    
-//	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsides;
-//	TPZIntelGen<TSHAPE>::Reference()->ComputeNormals(data.fNormalVec, normalsides);
-    
-//    for (int i=0; i<TSHAPE::Dimension*TSHAPE::NSides; i++) {
-//        if (normalsidesDG[i] != normalsides[i]) {
-//            DebugStop();
-//        }
-//    }
-	// vecindex : lado associado a cada normal
-	// vecindex indica apenas o numero do lado associado a cada normal
-	// agora temos que expandir para formar pares : vecIndex e shapeindex
-	//ComputeShapeIndex(data.fVecIndex,data.fVecShapeIndex);
-	//data.numberdualfunctions = NConnectShapeF(NConnects()-1);
-		
-    int pressureorder=0;
+    if(HDivPiola == 2)
+    {
+        TPZIntelGen<TSHAPE>::Reference()->ComputeNormals(data.fNormalVec, normalsides);
+        int pressureorder=0;
+        pressureorder=this->fPreferredOrder;
+        TPZVec<std::pair<int,long> > IndexVecShape;
+        TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsides);
+        IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,pressureorder);
+        
+        // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
+        // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
+        int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
+        int lastface = TSHAPE::NSides - 1;
+        int cont = 0;
+        for(int side = firstface; side < lastface; side++)
+        {
+            int nvec = TSHAPE::NContainedSides(side);
+            for (int ivet = 0; ivet<nvec; ivet++)
+            {
+                for (int il = 0; il<3; il++)
+                {
+                    data.fNormalVec(il,ivet+cont) *= fSideOrient[side-firstface];
+                }
+                
+            }
+            cont += nvec;
+        }
 
-    pressureorder=this->fPreferredOrder;
-
-//    IndexShapeToVec(normalsides,data.fVecShapeIndex,pressureorder);
-    
-    TPZVec<std::pair<int,long> > IndexVecShape;
-
-#ifdef OLDVERSION
-    TSHAPE::GetSideDirections(vecside,directions,bilinear);
-
-    TPZIntelGen<TSHAPE>::Reference()->ComputeNormalsDG(pt,NormalsDouglas, normalsidesDG);
-	IndexShapeToVec(normalsidesDG, bilinear, directions, data.fVecShapeIndex, pressureorder);
-#else
-    TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsidesDG);
-    data.fNormalVec.Resize(3, TSHAPE::Dimension*TSHAPE::NSides);
-    if (TSHAPE::Type() == EPiramide) {
-        data.fNormalVec.Resize(3, TSHAPE::Dimension*TSHAPE::NSides+1);
     }
-//    TPZIntelGen<TSHAPE>::Reference()->Directions(pt,NormalsDouglas,normalsidesDG);
-    IndexShapeToVec2(normalsidesDG, bilinear, directions,data.fVecShapeIndex,pressureorder);
-#endif
-    
+    else
+    {
+		
+        int pressureorder=0;
+
+        pressureorder=this->fPreferredOrder;
+        TPZVec<std::pair<int,long> > IndexVecShape;
+        TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsides);
+        data.fNormalVec.Resize(3, TSHAPE::Dimension*TSHAPE::NSides);
+        if (TSHAPE::Type() == EPiramide) {
+            data.fNormalVec.Resize(3, TSHAPE::Dimension*TSHAPE::NSides+1);
+        }
+        IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,pressureorder);
+    }
     data.fShapeType = TPZMaterialData::EVecShape;
     
 //    cout << "vecShape " << endl;
@@ -1466,13 +1464,13 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		//data.fNormalVec.Print("Normal vector ", sout,EMathematicaInput);
+		data.fNormalVec.Print("Normal vector ", sout,EMathematicaInput);
         for (int i=0; i<TSHAPE::NCornerNodes; i++) {
             sout << "Id[" << i << "] = " << this->Reference()->NodePtr(i)->Id() << " ";
         }
         sout << "\n\nSides associated with the normals\n";
-        for (int i=0; i<normalsidesDG.size(); i++) {
-            sout << i << '|' << normalsidesDG[i] << " ";
+        for (int i=0; i<normalsides.size(); i++) {
+            sout << i << '|' << normalsides[i] << " ";
         }
         sout << std::endl;
         
