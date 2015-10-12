@@ -23,6 +23,9 @@ private:
     /** @brief Temperature @ reservoir conditions  - F */
     REAL fTRes;
     
+    /** @brief Temperature for references values [K] */
+    REAL fTRef;
+    
     /** @brief Pressure for references values - Pa */
     REAL fPRef;
     
@@ -80,11 +83,17 @@ public:
     /** @brief Compressibility - 1/pa $c$ */
     virtual void Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_vars) = 0;
     
-    /** @brief Set Reservoir T - F  $T_{res}$ */
+    /** @brief Set Reservoir T - K  $T_{res}$ */
     void SetTRes(REAL TRes){this->fTRes = TRes;}
     
-    /** @brief Get Reservoir T - F  $T_{res}$ */
+    /** @brief Get Reservoir T - K  $T_{res}$ */
     REAL GetTRes(){return this->fTRes ;}
+    
+    /** @brief Set Reference Temperature - K  $T$ */
+    void SetTRef(REAL TRef){this->fTRef = TRef;}
+    
+    /** @brief Get Reference Temperature - K  $T$ */
+    REAL GetTRef(){return this->fTRef ;}
     
     /** @brief Set Reference Pressure - Pa  $P_{ref}$ */
     void SetPRef(REAL PRef){this->fPRef = PRef;}

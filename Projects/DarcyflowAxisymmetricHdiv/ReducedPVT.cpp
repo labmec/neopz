@@ -12,8 +12,11 @@
 ReducedPVT::ReducedPVT()
 {
     
-    /** @brief Temperature @ reservoir conditions  - F */
-    fTRes = 180.0;
+    /** @brief Temperature @ reservoir conditions 355.3722 [K] - 180 [F] */
+    fTRes = 355.3722;
+    
+    /** @brief Temperature for references values [K] */
+    fTRef = 1.0;
     
     /** @brief Pressure for references values - Pa */
     fPRef = 1.0;

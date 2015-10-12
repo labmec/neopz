@@ -1,4 +1,4 @@
-  #include "pzlog.h"
+#include "pzlog.h"
 #include "tpzautopointer.h"
 #include "ReservoirData.h"
 
@@ -22,15 +22,15 @@ void NonlinearTracerDimensionless();
 
 int main()
 {
-  
+    
     TPZMaterial::gBigNumber = 1.0e8; // Use this for check of convergence using neumann
-//    TPZMaterial::gBigNumber = 1.0e15;
+    //    TPZMaterial::gBigNumber = 1.0e15;
     
-  NonlinearTracerDimensionless();
-  
+    NonlinearTracerDimensionless();
     
-  std::cout << "Program successfully executed." << std::endl;
-  return 0; 
+    
+    std::cout << "Program successfully executed." << std::endl;
+    return 0;
 }
 
 void NonlinearTracerDimensionless()
@@ -47,6 +47,8 @@ void NonlinearTracerDimensionless()
     
     REAL Kstr           = 1.0e-15;
     REAL Pstr           = 1.0e7;
+    REAL Tstr           = 355.37;
+    REAL Tres           = 355.37;
     REAL Lstr           = 1000.0;
     REAL gcstr          = 9.81;
     REAL Mustr          = 0.001;
@@ -65,8 +67,8 @@ void NonlinearTracerDimensionless()
     bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
-    int qorder      = 1;
-    int porder      = 1;
+    int qorder      = 2;
+    int porder      = 2;
     int sorder      = 0;
     int hrefinement = 0;
     int hpostref    = 2;
@@ -74,18 +76,18 @@ void NonlinearTracerDimensionless()
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 1.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
-    REAL maxtime    = 10.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL dt         = 1000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL maxtime    = 10000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL t0         = 0.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     
     REAL TolDeltaX  = 1.0*1e-6;
     REAL TolRes     = 1.0*1e-6;
     
-    int  nelemX     =1;
-    REAL lengthX    =1000.0/Lstr;
+    int  nelemX     =2;
+    REAL lengthX    =500.0/Lstr;
     
-    int nelemY      =1;
-    REAL lengthY    =1000.0/Lstr;
+    int nelemY      =2;
+    REAL lengthY    =500.0/Lstr;
     
     Gravity(0,0)= -0.0;
     Gravity(1,0)= -0.0;
@@ -119,12 +121,12 @@ void NonlinearTracerDimensionless()
     Dataset->SetLengthElementx(lengthX);
     Dataset->SetLengthElementy(lengthY);
     Dataset->SetGravity(Gravity);
-
+    
     // BCs
     //    int typeFluxin = 1, typePressurein = 0;
     //    int typeFluxout = 3, typePressureout = 2;
     
-//  Initial Boundary Value Problem
+    //  Initial Boundary Value Problem
     
     TPZVec<REAL> bottombcini(4,0.0);
     bottombcini[0] = 1;
@@ -154,7 +156,7 @@ void NonlinearTracerDimensionless()
     //    int typeFluxin = 1, typePressurein = 0;
     //    int typeFluxout = 3, typePressureout = 2;
     
-//  Boundary Value Problem
+    //  Boundary Value Problem
     
     TPZVec<REAL> bottombc(4,0.0);
     bottombc[0] = 1;
@@ -211,10 +213,10 @@ void NonlinearTracerDimensionless()
     // Reservoir Description linear tracer configuration
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (0.0*1e-7)*Pstr;
+    REAL cwater             = (1.0*1e-10)*Pstr;
     REAL oildensity         = 1000.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (0.0*1e-7)*Pstr;
+    REAL coil               = (1.0*1e-7)*Pstr;
     REAL gasdensity         = 0.0/Rhostr;
     REAL gasviscosity       = 0.0/Mustr;
     REAL cgas               = (0.0)*Pstr;
@@ -246,25 +248,31 @@ void NonlinearTracerDimensionless()
     Layer->SetMatIDs(MatIds);
     
     
-    Oil->SetRho(waterdensity);
-    Oil->SetMu(waterviscosity);
-    Oil->Setc(cwater);
-    Oil->SetPRef(pressureref);
-    
-    Water->SetRho(oildensity);
-    Water->SetMu(oilviscosity);
-    Water->Setc(coil);
+    Water->SetRho(waterdensity);
+    Water->SetMu(waterviscosity);
+    Water->Setc(cwater);
     Water->SetPRef(pressureref);
+    Water->SetTRef(Tstr);
+    Water->SetTRes(Tres);
+    
+    Oil->SetRho(oildensity);
+    Oil->SetMu(oilviscosity);
+    Oil->Setc(coil);
+    Oil->SetPRef(pressureref);
+    Oil->SetTRef(Tstr);
+    Oil->SetTRes(Tres);
     
     Gas->SetRho(gasdensity);
     Gas->SetMu(gasviscosity);
     Gas->Setc(cgas);
     Gas->SetPRef(pressureref);
+    Gas->SetTRef(Tstr);
+    Gas->SetTRes(Tres);
     
     TPZVec< TPZAutoPointer<ReducedPVT> > PVTData(3);
-    PVTData[1] = Oil.operator->();      // alpha
-    PVTData[0] = Water.operator->();    // beta
-    PVTData[2] = Gas.operator->();      // gamma
+    PVTData[2] = Oil.operator->();      // alpha
+    PVTData[1] = Water.operator->();    // beta
+    PVTData[0] = Gas.operator->();      // gamma
     
     // Creating the analysis
     

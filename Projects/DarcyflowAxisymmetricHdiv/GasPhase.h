@@ -24,6 +24,28 @@ class GasPhase : public ReducedPVT
 private:
     
     
+    /** @brief Specific gravity of Gas fraction $ */
+    REAL fGas_gamma;
+    
+    /** @brief Carbon dioxide content yCO2 molar fraction $ */
+    REAL fyCO2;
+    
+    /** @brief Acid sulfhidric content yH2S molar fraction $ */
+    REAL fyH2S;
+    
+    /** @brief Nitrogen content yN2 molar fraction $ */
+    REAL fyN2;
+    
+    /** @brief Pressure at standard contidions [Pa] $ */
+    REAL fPstd;
+    
+    /** @brief Temperature at standard contidions [K] $ */
+    REAL fTstd;
+    
+    /** @brief Air mass density at standard contidions [kg/m3] $ */
+    REAL fRho_air_std;
+    
+    
 public:
     
     /** @brief Default constructor $ */
@@ -41,7 +63,25 @@ public:
     /** @brief Compressibility - 1/pa $c$ */
     void Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_vars);
     
+    /** @brief Computes the pseudo critic pressure of Gas $ */
+    REAL Ppc();
+    
+    /** @brief Computes the pseudo critic temperature of Gas $ */
+    REAL Tpc();
+    
+    /** @brief Computes the compressibility factor using Beggs and Brill correlation (1974)  $ */
+    void Z(TPZManVector<REAL> &z, TPZManVector<REAL> state_vars);
+    
+    
+
+    
+    
 };
 
 
 #endif /* defined(__PZ__GasPhase__) */
+
+
+
+
+

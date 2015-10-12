@@ -218,7 +218,7 @@ public:
     virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef);
     
     
-//   Contribute for Darcy system
+    //   Contribute for Darcy system
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one integration point.
@@ -368,7 +368,7 @@ public:
     
     void TotalDensity();
     
-    // System Properties 
+    // System Properties
     
     void Rho_alpha(TPZVec<REAL> P_alpha);
     
@@ -376,7 +376,7 @@ public:
     
     void Rho_gamma(TPZVec<REAL> P_gamma);
     
-//    void (*rho_alpha)(TPZVec<REAL> P);
+    //    void (*rho_alpha)(TPZVec<REAL> P);
     std::function<void(TPZVec<REAL> P)> rho_alpha;
     
 };
