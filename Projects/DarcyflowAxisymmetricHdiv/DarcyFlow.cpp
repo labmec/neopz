@@ -52,13 +52,13 @@ void NonlinearTracerDimensionless()
     REAL Lstr           = 1000.0;
     REAL gcstr          = 9.81;
     REAL Mustr          = 0.001;
-    REAL Rhostr         = ((Pstr)/(Lstr*gcstr));
+    REAL Rhostr         = (Pstr/(Lstr*gcstr));
     REAL Lambdastr      = Rhostr/Mustr;
     TPZFMatrix<REAL> Gravity(2,1);
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 15;
+    int maxiter     = 40;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation
@@ -67,27 +67,27 @@ void NonlinearTracerDimensionless()
     bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
-    int qorder      = 2;
-    int porder      = 2;
+    int qorder      = 1;
+    int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 2;
+    int hpostref    = 0;
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 1000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
-    REAL maxtime    = 10000000.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL dt         = 0.1*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL maxtime    = 1.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     REAL t0         = 0.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
     
-    REAL TolDeltaX  = 1.0*1e-6;
-    REAL TolRes     = 1.0*1e-6;
+    REAL TolDeltaX  = 1.0*1e-8;
+    REAL TolRes     = 1.0*1e-8;
     
-    int  nelemX     =2;
-    REAL lengthX    =500.0/Lstr;
+    int  nelemX     =20;
+    REAL lengthX    =50.0/Lstr;
     
-    int nelemY      =2;
-    REAL lengthY    =500.0/Lstr;
+    int nelemY      =4;
+    REAL lengthY    =250.0/Lstr;
     
     Gravity(0,0)= -0.0;
     Gravity(1,0)= -0.0;
@@ -177,8 +177,8 @@ void NonlinearTracerDimensionless()
     topbc[3] = 0;
     
     TPZVec<REAL> leftbc(4,0.0);
-    leftbc[0] = 1;
-    leftbc[1] = (-1.0);
+    leftbc[0] = 0;
+    leftbc[1] = (0.1001*Pstr)/(Pstr);
     leftbc[2] = 1;
     leftbc[3] = 0;
     
@@ -211,14 +211,17 @@ void NonlinearTracerDimensionless()
     REAL Rw             = 0.0/Lstr;
     
     // Reservoir Description linear tracer configuration
+    REAL p_w_ref            = (1.0*1e6)/(Pstr);
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (1.0*1e-10)*Pstr;
-    REAL oildensity         = 1000.0/Rhostr;
+    REAL cwater             = (0.0*1e-10)*Pstr;
+    REAL p_o_ref            = (1.0*1e6)/(Pstr);
+    REAL oildensity         = 800.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (1.0*1e-7)*Pstr;
-    REAL gasdensity         = 0.0/Rhostr;
-    REAL gasviscosity       = 0.0/Mustr;
+    REAL coil               = (1.0*1e-8)*Pstr;
+    REAL p_g_ref            = Pstr;
+    REAL gasdensity         = Rhostr;
+    REAL gasviscosity       = Mustr;
     REAL cgas               = (0.0)*Pstr;
     
     
@@ -251,28 +254,28 @@ void NonlinearTracerDimensionless()
     Water->SetRho(waterdensity);
     Water->SetMu(waterviscosity);
     Water->Setc(cwater);
-    Water->SetPRef(pressureref);
+    Water->SetPRef(p_w_ref);
     Water->SetTRef(Tstr);
     Water->SetTRes(Tres);
     
     Oil->SetRho(oildensity);
     Oil->SetMu(oilviscosity);
     Oil->Setc(coil);
-    Oil->SetPRef(pressureref);
+    Oil->SetPRef(p_o_ref);
     Oil->SetTRef(Tstr);
     Oil->SetTRes(Tres);
     
     Gas->SetRho(gasdensity);
     Gas->SetMu(gasviscosity);
     Gas->Setc(cgas);
-    Gas->SetPRef(pressureref);
+    Gas->SetPRef(p_g_ref);
     Gas->SetTRef(Tstr);
     Gas->SetTRes(Tres);
     
     TPZVec< TPZAutoPointer<ReducedPVT> > PVTData(3);
-    PVTData[2] = Oil.operator->();      // alpha
+    PVTData[0] = Oil.operator->();      // alpha
     PVTData[1] = Water.operator->();    // beta
-    PVTData[0] = Gas.operator->();      // gamma
+    PVTData[2] = Gas.operator->();      // gamma
     
     // Creating the analysis
     

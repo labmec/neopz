@@ -60,6 +60,9 @@ public:
     /** @brief viscosity - Pa s  $\mu$ */
     void Viscosity(TPZManVector<REAL> &mu, TPZManVector<REAL> state_vars);
     
+    /** @brief viscosity - Pa s  $\mu$ */
+    REAL Viscosity_std();
+    
     /** @brief Compressibility - 1/pa $c$ */
     void Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_vars);
     
@@ -72,8 +75,8 @@ public:
     /** @brief Computes the compressibility factor using Beggs and Brill correlation (1974)  $ */
     void Z(TPZManVector<REAL> &z, TPZManVector<REAL> state_vars);
     
-    
-
+    /** @brief Computes the gas formation volume factor  $ */
+    void Bg(TPZManVector<REAL> &bg, TPZManVector<REAL> state_vars);
     
     
 };

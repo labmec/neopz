@@ -376,8 +376,6 @@ public:
     
     void Rho_gamma(TPZVec<REAL> P_gamma);
     
-    //    void (*rho_alpha)(TPZVec<REAL> P);
-    std::function<void(TPZVec<REAL> P)> rho_alpha;
     
 };
 

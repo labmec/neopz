@@ -161,15 +161,17 @@ void TPZAxiSymmetricDarcyFlow::Print(std::ostream &out) {
 int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("WeightedPressure", name.c_str())) return 0;
     if (!strcmp("BulkVelocity", name.c_str())) return 1;
-    if (!strcmp("WaterSaturation", name.c_str())) return 2;
-    if (!strcmp("OilSaturation", name.c_str())) return 3;
-    if (!strcmp("WaterDensity", name.c_str())) return 4;
-    if (!strcmp("OilDensity", name.c_str())) return 5;
-    if (!strcmp("Porosity", name.c_str())) return 6;
-    if (!strcmp("DivOfBulkVeclocity", name.c_str())) return 7;
-    if (!strcmp("ExactSaturation", name.c_str())) return 8;
-    if (!strcmp("ExactP", name.c_str())) return 9;
-    if (!strcmp("Frhs", name.c_str())) return 10;
+    if (!strcmp("Salpha", name.c_str())) return 2;
+    if (!strcmp("Sbeta", name.c_str())) return 3;
+    if (!strcmp("Sgamma", name.c_str())) return 4;
+    if (!strcmp("Rhoalpha", name.c_str())) return 5;
+    if (!strcmp("Rhobeta", name.c_str())) return 6;
+    if (!strcmp("Rhogamma", name.c_str())) return 7;
+    if (!strcmp("Porosity", name.c_str())) return 8;
+    if (!strcmp("DivOfBulkVeclocity", name.c_str())) return 9;
+    if (!strcmp("ExactSaturation", name.c_str())) return 10;
+    if (!strcmp("ExactP", name.c_str())) return 11;
+    if (!strcmp("Frhs", name.c_str())) return 12;
     std::cout  << " Var index not implemented " << std::endl;
     DebugStop();
     return 0;
@@ -199,6 +201,10 @@ int TPZAxiSymmetricDarcyFlow::NSolutionVariables(int var) {
             return 1; // Scalar
         case 10:
             return 1; // Scalar
+        case 11:
+            return 1; // Scalar
+        case 12:
+            return 1; // Scalar
         default:
         {
             std::cout  << " Var index not implemented " << std::endl;
@@ -212,19 +218,49 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     int Qblock = 0;
     int Pblock = 1;
-    //    int Swblock = 2;
-    //    int Soblock = 3;
+    int Swblock = 2;
+    int Soblock = 3;
     
     TPZManVector<REAL,3> Q = datavec[Qblock].sol[0];
     REAL P = datavec[Pblock].sol[0][0];
-    REAL Sw = 1.0;//datavec[Swblock].sol[0][0];
-    REAL So = 0.0;//datavec[Soblock].sol[0][0];
-    REAL Sg = 1.0 - So - Sw;
-    
-    this->UpdateStateVariables(Q,P, Sw, So);
-    
     TPZFMatrix<STATE> dQdx = datavec[Qblock].dsol[0];
     TPZFMatrix<STATE> dPdx = datavec[Pblock].dsol[0];
+    TPZManVector<REAL> state_vars(2,0.0);
+    state_vars[1] = P;
+    
+    REAL Salpha = 0.0;
+    REAL Sbeta = 0.0;
+    REAL Sgamma = 0.0;
+    
+    TPZManVector<REAL> rho_alpha(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rho_beta(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rho_gamma(fnstate_vars+1,0.0);
+    fluid_alpha->Density(rho_alpha, state_vars);
+    
+    if (fSimulationData->IsTwoPhaseQ()) {
+        state_vars.Resize(3);
+        
+        fluid_beta->Density(rho_beta, state_vars);
+        Salpha = datavec[Swblock].sol[0][0];
+        state_vars[2] = Salpha;
+    }
+    
+    if (fSimulationData->IsThreePhaseQ()) {
+        state_vars.Resize(4);
+        
+        fluid_beta->Density(rho_beta, state_vars);
+        fluid_gamma->Density(rho_gamma, state_vars);
+        Salpha = datavec[Swblock].sol[0][0];
+        Sbeta = datavec[Soblock].sol[0][0];
+        state_vars[2] = Salpha;
+        state_vars[3] = Sbeta;
+    }
+
+
+    Sgamma = 1.0 - Salpha - Sbeta;
+    
+    
+
     
     REAL time;
     TPZVec<STATE> Saturation(1,0.0);
@@ -272,35 +308,45 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             break;
         case 2:
         {
-            Solout[0] = Sw;
+            Solout[0] = Salpha;
         }
             break;
         case 3:
         {
-            Solout[0] = So;
+            Solout[0] = Sbeta;
         }
             break;
         case 4:
         {
-            Solout[0] = 0.0;
+            Solout[0] = Sgamma;
         }
             break;
         case 5:
         {
-            Solout[0] = 0.0;
+            Solout[0] = rho_alpha[0];
         }
             break;
         case 6:
         {
-            Solout[0] = rockporosity;
+            Solout[0] = rho_beta[0];
         }
             break;
         case 7:
         {
-            Solout[0] = dQdx(0,0) + dQdx(1,1) + dQdx(2,2);
+            Solout[0] = rho_gamma[0];
         }
             break;
         case 8:
+        {
+            Solout[0] = rockporosity;
+        }
+            break;
+        case 9:
+        {
+            Solout[0] = dQdx(0,0) + dQdx(1,1) + dQdx(2,2);
+        }
+            break;
+        case 10:
         {
             time=this->fSimulationData->GetTime();
             fTimedependentFunctionExact->Execute(datavec[Qblock].x, time, Saturation,GradS);
@@ -308,7 +354,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             
         }
             break;
-        case 9:
+        case 11:
         {
             REAL epsilon = 0.01;
             REAL xc = 0.5;
@@ -322,7 +368,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             
         }
             break;
-        case 10:
+        case 12:
         {
             TPZManVector<STATE,1> fvalue(1,0.0);
             if(fForcingFunction)
@@ -3115,8 +3161,6 @@ void TPZAxiSymmetricDarcyFlow::Read(TPZStream &buf, void *context) {
 // System Properties
 
 void TPZAxiSymmetricDarcyFlow::Rho_alpha(TPZVec<REAL> P_alpha){
-    
-    rho_alpha(P_alpha);
     
 }
 

@@ -1903,13 +1903,14 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     else{
         plotfile = "2DMixedDarcy.vtk";
     }
-    
 
     scalnames.Push("WeightedPressure");
     vecnames.Push("BulkVelocity");
     scalnames.Push("Porosity");
+
     
     if (fSimulationData->IsOnePhaseQ()) {
+        scalnames.Push("Rhoalpha");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div);
         return;
@@ -1917,22 +1918,25 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     
     
     if (fSimulationData->IsTwoPhaseQ()) {
-        scalnames.Push("AlphaDensity");
-        scalnames.Push("AlphaSaturation");
+        scalnames.Push("Rhoalpha");
+        scalnames.Push("Rhobeta");
+        scalnames.Push("Salpha");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div);
         return;
     }
     
-    //    scalnames.Push("WaterSaturation");
-    //    scalnames.Push("OilSaturation");
-    //     scalnames.Push("WaterDensity");
-    //     scalnames.Push("OilDensity");
-    //     scalnames.Push("Porosity");
-    //    scalnames.Push("ExactP");
-    //    scalnames.Push("Frhs");
-    //     scalnames.Push("DivOfBulkVeclocity");
-    //    scalnames.Push("ExactSaturation");
+    
+    if (fSimulationData->IsThreePhaseQ()) {
+        scalnames.Push("Salpha");
+        scalnames.Push("Sbeta");
+        scalnames.Push("Rhoalpha");
+        scalnames.Push("Rhobeta");
+        scalnames.Push("Rhogamma");
+        an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+        an->PostProcess(div);
+        return;
+    }
 
 
 }
