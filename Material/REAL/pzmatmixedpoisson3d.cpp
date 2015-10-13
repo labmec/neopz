@@ -43,6 +43,7 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D():TPZMaterial(){
     fInvK.Identity();
     fPermeabilityFunction = NULL;
     fmatLagr = new TPZLagrangeMultiplier();
+    fSecondIntegration = false;
     
 }
 
@@ -72,6 +73,7 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(int matid, int dim):TPZMaterial(matid
     fTensorK.Identity();
     fPermeabilityFunction = NULL;
     fmatLagr =  new TPZLagrangeMultiplier();
+    fSecondIntegration = false;
 }
 
 TPZMatMixedPoisson3D::~TPZMatMixedPoisson3D(){
@@ -90,6 +92,7 @@ TPZMatMixedPoisson3D & TPZMatMixedPoisson3D::operator=(const TPZMatMixedPoisson3
     this->fMatId = copy.fMatId;
     this->fK = copy.fK;
     this->fmatLagr = copy.fmatLagr;
+    this->fSecondIntegration = copy.fSecondIntegration;
     
     return *this;
 }
@@ -116,9 +119,8 @@ void TPZMatMixedPoisson3D::Print(std::ostream &out) {
 void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     int phrq = datavec[0].fVecShapeIndex.NElements();
-
-    // tototototototototototo
-    if(HDivPiola ==  1 || HDivPiola == 2){
+    
+    if(!fSecondIntegration){
         if(phrq == 0)
         {
             return;
@@ -308,7 +310,7 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
     TPZFMatrix<REAL> &phiQ = datavec[0].phi;
     TPZFMatrix<REAL> &phip = datavec[1].phi;
     TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
-//    TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
+    //    TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
     
     int phrq, phrp;
     phrp = phip.Rows();
@@ -397,7 +399,7 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
     //        LOGPZ_DEBUG(logdata,sout.str());
     //	}
     //#endif
-
+    
 }
 
 void TPZMatMixedPoisson3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
@@ -408,10 +410,10 @@ void TPZMatMixedPoisson3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL w
         std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
         DebugStop();
     }
-//    if (!bc.Type() ) {
-//        std::cout << " Erro.!!\n";
-//        DebugStop();
-//    }
+    //    if (!bc.Type() ) {
+    //        std::cout << " Erro.!!\n";
+    //        DebugStop();
+    //    }
 #endif
     
     
@@ -430,7 +432,7 @@ void TPZMatMixedPoisson3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL w
     }
     
     
-
+    
     switch (bc.Type()) {
         case 0 :		// Dirichlet condition
             //primeira equacao
@@ -464,21 +466,21 @@ void TPZMatMixedPoisson3D::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL w
             
             break;
             
-//        case 3 :          //Contribution of skeletal elements.
-//        {
-//            REAL multiplier = -1.;
-//            fmatLagr->SetMultiplier(multiplier);
-//            fmatLagr->Contribute(datavec, weight, ek, ef);
-//            break;
-//        }
+            //        case 3 :          //Contribution of skeletal elements.
+            //        {
+            //            REAL multiplier = -1.;
+            //            fmatLagr->SetMultiplier(multiplier);
+            //            fmatLagr->Contribute(datavec, weight, ek, ef);
+            //            break;
+            //        }
         default:
         {
             std::cout << "Boundary condition not found!";
             DebugStop();
             break;
         }
-
-
+            
+            
     }
     
 }
@@ -520,7 +522,7 @@ int TPZMatMixedPoisson3D::NSolutionVariables(int var){
     if(var == 7) return 3;
     if(var == 8 || var == 10 || var == 11) return 1;
     if(var == 9) return 3;
-        return TPZMaterial::NSolutionVariables(var);
+    return TPZMaterial::NSolutionVariables(var);
 }
 
 // metodo para gerar vtk
@@ -529,7 +531,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     Solout.Resize( this->NSolutionVariables(var));
     
     TPZVec<STATE> SolP, SolQ;
-
+    
     // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
     
@@ -589,7 +591,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
         }
         return;
     }//var7
-
+    
     if(var == 8){
         REAL force = fF;
         if(fForcingFunction) {
@@ -598,7 +600,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
             force = res[0];
         }
         Solout[0] = force;
-
+        
         return;
     }//var8
     
@@ -606,8 +608,8 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
         
         TPZFNMatrix<660> GradofP;
         TPZAxesTools<REAL>::Axes2XYZ(datavec[1].dsol[0], GradofP, datavec[1].axes);
-//        int nc = GradofP.Cols();
-//        int nl = GradofP.Rows();
+        //        int nc = GradofP.Cols();
+        //        int nl = GradofP.Rows();
         
         for (int ip = 0; ip<fDim; ip++)
         {
@@ -741,8 +743,8 @@ void TPZMatMixedPoisson3D::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exa
 
 
 void TPZMatMixedPoisson3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                             TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
-                             TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
+                                  TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+                                  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
     
     values.Resize(NEvalErrors());
     values.Fill(0.0);

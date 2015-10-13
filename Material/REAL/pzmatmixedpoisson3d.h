@@ -60,6 +60,9 @@ protected:
     //object to material lagrange multiplier
     TPZLagrangeMultiplier *fmatLagr;
     
+    /** @brief Parameter to choose the second integration by parts in the variational formulation*/
+    bool fSecondIntegration;
+    
 public:
     
     TPZMatMixedPoisson3D();
@@ -91,8 +94,8 @@ public:
     //Set the permeability tensor and inverser tensor
     void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> invK){
         
-//        if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
-//        if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
+        //        if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
+        //        if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
         
         fTensorK = K;
         fInvK = invK;
@@ -186,54 +189,54 @@ public:
         DebugStop();
     }
     
-//    /**
-//     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
-//     * @param datavec [in]
-//     * @param dataleft [in]
-//     * @param weight [in]
-//     * @param ek [out] is the stiffness matrix
-//     * @param ef [out] is the load vector
-//     * @param bc [in] is the boundary condition object
-//     * @since June 2, 2014
-//     */
-//    virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-//    
-//    /**
-//     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
-//     * @param data [in]
-//     * @param dataleft [in]
-//     * @param weight [in]
-//     * @param ek [out] is the stiffness matrix
-//     * @param ef [out] is the load vector
-//     * @param bc [in] is the boundary condition object
-//     * @since June 2, 2014
-//     */
-//    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-//    void         ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-//    
-//    /**
-//     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
-//     * @param datavec [in]
-//     * @param dataleft [in]
-//     * @param dataright [in]
-//     * @param weight [in]
-//     * @param ek [out] is the stiffness matrix
-//     * @param ef [out] is the load vector
-//     * @since June 2, 2014
-//     */
-//    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
-//    
-//    /**
-//     * @brief It computes a contribution to stiffness matrix and load vector at one integration point
-//     * @param data [in]
-//     * @param dataleft [in]
-//     * @param dataright [in]
-//     * @param weight [in]
-//     * @param ek [out] is the stiffness matrix
-//     * @param ef [out] is the load vector
-//     * @since June 2, 2014
-//     */
-//    virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {DebugStop();}
+    //    /**
+    //     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
+    //     * @param datavec [in]
+    //     * @param dataleft [in]
+    //     * @param weight [in]
+    //     * @param ek [out] is the stiffness matrix
+    //     * @param ef [out] is the load vector
+    //     * @param bc [in] is the boundary condition object
+    //     * @since June 2, 2014
+    //     */
+    //    virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    //
+    //    /**
+    //     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
+    //     * @param data [in]
+    //     * @param dataleft [in]
+    //     * @param weight [in]
+    //     * @param ek [out] is the stiffness matrix
+    //     * @param ef [out] is the load vector
+    //     * @param bc [in] is the boundary condition object
+    //     * @since June 2, 2014
+    //     */
+    //    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    //    void         ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    //
+    //    /**
+    //     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
+    //     * @param datavec [in]
+    //     * @param dataleft [in]
+    //     * @param dataright [in]
+    //     * @param weight [in]
+    //     * @param ek [out] is the stiffness matrix
+    //     * @param ef [out] is the load vector
+    //     * @since June 2, 2014
+    //     */
+    //    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    //
+    //    /**
+    //     * @brief It computes a contribution to stiffness matrix and load vector at one integration point
+    //     * @param data [in]
+    //     * @param dataleft [in]
+    //     * @param dataright [in]
+    //     * @param weight [in]
+    //     * @param ek [out] is the stiffness matrix
+    //     * @param ef [out] is the load vector
+    //     * @since June 2, 2014
+    //     */
+    //    virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {DebugStop();}
     
     /**
      * @brief It return a solution to multiphysics simulation.
@@ -263,6 +266,10 @@ public:
                 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
     // metodo para computar erros Hdiv
     void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+    
+    void UseSecondIntegrationByParts(){
+        fSecondIntegration=true;
+    }
 };
 
 #endif /* defined(__PZ__pzmatmixedpoisson3d__) */

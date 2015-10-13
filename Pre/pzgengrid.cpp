@@ -544,6 +544,10 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
     }
 	//    coorold[1] = fX0[1]+fDelx[1]*iy;
     
+    if(ilayer==0 /*&&ix%2*/ && iy%2){
+        if(ix%2) coorold[1]+=fDistortion*elsize[1];
+        else coorold[1]-= fDistortion*elsize[1];
+    }
     // rotate along the y axis
 	coor[0] = fX0[0]+(coorold[0]-fX0[0])*cos(Rot);
 	coor[2] = fX0[2] + coorold[0]*sin(Rot);

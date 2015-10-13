@@ -117,7 +117,7 @@ bool metodomisto;
 bool solsuave;
 int main()
 {
-    HDivPiola = 0;
+    HDivPiola = 2;
     InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
@@ -132,7 +132,7 @@ int main()
     ofstream saidaerrosH1("../Erro-H1.txt");
     
     
-    int maxp = 6;
+    int maxp = 2;
     int maxhref = 5;
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1);
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1);
@@ -148,13 +148,13 @@ int main()
     TPZFMatrix<int> numhref(maxhref,maxp-1);
     int nelx = 1;
     int nely = 1;
-    bool zigzag = false;
+    bool zigzag = true;
     
     for(int p = 1; p<maxp; p++)
     {
         int pq = p;
         int pp = p;
-        int order_reduce = 1;
+        int order_reduce = 0;
         
         if (order_reduce==1){
             pq+=1;
@@ -1213,7 +1213,7 @@ void ForcingTang2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     if(solsuave)
     {
-        disp[0] = 2.*alpha*alpha*sin(alpha*x)*sin(alpha*y);
+        disp[0] = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
     }
     else
     {
@@ -1232,7 +1232,7 @@ void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &d
     
     if(solsuave)
     {
-        res[0] = 2.*pi*pi*sin(pi*x)*sin(pi*y);
+        res[0] = 2.*M_PI*M_PI*sin(M_PI*x)*sin(M_PI*y);
     }
     else
     {
