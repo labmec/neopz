@@ -121,10 +121,10 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     int phrq = datavec[0].fVecShapeIndex.NElements();
     
     if(!fSecondIntegration){
-        if(phrq == 0)
-        {
-            return;
+        if(HDivPiola==0 || phrq == 0){
+            DebugStop();
         }
+        
         ContributeWithoutSecondIntegration(datavec,weight,ek,ef);
         return;
     }
