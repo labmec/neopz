@@ -266,7 +266,7 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     falphaAtnplusOne = fcmeshinitialdarcy->Solution();
     
     REAL TimeStep = fSimulationData->GetDeltaT();
-    REAL BigTimeStep = 1000000.0;
+    REAL BigTimeStep = 100000.0;
     fSimulationData->SetDeltaT(BigTimeStep);
     this->AssembleLastStep(an);
     this->AssembleNextStep(an);
@@ -640,7 +640,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         tk = istep*this->fSimulationData->GetDeltaT();
         this->fSimulationData->SetTime(tk);
         
-        std::cout << "Begin of time (days): " << tk/86400.0 << std::endl;
+        std::cout << "Time value (days): " << tk << std::endl;
         std::cout<<  "Time step: " << istep << std::endl;
         
         
@@ -735,7 +735,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         an->Rhs() = Residual;
         an->Rhs() *= -1.0;
         
-        this->PrintLS(an);
+        //this->PrintLS(an);
         
         an->Solve();
         
@@ -1044,9 +1044,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
     // Rigth hand side function
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(0);
+    dum->SetPolynomialOrder(20);
     forcef = dum;
-    mat->SetForcingFunction(forcef);
+//     mat->SetTimeDependentForcingFunction(forcef);
     
     // Setting up linear tracer solution
     //  TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
@@ -1133,15 +1133,25 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     // Rigth hand side function
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
     TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(0);
+    dum->SetPolynomialOrder(20);
     forcef = dum;
-    mat->SetForcingFunction(forcef);
+    mat->SetTimeDependentForcingFunction(forcef);
     
     // Setting up linear tracer solution
     //  TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
     TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
+
+/*    TPZDummyFunction<STATE> *bcnfunction = new TPZDummyFunction<STATE>(BCNfunction);
+    TPZAutoPointer<TPZFunction<STATE> > bcN;
+    bcnfunction->SetPolynomialOrder(20);
+    bcN = bcnfunction;
+
+    TPZDummyFunction<STATE> *bcdfunction = new TPZDummyFunction<STATE>(BCDfunction);
+    TPZAutoPointer<TPZFunction<STATE> > bcD;
+    bcdfunction->SetPolynomialOrder(20);
+    bcD = bcdfunction;   */ 
     
     TPZManVector<REAL,4> Bottom     = fSimulationData->GetBottomBC();
     TPZManVector<REAL,4> Right      = fSimulationData->GetRightBC();
@@ -1160,6 +1170,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     val2(1,0) = Right[2];
     val2(2,0) = Right[3];
     TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, int(Right[0]), val1, val2);
+//     mat->SetTimeDependentFunctionExact(bcD);
     
     // Bc Top
     val2(0,0) = Top[1];
@@ -1172,6 +1183,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     val2(1,0) = Left[2];
     val2(2,0) = Left[3];
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, int(Left[0]), val1, val2);
+//     mat->SetTimedependentBCForcingFunction(bcN);
     
     cmesh->InsertMaterialObject(bcBottom);
     cmesh->InsertMaterialObject(bcRight);
@@ -1941,7 +1953,37 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
 
 }
 
-void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff)
+void TPZDarcyAnalysis::BCDfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad){
+
+    REAL t = time;
+    REAL pd;
+    REAL x = pt[0];
+    REAL y = pt[1];
+
+    if(time <= 0.0){
+        t = 0.0001;
+    }
+    
+    pd = exp(-x/t) + x;
+    ff[0] = pd;
+}
+
+void TPZDarcyAnalysis::BCNfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad){
+    
+    REAL t = time;
+    REAL qn;
+    REAL x = pt[0];
+    REAL y = pt[1];
+    
+    if(time <= 0.0){
+        t = 0.0001;
+    }
+    
+    qn = -1.*(1 - 1/(exp(x/t)*t))*(1 + (-0.1 + exp(-x/t) + x)/10.);
+    ff[0] = -qn;
+}
+
+void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad)
 {
     
     REAL epsilon = 0.01;
@@ -1952,6 +1994,15 @@ void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff)
     REAL rho = 1000.0/((1.0e7)/(1000.0*9.81)); //check this value
     REAL c = 1.0;
     REAL Pref = 0.1;
+
+    REAL f  =0.0;/* -((9.*exp(10.0*(-(1.0/1000.0) + log(1.0 + x))))/((1 + x)*(1 + x)))*/;
+    REAL t = time;
+
+    if(time <= 0.0){
+        t = 0.0001;
+    }
+
+//     f=-0.1*pow(1.0 - 1.0/(exp(x/t)*t),2.0) + (0.01*x)/(exp(x/t)*pow(t,2.0)) - (1.*(1.0 + (-0.1 + exp(-x/t) + x)/10.))/(exp(x/t)*pow(t,2.0));
     
 #ifdef SolutionI
     
@@ -1994,7 +2045,7 @@ void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff)
     return;
 #endif
     
-    ff[0] = 0.0;
+    ff[0] = f;
     return;
     
 }

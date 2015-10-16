@@ -25,8 +25,8 @@ void OilPhase::Density(TPZManVector<REAL> &rho, TPZManVector<REAL> state_vars)
 {
     REAL Po = state_vars[1];
     
-    rho[0] = GetRho() * ( 1.0 + Getc() * (Po - GetPRef() ));
-    rho[2] = GetRho() * Getc();
+    rho[0] = GetRho() * exp(  Getc() * (Po - GetPRef()) );
+    rho[2] = GetRho() * Getc() * exp(  Getc() * (Po - GetPRef()) );
 }
 
 /** @brief viscosity - Pa s  $\mu$ */

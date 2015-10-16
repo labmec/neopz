@@ -25,8 +25,8 @@ void WaterPhase::Density(TPZManVector<REAL> &rho, TPZManVector<REAL> state_vars)
 {
     REAL Pw = state_vars[1];
     
-    rho[0] = GetRho() * ( 1.0 + Getc() * (Pw - GetPRef() ));
-    rho[2] = GetRho() * Getc();
+    rho[0] = GetRho() * exp(  Getc() * (Pw - GetPRef() ));
+    rho[2] = GetRho() * Getc() * exp(  Getc() * (Pw - GetPRef() ));
 }
 
 /** @brief viscosity - Pa s  $\mu$ */

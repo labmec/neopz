@@ -111,7 +111,7 @@ class TRMSimworxMeshGenerator
 private:
     
     /// Auxilary geomesh
-    TPZGeoMesh *m_auxGMesh = NULL;
+    TPZGeoMesh *m_auxGMesh;
     
     /// Ribs of the mesh
     TPZStack<TWellRibs> fRibs;

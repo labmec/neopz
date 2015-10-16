@@ -2637,9 +2637,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     }
     
     TPZManVector<STATE,1> fvalue(1,0.0);
-    if(fForcingFunction)
+    TPZFMatrix<REAL> Grad;
+    if(fTimeDependentForcingFunction)
     {
-        fForcingFunction->Execute(datavec[Pblock].x,fvalue);
+        fTimeDependentForcingFunction->Execute(datavec[Pblock].x,fSimulationData->GetTime(),fvalue,Grad);
     }
     
     
@@ -2811,9 +2812,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     }
     
     TPZManVector<STATE,1> fvalue(1,0.0);
-    if(fForcingFunction)
+    TPZFMatrix<REAL> Grad;
+    if(fTimeDependentForcingFunction)
     {
-        fForcingFunction->Execute(datavec[Pblock].x,fvalue);
+        fTimeDependentForcingFunction->Execute(datavec[Pblock].x,fSimulationData->GetTime(),fvalue,Grad);
     }
     
     
@@ -2867,6 +2869,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
     
     TPZFMatrix<STATE> iPhiHdiv(2,1);
     TPZFMatrix<STATE> jPhiHdiv(2,1);
+
+
     
     REAL Value;
     switch (bc.Type()) {
@@ -2886,6 +2890,15 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
             
             
             Value = bc.Val2()(0,0);         //  NormalFlux
+
+//             TPZManVector<STATE,1> fvalue(1,0.0);
+//             TPZFMatrix<REAL> Grad;
+//             if(fTimedependentBCForcingFunction)
+//             {
+//                 fTimedependentBCForcingFunction->Execute(datavec[Qblock].x,fSimulationData->GetTime(),fvalue,Grad);
+//                 Value = fvalue[0];
+//             }
+            
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 ef(iq) += weight * (gBigNumber * (Qn - Value)) * PhiH1(iq,0);
@@ -2904,6 +2917,14 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
         {
             
             Value = bc.Val2()(0,0);         //  Pressure
+//             TPZManVector<STATE,1> fvalue(1,0.0);
+//             TPZFMatrix<REAL> Grad;
+//             if(fTimedependentFunctionExact)
+//             {
+//                 fTimedependentFunctionExact->Execute(datavec[Qblock].x,fSimulationData->GetTime(),fvalue,Grad);
+//                 Value = fvalue[0];
+//             }
+            
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 

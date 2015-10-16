@@ -329,7 +329,17 @@ public:
     /**
      * Rhs function of the mass conservation equation
      */
-    static  void Ffunction(const TPZVec<REAL> &pt, TPZVec<STATE> &ff);
+    static  void Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad);
+
+    /**
+     * Transient BC neumann
+     */
+    static  void BCNfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad);
+
+    /**
+     * Transient BC dirichlet
+     */
+    static  void BCDfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad);
     
     /**
      * Exact Soltuion for linear tracer

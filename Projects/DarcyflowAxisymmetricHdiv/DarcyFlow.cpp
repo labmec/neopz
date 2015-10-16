@@ -23,7 +23,7 @@ void NonlinearTracerDimensionless();
 int main()
 {
     
-    TPZMaterial::gBigNumber = 1.0e8; // Use this for check of convergence using neumann
+    TPZMaterial::gBigNumber = 1.0e10; // Use this for check of convergence using neumann
     //    TPZMaterial::gBigNumber = 1.0e15;
     
     NonlinearTracerDimensionless();
@@ -52,7 +52,7 @@ void NonlinearTracerDimensionless()
     REAL Lstr           = 1000.0;
     REAL gcstr          = 9.81;
     REAL Mustr          = 0.001;
-    REAL Rhostr         = (Pstr/(Lstr*gcstr));
+    REAL Rhostr         = 1000.0;
     REAL Lambdastr      = Rhostr/Mustr;
     TPZFMatrix<REAL> Gravity(2,1);
     
@@ -64,30 +64,30 @@ void NonlinearTracerDimensionless()
     bool SC         = false;    // Use Static Condensation
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    bool OptBand    = false;    // Band optimization
+    bool OptBand    = true;    // Band optimization
     int fixedJac    = 0;
     
-    int qorder      = 1;
-    int porder      = 1;
+    int qorder      = 4;
+    int porder      = 4;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 0;
+    int hpostref    = 2;
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 0.1*day*((Kstr*Lambdastr*gcstr)/(Lstr));
-    REAL maxtime    = 1.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
-    REAL t0         = 0.0*day*((Kstr*Lambdastr*gcstr)/(Lstr));
+    REAL dt         = 1000000.*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
+    REAL maxtime    = 1000000.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
+    REAL t0         = 0.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     
     REAL TolDeltaX  = 1.0*1e-8;
     REAL TolRes     = 1.0*1e-8;
     
-    int  nelemX     =20;
-    REAL lengthX    =50.0/Lstr;
+    int  nelemX     =1;
+    REAL lengthX    =1000.0/Lstr;
     
-    int nelemY      =4;
-    REAL lengthY    =250.0/Lstr;
+    int nelemY      =1;
+    REAL lengthY    =1000.0/Lstr;
     
     Gravity(0,0)= -0.0;
     Gravity(1,0)= -0.0;
@@ -166,7 +166,7 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> rightbc(4,0.0);
     rightbc[0] = 2;
-    rightbc[1] = (1.0*1e6)/(Pstr);
+    rightbc[1] = log(2.0);
     rightbc[2] = 0;
     rightbc[3] = 0;
     
@@ -177,8 +177,8 @@ void NonlinearTracerDimensionless()
     topbc[3] = 0;
     
     TPZVec<REAL> leftbc(4,0.0);
-    leftbc[0] = 0;
-    leftbc[1] = (0.1001*Pstr)/(Pstr);
+    leftbc[0] = 1;
+    leftbc[1] = 0.99005;
     leftbc[2] = 1;
     leftbc[3] = 0;
     
@@ -216,9 +216,9 @@ void NonlinearTracerDimensionless()
     REAL waterviscosity     = 0.001/Mustr;
     REAL cwater             = (0.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
-    REAL oildensity         = 800.0/Rhostr;
+    REAL oildensity         = 1000.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (1.0*1e-8)*Pstr;
+    REAL coil               = (1.0*1e-7)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
     REAL gasviscosity       = Mustr;
