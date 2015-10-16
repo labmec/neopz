@@ -28,10 +28,12 @@ class TPZMatDualHybridPoisson : public TPZDiscontinuousGalerkin {
     STATE fXf;
     
     STATE fBetaZero;
+
+    int mydim;
     
 public:
     
-    int mydim=0;
+
     
     TPZMatDualHybridPoisson(int nummat, REAL f, REAL betaZero);
     TPZMatDualHybridPoisson(int matid);

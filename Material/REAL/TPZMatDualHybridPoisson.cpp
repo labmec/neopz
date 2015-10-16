@@ -7,21 +7,23 @@
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int nummat, REAL f, REAL betaZero)
 :TPZDiscontinuousGalerkin(nummat),fXf(f), fBetaZero(betaZero){
-    
+   mydim = 0;
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int matid) : TPZDiscontinuousGalerkin(matid),
 fXf(0.), fBetaZero(0.)
 {
+    mydim = 0;
     
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(): TPZDiscontinuousGalerkin(){
-    
+    mydim = 0;
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(const TPZMatDualHybridPoisson &copy)
 : TPZDiscontinuousGalerkin(copy){
+    mydim = copy.mydim;
     fXf = copy.fXf;
     fBetaZero = copy.fBetaZero;
 }
