@@ -401,12 +401,24 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
     
     out << "Index of grouped elements: ";
     TPZElementGroup *eg = dynamic_cast<TPZElementGroup *>(fReferenceCompEl);
-    int nel = eg->GetElGroup().size();
-    for(int i=0; i<nel-1; i++){
-        out << eg->GetElGroup()[i]->Index() <<", ";
+    if(eg)
+    {
+        int nel = eg->GetElGroup().size();
+        for(int i=0; i<nel-1; i++){
+            out << eg->GetElGroup()[i]->Index() <<", ";
+        }
+        out << eg->GetElGroup()[nel-1]->Index() <<std::endl;
     }
-    out << eg->GetElGroup()[nel-1]->Index() <<std::endl;
-
+    else
+    {
+        if (fReferenceCompEl) {
+            fReferenceCompEl->Print(out);
+        }
+        else
+        {
+            DebugStop();
+        }
+    }
     TPZCompEl::Print(out);
     out << "Internal index resequencing: " << fIndexes << std::endl;
     fCondensed.Print("Condensed matrix",out);

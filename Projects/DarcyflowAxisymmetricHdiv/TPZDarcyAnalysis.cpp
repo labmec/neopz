@@ -301,14 +301,14 @@ void TPZDarcyAnalysis::Run()
     gRefDBase.InitializeUniformRefPattern(ETriangle);
     
 #ifdef DEBUG
-#ifdef LOG4CXX
-    
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-    FileName += "DarcyFlowLog.cfg";
-    InitializePZLOG(FileName);
-    
-#endif
+    #ifdef LOG4CXX
+        
+        std::string FileName = dirname;
+        FileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
+        FileName += "DarcyFlowLog.cfg";
+        InitializePZLOG(FileName);
+        
+    #endif
 #endif
     
     //  Reading mesh
@@ -355,6 +355,8 @@ void TPZDarcyAnalysis::Run()
     CreateMultiphysicsMesh(q,p,s);
     CreateInterfaces();
     
+    this->PushInitialCmesh();
+    this->PrintCmesh();
     
     if(fSimulationData->GetSC())
     {
@@ -735,7 +737,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         an->Rhs() = Residual;
         an->Rhs() *= -1.0;
         
-        //this->PrintLS(an);
+        this->PrintLS(an);
         
         an->Solve();
         
@@ -1208,14 +1210,14 @@ void TPZDarcyAnalysis::ApplyStaticCondensation(){
         DebugStop();
     }
     
-    fcmeshdarcy->Reference()->ResetReference();
-    fcmeshdarcy->LoadReferences();
+    fcmeshinitialdarcy->Reference()->ResetReference();
+    fcmeshinitialdarcy->LoadReferences();
     
-    fcmeshdarcy->ComputeNodElCon();
+    fcmeshinitialdarcy->ComputeNodElCon();
     // create condensed elements
     // increase the NumElConnected of one pressure connects in order to prevent condensation
-    for (long icel=0; icel < fcmeshdarcy->NElements(); icel++) {
-        TPZCompEl  * cel = fcmeshdarcy->Element(icel);
+    for (long icel=0; icel < fcmeshinitialdarcy->NElements(); icel++) {
+        TPZCompEl  * cel = fcmeshinitialdarcy->Element(icel);
         if(!cel) continue;
         int nc = cel->NConnects();
         for (int ic=0; ic<nc; ic++) {
@@ -1228,13 +1230,13 @@ void TPZDarcyAnalysis::ApplyStaticCondensation(){
         new TPZCondensedCompEl(cel);
     }
     
-    int DOF = fmeshvec[0]->NEquations() + fmeshvec[1]->NEquations() + fmeshvec[2]->NEquations() + fmeshvec[3]->NEquations();
-    REAL PercentCondensedDOF = 100.0*(1.0 - REAL(fcmeshdarcy->NEquations())/REAL(DOF));
+    int DOF = fmeshvec[0]->NEquations() + fmeshvec[1]->NEquations();// + fmeshvec[2]->NEquations() + fmeshvec[3]->NEquations();
+    REAL PercentCondensedDOF = 100.0*(1.0 - REAL(fcmeshinitialdarcy->NEquations())/REAL(DOF));
     std::cout << "Percent of condensed Degrees of freedom: " << PercentCondensedDOF << std::endl;
-    std::cout << "Condensed degrees of freedom: " << fcmeshdarcy->NEquations() << std::endl;
+    std::cout << "Condensed degrees of freedom: " << fcmeshinitialdarcy->NEquations() << std::endl;
     
-    fcmeshdarcy->CleanUpUnconnectedNodes();
-    fcmeshdarcy->ExpandSolution();
+    fcmeshinitialdarcy->CleanUpUnconnectedNodes();
+    fcmeshinitialdarcy->ExpandSolution();
     
 }
 
@@ -1919,6 +1921,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     scalnames.Push("WeightedPressure");
     vecnames.Push("BulkVelocity");
     scalnames.Push("Porosity");
+    scalnames.Push("Rhs");
 
     
     if (fSimulationData->IsOnePhaseQ()) {
@@ -1992,7 +1995,7 @@ void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE
     REAL x = pt[0];
     REAL y = pt[1];
     REAL rho = 1000.0/((1.0e7)/(1000.0*9.81)); //check this value
-    REAL c = 1.0;
+//    REAL c = 1.0;
     REAL Pref = 0.1;
 
     REAL f  =0.0;/* -((9.*exp(10.0*(-(1.0/1000.0) + log(1.0 + x))))/((1 + x)*(1 + x)))*/;
@@ -2001,6 +2004,33 @@ void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE
     if(time <= 0.0){
         t = 0.0001;
     }
+    REAL pD = 0.1 + log(1.0 + x);
+    REAL dpDdx = 1.0/(1.0 + x);
+    REAL dpDdx2 = -pow(1.0 + x,-2.0);
+    REAL b = (1.0e7);
+    REAL c = 1000.0;
+    REAL e = 1.0e-6;
+    REAL rhoD = (6.4290583420332425e-6*(101325.353 + b*pD))/
+    (c*(0.5017121086995703 + 0.4982878913004297*
+        exp(-5.1483395031556254e-8*(101325.353 + b*pD) -
+              2.1184388752031904e-15*pow(101325.353 + b*pD,2.0) -
+              3.2120945504363473e-47*pow(101325.353 + b*pD,6.0)) +
+        1.2777444873399675e-8*pow(101325.353 + b*pD,1.0023796430661953)));
+    REAL rhoDpe = (6.4290583420332425e-6*(101325.353 + b*pD+e))/
+    (c*(0.5017121086995703 + 0.4982878913004297*
+        exp(-5.1483395031556254e-8*(101325.353 + b*pD+e) -
+            2.1184388752031904e-15*pow(101325.353 + b*pD+e,2.0) -
+            3.2120945504363473e-47*pow(101325.353 + b*pD+e,6.0)) +
+        1.2777444873399675e-8*pow(101325.353 + b*pD+e,1.0023796430661953)));
+    REAL rhoDme = (6.4290583420332425e-6*(101325.353 + b*pD-e))/
+    (c*(0.5017121086995703 + 0.4982878913004297*
+        exp(-5.1483395031556254e-8*(101325.353 + b*pD-e) -
+            2.1184388752031904e-15*pow(101325.353 + b*pD-e,2.0) -
+            3.2120945504363473e-47*pow(101325.353 + b*pD-e,6.0)) +
+        1.2777444873399675e-8*pow(101325.353 + b*pD-e,1.0023796430661953)));
+    REAL drhoD = b * ((rhoDpe) - (rhoDme)) / (2.0 * e);
+    
+    f = -rhoD*dpDdx2 - dpDdx*dpDdx*drhoD;
 
 //     f=-0.1*pow(1.0 - 1.0/(exp(x/t)*t),2.0) + (0.01*x)/(exp(x/t)*pow(t,2.0)) - (1.*(1.0 + (-0.1 + exp(-x/t) + x)/10.))/(exp(x/t)*pow(t,2.0));
     

@@ -171,7 +171,7 @@ int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("DivOfBulkVeclocity", name.c_str())) return 9;
     if (!strcmp("ExactSaturation", name.c_str())) return 10;
     if (!strcmp("ExactP", name.c_str())) return 11;
-    if (!strcmp("Frhs", name.c_str())) return 12;
+    if (!strcmp("Rhs", name.c_str())) return 12;
     std::cout  << " Var index not implemented " << std::endl;
     DebugStop();
     return 0;
@@ -371,9 +371,10 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
         case 12:
         {
             TPZManVector<STATE,1> fvalue(1,0.0);
-            if(fForcingFunction)
+            TPZFMatrix<REAL> Grad;
+            if(fTimeDependentForcingFunction)
             {
-                fForcingFunction->Execute(datavec[Pblock].x,fvalue);
+                fTimeDependentForcingFunction->Execute(datavec[Pblock].x,fSimulationData->GetTime(),fvalue,Grad);
             }
             Solout[0] = fvalue[0];
         }
@@ -2746,8 +2747,32 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
             break;
         case 2:
         {
-            std::cout << "2-phases system not implemented"<< std::endl;
-            DebugStop();
+            // Getting linear combinations from different approximation spaces
+            int Salphablock = 2;
+            REAL Salpha = datavec[Salphablock].sol[0][0];
+            state_vars[1] = P;
+            state_vars[2] = Salpha;
+            
+            TPZManVector<REAL> alpha_rho(fnstate_vars+1,0.0);
+            TPZManVector<REAL> alpha_mu(fnstate_vars+1,0.0);
+            TPZManVector<REAL> beta_rho(fnstate_vars+1,0.0);
+            TPZManVector<REAL> beta_mu(fnstate_vars+1,0.0);
+
+            fluid_alpha->Density(alpha_rho, state_vars);
+            fluid_alpha->Viscosity(alpha_mu, state_vars);
+            
+            fluid_alpha->Density(beta_rho, state_vars);
+            fluid_alpha->Viscosity(beta_mu, state_vars);
+            
+            // Rho computation
+            rho = alpha_rho;
+            
+            // Rhof computation
+            rhof = alpha_rho;
+            
+            // lambda computation
+            lambda[0] = alpha_rho[0]/alpha_mu[0];
+            lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
             
         }
             break;

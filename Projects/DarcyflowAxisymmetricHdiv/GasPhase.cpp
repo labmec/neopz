@@ -123,6 +123,8 @@ void GasPhase::Viscosity(TPZManVector<REAL> &mu, TPZManVector<REAL> state_vars)
     
     mu[0] = mu_gas / GetMu();
     mu[2] = dmudP / GetMu();
+    mu[0] = 1.0;
+    mu[2] = 0.0;
 }
 
 /** @brief Compressibility - 1/pa $c$ */
@@ -152,7 +154,8 @@ REAL GasPhase::Tpc(){
 void GasPhase::Z(TPZManVector<REAL> &z, TPZManVector<REAL> state_vars){
 
     /* Getting the pressure gas phase */
-    REAL Pg = state_vars[1] + fPstd / GetPRef();
+    REAL Pg = fabs(state_vars[1] + fPstd / GetPRef()); // Negative values generate complex numbers
+//    int sign = signbit(state_vars[1] + fPstd / GetPRef());
     
     /* Computing Tr value */
     REAL Tpc= 0.0;
@@ -198,8 +201,16 @@ void GasPhase::Z(TPZManVector<REAL> &z, TPZManVector<REAL> state_vars){
     zv = a + (1.0 - a) / (exp(b)) + c * pow(Pr,d);
     dzdPr = c*d*pow(Pr,d-1.0) - (1.0 - a)*exp(-b)*dbdPr;
     
+//    if (sign)
+//    {
+//        z[0] = zv;
+//        z[2] = dzdPr*(1.0/Ppc);
+//        return;
+//    }
+    
     z[0] = zv;
     z[2] = dzdPr*(1.0/Ppc);
+    return;
     
 }
 
@@ -207,7 +218,7 @@ void GasPhase::Z(TPZManVector<REAL> &z, TPZManVector<REAL> state_vars){
 void GasPhase::Bg(TPZManVector<REAL> &bg, TPZManVector<REAL> state_vars){
     
     /* Getting the pressure gas phase */
-    REAL Pg = state_vars[1] + fPstd / GetPRef();
+    REAL Pg = (state_vars[1] + fPstd / GetPRef());
     
     TPZManVector<REAL> z(5,0.0);
     this->Z(z, state_vars);
