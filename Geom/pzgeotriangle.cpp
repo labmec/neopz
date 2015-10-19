@@ -51,8 +51,13 @@ namespace pzgeom {
         VecMatrix.GramSchmidt(axest,jacobian);
         axest.Transpose(&axes);
 		detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
-		
-        if(IsZero(detjac))
+    REAL maxjac = 0.;
+    for (int i=0; i<2; i++) {
+      for (int j=0; j<2; j++) {
+        maxjac = max(maxjac,fabs(jacobian(i,j)));
+      }
+    }
+        if(IsZero(maxjac) || IsZero(detjac/(maxjac*maxjac)))
 		{
 #ifdef DEBUG
 			std::stringstream sout;

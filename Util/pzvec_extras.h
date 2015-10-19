@@ -271,7 +271,7 @@ void Cross(const TPZVec <T> &x1, const TPZVec<T> &x2, TPZVec<T> &result)
   }
 #endif
   result[0] = x1[1]*x2[2] - x2[1]*x1[2];
-  result[1] = -x1[2]*x2[0] + x2[2]*x1[0];
+  result[1] = x1[2]*x2[0] - x2[2]*x1[0];//tava errado
   result[2] = x1[0]*x2[1] - x2[0]*x1[1];
 }
 
