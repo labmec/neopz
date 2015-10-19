@@ -34,11 +34,11 @@ TPZMatValidacaoHCurlFran1::~TPZMatValidacaoHCurlFran1()
 
 void TPZMatValidacaoHCurlFran1::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-  TPZManVector<REAL,3> &x = data.x;
-  TPZManVector<REAL,3> &normal = data.normal;
-  const STATE mu = fUr(x);
-  const STATE epsilon = fEr(x);
   
+  TPZManVector<REAL,3> &x = data.x;
+  const STATE muR =  fUr(x);
+  const STATE epsilonR = fEr(x);
+  REAL k0 = 2*M_PI*fFreq*sqrt(M_UZERO*M_EZERO);
   TPZManVector<STATE,3> force(3);
   if(fForcingFunction) {
     fForcingFunction->Execute(x,force);
@@ -46,67 +46,73 @@ void TPZMatValidacaoHCurlFran1::Contribute(TPZMaterialData &data, REAL weight, T
   
   // Setting the phis
   TPZFMatrix<REAL> &phiQ = data.phi;
-  //TPZFMatrix<REAL> &dphiQ = data.dphix; //AQUIFRAN
-  TPZFMatrix<REAL> &dphiQdaxes = data.dphix;
+  TPZFMatrix<REAL> &dphiQdaxes = data.dphix;//ELEMENTO DEFORMADO
   TPZFNMatrix<3,REAL> dphiQ;
   TPZAxesTools<REAL>::Axes2XYZ(dphiQdaxes, dphiQ, data.axes);
   
-  TPZFNMatrix<9,REAL> auxMatrix(3,3,0.);
-  auxMatrix(0,1) = -1.;
-  auxMatrix(1,0) = 1.;
-  auxMatrix(2,2) = 1.;
-  const TPZFNMatrix<9,REAL> rotationMatrix = auxMatrix;
+  TPZManVector<STATE,3> ax1(3),ax2(3), normal(3);
+  for (int i=0; i<3; i++) {
+    ax1[i] = data.axes(0,i);//ELEMENTO DEFORMADO
+    ax2[i] = data.axes(1,i);//ELEMENTO DEFORMADO
+  }
+  Cross(ax1, ax2, normal);
+  std::cout<<"normal: "<<std::endl;
+  std::cout<<normal[0]<<" "<<normal[1]<<" "<<normal[2]<<std::endl;
   int phrq;
   phrq = data.fVecShapeIndex.NElements();
   for(int iq=0; iq<phrq; iq++)
   {
-    //ef(iq, 0) += 0.;
     int ivecind = data.fVecShapeIndex[iq].first;
     int ishapeind = data.fVecShapeIndex[iq].second;
     
-    TPZFNMatrix<3,REAL> ivec(3,1,0.);
+    TPZManVector<STATE,3> ivecHDiv(3), ivecHCurl(3);
     for(int id=0; id<3; id++){
-      ivec(id,0) = data.fNormalVec(id,ivecind);
+      ivecHDiv[id] = data.fNormalVec(id,ivecind);
     }
     //ROTATE FOR HCURL
-    //ivec.Print("before rotation");
-    ivec = rotationMatrix * ivec;
-    //ivec.Print("after rotation");
-    
+    Cross(normal, ivecHDiv, ivecHCurl);
+    REAL normz = std::real( normal[2] );
     STATE ff = 0.;
     for (int i=0; i<3; i++) {
-      ff += ivec(i,0)*force[i];
+      ff += ivecHCurl[i]*force[i];
     }
     
     ef(iq,0) += weight*ff*phiQ(ishapeind,0);
+    TPZManVector<STATE,3> curlI(3), gradPhiI(3);
+    for (int i = 0; i<dphiQ.Rows(); i++) {
+      gradPhiI[i] = dphiQ(i,ishapeind);//ELEMENTO DEFORMADO
+    }
+    Cross(gradPhiI, ivecHCurl, curlI);
     
     for (int jq=0; jq<phrq; jq++)
     {
-      TPZFNMatrix<3,REAL> jvec(3,1,0.);
+      TPZManVector<STATE,3> jvecHDiv(3), jvecHCurl(3);//JA EM XYZ
       int jvecind = data.fVecShapeIndex[jq].first;
       int jshapeind = data.fVecShapeIndex[jq].second;
       
       for(int id=0; id<3; id++){
-        jvec(id,0) = data.fNormalVec(id,jvecind);
+        jvecHDiv[id] = data.fNormalVec(id,jvecind);
       }
-      
       //ROTATE FOR HCURL
-      jvec = rotationMatrix * jvec;
-      STATE curlJz, curlIz, phiIdotphiJ;
+      Cross(normal, jvecHDiv,jvecHCurl);
+
+      TPZManVector<STATE,3> curlJ(3),  gradPhiJ(3);
       
-      curlIz = dphiQ(0,ishapeind) * ivec(1,0) - dphiQ(1,ishapeind) * ivec(0,0);
-      curlJz = dphiQ(0,jshapeind) * jvec(1,0) - dphiQ(1,jshapeind) * jvec(0,0);
-      phiIdotphiJ = ( phiQ(ishapeind,0) * ivec(0,0) * phiQ(jshapeind,0) * jvec(0,0));
-      phiIdotphiJ += ( phiQ(ishapeind,0) * ivec(1,0) * phiQ(jshapeind,0) * jvec(1,0));
-      STATE stiff = (1./mu) * ( curlJz * curlIz );
-      stiff += -1. * fW * fW * epsilon * phiIdotphiJ;
-      //termo do contorno
-//      STATE bTerm = -1. * (1./mu) * ( -1. * curlJz * normal[1] ) * phiQ(ishapeind,0) * ivec (0,0);
-//      bTerm += -1. * (1./mu) * ( 1. * curlJz * normal[0] ) * phiQ(ishapeind,0) * ivec (1,0);
-      STATE bTerm = -1. * (1./mu) * (( -1. * curlJz * normal[1] ) * phiQ(ishapeind,0) * ivec (0,0) + ( 1. * curlJz * normal[0] ) * phiQ(ishapeind,0) * ivec (1,0));
-      stiff+=bTerm;
-      //jvecZ.Print("mat1 = ");
-      //REAL prod1 = ivec(0,0)*jvec(0,0) + ivec(1,0)*jvec(1,0) + ivec(2,0)*jvec(2,0);
+      for (int i = 0; i<dphiQ.Rows(); i++) {
+        gradPhiJ[i] = dphiQ(i,jshapeind);
+      }
+      Cross(gradPhiJ, jvecHCurl, curlJ);
+      //eh necessario forcar curlE dot x = j*k0*sin(theta)*Ez
+      
+      STATE phiIdotphiJ;
+      phiIdotphiJ = ( phiQ(ishapeind,0) * ivecHCurl[0] * phiQ(jshapeind,0) * jvecHCurl[0]);
+      phiIdotphiJ += ( phiQ(ishapeind,0) * ivecHCurl[1] * phiQ(jshapeind,0) * jvecHCurl[1]);
+      phiIdotphiJ += ( phiQ(ishapeind,0) * ivecHCurl[2] * phiQ(jshapeind,0) * jvecHCurl[2]);
+      
+      
+      STATE stiff = (1./muR) * ( curlJ[0] * curlI[0] + curlJ[1] * curlI[1] + curlJ[2] * curlI[2] );
+      stiff += -1. * k0 * k0 * epsilonR * phiIdotphiJ;
+      
       ek(iq,jq) += weight * stiff;
     }
   }
@@ -125,22 +131,14 @@ void TPZMatValidacaoHCurlFran1::Contribute(TPZVec<TPZMaterialData> &datavec, REA
 
 void TPZMatValidacaoHCurlFran1::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-  TPZManVector<REAL,3> &x = data.x;
-  //TPZManVector<REAL,3> &normal = data.normal;
-  const STATE mu = fUr(x);
-  const STATE epsilon = fEr(x);
   
   // Setting the phis
   TPZFMatrix<REAL> &phiQ = data.phi;
-//  std::cout<<"bc0: "<<data.XCenter[0]<<" "<<data.XCenter[1]<<std::endl;
-//  TPZFMatrix<REAL> &dphiQ = data.dphix; //AQUIFRAN
-  TPZFMatrix<REAL> &dphiQdaxes = data.dphi;
-  TPZFNMatrix<3,REAL> dphiQ;
-  TPZAxesTools<REAL>::Axes2XYZ(dphiQdaxes, dphiQ, data.axes);
+  
   int nshape=phiQ.Rows();
   REAL BIG = TPZMaterial::gBigNumber;
-  STATE v1 = bc.Val1()(0,0);//sera posto na matriz K no caso de condicao mista
-  STATE v2 = bc.Val2()(0,0);//sera posto no vetor F
+  const STATE v1 = bc.Val1()(0,0);//sera posto na matriz K no caso de condicao mista
+  const STATE v2 = bc.Val2()(0,0);//sera posto no vetor F
   switch ( bc.Type() )
   {
     case 0:
@@ -159,9 +157,19 @@ void TPZMatValidacaoHCurlFran1::ContributeBC(TPZMaterialData &data, REAL weight,
       DebugStop();
       break;
     case 2:
-      DebugStop();
+      for(int i = 0 ; i<nshape ; i++)
+      {
+        const STATE rhs = phiQ(i,0) * v2;
+        ef(i,0) += rhs*weight;
+        for(int j=0;j<nshape;j++)
+        {
+          const STATE stiff = phiQ(i,0) *  phiQ(j,0) * v1;
+          ek(i,j) += stiff*weight;
+        }
+      }
       break;
   }
+  
 }
 
 void TPZMatValidacaoHCurlFran1::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
@@ -184,7 +192,7 @@ int TPZMatValidacaoHCurlFran1::VariableIndex(const std::string &name)
   if(name == "E") {
       return 2;
   }
-  else if ( name == "curlE")
+  else if ( name == "realE")
   {
     return 3;
   }
@@ -203,7 +211,7 @@ int TPZMatValidacaoHCurlFran1::NSolutionVariables(int var)
       nVar = 3;
       break;
     case 3:
-      nVar = 1;
+      nVar = 3;
       break;
     default:
       nVar = TPZMaterial::NSolutionVariables(var);
@@ -215,48 +223,51 @@ int TPZMatValidacaoHCurlFran1::NSolutionVariables(int var)
 /** @brief Returns the solution associated with the var index based on the finite element approximation */
 void TPZMatValidacaoHCurlFran1::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 {
-//  TPZFNMatrix<9,STATE> auxMatrix(3,3,0.);
-//  auxMatrix(0,1) = -1.;
-//  auxMatrix(1,0) = 1.;
-//  auxMatrix(2,2) = 1.;
-//
-//  const TPZFNMatrix<9,STATE> rotationMatrix = auxMatrix;//AQUIFRAN
-//  TPZFNMatrix<3,STATE> originalSol(3,1,0.);
-//  TPZManVector<STATE,3> auxVec = data.sol[0];
-//  originalSol(0,0) = auxVec[0];
-//  originalSol(1,0) = auxVec[1];
-//  originalSol(2,0) = auxVec[2];
-//  originalSol = rotationMatrix * originalSol;
-//  //originalSol.Print("sol");
-//  Solout[0] = originalSol(0,0);
-//  Solout[1] = originalSol(1,0);
-//  Solout[2] = originalSol(2,0);
-  TPZFNMatrix<9,STATE> auxMatrix(3,3,0.);
-  auxMatrix(0,1) = -1.;
-  auxMatrix(1,0) = 1.;
-  auxMatrix(2,2) = 1.;
+  TPZManVector<STATE,3> ax1(3),ax2(3), normal(3);
+  for (int i=0; i<3; i++) {
+    ax1[i] = data.axes(0,i);
+    ax2[i] = data.axes(1,i);
+  }
+  //ROTATE FOR HCURL
+  Cross(ax1, ax2, normal);
+  std::cout<<"normal sol: "<<std::endl;
+  std::cout<<normal[0]<<" "<<normal[1]<<" "<<normal[2]<<std::endl;
   
-  const TPZFNMatrix<9,STATE> rotationMatrix = auxMatrix;//AQUIFRAN
-  TPZFNMatrix<3,STATE> originalSol(3,1,0.);
-  TPZManVector<STATE,3> auxVec = data.sol[0];
-  originalSol(0,0) = auxVec[0];
-  originalSol(1,0) = auxVec[1];
-  originalSol(2,0) = auxVec[2];
-  originalSol = rotationMatrix * originalSol;
-  //originalSol.Print("sol");
-  Solout[0] = originalSol(0,0);
-  Solout[1] = originalSol(1,0);
-  Solout[2] = originalSol(2,0);
+  Solout.Resize(3);
+  Cross(normal, data.sol[0], Solout);
+  //AQUIFRANAPAGAR
+  //Solout=data.sol[0];
   switch (var) {
     case 2://E
+    {
 #ifdef STATE_COMPLEX
-//      Solout[0] = std::norm(Solout[0]);
-//      Solout[1] = std::norm(Solout[1]);
-//      Solout[2] = std::norm(Solout[2]);
+      Solout[0] = std::abs(Solout[0]);
+      Solout[1] = std::abs(Solout[1]);
+      Solout[2] = std::abs(Solout[2]);
 #endif
+    }
+      break;
+    case 3://realE
+    {
+#ifdef STATE_COMPLEX
+      Solout[0] = std::real(Solout[0]);
+      Solout[1] = std::real(Solout[1]);
+      Solout[2] = std::real(Solout[2]);
+//      //AQUIFRANAPAGAR
+//      TPZManVector<REAL,3> xAtPoint = data.x;
+//      if(xAtPoint[0]+xAtPoint[1]>0)
+//      {
+//        Solout[0] = 0.;
+//        Solout[1] = 0.;
+//        Solout[2] = 0.;
+//      }
+#endif
+    }
       break;
       
     default:
+    {
+    }
       break;
   }
 }
