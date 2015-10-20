@@ -28,7 +28,7 @@ static LoggerPtr logger(Logger::getLogger("pz.gengrid.tpzgengrid"));
 using namespace std;
 
 TPZGenGrid::TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0,TPZVec<REAL> &x1, int numl, REAL rot) : fNx(nx), fX0(x0), fX1(x1),
-fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot), fZigZag(false)
+fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot), fZigZag(false), fTrapeze(false), fDistortion(0.)
 {
 	fDelx[0] = (x1[0]-x0[0])/(nx[0]);   // Delta x
 	fDelx[1] = (x1[1]-x0[1])/(nx[1]);   // Delta y
