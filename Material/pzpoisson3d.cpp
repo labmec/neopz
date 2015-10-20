@@ -459,6 +459,8 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
         DebugStop();
     }
 	
+   // Solout.Resize(this->NSolutionVariables(var));
+    
 #ifndef STATE_COMPLEX
 	
 	switch (var) {
@@ -484,6 +486,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 				
 				Solout[0]=data.sol[0][0];
 				Solout[1]=data.sol[0][1];
+                Solout[2]=data.sol[0][2];
 				
 			}
 			else {
@@ -493,7 +496,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 			break;
             
         case 21:
-            for(int k=0;k<Dimension();k++){
+            for(int k=0;k<fDim;k++){
                 Solout[k]=data.sol[0][k];
             }
 			break;
@@ -524,16 +527,20 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 			if (data.numberdualfunctions){
 				Solout[0]=data.sol[0][data.sol[0].NElements()-1];
 			}else{
-				Solout[0]=data.dsol[0](0,0)+data.dsol[0](1,1);
-			}
-				
+                //Solout[0]=data.dsol[0](0,0)+data.dsol[0](1,1)+data.dsol[0](2,2);
+                STATE val = 0.;
+                for(int i=0; i<fDim; i++){
+                    val += data.dsol[0](i,i);
+                }
+                Solout[0] = val;
+            }
         }
             break;
           
         case 15:
         {
             fForcingFunctionExact->Execute(data.x,pressure,flux);
-            Solout[0]=flux(2,0);
+            Solout[0]=flux(fDim,0);
         }
             break;
 
@@ -670,7 +677,7 @@ void TPZMatPoisson3d::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFMatr
 void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
 	
     values.Fill(0.0);
-	TPZVec<STATE> sol(1),dsol(fDim),div(1);
+	TPZVec<STATE> sol(1,0.),dsol(fDim,0.),div(1,0.);
 	if(data.numberdualfunctions) Solution(data,11,sol);//pressao
 	Solution(data,21,dsol);//fluxo
 	Solution(data,14,div);//divergente
