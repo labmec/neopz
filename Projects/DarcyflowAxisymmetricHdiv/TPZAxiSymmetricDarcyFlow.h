@@ -151,7 +151,7 @@ public:
      * @param ef[out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
     /**
      * It computes a contribution to the load vector at one integration point.
@@ -160,7 +160,7 @@ public:
      * @param ef[out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC integration point.

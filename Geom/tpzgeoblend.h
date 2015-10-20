@@ -94,6 +94,12 @@ namespace pzgeom
 		/** @brief Computes the Jacobian for parametric point at master element */
 		void Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
 		
+        template<class T>
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        {
+            DebugStop();
+        }
+        
 		/** @brief Print all relevant data of the element to cout*/
 		void Print(std::ostream & out = std::cout) const;
 		

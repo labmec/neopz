@@ -289,6 +289,13 @@ void TPZFMatrix<TFad<6,REAL> >::GramSchmidt(TPZFMatrix<TFad<6,REAL> > &Orthog, T
 {
 	DebugStop();
 }
+
+template <>
+void TPZFMatrix<Fad<double> >::GramSchmidt(TPZFMatrix<Fad<double> > &Orthog, TPZFMatrix<Fad<double> > &TransfToOrthog)
+{
+    DebugStop();
+}
+
 #endif
 
 template <class TVar>
@@ -1506,6 +1513,12 @@ int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B);
 template
 TPZFlopCounter Dot(const TPZFMatrix<TPZFlopCounter> &A, const TPZFMatrix<TPZFlopCounter> &B);
 
+#ifdef _AUTODIFF
+#include "fad.h"
+template
+Fad<REAL> Dot(const TPZFMatrix<Fad<REAL> > &A, const TPZFMatrix<Fad<REAL> > &B);
+#endif
+
 /** @brief Increments value over all entries of the matrix A. */
 template <class TVar>
 TPZFMatrix<TVar> operator+(const TVar value, const TPZFMatrix<TVar> &A ) {
@@ -1552,6 +1565,16 @@ void TPZFMatrix<TFad<6,REAL> >::Read( TPZStream &buf, void *context ){
 
 template <>
 void TPZFMatrix<TFad<6,REAL> >::Write( TPZStream &buf, int withclassid ) const {
+    DebugStop();
+}
+
+template <>
+void TPZFMatrix<Fad<REAL> >::Read( TPZStream &buf, void *context ){
+    DebugStop();
+}
+
+template <>
+void TPZFMatrix<Fad<REAL> >::Write( TPZStream &buf, int withclassid ) const {
     DebugStop();
 }
 #endif
@@ -1604,7 +1627,8 @@ bool TPZFMatrix<TVar>::Compare(TPZSaveable *copy, bool override)
             matresult = false;
             numdif++;
         }
-        diff += fabs(fElem[iel]-fmat->fElem[iel]);
+        TVar exp = fElem[iel]-fmat->fElem[iel];
+        diff += fabs(exp);
     }
     if(!matresult)
     {
@@ -1644,7 +1668,8 @@ bool TPZFMatrix<TVar>::Compare(TPZSaveable *copy, bool override) const
             matresult = false;
             numdif++;
         }
-        diff += fabs(fElem[iel]-fmat->fElem[iel]);
+        TVar exp = fElem[iel]-fmat->fElem[iel];
+        diff += fabs(exp);
     }
     if(!matresult)
     {
@@ -1777,6 +1802,13 @@ TFad<6,REAL> Norm(const TPZFMatrix<TFad<6,REAL> > &A)
     TFad<6,REAL> res;
     return res;
 }
+template<>
+Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
+{
+    DebugStop();
+    Fad<REAL> res;
+    return res;
+}
 #endif
 
 #include <complex>
@@ -1803,6 +1835,7 @@ template class TPZRestoreClass< TPZFMatrix<long double> , TPZFMATRIX_LONG_DOUBLE
 #ifdef _AUTODIFF
 #include "fad.h"
 template class TPZFMatrix<TFad<6,REAL> >;
+template class TPZFMatrix<Fad<double> >;
 //template class TPZFMatrix<TFad<6,float> >;
 //template class TPZFMatrix<TFad<6,long double> >;
 #endif

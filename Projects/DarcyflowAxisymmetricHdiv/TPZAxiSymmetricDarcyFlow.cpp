@@ -268,9 +268,9 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     // Petrophysics data
     
-    REAL Po, Pw, Pg;
-    REAL pcow, pcgo, pcgw;
-    REAL dPcowdSw, dPcgodSo, dPcgwdSw;
+//    REAL Po, Pw, Pg;
+//    REAL pcow, pcgo, pcgw;
+//    REAL dPcowdSw, dPcgodSo, dPcgwdSw;
     
     
     //    this->fPetrophysicdata->Pcwo(Sw, pcow, dPcowdSw);
@@ -284,9 +284,11 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     // Rock and fluids parameters
     
-    REAL rockporosity, waterdensity, oildensity;
-    REAL drockporositydP, dwaterdensitydPw, doildensitydPo;
+//    REAL rockporosity, waterdensity, oildensity;
+//    REAL drockporositydP, dwaterdensitydPw, doildensitydPo;
     
+    REAL rockporosity;
+    REAL drockporositydP;
     this->fReservoirdata->Porosity(P, rockporosity, drockporositydP);
     //    this->fFluidmodeldata->WaterDensity(Pw, waterdensity, dwaterdensitydPw);
     //    this->fFluidmodeldata->OilDensity(Po, oildensity, doildensitydPo);
@@ -356,9 +358,9 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             break;
         case 11:
         {
-            REAL epsilon = 0.01;
-            REAL xc = 0.5;
-            REAL yc = 0.5;
+//            REAL epsilon = 0.01;
+//            REAL xc = 0.5;
+//            REAL yc = 0.5;
             REAL x = datavec[Pblock].x[0];
             REAL y = datavec[Pblock].x[1];
             //            REAL Pressure = exp(-((x-xc)*(x-xc)+(y-yc)*(y-yc))/epsilon);
@@ -510,7 +512,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     REAL P              = datavec[Pblock].sol[0][0];
     REAL Sw             = datavec[Swblock].sol[0][0];
     REAL So             = datavec[Soblock].sol[0][0];
-    REAL Sg             = 1.0 - So - Sw;
+//    REAL Sg             = 1.0 - So - Sw;
     
     
     TPZFMatrix<REAL> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
@@ -543,7 +545,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     Gravity = fSimulationData->GetGravity();
     
     
-    REAL divu = 0.0;
+//    REAL divu = 0.0;
     TPZFMatrix<REAL> iphiuHdiv(2,1);
     TPZFMatrix<REAL> jphiuHdiv(2,1);
     int ishapeindex;
@@ -727,7 +729,7 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     REAL P              = datavec[Pblock].sol[0][0];
     REAL Sw             = datavec[Swblock].sol[0][0];
     REAL So             = datavec[Soblock].sol[0][0];
-    REAL Sg             = 1.0 - So - Sw;
+//    REAL Sg             = 1.0 - So - Sw;
     
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
@@ -916,14 +918,14 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     REAL PL              = datavecleft[Pblock].sol[0][0];
     REAL SwL             = datavecleft[Swblock].sol[0][0];
     REAL SoL             = datavecleft[Soblock].sol[0][0];
-    REAL SgL             = 1.0 - SoL - SwL;
+//    REAL SgL             = 1.0 - SoL - SwL;
     
     // Getting linear combinations from different approximation spaces for the right side
     TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
     REAL PR              = datavecright[Pblock].sol[0][0];
     REAL SwR             = datavecright[Swblock].sol[0][0];
     REAL SoR             = datavecright[Soblock].sol[0][0];
-    REAL SgR             = 1.0 - SoR - SwR;
+//    REAL SgR             = 1.0 - SoR - SwR;
     
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
@@ -1714,15 +1716,15 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     int iniSoL   = nphiSwL2L      + iniSwL;
     
     
-    int iblock = iniSoL + nphiSoL2L;
-    int jblock = iniSoL + nphiSoL2L;
+//    int iblock = iniSoL + nphiSoL2L;
+//    int jblock = iniSoL + nphiSoL2L;
     
     // Getting linear combinations from different approximation spaces for the left side
     TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
     REAL PL              = datavecleft[Pblock].sol[0][0];
     REAL SwL             = datavecleft[Swblock].sol[0][0];
     REAL SoL             = datavecleft[Soblock].sol[0][0];
-    REAL SgL             = 1.0 - SoL - SwL;
+//    REAL SgL             = 1.0 - SoL - SwL;
     
     
     TPZManVector<REAL,3> n =  data.normal;
@@ -2139,8 +2141,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     int iniSoL   = nphiSwL2L      + iniSwL;
     
     
-    int iblock = iniSoL + nphiSoL2L;
-    int jblock = iniSoL + nphiSoL2L;
+//    int iblock = iniSoL + nphiSoL2L;
+//    int jblock = iniSoL + nphiSoL2L;
     
     // Getting linear combinations from different approximation spaces for the left side
     TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
@@ -2148,7 +2150,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     REAL SwL             = datavecleft[Swblock].sol[0][0];
     REAL SoL             = datavecleft[Soblock].sol[0][0];
     
-    REAL SgL             = 1.0 - SoL - SwL;
+//    REAL SgL             = 1.0 - SoL - SwL;
     
     TPZFMatrix<STATE> iphiuHdiv(3,1);
     TPZManVector<REAL,3> n =  data.normal;
@@ -2367,7 +2369,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     
     // Number of phis
     int nPhiHdiv = PhiH1.Rows();  // For Hdiv
-    int nPhiL2   = WL2.Rows();                                  // For L2
+//    int nPhiL2   = WL2.Rows();                                  // For L2
     
     TPZFMatrix<STATE> iPhiHdiv(2,1);
     TPZFMatrix<STATE> jPhiHdiv(2,1);
@@ -3000,7 +3002,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
     
     // Number of phis
     int nPhiHdiv = PhiH1.Rows();  // For Hdiv
-    int nPhiL2   = WL2.Rows();                                  // For L2
+//    int nPhiL2   = WL2.Rows();                                  // For L2
     
     TPZFMatrix<STATE> iPhiHdiv(2,1);
     TPZFMatrix<STATE> jPhiHdiv(2,1);
@@ -4348,8 +4350,8 @@ void TPZAxiSymmetricDarcyFlow::PhasePressures()
     So = fOilSaturation;
     Sg = 1.0 - Sw - So;
     
-    REAL pcow, pcgo, pcgw;
-    REAL dPcowdSw, dPcgodSo, dPcgwdSw;
+    REAL pcow = 0, pcgo = 0, pcgw = 0;
+    REAL dPcowdSw = 0, dPcgodSo = 0;
     
     //    this->fPetrophysicdata->Pcow(Sw, pcow, dPcowdSw);
     //    this->fPetrophysicdata->Pcgo(So, pcgo, dPcgodSo);
@@ -4406,14 +4408,14 @@ void TPZAxiSymmetricDarcyFlow::PhaseMobilities()
     So = fOilSaturation;
     Sg = 1.0 - Sw - So;
     
-    REAL waterdensity, oildensity, gasdensity;
-    REAL dwaterdensitydP, doildensitydP, dgasdensitydP;
+    REAL waterdensity = 0, oildensity= 0, gasdensity= 0;
+    REAL dwaterdensitydP= 0, doildensitydP= 0, dgasdensitydP= 0;
     
-    REAL waterviscosity, oilviscosity, gasviscosity;
-    REAL dwaterviscositydPw, doilviscositydPo, dgasviscositydPg;
+    REAL waterviscosity= 0, oilviscosity= 0;
+    REAL dwaterviscositydPw= 0, doilviscositydPo= 0;
     
-    REAL krw, kro, krg;
-    REAL dkrwdSw, dkrodSo, dkrgdSg;
+    REAL krw= 0, kro= 0;
+    REAL dkrwdSw= 0, dkrodSo= 0;
     
     
     this->PhaseDensities();

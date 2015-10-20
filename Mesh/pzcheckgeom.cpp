@@ -52,7 +52,6 @@ int TPZCheckGeom::CheckInternalTransforms(TPZGeoEl *gel)
 int TPZCheckGeom::DivideandCheck()
 {
     long nel = fMesh->NElements();
-    int check = 0;
     for(long iel = 0; iel<nel; iel++) {
         TPZGeoEl *gel = fMesh->ElementVec()[iel];
         if(!gel) continue;

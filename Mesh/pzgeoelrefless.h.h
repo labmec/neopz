@@ -316,6 +316,28 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &par,TPZFMatrix<REAL> &jac,TPZFMatr
 #endif
 }
 
+/** @brief Return the Gradient of the transformation at the point */
+template<class TGeo>
+void
+TPZGeoElRefLess<TGeo>::GradXFad(TPZVec<REAL> &par, TPZFMatrix<Fad<REAL> > &gradx) const
+{
+    TPZManVector<Fad<REAL>,3> parfad(par.size());
+    int sz = par.size();
+    for (int i=0; i<par.size(); i++) {
+        parfad[i] = Fad<REAL>(sz,i,par[i]);
+    }
+    fGeo.GradX(*this,parfad,gradx);
+}
+
+/** @brief Return the gradient of the transformation at the point */
+template<class TGeo>
+void
+TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const
+{
+    fGeo.GradX(*this,par,gradx);
+}
+
+/** @brief Return the gradient of the transformation at the point */
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {

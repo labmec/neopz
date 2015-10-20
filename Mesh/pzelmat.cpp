@@ -400,7 +400,6 @@ void TPZElementMatrix::ApplyOneShapeConstraints(int constraintindex)
     }
 #endif
     long inpos = this->fConstrBlock.Position(constraintindex);
-    long insize = this->fConstrBlock.Size(constraintindex);
     long toteq = this->fConstrMat.Rows();
     long nrhs = this->fConstrMat.Cols();
 
@@ -421,7 +420,6 @@ void TPZElementMatrix::ApplyOneShapeConstraints(int constraintindex)
                 DebugStop();
             }
             long deppos = this->fConstrBlock.Position(locdep);
-            long insize = this->fConstrBlock.Size(locdep);
             long receive = deppos+it->fFaces[id].second;
             REAL coef = -it->fOrient[id]/it->fOrient[0];
             if (this->fType == TPZElementMatrix::EK){

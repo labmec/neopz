@@ -1010,7 +1010,6 @@ TPZVec<STATE> TPZCompEl::IntegrateSolution(int var) const
         return result;
     }
     TPZCompEl *celnotconst = (TPZCompEl *) this;
-    int matid = gel->MaterialId();
     TPZMaterial *material = Material();
     int nvar  = material->NSolutionVariables(var);
     TPZIntPoints *intrule = gel->CreateSideIntegrationRule(gel->NSides()-1, 5);

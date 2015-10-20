@@ -137,7 +137,7 @@ public:
     /**
      * Run the simulation,
      */
-    void Run();
+    void RunAnalysis();
     
     /**
      * Compute the time forward at each timestep

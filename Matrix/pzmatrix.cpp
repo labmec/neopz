@@ -14,6 +14,7 @@
 #include "pzmatrix.h"
 #include "pzsolve.h"
 #include "pzvec.h"
+#include "fadType.h"
 
 #ifdef _AUTODIFF
 #include "fad.h"
@@ -207,6 +208,11 @@ void TPZMatrix<TFad<6,REAL> >::Input(std::istream& in )
 {
     DebugStop();
 }
+template<>
+void TPZMatrix<Fad<REAL> >::Input(std::istream& in )
+{
+    DebugStop();
+}
 #endif
 
 template<class TVar>
@@ -286,9 +292,9 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 			for ( long col = 0; col < Cols(); col++ ) {
 				TVar val = Get (row, col);
 				#ifdef STATE_COMPLEX
-				  sprintf(number, "%16.16Lf",(long double)fabs(val));
+				  sprintf(number, "%16.16Lf",(long double) fabs(val));
 				#else
-				  sprintf(number, "%16.8Lf",(long double)val);
+                sprintf(number, "%16.8Lf",(long double) shapeFAD::val(val) );
 				#endif
 				out << number;
 				if(col < Cols()-1)
@@ -811,7 +817,14 @@ void TPZMatrix< TFad<6,REAL> >::SolveGMRES(long &numiterations, TPZSolver< TFad<
 {
     DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
-
+template <>
+void TPZMatrix< Fad<REAL> >::SolveGMRES(long &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
+                                           TPZFMatrix< Fad<REAL> > &H, int &numvectors,
+                                           const TPZFMatrix< Fad<REAL> > &F, TPZFMatrix< Fad<REAL> > &result,
+                                           TPZFMatrix< Fad<REAL> > *residual,  REAL  &tol,const int FromCurrent)
+{
+    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
 #endif
 
 template <>
@@ -1371,12 +1384,13 @@ int TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
 	
 	for( long i = 0; i < nrows; i++){
 		for(long j = 0; j <= i; j++){
-			if ( (REAL)(fabs( this->Get(i,j) - this->Get(j,i) )) > tol ) {
+            TVar exp = this->Get(i,j) - this->Get(j,i);
+			if ( (REAL)(fabs( exp )) > tol ) {
 			  	#ifdef STATE_COMPLEX
-				cout << "Elemento: " << i << ", " << j << "  -> " << fabs(this->Get(i,j) - this->Get(j,i) ) << "/" <<
+				cout << "Elemento: " << i << ", " << j << "  -> " << fabs( exp ) << "/" <<
 				this->Get(i,j) << endl;
 				#else
-				cout << "Elemento: " << i << ", " << j << "  -> " << this->Get(i,j) - this->Get(j,i) << "/" <<
+				cout << "Elemento: " << i << ", " << j << "  -> " << exp << "/" <<
 				this->Get(i,j) << endl;
 				#endif
 				return 0;
@@ -1403,7 +1417,8 @@ bool TPZMatrix<TVar>::CompareValues(TPZMatrix<TVar> &M, TVar tol){
 	REAL diff;
 	for( long i = 0; i < nrows; i++)
 		for( long j = 0; j < ncols; j++){
-			diff = fabs( this->Get(i,j) - M.Get(i,j) );
+            TVar exps = this->Get(i,j) - M.Get(i,j);
+			diff = fabs( exps );
 			if (diff > fabs(tol)) return false;
 		}
 	
@@ -1423,7 +1438,8 @@ TFad<6,REAL> TPZMatrix<TFad<6,REAL> >::ReturnNearestValue(TFad<6,REAL> val, TPZV
 template <class TVar>
 TVar TPZMatrix<TVar>::ReturnNearestValue(TVar val, TPZVec<TVar>& Vec, TVar tol)
 {
-    TVar diff0 = fabs(val - (TVar)Vec[0]) >= fabs(tol) ?  (val - (TVar)Vec[0]) : (TVar)1.E10;
+    TVar exps = val - (TVar)Vec[0];
+    TVar diff0 = fabs(exps) >= fabs(tol) ?  (val - (TVar)Vec[0]) : (TVar)1.E10;
     TVar diff1, res = (TVar)Vec[0];
     for(long i = 1; i < Vec.NElements(); i++)
     {
@@ -1486,9 +1502,10 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(long &numiterations, REAL & tol, TP
         TPZFNMatrix<9,TVar> Matrix(*this);
 		
         TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,1.E-5);
-        if((REAL)(fabs(answ - Eigenvalues[eigen])) > 1.E-5)
+        TVar exp = answ - Eigenvalues[eigen];
+        if((REAL)(fabs(exp)) > 1.E-5)
         {
-            for(long i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (TVar)(Eigenvalues[eigen] - (TVar)(0.01 * fabs(answ-Eigenvalues[eigen]))) );
+            for(long i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (TVar)(Eigenvalues[eigen] - (TVar)(0.01 * fabs(exp))) );
         }
         else
         {
@@ -1519,7 +1536,8 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(long &numiterations, REAL & tol, TP
 			for(long i = 0; i < size; i++)
 			{
                 VecIni(i,0) = VecIni(i,0)/(TVar)norm2;
-                difTemp += fabs((VecIni_cp(i,0) - VecIni(i,0)) * (VecIni_cp(i,0) - VecIni(i,0)));
+                TVar exp = (VecIni_cp(i,0) - VecIni(i,0)) * (VecIni_cp(i,0) - VecIni(i,0));
+                difTemp += fabs(exp);
 			}
 			dif = sqrt(difTemp);
 			count++;
@@ -1659,7 +1677,10 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(long &numiterations, REAL & tol, TP
 	if (Sort){
 		
 		multiset< REAL > myset;
-		for(i = 0; i < size; i++) myset.insert( ((REAL) this->operator ( )(i,i)) );
+		for(i = 0; i < size; i++)
+        {   TVar exps = this->operator ( )(i,i);
+            myset.insert( (shapeFAD::val(exps)) );
+        }
 		
 #ifdef DEBUG2
 		if ((long)myset.size() != size) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;
@@ -1893,6 +1914,7 @@ template class TPZMatrix<TPZFlopCounter>;
 
 #ifdef _AUTODIFF
 template class TPZMatrix<TFad<6,REAL> >;
+template class TPZMatrix<Fad<double> >;
 #endif
 
 /** @brief Overload << operator to output entries of the matrix ***/

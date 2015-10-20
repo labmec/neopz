@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the TPZGeoPoint class which implements the geometry of a point element.
+ * @brief Contains the TPZGeoPoint class which implements the geometry of a point element or 0-D element.
  */
 
 #ifndef TPZGEOPOINTH
@@ -27,11 +27,13 @@ class TPZGeoMesh;
  * @brief Groups all classes which model the geometry
  * @see TPZIntelGen
  */
+
 /** 
  * Objects of this class implement the mapping between the master element
  * and deformed element
  * These classes are used as template arguments of @see TPZGeoElement and
  */
+
 namespace pzgeom {
 	
 	/** 
@@ -90,6 +92,12 @@ namespace pzgeom {
             X(coord,loc,result);
         }
 		
+        template<class T>
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        {
+            gradx.Zero();
+        }
+        
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);

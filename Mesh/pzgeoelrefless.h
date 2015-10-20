@@ -253,6 +253,12 @@ public:
 	
 	/** @brief Returns the Jacobian matrix at the point*/
 	virtual  void Jacobian(TPZVec<REAL> &parameter,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
+    
+    /** @brief Return the Jacobian matrix at the point*/
+    virtual void GradXFad(TPZVec<REAL> &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
+    
+    /** @brief Return the Jacobian matrix at the point*/
+    virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const ;
 	
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
 	virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;

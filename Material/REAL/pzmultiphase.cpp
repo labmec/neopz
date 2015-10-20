@@ -197,7 +197,7 @@ void TPZMultiphase::SWaterstar(REAL &Swstar, REAL &Po, REAL &Sw)
     REAL dwaterdensitydp,doildensitydp;
     REAL waterviscosity, oilviscosity;
     REAL dwaterviscositydp, doilviscositydp;
-    REAL SUser=0.98; 
+//    REAL SUser=0.98; 
     
     RhoWater(Po,waterdensity,dwaterdensitydp);
     RhoOil(Po,oildensity,doildensitydp);
@@ -870,7 +870,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZFMatrix<REAL>  &phiQ     =  datavec[1].phi;
     TPZFMatrix<REAL>  &phiP     =  datavec[2].phi;
     TPZFMatrix<REAL>  &phiS     =  datavec[3].phi;
-    TPZFMatrix<REAL>  &phiQG    =  datavec[4].phi;
+//    TPZFMatrix<REAL>  &phiQG    =  datavec[4].phi;
     
     TPZFMatrix<REAL> &dphiU     =  datavec[0].dphix;
     //    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
@@ -1285,7 +1285,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         }
         
         //  Poroelastic Contribution
-        REAL divphiU, divU, dsolU[2][2], dPhiU[2][2];
+        REAL divphiU, divU, dsolU[2][2];
         
         dsolU[0][0] = dsol_u(0,0)*datavec[0].axes(0,0)+dsol_u(1,0)*datavec[0].axes(1,0); // dUx/dx
         dsolU[1][0] = dsol_u(0,0)*datavec[0].axes(0,1)+dsol_u(1,0)*datavec[0].axes(1,1); // dUx/dy
@@ -1572,7 +1572,7 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     TPZFMatrix<REAL>  &phiQ =  datavec[1].phi;
     TPZFMatrix<REAL>  &phiP =  datavec[2].phi;
     TPZFMatrix<REAL>  &phiS =  datavec[3].phi;
-    TPZFMatrix<REAL>  &phiQG    =  datavec[4].phi;
+//    TPZFMatrix<REAL>  &phiQG    =  datavec[4].phi;
     
     TPZFMatrix<REAL> &dphiU = datavec[0].dphix;
     //    TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
@@ -2047,7 +2047,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     TPZFMatrix<REAL> &phiSR = dataright[3].phi;
     
     TPZFMatrix<REAL> &phiQGL = dataleft[4].phi;
-    TPZFMatrix<REAL> &phiQGR = dataright[4].phi;
+//    TPZFMatrix<REAL> &phiQGR = dataright[4].phi;
     
     
     TPZManVector<REAL,3> &normal = data.normal;
@@ -2077,12 +2077,12 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     REAL dotqnR = (qxR*n1) + (qyR*n2);
     
     //  Getting QG solution for left and right side
-    REAL qgxL = sol_qgL[0];
-    REAL qgyL = sol_qgL[1];
-    REAL qgxR = sol_qgR[0];
-    REAL qgyR = sol_qgR[1];
-    REAL dotqgnL = (qgxL*n1) + (qgyL*n2);
-    REAL dotqgnR = (qgxR*n1) + (qgyR*n2);    
+//    REAL qgxL = sol_qgL[0];
+//    REAL qgyL = sol_qgL[1];
+//    REAL qgxR = sol_qgR[0];
+//    REAL qgyR = sol_qgR[1];
+//    REAL dotqgnL = (qgxL*n1) + (qgyL*n2);
+//    REAL dotqgnR = (qgxR*n1) + (qgyR*n2);    
     
     //  Getting S solution for left and right side
     REAL SaturationL    =   sol_sL[0];
@@ -2228,11 +2228,11 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     KG(0,0) = Kmean(0,0)*Gfield(0,0)+Kmean(0,1)*Gfield(1,0);
     KG(1,0) = Kmean(1,0)*Gfield(0,0)+Kmean(1,1)*Gfield(1,0);         
     
-    REAL GravityFluxL   =   (KabsoluteLeft(0,0)*Gfield(0,0) + KabsoluteLeft(0,1)*Gfield(1,0))*(n1)+
-    (KabsoluteLeft(1,0)*Gfield(0,0) + KabsoluteLeft(1,1)*Gfield(1,0))*(n2);
+//    REAL GravityFluxL   =   (KabsoluteLeft(0,0)*Gfield(0,0) + KabsoluteLeft(0,1)*Gfield(1,0))*(n1)+
+//    (KabsoluteLeft(1,0)*Gfield(0,0) + KabsoluteLeft(1,1)*Gfield(1,0))*(n2);
     
-    REAL GravityFluxR   =   (KabsoluteRight(0,0)*Gfield(0,0) + KabsoluteRight(0,1)*Gfield(1,0))*(n1)+
-    (KabsoluteRight(1,0)*Gfield(0,0) + KabsoluteRight(1,1)*Gfield(1,0))*(n2);
+//    REAL GravityFluxR   =   (KabsoluteRight(0,0)*Gfield(0,0) + KabsoluteRight(0,1)*Gfield(1,0))*(n1)+
+//    (KabsoluteRight(1,0)*Gfield(0,0) + KabsoluteRight(1,1)*Gfield(1,0))*(n2);
     
     
     int URowsleft = phiUL.Rows();
@@ -2248,7 +2248,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     int SRowsRight = phiSR.Rows();
     
     int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
-    int QGRowsRight = dataright[4].fVecShapeIndex.NElements();
+//    int QGRowsRight = dataright[4].fVecShapeIndex.NElements();
     
     int UStateVar = 2;    
     
@@ -2265,7 +2265,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     int FirstQR = URowsRight * UStateVar + FirstUR;
     int FirstPR = QRowsRight + FirstQR;
     int FirstSR = PRowsRight + FirstPR;
-    int FirstQGR = SRowsRight + FirstSR;
+//    int FirstQGR = SRowsRight + FirstSR;
     
     
     if(gState == ECurrentState)
@@ -2705,7 +2705,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     TPZFMatrix<REAL> &phiSR = dataright[3].phi;
 
     TPZFMatrix<REAL> &phiQGL = dataleft[4].phi;
-    TPZFMatrix<REAL> &phiQGR = dataright[4].phi;      
+//    TPZFMatrix<REAL> &phiQGR = dataright[4].phi;      
     
     TPZManVector<REAL,3> &normal = data.normal;
     
@@ -2894,11 +2894,11 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     KG(0,0) = Kmean(0,0)*Gfield(0,0)+Kmean(0,1)*Gfield(1,0);
     KG(1,0) = Kmean(1,0)*Gfield(0,0)+Kmean(1,1)*Gfield(1,0);    
     
-    REAL GravityFluxL   =   (KabsoluteLeft(0,0)*Gfield(0,0) + KabsoluteLeft(0,1)*Gfield(1,0))*(n1)+
-    (KabsoluteLeft(1,0)*Gfield(0,0) + KabsoluteLeft(1,1)*Gfield(1,0))*(n2);
-    
-    REAL GravityFluxR   =   (KabsoluteRight(0,0)*Gfield(0,0) + KabsoluteRight(0,1)*Gfield(1,0))*(n1)+
-    (KabsoluteRight(1,0)*Gfield(0,0) + KabsoluteRight(1,1)*Gfield(1,0))*(n2);
+//    REAL GravityFluxL   =   (KabsoluteLeft(0,0)*Gfield(0,0) + KabsoluteLeft(0,1)*Gfield(1,0))*(n1)+
+//    (KabsoluteLeft(1,0)*Gfield(0,0) + KabsoluteLeft(1,1)*Gfield(1,0))*(n2);
+//    
+//    REAL GravityFluxR   =   (KabsoluteRight(0,0)*Gfield(0,0) + KabsoluteRight(0,1)*Gfield(1,0))*(n1)+
+//    (KabsoluteRight(1,0)*Gfield(0,0) + KabsoluteRight(1,1)*Gfield(1,0))*(n2);
 
     int URowsleft = phiUL.Rows();
     int URowsRight = phiUR.Rows();    
@@ -2910,12 +2910,12 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     int SRowsRight = phiSR.Rows();
     
     int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
-    int QGRowsRight = dataright[4].fVecShapeIndex.NElements();    
+//    int QGRowsRight = dataright[4].fVecShapeIndex.NElements();    
     
     int UStateVar = 2;    
     
     int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-    int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//    int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
 
     int FirstUL = 0;
     int FirstQL = URowsleft * UStateVar + FirstUL;
@@ -2927,7 +2927,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     int FirstQR = URowsRight * UStateVar + FirstUR;
     int FirstPR = QRowsRight + FirstQR;
     int FirstSR = PRowsRight + FirstPR;
-    int FirstQGR = SRowsRight + FirstSR;
+//    int FirstQGR = SRowsRight + FirstSR;
     
     
     //  ////////////////////////// Residual Vector ///////////////////////////////////
@@ -3341,8 +3341,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     
     int UStateVar = 2;     
     
-    int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-    int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
+//    int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//    int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
     
     int FirstUL = 0;
     int FirstQL = URowsleft * UStateVar + FirstUL;
@@ -3360,8 +3360,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
     
     //  Getting Q solution for left and right side
-    REAL uxL = sol_uL[0];
-    REAL uyL = sol_uL[1];
+//    REAL uxL = sol_uL[0];
+//    REAL uyL = sol_uL[1];
     REAL qxL = sol_qL[0];
     REAL qyL = sol_qL[1];
     REAL dotqnL = (qxL*n1) + (qyL*n2);
@@ -3599,7 +3599,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     v2[3] = bc.Val2()(3,0)/this->fQref;    //  qy
     v2[4] = bc.Val2()(4,0)/this->fPref; //  Pressure
     v2[5] = bc.Val2()(5,0);         //  Saturation
-    REAL qN = (v2[2]*n1 + v2[3]*n2);    // Normal Flux
+//    REAL qN = (v2[2]*n1 + v2[3]*n2);    // Normal Flux
     
     
     switch (bc.Type()) {
@@ -3881,35 +3881,35 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     {
 
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
-        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
-        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
-        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
-        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
+//        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
+//        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
+//        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
+//        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;
 
         int URowsleft = phiUL.Rows();
-        int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
+//        int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
         //      int QRowsleft1 = phiQL.Rows();
-        int PRowsleft = phiPL.Rows();
-        int SRowsleft = phiSL.Rows();
-        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//        int PRowsleft = phiPL.Rows();
+//        int SRowsleft = phiSL.Rows();
+//        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
 
-        int UStateVar = 2;     
+//        int UStateVar = 2;     
 
-        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
+//        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
 
-        int FirstUL = 0;
-        int FirstQL = URowsleft * UStateVar + FirstUL;
-        int FirstPL = QRowsleft + FirstQL;
-        int FirstSL = PRowsleft + FirstPL;
-        int FirstQGL = SRowsleft + FirstSL;
+//        int FirstUL = 0;
+//        int FirstQL = URowsleft * UStateVar + FirstUL;
+//        int FirstPL = QRowsleft + FirstQL;
+//        int FirstSL = PRowsleft + FirstPL;
+//        int FirstQGL = SRowsleft + FirstSL;
 
 
         TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
 
         //  Getting Q solution for left and right side
         REAL uxL = sol_uL[0];
-        REAL uyL = sol_uL[1];
+//        REAL uyL = sol_uL[1];
         
         STATE v2[6];
         v2[0] = bc.Val2()(0,0);         //  ux
@@ -3943,34 +3943,34 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     {
 
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
-        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
-        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
-        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
-        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
+//        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
+//        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
+//        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
+//        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;
 
         int URowsleft = phiUL.Rows();
-        int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
+//        int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
         //      int QRowsleft1 = phiQL.Rows();
-        int PRowsleft = phiPL.Rows();
-        int SRowsleft = phiSL.Rows();
-        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//        int PRowsleft = phiPL.Rows();
+//        int SRowsleft = phiSL.Rows();
+//        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
 
-        int UStateVar = 2;     
+//        int UStateVar = 2;     
 
-        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
+//        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
 
-        int FirstUL = 0;
-        int FirstQL = URowsleft * UStateVar + FirstUL;
-        int FirstPL = QRowsleft + FirstQL;
-        int FirstSL = PRowsleft + FirstPL;
-        int FirstQGL = SRowsleft + FirstSL;
+//        int FirstUL = 0;
+//        int FirstQL = URowsleft * UStateVar + FirstUL;
+//        int FirstPL = QRowsleft + FirstQL;
+//        int FirstSL = PRowsleft + FirstPL;
+//        int FirstQGL = SRowsleft + FirstSL;
 
 
         TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
 
         //  Getting Q solution for left and right side
-        REAL uxL = sol_uL[0];
+//        REAL uxL = sol_uL[0];
         REAL uyL = sol_uL[1];
         
         STATE v2[6];
@@ -4004,35 +4004,35 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
-        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
-        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
-        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
-        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
+//        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
+//        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
+//        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
+//        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;
 
         int URowsleft = phiUL.Rows();
-        int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
-        //      int QRowsleft1 = phiQL.Rows();
-        int PRowsleft = phiPL.Rows();
-        int SRowsleft = phiSL.Rows();
-        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//        int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
+//        //      int QRowsleft1 = phiQL.Rows();
+//        int PRowsleft = phiPL.Rows();
+//        int SRowsleft = phiSL.Rows();
+//        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//
+//        int UStateVar = 2;     
 
-        int UStateVar = 2;     
+//        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
 
-        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
-
-        int FirstUL = 0;
-        int FirstQL = URowsleft * UStateVar + FirstUL;
-        int FirstPL = QRowsleft + FirstQL;
-        int FirstSL = PRowsleft + FirstPL;
-        int FirstQGL = SRowsleft + FirstSL;
+//        int FirstUL = 0;
+//        int FirstQL = URowsleft * UStateVar + FirstUL;
+//        int FirstPL = QRowsleft + FirstQL;
+//        int FirstSL = PRowsleft + FirstPL;
+//        int FirstQGL = SRowsleft + FirstSL;
 
 
         TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
 
         //  Getting Q solution for left and right side
-        REAL uxL = sol_uL[0];
-        REAL uyL = sol_uL[1];
+//        REAL uxL = sol_uL[0];
+//        REAL uyL = sol_uL[1];
         
         STATE v2[6];
         v2[0] = bc.Val2()(0,0);         //  ux
@@ -4059,26 +4059,26 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
         TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
-        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
-        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
-        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
+//        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
+//        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
+//        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
 
         int URowsleft = phiUL.Rows();
         int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
-        int PRowsleft = phiPL.Rows();
-        int SRowsleft = phiSL.Rows();
-        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//        int PRowsleft = phiPL.Rows();
+//        int SRowsleft = phiSL.Rows();
+//        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
         
         int UStateVar = 2;     
         
-        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
+//        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
         
         int FirstUL = 0;
         int FirstQL = URowsleft * UStateVar + FirstUL;
-        int FirstPL = QRowsleft + FirstQL;
-        int FirstSL = PRowsleft + FirstPL;
-        int FirstQGL = SRowsleft + FirstSL;
+//        int FirstPL = QRowsleft + FirstQL;
+//        int FirstSL = PRowsleft + FirstPL;
+//        int FirstQGL = SRowsleft + FirstSL;
 
         TPZManVector<REAL,3> &normal = data.normal;
         REAL n1 = normal[0];
@@ -4133,26 +4133,26 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
         TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
-        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
-        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
-        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
+//        TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
+//        TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
+//        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;
 
         int URowsleft = phiUL.Rows();
         int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
-        int PRowsleft = phiPL.Rows();
-        int SRowsleft = phiSL.Rows();
-        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//        int PRowsleft = phiPL.Rows();
+//        int SRowsleft = phiSL.Rows();
+//        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
         
         int UStateVar = 2;     
         
-        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
+//        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
         
         int FirstUL = 0;
         int FirstQL = URowsleft * UStateVar + FirstUL;
-        int FirstPL = QRowsleft + FirstQL;
-        int FirstSL = PRowsleft + FirstPL;
-        int FirstQGL = SRowsleft + FirstSL;
+//        int FirstPL = QRowsleft + FirstQL;
+//        int FirstSL = PRowsleft + FirstPL;
+//        int FirstQGL = SRowsleft + FirstSL;
 
         TPZManVector<REAL,3> &normal = data.normal;
         REAL n1 = normal[0];
@@ -4164,20 +4164,20 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
-        REAL uxL = sol_uL[0];
-        REAL uyL = sol_uL[1];
-        REAL qxL = sol_qL[0];
-        REAL qyL = sol_qL[1];
-        REAL dotqnL = (qxL*n1) + (qyL*n2);
+//        REAL uxL = sol_uL[0];
+//        REAL uyL = sol_uL[1];
+//        REAL qxL = sol_qL[0];
+//        REAL qyL = sol_qL[1];
+//        REAL dotqnL = (qxL*n1) + (qyL*n2);
         
         //  Getting P solution for left side
-        REAL PseudoPressureL    =   sol_pL[0];
+//        REAL PseudoPressureL    =   sol_pL[0];
         
         //  Getting another required data
         
-        REAL TimeStep = this->fDeltaT;
-        REAL Theta = this->fTheta;
-        REAL Gamma = this->fGamma;
+//        REAL TimeStep = this->fDeltaT;
+//        REAL Theta = this->fTheta;
+//        REAL Gamma = this->fGamma;
         this->fnewWS=true;
         
         // Getting Harmonic mean of permeabilities
@@ -4205,7 +4205,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         v2[3] = bc.Val2()(3,0)/this->fQref;    //  qy
         v2[4] = bc.Val2()(4,0)/this->fPref; //  Pressure
         v2[5] = bc.Val2()(5,0);         //  Saturation
-        REAL qN = (v2[2]*n1 + v2[3]*n2);    // Normal Flux         
+//        REAL qN = (v2[2]*n1 + v2[3]*n2);    // Normal Flux         
         
         if(fBCForcingFunction) 
         {
@@ -4251,27 +4251,27 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
-        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
+//        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
         TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
         TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
-        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
+//        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
 
         int URowsleft = phiUL.Rows();
         int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
         int PRowsleft = phiPL.Rows();
         int SRowsleft = phiSL.Rows();
-        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
         
         int UStateVar = 2;     
         
-        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
+//        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
         
         int FirstUL = 0;
         int FirstQL = URowsleft * UStateVar + FirstUL;
         int FirstPL = QRowsleft + FirstQL;
         int FirstSL = PRowsleft + FirstPL;
-        int FirstQGL = SRowsleft + FirstSL;
+//        int FirstQGL = SRowsleft + FirstSL;
 
         TPZManVector<REAL,3> &normal = data.normal;
         REAL n1 = normal[0];
@@ -4283,20 +4283,20 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
-        REAL uxL = sol_uL[0];
-        REAL uyL = sol_uL[1];
-        REAL qxL = sol_qL[0];
-        REAL qyL = sol_qL[1];
-        REAL dotqnL = (qxL*n1) + (qyL*n2);
+//        REAL uxL = sol_uL[0];
+//        REAL uyL = sol_uL[1];
+//        REAL qxL = sol_qL[0];
+//        REAL qyL = sol_qL[1];
+//        REAL dotqnL = (qxL*n1) + (qyL*n2);
         
         //  Getting P solution for left side
-        REAL PseudoPressureL    =   sol_pL[0];
+//        REAL PseudoPressureL    =   sol_pL[0];
         
         //  Getting another required data
         
         REAL TimeStep = this->fDeltaT;
         REAL Theta = this->fTheta;
-        REAL Gamma = this->fGamma;
+//        REAL Gamma = this->fGamma;
         this->fnewWS=true;
         
         // Getting Harmonic mean of permeabilities
@@ -4317,8 +4317,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         Kinverse = this->Kinv(Kabsolute);
         Gfield = this->Gravity();
 
-        REAL GravityFluxL   =   (Kabsolute(0,0)*Gfield(0,0) + Kabsolute(0,1)*Gfield(1,0))*(n1)+
-                                (Kabsolute(1,0)*Gfield(0,0) + Kabsolute(1,1)*Gfield(1,0))*(n2);
+//        REAL GravityFluxL   =   (Kabsolute(0,0)*Gfield(0,0) + Kabsolute(0,1)*Gfield(1,0))*(n1)+
+//                                (Kabsolute(1,0)*Gfield(0,0) + Kabsolute(1,1)*Gfield(1,0))*(n2);
 
         REAL rockporosityl, oildensityl, waterdensityl;
         REAL drockporositydpl, doildensitydpl, dwaterdensitydpl;
@@ -4422,24 +4422,24 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
         TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
         TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
-        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
+//        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
 
         int URowsleft = phiUL.Rows();
         int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
         int PRowsleft = phiPL.Rows();
         int SRowsleft = phiSL.Rows();
-        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
         
         int UStateVar = 2;     
         
-        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
+//        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
         
         int FirstUL = 0;
         int FirstQL = URowsleft * UStateVar + FirstUL;
         int FirstPL = QRowsleft + FirstQL;
         int FirstSL = PRowsleft + FirstPL;
-        int FirstQGL = SRowsleft + FirstSL;
+//        int FirstQGL = SRowsleft + FirstSL;
 
         TPZManVector<REAL,3> &normal = data.normal;
         REAL n1 = normal[0];
@@ -4451,20 +4451,20 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
-        REAL uxL = sol_uL[0];
-        REAL uyL = sol_uL[1];
+//        REAL uxL = sol_uL[0];
+//        REAL uyL = sol_uL[1];
         REAL qxL = sol_qL[0];
         REAL qyL = sol_qL[1];
         REAL dotqnL = (qxL*n1) + (qyL*n2);
         
         //  Getting P solution for left side
-        REAL PseudoPressureL    =   sol_pL[0];
+//        REAL PseudoPressureL    =   sol_pL[0];
         
         //  Getting another required data
         
         REAL TimeStep = this->fDeltaT;
         REAL Theta = this->fTheta;
-        REAL Gamma = this->fGamma;
+//        REAL Gamma = this->fGamma;
         this->fnewWS=true;
         
         // Getting Harmonic mean of permeabilities
@@ -4485,8 +4485,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         Kinverse = this->Kinv(Kabsolute);
         Gfield = this->Gravity();
 
-        REAL GravityFluxL   =   (Kabsolute(0,0)*Gfield(0,0) + Kabsolute(0,1)*Gfield(1,0))*(n1)+
-                                (Kabsolute(1,0)*Gfield(0,0) + Kabsolute(1,1)*Gfield(1,0))*(n2);
+//        REAL GravityFluxL   =   (Kabsolute(0,0)*Gfield(0,0) + Kabsolute(0,1)*Gfield(1,0))*(n1)+
+//                                (Kabsolute(1,0)*Gfield(0,0) + Kabsolute(1,1)*Gfield(1,0))*(n2);
 
         REAL rockporosityl, oildensityl, waterdensityl;
         REAL drockporositydpl, doildensitydpl, dwaterdensitydpl;
@@ -4524,7 +4524,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         v2[3] = bc.Val2()(3,0)/this->fQref;    //  qy
         v2[4] = bc.Val2()(4,0)/this->fPref; //  Pressure
         v2[5] = bc.Val2()(5,0);         //  Saturation
-        REAL qN = (v2[2]*n1 + v2[3]*n2);    // Normal Flux             
+//        REAL qN = (v2[2]*n1 + v2[3]*n2);    // Normal Flux             
         
         
         //  Upwind scheme
@@ -4586,27 +4586,27 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
-        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
+//        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
         TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
         TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
-        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
+//        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
 
         int URowsleft = phiUL.Rows();
         int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
         int PRowsleft = phiPL.Rows();
         int SRowsleft = phiSL.Rows();
-        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
         
         int UStateVar = 2;     
         
-        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
+//        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
         
         int FirstUL = 0;
         int FirstQL = URowsleft * UStateVar + FirstUL;
         int FirstPL = QRowsleft + FirstQL;
         int FirstSL = PRowsleft + FirstPL;
-        int FirstQGL = SRowsleft + FirstSL;
+//        int FirstQGL = SRowsleft + FirstSL;
 
         TPZManVector<REAL,3> &normal = data.normal;
         REAL n1 = normal[0];
@@ -4618,20 +4618,20 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
-        REAL uxL = sol_uL[0];
-        REAL uyL = sol_uL[1];
-        REAL qxL = sol_qL[0];
-        REAL qyL = sol_qL[1];
-        REAL dotqnL = (qxL*n1) + (qyL*n2);
+//        REAL uxL = sol_uL[0];
+//        REAL uyL = sol_uL[1];
+//        REAL qxL = sol_qL[0];
+//        REAL qyL = sol_qL[1];
+//        REAL dotqnL = (qxL*n1) + (qyL*n2);
         
         //  Getting P solution for left side
-        REAL PseudoPressureL    =   sol_pL[0];
+//        REAL PseudoPressureL    =   sol_pL[0];
         
         //  Getting another required data
         
         REAL TimeStep = this->fDeltaT;
         REAL Theta = this->fTheta;
-        REAL Gamma = this->fGamma;
+//        REAL Gamma = this->fGamma;
         this->fnewWS=true;
         
         // Getting Harmonic mean of permeabilities
@@ -4652,8 +4652,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         Kinverse = this->Kinv(Kabsolute);
         Gfield = this->Gravity();
 
-        REAL GravityFluxL   =   (Kabsolute(0,0)*Gfield(0,0) + Kabsolute(0,1)*Gfield(1,0))*(n1)+
-                                (Kabsolute(1,0)*Gfield(0,0) + Kabsolute(1,1)*Gfield(1,0))*(n2);
+//        REAL GravityFluxL   =   (Kabsolute(0,0)*Gfield(0,0) + Kabsolute(0,1)*Gfield(1,0))*(n1)+
+//                                (Kabsolute(1,0)*Gfield(0,0) + Kabsolute(1,1)*Gfield(1,0))*(n2);
 
         REAL rockporosityl, oildensityl, waterdensityl;
         REAL drockporositydpl, doildensitydpl, dwaterdensitydpl;
@@ -4725,27 +4725,27 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
-        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
+//        TPZFMatrix<REAL> &phiQL     = dataleft[1].phi;
         TPZFMatrix<REAL> &phiPL     = dataleft[2].phi;
         TPZFMatrix<REAL> &phiSL     = dataleft[3].phi;
-        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
+//        TPZFMatrix<REAL> &phiQGL    = dataleft[4].phi;    
 
         int URowsleft = phiUL.Rows();
         int QRowsleft = dataleft[1].fVecShapeIndex.NElements();
         int PRowsleft = phiPL.Rows();
         int SRowsleft = phiSL.Rows();
-        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
+//        int QGRowsleft = dataleft[4].fVecShapeIndex.NElements();
         
         int UStateVar = 2;     
         
-        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
-        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
+//        int iRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;
+//        int jRightInterfaceBlock = URowsleft * UStateVar + QRowsleft + PRowsleft + SRowsleft + QGRowsleft;   
         
         int FirstUL = 0;
         int FirstQL = URowsleft * UStateVar + FirstUL;
         int FirstPL = QRowsleft + FirstQL;
         int FirstSL = PRowsleft + FirstPL;
-        int FirstQGL = SRowsleft + FirstSL;
+//        int FirstQGL = SRowsleft + FirstSL;
 
         TPZManVector<REAL,3> &normal = data.normal;
         REAL n1 = normal[0];
@@ -4757,20 +4757,20 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
-        REAL uxL = sol_uL[0];
-        REAL uyL = sol_uL[1];
+//        REAL uxL = sol_uL[0];
+//        REAL uyL = sol_uL[1];
         REAL qxL = sol_qL[0];
         REAL qyL = sol_qL[1];
         REAL dotqnL = (qxL*n1) + (qyL*n2);
         
         //  Getting P solution for left side
-        REAL PseudoPressureL    =   sol_pL[0];
+//        REAL PseudoPressureL    =   sol_pL[0];
         
         //  Getting another required data
         
         REAL TimeStep = this->fDeltaT;
         REAL Theta = this->fTheta;
-        REAL Gamma = this->fGamma;
+//        REAL Gamma = this->fGamma;
         this->fnewWS=true;
         
         // Getting Harmonic mean of permeabilities
@@ -4791,8 +4791,8 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         Kinverse = this->Kinv(Kabsolute);
         Gfield = this->Gravity();
 
-        REAL GravityFluxL   =   (Kabsolute(0,0)*Gfield(0,0) + Kabsolute(0,1)*Gfield(1,0))*(n1)+
-                                (Kabsolute(1,0)*Gfield(0,0) + Kabsolute(1,1)*Gfield(1,0))*(n2);
+//        REAL GravityFluxL   =   (Kabsolute(0,0)*Gfield(0,0) + Kabsolute(0,1)*Gfield(1,0))*(n1)+
+//                                (Kabsolute(1,0)*Gfield(0,0) + Kabsolute(1,1)*Gfield(1,0))*(n2);
 
         REAL rockporosityl, oildensityl, waterdensityl;
         REAL drockporositydpl, doildensitydpl, dwaterdensitydpl;
@@ -4830,7 +4830,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         v2[3] = bc.Val2()(3,0)/this->fQref;    //  qy
         v2[4] = bc.Val2()(4,0)/this->fPref; //  Pressure
         v2[5] = bc.Val2()(5,0);         //  Saturation
-        REAL qN = (v2[2]*n1 + v2[3]*n2);    // Normal Flux       
+//        REAL qN = (v2[2]*n1 + v2[3]*n2);    // Normal Flux       
         
         REAL UpwindSaturation = 0.0;
         

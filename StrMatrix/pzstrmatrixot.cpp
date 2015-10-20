@@ -746,8 +746,7 @@ TPZStructMatrixOT::ThreadData::~ThreadData()
 void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
-    TPZStructMatrixOT *strmat = data->fStruct;
-    int nthreads = strmat->fNumThreads;
+//    TPZStructMatrixOT *strmat = data->fStruct;
     TPZVec<long> &ComputedElements = *(data->fComputedElements);
     TPZVec<long> &ElBlocked = *(data->fElBlocked);
 
@@ -916,8 +915,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
-    TPZStructMatrixOT *strmat = data->fStruct;
-    int nthreads = strmat->fNumThreads;
+//    TPZStructMatrixOT *strmat = data->fStruct;
     
     TPZCompMesh *cmesh = data->fStruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
@@ -1069,16 +1067,16 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
     return 0;
 }
 
-static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<int> &elContribute)
-{
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        if (elContribute[connectlist[i]] >= 0){
-            return false;
-        }
-    }
-    return true;
-}
+//static bool CanAssemble(TPZStack<long> &connectlist, TPZVec<int> &elContribute)
+//{
+//    for (int i = 0 ; i < connectlist.NElements() ; i++)
+//    {
+//        if (elContribute[connectlist[i]] >= 0){
+//            return false;
+//        }
+//    }
+//    return true;
+//}
 
 static void AssembleColor(int el,TPZStack<long> &connectlist, TPZVec<int> &elContribute)
 {
@@ -1102,21 +1100,21 @@ static int WhoBlockedMe(TPZStack<long> &connectlist, TPZVec<int> &elContribute, 
     return el;
 }
 
-static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<int> &elContribute,int elSequence)
-{
-    TPZCompEl *cel = cmesh->ElementVec()[el];
-    if(!cel) DebugStop();
-    TPZStack<long> connectlist;
-    cel->BuildConnectList(connectlist);
-    for (int i = 0 ; i < connectlist.NElements() ; i++)
-    {
-        int conindex = connectlist[i];
-        if (elContribute[conindex] != elSequence){
-            DebugStop();
-        }
-        elContribute[conindex] = -1;
-    }
-}
+//static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<int> &elContribute,int elSequence)
+//{
+//    TPZCompEl *cel = cmesh->ElementVec()[el];
+//    if(!cel) DebugStop();
+//    TPZStack<long> connectlist;
+//    cel->BuildConnectList(connectlist);
+//    for (int i = 0 ; i < connectlist.NElements() ; i++)
+//    {
+//        int conindex = connectlist[i];
+//        if (elContribute[conindex] != elSequence){
+//            DebugStop();
+//        }
+//        elContribute[conindex] = -1;
+//    }
+//}
 
 static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<int> &elContribute, TPZVec<int> &passIndex)
 {

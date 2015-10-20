@@ -313,6 +313,8 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 {
     
     // Getting data from different approximation spaces
+    long intpointindex = datavec[0].intGlobPtIndex;
+    TRMMemory &locmem = GetMemory()[intpointindex];
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)

@@ -85,6 +85,12 @@ namespace pzgeom {
             X(coord,loc,result);
         }
         
+        template<class T>
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        {
+            DebugStop();
+        }
+        
 		/* brief compute the coordinate of a point given in parameter space */
         void VecHdiv(const TPZGeoEl &gel,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide) const
         {

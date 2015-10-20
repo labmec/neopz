@@ -296,7 +296,6 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     REAL weight = 0.;
     
     TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
-    int order = material->IntegrationRuleOrder(data.p);
 //    if(material->HasForcingFunction())
 //    {
 //        int maxorder = intrule->GetMaxOrder();
@@ -341,7 +340,6 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 	REAL weight = 0.;
 	
 	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
-    int order = material->IntegrationRuleOrder(data.p);
 //    if(material->HasForcingFunction())
 //    {
 //        int maxorder = intrule->GetMaxOrder();

@@ -84,6 +84,12 @@ namespace pzgeom {
             CornerCoordinates(gel, coord);
             X(coord,loc,result);
         }
+        
+        template<class T>
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        {
+            DebugStop();
+        }
 		
         /* @brief compute the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
@@ -98,6 +104,10 @@ namespace pzgeom {
 		
 		/** @brief Computes the geometric location*/
 		static  void X(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+        
+        template<class T>
+        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
+        
 		/** @brief Implementation of Hdiv space*/
 		static	void ComputeNormal(TPZVec<REAL> &p1, TPZVec<REAL> &p2,TPZVec<REAL> &p3,TPZVec<REAL> &result);
 		

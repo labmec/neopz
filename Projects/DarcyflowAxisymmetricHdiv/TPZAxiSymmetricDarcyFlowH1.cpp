@@ -110,16 +110,11 @@ void TPZAxiSymmetricDarcyFlowH1::Solution(TPZMaterialData &data, int var, TPZVec
     
     // Petrophysics Data
     
-    REAL pcow, pcgo, pcgw;
-    REAL krw, kro, krg;
-    REAL dpcowdSw, dpcgodSo, dpcgwdSg;
-    REAL dkrwdSw, dkrodSo, dkrgdSg;
-    
     
     // Fluid Data
     
-    REAL visosity, porosity, density, labmda;
-    REAL dvisositydp, dporositydp, ddensitydp, dlambdadp;
+    REAL visosity= 0, porosity= 0, density= 0, labmda= 0;
+    REAL dvisositydp= 0, ddensitydp= 0, dlambdadp= 0;
     
 //    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
 //    fReservoirdata->Porosity(P[0], porosity, dporositydp);
@@ -193,8 +188,8 @@ void TPZAxiSymmetricDarcyFlowH1::Contribute(TPZMaterialData &data, REAL weight,T
     
     // Getting required Data
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
-    STATE visosity, porosity, density, labmda;
-    STATE dvisositydp, dporositydp, ddensitydp, dlambdadp;
+    STATE visosity = 0, density = 0, labmda = 0;
+    STATE dvisositydp = 0, ddensitydp = 0, dlambdadp = 0;
 //    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
 //    fReservoirdata->Porosity(P[0], porosity, dporositydp);
 //    fReservoirdata->Density(P[0], density, ddensitydp);
@@ -273,8 +268,8 @@ void TPZAxiSymmetricDarcyFlowH1::Contribute(TPZMaterialData &data, REAL weight, 
     
     // Getting required Data
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
-    STATE visosity, porosity, density, labmda;
-    STATE dvisositydp, dporositydp, ddensitydp, dlambdadp;
+    STATE visosity = 0, density = 0, labmda = 0;
+    STATE dvisositydp = 0, ddensitydp = 0, dlambdadp = 0;
 //    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
 //    fReservoirdata->Porosity(P[0], porosity, dporositydp);
 //    fReservoirdata->Density(P[0], density, ddensitydp);
@@ -337,8 +332,8 @@ void TPZAxiSymmetricDarcyFlowH1::ContributeBC(TPZMaterialData &data, REAL weight
     // Computing normal flux
     // Getting required Data
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
-    STATE visosity, porosity, density, labmda;
-    STATE dvisositydp, dporositydp, ddensitydp, dlambdadp;
+    STATE visosity = 0, density = 0, labmda = 0;
+    STATE dvisositydp = 0, ddensitydp = 0, dlambdadp = 0;
 //    fReservoirdata->Viscosity(P[0], visosity, dvisositydp);
 //    fReservoirdata->Porosity(P[0], porosity, dporositydp);
 //    fReservoirdata->Density(P[0], density, ddensitydp);

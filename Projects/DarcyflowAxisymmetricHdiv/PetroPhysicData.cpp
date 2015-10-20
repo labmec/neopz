@@ -26,9 +26,9 @@ PetroPhysicData::~PetroPhysicData()
 void PetroPhysicData::Pcwo(TPZVec<REAL> &pc_wo, TPZVec<REAL> state_vars)
 {
     
-    REAL so = state_vars[2];
-    REAL sw = state_vars[3];
-    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+//    REAL so = state_vars[2];
+//    REAL sw = state_vars[3];
+//    REAL sg = 1.0 - state_vars[2] - state_vars[3];
     
     pc_wo[0] = 0.0;
     pc_wo[3] = 0.0;
@@ -39,9 +39,9 @@ void PetroPhysicData::Pcwo(TPZVec<REAL> &pc_wo, TPZVec<REAL> state_vars)
 void PetroPhysicData::Pcog(TPZVec<REAL> &pc_og, TPZVec<REAL> state_vars)
 {
     
-    REAL so = state_vars[2];
-    REAL sw = state_vars[3];
-    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+//    REAL so = state_vars[2];
+//    REAL sw = state_vars[3];
+//    REAL sg = 1.0 - state_vars[2] - state_vars[3];
     
     pc_og[0] = 0.0;
     pc_og[3] = 0.0;
@@ -52,9 +52,9 @@ void PetroPhysicData::Pcog(TPZVec<REAL> &pc_og, TPZVec<REAL> state_vars)
 void PetroPhysicData::Pcwg(TPZVec<REAL> &pc_wg, TPZVec<REAL> state_vars)
 {
     
-    REAL so = state_vars[2];
-    REAL sw = state_vars[3];
-    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+//    REAL so = state_vars[2];
+//    REAL sw = state_vars[3];
+//    REAL sg = 1.0 - state_vars[2] - state_vars[3];
     
     pc_wg[0] = 0.0;// or Pcgo(So) + Pcow(Sw)
     pc_wg[3] = 0.0;
@@ -69,9 +69,9 @@ void PetroPhysicData::Pcwg(TPZVec<REAL> &pc_wg, TPZVec<REAL> state_vars)
 void PetroPhysicData::Krw(TPZVec<REAL> &kr_w, TPZVec<REAL> state_vars)
 {
     
-    REAL so = state_vars[2];
+//    REAL so = state_vars[2];
     REAL sw = state_vars[3];
-    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+//    REAL sg = 1.0 - state_vars[2] - state_vars[3];
     
     kr_w[0] = sw;
     kr_w[3] = 0.0;
@@ -84,8 +84,8 @@ void PetroPhysicData::Kro(TPZVec<REAL> &kr_o, TPZVec<REAL> state_vars)
 {
     
     REAL so = state_vars[2];
-    REAL sw = state_vars[3];
-    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+//    REAL sw = state_vars[3];
+//    REAL sg = 1.0 - state_vars[2] - state_vars[3];
     
     kr_o[0] = so;
     kr_o[3] = 1.0;
@@ -98,7 +98,7 @@ void PetroPhysicData::Krg(TPZVec<REAL> &kr_g, TPZVec<REAL> state_vars)
 {
     REAL so = state_vars[2];
     REAL sw = state_vars[3];
-    REAL sg = 1.0 - state_vars[2] - state_vars[3];
+//    REAL sg = 1.0 - state_vars[2] - state_vars[3];
     
     kr_g[0] = 1-so-sw;
     kr_g[3] = -1.0;

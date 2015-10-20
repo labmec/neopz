@@ -17,6 +17,7 @@
 #include "doxmesh.h"
 
 #include "pzgeoelside.h"
+#include "fadType.h"
 
 class TPZGeoNode;
 class TPZCompMesh;
@@ -37,43 +38,49 @@ class TPZStack;
 /**
  * @brief Defines the behaviour of all geometric elements. \ref geometry "Geometry"
  * @ingroup geometry
- */
-/**
  * TPZGeoEl is the common denominator for all geometric elements.
  */
+
 class TPZGeoEl : public TPZSaveable {
 	
 protected:
 	
-	/** @brief Pointer to the mesh to which the element belongs*/
+	/** @brief Pointer to the mesh to which the element belongs */
 	TPZGeoMesh *fMesh;
-	/** @brief Traditional element number*/
+    
+	/** @brief Traditional element number or element id */
 	long		fId;
+    
 	/** @brief Material index*/
 	int		fMatId;
-	/** @brief Reference to the element currently loaded. Pointer is given as this->Mesh()->Reference()->ElementVec()[fReference] */
-	TPZCompEl * fReference;
 	
+    /** @brief Reference to the element currently loaded. Pointer is given as this->Mesh()->Reference()->ElementVec()[fReference] */
+	TPZCompEl * fReference;
 	
 	/** @brief Index of the element from which the element is a subelement*/
 	long fFatherIndex;
+    
 	/** @brief Index of the element in the element vector */
 	long fIndex;
+    
 	/** @brief 3x3 unit matrix to be copied to the axes if the geometric element does not have a particular orientation*/
 	static TPZFMatrix<REAL> gGlobalAxes;
+    
 	/** @brief A counter to indicate how many interface elements are pointing to it */
 	int fNumInterfaces;
 	
 public:
 	
-    /** Returns the eldest ancestor of this geoel
-     */
+    /** Returns the eldest ancestor of this geoel */
     TPZGeoEl * EldestAncestor() const;
     
+    /** Returns the directions of this geoel */
     virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
     
+    /** Returns the directions of this geoel */
     virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
     
+    /** Returns the eldest ancestor of this geoel */
 	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) = 0;
 	
 	/** @brief Returns number of TPZInterfaceElement pointing to this */
@@ -473,9 +480,16 @@ public:
 	virtual void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) = 0;
 	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) = 0;
 	
-	/** @brief Return the Jacobian matrix at the point*/
+    /** @brief Return the jacobian of the transformation at the given coordinate */
 	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const = 0;
-	
+    
+    /** @brief Return the gradient of the transformation at the given coordinate */
+    virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const = 0;
+    
+    /** @brief Return the gradient of the transformation at the given coordinate */
+    virtual void GradXFad(TPZVec<REAL> &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
+    
+
 	/** @brief Return the coordinate in real space of the point coordinate in the master element space*/
 	virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const = 0;
 	

@@ -1,6 +1,7 @@
 /**
  * @file
  * @brief Contains the TPZNodeRep class which implements ...
+ * Clase intermediaria que guarda 
  */
 
 #ifndef PZNODEREPH

@@ -192,7 +192,7 @@ void hdivCurvedJCompAppMath::Run(geomDomain geodomain, ApproximationSpace proble
                     for (long iel=0; iel<cmeshH1->NElements(); iel++) {
                         TPZCompEl *cel = cmeshH1->Element(iel);
                         if(!cel) continue;
-                        TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
+                        new TPZCondensedCompEl(cel);
                     }
                     
                     cmeshH1->ExpandSolution();
@@ -369,7 +369,7 @@ void hdivCurvedJCompAppMath::PrintErrors(geomDomain geodomain, ApproximationSpac
                     for (long iel=0; iel<cmeshH1->NElements(); iel++) {
                         TPZCompEl *cel = cmeshH1->Element(iel);
                         if(!cel) continue;
-                        TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
+                        new TPZCondensedCompEl(cel);
                     }
                     
                     cmeshH1->ExpandSolution();
@@ -1668,13 +1668,13 @@ void hdivCurvedJCompAppMath::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &
     REAL theta = acos(z/r);
     REAL phi = atan2(y,x);
     
-    REAL costheta = cos(theta);
+//    REAL costheta = cos(theta);
     REAL sintheta = sin(theta);
     //    REAL sin2theta = sin(2.0*theta);
     
-    REAL sinphi = sin(phi);
+//    REAL sinphi = sin(phi);
     REAL cosphi = cos(phi);
-    REAL sin2phi = sin(2.0*phi);
+//    REAL sin2phi = sin(2.0*phi);
     
     REAL oneminuscosphicosphi = (1.0-cosphi*cosphi);
     
@@ -1883,7 +1883,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, in
     // One of the previous choices should be true
     DebugStop();
   }
-
+  return new TPZCompMesh(gmesh);
 }
 
 void hdivCurvedJCompAppMath::SetupDisconnectedHdivboud(const int left,const int rigth, TPZCompMesh * cmesh)
@@ -1932,7 +1932,7 @@ void hdivCurvedJCompAppMath::SetupDisconnectedHdivboud(const int left,const int 
                     }
                     int localindex = InterpElside->SideConnectLocId(0, cels.Side());
                     InterpElside->SetConnectIndex(localindex, newindex);
-                    int orientside = InterpElside->GetSideOrient(cels.Side());
+//                    int orientside = InterpElside->GetSideOrient(cels.Side());
                     InterpElside->SetSideOrient(cels.Side(),1);
                     
                     cel->SetConnectIndex(0, newindex);
@@ -2023,12 +2023,12 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshPressure(TPZGeoMesh *gmesh, int pOrder
     }
 #endif
     
-    int nel = cmesh->NElements();
-    for(int i=0; i<nel; i++){
-        TPZCompEl *cel = cmesh->ElementVec()[i];
-
-        
-    }
+//    int nel = cmesh->NElements();
+//    for(int i=0; i<nel; i++){
+//        TPZCompEl *cel = cmesh->ElementVec()[i];
+//
+//        
+//    }
     return cmesh;
   }
   else if(probAtCylinder)
@@ -2177,7 +2177,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshPressure(TPZGeoMesh *gmesh, int pOrder
     // One of the previous choices should be true
     DebugStop();
   }
-    
+    return new TPZCompMesh;
 }
 
 TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
@@ -2237,12 +2237,12 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     
     
     //Criando condicoes de contorno
-    TPZMaterial * BCond0;
+    TPZMaterial * BCond0 = NULL;
     TPZMaterial * BCond1;
-    TPZMaterial * BCond2;
-    TPZMaterial * BCond3;
-    TPZMaterial * BCond4;
-    TPZMaterial * BCond5;
+    TPZMaterial * BCond2 = NULL;
+    TPZMaterial * BCond3 = NULL;
+    TPZMaterial * BCond4 = NULL;
+    TPZMaterial * BCond5 = NULL;
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
 
@@ -2348,12 +2348,12 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     
     
     //Criando condicoes de contorno
-    TPZMaterial * BCond0;
+    TPZMaterial * BCond0 = NULL;
     TPZMaterial * BCond1;
     TPZMaterial * BCond2;
     TPZMaterial * BCond3;
     TPZMaterial * BCond4;
-    TPZMaterial * BCond5;
+    TPZMaterial * BCond5 = NULL;
     
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
@@ -2495,7 +2495,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
                 }
             }
             
-            TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
+            new TPZCondensedCompEl(elgr);
         }
         
         mphysics->CleanUpUnconnectedNodes();
@@ -2711,7 +2711,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
                 }
             }
             
-            TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
+            new TPZCondensedCompEl(elgr);
         }
         
         mphysics->CleanUpUnconnectedNodes();
@@ -2751,7 +2751,7 @@ TPZCompMesh *hdivCurvedJCompAppMath::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     // One of the previous choices should be true
     DebugStop();
   }
-    
+    return new TPZCompMesh;
 }
 
 

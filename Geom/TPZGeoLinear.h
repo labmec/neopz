@@ -42,8 +42,7 @@ namespace pzgeom {
 		}
 		
 		/** @brief Constructor with node map */
-		TPZGeoLinear(const TPZGeoLinear &cp,
-					 std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
+		TPZGeoLinear(const TPZGeoLinear &cp, std::map<long,long> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
 		{
 		}
 		
@@ -72,6 +71,16 @@ namespace pzgeom {
             CornerCoordinates(gel, coord);
             X(coord,loc,result);
         }
+        
+        template<class T>
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            for (int i=0; i<3; i++) {
+                gradx(i,0) = (coord(i,1)-coord(i,0))*0.5;
+            }
+        }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
@@ -82,6 +91,9 @@ namespace pzgeom {
         }
         
 		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+        
+        template<class T>
+        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
 		
 		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
@@ -135,18 +147,11 @@ namespace pzgeom {
 		int ic;
 		REAL xi = loc[0];
 		int nrow = coord.Rows();
-		for(ic=0; ic<nrow; ic++) result[ic] = coord.GetVal(ic,0)*(1.-xi)*0.5+coord.GetVal(ic,1)*(1.+xi)*0.5;
+		for(ic=0; ic<nrow; ic++)
+        {
+            result[ic] = coord.GetVal(ic,0)*(1.-xi)*0.5+coord.GetVal(ic,1)*(1.+xi)*0.5;
+        }
 		
-		//   TPZFNMatrix<9> phi(NNodes, pztopology::TPZLine,1);
-		//   TPZFNMatrix<18> dphi(1,NNodes, pztopology::TPZLine);
-		//   Shape(loc,phi,dphi);
-		//   int in,ic;
-		//   for(in=0; in<3; in++) result[in] = 0.;
-		//   for(in = 0; in < NNodes, pztopology::TPZLine; in++) {
-		//     for(ic=0; ic<3 ; ic++) {
-		//       result[ic] += coord(ic,in)*phi(in,0);
-		//     }
-		//   }
 		
 	}
 	

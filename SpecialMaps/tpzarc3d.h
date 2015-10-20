@@ -92,6 +92,12 @@ namespace pzgeom
             CornerCoordinates(gel, coord);
             X(coord,loc,result);
         }
+        
+        template<class T>
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        {
+            DebugStop();
+        }
 		
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {

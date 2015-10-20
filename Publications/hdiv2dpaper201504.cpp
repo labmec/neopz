@@ -95,7 +95,7 @@ void Hdiv2dPaper201504::Run(ApproximationSpace problem, Eltype element, TPZVec<i
                     for (long iel=0; iel<cmeshH1->NElements(); iel++) {
                         TPZCompEl *cel = cmeshH1->Element(iel);
                         if(!cel) continue;
-                        TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
+                        new TPZCondensedCompEl(cel);
                     }
                     
                     cmeshH1->ExpandSolution();
@@ -253,7 +253,7 @@ void Hdiv2dPaper201504::PrintErrors(ApproximationSpace problem, Eltype element, 
                     for (long iel=0; iel<cmeshH1->NElements(); iel++) {
                         TPZCompEl *cel = cmeshH1->Element(iel);
                         if(!cel) continue;
-                        TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
+                        new TPZCondensedCompEl(cel);
                     }
                     
                     cmeshH1->ExpandSolution();
@@ -1003,7 +1003,7 @@ TPZCompMesh *Hdiv2dPaper201504::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMes
                 break;
             }
         }
-        TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
+        new TPZCondensedCompEl(elgr);
     }
 
     mphysics->CleanUpUnconnectedNodes();

@@ -112,6 +112,18 @@ public:
 
 };
 
+template<class T> inline
+T fabs(const Fad<T> &val)
+{
+    return fabs(val.val());
+}
+
+//template<class T> inline
+//double Norm(const Fad<T> &val)
+//{
+//    DebugStop();
+//}
+
 template <class T> inline  void Fad<T>::copy(const Fad<T>& rhs)
 {
   dx_ = rhs.dx_;
