@@ -270,6 +270,11 @@ public:
     void UseSecondIntegrationByParts(){
         fSecondIntegration=true;
     }
+    
+    bool IsUsedSecondIntegration(){
+        return fSecondIntegration;
+    }
+
 };
 
 #endif /* defined(__PZ__pzmatmixedpoisson3d__) */

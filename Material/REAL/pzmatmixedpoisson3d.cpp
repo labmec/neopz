@@ -121,7 +121,10 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     int phrq = datavec[0].fVecShapeIndex.NElements();
     
     if(!fSecondIntegration){
-        if(HDivPiola==0 || phrq == 0){
+        
+        if(/*HDivPiola==0 ||*/ phrq == 0){
+            std::cout << "\n Error.\n";
+            std::cout << "If you want to use the variational formulation with second integration by parts, you need to set fSecondIntegration==true\n";
             DebugStop();
         }
         
@@ -513,15 +516,15 @@ int TPZMatMixedPoisson3D::VariableIndex(const std::string &name){
 }
 
 int TPZMatMixedPoisson3D::NSolutionVariables(int var){
-    if(var == 1) return 3;
+    if(var == 1) return fDim;
     if(var == 2) return 1;
     if(var == 3) return 3;
     if(var == 4) return 3;
     if(var == 5) return 3;
     if(var == 6) return 1;
-    if(var == 7) return 3;
+    if(var == 7) return fDim;
     if(var == 8 || var == 10 || var == 11) return 1;
-    if(var == 9) return 3;
+    if(var == 9) return fDim;
     return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -536,7 +539,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     SolP = datavec[1].sol[0];
     
     if(var == 1){ //function (state variable Q)
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = datavec[0].sol[0][ip];
         }
@@ -619,7 +622,11 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     }
     
     if(var==10){
-        Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
+        REAL val = 0.;
+        for(int i=0; i<fDim; i++){
+            val += datavec[0].dsol[0](i,i);
+        }
+        Solout[0] = val;
         return;
     }
     
