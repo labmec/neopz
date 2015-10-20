@@ -9,6 +9,7 @@
 
 #include "TPZVecL2.h"
 #include "pzaxestools.h"
+#include "pzvec_extras.h"
 
 const REAL M_C  (3*1e8); //velocidade da luz no vacuo
 const REAL M_UZERO  (4*M_PI*1e-7);//permeabilidade do meio livre

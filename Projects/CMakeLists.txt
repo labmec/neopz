@@ -98,6 +98,7 @@ add_subdirectory(proDG)
 			add_subdirectory(TesteComplexo1D)
 			add_subdirectory(StriplineFran)
 			add_subdirectory(ValidacaoHCurlFran1)
+			add_subdirectory(ValidacaoHCurlFran2)
 			
 			#add_subdirectory(HDiv_demo)
 
