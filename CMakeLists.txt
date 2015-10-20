@@ -48,9 +48,9 @@ add_definitions(-DREFPATTERNDIR=\"${REFPATTERNDIR}\")
 
 #Defining variables
 #To cmake
-string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DDEBUG" val)
+string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DPZDEBUG" val)
 if(${val} LESS 0)
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DPZDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
 endif()
 string(FIND ${CMAKE_CXX_FLAGS_RELEASE} "-DNODEBUG" val)
 if(${val} LESS 0)
@@ -78,6 +78,12 @@ if(PTHREAD_LIB-NOTFOUND)
 	set (PTHREAD_LIB "" CACHE PATH "Directory where the pthread library can be found")
 endif()
 include_directories(${PTHREAD_INCLUDE})
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+   # Mac OS X specific code
+   add_definitions(-DMACOSX)
+#   SET(OperatingSystem "Mac OS X")
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 #enabling Boost library 
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)

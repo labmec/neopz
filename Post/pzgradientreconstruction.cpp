@@ -593,10 +593,19 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
 
 #include <stdio.h>
 #ifdef USING_LAPACK
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 #include <clapack.h>
 #endif
+#endif
+
 #ifdef USING_BLAS
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 #include <cblas.h>
+#endif
 #endif
 
 void TPZGradientReconstruction::TPZGradientData::ComputeGradient()

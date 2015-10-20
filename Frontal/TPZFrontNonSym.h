@@ -22,11 +22,15 @@ class TPZEqnArray;
 #include "TPZFileEqnStorage.h"
 
 #ifdef USING_BLAS
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 extern "C"{
 #include "cblas.h"
 	//#include "g2c.h"
 	//#include "fblaswr.h"
 };
+#endif
 #endif
 
 #ifdef USING_ATLAS

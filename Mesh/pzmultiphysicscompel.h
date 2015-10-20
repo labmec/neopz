@@ -128,7 +128,7 @@ public:
 	virtual void Integrate(int variable, TPZVec<REAL> & value);	
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-	virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec);
+	virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec);
 	
 
 	/**

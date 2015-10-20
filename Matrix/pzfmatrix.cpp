@@ -31,8 +31,12 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 #ifdef USING_BLAS
 /** CBlas Math Library */
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 #include "cblas.h"
 #define BLAS_MULT
+#endif
 #endif
 
 #ifdef USING_MKL

@@ -6,9 +6,13 @@
 #ifndef YSMPMATH
 #define YSMPMATH
 #ifdef USING_BLAS
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
 extern "C"{
      #include "cblas.h"
      };
+#endif
 #endif
 
 #include "pzmatrix.h"

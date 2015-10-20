@@ -852,7 +852,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec,
-                                                        TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
+                                                        TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec)
 {
 	long ElemVecSize = fElementVec.size();
 	for (long iref = 0; iref < ElemVecSize; iref++)
