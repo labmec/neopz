@@ -2,7 +2,7 @@
 #include "tpzautopointer.h"
 #include "ReservoirData.h"
 
-#include "ReducedPVT.h"
+#include "Phase.h"
 
 #include "WaterPhase.h"
 #include "OilPhase.h"
@@ -64,37 +64,37 @@ void NonlinearTracerDimensionless()
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    bool OptBand    = true;    // Band optimization
+    bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
-    int qorder      = 5;
-    int porder      = 5;
+    int qorder      = 1;
+    int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 0;
+    int hpostref    = 2;
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 10000000.*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
-    REAL maxtime    = 10000000.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
+    REAL dt         = 1.*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
+    REAL maxtime    = 10.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL t0         = 0.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     
     REAL TolDeltaX  = 1.0*1e-7;
     REAL TolRes     = 1.0*1e-7;
     
-    int  nelemX     =4;
-    REAL lengthX    =250.0/Lstr;
+    int  nelemX     =5;
+    REAL lengthX    =200.0/Lstr;
     
-    int nelemY      =4;
-    REAL lengthY    =250.0/Lstr;
+    int nelemY      =5;
+    REAL lengthY    =200.0/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
     Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
     
     TPZStack<std::string> system;
     system.Push("Oil");
-//    system.Push("Water");
+    system.Push("Water");
 //    system.Push("Gas");
     
     Dataset->SetsystemType(system);
@@ -214,9 +214,9 @@ void NonlinearTracerDimensionless()
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (0.0*1e-10)*Pstr;
+    REAL cwater             = (1.0*1e-9)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
-    REAL oildensity         = 1000.0/Rhostr;
+    REAL oildensity         = 800.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
     REAL coil               = (1.0*1e-7)*Pstr;
     REAL p_g_ref            = Pstr;
@@ -272,10 +272,10 @@ void NonlinearTracerDimensionless()
     Gas->SetTRef(Tstr);
     Gas->SetTRes(Tres);
     
-    TPZVec< TPZAutoPointer<ReducedPVT> > PVTData(3);
-    PVTData[2] = Oil.operator->();      // alpha
+    TPZVec< TPZAutoPointer<Phase> > PVTData(3);
+    PVTData[0] = Oil.operator->();      // alpha
     PVTData[1] = Water.operator->();    // beta
-    PVTData[0] = Gas.operator->();      // gamma
+    PVTData[2] = Gas.operator->();      // gamma
     
 //    TPZManVector<REAL> rho(5,0),sv(4,0);
 //    sv[1] = 0.167128;

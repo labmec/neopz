@@ -9,7 +9,7 @@
 #include "OilPhase.h"
 
 
-OilPhase::OilPhase() : ReducedPVT()
+OilPhase::OilPhase() : Phase()
 {
         
 }
@@ -41,4 +41,30 @@ void OilPhase::Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_v
 {
     c[0] = Getc();
     c[2] = 0.0;
+}
+
+/** @brief Kr - $k_{r}$ */
+void OilPhase::Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars){
+
+    REAL So = state_vars[2];
+    
+    kr[0] = So;
+    kr[1] = 0.0;
+    kr[2] = 0.0;
+    kr[3] = 1.0;
+    kr[4] = 0.0;
+    
+}
+
+/** @brief Pc - $P_{c}$ */
+void OilPhase::Pc(TPZManVector<REAL> &pc, TPZManVector<REAL> state_vars){
+    
+//    REAL So = state_vars[2];
+    
+    pc[0] = 0.0;
+    pc[1] = 0.0;
+    pc[2] = 0.0;
+    pc[3] = 0.0;
+    pc[4] = 0.0;
+    
 }

@@ -10,14 +10,14 @@
 #define __PZ__GasPhase__
 
 #include <stdio.h>
-#include "ReducedPVT.h"
+#include "Phase.h"
 
 #include "tpzautopointer.h"
 #include "pzfmatrix.h"
 #include <math.h>
 
 
-class GasPhase : public ReducedPVT
+class GasPhase : public Phase
 
 {
     
@@ -65,6 +65,12 @@ public:
     
     /** @brief Compressibility - 1/pa $c$ */
     void Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_vars);
+    
+    /** @brief Kr - $k_{r}$ */
+    void Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars);
+    
+    /** @brief Pc - $P_{c}$ */
+    void Pc(TPZManVector<REAL> &pc, TPZManVector<REAL> state_vars);
     
     /** @brief Computes the pseudo critic pressure of Gas $ */
     REAL Ppc();

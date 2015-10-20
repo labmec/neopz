@@ -5,7 +5,7 @@
 #include "ReservoirData.h"
 #include "PetroPhysicData.h"
 
-#include "ReducedPVT.h"
+#include "Phase.h"
 #include "OilPhase.h"
 #include "WaterPhase.h"
 #include "GasPhase.h"
@@ -57,13 +57,13 @@ private:
     TPZVec<TPZAutoPointer<PetroPhysicData > > fRockPetroPhysic;
     
     // Reduced PVT data required for alpha
-    TPZAutoPointer<ReducedPVT> falpha_fluid;
+    TPZAutoPointer<Phase> falpha_fluid;
     
     // Reduced PVT data required for beta
-    TPZAutoPointer<ReducedPVT> fbeta_fluid;
+    TPZAutoPointer<Phase> fbeta_fluid;
     
     // Reduced PVT data required for gamma
-    TPZAutoPointer<ReducedPVT> fgamma_fluid;
+    TPZAutoPointer<Phase> fgamma_fluid;
    
     /** @brief Geometric mesh */
     TPZGeoMesh * fgmesh;
@@ -164,22 +164,22 @@ public:
     /**
      * Set the fluids following the system type
      */
-    void SetFluidData(TPZVec< TPZAutoPointer<ReducedPVT> > PVTData);
+    void SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData);
     
     /**
      * Get the alpha fluid model,
      */
-    TPZAutoPointer<ReducedPVT> GetFluidAlphaData() {return falpha_fluid;}
+    TPZAutoPointer<Phase> GetFluidAlphaData() {return falpha_fluid;}
     
     /**
      * Get the beta fluid model,
      */
-    TPZAutoPointer<ReducedPVT> GetFluidBetaData() {return fbeta_fluid;}
+    TPZAutoPointer<Phase> GetFluidBetaData() {return fbeta_fluid;}
     
     /**
      * Get the gamma fluid model,
      */
-    TPZAutoPointer<ReducedPVT> GetFluidGammaData() {return fgamma_fluid;}
+    TPZAutoPointer<Phase> GetFluidGammaData() {return fgamma_fluid;}
     
     /**
      * Rotate the geometric mesh around Z axis

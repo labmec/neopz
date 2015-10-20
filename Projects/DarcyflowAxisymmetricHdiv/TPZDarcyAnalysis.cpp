@@ -89,7 +89,7 @@ TPZDarcyAnalysis::~TPZDarcyAnalysis()
 }
 
 
-void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<ReducedPVT> > PVTData){
+void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
     
     falpha_fluid = PVTData[0];
     fbeta_fluid = PVTData[1];
@@ -1989,48 +1989,48 @@ void TPZDarcyAnalysis::BCNfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STA
 void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad)
 {
     
-    REAL epsilon = 0.01;
-    REAL xc = 0.5;
-    REAL yc = 0.5;
-    REAL x = pt[0];
-    REAL y = pt[1];
-    REAL rho = 1000.0/((1.0e7)/(1000.0*9.81)); //check this value
-//    REAL c = 1.0;
-    REAL Pref = 0.1;
+//    REAL epsilon = 0.01;
+//    REAL xc = 0.5;
+//    REAL yc = 0.5;
+//    REAL x = pt[0];
+//    REAL y = pt[1];
+//    REAL rho = 1000.0/((1.0e7)/(1000.0*9.81)); //check this value
+////    REAL c = 1.0;
+//    REAL Pref = 0.1;
 
     REAL f  =0.0;/* -((9.*exp(10.0*(-(1.0/1000.0) + log(1.0 + x))))/((1 + x)*(1 + x)))*/;
-    REAL t = time;
-
-    if(time <= 0.0){
-        t = 0.0001;
-    }
-    REAL pD = 0.1 + log(1.0 + x);
-    REAL dpDdx = 1.0/(1.0 + x);
-    REAL dpDdx2 = -pow(1.0 + x,-2.0);
-    REAL b = (1.0e7);
-    REAL c = 1000.0;
-    REAL e = 1.0e-6;
-    REAL rhoD = (6.4290583420332425e-6*(101325.353 + b*pD))/
-    (c*(0.5017121086995703 + 0.4982878913004297*
-        exp(-5.1483395031556254e-8*(101325.353 + b*pD) -
-              2.1184388752031904e-15*pow(101325.353 + b*pD,2.0) -
-              3.2120945504363473e-47*pow(101325.353 + b*pD,6.0)) +
-        1.2777444873399675e-8*pow(101325.353 + b*pD,1.0023796430661953)));
-    REAL rhoDpe = (6.4290583420332425e-6*(101325.353 + b*pD+e))/
-    (c*(0.5017121086995703 + 0.4982878913004297*
-        exp(-5.1483395031556254e-8*(101325.353 + b*pD+e) -
-            2.1184388752031904e-15*pow(101325.353 + b*pD+e,2.0) -
-            3.2120945504363473e-47*pow(101325.353 + b*pD+e,6.0)) +
-        1.2777444873399675e-8*pow(101325.353 + b*pD+e,1.0023796430661953)));
-    REAL rhoDme = (6.4290583420332425e-6*(101325.353 + b*pD-e))/
-    (c*(0.5017121086995703 + 0.4982878913004297*
-        exp(-5.1483395031556254e-8*(101325.353 + b*pD-e) -
-            2.1184388752031904e-15*pow(101325.353 + b*pD-e,2.0) -
-            3.2120945504363473e-47*pow(101325.353 + b*pD-e,6.0)) +
-        1.2777444873399675e-8*pow(101325.353 + b*pD-e,1.0023796430661953)));
-    REAL drhoD = b * ((rhoDpe) - (rhoDme)) / (2.0 * e);
-    
-    f = -rhoD*dpDdx2 - dpDdx*dpDdx*drhoD;
+//    REAL t = time;
+//
+//    if(time <= 0.0){
+//        t = 0.0001;
+//    }
+//    REAL pD = 0.1 + log(1.0 + x);
+//    REAL dpDdx = 1.0/(1.0 + x);
+//    REAL dpDdx2 = -pow(1.0 + x,-2.0);
+//    REAL b = (1.0e7);
+//    REAL c = 1000.0;
+//    REAL e = 1.0e-6;
+//    REAL rhoD = (6.4290583420332425e-6*(101325.353 + b*pD))/
+//    (c*(0.5017121086995703 + 0.4982878913004297*
+//        exp(-5.1483395031556254e-8*(101325.353 + b*pD) -
+//              2.1184388752031904e-15*pow(101325.353 + b*pD,2.0) -
+//              3.2120945504363473e-47*pow(101325.353 + b*pD,6.0)) +
+//        1.2777444873399675e-8*pow(101325.353 + b*pD,1.0023796430661953)));
+//    REAL rhoDpe = (6.4290583420332425e-6*(101325.353 + b*pD+e))/
+//    (c*(0.5017121086995703 + 0.4982878913004297*
+//        exp(-5.1483395031556254e-8*(101325.353 + b*pD+e) -
+//            2.1184388752031904e-15*pow(101325.353 + b*pD+e,2.0) -
+//            3.2120945504363473e-47*pow(101325.353 + b*pD+e,6.0)) +
+//        1.2777444873399675e-8*pow(101325.353 + b*pD+e,1.0023796430661953)));
+//    REAL rhoDme = (6.4290583420332425e-6*(101325.353 + b*pD-e))/
+//    (c*(0.5017121086995703 + 0.4982878913004297*
+//        exp(-5.1483395031556254e-8*(101325.353 + b*pD-e) -
+//            2.1184388752031904e-15*pow(101325.353 + b*pD-e,2.0) -
+//            3.2120945504363473e-47*pow(101325.353 + b*pD-e,6.0)) +
+//        1.2777444873399675e-8*pow(101325.353 + b*pD-e,1.0023796430661953)));
+//    REAL drhoD = b * ((rhoDpe) - (rhoDme)) / (2.0 * e);
+//    
+//    f = -rhoD*dpDdx2 - dpDdx*dpDdx*drhoD;
 
 //     f=-0.1*pow(1.0 - 1.0/(exp(x/t)*t),2.0) + (0.01*x)/(exp(x/t)*pow(t,2.0)) - (1.*(1.0 + (-0.1 + exp(-x/t) + x)/10.))/(exp(x/t)*pow(t,2.0));
     

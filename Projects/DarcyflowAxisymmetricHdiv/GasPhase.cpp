@@ -9,7 +9,7 @@
 #include "GasPhase.h"
 
 
-GasPhase::GasPhase() : ReducedPVT()
+GasPhase::GasPhase() : Phase()
 {
 
     /** @brief Specific gravity of Gas fraction $ */
@@ -123,8 +123,6 @@ void GasPhase::Viscosity(TPZManVector<REAL> &mu, TPZManVector<REAL> state_vars)
     
     mu[0] = mu_gas / GetMu();
     mu[2] = dmudP / GetMu();
-    mu[0] = 1.0;
-    mu[2] = 0.0;
 }
 
 /** @brief Compressibility - 1/pa $c$ */
@@ -132,6 +130,34 @@ void GasPhase::Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_v
 {
     c[0] = 0.0;
     c[2] = 0.0;
+}
+
+/** @brief Kr - $k_{r}$ */
+void GasPhase::Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars){
+
+    REAL So = state_vars[2];
+    REAL Sw = state_vars[3];
+    
+    kr[0] = 1-So-Sw;
+    kr[1] = 0.0;
+    kr[2] = 0.0;
+    kr[3] = -1.0;
+    kr[4] = -1.0;
+    
+}
+
+/** @brief Pc - $P_{c}$ */
+void GasPhase::Pc(TPZManVector<REAL> &pc, TPZManVector<REAL> state_vars){
+    
+//    REAL So = state_vars[2];
+//    REAL Sw = state_vars[3];
+    
+    pc[0] = 0.0;
+    pc[1] = 0.0;
+    pc[2] = 0.0;
+    pc[3] = 0.0;
+    pc[4] = 0.0;
+    
 }
 
 /** @brief Computes the pseudo critic pressure of Gas $ */
@@ -155,7 +181,6 @@ void GasPhase::Z(TPZManVector<REAL> &z, TPZManVector<REAL> state_vars){
 
     /* Getting the pressure gas phase */
     REAL Pg = fabs(state_vars[1] + fPstd / GetPRef()); // Negative values generate complex numbers
-//    int sign = signbit(state_vars[1] + fPstd / GetPRef());
     
     /* Computing Tr value */
     REAL Tpc= 0.0;

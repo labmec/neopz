@@ -462,6 +462,10 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     
     this->ContributeDarcy(datavec, weight, ek, ef);
     
+    if (fSimulationData->IsTwoPhaseQ()) {
+        this->ContributeAlpha(datavec, weight, ek, ef);
+    }
+    
     return;
     
     // Full implicit case: there is no n state computations here
@@ -679,6 +683,10 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     
     this->ContributeDarcy(datavec, weight, ef);
     
+    if (fSimulationData->IsTwoPhaseQ()) {
+        this->ContributeAlpha(datavec, weight, ef);
+    }
+    
     return;
     
     // Getting data from different approximation spaces
@@ -846,6 +854,8 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
     
+    return;
+    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -999,19 +1009,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     
     for (int isw = 0; isw < nphiSwL2L; isw++)
     {
-        //        // duL/dalphauL
-        //        for (int jq = 0; jq < nphiuHdivL; jq++)
-        //        {
-        //            int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
-        //            int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-        //            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-        //            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-        //            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
-        //
-        //            REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
-        //
-        //            ek(isw + iniSwL, jq + iniuL) += 1.0 * weight * fFWater[0] * phiSwL2L(isw,0) * jphiuHdivn;
-        //        }
         
         // dP/dalphaP
         for (int jp = 0; jp < nphiPL2; jp++)
@@ -1024,29 +1021,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         {
             ek(isw + iniSwL, jsw + iniSw + jblockt) += 1.0 * weight * fFWater[2] * phiSwL2(jsw,0) * phiSwL2L(isw,0) * uLn;
         }
-        
-        //        // dSo/dalphaSo
-        //        for (int jso = 0; jso < nphiSoL2; jso++)
-        //        {
-        //            ek(isw + iniSwL, jso + iniSo + jblockt) += 1.0 * weight * fFWater[3] * phiSoL2(jso,0) * phiSwL2L(isw,0) * uLn;
-        //        }
+
     }
     
     for (int isw = 0; isw < nphiSwL2R; isw++)
     {
-        //        // duL/dalphauL
-        //        for (int jq = 0; jq < nphiuHdivL; jq++)
-        //        {
-        //            int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
-        //            int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-        //            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-        //            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-        //            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
-        //
-        //            REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
-        //
-        //            ek(iblock + isw + iniSwR, jq + iniuL) += -1.0 * weight * fFWater[0] * phiSwL2R(isw,0) * jphiuHdivn;
-        //        }
         
         // dP/dalphaP
         for (int jp = 0; jp < nphiPL2; jp++)
@@ -1059,12 +1038,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         {
             ek(iblock + isw + iniSwR, jsw + iniSw + jblockt) += -1.0 * weight * fFWater[2] * phiSwL2(jsw,0) * phiSwL2R(isw,0) * uLn;
         }
-        
-        //        // dSo/dalphaSo
-        //        for (int jso = 0; jso < nphiSoL2; jso++)
-        //        {
-        //            ek(iblock + isw + iniSwR, jso + iniSo + jblockt) += -1.0 * weight * fFWater[3] * phiSoL2(jso,0) * phiSwL2R(isw,0) * uLn;
-        //        }
         
     }
     
@@ -1451,7 +1424,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
     
-    
+    return;    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -1704,6 +1677,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
+    
+    return;
+    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -2129,6 +2105,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     
+    return;
+    
     // Full implicit case: there is no n state computations here
     if (fSimulationData->IsnStep()) {
         return;
@@ -2514,7 +2492,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
     
     //  Compute the constitutive relations for the current values of: time, u, P, Sw, and So.
-    TPZManVector<REAL> state_vars(fnstate_vars,0.0);
+    TPZManVector<REAL> state_vars(fnstate_vars+1,0.0); // Check this for all the instances of state_vars
     TPZManVector<REAL> lambda(fnstate_vars+1,0.0);
     TPZManVector<REAL> rho(fnstate_vars+1,0.0);
     TPZManVector<REAL> rhof(fnstate_vars+1,0.0);
@@ -2559,8 +2537,86 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
             break;
         case 2:
         {
-            std::cout << "2-phases system not implemented"<< std::endl;
-            DebugStop();
+            state_vars[1] = P;
+            int nf = fnstate_vars+2;
+
+            int Salphablock = 2;
+            REAL Salpha = datavec[Salphablock].sol[0][0];
+            
+            TPZManVector<REAL> Pc_beta_alpha(nf,0.0);
+            fluid_beta->Pc(Pc_beta_alpha, state_vars);
+
+            
+            TPZManVector<REAL> vars_alpha(nf,0.0);
+            TPZManVector<REAL> vars_beta(nf,0.0);
+            
+            vars_alpha[1] = state_vars[1] - Salpha * Pc_beta_alpha[1];
+            vars_beta[1] = state_vars[1] + (1.0-Salpha) * Pc_beta_alpha[1];
+
+            
+            TPZManVector<REAL> f_alpha(nf,0.0);
+            TPZManVector<REAL> f_beta(nf,0.0);
+            TPZManVector<REAL> l_alpha(nf,0.0);
+            TPZManVector<REAL> l_beta(nf,0.0);
+            TPZManVector<REAL> l(nf,0.0);
+            
+            TPZManVector<REAL> alpha_rho(nf,0.0);
+            TPZManVector<REAL> alpha_mu(nf,0.0);
+            TPZManVector<REAL> Kr_alpha(nf,0.0);
+            fluid_alpha->Density(alpha_rho, vars_alpha);
+            fluid_alpha->Viscosity(alpha_mu, vars_alpha);
+            fluid_alpha->Kr(Kr_alpha, vars_alpha);
+            
+            TPZManVector<REAL> beta_rho(nf,0.0);
+            TPZManVector<REAL> beta_mu(nf,0.0);
+            TPZManVector<REAL> Kr_beta(nf,0.0);
+            fluid_beta->Density(beta_rho, vars_beta);
+            fluid_beta->Viscosity(beta_mu, vars_beta);
+            fluid_beta->Kr(Kr_beta, vars_beta);
+            
+            // Rho computation
+            rho[0] = alpha_rho[0] * Salpha + beta_rho[0] * (1.0-Salpha);
+            rho[1] = alpha_rho[1] * Salpha + beta_rho[1] * (1.0-Salpha);
+            rho[2] = alpha_rho[2] * Salpha + beta_rho[2] * (1.0-Salpha);
+            rho[3] = alpha_rho[3] * Salpha + beta_rho[3] * (1.0-Salpha);
+            
+            // Fluid Mobilities
+            
+            l_alpha[0] = Kr_alpha[0]*(alpha_rho[0]/alpha_mu[0]);
+            l_alpha[1] = 0.0;
+            l_alpha[2] = Kr_alpha[0]*(alpha_rho[2]/alpha_mu[0]-(alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]));
+            l_alpha[3] = Kr_alpha[3]*(alpha_rho[0]/alpha_mu[0]);
+            
+            l_beta[0] = Kr_beta[0]*(beta_rho[0]/beta_mu[0]);
+            l_beta[1] = 0.0;
+            l_beta[2] = Kr_beta[0]*(beta_rho[2]/beta_mu[0]-(beta_rho[0]*beta_mu[2])/(beta_mu[0]*beta_mu[0]));
+            l_beta[3] = Kr_beta[3]*(beta_rho[0]/beta_mu[0]);
+            
+            l[0] = l_alpha[0] + l_beta[0];
+            l[1] = l_alpha[1] + l_beta[1];
+            l[2] = l_alpha[2] + l_beta[2];
+            l[3] = l_alpha[3] + l_beta[3];
+            
+            // Fractional flows
+            
+            f_alpha[0] = l_alpha[0]/l[0];
+            f_alpha[1] = l_alpha[1]/l[0]-(l_alpha[0]*l[1])/(l[0]*l[0]);
+            f_alpha[2] = l_alpha[2]/l[0]-(l_alpha[0]*l[2])/(l[0]*l[0]);
+            f_alpha[3] = l_alpha[3]/l[0]-(l_alpha[0]*l[3])/(l[0]*l[0]);
+            
+            f_beta[0] = l_beta[0]/l[0];
+            f_beta[1] = l_beta[1]/l[0]-(l_beta[0]*l[1])/(l[0]*l[0]);
+            f_beta[2] = l_beta[2]/l[0]-(l_beta[0]*l[2])/(l[0]*l[0]);
+            f_beta[3] = l_beta[3]/l[0]-(l_beta[0]*l[3])/(l[0]*l[0]);
+            
+            // Rhof computation
+            rhof[0] = f_alpha[0] * alpha_rho[0] +  f_beta[0] * beta_rho[0];
+            rhof[1] = f_alpha[0] * alpha_rho[1] + f_alpha[1] * alpha_rho[0]  + f_beta[0] * beta_rho[1] + f_beta[1] * beta_rho[0];
+            rhof[2] = f_alpha[0] * alpha_rho[2] + f_alpha[2] * alpha_rho[0]  + f_beta[0] * beta_rho[2] + f_beta[2] * beta_rho[0];
+            rhof[3] = f_alpha[0] * alpha_rho[3] + f_alpha[3] * alpha_rho[0]  + f_beta[0] * beta_rho[3] + f_beta[3] * beta_rho[0];
+            
+            // lambda computation
+            lambda=l;
             
         }
             break;
@@ -2704,7 +2760,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
     
     //  Compute the constitutive relations for the current values of: time, u, P, Sw, and So.
-    TPZManVector<REAL> state_vars(fnstate_vars,0.0);
+    TPZManVector<REAL> state_vars(fnstate_vars+1,0.0);
     TPZManVector<REAL> lambda(fnstate_vars+1,0.0);
     TPZManVector<REAL> rho(fnstate_vars+1,0.0);
     TPZManVector<REAL> rhof(fnstate_vars+1,0.0);
@@ -2747,32 +2803,86 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
             break;
         case 2:
         {
-            // Getting linear combinations from different approximation spaces
+            state_vars[1] = P;
+            int nf = fnstate_vars+2;
+            
             int Salphablock = 2;
             REAL Salpha = datavec[Salphablock].sol[0][0];
-            state_vars[1] = P;
-            state_vars[2] = Salpha;
             
-            TPZManVector<REAL> alpha_rho(fnstate_vars+1,0.0);
-            TPZManVector<REAL> alpha_mu(fnstate_vars+1,0.0);
-            TPZManVector<REAL> beta_rho(fnstate_vars+1,0.0);
-            TPZManVector<REAL> beta_mu(fnstate_vars+1,0.0);
-
-            fluid_alpha->Density(alpha_rho, state_vars);
-            fluid_alpha->Viscosity(alpha_mu, state_vars);
+            TPZManVector<REAL> Pc_beta_alpha(nf,0.0);
+            fluid_beta->Pc(Pc_beta_alpha, state_vars);
             
-            fluid_alpha->Density(beta_rho, state_vars);
-            fluid_alpha->Viscosity(beta_mu, state_vars);
+            
+            TPZManVector<REAL> vars_alpha(nf,0.0);
+            TPZManVector<REAL> vars_beta(nf,0.0);
+            
+            vars_alpha[1] = state_vars[1] - Salpha * Pc_beta_alpha[1];
+            vars_beta[1] = state_vars[1] + (1.0-Salpha) * Pc_beta_alpha[1];
+            
+            
+            TPZManVector<REAL> f_alpha(nf,0.0);
+            TPZManVector<REAL> f_beta(nf,0.0);
+            TPZManVector<REAL> l_alpha(nf,0.0);
+            TPZManVector<REAL> l_beta(nf,0.0);
+            TPZManVector<REAL> l(nf,0.0);
+            
+            TPZManVector<REAL> alpha_rho(nf,0.0);
+            TPZManVector<REAL> alpha_mu(nf,0.0);
+            TPZManVector<REAL> Kr_alpha(nf,0.0);
+            fluid_alpha->Density(alpha_rho, vars_alpha);
+            fluid_alpha->Viscosity(alpha_mu, vars_alpha);
+            fluid_alpha->Kr(Kr_alpha, vars_alpha);
+            
+            TPZManVector<REAL> beta_rho(nf,0.0);
+            TPZManVector<REAL> beta_mu(nf,0.0);
+            TPZManVector<REAL> Kr_beta(nf,0.0);
+            fluid_beta->Density(beta_rho, vars_beta);
+            fluid_beta->Viscosity(beta_mu, vars_beta);
+            fluid_beta->Kr(Kr_beta, vars_beta);
             
             // Rho computation
-            rho = alpha_rho;
+            rho[0] = alpha_rho[0] * Salpha + beta_rho[0] * (1.0-Salpha);
+            rho[1] = alpha_rho[1] * Salpha + beta_rho[1] * (1.0-Salpha);
+            rho[2] = alpha_rho[2] * Salpha + beta_rho[2] * (1.0-Salpha);
+            rho[3] = alpha_rho[3] * Salpha + beta_rho[3] * (1.0-Salpha);
+            
+            // Fluid Mobilities
+            
+            l_alpha[0] = Kr_alpha[0]*(alpha_rho[0]/alpha_mu[0]);
+            l_alpha[1] = 0.0;
+            l_alpha[2] = Kr_alpha[0]*(alpha_rho[2]/alpha_mu[0]-(alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]));
+            l_alpha[3] = Kr_alpha[3]*(alpha_rho[0]/alpha_mu[0]);
+            
+            l_beta[0] = Kr_beta[0]*(beta_rho[0]/beta_mu[0]);
+            l_beta[1] = 0.0;
+            l_beta[2] = Kr_beta[0]*(beta_rho[2]/beta_mu[0]-(beta_rho[0]*beta_mu[2])/(beta_mu[0]*beta_mu[0]));
+            l_beta[3] = Kr_beta[3]*(beta_rho[0]/beta_mu[0]);
+            
+            l[0] = l_alpha[0] + l_beta[0];
+            l[1] = l_alpha[1] + l_beta[1];
+            l[2] = l_alpha[2] + l_beta[2];
+            l[3] = l_alpha[3] + l_beta[3];
+            
+            // Fractional flows
+            
+            f_alpha[0] = l_alpha[0]/l[0];
+            f_alpha[1] = l_alpha[1]/l[0]-(l_alpha[0]*l[1])/(l[0]*l[0]);
+            f_alpha[2] = l_alpha[2]/l[0]-(l_alpha[0]*l[2])/(l[0]*l[0]);
+            f_alpha[3] = l_alpha[3]/l[0]-(l_alpha[0]*l[3])/(l[0]*l[0]);
+            
+            f_beta[0] = l_beta[0]/l[0];
+            f_beta[1] = l_beta[1]/l[0]-(l_beta[0]*l[1])/(l[0]*l[0]);
+            f_beta[2] = l_beta[2]/l[0]-(l_beta[0]*l[2])/(l[0]*l[0]);
+            f_beta[3] = l_beta[3]/l[0]-(l_beta[0]*l[3])/(l[0]*l[0]);
             
             // Rhof computation
-            rhof = alpha_rho;
+            rhof[0] = f_alpha[0] * alpha_rho[0] +  f_beta[0] * beta_rho[0];
+            rhof[1] = f_alpha[0] * alpha_rho[1] + f_alpha[1] * alpha_rho[0]  + f_beta[0] * beta_rho[1] + f_beta[1] * beta_rho[0];
+            rhof[2] = f_alpha[0] * alpha_rho[2] + f_alpha[2] * alpha_rho[0]  + f_beta[0] * beta_rho[2] + f_beta[2] * beta_rho[0];
+            rhof[3] = f_alpha[0] * alpha_rho[3] + f_alpha[3] * alpha_rho[0]  + f_beta[0] * beta_rho[3] + f_beta[3] * beta_rho[0];
             
             // lambda computation
-            lambda[0] = alpha_rho[0]/alpha_mu[0];
-            lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
+            lambda=l;
             
         }
             break;
@@ -2987,6 +3097,1232 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
     return;
 }
 
+
+/**
+ * It computes a contribution to the stiffness matrix and load vector at one integration point.
+ * @param data[in] stores all input data
+ * @param weight[in] is the weight of the integration rule
+ * @param ek[out] is the stiffness matrix
+ * @param ef[out] is the load vector
+ * @since April 16, 2007
+ */
+void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+    
+    // Full implicit case: there is no n state computations here
+    if (fSimulationData->IsnStep()) {
+        return;
+    }
+    
+    // Getting data for Mixed-Darcy flow problem
+    
+    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    int Salphablock = 2;         // Salpha Saturation needs L2 scalar functions     (phiPL2)
+    
+    // Getting test and basis functions
+    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
+    TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
+    TPZFMatrix<REAL> Sa_phiPL2         = datavec[Salphablock].phi;  // For L2  test functions S_alpha
+    
+    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
+    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
+    
+    //    TPZFMatrix<STATE> DivergenceOnDeformed;
+    //    // Compute the divergence on deformed element by piola contravariant transformation
+    //    this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
+    
+    
+    // Blocks dimensions and lengths
+    int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+    int nphiPL2     = phiPL2.Rows();                                    // For L2   P
+    int nphiSaL2     = Sa_phiPL2.Rows();                                    // For L2   S_alpha
+    int iniu    = 0;
+    int iniP    = nphiuHdiv     + iniu;
+    int iniSa    = nphiPL2     + iniP;
+    
+    // Getting linear combinations from different approximation spaces
+    TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
+    REAL P              = datavec[Pblock].sol[0][0];
+    REAL S_alpha              = datavec[Salphablock].sol[0][0];
+    //
+    //    TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0];
+    //    TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
+    //    TPZFNMatrix<660,REAL> GradP;
+    //    TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
+    
+    //  Compute the constitutive relations for the current values of: time, u, P, Sw, and So.
+    TPZManVector<REAL> state_vars(fnstate_vars+1,0.0); // Check this for all the instances of state_vars
+    TPZManVector<REAL> lambda(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rho(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rhof(fnstate_vars+1,0.0);
+    
+    // Rock and fluids parameters
+    TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
+    TPZFMatrix<STATE> Oneoverlambda_Kinv_u(2,1);
+    TPZFMatrix<REAL> Oneoverlambda_Kinv_Phiu(2,1);
+    TPZFMatrix<STATE> Gravity(2,1);
+    TPZFMatrix<STATE> gm(2,1);
+    TPZFMatrix<STATE> dgmdP(2,1);
+    
+    Gravity = fSimulationData->GetGravity();
+    
+    REAL phi, dphidP;
+    this->fReservoirdata->Porosity(P, phi, dphidP);
+    
+    // time
+    REAL dt = fSimulationData->GetDeltaT();
+    
+    int nf = fnstate_vars+2;
+    TPZManVector<REAL> f_alpha(nf,0.0);
+    TPZManVector<REAL> f_beta(nf,0.0);
+    TPZManVector<REAL> l_alpha(nf,0.0);
+    TPZManVector<REAL> l_beta(nf,0.0);
+    TPZManVector<REAL> l(nf,0.0);
+    
+    TPZManVector<REAL> alpha_rho(nf,0.0);
+    TPZManVector<REAL> alpha_mu(nf,0.0);
+    TPZManVector<REAL> Kr_alpha(nf,0.0);
+    
+    TPZManVector<REAL> beta_rho(nf,0.0);
+    TPZManVector<REAL> beta_mu(nf,0.0);
+    TPZManVector<REAL> Kr_beta(nf,0.0);
+    
+    int nphases = fnstate_vars - 1;
+    switch (nphases) {
+        case 1:
+        {
+            state_vars[1] = P;
+            TPZManVector<REAL> alpha_rho(fnstate_vars+1,0.0);
+            TPZManVector<REAL> alpha_mu(fnstate_vars+1,0.0);
+            fluid_alpha->Density(alpha_rho, state_vars);
+            fluid_alpha->Viscosity(alpha_mu, state_vars);
+            
+            // Rho computation
+            rho = alpha_rho;
+            
+            // Rhof computation
+            rhof = alpha_rho;
+            
+            // lambda computation
+            lambda[0] = alpha_rho[0]/alpha_mu[0];
+            lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
+            
+        }
+            break;
+        case 2:
+        {
+            state_vars[1] = P;
+            
+            int Salphablock = 2;
+            REAL Salpha = datavec[Salphablock].sol[0][0];
+            
+            TPZManVector<REAL> Pc_beta_alpha(nf,0.0);
+            fluid_beta->Pc(Pc_beta_alpha, state_vars);
+            
+            
+            TPZManVector<REAL> vars_alpha(nf,0.0);
+            TPZManVector<REAL> vars_beta(nf,0.0);
+            
+            vars_alpha[1] = state_vars[1] - Salpha * Pc_beta_alpha[1];
+            vars_beta[1] = state_vars[1] + (1.0-Salpha) * Pc_beta_alpha[1];
+            
+            
+            fluid_alpha->Density(alpha_rho, vars_alpha);
+            fluid_alpha->Viscosity(alpha_mu, vars_alpha);
+            fluid_alpha->Kr(Kr_alpha, vars_alpha);
+            
+            
+            fluid_beta->Density(beta_rho, vars_beta);
+            fluid_beta->Viscosity(beta_mu, vars_beta);
+            fluid_beta->Kr(Kr_beta, vars_beta);
+            
+            //            // Rho computation
+            //            rho[0] = alpha_rho[0] * Salpha + beta_rho[0] * (1.0-Salpha);
+            //            rho[1] = alpha_rho[1] * Salpha + beta_rho[1] * (1.0-Salpha);
+            //            rho[2] = alpha_rho[2] * Salpha + beta_rho[2] * (1.0-Salpha);
+            //            rho[3] = alpha_rho[3] * Salpha + beta_rho[3] * (1.0-Salpha);
+            //
+            //            // Fluid Mobilities
+            //
+            //            l_alpha[0] = Kr_alpha[0]*(alpha_rho[0]/alpha_mu[0]);
+            //            l_alpha[1] = 0.0;
+            //            l_alpha[2] = Kr_alpha[0]*(alpha_rho[2]/alpha_mu[0]-(alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]));
+            //            l_alpha[3] = Kr_alpha[3]*(alpha_rho[0]/alpha_mu[0]);
+            //
+            //            l_beta[0] = Kr_beta[0]*(beta_rho[0]/beta_mu[0]);
+            //            l_beta[1] = 0.0;
+            //            l_beta[2] = Kr_beta[0]*(beta_rho[2]/beta_mu[0]-(beta_rho[0]*beta_mu[2])/(beta_mu[0]*beta_mu[0]));
+            //            l_beta[3] = Kr_beta[3]*(beta_rho[0]/beta_mu[0]);
+            //
+            //            l[0] = l_alpha[0] + l_beta[0];
+            //            l[1] = l_alpha[1] + l_beta[1];
+            //            l[2] = l_alpha[2] + l_beta[2];
+            //            l[3] = l_alpha[3] + l_beta[3];
+            //
+            //            // Fractional flows
+            //
+            //            f_alpha[0] = l_alpha[0]/l[0];
+            //            f_alpha[1] = l_alpha[1]/l[0]-(l_alpha[0]*l[1])/(l[0]*l[0]);
+            //            f_alpha[2] = l_alpha[2]/l[0]-(l_alpha[0]*l[2])/(l[0]*l[0]);
+            //            f_alpha[3] = l_alpha[3]/l[0]-(l_alpha[0]*l[3])/(l[0]*l[0]);
+            //
+            //            f_beta[0] = l_beta[0]/l[0];
+            //            f_beta[1] = l_beta[1]/l[0]-(l_beta[0]*l[1])/(l[0]*l[0]);
+            //            f_beta[2] = l_beta[2]/l[0]-(l_beta[0]*l[2])/(l[0]*l[0]);
+            //            f_beta[3] = l_beta[3]/l[0]-(l_beta[0]*l[3])/(l[0]*l[0]);
+            //
+            //            // Rhof computation
+            //            rhof[0] = f_alpha[0] * alpha_rho[0] +  f_beta[0] * beta_rho[0];
+            //            rhof[1] = f_alpha[0] * alpha_rho[1] + f_alpha[1] * alpha_rho[0]  + f_beta[0] * beta_rho[1] + f_beta[1] * beta_rho[0];
+            //            rhof[2] = f_alpha[0] * alpha_rho[2] + f_alpha[2] * alpha_rho[0]  + f_beta[0] * beta_rho[2] + f_beta[2] * beta_rho[0];
+            //            rhof[3] = f_alpha[0] * alpha_rho[3] + f_alpha[3] * alpha_rho[0]  + f_beta[0] * beta_rho[3] + f_beta[3] * beta_rho[0];
+            //
+            //            // lambda computation
+            //            lambda=l;
+            
+        }
+            break;
+        case 3:
+        {
+            std::cout<< "3-phases system not implemented"<< std::endl;
+            DebugStop();
+            
+        }
+            break;
+        default:
+        {
+            std::cout<< "4-phases system not implemented"<< std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+    
+    
+    for (int isw = 0; isw < nphiSaL2; isw++)
+    {
+
+        ef(isw  + iniSa ) += 1.0 * weight * (1.0/dt) * phi * S_alpha * alpha_rho[0]  * Sa_phiPL2(isw,0);
+        
+        for (int jsw = 0; jsw < nphiSaL2; jsw++)
+        {
+            ek(isw  + iniSa, jsw  + iniSa ) += 1.0 * weight * (1.0/dt) * phi * Sa_phiPL2(jsw,0) * alpha_rho[0]  * Sa_phiPL2(isw,0);
+
+        }
+    }
+    
+}
+
+/**
+ * It computes a contribution to the load vector at one integration point.
+ * @param data[in] stores all input data
+ * @param weight[in] is the weight of the integration rule
+ * @param ef[out] is the load vector
+ * @since April 16, 2007
+ */
+void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
+{
+ 
+    
+    // Getting data for Mixed-Darcy flow problem
+    
+    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    int Salphablock = 2;         // Salpha Saturation needs L2 scalar functions     (phiPL2)
+    
+    // Getting test and basis functions
+    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;  // For H1  test functions u
+    TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
+    TPZFMatrix<REAL> Sa_phiPL2         = datavec[Salphablock].phi;  // For L2  test functions S_alpha
+    
+    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
+    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
+    
+//    TPZFMatrix<STATE> DivergenceOnDeformed;
+//    // Compute the divergence on deformed element by piola contravariant transformation
+//    this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
+    
+    
+    // Blocks dimensions and lengths
+    int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+    int nphiPL2     = phiPL2.Rows();                                    // For L2   P
+    int nphiSaL2     = Sa_phiPL2.Rows();                                    // For L2   S_alpha
+    int iniu    = 0;
+    int iniP    = nphiuHdiv     + iniu;
+    int iniSa    = nphiPL2     + iniP;
+    
+    // Getting linear combinations from different approximation spaces
+    TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
+    REAL P              = datavec[Pblock].sol[0][0];
+    REAL S_alpha              = datavec[Salphablock].sol[0][0];
+//
+//    TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0];
+//    TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
+//    TPZFNMatrix<660,REAL> GradP;
+//    TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
+    
+    //  Compute the constitutive relations for the current values of: time, u, P, Sw, and So.
+    TPZManVector<REAL> state_vars(fnstate_vars+1,0.0); // Check this for all the instances of state_vars
+    TPZManVector<REAL> lambda(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rho(fnstate_vars+1,0.0);
+    TPZManVector<REAL> rhof(fnstate_vars+1,0.0);
+    
+    // Rock and fluids parameters
+    TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
+    TPZFMatrix<STATE> Oneoverlambda_Kinv_u(2,1);
+    TPZFMatrix<REAL> Oneoverlambda_Kinv_Phiu(2,1);
+    TPZFMatrix<STATE> Gravity(2,1);
+    TPZFMatrix<STATE> gm(2,1);
+    TPZFMatrix<STATE> dgmdP(2,1);
+    
+    Gravity = fSimulationData->GetGravity();
+    
+    REAL phi, dphidP;
+    this->fReservoirdata->Porosity(P, phi, dphidP);
+    
+    // time
+    REAL dt = fSimulationData->GetDeltaT();
+    
+    int nf = fnstate_vars+2;
+    TPZManVector<REAL> f_alpha(nf,0.0);
+    TPZManVector<REAL> f_beta(nf,0.0);
+    TPZManVector<REAL> l_alpha(nf,0.0);
+    TPZManVector<REAL> l_beta(nf,0.0);
+    TPZManVector<REAL> l(nf,0.0);
+    
+    TPZManVector<REAL> alpha_rho(nf,0.0);
+    TPZManVector<REAL> alpha_mu(nf,0.0);
+    TPZManVector<REAL> Kr_alpha(nf,0.0);
+    
+    TPZManVector<REAL> beta_rho(nf,0.0);
+    TPZManVector<REAL> beta_mu(nf,0.0);
+    TPZManVector<REAL> Kr_beta(nf,0.0);
+    
+    int nphases = fnstate_vars - 1;
+    switch (nphases) {
+        case 1:
+        {
+            state_vars[1] = P;
+            TPZManVector<REAL> alpha_rho(fnstate_vars+1,0.0);
+            TPZManVector<REAL> alpha_mu(fnstate_vars+1,0.0);
+            fluid_alpha->Density(alpha_rho, state_vars);
+            fluid_alpha->Viscosity(alpha_mu, state_vars);
+            
+            // Rho computation
+            rho = alpha_rho;
+            
+            // Rhof computation
+            rhof = alpha_rho;
+            
+            // lambda computation
+            lambda[0] = alpha_rho[0]/alpha_mu[0];
+            lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
+            
+        }
+            break;
+        case 2:
+        {
+            state_vars[1] = P;
+            
+            int Salphablock = 2;
+            REAL Salpha = datavec[Salphablock].sol[0][0];
+            
+            TPZManVector<REAL> Pc_beta_alpha(nf,0.0);
+            fluid_beta->Pc(Pc_beta_alpha, state_vars);
+            
+            
+            TPZManVector<REAL> vars_alpha(nf,0.0);
+            TPZManVector<REAL> vars_beta(nf,0.0);
+            
+            vars_alpha[1] = state_vars[1] - Salpha * Pc_beta_alpha[1];
+            vars_beta[1] = state_vars[1] + (1.0-Salpha) * Pc_beta_alpha[1];
+            
+            
+            fluid_alpha->Density(alpha_rho, vars_alpha);
+            fluid_alpha->Viscosity(alpha_mu, vars_alpha);
+            fluid_alpha->Kr(Kr_alpha, vars_alpha);
+            
+
+            fluid_beta->Density(beta_rho, vars_beta);
+            fluid_beta->Viscosity(beta_mu, vars_beta);
+            fluid_beta->Kr(Kr_beta, vars_beta);
+            
+//            // Rho computation
+//            rho[0] = alpha_rho[0] * Salpha + beta_rho[0] * (1.0-Salpha);
+//            rho[1] = alpha_rho[1] * Salpha + beta_rho[1] * (1.0-Salpha);
+//            rho[2] = alpha_rho[2] * Salpha + beta_rho[2] * (1.0-Salpha);
+//            rho[3] = alpha_rho[3] * Salpha + beta_rho[3] * (1.0-Salpha);
+//            
+//            // Fluid Mobilities
+//            
+//            l_alpha[0] = Kr_alpha[0]*(alpha_rho[0]/alpha_mu[0]);
+//            l_alpha[1] = 0.0;
+//            l_alpha[2] = Kr_alpha[0]*(alpha_rho[2]/alpha_mu[0]-(alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]));
+//            l_alpha[3] = Kr_alpha[3]*(alpha_rho[0]/alpha_mu[0]);
+//            
+//            l_beta[0] = Kr_beta[0]*(beta_rho[0]/beta_mu[0]);
+//            l_beta[1] = 0.0;
+//            l_beta[2] = Kr_beta[0]*(beta_rho[2]/beta_mu[0]-(beta_rho[0]*beta_mu[2])/(beta_mu[0]*beta_mu[0]));
+//            l_beta[3] = Kr_beta[3]*(beta_rho[0]/beta_mu[0]);
+//            
+//            l[0] = l_alpha[0] + l_beta[0];
+//            l[1] = l_alpha[1] + l_beta[1];
+//            l[2] = l_alpha[2] + l_beta[2];
+//            l[3] = l_alpha[3] + l_beta[3];
+//            
+//            // Fractional flows
+//            
+//            f_alpha[0] = l_alpha[0]/l[0];
+//            f_alpha[1] = l_alpha[1]/l[0]-(l_alpha[0]*l[1])/(l[0]*l[0]);
+//            f_alpha[2] = l_alpha[2]/l[0]-(l_alpha[0]*l[2])/(l[0]*l[0]);
+//            f_alpha[3] = l_alpha[3]/l[0]-(l_alpha[0]*l[3])/(l[0]*l[0]);
+//            
+//            f_beta[0] = l_beta[0]/l[0];
+//            f_beta[1] = l_beta[1]/l[0]-(l_beta[0]*l[1])/(l[0]*l[0]);
+//            f_beta[2] = l_beta[2]/l[0]-(l_beta[0]*l[2])/(l[0]*l[0]);
+//            f_beta[3] = l_beta[3]/l[0]-(l_beta[0]*l[3])/(l[0]*l[0]);
+//            
+//            // Rhof computation
+//            rhof[0] = f_alpha[0] * alpha_rho[0] +  f_beta[0] * beta_rho[0];
+//            rhof[1] = f_alpha[0] * alpha_rho[1] + f_alpha[1] * alpha_rho[0]  + f_beta[0] * beta_rho[1] + f_beta[1] * beta_rho[0];
+//            rhof[2] = f_alpha[0] * alpha_rho[2] + f_alpha[2] * alpha_rho[0]  + f_beta[0] * beta_rho[2] + f_beta[2] * beta_rho[0];
+//            rhof[3] = f_alpha[0] * alpha_rho[3] + f_alpha[3] * alpha_rho[0]  + f_beta[0] * beta_rho[3] + f_beta[3] * beta_rho[0];
+//            
+//            // lambda computation
+//            lambda=l;
+            
+        }
+            break;
+        case 3:
+        {
+            std::cout<< "3-phases system not implemented"<< std::endl;
+            DebugStop();
+            
+        }
+            break;
+        default:
+        {
+            std::cout<< "4-phases system not implemented"<< std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+    
+    /////////////////////////////////
+    // Last State n
+    if (fSimulationData->IsnStep()) {
+        
+        for (int isw = 0; isw < nphiSaL2; isw++)
+        {
+            ef(isw  + iniSa ) += -1.0 * weight * (1.0/dt) * phi * S_alpha * alpha_rho[0]  * Sa_phiPL2(isw,0);
+        }
+        
+        return;
+    }
+    // Last State n
+    /////////////////////////////////
+    
+    
+    for (int isw = 0; isw < nphiSaL2; isw++)
+    {
+        ef(isw  + iniSa ) += 1.0 * weight * (1.0/dt) * phi * S_alpha * alpha_rho[0]  * Sa_phiPL2(isw,0);
+    }
+    
+}
+
+/**
+ * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
+ * @param data[in] stores all input data
+ * @param weight[in] is the weight of the integration rule
+ * @param ek[out] is the stiffness matrix
+ * @param ef[out] is the load vector
+ * @param bc[in] is the boundary condition material
+ * @since April 16, 2007
+ */
+void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+}
+
+/**
+ * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
+ * @param data[in] stores all input data
+ * @param weight[in] is the weight of the integration rule
+ * @param ek[out] is the stiffness matrix
+ * @param ef[out] is the load vector
+ * @param bc[in] is the boundary condition material
+ * @since April 16, 2007
+ */
+void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+{
+    
+}
+
+
+/**
+ * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
+ * @param data[in] stores all input data
+ * @param weight[in] is the weight of the integration rule
+ * @param ek[out] is the stiffness matrix
+ * @param ef[out] is the load vector
+ * @param bc[in] is the boundary condition material
+ * @since April 16, 2007
+ */
+void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+    
+    // Getting data from different approximation spaces
+    
+    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    int Sablock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
+    
+    // Getting test and basis functions for the left side
+    TPZFMatrix<REAL> phiuH1L         = datavecleft[ublock].phi;  // For H1  test functions u
+    TPZFMatrix<REAL> phiPL2L         = datavecleft[Pblock].phi;  // For L2  test functions P
+    TPZFMatrix<REAL> phiSaL2L        = datavecleft[Sablock].phi; // For L2  test functions Sw
+    TPZFMatrix<STATE> dphiuH1L   = datavecleft[ublock].dphix; // Derivative For H1  test functions
+    TPZFMatrix<STATE> dphiPL2L   = datavecleft[Pblock].dphix; // Derivative For L2  test functions
+    
+    
+    // Getting test and basis functions for the right side
+    TPZFMatrix<REAL> phiuH1R         = datavecright[ublock].phi;  // For H1  test functions u
+    TPZFMatrix<REAL> phiPL2R         = datavecright[Pblock].phi;  // For L2  test functions P
+    TPZFMatrix<REAL> phiSaL2R        = datavecright[Sablock].phi; // For L2  test functions Sa
+    TPZFMatrix<STATE> dphiuH1R   = datavecright[ublock].dphix; // Derivative For H1  test functions
+    TPZFMatrix<STATE> dphiPL2R   = datavecright[Pblock].dphix; // Derivative For L2  test functions
+    
+    
+    // Blocks dimensions and lengths for the left side
+    int nphiuHdivL   = datavecleft[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+    int nphiPL2L     = phiPL2L.Rows();                                    // For L2   P
+    int nphiSaL2L    = phiSaL2L.Rows();                                   // For L2   Sa
+    int iniuL    = 0;
+    int iniPL    = nphiuHdivL     + iniuL;
+    int iniSaL   = nphiPL2L       + iniPL;
+    
+    // Blocks dimensions and lengths for the right side
+    int nphiuHdivR   = datavecright[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+    int nphiPL2R     = phiPL2R.Rows();                                    // For L2   P
+    int nphiSaL2R    = phiSaL2R.Rows();                                   // For L2   Sa
+    int iniuR    = 0;
+    int iniPR    = nphiuHdivR     + iniuR;
+    int iniSwR   = nphiPL2R       + iniPR;
+    
+    int iblock = iniSaL + nphiSaL2L;
+    
+    // Getting linear combinations from different approximation spaces for the left side
+    TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
+    REAL PL              = datavecleft[Pblock].sol[0][0];
+    REAL SaL             = datavecleft[Sablock].sol[0][0];
+    
+    // Getting linear combinations from different approximation spaces for the right side
+    TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
+    REAL PR              = datavecright[Pblock].sol[0][0];
+    REAL SaR             = datavecright[Sablock].sol[0][0];
+    
+    TPZManVector<REAL,3> n =  data.normal;
+    REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
+    
+    
+    int nf = fnstate_vars+2;
+    TPZManVector<REAL> f_alpha(nf,0.0);
+    TPZManVector<REAL> f_beta(nf,0.0);
+    TPZManVector<REAL> l_alpha(nf,0.0);
+    TPZManVector<REAL> l_beta(nf,0.0);
+    TPZManVector<REAL> l(nf,0.0);
+    
+    TPZManVector<REAL> alpha_rho(nf,0.0);
+    TPZManVector<REAL> alpha_mu(nf,0.0);
+    TPZManVector<REAL> Kr_alpha(nf,0.0);
+    
+    TPZManVector<REAL> beta_rho(nf,0.0);
+    TPZManVector<REAL> beta_mu(nf,0.0);
+    TPZManVector<REAL> Kr_beta(nf,0.0);
+    
+    TPZManVector<REAL> state_vars(nf,0.0);
+    
+    TPZManVector<REAL> rho(nf,0.0);
+    TPZManVector<REAL> rhof(nf,0.0);
+    TPZManVector<REAL> lambda(nf,0.0);
+    
+    
+    // Getting test and basis functions for the left side
+    TPZFMatrix<REAL> phiuH1;
+    TPZFMatrix<REAL> phiPL2;
+    TPZFMatrix<REAL> phiSaL2;
+    TPZFMatrix<STATE> dphiuH1;
+    TPZFMatrix<STATE> dphiPL2;
+    int nphiuHdiv   = 0;
+    int nphiPL2     = 0;
+    int nphiSaL2    = 0;
+    int iniu    = 0;
+    int iniP    = 0;
+    int iniSa   = 0;
+
+    
+    int nphases = fnstate_vars - 1;
+    if (uLn >= 0.0 ) {
+        switch (nphases) {
+            case 1:
+            {
+                
+                state_vars[1] = PL;
+                state_vars[2] = SaL;
+                
+                TPZManVector<REAL> alpha_rho(nf,0.0);
+                TPZManVector<REAL> alpha_mu(nf,0.0);
+                fluid_alpha->Density(alpha_rho, state_vars);
+                fluid_alpha->Viscosity(alpha_mu, state_vars);
+                
+                // Rho computation
+                rho = alpha_rho;
+                
+                // Rhof computation
+                rhof = alpha_rho;
+                
+                // lambda computation
+                lambda[0] = alpha_rho[0]/alpha_mu[0];
+                lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
+                
+            }
+                break;
+            case 2:
+            {
+                
+                TPZManVector<REAL> state_vars(nf,0.0);
+                state_vars[1] = PL;
+                state_vars[2] = SaL;
+                
+                
+                
+                int Salphablock = 2;
+                REAL Salpha = datavecleft[Salphablock].sol[0][0];
+                
+                TPZManVector<REAL> Pc_beta_alpha(nf,0.0);
+                fluid_beta->Pc(Pc_beta_alpha, state_vars);
+                
+                
+                TPZManVector<REAL> vars_alpha(nf,0.0);
+                TPZManVector<REAL> vars_beta(nf,0.0);
+                
+                vars_alpha[1] = state_vars[1] - Salpha * Pc_beta_alpha[1];
+                vars_beta[1] = state_vars[1] + (1.0-Salpha) * Pc_beta_alpha[1];
+                
+                
+                TPZManVector<REAL> f_alpha(nf,0.0);
+                TPZManVector<REAL> f_beta(nf,0.0);
+                TPZManVector<REAL> l_alpha(nf,0.0);
+                TPZManVector<REAL> l_beta(nf,0.0);
+                TPZManVector<REAL> l(nf,0.0);
+                
+                TPZManVector<REAL> alpha_rho(nf,0.0);
+                TPZManVector<REAL> alpha_mu(nf,0.0);
+                TPZManVector<REAL> Kr_alpha(nf,0.0);
+                fluid_alpha->Density(alpha_rho, vars_alpha);
+                fluid_alpha->Viscosity(alpha_mu, vars_alpha);
+                fluid_alpha->Kr(Kr_alpha, vars_alpha);
+                
+                TPZManVector<REAL> beta_rho(nf,0.0);
+                TPZManVector<REAL> beta_mu(nf,0.0);
+                TPZManVector<REAL> Kr_beta(nf,0.0);
+                fluid_beta->Density(beta_rho, vars_beta);
+                fluid_beta->Viscosity(beta_mu, vars_beta);
+                fluid_beta->Kr(Kr_beta, vars_beta);
+                
+                // Rho computation
+                rho[0] = alpha_rho[0] * Salpha + beta_rho[0] * (1.0-Salpha);
+                rho[1] = alpha_rho[1] * Salpha + beta_rho[1] * (1.0-Salpha);
+                rho[2] = alpha_rho[2] * Salpha + beta_rho[2] * (1.0-Salpha);
+                rho[3] = alpha_rho[3] * Salpha + beta_rho[3] * (1.0-Salpha);
+                
+                // Fluid Mobilities
+                
+                l_alpha[0] = Kr_alpha[0]*(alpha_rho[0]/alpha_mu[0]);
+                l_alpha[1] = 0.0;
+                l_alpha[2] = Kr_alpha[0]*(alpha_rho[2]/alpha_mu[0]-(alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]));
+                l_alpha[3] = Kr_alpha[3]*(alpha_rho[0]/alpha_mu[0]);
+                
+                l_beta[0] = Kr_beta[0]*(beta_rho[0]/beta_mu[0]);
+                l_beta[1] = 0.0;
+                l_beta[2] = Kr_beta[0]*(beta_rho[2]/beta_mu[0]-(beta_rho[0]*beta_mu[2])/(beta_mu[0]*beta_mu[0]));
+                l_beta[3] = Kr_beta[3]*(beta_rho[0]/beta_mu[0]);
+                
+                l[0] = l_alpha[0] + l_beta[0];
+                l[1] = l_alpha[1] + l_beta[1];
+                l[2] = l_alpha[2] + l_beta[2];
+                l[3] = l_alpha[3] + l_beta[3];
+                
+                // Fractional flows
+                
+                f_alpha[0] = l_alpha[0]/l[0];
+                f_alpha[1] = l_alpha[1]/l[0]-(l_alpha[0]*l[1])/(l[0]*l[0]);
+                f_alpha[2] = l_alpha[2]/l[0]-(l_alpha[0]*l[2])/(l[0]*l[0]);
+                f_alpha[3] = l_alpha[3]/l[0]-(l_alpha[0]*l[3])/(l[0]*l[0]);
+                
+                f_beta[0] = l_beta[0]/l[0];
+                f_beta[1] = l_beta[1]/l[0]-(l_beta[0]*l[1])/(l[0]*l[0]);
+                f_beta[2] = l_beta[2]/l[0]-(l_beta[0]*l[2])/(l[0]*l[0]);
+                f_beta[3] = l_beta[3]/l[0]-(l_beta[0]*l[3])/(l[0]*l[0]);
+                
+                // Rhof computation
+                rhof[0] = f_alpha[0] * alpha_rho[0] +  f_beta[0] * beta_rho[0];
+                rhof[1] = f_alpha[0] * alpha_rho[1] + f_alpha[1] * alpha_rho[0]  + f_beta[0] * beta_rho[1] + f_beta[1] * beta_rho[0];
+                rhof[2] = f_alpha[0] * alpha_rho[2] + f_alpha[2] * alpha_rho[0]  + f_beta[0] * beta_rho[2] + f_beta[2] * beta_rho[0];
+                rhof[3] = f_alpha[0] * alpha_rho[3] + f_alpha[3] * alpha_rho[0]  + f_beta[0] * beta_rho[3] + f_beta[3] * beta_rho[0];
+                
+                // lambda computation
+                lambda=l;
+                
+            }
+                break;
+            case 3:
+            {
+                std::cout<< "3-phases system not implemented"<< std::endl;
+                DebugStop();
+                
+            }
+                break;
+            default:
+            {
+                std::cout<< "4-phases system not implemented"<< std::endl;
+                DebugStop();
+            }
+                break;
+        }
+    }
+    else
+    {
+        
+        switch (nphases) {
+            case 1:
+            {
+                
+                state_vars[1] = PL;
+                state_vars[2] = SaL;
+                
+                TPZManVector<REAL> alpha_rho(nf,0.0);
+                TPZManVector<REAL> alpha_mu(nf,0.0);
+                fluid_alpha->Density(alpha_rho, state_vars);
+                fluid_alpha->Viscosity(alpha_mu, state_vars);
+                
+                // Rho computation
+                rho = alpha_rho;
+                
+                // Rhof computation
+                rhof = alpha_rho;
+                
+                // lambda computation
+                lambda[0] = alpha_rho[0]/alpha_mu[0];
+                lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
+                
+            }
+                break;
+            case 2:
+            {
+                
+                TPZManVector<REAL> state_vars(nf,0.0);
+                state_vars[1] = PR;
+                state_vars[2] = SaR;
+                
+                
+                
+                int Salphablock = 2;
+                REAL Salpha = datavecleft[Salphablock].sol[0][0];
+                
+                TPZManVector<REAL> Pc_beta_alpha(nf,0.0);
+                fluid_beta->Pc(Pc_beta_alpha, state_vars);
+                
+                
+                TPZManVector<REAL> vars_alpha(nf,0.0);
+                TPZManVector<REAL> vars_beta(nf,0.0);
+                
+                vars_alpha[1] = state_vars[1] - Salpha * Pc_beta_alpha[1];
+                vars_beta[1] = state_vars[1] + (1.0-Salpha) * Pc_beta_alpha[1];
+                
+                
+                TPZManVector<REAL> f_alpha(nf,0.0);
+                TPZManVector<REAL> f_beta(nf,0.0);
+                TPZManVector<REAL> l_alpha(nf,0.0);
+                TPZManVector<REAL> l_beta(nf,0.0);
+                TPZManVector<REAL> l(nf,0.0);
+                
+                TPZManVector<REAL> alpha_rho(nf,0.0);
+                TPZManVector<REAL> alpha_mu(nf,0.0);
+                TPZManVector<REAL> Kr_alpha(nf,0.0);
+                fluid_alpha->Density(alpha_rho, vars_alpha);
+                fluid_alpha->Viscosity(alpha_mu, vars_alpha);
+                fluid_alpha->Kr(Kr_alpha, vars_alpha);
+                
+                TPZManVector<REAL> beta_rho(nf,0.0);
+                TPZManVector<REAL> beta_mu(nf,0.0);
+                TPZManVector<REAL> Kr_beta(nf,0.0);
+                fluid_beta->Density(beta_rho, vars_beta);
+                fluid_beta->Viscosity(beta_mu, vars_beta);
+                fluid_beta->Kr(Kr_beta, vars_beta);
+                
+                // Rho computation
+                rho[0] = alpha_rho[0] * Salpha + beta_rho[0] * (1.0-Salpha);
+                rho[1] = alpha_rho[1] * Salpha + beta_rho[1] * (1.0-Salpha);
+                rho[2] = alpha_rho[2] * Salpha + beta_rho[2] * (1.0-Salpha);
+                rho[3] = alpha_rho[3] * Salpha + beta_rho[3] * (1.0-Salpha);
+                
+                // Fluid Mobilities
+                
+                l_alpha[0] = Kr_alpha[0]*(alpha_rho[0]/alpha_mu[0]);
+                l_alpha[1] = 0.0;
+                l_alpha[2] = Kr_alpha[0]*(alpha_rho[2]/alpha_mu[0]-(alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]));
+                l_alpha[3] = Kr_alpha[3]*(alpha_rho[0]/alpha_mu[0]);
+                
+                l_beta[0] = Kr_beta[0]*(beta_rho[0]/beta_mu[0]);
+                l_beta[1] = 0.0;
+                l_beta[2] = Kr_beta[0]*(beta_rho[2]/beta_mu[0]-(beta_rho[0]*beta_mu[2])/(beta_mu[0]*beta_mu[0]));
+                l_beta[3] = Kr_beta[3]*(beta_rho[0]/beta_mu[0]);
+                
+                l[0] = l_alpha[0] + l_beta[0];
+                l[1] = l_alpha[1] + l_beta[1];
+                l[2] = l_alpha[2] + l_beta[2];
+                l[3] = l_alpha[3] + l_beta[3];
+                
+                // Fractional flows
+                
+                f_alpha[0] = l_alpha[0]/l[0];
+                f_alpha[1] = l_alpha[1]/l[0]-(l_alpha[0]*l[1])/(l[0]*l[0]);
+                f_alpha[2] = l_alpha[2]/l[0]-(l_alpha[0]*l[2])/(l[0]*l[0]);
+                f_alpha[3] = l_alpha[3]/l[0]-(l_alpha[0]*l[3])/(l[0]*l[0]);
+                
+                f_beta[0] = l_beta[0]/l[0];
+                f_beta[1] = l_beta[1]/l[0]-(l_beta[0]*l[1])/(l[0]*l[0]);
+                f_beta[2] = l_beta[2]/l[0]-(l_beta[0]*l[2])/(l[0]*l[0]);
+                f_beta[3] = l_beta[3]/l[0]-(l_beta[0]*l[3])/(l[0]*l[0]);
+                
+                // Rhof computation
+                rhof[0] = f_alpha[0] * alpha_rho[0] +  f_beta[0] * beta_rho[0];
+                rhof[1] = f_alpha[0] * alpha_rho[1] + f_alpha[1] * alpha_rho[0]  + f_beta[0] * beta_rho[1] + f_beta[1] * beta_rho[0];
+                rhof[2] = f_alpha[0] * alpha_rho[2] + f_alpha[2] * alpha_rho[0]  + f_beta[0] * beta_rho[2] + f_beta[2] * beta_rho[0];
+                rhof[3] = f_alpha[0] * alpha_rho[3] + f_alpha[3] * alpha_rho[0]  + f_beta[0] * beta_rho[3] + f_beta[3] * beta_rho[0];
+                
+                // lambda computation
+                lambda=l;
+                
+            }
+                break;
+            case 3:
+            {
+                std::cout<< "3-phases system not implemented"<< std::endl;
+                DebugStop();
+                
+            }
+                break;
+            default:
+            {
+                std::cout<< "4-phases system not implemented"<< std::endl;
+                DebugStop();
+            }
+                break;
+        }
+        
+    }
+    
+    //  Compute axuliar functions for the current values of time, u, P, Sw and So
+    
+
+//    for (int isw = 0; isw < nphiSaL2L; isw++)
+//    {
+//        ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
+//        for (int jp = 0; jp < nphiPL2; jp++)
+//        {
+//            ek(isw + iniSaL,jp + ini) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
+//        }
+//        
+//        for (int jsw = 0; jsw < nphiSwL2; jsw++)
+//        {
+//            
+//        }
+//    }
+//    
+//
+//    for (int isw = 0; isw < nphiSaL2R; isw++)
+//    {
+//        ef(iblock + isw + iniSwR) += -1.0 * weight * f_alpha[0] * phiSaL2R(isw,0) * uLn;
+//        for (int jp = 0; jp < nphiPL2; jp++)
+//        {
+//        
+//        }
+//        for (int jsw = 0; jsw < nphiSwL2; jsw++)
+//        {
+//        
+//        }
+//        
+//    }
+    
+    
+}
+
+/**
+ * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
+ * @param data[in] stores all input data
+ * @param weight[in] is the weight of the integration rule
+ * @param ef[out] is the load vector
+ * @param bc[in] is the boundary condition material
+ * @since April 16, 2007
+ */
+void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){
+    
+    
+    // Getting data from different approximation spaces
+    
+    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    int Sablock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
+    
+    // Getting test and basis functions for the left side
+    TPZFMatrix<REAL> phiuH1L         = datavecleft[ublock].phi;  // For H1  test functions u
+    TPZFMatrix<REAL> phiPL2L         = datavecleft[Pblock].phi;  // For L2  test functions P
+    TPZFMatrix<REAL> phiSaL2L        = datavecleft[Sablock].phi; // For L2  test functions Sw
+    TPZFMatrix<STATE> dphiuH1L   = datavecleft[ublock].dphix; // Derivative For H1  test functions
+    TPZFMatrix<STATE> dphiPL2L   = datavecleft[Pblock].dphix; // Derivative For L2  test functions
+    
+    
+    // Getting test and basis functions for the right side
+    TPZFMatrix<REAL> phiuH1R         = datavecright[ublock].phi;  // For H1  test functions u
+    TPZFMatrix<REAL> phiPL2R         = datavecright[Pblock].phi;  // For L2  test functions P
+    TPZFMatrix<REAL> phiSaL2R        = datavecright[Sablock].phi; // For L2  test functions Sa
+    TPZFMatrix<STATE> dphiuH1R   = datavecright[ublock].dphix; // Derivative For H1  test functions
+    TPZFMatrix<STATE> dphiPL2R   = datavecright[Pblock].dphix; // Derivative For L2  test functions
+    
+    
+    // Blocks dimensions and lengths for the left side
+    int nphiuHdivL   = datavecleft[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+    int nphiPL2L     = phiPL2L.Rows();                                    // For L2   P
+    int nphiSaL2L    = phiSaL2L.Rows();                                   // For L2   Sa
+    int iniuL    = 0;
+    int iniPL    = nphiuHdivL     + iniuL;
+    int iniSaL   = nphiPL2L       + iniPL;
+    
+    // Blocks dimensions and lengths for the right side
+    int nphiuHdivR   = datavecright[ublock].fVecShapeIndex.NElements();       // For Hdiv u
+    int nphiPL2R     = phiPL2R.Rows();                                    // For L2   P
+    int nphiSaL2R    = phiSaL2R.Rows();                                   // For L2   Sa
+    int iniuR    = 0;
+    int iniPR    = nphiuHdivR     + iniuR;
+    int iniSwR   = nphiPL2R       + iniPR;
+    
+    int iblock = iniSaL + nphiSaL2L;
+    
+    // Getting linear combinations from different approximation spaces for the left side
+    TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
+    REAL PL              = datavecleft[Pblock].sol[0][0];
+    REAL SaL             = datavecleft[Sablock].sol[0][0];
+    
+    // Getting linear combinations from different approximation spaces for the right side
+    TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
+    REAL PR              = datavecright[Pblock].sol[0][0];
+    REAL SaR             = datavecright[Sablock].sol[0][0];
+    
+    TPZManVector<REAL,3> n =  data.normal;
+    REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
+    
+    
+    int nf = fnstate_vars+2;
+    TPZManVector<REAL> f_alpha(nf,0.0);
+    TPZManVector<REAL> f_beta(nf,0.0);
+    TPZManVector<REAL> l_alpha(nf,0.0);
+    TPZManVector<REAL> l_beta(nf,0.0);
+    TPZManVector<REAL> l(nf,0.0);
+    
+    TPZManVector<REAL> alpha_rho(nf,0.0);
+    TPZManVector<REAL> alpha_mu(nf,0.0);
+    TPZManVector<REAL> Kr_alpha(nf,0.0);
+    
+    TPZManVector<REAL> beta_rho(nf,0.0);
+    TPZManVector<REAL> beta_mu(nf,0.0);
+    TPZManVector<REAL> Kr_beta(nf,0.0);
+
+    TPZManVector<REAL> state_vars(nf,0.0);
+    
+    TPZManVector<REAL> rho(nf,0.0);
+    TPZManVector<REAL> rhof(nf,0.0);
+    TPZManVector<REAL> lambda(nf,0.0);
+    
+    int nphases = fnstate_vars - 1;
+    if (uLn >= 0.0 ) {
+        switch (nphases) {
+            case 1:
+            {
+            
+                state_vars[1] = PL;
+                state_vars[2] = SaL;
+                
+                TPZManVector<REAL> alpha_rho(nf,0.0);
+                TPZManVector<REAL> alpha_mu(nf,0.0);
+                fluid_alpha->Density(alpha_rho, state_vars);
+                fluid_alpha->Viscosity(alpha_mu, state_vars);
+                
+                // Rho computation
+                rho = alpha_rho;
+                
+                // Rhof computation
+                rhof = alpha_rho;
+                
+                // lambda computation
+                lambda[0] = alpha_rho[0]/alpha_mu[0];
+                lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
+                
+            }
+                break;
+            case 2:
+            {
+                
+                TPZManVector<REAL> state_vars(nf,0.0);
+                state_vars[1] = PL;
+                state_vars[2] = SaL;
+                
+
+                
+                int Salphablock = 2;
+                REAL Salpha = datavecleft[Salphablock].sol[0][0];
+                
+                TPZManVector<REAL> Pc_beta_alpha(nf,0.0);
+                fluid_beta->Pc(Pc_beta_alpha, state_vars);
+                
+                
+                TPZManVector<REAL> vars_alpha(nf,0.0);
+                TPZManVector<REAL> vars_beta(nf,0.0);
+                
+                vars_alpha[1] = state_vars[1] - Salpha * Pc_beta_alpha[1];
+                vars_beta[1] = state_vars[1] + (1.0-Salpha) * Pc_beta_alpha[1];
+                
+                
+                TPZManVector<REAL> f_alpha(nf,0.0);
+                TPZManVector<REAL> f_beta(nf,0.0);
+                TPZManVector<REAL> l_alpha(nf,0.0);
+                TPZManVector<REAL> l_beta(nf,0.0);
+                TPZManVector<REAL> l(nf,0.0);
+                
+                TPZManVector<REAL> alpha_rho(nf,0.0);
+                TPZManVector<REAL> alpha_mu(nf,0.0);
+                TPZManVector<REAL> Kr_alpha(nf,0.0);
+                fluid_alpha->Density(alpha_rho, vars_alpha);
+                fluid_alpha->Viscosity(alpha_mu, vars_alpha);
+                fluid_alpha->Kr(Kr_alpha, vars_alpha);
+                
+                TPZManVector<REAL> beta_rho(nf,0.0);
+                TPZManVector<REAL> beta_mu(nf,0.0);
+                TPZManVector<REAL> Kr_beta(nf,0.0);
+                fluid_beta->Density(beta_rho, vars_beta);
+                fluid_beta->Viscosity(beta_mu, vars_beta);
+                fluid_beta->Kr(Kr_beta, vars_beta);
+                
+                // Rho computation
+                rho[0] = alpha_rho[0] * Salpha + beta_rho[0] * (1.0-Salpha);
+                rho[1] = alpha_rho[1] * Salpha + beta_rho[1] * (1.0-Salpha);
+                rho[2] = alpha_rho[2] * Salpha + beta_rho[2] * (1.0-Salpha);
+                rho[3] = alpha_rho[3] * Salpha + beta_rho[3] * (1.0-Salpha);
+                
+                // Fluid Mobilities
+                
+                l_alpha[0] = Kr_alpha[0]*(alpha_rho[0]/alpha_mu[0]);
+                l_alpha[1] = 0.0;
+                l_alpha[2] = Kr_alpha[0]*(alpha_rho[2]/alpha_mu[0]-(alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]));
+                l_alpha[3] = Kr_alpha[3]*(alpha_rho[0]/alpha_mu[0]);
+                
+                l_beta[0] = Kr_beta[0]*(beta_rho[0]/beta_mu[0]);
+                l_beta[1] = 0.0;
+                l_beta[2] = Kr_beta[0]*(beta_rho[2]/beta_mu[0]-(beta_rho[0]*beta_mu[2])/(beta_mu[0]*beta_mu[0]));
+                l_beta[3] = Kr_beta[3]*(beta_rho[0]/beta_mu[0]);
+                
+                l[0] = l_alpha[0] + l_beta[0];
+                l[1] = l_alpha[1] + l_beta[1];
+                l[2] = l_alpha[2] + l_beta[2];
+                l[3] = l_alpha[3] + l_beta[3];
+                
+                // Fractional flows
+                
+                f_alpha[0] = l_alpha[0]/l[0];
+                f_alpha[1] = l_alpha[1]/l[0]-(l_alpha[0]*l[1])/(l[0]*l[0]);
+                f_alpha[2] = l_alpha[2]/l[0]-(l_alpha[0]*l[2])/(l[0]*l[0]);
+                f_alpha[3] = l_alpha[3]/l[0]-(l_alpha[0]*l[3])/(l[0]*l[0]);
+                
+                f_beta[0] = l_beta[0]/l[0];
+                f_beta[1] = l_beta[1]/l[0]-(l_beta[0]*l[1])/(l[0]*l[0]);
+                f_beta[2] = l_beta[2]/l[0]-(l_beta[0]*l[2])/(l[0]*l[0]);
+                f_beta[3] = l_beta[3]/l[0]-(l_beta[0]*l[3])/(l[0]*l[0]);
+                
+                // Rhof computation
+                rhof[0] = f_alpha[0] * alpha_rho[0] +  f_beta[0] * beta_rho[0];
+                rhof[1] = f_alpha[0] * alpha_rho[1] + f_alpha[1] * alpha_rho[0]  + f_beta[0] * beta_rho[1] + f_beta[1] * beta_rho[0];
+                rhof[2] = f_alpha[0] * alpha_rho[2] + f_alpha[2] * alpha_rho[0]  + f_beta[0] * beta_rho[2] + f_beta[2] * beta_rho[0];
+                rhof[3] = f_alpha[0] * alpha_rho[3] + f_alpha[3] * alpha_rho[0]  + f_beta[0] * beta_rho[3] + f_beta[3] * beta_rho[0];
+                
+                // lambda computation
+                lambda=l;
+                
+            }
+                break;
+            case 3:
+            {
+                std::cout<< "3-phases system not implemented"<< std::endl;
+                DebugStop();
+                
+            }
+                break;
+            default:
+            {
+                std::cout<< "4-phases system not implemented"<< std::endl;
+                DebugStop();
+            }
+                break;
+        }
+    }
+    else
+    {
+        
+        switch (nphases) {
+            case 1:
+            {
+                
+                state_vars[1] = PL;
+                state_vars[2] = SaL;
+                
+                TPZManVector<REAL> alpha_rho(nf,0.0);
+                TPZManVector<REAL> alpha_mu(nf,0.0);
+                fluid_alpha->Density(alpha_rho, state_vars);
+                fluid_alpha->Viscosity(alpha_mu, state_vars);
+                
+                // Rho computation
+                rho = alpha_rho;
+                
+                // Rhof computation
+                rhof = alpha_rho;
+                
+                // lambda computation
+                lambda[0] = alpha_rho[0]/alpha_mu[0];
+                lambda[2] = alpha_rho[2]/alpha_mu[0] - (alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]);
+                
+            }
+                break;
+            case 2:
+            {
+                
+                TPZManVector<REAL> state_vars(nf,0.0);
+                state_vars[1] = PR;
+                state_vars[2] = SaR;
+                
+                
+                
+                int Salphablock = 2;
+                REAL Salpha = datavecleft[Salphablock].sol[0][0];
+                
+                TPZManVector<REAL> Pc_beta_alpha(nf,0.0);
+                fluid_beta->Pc(Pc_beta_alpha, state_vars);
+                
+                
+                TPZManVector<REAL> vars_alpha(nf,0.0);
+                TPZManVector<REAL> vars_beta(nf,0.0);
+                
+                vars_alpha[1] = state_vars[1] - Salpha * Pc_beta_alpha[1];
+                vars_beta[1] = state_vars[1] + (1.0-Salpha) * Pc_beta_alpha[1];
+                
+                
+                TPZManVector<REAL> f_alpha(nf,0.0);
+                TPZManVector<REAL> f_beta(nf,0.0);
+                TPZManVector<REAL> l_alpha(nf,0.0);
+                TPZManVector<REAL> l_beta(nf,0.0);
+                TPZManVector<REAL> l(nf,0.0);
+                
+                TPZManVector<REAL> alpha_rho(nf,0.0);
+                TPZManVector<REAL> alpha_mu(nf,0.0);
+                TPZManVector<REAL> Kr_alpha(nf,0.0);
+                fluid_alpha->Density(alpha_rho, vars_alpha);
+                fluid_alpha->Viscosity(alpha_mu, vars_alpha);
+                fluid_alpha->Kr(Kr_alpha, vars_alpha);
+                
+                TPZManVector<REAL> beta_rho(nf,0.0);
+                TPZManVector<REAL> beta_mu(nf,0.0);
+                TPZManVector<REAL> Kr_beta(nf,0.0);
+                fluid_beta->Density(beta_rho, vars_beta);
+                fluid_beta->Viscosity(beta_mu, vars_beta);
+                fluid_beta->Kr(Kr_beta, vars_beta);
+                
+                // Rho computation
+                rho[0] = alpha_rho[0] * Salpha + beta_rho[0] * (1.0-Salpha);
+                rho[1] = alpha_rho[1] * Salpha + beta_rho[1] * (1.0-Salpha);
+                rho[2] = alpha_rho[2] * Salpha + beta_rho[2] * (1.0-Salpha);
+                rho[3] = alpha_rho[3] * Salpha + beta_rho[3] * (1.0-Salpha);
+                
+                // Fluid Mobilities
+                
+                l_alpha[0] = Kr_alpha[0]*(alpha_rho[0]/alpha_mu[0]);
+                l_alpha[1] = 0.0;
+                l_alpha[2] = Kr_alpha[0]*(alpha_rho[2]/alpha_mu[0]-(alpha_rho[0]*alpha_mu[2])/(alpha_mu[0]*alpha_mu[0]));
+                l_alpha[3] = Kr_alpha[3]*(alpha_rho[0]/alpha_mu[0]);
+                
+                l_beta[0] = Kr_beta[0]*(beta_rho[0]/beta_mu[0]);
+                l_beta[1] = 0.0;
+                l_beta[2] = Kr_beta[0]*(beta_rho[2]/beta_mu[0]-(beta_rho[0]*beta_mu[2])/(beta_mu[0]*beta_mu[0]));
+                l_beta[3] = Kr_beta[3]*(beta_rho[0]/beta_mu[0]);
+                
+                l[0] = l_alpha[0] + l_beta[0];
+                l[1] = l_alpha[1] + l_beta[1];
+                l[2] = l_alpha[2] + l_beta[2];
+                l[3] = l_alpha[3] + l_beta[3];
+                
+                // Fractional flows
+                
+                f_alpha[0] = l_alpha[0]/l[0];
+                f_alpha[1] = l_alpha[1]/l[0]-(l_alpha[0]*l[1])/(l[0]*l[0]);
+                f_alpha[2] = l_alpha[2]/l[0]-(l_alpha[0]*l[2])/(l[0]*l[0]);
+                f_alpha[3] = l_alpha[3]/l[0]-(l_alpha[0]*l[3])/(l[0]*l[0]);
+                
+                f_beta[0] = l_beta[0]/l[0];
+                f_beta[1] = l_beta[1]/l[0]-(l_beta[0]*l[1])/(l[0]*l[0]);
+                f_beta[2] = l_beta[2]/l[0]-(l_beta[0]*l[2])/(l[0]*l[0]);
+                f_beta[3] = l_beta[3]/l[0]-(l_beta[0]*l[3])/(l[0]*l[0]);
+                
+                // Rhof computation
+                rhof[0] = f_alpha[0] * alpha_rho[0] +  f_beta[0] * beta_rho[0];
+                rhof[1] = f_alpha[0] * alpha_rho[1] + f_alpha[1] * alpha_rho[0]  + f_beta[0] * beta_rho[1] + f_beta[1] * beta_rho[0];
+                rhof[2] = f_alpha[0] * alpha_rho[2] + f_alpha[2] * alpha_rho[0]  + f_beta[0] * beta_rho[2] + f_beta[2] * beta_rho[0];
+                rhof[3] = f_alpha[0] * alpha_rho[3] + f_alpha[3] * alpha_rho[0]  + f_beta[0] * beta_rho[3] + f_beta[3] * beta_rho[0];
+                
+                // lambda computation
+                lambda=l;
+                
+            }
+                break;
+            case 3:
+            {
+                std::cout<< "3-phases system not implemented"<< std::endl;
+                DebugStop();
+                
+            }
+                break;
+            default:
+            {
+                std::cout<< "4-phases system not implemented"<< std::endl;
+                DebugStop();
+            }
+                break;
+        }
+
+    }
+    
+    //  Compute axuliar functions for the current values of time, u, P, Sw and So
+    
+    // contribuicao para elemento esquerdo
+    for (int isw = 0; isw < nphiSaL2L; isw++)
+    {
+        ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
+    }
+    // contribuicao para elemento direito
+    for (int isw = 0; isw < nphiSaL2R; isw++)
+    {
+        ef(iblock + isw + iniSwR) += -1.0 * weight * f_alpha[0] * phiSaL2R(isw,0) * uLn;
+    }
+    
+    
+}
 
 
 

@@ -16,7 +16,7 @@
 #include "SimulationData.h"
 #include "ReservoirData.h"
 #include "PetroPhysicData.h"
-#include "ReducedPVT.h"
+#include "Phase.h"
 
 
 #ifndef TPZDARCYFLOW
@@ -33,9 +33,9 @@ private:
     TPZAutoPointer<SimulationData> fSimulationData;
     TPZAutoPointer<ReservoirData> fReservoirdata;
     TPZAutoPointer<PetroPhysicData> fPetrophysicdata;
-    TPZAutoPointer<ReducedPVT> fluid_alpha;
-    TPZAutoPointer<ReducedPVT> fluid_beta;
-    TPZAutoPointer<ReducedPVT> fluid_gamma;
+    TPZAutoPointer<Phase> fluid_alpha;
+    TPZAutoPointer<Phase> fluid_beta;
+    TPZAutoPointer<Phase> fluid_gamma;
     
     // State variables used for weighted fluid blackoil formulation
     int fnstate_vars;
@@ -250,6 +250,73 @@ public:
      */
     void ContributeBCDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
+    
+    //   Contribute for Transport of alpha phase
+    
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ek[out] is the stiffness matrix
+     * @param ef[out] is the load vector
+     * @since April 16, 2007
+     */
+    void ContributeAlpha(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
+    /**
+     * It computes a contribution to the load vector at one integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ef[out] is the load vector
+     * @since April 16, 2007
+     */
+    void ContributeAlpha(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+    
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ek[out] is the stiffness matrix
+     * @param ef[out] is the load vector
+     * @param bc[in] is the boundary condition material
+     * @since April 16, 2007
+     */
+    void ContributeBCInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ek[out] is the stiffness matrix
+     * @param ef[out] is the load vector
+     * @param bc[in] is the boundary condition material
+     * @since April 16, 2007
+     */
+    void ContributeBCInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    
+    
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ek[out] is the stiffness matrix
+     * @param ef[out] is the load vector
+     * @param bc[in] is the boundary condition material
+     * @since April 16, 2007
+     */
+    void ContributeInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ef[out] is the load vector
+     * @param bc[in] is the boundary condition material
+     * @since April 16, 2007
+     */
+    void ContributeInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef);
+
+    
     /**
      * Unique identifier for serialization purposes
      */
@@ -299,32 +366,32 @@ public:
     /**
      * Set fluid alpha data
      */
-    void SetFluidAlpha(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fluid_alpha = Fluidmodeldata;}
+    void SetFluidAlpha(TPZAutoPointer<Phase> Fluidmodeldata){fluid_alpha = Fluidmodeldata;}
     
     /**
      * Get fluid alpha data
      */
-    TPZAutoPointer<ReducedPVT> GetFluidAlpha() {return fluid_alpha;}
+    TPZAutoPointer<Phase> GetFluidAlpha() {return fluid_alpha;}
     
     /**
      * Set fluid beta data
      */
-    void SetFluidBeta(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fluid_beta = Fluidmodeldata;}
+    void SetFluidBeta(TPZAutoPointer<Phase> Fluidmodeldata){fluid_beta = Fluidmodeldata;}
     
     /**
      * Get fluid beta data
      */
-    TPZAutoPointer<ReducedPVT> GetFluidBeta() {return fluid_beta;}
+    TPZAutoPointer<Phase> GetFluidBeta() {return fluid_beta;}
     
     /**
      * Set fluid gamma data
      */
-    void SetFluidGamma(TPZAutoPointer<ReducedPVT> Fluidmodeldata){fluid_gamma = Fluidmodeldata;}
+    void SetFluidGamma(TPZAutoPointer<Phase> Fluidmodeldata){fluid_gamma = Fluidmodeldata;}
     
     /**
      * Get fluid gamma data
      */
-    TPZAutoPointer<ReducedPVT> GetFluidGamma() {return fluid_gamma;}
+    TPZAutoPointer<Phase> GetFluidGamma() {return fluid_gamma;}
     
     /**
      * Set state vars.
