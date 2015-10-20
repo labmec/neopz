@@ -91,7 +91,7 @@ TPZGeoMesh *MalhaGeomTeste();
 
 TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh);
 TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh);
-TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh, bool hdivskeleton);
+TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh, bool secondIntegration);
 
 TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh,int ordem);
 
@@ -118,7 +118,9 @@ bool solsuave;
 int main()
 {
     HDivPiola = 2;
-    InitializePZLOG();
+    bool SecondIntegration=false;
+    
+    //InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -132,8 +134,8 @@ int main()
     ofstream saidaerrosH1("../Erro-H1.txt");
     
     
-    int maxp = 2;
-    int maxhref = 5;
+    int maxp = 3;
+    int maxhref = 1;
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1);
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1);
     TPZFMatrix<STATE> L2ErrorDiv(maxhref,maxp-1);
@@ -148,7 +150,7 @@ int main()
     TPZFMatrix<int> numhref(maxhref,maxp-1);
     int nelx = 1;
     int nely = 1;
-    bool zigzag = true;
+    bool zigzag = false;
     
     for(int p = 1; p<maxp; p++)
     {
@@ -181,50 +183,48 @@ int main()
             nely = 1 << nref;
             TPZGeoMesh * gmesh = MalhaGeom(nelx, nely, 1,1,fTriang,zigzag);
             //            UniformRefine2(gmesh, nref);
-            //            {
-            //                ofstream filemesh1("../malhageometrica.txt");
-            //                gmesh->Print(filemesh1);
-            //            }
+            {
+                ofstream filemesh1("malhageometrica.txt");
+                gmesh->Print(filemesh1);
+            }
             
             //rodar formulacao mista
             if(metodomisto==true){
                 
                 // Criando a primeira malha computacional
                 TPZCompMesh * cmesh1= CMeshFlux(pq, gmesh);
-                //                {
-                //                    ofstream filemesh2("../MalhaFluxAntes.txt");
-                //                    cmesh1->Print(filemesh2);
-                //                }
+                {
+                    ofstream filemesh2("MalhaFluxAntes.txt");
+                    cmesh1->Print(filemesh2);
+                }
                 
                 //HDiv++
                 if(order_reduce == 1){
                     ChangeSideConnectOrderConnects(cmesh1,pq-order_reduce);
+                    
+                    ofstream filemesh2("../MalhaFluxDepois.txt");
+                    cmesh1->Print(filemesh2);
                 }
                 
-                //                {
-                //                    ofstream filemesh2("../MalhaFlux.txt");
-                //                    cmesh1->Print(filemesh2);
-                //                }
                 
                 
                 // Criando a segunda malha computacional
                 TPZCompMesh * cmesh2 = CMeshPressure(pp, gmesh);
-                
-                //                {
-                //                    ofstream filemesh3("../MalhaPressao.txt");
-                //                    cmesh2->Print(filemesh3);
-                //                }
-                //
+                {
+                    ofstream filemesh3("MalhaPressao.txt");
+                    cmesh2->Print(filemesh3);
+                }
+
                 
                 // Criando a malha computacional multifísica
                 //malha multifisica
                 TPZManVector<TPZCompMesh *,2> meshvec(2);
                 meshvec[0] = cmesh1;
                 meshvec[1] = cmesh2;
-                TPZCompMesh * mphysics = MalhaCompMultifisica(meshvec, gmesh,true);
+                TPZCompMesh * mphysics = MalhaCompMultifisica(meshvec, gmesh, SecondIntegration);
                 
-                //            ofstream filemesh4("MalhaMultifisica.txt");
-                //            mphysics->Print(filemesh4);
+                ofstream filemesh4("MalhaMultifisica.txt");
+                mphysics->Print(filemesh4);
                 
                 int nDofTotal;
                 nDofTotal = meshvec[0]->NEquations() + meshvec[1]->NEquations();
@@ -238,7 +238,7 @@ int main()
                 
                 // Resolvendo o sistema linear
                 TPZAnalysis an(mphysics);
-                ResolverSistema(an, mphysics,8);
+                ResolverSistema(an, mphysics,0);
                 
                 //            ofstream filemesh4("MalhaMultifisica.txt");
                 //            mphysics->Print(filemesh4);
@@ -288,7 +288,7 @@ int main()
                 
                 // Resolvendo o sistema linear
                 TPZAnalysis an(cmesh);
-                ResolverSistema(an, cmesh,0);
+                ResolverSistema(an, cmesh,8);
                 
                 //Arquivo de saida para plotar a solução
                 //                string plotfile("Solution_H1.vtk");
@@ -378,7 +378,7 @@ TPZGeoMesh *MalhaGeom(int nelx, int nely, REAL Lx, REAL Ly,bool ftriang, bool zi
     gengrid.Read(gmesh);
     x1[0] = Lx;
     x1[1] = 0.;
-    gengrid.SetBC(gmesh, x0, x1, 4);
+    gengrid.SetBC(gmesh, x0, x1, bc0);
     x0 = x1;
     x1[0] = Lx;
     x1[1] = Ly;
@@ -778,7 +778,7 @@ TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh,int ordem){
 }
 
 #include "pzintel.h"
-TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh, bool hdivskeleton){
+TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gmesh, bool secondIntegration){
     
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
@@ -788,7 +788,10 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     int dim =2;
     
     TPZMatMixedPoisson3D *material = new TPZMatMixedPoisson3D(matId,dim);
-    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim);
+    
+    if(secondIntegration==true){
+        material->UseSecondIntegrationByParts();
+    }
     
     //incluindo os dados do problema
     //    REAL coefk = 1.;
@@ -843,22 +846,33 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     mphysics->AdjustBoundaryElements();
     mphysics->CleanUpUnconnectedNodes();
     
-    //    if(hdivskeleton==false){
-    if(HDivPiola==1 || HDivPiola==2){
+    
+    if(material->IsUsedSecondIntegration()==false){
         // Creating multiphysic elements into mphysics computational mesh
         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
         
+        // create condensed elements
+        // increase the NumElConnected of one pressure connects in order to prevent condensation
+        mphysics->ComputeNodElCon();
+        for (long icel=0; icel < mphysics->NElements(); icel++) {
+            TPZCompEl  * cel = mphysics->Element(icel);
+            if(!cel) continue;
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                if (c.LagrangeMultiplier() > 0) {
+                    c.IncrementElConnected();
+                    break;
+                }
+            }
+            new TPZCondensedCompEl(cel);
+        }
+        
+        
         mphysics->CleanUpUnconnectedNodes();
         mphysics->ExpandSolution();
-        
-        //condensar
-//        for (long iel=0; iel<mphysics->NElements(); iel++) {
-//            TPZCompEl *cel = mphysics->Element(iel);
-//            if(!cel) continue;
-//            TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
-//        }
     }
     
     //Creating multiphysic elements containing skeletal elements.

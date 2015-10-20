@@ -188,9 +188,9 @@ static LoggerPtr logdata(Logger::getLogger("pz.material"));
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+//#ifdef LOG4CXX
+//    InitializePZLOG();
+//#endif
     
 //  gRefDBase.InitializeAllUniformRefPatterns();
 //	gRefDBase.InitializeRefPatterns();
@@ -200,12 +200,12 @@ int main(int argc, char *argv[])
     HDivPiola = 0;
     ofstream saidaerros("../ErroNormas.txt",ios::app);
     
-    for(p=2;p<6;p++)
+    for(p=1;p<4;p++)
     {
         saidaerros << "\nPARA p = " << p << endl;
-        saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(28) << "ErroL2Primal" << setw(35) << "ErroL2Dual"  << endl;
+        saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(20) << "ErroL2Primal" << setw(20) << "ErroL2Dual" << setw(20) << "ErroL2Div" << setw(20) << "ErroHDivDual"  << endl;
         
-        for (ndiv=1; ndiv<7-p; ndiv++)
+        for (ndiv=1; ndiv<5/*7-p*/; ndiv++)
         {
             
             if (dim==2)
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
                     //cubo->setTetraTrue();
                     //cubo->setPrismaTrue();
 //                    cubo->setH1True();
-                    bool HdivMaisMais = true;
+                    bool HdivMaisMais = false;
                     int k = HdivMaisMais ? p+1 : p;
                     cubo->Run(k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
 
