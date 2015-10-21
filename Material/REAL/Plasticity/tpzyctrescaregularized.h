@@ -150,7 +150,7 @@ void TPZYCTrescaRegularized::Compute(const TPZTensor<T> & sigma, const T & A,TPZ
 	TPZTensor <T> s;
 	sigma.S(s);
 	REAL aux = (1. - tol);
-	if (fabs(shapeFAD::val(invangle)) < aux)
+	if (fabs(TPZExtractVal::val(invangle)) < aux)
 	{
 #ifdef LOG4CXX_PLASTICITY
 		std::stringstream sout;
@@ -160,9 +160,9 @@ void TPZYCTrescaRegularized::Compute(const TPZTensor<T> & sigma, const T & A,TPZ
 		TPZYCTresca::Compute(sigma,A,result,checkForcedYield);
 	} else
 	{
-		if (fabs(shapeFAD::val(invangle)) > 1.) invangle = 1.;
+		if (fabs(TPZExtractVal::val(invangle)) > 1.) invangle = 1.;
 		REAL asineps = asin(1. - tol);
-		T tayext = ((T)fabs(shapeFAD::val(invangle)) - T(1.-tol))*T(1./(sqrt(1.- (1. - tol)*(1. - tol))));
+		T tayext = ((T)fabs(TPZExtractVal::val(invangle)) - T(1.-tol))*T(1./(sqrt(1.- (1. - tol)*(1. - tol))));
 		invangle = (tayext + T(asineps)) / 3.;
 		//invangle = alpha * (1./3.) * (asin(1. - 1.e-6) + ( fabs(alpha)-(1.-1.e-6))*(1./(sqrt(1.-(1.-1.e-6)*(1.-1.e-6)))));
 #ifdef LOG4CXX_PLASTICITY
@@ -195,7 +195,7 @@ void TPZYCTrescaRegularized::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZ
 		 LOGPZ_DEBUG(logger,sout.str().c_str());*/
 	}
 	
-	if (fabs(shapeFAD::val(invangle)) < (1. - 1.e-6))
+	if (fabs(TPZExtractVal::val(invangle)) < (1. - 1.e-6))
 	{
 #ifdef LOG4CXX_PLASTICITY
 		{
@@ -226,10 +226,10 @@ void TPZYCTrescaRegularized::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZ
 		//     GradInverseAngle(sigma,gradtheta);
 		//     T derivasin = 1./sqrt(1.-(1. - 1.e-6)*(1. - 1.e-6));
 		//     gradtheta.Multiply(derivasin,1./3.);
-		REAL alpha = (shapeFAD::val(invangle) > 0.) ? 1. : -1.;
-		if (fabs(shapeFAD::val(invangle) ) > 1.) invangle = 1.;
+		REAL alpha = (TPZExtractVal::val(invangle) > 0.) ? 1. : -1.;
+		if (fabs(TPZExtractVal::val(invangle) ) > 1.) invangle = 1.;
 		REAL asineps = asin(1. - tol);
-		T tayext = ((T)fabs(shapeFAD::val(invangle)) - T(1.- tol))*T(1./(sqrt(1.- (1. - tol)*(1. - tol))));
+		T tayext = ((T)fabs(TPZExtractVal::val(invangle)) - T(1.- tol))*T(1./(sqrt(1.- (1. - tol)*(1. - tol))));
 		theta = (tayext + T(asineps)) * T(alpha / 3.);
 		GradInverseAngle(sigma,gradtheta);
 		REAL derivasin = 1./sqrt(1.-(1. - tol)*(1. - tol));

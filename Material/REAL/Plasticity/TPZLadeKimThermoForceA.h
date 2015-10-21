@@ -222,8 +222,8 @@ template < class T >
 inline T TPZLadeKimThermoForceA::Compute(const T & alpha) const
 {
     T localAlpha(alpha);
-    //if(fabs(shapeFAD::val(localAlpha) ) < 1.e-60)localAlpha.val()+=1.e-60;
-	if(shapeFAD::val(localAlpha) < 1.e-60)localAlpha.val() = 1.e-60;
+    //if(fabs(TPZExtractVal::val(localAlpha) ) < 1.e-60)localAlpha.val()+=1.e-60;
+	if(TPZExtractVal::val(localAlpha) < 1.e-60)localAlpha.val() = 1.e-60;
     REAL invRho = 1./fRho;
     //return T( pow( fD, - invRho ) ) * pow( localAlpha / T(fPa), invRho );
 	return T( pow( fD, - invRho ) ) * exp( T(invRho) * log( localAlpha / T(fPa) ) );

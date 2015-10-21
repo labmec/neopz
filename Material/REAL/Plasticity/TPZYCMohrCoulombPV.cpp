@@ -102,7 +102,7 @@ bool TPZYCMohrCoulombPV::ReturnMapPlane(const TPZVec<T> &sigma_trial, TPZVec<T> 
 	PlasticityFunction(epsbar,sigmay, H);
 	T phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi;
 	T gamma = memory.fGamma[0];
-	REAL phival = shapeFAD::val(phi);
+	REAL phival = TPZExtractVal::val(phi);
 	REAL tolerance = 1.e-8;
 	do {
 		T denom = -constA- T(4.*cosphi2)*H;
@@ -111,26 +111,26 @@ bool TPZYCMohrCoulombPV::ReturnMapPlane(const TPZVec<T> &sigma_trial, TPZVec<T> 
 		gamma += deriv_gamma;
 		epsbar = T(fEpsPlasticBar)+gamma*T(2.*cosphi); //errado esta inicializando toda vez. diogo aqui
 		PlasticityFunction(epsbar, sigmay, H);
-//		if (shapeFAD::val(H) < 0.) {
+//		if (TPZExtractVal::val(H) < 0.) {
 //			DebugStop();
 //		}
 		
 		phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi - constA*gamma;
-		phival = shapeFAD::val(phi);
+		phival = TPZExtractVal::val(phi);
 		
 	} while (abs(phival) > tolerance);
 	
-	memory.fGamma[0] = shapeFAD::val(gamma);
+	memory.fGamma[0] = TPZExtractVal::val(gamma);
 	eigenvalues[0] -= T(2.*fER.G()*(1+sinpsi/3.)+2.*fER.K()*sinpsi)*gamma;
 	eigenvalues[1] += T((4.*fER.G()/3. - fER.K()*2.)*sinpsi)*gamma;
 	eigenvalues[2] += T(2.*fER.G()*(1-sinpsi/3.)-2.*fER.K()*sinpsi)*gamma;
 	sigma_projected = eigenvalues;
-	epsbarnew = shapeFAD::val(epsbar);
+	epsbarnew = TPZExtractVal::val(epsbar);
 	
 #ifdef DEBUG
 	phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi;
 #endif
-	return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));
+	return (TPZExtractVal::val(eigenvalues[0])>TPZExtractVal::val(eigenvalues[1]) && TPZExtractVal::val(eigenvalues[1]) > TPZExtractVal::val(eigenvalues[2]));
 }
 
 void TPZYCMohrCoulombPV::ComputePlaneTangent(TPZMatrix<REAL> &tang, REAL &epsbarp) const
@@ -215,20 +215,20 @@ bool TPZYCMohrCoulombPV::ReturnMapLeftEdge(const TPZVec<T> &sigma_trial, TPZVec<
 		PlasticityFunction(epsbar, sigmay, H);
 		phi[0] = sigma_bar[0] - ab[0]*gamma[0] - ab[1]*gamma[1] - T(2.*cosphi)*sigmay;
 		phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[1] - T(2.*cosphi)*sigmay;
-		phival[0] = shapeFAD::val(phi[0]);
-		phival[1] = shapeFAD::val(phi[1]);
+		phival[0] = TPZExtractVal::val(phi[0]);
+		phival[1] = TPZExtractVal::val(phi[1]);
 		residual=(fabs(phival[0])+fabs(phival[1]));
 	}while (residual>tolerance);
 	
-	memory.fGamma[0] = shapeFAD::val(gamma[0]);
-	memory.fGamma[1] = shapeFAD::val(gamma[1]);
+	memory.fGamma[0] = TPZExtractVal::val(gamma[0]);
+	memory.fGamma[1] = TPZExtractVal::val(gamma[1]);
 	eigenvalues[0] += - T(2.*fER.G()*(1+sinpsi/3.)+2.*fER.K()*sinpsi)*gamma[0]+T((4.*fER.G()/3.-2.*fER.K())*sinpsi)*gamma[1];
 	eigenvalues[1] += T((4.*fER.G()/3.- fER.K()*2.)*sinpsi)*gamma[0]-T(2.*fER.G()*(1.+sinpsi/3.)+2.*fER.K()*sinpsi)*gamma[1];
 	eigenvalues[2] += T(2.*fER.G()*(1-sinpsi/3.)-2.*fER.K()*sinpsi)*(gamma[0]+gamma[1]);
 	sigma_projected = eigenvalues;
-	epsbarnew	= shapeFAD::val(epsbar);
+	epsbarnew	= TPZExtractVal::val(epsbar);
 	
-	return (shapeFAD::val(eigenvalues[0])>=shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) >= shapeFAD::val(eigenvalues[2]));
+	return (TPZExtractVal::val(eigenvalues[0])>=TPZExtractVal::val(eigenvalues[1]) && TPZExtractVal::val(eigenvalues[1]) >= TPZExtractVal::val(eigenvalues[2]));
 }
 
 /**
@@ -346,14 +346,14 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
 		gamma[1] -= (dinverse[1][0]*phi[0]+dinverse[1][1]*phi[1]);
 		epsbar = T(fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi);
 		PlasticityFunction(epsbar, sigmay, H);
-//		if (shapeFAD::val(H) < 0.) {
+//		if (TPZExtractVal::val(H) < 0.) {
 //			DebugStop();
 //		}
 		iter++;
 		phi[0] = sigma_bar[0] - ab[0]*gamma[0] - ab[1]*gamma[1] - T(2.*cosphi)*sigmay;
 		phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[1] - T(2.*cosphi)*sigmay;
-		phival[0] = shapeFAD::val(phi[0]);
-		phival[1] = shapeFAD::val(phi[1]);
+		phival[0] = TPZExtractVal::val(phi[0]);
+		phival[1] = TPZExtractVal::val(phi[1]);
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
@@ -364,16 +364,16 @@ bool TPZYCMohrCoulombPV::ReturnMapRightEdge(const TPZVec<T> &sigma_trial, TPZVec
 		residual=(fabs(phival[0])+fabs(phival[1]));
 	}while (residual>tolerance);
 	
-	memory.fGamma[0] = shapeFAD::val(gamma[0]);
-	memory.fGamma[1] = shapeFAD::val(gamma[1]);
+	memory.fGamma[0] = TPZExtractVal::val(gamma[0]);
+	memory.fGamma[1] = TPZExtractVal::val(gamma[1]);
 	
 	eigenvalues[0] -= T(2.*GV*(1+sinpsi/3.)+2.*KV*sinpsi)*(gamma[0]+gamma[1]);
 	eigenvalues[1] += T((4.*GV/3.- KV*2.)*sinpsi)*gamma[0]+T(2.*GV*(1.-sinpsi/3.)-2.*KV*sinpsi)*gamma[1];
 	eigenvalues[2] += T(2.*GV*(1-sinpsi/3.)-2.*KV*sinpsi)*gamma[0]+T((4.*GV/3.-2.*KV)*sinpsi)*gamma[1];
 	sigma_projected = eigenvalues;
-	epsbarnew = shapeFAD::val(epsbar);
+	epsbarnew = TPZExtractVal::val(epsbar);
 	
-	return (shapeFAD::val(eigenvalues[0])>=shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) >= shapeFAD::val(eigenvalues[2]));    
+	return (TPZExtractVal::val(eigenvalues[0])>=TPZExtractVal::val(eigenvalues[1]) && TPZExtractVal::val(eigenvalues[1]) >= TPZExtractVal::val(eigenvalues[2]));    
 }
 
 /**
@@ -457,7 +457,7 @@ bool TPZYCMohrCoulombPV::ReturnMapApex(const TPZVec<T> &sigmatrial, TPZVec<T> &s
 		res = c*cotphi - pnp1;
 		if (fabs(res) < tol) break;
 	}
-	epsbarnew = shapeFAD::val(epsbarnp1);
+	epsbarnew = TPZExtractVal::val(epsbarnp1);
 	
 	for (int i = 0; i < 3; i++) {
 		sigma_projected[i] = pnp1;

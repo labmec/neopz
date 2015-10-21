@@ -318,7 +318,7 @@ T TPZYCTresca::InverseAngle(const TPZTensor<T> &deviatoric) const
 {
   T j2 = deviatoric.J2();
   T j3 = deviatoric.J3();
-  if(shapeFAD::val(j2) < 1.e-6) return T(0.);
+  if(TPZExtractVal::val(j2) < 1.e-6) return T(0.);
   return j3/j2/sqrt(j2)*(-3.*sqrt(3.)/2.); 
 }
 
@@ -326,7 +326,7 @@ template <class T>
 void TPZYCTresca::GradInverseAngle(const TPZTensor<T> &sigma, TPZTensor<T> &grad) const
 {
   T j2 = sigma.J2();
-  if(shapeFAD::val(j2) < 1.e-6) return;
+  if(TPZExtractVal::val(j2) < 1.e-6) return;
   T j3 = sigma.J3();
   TPZTensor<T> dj2,dj3;
   sigma.dJ2(dj2);

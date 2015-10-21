@@ -192,9 +192,9 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
     }
 #endif
     
-//	REAL L_REAL = shapeFAD::val(A);
+//	REAL L_REAL = TPZExtractVal::val(A);
 //    REAL X_REAL;
-//	ComputeX((REAL)shapeFAD::val(A), X_REAL);
+//	ComputeX((REAL)TPZExtractVal::val(A), X_REAL);
 //	LInitialGuess(X_REAL, L_REAL);
 //	SolveL(X_REAL, L_REAL);
     
@@ -206,7 +206,7 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
         // f1 - Modified Drucker-Prager as shear Yield Criterium
         T FI1;
         ComputeF(I1, FI1);
-        if(fabs((REAL)shapeFAD::val(J2)) < 1.e-6)
+        if(fabs((REAL)TPZExtractVal::val(J2)) < 1.e-6)
         {
             res[0] = - FI1;	// avoiding nan derivatives
         }else{
@@ -221,14 +221,14 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
     //	SolveL(X, L); // evaluating the derivatives of L
         ComputeF(L, FL);
         
-        if(fabs( (REAL)shapeFAD::val(FL) ) < 0.00001)
+        if(fabs( (REAL)TPZExtractVal::val(FL) ) < 0.00001)
         {
     #ifdef LOG4CXX_PLASTICITY
             {
                 LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
                 std::stringstream sout;
                 sout << "*** TPZYCSandlerDimaggio::ComputePlasticPotential ***";
-                sout << "\nDivision by F=" << shapeFAD::val(L) << " at f2 - ellipsoidal hardening/softening cap";
+                sout << "\nDivision by F=" << TPZExtractVal::val(L) << " at f2 - ellipsoidal hardening/softening cap";
                 LOGPZ_WARN(logger,sout.str().c_str());
             }
     #endif
@@ -244,7 +244,7 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
         REAL lmax = LMax();
         REAL FI1;
         ComputeF(lmax , FI1);
-        if(fabs((REAL)shapeFAD::val(J2)) < 1.e-6)
+        if(fabs((REAL)TPZExtractVal::val(J2)) < 1.e-6)
         {
             res[1] = - FI1;	// avoiding nan derivatives
         }else{
@@ -255,7 +255,7 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
         {
             std::stringstream sout;
             T sqj2 = J2;
-            if(fabs(shapeFAD::val(J2)) > 1.e-6)
+            if(fabs(TPZExtractVal::val(J2)) > 1.e-6)
             {
                 sqj2 = sqrt(J2);
             }
@@ -296,15 +296,15 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
 	
 	REAL L_REAL;
 //  REAL X_REAL;
-//	ComputeX((REAL)shapeFAD::val(A), X_REAL);
+//	ComputeX((REAL)TPZExtractVal::val(A), X_REAL);
 //	LInitialGuess(X_REAL, L_REAL);
 //	SolveL(X_REAL, L_REAL, ResTol);
 
-    L_REAL = shapeFAD::val(A);
+    L_REAL = TPZExtractVal::val(A);
     T I1 = sigma.I1();
     T J2 = sigma.J2();
     T SQRTJ2;
-    if (shapeFAD::val(J2) > 1.e-12) {
+    if (TPZExtractVal::val(J2) > 1.e-12) {
         SQRTJ2 = sqrt(J2);
     }
     else {
@@ -316,18 +316,18 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
 		//f1 - Modified Drucker-Prager as shear Yield Criterium / Plastic Potential
         REAL fz = FZero();
         T Temp1(0.);
-        if (shapeFAD::val(I1) < fz ) 
+        if (TPZExtractVal::val(I1) < fz ) 
         {
             Temp1 = I1 * T(fB);
             Temp1 = exp( Temp1 ) * T (fB * fC);
 		
-            if((REAL)shapeFAD::val(SQRTJ2) < 1.e-6) // just for robustness. f1 shouldn't be reached when J2 = 0.
+            if((REAL)TPZExtractVal::val(SQRTJ2) < 1.e-6) // just for robustness. f1 shouldn't be reached when J2 = 0.
             {
                 #ifdef LOG4CXX_PLASTICITY
                 {
                    LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
                    std::stringstream sout;
-                   sout << "*** TPZYCSandlerDimaggio::N *** - SQRT(J2) = " << shapeFAD::val(SQRTJ2) <<  " < 1.e-6 causes error in 0-th yield function. Imposing J2 = 1.e-6 instead";
+                   sout << "*** TPZYCSandlerDimaggio::N *** - SQRT(J2) = " << TPZExtractVal::val(SQRTJ2) <<  " < 1.e-6 causes error in 0-th yield function. Imposing J2 = 1.e-6 instead";
                    LOGPZ_WARN(logger,sout.str().c_str());
                 }
                 #endif
@@ -381,7 +381,7 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
 		ComputeF(L, FL);
         // the radius of the ellips needs to be positive
         // this should be taken care of by the computation of L which is limited by LMax() 
-        if (shapeFAD::val(FL) <= 0.) {
+        if (TPZExtractVal::val(FL) <= 0.) {
             DebugStop();
         }
 		T FL2 = FL * FL;
@@ -465,9 +465,9 @@ inline void TPZYCSandlerDimaggioL::H(const TPZTensor<T> & sigma,const T & A, TPZ
         }
     #endif
 	
-//	REAL L_REAL = shapeFAD::val(A);
+//	REAL L_REAL = TPZExtractVal::val(A);
 //    REAL X_REAL;
-//	ComputeX((REAL)shapeFAD::val(A), X_REAL);
+//	ComputeX((REAL)TPZExtractVal::val(A), X_REAL);
 //	LInitialGuess(X_REAL, L_REAL);
 //	SolveL(X_REAL, L_REAL);
     

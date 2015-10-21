@@ -272,7 +272,7 @@ void TPZYCWillamWarnke::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T
 	
 	
 	sigma.Lodeangle(gradlode,lode);
-//	if(fabs( shapeFAD::val(J2) ) < 1.e-6)J2 += 1.e-6;
+//	if(fabs( TPZExtractVal::val(J2) ) < 1.e-6)J2 += 1.e-6;
 //	T sqrtJ2 = sqrt(J2);
 //	T lode1 =-asin( ( T( 3.) * sqrt( T( 3.) ) * J3 ) /( T( 2.) *  sqrt(J2*J2*J2) ) )/T( 3.);
 //	cout << " sigma " << endl;

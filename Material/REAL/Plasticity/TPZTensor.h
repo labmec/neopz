@@ -5,6 +5,7 @@
 
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
+#include "pzextractval.h"
 #include <iostream>
 #include "fadType.h"
 #include <math.h>
@@ -462,7 +463,7 @@ public:
 		Diag *= sigIJ[0]/T(3.);
 		T J2 = this->J2();
 		T sqj2 = sqrt(J2);
-		REAL sqj2val = shapeFAD::val(sqj2);
+		REAL sqj2val = TPZExtractVal::val(sqj2);
 		T ratio;
 		if (fabs(sqj2val) > 1.e-6)
 		{
@@ -707,7 +708,7 @@ template < class T1 >
 void TPZTensor<T>::CopyTo(TPZTensor<T1> & target) const {
 	int i, size=6;
 	for(i=0;i<size;i++){
-		target[i]=shapeFAD::val(fData[i]);
+		target[i]=TPZExtractVal::val(fData[i]);
 	}
 	
 }
@@ -716,7 +717,7 @@ template < class T >
 void TPZTensor<T>::CopyTo(TPZFMatrix<REAL> & target) const
 {
 	int i;
-	for(i = 0 ; i < 6; i++)target(i,0) = shapeFAD::val(fData[i] );
+	for(i = 0 ; i < 6; i++)target(i,0) = TPZExtractVal::val(fData[i] );
 }
 
 template < class T >
@@ -898,17 +899,17 @@ template <class T>
 void TPZTensor<T>::CopyToTensor(TPZFMatrix<REAL> & Tensor)
 {
 	Tensor.Resize(3,3);
-	Tensor(0,0) = shapeFAD::val( XX() ); //xx
-	Tensor(0,1) = shapeFAD::val( XY() ); //xy
-	Tensor(0,2) = shapeFAD::val( XZ() ); //xz
+	Tensor(0,0) = TPZExtractVal::val( XX() ); //xx
+	Tensor(0,1) = TPZExtractVal::val( XY() ); //xy
+	Tensor(0,2) = TPZExtractVal::val( XZ() ); //xz
 	
-	Tensor(1,0) = shapeFAD::val( XY() ); //xy
-	Tensor(1,1) = shapeFAD::val( YY() ); //yy
-	Tensor(1,2) = shapeFAD::val( YZ() ); //yz
+	Tensor(1,0) = TPZExtractVal::val( XY() ); //xy
+	Tensor(1,1) = TPZExtractVal::val( YY() ); //yy
+	Tensor(1,2) = TPZExtractVal::val( YZ() ); //yz
 	
-	Tensor(2,0) = shapeFAD::val( XZ() ); //xz
-	Tensor(2,1) = shapeFAD::val( YZ() ); //yz
-	Tensor(2,2) = shapeFAD::val( ZZ() ); //zz
+	Tensor(2,0) = TPZExtractVal::val( XZ() ); //xz
+	Tensor(2,1) = TPZExtractVal::val( YZ() ); //yz
+	Tensor(2,2) = TPZExtractVal::val( ZZ() ); //zz
 }
 
 template<class T>
@@ -1002,8 +1003,8 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
     
 	T denom = sqrt(Q*Q*Q);
 	
-	REAL Rval = shapeFAD::val(R);
-	REAL denomval = shapeFAD::val(denom);
+	REAL Rval = TPZExtractVal::val(R);
+	REAL denomval = TPZExtractVal::val(denom);
 	TPZManVector<T,3> &Eigenvalues = eigensystem.fEigenvalues;
 	TPZManVector<TPZTensor<T>, 3> &Eigenvectors = eigensystem.fEigenvectors;
 	
@@ -1040,14 +1041,14 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 	}
     denom = sqrt(Q*Q*Q);
 	
-    Rval = shapeFAD::val(R);
-	denomval = shapeFAD::val(denom);
+    Rval = TPZExtractVal::val(R);
+	denomval = TPZExtractVal::val(denom);
 	Eigenvalues = eigensystem.fEigenvalues;
 	Eigenvectors = eigensystem.fEigenvectors;
     
 	costheta=R/denom;
 	
-	if(shapeFAD::val(costheta) < -(1.-1.e-12))
+	if(TPZExtractVal::val(costheta) < -(1.-1.e-12))
 	{
 		costheta = -1.;
 		theta = M_PI;
@@ -1057,7 +1058,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 		x2 = -B/2.;
 		x3 = -B/2.;
 	}
-	else if(shapeFAD::val(costheta)>(1.-1.e-12))
+	else if(TPZExtractVal::val(costheta)>(1.-1.e-12))
 	{
 		costheta = 1.;
 		theta = 0.;
@@ -1075,7 +1076,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 	}
 	
 	
-	REAL valx1 = shapeFAD::val(x1), valx2 = shapeFAD::val(x2), valx3 = shapeFAD::val(x3);
+	REAL valx1 = TPZExtractVal::val(x1), valx2 = TPZExtractVal::val(x2), valx3 = TPZExtractVal::val(x3);
 	if(valx1 < valx2)
 	{
 		T temp = x1;
@@ -1103,7 +1104,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 		valx2 = valx3;
 		valx3 = valtemp;
 	}
-	REAL tolerance = shapeFAD::val(toll);
+	REAL tolerance = TPZExtractVal::val(toll);
     tolerance = 5.e-5;
 	if(valx1-valx2 > tolerance && valx2-valx3 > tolerance)
 	{
@@ -1590,7 +1591,7 @@ void TPZTensor<T>::EigenValue(TPZTensor<T> &eigenval)const
 //	J2(this->J2()),
 //	J3(this->J3());
 //
-//	if(fabs( shapeFAD::val(J2) ) < 1.e-6)J2 += 1.e-6;
+//	if(fabs( TPZExtractVal::val(J2) ) < 1.e-6)J2 += 1.e-6;
 //
 //	T sqrtJ2 = sqrt(J2);
 //
@@ -1609,12 +1610,12 @@ void TPZTensor<T>::EigenValue(TPZTensor<T> &eigenval)const
 //	T den = sqrtJ2*T( sqrt(27.)/2.);
 //	T lodetemp = (J3/J2)/den;
 //
-//	if(shapeFAD::val(lodetemp) <= -0.999999)
+//	if(TPZExtractVal::val(lodetemp) <= -0.999999)
 //	{
 //		lodetemp *= T(0.999);
 //	}
 //
-//	if(shapeFAD::val(lodetemp) >= 0.999999)
+//	if(TPZExtractVal::val(lodetemp) >= 0.999999)
 //	{
 //		lodetemp *= T(0.999);
 //		DebugStop();
@@ -1629,7 +1630,7 @@ void TPZTensor<T>::EigenValue(TPZTensor<T> &eigenval)const
 //
 //	T denominador = ( J2*J2*J2 * T(4.) - J3*J3 * T(27.));
 //	T temp;
-//	if(shapeFAD::val(denominador) < 1.e-6)
+//	if(TPZExtractVal::val(denominador) < 1.e-6)
 //	{
 //		dLodeAngledJ2 =  0.;
 //	}
@@ -1727,9 +1728,9 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	T J2t(this->J2()),
 	J3t(this->J3());
 	
-	if(fabs( shapeFAD::val(J2t) ) < 1.e-6)J2t=T(1.e-6);
+	if(fabs( TPZExtractVal::val(J2t) ) < 1.e-6)J2t=T(1.e-6);
 	T sqrtJ2t =sqrt(J2t);
-	if(fabs( shapeFAD::val(sqrtJ2t) ) < 1.e-6)sqrtJ2t=T(1.e-6);
+	if(fabs( TPZExtractVal::val(sqrtJ2t) ) < 1.e-6)sqrtJ2t=T(1.e-6);
 	
 	TPZTensor<T> dJ2t, dJ3t;
 	
@@ -1745,22 +1746,22 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	
 	
 	T lodetemp =( T( 3.) * sqrt( T( 3.) ) * J3t ) /( T( 2.) *  sqrt(J2t*J2t*J2t) ) ;
-	if(shapeFAD::val(lodetemp) <= -1.)
+	if(TPZExtractVal::val(lodetemp) <= -1.)
 	{
 		lodetemp *= T(0.999);	//	DebugStop();
-		// shapeFAD::val(lodetemp) *= T(0.999);	//	DebugStop();
+		// TPZExtractVal::val(lodetemp) *= T(0.999);	//	DebugStop();
 		//lodetemp = T(-1.);
 		
 	}
 	
 	
 	//cout << "\n lodetemp "<<lodetemp<<endl;
-	//cout << "\n shapeFAD::val(lodetemp);"<<shapeFAD::val(lodetemp)<<endl;
+	//cout << "\n TPZExtractVal::val(lodetemp);"<<TPZExtractVal::val(lodetemp)<<endl;
 	
-	if(shapeFAD::val(lodetemp) >= 1.)
+	if(TPZExtractVal::val(lodetemp) >= 1.)
 	{
 		lodetemp *= T(0.999);
-		// shapeFAD::val(lodetemp)*= 0.999;
+		// TPZExtractVal::val(lodetemp)*= 0.999;
 		// lodetemp = T(1.);
 		//DebugStop();
 	}
@@ -1775,9 +1776,9 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	//3
 	dJ2t.Add(dJ3t,-1);
 	//4
-	//if(shapeFAD::val(J2t)<1.e-6)J2t=1.e-6;
+	//if(TPZExtractVal::val(J2t)<1.e-6)J2t=1.e-6;
 	T checknegativeroot = ((T(9.)*J3t*J3t)/(J2t*J2t*J2t));
-	if(shapeFAD::val(checknegativeroot)>=4/3.)checknegativeroot *=T(0.999);
+	if(TPZExtractVal::val(checknegativeroot)>=4/3.)checknegativeroot *=T(0.999);
 	T denom = T(2.)*sqrt(J2t*J2t*J2t*J2t*J2t)*sqrt((T(4/3.))-checknegativeroot);
 	//T denom2 = (T(2.)*pow(J2t,2.5)*sqrt(T(1.3333333333333333) - (T(9.)*pow(J3t,2.))/pow(J2t,3)));
 	T oneoverden = T(1.)/denom;
@@ -1788,7 +1789,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	T acoslodetemp = acos(lodetemp);
 	Lode = acoslodetemp / T(3.);
 	
-	if(shapeFAD::val(Lode) >= (M_PI/3.)-0.0001)
+	if(TPZExtractVal::val(Lode) >= (M_PI/3.)-0.0001)
 	{
 		Lode *= T(0.999);
 	}
@@ -1814,7 +1815,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	//	T denominador;
 	//	denominador = ( J2t*J2t*J2t * T(4.) - J3t*J3t * T(27.) );
 	//	T temp;
-	//	if(shapeFAD::val(denominador) < 1.e-6)
+	//	if(TPZExtractVal::val(denominador) < 1.e-6)
 	//	{
 	//		dLodeAngledJ2 =  0.;
 	//	}
@@ -1855,7 +1856,7 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	 
 	 T temp33 = ( T( 27. ) * ( J3t * J3t ) )/( T( 4. ) *  J2t * J2t * J2t);
 	 
-	 if(shapeFAD::val(temp33) <= -1.)
+	 if(TPZExtractVal::val(temp33) <= -1.)
 	 {
 	 std::cout << "ERRO NO CALCULO DO GRADLOD EM "<< __PRETTY_FUNCTION__<< std::endl;
 	 DebugStop();
@@ -1875,14 +1876,14 @@ void TPZTensor<T>::Lodeangle(TPZTensor<T> &GradLode,T &Lode)const
 	/*
 	 T lodetemp2 = ( T( 3. ) * sqrt( T(3.) ) * J3t ) / ( T( 2. ) * sqrt( J2t*J2t*J2t ) );
 	 
-	 if(shapeFAD::val(lodetemp2) < -1.00000001)
+	 if(TPZExtractVal::val(lodetemp2) < -1.00000001)
 	 {
 	 std::cout << "\n TPZTensor LodeTemp < -1\n";
 	 std::cout << __PRETTY_FUNCTION__ << std::endl;
 	 DebugStop();
 	 }
 	 
-	 if(shapeFAD::val(lodetemp2) > 1.000000001)
+	 if(TPZExtractVal::val(lodetemp2) > 1.000000001)
 	 {
 	 std::cout << "\n TPZTensor LodeTemp > 1\n";
 	 std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -1915,11 +1916,11 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTe
 	T I1(this->I1()), J2(this->J2());
 	//	T J3(this->J3());
 	
-	if(fabs( shapeFAD::val(J2) ) < 1.e-6)J2 = 1.e-6;
-	//	if(fabs( shapeFAD::val(J2) ) < 1.e-6)return;
+	if(fabs( TPZExtractVal::val(J2) ) < 1.e-6)J2 = 1.e-6;
+	//	if(fabs( TPZExtractVal::val(J2) ) < 1.e-6)return;
 	
 	T sqrtJ2 = sqrt(J2);
-	if(fabs( shapeFAD::val(sqrtJ2) ) < 1.e-6)sqrtJ2 = 1.e-6;
+	if(fabs( TPZExtractVal::val(sqrtJ2) ) < 1.e-6)sqrtJ2 = 1.e-6;
 	
 	TPZTensor<T> dJ2, dJ3,dLode;
 	T Lode;
@@ -1937,12 +1938,12 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTe
 	T tempCosMinusLode =	cos(Lode - pi23) * TwoOverSqrThreeJ2;
 	T tempCosPlusLode =		cos(Lode + pi23) * TwoOverSqrThreeJ2;
 	
-	if(shapeFAD::val(Lode) < 0.)
+	if(TPZExtractVal::val(Lode) < 0.)
 	{
 		cout << "Lode angle é Menor que ZERO. Valido somente para sig1 > sig2 > sig3 -> 0 < theta < Pi/3 " <<endl;
 		DebugStop();
 	}
-	if(shapeFAD::val(Lode) > M_PI/3.)
+	if(TPZExtractVal::val(Lode) > M_PI/3.)
 	{
 		cout << "Lode angle é Maior que Pi/3. Valido somente para sig1 > sig2 > sig3 -> 0 < theta < Pi/3 " <<endl;
 		DebugStop();

@@ -93,12 +93,12 @@ public:
 //    template <class T>
 //    static REAL val(const T number) 
 //    {
-//        return shapeFAD::val( number.val() ); // recursively downgrading until REAL type is reached
+//        return TPZExtractVal::val( number.val() ); // recursively downgrading until REAL type is reached
 //    }
 //
 //    template<class T>
 //    static bool IsZero( const T & a ){
-//      return ::IsZero(shapeFAD::val(a));
+//      return ::IsZero(TPZExtractVal::val(a));
 //    }
 
 };

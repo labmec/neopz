@@ -309,17 +309,17 @@ inline void TPZYCLadeKim::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec
 	bool negI1 = false, output;
     T S, q;
     T I1 = sigma.I1();
-	if( fabs(shapeFAD::val(I1) ) < 1.e-24) I1 /*+*/= 1.e-24; // avoiding Log(0)
-	if( shapeFAD::val(I1) < 0.)
+	if( fabs(TPZExtractVal::val(I1) ) < 1.e-24) I1 /*+*/= 1.e-24; // avoiding Log(0)
+	if( TPZExtractVal::val(I1) < 0.)
 	{
 		I1 = -I1; // avoiding Log(Neg)
 		negI1 = true;
 	}
     T I2 = sigma.I2();
-	if( fabs(shapeFAD::val(I2) ) < 1.e-24) I2 /*+*/= 1.e-24; // avoiding division by zero
+	if( fabs(TPZExtractVal::val(I2) ) < 1.e-24) I2 /*+*/= 1.e-24; // avoiding division by zero
     T I3 = sigma.I3();
-	if( fabs(shapeFAD::val(I3) ) < 1.e-24) I3 /*+*/= 1.e-24; // avoiding division by zero
-	//if( shapeFAD::val(I3) < 0 ) I3 -= 2* shapeFAD::val(I3);
+	if( fabs(TPZExtractVal::val(I3) ) < 1.e-24) I3 /*+*/= 1.e-24; // avoiding division by zero
+	//if( TPZExtractVal::val(I3) < 0 ) I3 -= 2* TPZExtractVal::val(I3);
 
     T I13_I3 = I1 * I1 * I1 / I3;
     T I12_I2 = I1 * I1 / I2;
@@ -332,7 +332,7 @@ inline void TPZYCLadeKim::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec
 	{
 		S = T(1.);
 	}
-	REAL S_real = shapeFAD::val(S);
+	REAL S_real = TPZExtractVal::val(S);
 	
 	if(checkForcedYield && fForceYield)
 	{
@@ -384,7 +384,7 @@ inline void TPZYCLadeKim::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec
 			#ifdef LOG4CXX_PLASTICITY
    		 	{
 				std::stringstream sout;
-				sout << "** Compute *** Forcing S = " << shapeFAD::val(S) << " when S = " << S_real
+				sout << "** Compute *** Forcing S = " << TPZExtractVal::val(S) << " when S = " << S_real
 					 << ".\nI1 = " << I1 << "\nI2 = " << I2 << "\nI3 = " << I3 
 					 << "\nsigma = " << sigma;
 				LOGPZ_WARN(loggerYCLadeKim,sout.str().c_str());
@@ -395,7 +395,7 @@ inline void TPZYCLadeKim::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec
 		q = T(fAlpha) * S / (T(1.) - T(1.-fAlpha) * S);
 	}
 	
-	REAL q_real = shapeFAD::val(q);
+	REAL q_real = TPZExtractVal::val(q);
 	output = false;
 	
     if( q_real < -1.e-10 )
@@ -432,13 +432,13 @@ template < class T>
 inline void TPZYCLadeKim::ComputePlasticPotential(const TPZTensor<T> & sigma, const T & A,  T & PlasticPot, int checkForcedYield) const
 {
     T I1 = sigma.I1();
-	if( fabs(shapeFAD::val(I1) ) < 1.e-24) I1 /*+*/= 1.e-24; // avoiding Log(0)
-	if( shapeFAD::val(I1) < 0.) I1 = -I1; // avoiding Log(Neg)
+	if( fabs(TPZExtractVal::val(I1) ) < 1.e-24) I1 /*+*/= 1.e-24; // avoiding Log(0)
+	if( TPZExtractVal::val(I1) < 0.) I1 = -I1; // avoiding Log(Neg)
     T I2 = sigma.I2();
-	if( fabs(shapeFAD::val(I2) ) < 1.e-24) I2 /*+*/= 1.e-24; // avoiding division by zero
+	if( fabs(TPZExtractVal::val(I2) ) < 1.e-24) I2 /*+*/= 1.e-24; // avoiding division by zero
     T I3 = sigma.I3();
-	if( fabs(shapeFAD::val(I3) ) < 1.e-24) I3 /*+*/= 1.e-24; // avoiding division by zero
-	//if( shapeFAD::val(I3) < 0 ) I3 -= 2* shapeFAD::val(I3);
+	if( fabs(TPZExtractVal::val(I3) ) < 1.e-24) I3 /*+*/= 1.e-24; // avoiding division by zero
+	//if( TPZExtractVal::val(I3) < 0 ) I3 -= 2* TPZExtractVal::val(I3);
 	
     T I1_2 = I1 * I1;
     // PlasticPot = ( I1 * I1_2 / I3 * T(fKsi1) - I1_2 / I2 + T(fKsi2) ) * pow( I1/T(fPa), fMu );
@@ -450,13 +450,13 @@ template <class T>
 inline void TPZYCLadeKim::N(const TPZTensor<T> & sigma, const T & A, TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
 {
     T I1 = sigma.I1();
-	if( fabs(shapeFAD::val(I1) ) < 1.e-24) I1 /*+*/= 1.e-24; // avoiding division by zero
-	if( shapeFAD::val(I1) < 0.) I1 = -I1; // avoiding Log(Neg)
+	if( fabs(TPZExtractVal::val(I1) ) < 1.e-24) I1 /*+*/= 1.e-24; // avoiding division by zero
+	if( TPZExtractVal::val(I1) < 0.) I1 = -I1; // avoiding Log(Neg)
     T I2 = sigma.I2();
-	if( fabs(shapeFAD::val(I2) ) < 1.e-24) I2 /*+*/= 1.e-24; // avoiding division by zero
+	if( fabs(TPZExtractVal::val(I2) ) < 1.e-24) I2 /*+*/= 1.e-24; // avoiding division by zero
     T I3 = sigma.I3();
-	if( fabs(shapeFAD::val(I3) ) < 1.e-24) I3 /*+*/= 1.e-24; // avoiding division by zero
-	//if( shapeFAD::val(I3) < 0 ) I3 -= 2* shapeFAD::val(I3);
+	if( fabs(TPZExtractVal::val(I3) ) < 1.e-24) I3 /*+*/= 1.e-24; // avoiding division by zero
+	//if( TPZExtractVal::val(I3) < 0 ) I3 -= 2* TPZExtractVal::val(I3);
 
     // I1_I2   = I1/I2
     // I12_I22 = I1²/I2²
@@ -528,7 +528,7 @@ inline void TPZYCLadeKim::SetYieldStatusMode(const TPZTensor<REAL> & sigma, cons
 		return;
 	}
     REAL I3 = sigma.I3();
-	if( fabs(shapeFAD::val(I3) ) < 1.e-24) I3 /*+*/= 1.e-24; // avoiding division by zero
+	if( fabs(TPZExtractVal::val(I3) ) < 1.e-24) I3 /*+*/= 1.e-24; // avoiding division by zero
 
     REAL I13_I3 = I1 * I1 * I1 / I3;
 

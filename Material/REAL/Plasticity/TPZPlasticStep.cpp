@@ -1231,7 +1231,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
 //                sout << i << " = " << phi_FAD[i].val() << "; ";
 //                sout << "\n#### Truncated Newton after "
 //                << fMaxNewton << " steps with phi[" << i << "] = "
-//                << shapeFAD::val(phi_FAD[i]) << "####. Results are unpredictable";
+//                << TPZExtractVal::val(phi_FAD[i]) << "####. Results are unpredictable";
 //                LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
 //                //plasticIntegrOutput = 1;
 //            }
@@ -1247,7 +1247,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
 //            {
 //                sout << "\n#### Truncated Newton after "
 //                << fMaxNewton << " steps with phi[" << i << "] = "
-//                << shapeFAD::val(phi_FAD[i])
+//                << TPZExtractVal::val(phi_FAD[i])
 //                << "####. It appears in such load path the plastic yield solution was found in the opposite direction."
 //                << "\nPlease check the other(s) yield function(s) to guarantee at least one of them is plastifying within the proposed load path.";
 //                LOGPZ_WARN(logger,sout.str().c_str());
@@ -1450,7 +1450,7 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
             {
                 sout << "\n#### Truncated Newton after "
                 << fMaxNewton << " steps with phi[" << i << "] = "
-                << shapeFAD::val(phi_FAD[i])
+                << TPZExtractVal::val(phi_FAD[i])
                 << "####. It appears in such load path the plastic yield solution was found in the opposite direction."
                 << "\nPlease check the other(s) yield function(s) to guarantee at least one of them is plastifying within the proposed load path.";
                 LOGPZ_WARN(logger,sout.str().c_str());
@@ -1913,7 +1913,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::InitializeValidEqs(TPZVec<T> &res_T, TPZVe
         int i, n = res_T.NElements();
         std::stringstream sout;
         sout << ">>> InitializeValidEqs *** Res = ";
-        for(i = 0; i < n; i++)sout << shapeFAD::val(res_T[i]) << " ";
+        for(i = 0; i < n; i++)sout << TPZExtractVal::val(res_T[i]) << " ";
         LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
@@ -1923,7 +1923,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::InitializeValidEqs(TPZVec<T> &res_T, TPZVe
     for(i = 0; i < nyield; i++)
     {
         validEqs[i] = 0;
-        if(shapeFAD::val(res_T[i+7]) > 0.)
+        if(TPZExtractVal::val(res_T[i+7]) > 0.)
         {
             validEqs[i] = 1;
             count++;
@@ -1955,9 +1955,9 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::RemoveInvalidEqs( TPZVec<T> & delGamma_T, 
         int i;
         std::stringstream sout;
         sout << ">>> RemoveInvalidEqs *** delGamma = ";
-        for(i = 0; i < nyield; i++)sout << shapeFAD::val(delGamma_T[i]) << " ";
+        for(i = 0; i < nyield; i++)sout << TPZExtractVal::val(delGamma_T[i]) << " ";
         sout << " phi = ";
-        for(i = 0; i < nyield; i++)sout << shapeFAD::val(res_T[i+7]) << " ";
+        for(i = 0; i < nyield; i++)sout << TPZExtractVal::val(res_T[i+7]) << " ";
         LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
@@ -1968,9 +1968,9 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::RemoveInvalidEqs( TPZVec<T> & delGamma_T, 
     
     for(i = 0; i < nyield; i++)
     {
-        BoolDelGamma = shapeFAD::val(delGamma_T[i]) > 0.; // deltaGamma is valid
+        BoolDelGamma = TPZExtractVal::val(delGamma_T[i]) > 0.; // deltaGamma is valid
         BoolValidEq  = validEqs[i];                      // equation is already in use
-        BoolRes      = shapeFAD::val(res_T[i+7]) > fResTol;   // equation indicates plastification
+        BoolRes      = TPZExtractVal::val(res_T[i+7]) > fResTol;   // equation indicates plastification
         
         switch(BoolRes)
         {
@@ -2067,7 +2067,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
     //  cout << ResVal<<endl;
     resnorm = 0.;
     for(i = 0; i < nVars; i++)
-        resnorm += pow(shapeFAD::val( ResVal(i,0) ) , 2.);
+        resnorm += pow(TPZExtractVal::val( ResVal(i,0) ) , 2.);
     resnorm = sqrt(resnorm);
     
     if (precond && nVars != ncols) {
@@ -2082,10 +2082,10 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
         {
             REAL pivot = 0., elem;
             j = i;
-            elem = shapeFAD::val(tangent(i,j) );
+            elem = TPZExtractVal::val(tangent(i,j) );
             if(fabs(pivot) < fabs(elem))pivot = elem;
             pivots[i] = pivot;
-            //pivot = fabs(shapeFAD::val(pivot) ) < fabs(shapeFAD::val(tangent(i,j) ) ) ? tangent(i,j) : pivot;
+            //pivot = fabs(TPZExtractVal::val(pivot) ) < fabs(TPZExtractVal::val(tangent(i,j) ) ) ? tangent(i,j) : pivot;
 
             for(j=0; j<nVars; j++)
                 tangent(i,j) = tangent(i,j) / pivot;
@@ -2097,9 +2097,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
             REAL pivot = 0., elem;
             for(j=0; j<nVars; j++)
             {
-                elem = shapeFAD::val(tangent(i,j) );
+                elem = TPZExtractVal::val(tangent(i,j) );
                 if(fabs(pivot) < fabs(elem))pivot = elem;
-                //pivot = fabs(shapeFAD::val(pivot) ) < fabs(shapeFAD::val(tangent(i,j) ) ) ? tangent(i,j) : pivot;
+                //pivot = fabs(TPZExtractVal::val(pivot) ) < fabs(TPZExtractVal::val(tangent(i,j) ) ) ? tangent(i,j) : pivot;
             }
             pivots[i] = pivot;
             for(j=0; j<nVars; j++)
@@ -2182,9 +2182,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
         NdirMidPt_T2[i].Multiply(delGamma_T2[i], T2(1.) );
         epsResMidPt_T2.Add(NdirMidPt_T2[i], T2(-1.) );
         
-        NdirN_T1[i].Multiply(T1(shapeFAD::val(delGamma_T2[i])), T1(1.) );
-        for(j = 0; j < 6; j++)epsPErr.fData[j] +=   shapeFAD::val( NdirN_T1[i].    fData[j] )
-            - shapeFAD::val( NdirMidPt_T2[i].fData[j] );
+        NdirN_T1[i].Multiply(T1(TPZExtractVal::val(delGamma_T2[i])), T1(1.) );
+        for(j = 0; j < 6; j++)epsPErr.fData[j] +=   TPZExtractVal::val( NdirN_T1[i].    fData[j] )
+            - TPZExtractVal::val( NdirMidPt_T2[i].fData[j] );
     }
     epsResMidPt_T2.Add(  N_T1.EpsP(), T1(-1.) );
     epsResMidPt_T2.Add(Np1_T2.EpsP(), T1( 1.) );
@@ -2218,7 +2218,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
     {
         alphaRes_T2 -= delGamma_T2[i] * HMidPt_T2[i]; // 1 eq
     }
-//    STATE multval = shapeFAD::val(multiplier);
+//    STATE multval = TPZExtractVal::val(multiplier);
 //    multval = sqrt(fabs(multval));
 //    alphaRes_T2 /= (T2)multval;
     
@@ -2320,9 +2320,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
         NdirN_T1COPY[i].Multiply(K1H_T2[i],T2(1.));
         epsResMidPt_T2.Add( NdirN_T1COPY[i], T2(-1.) );
         
-        NdirN_T1[i].Multiply(T1(shapeFAD::val(delGamma_T2[i])), T1(1.) );
-        for(j = 0; j < 6; j++)epsPErr.fData[j] +=   shapeFAD::val( NdirN_T1[i].    fData[j] )
-            - shapeFAD::val( NdirN_T1COPY[i].fData[j] );
+        NdirN_T1[i].Multiply(T1(TPZExtractVal::val(delGamma_T2[i])), T1(1.) );
+        for(j = 0; j < 6; j++)epsPErr.fData[j] +=   TPZExtractVal::val( NdirN_T1[i].    fData[j] )
+            - TPZExtractVal::val( NdirN_T1COPY[i].fData[j] );
     }
     //????
     epsResMidPt_T2.Add(  N_T1.EpsP(), T1(-1.) );
@@ -2401,9 +2401,9 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::UpdatePlasticVars(
     Np1_T2.CopyTo(Np1);
     N_T1.CopyTo(N);
     
-    for(i=0; i<6; i++) Np1.fEpsP.fData[i] -= shapeFAD::val( Sol_TVECTOR(i) );
-    Np1.fAlpha -= shapeFAD::val( Sol_TVECTOR(i++) );
-    for(j=0; j<nyield; j++)delGamma[j] = shapeFAD::val(delGamma_T2[j]) - shapeFAD::val( Sol_TVECTOR(i++) );
+    for(i=0; i<6; i++) Np1.fEpsP.fData[i] -= TPZExtractVal::val( Sol_TVECTOR(i) );
+    Np1.fAlpha -= TPZExtractVal::val( Sol_TVECTOR(i++) );
+    for(j=0; j<nyield; j++)delGamma[j] = TPZExtractVal::val(delGamma_T2[j]) - TPZExtractVal::val( Sol_TVECTOR(i++) );
     
     PlasticResidual<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
     //    PlasticResidualRK<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
@@ -2419,9 +2419,9 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::UpdatePlasticVars(
         lambda /= k;
         
         Np1_T2.CopyTo(Np1);
-        for(i=0; i<6; i++) Np1.fEpsP.fData[i] -= lambda * shapeFAD::val( Sol_TVECTOR(i) );
-        Np1.fAlpha -= lambda * shapeFAD::val( Sol_TVECTOR(i++) );
-        for(j=0; j<nyield; j++)delGamma[j] = shapeFAD::val(delGamma_T2[j]) - lambda * shapeFAD::val( Sol_TVECTOR(i++) );
+        for(i=0; i<6; i++) Np1.fEpsP.fData[i] -= lambda * TPZExtractVal::val( Sol_TVECTOR(i) );
+        Np1.fAlpha -= lambda * TPZExtractVal::val( Sol_TVECTOR(i++) );
+        for(j=0; j<nyield; j++)delGamma[j] = TPZExtractVal::val(delGamma_T2[j]) - lambda * TPZExtractVal::val( Sol_TVECTOR(i++) );
         
         PlasticResidual<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
         //  PlasticResidualRK<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);

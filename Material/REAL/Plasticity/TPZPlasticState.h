@@ -162,10 +162,10 @@ inline void TPZPlasticState<T>::Print(std::ostream& Out, int fadDerivatives)cons
 		Out << "\n\tfAlpha = " << fAlpha;
 	}else{
 	    Out << "\tfEpsT = ";
-	    for(int i = 0; i < 6; i++)Out << shapeFAD::val(fEpsT[i]) << " ";
+	    for(int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsT[i]) << " ";
 	    Out << "\n\tfEpsP = ";
-	    for(int i = 0; i < 6; i++)Out << shapeFAD::val(fEpsP[i]) << " ";
-		Out << "\n\tfAlpha = " << shapeFAD::val(fAlpha);
+	    for(int i = 0; i < 6; i++)Out << TPZExtractVal::val(fEpsP[i]) << " ";
+		Out << "\n\tfAlpha = " << TPZExtractVal::val(fAlpha);
 	}
 }
 
@@ -175,7 +175,7 @@ void TPZPlasticState<T>::CopyTo(TPZPlasticState<T1> & target) const
 {
 	EpsT().CopyTo(target.fEpsT);
 	EpsP().CopyTo(target.fEpsP);
-	target.fAlpha = shapeFAD::val( Alpha() );
+	target.fAlpha = TPZExtractVal::val( Alpha() );
 }
 
 template<class T>

@@ -158,13 +158,13 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
     fFlag1=false;
     fFlag2=false;
     
-    if(shapeFAD::val(res0) >= 0. && shapeFAD::val(res1) < 0. && shapeFAD::val(res2) < 0.)
+    if(TPZExtractVal::val(res0) >= 0. && TPZExtractVal::val(res1) < 0. && TPZExtractVal::val(res2) < 0.)
     {
         res[0]=(sigma1 - sigma3) + (sigma1 + sigma3)*sin(fPhi) - T(2.)*A*cos(fPhi);
         fFlag =true;
         return;
     }
-    if(shapeFAD::val(res0) >=0. && shapeFAD::val(res1) < 0. && shapeFAD::val(res2) > -1.)
+    if(TPZExtractVal::val(res0) >=0. && TPZExtractVal::val(res1) < 0. && TPZExtractVal::val(res2) > -1.)
     {
         T Eta = T(6. * sin(fPhi)/(sqrt(3.)*(3.+sin(fPhi))));//INNER
         T Ksi = T(6. * cos(fPhi)/(sqrt(3.) * (3.+sin(fPhi))));//INNER
@@ -177,7 +177,7 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
         return;
     }
     
-    if(shapeFAD::val(res0) >=0. && shapeFAD::val(res1) > -1. && shapeFAD::val(res2)< 0.)
+    if(TPZExtractVal::val(res0) >=0. && TPZExtractVal::val(res1) > -1. && TPZExtractVal::val(res2)< 0.)
     {
         T Eta = T(6. * sin(fPhi)/(sqrt(3.)*(3.-sin(fPhi))));//OUTER
         T Ksi = T(6. * cos(fPhi)/(sqrt(3.) * (3.-sin(fPhi))));//OUTER
@@ -190,14 +190,14 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
         return;
     }
     
-    if(shapeFAD::val(res0) > shapeFAD::val(res1) && shapeFAD::val(res0) > shapeFAD::val(res2))
+    if(TPZExtractVal::val(res0) > TPZExtractVal::val(res1) && TPZExtractVal::val(res0) > TPZExtractVal::val(res2))
     {
         res[0]=res0;
         fFlag =true;
         return;
     }
     
-    if(shapeFAD::val(res1) > shapeFAD::val(res0) && shapeFAD::val(res1) > shapeFAD::val(res2))
+    if(TPZExtractVal::val(res1) > TPZExtractVal::val(res0) && TPZExtractVal::val(res1) > TPZExtractVal::val(res2))
     {
         T Eta = T(6. * sin(fPhi)/(sqrt(3.)*(3.+sin(fPhi))));//INNER
         T Ksi = T(6. * cos(fPhi)/(sqrt(3.) * (3.+sin(fPhi))));//INNER
@@ -209,7 +209,7 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
         fFlag1 =true;
         return;
     }
-    if(shapeFAD::val(res2) > shapeFAD::val(res0) &&  shapeFAD::val(res2) >shapeFAD::val(res1))
+    if(TPZExtractVal::val(res2) > TPZExtractVal::val(res0) &&  TPZExtractVal::val(res2) >TPZExtractVal::val(res1))
     {
         T Eta = T(6. * sin(fPhi)/(sqrt(3.)*(3.-sin(fPhi))));//OUTER
         T Ksi = T(6. * cos(fPhi)/(sqrt(3.) * (3.-sin(fPhi))));//OUTER

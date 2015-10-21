@@ -311,7 +311,7 @@ inline void TPZLadeNelsonElasticResponse::
 		epsilon_FAD.fData[i].val() = epsilon_T.fData[i];
 		sigma_FAD  .fData[i].val() = sigma_T  .fData[i];
 		sigma_FAD  .fData[i].diff(i,nVars);
-		//refResidual += pow(shapeFAD::val(sigma_T.fData[i]),2.);
+		//refResidual += pow(TPZExtractVal::val(sigma_T.fData[i]),2.);
 	}
 	//refResidual = max(sqrt(refResidual),1.e-6); // avoiding division by zero
 	
@@ -333,7 +333,7 @@ inline void TPZLadeNelsonElasticResponse::
         ApplyElasticTensor<TFAD_SIX,T>(Young_FAD, epsilon_FAD, EEpsilon_FAD);
 		
 		refResidual = 0.;
-		for(i = 0; i < nVars; i++)refResidual += pow(shapeFAD::val(EEpsilon_FAD.fData[i]),2.);
+		for(i = 0; i < nVars; i++)refResidual += pow(TPZExtractVal::val(EEpsilon_FAD.fData[i]),2.);
 		refResidual = sqrt(refResidual);
 		
         Res_FAD =  sigma_FAD;
@@ -397,7 +397,7 @@ inline void TPZLadeNelsonElasticResponse::
          return;
       }
       REAL BaseParameter = 1.E-12;
-      if((fabs(shapeFAD::val(Base)) < BaseParameter) )
+      if((fabs(TPZExtractVal::val(Base)) < BaseParameter) )
       {
          // In the case the the averged stresses leads to less than
          // Base * fPa the Elastic modulus is assumed constant and
@@ -449,7 +449,7 @@ inline void TPZLadeNelsonElasticResponse::
   for(i=0; i<nVars; i++)
   {
     ResVal(i,0) = Res_T.fData[i].val();
-	resnorm += pow(shapeFAD::val(ResVal(i,0)) , 2.);
+	resnorm += pow(TPZExtractVal::val(ResVal(i,0)) , 2.);
   }
 
   resnorm = sqrt(resnorm);
