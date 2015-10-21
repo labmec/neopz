@@ -352,7 +352,7 @@ public:
 	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
 	
 	/** @brief Integrates a variable over the element. */
-	virtual void Integrate(int variable, TPZVec<REAL> & value){
+	virtual void Integrate(int variable, TPZVec<STATE> & value){
 		value.Fill(0.);
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
 	}

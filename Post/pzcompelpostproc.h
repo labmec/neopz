@@ -144,10 +144,10 @@ public:
 	 * and thus benefits from the orthogonality properties of the legendre polynomials defined
 	 * by the method InitializeShapeFunctios().
 	 */
-	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
-							  TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
-							  REAL &detjac, TPZFMatrix<REAL> &jacinv,
-							  TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
+  /** @brief Compute shape functions based on master element in the classical FEM manner. */
+  virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
+                            REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx);
+
 	
 public:
 	
@@ -294,7 +294,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 		intruleRef.Point(int_ind,intpointRef,weightRef);
 		this->      ComputeShape(intpoint, data.x, data.jacobian, 
 								 data.axes, data.detjac, data.jacinv, 
-								 data.phi, data.dphix);
+								 data.phi, data.dphi, data.dphix);
 		
 		/*pIntSpRef ->ComputeShape(intpointRef, dataRef.x, dataRef.jacobian,
 								 dataRef.axes, dataRef.detjac, dataRef.jacinv, 
@@ -453,7 +453,7 @@ template <class TCOMPEL>
 inline void TPZCompElPostProc<TCOMPEL>::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 													 TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
 													 REAL &detjac, TPZFMatrix<REAL> &jacinv,
-													 TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix){
+													 TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphix){
 	TPZGeoEl * ref = this->Reference();
 	if (!ref){
 		PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
@@ -463,7 +463,7 @@ inline void TPZCompElPostProc<TCOMPEL>::ComputeShape(TPZVec<REAL> &intpoint, TPZ
 	
 	ref->X(intpoint, X);
 	//  this->Shape(intpoint,intpoint,phi,dphix);
-	this->Shape(intpoint,phi,dphix);
+	this->Shape(intpoint,phi,dphi);
 	//this->Shape(intpoint,X,phi,dphix);
 	
 	///axes is identity in discontinuous elements

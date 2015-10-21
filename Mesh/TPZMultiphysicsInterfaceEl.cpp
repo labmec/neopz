@@ -315,8 +315,7 @@ void TPZMultiphysicsInterfaceElement::CreateIntegrationRule()
     fIntegrationRule = gel->CreateSideIntegrationRule(thisside, integrationorder);
 }
 
-void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec,
-                                                           TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec)
+void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
 {
     DebugStop();
 }//ComputeRequiredData

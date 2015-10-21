@@ -315,7 +315,7 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &par,TPZFMatrix<REAL> &jac,TPZFMatr
 	}
 #endif
 }
-
+#ifdef _AUTODIFF
 /** @brief Return the Gradient of the transformation at the point */
 template<class TGeo>
 void
@@ -328,7 +328,7 @@ TPZGeoElRefLess<TGeo>::GradXFad(TPZVec<REAL> &par, TPZFMatrix<Fad<REAL> > &gradx
     }
     fGeo.GradX(*this,parfad,gradx);
 }
-
+#endif
 /** @brief Return the gradient of the transformation at the point */
 template<class TGeo>
 void

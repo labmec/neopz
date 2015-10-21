@@ -125,11 +125,11 @@ public:
 	 * @see TPZMaterial::Solution
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
-	virtual void Integrate(int variable, TPZVec<REAL> & value);	
+	virtual void Integrate(int variable, TPZVec<STATE> & value);
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-	virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec);
-	
+  virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec);
+
 
 	/**
 	 * @brief Post processing method which computes the solution for the var post processed variable.

@@ -32,7 +32,6 @@ void CheckConvergence(TConv &obj, TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &r
 	
 	std::ofstream log("conv.log");
 	
-#ifdef _AUTODIFF
 	int icase, j;
 	
 	int numcases = obj.NumCases();
@@ -102,7 +101,6 @@ void CheckConvergence(TConv &obj, TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &r
 		}
 		
 	}
-#endif
 	
 	log.flush();
 }

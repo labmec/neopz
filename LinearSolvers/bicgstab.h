@@ -36,7 +36,7 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 	if(!res) res = &resbackup;
 	Vector &r = *res;
 	
-	Real normb = shapeFAD::val(Norm(b));
+	Real normb = TPZExtractVal::val(Norm(b));
 	if(FromCurrent) A.MultAdd(x,b,r,-1.,1.);
 	else {
 		x.Zero();
@@ -48,7 +48,7 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 	if (normb == 0.0)
 		normb = 1;
 	
-	if ((resid = shapeFAD::val(Norm(r))) / normb < tol) {
+	if ((resid = TPZExtractVal::val(Norm(r))) / normb < tol) {
 		tol = resid;
 		max_iter = 0;
 		return 0;
@@ -57,7 +57,7 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 	for (long i = 1; i <= max_iter; i++) {
 		rho_1(0) = Dot(rtilde, r);
 		if (rho_1(0) == ((Real)0.)) {
-			tol = shapeFAD::val(Norm(r)) / normb;
+			tol = TPZExtractVal::val(Norm(r)) / normb;
 			return 2;
 		}
 		if (i == 1)
@@ -71,7 +71,7 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 		A.Multiply(phat, v);
 		alpha(0) = rho_1(0) / Dot(rtilde, v);
 		s = r - alpha(0) * v;
-		if ((resid = shapeFAD::val(Norm(r))) / normb < tol) {
+		if ((resid = TPZExtractVal::val(Norm(r))) / normb < tol) {
 			x += alpha(0) * phat;
 			tol = resid;
 			return 0;
@@ -83,13 +83,13 @@ BiCGSTAB(const Matrix &A, Vector &x, const Vector &b,
 		r = s - omega(0) * t;
 		
 		rho_2(0) = rho_1(0);
-		if ((resid = shapeFAD::val(Norm(r))) / normb < tol) {
+		if ((resid = TPZExtractVal::val(Norm(r))) / normb < tol) {
 			tol = resid;
 			max_iter = i;
 			return 0;
 		}
 		if (omega(0) == ((Real)0.)) {
-			tol = shapeFAD::val(Norm(r)) / normb;
+			tol = TPZExtractVal::val(Norm(r)) / normb;
 			return 3;
 		}
 	}

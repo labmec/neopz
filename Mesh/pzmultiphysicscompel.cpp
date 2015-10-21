@@ -314,7 +314,7 @@ int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
 
 
 template<class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<REAL> & value){
+void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<STATE> & value){
 	TPZMaterial * material = this->Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
@@ -679,7 +679,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
             datavec[i].intLocPtIndex = int_ind;
         }
         
-		this->ComputeRequiredData(datavec,intpointtemp,trvec);
+		this->ComputeRequiredData(intpointtemp,trvec,datavec);
         
 		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
 	}//loop over integratin points
@@ -753,7 +753,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
         datavec[0].intLocPtIndex = int_ind;
         datavec[1].intLocPtIndex = int_ind;
         
-        this->ComputeRequiredData(datavec,intpointtemp,trvec);
+        this->ComputeRequiredData(intpointtemp,trvec,datavec);
         
         material->Contribute(datavec,weight,ef.fMat);
     }//loop over integratin points
@@ -835,7 +835,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
         datavec[1].intLocPtIndex = int_ind;
         
         
-        thisnonconst->ComputeRequiredData(datavec,intpointtemp,trvec);
+        thisnonconst->ComputeRequiredData(intpointtemp,trvec,datavec);
         
         material->Solution(datavec, var, solout);
         
@@ -851,8 +851,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
 
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<TPZMaterialData> &datavec,
-                                                        TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec)
+void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
 {
 	long ElemVecSize = fElementVec.size();
 	for (long iref = 0; iref < ElemVecSize; iref++)
@@ -978,7 +977,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		intrule->Point(nint,intpoint,weight);
     
         ref->Jacobian(intpoint, jac, axe, detJac , jacInv);
-		this->ComputeRequiredData(datavec,intpoint,trvec);
+		this->ComputeRequiredData(intpoint,trvec,datavec);
     
 		weight *= fabs(datavec[0].detjac);
 		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);

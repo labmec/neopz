@@ -17,7 +17,9 @@
 #include "doxmesh.h"
 
 #include "pzgeoelside.h"
+#ifdef _AUTODIFF
 #include "fadType.h"
+#endif
 
 class TPZGeoNode;
 class TPZCompMesh;
@@ -485,10 +487,10 @@ public:
     
     /** @brief Return the gradient of the transformation at the given coordinate */
     virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const = 0;
-    
+#ifdef _AUTODIFF
     /** @brief Return the gradient of the transformation at the given coordinate */
     virtual void GradXFad(TPZVec<REAL> &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
-    
+#endif
 
 	/** @brief Return the coordinate in real space of the point coordinate in the master element space*/
 	virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const = 0;

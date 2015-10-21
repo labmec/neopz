@@ -160,7 +160,7 @@ public:
     }
 	
 	/** @brief Integrates a variable over the element. */
-	virtual void Integrate(int variable, TPZVec<REAL> & value){
+	virtual void Integrate(int variable, TPZVec<STATE> & value){
         int nel = fElGroup.size();
         for (int el=0; el<nel; el++) {
             fElGroup[el]->Integrate(variable,value);

@@ -1242,7 +1242,8 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
                 PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - GETVAL(this, row, i, j) * GETVAL(B, rowb, j, col));
             if ( IsZero( GETVAL(this, row, i, i)/*GetVal(i, i)*/ ) ) {
                 if (fabs(GETVAL(this, row, i, i)/*GetVal(i, i)*/) > 0.){
-                    if (fabs(GETVAL(B, rowb, i, col) - GETVAL(this, row, i, i)/*B->GetVal(i, col) - GetVal(i, i)*/) > 1e-12){
+                  TVar diff = GETVAL(B, rowb, i, col) - GETVAL(this, row, i, i);/*B->GetVal(i, col) - GetVal(i, i)*/
+                    if (fabs(diff) > 1e-12){
                         Error( "BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
                     }
                 }else  Error( "BackSub(SubstitutionLU) <Matrix is singular" );
@@ -1277,7 +1278,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
             if ( IsZero( GetVal(i, i) ) ) {
                 if (fabs(GetVal(i, i)) > fabs((TVar)0.)) {
 #ifdef _AUTODIFF
-                    double diff = fabs(shapeFAD::val((B->GetVal(i, col) - GetVal(i, i))));
+                    double diff = fabs(TPZExtractVal::val((B->GetVal(i, col) - GetVal(i, i))));
 #else
                     TVar diff = (B->GetVal(i, col) - GetVal(i, i));
 #endif

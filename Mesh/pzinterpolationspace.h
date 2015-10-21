@@ -159,7 +159,8 @@ public:
 									 TPZVec<REAL> &qsi);
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-	virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec){
+	virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
+  {
 		PZError << "This Should never be called in this class, only in its children" << std::endl;
 		DebugStop();
 	}

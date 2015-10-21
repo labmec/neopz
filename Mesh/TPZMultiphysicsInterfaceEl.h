@@ -145,7 +145,7 @@ public:
     const TPZIntPoints & GetIntegrationRule();
     
     /** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-    virtual void ComputeRequiredData(TPZVec<TPZMaterialData> &datavec, TPZVec<REAL> &intpointtemp, TPZManVector<TPZTransform> &trvec);
+    virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec);
 
     /** @brief Initialize the structure of the stiffness matrix */
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);

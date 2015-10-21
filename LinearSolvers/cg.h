@@ -35,7 +35,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	Vector p, z, q;
 	REAL alpha, beta, rho, rho_1 = 0;
 	
-    REAL normb = shapeFAD::val(Norm(b));
+    REAL normb = TPZExtractVal::val(Norm(b));
 	Vector resbackup;
 	Vector *res = residual;
 	
@@ -61,7 +61,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	if (normb == 0.0)
 		normb = 1.0;
 	
-    if ((resid = (shapeFAD::val( Norm(r) ) ) / normb) <= tol) {
+    if ((resid = (TPZExtractVal::val( Norm(r) ) ) / normb) <= tol) {
 		tol = resid;
 		max_iter = 0;
 		return 0;
@@ -69,7 +69,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	long i;
 	for (i = 1; i <= max_iter; i++) {
 		M.Solve(r,z);
-        rho = shapeFAD::val(Dot(r, z));
+        rho = TPZExtractVal::val(Dot(r, z));
 		
 		if (i == 1)
 			p = z;
@@ -83,7 +83,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 #endif	 
 		
 		A.Multiply(p,q);
-		alpha = rho / (shapeFAD::val(Dot(p, q)));
+		alpha = rho / (TPZExtractVal::val(Dot(p, q)));
 		
 #ifdef TEST
 		qlist.push_back(q);
@@ -97,7 +97,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 		REAL energy = Dot(x,Au)/2.-Dot(x,b);
 #endif
 		
-		if ((resid = (shapeFAD::val(Norm(r))) / normb) <= tol) {
+		if ((resid = (TPZExtractVal::val(Norm(r))) / normb) <= tol) {
 			tol = resid;
 			max_iter = i;
 			std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;

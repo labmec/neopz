@@ -253,10 +253,10 @@ public:
 	
 	/** @brief Returns the Jacobian matrix at the point*/
 	virtual  void Jacobian(TPZVec<REAL> &parameter,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
-    
+#ifdef _AUTODIFF
     /** @brief Return the Jacobian matrix at the point*/
     virtual void GradXFad(TPZVec<REAL> &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
-    
+#endif
     /** @brief Return the Jacobian matrix at the point*/
     virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const ;
 	

@@ -27,7 +27,7 @@ int IR( Matrix &A, Vector &x,const Vector &b,
 	Real resid;
 	Vector z;
 	
-    Real normb = shapeFAD::val(Norm(b));
+    Real normb = TPZExtractVal::val(Norm(b));
 	Vector resbackup;
 	Vector *res = residual;
 	if(!res) res = &resbackup;
@@ -42,7 +42,7 @@ int IR( Matrix &A, Vector &x,const Vector &b,
 	if (normb == 0.0)
 		normb = 1;
 	
-	if ((resid = shapeFAD::val(Norm(r)) / normb) <= tol) {
+	if ((resid = TPZExtractVal::val(Norm(r)) / normb) <= tol) {
 		tol = resid;
 		max_iter = 0;
 		return 0;
@@ -53,7 +53,7 @@ int IR( Matrix &A, Vector &x,const Vector &b,
 		x += z;
 		A.MultAdd(x,b,r,-1.,1.);
 		
-		if ((resid = shapeFAD::val(Norm(r)) / normb) <= tol) {
+		if ((resid = TPZExtractVal::val(Norm(r)) / normb) <= tol) {
 			tol = resid;
 			max_iter = i;
 			return 0;

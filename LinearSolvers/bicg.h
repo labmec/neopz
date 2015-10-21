@@ -31,14 +31,14 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 	Vector rho_1(1), rho_2(1), alpha(1), beta(1);
 	Vector z, ztilde, p, ptilde, q, qtilde;
 	
-	Real normb = shapeFAD::val(Norm(b));
+	Real normb = TPZExtractVal::val(Norm(b));
 	Vector r = b - A * x;
 	Vector rtilde = r;
 	
 	if (normb == 0.0)
 		normb = 1;
 	
-	if ((resid = (shapeFAD::val(Norm(r)) / normb) <= tol)) {
+	if ((resid = (TPZExtractVal::val(Norm(r)) / normb) <= tol)) {
 		tol = resid;
 		max_iter = 0;
 		return 0;
@@ -49,7 +49,7 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 		M.Solve(rtilde,ztilde);
 		rho_1(0) = Dot(z, rtilde);
 		if (rho_1(0) == ((Real)0.)) { 
-			tol = (shapeFAD::val(Norm(r))) / normb;
+			tol = (TPZExtractVal::val(Norm(r))) / normb;
 			max_iter = i;
 			return 2;
 		}
@@ -69,7 +69,7 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 		rtilde -= alpha(0) * qtilde;
 		
 		rho_2(0) = rho_1(0);
-		if ((resid = (shapeFAD::val(Norm(r))) / normb) < tol) {
+		if ((resid = (TPZExtractVal::val(Norm(r))) / normb) < tol) {
 			tol = resid;
 			max_iter = i;
 			return 0;

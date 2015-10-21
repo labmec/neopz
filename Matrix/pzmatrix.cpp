@@ -14,9 +14,10 @@
 #include "pzmatrix.h"
 #include "pzsolve.h"
 #include "pzvec.h"
-#include "fadType.h"
+#include "pzextractval.h"
 
 #ifdef _AUTODIFF
+#include "fadType.h"
 #include "fad.h"
 #endif
 
@@ -294,7 +295,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 				#ifdef STATE_COMPLEX
 				  sprintf(number, "%16.16Lf",(long double) fabs(val));
 				#else
-                sprintf(number, "%16.8Lf",(long double) shapeFAD::val(val) );
+                sprintf(number, "%16.8Lf",(long double) TPZExtractVal::val(val) );
 				#endif
 				out << number;
 				if(col < Cols()-1)
@@ -671,6 +672,12 @@ void TPZMatrix<TFad<6,REAL> >::SolveSOR(long & numiterations, const TPZFMatrix<T
 							   REAL &tol,const int FromCurrent,const int direction) {
     DebugStop();
 }
+template<>
+void TPZMatrix<Fad<REAL> >::SolveSOR(long & numiterations, const TPZFMatrix<Fad<REAL> > &F,
+                                        TPZFMatrix<Fad<REAL> > &result, TPZFMatrix<Fad<REAL> > *residual, TPZFMatrix<Fad<REAL> > &/*scratch*/, const REAL overrelax,
+                                        REAL &tol,const int FromCurrent,const int direction) {
+  DebugStop();
+}
 #endif
 
 template<class TVar>
@@ -751,6 +758,12 @@ void TPZMatrix< TFad<6,REAL> >::SolveCG(long &numiterations, TPZSolver< TFad<6,R
                                                const	TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
                                                TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol, const int FromCurrent) {
 	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+template <>
+void TPZMatrix< Fad<REAL> >::SolveCG(long &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
+                                        const	TPZFMatrix< Fad<REAL> > &F, TPZFMatrix< Fad<REAL> > &result,
+                                        TPZFMatrix< Fad<REAL> > *residual,  REAL  &tol, const int FromCurrent) {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
 #endif
@@ -872,6 +885,13 @@ void TPZMatrix< TFad<6,REAL> >::SolveBICG(long &numiterations, TPZSolver< TFad<6
                                                  REAL  &tol)  {
     DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
+template<>
+void TPZMatrix< Fad<REAL> >::SolveBICG(long &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
+                                          const TPZFMatrix< Fad<REAL> > &F,
+                                          TPZFMatrix< Fad<REAL> > &result,
+                                          REAL  &tol)  {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
 #endif
 
 template<>
@@ -912,6 +932,12 @@ void TPZMatrix< TFad<6,REAL> >::SolveBICGStab(long &numiterations, TPZSolver< TF
                                                      const TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
                                                      TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol,const int FromCurrent)  {
     DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+template <>
+void TPZMatrix< Fad<REAL> >::SolveBICGStab(long &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
+                                              const TPZFMatrix< Fad<REAL> > &F, TPZFMatrix< Fad<REAL> > &result,
+                                              TPZFMatrix< Fad<REAL> > *residual,  REAL  &tol,const int FromCurrent)  {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 #endif
 
@@ -954,6 +980,13 @@ void TPZMatrix< TFad<6,REAL> >::SolveIR(long &numiterations, TPZSolver< TFad<6,R
                                                TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol,
                                                const int FromCurrent)  {
     DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+template <>
+void TPZMatrix< Fad<REAL> >::SolveIR(long &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
+                                        const TPZFMatrix< Fad<REAL> > &F, TPZFMatrix< Fad<REAL> > &result,
+                                        TPZFMatrix< Fad<REAL> > *residual,  REAL  &tol,
+                                        const int FromCurrent)  {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 #endif
 
@@ -1675,11 +1708,10 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(long &numiterations, REAL & tol, TP
 	
 	/** Sorting */
 	if (Sort){
-		
 		multiset< REAL > myset;
 		for(i = 0; i < size; i++)
         {   TVar exps = this->operator ( )(i,i);
-            myset.insert( (shapeFAD::val(exps)) );
+            myset.insert( (TPZExtractVal::val(exps)) );
         }
 		
 #ifdef DEBUG2
@@ -1691,7 +1723,6 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(long &numiterations, REAL & tol, TP
 		for(i = size - 1, w = myset.begin(); w != e; w++, i--){
 			Sort->operator [ ](i) = *w;
 		}//for
-		
 	}//if (Sort)
 	
 	
