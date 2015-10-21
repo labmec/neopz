@@ -1242,7 +1242,7 @@ int TPZFMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const {
                 PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - GETVAL(this, row, i, j) * GETVAL(B, rowb, j, col));
             if ( IsZero( GETVAL(this, row, i, i)/*GetVal(i, i)*/ ) ) {
                 if (fabs(GETVAL(this, row, i, i)/*GetVal(i, i)*/) > 0.){
-                  TVar diff = GETVAL(B, rowb, i, col) - GETVAL(this, row, i, i);/*B->GetVal(i, col) - GetVal(i, i)*/
+                    TVar diff = GETVAL(B, rowb, i, col) - GETVAL(this, row, i, i)/*B->GetVal(i, col) - GetVal(i, i)*/;
                     if (fabs(diff) > 1e-12){
                         Error( "BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
                     }

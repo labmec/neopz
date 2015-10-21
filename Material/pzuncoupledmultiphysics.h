@@ -191,7 +191,7 @@ public:
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
 	
 	/** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */
-    virtual int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const;
+    virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const;
 	
     /** @brief To create another material of the same type*/
     virtual TPZUncoupledMultiPhysics * NewMaterial();

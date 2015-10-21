@@ -771,7 +771,8 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 #endif
     
 #ifndef USING_BOOST
-    for (long index = data->fThreadSeqNum; index < numelements; index += nthreads)
+    int nthreads = data->fStruct->GetNumThreads();
+    for (index = data->fThreadSeqNum; index < numelements; index += nthreads)
 #else
     while (index < numelements)
 #endif
@@ -933,7 +934,8 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 #endif
     long numelements = data->fElSequenceColor->size();
 #ifndef USING_BOOST
-    for (long index = data->fThreadSeqNum; index < numelements; index += nthreads)
+    int nthreads = data->fStruct->GetNumThreads();
+    for (index = data->fThreadSeqNum; index < numelements; index += nthreads)
 #else
     while (index < numelements)
 #endif

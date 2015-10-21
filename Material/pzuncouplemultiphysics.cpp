@@ -187,7 +187,7 @@ int TPZUncoupledMultiPhysics::IntegrationRuleOrder(int elPMaxOrder) const
     
 }
 
-int TPZUncoupledMultiPhysics::IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const
+int TPZUncoupledMultiPhysics::IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const
 {
     int order = 0;
     for (int i=0; i<fReferredMaterials.size(); i++) {
