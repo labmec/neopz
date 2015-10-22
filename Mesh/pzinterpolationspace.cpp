@@ -20,7 +20,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZInterpolationSpace"));
 #endif
 
 TPZInterpolationSpace::TPZInterpolationSpace()
-: TPZCompEl()
+: TPZCompEl(), fCustomizedIntegrationRule(0)
 {
 	fPreferredOrder = -1;
 }
@@ -29,27 +29,52 @@ TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpo
 : TPZCompEl(mesh, copy)
 {
 	fPreferredOrder = copy.fPreferredOrder;
+  if (copy.fCustomizedIntegrationRule) {
+    fCustomizedIntegrationRule = copy.fCustomizedIntegrationRule->Clone();
+  }
+  else
+  {
+    fCustomizedIntegrationRule = 0;
+  }
 }
 
 TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, std::map<long,long> &gl2lcElMap)
 : TPZCompEl(mesh, copy, gl2lcElMap)
 {
 	fPreferredOrder = copy.fPreferredOrder;
+  if (copy.fCustomizedIntegrationRule) {
+    fCustomizedIntegrationRule = copy.fCustomizedIntegrationRule->Clone();
+  }
+  else
+  {
+    fCustomizedIntegrationRule = 0;
+  }
 }
 
 TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, long &index)
 : TPZCompEl(mesh, copy, index)
 {
 	fPreferredOrder = copy.fPreferredOrder;
+  if (copy.fCustomizedIntegrationRule) {
+    fCustomizedIntegrationRule = copy.fCustomizedIntegrationRule->Clone();
+  }
+  else
+  {
+    fCustomizedIntegrationRule = 0;
+  }
 }
 
 TPZInterpolationSpace::TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, long &index)
-: TPZCompEl(mesh,gel,index)
+: TPZCompEl(mesh,gel,index), fCustomizedIntegrationRule(0)
 {
 	fPreferredOrder = mesh.GetDefaultOrder();
 }
 
-TPZInterpolationSpace::~TPZInterpolationSpace(){}
+TPZInterpolationSpace::~TPZInterpolationSpace(){
+  if (fCustomizedIntegrationRule) {
+    delete fCustomizedIntegrationRule;
+  }
+}
 
 int TPZInterpolationSpace::MaxOrder(){
 	const int n = this->NConnects();
@@ -1656,3 +1681,10 @@ void TPZInterpolationSpace::Convert2Axes(const TPZFMatrix<REAL> &dphi, const TPZ
     
 }
 
+void TPZInterpolationSpace::SetCustomizedIntegrationRule(TPZIntPoints *intrule)
+{
+  if (fCustomizedIntegrationRule) {
+    delete fCustomizedIntegrationRule;
+  }
+  fCustomizedIntegrationRule = intrule;
+}

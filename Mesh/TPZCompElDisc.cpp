@@ -1068,14 +1068,27 @@ const TPZIntPoints &TPZCompElDisc::GetIntegrationRule() const {
 	if(this->fIntRule == 0){
 		DebugStop();
 	}
-	return *(fIntRule.operator->());
+  if (fCustomizedIntegrationRule) {
+    return *fCustomizedIntegrationRule;
+  }
+  else
+  {
+    return *(fIntRule.operator->());
+  }
 }
 
 TPZIntPoints &TPZCompElDisc::GetIntegrationRule() {
 	if(this->fIntRule == 0){
 		DebugStop();
 	}
-	return *(fIntRule.operator->());
+  if (fCustomizedIntegrationRule)
+  {
+    return *fCustomizedIntegrationRule;
+  }
+  else
+  {
+    return *(fIntRule.operator->());
+  }
 }
 
 int TPZCompElDisc::MaxOrderExceptExternalShapes(){

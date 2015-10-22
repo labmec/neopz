@@ -119,11 +119,23 @@ public:
 	TPZTransform TransformSideToElement(int side);
 	
 	virtual const TPZIntPoints &GetIntegrationRule() const {
-		return fIntRule;
+    if (this->fCustomizedIntegrationRule) {
+      return *fCustomizedIntegrationRule;
+    }
+    else
+    {
+      return fIntRule;
+    }
 	}
 	
 	virtual TPZIntPoints &GetIntegrationRule() {
-		return fIntRule;
+    if (fCustomizedIntegrationRule) {
+      return *fCustomizedIntegrationRule;
+    }
+    else
+    {
+      return fIntRule;
+    }
 	}
 	
 	/** @brief returns the unique identifier for reading/writing objects to streams */
