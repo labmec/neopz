@@ -103,7 +103,8 @@ TPZInterfaceElement::~TPZInterfaceElement(){
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index,
                                          TPZCompElSide& left, TPZCompElSide& right)
-: TPZCompEl(mesh,geo,index){
+: TPZCompEl(mesh,geo,index), fIntegrationRule(0)
+{
 	
 	geo->SetReference(this);
 	geo->IncrementNumInterfaces();
@@ -119,14 +120,14 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &i
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,long &index)
-: TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(){
+: TPZCompEl(mesh,geo,index), fLeftElSide(), fRightElSide(),fIntegrationRule(0){
 	geo->SetReference(this);
 	geo->IncrementNumInterfaces();
 	this->IncrementElConnected();
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy)
-: TPZCompEl(mesh,copy) {
+: TPZCompEl(mesh,copy), fIntegrationRule(0) {
 	
 	this->fLeftElSide.SetElement( mesh.ElementVec()[copy.fLeftElSide.Element()->Index()] );
 	this->fLeftElSide.SetSide( copy.fLeftElSide.Side() );
@@ -145,6 +146,9 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 	}
 #endif
 	
+    if (copy.fIntegrationRule) {
+        fIntegrationRule = copy.fIntegrationRule->Clone();
+    }
 	fCenterNormal = copy.fCenterNormal;
 	
 	//TPZMaterial * mat = copy.Material();
@@ -164,11 +168,15 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
                                          const TPZInterfaceElement &copy,
                                          std::map<long,long> &gl2lcConIdx,
-                                         std::map<long,long> &gl2lcElIdx) : TPZCompEl(mesh,copy)
+                                         std::map<long,long> &gl2lcElIdx) : TPZCompEl(mesh,copy), fIntegrationRule(0)
 {
 	
 	long cplftIdx = copy.fLeftElSide.Element()->Index();
 	long cprgtIdx = copy.fRightElSide.Element()->Index();
+    if (copy.fIntegrationRule) {
+        fIntegrationRule = copy.fIntegrationRule->Clone();
+    }
+    
 	if (gl2lcElIdx.find(cplftIdx) == gl2lcElIdx.end() || gl2lcElIdx.find(cprgtIdx) == gl2lcElIdx.end())
 	{
 		std::stringstream sout;
@@ -212,11 +220,14 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
 
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,long &index)
-: TPZCompEl(mesh,copy,index) {
+: TPZCompEl(mesh,copy,index), fIntegrationRule(0) {
 	
 	//ambos elementos esquerdo e direito j�foram clonados e moram na malha aglomerada
 	//o geometrico da malha fina aponta para o computacional da malha aglomerada
 	fCenterNormal = copy.fCenterNormal;
+    if (copy.fIntegrationRule) {
+        fIntegrationRule = copy.fIntegrationRule->Clone();
+    }
 	
 	this->fLeftElSide.SetElement( mesh.ElementVec()[copy.fLeftElSide.Element()->Index()] );
 	this->fLeftElSide.SetSide( copy.fLeftElSide.Side() );
@@ -248,7 +259,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
 }
 
 TPZInterfaceElement::TPZInterfaceElement() : TPZCompEl(), fLeftElSide(), fRightElSide(),
-fCenterNormal(3,0.)
+fCenterNormal(3,0.), fIntegrationRule(0)
 {
 	//NOTHING TO BE DONE HERE
 }
@@ -1101,6 +1112,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	int rightmaxp = right->MaxOrder();
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled()) 
 	{
         if (logger->isDebugEnabled())
         {
@@ -1377,7 +1389,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 	
 }
 
-void TPZInterfaceElement::Integrate(int variable, TPZVec<REAL> & value){
+void TPZInterfaceElement::Integrate(int variable, TPZVec<STATE> & value){
 	const int varsize = this->Material()->NSolutionVariables(variable);
 	value.Resize(varsize);
 	value.Fill(0.);

@@ -39,11 +39,14 @@ class TPZInterfaceElement : public TPZCompEl {
 	
 	/** @brief Normal to the face element */
 	TPZManVector<REAL,3> fCenterNormal;
+    
+    /** @brief Pointer to the integration rule */
+    TPZIntPoints *fIntegrationRule;
 	
-	/** @brief Informs the connect that this element is no longer connected to it. */
+	/** @brief Informs the connects that this element is no longer connected to it. */
 	void DecreaseElConnected();
 	
-	/** @brief Informs the connect that this element is connected to it. */
+	/** @brief Informs the connects that this element is connected to it. */
 	void IncrementElConnected();
 	
 protected:
@@ -333,7 +336,7 @@ public:
 								  TPZVec<STATE> &errorR);
 	
 	/** @brief Integrate a variable over the element. */
-	virtual void Integrate(int variable, TPZVec<REAL> & value);
+	virtual void Integrate(int variable, TPZVec<STATE> & value);
 	
 	void IntegrateInterface(int variable, TPZVec<REAL> & value);
 	
