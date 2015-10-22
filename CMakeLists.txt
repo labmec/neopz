@@ -79,11 +79,13 @@ if(PTHREAD_LIB-NOTFOUND)
 endif()
 include_directories(${PTHREAD_INCLUDE})
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+IF(APPLE)
    # Mac OS X specific code
    add_definitions(-DMACOSX)
+   FIND_LIBRARY(ACCELERATE_LIB Accelerate)
+   link_libraries(${ACCELERATE_LIB})
 #   SET(OperatingSystem "Mac OS X")
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+ENDIF(APPLE)
 
 #enabling Boost library 
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
