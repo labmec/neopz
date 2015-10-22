@@ -78,7 +78,7 @@ void TPZCutHillMcKee::SGraph::AdjacentNodesOrdered(long parent,
   }//for
 
   adjNodes.Resize(count);
-#ifdef DEBUG
+#ifdef PZDEBUG
   if(count != (long)(order.size()) ){
     DebugStop();
   }
@@ -174,7 +174,7 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
   TPZStack< TPZStack<long> > LevelStructure;
   this->RootedLevelStructure(startNode, LevelStructure);
 
-#ifdef DEBUG_CM
+#ifdef PZDEBUG_CM
   std::ofstream myfile("c:\\Temp\\PseudoPeripheralNodes.txt");
 #endif
 
@@ -189,7 +189,7 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
     count++;
     const long cpStart = startNode;
     const long cpEnd = endNode;
-#ifdef DEBUG_CM
+#ifdef PZDEBUG_CM
     myfile << "\nstart = " << startNode << "  end = " << endNode << "\n\n";
 #endif
     const long nlevels = LevelStructure.NElements();
@@ -206,11 +206,11 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
     for(long iQ = 0; iQ < nelLastLevel; iQ++){
 
       const long nodeAtQ = LastLevel[iQ];
-#ifdef DEBUG_CM
+#ifdef PZDEBUG_CM
       myfile << count << "\t" << iQ << "\t";myfile.flush();
 #endif
       this->RootedLevelStructure(nodeAtQ, localLevelStructure);
-#ifdef DEBUG_CM
+#ifdef PZDEBUG_CM
       myfile << "rooted\t";myfile.flush();
 #endif
 
@@ -223,7 +223,7 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
       if(h > hs && w < we){
         startNode = nodeAtQ;
         LevelStructure = localLevelStructure;
-#ifdef DEBUG_CM
+#ifdef PZDEBUG_CM
         myfile << "break\n";myfile.flush();
 #endif
         break;
@@ -232,12 +232,12 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
         endNode = nodeAtQ;
         we = w;
       }
-#ifdef DEBUG_CM
+#ifdef PZDEBUG_CM
       myfile << "end\n";myfile.flush();
 #endif
 
     }//for iStep
-#ifdef DEBUG_CM
+#ifdef PZDEBUG_CM
     myfile << "\n"; myfile.flush();
 #endif
 
@@ -254,7 +254,7 @@ void TPZCutHillMcKee::SGraph::PseudoPeripheralNodes(long &startNode, long &endNo
 
 TPZCutHillMcKee::TPZCutHillMcKee():TPZRenumbering(){
   fReverse = true;
-#ifdef DEBUG
+#ifdef PZDEBUG
   fVerbose = true;
 #else
   fVerbose = false;
@@ -263,7 +263,7 @@ TPZCutHillMcKee::TPZCutHillMcKee():TPZRenumbering(){
 
 TPZCutHillMcKee::TPZCutHillMcKee(long NElements, long NNodes, bool Reverse):TPZRenumbering(NElements,NNodes){
   fReverse = Reverse;
-#ifdef DEBUG
+#ifdef PZDEBUG
   fVerbose = true;
 #else
   fVerbose = false;
@@ -306,7 +306,7 @@ void TPZCutHillMcKee::Resequence(TPZVec<long> &permGather, TPZVec<long> &permSca
   graph.fnodegraphindex.Shrink();
 
 
-#ifdef DEBUG_CM
+#ifdef PZDEBUG_CM
   if(0){
     long grafoindex[7] = {0,3,6,9,14,19,22};
     long grafo[22] = {3,4,5,  2,3,4,  1,3,4,  0,1,2,4,5,  0,1,2,3,5,  0,3,4};
@@ -391,7 +391,7 @@ void TPZCutHillMcKee::Resequence(TPZVec<long> &permGather, TPZVec<long> &permSca
   const long n = R.NElements();
   if(n != nnodes) DebugStop();
 
-#ifdef DEBUG
+#ifdef PZDEBUG
 {//verificando se ha duplicados
   std::set<long> check;
   for(long i = 0; i < n; i++) check.insert(R[i]);

@@ -800,7 +800,7 @@ TPZCompMesh *Hdiv2dPaper201504::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, int
         }
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     int ncel = cmesh->NElements();
     for(int i =0; i<ncel; i++){
         TPZCompEl * compEl = cmesh->ElementVec()[i];

@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
   an.Run();
   
   timer.stop();
-#ifdef DEBUG
+#ifdef PZDEBUG
   TPZFMatrix<STATE> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
   solucao.Print("Sol",std::cout,EMathematicaInput);//imprime na formatacao do Mathematica
 #endif

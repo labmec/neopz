@@ -39,7 +39,7 @@ typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
  */
 //#define DEBUG_SAVEABLE
 
-#ifdef DEBUG_SAVEABLE
+#ifdef PZDEBUG_SAVEABLE
 #define SAVEABLE_STR_NOTE(buf,str) { std::string msg(str); buf.Write(&msg,1); }
 #define SAVEABLE_SKIP_NOTE(buf) { std::string str; buf.Read(&str,1); }
 #else
@@ -834,7 +834,7 @@ public:
 	/** @brief Constructor */
 	TPZRestoreClass()
 	{
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 		std::string func_name = __PRETTY_FUNCTION__;
 #ifndef WIN32
 		std::cout << func_name << std::endl;

@@ -141,7 +141,7 @@ private:
         
         TNo *PopHighestPriorityNode()
         {
-#ifdef DEBUG
+#ifdef PZDEBUG
             if(fActive.size() == 0) DebugStop();
 #endif
             TNo* result = fActive.rbegin()->second;
@@ -163,7 +163,7 @@ private:
         void TransferPriority(TNo *no, int newpriority)
         {
             int priority = no->fPriority;
-#ifdef DEBUG
+#ifdef PZDEBUG
             if(fActive.find(priority) == fActive.end()) DebugStop();
             if(no->fPriority == newpriority) DebugStop();
 #endif

@@ -119,13 +119,13 @@ void TPZFileEqnStorage<TVar>::Store(int ieq, int jeq, const char *name){
 	fclose(out_file);
 	out_file = fopen(name,"rb");
 	sizereturn = fread(fPos,sizeof(long int),5,out_file);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != 5) DebugStop();
 #endif
 	for(iblock = 0; iblock<4; iblock++) {
 		fseek(out_file,fPos[iblock],SEEK_SET);
 		sizereturn = fread(readvec[iblock],sizeof(double),loop_limit,out_file);
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (sizereturn != loop_limit) DebugStop();
 #endif
 	}
@@ -171,7 +171,7 @@ void TPZFileEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) c
 			fseek(fIOStream,fBlockPos[i],SEEK_SET);
 			long int position;
 			sizereturn = fread(&position,sizeof(long int),1,fIOStream);
-#ifdef DEBUG
+#ifdef PZDEBUG
 			if (sizereturn != 1) DebugStop();
 #endif
 			fseek(fIOStream,position,SEEK_SET);
@@ -279,11 +279,11 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(char option, const std::string & name
 		long int sizereturn;
 		sizereturn = 0;
 		sizereturn = fread(&fNumHeaders,sizeof(int),1,fIOStream);
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (sizereturn != 1) DebugStop();
 #endif
 		sizereturn = fread(&fNumBlocks,sizeof(int),1,fIOStream);
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (sizereturn != 1) DebugStop();
 #endif
 		ReadBlockPositions();
@@ -478,11 +478,11 @@ void TPZFileEqnStorage<TVar>::ReOpen()
 	long int sizereturn;
 	sizereturn = 0;
 	sizereturn = fread(&fNumHeaders,sizeof(int),1,fIOStream);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != 1) DebugStop();
 #endif
 	sizereturn = fread(&fNumBlocks,sizeof(int),1,fIOStream);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != 1) DebugStop();
 #endif
 }
@@ -506,11 +506,11 @@ void TPZFileEqnStorage<TVar>::OpenGeneric(char option, const char * name)
 		long int sizereturn;
 		sizereturn = 0;
 		sizereturn = fread(&fNumHeaders,sizeof(int),1,fIOStream);
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (sizereturn != 1) DebugStop();
 #endif
 		sizereturn = fread(&fNumBlocks,sizeof(int),1,fIOStream);
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (sizereturn != 1) DebugStop();
 #endif
 		ReadBlockPositions();
@@ -561,13 +561,13 @@ void TPZFileEqnStorage<TVar>::ReadBlockPositions()
 			cout.flush();
 		}
 		sizereturn = fread(&fBlockPos[ibl],sizeof(long int),fNumHeaders-1,fIOStream);
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (sizereturn != fNumHeaders-1) DebugStop();
 #endif
 		ibl+=fNumHeaders-1;
 		long int nextpos;
 		sizereturn = fread(&nextpos,sizeof(long int),fNumHeaders-1,fIOStream);
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (sizereturn != fNumHeaders-1) DebugStop();
 #endif
 		fseek(fIOStream,nextpos,SEEK_SET);

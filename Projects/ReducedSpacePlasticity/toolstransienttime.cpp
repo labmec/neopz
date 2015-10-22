@@ -269,7 +269,7 @@ void ToolsTransient::Run()
         DebugStop();
       }
       
-#ifdef DEBUG
+#ifdef PZDEBUG
       std::ofstream outg("GeoMeshAfterPropagation.vtk");
       TPZVTKGeoMesh::PrintGMeshVTK(fgmesh, outg, true);
 #endif
@@ -440,7 +440,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 	this->SolveInitialElasticity(*an, cmesh_elast); // Resolvendo todos os problemas AO MESMO TEMPO! UAU!!!!
   TPZFMatrix<STATE> solutions = cmesh_elast->Solution();
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	bool IWantToSeeElastSol = true;
 	if (IWantToSeeElastSol) {
 		TPZStack<std::string> scalnames,vecnames;
@@ -913,7 +913,7 @@ void ToolsTransient::Mesh2D()
 	
   fgmesh->BuildConnectivity();
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
   std::map<int,std::pair<int, int> >::iterator it = globFractInputData.GetfMatID_Rec_GeoEl().begin();
   for (; it != globFractInputData.GetfMatID_Rec_GeoEl().end(); it++) {
     std::cout << "diriid = " << it->first << std::endl;
@@ -928,7 +928,7 @@ void ToolsTransient::Mesh2D()
 #endif
   
   
-#ifdef DEBUG
+#ifdef PZDEBUG
   std::ofstream outg("GeoMeshForAll.vtk");
   TPZVTKGeoMesh::PrintGMeshVTK(fgmesh, outg, true);
 #endif
@@ -1456,7 +1456,7 @@ TPZCompMesh * ToolsTransient::CMeshElasticH1ForPostProc(){
   cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
   
-#ifdef DEBUG
+#ifdef PZDEBUG
   std::ofstream out("malhaPostProc");
   cmesh->Print(out);
 #endif
@@ -1635,7 +1635,7 @@ void ToolsTransient::CMeshMultiphysics()
 		cel->PrepareIntPtIndices();
 	}
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
    std::ofstream out("cmeshMult.txt");
    fmphysics->Print(out);
 #endif
@@ -1838,7 +1838,7 @@ void ToolsTransient::TransferSolutions(TPZCompMesh * lastMPhysicsCMesh, TPZCompM
 
 void ToolsTransient::TransferElasticSolution(TPZAnalysis *an, TPZCompMesh * cmeshFrom)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
   if(!cmeshFrom)
   {
     DebugStop();
@@ -2507,7 +2507,7 @@ void ToolsTransient::PostProcessVolLeakoff()
       continue;
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(!cel || cel->Reference()->Dimension() != 1)
     {
       DebugStop();
@@ -2516,7 +2516,7 @@ void ToolsTransient::PostProcessVolLeakoff()
     cel->Material()->SetForcingFunction(func);
     TPZGeoEl * fluidGel = cel->Reference();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(!fluidGel)
     {
       DebugStop();

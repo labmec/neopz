@@ -196,7 +196,7 @@ TPZSubCompMesh::~TPZSubCompMesh(){
 		ref->ResetReference();
 		this->LoadReferences();
 	}
-#ifdef DEBUG
+#ifdef PZDEBUG
     ComputeNodElCon();
 #endif
 	long i, nelem = this->NElements();
@@ -522,7 +522,7 @@ void TPZSubCompMesh::TransferDependencies(long local)
 	if (fExternalLocIndex[local] == -1) return;
 	TPZCompMesh *father = FatherMesh();
 	long superind = fConnectIndex[fExternalLocIndex[local]];
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 	if(father->ConnectVec()[superind].NElConnected() != 1)
 	{
 		std::cout << __PRETTY_FUNCTION__ << " number of elements connected to connect " << superind <<
@@ -586,11 +586,11 @@ void TPZSubCompMesh::MakeAllInternal(){
 	//TPZVec<int> nelcon;
 	TPZCompMesh *father = FatherMesh();
 	TPZAdmChunkVector<TPZConnect> &connectvec = father->ConnectVec();
-#ifdef DEBUG
+#ifdef PZDEBUG
 	//father->ComputeNodElCon();
 #endif
 	//father->ComputeNodElCon(nelcon);
-	//#ifdef DEBUG 
+	//#ifdef PZDEBUG 
 	//	int in;
 	//	int nn = nelcon.NElements();
 	//	for (in=0; in<nn; in++) {
@@ -611,7 +611,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 		{
 			cantransfer.insert(it->second);
 			//			stack.Push(it->second);
-			//#ifdef DEBUG 
+			//#ifdef PZDEBUG 
 			//			if(father->ConnectVec()[it->first].NElConnected() != 1)
 			//			{
 			//				int in = it->first;
@@ -726,7 +726,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 		fExternalLocIndex[it->second] = count;
 		count++;
 	}	
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 	if (count != (long)fFatherToLocal.size()) {
 		DebugStop();
 	}
@@ -767,7 +767,7 @@ void TPZSubCompMesh::SetConnectIndex(int inode, long index){
 
 long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
 	if(mesh == this) return elindex;
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (! IsAllowedElement(mesh,elindex)) {
 		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: trying to transfer an element not allowed" << std::endl;
 		DebugStop();
@@ -778,7 +778,7 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
 		elindex = FatherMesh()->TransferElementFrom(mesh,elindex);
 		mesh = FatherMesh();
 	}
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 	if (CommonMesh(mesh) != mesh){
 		std::cout <<"TPZSubCompMesh::TransferElementFrom ERROR: mesh is not supermesh" << std::endl;
 		DebugStop();
@@ -893,7 +893,7 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
 }
 
 long TPZSubCompMesh::TransferElementTo(TPZCompMesh *mesh, long elindex){
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 	TPZCompMesh *common = CommonMesh(mesh);
 	if ( common!= mesh){
 		std::cout <<"TPZSubCompMesh::TransferElementTo ERROR: mesh is not supermesh" << std::endl;
@@ -1039,7 +1039,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 	
 	// check whether the connects are properly enumerated
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 	long numextconnects = fConnectIndex.NElements();
 	long nconnects = fConnectVec.NElements();
 	long numintconnects = nconnects-numextconnects-nconstrconnects;
@@ -1232,7 +1232,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     }
 	
     
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 	{
 		TPZFMatrix<REAL> fillin;
 		int resolution = 100;
@@ -1253,7 +1253,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
 	fAnalysis->SetGuiInterface(guiInterface);
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	{
 		TPZFMatrix<REAL> fillin;
 		int resolution = 100;
@@ -1560,7 +1560,7 @@ long TPZSubCompMesh::NumInternalEquations() {
 			TPZConnect &df = fConnectVec[i];
 			if(df.HasDependency() || df.IsCondensed() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
             int dfsize = df.NShape()*df.NState();
-#ifdef DEBUG
+#ifdef PZDEBUG
 			long seqnum = df.SequenceNumber();
 			int blsize = Block().Size(seqnum);
             if (blsize != dfsize) {

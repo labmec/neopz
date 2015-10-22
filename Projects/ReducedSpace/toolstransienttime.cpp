@@ -826,7 +826,7 @@ void ToolsTransient::TransferSolutions(TPZCompMesh * lastMPhysicsCMesh, TPZCompM
 
 void ToolsTransient::TransferElasticSolution(TPZCompMesh * cmeshFrom)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(!cmeshFrom)
     {
         DebugStop();
@@ -1242,7 +1242,7 @@ void ToolsTransient::PostProcessVolLeakoff()
             continue;
         }
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!cel || cel->Reference()->Dimension() != 1)
         {
             DebugStop();
@@ -1251,7 +1251,7 @@ void ToolsTransient::PostProcessVolLeakoff()
         cel->Material()->SetForcingFunction(func);
         TPZGeoEl * fluidGel = cel->Reference();
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!fluidGel)
         {
             DebugStop();

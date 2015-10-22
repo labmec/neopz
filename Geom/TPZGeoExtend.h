@@ -66,7 +66,7 @@ namespace pzgeom {
 			int i;
 			for(i = 0; i < TFather::NNodes; i++)
 			{
-#ifdef DEBUG
+#ifdef PZDEBUG
 				if (gl2lcNdMap.find(cp.fNodeIndexes[i+TFather::NNodes]) == gl2lcNdMap.end())
 				{
 					std::stringstream sout;

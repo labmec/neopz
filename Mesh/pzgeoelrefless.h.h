@@ -283,7 +283,7 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &par,TPZFMatrix<REAL> &jac,TPZFMatr
 	fGeo.Jacobian(*this,par,jac,axes,detjac,jacinv);
 	
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     TPZManVector<REAL,3> minx(3,0.),maxx(3,0.);
     int ncorners = NNodes();
     TPZFNMatrix<54,REAL> cornerco(3,ncorners);
@@ -411,7 +411,7 @@ template<class TGeo>
 void TPZGeoElRefLess<TGeo>::Read(TPZStream &buf, void *context){
 	TPZGeoEl::Read(buf,context);
     fGeo.Read(buf,context);
-#ifdef DEBUG
+#ifdef PZDEBUG
     long NNodes = Mesh()->NodeVec().NElements();
     for (int i=0; i< TGeo::NNodes; i++) {
         if (fGeo.fNodeIndexes[i]<0 || fGeo.fNodeIndexes[i] > NNodes) {
@@ -423,7 +423,7 @@ void TPZGeoElRefLess<TGeo>::Read(TPZStream &buf, void *context){
 	int i, n = TGeo::NSides;
 	for(i = 0; i < n; i++){
 		this->fNeighbours[i].Read(buf);
-#ifdef DEBUG
+#ifdef PZDEBUG
         int nel = Mesh()->NElements();
         if (this->fNeighbours[i].ElementIndex() < 0 || this->fNeighbours[i].Side() < 0 || this->fNeighbours[i].Side() >=27
             || this->fNeighbours[i].ElementIndex() >= nel) {

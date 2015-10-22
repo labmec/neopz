@@ -253,7 +253,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 
 TPZCompEl *TPZAgglomerateElement::SubElement(long sub) const{
 
-#ifdef DEBUG
+#ifdef PZDEBUG
 	long nsubs = NIndexes();
 	if(sub < 0  || sub > nsubs){
 		PZError << "TPZAgglomerateElement::SubElement sub-element out of range\n";
@@ -836,7 +836,7 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 		//o elemento de index k tal que accumlist[k] == i vai aglomerar no elemento de index/id i
 		while( accumlist[k] != i && k < size) k++;
 		
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if(k == size){
 			PZError << "TPZCompElDisc::CreateAgglomerateMesh material not found\n";
 			DebugStop();
@@ -903,7 +903,7 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 			long leftid = interf->LeftElement()->Index();
 			long leftside = interf->LeftElementSide().Side();
 			leftid = IdElNewMesh[leftid];
-#ifdef DEBUG
+#ifdef PZDEBUG
 			if (leftid == -1){
 				PZError <<  "\nLeftid cannot be -1." << endl;
 			}
@@ -913,7 +913,7 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 			long rightid = interf->RightElement()->Index();
 			long rightside = interf->RightElementSide().Side();
 			rightid = IdElNewMesh[rightid];
-#ifdef DEBUG
+#ifdef PZDEBUG
 			if (rightid == -1){
 				PZError <<  "\nRightid cannot be -1." << endl;
 			}

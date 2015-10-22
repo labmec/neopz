@@ -56,7 +56,7 @@ int main()
     std::string dirname = PZSOURCEDIR;
     gRefDBase.InitializeUniformRefPattern(EOned);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 #ifdef LOG4CXX
     
     std::string FileName = dirname;
@@ -105,7 +105,7 @@ void InitialProblem(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > meshvec)
     TPZBuildMultiphysicsMesh::AddConnects(meshvec, cmeshwell);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, cmeshwell);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream dumpfile("ComputationaMeshMultiphysicInitial.txt");
     cmeshwell->Print(dumpfile);
 #endif
@@ -153,7 +153,7 @@ void TransientProblem(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > meshvec)
     TPZBuildMultiphysicsMesh::AddConnects(meshvec, cmeshwell);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, cmeshwell);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream dumpfile("ComputationaMeshMultiphysic.txt");
     cmeshwell->Print(dumpfile);
 #endif
@@ -179,7 +179,7 @@ void PrintLS(TPZAnalysis *an)
     KGlobal =   an->Solver().Matrix();
     FGlobal =   an->Rhs();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 #ifdef LOG4CXX
     if(logdata->isDebugEnabled())
     {
@@ -337,7 +337,7 @@ TPZCompMesh * CmeshFlux(int qorder, TPZGeoMesh * gmesh)
     cmesh->AutoBuild();
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("cmeshFlux.txt");
     cmesh->Print(out);
 #endif
@@ -391,7 +391,7 @@ TPZCompMesh * CmeshPressure(int porder, TPZGeoMesh * gmesh)
         newnod.SetLagrangeMultiplier(1);
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("cmeshPress.txt");
     cmesh->Print(out);
 #endif
@@ -411,7 +411,7 @@ void PrintGeoMesh(TPZGeoMesh * gmesh)
 {
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     //  Print Geometrical Base Mesh
     std::ofstream argument("GeometicMesh.txt");
     gmesh->Print(argument);
@@ -533,7 +533,7 @@ void NewtonIterations(TPZAnalysis *an, TPZManVector<TPZCompMesh *> meshvector, T
         error = Norm(Residual);
         iterations++;
         
-#ifdef DEBUG
+#ifdef PZDEBUG
     #ifdef LOG4CXX
             if(logdata->isDebugEnabled())
             {

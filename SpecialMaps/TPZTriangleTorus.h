@@ -49,7 +49,7 @@ namespace pzgeom {
         
         void SetData(TPZVec<REAL> &wavedir, int numwaves)
         {
-#ifdef DEBUG
+#ifdef PZDEBUG
             if (wavedir.size() != 3) {
                 DebugStop();
             }

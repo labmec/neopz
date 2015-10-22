@@ -740,7 +740,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 		error = Norm(DelX)/radius;
 	}
 	
-    #ifdef DEBUG
+    #ifdef PZDEBUG
 	if(iter == nMaxIter)
 	{
 		std::stringstream sout;

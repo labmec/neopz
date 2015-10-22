@@ -186,7 +186,7 @@ public:
   /** @brief indicates which variable should be post processed */
   void SetPostProcessIndex(int index)
   {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (index < 0)
     {
       DebugStop();

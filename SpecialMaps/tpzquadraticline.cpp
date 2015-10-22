@@ -71,7 +71,7 @@ void TPZQuadraticLine::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TP
     
     if(IsZero(detjac))
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         std::stringstream sout;
         sout << "Singular Jacobian " << detjac;
         LOGPZ_ERROR(logger, sout.str())

@@ -38,6 +38,8 @@
 
 #include <string>
 
+static bool gDebug = false;
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompclonemesh"));
 #endif
@@ -486,7 +488,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
     long nbc = bcelsides.NElements();
     long ibc;
     for(ibc = 0; ibc<nbc; ibc++) {
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZStack<TPZCompElSide> neighbours;
         bcelsides[ibc].EqualLevelCompElementList(neighbours, 1, 1);
         if (neighbours.NElements() != 0 || !bcelsides[ibc].Reference().Exists()) {
@@ -513,7 +515,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
 #endif
         TPZCompEl *celbc = NULL;
         celbc = bcelsides[ibc].Element()->CreateBCCompEl(bcelsides[ibc].Side(),-1000,*this);
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZStack<int> pordersafter;
         for (int ic=0; ic<nsideconnects; ic++) {
             int orderafter = (intel->SideConnect(ic, side))->Order();
@@ -961,7 +963,7 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
         fine->Reference()->Jacobian( int_point, jacfine , axesfine, jacdetfine, jacinvfine);
         fine->Reference()->X(int_point, xfine);
         if(f) f(xfine,truesol,truedsol);
-#ifdef DEBUG
+#ifdef PZDEBUG
         {
             for(int i=0; i<truesol.size(); i++)
             {

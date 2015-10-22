@@ -115,7 +115,7 @@ void TPZMatPoissonD3::Print(std::ostream &out) {
 void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 	int nref =  datavec.size();
 	if (nref != 2 ) {
         std::cout << " Erro. The size of the datavec is different from 2 \n";
@@ -358,7 +358,7 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
 {
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 	int nref =  dataleft.size();
 	if (nref != 2 ) {
         std::cout << " Error. This implementation needs only two computational meshes. \n";
@@ -366,7 +366,7 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
 	}
 #endif
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 	int bref =  bc.Val2().Rows();
 	if (bref != 2 ) {
         std::cout << " Erro. The size of the datavec is different from 2 \n";

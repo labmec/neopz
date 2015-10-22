@@ -23,7 +23,7 @@ TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STAT
 {
 	this->fE = E;
 	this->fPoisson = poisson;
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (force.NElements() != 3) PZError << __PRETTY_FUNCTION__ << " - error!" << std::endl;
 #endif  
 	int i;  
@@ -394,7 +394,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 #if !defined CODE0 && !defined CODE1 && !defined CODE2 && !defined CODE3
     DebugStop();
 #endif
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if ( !ek.VerifySymmetry( 1.e-8 ) ) PZError << __PRETTY_FUNCTION__ << "\nERROR - NON SYMMETRIC MATRIX" << std::endl;
 #endif
 }//method
@@ -786,7 +786,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
         for (int i=0; i<eigv.size(); i++) {
             Solout[i] = eigv[i];
         }
-#ifdef DEBUG        
+#ifdef PZDEBUG        
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
@@ -802,7 +802,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		bool result;
         result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
 		Solout[0] = PrincipalStress[0];
-#ifdef DEBUG        
+#ifdef PZDEBUG        
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
@@ -821,7 +821,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
         for (int i=0; i<eigv.size(); i++) {
             Solout[i] = eigv[i];
         }
-#ifdef DEBUG    
+#ifdef PZDEBUG    
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
@@ -837,7 +837,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		bool result;
         result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStrain);
 		Solout[0] = PrincipalStrain[0];
-#ifdef DEBUG    
+#ifdef PZDEBUG    
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
@@ -875,7 +875,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		REAL tol = TPZElasticity3D::gTolerance;
 		bool result;
         result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &PrincipalStress);
-#ifdef DEBUG        
+#ifdef PZDEBUG        
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}
@@ -1084,7 +1084,7 @@ void TPZElasticity3D::PrincipalDirection(TPZFMatrix<STATE> &DSol, TPZVec< STATE 
 	REAL tol = TPZElasticity3D::gTolerance;
 	bool result;
     result = StrainTensor.SolveEigensystemJacobi(numiterations, tol, Solout, Eigenvectors); //Solout is used to store Eigenvaleus, but its values will be replaced below
-#ifdef DEBUG        
+#ifdef PZDEBUG        
 	if (result == false){
 		PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 	}    

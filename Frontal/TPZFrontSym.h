@@ -123,7 +123,7 @@ public:
 private:    
 
 	TVar & Element4JGreatEqualI(long i, long j){
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(i>j){
       DebugStop();
     }

@@ -774,7 +774,7 @@ TPZCompMesh *DadosMalhas::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, bool tria
     }
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     int ncel = cmesh->NElements();
     for(int i =0; i<ncel; i++){
         TPZCompEl * compEl = cmesh->ElementVec()[i];
@@ -1569,7 +1569,7 @@ TPZCompMesh *DadosMalhas::CMeshPressureL2(TPZGeoMesh *gmesh, int pOrder, TPZVec<
     }
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     int ncel = cmesh->NElements();
     for(int i =0; i<ncel; i++){
         TPZCompEl * compEl = cmesh->ElementVec()[i];

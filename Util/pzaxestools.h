@@ -27,7 +27,7 @@ public:
 	 * @param axes Object to check if it is a orthogonal and normalized matrix
 	 */
 	static void VerifyAxes(const TPZFMatrix<TVar> &axes) {
-#ifdef DEBUG
+#ifdef PZDEBUG
 //		const double tol = 1.e-8;
 		bool check = true;
 		for(int i = 0; i < axes.Rows(); i++){

@@ -135,7 +135,7 @@ void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &datavec,REAL w
         }
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (this->IsSymetric()){
         if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
@@ -229,7 +229,7 @@ void TPZMatLaplacianLagrange::ContributeDPGPhil(TPZVec<TPZMaterialData> &datavec
         }
     }
 
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (this->IsSymetric()){
         if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
@@ -324,7 +324,7 @@ void TPZMatLaplacianLagrange::ContributeMDP(TPZVec<TPZMaterialData> &datavec,REA
     }
 
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (this->IsSymetric()){
         if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }

@@ -59,7 +59,7 @@ public:
         fDef[0].fIdf[1] = idf2;
         mesh.ConnectVec()[connect1].IncrementElConnected();
         mesh.ConnectVec()[connect2].IncrementElConnected();
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c1 = mesh.ConnectVec()[connect1];
         TPZConnect &c2 = mesh.ConnectVec()[connect2];
         if (idf1 >= c1.NShape()*c1.NState()) {

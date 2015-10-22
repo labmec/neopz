@@ -229,53 +229,53 @@ void TPZEqnArray<TVar>::Read(FILE * inputfile) {
 	sizereturn = 0;
 	/** Number of equations */
 	sizereturn = fread(&fNumEq,sizeof(int),1,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != 1) DebugStop();
 #endif
 	/** Last term added*/
 	sizereturn = fread(&fLastTerm,sizeof(int),1,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != 1) DebugStop();
 #endif
 	int aux=0;
 	/** TPZStack fEqStart data */
 	sizereturn = fread(&aux,sizeof(int),1,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != 1) DebugStop();
 #endif
 	fEqStart.Resize(aux);
 	sizereturn = fread(&fEqStart[0],sizeof(int), aux ,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != aux) DebugStop();
 #endif
 	/** TPZStack fEqNumber data */
 	sizereturn = fread(&aux,sizeof(int),1,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != 1) DebugStop();
 #endif
 	fEqNumber.Resize(aux);
 	sizereturn = fread(&fEqNumber[0],sizeof(int), aux ,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != aux) DebugStop();
 #endif
 	/** TPZStack fIndex data */
 	sizereturn = fread(&aux,sizeof(int),1,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != 1) DebugStop();
 #endif
 	fIndex.Resize(aux);
 	sizereturn = fread(&fIndex[0],sizeof(int), aux ,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != aux) DebugStop();
 #endif
 	/** TPZStack fEqValues data */
 	sizereturn = fread(&aux,sizeof(int),1,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != 1) DebugStop();
 #endif
 	fEqValues.Resize(aux);
 	sizereturn = fread(&fEqValues[0],sizeof(REAL), aux ,inputfile);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (sizereturn != aux) DebugStop();
 #endif
 	

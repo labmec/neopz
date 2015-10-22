@@ -85,7 +85,7 @@ TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const long dim, const TPZVec<long> &s
 /* IMPLEMENTAR
 void TPZSkylNSymMatrix::AddSameStruct(TPZSkylMatrix &B, double k)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
 {
 int size = this->fElem.NElements();
 if (size != B.fElem.NElements())
@@ -543,7 +543,7 @@ const TVar & TPZSkylNSymMatrix<TVar>::GetValSup(const long r, const long c)const
 
   long row(r), col(c);
   long index = col - row;
-#ifdef DEBUG
+#ifdef PZDEBUG
 
   if (row >= this->Dim() || col >= this->Dim() || row < 0 || col < 0)
   {
@@ -564,7 +564,7 @@ const TVar & TPZSkylNSymMatrix<TVar>::GetValB(const long r, const long c)const
 
   long row(r), col(c);
   long index = row - col;
-#ifdef DEBUG
+#ifdef PZDEBUG
 
   if (row >= this->Dim() || col >= this->Dim() || row < 0 || col < 0)
   {

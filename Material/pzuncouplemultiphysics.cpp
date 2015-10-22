@@ -16,7 +16,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-#ifdef DEBUG
+#ifdef PZDEBUG
 #define DEBUG2
 #endif
 static LoggerPtr logger(Logger::getLogger("pz.uncoupledmultiphysics"));

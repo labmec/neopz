@@ -450,7 +450,7 @@ public:
         eigenvalues[0] -= T(2.*G()*(1+sinpsi/3.)+2.*K()*sinpsi)*gamma;
         eigenvalues[1] += T((4.*G()/3. - K()*2.)*sinpsi)*gamma;
         eigenvalues[2] += T(2.*G()*(1-sinpsi/3.)-2.*K()*sinpsi)*gamma;
-#ifdef DEBUG
+#ifdef PZDEBUG
         phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi;
 #endif
         return (TPZExtractVal::val(eigenvalues[0])>TPZExtractVal::val(eigenvalues[1]) && TPZExtractVal::val(eigenvalues[1]) > TPZExtractVal::val(eigenvalues[2]));
@@ -555,7 +555,7 @@ public:
         }
 #endif
         
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //        gamma[0] = 0.;
 //        gamma[1] = 1.;
 //        T v[3];
@@ -645,7 +645,7 @@ public:
         eigenvalues[0] -= T(2.*GV*(1+sinpsi/3.)+2.*KV*sinpsi)*(gamma[0]+gamma[1]);
         eigenvalues[1] += T((4.*GV/3.- KV*2.)*sinpsi)*gamma[0]+T(2.*GV*(1.-sinpsi/3.)-2.*KV*sinpsi)*gamma[1];
         eigenvalues[2] += T(2.*GV*(1-sinpsi/3.)-2.*KV*sinpsi)*gamma[0]+T((4.*GV/3.-2.*KV)*sinpsi)*gamma[1];
-/*#ifdef DEBUG
+/*#ifdef PZDEBUG
         sigma_bar[0] = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*T(sinphi);
         sigma_bar[1] = eigenvalues[0]-eigenvalues[1]+(eigenvalues[0]+eigenvalues[1])*T(sinphi);
         //epsbar = T(state.fAlpha)+(gamma[0]+gamma[1])*T(2.*cosphi);

@@ -118,7 +118,7 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 		
         if(IsZero(detjac))
 		{
-#ifdef DEBUG
+#ifdef PZDEBUG
 			std::stringstream sout;
 			sout << "Singular Jacobian " << detjac;
 			LOGPZ_ERROR(logger, sout.str())

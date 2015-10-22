@@ -321,7 +321,7 @@ void InputDataStruct::UpdateActTime()
 
 void InputDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(fLeakoffmap.size() == 0)
     {//Se a fratura nao alcancou ainda a regiao elastica 2, este mapa estah vazio!!!
         DebugStop();
@@ -336,7 +336,7 @@ void InputDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
         ///////////////////////
         TPZCompEl * cel = cmesh->ElementVec()[i];
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!cel)
         {
             DebugStop();
@@ -389,7 +389,7 @@ void InputDataStruct::UpdateLeakoff(TPZCompMesh * cmesh)
         outVlCount++;
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(outVlCount < globFractInputData.GetLeakoffmap().size())
     {
         DebugStop();
@@ -539,7 +539,7 @@ int OutputDataStruct::NTimes()
 {
     int ntimes0 = fTposP.size();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     int ntimes1 = fTposVolLeakoff.size();
     int ntimes2 = fTAcumVolW.size();
     int ntimes3 = fTAcumVolLeakoff.size();
@@ -622,7 +622,7 @@ void OutputDataStruct::PlotElasticVTK(TPZAnalysis * an, int anCount)
 
 void OutputDataStruct::PrintMathematica(std::ofstream & outf)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(fTposP.size() == 0 || fTposVolLeakoff.size() == 0 || fTAcumVolW.size() == 0 || fTAcumVolLeakoff.size() == 0 || fTKI.size() == 0)
     {
         DebugStop();

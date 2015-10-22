@@ -556,7 +556,7 @@ namespace pztopology {
  */
 void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (permute.size() != 7 || transformid >= 6 || transformid < 0) {
         DebugStop();
     }

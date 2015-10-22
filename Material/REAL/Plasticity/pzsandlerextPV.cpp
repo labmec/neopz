@@ -329,7 +329,7 @@ void TPZSandlerExtended::SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE
     FromPrincipalToHWCyl(sigproj, sigHWCyl);
     xi = sigHWCyl[0];
     beta = sigHWCyl[2];
-#ifdef DEBUG
+#ifdef PZDEBUG
     STATE dist = DistF1(sigproj, xi, beta);
     if (fabs(dist) > ftol) {
         DebugStop();
@@ -373,7 +373,7 @@ void TPZSandlerExtended::SurfaceParamF2(TPZVec<STATE> &sigproj, STATE k, STATE &
     theta = atan2(sintheta, costheta);
     //theta = acos(costheta);
     //STATE theta2 = atan((rho*sin(beta))/xi);
-#ifdef DEBUG
+#ifdef PZDEBUG
     STATE err = 1.-sintheta*sintheta-costheta*costheta;
     STATE dist = DistF2(sigproj, theta, beta, k);
     if (fabs(dist) > ftol || err > ftol) {
@@ -1140,7 +1140,7 @@ void TPZSandlerExtended::ProjectSigma(const TPZVec<STATE> &sigtrial, STATE kprev
         if (yield[1]>0.)
         {
             ProjectF2(sigtrial,kprev,sigproj,kproj);
-#ifdef DEBUG
+#ifdef PZDEBUG
             {
                 TPZManVector<STATE> cyltr(3), cylproj(3);
                 FromPrincipalToHWCyl(sigtrial, cyltr);
@@ -1220,7 +1220,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             STATE theta,beta;
             SurfaceParamF2(sigproj, kproj, theta, beta);
             beta=0;
-            //#ifdef DEBUG
+            //#ifdef PZDEBUG
             //            if(fabs(sigproj[1]) > tol)
             //            {
             //                DebugStop();
@@ -1266,7 +1266,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
                 TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
                 STATE theta,beta;
                 SurfaceParamF2(sigproj, kproj, theta, beta);
-#ifdef DEBUG
+#ifdef PZDEBUG
                 if(fabs(theta - M_PI_2) > 1.e-8)
                 {
                     DebugStop();
@@ -1507,7 +1507,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
                 TPZFNMatrix<9,STATE> dbetadsigtrial(3,3), jacF2(3,3), DF2cart(3,3);
                 STATE theta,beta;
                 SurfaceParamF2(sigproj, kproj, theta, beta);
-#ifdef DEBUG
+#ifdef PZDEBUG
                 if(fabs(theta - M_PI_2) > 1.e-8)
                 {
                     DebugStop();

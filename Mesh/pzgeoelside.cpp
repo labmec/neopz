@@ -434,7 +434,7 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 
 TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(!NeighbourExists(neighbour))
 	{
 		stringstream sout;

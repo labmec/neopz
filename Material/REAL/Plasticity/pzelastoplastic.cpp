@@ -603,7 +603,7 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 		//sout << " Resultant rhs vector:\n" << ef;
 		LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
 	}
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //   if ( !ek.VerifySymmetry( 1.e-8 ) )
 //	{
 //		std::stringstream sout;
@@ -820,7 +820,7 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 		//sout << " Resultant rhs vector:\n" << ef;
 		LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
 	}
-    //#ifdef DEBUG
+    //#ifdef PZDEBUG
     //   if ( !ek.VerifySymmetry( 1.e-8 ) )
     //	{
     //		std::stringstream sout;
@@ -1007,7 +1007,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
 	EpsT.Add(locstate.fEpsT, 1.);
     locstate.fEpsT = EpsT;
 //    plasticloc.SetState(locstate);
-#ifdef debug
+#ifdef PZDEBUG
     CheckConvergence(data,DeltaStrain);
 #endif
 	
@@ -1087,7 +1087,7 @@ void TPZMatElastoPlastic<T,TMEM>::EigenValues(TPZFMatrix<REAL> & vectorTensor, T
     this->vectorToTensor(vectorTensor, Tensor);
     long numiterations = 1000;
     
-#ifdef DEBUG   
+#ifdef PZDEBUG   
 	bool result = Tensor.SolveEigenvaluesJacobi(numiterations, fTol, &ev);
     if (result == false){
       PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << fTol << std::endl;
@@ -1115,7 +1115,7 @@ void TPZMatElastoPlastic<T,TMEM>::EigenVectors(TPZFMatrix<REAL> &vectorTensor, T
     TPZFNMatrix<9> Eigenvectors(3,3);
 	
     long numiterations = 1000;
-#ifdef DEBUG  
+#ifdef PZDEBUG  
   bool result = Tensor.SolveEigensystemJacobi(numiterations, fTol, Eigenvalues, Eigenvectors);
   if (result == false){
     PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << fTol << std::endl;

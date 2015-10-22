@@ -223,7 +223,7 @@ void TPZGenSubStruct::SubStructure()
 				if(subels[sub].Reference().Dimension() == fDimension)
 				{
 					submesh->TransferElement(cmesh,subels[sub].Element()->Index());
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 					submesh->VerifyDatastructureConsistency();
 #endif
 				}

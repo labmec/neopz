@@ -223,7 +223,7 @@ void TPZMaterialTest3D::Read(TPZStream &buf, void *context)
 	TPZMaterial::Read(buf,context);
 	fXf.Read( buf,0 );
 	buf.Read( &geq3, 1);
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 	int classid = -1;
 	buf.Read( &classid,1 );
 	if( classid != ClassId() )
@@ -242,7 +242,7 @@ void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid)
 	TPZMaterial::Write(buf,withclassid);
 	fXf.Write( buf,0);
 	buf.Write( &geq3,1 );
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 	int classid = ClassId();
 	buf.Write( &classid,1 );
 #endif

@@ -269,7 +269,7 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(long ieq, TPZEqnArray<TVar> &eqnarr
 template <class TVar>
 void TPZFrontSym<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::STensorProductMTData *data){
   if(!data) DebugStop();
-#ifdef DEBUG
+#ifdef PZDEBUG
   TPZFrontSym<TVar> * matrix = dynamic_cast<TPZFrontSym<TVar> * > (data->fMat);
   if(matrix != this) DebugStop();
 #endif

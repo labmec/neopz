@@ -258,7 +258,7 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
         for (int i=0; i<3; i++) {
             Solout[i] = eigv[i];
         }
-#ifdef DEBUG    
+#ifdef PZDEBUG    
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
 		}

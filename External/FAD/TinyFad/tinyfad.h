@@ -104,7 +104,7 @@ public:
 template <int Num, class T> inline 
 TinyFad<Num,T>::TinyFad(const T& ind, const int ini) : n(ini+1), val_(ind)
 {
-#ifdef DEBUG_TINYFAD
+#ifdef PZDEBUG_TINYFAD
   std::cout << "TinyFad::TinyFad(const T& ind, const int ini), ind = " << ind << ", ini = " << ini << std::endl;
 #endif
   if ( ini >= 2 ) error("control number ini, out of bound ");
@@ -118,7 +118,7 @@ TinyFad<Num,T>::TinyFad(const T& ind, const int ini) : n(ini+1), val_(ind)
 template <int Num, class T> inline 
 TinyFad<Num,T>::TinyFad() : n(0), val_(0.)
 {
-#ifdef DEBUG_TINYFAD
+#ifdef PZDEBUG_TINYFAD
   std::cout << "TinyFad::TinyFad()" << std::endl;
 #endif
   for (int i=0; i<Num; ++i)
@@ -128,7 +128,7 @@ TinyFad<Num,T>::TinyFad() : n(0), val_(0.)
 template <int Num, class T> inline 
 TinyFad<Num,T>::TinyFad(const T& in) : n(0), val_(in)
 {
-#ifdef DEBUG_TINYFAD
+#ifdef PZDEBUG_TINYFAD
   std::cout << "TinyFad::TinyFad(const T& in)"  << std::endl;
 #endif
   for (int i=0; i<Num; ++i)
@@ -138,7 +138,7 @@ TinyFad<Num,T>::TinyFad(const T& in) : n(0), val_(in)
 template <int Num, class T> inline 
 TinyFad<Num,T>::TinyFad(const TinyFad<Num,T>& in) : n(0), val_(in.val_) 
 {
-#ifdef DEBUG_TINYFAD
+#ifdef PZDEBUG_TINYFAD
   std::cout << "TinyFad::TinyFad(const TinyFad& in)"  << std::endl;
 #endif
 
@@ -149,7 +149,7 @@ TinyFad<Num,T>::TinyFad(const TinyFad<Num,T>& in) : n(0), val_(in.val_)
 template <int Num, class T> inline 
 TinyFad<Num,T>::~TinyFad() 
 {
-#ifdef DEBUG_TINYFAD
+#ifdef PZDEBUG_TINYFAD
   std::cout << "TinyFad::~TinyFad()"  << std::endl;
 #endif
 }

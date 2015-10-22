@@ -435,7 +435,7 @@ TPZCompMesh * CMeshPressure(int pOrder,TPZGeoMesh * gmesh){
                 else celdisc->SetTensorialShape();
             }
         }
-#ifdef DEBUG
+#ifdef PZDEBUG
         int ncel = cmesh->NElements();
         for(int i =0; i<ncel; i++){
             TPZCompEl * compEl = cmesh->ElementVec()[i];

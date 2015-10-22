@@ -16,7 +16,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-#ifdef DEBUG
+#ifdef PZDEBUG
 #define DEBUG2
 #endif
 static LoggerPtr logger(Logger::getLogger("pz.material"));
@@ -344,7 +344,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
 	 }
 	 if ( forcingIdx == GFORCINGVEC.NElements() ) forcingIdx = -1;
 	 }
-	 #ifdef DEBUG2
+	 #ifdef PZDEBUG2
 	 {
 	 std::stringstream sout;
 	 sout << __PRETTY_FUNCTION__ << " writing forcing function index " << forcingIdx;
@@ -383,7 +383,7 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
     /*
 	 int forcingIdx = -1;
 	 buf.Read( &forcingIdx,1 );
-	 #ifdef DEBUG2
+	 #ifdef PZDEBUG2
 	 {
 	 std::stringstream sout;
 	 sout << " Read forcing function index " << forcingIdx;
@@ -394,7 +394,7 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
 	 if ( forcingIdx > -1 && forcingIdx < GFORCINGVEC.NElements() )
 	 {
 	 fForcingFunction = GFORCINGVEC[ forcingIdx ] ;
-	 #ifdef DEBUG2
+	 #ifdef PZDEBUG2
 	 {
 	 std::stringstream sout;
 	 sout << " Seting forcing function index " << forcingIdx;

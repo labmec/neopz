@@ -55,7 +55,7 @@ namespace pzshape {
 			dphi.Put(0, ord, value);
 		}
 		
-#ifdef DEBUG
+#ifdef PZDEBUG
 		int printing = 0;
 		if (printing){
 			cout << "Legendre" << endl;
@@ -113,7 +113,7 @@ namespace pzshape {
 			
 		}
 		
-#ifdef DEBUG
+#ifdef PZDEBUG
 		int printing = 0;
 		if (printing){
 			cout << "Legendre" << endl;

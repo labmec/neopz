@@ -183,7 +183,7 @@ void TPZFracAnalysis::Run()
       TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshMixed);
       TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
       
-#ifdef DEBUG
+#ifdef PZDEBUG
       std::ofstream out2("meshes2.txt");
       fgmesh->Print(out2);
       fmeshvec[0]->Print(out2);
@@ -198,7 +198,7 @@ void TPZFracAnalysis::Run()
       celBCMixed->PrepareIntPtIndices();
       // Vl eh resetado depois de inicializar o chute inicial de newton
       
-#ifdef DEBUG
+#ifdef PZDEBUG
       std::ofstream outvtk("newfrac.vtk");
       TPZVTKGeoMesh::PrintGMeshVTK(fgmesh, outvtk,true);
 #endif
@@ -292,7 +292,7 @@ TPZGeoMesh * TPZFracAnalysis::CreateGMesh()
   
   gmesh->BuildConnectivity();
   
-#ifdef DEBUG
+#ifdef PZDEBUG
   std::ofstream out("GeoMesh.vtk");
   TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
 #endif
@@ -329,7 +329,7 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshFluxH1()
   cmesh->SetAllCreateFunctionsContinuous();
   cmesh->AutoBuild();
   
-#ifdef DEBUG
+#ifdef PZDEBUG
   std::ofstream out("CMeshFluxH1.txt");
   cmesh->Print(out);
 #endif
@@ -379,7 +379,7 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshPressureL2()
     cmesh->Solution()(i,0) = fData->SigmaConf();
   }
   
-#ifdef DEBUG
+#ifdef PZDEBUG
   std::ofstream out("CMeshPressureL2.txt");
   cmesh->Print(out);
 #endif
@@ -430,7 +430,7 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshMixed(TPZFMatrix<STATE> vlMatrix)
     cel->PrepareIntPtIndices();
   }
   
-#ifdef DEBUG
+#ifdef PZDEBUG
   std::ofstream out("CMeshMultiPhysics.txt");
   cmesh->Print(out);
 #endif
@@ -759,7 +759,7 @@ TPZGeoEl* TPZFracAnalysis::CreateFirstGeoElWithBC()
   
   fgmesh->BuildConnectivity();
   
-#ifdef DEBUG
+#ifdef PZDEBUG
   std::ofstream out("GeoMesh.vtk");
   TPZVTKGeoMesh::PrintGMeshVTK(fgmesh, out, true);
 #endif
@@ -842,7 +842,7 @@ TPZGeoEl * TPZFracAnalysis::FindPressureBCElement()
       break;
     }
   }
-#ifdef DEBUG
+#ifdef PZDEBUG
   if (gel == NULL) {
     DebugStop();
   }
@@ -911,7 +911,7 @@ void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
     
     
     // Chanching value
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (celleft->NConnects() != 1 && cel->NConnects() != 1) {
       DebugStop();
     }
@@ -921,7 +921,7 @@ void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
     
     int seqleft = connectleft.SequenceNumber();
     int seq = connect.SequenceNumber();
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (block.Size(seqleft) != 1 && block.Size(seq) != 1) {
       DebugStop();
     }
@@ -950,7 +950,7 @@ void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
     }
     TPZGeoEl * gelsecondleft = neighsecondeleft.Element();
     TPZCompEl * celsecondleft = gelsecondleft->Reference();
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (celsecondleft->NConnects() != 1) {
       DebugStop();
     }
@@ -958,7 +958,7 @@ void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
     TPZConnect &connectsecondleft = celsecondleft->Connect(0);
     int seqsecondleft = connectsecondleft.SequenceNumber();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (block.Size(seqsecondleft) != 1) {
       DebugStop();
     }

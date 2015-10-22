@@ -182,7 +182,7 @@ int TPZMultiphysicsInterfaceElement::NConnects() const
 long TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 {
 
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (i < 0 || i >= fConnectIndexes.size()) {
         DebugStop();
     }
@@ -209,7 +209,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
     TPZGeoEl *leftgel = leftel->Reference();
     TPZGeoEl *rightgel = rightel->Reference();
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!leftel || !rightel) {
         DebugStop();
     }
@@ -300,7 +300,7 @@ void TPZMultiphysicsInterfaceElement::CreateIntegrationRule()
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!leftel || !rightel) {
         DebugStop();
     }
@@ -363,7 +363,7 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
     {
         TPZConnect &c = Connect(i);
         int ndof = Connect(i).NShape()*c.NState();
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (c.NDof(*Mesh()) != ndof) {
             DebugStop();
         }

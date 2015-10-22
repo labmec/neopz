@@ -16,13 +16,13 @@ TPZSloanRenumbering::~TPZSloanRenumbering(){
 }
 
 //#define DEBUG_SLOAN_RENUMBERING
-#ifdef DEBUG_SLOAN_RENUMBERING
+#ifdef PZDEBUG_SLOAN_RENUMBERING
 #include <fstream>
 std::ofstream myfile("c:\\Temp\\sloanrenumbering.txt");
 #endif
 void TPZSloanRenumbering::Resequence(TPZVec<long> &permGather, TPZVec<long> &permScatter){
 
-#ifdef DEBUG_SLOAN_RENUMBERING
+#ifdef PZDEBUG_SLOAN_RENUMBERING
    	time_t StartTime = time(NULL);
 #endif
 
@@ -33,7 +33,7 @@ void TPZSloanRenumbering::Resequence(TPZVec<long> &permGather, TPZVec<long> &per
   graph.fnodegraph.Shrink();
   graph.fnodegraphindex.Shrink();
 
-#ifdef DEBUG_SLOAN_RENUMBERING
+#ifdef PZDEBUG_SLOAN_RENUMBERING
   {
    	time_t finalTime = time(NULL);
   	const double elapsedtime = difftime(finalTime, StartTime);
@@ -60,7 +60,7 @@ void TPZSloanRenumbering::Resequence(TPZVec<long> &permGather, TPZVec<long> &per
       DistanceToEndNode[ node ] = ilevel;
     }//for iel
   }//for ilevel
-#ifdef DEBUG
+#ifdef PZDEBUG
   for(long i = 0; i < DistanceToEndNode.NElements(); i++){
     if(DistanceToEndNode[i] == -1){
       DebugStop();
@@ -148,7 +148,7 @@ void TPZSloanRenumbering::Resequence(TPZVec<long> &permGather, TPZVec<long> &per
     DebugStop();
   }
 
-#ifdef DEBUG
+#ifdef PZDEBUG
 {//verificando se ha duplicados
   std::set<long> check;
   for(long i = 0; i < nnodes; i++) check.insert(R[i]);
@@ -160,7 +160,7 @@ void TPZSloanRenumbering::Resequence(TPZVec<long> &permGather, TPZVec<long> &per
   permGather.Resize(nnodes);
   for(long i = 0; i < nnodes; i++) permGather[ permScatter[i] ] = i;
 
-#ifdef DEBUG_SLOAN_RENUMBERING
+#ifdef PZDEBUG_SLOAN_RENUMBERING
   {
    	time_t finalTime = time(NULL);
   	const double elapsedtime = difftime(finalTime, StartTime);
@@ -221,7 +221,7 @@ void TPZSloanRenumbering::Resequence2(TPZVec<long> &permGather, TPZVec<long> &pe
             DistanceToEndNode[ node ] = ilevel;
         }//for iel
     }//for ilevel
-#ifdef DEBUG
+#ifdef PZDEBUG
     for(long i = 0; i < DistanceToEndNode.NElements(); i++){
         if(DistanceToEndNode[i] == -1){
             DebugStop();

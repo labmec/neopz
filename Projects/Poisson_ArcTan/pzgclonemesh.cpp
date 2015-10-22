@@ -77,7 +77,7 @@ void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
             CloneElement(gel);
             // verificar se neighbour.Element ja esta no map --->>>> já é feito no CloneElement
             TPZGeoEl *localpatch = fMapElements[patch[i]];
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 			if (localpatch == 0) {
 				DebugStop();
 			}
@@ -101,7 +101,7 @@ void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd) {
     for(is=0; is<nsides; is++) {
         TPZGeoElSide elside(eltoadd,is);
         TPZGeoElSide neighbour = elside.Neighbour();
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (!neighbour.Element()) DebugStop();
 #endif
         while(neighbour != elside) {
@@ -127,7 +127,7 @@ void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd) {
                 fPatchElements.insert(localpatch);
             }
             neighbour = neighbour.Neighbour();
-#ifdef DEBUG
+#ifdef PZDEBUG
             if (!neighbour.Exists()) {
                 DebugStop();
             }

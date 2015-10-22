@@ -458,7 +458,7 @@ public:
 	
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	virtual void AutoBuild(){
-#ifdef DEBUG
+#ifdef PZDEBUG
         {
             TPZGeoMesh *gmesh = Reference();
             TPZCheckGeom check(gmesh);

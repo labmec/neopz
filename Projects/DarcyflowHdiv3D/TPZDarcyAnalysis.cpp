@@ -33,7 +33,7 @@
 #include "pzcondensedcompel.h"
 #include "pzelementgroup.h"
 
-#ifdef DEBUG
+#ifdef PZDEBUG
     #ifdef LOG4CXX
     static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow3D"));
     #endif
@@ -95,7 +95,7 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
     an->AssembleResidual();
     fResidualAtn = an->Rhs();
     
-    // #ifdef DEBUG
+    // #ifdef PZDEBUG
     //     #ifdef LOG4CXX
     //         if(logger->isDebugEnabled())
     //         {
@@ -116,7 +116,7 @@ void TPZDarcyAnalysis::AssembleNextStep(TPZAnalysis *an)
     an->Assemble();
     fResidualAtnplusOne = an->Rhs();
     
-    // #ifdef DEBUG
+    // #ifdef PZDEBUG
     //     #ifdef LOG4CXX
     //         if(logger->isDebugEnabled())
     //         {
@@ -134,7 +134,7 @@ void TPZDarcyAnalysis::UpDateAlphaVec(TPZFMatrix<REAL> &alpha)
     falphaAtn = alpha;
     falphaAtnplusOne = alpha;
     
-    // #ifdef DEBUG
+    // #ifdef PZDEBUG
     //     #ifdef LOG4CXX
     //         if(logger->isDebugEnabled())
     //         {
@@ -179,7 +179,7 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     falphaAtn = fcmeshdarcy->Solution();
     falphaAtnplusOne = fcmeshdarcy->Solution();
     
-    // #ifdef DEBUG
+    // #ifdef PZDEBUG
     //     #ifdef LOG4CXX
     //         if(logger->isDebugEnabled())
     //         {
@@ -202,7 +202,7 @@ void TPZDarcyAnalysis::Run()
 //    gRefDBase.InitializeUniformRefPattern(ETriangle);
 //    gRefDBase.InitializeUniformRefPattern(ECube);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     #ifdef LOG4CXX
         
         std::string FileName = dirname;
@@ -383,7 +383,7 @@ void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
     KGlobal =   an->Solver().Matrix();
     FGlobal =   an->Rhs();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     #ifdef LOG4CXX
         if(logger->isDebugEnabled())
         {
@@ -408,7 +408,7 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
     
 
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream dumpfile("ComputationaMeshMultiphysics.txt");
     fcmeshdarcy->Print(dumpfile);
 #endif
@@ -537,7 +537,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         iterations++;
         
         
-#ifdef DEBUG
+#ifdef PZDEBUG
     #ifdef LOG4CXX
             if(logger->isDebugEnabled())
             {
@@ -617,7 +617,7 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
         DInverse->Multiply(Residual, DeltaX);
         D.operator->()->Multiply(*DInverse, Identity);
         
-#ifdef DEBUG
+#ifdef PZDEBUG
 #ifdef LOG4CXX
         if(logger->isDebugEnabled())
         {
@@ -666,7 +666,7 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
             std::cout << "error of dx: " << normdx << std::endl;
             break;
         }
-#ifdef DEBUG
+#ifdef PZDEBUG
 #ifdef LOG4CXX
         if(logger->isDebugEnabled())
         {
@@ -1022,7 +1022,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
     cmesh->AutoBuild();
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("cmeshFlux.txt");
     cmesh->Print(out);
 #endif
@@ -1096,7 +1096,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     }
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("cmeshPress.txt");
     cmesh->Print(out);
 #endif
@@ -1152,7 +1152,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSw(int Sworder)
     cmesh->CleanUpUnconnectedNodes();
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("cmeshSw.txt");
     cmesh->Print(out);
 #endif
@@ -1208,7 +1208,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSo(int Soorder)
     cmesh->CleanUpUnconnectedNodes();
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("cmeshSo.txt");
     cmesh->Print(out);
 #endif
@@ -1308,7 +1308,7 @@ void TPZDarcyAnalysis::PrintGeoMesh()
 {
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     //  Print Geometrical Base Mesh
     std::ofstream argument("GeometicMesh.txt");
     fgmesh->Print(argument);
@@ -1546,7 +1546,7 @@ TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
     oldmat.Inverse( * PreInverse);
     oldmat.Multiply(*PreInverse, Identity);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {

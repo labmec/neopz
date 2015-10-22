@@ -177,7 +177,7 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         bound->SetSideOrient(8, -1);
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("CmeshFlux.txt");
     fFluxCmesh->Print(out);
 #endif
@@ -264,7 +264,7 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     
     TPZDummyFunction<STATE> dummy(PressFunc);
     TPZCompMeshTools::LoadSolution(fPressureCmesh.operator->(), dummy);
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("../CmeshPress.txt");
     fPressureCmesh->Print(out);
 #endif
@@ -447,7 +447,7 @@ void TRMSpaceOdissey::CreateH1Cmesh()
     
     fH1Cmesh->AutoBuild();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("../CmeshPressH1.txt");
     fH1Cmesh->Print(out);
 #endif

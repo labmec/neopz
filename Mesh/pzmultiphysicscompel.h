@@ -239,7 +239,7 @@ public:
 	virtual TPZCompEl *ReferredElement(long mesh)
 	{
 		
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (fElementVec.size() <= mesh) {
 			PZError << "Error at " << __PRETTY_FUNCTION__ << " index does not exist!\n";
 			DebugStop();

@@ -137,7 +137,7 @@ void *divide_parallel (void *arg)
 		{
 			TPZGeoEl * gel = imesh->ElementVec()[iel];
 			
-#ifdef DEBUG
+#ifdef PZDEBUG
 			if(!gel)
 			{
 				DebugStop();
@@ -248,7 +248,7 @@ int main_serial ()
             {
                 TPZGeoEl * gel = gmeshes[i]->ElementVec()[iel];
                 
-#ifdef DEBUG
+#ifdef PZDEBUG
                 if(!gel)
                 {
                     DebugStop();
@@ -1043,7 +1043,7 @@ void *divide(void *arg)
 	
 	TPZGeoEl * gel = imesh->ElementVec()[iel];
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(!gel)
 	{
 		DebugStop();
@@ -1186,7 +1186,7 @@ int main ()
 		{
 			TPZGeoEl * gel = gmesh->ElementVec()[iel];
 			
-			#ifdef DEBUG
+			#ifdef PZDEBUG
 			if(!gel)
 			{
 				DebugStop();

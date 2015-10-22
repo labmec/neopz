@@ -103,7 +103,7 @@ public:
 	
 	/** @brief Returns a pointer to the neighbour and the neighbourside along side of the current element */
 	virtual  TPZGeoElSide Neighbour(int side) {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (fNeighbours[side] < 0 || fNeighbours[side] >= this->Mesh()->NElements()) {
             DebugStop();
         }

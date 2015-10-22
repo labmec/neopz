@@ -45,7 +45,7 @@ public:
     /// set the corner where the singularity resides
     void SetCorner(int corner)
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (corner < 0 || corner > 3) {
             DebugStop();
         }

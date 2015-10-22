@@ -448,7 +448,7 @@ void TPZCondensedCompEl::LoadSolution()
         TPZConnect &con = Connect(ic);
         int sz = con.NShape()*con.NState();
         if (con.IsCondensed()) {
-#ifdef DEBUG
+#ifdef PZDEBUG
             if (dim1) {
                 DebugStop();
             }

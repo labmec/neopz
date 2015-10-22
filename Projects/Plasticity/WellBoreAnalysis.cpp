@@ -920,7 +920,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, int NumIter, std::ostr
         TPZMaterial * mat = fCurrentConfig.fCMesh.FindMaterial(BCId);
         TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
         if (!pBC) {
-    #ifdef DEBUG
+    #ifdef PZDEBUG
             DebugStop();
     #endif
         }
@@ -934,7 +934,7 @@ void TPZWellBoreAnalysis::ExecuteSimulation(int substeps, int NumIter, std::ostr
         TPZMaterial * mat = fCurrentConfig.fCMesh.FindMaterial(BCId);
         TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
         if (!pBC) {
-    #ifdef DEBUG
+    #ifdef PZDEBUG
             DebugStop();
     #endif
         }
@@ -1133,7 +1133,7 @@ void TPZWellBoreAnalysis::TConfig::LoadSolution()
     if (!matposs1 && !matposs2 && !matposs3 && !matposs4) {
         DebugStop();
     }
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (fSolution.Cols() > 1) {
         DebugStop();
     }
@@ -1487,7 +1487,7 @@ void TPZWellBoreAnalysis::TConfig::ApplyDeformation(TPZCompEl *cel)
         intel1->InitMaterialData(data1);
         data1.fNeedsSol = true;
         intel1->ComputeRequiredData(data1, qsi);
-#ifdef DEBUG
+#ifdef PZDEBUG
         {
             REAL diff = dist(data1.x,data2.x);
             if(diff > 1.e-6)
@@ -2285,7 +2285,7 @@ void TPZWellBoreAnalysis::TConfig::DeleteElementsAbove(REAL sqj2)
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         std::ofstream file("AdjustedMesh.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(fCMesh.Reference(), file, true);
@@ -2534,7 +2534,7 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<long> &elindices)
         listit->LoadSolution();
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::stringstream filename;
     filename << "applyhistory_" << startfrom << ".txt";
     std::ofstream out(filename.str().c_str());
@@ -2570,7 +2570,7 @@ void TPZWellBoreAnalysis::ApplyHistory(std::set<long> &elindices)
             listit->ApplyDeformation(cel);
             confindex++;
         }
-#ifdef DEBUG
+#ifdef PZDEBUG
         for (long ip = 0; ip<npoints; ip++) {
             long ind = pointindices[ip];
             pMatWithMem2->MemItem(ind).Print(out);
@@ -3492,7 +3492,7 @@ void TPZWellBoreAnalysis::TConfig::CreateGeometricMesh()
         std::cout << "from " << it->first << " to " << it->second << std::endl;
     }
     fGMesh.BuildConnectivity();
-#ifdef DEBUG2
+#ifdef PZDEBUG2
     std::ofstream outg("gmesh.txt");
     fGMesh.Print(outg);
     ClassifyNodesofRing();
@@ -3570,7 +3570,7 @@ void TPZWellBoreAnalysis::TConfig::AddGeometricRingElements()
             gelside.SetSide(5);
             neigh.SetSide(7);
             neigh.SetConnectivity(gelside);
-#ifdef DEBUG
+#ifdef PZDEBUG
             {
                 neigh = gelside.Neighbour();
                 while (neigh != gelside) {
@@ -3619,7 +3619,7 @@ void TPZWellBoreAnalysis::TConfig::AddGeometricRingElements()
 
 void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
 {
-    //#ifdef DEBUG
+    //#ifdef PZDEBUG
     //    TPZManVector<REAL,3> findel(3,0.),qsi(2,0.);
     //    findel[0] = 0.108;
     //    findel[1] = 0.0148;
@@ -3635,7 +3635,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
     {
         TPZGeoEl * bcGel = fGMesh.ElementVec()[el];
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!bcGel || !bcGel->IsLinearMapping())
         {
             DebugStop();
@@ -3647,7 +3647,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
             continue;
         }
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(bcGel->Dimension() != 1)
         {
             DebugStop();
@@ -3666,7 +3666,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
         int nodeIdlocal = 2;
         int nodeIdnodevec = -1;
         nodeIdnodevec = bcGel->NodeIndex(nodeIdlocal);
-#ifdef DEBUG
+#ifdef PZDEBUG
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
         {
@@ -3700,7 +3700,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
         }
         bool adjusted = true;  //ProjectNode(nodeCoord);
         
-#ifdef DEBUG
+#ifdef PZDEBUG
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
         {
@@ -3724,7 +3724,7 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
         TPZGeoElSide neighSide(bcSide.Neighbour());
         while(neighSide != bcSide)
         {
-            //#ifdef DEBUG
+            //#ifdef PZDEBUG
             //            long neighindex = neighSide.Element()->Index();
             //            if (neighindex == elindex) {
             //                std::cout << "I should stop\n";
@@ -4036,7 +4036,7 @@ void TPZWellBoreAnalysis::TConfig::CreateComputationalMesh(int porder)
     TPZCompMesh *compmesh1 = &fCMesh;
     int materialid = EReservoir;
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream sout("CreateComputationalMesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(&fGMesh, sout,true);
 #endif
@@ -4467,7 +4467,7 @@ STATE TPZWellBoreAnalysis::TConfig::ComputeFarFieldWork()
         }
         
     }
-#ifdef DEBUG
+#ifdef PZDEBUG
     cout << "\n WORK "<< work << endl;
 #endif
     return work;
@@ -4500,12 +4500,12 @@ void TPZWellBoreAnalysis::SaveConfig(std::stringstream &strout) {
     {
         fCurrentConfig.fSolution = fCurrentConfig.fCMesh.Solution();
     }
-    //#ifdef DEBUG
+    //#ifdef PZDEBUG
     //    std::cout << "Before putting the current config in the list\n";
     //    fCurrentConfig.PrintForcingFunction();
     //#endif
     fSequence.push_back(fCurrentConfig);
-    //#ifdef DEBUG
+    //#ifdef PZDEBUG
     //    std::cout << "After putting the current config in the list\n";
     //    fSequence.rbegin()->PrintForcingFunction();
     //#endif

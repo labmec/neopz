@@ -368,7 +368,7 @@ namespace pzshape {
 	int TPZShapeQuad::NConnectShapeF(int side, int order) {
 		if(side<4) return 1;//0 a 4
 		//   int s = side-4;//s = 0 a 14 ou side = 6 a 20
-#ifdef DEBUG
+#ifdef PZDEBUG
         {
 //            if(order <1) DebugStop();
         }

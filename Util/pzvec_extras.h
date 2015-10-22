@@ -25,7 +25,7 @@ void saxpy( TPZVec< T1 >& x, const TPZVec< T2 >& y, Scalar s )
 {
 	int size = x.NElements();
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if( size != y.NElements() ) {
 		PZError << "SAXPY error!" << std::endl
 		<< "Vectors with different sizes #x = " << size
@@ -116,7 +116,7 @@ double sdot(TPZVec< T1 > & x, TPZVec< T1 > & y)
 template < class T1 >
 REAL dist(TPZVec<T1> &vec1, TPZVec<T1> &vec2)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(vec1.size() != vec2.size())
     {
         DebugStop();
@@ -259,7 +259,7 @@ T Norm(const TPZVec< T > &one)
 template<class T>
 void Cross(const TPZVec <T> &x1, const TPZVec<T> &x2, TPZVec<T> &result)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
   if (x1.size() != 3) {
     DebugStop();
   }

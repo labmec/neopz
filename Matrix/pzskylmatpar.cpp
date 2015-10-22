@@ -141,7 +141,7 @@ template<class TVar>
 void TPZSkylParMatrix<TVar>::ColumnToWork(long &lcol) {
 	long neq = this->Dim();
 	long lcolentry = lcol;
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(lcolentry < 0 || lcolentry >= neq)
 	{
 		LOGPZ_ERROR(logger,"ColumnToWork called with wrong lcol argument")

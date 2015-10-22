@@ -138,7 +138,7 @@ int TPZIntelGen<TSHAPE>::NConnectShapeF(int connect) const{
 	int order = SideOrder(connect);
 	if(order < 0) return 0;
     int nshape = TSHAPE::NConnectShapeF(connect, order);
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(nshape < 0 )
     {
         order = SideOrder(connect);

@@ -32,7 +32,7 @@ TPZShapeDisc::~TPZShapeDisc(){
 
 
 void TPZShapeDisc::IntegratedLegendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, int n){
-#ifdef DEBUG
+#ifdef PZDEBUG
   if(IsZero(C)){
     DebugStop();
   }
@@ -94,7 +94,7 @@ void TPZShapeDisc::IntegratedLegendre(REAL C,REAL x0,REAL x,int degree,TPZFMatri
 }//method
 
 void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, int n){
-#ifdef DEBUG
+#ifdef PZDEBUG
   if(IsZero(C)){
     DebugStop();
   }
@@ -126,7 +126,7 @@ void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> 
 }
 
 void TPZShapeDisc::PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n){
-#ifdef DEBUG
+#ifdef PZDEBUG
   if(IsZero(C)){
     DebugStop();
   }
@@ -158,7 +158,7 @@ void TPZShapeDisc::PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFM
 }
 
 void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n){
-#ifdef DEBUG
+#ifdef PZDEBUG
   if(IsZero(C)){
     DebugStop();
   }
@@ -180,7 +180,7 @@ void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & 
 } //end of method
 
 void TPZShapeDisc::ChebyshevWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n){
-#ifdef DEBUG
+#ifdef PZDEBUG
   if(IsZero(C)){
     DebugStop();
   }
@@ -195,7 +195,7 @@ void TPZShapeDisc::ChebyshevWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMa
 
 
 void TPZShapeDisc::LegendreWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n){
-#ifdef DEBUG
+#ifdef PZDEBUG
   if(IsZero(C)){
     DebugStop();
   }

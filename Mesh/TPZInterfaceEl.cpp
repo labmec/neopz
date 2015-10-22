@@ -134,7 +134,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 	this->fRightElSide.SetElement( mesh.ElementVec()[copy.fRightElSide.Element()->Index()] );
 	this->fRightElSide.SetSide( copy.fRightElSide.Side() );
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
 		cout << "Something wrong with clone of interface element\n";
 		DebugStop();
@@ -185,7 +185,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
 	this->fRightElSide.SetElement( mesh.ElementVec()[gl2lcElIdx[cprgtIdx]] );
 	this->fRightElSide.SetSide( copy.fRightElSide.Side() );
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
 		cout << "Something wrong with clone of interface element\n";
 		DebugStop();
@@ -224,7 +224,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceEle
 	this->fRightElSide.SetElement( mesh.ElementVec()[copy.fRightElSide.Element()->Index()] );
 	this->fRightElSide.SetSide( copy.fRightElSide.Side() );
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if( !fLeftElSide.Element() || ! fRightElSide.Element() ) {
 		cout << "TPZInterfaceElement::TPZInterfaceElement Something wrong with clone of interface element\n";
 		DebugStop();
@@ -260,7 +260,7 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,long &index
 void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(!mat || mat->Name() == "no_name"){
 		PZError << "TPZInterfaceElement::CalcResidual interface material null, do nothing\n";
 		ef.Reset();
@@ -272,7 +272,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 	TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
 	TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (!left || !right){
 		PZError << "\nError at TPZInterfaceElement::CalcResidual null neighbour\n";
 		ef.Reset();
@@ -337,7 +337,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 		TransfLeft.Apply( intpoint, LeftIntPoint );
 		TransfRight.Apply( intpoint, RightIntPoint );
 		
-#ifdef DEBUG
+#ifdef PZDEBUG
 		this->CheckConsistencyOfMappedQsi(this->LeftElementSide(), intpoint, LeftIntPoint);
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
@@ -791,7 +791,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
 	TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (!left || !right){
 		PZError << "\nError at TPZInterfaceElement::InitializeElementMatrix null neighbour\n";
 		ef.Reset();
@@ -834,7 +834,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	for(long i = 0; i < n; i++) {
 		const unsigned int nshape = left->NConnectShapeF(i);
 		const int con_neq = nstatel * nshape;
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = left->Connect(i);
         if(c.NShape() != nshape || c.NState() != nstatel)
         {
@@ -849,7 +849,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	for(long i = 0; i < n; i++) {
 		const unsigned int nshape = right->NConnectShapeF(i);
 		const int con_neq = nstater * nshape;
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = right->Connect(i);
         if (c.NShape() != nshape || c.NState() != nstater) {
             DebugStop();
@@ -869,7 +869,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
 	TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (!left || !right){
 		PZError << "\nError at TPZInterfaceElement::InitializeElementMatrix null neighbour\n";
 		ek.Reset();
@@ -913,7 +913,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	TPZStack<STATE> solutionvec;
 #endif
 	
@@ -922,7 +922,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	for(int i = 0; i < n; i++) {
 		const unsigned int nshape = left->NConnectShapeF(i);
 		const int con_neq = nstatel * nshape;
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = left->Connect(i);
         if(c.NShape() != nshape || c.NState() != nstatel)
         {
@@ -933,7 +933,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		ef.fBlock.Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexL[i];
 		(ek.fConnect)[ic] = ConnectIndexL[i];
-#ifdef DEBUG
+#ifdef PZDEBUG
 		TPZConnect &con = Mesh()->ConnectVec()[ConnectIndexL[i]];
 		long seqnum = con.SequenceNumber();
 		int blsize = Mesh()->Block().Size(seqnum);
@@ -949,7 +949,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	for(long i = 0; i < n; i++) {
 		const unsigned int nshape = right->NConnectShapeF(i);
 		const int con_neq = nstater * nshape;
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = right->Connect(i);
         if (c.NShape() != nshape || c.NState() != nstater) {
             DebugStop();
@@ -959,7 +959,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		ef.fBlock.Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexR[i];
 		(ek.fConnect)[ic] = ConnectIndexR[i];
-#ifdef DEBUG
+#ifdef PZDEBUG
 		TPZConnect &con = Mesh()->ConnectVec()[ConnectIndexR[i]];
 		long seqnum = con.SequenceNumber();
 		int blsize = Mesh()->Block().Size(seqnum);
@@ -971,7 +971,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 #endif
 		ic++;
 	}
-#ifdef DEBUG
+#ifdef PZDEBUG
 #ifdef LOG4CXX
 	if(logdata->isDebugEnabled())
 	{
@@ -1042,7 +1042,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     InitMaterialData(data);
 	
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if( !dataleft.x.size() ||!dataright.x.size() ){
 		PZError << "\n Error at TPZInterfaceElement::CalcStiff null interface\n";
 		ek.Reset();
@@ -1139,7 +1139,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		TransfLeft.Apply( intpoint, LeftIntPoint );
 		TransfRight.Apply( intpoint, RightIntPoint );
 		
-#ifdef DEBUG
+#ifdef PZDEBUG
 		this->CheckConsistencyOfMappedQsi(this->LeftElementSide(), intpoint, LeftIntPoint);
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
@@ -1357,7 +1357,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 		TransfLeft.Apply( intpoint, LeftIntPoint );
 		TransfRight.Apply( intpoint, RightIntPoint );
 		
-#ifdef DEBUG
+#ifdef PZDEBUG
 		this->CheckConsistencyOfMappedQsi(this->LeftElementSide(), intpoint, LeftIntPoint);
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
@@ -1488,7 +1488,7 @@ void TPZInterfaceElement::MapQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZ
 	TPZTransform Transf;
 	this->ComputeSideTransform(Neighbor, Transf);
 	Transf.Apply( qsi, NeighIntPoint );
-#ifdef DEBUG
+#ifdef PZDEBUG
 	this->CheckConsistencyOfMappedQsi(Neighbor, qsi, NeighIntPoint);
 #endif
 }//MapQsi
@@ -1636,7 +1636,7 @@ void TPZInterfaceElement::BuildCornerConnectList(std::set<long> &connectindexes)
 {
     TPZCompEl *left = LeftElement();
     TPZCompEl *right = RightElement();
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!left || !right ) {
         DebugStop();
     }

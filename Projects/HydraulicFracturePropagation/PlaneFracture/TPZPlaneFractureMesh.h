@@ -51,7 +51,7 @@ public:
     
     locFracture2DEl(TPZGeoEl * gel)
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(gel->HasSubElement())
         {
             std::cout << "The special kind of element locFracture2DEl cant be already refined!\n";
@@ -75,7 +75,7 @@ public:
             fEdge.insert(6);
             fEdge.insert(7);
         }
-#ifdef DEBUG
+#ifdef PZDEBUG
         else
         {
             std::cout << "The special kind of element locFracture2DEl can be just 2D!\n";

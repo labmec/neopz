@@ -65,7 +65,7 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
   
   if(fNotContribute) return;
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     int nref =  datavec.size();
     if (nref != 2 )
     {

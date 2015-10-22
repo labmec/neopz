@@ -956,7 +956,7 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 		
 		nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),expblockgraph,expblockgraphindex);
 #ifdef LOG4CXX
-#ifdef DEBUG2
+#ifdef PZDEBUG2
         if (logger->isDebugEnabled())
         {
             std::map<long,long> blocksizes;

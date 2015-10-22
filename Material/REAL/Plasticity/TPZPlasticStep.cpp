@@ -1745,7 +1745,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     // updating output variables
     //for(i=0; i<6; i++) Np1.fEpsP.fData[i] = Np1_FAD.EpsP().fData[i].val();
     //Np1.fAlpha = Np1_FAD.Alpha().val();
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (switchvalid == 3) {
         std::cout << __FUNCTION__ << " should stop switchvalid\n";
     }

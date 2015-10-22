@@ -2844,7 +2844,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 		x1[0] = x1[1] = 0.;
 		gen2.SetBC(gmesh2, x0, x1, -2);
 		
-#ifdef DEBUG
+#ifdef PZDEBUG
 		sprintf(saida,"original.vtk");
 		PrintGeoMeshInVTKWithDimensionAsData(gmesh,saida);
 		sprintf(saida,"meshes.vtk");
@@ -2855,7 +2855,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 		TPZExtendGridDimension gmeshextend(gmesh2,0.3);
 		TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(2,-5,-6);
 		if(gmesh3D && gmesh3D->NElements() < 400) gmesh3D->Print();
-#ifdef DEBUG
+#ifdef PZDEBUG
 		sprintf(saida,"meshextrudedend.vtk");
 		PrintGeoMeshInVTKWithDimensionAsData(gmesh3D,saida);
 #endif
@@ -2972,14 +2972,14 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 	/* Uniform refinement. Two times
 	 UniformRefinement(2,gmesh3D,3);
 	 
-	 #ifdef DEBUG
+	 #ifdef PZDEBUG
 	 sprintf(saida,"meshrefined.vtk");
 	 PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 	 #endif
 	 
 	 // Creating a computational mesh (interpolation space)
 	 TPZCompMesh *cmesh = CreateMeshMultires(gmesh3D);
-	 #ifdef DEBUG
+	 #ifdef PZDEBUG
 	 sprintf(saida,"aftercmesh.vtk");
 	 PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 	 #endif
@@ -2988,7 +2988,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 	 REAL timeStep;
 	 timeStep = ComputeTimeStep(1.,L,cmesh->Reference());
 	 
-	 #ifdef DEBUG
+	 #ifdef PZDEBUG
 	 {
 	 ofstream malhas("malhas.vtk");
 	 cmesh->Print(malhas);
@@ -3014,7 +3014,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 	 
 	 double Epsl = 1.e12;
 	 an.MultiResolution( Epsl );
-	 #ifdef DEBUG
+	 #ifdef PZDEBUG
 	 sprintf(saida,"meshInitialSol.vtk");
 	 TPZVTKGeoMesh::PrintGMeshVTK(gmesh3D,saida,0);
 	 #endif

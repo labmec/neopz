@@ -88,7 +88,7 @@ void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &data,REAL weig
     ek(phr,phr+1) += weight;
     //ek(phr,phr) -= 1.*(STATE)weight;
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (this->IsSymetric()){
         if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }

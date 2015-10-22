@@ -251,7 +251,7 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
             res[1] = sqrt(J2) - FI1;
         }
         res[0] = I1-T(lmax);
-#ifdef DEBUG
+#ifdef PZDEBUG
         {
             std::stringstream sout;
             T sqj2 = J2;

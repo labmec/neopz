@@ -392,7 +392,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
         TPZConnect &c = Connect(i);
         int nstate = c.NState();
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         int cNShape = c.NShape();
         if(cNShape != nshape || nstate != numdof)
         {
@@ -428,7 +428,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int nshapec = NConnectShapeF(i);
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = Connect(i);
         if (c.NShape() != nshapec || c.NState() != numdof) {
             DebugStop();
@@ -735,7 +735,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 		
 		
 		/** GeoBlend verifications ***/
-#ifdef DEBUG
+#ifdef PZDEBUG
 		{
 			TPZGeoEl * faceGel = newcreatedinterface->Reference();
 			TPZGeoEl * leftGel = newcreatedinterface->LeftElement()->Reference();
@@ -864,7 +864,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
             }
         }		
 		/** GeoBlend verifications ***/
-#ifdef DEBUG
+#ifdef PZDEBUG
 		{
 			TPZGeoEl * faceGel = newcreatedinterface->Reference();
 			TPZGeoEl * leftGel = newcreatedinterface->LeftElement()->Reference();
@@ -1370,7 +1370,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	for(in=0;in<cornod; in++) {
 		int c = connectlistcoarse[in];
 		unsigned int blsize = coarsel.Mesh()->ConnectVec()[c].NDof(*(coarsel.Mesh()))/nvar;
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &con = coarsel.Mesh()->ConnectVec()[c];
         if(con.NShape() != blsize)
         {
@@ -1410,7 +1410,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	
 	for(in = 0; in < locnod; in++) {
         unsigned int nshape = NConnectShapeF(in);
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = Connect(in);
         if(c.NShape() != nshape)
         {

@@ -60,7 +60,7 @@ REAL TPZMatfrac1dhdiv::Getdwdp()
 void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
   
-#ifdef DEBUG
+#ifdef PZDEBUG
   int nref =  datavec.size();
   if (nref != 2 )
   {
@@ -352,7 +352,7 @@ void TPZMatfrac1dhdiv::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
     return;
   }
   
-#ifdef DEBUG
+#ifdef PZDEBUG
   int nref =  datavec.size();
   if (nref != 2 )
   {

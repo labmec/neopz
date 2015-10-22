@@ -985,7 +985,7 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &datag
 void PrintDataMeshVTK(TPZCompMesh *cmesh, char *filename,TPZFMatrix<REAL> &elData)
 {
 	std::ofstream file(filename);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(!file.is_open())
 		DebugStop();
 #endif

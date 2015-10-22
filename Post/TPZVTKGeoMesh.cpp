@@ -466,7 +466,7 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, TPZV
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVector<int> &elData)
 {
 	std::ofstream file(filename);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(!file.is_open())
 		DebugStop();
 #endif
@@ -562,7 +562,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<REAL> &elData)
 {
 	std::ofstream file(filename);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(!file.is_open())
 		DebugStop();
 #endif
@@ -656,7 +656,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<REA
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<TPZVec<REAL> > &elData)
 {
 	std::ofstream file(filename);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(!file.is_open())
 		DebugStop();
 #endif
@@ -762,7 +762,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZVec<TPZ
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, const char *filename, int var)
 {
 	std::ofstream file(filename);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(!file.is_open())
 		DebugStop();
 #endif

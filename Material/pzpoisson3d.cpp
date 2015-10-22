@@ -1229,7 +1229,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 	Solution(rightu,rightdudx,fake_axes,1,Rsol);
 	Solution(rightu,rightdudx,fake_axes,2,Rdsol);
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if ( (leftdudx.Rows() != rightdudx.Rows()) || (leftdudx.Rows() != du_exact.Rows()) ){
 		PZError << "TPZMatPoisson3d::InterfaceErrors - Left and right matrices should have" 
 	    << endl 

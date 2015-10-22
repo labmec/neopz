@@ -166,7 +166,7 @@ TPZCompEl::~TPZCompEl() {
         fMesh->ElementVec()[index] = 0;
         fMesh->ElementVec().SetFree(index);        
     }
-#ifdef DEBUG
+#ifdef PZDEBUG
 	TPZGeoEl *gel = Reference();
 	if (gel && gel->Reference()) {
 		DebugStop();
@@ -244,7 +244,7 @@ void TPZCompEl::LoadSolution() {
         long seqnumdest = Mesh()->ConnectVec()[connectdest].SequenceNumber();
         int destidf = it->fFaces[0].second;
         REAL mult = -1./it->fOrient[0];
-#ifdef DEBUG
+#ifdef PZDEBUG
         STATE prevval = Mesh()->Block()(seqnumdest,0,destidf,0);
 #endif
         Mesh()->Block()(seqnumdest,0,destidf,0) = 0.;
@@ -256,7 +256,7 @@ void TPZCompEl::LoadSolution() {
             REAL multorig = it->fOrient[i];
             Mesh()->Block()(seqnumdest,0,destidf,0) += mult*multorig*val;
         }
-#ifdef DEBUG
+#ifdef PZDEBUG
         STATE finalval = Mesh()->Block()(seqnumdest,0,destidf,0);
         finalval -= prevval;
 #endif

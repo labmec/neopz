@@ -100,7 +100,7 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 	int nref =  datavec.size();
 	if (nref != 2 ) {
         std::cout << " Erro. The size of the datavec is different from 2 \n";
@@ -328,7 +328,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 //void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //	int nref =  datavec.size();
 //	if (nref != 2 ) {
 //        std::cout << " Erro. The size of the datavec is different from 2 \n";
@@ -506,7 +506,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     int nref =  datavec.size();
 	if (nref != 2 ) {
         std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";

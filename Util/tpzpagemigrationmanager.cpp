@@ -176,7 +176,7 @@ void TPZPageMigrationManager::MigrateToLocalMbind(char* start, unsigned long lon
     }
     else
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
         fprintf(stderr,"mbind(start=%ld, sz=%ld, MPOL_BIND, nodemask = %08ld (node = %d), maxnode = %lu, MPOL_MF_MOVE) = %d\n",
                 page_start, nbytes, nodemask, node, maxnode, ret);
 #endif
@@ -220,7 +220,7 @@ void TPZPageMigrationManager::MigrateToLocalHwloc(char* start, unsigned long lon
     }
     char buffer[256];
     hwloc_bitmap_snprintf(buffer,256,last);
-#ifdef DEBUG
+#ifdef PZDEBUG
     printf("migrate: start = 0x%ld, page_start = 0x%ld, #bytes = %ld (nbytes = %ld), last = %s, getcpu(cpu=%d,node=%d)\n", 
            (long) start, (long) page_start, (long) size_in_bytes, nbytes, buffer,cpu,node);
 #endif

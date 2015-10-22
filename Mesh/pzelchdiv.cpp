@@ -403,7 +403,7 @@ int TPZCompElHDiv<TSHAPE>::NSideConnects(int side) const{
 
 template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::SideConnectLocId(int node,int side) const {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(TSHAPE::SideDimension(side)<= TSHAPE::Dimension - 2 || node >= NSideConnects(side)) {
 		PZError << "TPZCompElHDiv<TSHAPE>::SideConnectLocId no connect associate " <<  endl;
 		return -1;
@@ -876,7 +876,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
         int ic = TSHAPE::ContainedSideLocId(side,is);
         nsideshape += TSHAPE::NConnectShapeF(ic,order);
     }
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (nsideshape != this->NSideShapeF(side)) {
         DebugStop();
     }

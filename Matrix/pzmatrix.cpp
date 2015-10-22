@@ -31,7 +31,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
-#ifdef DEBUG
+#ifdef PZDEBUG
 #define DEBUG2
 #endif
 
@@ -1497,7 +1497,7 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(long &numiterations, REAL & tol, TP
 	long NumIt = numiterations;
 	REAL tolerance = tol;
 	
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 	if (this->Rows() != this->Cols())
 	{
 		PZError << __PRETTY_FUNCTION__ <<
@@ -1584,7 +1584,7 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(long &numiterations, REAL & tol, TP
 			Eigenvectors(eigen,i) = val;
         }
 		
-#ifdef DEBUG2
+#ifdef PZDEBUG2
         double norm = 0.;
         for(long i = 0; i < size; i++) norm += fabs(VecIni(i,0)) * fabs(VecIni(i,0));
         if (fabs(norm - 1.) > 1.e-10)
@@ -1638,7 +1638,7 @@ bool TPZMatrix<TFad<6,REAL> >::SolveEigenvaluesJacobi(long &numiterations, REAL 
 template <class TVar>
 bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(long &numiterations, REAL & tol, TPZVec<TVar> * Sort){
 	
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 	if (this->Rows() != this->Cols()){
 		PZError << __PRETTY_FUNCTION__ << " - Jacobi method of computing eigenvalues requires a symmetric square matrix. this->Rows = " << this->Rows() << " - this->Cols() = " << this->Cols() << endl;
 		return false;
@@ -1714,7 +1714,7 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(long &numiterations, REAL & tol, TP
             myset.insert( (TPZExtractVal::val(exps)) );
         }
 		
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 		if ((long)myset.size() != size) PZError << __PRETTY_FUNCTION__ << " - ERROR!" << endl;
 #endif
 		

@@ -173,7 +173,7 @@ public:
         }
         vexpand.Zero();
 
-#ifdef DEBUG
+#ifdef PZDEBUG
         {
             for(long i=0; i<neqcondense; i++)
             {
@@ -240,7 +240,7 @@ public:
             while (fDestIndices[skyl] == -1 && skyl < fNumEq) {
                 skyl++;
             }
-#ifdef DEBUG
+#ifdef PZDEBUG
             // all active equations should have a destination
             if (skyl > fActiveEqs[ieq] || fDestIndices[skyl] < 0) {
                 DebugStop();

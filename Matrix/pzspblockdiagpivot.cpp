@@ -26,7 +26,7 @@ int TPZSpBlockDiagPivot<TVar>::Decompose_LU(){
 	}
 	
 	this->fPivotIndices.Resize( this->fBlock.NElements() );
-#ifdef DEBUG  
+#ifdef PZDEBUG  
 	this->fPivotIndices.Fill( -1 );
 #endif
 	TPZManVector<int> pivot;
@@ -44,7 +44,7 @@ int TPZSpBlockDiagPivot<TVar>::Decompose_LU(){
 		pivotindex += bsize;
 	}
 	this->fDecomposed = ELUPivot;
-#ifdef DEBUG
+#ifdef PZDEBUG
 	{
 		int n = this->fPivotIndices.NElements();
 		for(int i = 0; i < n; i++){

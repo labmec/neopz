@@ -47,7 +47,7 @@ void TPZRenumbering::NodeToElGraph(TPZVec<long> &elgraph, TPZVec<long> &elgraphi
 			long gnod = elgraph[nod];
             nodtoelgraph[nodtoelgraphposition[gnod]] = el;
             nodtoelgraphposition[gnod]++;
-#ifdef DEBUG
+#ifdef PZDEBUG
             if (nodtoelgraphposition[gnod] > nodtoelgraphindex[gnod+1]) {
                 PZError << __PRETTY_FUNCTION__ << " wrong data structure\n";
             }

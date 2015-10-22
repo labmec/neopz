@@ -55,7 +55,7 @@ TPZCompEl *TPZCompElLagrange::ClonePatchEl(TPZCompMesh &mesh,
 void TPZCompElLagrange::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
     InitializeElementMatrix(ek, ef);
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (ef.fMat.Cols() != 1) {
         DebugStop();
     }

@@ -168,7 +168,7 @@ void TPZMDPMaterial::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
         }
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 //    if (ek.VerifySymmetry()){
 //        cout << __PRETTY_FUNCTION__ << "\nMATRIZ SIMETRICA" << endl;
 //        //DebugStop()

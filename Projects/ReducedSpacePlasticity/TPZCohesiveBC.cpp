@@ -47,7 +47,7 @@ void TPZCohesiveBC::SetCohesiveData(const REAL &SigmaT, const REAL &DeltaC, cons
 
 void TPZCohesiveBC::CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sigma, REAL &propageted) const
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
   if (w>=0 && propageted > 1.) { // if it is already propageted sigma is always zero, but i already do this check in the contribute
     DebugStop(); // i hope it never gets here
   }
@@ -74,7 +74,7 @@ void TPZCohesiveBC::CalculateSigma(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &sig
 void TPZCohesiveBC::CalculateCohesiveDerivative(REAL &w,REAL &DeltaT, REAL &SigmaT, REAL &deriv, REAL &propageted) const
 {
  
-#ifdef DEBUG
+#ifdef PZDEBUG
   if (w>=0 && propageted > 1.) { // if it is already propageted deriv is always zero, but i already do this check in the contribute
     DebugStop();
   }

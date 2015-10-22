@@ -1592,7 +1592,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 	for(i=0;i<ncon;i++)
     {
         unsigned int nshape = NConnectShapeF(i);
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = Connect(i);
         if (c.NShape() != nshape || c.NState() != numdof) {
             DebugStop();
@@ -1716,7 +1716,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
 	
 	for (i = 0; i < ncon ; i++)	{
         int nshape = NConnectShapeF(i);
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = Connect(i);
         if(c.NShape() != nshape || c.NState() != numdof)
         {

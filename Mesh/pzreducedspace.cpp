@@ -69,7 +69,7 @@ int TPZReducedSpace::NShapeF() const
 /** @brief Returns the number of shapefunctions associated with a connect*/
 int TPZReducedSpace::NConnectShapeF(int inod) const
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (inod != 0) {
         DebugStop();
     }
@@ -213,7 +213,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
     TPZMaterial *mat = this->Material();
 	const int numdof = 1;
 	const int ncon = this->NConnects();
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (ncon != 1) {
         DebugStop();
     }
@@ -230,7 +230,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int nshape = NConnectShapeF(i);
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = Connect(i);
         if(c.NShape() != nshape || c.NState() != numdof)
         {
@@ -255,7 +255,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ef)
     TPZMaterial *mat = this->Material();
 	const int numdof = 1;
 	const int ncon = this->NConnects();
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (ncon != 1) {
         DebugStop();
     }
@@ -269,7 +269,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ef)
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int nshape = NConnectShapeF(i);
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = Connect(i);
         if(c.NShape() != nshape || c.NState() != numdof)
         {
@@ -301,7 +301,7 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
     TPZCompMesh *cmesh = Mesh();
     TPZCompMeshReferred *cmeshref = dynamic_cast<TPZCompMeshReferred *>(cmesh);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!cmeshref) {
         DebugStop();
     }
@@ -309,7 +309,7 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
     
     TPZCompEl *cel = cmeshref->ReferredEl(Index());
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!cel) {
         DebugStop();
     }
@@ -317,7 +317,7 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
     
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
 
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!intel) {
         DebugStop();
     }
@@ -341,7 +341,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     const int ncon = this->NConnects();
     if (ncon != 1) {
         DebugStop();
@@ -367,7 +367,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     int dfvar = block.Size(dfseq);
     long pos = block.Position(dfseq);
     for(int jn=0; jn<dfvar; jn++) {
-#ifdef DEBUG
+#ifdef PZDEBUG
         {
             if(phi.Rows() != numdof)
             {

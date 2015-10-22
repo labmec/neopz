@@ -473,7 +473,7 @@ void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
             long seqloc = conloc.SequenceNumber();
             int blsz = this->Mesh()->Block().Size(seq);
 
-#ifdef DEBUG
+#ifdef PZDEBUG
             int blszloc = cel->Mesh()->Block().Size(seqloc);
             if (blsz != blszloc) {
                 DebugStop();

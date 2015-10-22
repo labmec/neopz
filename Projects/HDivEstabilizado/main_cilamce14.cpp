@@ -740,7 +740,7 @@ TPZCompMesh *CMeshPressure2(int pOrder,TPZGeoMesh *gmesh)
         }
 
 
-        #ifdef DEBUG
+        #ifdef PZDEBUG
         int ncel = cmesh->NElements();
         for(int i =0; i<ncel; i++){
             TPZCompEl * compEl = cmesh->ElementVec()[i];

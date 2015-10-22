@@ -52,7 +52,7 @@ namespace pzgeom {
         
         void SetDataPhiTheta(const TPZFMatrix<REAL> &phitheta)
         {
-#ifdef DEBUG
+#ifdef PZDEBUG
             if (phitheta.Rows() != 3 || phitheta.Cols() != 4) {
                 DebugStop();
             }
@@ -62,7 +62,7 @@ namespace pzgeom {
 		
         void SetDataRadius(const REAL &R, const REAL &r)
         {
-#ifdef DEBUG
+#ifdef PZDEBUG
             if (R < r) 
 			{
                 DebugStop();

@@ -126,7 +126,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	for(isub=0; isub<nsub; isub++)
 	{
 		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
-#ifdef DEBUG
+#ifdef PZDEBUG
 		std::cout << '.'; std::cout.flush();
 #endif
 		if(!submesh) 
@@ -150,7 +150,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 #endif
 		
 		submesh->Permute(perm);
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 		std::stringstream filename;
 		filename << "SubMatrix" << submesh->Index() << ".vtk";
 		TPZFMatrix<REAL> fillin(50,50);
@@ -160,7 +160,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	}		
 	
 	tempo.ft1comput = timeforcopute.ReturnTimeDouble(); //end of time for compute
-#ifdef DEBUG
+#ifdef PZDEBUG
 	std::cout << tempo.ft1comput << std::endl;
 	std::cout << "Identifying corner nodes\n";
 	TPZfTime timefornodes; // init of timer
@@ -168,7 +168,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	
 	IdentifyCornerNodes();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 	tempo.ft4identcorner = timefornodes.ReturnTimeDouble();
 	std::cout << "Total for Identifying Corner Nodes: " << tempo.ft4identcorner << std::endl; // end of timer
 #endif
@@ -787,14 +787,14 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
         LOGPZ_DEBUG(logger,str.str());
     }
 #endif
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::set<int> cornerseqnums;
 #endif
     int nnodes = fMesh->Block().NBlocks();
     int in;
     for (in=0; in<nnodes; in++) {
         if (othercornereqs.find(in) != othercornereqs.end()) {
-#ifdef DEBUG
+#ifdef PZDEBUG
             cornerseqnums.insert(in);
 #endif
             int pos = fMesh->Block().Position(in);
@@ -807,7 +807,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
             
         }
     }
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::cout << "Number cornereqs " << fCornerEqs.size() << std::endl;
 
     cornerseqnums = othercornereqs;
@@ -1103,7 +1103,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
     TPZManVector<int> domain_index(nel,-1);
     metis.Subdivide(nsub, domain_index);
     CorrectNeighbourDomainIndex(fMesh.operator->(), domain_index);
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         TPZGeoMesh *gmesh = fMesh->Reference();
         long nelgeo = gmesh->NElements();
@@ -1149,7 +1149,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 #endif
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         TPZGeoMesh *gmesh = fMesh->Reference();
         long nelgeo = gmesh->NElements();
@@ -1172,7 +1172,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
     TPZManVector<TPZSubCompMesh *> submeshes(nsub,0);
     for (isub=0; isub<nsub; isub++) {
         long index;
-#ifdef DEBUG
+#ifdef PZDEBUG
         std::cout << '^'; std::cout.flush();
 #endif
         submeshes[isub] = new TPZSubCompMesh(fMesh,index);
@@ -1204,7 +1204,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
         {
             submeshes[isub]->MakeAllInternal();
             submeshes[isub]->PermuteExternalConnects();
-#ifdef DEBUG
+#ifdef PZDEBUG
             std::cout << '*'; std::cout.flush();
 #endif
         }
@@ -1312,7 +1312,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         }
         TPZAutoPointer<TPZMatrix<STATE> > InternalStiffness = matredptr->K00();
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         std::stringstream filename;
         filename << "SubMatrixInternal" << submesh->Index() << ".vtk";
         TPZFMatrix<REAL> fillin(50,50);

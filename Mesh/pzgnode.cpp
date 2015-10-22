@@ -57,7 +57,7 @@ void TPZGeoNode::Initialize(const TPZGeoNode &node,TPZGeoMesh &mesh) {
 
 void TPZGeoNode::SetCoord(const TPZVec<REAL> &x){
 	const int dim = x.NElements();
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(dim > 3 || dim < 1) {
 		PZError << "TPZGeoNode::SetCoord with bad parameter dim." << endl;
 		DebugStop();

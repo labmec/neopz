@@ -146,7 +146,7 @@ int TPZIntQuad::NPoints() const {
 
 void TPZIntQuad::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(pos.size() != 2)
     {
         DebugStop();
@@ -193,7 +193,7 @@ TPZIntTriang::TPZIntTriang(int OrdK) {
 }
 
 int TPZIntTriang::NPoints() const {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (!fIntKsi){
 		PZError << "Null Pointer passed to method TPZIntTriang::NPoints()\n";
         DebugStop();
@@ -216,7 +216,7 @@ void TPZIntTriang::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 }
 
 void TPZIntTriang::SetOrder(TPZVec<int> &ord,int type) {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (type != 0) {
         DebugStop();
     }
@@ -225,7 +225,7 @@ void TPZIntTriang::SetOrder(TPZVec<int> &ord,int type) {
 	if(ord[1] > ord[0]) fOrdKsi = ord[1];
 	if(ord[0] < 0 || ord[0] > TPZIntRuleT::NRULESTRIANGLE_ORDER || ord[1] < 0 || ord[1] > TPZIntRuleT::NRULESTRIANGLE_ORDER) 
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		LOGPZ_WARN(logger,"Integration rule for triangle - Order is bigger than NRULESTRIANGLE_ORDER (Max)");
 #endif
 		
@@ -321,7 +321,7 @@ void TPZIntTetra3D::SetOrder(TPZVec<int> &ord,int type) {
 	fOrdKsi = (ord[1] > ord[0]) ? ord[1] : ord[0];
 	fOrdKsi = (fOrdKsi > ord[2]) ? fOrdKsi : ord[2];
 	if(fOrdKsi > TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER) {
-#ifdef DEBUG
+#ifdef PZDEBUG
 		LOGPZ_WARN(logger,"Integration rule for tetrahedra - Order is bigger than NRULESTETRAHEDRA_ORDER (Max)");
 #endif
 		fOrdKsi = TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER;
@@ -365,7 +365,7 @@ void TPZIntPyram3D::SetOrder(TPZVec<int> &ord,int type) {
 	fOrdKsi = (ord[1] > ord[0]) ? ord[1] : ord[0];
 	fOrdKsi = (fOrdKsi > ord[2]) ? fOrdKsi : ord[2];
 	if(fOrdKsi > TPZIntRuleP3D::NRULESPYRAMID_ORDER) {
-#ifdef DEBUG
+#ifdef PZDEBUG
 		LOGPZ_WARN(logger,"Integration rule for pyramid - Order is bigger than NRULESPYRAMID_ORDER (Max)");
 #endif
 		fOrdKsi = TPZIntRuleP3D::NRULESPYRAMID_ORDER;

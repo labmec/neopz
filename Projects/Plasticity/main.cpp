@@ -388,7 +388,7 @@ void Config1()
             well.AddEllipticBreakout(a, b,out);
             well.ExecuteSimulation(substepsloc,niter,out);
             
-//#ifdef DEBUG
+//#ifdef PZDEBUG
             TPZFMatrix<REAL> fillin(50,50,0.);
             well.GetCurrentConfig()->fCMesh.ComputeFillIn(50, fillin);
             VisualMatrixVTK(fillin,"LookMatrix.vtk");

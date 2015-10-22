@@ -138,7 +138,7 @@ void TPZTracerFlow::Print(std::ostream &out) {
 
 void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 	int nref =  datavec.size();
 	if (nref != 3 ) {
         std::cout << " Erro. The size of the datavec is different from 3 \n";
@@ -312,7 +312,7 @@ void TPZTracerFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, T
     {
         return;
     }
-#ifdef DEBUG
+#ifdef PZDEBUG
     int nref =  datavec.size();
 	if (nref != 3 ) {
         std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";

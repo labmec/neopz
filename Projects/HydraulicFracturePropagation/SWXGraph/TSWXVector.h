@@ -29,7 +29,7 @@ public:
   }
 
   vector(const int size, const T& copy):fStore(size,copy){
-#ifdef DEBUG
+#ifdef PZDEBUG
     if( size < 0 ) DebugStop();
 #endif
   }
@@ -70,7 +70,7 @@ public:
   }
 
   const T & operator[]( unsigned int index ) const{
-#ifdef DEBUG
+#ifdef PZDEBUG
     unsigned int size = fStore.size();
     if( index < 0 || index >= size ){
 	  DebugStop();
@@ -80,7 +80,7 @@ public:
   }///method
 
   T & operator[]( unsigned int index ){
-#ifdef DEBUG
+#ifdef PZDEBUG
 		unsigned int size = fStore.size();
 		if( index < 0 || index >= size ){
 			DebugStop();
@@ -94,7 +94,7 @@ public:
   }
 
 	void resize(unsigned int newsize){
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if( newsize < 0 ) DebugStop();
 #endif
 	fStore.resize(newsize);
@@ -103,7 +103,7 @@ public:
 	void erase(int index)
 	{
 		int size = this->size();
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if( index < 0 || index >= size ){
 			DebugStop();
 		}

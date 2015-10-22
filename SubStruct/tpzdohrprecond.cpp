@@ -342,7 +342,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::Initialize()
 	}
 	/* Computing K(c) */
 	TPZMatrix<TVar> *coarse = new TPZSkylMatrix<TVar>(fNumCoarse,skyline);
-#ifdef DEBUG
+#ifdef PZDEBUG
 	{
 		TPZFMatrix<TVar> coarse2(*coarse);
 		for (isub=0; isub<nsub; isub++) {

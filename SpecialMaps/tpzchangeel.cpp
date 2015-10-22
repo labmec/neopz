@@ -76,7 +76,7 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, long ElemIndex)
 #endif
     /////////////////////////
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(!OldElem)
     {
         std::cout << "Null geoel on " << __PRETTY_FUNCTION__ << std::endl;
@@ -238,7 +238,7 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, long ElemIndex, in
 {
     TPZGeoEl * gel = Mesh->ElementVec()[ElemIndex];
     
-    #ifdef DEBUG
+    #ifdef PZDEBUG
     if(!gel)
     {
         std::cout << "Null geoel on " << __PRETTY_FUNCTION__ << std::endl;

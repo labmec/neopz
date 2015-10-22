@@ -90,7 +90,7 @@ public:
 		TPZCompElDisc * disc;
 		for (long i = 0; i < nsubel; i++){
 			disc = dynamic_cast<TPZCompElDisc *>(this->SubElement(i) );
-#ifdef DEBUG
+#ifdef PZDEBUG
 			if (!disc) {
 				PZError << "TPZAgglomerateElement::InnerRadius FineElement must be a TPZCompElDisc" << std::endl;
 				exit (-1);

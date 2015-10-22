@@ -239,7 +239,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
         const TPZIntPoints &intruleref = celrefspace->GetIntegrationRule();
         intruleref.GetOrder(intorder);
         intrule.SetOrder(intorder);
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (intrule.NPoints() != intruleref.NPoints()) {
             DebugStop();
         }

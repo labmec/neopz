@@ -334,7 +334,7 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const long rows,const long cols,const TVar &
 	long size = rows * cols;
 	if(!size) return;
 	fElem=new TVar[size];
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
 #endif
 	for(long i=0;i<size;i++) fElem[i] = val;
@@ -383,7 +383,7 @@ inline TPZFMatrix<TVar>::~TPZFMatrix() {
 /*** GetVal ***/
 template<class TVar>
 inline const TVar &TPZFMatrix<TVar>::GetVal( const long row, const long col ) const {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
 		Error("TPZFMatrix::operator() "," Index out of bounds");
 		DebugStop();
@@ -413,7 +413,7 @@ inline TVar &TPZFMatrix<TVar>::s(const long row, const long col) {
 
 template<class TVar>
 inline TVar &TPZFMatrix<TVar>::g( const long row, const long col) const {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
 		Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
 		DebugStop();
@@ -425,7 +425,7 @@ inline TVar &TPZFMatrix<TVar>::g( const long row, const long col) const {
 
 template<class TVar>
 inline TVar &TPZFMatrix<TVar>::operator()(const long row) {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if(row >=  this->Rows() || row<0) {
 		Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
 		DebugStop();

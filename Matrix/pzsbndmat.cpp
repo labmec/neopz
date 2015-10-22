@@ -52,7 +52,7 @@ TPZSBMatrix<TVar>::PutVal(const long r,const long c,const TVar& value )
 	long index;
 	if ( (index = col-row) > fBand )
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (value) {
 			DebugStop();
 		}

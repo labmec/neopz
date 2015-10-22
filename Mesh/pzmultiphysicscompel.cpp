@@ -134,7 +134,7 @@ void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZComp
 			if(cel){
 				TPZGeoEl *geoel = cel->Reference();
 				
-#ifdef DEBUG
+#ifdef PZDEBUG
 				if (!geoel){
 					PZError << "Error at " << __PRETTY_FUNCTION__ << " Geometry element null!\n";
 					DebugStop();
@@ -329,7 +329,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<STATE> & v
 	TPZVec<TPZMaterialData> datavec;
 	datavec.resize(nref);
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (nref != datavec.size()) {
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
 		DebugStop();
@@ -501,7 +501,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int ndof = Connect(i).NDof(*Mesh());
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = Connect(i);
         if (c.NShape()*c.NState() != ndof) {
             DebugStop();
@@ -559,7 +559,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     int i;
     for(i=0; i<ncon; i++){
         unsigned int ndof = Connect(i).NDof(*Mesh());
-#ifdef DEBUG
+#ifdef PZDEBUG
         TPZConnect &c = Connect(i);
         if (c.NShape()*c.NState() != ndof) {
             DebugStop();
@@ -579,7 +579,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 {
 	long nref = this->fElementVec.size();
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (nref != dataVec.size()) {
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
 		DebugStop();

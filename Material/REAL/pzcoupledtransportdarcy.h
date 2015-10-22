@@ -61,7 +61,7 @@ public:
 	virtual int HasForcingFunction() {return this->GetCurrentMaterial()->HasForcingFunction();}
 	
 	TPZMatPoisson3d * GetCurrentMaterial() const {
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (!this->fMaterials[0] || !this->fMaterials[1]){
 			PZError << "Error! - " << __PRETTY_FUNCTION__ << std::endl;
 			exit (-1);
@@ -78,7 +78,7 @@ public:
 	}
 	
 	TPZMatPoisson3d *GetMaterial(int eq){
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (!this->fMaterials[0] || !this->fMaterials[1]){
 			PZError << "Error! - " << __PRETTY_FUNCTION__ << std::endl;
 			exit (-1);

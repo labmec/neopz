@@ -3,10 +3,6 @@
 
 #ifdef _AUTODIFF
 
-#ifdef DEBUG
-#undef DEBUG
-#define DEFINEDEBUGLATER
-#endif
 
 using namespace std;
 
@@ -14,9 +10,6 @@ using namespace std;
 #include "tinyfad.h"
 #include "tfad.h" // tinyFadET
 
-#ifdef DEFINEDEBUGLATER
-#define DEBUG
-#endif
 
 #include "pzreal.h"
 #include "pzvec.h"

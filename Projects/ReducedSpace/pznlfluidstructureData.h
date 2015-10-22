@@ -192,7 +192,7 @@ public:
         }
         void PrintMathematica(std::ofstream & outf)
         {
-#ifdef DEBUG
+#ifdef PZDEBUG
             if(fposP.size() == 0)
             {
                 DebugStop();
@@ -234,7 +234,7 @@ public:
         }
         void PrintMathematica(std::ofstream & outf)
         {
-#ifdef DEBUG
+#ifdef PZDEBUG
             if(fposVolLeakoff.size() == 0)
             {
                 DebugStop();

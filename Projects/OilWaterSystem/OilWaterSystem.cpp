@@ -291,7 +291,7 @@ int main()
     
     TPZAnalysis *MultiphysicsAn = new TPZAnalysis(MultiphysicsMesh);
     TPZAnalysis *MultiphysicsAnTan = new TPZAnalysis(MultiphysicsMesh); 
-#ifdef DEBUG    
+#ifdef PZDEBUG    
     int Nthreads = 1;
 #else
     int Nthreads = 4;
@@ -556,7 +556,7 @@ TPZCompMesh *ComputationalMeshPseudopressure(TPZGeoMesh *gmesh, int pOrder)
 //    }
     //
     //      
-    //#ifdef DEBUG
+    //#ifdef PZDEBUG
     //      int ncel = cmesh->NElements();
     //      for(int i =0; i<ncel; i++){
     //          TPZCompEl * compEl = cmesh->ElementVec()[i];

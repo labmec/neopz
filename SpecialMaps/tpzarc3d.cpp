@@ -24,7 +24,7 @@ using namespace pzshape;
 
 void TPZArc3D::ComputeAtributes(TPZFMatrix<REAL> &coord)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	/** Cross[(mid-ini),(fin-ini)] */
 	double CrossX, CrossY, CrossZ;
 	try
@@ -97,7 +97,7 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix<REAL> &coord)
     
     
     
-#ifdef DEBUG2
+#ifdef PZDEBUG2
     
     TPZFNMatrix<9,REAL> nodes=coord;
     TPZManVector<REAL,1> loc(1,0.0);

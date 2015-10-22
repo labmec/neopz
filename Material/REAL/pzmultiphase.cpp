@@ -855,7 +855,7 @@ void TPZMultiphase::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
 
-#ifdef DEBUG
+#ifdef PZDEBUG
     int nref =  datavec.size();
     if (nref != 5 )
     {
@@ -3284,7 +3284,7 @@ void TPZMultiphase::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<
 void TPZMultiphase::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     int nref =  datavec.size();
     if (nref != 5 ) {
         std::cout << " Error.!! datavec size not equal to 4 \n";

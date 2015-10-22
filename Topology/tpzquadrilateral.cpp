@@ -509,7 +509,7 @@ namespace pztopology {
      */
     void TPZQuadrilateral::GetGatherPermute(int transformid, TPZVec<int> &permute)
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (permute.size() != 9) {
             DebugStop();
         }
@@ -583,7 +583,7 @@ namespace pztopology {
 	void TPZQuadrilateral::GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather)
 	{
 //        permgather.Resize(9);
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (transformationid < 0 || transformationid > 8 || permgather.size() != 9) {
             DebugStop();
         }

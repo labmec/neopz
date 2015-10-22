@@ -155,7 +155,7 @@ public:
 			TPZTransform project = father->Projection(pointside);
 			project.Apply(aux,ptancestor);
 			
-#ifdef DEBUG
+#ifdef PZDEBUG
 			{
 				double ksidiff = 0.;
 				for(int i = 0; i < ptancestor.NElements(); i++){

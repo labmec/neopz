@@ -146,7 +146,7 @@ TPZGeoMesh *CreateGMesh(long nel, int uNDiv, int vNDiv)
         gmesh->ElementVec()[id];
 	}
     gmesh->BuildConnectivity(); //constroi a conectividade de vizinhanca da malha
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream out("geomesh.vtk"), outtxt("gmesh.txt");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out,true);//imprimindo a malha geometrica no vtk
     gmesh->Print(outtxt);

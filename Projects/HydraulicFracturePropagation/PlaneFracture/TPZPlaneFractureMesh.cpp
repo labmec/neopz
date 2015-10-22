@@ -159,7 +159,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
             continue;
         }
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(gel->Dimension() != 2)
         {
             DebugStop();
@@ -175,7 +175,7 @@ void TPZPlaneFractureMesh::InitializeFractureGeoMesh(TPZVec<std::pair<REAL,REAL>
             int innerSide = gel->NSides() - 1;
             gel = gel->Neighbour(innerSide).Element();//3D element in 3D mesh
             
-#ifdef DEBUG
+#ifdef PZDEBUG
             if(gel->Dimension() != 3)
             {
                 DebugStop();
@@ -1269,7 +1269,7 @@ void TPZPlaneFractureMesh::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
     {
         TPZGeoEl * gel1D = refinedMesh->ElementVec()[fcrackBoundaryElementsIndexes[i]];
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(gel1D->Dimension() != 1)
         {
             DebugStop();
@@ -1359,7 +1359,7 @@ void TPZPlaneFractureMesh::DetectEdgesCrossed(TPZVec<std::pair<REAL,REAL> > &pol
     TPZGeoEl * gel = firstGel;
     TPZGeoEl * nextGel = NULL;
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(!gel)
     {
         std::cout << "first point of crack tip boundary does NOT belong to any 2D element" << std::endl;
@@ -1517,7 +1517,7 @@ TPZGeoEl * TPZPlaneFractureMesh::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REA
         haveIntersection = EdgeIntersection(gel, x, dx, edgeVec, ExactIntersectionPoint, ModulatedIntersectionPoint,
                                             0., planeAxe0, planeAxe1, planeNormal);
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(haveIntersection == false)
         {
             TPZManVector<REAL,3> qsi2D(2,0.);
@@ -1981,7 +1981,7 @@ REAL TPZPlaneFractureMesh::LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0
     L = sqrt(L);
     dL = sqrt(dL);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(fabs(L) < __smallNum || fabs(dL) < __smallNum || fabs(L - dL) < __smallNum)
     {
         std::cout << "n0 and n1 are coincident nodes!" << std::endl;
@@ -2119,7 +2119,7 @@ void TPZPlaneFractureMesh::UpdatePoligonalChain(TPZGeoMesh * gmesh,
         el1Did = it->first;
         TPZGeoEl * el1D = gmesh->ElementVec()[el1Did];
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         int elDim = el1D->Dimension();
         if(elDim != 1)
         {
@@ -2212,7 +2212,7 @@ void TPZPlaneFractureMesh::SeparateElementsInMaterialSets(TPZGeoMesh * refinedMe
         int cracktipIndex = this->fcrackBoundaryElementsIndexes[el];
         TPZGeoEl * gel = refinedMesh->ElementVec()[cracktipIndex];//1D element of crach boundary
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(gel->Dimension() != 1)
         {
             DebugStop();

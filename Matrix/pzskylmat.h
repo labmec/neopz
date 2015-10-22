@@ -243,7 +243,7 @@ public:
     
     long Size(const long column) const
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (column < 0 || column >= this->Rows()) {
             DebugStop();
         }
@@ -496,7 +496,7 @@ public:
     
 	long Size(const long column) const 
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (column < 0 || column >= this->Rows()) {
 			DebugStop();
 		}

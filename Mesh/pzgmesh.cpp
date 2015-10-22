@@ -358,7 +358,7 @@ void TPZGeoMesh::FindElement(std::map<long,TPZGeoEl *> &elmap,long currentnode,T
 			TPZGeoElSide neigh = el->Neighbour(is);
 			TPZGeoElSide father = el->Father2(is);
 			
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 			std::stringstream sout;
 			sout << __PRETTY_FUNCTION__ << " for elidx " << el->Index() << std::endl;
 			sout << "\tthiside " << el->Index() << "/" << is << std::endl;
@@ -370,7 +370,7 @@ void TPZGeoMesh::FindElement(std::map<long,TPZGeoEl *> &elmap,long currentnode,T
 				candidate = el;
 				candidateside = is;
 				
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 				sout << "\t\t\tNew Candidate found el/side = " << el << "/" << is << std::endl;
 				LOGPZ_DEBUG (logger,sout.str().c_str());
 #endif
@@ -378,7 +378,7 @@ void TPZGeoMesh::FindElement(std::map<long,TPZGeoEl *> &elmap,long currentnode,T
 				return;
 			}
 			
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 			else
 			{
 				sout << "candidate doesn't match...";
@@ -718,7 +718,7 @@ TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, long
     
     if(mustStop)
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         DebugStop();
 #endif
         return NULL;//not found...
@@ -888,7 +888,7 @@ TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<RE
     REAL Tol;
     ZeroTolerance(Tol);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     TPZManVector<REAL,3> locqsi(qsi);
     if(gel->ComputeXInverse(x,locqsi,Tol*100.) == false)
     {
@@ -1019,7 +1019,7 @@ void TPZGeoMesh::BuildConnectivity()
     }
 	
 	//Verify node coordinates for curved elements
-#ifdef DEBUG
+#ifdef PZDEBUG
 	const long nel = this->NElements();
 	for(long el = 0; el < nel; el++)
 	{

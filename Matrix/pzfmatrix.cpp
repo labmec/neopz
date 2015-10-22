@@ -3,9 +3,6 @@
  * @brief Contains the implementation of the TPZFMatrix<>methods.
  */
 
-#ifdef __BOORLANDC__
-#include <alloc.h>
-#endif
 
 #include "pzfmatrix.h"
 #include "pzvec.h"
@@ -17,10 +14,11 @@
 #include <sstream>
 #include <string>
 #include "pzaxestools.h"
+#include "pzextractval.h"
 
 #include "pzlog.h"
 
-#ifdef DEBUG
+#ifdef PZDEBUG
 #define DEBUG2
 #endif
 
@@ -98,7 +96,7 @@ TPZFMatrix<TVar>::TPZFMatrix(const TPZFMatrix<TVar> &A)
     long size = this->fRow * this->fCol;
     if(!size) return;
     fElem = new TVar[ size ] ;
-#ifdef DEBUG2
+#ifdef PZDEBUG2
     if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
 #endif
     // Copia a matriz
@@ -118,7 +116,7 @@ TPZFMatrix<TVar>::TPZFMatrix(TPZVerySparseMatrix <TVar> const & A)
     if(!size) return;
     fElem = new TVar[ size ] ;
     
-#ifdef DEBUG2
+#ifdef PZDEBUG2
     if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
 #endif
     
@@ -344,7 +342,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 		}
 	}
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 	int check = 0;
 	for(long c = 0; c < QTDvec; c++)
 	{
@@ -377,7 +375,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 			}
 			if(fabs(dotDown) < 1.E-8)
 			{
-#ifdef DEBUG
+#ifdef PZDEBUG
 				if(check == 0)
 				{
 					std::stringstream sout;
@@ -454,7 +452,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 	}
 #endif
     
-#ifdef DEBUG
+#ifdef PZDEBUG
 	TPZFNMatrix<9, TVar> OrthogT;
 	Orthog.Transpose(&OrthogT);
 	TPZAxesTools<TVar>::VerifyAxes(OrthogT);

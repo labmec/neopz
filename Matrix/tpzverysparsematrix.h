@@ -64,7 +64,7 @@ public:
 	 */
 	virtual TVar &s(const long row, const long col)
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if(row >= this->Rows() || row<0 || col >= this->Cols() || col<0)
 		{
 			this->Error("TPZFMatrix::operator() "," Index out of bounds");

@@ -280,7 +280,7 @@ public:
 	
 	TPZTensor(const TPZFMatrix<T> &input) : fData(6,0.)
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (input.Rows() != 3 || input.Cols() != 3) {
 			DebugStop();
 		}
@@ -1232,7 +1232,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 			//Eigenvectors[i].Print(std::cout);
 		}
 
-#ifdef DEBUG
+#ifdef PZDEBUG
 		{
 			// Faz Transpose[Eigenvectors].DiagonalMatrix[Eigenvalues].Eigenvectors e verifica se recupero o tensor
 			TPZFNMatrix <9,T> EgVecRightOrder(3,3,0.),EgVecRightOrderT(3,3,0.), DiagMat(3,3,0.),TempMat(3,3,0.);
@@ -1378,7 +1378,7 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const
 			//Eigenvectors[i].Print(std::cout);
 		}
 
-#ifdef DEBUG
+#ifdef PZDEBUG
 		{
 			// Faz Transpose[Eigenvectors].DiagonalMatrix[Eigenvalues].Eigenvectors e verifica se recupero o tensor
 			TPZFNMatrix <9,T> EgVecRightOrder(3,3,0.),EgVecRightOrderT(3,3,0.), DiagMat(3,3,0.),TempMat(3,3,0.);

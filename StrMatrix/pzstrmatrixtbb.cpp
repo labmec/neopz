@@ -113,7 +113,7 @@ void TPZStructMatrixTBB::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE
     ass_stiff.start();
     if (fEquationFilter.IsActive()) {
         long neqcondense = fEquationFilter.NActiveEquations();
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (stiffness.Rows() != neqcondense) {
             DebugStop();
         }
@@ -190,7 +190,7 @@ void TPZStructMatrixTBB::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatri
         
     }
 #endif
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (rhs.Rows() != fEquationFilter.NActiveEquations()) {
         DebugStop();
     }

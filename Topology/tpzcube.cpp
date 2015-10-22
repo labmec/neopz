@@ -1385,7 +1385,7 @@ namespace pztopology {
             default:
                 break;
         }
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (SideDimension(side) == 2) {
             TPZStack<int> lowerdim;
             LowerDimensionSides(side, lowerdim);

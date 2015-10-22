@@ -127,7 +127,7 @@ bool TPZYCMohrCoulombPV::ReturnMapPlane(const TPZVec<T> &sigma_trial, TPZVec<T> 
 	sigma_projected = eigenvalues;
 	epsbarnew = TPZExtractVal::val(epsbar);
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi;
 #endif
 	return (TPZExtractVal::val(eigenvalues[0])>TPZExtractVal::val(eigenvalues[1]) && TPZExtractVal::val(eigenvalues[1]) > TPZExtractVal::val(eigenvalues[2]));

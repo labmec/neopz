@@ -819,7 +819,7 @@ inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix
 template<class TVar>
 inline int TPZMatrix<TVar>::Put(const long row,const long col,const TVar & value ) {
 	// verificando se o elemento a inserir esta dentro da matriz
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if ( row >= Rows() || col >= Cols() || row <0 || col < 0 ) {
 		std::stringstream sout;
 		sout << "TPZMatrix<TVar>::Put" << " Index out of range row = " << row << " col = " << col << " Rows() " << Rows() << " Cols() " << Cols() << std::endl;
@@ -838,7 +838,7 @@ inline int TPZMatrix<TVar>::Put(const long row,const long col,const TVar & value
 template<class TVar>
 inline const TVar &TPZMatrix<TVar>::Get(const long row, const long col ) const {
 	// verificando se o elemento pedido esta dentro da matriz
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col <0 ) {
 		Error("TPZMatrix::Get", "Index out of range");
 		return gZero;

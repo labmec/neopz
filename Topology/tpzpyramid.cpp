@@ -1406,7 +1406,7 @@ namespace pztopology {
     /// Adjust the directions associated with the tip of the pyramid, considering that one of the faces is constrained
     void TPZPyramid::AdjustTopDirections(int ConstrainedFace,TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (directions.Cols() != 58 || ConstrainedFace < 1 || ConstrainedFace > 4) {
             DebugStop();
         }

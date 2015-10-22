@@ -52,7 +52,7 @@ namespace pzgeom {
         
         void SetData(const REAL R, TPZVec<REAL> &Xc)
         {
-#ifdef DEBUG
+#ifdef PZDEBUG
             if (Xc.size() != 3 || R == 0.0 ) {
                 DebugStop();
             }

@@ -173,7 +173,7 @@ int main2(int argc, char *argv[])
     cmeshes[1] = CreatePressureMHMMesh(gmesh, porder);
 
     std::cout << "Computational meshes created\n";
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         std::ofstream out("../Pressure.txt");
         cmeshes[1]->Print(out);
@@ -184,7 +184,7 @@ int main2(int argc, char *argv[])
 
     std::cout << "Number of equations " << CHDivPressureMesh->NEquations() << std::endl;
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         std::ofstream out("../MeshBeforeHide.txt");
         CHDivPressureMesh->Print(out);
@@ -195,7 +195,7 @@ int main2(int argc, char *argv[])
     HideTheElements(CHDivPressureMesh,KeepOneLagrangian);
 
     std::cout << "Reduced number of equations " << CHDivPressureMesh->NEquations() << std::endl;
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         std::ofstream out("../MeshWithSol.txt");
         CHDivPressureMesh->Print(out);
@@ -217,7 +217,7 @@ int main2(int argc, char *argv[])
     std::cout << "Solving\n";
     an.Solve();
     std::cout << "Finished\n";
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         std::ofstream out("../MeshWithSol.txt");
         CHDivPressureMesh->Print(out);
@@ -1318,7 +1318,7 @@ TPZAutoPointer<TPZGeoMesh> MalhaGeomBig(REAL Lx, REAL Ly, REAL Lz, TPZVec<int> &
     
     InsertInterfaceElements(meshresult3d);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::ofstream vtkfile("../gmesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(res3d, vtkfile);
 #endif
@@ -1342,7 +1342,7 @@ TPZAutoPointer<TPZCompMesh> CreateHDivMHMMesh(TPZAutoPointer<TPZGeoMesh> gmesh, 
     cmeshHDiv->InsertMaterialObject(bc);
     cmeshHDiv->AutoBuild();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         std::ofstream outmesh("../BigHDivMesh.txt");
         cmeshHDiv->Print(outmesh);

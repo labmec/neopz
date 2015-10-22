@@ -160,7 +160,7 @@ public:
 	
 	/** @brief Set the order of the shapefunction associated with the connect */
 	void SetOrder(int order) {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(order < 0 || order > 255)
         {
             DebugStop();
@@ -181,7 +181,7 @@ public:
     /** @brief Set the number of shape functions associated with the connect */
     void SetNShape(int nshape)
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(nshape < 0 )
         {
             DebugStop();

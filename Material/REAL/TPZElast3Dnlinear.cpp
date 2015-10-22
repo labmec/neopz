@@ -38,7 +38,7 @@ void TPZElast3Dnlinear::Contribute(TPZMaterialData &data,
                                    TPZFMatrix<STATE> &ek,
                                    TPZFMatrix<STATE> &ef)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(ek.Rows() != ef.Rows())
     {
         std::cout << "\n\n" << "ek and ef should have same number of rows!!!\n";
@@ -63,7 +63,7 @@ void TPZElast3Dnlinear::ContributeBC(TPZMaterialData &data,
                                      TPZFMatrix<STATE> &ef,
                                      TPZBndCond &bc)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(ek.Rows() != ef.Rows())
     {
         std::cout << "\n\n" << "ek and ef should have same number of rows!!!\n";

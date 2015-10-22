@@ -130,7 +130,7 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 	int typetmp = copy.fType;
 	if (copy.fType == 50){
 		int i;
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 		{
 			std::stringstream sout;
 			sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;
@@ -186,7 +186,7 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 	int typetmp = copy.fType;
 	if (copy.fType == 50){
 		int i;
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 		{
 			std::stringstream sout;
 			sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;

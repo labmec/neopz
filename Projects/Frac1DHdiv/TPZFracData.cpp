@@ -111,7 +111,7 @@ TPZFMatrix<STATE> TPZFracData::Kinv() const{
 
 REAL TPZFracData::G() const
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
   if (fE < 0. || fnu < 0.) {
     PZError << "ERROR - Elasticity or poisson not set!" << std::endl;
     DebugStop();

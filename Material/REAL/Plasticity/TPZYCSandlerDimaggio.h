@@ -402,7 +402,7 @@ protected:
             LOGPZ_DEBUG(loggerSM, sout.str())
         }
 #endif
-#ifdef DEBUG2
+#ifdef PZDEBUG2
         REAL epsp,epspini;
         EpspFromL(L, epsp);
         EpspFromL(L-deltaL, epspini);
@@ -1843,7 +1843,7 @@ inline void TPZYCSandlerDimaggio::NewtonF1(const TPZElasticResponse &ER, REAL &L
     STATE depspdl; 
     DEpspDL(resultL, depspdl );
     STATE residueL;
-#ifdef DEBUG_KEEP
+#ifdef PZDEBUG_KEEP
     TPZFMatrix<STATE> table(2,200,0.);
     long count = 0;
     for (resultL = -1.; resultL< 10.; resultL += 0.1) {

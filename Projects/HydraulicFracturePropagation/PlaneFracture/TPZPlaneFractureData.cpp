@@ -72,7 +72,7 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
             sp = dynamic_cast <TPZInterpolatedElement*> (celmp->ElementVec()[1].Element());
         }
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!sp)
         {
             DebugStop();
@@ -90,7 +90,7 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
         
         TPZBndCond * matbnd = dynamic_cast<TPZBndCond*> (cel->Material());
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!matbnd)
         {
             DebugStop();
@@ -99,7 +99,7 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
         
         TPZPlaneFractCouplingMat * mat = dynamic_cast<TPZPlaneFractCouplingMat *>(matbnd->Material());
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!mat)
         {
             DebugStop();
@@ -127,7 +127,7 @@ void LeakoffStorage::UpdateLeakoff(TPZCompMesh * cmesh, REAL deltaT)
         outVlCount++;
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(outVlCount < fGelId_Penetration.size())
     {
         DebugStop();

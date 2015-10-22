@@ -272,7 +272,7 @@ int TPZMat2dLin::ClassId() const
 /** Save the element data to a stream */
 void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
 {
-#ifdef DEBUG2
+#ifdef PZDEBUG2
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -281,7 +281,7 @@ void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
 	}
 #endif
 	TPZMaterial::Write(buf,withclassid);
-#ifdef DEBUG2
+#ifdef PZDEBUG2
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;

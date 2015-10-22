@@ -42,7 +42,7 @@ TPZNonLinearAnalysis::~TPZNonLinearAnalysis() {
 
 
 //#define DEBUGLINESEARCH
-#ifdef DEBUGLINESEARCH
+#ifdef PZDEBUGLINESEARCH
 ofstream alphafile("c:\\Temp\\tmp\\alpha.txt");
 #endif
 REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix<STATE> &Wn, TPZFMatrix<STATE> DeltaW, TPZFMatrix<STATE> &NextW, REAL tol, int niter){
@@ -118,7 +118,7 @@ REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix<STATE> &Wn, TPZFMatrix<ST
 	NextW *= 0.5;
 	
 	
-#ifdef DEBUGLINESEARCH
+#ifdef PZDEBUGLINESEARCH
 	//debug: valor do alpha
 	TPZFMatrix<REAL> alpha;
 	alpha = NextW;
@@ -140,7 +140,7 @@ REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix<STATE> &Wn, TPZFMatrix<ST
 	if(ALPHA > 1.){ //alpha shall be alpha <= 1
 		NextW = Wn;
 		NextW += DeltaW;
-#ifdef DEBUGLINESEARCH
+#ifdef PZDEBUGLINESEARCH
 		alphafile << "ALPHA LIMIT APPLIED. Alpha = 1.\n";
 #endif
 		return 1.;

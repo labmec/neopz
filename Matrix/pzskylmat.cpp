@@ -59,7 +59,7 @@ void TPZSkylMatrix<TVar>::SetSkyline(const TPZVec<long> &skyline)
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::AddSameStruct(TPZSkylMatrix<TVar> &B, double k){
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         long size = this->fElem.NElements();
         if(size != B.fElem.NElements()){
@@ -132,7 +132,7 @@ TPZSkylMatrix<TVar>::GetVal(const long r,const long c ) const
     if (r > c) 
         return GetVal(c,r);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     unsigned dim = this->Dim();
     
     if(r >= dim || c >= dim  || r < 0 || c < 0) {
@@ -148,7 +148,7 @@ TPZSkylMatrix<TVar>::GetVal(const long r,const long c ) const
         return (fElem[c][index]);
     }
     else {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(this->gZero != TVar(0.)) {
             cerr << "TPZSkylMatrix gZero = " << this->gZero << endl;
             DebugStop();
@@ -612,7 +612,7 @@ void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
             // invertendo linha-coluna para triangular superior
             if (row > col)
                 this->Swap(&row, &col);
-#ifdef DEBUG
+#ifdef PZDEBUG
             // checando limites
             if(row >= this->Dim() || col >= this->Dim()) {
                 cout << "TPZSkylMatrix::GetVal index out of range row = " <<
@@ -648,7 +648,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
             // invertendo linha-coluna para triangular superior
             if (row > col)
                 this->Swap(&row, &col);
-#ifdef DEBUG
+#ifdef PZDEBUG
             // checando limites
             if(row >= this->Dim() || col >= this->Dim()) {
                 cout << "TPZSkylMatrix::GetVal index out of range row = " <<
@@ -683,7 +683,7 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
             // invertendo linha-coluna para triangular superior
             if (row > col)
                 this->Swap(&row, &col);
-#ifdef DEBUG
+#ifdef PZDEBUG
             // checando limites
             if(row >= this->Dim() || col >= this->Dim()) {
                 cout << "TPZSkylMatrix::GetVal index out of range row = " <<
@@ -931,7 +931,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
     
     this->fDecomposed  = ECholesky;
     this->fDefPositive = 1;
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::cout << __PRETTY_FUNCTION__ << " minpivot " << minpivot << std::endl;
 #endif
     return( 1 );
@@ -1734,7 +1734,7 @@ TPZSkylMatrix<TVar>::TPZSkylMatrix(const long dim, const TPZVec<long> &skyline )
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::AddSameStruct(TPZSkylMatrix<TVar> &B, double k){
-#ifdef DEBUG
+#ifdef PZDEBUG
 	{
 		long size = this->fElem.NElements();
 		if(size != B.fElem.NElements()){
@@ -1780,7 +1780,7 @@ void TPZSkylMatrix<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 template<class TVar>
 void TPZSkylMatrix<TVar>::SetSkyline(const TPZVec<long> &skyline)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	for (long i = 0 ; i < this->Rows() ; i++){
 		if (skyline[i] < 0 || skyline[i] > i) DebugStop();
 	}
@@ -1803,7 +1803,7 @@ template<class TVar>
 void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<long> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &point) {   // JORGE 2013 OUTUBRO ???
 	long dim = skyline.NElements();
 	long nel = NumElements(skyline);
-#ifdef DEBUG
+#ifdef PZDEBUG
     //	std::cout << "Skyline Matrix, Number of elements : " << nel << " in floating point " << nel*sizeof(TVar) << std::endl;
 #endif
 	storage.Resize(nel);
@@ -2261,7 +2261,7 @@ void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
             // invertendo linha-coluna para triangular superior
             if (row > col)
                 this->Swap(&row, &col);
-#ifdef DEBUG
+#ifdef PZDEBUG
             // checando limites
             if(row >= this->Dim() || col >= this->Dim()) {
                 cout << "TPZSkylMatrix::GetVal index out of range row = " <<
@@ -2271,7 +2271,7 @@ void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
 #endif
             // indice do vetor coluna
             long index = col - row;
-#ifdef DEBUG
+#ifdef PZDEBUG
             // checando limite da coluna
             if (index >= Size(col)) {
                 cerr << "Try TPZSkylMatrix gZero." << endl;
@@ -2302,7 +2302,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
             // invertendo linha-coluna para triangular superior
             if (row > col)
                 this->Swap(&row, &col);
-#ifdef DEBUG
+#ifdef PZDEBUG
             // checando limites
             if(row >= this->Dim() || col >= this->Dim()) {
                 cout << "TPZSkylMatrix::GetVal index out of range row = " <<
@@ -2312,7 +2312,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
 #endif
             // indice do vetor coluna
             long index = col - row;
-#ifdef DEBUG
+#ifdef PZDEBUG
             // checando limite da coluna
             if (index >= Size(col)) {
                 cerr << "Try TPZSkylMatrix gZero." << endl;
@@ -2345,7 +2345,7 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
             // invertendo linha-coluna para triangular superior
             if (row > col)
                 this->Swap(&row, &col);
-#ifdef DEBUG
+#ifdef PZDEBUG
             // checando limites
             if(row >= this->Dim() || col >= this->Dim()) {
                 cout << "TPZSkylMatrix::GetVal index out of range row = " <<
@@ -2355,7 +2355,7 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
 #endif
             // indice do vetor coluna
             long index = col - row;
-#ifdef DEBUG
+#ifdef PZDEBUG
             // checando limite da coluna
             if (index >= Size(col)) {
                 cerr << "Try TPZSkylMatrix gZero." << endl;
@@ -2762,7 +2762,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
     
     this->fDecomposed  = ECholesky;
     this->fDefPositive = 1;
-#ifdef DEBUG
+#ifdef PZDEBUG
         std::cout << __PRETTY_FUNCTION__ << " minpivot " << minpivot << std::endl;
 #endif
     return( 1 );

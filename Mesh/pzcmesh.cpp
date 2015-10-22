@@ -133,7 +133,7 @@ void TPZCompMesh::CleanUp() {
 		ref->ResetReference();
 		this->LoadReferences();
 	}
-#ifdef DEBUG
+#ifdef PZDEBUG
     ComputeNodElCon();
 #endif
 	long i, nelem = this->NElements();
@@ -273,7 +273,7 @@ TPZMaterial * TPZCompMesh::FindMaterial(int matid){	// find the material object 
 }
 
 void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         TPZGeoMesh *gmesh = Reference();
         TPZCheckGeom check(gmesh);
@@ -291,7 +291,7 @@ void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
 }
 
 void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous) {
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         TPZGeoMesh *gmesh = Reference();
         TPZCheckGeom check(gmesh);
@@ -556,7 +556,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 #endif
 	
 	if (need) {
-#ifdef DEBUG
+#ifdef PZDEBUG
 		std::set<long> check;
 		nelem = permute.NElements();
 		for(i=0; i<nelem; i++) check.insert(permute[i]);
@@ -634,7 +634,7 @@ long TPZCompMesh::NEquations() {
         }
         
         int dofsize = df.NShape()*df.NState();
-#ifdef DEBUG
+#ifdef PZDEBUG
         // check the consistency between the block size and the data structure of the connect
         {
             long seqnum = df.SequenceNumber();
@@ -1141,7 +1141,7 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
 		disc->RemoveInterfaces();
 	}//for
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	{
 		n = this->ElementVec().NElements();
 		for(long i = 0; i < n; i++){
@@ -1944,7 +1944,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		face->EvaluateInterfaceJump(facejump,opt);
 		const long leftel  = face->LeftElement()->Index();
 		const long rightel = face->RightElement()->Index();
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if(this->ElementVec()[leftel]  != face->LeftElement()){
 			LOGPZ_FATAL(logger, "inconsistent data structure");
 			DebugStop();
@@ -2230,7 +2230,7 @@ void TPZCompMesh::SaddlePermute()
                 }
                 int eq = permutescatter[c.SequenceNumber()];
                 if (c.LagrangeMultiplier() == lagr && eq < maxseq) {
-#ifdef DEBUG
+#ifdef PZDEBUG
                     if (c.HasDependency()) {
                         DebugStop();
                     }
@@ -2255,7 +2255,7 @@ void TPZCompMesh::SaddlePermute()
                 count++;
             }
 
-#ifdef DEBUG
+#ifdef PZDEBUG
             for (long i=0; i<numinternalconnects; i++) {
                 if (permutescatter[permutegather[i]] != i) {
                     std::cout << "permutegather " << permutegather << std::endl;
@@ -2322,7 +2322,7 @@ void TPZCompMesh::SaddlePermute()
 #endif
     
     Permute(permutescatter);
-#ifdef DEBUG
+#ifdef PZDEBUG
     
     for (long i=0L; i<numinternalconnects; i++) {
         permutegather[i] = i;
@@ -2530,7 +2530,7 @@ void TPZCompMesh::SaddlePermute2()
 void TPZCompMesh::ModifyPermute(TPZVec<long> &permute, long lagrangeq, long maxeq)
 {
     long neq = permute.size();
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (lagrangeq < 0 || lagrangeq >= neq || maxeq < 0 || maxeq >= neq) {
         DebugStop();
     }
@@ -2559,7 +2559,7 @@ void TPZCompMesh::ModifyPermute(TPZVec<long> &permute, long lagrangeq, long maxe
         permute[i] = accpermute[input[i]];
     }
     
-#ifdef DEBUG22
+#ifdef PZDEBUG22
     {
         std::set<long> acc;
         for (long i=0; i<neq; i++) {

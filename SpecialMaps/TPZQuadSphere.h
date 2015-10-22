@@ -65,7 +65,7 @@ namespace pzgeom {
 		{
 			fR = R;
 			fxc = xc;
-#ifdef DEBUG
+#ifdef PZDEBUG
 			if (R <= 0) {
 				PZError << "R must be positive!\n";
 				DebugStop();

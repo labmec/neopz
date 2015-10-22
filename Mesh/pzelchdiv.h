@@ -191,7 +191,7 @@ public:
     /// the orientation of the face
     int SideOrient(int face)
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (face < 0 || face >= TSHAPE::NFaces) {
             DebugStop();
         }

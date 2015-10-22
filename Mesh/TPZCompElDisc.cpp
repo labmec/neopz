@@ -288,7 +288,7 @@ void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REA
 		const int ndiscphi = TPZShapeDisc::NShapeF(this->Degree(),this->Dimension(),fShapefunctionType);
 		const int nextphi = this->fExternalShape->NFunctions();
 		
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if(phi.Cols() != 1){
 			PZError << "\nError at " << __PRETTY_FUNCTION__ << "\n";
 			DebugStop();
@@ -312,7 +312,7 @@ void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REA
 	} 
 	
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if(dphi.Rows() > extDPhi.Rows()){
 			PZError << "\nError at " << __PRETTY_FUNCTION__ << "\n";
 			DebugStop();
@@ -451,7 +451,7 @@ int TPZCompElDisc::NShapeF() const {
 }
 
 int TPZCompElDisc::NConnectShapeF(int inod) const {
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 	if (inod != 0){
 		PZError << "\nFATAL ERROR AT " << __PRETTY_FUNCTION__
 		<< " - TPZCompElDisc has only one connect and inod = " << inod << "\n";
@@ -512,7 +512,7 @@ void TPZCompElDisc::Divide(long index,TPZVec<long> &subindex,int interpolatesolu
 	TPZGeoEl *ref = Reference();
 	RemoveInterfaces();
 	
-#ifdef DEBUG2
+#ifdef PZDEBUG2
 	if(0){//TESTE
 		ofstream mesh("MALHADIV.out");//TESTE
 		Mesh()->Reference()->Print(mesh);//TESTE

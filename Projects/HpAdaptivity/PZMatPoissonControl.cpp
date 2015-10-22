@@ -138,7 +138,7 @@ void TPZMatPoissonControl::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
      
      **/
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     int nref =  datavec.size();
     if (nref != 3) {
         std::cout << " Erro. The size of the datavec is different from 2 \n";

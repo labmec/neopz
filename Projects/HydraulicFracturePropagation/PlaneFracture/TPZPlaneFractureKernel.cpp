@@ -652,7 +652,7 @@ void TPZPlaneFractureKernel::InitializePath3DVector()
     {
         TPZGeoEl * gel1D = this->fPlaneFractureMesh->GetCrackTipGeoElement(pos);
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!gel1D || gel1D->Dimension() != 1 || gel1D->MaterialId() != globMaterialIdGen.CrackTipMatId())
         {
             DebugStop();
@@ -1233,7 +1233,7 @@ REAL TPZPlaneFractureKernel::Fracture1wing_Area()
             continue;
         }
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!cel || cel->Reference()->Dimension() != 2)
         {
             DebugStop();
@@ -1242,7 +1242,7 @@ REAL TPZPlaneFractureKernel::Fracture1wing_Area()
         
         TPZGeoEl * gel = cel->Reference();
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!gel)
         {
             DebugStop();
@@ -1277,7 +1277,7 @@ REAL TPZPlaneFractureKernel::ComputeVlAcumLeakoff(TPZCompMesh * fluidCMesh)
             continue;
         }
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!cel || cel->Reference()->Dimension() != 2)
         {
             DebugStop();
@@ -1286,7 +1286,7 @@ REAL TPZPlaneFractureKernel::ComputeVlAcumLeakoff(TPZCompMesh * fluidCMesh)
         
         TPZGeoEl * gel = cel->Reference();
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!gel)
         {
             DebugStop();
@@ -1577,7 +1577,7 @@ void TPZPlaneFractureKernel::TransferLastLeakoff(TPZCompMesh * cmeshFrom)
         TPZCompEl * cel = cmeshFrom->ElementVec()[el];
         TPZGeoEl * gel = cel->Reference();
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!gel)
         {
             DebugStop();
@@ -1589,7 +1589,7 @@ void TPZPlaneFractureKernel::TransferLastLeakoff(TPZCompMesh * cmeshFrom)
             continue;
         }
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(gel->Dimension() != 2)
         {
             DebugStop();
@@ -1599,7 +1599,7 @@ void TPZPlaneFractureKernel::TransferLastLeakoff(TPZCompMesh * cmeshFrom)
         REAL Area = gel->SideArea(gel->NSides()-1);
         it = globLeakoffStorage.GetLeakoffMap().find(gel->Id());
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(it == globLeakoffStorage.GetLeakoffMap().end())
         {
             DebugStop();
@@ -1645,7 +1645,7 @@ void TPZPlaneFractureKernel::TransferLastLeakoff(TPZCompMesh * cmeshFrom)
         TPZCompEl * cel = this->fmeshVec[1]->ElementVec()[el];
         TPZGeoEl * gel = cel->Reference();
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(!gel)
         {
             DebugStop();
@@ -1657,7 +1657,7 @@ void TPZPlaneFractureKernel::TransferLastLeakoff(TPZCompMesh * cmeshFrom)
             continue;
         }
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if(gel->Dimension() != 2)
         {
             DebugStop();

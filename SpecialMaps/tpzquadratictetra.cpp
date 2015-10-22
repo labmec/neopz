@@ -83,7 +83,7 @@ void TPZQuadraticTetra::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<RE
 
 void TPZQuadraticTetra::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	int nnodes = NNodes;
 	if (nnodes != 10) { PZError << "TPZGeoTetrahedra.jacobian only implemented for\n10 nodes, NumberOfNodes = " << nnodes << "\n"; }
 #endif
@@ -114,7 +114,7 @@ void TPZQuadraticTetra::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,T
     
     if(IsZero(detjac))
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         std::stringstream sout;
         sout << "Singular Jacobian " << detjac;
         LOGPZ_ERROR(logger, sout.str())

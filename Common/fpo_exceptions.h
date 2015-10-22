@@ -7,7 +7,7 @@
 
 #ifndef WIN32
 
-#ifdef DEBUG
+#ifdef PZDEBUG
 #include <iostream>
 #include <stdlib.h>
 #include <xmmintrin.h>

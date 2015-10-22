@@ -874,7 +874,7 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
         epsz = 0.;
     }
     TauXY = 2*mu*epsxy+fPreStressXY;
-#ifdef DEBUG
+#ifdef PZDEBUG
     REAL TauXY2 = fE*epsxy/(1.+fnu)+fPreStressXY;
     #ifdef REALfloat
     if (fabs(TauXY-TauXY2) > 1.e-10) {

@@ -37,7 +37,7 @@
 
 #include "tpzcompmeshreferred.h"
 
-#ifdef DEBUG
+#ifdef PZDEBUG
 #define DEBUG2
 #endif
 

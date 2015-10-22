@@ -29,7 +29,7 @@
 //#include "pzfstrmatrix.h"
 //#include "math.h"
 //
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    #ifdef LOG4CXX
 //    static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
 //    #endif
@@ -86,7 +86,7 @@
 //    an->AssembleResidual();
 //    fResidualAtn = an->Rhs();
 //    
-//    // #ifdef DEBUG
+//    // #ifdef PZDEBUG
 //    //     #ifdef LOG4CXX
 //    //         if(logger->isDebugEnabled())
 //    //         {
@@ -107,7 +107,7 @@
 //    an->Assemble();
 //    fResidualAtnplusOne = an->Rhs();
 //    
-//    // #ifdef DEBUG
+//    // #ifdef PZDEBUG
 //    //     #ifdef LOG4CXX
 //    //         if(logger->isDebugEnabled())
 //    //         {
@@ -125,7 +125,7 @@
 //    falphaAtn = alpha;
 //    falphaAtnplusOne = alpha;
 //    
-//    // #ifdef DEBUG
+//    // #ifdef PZDEBUG
 //    //     #ifdef LOG4CXX
 //    //         if(logger->isDebugEnabled())
 //    //         {
@@ -160,7 +160,7 @@
 //    falphaAtn = fcmeshdarcy->Solution();
 //    falphaAtnplusOne = fcmeshdarcy->Solution();
 //    
-//    // #ifdef DEBUG
+//    // #ifdef PZDEBUG
 //    //     #ifdef LOG4CXX
 //    //         if(logger->isDebugEnabled())
 //    //         {
@@ -182,7 +182,7 @@
 //    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 //    gRefDBase.InitializeUniformRefPattern(ETriangle);
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    #ifdef LOG4CXX
 //        
 //        std::string FileName = dirname;
@@ -355,7 +355,7 @@
 //    KGlobal =   an->Solver().Matrix();
 //    FGlobal =   an->Rhs();
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    #ifdef LOG4CXX
 //        if(logger->isDebugEnabled())
 //        {
@@ -383,7 +383,7 @@
 //    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshdarcy);
 //    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    std::ofstream dumpfile("ComputationaMeshMultiphysics.txt");
 //    fcmeshdarcy->Print(dumpfile);
 //#endif
@@ -481,7 +481,7 @@
 //        error = Norm(Residual);
 //        iterations++;
 //        
-////#ifdef DEBUG
+////#ifdef PZDEBUG
 ////    #ifdef LOG4CXX
 ////            if(logger->isDebugEnabled())
 ////            {
@@ -561,7 +561,7 @@
 //        DInverse->Multiply(Residual, DeltaX);
 //        D.operator->()->Multiply(*DInverse, Identity);
 //        
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //#ifdef LOG4CXX
 //        if(logger->isDebugEnabled())
 //        {
@@ -610,7 +610,7 @@
 //            std::cout << "error of dx: " << normdx << std::endl;
 //            break;
 //        }
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //#ifdef LOG4CXX
 //        if(logger->isDebugEnabled())
 //        {
@@ -855,7 +855,7 @@
 //    cmesh->SetAllCreateFunctionsContinuous();
 //    cmesh->AutoBuild();
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    std::ofstream out("cmeshPressureH1.txt");
 //    cmesh->Print(out);
 //#endif
@@ -911,7 +911,7 @@
 //    cmesh->AutoBuild();
 //    
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    std::ofstream out("cmeshFlux.txt");
 //    cmesh->Print(out);
 //#endif
@@ -988,7 +988,7 @@
 //    
 //    
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    std::ofstream out("cmeshPress.txt");
 //    cmesh->Print(out);
 //#endif
@@ -1044,7 +1044,7 @@
 //    cmesh->CleanUpUnconnectedNodes();
 //    
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    std::ofstream out("cmeshSw.txt");
 //    cmesh->Print(out);
 //#endif
@@ -1100,7 +1100,7 @@
 //    cmesh->CleanUpUnconnectedNodes();
 //    
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    std::ofstream out("cmeshSo.txt");
 //    cmesh->Print(out);
 //#endif
@@ -1278,7 +1278,7 @@
 //{
 //    
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //    //  Print Geometrical Base Mesh
 //    std::ofstream argument("GeometicMesh.txt");
 //    fgmesh->Print(argument);
@@ -1516,7 +1516,7 @@
 //    oldmat.Inverse( * PreInverse);
 //    oldmat.Multiply(*PreInverse, Identity);
 //    
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //#ifdef LOG4CXX
 //    if(logger->isDebugEnabled())
 //    {

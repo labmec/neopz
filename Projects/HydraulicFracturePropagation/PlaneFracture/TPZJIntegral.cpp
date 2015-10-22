@@ -179,7 +179,7 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
     
     TPZCompEl * compEl = geoEl->Reference();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(!compEl)
     {
         std::cout << "Null compEl!\nSee " << __PRETTY_FUNCTION__ << std::endl;
@@ -508,7 +508,7 @@ REAL ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
     
     TPZCompEl * compEl = geoEl->Reference();
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(!compEl)
     {
         std::cout << "Null compEl!\nSee " << __PRETTY_FUNCTION__ << std::endl;
@@ -527,7 +527,7 @@ REAL ArcPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STATE> 
     
     TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(!elast3D)
     {
         std::cout << "This material might be TPZElastMat3D type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
@@ -584,7 +584,7 @@ Path3D::Path3D(TPZVec<REAL> &Origin, REAL &KIc,
     this->fJDirection.Resize(3,0.);
     this->fJintegral = 0.;
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(fabs(normalDirection[1]) > 1.E-8)
     {
         std::cout << "\nThe normal direction of J integral arc must be in XZ plane!!!\n";

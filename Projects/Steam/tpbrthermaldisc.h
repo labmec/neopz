@@ -114,7 +114,7 @@ public:
 	/// Compute the energy associated with the solution
 	REAL Energy(TPZFMatrix<STATE> &solution)
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if (solution.Rows() != fNElements+1) {
 			DebugStop();
 		}

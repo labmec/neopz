@@ -89,7 +89,7 @@ void TRMOrchestra::CreateAnalysisDual(){
     
 //    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
     fSpaceGenerator.CreateGeometricReservoirMesh();
-//#ifdef DEBUG
+//#ifdef PZDEBUG
     fSpaceGenerator.PrintGeometry();
 //#endif
     
@@ -125,7 +125,7 @@ void TRMOrchestra::CreateAnalysisDual(){
     fFluxPressureAnalysis.SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
 //    TPZAnalysis * AnalysisDual = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
     int numofThreads = 8;
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         std::ofstream out("../MFCompMesh.txt");
         Cmesh->Print(out);

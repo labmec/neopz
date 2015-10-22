@@ -70,7 +70,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
 
     TPZFMatrix<REAL> Interval = DeltaW;
 
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         TPZNonLinearAnalysis::LoadSolution(Wn);
         AssembleResidual();
@@ -91,7 +91,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, const TPZF
         NextW += Interval;
         TPZNonLinearAnalysis::LoadSolution(NextW);
         AssembleResidual();
-#ifdef DEBUGBIG
+#ifdef PZDEBUGBIG
         {
             static int count = 0;
             {
@@ -203,7 +203,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, TPZAutoPointe
 		prevsol = fSolution;
 		REAL norm = RhsNormResult;
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         {
             LoadSolution();
             AssembleResidual();

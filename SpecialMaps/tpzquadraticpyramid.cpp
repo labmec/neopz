@@ -171,7 +171,7 @@ void TPZQuadraticPyramid::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<
 }
 
 void TPZQuadraticPyramid::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (NNodes != 13) {
 		PZError << "TPZGeoPyramid.jacobian only implemented for 13, NumberOfNodes = " << NNodes << "\n";
 	}
@@ -202,7 +202,7 @@ void TPZQuadraticPyramid::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param
 	
     if(IsZero(detjac))
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         std::stringstream sout;
         sout << "Singular Jacobian " << detjac;
         LOGPZ_ERROR(logger, sout.str())

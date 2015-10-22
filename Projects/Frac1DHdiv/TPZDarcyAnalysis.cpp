@@ -459,7 +459,7 @@ TPZCompMesh * TPZDarcyAnalysis::CreateCMeshPressureL2()
         TPZConnect &newnod = cmesh->ConnectVec()[i];
         newnod.SetLagrangeMultiplier(1);
     }
-#ifdef DEBUG
+#ifdef PZDEBUG
   std::ofstream out("cmeshPress.txt");
   cmesh->Print(out);
 #endif
@@ -1249,7 +1249,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
         
         
         // Chanching value
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (celleft->NConnects() != 1 && cel->NConnects() != 1) {
             DebugStop();
         }
@@ -1259,7 +1259,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
         
         int seqleft = connectleft.SequenceNumber();
         int seq = connect.SequenceNumber();
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (block.Size(seqleft) != 1 && block.Size(seq) != 1) {
             DebugStop();
         }
@@ -1288,7 +1288,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
         }
         TPZGeoEl * gelsecondleft = neighsecondeleft.Element();
         TPZCompEl * celsecondleft = gelsecondleft->Reference();
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (celsecondleft->NConnects() != 1) {
             DebugStop();
         }
@@ -1296,7 +1296,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
         TPZConnect &connectsecondleft = celsecondleft->Connect(0);
         int seqsecondleft = connectsecondleft.SequenceNumber();
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (block.Size(seqsecondleft) != 1) {
             DebugStop();
         }
@@ -1477,7 +1477,7 @@ void TPZDarcyAnalysis::SetPressureOnNewElement(TPZAnalysis *an)
         TPZBlock<STATE> & block = fmeshvec[1]->Block();
         TPZGeoElSide gelsideleft(gel,0);
 
-#ifdef DEBUG
+#ifdef PZDEBUG
       {
         const int ncon = cel->NConnects();
         if (ncon != 1) {
@@ -1487,7 +1487,7 @@ void TPZDarcyAnalysis::SetPressureOnNewElement(TPZAnalysis *an)
 #endif
         TPZConnect &connect =  cel->Connect(0);
         int seq = connect.SequenceNumber();
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (block.Size(seq) != 1) {
             DebugStop();
         }

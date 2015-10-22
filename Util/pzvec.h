@@ -100,7 +100,7 @@ public:
 #ifdef WIN32
 	T& operator[]( const int index ) const
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if( index < 0 || index >= fNElements )
 		{
             PZError << __PRETTY_FUNCTION__ << " acessing element out of range.";
@@ -116,7 +116,7 @@ public:
 	}
 	T& operator[]( const unsigned int index ) const
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if( index >= (unsigned int)fNElements )
 		{
             PZError << __PRETTY_FUNCTION__ << " acessing element out of range.";
@@ -133,7 +133,7 @@ public:
 #endif //WIN32
 	T& operator[]( const long index ) const
 	{
-#ifdef DEBUG
+#ifdef PZDEBUG
 		if( index < 0 || index >= fNElements )
 		{
             PZError << __PRETTY_FUNCTION__ << " acessing element out of range.";

@@ -1671,7 +1671,7 @@ void TRMSimworxMeshGenerator::CreateWellBoundaries(TPZAutoPointer<TPZGeoMesh> re
             continue;
         }
         
-#ifdef DEBUG
+#ifdef PZDEBUG
         if (gel->Type() != ECube) {
             DebugStop();
         }

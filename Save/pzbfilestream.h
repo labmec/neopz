@@ -165,7 +165,7 @@ public:
 			long int sizereturn;
 			sizereturn = 0;
 			sizereturn = fread(p,sizeof(T),size,ifd);
-#ifdef DEBUG
+#ifdef PZDEBUG
 			if (sizereturn != size) DebugStop();
 #endif
 		}

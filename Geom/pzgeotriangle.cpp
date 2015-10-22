@@ -59,7 +59,7 @@ namespace pzgeom {
     }
         if(IsZero(maxjac) || IsZero(detjac/(maxjac*maxjac)))
 		{
-#ifdef DEBUG
+#ifdef PZDEBUG
 			std::stringstream sout;
 			sout << "Singular Jacobian " << detjac;
 			LOGPZ_ERROR(logger, sout.str())

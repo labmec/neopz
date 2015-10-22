@@ -933,7 +933,7 @@ void TPZRefPattern::InternalSidesIndexes(int side, TPZVec<TPZGeoElSideIndex> &si
 
 TPZAutoPointer<TPZRefPattern> TPZRefPattern::GetPermutation(int pos)
 {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if( pos >= (int)fPermutedRefPatterns.size() )
 	{
 		std::cout << "Position out of range of fPermutedRefPatterns vector in " << __PRETTY_FUNCTION__ << " !\n";
@@ -1102,7 +1102,7 @@ void TPZRefPattern::ReadPattern(std::istream &in)
 		fSideRefPattern[is] = ip;
 	}
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	//TPZRefPatternTools::TransformationTest(this);
 #endif
 }

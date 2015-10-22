@@ -363,7 +363,7 @@ void TPZAdaptMesh::BuildReferencePatch() {
         fPatchIndex.Push(sum);
     }
 	
-#ifdef DEBUG2 
+#ifdef PZDEBUG2 
 	// CAJU TOOL
 	{
 		std::string filename("cMeshVtk.");

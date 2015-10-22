@@ -120,7 +120,7 @@ void TPZQuadraticPrism::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<RE
 }
 
 void TPZQuadraticPrism::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if (NNodes != 15) {
 		PZError << "TPZQuadraticPrism.jacobian only implemented for 15, NumberOfNodes = " << NNodes << "\n";
 	}
@@ -151,7 +151,7 @@ void TPZQuadraticPrism::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,T
 	
     if(IsZero(detjac))
     {
-#ifdef DEBUG
+#ifdef PZDEBUG
         std::stringstream sout;
         sout << "Singular Jacobian " << detjac;
         LOGPZ_ERROR(logger, sout.str())

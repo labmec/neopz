@@ -275,7 +275,7 @@ void TPZDohrSubstructCondense<TVar>::ContributeRhs(TPZFMatrix<TVar> &rhs)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-#ifdef DEBUG 
+#ifdef PZDEBUG 
 	TPZFMatrix<TVar> test(resloc);
 	test -= rhs;
 	//	TVar err = Norm(test);

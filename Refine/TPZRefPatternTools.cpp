@@ -328,7 +328,7 @@ void TPZRefPatternTools::ModifyElementsBasedOnRefpFound(TPZAutoPointer<TPZRefPat
             std::set<int> nodeindicesRefpFound;
             for(int n = 0; n < nodeIndicesVecRefpFound.NElements(); n++)
             {
-#ifdef DEBUG
+#ifdef PZDEBUG
                 if(Node_RefpFound2Refp.find(nodeIndicesVecRefpFound[n]) == Node_RefpFound2Refp.end())
                 {
                     DebugStop();
@@ -555,7 +555,7 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA,
 	TPZGeoEl* fatherA = meshA.ElementVec()[0];
 	int unpairedNNodes = meshA.NNodes() - pairedNodes.size();
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
 	if((int) pairedNodes.size() < fatherA->NNodes())
 	{
 		std::cout << "\nThere is something going wrong with meshA and/or meshB in " << __PRETTY_FUNCTION__ << std::endl;
@@ -1431,7 +1431,7 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, TPZVec<int>& NodesHunted
         }
     }
 	
-#ifdef DEBUG
+#ifdef PZDEBUG
     if(posIni == -1 || posFin == -1)
     {
         std::cout << "Initial Node index or Final Node index doesn't belong to the given TPZGeoNode TPZVec!\n";

@@ -872,7 +872,7 @@ namespace pztopology {
 	// Not complete
         DebugStop();
         
-//#ifdef DEBUG
+//#ifdef PZDEBUG
 //        if (SideDimension(side) != 2) {
 //            DebugStop();
 //        }
