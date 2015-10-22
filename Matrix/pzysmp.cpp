@@ -57,39 +57,22 @@ template<class TVar>
 TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp) : TPZMatrix<TVar>
 ()
 {
-	fDiag = 0;
-	fIA=0;
-	fJA=0;
-	fA=0;
 	*this = cp;
+}
+
+template<class TVar>
+TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix() : TPZMatrix<TVar>(), fIA(1,0),fJA(),fA(),fDiag()
+{
 }
 
 template<class TVar>
 TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator=(const TPZFYsmpMatrix<TVar> &cp) {
 	// Deletes everything associated with a TPZFYsmpMatrix
-	delete []fDiag;
-	fDiag = 0;
-	delete []fIA;
-	fIA=0;
-	delete []fJA;
-	fJA=0;
-	delete []fA;
-	fA=0;
 	TPZMatrix<TVar>::operator=(cp);
-	long nrows = cp.Rows();
-	long count = cp.fIA[nrows];
-	fJA = new long[count];
-	fA = new TVar[count];
-	fIA = new long[nrows+1];
-	fIA[0] = 0;
-	memcpy(fJA,cp.fJA,count*sizeof(long));
-	memcpy(fIA , cp.fIA, (nrows+1)*sizeof(long));
-	memcpy(fA, cp.fA, count*sizeof(REAL));
-	if(cp.fDiag)
-	{
-		fDiag = new TVar[nrows];
-		memcpy(fDiag, cp.fDiag, nrows*sizeof(REAL));
-	}
+    fIA = cp.fIA;
+    fA = cp.fA;
+    fJA = cp.fJA;
+    fDiag = cp.fDiag;
 	return *this;
 }
 
@@ -97,22 +80,14 @@ template<class TVar>
 TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator=(const TPZVerySparseMatrix<TVar> &cp)
 {
 	// Deletes everything associated with a TPZFYsmpMatrix
-	delete []fDiag;
-	fDiag = 0;
-	delete []fIA;
-	fIA=0;
-	delete []fJA;
-	fJA=0;
-	delete []fA;
-	fA=0;
 	long nrows = cp.Rows();
 	
 	long count = 0, c = 0, r = 0;
 	
 	count = cp.fExtraSparseData.size();
-	fJA = new long[count];
-	fA = new TVar[count];
-	fIA = new long[nrows+1];
+	fJA.resize(count);
+    fA.resize(count);
+    fIA.resize(nrows+1);
 	fIA[0] = 0;
 	
 	typename map< pair<long,long>, TVar>::const_iterator it;
@@ -355,15 +330,6 @@ TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix(const long rows,const long cols ) : TPZMatr
 template<class TVar>
 TPZFYsmpMatrix<TVar>::~TPZFYsmpMatrix() {
 	// Deletes everything associated with a TPZFYsmpMatrix
-	delete []fDiag;
-	fDiag = 0;
-	delete []fIA;
-	fIA=0;
-	delete []fJA;
-	fJA=0;
-	delete []fA;
-	fA=0;
-	//    fSolver = -1;
 #ifdef DESTRUCTOR
 	cerr << "~TPZFYsmpMatrix()\n";
 #endif
@@ -451,8 +417,8 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 			long icolmin = fIA[ir];
 			long icolmax = fIA[ir+1];
 			const TVar *xptr = &(x.g(0,0));
-			TVar *Aptr = fA;
-			long *JAptr = fJA;
+			TVar *Aptr = &fA[0];
+			long *JAptr = &fJA[0];
 			for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
 				sum += Aptr[icol] * xptr[JAptr[icol]];
 			}
@@ -620,9 +586,9 @@ void TPZFYsmpMatrix<TVar>::Print(const char *title, ostream &out ,const MatrixOu
 
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::ComputeDiagonal() {
-	if(fDiag) return;
+	if(fDiag.size()) return;
 	long rows = this->Rows();
-	fDiag = new TVar [rows];
+	fDiag.resize(rows);
 	for(long ir=0; ir<rows; ir++) {
 		fDiag[ir] = GetVal(ir,ir);
 	}
@@ -666,10 +632,8 @@ void TPZFYsmpMatrix<TVar>::SolveSOR( long &numiterations, const TPZFMatrix<TVar>
 template<class TVar>
 int TPZFYsmpMatrix<TVar>::Zero()
 {
-	long size = fIA[this->fRow] * sizeof(TVar);
-	long diagSize = min(this->fRow, this->fCol) * sizeof(TVar);
-	memset(fA,'\0',size);
-	memset(fDiag,'\0', diagSize);
+    fA.Fill(TVar(0.));
+    fDiag.Fill(TVar(0.));
 	return 1;
 }
 
@@ -687,7 +651,7 @@ int TPZFYsmpMatrix<TVar>::Zero()
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::SolveJacobi(long & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result, TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, REAL & tol, const int FromCurrent)
 {
-	if(!fDiag) {
+	if(!fDiag.size()) {
 		cout << "TPZSYsmpMatrix::Jacobi cannot be called without diagonal\n";
 		numiterations = 0;
 		if(residual) {
@@ -747,8 +711,8 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 			long icolmin = mat->fIA[ir];
 			long icolmax = mat->fIA[ir+1];
 			const TVar *xptr = &(data->fX->g(0,0));
-			TVar *Aptr = mat->fA;
-			long *JAptr = mat->fJA;
+			TVar *Aptr = &mat->fA[0];
+			long *JAptr = &mat->fJA[0];
 			for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
 				sum += Aptr[icol] * xptr[JAptr[icol]];
 			}
@@ -813,7 +777,7 @@ int TPZFYsmpMatrix<TVar>::GetSub(const long sRow,const long sCol,const long rowS
 		long row = sRow+ir;
 		long colfirst = fIA[row];
 		long collast = fIA[row+1];
-		long iacol = FindCol(fJA+colfirst,fJA+collast-1,sCol);
+		long iacol = FindCol(&fJA[0]+colfirst,&fJA[0]+collast-1,sCol);
 		long ic;
 		for(ic=0; ic<colSize; ic++) A(ir,ic) = fA[iacol+colfirst];
 	}
@@ -833,13 +797,13 @@ void TPZFYsmpMatrix<TVar>::GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar> &
 	std::map<long,long>::iterator itset,jtset;
 	for(itset = indord.begin(); itset != indord.end(); itset++)
 	{
-		long *jfirst = fJA+fIA[(*itset).first];
-		long *jlast = fJA+fIA[(*itset).first+1]-1;
+		long *jfirst = &fJA[0]+fIA[(*itset).first];
+		long *jlast = &fJA[0]+fIA[(*itset).first+1]-1;
 		//    int row = (*itset).first;
 		for(jtset = indord.begin(); jtset != indord.end(); jtset++)
 		{
 			long col = FindCol(jfirst,jlast,(*jtset).first);
-			long dist = jfirst+col-fJA;
+			long dist = jfirst+col-&fJA[0];
 			block((*itset).second,(*jtset).second) = fA[dist];
 			jfirst += col+1;
 		}
@@ -852,19 +816,19 @@ void TPZFYsmpMatrix<TVar>::GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar> &
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::RowLUUpdate(long sourcerow, long destrow)
 {
-	long *sourcefirst = fJA+fIA[sourcerow];
-	long *sourcelast = fJA+fIA[sourcerow+1]-1;
+	long *sourcefirst = &fJA[0]+fIA[sourcerow];
+	long *sourcelast = &fJA[0]+fIA[sourcerow+1]-1;
 	long sourcecol = FindCol(sourcefirst,sourcelast,sourcerow);
 	if(sourcecol < 0)
 	{
 		cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " source not found\n";
 		return;
 	}
-	long sourcedist = sourcefirst+sourcecol-fJA;
-	long *destfirst = fJA+fIA[destrow];
-	long *destlast = fJA+fIA[destrow+1]-1;
+	long sourcedist = sourcefirst+sourcecol-&fJA[0];
+	long *destfirst = &fJA[0]+fIA[destrow];
+	long *destlast = &fJA[0]+fIA[destrow+1]-1;
 	long destcol = FindCol(destfirst,destlast,destrow);
-	long destdist = destfirst+destcol-fJA;
+	long destdist = destfirst+destcol-&fJA[0];
 	if(destcol < 0)
 	{
 		cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " destrow not found\n";
@@ -964,7 +928,7 @@ int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
 	{
 		long firstrow = fIA[row];
 		long lastrow = fIA[row+1];
-		long col = FindCol(fJA+firstrow,fJA+lastrow-1,row);
+		long col = FindCol(&fJA[0]+firstrow,&fJA[0]+lastrow-1,row);
 		if(col < 0)
 		{
 			cout << __PRETTY_FUNCTION__ << " " << __LINE__ << " inconsistent column information for row " << row << endl;

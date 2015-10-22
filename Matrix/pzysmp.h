@@ -52,7 +52,10 @@ private:
 	
 	static void * ExecuteMT(void *entrydata);
 	
-public: 
+public:
+    
+    TPZFYsmpMatrix();
+    
     TPZFYsmpMatrix(const long rows,const long cols );
 	
 	TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp);
@@ -173,11 +176,11 @@ private:
 	void RowLUUpdate(long sourcerow, long destrow);
 	
 protected:
-	long  *fIA;
-	long  *fJA;
-	TVar *fA;
+	TPZVec<long>  fIA;
+	TPZVec<long>  fJA;
+	TPZVec<TVar> fA;
 	
-	TVar *fDiag;
+	TPZVec<TVar> fDiag;
 	
 	int   fSymmetric;
 	
@@ -198,9 +201,14 @@ protected:
 template<class TVar>
 inline void TPZFYsmpMatrix<TVar>::SetData( long *IA, long *JA, TVar *A ) {
 	// Pass the data to the class.
-	fIA = IA;
-	fJA = JA;
-	fA  =  A;
+    int nel = this->Rows()+1;
+    fIA.resize(nel);
+    memccpy(&fIA[0], IA, nel, sizeof(long));
+    long nval = fIA[nel-1];
+    fJA.resize(nval);
+    memccpy(&fJA[0], JA, nval, sizeof(long));
+    fA.resize(nval);
+    memccpy(&fA[0], A, nval, sizeof(TVar));
 	ComputeDiagonal();
 }
 
