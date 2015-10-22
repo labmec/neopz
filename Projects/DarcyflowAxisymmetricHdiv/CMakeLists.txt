@@ -4,7 +4,7 @@ file(GLOB header *.h)
 
 file(GLOB sources *.cpp)
 
-add_executable(Darcyflow ${sources} ${header})
+add_executable(DarcyflowAxiSymmetricHDiv ${sources} ${header})
 
-target_link_libraries(Darcyflow pz)
+target_link_libraries(DarcyflowAxiSymmetricHDiv pz)
 
