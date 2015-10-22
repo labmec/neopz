@@ -240,7 +240,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     long cols = ek.fMat.Cols()+ef.fMat.Cols();
     
     
-    TPZFMatrix<double> KF(rows,cols);
+    TPZFMatrix<STATE> KF(rows,cols);
     
     for(long i=0; i<rows;i++) // Montando a matriz KF a partir de ek e ef
         for (long j=0; j<cols; j++)
@@ -275,9 +275,14 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
                 KF(i,j)/=KF(i,i);
         }
         
+#ifdef STATEdouble
+
         cblas_dger (CblasColMajor, rows-i-1, cols-i-1,
                     -KF(i,i), &KF(i+1,i), 1,
                     &KF(i,i+1), rows, &KF(i+1,i+1), rows);
+#else
+        DebugStop();
+#endif
     }
     
     
