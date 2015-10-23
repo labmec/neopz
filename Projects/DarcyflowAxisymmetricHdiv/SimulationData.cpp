@@ -15,13 +15,16 @@ SimulationData::SimulationData()
     fDeltaT = 0.0;
     
     /** @brief Max Time - s */
-    fMaxTime = 0.0;    
+    fMaxTime = 0.0;
     
     /** @brief Time - s */
     fTime = 0.0;
     
     /** @brief Maximum number of newton iterations */
     fMaxiterations = 0;
+    
+    /** @brief Number of threads for assembly */
+    fnthreads = 0;
     
     /** @brief Maximum number of newton iterations */
     fFixedJacobianIterations = 0;
@@ -85,7 +88,7 @@ SimulationData::SimulationData()
     
     /** @brief Definition of the Left bc */
     fLeftBCini.Resize(4,0.0);
-  
+    
     /** @brief Definition of the Top bc */
     fTopBC.Resize(4,0.0);
     
@@ -97,7 +100,7 @@ SimulationData::SimulationData()
     
     /** @brief Definition of the Left bc */
     fLeftBC.Resize(4,0.0);
-  
+    
     /** @brief Gravity */
     fGravity.Resize(2,1);
     
@@ -112,6 +115,9 @@ SimulationData::SimulationData()
     
     /** @brief Is three-phase flow? */
     fIsThreePhaseQ = false;
+    
+    /** @brief Counterclockwise rotation angle */
+    fAngle = 0.0;
     
 }
 

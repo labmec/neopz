@@ -315,7 +315,7 @@ public:
      * @since April 16, 2007
      */
     void ContributeInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef);
-
+    
     
     /**
      * Unique identifier for serialization purposes
@@ -420,6 +420,16 @@ public:
     void ComputeRhof(TPZManVector<REAL> &rhof,TPZManVector<REAL> state_vars);
     
     // Axuliar methods computed based on the current u, p, Sw and So values.
+    
+    /**
+     * Compute the properties for computed state variables
+     */
+    void ComputeProperties(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZManVector<REAL> > & props);
+    
+    /**
+     * Compute the properties for a given state variables
+     */
+    void ComputeProperties(TPZManVector<REAL> &state_vars, TPZVec<TPZManVector<REAL> > & props);
     
     void UpdateStateVariables(TPZManVector<REAL,3> u, REAL P, REAL Sw, REAL So);
     

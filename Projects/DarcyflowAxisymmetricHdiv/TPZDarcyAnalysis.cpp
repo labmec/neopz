@@ -301,14 +301,14 @@ void TPZDarcyAnalysis::RunAnalysis()
     gRefDBase.InitializeUniformRefPattern(ETriangle);
     
 #ifdef PZDEBUG
-    #ifdef LOG4CXX
-        
-        std::string FileName = dirname;
-        FileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-        FileName += "DarcyFlowLog.cfg";
-        InitializePZLOG(FileName);
-        
-    #endif
+#ifdef LOG4CXX
+    
+    std::string FileName = dirname;
+    FileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
+    FileName += "DarcyFlowLog.cfg";
+    InitializePZLOG(FileName);
+    
+#endif
 #endif
     
     //  Reading mesh
@@ -333,9 +333,11 @@ void TPZDarcyAnalysis::RunAnalysis()
     }
     
     
-    REAL deg = 0.0;
     int hcont = 0;
-    RotateGeomesh(deg * M_PI/180.0);
+    
+    REAL deg = fSimulationData->GetRotationAngle();
+    RotateGeomesh( deg * M_PI/180.0);
+//    ApplyShear(2.0);
     this->UniformRefinement(fSimulationData->GetHrefinement());
     
     std::set<int> matidstoRef;
@@ -390,7 +392,7 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
     
     bool mustOptimizeBandwidth = fSimulationData->GetOptband();
     TPZAnalysis *an = new TPZAnalysis(cmesh,mustOptimizeBandwidth);
-    int numofThreads = 0;
+    int numofThreads = fSimulationData->GetNthreads();
     
     bool IsDirecSolver = fSimulationData->GetIsDirect();
     
@@ -496,9 +498,7 @@ void TPZDarcyAnalysis::CreateInterfaces()
         }
     }
     
-    if (fSimulationData->IsTwoPhaseQ()) {
-        return;
-    }
+    
     
     fgmesh->ResetReference();
     fcmeshdarcy->LoadReferences();
@@ -519,6 +519,10 @@ void TPZDarcyAnalysis::CreateInterfaces()
             InterpEl->CreateInterfaces();
         }
     }
+    
+    //    if (fSimulationData->IsTwoPhaseQ()) {
+    //        return;
+    //    }
     
     return;
 }
@@ -841,8 +845,6 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
     
     
     an->Rhs() = fResidualAtn + fResidualAtnplusOne;       // g(X0)
-    
-    
     an->Rhs() *= -1.0;
     
     if (IsShermanMorrison) {
@@ -875,6 +877,19 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
     
     // End of newton iteration
     
+#ifdef DEBUG
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+        X.Print("X = ", sout,EMathematicaInput);
+        Residual.Print("Residual = ", sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+#endif
+    
     // Procedure without Inverse computation
     
     iterations++;
@@ -882,13 +897,13 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
     while (error >= fSimulationData->GetToleranceRes() && iterations <= fSimulationData->GetMaxiterations()) {
         
         
-        fcmeshdarcy->LoadSolution(X);
+        an->LoadSolution(X);
         //        if (!fSimulationData->GetIsH1approx())
         //        {
         //            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
         //        }
         
-        this->AssembleResidual();
+        this->AssembleResNextStep(an);
         Residual = fResidualAtn + fResidualAtnplusOne;       // g(Xk)
         error = Norm(Residual);     // g(Xk)*g(Xk)
         
@@ -1048,7 +1063,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(20);
     forcef = dum;
-//     mat->SetTimeDependentForcingFunction(forcef);
+    //     mat->SetTimeDependentForcingFunction(forcef);
     
     // Setting up linear tracer solution
     //  TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
@@ -1144,16 +1159,16 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
-
-/*    TPZDummyFunction<STATE> *bcnfunction = new TPZDummyFunction<STATE>(BCNfunction);
-    TPZAutoPointer<TPZFunction<STATE> > bcN;
-    bcnfunction->SetPolynomialOrder(20);
-    bcN = bcnfunction;
-
-    TPZDummyFunction<STATE> *bcdfunction = new TPZDummyFunction<STATE>(BCDfunction);
-    TPZAutoPointer<TPZFunction<STATE> > bcD;
-    bcdfunction->SetPolynomialOrder(20);
-    bcD = bcdfunction;   */ 
+    
+    /*    TPZDummyFunction<STATE> *bcnfunction = new TPZDummyFunction<STATE>(BCNfunction);
+     TPZAutoPointer<TPZFunction<STATE> > bcN;
+     bcnfunction->SetPolynomialOrder(20);
+     bcN = bcnfunction;
+     
+     TPZDummyFunction<STATE> *bcdfunction = new TPZDummyFunction<STATE>(BCDfunction);
+     TPZAutoPointer<TPZFunction<STATE> > bcD;
+     bcdfunction->SetPolynomialOrder(20);
+     bcD = bcdfunction;   */
     
     TPZManVector<REAL,4> Bottom     = fSimulationData->GetBottomBC();
     TPZManVector<REAL,4> Right      = fSimulationData->GetRightBC();
@@ -1172,7 +1187,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     val2(1,0) = Right[2];
     val2(2,0) = Right[3];
     TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, int(Right[0]), val1, val2);
-//     mat->SetTimeDependentFunctionExact(bcD);
+    //     mat->SetTimeDependentFunctionExact(bcD);
     
     // Bc Top
     val2(0,0) = Top[1];
@@ -1185,7 +1200,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     val2(1,0) = Left[2];
     val2(2,0) = Left[3];
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, int(Left[0]), val1, val2);
-//     mat->SetTimedependentBCForcingFunction(bcN);
+    //     mat->SetTimedependentBCForcingFunction(bcN);
     
     cmesh->InsertMaterialObject(bcBottom);
     cmesh->InsertMaterialObject(bcRight);
@@ -1704,7 +1719,7 @@ void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
     TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
     CreateGridFrom2->SetParametricFunction(ParFunc2);
     CreateGridFrom2->SetFrontBackMatId(2,4);
-    //    CreateGridFrom2->SetTriangleExtrusion();
+//    CreateGridFrom2->SetTriangleExtrusion();
     
     dt = fSimulationData->GetLengthElementy();
     n = ny;
@@ -1753,6 +1768,35 @@ void TPZDarcyAnalysis::RotateGeomesh(REAL CounterClockwiseAngle)
         iCoordsRotated[0] = RotationMatrix(0,0)*iCoords[0]+RotationMatrix(0,1)*iCoords[1]+RotationMatrix(0,2)*iCoords[2];
         iCoordsRotated[1] = RotationMatrix(1,0)*iCoords[0]+RotationMatrix(1,1)*iCoords[1]+RotationMatrix(1,2)*iCoords[2];
         iCoordsRotated[2] = RotationMatrix(2,0)*iCoords[0]+RotationMatrix(2,1)*iCoords[1]+RotationMatrix(2,2)*iCoords[2];
+        GeoNode.SetCoord(iCoordsRotated);
+        fgmesh->NodeVec()[inode] = GeoNode;
+    }
+}
+
+void TPZDarcyAnalysis::ApplyShear(REAL CounterClockwiseAngle)
+{
+    REAL theta = CounterClockwiseAngle;
+    // It represents a 3D rotation around the z axis.
+    TPZFMatrix<STATE> ShearMatrix(3,3,0.0);
+    ShearMatrix(0,0) =   1.0;
+    ShearMatrix(0,1) =   sin(theta);
+    ShearMatrix(1,0) =   0.0;
+    ShearMatrix(1,1) =   1.0;
+    ShearMatrix(2,2) = 1.0;
+    TPZVec<STATE> iCoords(3,0.0);
+    TPZVec<STATE> iCoordsRotated(3,0.0);
+    
+    ShearMatrix.Print("ShearMatrix = ");
+    
+    int NumberofGeoNodes = fgmesh->NNodes();
+    for (int inode = 0; inode < NumberofGeoNodes; inode++)
+    {
+        TPZGeoNode GeoNode = fgmesh->NodeVec()[inode];
+        GeoNode.GetCoordinates(iCoords);
+        // Apply rotation
+        iCoordsRotated[0] = ShearMatrix(0,0)*iCoords[0]+ShearMatrix(0,1)*iCoords[1]+ShearMatrix(0,2)*iCoords[2];
+        iCoordsRotated[1] = ShearMatrix(1,0)*iCoords[0]+ShearMatrix(1,1)*iCoords[1]+ShearMatrix(1,2)*iCoords[2];
+        iCoordsRotated[2] = ShearMatrix(2,0)*iCoords[0]+ShearMatrix(2,1)*iCoords[1]+ShearMatrix(2,2)*iCoords[2];
         GeoNode.SetCoord(iCoordsRotated);
         fgmesh->NodeVec()[inode] = GeoNode;
     }
@@ -1917,12 +1961,12 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     else{
         plotfile = "2DMixedDarcy.vtk";
     }
-
+    
     scalnames.Push("WeightedPressure");
     vecnames.Push("BulkVelocity");
     scalnames.Push("Porosity");
     scalnames.Push("Rhs");
-
+    
     
     if (fSimulationData->IsOnePhaseQ()) {
         scalnames.Push("Rhoalpha");
@@ -1936,6 +1980,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
         scalnames.Push("Rhoalpha");
         scalnames.Push("Rhobeta");
         scalnames.Push("Salpha");
+        scalnames.Push("Sbeta");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div);
         return;
@@ -1945,6 +1990,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     if (fSimulationData->IsThreePhaseQ()) {
         scalnames.Push("Salpha");
         scalnames.Push("Sbeta");
+        scalnames.Push("Sgamma");
         scalnames.Push("Rhoalpha");
         scalnames.Push("Rhobeta");
         scalnames.Push("Rhogamma");
@@ -1952,17 +1998,17 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
         an->PostProcess(div);
         return;
     }
-
-
+    
+    
 }
 
 void TPZDarcyAnalysis::BCDfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad){
-
+    
     REAL t = time;
     REAL pd;
     REAL x = pt[0];
     REAL y = pt[1];
-
+    
     if(time <= 0.0){
         t = 0.0001;
     }
@@ -1989,50 +2035,50 @@ void TPZDarcyAnalysis::BCNfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STA
 void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad)
 {
     
-//    REAL epsilon = 0.01;
-//    REAL xc = 0.5;
-//    REAL yc = 0.5;
-//    REAL x = pt[0];
-//    REAL y = pt[1];
-//    REAL rho = 1000.0/((1.0e7)/(1000.0*9.81)); //check this value
-////    REAL c = 1.0;
-//    REAL Pref = 0.1;
-
+    //    REAL epsilon = 0.01;
+    //    REAL xc = 0.5;
+    //    REAL yc = 0.5;
+    //    REAL x = pt[0];
+    //    REAL y = pt[1];
+    //    REAL rho = 1000.0/((1.0e7)/(1000.0*9.81)); //check this value
+    ////    REAL c = 1.0;
+    //    REAL Pref = 0.1;
+    
     REAL f  =0.0;/* -((9.*exp(10.0*(-(1.0/1000.0) + log(1.0 + x))))/((1 + x)*(1 + x)))*/;
-//    REAL t = time;
-//
-//    if(time <= 0.0){
-//        t = 0.0001;
-//    }
-//    REAL pD = 0.1 + log(1.0 + x);
-//    REAL dpDdx = 1.0/(1.0 + x);
-//    REAL dpDdx2 = -pow(1.0 + x,-2.0);
-//    REAL b = (1.0e7);
-//    REAL c = 1000.0;
-//    REAL e = 1.0e-6;
-//    REAL rhoD = (6.4290583420332425e-6*(101325.353 + b*pD))/
-//    (c*(0.5017121086995703 + 0.4982878913004297*
-//        exp(-5.1483395031556254e-8*(101325.353 + b*pD) -
-//              2.1184388752031904e-15*pow(101325.353 + b*pD,2.0) -
-//              3.2120945504363473e-47*pow(101325.353 + b*pD,6.0)) +
-//        1.2777444873399675e-8*pow(101325.353 + b*pD,1.0023796430661953)));
-//    REAL rhoDpe = (6.4290583420332425e-6*(101325.353 + b*pD+e))/
-//    (c*(0.5017121086995703 + 0.4982878913004297*
-//        exp(-5.1483395031556254e-8*(101325.353 + b*pD+e) -
-//            2.1184388752031904e-15*pow(101325.353 + b*pD+e,2.0) -
-//            3.2120945504363473e-47*pow(101325.353 + b*pD+e,6.0)) +
-//        1.2777444873399675e-8*pow(101325.353 + b*pD+e,1.0023796430661953)));
-//    REAL rhoDme = (6.4290583420332425e-6*(101325.353 + b*pD-e))/
-//    (c*(0.5017121086995703 + 0.4982878913004297*
-//        exp(-5.1483395031556254e-8*(101325.353 + b*pD-e) -
-//            2.1184388752031904e-15*pow(101325.353 + b*pD-e,2.0) -
-//            3.2120945504363473e-47*pow(101325.353 + b*pD-e,6.0)) +
-//        1.2777444873399675e-8*pow(101325.353 + b*pD-e,1.0023796430661953)));
-//    REAL drhoD = b * ((rhoDpe) - (rhoDme)) / (2.0 * e);
-//    
-//    f = -rhoD*dpDdx2 - dpDdx*dpDdx*drhoD;
-
-//     f=-0.1*pow(1.0 - 1.0/(exp(x/t)*t),2.0) + (0.01*x)/(exp(x/t)*pow(t,2.0)) - (1.*(1.0 + (-0.1 + exp(-x/t) + x)/10.))/(exp(x/t)*pow(t,2.0));
+    //    REAL t = time;
+    //
+    //    if(time <= 0.0){
+    //        t = 0.0001;
+    //    }
+    //    REAL pD = 0.1 + log(1.0 + x);
+    //    REAL dpDdx = 1.0/(1.0 + x);
+    //    REAL dpDdx2 = -pow(1.0 + x,-2.0);
+    //    REAL b = (1.0e7);
+    //    REAL c = 1000.0;
+    //    REAL e = 1.0e-6;
+    //    REAL rhoD = (6.4290583420332425e-6*(101325.353 + b*pD))/
+    //    (c*(0.5017121086995703 + 0.4982878913004297*
+    //        exp(-5.1483395031556254e-8*(101325.353 + b*pD) -
+    //              2.1184388752031904e-15*pow(101325.353 + b*pD,2.0) -
+    //              3.2120945504363473e-47*pow(101325.353 + b*pD,6.0)) +
+    //        1.2777444873399675e-8*pow(101325.353 + b*pD,1.0023796430661953)));
+    //    REAL rhoDpe = (6.4290583420332425e-6*(101325.353 + b*pD+e))/
+    //    (c*(0.5017121086995703 + 0.4982878913004297*
+    //        exp(-5.1483395031556254e-8*(101325.353 + b*pD+e) -
+    //            2.1184388752031904e-15*pow(101325.353 + b*pD+e,2.0) -
+    //            3.2120945504363473e-47*pow(101325.353 + b*pD+e,6.0)) +
+    //        1.2777444873399675e-8*pow(101325.353 + b*pD+e,1.0023796430661953)));
+    //    REAL rhoDme = (6.4290583420332425e-6*(101325.353 + b*pD-e))/
+    //    (c*(0.5017121086995703 + 0.4982878913004297*
+    //        exp(-5.1483395031556254e-8*(101325.353 + b*pD-e) -
+    //            2.1184388752031904e-15*pow(101325.353 + b*pD-e,2.0) -
+    //            3.2120945504363473e-47*pow(101325.353 + b*pD-e,6.0)) +
+    //        1.2777444873399675e-8*pow(101325.353 + b*pD-e,1.0023796430661953)));
+    //    REAL drhoD = b * ((rhoDpe) - (rhoDme)) / (2.0 * e);
+    //
+    //    f = -rhoD*dpDdx2 - dpDdx*dpDdx*drhoD;
+    
+    //     f=-0.1*pow(1.0 - 1.0/(exp(x/t)*t),2.0) + (0.01*x)/(exp(x/t)*pow(t,2.0)) - (1.*(1.0 + (-0.1 + exp(-x/t) + x)/10.))/(exp(x/t)*pow(t,2.0));
     
 #ifdef SolutionI
     
@@ -2392,7 +2438,7 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionCmesh(TPZVec<STATE> &solini)
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialWaterSaturation);
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialS_alpha);
     material->SetForcingFunction(forcef);
     cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->SetDefaultOrder(fSimulationData->Getsorder());
@@ -2403,7 +2449,7 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionCmesh(TPZVec<STATE> &solini)
     
 }
 
-void TPZDarcyAnalysis::InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     //    REAL x = pt[0];
     REAL y = pt[1];

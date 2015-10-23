@@ -43,13 +43,16 @@ private:
     REAL fDeltaT;
     
     /** @brief Max Time - s */
-    REAL fMaxTime;    
+    REAL fMaxTime;
     
     /** @brief Time - s */
     REAL fTime;
     
     /** @brief Maximum number of newton iterations */
     int fMaxiterations;
+    
+    /** @brief Number of threads for assembly */
+    int fnthreads;
     
     /** @brief Maximum number of newton iterations */
     int fFixedJacobianIterations;
@@ -102,7 +105,7 @@ private:
     
     /** @brief State: n or n+1 temporal state */
     int fNelmx;
-
+    
     /** @brief State: n or n+1 temporal state */
     int fNelmy;
     
@@ -123,7 +126,7 @@ private:
     
     /** @brief Definition of the Left bc */
     TPZVec<REAL> fLeftBCini;
-  
+    
     /** @brief Definition of the Top bc */
     TPZVec<REAL> fTopBC;
     
@@ -147,9 +150,12 @@ private:
     
     /** @brief Is three-phase flow? */
     bool fIsThreePhaseQ;
-  
-     /** @brief Gravity  */
+    
+    /** @brief Gravity  */
     TPZFMatrix<REAL> fGravity;
+    
+    /** @brief Counterclockwise rotation angle [degrees] */
+    REAL fAngle;
     
 public:
     
@@ -161,23 +167,23 @@ public:
     
     /** @brief Set nElements x -  */
     void SetnElementsx (int Nelem){this-> fNelmx = Nelem;}
-      /** @brief Get nElements x -  */
+    /** @brief Get nElements x -  */
     int GetnElementsx (){return this-> fNelmx;}
     
     
     /** @brief Set nElements x -  */
     void SetnElementsy (int Nelem){this-> fNelmy = Nelem;}
-      /** @brief Get nElements x -  */
+    /** @brief Get nElements x -  */
     int GetnElementsy (){return this-> fNelmy;}
     
     /** @brief Set LengthElementx  x -  */
     void SetLengthElementx (REAL LengthElementx){this-> fLengthElementx = LengthElementx;}
-      /** @brief Get LengthElementx  x -  */
+    /** @brief Get LengthElementx  x -  */
     REAL GetLengthElementx (){return this-> fLengthElementx;}
-
+    
     /** @brief Set LengthElementy  y -  */
     void SetLengthElementy (REAL LengthElementy){this-> fLengthElementy = LengthElementy;}
-      /** @brief Get LengthElementy  y -  */
+    /** @brief Get LengthElementy  y -  */
     REAL GetLengthElementy (){return this-> fLengthElementy;}
     
     /** @brief Get Time step - s */
@@ -193,7 +199,7 @@ public:
     void SetMaxTime(REAL MaxTime) {this->fMaxTime = MaxTime;}
     
     /** @brief Get Time - s */
-    REAL GetMaxTime() {return this->fMaxTime;}    
+    REAL GetMaxTime() {return this->fMaxTime;}
     
     /** @brief Set Tolerance for  Delta X */
     void SetToleranceDX(REAL dxtol) {this->ftoleranceDeltaX = dxtol;}
@@ -212,6 +218,12 @@ public:
     
     /** @brief Get Maximum newton iterations - - */
     int GetMaxiterations() {return this->fMaxiterations;}
+    
+    /** @brief Set Number of threads for assembly */
+    void SetNthreads(int ntrheads){this->fnthreads = ntrheads;}
+    
+    /** @brief Get Number of threads for assembly */
+    int GetNthreads() {return this->fnthreads;}
     
     /** @brief Set Maximum newton iterations - - */
     void SetFixediterations(int Fixediterations){this->fFixedJacobianIterations = Fixediterations;}
@@ -316,7 +328,7 @@ public:
     
     /** @brief Set Top bc */
     void SetBottomBC(TPZVec<REAL> bottombcini, TPZVec<REAL> bottombc){
-
+        
         if (bottombc.size() != 4 && bottombcini.size() != 4) {
             std::cout << "The number of parameter must to be equal 4, you give me = " << bottombc.size() << std::endl;
             DebugStop();
@@ -327,7 +339,7 @@ public:
     
     /** @brief Get Top bc */
     TPZVec<REAL> GetBottomBCini(){return fBottomBCini;}
-
+    
     /** @brief Get Top bc */
     TPZVec<REAL> GetBottomBC(){return fBottomBC;}
     
@@ -365,7 +377,7 @@ public:
     /** @brief Get Top bc */
     TPZVec<REAL> GetLeftBC(){return fLeftBC;}
     
-        /** @brief Set Gravity */
+    /** @brief Set Gravity */
     void SetGravity(TPZFMatrix< REAL > &gravity){
         
         fGravity = gravity;
@@ -381,7 +393,7 @@ public:
         switch (SystemType.size()) {
             case 1:
             {
-                 fIsOnePhaseQ = true;
+                fIsOnePhaseQ = true;
             }
                 break;
             case 2:
@@ -407,7 +419,7 @@ public:
     
     /** @brief Mono-phasic system */
     bool IsOnePhaseQ() {return fIsOnePhaseQ;}
-   
+    
     /** @brief Two-phasic system */
     bool IsTwoPhaseQ() {return fIsTwoPhaseQ;}
     
@@ -416,6 +428,12 @@ public:
     
     /** @brief Definition of the flow system one - two and  ... three phase */
     TPZStack<std::string> GetsystemType() {return fSystemType;}
+    
+    /** @brief Counterclockwise rotation angle [degrees] */
+    void SetRotationAngle(REAL angle) {this->fAngle = angle;}
+    
+    /** @brief Counterclockwise rotation angle [degrees] */
+    REAL GetRotationAngle() {return this->fAngle;}
     
 };
 

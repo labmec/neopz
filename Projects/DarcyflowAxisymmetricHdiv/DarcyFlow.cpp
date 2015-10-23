@@ -24,7 +24,6 @@ int main()
 {
     
     TPZMaterial::gBigNumber = 1.0e9; // Use this for check of convergence using neumann
-    //    TPZMaterial::gBigNumber = 1.0e15;
     
     NonlinearTracerDimensionless();
     
@@ -50,52 +49,54 @@ void NonlinearTracerDimensionless()
     REAL Tstr           = 355.37;
     REAL Tres           = 355.37;
     REAL Lstr           = 1000.0;
-//    REAL gcstr          = 9.81;
     REAL Mustr          = 0.001;
     REAL Rhostr         = 1000.0;
-//    REAL Lambdastr      = Rhostr/Mustr;
+    REAL lambdastr      = Rhostr/Mustr;
     TPZFMatrix<REAL> Gravity(2,1);
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
     int maxiter     = 40;
+    int nthread     = 16;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    bool OptBand    = false;    // Band optimization
+    bool OptBand    = true;    // Band optimization
     int fixedJac    = 0;
     
     int qorder      = 1;
     int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 2;
+    int hpostref    = 0;
     
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    REAL dt         = 1.*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
-    REAL maxtime    = 10.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
+    REAL dt         = 100.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
+    REAL maxtime    = 1000.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL t0         = 0.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     
-    REAL TolDeltaX  = 1.0*1e-7;
-    REAL TolRes     = 1.0*1e-7;
+    REAL TolDeltaX  = 1.0*1e-4;
+    REAL TolRes     = 1.0*1e-4;
     
-    int  nelemX     =5;
-    REAL lengthX    =200.0/Lstr;
+    int  nelemX     =10;
+    REAL lengthX    =100.0/Lstr;
     
-    int nelemY      =5;
-    REAL lengthY    =200.0/Lstr;
+    int nelemY      =10;
+    REAL lengthY    =100.0/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
     Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
     
+    REAL angle = 0.0;
+    
     TPZStack<std::string> system;
     system.Push("Oil");
     system.Push("Water");
-//    system.Push("Gas");
+    //    system.Push("Gas");
     
     Dataset->SetsystemType(system);
     Dataset->SetGR(GR);
@@ -115,12 +116,14 @@ void NonlinearTracerDimensionless()
     Dataset->SetToleranceRes(TolRes);
     Dataset->SetMaxiterations(maxiter);
     Dataset->SetFixediterations(fixedJac);
+    Dataset->SetNthreads(nthread);
     Dataset->SetIsBroyden(broyden);
     Dataset->SetnElementsx(nelemX);
     Dataset->SetnElementsy(nelemY);
     Dataset->SetLengthElementx(lengthX);
     Dataset->SetLengthElementy(lengthY);
     Dataset->SetGravity(Gravity);
+    Dataset->SetRotationAngle(angle);
     
     // BCs
     //    int typeFluxin = 1, typePressurein = 0;
@@ -162,11 +165,11 @@ void NonlinearTracerDimensionless()
     bottombc[0] = 1;
     bottombc[1] = 0;
     bottombc[2] = 0;
-    bottombc[3] = 0;
+    bottombc[3] = 1;
     
     TPZVec<REAL> rightbc(4,0.0);
     rightbc[0] = 2;
-    rightbc[1] = log(2.0)+0.1;
+    rightbc[1] = 0.1;
     rightbc[2] = 0;
     rightbc[3] = 0;
     
@@ -174,11 +177,11 @@ void NonlinearTracerDimensionless()
     topbc[0] = 1;
     topbc[1] = 0;
     topbc[2] = 0;
-    topbc[3] = 0;
+    topbc[3] = 1;
     
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 1;
-    leftbc[1] = 0.00718196;
+    leftbc[1] = ((-1.0e-3)*Lstr)/(Kstr*lambdastr*Pstr);
     leftbc[2] = 1;
     leftbc[3] = 0;
     
@@ -214,11 +217,11 @@ void NonlinearTracerDimensionless()
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (1.0*1e-9)*Pstr;
+    REAL cwater             = (0.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
-    REAL oildensity         = 800.0/Rhostr;
+    REAL oildensity         = 1000.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (1.0*1e-7)*Pstr;
+    REAL coil               = (0.0*1e-9)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
     REAL gasviscosity       = Mustr;
@@ -277,14 +280,8 @@ void NonlinearTracerDimensionless()
     PVTData[1] = Water.operator->();    // beta
     PVTData[2] = Gas.operator->();      // gamma
     
-//    TPZManVector<REAL> rho(5,0),sv(4,0);
-//    sv[1] = 0.167128;
-//    Gas->Z(rho, sv);
-//    Gas->Bg(rho, sv);
-//    Gas->Density(rho, sv);
     
     // Creating the analysis
-    
     TPZVec<TPZAutoPointer<ReservoirData> > Layers;
     Layers.Resize(1);
     Layers[0] = Layer;
@@ -295,6 +292,6 @@ void NonlinearTracerDimensionless()
     
     TPZDarcyAnalysis SandStone(Dataset,Layers,Rocks);
     SandStone.SetFluidData(PVTData);
-    SandStone.Run();
+    SandStone.RunAnalysis();
     
 }

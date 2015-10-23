@@ -64,7 +64,7 @@ private:
     
     // Reduced PVT data required for gamma
     TPZAutoPointer<Phase> fgamma_fluid;
-   
+    
     /** @brief Geometric mesh */
     TPZGeoMesh * fgmesh;
     
@@ -73,7 +73,7 @@ private:
     
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 4> fmeshvec;
-
+    
     /** @brief Cmesh for Initial Darcy analysis */
     TPZCompMesh * fcmeshinitialdarcy;
     
@@ -89,11 +89,11 @@ private:
     /** @brief unknowns for n+1 time step */
     TPZFMatrix<REAL> falphaAtnplusOne;
     
-    /** @brief Store DOF associated with Constant Saturations */    
+    /** @brief Store DOF associated with Constant Saturations */
     TPZManVector<long> fConstantSaturations;
-   
-    /** @brief Store DOF associated with  Saturation gradients */    
-    TPZManVector<long> fGradientSaturations;    
+    
+    /** @brief Store DOF associated with  Saturation gradients */
+    TPZManVector<long> fGradientSaturations;
     
     
 public:
@@ -187,6 +187,11 @@ public:
     void RotateGeomesh(REAL CounterClockwiseAngle);
     
     /**
+     * Apply shear deformation to the geometric mesh on x-y plane
+     */
+    void ApplyShear(REAL CounterClockwiseAngle);
+    
+    /**
      * Create geometric Mesh Based on layer average thickness and layer radius
      */
     void CreatedGeoMesh();
@@ -260,7 +265,7 @@ public:
      * Push the initial cmesh
      */
     void PushInitialCmesh();
-
+    
     /**
      * Push the current cmesh
      */
@@ -330,12 +335,12 @@ public:
      * Rhs function of the mass conservation equation
      */
     static  void Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad);
-
+    
     /**
      * Transient BC neumann
      */
     static  void BCNfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad);
-
+    
     /**
      * Transient BC dirichlet
      */
@@ -360,7 +365,7 @@ public:
      * Extract a value from a given list
      */
     static int Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value);
-
+    
     /**
      * Computes the inverse of the Global matrix
      */
@@ -370,7 +375,7 @@ public:
      * Computes the inverse of the Global matrix
      */
     static REAL dfdsw( REAL Sw, REAL muo,REAL muw);
-
+    
     /**
      * Computes the inverse of the Global matrix
      */
@@ -394,18 +399,18 @@ public:
     /**
      * Clean up reconstructed gradient saturation for Sw and So
      */
-    void CleanUpGradients(TPZAnalysis *an);    
+    void CleanUpGradients(TPZAnalysis *an);
     
     /**
      * Update state variables
      */
     void UpDateAlphaVec(TPZFMatrix<REAL> &alpha);
-
+    
     /**
      * Computes the L2 projection for saturations
      */
     void SolveProjection(TPZAnalysis *an, TPZCompMesh *Cmesh);
-
+    
     /**
      * Computes computational mesh for L2 projection
      */
@@ -420,7 +425,7 @@ public:
      * Computes convergence rate for the global problem
      */
     void CheckGlobalConvergence(TPZAnalysis * an);
-
+    
     /**
      * Method to verify the jacobian
      */
@@ -429,7 +434,7 @@ public:
     /**
      * Computes computational mesh for L2 projection
      */
-    static void InitialWaterSaturation(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+    static void InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
     
 };
 
