@@ -441,7 +441,7 @@ inline void TPZLadeNelsonElasticResponse::
 {
   const int nVars = 6;
   int i,j;
-  typedef TFad<nVars, REAL> TFAD;
+//  typedef TFad<nVars, REAL> TFAD;
   // extract the values of the residual vector
   
   resnorm = 0.;

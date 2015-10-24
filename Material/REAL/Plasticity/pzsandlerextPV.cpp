@@ -45,7 +45,7 @@ TPZSandlerExtended::TPZSandlerExtended(const TPZSandlerExtended & copy)
 }
 
 TPZSandlerExtended::TPZSandlerExtended(STATE A, STATE B,STATE C, STATE D,STATE K,STATE G,STATE W,STATE R,STATE Phi,STATE N,STATE Psi):
-fA(A),fB(B),fC(C),fD(D),fK(K),fW(W),fR(R),fG(G),fPhi(Phi),fN(N),fPsi(Psi)
+fA(A),fB(B),fC(C),fD(D),fW(W),fK(K),fR(R),fG(G),fPhi(Phi),fN(N),fPsi(Psi)
 {
     fE=(9.*fK*fG)/(3.*fK+fG);
     fnu=((3.*fK)-(2.*fG))/(2*(3.*fK+fG));

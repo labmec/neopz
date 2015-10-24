@@ -782,8 +782,9 @@ std::string TPZRefPatternTools::BuildRefPatternModelName(TPZRefPattern &refp)
 {
 	std::string refpTypeName;
 	std::stringstream rpName;
+    TPZRefPattern *prefp = &refp;
 	
-	if(&refp == NULL)
+	if(prefp == NULL)
 	{
 		std::cout << "Null refpattern parameter on " << __PRETTY_FUNCTION__ << std::endl;
 		return refpTypeName;

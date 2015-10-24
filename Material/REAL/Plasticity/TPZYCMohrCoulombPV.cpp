@@ -2,12 +2,12 @@
 
 typedef TFad<3,REAL> fadtype;
 
-TPZYCMohrCoulombPV::TPZYCMohrCoulombPV() : fPhi(0.),fPsi(0.), fc(0.), fEpsPlasticBar(0.), fER()
+TPZYCMohrCoulombPV::TPZYCMohrCoulombPV() : fPhi(0.),fPsi(0.), fc(0.), fER(), fEpsPlasticBar(0.)
 {
 
 }
 
-TPZYCMohrCoulombPV::TPZYCMohrCoulombPV(REAL Phi, REAL Psi, REAL c, TPZElasticResponse &ER) : fPhi(Phi), fPsi(Psi), fc(c), fEpsPlasticBar(0.), fER(ER)
+TPZYCMohrCoulombPV::TPZYCMohrCoulombPV(REAL Phi, REAL Psi, REAL c, TPZElasticResponse &ER) : fPhi(Phi), fPsi(Psi), fc(c), fER(ER), fEpsPlasticBar(0.)
 {
 	
 }
@@ -149,7 +149,7 @@ void TPZYCMohrCoulombPV::ComputePlaneTangent(TPZMatrix<REAL> &tang, REAL &epsbar
 	PlasticityFunction(epsbar, c, H);
 	const REAL denom = constA + 4 * cosphi2*H;
 	const REAL dGds1 = (1+sinphi)/denom; // Derivate of gamma with respect to Sigma1tr
-	const REAL dGds2 = 0.; // Only created to remember that PHIfunc doesnt depend in it
+//	const REAL dGds2 = 0.; // Only created to remember that PHIfunc doesnt depend in it
 	const REAL dGds3 = (-1+sinphi)/denom;
 	tang.Redim(3, 3);
 	
@@ -426,8 +426,9 @@ template<class T>
 bool TPZYCMohrCoulombPV::ReturnMapApex(const TPZVec<T> &sigmatrial, TPZVec<T> &sigma_projected,
 									 TComputeSequence &memory, REAL &epsbarnew) const
 {
-	const REAL K = fER.K(), G = fER.G();
-	const REAL sinphi = sin(fPhi);
+    const REAL K = fER.K();
+//    const REAL G = fER.G();
+//	const REAL sinphi = sin(fPhi);
 	const REAL sinpsi = sin(fPsi);
 	const REAL cosphi = cos(fPhi);
 	const REAL cotphi = 1./tan(fPhi);

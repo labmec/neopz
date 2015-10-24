@@ -630,7 +630,7 @@ inline void TPZYCLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
 #endif
   int i;
   const int nVars = 6;
-  typedef TFad<nVars,REAL> TFAD;
+//  typedef TFad<nVars,REAL> TFAD;
 
   REAL PlasticPot;
   REAL A; // not used, just created to satisfy interface

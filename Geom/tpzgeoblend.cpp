@@ -445,6 +445,9 @@ void pzgeom::TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
 {
     for(int byside = TGeo::NNodes; byside < (TGeo::NSides); byside++)
     {
+        if (refel->SideIsUndefined(byside)) {
+            continue;
+        }
         TPZGeoElSide ElemSide(refel,byside);
         TPZGeoElSide NextSide(ElemSide.Neighbour());
         if(!NextSide.Element()) continue;

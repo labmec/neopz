@@ -267,7 +267,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 		CheckConvergence(*this,fSolution,range,coefs);
 	}
     
-    bool precond = false;
+//    bool precond = false;
     Assemble();
     REAL RhsNormPrev = Norm(fRhs);
     

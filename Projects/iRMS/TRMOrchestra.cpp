@@ -89,9 +89,9 @@ void TRMOrchestra::CreateAnalysisDual(){
     
 //    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
     fSpaceGenerator.CreateGeometricReservoirMesh();
-//#ifdef PZDEBUG
+#ifdef PZDEBUG
     fSpaceGenerator.PrintGeometry();
-//#endif
+#endif
     
     fSpaceGenerator.SetDefaultPOrder(2);
     

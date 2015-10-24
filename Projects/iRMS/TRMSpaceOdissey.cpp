@@ -364,9 +364,16 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmesh.operator->());
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmesh.operator->());
     
-    
-    
-    
+    long nel = fMixedFluxPressureCmesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = fMixedFluxPressureCmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
 }
 
 /** @brief Statically condense the internal equations of the elements */

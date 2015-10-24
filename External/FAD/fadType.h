@@ -4,7 +4,7 @@
 #ifdef _AUTODIFF
 
 
-using namespace std;
+//using namespace std;
 
 #include "fad.h"
 #include "tinyfad.h"

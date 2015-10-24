@@ -21,6 +21,7 @@
 #include "pzcondensedcompel.h"
 
 #include "TPZVTKGeoMesh.h"
+#include "pzysmp.h"
 
 
 
@@ -64,7 +65,11 @@ private:
     TPZAutoPointer<TPZCompMesh> fGeoMechanicsCmesh;
     
     void ModifyElementOrders(std::map<long,int> &elorders);
-    
+
+    /** @brief Sparse matrix to transfer P solution to integrations points of saturation mesh */
+    TPZFYsmpMatrix<STATE> fP_To_SwVol;
+    TPZFYsmpMatrix<STATE> fP_To_SwLeft;
+    TPZFYsmpMatrix<STATE> fP_To_SwRight;
 
 public:
     

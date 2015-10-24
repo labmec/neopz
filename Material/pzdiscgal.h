@@ -53,6 +53,18 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
         TPZMaterial::Contribute(datavec,weight,ek,ef);
     }
+    
+    /**
+     * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
+     * @param datavec [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ef [out] is the load vector
+     */
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
+    {
+        TPZMaterial::Contribute(datavec,weight,ef);
+    }
+
 
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) = 0;
     
@@ -66,6 +78,11 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
+
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+    {
+        TPZMaterial::ContributeBC(datavec,weight,ef,bc);
+    }
 
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point

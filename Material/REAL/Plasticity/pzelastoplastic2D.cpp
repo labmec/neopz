@@ -592,7 +592,8 @@ void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
     int nstate = NStateVariables();
     
     const int phr = phi.Rows();
-    int in,jn,idf,jdf;
+    int in;
+//    int jn,idf,jdf;
     REAL v2[2];
     v2[0] = bc.Val2()(0,0);
     v2[1] = bc.Val2()(1,0);

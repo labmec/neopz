@@ -1460,7 +1460,7 @@ inline void TPZYCSandlerDimaggio::Residual(TPZFMatrix<REAL> &res,int icase)
 
   int i;
   const int nVars = 6;
-  typedef TFad<nVars,REAL> TFAD;
+//  typedef TFad<nVars,REAL> TFAD;
 
   TPZVec< REAL > PlasticPot(2);
   REAL A = -0.05; // example epsVP value to be used with checkconv

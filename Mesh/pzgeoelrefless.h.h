@@ -171,6 +171,7 @@ int
 TPZGeoElRefLess<TGeo>::SideIsUndefined(int side){
 	if (side < 0 || side > NSides()){
 		PZError << "TPZGeoElRefLess<TGeo>::SideIsUndefined - bad side: " << side << std::endl;
+        DebugStop();
 	}
 	return (fNeighbours[side].Side() == -1);
 }
