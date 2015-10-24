@@ -30,12 +30,12 @@
 
 
 
-TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl(),fLeftElSide(0), fRightElSide(0), fIntegrationRule(0)
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl(),fLeftElSide(0), fRightElSide(0)
 {
 }
 
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, long &index,
-                                                                    TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index), fIntegrationRule(0)
+                                                                    TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index)
 {
 	
 	ref->SetReference(this);
@@ -82,14 +82,11 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
     fLeftElSide = TPZCompElSide(leftel,leftside);
     fRightElSide = TPZCompElSide(rightel,rightside);
     SetLeftRightElement(fLeftElSide, fRightElSide);
-    if (copy.fIntegrationRule) {
-        fIntegrationRule = copy.fIntegrationRule->Clone();
-    }
 }
 
 /** @brief create a copy of the given element using index mapping */
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy, std::map<long,long> & gl2lcConMap,
-                                                                 std::map<long,long> & gl2lcElMap) : TPZCompEl(mesh,copy,gl2lcElMap), fIntegrationRule(0)
+                                                                 std::map<long,long> & gl2lcElMap) : TPZCompEl(mesh,copy,gl2lcElMap)
 {
     /// constructor not implemented right
     DebugStop();
@@ -111,7 +108,6 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &me
         DebugStop();
     }
     SetLeftRightElement(TPZCompElSide(leftel,leftside), TPZCompElSide(rightel,rightside));
-    fIntegrationRule = copy.fIntegrationRule->Clone();
     
 }
 

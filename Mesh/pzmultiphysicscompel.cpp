@@ -867,50 +867,56 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpoin
 	}
 }//ComputeRequiredData
 
+/// After adding the elements initialize the integration rule
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
+{
+    if (fElementVec.NElements() == 0) {
+        DebugStop(); // This case should be treated before
+    }
+    
+    TPZMaterial * material = Material();
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        DebugStop();
+    }
+    
+    const long nref = fElementVec.size();
+    TPZManVector<TPZMaterialData,3> datavec;
+    datavec.resize(nref);
+    this->InitMaterialData(datavec);
+    int dim = Dimension();
+    TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
+    TPZManVector<int> ordervec;
+    //ordervec.resize(nref);
+    for (long iref=0;  iref<nref; iref++)
+    {
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+        int svec;
+        if(msp)
+        {
+            ordervec.Resize(ordervec.size()+1);
+            svec = ordervec.size();
+        }
+        else
+        {
+            continue;
+        }
+        datavec[iref].p = msp->MaxOrder();
+        ordervec[svec-1] = datavec[iref].p;
+    }
+    int order = material->IntegrationRuleOrder(ordervec);
+    TPZManVector<int,3> orderdim(dim,order);
+    fIntRule.SetOrder(orderdim);
+
+}
+
+
 
 template <class TGeometry>
 const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule()
 {
-	if (fElementVec.NElements() == 0) {
-		DebugStop(); // This case should be treated before
-	}
-	
-	TPZMaterial * material = Material();
-	if(!material){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
-		DebugStop();
-	}
-	
-	const long nref = fElementVec.size(); 
-	TPZManVector<TPZMaterialData,3> datavec;
-	datavec.resize(nref);
-	this->InitMaterialData(datavec);
-	int dim = Dimension();
-	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
-	TPZManVector<int> ordervec;
-	//ordervec.resize(nref);
-	for (long iref=0;  iref<nref; iref++) 
-	{
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
-		int svec;
-		if(msp)
-		{
-			ordervec.Resize(ordervec.size()+1);
-			svec = ordervec.size();
-		}
-		else
-		{
-			continue;
-		}
-		datavec[iref].p = msp->MaxOrder();
-		ordervec[svec-1] = datavec[iref].p;
-	}
-	int order = material->IntegrationRuleOrder(ordervec);
-	
-	TPZGeoEl *ref = this->Reference();
-	const TPZIntPoints * intrulePtr = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
-	const TPZIntPoints &intrule = *intrulePtr;
-	return intrule;
+    return fIntRule;
 }
 
 

@@ -546,6 +546,16 @@ public:
 private:
 	/** @brief Default interpolation order */
     static int gOrder;
+    
+protected:
+    /// Integration rule established by the user
+    TPZIntPoints *fIntegrationRule;
+    
+public:
+    /// Method to set a dynamically allocated integration rule
+    void SetIntegrationRule(TPZIntPoints *intrule);
+    
+
 
 };
 

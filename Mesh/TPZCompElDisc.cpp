@@ -1068,8 +1068,8 @@ const TPZIntPoints &TPZCompElDisc::GetIntegrationRule() const {
 	if(this->fIntRule == 0){
 		DebugStop();
 	}
-  if (fCustomizedIntegrationRule) {
-    return *fCustomizedIntegrationRule;
+  if (fIntegrationRule) {
+    return *fIntegrationRule;
   }
   else
   {
@@ -1081,9 +1081,9 @@ TPZIntPoints &TPZCompElDisc::GetIntegrationRule() {
 	if(this->fIntRule == 0){
 		DebugStop();
 	}
-  if (fCustomizedIntegrationRule)
+  if (fIntegrationRule)
   {
-    return *fCustomizedIntegrationRule;
+    return *fIntegrationRule;
   }
   else
   {

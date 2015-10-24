@@ -113,10 +113,10 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<long> &connectlist, TPZBlockDiagonal<
 
 int TPZCompEl::gOrder = 2;
 
-TPZCompEl::TPZCompEl() : fMesh(0), fIndex(-1), fReferenceIndex(-1) {
+TPZCompEl::TPZCompEl() : fMesh(0), fIndex(-1), fReferenceIndex(-1), fIntegrationRule(0) {
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) {
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) : fIntegrationRule(0) {
 	fMesh = &mesh;
 	index = mesh.ElementVec().AllocateNewElement();
 	mesh.ElementVec()[index] = this;
@@ -124,23 +124,29 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, long &index) {
 	fReferenceIndex = (ref == 0) ? -1 : ref->Index();
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy): fIntegrationRule(0) {
 	fMesh = &mesh;
 	long index = copy.fIndex;
 	if(index >= 0) mesh.ElementVec()[index] = this;
 	fIndex = index;
 	fReferenceIndex = copy.fReferenceIndex;
+    if (copy.fIntegrationRule) {
+        fIntegrationRule = copy.fIntegrationRule->Clone();
+    }
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, long &index) {
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, long &index) : fIntegrationRule(0) {
 	fMesh = &mesh;
 	index = mesh.ElementVec().AllocateNewElement();
 	if(index >= 0) mesh.ElementVec()[index] = this;
 	fIndex = index;
 	fReferenceIndex = copy.fReferenceIndex;
+    if (copy.fIntegrationRule) {
+        fIntegrationRule = copy.fIntegrationRule->Clone();
+    }
 }
 
-TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,long> &gl2lcElMap)
+TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,long> &gl2lcElMap) : fIntegrationRule(0)
 {
 	fMesh = &mesh;
 	if (gl2lcElMap.find(copy.fIndex) == gl2lcElMap.end())
@@ -158,6 +164,9 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<long,lon
 	if(index >= 0) mesh.ElementVec()[index] = this;
 	fIndex = index;
 	fReferenceIndex = copy.fReferenceIndex;
+    if (copy.fIntegrationRule) {
+        fIntegrationRule = copy.fIntegrationRule->Clone();
+    }
 }
 
 TPZCompEl::~TPZCompEl() {
@@ -175,6 +184,9 @@ TPZCompEl::~TPZCompEl() {
     fIndex = -1;
     fReferenceIndex = -1;
     fMesh = 0;
+    if (fIntegrationRule) {
+        delete fIntegrationRule;
+    }
 }
 
 MElementType TPZCompEl::Type() {
@@ -1034,3 +1046,10 @@ TPZVec<STATE> TPZCompEl::IntegrateSolution(int var) const
     return result;
 }
 
+void TPZCompEl::SetIntegrationRule(TPZIntPoints *intrule)
+{
+    if (fIntegrationRule) {
+        delete fIntegrationRule;
+    }
+    fIntegrationRule = intrule;
+}

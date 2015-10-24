@@ -27,6 +27,9 @@ protected:
 	
 	/** @brief Indexes of the connects of the element */
 	TPZVec<long> fConnectIndexes;
+    
+    /// Integration rule associated with the element
+    typename TGeometry::IntruleType fIntRule;
 	
 public:
 	/**
@@ -295,7 +298,9 @@ public:
 	
 	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);
   
-		
+    /// After adding the elements initialize the integration rule
+    virtual void InitializeIntegrationRule();
+    
 	/** 
 	 * @brief Return the Integration rule being used by multiphysics compel
 	 */	

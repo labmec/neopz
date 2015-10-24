@@ -119,8 +119,8 @@ public:
 	TPZTransform TransformSideToElement(int side);
 	
 	virtual const TPZIntPoints &GetIntegrationRule() const {
-    if (this->fCustomizedIntegrationRule) {
-      return *fCustomizedIntegrationRule;
+    if (this->fIntegrationRule) {
+      return *fIntegrationRule;
     }
     else
     {
@@ -129,8 +129,8 @@ public:
 	}
 	
 	virtual TPZIntPoints &GetIntegrationRule() {
-    if (fCustomizedIntegrationRule) {
-      return *fCustomizedIntegrationRule;
+    if (fIntegrationRule) {
+      return *fIntegrationRule;
     }
     else
     {

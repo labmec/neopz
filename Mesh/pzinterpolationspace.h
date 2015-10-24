@@ -349,11 +349,6 @@ protected:
 	 */
     void ExpandShapeFunctions(TPZVec<long> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
-  /// Integration rule established by the user
-  TPZIntPoints *fCustomizedIntegrationRule;
-  
-public:
-  void SetCustomizedIntegrationRule(TPZIntPoints *intrule);
 };
 
 #endif

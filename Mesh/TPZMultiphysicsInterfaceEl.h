@@ -31,8 +31,6 @@ protected:
     /** @brief indexes of the connects */
     TPZManVector<long,20> fConnectIndexes;
     
-    /// Integration rule
-    TPZIntPoints *fIntegrationRule;
 	
 public:
 	/** @brief Default constructor */

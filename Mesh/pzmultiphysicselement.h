@@ -87,6 +87,9 @@ public:
     void RemoveInterfaces();
     
     void RemoveInterface(int side);
+    
+    /// After adding the elements initialize the integration rule
+    virtual void InitializeIntegrationRule() = 0;
 
     virtual int IntegrationOrder() = 0;
     
