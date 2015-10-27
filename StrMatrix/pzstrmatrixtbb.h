@@ -133,7 +133,7 @@ public:
     static void OrderElement(TPZCompMesh *cmesh, TPZVec<int> &ElementOrder);
     
     /** @brief Create blocks of elements to parallel processing */
-    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor, TPZVec<int> &elBlocked);
+    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int> &elSequence, TPZVec<int> &elSequenceColor, TPZVec<int> &elSequenceColorInv, TPZVec<int> &elBlocked);
     
     
     /** @brief Filter out the equations which are out of the range */
@@ -159,7 +159,7 @@ protected:
 #ifdef USING_TBB
     struct TPZGraphThreadData {
         // copy constructor
-        TPZGraphThreadData(TPZVec<int> fnextBlocked, TPZVec<int> felSequenceColor);
+        TPZGraphThreadData(TPZCompMesh *cmesh, TPZVec<int> &fnextBlocked, TPZVec<int> &felSequenceColor, TPZVec<int> &felSequenceColorInv);
         // destructor
         ~TPZGraphThreadData();
         // tbb tasks graph
@@ -192,7 +192,7 @@ protected:
     };
     
     /** @brief Pointer to the tbb::parallel graph structure */
-    TPZGraphThreadData *fAssembleThreadGraph;
+//    TPZGraphThreadData *fAssembleThreadGraph;
     
 #endif
     
@@ -206,7 +206,7 @@ protected:
     /** @brief Object which will determine which equations will be assembled */
     TPZEquationFilter fEquationFilter;
     /** @brief Vectors for mesh coloring */
-    TPZVec<int> fnextBlocked, felSequenceColor;
+    TPZVec<int> fnextBlocked, felSequenceColor, felSequenceColorInv;
     
 protected:
     

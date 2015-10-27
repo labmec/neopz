@@ -644,7 +644,20 @@ void *TPZStructMatrixCS::ThreadData::ThreadWork(void *datavoid)
     long nel = cmesh->NElements();
     while(iel < nel)
     {
-        
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "Computing element " << iel;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+#ifdef LOG4CXX
+        std::stringstream sout;
+        sout << "Element " << iel << " elapsed time ";
+        TPZTimer timeforel(sout.str());
+        timeforel.start();
+#endif
+
         TPZAutoPointer<TPZElementMatrix> ek;
         TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrix(cmesh,TPZElementMatrix::EF);
         if (data->fGlobMatrix) {
@@ -749,7 +762,16 @@ void *TPZStructMatrixCS::ThreadData::ThreadWork(void *datavoid)
             data->fGlobRhs->AddFel(ef->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
             PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementF,"");
         }
-        
+#ifdef LOG4CXX
+        timeforel.stop();
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << timeforel.processName() <<  timeforel;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+
         // compute the next element (this method is threadsafe)
         iel = data->NextElement();
     }
@@ -806,6 +828,20 @@ void TPZStructMatrixCS::AssembleTask::operator()(const tbb::blocked_range<size_t
     
     for(size_t iel=range.begin(); iel!=range.end(); ++iel )
     {
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "Computing element " << iel;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+#ifdef LOG4CXX
+        std::stringstream sout;
+        sout << "Element " << iel << " elapsed time ";
+        TPZTimer timeforel(sout.str());
+        timeforel.start();
+#endif
+
         TPZAutoPointer<TPZElementMatrix> ek;
         TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrix(cmesh,TPZElementMatrix::EF);
         if (data->fGlobMatrix) {
@@ -888,6 +924,15 @@ void TPZStructMatrixCS::AssembleTask::operator()(const tbb::blocked_range<size_t
 #endif
         }
         
+#ifdef LOG4CXX
+            timeforel.stop();
+            if (logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << timeforel.processName() <<  timeforel;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
         // Assemble the matrix
         
         if(!ek->HasDependency())

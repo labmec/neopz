@@ -650,23 +650,56 @@ void *TPZStructMatrixGC::ThreadData::ThreadWork(void *datavoid)
     while(hasWork)
     {
         tht::EnterCriticalSection(data->fAccessElement);
-        
-        int localiel = data->fNextElement;
-        if(data->fNextElement < nel){
-            if (!data->felBlocked.size() || data->felBlocked.begin()->first > localiel){
-                iel = (*data->felSequenceColor)[localiel];
+        // nextelement is a protected value
+        long localiel = data->fNextElement;
+        long blockedel = -1;
+        if(data->felBlocked.size()) blockedel = data->felBlocked.begin()->first;
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Checking out " << localiel << " next blocked element " << blockedel;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        if(localiel < nel)
+        {
+            // The elblocked data structure indicates the elements blocked by the elements being processed (why is this needed?)
+            if (!data->felBlocked.size() || data->felBlocked.begin()->first > localiel)
+            {
                 
                 if(localiel==-1) DebugStop();
+                // this is the next element that will be computed
+                iel = (*data->felSequenceColor)[localiel];
                 
+                // identify the element which will be blocked by iel
                 int elBl = (*data->fnextBlocked)[localiel];
+#ifdef LOG4CXX
+                if (logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "Element can be computed iel = " << localiel << " element blocked " << elBl;
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+                
+#endif
+                // update the datastructure with the highest element that can be processed while iel hasn't been computed yet
                 if (elBl >= 0){
                     data->felBlocked[elBl]++;
                     hasWork = true;
                 }
-                
+                // the next thread will monitor a higher numbered element
                 data->fNextElement++;
             }
             else if (data->felBlocked.size() || data->felBlocked.begin()->first <= localiel){
+#ifdef LOG4CXX
+                if (logger->isDebugEnabled()) {
+                    std::stringstream sout;
+                    sout << "Going to sleep cannot do " << localiel << " because of " << data->felBlocked.begin()->first << " has to be computed first";
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+                // localiel cannot be processed yet
                 data->fSleeping=true;
                 while(data->fSleeping){
                     pthread_cond_wait(&data->fCondition, &data->fAccessElement);
@@ -685,6 +718,12 @@ void *TPZStructMatrixGC::ThreadData::ThreadWork(void *datavoid)
         
         tht::LeaveCriticalSection(data->fAccessElement);
         
+#ifdef LOG4CXX
+        std::stringstream sout;
+        sout << "Element " << localiel << " elapsed time ";
+        TPZTimer timeforel(sout.str());
+        timeforel.start();
+#endif
         
         if (iel >= 0){
             TPZCompEl *el = cmesh->ElementVec()[iel];
@@ -742,17 +781,62 @@ void *TPZStructMatrixGC::ThreadData::ThreadWork(void *datavoid)
                 
             }
             
+#ifdef LOG4CXX
+            timeforel.stop();
+            if (logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << timeforel.processName() <<  timeforel;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+            
             tht::EnterCriticalSection( data->fAccessElement );
             
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "Computed and Assembled " << localiel;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+            // clean up the data structure
             int elBl = (*data->fnextBlocked)[localiel];
-            if (elBl >= 0 && data->felBlocked.find(elBl) != data->felBlocked.end()){
+            if (elBl >= 0 && data->felBlocked.find(elBl) != data->felBlocked.end())
+            {
                 data->felBlocked[elBl]--;
-                if (data->felBlocked[elBl] == 0){
+                int dataelbl = data->felBlocked[elBl];
+                if (dataelbl == 0){
+#ifdef LOG4CXX
+                    if(logger->isDebugEnabled())
+                    {
+                        std::stringstream sout;
+                        sout << "Element " << elBl << " released";
+                        LOGPZ_DEBUG(logger, sout.str())
+                    }
+#endif
                     data->felBlocked.erase(elBl);
                     if(data->fSleeping) {
                         data->fSleeping=false;
+                    
+                        if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up everybody")
+                        // wake up everybody
+                        pthread_cond_broadcast(&data->fCondition);
                     }
-                    pthread_cond_broadcast(&data->fCondition);
+                }
+                else if (dataelbl < 0)
+                {
+                    DebugStop();
+                }
+                else
+                {
+#ifdef LOG4CXX
+                    if (logger->isDebugEnabled()) {
+                        std::stringstream sout;
+                        sout << "Not freeing the blocked element " << elBl;
+                        LOGPZ_DEBUG(logger, sout.str())
+                    }
+#endif
                 }
             }
             else if(elBl >= 0){
