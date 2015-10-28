@@ -819,7 +819,11 @@ void *TPZStructMatrixGC::ThreadData::ThreadWork(void *datavoid)
                     if(data->fSleeping) {
                         data->fSleeping=false;
                     
-                        if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up everybody")
+#ifdef LOG4CXX
+                        if(logger->isDebugEnabled()){
+                            LOGPZ_DEBUG(logger, "Waking up everybody")
+                        }
+#endif
                         // wake up everybody
                         pthread_cond_broadcast(&data->fCondition);
                     }
