@@ -19,6 +19,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.iRMS"));
 
 void LinearTracerPrimal();
 void LinearTracerDual();
+void BoxLinearTracerDual();
 void CheckQuarterPoint();
 void CreateExampleRawData(TRMRawData &data);
 
@@ -33,9 +34,12 @@ int main()
 
     // Running primal problem
 //    LinearTracerPrimal();
+
+    // Running dual problem on box shape
+    BoxLinearTracerDual();
     
-    // Running dual problem
-    LinearTracerDual();
+//    // Running dual problem on Reservoir
+//    LinearTracerDual();
     
     
     std::cout << "Process complete normally." << std::endl;
@@ -57,6 +61,15 @@ void LinearTracerDual()
     TRMOrchestra  * SymphonyX = new TRMOrchestra;
     SymphonyX->CreateAnalysisDual();
     std::cout << "Dual complete normally." << std::endl;       
+    
+}
+
+void BoxLinearTracerDual()
+{
+    
+    TRMOrchestra  * SymphonyX = new TRMOrchestra;
+    SymphonyX->CreateAnalysisDualonBox();
+    std::cout << "Dual complete normally." << std::endl;
     
 }
 

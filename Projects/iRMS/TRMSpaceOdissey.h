@@ -13,7 +13,7 @@
 #include "tpzautopointer.h"
 #include "TRMSimulationData.h"
 #include "TRMRawData.h"
-
+#include "TRMBuildTransfers.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 
@@ -21,7 +21,6 @@
 #include "pzcondensedcompel.h"
 
 #include "TPZVTKGeoMesh.h"
-#include "pzysmp.h"
 
 
 
@@ -32,13 +31,13 @@ public:
     /** @brief Define the type of geometry being used */
     enum MGeoMeshType {ENone = 0,EBox = 1, EReservoir = 2};
     
+    /** @brief Define the type of geometry being used */
+    MGeoMeshType fMeshType;
+    
 private:
     
     /** @brief order of approximation */
     int fPOrder;
-    
-    /** @brief Define the type of geometry being used */
-    MGeoMeshType fMeshType;
     
     /** @brief Autopointer of the Geometric mesh shared with all the classes involved */
     TPZAutoPointer<TPZGeoMesh> fGeoMesh;
@@ -64,12 +63,10 @@ private:
     /** @brief H1 computational mesh for Maurice Biot Linear Poroelasticity */
     TPZAutoPointer<TPZCompMesh> fGeoMechanicsCmesh;
     
+    /** @brief Object that generates and contains all the sparse matrices to transfer informations */
+    TPZAutoPointer<TRMBuildTransfers> fTransferGenerator;
+    
     void ModifyElementOrders(std::map<long,int> &elorders);
-
-    /** @brief Sparse matrix to transfer P solution to integrations points of saturation mesh */
-    TPZFYsmpMatrix<STATE> fP_To_SwVol;
-    TPZFYsmpMatrix<STATE> fP_To_SwLeft;
-    TPZFYsmpMatrix<STATE> fP_To_SwRight;
 
 public:
     
@@ -171,8 +168,14 @@ public:
         return fMixedFluxPressureCmesh;
     }
     
+    /// Access method for the transfer tenerator objet
+    TPZAutoPointer<TRMBuildTransfers>  GetTransferGenerator(){
+        return fTransferGenerator;
+    }
+    
     /// Adjust the polinomial order of the elements
     void IncreaseOrderAroundWell(int numlayers);
+    
 };
 
 #endif /* defined(__PZ__TRMSpaceOdissey__) */

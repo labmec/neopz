@@ -65,9 +65,12 @@ public:
     
     /** @brief Create a primal analysis using space odissey */
     void CreateAnalysisPrimal();
-    
+
     /** @brief Create a dual analysis using space odissey */
     void CreateAnalysisDual();
+    
+    /** @brief Create a dual analysis on box geometry using space odissey */
+    void CreateAnalysisDualonBox();
     
     /** @brief Run the time steps set in the simulation data */
     void RunSimulation();

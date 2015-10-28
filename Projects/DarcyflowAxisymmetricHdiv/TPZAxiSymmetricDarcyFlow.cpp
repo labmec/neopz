@@ -267,10 +267,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     
     S_gamma = 1.0 - S_alpha - S_beta;
-    
-    
-    
-    
+
     REAL time;
     TPZVec<STATE> Saturation(1,0.0);
     TPZFMatrix<STATE> GradS(1,0);
@@ -308,7 +305,9 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     switch(var) {
         case 0:
         {
-            Solout[0] = P;
+            REAL x = datavec[Pblock].x[0];
+
+            Solout[0] = log(x+1);
         }
             break;
         case 1:
@@ -2907,7 +2906,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     if (fSimulationData->IsnStep()) {
         return;
     }
-    
+
     // Getting data for Mixed-Darcy flow problem
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
@@ -2951,7 +2950,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<REAL> Oneoverlambda_Kinv_Phiu(2,1);
     TPZFMatrix<STATE> Gravity(2,1);
     TPZFMatrix<STATE> gm(2,1);
-    TPZFMatrix<STATE> dgmdP(2,1);
+    TPZFMatrix<STATE> dgmdS(2,1);
     
     Gravity = fSimulationData->GetGravity();
     
@@ -2970,6 +2969,58 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZManVector<REAL> f_alpha          = props[3];
     TPZManVector<REAL> f_beta           = props[4];
     TPZManVector<REAL> f_gamma          = props[5];
+    TPZManVector<REAL> lambda           = props[6];
+    TPZManVector<REAL> rho              = props[7];
+    TPZManVector<REAL> rhof             = props[8];
+    
+    Oneoverlambda_Kinv_u(0,0) = (1.0/lambda[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
+    Oneoverlambda_Kinv_u(1,0) = (1.0/lambda[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
+    
+    gm(0,0) = rhof[0] * Gravity(0,0);
+    gm(1,0) = rhof[0] * Gravity(1,0);
+    
+    dgmdS(0,0) = rhof[3] * Gravity(0,0);
+    dgmdS(1,0) = rhof[3] * Gravity(1,0);
+    
+//    REAL divu = 0.0;
+    TPZFMatrix<STATE> iphiuHdiv(2,1);
+    int ishapeindex;
+    int ivectorindex;
+//    TPZFMatrix<STATE> jphiuHdiv(2,1);
+//    int jshapeindex;
+//    int jvectorindex;
+    
+    
+    
+    for (int iq = 0; iq < nphiuHdiv; iq++)
+    {
+        
+        /* $ \underset{\Omega_{e}}{\int}\left(K\lambda\right)^{-1}\mathbf{q}\cdot\mathbf{v}\;\partial\Omega_{e}-\underset{\Omega_{e}}{\int}P\; div\left(\mathbf{v}\right)\partial\Omega-\underset{\Omega_{e}}{\int}\nabla\left(\rho_{f}g\; z\right)\cdot\mathbf{v} $ */
+        
+        ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
+        ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+        
+        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
+        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        
+        // du/dalphaSa terms
+        for (int jsa = 0; jsa < nphiSaL2; jsa++)
+        {
+            ek(iq + iniu,jsa + iniSa) += weight * ( (-lambda[3]/lambda[0])*(Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0)) - (dgmdS(0,0)*iphiuHdiv(0,0) + dgmdS(1,0)*iphiuHdiv(1,0)) )* Sa_phiPL2(jsa,0) ;
+        }
+        
+        
+    }
+    
+    /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
+    for (int ip = 0; ip < nphiPL2; ip++)
+    {
+        for (int jsa = 0; jsa < nphiSaL2; jsa++)
+        {
+            ek(ip + iniP, jsa + iniSa) += weight * (- (1.0/dt) * phi * rho[3] * Sa_phiPL2(jsa,0) ) * phiPL2(ip,0);
+        }
+    }
+    
     
     
     for (int isw = 0; isw < nphiSaL2; isw++)
@@ -3136,6 +3187,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     REAL PL              = datavecleft[Pblock].sol[0][0];
     REAL SaL             = datavecleft[Sablock].sol[0][0];
     
+    TPZFMatrix<STATE> iphiuHdivL(2,1);
+    int ishapeindex;
+    int ivectorindex;
     
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
@@ -3160,10 +3214,21 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 {
                     ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
                     
-//                    for (int jp = 0; jp < nphiPL2L; jp++)
-//                    {
-//                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
-//                    }
+                    for (int jq = 0; jq < nphiuHdivL; jq++)
+                    {
+                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
+                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+                        
+                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+                    }
+                    
+                    for (int jp = 0; jp < nphiPL2L; jp++)
+                    {
+                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
+                    }
                     
                     for (int jsw = 0; jsw < nphiSaL2L; jsw++)
                     {
@@ -3219,10 +3284,21 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 {
                     ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
                     
-//                    for (int jp = 0; jp < nphiPL2L; jp++)
-//                    {
-//                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
-//                    }
+                    for (int jq = 0; jq < nphiuHdivL; jq++)
+                    {
+                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
+                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+                        
+                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+                    }
+                    
+                    for (int jp = 0; jp < nphiPL2L; jp++)
+                    {
+                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
+                    }
                     
                     for (int jsw = 0; jsw < nphiSaL2L; jsw++)
                     {
@@ -3279,10 +3355,21 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 {
                     ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
                     
-//                    for (int jp = 0; jp < nphiPL2L; jp++)
-//                    {
-//                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
-//                    }
+                    for (int jq = 0; jq < nphiuHdivL; jq++)
+                    {
+                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
+                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+                        
+                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+                    }
+                    
+                    for (int jp = 0; jp < nphiPL2L; jp++)
+                    {
+                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
+                    }
                     
                     for (int jsw = 0; jsw < nphiSaL2L; jsw++)
                     {
@@ -3301,10 +3388,21 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 {
                     ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
                     
-//                    for (int jp = 0; jp < nphiPL2L; jp++)
-//                    {
-//                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
-//                    }
+                    for (int jq = 0; jq < nphiuHdivL; jq++)
+                    {
+                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
+                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+                        
+                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+                    }
+                    
+                    for (int jp = 0; jp < nphiPL2L; jp++)
+                    {
+                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
+                    }
                     
                     for (int jsw = 0; jsw < nphiSaL2L; jsw++)
                     {
@@ -3345,10 +3443,21 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 {
                     ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn;
                     
-//                    for (int jp = 0; jp < nphiPL2L; jp++)
-//                    {
-//                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * qn;
-//                    }
+                    for (int jq = 0; jq < nphiuHdivL; jq++)
+                    {
+                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
+                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+                        
+                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+                    }
+                    
+                    for (int jp = 0; jp < nphiPL2L; jp++)
+                    {
+                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * qn;
+                    }
                     
                     for (int jsw = 0; jsw < nphiSaL2L; jsw++)
                     {
@@ -3367,10 +3476,21 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 {
                     ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
                     
-//                    for (int jp = 0; jp < nphiPL2L; jp++)
-//                    {
-//                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
-//                    }
+                    for (int jq = 0; jq < nphiuHdivL; jq++)
+                    {
+                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
+                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+                        
+                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+                    }
+                    
+                    for (int jp = 0; jp < nphiPL2L; jp++)
+                    {
+                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
+                    }
                     
                     for (int jsw = 0; jsw < nphiSaL2L; jsw++)
                     {
@@ -3704,6 +3824,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     
     // Getting test and basis functions for the left side
+    TPZVec<TPZMaterialData> datavec;
     TPZFMatrix<REAL> phiuH1;
     TPZFMatrix<REAL> phiPL2;
     TPZFMatrix<REAL> phiSaL2;
@@ -3722,6 +3843,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     if ((uLn >= 0.0) && fabs(uLn) > fepsilon) {
         this->ComputeProperties(datavecleft, props);
+        datavec = datavecleft;
         phiuH1      = phiuH1L;
         phiPL2      = phiPL2L;
         phiSaL2     = phiSaL2L;
@@ -3738,6 +3860,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     else
     {
         this->ComputeProperties(datavecright, props);
+        datavec = datavecright;
         phiuH1      = phiuH1R;
         phiPL2      = phiPL2R;
         phiSaL2     = phiSaL2R;
@@ -3753,11 +3876,25 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     }
     
     TPZManVector<REAL> f_alpha          = props[3];
-    
+    TPZFMatrix<STATE> iphiuHdiv(2,1);
+    int ishapeindex;
+    int ivectorindex;
     
     for (int isw = 0; isw < nphiSaL2L; isw++)
     {
         ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
+        
+        for (int jq = 0; jq < nphiuHdiv; jq++)
+        {
+            ivectorindex = datavec[ublock].fVecShapeIndex[jq].first;
+            ishapeindex = datavec[ublock].fVecShapeIndex[jq].second;
+            iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
+            iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+            REAL vn = iphiuHdiv(0,0)*n[0] + iphiuHdiv(1,0)*n[1];
+            
+            ek(isw + iniSaL,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+            
+        }
         
         for (int jp = 0; jp < nphiPL2; jp++)
         {
@@ -3773,6 +3910,18 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     for (int isw = 0; isw < nphiSaL2R; isw++)
     {
         ef(iblock + isw + iniSaR) += -1.0 * weight * f_alpha[0] * phiSaL2R(isw,0) * uLn;
+        
+        for (int jq = 0; jq < nphiuHdiv; jq++)
+        {
+            ivectorindex = datavec[ublock].fVecShapeIndex[jq].first;
+            ishapeindex = datavec[ublock].fVecShapeIndex[jq].second;
+            iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
+            iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+            REAL vn = iphiuHdiv(0,0)*n[0] + iphiuHdiv(1,0)*n[1];
+            
+            ek(iblock + isw + iniSaR,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+            
+        }
         
         for (int jp = 0; jp < nphiPL2; jp++)
         {

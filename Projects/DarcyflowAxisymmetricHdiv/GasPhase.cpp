@@ -123,6 +123,8 @@ void GasPhase::Viscosity(TPZManVector<REAL> &mu, TPZManVector<REAL> state_vars)
     
     mu[0] = mu_gas / GetMu();
     mu[2] = dmudP / GetMu();
+    mu[0] = 1.0 / GetMu();
+    mu[2] = 0.0 / GetMu();
 }
 
 /** @brief Compressibility - 1/pa $c$ */

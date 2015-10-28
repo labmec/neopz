@@ -508,11 +508,6 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
                     ek(iq,jq) += weight * ( gBigNumber * PhiH1(jq,0)) * PhiH1(iq,0);
                 }
                 
-//                for (int jp = 0; jp < nPhiL2; jp++)
-//                {
-//                    ek(iq, jp + nPhiHdiv) += weight * WL2(jp,0) * PhiH1(iq,0);
-//                }
-                
             }
             
         }
@@ -550,7 +545,7 @@ void TRMMixedDarcy::Read(TPZStream &buf, void *context) {
     
 }
 
-/// Copy the n+1 data to the n data
+// Update element memory by copying the n+1 data to the n data
 void TRMMixedDarcy::UpdateMemory()
 {
     long nel = fMemory.NElements();

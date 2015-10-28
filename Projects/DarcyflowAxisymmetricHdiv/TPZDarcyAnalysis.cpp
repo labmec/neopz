@@ -736,7 +736,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     int fixed       =   fSimulationData->GetFixediterations();
     
     
-    while (error >= fSimulationData->GetToleranceRes() && iterations <= fSimulationData->GetMaxiterations()) {
+    while (iterations <= fSimulationData->GetMaxiterations()) {
         
         an->Rhs() = Residual;
         an->Rhs() *= -1.0;

@@ -39,7 +39,8 @@ TRMOrchestra::~TRMOrchestra(){
 }
 
 /** @brief Create a primal analysis using space odissey */
-void TRMOrchestra::CreateAnalysisPrimal(){
+void TRMOrchestra::CreateAnalysisPrimal()
+{
     
     TPZManVector<int,2> dx(2,1), dy(2,1), dz(2,1);
     dx[0] = 1;
@@ -80,15 +81,91 @@ void TRMOrchestra::CreateAnalysisPrimal(){
 }
 
 /** @brief Create a dual analysis using space odissey */
-void TRMOrchestra::CreateAnalysisDual(){
+void TRMOrchestra::CreateAnalysisDualonBox()
+{
     int nel = 1;
     TPZManVector<int,2> dx(2,nel), dy(2,nel), dz(2,nel);
     dx[0] = 1;
     dy[0] = 1;
     dz[0] = 1;
     
-//    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
-    fSpaceGenerator.CreateGeometricReservoirMesh();
+    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
+#ifdef PZDEBUG
+    fSpaceGenerator.PrintGeometry();
+#endif
+    
+    fSpaceGenerator.SetDefaultPOrder(1);
+    
+    fSpaceGenerator.CreateFluxCmesh();
+    fSpaceGenerator.CreatePressureCmesh();
+    
+    fSpaceGenerator.CreateMixedCmesh();
+    
+    fSpaceGenerator.StaticallyCondenseEquations();
+    
+    // transfer the solution from the meshes to the multiphysics mesh
+    TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
+    meshvec[0] = fSpaceGenerator.GetFluxCmesh();
+    meshvec[1] = fSpaceGenerator.GetPressureMesh();
+    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetMixedCmesh();
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
+    TPZAutoPointer<TRMBuildTransfers> transfer_matrices = fSpaceGenerator.GetTransferGenerator();
+    
+    transfer_matrices->ComputeTransferScalar_Vol(meshvec[1].operator->(), meshvec[1].operator->());
+    
+    // Analysis
+    bool mustOptimizeBandwidth = true;
+    fFluxPressureAnalysis.SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
+    int numofThreads = 8;
+#ifdef PZDEBUG
+    {
+        std::ofstream out("../MixedCompMesh.txt");
+        Cmesh->Print(out);
+    }
+#endif
+    fFluxPressureAnalysis.Solution().Zero();
+    fFluxPressureAnalysis.LoadSolution();
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
+    std::cout << "Total dof: " << prevsol.Rows() << std::endl;
+    
+   
+    TPZSkylineStructMatrix strmat(Cmesh.operator->());
+    //    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
+    TPZStepSolver<STATE> step;
+    strmat.SetNumThreads(numofThreads);
+    step.SetDirect(ELDLt);
+    fFluxPressureAnalysis.SetStructuralMatrix(strmat);
+    fFluxPressureAnalysis.SetSolver(step);
+    fFluxPressureAnalysis.Run();
+    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
+    prevsol -= fFluxPressureAnalysis.Solution();
+    Cmesh->LoadSolution(prevsol);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+    
+    const int dim = 3;
+    int div = 0;
+    TPZStack<std::string> scalnames, vecnames;
+    std::string plotfile =  "../DualDarcyOnBox.vtk";
+    scalnames.Push("WeightedPressure");
+    scalnames.Push("DivOfBulkVeclocity");
+    scalnames.Push("POrder");
+    vecnames.Push("BulkVelocity");
+    fFluxPressureAnalysis.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+    fFluxPressureAnalysis.PostProcess(div);
+    
+}
+
+/** @brief Create a dual analysis using space odissey */
+void TRMOrchestra::CreateAnalysisDual(){
+    int nel = 2;
+    TPZManVector<int,2> dx(2,nel), dy(2,nel), dz(2,nel);
+    dx[0] = 1;
+    dy[0] = 1;
+    dz[0] = 1;
+    
+    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
+//    fSpaceGenerator.CreateGeometricReservoirMesh();
 #ifdef PZDEBUG
     fSpaceGenerator.PrintGeometry();
 #endif
@@ -104,9 +181,9 @@ void TRMOrchestra::CreateAnalysisDual(){
 //    ProjectExactSolution();
     
     
-    fSpaceGenerator.IncreaseOrderAroundWell(3);
-
-    fSpaceGenerator.ConfigureWellConstantPressure(0., 1000.);
+//    fSpaceGenerator.IncreaseOrderAroundWell(3);
+//
+//    fSpaceGenerator.ConfigureWellConstantPressure(0., 1000.);
 
     fSpaceGenerator.StaticallyCondenseEquations();
     

@@ -48,10 +48,10 @@ void WaterPhase::Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars){
     
     REAL Sw = state_vars[2];
     
-    kr[0] = Sw;
+    kr[0] = Sw*Sw*Sw;
     kr[1] = 0.0;
     kr[2] = 0.0;
-    kr[3] = 1.0;
+    kr[3] = 3.0*Sw*Sw;
     kr[4] = 0.0;
     
 }

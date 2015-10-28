@@ -48,11 +48,21 @@ static void CreateExampleRawData(TRMRawData &data)
 /** @brief Default constructor */
 TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox), fPOrder(4)
 {
+    fGeoMesh                = NULL;
+    fH1Cmesh                = NULL;
+    fSimulationData         = NULL;
+    fFluxCmesh              = NULL;
+    fPressureCmesh          = NULL;
+    fMixedFluxPressureCmesh = NULL;
+    fSaturationMesh         = NULL;
+    fGeoMechanicsCmesh      = NULL;
+    fTransferGenerator      = NULL;
     
 }
 
 /** @brief Default desconstructor */
 TRMSpaceOdissey::~TRMSpaceOdissey(){
+    
     /** @brief H1 computational mesh for validation */
     if(fH1Cmesh)
     {
@@ -201,7 +211,6 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     int dim = 3;
     int porder = fPOrder;
     
-    const int typeFlux = 1, typePressure = 0;
     TPZFMatrix<STATE> val1(1,1,0.), val2Pressure(1,1,0.), val2Flux(1,1,1000.);
     
     // Malha computacional
@@ -209,40 +218,6 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     
     TRMMixedDarcy * mat = new TRMMixedDarcy(_ReservMatId);
     fPressureCmesh->InsertMaterialObject(mat);
-    
-    // Bc N
-//    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2Pressure);
-//    fPressureCmesh->InsertMaterialObject(bcN);
-    
-    // Bc S
-//    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2Pressure);
-//    fPressureCmesh->InsertMaterialObject(bcS);
-    
-    // Bc E
-//    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
-//    fPressureCmesh->InsertMaterialObject(bcE);
-    
-    // Bc W
-//    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-//    fPressureCmesh->InsertMaterialObject(bcW);
-    
-    // Bc B
-//    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-//    fPressureCmesh->InsertMaterialObject(bcB);
-    
-    // Bc T
-//    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-//    fPressureCmesh->InsertMaterialObject(bcT);
-    
-//    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Pressure);
-//    fPressureCmesh->InsertMaterialObject(bcToe);
-    
-//    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
-//    fPressureCmesh->InsertMaterialObject(bcHeel);
-    
-//    TPZBndCond * bcWellRes = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2Pressure);
-//    fPressureCmesh->InsertMaterialObject(bcWellRes);
-    
 
     // Setando L2
     fPressureCmesh->SetDimModel(dim);
@@ -312,20 +287,21 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     fMixedFluxPressureCmesh->InsertMaterialObject(bcS);
     
     // Bc E
-//    val2(0,0) = 0.0;
-//    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+    val2Flux(0,0) = 0.0;
+    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2Flux);
     
     // Bc W
-//    val2(0,0) = 0.0;
-//    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+    val2Flux(0,0) = 0.0;
+    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2Flux);
     
     // Bc B
     TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
     bcB->SetForcingFunction(0, force);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcB);
+    
     // Bc T
-//    val2(0,0) = 0.0;
-//    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
+    val2Flux(0,0) = 0.0;
+    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2Flux);
     
     
     TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typePressure, val1, val2Pressure);
@@ -345,9 +321,6 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     bcWellFaces->SetForcingFunction(0, force);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcWellFaces);
 
-    
-
-    
     
     fMixedFluxPressureCmesh->SetDimModel(dim);
     fMixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
