@@ -39,6 +39,7 @@ TPZMatValidacaoHCurlFran2::~TPZMatValidacaoHCurlFran2()
 void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
   TPZManVector<REAL,3> &x = data.x;
+	int elId = data.gelElId;
   const STATE muR =  fUr(x);
   const STATE epsilonR = fEr(x);
   REAL k0 = 2*M_PI*fFreq*sqrt(M_UZERO*M_EZERO);
@@ -59,8 +60,6 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
     ax2[i] = data.axes(1,i);//ELEMENTO DEFORMADO
   }
   Cross(ax1, ax2, normal);
-  std::cout<<"normal: "<<std::endl;
-  std::cout<<normal[0]<<" "<<normal[1]<<" "<<normal[2]<<std::endl;
   int phrq;
   phrq = data.fVecShapeIndex.NElements();
   for(int iq=0; iq<phrq; iq++)
@@ -80,7 +79,12 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
     for (int i=0; i<3; i++) {
       ff += ivecHCurl[i]*force[i];
     }
-    
+//		if(elId==1){
+//			ef(iq,0) += weight*ff*phiQ(ishapeind,0);
+//		}
+//		else{
+//			ef(iq,0) -= weight*ff*phiQ(ishapeind,0);
+//		}
     ef(iq,0) += weight*ff*phiQ(ishapeind,0);
     TPZManVector<STATE,3> curlI(3), gradPhiI(3);
     for (int i = 0; i<dphiQ.Rows(); i++) {
@@ -88,7 +92,14 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
     }
     Cross(gradPhiI, ivecHCurl, curlI);
     //eh necessario forcar curlE dot x = j*k0*sin(theta)*Ez
-    curlI[0] = -1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2] ;
+//		if (elId==0) {
+//			curlI[0] = -1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2];
+//		}
+//		else{
+//			curlI[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2];
+//		}
+			curlI[0] = -1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2];
+		
     
     for (int jq=0; jq<phrq; jq++)
     {
@@ -108,7 +119,14 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
       }
       Cross(gradPhiJ, jvecHCurl, curlJ);
       //eh necessario forcar curlE dot x = j*k0*sin(theta)*Ez
-      curlJ[0] = imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2] ;//AQUIFRAN
+//			if(elId==0){
+//				curlJ[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2] ;//AQUIFRAN
+//			}
+//			else{
+//				curlJ[0] = -1. * imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2] ;//AQUIFRAN
+//			}
+				curlJ[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2] ;//AQUIFRAN
+			
       
       STATE phiIdotphiJ;
       phiIdotphiJ = ( phiQ(ishapeind,0) * ivecHCurl[0] * phiQ(jshapeind,0) * jvecHCurl[0]);
@@ -117,8 +135,13 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
       
       
       STATE stiff = (1./muR) * ( curlJ[0] * curlI[0] + curlJ[1] * curlI[1] + curlJ[2] * curlI[2] );
-      //stiff += -1. * k0 * k0 * epsilonR * phiIdotphiJ;
-      
+      stiff += -1. * k0 * k0 * epsilonR * phiIdotphiJ;
+//			if(elId==1){
+//				ek(iq,jq) += weight * stiff;
+//			}
+//			else{
+//				ek(iq,jq) -= weight * stiff;
+//			}
       ek(iq,jq) += weight * stiff;
     }
   }
@@ -143,6 +166,7 @@ void TPZMatValidacaoHCurlFran2::ContributeBC(TPZMaterialData &data, REAL weight,
   REAL BIG = TPZMaterial::gBigNumber;
   const STATE v1 = bc.Val1()(0,0);//sera posto na matriz K no caso de condicao mista
   const STATE v2 = bc.Val2()(0,0);//sera posto no vetor F
+	
   switch ( bc.Type() )
   {
     case 0:

@@ -107,7 +107,7 @@ int __attribute__((flatten)) main(int argc, char *argv[])
   int xDiv = 1;
   int zDiv = 1;
   enum meshType{ createRectangular, createTriangular, createZigZag};
-  const int mesh = createRectangular;
+  const int mesh = createTriangular;
   timer.start();
   int indexRBC;
   const REAL x0 = wDomain/2;
@@ -159,6 +159,11 @@ int __attribute__((flatten)) main(int argc, char *argv[])
   TPZAnalysis an(cmesh,optimizeBandwidth);
   //configuracoes do objeto de analise
   TPZSkylineStructMatrix skylstr(cmesh); //caso simetrico
+	std::set<int> matIds;
+	matIds.insert(1);
+	matIds.insert(-1);
+	matIds.insert(-2);
+	skylstr.SetMaterialIds(matIds);
   skylstr.SetNumThreads(0);
   //    TPZSkylineNSymStructMatrix full(fCmesh);
   an.SetStructuralMatrix(skylstr);
@@ -180,102 +185,39 @@ int __attribute__((flatten)) main(int argc, char *argv[])
     std::ofstream file("../cmesh.txt");
     cmesh->Print(file);
   }
-  for(int i=0;i<nIteracoes;i++)
-  {
     
-    // Resolvendo o Sistema
-//    an.Assemble();
-//    TPZMatrixSolver<STATE> &matrix = an.Solver();
-//    TPZFMatrix<STATE> fLoad(16, 16, 0.), result(16,16,0.);
-//    
-//    fLoad.Identity();
-//    matrix.Matrix()->Multiply(fLoad,result);
-//    result.Print("rhs",std::cout,EMathematicaInput);
-    an.Run();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
-
-      //fazendo pos processamento para paraview (theta = 0)
-#ifdef DEBUG
-    std::cout<<"realizando pos processamento"<<std::endl;
-#endif
-    an.PostProcess(postProcessResolution);//realiza pos processamento*)
-#ifdef DEBUG
-    std::cout<<"finalizando pos processamento"<<std::endl;
-#endif
-    
-//      TPZFMatrix<STATE> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
-//      TPZFNMatrix<200,STATE> sds(solucao);
-//      for (int i = 0; i < solucao.Rows(); i++) {
-//        sds.Zero();
-//        sds(i,0) = 1.;
-//        cmesh->Solution() = sds;
-//        an.PostProcess(postProcessResolution);//realiza pos processamento*)
-//      }
-//    sds.Zero();
-//    sds(1,0) = 1.;
-//    sds(0,0) = 1.;
-//    cmesh->Solution() = sds;
+	// Resolvendo o Sistema
+	an.Assemble();
+	TPZFMatrix<STATE> rhs = an.Rhs();
+	for (int i = 0; i < rhs.Rows(); i++) {
+		std::cout<<rhs(i,0)<<std::endl;
+	}
+	an.Solve();
+	an.PostProcess(postProcessResolution);//realiza pos processamento*)
+//      //fazendo pos processamento para paraview (theta = 0)
+//#ifdef DEBUG
+//    std::cout<<"realizando pos processamento"<<std::endl;
+//#endif
 //    an.PostProcess(postProcessResolution);//realiza pos processamento*)
-//    
-//    sds.Zero();
-//    sds(3,0) = 1.;
-//    sds(2,0) = 1.;
-//    cmesh->Solution() = sds;
-//    an.PostProcess(postProcessResolution);
-//    sds.Zero();
-//    sds(5,0) = 1.;
-//    sds(4,0) = 1.;
-//    cmesh->Solution() = sds;
-//    an.PostProcess(postProcessResolution);
-    //    TPZFMatrix<STATE> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
-    //    STATE eZApprox = solucao(solucao.Rows()-1,0);
+//#ifdef DEBUG
+//    std::cout<<"finalizando pos processamento"<<std::endl;
+//#endif
+	
+	TPZFMatrix<STATE> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
+	TPZFNMatrix<200,STATE> sds(solucao);
+	for (int i = 0; i < solucao.Rows(); i++) {
+		std::cout<<solucao(i,0)<<std::endl;
+		sds.Zero();
+		sds(i,0) = 1.e-2;
+		cmesh->Solution() = sds;
+		an.PostProcess(postProcessResolution);//realiza pos processamento*)
+		sds.Zero();
+		sds(i,0) = solucao(i,0);
+		cmesh->Solution() = sds;
+		an.PostProcess(postProcessResolution);//realiza pos processamento*)
+	}
 
-//    TPZCompEl *cel = cmesh->Element(indexRBC);
-//    if (!cel){
-//      DebugStop();
-//    }
-//    TPZManVector<REAL,1> qsi(1,0.);//DUVIDA
-//    TPZManVector<STATE,3> sol(3,0.);
-//    int var = 0;
-//    cel->Solution(qsi, var, sol);
-//    STATE eZApprox = 1. * sol[0]+ 1. * imaginary*sol[1];
-//    std::cout<<std::endl<<"theta "<<theta<<std::endl<<"sol[0]"<<sol[0]<<std::endl<<"sol[1]"<<sol[1]<<std::endl<<"|eZApprox|"<<std::abs(eZApprox)<<std::endl;
-//    
-//    STATE gamma =(eZApprox-e0*exp(imaginary*k0*L*cos(theta)))/(e0*exp(-1.*imaginary*k0*L*cos(theta)));
-//    std::cout<<"complex reflection coefficient "<<gamma<<std::endl;
-//    REAL R = std::abs(gamma);
-//    results(i,0)=theta*180/M_PI;
-//    results(i,1)=R;
-    
-//    //avanca para proxima iteracao
-//    theta=((i+1.)/(nIteracoes-1))*M_PI/2.;
-//    
-//    TPZMatValidacaoHCurlFran2 *mpmat = dynamic_cast<TPZMatValidacaoHCurlFran2 *>(cmesh->FindMaterial(1));
-//    mpmat->SetTheta(theta);
-//    const STATE val1=1.*imaginary*k0*cos(theta);
-//    const STATE val2=2.*imaginary*k0*cos(theta)*e0*exp(imaginary*k0*cos(theta)*L);
-//    
-//    TPZBndCond *mpmatbc = dynamic_cast<TPZBndCond *>(cmesh->FindMaterial(-2));
-//    mpmatbc->Val1()(0,0) = val1;
-//    mpmatbc->Val2()(0,0) = val2;
-  }
-  
-  timer.stop();
-  
-//    TPZFMatrix<STATE> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
-//    TPZFNMatrix<200,STATE> sds(solucao);
-//    for (int i = 0; i < sds.Rows(); i++) {
-//      sds.Zero();
-//      sds(i,0) = 1.;
-//      cmesh->Solution() = sds;
-//      an.PostProcess(postProcessResolution);//realiza pos processamento*)
-//    }
-  
-//  PrintMathematica(results, "resultadoPZ",xDiv,"Plot do modulo de reflexao em funcao do angulo de incidencia");
-//  an.Run();
-//  
-//  
-//  //an.Rhs().Print("FelPZ",std::cout,EMathematicaInput);
-//  timer.stop();
+timer.stop();
   
   
   std::cout <<"Tempo de simulacao total = "<<timer.seconds()<<" s\n";
@@ -501,7 +443,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),ST
   const int matId = 1; //define id para um material(formulacao fraca)
   const int bc0 = -1; //define id para um material(cond contorno dirichlet)
   const int bc1 = -2; //define id para um material(cond contorno mista)
-  const int dirichlet = 0, mixed = 2; //tipo da condicao de contorno do problema
+	enum{ dirichlet = 0, neumann, mixed}; //tipo da condicao de contorno do problema
   // Criando material
   TPZMatValidacaoHCurlFran2 *material = new TPZMatValidacaoHCurlFran2(matId,freq, ur,er, theta);//criando material que implementa a formulacao fraca do problema de validacao
   
@@ -515,8 +457,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),ST
   ///Inserir condicao de contorno condutores
   TPZFNMatrix<1,STATE> val1(1,1,0.), val2(1,1,0.);
   
-  val1(0,0) = 1.e22/kScale;
-  TPZMaterial * BCond0 = material->CreateBC(material, bc0, mixed, val1, val2);//cria material que implementa a condicao de contorno de dirichlet
+  TPZMaterial * BCond0 = material->CreateBC(material, bc0, dirichlet, val1, val2);//cria material que implementa a condicao de contorno de dirichlet
   
   REAL k0 = 2*M_PI*freq*sqrt(M_UZERO*M_EZERO);
   REAL L = 5 * M_C/freq ;

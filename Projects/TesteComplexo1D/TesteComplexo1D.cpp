@@ -223,7 +223,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, REAL L, STATE (& ur)( TPZVec<R
 {
 	const int dim = 1; //dimensao do problema
 	const int matId = 1, bc0 = -1, bc1 = -2; //MESMOS ids da malha geometrica
-	const int dirichlet = 0, neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita 
+	enum{dirichlet = 0, neumann, mixed}; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
 	
 	// Criando material
   //TPZMatComplexExample(int id, REAL l, REAL t, REAL eO,STATE (* ur)( TPZVec<REAL>),STATE (* er)( TPZVec<REAL>));
