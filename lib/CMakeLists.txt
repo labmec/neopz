@@ -69,6 +69,7 @@ else()
   #Build a static library (default)
   add_library(pz ${pzsources})
 endif()
+
 target_link_libraries(pz ${PTHREAD_LIB})
 
 IF (USING_IPO)
@@ -81,6 +82,10 @@ ENDIF()
 
 if (USING_LOG4CXX)
   target_link_libraries(pz ${LOG4CXX_LIB})
+endif()
+
+if (USING_OPENMP)
+  target_link_libraries(pz ${OPENMP_LIB})
 endif()
 
 if (USING_METIS)
