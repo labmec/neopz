@@ -55,7 +55,7 @@ public:
             int nels = fMesh->NElements();
             for(int elem = 0; elem < nels; elem++)
             {
-                TPZVec< TPZGeoEl * > filhos;
+                TPZManVector< TPZGeoEl *,20 > filhos;
                 TPZGeoEl * gel = fMesh->ElementVec()[elem];
                 gel->Divide(filhos);
             }
