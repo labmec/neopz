@@ -197,6 +197,12 @@ public:
 	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
 	 */
 	bool MergeGeoMesh(TPZGeoMesh* grid,TPZGeoMesh* grid2,int matid = 1);
+    
+    /// Generate element of type refpattern or uniform refinement
+    void SetRefpatternElements(bool refpat)
+    {
+        fRefPattern = refpat;
+    }
 	
 protected:
     /**
@@ -267,7 +273,11 @@ protected:
     bool fZigZag;
     
     bool fTrapeze;
+    
     REAL fDistortion;
+    
+    /// Uniform or refpattern elements
+    bool fRefPattern;
 	
 };
 
