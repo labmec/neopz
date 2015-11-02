@@ -124,6 +124,43 @@ void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
     
 }
 
+void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight, TPZFMatrix<STATE> &ef)
+{
+    
+    if(data.numberdualfunctions)
+    {
+        DebugStop();
+//        ContributeHDiv(data , weight , ef);
+        
+        return;
+    }
+    
+    TPZFMatrix<REAL>  &phi = data.phi;
+    TPZFMatrix<REAL> &dphi = data.dphix;
+    TPZVec<REAL>  &x = data.x;
+    //    TPZFMatrix<REAL> &axes = data.axes;
+    //    TPZFMatrix<REAL> &jacinv = data.jacinv;
+    int phr = phi.Rows();
+    
+    STATE fXfLoc = fXf;
+    
+    if(fForcingFunction) {            // phi(in, 0) = phi_in
+        TPZManVector<STATE,1> res(1);
+        //TPZFMatrix<STATE> dres(Dimension(),1);
+        //fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
+        fForcingFunction->Execute(x,res);
+        fXfLoc = res[0];
+    }
+    
+    //Equacao de Poisson
+    for( int in = 0; in < phr; in++ ) {
+        int kd;
+        ef(in, 0) +=  (STATE)weight * fXfLoc * (STATE)phi(in,0);
+        for(kd=0; kd<fDim; kd++) {
+            ef(in,0) -= (STATE)weight*(fK*(STATE)(dphi(kd,in)*data.dsol[0](kd,0)));
+        }
+    }
+}
 /// Compute the contribution at an integration point to the stiffness matrix of the HDiv formulation
 void TPZMatLaplacian::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
@@ -984,6 +1021,7 @@ void TPZMatLaplacian::FillDataRequirements(TPZMaterialData &data)
     data.fNeedsNeighborSol = false;
     data.fNeedsNeighborCenter = false;
     data.fNeedsNormal = true;
+    data.fNeedsSol = true;
 }
 
 void TPZMatLaplacian::FillDataRequirementsInterface(TPZMaterialData &data)
