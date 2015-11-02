@@ -106,6 +106,17 @@ public:
 	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
 	
 	virtual void ResetSubElements();
+    
+    /** @brief Creates a geometric element according to the type of the father element */
+    virtual TPZGeoEl *CreateGeoElement(MElementType type,
+                                       TPZVec<long>& nodeindexes,
+                                       int matid,
+                                       long& index)
+    {
+        return this->Mesh()->CreateGeoElement(type,nodeindexes,matid,index,0);
+    }
+    
+
 	
 };
 
