@@ -751,6 +751,8 @@ TPZStructMatrixOT::ThreadData::~ThreadData()
      */
 }
 
+//#define DRY_RUN
+
 void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
@@ -811,10 +813,18 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 
         if (iel >= 0){
             TPZCompEl *el = cmesh->ElementVec()[iel];
+#ifndef DRY_RUN
             el->CalcStiff(ek,ef);
+#else
+            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(el);
+            intel->InitializeElementMatrix(ek,ef);
+#endif
+
             if(guiInterface) if(guiInterface->AmIKilled()){
                 break;
             }
+            
+#ifndef DRY_RUN
             if(!el->HasDependency()) {
                 
                 ek.ComputeDestinationIndices();
@@ -836,7 +846,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 ek.ComputeDestinationIndices();
                 data->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
             }
-            
+#endif
             
 #ifdef LOG4CXX
             timeforel.stop();
@@ -924,6 +934,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
             }
 #endif
             
+#ifndef DRY_RUN
             if(data->fGlobMatrix){
                 // Assemble the matrix
                 if(!ek.HasDependency())
@@ -938,6 +949,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 }
                 
             }
+#endif
             
             localupdated = false;
             while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
@@ -1046,154 +1058,315 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 
 void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 {
+    logger->setLevel(log4cxx::Level::getInfo());
     ThreadData *data = (ThreadData *) datavoid;
-//    TPZStructMatrixOT *strmat = data->fStruct;
+    //    TPZStructMatrixOT *strmat = data->fStruct;
+    TPZVec<long> &ComputedElements = *(data->fComputedElements);
+    TPZVec<long> &ElBlocked = *(data->fElBlocked);
+    
+    int &SomeoneIsSleeping = *(data->fSomeoneIsSleeping);
     
     TPZCompMesh *cmesh = data->fStruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
-//    int nel = cmesh->NElements();
-//    bool hasWork = true;
-//    int iel = 0;
-    TPZVec<long> &ComputedElements = *data->fComputedElements;
-    TPZVec<long> &ElBlocked = *data->fElBlocked;
-    int &SomeoneIsSleeping = *(data->fSomeoneIsSleeping);
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
+    long numelements = data->fElSequenceColor->size();
 #ifdef USING_BOOST
     long index = data->fCurrentIndex->fetch_add(1);
 #else
     long index = data->fThreadSeqNum;
 #endif
-    long numelements = data->fElSequenceColor->size();
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "ThreadData starting with " << data->fThreadSeqNum << " total elements " << numelements << std::endl;
+        sout << "index = " << index << std::endl;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+#ifdef HUGEDEBUG
+    tht::EnterCriticalSection(*data->fAccessElement);
+    std::cout << "ThreadData starting with " << data->fThreadSeqNum << " total elements " << numelements << std::endl;
+    std::cout << "index = " << index << std::endl;
+    std::cout.flush();
+    tht::LeaveCriticalSection(*data->fAccessElement);
+#endif
+    
 #ifndef USING_BOOST
     int nthreads = data->fStruct->GetNumThreads();
     for (index = data->fThreadSeqNum; index < numelements; index += nthreads)
 #else
-    while (index < numelements)
+        while (index < numelements)
 #endif
-    {
-        
-        long iel = data->fElSequenceColor->operator[](index);
-        
-        if (iel >= 0){
-            TPZCompEl *el = cmesh->ElementVec()[iel];
-            el->CalcResidual(ef);
-            if(guiInterface) if(guiInterface->AmIKilled()){
-                break;
+        {
+            
+            long iel = data->fElSequenceColor->operator[](index);
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "Computing element " << index;
+                LOGPZ_DEBUG(logger, sout.str())
             }
-            if(!el->HasDependency()) {
+#endif
+#ifdef LOG4CXX
+            std::stringstream sout;
+            sout << "Element " << index << " elapsed time ";
+            TPZTimer timeforel(sout.str());
+            timeforel.start();
+#endif
+            
+            if (iel >= 0){
+                TPZCompEl *el = cmesh->ElementVec()[iel];
+#ifndef DRY_RUN
+                el->CalcResidual(ef);
+#else
+                TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(el);
+                intel->InitializeElementMatrix(ef);
+#endif
+                if(guiInterface) if(guiInterface->AmIKilled()){
+                    break;
+                }
                 
-                ef.ComputeDestinationIndices();
-                data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+#ifndef DRY_RUN
+                if(!el->HasDependency()) {
+                    
+                    ef.ComputeDestinationIndices();
+                    data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+                    
+#ifdef LOG4CXX
+                    if(loggerel->isDebugEnabled())
+                    {
+                        std::stringstream sout;
+                        ef.fMat.Print("Element right hand side", sout);
+                        LOGPZ_DEBUG(loggerel,sout.str())
+                    }
+#endif
+                } else {
+                    // the element has dependent nodes
+                    ef.ApplyConstraints();
+                    ef.ComputeDestinationIndices();
+                    data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+                }
+#endif
                 
 #ifdef LOG4CXX
-                if(loggerel->isDebugEnabled())
+                timeforel.stop();
+                if (logger->isDebugEnabled())
                 {
                     std::stringstream sout;
-                    ef.fMat.Print("Element right hand side", sout);
-                    LOGPZ_DEBUG(loggerel,sout.str())
+                    sout << timeforel.processName() <<  timeforel;
+                    LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif
-            } else {
-                // the element has dependent nodes
-                ef.ApplyConstraints();
-                ef.ComputeDestinationIndices();
-                data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
                 
+                long localcompleted = *(data->fElementCompleted);
+                bool localupdated = false;
+                while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+                    localcompleted++;
+                    localupdated = true;
+                }
+                long needscomputed = ElBlocked[index];
 #ifdef LOG4CXX
-                if(loggerel2->isDebugEnabled() && el->Reference() &&  el->Reference()->MaterialId() == 1 && el->IsInterface())
+                if (logger->isDebugEnabled())
                 {
                     std::stringstream sout;
-                    el->Reference()->Print(sout);
-                    el->Print(sout);
-                    ef.Print(sout);
-                    LOGPZ_DEBUG(loggerel2,sout.str())
+                    if (localupdated) {
+                        sout << "Localcompleted updated without thread lock\n";
+                    }
+                    
+                    sout << "Element " << index << " is computed and can assemble if required " << needscomputed << " is smaller than localcompleted " << localcompleted;
+                    LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif
-            }
-            long localcompleted = *(data->fElementCompleted);
-            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-                localcompleted++;
-            }
-            long needscomputed = ElBlocked[index];
-            
-            
-            while (needscomputed > localcompleted) {
-                // block the thread till the element needed has been assembled
-                tht::EnterCriticalSection(*data->fAccessElement);
-                if (localcompleted > *(data->fElementCompleted)) {
-                    *(data->fElementCompleted) = localcompleted;
-                    pthread_cond_broadcast(data->fCondition);
-                }
-                SomeoneIsSleeping = 1;
+                
 #ifdef HUGEDEBUG
-                std::cout << "thread " << data->fThreadSeqNum << " entering sleep at index " << index << " waiting for " << needscomputed << " localcompleted " << localcompleted << std::endl;
-                std::cout.flush();
-#endif
-                pthread_cond_wait(data->fCondition, data->fAccessElement);
+                tht::EnterCriticalSection(*data->fAccessElement);
+                std::cout << "threadEK " << data->fThreadSeqNum << " index " << index << " localcompleted " << localcompleted << " needscomputed " << needscomputed << std::endl;
                 tht::LeaveCriticalSection( *data->fAccessElement );
+#endif
                 
-                localcompleted = *data->fElementCompleted;
-                while (ComputedElements[localcompleted+1] == 1) {
+                bool hadtowait = false;
+#ifdef LOG4CXX
+                if (logger->isInfoEnabled() && needscomputed > localcompleted)
+                {
+                    std::stringstream sout;
+                    sout << "Element " << index << " cannot be assembled - going to sleep";
+                    LOGPZ_INFO(logger, sout.str())
+                }
+#endif
+                while (needscomputed > localcompleted) {
+                    // block the thread till the element needed has been assembled
+                    tht::EnterCriticalSection(*data->fAccessElement);
+                    SomeoneIsSleeping = 1;
+                    hadtowait = true;
+#ifdef HUGEDEBUG
+                    std::cout << "threadEK " <<data->fThreadSeqNum << " Index " << index << " going to sleep waiting for " << needscomputed << std::endl;
+                    std::cout.flush();
+#endif
+#ifdef LOG4CXX
+                    if (logger->isDebugEnabled())
+                    {
+                        std::stringstream sout;
+                        sout << "Element " << index << " cannot be assembled - going to sleep";
+                        LOGPZ_DEBUG(logger, sout.str())
+                    }
+#endif
+                    pthread_cond_wait(data->fCondition, data->fAccessElement);
+                    tht::LeaveCriticalSection( *data->fAccessElement );
+                    
+                    localcompleted = *data->fElementCompleted;
+                    localupdated = false;
+                    while (ComputedElements[localcompleted+1] == 1) {
+                        localcompleted++;
+                        localupdated = true;
+                    }
+#ifdef LOG4CXX
+                    if (logger->isDebugEnabled())
+                    {
+                        std::stringstream sout;
+                        sout << "thread wakeup for element index " << index << std::endl;
+                        if (localupdated) {
+                            sout << "Localcompleted updated without thread lock\n";
+                        }
+                        
+                        sout << "Element " << index << " is computed and can assemble if required " << needscomputed << " is smaller than localcompleted " << localcompleted;
+                        LOGPZ_DEBUG(logger, sout.str())
+                    }
+#endif
+                }
+                
+
+#ifdef LOG4CXX
+                if (logger->isInfoEnabled() && hadtowait)
+                {
+                    std::stringstream sout;
+                    sout << "thread wakeup for element index " << index << std::endl;
+                    LOGPZ_INFO(logger, sout.str())
+                }
+#endif
+
+
+#ifdef HUGEDEBUG
+                if (hadtowait) {
+                    tht::EnterCriticalSection(*data->fAccessElement);
+                    std::cout << "threadEK " <<data->fThreadSeqNum << " Index " << index << " continuing\n";
+                    tht::LeaveCriticalSection( *data->fAccessElement );
+                }
+#endif
+                
+#ifndef DRY_RUN
+                if(data->fGlobRhs){
+                    // Assemble the matrix
+                    if(!ef.HasDependency())
+                    {
+                        data->fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+                    }
+                    else
+                    {
+                        data->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+                    }
+                    
+                }
+#endif
+                
+                localupdated = false;
+                while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+                    localcompleted++;
+                    localupdated = true;
+                }
+                if (localcompleted == index-1) {
                     localcompleted++;
                 }
-                
-                
-            }
-            
-            if(data->fGlobRhs){
-                // Assemble the matrix
-                if(!ef.HasDependency())
-                {
-                    data->fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+                while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+                    localcompleted++;
+                    localupdated = true;
                 }
-                else
-                {
-                    data->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
-                }
-                
-            }
-            
-            while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-                localcompleted++;
-            }
-            if (localcompleted == index-1) {
-                localcompleted++;
-            }
-            if (*data->fElementCompleted < localcompleted) {
-                tht::EnterCriticalSection( *data->fAccessElement );
-#ifdef HUGEDEBUG
-                std::cout << "thread " << data->fThreadSeqNum << " Updating element completed " << localcompleted << " sleeping " << SomeoneIsSleeping << std::endl;
-                std::cout.flush();
-#endif
-                if(*data->fElementCompleted < localcompleted)
-                {
+                bool elementcompletedupdate = false;
+                if (*data->fElementCompleted < localcompleted) {
+                    //                std::cout << "Updating element completed " << localcompleted << std::endl;
                     *data->fElementCompleted = localcompleted;
+                    elementcompletedupdate = true;
                 }
-                tht::LeaveCriticalSection( *data->fAccessElement );
-            }
-            ComputedElements[index] = 1;
-            if (SomeoneIsSleeping) {
-                tht::EnterCriticalSection( *data->fAccessElement );
+#ifdef LOG4CXX
+                if (logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "Element " << index << " has been assembled ";
+                    if (localupdated) {
+                        sout << "\nLocalcompleted updated without thread lock\n";
+                    }
+                    if (elementcompletedupdate) {
+                        sout << "\nfElementCompleted updated to localcompleted\n";
+                    }
+                    sout << "local completed " << localcompleted;
+                    LOGPZ_DEBUG(logger, sout.str())
+                }
+#endif
+                ComputedElements[index] = 1;
+                if (SomeoneIsSleeping) {
+                    tht::EnterCriticalSection( *data->fAccessElement );
 #ifdef HUGEDEBUG
-                std::cout << "thread " << data->fThreadSeqNum << " flagging element computed " << index << std::endl;
-                std::cout.flush();
+                    std::cout << "threadEK " <<data->fThreadSeqNum <<  " Computed index " << index << " Waking up ElementsCompleted " << *data->fElementCompleted << std::endl;
+                    std::cout.flush();
 #endif
-                pthread_cond_broadcast(data->fCondition);
-                SomeoneIsSleeping = 0;
-                tht::LeaveCriticalSection( *data->fAccessElement );
+                    
+#ifdef LOG4CXX
+                    if (logger->isDebugEnabled())
+                    {
+                        LOGPZ_DEBUG(logger, "condition broadcast")
+                    }
+#endif
+                    SomeoneIsSleeping = 0;
+                    pthread_cond_broadcast(data->fCondition);
+                    tht::LeaveCriticalSection( *data->fAccessElement );
+                }
+                
             }
-        }
-        else
-        {
-            std::cout << "the element in ElColorSequence is negative???\n";
-            DebugStop();
-        }
+            else
+            {
+                std::cout << "the element in ElColorSequence is negative???\n";
+                DebugStop();
+            }
 #ifdef USING_BOOST
-        index = data->fCurrentIndex->fetch_add(1);
+            index = data->fCurrentIndex->fetch_add(1);
 #endif
-    }
+            
+        }
     // just make sure threads that were accidentally blocked get woken up
     tht::EnterCriticalSection( *data->fAccessElement );
+    bool localupdated = false;
+    long localcompleted = *(data->fElementCompleted);
+    while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
+        localcompleted++;
+        localupdated = true;
+    }
+    if (localcompleted == index-1) {
+        localcompleted++;
+    }
+    bool elementcompletedupdate = false;
+    if (*data->fElementCompleted < localcompleted) {
+        //                std::cout << "Updating element completed " << localcompleted << std::endl;
+        *data->fElementCompleted = localcompleted;
+        elementcompletedupdate = true;
+    }
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        LOGPZ_DEBUG(logger, "Finishing up")
+        if (localupdated) {
+            LOGPZ_DEBUG(logger, "updated localcompleted")
+        }
+        if (elementcompletedupdate) {
+            LOGPZ_DEBUG(logger, "updated fElementCompleted")
+        }
+        if (localupdated || elementcompletedupdate) {
+            std::stringstream sout;
+            sout << "localcompleted " << localcompleted;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+        LOGPZ_DEBUG(logger, "finishing and condition broadcast")
+    }
+#endif
     pthread_cond_broadcast(data->fCondition);
     SomeoneIsSleeping = 0;
     tht::LeaveCriticalSection( *data->fAccessElement );

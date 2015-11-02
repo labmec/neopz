@@ -401,13 +401,13 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
         LOGPZ_DEBUG(loggerCheck,sout.str())
     }
-//    if (loggerel->isDebugEnabled())
-//    {
-//        std::stringstream sout;
-//        stiffness.Print("GK = ",sout,EMathematicaInput);
-//        rhs.Print("GR = ", sout,EMathematicaInput);
-//        LOGPZ_DEBUG(loggerel,sout.str())
-//    }
+    if (loggerel->isDebugEnabled())
+    {
+        std::stringstream sout;
+        stiffness.Print("GK = ",sout,EMathematicaInput);
+        rhs.Print("GR = ", sout,EMathematicaInput);
+        LOGPZ_DEBUG(loggerel,sout.str())
+    }
     
 #endif
     
@@ -691,6 +691,8 @@ TPZStructMatrixOR::ThreadData::~ThreadData()
      */
 }
 
+//#define DRY_RUN
+
 void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
@@ -718,6 +720,7 @@ void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid)
         TPZElementMatrix &ekr = *ekp;
         TPZElementMatrix &efr = *efp;
         
+#ifndef DRY_RUN
         if (data->fGlobMatrix) {
             el->CalcStiff(ekr,efr);
         }
@@ -725,6 +728,21 @@ void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid)
         {
             el->CalcResidual(efr);
         }
+#else
+        {
+            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(el);
+            if (!intel) {
+                DebugStop();
+            }
+            if (data->fGlobMatrix) {
+                intel->InitializeElementMatrix(ekr, efr);
+            }
+            else
+            {
+                intel->InitializeElementMatrix(efr);
+            }
+        }
+#endif
         
         if(guiInterface) if(guiInterface->AmIKilled()){
             break;
@@ -859,6 +877,8 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata)
                 
                 // Release the mutex
                 PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrixOR::ThreadData::ThreadAssembly");
+                
+#ifndef DRY_RUN
                 // Assemble the matrix
                 if(!ek->HasDependency())
                 {
@@ -874,6 +894,7 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata)
                     }
                     data->fGlobRhs->AddFel(ef->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
                 }
+#endif
                 // acquire the mutex
                 PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZStructMatrixOR::ThreadData::ThreadAssembly");
             }
