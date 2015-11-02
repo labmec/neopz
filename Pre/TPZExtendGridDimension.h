@@ -49,6 +49,9 @@ class TPZExtendGridDimension {
 	 * @brief Vector of n surfaces to be connected the first one correpsonds to the base
 	 */
     TPZVec<TPZAutoPointer<TPZGeoMesh> > fSurfaces;
+    
+    /// type of element to be generated =1 -> RefPattern =0 -> Uniform Refinement
+    int fEltype;
 	
 public:
 	/** @brief Constructor using filename with gmesh data and thickness */
@@ -80,6 +83,11 @@ public:
 	 * @param matidtop Material id to top boundary surface after to extrude process.
 	 */
 	TPZGeoMesh* ExtendedMesh(int naumentedlayers,int matidbottom=0,int matidtop=0);
+    
+    void SetElType(int eltype)
+    {
+        fEltype = eltype;
+    }
 
 	/**
 	 * @brief Prints the generated mesh
