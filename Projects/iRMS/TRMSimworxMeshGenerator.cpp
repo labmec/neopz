@@ -850,7 +850,7 @@ void TRMSimworxMeshGenerator::InsertEllipseArcs(TPZGeoMesh * gmesh, REAL semiX, 
 TPZGeoMesh * TRMSimworxMeshGenerator::ElementsCrusher2D(TPZGeoMesh * gmesh, int ndiv)
 {
     TPZAutoPointer<TPZRefPattern> refTri = gRefDBase.FindRefPattern("Tri0001110Local");
-    if(refTri == NULL)
+    if(!refTri)
     {
         std::stringstream refTriSTR;
         refTriSTR << "6 4\n"
@@ -870,7 +870,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::ElementsCrusher2D(TPZGeoMesh * gmesh, int 
     }
     
     TPZAutoPointer<TPZRefPattern> refQuad2edges = gRefDBase.FindRefPattern("Qua000010100Local");
-    if(refQuad2edges == NULL)
+    if(!refQuad2edges)
     {
         std::stringstream refQuad2edgesSTR;
         refQuad2edgesSTR << "6 3\n"
@@ -889,7 +889,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::ElementsCrusher2D(TPZGeoMesh * gmesh, int 
     }
     
     TPZAutoPointer<TPZRefPattern> refQuadVertical = gRefDBase.FindRefPattern("Qua000001010Local");
-    if(refQuadVertical == NULL)
+    if(!refQuadVertical)
     {
         std::stringstream refQuadVerticalSTR;
         refQuadVerticalSTR << "6 3\n"
@@ -908,7 +908,7 @@ TPZGeoMesh * TRMSimworxMeshGenerator::ElementsCrusher2D(TPZGeoMesh * gmesh, int 
     }
     
     TPZAutoPointer<TPZRefPattern> refQuadFlag = gRefDBase.FindRefPattern("Qua000001001Local");
-    if(refQuadFlag == NULL)
+    if(!refQuadFlag)
     {
         std::stringstream refQuadFlagSTR;
         refQuadFlagSTR << "6 4\n"
@@ -1026,11 +1026,11 @@ void TRMSimworxMeshGenerator::RefineEllipseArcs(TPZGeoMesh * gmesh)
             
             //Procurando vizinho que foi refinado pelo lado igual a mim (gel)
             TPZAutoPointer< TPZRefPattern > sideRefPat = NULL;
-            while( sideRefPat == NULL && neighSide != edgeSide ){
+            while( !sideRefPat && neighSide != edgeSide ){
                 if(neighSide.Element()->GetRefPattern()){
                     sideRefPat = neighSide.Element()->GetRefPattern()->SideRefPattern(neighSide.Side());
                 }
-                if(sideRefPat == NULL)
+                if(!sideRefPat)
                 {
                     neighSide = neighSide.Neighbour();
                 }
@@ -1567,7 +1567,7 @@ void TRMSimworxMeshGenerator::AddRibElements(TPZGeoMesh *gmesh, int WellMatId1D,
             // along the three other ribs it is WellMatFake1D
             // Computational elements of this type will have their connects restrained
             for(int i=0; i<3; i++) diff[i] = x2[i]-x1[i];
-            if(abs(diff[0]) < 1.e-3 && abs(diff[2]) < 1.e-3)
+            if(std::abs(diff[0]) < 1.e-3 && std::abs(diff[2]) < 1.e-3)
             {
 #ifdef LOGANDO
                 check << "Element " << gel->Index() << " co1 " << x1 << " co2 " << x2 << std::endl;

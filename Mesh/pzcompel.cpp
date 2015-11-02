@@ -439,10 +439,30 @@ void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
     if (ncon) {
         std::sort(&connectlist[0], &connectlist[0]+ncon);
     }
+    TPZAdmChunkVector<TPZConnect> &connectvec = Mesh()->ConnectVec();
     long nconloc = NConnects();
+    bool hasdependency = false;
+    if (ncon == 0) {
+        connectlist.Resize(nconloc);
+        for(long i = 0; i < nconloc; i++) {
+            connectlist[i] = this->ConnectIndex(i);
+            if (connectvec[connectlist[i]].HasDependency()) {
+                hasdependency = true;
+            }
+        }
+        if (hasdependency == false) {
+            return;
+        }
+        std::sort(&connectlist[0], &connectlist[0]+nconloc);
+        ncon = nconloc;
+        nconloc = 0;
+    }
     TPZManVector<long> localcon(nconloc);
 	for(long i = 0; i < nconloc; i++) {
         localcon[i] = this->ConnectIndex(i);
+        if (connectvec[localcon[i]].HasDependency()) {
+            hasdependency = true;
+        }
 	}
     if (nconloc) {
         std::sort(&localcon[0], &localcon[0]+nconloc);
@@ -702,21 +722,6 @@ void TPZCompEl::Read(TPZStream &buf, void *context)
 void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
 														 TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi)) {
 	pzshape::TPZShapeLinear::fOrthogonal = orthogonal;
-}
-
-TPZCompElSide::TPZCompElSide() {
-	fEl = 0;
-	fSide = -1;
-}
-
-TPZCompElSide::TPZCompElSide(const TPZCompElSide &celside) {
-	fEl = celside.fEl;
-	fSide   = celside.fSide;
-}
-
-TPZCompElSide::TPZCompElSide(TPZCompEl *cel,int side) {
-	fEl = cel;
-	fSide   = side;
 }
 
 TPZGeoElSide TPZCompElSide::Reference() const {

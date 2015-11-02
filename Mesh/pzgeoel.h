@@ -680,4 +680,10 @@ inline TPZCompEl *TPZGeoEl::Reference() const {
 	return this->fReference;
 }
 
+inline TPZGeoElSide TPZGeoElSide::Neighbour() const {
+    return fGeoEl ? fGeoEl->Neighbour(fSide) : TPZGeoElSide();
+}
+
+
+
 #endif

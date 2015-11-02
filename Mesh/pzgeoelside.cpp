@@ -50,10 +50,6 @@ void TPZGeoElSideIndex::SetElement(TPZGeoEl* geoel){
 
 // Implementation of the TPZGeoElSide methods
 
-TPZGeoElSide TPZGeoElSide::Neighbour() const {
-	return fGeoEl ? fGeoEl->Neighbour(fSide) : TPZGeoElSide();
-}
-
 TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel, std::set<long> &sideCornerNodes)
 {
 	fGeoEl = 0; fSide = -1;

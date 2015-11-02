@@ -325,7 +325,7 @@ namespace pzgeom {
 				nodes[i] = orig->SideNodeIndex(side,i);
 			}
 			long index;
-			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
+			TPZGeoEl *gel = orig->CreateGeoElement(EQuadrilateral,nodes,bc,index);
 			//    TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 			int iside;
 			for (iside = 0; iside <8; iside++){
@@ -339,7 +339,7 @@ namespace pzgeom {
 			//    TPZGeoElPoint *gel;
 			nodeindexes[0] = orig->SideNodeIndex(side,0);
 			long index;
-			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+			TPZGeoEl *gel = orig->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			//    gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
@@ -350,7 +350,7 @@ namespace pzgeom {
 			nodes[1] = orig->SideNodeIndex(side,1);
 			//    TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
 			long index;
-			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
+			TPZGeoEl *gel = orig->CreateGeoElement(EOned,nodes,bc,index);
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,0)));
 			TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,1)));
 			TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));

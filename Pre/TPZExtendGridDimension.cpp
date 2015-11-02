@@ -9,17 +9,18 @@
 
 using namespace std;
 
-TPZExtendGridDimension::TPZExtendGridDimension(char *geofile,REAL thickness) : fFineFileMesh(geofile){
+TPZExtendGridDimension::TPZExtendGridDimension(char *geofile,REAL thickness) : fFineFileMesh(geofile), fEltype(0){
 	
 	fThickness = thickness;
 }
 
-TPZExtendGridDimension::TPZExtendGridDimension(TPZAutoPointer<TPZGeoMesh> &finegeomesh,REAL thickness){
+TPZExtendGridDimension::TPZExtendGridDimension(TPZAutoPointer<TPZGeoMesh> &finegeomesh,REAL thickness) : fEltype(0)
+{
 	
 	fFineGeoMesh = finegeomesh;
 	fThickness = thickness;
 }
-TPZExtendGridDimension::TPZExtendGridDimension(TPZGeoMesh* finegeomesh,REAL thickness){	
+TPZExtendGridDimension::TPZExtendGridDimension(TPZGeoMesh* finegeomesh,REAL thickness) : fEltype(0){
 	fFineGeoMesh = finegeomesh;
 	fThickness = thickness;
 }
@@ -69,7 +70,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh()
 				for(j=3;j<6;j++) incidel[j] = gel->NodeIndex(j-3);
 			}
 			int matind = gel->MaterialId();
-			extendedmesh->CreateGeoElement(EPrisma,incidel,matind,index);
+			extendedmesh->CreateGeoElement(EPrisma,incidel,matind,index,fEltype);
 		}
 		if(type==3) {             //quadrilateral
 			incidel.Resize(8);
@@ -81,7 +82,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh()
 				for(j=4;j<8;j++) incidel[j] = gel->NodeIndex(j-4);
 			}
 			int matind = gel->MaterialId();
-			extendedmesh->CreateGeoElement(ECube,incidel,matind,index);     
+			extendedmesh->CreateGeoElement(ECube,incidel,matind,index,fEltype);
 		}
 	}
 	extendedmesh->BuildConnectivity();
@@ -180,8 +181,8 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 					for(j=0;j<nnodes;j++) incidelorig[j] = incidel[j];
 				}
 				matind = gel->MaterialId();
-				if(type==2) gel = extendedmesh->CreateGeoElement(EPrisma,incidel,matind,index);
-				else gel = extendedmesh->CreateGeoElement(ECube,incidel,matind,index);
+				if(type==2) gel = extendedmesh->CreateGeoElement(EPrisma,incidel,matind,index,fEltype);
+				else gel = extendedmesh->CreateGeoElement(ECube,incidel,matind,index,fEltype);
 			}
 		}
 		// When the geometric element has boundary condition
@@ -208,8 +209,8 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 						for(j=0;j<nnodes;j++) incidelorig[j] = incidel[j];
 					}
 					matind = gel->MaterialId();
-					if(nnodes==1) gel = extendedmesh->CreateGeoElement(EOned,incidel,matind,index);
-					else gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidel,matind,index);
+					if(nnodes==1) gel = extendedmesh->CreateGeoElement(EOned,incidel,matind,index,fEltype);
+					else gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidel,matind,index,fEltype);
 				}
 			}
 		}
@@ -227,8 +228,8 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 			incidelorig.Resize(nnodes);
 			for(j=0;j<nnodes;j++)
 				incidelorig[j] = gel->NodeIndex(j);
-			if(nnodes==3) gel = extendedmesh->CreateGeoElement(ETriangle,incidelorig,matidbottom,index);
-			else gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidelorig,matidbottom,index);
+			if(nnodes==3) gel = extendedmesh->CreateGeoElement(ETriangle,incidelorig,matidbottom,index,fEltype);
+			else gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidelorig,matidbottom,index,fEltype);
 		}
 	}
 	// Inserting all the elements on last layer inserted as bc elements (top bc)
@@ -244,8 +245,8 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 			incidelorig.Resize(nnodes);
 			for(j=0;j<nnodes;j++)
 				incidelorig[j] = gel->NodeIndex(j)+(naumentedlayers*maxid);
-			if(nnodes==3) gel = extendedmesh->CreateGeoElement(ETriangle,incidelorig,matidtop,index);
-			else gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidelorig,matidtop,index);
+			if(nnodes==3) gel = extendedmesh->CreateGeoElement(ETriangle,incidelorig,matidtop,index,fEltype);
+			else gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidelorig,matidtop,index,fEltype);
 		}
 	}
 	extendedmesh->BuildConnectivity();

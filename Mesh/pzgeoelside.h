@@ -309,6 +309,7 @@ inline void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
     }
 }
 
+
 /** Implementing TPZGeoElSideIndex methods */
 
 inline TPZGeoElSideIndex::~TPZGeoElSideIndex(){

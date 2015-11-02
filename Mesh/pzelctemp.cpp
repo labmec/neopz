@@ -23,7 +23,7 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 	for(int i=0;i<TSHAPE::NSides;i++) {
 		fConnectIndexes[i] = CreateMidSideConnect(i);
 		mesh.ConnectVec()[fConnectIndexes[i]].IncrementElConnected();
-		IdentifySideOrder(i);
+//		IdentifySideOrder(i);
 	}
 	
 	// Comp

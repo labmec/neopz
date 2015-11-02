@@ -150,6 +150,8 @@ public:
 	 */
 
     virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+
+    virtual void Contribute(TPZMaterialData &data,REAL weight, TPZFMatrix<STATE> &ef);
     
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
         TPZDiscontinuousGalerkin::Contribute(datavec,weight,ek,ef);

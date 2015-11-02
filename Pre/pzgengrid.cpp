@@ -172,7 +172,11 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 		nos.Resize(gel->NNodes());
 		for(j=0;j<ngelnodes;j++)
 			nos[j] = gel->NodeIndex(j);
-		if(!gridinitial->CreateGeoElement(gel->Type(),nos,gel->MaterialId(), index,0))
+        int eltype = 1;
+        if (fRefPattern == false) {
+            eltype = 0;
+        }
+		if(!gridinitial->CreateGeoElement(gel->Type(),nos,gel->MaterialId(), index,eltype))
 			DebugStop();
 	}
 	
@@ -258,7 +262,12 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge
 		nos.Resize(gel->NNodes());
 		for(j=0;j<ngelnodes;j++)
 			nos[j] = gel->NodeIndex(j);
-		if(!gridinitial->CreateGeoElement(gel->Type(),nos,gel->MaterialId(), index,0))
+        int eltype = 1;
+        if (fRefPattern == false) {
+            eltype = 0;
+        }
+
+		if(!gridinitial->CreateGeoElement(gel->Type(),nos,gel->MaterialId(), index,eltype))
 			DebugStop();
 	}
 	
@@ -375,7 +384,12 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial,TPZGeoMesh* tomerge,int ma
 		nos.Resize(gel->NNodes());
 		for(j=0;j<ngelnodes;j++)
 			nos[j] = gel->NodeIndex(j);
-		if(!gridinitial->CreateGeoElement(gel->Type(),nos,gel->MaterialId(), index,0))
+        int eltype = 1;
+        if (fRefPattern == false) {
+            eltype = 0;
+        }
+
+		if(!gridinitial->CreateGeoElement(gel->Type(),nos,gel->MaterialId(), index,eltype))
 			DebugStop();
 	}
 	
@@ -428,24 +442,28 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid,int matid) {
 #endif
 		return false;
 	}
+    int eltype = 1;
+    if (fRefPattern == 0) {
+        eltype = 0;
+    }
 	for(i=0; i<num_rectangles; i++) {
 		ElementConnectivity(i,nos);
 		if(fElementType == EQuadrilateral) {
-		  grid->CreateGeoElement(EQuadrilateral,nos, matid, index,0);
+		  grid->CreateGeoElement(EQuadrilateral,nos, matid, index,eltype);
 		} else if(fElementType == ETriangle) {
             TPZManVector<long> nodloc(3);
             nodloc[0] = nos[0];
             nodloc[1] = nos[1];
             nodloc[2] = nos[2];
-		  grid->CreateGeoElement(ETriangle,nodloc, matid, index,0);
+		  grid->CreateGeoElement(ETriangle,nodloc, matid, index,eltype);
             nodloc[0] = nos[0];
             nodloc[1] = nos[2];
             nodloc[2] = nos[3];
-		  grid->CreateGeoElement(ETriangle,nodloc, matid, index,0);
+		  grid->CreateGeoElement(ETriangle,nodloc, matid, index,eltype);
 		} else if(fElementType == ENoType) {
             std::cout << __PRETTY_FUNCTION__ << " - Quadratic interpolation is not available";
             DebugStop();
-			grid->CreateGeoElement(EQuadrilateral,nos, matid, index,0);  
+			grid->CreateGeoElement(EQuadrilateral,nos, matid, index,eltype);
         }
 	}
 	grid->BuildConnectivity();
@@ -472,10 +490,14 @@ bool TPZGenGrid::GenerateElementsZigZag(TPZGeoMesh *grid,int matid)
         DebugStop();
         return false;
     }
+    int eltype = 1;
+    if (fRefPattern == false) {
+        eltype = 0;
+    }
     for(i=0; i<num_rectangles; i++) {
         ElementConnectivityZigZag(i,nos);
         if(fElementType == EQuadrilateral && nos.size() == 4) {
-            grid->CreateGeoElement(EQuadrilateral,nos, matid, index,0);
+            grid->CreateGeoElement(EQuadrilateral,nos, matid, index,eltype);
         }
         else
         {
@@ -483,7 +505,7 @@ bool TPZGenGrid::GenerateElementsZigZag(TPZGeoMesh *grid,int matid)
             nodloc[0] = nos[0];
             nodloc[1] = nos[1];
             nodloc[2] = nos[2];
-            grid->CreateGeoElement(ETriangle,nodloc, matid, index,0);
+            grid->CreateGeoElement(ETriangle,nodloc, matid, index,eltype);
         }
     }
     grid->BuildConnectivity();
@@ -534,13 +556,26 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
     //cout.flush();
     REAL coorold[2] = {fX0[0],fX0[1]};
     REAL elsize[2] = {fDelx[0],fDelx[1]};
-    for (int i=0; i<ix; i++) {
-        coorold[0] += elsize[0];
-        elsize[0] *= fGeometricProgression[0];
+    if (fGeometricProgression[0] == 1.) {
+        coorold[0] += ix*elsize[0];
     }
-    for (int j=0; j<iy; j++) {
-        coorold[1] += elsize[1];
-        elsize[1] *= fGeometricProgression[1];
+    else
+    {
+        for (int i=0; i<ix; i++) {
+            coorold[0] += elsize[0];
+            elsize[0] *= fGeometricProgression[0];
+        }
+    }
+    if (fGeometricProgression[1] == 1.)
+    {
+        coorold[1] += iy*elsize[1];
+    }
+    else
+    {
+        for (int j=0; j<iy; j++) {
+            coorold[1] += elsize[1];
+            elsize[1] *= fGeometricProgression[1];
+        }
     }
 	//    coorold[1] = fX0[1]+fDelx[1]*iy;
     
@@ -548,12 +583,21 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
         if(ix%2) coorold[1]+=fDistortion*elsize[1];
         else coorold[1]-= fDistortion*elsize[1];
     }
-    // rotate along the y axis
-	coor[0] = fX0[0]+(coorold[0]-fX0[0])*cos(Rot);
-	coor[2] = fX0[2] + coorold[0]*sin(Rot);
-    //	coor[0] = coorold[0];
-	coor[1] = coorold[1];
-    //   coor[2] = 0.;// 0.1*(coorold[0]-fX0[0])*(fX1[0]-coorold[0]);
+    if (Rot == 0.)
+    {
+        coor[0] = coorold[0];
+        coor[1] = coorold[1];
+        coor[2] = 0.;
+    }
+    else
+    {
+        // rotate along the y axis
+        coor[0] = fX0[0]+(coorold[0]-fX0[0])*cos(Rot);
+        coor[2] = fX0[2] + coorold[0]*sin(Rot);
+        //	coor[0] = coorold[0];
+        coor[1] = coorold[1];
+        //   coor[2] = 0.;// 0.1*(coorold[0]-fX0[0])*(fX1[0]-coorold[0]);
+    }
 }
 
 void TPZGenGrid::ElementConnectivity(long i, TPZVec<long> &rectangle_nodes){

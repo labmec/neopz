@@ -218,7 +218,7 @@ REAL TPZHyperPlaneIntersect::EdgeIntersect(const TPZGeoElSide &gelside, const TP
     gelside.X(edgeparam, X);
     REAL distance = plane.Distance(X,planejac);
     int niter = 0;
-    while (abs(distance) > 1.e-6 && niter < 5) {
+    while (std::abs(distance) > 1.e-6 && niter < 5) {
         TPZFNMatrix<1,REAL> edgejac(1,1), jacinv(1,1);
         TPZFNMatrix<3,REAL> axes(1,3);
         REAL detjac;

@@ -56,14 +56,17 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 	else
 	{
 #ifdef LOG4CXX
+        if(logger->isWarnEnabled())
+        {
         
-		std::stringstream mess;
-		mess << "Trying to SetNeighbourInfo for an already set element\n";
-		mess << "* this * = " << __PRETTY_FUNCTION__ << "\n";
-		this->Print(mess);
-		mess << "* neigh * = \n";
-		neigh.Element()->Print(mess);
-		LOGPZ_WARN(logger,mess.str());
+            std::stringstream mess;
+            mess << "Trying to SetNeighbourInfo for an already set element\n";
+            mess << "* this * = " << __PRETTY_FUNCTION__ << "\n";
+            this->Print(mess);
+            mess << "* neigh * = \n";
+            neigh.Element()->Print(mess);
+            LOGPZ_WARN(logger,mess.str());
+        }
 #endif
 	}
 }
