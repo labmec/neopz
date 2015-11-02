@@ -578,18 +578,24 @@ class TPZCompElSide {
 	
 	/** @brief Index of the object side */
 	int fSide;
-	
+    
 	
 public:
 
 	/** @brief Simple Constructor */
-	TPZCompElSide();
+    TPZCompElSide() : fEl(0), fSide(-1)
+    {
+        
+    }
 	
 	/**
 	 * @brief Creates a computational element side from an object TPZCompElSide
 	 * @param celside reference computational element side
 	 */
-	TPZCompElSide(const TPZCompElSide &celside);
+    TPZCompElSide(const TPZCompElSide &celside) : fEl(celside.fEl), fSide(celside.fSide)
+    {
+        
+    }
 	
 	/**
 	 * @brief Creates an computational element side given a computational element
@@ -597,7 +603,10 @@ public:
 	 * @param cel pointer to the computational element
 	 * @param side index of the side
 	 */
-	TPZCompElSide(TPZCompEl *cel,int side);
+    TPZCompElSide(TPZCompEl *cel,int side) : fEl(cel), fSide(side)
+    {
+        
+    }
     
     /** @brief Constructor which allows us to create a vector of objects */
     TPZCompElSide(int zero) : fEl(0), fSide(-1)
