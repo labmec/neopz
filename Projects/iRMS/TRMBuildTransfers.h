@@ -26,8 +26,8 @@ public:
     /** @brief Default desconstructor */
     ~TRMBuildTransfers();
 
-    /** @brief Compute the  */
-    void ComputeTransferScalar_Vol(TPZCompMesh *origin, TPZCompMesh *destination);
+    /** @brief Compute the sparse matrix to transfer information between two cmesh that belongs to multiphysics mesh  */
+    void ComputeTransferScalar_Vol(TPZCompMesh *cmesh_multiphysics, int origin, int destination);
     
     /** @brief Get the sparse matrix to transfer scalar solution to integrations points other mesh */
     TPZFYsmpMatrix<STATE> GetTransferScalar_Vol(){

@@ -101,18 +101,20 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     
     fSpaceGenerator.CreateMixedCmesh();
     
-    fSpaceGenerator.StaticallyCondenseEquations();
+//     fSpaceGenerator.StaticallyCondenseEquations();
     
     // transfer the solution from the meshes to the multiphysics mesh
     TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
-    meshvec[0] = fSpaceGenerator.GetFluxCmesh();
-    meshvec[1] = fSpaceGenerator.GetPressureMesh();
+    int flux    = 0;
+    int Pres    = 1;
+    meshvec[flux] = fSpaceGenerator.GetFluxCmesh();
+    meshvec[Pres] = fSpaceGenerator.GetPressureMesh();
     TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetMixedCmesh();
+
+    
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
     TPZAutoPointer<TRMBuildTransfers> transfer_matrices = fSpaceGenerator.GetTransferGenerator();
-    
-    transfer_matrices->ComputeTransferScalar_Vol(meshvec[1].operator->(), meshvec[1].operator->());
-    
+    transfer_matrices->ComputeTransferScalar_Vol(Cmesh.operator->(),Pres,Pres);
     // Analysis
     bool mustOptimizeBandwidth = true;
     fFluxPressureAnalysis.SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
