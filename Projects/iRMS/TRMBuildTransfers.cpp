@@ -32,7 +32,6 @@ TRMBuildTransfers::~TRMBuildTransfers(){
 /** @brief Compute the sparse matrix to transfer information between two cmesh that belongs to multiphysics mesh  */
 void TRMBuildTransfers::ComputeTransferScalar_Vol(TPZCompMesh *cmesh_multiphysics, int origin, int destination){
 
-    TPZFYsmpMatrix<STATE> TransferScalar;
     if (!cmesh_multiphysics) {
         std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
         DebugStop();
@@ -47,9 +46,13 @@ void TRMBuildTransfers::ComputeTransferScalar_Vol(TPZCompMesh *cmesh_multiphysic
     int np_cmesh_des = destination_memory.NElements();
     
     // Resizing IA JA and A
-    TPZVec<long> IA(np_cmesh_des+1,0);
-    TPZVec<long> JA;
-    TPZVec<double> A;
+    TPZManVector<long> IA(np_cmesh_des+1,0);
+    TPZManVector<long> JA;
+    TPZManVector<double> A;
+    
+    TPZCompMesh * cmesh_o;
+    TPZCompMesh * cmesh_d;
+    int mesh_o_nequ = 0;
 
     for (long icel = 0; icel < nel; icel++) {
 
@@ -58,40 +61,44 @@ void TRMBuildTransfers::ComputeTransferScalar_Vol(TPZCompMesh *cmesh_multiphysic
             DebugStop();
         }
 
-//         TPZCondensedCompEl * mf_cel_condensed = dynamic_cast<TPZCondensedCompEl *> (cel);
-// 
-//         if(!mf_cel_condensed){
-//             DebugStop();
-//         }
-            
+         TPZCondensedCompEl * mf_cel_condensed = dynamic_cast<TPZCondensedCompEl *> (cel);
+ 
+         if(!mf_cel_condensed){
+             DebugStop();
+         }
+    
+        TPZCompEl * mf_cel_cond_ref = mf_cel_condensed->ReferenceCompEl();
         
-        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(mf_cel_cond_ref);
         if(!mf_cel)
         {
             DebugStop();
         }
         
         // filtrar os elementos que nao sao volumetricos.
-        if(mf_cel->Material()->Id() <= 0)
+        if(mf_cel->Material()->Id() != _ReservMatId)
         {
             continue;
         }        
 
-        TPZCompEl * cel2 = mf_cel->Element(origin);
         TPZInterpolationSpace * intel_o = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(origin));
         TPZInterpolationSpace * intel_d = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(destination));
         
         if (!intel_o || !intel_d) {
             DebugStop();
         }
-        TPZCompMesh * cmesh_o = intel_o->Mesh();
-        TPZCompMesh * cmesh_d = intel_d->Mesh();
-            
-
+        
+        cmesh_o = intel_o->Mesh();
+        cmesh_d = intel_d->Mesh();
+        if (!cmesh_o || !cmesh_d) {
+            DebugStop();
+        }
+        
+        mesh_o_nequ = cmesh_o->NEquations();
         
         // Computing the global integration points indexes
         TPZManVector<long> globindexes;
-        cel->GetMemoryIndices(globindexes);
+        mf_cel->GetMemoryIndices(globindexes);
         int nshapes = intel_d->NShapeF();
         for(long i=0; i< globindexes.size(); i++ )
         {
@@ -109,6 +116,8 @@ void TRMBuildTransfers::ComputeTransferScalar_Vol(TPZCompMesh *cmesh_multiphysic
     JA.Resize(IA[np_cmesh_des]);
     A.Resize(IA[np_cmesh_des]);
 
+    TPZFYsmpMatrix<REAL> TransferScalar(np_cmesh_des,mesh_o_nequ);
+    
     long row = 0;
     for (long icel = 0; icel < nel; icel++) {
         
@@ -117,13 +126,21 @@ void TRMBuildTransfers::ComputeTransferScalar_Vol(TPZCompMesh *cmesh_multiphysic
             DebugStop();
         }
         
-        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+        TPZCondensedCompEl * mf_cel_condensed = dynamic_cast<TPZCondensedCompEl *> (cel);
+        
+        if(!mf_cel_condensed){
+            DebugStop();
+        }
+        
+        TPZCompEl * mf_cel_cond_ref = mf_cel_condensed->ReferenceCompEl();
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(mf_cel_cond_ref);
         if(!mf_cel)
         {
             DebugStop();
         }
+        
         // filtrar os elementos que nao sao volumetricos.
-        if(mf_cel->Material()->Id() <= 0)
+        if(mf_cel->Material()->Id() != _ReservMatId)
         {
             continue;
         }
@@ -138,27 +155,32 @@ void TRMBuildTransfers::ComputeTransferScalar_Vol(TPZCompMesh *cmesh_multiphysic
         
         // Computing the global integration points indexes
         TPZManVector<long> globindexes;
-        cel->GetMemoryIndices(globindexes);
+        mf_cel->GetMemoryIndices(globindexes);
         
         // Computing the local integration points indexes
-        TPZIntPoints & int_points_cel_d = intel_d->GetIntegrationRule();
+        const TPZIntPoints & int_points_cel_d = mf_cel->GetIntegrationRule();
         int np_cel_d = int_points_cel_d.NPoints();
         
+        if (globindexes.size() != np_cel_d) {
+            DebugStop();
+        }
+        
         // Computing over all integration points of the compuational element cel
+        TPZFNMatrix<100,REAL> phi(intel_o->NShapeF(),1,0.0);
+        int el_dim =mf_cel->Reference()->Dimension();
+        TPZFNMatrix<300,REAL> dphidxi(el_dim,intel_o->NShapeF(),0.0);
         for (int ip = 0; ip < np_cel_d ; ip++)
         {
-            TPZVec<REAL> qsi(3,0.0);
+            TPZManVector<REAL,3> qsi(3,0.0);
             STATE w;
             int_points_cel_d.Point(ip, qsi, w);
             
             // Indetifying the right global index
            long globindex = globindexes[ip];
            long JAcount = IA[globindex];
+
             
-            IA[globindex] = ip;
-            
-            TPZFMatrix<REAL> phi;
-            TPZFMatrix<REAL> dphidxi;
+
             intel_o->Shape(qsi, phi, dphidxi);
 
             int nconnect = intel_o->NConnects();
@@ -177,13 +199,15 @@ void TRMBuildTransfers::ComputeTransferScalar_Vol(TPZCompMesh *cmesh_multiphysic
                     JAcount++;
                 }
             }
-            row++;
-           IA[row] = JAcount;
+//            row++;
+//           IA[row] = JAcount;
         }
         
     }
     
     TransferScalar.SetData(IA, JA, A);
     fTransferScalar_Vol = TransferScalar;
+    
+    
     
 }

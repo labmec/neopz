@@ -88,6 +88,12 @@ public:
     
     void RemoveInterface(int side);
     
+   	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
+    virtual const TPZIntPoints &GetIntegrationRule() const = 0;
+    
+    /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
+    virtual TPZIntPoints &GetIntegrationRule() = 0;
+    
     /// After adding the elements initialize the integration rule
     virtual void InitializeIntegrationRule() = 0;
 

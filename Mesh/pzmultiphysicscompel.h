@@ -301,10 +301,11 @@ public:
     /// After adding the elements initialize the integration rule
     virtual void InitializeIntegrationRule();
     
-	/** 
-	 * @brief Return the Integration rule being used by multiphysics compel
-	 */	
-	const TPZIntPoints &GetIntegrationRule();
+    /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
+    virtual const TPZIntPoints &GetIntegrationRule() const;
+    
+    /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
+    virtual TPZIntPoints &GetIntegrationRule();
 	
 	/** @brief Return the size of the elementvec in multiphysics, if it is not multiphysics, just return 1 */
 	virtual int NumberOfCompElementsInsideThisCompEl(){

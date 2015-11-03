@@ -56,6 +56,7 @@ namespace pzgeom {
 		{
 		}
         
+        /** @brief answer if the element side is a linear map */
         static bool IsLinearMapping(int side)
         {
             return true;

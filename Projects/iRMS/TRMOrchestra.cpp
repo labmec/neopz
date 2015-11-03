@@ -101,7 +101,7 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     
     fSpaceGenerator.CreateMixedCmesh();
     
-//     fSpaceGenerator.StaticallyCondenseEquations();
+     fSpaceGenerator.StaticallyCondenseEquations();
     
     // transfer the solution from the meshes to the multiphysics mesh
     TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);

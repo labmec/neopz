@@ -37,7 +37,7 @@ public:
 private:
     
     /** @brief Sparse matrix to transfer scalar solution to integrations points other mesh */
-    TPZFYsmpMatrix<STATE> fTransferScalar_Vol;
+    TPZFYsmpMatrix<REAL> fTransferScalar_Vol;
     
     
 };

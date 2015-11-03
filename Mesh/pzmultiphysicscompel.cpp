@@ -914,10 +914,17 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
 
 
 template <class TGeometry>
-const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule()
+TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule()
 {
     return fIntRule;
 }
+
+template <class TGeometry>
+const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule() const
+{
+    return fIntRule;
+}
+
 
 
 template <class TGeometry>

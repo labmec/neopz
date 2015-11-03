@@ -12,20 +12,30 @@
 #include <stdio.h>
 #include "pzreal.h"
 #include "pzfilebuffer.h"
+#include "pzfmatrix.h"
 
 
 class TRMMemory {
 
-// Store all the data required for the integration points
-// Store the saturation at n step
-// Also it can store the nonlinear part of the flux at n step
-// Store the xyz of the spatial properties
+    // Store all the data required for the integration points
+    // Store the saturation at n step
+    // Also it can store the nonlinear part of the flux at n step
+    // Store the xyz of the spatial properties
+    
     /// Pressure at the previous timestep
     STATE fPressureN;
+    
     /// Pressure at the last iteration
     STATE fPressureNp1;
+    
     /// Saturation at the current step
     STATE fSaturation;
+    
+    // Store the xyz of the spatial properties
+    REAL porosity;
+    
+    TPZFNMatrix<9,REAL> K;
+    
     
 public:
     
@@ -54,6 +64,17 @@ public:
         out << fPressureNp1;
     }
     
+    /// Set pressure at the previous timestep
+    void SetPressureN(STATE p){
+    
+        fPressureN = p;
+    }
+
+    STATE GetPressureN(){
+        
+        return fPressureN;
+    }
+
     
 };
 
