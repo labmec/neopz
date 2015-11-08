@@ -48,10 +48,10 @@ void OilPhase::Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars){
 
     REAL So = state_vars[2];
     
-    kr[0] = So*So*So;
+    kr[0] = So*So;
     kr[1] = 0.0;
     kr[2] = 0.0;
-    kr[3] = 3.0*So*So;
+    kr[3] = 2.0*So;
     kr[4] = 0.0;
     
 }

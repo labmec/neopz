@@ -357,19 +357,9 @@ public:
     static void BluckleyAndLeverett(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Saturation, TPZFMatrix<STATE> &Grad);
     
     /**
-     * Computes the saturation at shock using the Welge method
-     */
-    static REAL SwatShock(REAL epsilon, REAL &ds);
-    
-    /**
-     * Extract a value from a given list
-     */
-    static int Extract(REAL epsilon, TPZManVector<REAL> &list, REAL value);
-    
-    /**
      * Computes the inverse of the Global matrix
      */
-    static REAL SaturationNewton( REAL x,REAL t,REAL muo, REAL muw, REAL Area,REAL q);
+    static REAL S_Newton(REAL x, REAL t, REAL u, REAL phi, REAL s_shok, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL epsilon);
     
     /**
      * Computes the inverse of the Global matrix

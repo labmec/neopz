@@ -1148,6 +1148,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12)
 {
+    
 	bool Is_u1PHI = (u1.Cols() == 1) ? true : false;
 	bool Is_u2PHI = (u2.Cols() == 1) ? true : false;
 	

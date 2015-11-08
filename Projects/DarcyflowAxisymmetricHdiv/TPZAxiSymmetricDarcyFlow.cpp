@@ -169,7 +169,7 @@ int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("Rhogamma", name.c_str())) return 7;
     if (!strcmp("Porosity", name.c_str())) return 8;
     if (!strcmp("DivOfBulkVeclocity", name.c_str())) return 9;
-    if (!strcmp("ExactSaturation", name.c_str())) return 10;
+    if (!strcmp("ExactSalpha", name.c_str())) return 10;
     if (!strcmp("ExactP", name.c_str())) return 11;
     if (!strcmp("Rhs", name.c_str())) return 12;
     std::cout  << " Var index not implemented " << std::endl;
@@ -268,7 +268,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     S_gamma = 1.0 - S_alpha - S_beta;
 
-    REAL time;
+    REAL time = fSimulationData->GetTime();
     TPZVec<STATE> Saturation(1,0.0);
     TPZFMatrix<STATE> GradS(1,0);
     
@@ -305,9 +305,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     switch(var) {
         case 0:
         {
-            REAL x = datavec[Pblock].x[0];
-
-            Solout[0] = log(x+1);
+            Solout[0] = P;
         }
             break;
         case 1:
@@ -3321,15 +3319,27 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 {
                     ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn;
                     
-//                    for (int jp = 0; jp < nphiPL2L; jp++)
-//                    {
-//                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * qn;
-//                    }
-//
-//                    for (int jsw = 0; jsw < nphiSaL2L; jsw++)
-//                    {
-//                        ek(isw + iniSaL,jsw + iniSaL) += 1.0 * weight * f_alpha[3] * phiSaL2L(jsw,0)  * phiSaL2L(isw,0) * qn;
-//                    }
+                    for (int jq = 0; jq < nphiuHdivL; jq++)
+                    {
+                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
+                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+                        
+                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+                    }
+                    
+                    for (int jp = 0; jp < nphiPL2L; jp++)
+                    {
+                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * qn;
+                    }
+                    
+                    for (int jsw = 0; jsw < nphiSaL2L; jsw++)
+                    {
+                        ek(isw + iniSaL,jsw + iniSaL) += 1.0 * weight * f_alpha[3] * phiSaL2L(jsw,0)  * phiSaL2L(isw,0) * qn;
+                    }
+                    
                 }
                 
             }
@@ -3362,7 +3372,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                         iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
                         iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
                         REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
-                        
                         ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
                     }
                     
@@ -3876,9 +3885,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     }
     
     TPZManVector<REAL> f_alpha          = props[3];
-    TPZFMatrix<STATE> iphiuHdiv(2,1);
-    int ishapeindex;
-    int ivectorindex;
+    TPZFMatrix<STATE> jphiuHdiv(2,1);
+    int jshapeindex;
+    int jvectorindex;
     
     for (int isw = 0; isw < nphiSaL2L; isw++)
     {
@@ -3886,11 +3895,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
         
         for (int jq = 0; jq < nphiuHdiv; jq++)
         {
-            ivectorindex = datavec[ublock].fVecShapeIndex[jq].first;
-            ishapeindex = datavec[ublock].fVecShapeIndex[jq].second;
-            iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
-            iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
-            REAL vn = iphiuHdiv(0,0)*n[0] + iphiuHdiv(1,0)*n[1];
+            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
+            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
+            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+            REAL vn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1];
             
             ek(isw + iniSaL,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
             
@@ -3913,11 +3922,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
         
         for (int jq = 0; jq < nphiuHdiv; jq++)
         {
-            ivectorindex = datavec[ublock].fVecShapeIndex[jq].first;
-            ishapeindex = datavec[ublock].fVecShapeIndex[jq].second;
-            iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
-            iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
-            REAL vn = iphiuHdiv(0,0)*n[0] + iphiuHdiv(1,0)*n[1];
+            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
+            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
+            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+            std::cout << "jphiuHdiv = " << jphiuHdiv <<std::endl;
+            REAL vn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1];
             
             ek(iblock + isw + iniSaR,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
             

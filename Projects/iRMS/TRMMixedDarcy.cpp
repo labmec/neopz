@@ -253,7 +253,6 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
     int jshapeindex;
     int jvectorindex;
     
-    
     for (int iq = 0; iq < nphiuHdiv; iq++)
     {
         
@@ -312,10 +311,6 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
 void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
 {
     
-    // Getting data from different approximation spaces
-    long intpointindex = datavec[0].intGlobPtIndex;
-    TRMMemory &locmem = GetMemory()[intpointindex];
-    
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
     
@@ -329,9 +324,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     STATE divflux;
     // Compute the divergence on deformed element by piola contravariant transformation
     this->ComputeDivergenceOnMaster(datavec, DivergenceOnMaster,divflux);
-    
     REAL JacobianDet = datavec[ublock].detjac;
-
     
     // Blocks dimensions and lengths
     int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
@@ -342,6 +335,13 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     // Getting linear combinations from different approximation spaces
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
     REAL P              = datavec[Pblock].sol[0][0];
+    
+    // Get the pressure at the integrations points
+    long global_point_index = datavec[0].intGlobPtIndex;
+    TRMMemory &point_memory = GetMemory()[global_point_index];
+    STATE pressure = point_memory.GetPressure();
+    
+    std::cout << "Pressure difference = " << pressure - P << std::endl;
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];

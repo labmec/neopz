@@ -10,6 +10,9 @@
 #include "TRMOrchestra.h"
 #include "TRMSpaceOdissey.h"
 
+#include "TPZGeoLinear.h"
+#include "tpzgeoelrefpattern.h"
+
 
 // iRMS (i rise for / innovatory Reservoir Muli-scale Simulator)
 
@@ -30,6 +33,18 @@ int main()
 #endif
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
+    
+    int ele_id=0;
+    int mat_id=0;
+
+    TPZGeoMesh *  geometry = new TPZGeoMesh;
+    geometry->NodeVec().Resize(8);
+    geometry->ElementVec().Resize(1);
+    
+    TPZManVector<long, 2> topology_l(2,0);
+    
+    TPZGeoElRefPattern< pzgeom::TPZGeoLinear > * line = new TPZGeoElRefPattern< pzgeom::TPZGeoLinear >(ele_id,topology_l,mat_id,*geometry);
+    
     
 
     // Running primal problem

@@ -1058,7 +1058,9 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 
 void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 {
+#ifdef LOG4CXX
     logger->setLevel(log4cxx::Level::getInfo());
+#endif    
     ThreadData *data = (ThreadData *) datavoid;
     //    TPZStructMatrixOT *strmat = data->fStruct;
     TPZVec<long> &ComputedElements = *(data->fComputedElements);

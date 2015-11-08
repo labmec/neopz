@@ -340,8 +340,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
 			int blsize = block.Size(seqnum);
 			TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
 			long seqnumMF = conMF.SequenceNumber();
-			int idf;
-			for (idf=0; idf<blsize; idf++) {
+			for (int idf=0; idf<blsize; idf++) {
 				blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
 			}
 		}

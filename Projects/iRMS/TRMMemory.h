@@ -15,66 +15,166 @@
 #include "pzfmatrix.h"
 
 
+/*! @brief Store the information required on a integration point.
+ *         Brief description continued.
+ *
+ *  Store the saturation at n step.
+ *  Also it can store the nonlinear part of the flux at n step.
+ *  Store the xyz of the spatial properties.
+ *  Gravitational Segregation terms
+ */
+
 class TRMMemory {
 
-    // Store all the data required for the integration points
-    // Store the saturation at n step
-    // Also it can store the nonlinear part of the flux at n step
-    // Store the xyz of the spatial properties
+    /**
+     * @defgroup Compute and get matrices
+     * @{
+     */
     
-    /// Pressure at the previous timestep
-    STATE fPressureN;
+    /** @brief Total flux */
+    TPZManVector<STATE> fu;
+
+    /** @brief Total flux at the previous timestep */
+    TPZManVector<STATE> fu_n;
     
-    /// Pressure at the last iteration
-    STATE fPressureNp1;
+    /** @brief Weighted Pressure */
+    STATE fPressure;
     
-    /// Saturation at the current step
-    STATE fSaturation;
+    /** @brief Weighted Pressure at the previous timestep */
+    STATE fPressure_n;
     
-    // Store the xyz of the spatial properties
-    REAL porosity;
+    /** @brief Water Saturation */
+    STATE fSw;
     
+    /** @brief Water saturation at the previous timestep */
+    STATE fSw_n;
+    
+    /** @brief Rock Porosity */
+    STATE fporosity;
+    
+    /** @brief Absolute permeability */
     TPZFNMatrix<9,REAL> K;
     
+    //@}
     
 public:
     
-// Note describe this class into the lyx doc
+    /** @brief Default constructor */
+    TRMMemory();
+    
+    /** @brief Default destructor */
+    ~TRMMemory();
+    
+
     void UpdateSolutionMemory()
     {
         //update saturation and pressure and total flux (un = unp1)
-        fPressureN = fPressureNp1;
+        fPressure_n = fPressure;
     }
+    
+    /**
+     * @defgroup Set Get methods
+     * @{
+     */
+    
+    /** @brief Set the total flux */
+    void SetTotal_Flux(TPZManVector<STATE> u){
+        fu = u;
+    }
+    
+    /** @brief Get the total flux */
+    TPZManVector<STATE> GetTotal_Flux(){
+        return fu;
+    }
+    
+    /** @brief Set the total flux at the previous timestep */
+    void SetTotal_Flux_n(TPZManVector<STATE> u_n){
+        fu_n = u_n;
+    }
+    
+    /** @brief Get the total flux at the previous timestep */
+    TPZManVector<STATE> GetTotal_Flux_n(){
+        return fu_n;
+    }
+    
+    /** @brief Set the weighted pressure */
+    void SetPressure(STATE p){
+        fPressure = p;
+    }
+    
+    /** @brief Get the weighted pressure */
+    STATE GetPressure(){
+        return fPressure;
+    }
+    
+    /** @brief Set the weighted pressure at the previous timestep */
+    void SetPressure_n(STATE p_n){
+        fPressure_n = p_n;
+    }
+    
+    /** @brief Get the weighted pressure at the previous timestep */
+    STATE GetPressure_n(){
+        return fPressure_n;
+    }
+    
+    /** @brief Set the water saturation */
+    void SetSaturation(STATE Sw){
+        fSw = Sw;
+    }
+    
+    /** @brief Get the water saturation */
+    STATE GetSaturation(){
+        return fSw;
+    }
+    
+    /** @brief Set the water saturation at the previous timestep */
+    void SetSw_n(STATE Sw_n){
+        fSw_n = Sw_n;
+    }
+    
+    /** @brief Get the water saturation at the previous timestep */
+    STATE GetSw_n(){
+        return fSw_n;
+    }
+    
+    /** @brief Set the rock porosity */
+    void SetPorosity(STATE phi){
+        fporosity = phi;
+    }
+    
+    /** @brief Get the rock porosity */
+    STATE GetPorosity(){
+        return fporosity;
+    }
+    
+    //@}
+    
   
+    /**
+     * @defgroup Write, Read and Print methods
+     * @{
+     */
+    
     void Write(TPZStream &buf, int withclassid)
     {
-        buf.Write(&fPressureN);
-        buf.Write(&fPressureNp1);
+        buf.Write(&fPressure_n);
+        buf.Write(&fPressure);
     }
 
     void Read(TPZStream &buf, void *context)
     {
-        buf.Read(&fPressureN);
-        buf.Read(&fPressureNp1);
+        buf.Read(&fPressure_n);
+        buf.Read(&fPressure);
     }
 
     void Print(std::ostream &out) const
     {
-        out << fPressureN;
-        out << fPressureNp1;
+        out << fPressure_n;
+        out << fPressure;
     }
     
-    /// Set pressure at the previous timestep
-    void SetPressureN(STATE p){
+    //@}
     
-        fPressureN = p;
-    }
-
-    STATE GetPressureN(){
-        
-        return fPressureN;
-    }
-
     
 };
 
@@ -85,10 +185,4 @@ inline std::ostream &operator<<(std::ostream &out,const TRMMemory &mem)
 }
 
 
-
 #endif /* defined(__PZ__TRMMemory__) */
-
-
-// Optional:
-
-// Gavitational Segregation flux values are storaged here!

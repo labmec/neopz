@@ -93,15 +93,13 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 #ifdef PZDEBUG
     fSpaceGenerator.PrintGeometry();
 #endif
-    
     fSpaceGenerator.SetDefaultPOrder(1);
     
     fSpaceGenerator.CreateFluxCmesh();
     fSpaceGenerator.CreatePressureCmesh();
-    
     fSpaceGenerator.CreateMixedCmesh();
     
-     fSpaceGenerator.StaticallyCondenseEquations();
+//    fSpaceGenerator.StaticallyCondenseEquations();
     
     // transfer the solution from the meshes to the multiphysics mesh
     TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
@@ -110,26 +108,39 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     meshvec[flux] = fSpaceGenerator.GetFluxCmesh();
     meshvec[Pres] = fSpaceGenerator.GetPressureMesh();
     TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetMixedCmesh();
-
     
+    TPZFMatrix<STATE> vec_p = meshvec[Pres]->Solution();
+    for (int i = 0; i <  vec_p.Rows(); i++) {
+        vec_p(i,0) = rand();
+    }
+    meshvec[Pres]->LoadSolution(vec_p);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
-    TPZAutoPointer<TRMBuildTransfers> transfer_matrices = fSpaceGenerator.GetTransferGenerator();
-    transfer_matrices->ComputeTransferScalar_Vol(Cmesh.operator->(),Pres,Pres);
+    
+    TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator.GetTransferGenerator();
+    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
+    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
+
+//    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);
+    
+//    transfer->GetTransferPressure_To_Mixed().Print("Pmat = ");
+    transfer->GetTransferPressure_To_Mixed();
+    
     // Analysis
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = false;
     fFluxPressureAnalysis.SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
-    int numofThreads = 8;
+    int numofThreads = 0;
 #ifdef PZDEBUG
     {
         std::ofstream out("../MixedCompMesh.txt");
         Cmesh->Print(out);
     }
 #endif
-    fFluxPressureAnalysis.Solution().Zero();
+//    fFluxPressureAnalysis.Solution().Zero();
     fFluxPressureAnalysis.LoadSolution();
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+    
     TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
     std::cout << "Total dof: " << prevsol.Rows() << std::endl;
+    std::cout << "prevsol: " << prevsol << std::endl;
     
    
     TPZSkylineStructMatrix strmat(Cmesh.operator->());
