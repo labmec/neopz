@@ -531,9 +531,6 @@ void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
     KGlobal =   an->Solver().Matrix();
     FGlobal =   an->Rhs();
     
-    KGlobal->Print("KGlobal = ", std::cout,EMathematicaInput);
-    FGlobal.Print("FGlobal = ", std::cout,EMathematicaInput);
-    
 #ifdef PZDEBUG
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -594,41 +591,10 @@ void TPZDarcyAnalysis::CreateMultiphysicsMesh(int q, int p, int s)
 
 void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
 {
-    int nsteps = fSimulationData->GetMaxTime() / fSimulationData->GetDeltaT();
-    
-    REAL tk = 0;
-    
-    
-    //  Read the binary file
-    //    {
-    //      TPZBFileStream load;
-    //      load.OpenRead("Solution.bin");
-    //      TPZFMatrix<REAL> SolutiontoLoad = fcmeshdarcy->Solution();
-    //      SolutiontoLoad.Read(load,0);
-    //      fcmeshdarcy->LoadSolution(SolutiontoLoad);
-    //      TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
-    //    }
-    
-    //    TPZFMatrix<REAL> TrueSolution = fcmeshdarcy->Solution();
-    //  TrueSolution *=0.0;
-    ////    TrueSolution(0,0) = -0.5 ;
-    ////    TrueSolution(1,0) = -0.5 ;
-    ////    TrueSolution(2,0) = 0.5;
-    ////    TrueSolution(3,0) = 0.5;
-    //
-    ////    TrueSolution(12,0) = 0.1;//10.29367992;
-    ////    TrueSolution(13,0) = 0.1;
-    ////
-    ////    TrueSolution(14,0) = 0.1;
-    ////    TrueSolution(15,0) = 0.1;//10.29367992;
-    ////
-    ////    TrueSolution(16,0) = 1.0;
-    ////    TrueSolution(17,0) = 0.0;
-    //
-    //    falphaAtn= TrueSolution;
-    //    falphaAtnplusOne= TrueSolution;
-    //
-    //
+    int n_sub_dt = fSimulationData->GetNSubSteps();
+    TPZManVector<REAL> reporting_times = fSimulationData->GetTimes();
+    REAL tk = fSimulationData->GetTime();
+    REAL current_dt = (reporting_times[0] - tk)/n_sub_dt;
     
     if (fSimulationData->GetGR())
     {
@@ -639,27 +605,19 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         this->SaturationReconstruction(an);
     }
     
-    this->fSimulationData->SetTime(tk);
+    // Out file for initial condition
     this->PostProcessVTK(an);
+    std::cout << "Reported time " << tk << "; dt = " << current_dt << std::endl;
+    std::cout << std::endl;
     
-    for (int istep = 1 ; istep <=  nsteps; istep++) {
-        tk = istep*this->fSimulationData->GetDeltaT();
-        this->fSimulationData->SetTime(tk);
-        
-        std::cout << "Time value (days): " << tk << std::endl;
-        std::cout<<  "Time step: " << istep << std::endl;
-        
-//        // Guess for Newton Iteration
-//        if (fSimulationData->IsTwoPhaseQ()) {
-//            int ndof = fmeshvec[2]->Solution().Rows();
-//            TPZFMatrix<REAL> Vec_alpha(ndof,1,0.5);
-//            fmeshvec[2]->LoadSolution(Vec_alpha);
-//            TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
-//            
-//        }
-        
+    int i_time = 0;
+    int i_sub_dt = 0;
+    while (i_time < reporting_times.size()) {
+
+        fSimulationData->SetDeltaT(current_dt);
         this->AssembleLastStep(an);
         this->AssembleNextStep(an);
+        
         
         if (fSimulationData->GetIsBroyden())
         {
@@ -669,8 +627,6 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             const clock_t tenda = clock();
             const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
             std::cout << "Time for Broyden: " << timea << std::endl;
-            std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
-            this->PostProcessVTK(an);
             
         }
         else
@@ -680,20 +636,28 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             const clock_t tenda = clock();
             const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
             std::cout << "Time for Newton: " << timea << std::endl;
-            std::cout << "Number of DOF = " << fcmeshdarcy->Solution().Rows() << std::endl;
+            
+        }
+        i_sub_dt++;
+
+        if (i_sub_dt == n_sub_dt) {
+            tk = reporting_times[i_time];
+            this->fSimulationData->SetTime(tk);
+            std::cout << "Reported time " << tk << "; dt = " << current_dt << "; File number = " << i_time << std::endl;
+            std::cout << std::endl;
             this->PostProcessVTK(an);
+            if (i_time == reporting_times.size()-1) {
+                break;
+            }
+            current_dt = (reporting_times[i_time+1] - reporting_times[i_time])/n_sub_dt;
+            i_time++;
+            i_sub_dt=0;
             
-            //          TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
-            //          TPZFMatrix<REAL> SolutiontoSave = fcmeshdarcy->Solution();
-            //          TPZBFileStream save;
-            //          save.OpenWrite("Solution.bin");
-            //          SolutiontoSave.Write(save,0);
-            
+
         }
         
     }
     
-    //    this->PostProcessVTK(an);
     
     
 }
@@ -765,24 +729,6 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
             CleanUpGradients(an);
         }
         
-//        // Saturations Restrictions
-//        if (fSimulationData->IsTwoPhaseQ()) {
-//            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
-//            int ndof = fmeshvec[2]->Solution().Rows();
-//            TPZFMatrix<REAL> Vec_alpha = fmeshvec[2]->Solution();
-//            
-//            for (int i = 0; i < ndof; i++) {
-//                if(fabs(fmeshvec[2]->Solution()(i,0)) > 1.0){
-//                    std::cout << "i = " << i << " S = " << Vec_alpha(i,0) << std::endl;
-//                    Vec_alpha(i,0) = 0.906635;
-//                }
-//            }
-//
-//            fmeshvec[2]->LoadSolution(Vec_alpha);
-//            TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
-//            an->LoadSolution(fcmeshdarcy->Solution());
-//        }
-        
         
         if (((fixed+1) * (centinel) == iterations)) {
             
@@ -815,23 +761,19 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         
         if(error < fSimulationData->GetToleranceRes() || normdx < fSimulationData->GetToleranceDX())
         {
-            std::cout << "Converged with iterations:  " << iterations << std::endl;
-            std::cout << "error norm: " << error << std::endl;
-            std::cout << "error of dx: " << normdx << std::endl;
-            this->UpDateAlphaVec(X);
+            std::cout << "Converged with iterations:  " << iterations << "; error: " << error <<  "; dx: " << normdx << std::endl;
             break;
         }
         
         
         if (iterations == fSimulationData->GetMaxiterations()) {
-            std::cout << "Out max iterations " << iterations << std::endl;
-            std::cout << "error norm " << error << std::endl;
-            this->UpDateAlphaVec(X);
+            std::cout << "Out max iterations:  " << iterations << "; error: " << error <<  "; dx: " << normdx << std::endl;
             break;
         }
         
     }
     
+    this->UpDateAlphaVec(X);
     
 }
 
@@ -2275,14 +2217,14 @@ void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, 
 {
     
     //definir globalmente:
-    REAL Porosity = 0.1;
+    REAL Porosity = 0.2;
     
     REAL x = pt[0];
     
     REAL x_shock        = 0.0;
     REAL S_shock        = 0.0;
     REAL epsilon        = 1.0e-8;
-    REAL u              = 100.0;
+    REAL u              = 0.1;
     REAL mu_alpha       = 1.0;
     REAL mu_beta        = 1.0;
     REAL rho_alpha      = 1.0;
@@ -2395,10 +2337,10 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionCmesh(TPZVec<STATE> &solini)
 void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
     //    REAL x = pt[0];
-    REAL y = pt[1];
-    
+//    REAL y = pt[1];
+    REAL S_wett_nc = 0.0;
     disp.resize(1);
-    disp[0] = 0.0;
+    disp[0] = S_wett_nc;
     
     //     if (y >=  50.0 ) {
     //         disp[0] = 0.0;

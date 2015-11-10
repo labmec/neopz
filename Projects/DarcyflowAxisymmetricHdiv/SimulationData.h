@@ -157,6 +157,12 @@ private:
     /** @brief Counterclockwise rotation angle [degrees] */
     REAL fAngle;
     
+    /** @brief Store time values to be reported */
+    TPZManVector<REAL> fTimesToPrint;
+
+    /** @brief Number of sub times steps per dt */
+    int fn_sub_dt;
+    
 public:
     
     /** @brief void material being used for GR */
@@ -434,6 +440,30 @@ public:
     
     /** @brief Counterclockwise rotation angle [degrees] */
     REAL GetRotationAngle() {return this->fAngle;}
+    
+    /**
+     * Set time values to be reported
+     */
+    void SetTimes(TPZManVector<REAL> TimesToPrint){
+        fTimesToPrint = TimesToPrint;
+    }
+    
+    /**
+     * Get time values to be reported
+     */
+    TPZManVector<REAL>GetTimes(){
+        return fTimesToPrint;
+    }
+    
+    /** @brief Set the number of sub times steps per dt */
+    void SetNSubSteps(int n_sub_dt){
+        fn_sub_dt = n_sub_dt;
+    }
+    
+    /** @brief Get the number of sub times steps per dt */
+    int GetNSubSteps(){
+        return fn_sub_dt;
+    }
     
 };
 

@@ -119,6 +119,9 @@ SimulationData::SimulationData()
     /** @brief Counterclockwise rotation angle */
     fAngle = 0.0;
     
+    /** @brief Store time values to be reported */
+    fTimesToPrint.Resize(0);
+    
 }
 
 SimulationData::~SimulationData()

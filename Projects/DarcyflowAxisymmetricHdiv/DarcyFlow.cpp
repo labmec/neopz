@@ -38,17 +38,17 @@ void NonlinearTracerDimensionless()
     // This code consider a homogeneus absolute permeability when Gravitational segregational function is active!
     
     // This code use piola contravariant mapping for nonlinear mappings
-    HDivPiola = 2;
+    HDivPiola = 1;
     
     // Simulation Data SI units
     
     // Characteristic Data
     
-    REAL Kstr           = 1.0e-15;
+    REAL Kstr           = 1.0e-14;
     REAL Pstr           = 1.0e7;
     REAL Tstr           = 355.37;
     REAL Tres           = 355.37;
-    REAL Lstr           = 1000.0;
+    REAL Lstr           = 100.0;
     REAL Mustr          = 0.001;
     REAL Rhostr         = 1000.0;
 //    REAL lambdastr      = Rhostr/Mustr;
@@ -56,8 +56,8 @@ void NonlinearTracerDimensionless()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 40;
-    int nthread     = 0;
+    int maxiter     = 20;
+    int nthread     = 8;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
@@ -70,35 +70,55 @@ void NonlinearTracerDimensionless()
     int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 2;
+    int hpostref    = 0;
     
+    int n_times = 11;
+    int n_sub_dt = 50;
+    TPZManVector<REAL,10> Reporting_times(n_times,0.0);
+    REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    
-    REAL dt         = 50000.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
-    REAL maxtime    = 50000.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
-    REAL t0         = 0.0*day*((Kstr*Pstr)/(Lstr*Lstr*Mustr));
+    REAL dt         = 10*day*scale;
+    REAL t0         = 0.0*day*scale;
 
+    Reporting_times[0] =  1.0*day*scale;
+    Reporting_times[1] = 100.0*day*scale;
+    Reporting_times[2] = 200.0*day*scale;
+    Reporting_times[3] = 300.0*day*scale;
+    Reporting_times[4] = 400.0*day*scale;
+    Reporting_times[5] = 500.0*day*scale;
+    Reporting_times[6] = 600.0*day*scale;
+    Reporting_times[7] = 700.0*day*scale;
+    Reporting_times[8] = 800.0*day*scale;
+    Reporting_times[9] = 900.0*day*scale;
+    Reporting_times[10] = 1000.0*day*scale;
+    
+    REAL maxtime    = Reporting_times[n_times-1];
+    
     REAL TolRes     = 1.0*1e-5;
     REAL TolDeltaX  = 1.0*1e-10;
     
-    int  nelemX     =1;
-    REAL dxD        =1000./Lstr;
+    int  nelemX     =1000;
+    REAL dxD        =0.1/Lstr;
     
     int nelemY      =1;
-    REAL dyD        =500.0/Lstr;
+    REAL dyD        =100.0/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
     Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
     
     REAL angle = 0.0;
     
+    REAL S_w_r              = 0.0;
+    REAL S_nw_r             = 0.0;
+    
     TPZStack<std::string> system;
     system.Push("Oil");
     system.Push("Water");
     //    system.Push("Gas");
 
-    
+    Dataset->SetTimes(Reporting_times);
+    Dataset->SetNSubSteps(n_sub_dt);
     Dataset->SetsystemType(system);
     Dataset->SetGR(GR);
     Dataset->SetSC(SC);
@@ -171,7 +191,7 @@ void NonlinearTracerDimensionless()
     TPZVec<REAL> rightbc(4,0.0);
     rightbc[0] = 2;
     rightbc[1] = 0.1;
-    rightbc[2] = 0;
+    rightbc[2] = S_w_r;
     rightbc[3] = 0;
     
     TPZVec<REAL> topbc(4,0.0);
@@ -182,8 +202,8 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 1;
-    leftbc[1] = -100.0;
-    leftbc[2] = 1;
+    leftbc[1] = -(0.1);
+    leftbc[2] = 1.0;
     leftbc[3] = 0;
     
     Dataset->SetBottomBC(bottombcini, bottombc);
@@ -203,7 +223,7 @@ void NonlinearTracerDimensionless()
     
     // Reservoir Description
     bool isGIDGeom      = false;
-    REAL porosityref    = 0.1;
+    REAL porosityref    = 0.2;
     REAL pressureref    = (1.0*1e6)/(Pstr);
     REAL lengthref      = 1.0;
     REAL kref           = 1.0;
@@ -237,8 +257,8 @@ void NonlinearTracerDimensionless()
     
     TPZFMatrix<STATE> Kabsolute(2,2);
     Kabsolute.Zero();
-    Kabsolute(0,0) = (1.0e-15)/Kstr;
-    Kabsolute(1,1) = (1.0e-15)/Kstr;
+    Kabsolute(0,0) = (1.0e-14)/Kstr;
+    Kabsolute(1,1) = (1.0e-14)/Kstr;
     
     Layer->SetIsGIDGeometry(isGIDGeom);
     Layer->SetLayerTop(Top);
@@ -252,6 +272,8 @@ void NonlinearTracerDimensionless()
     Layer->SetcRock(crock);
     Layer->SetKabsolute(Kabsolute);
     Layer->SetMatIDs(MatIds);
+    Layer->SetS_wett_r(S_w_r);
+    Layer->SetS_nwett_r(S_nw_r);
     
     
     Water->SetRho(waterdensity);
@@ -260,6 +282,8 @@ void NonlinearTracerDimensionless()
     Water->SetPRef(p_w_ref);
     Water->SetTRef(Tstr);
     Water->SetTRes(Tres);
+    Water->SetS_wett_r(S_w_r);
+    Water->SetS_nwett_r(S_nw_r);
     
     Oil->SetRho(oildensity);
     Oil->SetMu(oilviscosity);
@@ -267,6 +291,8 @@ void NonlinearTracerDimensionless()
     Oil->SetPRef(p_o_ref);
     Oil->SetTRef(Tstr);
     Oil->SetTRes(Tres);
+    Oil->SetS_wett_r(S_w_r);
+    Oil->SetS_nwett_r(S_nw_r);
     
     Gas->SetRho(gasdensity);
     Gas->SetMu(gasviscosity);
@@ -274,12 +300,26 @@ void NonlinearTracerDimensionless()
     Gas->SetPRef(p_g_ref);
     Gas->SetTRef(Tstr);
     Gas->SetTRes(Tres);
+    Gas->SetS_wett_r(S_w_r);
+    Gas->SetS_nwett_r(S_nw_r);
     
     TPZVec< TPZAutoPointer<Phase> > PVTData(3);
-    PVTData[0] = Oil.operator->();      // alpha
-    PVTData[1] = Water.operator->();    // beta
+    PVTData[0] = Water.operator->();      // alpha
+    PVTData[1] = Oil.operator->();    // beta
     PVTData[2] = Gas.operator->();      // gamma
     
+    
+    TPZManVector<REAL> krw(5,0.0);
+    TPZManVector<REAL> kro(5,0.0);
+    TPZManVector<REAL> s_vars(5,0.0);
+    
+    s_vars[2] = 0.8;
+    Water->Kr(krw, s_vars);
+    s_vars[2] = 1.0-0.8;
+    Oil->Kr(kro, s_vars);
+    
+    std::cout << "krw = " << krw << std::endl;
+    std::cout << "kro = " << kro << std::endl;
     
     // Creating the analysis
     TPZVec<TPZAutoPointer<ReservoirData> > Layers;
