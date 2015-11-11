@@ -415,7 +415,7 @@ TPZGeoMesh *CreateRectangularGMesh(REAL hDomain, REAL wDomain, REAL x0, REAL y0,
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>), REAL freq)
 {
   const int dim = 2; //dimensao do problema
-  const int dirichlet = 0, neumann = 1; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
+	enum{dirichlet = 0, neumann = 1}; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
   
   const int matId = 1; //define id para um material(formulacao fraca)
   const int bc0 = -1; //define id para um material(cond contorno baixo)

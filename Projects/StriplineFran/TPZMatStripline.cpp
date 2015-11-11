@@ -121,8 +121,6 @@ void TPZMatStripline::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
 {
   TPZManVector<REAL,3> &x = data.x;
   //TPZManVector<REAL,3> &normal = data.normal;
-  const STATE mu = fUr(x);
-  const STATE epsilon = fEr(x);
   
   // Setting the phis
   TPZFMatrix<REAL> &phiQ = data.phi;
@@ -150,10 +148,23 @@ void TPZMatStripline::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
       }
       break;
     case 1:
-      DebugStop();
+			for(int i = 0 ; i<nshape ; i++)
+			{
+				const STATE rhs = phiQ(i,0) * v2;
+				ef(i,0) += rhs*weight;
+			}
       break;
     case 2:
-      DebugStop();
+			for(int i = 0 ; i<nshape ; i++)
+			{
+				const STATE rhs = phiQ(i,0) * v2;
+				ef(i,0) += rhs*weight;
+				for(int j=0;j<nshape;j++)
+				{
+					const STATE stiff = phiQ(i,0) * phiQ(j,0) * v1;
+					ek(i,j) += stiff*weight;
+				}
+			}
       break;
   }
 

@@ -71,7 +71,6 @@ void TPZMatValidacaoHCurlFran1::Contribute(TPZMaterialData &data, REAL weight, T
     }
     //ROTATE FOR HCURL
     Cross(normal, ivecHDiv, ivecHCurl);
-//    REAL normz = std::real( normal[2] );
     STATE ff = 0.;
     for (int i=0; i<3; i++) {
       ff += ivecHCurl[i]*force[i];

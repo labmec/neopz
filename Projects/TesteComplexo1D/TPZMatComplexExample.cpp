@@ -72,7 +72,6 @@ void TPZMatComplexExample::Contribute(TPZMaterialData &data, REAL weight, TPZFMa
 void TPZMatComplexExample::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     TPZFMatrix<REAL> &phi = data.phi;
-    TPZVec<REAL> &x = data.x;
     int nshape=phi.Rows();
     
     REAL BIG = TPZMaterial::gBigNumber;//sera posto na matriz K

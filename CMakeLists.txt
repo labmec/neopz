@@ -528,6 +528,6 @@ file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
 add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 
 #To force XCode to use standard library c++ = libstdc++ (Required after upgrading to XCode 5)
-SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
+#SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 
 set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
