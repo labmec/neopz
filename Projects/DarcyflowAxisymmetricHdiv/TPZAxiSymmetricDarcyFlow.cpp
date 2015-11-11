@@ -4037,6 +4037,148 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     }
     
     
+    
+    
+        //Gravity
+   
+    
+        TPZFMatrix<STATE> Gravity(2,1);
+        TPZFMatrix<STATE> KGravityL(2,1);
+        TPZFMatrix<STATE> KGravityR(2,1);
+    
+        Gravity=fSimulationData->GetGravity();
+    
+        TPZFMatrix<STATE> qgL(2,1);
+        TPZFMatrix<STATE> qgR(2,1);
+    
+        REAL epsilon = fepsilon;
+        epsilon=0.5;
+        TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
+        REAL ndotG = Gravity(0,0)*n[0] + Gravity(1,0)*n[1];
+    
+    
+        // Computing Gravitational segregational function on the left side
+    
+        this->ComputeProperties(datavecleft, props);
+        this->PhaseFractionalFlows();
+    
+        //std::cout<<"gelElId= " << datavecright[Pblock].gelElId << std::endl;
+    
+        KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
+        KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+        REAL lambdaDensitydiffL = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
+    
+        REAL fstrL = 0.0;
+    
+        if (ndotG <= 0.0) {
+    
+            // Expelling oil
+            if (SaL < epsilon) {
+                this->UpdateStateVariables(uL, PL, SaL, 1.0-SaL);
+                this->PhaseFractionalFlows();
+                fstrL = fFOil[0] * fFWater[0];
+            }
+            else
+            {
+                this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
+                this->PhaseFractionalFlows();
+                fstrL = fFOil[0] * fFWater[0];
+            }
+        }
+        else
+        {
+            // Expelling water
+            if (SaL < 1.0 - epsilon) {
+                this->UpdateStateVariables(uL, PL, SaL, 1.0-SaL);
+                this->PhaseFractionalFlows();
+                fstrL = fFOil[0] * fFWater[0];
+            }
+            else
+            {
+                this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
+                this->PhaseFractionalFlows();
+                fstrL = fFOil[0] * fFWater[0];
+            }
+    
+        }
+    
+        qgL(0,0) = fstrL * lambdaDensitydiffL * KGravityL(0,0);
+        qgL(1,0) = fstrL * lambdaDensitydiffL * KGravityL(1,0);
+        REAL qgLdotn = qgL(0,0)*n[0] + qgL(1,0)*n[1];
+    
+        // Computing Gravitational segregational function on the right side
+    
+        this->UpdateStateVariables(uR, PR, SaR, 1.0 - SaR);
+        this->PhaseFractionalFlows();
+    
+        KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
+        KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+        REAL lambdaDensitydiffR = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
+    
+        REAL fstrR = 0.0;
+    
+        if (ndotG >= 0.0) {
+    
+            // Expelling oil
+            if ((1-SaR) < epsilon) {
+                this->UpdateStateVariables(uR, PR, SaR, 1.0 -SaR);
+                this->PhaseFractionalFlows();
+                fstrR = fFOil[0] * fFWater[0];
+            }
+            else
+            {
+                this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
+                this->PhaseFractionalFlows();
+                fstrR = fFOil[0] * fFWater[0];
+            }
+        }
+        else
+        {
+            // Expelling water
+            if (SaR < 1.0 - epsilon) {
+                this->UpdateStateVariables(uR, PR, SaR, 1.0-SaR);
+                this->PhaseFractionalFlows();
+                fstrR = fFOil[0] * fFWater[0];
+            }
+            else
+            {
+                this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
+                this->PhaseFractionalFlows();
+                fstrR = fFOil[0] * fFWater[0];
+            }
+    
+        }
+    
+        qgR(0,0) = fstrR * lambdaDensitydiffR * KGravityR(0,0);
+        qgR(1,0) = fstrR * lambdaDensitydiffR * KGravityR(1,0);
+        REAL qgRdotn = qgR(0,0)*n[0] + qgR(1,0)*n[1];
+    
+        // Computing the minimum flux at the edge
+    
+        REAL gqdotn = 0.0;
+    
+        if (fabs(qgRdotn) >= fabs(qgLdotn)) {
+            gqdotn = qgLdotn;
+        }
+        else
+        {
+            gqdotn = qgRdotn;
+        }
+    
+    
+    
+        for (int isw = 0; isw < nphiSaL2L; isw++)
+        {
+            ef(isw + iniSaL) += 1.0 * weight * gqdotn * phiSaL2L(isw,0);
+        }
+        for (int isw = 0; isw < nphiSaL2R; isw++)
+        {
+            ef(iblock + isw + iniSaR) += -1.0 * weight * gqdotn * phiSaL2R(isw,0);
+        }
+
+
+    
+    
 }
 
 

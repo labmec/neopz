@@ -72,8 +72,8 @@ void NonlinearTracerDimensionless()
     int hrefinement = 0;
     int hpostref    = 0;
     
-    int n_times = 11;
-    int n_sub_dt = 50;
+    int n_times  = 11;
+    int n_sub_dt = 10;
     TPZManVector<REAL,10> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL hour       = 3600.0;
@@ -92,20 +92,20 @@ void NonlinearTracerDimensionless()
     Reporting_times[8] = 800.0*day*scale;
     Reporting_times[9] = 900.0*day*scale;
     Reporting_times[10] = 1000.0*day*scale;
-    
+    std::cout<<"maxtime= "<< Reporting_times[10]<<std::endl;
     REAL maxtime    = Reporting_times[n_times-1];
     
     REAL TolRes     = 1.0*1e-5;
     REAL TolDeltaX  = 1.0*1e-10;
     
-    int  nelemX     =1000;
-    REAL dxD        =0.1/Lstr;
+    int  nelemX     =1;
+    REAL dxD        =100.0/Lstr;
     
-    int nelemY      =1;
-    REAL dyD        =100.0/Lstr;
+    int nelemY      =10;
+    REAL dyD        =10.0/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
-    Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
+    Gravity(1,0)= -9.8*((Lstr*Rhostr)/Pstr);
     
     REAL angle = 0.0;
     
@@ -159,8 +159,8 @@ void NonlinearTracerDimensionless()
     bottombcini[3] = 1;
     
     TPZVec<REAL> rightbcini(4,0.0);
-    rightbcini[0] = 2;
-    rightbcini[1] = (1.0*1e6)/(Pstr);
+    rightbcini[0] = 1;
+    rightbcini[1] = 0.0*(1.0*1e6)/(Pstr);
     rightbcini[2] = 0;
     rightbcini[3] = 0;
     
@@ -171,8 +171,8 @@ void NonlinearTracerDimensionless()
     topbcini[3] = 1;
     
     TPZVec<REAL> leftbcini(4,0.0);
-    leftbcini[0] = 2;
-    leftbcini[1] = (1.0*1e6)/(Pstr);
+    leftbcini[0] = 1;
+    leftbcini[1] = 0.0*(1.0*1e6)/(Pstr);
     leftbcini[2] = 0;
     leftbcini[3] = 0;
     
@@ -189,9 +189,9 @@ void NonlinearTracerDimensionless()
     bottombc[3] = 0;
     
     TPZVec<REAL> rightbc(4,0.0);
-    rightbc[0] = 2;
-    rightbc[1] = 0.1;
-    rightbc[2] = S_w_r;
+    rightbc[0] = 1;
+    rightbc[1] = 0.0*0.1;
+    rightbc[2] = 0;
     rightbc[3] = 0;
     
     TPZVec<REAL> topbc(4,0.0);
@@ -202,8 +202,8 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 1;
-    leftbc[1] = -(0.1);
-    leftbc[2] = 1.0;
+    leftbc[1] = 0.0*(-(0.1));
+    leftbc[2] = 0.0 *(1.0 - S_nw_r);
     leftbc[3] = 0;
     
     Dataset->SetBottomBC(bottombcini, bottombc);

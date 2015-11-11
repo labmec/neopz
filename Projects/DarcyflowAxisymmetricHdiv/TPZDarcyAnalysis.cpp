@@ -643,7 +643,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         if (i_sub_dt == n_sub_dt) {
             tk = reporting_times[i_time];
             this->fSimulationData->SetTime(tk);
-            std::cout << "Reported time " << tk << "; dt = " << current_dt << "; File number = " << i_time << std::endl;
+            std::cout << "Reported time " << tk << "; dt = " << current_dt << "; File number = " << i_time + 1 << std::endl;
             std::cout << std::endl;
             this->PostProcessVTK(an);
             if (i_time == reporting_times.size()-1) {
@@ -2216,9 +2216,7 @@ void TPZDarcyAnalysis::LinearTracer(const TPZVec< REAL >& pt, REAL time, TPZVec<
 void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& Saturation, TPZFMatrix< STATE >& Grad)
 {
     
-    //definir globalmente:
     REAL Porosity = 0.2;
-    
     REAL x = pt[0];
     
     REAL x_shock        = 0.0;
@@ -2229,50 +2227,51 @@ void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, 
     REAL mu_beta        = 1.0;
     REAL rho_alpha      = 1.0;
     REAL rho_beta       = 1.0;
-    
-    S_shock = (sqrt(mu_alpha)*sqrt(rho_beta))/sqrt(mu_beta*rho_alpha + mu_alpha*rho_beta);
-
-    x_shock  = (u*time)/(Porosity*rho_alpha)*dfdsw(S_shock,mu_beta,mu_alpha);
-    
+    REAL Sor            = 0.20;
+    REAL Swr            = 0.16;
+    S_shock = Swr + sqrt(mu_alpha*rho_beta*(mu_beta*rho_alpha + mu_alpha*rho_beta)*pow(-1.0 + Sor + Swr,2.0))/(mu_beta*rho_alpha + mu_alpha*rho_beta);
+    x_shock  = (u*time)/(Porosity*rho_alpha)*dfdsw(S_shock, Swr, Sor, mu_alpha, mu_beta, rho_alpha, rho_beta);
+  
     if(x < x_shock)
     {
-        Saturation[0] = S_Newton(x, time, u, Porosity, S_shock, mu_alpha, mu_beta, rho_alpha, epsilon);
+        REAL Sw = S_Newton(x, time, u, Swr, Sor, Porosity, S_shock, mu_alpha, mu_beta, rho_alpha, rho_beta, epsilon);
+        Saturation[0] = Sw;
+        
     }
     else
     {
-        Saturation[0] = 0.0;
+        Saturation[0] = Swr;
     }
 
-    
     return;
     
 }
 
 
-REAL TPZDarcyAnalysis::S_Newton(REAL x, REAL t, REAL u, REAL phi, REAL s_shok, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL epsilon)
+REAL TPZDarcyAnalysis::S_Newton(REAL x, REAL t, REAL u, REAL Swr, REAL Sor, REAL phi, REAL s_shok, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL rho_beta, REAL epsilon)
 {
-    REAL S_trial = (1.0 + s_shok)/2.0;
+    REAL S_trial = ((1.0-Sor) + s_shok)/2.0;
     REAL jac    = 0.0;
     REAL r      = 1.0;
     REAL delta_S;
     REAL ds;
     REAL S_k = S_trial;
-    int max = 10;
+    int max = 20;
     int it = 0;
     
     
     
     while ( fabs(r) > epsilon && it < max){
 
-        ds = dfdsw(S_k,mu_beta,mu_alpha);
+        ds = dfdsw(S_k, Swr, Sor, mu_alpha, mu_beta, rho_alpha, rho_beta);
         r = x - (u * t * ds)/(phi * rho_alpha);
 
-        jac = - (u * t * df2dsw(S_k,mu_beta,mu_alpha))/(phi * rho_alpha);
+        jac = - (u * t * df2dsw(S_k, Swr, Sor, mu_alpha, mu_beta, rho_alpha, rho_beta))/(phi * rho_alpha);
         
         delta_S = -r/jac;
         S_k += delta_S;
         
-        ds = dfdsw(S_k,mu_beta,mu_alpha);
+        ds = dfdsw(S_k, Swr, Sor, mu_alpha, mu_beta, rho_alpha, rho_beta);
         r = x - (u * t * ds)/(phi * rho_alpha);
         it++;
         
@@ -2281,19 +2280,24 @@ REAL TPZDarcyAnalysis::S_Newton(REAL x, REAL t, REAL u, REAL phi, REAL s_shok, R
     return S_k;
 }
 
-REAL TPZDarcyAnalysis::dfdsw(REAL Sw,REAL muo,REAL muw)
+REAL TPZDarcyAnalysis::dfdsw(REAL Sw, REAL Swr, REAL Sor, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL rho_beta)
 {
     REAL dfwdSwS;
     
-    dfwdSwS = -((2.0*(Sw-1.0) * Sw * muw * muo)/((muw - 2.0 * Sw * muw + Sw * Sw * (muw + muo))*(muw - 2.0 * Sw * muw + Sw * Sw *(muw + muo))));
+    
+    dfwdSwS = (2.0*mu_alpha*mu_beta*rho_alpha*rho_beta*(-1.0 + Sor + Sw)*(Sw - Swr)*(-1.0 + Sor + Swr))/pow(mu_alpha*rho_beta*pow(-1.0 + Sor + Sw,2.0) + mu_beta*rho_alpha*pow(Sw - Swr,2.0),2.0);
     
     return (dfwdSwS);
 }
-REAL TPZDarcyAnalysis::df2dsw(REAL Sw, REAL muo,REAL muw)
+REAL TPZDarcyAnalysis::df2dsw(REAL Sw, REAL Swr, REAL Sor, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL rho_beta)
 {
     REAL dfw2dSwS2;
-    dfw2dSwS2 = (2* muo * muw *(muw + (Sw * Sw)*((2 * Sw) - 3)*(muo + muw)))/((muw - (2 * Sw * muw)+(Sw*Sw)*(muo + muw))*(muw - (2*Sw*muw)+(Sw*Sw)*(muo + muw))*(muw - (2*Sw*muw)+(Sw*Sw)*(muo + muw)));
-    return (dfw2dSwS2);
+
+  
+    dfw2dSwS2 = (2.0*mu_alpha*mu_beta*rho_alpha*rho_beta*(-1.0 + Sor + Swr)*(-(mu_beta*rho_alpha*pow(Sw - Swr,2.0)*(-3.0 + 3.0*Sor + 2.0*Sw + Swr)) + mu_alpha*rho_beta*pow(-1.0 + Sor + Sw,2.0)*(-1.0 + Sor - 2.0*Sw + 3.0*Swr)))/
+    pow(mu_alpha*rho_beta*pow(-1.0 + Sor + Sw,2.0) + mu_beta*rho_alpha*pow(Sw - Swr,2.0),3.0);
+
+    return dfw2dSwS2;
 }
 
 
@@ -2336,16 +2340,16 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionCmesh(TPZVec<STATE> &solini)
 
 void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
-    //    REAL x = pt[0];
-//    REAL y = pt[1];
-    REAL S_wett_nc = 0.0;
-    disp.resize(1);
-    disp[0] = S_wett_nc;
+      REAL x = pt[0];
+      REAL y = pt[1];
+//    REAL S_wett_nc = 0.0;
+//    disp.resize(1);
+//    disp[0] = S_wett_nc;
     
-    //     if (y >=  50.0 ) {
-    //         disp[0] = 0.0;
-    //     }
-    //   disp[0]= (rand() / (double)RAND_MAX);
+         if (y <=  0.5 ) {
+             disp[0] = 1.0;
+         }
+//       disp[0]= (rand() / (double)RAND_MAX);
     
 }
 

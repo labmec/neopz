@@ -359,17 +359,17 @@ public:
     /**
      * Computes the inverse of the Global matrix
      */
-    static REAL S_Newton(REAL x, REAL t, REAL u, REAL phi, REAL s_shok, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL epsilon);
+    static REAL S_Newton(REAL x, REAL t, REAL u, REAL Swr, REAL Sor, REAL phi, REAL s_shok, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL rho_beta, REAL epsilon);
     
     /**
      * Computes the inverse of the Global matrix
      */
-    static REAL dfdsw( REAL Sw, REAL muo,REAL muw);
+    static REAL dfdsw(REAL Sw, REAL Swr, REAL Sor, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL rho_beta);
     
     /**
      * Computes the inverse of the Global matrix
      */
-    static REAL df2dsw( REAL Sw, REAL muo,REAL muw);
+    static REAL df2dsw(REAL Sw, REAL Swr, REAL Sor, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL rho_beta);
     
     /**
      * Computes the inverse of the Global matrix
