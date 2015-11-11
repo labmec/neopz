@@ -1,6 +1,14 @@
 #include "TPZMatValidacaoHCurlFran2.h"
 #include "pzbndcond.h"
 
+#include "pzlog.h"
+
+#include "pz_pthread.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.material.fran"));
+#endif
+
 TPZMatValidacaoHCurlFran2::TPZMatValidacaoHCurlFran2(int id, REAL freq, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>), REAL t) : TPZVecL2(id), fUr(ur), fEr(er), fFreq(freq)
 {
   fW=2.*M_PI*fFreq;
@@ -62,6 +70,16 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
   Cross(ax1, ax2, normal);
   int phrq;
   phrq = data.fVecShapeIndex.NElements();
+#ifdef LOG4CXX
+	if(logger->isDebugEnabled() )
+	{
+		std::stringstream sout;
+		sout<<std::endl;
+		sout<<"el:"<<elId<<std::endl;
+		sout<<std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
   for(int iq=0; iq<phrq; iq++)
   {
     //ef(iq, 0) += 0.;
@@ -70,11 +88,11 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
     
     TPZManVector<STATE,3> ivecHDiv(3), ivecHCurl(3);
     for(int id=0; id<3; id++){
-      ivecHDiv[id] = data.fNormalVec(id,ivecind);//JA EM XYZ //MENTIRA MENTIRA
+      ivecHDiv[id] = data.fNormalVec(id,ivecind);//JA EM XYZ
     }
     //ROTATE FOR HCURL
     Cross(normal, ivecHDiv, ivecHCurl);
-    
+		
     STATE ff = 0.;
     for (int i=0; i<3; i++) {
       ff += ivecHCurl[i]*force[i];
@@ -91,14 +109,17 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
       gradPhiI[i] = dphiQ(i,ishapeind);
     }
     Cross(gradPhiI, ivecHCurl, curlI);
-    //eh necessario forcar curlE dot x = j*k0*sin(theta)*Ez
-//		if (elId==0) {
-//			curlI[0] = -1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2];
-//		}
-//		else{
-//			curlI[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2];
-//		}
-			curlI[0] = -1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2];
+#ifdef LOG4CXX
+		if(logger->isDebugEnabled() )
+		{
+			std::stringstream sout;
+			sout<<std::endl;
+			sout<<"vec: "<<real(curlI[0])<<","<<real(curlI[1])<<","<<real(curlI[2])<<std::endl;
+			sout<<std::endl;
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		curlI[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2];
 		
     
     for (int jq=0; jq<phrq; jq++)
@@ -125,16 +146,28 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
 //			else{
 //				curlJ[0] = -1. * imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2] ;//AQUIFRAN
 //			}
-				curlJ[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2] ;//AQUIFRAN
+				curlJ[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2];//AQUIFRAN
 			
       
       STATE phiIdotphiJ;
-      phiIdotphiJ = ( phiQ(ishapeind,0) * ivecHCurl[0] * phiQ(jshapeind,0) * jvecHCurl[0]);
-      phiIdotphiJ += ( phiQ(ishapeind,0) * ivecHCurl[1] * phiQ(jshapeind,0) * jvecHCurl[1]);
-      phiIdotphiJ += ( phiQ(ishapeind,0) * ivecHCurl[2] * phiQ(jshapeind,0) * jvecHCurl[2]);
+      phiIdotphiJ = conj( phiQ(ishapeind,0) * ivecHCurl[0] )* ( phiQ(jshapeind,0) * jvecHCurl[0]);
+      phiIdotphiJ += conj( phiQ(ishapeind,0) * ivecHCurl[1] )* ( phiQ(jshapeind,0) * jvecHCurl[1]);
+      phiIdotphiJ += conj( phiQ(ishapeind,0) * ivecHCurl[2] )* ( phiQ(jshapeind,0) * jvecHCurl[2]);
       
-      
-      STATE stiff = (1./muR) * ( curlJ[0] * curlI[0] + curlJ[1] * curlI[1] + curlJ[2] * curlI[2] );
+//#ifdef LOG4CXX
+//			if(logger->isDebugEnabled() )
+//			{
+//				std::stringstream sout;
+//				sout<<std::endl;
+//				sout<<"X: "<<x[0]<<","<<x[1]<<","<<x[2]<<std::endl;
+//				for (int i = 0; i < phrq;  i++) {
+//					sout<<phiQ(data.fVecShapeIndex[i].second,0)<<std::endl;
+//				}
+//				sout<<std::endl;
+//				LOGPZ_DEBUG(logger,sout.str())
+//			}
+//#endif
+      STATE stiff = (1./muR) * ( curlJ[0] * conj(curlI[0]) + curlJ[1] * conj(curlI[1]) + curlJ[2] * conj( curlI[2] ) );
       stiff += -1. * k0 * k0 * epsilonR * phiIdotphiJ;
 //			if(elId==1){
 //				ek(iq,jq) += weight * stiff;
@@ -172,11 +205,11 @@ void TPZMatValidacaoHCurlFran2::ContributeBC(TPZMaterialData &data, REAL weight,
     case 0:
       for(int i = 0 ; i<nshape ; i++)
       {
-        const STATE rhs = phiQ(i,0) * BIG * v2;
+        const STATE rhs = phiQ(i,0) * BIG * (1. + imaginary ) * v2;
         ef(i,0) += rhs*weight;
         for(int j=0;j<nshape;j++)
         {
-          const STATE stiff = phiQ(i,0) * phiQ(j,0) * BIG;
+          const STATE stiff = phiQ(i,0) * phiQ(j,0) * BIG * (1. + imaginary );
           ek(i,j) += stiff*weight;
         }
       }
