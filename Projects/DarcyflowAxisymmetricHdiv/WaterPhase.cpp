@@ -45,25 +45,23 @@ void WaterPhase::Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state
 
 /** @brief Kr - $k_{r}$ */
 void WaterPhase::Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars){
-//
-//    REAL Sw = state_vars[2];
-//    
-//    kr[0] = Sw*Sw;
-//    kr[1] = 0.0;
-//    kr[2] = 0.0;
-//    kr[3] = 2.0*Sw;
-//    kr[4] = 0.0;
-//    
+   
     REAL Sw = state_vars[2];
     REAL Swr = GetS_wett_r();
     REAL Sor = GetS_nwett_r();
     REAL Se = (Sw-Swr)/(1.0-Swr-Sor);
-    
-    kr[0] = Se*Se;
+
+    kr[0] = Se;
     kr[1] = 0.0;
     kr[2] = 0.0;
-    kr[3] = 2.0*Se*(1.0)/(1.0-Swr-Sor);
+    kr[3] = 1.0*(1.0)/(1.0-Swr-Sor);
     kr[4] = 0.0;
+    
+//    kr[0] = Se*Se;
+//    kr[1] = 0.0;
+//    kr[2] = 0.0;
+//    kr[3] = 2.0*Se*(1.0)/(1.0-Swr-Sor);
+//    kr[4] = 0.0;
     
 }
 

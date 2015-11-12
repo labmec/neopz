@@ -91,22 +91,81 @@ TPZDarcyAnalysis::~TPZDarcyAnalysis()
 
 void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
     
-    falpha_fluid = PVTData[0];
-    fbeta_fluid = PVTData[1];
-    fgamma_fluid = PVTData[2];
+//    PVTData[0] = Water.operator->();
+//    PVTData[1] = Oil.operator->();
+//    PVTData[2] = Gas.operator->();
+    TPZStack<std::string> System =  fSimulationData->GetsystemType();
+    int nphases = System.size();
     
-    
-    
-    //    if(fSimulationData->IsOnePhaseQ()){
-    //
-    //        falpha_fluid = PVTData[0];
-    //
-    //    }
+    if (fSimulationData->IsOnePhaseQ()) {
+        
+        for(int iphase = 0; iphase < nphases; iphase++){
+        
+            if (!strcmp("Water", System[iphase].c_str())){
+                falpha_fluid = PVTData[0];
+            }
+            
+            if (!strcmp("Oil", System[iphase].c_str())){
+                falpha_fluid = PVTData[0];
+            }
+            
+            if (!strcmp("Gas", System[iphase].c_str())){
+                falpha_fluid = PVTData[0];
+            }
+
+        }
+
+    }
     
     if(fSimulationData->IsTwoPhaseQ()){
         
         fmeshvecini.Resize(3);
         fmeshvec.Resize(3);
+        
+        for(int iphase = 0; iphase < nphases; iphase++){
+            
+            switch (iphase) {
+                case 0:
+                {
+                    if (!strcmp("Water", System[iphase].c_str())){
+                        falpha_fluid = PVTData[0];
+                    }
+                    
+                    if (!strcmp("Oil", System[iphase].c_str())){
+                        falpha_fluid = PVTData[1];
+                    }
+                    
+                    if (!strcmp("Gas", System[iphase].c_str())){
+                        falpha_fluid = PVTData[2];
+                    }
+                    
+                }
+                    break;
+                    
+                case 1:
+                {
+                    if (!strcmp("Water", System[iphase].c_str())){
+                        fbeta_fluid = PVTData[0];
+                    }
+                    
+                    if (!strcmp("Oil", System[iphase].c_str())){
+                        fbeta_fluid = PVTData[1];
+                    }
+                    
+                    if (!strcmp("Gas", System[iphase].c_str())){
+                        fbeta_fluid = PVTData[2];
+                    }
+                    
+                }
+                    break;
+                default:
+                {
+                    DebugStop();
+                }
+                    break;
+            }
+            
+        }
         
     }
     
@@ -115,8 +174,11 @@ void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
         fmeshvecini.Resize(4);
         fmeshvec.Resize(4);
         
+        std::cout << "System not impelmented " << System << std::endl;
+        DebugStop();
     }
     
+    fgamma_fluid = PVTData[2];
 }
 
 void TPZDarcyAnalysis::SetLastState()
@@ -266,7 +328,7 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     falphaAtnplusOne = fcmeshinitialdarcy->Solution();
     
     REAL TimeStep = fSimulationData->GetDeltaT();
-    REAL BigTimeStep = 100000.0;
+    REAL BigTimeStep = 0.000001;
     fSimulationData->SetDeltaT(BigTimeStep);
     this->AssembleLastStep(an);
     this->AssembleNextStep(an);
@@ -2346,7 +2408,7 @@ void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &dis
 //    disp.resize(1);
 //    disp[0] = S_wett_nc;
     
-         if (y <=  0.5 ) {
+         if (y >=  0.5 ) {
              disp[0] = 1.0;
          }
 //       disp[0]= (rand() / (double)RAND_MAX);

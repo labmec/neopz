@@ -427,6 +427,11 @@ public:
     void ComputeProperties(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZManVector<REAL> > & props);
     
     /**
+     * Compute the gravitational segregational fluxes
+     */
+    void GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravitiFluxes);
+    
+    /**
      * Compute the properties for a given state variables
      */
     void ComputeProperties(TPZManVector<REAL> &state_vars, TPZVec<TPZManVector<REAL> > & props);

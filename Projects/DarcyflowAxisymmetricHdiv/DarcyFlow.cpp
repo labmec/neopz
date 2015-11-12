@@ -48,7 +48,7 @@ void NonlinearTracerDimensionless()
     REAL Pstr           = 1.0e7;
     REAL Tstr           = 355.37;
     REAL Tres           = 355.37;
-    REAL Lstr           = 100.0;
+    REAL Lstr           = 10.0;
     REAL Mustr          = 0.001;
     REAL Rhostr         = 1000.0;
 //    REAL lambdastr      = Rhostr/Mustr;
@@ -56,7 +56,7 @@ void NonlinearTracerDimensionless()
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 20;
+    int maxiter     = 50;
     int nthread     = 8;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
@@ -73,7 +73,7 @@ void NonlinearTracerDimensionless()
     int hpostref    = 0;
     
     int n_times  = 11;
-    int n_sub_dt = 10;
+    int n_sub_dt = 40;
     TPZManVector<REAL,10> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL hour       = 3600.0;
@@ -92,6 +92,7 @@ void NonlinearTracerDimensionless()
     Reporting_times[8] = 800.0*day*scale;
     Reporting_times[9] = 900.0*day*scale;
     Reporting_times[10] = 1000.0*day*scale;
+    
     std::cout<<"maxtime= "<< Reporting_times[10]<<std::endl;
     REAL maxtime    = Reporting_times[n_times-1];
     
@@ -99,10 +100,10 @@ void NonlinearTracerDimensionless()
     REAL TolDeltaX  = 1.0*1e-10;
     
     int  nelemX     =1;
-    REAL dxD        =100.0/Lstr;
+    REAL dxD        =(10.0/nelemX)/Lstr;
     
     int nelemY      =10;
-    REAL dyD        =10.0/Lstr;
+    REAL dyD        =(10.0/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
     Gravity(1,0)= -9.8*((Lstr*Rhostr)/Pstr);
@@ -113,9 +114,8 @@ void NonlinearTracerDimensionless()
     REAL S_nw_r             = 0.0;
     
     TPZStack<std::string> system;
-    system.Push("Oil");
     system.Push("Water");
-    //    system.Push("Gas");
+    system.Push("Oil");
 
     Dataset->SetTimes(Reporting_times);
     Dataset->SetNSubSteps(n_sub_dt);
@@ -156,7 +156,7 @@ void NonlinearTracerDimensionless()
     bottombcini[0] = 1;
     bottombcini[1] = 0.0;
     bottombcini[2] = 0;
-    bottombcini[3] = 1;
+    bottombcini[3] = 0;
     
     TPZVec<REAL> rightbcini(4,0.0);
     rightbcini[0] = 1;
@@ -165,10 +165,10 @@ void NonlinearTracerDimensionless()
     rightbcini[3] = 0;
     
     TPZVec<REAL> topbcini(4,0.0);
-    topbcini[0] = 1;
-    topbcini[1] = 0.0;
+    topbcini[0] = 0;
+    topbcini[1] = 0;
     topbcini[2] = 0;
-    topbcini[3] = 1;
+    topbcini[3] = 0;
     
     TPZVec<REAL> leftbcini(4,0.0);
     leftbcini[0] = 1;
@@ -190,20 +190,20 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> rightbc(4,0.0);
     rightbc[0] = 1;
-    rightbc[1] = 0.0*0.1;
+    rightbc[1] = 0.0 * 0.1;
     rightbc[2] = 0;
     rightbc[3] = 0;
     
     TPZVec<REAL> topbc(4,0.0);
-    topbc[0] = 1;
+    topbc[0] = 0;
     topbc[1] = 0;
     topbc[2] = 0;
     topbc[3] = 0;
     
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 1;
-    leftbc[1] = 0.0*(-(0.1));
-    leftbc[2] = 0.0 *(1.0 - S_nw_r);
+    leftbc[1] = 0.0 * (-(0.1));
+    leftbc[2] = 0.0 * (1.0 - S_nw_r);
     leftbc[3] = 0;
     
     Dataset->SetBottomBC(bottombcini, bottombc);
@@ -239,7 +239,7 @@ void NonlinearTracerDimensionless()
     REAL waterviscosity     = 0.001/Mustr;
     REAL cwater             = (0.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e7)/(Pstr);
-    REAL oildensity         = 1000.0/Rhostr;
+    REAL oildensity         = 500.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
     REAL coil               = (0.0*1.0*1e-9)*Pstr;
     REAL p_g_ref            = Pstr;
@@ -304,22 +304,22 @@ void NonlinearTracerDimensionless()
     Gas->SetS_nwett_r(S_nw_r);
     
     TPZVec< TPZAutoPointer<Phase> > PVTData(3);
-    PVTData[0] = Water.operator->();      // alpha
-    PVTData[1] = Oil.operator->();    // beta
-    PVTData[2] = Gas.operator->();      // gamma
+    PVTData[0] = Water.operator->();
+    PVTData[1] = Oil.operator->();
+    PVTData[2] = Gas.operator->();
     
-    
-    TPZManVector<REAL> krw(5,0.0);
-    TPZManVector<REAL> kro(5,0.0);
-    TPZManVector<REAL> s_vars(5,0.0);
-    
-    s_vars[2] = 0.8;
-    Water->Kr(krw, s_vars);
-    s_vars[2] = 1.0-0.8;
-    Oil->Kr(kro, s_vars);
-    
-    std::cout << "krw = " << krw << std::endl;
-    std::cout << "kro = " << kro << std::endl;
+//    
+//    TPZManVector<REAL> krw(5,0.0);
+//    TPZManVector<REAL> kro(5,0.0);
+//    TPZManVector<REAL> s_vars(5,0.0);
+//    
+//    s_vars[2] = 0.8;
+//    Water->Kr(krw, s_vars);
+//    s_vars[2] = 1.0-0.8;
+//    Oil->Kr(kro, s_vars);
+//    
+//    std::cout << "krw = " << krw << std::endl;
+//    std::cout << "kro = " << kro << std::endl;
     
     // Creating the analysis
     TPZVec<TPZAutoPointer<ReservoirData> > Layers;

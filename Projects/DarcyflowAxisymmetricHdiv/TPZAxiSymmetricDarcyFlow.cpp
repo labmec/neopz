@@ -3819,13 +3819,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     // Getting linear combinations from different approximation spaces for the left side
     TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
-    REAL PL              = datavecleft[Pblock].sol[0][0];
-    REAL SaL             = datavecleft[Sablock].sol[0][0];
+    REAL P_L             = datavecleft[Pblock].sol[0][0];
+    REAL Salpha_L        = datavecleft[Sablock].sol[0][0];
     
     // Getting linear combinations from different approximation spaces for the right side
     TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
-    REAL PR              = datavecright[Pblock].sol[0][0];
-    REAL SaR             = datavecright[Sablock].sol[0][0];
+    REAL P_R             = datavecright[Pblock].sol[0][0];
+    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
@@ -3943,6 +3943,84 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
         
     }
     
+    
+    // Gravitational Segregation
+    
+    TPZVec<TPZManVector<REAL> > GravityFluxes;
+    this->GravitationalSegregation(data, datavecleft, datavecright, GravityFluxes);
+    
+    // Computing the minimum gravitational flux at the edge
+    
+    TPZManVector<REAL> qgLdotn = GravityFluxes[0];
+    TPZManVector<REAL> qgRdotn = GravityFluxes[1];
+    TPZManVector<REAL> gqdotn;
+
+    
+    if (fabs(qgRdotn[0]) >= fabs(qgLdotn[0])) {
+        gqdotn = qgLdotn;
+        phiuH1      = phiuH1L;
+        phiPL2      = phiPL2L;
+        phiSaL2     = phiSaL2L;
+        dphiuH1     = dphiuH1L;
+        dphiPL2     = dphiPL2L;
+        nphiuHdiv   = nphiuHdivL;
+        nphiPL2     = nphiPL2L;
+        nphiSaL2    = nphiSaL2L;
+        iniu        = iniuL;
+        iniP        = iniPL;
+        iniSa       = iniSaL;
+        iblockt      = 0;
+    }
+    else
+    {
+        gqdotn = qgRdotn;
+        phiuH1      = phiuH1R;
+        phiPL2      = phiPL2R;
+        phiSaL2     = phiSaL2R;
+        dphiuH1     = dphiuH1R;
+        dphiPL2     = dphiPL2R;
+        nphiuHdiv   = nphiuHdivR;
+        nphiPL2     = nphiPL2R;
+        nphiSaL2    = nphiSaL2R;
+        iniu        = iniuR;
+        iniP        = iniPR;
+        iniSa       = iniSaR;
+        iblockt     = iblock;
+    }
+    
+    // Comuting the contribution with the minimum gravitational flux
+    
+    for (int isw = 0; isw < nphiSaL2L; isw++)
+    {
+        ef(isw + iniSaL) += 1.0 * weight * gqdotn[0] * phiSaL2L(isw,0);
+        
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(isw + iniSaL, jp + iniP + iblockt) += 1.0 * weight * gqdotn[2] * phiPL2(jp,0) * phiSaL2L(isw,0);
+        }
+        
+        for (int jsw = 0; jsw < nphiSaL2; jsw++)
+        {
+            ek(isw + iniSaL, jsw + iniSa + iblockt) += 1.0 * weight * gqdotn[3] * phiSaL2(jsw,0) * phiSaL2L(isw,0);
+        }
+    }
+    
+    for (int isw = 0; isw < nphiSaL2R; isw++)
+    {
+        ef(iblock + isw + iniSaR) += -1.0 * weight * gqdotn[0] * phiSaL2R(isw,0);
+        
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(isw + iniSaL, jp + iniP + iblockt) += 1.0 * weight * gqdotn[2] * phiPL2(jp,0) * phiSaL2L(isw,0);
+        }
+        
+        for (int jsw = 0; jsw < nphiSaL2; jsw++)
+        {
+            ek(isw + iniSaL, jsw + iniSa + iblockt) += 1.0 * weight * gqdotn[3] * phiSaL2(jsw,0) * phiSaL2L(isw,0);
+        }
+    }
+    
+    
     return;
     
 }
@@ -3999,17 +4077,18 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     // Getting linear combinations from different approximation spaces for the left side
     TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
-    REAL PL              = datavecleft[Pblock].sol[0][0];
-    REAL SaL             = datavecleft[Sablock].sol[0][0];
+    REAL P_L             = datavecleft[Pblock].sol[0][0];
+    REAL Salpha_L        = datavecleft[Sablock].sol[0][0];
     
     // Getting linear combinations from different approximation spaces for the right side
     TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
-    REAL PR              = datavecright[Pblock].sol[0][0];
-    REAL SaR             = datavecright[Sablock].sol[0][0];
+    REAL P_R             = datavecright[Pblock].sol[0][0];
+    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
     
+    int n_data =fnstate_vars+2;
     
     // Returning needed relationships
     TPZVec< TPZManVector<REAL>  > props;
@@ -4039,148 +4118,271 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     
     
-        //Gravity
-   
+    // Gravitational Segregation
     
-        TPZFMatrix<STATE> Gravity(2,1);
-        TPZFMatrix<STATE> KGravityL(2,1);
-        TPZFMatrix<STATE> KGravityR(2,1);
+    TPZVec<TPZManVector<REAL> > GravityFluxes;
+    this->GravitationalSegregation(data, datavecleft, datavecright, GravityFluxes);
     
-        Gravity=fSimulationData->GetGravity();
+    // Computing the minimum gravitational flux at the edge
     
-        TPZFMatrix<STATE> qgL(2,1);
-        TPZFMatrix<STATE> qgR(2,1);
-    
-        REAL epsilon = fepsilon;
-        epsilon=0.5;
-        TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
-        REAL ndotG = Gravity(0,0)*n[0] + Gravity(1,0)*n[1];
+    TPZManVector<REAL> qgLdotn = GravityFluxes[0];
+    TPZManVector<REAL> qgRdotn = GravityFluxes[1];
+    TPZManVector<REAL> gqdotn;
     
     
-        // Computing Gravitational segregational function on the left side
+    if (fabs(qgRdotn[0]) >= fabs(qgLdotn[0])) {
+        gqdotn = qgLdotn;
+    }
+    else
+    {
+        gqdotn = qgRdotn;
+    }
     
-        this->ComputeProperties(datavecleft, props);
-        this->PhaseFractionalFlows();
+    // Comuting the contribution with the minimum gravitational flux
     
-        //std::cout<<"gelElId= " << datavecright[Pblock].gelElId << std::endl;
-    
-        KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
-        KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
-        REAL lambdaDensitydiffL = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
-    
-        REAL fstrL = 0.0;
-    
-        if (ndotG <= 0.0) {
-    
-            // Expelling oil
-            if (SaL < epsilon) {
-                this->UpdateStateVariables(uL, PL, SaL, 1.0-SaL);
-                this->PhaseFractionalFlows();
-                fstrL = fFOil[0] * fFWater[0];
-            }
-            else
-            {
-                this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
-                this->PhaseFractionalFlows();
-                fstrL = fFOil[0] * fFWater[0];
-            }
-        }
-        else
-        {
-            // Expelling water
-            if (SaL < 1.0 - epsilon) {
-                this->UpdateStateVariables(uL, PL, SaL, 1.0-SaL);
-                this->PhaseFractionalFlows();
-                fstrL = fFOil[0] * fFWater[0];
-            }
-            else
-            {
-                this->UpdateStateVariables(uL, PL, 1.0 - epsilon, epsilon);
-                this->PhaseFractionalFlows();
-                fstrL = fFOil[0] * fFWater[0];
-            }
-    
-        }
-    
-        qgL(0,0) = fstrL * lambdaDensitydiffL * KGravityL(0,0);
-        qgL(1,0) = fstrL * lambdaDensitydiffL * KGravityL(1,0);
-        REAL qgLdotn = qgL(0,0)*n[0] + qgL(1,0)*n[1];
-    
-        // Computing Gravitational segregational function on the right side
-    
-        this->UpdateStateVariables(uR, PR, SaR, 1.0 - SaR);
-        this->PhaseFractionalFlows();
-    
-        KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
-        KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
-        REAL lambdaDensitydiffR = fTotalMobility[0] * (fWaterDensity[0] - fOilDensity[0]);
-    
-        REAL fstrR = 0.0;
-    
-        if (ndotG >= 0.0) {
-    
-            // Expelling oil
-            if ((1-SaR) < epsilon) {
-                this->UpdateStateVariables(uR, PR, SaR, 1.0 -SaR);
-                this->PhaseFractionalFlows();
-                fstrR = fFOil[0] * fFWater[0];
-            }
-            else
-            {
-                this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
-                this->PhaseFractionalFlows();
-                fstrR = fFOil[0] * fFWater[0];
-            }
-        }
-        else
-        {
-            // Expelling water
-            if (SaR < 1.0 - epsilon) {
-                this->UpdateStateVariables(uR, PR, SaR, 1.0-SaR);
-                this->PhaseFractionalFlows();
-                fstrR = fFOil[0] * fFWater[0];
-            }
-            else
-            {
-                this->UpdateStateVariables(uR, PR, 1.0 - epsilon, epsilon);
-                this->PhaseFractionalFlows();
-                fstrR = fFOil[0] * fFWater[0];
-            }
-    
-        }
-    
-        qgR(0,0) = fstrR * lambdaDensitydiffR * KGravityR(0,0);
-        qgR(1,0) = fstrR * lambdaDensitydiffR * KGravityR(1,0);
-        REAL qgRdotn = qgR(0,0)*n[0] + qgR(1,0)*n[1];
-    
-        // Computing the minimum flux at the edge
-    
-        REAL gqdotn = 0.0;
-    
-        if (fabs(qgRdotn) >= fabs(qgLdotn)) {
-            gqdotn = qgLdotn;
-        }
-        else
-        {
-            gqdotn = qgRdotn;
-        }
-    
-    
-    
-        for (int isw = 0; isw < nphiSaL2L; isw++)
-        {
-            ef(isw + iniSaL) += 1.0 * weight * gqdotn * phiSaL2L(isw,0);
-        }
-        for (int isw = 0; isw < nphiSaL2R; isw++)
-        {
-            ef(iblock + isw + iniSaR) += -1.0 * weight * gqdotn * phiSaL2R(isw,0);
-        }
-
-
-    
+    for (int isw = 0; isw < nphiSaL2L; isw++)
+    {
+        ef(isw + iniSaL) += 1.0 * weight * gqdotn[0] * phiSaL2L(isw,0);
+    }
+    for (int isw = 0; isw < nphiSaL2R; isw++)
+    {
+        ef(iblock + isw + iniSaR) += -1.0 * weight * gqdotn[0] * phiSaL2R(isw,0);
+    }
     
 }
 
+void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravitiFluxes){
+    
+    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    int Sablock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
+    TPZManVector<REAL,3> n =  data.normal;
+    
+    // Getting linear combinations from different approximation spaces for the left side
+    TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
+    REAL P_L             = datavecleft[Pblock].sol[0][0];
+    REAL Salpha_L        = datavecleft[Sablock].sol[0][0];
+    
+    // Getting linear combinations from different approximation spaces for the right side
+    TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
+    REAL P_R             = datavecright[Pblock].sol[0][0];
+    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
+    GravitiFluxes.Resize(2);
+    
+    // Gravitation Segregation
+    int n_data = fnstate_vars + 2;
+    TPZManVector<REAL> state_vars(n_data,0.0);
+    TPZFMatrix<STATE> Gravity(2,1);
+    TPZFMatrix<STATE> KGravityL(2,1);
+    TPZFMatrix<STATE> KGravityR(2,1);
+    
+    Gravity = fSimulationData->GetGravity();
+    
+//    TPZFMatrix<STATE> qgL(2,1);
+//    TPZFMatrix<STATE> qgR(2,1);
+    
+    REAL epsilon = 0.333333;
+    TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
+    REAL ndotG = Gravity(0,0)*n[0] + Gravity(1,0)*n[1];
+    
+    
+    // Computing Gravitational segregational function on the left side
+    // Returning needed relationships
+    TPZVec< TPZManVector<REAL>  > props_Left;
+    this->ComputeProperties(datavecleft, props_Left);
+    
+    TPZManVector<REAL> rho_alpha_L        = props_Left[0];
+    TPZManVector<REAL> rho_beta_L         = props_Left[1];
+    TPZManVector<REAL> lambda_left_L      = props_Left[6];
+    
+    KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
+    KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+    TPZManVector<REAL> lambdaDensitydiffL(n_data,0.0);
+    lambdaDensitydiffL[0] = lambda_left_L[0] * (rho_alpha_L[0] - rho_beta_L[0]);
+    lambdaDensitydiffL[1] = lambda_left_L[1] * (rho_alpha_L[0] - rho_beta_L[0]) + lambda_left_L[0] * (rho_alpha_L[1] - rho_beta_L[1]);
+    lambdaDensitydiffL[2] = lambda_left_L[2] * (rho_alpha_L[0] - rho_beta_L[0]) + lambda_left_L[0] * (rho_alpha_L[2] - rho_beta_L[2]);
+    lambdaDensitydiffL[3] = lambda_left_L[3] * (rho_alpha_L[0] - rho_beta_L[0]) + lambda_left_L[0] * (rho_alpha_L[3] - rho_beta_L[3]);
+
+    
+    
+    TPZManVector<REAL> f_alpha_L;
+    TPZManVector<REAL> f_beta_L;
+    TPZManVector<REAL> fstrL(n_data,0.0);
+    
+    if ((rho_alpha_L[0] - rho_beta_L[0]) <= 0.0 ) {
+            ndotG *= -1.0;
+    }
+
+    
+    if (ndotG <= 0.0) {
+        
+        // Receive water ndotG <= 0.0
+        if (Salpha_L < epsilon) {
+            
+            state_vars[0] = 0.0;            //  qn
+            state_vars[1] = P_L;            //  P
+            state_vars[2] = epsilon;        //  S_alpha
+            state_vars[3] = epsilon;        //  S_beta
+            
+            this->ComputeProperties(state_vars, props_Left);
+            f_alpha_L          = props_Left[3];
+            f_beta_L           = props_Left[4];
+            
+        }
+        else
+        {
+
+            state_vars[0] = 0.0;            //  qn
+            state_vars[1] = P_L;            //  P
+            state_vars[2] = Salpha_L;       //  S_alpha
+            state_vars[3] = 0.0;            //  S_beta
+            
+            this->ComputeProperties(state_vars, props_Left);
+            f_alpha_L          = props_Left[3];
+            f_beta_L           = props_Left[4];
+            
+        }
+    }
+    else
+    {
+        // Expelling water ndotG >= 0.0
+        
+        if (Salpha_L > epsilon) {
+            
+            state_vars[0] = 0.0;            //  qn
+            state_vars[1] = P_L;            //  P
+            state_vars[2] = epsilon;        //  S_alpha
+            state_vars[3] = epsilon;        //  S_beta
+            
+            this->ComputeProperties(state_vars, props_Left);
+            f_alpha_L          = props_Left[3];
+            f_beta_L           = props_Left[4];
+        
+        }
+        else
+        {
+            state_vars[0] = 0.0;            //  qn
+            state_vars[1] = P_L;            //  P
+            state_vars[2] = Salpha_L;       //  S_alpha
+            state_vars[3] = 0.0;            //  S_beta
+            
+            this->ComputeProperties(state_vars, props_Left);
+            f_alpha_L          = props_Left[3];
+            f_beta_L           = props_Left[4];
+            
+        }
+        
+    }
+    
+    fstrL[0] = f_alpha_L[0] * f_beta_L[0];
+    fstrL[1] = f_alpha_L[1] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[1];
+    fstrL[2] = f_alpha_L[2] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[2];
+    fstrL[3] = f_alpha_L[3] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[3];
+    
+    TPZManVector<REAL> qgLdotn(n_data,0.0);
+    qgLdotn[0] = fstrL[0] * lambdaDensitydiffL[0] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+    qgLdotn[1] = (fstrL[1] * lambdaDensitydiffL[0] + fstrL[0] * lambdaDensitydiffL[1])* (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+    qgLdotn[2] = (fstrL[2] * lambdaDensitydiffL[0] + fstrL[0] * lambdaDensitydiffL[2])* (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+    qgLdotn[3] = (fstrL[3] * lambdaDensitydiffL[0] + fstrL[0] * lambdaDensitydiffL[3])* (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+    
+    
+    // Computing Gravitational segregational function on the right side
+    
+    TPZVec< TPZManVector<REAL>  > props_Right;
+    this->ComputeProperties(datavecright, props_Right);
+    
+    TPZManVector<REAL> rho_alpha_R        = props_Right[0];
+    TPZManVector<REAL> rho_beta_R         = props_Right[1];
+    TPZManVector<REAL> lambda_left_R      = props_Right[6];
+    
+    KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
+    KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+    TPZManVector<REAL> lambdaDensitydiffR(n_data,0.0);
+    lambdaDensitydiffR[0] = lambda_left_R[0] * (rho_alpha_R[0] - rho_beta_R[0]);
+    lambdaDensitydiffR[1] = lambda_left_R[1] * (rho_alpha_R[0] - rho_beta_R[0]) + lambda_left_R[0] * (rho_alpha_R[1] - rho_beta_R[1]);
+    lambdaDensitydiffR[2] = lambda_left_R[2] * (rho_alpha_R[0] - rho_beta_R[0]) + lambda_left_R[0] * (rho_alpha_R[2] - rho_beta_R[2]);
+    lambdaDensitydiffR[3] = lambda_left_R[3] * (rho_alpha_R[0] - rho_beta_R[0]) + lambda_left_R[0] * (rho_alpha_R[3] - rho_beta_R[3]);
+    
+    TPZManVector<REAL> f_alpha_R;
+    TPZManVector<REAL> f_beta_R;
+    TPZManVector<REAL> fstrR(n_data,0.0);
+    
+    if (ndotG <= 0.0) {
+        
+        // Expelling water
+        if (Salpha_R > epsilon) {
+            
+            state_vars[0] = 0.0;            //  qn
+            state_vars[1] = P_R;            //  P
+            state_vars[2] = epsilon;        //  S_alpha
+            state_vars[3] = epsilon;        //  S_beta
+            
+            this->ComputeProperties(state_vars, props_Right);
+            f_alpha_R          = props_Right[3];
+            f_beta_R           = props_Right[4];
+            
+        }
+        else
+        {
+            
+            state_vars[0] = 0.0;            //  qn
+            state_vars[1] = P_R;            //  P
+            state_vars[2] = Salpha_R;       //  S_alpha
+            state_vars[3] = 0.0;            //  S_beta
+            
+            this->ComputeProperties(state_vars, props_Right);
+            f_alpha_R          = props_Right[3];
+            f_beta_R           = props_Right[4];
+
+        }
+    }
+    else
+    {
+        // Receive water
+        if (Salpha_R < epsilon) {
+            
+            state_vars[0] = 0.0;            //  qn
+            state_vars[1] = P_R;            //  P
+            state_vars[2] = epsilon;        //  S_alpha
+            state_vars[3] = epsilon;        //  S_beta
+            
+            this->ComputeProperties(state_vars, props_Right);
+            f_alpha_R          = props_Right[3];
+            f_beta_R           = props_Right[4];
+
+        }
+        else
+        {
+            state_vars[0] = 0.0;            //  qn
+            state_vars[1] = P_R;            //  P
+            state_vars[2] = Salpha_R;       //  S_alpha
+            state_vars[3] = 0.0;            //  S_beta
+            
+            this->ComputeProperties(state_vars, props_Right);
+            f_alpha_R          = props_Right[3];
+            f_beta_R           = props_Right[4];
+
+        }
+        
+    }
+    
+    fstrR[0] = f_alpha_R[0] * f_beta_R[0];
+    fstrR[1] = f_alpha_R[1] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[1];
+    fstrR[2] = f_alpha_R[2] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[2];
+    fstrR[3] = f_alpha_R[3] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[3];
+    
+    TPZManVector<REAL> qgRdotn(n_data,0.0);
+    qgRdotn[0] =   fstrR[0] * lambdaDensitydiffR[0] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+    qgRdotn[1] =  (fstrR[1] * lambdaDensitydiffR[0] + fstrR[0] * lambdaDensitydiffR[1]) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+    qgRdotn[2] =  (fstrR[2] * lambdaDensitydiffR[0] + fstrR[0] * lambdaDensitydiffR[2]) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+    qgRdotn[3] =  (fstrR[3] * lambdaDensitydiffR[0] + fstrR[0] * lambdaDensitydiffR[3]) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+    
+    GravitiFluxes[0] = qgLdotn;
+    GravitiFluxes[1] = qgRdotn;
+    
+    return;
+    
+}
 
 
 void TPZAxiSymmetricDarcyFlow::UpdateStateVariables(TPZManVector<REAL,3> u, REAL P, REAL Sw, REAL So)
