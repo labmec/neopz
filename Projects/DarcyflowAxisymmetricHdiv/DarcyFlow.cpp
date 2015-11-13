@@ -23,7 +23,7 @@ void NonlinearTracerDimensionless();
 int main()
 {
     
-    TPZMaterial::gBigNumber = 1.0e9; // Use this for check of convergence using neumann
+    TPZMaterial::gBigNumber = 1.0e8; // Use this for check of convergence using neumann
     
     NonlinearTracerDimensionless();
     
@@ -57,24 +57,24 @@ void NonlinearTracerDimensionless()
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
     int maxiter     = 50;
-    int nthread     = 8;
+    int nthread     = 0;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    bool OptBand    = true;    // Band optimization
+    bool OptBand    = false;    // Band optimization
     int fixedJac    = 0;
     
     int qorder      = 1;
     int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 0;
+    int hpostref    = 1;
     
-    int n_times  = 11;
-    int n_sub_dt = 40;
-    TPZManVector<REAL,10> Reporting_times(n_times,0.0);
+    int n_times  = 15;
+    int n_sub_dt = 1;
+    TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
@@ -92,21 +92,26 @@ void NonlinearTracerDimensionless()
     Reporting_times[8] = 800.0*day*scale;
     Reporting_times[9] = 900.0*day*scale;
     Reporting_times[10] = 1000.0*day*scale;
+    Reporting_times[11] = 2000.0*day*scale;
+    Reporting_times[12] = 3000.0*day*scale;
+    Reporting_times[13] = 4000.0*day*scale;
+    Reporting_times[14] = 5000.0*day*scale;
+
     
-    std::cout<<"maxtime= "<< Reporting_times[10]<<std::endl;
+    std::cout<<"maxtime= "<< Reporting_times[n_times-1]<<std::endl;
     REAL maxtime    = Reporting_times[n_times-1];
     
     REAL TolRes     = 1.0*1e-5;
-    REAL TolDeltaX  = 1.0*1e-10;
+    REAL TolDeltaX  = 1.0*1e-5;
     
     int  nelemX     =1;
     REAL dxD        =(10.0/nelemX)/Lstr;
     
-    int nelemY      =10;
+    int nelemY      =4;
     REAL dyD        =(10.0/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
-    Gravity(1,0)= -9.8*((Lstr*Rhostr)/Pstr);
+    Gravity(1,0)= -10.0*((Lstr*Rhostr)/Pstr);
     
     REAL angle = 0.0;
     
@@ -116,6 +121,8 @@ void NonlinearTracerDimensionless()
     TPZStack<std::string> system;
     system.Push("Water");
     system.Push("Oil");
+
+
 
     Dataset->SetTimes(Reporting_times);
     Dataset->SetNSubSteps(n_sub_dt);

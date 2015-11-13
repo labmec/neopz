@@ -328,10 +328,11 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     falphaAtnplusOne = fcmeshinitialdarcy->Solution();
     
     REAL TimeStep = fSimulationData->GetDeltaT();
-    REAL BigTimeStep = 0.000001;
+    REAL BigTimeStep = 0.0864;//8640.0;
     fSimulationData->SetDeltaT(BigTimeStep);
     this->AssembleLastStep(an);
     this->AssembleNextStep(an);
+    this->PrintLS(an);
     const clock_t tinia = clock();
     NewtonIterations(an);
     const clock_t tenda = clock();
@@ -591,7 +592,7 @@ void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
     TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
     TPZFMatrix<STATE> FGlobal;
     KGlobal =   an->Solver().Matrix();
-    FGlobal =   an->Rhs();
+    FGlobal =   fResidualAtn+fResidualAtnplusOne;//an->Rhs();
     
 #ifdef PZDEBUG
 #ifdef LOG4CXX
@@ -1186,9 +1187,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     // Setting up linear tracer solution
 //    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
-    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
-    TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
-    mat->SetTimeDependentFunctionExact(fLTracer);
+//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+//    TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
+//    mat->SetTimeDependentFunctionExact(fLTracer);
     
     /*    TPZDummyFunction<STATE> *bcnfunction = new TPZDummyFunction<STATE>(BCNfunction);
      TPZAutoPointer<TPZFunction<STATE> > bcN;
@@ -1997,7 +1998,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     scalnames.Push("Porosity");
     scalnames.Push("Rhs");
     
-    scalnames.Push("ExactSalpha");
+//    scalnames.Push("ExactSalpha");
     
     
     if (fSimulationData->IsOnePhaseQ()) {

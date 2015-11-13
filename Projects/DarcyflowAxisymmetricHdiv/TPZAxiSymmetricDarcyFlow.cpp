@@ -2904,7 +2904,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     if (fSimulationData->IsnStep()) {
         return;
     }
-
+    
     // Getting data for Mixed-Darcy flow problem
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
@@ -2980,13 +2980,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     dgmdS(0,0) = rhof[3] * Gravity(0,0);
     dgmdS(1,0) = rhof[3] * Gravity(1,0);
     
-//    REAL divu = 0.0;
+
     TPZFMatrix<STATE> iphiuHdiv(2,1);
     int ishapeindex;
     int ivectorindex;
-//    TPZFMatrix<STATE> jphiuHdiv(2,1);
-//    int jshapeindex;
-//    int jvectorindex;
     
     
     
@@ -3023,6 +3020,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     for (int isw = 0; isw < nphiSaL2; isw++)
     {
         
+        
         ef(isw  + iniSa ) += 1.0 * weight * (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0);
         
         for (int jp = 0; jp < nphiSaL2; jp++)
@@ -3049,7 +3047,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
  */
 void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
 {
-    
     
     // Getting data for Mixed-Darcy flow problem
     
@@ -3155,7 +3152,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     if (fSimulationData->IsnStep()) {
         return;
     }
-    
+
     // Getting data from different approximation spaces
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
@@ -3329,10 +3326,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
 //                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
 //                    }
 //                    
-                    for (int jp = 0; jp < nphiPL2L; jp++)
-                    {
-                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * qn;
-                    }
+//                    for (int jp = 0; jp < nphiPL2L; jp++)
+//                    {
+//                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * qn;
+//                    }
 //
 //                    for (int jsw = 0; jsw < nphiSaL2L; jsw++)
 //                    {
@@ -3533,7 +3530,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
  */
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-
+    
+    // Full implicit case: there is no n state computations here
+    if (fSimulationData->IsnStep()) {
+        return;
+    }
 
     // Getting data from different approximation spaces
 
@@ -3775,7 +3776,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     if (fSimulationData->IsnStep()) {
         return;
     }
-    
+
     // Getting data from different approximation spaces
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
@@ -3888,66 +3889,67 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     int jshapeindex;
     int jvectorindex;
     
-    for (int isw = 0; isw < nphiSaL2L; isw++)
-    {
-        ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
-        
-        for (int jq = 0; jq < nphiuHdiv; jq++)
-        {
-            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
-            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
-            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
-            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
-            REAL vn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1];
-            
-            ek(isw + iniSaL,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
-            
-        }
-        
-        for (int jp = 0; jp < nphiPL2; jp++)
-        {
-            ek(isw + iniSaL,iblockt + jp + iniP) += 1.0 * weight * f_alpha[2] * phiPL2(jp,0)  * phiSaL2L(isw,0) * uLn;
-        }
-        
-        for (int jsw = 0; jsw < nphiSaL2; jsw++)
-        {
-            ek(isw + iniSaL,iblockt + jsw + iniSa) += 1.0 * weight * f_alpha[3] * phiSaL2(jsw,0)  * phiSaL2L(isw,0) * uLn;
-        }
-    }
-    
-    for (int isw = 0; isw < nphiSaL2R; isw++)
-    {
-        ef(iblock + isw + iniSaR) += -1.0 * weight * f_alpha[0] * phiSaL2R(isw,0) * uLn;
-        
-        for (int jq = 0; jq < nphiuHdiv; jq++)
-        {
-            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
-            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
-            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
-            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
-            REAL vn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1];
-            
-            ek(iblock + isw + iniSaR,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
-            
-        }
-        
-        for (int jp = 0; jp < nphiPL2; jp++)
-        {
-            ek(iblock + isw + iniSaR, iblockt + jp + iniP ) += -1.0 * weight * f_alpha[2] * phiPL2(jp,0) * phiSaL2R(isw,0) * uLn;
-        }
-        
-        for (int jsw = 0; jsw < nphiSaL2; jsw++)
-        {
-            ek(iblock + isw + iniSaR, iblockt + jsw + iniSa) += -1.0 * weight * f_alpha[3] * phiSaL2(jsw,0) * phiSaL2R(isw,0) * uLn;
-        }
-        
-    }
+//    for (int isw = 0; isw < nphiSaL2L; isw++)
+//    {
+//        ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
+//        
+//        for (int jq = 0; jq < nphiuHdiv; jq++)
+//        {
+//            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
+//            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
+//            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
+//            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+//            REAL vn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1];
+//            
+//            ek(isw + iniSaL,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+//            
+//        }
+//        
+//        for (int jp = 0; jp < nphiPL2; jp++)
+//        {
+//            ek(isw + iniSaL,iblockt + jp + iniP) += 1.0 * weight * f_alpha[2] * phiPL2(jp,0)  * phiSaL2L(isw,0) * uLn;
+//        }
+//        
+//        for (int jsw = 0; jsw < nphiSaL2; jsw++)
+//        {
+//            ek(isw + iniSaL,iblockt + jsw + iniSa) += 1.0 * weight * f_alpha[3] * phiSaL2(jsw,0)  * phiSaL2L(isw,0) * uLn;
+//        }
+//    }
+//    
+//    for (int isw = 0; isw < nphiSaL2R; isw++)
+//    {
+//        ef(iblock + isw + iniSaR) += -1.0 * weight * f_alpha[0] * phiSaL2R(isw,0) * uLn;
+//        
+//        for (int jq = 0; jq < nphiuHdiv; jq++)
+//        {
+//            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
+//            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
+//            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
+//            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+//            REAL vn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1];
+//            
+//            ek(iblock + isw + iniSaR,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+//            
+//        }
+//        
+//        for (int jp = 0; jp < nphiPL2; jp++)
+//        {
+//            ek(iblock + isw + iniSaR, iblockt + jp + iniP ) += -1.0 * weight * f_alpha[2] * phiPL2(jp,0) * phiSaL2R(isw,0) * uLn;
+//        }
+//        
+//        for (int jsw = 0; jsw < nphiSaL2; jsw++)
+//        {
+//            ek(iblock + isw + iniSaR, iblockt + jsw + iniSa) += -1.0 * weight * f_alpha[3] * phiSaL2(jsw,0) * phiSaL2R(isw,0) * uLn;
+//        }
+//        
+//    }
     
     
     // Gravitational Segregation
     
     TPZVec<TPZManVector<REAL> > GravityFluxes;
-    this->GravitationalSegregation(data, datavecleft, datavecright, GravityFluxes);
+    TPZManVector<REAL> fstar;
+    this->GravitationalSegregation(data, datavecleft, datavecright, GravityFluxes,fstar);
     
     // Computing the minimum gravitational flux at the edge
     
@@ -3956,7 +3958,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     TPZManVector<REAL> gqdotn;
 
     
-    if (fabs(qgRdotn[0]) >= fabs(qgLdotn[0])) {
+    // Taking the minimum module
+    if (fstar[1] >= fstar[0]) {
         gqdotn = qgLdotn;
         phiuH1      = phiuH1L;
         phiPL2      = phiPL2L;
@@ -3989,7 +3992,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     }
     
     // Comuting the contribution with the minimum gravitational flux
-    
+
     for (int isw = 0; isw < nphiSaL2L; isw++)
     {
         ef(isw + iniSaL) += 1.0 * weight * gqdotn[0] * phiSaL2L(isw,0);
@@ -4011,12 +4014,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
         
         for (int jp = 0; jp < nphiPL2; jp++)
         {
-            ek(isw + iniSaL, jp + iniP + iblockt) += 1.0 * weight * gqdotn[2] * phiPL2(jp,0) * phiSaL2L(isw,0);
+            ek(iblock + isw + iniSaR, jp + iniP + iblockt) += -1.0 * weight * gqdotn[2] * phiPL2(jp,0) * phiSaL2L(isw,0);
         }
         
         for (int jsw = 0; jsw < nphiSaL2; jsw++)
         {
-            ek(isw + iniSaL, jsw + iniSa + iblockt) += 1.0 * weight * gqdotn[3] * phiSaL2(jsw,0) * phiSaL2L(isw,0);
+            ek(iblock + isw + iniSaR, jsw + iniSa + iblockt) += -1.0 * weight * gqdotn[3] * phiSaL2(jsw,0) * phiSaL2L(isw,0);
         }
     }
     
@@ -4034,6 +4037,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
  * @since April 16, 2007
  */
 void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){
+    
+    
+//    // Full implicit case: there is no n state computations here
+//    if (fSimulationData->IsnStep()) {
+//        return;
+//    }
     
     // Getting data from different approximation spaces
     
@@ -4121,7 +4130,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     // Gravitational Segregation
     
     TPZVec<TPZManVector<REAL> > GravityFluxes;
-    this->GravitationalSegregation(data, datavecleft, datavecright, GravityFluxes);
+    TPZManVector<REAL> fstar;
+    this->GravitationalSegregation(data, datavecleft, datavecright, GravityFluxes,fstar);
     
     // Computing the minimum gravitational flux at the edge
     
@@ -4129,8 +4139,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     TPZManVector<REAL> qgRdotn = GravityFluxes[1];
     TPZManVector<REAL> gqdotn;
     
-    
-    if (fabs(qgRdotn[0]) >= fabs(qgLdotn[0])) {
+    // Taking the minimum module
+    if (fstar[1] >= fstar[0]) {
         gqdotn = qgLdotn;
     }
     else
@@ -4140,18 +4150,18 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     // Comuting the contribution with the minimum gravitational flux
     
-    for (int isw = 0; isw < nphiSaL2L; isw++)
-    {
-        ef(isw + iniSaL) += 1.0 * weight * gqdotn[0] * phiSaL2L(isw,0);
-    }
-    for (int isw = 0; isw < nphiSaL2R; isw++)
-    {
-        ef(iblock + isw + iniSaR) += -1.0 * weight * gqdotn[0] * phiSaL2R(isw,0);
-    }
+//    for (int isw = 0; isw < nphiSaL2L; isw++)
+//    {
+//        ef(isw + iniSaL) += 1.0 * weight * gqdotn[0] * phiSaL2L(isw,0);
+//    }
+//    for (int isw = 0; isw < nphiSaL2R; isw++)
+//    {
+//        ef(iblock + isw + iniSaR) += -1.0 * weight * gqdotn[0] * phiSaL2R(isw,0);
+//    }
     
 }
 
-void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravitiFluxes){
+void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravitiFluxes, TPZManVector<REAL> & fstar){
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
@@ -4168,6 +4178,7 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     REAL P_R             = datavecright[Pblock].sol[0][0];
     REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     GravitiFluxes.Resize(2);
+    fstar.Resize(2);
     
     // Gravitation Segregation
     int n_data = fnstate_vars + 2;
@@ -4178,8 +4189,6 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     
     Gravity = fSimulationData->GetGravity();
     
-//    TPZFMatrix<STATE> qgL(2,1);
-//    TPZFMatrix<STATE> qgR(2,1);
     
     REAL epsilon = 0.333333;
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
@@ -4197,16 +4206,10 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     
     KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
     KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
-    TPZManVector<REAL> lambdaDensitydiffL(n_data,0.0);
-    lambdaDensitydiffL[0] = lambda_left_L[0] * (rho_alpha_L[0] - rho_beta_L[0]);
-    lambdaDensitydiffL[1] = lambda_left_L[1] * (rho_alpha_L[0] - rho_beta_L[0]) + lambda_left_L[0] * (rho_alpha_L[1] - rho_beta_L[1]);
-    lambdaDensitydiffL[2] = lambda_left_L[2] * (rho_alpha_L[0] - rho_beta_L[0]) + lambda_left_L[0] * (rho_alpha_L[2] - rho_beta_L[2]);
-    lambdaDensitydiffL[3] = lambda_left_L[3] * (rho_alpha_L[0] - rho_beta_L[0]) + lambda_left_L[0] * (rho_alpha_L[3] - rho_beta_L[3]);
 
     
-    
-    TPZManVector<REAL> f_alpha_L;
-    TPZManVector<REAL> f_beta_L;
+    TPZManVector<REAL> f_alpha_L(n_data,0.0);
+    TPZManVector<REAL> f_beta_L(n_data,0.0);
     TPZManVector<REAL> fstrL(n_data,0.0);
     
     if ((rho_alpha_L[0] - rho_beta_L[0]) <= 0.0 ) {
@@ -4227,6 +4230,8 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
             this->ComputeProperties(state_vars, props_Left);
             f_alpha_L          = props_Left[3];
             f_beta_L           = props_Left[4];
+            f_alpha_L[3]       = 0.0;
+            f_beta_L[3]        = 0.0;
             
         }
         else
@@ -4257,6 +4262,8 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
             this->ComputeProperties(state_vars, props_Left);
             f_alpha_L          = props_Left[3];
             f_beta_L           = props_Left[4];
+            f_alpha_L[3]       = 0.0;
+            f_beta_L[3]        = 0.0;
         
         }
         else
@@ -4274,16 +4281,16 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
         
     }
     
-    fstrL[0] = f_alpha_L[0] * f_beta_L[0];
-    fstrL[1] = f_alpha_L[1] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[1];
-    fstrL[2] = f_alpha_L[2] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[2];
-    fstrL[3] = f_alpha_L[3] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[3];
+    fstrL[0] = (f_alpha_L[0] * f_beta_L[0])*lambda_left_L[0];
+    fstrL[1] = (f_alpha_L[1] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[1])*lambda_left_L[0] + (f_alpha_L[0] * f_beta_L[0])*lambda_left_L[1];
+    fstrL[2] = (f_alpha_L[2] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[2])*lambda_left_L[0] + (f_alpha_L[0] * f_beta_L[0])*lambda_left_L[2];
+    fstrL[3] = (f_alpha_L[3] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[3])*lambda_left_L[0] + (f_alpha_L[0] * f_beta_L[0])*lambda_left_L[3];
     
     TPZManVector<REAL> qgLdotn(n_data,0.0);
-    qgLdotn[0] = fstrL[0] * lambdaDensitydiffL[0] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
-    qgLdotn[1] = (fstrL[1] * lambdaDensitydiffL[0] + fstrL[0] * lambdaDensitydiffL[1])* (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
-    qgLdotn[2] = (fstrL[2] * lambdaDensitydiffL[0] + fstrL[0] * lambdaDensitydiffL[2])* (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
-    qgLdotn[3] = (fstrL[3] * lambdaDensitydiffL[0] + fstrL[0] * lambdaDensitydiffL[3])* (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+    qgLdotn[0] = fstrL[0] * (rho_alpha_L[0] - rho_beta_L[0]) * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+    qgLdotn[1] = (fstrL[0] * (rho_alpha_L[1] - rho_beta_L[1]) + fstrL[1] * (rho_alpha_L[0] - rho_beta_L[0])) * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+    qgLdotn[2] = (fstrL[0] * (rho_alpha_L[2] - rho_beta_L[2]) + fstrL[2] * (rho_alpha_L[0] - rho_beta_L[0])) * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+    qgLdotn[3] = (fstrL[0] * (rho_alpha_L[3] - rho_beta_L[3]) + fstrL[3] * (rho_alpha_L[0] - rho_beta_L[0])) * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
     
     
     // Computing Gravitational segregational function on the right side
@@ -4297,11 +4304,6 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     
     KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
     KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
-    TPZManVector<REAL> lambdaDensitydiffR(n_data,0.0);
-    lambdaDensitydiffR[0] = lambda_left_R[0] * (rho_alpha_R[0] - rho_beta_R[0]);
-    lambdaDensitydiffR[1] = lambda_left_R[1] * (rho_alpha_R[0] - rho_beta_R[0]) + lambda_left_R[0] * (rho_alpha_R[1] - rho_beta_R[1]);
-    lambdaDensitydiffR[2] = lambda_left_R[2] * (rho_alpha_R[0] - rho_beta_R[0]) + lambda_left_R[0] * (rho_alpha_R[2] - rho_beta_R[2]);
-    lambdaDensitydiffR[3] = lambda_left_R[3] * (rho_alpha_R[0] - rho_beta_R[0]) + lambda_left_R[0] * (rho_alpha_R[3] - rho_beta_R[3]);
     
     TPZManVector<REAL> f_alpha_R;
     TPZManVector<REAL> f_beta_R;
@@ -4320,6 +4322,8 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
             this->ComputeProperties(state_vars, props_Right);
             f_alpha_R          = props_Right[3];
             f_beta_R           = props_Right[4];
+            f_alpha_R[3]       = 0.0;
+            f_beta_R[3]        = 0.0;
             
         }
         else
@@ -4349,6 +4353,8 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
             this->ComputeProperties(state_vars, props_Right);
             f_alpha_R          = props_Right[3];
             f_beta_R           = props_Right[4];
+            f_alpha_R[3]       = 0.0;
+            f_beta_R[3]        = 0.0;
 
         }
         else
@@ -4366,16 +4372,19 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
         
     }
     
-    fstrR[0] = f_alpha_R[0] * f_beta_R[0];
-    fstrR[1] = f_alpha_R[1] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[1];
-    fstrR[2] = f_alpha_R[2] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[2];
-    fstrR[3] = f_alpha_R[3] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[3];
+    fstrR[0] = (f_alpha_R[0] * f_beta_R[0])*lambda_left_R[0];
+    fstrR[1] = (f_alpha_R[1] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[1])*lambda_left_R[0] + (f_alpha_R[0] * f_beta_R[0])*lambda_left_R[1];
+    fstrR[2] = (f_alpha_R[2] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[2])*lambda_left_R[0] + (f_alpha_R[0] * f_beta_R[0])*lambda_left_R[2];
+    fstrR[3] = (f_alpha_R[3] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[3])*lambda_left_R[0] + (f_alpha_R[0] * f_beta_R[0])*lambda_left_R[3];
     
     TPZManVector<REAL> qgRdotn(n_data,0.0);
-    qgRdotn[0] =   fstrR[0] * lambdaDensitydiffR[0] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
-    qgRdotn[1] =  (fstrR[1] * lambdaDensitydiffR[0] + fstrR[0] * lambdaDensitydiffR[1]) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
-    qgRdotn[2] =  (fstrR[2] * lambdaDensitydiffR[0] + fstrR[0] * lambdaDensitydiffR[2]) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
-    qgRdotn[3] =  (fstrR[3] * lambdaDensitydiffR[0] + fstrR[0] * lambdaDensitydiffR[3]) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+    qgRdotn[0] =   fstrR[0] * (rho_alpha_R[0] - rho_beta_R[0]) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+    qgRdotn[1] =  (fstrR[0] * (rho_alpha_R[1] - rho_beta_R[1]) + fstrR[1] * (rho_alpha_R[0] - rho_beta_R[0])) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+    qgRdotn[2] =  (fstrR[0] * (rho_alpha_R[2] - rho_beta_R[2]) + fstrR[2] * (rho_alpha_R[0] - rho_beta_R[0])) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+    qgRdotn[3] =  (fstrR[0] * (rho_alpha_R[3] - rho_beta_R[3]) + fstrR[3] * (rho_alpha_R[0] - rho_beta_R[0])) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+    
+    fstar[0] = qgLdotn[0];
+    fstar[1] = qgRdotn[0];
     
     GravitiFluxes[0] = qgLdotn;
     GravitiFluxes[1] = qgRdotn;
