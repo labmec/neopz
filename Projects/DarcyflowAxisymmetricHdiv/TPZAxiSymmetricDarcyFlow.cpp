@@ -16,6 +16,7 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
 {
     
     fepsilon = 10.0e-8;
+    fSalpha_max = 0.472136;
     
     fSimulationData=NULL;
     fReservoirdata=NULL;
@@ -57,7 +58,8 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
 
 TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(int matid) : TPZDiscontinuousGalerkin(matid)
 {
-    fepsilon = 10.0e-7;
+    fepsilon = 10.0e-8;
+    fSalpha_max = 0.472136;
     
     fSimulationData=NULL;
     fReservoirdata=NULL;
@@ -3889,10 +3891,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     int jshapeindex;
     int jvectorindex;
     
-//    for (int isw = 0; isw < nphiSaL2L; isw++)
-//    {
-//        ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
-//        
+    for (int isw = 0; isw < nphiSaL2L; isw++)
+    {
+        ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
+        
 //        for (int jq = 0; jq < nphiuHdiv; jq++)
 //        {
 //            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
@@ -3904,22 +3906,22 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
 //            ek(isw + iniSaL,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
 //            
 //        }
-//        
-//        for (int jp = 0; jp < nphiPL2; jp++)
-//        {
-//            ek(isw + iniSaL,iblockt + jp + iniP) += 1.0 * weight * f_alpha[2] * phiPL2(jp,0)  * phiSaL2L(isw,0) * uLn;
-//        }
-//        
-//        for (int jsw = 0; jsw < nphiSaL2; jsw++)
-//        {
-//            ek(isw + iniSaL,iblockt + jsw + iniSa) += 1.0 * weight * f_alpha[3] * phiSaL2(jsw,0)  * phiSaL2L(isw,0) * uLn;
-//        }
-//    }
-//    
-//    for (int isw = 0; isw < nphiSaL2R; isw++)
-//    {
-//        ef(iblock + isw + iniSaR) += -1.0 * weight * f_alpha[0] * phiSaL2R(isw,0) * uLn;
-//        
+        
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(isw + iniSaL,iblockt + jp + iniP) += 1.0 * weight * f_alpha[2] * phiPL2(jp,0)  * phiSaL2L(isw,0) * uLn;
+        }
+        
+        for (int jsw = 0; jsw < nphiSaL2; jsw++)
+        {
+            ek(isw + iniSaL,iblockt + jsw + iniSa) += 1.0 * weight * f_alpha[3] * phiSaL2(jsw,0)  * phiSaL2L(isw,0) * uLn;
+        }
+    }
+    
+    for (int isw = 0; isw < nphiSaL2R; isw++)
+    {
+        ef(iblock + isw + iniSaR) += -1.0 * weight * f_alpha[0] * phiSaL2R(isw,0) * uLn;
+        
 //        for (int jq = 0; jq < nphiuHdiv; jq++)
 //        {
 //            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
@@ -3931,18 +3933,18 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
 //            ek(iblock + isw + iniSaR,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
 //            
 //        }
-//        
-//        for (int jp = 0; jp < nphiPL2; jp++)
-//        {
-//            ek(iblock + isw + iniSaR, iblockt + jp + iniP ) += -1.0 * weight * f_alpha[2] * phiPL2(jp,0) * phiSaL2R(isw,0) * uLn;
-//        }
-//        
-//        for (int jsw = 0; jsw < nphiSaL2; jsw++)
-//        {
-//            ek(iblock + isw + iniSaR, iblockt + jsw + iniSa) += -1.0 * weight * f_alpha[3] * phiSaL2(jsw,0) * phiSaL2R(isw,0) * uLn;
-//        }
-//        
-//    }
+        
+        for (int jp = 0; jp < nphiPL2; jp++)
+        {
+            ek(iblock + isw + iniSaR, iblockt + jp + iniP ) += -1.0 * weight * f_alpha[2] * phiPL2(jp,0) * phiSaL2R(isw,0) * uLn;
+        }
+        
+        for (int jsw = 0; jsw < nphiSaL2; jsw++)
+        {
+            ek(iblock + isw + iniSaR, iblockt + jsw + iniSa) += -1.0 * weight * f_alpha[3] * phiSaL2(jsw,0) * phiSaL2R(isw,0) * uLn;
+        }
+        
+    }
     
     
     // Gravitational Segregation
@@ -4150,14 +4152,14 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     // Comuting the contribution with the minimum gravitational flux
     
-//    for (int isw = 0; isw < nphiSaL2L; isw++)
-//    {
-//        ef(isw + iniSaL) += 1.0 * weight * gqdotn[0] * phiSaL2L(isw,0);
-//    }
-//    for (int isw = 0; isw < nphiSaL2R; isw++)
-//    {
-//        ef(iblock + isw + iniSaR) += -1.0 * weight * gqdotn[0] * phiSaL2R(isw,0);
-//    }
+    for (int isw = 0; isw < nphiSaL2L; isw++)
+    {
+        ef(isw + iniSaL) += 1.0 * weight * gqdotn[0] * phiSaL2L(isw,0);
+    }
+    for (int isw = 0; isw < nphiSaL2R; isw++)
+    {
+        ef(iblock + isw + iniSaR) += -1.0 * weight * gqdotn[0] * phiSaL2R(isw,0);
+    }
     
 }
 
@@ -4189,8 +4191,6 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     
     Gravity = fSimulationData->GetGravity();
     
-    
-    REAL epsilon = 0.333333;
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
     REAL ndotG = Gravity(0,0)*n[0] + Gravity(1,0)*n[1];
     
@@ -4200,97 +4200,53 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     TPZVec< TPZManVector<REAL>  > props_Left;
     this->ComputeProperties(datavecleft, props_Left);
     
-    TPZManVector<REAL> rho_alpha_L        = props_Left[0];
-    TPZManVector<REAL> rho_beta_L         = props_Left[1];
-    TPZManVector<REAL> lambda_left_L      = props_Left[6];
+    TPZManVector<REAL> rho_alpha_L      = props_Left[0];
+    TPZManVector<REAL> rho_beta_L       = props_Left[1];
+    TPZManVector<REAL> rho_diff_L       = props_Left[0];
+    
+    rho_diff_L[0] = (rho_alpha_L[0] - rho_beta_L[0]);
+    rho_diff_L[1] = (rho_alpha_L[1] - rho_beta_L[1]);
+    rho_diff_L[2] = (rho_alpha_L[2] - rho_beta_L[2]);
+    rho_diff_L[3] = (rho_alpha_L[3] - rho_beta_L[3]);
     
     KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
     KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
-
     
-    TPZManVector<REAL> f_alpha_L(n_data,0.0);
-    TPZManVector<REAL> f_beta_L(n_data,0.0);
     TPZManVector<REAL> fstrL(n_data,0.0);
+    TPZManVector<REAL> fL(n_data,0.0);
     
     if ((rho_alpha_L[0] - rho_beta_L[0]) <= 0.0 ) {
-            ndotG *= -1.0;
+        ndotG *= -1.0;
     }
-
+    
     
     if (ndotG <= 0.0) {
         
-        // Receive water ndotG <= 0.0
-        if (Salpha_L < epsilon) {
-            
-            state_vars[0] = 0.0;            //  qn
-            state_vars[1] = P_L;            //  P
-            state_vars[2] = epsilon;        //  S_alpha
-            state_vars[3] = epsilon;        //  S_beta
-            
-            this->ComputeProperties(state_vars, props_Left);
-            f_alpha_L          = props_Left[3];
-            f_beta_L           = props_Left[4];
-            f_alpha_L[3]       = 0.0;
-            f_beta_L[3]        = 0.0;
-            
+        // Receiving water ndotG <= 0.0
+        if (fSimulationData->IsLinearSegregationQ()) {
+            fRecLinear(P_L, Salpha_L, fL);
         }
-        else
-        {
+        else{
+            fRecLinear(P_L, Salpha_L, fL);
+        }
 
-            state_vars[0] = 0.0;            //  qn
-            state_vars[1] = P_L;            //  P
-            state_vars[2] = Salpha_L;       //  S_alpha
-            state_vars[3] = 0.0;            //  S_beta
-            
-            this->ComputeProperties(state_vars, props_Left);
-            f_alpha_L          = props_Left[3];
-            f_beta_L           = props_Left[4];
-            
-        }
     }
     else
     {
         // Expelling water ndotG >= 0.0
-        
-        if (Salpha_L > epsilon) {
-            
-            state_vars[0] = 0.0;            //  qn
-            state_vars[1] = P_L;            //  P
-            state_vars[2] = epsilon;        //  S_alpha
-            state_vars[3] = epsilon;        //  S_beta
-            
-            this->ComputeProperties(state_vars, props_Left);
-            f_alpha_L          = props_Left[3];
-            f_beta_L           = props_Left[4];
-            f_alpha_L[3]       = 0.0;
-            f_beta_L[3]        = 0.0;
-        
+        if (fSimulationData->IsLinearSegregationQ()) {
+            fExpLinear(P_L, Salpha_L, fL);
         }
-        else
-        {
-            state_vars[0] = 0.0;            //  qn
-            state_vars[1] = P_L;            //  P
-            state_vars[2] = Salpha_L;       //  S_alpha
-            state_vars[3] = 0.0;            //  S_beta
-            
-            this->ComputeProperties(state_vars, props_Left);
-            f_alpha_L          = props_Left[3];
-            f_beta_L           = props_Left[4];
-            
+        else{
+            fExp(P_L, Salpha_L, fL);
         }
         
     }
     
-    fstrL[0] = (f_alpha_L[0] * f_beta_L[0])*lambda_left_L[0];
-    fstrL[1] = (f_alpha_L[1] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[1])*lambda_left_L[0] + (f_alpha_L[0] * f_beta_L[0])*lambda_left_L[1];
-    fstrL[2] = (f_alpha_L[2] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[2])*lambda_left_L[0] + (f_alpha_L[0] * f_beta_L[0])*lambda_left_L[2];
-    fstrL[3] = (f_alpha_L[3] * f_beta_L[0] + f_alpha_L[0] * f_beta_L[3])*lambda_left_L[0] + (f_alpha_L[0] * f_beta_L[0])*lambda_left_L[3];
-    
-    TPZManVector<REAL> qgLdotn(n_data,0.0);
-    qgLdotn[0] = fstrL[0] * (rho_alpha_L[0] - rho_beta_L[0]) * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
-    qgLdotn[1] = (fstrL[0] * (rho_alpha_L[1] - rho_beta_L[1]) + fstrL[1] * (rho_alpha_L[0] - rho_beta_L[0])) * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
-    qgLdotn[2] = (fstrL[0] * (rho_alpha_L[2] - rho_beta_L[2]) + fstrL[2] * (rho_alpha_L[0] - rho_beta_L[0])) * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
-    qgLdotn[3] = (fstrL[0] * (rho_alpha_L[3] - rho_beta_L[3]) + fstrL[3] * (rho_alpha_L[0] - rho_beta_L[0])) * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+    fstrL[0] = (fL[0] * rho_diff_L[0]);
+    fstrL[1] = (fL[0] * rho_diff_L[1] + fL[1] * rho_diff_L[0]);
+    fstrL[2] = (fL[0] * rho_diff_L[2] + fL[2] * rho_diff_L[0]);
+    fstrL[3] = (fL[0] * rho_diff_L[3] + fL[3] * rho_diff_L[0]);
     
     
     // Computing Gravitational segregational function on the right side
@@ -4300,91 +4256,83 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     
     TPZManVector<REAL> rho_alpha_R        = props_Right[0];
     TPZManVector<REAL> rho_beta_R         = props_Right[1];
-    TPZManVector<REAL> lambda_left_R      = props_Right[6];
+    TPZManVector<REAL> rho_diff_R    = props_Right[0];
+    TPZManVector<REAL> lambda_R      = props_Right[6];
+    
+    rho_diff_R[0] = (rho_alpha_R[0] - rho_beta_R[0]);
+    rho_diff_R[1] = (rho_alpha_R[1] - rho_beta_R[1]);
+    rho_diff_R[2] = (rho_alpha_R[2] - rho_beta_R[2]);
+    rho_diff_R[3] = (rho_alpha_R[3] - rho_beta_R[3]);
     
     KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
     KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
     
-    TPZManVector<REAL> f_alpha_R;
-    TPZManVector<REAL> f_beta_R;
     TPZManVector<REAL> fstrR(n_data,0.0);
+    TPZManVector<REAL> fR(n_data,0.0);
+    
     
     if (ndotG <= 0.0) {
         
-        // Expelling water
-        if (Salpha_R > epsilon) {
-            
-            state_vars[0] = 0.0;            //  qn
-            state_vars[1] = P_R;            //  P
-            state_vars[2] = epsilon;        //  S_alpha
-            state_vars[3] = epsilon;        //  S_beta
-            
-            this->ComputeProperties(state_vars, props_Right);
-            f_alpha_R          = props_Right[3];
-            f_beta_R           = props_Right[4];
-            f_alpha_R[3]       = 0.0;
-            f_beta_R[3]        = 0.0;
-            
+        // Expelling water ndotG >= 0.0 Linear Version
+        
+        if (fSimulationData->IsLinearSegregationQ()) {
+            fExpLinear(P_R, Salpha_R, fR);
         }
-        else
-        {
-            
-            state_vars[0] = 0.0;            //  qn
-            state_vars[1] = P_R;            //  P
-            state_vars[2] = Salpha_R;       //  S_alpha
-            state_vars[3] = 0.0;            //  S_beta
-            
-            this->ComputeProperties(state_vars, props_Right);
-            f_alpha_R          = props_Right[3];
-            f_beta_R           = props_Right[4];
-
+        else{
+            fExp(P_R, Salpha_R, fR);
         }
     }
     else
     {
-        // Receive water
-        if (Salpha_R < epsilon) {
-            
-            state_vars[0] = 0.0;            //  qn
-            state_vars[1] = P_R;            //  P
-            state_vars[2] = epsilon;        //  S_alpha
-            state_vars[3] = epsilon;        //  S_beta
-            
-            this->ComputeProperties(state_vars, props_Right);
-            f_alpha_R          = props_Right[3];
-            f_beta_R           = props_Right[4];
-            f_alpha_R[3]       = 0.0;
-            f_beta_R[3]        = 0.0;
-
-        }
-        else
-        {
-            state_vars[0] = 0.0;            //  qn
-            state_vars[1] = P_R;            //  P
-            state_vars[2] = Salpha_R;       //  S_alpha
-            state_vars[3] = 0.0;            //  S_beta
-            
-            this->ComputeProperties(state_vars, props_Right);
-            f_alpha_R          = props_Right[3];
-            f_beta_R           = props_Right[4];
-
-        }
+        // Receive water ndotG <= 0.0 Linear Version
         
+        if (fSimulationData->IsLinearSegregationQ()) {
+            fRecLinear(P_R, Salpha_R, fR);
+        }
+        else{
+            fRec(P_R, Salpha_R, fR);
+        }
     }
     
-    fstrR[0] = (f_alpha_R[0] * f_beta_R[0])*lambda_left_R[0];
-    fstrR[1] = (f_alpha_R[1] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[1])*lambda_left_R[0] + (f_alpha_R[0] * f_beta_R[0])*lambda_left_R[1];
-    fstrR[2] = (f_alpha_R[2] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[2])*lambda_left_R[0] + (f_alpha_R[0] * f_beta_R[0])*lambda_left_R[2];
-    fstrR[3] = (f_alpha_R[3] * f_beta_R[0] + f_alpha_R[0] * f_beta_R[3])*lambda_left_R[0] + (f_alpha_R[0] * f_beta_R[0])*lambda_left_R[3];
+    fstrR[0] = (fR[0] * rho_diff_R[0]);
+    fstrR[1] = (fR[0] * rho_diff_R[1] + fR[1] * rho_diff_R[0]);
+    fstrR[2] = (fR[0] * rho_diff_R[2] + fR[2] * rho_diff_R[0]);
+    fstrR[3] = (fR[0] * rho_diff_R[3] + fR[3] * rho_diff_R[0]);
     
+    
+    TPZManVector<REAL> qgLdotn(n_data,0.0);
     TPZManVector<REAL> qgRdotn(n_data,0.0);
-    qgRdotn[0] =   fstrR[0] * (rho_alpha_R[0] - rho_beta_R[0]) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
-    qgRdotn[1] =  (fstrR[0] * (rho_alpha_R[1] - rho_beta_R[1]) + fstrR[1] * (rho_alpha_R[0] - rho_beta_R[0])) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
-    qgRdotn[2] =  (fstrR[0] * (rho_alpha_R[2] - rho_beta_R[2]) + fstrR[2] * (rho_alpha_R[0] - rho_beta_R[0])) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
-    qgRdotn[3] =  (fstrR[0] * (rho_alpha_R[3] - rho_beta_R[3]) + fstrR[3] * (rho_alpha_R[0] - rho_beta_R[0])) * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
     
-    fstar[0] = qgLdotn[0];
-    fstar[1] = qgRdotn[0];
+    fstar[0] = fstrL[0];
+    fstar[1] = fstrR[0];
+    
+    if (fstar[1] >= fstar[0]) {
+        
+        qgLdotn[0] =  fstrL[0] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[1] =  fstrL[1] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[2] =  fstrL[2] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[3] =  fstrL[3] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        
+        qgRdotn[0] =  fstrL[0] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[1] =  fstrL[1] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[2] =  fstrL[2] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[3] =  fstrL[3] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        
+    }
+    else
+    {
+        
+        qgLdotn[0] =  fstrR[0] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[1] =  fstrR[1] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[2] =  fstrR[2] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[3] =  fstrR[3] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        
+        qgRdotn[0] =  fstrR[0] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[1] =  fstrR[1] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[2] =  fstrR[2] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[3] =  fstrR[3] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        
+    }
     
     GravitiFluxes[0] = qgLdotn;
     GravitiFluxes[1] = qgRdotn;
@@ -4393,6 +4341,242 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     
 }
 
+void TPZAxiSymmetricDarcyFlow::fRec(REAL P, REAL Salpha, TPZManVector<REAL> & ExpL){
+    
+    int n_data = fnstate_vars + 2;
+    ExpL.Resize(n_data, 0.0);
+    
+    TPZManVector<REAL> state_vars(n_data,0.0);
+    TPZVec< TPZManVector<REAL>  > props;
+    TPZManVector<REAL> f_alpha;
+    TPZManVector<REAL> f_beta;
+    TPZManVector<REAL> lambda;
+    
+    // Receive water ndotG <= 0.0 Linear Version
+    if (Salpha < fSalpha_max) {
+        
+        state_vars[0] = 0.0;            //  qn
+        state_vars[1] = P;            //  P
+        state_vars[2] = fSalpha_max;        //  S_alpha
+        state_vars[3] = fSalpha_max;        //  S_beta
+        
+        this->ComputeProperties(state_vars, props);
+        f_alpha         = props[3];
+        f_beta          = props[4];
+        lambda          = props[6];
+        f_alpha[3]       = 0.0;
+        f_beta[3]        = 0.0;
+        lambda[3]        = 0.0;
+
+        ExpL[0] =  (f_alpha[0] * f_beta[0]) * lambda[0];
+        ExpL[1] =  (f_alpha[0] * f_beta[0]) * lambda[1] + (f_alpha[0] * f_beta[1] + f_alpha[1] * f_beta[0]) * lambda[0];
+        ExpL[2] =  (f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0]) * lambda[0];
+        ExpL[3] =  (f_alpha[0] * f_beta[0]) * lambda[3] + (f_alpha[0] * f_beta[3] + f_alpha[3] * f_beta[0]) * lambda[0];
+        
+    }
+    else
+    {
+        
+        state_vars[0] = 0.0;            //  qn
+        state_vars[1] = P;            //  P
+        state_vars[2] = Salpha;        //  S_alpha
+        state_vars[3] = Salpha;        //  S_beta
+        
+        this->ComputeProperties(state_vars, props);
+        f_alpha         = props[3];
+        f_beta          = props[4];
+        lambda          = props[6];
+
+        
+        ExpL[0] =  (f_alpha[0] * f_beta[0]) * lambda[0];
+        ExpL[1] =  (f_alpha[0] * f_beta[0]) * lambda[1] + (f_alpha[0] * f_beta[1] + f_alpha[1] * f_beta[0]) * lambda[0];
+        ExpL[2] =  (f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0]) * lambda[0];
+        ExpL[3] =  (f_alpha[0] * f_beta[0]) * lambda[3] + (f_alpha[0] * f_beta[3] + f_alpha[3] * f_beta[0]) * lambda[0];
+        
+    }
+    
+}
+
+void TPZAxiSymmetricDarcyFlow::fExp(REAL P, REAL Salpha, TPZManVector<REAL> & RecL){
+    
+    int n_data = fnstate_vars + 2;
+    RecL.Resize(n_data, 0.0);
+    
+    TPZManVector<REAL> state_vars(n_data,0.0);
+    TPZVec< TPZManVector<REAL>  > props;
+    TPZManVector<REAL> f_alpha;
+    TPZManVector<REAL> f_beta;
+    TPZManVector<REAL> lambda;
+    
+    
+    if (Salpha > fSalpha_max) {
+        
+        state_vars[0] = 0.0;            //  qn
+        state_vars[1] = P;            //  P
+        state_vars[2] = fSalpha_max;        //  S_alpha
+        state_vars[3] = fSalpha_max;        //  S_beta
+        
+        this->ComputeProperties(state_vars, props);
+        f_alpha         = props[3];
+        f_beta          = props[4];
+        lambda          = props[6];
+        f_alpha[3]       = 0.0;
+        f_beta[3]        = 0.0;
+        lambda[3]        = 0.0;
+        
+        RecL[0] =  (f_alpha[0] * f_beta[0]) * lambda[0];
+        RecL[1] =  (f_alpha[0] * f_beta[0]) * lambda[1] + (f_alpha[0] * f_beta[1] + f_alpha[1] * f_beta[0]) * lambda[0];
+        RecL[2] =  (f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0]) * lambda[0];
+        RecL[3] =  (f_alpha[0] * f_beta[0]) * lambda[3] + (f_alpha[0] * f_beta[3] + f_alpha[3] * f_beta[0]) * lambda[0];
+        
+    }
+    else
+    {
+        
+        state_vars[0] = 0.0;            //  qn
+        state_vars[1] = P;            //  P
+        state_vars[2] = Salpha;        //  S_alpha
+        state_vars[3] = Salpha;        //  S_beta
+        
+        this->ComputeProperties(state_vars, props);
+        f_alpha         = props[3];
+        f_beta          = props[4];
+        lambda          = props[6];
+        
+        RecL[0] =  (f_alpha[0] * f_beta[0]) * lambda[0];
+        RecL[1] =  (f_alpha[0] * f_beta[0]) * lambda[1] + (f_alpha[0] * f_beta[1] + f_alpha[1] * f_beta[0]) * lambda[0];
+        RecL[2] =  (f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0]) * lambda[0];
+        RecL[3] =  (f_alpha[0] * f_beta[0]) * lambda[3] + (f_alpha[0] * f_beta[3] + f_alpha[3] * f_beta[0]) * lambda[0];
+        
+    }
+    
+}
+
+void TPZAxiSymmetricDarcyFlow::fRecLinear(REAL P, REAL Salpha, TPZManVector<REAL> & ExpL){
+    
+    int n_data = fnstate_vars + 2;
+    ExpL.Resize(n_data, 0.0);
+    REAL fs_Smax = 0.0;
+    
+    TPZManVector<REAL> state_vars(n_data,0.0);
+    TPZVec< TPZManVector<REAL>  > props;
+    TPZManVector<REAL> f_alpha;
+    TPZManVector<REAL> f_beta;
+    TPZManVector<REAL> lambda;
+    
+    // Receive water ndotG <= 0.0 Linear Version
+    if (Salpha < fSalpha_max) {
+        
+        state_vars[0] = 0.0;            //  qn
+        state_vars[1] = P;            //  P
+        state_vars[2] = fSalpha_max;        //  S_alpha
+        state_vars[3] = fSalpha_max;        //  S_beta
+        
+        this->ComputeProperties(state_vars, props);
+        f_alpha         = props[3];
+        f_beta          = props[4];
+        lambda          = props[6];
+        f_alpha[3]       = 0.0;
+        f_beta[3]        = 0.0;
+        lambda[3]        = 0.0;
+        
+        fs_Smax = f_alpha[0] * f_beta[0] * lambda[0];
+        
+        ExpL[0] = fs_Smax;
+        ExpL[1] = 0.0;
+        ExpL[2] = ((f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0] ) * lambda[0]);
+        ExpL[3] = 0.0;
+        
+    }
+    else
+    {
+        
+        state_vars[0] = 0.0;            //  qn
+        state_vars[1] = P;            //  P
+        state_vars[2] = fSalpha_max;        //  S_alpha
+        state_vars[3] = fSalpha_max;        //  S_beta
+        
+        this->ComputeProperties(state_vars, props);
+        f_alpha         = props[3];
+        f_beta          = props[4];
+        lambda          = props[6];
+        f_alpha[3]       = 0.0;
+        f_beta[3]        = 0.0;
+        lambda[3]        = 0.0;
+        
+        fs_Smax = f_alpha[0] * f_beta[0] * lambda[0];
+        
+        ExpL[0] = (1.0 - Salpha)*(fs_Smax/(1.0-fSalpha_max));
+        ExpL[1] = 0.0;
+        ExpL[2] = (1.0 - Salpha)*(1.0/(1.0-fSalpha_max))*((f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0] ) * lambda[0]);
+        ExpL[3] = (- 1.0)*(fs_Smax/(1.0-fSalpha_max));
+        
+    }
+    
+}
+
+void TPZAxiSymmetricDarcyFlow::fExpLinear(REAL P, REAL Salpha, TPZManVector<REAL> & RecL){
+    
+    int n_data = fnstate_vars + 2;
+    RecL.Resize(n_data, 0.0);
+    REAL fs_Smax = 0.0;
+    
+    TPZManVector<REAL> state_vars(n_data,0.0);
+    TPZVec< TPZManVector<REAL>  > props;
+    TPZManVector<REAL> f_alpha;
+    TPZManVector<REAL> f_beta;
+    TPZManVector<REAL> lambda;
+    
+
+    if (Salpha > fSalpha_max) {
+        
+        state_vars[0] = 0.0;            //  qn
+        state_vars[1] = P;            //  P
+        state_vars[2] = fSalpha_max;        //  S_alpha
+        state_vars[3] = fSalpha_max;        //  S_beta
+        
+        this->ComputeProperties(state_vars, props);
+        f_alpha         = props[3];
+        f_beta          = props[4];
+        lambda          = props[6];
+        f_alpha[3]       = 0.0;
+        f_beta[3]        = 0.0;
+        lambda[3]        = 0.0;
+        
+        fs_Smax = f_alpha[0] * f_beta[0] * lambda[0];
+        
+        RecL[0] = fs_Smax;
+        RecL[1] = 0.0;
+        RecL[2] = ((f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0] ) * lambda[0]);
+        RecL[3] = 0.0;
+        
+    }
+    else
+    {
+        
+        state_vars[0] = 0.0;            //  qn
+        state_vars[1] = P;            //  P
+        state_vars[2] = fSalpha_max;        //  S_alpha
+        state_vars[3] = fSalpha_max;        //  S_beta
+        
+        this->ComputeProperties(state_vars, props);
+        f_alpha         = props[3];
+        f_beta          = props[4];
+        lambda          = props[6];
+        f_alpha[3]       = 0.0;
+        f_beta[3]        = 0.0;
+        lambda[3]        = 0.0;
+        
+        fs_Smax = f_alpha[0] * f_beta[0] * lambda[0];
+        
+        RecL[0] = (Salpha)*(fs_Smax/(fSalpha_max));
+        RecL[1] = 0.0;
+        RecL[2] = (Salpha)*(1.0/(fSalpha_max))*((f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0] ) * lambda[0]);
+        RecL[3] = (1.0)*(fs_Smax/(fSalpha_max));
+        
+    }
+    
+}
 
 void TPZAxiSymmetricDarcyFlow::UpdateStateVariables(TPZManVector<REAL,3> u, REAL P, REAL Sw, REAL So)
 {

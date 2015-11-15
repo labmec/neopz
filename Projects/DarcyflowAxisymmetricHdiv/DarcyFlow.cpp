@@ -17,22 +17,20 @@
 #include <time.h>
 
 void LinearTracer();
-void NonlinearTracer();
-void NonlinearTracerDimensionless();
+void NonlinearTracer(bool IsDimensionlessQ);
 
 int main()
 {
     
-    TPZMaterial::gBigNumber = 1.0e8; // Use this for check of convergence using neumann
-    
-    NonlinearTracerDimensionless();
-    
+    bool IsDimensionlessQ = true;
+    NonlinearTracer(IsDimensionlessQ);
+
     
     std::cout << "Program successfully executed." << std::endl;
     return 0;
 }
 
-void NonlinearTracerDimensionless()
+void NonlinearTracer(bool IsDimensionlessQ)
 {
     // Important notes:
     // This code consider a homogeneus absolute permeability when Gravitational segregational function is active!
@@ -43,75 +41,79 @@ void NonlinearTracerDimensionless()
     // Simulation Data SI units
     
     // Characteristic Data
-    
-    REAL Kstr           = 1.0e-14;
-    REAL Pstr           = 1.0e7;
+    REAL Kstr           = 1.0;
+    REAL Pstr           = 1.0;
     REAL Tstr           = 355.37;
     REAL Tres           = 355.37;
-    REAL Lstr           = 10.0;
-    REAL Mustr          = 0.001;
-    REAL Rhostr         = 1000.0;
-//    REAL lambdastr      = Rhostr/Mustr;
+    REAL Lstr           = 1.0;
+    REAL Mustr          = 1.0;
+    REAL Rhostr         = 1.0;
+    TPZMaterial::gBigNumber = 1.0e15; // Use this for check of convergence using neumann
+    
+    REAL TolRes     = 1.0*1e-3;
+    REAL TolDeltaX  = 1.0*1e-3;
+    
+    if (IsDimensionlessQ)
+    {
+        Kstr           = 1.0e-13;
+        Pstr           = 1.0e7;
+        Tstr           = 355.37;
+        Tres           = 355.37;
+        Lstr           = 100.0;
+        Mustr          = 0.001;
+        Rhostr         = 1000.0;
+        TPZMaterial::gBigNumber = 1.0e12; // Use this for check of convergence using neumann
+        TolRes     = 1.0*1e-6;
+        TolDeltaX  = 1.0*1e-6;
+    }
+    
     TPZFMatrix<REAL> Gravity(2,1);
     
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
-    int maxiter     = 50;
-    int nthread     = 0;
+    int maxiter     = 40;
+    int nthread     = 8;
     bool broyden    = false;    // Use this when more than 10000 DOF are required don't used for now!
     bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    bool OptBand    = false;    // Band optimization
+    bool OptBand    = true;    // Band optimization
     int fixedJac    = 0;
     
     int qorder      = 1;
     int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
-    int hpostref    = 1;
+    int hpostref    = 0;
     
-    int n_times  = 15;
-    int n_sub_dt = 1;
+    // Time control parameters
+    int n_times  = 31;
+    int n_sub_dt = 4;
+    int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = 10*day*scale;
+    REAL dt         = 100.0*day*scale;
     REAL t0         = 0.0*day*scale;
 
-    Reporting_times[0] =  1.0*day*scale;
-    Reporting_times[1] = 100.0*day*scale;
-    Reporting_times[2] = 200.0*day*scale;
-    Reporting_times[3] = 300.0*day*scale;
-    Reporting_times[4] = 400.0*day*scale;
-    Reporting_times[5] = 500.0*day*scale;
-    Reporting_times[6] = 600.0*day*scale;
-    Reporting_times[7] = 700.0*day*scale;
-    Reporting_times[8] = 800.0*day*scale;
-    Reporting_times[9] = 900.0*day*scale;
-    Reporting_times[10] = 1000.0*day*scale;
-    Reporting_times[11] = 2000.0*day*scale;
-    Reporting_times[12] = 3000.0*day*scale;
-    Reporting_times[13] = 4000.0*day*scale;
-    Reporting_times[14] = 5000.0*day*scale;
-
+    for (int it = 0 ; it < n_times; it++) {
+        Reporting_times[it] = REAL(it+1)*dt;
+    }
+    REAL maxtime    = Reporting_times[which_dt-1];
+    std::cout << "Resporting times = " << Reporting_times << std::endl;
+    std::cout << "Maximu simulation time = " << maxtime <<std::endl;
     
-    std::cout<<"maxtime= "<< Reporting_times[n_times-1]<<std::endl;
-    REAL maxtime    = Reporting_times[n_times-1];
+    int  nelemX     =5;
+    REAL dxD        =(100.0/nelemX)/Lstr;
     
-    REAL TolRes     = 1.0*1e-5;
-    REAL TolDeltaX  = 1.0*1e-5;
-    
-    int  nelemX     =1;
-    REAL dxD        =(10.0/nelemX)/Lstr;
-    
-    int nelemY      =4;
-    REAL dyD        =(10.0/nelemY)/Lstr;
+    int nelemY      =5;
+    REAL dyD        =(100.0/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
     Gravity(1,0)= -10.0*((Lstr*Rhostr)/Pstr);
+    bool LinearSegregation = true;
     
     REAL angle = 0.0;
     
@@ -151,6 +153,7 @@ void NonlinearTracerDimensionless()
     Dataset->SetLengthElementx(dxD);
     Dataset->SetLengthElementy(dyD);
     Dataset->SetGravity(Gravity);
+    Dataset->SetLinearSegregationQ(LinearSegregation);
     Dataset->SetRotationAngle(angle);
     
     // BCs
@@ -161,7 +164,7 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> bottombcini(4,0.0);
     bottombcini[0] = 1;
-    bottombcini[1] = 0.0;
+    bottombcini[1] = 0;
     bottombcini[2] = 0;
     bottombcini[3] = 0;
     
@@ -173,7 +176,7 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> topbcini(4,0.0);
     topbcini[0] = 0;
-    topbcini[1] = 0;
+    topbcini[1] = (1.0*1e6)/(Pstr);
     topbcini[2] = 0;
     topbcini[3] = 0;
     
@@ -197,20 +200,20 @@ void NonlinearTracerDimensionless()
     
     TPZVec<REAL> rightbc(4,0.0);
     rightbc[0] = 1;
-    rightbc[1] = 0.0 * 0.1;
+    rightbc[1] = 0.0*(1.0*1e6)/(Pstr);
     rightbc[2] = 0;
     rightbc[3] = 0;
     
     TPZVec<REAL> topbc(4,0.0);
     topbc[0] = 0;
-    topbc[1] = 0;
+    topbc[1] = (1.0*1e6)/(Pstr);
     topbc[2] = 0;
     topbc[3] = 0;
     
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 1;
-    leftbc[1] = 0.0 * (-(0.1));
-    leftbc[2] = 0.0 * (1.0 - S_nw_r);
+    leftbc[1] = -(1.0e-4)*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
+    leftbc[2] = (1.0 - S_nw_r);
     leftbc[3] = 0;
     
     Dataset->SetBottomBC(bottombcini, bottombc);
@@ -244,11 +247,11 @@ void NonlinearTracerDimensionless()
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (0.0*1.0*1e-10)*Pstr;
+    REAL cwater             = (1.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e7)/(Pstr);
-    REAL oildensity         = 500.0/Rhostr;
+    REAL oildensity         = 800.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (0.0*1.0*1e-9)*Pstr;
+    REAL coil               = (1.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
     REAL gasviscosity       = Mustr;
@@ -264,8 +267,8 @@ void NonlinearTracerDimensionless()
     
     TPZFMatrix<STATE> Kabsolute(2,2);
     Kabsolute.Zero();
-    Kabsolute(0,0) = (1.0e-14)/Kstr;
-    Kabsolute(1,1) = (1.0e-14)/Kstr;
+    Kabsolute(0,0) = (1.0e-13)/Kstr;
+    Kabsolute(1,1) = (1.0e-13)/Kstr;
     
     Layer->SetIsGIDGeometry(isGIDGeom);
     Layer->SetLayerTop(Top);
@@ -337,14 +340,14 @@ void NonlinearTracerDimensionless()
     Rocks.Resize(1);
     Rocks[0] = RockModel;
     
-    REAL VD = 100.0;
-    REAL cfl = (VD*dt*dyD)/(dxD*dyD*porosityref);
-    std::cout << "Starting with CFL = " << cfl << std::endl;
+//    REAL VD = 100.0;
+//    REAL cfl = (VD*dt*dyD)/(dxD*dyD*porosityref);
+//    std::cout << "Starting with CFL = " << cfl << std::endl;
     
     TPZDarcyAnalysis SandStone(Dataset,Layers,Rocks);
     SandStone.SetFluidData(PVTData);
     SandStone.RunAnalysis();
     
-    std::cout << "Finished with CFL = " << cfl << std::endl;
+//    std::cout << "Finished with CFL = " << cfl << std::endl;
     
 }

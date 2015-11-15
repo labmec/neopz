@@ -553,7 +553,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         
         if(error < fSimulationData->GetToleranceRes() || normdx < fSimulationData->GetToleranceDX())
         {
-            std::cout << "Converged with iterations:  " << iterations << std::endl;
+            std::cout << "Converged; iterations:  " << iterations << std::endl;
             std::cout << "error norm: " << error << std::endl;
             std::cout << "error of dx: " << normdx << std::endl;
             this->UpDateAlphaVec(X);

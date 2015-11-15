@@ -103,14 +103,20 @@ void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
         
             if (!strcmp("Water", System[iphase].c_str())){
                 falpha_fluid = PVTData[0];
+                fbeta_fluid = PVTData[1];
+                fgamma_fluid = PVTData[2];
             }
             
             if (!strcmp("Oil", System[iphase].c_str())){
-                falpha_fluid = PVTData[0];
+                falpha_fluid = PVTData[1];
+                fbeta_fluid  = PVTData[0];
+                fgamma_fluid = PVTData[2];                
             }
             
             if (!strcmp("Gas", System[iphase].c_str())){
-                falpha_fluid = PVTData[0];
+                falpha_fluid = PVTData[2];
+                fbeta_fluid = PVTData[0];
+                fgamma_fluid = PVTData[1];
             }
 
         }
@@ -139,6 +145,8 @@ void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
                         falpha_fluid = PVTData[2];
                     }
                     
+                    fgamma_fluid = PVTData[2];
+                    
                 }
                     break;
                     
@@ -157,6 +165,7 @@ void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
                     }
                     
                 }
+                    fgamma_fluid = PVTData[2];                    
                     break;
                 default:
                 {
@@ -177,8 +186,7 @@ void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
         std::cout << "System not impelmented " << System << std::endl;
         DebugStop();
     }
-    
-    fgamma_fluid = PVTData[2];
+
 }
 
 void TPZDarcyAnalysis::SetLastState()
@@ -328,11 +336,10 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     falphaAtnplusOne = fcmeshinitialdarcy->Solution();
     
     REAL TimeStep = fSimulationData->GetDeltaT();
-    REAL BigTimeStep = 0.0864;//8640.0;
+    REAL BigTimeStep = 0.0864/REAL(fSimulationData->GetNSubSteps());
     fSimulationData->SetDeltaT(BigTimeStep);
     this->AssembleLastStep(an);
     this->AssembleNextStep(an);
-    this->PrintLS(an);
     const clock_t tinia = clock();
     NewtonIterations(an);
     const clock_t tenda = clock();
@@ -670,7 +677,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     
     // Out file for initial condition
     this->PostProcessVTK(an);
-    std::cout << "Reported time " << tk << "; dt = " << current_dt << std::endl;
+    std::cout << "Reported time " << tk/(86400.0) << "; dt = " << current_dt/(86400.0) << std::endl;
     std::cout << std::endl;
     
     int i_time = 0;
@@ -706,7 +713,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         if (i_sub_dt == n_sub_dt) {
             tk = reporting_times[i_time];
             this->fSimulationData->SetTime(tk);
-            std::cout << "Reported time " << tk << "; dt = " << current_dt << "; File number = " << i_time + 1 << std::endl;
+            std::cout << "Reported time " << tk/(86400.0) << "; dt = " << current_dt/(86400.0) << "; File number = " << i_time + 1 << std::endl;
             std::cout << std::endl;
             this->PostProcessVTK(an);
             if (i_time == reporting_times.size()-1) {
@@ -765,7 +772,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     TPZFMatrix<STATE> DeltaX = falphaAtn;
     
     STATE error     =   1.0;
-    STATE normdx    =   Norm(Residual);
+    STATE normdx    =   1.0;//Norm(Residual);
     int iterations  =   0;
     int centinel    =   0;
     int fixed       =   fSimulationData->GetFixediterations();
@@ -824,13 +831,13 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         
         if(error < fSimulationData->GetToleranceRes() || normdx < fSimulationData->GetToleranceDX())
         {
-            std::cout << "Converged with iterations:  " << iterations << "; error: " << error <<  "; dx: " << normdx << std::endl;
+            std::cout << "Converged; iterations:  " << iterations << "; error: " << error <<  "; dx: " << normdx << std::endl;
             break;
         }
         
         
         if (iterations == fSimulationData->GetMaxiterations()) {
-            std::cout << "Out max iterations:  " << iterations << "; error: " << error <<  "; dx: " << normdx << std::endl;
+            std::cout << "Out; iterations:  " << iterations << "; error: " << error <<  "; dx: " << normdx << std::endl;
             break;
         }
         
@@ -940,7 +947,7 @@ void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
         
         if(error <= fSimulationData->GetToleranceRes() || normdx <= fSimulationData->GetToleranceDX())
         {
-            std::cout << "Converged with iterations:  " << iterations << std::endl;
+            std::cout << "Converged; iterations:  " << iterations << std::endl;
             std::cout << "error norm: " << error << std::endl;
             std::cout << "error of dx: " << normdx << std::endl;
             break;
@@ -2403,16 +2410,16 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionCmesh(TPZVec<STATE> &solini)
 
 void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
-      REAL x = pt[0];
-      REAL y = pt[1];
-//    REAL S_wett_nc = 0.0;
-//    disp.resize(1);
-//    disp[0] = S_wett_nc;
-    
-         if (y >=  0.5 ) {
-             disp[0] = 1.0;
-         }
-//       disp[0]= (rand() / (double)RAND_MAX);
+    REAL x = pt[0];
+    REAL y = pt[1];
+    REAL S_wett_nc = 0.0;
+    REAL S_nwett_ir = 0.0;
+    disp[0] = S_wett_nc;
+
+    if (y >=  50.0 ) {
+         disp[0] = 1.0-S_nwett_ir;
+    }
+
     
 }
 

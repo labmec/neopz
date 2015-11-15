@@ -151,6 +151,10 @@ private:
     /** @brief Is three-phase flow? */
     bool fIsThreePhaseQ;
     
+    /** @brief Using the Linear grativational segregation model */
+    bool fIsLinearSegregationsQ;
+    
+    
     /** @brief Gravity  */
     TPZFMatrix<REAL> fGravity;
     
@@ -434,6 +438,12 @@ public:
     
     /** @brief Three-phasic system */
     bool IsThreePhaseQ() {return fIsThreePhaseQ;}
+    
+    /** @brief Set the use of the Linear grativational segregation model */
+    void SetLinearSegregationQ(bool linearsegregation) {fIsLinearSegregationsQ = linearsegregation;}
+    
+    /** @brief Is it using the Linear grativational segregation model */
+    bool IsLinearSegregationQ() {return fIsLinearSegregationsQ;}
     
     /** @brief Definition of the flow system one - two and  ... three phase */
     TPZStack<std::string> GetsystemType() {return fSystemType;}

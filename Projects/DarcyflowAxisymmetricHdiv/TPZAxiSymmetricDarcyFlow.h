@@ -29,6 +29,7 @@ class TPZAxiSymmetricDarcyFlow : public TPZDiscontinuousGalerkin {
 private:
     
     REAL fepsilon;
+    REAL fSalpha_max;
     
     TPZAutoPointer<SimulationData> fSimulationData;
     TPZAutoPointer<ReservoirData> fReservoirdata;
@@ -430,6 +431,27 @@ public:
      * Compute the gravitational segregational fluxes
      */
     void GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravitiFluxes, TPZManVector<REAL> & fstar);
+
+    
+    /**
+     * Compute the linearized version of the Expelling water
+     */
+    void fExp(REAL P, REAL Salpha, TPZManVector<REAL> & ExpL);
+    
+    /**
+     * Compute the linearized version of the Expelling water
+     */
+    void fRec(REAL P, REAL Salpha, TPZManVector<REAL> & RecL);
+    
+    /**
+     * Compute the linearized version of the Expelling water
+     */
+    void fExpLinear(REAL P, REAL Salpha, TPZManVector<REAL> & ExpL);
+
+    /**
+     * Compute the linearized version of the Expelling water
+     */
+    void fRecLinear(REAL P, REAL Salpha, TPZManVector<REAL> & RecL);
     
     /**
      * Compute the properties for a given state variables

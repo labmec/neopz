@@ -116,6 +116,9 @@ SimulationData::SimulationData()
     /** @brief Is three-phase flow? */
     fIsThreePhaseQ = false;
     
+    /** @brief Using the Linear grativational segregation model */
+    fIsLinearSegregationsQ = true;
+    
     /** @brief Counterclockwise rotation angle */
     fAngle = 0.0;
     
