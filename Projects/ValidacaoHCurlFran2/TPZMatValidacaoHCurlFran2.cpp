@@ -1,5 +1,10 @@
 #include "TPZMatValidacaoHCurlFran2.h"
 #include "pzbndcond.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.material.fran"));
+#endif
 
 TPZMatValidacaoHCurlFran2::TPZMatValidacaoHCurlFran2(int id, REAL freq, STATE (ur)( TPZVec<REAL>&),STATE (er)( TPZVec<REAL>&), REAL t, REAL scale) : TPZVecL2(id), fUr(ur), fEr(er), fFreq(freq), fScale(scale)
 {
@@ -69,7 +74,7 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
 	{
 		std::stringstream sout;
 		sout<<std::endl;
-		sout<<"el:"<<elId<<std::endl;
+		sout<<"geo el id:"<<data.gelElId<<std::endl;
 		sout<<std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
