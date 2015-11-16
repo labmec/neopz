@@ -190,7 +190,7 @@ public:
 
 
 
-STATE urDefault( TPZVec<REAL>x );//default material has ur=1
-STATE erDefault( TPZVec<REAL>x );//default material has er=1
+STATE urDefault( TPZVec<REAL>&x );//default material has ur=1
+STATE erDefault( TPZVec<REAL>&x );//default material has er=1
 #endif
 

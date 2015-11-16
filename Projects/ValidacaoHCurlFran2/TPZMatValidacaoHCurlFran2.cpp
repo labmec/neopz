@@ -1,15 +1,7 @@
 #include "TPZMatValidacaoHCurlFran2.h"
 #include "pzbndcond.h"
 
-#include "pzlog.h"
-
-#include "pz_pthread.h"
-
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.material.fran"));
-#endif
-
-TPZMatValidacaoHCurlFran2::TPZMatValidacaoHCurlFran2(int id, REAL freq, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>), REAL t) : TPZVecL2(id), fUr(ur), fEr(er), fFreq(freq)
+TPZMatValidacaoHCurlFran2::TPZMatValidacaoHCurlFran2(int id, REAL freq, STATE (ur)( TPZVec<REAL>&),STATE (er)( TPZVec<REAL>&), REAL t, REAL scale) : TPZVecL2(id), fUr(ur), fEr(er), fFreq(freq), fScale(scale)
 {
   fW=2.*M_PI*fFreq;
   fTheta = t;
@@ -46,8 +38,10 @@ TPZMatValidacaoHCurlFran2::~TPZMatValidacaoHCurlFran2()
 
 void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-  TPZManVector<REAL,3> &x = data.x;
-	int elId = data.gelElId;
+  TPZManVector<REAL,3> x = data.x;
+    for (int i=0; i<3; i++) {
+        x[i] /= fScale;
+    }
   const STATE muR =  fUr(x);
   const STATE epsilonR = fEr(x);
   REAL k0 = 2*M_PI*fFreq*sqrt(M_UZERO*M_EZERO);
@@ -62,7 +56,7 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
   TPZFNMatrix<3,REAL> dphiQ;
   TPZAxesTools<REAL>::Axes2XYZ(dphiQdaxes, dphiQ, data.axes);
 
-  TPZManVector<STATE,3> ax1(3),ax2(3), normal(3);
+  TPZManVector<REAL,3> ax1(3),ax2(3), normal(3);
   for (int i=0; i<3; i++) {
     ax1[i] = data.axes(0,i);//ELEMENTO DEFORMADO
     ax2[i] = data.axes(1,i);//ELEMENTO DEFORMADO
@@ -86,7 +80,7 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
     int ivecind = data.fVecShapeIndex[iq].first;
     int ishapeind = data.fVecShapeIndex[iq].second;
     
-    TPZManVector<STATE,3> ivecHDiv(3), ivecHCurl(3);
+    TPZManVector<REAL,3> ivecHDiv(3), ivecHCurl(3);
     for(int id=0; id<3; id++){
       ivecHDiv[id] = data.fNormalVec(id,ivecind);//JA EM XYZ
     }
@@ -104,27 +98,18 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
 //			ef(iq,0) -= weight*ff*phiQ(ishapeind,0);
 //		}
     ef(iq,0) += weight*ff*phiQ(ishapeind,0);
-    TPZManVector<STATE,3> curlI(3), gradPhiI(3);
+    TPZManVector<REAL,3> curlI(3), gradPhiI(3);
     for (int i = 0; i<dphiQ.Rows(); i++) {
       gradPhiI[i] = dphiQ(i,ishapeind);
     }
     Cross(gradPhiI, ivecHCurl, curlI);
-#ifdef LOG4CXX
-		if(logger->isDebugEnabled() )
-		{
-			std::stringstream sout;
-			sout<<std::endl;
-			sout<<"vec: "<<real(curlI[0])<<","<<real(curlI[1])<<","<<real(curlI[2])<<std::endl;
-			sout<<std::endl;
-			LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
-		curlI[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2];
-		
+      STATE curlIStar;
+    //eh necessario forcar curlE dot x = j*k0*sin(theta)*Ez
+    curlIStar = -1. * imaginary * k0 * sin(fTheta) * phiQ(ishapeind,0) * ivecHCurl[2] ;
     
     for (int jq=0; jq<phrq; jq++)
     {
-      TPZManVector<STATE,3> jvecHDiv(3), jvecHCurl(3);//JA EM XYZ
+      TPZManVector<REAL,3> jvecHDiv(3), jvecHCurl(3);//JA EM XYZ
       int jvecind = data.fVecShapeIndex[jq].first;
       int jshapeind = data.fVecShapeIndex[jq].second;
       
@@ -133,48 +118,31 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
       }
       //ROTATE FOR HCURL
       Cross(normal, jvecHDiv,jvecHCurl);
-      TPZManVector<STATE,3> curlJ(3),  gradPhiJ(3);
+      TPZManVector<REAL,3> curlJ(3),  gradPhiJ(3);
       
       for (int i = 0; i<dphiQ.Rows(); i++) {
         gradPhiJ[i] = dphiQ(i,jshapeind);
       }
       Cross(gradPhiJ, jvecHCurl, curlJ);
       //eh necessario forcar curlE dot x = j*k0*sin(theta)*Ez
-//			if(elId==0){
-//				curlJ[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2] ;//AQUIFRAN
-//			}
-//			else{
-//				curlJ[0] = -1. * imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2] ;//AQUIFRAN
-//			}
-				curlJ[0] = 1. * imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2];//AQUIFRAN
-			
+        STATE curlJStar;
+
+      curlJStar = imaginary * k0 * sin(fTheta) * phiQ(jshapeind,0) * jvecHCurl[2] *fScale;//AQUIFRAN
       
-      STATE phiIdotphiJ;
-      phiIdotphiJ = conj( phiQ(ishapeind,0) * ivecHCurl[0] )* ( phiQ(jshapeind,0) * jvecHCurl[0]);
-      phiIdotphiJ += conj( phiQ(ishapeind,0) * ivecHCurl[1] )* ( phiQ(jshapeind,0) * jvecHCurl[1]);
-      phiIdotphiJ += conj( phiQ(ishapeind,0) * ivecHCurl[2] )* ( phiQ(jshapeind,0) * jvecHCurl[2]);
+      REAL phiIdotphiJ;
+      phiIdotphiJ = ( phiQ(ishapeind,0) * ivecHCurl[0] * phiQ(jshapeind,0) * jvecHCurl[0])
+      + ( phiQ(ishapeind,0) * ivecHCurl[1] * phiQ(jshapeind,0) * jvecHCurl[1])
+      + ( phiQ(ishapeind,0) * ivecHCurl[2] * phiQ(jshapeind,0) * jvecHCurl[2]);
       
-//#ifdef LOG4CXX
-//			if(logger->isDebugEnabled() )
-//			{
-//				std::stringstream sout;
-//				sout<<std::endl;
-//				sout<<"X: "<<x[0]<<","<<x[1]<<","<<x[2]<<std::endl;
-//				for (int i = 0; i < phrq;  i++) {
-//					sout<<phiQ(data.fVecShapeIndex[i].second,0)<<std::endl;
-//				}
-//				sout<<std::endl;
-//				LOGPZ_DEBUG(logger,sout.str())
-//			}
-//#endif
-      STATE stiff = (1./muR) * ( curlJ[0] * conj(curlI[0]) + curlJ[1] * conj(curlI[1]) + curlJ[2] * conj( curlI[2] ) );
-      stiff += -1. * k0 * k0 * epsilonR * phiIdotphiJ;
-//			if(elId==1){
-//				ek(iq,jq) += weight * stiff;
-//			}
-//			else{
-//				ek(iq,jq) -= weight * stiff;
-//			}
+        std::cout << " x " << data.x << std::endl;
+        data.fNormalVec.Print("NormalVec");
+        std::cout << " i " << iq << " j " << jq << " phiIdotphiJ " << phiIdotphiJ << std::endl;
+        std::cout << " ivec " << ivecHCurl << " jvec " << jvecHCurl << std::endl;
+        std::cout << " curli " << curlI << " curlj " << curlJ << std::endl;
+        STATE stiff = 0.;
+      stiff += (1./muR) * ( curlJStar * curlIStar + (curlJ[0] * curlI[0] + curlJ[1] * curlI[1] + curlJ[2] * curlI[2]) );
+      stiff += -1. * k0 * k0 /(fScale * fScale) * epsilonR * phiIdotphiJ;
+      
       ek(iq,jq) += weight * stiff;
     }
   }
@@ -221,12 +189,12 @@ void TPZMatValidacaoHCurlFran2::ContributeBC(TPZMaterialData &data, REAL weight,
       for(int i = 0 ; i<nshape ; i++)
       {
         STATE rhs = phiQ(i,0);
-        rhs *= v2;
+        rhs *= v2/fScale;
         ef(i,0) += rhs*weight;
         for(int j=0;j<nshape;j++)
         {
           STATE stiff = phiQ(i,0) *  phiQ(j,0);
-          stiff *= v1;
+          stiff *= v1/fScale;
           ek(i,j) += stiff*weight;
         }
       }
@@ -248,6 +216,12 @@ void TPZMatValidacaoHCurlFran2::ContributeBC(TPZMaterialData &data, REAL weight,
 {
   DebugStop();
 }
+
+int TPZMatValidacaoHCurlFran2::IntegrationRuleOrder(int elPMaxOrder) const
+{
+    return 2+elPMaxOrder*2;
+}
+
 
 int TPZMatValidacaoHCurlFran2::VariableIndex(const std::string &name)
 {
@@ -317,12 +291,12 @@ void TPZMatValidacaoHCurlFran2::Solution(TPZMaterialData &data, int var, TPZVec<
 }
 
 
-inline STATE urDefault( TPZVec<REAL> x )
+STATE urDefault( TPZVec<REAL> &x )
 {
   return 1.0;
 }
 
-inline STATE erDefault( TPZVec<REAL> x )
+STATE erDefault( TPZVec<REAL> &x )
 {
   return 1.0;
 }

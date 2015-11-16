@@ -26,15 +26,16 @@ class  TPZMatValidacaoHCurlFran2 : public TPZVecL2
 protected:
   
   //COM CERTEZA
-  STATE (& fUr)( TPZVec<REAL>);
-  STATE (& fEr)( TPZVec<REAL>);
+  STATE (*fUr)( TPZVec<REAL>&);
+  STATE (*fEr)( TPZVec<REAL>&);
   REAL fFreq;//frequencia da onda
   REAL fW;
   REAL fTheta;
+    REAL fScale;
    
 	
 public:
-    TPZMatValidacaoHCurlFran2(int id, REAL freq, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>), REAL t);
+    TPZMatValidacaoHCurlFran2(int id, REAL freq, STATE (ur)( TPZVec<REAL> &),STATE (er)( TPZVec<REAL> &), REAL t, REAL scale);
   
     TPZMatValidacaoHCurlFran2(int id);
   
@@ -162,7 +163,9 @@ public:
     }
   }
   
-  
+    /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
+    virtual int IntegrationRuleOrder(int elPMaxOrder) const;
+
   
   /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
   virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
@@ -191,7 +194,7 @@ public:
 
 
 
-STATE urDefault( TPZVec<REAL>x );//default material has ur=1
-STATE erDefault( TPZVec<REAL>x );//default material has er=1
+STATE urDefault( TPZVec<REAL> &x );//default material has ur=1
+STATE erDefault( TPZVec<REAL> &x );//default material has er=1
 #endif
 

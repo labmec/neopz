@@ -272,12 +272,12 @@ void TPZMatValidacaoHCurlFran1::Solution(TPZMaterialData &data, int var, TPZVec<
 }
 
 
-STATE urDefault( TPZVec<REAL> x )
+STATE urDefault( TPZVec<REAL> &x )
 {
   return 1.0;
 }
 
-STATE erDefault( TPZVec<REAL> x )
+STATE erDefault( TPZVec<REAL> &x )
 {
   return 1.0;
 }
