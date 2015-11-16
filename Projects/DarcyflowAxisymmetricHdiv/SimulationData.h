@@ -154,6 +154,8 @@ private:
     /** @brief Using the Linear grativational segregation model */
     bool fIsLinearSegregationsQ;
     
+    /** @brief Is axisymmetric analysis */
+    bool fIsAxisymmetricQ;
     
     /** @brief Gravity  */
     TPZFMatrix<REAL> fGravity;
@@ -444,6 +446,12 @@ public:
     
     /** @brief Is it using the Linear grativational segregation model */
     bool IsLinearSegregationQ() {return fIsLinearSegregationsQ;}
+    
+    /** @brief Set the use of axisymmetric analysis */
+    void SetAxisymmetricQ(bool IsAxisymmetric) {fIsAxisymmetricQ = IsAxisymmetric;}
+    
+    /** @brief Is it using axisymmetric analysis */
+    bool IsAxisymmetricQ() {return fIsAxisymmetricQ;}
     
     /** @brief Definition of the flow system one - two and  ... three phase */
     TPZStack<std::string> GetsystemType() {return fSystemType;}

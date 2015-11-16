@@ -2918,8 +2918,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
     TPZFMatrix<REAL> Sa_phiPL2         = datavec[Salphablock].phi;  // For L2  test functions S_alpha
     
-    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
-    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
+    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix;         // Derivative For H1  test functions u
+    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix;         // Derivative For L2  test functions P
+    TPZFMatrix<REAL> dphiSL2   = datavec[Salphablock].dphix;    // Derivative For L2  test functions S
     
     //    TPZFMatrix<STATE> DivergenceOnDeformed;
     //    // Compute the divergence on deformed element by piola contravariant transformation
@@ -2984,10 +2985,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     
 
     TPZFMatrix<STATE> iphiuHdiv(2,1);
-    int ishapeindex;
-    int ivectorindex;
-    
-    
+    TPZFMatrix<STATE> jphiuHdiv(2,1);
+    TPZManVector<REAL,3> v(2,0.0);
+    int ishapeindex, jshapeindex;
+    int ivectorindex, jvectorindex;
     
     for (int iq = 0; iq < nphiuHdiv; iq++)
     {
@@ -3022,18 +3023,40 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     for (int isw = 0; isw < nphiSaL2; isw++)
     {
         
+        //  Compute grad(phi)
+        TPZManVector<STATE> Gradphis(2,0);
+        Gradphis[0] = dphiSL2(0,isw)*datavec[Salphablock].axes(0,0)+dphiSL2(1,isw)*datavec[Salphablock].axes(1,0);
+        Gradphis[1] = dphiSL2(0,isw)*datavec[Salphablock].axes(0,1)+dphiSL2(1,isw)*datavec[Salphablock].axes(1,1);
         
-        ef(isw  + iniSa ) += 1.0 * weight * (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0);
+        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0) - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1]));
+
+        
+        // du/dalphau terms
+        for (int jq = 0; jq < nphiuHdiv; jq++)
+        {
+            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
+            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
+            
+            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+            v[0] = jphiuHdiv(0,0);
+            v[1] = jphiuHdiv(1,0);
+            
+            ek(isw  + iniSa, jq  + iniu ) = -1.0 * weight * (f_alpha[0]*(v[0]*Gradphis[0] + v[1]*Gradphis[1]));
+            
+        }
         
         for (int jp = 0; jp < nphiSaL2; jp++)
         {
             ek(isw  + iniSa, jp  + iniP ) += 1.0 * weight * (1.0/dt) * phi * S_alpha * rho_alpha[2] * phiPL2(jp,0) * Sa_phiPL2(isw,0);
+            ek(isw  + iniSa, jp  + iniP ) += -1.0 * weight * (f_alpha[2]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])) * phiPL2(jp,0);
             
         }
         
         for (int jsw = 0; jsw < nphiSaL2; jsw++)
         {
             ek(isw  + iniSa, jsw  + iniSa ) += 1.0 * weight * (1.0/dt) * phi * Sa_phiPL2(jsw,0) * rho_alpha[0]  * Sa_phiPL2(isw,0);
+            ek(isw  + iniSa, jsw  + iniSa ) += -1.0 * weight * (f_alpha[3]*(u[0]*Gradphis[0] + u[1]*Gradphis[1]))  * Sa_phiPL2(jsw,0);
             
         }
     }
@@ -3061,8 +3084,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<REAL> phiPL2         = datavec[Pblock].phi;  // For L2  test functions P
     TPZFMatrix<REAL> Sa_phiPL2         = datavec[Salphablock].phi;  // For L2  test functions S_alpha
     
-    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix; // Derivative For H1  test functions u
-    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix; // Derivative For L2  test functions P
+    TPZFMatrix<REAL> dphiuH1   = datavec[ublock].dphix;         // Derivative For H1  test functions u
+    TPZFMatrix<REAL> dphiPL2   = datavec[Pblock].dphix;         // Derivative For L2  test functions P
+    TPZFMatrix<REAL> dphiSL2   = datavec[Salphablock].dphix;    // Derivative For L2  test functions S
     
     //    TPZFMatrix<STATE> DivergenceOnDeformed;
     //    // Compute the divergence on deformed element by piola contravariant transformation
@@ -3081,11 +3105,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
     REAL P              = datavec[Pblock].sol[0][0];
     REAL S_alpha              = datavec[Salphablock].sol[0][0];
-    //
-    //    TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0];
-    //    TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
-    //    TPZFNMatrix<660,REAL> GradP;
-    //    TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
+
+//    TPZFMatrix<STATE> GradSaxes = datavec[ublock].dsol[0];
+////    TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
+//    TPZFNMatrix<660,REAL> GradS;
+//    TPZAxesTools<REAL>::Axes2XYZ(GradSaxes, GradS, datavec[Pblock].axes);
     
     
     // Rock and fluids parameters
@@ -3123,18 +3147,22 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
         
         for (int isw = 0; isw < nphiSaL2; isw++)
         {
-            ef(isw  + iniSa ) += -1.0 * weight * (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0);
+            ef(isw  + iniSa ) += - weight * (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0);
         }
         
         return;
     }
     // Last State n
     /////////////////////////////////
-    
-    
+
     for (int isw = 0; isw < nphiSaL2; isw++)
     {
-        ef(isw  + iniSa ) += 1.0 * weight * (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0);
+        //  Compute grad(phi)
+        TPZManVector<STATE> Gradphis(2,0);
+        Gradphis[0] = dphiSL2(0,isw)*datavec[Salphablock].axes(0,0)+dphiSL2(1,isw)*datavec[Salphablock].axes(1,0);
+        Gradphis[1] = dphiSL2(0,isw)*datavec[Salphablock].axes(0,1)+dphiSL2(1,isw)*datavec[Salphablock].axes(1,1);
+     
+        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0) - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1]));
     }
     
 }
@@ -3180,8 +3208,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     
     // Getting linear combinations from different approximation spaces for the left side
     TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
-    REAL PL              = datavecleft[Pblock].sol[0][0];
-    REAL SaL             = datavecleft[Sablock].sol[0][0];
+//    REAL PL              = datavecleft[Pblock].sol[0][0];
+//    REAL SaL             = datavecleft[Sablock].sol[0][0];
     
     TPZFMatrix<STATE> iphiuHdivL(2,1);
     int ishapeindex;
@@ -3347,9 +3375,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
             
         case 2 :    // Dirichlet BC  PD outflow
         {
-            REAL PD         = bc.Val2()(0,0);
-            REAL S_alpha    = bc.Val2()(1,0);
-            REAL S_beta     = bc.Val2()(2,0);
+//            REAL PD         = bc.Val2()(0,0);
+//            REAL S_alpha    = bc.Val2()(1,0);
+//            REAL S_beta     = bc.Val2()(2,0);
             
             // Returning needed relationships
             TPZVec< TPZManVector<REAL>  > props;
@@ -3426,8 +3454,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
         case 3 :    // Neumann BC  QN outflow
         {
             REAL qn         = bc.Val2()(0,0);
-            REAL S_alpha    = bc.Val2()(1,0);
-            REAL S_beta     = bc.Val2()(2,0);
+//            REAL S_alpha    = bc.Val2()(1,0);
+//            REAL S_beta     = bc.Val2()(2,0);
             
             // Returning needed relationships
             TPZVec< TPZManVector<REAL>  > props;
@@ -3563,8 +3591,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
 
     // Getting linear combinations from different approximation spaces for the left side
     TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
-    REAL PL              = datavecleft[Pblock].sol[0][0];
-    REAL SaL             = datavecleft[Sablock].sol[0][0];
+//    REAL PL              = datavecleft[Pblock].sol[0][0];
+//    REAL SaL             = datavecleft[Sablock].sol[0][0];
 
 
     TPZManVector<REAL,3> n =  data.normal;
@@ -3822,13 +3850,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     // Getting linear combinations from different approximation spaces for the left side
     TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
-    REAL P_L             = datavecleft[Pblock].sol[0][0];
-    REAL Salpha_L        = datavecleft[Sablock].sol[0][0];
+//    REAL P_L             = datavecleft[Pblock].sol[0][0];
+//    REAL Salpha_L        = datavecleft[Sablock].sol[0][0];
     
     // Getting linear combinations from different approximation spaces for the right side
     TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
-    REAL P_R             = datavecright[Pblock].sol[0][0];
-    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
+//    REAL P_R             = datavecright[Pblock].sol[0][0];
+//    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
@@ -3888,8 +3916,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     TPZManVector<REAL> f_alpha          = props[3];
     TPZFMatrix<STATE> jphiuHdiv(2,1);
-    int jshapeindex;
-    int jvectorindex;
+//    int jshapeindex;
+//    int jvectorindex;
     
     for (int isw = 0; isw < nphiSaL2L; isw++)
     {
@@ -4088,18 +4116,18 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     
     // Getting linear combinations from different approximation spaces for the left side
     TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
-    REAL P_L             = datavecleft[Pblock].sol[0][0];
-    REAL Salpha_L        = datavecleft[Sablock].sol[0][0];
+//    REAL P_L             = datavecleft[Pblock].sol[0][0];
+//    REAL Salpha_L        = datavecleft[Sablock].sol[0][0];
     
     // Getting linear combinations from different approximation spaces for the right side
     TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
-    REAL P_R             = datavecright[Pblock].sol[0][0];
-    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
+//    REAL P_R             = datavecright[Pblock].sol[0][0];
+//    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
     
-    int n_data =fnstate_vars+2;
+//    int n_data =fnstate_vars+2;
     
     // Returning needed relationships
     TPZVec< TPZManVector<REAL>  > props;
@@ -4972,8 +5000,8 @@ void TPZAxiSymmetricDarcyFlow::ComputeProperties(TPZManVector<REAL> &state_vars,
     
     int nphases = fnstate_vars - 1;
     int n = fnstate_vars + 2;
-    int p       = 1;
-    int s_alpha = 2;
+//    int p       = 1;
+//    int s_alpha = 2;
     //    int s_beta  = 3;
     
     props.Resize(9);

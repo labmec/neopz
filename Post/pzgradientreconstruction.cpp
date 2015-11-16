@@ -406,7 +406,11 @@ void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(T
     
     //-------- calculating cell averaged ------------
     int intOrder = cel->GetgOrder();
-    TPZIntPoints *pointIntRule = ((TPZInterpolatedElement*)cel)->Reference()->CreateSideIntegrationRule((cel->Reference()->NSides())-1,intOrder);
+    TPZInterpolatedElement* intel = ((TPZInterpolatedElement*)cel);
+    if(!intel){
+        DebugStop();
+    }
+    TPZIntPoints *pointIntRule = intel->Reference()->CreateSideIntegrationRule((intel->Reference()->NSides())-1,intOrder);
     int it, npoints = pointIntRule->NPoints();
     REAL integral = 0.0;
     TPZManVector<REAL> point(3,0.);

@@ -89,11 +89,12 @@ private:
     /** @brief unknowns for n+1 time step */
     TPZFMatrix<REAL> falphaAtnplusOne;
     
-    /** @brief Store DOF associated with Constant Saturations */
-    TPZManVector<long> fConstantSaturations;
+    /** @brief Store DOF associated with active */
+    TPZManVector<long> fActiveEquations;
     
-    /** @brief Store DOF associated with  Saturation gradients */
-    TPZManVector<long> fGradientSaturations;
+    /** @brief Store DOF associated with  non active */
+    TPZManVector<long> fNonactiveEquations;
+    
     
     
 public:
@@ -275,11 +276,6 @@ public:
      * Print the Cmesh object
      */
     void PrintCmesh();
-    
-    /**
-     * Create the computational continuous mesh
-     */
-    void CmeshH1(int porder);
     
     /**
      * Create the computational mixed
