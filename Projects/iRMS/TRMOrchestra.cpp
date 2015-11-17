@@ -194,9 +194,9 @@ void TRMOrchestra::CreateAnalysisDual(){
 //    ProjectExactSolution();
     
     
-//    fSpaceGenerator.IncreaseOrderAroundWell(3);
-//
-//    fSpaceGenerator.ConfigureWellConstantPressure(0., 1000.);
+    fSpaceGenerator.IncreaseOrderAroundWell(2);
+
+    fSpaceGenerator.ConfigureWellConstantPressure(0., 1000.);
 
     fSpaceGenerator.StaticallyCondenseEquations();
     

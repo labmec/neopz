@@ -30,6 +30,12 @@ Phase::Phase()
     /** @brief Compressibility - 1/pa $c$ */
     fc = 0.0;
     
+    /** @brief Irreducible Saturation of the wetting phase - */
+    fS_wett_r = 0.0;
+    
+    /** @brief Irreducible Saturation of the no wetting phase - */
+    fS_nwett_r = 0.0;
+    
 }
 
 Phase::~Phase()

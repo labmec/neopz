@@ -38,6 +38,13 @@ ReservoirData::ReservoirData()
     /** @brief Layer Top depth  - m */
     fDepth = 0.0;
     
+    /** @brief Irreducible Saturation of the wetting phase - */
+    fS_wett_r = 0.0;
+    
+    /** @brief Irreducible Saturation of the no wetting phase - */
+    fS_nwett_r = 0.0;
+    
+    
     /** @brief Is GID geometry - */
     fIsGIDGeometry = false;
     

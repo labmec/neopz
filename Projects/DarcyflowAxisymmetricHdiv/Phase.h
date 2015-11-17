@@ -38,6 +38,12 @@ private:
     /** @brief Compressibility - 1/pa $c_{g}$ */
     REAL fc;
     
+    /** @brief Irreducible Saturation of the wetting phase - */
+    REAL fS_wett_r;
+    
+    /** @brief Irreducible Saturation of the no wetting phase - */
+    REAL fS_nwett_r;
+    
     
 public:
     
@@ -124,6 +130,18 @@ public:
     
     /** @brief Get Compressibility - 1/pa   $C_$ */
     REAL Getc(){return this->fc ;}
+    
+    /** @brief Set the irreducible Saturation of the wetting phase - */
+    void SetS_wett_r(REAL S_w_r) {fS_wett_r = S_w_r;}
+    
+    /** @brief Get the irreducible Saturation of the wetting phase - */
+    REAL GetS_wett_r() {return fS_wett_r;}
+    
+    /** @brief Set the irreducible Saturation of the no wetting phase - */
+    void SetS_nwett_r(REAL S_nw_r) {fS_nwett_r = S_nw_r;}
+    
+    /** @brief Get the irreducible Saturation of the no wetting phase - */
+    REAL GetS_nwett_r() {return fS_nwett_r;}
     
 };
 

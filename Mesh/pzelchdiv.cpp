@@ -75,6 +75,14 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
     {
         fSideOrient[side-firstside] = this->Reference()->NormalOrientation(side);
     }
+    TPZMaterial *mat = this->Material();
+    if (mat)
+    {
+        int order = mat->IntegrationRuleOrder(MaxOrder());
+        TPZManVector<int,3> ord(gel->Dimension(),order);
+        this->fIntRule.SetOrder(ord);
+    }
+
     
 }
 

@@ -89,11 +89,12 @@ private:
     /** @brief unknowns for n+1 time step */
     TPZFMatrix<REAL> falphaAtnplusOne;
     
-    /** @brief Store DOF associated with Constant Saturations */
-    TPZManVector<long> fConstantSaturations;
+    /** @brief Store DOF associated with active */
+    TPZManVector<long> fActiveEquations;
     
-    /** @brief Store DOF associated with  Saturation gradients */
-    TPZManVector<long> fGradientSaturations;
+    /** @brief Store DOF associated with  non active */
+    TPZManVector<long> fNonactiveEquations;
+    
     
     
 public:
@@ -277,11 +278,6 @@ public:
     void PrintCmesh();
     
     /**
-     * Create the computational continuous mesh
-     */
-    void CmeshH1(int porder);
-    
-    /**
      * Create the computational mixed
      */
     void CreateMultiphysicsMesh(int q, int p, int s);
@@ -359,17 +355,17 @@ public:
     /**
      * Computes the inverse of the Global matrix
      */
-    static REAL S_Newton(REAL x, REAL t, REAL u, REAL phi, REAL s_shok, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL epsilon);
+    static REAL S_Newton(REAL x, REAL t, REAL u, REAL Swr, REAL Sor, REAL phi, REAL s_shok, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL rho_beta, REAL epsilon);
     
     /**
      * Computes the inverse of the Global matrix
      */
-    static REAL dfdsw( REAL Sw, REAL muo,REAL muw);
+    static REAL dfdsw(REAL Sw, REAL Swr, REAL Sor, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL rho_beta);
     
     /**
      * Computes the inverse of the Global matrix
      */
-    static REAL df2dsw( REAL Sw, REAL muo,REAL muw);
+    static REAL df2dsw(REAL Sw, REAL Swr, REAL Sor, REAL mu_alpha, REAL mu_beta, REAL rho_alpha, REAL rho_beta);
     
     /**
      * Computes the inverse of the Global matrix
@@ -425,6 +421,9 @@ public:
      * Computes computational mesh for L2 projection
      */
     static void InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
+    
+
+
     
 };
 

@@ -78,7 +78,6 @@ int main(int argc, char *argv[])
   
   //PARAMETROS FISICOS DO PROBLEMA
   REAL freq = 1.0e9;
-  REAL lambda=M_C/freq;
   //PARAMETROS DA GEOMETRIA
   REAL hDomain = 3.2e-3;
   REAL wDomain = 20.0e-3;

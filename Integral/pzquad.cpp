@@ -147,7 +147,7 @@ int TPZIntQuad::NPoints() const {
 void TPZIntQuad::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
     
 #ifdef PZDEBUG
-    if(pos.size() != 2)
+    if(pos.size() == 1 || pos.size() > 3 )
     {
         DebugStop();
     }

@@ -151,11 +151,23 @@ private:
     /** @brief Is three-phase flow? */
     bool fIsThreePhaseQ;
     
+    /** @brief Using the Linear grativational segregation model */
+    bool fIsLinearSegregationsQ;
+    
+    /** @brief Is axisymmetric analysis */
+    bool fIsAxisymmetricQ;
+    
     /** @brief Gravity  */
     TPZFMatrix<REAL> fGravity;
     
     /** @brief Counterclockwise rotation angle [degrees] */
     REAL fAngle;
+    
+    /** @brief Store time values to be reported */
+    TPZManVector<REAL> fTimesToPrint;
+
+    /** @brief Number of sub times steps per dt */
+    int fn_sub_dt;
     
 public:
     
@@ -399,6 +411,9 @@ public:
             case 2:
             {
                 fIsTwoPhaseQ = true;
+                
+                
+                
             }
                 break;
             case 3:
@@ -426,6 +441,18 @@ public:
     /** @brief Three-phasic system */
     bool IsThreePhaseQ() {return fIsThreePhaseQ;}
     
+    /** @brief Set the use of the Linear grativational segregation model */
+    void SetLinearSegregationQ(bool linearsegregation) {fIsLinearSegregationsQ = linearsegregation;}
+    
+    /** @brief Is it using the Linear grativational segregation model */
+    bool IsLinearSegregationQ() {return fIsLinearSegregationsQ;}
+    
+    /** @brief Set the use of axisymmetric analysis */
+    void SetAxisymmetricQ(bool IsAxisymmetric) {fIsAxisymmetricQ = IsAxisymmetric;}
+    
+    /** @brief Is it using axisymmetric analysis */
+    bool IsAxisymmetricQ() {return fIsAxisymmetricQ;}
+    
     /** @brief Definition of the flow system one - two and  ... three phase */
     TPZStack<std::string> GetsystemType() {return fSystemType;}
     
@@ -434,6 +461,30 @@ public:
     
     /** @brief Counterclockwise rotation angle [degrees] */
     REAL GetRotationAngle() {return this->fAngle;}
+    
+    /**
+     * Set time values to be reported
+     */
+    void SetTimes(TPZManVector<REAL> TimesToPrint){
+        fTimesToPrint = TimesToPrint;
+    }
+    
+    /**
+     * Get time values to be reported
+     */
+    TPZManVector<REAL>GetTimes(){
+        return fTimesToPrint;
+    }
+    
+    /** @brief Set the number of sub times steps per dt */
+    void SetNSubSteps(int n_sub_dt){
+        fn_sub_dt = n_sub_dt;
+    }
+    
+    /** @brief Get the number of sub times steps per dt */
+    int GetNSubSteps(){
+        return fn_sub_dt;
+    }
     
 };
 

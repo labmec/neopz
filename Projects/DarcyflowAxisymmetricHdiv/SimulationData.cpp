@@ -116,8 +116,17 @@ SimulationData::SimulationData()
     /** @brief Is three-phase flow? */
     fIsThreePhaseQ = false;
     
+    /** @brief Using the Linear grativational segregation model */
+    fIsLinearSegregationsQ = true;
+    
+    /** @brief Is axisymmetric analysis */
+    fIsAxisymmetricQ = false;
+    
     /** @brief Counterclockwise rotation angle */
     fAngle = 0.0;
+    
+    /** @brief Store time values to be reported */
+    fTimesToPrint.Resize(0);
     
 }
 
