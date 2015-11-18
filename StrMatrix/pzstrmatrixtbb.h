@@ -16,6 +16,7 @@
 #include "TPZSemaphore.h"
 #include "pzequationfilter.h"
 #include "TPZGuiInterface.h"
+#include <list>
 
 class TPZCompMesh;
 template<class TVar>
@@ -151,6 +152,56 @@ protected:
     
 #ifdef USING_TBB
     
+    class TPZAssembleTask : public tbb::flow::continue_receiver {
+    public:
+        
+        TPZAssembleTask(const int &npredecessors, std::vector<std::list<long> > *sucessors, TPZStructMatrixTBB *strmat, TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix = 0) :
+        tbb::flow::continue_receiver(npredecessors), mSucessors(sucessors), fStruct(strmat), fGlobRhs(rhs), fGlobMatrix(matrix)
+        {}
+        
+        ~TPZAssembleTask() {}
+        
+        tbb::task *execute();
+        
+        std::vector<std::list<long> > *mSucessors;
+        
+        /// current structmatrix object
+        TPZStructMatrixTBB *fStruct;
+        
+        /// global rhs vector
+        TPZFMatrix<STATE> *fGlobRhs;
+
+        
+        /// global matrix
+        TPZMatrix<STATE> *fGlobMatrix;
+        
+        TPZElementMatrix ek;
+        TPZElementMatrix ef;
+        long iel;
+        std::vector<TPZAssembleTask* > *fAssembleNodes;
+        
+       
+    };
+
+    class TPZCalcTask {
+    public:
+        
+        TPZCalcTask(bool const &global, TPZStructMatrixTBB *str, TPZVec<int> *elseq, std::vector<TPZAssembleTask* > *sucessors) :
+        hasGlobalMatrix(global), fStruct(str), cMesh(str->Mesh()), felSequenceColor(elseq), fAssembleNodes(sucessors) {}
+                                               
+        void operator()(const tbb::blocked_range<long>& range) const;
+      
+        
+    private:
+        bool hasGlobalMatrix;
+        TPZStructMatrixTBB *fStruct;
+        TPZCompMesh *cMesh;
+        TPZVec<int> *felSequenceColor;
+        std::vector<TPZAssembleTask* > *fAssembleNodes;
+    };
+    
+  
+    
     class TPZFlowGraph {
     public:
         TPZFlowGraph(TPZStructMatrixTBB *strmat);
@@ -163,9 +214,10 @@ protected:
         
         TPZCompMesh *cmesh;
         
-        tbb::flow::graph fGraph;
-        tbb::flow::broadcast_node<tbb::flow::continue_msg> fStartNode;
-        std::vector<tbb::flow::continue_node<tbb::flow::continue_msg>* > fNodes;
+        std::vector<TPZAssembleTask* > fNodes;
+        
+        std::vector<std::list<long> > nextTasks;
+        std::vector<long> predecessorTasks;
         
         void OrderElements();
         void ElementColoring();
@@ -181,64 +233,12 @@ protected:
         /// global rhs vector
         TPZFMatrix<STATE> *fGlobRhs;
     };
-    
-    class TPZFlowNode {
-    public:
-        TPZFlowNode(TPZFlowGraph *graph, int el):
-        myGraph(graph), iel(el) {};
-        
-        ~TPZFlowNode() {};
-        
-        void operator()(tbb::flow::continue_msg) const;
 
-        TPZFlowGraph *myGraph;
-
-        /// element to be processed by this node
-        int iel;
-
-        
-    };
-    
-    
-    struct TPZGraphThreadData {
-        // copy constructor
-        TPZGraphThreadData(TPZCompMesh *cmesh, TPZVec<int> &fnextBlocked, TPZVec<int> &felSequenceColor, TPZVec<int> &felSequenceColorInv);
-        // destructor
-        ~TPZGraphThreadData();
-        // tbb tasks graph
-        tbb::flow::graph fAssembleGraph;
-        // initial node
-        tbb::flow::broadcast_node<tbb::flow::continue_msg> fStart;
-        // store all the nodes
-        std::vector<tbb::flow::continue_node<tbb::flow::continue_msg>* > fGraphNodes;
-        // vector for coloring mesh
-        TPZVec<int> felSequenceColor;
-        
-        
-        
-        /// current structmatrix object
-        TPZStructMatrixTBB *fStruct;
-        /// gui interface object
-        TPZAutoPointer<TPZGuiInterface> fGuiInterface;
-        /// global matrix
-        TPZMatrix<STATE> *fGlobMatrix;
-        /// global rhs vector
-        TPZFMatrix<STATE> *fGlobRhs;
-    };
-    
-    struct TPZGraphThreadNode {
-        TPZGraphThreadData *data;
-        int iel;
-        TPZGraphThreadNode(TPZGraphThreadData *data, int el)
-        : data(data), iel(el) {}
-        void operator()(tbb::flow::continue_msg) const;
-    };
-    
 #endif
-    
+
 
 protected:
-    
+
     /** @brief Pointer to the computational mesh from which the matrix will be generated */
     TPZCompMesh * fMesh;
     /** @brief Autopointer control of the computational mesh */

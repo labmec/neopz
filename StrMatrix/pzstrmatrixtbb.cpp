@@ -48,6 +48,7 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the graph creation, coloring and tbb::flow::graph TPZStructMatrixTBB.");
 
 
+
 TPZStructMatrixTBB::TPZStructMatrixTBB(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
     fMesh = mesh;
     this->SetNumThreads(0);
@@ -80,11 +81,11 @@ TPZStructMatrixTBB::TPZStructMatrixTBB(const TPZStructMatrixTBB &copy) : fMesh(c
 
 TPZStructMatrixTBB::~TPZStructMatrixTBB()
 {
-#ifdef USING_TBB
-    if (fFlowGraph) {
-        delete fFlowGraph;
-    }
-#endif
+//#ifdef USING_TBB
+//    if (fFlowGraph) {
+//        delete fFlowGraph;
+//    }
+//#endif
 }
 
 TPZMatrix<STATE> *TPZStructMatrixTBB::Create() {
@@ -390,7 +391,7 @@ void TPZStructMatrixTBB::TPZFlowGraph::ElementColoring()
 }
 
 TPZStructMatrixTBB::TPZFlowGraph::TPZFlowGraph(TPZStructMatrixTBB *strmat)
-: cmesh(strmat->Mesh()), fStartNode(fGraph), fStruct(strmat), fGlobMatrix(0), fGlobRhs(0)
+: cmesh(strmat->Mesh()), fStruct(strmat), fGlobMatrix(0), fGlobRhs(0)
 {
     this->OrderElements();
     this->ElementColoring();
@@ -399,181 +400,6 @@ TPZStructMatrixTBB::TPZFlowGraph::TPZFlowGraph(TPZStructMatrixTBB *strmat)
 
 TPZStructMatrixTBB::TPZFlowGraph::~TPZFlowGraph()
 {
-    for (int k = 0; k < fNodes.size(); ++k) {
-        delete fNodes[k];
-    }
-    
-}
-
-void TPZStructMatrixTBB::TPZFlowGraph::ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix)
-{
-    
-    this->fGlobMatrix = matrix;
-    this->fGlobRhs = rhs;
-    this->fStartNode.try_put(tbb::flow::continue_msg());
-    this->fGraph.wait_for_all();
-    
-}
-
-TPZStructMatrixTBB::TPZFlowGraph::TPZFlowGraph(TPZFlowGraph const &copy)
-: cmesh(copy.fStruct->Mesh()), fStartNode(fGraph), fStruct(copy.fStruct), fGlobMatrix(0), fGlobRhs(0)
-{
-    this->fnextBlocked = copy.fnextBlocked;
-    this->felSequenceColor = copy.felSequenceColor;
-    this->felSequenceColorInv = copy.felSequenceColorInv;
-    this->fElementOrder = copy.fElementOrder;
-    this->CreateGraph();
-}
-
-void TPZStructMatrixTBB::TPZFlowNode::operator()(tbb::flow::continue_msg) const
-{
-    TPZCompMesh *cmesh = myGraph->fStruct->Mesh();
-    TPZAutoPointer<TPZGuiInterface> guiInterface = myGraph->fGuiInterface;
-    TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
-    TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
-        std::stringstream sout;
-        sout << "Computing element " << iel;
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-#ifdef LOG4CXX
-    std::stringstream sout;
-    sout << "Element " << iel << " elapsed time ";
-    TPZTimer timeforel(sout.str());
-    timeforel.start();
-#endif
-    
-    int element = myGraph->felSequenceColor[iel];
-    
-    if (element >= 0){
-        
-        TPZCompEl *el = cmesh->ElementVec()[element];
-        
-        if(!el) return;
-        
-        if (myGraph->fGlobMatrix)
-            el->CalcStiff(ek,ef);
-        else
-            el->CalcResidual(ef);
-        
-        if(!el->HasDependency()) {
-            
-            if (myGraph->fGlobMatrix) {
-                ek.ComputeDestinationIndices();
-                myGraph->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-            } else {
-                ef.ComputeDestinationIndices();
-                myGraph->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
-            }
-            
-        } else {
-            // the element has dependent nodes
-            if (myGraph->fGlobMatrix) {
-                ek.ApplyConstraints();
-                ef.ApplyConstraints();
-                ek.ComputeDestinationIndices();
-                myGraph->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-            } else {
-                ef.ApplyConstraints();
-                ef.ComputeDestinationIndices();
-                myGraph->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
-            }
-            
-        }
-        
-        
-        if(myGraph->fGlobMatrix) {
-            // assemble the matrix
-            if(!ek.HasDependency()) {
-                myGraph->fGlobMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                myGraph->fGlobRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-            } else {
-                myGraph->fGlobMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                myGraph->fGlobRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-            }
-        } else {
-            if(!ef.HasDependency()) {
-                myGraph->fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
-            } else {
-                myGraph->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
-            }
-        }
-        
-    } // outsided if
-    
-#ifdef LOG4CXX
-    timeforel.stop();
-    if (logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        sout << timeforel.processName() <<  timeforel;
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-
-}
-
-void TPZStructMatrixTBB::TPZFlowGraph::CreateGraph()
-{
-    long nelem = cmesh->NElements();
-    long nconnects = cmesh->NConnects();
-    long numberOfElements=felSequenceColor.NElements();
-    this->felSequenceColor=felSequenceColor;
-    
-    // each graphnode represents an element that can be computed and assembled
-    fNodes.resize(felSequenceColor.NElements());
-    for (long i=0; i<felSequenceColor.NElements(); i++) {
-        fNodes[i]= new tbb::flow::continue_node<tbb::flow::continue_msg>(fGraph, TPZFlowNode(this, i));
-    }
-    TPZVec<long> elementloaded(nconnects,-1);
-    
-    for (long graphindex = 0; graphindex<numberOfElements; graphindex++) {
-        long el = felSequenceColor[graphindex];
-        TPZCompEl *cel = cmesh->Element(el);
-        if (!cel) {
-            continue;
-        }
-        TPZStack<long> connects;
-        cel->BuildConnectList(connects);
-        int ngraphs = 0;
-        std::set<long> fromwhere;
-        for (int ic=0; ic<connects.size(); ic++) {
-            long c = connects[ic];
-            if (elementloaded[c] != -1) {
-                long elorig = elementloaded[c];
-                // in order to compute only once
-                if (fromwhere.find(elorig) == fromwhere.end()) {
-#ifdef LOG4CXX
-                    if (logger->isDebugEnabled()) {
-                        std::stringstream sout;
-                        sout << "Adding edge from " << elorig << " to " << graphindex;
-                        LOGPZ_DEBUG(logger, sout.str())
-                    }
-#endif
-                    make_edge(*fNodes[elorig], *fNodes[graphindex]);
-                }
-                fromwhere.insert(elorig);
-                ngraphs++;
-            }
-        }
-        if (ngraphs == 0) {
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
-                std::stringstream sout;
-                sout << "Setting start element " << graphindex;
-                LOGPZ_DEBUG(logger, sout.str())
-            }
-#endif
-            
-            make_edge(fStartNode, *fNodes[graphindex]);
-        }
-        for (int ic=0; ic<connects.size(); ic++) {
-            long c = connects[ic];
-            elementloaded[c] = graphindex;
-        }
-    }
     
 }
 
@@ -666,4 +492,268 @@ void TPZStructMatrixTBB::TPZFlowGraph::OrderElements()
     fElementOrder.Resize(seq);
 }
 
+TPZStructMatrixTBB::TPZFlowGraph::TPZFlowGraph(TPZFlowGraph const &copy)
+: cmesh(copy.fStruct->Mesh()), fStruct(copy.fStruct), fGlobMatrix(0), fGlobRhs(0)
+{
+    this->fnextBlocked = copy.fnextBlocked;
+    this->felSequenceColor = copy.felSequenceColor;
+    this->felSequenceColorInv = copy.felSequenceColorInv;
+    this->fElementOrder = copy.fElementOrder;
+    this->CreateGraph();
+}
+
+
+void TPZStructMatrixTBB::TPZFlowGraph::CreateGraph()
+{
+    long nelem = cmesh->NElements();
+    long nconnects = cmesh->NConnects();
+    long numberOfElements=felSequenceColor.NElements();
+    this->felSequenceColor=felSequenceColor;
+
+    TPZVec<long> elementloaded(nconnects,-1);
+    
+
+    nextTasks.resize(numberOfElements);
+    predecessorTasks.resize(numberOfElements, 1);
+
+
+    for (long graphindex = 0; graphindex<numberOfElements; graphindex++) {
+        long el = felSequenceColor[graphindex];
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        TPZStack<long> connects;
+        cel->BuildConnectList(connects);
+        std::set<long> fromwhere;
+        for (int ic=0; ic<connects.size(); ic++) {
+            long c = connects[ic];
+            if (elementloaded[c] != -1) {
+                long elorig = elementloaded[c];
+                // in order to compute only once
+                if (fromwhere.find(elorig) == fromwhere.end()) {
+#ifdef LOG4CXX
+                    if (logger->isDebugEnabled()) {
+                        std::stringstream sout;
+                        sout << "Adding edge from " << elorig << " to " << graphindex;
+                        LOGPZ_DEBUG(logger, sout.str())
+                    }
 #endif
+                    
+                    nextTasks[elorig].push_back(graphindex);
+                    predecessorTasks[graphindex] += 1;
+//                    make_edge(*fNodes[elorig], *fNodes[graphindex]);
+                }
+                fromwhere.insert(elorig);
+            }
+        }
+
+        for (int ic=0; ic<connects.size(); ic++) {
+            long c = connects[ic];
+            elementloaded[c] = graphindex;
+        }
+    }
+    
+}
+
+
+void TPZStructMatrixTBB::TPZFlowGraph::ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix)
+{
+    
+    this->fGlobMatrix = matrix;
+    this->fGlobRhs = rhs;
+    
+    fNodes.resize(felSequenceColor.size());
+    for (long index = 0; index < felSequenceColor.size(); ++index) {
+        fNodes[index] = new TPZAssembleTask(predecessorTasks[index], &nextTasks, fStruct, fGlobRhs, fGlobMatrix);
+        fNodes[index]->iel = index;
+        fNodes[index]->fAssembleNodes = &fNodes;
+    }
+    
+    TPZCalcTask calcTasks(fGlobMatrix, fStruct, &felSequenceColor, &fNodes);
+    parallel_for(tbb::blocked_range<long>(0, felSequenceColor.size()), calcTasks );
+    
+    
+    for (long index = 0; index < felSequenceColor.size(); ++index)
+        delete fNodes[index];
+    
+}
+tbb::task* TPZStructMatrixTBB::TPZAssembleTask::execute()
+{
+    if(fGlobMatrix) {
+        // assemble the matrix
+        if(!ek.HasDependency()) {
+            fGlobMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+            fGlobRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+        } else {
+            fGlobMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+            fGlobRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+        }
+    } else {
+        if(!ef.HasDependency()) {
+            fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+        } else {
+            fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+        }
+    }
+    
+    for (std::list<long>::iterator it = (*mSucessors)[iel].begin(); it != (*mSucessors)[iel].end(); it++) {
+        int index = *it;
+        if (index >= (*fAssembleNodes).size())
+            DebugStop();
+        
+        (*fAssembleNodes)[*it]->try_put(tbb::flow::continue_msg());
+    }
+    
+    return NULL;
+}
+
+void TPZStructMatrixTBB::TPZCalcTask::operator()(const tbb::blocked_range<long>& range) const
+{
+    TPZElementMatrix ek(cMesh, TPZElementMatrix::EK);
+    TPZElementMatrix ef(cMesh, TPZElementMatrix::EF);
+    
+    for(int iel = range.begin(); iel != range.end(); ++iel) {
+        
+        int element = (*felSequenceColor)[iel];
+        
+        if (element < 0) continue;
+        
+        TPZCompEl *el = cMesh->ElementVec()[element];
+        
+        if(!el) continue;
+        
+        if (hasGlobalMatrix)
+            el->CalcStiff(ek,ef);
+        else
+            el->CalcResidual(ef);
+        
+        if(!el->HasDependency()) {
+            
+            if (hasGlobalMatrix) {
+                ek.ComputeDestinationIndices();
+                fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+            } else {
+                ef.ComputeDestinationIndices();
+                fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+            }
+            
+        } else {
+            // the element has dependent nodes
+            if (hasGlobalMatrix) {
+                ek.ApplyConstraints();
+                ef.ApplyConstraints();
+                ek.ComputeDestinationIndices();
+                fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+            } else {
+                ef.ApplyConstraints();
+                ef.ComputeDestinationIndices();
+                fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+            }
+        }
+        
+        (*fAssembleNodes)[iel]->ek = ek;
+        (*fAssembleNodes)[iel]->ef = ef;
+        (*fAssembleNodes)[iel]->try_put(tbb::flow::continue_msg());
+        
+    }
+} // operator()
+
+#endif
+
+//
+//
+//void TPZStructMatrixTBB::TPZFlowNode::operator()(tbb::flow::continue_msg) const
+//{
+//    TPZCompMesh *cmesh = myGraph->fStruct->Mesh();
+//    TPZAutoPointer<TPZGuiInterface> guiInterface = myGraph->fGuiInterface;
+//    TPZElementMatrix ek(cmesh, TPZElementMatrix::EK);
+//    TPZElementMatrix ef(cmesh, TPZElementMatrix::EF);
+//#ifdef LOG4CXX
+//    if (logger->isDebugEnabled()) {
+//        std::stringstream sout;
+//        sout << "Computing element " << iel;
+//        LOGPZ_DEBUG(logger, sout.str())
+//    }
+//#endif
+//#ifdef LOG4CXX
+//    std::stringstream sout;
+//    sout << "Element " << iel << " elapsed time ";
+//    TPZTimer timeforel(sout.str());
+//    timeforel.start();
+//#endif
+//    
+//    int element = myGraph->felSequenceColor[iel];
+//    
+//    if (element >= 0){
+//        
+//        TPZCompEl *el = cmesh->ElementVec()[element];
+//        
+//        if(!el) return;
+//        
+//        if (myGraph->fGlobMatrix)
+//            el->CalcStiff(ek,ef);
+//        else
+//            el->CalcResidual(ef);
+//        
+//        if(!el->HasDependency()) {
+//            
+//            if (myGraph->fGlobMatrix) {
+//                ek.ComputeDestinationIndices();
+//                myGraph->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+//            } else {
+//                ef.ComputeDestinationIndices();
+//                myGraph->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+//            }
+//            
+//        } else {
+//            // the element has dependent nodes
+//            if (myGraph->fGlobMatrix) {
+//                ek.ApplyConstraints();
+//                ef.ApplyConstraints();
+//                ek.ComputeDestinationIndices();
+//                myGraph->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+//            } else {
+//                ef.ApplyConstraints();
+//                ef.ComputeDestinationIndices();
+//                myGraph->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+//            }
+//            
+//        }
+//        
+//        
+//        if(myGraph->fGlobMatrix) {
+//            // assemble the matrix
+//            if(!ek.HasDependency()) {
+//                myGraph->fGlobMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+//                myGraph->fGlobRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+//            } else {
+//                myGraph->fGlobMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+//                myGraph->fGlobRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+//            }
+//        } else {
+//            if(!ef.HasDependency()) {
+//                myGraph->fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+//            } else {
+//                myGraph->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+//            }
+//        }
+//        
+//    } // outsided if
+//    
+//#ifdef LOG4CXX
+//    timeforel.stop();
+//    if (logger->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        sout << timeforel.processName() <<  timeforel;
+//        LOGPZ_DEBUG(logger, sout.str())
+//    }
+//#endif
+//
+//}
+//
+
+//
+//
+//#endif

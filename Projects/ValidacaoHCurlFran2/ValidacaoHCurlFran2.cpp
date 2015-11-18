@@ -52,6 +52,8 @@ void Parametricfunction2(const TPZVec<REAL> &par, TPZVec<REAL> &X);
 
 TPZGeoMesh *CreateTriangularGMesh(const REAL hDomain, const REAL wDomain, const int xDiv, const int yDiv, int &indexRBC);
 
+void FlipTriangles(TPZGeoMesh *gmesh, int nx);
+
 /**
  * @brief Creates gmesh corresponding to the simple domain
  * @param hDomain height of the simulation domain
@@ -68,19 +70,19 @@ TPZGeoMesh *CreateZigZagGMesh(const REAL hDomain, const REAL wDomain, const int 
  * @param er relative permittivity of the dielectric
  * @param freq frequency of the plane-wave
  */
-TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>), REAL freq, REAL theta, REAL e0, REAL lambda);
+TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (*ur)( TPZVec<REAL> &),STATE (*er)( TPZVec<REAL> &), REAL freq, REAL theta, REAL e0, REAL lambda, REAL scale);
 
 /**
  * @brief Implements permeability of possibly inhomongeneous media
  * @param x spatial coordinates
  */
-inline STATE urSubs(TPZVec<REAL> x);
+inline STATE urSubs(TPZVec<REAL> &x);
 
 /**
  * @brief Implements permittivity of possibly inhomongeneous media
  * @param x spatial coordinates
  */
-inline STATE erSubs(TPZVec<REAL> x);
+inline STATE erSubs(TPZVec<REAL> &x);
 
 void ExportCSV(const TPZFMatrix<STATE> matriz, const char* name);
 
@@ -98,8 +100,9 @@ int main(int argc, char *argv[])
   REAL theta = 0.;
   REAL e0 = 1.;
   //PARAMETROS DA GEOMETRIA
-  REAL hDomain = 5*lambda;
-  REAL wDomain = 5*lambda;
+    REAL hDomain = 1.;//5*lambda;
+    REAL wDomain = 1.;//5*lambda;
+    REAL scale = 1./(5.*lambda);
 //  REAL hDomain = 1;
 //  REAL wDomain = 1;
   //PARAMETROS DE SIMULACAO
@@ -118,7 +121,7 @@ int main(int argc, char *argv[])
   TPZGeoMesh *gmesh = new TPZGeoMesh();
 	CreateGMesh(gmesh, meshType, hDomain, wDomain, x0, z0, xDiv, zDiv, indexRBC);
   
-  TPZCompMesh *cmesh = CMesh(gmesh, pOrder, urSubs , erSubs , freq, theta, e0,lambda); //funcao para criar a malha computacional
+  TPZCompMesh *cmesh = CMesh(gmesh, pOrder, urSubs , erSubs , freq, theta, e0, lambda, scale); //funcao para criar a malha computacional
   bool optimizeBandwidth = false;
   TPZAnalysis an(cmesh,optimizeBandwidth);
   //configuracoes do objeto de analise
@@ -138,7 +141,7 @@ int main(int argc, char *argv[])
   vecnames.Push("realE");//setando para imprimir campoeletrico
   std::string plotfile= "../ValidacaoHCurlFran2EField.vtk";//arquivo de saida que estara na pasta debug
   an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
-  int postProcessResolution = 4 ;//define resolucao do pos processamento
+  int postProcessResolution = 1 ;//define resolucao do pos processamento
   //fim das configuracoes do objeto de analise
   
   int nIteracoes = 1;
@@ -497,7 +500,7 @@ TPZGeoMesh *CreateZigZagGMesh(const REAL hDomain, const REAL wDomain, const int 
   return gmesh;
 }
 
-TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>), REAL freq, REAL theta, REAL e0, REAL lambda)
+TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (*ur)( TPZVec<REAL> &),STATE (*er)( TPZVec<REAL> &), REAL freq, REAL theta, REAL e0, REAL lambda, REAL scale)
 {
   const int dim = 2; //dimensao do problema
   const int matId = 1; //define id para um material(formulacao fraca)
@@ -505,7 +508,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),ST
   const int bc1 = -2; //define id para um material(cond contorno mista)
 	enum{ dirichlet = 0, neumann, mixed}; //tipo da condicao de contorno do problema
   // Criando material
-  TPZMatValidacaoHCurlFran2 *material = new TPZMatValidacaoHCurlFran2(matId,freq, ur,er, theta);//criando material que implementa a formulacao fraca do problema de validacao
+  TPZMatValidacaoHCurlFran2 *material = new TPZMatValidacaoHCurlFran2(matId,freq, ur,er, theta, scale);//criando material que implementa a formulacao fraca do problema de validacao
   
   ///criar malha computacional
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
@@ -536,12 +539,12 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),ST
   return cmesh;
 }
 
-inline STATE urSubs(TPZVec<REAL> x)
+inline STATE urSubs(TPZVec<REAL> &x)
 {
   return ( 2.-imaginary*0.1 );
 }
 
-inline STATE erSubs(TPZVec<REAL> x)
+inline STATE erSubs(TPZVec<REAL> &x)
 {
   return ( 4.+(2.-imaginary*0.1)*(1.-x[0]/(5*1550*1e-9))*(1.-x[0]/(5*1550*1e-9)) );
 }
@@ -561,3 +564,4 @@ void ExportCSV(const TPZFMatrix<STATE> matriz, const char* name)
 	}
 	file.close();
 }
+

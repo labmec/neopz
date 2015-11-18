@@ -96,11 +96,11 @@ int main(int argc, char *argv[])
   //PARAMETROS DE SIMULACAO
   int pOrder = 1; //ordem polinomial de aproximacao
   int dim = 2;
-  int xDiv = 16;
-  int yDiv = 16;
+  int xDiv = 1;
+  int yDiv = 1;
   
   rotationMatrix.Identity();
-  const bool rotating = true;
+  const bool rotating = false;
   if ( rotating)
   {
     const double thetaRot = M_PI_4;
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
   
   timer.start();
   enum meshType{ createRectangular, createTriangular, createZigZag};
-  const int mesh = createTriangular;
+  const int mesh = createRectangular;
   
   TPZGeoMesh *gmesh = new TPZGeoMesh();
   CreateGMesh(gmesh, mesh, hDomain, wDomain, x0, y0, xDiv, yDiv); 
