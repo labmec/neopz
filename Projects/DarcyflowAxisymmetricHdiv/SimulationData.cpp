@@ -60,7 +60,7 @@ SimulationData::SimulationData()
     fIsCG = false;
     
     /** @brief Broyden iterations */
-    fIsBroyden = false;
+    fIsPicard = false;
     
     /** @brief Define the use of static condensation */
     fCondenseElements = false;
@@ -121,6 +121,9 @@ SimulationData::SimulationData()
     
     /** @brief Is axisymmetric analysis */
     fIsAxisymmetricQ = false;
+    
+    /** @brief Is Impes analysis */
+    fIsImpesQ = false;
     
     /** @brief Counterclockwise rotation angle */
     fAngle = 0.0;

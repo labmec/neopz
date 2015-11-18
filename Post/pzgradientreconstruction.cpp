@@ -28,7 +28,7 @@ using namespace std;
 
 TPZGradientReconstruction::TPZGradientReconstruction(bool distmesh, REAL param){
     
-    if (param != 1. && param !=2.) {
+    if ((param != 1. && param !=2.) && distmesh) {
         DebugStop();
     }
     fGradData = new TPZGradientData;
@@ -306,7 +306,7 @@ void TPZGradientReconstruction::TPZGradientData::SetCel(TPZCompEl * cel, bool us
     
     ComputeGradient();
     
-    ComputeSlopeLimiter2();
+    ComputeSlopeLimiter3();
 }
 
 void TPZGradientReconstruction::TPZGradientData::Print(std::ostream &out) const

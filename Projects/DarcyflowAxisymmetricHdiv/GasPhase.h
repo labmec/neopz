@@ -60,16 +60,16 @@ public:
     /** @brief viscosity - Pa s  $\mu$ */
     void Viscosity(TPZManVector<REAL> &mu, TPZManVector<REAL> state_vars);
     
-    /** @brief viscosity - Pa s  $\mu$ */
+    /** @brief viscosity standar - Pa s  $\mu$ */
     REAL Viscosity_std();
     
     /** @brief Compressibility - 1/pa $c$ */
     void Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_vars);
     
-    /** @brief Kr - $k_{r}$ */
+    /** @brief Relative permeability - $k_{r}$ */
     void Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars);
     
-    /** @brief Pc - $P_{c}$ */
+    /** @brief Capillar pressure - $P_{c}$ */
     void Pc(TPZManVector<REAL> &pc, TPZManVector<REAL> state_vars);
     
     /** @brief Computes the pseudo critic pressure of Gas $ */

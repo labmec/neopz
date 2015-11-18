@@ -39,10 +39,10 @@ private:
      * @since December 08, 2014
      */
     
-    /** @brief Delta t - s */
+    /** @brief Delta time - s */
     REAL fDeltaT;
     
-    /** @brief Max Time - s */
+    /** @brief Max time - s */
     REAL fMaxTime;
     
     /** @brief Time - s */
@@ -54,7 +54,7 @@ private:
     /** @brief Number of threads for assembly */
     int fnthreads;
     
-    /** @brief Maximum number of newton iterations */
+    /** @brief Number of fixed jacobian */
     int fFixedJacobianIterations;
     
     /** @brief DeltaX tolerance for newton iterations */
@@ -87,9 +87,8 @@ private:
     /** @brief Use of Conjugated Gradient method */
     bool fIsCG;
     
-    
-    /** @brief Broyden iterations */
-    bool fIsBroyden;
+    /** @brief Picard iterations */
+    bool fIsPicard;
     
     /** @brief Define the use of a linear approxiamtion of S using a gradient reconstruction procedure */
     bool fUseGR;
@@ -103,28 +102,28 @@ private:
     /** @brief State: n or n+1 temporal state */
     bool fnStep;
     
-    /** @brief State: n or n+1 temporal state */
+    /** @brief Number of elements, x direction */
     int fNelmx;
     
-    /** @brief State: n or n+1 temporal state */
+    /** @brief Number of elements, y direction  */
     int fNelmy;
     
-    /** @brief State: n or n+1 temporal state */
+    /** @brief Length of elements, x direction */
     REAL fLengthElementx;
     
-    /** @brief State: n or n+1 temporal state */
+    /** @brief Length of elements, y direction */
     REAL fLengthElementy;
     
-    /** @brief Definition of the Top bc */
+    /** @brief Definition of the Top bc initial */
     TPZVec<REAL> fTopBCini;
     
-    /** @brief Definition of the Bottom bc */
+    /** @brief Definition of the Bottom bc initial*/
     TPZVec<REAL> fBottomBCini;
     
-    /** @brief Definition of the Right bc */
+    /** @brief Definition of the Right bc initial*/
     TPZVec<REAL> fRightBCini;
     
-    /** @brief Definition of the Left bc */
+    /** @brief Definition of the Left bc initial*/
     TPZVec<REAL> fLeftBCini;
     
     /** @brief Definition of the Top bc */
@@ -157,7 +156,10 @@ private:
     /** @brief Is axisymmetric analysis */
     bool fIsAxisymmetricQ;
     
-    /** @brief Gravity  */
+    /** @brief Is Impes analysis */
+    bool fIsImpesQ;
+    
+    /** @brief Gravity value */
     TPZFMatrix<REAL> fGravity;
     
     /** @brief Counterclockwise rotation angle [degrees] */
@@ -177,25 +179,25 @@ public:
     /** @brief Set Time step - s */
     void SetDeltaT(REAL DeltaT){this->fDeltaT = DeltaT;}
     
-    /** @brief Set nElements x -  */
+    /** @brief Set number of elements, x direction -  */
     void SetnElementsx (int Nelem){this-> fNelmx = Nelem;}
-    /** @brief Get nElements x -  */
+    /** @brief Get number of elements, x direction-  */
     int GetnElementsx (){return this-> fNelmx;}
     
     
-    /** @brief Set nElements x -  */
+    /** @brief Set number of elements, y direction -  */
     void SetnElementsy (int Nelem){this-> fNelmy = Nelem;}
-    /** @brief Get nElements x -  */
+    /** @brief Get number of elements, y direction -  */
     int GetnElementsy (){return this-> fNelmy;}
     
-    /** @brief Set LengthElementx  x -  */
+    /** @brief Set Length of elements  x direction-  */
     void SetLengthElementx (REAL LengthElementx){this-> fLengthElementx = LengthElementx;}
-    /** @brief Get LengthElementx  x -  */
+    /** @brief Get Length of elements  x direction- -  */
     REAL GetLengthElementx (){return this-> fLengthElementx;}
     
-    /** @brief Set LengthElementy  y -  */
+    /** @brief Set Length of elements  y direction -  */
     void SetLengthElementy (REAL LengthElementy){this-> fLengthElementy = LengthElementy;}
-    /** @brief Get LengthElementy  y -  */
+    /** @brief Get Length of elements  y direction -  */
     REAL GetLengthElementy (){return this-> fLengthElementy;}
     
     /** @brief Get Time step - s */
@@ -207,16 +209,16 @@ public:
     /** @brief Get Time - s */
     REAL GetTime() {return this->fTime;}
     
-    /** @brief Set Time - s */
+    /** @brief Set maximum time - s */
     void SetMaxTime(REAL MaxTime) {this->fMaxTime = MaxTime;}
     
-    /** @brief Get Time - s */
+    /** @brief Get maximum time - s */
     REAL GetMaxTime() {return this->fMaxTime;}
     
-    /** @brief Set Tolerance for  Delta X */
+    /** @brief Set tolerance for  delta X */
     void SetToleranceDX(REAL dxtol) {this->ftoleranceDeltaX = dxtol;}
     
-    /** @brief Get Tolerance for  Delta X */
+    /** @brief Get tolerance for delta X */
     REAL GetToleranceDX() {return this->ftoleranceDeltaX;}
     
     /** @brief Set Tolerance for  Residual vector */
@@ -237,28 +239,28 @@ public:
     /** @brief Get Number of threads for assembly */
     int GetNthreads() {return this->fnthreads;}
     
-    /** @brief Set Maximum newton iterations - - */
+    /** @brief Set number of fixed jacobian for newton iterations - - */
     void SetFixediterations(int Fixediterations){this->fFixedJacobianIterations = Fixediterations;}
     
-    /** @brief Get Maximum newton iterations - - */
+    /** @brief Get Maximum newton fixed jacobian iterations - - */
     int GetFixediterations() {return this->fFixedJacobianIterations;}
     
     /** @brief Set the Number of uniform mesh refinement */
     void SetHrefinement(int h){this->fHref = h;}
     
-    /** @brief Set the Number of uniform mesh refinement */
+    /** @brief Get the Number of uniform mesh refinement */
     int GetHrefinement() {return this->fHref;}
     
     /** @brief Set the Number of uniform mesh refinement in postprocessing */
     void SetHPostrefinement(int h){this->fHrefpost = h;}
     
-    /** @brief Set the Number of uniform mesh refinement in postprocessing */
+    /** @brief Get the Number of uniform mesh refinement in postprocessing */
     int GetHPostrefinement() {return this->fHrefpost;}
     
-    /** @brief Set the approximation order for velocity */
+    /** @brief Set the approximation order for flux */
     void Setqorder(int qp){this->fqorder = qp;}
     
-    /** @brief Get the approximation order for velocity */
+    /** @brief Get the approximation order for flux */
     int Getqorder() {return this->fqorder;}
     
     /** @brief Set the approximation order for pressure */
@@ -272,12 +274,9 @@ public:
     
     /** @brief Get the approximation order for saturations */
     int Getsorder() {return this->fsorder;}
-    
-    /** @brief Using Broyden iterations */
-    void SetIsBroyden(bool Broyden) {fIsBroyden = Broyden;}
-    
-    /** @brief Using Broyden iterations */
-    bool GetIsBroyden() {return fIsBroyden;}
+        
+    /** @brief Get using Broyden iterations */
+    bool GetIsPicard() {return fIsPicard;}
     
     /** @brief Set the use of direct Solver */
     void SetIsDirect(bool isdirect) {fIsDirect = isdirect;}
@@ -303,22 +302,22 @@ public:
     /** @brief Get the use of CG method (false is GMRES) */
     bool IsnStep() {return fnStep;}
     
-    /** @brief Using GR iterations */
+    /** @brief Set the use of GR iterations */
     void SetGR(bool GR) {fUseGR = GR;}
     
-    /** @brief Using GR iterations */
+    /** @brief Set the use of GR iterations */
     bool GetGR() {return fUseGR;}
     
-    /** @brief Using Static condensation */
+    /** @brief Set the use of Static condensation */
     void SetSC(bool SC) {fCondenseElements = SC;}
     
-    /** @brief Using Static condensation */
+    /** @brief Get the use of Static condensation */
     bool GetSC() {return fCondenseElements;}
     
-    /** @brief Using dimensionless formulation */
+    /** @brief Set the use of dimensionless formulation */
     void SetIsDimensionless(bool isdimensionless) {fIsDimensionless = isdimensionless;}
     
-    /** @brief Using dimensionless formulation */
+    /** @brief Get the use of dimensionless formulation */
     bool GetIsDimensionless() {return fIsDimensionless;}
     
     /** @brief Set Top bc */
@@ -338,7 +337,7 @@ public:
     /** @brief Get Top bc */
     TPZVec<REAL> GetTopBC(){return fTopBC;}
     
-    /** @brief Set Top bc */
+    /** @brief Set Bottom bc */
     void SetBottomBC(TPZVec<REAL> bottombcini, TPZVec<REAL> bottombc){
         
         if (bottombc.size() != 4 && bottombcini.size() != 4) {
@@ -349,10 +348,10 @@ public:
         fBottomBC = bottombc;
     }
     
-    /** @brief Get Top bc */
+    /** @brief Get Bottom initial bc */
     TPZVec<REAL> GetBottomBCini(){return fBottomBCini;}
     
-    /** @brief Get Top bc */
+    /** @brief Get Bottom bc */
     TPZVec<REAL> GetBottomBC(){return fBottomBC;}
     
     /** @brief Set Top bc */
@@ -366,13 +365,13 @@ public:
         fRightBC = rightbc;
     }
     
-    /** @brief Get Top bc */
+    /** @brief Get Right initial bc */
     TPZVec<REAL> GetRightBCini(){return fRightBCini;}
     
-    /** @brief Get Top bc */
+    /** @brief Get Right bc */
     TPZVec<REAL> GetRightBC(){return fRightBC;}
     
-    /** @brief Set Top bc */
+    /** @brief Set Left bc */
     void SetLeftBC(TPZVec<REAL> leftbcini, TPZVec<REAL> leftbc){
         
         if (leftbc.size() != 4 && leftbcini.size() != 4) {
@@ -383,19 +382,19 @@ public:
         fLeftBC = leftbc;
     }
     
-    /** @brief Get Top bc */
+    /** @brief Get Left initial bc */
     TPZVec<REAL> GetLeftBCini(){return fLeftBCini;}
     
-    /** @brief Get Top bc */
+    /** @brief Get Left bc */
     TPZVec<REAL> GetLeftBC(){return fLeftBC;}
     
-    /** @brief Set Gravity */
+    /** @brief Set gravity value */
     void SetGravity(TPZFMatrix< REAL > &gravity){
         
         fGravity = gravity;
     }
     
-    /** @brief Get Gravty */
+    /** @brief Get gravty value*/
     TPZFMatrix<REAL> GetGravity(){return fGravity;}
     
     
@@ -411,9 +410,7 @@ public:
             case 2:
             {
                 fIsTwoPhaseQ = true;
-                
-                
-                
+
             }
                 break;
             case 3:
@@ -453,13 +450,23 @@ public:
     /** @brief Is it using axisymmetric analysis */
     bool IsAxisymmetricQ() {return fIsAxisymmetricQ;}
     
+    /** @brief Set the use of axisymmetric analysis */
+    void SetImpesQ(bool Impes) {fIsImpesQ = Impes;
+        if(Impes) {
+            fIsPicard = true;
+        }
+    }
+    
+    /** @brief Is it using axisymmetric analysis */
+    bool IsImpesQ() {return fIsImpesQ;}
+    
     /** @brief Definition of the flow system one - two and  ... three phase */
     TPZStack<std::string> GetsystemType() {return fSystemType;}
     
-    /** @brief Counterclockwise rotation angle [degrees] */
+    /** @brief Set counterclockwise rotation angle [degrees] */
     void SetRotationAngle(REAL angle) {this->fAngle = angle;}
     
-    /** @brief Counterclockwise rotation angle [degrees] */
+    /** @brief Get counterclockwise rotation angle [degrees] */
     REAL GetRotationAngle() {return this->fAngle;}
     
     /**

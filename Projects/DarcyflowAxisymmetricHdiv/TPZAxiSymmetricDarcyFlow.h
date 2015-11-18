@@ -44,31 +44,40 @@ private:
     TPZManVector<REAL,3> fBulkVelocity;
     REAL fAveragePressure;
     REAL fWaterSaturation;
-    REAL fOilSaturation;
+    REAL fOilSaturation; //Alpha Saturation
     
     // Auxiliar variables require for the total bulk velocity -  weighted pressure black oil formulation
     
+    
+     // Velocity of the phase water, oil and gas
     TPZManVector<REAL,3> fWaterVelocity;
     TPZManVector<REAL,3> fOilVelocity;
     TPZManVector<REAL,3> fGasVelocity;
     
+    // Pressure of the phase water, oil and gas
     TPZManVector<REAL,4> fWaterPressure;
     TPZManVector<REAL,4> fOilPressure;
     TPZManVector<REAL,4> fGasPressure;
     
+    // Density of the phase water, oil and gas
     TPZManVector<REAL,4> fWaterDensity;
     TPZManVector<REAL,4> fOilDensity;
     TPZManVector<REAL,4> fGasDensity;
-    
+
+    // Fractional flow of the phase water, oil and gas
     TPZManVector<REAL,4> fFWater;
     TPZManVector<REAL,4> fFOil;
     TPZManVector<REAL,4> fFGas;
     
+    // Mobility of the phase water, oil and gas
     TPZManVector<REAL,4> fWaterMobility;
     TPZManVector<REAL,4> fOilMobility;
     TPZManVector<REAL,4> fGasMobility;
     
+    // Total mobility
     TPZManVector<REAL,4> fTotalMobility;
+    
+    // Total density (As function of the saturation)
     TPZManVector<REAL,4> fTotalDensity;
     
 public:
@@ -345,22 +354,22 @@ public:
     TPZAutoPointer<SimulationData> GetSimulationData() {return fSimulationData;}
     
     /**
-     * Set the simulation data
+     * Set the reservoir data
      */
     void SetReservoirData(TPZAutoPointer<ReservoirData> ResData){fReservoirdata = ResData;}
     
     /**
-     * Get the simulation data
+     * Get the reservoir data
      */
     TPZAutoPointer<ReservoirData> GetReservoirData() {return fReservoirdata;}
     
     /**
-     * Set the simulation data
+     * Set the Petrophysics data
      */
     void SetPetroPhysicsData(TPZAutoPointer<PetroPhysicData> Petrophysicdata){fPetrophysicdata = Petrophysicdata;}
     
     /**
-     * Get the simulation data
+     * Get the Petrophysics data
      */
     TPZAutoPointer<PetroPhysicData> SetPetroPhysicsData() {return fPetrophysicdata;}
     
@@ -395,12 +404,12 @@ public:
     TPZAutoPointer<Phase> GetFluidGamma() {return fluid_gamma;}
     
     /**
-     * Set state vars.
+     * Set number of state vars.
      */
     void SetNvars(int nvars){fnstate_vars = nvars;}
     
     /**
-     * Get state vars.
+     * Get number of state vars.
      */
     int GetNvars() {return fnstate_vars;}
     
@@ -434,22 +443,22 @@ public:
 
     
     /**
-     * Compute the linearized version of the Expelling water
+     * Compute the linearized version of the expelling water
      */
     void fExp(REAL P, REAL Salpha, TPZManVector<REAL> & ExpL);
     
     /**
-     * Compute the linearized version of the Expelling water
+     * Compute the linearized version of the receive water
      */
     void fRec(REAL P, REAL Salpha, TPZManVector<REAL> & RecL);
     
     /**
-     * Compute the linearized version of the Expelling water
+     * Compute the linearized version of the expelling water
      */
     void fExpLinear(REAL P, REAL Salpha, TPZManVector<REAL> & ExpL);
 
     /**
-     * Compute the linearized version of the Expelling water
+     * Compute the linearized version of the receive water
      */
     void fRecLinear(REAL P, REAL Salpha, TPZManVector<REAL> & RecL);
     

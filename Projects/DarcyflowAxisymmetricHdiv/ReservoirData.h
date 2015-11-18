@@ -60,10 +60,10 @@ private:
     /** @brief Is GID geometry - */
     bool fIsGIDGeometry;
     
-    /** @brief absolute permeability */
+    /** @brief Absolute permeability */
     TPZFMatrix<REAL> fKab;
     
-    /** @brief absolute permeability inverse */
+    /** @brief Absolute permeability inverse */
     TPZFMatrix<REAL> fKabinv;
    
 public:
@@ -84,7 +84,7 @@ public:
     /** @brief Set the characteristic Pressure - Pa */
     void SetPref(REAL Pref) {fPref = Pref;}
     
-    /** @brief Characteristic Pressure - Pa */
+    /** @brief Get characteristic Pressure - Pa */
     REAL Pref() {return fPref;}
     
     /** @brief Characteristic length - m */
@@ -102,10 +102,10 @@ public:
     /** @brief Get the average thickness - m */
     REAL LayerTop() {return fDepth; }
     
-    /** @brief Set the average thickness - m */
+    /** @brief Set the layer thickness - m */
     void SetLayerh(REAL h) {fh = h; }
     
-    /** @brief Get the average thickness - m */
+    /** @brief Get the layer thickness - m */
     REAL Layerh() {return fh; }
     
     /** @brief Set the average radius - m */
@@ -123,13 +123,13 @@ public:
     /** @brief Set the characteristic Permeability - m2 */
     void SetKref(REAL Kref) {fKref = Kref;}
     
-    /** @brief Characteristic Permeability - m2 */
+    /** @brief Get Characteristic Permeability - m2 */
     REAL Kref() {return fKref;}
     
-    /** @brief Porosity at P of reference - */
+    /** @brief Set Porosity at P of reference - */
     void SetPhiRef(REAL Phiref) {fPhiref = Phiref;}
     
-    /** @brief Porosity at P of reference - */
+    /** @brief Get Porosity at P of reference - */
     REAL PhiRef() {return fPhiref;}
     
     /** @brief Set rock compressibility 1/pa- */
@@ -180,7 +180,7 @@ public:
     /** @brief Get the absolute Permeability inverse - 1/m2 */
     TPZFMatrix<REAL> KabsoluteInv() {return fKabinv;}
     
-    /** @brief Get the material indexes */
+    /** @brief Set the material indexes */
     void SetMatIDs(TPZVec<int> &matids) {fmaterialIds=matids;}
     
     /** @brief Get the material indexes */

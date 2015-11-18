@@ -89,16 +89,16 @@ public:
     /** @brief Compressibility - 1/pa $c$ */
     virtual void Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_vars) = 0;
     
-    /** @brief Kr - $k_{r}$ */
+    /** @brief Relative permeability - $k_{r}$ */
     virtual void Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars) = 0;
     
-    /** @brief Kr - $k_{r}$ */
+    /** @brief Capillar pressure - $k_{r}$ */
     virtual void Pc(TPZManVector<REAL> &pc, TPZManVector<REAL> state_vars) = 0;
     
-    /** @brief Set Reservoir T - K  $T_{res}$ */
+    /** @brief Set Reservoir Temperature - Kelvin  $T_{res}$ */
     void SetTRes(REAL TRes){this->fTRes = TRes;}
     
-    /** @brief Get Reservoir T - K  $T_{res}$ */
+    /** @brief Get Reservoir Temperature - Kelvin  $T_{res}$ */
     REAL GetTRes(){return this->fTRes ;}
     
     /** @brief Set Reference Temperature - K  $T$ */

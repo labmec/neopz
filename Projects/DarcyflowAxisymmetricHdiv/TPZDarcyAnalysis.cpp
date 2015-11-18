@@ -28,6 +28,11 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "pzfstrmatrix.h"
+
+#include "TPZParFrontStructMatrix.h"
+#include "TPZFrontSym.h"
+#include "TPZFrontNonSym.h"
+
 #include "math.h"
 
 #include "TPZMultiphysicsInterfaceEl.h"
@@ -72,6 +77,12 @@ TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation
     
     /** @brief unknowns for n+1 time step */
     falphaAtnplusOne.Resize(0, 0);
+    
+    /** @brief unknowns saturations for n time step */
+    fSAtn.Resize(0, 0);
+    
+    /** @brief unknowns saturations for n+1 time step */
+    fSAtnplusOne.Resize(0, 0);
     
     /** @brief Store DOF associated with active */
     fActiveEquations.Resize(0);
@@ -448,7 +459,6 @@ void TPZDarcyAnalysis::RunAnalysis()
     const clock_t t_end_steady = clock();
     const REAL time_steady = REAL(REAL(t_end_steady - t_beg_steady)/CLOCKS_PER_SEC);
     std::cout << "Time for computing initial condition (minutes): " << time_steady/60.0 << std::endl;
-    std::cout << std::endl;
     delete Initialan;
     
     TPZAnalysis * an = CreateAnalysis(fcmeshdarcy);
@@ -481,51 +491,54 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
     
     if (IsDirecSolver) {
         
-        if (fSimulationData->GetIsBroyden()) {
-            TPZFStructMatrix fullMatrix(cmesh);
-            TPZStepSolver<STATE> step;
-            fullMatrix.SetNumThreads(numofThreads);
-            step.SetDirect(ELU);
-            an->SetStructuralMatrix(fullMatrix);
-            an->SetSolver(step);
-        }
-        else{
-            
+//        if (fSimulationData->GetIsBroyden()) {
+//            TPZFStructMatrix fullMatrix(cmesh);
+//            TPZStepSolver<STATE> step;
+//            fullMatrix.SetNumThreads(numofThreads);
+//            step.SetDirect(ELU);
+//            an->SetStructuralMatrix(fullMatrix);
+//            an->SetSolver(step);
+//        }
+//        else{
+        
             TPZSkylineNSymStructMatrix skylnsym(cmesh);
+//            TPZParFrontStructMatrix<TPZFrontNonSym<STATE> > skylnsym(cmesh);
+//            skylnsym.SetDecomposeType(ELU);
+//            skylnsym.SetQuiet(1);
             TPZStepSolver<STATE> step;
             skylnsym.SetNumThreads(numofThreads);
             step.SetDirect(ELU);
             an->SetStructuralMatrix(skylnsym);
             an->SetSolver(step);
-        }
+//        }
         
     }
     else
     {
-        if (fSimulationData->GetIsBroyden()) {
-            TPZFStructMatrix fullMatrix(cmesh);
-            fullMatrix.SetNumThreads(numofThreads);
-            
-            TPZAutoPointer<TPZMatrix<STATE> > fullMatrixa = fullMatrix.Create();
-            TPZAutoPointer<TPZMatrix<STATE> > fullMatrixaClone = fullMatrixa->Clone();
-            
-            TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(fullMatrixaClone);
-            TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(fullMatrixa);
-            TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(fullMatrixa);
-            stepre->SetDirect(ELU);
-            stepre->SetReferenceMatrix(fullMatrixa);
-            stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
-            stepGC->SetCG(10, *stepre, 1.0e-10, 0);
-            if (fSimulationData->GetIsCG()) {
-                an->SetSolver(*stepGC);
-            }
-            else{
-                an->SetSolver(*stepGMRES);
-            }
-            
-        }
-        else{
-            
+//        if (fSimulationData->GetIsBroyden()) {
+//            TPZFStructMatrix fullMatrix(cmesh);
+//            fullMatrix.SetNumThreads(numofThreads);
+//            
+//            TPZAutoPointer<TPZMatrix<STATE> > fullMatrixa = fullMatrix.Create();
+//            TPZAutoPointer<TPZMatrix<STATE> > fullMatrixaClone = fullMatrixa->Clone();
+//            
+//            TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(fullMatrixaClone);
+//            TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(fullMatrixa);
+//            TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(fullMatrixa);
+//            stepre->SetDirect(ELU);
+//            stepre->SetReferenceMatrix(fullMatrixa);
+//            stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
+//            stepGC->SetCG(10, *stepre, 1.0e-10, 0);
+//            if (fSimulationData->GetIsCG()) {
+//                an->SetSolver(*stepGC);
+//            }
+//            else{
+//                an->SetSolver(*stepGMRES);
+//            }
+//            
+//        }
+//        else{
+        
             TPZSkylineNSymStructMatrix skylnsym(cmesh);
             skylnsym.SetNumThreads(numofThreads);
             
@@ -546,7 +559,7 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
             else{
                 an->SetSolver(*stepGMRES);
             }
-        }
+//        }
         
     }
     
@@ -682,12 +695,29 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     
     if (fSimulationData->GetGR())
     {
-        FilterSaturationGradients(fActiveEquations,fNonactiveEquations);
-        an->StructMatrix()->EquationFilter().Reset();
-        an->StructMatrix()->EquationFilter().SetActiveEquations(fActiveEquations);
-        SaturationReconstruction(an);
+        if (fSimulationData->IsImpesQ()) {
+            FilterSaturations(fActiveEquations,fNonactiveEquations);
+            an->StructMatrix()->EquationFilter().Reset();
+            an->StructMatrix()->EquationFilter().SetActiveEquations(fActiveEquations);
+        }
+        else
+        {
+            
+            FilterSaturationGradients(fActiveEquations,fNonactiveEquations);
+            an->StructMatrix()->EquationFilter().Reset();
+            an->StructMatrix()->EquationFilter().SetActiveEquations(fActiveEquations);
+            SaturationReconstruction(an);
+            
+        }
+
     }
     
+    if (fSimulationData->IsImpesQ()) {
+        FilterSaturations(fActiveEquations,fNonactiveEquations);
+        an->StructMatrix()->EquationFilter().Reset();
+        an->StructMatrix()->EquationFilter().SetActiveEquations(fActiveEquations);
+    }
+
     // Out file for initial condition
     this->PostProcessVTK(an);
     std::cout << "Reported time " << tk/(86400.0) << "; dt = " << current_dt/(86400.0) << std::endl;
@@ -702,11 +732,11 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         this->AssembleNextStep(an);
         
         
-        if (fSimulationData->GetIsBroyden())
+        if (fSimulationData->IsImpesQ())
         {
             
             const clock_t tinia = clock();
-            BroydenIterations(an);
+            PicardIterations(an);
             const clock_t tenda = clock();
             const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
             std::cout << "Time for Broyden: " << timea << std::endl;
@@ -731,11 +761,11 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             if (fSimulationData->GetGR())
             {
                 std::cout << "Writing Saturations with reconstruction." << std::endl;
-                SaturationReconstruction(an);
                 fcmesh->LoadSolution(an->Solution());
                 TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmesh);
             }
-            std::cout << std::endl;            
+            std::cout << std::endl;
+
             this->PostProcessVTK(an);
             if (i_time == reporting_times.size()-1) {
                 break;
@@ -766,16 +796,61 @@ void TPZDarcyAnalysis::CleanUpGradients(TPZAnalysis *an){
     
 }
 
+void TPZDarcyAnalysis::PrintSaturations(TPZAnalysis *an){
+    
+    long numofdof = fNonactiveEquations.size();
+    TPZFMatrix<REAL> SolToLoad = an->Solution();
+    TPZFMatrix<REAL> gradS(numofdof,1,0.0);
+    for(long i=0; i < numofdof; i++)
+    {
+       gradS(i,0) = SolToLoad(fNonactiveEquations[i],0);
+    }
+    
+    TPZManVector<long> AverageS;
+    
+    int ncon_sw = fmeshvec[2]->NConnects();
+    int ncon = fcmesh->NConnects();
+    
+    // DOF Related with S constant
+    for(int i = ncon-ncon_sw; i< ncon; i++)
+    {
+        TPZConnect &con = fcmesh->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = fcmesh->Block().Position(seqnum);
+        int blocksize = fcmesh->Block().Size(seqnum);
+        int vs = AverageS.size();
+        AverageS.Resize(vs+1);
+        
+        int ieq = blocksize-1;
+        AverageS[vs] = pos+ieq;
+    }
+    
+    long numofSdof = AverageS.size();
+    TPZFMatrix<REAL> S(numofSdof,1,0.0);
+    for(long i=0; i < numofSdof; i++)
+    {
+        S(i,0) = SolToLoad(AverageS[i],0);
+    }
+
+    std::cout << "S = " << S << std::endl;
+    std::cout << "Gradients = " << gradS << std::endl;
+}
+
 void TPZDarcyAnalysis::SaturationReconstruction(TPZAnalysis *an)
 {
-    TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(true,2.);
+    fcmesh->LoadSolution(an->Solution());
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmesh);
+    TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
+
     
     fmeshvec[2]->Reference()->ResetReference();
     fmeshvec[2]->LoadReferences();
     gradreconst->ProjectionL2GradientReconstructed(fmeshvec[2], fSimulationData->fMatL2);
     
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
-    an->LoadSolution(fcmeshdarcy->Solution());
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmesh);
+    an->LoadSolution(fcmesh->Solution());
+    
+
 }
 
 void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
@@ -808,13 +883,128 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         X += DeltaX;
         
         falphaAtnplusOne=X;
+        an->LoadSolution(X);
+        
+        if (fSimulationData->GetGR())
+        {
+            CleanUpGradients(an);
+            this->SaturationReconstruction(an);
+            falphaAtnplusOne = an->Solution();
+        }
+        
+        
+        if (((fixed+1) * (centinel) == iterations)) {
+            
+            this->AssembleNextStep(an);
+            centinel++;
+        }
+        else{
+            this->AssembleResNextStep(an);
+        }
+              
+        fResidualAtnplusOne = an->Rhs();
+        
+        Residual = fResidualAtn + fResidualAtnplusOne;
+        error = Norm(Residual);
+        iterations++;
+//        Residual.Print("Residual = ");
+        
+#ifdef PZDEBUG
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
+            X.Print("X = ", sout,EMathematicaInput);
+            Residual.Print("Residual = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+#endif
+        
+        if(error < fSimulationData->GetToleranceRes() || normdx < fSimulationData->GetToleranceDX())
+        {
+            std::cout << "Converged; iterations:  " << iterations << "; error: " << error <<  "; dx: " << normdx << std::endl;
+            break;
+        }
+        
+        
+        if (iterations == fSimulationData->GetMaxiterations()) {
+            std::cout << "Out; iterations:  " << iterations << "; error: " << error <<  "; dx: " << normdx << std::endl;
+            break;
+        }
+        
+    }
+    
+    this->UpDateAlphaVec(X);
+    
+}
+
+void TPZDarcyAnalysis::UpdateSaturations(TPZAnalysis *an)
+{
+    
+    
+}
+
+void TPZDarcyAnalysis::ComputeSaturations(TPZAnalysis *an){
+    
+    REAL scale = 0.2 * 1.0 /(fSimulationData->GetDeltaT());
+    SetLastState();
+    an->AssembleResidual();
+    TPZFMatrix<REAL> residual = an->Rhs();
+
+    
+    SetNextState();
+}
+
+
+void TPZDarcyAnalysis::PicardIterations(TPZAnalysis *an)
+{
+    
+    TPZFMatrix<STATE> Residual(an->Rhs().Rows(),1,0.0);
+    Residual = fResidualAtn + fResidualAtnplusOne;
+    
+    TPZFMatrix<STATE> X = falphaAtn;
+    TPZFMatrix<STATE> DeltaX = falphaAtn;
+    
+    STATE error     =   1.0;
+    STATE normdx    =   1.0;//Norm(Residual);
+    int iterations  =   0;
+    int centinel    =   0;
+    int fixed       =   fSimulationData->GetFixediterations();
+    
+    while (iterations <= fSimulationData->GetMaxiterations()) {
+        
+        an->Rhs() = Residual;
+        an->Rhs() *= -1.0;
+        
+        this->PrintLS(an);
+        
+        an->Solve();
+        
+        
+        DeltaX = an->Solution();
+        normdx = Norm(DeltaX);
+        X += DeltaX;
+        
+//        DeltaX.Print("DeltaX = ", std::cout,EMathematicaInput);
+        X.Print("X = ", std::cout,EMathematicaInput);
+//        Residual.Print("Residual = ", std::cout,EMathematicaInput);
+        
+        // compute Saturations
+        ComputeSaturations(an);
+        
+        // update Saturations
+        UpdateSaturations(an);
+        
+        falphaAtnplusOne=X;
         
         if (fSimulationData->GetGR())
         {
             an->Solution() = falphaAtnplusOne;
+            CleanUpGradients(an);
             this->SaturationReconstruction(an);
             fcmesh->LoadSolution(an->Solution());
-            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmesh);
         }
         
         
@@ -862,201 +1052,6 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
     }
     
     this->UpDateAlphaVec(X);
-    
-}
-
-void TPZDarcyAnalysis::BroydenIterations(TPZAnalysis *an)
-{
-    
-    
-    int m = an->Solution().Rows();
-    
-    TPZFMatrix<STATE> Residual(m,1,0.0);
-    TPZFMatrix<STATE> Rank(m,m,0.0);
-    TPZFMatrix<STATE> X(m,1,0.0);
-    TPZFMatrix<STATE> DeltaX(m,1,0.0);
-    
-    TPZAutoPointer<TPZMatrix<STATE> >  D;
-    TPZAutoPointer<TPZMatrix<STATE> >  Dk;
-    
-    TPZFMatrix<STATE> * DInverse =  new TPZFMatrix<STATE> (m,m,0.0);
-    
-    bool IsShermanMorrison = false;
-    STATE ck = 0.0;
-    //    TPZFMatrix<STATE> DInverse(m,m,0.0);
-    TPZFMatrix<STATE> Identity(m,m,0.0);
-    TPZFMatrix<STATE> DInverseT(m,m,0.0);
-    TPZFMatrix<STATE> u(m,m,0.0);
-    TPZFMatrix<STATE> du(m,m,0.0);
-    TPZFMatrix<STATE> duT(m,m,0.0);
-    TPZFMatrix<STATE> Ck(1,1,0.0);
-    
-    STATE error=1;
-    STATE normdx=1;
-    int iterations=0;
-    int centinel    =0;
-    int fixed       =fSimulationData->GetFixediterations();
-    
-    // Computing the first Newton iteration
-    
-    
-    an->Rhs() = fResidualAtn + fResidualAtnplusOne;       // g(X0)
-    an->Rhs() *= -1.0;
-    
-    if (IsShermanMorrison) {
-        DInverse = ComputeInverse();
-        DInverse->Multiply(Residual, DeltaX);
-        D.operator->()->Multiply(*DInverse, Identity);
-        
-#ifdef PZDEBUG
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
-            Residual.Print("Residual = ", sout,EMathematicaInput);
-            Identity.Print("Identity = ", sout,EMathematicaInput);
-            DInverse->Print("DInverse = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-#endif
-        
-    }
-    else{
-        D = an->Solver().Matrix();  // J(X0)
-        an->Solve();
-        DeltaX = an->Solution();    // d(X0)
-    }
-    normdx = Norm(DeltaX);      // d(X0)*d(X0)
-    X += DeltaX;                // X1
-    
-    // End of newton iteration
-    
-#ifdef DEBUG
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
-        X.Print("X = ", sout,EMathematicaInput);
-        Residual.Print("Residual = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-#endif
-    
-    // Procedure without Inverse computation
-    
-    iterations++;
-    
-    while (error >= fSimulationData->GetToleranceRes() && iterations <= fSimulationData->GetMaxiterations()) {
-        
-        
-        an->LoadSolution(X);
-        //        if (!fSimulationData->GetIsH1approx())
-        //        {
-        //            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshdarcy);
-        //        }
-        
-        this->AssembleResNextStep(an);
-        Residual = fResidualAtn + fResidualAtnplusOne;       // g(Xk)
-        error = Norm(Residual);     // g(Xk)*g(Xk)
-        
-        if(error <= fSimulationData->GetToleranceRes() || normdx <= fSimulationData->GetToleranceDX())
-        {
-            std::cout << "Converged; iterations:  " << iterations << std::endl;
-            std::cout << "error norm: " << error << std::endl;
-            std::cout << "error of dx: " << normdx << std::endl;
-            break;
-        }
-#ifdef PZDEBUG
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
-            Residual.Print("Residual = ", sout,EMathematicaInput);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-#endif
-        
-        if (((fixed+1) * (centinel) == iterations)) {
-            
-            if (IsShermanMorrison) {
-                DInverse->Multiply(Residual, u);
-                u.Add(DeltaX, du);
-                u.Transpose(&duT);
-                DeltaX.Multiply(duT,Ck);
-                ck = Ck(0,0);
-                Rank = TensorProduct(u, DeltaX);
-                Rank *= -(1/ck);
-                Rank.Multiply(*DInverse, DInverseT);
-                DInverse->Add(DInverseT, *DInverse);
-                
-            }else
-            {
-                // Application of the Secant condition
-                Rank = TensorProduct(Residual, DeltaX);
-                Rank *= 1.0/(normdx*normdx);
-                D.operator->()->Add(Rank, *D.operator->());
-                an->Solver().Matrix() = D;
-            }
-            
-            
-            
-            centinel++;
-            
-        }
-        
-        
-        
-        //#ifdef LOG4CXX
-        //        if(logger->isDebugEnabled())
-        //        {
-        //            std::stringstream sout;
-        //            an->Solver().Matrix().operator->()->Print("*an->Solver().Matrix().operator->() = ", sout,EMathematicaInput);
-        //            D->Print("D = ", sout,EMathematicaInput);
-        //            Rank.Print("Rank = ", sout,EMathematicaInput);
-        //            LOGPZ_DEBUG(logger,sout.str())
-        //        }
-        //#endif
-        an->Rhs() = fResidualAtn + fResidualAtnplusOne;
-        an->Rhs() *= -1.0;
-        
-        if (IsShermanMorrison) {
-            DInverse->Multiply(Residual, DeltaX);
-        }
-        else{
-            an->Solve();
-            DeltaX = an->Solution();    // d(Xk)
-        }
-        
-        
-        normdx = Norm(DeltaX);      // d(Xk)*d(Xk)
-        X += DeltaX;                // Xk+1
-        
-        
-        //#ifdef LOG4CXX
-        //        if(logger->isDebugEnabled())
-        //        {
-        //            std::stringstream sout;
-        //            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
-        //            X.Print("X = ", sout,EMathematicaInput);
-        //            LOGPZ_DEBUG(logger,sout.str())
-        //        }
-        //#endif
-        iterations++;
-        
-        if (iterations == fSimulationData->GetMaxiterations()) {
-            std::cout << "Out max iterations " << iterations << std::endl;
-            std::cout << "error norm " << error << std::endl;
-            break;
-        }
-        
-    }
-    
     
 }
 
@@ -1211,8 +1206,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetTimeDependentForcingFunction(forcef);
     
     // Setting up linear tracer solution
-//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
-    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
+//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
     
@@ -2157,6 +2152,48 @@ TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
     
 }
 
+void TPZDarcyAnalysis::FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive){
+    
+    int ncon_sw = fmeshvec[2]->NConnects();
+    int ncon = fcmesh->NConnects();
+    
+    
+    // DOF related with the Q-P system
+    for(int i = 0; i < ncon-ncon_sw; i++)
+    {
+        TPZConnect &con = fcmesh->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = fcmesh->Block().Position(seqnum);
+        int blocksize = fcmesh->Block().Size(seqnum);
+        
+        int vs = active.size();
+        active.Resize(vs+blocksize);
+        for(int ieq = 0; ieq<blocksize; ieq++)
+        {
+            active[vs+ieq] = pos+ieq;
+        }
+    }
+    
+   
+    // DOF Related with S
+    for(int i = ncon-ncon_sw; i< ncon; i++)
+    {
+        TPZConnect &con = fcmesh->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = fcmesh->Block().Position(seqnum);
+        int blocksize = fcmesh->Block().Size(seqnum);
+        int vs = nonactive.size();
+        nonactive.Resize(vs+blocksize);
+        for(int ieq = 0; ieq<blocksize; ieq++)
+        {
+            nonactive[vs+ieq] = pos+ieq;
+        }
+        
+    }
+    
+    
+}
+
 void TPZDarcyAnalysis::FilterSaturationGradients(TPZManVector<long> &active, TPZManVector<long> &nonactive)
 {
 
@@ -2215,8 +2252,8 @@ void TPZDarcyAnalysis::FilterSaturationGradients(TPZManVector<long> &active, TPZ
 void TPZDarcyAnalysis::LinearTracer(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& Saturation, TPZFMatrix< STATE >& Grad)
 {
     REAL x = pt[0];
-    REAL v = 100.0;
-    REAL Porosity = 0.1;
+    REAL v = 0.01;//1.0e-7;
+    REAL Porosity = 0.2;
     REAL rho = 1.0;
     REAL xshock = (v*time/Porosity*rho);
     
@@ -2243,7 +2280,7 @@ void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, 
     REAL x_shock        = 0.0;
     REAL S_shock        = 0.0;
     REAL epsilon        = 1.0e-8;
-    REAL u              = 0.1;
+    REAL u              = 0.01;
     REAL mu_alpha       = 1.0;
     REAL mu_beta        = 1.0;
     REAL rho_alpha      = 1.0;
@@ -2363,7 +2400,7 @@ void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &dis
     
 //    REAL x = pt[0];
 //    REAL y = pt[1];
-    REAL S_wett_nc = 0.16;
+    REAL S_wett_nc = 0.0;
 //    REAL S_nwett_ir = 0.0;
     disp[0] = S_wett_nc;
 

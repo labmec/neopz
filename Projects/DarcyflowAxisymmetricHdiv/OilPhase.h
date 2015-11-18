@@ -41,10 +41,10 @@ public:
     /** @brief Compressibility - 1/pa $c$ */
     void Compressibility(TPZManVector<REAL> &c, TPZManVector<REAL> state_vars);
     
-    /** @brief Kr - $k_{r}$ */
+    /** @brief Relative permeability - $k_{r}$ */
     void Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars);
     
-    /** @brief Pc - $P_{c}$ */
+    /** @brief Capillar pressure - $P_{c}$ */
     void Pc(TPZManVector<REAL> &pc, TPZManVector<REAL> state_vars);
     
 };

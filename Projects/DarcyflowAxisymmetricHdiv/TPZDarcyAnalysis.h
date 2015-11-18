@@ -27,7 +27,7 @@
 class TPZCompMesh;
 
 /** @author Omar in 16/02/2015
- * @brief class which implements 2D analysis for monofasic axisimetric darcy flow
+ * @brief class which implements 2D analysis for multiphasic axisimetric darcy flow
  */
 
 
@@ -68,10 +68,10 @@ private:
     /** @brief Geometric mesh */
     TPZGeoMesh * fgmesh;
     
-    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
+    /** @brief Vector of initial compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2, fmeshvec[2] = SaturationL2 */
     TPZManVector<TPZCompMesh * , 4> fmeshvecini;
     
-    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
+    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2, fmeshvec[2] = SaturationL2 */
     TPZManVector<TPZCompMesh * , 4> fmeshvec;
     
     /** @brief Cmesh for Initial Darcy analysis */
@@ -83,11 +83,17 @@ private:
     /** @brief cmesh */
     TPZCompMesh * fcmesh;
     
-    /** @brief unknowns for n time step */
+    /** @brief unknowns state vars for n time step */
     TPZFMatrix<REAL> falphaAtn;
     
-    /** @brief unknowns for n+1 time step */
+    /** @brief unknowns state vars for n+1 time step */
     TPZFMatrix<REAL> falphaAtnplusOne;
+
+    /** @brief unknowns saturations for n time step */
+    TPZFMatrix<REAL> fSAtn;
+    
+    /** @brief unknowns saturations for n+1 time step */
+    TPZFMatrix<REAL> fSAtnplusOne;
     
     /** @brief Store DOF associated with active */
     TPZManVector<long> fActiveEquations;
@@ -146,7 +152,7 @@ public:
     void TimeForward(TPZAnalysis *an);
     
     /**
-     * Is is necessary to fill the vector FSolution with the correct alphaj of
+     * Is necessary to fill the vector FSolution with the correct alphaj of
      * the initial condition.
      */
     void InitializeSolution(TPZAnalysis *an);
@@ -228,9 +234,9 @@ public:
     void PrintGeoMesh();
     
     /**
-     * Create the computational mesh for Q
+     * Create the computational mesh for u
      */
-    TPZCompMesh * CmeshFlux(int qorder);
+    TPZCompMesh * CmeshFlux(int uorder);
     
     /**
      * Create the computational mesh for P
@@ -238,17 +244,17 @@ public:
     TPZCompMesh * CmeshPressure(int Porder);
     
     /**
-     * Create the computational mesh for Sw
+     * Create the computational mesh for S_alpha
      */
-    TPZCompMesh * CmeshSw(int Sworder);
+    TPZCompMesh * CmeshSw(int S_alpha_order);
     
     /**
-     * Create the computational mesh for So
+     * Create the computational mesh for S_beta
      */
-    TPZCompMesh * CmeshSo(int Soorder);
+    TPZCompMesh * CmeshSo(int S_beta_order);
     
     /**
-     * Create the computational mixed mesh
+     * Create the initial computational mixed mesh
      */
     TPZCompMesh * CmeshMixedInitial();
     
@@ -278,7 +284,7 @@ public:
     void PrintCmesh();
     
     /**
-     * Create the computational mixed
+     * Create the computational mixed mesh
      */
     void CreateMultiphysicsMesh(int q, int p, int s);
     
@@ -308,9 +314,19 @@ public:
     void NewtonIterations(TPZAnalysis *an);
     
     /**
-     * Computes the broyden Iterations
+     * Computes the picard Iterations for the impes like solver
      */
-    void BroydenIterations(TPZAnalysis *an);
+    void PicardIterations(TPZAnalysis *an);
+    
+    /**
+     * Explicit update for the impes like picard iteration
+     */
+    void UpdateSaturations(TPZAnalysis *an);
+    
+    /**
+     * Computes the explicit part for the impes like picard iteration
+     */
+    void ComputeSaturations(TPZAnalysis *an);
     
     /**
      * Computes the outer product
@@ -378,6 +394,11 @@ public:
     void FilterSaturationGradients(TPZManVector<long> &active, TPZManVector<long> &nonactive);
     
     /**
+     * FilterEquations
+     */
+    void FilterSaturations(TPZManVector<long> &active, TPZManVector<long> &nonactive);
+    
+    /**
      * Compute saturation reconstruction for Sw and So
      */
     void SaturationReconstruction(TPZAnalysis *an);
@@ -386,6 +407,11 @@ public:
      * Clean up reconstructed gradient saturation for Sw and So
      */
     void CleanUpGradients(TPZAnalysis *an);
+    
+    /**
+     * Print saturations and gradients
+     */
+    void PrintSaturations(TPZAnalysis *an);
     
     /**
      * Update state variables
