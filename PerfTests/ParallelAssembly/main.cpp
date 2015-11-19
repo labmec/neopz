@@ -255,7 +255,6 @@ TPZAutoPointer<TPZCompMesh> CreateCompMesh(int dimension, int porder, long nelem
     {
         DebugStop();
     }
-    int numberirregular = 10;
     if (regular == EUnbalanced) {
         for (long el =0; el < result->NElements(); el += result->NElements()/10) {
             TPZCompEl *cel = result->Element(el);

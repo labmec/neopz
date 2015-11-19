@@ -45,6 +45,7 @@ if(BUILD_PERF_TESTS)
   add_subdirectory(TBBTests)
   add_subdirectory(RationalFunc)
   add_subdirectory(DataMigration)
+  add_subdirectory(ParallelAssembly)
 
   # Add your run scripts into RunScripts/CMakeLists.txt
   add_subdirectory(RunScripts)
