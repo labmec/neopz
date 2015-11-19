@@ -70,7 +70,7 @@ void OilPhase::Pc(TPZManVector<REAL> &pc, TPZManVector<REAL> state_vars){
     
 //    REAL So = state_vars[2];
     
-    pc[0] = 0.0;
+    pc[0] = 1.0;
     pc[1] = 0.0;
     pc[2] = 0.0;
     pc[3] = 0.0;

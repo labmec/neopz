@@ -250,6 +250,28 @@ public:
     void ContributeDarcy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
     
     /**
+     * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ek[out] is the stiffness matrix
+     * @param ef[out] is the load vector
+     * @param bc[in] is the boundary condition material
+     * @since April 16, 2007
+     */
+    void ContributeInterfaceDarcy(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    
+    /**
+     * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
+     * @param data[in] stores all input data
+     * @param weight[in] is the weight of the integration rule
+     * @param ek[out] is the stiffness matrix
+     * @param ef[out] is the load vector
+     * @param bc[in] is the boundary condition material
+     * @since April 16, 2007
+     */
+    void ContributeInterfaceDarcy(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef);
+    
+    /**
      * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
      * @param data[in] stores all input data
      * @param weight[in] is the weight of the integration rule
@@ -304,7 +326,6 @@ public:
      */
     void ContributeBCInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
-    
     /**
      * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
      * @param data[in] stores all input data
@@ -315,6 +336,8 @@ public:
      * @since April 16, 2007
      */
     void ContributeInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    
+    
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
@@ -441,6 +464,20 @@ public:
      */
     void GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravitiFluxes, TPZManVector<REAL> & fstar);
 
+    /**
+     * Compute the gravitational segregational fluxes
+     */
+    void GravitationalSegregation( TPZVec<TPZMaterialData> &datavec, TPZManVector<REAL> & qg);
+
+    /**
+     * Compute the linearized version of the bubble function f
+     */
+    void f(REAL P, REAL Salpha, TPZManVector<REAL> & f_value);
+
+    /**
+     * Compute the linearized version of the bubble function f
+     */
+    void fLinear(REAL P, REAL Salpha, TPZManVector<REAL> & f_value);
     
     /**
      * Compute the linearized version of the expelling water

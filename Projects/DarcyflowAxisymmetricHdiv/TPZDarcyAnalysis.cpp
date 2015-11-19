@@ -1952,7 +1952,6 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     vecnames.Push("BulkVelocity");
     scalnames.Push("Porosity");
     scalnames.Push("Rhs");
-    
     scalnames.Push("ExactSalpha");
     
     
@@ -1969,6 +1968,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
         scalnames.Push("Rhobeta");
         scalnames.Push("Salpha");
         scalnames.Push("Sbeta");
+        scalnames.Push("Pc_beta_alpha");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div);
         return;
@@ -2399,9 +2399,9 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionCmesh(TPZVec<STATE> &solini)
 void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     
 //    REAL x = pt[0];
-//    REAL y = pt[1];
+    REAL y = pt[1];
     REAL S_wett_nc = 0.0;
-//    REAL S_nwett_ir = 0.0;
+    REAL S_nwett_ir = 0.0;
     disp[0] = S_wett_nc;
 
 //    if (y >=  0.5 ) {
