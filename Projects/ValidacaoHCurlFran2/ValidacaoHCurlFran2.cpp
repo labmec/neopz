@@ -535,6 +535,11 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (*ur)( TPZVec<REAL> &),S
   
   //Cria elementos computacionais que gerenciarao o espaco de aproximacao da malha
   cmesh->AutoBuild();
+    
+    if (pOrder == 1) {
+        TPZCreateApproximationSpace::MakeRaviartThomas(*cmesh);
+        cmesh->CleanUpUnconnectedNodes();
+    }
   
   return cmesh;
 }

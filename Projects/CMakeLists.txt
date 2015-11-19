@@ -15,9 +15,9 @@ ENABLE_TESTING()
 			#Using discontinuous approximation functions
 			add_subdirectory(descontinuo)
 
-                #Testing gradient reconstruction
+                	#Testing gradient reconstruction
 			add_subdirectory(Gradient_Reconstruction)
-                #Testing generating ellipse from a vector of points by least square method
+                	#Testing generating ellipse from a vector of points by least square method
 			add_subdirectory(EllipseGenerator)
 
 			# Tutorial about hp-adaptive techniques
@@ -78,7 +78,8 @@ ENABLE_TESTING()
 			# Simple project to test rational function defined by Cedric on pyramids
 			add_subdirectory(RationalFunctionPyramid)
 
-add_subdirectory(proDG)
+			add_subdirectory(proDG)
+			
 
 		endif(BUILD_COMPLEX_PROJECTS)
 
