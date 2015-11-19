@@ -143,7 +143,7 @@ clarg::argBool bc("-bc", "binary checkpoints", false);
 
 clarg::argBool h("-h", "help message", false);
 
-clarg::argInt ref("-ref", "refine mesh", 1);
+clarg::argInt refin("-ref", "refine mesh", 1);
 
 /* Run statistics. */
 RunStatsTable total_rst   ("-tot_rdt", "Whole program (total) statistics raw data table");
@@ -1188,9 +1188,9 @@ TPZGeoMesh *MalhaCubo()
     }
     
     /* refine mesh */
-    if (ref.was_set()) {
+    if (refin.was_set()) {
         
-        int nh = ref.get_value();
+        int nh = refin.get_value();
         
         for ( int ref = 0; ref < nh; ref++ ){
             TPZVec<TPZGeoEl *> filhos;

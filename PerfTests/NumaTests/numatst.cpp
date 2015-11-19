@@ -43,9 +43,6 @@ using namespace tbb;
 //   export DYLD_FALLBACK_LIBRARY_PATH=/Users/borin/Desktop/neopz/tbb40_297oss/lib/
 #endif
 
-
-using namespace std;
-
 void help(const char* prg)
 {
     cout << "Compute the Decompose_LDLt method for the matrix" << endl;
@@ -320,7 +317,7 @@ bool wait_for_all_init;
 std::vector<thread_timer_t> thread_timer;
 pthread_cond_t  cond=PTHREAD_COND_INITIALIZER;
 pthread_cond_t  main_cond=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t glob_mutex=PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t main_mutex=PTHREAD_MUTEX_INITIALIZER;
 bool run_parallel;
 
@@ -347,12 +344,12 @@ public:
                      pthread_mutex_t* mt, pthread_cond_t* cd,
                      pthread_cond_t* mcd) :
         tid(t), init_routine(ir), parallel_routine(pr),
-        mutex(mt), cond(cd), main_cond(mcd)
+        glob_mutex(mt), cond(cd), main_cond(mcd)
         {}
         int tid;
         void (*init_routine)(int);
         void (*parallel_routine)(int);
-        pthread_mutex_t* mutex;
+        pthread_mutex_t* glob_mutex;
         pthread_cond_t* cond;
         pthread_cond_t* main_cond;
     };
@@ -374,7 +371,7 @@ void *threadfunc(void *parm)
     
     int tid = args->tid;
     
-    pthread_mutex_lock(args->mutex);
+    pthread_mutex_lock(args->glob_mutex);
     if (args->init_routine) {
 #ifdef _GNU_SOURCE
         VERBOSE(1,"Thread " << tid << " calling init routine on CPU "
@@ -391,14 +388,14 @@ void *threadfunc(void *parm)
     
     /* Wait for main to sync */
     while (!run_parallel) {
-        pthread_cond_wait(args->cond, args->mutex);
+        pthread_cond_wait(args->cond, args->glob_mutex);
     }
 #ifdef _GNU_SOURCE
     VERBOSE(1,"Thread " << tid << " calling parallel routine on CPU "
             << (int) sched_getcpu() << endl);
 #endif
     
-    pthread_mutex_unlock(args->mutex);
+    pthread_mutex_unlock(args->glob_mutex);
     
     thread_timer[tid].start();
     
@@ -423,7 +420,7 @@ synchronized_threads_t::execute_n_threads(unsigned n,
     
     for (int i=0; i<nthreads; i++) {
         synchronized_threads_t::thread_arg_t arg(i,init_routine,parallel_routine,
-                                                 &mutex, &cond, &main_cond);
+                                                 &glob_mutex, &cond, &main_cond);
         PZ_PTHREAD_CREATE(&threads[i],NULL,threadfunc,(void*) &i, __FUNCTION__);
     }
     
