@@ -1359,6 +1359,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZManVector<REAL> qg;
     this->GravitationalSegregation(datavec,qg);
     
+    // Gravitational Segregation
+    TPZManVector<REAL> qc;
+    this->CapillarySegregation(datavec,qc);
+    
     for (int isw = 0; isw < nphiSaL2; isw++)
     {
         
@@ -1367,7 +1371,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
         Gradphis[0] = dphiSL2(0,isw)*datavec[Salphablock].axes(0,0)+dphiSL2(1,isw)*datavec[Salphablock].axes(1,0);
         Gradphis[1] = dphiSL2(0,isw)*datavec[Salphablock].axes(0,1)+dphiSL2(1,isw)*datavec[Salphablock].axes(1,1);
         
-        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0) - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1]) - (qg[0]*Gradphis[0] + qg[1]*Gradphis[1]));
+        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0)
+                                       - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
+                                       - (qg[0]*Gradphis[0] + qg[1]*Gradphis[1])
+                                       - (qc[0]*Gradphis[0] + qc[1]*Gradphis[1]));
 
         
         // du/dalphau terms
@@ -1512,6 +1519,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZManVector<REAL> qg;
     this->GravitationalSegregation(datavec,qg);
 
+    // Gravitational Segregation
+    TPZManVector<REAL> qc;
+    this->CapillarySegregation(datavec,qc);
+    
     for (int isw = 0; isw < nphiSaL2; isw++)
     {
         //  Compute grad(phi)
@@ -1519,7 +1530,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
         Gradphis[0] = dphiSL2(0,isw)*datavec[Salphablock].axes(0,0)+dphiSL2(1,isw)*datavec[Salphablock].axes(1,0);
         Gradphis[1] = dphiSL2(0,isw)*datavec[Salphablock].axes(0,1)+dphiSL2(1,isw)*datavec[Salphablock].axes(1,1);
         
-        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0) - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1]) - (qg[0]*Gradphis[0] + qg[1]*Gradphis[1]));
+        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0]  * Sa_phiPL2(isw,0)
+                                       - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
+                                       - (qg[0]*Gradphis[0] + qg[1]*Gradphis[1])
+                                       - (qc[0]*Gradphis[0] + qc[1]*Gradphis[1]));
     }
     
     
@@ -2608,7 +2622,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
 
 void TPZAxiSymmetricDarcyFlow::GravitationalSegregation( TPZVec<TPZMaterialData> &datavec, TPZManVector<REAL> & qg){
     
-    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+//    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
     int Sablock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
     
@@ -2663,7 +2677,7 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation( TPZVec<TPZMaterialData>
 }
 
 
-void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravitiFluxes, TPZManVector<REAL> & fstar){
+void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravityFluxes, TPZManVector<REAL> & fstar){
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
@@ -2679,7 +2693,7 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
     REAL P_R             = datavecright[Pblock].sol[0][0];
     REAL Salpha_R        = datavecright[Sablock].sol[0][0];
-    GravitiFluxes.Resize(2);
+    GravityFluxes.Resize(2);
     fstar.Resize(2);
     
     // Gravitation Segregation
@@ -2834,8 +2848,251 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
         
     }
     
-    GravitiFluxes[0] = qgLdotn;
-    GravitiFluxes[1] = qgRdotn;
+    GravityFluxes[0] = qgLdotn;
+    GravityFluxes[1] = qgRdotn;
+    
+    return;
+    
+}
+
+void TPZAxiSymmetricDarcyFlow::CapillarySegregation( TPZVec<TPZMaterialData> &datavec, TPZManVector<REAL> & qc){
+    
+    //    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    int Sablock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
+    
+    // Getting linear combinations from different approximation spaces for the left side
+    REAL P             = datavec[Pblock].sol[0][0];
+    REAL Salpha        = datavec[Sablock].sol[0][0];
+    
+    TPZFMatrix<STATE> GradSaxes = datavec[Sablock].dsol[0];
+    
+    // Getting linear combinations from different approximation spaces for the right side
+    
+    // Gravitation Segregation
+    int n_data = fnstate_vars + 2;
+    TPZManVector<REAL> state_vars(n_data,0.0);
+    
+    // Computing Gravitational segregational function for the element
+    
+    TPZVec< TPZManVector<REAL>  > props;
+    this->ComputeProperties(datavec, props);
+    TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
+    
+    TPZManVector<REAL> rho_alpha      = props[0];
+    TPZManVector<REAL> rho_beta       = props[1];
+    TPZManVector<REAL> lambda         = props[6];
+    TPZManVector<REAL> Pc_beta_alpha  = props[9];
+    
+
+    TPZManVector<STATE> GradS(2,0.0);
+    TPZManVector<STATE> Grad_Pc(2,0.0);
+    TPZFMatrix<STATE>   K_Grad_Pc(2,1);
+
+    //  Compute grad(S)
+    GradS[0] = GradSaxes(0,0)*datavec[Sablock].axes(0,0)+GradSaxes(1,0)*datavec[Sablock].axes(1,0);
+    GradS[1] = GradSaxes(0,0)*datavec[Sablock].axes(0,1)+GradSaxes(1,0)*datavec[Sablock].axes(1,1);
+    
+    //  Compute grad(Pc)
+    Grad_Pc[0] = Pc_beta_alpha[3] * GradS[0];
+    Grad_Pc[1] = Pc_beta_alpha[3] * GradS[1];
+    
+    K_Grad_Pc(0,0) = K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1];
+    K_Grad_Pc(1,0) = K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1];
+    
+    TPZManVector<REAL> f_value(n_data,0.0);
+    TPZManVector<REAL> fstr(n_data,0.0);
+    
+    if (fSimulationData->IsLinearSegregationQ()) {
+        fLinear(P, Salpha, f_value);
+    }
+    else{
+        f(P, Salpha, f_value);
+    }
+    
+    fstr[0] = (f_value[0] * lambda[0]);
+    
+    qc.Resize(2, 0.0);
+    qc[0] = fstr[0] * (K_Grad_Pc(0,0));
+    qc[1] = fstr[0] * (K_Grad_Pc(1,0));
+    
+    return;
+    
+}
+
+void TPZAxiSymmetricDarcyFlow::CapillarySegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & CapillaryFluxes, TPZManVector<REAL> & fstar){
+    
+    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
+    int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
+    int Sablock = 2;        // Sw Water Saturation needs L2 scalar functions    (phiSwL2)
+    TPZManVector<REAL,3> n =  data.normal;
+    
+    // Getting linear combinations from different approximation spaces for the left side
+    TPZManVector<REAL,3> uL      = datavecleft[ublock].sol[0];
+    REAL P_L             = datavecleft[Pblock].sol[0][0];
+    REAL Salpha_L        = datavecleft[Sablock].sol[0][0];
+    
+    // Getting linear combinations from different approximation spaces for the right side
+    TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
+    REAL P_R             = datavecright[Pblock].sol[0][0];
+    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
+    CapillaryFluxes.Resize(2);
+    fstar.Resize(2);
+    
+    // Gravitation Segregation
+    int n_data = fnstate_vars + 2;
+    TPZManVector<REAL> state_vars(n_data,0.0);
+    TPZFMatrix<STATE> Gravity(2,1);
+    TPZFMatrix<STATE> KGravityL(2,1);
+    TPZFMatrix<STATE> KGravityR(2,1);
+    
+    Gravity = fSimulationData->GetGravity();
+    
+    TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
+    REAL ndotG = Gravity(0,0)*n[0] + Gravity(1,0)*n[1];
+    
+    
+    // Computing Gravitational segregational function on the left side
+    // Returning needed relationships
+    TPZVec< TPZManVector<REAL>  > props_Left;
+    this->ComputeProperties(datavecleft, props_Left);
+    
+    TPZManVector<REAL> rho_alpha_L      = props_Left[0];
+    TPZManVector<REAL> rho_beta_L       = props_Left[1];
+    TPZManVector<REAL> rho_diff_L       = props_Left[0];
+    
+    rho_diff_L[0] = (rho_alpha_L[0] - rho_beta_L[0]);
+    rho_diff_L[1] = (rho_alpha_L[1] - rho_beta_L[1]);
+    rho_diff_L[2] = (rho_alpha_L[2] - rho_beta_L[2]);
+    rho_diff_L[3] = (rho_alpha_L[3] - rho_beta_L[3]);
+    
+    KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
+    KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+    
+    TPZManVector<REAL> fstrL(n_data,0.0);
+    TPZManVector<REAL> fL(n_data,0.0);
+    
+    if ((rho_alpha_L[0] - rho_beta_L[0]) <= 0.0 ) {
+        ndotG *= -1.0;
+    }
+    
+    
+    if (ndotG <= 0.0) {
+        
+        // Receiving water ndotG <= 0.0
+        if (fSimulationData->IsLinearSegregationQ()) {
+            fRecLinear(P_L, Salpha_L, fL);
+        }
+        else{
+            fRecLinear(P_L, Salpha_L, fL);
+        }
+        
+    }
+    else
+    {
+        // Expelling water ndotG >= 0.0
+        if (fSimulationData->IsLinearSegregationQ()) {
+            fExpLinear(P_L, Salpha_L, fL);
+        }
+        else{
+            fExp(P_L, Salpha_L, fL);
+        }
+        
+    }
+    
+    fstrL[0] = (fL[0] * rho_diff_L[0]);
+    fstrL[1] = (fL[0] * rho_diff_L[1] + fL[1] * rho_diff_L[0]);
+    fstrL[2] = (fL[0] * rho_diff_L[2] + fL[2] * rho_diff_L[0]);
+    fstrL[3] = (fL[0] * rho_diff_L[3] + fL[3] * rho_diff_L[0]);
+    
+    
+    // Computing Gravitational segregational function on the right side
+    
+    TPZVec< TPZManVector<REAL>  > props_Right;
+    this->ComputeProperties(datavecright, props_Right);
+    
+    TPZManVector<REAL> rho_alpha_R        = props_Right[0];
+    TPZManVector<REAL> rho_beta_R         = props_Right[1];
+    TPZManVector<REAL> rho_diff_R    = props_Right[0];
+    TPZManVector<REAL> lambda_R      = props_Right[6];
+    
+    rho_diff_R[0] = (rho_alpha_R[0] - rho_beta_R[0]);
+    rho_diff_R[1] = (rho_alpha_R[1] - rho_beta_R[1]);
+    rho_diff_R[2] = (rho_alpha_R[2] - rho_beta_R[2]);
+    rho_diff_R[3] = (rho_alpha_R[3] - rho_beta_R[3]);
+    
+    KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
+    KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+    
+    TPZManVector<REAL> fstrR(n_data,0.0);
+    TPZManVector<REAL> fR(n_data,0.0);
+    
+    
+    if (ndotG <= 0.0) {
+        
+        // Expelling water ndotG >= 0.0 Linear Version
+        
+        if (fSimulationData->IsLinearSegregationQ()) {
+            fExpLinear(P_R, Salpha_R, fR);
+        }
+        else{
+            fExp(P_R, Salpha_R, fR);
+        }
+    }
+    else
+    {
+        // Receive water ndotG <= 0.0 Linear Version
+        
+        if (fSimulationData->IsLinearSegregationQ()) {
+            fRecLinear(P_R, Salpha_R, fR);
+        }
+        else{
+            fRec(P_R, Salpha_R, fR);
+        }
+    }
+    
+    fstrR[0] = (fR[0] * rho_diff_R[0]);
+    fstrR[1] = (fR[0] * rho_diff_R[1] + fR[1] * rho_diff_R[0]);
+    fstrR[2] = (fR[0] * rho_diff_R[2] + fR[2] * rho_diff_R[0]);
+    fstrR[3] = (fR[0] * rho_diff_R[3] + fR[3] * rho_diff_R[0]);
+    
+    
+    TPZManVector<REAL> qgLdotn(n_data,0.0);
+    TPZManVector<REAL> qgRdotn(n_data,0.0);
+    
+    fstar[0] = fstrL[0];
+    fstar[1] = fstrR[0];
+    
+    if (fstar[1] >= fstar[0]) {
+        
+        qgLdotn[0] =  fstrL[0] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[1] =  fstrL[1] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[2] =  fstrL[2] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[3] =  fstrL[3] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        
+        qgRdotn[0] =  fstrL[0] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[1] =  fstrL[1] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[2] =  fstrL[2] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[3] =  fstrL[3] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        
+    }
+    else
+    {
+        
+        qgLdotn[0] =  fstrR[0] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[1] =  fstrR[1] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[2] =  fstrR[2] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        qgLdotn[3] =  fstrR[3] * (KGravityL(0,0)*n[0] + KGravityL(1,0)*n[1]);
+        
+        qgRdotn[0] =  fstrR[0] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[1] =  fstrR[1] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[2] =  fstrR[2] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        qgRdotn[3] =  fstrR[3] * (KGravityR(0,0)*n[0] + KGravityR(1,0)*n[1]);
+        
+    }
+    
+    CapillaryFluxes[0] = qgLdotn;
+    CapillaryFluxes[1] = qgRdotn;
     
     return;
     
@@ -2949,7 +3206,6 @@ void TPZAxiSymmetricDarcyFlow::fExp(REAL P, REAL Salpha, TPZManVector<REAL> & Re
         RecL[3] =  (f_alpha[0] * f_beta[0]) * lambda[3] + (f_alpha[0] * f_beta[3] + f_alpha[3] * f_beta[0]) * lambda[0];
         
     }
-    
 }
 
 void TPZAxiSymmetricDarcyFlow::fRecLinear(REAL P, REAL Salpha, TPZManVector<REAL> & ExpL){

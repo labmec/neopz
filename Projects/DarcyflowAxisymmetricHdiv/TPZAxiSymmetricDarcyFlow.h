@@ -462,13 +462,23 @@ public:
     /**
      * Compute the gravitational segregational fluxes
      */
-    void GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravitiFluxes, TPZManVector<REAL> & fstar);
+    void GravitationalSegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravityFluxes, TPZManVector<REAL> & fstar);
+    
+    /**
+     * Compute the capillary segregational fluxes
+     */
+    void CapillarySegregation(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft,TPZVec<TPZMaterialData> &datavecright, TPZVec<TPZManVector<REAL> > & GravitiFluxes, TPZManVector<REAL> & fstar);
 
     /**
      * Compute the gravitational segregational fluxes
      */
-    void GravitationalSegregation( TPZVec<TPZMaterialData> &datavec, TPZManVector<REAL> & qg);
+    void GravitationalSegregation(TPZVec<TPZMaterialData> &datavec, TPZManVector<REAL> & qg);
 
+    /**
+     * Compute the caplillary segregational fluxes
+     */
+    void CapillarySegregation(TPZVec<TPZMaterialData> &datavec, TPZManVector<REAL> & qc);
+    
     /**
      * Compute the linearized version of the bubble function f
      */

@@ -849,7 +849,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 1;
     leftbc[1] = -(1.0e-4)*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
-    leftbc[2] = 0.0*(1.0 - S_nw_r);
+    leftbc[2] = 1*(1.0 - S_nw_r);
     leftbc[3] = 0;
     
     Dataset->SetBottomBC(bottombcini, bottombc);
