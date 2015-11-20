@@ -54,6 +54,8 @@ TPZGeoMesh *CreateTriangularGMesh(const REAL hDomain, const REAL wDomain, const 
 
 void FlipTriangles(TPZGeoMesh *gmesh, int nx);
 
+void FlipTriangles(TPZGeoMesh *gmesh, int nx);
+
 /**
  * @brief Creates gmesh corresponding to the simple domain
  * @param hDomain height of the simulation domain
