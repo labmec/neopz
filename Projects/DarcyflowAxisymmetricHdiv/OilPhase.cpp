@@ -68,12 +68,13 @@ void OilPhase::Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars){
 /** @brief Pc - $P_{c}$ */
 void OilPhase::Pc(TPZManVector<REAL> &pc, TPZManVector<REAL> state_vars){
     
-//    REAL So = state_vars[2];
+    REAL S_alpha = state_vars[2];
+    REAL Pc_max  = 0.01;
     
-    pc[0] = 1.0;
+    pc[0] = (1.0-S_alpha)*Pc_max;
     pc[1] = 0.0;
     pc[2] = 0.0;
-    pc[3] = 0.0;
+    pc[3] = (-1.0)*Pc_max;
     pc[4] = 0.0;
     
 }

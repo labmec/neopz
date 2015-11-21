@@ -1952,11 +1952,11 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     vecnames.Push("BulkVelocity");
     scalnames.Push("Porosity");
     scalnames.Push("Rhs");
-    scalnames.Push("ExactSalpha");
+    scalnames.Push("Exact_Salpha");
     
     
     if (fSimulationData->IsOnePhaseQ()) {
-        scalnames.Push("Rhoalpha");
+        scalnames.Push("Rho_alpha");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div);
         return;
@@ -1964,10 +1964,12 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     
     
     if (fSimulationData->IsTwoPhaseQ()) {
-        scalnames.Push("Rhoalpha");
-        scalnames.Push("Rhobeta");
-        scalnames.Push("Salpha");
-        scalnames.Push("Sbeta");
+        scalnames.Push("Rho_alpha");
+        scalnames.Push("Rho_beta");
+        scalnames.Push("S_alpha");
+        scalnames.Push("S_beta");
+        scalnames.Push("P_alpha");
+        scalnames.Push("P_beta");
         scalnames.Push("Pc_beta_alpha");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div);
@@ -1976,12 +1978,12 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     
     
     if (fSimulationData->IsThreePhaseQ()) {
-        scalnames.Push("Salpha");
-        scalnames.Push("Sbeta");
-        scalnames.Push("Sgamma");
-        scalnames.Push("Rhoalpha");
-        scalnames.Push("Rhobeta");
-        scalnames.Push("Rhogamma");
+        scalnames.Push("S_alpha");
+        scalnames.Push("S_beta");
+        scalnames.Push("S_gamma");
+        scalnames.Push("Rho_alpha");
+        scalnames.Push("Rho_beta");
+        scalnames.Push("Rho_gamma");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div);
         return;
@@ -2404,9 +2406,9 @@ void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &dis
     REAL S_nwett_ir = 0.0;
     disp[0] = S_wett_nc;
 
-//    if (y >=  0.5 ) {
-//         disp[0] = 1.0-S_nwett_ir;
-//    }
+    if (y >=  0.5 ) {
+         disp[0] = 1.0-S_nwett_ir;
+    }
 
     
 }
