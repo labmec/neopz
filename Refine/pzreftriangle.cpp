@@ -131,7 +131,7 @@ namespace pzrefine {
 			TPZManVector<long> cornerindexes(TPZShapeTriang::NCornerNodes);
 			for(int j=0;j<TPZShapeTriang::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
 			long index;
-			TPZGeoEl *subel = geo->Mesh()->CreateGeoElement(ETriangle,cornerindexes,matid,index);
+			TPZGeoEl *subel = geo->CreateGeoElement(ETriangle,cornerindexes,matid,index);
 			geo->SetSubElement(i ,subel);
 		}
 		

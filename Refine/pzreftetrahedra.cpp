@@ -228,7 +228,7 @@ namespace pzrefine {
 		for (i=0;i<4;i++){
 			TPZManVector<long> cornerindexes(TPZShapeTetra::NCornerNodes);
 			for(int j=0;j<TPZShapeTetra::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-			TPZGeoEl *t3sub = geo->Mesh()->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
+			TPZGeoEl *t3sub = geo->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
 			geo->SetSubElement(i,t3sub);
 			t3sub->SetFather(geo);
 			t3sub->SetFather(geo->Index());
@@ -238,7 +238,7 @@ namespace pzrefine {
 			TPZManVector<long> cornerindexes(TPZShapePiram::NCornerNodes);
 			for(int j=0;j<TPZShapePiram::NCornerNodes;j++) 
 				cornerindexes[j] = np[CornerSons[i][j]];
-			TPZGeoEl *pi3sub = geo->Mesh()->CreateGeoElement(EPiramide,cornerindexes,matid,index);
+			TPZGeoEl *pi3sub = geo->CreateGeoElement(EPiramide,cornerindexes,matid,index);
 			geo->SetSubElement(i,pi3sub);
 			pi3sub->SetFather(geo);
 			pi3sub->SetFather(geo->Index());

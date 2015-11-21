@@ -320,13 +320,13 @@ namespace pzrefine {
 		for (i=0;i<6;i++){
 			TPZManVector<long> cornerindexes(TPZShapePiram::NCornerNodes);
 			for(int j=0;j<TPZShapePiram::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-			TPZGeoEl *pi3sub = geo->Mesh()->CreateGeoElement(EPiramide,cornerindexes,matid,index);
+			TPZGeoEl *pi3sub = geo->CreateGeoElement(EPiramide,cornerindexes,matid,index);
 			geo->SetSubElement(i,pi3sub);
 		}
 		for (;i<10;i++){
 			TPZManVector<long> cornerindexes(TPZShapeTetra::NCornerNodes);
 			for(int j=0;j<TPZShapeTetra::NCornerNodes;j++) cornerindexes[j] = np[CornerSons[i][j]];
-			TPZGeoEl *t3sub = geo->Mesh()->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
+			TPZGeoEl *t3sub = geo->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
 			geo->SetSubElement(i,t3sub);
 		}
 		SubElVec.Resize(NSubEl);
