@@ -70,8 +70,10 @@ struct TPZElementMatrix {
       fConstrBlock.SetNBlocks(0);
 	}
 	
-	TPZElementMatrix(TPZCompMesh *mesh, MType type) : fType(type), fMesh(mesh), fConnect(), fMat(0,0), fBlock(&fMat),  fConstrConnect(), fConstrMat(0,0), fConstrBlock(&fConstrMat), fNumStateVars(0)
+	TPZElementMatrix(TPZCompMesh *mesh, MType type) : fType(type), fMesh(mesh), fConnect(), fMat(0,0), fBlock(),  fConstrConnect(), fConstrMat(0,0), fConstrBlock(), fNumStateVars(0)
     {
+        fBlock.SetMatrix(&fMat);
+        fConstrBlock.SetMatrix(&fConstrMat);
     }
 
     TPZElementMatrix() : fType(Unknown), fMesh(NULL), fConnect(), fMat(0,0), fBlock(&fMat), fConstrConnect(), 
