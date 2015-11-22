@@ -27,7 +27,6 @@ int main()
     bool IsDimensionlessQ = true;
 //    LinearWithOutReconstruction(IsDimensionlessQ);
 //    LinearWithReconstruction(IsDimensionlessQ);
-
     
     NonlinearTracer(IsDimensionlessQ);
     
@@ -77,12 +76,12 @@ void LinearWithOutReconstruction(bool IsDimensionlessQ){
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
     int maxiter     = 40;
-    int nthread     = 8;
+    int nthread     = 0;
     bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
-    bool OptBand    = true;    // Band optimization
+    bool OptBand    = false;    // Band optimization
     bool IsAxisy    = false;    // Axisymmetric analysis
     bool IsImpes    = false;    // Impes analysis
     int fixedJac    = 0;
@@ -726,7 +725,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     
     // Time control parameters
     int n_times  = 10;
-    int n_sub_dt = 500;
+    int n_sub_dt = 10;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
@@ -742,26 +741,26 @@ void NonlinearTracer(bool IsDimensionlessQ)
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    int  nelemX     =200;
+    int  nelemX     =100;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
     REAL dxD        =(100.0/nelemX)/Lstr;
     
-    int nelemY      =2;
+    int nelemY      =20;
     if (GR && nelemY == 1 && IsTMesh ) {
         nelemY++;
     }
     REAL dyD        =(10.0/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
-    Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
+    Gravity(1,0)= -10.0*((Lstr*Rhostr)/Pstr);
     bool LinearSegregation = false;
     
-    REAL angle = 0.0;
+    REAL angle = 45.0;
     
-    REAL S_w_r              = 0.16;
-    REAL S_nw_r             = 0.2;
+    REAL S_w_r              = 0.0;
+    REAL S_nw_r             = 0.0;
     
     TPZStack<std::string> system;
     system.Push("Water");
@@ -893,7 +892,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL waterviscosity     = 0.001/Mustr;
     REAL cwater             = (0.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
-    REAL oildensity         = 1000.0/Rhostr;
+    REAL oildensity         = 800.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
     REAL coil               = (0.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;

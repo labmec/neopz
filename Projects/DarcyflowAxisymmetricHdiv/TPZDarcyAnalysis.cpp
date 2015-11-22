@@ -240,17 +240,19 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
     an->AssembleResidual();
     fResidualAtn = an->Rhs();
     
-    //#ifdef PZDEBUG
-    //   #ifdef LOG4CXX
-    //       if(logger->isDebugEnabled())
-    //       {
-    //           std::stringstream sout;
-    //           falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
-    //           fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
-    //           LOGPZ_DEBUG(logger,sout.str())
-    //       }
-    //   #endif
-    //#endif
+//    fResidualAtn.Print("fResidualAtn = ", cout,EMathematicaInput);
+    
+//#ifdef PZDEBUG
+//   #ifdef LOG4CXX
+//       if(logger->isDebugEnabled())
+//       {
+//           std::stringstream sout;
+//           falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
+//           fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
+//           LOGPZ_DEBUG(logger,sout.str())
+//       }
+//   #endif
+//#endif
     
 }
 
@@ -283,6 +285,8 @@ void TPZDarcyAnalysis::AssembleNextStep(TPZAnalysis *an)
     SetNextState();
     an->Assemble();
     fResidualAtnplusOne = an->Rhs();
+    
+//    fResidualAtnplusOne.Print("fResidualAtnplusOne = ", cout,EMathematicaInput);
     
     // #ifdef PZDEBUG
     //     #ifdef LOG4CXX
@@ -344,7 +348,7 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshinitialdarcy);
     an->LoadSolution(fcmeshinitialdarcy->Solution());
     
-    int n_dt = 20;
+    int n_dt = 1;
     int n_sub_dt = 10;
     int i_time = 0;
     REAL dt = (fSimulationData->GetMaxTime())/REAL(n_sub_dt);
@@ -632,7 +636,7 @@ void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
     TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
     TPZFMatrix<STATE> FGlobal;
     KGlobal =   an->Solver().Matrix();
-    FGlobal =   fResidualAtn+fResidualAtnplusOne;//an->Rhs();
+    FGlobal =   fResidualAtn+fResidualAtnplusOne;
     
 #ifdef PZDEBUG
 #ifdef LOG4CXX
@@ -887,10 +891,11 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         
         an->Solve();
         
-        
         DeltaX = an->Solution();
         normdx = Norm(DeltaX);
         X += DeltaX;
+        
+//        X.Print("X = ");
         
         falphaAtnplusOne=X;
         an->LoadSolution(X);
@@ -1137,13 +1142,18 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
     TPZManVector<REAL,4> Top        = fSimulationData->GetTopBCini();
     TPZManVector<REAL,4> Left       = fSimulationData->GetLeftBCini();
     
+
+    TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
+    TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
+    P_hydrostatic_ptr = P_hydrostatic;
+    mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
     
     // Bc Bottom
     val2(0,0) = Bottom[1];
     val2(1,0) = Bottom[2];
     val2(2,0) = Bottom[3];
     TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, int(Bottom[0]), val1, val2);
-    
+
     // Bc Right
     val2(0,0) = Right[1];
     val2(1,0) = Right[2];
@@ -1221,21 +1231,16 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
     
-    /*    TPZDummyFunction<STATE> *bcnfunction = new TPZDummyFunction<STATE>(BCNfunction);
-     TPZAutoPointer<TPZFunction<STATE> > bcN;
-     bcnfunction->SetPolynomialOrder(20);
-     bcN = bcnfunction;
-     
-     TPZDummyFunction<STATE> *bcdfunction = new TPZDummyFunction<STATE>(BCDfunction);
-     TPZAutoPointer<TPZFunction<STATE> > bcD;
-     bcdfunction->SetPolynomialOrder(20);
-     bcD = bcdfunction;   */
-    
     TPZManVector<REAL,4> Bottom     = fSimulationData->GetBottomBC();
     TPZManVector<REAL,4> Right      = fSimulationData->GetRightBC();
     TPZManVector<REAL,4> Top        = fSimulationData->GetTopBC();
     TPZManVector<REAL,4> Left       = fSimulationData->GetLeftBC();
     
+    
+    TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
+    TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
+    P_hydrostatic_ptr = P_hydrostatic;
+    mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
     
     // Bc Bottom
     val2(0,0) = Bottom[1];
@@ -1248,7 +1253,6 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     val2(1,0) = Right[2];
     val2(2,0) = Right[3];
     TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, int(Right[0]), val1, val2);
-    //     mat->SetTimeDependentFunctionExact(bcD);
     
     // Bc Top
     val2(0,0) = Top[1];
@@ -1261,7 +1265,6 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     val2(1,0) = Left[2];
     val2(2,0) = Left[3];
     TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, int(Left[0]), val1, val2);
-    //     mat->SetTimedependentBCForcingFunction(bcN);
     
     cmesh->InsertMaterialObject(bcBottom);
     cmesh->InsertMaterialObject(bcRight);
@@ -1961,7 +1964,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     vecnames.Push("BulkVelocity");
     scalnames.Push("Porosity");
     scalnames.Push("Rhs");
-    scalnames.Push("Exact_Salpha");
+//    scalnames.Push("Exact_Salpha");
     
     
     if (fSimulationData->IsOnePhaseQ()) {
@@ -2411,8 +2414,8 @@ void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &dis
     
 //    REAL x = pt[0];
     REAL y = pt[1];
-    REAL S_wett_nc = 0.16;
-    REAL S_nwett_ir = 0.2;
+    REAL S_wett_nc = 0.0;
+    REAL S_nwett_ir = 0.0;
     disp[0] = S_wett_nc;
 
 //    bool inside_x = ( x >= 0.3 ) && (x <= 0.7);
@@ -2425,6 +2428,28 @@ void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &dis
 //    if ( y >= 50.0 ) {
 //         disp[0] = 1.0-S_nwett_ir;
 //    }
+    
+}
+
+/**
+ * Computes computational mesh for L2 projection
+ */
+void TPZDarcyAnalysis::P_Hydrostatic(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& P_Hydro, TPZFMatrix< STATE >& GradP_Hydro){
+    
+//    REAL x = pt[0];
+    REAL y = pt[1];
+    
+    REAL Kstr           = 1.0e-13;
+    REAL Pstr           = 1.0e7;
+    REAL Tstr           = 355.37;
+    REAL Tres           = 355.37;
+    REAL Lstr           = 100.0;
+    REAL Mustr          = 0.001;
+    REAL Rhostr         = 1000.0;
+
+    REAL rho_beta = 800.0/Rhostr;
+    REAL g = -10.0*((Lstr*Rhostr)/Pstr);
+    P_Hydro[0] = rho_beta * g * y;
     
 }
 

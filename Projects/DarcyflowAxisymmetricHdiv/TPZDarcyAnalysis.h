@@ -447,9 +447,11 @@ public:
      * Computes computational mesh for L2 projection
      */
     static void InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
-    
 
-
+    /**
+     * Computes computational mesh for L2 projection
+     */
+    static void P_Hydrostatic(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& P_Hydro, TPZFMatrix< STATE >& GradP_Hydro);
     
 };
 

@@ -199,7 +199,17 @@ protected:
         else {
             fBCs[loadcase].fTimedependentBCForcingFunction = func;
         }
-    }       
+    }
+    
+    TPZAutoPointer<TPZFunction<STATE> > GetTimedependentBCForcingFunction(int loadcase)
+    {
+        if (loadcase == 0) {
+            return this->fTimedependentBCForcingFunction;
+        }
+        else {
+            return fBCs[loadcase].fTimedependentBCForcingFunction;
+        }
+    }
 	
 	void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
 	

@@ -301,6 +301,7 @@ void TPZAnalysis::Assemble()
 	}
 	else
 	{
+        
 		TPZMatrix<STATE> *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
 		fSolver->SetMatrix(mat);
 		//aqui TPZFMatrix<STATE> nao eh nula

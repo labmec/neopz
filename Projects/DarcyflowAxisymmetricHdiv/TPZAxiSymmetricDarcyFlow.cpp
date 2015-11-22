@@ -368,8 +368,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             break;
         case 10:
         {
-            time=this->fSimulationData->GetTime();
-            fTimedependentFunctionExact->Execute(datavec[Qblock].x, time, Saturation,GradS);
+            fTimedependentFunctionExact->Execute(datavec[Qblock].x, fSimulationData->GetTime(), Saturation,GradS);
             Solout[0] = Saturation[0];
             
         }
@@ -458,15 +457,6 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
     int ivectorindex = 0;
     int ishapeindex = 0;
     
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = datavec[0].x[0];
-    REAL r = Norm(x_spatial);
-    REAL scale = 1.0;
-    if (fSimulationData->IsAxisymmetricQ()) {
-        scale *= 1/r;
-    }
-    
     if (HDivPiola)
     {
         for (int iq = 0; iq < nphiuHdiv; iq++)
@@ -482,7 +472,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
             VectorOnMaster *= JacobianDet;
             
             /* Contravariant Piola mapping preserves the divergence */
-            DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * ( scale*dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) + dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) );
+            DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * (dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) + dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) );
         }
     }
     else
@@ -493,7 +483,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
             /* Computing the divergence for constant jacobian elements */
-            DivergenceofPhi(iq,0) =  ( scale*datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) + datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex));
+            DivergenceofPhi(iq,0) =  (datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) + datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex));
         }
     }
     
@@ -715,6 +705,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZManVector<REAL> rho              = props[7];
     TPZManVector<REAL> rhof             = props[8];
     
+    if( 1.0/lambda[0] == INFINITY || 1.0/lambda[0] == -INFINITY)
+    {
+        DebugStop();
+    }
+    
     Oneoverlambda_Kinv_u(0,0) = (1.0/lambda[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
     Oneoverlambda_Kinv_u(1,0) = (1.0/lambda[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
     
@@ -778,17 +773,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     {
         fTimeDependentForcingFunction->Execute(datavec[Pblock].x,fSimulationData->GetTime(),fvalue,Grad);
     }
-    
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = datavec[0].x[0];
-    REAL r = Norm(x_spatial);
-    REAL scale = 1.0;
-    if (fSimulationData->IsAxisymmetricQ()) {
-        scale *= 1/r;
-    }
-    
-    divu = (scale*Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // Note::  use it for HdivPiola = 1 or constant Jacobian mappings
+
+    divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // Note::  use it for HdivPiola = 1 or constant Jacobian mappings
     
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
@@ -925,16 +911,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
         fTimeDependentForcingFunction->Execute(datavec[Pblock].x,fSimulationData->GetTime(),fvalue,Grad);
     }
     
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = datavec[0].x[0];
-    REAL r = Norm(x_spatial);
-    REAL scale = 1.0;
-    if (fSimulationData->IsAxisymmetricQ()) {
-        scale *= 1/r;
-    }
-    
-    divu = (scale*Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // Note::  use it for HdivPiola = 1 or constant Jacobian mappings
+    divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // Note::  use it for HdivPiola = 1 or constant Jacobian mappings
     
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
@@ -1148,17 +1125,23 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
     TPZFMatrix<STATE> iPhiHdiv(2,1);
     TPZFMatrix<STATE> jPhiHdiv(2,1);
     
-    
-    
     REAL Value;
     switch (bc.Type()) {
         case 0 :    // Dirichlet BC  PD inflow
         {
             
             Value = bc.Val2()(0,0);         //  Pressure
+            TPZManVector<STATE,1> P_hydro(1,0.0);
+            TPZFMatrix<STATE> GradP_hydro(1,0);            
+            
+            if (fTimedependentBCForcingFunction) {
+                fTimedependentBCForcingFunction->Execute(datavec[ublock].x, fSimulationData->GetTime(), P_hydro,GradP_hydro);
+                Value = P_hydro[0];
+            }
+            
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
-                ef(iq) += weight * ( (Value ) * PhiH1(iq,0));
+                ef(iq) += weight * ( Value ) * PhiH1(iq,0);
             }
         }
             break;
@@ -1168,15 +1151,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
             
             
             Value = bc.Val2()(0,0);         //  NormalFlux
-            
-            //             TPZManVector<STATE,1> fvalue(1,0.0);
-            //             TPZFMatrix<REAL> Grad;
-            //             if(fTimedependentBCForcingFunction)
-            //             {
-            //                 fTimedependentBCForcingFunction->Execute(datavec[Qblock].x,fSimulationData->GetTime(),fvalue,Grad);
-            //                 Value = fvalue[0];
-            //             }
-        
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
@@ -1196,18 +1170,18 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
         {
             
             Value = bc.Val2()(0,0);         //  Pressure
-            //             TPZManVector<STATE,1> fvalue(1,0.0);
-            //             TPZFMatrix<REAL> Grad;
-            //             if(fTimedependentFunctionExact)
-            //             {
-            //                 fTimedependentFunctionExact->Execute(datavec[Qblock].x,fSimulationData->GetTime(),fvalue,Grad);
-            //                 Value = fvalue[0];
-            //             }
+            TPZVec<STATE> P_hydro(1,0.0);
+            TPZFMatrix<STATE> GradP_hydro(1,0);
+            
+            if (fTimedependentBCForcingFunction) {
+                fTimedependentBCForcingFunction->Execute(datavec[ublock].x, fSimulationData->GetTime(), P_hydro,GradP_hydro);
+                Value = P_hydro[0];
+            }
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 
-                ef(iq) += weight * ( (Value ) * PhiH1(iq,0));
+                ef(iq) += weight * ( Value ) * PhiH1(iq,0);
                 
             }
         }
