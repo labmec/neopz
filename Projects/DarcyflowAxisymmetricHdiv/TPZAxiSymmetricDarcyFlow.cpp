@@ -1004,7 +1004,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceDarcy(TPZMaterialData &data, T
     REAL P_R             = datavecright[Pblock].sol[0][0];
     //    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
-    TPZFMatrix<STATE> iphiuHdivL(2,1);
+    TPZManVector<REAL,3> vi(2,0.0);
     int ivectorindex = 0;
     int ishapeindex =0;
     
@@ -1012,20 +1012,20 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceDarcy(TPZMaterialData &data, T
     {
         ivectorindex = datavecleft[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavecleft[ublock].fVecShapeIndex[iq].second;
-        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
-        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+        REAL vin = vi[0]*n[0] + vi[1]*n[1];
         
-        ef(iq + iniuL) += weight * (P_L - P_R) * vn;
+        ef(iq + iniuL) += weight * (P_R - P_L) * vin;
         
         for (int jp = 0; jp < nphiPL2L; jp++)
         {
-            ek(iq + iniuL,jp + iniPL) += 1.0 * weight * phiPL2L(jp,0) * vn;
+            ek(iq + iniuL,jp + iniPL) += - 1.0 * weight * phiPL2L(jp,0) * vin;
         }
         
         for (int jp = 0; jp < nphiPL2R; jp++)
         {
-            ek(iq + iniuL,iblock + jp + iniPR) += - 1.0 * weight * phiPL2R(jp,0) * vn;
+            ek(iq + iniuL,iblock + jp + iniPR) += 1.0 * weight * phiPL2R(jp,0) * vin;
         }
         
     }
@@ -1091,7 +1091,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceDarcy(TPZMaterialData &data, T
     REAL P_R             = datavecright[Pblock].sol[0][0];
 //    REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
-    TPZFMatrix<STATE> iphiuHdivL(2,1);
+    TPZManVector<REAL,3> vi(2,0.0);
     int ivectorindex = 0;
     int ishapeindex =0;
     
@@ -1099,11 +1099,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceDarcy(TPZMaterialData &data, T
     {
         ivectorindex = datavecleft[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavecleft[ublock].fVecShapeIndex[iq].second;
-        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
-        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+        REAL vin = vi[0]*n[0] + vi[1]*n[1];
         
-        ef(iq + iniuL) += weight * (P_L - P_R) * vn;
+        ef(iq + iniuL) += weight * (P_R - P_L) * vin;
         
     }
     
@@ -1612,7 +1612,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
         ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0] * Sa_phiPL2(isw,0)
                                        - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
                                        - (qg[0][0]*Gradphis[0] + qg[0][1]*Gradphis[1])
-                                       - 0.0*(qc[0][0]*Gradphis[0] + qc[0][1]*Gradphis[1]));
+                                       - (qc[0][0]*Gradphis[0] + qc[0][1]*Gradphis[1]));
     }
     
     
@@ -1696,6 +1696,17 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
         
         
     }
+    
+//    // Capillary Segregation
+//    TPZVec< TPZManVector<REAL,3> > qc_L;
+//    this->CapillarySegregation(datavecleft,qc_L);
+//    
+//    // Comuting the contribution with the minimum gravitational flux
+//    
+//    for (int isw = 0; isw < nphiSaL2L; isw++)
+//    {
+//        ef(isw + iniSaL) += 1.0 * weight * (qc_L[0][0]*n[0] + qc_L[0][1]*n[1]) * phiSaL2L(isw,0);
+//    }
     
     switch (bc.Type()) {
         case 0 :    // Dirichlet BC  PD inflow
@@ -2099,6 +2110,18 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
         ef(iq + iniuL) += weight * (Salpha_L * Pc_beta_alphaL[0]) * vin;
         
     }
+    
+//    // Capillary Segregation
+//    TPZVec< TPZManVector<REAL,3> > qc_L;
+//    this->CapillarySegregation(datavecleft,qc_L);
+//    
+//    // Comuting the contribution with the minimum gravitational flux
+//    
+//    for (int isw = 0; isw < nphiSaL2L; isw++)
+//    {
+//        ef(isw + iniSaL) += 1.0 * weight * (qc_L[0][0]*n[0] + qc_L[0][1]*n[1]) * phiSaL2L(isw,0);
+//    }
+
     
 
     switch (bc.Type()) {
@@ -2594,35 +2617,29 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     }
     
     
+   
     // Capillary Segregation
+    TPZVec< TPZManVector<REAL,3> > qc_L;
+    this->CapillarySegregation(datavecleft,qc_L);
     
-    TPZVec<TPZManVector<REAL> > CapillaryFluxes;
-    this->CapillarySegregation(data, datavecleft, datavecright, CapillaryFluxes,fstar);
+    // Capillary Segregation
+    TPZVec< TPZManVector<REAL,3> > qc_R;
+    this->CapillarySegregation(datavecright,qc_R);
     
-    // Computing the minimum gravitational flux at the edge
-    
-    TPZManVector<REAL> qcLdotn = CapillaryFluxes[0];
-    TPZManVector<REAL> qcRdotn = CapillaryFluxes[1];
-    TPZManVector<REAL> gcdotn;
-    
-    // Taking the minimum module
-    if (fstar[1] >= fstar[0]) {
-        gcdotn = qcLdotn;
-    }
-    else
-    {
-        gcdotn = qcRdotn;
-    }
+    /* { flux } */
+    REAL flux_c_L = qc_L[0][0]*n[0] + qc_L[0][1]*n[1];
+    REAL flux_c_R = qc_R[0][0]*n[0] + qc_R[0][1]*n[1];
+    REAL flux_avg = 0.5 * (flux_c_L + flux_c_R);
     
     // Comuting the contribution with the minimum gravitational flux
     
     for (int isw = 0; isw < nphiSaL2L; isw++)
     {
-        ef(isw + iniSaL) += 1.0 * weight * gcdotn[0] * phiSaL2L(isw,0);
+        ef(isw + iniSaL) += 1.0 * weight * (flux_avg) * phiSaL2L(isw,0);
     }
     for (int isw = 0; isw < nphiSaL2R; isw++)
     {
-        ef(iblock + isw + iniSaR) += -1.0 * weight * gcdotn[0] * phiSaL2R(isw,0);
+        ef(iblock + isw + iniSaR) += -1.0 * weight * (flux_avg) * phiSaL2R(isw,0);
     }
     
     return;
@@ -2779,34 +2796,27 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     }
     
     // Capillary Segregation
+    TPZVec< TPZManVector<REAL,3> > qc_L;
+    this->CapillarySegregation(datavecleft,qc_L);
     
-    TPZVec<TPZManVector<REAL> > CapillaryFluxes;
-    this->CapillarySegregation(data, datavecleft, datavecright, CapillaryFluxes,fstar);
+    // Capillary Segregation
+    TPZVec< TPZManVector<REAL,3> > qc_R;
+    this->CapillarySegregation(datavecright,qc_R);
     
-    // Computing the minimum gravitational flux at the edge
-    
-    TPZManVector<REAL> qcLdotn = CapillaryFluxes[0];
-    TPZManVector<REAL> qcRdotn = CapillaryFluxes[1];
-    TPZManVector<REAL> gcdotn;
-    
-    // Taking the minimum module
-    if (fstar[1] >= fstar[0]) {
-        gcdotn = qcLdotn;
-    }
-    else
-    {
-        gcdotn = qcRdotn;
-    }
+    /* { flux } */
+    REAL flux_c_L = qc_L[0][0]*n[0] + qc_L[0][1]*n[1];
+    REAL flux_c_R = qc_R[0][0]*n[0] + qc_R[0][1]*n[1];
+    REAL flux_avg = 0.5 * (flux_c_L + flux_c_R);
     
     // Comuting the contribution with the minimum gravitational flux
     
     for (int isw = 0; isw < nphiSaL2L; isw++)
     {
-        ef(isw + iniSaL) += 1.0 * weight * gcdotn[0] * phiSaL2L(isw,0);
+        ef(isw + iniSaL) += 1.0 * weight * (flux_avg) * phiSaL2L(isw,0);
     }
     for (int isw = 0; isw < nphiSaL2R; isw++)
     {
-        ef(iblock + isw + iniSaR) += -1.0 * weight * gcdotn[0] * phiSaL2R(isw,0);
+        ef(iblock + isw + iniSaR) += -1.0 * weight * (flux_avg) * phiSaL2R(isw,0);
     }
     
 }
@@ -3062,7 +3072,7 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     
 }
 
-void TPZAxiSymmetricDarcyFlow::CapillarySegregation( TPZVec<TPZMaterialData> &datavec, TPZVec<TPZManVector<REAL,3> > & qc){
+void TPZAxiSymmetricDarcyFlow::CapillarySegregation(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZManVector<REAL,3> > & qc){
     
     //    int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)

@@ -171,6 +171,10 @@ private:
     /** @brief Number of sub times steps per dt */
     int fn_sub_dt;
     
+    /** @brief Is triangular mesh */
+    bool fIsTriangularMeshQ;
+    
+    
 public:
     
     /** @brief void material being used for GR */
@@ -468,6 +472,13 @@ public:
     
     /** @brief Get counterclockwise rotation angle [degrees] */
     REAL GetRotationAngle() {return this->fAngle;}
+    
+    /** @brief Set the use of triangular mesh */
+    void SetTriangularMesh(bool IsTriangularMesh) {fIsTriangularMeshQ = IsTriangularMesh;}
+    
+    /** @brief Is it using a triangular mesh */
+    bool IsTriangularMeshQ() {return fIsTriangularMeshQ;}
+    
     
     /**
      * Set time values to be reported

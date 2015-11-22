@@ -44,6 +44,9 @@ private:
     /** @brief Irreducible Saturation of the no wetting phase - */
     REAL fS_nwett_r;
     
+    /** @brief Maximum capillary pressure value - */
+    REAL fPc_max;
+    
     
 public:
     
@@ -142,6 +145,12 @@ public:
     
     /** @brief Get the irreducible Saturation of the no wetting phase - */
     REAL GetS_nwett_r() {return fS_nwett_r;}
+    
+    /** @brief Set maximum capillary pressure value - Pa  $P_{ref}$ */
+    void SetPc_max(REAL Pc){this->fPc_max = Pc;}
+    
+    /** @brief Get maximum capillary pressure value - Pa  $P_{ref}$ */
+    REAL GetPc_max(){return this->fPc_max ;}
     
 };
 

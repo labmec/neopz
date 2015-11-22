@@ -51,17 +51,17 @@ void OilPhase::Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars){
     REAL Sor = GetS_nwett_r();
     REAL Se =  1.0 - (1.0 - So - Swr)/(1.0-Swr-Sor);
 
-    kr[0] = Se;
-    kr[1] = 0.0;
-    kr[2] = 0.0;
-    kr[3] = 1.0*(1.0)/(1.0-Swr-Sor);
-    kr[4] = 0.0;
-    
-//    kr[0] = Se*Se;
+//    kr[0] = Se;
 //    kr[1] = 0.0;
 //    kr[2] = 0.0;
-//    kr[3] = 2.0*Se*(1.0)/(1.0-Swr-Sor);
+//    kr[3] = 1.0*(1.0)/(1.0-Swr-Sor);
 //    kr[4] = 0.0;
+    
+    kr[0] = Se*Se;
+    kr[1] = 0.0;
+    kr[2] = 0.0;
+    kr[3] = 2.0*Se*(1.0)/(1.0-Swr-Sor);
+    kr[4] = 0.0;
     
 }
 
@@ -69,7 +69,7 @@ void OilPhase::Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars){
 void OilPhase::Pc(TPZManVector<REAL> &pc, TPZManVector<REAL> state_vars){
     
     REAL S_alpha = state_vars[2];
-    REAL Pc_max  = 0.01;
+    REAL Pc_max  = GetPc_max();
     
     pc[0] = (1.0-S_alpha)*Pc_max;
     pc[1] = 0.0;

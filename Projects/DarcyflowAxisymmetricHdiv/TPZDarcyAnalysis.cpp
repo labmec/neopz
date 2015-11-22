@@ -1,4 +1,4 @@
-/*
+    /*
  *  pznondarcyanalysis.cpp
  *  PZ
  *
@@ -320,6 +320,9 @@ void TPZDarcyAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &
 void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 {
     
+    REAL TimeStep = fSimulationData->GetDeltaT();
+    fcmeshinitialdarcy->Solution().Zero();
+    
     if (fSimulationData->IsTwoPhaseQ()) {
         TPZVec<STATE> Swlini(fmeshvec[2]->Solution().Rows());
         TPZCompMesh * L2Sw = L2ProjectionCmesh(Swlini);
@@ -327,7 +330,6 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
         SolveProjection(L2Analysis,L2Sw);
         fmeshvec[2]->LoadSolution(L2Analysis->Solution());
     }
-    
     
     if (fSimulationData->IsThreePhaseQ()) {
         TPZFMatrix<REAL> Soini = fmeshvec[2]->Solution();
@@ -339,42 +341,75 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
         fmeshvec[3]->LoadSolution(Soini);
     }
     
-    
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshinitialdarcy);
+    an->LoadSolution(fcmeshinitialdarcy->Solution());
     
-    falphaAtn = fcmeshinitialdarcy->Solution();
-    falphaAtnplusOne = fcmeshinitialdarcy->Solution();
+    int n_dt = 20;
+    int n_sub_dt = 10;
+    int i_time = 0;
+    REAL dt = (fSimulationData->GetMaxTime())/REAL(n_sub_dt);
+    fSimulationData->SetDeltaT(dt);
     
     if (fSimulationData->GetGR())
     {
-        FilterSaturationGradients(fActiveEquations,fNonactiveEquations);
-        an->StructMatrix()->EquationFilter().Reset();
-        an->StructMatrix()->EquationFilter().SetActiveEquations(fActiveEquations);
+        if (fSimulationData->IsImpesQ()) {
+            FilterSaturations(fActiveEquations,fNonactiveEquations);
+            an->StructMatrix()->EquationFilter().Reset();
+            an->StructMatrix()->EquationFilter().SetActiveEquations(fActiveEquations);
+        }
+        else
+        {
+            
+            FilterSaturationGradients(fActiveEquations,fNonactiveEquations);
+            an->StructMatrix()->EquationFilter().Reset();
+            an->StructMatrix()->EquationFilter().SetActiveEquations(fActiveEquations);
+            CleanUpGradients(an);
+            SaturationReconstruction(an);
+            
+        }
+        
     }
     
-    REAL TimeStep = fSimulationData->GetDeltaT();
-    REAL BigTimeStep = 0.0864/REAL(fSimulationData->GetNSubSteps());
-    fSimulationData->SetDeltaT(BigTimeStep);
-    this->AssembleLastStep(an);
-    this->AssembleNextStep(an);
-    const clock_t tinia = clock();
-    NewtonIterations(an);
-    const clock_t tenda = clock();
-    const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
-    std::cout << "Time for Newton: " << timea << std::endl;
+    falphaAtn = an->Solution();
+    falphaAtnplusOne = an->Solution();
+    
+    while (i_time < n_dt) {
+        
+        
+        
+        this->AssembleLastStep(an);
+        this->AssembleNextStep(an);
+        
+        
+        if (fSimulationData->IsImpesQ())
+        {
+            
+            const clock_t tinia = clock();
+            PicardIterations(an);
+            const clock_t tenda = clock();
+            const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
+            std::cout << "Time for Picard: " << timea << std::endl;
+            
+        }
+        else
+        {
+            const clock_t tinia = clock();
+            NewtonIterations(an);
+            const clock_t tenda = clock();
+            const REAL timea = REAL(REAL(tenda - tinia)/CLOCKS_PER_SEC);
+            std::cout << "Time for Newton: " << timea << std::endl;
+            
+        }
+        i_time++;
+    }
+
+    fcmeshinitialdarcy->LoadSolution(an->Solution());
+    falphaAtn = fcmeshinitialdarcy->Solution();
+    falphaAtnplusOne = fcmeshinitialdarcy->Solution();
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshinitialdarcy);
-    
-    
-    
-    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, fcmeshdarcy);
-    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, fcmeshdarcy);
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);
-    
-    fcmeshdarcy->LoadSolution(fcmeshinitialdarcy->Solution());
-    
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshdarcy);    
     fSimulationData->SetDeltaT(TimeStep);
-    falphaAtn = fcmeshdarcy->Solution();
-    falphaAtnplusOne = fcmeshdarcy->Solution();
+
     
 }
 
@@ -451,6 +486,9 @@ void TPZDarcyAnalysis::RunAnalysis()
     }
     
     // Analyses
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << "Computing the Initial conditions " << std::endl;
     
     TPZAnalysis * Initialan = CreateAnalysis(fcmeshinitialdarcy);
     this->PushInitialCmesh();
@@ -460,6 +498,10 @@ void TPZDarcyAnalysis::RunAnalysis()
     const REAL time_steady = REAL(REAL(t_end_steady - t_beg_steady)/CLOCKS_PER_SEC);
     std::cout << "Time for computing initial condition (minutes): " << time_steady/60.0 << std::endl;
     delete Initialan;
+
+    std::cout << std::endl;
+    std::cout << std::endl;    
+    std::cout << "Computing the transient solution. " << std::endl;
     
     TPZAnalysis * an = CreateAnalysis(fcmeshdarcy);
     this->PushCmesh();
@@ -491,75 +533,39 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
     
     if (IsDirecSolver) {
         
-//        if (fSimulationData->GetIsBroyden()) {
-//            TPZFStructMatrix fullMatrix(cmesh);
-//            TPZStepSolver<STATE> step;
-//            fullMatrix.SetNumThreads(numofThreads);
-//            step.SetDirect(ELU);
-//            an->SetStructuralMatrix(fullMatrix);
-//            an->SetSolver(step);
-//        }
-//        else{
-        
-            TPZSkylineNSymStructMatrix skylnsym(cmesh);
+        TPZSkylineNSymStructMatrix skylnsym(cmesh);
 //            TPZParFrontStructMatrix<TPZFrontNonSym<STATE> > skylnsym(cmesh);
 //            skylnsym.SetDecomposeType(ELU);
 //            skylnsym.SetQuiet(1);
-            TPZStepSolver<STATE> step;
-            skylnsym.SetNumThreads(numofThreads);
-            step.SetDirect(ELU);
-            an->SetStructuralMatrix(skylnsym);
-            an->SetSolver(step);
-//        }
+        TPZStepSolver<STATE> step;
+        skylnsym.SetNumThreads(numofThreads);
+        step.SetDirect(ELU);
+        an->SetStructuralMatrix(skylnsym);
+        an->SetSolver(step);
         
     }
     else
     {
-//        if (fSimulationData->GetIsBroyden()) {
-//            TPZFStructMatrix fullMatrix(cmesh);
-//            fullMatrix.SetNumThreads(numofThreads);
-//            
-//            TPZAutoPointer<TPZMatrix<STATE> > fullMatrixa = fullMatrix.Create();
-//            TPZAutoPointer<TPZMatrix<STATE> > fullMatrixaClone = fullMatrixa->Clone();
-//            
-//            TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(fullMatrixaClone);
-//            TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(fullMatrixa);
-//            TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(fullMatrixa);
-//            stepre->SetDirect(ELU);
-//            stepre->SetReferenceMatrix(fullMatrixa);
-//            stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
-//            stepGC->SetCG(10, *stepre, 1.0e-10, 0);
-//            if (fSimulationData->GetIsCG()) {
-//                an->SetSolver(*stepGC);
-//            }
-//            else{
-//                an->SetSolver(*stepGMRES);
-//            }
-//            
-//        }
-//        else{
+        TPZSkylineNSymStructMatrix skylnsym(cmesh);
+        skylnsym.SetNumThreads(numofThreads);
         
-            TPZSkylineNSymStructMatrix skylnsym(cmesh);
-            skylnsym.SetNumThreads(numofThreads);
-            
-            TPZAutoPointer<TPZMatrix<STATE> > skylnsyma = skylnsym.Create();
-            TPZAutoPointer<TPZMatrix<STATE> > skylnsymaClone = skylnsyma->Clone();
-            
-            TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(skylnsymaClone);
-            TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(skylnsyma);
-            TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(skylnsyma);
-            
-            stepre->SetDirect(ELU);
-            stepre->SetReferenceMatrix(skylnsyma);
-            stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
-            stepGC->SetCG(10, *stepre, 1.0e-10, 0);
-            if (fSimulationData->GetIsCG()) {
-                an->SetSolver(*stepGC);
-            }
-            else{
-                an->SetSolver(*stepGMRES);
-            }
-//        }
+        TPZAutoPointer<TPZMatrix<STATE> > skylnsyma = skylnsym.Create();
+        TPZAutoPointer<TPZMatrix<STATE> > skylnsymaClone = skylnsyma->Clone();
+        
+        TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(skylnsymaClone);
+        TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(skylnsyma);
+        TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(skylnsyma);
+        
+        stepre->SetDirect(ELU);
+        stepre->SetReferenceMatrix(skylnsyma);
+        stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
+        stepGC->SetCG(10, *stepre, 1.0e-10, 0);
+        if (fSimulationData->GetIsCG()) {
+            an->SetSolver(*stepGC);
+        }
+        else{
+            an->SetSolver(*stepGMRES);
+        }
         
     }
     
@@ -706,6 +712,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             FilterSaturationGradients(fActiveEquations,fNonactiveEquations);
             an->StructMatrix()->EquationFilter().Reset();
             an->StructMatrix()->EquationFilter().SetActiveEquations(fActiveEquations);
+            CleanUpGradients(an);
             SaturationReconstruction(an);
             
         }
@@ -722,6 +729,9 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     this->PostProcessVTK(an);
     std::cout << "Reported time " << tk/(86400.0) << "; dt = " << current_dt/(86400.0) << std::endl;
     std::cout << std::endl;
+    
+    falphaAtn = an->Solution();
+    falphaAtnplusOne = an->Solution();
     
     int i_time = 0;
     int i_sub_dt = 0;
@@ -1206,8 +1216,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetTimeDependentForcingFunction(forcef);
     
     // Setting up linear tracer solution
-    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
-//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
+    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
     
@@ -1705,7 +1715,11 @@ void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
     TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
     CreateGridFrom2->SetParametricFunction(ParFunc2);
     CreateGridFrom2->SetFrontBackMatId(2,4);
-//    CreateGridFrom2->SetTriangleExtrusion();
+    
+    if (fSimulationData->IsTriangularMeshQ())
+    {
+        CreateGridFrom2->SetTriangleExtrusion();
+    }
     
     dt = fSimulationData->GetLengthElementy();
     n = ny;
@@ -1941,12 +1955,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     int div = fSimulationData->GetHPostrefinement();
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
-    if (fSimulationData->GetGR()) {
-        plotfile = "2DMixedDarcyGR.vtk";
-    }
-    else{
-        plotfile = "2DMixedDarcy.vtk";
-    }
+    plotfile = "2DMixed.vtk";
     
     scalnames.Push("WeightedPressure");
     vecnames.Push("BulkVelocity");
@@ -2402,14 +2411,20 @@ void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &dis
     
 //    REAL x = pt[0];
     REAL y = pt[1];
-    REAL S_wett_nc = 0.0;
-    REAL S_nwett_ir = 0.0;
+    REAL S_wett_nc = 0.16;
+    REAL S_nwett_ir = 0.2;
     disp[0] = S_wett_nc;
 
-    if (y >=  0.5 ) {
-         disp[0] = 1.0-S_nwett_ir;
-    }
+//    bool inside_x = ( x >= 0.3 ) && (x <= 0.7);
+//    bool inside_y = ( y >= 0.3 ) && (y <= 0.7);
+//    
+//    if (inside_x && inside_y ) {
+//         disp[0] = 1.0-S_nwett_ir;
+//    }
 
+//    if ( y >= 50.0 ) {
+//         disp[0] = 1.0-S_nwett_ir;
+//    }
     
 }
 
