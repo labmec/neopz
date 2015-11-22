@@ -82,14 +82,6 @@ template<class TVar>
 TPZBlock<TVar>::~TPZBlock() {
 }
 
-/******************/
-/*** SetMatrix ****/
-template<class TVar>
-void
-TPZBlock<TVar>::SetMatrix(TPZMatrix<TVar> *const other){
-	fpMatrix = other;
-}
-
 
 /******************/
 /*** Set Blocks ***/

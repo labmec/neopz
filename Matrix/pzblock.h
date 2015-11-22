@@ -21,14 +21,18 @@
 template<class TVar>
 class TPZBlock : public TPZSaveable
 {
-public: 
+public:
+    TPZBlock() : fBlock(), fpMatrix(0)
+    {
+        
+    }
 	/**
 	 * @brief For each elements on matrix a size 1 block is created
 	 * @param matrix_to_represent Indicates which matrix is to be represented
 	 * @param num_of_blocks Indicates number of blocks
 	 * @param initial_blocks_size Indicates initial block size, default value is 1
 	 */
-	TPZBlock(TPZMatrix<TVar> *const matrix_to_represent = 0,const int num_of_blocks = 0,
+	TPZBlock(TPZMatrix<TVar> *const matrix_to_represent,const int num_of_blocks = 0,
 			 const int initial_blocks_size = 1 );
 	
 	/**
@@ -44,7 +48,10 @@ public:
      * @brief Changes pointer to other
      * @param other New matrix to be pointed to
 	 */
-	virtual void SetMatrix(TPZMatrix<TVar> *const other);
+	void SetMatrix(TPZMatrix<TVar> *const other)
+    {
+        fpMatrix = other;
+    }
 	
 	/** @brief Returns a pointer to current matrix */
 	TPZMatrix<TVar> *Matrix(){ return fpMatrix;}

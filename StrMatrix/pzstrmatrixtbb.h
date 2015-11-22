@@ -150,74 +150,36 @@ public:
     
 protected:
     
-#ifdef USING_TBB
-    
-    class TPZAssembleTask : public tbb::flow::continue_receiver {
-    public:
-        
-        TPZAssembleTask(const int &npredecessors, std::vector<std::list<long> > *sucessors, TPZStructMatrixTBB *strmat, TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix = 0) :
-        tbb::flow::continue_receiver(npredecessors), mSucessors(sucessors), fStruct(strmat), fGlobRhs(rhs), fGlobMatrix(matrix)
-        {}
-        
-        ~TPZAssembleTask() {}
-        
-        tbb::task *execute();
-        
-        std::vector<std::list<long> > *mSucessors;
-        
-        /// current structmatrix object
-        TPZStructMatrixTBB *fStruct;
-        
-        /// global rhs vector
-        TPZFMatrix<STATE> *fGlobRhs;
-
-        
-        /// global matrix
-        TPZMatrix<STATE> *fGlobMatrix;
-        
-        TPZElementMatrix ek;
-        TPZElementMatrix ef;
-        long iel;
-        std::vector<TPZAssembleTask* > *fAssembleNodes;
-        
-       
-    };
-
-    class TPZCalcTask {
-    public:
-        
-        TPZCalcTask(bool const &global, TPZStructMatrixTBB *str, TPZVec<int> *elseq, std::vector<TPZAssembleTask* > *sucessors) :
-        hasGlobalMatrix(global), fStruct(str), cMesh(str->Mesh()), felSequenceColor(elseq), fAssembleNodes(sucessors) {}
-                                               
-        void operator()(const tbb::blocked_range<long>& range) const;
-      
-        
-    private:
-        bool hasGlobalMatrix;
-        TPZStructMatrixTBB *fStruct;
-        TPZCompMesh *cMesh;
-        TPZVec<int> *felSequenceColor;
-        std::vector<TPZAssembleTask* > *fAssembleNodes;
-    };
-    
-  
     
     class TPZFlowGraph {
+        
+        struct TPZPointers
+        {
+            TPZElementMatrix *fEk;
+            TPZElementMatrix *fEf;
+            
+            TPZPointers() : fEk(0), fEf(0){}
+        };
+        
     public:
         TPZFlowGraph(TPZStructMatrixTBB *strmat);
         ~TPZFlowGraph();
         TPZFlowGraph(TPZFlowGraph const &copy);
         
         // vectors for mesh coloring
-        TPZVec<int> fnextBlocked, felSequenceColor, felSequenceColorInv;
-        TPZManVector<int> fElementOrder;
+        TPZVec<long> fnextBlocked, felSequenceColor, felSequenceColorInv;
+        TPZManVector<long> fElementOrder;
         
-        TPZCompMesh *cmesh;
+        TPZCompMesh *fCMesh;
         
-        std::vector<TPZAssembleTask* > fNodes;
+        tbb::flow::graph fGraph;
         
-        std::vector<std::list<long> > nextTasks;
-        std::vector<long> predecessorTasks;
+        std::vector<tbb::flow::continue_node<tbb::flow::continue_msg> *> fNodes;
+        
+        TPZVec<TPZPointers> fElMatPointers;
+        
+//        std::vector<std::list<long> > nextTasks;
+//        std::vector<long> predecessorTasks;
         
         void OrderElements();
         void ElementColoring();
@@ -232,6 +194,59 @@ protected:
         TPZMatrix<STATE> *fGlobMatrix;
         /// global rhs vector
         TPZFMatrix<STATE> *fGlobRhs;
+        
+#ifdef USING_TBB
+        
+        class TPZAssembleTask  {
+        public:
+            TPZAssembleTask() : fOrigin(0), fElMat(0), fIel(-1){
+            }
+            
+            TPZAssembleTask(long iel, TPZFlowGraph *origin) : fOrigin(origin), fIel(iel)
+            {
+                fElMat = &origin->fElMatPointers[iel];
+            }
+            
+            ~TPZAssembleTask() {}
+            
+            TPZAssembleTask(const TPZAssembleTask &copy) : fOrigin(copy.fOrigin), fElMat(copy.fElMat), fIel(copy.fIel)
+            {
+                
+            }
+            
+            void operator=(const TPZAssembleTask &copy)
+            {
+                fOrigin = copy.fOrigin;
+                fElMat = copy.fElMat;
+                fIel = copy.fIel;
+            }
+            
+            tbb::flow::continue_msg operator()(const tbb::flow::continue_msg &msg);
+            
+            /// FlowGraph Object which spawned the node
+            TPZFlowGraph *fOrigin;
+            
+            TPZPointers *fElMat;
+            
+            long fIel;
+            
+            
+        };
+        
+        class TPZCalcTask {
+        public:
+            
+            TPZCalcTask(TPZFlowGraph *flowgraph) : fFlowGraph(flowgraph) {}
+            
+            void operator()(const tbb::blocked_range<long>& range) const;
+            
+            
+        private:
+            TPZFlowGraph *fFlowGraph;
+        };
+        
+        
+
     };
 
 #endif
