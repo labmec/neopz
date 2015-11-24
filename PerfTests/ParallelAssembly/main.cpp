@@ -93,20 +93,20 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     
-    
-    int porder = 1;
+    int porder = 4;
     int dimension = 2;
-    TPZAutoPointer<TPZCompMesh> cmesh = CreateCompMesh(dimension, porder, 1000000, EUniform);
+    int nelem = 1000000;
+    TPZAutoPointer<TPZCompMesh> cmesh = CreateCompMesh(dimension, porder, nelem, EUnbalanced);
     
 
     std::cout << "Computational mesh created\n";
     std::cout.flush();
-#ifdef PZDEBUG
-    {
-        std::ofstream out("../Pressure.txt");
-        cmesh->Print(out);
-    }
-#endif
+//#ifdef PZDEBUG
+//    {
+//        std::ofstream out("../Pressure.txt");
+//        cmesh->Print(out);
+//    }
+//#endif
     
     std::cout << "Number of equations " << cmesh->NEquations() << std::endl;
     std::cout << "Number of elements " << cmesh->NElements() << std::endl;
@@ -114,17 +114,18 @@ int main(int argc, char *argv[])
     //calculo solution
     TPZAnalysis *an = new TPZAnalysis(cmesh,false);
 
-    TPZSkylineStructMatrix skyl(cmesh);
+    TPZStructMatrix strmat(cmesh,true);
 //#ifndef PZDEBUG
-    skyl.SetNumThreads(1);
+//    skyl.SetNumThreads(1);
 //#endif
-    an->SetStructuralMatrix(skyl);
+    an->SetStructuralMatrix(strmat);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     an->SetSolver(step);
     std::cout << "Assembly\n";
     an->AssembleResidual();
-
+    std::cout << "Once\n";
+    an->AssembleResidual();
     std::cout << "Finished\n";
     return 0;
 }
@@ -178,6 +179,7 @@ TPZAutoPointer<TPZGeoMesh> MalhaGeom(int dim, TPZVec<int> &nblocks, int nref)
     TPZManVector<int,3> nx(nblocks);
     TPZGenGrid gengrid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> meshresult2d = new TPZGeoMesh;
+    gengrid.SetRefpatternElements(false);
     gengrid.Read(meshresult2d);
     
     gengrid.SetBC(meshresult2d.operator->(), 4, -1);

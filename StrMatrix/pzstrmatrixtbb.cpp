@@ -49,19 +49,19 @@ RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the
 
 
 
-TPZStructMatrixTBB::TPZStructMatrixTBB(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
+TPZStructMatrixTBB::TPZStructMatrixTBB(TPZCompMesh *mesh, bool onlyrhs) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
     fMesh = mesh;
     this->SetNumThreads(0);
 #ifdef USING_TBB
-    this->fFlowGraph = new TPZFlowGraph(this);
+    this->fFlowGraph = new TPZFlowGraph(this,onlyrhs);
 #endif
 }
 
-TPZStructMatrixTBB::TPZStructMatrixTBB(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
+TPZStructMatrixTBB::TPZStructMatrixTBB(TPZAutoPointer<TPZCompMesh> cmesh, bool onlyrhs) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
 #ifdef USING_TBB
-    this->fFlowGraph = new TPZFlowGraph(this);
+    this->fFlowGraph = new TPZFlowGraph(this, onlyrhs);
 #endif
 }
 
@@ -94,8 +94,8 @@ TPZMatrix<STATE> *TPZStructMatrixTBB::Create() {
 }
 
 TPZStructMatrixTBB *TPZStructMatrixTBB::Clone() {
-    std::cout << "TPZStructMatrixTBB::Clone should never be called\n";
-    return 0;
+    return new TPZStructMatrixTBB(*this);
+
 }
 
 RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
@@ -313,10 +313,12 @@ static int MinPassIndex(TPZStack<long> &connectlist,TPZVec<long> &elContribute, 
 void TPZStructMatrixTBB::TPZFlowGraph::ElementColoring()
 {
 
-    const int nnodes = fCMesh->NConnects();
-    const int nel = fCMesh->ElementVec().NElements();
+    const long nnodes = fCMesh->NConnects();
+    const long nel = fCMesh->ElementVec().NElements();
     
     TPZManVector<long> elContribute(nnodes,-1), passIndex(nel,-1);
+    
+    fFirstElColor.Push(0);
     felSequenceColor.Resize(nel);
     felSequenceColor.Fill(-1);
     felSequenceColorInv.Resize(nel, -1);
@@ -328,7 +330,7 @@ void TPZStructMatrixTBB::TPZFlowGraph::ElementColoring()
     int currentPassIndex = 0;
     while (nelProcessed < fElementOrder.NElements()){
         
-        int elindex = fElementOrder[currentEl];
+        long elindex = fElementOrder[currentEl];
         
         if(felSequenceColorInv[elindex] == -1)
         {
@@ -370,6 +372,7 @@ void TPZStructMatrixTBB::TPZFlowGraph::ElementColoring()
         }
         currentEl++;
         if (currentEl == fElementOrder.NElements()){
+            fFirstElColor.Push(nelProcessed);
             currentEl = 0;
             currentPassIndex++;
         }
@@ -387,17 +390,24 @@ void TPZStructMatrixTBB::TPZFlowGraph::ElementColoring()
      toto << "elSequenceColorInv\n" << felSequenceColorInv << std::endl;
      toto << "elBlocked\n" <<  fnextBlocked << std::endl;
      toto << "elContribute\n" << elContribute << std::endl;
+    toto << "fFirstElColor " << fFirstElColor << std::endl;
      toto << "passIndex\n" << passIndex << std::endl;
      toto.close();
 #endif
 }
 
-TPZStructMatrixTBB::TPZFlowGraph::TPZFlowGraph(TPZStructMatrixTBB *strmat)
-: fCMesh(strmat->Mesh()), fStruct(strmat), fGlobMatrix(0), fGlobRhs(0)
+TPZStructMatrixTBB::TPZFlowGraph::TPZFlowGraph(TPZStructMatrixTBB *strmat, bool onlyrhs)
+: fCMesh(strmat->Mesh()), fStruct(strmat), fGlobMatrix(0), fGlobRhs(0), fOnlyRhs(onlyrhs)
 {
     this->OrderElements();
     this->ElementColoring();
-    this->CreateGraph();
+    if (fOnlyRhs) {
+        this->CreateGraphRhs();
+    }
+    else
+    {
+        this->CreateGraph();
+    }
 }
 
 TPZStructMatrixTBB::TPZFlowGraph::~TPZFlowGraph()
@@ -494,14 +504,75 @@ void TPZStructMatrixTBB::TPZFlowGraph::OrderElements()
 }
 
 TPZStructMatrixTBB::TPZFlowGraph::TPZFlowGraph(TPZFlowGraph const &copy)
-: fCMesh(copy.fStruct->Mesh()), fStruct(copy.fStruct), fGlobMatrix(0), fGlobRhs(0)
+: fCMesh(copy.fStruct->Mesh()), fStruct(copy.fStruct), fGlobMatrix(0), fGlobRhs(0), fOnlyRhs(copy.fOnlyRhs), fFirstElColor(copy.fFirstElColor)
 {
     this->fnextBlocked = copy.fnextBlocked;
     this->felSequenceColor = copy.felSequenceColor;
     this->felSequenceColorInv = copy.felSequenceColorInv;
     this->fElementOrder = copy.fElementOrder;
-    this->CreateGraph();
+    if (fOnlyRhs) {
+        this->CreateGraphRhs();
+    }
+    else
+    {
+        this->CreateGraph();
+    }
 }
+
+void TPZStructMatrixTBB::TPZFlowGraph::CreateGraphRhs()
+{
+    // create nodes for successive sum of rhs
+    long numcolors = fFirstElColor.size()-1;
+    fNodeDest.resize(numcolors);
+    fNodeDest.Fill(-1);
+    int twoexp = 0;
+    TPZStack<std::pair<long,long> > sumcolors;
+    TPZStack<int> numreceive;
+    std::set<int> received;
+    int index = 0;
+    while (numcolors>1) {
+        int num = 0;
+        twoexp++;
+        long halfnumcolors = (numcolors / 2) + numcolors%2;
+        for (long i=halfnumcolors; i< numcolors; i++) {
+            int nr=0;
+            if (received.find(i-halfnumcolors) == received.end()) {
+                nr++;
+                received.insert(i-halfnumcolors);
+                fNodeDest[i-halfnumcolors] = sumcolors.size();
+            }
+            if (received.find(i) == received.end()) {
+                nr++;
+                received.insert(i);
+                fNodeDest[i] = sumcolors.size();
+            }
+            sumcolors.Push(std::make_pair<long, long>(i-halfnumcolors, i));
+            numreceive.Push(nr);
+        }
+        numcolors = halfnumcolors;
+    }
+    numcolors = fFirstElColor.size()-1;
+    fNodes.resize(sumcolors.size());
+    // create the nodes and the links between them
+    // the first nodes that mentions an index receives the rhs
+    for (long i=0; i<sumcolors.size(); i++) {
+        TSumTwoColors block(sumcolors[i].first,sumcolors[i].second,&fRhsFat);
+        fNodes[i] = new tbb::flow::continue_node<tbb::flow::continue_msg>(fGraph,numreceive[i],block);
+    }
+    for (long i = sumcolors.size()-1; i>0; i--) {
+        int rhsindex = sumcolors[i].first;
+        for (long j=i-1; j>=0; j++) {
+            if (sumcolors[j].first == rhsindex || sumcolors[j].second == rhsindex) {
+                tbb::flow::make_edge(*fNodes[i], *fNodes[j]);
+                break;
+            }
+        }
+    }
+    long neq = fCMesh->NEquations();
+    fRhsFat.Redim(neq, numcolors);
+    
+}
+
 
 
 void TPZStructMatrixTBB::TPZFlowGraph::CreateGraph()
@@ -561,7 +632,9 @@ void TPZStructMatrixTBB::TPZFlowGraph::CreateGraph()
 
 void TPZStructMatrixTBB::TPZFlowGraph::ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix)
 {
-    
+    if (fOnlyRhs && matrix != 0) {
+        DebugStop();
+    }
     this->fGlobMatrix = matrix;
     this->fGlobRhs = rhs;
     
@@ -571,6 +644,104 @@ void TPZStructMatrixTBB::TPZFlowGraph::ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZM
     
     fGraph.wait_for_all();
 }
+
+void TPZStructMatrixTBB::TPZFlowGraph::ExecuteGraph(TPZFMatrix<STATE> *rhs)
+{
+    if (!fOnlyRhs) {
+        DebugStop();
+    }
+    this->fGlobRhs = rhs;
+    this->fGlobMatrix = 0;
+    long numcolors = fFirstElColor.size()-1;
+    fGlobRhs->Redim(this->fGlobRhs->Rows(), numcolors);
+    
+    TAssembleOneColor onecolor(this);
+    parallel_for(tbb::blocked_range<long>(0, fFirstElColor.size()-1), onecolor );
+    
+    fGraph.wait_for_all();
+    long nr = fRhsFat.Rows();
+    for (long r=0; r<nr; r++) {
+        (*fGlobRhs)(r,0) = fRhsFat(r,0);
+    }
+}
+
+void TPZStructMatrixTBB::TPZFlowGraph::TAssembleOneColor::operator()(const tbb::blocked_range<long> &range) const
+{
+    for(long color = range.begin(); color != range.end(); ++color)
+    {
+        TComputeElementRange elrange(fFlowGraph,color);
+        long firstel = fFlowGraph->fFirstElColor[color];
+        long lastel = fFlowGraph->fFirstElColor[color+1];
+        parallel_for(tbb::blocked_range<long>(firstel,lastel),elrange);
+        // trigger the sum node
+        long node = fFlowGraph->fNodeDest[color];
+        (fFlowGraph->fNodes)[node]->try_put(tbb::flow::continue_msg());
+
+    }
+}
+
+void TPZStructMatrixTBB::TPZFlowGraph::TComputeElementRange::operator()(const tbb::blocked_range<long> &range) const
+{
+    TPZCompMesh *cmesh = fFlowGraph->fCMesh;
+    TPZAutoPointer<TPZGuiInterface> guiInterface = fFlowGraph->fGuiInterface;
+    TPZElementMatrix ef(cmesh, TPZElementMatrix::EF);
+    
+    for (long iel=range.begin(); iel != range.end(); iel++)
+    {
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Computing element " << iel;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+#ifdef LOG4CXX
+    std::stringstream sout;
+    sout << "Element " << iel << " elapsed time ";
+    TPZTimer timeforel(sout.str());
+    timeforel.start();
+#endif
+
+    int element = fFlowGraph->felSequenceColor[iel];
+
+    if (element >= 0){
+
+        TPZCompEl *el = cmesh->ElementVec()[element];
+
+        if(!el) return;
+
+        el->CalcResidual(ef);
+
+        if(!el->HasDependency()) {
+
+            ef.ComputeDestinationIndices();
+            fFlowGraph->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+        } else
+        {
+            ef.ApplyConstraints();
+            ef.ComputeDestinationIndices();
+            fFlowGraph->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+            }
+
+        }
+
+        long nrows = fFlowGraph->fGlobRhs->Rows();
+        TPZFMatrix<STATE> locrhs(nrows,1,&fFlowGraph->fRhsFat(0, fColor),nrows);
+
+        if(!ef.HasDependency()) {
+            
+            locrhs.AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+        } else
+        {
+            locrhs.AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+        }
+        
+    } // outsided if
+    
+
+}
+
+
 tbb::flow::continue_msg TPZStructMatrixTBB::TPZFlowGraph::TPZAssembleTask::operator()(const tbb::flow::continue_msg &msg)
 {
 #ifdef LOG4CXX

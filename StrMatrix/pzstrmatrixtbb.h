@@ -44,9 +44,9 @@ class TPZStructMatrixTBB {
     
 public:
     
-    TPZStructMatrixTBB(TPZCompMesh *);
+    TPZStructMatrixTBB(TPZCompMesh *, bool onlyrhs = false);
     
-    TPZStructMatrixTBB(TPZAutoPointer<TPZCompMesh> cmesh);
+    TPZStructMatrixTBB(TPZAutoPointer<TPZCompMesh> cmesh, bool onlyrhs = false);
     
     TPZStructMatrixTBB(const TPZStructMatrixTBB &copy);
     
@@ -162,34 +162,60 @@ protected:
         };
         
     public:
-        TPZFlowGraph(TPZStructMatrixTBB *strmat);
+        TPZFlowGraph(TPZStructMatrixTBB *strmat, bool onlyrhs);
         ~TPZFlowGraph();
         TPZFlowGraph(TPZFlowGraph const &copy);
         
+    protected:
+        
+        TPZStack<long> fFirstElColor;
+
         // vectors for mesh coloring
         TPZVec<long> fnextBlocked, felSequenceColor, felSequenceColorInv;
         TPZManVector<long> fElementOrder;
         
+        TPZManVector<int,20> fNodeDest;
+
+        
+        /// Computational mesh
         TPZCompMesh *fCMesh;
         
+        /// tbb graph
         tbb::flow::graph fGraph;
         
+        /// pointer to the nodes of the graph
         std::vector<tbb::flow::continue_node<tbb::flow::continue_msg> *> fNodes;
         
+        /// variable to store pointers to element matrices
         TPZVec<TPZPointers> fElMatPointers;
+        
+        /// variable which is true if only the rhs will be assembled
+        bool fOnlyRhs;
+        
+    public:
         
 //        std::vector<std::list<long> > nextTasks;
 //        std::vector<long> predecessorTasks;
         
         void OrderElements();
         void ElementColoring();
-        void CreateGraph();
-        void ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix = 0);
         
+        void CreateGraph();
+        
+        void CreateGraphRhs();
+        
+        void ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix);
+        
+        void ExecuteGraph(TPZFMatrix<STATE> *rhs);
+        
+    protected:
         /// current structmatrix object
         TPZStructMatrixTBB *fStruct;
         /// gui interface object
         TPZAutoPointer<TPZGuiInterface> fGuiInterface;
+        
+        /// matrix for accumulating the rhs during the rhs assembly process
+        TPZFMatrix<STATE> fRhsFat;
         /// global matrix
         TPZMatrix<STATE> *fGlobMatrix;
         /// global rhs vector
@@ -245,7 +271,54 @@ protected:
             TPZFlowGraph *fFlowGraph;
         };
         
+        class TAssembleOneColor {
+        public:
+            TAssembleOneColor(TPZFlowGraph *graph) : fFlowGraph(graph)
+            {
+            }
+            
+            void operator()(const tbb::blocked_range<long> &range) const;
+            
+        private:
+            TPZFlowGraph *fFlowGraph;
+        };
         
+        class TComputeElementRange {
+            
+        public:
+            TComputeElementRange(TPZFlowGraph *graph, long color) : fFlowGraph(graph), fColor(color)
+            {
+                
+            }
+            void operator()(const tbb::blocked_range<long> &range) const;
+        private:
+            TPZFlowGraph *fFlowGraph;
+            long fColor;
+            
+        };
+        
+        class TSumTwoColors
+        {
+        public:
+            TSumTwoColors(long firstcolumn, long secondcolumn, TPZFMatrix<STATE> *rhs) : fFirstColumn(firstcolumn), fSecondColumn(secondcolumn), fRhs(rhs)
+            {
+            }
+            
+            tbb::flow::continue_msg operator()(const tbb::flow::continue_msg &msg) const
+            {
+                long nrow = fRhs->Rows();
+                for (long ir=0; ir<nrow; ir++) {
+                    (*fRhs)(ir,fFirstColumn) += (*fRhs)(ir,fSecondColumn);
+                }
+                return tbb::flow::continue_msg();
+
+            }
+        private:
+            long fFirstColumn;
+            long fSecondColumn;
+            TPZFMatrix<STATE> *fRhs;
+            
+        };
 
     };
 
