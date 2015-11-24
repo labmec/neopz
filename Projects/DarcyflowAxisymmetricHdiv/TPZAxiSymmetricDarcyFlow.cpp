@@ -256,6 +256,16 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     TPZManVector<REAL> rho              = props[7];
     TPZManVector<REAL> rhof             = props[8];
     TPZManVector<REAL> Pc_beta_alpha    = props[9];
+
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = datavec[0].x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
+    
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+    }        
     
     if (fSimulationData->IsTwoPhaseQ()) {
         state_vars.Resize(3);
@@ -322,7 +332,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             break;
         case 1:
         {
-            Solout[0] = Q[0]; // Bulk mass velocity
+            Solout[0] = (1.0/s)*Q[0]; // Bulk mass velocity
             Solout[1] = Q[1]; // Bulk mass velocity
         }
             break;
@@ -498,9 +508,9 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     x_spatial(0,0) = datavec[0].x[0];
     REAL r = Norm(x_spatial);
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        weight *= 2.0*M_PI*r;
-    }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
     this->ContributeDarcy(datavec, weight, ek, ef);
     
@@ -519,9 +529,9 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     x_spatial(0,0) = datavec[0].x[0];
     REAL r = Norm(x_spatial);
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        weight *= 2.0*M_PI*r;
-    }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
     this->ContributeDarcy(datavec, weight, ef);
     
@@ -541,9 +551,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     x_spatial(0,0) = data.x[0];
     REAL r = Norm(x_spatial);
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        weight *= 2.0*M_PI*r;
-    }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
 //    this->ContributeInterfaceDarcy(data, datavecleft, datavecright, weight, ek, ef);
     
@@ -562,9 +572,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     x_spatial(0,0) = data.x[0];
     REAL r = Norm(x_spatial);
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        weight *= 2.0*M_PI*r;
-    }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
 //    this->ContributeInterfaceDarcy(data, datavecleft, datavecright, weight, ef);
     
@@ -582,9 +592,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     x_spatial(0,0) = data.x[0];
     REAL r = Norm(x_spatial);
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        weight *= 2.0*M_PI*r;
-    }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
         this->ContributeBCInterfaceAlpha(data, datavecleft, weight, ek, ef, bc);
@@ -604,9 +614,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     x_spatial(0,0) = data.x[0];
     REAL r = Norm(x_spatial);
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        weight *= 2.0*M_PI*r;
-    }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
         this->ContributeBCInterfaceAlpha(data, datavecleft, weight, ef, bc);
@@ -624,9 +634,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     x_spatial(0,0) = datavec[0].x[0];
     REAL r = Norm(x_spatial);
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        weight *= 2.0*M_PI*r;
-    }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
     this->ContributeBCDarcy(datavec, weight, ek, ef, bc);
     return;
@@ -704,12 +714,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZManVector<REAL> lambda           = props[6];
     TPZManVector<REAL> rho              = props[7];
     TPZManVector<REAL> rhof             = props[8];
-    
-    if( 1.0/lambda[0] == INFINITY || 1.0/lambda[0] == -INFINITY)
-    {
-        DebugStop();
-    }
-    
+        
     Oneoverlambda_Kinv_u(0,0) = (1.0/lambda[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1]);
     Oneoverlambda_Kinv_u(1,0) = (1.0/lambda[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1]);
     
@@ -726,7 +731,16 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<STATE> jphiuHdiv(2,1);
     int jshapeindex;
     int jvectorindex;
+
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = datavec[0].x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
     
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+    }    
     
     for (int iq = 0; iq < nphiuHdiv; iq++)
     {
@@ -739,7 +753,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
         iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
         iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
         
-        ef(iq + iniu) += weight * ((Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))
+        ef(iq + iniu) += weight * ((1.0/(s))*(Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))
                                    - P * DivergenceOnDeformed(iq,0)
                                    - (gm(0,0)*iphiuHdiv(0,0) + gm(1,0)*iphiuHdiv(1,0)) );
         
@@ -755,13 +769,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
             Oneoverlambda_Kinv_Phiu(0,0) = (1.0/lambda[0]) * (KInverse(0,0)*jphiuHdiv(0,0) + KInverse(0,1)*jphiuHdiv(1,0));
             Oneoverlambda_Kinv_Phiu(1,0) = (1.0/lambda[0]) * (KInverse(1,0)*jphiuHdiv(0,0) + KInverse(1,1)*jphiuHdiv(1,0));
             
-            ek(iq + iniu,jq + iniu) +=  weight * ((Oneoverlambda_Kinv_Phiu(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_Phiu(1,0)*iphiuHdiv(1,0)));
+            ek(iq + iniu,jq + iniu) +=  weight * ((1.0/(s))*(Oneoverlambda_Kinv_Phiu(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_Phiu(1,0)*iphiuHdiv(1,0)));
         }
         
         // du/dalphap terms
         for (int jp = 0; jp < nphiPL2; jp++)
         {
-            ek(iq + iniu,jp + iniP) += weight * ( (-lambda[2]/lambda[0])*(Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0)) - DivergenceOnDeformed(iq,0) - (dgmdP(0,0)*iphiuHdiv(0,0) + dgmdP(1,0)*iphiuHdiv(1,0)) )* phiPL2(jp,0) ;
+            ek(iq + iniu,jp + iniP) += weight * ( (1.0/(s))*(-lambda[2]/lambda[0])*(Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0)) - DivergenceOnDeformed(iq,0) - (dgmdP(0,0)*iphiuHdiv(0,0) + dgmdP(1,0)*iphiuHdiv(1,0)) )* phiPL2(jp,0) ;
         }
         
         
@@ -885,7 +899,16 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     }
     // Last State n
     /////////////////////////////////
+
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = datavec[0].x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
     
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+    }    
     
     for (int iq = 0; iq < nphiuHdiv; iq++)
     {
@@ -898,7 +921,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
         iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
         iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
         
-        ef(iq + iniu) += weight * ((Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))
+        ef(iq + iniu) += weight * ((1.0/(s))*(Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))
                                    - P * DivergenceOnDeformed(iq,0)
                                    - (gm(0,0)*iphiuHdiv(0,0) + gm(1,0)*iphiuHdiv(1,0)) );
         

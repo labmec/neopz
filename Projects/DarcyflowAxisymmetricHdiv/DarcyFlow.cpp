@@ -706,13 +706,13 @@ void NonlinearTracer(bool IsDimensionlessQ)
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
     int maxiter     = 30;
-    int nthread     = 8;
+    int nthread     = 4;
     bool GR         = true;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
     bool OptBand    = true;    // Band optimization
-    bool IsAxisy    = false;    // Axisymmetric analysis
+    bool IsAxisy    = true;    // Axisymmetric analysis
     bool IsTMesh    = false;    // Axisymmetric analysis
     bool IsImpes    = false;    // Impes analysis
     int fixedJac    = 0;
@@ -725,7 +725,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     
     // Time control parameters
     int n_times  = 10;
-    int n_sub_dt = 10;
+    int n_sub_dt = 20;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
@@ -741,23 +741,23 @@ void NonlinearTracer(bool IsDimensionlessQ)
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    int  nelemX     =100;
+    int  nelemX     =10;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
     REAL dxD        =(100.0/nelemX)/Lstr;
     
-    int nelemY      =20;
+    int nelemY      =2;
     if (GR && nelemY == 1 && IsTMesh ) {
         nelemY++;
     }
     REAL dyD        =(10.0/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
-    Gravity(1,0)= -10.0*((Lstr*Rhostr)/Pstr);
+    Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
     bool LinearSegregation = false;
     
-    REAL angle = 45.0;
+    REAL angle = 0.0;
     
     REAL S_w_r              = 0.0;
     REAL S_nw_r             = 0.0;
@@ -819,7 +819,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     
     TPZVec<REAL> topbcini(4,0.0);
     topbcini[0] = 0;
-    topbcini[1] = (1.0*1e6)/(Pstr);
+    topbcini[1] = (1.0*1e7)/(Pstr);
     topbcini[2] = 0;
     topbcini[3] = 0;
     
@@ -842,9 +842,9 @@ void NonlinearTracer(bool IsDimensionlessQ)
     bottombc[3] = 0;
     
     TPZVec<REAL> rightbc(4,0.0);
-    rightbc[0] = 2;
-    rightbc[1] = (1.0*1e6)/(Pstr);
-    rightbc[2] = 0;
+    rightbc[0] = 0;
+    rightbc[1] = (1.0*1e7)/(Pstr);
+    rightbc[2] = 1;
     rightbc[3] = 0;
     
     TPZVec<REAL> topbc(4,0.0);
@@ -854,9 +854,9 @@ void NonlinearTracer(bool IsDimensionlessQ)
     topbc[3] = 0;
     
     TPZVec<REAL> leftbc(4,0.0);
-    leftbc[0] = 1;
-    leftbc[1] = -(1.0e-4)*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
-    leftbc[2] = 1.0*(1.0 - S_nw_r);
+    leftbc[0] = 3;
+    leftbc[1] = (1.0e-4)*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
+    leftbc[2] = 0.0*(1.0 - S_nw_r);
     leftbc[3] = 0;
     
     Dataset->SetBottomBC(bottombcini, bottombc);

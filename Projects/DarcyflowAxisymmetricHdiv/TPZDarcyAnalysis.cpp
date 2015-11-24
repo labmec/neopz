@@ -1146,7 +1146,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
     TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
     TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
     P_hydrostatic_ptr = P_hydrostatic;
-    mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
+//     mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
     
     // Bc Bottom
     val2(0,0) = Bottom[1];
@@ -1240,7 +1240,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
     TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
     P_hydrostatic_ptr = P_hydrostatic;
-    mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
+//     mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
     
     // Bc Bottom
     val2(0,0) = Bottom[1];
@@ -1667,14 +1667,21 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
     
 }
 
-void TPZDarcyAnalysis::Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
-    X[0] = par[0];//cos(par[0]);
+    REAL rwD = 0.127/100.0;
+    REAL alpha = 1.0+ rwD;
+    int n = 10;
+
+    int el = (par[0])*((n)/(int(alpha)));
+    REAL tstr = alpha/pow(2.0,REAL(n-el));
+    
+    X[0] = tstr;//cos(par[0]);
     X[1] = 0.0 * par[0];//sin(par[0]);
     X[2] = 0.0;
 }
 
-void TPZDarcyAnalysis::Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X)
+void TPZDarcyAnalysis::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
     X[0] = 0.0;//par[0];
     X[1] = par[0];
@@ -1706,7 +1713,7 @@ void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
     GeoMesh1->SetDimension(0);
     
     TPZHierarquicalGrid *CreateGridFrom = new TPZHierarquicalGrid(GeoMesh1);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(Parametricfunction);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc = new TPZDummyFunction<STATE>(ParametricfunctionX);
     CreateGridFrom->SetParametricFunction(ParFunc);
     CreateGridFrom->SetFrontBackMatId(5,3);
     
@@ -1715,7 +1722,7 @@ void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
     TPZGeoMesh * GeoMesh2 = CreateGridFrom->ComputeExtrusion(t, dt, n);
     
     TPZHierarquicalGrid * CreateGridFrom2 = new TPZHierarquicalGrid(GeoMesh2);
-    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(Parametricfunction2);
+    TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
     CreateGridFrom2->SetParametricFunction(ParFunc2);
     CreateGridFrom2->SetFrontBackMatId(2,4);
     

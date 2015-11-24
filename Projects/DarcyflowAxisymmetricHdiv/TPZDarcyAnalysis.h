@@ -336,12 +336,12 @@ public:
     /**
      * Parametric function to compute x direction
      */
-    static  void Parametricfunction(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+    static  void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X);
     
     /**
      * Parametric function to compute y direction
      */
-    static  void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
+    static  void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X);
     
     /**
      * Rhs function of the mass conservation equation
