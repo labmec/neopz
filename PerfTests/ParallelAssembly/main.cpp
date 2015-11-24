@@ -114,7 +114,8 @@ int main(int argc, char *argv[])
     //calculo solution
     TPZAnalysis *an = new TPZAnalysis(cmesh,false);
 
-    TPZStructMatrix strmat(cmesh,true);
+    TPZStructMatrix strmat(cmesh);
+    
 //#ifndef PZDEBUG
 //    skyl.SetNumThreads(1);
 //#endif

@@ -27,7 +27,6 @@ class TPZFMatrix;
 #ifdef USING_TBB
 #include "tbb/tbb.h"
 #include "tbb/flow_graph.h"
-#endif
 
 
 /**
@@ -348,4 +347,6 @@ protected:
     int fNumThreads;
 };
 
+
+#endif
 #endif
