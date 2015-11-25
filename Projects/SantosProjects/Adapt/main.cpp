@@ -259,7 +259,7 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
     TPZCompMesh *cmesh = CreateCompMesh(gmesh);
     LoadSolution(strSolutionFile, cmesh);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     PrintMesh(step, gmesh);
 #endif
     
@@ -303,7 +303,7 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
     
     /// print the new mesh and the initial data
     step++;
-#ifdef DEBUG
+#ifdef PZDEBUG
     PrintMesh(step, gmeshTeste);
 #endif
 
@@ -376,7 +376,7 @@ for(int nrun=4; nrun < 5; nrun++){//ITAPOPO
         
         //print the new mesh
         step++;
-#ifdef DEBUG
+#ifdef PZDEBUG
         PrintMesh(step, gmesh2);
 #endif
         SetFileNames(nrun, step, strSolutionFile, strMeshFile,strDataFile,

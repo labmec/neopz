@@ -209,7 +209,7 @@ ENABLE_TESTING()
 			add_subdirectory(ValidacaoHCurlFran1)
 
 			#Projetos de Thiago Dias dos Santos
-			add_subdirectory(SantosProjects)
+			#add_subdirectory(SantosProjects)
 
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)

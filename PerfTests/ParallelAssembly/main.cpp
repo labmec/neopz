@@ -93,10 +93,10 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     
-    int porder = 4;
+    int porder = 1;
     int dimension = 2;
     int nelem = 1000000;
-    TPZAutoPointer<TPZCompMesh> cmesh = CreateCompMesh(dimension, porder, nelem, EUnbalanced);
+    TPZAutoPointer<TPZCompMesh> cmesh = CreateCompMesh(dimension, porder, nelem, EUniform);
     
 
     std::cout << "Computational mesh created\n";

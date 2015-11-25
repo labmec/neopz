@@ -1281,7 +1281,7 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
         subindex[iel] = floor;
     }
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     {
         TPZGeoMesh *gmesh = cmesh->Reference();
         int nelgeo = gmesh->NElements();

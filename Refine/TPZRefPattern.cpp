@@ -1624,7 +1624,7 @@ void TPZRefPattern::BuildSideMesh(int side, TPZGeoMesh &SideRefPatternMesh)
 	}
 	int matid = gel->MaterialId();
 	long index;
-	TPZGeoEl *father = SideRefPatternMesh.CreateGeoElement(gel->Type(side),nodeindices,matid,index,-1);
+	TPZGeoEl *father = SideRefPatternMesh.CreateGeoElement(gel->Type(side),nodeindices,matid,index,1);
 	int sidedim = father->Dimension();
 	TPZStack<TPZGeoElSide> gelvec;
 	SidePartition(gelvec, side);

@@ -2315,6 +2315,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
 #ifdef PZDEBUG
             // checando limite da coluna
             if (index >= Size(col)) {
+                std::cout << "Skyline wrongly configured " << " row " << row << " col " << col << " Size(col) " << Size(col) << std::endl;
                 cerr << "Try TPZSkylMatrix gZero." << endl;
                 DebugStop();
             }

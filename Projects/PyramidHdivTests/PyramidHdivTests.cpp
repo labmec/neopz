@@ -128,13 +128,14 @@ int main2(int argc, char *argv[])
     }
 #endif
 
-    gRefDBase.InitializeAllUniformRefPatterns();
+ //   gRefDBase.InitializeAllUniformRefPatterns();
     HDivPiola = 1;
 //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
 //    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
     TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPirTetra();
 //    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
 //    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
+    int nref = 0;
     UniformRefine(gmesh, 1);
     {
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh, "../PyramidGMesh.vtk", true);
@@ -703,13 +704,13 @@ TPZGeoMesh * CreateGeoMeshHexaOfPirTetra()
         for (int i = 0; i < 5; i++) {
             topolPyr[i] = myelsp[iel][i];
         }
-        gmesh->CreateGeoElement(EPiramide, topolPyr, matid, index);
+        gmesh->CreateGeoElement(EPiramide, topolPyr, matid, index,0);
     }
     for (int iel = 0; iel < 2; iel++) {
         for (int i = 0; i < 4; i++) {
             topolTet[i] = myelst[iel][i];
         }
-        gmesh->CreateGeoElement(ETetraedro, topolTet, matid, index);
+        gmesh->CreateGeoElement(ETetraedro, topolTet, matid, index,0);
     }
     
     const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
@@ -718,7 +719,7 @@ TPZGeoMesh * CreateGeoMeshHexaOfPirTetra()
         for (int i = 0; i < 3; i++) {
             topolTri[i] = triangles[iel][i];
         }
-        gmesh->CreateGeoElement(ETriangle, topolTri, bc0, index);
+        gmesh->CreateGeoElement(ETriangle, topolTri, bc0, index,0);
     }
     
     gmesh->BuildConnectivity();
@@ -756,6 +757,7 @@ TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p)
         else
         {
             new TPZIntelGen<TPZShapePiramHdiv>(*cmesh,gel,index);
+//            cel->Print();
         }
         gel->ResetReference();
     }

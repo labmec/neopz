@@ -240,14 +240,24 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
 	}
 	
 	out << "Number of connects = " << NConnects();
-    out << "\nConnect indexes : ";
+    out << "Connect indexes : ";
 	int nod;
 	for(nod=0; nod< NConnects(); nod++)
 	{
 		out << ConnectIndex(nod) <<  ' ' ;
 	}
     if(this->Reference())
-        out << "\nReference Index = " << this->Reference()->Index() << std::endl;
+    {
+        out << "Reference Index = " << this->Reference()->Index() << std::endl;
+    }
+    std::list<TPZOneShapeRestraint> restraints = this->GetShapeRestraints();
+    if(restraints.size())
+    {
+        out << "One shape restraints\n";
+        for (std::list<TPZOneShapeRestraint>::const_iterator it = restraints.begin(); it != restraints.end(); it++) {
+            it->Print(out);
+        }
+    }
     
     out << "\nComputational elements this multi-physics element: \n";
     long nmesh  = fElementVec.size();

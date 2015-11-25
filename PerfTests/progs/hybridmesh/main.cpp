@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 	
     TPZGeoMesh * gmesh = MalhaGeom(n_uref.get_value(),Lx,Ly);
 
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::cout << "Number of elements = " << gmesh->NElements() << std::endl;
 	ofstream arg1("gmesh0.txt");
 	gmesh->Print(arg1);
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     	
 	TPZCompMesh * cmesh= MalhaComp(gmesh, p_order.get_value());
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     std::cout << "Number of equations = " << cmesh->NEquations() << std::endl;
 #endif
     
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     fullstr.SetNumThreads(n_threads.get_value());
     an.SetStructuralMatrix(fullstr);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     
     ofstream arg4("gmesh1.txt");
 	gmesh->Print(arg4);
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     
     ResetMesh(cmesh);
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     ofstream arg5("cmesh_apossolve.txt");
 	cmesh->Print(arg5);
 

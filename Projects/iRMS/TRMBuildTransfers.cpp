@@ -199,7 +199,7 @@ void TRMBuildTransfers::CreateTransferPressure_To_Mixed(TPZAutoPointer< TPZCompM
 
 void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!cmesh_multiphysics) {
         std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
         DebugStop();
@@ -337,7 +337,7 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
 
 void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
 
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!cmesh_multiphysics) {
         std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
         DebugStop();
@@ -449,7 +449,7 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
 
 void TRMBuildTransfers::TransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer< TPZCompMesh> cmesh_multiphysics){
 
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!cmesh_multiphysics) {
         std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
         DebugStop();
@@ -478,7 +478,7 @@ void TRMBuildTransfers::TransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> c
 
 void TRMBuildTransfers::TransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_multiphysics){
     
-#ifdef DEBUG
+#ifdef PZDEBUG
     if (!cmesh_multiphysics) {
         std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
         DebugStop();

@@ -90,7 +90,7 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
             else{
                 gel->Divide(filhos);
             }
-#ifdef DEBUG
+#ifdef PZDEBUG
                 REAL volgel = fabs(gel->Volume());
                 REAL sumvol = 0.;
                 for(int nsubs=0;nsubs<gel->NSubElements();nsubs++)
