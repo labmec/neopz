@@ -183,6 +183,9 @@ int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("u_alpha_sc", name.c_str())) return 19;
     if (!strcmp("u_beta_sc", name.c_str())) return 20;
     if (!strcmp("u_gamma_sc", name.c_str())) return 21;
+    if (!strcmp("f_alpha", name.c_str())) return 22;
+    if (!strcmp("f_beta", name.c_str())) return 23;
+    if (!strcmp("f_gamma", name.c_str())) return 24;
     std::cout  << " Var index not implemented " << std::endl;
     DebugStop();
     return 0;
@@ -234,6 +237,12 @@ int TPZAxiSymmetricDarcyFlow::NSolutionVariables(int var) {
             return 3; // Vector
         case 21:
             return 3; // Vector
+        case 22:
+            return 1; // Scalar
+        case 23:
+            return 1; // Scalar
+        case 24:
+            return 1; // Scalar
         default:
         {
             std::cout  << " Var index not implemented " << std::endl;
@@ -461,9 +470,12 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             Solout[0] = f_alpha[0]*u[0] + l[0]*f_alpha[0]*f_beta[0] * (K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(0,0)*G(0,0) + K(0,1)*G(1,0));
             Solout[1] = f_alpha[0]*u[1] + l[0]*f_alpha[0]*f_beta[0] * (K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(1,0)*G(0,0) + K(1,1)*G(1,0));
             
+            Solout[0] *= (1.0)/(rho_alpha[0]);
+            Solout[1] *= (1.0)/(rho_alpha[0]);
+            
             REAL B_alpha = fluid_alpha->GetRho()/rho_alpha[0];
-            Solout[0] *= (rock_phi)/(B_alpha);
-            Solout[1] *= (rock_phi)/(B_alpha);
+            Solout[0] *= (1.0)/(B_alpha);
+            Solout[1] *= (1.0)/(B_alpha);
             
         }
             break;
@@ -472,9 +484,12 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             Solout[0] = f_beta[0]*u[0] - l[0]*f_alpha[0]*f_beta[0] * (K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1]) - l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(0,0)*G(0,0) + K(0,1)*G(1,0));
             Solout[1] = f_beta[0]*u[1] - l[0]*f_alpha[0]*f_beta[0] * (K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1]) - l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(1,0)*G(0,0) + K(1,1)*G(1,0));
             
+            Solout[0] *= (1.0)/(rho_beta[0]);
+            Solout[1] *= (1.0)/(rho_beta[0]);
+            
             REAL B_beta = fluid_beta->GetRho()/rho_beta[0];
-            Solout[0] *= (rock_phi)/(B_beta);
-            Solout[1] *= (rock_phi)/(B_beta);
+            Solout[0] *= (1.0)/(B_beta);
+            Solout[1] *= (1.0)/(B_beta);
             
         }
             break;
@@ -483,11 +498,29 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             Solout[0] = f_alpha[0]*u[0] + l[0]*f_alpha[0]*f_beta[0] * (K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(0,0)*G(0,0) + K(0,1)*G(1,0));
             Solout[1] = f_alpha[0]*u[1] + l[0]*f_alpha[0]*f_beta[0] * (K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(1,0)*G(0,0) + K(1,1)*G(1,0));
             
+            Solout[0] *= (1.0)/(rho_beta[0]);
+            Solout[1] *= (1.0)/(rho_beta[0]);
+            
             REAL B_beta = fluid_beta->GetRho()/rho_beta[0];
             Solout[0] *= (rock_phi)/(B_beta);
             Solout[1] *= (rock_phi)/(B_beta);
             
         }
+        case 22:
+        {
+            Solout[0] = f_alpha[0];
+        }
+            break;
+        case 23:
+        {
+            Solout[0] = f_beta[0];
+        }
+            break;
+        case 24:
+        {
+            Solout[0] = f_gamma[0];
+        }
+            break;
             break;
         default:
         {

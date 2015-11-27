@@ -348,7 +348,7 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshinitialdarcy);
     an->LoadSolution(fcmeshinitialdarcy->Solution());
     
-    int n_dt = 1;
+    int n_dt = 10;
     int n_sub_dt = 20;
     int i_time = 0;
     REAL dt = (fSimulationData->GetMaxTime())/REAL(n_sub_dt);
@@ -741,12 +741,9 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     int i_sub_dt = 0;
     
     TPZManVector<REAL> velocities(3,0.0);
-    TPZManVector<REAL,100> v_alpha(reporting_times.size(),0.0);
-    TPZManVector<REAL,100> v_beta(reporting_times.size(),0.0);
-    TPZManVector<REAL,100> v_gamma(reporting_times.size(),0.0);
-    
-    TPZFNMatrix<100,REAL> current_v(reporting_times.size(),4,0.0);
-    TPZFNMatrix<100,REAL> accumul_v(reporting_times.size(),4,0.0);
+
+    TPZFNMatrix<100,REAL> current_v(reporting_times.size()+1,4,0.0);
+    TPZFNMatrix<100,REAL> accumul_v(reporting_times.size()+1,4,0.0);
     
     while (i_time < reporting_times.size()) {
 
@@ -790,19 +787,17 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             std::cout << std::endl;
             
             this->PostProcessVTK(an);
-            
+            REAL day = 86400.0;
             IntegrateVelocities(velocities);
-            current_v(i_time,0) = tk;
-            current_v(i_time,1) += velocities[0];
-            current_v(i_time,2) += velocities[1];
-            current_v(i_time,3) += velocities[2];
+            current_v(i_time+1,0) = tk/day;
+            current_v(i_time+1,1) += velocities[0]*current_dt*n_sub_dt;
+            current_v(i_time+1,2) += velocities[1]*current_dt*n_sub_dt;
+            current_v(i_time+1,3) += velocities[2]*current_dt*n_sub_dt;
             
-            if (i_time >=1) {
-                accumul_v(i_time,0) = tk;
-                accumul_v(i_time,1) = velocities[0] + accumul_v(i_time-1,1);
-                accumul_v(i_time,2) = velocities[1] + accumul_v(i_time-1,2);
-                accumul_v(i_time,3) = velocities[2] + accumul_v(i_time-1,3);
-            }
+            accumul_v(i_time+1,0) = tk/day;
+            accumul_v(i_time+1,1) = velocities[0]*current_dt*n_sub_dt + accumul_v(i_time,1);
+            accumul_v(i_time+1,2) = velocities[1]*current_dt*n_sub_dt + accumul_v(i_time,2);
+            accumul_v(i_time+1,3) = velocities[2]*current_dt*n_sub_dt + accumul_v(i_time,3);
             
 
             
@@ -830,7 +825,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
 void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
     
     int el_id = 5;
-    int int_order = 2;
+    int int_order = 4;
     int int_typ = 0;
     velocities[0] = 0.0;
     velocities[1] = 0.0;
@@ -864,7 +859,7 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
         }
         
         
-        if (gel->MaterialId() == el_id) {
+        if (gel->MaterialId() == el_id && gel->NumInterfaces() == 0) {
             
             
             TPZGeoEl * gel_2D = GetVolElement(gel);
@@ -925,10 +920,11 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
                     cross_area *= 2.0*M_PI*rw;
                 }
                 cel_2D->Solution(xi_eta_duplet, 19, sol);
-                velocities[0] += weight * detjac * cross_area * (sol[0] * n[0] + sol[1] * n[1]);
+                velocities[0] += weight * detjac * (sol[0] * n[0] + sol[1] * n[1]);
+
                 
                 cel_2D->Solution(xi_eta_duplet, 20, sol);
-                velocities[1] += weight * detjac * cross_area *  (sol[0] * n[0] + sol[1] * n[1]);
+                velocities[1] += weight * detjac * (sol[0] * n[0] + sol[1] * n[1]);
                 
             }
         }
@@ -1858,14 +1854,14 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
 
 void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
-    REAL rwD = 0.127/100.0;
-    REAL alpha = 1.0+ rwD;
-    int n = 10;
+//    REAL rwD = 0.127/100.0;
+//    REAL alpha = 1.0+ rwD;
+//    int n = 10;
+//
+//    int el = (par[0])*((n)/(int(alpha)));
+//    REAL tstr = alpha/pow(2.0,REAL(n-el));
 
-    int el = (par[0])*((n)/(int(alpha)));
-    REAL tstr = alpha/pow(2.0,REAL(n-el));
-
-//    REAL tstr = par[0];
+    REAL tstr = par[0];
     X[0] = tstr;//cos(par[0]);
     X[1] = 0.0 * par[0];//sin(par[0]);
     X[2] = 0.0;
@@ -2172,13 +2168,15 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     
     
     if (fSimulationData->IsTwoPhaseQ()) {
-        scalnames.Push("Rho_alpha");
-        scalnames.Push("Rho_beta");
+//        scalnames.Push("Rho_alpha");
+//        scalnames.Push("Rho_beta");
         scalnames.Push("S_alpha");
         scalnames.Push("S_beta");
-        scalnames.Push("P_alpha");
-        scalnames.Push("P_beta");
-        scalnames.Push("Pc_beta_alpha");
+        scalnames.Push("f_alpha");
+        scalnames.Push("f_beta");
+//        scalnames.Push("P_alpha");
+//        scalnames.Push("P_beta");
+//        scalnames.Push("Pc_beta_alpha");
         vecnames.Push("u_alpha");
         vecnames.Push("u_beta");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
@@ -2612,7 +2610,7 @@ void TPZDarcyAnalysis::InitialS_alpha(const TPZVec<REAL> &pt, TPZVec<STATE> &dis
     
 //    REAL x = pt[0];
     REAL y = pt[1];
-    REAL S_wett_nc = 0.0;
+    REAL S_wett_nc = 0.2;
     REAL S_nwett_ir = 0.0;
     disp[0] = S_wett_nc;
 
