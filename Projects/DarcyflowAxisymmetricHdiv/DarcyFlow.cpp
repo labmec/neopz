@@ -392,7 +392,7 @@ void LinearWithReconstruction(bool IsDimensionlessQ){
     
     int maxiter     = 40;
     int nthread     = 8;
-    bool GR         = true;    // Use Gradient Reconstruction
+    bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
@@ -403,7 +403,7 @@ void LinearWithReconstruction(bool IsDimensionlessQ){
     
     int qorder      = 1;
     int porder      = 1;
-    int sorder      = 1;
+    int sorder      = 0;
     int hrefinement = 0;
     int hpostref    = 0;
     
@@ -706,25 +706,25 @@ void NonlinearTracer(bool IsDimensionlessQ)
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
     int maxiter     = 30;
-    int nthread     = 4;
-    bool GR         = true;    // Use Gradient Reconstruction
+    int nthread     = 8;
+    bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
     bool OptBand    = true;    // Band optimization
     bool IsAxisy    = true;    // Axisymmetric analysis
-    bool IsTMesh    = false;    // Axisymmetric analysis
+    bool IsTMesh    = false;    // Triangular mesh
     bool IsImpes    = false;    // Impes analysis
     int fixedJac    = 0;
     
     int qorder      = 1;
     int porder      = 1;
-    int sorder      = 1;
-    int hrefinement = 0;
+    int sorder      = 0;
+    int hrefinement = 1;
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 10;
+    int n_times  = 20;
     int n_sub_dt = 20;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
@@ -755,7 +755,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
     Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
-    bool LinearSegregation = false;
+    bool LinearSegregation = true;
     
     REAL angle = 0.0;
     
@@ -890,11 +890,11 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
     REAL waterdensity       = 1000.0/Rhostr;
     REAL waterviscosity     = 0.001/Mustr;
-    REAL cwater             = (0.0*1.0*1e-10)*Pstr;
+    REAL cwater             = (1.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
     REAL oildensity         = 800.0/Rhostr;
     REAL oilviscosity       = 0.001/Mustr;
-    REAL coil               = (0.0*1.0*1e-8)*Pstr;
+    REAL coil               = (1.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
     REAL gasviscosity       = Mustr;

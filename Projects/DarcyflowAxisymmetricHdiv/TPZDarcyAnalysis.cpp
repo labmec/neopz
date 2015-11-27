@@ -349,7 +349,7 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     an->LoadSolution(fcmeshinitialdarcy->Solution());
     
     int n_dt = 1;
-    int n_sub_dt = 10;
+    int n_sub_dt = 20;
     int i_time = 0;
     REAL dt = (fSimulationData->GetMaxTime())/REAL(n_sub_dt);
     fSimulationData->SetDeltaT(dt);
@@ -458,7 +458,7 @@ void TPZDarcyAnalysis::RunAnalysis()
     }
     
     
-    int hcont = 0;
+//    int hcont = 2;
     REAL deg = fSimulationData->GetRotationAngle();
     RotateGeomesh( deg * M_PI/180.0);
 //    ApplyShear(2.0);
@@ -468,10 +468,10 @@ void TPZDarcyAnalysis::RunAnalysis()
     //    matidstoRef.insert(2);
     //    matidstoRef.insert(3);
     //    matidstoRef.insert(4);
-    matidstoRef.insert(3);
-    matidstoRef.insert(5);
+    //    matidstoRef.insert(3);
+    //    matidstoRef.insert(5);
+    //    this->UniformRefinement(hcont, matidstoRef);
     
-    this->UniformRefinement(hcont, matidstoRef);
     this->PrintGeoMesh();
     
     int q = fSimulationData->Getqorder();
@@ -739,6 +739,15 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     
     int i_time = 0;
     int i_sub_dt = 0;
+    
+    TPZManVector<REAL> velocities(3,0.0);
+    TPZManVector<REAL,100> v_alpha(reporting_times.size(),0.0);
+    TPZManVector<REAL,100> v_beta(reporting_times.size(),0.0);
+    TPZManVector<REAL,100> v_gamma(reporting_times.size(),0.0);
+    
+    TPZFNMatrix<100,REAL> current_v(reporting_times.size(),4,0.0);
+    TPZFNMatrix<100,REAL> accumul_v(reporting_times.size(),4,0.0);
+    
     while (i_time < reporting_times.size()) {
 
         fSimulationData->SetDeltaT(current_dt);
@@ -779,8 +788,24 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
                 TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmesh);
             }
             std::cout << std::endl;
-
+            
             this->PostProcessVTK(an);
+            
+            IntegrateVelocities(velocities);
+            current_v(i_time,0) = tk;
+            current_v(i_time,1) += velocities[0];
+            current_v(i_time,2) += velocities[1];
+            current_v(i_time,3) += velocities[2];
+            
+            if (i_time >=1) {
+                accumul_v(i_time,0) = tk;
+                accumul_v(i_time,1) = velocities[0] + accumul_v(i_time-1,1);
+                accumul_v(i_time,2) = velocities[1] + accumul_v(i_time-1,2);
+                accumul_v(i_time,3) = velocities[2] + accumul_v(i_time-1,3);
+            }
+            
+
+            
             if (i_time == reporting_times.size()-1) {
                 break;
             }
@@ -793,10 +818,174 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         
     }
     
+    std::ofstream q_out("current_production.txt");
+    std::ofstream qt_out("accumulated_production.txt");
+    current_v.Print("q = ", q_out,EMathematicaInput);
+    accumul_v.Print("qt = ", qt_out,EMathematicaInput);
+    
+    return;
+    
+}
+
+void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
+    
+    int el_id = 5;
+    int int_order = 2;
+    int int_typ = 0;
+    velocities[0] = 0.0;
+    velocities[1] = 0.0;
+    velocities[2] = 0.0;
+    TPZManVector<STATE> sol;
+    TPZFMatrix<REAL> normals;
+    TPZManVector<REAL,3> n(3,0.0);
+    
+    TPZManVector<int> v_sides;
+    
+    fcmesh->Reference()->ResetReference();
+    fcmesh->LoadReferences();
+    
+    long n_elements = fcmesh->NElements();
+    
+    for (long iel = 0 ; iel < n_elements; iel++) {
+        TPZCompEl * cel = fcmesh->Element(iel);
+        if (!cel) {
+            std::cout << "Computational element non-exist " << std::endl;
+            DebugStop();
+        }
+        
+        TPZGeoEl * gel = cel->Reference();
+        if (!gel) {
+            std::cout << "Geomtric element non-exist " << std::endl;
+            DebugStop();
+        }
+        
+        if (gel->Dimension() != 1) {
+            continue;
+        }
+        
+        
+        if (gel->MaterialId() == el_id) {
+            
+            
+            TPZGeoEl * gel_2D = GetVolElement(gel);
+            TPZGeoElSide intermediate_side;
+            TPZTransform afine_transformation = Transform_1D_To_2D(gel,gel_2D,intermediate_side);
+            
+            int itself_2d = gel_2D->NSides()-1;
+            TPZGeoElSide gel_side_2D(gel_2D,itself_2d);
+            TPZCompEl * cel_2D = gel_2D->Reference();
+            if (!cel_2D) {
+                DebugStop();
+            }
+            
+            
+            int gel_side = gel->NSides() - 1;
+            TPZIntPoints * NumericIntegral = gel->CreateSideIntegrationRule(gel_side, int_order);
+            NumericIntegral->SetType(int_typ, int_order);
+            
+            // Creating the integration rule
+            int dimension   = NumericIntegral->Dimension();
+            int npoints     = NumericIntegral->NPoints();
+            
+            if (dimension != gel->Dimension()) {
+                std::cout << "Incompatible dimensions." << std::endl;
+                DebugStop();
+            }
+            
+            
+            gel_2D->ComputeNormals(normals, v_sides);
+            for (int i = 0 ; i < v_sides.size(); i++) {
+                if(v_sides[i] ==  intermediate_side.Side()){
+                    n[0] = normals(0,i);
+                    n[1] = normals(1,i);
+                    n[2] = normals(2,i);
+                    break;
+                }
+            }
+            
+            // compute the integrals
+            TPZManVector<REAL,1> xi_singlet(1,0.0);
+            TPZManVector<REAL,2> xi_eta_duplet(2,0.0);
+            REAL weight = 0.0;
+            for (int it = 0 ; it < npoints; it++) {
+
+                TPZFMatrix<REAL> jac;
+                TPZFMatrix<REAL> axes;
+                REAL detjac;
+                TPZFMatrix<REAL> jacinv;
+                gel->Jacobian(xi_singlet, jac, axes, detjac, jacinv);
+                
+                NumericIntegral->Point(it, xi_singlet, weight);
+                afine_transformation.Apply(xi_singlet, xi_eta_duplet);
+                
+
+                REAL cross_area = (detjac*2.0)*(1.0);
+                if (fSimulationData->IsAxisymmetricQ()) {
+                    REAL rw = fLayers[0]->Layerrw();
+                    cross_area *= 2.0*M_PI*rw;
+                }
+                cel_2D->Solution(xi_eta_duplet, 19, sol);
+                velocities[0] += weight * detjac * cross_area * (sol[0] * n[0] + sol[1] * n[1]);
+                
+                cel_2D->Solution(xi_eta_duplet, 20, sol);
+                velocities[1] += weight * detjac * cross_area *  (sol[0] * n[0] + sol[1] * n[1]);
+                
+            }
+        }
+        
+    }
     
     
 }
 
+TPZGeoEl * TPZDarcyAnalysis::GetVolElement(TPZGeoEl * gel){
+    
+    if (gel->Dimension() != 1) {
+        DebugStop();
+    }
+    TPZGeoEl * gel_2D;
+    TPZGeoElSide gel_side(gel,2);
+    while (gel_side != gel_side.Neighbour()) {
+
+        TPZGeoElSide gel_2d_side = gel_side.Neighbour();
+        gel_2D =  gel_2d_side.Element();
+        if(gel_2D->Dimension() ==2)
+        {
+            break;
+        }
+        gel_side = gel_2d_side;
+    }
+    
+
+    
+    return gel_2D;
+}
+
+TPZTransform  TPZDarcyAnalysis::Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl * gel_d, TPZGeoElSide & intermediate_side){
+    
+    int itself_o = gel_o->NSides()-1;
+    int itself_d = gel_d->NSides()-1;
+    
+    TPZGeoElSide gel_side_o(gel_o,itself_o);
+    TPZGeoElSide gel_side_d(gel_d,itself_d);
+    TPZGeoElSide neigh = gel_side_o.Neighbour();
+    TPZGeoEl * gel_2D;
+    while(neigh != neigh.Neighbour()){
+        gel_2D =  neigh.Element();
+        if(gel_2D->Dimension() ==2)
+        {
+            break;
+        }
+        neigh = neigh.Neighbour();
+    }
+    
+    intermediate_side = neigh;
+    TPZTransform t1 = gel_side_o.NeighbourSideTransform(neigh);
+    TPZTransform t2 = neigh.SideToSideTransform(gel_side_d);
+    TPZTransform t3 = t2.Multiply(t1);
+    
+    return t3;
+}
 
 void TPZDarcyAnalysis::CleanUpGradients(TPZAnalysis *an){
     
@@ -1675,7 +1864,8 @@ void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STAT
 
     int el = (par[0])*((n)/(int(alpha)));
     REAL tstr = alpha/pow(2.0,REAL(n-el));
-    
+
+//    REAL tstr = par[0];
     X[0] = tstr;//cos(par[0]);
     X[1] = 0.0 * par[0];//sin(par[0]);
     X[2] = 0.0;
@@ -1743,15 +1933,14 @@ void TPZDarcyAnalysis::GeometryLine(int nx, int ny)
 void TPZDarcyAnalysis::PrintGeoMesh()
 {
     
-    
-#ifdef PZDEBUG
+//#ifdef PZDEBUG
     //  Print Geometrical Base Mesh
     std::ofstream argument("GeometicMesh.txt");
     fgmesh->Print(argument);
     std::ofstream Dummyfile("GeometricMesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(fgmesh,Dummyfile, true);
     
-#endif
+//#endif
 }
 
 void TPZDarcyAnalysis::RotateGeomesh(REAL CounterClockwiseAngle)
@@ -1967,8 +2156,8 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     std::string plotfile;
     plotfile = "2DMixed.vtk";
     
-    scalnames.Push("WeightedPressure");
-    vecnames.Push("BulkVelocity");
+    scalnames.Push("P");
+    vecnames.Push("u");
     scalnames.Push("Porosity");
     scalnames.Push("Rhs");
 //    scalnames.Push("Exact_Salpha");
@@ -1990,6 +2179,8 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
         scalnames.Push("P_alpha");
         scalnames.Push("P_beta");
         scalnames.Push("Pc_beta_alpha");
+        vecnames.Push("u_alpha");
+        vecnames.Push("u_beta");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div);
         return;

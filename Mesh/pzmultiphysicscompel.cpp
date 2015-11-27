@@ -386,14 +386,8 @@ template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVec<STATE> &sol)
 {
 	
-	if(var >= 100) {
-		TPZCompEl::Solution(qsi,var,sol);
-		return;
-	}
-	
-    if (var == 99) {
-        TPZCompEl *cel = Element(0);
-        cel->Solution(qsi, var, sol);
+    if (var >= 99) {
+        TPZCompEl::Solution(qsi, var, sol);
         return;
     }
     

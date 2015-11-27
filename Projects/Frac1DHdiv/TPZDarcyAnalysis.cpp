@@ -1734,7 +1734,8 @@ void TPZDarcyAnalysis::SwitchBCInFrontOfFrac(TPZGeoEl * gel)
   if (fcmeshMixed){
     fcmeshMixed->LoadReferences();
   }
-  while (gelside != neigh) {
+  while (gelside != neigh)
+  {
     if (neigh.Element()->MaterialId() == TPZFracData::EBCBottom && neigh.Element()->Dimension() == 1 ) {
       if (fcmeshMixed) {
         TPZMultiphysicsElement *mcel = dynamic_cast<TPZMultiphysicsElement *>(neigh.Element()->Reference());

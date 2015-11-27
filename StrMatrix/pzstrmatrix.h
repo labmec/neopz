@@ -224,7 +224,7 @@ protected:
 #include "pzstrmatrixst.h"
 
 /** This is the original and stable version of multi_thread_assemble (producer-consumer) */
-//typedef TPZStructMatrixOR TPZStructMatrix;
+typedef TPZStructMatrixOR TPZStructMatrix;
 
 /** This version has a clean code with openmp parallism */
 //typedef TPZStructMatrixST TPZStructMatrix;
@@ -241,7 +241,7 @@ protected:
 
 /** This version uses the graph coloring and create a tbb::flow::graph to process in parallel */
 //https://trac.macports.org/wiki/MigrationTBB
-typedef TPZStructMatrixTBB TPZStructMatrix;
+//typedef TPZStructMatrixTBB TPZStructMatrix;
 
 
 #endif

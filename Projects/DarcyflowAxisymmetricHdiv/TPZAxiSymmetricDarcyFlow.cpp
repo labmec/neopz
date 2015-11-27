@@ -161,8 +161,8 @@ void TPZAxiSymmetricDarcyFlow::Print(std::ostream &out) {
 }
 
 int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
-    if (!strcmp("WeightedPressure", name.c_str())) return 0;
-    if (!strcmp("BulkVelocity", name.c_str())) return 1;
+    if (!strcmp("P", name.c_str())) return 0;
+    if (!strcmp("u", name.c_str())) return 1;
     if (!strcmp("S_alpha", name.c_str())) return 2;
     if (!strcmp("S_beta", name.c_str())) return 3;
     if (!strcmp("S_gamma", name.c_str())) return 4;
@@ -177,6 +177,12 @@ int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("Pc_beta_alpha", name.c_str())) return 13;
     if (!strcmp("P_alpha", name.c_str())) return 14;
     if (!strcmp("P_beta", name.c_str())) return 15;
+    if (!strcmp("u_alpha", name.c_str())) return 16;
+    if (!strcmp("u_beta", name.c_str())) return 17;
+    if (!strcmp("u_gamma", name.c_str())) return 18;
+    if (!strcmp("u_alpha_sc", name.c_str())) return 19;
+    if (!strcmp("u_beta_sc", name.c_str())) return 20;
+    if (!strcmp("u_gamma_sc", name.c_str())) return 21;
     std::cout  << " Var index not implemented " << std::endl;
     DebugStop();
     return 0;
@@ -216,6 +222,18 @@ int TPZAxiSymmetricDarcyFlow::NSolutionVariables(int var) {
             return 1; // Scalar
         case 15:
             return 1; // Scalar
+        case 16:
+            return 3; // Vector
+        case 17:
+            return 3; // Vector
+        case 18:
+            return 3; // Vector
+        case 19:
+            return 3; // Vector
+        case 20:
+            return 3; // Vector
+        case 21:
+            return 3; // Vector
         default:
         {
             std::cout  << " Var index not implemented " << std::endl;
@@ -227,14 +245,14 @@ int TPZAxiSymmetricDarcyFlow::NSolutionVariables(int var) {
 
 void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
     
-    int Qblock = 0;
+    int ublock = 0;
     int Pblock = 1;
-    int Swblock = 2;
-    int Soblock = 3;
+    int Sablock = 2;
+    int Sbblock = 3;
     
-    TPZManVector<REAL,3> Q = datavec[Qblock].sol[0];
+    TPZManVector<REAL,3> u = datavec[ublock].sol[0];
     REAL P = datavec[Pblock].sol[0][0];
-    TPZFMatrix<STATE> dQdx = datavec[Qblock].dsol[0];
+    TPZFMatrix<STATE> dudx = datavec[ublock].dsol[0];
     TPZFMatrix<STATE> dPdx = datavec[Pblock].dsol[0];
     TPZManVector<REAL> state_vars(2,0.0);
     state_vars[1] = P;
@@ -252,7 +270,7 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     TPZManVector<REAL> f_alpha          = props[3];
     TPZManVector<REAL> f_beta           = props[4];
     TPZManVector<REAL> f_gamma          = props[5];
-    TPZManVector<REAL> lambda           = props[6];
+    TPZManVector<REAL> l                = props[6];
     TPZManVector<REAL> rho              = props[7];
     TPZManVector<REAL> rhof             = props[8];
     TPZManVector<REAL> Pc_beta_alpha    = props[9];
@@ -265,15 +283,31 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     
     if (fSimulationData->IsAxisymmetricQ()) {
         s *= 2.0*M_PI*r;
-    }        
+        u[0] *= (1.0/s);
+    }
+    
+
+    
+    TPZManVector<STATE> GradS(2,0.0);
+    TPZManVector<STATE> Grad_Pc(2,0.0);
     
     if (fSimulationData->IsTwoPhaseQ()) {
         state_vars.Resize(3);
         
         fluid_beta->Density(rho_beta, state_vars);
-        S_alpha = datavec[Swblock].sol[0][0];
+        S_alpha = datavec[Sablock].sol[0][0];
         state_vars[2] = S_alpha;
         S_beta = 1.0 - S_alpha;
+        
+        TPZFMatrix<STATE> GradSaxes = datavec[Sablock].dsol[0];
+        //  Compute grad(S)
+        GradS[0] = GradSaxes(0,0)*datavec[Sablock].axes(0,0)+GradSaxes(1,0)*datavec[Sablock].axes(1,0);
+        GradS[1] = GradSaxes(0,0)*datavec[Sablock].axes(0,1)+GradSaxes(1,0)*datavec[Sablock].axes(1,1);
+        
+        //  Compute grad(Pc)
+        Grad_Pc[0] = Pc_beta_alpha[3] * GradS[0];
+        Grad_Pc[1] = Pc_beta_alpha[3] * GradS[1];
+        
     }
     
     if (fSimulationData->IsThreePhaseQ()) {
@@ -281,8 +315,8 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
         
         fluid_beta->Density(rho_beta, state_vars);
         fluid_gamma->Density(rho_gamma, state_vars);
-        S_alpha = datavec[Swblock].sol[0][0];
-        S_beta = datavec[Soblock].sol[0][0];
+        S_alpha = datavec[Sablock].sol[0][0];
+        S_beta = datavec[Sbblock].sol[0][0];
         state_vars[2] = S_alpha;
         state_vars[3] = S_beta;
     }
@@ -291,36 +325,15 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
     S_gamma = 1.0 - S_alpha - S_beta;
 
     REAL time = fSimulationData->GetTime();
-    TPZVec<STATE> Saturation(1,0.0);
-    TPZFMatrix<STATE> GradS(1,0);
     
-    // Petrophysics data
+    TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
+    TPZFMatrix<STATE> G = fSimulationData->GetGravity();
     
-    //    REAL Po, Pw, Pg;
-    //    REAL pcow, pcgo, pcgw;
-    //    REAL dPcowdSw, dPcgodSo, dPcgwdSw;
+    REAL rock_phi;
+    REAL drock_phidP;
+    this->fReservoirdata->Porosity(P, rock_phi, drock_phidP);
     
-    
-    //    this->fPetrophysicdata->Pcwo(Sw, pcow, dPcowdSw);
-    //    this->fPetrophysicdata->Pcog(So, pcgo, dPcgodSo);
-    //    this->fPetrophysicdata->Pcgo(Sw, pcgw, dPcgwdSw);
-    
-    // Recovering phase pressures
-    //    Po = P + Sw * pcow - Sg * pcgo;
-    //    Pw = P - So * pcow - Sg * pcgw;
-    //    Pg = P + So * pcgo + So * pcgw;
-    
-    // Rock and fluids parameters
-    
-    //    REAL rockporosity, waterdensity, oildensity;
-    //    REAL drockporositydP, dwaterdensitydPw, doildensitydPo;
-    
-    REAL rockporosity;
-    REAL drockporositydP;
-    this->fReservoirdata->Porosity(P, rockporosity, drockporositydP);
-    //    this->fFluidmodeldata->WaterDensity(Pw, waterdensity, dwaterdensitydPw);
-    //    this->fFluidmodeldata->OilDensity(Po, oildensity, doildensitydPo);
-    
+
     
     Solout.Resize(this->NSolutionVariables(var));
     
@@ -332,8 +345,8 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             break;
         case 1:
         {
-            Solout[0] = (1.0/s)*Q[0]; // Bulk mass velocity
-            Solout[1] = Q[1]; // Bulk mass velocity
+            Solout[0] = u[0]; // Bulk mass velocity
+            Solout[1] = u[1]; // Bulk mass velocity
         }
             break;
         case 2:
@@ -368,17 +381,19 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
             break;
         case 8:
         {
-            Solout[0] = rockporosity;
+            Solout[0] = rock_phi;
         }
             break;
         case 9:
         {
-            Solout[0] = dQdx(0,0) + dQdx(1,1) + dQdx(2,2);
+            Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
         }
             break;
         case 10:
         {
-            fTimedependentFunctionExact->Execute(datavec[Qblock].x, fSimulationData->GetTime(), Saturation,GradS);
+            TPZVec<STATE> Saturation(1,0.0);
+            TPZFMatrix<STATE> GradS(1,0);
+            fTimedependentFunctionExact->Execute(datavec[ublock].x, fSimulationData->GetTime(), Saturation,GradS);
             Solout[0] = Saturation[0];
             
         }
@@ -421,6 +436,57 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
         case 15:
         {
             Solout[0] = P + S_alpha * (Pc_beta_alpha[0]);
+        }
+            break;
+        case 16:
+        {
+            Solout[0] = f_alpha[0]*u[0] + l[0]*f_alpha[0]*f_beta[0] * (K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(0,0)*G(0,0) + K(0,1)*G(1,0));
+            Solout[1] = f_alpha[0]*u[1] + l[0]*f_alpha[0]*f_beta[0] * (K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(1,0)*G(0,0) + K(1,1)*G(1,0));
+        }
+            break;
+        case 17:
+        {
+            Solout[0] = f_beta[0]*u[0] - l[0]*f_alpha[0]*f_beta[0] * (K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1]) - l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(0,0)*G(0,0) + K(0,1)*G(1,0));
+            Solout[1] = f_beta[0]*u[1] - l[0]*f_alpha[0]*f_beta[0] * (K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1]) - l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(1,0)*G(0,0) + K(1,1)*G(1,0));
+        }
+            break;
+        case 18:
+        {
+            Solout[0] = f_alpha[0]*u[0] + l[0]*f_alpha[0]*f_beta[0] * (K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(0,0)*G(0,0) + K(0,1)*G(1,0));
+            Solout[1] = f_alpha[0]*u[1] + l[0]*f_alpha[0]*f_beta[0] * (K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(1,0)*G(0,0) + K(1,1)*G(1,0));
+        }
+            break;
+        case 19:
+        {
+            Solout[0] = f_alpha[0]*u[0] + l[0]*f_alpha[0]*f_beta[0] * (K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(0,0)*G(0,0) + K(0,1)*G(1,0));
+            Solout[1] = f_alpha[0]*u[1] + l[0]*f_alpha[0]*f_beta[0] * (K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(1,0)*G(0,0) + K(1,1)*G(1,0));
+            
+            REAL B_alpha = fluid_alpha->GetRho()/rho_alpha[0];
+            Solout[0] *= (rock_phi)/(B_alpha);
+            Solout[1] *= (rock_phi)/(B_alpha);
+            
+        }
+            break;
+        case 20:
+        {
+            Solout[0] = f_beta[0]*u[0] - l[0]*f_alpha[0]*f_beta[0] * (K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1]) - l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(0,0)*G(0,0) + K(0,1)*G(1,0));
+            Solout[1] = f_beta[0]*u[1] - l[0]*f_alpha[0]*f_beta[0] * (K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1]) - l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(1,0)*G(0,0) + K(1,1)*G(1,0));
+            
+            REAL B_beta = fluid_beta->GetRho()/rho_beta[0];
+            Solout[0] *= (rock_phi)/(B_beta);
+            Solout[1] *= (rock_phi)/(B_beta);
+            
+        }
+            break;
+        case 21:
+        {
+            Solout[0] = f_alpha[0]*u[0] + l[0]*f_alpha[0]*f_beta[0] * (K(0,0)*Grad_Pc[0] + K(0,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(0,0)*G(0,0) + K(0,1)*G(1,0));
+            Solout[1] = f_alpha[0]*u[1] + l[0]*f_alpha[0]*f_beta[0] * (K(1,0)*Grad_Pc[0] + K(1,1)*Grad_Pc[1]) + l[0]*f_alpha[0]*f_beta[0] * (rho_alpha[0]-rho_beta[0]) * (K(1,0)*G(0,0) + K(1,1)*G(1,0));
+            
+            REAL B_beta = fluid_beta->GetRho()/rho_beta[0];
+            Solout[0] *= (rock_phi)/(B_beta);
+            Solout[1] *= (rock_phi)/(B_beta);
+            
         }
             break;
         default:
@@ -1497,7 +1563,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     REAL P              = datavec[Pblock].sol[0][0];
     REAL S_alpha              = datavec[Sablock].sol[0][0];
 
-    TPZFMatrix<STATE> GradSaxes = datavec[ublock].dsol[0];
+    TPZFMatrix<STATE> GradSaxes = datavec[Sablock].dsol[0];
 ////    TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
 //    TPZFNMatrix<660,REAL> GradS;
 //    TPZAxesTools<REAL>::Axes2XYZ(GradSaxes, GradS, datavec[Pblock].axes);

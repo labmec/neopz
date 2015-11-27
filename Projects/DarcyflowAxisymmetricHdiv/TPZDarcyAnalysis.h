@@ -452,6 +452,22 @@ public:
      * Computes computational mesh for L2 projection
      */
     static void P_Hydrostatic(const TPZVec< REAL >& pt, REAL time, TPZVec< STATE >& P_Hydro, TPZFMatrix< STATE >& GradP_Hydro);
+
+    /**
+     * Computes the integral of the velocities for each phase
+     */
+    void IntegrateVelocities(TPZManVector<REAL> & velocities);
+    
+    /**
+     * Comute the neigh of higher dimension
+     */
+    TPZGeoEl * GetVolElement(TPZGeoEl * gel);
+    
+    /**
+     * Compute the afin transformation from origin to destination
+     */
+    TPZTransform Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl * gel_d, TPZGeoElSide & intermediate_side);
+    
     
 };
 

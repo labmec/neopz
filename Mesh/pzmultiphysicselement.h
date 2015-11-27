@@ -108,6 +108,8 @@ public:
 
     virtual void TransferMultiphysicsElementSolution();
     
+    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) = 0;
+    
     /// Add a shape restraint (meant to fit the pyramid to restraint
     virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
     {
