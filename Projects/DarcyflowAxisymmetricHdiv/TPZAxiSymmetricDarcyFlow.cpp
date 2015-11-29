@@ -16,7 +16,7 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
 {
     
     fepsilon = 10.0e-8;
-    fSalpha_max = 0.472136;
+    fSalpha_max = 0.332289;
     
     fSimulationData=NULL;
     fReservoirdata=NULL;
@@ -59,7 +59,7 @@ TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow() : TPZDiscontinuousGalerkin(
 TPZAxiSymmetricDarcyFlow::TPZAxiSymmetricDarcyFlow(int matid) : TPZDiscontinuousGalerkin(matid)
 {
     fepsilon = 10.0e-8;
-    fSalpha_max = 0.472136;
+    fSalpha_max = 0.332289;
     
     fSimulationData=NULL;
     fReservoirdata=NULL;
@@ -1256,9 +1256,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
             TPZManVector<STATE,1> P_hydro(1,0.0);
             TPZFMatrix<STATE> GradP_hydro(1,0);            
             
-            if (fTimedependentBCForcingFunction) {
-                fTimedependentBCForcingFunction->Execute(datavec[ublock].x, fSimulationData->GetTime(), P_hydro,GradP_hydro);
-                Value = P_hydro[0];
+            if (fSimulationData->IsHydrostaticBCQ()) {
+                if (fTimedependentBCForcingFunction) {
+                    fTimedependentBCForcingFunction->Execute(datavec[ublock].x, fSimulationData->GetTime(), P_hydro,GradP_hydro);
+                    Value = P_hydro[0];
+                }
             }
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
@@ -1295,10 +1297,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
             TPZVec<STATE> P_hydro(1,0.0);
             TPZFMatrix<STATE> GradP_hydro(1,0);
             
-            if (fTimedependentBCForcingFunction) {
-                fTimedependentBCForcingFunction->Execute(datavec[ublock].x, fSimulationData->GetTime(), P_hydro,GradP_hydro);
-                Value = P_hydro[0];
+            if (fSimulationData->IsHydrostaticBCQ()) {
+                if (fTimedependentBCForcingFunction) {
+                    fTimedependentBCForcingFunction->Execute(datavec[ublock].x, fSimulationData->GetTime(), P_hydro,GradP_hydro);
+                    Value = P_hydro[0];
+                }
             }
+
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
@@ -1316,6 +1321,26 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
             for (int iq = 0; iq < nPhiHdiv; iq++)
             {
                 ef(iq) += weight * (gBigNumber * (un - Value) ) * PhiH1(iq,0);
+                
+                for (int jq = 0; jq < nPhiHdiv; jq++)
+                {
+                    ek(iq,jq) += gBigNumber * weight * (PhiH1(jq,0)) * PhiH1(iq,0);
+                }
+                
+            }
+            
+        }
+            break;
+            
+        case 4 :    // Neumann BC  QN impervious
+        {
+            
+            
+            Value = bc.Val2()(0,0);         //  NormalFlux
+            
+            for (int iq = 0; iq < nPhiHdiv; iq++)
+            {
+                ef(iq) += weight * (0.0) * PhiH1(iq,0);
                 
                 for (int jq = 0; jq < nPhiHdiv; jq++)
                 {
@@ -1886,7 +1911,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
             TPZVec< TPZManVector<REAL>  > props;
             
             if ((uLn >= 0.0) && fabs(uLn) > fepsilon ) {
-                std::cout << "Outflow condition detected in inflow condition qn = " << uLn << std::endl;
+                std::cout << "N:: Outflow condition detected in inflow condition qn = " << uLn << "; qN = " << qn << std::endl;
                 this->ComputeProperties(datavecleft, props);
                 TPZManVector<REAL> f_alpha          = props[3];
                 for (int isw = 0; isw < nphiSaL2L; isw++)
@@ -1999,7 +2024,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
             }
             else
             {
-                std::cout << "Inflow  condition detected in outflow condition qn = " <<  uLn << std::endl;
+                std::cout << "D:: Inflow  condition detected in outflow condition qn = " <<  uLn << std::endl;
                 
                 this->ComputeProperties(datavecleft, props);
                 TPZManVector<REAL> f_alpha          = props[3];
@@ -2117,6 +2142,33 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                         ek(isw + iniSaL,jsw + iniSaL) += 1.0 * weight * f_alpha[3] * phiSaL2L(jsw,0)  * phiSaL2L(isw,0) * uLn;
                     }
                 }
+                
+            }
+            
+        }
+            break;
+            
+        case 4 :    // Neumann BC QN impervious
+        {
+            REAL qn         = bc.Val2()(0,0);
+            REAL S_alpha    = bc.Val2()(1,0);
+            REAL S_beta     = bc.Val2()(2,0);
+            
+            // Returning needed relationships
+            TPZVec< TPZManVector<REAL>  > props;
+            
+            TPZManVector<REAL> state_vars(fnstate_vars+2,0.0);
+            state_vars[0] = qn;                             //  qn
+            state_vars[1] = datavecleft[Pblock].sol[0][0];  //  P
+            state_vars[2] = S_alpha;                        //  S_alpha
+            state_vars[3] = S_beta;                         //  S_beta
+            
+            this->ComputeProperties(state_vars, props);
+            TPZManVector<REAL> f_alpha          = props[3];
+            
+            for (int isw = 0; isw < nphiSaL2L; isw++)
+            {
+                ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn;
                 
             }
             
@@ -2393,6 +2445,33 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                     ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
                     
                 }
+                
+            }
+            
+        }
+            break;
+            
+        case 4 :    // Neumann BC QN impervious
+        {
+            REAL qn         = bc.Val2()(0,0);
+            REAL S_alpha    = bc.Val2()(1,0);
+            REAL S_beta     = bc.Val2()(2,0);
+            
+            // Returning needed relationships
+            TPZVec< TPZManVector<REAL>  > props;
+            
+            TPZManVector<REAL> state_vars(fnstate_vars+2,0.0);
+            state_vars[0] = qn;                             //  qn
+            state_vars[1] = datavecleft[Pblock].sol[0][0];  //  P
+            state_vars[2] = S_alpha;                        //  S_alpha
+            state_vars[3] = S_beta;                         //  S_beta
+            
+            this->ComputeProperties(state_vars, props);
+            TPZManVector<REAL> f_alpha          = props[3];
+            
+            for (int isw = 0; isw < nphiSaL2L; isw++)
+            {
+                ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn;
                 
             }
             
@@ -3599,11 +3678,11 @@ void TPZAxiSymmetricDarcyFlow::fRecLinear(REAL P, REAL Salpha, TPZManVector<REAL
         lambda[3]        = 0.0;
         
         fs_Smax = f_alpha[0] * f_beta[0] * lambda[0];
-        
-        ExpL[0] = (1.0 - Salpha)*(fs_Smax/(1.0-fSalpha_max));
+        REAL denom = 1.0-fSalpha_max-fReservoirdata->S_nwett_r();
+        ExpL[0] = (1.0-Salpha-fReservoirdata->S_nwett_r())*(fs_Smax/(denom));
         ExpL[1] = 0.0;
-        ExpL[2] = (1.0 - Salpha)*(1.0/(1.0-fSalpha_max))*((f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0] ) * lambda[0]);
-        ExpL[3] = (- 1.0)*(fs_Smax/(1.0-fSalpha_max));
+        ExpL[2] = (1.0-Salpha-fReservoirdata->S_nwett_r())*(1.0/(denom))*((f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0] ) * lambda[0]);
+        ExpL[3] = (- 1.0)*(fs_Smax/(denom));
         
     }
     
@@ -3662,11 +3741,11 @@ void TPZAxiSymmetricDarcyFlow::fExpLinear(REAL P, REAL Salpha, TPZManVector<REAL
         lambda[3]        = 0.0;
         
         fs_Smax = f_alpha[0] * f_beta[0] * lambda[0];
-        
-        RecL[0] = (Salpha)*(fs_Smax/(fSalpha_max));
+        REAL denom = fSalpha_max - fReservoirdata->S_wett_r();
+        RecL[0] = (Salpha-fReservoirdata->S_wett_r())*(fs_Smax/(denom));
         RecL[1] = 0.0;
-        RecL[2] = (Salpha)*(1.0/(fSalpha_max))*((f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0] ) * lambda[0]);
-        RecL[3] = (1.0)*(fs_Smax/(fSalpha_max));
+        RecL[2] = (Salpha-fReservoirdata->S_wett_r())*(1.0/(denom))*((f_alpha[0] * f_beta[0]) * lambda[2] + (f_alpha[0] * f_beta[2] + f_alpha[2] * f_beta[0] ) * lambda[0]);
+        RecL[3] = (1.0)*(fs_Smax/(denom));
         
     }
     

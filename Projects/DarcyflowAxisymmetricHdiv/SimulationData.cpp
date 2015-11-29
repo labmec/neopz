@@ -125,6 +125,9 @@ SimulationData::SimulationData()
     /** @brief Is Impes analysis */
     fIsImpesQ = false;
     
+    /** @brief Is hydrostatic boundary condition */
+    fIsHydrostaticBCQ =  false;
+    
     /** @brief Counterclockwise rotation angle */
     fAngle = 0.0;
     

@@ -159,6 +159,9 @@ private:
     /** @brief Is Impes analysis */
     bool fIsImpesQ;
     
+    /** @brief Is hydrostatic boundary condition */
+    bool fIsHydrostaticBCQ;
+    
     /** @brief Gravity value */
     TPZFMatrix<REAL> fGravity;
     
@@ -453,6 +456,12 @@ public:
     
     /** @brief Is it using axisymmetric analysis */
     bool IsAxisymmetricQ() {return fIsAxisymmetricQ;}
+
+    /** @brief Set the use of hydrostatic boundary condition */
+    void SetHydrostaticBCQ(bool HydrostaticBC) {fIsHydrostaticBCQ = HydrostaticBC;}
+    
+    /** @brief Is it using hydrostatic boundary condition */
+    bool IsHydrostaticBCQ() {return fIsHydrostaticBCQ;}
     
     /** @brief Set the use of axisymmetric analysis */
     void SetImpesQ(bool Impes) {fIsImpesQ = Impes;

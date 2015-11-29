@@ -1314,7 +1314,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
     TPZAutoPointer<TPZFunction<STATE> > forcef;
     dum->SetPolynomialOrder(20);
     forcef = dum;
-    //     mat->SetTimeDependentForcingFunction(forcef);
+//    mat->SetTimeDependentForcingFunction(forcef);
     
     // Setting up linear tracer solution
     //  TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
@@ -1331,7 +1331,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
     TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
     TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
     P_hydrostatic_ptr = P_hydrostatic;
-//     mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
+    mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
     
     // Bc Bottom
     val2(0,0) = Bottom[1];
@@ -1425,7 +1425,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
     TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
     P_hydrostatic_ptr = P_hydrostatic;
-//     mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
+    mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
     
     // Bc Bottom
     val2(0,0) = Bottom[1];
