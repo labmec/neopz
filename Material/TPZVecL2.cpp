@@ -25,9 +25,11 @@ static LoggerPtr logger(Logger::getLogger("pz.material"));
 
 
 TPZVecL2::TPZVecL2() : TPZMaterial() {
+    fDim=-1;
 }
 
 TPZVecL2::TPZVecL2(int id) : TPZMaterial(id) {
+    fDim=-1;
 }
 
 TPZVecL2::~TPZVecL2()
@@ -35,9 +37,14 @@ TPZVecL2::~TPZVecL2()
 }
 
 
-TPZVecL2::TPZVecL2(const TPZVecL2 &material) : TPZMaterial(material) {
+TPZVecL2::TPZVecL2(const TPZVecL2 &mat) : TPZMaterial(mat) {
+    this->operator =(mat);
 }
 
+TPZVecL2 & TPZVecL2::operator=(const TPZVecL2 &mat){
+    fDim = mat.fDim;
+    return *this;
+}
 
 
 void TPZVecL2::Print(std::ostream & out) {
@@ -88,6 +95,15 @@ void TPZVecL2::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft
 void TPZVecL2::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
 						   TPZVec<STATE> &Solout){
     if(var == 0) Solout = Sol;
+    
+    else if (var==1){
+        STATE val = 0.;
+        for(int i=0; i<fDim; i++){
+            val += DSol(i,i);
+        }
+        Solout[0] = val;
+    }
+    
     else
     {
         TPZMaterial::Solution(Sol, DSol,axes,var,Solout);
@@ -246,5 +262,44 @@ void TPZVecL2::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
             break;
     }
 
+}
+
+void TPZVecL2::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
+    
+    values.Fill(0.0);
+    TPZVec<STATE> sol(1,0.),dsol(fDim,0.),div(1,0.);
+    
+    
+    Solution(data,0,dsol);//fluxo
+    Solution(data,1,div);//divergente
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled()){
+        std::stringstream sout;
+        sout<< "\n";
+        sout << " Pto  " << data.x << std::endl;
+        sout<< " ---- "<<std::endl;
+        sout<< " fluxo exato " <<du_exact(0,0)<<", " << du_exact(1,0)<<std::endl;
+        sout<< " fluxo aprox " <<dsol<<std::endl;
+        sout<< " ---- "<<std::endl;
+        if(du_exact.Rows()>fDim) sout<< " div exato " <<du_exact(2,0)<<std::endl;
+        sout<< " div aprox " <<div<<std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+    
+    
+    //values[1] : flux error using L2 norm
+    for(int id=0; id<fDim; id++) {
+        REAL diffFlux = fabs(dsol[id] - du_exact(id,0));
+        values[1]  += diffFlux*diffFlux;
+    }
+    if(du_exact.Rows()>fDim){
+        //values[2] : divergence using L2 norm
+        REAL diffDiv = fabs(div[0] - du_exact(fDim,0));
+        values[2]=diffDiv*diffDiv;
+        //values[3] : Hdiv norm => values[1]+values[2];
+        values[3]= values[1]+values[2];
+    }
 }
 

@@ -36,6 +36,8 @@ public:
 	/** Upon return vectorindex contains the index of the material object within the vector */
     TPZVecL2(const TPZVecL2 &mat);
     
+    TPZVecL2 &operator=(const TPZVecL2 &mat);
+    
     /** @brief Default destructor */
     virtual ~TPZVecL2();
     
@@ -50,9 +52,12 @@ public:
     /** @brief Returns the integrable dimension of the material */
     virtual int Dimension() const
     {
-        return 3;
+        return fDim;
     }
     
+    void SetDimension(int dim){
+        fDim = dim;
+    }
     
     /** @brief Returns the number of state variables associated with the material */
     virtual int NStateVariables()
@@ -91,6 +96,9 @@ public:
 protected:
     /** @deprecated Deprecated interface for Solution method which must use material data. */
     virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+    
+    /** @brief Problem dimension */
+    int fDim;
     
 public:
     
@@ -195,6 +203,8 @@ public:
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);
+    
+    void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
     
     /** @} */
 	
