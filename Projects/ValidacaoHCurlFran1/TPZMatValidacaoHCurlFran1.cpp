@@ -1,7 +1,7 @@
 #include "TPZMatValidacaoHCurlFran1.h"
 #include "pzbndcond.h"
 
-TPZMatValidacaoHCurlFran1::TPZMatValidacaoHCurlFran1(int id, REAL freq, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>)) : TPZVecL2(id), fUr(ur), fEr(er), fFreq(freq)
+TPZMatValidacaoHCurlFran1::TPZMatValidacaoHCurlFran1(int id, REAL freq, STATE (& ur)(const TPZVec<REAL>&),STATE (& er)(const TPZVec<REAL>&)) : TPZVecL2(id), fUr(ur), fEr(er), fFreq(freq)
 {
   fW=2.*M_PI*fFreq;
   
@@ -272,12 +272,12 @@ void TPZMatValidacaoHCurlFran1::Solution(TPZMaterialData &data, int var, TPZVec<
 }
 
 
-STATE urDefault( TPZVec<REAL> &x )
+STATE urDefault(const TPZVec<REAL> &x )
 {
   return 1.0;
 }
 
-STATE erDefault( TPZVec<REAL> &x )
+STATE erDefault(const TPZVec<REAL> &x )
 {
   return 1.0;
 }

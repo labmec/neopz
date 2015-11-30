@@ -138,12 +138,7 @@ void TPZMatValidacaoHCurlFran2::Contribute(TPZMaterialData &data, REAL weight, T
       phiIdotphiJ = ( phiQ(ishapeind,0) * ivecHCurl[0] * phiQ(jshapeind,0) * jvecHCurl[0])
       + ( phiQ(ishapeind,0) * ivecHCurl[1] * phiQ(jshapeind,0) * jvecHCurl[1])
       + ( phiQ(ishapeind,0) * ivecHCurl[2] * phiQ(jshapeind,0) * jvecHCurl[2]);
-      
-        std::cout << " x " << data.x << std::endl;
-        data.fNormalVec.Print("NormalVec");
-        std::cout << " i " << iq << " j " << jq << " phiIdotphiJ " << phiIdotphiJ << std::endl;
-        std::cout << " ivec " << ivecHCurl << " jvec " << jvecHCurl << std::endl;
-        std::cout << " curli " << curlI << " curlj " << curlJ << std::endl;
+ 
         STATE stiff = 0.;
       stiff += (1./muR) * ( curlJStar * curlIStar + (curlJ[0] * curlI[0] + curlJ[1] * curlI[1] + curlJ[2] * curlI[2]) );
       stiff += -1. * k0 * k0 /(fScale * fScale) * epsilonR * phiIdotphiJ;

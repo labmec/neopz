@@ -27,14 +27,14 @@ class  TPZMatValidacaoHCurlFran1 : public TPZVecL2
 protected:
   
   //COM CERTEZA
-  STATE (& fUr)( TPZVec<REAL>);
-  STATE (& fEr)( TPZVec<REAL>);
+  STATE (& fUr)(const TPZVec<REAL>&);
+  STATE (& fEr)(const TPZVec<REAL>&);
   REAL fFreq;//frequencia da onda
   STATE fW;
    
 	
 public:
-    TPZMatValidacaoHCurlFran1(int id, REAL freq, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>));
+    TPZMatValidacaoHCurlFran1(int id, REAL freq, STATE (& ur)(const TPZVec<REAL>&),STATE (& er)(const TPZVec<REAL>&));
   
     TPZMatValidacaoHCurlFran1(int id);
   
@@ -190,7 +190,7 @@ public:
 
 
 
-STATE urDefault( TPZVec<REAL>&x );//default material has ur=1
-STATE erDefault( TPZVec<REAL>&x );//default material has er=1
+STATE urDefault(const TPZVec<REAL>&x );//default material has ur=1
+STATE erDefault(const TPZVec<REAL>&x );//default material has er=1
 #endif
 

@@ -119,8 +119,6 @@ void TPZMatStripline::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 void TPZMatStripline::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-  TPZManVector<REAL,3> &x = data.x;
-  //TPZManVector<REAL,3> &normal = data.normal;
   
   // Setting the phis
   TPZFMatrix<REAL> &phiQ = data.phi;

@@ -53,19 +53,19 @@ TPZGeoMesh *CreateTriangularGMesh(REAL hDomain, REAL wDomain, REAL x0, REAL y0, 
  * @param er relative permittivity of the dielectric
  * @param freq frequency of the plane-wave
  */
-TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>), REAL freq);
+TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)(const TPZVec<REAL>&),STATE (& er)(const TPZVec<REAL>&), REAL freq);
 
 /**
  * @brief Implements permeability of possibly inhomongeneous media
  * @param x spatial coordinates
  */
-STATE urSubs(TPZVec<REAL> x);
+STATE urSubs(const TPZVec<REAL> &x);
 
 /**
  * @brief Implements permittivity of possibly inhomongeneous media
  * @param x spatial coordinates
  */
-STATE erSubs(TPZVec<REAL> x);
+STATE erSubs(const TPZVec<REAL> &x);
 
 /**
  * @brief forcing function for testing purposes
@@ -412,7 +412,7 @@ TPZGeoMesh *CreateRectangularGMesh(REAL hDomain, REAL wDomain, REAL x0, REAL y0,
 }
 
 
-TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),STATE (& er)( TPZVec<REAL>), REAL freq)
+TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)(const  TPZVec<REAL>&),STATE (& er)(const TPZVec<REAL>&), REAL freq)
 {
   const int dim = 2; //dimensao do problema
 	enum{dirichlet = 0, neumann = 1}; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
@@ -463,13 +463,13 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)( TPZVec<REAL>),ST
   return cmesh;
 }
 
-STATE urSubs(TPZVec<REAL> x)
+STATE urSubs(const TPZVec<REAL> &x)
 {
   STATE val(1.);
   return val;
 }
 
-STATE erSubs(TPZVec<REAL> x)
+STATE erSubs(const TPZVec<REAL> &x)
 {
   STATE val(1.);
   return val;
