@@ -120,7 +120,7 @@ int main()
     HDivPiola = 2;
     bool SecondIntegration=false;
     
-    //InitializePZLOG();
+    InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -134,7 +134,7 @@ int main()
     ofstream saidaerrosH1("../Erro-H1.txt");
     
     
-    int maxp = 3;
+    int maxp = 4;
     int maxhref = 1;
     TPZFMatrix<STATE> L2ErrorPrimal(maxhref,maxp-1);
     TPZFMatrix<STATE> L2ErrorDual(maxhref,maxp-1);
@@ -195,6 +195,7 @@ int main()
                 TPZCompMesh * cmesh1= CMeshFlux(pq, gmesh);
                 {
                     ofstream filemesh2("MalhaFluxAntes.txt");
+                    filemesh2<<"\nDOF HDiv: "<< cmesh1->NEquations()<<std::endl;
                     cmesh1->Print(filemesh2);
                 }
                 
@@ -202,7 +203,8 @@ int main()
                 if(order_reduce == 1){
                     ChangeSideConnectOrderConnects(cmesh1,pq-order_reduce);
                     
-                    ofstream filemesh2("../MalhaFluxDepois.txt");
+                    ofstream filemesh2("MalhaFluxDepois.txt");
+                    filemesh2<<"\nDOF HDiv++: "<< cmesh1->NEquations()<<std::endl;
                     cmesh1->Print(filemesh2);
                 }
                 
@@ -212,7 +214,9 @@ int main()
                 TPZCompMesh * cmesh2 = CMeshPressure(pp, gmesh);
                 {
                     ofstream filemesh3("MalhaPressao.txt");
+                    filemesh3<<"\nDOF Pressao: "<< cmesh2->NEquations()<<std::endl;
                     cmesh2->Print(filemesh3);
+                    
                 }
 
                 
@@ -223,14 +227,16 @@ int main()
                 meshvec[1] = cmesh2;
                 TPZCompMesh * mphysics = MalhaCompMultifisica(meshvec, gmesh, SecondIntegration);
                 
-                ofstream filemesh4("MalhaMultifisica.txt");
-                mphysics->Print(filemesh4);
-                
                 int nDofTotal;
                 nDofTotal = meshvec[0]->NEquations() + meshvec[1]->NEquations();
                 
                 int nDofCondensed;
                 nDofCondensed = mphysics->NEquations();
+                
+                ofstream filemesh4("MalhaMultifisica.txt");
+                filemesh4<<"\nDOF Total Multifisica: "<< nDofTotal<<std::endl;
+                filemesh4<<"DOF Condensados Multifisica: "<< nDofCondensed <<std::endl;
+                mphysics->Print(filemesh4);
                 
                 saidaerrosHdiv<< "NRefinamento h  = "<< nref <<std::endl;
                 saidaerrosHdiv<< "Grau de Liberdade Total = " << nDofTotal<<std::endl;
@@ -595,7 +601,8 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
     
-    cmesh->SetAllCreateFunctionsHDiv();
+    //cmesh->SetAllCreateFunctionsHDiv();
+    cmesh->SetAllCreateFunctionsHDivFull();
     
     cmesh->InsertMaterialObject(mat);
     
@@ -852,6 +859,9 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
         TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+        
+        mphysics->Reference()->ResetReference();
+        mphysics->LoadReferences();
         
         // create condensed elements
         // increase the NumElConnected of one pressure connects in order to prevent condensation
@@ -1348,6 +1358,7 @@ void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int order){
             for (int icon=0; icon<ncon-1; icon++)
             {
                 TPZConnect &conel  = cel->Connect(icon);
+               
                 corder = conel.Order();
                 nshape = conel.NShape();
                 if(corder!=order)
