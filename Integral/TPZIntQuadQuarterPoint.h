@@ -53,6 +53,10 @@ public:
         fCorner = corner;
     }
 
+    virtual TPZIntPoints* Clone() const
+    {
+        return new TPZIntQuadQuarterPoint(*this);
+    }
 
 };
 
