@@ -387,15 +387,16 @@ TPZGeoMesh *CreateTriangularGMesh(const REAL hDomain, const REAL wDomain, const 
   int nel = xDiv * zDiv * 2;
   for (long iel = 0; iel < nel; iel++) {
     long ino1,ino2,ino3;
-    if ((iel+1)%2) {
-      ino1 = iel % (xDiv) + (iel / xDiv) * (xDiv + 1);
-      ino2 = iel % (xDiv) + (iel / xDiv + 1) * (xDiv + 1) + 1;
-      ino3 = iel % (xDiv) + (iel / xDiv + 1) * (xDiv + 1);
+		
+    if ( ( iel  + 1 ) % 2 ) {
+      ino1 = (iel/2) % (xDiv) + ((iel/2) / xDiv) * (xDiv + 1);
+      ino2 = (iel/2) % (xDiv) + ((iel/2) / xDiv + 1) * (xDiv + 1) + 1;
+      ino3 = (iel/2) % (xDiv) + ((iel/2) / xDiv + 1) * (xDiv + 1);
     }
     else{
-      ino1 = (iel-1) % (xDiv) + ((iel-1) / xDiv) * (xDiv + 1);
-      ino2 = (iel-1) % (xDiv) + ((iel-1) / xDiv) * (xDiv + 1) + 1;
-      ino3 = (iel-1) % (xDiv) + ((iel-1) / xDiv + 1) * (xDiv + 1) + 1;
+      ino1 = ((iel/2)-1) % (xDiv) + (((iel/2)-1) / xDiv) * (xDiv + 1);
+      ino2 = ((iel/2)-1) % (xDiv) + (((iel/2)-1) / xDiv) * (xDiv + 1) + 1;
+      ino3 = ((iel/2)-1) % (xDiv) + (((iel/2)-1) / xDiv + 1) * (xDiv + 1) + 1;
       
     }
     topolTri[0] = ino1;
