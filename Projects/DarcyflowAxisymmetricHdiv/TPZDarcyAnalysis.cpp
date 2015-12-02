@@ -1854,10 +1854,10 @@ void TPZDarcyAnalysis::CreatedGeoMesh()
 
 void TPZDarcyAnalysis::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
-//    REAL rwD = 0.127/100.0;
-//    REAL alpha = 1.0+ rwD;
+//    REAL rwD = 0.127;
+//    REAL alpha = 1000.0 + rwD;
 //    int n = 10;
-//
+// 
 //    int el = (par[0])*((n)/(int(alpha)));
 //    REAL tstr = alpha/pow(2.0,REAL(n-el));
 

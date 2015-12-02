@@ -893,7 +893,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     for (int ip = 0; ip < nphiPL2; ip++)
     {
         
-        ef(ip + iniP) += weight * (- divu + fvalue[0] - (1.0/dt) * phi * rho[0]) * phiPL2(ip,0);
+        ef(ip + iniP) += weight * (- divu + fvalue[0] - s*(1.0/dt) * phi * rho[0]) * phiPL2(ip,0);
         
         for (int jq = 0; jq < nphiuHdiv; jq++)
         {
@@ -902,7 +902,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
         
         for (int jp = 0; jp < nphiPL2; jp++)
         {
-            ek(ip + iniP,jp + iniP) += weight * (- (1.0/dt) * phi * rho[2] * phiPL2(jp,0) ) * phiPL2(ip,0);
+            ek(ip + iniP,jp + iniP) += weight * (- s*(1.0/dt) * phi * rho[2] * phiPL2(jp,0) ) * phiPL2(ip,0);
         }
         
     }
@@ -983,21 +983,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<STATE> iphiuHdiv(2,1);
     int ishapeindex;
     int ivectorindex;
-    
-    /////////////////////////////////
-    // Last State n
-    if (fSimulationData->IsnStep()) {
-        
-        //  n state computations
-        for (int ip = 0; ip < nphiPL2; ip++)
-        {
-            ef(ip + iniP) += 1.0 * weight * (1.0/dt) * phi * rho[0]*  phiPL2(ip,0);
-        }
-        
-        return;
-    }
-    // Last State n
-    /////////////////////////////////
 
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
@@ -1007,7 +992,23 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     
     if (fSimulationData->IsAxisymmetricQ()) {
         s *= 2.0*M_PI*r;
-    }    
+    }
+    
+    
+    /////////////////////////////////
+    // Last State n
+    if (fSimulationData->IsnStep()) {
+        
+        //  n state computations
+        for (int ip = 0; ip < nphiPL2; ip++)
+        {
+            ef(ip + iniP) += 1.0 * weight * s * (1.0/dt) * phi * rho[0]*  phiPL2(ip,0);
+        }
+        
+        return;
+    }
+    // Last State n
+    /////////////////////////////////
     
     for (int iq = 0; iq < nphiuHdiv; iq++)
     {
@@ -1038,7 +1039,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
     {
-        ef(ip + iniP) += weight * (- divu + fvalue[0] - (1.0/dt) * phi * rho[0]) * phiPL2(ip,0);
+        ef(ip + iniP) += weight * (- divu + fvalue[0] - s * (1.0/dt) * phi * rho[0]) * phiPL2(ip,0);
         
     }
     
