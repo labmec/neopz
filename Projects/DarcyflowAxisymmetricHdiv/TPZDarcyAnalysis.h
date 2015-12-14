@@ -102,9 +102,17 @@ private:
     TPZManVector<long> fNonactiveEquations;
     
     
-    
 public:
-    REAL Muo;
+    
+    /** @brief L2 norm */
+    TPZManVector<REAL> fL2_norm;
+    
+    /** @brief L2 norm */
+    TPZManVector<REAL> fL2_norm_s;
+    
+    /** @brief Hdiv norm */
+    TPZManVector<REAL> fHdiv_norm;
+
     /// Constructor which already sets the cmesh
     TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic);
     
@@ -206,7 +214,12 @@ public:
     /**
      * Create geometric Mesh for one-dimensional displacement
      */
-    void GeometryLine(int nx, int ny);
+    void Geometry2D(int nx, int ny);
+    
+    /**
+     * Apply geometric progression over the given 1-D geometric mesh -> gmesh
+     */
+    void ApplyPG(TPZGeoMesh * geomesh);
     
     /**
      * Uniform Refinement
@@ -357,6 +370,17 @@ public:
      * Transient BC dirichlet
      */
     static  void BCDfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad);
+
+    
+    /**
+     * Exact Soltuion elliptic axisymmetric darcflow (Dupuit-Thiem solution)
+     */
+    static  void Dupuit_Thiem(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol);
+    
+    /**
+     * Exact Soltuion parabolic axisymmetric darcflow (Morris_Muskat solution)
+     */
+    static  void Morris_Muskat(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol);
     
     /**
      * Exact Soltuion for linear tracer
@@ -457,6 +481,16 @@ public:
      * Computes the integral of the velocities for each phase
      */
     void IntegrateVelocities(TPZManVector<REAL> & velocities);
+    
+    /**
+     * Computes the integral of the hdiv and L2 error of flux and pressure respectively
+     */
+    void IntegrateFluxPError(TPZManVector<REAL> & hdiv_norm,TPZManVector<REAL> & l2_norm);
+    
+    /**
+     * Computes the integral of the L2 error of saturation
+     */
+    void IntegrateL2SError(TPZManVector<REAL> & l2_norm);
     
     /**
      * Comute the neigh of higher dimension
