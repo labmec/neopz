@@ -361,7 +361,7 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     an->LoadSolution(fcmeshinitialdarcy->Solution());
     
     int n_dt = 10;
-    int n_sub_dt = 10;
+    int n_sub_dt = 20;
     int i_time = 0;
     REAL dt = (fSimulationData->GetMaxTime())/REAL(n_sub_dt);
     fSimulationData->SetDeltaT(dt);
@@ -820,11 +820,11 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
 
             // Computing the rates at reporting times
             
-            if (fSimulationData->IsTwoPhaseQ()) {
-                TPZManVector<REAL> l2_norm_s(1,0.0);
-                this->IntegrateL2SError(l2_norm_s);
-                fL2_norm_s[0] = sqrt(l2_norm_s[0]);
-            }
+//            if (fSimulationData->IsTwoPhaseQ()) {
+//                TPZManVector<REAL> l2_norm_s(1,0.0);
+//                this->IntegrateL2SError(l2_norm_s);
+//                fL2_norm_s[0] = sqrt(l2_norm_s[0]);
+//            }
             
             if (i_time == reporting_times.size()-1) {
                 break;
@@ -1037,7 +1037,7 @@ void TPZDarcyAnalysis::IntegrateFluxPError(TPZManVector<REAL> & hdiv_norm,TPZMan
 void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
     
     int mat_id = 5;
-    int int_order = 4;
+    int int_order = 5;
     int int_typ = 0;
     velocities[0] = 0.0;
     velocities[1] = 0.0;
@@ -2934,17 +2934,18 @@ void TPZDarcyAnalysis::P_Hydrostatic(const TPZVec< REAL >& pt, REAL time, TPZVec
 //    REAL x = pt[0];
     REAL y = pt[1];
     
-    REAL Kstr           = 1.0e-13;
-    REAL Pstr           = 1.0e7;
-    REAL Tstr           = 355.37;
-    REAL Tres           = 355.37;
-    REAL Lstr           = 100.0;
-    REAL Mustr          = 0.001;
-    REAL Rhostr         = 1000.0;
+//    REAL Kstr           = 1.0e-13;
+//    REAL Pstr           = 1.0e7;
+//    REAL Tstr           = 355.37;
+//    REAL Tres           = 355.37;
+//    REAL Lstr           = 100.0;
+//    REAL Mustr          = 0.001;
+//    REAL Rhostr         = 1000.0;
 
-    REAL rho_beta = 800.0/Rhostr;
-    REAL g = -10.0*((Lstr*Rhostr)/Pstr);
-    P_Hydro[0] = rho_beta * g * y;
+    REAL rho_beta = 1000.0;
+    REAL P_at_datum = 1.5*1.0e7;
+    REAL g = -10.0;
+    P_Hydro[0] = (rho_beta * g * y)+P_at_datum;
     
 }
 
