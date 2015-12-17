@@ -838,12 +838,12 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         
     }
     
-//    TPZManVector<REAL> hdiv_norm(1,0.0);
-//    TPZManVector<REAL> l2_norm(1,0.0);
-//    this->IntegrateFluxPError(hdiv_norm,l2_norm);
-//
-//    fHdiv_norm[0] = sqrt(hdiv_norm[0]);
-//    fL2_norm[0] = sqrt(l2_norm[0]);
+    TPZManVector<REAL> hdiv_norm(1,0.0);
+    TPZManVector<REAL> l2_norm(1,0.0);
+    this->IntegrateFluxPError(hdiv_norm,l2_norm);
+
+    fHdiv_norm[0] = sqrt(hdiv_norm[0]);
+    fL2_norm[0] = sqrt(l2_norm[0]);
     
     
     std::ofstream q_out("current_production.txt");
@@ -1623,9 +1623,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetTimeDependentForcingFunction(forcef);
     
     // Setting up linear tracer solution
-//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(Dupuit_Thiem);
+    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(Dupuit_Thiem);
 //    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
-    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
     TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
     mat->SetTimeDependentFunctionExact(fLTracer);
     
@@ -2707,10 +2707,10 @@ void TPZDarcyAnalysis::FilterSaturationGradients(TPZManVector<long> &active, TPZ
 
 void TPZDarcyAnalysis::Dupuit_Thiem(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol){
     
-    REAL r = pt[0]*1000.0;
+    REAL rstar = 1000.0;
+    REAL r = pt[0]*rstar;
     REAL rw = 0.127;
     REAL h = 10.0;
-    REAL rstar = 1000.0;
     REAL re = 1000.0 + rw;
 
     REAL Pstar = 20.0*1.0e6;
@@ -2720,7 +2720,7 @@ void TPZDarcyAnalysis::Dupuit_Thiem(const TPZVec<REAL> &pt, REAL time, TPZVec<ST
     REAL u = Q/(2.0*M_PI*rw*h);
     REAL rho = 1000.0;
     REAL mu = 0.001;
-    REAL  k = 1.0e-13;
+    REAL k = 1.0e-13;
     REAL muD = mu/mu;
     REAL rhoD = rho/rho;
     REAL kD = k/k;
@@ -2731,8 +2731,8 @@ void TPZDarcyAnalysis::Dupuit_Thiem(const TPZVec<REAL> &pt, REAL time, TPZVec<ST
     REAL rD  = r/rstar;
 
     REAL mD = (m*mu*rstar)/(k*rho*Pstar);
-    Sol[0] = pow(rD,8.0) ;//1 + mD * rwD * log(rD/reD);//pow(rD,8.0) ;
-    GradSol(0,0) = -8.0*pow(rD,7.0);//-((kD*rhoD*mD*rwD)/muD)/(rD);//-8.0*pow(rD,7.0);
+    Sol[0] = 1 + mD * rwD * log(rD/reD);
+    GradSol(0,0) = -((kD*rhoD*mD*rwD)/muD)/(rD);
 
 }
 

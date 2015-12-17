@@ -23,7 +23,7 @@ void NonlinearTracer(bool IsDimensionlessQ);
 int main()
 {
 
-    bool IsDimensionlessQ = false;
+    bool IsDimensionlessQ = true;
     NonlinearTracer(IsDimensionlessQ);
     
     std::cout << "Program successfully executed." << std::endl;
@@ -48,7 +48,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL Lstr           = 1.0;
     REAL Mustr          = 1.0;
     REAL Rhostr         = 1.0;
-    TPZMaterial::gBigNumber = 1.0e15; // Use this for check of convergence using neumann
+    TPZMaterial::gBigNumber = 1.0e20; // Use this for check of convergence using neumann
     
     REAL TolRes     = 1.0*1e-2;
     REAL TolDeltaX  = 1.0*1e-5;
@@ -78,10 +78,10 @@ void NonlinearTracer(bool IsDimensionlessQ)
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
     bool OptBand    = true;     // Band optimization
-    bool IsAxisy    = false;    // Axisymmetric analysis
+    bool IsAxisy    = true;    // Axisymmetric analysis
     bool IsTMesh    = false;    // Triangular mesh
     bool IsImpes    = false;    // Impes analysis
-    bool IsHydro    = true;    // Hydrostatic bc
+    bool IsHydro    = false;    // Hydrostatic bc
     int fixedJac    = 0;
     
     int qorder      = 1;
@@ -91,14 +91,14 @@ void NonlinearTracer(bool IsDimensionlessQ)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 20;
+    int n_times  = 1;
     int n_sub_dt = 10;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = 1.0*(100) * day * scale;
+    REAL dt         = 1.0*(500) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -112,26 +112,26 @@ void NonlinearTracer(bool IsDimensionlessQ)
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
-    REAL dxD        =(100.0/nelemX)/Lstr;
+    REAL dxD        =(1000.0/nelemX)/Lstr;
     
     int nelemY      =1;
     if (GR && nelemY == 1 && IsTMesh ) {
         nelemY++;
     }
-    REAL dyD        =(100.0/nelemY)/Lstr;
+    REAL dyD        =(10.0/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
-    Gravity(1,0)= -10.0*((Lstr*Rhostr)/Pstr);
+    Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
     bool LinearSegregation = true;
     
-    REAL angle = -90.0;
+    REAL angle = 0.0;
     
     REAL S_w_r              = 0.2;
     REAL S_nw_r             = 0.2;
     
     TPZStack<std::string> system;
     system.Push("Water");
-    system.Push("Oil");
+//    system.Push("Oil");
     
     
     Dataset->SetTimes(Reporting_times);
@@ -211,11 +211,11 @@ void NonlinearTracer(bool IsDimensionlessQ)
     bottombc[2] = 0;
     bottombc[3] = 0;
     
-    REAL m = 0.0001;
+    REAL m = 0.00023060699549960303;
     REAL mD = m*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
     TPZVec<REAL> rightbc(4,0.0);
     rightbc[0] = 0;
-    rightbc[1] = (1.5*1e7)/(Pstr);
+    rightbc[1] = (2.0*1e7)/(Pstr);
     rightbc[2] = 1.0*(1.0 - S_nw_r);
     rightbc[3] = 0;
     
@@ -227,8 +227,8 @@ void NonlinearTracer(bool IsDimensionlessQ)
     topbc[3] = 0;
     
     TPZVec<REAL> leftbc(4,0.0);
-    leftbc[0] = 3;
-    leftbc[1] = mD;//(1.0*1e7)/(Pstr);
+    leftbc[0] = 2;
+    leftbc[1] = 0.86862616847286156;//(1.0*1e7)/(Pstr);
     leftbc[2] = 0.0*(1.0 - S_nw_r);
     leftbc[3] = 0;
     
@@ -317,7 +317,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL Hres           = 100.0/Lstr;
     REAL Rres           = 1000.0/Lstr;
     REAL Top            = 0.0/Lstr;
-    REAL Rw             = 0.0/Lstr;
+    REAL Rw             = 0.127/Lstr;
     
     // Reservoir Description linear tracer configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
@@ -409,12 +409,12 @@ void NonlinearTracer(bool IsDimensionlessQ)
     Rocks[0] = RockModel;
     
 //  Computing the approximation rate for each refinement for  the order
-    TPZFMatrix<REAL> rates(3,5,0.0);
+    TPZFMatrix<REAL> rates(5,5,0.0);
     
-//    qorder = 1;
-//    porder = 1;
-//    sorder = 0;
-//    GR = false;
+    qorder = 2;
+    porder = 2;
+    sorder = 0;
+    GR = false;
     REAL cfl = 0.0;
     mD = fabs(mD);
     
@@ -436,95 +436,92 @@ void NonlinearTracer(bool IsDimensionlessQ)
     rates(0,4) = fabs(cfl);
     delete SandStone;
     
-    rates.Print("data = ",std::cout,EMathematicaInput);
-    return;
+    nelemX = 40;
+    dxD        =(100.0/nelemX)/Lstr;
+    Dataset->SetnElementsx(nelemX);
+    Dataset->SetLengthElementx(dxD);
+    Dataset->SetNSubSteps(n_sub_dt);
+    Dataset->SetDeltaT(dt);
+    Dataset->SetMaxTime(maxtime);
+    Dataset->SetTime(t0);
     
-//    nelemX = 40;
-//    dxD        =(100.0/nelemX)/Lstr;
-//    Dataset->SetnElementsx(nelemX);
-//    Dataset->SetLengthElementx(dxD);
-//    Dataset->SetNSubSteps(n_sub_dt);
-//    Dataset->SetDeltaT(dt);
-//    Dataset->SetMaxTime(maxtime);
-//    Dataset->SetTime(t0);
-//    
-//    // CFL dimensionless
-//    cfl = ((dyD*(mD))*(dt/REAL(n_sub_dt)))/(porosityref*dxD*dyD);
-//    
-//    TPZDarcyAnalysis *SandStone2 = new TPZDarcyAnalysis(Dataset,Layers,Rocks);
-//    SandStone2->SetFluidData(PVTData);
-//    SandStone2->RunAnalysis();
-//    rates(1,0) = dxD;
-//    rates(1,1) = SandStone2->fL2_norm[0];
-//    rates(1,2) = SandStone2->fHdiv_norm[0];
-//    rates(1,3) = SandStone2->fL2_norm_s[0];
-//    rates(1,4) = fabs(cfl);
-//    delete SandStone2;
-//    
-//    nelemX = 60;
-//    dxD        =(100.0/nelemX)/Lstr;
-//    Dataset->SetnElementsx(nelemX);
-//    Dataset->SetLengthElementx(dxD);
-//    Dataset->SetDeltaT(dt);
-//    Dataset->SetMaxTime(maxtime);
-//    Dataset->SetTime(t0);
-//    
-//    // CFL dimensionless
-//    cfl = ((dyD*(mD))*(dt/REAL(n_sub_dt)))/(porosityref*dxD*dyD);
-//    
-//    TPZDarcyAnalysis *SandStone3 = new TPZDarcyAnalysis(Dataset,Layers,Rocks);
-//    SandStone3->SetFluidData(PVTData);
-//    SandStone3->RunAnalysis();
-//    rates(2,0) = dxD;
-//    rates(2,1) = SandStone3->fL2_norm[0];
-//    rates(2,2) = SandStone3->fHdiv_norm[0];
-//    rates(2,3) = SandStone3->fL2_norm_s[0];
-//    rates(2,4) = fabs(cfl);
-//    delete SandStone3;
-//    
-//    nelemX = 80;
-//    dxD        =(1000.0/nelemX)/Lstr;
-//    Dataset->SetnElementsx(nelemX);
-//    Dataset->SetLengthElementx(dxD);
-//    Dataset->SetDeltaT(dt);
-//    Dataset->SetMaxTime(maxtime);
-//    Dataset->SetTime(t0);
-//    
-//    // CFL dimensionless
-//    cfl = ((dyD*(mD))*(dt/REAL(n_sub_dt)))/(porosityref*dxD*dyD);
-//    
-//    TPZDarcyAnalysis *SandStone4 = new TPZDarcyAnalysis(Dataset,Layers,Rocks);
-//    SandStone4->SetFluidData(PVTData);
-//    SandStone4->RunAnalysis();
-//    rates(3,0) = dxD;
-//    rates(3,1) = SandStone4->fL2_norm[0];
-//    rates(3,2) = SandStone4->fHdiv_norm[0];
-//    rates(3,3) = SandStone4->fL2_norm_s[0];
-//    rates(3,4) = fabs(cfl);
-//    delete SandStone4;
-//    
-//    nelemX = 100;
-//    dxD        =(1000.0/nelemX)/Lstr;
-//    Dataset->SetnElementsx(nelemX);
-//    Dataset->SetLengthElementx(dxD);
-//    Dataset->SetDeltaT(dt);
-//    Dataset->SetMaxTime(maxtime);
-//    Dataset->SetTime(t0);
-//    
-//    // CFL dimensionless
-//    cfl = ((dyD*(mD))*(dt/REAL(n_sub_dt)))/(porosityref*dxD*dyD);
-//    
-//    TPZDarcyAnalysis *SandStone5 = new TPZDarcyAnalysis(Dataset,Layers,Rocks);
-//    SandStone5->SetFluidData(PVTData);
-//    SandStone5->RunAnalysis();
-//    rates(4,0) = dxD;
-//    rates(4,1) = SandStone5->fL2_norm[0];
-//    rates(4,2) = SandStone5->fHdiv_norm[0];
-//    rates(4,3) = SandStone5->fL2_norm_s[0];
-//    rates(4,4) = fabs(cfl);
-//    delete SandStone5;
+    // CFL dimensionless
+    cfl = ((dyD*(mD))*(dt/REAL(n_sub_dt)))/(porosityref*dxD*dyD);
     
-//    rates *= 10000.0;
+    TPZDarcyAnalysis *SandStone2 = new TPZDarcyAnalysis(Dataset,Layers,Rocks);
+    SandStone2->SetFluidData(PVTData);
+    SandStone2->RunAnalysis();
+    rates(1,0) = dxD;
+    rates(1,1) = SandStone2->fL2_norm[0];
+    rates(1,2) = SandStone2->fHdiv_norm[0];
+    rates(1,3) = SandStone2->fL2_norm_s[0];
+    rates(1,4) = fabs(cfl);
+    delete SandStone2;
+    
+    nelemX = 60;
+    dxD        =(100.0/nelemX)/Lstr;
+    Dataset->SetnElementsx(nelemX);
+    Dataset->SetLengthElementx(dxD);
+    Dataset->SetDeltaT(dt);
+    Dataset->SetMaxTime(maxtime);
+    Dataset->SetTime(t0);
+    
+    // CFL dimensionless
+    cfl = ((dyD*(mD))*(dt/REAL(n_sub_dt)))/(porosityref*dxD*dyD);
+    
+    TPZDarcyAnalysis *SandStone3 = new TPZDarcyAnalysis(Dataset,Layers,Rocks);
+    SandStone3->SetFluidData(PVTData);
+    SandStone3->RunAnalysis();
+    rates(2,0) = dxD;
+    rates(2,1) = SandStone3->fL2_norm[0];
+    rates(2,2) = SandStone3->fHdiv_norm[0];
+    rates(2,3) = SandStone3->fL2_norm_s[0];
+    rates(2,4) = fabs(cfl);
+    delete SandStone3;
+    
+    nelemX = 80;
+    dxD        =(1000.0/nelemX)/Lstr;
+    Dataset->SetnElementsx(nelemX);
+    Dataset->SetLengthElementx(dxD);
+    Dataset->SetDeltaT(dt);
+    Dataset->SetMaxTime(maxtime);
+    Dataset->SetTime(t0);
+    
+    // CFL dimensionless
+    cfl = ((dyD*(mD))*(dt/REAL(n_sub_dt)))/(porosityref*dxD*dyD);
+    
+    TPZDarcyAnalysis *SandStone4 = new TPZDarcyAnalysis(Dataset,Layers,Rocks);
+    SandStone4->SetFluidData(PVTData);
+    SandStone4->RunAnalysis();
+    rates(3,0) = dxD;
+    rates(3,1) = SandStone4->fL2_norm[0];
+    rates(3,2) = SandStone4->fHdiv_norm[0];
+    rates(3,3) = SandStone4->fL2_norm_s[0];
+    rates(3,4) = fabs(cfl);
+    delete SandStone4;
+    
+    nelemX = 100;
+    dxD        =(1000.0/nelemX)/Lstr;
+    Dataset->SetnElementsx(nelemX);
+    Dataset->SetLengthElementx(dxD);
+    Dataset->SetDeltaT(dt);
+    Dataset->SetMaxTime(maxtime);
+    Dataset->SetTime(t0);
+    
+    // CFL dimensionless
+    cfl = ((dyD*(mD))*(dt/REAL(n_sub_dt)))/(porosityref*dxD*dyD);
+    
+    TPZDarcyAnalysis *SandStone5 = new TPZDarcyAnalysis(Dataset,Layers,Rocks);
+    SandStone5->SetFluidData(PVTData);
+    SandStone5->RunAnalysis();
+    rates(4,0) = dxD;
+    rates(4,1) = SandStone5->fL2_norm[0];
+    rates(4,2) = SandStone5->fHdiv_norm[0];
+    rates(4,3) = SandStone5->fL2_norm_s[0];
+    rates(4,4) = fabs(cfl);
+    delete SandStone5;
+    
+    rates *= 10000.0;
     rates.Print("data = ",std::cout,EMathematicaInput);
     
     std::cout << std::endl;
