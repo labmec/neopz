@@ -897,6 +897,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	}
 #endif
 	
+    ek.fMesh = Mesh();
+    ef.fMesh = ek.fMesh;
     TPZMaterial *mat = Material();
 	const int numdof = mat->NStateVariables();
 	ek.fNumStateVars = numdof;
