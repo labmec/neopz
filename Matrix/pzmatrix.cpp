@@ -476,6 +476,11 @@ void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<long> &source, TPZV
 //
 template<class TVar>
 int TPZMatrix<TVar>::PutSub(const long sRow,const long sCol,const TPZFMatrix<TVar> &A ) {
+    if(sRow >= this->Rows()){
+        LOGPZ_ERROR(logger,"incompatible dimensions")
+        DebugStop();
+    }
+
     long minRow = MIN( A.Rows(), Rows() - sRow );
     long minCol = MIN( A.Cols(), Cols() - sCol );
 	
