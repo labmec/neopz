@@ -41,6 +41,7 @@ DadosMalhas::DadosMalhas(){
     fbcRight = -2;
     fbcTop = -3;
     fbcLeft = -4;
+    fbcTopStripLoad = -5;
     fbcSourceTerm = 2;
     
     
@@ -83,6 +84,7 @@ DadosMalhas & DadosMalhas::operator=(const DadosMalhas &copy){
     fbcRight = copy.fbcRight;
     fbcTop = copy.fbcTop;
     fbcLeft = copy.fbcLeft;
+    fbcTopStripLoad = copy.fbcTopStripLoad;
     fbcSourceTerm = copy.fbcSourceTerm;
     
     fdirichlet = copy.fdirichlet;
@@ -225,9 +227,13 @@ TPZGeoMesh *DadosMalhas::GMesh(bool triang_elements, REAL L, REAL w){
 	return gmesh;
 }
 
-TPZGeoMesh * DadosMalhas::GMesh2(REAL L, REAL w){
+TPZGeoMesh * DadosMalhas::GMesh2(REAL L, REAL w, REAL La){
     
-    int Qnodes = 16;
+    int nrefx = L/La;
+    int nrefy = w/La;
+    int nnodesx = (nrefx+1);
+    int nnodesy = (nrefy+1);
+    int Qnodes = nnodesx*nnodesy;
 	
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
 	gmesh->SetMaxNodeId(Qnodes-1);
@@ -242,112 +248,75 @@ TPZGeoMesh * DadosMalhas::GMesh2(REAL L, REAL w){
 	REAL valx;
     REAL valy;
     
-	for(int xi = 0; xi < 4; xi++)
-	{
-        valy = 0.;
-        if(xi < 2) valx = xi*L/2;
-        else valx = xi*L/4 + L/4;
-        
-        Node[id].SetNodeId(id);
-        Node[id].SetCoord(0 ,valx);//coord X
-        Node[id].SetCoord(1 ,valy);//coord Y
-        gmesh->NodeVec()[id] = Node[id];
-        id++;
-	}
+    for(int yi=0; yi< nnodesy; yi++)
+    {
+        valy = La*yi;
+        for(int xi = 0; xi< nnodesx; xi++)
+        {
+            valx = La*xi;
+            
+            Node[id].SetNodeId(id);
+            Node[id].SetCoord(0 ,valx);//coord X
+            Node[id].SetCoord(1 ,valy);//coord Y
+            gmesh->NodeVec()[id] = Node[id];
+            id++;
+        }
+    }
     
-    for(int xi = 0; xi < 4; xi++)
-	{
-        valy = w/4;
-        if(xi < 2) valx = xi*L/2;
-        else valx = xi*L/4 + L/4;
-        
-        Node[id].SetNodeId(id);
-        Node[id].SetCoord(0 ,valx);//coord X
-        Node[id].SetCoord(1 ,valy);//coord Y
-        gmesh->NodeVec()[id] = Node[id];
-        id++;
-	}
-    
-    for(int xi = 0; xi < 4; xi++)
-	{
-        valy = w/2;
-        if(xi < 2) valx = xi*L/2;
-        else valx = xi*L/4 + L/4;
-        
-        Node[id].SetNodeId(id);
-        Node[id].SetCoord(0 ,valx);//coord X
-        Node[id].SetCoord(1 ,valy);//coord Y
-        gmesh->NodeVec()[id] = Node[id];
-        id++;
-	}
-    
-    for(int xi = 0; xi < 4; xi++)
-	{
-        valy = w;
-        if(xi < 2) valx = xi*L/2;
-        else valx = xi*L/4 + L/4;
-        
-        Node[id].SetNodeId(id);
-        Node[id].SetCoord(0 ,valx);//coord X
-        Node[id].SetCoord(1 ,valy);//coord Y
-        gmesh->NodeVec()[id] = Node[id];
-        id++;
-	}
-	
-	
+   	
 	//indice dos elementos
 	id = 0;
-    for(int iel = 0; iel<3; iel ++){
-        TopolQuad[0] = iel;
-        TopolQuad[1] = iel+1;
-        TopolQuad[2] = iel+5;
-        TopolQuad[3] = iel+4;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,fmatId,*gmesh);
-        id++;
+    int elx, ely;
+    for(ely=0; ely<nrefy; ely++)
+    {
+        for(elx = 0; elx<nrefx; elx++)
+        {
+            TopolQuad[0] = elx + ely*nnodesx;
+            TopolQuad[1] = TopolQuad[0]+1;
+            TopolQuad[2] = TopolQuad[1] + nnodesx;
+            TopolQuad[3] = TopolQuad[2]-1;
+            
+            new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,fmatId,*gmesh);
+            id++;
+        }
     }
-    
-    for(int iel = 0; iel<3; iel ++){
-        TopolQuad[0] = iel+4;
-        TopolQuad[1] = iel+5;
-        TopolQuad[2] = iel+9;
-        TopolQuad[3] = iel+8;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,fmatId,*gmesh);
-        id++;
-    }
-    
-    for(int iel = 0; iel<3; iel ++){
-        TopolQuad[0] = iel+8;
-        TopolQuad[1] = iel+9;
-        TopolQuad[2] = iel+13;
-        TopolQuad[3] = iel+12;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,fmatId,*gmesh);
-        id++;
-    }
-     
-    for(int iel = 0; iel<3; iel ++){
-        TopolLine[0] = iel;
-        TopolLine[1] = iel+1;
+   
+    //boundary elements
+    for(elx = 0; elx<nrefx; elx++)
+    {
+        TopolLine[0] = elx;
+        TopolLine[1] = TopolLine[0]+1;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbcBottom,*gmesh);
         id++;
     }
     
-    for(int iel = 0; iel<3; iel ++){
-        TopolLine[0] = iel*4+3;
-        TopolLine[1] = iel*4+7;
+    for(ely = 0; ely<nrefy; ely++)
+    {
+        TopolLine[0] = nrefx + ely*nnodesx;
+        TopolLine[1] = TopolLine[0] + nnodesx;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbcRight,*gmesh);
         id++;
     }
     
-    for(int iel = 0; iel<3; iel ++){
-        TopolLine[0] = 15-iel;
-        TopolLine[1] = 14-iel;
+    for(elx = 0; elx<nrefx-1; elx++)
+    {
+        TopolLine[0] = (Qnodes-1) - elx;
+        TopolLine[1] = TopolLine[0]-1;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbcTop,*gmesh);
         id++;
     }
     
-    for(int iel = 0; iel<3; iel ++){
-        TopolLine[0] = 12-iel*4;
-        TopolLine[1] = 8-iel*4;
+    {
+        TopolLine[0] = (Qnodes-1) - elx;
+        TopolLine[1] = TopolLine[0]-1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbcTopStripLoad,*gmesh);
+        id++;
+    }
+    
+    for(ely = 0; ely<nrefy; ely++)
+    {
+        TopolLine[0] = ely*nnodesx;
+        TopolLine[1] = TopolLine[0] + nnodesx;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,fbcLeft,*gmesh);
         id++;
     }
@@ -560,7 +529,7 @@ void DadosMalhas::UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 }
 
 
-TPZCompMesh* DadosMalhas:: MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool twomaterial)
+TPZCompMesh* DadosMalhas:: MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool twomaterial, bool stripload)
 {
     /// criar material
 	int dim = 2;
@@ -586,14 +555,13 @@ TPZCompMesh* DadosMalhas:: MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool tw
         cmesh->InsertMaterialObject(mat2);
     }
 
-    
-    
 	///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     TPZMaterial * BCond1 = material->CreateBC(mat, fbcBottom,fdirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, fbcLeft,fdirichlet, val1, val2);
     TPZMaterial * BCond3 = material->CreateBC(mat, fbcTop,fdirichlet, val1, val2);
     TPZMaterial * BCond4 = material->CreateBC(mat, fbcRight,fdirichlet, val1, val2);
+    TPZMaterial * BCond5 = material->CreateBC(mat, fbcTopStripLoad,fdirichlet, val1, val2);
     
     cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(mat);
@@ -601,6 +569,7 @@ TPZCompMesh* DadosMalhas:: MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool tw
 	cmesh->InsertMaterialObject(BCond2);
 	cmesh->InsertMaterialObject(BCond3);
 	cmesh->InsertMaterialObject(BCond4);
+    if(stripload) cmesh->InsertMaterialObject(BCond5);
 	
 	
     if(twomaterial==true){
@@ -648,7 +617,7 @@ TPZCompMesh* DadosMalhas:: MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool tw
 	return cmesh;
 }
 
-TPZCompMesh *DadosMalhas::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomaterial)
+TPZCompMesh *DadosMalhas::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomaterial, bool stripload)
 {
     /// criar materiais
 	int dim = 2;
@@ -674,12 +643,14 @@ TPZCompMesh *DadosMalhas::CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomater
     TPZMaterial * BCond2 = material->CreateBC(mat, fbcRight,fdirichlet, val1, val2);
     TPZMaterial * BCond3 = material->CreateBC(mat, fbcTop,fdirichlet, val1, val2);
     TPZMaterial * BCond4 = material->CreateBC(mat, fbcLeft,fdirichlet, val1, val2);
+    TPZMaterial * BCond5 = material->CreateBC(mat, fbcTopStripLoad,fdirichlet, val1, val2);
     
 	cmesh->SetAllCreateFunctionsHDiv();
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
     cmesh->InsertMaterialObject(BCond4);
+    if(stripload) cmesh->InsertMaterialObject(BCond5);
     
     
     if(twomaterial==true) {
@@ -728,18 +699,18 @@ TPZCompMesh *DadosMalhas::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, bool tria
     }
     
     ///Inserir condicao de contorno
-	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-	TPZMaterial * BCond1 = material->CreateBC(mat, fbcBottom,fdirichlet, val1, val2);
-    TPZMaterial * BCond2 = material->CreateBC(mat, fbcRight,fdirichlet, val1, val2);
-    TPZMaterial * BCond3 = material->CreateBC(mat, fbcTop,fdirichlet, val1, val2);
-    TPZMaterial * BCond4 = material->CreateBC(mat, fbcLeft,fdirichlet, val1, val2);
+//	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+//	TPZMaterial * BCond1 = material->CreateBC(mat, fbcBottom,fdirichlet, val1, val2);
+//    TPZMaterial * BCond2 = material->CreateBC(mat, fbcRight,fdirichlet, val1, val2);
+//    TPZMaterial * BCond3 = material->CreateBC(mat, fbcTop,fdirichlet, val1, val2);
+//    TPZMaterial * BCond4 = material->CreateBC(mat, fbcLeft,fdirichlet, val1, val2);
     
 	cmesh->SetAllCreateFunctionsDiscontinuous();
     
-    cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond2);
-    cmesh->InsertMaterialObject(BCond3);
-    cmesh->InsertMaterialObject(BCond4);
+//    cmesh->InsertMaterialObject(BCond1);
+//    cmesh->InsertMaterialObject(BCond2);
+//    cmesh->InsertMaterialObject(BCond3);
+//    cmesh->InsertMaterialObject(BCond4);
     
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
@@ -1631,18 +1602,22 @@ void DadosMalhas::RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref) {
 	
 	// Refinando no local desejado
 	TPZManVector<REAL> point(3);
-	point[0] = 0.5; point[1] =  1.0; point[2] = 0.0;
+	point[0] = 0; point[1] =  5.0; point[2] = 0.0;
 	REAL r = 0.0;
 	
-	REAL radius = 1.;
+	REAL radius = 6.;
 	for(i=0;i<nref;i++) {
 		// To refine elements with center near to points than radius
 		RefineGeoElements(dim,gmesh,point,r,radius);
-		radius *= 0.8;
+		radius *= 0.6;
+        //radius /= 0.8
+        
+        // Constructing connectivities
+        gmesh->ResetConnectivities();
+        gmesh->BuildConnectivity();
+        AjustarContorno(gmesh);
 	}
-	// Constructing connectivities
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
+	
 }
 
 
@@ -1665,4 +1640,41 @@ void DadosMalhas::RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &poin
 			gel->Divide(sub);
 		}
 	}
+}
+
+void DadosMalhas::AjustarContorno(TPZGeoMesh *gmesh)
+{
+    gmesh->BuildConnectivity();
+    int nel = gmesh->NElements();
+    for(int ie = 0; ie<nel; ie++){
+        TPZGeoEl *gel = gmesh->ElementVec()[ie];
+        if(!gel || gel->HasSubElement()) continue;
+        
+        int matid = gel->MaterialId();
+        if(matid>0) continue;
+        
+        int nside = gel->NSides();
+        TPZGeoElSide thisside(gel,nside-1);
+        TPZGeoElSide neighbour = thisside.Neighbour();
+        
+        int dimel = gel->Dimension();
+        int dimn = neighbour.Element()->Dimension();
+        if(dimn==dimel) continue;
+        
+        int nsubel = neighbour.Element()->NSubElements();
+        
+        for(int is=0; is < nsubel; is++){
+            TPZGeoEl *neigel = neighbour.Element()->SubElement(is);
+            if(neigel->HasSubElement()) continue;
+            
+            int mylevel  = gel->Level();
+            int neiglevel = neigel->Level();
+            
+            if(mylevel!=neiglevel){
+                TPZVec< TPZGeoEl * > filhos;
+                gel->Divide(filhos);
+                break;
+            }
+        }
+    }
 }

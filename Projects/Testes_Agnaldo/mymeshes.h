@@ -59,15 +59,15 @@ public:
     TPZGeoMesh *GMesh(bool triang_elements, REAL L, REAL w);
     
  
-    TPZGeoMesh *GMesh2(REAL L, REAL w);
+    TPZGeoMesh *GMesh2(REAL L, REAL w, REAL La);
     TPZGeoMesh *GMesh3(REAL L, REAL w);
     TPZGeoMesh *GMesh4(REAL L, REAL w,int h, int nrefdir);
     
     void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
     
-    TPZCompMesh *MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool twomaterial);
+    TPZCompMesh *MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool twomaterial, bool stripload);
     
-    TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomaterial);
+    TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, bool twomaterial, bool stripload);
     
     TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder,bool triang, bool twomaterial);
     
@@ -108,6 +108,8 @@ public:
     void RefiningNearLine(int dim,TPZGeoMesh *gmesh,int nref);
     
     void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance);
+    
+    void AjustarContorno(TPZGeoMesh *gmesh);
     
     
     void SetParameters(REAL mod_young, REAL mod_poisson, REAL coef_alpha, REAL coef_Se, REAL permeabil_fluido, REAL visc_fluido, REAL fx, REAL fy,REAL sign){
@@ -166,6 +168,7 @@ protected:
     int fbcBottom;
     int fbcRight;
     int fbcTop;
+    int fbcTopStripLoad;
     int fbcLeft;
     int fbcSourceTerm;
     

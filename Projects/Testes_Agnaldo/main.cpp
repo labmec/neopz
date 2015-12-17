@@ -86,7 +86,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
 #endif
 
 //problema murad e Loula
-int main_Loula(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     
 #ifdef LOG4CXX
@@ -97,7 +97,7 @@ int main_Loula(int argc, char *argv[])
     bool triang=false;
     bool dimensionless = true;
     
-    int nthreads = 8;
+    int nthreads = 0;
     
     REAL Eyoung = 3.e4;
     REAL poisson = 0.2;
@@ -113,8 +113,9 @@ int main_Loula(int argc, char *argv[])
     REAL visc = 1.e-3;
     REAL sig0 = -1000.;
     REAL pini = 1000.;
-    REAL Ly = 1.;
-    REAL Lx = 1.;
+    REAL La = 1.;
+    REAL Ly = 5.*La;
+    REAL Lx = 8.*La;
     REAL timeT = 10.;
     
     
@@ -124,7 +125,7 @@ int main_Loula(int argc, char *argv[])
         REAL lambda = (Eyoung*poisson)/((1.+poisson)*(1.-2.*poisson));//firstlame
         REAL mu = 0.5*Eyoung/(1+poisson);//secondlame
         REAL pref = pini;
-        REAL Lref = Ly;
+        REAL Lref = La;
         REAL Se_aux = alpha*alpha/(lambda+2.*mu);
         REAL kovervisc = perm/visc;
         REAL Cf;//fluid diffusivity coeffcient
@@ -136,8 +137,8 @@ int main_Loula(int argc, char *argv[])
         Eyoung = muD*(3.*lambdaD+2.*muD)/(lambdaD+muD);
         poisson = 0.5*lambdaD/(lambdaD+muD);
         sig0 = sig0/pref;
-        pini =pini/pref;
-        timeT = 1.;//timeT*Cf/(Ly*Ly);
+        pini = pini/pref;
+        timeT = timeT*Cf/(Lref*Lref);//1.
         Lx = Lx/Lref;
         Ly = Ly/Lref;
         perm = 1.;
@@ -173,9 +174,23 @@ int main_Loula(int argc, char *argv[])
     
         //primeira malha
         // geometric mesh (initial)
-        TPZGeoMesh * gmesh = mydata->GMesh(triang,Lx,Ly);
-        //mydata->RefiningNearLine(2, gmesh, 4);
-        //TPZGeoMesh * gmesh = mydata->GMesh2(LxD,LyD);
+        //TPZGeoMesh * gmesh = mydata->GMesh(triang,Lx,Ly);
+            
+            
+        
+        TPZGeoMesh * gmesh = mydata->GMesh2(Lx,Ly,La);
+        mydata->RefiningNearLine(2, gmesh, 4);
+        mydata->AjustarContorno(gmesh);
+            
+        {
+            std::ofstream malhaOut("malhageometrica.vtk");
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
+            
+            std::ofstream out("gmesh.txt");
+            gmesh->Print(out);
+        }
+
+            
         //TPZGeoMesh * gmesh = mydata->GMesh3(LxD,LyD);
 //        ofstream arg1("gmesh_inicial.txt");
 //        gmesh->Print(arg1);
@@ -184,12 +199,12 @@ int main_Loula(int argc, char *argv[])
 
 
         // First computational mesh
-        TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,false);
+        TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,false,true);
 //        ofstream arg2("cmesh1_inicial.txt");
 //        cmesh1->Print(arg2);
 
         // second computational mesh
-        TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq,false);
+        TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq,false,true);
 //        ofstream arg3("cmesh2_inicial.txt");
 //        cmesh2->Print(arg3);
 
@@ -530,7 +545,7 @@ void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STAT
 
 
 //problema de Terzaghi com Se!=0
-int main(int argc, char *argv[]){
+int main_Terzaghi(int argc, char *argv[]){
 #ifdef LOG4CXX
 	std::string logs("../logporoelastc2d.cfg");
 	InitializePZLOG("../logporoelastc2d.cfg");
@@ -629,10 +644,10 @@ int main(int argc, char *argv[]){
 
 
             // First computational mesh
-            TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,false);
+            TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,false,false);
 
             // second computational mesh
-            TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq, false);
+            TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq, false,false);
 
             // Third computational mesh
             TPZCompMesh * cmesh3=mydata->CMeshPressure(gmesh, pp,triang, false);
@@ -956,16 +971,16 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<S
 }
 
 //Problema Barry and Mercer
-int main_BarryMarcer(int argc, char *argv[]){
+int main_BarryMercer(int argc, char *argv[]){
 
-//    #ifdef LOG4CXX
-//        InitializePZLOG();
-//    #endif
+    #ifdef LOG4CXX
+        InitializePZLOG();
+    #endif
     
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     
-    int nthreads = 8;
+    int nthreads = 0;
     
     bool triang = false;
     fdimensionless = true;
@@ -1120,12 +1135,12 @@ int main_BarryMarcer(int argc, char *argv[]){
             
             
             // First computational mesh
-            TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,true);
+            TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,true,false);
             ofstream arg1("cmesh1.txt");
             cmesh1->Print(arg1);
             
             // second computational mesh
-            TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq,true);
+            TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq,true,false);
             ofstream arg2("cmesh2.txt");
             cmesh2->Print(arg2);
             
@@ -2215,12 +2230,12 @@ int main_BarryMercerPressureSolution(int argc, char *argv[]){
             //            gmesh->Print(malhaGeo);
             
             // First computational mesh
-            TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,true);
+            TPZCompMesh * cmesh1 = mydata->MalhaCompElast(gmesh,pu,true,false);
             ofstream arg1("cmesh1.txt");
             cmesh1->Print(arg1);
             
             // second computational mesh
-            TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq,true);
+            TPZCompMesh * cmesh2= mydata->CMeshFlux(gmesh, pq,true,false);
             ofstream arg2("cmesh2.txt");
             cmesh2->Print(arg2);
             
