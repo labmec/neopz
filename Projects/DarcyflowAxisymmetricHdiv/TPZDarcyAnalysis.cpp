@@ -2485,7 +2485,7 @@ void TPZDarcyAnalysis::BCNfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STA
 
 void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad)
 {
-    REAL f  = -16.0*pt[0]*pt[0]*0.0;///-64.0*pow(pt[0],6.0);
+    REAL f  = -16.0*pt[0]*pt[0];//-0.0*16.0*pt[0]*pt[0];///-64.0*pow(pt[0],6.0);
     
     ff[0] = f;
     return;
@@ -2632,11 +2632,11 @@ void TPZDarcyAnalysis::Radial_Poly(const TPZVec<REAL> &pt, REAL time, TPZVec<STA
 //    Sol[0] = pow(rD,8.0);
 //    GradSol(0,0) = -8.0*pow(rD,7.0);
     
-    REAL alpha = 1.0;
-    REAL beta = 0.0;
+    REAL alpha = 0.0;
+    REAL beta = 1.0;
     REAL rD  = pt[0];
     Sol[0] = alpha*log(rD)+beta*pow(rD,4.0);
-    GradSol(0,0) = -(0.0*4.0*pow(rD,4.0)+alpha)/rD;
+    GradSol(0,0) = -4.0*rD*rD*rD;//(0.0*4.0*pow(rD,4.0)+alpha)/rD;
     
 }
 
@@ -2644,7 +2644,7 @@ void TPZDarcyAnalysis::Dupuit_Thiem(const TPZVec<REAL> &pt, REAL time, TPZVec<ST
     
     REAL rstar = 1000.0;
     REAL r = pt[0]*rstar;
-    REAL rw = 10.127;
+    REAL rw = 0.127;
     REAL h = 10.0;
     REAL re = 1000.0 + rw;
 

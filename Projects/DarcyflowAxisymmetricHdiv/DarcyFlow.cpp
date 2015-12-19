@@ -111,7 +111,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL x_l = 1000.0;
     REAL y_l = 10.0;
     
-    int  nelemX     =2;
+    int  nelemX     =10;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -226,10 +226,10 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL m = rho * u ;
 
     REAL mD = m*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
-    REAL pr = (10.127+x_l)/Lstr;//(2.0*1e7)/(Pstr);
+    REAL pr = (0.127+x_l)/Lstr;//(2.0*1e7)/(Pstr);
     TPZVec<REAL> rightbc(4,0.0);
     rightbc[0] = 0;
-    rightbc[1] = 1.0*log(pr)+0.0*pow(pr,4.0);
+    rightbc[1] = 0.0*log(pr)+1.0*pow(pr,4.0);
     rightbc[2] = 1.0*(1.0 - S_nw_r);
     rightbc[3] = 0;
     
@@ -240,10 +240,10 @@ void NonlinearTracer(bool IsDimensionlessQ)
     topbc[2] = 0;
     topbc[3] = 0;
     
-    REAL pl = (10.127)/Lstr;
+    REAL pl = (0.127)/Lstr;
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 2;
-    leftbc[1] = 1.0*log(pl)+0.0*pow(pl,4.0);//(1.0*1e7)/(Pstr);
+    leftbc[1] = 0.0*log(pl)+1.0*pow(pl,4.0);//(1.0*1e7)/(Pstr);
     leftbc[2] = 0.0*(1.0 - S_nw_r);
     leftbc[3] = 0;
     
@@ -332,7 +332,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL Hres           = 100.0/Lstr;
     REAL Rres           = 1000.0/Lstr;
     REAL Top            = 0.0/Lstr;
-    REAL Rw             = 10.127/Lstr;
+    REAL Rw             = 0.127/Lstr;
     
     // Reservoir Description linear tracer configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
@@ -433,8 +433,8 @@ void NonlinearTracer(bool IsDimensionlessQ)
     el_sizes[3] = nelemX*8;
     el_sizes[4] = nelemX*16;
     
-    qorder = 2;
-    porder = 2;
+    qorder = 3;
+    porder = 3;
     sorder = 0;
     GR = false;
     REAL cfl = 0.0;
