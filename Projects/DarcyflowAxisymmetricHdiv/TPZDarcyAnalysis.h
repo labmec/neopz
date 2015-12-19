@@ -371,6 +371,10 @@ public:
      */
     static  void BCDfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad);
 
+    /**
+     * Exact Soltuion elliptic axisymmetric darcflow
+     */
+    static  void Radial_Poly(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol);
     
     /**
      * Exact Soltuion elliptic axisymmetric darcflow (Dupuit-Thiem solution)

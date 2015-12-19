@@ -656,6 +656,9 @@ void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
     KGlobal =   an->Solver().Matrix();
     FGlobal =   fResidualAtn+fResidualAtnplusOne;
     
+//    KGlobal->Print("KGlobal = ", std::cout,EMathematicaInput);
+//    FGlobal.Print("FGlobal = ", std::cout,EMathematicaInput);
+    
 #ifdef PZDEBUG
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -1009,7 +1012,11 @@ void TPZDarcyAnalysis::IntegrateFluxPError(TPZManVector<REAL> & hdiv_norm,TPZMan
                 gel->X(xi_eta_duplet, x);
                 
                 if (fSimulationData->IsAxisymmetricQ()) {
-                    s = 2.0*M_PI*x[0];
+                    // Computing the radius
+                    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+                    x_spatial(0,0) = x[0];
+                    REAL r = Norm(x_spatial);
+                    s = 2.0*M_PI*r;
                 }
                 
                 cel->Solution(xi_eta_duplet, 0, p);
@@ -1623,11 +1630,12 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetTimeDependentForcingFunction(forcef);
     
     // Setting up linear tracer solution
-    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(Dupuit_Thiem);
-//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
-//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
-    TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
-    mat->SetTimeDependentFunctionExact(fLTracer);
+    TPZDummyFunction<STATE> *Load_function= new TPZDummyFunction<STATE>(Radial_Poly);
+//    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(Dupuit_Thiem);
+//    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(LinearTracer);
+//    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+    TPZAutoPointer<TPZFunction<STATE> > fLoad_function = Load_function;
+    mat->SetTimeDependentFunctionExact(fLoad_function);
     
     TPZManVector<REAL,4> Bottom     = fSimulationData->GetBottomBC();
     TPZManVector<REAL,4> Right      = fSimulationData->GetRightBC();
@@ -2477,96 +2485,10 @@ void TPZDarcyAnalysis::BCNfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STA
 
 void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad)
 {
-    
-    //    REAL epsilon = 0.01;
-    //    REAL xc = 0.5;
-    //    REAL yc = 0.5;
-    //    REAL x = pt[0];
-    //    REAL y = pt[1];
-    //    REAL rho = 1000.0/((1.0e7)/(1000.0*9.81)); //check this value
-    ////    REAL c = 1.0;
-    //    REAL Pref = 0.1;
-    
-    REAL f  = 0.0;//-64.0*pow(pt[0],6.0);//0.0;//-64.0*pow(pt[0],6.0);/* -((9.*exp(10.0*(-(1.0/1000.0) + log(1.0 + x))))/((1 + x)*(1 + x)))*/;
-    //    REAL t = time;
-    //
-    //    if(time <= 0.0){
-    //        t = 0.0001;
-    //    }
-    //    REAL pD = 0.1 + log(1.0 + x);
-    //    REAL dpDdx = 1.0/(1.0 + x);
-    //    REAL dpDdx2 = -pow(1.0 + x,-2.0);
-    //    REAL b = (1.0e7);
-    //    REAL c = 1000.0;
-    //    REAL e = 1.0e-6;
-    //    REAL rhoD = (6.4290583420332425e-6*(101325.353 + b*pD))/
-    //    (c*(0.5017121086995703 + 0.4982878913004297*
-    //        exp(-5.1483395031556254e-8*(101325.353 + b*pD) -
-    //              2.1184388752031904e-15*pow(101325.353 + b*pD,2.0) -
-    //              3.2120945504363473e-47*pow(101325.353 + b*pD,6.0)) +
-    //        1.2777444873399675e-8*pow(101325.353 + b*pD,1.0023796430661953)));
-    //    REAL rhoDpe = (6.4290583420332425e-6*(101325.353 + b*pD+e))/
-    //    (c*(0.5017121086995703 + 0.4982878913004297*
-    //        exp(-5.1483395031556254e-8*(101325.353 + b*pD+e) -
-    //            2.1184388752031904e-15*pow(101325.353 + b*pD+e,2.0) -
-    //            3.2120945504363473e-47*pow(101325.353 + b*pD+e,6.0)) +
-    //        1.2777444873399675e-8*pow(101325.353 + b*pD+e,1.0023796430661953)));
-    //    REAL rhoDme = (6.4290583420332425e-6*(101325.353 + b*pD-e))/
-    //    (c*(0.5017121086995703 + 0.4982878913004297*
-    //        exp(-5.1483395031556254e-8*(101325.353 + b*pD-e) -
-    //            2.1184388752031904e-15*pow(101325.353 + b*pD-e,2.0) -
-    //            3.2120945504363473e-47*pow(101325.353 + b*pD-e,6.0)) +
-    //        1.2777444873399675e-8*pow(101325.353 + b*pD-e,1.0023796430661953)));
-    //    REAL drhoD = b * ((rhoDpe) - (rhoDme)) / (2.0 * e);
-    //
-    //    f = -rhoD*dpDdx2 - dpDdx*dpDdx*drhoD;
-    
-    //     f=-0.1*pow(1.0 - 1.0/(exp(x/t)*t),2.0) + (0.01*x)/(exp(x/t)*pow(t,2.0)) - (1.*(1.0 + (-0.1 + exp(-x/t) + x)/10.))/(exp(x/t)*pow(t,2.0));
-    
-#ifdef SolutionI
-    
-    REAL Pressure = exp(-((x-xc)*(x-xc)+(y-yc)*(y-yc))/epsilon);
-    REAL Coefglob = exp(-2.0*(x*x-x*xc+xc*xc+(y-yc)*(y-yc))/epsilon);
-    REAL Coef1 = (c*Pref - 1.0)*exp((x*x+xc*xc + (y-yc)*(y-yc))/epsilon);
-    REAL Coef2 = (c)*exp((2.0*x*xc)/epsilon);
-    REAL numerator1      = (x*x - 2.0*x*xc + xc*xc + y*y - 2.0*y*yc + yc*yc - epsilon) ;
-    REAL numerator2      = (2.0*x*x - 4.0*x*xc + 2.0*xc*xc + 2.0*y*y - 4.0*y*yc + 2.0*yc*yc - epsilon) ;
-    REAL denominator    =epsilon*epsilon;
-    
-    ff[0] = 4.0*rho*Coefglob*((Coef1*numerator1-Coef2*numerator2)/denominator);
-    return;
-#endif
-    
-#ifdef SolutionII
-    
-    REAL Pressure = x*y*(1-x)*(1-y)*(sin(M_PI*x))*(cos(M_PI*y));
-    REAL cospix = cos(M_PI*x);
-    REAL sinpiy = sin(M_PI*y);
-    REAL cospiy = cos(M_PI*y);
-    REAL sinpix = sin(M_PI*x);
-    REAL x_1 = x-1;
-    REAL y_1 = y-1;
-    REAL x2_1 = 2.0*x-1.0;
-    REAL y2_1 = 2.0*y-1.0;
-    
-    REAL cPlusSomething = (c*(x_1*x*y_1*y*sinpix*cospiy-Pref));
-    REAL term1_1 = (2.0-M_PI*M_PI*x_1*x)*sinpix + 2.0*M_PI*x2_1*cospix;
-    REAL term2_1 = 2.0*M_PI*y2_1*sinpiy + (M_PI*M_PI*y_1*y - 2.0)* cospiy;
-    REAL term3_1 = M_PI*y_1*y*sinpiy + (1.0-2.0*y)*cospiy;
-    REAL term3_2 = x2_1*sinpix+M_PI*x_1*x*cospix;
-    
-    REAL Term1 = -y_1*y*cospiy*(term1_1)*(cPlusSomething + 1.0) ;
-    REAL Term2 = x_1*x*sinpix*(term2_1)*(cPlusSomething + 1.0);
-    REAL Term3 = -c*x_1*x_1*x*x*sinpix*sinpix*(term3_1*term3_1) - c*y_1*y_1*y*y*cospiy*cospiy * (term3_2*term3_2);
-    
-    
-    ff[0] = rho*(Term1+Term2+Term3);
-    return;
-#endif
+    REAL f  = -16.0*pt[0]*pt[0]*0.0;///-64.0*pow(pt[0],6.0);
     
     ff[0] = f;
     return;
-    
 }
 
 TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
@@ -2704,19 +2626,32 @@ void TPZDarcyAnalysis::FilterSaturationGradients(TPZManVector<long> &active, TPZ
     
 }
 
+void TPZDarcyAnalysis::Radial_Poly(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol){
+    
+//    REAL rD  = pt[0];
+//    Sol[0] = pow(rD,8.0);
+//    GradSol(0,0) = -8.0*pow(rD,7.0);
+    
+    REAL alpha = 1.0;
+    REAL beta = 0.0;
+    REAL rD  = pt[0];
+    Sol[0] = alpha*log(rD)+beta*pow(rD,4.0);
+    GradSol(0,0) = -(0.0*4.0*pow(rD,4.0)+alpha)/rD;
+    
+}
 
 void TPZDarcyAnalysis::Dupuit_Thiem(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol){
     
     REAL rstar = 1000.0;
     REAL r = pt[0]*rstar;
-    REAL rw = 0.127;
+    REAL rw = 10.127;
     REAL h = 10.0;
     REAL re = 1000.0 + rw;
 
     REAL Pstar = 20.0*1.0e6;
     REAL day = 86400.0;
     
-    REAL Q = 158.99/day;
+    REAL Q = 158.99/day;//158.99/day;
     REAL u = Q/(2.0*M_PI*rw*h);
     REAL rho = 1000.0;
     REAL mu = 0.001;

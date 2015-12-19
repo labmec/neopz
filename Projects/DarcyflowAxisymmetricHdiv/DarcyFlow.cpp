@@ -63,8 +63,8 @@ void NonlinearTracer(bool IsDimensionlessQ)
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e8;
-        TolRes     = 1.0*1e-8;
-        TolDeltaX  = 1.0*1e-8;
+        TolRes     = 1.0*1e-9;
+        TolDeltaX  = 1.0*1e-9;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -78,7 +78,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
     bool OptBand    = true;     // Band optimization
-    bool IsAxisy    = true;    // Axisymmetric analysis
+    bool IsAxisy    = true;    // Axisymmetric analysis 1.0/s;
     bool IsTMesh    = false;    // Triangular mesh
     bool IsImpes    = false;    // Impes analysis
     bool IsHydro    = false;    // Hydrostatic bc
@@ -108,17 +108,20 @@ void NonlinearTracer(bool IsDimensionlessQ)
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    int  nelemX     =10;
+    REAL x_l = 1000.0;
+    REAL y_l = 10.0;
+    
+    int  nelemX     =2;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
-    REAL dxD        =(1000.0/nelemX)/Lstr;
+    REAL dxD        =(x_l/nelemX)/Lstr;
     
     int nelemY      =1;
     if (GR && nelemY == 1 && IsTMesh ) {
         nelemY++;
     }
-    REAL dyD        =(10.0/nelemY)/Lstr;
+    REAL dyD        =(y_l/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
     Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
@@ -211,11 +214,22 @@ void NonlinearTracer(bool IsDimensionlessQ)
     bottombc[2] = 0;
     bottombc[3] = 0;
     
-    REAL m = 0.00023060699549960303;
+    REAL Q = 158.99/day;//158.99/day;
+    REAL u = Q/(2.0*M_PI*10.127*y_l);
+    REAL rho = 1000.0;
+    REAL mu = 0.001;
+    REAL k = 1.0e-13;
+    REAL muD = mu/mu;
+    REAL rhoD = rho/rho;
+    REAL kD = k/k;
+    
+    REAL m = rho * u ;
+
     REAL mD = m*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
+    REAL pr = (10.127+x_l)/Lstr;//(2.0*1e7)/(Pstr);
     TPZVec<REAL> rightbc(4,0.0);
     rightbc[0] = 0;
-    rightbc[1] = (2.0*1e7)/(Pstr);
+    rightbc[1] = 1.0*log(pr)+0.0*pow(pr,4.0);
     rightbc[2] = 1.0*(1.0 - S_nw_r);
     rightbc[3] = 0;
     
@@ -226,9 +240,10 @@ void NonlinearTracer(bool IsDimensionlessQ)
     topbc[2] = 0;
     topbc[3] = 0;
     
+    REAL pl = (10.127)/Lstr;
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 2;
-    leftbc[1] = 0.86862616847286156;//(1.0*1e7)/(Pstr);
+    leftbc[1] = 1.0*log(pl)+0.0*pow(pl,4.0);//(1.0*1e7)/(Pstr);
     leftbc[2] = 0.0*(1.0 - S_nw_r);
     leftbc[3] = 0;
     
@@ -317,7 +332,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL Hres           = 100.0/Lstr;
     REAL Rres           = 1000.0/Lstr;
     REAL Top            = 0.0/Lstr;
-    REAL Rw             = 0.127/Lstr;
+    REAL Rw             = 10.127/Lstr;
     
     // Reservoir Description linear tracer configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
@@ -410,6 +425,13 @@ void NonlinearTracer(bool IsDimensionlessQ)
     
 //  Computing the approximation rate for each refinement for  the order
     TPZFMatrix<REAL> rates(5,5,0.0);
+    TPZManVector<int,5> el_sizes(5,0);
+
+    el_sizes[0] = nelemX;
+    el_sizes[1] = nelemX*2;
+    el_sizes[2] = nelemX*4;
+    el_sizes[3] = nelemX*8;
+    el_sizes[4] = nelemX*16;
     
     qorder = 2;
     porder = 2;
@@ -436,8 +458,9 @@ void NonlinearTracer(bool IsDimensionlessQ)
     rates(0,4) = fabs(cfl);
     delete SandStone;
     
-    nelemX = 40;
-    dxD        =(100.0/nelemX)/Lstr;
+    
+    nelemX = el_sizes[1];
+    dxD        =(x_l/nelemX)/Lstr;
     Dataset->SetnElementsx(nelemX);
     Dataset->SetLengthElementx(dxD);
     Dataset->SetNSubSteps(n_sub_dt);
@@ -458,8 +481,8 @@ void NonlinearTracer(bool IsDimensionlessQ)
     rates(1,4) = fabs(cfl);
     delete SandStone2;
     
-    nelemX = 60;
-    dxD        =(100.0/nelemX)/Lstr;
+    nelemX = el_sizes[2];
+    dxD        =(x_l/nelemX)/Lstr;
     Dataset->SetnElementsx(nelemX);
     Dataset->SetLengthElementx(dxD);
     Dataset->SetDeltaT(dt);
@@ -478,9 +501,10 @@ void NonlinearTracer(bool IsDimensionlessQ)
     rates(2,3) = SandStone3->fL2_norm_s[0];
     rates(2,4) = fabs(cfl);
     delete SandStone3;
+
     
-    nelemX = 80;
-    dxD        =(1000.0/nelemX)/Lstr;
+    nelemX = el_sizes[3];
+    dxD        =(x_l/nelemX)/Lstr;
     Dataset->SetnElementsx(nelemX);
     Dataset->SetLengthElementx(dxD);
     Dataset->SetDeltaT(dt);
@@ -500,8 +524,8 @@ void NonlinearTracer(bool IsDimensionlessQ)
     rates(3,4) = fabs(cfl);
     delete SandStone4;
     
-    nelemX = 100;
-    dxD        =(1000.0/nelemX)/Lstr;
+    nelemX = el_sizes[4];
+    dxD        =(x_l/nelemX)/Lstr;
     Dataset->SetnElementsx(nelemX);
     Dataset->SetLengthElementx(dxD);
     Dataset->SetDeltaT(dt);
@@ -521,7 +545,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     rates(4,4) = fabs(cfl);
     delete SandStone5;
     
-    rates *= 10000.0;
+    rates *= 1000000.0;
     rates.Print("data = ",std::cout,EMathematicaInput);
     
     std::cout << std::endl;
