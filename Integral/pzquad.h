@@ -75,12 +75,12 @@ public:
 	{
 		return new TPZInt1d(*this);
 	}
-	void Print(std::ostream &out = std::cout) {
+	void Print(std::ostream &out = std::cout) const {
 		if(fIntP) fIntP->Print(out);
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) {
+	void Name(std::string &name) const {
 		name = "TPZInt1D";
 	}
 };
@@ -127,7 +127,7 @@ public:
 	}
 	
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) {
+	void Name(std::string &name) const {
 		name = "TPZIntTriang";
 	}
 };
@@ -210,7 +210,7 @@ public:
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) {
+	void Name(std::string &name) const {
 		name = "TPZIntQuad";
 	}
 };
@@ -274,7 +274,7 @@ public:
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) {
+	void Name(std::string &name) const {
 		name = "TPZIntCube3D";
 	}
 };
@@ -313,7 +313,7 @@ public:
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) {
+	void Name(std::string &name) const {
 		name = "TPZIntTetra3D";
 	}
 };
@@ -353,7 +353,7 @@ public:
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) {
+	void Name(std::string &name) const {
 		name = "TPZIntPyram3D";
 	}
 };
@@ -406,7 +406,7 @@ public:
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) {
+	void Name(std::string &name) const {
 		name = "TPZIntPrism3D";
 	}
 };
@@ -441,7 +441,7 @@ public:
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	virtual void Name(std::string &name) {
+	virtual void Name(std::string &name) const {
 		name = "TPZInt1Point";
 	}
 };

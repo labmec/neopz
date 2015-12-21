@@ -31,14 +31,15 @@ int TPZIntPoints::GetMaxOrder() const {
 #endif
 }
 
-void TPZIntPoints::Print(std::ostream &out) {
-	int np = Dimension();
+void TPZIntPoints::Print(std::ostream &out) const {
+	int np = NPoints();
 	std::string namerule;
 	Name(namerule);
 	TPZVec<int> order(3,0);
-	out << "Cubature rule (" << namerule << ") " << np << "d : Order ( ";
-	for(int i=0;i<np;i++) out << order[i] << " ";
-	out << ") \t Number of points " << NPoints() << std::endl;
+    GetOrder(order);
+	out << "Cubature rule (" << namerule << ") " << np << " : Order ( ";
+	for(int i=0;i<Dimension();i++) out << order[i] << " ";
+	out << ") \nNumber of points " << NPoints() << std::endl;
 	int ip;
 	TPZVec<REAL> pos(Dimension());
 	REAL w;
