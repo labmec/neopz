@@ -103,20 +103,20 @@ void GasPhase::Viscosity(TPZManVector<REAL> &mu, TPZManVector<REAL> state_vars)
     REAL db,db0,db1,db2,db3;
     REAL mu_gas, dmudP;
     
-    b0 = a0 + a1 * Pr + a2 * pow(Pr,2.0) + a3 * pow(Pr,3.0);
-    db0 = a1 + 2.0 * a2 * Pr + 3.0 * a3 * pow(Pr,2.0);
+    b0 = a0 + a1 * Pr + a2 * std::pow(Pr,2.0) + a3 * std::pow(Pr,3.0);
+    db0 = a1 + 2.0 * a2 * Pr + 3.0 * a3 * std::pow(Pr,2.0);
     
-    b1 = a4 + a5 * Pr + a6 * pow(Pr,2.0) + a7 * pow(Pr,3.0);
-    db1 = a5 + 2.0 * a6 * Pr + 3.0 * a7 * pow(Pr,2.0);
+    b1 = a4 + a5 * Pr + a6 * std::pow(Pr,2.0) + a7 * std::pow(Pr,3.0);
+    db1 = a5 + 2.0 * a6 * Pr + 3.0 * a7 * std::pow(Pr,2.0);
     
-    b2 = a8 + a9 * Pr + a10 * pow(Pr,2.0) + a11 * pow(Pr,3.0);
-    db2 = a9 + 2.0 * a10 * Pr + 3.0 * a11 * pow(Pr,2.0);
+    b2 = a8 + a9 * Pr + a10 * std::pow(Pr,2.0) + a11 * std::pow(Pr,3.0);
+    db2 = a9 + 2.0 * a10 * Pr + 3.0 * a11 * std::pow(Pr,2.0);
     
-    b3 = a12 + a13 * Pr + a14 * pow(Pr,2.0) + a15 * pow(Pr,3.0);
+    b3 = a12 + a13 * Pr + a14 * std::pow(Pr,2.0) + a15 * std::pow(Pr,3.0);
     db3 = a13 + 2.0 * a14 * Pr + 3.0 * a15 * Pr;
     
-    b = b0 + b1 * Tr + b2 * pow(Tr,3.0) + b3 * pow(Tr,3.0);
-    db = db0 + db1 * Tr + db2 * pow(Tr,3.0) + db3 * pow(Tr,3.0);
+    b = b0 + b1 * Tr + b2 * std::pow(Tr,3.0) + b3 * std::pow(Tr,3.0);
+    db = db0 + db1 * Tr + db2 * std::pow(Tr,3.0) + db3 * std::pow(Tr,3.0);
     
     mu_gas = (mu_std / Tr) * exp(b) * (0.001);
     dmudP = mu_gas * db * (0.001);
@@ -209,22 +209,22 @@ void GasPhase::Z(TPZManVector<REAL> &z, TPZManVector<REAL> state_vars){
     a = a1 * (sqrt(Tr - a2)) - a3 * Tr - a4;
     
     REAL b,b1=0.62,b2=0.23,b3=0.066,b4=0.86,b5=0.037,b6=0.32,b7=9.0,dbdPr;
-    b = (b1 - b2*Tr)*Pr + (Pr*Pr)*((b3/(Tr - b4)) - b5) + (b6*pow(Pr,6.0))*(pow(10.0,b7*(1.0 - Tr)));
+    b = (b1 - b2*Tr)*Pr + (Pr*Pr)*((b3/(Tr - b4)) - b5) + (b6*std::pow(Pr,6.0))*(std::pow(10.0,b7*(1.0 - Tr)));
     
-    dbdPr = b1 + 3.0 * pow(2.0,1.0 + b7*(1.0 - Tr)) * pow(5.0,b7*(1.0 - Tr)) * b6 * pow(5.0,Pr) - b2*Tr +
+    dbdPr = b1 + 3.0 * std::pow(2.0,1.0 + b7*(1.0 - Tr)) * std::pow(5.0,b7*(1.0 - Tr)) * b6 * std::pow(5.0,Pr) - b2*Tr +
     2.0 * Pr *(-b5 + (b3/(-b4 + Tr)));
     
     REAL c,c1=0.132,c2=0.32;
     c = c1 - c2 * log10(Tr);
     
     REAL d,d1=0.3106,d2=0.49,d3=0.1824;
-    d = pow(10.0,(d1 - d2 * Tr  + d3 * Tr*Tr));
+    d = std::pow(10.0,(d1 - d2 * Tr  + d3 * Tr*Tr));
     
     REAL zv = 0.0;
     REAL dzdPr = 0.0;
     
-    zv = a + (1.0 - a) / (exp(b)) + c * pow(Pr,d);
-    dzdPr = c*d*pow(Pr,d-1.0) - (1.0 - a)*exp(-b)*dbdPr;
+    zv = a + (1.0 - a) / (exp(b)) + c * std::pow(Pr,d);
+    dzdPr = c*d*std::pow(Pr,d-1.0) - (1.0 - a)*exp(-b)*dbdPr;
     
 //    if (sign)
 //    {

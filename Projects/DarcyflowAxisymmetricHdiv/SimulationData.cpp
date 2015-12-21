@@ -131,6 +131,12 @@ SimulationData::SimulationData()
     /** @brief Counterclockwise rotation angle */
     fAngle = 0.0;
     
+    /** @brief Is a mesh with geometric progression */
+    fIsMeshwithPGQ = false;
+    
+    /** @brief geometric progression ratio >= 1 */
+    fpg_ratio = 1.0;
+    
     /** @brief Store time values to be reported */
     fTimesToPrint.Resize(0);
     

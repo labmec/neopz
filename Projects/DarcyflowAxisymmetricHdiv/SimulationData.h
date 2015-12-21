@@ -177,6 +177,12 @@ private:
     /** @brief Is triangular mesh */
     bool fIsTriangularMeshQ;
     
+    /** @brief Is a mesh with geometric progression */
+    bool fIsMeshwithPGQ;
+    
+    /** @brief geometric progression ratio <= 1 */
+    REAL fpg_ratio;
+    
     
 public:
     
@@ -488,6 +494,17 @@ public:
     /** @brief Is it using a triangular mesh */
     bool IsTriangularMeshQ() {return fIsTriangularMeshQ;}
     
+    /** @brief Set the use of mesh with geometric progression */
+    void SetMeshwithPGQ(bool pg) {this->fIsMeshwithPGQ = pg;}
+    
+    /** @brief Is a mesh with geometric progression */
+    bool IsMeshwithPGQ() {return fIsMeshwithPGQ;}
+    
+    /** @brief Set geometric progression ratio */
+    void SetPGRatio(REAL ratio) {this->fpg_ratio = ratio;}
+    
+    /** @brief Set geometric progression ratio */
+    REAL GetPGRatio() {return this->fpg_ratio;}
     
     /**
      * Set time values to be reported

@@ -1950,7 +1950,7 @@ template class TPZMatrix<TPZFlopCounter>;
 
 #ifdef _AUTODIFF
 template class TPZMatrix<TFad<6,REAL> >;
-template class TPZMatrix<Fad<double> >;
+//template class TPZMatrix<Fad<double> >;
 #endif
 
 /** @brief Overload << operator to output entries of the matrix ***/

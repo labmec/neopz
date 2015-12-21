@@ -162,7 +162,7 @@ void TPZAxiSymmetricDarcyFlow::Print(std::ostream &out) {
 
 int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("P", name.c_str())) return 0;
-    if (!strcmp("m", name.c_str())) return 1;
+    if (!strcmp("u", name.c_str())) return 1;
     if (!strcmp("S_alpha", name.c_str())) return 2;
     if (!strcmp("S_beta", name.c_str())) return 3;
     if (!strcmp("S_gamma", name.c_str())) return 4;
@@ -170,7 +170,7 @@ int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("Rho_beta", name.c_str())) return 6;
     if (!strcmp("Rho_gamma", name.c_str())) return 7;
     if (!strcmp("Porosity", name.c_str())) return 8;
-    if (!strcmp("div_m", name.c_str())) return 9;
+    if (!strcmp("div_u", name.c_str())) return 9;
     if (!strcmp("Exact_S", name.c_str())) return 10;
     if (!strcmp("Exact_GradS", name.c_str())) return 11;
     if (!strcmp("Rhs", name.c_str())) return 12;

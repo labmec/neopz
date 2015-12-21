@@ -100,7 +100,7 @@ TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation
     fL2_norm_s.Resize(1,0.0);
     
     /** @brief Hdiv norm */
-    fHdiv_norm.Resize(1,0.0);
+    fl2_norm_flux.Resize(1,0.0);
     
 }
 
@@ -360,8 +360,8 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshinitialdarcy);
     an->LoadSolution(fcmeshinitialdarcy->Solution());
     
-    int n_dt = 10;
-    int n_sub_dt = 20;
+    int n_dt = 1;
+    int n_sub_dt = 1;
     int i_time = 0;
     REAL dt = (fSimulationData->GetMaxTime())/REAL(n_sub_dt);
     fSimulationData->SetDeltaT(dt);
@@ -841,11 +841,11 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         
     }
     
-    TPZManVector<REAL> hdiv_norm(1,0.0);
+    TPZManVector<REAL> l2_norm_flux(1,0.0);
     TPZManVector<REAL> l2_norm(1,0.0);
-    this->IntegrateFluxPError(hdiv_norm,l2_norm);
+    this->IntegrateFluxPError(l2_norm_flux,l2_norm);
 
-    fHdiv_norm[0] = sqrt(hdiv_norm[0]);
+    fl2_norm_flux[0] = sqrt(l2_norm_flux[0]);
     fL2_norm[0] = sqrt(l2_norm[0]);
     
     
@@ -861,7 +861,7 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
 void TPZDarcyAnalysis::IntegrateL2SError(TPZManVector<REAL> & l2_norm){
     
     int mat_id = 1;
-    int int_order = 40;
+    int int_order = 36;
     int int_typ = 0;
     l2_norm[0] = 0.0;
     TPZManVector<STATE> saturation;
@@ -938,18 +938,20 @@ void TPZDarcyAnalysis::IntegrateL2SError(TPZManVector<REAL> & l2_norm){
     
 }
 
-void TPZDarcyAnalysis::IntegrateFluxPError(TPZManVector<REAL> & hdiv_norm,TPZManVector<REAL> & l2_norm){
+void TPZDarcyAnalysis::IntegrateFluxPError(TPZManVector<REAL> & l2_norm_flux,TPZManVector<REAL> & l2_norm){
     
     int mat_id = 1;
-    int int_order = 40;
+    int int_order = 36;
     int int_typ = 0;
     l2_norm[0] = 0.0;
+    l2_norm_flux[0] = 0.0;
+    REAL s = 1.0;    
     TPZManVector<STATE> p;
     TPZManVector<STATE> p_exact;
-    TPZManVector<STATE> m;
-    TPZManVector<STATE> m_exact;
-    TPZManVector<STATE> divm;
-    TPZManVector<STATE> divm_exact;
+    TPZManVector<STATE> u;
+    TPZManVector<STATE> u_exact;
+    TPZManVector<STATE> divu;
+    TPZManVector<STATE> divu_exact;
     
     TPZFMatrix<REAL> normals;
     TPZManVector<REAL,3> n(3,0.0);
@@ -999,7 +1001,6 @@ void TPZDarcyAnalysis::IntegrateFluxPError(TPZManVector<REAL> & hdiv_norm,TPZMan
             TPZManVector<REAL,3> x(3,0.0);
             
             REAL weight = 0.0;
-            REAL s = 1.0;
             REAL dot = 0.0;
             for (int it = 0 ; it < npoints; it++) {
                 
@@ -1022,18 +1023,18 @@ void TPZDarcyAnalysis::IntegrateFluxPError(TPZManVector<REAL> & hdiv_norm,TPZMan
                 cel->Solution(xi_eta_duplet, 0, p);
                 cel->Solution(xi_eta_duplet, 10, p_exact);
                 
-                cel->Solution(xi_eta_duplet, 1, m);
-                cel->Solution(xi_eta_duplet, 11, m_exact);
+                cel->Solution(xi_eta_duplet, 1, u);
+                cel->Solution(xi_eta_duplet, 11, u_exact);
                 
-                
-                cel->Solution(xi_eta_duplet, 9, divm);
-                cel->Solution(xi_eta_duplet, 12, divm_exact);
+                cel->Solution(xi_eta_duplet, 9, divu);
+                cel->Solution(xi_eta_duplet, 12, divu_exact);
 
-                dot = (m[0]-m_exact[0])*(m[0]-m_exact[0]) + (m[1]-m_exact[1])*(m[1]-m_exact[1]);
+                dot = (u[0]-u_exact[0])*(u[0]-u_exact[0]) + (u[1]-u_exact[1])*(u[1]-u_exact[1]);
                 l2_norm[0] += s*weight * detjac * (p_exact[0] - p[0])*(p_exact[0] - p[0]);
-                hdiv_norm[0] += s*weight * detjac * (dot + (divm_exact[0] - divm[0])*(divm_exact[0] - divm[0]));
+                l2_norm_flux[0] += s*weight * detjac * (dot);
                 
             }
+            
         }
         
     }
@@ -1630,7 +1631,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     mat->SetTimeDependentForcingFunction(forcef);
     
     // Setting up linear tracer solution
-    TPZDummyFunction<STATE> *Load_function= new TPZDummyFunction<STATE>(Radial_Poly);
+    TPZDummyFunction<STATE> *Load_function= new TPZDummyFunction<STATE>(Cylindrical_Elliptic);
 //    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(Dupuit_Thiem);
 //    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(LinearTracer);
 //    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
@@ -2093,19 +2094,27 @@ void TPZDarcyAnalysis::ApplyPG(TPZGeoMesh * geomesh){
         DebugStop();
     }
     
-    int n = fSimulationData->GetnElementsx();
+    int n = 0;
     REAL dx = fSimulationData->GetLengthElementx();
-    REAL l = REAL(n)*dx;
-    REAL rw = fLayers[0]->Layerrw();
-    REAL beta = 2.0;
+    REAL ratio = fSimulationData->GetPGRatio();
+    REAL l = REAL(fSimulationData->GetnElementsx())*dx;
     int n_nodes = geomesh->NNodes();
-    REAL r = 0.0;
+    REAL dr_0,dr_n;
+    REAL r_powers = 0.0;
+    for (int i=1; i <= n_nodes-1; i++) {
+        r_powers += std::pow(ratio, REAL(i-1));
+    }
+    dr_0 = l/r_powers;
+    TPZManVector<REAL,3> coor_n(3,0.0);
     TPZManVector<REAL,3> coor(3,0.0);
     for (int inode = 1; inode < n_nodes-1; inode++) {
-        geomesh->NodeVec()[inode].GetCoordinates(coor);
-        r = l/(pow(beta, REAL((n_nodes-2) - inode) + 1));
-        coor[0] = r + rw;
-        geomesh->NodeVec()[inode].SetCoord(coor);
+        geomesh->NodeVec()[inode-1].GetCoordinates(coor);
+        geomesh->NodeVec()[inode].GetCoordinates(coor_n);
+        
+        n = (n_nodes-2) - inode + 1;
+        dr_n = dr_0*std::pow(ratio, REAL(n));
+        coor_n[0] = dr_n + coor[0];
+        geomesh->NodeVec()[inode].SetCoord(coor_n);
         
     }
     
@@ -2146,9 +2155,9 @@ void TPZDarcyAnalysis::Geometry2D(int nx, int ny)
     
     // Computing Mesh extruded along the parametric curve ParametricfunctionX
     TPZGeoMesh * GeoMesh2 = CreateGridFrom->ComputeExtrusion(t, dt, n);
-//    if (fSimulationData->IsAxisymmetricQ()) {
-//        ApplyPG(GeoMesh2);
-//    }
+    if (fSimulationData->IsMeshwithPGQ()) {
+        ApplyPG(GeoMesh2);
+    }
 
     TPZHierarquicalGrid * CreateGridFrom2 = new TPZHierarquicalGrid(GeoMesh2);
     TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
@@ -2403,10 +2412,10 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     plotfile = "2DMixed.vtk";
     
     scalnames.Push("P");
-    vecnames.Push("m");
+    vecnames.Push("u");
     scalnames.Push("Porosity");
     scalnames.Push("Rhs");
-    scalnames.Push("div_m");
+    scalnames.Push("div_u");
     
     scalnames.Push("Exact_S");
     vecnames.Push("Exact_GradS");
@@ -2485,7 +2494,14 @@ void TPZDarcyAnalysis::BCNfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STA
 
 void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad)
 {
-    REAL f  = -16.0*pt[0]*pt[0];//-0.0*16.0*pt[0]*pt[0];///-64.0*pow(pt[0],6.0);
+    REAL rwD = 0.0*0.127/100.0;
+    REAL rD  = pt[0];
+    REAL zD  = pt[1];
+    REAL a = 1.0;
+    REAL b = 0.1;
+    
+    REAL f  = ((std::pow(a,2.0) + std::pow(b,2.0))*std::pow(M_PI,2.0)*sin((M_PI*rD)/a)*sin((M_PI*zD)/b))/(std::pow(a,2.0)*std::pow(b,2.));
+//    REAL f = (M_PI*(-(a*std::pow(b,2.0)*cos((M_PI*(rD - rwD))/a)) + (std::pow(a,2.0) + std::pow(b,2.0))*M_PI*rD*sin((M_PI*(rD - rwD))/a))*sin((M_PI*zD)/b))/(std::pow(a,2.0)*std::pow(b,2.0)*rD);
     
     ff[0] = f;
     return;
@@ -2626,17 +2642,17 @@ void TPZDarcyAnalysis::FilterSaturationGradients(TPZManVector<long> &active, TPZ
     
 }
 
-void TPZDarcyAnalysis::Radial_Poly(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol){
+void TPZDarcyAnalysis::Cylindrical_Elliptic(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol){
     
-//    REAL rD  = pt[0];
-//    Sol[0] = pow(rD,8.0);
-//    GradSol(0,0) = -8.0*pow(rD,7.0);
-    
-    REAL alpha = 0.0;
-    REAL beta = 1.0;
+    REAL rwD = 0.0*0.127/100.0;
     REAL rD  = pt[0];
-    Sol[0] = alpha*log(rD)+beta*pow(rD,4.0);
-    GradSol(0,0) = -4.0*rD*rD*rD;//(0.0*4.0*pow(rD,4.0)+alpha)/rD;
+    REAL zD  = pt[1];
+    REAL a = 1.0;
+    REAL b = 0.1;
+
+    Sol[0] = sin(M_PI* (rD-rwD)/a)*sin(M_PI*zD/b);
+    GradSol(0,0) = -((M_PI*cos((M_PI*(rD-rwD))/a)*sin((M_PI*zD)/b))/a);
+    GradSol(1,0) = -((M_PI*cos((M_PI*zD)/b)*sin((M_PI*(rD-rwD))/a))/b);
     
 }
 
@@ -2731,7 +2747,7 @@ void TPZDarcyAnalysis::BluckleyAndLeverett(const TPZVec< REAL >& pt, REAL time, 
     REAL rho_beta       = 1.0;
     REAL Sor            = 0.2;
     REAL Swr            = 0.2;
-    S_shock = Swr + sqrt(mu_alpha*rho_beta*(mu_beta*rho_alpha + mu_alpha*rho_beta)*pow(-1.0 + Sor + Swr,2.0))/(mu_beta*rho_alpha + mu_alpha*rho_beta);
+    S_shock = Swr + sqrt(mu_alpha*rho_beta*(mu_beta*rho_alpha + mu_alpha*rho_beta)*std::pow(-1.0 + Sor + Swr,2.0))/(mu_beta*rho_alpha + mu_alpha*rho_beta);
     x_shock  = (u*time)/(Porosity*rho_alpha)*dfdsw(S_shock, Swr, Sor, mu_alpha, mu_beta, rho_alpha, rho_beta);
   
     if(x < x_shock)
@@ -2787,7 +2803,7 @@ REAL TPZDarcyAnalysis::dfdsw(REAL Sw, REAL Swr, REAL Sor, REAL mu_alpha, REAL mu
     REAL dfwdSwS;
     
     
-    dfwdSwS = (2.0*mu_alpha*mu_beta*rho_alpha*rho_beta*(-1.0 + Sor + Sw)*(Sw - Swr)*(-1.0 + Sor + Swr))/pow(mu_alpha*rho_beta*pow(-1.0 + Sor + Sw,2.0) + mu_beta*rho_alpha*pow(Sw - Swr,2.0),2.0);
+    dfwdSwS = (2.0*mu_alpha*mu_beta*rho_alpha*rho_beta*(-1.0 + Sor + Sw)*(Sw - Swr)*(-1.0 + Sor + Swr))/std::pow(mu_alpha*rho_beta*std::pow(-1.0 + Sor + Sw,2.0) + mu_beta*rho_alpha*std::pow(Sw - Swr,2.0),2.0);
     
     return (dfwdSwS);
 }
@@ -2796,8 +2812,8 @@ REAL TPZDarcyAnalysis::df2dsw(REAL Sw, REAL Swr, REAL Sor, REAL mu_alpha, REAL m
     REAL dfw2dSwS2;
 
   
-    dfw2dSwS2 = (2.0*mu_alpha*mu_beta*rho_alpha*rho_beta*(-1.0 + Sor + Swr)*(-(mu_beta*rho_alpha*pow(Sw - Swr,2.0)*(-3.0 + 3.0*Sor + 2.0*Sw + Swr)) + mu_alpha*rho_beta*pow(-1.0 + Sor + Sw,2.0)*(-1.0 + Sor - 2.0*Sw + 3.0*Swr)))/
-    pow(mu_alpha*rho_beta*pow(-1.0 + Sor + Sw,2.0) + mu_beta*rho_alpha*pow(Sw - Swr,2.0),3.0);
+    dfw2dSwS2 = (2.0*mu_alpha*mu_beta*rho_alpha*rho_beta*(-1.0 + Sor + Swr)*(-(mu_beta*rho_alpha*std::pow(Sw - Swr,2.0)*(-3.0 + 3.0*Sor + 2.0*Sw + Swr)) + mu_alpha*rho_beta*std::pow(-1.0 + Sor + Sw,2.0)*(-1.0 + Sor - 2.0*Sw + 3.0*Swr)))/
+    std::pow(mu_alpha*rho_beta*std::pow(-1.0 + Sor + Sw,2.0) + mu_beta*rho_alpha*std::pow(Sw - Swr,2.0),3.0);
 
     return dfw2dSwS2;
 }

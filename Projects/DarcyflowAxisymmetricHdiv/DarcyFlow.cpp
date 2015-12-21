@@ -59,7 +59,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
         Pstr           = 2.0e7;
         Tstr           = 355.37;
         Tres           = 355.37;
-        Lstr           = 1000.0;
+        Lstr           = 100.0;
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e8;
@@ -78,10 +78,11 @@ void NonlinearTracer(bool IsDimensionlessQ)
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
     bool OptBand    = true;     // Band optimization
-    bool IsAxisy    = true;    // Axisymmetric analysis 1.0/s;
-    bool IsTMesh    = false;    // Triangular mesh
+    bool IsAxisy    = false;     // Axisymmetric analysis 1.0/s;
+    bool IsTMesh    = true;    // Triangular mesh
     bool IsImpes    = false;    // Impes analysis
     bool IsHydro    = false;    // Hydrostatic bc
+    bool IsPGMesh   = false;     // Geometric Progression mesh
     int fixedJac    = 0;
     
     int qorder      = 1;
@@ -92,7 +93,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     
     // Time control parameters
     int n_times  = 1;
-    int n_sub_dt = 10;
+    int n_sub_dt = 1;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
@@ -108,10 +109,11 @@ void NonlinearTracer(bool IsDimensionlessQ)
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    REAL x_l = 1000.0;
+    REAL x_l = 100.0;
     REAL y_l = 10.0;
+    REAL ratio = 0.9;
     
-    int  nelemX     =10;
+    int  nelemX     =2;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -127,7 +129,8 @@ void NonlinearTracer(bool IsDimensionlessQ)
     Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
     bool LinearSegregation = true;
     
-    REAL angle = 0.0;
+    REAL angle =
+    0.0;
     
     REAL S_w_r              = 0.2;
     REAL S_nw_r             = 0.2;
@@ -147,6 +150,8 @@ void NonlinearTracer(bool IsDimensionlessQ)
     Dataset->SetOptband(OptBand);
     Dataset->SetAxisymmetricQ(IsAxisy);
     Dataset->SetTriangularMesh(IsTMesh);
+    Dataset->SetMeshwithPGQ(IsPGMesh);
+    Dataset->SetPGRatio(ratio);
     Dataset->SetHydrostaticBCQ(IsHydro);
     Dataset->SetImpesQ(IsImpes);
     Dataset->Setqorder(qorder);
@@ -209,13 +214,13 @@ void NonlinearTracer(bool IsDimensionlessQ)
     
     
     TPZVec<REAL> bottombc(4,0.0);
-    bottombc[0] = 4;
+    bottombc[0] = 0;
     bottombc[1] = (0.0*1e6)/(Pstr);
     bottombc[2] = 0;
     bottombc[3] = 0;
     
     REAL Q = 158.99/day;//158.99/day;
-    REAL u = Q/(2.0*M_PI*10.127*y_l);
+    REAL u = Q/(2.0*M_PI*0.127*y_l);
     REAL rho = 1000.0;
     REAL mu = 0.001;
     REAL k = 1.0e-13;
@@ -226,24 +231,24 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL m = rho * u ;
 
     REAL mD = m*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
-    REAL pr = (0.127+x_l)/Lstr;//(2.0*1e7)/(Pstr);
+    REAL pr = 0.0;//(2.0*1e7)/(Pstr);
     TPZVec<REAL> rightbc(4,0.0);
     rightbc[0] = 0;
-    rightbc[1] = 0.0*log(pr)+1.0*pow(pr,4.0);
+    rightbc[1] = 0.0;//sin(M_PI*pr);//1.0*log(pr)+0.0*pow(pr,4.0);
     rightbc[2] = 1.0*(1.0 - S_nw_r);
     rightbc[3] = 0;
     
     
     TPZVec<REAL> topbc(4,0.0);
-    topbc[0] = 4;
+    topbc[0] = 0;
     topbc[1] = (0.0*1e6)/(Pstr);
     topbc[2] = 0;
     topbc[3] = 0;
     
-    REAL pl = (0.127)/Lstr;
+    REAL pl = 0.0;
     TPZVec<REAL> leftbc(4,0.0);
     leftbc[0] = 2;
-    leftbc[1] = 0.0*log(pl)+1.0*pow(pl,4.0);//(1.0*1e7)/(Pstr);
+    leftbc[1] = pl*pl*pl*pl;//sin(M_PI*pl);//;1.0*log(pl)+0.0*pow(pl,4.0);//(1.0*1e7)/(Pstr);
     leftbc[2] = 0.0*(1.0 - S_nw_r);
     leftbc[3] = 0;
     
@@ -332,7 +337,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     REAL Hres           = 100.0/Lstr;
     REAL Rres           = 1000.0/Lstr;
     REAL Top            = 0.0/Lstr;
-    REAL Rw             = 0.127/Lstr;
+    REAL Rw             = 0.0*0.127/Lstr;
     
     // Reservoir Description linear tracer configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
@@ -425,16 +430,23 @@ void NonlinearTracer(bool IsDimensionlessQ)
     
 //  Computing the approximation rate for each refinement for  the order
     TPZFMatrix<REAL> rates(5,5,0.0);
-    TPZManVector<int,5> el_sizes(5,0);
+    TPZManVector<int,5> el_sizesx(5,0);
+    TPZManVector<int,5> el_sizesy(5,0);
 
-    el_sizes[0] = nelemX;
-    el_sizes[1] = nelemX*2;
-    el_sizes[2] = nelemX*4;
-    el_sizes[3] = nelemX*8;
-    el_sizes[4] = nelemX*16;
+    el_sizesx[0] = nelemX;
+    el_sizesx[1] = nelemX*2;
+    el_sizesx[2] = nelemX*4;
+    el_sizesx[3] = nelemX*8;
+    el_sizesx[4] = nelemX*16;
     
-    qorder = 3;
-    porder = 3;
+    el_sizesy[0] = nelemY;
+    el_sizesy[1] = nelemY*2;
+    el_sizesy[2] = nelemY*4;
+    el_sizesy[3] = nelemY*8;
+    el_sizesy[4] = nelemY*16;
+    
+    qorder = 4;
+    porder = 4;
     sorder = 0;
     GR = false;
     REAL cfl = 0.0;
@@ -453,16 +465,19 @@ void NonlinearTracer(bool IsDimensionlessQ)
     SandStone->RunAnalysis();
     rates(0,0) = dxD;
     rates(0,1) = SandStone->fL2_norm[0];
-    rates(0,2) = SandStone->fHdiv_norm[0];
+    rates(0,2) = SandStone->fl2_norm_flux[0];
     rates(0,3) = SandStone->fL2_norm_s[0];
     rates(0,4) = fabs(cfl);
     delete SandStone;
     
-    
-    nelemX = el_sizes[1];
+    nelemX = el_sizesx[1];
     dxD        =(x_l/nelemX)/Lstr;
+    nelemY = el_sizesy[1];
+    dyD        =(y_l/nelemY)/Lstr;
     Dataset->SetnElementsx(nelemX);
     Dataset->SetLengthElementx(dxD);
+    Dataset->SetnElementsy(nelemY);
+    Dataset->SetLengthElementy(dyD);
     Dataset->SetNSubSteps(n_sub_dt);
     Dataset->SetDeltaT(dt);
     Dataset->SetMaxTime(maxtime);
@@ -476,15 +491,19 @@ void NonlinearTracer(bool IsDimensionlessQ)
     SandStone2->RunAnalysis();
     rates(1,0) = dxD;
     rates(1,1) = SandStone2->fL2_norm[0];
-    rates(1,2) = SandStone2->fHdiv_norm[0];
+    rates(1,2) = SandStone2->fl2_norm_flux[0];
     rates(1,3) = SandStone2->fL2_norm_s[0];
     rates(1,4) = fabs(cfl);
     delete SandStone2;
-    
-    nelemX = el_sizes[2];
+
+    nelemX = el_sizesx[2];
     dxD        =(x_l/nelemX)/Lstr;
+    nelemY = el_sizesy[2];
+    dyD        =(y_l/nelemY)/Lstr;
     Dataset->SetnElementsx(nelemX);
     Dataset->SetLengthElementx(dxD);
+    Dataset->SetnElementsy(nelemY);
+    Dataset->SetLengthElementy(dyD);
     Dataset->SetDeltaT(dt);
     Dataset->SetMaxTime(maxtime);
     Dataset->SetTime(t0);
@@ -497,16 +516,20 @@ void NonlinearTracer(bool IsDimensionlessQ)
     SandStone3->RunAnalysis();
     rates(2,0) = dxD;
     rates(2,1) = SandStone3->fL2_norm[0];
-    rates(2,2) = SandStone3->fHdiv_norm[0];
+    rates(2,2) = SandStone3->fl2_norm_flux[0];
     rates(2,3) = SandStone3->fL2_norm_s[0];
     rates(2,4) = fabs(cfl);
     delete SandStone3;
 
     
-    nelemX = el_sizes[3];
+    nelemX = el_sizesx[3];
     dxD        =(x_l/nelemX)/Lstr;
+    nelemY = el_sizesy[3];
+    dyD        =(y_l/nelemY)/Lstr;
     Dataset->SetnElementsx(nelemX);
     Dataset->SetLengthElementx(dxD);
+    Dataset->SetnElementsy(nelemY);
+    Dataset->SetLengthElementy(dyD);
     Dataset->SetDeltaT(dt);
     Dataset->SetMaxTime(maxtime);
     Dataset->SetTime(t0);
@@ -519,15 +542,19 @@ void NonlinearTracer(bool IsDimensionlessQ)
     SandStone4->RunAnalysis();
     rates(3,0) = dxD;
     rates(3,1) = SandStone4->fL2_norm[0];
-    rates(3,2) = SandStone4->fHdiv_norm[0];
+    rates(3,2) = SandStone4->fl2_norm_flux[0];
     rates(3,3) = SandStone4->fL2_norm_s[0];
     rates(3,4) = fabs(cfl);
     delete SandStone4;
     
-    nelemX = el_sizes[4];
+    nelemX = el_sizesx[4];
     dxD        =(x_l/nelemX)/Lstr;
+    nelemY = el_sizesy[4];
+    dyD        =(y_l/nelemY)/Lstr;
     Dataset->SetnElementsx(nelemX);
     Dataset->SetLengthElementx(dxD);
+    Dataset->SetnElementsy(nelemY);
+    Dataset->SetLengthElementy(dyD);
     Dataset->SetDeltaT(dt);
     Dataset->SetMaxTime(maxtime);
     Dataset->SetTime(t0);
@@ -540,7 +567,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     SandStone5->RunAnalysis();
     rates(4,0) = dxD;
     rates(4,1) = SandStone5->fL2_norm[0];
-    rates(4,2) = SandStone5->fHdiv_norm[0];
+    rates(4,2) = SandStone5->fl2_norm_flux[0];
     rates(4,3) = SandStone5->fL2_norm_s[0];
     rates(4,4) = fabs(cfl);
     delete SandStone5;

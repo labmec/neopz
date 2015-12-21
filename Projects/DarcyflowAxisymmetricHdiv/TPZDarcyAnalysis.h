@@ -111,7 +111,7 @@ public:
     TPZManVector<REAL> fL2_norm_s;
     
     /** @brief Hdiv norm */
-    TPZManVector<REAL> fHdiv_norm;
+    TPZManVector<REAL> fl2_norm_flux;
 
     /// Constructor which already sets the cmesh
     TPZDarcyAnalysis(TPZAutoPointer<SimulationData> DataSimulation, TPZVec<TPZAutoPointer<ReservoirData> > Layers, TPZVec<TPZAutoPointer<PetroPhysicData> > PetroPhysic);
@@ -374,7 +374,7 @@ public:
     /**
      * Exact Soltuion elliptic axisymmetric darcflow
      */
-    static  void Radial_Poly(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol);
+    static  void Cylindrical_Elliptic(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &GradSol);
     
     /**
      * Exact Soltuion elliptic axisymmetric darcflow (Dupuit-Thiem solution)
@@ -489,7 +489,7 @@ public:
     /**
      * Computes the integral of the hdiv and L2 error of flux and pressure respectively
      */
-    void IntegrateFluxPError(TPZManVector<REAL> & hdiv_norm,TPZManVector<REAL> & l2_norm);
+    void IntegrateFluxPError(TPZManVector<REAL> & l2_norm_flux,TPZManVector<REAL> & l2_norm);
     
     /**
      * Computes the integral of the L2 error of saturation
