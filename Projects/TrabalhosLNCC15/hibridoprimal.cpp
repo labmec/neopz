@@ -480,7 +480,8 @@ int main(int argc, char *argv[])
     GridFileName = dirname + "/Projects/TrabalhosLNCC15/";
 //    GridFileName += "TetrahedronMesh.dump";
 //    GridFileName += "TetrahedronMeshAdap.dump";
-    GridFileName += "TetrahedronMeshAdapCoarse.dump";
+//    GridFileName += "TetrahedronMeshAdapCoarse.dump";
+    GridFileName += "TetrahedronMeshAdapVeryCoarse.dump";
     
     
     int pini = 2;
@@ -511,7 +512,7 @@ int main(int argc, char *argv[])
                 gmesh = ReadGeoMesh(GridFileName);
 //                PrintGeoMesh(gmesh);
                 UniformRefineTetrahedrons(gmesh, ndiv);
-//                PrintGeoMesh(gmesh);
+                PrintGeoMesh(gmesh);
 //
             }
 
