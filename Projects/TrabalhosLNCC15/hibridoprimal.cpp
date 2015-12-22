@@ -58,15 +58,26 @@
 #include "TPZFrontNonSym.h"
 #include "TPZSkylineNSymStructMatrix.h"
 
+#include "TPZReadGIDGrid.h"
+
+
 using namespace std;
 
-int const matId =1;
-int const bc0=-1;
-int const bc1=-2;
-int const bc2=-3;
-int const bc3=-4;
-int const bc4=-5;
-int const bc5=-6;
+//int const matId =1;
+//int const bc0=-1;
+//int const bc1=-2;
+//int const bc2=-3;
+//int const bc3=-4;
+//int const bc4=-5;
+//int const bc5=-6;
+
+int const matId =7;
+int const bc0=1;
+int const bc1=2;
+int const bc2=3;
+int const bc3=4;
+int const bc4=5;
+int const bc5=6;
 
 REAL const Pi = 4.*atan(1.);
 
@@ -77,6 +88,9 @@ TPZGeoMesh *CreateOneCubo(int ndiv);
 TPZGeoMesh * CreateOneCuboWithTetraedrons(int ndiv);
 TPZGeoMesh *GMesh2D(bool ftriang);
 TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder,bool ismultiplierH1);
+TPZGeoMesh *  ReadGeoMesh(std::string GridFileName);
+void PrintGeoMesh(TPZGeoMesh * gmesh);
+void UniformRefineTetrahedrons(TPZGeoMesh *gmesh, int nref);
 
 TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim, bool rodarSIPGD);
 
@@ -126,7 +140,7 @@ void AjustarContorno(TPZGeoMesh *gmesh);
 #include "boost/date_time/posix_time/posix_time.hpp"
 #endif
 
-int dim_problema = 2;
+int dim_problema = 3;
 int nbc = dim_problema*2;
 bool fTriang = false;
 int flevel=3;
@@ -139,6 +153,8 @@ bool rodarHdiv = true;
 static LoggerPtr logger(Logger::getLogger("pz.hibridoprimal"));
 #endif
 void ChangeInternalConnectOrder(TPZCompMesh *mesh);
+
+
 
 //int main(int argc, char *argv[])
 //{
@@ -427,13 +443,24 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 bool HDivMaisMais = false;
 int main(int argc, char *argv[])
 {
+    
+    // This code use piola contravariant mapping for nonlinear mappings
+    HDivPiola = 0;
+    bool hdivskeleton = true;
+    if(HDivPiola != 0)
+    {
+        hdivskeleton = false;
+    }
+
+    
     //#ifdef LOG4CXX
     //    InitializePZLOG();
     //#endif
 
     ///Refinamento
-    gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
+    gRefDBase.InitializeUniformRefPattern(ETetraedro);
 
     std::ofstream myerrorfile("Simulacao-Hdiv.txt");
     myerrorfile<<"\nDADOS PARA O REFINAMENTO hp: Simulacao Hdiv"<<std::endl;
@@ -442,11 +469,26 @@ int main(int argc, char *argv[])
     TPZCompMesh * cmesh1;
     TPZCompMesh * cmesh2;
     TPZCompMesh * mphysics;
+    
+    std::string dirname = PZSOURCEDIR;
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
+    gRefDBase.InitializeUniformRefPattern(ETetraedro);
+    
+    //  Reading mesh
+    std::string GridFileName;
+    GridFileName = dirname + "/Projects/TrabalhosLNCC15/";
+//    GridFileName += "TetrahedronMesh.dump";
+//    GridFileName += "TetrahedronMeshAdap.dump";
+    GridFileName += "TetrahedronMeshAdapCoarse.dump";
+    
+    
     int pini = 2;
     for(int p = pini; p<3; p++)
     {
-        int pp = p;
-        if(HDivMaisMais){
+        int pp = p-1; // Case 1 Pk  Pk-1
+//        int pp = p; // Case 2 P*k  Pk
+        if(HDivMaisMais){ // Case 3 P**k  Pk+1
             pp = p+1;
         }
         
@@ -455,7 +497,7 @@ int main(int argc, char *argv[])
         myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
             "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
         
-        for(int ndiv=1; ndiv<9; ndiv++){
+        for(int ndiv=1; ndiv<2; ndiv++){
             
             if(dim_problema==2){
                 gmesh = GMesh2D(fTriang);//malha geometrica
@@ -464,8 +506,13 @@ int main(int argc, char *argv[])
                 AjustarContorno(gmesh);
             }
             else{
-                gmesh = CreateOneCubo(ndiv);
-                //gmesh = CreateOneCuboWithTetraedrons(ndiv);
+//                gmesh = CreateOneCubo(ndiv);
+//                gmesh = CreateOneCuboWithTetraedrons(ndiv);
+                gmesh = ReadGeoMesh(GridFileName);
+                PrintGeoMesh(gmesh);
+                UniformRefineTetrahedrons(gmesh, ndiv);
+                PrintGeoMesh(gmesh);
+//
             }
 
 
@@ -475,7 +522,6 @@ int main(int argc, char *argv[])
 //                std::ofstream filemesh("MalhaGeometricaInicial.vtk");
 //                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filemesh, true);
 //            }
-
 
             long NDoF=0, NDoFCond=0;
             long nNzeros=0;
@@ -495,7 +541,7 @@ int main(int argc, char *argv[])
             TPZManVector<TPZCompMesh *,2> meshvec(2);
             meshvec[0] = cmesh1;
             meshvec[1] = cmesh2;
-            mphysics = MalhaCompMultifisica(meshvec, gmesh,true);
+            mphysics = MalhaCompMultifisica(meshvec, gmesh,hdivskeleton);
 
             NDoFCond = mphysics->NEquations();
 
@@ -521,6 +567,10 @@ int main(int argc, char *argv[])
                 TPZSkylMatrix<STATE> matsky(neq,skyline);
                 nNzeros = matsky.GetNelemts();
 
+//                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+//                skylstr.SetNumThreads(6);                
+//                analysis.SetStructuralMatrix(skylstr);
+                
                 TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
                 strmat.SetDecomposeType(ELDLt);
                 strmat.SetNumThreads(6);
@@ -556,13 +606,12 @@ int main(int argc, char *argv[])
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
 
             if(ndiv>0  && p==2){
-                TPZManVector<std::string,10> scalnames(3), vecnames(2);
+                TPZManVector<std::string,10> scalnames(2), vecnames(2);
                 scalnames[0] = "Pressure";
                 scalnames[1] = "ExactPressure";
-                scalnames[2]="POrder";
+//                scalnames[2]="POrder";
                 vecnames[0]= "Flux";
                 vecnames[1]= "ExactFlux";
-
 
                 std::stringstream name;
                 name << "Solution_hdiv" <<ndiv<< ".vtk";
@@ -600,6 +649,109 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+void UniformRefineTetrahedrons(TPZGeoMesh *gmesh, int nref){
+    
+    TPZAutoPointer<TPZRefPattern> refp3D;
+    
+    {//NAO APAGAR!!!
+        char buf[] =
+        "10 9 "
+        "-50 Tet0000111111111 "
+        "0 0 0 "
+        "1 0 0 "
+        "0 1 0 "
+        "0 0 1 "
+        "0.5 0 0 "
+        "0 0.5 0 "
+        "0 0 0.5 "
+        "0.5 0.5 0 "
+        "0 0.5 0.5 "
+        "0.5 0 0.5 "
+        "4 4 0  1  2  3"
+        "4 4 0  4  5  6"
+        "4 4 4  1  7  9"
+        "4 4 7  2  5  8"
+        "4 4 6  9  8  3"
+        "4 4 4  9  6  5"
+        "4 4 5  8  6  9"
+        "4 4 7  8  9  4"
+        "4 4 4  7  5  8";
+        std::istringstream str(buf);
+        refp3D = new TPZRefPattern(str);
+        refp3D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp3D);
+        if(!refp3D)
+        {
+            DebugStop();
+        }
+    }
+    
+//    TPZAutoPointer<TPZRefPattern> refp3D = gRefDBase.FindRefPattern("UnifTet");
+    
+    if(!refp3D)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < nref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            if(gel->Dimension()==2)
+            {
+//                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+//            if(gel->Dimension()==2)
+//            {
+//                TPZAutoPointer<TPZRefPattern> refp2D = TPZRefPatternTools::PerfectMatchRefPattern(gel);
+//                if(refp2D)
+//                {
+//                    gel->SetRefPattern(refp2D);
+//                    TPZVec<TPZGeoEl*> sons;
+//                    gel->Divide(sons);
+//                }
+//                else{
+//                    DebugStop();//nao conseguiu refinar elementos 2D baseados no refp do pai
+//                }
+//            }
+            
+        }
+    }
+    
+    std::ofstream malhaOut("malhaOut.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
+}
+
+
+void PrintGeoMesh(TPZGeoMesh * gmesh)
+{
+    
+    std::ofstream argument("GeometicMesh.txt");
+    gmesh->Print(argument);
+    std::ofstream Dummyfile("GeometricMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
+}
+
+TPZGeoMesh * ReadGeoMesh(std::string GridFileName)
+{
+    TPZReadGIDGrid GeometryInfo;
+    GeometryInfo.SetfDimensionlessL(1.0);
+    TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
+    gmesh->SetDimension(3);
+    return gmesh;
+}
 
 TPZGeoMesh * CreateOneCuboWithTetraedrons(int ndiv)
 {
