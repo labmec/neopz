@@ -509,9 +509,9 @@ int main(int argc, char *argv[])
 //                gmesh = CreateOneCubo(ndiv);
 //                gmesh = CreateOneCuboWithTetraedrons(ndiv);
                 gmesh = ReadGeoMesh(GridFileName);
-                PrintGeoMesh(gmesh);
+//                PrintGeoMesh(gmesh);
                 UniformRefineTetrahedrons(gmesh, ndiv);
-                PrintGeoMesh(gmesh);
+//                PrintGeoMesh(gmesh);
 //
             }
 
@@ -667,15 +667,15 @@ void UniformRefineTetrahedrons(TPZGeoMesh *gmesh, int nref){
         "0.5 0.5 0 "
         "0 0.5 0.5 "
         "0.5 0 0.5 "
-        "4 4 0  1  2  3"
-        "4 4 0  4  5  6"
-        "4 4 4  1  7  9"
-        "4 4 7  2  5  8"
-        "4 4 6  9  8  3"
-        "4 4 4  9  6  5"
-        "4 4 5  8  6  9"
-        "4 4 7  8  9  4"
-        "4 4 4  7  5  8";
+        "4 4 0  1  2  3 "
+        "4 4 0  4  5  6 "
+        "4 4 4  1  7  9 "
+        "4 4 7  2  5  8 "
+        "4 4 6  9  8  3 "
+        "4 4 4  9  6  5 "
+        "4 4 5  8  6  9 "
+        "4 4 7  8  9  4 "
+        "4 4 4  7  5  8 ";
         std::istringstream str(buf);
         refp3D = new TPZRefPattern(str);
         refp3D->GenerateSideRefPatterns();
