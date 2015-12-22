@@ -137,7 +137,7 @@ void NonlinearTracer(bool IsDimensionlessQ)
     
     TPZStack<std::string> system;
     system.Push("Water");
-//    system.Push("Oil");
+    system.Push("Oil");
     
     
     Dataset->SetTimes(Reporting_times);
@@ -251,65 +251,6 @@ void NonlinearTracer(bool IsDimensionlessQ)
     leftbc[1] = pl*pl*pl*pl;//sin(M_PI*pl);//;1.0*log(pl)+0.0*pow(pl,4.0);//(1.0*1e7)/(Pstr);
     leftbc[2] = 0.0*(1.0 - S_nw_r);
     leftbc[3] = 0;
-    
-//    TPZVec<REAL> bottombc(4,0.0);
-//    bottombc[0] = 4;
-//    bottombc[1] = (0.0*1e6)/(Pstr);
-//    bottombc[2] = 0;
-//    bottombc[3] = 0;
-//    
-//    TPZVec<REAL> rightbc(4,0.0);
-//    rightbc[0] = 2;
-//    rightbc[1] = (1.0*1e7)/(Pstr);
-//    rightbc[2] = 0.0*(1.0 - S_nw_r);
-//    rightbc[3] = 0;
-//    
-//    
-//    TPZVec<REAL> topbc(4,0.0);
-//    topbc[0] = 4;
-//    topbc[1] = (0.0*1e6)/(Pstr);
-//    topbc[2] = 0;
-//    topbc[3] = 0;
-//    
-//    REAL m = -0.001;
-//    REAL mD = m*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
-//    TPZVec<REAL> leftbc(4,0.0);
-//    leftbc[0] = 1;
-//    leftbc[1] = mD;
-//    leftbc[2] = 1.0*(1.0 - S_nw_r);
-//    leftbc[3] = 0;
-    
-//    TPZVec<REAL> bottombc(4,0.0);
-//    bottombc[0] = 4;
-//    bottombc[1] = (0.0*1e6)/(Pstr);
-//    bottombc[2] = 0;
-//    bottombc[3] = 0;
-//    
-//    TPZVec<REAL> rightbc(4,0.0);
-//    rightbc[0] = 2;
-//    rightbc[1] = (2.0*1e7)/(Pstr);//pow(1000.127/1000.0, 8.0)
-//    rightbc[2] = 0.0*(1.0 - S_nw_r);
-//    rightbc[3] = 0;
-//    
-//    
-//    TPZVec<REAL> topbc(4,0.0);
-//    topbc[0] = 4;
-//    topbc[1] = (0.0*1e6)/(Pstr);
-//    topbc[2] = 0;
-//    topbc[3] = 0;
-//    
-//    REAL rw = 0.127;
-//    REAL h = 10.0;
-//    REAL Q = 158.99/day;
-//    REAL A = 2.0*M_PI*rw*h;
-//    REAL v = Q/(A);
-//    REAL m = v*Rhostr;
-//    REAL mD = (m)*(Lstr*Mustr/(Kstr*Pstr*Rhostr));
-//    TPZVec<REAL> leftbc(4,0.0);
-//    leftbc[0] = 2;
-//    leftbc[1] = 0.0;//(1.0*1e7)/(Pstr);
-//    leftbc[2] = 1.0*(1.0 - S_nw_r);
-//    leftbc[3] = 0;
     
     
     Dataset->SetBottomBC(bottombcini, bottombc);

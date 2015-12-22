@@ -75,6 +75,7 @@ public:
 	{
 		return new TPZInt1d(*this);
 	}
+    
 	void Print(std::ostream &out = std::cout) const {
 		if(fIntP) fIntP->Print(out);
 	}
