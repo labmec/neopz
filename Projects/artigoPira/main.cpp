@@ -70,7 +70,7 @@ TPZGeoMesh *GMesh(bool QuarterPoint);
 //with hdiv
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
-TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZMixedPoisson* &mymaterial);
+TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZMixedPoisson* &mymaterial, bool QuarterPointRule);
 TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *MalhaCompH1QP(TPZGeoMesh * gmesh,int ordem);
 TPZCompMesh *CMeshFluxL2(TPZGeoMesh *gmesh, int pOrder, int nodeAtOriginId);
@@ -139,7 +139,6 @@ long ComputeAverageBandWidth(TPZCompMesh *cmesh){
     return averageband;
 }
 
-
 int main(int argc, char *argv[])
 {
     //#ifdef LOG4CXX
@@ -148,8 +147,9 @@ int main(int argc, char *argv[])
     
     //   IntegrationRuleConvergence(true);
     //   DebugStop();
+    bool QuarterPoint = true;
+    bool QuarterPointRule = false;
     
-    bool QuarterPoint = false;
     bool HDivMaisMais = false;
     int order_reduce = 0;
     
@@ -170,122 +170,123 @@ int main(int argc, char *argv[])
     
     //string outputfile("Solution_mphysics");
     std::stringstream name;
-    if(runhdiv==true){
-        HDivPiola = 1;//1- mapeamento piola, 0- sem piola
-        std::ofstream myerrorfile("../Simulacao-MistaHdiv.txt");
-        for(int ndiv=1; ndiv<6; ndiv++){
-            
-            TPZGeoMesh *gmesh = GMesh(QuarterPoint);
-            //malha inicial
-            UniformRefine(gmesh,ndiv);
-            for(long el=0; el < gmesh->NElements(); el++)
-            {
-                TPZGeoEl *gel = gmesh->Element(el);
-                gel->SetFather(-1);
-            }
-            
-            
-            //#ifdef print
-            //            {
-            //                std::ofstream malhaOut("malhageometrica.vtk");
-            //                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
-            //            }
-            //#endif
-            
-            int nodeAtOriginId = 1;
-            
-            //refinamento quarter point proximo do no de id=1
-            if(QuarterPoint) QuarterPointRef(gmesh, nodeAtOriginId);
-            
-            
-            //refinamento proximo do no de id=1
-            //DirectionalRef(gmesh, nodeAtOriginId,ndiv);
-            
-            
+    
+    HDivPiola = 1;//1- mapeamento piola, 0- sem piola
+    std::ofstream myerrorfile("../Simulacao-MistaHdiv.txt");
+    for(int ndiv=1; ndiv<9; ndiv++)
+    {
+        
+        TPZGeoMesh *gmesh = GMesh(QuarterPoint);
+        //malha inicial
+        UniformRefine(gmesh,1);
+        for(long el=0; el < gmesh->NElements(); el++)
+        {
+            TPZGeoEl *gel = gmesh->Element(el);
+            gel->SetFather(-1);
+        }
+        
+        
+        //#ifdef print
+        //            {
+        //                std::ofstream malhaOut("malhageometrica.vtk");
+        //                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
+        //            }
+        //#endif
+        
+        //refinamento quarter point proximo do no de id=1
+        int nodeAtOriginId = 1;
+        if(QuarterPoint) QuarterPointRef(gmesh, nodeAtOriginId);
+        
+        
+        //refinamento proximo do no de id=1
+        DirectionalRef(gmesh, nodeAtOriginId,ndiv);
+        
+        
 #ifdef print
-            {
-                std::ofstream malhaOut("malhageometrica.vtk");
-                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
-                
-                std::ofstream out("gmesh.txt");
-                gmesh->Print(out);
-            }
+        {
+            std::ofstream malhaOut("malhageometrica.vtk");
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
+            
+            std::ofstream out("gmesh.txt");
+            gmesh->Print(out);
+        }
 #endif
-            
-            //cmeshL2 flux
-            //            TPZCompMesh * cmeshL2= CMeshFluxL2(gmesh, pq, nodeAtOriginId);
-            //            Prefinamento(cmeshL2, ndiv,pq);
-            //            if(HDivMaisMais)
-            //            {
-            //                //ChangeInternalConnectOrder(cmeshL2);
-            //                ChangeSideConnectOrderConnects(cmeshL2, order_reduce);
-            //            }
-            //
-            //            //order = pp+1;
-            //            int order = (pp+2*ndiv - 1)+1;
-            //            int max_order = 2*order;
-            //            int Gauss_order = max_order+1;
-            //            int QP_order = 2*Gauss_order;
-            //
-            //            ChangeIntegrationRule(cmeshL2, QP_order,true);
-            //            {
-            //                std::ofstream out("cmeshL2.txt");
-            //                cmeshL2->Print(out);
-            //
-            //                std::ofstream out2("gmeshL2.txt");
-            //                cmeshL2->Reference()->Print(out2);
-            //            }
-            
-            //mesh1
-            TPZCompMesh * cmesh1= CMeshFlux(gmesh, pq);
-            //Prefinamento(cmesh1, ndiv,pq);
+        
+        //cmeshL2 flux
+        TPZCompMesh * cmeshL2 = NULL;
+        if(QuarterPointRule)
+        {
+            cmeshL2= CMeshFluxL2(gmesh, pq, nodeAtOriginId);
+            Prefinamento(cmeshL2, ndiv,pq);
             if(HDivMaisMais)
             {
-                ChangeInternalConnectOrder(cmesh1);
-                //ChangeSideConnectOrderConnects(cmesh1, order_reduce);
+                ChangeInternalConnectOrder(cmeshL2);
+                //ChangeSideConnectOrderConnects(cmeshL2, order_reduce);
             }
+
+            //order = pp+1;
+            int order = (pp+2*ndiv - 1)+1;
+            int max_order = 2*order;
+            int Gauss_order = max_order+1;
+            int QP_order = 2*Gauss_order;
+
+            ChangeIntegrationRule(cmeshL2, QP_order,true);
             {
-                std::ofstream out("cmesh1.txt");
-                cmesh1->Print(out);
+                std::ofstream out("cmeshL2.txt");
+                cmeshL2->Print(out);
+
+                std::ofstream out2("gmeshL2.txt");
+                cmeshL2->Reference()->Print(out2);
             }
+        }
+        
+        //mesh1
+        TPZCompMesh * cmesh1= CMeshFlux(gmesh, pq);
+        //Prefinamento(cmesh1, ndiv,pq);
+        if(HDivMaisMais)
+        {
+            ChangeInternalConnectOrder(cmesh1);
+            //ChangeSideConnectOrderConnects(cmesh1, order_reduce);
+        }
+        {
+            std::ofstream out("cmesh1.txt");
+            cmesh1->Print(out);
+        }
+        
+        //mesh2
+        TPZCompMesh * cmesh2= CMeshPressure(gmesh, pp);
+        // Prefinamento(cmesh2, ndiv,pp);
+        {
+            std::ofstream out("cmesh2.txt");
+            cmesh2->Print(out);
+        }
+        
+        //malha multifisica
+        TPZVec<TPZCompMesh *> meshvec(2);
+        meshvec[0] = cmesh1;
+        meshvec[1] = cmesh2;
+        TPZMixedPoisson * mymaterial;
+        TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial,QuarterPointRule);
+        
+        //std::cout << "NEquations " << mphysics->NEquations() << std::endl;
+        {
+            std::ofstream out("cmeshMPhysics.txt");
+            mphysics->Print(out);
             
-            //mesh2
-            TPZCompMesh * cmesh2= CMeshPressure(gmesh, pp);
-            // Prefinamento(cmesh2, ndiv,pp);
-            {
-                std::ofstream out("cmesh2.txt");
-                cmesh2->Print(out);
-            }
-            
-            //malha multifisica
-            TPZVec<TPZCompMesh *> meshvec(2);
-            meshvec[0] = cmesh1;
-            meshvec[1] = cmesh2;
-            TPZMixedPoisson * mymaterial;
-            TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
-            
-            //std::cout << "NEquations " << mphysics->NEquations() << std::endl;
-            {
-                std::ofstream out("cmeshMPhysics.txt");
-                mphysics->Print(out);
-                
-                std::ofstream out2("gmeshMultifisic.txt");
-                mphysics->Reference()->Print(out2);
-            }
-            
-            //resolver problema
-            long averageband_Antes = ComputeAverageBandWidth(mphysics);
-            cout<<"\naverageband Antes de Reenumerar = " <<averageband_Antes<<std::endl;
-            TPZAnalysis anMP(mphysics);
+            std::ofstream out2("gmeshMultifisic.txt");
+            mphysics->Reference()->Print(out2);
+        }
+        
+        //resolver problema
+        TPZAnalysis anMP(mphysics);
+        if(!QuarterPointRule){
+            ResolverSistema(anMP, mphysics,0);
             long averageband_Depois = ComputeAverageBandWidth(mphysics);
             cout<<"averageband Depois de Reenumerar = " <<averageband_Depois<<std::endl;
-            ResolverSistema(anMP, mphysics,0);
-            
-            
-            
-            /*
-             //Transferir solucao de uma malha para outra
-             TPZAnalysis anMP(mphysics);
+        }
+        else
+        {//Transferir solucao de uma malha para outra
+        
              TPZSkylineStructMatrix strMP(mphysics); //caso simetrico
              //TPZParFrontStructMatrix<TPZFrontSym<STATE> > strMP(mphysics);
              //strMP.SetDecomposeType(ELDLt);
@@ -341,14 +342,14 @@ int main(int argc, char *argv[])
              
              TransferMatrixFromMeshes(cmeshL2, mphysics, matF, matMP,nodeAtOriginId);
              
-             //            GlobalSubMatrix(mphysics, anMP.Solver().Matrix(), nodeAtOriginId, false, subMat);
+             //GlobalSubMatrix(mphysics, anMP.Solver().Matrix(), nodeAtOriginId, false, subMat);
              
              anMP.Solve();
              
              
              
-             //            anMP.Solver().Matrix()->Print("\n\nMatAposTransfer = ", saidamatriz,EMathematicaInput);
-             //            anMP.Rhs().Print("\n\nRhsAposTransfer = ", saidamatriz,EMathematicaInput);
+             //   anMP.Solver().Matrix()->Print("\n\nMatAposTransfer = ", saidamatriz,EMathematicaInput);
+             //   anMP.Rhs().Print("\n\nRhsAposTransfer = ", saidamatriz,EMathematicaInput);
              
              {
              std::ofstream out("cmeshMPhysicsfinal.txt");
@@ -373,8 +374,144 @@ int main(int argc, char *argv[])
              //            LOGPZ_DEBUG(logger,sout.str())
              //        }
              //#endif
-             
-             */
+        }
+         
+        //pos-process
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+        std::stringstream name;
+        name << "Solution_mphysics" <<ndiv<< ".vtk";
+        std::string paraviewfile(name.str());
+        PosProcessMultphysics(meshvec,  mphysics, anMP, paraviewfile);
+        
+        //Erro global
+        myerrorfile << "\n-------------------------------------------------- \n";
+        myerrorfile << "h = "<< ndiv << " p = " << p << "\n";
+        myerrorfile << "DOF Total = " << cmesh1->NEquations() + cmesh2->NEquations()<< "\n";
+        myerrorfile << "DOF Condensado = " << mphysics->NEquations() << "\n";
+        TPZVec<REAL> erros(3);
+        //myerrorfile<<"\n\nErro da simulacao multifisica  para o flux";
+        //saidamatriz<<"\nP = " <<pq<<";"<<std::endl;
+        //cmesh1->Solution().Print("SolfluxQP = ", saidamatriz,EMathematicaInput);
+        //saidamatriz<<"(*---*)"<<std::endl;
+        if(QuarterPoint)
+        {
+            ChangeIntegrationRule(cmesh1, 2*order,true);
+            ChangeIntegrationRule(cmesh2, 2*order,true);
+        }
+        
+        ErrorHDiv(cmesh1,myerrorfile);
+        //ErroHDivNoElemento(cmesh1,myerrorfile, nodeAtOriginId);
+            
+        // myerrorfile<<"\n\nErro da simulacao multifisica  para a pressao";
+        ErrorL2(cmesh2,myerrorfile);
+        
+        cmesh1->CleanUp();
+        cmesh2->CleanUp();
+        delete cmesh1;
+        delete cmesh2;
+        delete gmesh;
+    }
+    
+    return 0;
+}
+
+//main artigo FINEL hp mesh
+int mainArtigo(int argc, char *argv[])
+{
+    //#ifdef LOG4CXX
+    //    InitializePZLOG();
+    //#endif
+    
+    int p = 2;
+    int pq = p;
+    int pp = p;
+    
+    ///Refinamento
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    
+    
+    //string outputfile("Solution_mphysics");
+    std::stringstream name;
+    if(runhdiv==true){
+        HDivPiola = 2;//1- mapeamento piola, 0- sem piola
+        std::ofstream myerrorfile("../Simulacao-MistaHdiv.txt");
+        for(int ndiv=1; ndiv<6; ndiv++){
+            
+            TPZGeoMesh *gmesh = GMesh(false);
+            //malha inicial
+            UniformRefine(gmesh,ndiv);
+            for(long el=0; el < gmesh->NElements(); el++)
+            {
+                TPZGeoEl *gel = gmesh->Element(el);
+                gel->SetFather(-1);
+            }
+            
+            
+            //#ifdef print
+            //            {
+            //                std::ofstream malhaOut("malhageometrica.vtk");
+            //                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
+            //            }
+            //#endif
+            
+            //refinamento proximo do no de id=1
+            int nodeAtOriginId = 1;
+            DirectionalRef(gmesh, nodeAtOriginId,ndiv);
+            
+            
+#ifdef print
+            {
+                std::ofstream malhaOut("malhageometrica.vtk");
+                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, malhaOut, true);
+                
+                std::ofstream out("gmesh.txt");
+                gmesh->Print(out);
+            }
+#endif
+            
+            //mesh1
+            TPZCompMesh * cmesh1= CMeshFlux(gmesh, pq);
+            Prefinamento(cmesh1, ndiv,pq);
+            {
+                std::ofstream out("cmesh1.txt");
+                cmesh1->Print(out);
+            }
+            
+            //mesh2
+            TPZCompMesh * cmesh2= CMeshPressure(gmesh, pp);
+            Prefinamento(cmesh2, ndiv,pp);
+            {
+                std::ofstream out("cmesh2.txt");
+                cmesh2->Print(out);
+            }
+            
+            //malha multifisica
+            TPZVec<TPZCompMesh *> meshvec(2);
+            meshvec[0] = cmesh1;
+            meshvec[1] = cmesh2;
+            TPZMixedPoisson * mymaterial;
+            TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial,false);
+            
+            //std::cout << "NEquations " << mphysics->NEquations() << std::endl;
+            {
+                std::ofstream out("cmeshMPhysics.txt");
+                mphysics->Print(out);
+                
+                std::ofstream out2("gmeshMultifisic.txt");
+                mphysics->Reference()->Print(out2);
+            }
+            
+            //resolver problema
+            long averageband_Antes = ComputeAverageBandWidth(mphysics);
+            cout<<"\naverageband Antes de Reenumerar = " <<averageband_Antes<<std::endl;
+            TPZAnalysis anMP(mphysics);
+            long averageband_Depois = ComputeAverageBandWidth(mphysics);
+            cout<<"averageband Depois de Reenumerar = " <<averageband_Depois<<std::endl;
+            ResolverSistema(anMP, mphysics,0);
+            
+            
+            
             //pos-process
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             std::stringstream name;
@@ -389,15 +526,7 @@ int main(int argc, char *argv[])
             myerrorfile << "DOF Condensado = " << mphysics->NEquations() << "\n";
             TPZVec<REAL> erros(3);
             //myerrorfile<<"\n\nErro da simulacao multifisica  para o flux";
-            //saidamatriz<<"\nP = " <<pq<<";"<<std::endl;
-            //cmesh1->Solution().Print("SolfluxQP = ", saidamatriz,EMathematicaInput);
-            //saidamatriz<<"(*---*)"<<std::endl;
-            if(QuarterPoint){
-                ChangeIntegrationRule(cmesh1, 2*order,true);
-                ErroHDivNoElemento(cmesh1,myerrorfile, nodeAtOriginId);
-            }else{
-                ErrorHDiv(cmesh1,myerrorfile);
-            }
+            ErrorHDiv(cmesh1,myerrorfile);
             
             // myerrorfile<<"\n\nErro da simulacao multifisica  para a pressao";
             ErrorL2(cmesh2,myerrorfile);
@@ -998,7 +1127,7 @@ TPZCompMesh *CMeshFluxL2(TPZGeoMesh *gmesh, int pOrder, int nodeAtOriginId)
     //
     //                TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(ordksi);
     //                QPIntRule->SetCorner(in);
-    //                intel->SetCustomizedIntegrationRule(QPIntRule);
+    //                intel->SetIntegrationRule(QPIntRule);
     //
     //                found++;
     //                break;
@@ -1108,7 +1237,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     return cmesh;
 }
 
-TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZMixedPoisson * &mymaterial){
+TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZMixedPoisson * &mymaterial,bool QuarterPointRule){
     
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
@@ -1196,19 +1325,21 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     
     // create condensed elements
     // increase the NumElConnected of one pressure connects in order to prevent condensation
-    mphysics->ComputeNodElCon();
-    for (long icel=0; icel < mphysics->NElements(); icel++) {
-        TPZCompEl  * cel = mphysics->Element(icel);
-        if(!cel) continue;
-        int nc = cel->NConnects();
-        for (int ic=0; ic<nc; ic++) {
-            TPZConnect &c = cel->Connect(ic);
-            if (c.LagrangeMultiplier() > 0) {
-                c.IncrementElConnected();
-                break;
+    if(!QuarterPointRule){
+        mphysics->ComputeNodElCon();
+        for (long icel=0; icel < mphysics->NElements(); icel++) {
+            TPZCompEl  * cel = mphysics->Element(icel);
+            if(!cel) continue;
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                if (c.LagrangeMultiplier() > 0) {
+                    c.IncrementElConnected();
+                    break;
+                }
             }
+            new TPZCondensedCompEl(cel);
         }
-        new TPZCondensedCompEl(cel);
     }
     mphysics->CleanUpUnconnectedNodes();
     mphysics->ExpandSolution();
@@ -2214,7 +2345,7 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
         
         
         //        TPZIntQuad *QIntRule = new TPZIntQuad(100);
-        //        intel->SetCustomizedIntegrationRule(QIntRule);
+        //        intel->SetIntegrationRule(QIntRule);
         //        intel->GetIntegrationRule().SetType(2, 100);
         //        npoints = intel->GetIntegrationRule().NPoints();
         //        cel->CalcStiff(ek,ef);
@@ -2226,7 +2357,7 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
         
         TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(100);
         QPIntRule->SetCorner(cornerpoint);
-       // intel->SetCustomizedIntegrationRule(QPIntRule);
+        intel->SetIntegrationRule(QPIntRule);
         int npoints1 = intel->GetIntegrationRule().NPoints();
         cel->CalcStiff(ek,ef);
         RefMat2 = ek.fMat;
@@ -2241,10 +2372,10 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
             TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(order);
             QPIntRule->SetCorner(cornerpoint);
             
-           // intel->SetCustomizedIntegrationRule(QPIntRule);
+            intel->SetIntegrationRule(QPIntRule);
         }else{
             TPZIntQuad *QIntRule = new TPZIntQuad(1);
-           // intel->SetCustomizedIntegrationRule(QIntRule);
+            intel->SetIntegrationRule(QIntRule);
             intel->GetIntegrationRule().SetType(0, 1);
         }
         
@@ -2356,7 +2487,7 @@ void ChangeIntegrationRule(TPZCompMesh *cmesh, int porder, bool IsQPrule){
                 TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
                 TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(1);
                 QPIntRule->SetCorner(cornerpoint);
-               // intel->SetCustomizedIntegrationRule(QPIntRule);
+                intel->SetIntegrationRule(QPIntRule);
                 
                 TPZManVector<int,3> order(2, porder);
                 intel->GetIntegrationRule().SetOrder(order);
@@ -2365,7 +2496,7 @@ void ChangeIntegrationRule(TPZCompMesh *cmesh, int porder, bool IsQPrule){
             else{
                 TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
                 TPZIntQuad *GIntRule = new TPZIntQuad(1);
-                //intel->SetCustomizedIntegrationRule(GIntRule);
+                //intel->F(GIntRule);
                 intel->GetIntegrationRule().SetType(0, 1);
                 
                 TPZManVector<int,3> order(2, porder);

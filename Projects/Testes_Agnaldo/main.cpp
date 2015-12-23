@@ -176,10 +176,8 @@ int main(int argc, char *argv[])
         // geometric mesh (initial)
         //TPZGeoMesh * gmesh = mydata->GMesh(triang,Lx,Ly);
             
-            
-        
         TPZGeoMesh * gmesh = mydata->GMesh2(Lx,Ly,La);
-        mydata->RefiningNearLine(2, gmesh, 4);
+        mydata->RefiningNearLine(2, gmesh, 0);
         mydata->AjustarContorno(gmesh);
             
         {
@@ -211,43 +209,43 @@ int main(int argc, char *argv[])
 
         // Third computational mesh
         TPZCompMesh * cmesh3 = mydata->CMeshPressure(gmesh, pp,triang,false);
-//        ofstream arg4("cmesh3_inicial.txt");
-//        cmesh3->Print(arg4);
+        ofstream arg4("cmesh3_inicial.txt");
+        cmesh3->Print(arg4);
 
 
-        // Cleaning reference of the geometric mesh to cmesh1
-        gmesh->ResetReference();
-        cmesh1->LoadReferences();
-        TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,h,false);
-        cmesh1->AdjustBoundaryElements();
-        cmesh1->CleanUpUnconnectedNodes();
-//        ofstream arg5("cmesh1_final.txt");
-//        cmesh1->Print(arg5);
-
-
-        // Cleaning reference to cmesh2
-        gmesh->ResetReference();
-        cmesh2->LoadReferences();
-        TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h,false);
-        cmesh2->AdjustBoundaryElements();
-        cmesh2->CleanUpUnconnectedNodes();
-//        ofstream arg6("cmesh2_final.txt");
-//        cmesh2->Print(arg6);
-
-        // Cleaning reference to cmesh3
-        gmesh->ResetReference();
-        cmesh3->LoadReferences();
-        TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,h,true);
-
-        cmesh3->AdjustBoundaryElements();
-        cmesh3->CleanUpUnconnectedNodes();
-//        ofstream arg7("cmesh3_final.txt");
-//        cmesh3->Print(arg7);
+//        // Cleaning reference of the geometric mesh to cmesh1
+//        gmesh->ResetReference();
+//        cmesh1->LoadReferences();
+//        TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,h,false);
+//        cmesh1->AdjustBoundaryElements();
+//        cmesh1->CleanUpUnconnectedNodes();
+////        ofstream arg5("cmesh1_final.txt");
+////        cmesh1->Print(arg5);
+//
+//
+//        // Cleaning reference to cmesh2
+//        gmesh->ResetReference();
+//        cmesh2->LoadReferences();
+//        TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,h,false);
+//        cmesh2->AdjustBoundaryElements();
+//        cmesh2->CleanUpUnconnectedNodes();
+////        ofstream arg6("cmesh2_final.txt");
+////        cmesh2->Print(arg6);
+//
+//        // Cleaning reference to cmesh3
+//        gmesh->ResetReference();
+//        cmesh3->LoadReferences();
+//        TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,h,true);
+//
+//        cmesh3->AdjustBoundaryElements();
+//        cmesh3->CleanUpUnconnectedNodes();
+////        ofstream arg7("cmesh3_final.txt");
+////        cmesh3->Print(arg7);
 
 
         //	Set initial conditions for pressure
 
-        TPZAnalysis an3(cmesh3);
+        TPZAnalysis an3(cmesh3,false);
         mydata->SolveSist(an3, cmesh3);
         int nrs = an3.Solution().Rows();
         TPZVec<STATE> solini(nrs,pini);
@@ -255,7 +253,7 @@ int main(int argc, char *argv[])
         //    cmesh3->LoadSolution(solucao1);
 
         TPZCompMesh  * cmeshL2 = mydata->CMeshPressureL2(gmesh, pp, solini,triang);
-        TPZAnalysis anL2(cmeshL2);
+        TPZAnalysis anL2(cmeshL2,false);
         mydata->SolveSist(anL2, cmeshL2);
         //anL2.Solution().Print("sol");
         

@@ -706,6 +706,8 @@ TPZCompMesh *DadosMalhas::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, bool tria
 //    TPZMaterial * BCond4 = material->CreateBC(mat, fbcLeft,fdirichlet, val1, val2);
     
 	cmesh->SetAllCreateFunctionsDiscontinuous();
+//    cmesh->SetAllCreateFunctionsContinuous();
+//    cmesh->ApproxSpace().CreateDisconnectedElements(true);
     
 //    cmesh->InsertMaterialObject(BCond1);
 //    cmesh->InsertMaterialObject(BCond2);
@@ -732,6 +734,7 @@ TPZCompMesh *DadosMalhas::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, bool tria
     for(int i=0; i<nel; i++){
         TPZCompEl *cel = cmesh->ElementVec()[i];
         TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        if(!celdisc) continue;
         celdisc->SetConstC(1.);
         celdisc->SetCenterPoint(0, 0.);
         celdisc->SetCenterPoint(1, 0.);
