@@ -479,8 +479,8 @@ int main(int argc, char *argv[])
     GridFileName = dirname + "/Projects/TrabalhosLNCC15/";
 //    GridFileName += "TetrahedronMesh.dump";
 //    GridFileName += "TetrahedronMeshAdap.dump";
-    GridFileName += "TetrahedronMeshAdapCoarse.dump";
-//    GridFileName += "TetrahedronMeshAdapVeryCoarse.dump";
+//    GridFileName += "TetrahedronMeshAdapCoarse.dump";
+    GridFileName += "TetrahedronMeshAdapVeryCoarse.dump";
     
     
     int pini = 2;
@@ -497,7 +497,7 @@ int main(int argc, char *argv[])
         myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
             "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
         
-        for(int ndiv=1; ndiv<3; ndiv++){
+        for(int ndiv=1; ndiv<2; ndiv++){
             
             if(dim_problema==2){
                 gmesh = GMesh2D(fTriang);//malha geometrica
