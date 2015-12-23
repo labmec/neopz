@@ -444,7 +444,6 @@ bool HDivMaisMais = false;
 int main(int argc, char *argv[])
 {
     
-    // This code use piola contravariant mapping for nonlinear mappings
     HDivPiola = 0;
     bool hdivskeleton = true;
     if(HDivPiola != 0)
@@ -480,8 +479,8 @@ int main(int argc, char *argv[])
     GridFileName = dirname + "/Projects/TrabalhosLNCC15/";
 //    GridFileName += "TetrahedronMesh.dump";
 //    GridFileName += "TetrahedronMeshAdap.dump";
-//    GridFileName += "TetrahedronMeshAdapCoarse.dump";
-    GridFileName += "TetrahedronMeshAdapVeryCoarse.dump";
+    GridFileName += "TetrahedronMeshAdapCoarse.dump";
+//    GridFileName += "TetrahedronMeshAdapVeryCoarse.dump";
     
     
     int pini = 2;
@@ -498,7 +497,7 @@ int main(int argc, char *argv[])
         myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
             "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
         
-        for(int ndiv=1; ndiv<2; ndiv++){
+        for(int ndiv=1; ndiv<3; ndiv++){
             
             if(dim_problema==2){
                 gmesh = GMesh2D(fTriang);//malha geometrica
@@ -509,20 +508,12 @@ int main(int argc, char *argv[])
             else{
 //                gmesh = CreateOneCubo(ndiv);
 //                gmesh = CreateOneCuboWithTetraedrons(ndiv);
+                
                 gmesh = ReadGeoMesh(GridFileName);
-//                PrintGeoMesh(gmesh);
-                UniformRefineTetrahedrons(gmesh, ndiv);
+                UniformRefineTetrahedrons(gmesh, ndiv-1);
                 PrintGeoMesh(gmesh);
-//
             }
 
-
-//            {
-//                std::ofstream out2("gmesh.txt");
-//                gmesh->Print(out2);
-//                std::ofstream filemesh("MalhaGeometricaInicial.vtk");
-//                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filemesh, true);
-//            }
 
             long NDoF=0, NDoFCond=0;
             long nNzeros=0;
@@ -675,8 +666,8 @@ void UniformRefineTetrahedrons(TPZGeoMesh *gmesh, int nref){
         "4 4 6  9  8  3 "
         "4 4 4  9  6  5 "
         "4 4 5  8  6  9 "
-        "4 4 7  8  9  4 "
-        "4 4 4  7  5  8 ";
+        "4 4 7  8  9  5 "
+        "4 4 4  7  5  9 ";
         std::istringstream str(buf);
         refp3D = new TPZRefPattern(str);
         refp3D->GenerateSideRefPatterns();
