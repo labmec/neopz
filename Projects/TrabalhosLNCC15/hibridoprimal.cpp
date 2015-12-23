@@ -483,8 +483,8 @@ int main(int argc, char *argv[])
     GridFileName += "TetrahedronMeshAdapVeryCoarse.dump";
     
     
-    int pini = 2;
-    for(int p = pini; p<3; p++)
+    int pini = 1;
+    for(int p = pini; p<2; p++)
     {
         int pp = p-1; // Case 1 Pk  Pk-1
 //        int pp = p; // Case 2 P*k  Pk
@@ -497,7 +497,7 @@ int main(int argc, char *argv[])
         myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
             "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
         
-        for(int ndiv=1; ndiv<2; ndiv++){
+        for(int ndiv=1; ndiv<3; ndiv++){
             
             if(dim_problema==2){
                 gmesh = GMesh2D(fTriang);//malha geometrica
@@ -507,7 +507,7 @@ int main(int argc, char *argv[])
             }
             else{
 //                gmesh = CreateOneCubo(ndiv);
-//                gmesh = CreateOneCuboWithTetraedrons(ndiv);
+  //              gmesh = CreateOneCuboWithTetraedrons(ndiv);
                 
                 gmesh = ReadGeoMesh(GridFileName);
                 UniformRefineTetrahedrons(gmesh, ndiv-1);
@@ -597,7 +597,7 @@ int main(int argc, char *argv[])
 
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
 
-            if(ndiv>0  && p==2){
+            if(ndiv>0  && p==1){
                 TPZManVector<std::string,10> scalnames(2), vecnames(2);
                 scalnames[0] = "Pressure";
                 scalnames[1] = "ExactPressure";
@@ -2481,10 +2481,20 @@ TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh)
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     
+    if(pOrder<0)
+    {
+        DebugStop();
+    }
     
-    cmesh->SetAllCreateFunctionsContinuous();
-    cmesh->ApproxSpace().CreateDisconnectedElements(true);
-    //cmesh->SetAllCreateFunctionsDiscontinuous();
+    if(pOrder>0)
+    {
+        cmesh->SetAllCreateFunctionsContinuous();
+        cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    }
+    else
+    {
+        cmesh->SetAllCreateFunctionsDiscontinuous();
+    }
     
     //Ajuste da estrutura de dados computacional
     cmesh->AutoBuild();
