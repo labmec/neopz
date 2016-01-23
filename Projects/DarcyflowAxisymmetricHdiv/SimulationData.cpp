@@ -134,6 +134,9 @@ SimulationData::SimulationData()
     /** @brief Is a mesh with geometric progression */
     fIsMeshwithPGQ = false;
     
+    /** @brief Compute a variable K distribution */
+    fIsHeterogeneousQ = false;
+    
     /** @brief geometric progression ratio >= 1 */
     fpg_ratio = 1.0;
     

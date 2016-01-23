@@ -65,6 +65,9 @@ private:
     
     /** @brief Absolute permeability inverse */
     TPZFMatrix<REAL> fKabinv;
+    
+    /** @brief Absolute permeability vector */
+    TPZManVector< TPZFMatrix<REAL> > fKabVec;
    
 public:
     
@@ -174,11 +177,45 @@ public:
         
     }
     
+    /** @brief Compute the absolute Permeability - m2 */
+    TPZFMatrix<REAL> ComputeInvKabsolute(TPZFMatrix<REAL> &Kab)
+    {
+        TPZFMatrix<REAL> invK(2,2);
+        invK.Zero();
+        STATE detKab;
+        detKab = Kab(0,0)*Kab(1,1)-Kab(1,0)*Kab(0,1);
+        
+        if (fabs(detKab) <= 1.0*10-14) {
+            std::cout << " Kab Matrix doesn't have Inverse, det =  " << detKab << std::endl;
+            DebugStop();
+        }
+        
+        invK(0,0) = +1.0*Kab(1,1)/detKab;
+        invK(0,1) = -1.0*Kab(0,1)/detKab;
+        invK(1,0) = -1.0*Kab(1,0)/detKab;
+        invK(1,1) = +1.0*Kab(0,0)/detKab;
+        
+        return invK;
+        
+    }
+    
+    /** @brief set Absolute permeability vector */
+    void SetKvector (TPZManVector< TPZFMatrix<REAL> > KabVec) {fKabVec = KabVec; }
+    
+    /** @brief set Absolute permeability vector */
+    TPZManVector< TPZFMatrix<REAL> > GetKvector() {return fKabVec; }
+    
     /** @brief Get the absolute Permeability - m2 */
     TPZFMatrix<REAL> Kabsolute() {return fKab;}
     
     /** @brief Get the absolute Permeability inverse - 1/m2 */
     TPZFMatrix<REAL> KabsoluteInv() {return fKabinv;}
+
+    /** @brief Get the absolute Permeability - m2 */
+    TPZFMatrix<REAL> Kabsolute(TPZManVector<REAL> & x);
+    
+    /** @brief Get the absolute Permeability inverse - 1/m2 */
+    TPZFMatrix<REAL> KabsoluteInv(TPZManVector<REAL> & x);
     
     /** @brief Set the material indexes */
     void SetMatIDs(TPZVec<int> &matids) {fmaterialIds=matids;}

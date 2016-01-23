@@ -58,6 +58,9 @@ ReservoirData::ReservoirData()
     /** @brief absolute permeability inverse */
     fKabinv.Resize(2,2);
     fKabinv.Zero();
+    
+    /** @brief Absolute permeability vector */
+    fKabVec.Resize(0);
 	
 }
 
@@ -76,4 +79,22 @@ void ReservoirData::Porosity(REAL P, REAL &poros, REAL &dPorosDp)
     poros = fPhiref*(1.0+(fcrock*P-fcrock*fPref));
     dPorosDp = fPhiref*fcrock;
 }
+
+/** @brief Get the absolute Permeability - m2 */
+TPZFMatrix<REAL> Kabsolute(TPZManVector<REAL> & x){
+    
+    TPZFMatrix<REAL> k;
+    
+    return k;
+}
+
+/** @brief Get the absolute Permeability inverse - 1/m2 */
+TPZFMatrix<REAL> KabsoluteInv(TPZManVector<REAL> & x){
+    
+    TPZFMatrix<REAL> kinv;
+    
+    return kinv;
+    
+}
+
 

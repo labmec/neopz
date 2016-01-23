@@ -186,6 +186,7 @@ int TPZAxiSymmetricDarcyFlow::VariableIndex(const std::string &name) {
     if (!strcmp("f_alpha", name.c_str())) return 22;
     if (!strcmp("f_beta", name.c_str())) return 23;
     if (!strcmp("f_gamma", name.c_str())) return 24;
+    if (!strcmp("kappa", name.c_str())) return 25;
     std::cout  << " Var index not implemented " << std::endl;
     DebugStop();
     return 0;
@@ -243,6 +244,8 @@ int TPZAxiSymmetricDarcyFlow::NSolutionVariables(int var) {
             return 1; // Scalar
         case 24:
             return 1; // Scalar
+        case 25:
+            return 3; // Vector
         default:
         {
             std::cout  << " Var index not implemented " << std::endl;
@@ -338,8 +341,14 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
 
     REAL time = fSimulationData->GetTime();
     
+
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
     TPZFMatrix<STATE> G = fSimulationData->GetGravity();
+    
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavec[0].gelElId;
+        K = fReservoirdata->GetKvector()[gelid];
+    }
     
     REAL rock_phi;
     REAL drock_phidP;
@@ -531,6 +540,11 @@ void TPZAxiSymmetricDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int va
         {
             Solout[0] = f_gamma[0];
         }
+        case 25:
+        {
+            Solout[0] = K(0,0);
+            Solout[1] = K(1,1);
+        }
             break;
             break;
         default:
@@ -664,9 +678,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     x_spatial(2,0) = data.x[2];
     REAL r = Norm(x_spatial);
     
-     if (fSimulationData->IsAxisymmetricQ()) {
-         weight *= 2.0*M_PI*r;
-     }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
 //    this->ContributeInterfaceDarcy(data, datavecleft, datavecright, weight, ek, ef);
     
@@ -686,9 +700,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     x_spatial(2,0) = data.x[2];
     REAL r = Norm(x_spatial);
     
-     if (fSimulationData->IsAxisymmetricQ()) {
-         weight *= 2.0*M_PI*r;
-     }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
 //    this->ContributeInterfaceDarcy(data, datavecleft, datavecright, weight, ef);
     
@@ -707,9 +721,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     x_spatial(2,0) = data.x[2];
     REAL r = Norm(x_spatial);
     
-     if (fSimulationData->IsAxisymmetricQ()) {
-         weight *= 2.0*M_PI*r;
-     }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
         this->ContributeBCInterfaceAlpha(data, datavecleft, weight, ek, ef, bc);
@@ -730,9 +744,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     x_spatial(2,0) = data.x[2];
     REAL r = Norm(x_spatial);
     
-     if (fSimulationData->IsAxisymmetricQ()) {
-         weight *= 2.0*M_PI*r;
-     }
+//     if (fSimulationData->IsAxisymmetricQ()) {
+//         weight *= 2.0*M_PI*r;
+//     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
         this->ContributeBCInterfaceAlpha(data, datavecleft, weight, ef, bc);
@@ -829,6 +843,14 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<STATE> Gravity(2,1);
     TPZFMatrix<STATE> gm(2,1);
     TPZFMatrix<STATE> dgmdP(2,1);
+
+    TPZFMatrix<STATE> K;
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavec[0].gelElId;
+        K = fReservoirdata->GetKvector()[gelid];
+        KInverse = fReservoirdata->ComputeInvKabsolute(K);
+    }
+    
     
     Gravity = fSimulationData->GetGravity();
     
@@ -996,6 +1018,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<STATE> Oneoverlambda_Kinv_u(2,1);
     TPZFMatrix<STATE> Gravity(2,1);
     TPZFMatrix<STATE> gm(2,1);
+    
+    TPZFMatrix<STATE> K;
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavec[0].gelElId;
+        K = fReservoirdata->GetKvector()[gelid];
+        KInverse = fReservoirdata->ComputeInvKabsolute(K);
+    }
     
     Gravity = fSimulationData->GetGravity();
     
@@ -1476,6 +1505,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<STATE> gm(2,1);
     TPZFMatrix<STATE> dgmdS(2,1);
     
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavec[0].gelElId;
+        K = fReservoirdata->GetKvector()[gelid];
+        KInverse = fReservoirdata->ComputeInvKabsolute(K);
+    }
+    
     Gravity = fSimulationData->GetGravity();
     
     REAL phi, dphidP;
@@ -1684,6 +1719,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<STATE> Gravity(2,1);
     TPZFMatrix<STATE> gm(2,1);
     TPZFMatrix<STATE> dgmdP(2,1);
+    
+    TPZFMatrix<STATE> K;
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavec[0].gelElId;
+        K = fReservoirdata->GetKvector()[gelid];
+        KInverse = fReservoirdata->ComputeInvKabsolute(K);
+    }
     
     Gravity = fSimulationData->GetGravity();
     
@@ -3073,6 +3115,11 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation( TPZVec<TPZMaterialData>
     this->ComputeProperties(datavec, props);
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
     
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavec[0].gelElId;
+        K = fReservoirdata->GetKvector()[gelid];
+    }
+    
     TPZManVector<REAL> rho_alpha      = props[0];
     TPZManVector<REAL> rho_beta       = props[1];
     TPZManVector<REAL> lambda         = props[6];
@@ -3147,7 +3194,13 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     
     Gravity = fSimulationData->GetGravity();
     
-    TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
+    TPZFMatrix<STATE> KL = fReservoirdata->Kabsolute();
+    
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavecleft[0].gelElId;
+        KL = fReservoirdata->GetKvector()[gelid];
+    }
+    
     REAL ndotG = Gravity(0,0)*n[0] + Gravity(1,0)*n[1];
     
     
@@ -3165,8 +3218,8 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     rho_diff_L[2] = (rho_alpha_L[2] - rho_beta_L[2]);
     rho_diff_L[3] = (rho_alpha_L[3] - rho_beta_L[3]);
     
-    KGravityL(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
-    KGravityL(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+    KGravityL(0,0) = KL(0,0)*Gravity(0,0) + KL(0,1)*Gravity(1,0);
+    KGravityL(1,0) = KL(1,0)*Gravity(0,0) + KL(1,1)*Gravity(1,0);
     
     TPZManVector<REAL> fstrL(n_data,0.0);
     TPZManVector<REAL> fL(n_data,0.0);
@@ -3207,6 +3260,13 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     
     // Computing Gravitational segregational function on the right side
     
+    TPZFMatrix<STATE> KR = fReservoirdata->Kabsolute();
+    
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavecright[0].gelElId;
+        KR = fReservoirdata->GetKvector()[gelid];
+    }
+    
     TPZVec< TPZManVector<REAL>  > props_Right;
     this->ComputeProperties(datavecright, props_Right);
     
@@ -3220,8 +3280,8 @@ void TPZAxiSymmetricDarcyFlow::GravitationalSegregation(TPZMaterialData &data, T
     rho_diff_R[2] = (rho_alpha_R[2] - rho_beta_R[2]);
     rho_diff_R[3] = (rho_alpha_R[3] - rho_beta_R[3]);
     
-    KGravityR(0,0) = K(0,0)*Gravity(0,0) + K(0,1)*Gravity(1,0);
-    KGravityR(1,0) = K(1,0)*Gravity(0,0) + K(1,1)*Gravity(1,0);
+    KGravityR(0,0) = KR(0,0)*Gravity(0,0) + KR(0,1)*Gravity(1,0);
+    KGravityR(1,0) = KR(1,0)*Gravity(0,0) + KR(1,1)*Gravity(1,0);
     
     TPZManVector<REAL> fstrR(n_data,0.0);
     TPZManVector<REAL> fR(n_data,0.0);
@@ -3321,6 +3381,11 @@ void TPZAxiSymmetricDarcyFlow::CapillarySegregation(TPZVec<TPZMaterialData> &dat
     this->ComputeProperties(datavec, props);
     TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
     
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavec[0].gelElId;
+        K = fReservoirdata->GetKvector()[gelid];
+    }
+    
     TPZManVector<REAL> rho_alpha      = props[0];
     TPZManVector<REAL> rho_beta       = props[1];
     TPZManVector<REAL> lambda         = props[6];
@@ -3397,7 +3462,10 @@ void TPZAxiSymmetricDarcyFlow::CapillarySegregation(TPZMaterialData &data, TPZVe
     REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
     TPZFMatrix<STATE> GradSaxes_R = datavecright[Sablock].dsol[0];
-    TPZFMatrix<STATE> K = fReservoirdata->Kabsolute();
+    TPZFMatrix<STATE> KL = fReservoirdata->Kabsolute();
+    TPZFMatrix<STATE> KR = fReservoirdata->Kabsolute();
+    
+    
     
     CapillaryFluxes.Resize(2);
     fstar.Resize(2);
@@ -3406,6 +3474,10 @@ void TPZAxiSymmetricDarcyFlow::CapillarySegregation(TPZMaterialData &data, TPZVe
     int n_data = fnstate_vars + 2;
     TPZManVector<REAL> state_vars(n_data,0.0);
 
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavecleft[0].gelElId;
+        KL = fReservoirdata->GetKvector()[gelid];
+    }
 
     // Computing Gravitational segregational function on the left side
     // Returning needed relationships
@@ -3430,8 +3502,8 @@ void TPZAxiSymmetricDarcyFlow::CapillarySegregation(TPZMaterialData &data, TPZVe
     TPZManVector<REAL> fL(n_data,0.0);
     
     TPZManVector<REAL,3> KGradPc_L(2,0.0);
-    KGradPc_L[0] = K(0,0)*Grad_Pc_L[0] + K(0,1)*Grad_Pc_L[1];
-    KGradPc_L[1] = K(1,0)*Grad_Pc_L[0] + K(1,1)*Grad_Pc_L[1];
+    KGradPc_L[0] = KL(0,0)*Grad_Pc_L[0] + KL(0,1)*Grad_Pc_L[1];
+    KGradPc_L[1] = KL(1,0)*Grad_Pc_L[0] + KL(1,1)*Grad_Pc_L[1];
     
     REAL GradPc_Ldotn = Grad_Pc_L[0]*n[0] + Grad_Pc_L[1]*n[1];
     
@@ -3466,8 +3538,14 @@ void TPZAxiSymmetricDarcyFlow::CapillarySegregation(TPZMaterialData &data, TPZVe
     
     // Computing Gravitational segregational function on the right side
     
+    if (fSimulationData->IsHeterogeneousQ()) {
+        int gelid = datavecright[0].gelElId;
+        KR = fReservoirdata->GetKvector()[gelid];
+    }
+    
     TPZVec< TPZManVector<REAL>  > props_Right;
     this->ComputeProperties(datavecright, props_Right);
+    
     TPZManVector<REAL> lambda_R             = props_Right[6];
     TPZManVector<REAL> Pc_beta_alpha_R      = props_Right[9];
     
@@ -3487,8 +3565,8 @@ void TPZAxiSymmetricDarcyFlow::CapillarySegregation(TPZMaterialData &data, TPZVe
     TPZManVector<REAL> fR(n_data,0.0);
     
     TPZManVector<REAL,3> KGradPc_R(2,0.0);
-    KGradPc_R[0] = K(0,0)*Grad_Pc_R[0] + K(0,1)*Grad_Pc_R[1];
-    KGradPc_R[1] = K(1,0)*Grad_Pc_R[0] + K(1,1)*Grad_Pc_R[1];
+    KGradPc_R[0] = KR(0,0)*Grad_Pc_R[0] + KR(0,1)*Grad_Pc_R[1];
+    KGradPc_R[1] = KR(1,0)*Grad_Pc_R[0] + KR(1,1)*Grad_Pc_R[1];
     
     REAL GradPc_Rdotn = Grad_Pc_R[0]*n[0] + Grad_Pc_R[1]*n[1];
     

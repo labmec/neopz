@@ -183,6 +183,9 @@ private:
     /** @brief geometric progression ratio <= 1 */
     REAL fpg_ratio;
     
+    /** @brief Compute a variable K distribution */
+    bool fIsHeterogeneousQ;
+    
     
 public:
     
@@ -499,6 +502,12 @@ public:
     
     /** @brief Is a mesh with geometric progression */
     bool IsMeshwithPGQ() {return fIsMeshwithPGQ;}
+
+    /** @brief Set the use of heterogeneous k */
+    void SetHeterogeneousQ(bool pg) {this->fIsMeshwithPGQ = pg;}
+    
+    /** @brief Is a heterogeneous k */
+    bool IsHeterogeneousQ() {return fIsMeshwithPGQ;}
     
     /** @brief Set geometric progression ratio */
     void SetPGRatio(REAL ratio) {this->fpg_ratio = ratio;}

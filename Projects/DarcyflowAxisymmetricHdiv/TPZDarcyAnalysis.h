@@ -502,6 +502,11 @@ public:
     TPZGeoEl * GetVolElement(TPZGeoEl * gel);
     
     /**
+     * read the rasterized list of k values
+     */
+    void ReadRasterized();
+    
+    /**
      * Compute the afin transformation from origin to destination
      */
     TPZTransform Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl * gel_d, TPZGeoElSide & intermediate_side);
