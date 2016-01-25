@@ -61,6 +61,12 @@ ReservoirData::ReservoirData()
     
     /** @brief Absolute permeability vector */
     fKabVec.Resize(0);
+    
+    /** @brief Definition of the initial boundaries */
+    fInitial_BCs.Resize(0);
+    
+    /** @brief Definition of the boundaries */
+    fBCs.Resize(0);
 	
 }
 
@@ -96,5 +102,7 @@ TPZFMatrix<REAL> KabsoluteInv(TPZManVector<REAL> & x){
     return kinv;
     
 }
+
+
 
 

@@ -60,6 +60,12 @@ private:
     /** @brief Is GID geometry - */
     bool fIsGIDGeometry;
     
+    /** @brief Definition of the initial boundaries */
+    TPZStack< TPZVec<REAL> > fInitial_BCs;
+    
+    /** @brief Definition of the boundaries */
+    TPZStack< TPZVec<REAL> > fBCs;
+    
     /** @brief Absolute permeability */
     TPZFMatrix<REAL> fKab;
     
@@ -222,6 +228,33 @@ public:
     
     /** @brief Get the material indexes */
     TPZVec<int> GetMatIDs() {return fmaterialIds;}
+    
+    /** @brief Set initial bcs and bcs */
+    void SetBC(TPZStack< TPZVec<REAL> > bcini,TPZStack< TPZVec<REAL> > bc){
+        
+        if (bc.size() ==0  && bcini.size() == 0) {
+            std::cout << "There is not boundaries, you give me = " << bc.size() << std::endl;
+            DebugStop();
+        }
+        
+        if (bc[0].size() !=4  && bcini[0].size() != 4) {
+            std::cout << "The number of parameter must to be equal 4, you give me = " << bc.size() << std::endl;
+            DebugStop();
+        }
+        
+        fInitial_BCs = bcini;
+        fBCs = bc;
+    }
+    
+    /** @brief Get initial bcs */
+    TPZStack< TPZVec<REAL> > GetInitialBC(){
+        return fInitial_BCs;
+    }
+    
+    /** @brief Get bcs */
+    TPZStack< TPZVec<REAL> > GetBC(){
+        return fBCs;
+    }
     
 };
 

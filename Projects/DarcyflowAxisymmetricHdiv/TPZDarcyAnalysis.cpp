@@ -451,10 +451,7 @@ void TPZDarcyAnalysis::RunAnalysis()
     //  Reading mesh
     std::string GridFileName;
     GridFileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-    GridFileName += "SingleLayer.dump";
-    //GridFileName += "MixLayer.dump";
-    //GridFileName += "BatatacoarseQ.dump";
-    //GridFileName += "QUAD4.dump";
+    GridFileName += "SimpleModel.dump";
     
     if(fLayers[0]->GetIsGIDGeometry())
     {
@@ -476,7 +473,7 @@ void TPZDarcyAnalysis::RunAnalysis()
     this->UniformRefinement(fSimulationData->GetHrefinement());
     
     // Not refine  for read properties map
-    this->ReadRasterized();
+//    this->ReadRasterized();
 
 //    int hcont = 1;
 //    std::set<int> matidstoRef;
@@ -547,6 +544,11 @@ void TPZDarcyAnalysis::RunAnalysis()
  * read the rasterized list of k values
  */
 void TPZDarcyAnalysis::ReadRasterized(){
+    
+    if (fLayers.size() != 1) {
+        std::cout << " It works for a single hydraulic unit and a given rasterized list of k values. " << std::endl;
+        DebugStop();
+    }
     
     int ilayer = 0;
     REAL kappa[465] = {0.2627313748963993,0.5458605764803388,0.715765724284004,0.8650888663781195,\
@@ -762,6 +764,12 @@ void TPZDarcyAnalysis::CreateInterfaces()
         return;
     }
     
+    if(fLayers.size() > 1){
+      fgmesh->AddInterfaceMaterial(1,2, 1);
+      fgmesh->AddInterfaceMaterial(2,1, 1);
+      fgmesh->BuildConnectivity();
+    }
+    
     fgmesh->ResetReference();
     fcmeshinitialdarcy->LoadReferences();
     
@@ -838,12 +846,10 @@ void TPZDarcyAnalysis::PrintCmesh(){
     
     
 #ifdef PZDEBUG
-#ifdef LOG4CXX
-    
+
     std::ofstream out("ComputationalMesh.txt");
     fcmesh->Print(out);
     
-#endif
 #endif
     
 }
@@ -1204,6 +1210,11 @@ void TPZDarcyAnalysis::IntegrateFluxPError(TPZManVector<REAL> & l2_norm_flux,TPZ
 }
 
 void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
+    
+    if (fLayers.size() != 1) {
+        std::cout << " It works for a single hydraulic unit." << std::endl;
+        DebugStop();
+    }
     
     int mat_id = 5;
     int int_order = 5;
@@ -1666,87 +1677,70 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixedInitial()
     
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
-    
     int dim = 2;
-    int ilayer = 0;
-    int RockId = fLayers[ilayer]->GetMatIDs()[0];
-    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
-    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
-    int topId = fLayers[ilayer]->GetMatIDs()[3];
-    int leftId = fLayers[ilayer]->GetMatIDs()[4];
+    int n_hydraulic_units = fLayers.size();
+    std::set<int> set;
     
-    
-    
-    // Material medio poroso
-    TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
-    mat->SetSimulationData(fSimulationData);
-    mat->SetReservoirData(fLayers[ilayer]);
-    mat->SetPetroPhysicsData(fRockPetroPhysic[ilayer]);
-    mat->SetFluidAlpha(falpha_fluid);
-    mat->SetFluidBeta(fbeta_fluid);
-    mat->SetFluidGamma(fgamma_fluid);
-    int nvars = 2 + fSimulationData->GetsystemType().size() - 1;
-    mat->SetNvars(nvars);
-    cmesh->InsertMaterialObject(mat);
-    
-    
-    // Rigth hand side function
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
-    TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(20);
-    forcef = dum;
-//    mat->SetTimeDependentForcingFunction(forcef);
-    
-    // Setting up linear tracer solution
-      TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
-//    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
-    TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
-    mat->SetTimeDependentFunctionExact(fLTracer);
-    
-    TPZManVector<REAL,4> Bottom     = fSimulationData->GetBottomBCini();
-    TPZManVector<REAL,4> Right      = fSimulationData->GetRightBCini();
-    TPZManVector<REAL,4> Top        = fSimulationData->GetTopBCini();
-    TPZManVector<REAL,4> Left       = fSimulationData->GetLeftBCini();
-    
+    for (int ilayer = 0; ilayer < n_hydraulic_units; ilayer++) {
+        
+        int RockId = fLayers[ilayer]->GetMatIDs()[0]; // Volumetric material
+        set.insert(RockId);
+        
+        // Material medio poroso
+        TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
+        mat->SetSimulationData(fSimulationData);
+        mat->SetReservoirData(fLayers[ilayer]);
+        mat->SetPetroPhysicsData(fRockPetroPhysic[0]);
+        mat->SetFluidAlpha(falpha_fluid);
+        mat->SetFluidBeta(fbeta_fluid);
+        mat->SetFluidGamma(fgamma_fluid);
+        int nvars = 2 + fSimulationData->GetsystemType().size() - 1;
+        mat->SetNvars(nvars);
+        cmesh->InsertMaterialObject(mat);
+        
+        
+        // Rigth hand side function
+        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
+        TPZAutoPointer<TPZFunction<STATE> > forcef;
+        dum->SetPolynomialOrder(20);
+        forcef = dum;
+        //    mat->SetTimeDependentForcingFunction(forcef);
+        
+        // Setting up linear tracer solution
+        TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(LinearTracer);
+        //    TPZDummyFunction<STATE> *Ltracer = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+        TPZAutoPointer<TPZFunction<STATE> > fLTracer = Ltracer;
+        mat->SetTimeDependentFunctionExact(fLTracer);
+        
+        TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
+        TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
+        P_hydrostatic_ptr = P_hydrostatic;
+        mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
+        
+        int n_boundaries = fLayers[ilayer]->GetInitialBC().size();
+        TPZManVector<REAL,4> ibctype;
+        
+        for (int ibc = 0; ibc < n_boundaries; ibc++) {
+            ibctype  = fLayers[ilayer]->GetInitialBC()[ibc];
+            
+            int BcId = fLayers[ilayer]->GetMatIDs()[ibc+1];
+            set.insert(BcId);
+            
+            // Bc
+            val2(0,0) = ibctype[1];
+            val2(1,0) = ibctype[2];
+            val2(2,0) = ibctype[3];
+            TPZBndCond * bc_condition = mat->CreateBC(mat, BcId, int(ibctype[0]), val1, val2);
+            cmesh->InsertMaterialObject(bc_condition);
+        }
+        
 
-    TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
-    TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
-    P_hydrostatic_ptr = P_hydrostatic;
-    mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
-    
-    // Bc Bottom
-    val2(0,0) = Bottom[1];
-    val2(1,0) = Bottom[2];
-    val2(2,0) = Bottom[3];
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, int(Bottom[0]), val1, val2);
-
-    // Bc Right
-    val2(0,0) = Right[1];
-    val2(1,0) = Right[2];
-    val2(2,0) = Right[3];
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, int(Right[0]), val1, val2);
-    
-    // Bc Top
-    val2(0,0) = Top[1];
-    val2(1,0) = Top[2];
-    val2(2,0) = Top[3];
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, int(Top[0]), val1, val2);
-    
-    // Bc Left
-    val2(0,0) = Left[1];
-    val2(1,0) = Left[2];
-    val2(2,0) = Left[3];
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, int(Left[0]), val1, val2);
-    
-    cmesh->InsertMaterialObject(bcBottom);
-    cmesh->InsertMaterialObject(bcRight);
-    cmesh->InsertMaterialObject(bcTop);
-    cmesh->InsertMaterialObject(bcLeft);
+    }
     
     cmesh->SetDimModel(dim);
     cmesh->SetAllCreateFunctionsMultiphysicElem();
     
-    cmesh->AutoBuild();
+    cmesh->AutoBuild(set);
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
@@ -1760,89 +1754,70 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
     
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
-    
     int dim = 2;
-    int ilayer = 0;
-    int RockId = fLayers[ilayer]->GetMatIDs()[0];
-    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
-    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
-    int topId = fLayers[ilayer]->GetMatIDs()[3];
-    int leftId = fLayers[ilayer]->GetMatIDs()[4];
+    int n_hydraulic_units = fLayers.size();
+    std::set<int> set;
     
-    
-    
-    // Material medio poroso
-    TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
-    mat->SetSimulationData(fSimulationData);
-    mat->SetReservoirData(fLayers[ilayer]);
-    mat->SetPetroPhysicsData(fRockPetroPhysic[ilayer]);
-    mat->SetFluidAlpha(falpha_fluid);
-    mat->SetFluidBeta(fbeta_fluid);
-    mat->SetFluidGamma(fgamma_fluid);
-    int nvars = 2 + fSimulationData->GetsystemType().size() - 1;
-    mat->SetNvars(nvars);
-    cmesh->InsertMaterialObject(mat);
-    
-    
-    // Rigth hand side function
-    TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
-    TPZAutoPointer<TPZFunction<STATE> > forcef;
-    dum->SetPolynomialOrder(20);
-    forcef = dum;
-    mat->SetTimeDependentForcingFunction(forcef);
-    
-    // Setting up linear tracer solution
-//    TPZDummyFunction<STATE> *Load_function= new TPZDummyFunction<STATE>(Cylindrical_Elliptic);
-//    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(Dupuit_Thiem);
-//    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(LinearTracer);
-    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
-    TPZAutoPointer<TPZFunction<STATE> > fLoad_function = Load_function;
-    mat->SetTimeDependentFunctionExact(fLoad_function);
-    
-    TPZManVector<REAL,4> Bottom     = fSimulationData->GetBottomBC();
-    TPZManVector<REAL,4> Right      = fSimulationData->GetRightBC();
-    TPZManVector<REAL,4> Top        = fSimulationData->GetTopBC();
-    TPZManVector<REAL,4> Left       = fSimulationData->GetLeftBC();
-    
-    
-    TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
-    TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
-    P_hydrostatic_ptr = P_hydrostatic;
-    mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
-    
-    // Bc Bottom
-    val2(0,0) = Bottom[1];
-    val2(1,0) = Bottom[2];
-    val2(2,0) = Bottom[3];
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, int(Bottom[0]), val1, val2);
-    
-    // Bc Right
-    val2(0,0) = Right[1];
-    val2(1,0) = Right[2];
-    val2(2,0) = Right[3];
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, int(Right[0]), val1, val2);
-    
-    // Bc Top
-    val2(0,0) = Top[1];
-    val2(1,0) = Top[2];
-    val2(2,0) = Top[3];
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, int(Top[0]), val1, val2);
-    
-    // Bc Left
-    val2(0,0) = Left[1];
-    val2(1,0) = Left[2];
-    val2(2,0) = Left[3];
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, int(Left[0]), val1, val2);
-    
-    cmesh->InsertMaterialObject(bcBottom);
-    cmesh->InsertMaterialObject(bcRight);
-    cmesh->InsertMaterialObject(bcTop);
-    cmesh->InsertMaterialObject(bcLeft);
+    for (int ilayer = 0; ilayer < n_hydraulic_units; ilayer++) {
+        
+        int RockId = fLayers[ilayer]->GetMatIDs()[0]; // Volumetric material
+        set.insert(RockId);
+        
+        // Material medio poroso
+        TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
+        mat->SetSimulationData(fSimulationData);
+        mat->SetReservoirData(fLayers[ilayer]);
+        mat->SetPetroPhysicsData(fRockPetroPhysic[0]);
+        mat->SetFluidAlpha(falpha_fluid);
+        mat->SetFluidBeta(fbeta_fluid);
+        mat->SetFluidGamma(fgamma_fluid);
+        int nvars = 2 + fSimulationData->GetsystemType().size() - 1;
+        mat->SetNvars(nvars);
+        cmesh->InsertMaterialObject(mat);
+        
+        
+        // Rigth hand side function
+        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Ffunction);
+        TPZAutoPointer<TPZFunction<STATE> > forcef;
+        dum->SetPolynomialOrder(20);
+        forcef = dum;
+        mat->SetTimeDependentForcingFunction(forcef);
+        
+        // Setting up linear tracer solution
+    //    TPZDummyFunction<STATE> *Load_function= new TPZDummyFunction<STATE>(Cylindrical_Elliptic);
+    //    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(Dupuit_Thiem);
+    //    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(LinearTracer);
+        TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+        TPZAutoPointer<TPZFunction<STATE> > fLoad_function = Load_function;
+        mat->SetTimeDependentFunctionExact(fLoad_function);
+        
+        TPZDummyFunction<STATE> * P_hydrostatic = new TPZDummyFunction<STATE>(P_Hydrostatic);
+        TPZAutoPointer<TPZFunction<STATE> > P_hydrostatic_ptr;
+        P_hydrostatic_ptr = P_hydrostatic;
+        mat->SetTimedependentBCForcingFunction(P_hydrostatic_ptr);
+        
+        int n_boundaries = fLayers[ilayer]->GetBC().size();
+        TPZManVector<REAL,4> ibctype;
+        
+        for (int ibc = 0; ibc < n_boundaries; ibc++) {
+            ibctype  = fLayers[ilayer]->GetBC()[ibc];
+            
+            int BcId = fLayers[ilayer]->GetMatIDs()[ibc+1];
+            set.insert(BcId);
+            
+            // Bc
+            val2(0,0) = ibctype[1];
+            val2(1,0) = ibctype[2];
+            val2(2,0) = ibctype[3];
+            TPZBndCond * bc_condition = mat->CreateBC(mat, BcId, int(ibctype[0]), val1, val2);
+            cmesh->InsertMaterialObject(bc_condition);
+        }
+    }
     
     cmesh->SetDimModel(dim);
     cmesh->SetAllCreateFunctionsMultiphysicElem();
     
-    cmesh->AutoBuild();
+    cmesh->AutoBuild(set);
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
@@ -1898,34 +1873,36 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
     
-    int ilayer = 0;
+    int n_hydraulic_units = fLayers.size();
+    std::set<int> set;
     
+    for (int ilayer = 0; ilayer < n_hydraulic_units; ilayer++) {
+        
+        int RockId = fLayers[ilayer]->GetMatIDs()[0]; // Volumetric material
+        set.insert(RockId);
+        
+        // Material medio poroso
+        TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
+        cmesh->InsertMaterialObject(mat);
+        
+        int n_boundaries = fLayers[ilayer]->GetBC().size();
+        TPZManVector<REAL,4> ibctype;
+        
+        for (int ibc = 0; ibc < n_boundaries; ibc++) {
+            ibctype  = fLayers[ilayer]->GetBC()[ibc];
+            
+            int BcId = fLayers[ilayer]->GetMatIDs()[ibc+1];
+            set.insert(BcId);
+            
+            // Bc
+            val2(0,0) = ibctype[1];
+            val2(1,0) = ibctype[2];
+            val2(2,0) = ibctype[3];
+            TPZBndCond * bc_condition = mat->CreateBC(mat, BcId, int(ibctype[0]), val1, val2);
+            cmesh->InsertMaterialObject(bc_condition);
+        }
+    }
     
-    int RockId = fLayers[ilayer]->GetMatIDs()[0];
-    
-    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
-    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
-    int topId = fLayers[ilayer]->GetMatIDs()[3];
-    int leftId = fLayers[ilayer]->GetMatIDs()[4];
-    
-    TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
-    cmesh->InsertMaterialObject(mat);
-    
-    // Bc Bottom
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcBottom);
-    
-    // Bc Right
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
-    cmesh->InsertMaterialObject(bcRight);
-    
-    // Bc Top
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcTop);
-    
-    // Bc Left
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcLeft);
     
     // Setando Hdiv
     cmesh->SetDimModel(dim);
@@ -1933,7 +1910,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
     cmesh->SetAllCreateFunctionsHDiv();
     
     
-    cmesh->AutoBuild();
+    cmesh->AutoBuild(set);
     
     
 #ifdef PZDEBUG
@@ -1954,34 +1931,20 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     
     int dim = fgmesh->Dimension();
     
+    int n_hydraulic_units = fLayers.size();
+    std::set<int> set;
     
-    int ilayer = 0;
-    int RockId = fLayers[ilayer]->GetMatIDs()[0];
-//    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
-//    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
-//    int topId = fLayers[ilayer]->GetMatIDs()[3];
-//    int leftId = fLayers[ilayer]->GetMatIDs()[4];
+    for (int ilayer = 0; ilayer < n_hydraulic_units; ilayer++) {
+        
+        int RockId = fLayers[ilayer]->GetMatIDs()[0]; // Volumetric material
+        set.insert(RockId);
+        
+        // Material medio poroso
+        TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
+        cmesh->InsertMaterialObject(mat);
     
+    }
     
-    
-    TPZMatPoisson3d * mat = new TPZMatPoisson3d(RockId,dim);
-    cmesh->InsertMaterialObject(mat);
-    
-    //    // Bc Bottom
-    //    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
-    //    cmesh->InsertMaterialObject(bcBottom);
-    //
-    //    // Bc Right
-    //    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
-    //    cmesh->InsertMaterialObject(bcRight);
-    //
-    //    // Bc Top
-    //    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
-    //    cmesh->InsertMaterialObject(bcTop);
-    //
-    //    // Bc Left
-    //    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
-    //    cmesh->InsertMaterialObject(bcLeft);
     
     // Setando L2
     cmesh->SetDimModel(dim);
@@ -1989,8 +1952,7 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     
     cmesh->SetAllCreateFunctionsContinuous();
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
-    //    cmesh->SetAllCreateFunctionsDiscontinuous();
-    cmesh->AutoBuild();
+    cmesh->AutoBuild(set);
     
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
@@ -2015,50 +1977,55 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSw(int Sworder)
 {
     
     int dim = fgmesh->Dimension();
-    int ilayer = 0;
-    int RockId = fLayers[ilayer]->GetMatIDs()[0];
-    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
-    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
-    int topId = fLayers[ilayer]->GetMatIDs()[3];
-    int leftId = fLayers[ilayer]->GetMatIDs()[4];
-    
-    const int typeFlux = 0, typePressure = 1;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
     
-    TPZMatPoisson3d * mat = new TPZMatPoisson3d(RockId,dim);
-    cmesh->InsertMaterialObject(mat);
+    int n_hydraulic_units = fLayers.size();
+    std::set<int> set;
     
-    // Bc Bottom
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcBottom);
+    for (int ilayer = 0; ilayer < n_hydraulic_units; ilayer++) {
+        
+        int RockId = fLayers[ilayer]->GetMatIDs()[0]; // Volumetric material
+        set.insert(RockId);
+        
+        // Material medio poroso
+        TPZMatPoisson3d * mat = new TPZMatPoisson3d(RockId,dim);
+        cmesh->InsertMaterialObject(mat);
+        
+        // Void material
+        int matIdL2Proj = fSimulationData->fMatL2;
+        TPZVec<STATE> sol(1,0.);
+        TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,mat->NStateVariables(),sol);
+        cmesh->InsertMaterialObject(matl2proj);
+        
+        int n_boundaries = fLayers[ilayer]->GetBC().size();
+        TPZManVector<REAL,4> ibctype;
+        
+        for (int ibc = 0; ibc < n_boundaries; ibc++) {
+            ibctype  = fLayers[ilayer]->GetBC()[ibc];
+            
+            int BcId = fLayers[ilayer]->GetMatIDs()[ibc+1];
+            set.insert(BcId);
+            
+            // Bc
+            val2(0,0) = ibctype[1];
+            val2(1,0) = ibctype[2];
+            val2(2,0) = ibctype[3];
+            TPZBndCond * bc_condition = mat->CreateBC(mat, BcId, int(ibctype[0]), val1, val2);
+            cmesh->InsertMaterialObject(bc_condition);
+        }
+    }
     
-    // Bc Right
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
-    cmesh->InsertMaterialObject(bcRight);
-    
-    // Bc Top
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcTop);
-    
-    // Bc Left
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcLeft);
-    
-    // Void material
-    int matIdL2Proj = fSimulationData->fMatL2;
-    TPZVec<STATE> sol(1,0.);
-    TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,mat->NStateVariables(),sol);
-    cmesh->InsertMaterialObject(matl2proj);
+
     
     // Setando L2
     cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(Sworder);
     
     cmesh->SetAllCreateFunctionsDiscontinuous();
-    cmesh->AutoBuild();
+    cmesh->AutoBuild(set);
     
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
@@ -2077,50 +2044,53 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSo(int Soorder)
 {
     
     int dim = fgmesh->Dimension();
-    int ilayer = 0;
-    int RockId = fLayers[ilayer]->GetMatIDs()[0];
-    int bottomId = fLayers[ilayer]->GetMatIDs()[1];
-    int rigthId = fLayers[ilayer]->GetMatIDs()[2];
-    int topId = fLayers[ilayer]->GetMatIDs()[3];
-    int leftId = fLayers[ilayer]->GetMatIDs()[4];
-    
-    const int typeFlux = 0, typePressure = 1;
     TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
     
     // Malha computacional
     TPZCompMesh *cmesh = new TPZCompMesh(fgmesh);
     
-    TPZMatPoisson3d * mat = new TPZMatPoisson3d(RockId,dim);
-    cmesh->InsertMaterialObject(mat);
+    int n_hydraulic_units = fLayers.size();
+    std::set<int> set;
     
-    // Bc Bottom
-    TPZBndCond * bcBottom = mat->CreateBC(mat, bottomId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcBottom);
-    
-    // Bc Right
-    TPZBndCond * bcRight = mat->CreateBC(mat, rigthId, typePressure, val1, val2);
-    cmesh->InsertMaterialObject(bcRight);
-    
-    // Bc Top
-    TPZBndCond * bcTop = mat->CreateBC(mat, topId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcTop);
-    
-    // Bc Left
-    TPZBndCond * bcLeft = mat->CreateBC(mat, leftId, typeFlux, val1, val2);
-    cmesh->InsertMaterialObject(bcLeft);
-    
-    // Void material
-    int matIdL2Proj = fSimulationData->fMatL2;
-    TPZVec<STATE> sol(1,0.);
-    TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,mat->NStateVariables(),sol);
-    cmesh->InsertMaterialObject(matl2proj);
+    for (int ilayer = 0; ilayer < n_hydraulic_units; ilayer++) {
+        
+        int RockId = fLayers[ilayer]->GetMatIDs()[0]; // Volumetric material
+        set.insert(RockId);
+        
+        // Material medio poroso
+        TPZAxiSymmetricDarcyFlow * mat = new TPZAxiSymmetricDarcyFlow(RockId);
+        cmesh->InsertMaterialObject(mat);
+        
+        // Void material
+        int matIdL2Proj = fSimulationData->fMatL2;
+        TPZVec<STATE> sol(1,0.);
+        TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,mat->NStateVariables(),sol);
+        cmesh->InsertMaterialObject(matl2proj);
+        
+        int n_boundaries = fLayers[ilayer]->GetBC().size();
+        TPZManVector<REAL,4> ibctype;
+        
+        for (int ibc = 0; ibc < n_boundaries; ibc++) {
+            ibctype  = fLayers[ilayer]->GetBC()[ibc];
+            
+            int BcId = fLayers[ilayer]->GetMatIDs()[ibc+1];
+            set.insert(BcId);
+            
+            // Bc
+            val2(0,0) = ibctype[1];
+            val2(1,0) = ibctype[2];
+            val2(2,0) = ibctype[3];
+            TPZBndCond * bc_condition = mat->CreateBC(mat, BcId, int(ibctype[0]), val1, val2);
+            cmesh->InsertMaterialObject(bc_condition);
+        }
+    }
     
     // Setando L2
     cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(Soorder);
     
     cmesh->SetAllCreateFunctionsDiscontinuous();
-    cmesh->AutoBuild();
+    cmesh->AutoBuild(set);
     
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
@@ -2140,12 +2110,16 @@ void TPZDarcyAnalysis::ReadGeoMesh(std::string GridFileName)
     TPZReadGIDGrid GeometryInfo;
     GeometryInfo.SetfDimensionlessL(1.0);
     fgmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
-    fgmesh->SetDimension(3);
+    fgmesh->SetDimension(2);
 }
 
 void TPZDarcyAnalysis::CreatedGeoMesh()
 {
     
+    if (fLayers.size() != 1) {
+        std::cout << " It works for a single hydraulic unit." << std::endl;
+        DebugStop();
+    }
     
     long Qnodes = 4;
     int ilayer = 0;
@@ -2579,8 +2553,8 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     scalnames.Push("Rhs");
     scalnames.Push("div_u");
     
-    scalnames.Push("Exact_S");
-    vecnames.Push("Exact_GradS");
+//    scalnames.Push("Exact_S");
+//    vecnames.Push("Exact_GradS");
     
     
     if (fSimulationData->IsOnePhaseQ()) {
@@ -2990,7 +2964,6 @@ void TPZDarcyAnalysis::SolveProjection(TPZAnalysis *an, TPZCompMesh *Cmesh)
     an->SetStructuralMatrix(full);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
-    //step.SetDirect(ELU);
     an->SetSolver(step);
     an->Run();
     
@@ -3001,15 +2974,25 @@ TPZCompMesh * TPZDarcyAnalysis::L2ProjectionCmesh(TPZVec<STATE> &solini)
 {
     /// criar materiais
     int dim = 2;
-    TPZL2Projection *material;
-    material = new TPZL2Projection(1, dim, 1, solini, fSimulationData->Getsorder());
-    
+
     TPZCompMesh * cmesh = new TPZCompMesh(this->fgmesh);
-    cmesh->SetDimModel(dim);
-    TPZMaterial * mat(material);
-    cmesh->InsertMaterialObject(mat);
-    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialS_alpha);
-    material->SetForcingFunction(forcef);
+    
+    int n_hydraulic_units = fLayers.size();
+    
+    for (int ilayer = 0; ilayer < n_hydraulic_units; ilayer++) {
+        
+        int RockId = fLayers[ilayer]->GetMatIDs()[0]; // Volumetric material
+        
+        // Material medio poroso
+        TPZL2Projection *material = new TPZL2Projection(RockId, dim, 1, solini, fSimulationData->Getsorder());
+        cmesh->SetDimModel(dim);
+        TPZMaterial * mat(material);
+        TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(InitialS_alpha);
+        material->SetForcingFunction(forcef);
+        cmesh->InsertMaterialObject(mat);
+    }
+    
+
     cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->SetDefaultOrder(fSimulationData->Getsorder());
     cmesh->SetDimModel(dim);

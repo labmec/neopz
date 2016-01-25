@@ -1634,7 +1634,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
             
         }
         
-        for (int jp = 0; jp < nphiSaL2; jp++)
+        for (int jp = 0; jp < nphiPL2; jp++)
         {
             ek(isw  + iniSa, jp  + iniP ) += 1.0 * weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[2] * Sa_phiPL2(isw,0)
                                                              - f_alpha[2]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
