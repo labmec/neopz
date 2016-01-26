@@ -98,12 +98,6 @@ const int bcneumann = 1;
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads);
 
 
-
-///Metodos para o ArcTangente
-
-
-//solucoes exatas
-
 bool Triang = false;
 int main(/*int argc, char *argv[]*/)
 {
@@ -114,17 +108,21 @@ int main(/*int argc, char *argv[]*/)
     
     
     int p =1;
-    int ndiv = 3;
+    int ndiv = 1;
     TPZGeoMesh *gmesh = GMesh(false, 1, 1);
     UniformRefine( gmesh,ndiv);
     
-    TPZCompMesh *cmesh1 = MeshH1(gmesh, p, 2,true);
-    ofstream filemesh1("malhaY.txt");
-    cmesh1->Print(filemesh1);
-    TPZCompMesh *cmesh2 = MeshL2(gmesh, p, 2);
+    ofstream filegmesh1("gmes.txt");
+    gmesh->Print(filegmesh1);
+    
+    
+    TPZCompMesh *cmesh1 = MeshH1(gmesh, p, 2,true);//malha para y(estado)
+        ofstream filemesh1("malhaY.txt");
+        cmesh1->Print(filemesh1);
+    TPZCompMesh *cmesh2 = MeshL2(gmesh, p, 2);//malha para controle(u)
     ofstream filemesh2("malhaU.txt");
     cmesh2->Print(filemesh2);
-    TPZCompMesh *cmesh3 = MeshH1(gmesh, p, 2,false);
+    TPZCompMesh *cmesh3 = MeshH1(gmesh, p, 2,false);//malha para mult.lagrange(p)
     ofstream filemesh3("malhaP.txt");
     cmesh3->Print(filemesh3);
     
@@ -152,8 +150,12 @@ int main(/*int argc, char *argv[]*/)
     analysis.Assemble();
     analysis.Solve();
     
+    std::ofstream out("SolOpt.txt");
+    analysis.Solution().Print("Solucao",out);
+
     
-    //Post-Process
+    
+    //Post-Process
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     
     TPZManVector<std::string,10> scalnames(4), vecnames(0);
@@ -174,14 +176,14 @@ int main(/*int argc, char *argv[]*/)
     //    VisualMatrixVTK(vismat,"matrixstruct.vtk");
     
     
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp){
-    disp.Redim(2,1);
-    double x = pt[0];
-    double y = pt[1];
+	disp.Redim(2,1);
+//	double x = pt[0];
+  //  double y = pt[1];
     res[0]= 0.;
 }
 
@@ -193,7 +195,7 @@ void EstadoAd(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     du.Resize(3, 1.);
     du(0,0)=du(1,0)=du(2,0)=0.;
     
-    const REAL alpha=0.001;
+	//const REAL alpha=0.001;
     
     const REAL sol = 10.*x*y*(1-x)*(1-y);
     u[0] = sol;
@@ -207,21 +209,21 @@ TPZCompMesh *MeshH1(TPZGeoMesh *gmesh, int pOrder, int dim,bool hasbc)
     dim = 2;
     TPZMatPoisson3d *material = new TPZMatPoisson3d( MatId,  dim);
     material->NStateVariables();
-    
+	
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
-    
+	
     ///Inserir condicao de contorno
     if(hasbc){
-        TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-        
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+	
         TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
         TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
         TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
         TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-        
+	
         cmesh->InsertMaterialObject(BCond0);
         cmesh->InsertMaterialObject(BCond1);
         cmesh->InsertMaterialObject(BCond2);
@@ -229,24 +231,24 @@ TPZCompMesh *MeshH1(TPZGeoMesh *gmesh, int pOrder, int dim,bool hasbc)
     }
     
     //solucao exata
-    //    TPZAutoPointer<TPZFunction<STATE> > solexata;
-    //    solexata = new TPZDummyFunction<STATE>(EstadoAd);
-    //    material->SetForcingFunctionExact(solexata);
-    //
-    //    //funcao do lado direito da equacao do problema
-    //    TPZAutoPointer<TPZFunction<STATE> > force;
-    //    TPZDummyFunction<STATE> *dum;
-    //
-    //    dum = new TPZDummyFunction<STATE>(ForcingOpt);
-    //    dum->SetPolynomialOrder(20);
-    //    force = dum;
-    //    material->SetForcingFunction(force);
-    
+//    TPZAutoPointer<TPZFunction<STATE> > solexata;
+//    solexata = new TPZDummyFunction<STATE>(EstadoAd);
+//    material->SetForcingFunctionExact(solexata);
+//
+//    //funcao do lado direito da equacao do problema
+//    TPZAutoPointer<TPZFunction<STATE> > force;
+//    TPZDummyFunction<STATE> *dum;
+//    
+//    dum = new TPZDummyFunction<STATE>(ForcingOpt);
+//    dum->SetPolynomialOrder(20);
+//    force = dum;
+//    material->SetForcingFunction(force);
+	
     
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
-    
-    
+	
+	
     cmesh->SetAllCreateFunctionsContinuous();
     
     //Ajuste da estrutura de dados computacional
@@ -270,40 +272,40 @@ TPZCompMesh *MeshL2(TPZGeoMesh *gmesh, int pOrder, int dim)
     cmesh->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
-    //    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
-    //
-    //    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-    //    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-    //    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    //    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-    //
-    //    cmesh->InsertMaterialObject(BCond0);
-    //    cmesh->InsertMaterialObject(BCond1);
-    //    cmesh->InsertMaterialObject(BCond2);
-    //    cmesh->InsertMaterialObject(BCond3);
+//    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+//    
+//    TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
+//    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
+//    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
+//    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+//    
+//    cmesh->InsertMaterialObject(BCond0);
+//    cmesh->InsertMaterialObject(BCond1);
+//    cmesh->InsertMaterialObject(BCond2);
+//    cmesh->InsertMaterialObject(BCond3);
     
-    //    //solucao exata
-    //    TPZAutoPointer<TPZFunction<STATE> > solexata;
-    //    solexata = new TPZDummyFunction<STATE>(EstadoAd);
-    //    material->SetForcingFunctionExact(solexata);
-    //
-    //    //funcao do lado direito da equacao do problema
-    //    TPZAutoPointer<TPZFunction<STATE> > force;
-    //    TPZDummyFunction<STATE> *dum;
-    //
-    //    dum = new TPZDummyFunction<STATE>(OptForcing);
-    //    dum->SetPolynomialOrder(20);
-    //    force = dum;
-    //    material->SetForcingFunction(force);
+//    //solucao exata
+//    TPZAutoPointer<TPZFunction<STATE> > solexata;
+//    solexata = new TPZDummyFunction<STATE>(EstadoAd);
+//    material->SetForcingFunctionExact(solexata);
+//    
+//    //funcao do lado direito da equacao do problema
+//    TPZAutoPointer<TPZFunction<STATE> > force;
+//    TPZDummyFunction<STATE> *dum;
+//    
+//    dum = new TPZDummyFunction<STATE>(OptForcing);
+//    dum->SetPolynomialOrder(20);
+//    force = dum;
+//    material->SetForcingFunction(force);
     
     
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     
     
-    //cmesh->SetAllCreateFunctionsDiscontinuous();
+    cmesh->SetAllCreateFunctionsDiscontinuous();
     
-    cmesh->SetAllCreateFunctionsContinuous();
+    //cmesh->SetAllCreateFunctionsContinuous();
     
     //Ajuste da estrutura de dados computacional
     cmesh->AutoBuild();
@@ -339,7 +341,7 @@ TPZCompMesh *MalhaMultifisicaOpt(TPZVec<TPZCompMesh *> meshvec, TPZGeoMesh *gmes
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
     dum = new TPZDummyFunction<STATE>(OptForcing);
-    dum->SetPolynomialOrder(10);
+    dum->SetPolynomialOrder(20);
     force = dum;
     material->SetForcingFunction(force);
     
@@ -378,15 +380,15 @@ TPZCompMesh *MalhaMultifisicaOpt(TPZVec<TPZCompMesh *> meshvec, TPZGeoMesh *gmes
     
 }
 
-void StateAd(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp){
-    disp.Redim(2,1);
-    res[0]=0.;
-    double x=pt[0];
-    double y=pt[1];
-    res[0]=10.*x*y*(1-x)*(1-y);
-    
-}
-
+//void StateAd(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp){
+//    disp.Redim(2,1);
+//    res[0]=0.;
+//    double x=pt[0];
+//    double y=pt[1];
+//    res[0]=10.*x*y*(1-x)*(1-y);
+//    
+//}
+//
 //void OptForcing(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp){
 //    disp.Redim(2,1);
 //    res[0]=0.;
@@ -394,23 +396,23 @@ void StateAd(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp){
 //    double x=pt[0];
 //    double y=pt[1];
 //    res[1]=10.*x*y*(1-x)*(1-y);
-//
+//    
 //}
 
 
 void SolutionControl(TPZAnalysis &an, std::string plotfile){
     
-    TPZManVector<std::string,10> scalnames(2), vecnames(1);
+	TPZManVector<std::string,10> scalnames(2), vecnames(1);
     
-    scalnames[0] = "Solution";
-    scalnames[1]= "OrdemP";
-    vecnames[0] = "Derivative";
+	scalnames[0] = "Solution";
+	scalnames[1]= "OrdemP";
+	vecnames[0] = "Derivative";
     
-    
-    const int dim = 2;
-    int div = 0;
-    an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-    an.PostProcess(div,dim);
+	
+	const int dim = 2;
+	int div = 0;
+	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+	an.PostProcess(div,dim);
     //	std::ofstream out("malhaH1.txt");
     //	an.Print("nothing",out);
 }
