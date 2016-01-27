@@ -1786,8 +1786,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshMixed()
         // Setting up linear tracer solution
     //    TPZDummyFunction<STATE> *Load_function= new TPZDummyFunction<STATE>(Cylindrical_Elliptic);
     //    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(Dupuit_Thiem);
-    //    TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(LinearTracer);
-        TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
+        TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(LinearTracer);
+//        TPZDummyFunction<STATE> *Load_function = new TPZDummyFunction<STATE>(BluckleyAndLeverett);
         TPZAutoPointer<TPZFunction<STATE> > fLoad_function = Load_function;
         mat->SetTimeDependentFunctionExact(fLoad_function);
         
@@ -2553,7 +2553,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     scalnames.Push("Rhs");
     scalnames.Push("div_u");
     
-//    scalnames.Push("Exact_S");
+    scalnames.Push("Exact_S");
 //    vecnames.Push("Exact_GradS");
     
     
@@ -3040,7 +3040,7 @@ void TPZDarcyAnalysis::P_Hydrostatic(const TPZVec< REAL >& pt, REAL time, TPZVec
     REAL Rhostr         = 1000.0;
 
     REAL rho_beta = 800.0/Rhostr;
-    REAL P_at_datum = 0.6152;//2.0*1.0e7;
+    REAL P_at_datum = 0.54;//2.0*1.0e7;
     REAL g = -10.0*((Lstr*Rhostr)/Pstr);
     P_Hydro[0] = (rho_beta * g * y)+P_at_datum;
     

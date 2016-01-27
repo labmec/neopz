@@ -20,17 +20,346 @@
 void LinearTracer();
 void NonlinearTracer(bool IsDimensionlessQ);
 void TwoUnitsModel(bool IsDimensionlessQ);
+void DiffusiveModel(bool IsDimensionlessQ);
 
 int main()
 {
 
     bool IsDimensionlessQ = true;
-    TwoUnitsModel(IsDimensionlessQ);
+//    TwoUnitsModel(IsDimensionlessQ);
+    DiffusiveModel(IsDimensionlessQ);
 //    NonlinearTracer(IsDimensionlessQ);
     
     std::cout << "Program successfully executed." << std::endl;
     return 0;
 }
+
+void DiffusiveModel(bool IsDimensionlessQ)
+{
+    // Important notes:
+    // This code consider a homogeneus absolute permeability when Gravitational segregational function is active!
+    
+    // This code use piola contravariant mapping for nonlinear mappings
+    HDivPiola = 1;
+    
+    // Simulation Data SI units
+    
+    // Characteristic Data
+    REAL Kstr           = 1.0;
+    REAL Pstr           = 1.0;
+    REAL Tstr           = 355.37;
+    REAL Tres           = 355.37;
+    REAL Lstr           = 1.0;
+    REAL Mustr          = 1.0;
+    REAL Rhostr         = 1.0;
+    TPZMaterial::gBigNumber = 1.0e20; // Use this for check of convergence using neumann
+    
+    REAL TolRes     = 1.0*1e-2;
+    REAL TolDeltaX  = 1.0*1e-5;
+    
+    if (IsDimensionlessQ)
+    {
+        Kstr           = 1.0e-13;
+        Pstr           = 2.0e7;
+        Tstr           = 355.37;
+        Tres           = 355.37;
+        Lstr           = 500.0;
+        Mustr          = 0.001;
+        Rhostr         = 1000.0;
+        TPZMaterial::gBigNumber = 1.0e8;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
+    }
+    
+    TPZFMatrix<REAL> Gravity(2,1);
+    
+    TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
+    
+    int maxiter     = 30;
+    int nthread     = 6;
+    bool GR         = true;    // Use Gradient Reconstruction
+    bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
+    bool IsDirect   = true;     // No Use broyden with Iterative !!!
+    bool IsCG       = false;    // false means GMRES
+    bool OptBand    = true;     // Band optimization
+    bool IsAxisy    = false;     // Axisymmetric analysis 1.0/s;
+    bool IsTMesh    = false;    // Triangular mesh
+    bool IsImpes    = false;    // Impes analysis
+    bool IsHydro    = true;    // Hydrostatic bc
+    bool IsPGMesh   = true;     // Geometric Progression mesh
+    bool IsHetero   = false;     // Heterogeneous k model
+    int fixedJac    = 0;
+    
+    int qorder      = 1;
+    int porder      = 1;
+    int sorder      = 1;
+    int hrefinement = 0;
+    int hpostref    = 0;
+    
+    // Time control parameters
+    int n_times  = 10;
+    int n_sub_dt = 10;
+    int which_dt = n_times;
+    TPZManVector<REAL,20> Reporting_times(n_times,0.0);
+    REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
+    REAL hour       = 3600.0;
+    REAL day        = hour * 24.0;
+    REAL dt         = 1.0*(1000) * day * scale;
+    REAL t0         = 0.0  * day * scale;
+    
+    for (int it = 0 ; it < n_times; it++) {
+        Reporting_times[it] = REAL(it+1)*dt;
+    }
+    REAL maxtime    = Reporting_times[which_dt-1];
+    std::cout << "Reporting times = " << Reporting_times << std::endl;
+    std::cout << "Maximum simulation time = " << maxtime <<std::endl;
+    
+    REAL x_l = 500.0;
+    REAL y_l = 100.0;
+    REAL ratio = 0.95;
+    
+    int  nelemX     =20;
+    if (GR && nelemX == 1 && IsTMesh) {
+        nelemX++;
+    }
+    REAL dxD        =(x_l/nelemX)/Lstr;
+    
+    int nelemY      =8;
+    if (GR && nelemY == 1 && IsTMesh ) {
+        nelemY++;
+    }
+    REAL dyD        =(y_l/nelemY)/Lstr;
+    
+    Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
+    Gravity(1,0)= -10.0*((Lstr*Rhostr)/Pstr);
+    bool LinearSegregation = false;
+    
+    REAL angle = 0.0;
+    
+    REAL S_w_r              = 0.2;
+    REAL S_nw_r             = 0.2;
+    
+    TPZStack<std::string> system;
+    system.Push("Water");
+    system.Push("Oil");
+    
+    
+    Dataset->SetTimes(Reporting_times);
+    Dataset->SetNSubSteps(n_sub_dt);
+    Dataset->SetsystemType(system);
+    Dataset->SetGR(GR);
+    Dataset->SetSC(SC);
+    Dataset->SetIsDirect(IsDirect);
+    Dataset->SetIsCG(IsCG);
+    Dataset->SetOptband(OptBand);
+    Dataset->SetAxisymmetricQ(IsAxisy);
+    Dataset->SetTriangularMesh(IsTMesh);
+    Dataset->SetMeshwithPGQ(IsPGMesh);
+    Dataset->SetHeterogeneousQ(IsHetero);
+    Dataset->SetPGRatio(ratio);
+    Dataset->SetHydrostaticBCQ(IsHydro);
+    Dataset->SetImpesQ(IsImpes);
+    Dataset->Setqorder(qorder);
+    Dataset->Setporder(porder);
+    Dataset->Setsorder(sorder);
+    Dataset->SetHrefinement(hrefinement);
+    Dataset->SetHPostrefinement(hpostref);
+    Dataset->SetDeltaT(dt);
+    Dataset->SetMaxTime(maxtime);
+    Dataset->SetTime(t0);
+    Dataset->SetToleranceDX(TolDeltaX);
+    Dataset->SetToleranceRes(TolRes);
+    Dataset->SetMaxiterations(maxiter);
+    Dataset->SetFixediterations(fixedJac);
+    Dataset->SetNthreads(nthread);
+    Dataset->SetnElementsx(nelemX);
+    Dataset->SetnElementsy(nelemY);
+    Dataset->SetLengthElementx(dxD);
+    Dataset->SetLengthElementy(dyD);
+    Dataset->SetGravity(Gravity);
+    Dataset->SetLinearSegregationQ(LinearSegregation);
+    Dataset->SetRotationAngle(angle);
+    
+    // Reservoir Data SI units
+    
+    TPZAutoPointer<ReservoirData> HydraulicUnit1         = new ReservoirData;
+    TPZAutoPointer<ReservoirData> HydraulicUnit2         = new ReservoirData;
+    TPZAutoPointer<PetroPhysicData> RockModel   = new PetroPhysicData;
+    TPZAutoPointer<OilPhase> Oil          = new OilPhase;   // alpha
+    TPZAutoPointer<WaterPhase> Water        = new WaterPhase;   // beta
+    TPZAutoPointer<GasPhase> Gas          = new GasPhase;   // gamma
+    
+    /////////////////////////////////////////////////
+    // Complete data set for HydraulicUnit1
+    
+    // BCs
+    //    int typeFluxin = 1, typePressurein = 0;
+    //    int typeFluxout = 3, typePressureout = 2;
+    
+    //  Initial Boundary Value Problem
+    
+    TPZVec<REAL> top(4,0.0);
+    top[0] = 2;
+    top[1] = (1.0*1e7)/(Pstr);
+    top[2] = 0;
+    top[3] = 0;
+    
+    TPZVec<REAL> nonflux(4,0.0);
+    nonflux[0] = 1;
+    nonflux[1] = 0;
+    nonflux[2] = 0;
+    nonflux[3] = 0;
+    
+    TPZStack< TPZVec<REAL> > initial_bcs;
+    initial_bcs.Push(nonflux);
+    initial_bcs.Push(nonflux);
+    initial_bcs.Push(top);
+    initial_bcs.Push(nonflux);    
+    
+    // BCs
+    //    int typeFluxin = 1, typePressurein = 0;
+    //    int typeFluxout = 3, typePressureout = 2;
+    //  typeImpervious = 4;
+    
+    //  Boundary Value Problem
+    
+    
+    TPZVec<REAL> impervious(4,0.0);
+    impervious[0] = 1;
+    impervious[1] = 0;
+    impervious[2] = 0;
+    impervious[3] = 0;
+    
+    TPZVec<REAL> inlet(4,0.0);
+    inlet[0] = 1;
+    inlet[1] = -0.01;
+    inlet[2] = 0.8;
+    inlet[3] = 0;
+    
+    TPZVec<REAL> outlet(4,0.0);
+    outlet[0] = 2;
+    outlet[1] = (1.0*1e7)/(Pstr);
+    outlet[2] = 0;
+    outlet[3] = 0;
+    
+    TPZStack< TPZVec<REAL> > bcs;
+    bcs.Push(impervious);
+    bcs.Push(outlet);
+    bcs.Push(impervious);
+    bcs.Push(inlet);
+
+    
+    // Reservoir Description
+    bool isGIDGeom      = false;
+    REAL porosityref    = 0.2;
+    REAL pressureref    = (1.0*1e6)/(Pstr);
+    REAL lengthref      = 1.0;
+    REAL kref           = 1.0;
+    REAL crock          = (0.0*1e-10)*Pstr;
+    REAL Hres           = 100.0/Lstr;
+    REAL Rres           = 1000.0/Lstr;
+    REAL Top            = 0.0/Lstr;
+    REAL Rw             = 1.0*0.127/Lstr;
+    
+    // Reservoir Description configuration
+    REAL p_w_ref            = (1.0*1e6)/(Pstr);
+    REAL waterdensity       = 1000.0/Rhostr;
+    REAL waterviscosity     = 0.001/Mustr;
+    REAL cwater             = (0.0*1.0*1e-10)*Pstr;
+    REAL p_o_ref            = (1.0*1e6)/(Pstr);
+    REAL oildensity         = 800.0/Rhostr;
+    REAL oilviscosity       = 0.001/Mustr;
+    REAL coil               = (0.0*1.0*1e-8)*Pstr;
+    REAL p_g_ref            = Pstr;
+    REAL gasdensity         = Rhostr;
+    REAL gasviscosity       = Mustr;
+    REAL cgas               = (0.0)*Pstr;
+    
+    REAL pc_max             = (0.0*1e5)/(Pstr);
+    
+    TPZVec<int> MatIds(5);
+    MatIds[0]=1;
+    MatIds[1]=2;
+    MatIds[2]=3;
+    MatIds[3]=4;
+    MatIds[4]=5;
+    
+    TPZFMatrix<STATE> Kabsolute(2,2);
+    Kabsolute.Zero();
+    Kabsolute(0,0) = (1.0e-13)/Kstr;
+    Kabsolute(1,1) = (1.0e-13)/Kstr;
+    
+    HydraulicUnit1->SetIsGIDGeometry(isGIDGeom);
+    HydraulicUnit1->SetBC(initial_bcs, bcs);
+    HydraulicUnit1->SetLayerTop(Top);
+    HydraulicUnit1->SetLayerrw(Rw);
+    HydraulicUnit1->SetLayerh(Hres);
+    HydraulicUnit1->SetLayerr(Rres);
+    HydraulicUnit1->SetLref(lengthref);
+    HydraulicUnit1->SetKref(kref);
+    HydraulicUnit1->SetPhiRef(porosityref);
+    HydraulicUnit1->SetPref(pressureref);
+    HydraulicUnit1->SetcRock(crock);
+    HydraulicUnit1->SetKabsolute(Kabsolute);
+    HydraulicUnit1->SetMatIDs(MatIds);
+    HydraulicUnit1->SetS_wett_r(S_w_r);
+    HydraulicUnit1->SetS_nwett_r(S_nw_r);
+    
+    
+    Water->SetRho(waterdensity);
+    Water->SetMu(waterviscosity);
+    Water->Setc(cwater);
+    Water->SetPRef(p_w_ref);
+    Water->SetTRef(Tstr);
+    Water->SetTRes(Tres);
+    Water->SetS_wett_r(S_w_r);
+    Water->SetS_nwett_r(S_nw_r);
+    Water->SetPc_max(pc_max);
+    
+    Oil->SetRho(oildensity);
+    Oil->SetMu(oilviscosity);
+    Oil->Setc(coil);
+    Oil->SetPRef(p_o_ref);
+    Oil->SetTRef(Tstr);
+    Oil->SetTRes(Tres);
+    Oil->SetS_wett_r(S_w_r);
+    Oil->SetS_nwett_r(S_nw_r);
+    Oil->SetPc_max(pc_max);
+    
+    Gas->SetRho(gasdensity);
+    Gas->SetMu(gasviscosity);
+    Gas->Setc(cgas);
+    Gas->SetPRef(p_g_ref);
+    Gas->SetTRef(Tstr);
+    Gas->SetTRes(Tres);
+    Gas->SetS_wett_r(S_w_r);
+    Gas->SetS_nwett_r(S_nw_r);
+    Gas->SetPc_max(pc_max);
+    
+    TPZVec< TPZAutoPointer<Phase> > PVTData(3);
+    PVTData[0] = Water.operator->();
+    PVTData[1] = Oil.operator->();
+    PVTData[2] = Gas.operator->();
+    
+    
+    // Creating the analysis
+    TPZVec<TPZAutoPointer<ReservoirData> > Layers;
+    Layers.Resize(1);
+    Layers[0] = HydraulicUnit1;
+    
+    TPZVec<TPZAutoPointer<PetroPhysicData> > Rocks;
+    Rocks.Resize(1);
+    Rocks[0] = RockModel;
+    
+    TPZDarcyAnalysis *SandStone = new TPZDarcyAnalysis(Dataset,Layers,Rocks);
+    SandStone->SetFluidData(PVTData);
+    SandStone->RunAnalysis();
+    delete SandStone;
+    
+    std::cout << std::endl;
+    
+}
+
 
 void TwoUnitsModel(bool IsDimensionlessQ)
 {
