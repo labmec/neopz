@@ -480,15 +480,17 @@ int main(int argc, char *argv[])
 //    GridFileName += "TetrahedronMesh.dump";
 //    GridFileName += "TetrahedronMeshAdap.dump";
 //    GridFileName += "TetrahedronMeshAdapCoarse.dump";
-    GridFileName += "TetrahedronMeshAdapVeryCoarse.dump";
+//    GridFileName += "TetrahedronMeshAdapVeryCoarse.dump";
+    GridFileName += "TetrahedronMeshAdapVeryCoarseII.dump";
     
     
-    int pini = 1;
-    for(int p = pini; p<2; p++)
+    int pini = 2;
+    for(int p = pini; p<3; p++)
     {
         int pp = p-1; // Case 1 Pk  Pk-1
 //        int pp = p; // Case 2 P*k  Pk
         if(HDivMaisMais){ // Case 3 P**k  Pk+1
+            
             pp = p+1;
         }
         
@@ -497,7 +499,7 @@ int main(int argc, char *argv[])
         myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
             "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
         
-        for(int ndiv=1; ndiv<3; ndiv++){
+        for(int ndiv=1; ndiv<5; ndiv++){
             
             if(dim_problema==2){
                 gmesh = GMesh2D(fTriang);//malha geometrica
@@ -597,7 +599,7 @@ int main(int argc, char *argv[])
 
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
 
-            if(ndiv>0  && p==1){
+            if(ndiv>0  && p==2){
                 TPZManVector<std::string,10> scalnames(2), vecnames(2);
                 scalnames[0] = "Pressure";
                 scalnames[1] = "ExactPressure";
@@ -2673,7 +2675,7 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh){
             intel->SetPreferredOrder(neworder);
             nshape = intel->NConnectShapeF(ncon-1);
             
-            if(nshape2!=nshape) DebugStop();
+//            if(nshape2!=nshape) DebugStop();
             
             conel.SetNShape(nshape);
             mesh->Block().Set(conel.SequenceNumber(),nshape);
