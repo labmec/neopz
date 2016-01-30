@@ -63,7 +63,7 @@ void DiffusiveModel(bool IsDimensionlessQ)
         Pstr           = 2.0e7;
         Tstr           = 355.37;
         Tres           = 355.37;
-        Lstr           = 500.0;
+        Lstr           = 100.0;
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e8;
@@ -77,7 +77,7 @@ void DiffusiveModel(bool IsDimensionlessQ)
     
     int maxiter     = 30;
     int nthread     = 6;
-    bool GR         = true;    // Use Gradient Reconstruction
+    bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
@@ -85,14 +85,14 @@ void DiffusiveModel(bool IsDimensionlessQ)
     bool IsAxisy    = false;     // Axisymmetric analysis 1.0/s;
     bool IsTMesh    = false;    // Triangular mesh
     bool IsImpes    = false;    // Impes analysis
-    bool IsHydro    = true;    // Hydrostatic bc
+    bool IsHydro    = false;    // Hydrostatic bc
     bool IsPGMesh   = true;     // Geometric Progression mesh
     bool IsHetero   = false;     // Heterogeneous k model
     int fixedJac    = 0;
     
     int qorder      = 1;
     int porder      = 1;
-    int sorder      = 1;
+    int sorder      = 0;
     int hrefinement = 0;
     int hpostref    = 0;
     
@@ -104,7 +104,7 @@ void DiffusiveModel(bool IsDimensionlessQ)
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = 1.0*(1000) * day * scale;
+    REAL dt         = 1.0*(5) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -114,24 +114,24 @@ void DiffusiveModel(bool IsDimensionlessQ)
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    REAL x_l = 500.0;
-    REAL y_l = 100.0;
+    REAL x_l = 100.0;
+    REAL y_l = 10.0;
     REAL ratio = 0.95;
     
-    int  nelemX     =20;
+    int  nelemX     =30;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
     REAL dxD        =(x_l/nelemX)/Lstr;
     
-    int nelemY      =8;
+    int nelemY      =1;
     if (GR && nelemY == 1 && IsTMesh ) {
         nelemY++;
     }
     REAL dyD        =(y_l/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
-    Gravity(1,0)= -10.0*((Lstr*Rhostr)/Pstr);
+    Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
     bool LinearSegregation = false;
     
     REAL angle = 0.0;
@@ -232,7 +232,7 @@ void DiffusiveModel(bool IsDimensionlessQ)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.01;
+    inlet[1] = -0.1;
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -264,11 +264,11 @@ void DiffusiveModel(bool IsDimensionlessQ)
     // Reservoir Description configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
     REAL waterdensity       = 1000.0/Rhostr;
-    REAL waterviscosity     = 0.001/Mustr;
+    REAL waterviscosity     = 0.1/Mustr;
     REAL cwater             = (0.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
-    REAL oildensity         = 800.0/Rhostr;
-    REAL oilviscosity       = 0.001/Mustr;
+    REAL oildensity         = 770.0/Rhostr;
+    REAL oilviscosity       = 0.0004/Mustr;
     REAL coil               = (0.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
@@ -286,8 +286,8 @@ void DiffusiveModel(bool IsDimensionlessQ)
     
     TPZFMatrix<STATE> Kabsolute(2,2);
     Kabsolute.Zero();
-    Kabsolute(0,0) = (1.0e-13)/Kstr;
-    Kabsolute(1,1) = (1.0e-13)/Kstr;
+    Kabsolute(0,0) = (5.0e-13)/Kstr;
+    Kabsolute(1,1) = (5.0e-13)/Kstr;
     
     HydraulicUnit1->SetIsGIDGeometry(isGIDGeom);
     HydraulicUnit1->SetBC(initial_bcs, bcs);

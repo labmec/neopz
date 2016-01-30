@@ -710,6 +710,7 @@ TPZAnalysis * TPZDarcyAnalysis::CreateAnalysis(TPZCompMesh * cmesh){
         DebugStop();
     }
     
+    
     bool mustOptimizeBandwidth = fSimulationData->GetOptband();
     TPZAnalysis *an = new TPZAnalysis(cmesh,mustOptimizeBandwidth);
     int numofThreads = fSimulationData->GetNthreads();
@@ -976,16 +977,16 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             
             this->PostProcessVTK(an);
             REAL day = 86400.0;
-//            IntegrateVelocities(velocities);
-//            current_v(i_time+1,0) = tk/day;
-//            current_v(i_time+1,1) += velocities[0]*current_dt*n_sub_dt;
-//            current_v(i_time+1,2) += velocities[1]*current_dt*n_sub_dt;
-//            current_v(i_time+1,3) += velocities[2]*current_dt*n_sub_dt;
-//            
-//            accumul_v(i_time+1,0) = tk/day;
-//            accumul_v(i_time+1,1) = velocities[0]*current_dt*n_sub_dt + accumul_v(i_time,1);
-//            accumul_v(i_time+1,2) = velocities[1]*current_dt*n_sub_dt + accumul_v(i_time,2);
-//            accumul_v(i_time+1,3) = velocities[2]*current_dt*n_sub_dt + accumul_v(i_time,3);
+            IntegrateVelocities(velocities);
+            current_v(i_time+1,0) = tk/day;
+            current_v(i_time+1,1) += velocities[0]*current_dt*n_sub_dt;
+            current_v(i_time+1,2) += velocities[1]*current_dt*n_sub_dt;
+            current_v(i_time+1,3) += velocities[2]*current_dt*n_sub_dt;
+            
+            accumul_v(i_time+1,0) = tk/day;
+            accumul_v(i_time+1,1) = velocities[0]*current_dt*n_sub_dt + accumul_v(i_time,1);
+            accumul_v(i_time+1,2) = velocities[1]*current_dt*n_sub_dt + accumul_v(i_time,2);
+            accumul_v(i_time+1,3) = velocities[2]*current_dt*n_sub_dt + accumul_v(i_time,3);
             
 
             // Computing the rates at reporting times
@@ -1216,7 +1217,7 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
         DebugStop();
     }
     
-    int mat_id = 5;
+    int mat_id = 3;
     int int_order = 5;
     int int_typ = 0;
     velocities[0] = 0.0;
