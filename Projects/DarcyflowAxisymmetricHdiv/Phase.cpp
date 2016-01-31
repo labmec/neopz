@@ -36,6 +36,9 @@ Phase::Phase()
     /** @brief Irreducible Saturation of the no wetting phase - */
     fS_nwett_r = 0.0;
     
+    /** @brief Relative permeability model */
+    fIsNonlinearKrQ = true;
+    
 }
 
 Phase::~Phase()

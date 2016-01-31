@@ -162,6 +162,15 @@ private:
     /** @brief Compute a variable K distribution */
     bool fIsHeterogeneousQ;
     
+    /** @brief Ouput directory name */
+    std::string foutdirectory;
+    
+    /** @brief Time scale for dimensionless calculations */
+    REAL ftime_scale;
+    
+    /** @brief Velocity scale for dimensionless calculations */
+    REAL fvelocity_scale;
+    
     
 public:
     
@@ -447,6 +456,24 @@ public:
     int GetNSubSteps(){
         return fn_sub_dt;
     }
+    
+    /** @brief Set the ouput directory name */
+    void SetDirectory( std::string outdirectory ) {foutdirectory = outdirectory; }
+    
+    /** @brief Get the ouput directory name */
+    std::string GetDirectory() {return foutdirectory; }
+
+    /** @brief Set the time scale for dimensionless calculations */
+    void SetTime_Scale(REAL time_scale) {ftime_scale = time_scale;}
+    
+    /** @brief Get the time scale for dimensionless calculations */
+    REAL Time_Scale() {return ftime_scale;}
+    
+    /** @brief Set the velocity scale for dimensionless calculations */
+    void SetVelocity_Scale(REAL velocity_scale) {fvelocity_scale = velocity_scale;}
+    
+    /** @brief Get the velocity scale for dimensionless calculations */
+    REAL Velocity_Scale() {return fvelocity_scale;}
     
 };
 

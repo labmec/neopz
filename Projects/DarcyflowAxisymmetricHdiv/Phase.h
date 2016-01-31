@@ -47,6 +47,11 @@ private:
     /** @brief Maximum capillary pressure value - */
     REAL fPc_max;
     
+protected:
+    
+    /** @brief Relative permeability model */
+    bool fIsNonlinearKrQ;
+    
     
 public:
     
@@ -151,6 +156,13 @@ public:
     
     /** @brief Get maximum capillary pressure value - Pa  $P_{ref}$ */
     REAL GetPc_max(){return this->fPc_max ;}
+    
+    /** @brief Set the relative permeability model */
+    void SetNonlinearKr(bool isnonlinearQ) {fIsNonlinearKrQ = isnonlinearQ; }
+    
+    /** @brief Get the relative permeability model */
+    bool IsNonlinearKrQ() {return fIsNonlinearKrQ; }
+    
     
 };
 

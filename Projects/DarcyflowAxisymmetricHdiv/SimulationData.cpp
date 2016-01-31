@@ -119,6 +119,15 @@ SimulationData::SimulationData()
     /** @brief Store time values to be reported */
     fTimesToPrint.Resize(0);
     
+    /** @brief Ouput directory name */
+    foutdirectory = "Dump";
+
+    /** @brief Time scale for dimensionless calculations */
+    ftime_scale = 1.0;
+    
+    /** @brief Velocity scale for dimensionless calculations */
+    fvelocity_scale = 1.0;
+    
 }
 
 SimulationData::~SimulationData()

@@ -432,6 +432,11 @@ void TPZDarcyAnalysis::InitializeSolution(TPZAnalysis *an)
 void TPZDarcyAnalysis::RunAnalysis()
 {
     
+//  Creating ouput directory
+    std::string ouputname("mkdir ");
+    ouputname += fSimulationData->GetDirectory();
+    system(ouputname.c_str());
+    
     std::string dirname = PZSOURCEDIR;
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
@@ -847,8 +852,9 @@ void TPZDarcyAnalysis::PrintCmesh(){
     
     
 #ifdef PZDEBUG
-
-    std::ofstream out("ComputationalMesh.txt");
+    std::string out_name = fSimulationData->GetDirectory();
+    out_name += "/ComputationalMesh.txt";
+    std::ofstream out(out_name.c_str());
     fcmesh->Print(out);
     
 #endif
@@ -976,17 +982,21 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             std::cout << std::endl;
             
             this->PostProcessVTK(an);
-            REAL day = 86400.0;
+            REAL scale = 1.0/fSimulationData->Time_Scale();
+            REAL v_scale = fSimulationData->Velocity_Scale();
+
             IntegrateVelocities(velocities);
-            current_v(i_time+1,0) = tk/day;
-            current_v(i_time+1,1) += velocities[0]*current_dt*n_sub_dt;
-            current_v(i_time+1,2) += velocities[1]*current_dt*n_sub_dt;
-            current_v(i_time+1,3) += velocities[2]*current_dt*n_sub_dt;
+            current_v(i_time+1,0) = tk*scale;
+            current_v(i_time+1,1) += velocities[0]*v_scale;
+            current_v(i_time+1,2) += velocities[1]*v_scale;
+            current_v(i_time+1,3) += velocities[2]*v_scale;
             
-            accumul_v(i_time+1,0) = tk/day;
-            accumul_v(i_time+1,1) = velocities[0]*current_dt*n_sub_dt + accumul_v(i_time,1);
-            accumul_v(i_time+1,2) = velocities[1]*current_dt*n_sub_dt + accumul_v(i_time,2);
-            accumul_v(i_time+1,3) = velocities[2]*current_dt*n_sub_dt + accumul_v(i_time,3);
+            
+            
+            accumul_v(i_time+1,0) = tk*scale;
+            accumul_v(i_time+1,1) = velocities[0]*v_scale*current_dt*n_sub_dt*scale + accumul_v(i_time,1);
+            accumul_v(i_time+1,2) = velocities[1]*v_scale*current_dt*n_sub_dt*scale + accumul_v(i_time,2);
+            accumul_v(i_time+1,3) = velocities[2]*v_scale*current_dt*n_sub_dt*scale + accumul_v(i_time,3);
             
 
             // Computing the rates at reporting times
@@ -1016,9 +1026,13 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
 //    fl2_norm_flux[0] = sqrt(l2_norm_flux[0]);
 //    fL2_norm[0] = sqrt(l2_norm[0]);
     
+    std::string out_name_current = fSimulationData->GetDirectory();
+    std::string out_name_accumul = fSimulationData->GetDirectory();
+    out_name_current += "/current_production.txt";
+    out_name_accumul += "/accumulated_production.txt";
     
-    std::ofstream q_out("current_production.txt");
-    std::ofstream qt_out("accumulated_production.txt");
+    std::ofstream q_out(out_name_current.c_str());
+    std::ofstream qt_out(out_name_accumul.c_str());
     current_v.Print("q = ", q_out,EMathematicaInput);
     accumul_v.Print("qt = ", qt_out,EMathematicaInput);
     
@@ -1217,8 +1231,8 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
         DebugStop();
     }
     
-    int mat_id = 3;
-    int int_order = 5;
+    int mat_id = 5;
+    int int_order = 10;
     int int_typ = 0;
     velocities[0] = 0.0;
     velocities[1] = 0.0;
@@ -1312,6 +1326,9 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
                     REAL rw = fLayers[0]->Layerrw();
                     cross_area *= 2.0*M_PI*rw;
                 }
+                
+
+                
                 cel_2D->Solution(xi_eta_duplet, 19, sol);
                 velocities[0] += weight * detjac * (sol[0] * n[0] + sol[1] * n[1]);
 
@@ -1915,7 +1932,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshFlux(int qorder)
     
     
 #ifdef PZDEBUG
-    std::ofstream out("cmeshFlux.txt");
+    std::string out_name = fSimulationData->GetDirectory();
+    out_name += "/cmeshFlux.txt";
+    std::ofstream out(out_name.c_str());
     cmesh->Print(out);
 #endif
     
@@ -1966,7 +1985,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshPressure(int porder)
     }
     
 #ifdef PZDEBUG
-    std::ofstream out("cmeshPress.txt");
+    std::string out_name = fSimulationData->GetDirectory();
+    out_name += "/cmeshPress.txt";
+    std::ofstream out(out_name.c_str());
     cmesh->Print(out);
 #endif
     
@@ -2033,7 +2054,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSw(int Sworder)
     
     
 #ifdef PZDEBUG
-    std::ofstream out("cmeshSw.txt");
+    std::string out_name = fSimulationData->GetDirectory();
+    out_name += "/cmeshSw.txt";
+    std::ofstream out(out_name.c_str());
     cmesh->Print(out);
 #endif
     
@@ -2098,7 +2121,9 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSo(int Soorder)
     
     
 #ifdef PZDEBUG
-    std::ofstream out("cmeshSo.txt");
+    std::string out_name = fSimulationData->GetDirectory();
+    out_name += "/cmeshSo.txt";
+    std::ofstream out(out_name.c_str());
     cmesh->Print(out);
 #endif
     
@@ -2318,10 +2343,16 @@ void TPZDarcyAnalysis::PrintGeoMesh()
 {
     
 //#ifdef PZDEBUG
+    
     //  Print Geometrical Base Mesh
-    std::ofstream argument("GeometicMesh.txt");
+    std::string out_name_text = fSimulationData->GetDirectory();
+    std::string out_name_vtk = fSimulationData->GetDirectory();
+    out_name_text += "/GeometicMesh.txt";
+    out_name_vtk += "/GeometricMesh.vtk";
+    std::ofstream argument(out_name_text.c_str());
+    std::ofstream Dummyfile(out_name_vtk.c_str());
+    
     fgmesh->Print(argument);
-    std::ofstream Dummyfile("GeometricMesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(fgmesh,Dummyfile, true);
     
 //#endif
@@ -2544,8 +2575,9 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     const int dim = 2;
     int div = fSimulationData->GetHPostrefinement();
     TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile;
-    plotfile = "2DMixed.vtk";
+    
+    std::string plotfile = fSimulationData->GetDirectory();
+    plotfile += "/2DMixed.vtk";
     
     scalnames.Push("P");
     vecnames.Push("u");
@@ -2578,6 +2610,8 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
         scalnames.Push("Pc_beta_alpha");
         vecnames.Push("u_alpha");
         vecnames.Push("u_beta");
+        vecnames.Push("u_alpha_sc");
+        vecnames.Push("u_beta_sc");
         an->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         an->PostProcess(div);
         return;

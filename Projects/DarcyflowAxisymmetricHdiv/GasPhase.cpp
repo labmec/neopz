@@ -144,6 +144,23 @@ void GasPhase::Kr(TPZManVector<REAL> &kr, TPZManVector<REAL> state_vars){
     kr[3] = -1.0;
     kr[4] = -1.0;
     
+//    if (fIsNonlinearKrQ) {
+//        kr[0] = Se*Se;
+//        kr[1] = 0.0;
+//        kr[2] = 0.0;
+//        kr[3] = 2.0*Se*(1.0)/(1.0-Swr-Sor);
+//        kr[4] = 0.0;
+//    }
+//    else{
+//        
+//        kr[0] = Se;
+//        kr[1] = 0.0;
+//        kr[2] = 0.0;
+//        kr[3] = 1.0*(1.0)/(1.0-Swr-Sor);
+//        kr[4] = 0.0;
+//        
+//    }
+    
 }
 
 /** @brief Pc - $P_{c}$ */
