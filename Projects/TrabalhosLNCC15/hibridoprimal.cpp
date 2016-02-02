@@ -440,7 +440,9 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 //}
 
 //Malha Hdiv
-bool HDivMaisMais = true;
+bool HDivMaisMais = false;
+bool project_flux = false;
+bool project_u = false;
 int main(int argc, char *argv[])
 {
     
@@ -501,7 +503,7 @@ int main(int argc, char *argv[])
             myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
                 "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
         }
-        for(int ndiv=1; ndiv<5; ndiv++){
+        for(int ndiv=1; ndiv<4; ndiv++){
             
             if(dim_problema==2){
                 gmesh = GMesh2D(fTriang);//malha geometrica
@@ -566,14 +568,14 @@ int main(int argc, char *argv[])
                 TPZSkylMatrix<STATE> matsky(neq,skyline);
                 nNzeros = matsky.GetNelemts();
 
-                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
-                skylstr.SetNumThreads(6);                
-                analysis.SetStructuralMatrix(skylstr);
+//                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+//                skylstr.SetNumThreads(6);                
+//                analysis.SetStructuralMatrix(skylstr);
                 
-//                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
-//                strmat.SetDecomposeType(ELDLt);
-//                strmat.SetNumThreads(6);
-//                analysis.SetStructuralMatrix(strmat);
+                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
+                strmat.SetDecomposeType(ELDLt);
+                strmat.SetNumThreads(6);
+                analysis.SetStructuralMatrix(strmat);
             }
 
             TPZStepSolver<STATE> step;
@@ -596,13 +598,11 @@ int main(int argc, char *argv[])
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
     #endif
             analysis.Solve();
-            
-            TPZFMatrix<STATE> KU;
-            glob->Multiply(analysis.Solution(), KU);
-            
-            KU -= RHS;
-            
-            std::cout << "Norma de KU " << Norm(KU) << std::endl;
+        
+//            TPZFMatrix<STATE> KU;
+//            glob->Multiply(analysis.Solution(), KU);
+//            KU -= RHS;
+//            std::cout << "Norma de KU " << Norm(KU) << std::endl;
 
     #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
@@ -633,9 +633,9 @@ int main(int argc, char *argv[])
                 mphysics->ComputeFillIn(100,vismat);
                 VisualMatrixVTK(vismat,"matrixstruct.vtk");
         }
-            TPZFMatrix<STATE> HDivSol = analysis.Solution();
+//            TPZFMatrix<STATE> HDivSol = analysis.Solution();
 
-            if(1)
+            if(project_flux)
             {
                 TPZAnalysis an(cmesh1,false);
                 TPZSkylineStructMatrix strmat(cmesh1);
@@ -648,7 +648,7 @@ int main(int argc, char *argv[])
                 an.Run();
                 
             }
-            if(1)
+            if(project_u)
             {
                 TPZAnalysis an(cmesh2,false);
                 TPZSkylineStructMatrix strmat(cmesh2);
@@ -661,27 +661,25 @@ int main(int argc, char *argv[])
                 
             }
             
-            TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+//            
+//            TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+//            
+//            HDivSol-= mphysics->Solution();
+//            analysis.LoadSolution(mphysics->Solution());
+//            
+//            TPZFMatrix<STATE> resid(glob->Rows(),1);
+//            glob->Multiply(analysis.Solution(), resid);
+//            resid -= RHS;
+//            RHS -= analysis.Rhs();
+//            
+//            std::cout << "Norma diff rhs " << Norm(RHS) << std::endl;
+//            std::cout << "Norma de resid " << Norm(resid) << std::endl;
+//            {
+//                std::ofstream errorel("ErrorElement.txt");
+//                analysis.PrintVectorByElement(errorel, resid);
+//            }
             
-            HDivSol-= mphysics->Solution();
-            analysis.LoadSolution(mphysics->Solution());
             
-            TPZFMatrix<STATE> resid(glob->Rows(),1);
-            glob->Multiply(analysis.Solution(), resid);
-            resid -= RHS;
-//            glob->MultAdd(analysis.Solution(), resid, RHS,1.,-1.);
-
-//            myerrorfile << ndiv <<  setw(13) << NDoF << setw(15)<< NDoFCond <<"    "<< (t2-t1) << "     "<< (t3-t2) <<"     "<<(t2-t1)+(t3-t2) << setw(18);
-
-            
-            RHS -= analysis.Rhs();
-            
-            std::cout << "Norma diff rhs " << Norm(RHS) << std::endl;
-            std::cout << "Norma de resid " << Norm(resid) << std::endl;
-            {
-                std::ofstream errorel("ErrorElement.txt");
-                analysis.PrintVectorByElement(errorel, resid);
-            }
             TPZManVector<STATE,5> ErroP;
             TPZManVector<STATE,5> ErroF;
             ErrorH1(cmesh2, ErroP /*,myerrorfile*/);
@@ -1481,14 +1479,14 @@ void SolShockProblem(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
     }
     else
     {
-        u[0] = 3.+4.*x+5.*y+2.*z-7*z*z+x*x*x;//+9.*x*y+3*y*z+x*z+2.*x*x+2.*y*y-7.*z*z;
-        du(0,0) = 4.+3*x*x;//+9*y+z+4.*x;
-        du(1,0) = 5.;//+9.*x+3.*z+4.*y;
-        du(2,0) = 2.-14.*z;//+3.*y+x-14.*z;
-        du(0,0) = -du(0,0);
-        du(1,0) = -du(1,0);
-        du(2,0) = -du(2,0);
-        return;
+//        u[0] = 3.+4.*x+5.*y+2.*z-7*z*z+x*x*x;//+9.*x*y+3*y*z+x*z+2.*x*x+2.*y*y-7.*z*z;
+//        du(0,0) = 4.+3*x*x;//+9*y+z+4.*x;
+//        du(1,0) = 5.;//+9.*x+3.*z+4.*y;
+//        du(2,0) = 2.-14.*z;//+3.*y+x-14.*z;
+//        du(0,0) = -du(0,0);
+//        du(1,0) = -du(1,0);
+//        du(2,0) = -du(2,0);
+//        return;
         temp1 = (x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0);
         r = sqrt(temp1);
 //        alpha = 5.;
@@ -1549,11 +1547,11 @@ void ForcingShockProblem(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix
 //        du(0,0) = 4.+9*y+z+4.*x;
 //        du(1,0) = 5.+9.*x+3.*z+4.*y;
 //        du(2,0) = 2.+3.*y+x-14.*z;
-        disp[0] = 14.-6.0*x;//4.+ 4.-14;
-        df(0,0) = 4.+3*x*x;//+9*y+z+4.*x;
-        df(1,0) = 5.;//+9.*x+3.*z+4.*y;
-        df(2,0) = 2.-14.*z;//+3.*y+x-14.*z;
-        return;
+//        disp[0] = 14.-6.0*x;//4.+ 4.-14;
+//        df(0,0) = 4.+3*x*x;//+9*y+z+4.*x;
+//        df(1,0) = 5.;//+9.*x+3.*z+4.*y;
+//        df(2,0) = 2.-14.*z;//+3.*y+x-14.*z;
+//        return;
         temp1 = (x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0);
         r = sqrt(temp1);
 //        alpha = 5.;
