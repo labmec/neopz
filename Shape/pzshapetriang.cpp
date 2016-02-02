@@ -248,8 +248,11 @@ namespace pzshape {
 		if(order < 0) return;
 		int ord1 = order;
 		int numshape = (ord1*(ord1+1))/2;
-		TPZManVector<REAL> out(2);
+		TPZManVector<REAL,2> out(2);
 		TransformPoint2dT(triangle_transformation_index,x,out);
+        
+        out[0] = 2.*out[0]-1.;
+        out[1] = 2.*out[1]-1.;
 		
 		if (phi.Rows() < numshape || dphi.Cols() < numshape) {
 			PZError << "\nTPZCompEl::Shape2dTriangleInternal phi or dphi resized\n";
@@ -259,8 +262,8 @@ namespace pzshape {
 		REAL store1[20],store2[20],store3[20],store4[20];
 		TPZFMatrix<REAL> phi0(numshape,1,store1,20),phi1(numshape,1,store2,20),dphi0(1,numshape,store3,20),dphi1(1,numshape,store4,20);
 		
-		TPZShapeLinear::fOrthogonal(2.*out[0]-1.,numshape,phi0,dphi0);
-		TPZShapeLinear::fOrthogonal(2.*out[1]-1.,numshape,phi1,dphi1);
+		TPZShapeLinear::fOrthogonal(out[0],numshape,phi0,dphi0);
+		TPZShapeLinear::fOrthogonal(out[1],numshape,phi1,dphi1);
 		int index = 0;
 		int i;
 		for (int iplusj=0;iplusj<ord1;iplusj++) {

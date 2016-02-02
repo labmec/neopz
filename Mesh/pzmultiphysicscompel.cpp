@@ -222,6 +222,8 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
     
     out << __PRETTY_FUNCTION__ << std::endl;
     TPZCompEl::Print(out);
+    out << "Integration rule ";
+    GetIntegrationRule().Print(out);
 	if(this->Reference())
 	{
 		out << "\nCenter coordinate: ";
@@ -980,6 +982,8 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	const long nref = fElementVec.size();
 	datavec.resize(nref);
 	InitMaterialData(datavec);
+    datavec[0].fNeedsSol = true;
+    datavec[1].fNeedsSol = true;
 	
 	TPZManVector<TPZTransform> trvec;
 	AffineTransform(trvec);
@@ -1002,7 +1006,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		//contribuicoes dos erros
 		if(fp) {
 			fp(datavec[0].x,u_exact,du_exact);
-      material->Errors(datavec[0],u_exact,du_exact,values);
+      material->Errors(datavec,u_exact,du_exact,values);
       
 			for(int ier = 0; ier < NErrors; ier++)
 				errors[ier] += values[ier]*weight;

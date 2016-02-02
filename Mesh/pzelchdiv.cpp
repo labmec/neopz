@@ -244,7 +244,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
      }
 
      
-     TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
+     TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides+1> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
      TSHAPE::GetSideDirections(vecside,directions,bilinear);
      int pressureorder = this->fPreferredOrder;
 //     if (TSHAPE::Type()==ETriangle||TSHAPE::Type()==ETetraedro) {
@@ -273,7 +273,13 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
      
      TPZGenMatrix<int> shapeorders(nshape,3);
      TSHAPE::ShapeOrder(id, order, shapeorders);
-     
+    {
+        static int first = 0;
+        if (first==0) {
+            shapeorders.Print("ShapeOrders");
+            first++;
+        }
+    }
      // VectorSide indicates the side associated with each vector entry
      TPZManVector<long,27> FirstIndex(TSHAPE::NSides+1);
      // the first index of the shape functions
@@ -350,7 +356,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
                  }
                  else if (tipo == EPiramide)
                  {
-                     if (shapeorders(ish,0) > maxorder[d]) {
+                     if (shapeorders(ish,d) > maxorder[d]) {
                          include = false;
                      }                     
                  }
@@ -658,6 +664,9 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     TPZManVector<int> facevector(VectorSide.size(),TSHAPE::NSides-1);
     // compute the permutation which needs to be applied to the vectors to enforce compatibility between neighbours
     TPZManVector<int,81> vecpermute(TSHAPE::NSides*TSHAPE::Dimension);
+    if (TSHAPE::Type() == EPiramide) {
+        vecpermute.resize(TSHAPE::NSides*TSHAPE::Dimension+1);
+    }
     int count = 0;
     for (int side = 0; side < TSHAPE::NSides; side++) {
         if (TSHAPE::SideDimension(side) != TSHAPE::Dimension -1) {
@@ -676,7 +685,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     }
     
     nexternalvectors = count;
-    for (; count < TSHAPE::NSides*TSHAPE::Dimension; count++) {
+    for (; count < vecpermute.size(); count++) {
         vecpermute[count] = count;
     }
     TPZGenMatrix<int> shapeorders(nshape,3);
@@ -749,24 +758,30 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
             if (bil) {
                 maxorder[dir]++;
             }
+            int shord[3] = {0};
             int include=true;
             for (int d=0; d<sidedimension; d++)
             {
                 if (tipo==ETriangle||tipo==ETetraedro)//
                 {
-                    if (shapeorders(ish,d) > maxorder[d]+1) {
+                    shord[d] = shapeorders(ish,d);
+                    int maxd = maxorder[d]+1;
+                    if (shord[d] > maxd) {
                         include = false;
                     }
                 }
                 else if(tipo==EQuadrilateral)
                 {
-                    if (shapeorders(ish,d) > maxorder[d]) {
+                    shord[d] = shapeorders(ish,d);
+                    int maxd = maxorder[d];
+                    if (shord[d] > maxd) {
                         include = false;
                     }
                 }
                 else if(tipo==ECube)
                 {
-                    if (shapeorders(ish,d) > maxorder[d]) {
+                    shord[d] = shapeorders(ish,d);
+                    if (shord[d] > maxorder[d]) {
                         include = false;
                     }
                 }
@@ -779,13 +794,15 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
                 }
                 else if (tipo == EOned)
                 {
-                    if (shapeorders(ish,0) > maxorder[d]) {
+                    shord[0] = shapeorders(ish,0);
+                    if (shord[0] > maxorder[d]) {
                         include = false;
                     }
                 }
                 else if (tipo == EPiramide)
                 {
-                    if (shapeorders(ish,0) > maxorder[d]) {
+                    shord[d] = shapeorders(ish,d);
+                    if (shord[d] > maxorder[d]) {
                         include = false;
                     }
                 }
@@ -801,13 +818,9 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
             }
         }
     }
-    int ivs =  IndexVecShape.size();
-    if (count != ivs) {
-        DebugStop();
-    }
 //    //shapeorders.Print("shapeorders");
 //    cout << "vec|shapeindex|ordem" << endl;
-//    for (int i=0; i< nshapeflux; i++)
+//    for (int i=0; i< count; i++)
 //    {
 //        if (IndexVecShape[i].second<nshape)
 //        {
@@ -822,6 +835,11 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
 //        {cout<<"opa"<< i << endl;}
 //        
 //    }
+    int ivs =  IndexVecShape.size();
+    if (count != ivs) {
+        DebugStop();
+    }
+
 //    cout <<  " foi  " << endl;
 }
 
@@ -1347,6 +1365,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             cont += nvec;
         }
     }
+    if (data.fNeedsSol) {
+        ComputeSolution(qsi, data);
+    }
 //    cout << " Normais = " << endl;
 //    int nlin = data.fNormalVec.Rows();
 //    int ncol = data.fNormalVec.Cols();
@@ -1417,7 +1438,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
     
     TPZFNMatrix<TSHAPE::NSides*TSHAPE::Dimension*3> NormalsDouglas(3,TSHAPE::Dimension*TSHAPE::NSides);
-	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsides(TSHAPE::Dimension*TSHAPE::NSides);
+	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension+1> normalsides(TSHAPE::Dimension*TSHAPE::NSides);
     TPZManVector<REAL,TSHAPE::Dimension> pt(TSHAPE::Dimension,0.);
     
     if(HDivPiola == 2)
@@ -1456,11 +1477,15 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
         pressureorder=this->fPreferredOrder;
         TPZVec<std::pair<int,long> > IndexVecShape;
-        TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsides);
-        data.fNormalVec.Resize(3, TSHAPE::Dimension*TSHAPE::NSides);
-        if (TSHAPE::Type() == EPiramide) {
-            data.fNormalVec.Resize(3, TSHAPE::Dimension*TSHAPE::NSides+1);
+        if (TSHAPE::Type()==EPiramide) {
+            normalsides.resize(3*TSHAPE::NSides+1);
         }
+        TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsides);
+        long numvec = TSHAPE::Dimension*TSHAPE::NSides;
+        if (TSHAPE::Type() == EPiramide) {
+            numvec++;
+        }
+        data.fNormalVec.Resize(3, numvec);
         IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,pressureorder);
     }
     data.fShapeType = TPZMaterialData::EVecShape;

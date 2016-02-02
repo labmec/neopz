@@ -616,7 +616,7 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA,
 	std::list<TPZGeoEl*>::iterator elAit, elBit;
 	std::list< std::list<TPZGeoEl*>::iterator > pointedB;
 	TPZVec<int> Anodes(0);
-	TPZVec< TPZVec<int> > Bnodes(0);
+	TPZVec< TPZManVector<int,8> > Bnodes(0);
 	std::list< TPZVec<int> > BthatMatch;
 	int pairedNodesCount, unsuccessfulLoop = 0;
 	while(unsuccessfulLoop < 2 && nRemainingSubels > 0)
@@ -1501,7 +1501,7 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, TPZVec<int>& NodesHunted
     }
 }
 
-void TPZRefPatternTools::GetGelPermutations(TPZGeoEl * gel, TPZVec< TPZVec<int> > &permutation)
+void TPZRefPatternTools::GetGelPermutations(TPZGeoEl * gel, TPZVec< TPZManVector<int, 8> > &permutation)
 {
 	int id;
 	GetElTypePermutations(gel->Type(), permutation);
@@ -1515,7 +1515,7 @@ void TPZRefPatternTools::GetGelPermutations(TPZGeoEl * gel, TPZVec< TPZVec<int> 
 	}
 }
 
-void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZVec<int> > &permutation)
+void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZManVector<int,8> > &permutation)
 {
 	int nperm, nnodes, p;
 	switch (elType)
@@ -1639,7 +1639,7 @@ void TPZRefPatternTools::GetElTypePermutations(MElementType elType, TPZVec< TPZV
 			permutation[p][0] = 0; permutation[p][1] = 3; permutation[p][2] = 2; permutation[p][3] = 1; permutation[p][4] = 4; p++;
 			permutation[p][0] = 3; permutation[p][1] = 2; permutation[p][2] = 1; permutation[p][3] = 0; permutation[p][4] = 4; p++;
 			permutation[p][0] = 2; permutation[p][1] = 1; permutation[p][2] = 0; permutation[p][3] = 3; permutation[p][4] = 4; p++;
-			permutation[p][0] = 1; permutation[p][1] = 0; permutation[p][2] = 3; permutation[p][3] = 2;
+			permutation[p][0] = 1; permutation[p][1] = 0; permutation[p][2] = 3; permutation[p][3] = 2; permutation[p][4] = 4; 
 			
 			break;
 		}

@@ -190,11 +190,11 @@ public:
 	 * @note Note: The permutations is with respect to Master Element nodes, NOT Gel nodes in a geomesh context (i.e.: NOT geomesh nodes ids)
 	 */
 	static void GetGelPermutations(TPZGeoEl * gel,
-                                   TPZVec< TPZVec<int> > &permutation);
+                                   TPZVec< TPZManVector<int,8> > &permutation);
 	
 	/** @brief Fill the TPZVec "permutation" with the valid permutations of a given element type */
 	static void GetElTypePermutations(MElementType elType,
-                                      TPZVec< TPZVec<int> > &permutation);
+                                      TPZVec< TPZManVector<int, 8> > &permutation);
 };
 
 #endif

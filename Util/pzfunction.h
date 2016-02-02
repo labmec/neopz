@@ -200,6 +200,11 @@ public:
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
 	virtual int PolynomialOrder() 
     {
+#ifdef DEBUG
+        if (fPorder == -1) {
+            DebugStop();
+        }
+#endif
         return fPorder;
     }
 	

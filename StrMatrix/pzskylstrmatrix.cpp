@@ -31,6 +31,7 @@ TPZMatrix<STATE> * TPZSkylineStructMatrix::Create(){
     fMesh->Skyline(skyline);
     fEquationFilter.FilterSkyline(skyline);
     long neq = fEquationFilter.NActiveEquations();
+//    std::cout << skyline << std::endl;
     return this->ReallyCreate(neq,skyline);//new TPZSkylMatrix<STATE>(neq,skyline);
 }
 

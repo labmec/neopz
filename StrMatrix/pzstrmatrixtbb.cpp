@@ -149,7 +149,7 @@ void TPZStructMatrixTBB::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiI
 // filter out the equations which are out of the range
 void TPZStructMatrixTBB::FilterEquations(TPZVec<long> &origindex, TPZVec<long> &destindex) const
 {
-    destindex = origindex;
+//    destindex = origindex;
     fEquationFilter.Filter(origindex, destindex);
     
 }

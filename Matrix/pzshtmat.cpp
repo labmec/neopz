@@ -4,6 +4,7 @@
  */
 
 #include "pzshtmat.h"
+#include "pzerror.h"
 
 using namespace std;
 
@@ -222,6 +223,9 @@ TObj & TPZGenMatrix<TObj>::operator()(const long i,const long j) const{
 		" i = " << i << " j = " << j << " Rows = " <<
 		this->fRows << " columns = " << this->fCols << "\n";
 		cout.flush();
+#ifdef PZDEBUG
+        DebugStop();
+#endif
 		return fMem[0];
 	}
 }

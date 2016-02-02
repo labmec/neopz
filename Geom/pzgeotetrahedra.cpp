@@ -145,7 +145,7 @@ namespace pzgeom {
 				nodes[in] = orig->SideNodeIndex(side,in);
 			}
 			long index;
-			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
+			TPZGeoEl *gel = orig->CreateGeoElement(ETriangle,nodes,bc,index);
 			//		TPZGeoElT2d *gel = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
 			for (in=0;in<6;in++){
 				TPZGeoElSide(gel,in).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,in)));

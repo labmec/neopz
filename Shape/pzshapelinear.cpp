@@ -27,6 +27,21 @@ namespace pzshape {
 		}
 	}
 	
+    void TPZShapeLinear::Expo(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+        // Quadratic or higher shape functions
+        if(num <= 0) return;
+        phi.Put(0,0,1.0);
+        dphi.Put(0,0, 0.0);
+        if(num == 1) return;
+        phi.Put(1,0, x);
+        dphi.Put(0,1, 1.0);
+        int ord;
+        for(ord = 2;ord<num;ord++) {
+            phi.Put(ord,0, x*phi(ord-1,0));
+            dphi.Put(0,ord, ord*phi(ord-1,0));
+        }
+    }
+    
 	void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 		
 		// Quadratic or higher shape functions
@@ -172,7 +187,7 @@ namespace pzshape {
 	} //end of method
 	
 	// Setting Chebyshev polynomials as orthogonal sequence generating shape functions
-	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &) = TPZShapeLinear::Chebyshev;
+	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &) = TPZShapeLinear::Expo;
 	
 	/**
 	 * Computes the generating shape functions for a quadrilateral element

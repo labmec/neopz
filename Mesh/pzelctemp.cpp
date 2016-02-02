@@ -134,6 +134,7 @@ void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, long connectindex){
 
 template<class TSHAPE>
 int TPZIntelGen<TSHAPE>::NConnectShapeF(int connect) const{
+    
     if(connect < TSHAPE::NCornerNodes) return TSHAPE::NConnectShapeF(connect,0);
 	int order = SideOrder(connect);
 	if(order < 0) return 0;

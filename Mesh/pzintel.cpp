@@ -140,7 +140,8 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
 			equal = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
 			if (!equal) continue;
 			equalside = elvec[il].Side();
-			if(equal->ConnectIndex(equalside) != -1) {
+            int cindex = equal->MidSideConnectLocId(equalside);
+			if(equal->ConnectIndex(cindex) != -1) {
 				equal->SetSideOrder(equalside,neworder);
 			}
 		}

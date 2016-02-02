@@ -2317,6 +2317,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
             if (index >= Size(col)) {
                 std::cout << "Skyline wrongly configured " << " row " << row << " col " << col << " Size(col) " << Size(col) << std::endl;
                 cerr << "Try TPZSkylMatrix gZero." << endl;
+                std::cout << destination << std::endl;
                 DebugStop();
             }
 #endif

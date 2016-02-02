@@ -165,12 +165,16 @@ void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
 
 int TPZL2Projection::VariableIndex(const std::string &name){
 	if(!strcmp("Solution",name.c_str())) return ESolution;
+    if(!strcmp("Derivative",name.c_str())) return EDerivative;
 	return TPZMaterial::VariableIndex(name);
 }
 
 int TPZL2Projection::NSolutionVariables(int var){
 	const int nvars = this->NStateVariables();
 	if(var == ESolution) return nvars;
+    if (var == EDerivative) {
+        return fDim;
+    }
 	
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -178,16 +182,19 @@ int TPZL2Projection::NSolutionVariables(int var){
 void TPZL2Projection::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
                                TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout){
 	if (var == ESolution){
-#ifndef STATE_COMPLEX
         Solout.Resize(Sol.size());
         for (int i=0; i<Sol.size(); i++) {
             Solout[i] = Sol[i];
         }
-#else
-        
-#endif
 		return;
 	}
+    if (var == EDerivative) {
+        Solout.Resize(fDim);
+        for (int i=0; i<fDim; i++) {
+            Solout[i] = DSol(i,0);
+        }
+        return;
+    }
     TPZMaterial::Solution(Sol , DSol, axes, var, Solout);
 }
 
@@ -206,3 +213,30 @@ int TPZL2Projection::IntegrationRuleOrder(int elPMaxOrder) const
         return order;
     }
 }
+
+#include "pzaxestools.h"
+
+void TPZL2Projection::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+                             TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+                             TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
+    
+    values.Resize(NEvalErrors());
+    values.Fill(0.0);
+    TPZFNMatrix<3,STATE> gradu(3,1);
+    TPZAxesTools<STATE>::Axes2XYZ(dudx,gradu,axes);
+    
+    TPZManVector<STATE> sol(1),dsol(3,0.);
+    int id;
+    //values[1] : eror em norma L2
+    STATE diff = (u[0] - u_exact[0]);
+    values[1]  = diff*diff;
+    //values[2] : erro em semi norma H1
+    values[2] = 0.;
+    for(id=0; id<fDim; id++) {
+        diff = (gradu(id) - du_exact(id,0));
+        values[2]  += diff*diff;
+    }
+    //values[0] : erro em norma H1 <=> norma Energia
+    values[0]  = values[1]+values[2];
+}
+

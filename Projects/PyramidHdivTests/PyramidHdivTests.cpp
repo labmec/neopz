@@ -69,15 +69,25 @@ TPZGeoMesh * CreateGeoMesh1Tet();
 TPZGeoMesh * CreateGeoMeshHexaOfPir();
 TPZGeoMesh * CreateGeoMeshHexaOfPirTetra();
 TPZGeoMesh * CreateGeoMeshPrism();
-TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p);
-TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int &p);
+TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int p, bool hdivmm);
+TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm);
 TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec);
 void LoadSolution(TPZCompMesh *cpressure);
 void ProjectFlux(TPZCompMesh *cfluxmesh);
 void GroupElements(TPZCompMesh *cmesh);
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
+void LaplaceExact(const TPZVec<REAL> &pt, TPZVec<STATE> &f);
+void ExactSolution(const TPZVec<REAL> &pt, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
+
+/// verify if the pressure space is compatible with the flux space
+void VerifyDRhamCompatibility();
+
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
+
+    TPZFNMatrix<3,STATE> dsol(3,1);
+    ExactSolution(pt, f, dsol);
+    return;
 
     f[0] = pt[0];
     return;
@@ -85,16 +95,55 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
 void FluxFunc(const TPZVec<REAL> &pt, TPZVec<STATE> &flux)
 {
-    flux[0] = -1.;
+    flux[0] = 0.;
+}
+
+void ExactSolution(const TPZVec<REAL> &pt, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol)
+{
+    int dir = 0;
+    sol[0] = pt[dir];
+    dsol.Zero();
+    sol[0] = 1.;
+    return;
+    dsol(dir,0) = -1.;
+    return;
+    for (int i=0; i<3; i++) {
+        dsol(i,0) = 1.-2.*pt[i];
+    }
+    for (int i=0; i<3; i++) {
+        sol[0] *= pt[i]*(1.-pt[i]);
+        for (int j=0; j<3; j++) {
+            if (i != j) {
+                dsol(j,0) *= pt[i]*(1.-pt[i]);
+            }
+        }
+    }
+}
+
+void LaplaceExact(const TPZVec<REAL> &pt, TPZVec<STATE> &f)
+{
+    f[0] = 0.;
+    return;
+    for (int i=0; i<3; i++) {
+        STATE term = 1.;
+        for (int j=0; j<3; j++) {
+            if (i!= j) {
+                term *= pt[j]*(1.-pt[j]);
+            }
+        }
+        f[0] += 2.*term;
+    }
 }
 
 int main1(int argc, char *argv[]);
 int main2(int argc, char *argv[]);
-
+int ConvergenceTest();
 
 
 int main(int argc, char *argv[])
 {
+//    ConvergenceTest();
+//    return 0;
     bool assembleTests = false;
     if (assembleTests) {
         main1(argc, argv);
@@ -111,7 +160,7 @@ using namespace pzshape;
 int main2(int argc, char *argv[])
 {
     string projectpath = "/Projects/PyramidHdivTests/";
-
+    
 #ifdef LOG4CXX
     std::string dirname = PZSOURCEDIR;
     std::string FileName = dirname;
@@ -127,16 +176,20 @@ int main2(int argc, char *argv[])
         LOGPZ_DEBUG(logger,str.str())
     }
 #endif
+    
+    /// verify if the pressure space is compatible with the flux space
+    VerifyDRhamCompatibility();
+    return 0;
 
- //   gRefDBase.InitializeAllUniformRefPatterns();
+    //   gRefDBase.InitializeAllUniformRefPatterns();
     HDivPiola = 1;
-//    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
-//    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
+    //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
+    //    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
     TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPirTetra();
-//    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
-//    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
+    //    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
+    //    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
     int nref = 0;
-    UniformRefine(gmesh, 1);
+    UniformRefine(gmesh, nref);
     {
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh, "../PyramidGMesh.vtk", true);
     }
@@ -152,9 +205,9 @@ int main2(int argc, char *argv[])
     }
 #endif
     TPZManVector<TPZCompMesh*,2> meshvec(2);
-    meshvec[1] = CreateCmeshPressure(gmesh, pPressure);
+    meshvec[1] = CreateCmeshPressure(gmesh, pPressure, false);
     LoadSolution(meshvec[1]);
-    meshvec[0] = CreateCmeshFlux(gmesh, pFlux);
+    meshvec[0] = CreateCmeshFlux(gmesh, pFlux,false);
     TPZCompMeshTools::AddHDivPyramidRestraints(meshvec[0]);
     ProjectFlux(meshvec[0]);
     
@@ -170,7 +223,7 @@ int main2(int argc, char *argv[])
     
     TPZCompMesh *cmeshMult = CreateCmeshMulti(meshvec);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, cmeshMult);
-//    GroupElements(cmeshMult);
+    //    GroupElements(cmeshMult);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -184,7 +237,7 @@ int main2(int argc, char *argv[])
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     TPZSkylineStructMatrix skyl(cmeshMult);
-//    TPZFStructMatrix skyl(cmeshMult);
+    //    TPZFStructMatrix skyl(cmeshMult);
     an.SetStructuralMatrix(skyl);
     an.SetSolver(step);
     
@@ -208,14 +261,14 @@ int main2(int argc, char *argv[])
         practice << "Rhs obtained by assembly process\n";
         an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
     }
-
+    
     an.Solve();
     {
         std::ofstream sol("../SolComputed.txt");
         sol << "Solution obtained by matrix inversion\n";
         an.PrintVectorByElement(sol, cmeshMult->Solution(),1.e-8);
     }
-
+    
     int dim = 3;
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("Pressure");
@@ -229,11 +282,115 @@ int main2(int argc, char *argv[])
     return 0;
 }
 
+
+void ApproximationError(int nref, int porder, TPZVec<STATE> &errors, bool hdivmm);
+
+int ConvergenceTest()
+{
+    string projectpath = "/Projects/PyramidHdivTests/";
+
+#ifdef LOG4CXX
+    std::string dirname = PZSOURCEDIR;
+    std::string FileName = dirname;
+    FileName = dirname + projectpath;
+    FileName += "pyramlogfile.cfg";
+    InitializePZLOG();
+#endif
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream str;
+        str << "\nRodando testes de piramede Hdiv" << std::endl;
+        LOGPZ_DEBUG(logger,str.str())
+    }
+#endif
+
+    TPZManVector<STATE,3> errors(3,0.);
+    int nref = 0;
+    int porder = 1;
+    bool hdivmm = true;
+    ApproximationError(nref, porder, errors,hdivmm);
+    
+    return 0;
+}
+
+void ApproximationError(int nref, int porder, TPZVec<STATE> &errors, bool hdivmm)
+{
+ //   gRefDBase.InitializeAllUniformRefPatterns();
+    HDivPiola = 1;
+    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
+//    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
+//    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPirTetra();
+//    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
+//    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
+
+    UniformRefine(gmesh, nref);
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled() && nref < 2)
+    {
+        std::stringstream sout;
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    TPZManVector<TPZCompMesh*,2> meshvec(2);
+    meshvec[1] = CreateCmeshPressure(gmesh, porder,hdivmm);
+    LoadSolution(meshvec[1]);
+    meshvec[0] = CreateCmeshFlux(gmesh, porder,hdivmm);
+    TPZCompMeshTools::AddHDivPyramidRestraints(meshvec[0]);
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled() && nref < 2)
+    {
+        std::stringstream sout;
+        meshvec[0]->Print(sout);
+        meshvec[1]->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+    TPZCompMesh *cmeshMult = CreateCmeshMulti(meshvec);
+    TPZMaterial *mat = cmeshMult->FindMaterial(1);
+    if (!mat) {
+        DebugStop();
+    }
+    mat->SetForcingFunction(LaplaceExact);
+//    GroupElements(cmeshMult);
+
+    
+    TPZAnalysis an(cmeshMult,false);
+    an.SetExact(ExactSolution);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    TPZSkylineStructMatrix skyl(cmeshMult);
+    skyl.SetNumThreads(0);
+//    TPZFStructMatrix skyl(cmeshMult);
+    an.SetStructuralMatrix(skyl);
+    an.SetSolver(step);
+    
+    an.Run();
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled() && nref < 2)
+    {
+        std::stringstream sout;
+        cmeshMult->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+
+    std::ofstream out("../AccumErrors.txt",ios::app);
+    an.PostProcessError(errors,std::cout);
+
+    out << "nref " << nref <<  " h " << 1./(2<<nref) << " porder " << porder << " hdivmm " << hdivmm <<  " neq " << cmeshMult->NEquations() << " errors " << errors << std::endl;
+}
+
 TPZGeoMesh * CreateGeoMesh1Pir()
 {
-    long nodeids[]={0,1,2,3,4};
-//    REAL coords[5][3]={{-1.,-1.,0},{1.,-1.,0.},{1.,1.,0.},{-1.,1.,0.},{0.,0.,1.}};
-    REAL coords[5][3]={{-1.,-1.,-1.},{1.,1.,-1.},{1.,1.,1.},{-1.,-1.,1.},{1.,-1.,-1.}};
+    long nodeids[]={0,1,3,2,4};
+    REAL coords[5][3]={{-1.,-1.,0},{1.,-1.,0.},{1.,1.,0.},{-1.,1.,0.},{0.,0.,1.}};
+//    REAL coords[5][3]={{-1.,-1.,-1.},{1.,1.,-1.},{1.,1.,1.},{-1.,-1.,1.},{1.,-1.,-1.}};
     const int dim = 3;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     gmesh->SetDimension(dim);
@@ -292,7 +449,7 @@ TPZGeoMesh * CreateGeoMesh1Pir()
         topolPyr[i] = i;
     }
     
-    TPZGeoEl *gel = gmesh->CreateGeoElement(EPiramide, topolPyr, matid, index);
+    TPZGeoEl *gel = gmesh->CreateGeoElement(EPiramide, topolPyr, matid, index,0);
     
     const int bc0 = -1;//, bc1 = -2, bc2 = -3, bc3 = -4, bc4 = -5;
     gel->CreateBCGeoEl(13, bc0); // fundo
@@ -731,13 +888,19 @@ TPZGeoMesh * CreateGeoMeshHexaOfPirTetra()
 }
 
 
-TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p)
+TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int p, bool hdivmm)
 {
     const int matid = 1;
     const int dim = 3;
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
-    cmesh->SetDefaultOrder(p);
+    if (!hdivmm) {
+        cmesh->SetDefaultOrder(p);
+    }
+    else
+    {
+        cmesh->SetDefaultOrder(p+1);
+    }
     cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
     
@@ -756,16 +919,24 @@ TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int &p)
         }
         else
         {
-            new TPZIntelGen<TPZShapePiramHdiv>(*cmesh,gel,index);
+            TPZCompEl *cel = new TPZIntelGen<TPZShapePiramHdiv>(*cmesh,gel,index);
+            TPZConnect &c = cel->Connect(0);
+            c.SetNShape((p+1)*(p+1));
+            c.SetOrder(p);
+            cmesh->Block().Set(c.SequenceNumber(), (p+1)*(p+1));
 //            cel->Print();
         }
         gel->ResetReference();
     }
     cmesh->ExpandSolution();
+    long ncon = cmesh->NConnects();
+    for (long ic=0; ic<ncon; ic++) {
+        cmesh->ConnectVec()[ic].SetLagrangeMultiplier(1);
+    }
     return cmesh;
 }
 
-TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int &p)
+TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
 {
     const int matid = 1, bc0 = -1;
     const int dim = 3;
@@ -787,6 +958,25 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int &p)
     
     cmesh->AutoBuild();
     
+    if (hdivmm)
+    {
+        cmesh->SetDefaultOrder(p+1);
+        long nel = cmesh->NElements();
+        for (long el = 0; el<nel; el++) {
+            TPZCompEl *cel = cmesh->Element(el);
+            if(!cel) continue;
+            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+            int nc = intel->NConnects();
+            if (nc <=1) {
+                continue;
+            }
+            TPZGeoEl *gel = intel->Reference();
+            int ns = gel->NSides();
+            intel->ForceSideOrder(ns-1, p+1);
+        }
+    }
+    cmesh->ExpandSolution();
+//    ProjectFlux(cmesh);
     return cmesh;
 }
 
@@ -799,6 +989,10 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec)
     gmesh->ResetReference();
     TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
     
+    int p1 = meshvec[0]->GetDefaultOrder();
+    int p2 = meshvec[1]->GetDefaultOrder();
+    int p = p1 < p2 ? p2 : p1;
+    mphysics->SetDefaultOrder(p);
     //criando material
     int dim = gmesh->Dimension();
     mphysics->SetDimModel(dim);
@@ -1462,4 +1656,405 @@ void ProjectFlux(TPZCompMesh *cfluxmesh)
     step.SetDirect(ECholesky);
     an.SetSolver(step);
     an.Run();
+}
+
+static int gfluxorder = 2;
+
+/// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
+static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner);
+
+/// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
+static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier);
+
+/// verify if the divergence of each vector function is included in the pressure space
+static void CheckDRham(TPZCompEl *cel)
+{
+    TPZFMatrix<STATE> inner, multiplier;
+    TPZAutoPointer<TPZMatrix<STATE> > L2 = new TPZFMatrix<STATE>;
+    GenerateProjectionMatrix(cel, L2, inner);
+    int porder = cel->GetgOrder();
+    std::string filename;
+    {
+        std::stringstream sout;
+        sout << "../matrices" << gfluxorder << ".nb";
+        filename = sout.str();
+    }
+    
+    std::ofstream output(filename.c_str());
+    output.precision(16);
+    {
+        std::stringstream sout;
+        sout << "L2" << gfluxorder << " = ";
+        filename = sout.str();
+    }
+    L2->Print(filename.c_str(),output, EMathematicaInput);
+    {
+        std::stringstream sout;
+        sout << "PressHDiv" << gfluxorder << " = ";
+        filename = sout.str();
+    }
+    inner.Print(filename.c_str(),output,EMathematicaInput);
+    TPZStepSolver<STATE> step(L2);
+    step.SetDirect(ELU);
+    step.Solve(inner,multiplier);
+    {
+        std::stringstream sout;
+        sout << "multipl" << gfluxorder << " = ";
+        filename = sout.str();
+    }
+    
+    multiplier.Print(filename.c_str(),output,EMathematicaInput);
+    output.close();
+    int nwrong = 0;
+    nwrong = VerifyProjection(cel, multiplier);
+    if(nwrong)
+    {
+        std::cout << "Number of points with wrong pressure projection " << nwrong << std::endl;
+    }
+//    return nwrong;
+    
+}
+
+static void VerifyPressureShapeProperties(int order, TPZMaterialData &data, TPZVec<REAL> &pt)
+{
+    // funcao quadratica singular
+    REAL bolha = data.phi(0)*data.phi(2)*16.*(1-pt[2]);
+    int ibolha = 4+4*(order-1);
+    REAL phival = data.phi(ibolha);
+    REAL diff = bolha-phival;
+    if (fabs(diff) > 1.e-9) {
+        std::cout << "Bolha nao identificada\n";
+    }
+    // funcao lateral singular
+    int offset = 0;
+    bolha = (data.phi(0+offset)*data.phi(1+offset)+data.phi(0+offset)*data.phi(2+offset))*4.*(1-pt[2]);
+    ibolha = offset+4;
+    phival = data.phi(ibolha);
+    diff = bolha-phival;
+    if (fabs(diff) > 1.e-9) {
+        std::cout << "Bolha nao identificada\n";
+    }
+    // funcao quadratica original
+    offset = (order+1)*(order+1);
+    bolha = data.phi(0+offset)*data.phi(2+offset)*16;
+    ibolha = offset+4+8*(order-1);
+    phival = data.phi(ibolha);
+    diff = bolha-phival;
+    if (fabs(diff) > 1.e-9) {
+        std::cout << "Bolha nao identificada\n";
+    }
+    // funcao lateral original
+    offset = (order+1)*(order+1);
+    bolha = (data.phi(0+offset)*data.phi(1+offset)+data.phi(0+offset)*data.phi(2+offset))*4.;
+    ibolha = offset+4;
+    phival = data.phi(ibolha);
+    diff = bolha-phival;
+    if (fabs(diff) > 1.e-9) {
+        std::cout << "Bolha nao identificada\n";
+    }
+}
+
+/// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
+static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner)
+{
+    TPZMaterialData dataA,dataB;
+    TPZMultiphysicsElement *celMF = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    if (!celMF) {
+        DebugStop();
+    }
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(0));
+    TPZInterpolationSpace *intelP = dynamic_cast<TPZInterpolationSpace *>(celMF->Element(1));
+    if (!intel || ! intelP) {
+        DebugStop();
+    }
+    intel->InitMaterialData(dataA);
+    intelP->InitMaterialData(dataB);
+    int dim = intel->Reference()->Dimension();
+    const TPZIntPoints &intrule = intel->GetIntegrationRule();
+    int np = intrule.NPoints();
+    int npressure = dataB.phi.Rows();
+    int nflux = dataA.fVecShapeIndex.NElements();
+    L2->Redim(npressure,npressure);
+    inner.Redim(npressure,nflux);
+    {
+        REAL weight;
+        TPZManVector<REAL,3> pos(dim);
+        int ip = intrule.NPoints()/2;
+        intrule.Point(ip, pos, weight);
+        //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
+        intel->ComputeRequiredData(dataA, pos);
+        intelP->ComputeRequiredData(dataB, pos);
+        {
+            int order = intel->Mesh()->GetDefaultOrder()+1;
+            std::stringstream filename;
+            filename << "../phis"<< order << ".nb";
+            std::ofstream out(filename.str().c_str());
+            std::string phiHDiv, phiPress, VecShape, PosSub, Directions;
+            phiHDiv = "phiHDiv" + std::to_string(order) + " = ";
+            phiPress = "phiPress" + std::to_string(order) + " = ";
+            VecShape = "VecShape" + std::to_string(order) + " = ";
+            Directions = "Directions" + std::to_string(order) + " = ";
+            PosSub = "PosSub" + std::to_string(order) + " = ";
+            
+            dataA.phi.Print(phiHDiv.c_str(),out,EMathematicaInput);
+            dataB.phi.Print(phiPress.c_str(),out,EMathematicaInput);
+            TPZFMatrix<REAL> normalvec;
+            dataA.fNormalVec.Transpose(&normalvec);
+            normalvec.Print(Directions.c_str(),out,EMathematicaInput);
+            out << VecShape << " {\n";
+            for (int i=0; i<dataA.fVecShapeIndex.size(); i++) {
+                out << "{" << dataA.fVecShapeIndex[i].first+1 << "," << dataA.fVecShapeIndex[i].second+1 << "}";
+                if (i != dataA.fVecShapeIndex.size()-1) {
+                    out << ",";
+                }
+                out << std::endl;
+            }
+            out << "};\n";
+            out.precision(16);
+            out << PosSub << " { x-> "<< pos[0] << ", y-> " << pos[1] << ", z-> " << pos[2] << "};" << std::endl;
+        }
+
+        if(intelP->Connect(6).Order() > 1)
+        {
+            VerifyPressureShapeProperties(intelP->Connect(6).Order(), dataB,pos);
+        }
+        if (intelP->Connect(6).Order() == 3)
+        {
+            int vecindex = dataA.fVecShapeIndex[85].first;
+            int phiindex = dataA.fVecShapeIndex[85].second;
+            std::cout << "vector column 85 phiindex " << phiindex << ' ';
+            for (int i=0; i<3; i++) {
+                std::cout << dataA.fNormalVec(i,vecindex) << " ";
+            }
+            std::cout << std::endl;
+            vecindex = dataA.fVecShapeIndex[83].first;
+            
+            phiindex = dataA.fVecShapeIndex[83].second;
+            std::cout << "vector column 83 phiindex " << phiindex << ' ';
+            for (int i=0; i<3; i++) {
+                std::cout << dataA.fNormalVec(i,vecindex) << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+    int ip;
+    for (ip=0; ip<np; ip++) {
+        REAL weight;
+        TPZManVector<REAL,3> pos(dim);
+        intrule.Point(ip, pos, weight);
+        //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
+        intel->ComputeRequiredData(dataA, pos);
+        intelP->ComputeShape(pos, dataB);
+        int ish,jsh;
+        for (ish=0; ish<npressure; ish++) {
+            for (jsh=0; jsh<npressure; jsh++) {
+                L2->s(ish,jsh) += dataB.phi(ish,0)*dataB.phi(jsh,0)*weight*fabs(dataB.detjac);
+            }
+            for (jsh=0; jsh<nflux; jsh++) {
+                // compute the divergence of the shapefunction
+                TPZManVector<REAL,3> vecinner(intel->Dimension(),0.);
+                int vecindex = dataA.fVecShapeIndex[jsh].first;
+                int phiindex = dataA.fVecShapeIndex[jsh].second;
+                int j;
+                int d;
+                for (d=0; d<dim; d++) {
+                    vecinner[d]=0;
+                    for (j=0; j<3; j++) {
+                        vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
+                    }
+                }
+                REAL divphi = 0.;
+                for (d=0; d<dim; d++) {
+                    divphi += dataA.dphix(d,phiindex)*vecinner[d];
+                }
+                if (jsh == 83) {
+                    divphi = dataB.phi(27)*pos[0];
+                    REAL da27 = -dataB.phi(27);
+                    REAL da37 = dataB.phi(37)/2.;
+                    REAL verify = divphi-(-dataB.phi(27)+dataB.phi(37)/2.);
+                    std::cout << " phi 27 " << dataB.phi(27) << " phi 27 x " << dataB.phi(27)*pos[0] << " verify " << verify << std::endl;
+//                    divphi *= pos[0];
+//                    divphi += dataA.phi(phiindex,0);
+                }
+                inner(ish,jsh) += dataB.phi(ish,0)*divphi*weight*fabs(dataA.detjac);
+            }
+        }
+    }
+}
+
+/// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
+static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
+{
+    TPZMaterialData dataA,dataB;
+    TPZMultiphysicsElement *celMF = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    if (!celMF) {
+        DebugStop();
+    }
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(0));
+    TPZInterpolationSpace *intelP = dynamic_cast<TPZInterpolationSpace *>(celMF->Element(1));
+    
+    if (!intelP || !intel) {
+        DebugStop();
+    }
+    intel->InitMaterialData(dataA);
+    intelP->InitMaterialData(dataB);
+    int dim = intel->Reference()->Dimension();
+    const TPZIntPoints &intrule = intel->GetIntegrationRule();
+    int np = intrule.NPoints();
+    int npressure = dataB.phi.Rows();
+    int nflux = dataA.fVecShapeIndex.NElements();
+    TPZFNMatrix<30> pointpos(2,np);
+    TPZFNMatrix<30> divergence(np,nflux);
+    int ip;
+    //std::cout << dataA.fVecShapeIndex << std::endl;
+    int nwrong = 0;
+    for (ip=0; ip<np; ip++) {
+        REAL weight;
+        TPZManVector<REAL,3> pos(dim);
+        intrule.Point(ip, pos, weight);
+        pointpos(0,ip) = pos[0];
+        pointpos(1,ip) = pos[1];
+        //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
+        intel->ComputeRequiredData(dataA, pos);
+        intelP->ComputeShape(pos, dataB);
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Phi's " << dataA.phi<< " dphix's "<< dataA.dphix<<std::endl;
+            
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+        int ish,jsh;
+        for (jsh=0; jsh<nflux; jsh++) {
+            // compute the divergence of the shapefunction
+            TPZManVector<REAL,3> vecinner(intel->Dimension(),0.);
+            int vecindex = dataA.fVecShapeIndex[jsh].first;
+            int phiindex = dataA.fVecShapeIndex[jsh].second;
+            int j;
+            int d;
+            for (d=0; d<dim; d++) {
+                vecinner[d]=0;
+                for (j=0; j<3; j++) {
+                    vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
+                }
+            }
+            REAL divphi = 0.;
+            for (d=0; d<dim; d++) {
+                divphi += dataA.dphix(d,phiindex)*vecinner[d];
+            }
+            
+            if (jsh == 83) {
+//                divphi *= pos[0];
+//                divphi += dataA.phi(phiindex,0);
+                divphi = dataB.phi(27)*pos[0];
+            }
+            //#ifdef LOG4CXX
+            //						{
+            //								std::stringstream sout;
+            //								sout << "Div " << divphi<< std::endl;
+            //
+            //								LOGPZ_DEBUG(logger,sout.str())
+            //						}
+            //#endif
+            divergence(ip,jsh) = divphi;
+            REAL phival = 0;
+            
+            for (ish=0; ish<npressure; ish++) {
+                
+                phival += multiplier(ish,jsh)*dataB.phi(ish);
+            }
+            // the divergence of the vector function should be equal to the value of projected pressure space
+            REAL diff = phival-divphi;
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "phi: " << phival<<" dphi: "<< divphi <<"\n";
+                sout << "flux number " << jsh << " diff: "<<diff<< "\n";
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+            if(fabs(diff) > 1.e-6)
+            {
+                nwrong++;
+                std::cout << "flux number " << jsh << " did not project: diff: "<<diff<<"\n";
+                StopError();
+            }
+        }
+    }
+    
+    /*
+     int ifl;
+     std::ofstream fluxes("fluxes.nb");
+     for (ifl=0; ifl<nflux; ifl++) {
+     fluxes << "flux" << ifl << " = {\n";
+     for (ip=0; ip<np; ip++) {
+     fluxes << "{ " << pointpos(0,ip) << " , " << pointpos(1,ip) << " , " << divergence(ip,ifl) << "} ";
+     if(ip<np-1) fluxes << "," << std::endl;
+     }
+     fluxes << " };\n";
+     }
+     */     
+    return nwrong;
+}
+
+
+
+/// verify if the pressure space is compatible with the flux space
+void VerifyDRhamCompatibility()
+{
+    // generate a mesh
+    //   gRefDBase.InitializeAllUniformRefPatterns();
+    HDivPiola = 1;
+    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
+    int nref = 0;
+    UniformRefine(gmesh, nref);
+    {
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, "../PyramidGMesh.vtk", true);
+    }
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    TPZManVector<TPZCompMesh*,2> meshvec(2);
+    meshvec[1] = CreateCmeshPressure(gmesh, gfluxorder, false);
+    LoadSolution(meshvec[1]);
+    meshvec[0] = CreateCmeshFlux(gmesh, gfluxorder,false);
+    TPZCompMeshTools::AddHDivPyramidRestraints(meshvec[0]);
+//    ProjectFlux(meshvec[0]);
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        meshvec[0]->Print(sout);
+        meshvec[1]->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+    TPZCompMesh *cmeshMult = CreateCmeshMulti(meshvec);
+    std::ofstream arg1("cmesh.txt");
+    cmeshMult->Print(arg1);
+    // for each computational element (not boundary) verify if the Div(vecspace) is included in the pressure space
+    int nel = cmeshMult->NElements();
+    int meshdim = cmeshMult->Dimension();
+    int iel;
+    for (iel=0; iel<nel; iel++) {
+        TPZCompEl *cel = cmeshMult->ElementVec()[iel];
+        TPZMultiphysicsElement *intel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if(!intel)
+        {
+            DebugStop();
+        }
+        if(intel->Reference()->Dimension() != meshdim) continue;
+        CheckDRham(intel);
+    }
 }

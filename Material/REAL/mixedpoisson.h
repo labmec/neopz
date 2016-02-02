@@ -155,7 +155,12 @@ public:
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
 	
-    	
+    
+    virtual int NEvalErrors() {return 6;}
+
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
+
+    
 };
 
 #endif

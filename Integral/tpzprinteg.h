@@ -105,7 +105,7 @@ public:
 	}
 	
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) {
+	void Name(std::string &name) const {
 		name = "TPZPrInteg";
 	}
 };

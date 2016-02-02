@@ -56,7 +56,7 @@ public:
 	TPZL2Projection(const TPZL2Projection &cp);
 	
 	/** @brief Solution indices of post-processing */
-	enum ESolutionVars { ENone = 0, ESolution = 1 };
+	enum ESolutionVars { ENone = 0, ESolution = 1 , EDerivative = 2};
 	
     /** 
      * @brief Get the order of the integration rule necessary to integrate an
@@ -148,6 +148,10 @@ public:
 	{
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
+    
+    virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+           TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+           TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
 };
 
 #endif

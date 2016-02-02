@@ -105,6 +105,14 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
 		}
 		gmesh->ResetReference();
 	}
+    for (long el = 0; el < nMFEl; el++) {
+        TPZCompEl *cel = MFMesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+//        mfcel->InitializeIntegrationRule();
+    }
 }
 
 void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)

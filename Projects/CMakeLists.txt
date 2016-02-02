@@ -215,8 +215,9 @@ ENABLE_TESTING()
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
 			#
-			#
+			# Colaboration with Laurent Stainier
 			
+			add_subdirectory(MatLib)
 			
 
 		endif(BUILD_COMPLEX_PROJECTS)

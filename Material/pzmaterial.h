@@ -337,9 +337,15 @@ public:
     {
 			fForcingFunction = fp;
     }
-    void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result) )
+    void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result), int porder )
 		{
-				if(fp) fForcingFunction = new TPZDummyFunction<STATE>(fp);
+				if(fp)
+                {
+                    TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp);
+                    loc->SetPolynomialOrder(porder);
+                    fForcingFunction = loc;
+                }
+            
 				else fForcingFunction = NULL;
 		}
 
@@ -413,6 +419,11 @@ public:
         Flux(data.x, data.sol[0], data.dsol[0], data.axes, flux);
         Errors(data.x, data.sol[0], data.dsol[0], data.axes, flux, u_exact, du_exact, errors );
     }
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
+    {
+        DebugStop();
+    }
+
     /**
 	 * @brief Computes the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution

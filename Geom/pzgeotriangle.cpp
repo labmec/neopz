@@ -282,7 +282,7 @@ namespace pzgeom {
 			TPZManVector<long> nodeindexes(1);
 			nodeindexes[0] = orig->SideNodeIndex(side,0);
 			long index;
-			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+			TPZGeoEl *gel = orig->CreateGeoElement(EPoint,nodeindexes,bc,index);
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
 		}
@@ -291,7 +291,7 @@ namespace pzgeom {
 			nodes[0] = orig->SideNodeIndex(side,0);
 			nodes[1] = orig->SideNodeIndex(side,1);
 			long index;
-			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
+			TPZGeoEl *gel = orig->CreateGeoElement(EOned,nodes,bc,index);
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,0)));
 			TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,1)));
 			TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));

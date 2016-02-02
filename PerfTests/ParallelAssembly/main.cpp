@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     TPZAnalysis *an = new TPZAnalysis(cmesh,false);
 
     TPZSkylineStructMatrix strmat(cmesh);
-
+    
 //#ifndef PZDEBUG
 //    skyl.SetNumThreads(1);
 //#endif
@@ -124,7 +124,6 @@ int main(int argc, char *argv[])
     step.SetDirect(ELDLt);
     an->SetSolver(step);
     std::cout << "Assembly\n";
-    an->Assemble();
     an->AssembleResidual();
     std::cout << "Once\n";
     an->AssembleResidual();

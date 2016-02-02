@@ -295,7 +295,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 				#ifdef STATE_COMPLEX
 				  sprintf(number, "%16.16Lf",(long double) fabs(val));
 				#else
-                sprintf(number, "%16.8Lf",(long double) TPZExtractVal::val(val) );
+                sprintf(number, "%16.16Lf",(long double) TPZExtractVal::val(val) );
 				#endif
 				out << number;
 				if(col < Cols()-1)
@@ -1950,7 +1950,7 @@ template class TPZMatrix<TPZFlopCounter>;
 
 #ifdef _AUTODIFF
 template class TPZMatrix<TFad<6,REAL> >;
-//template class TPZMatrix<Fad<double> >;
+template class TPZMatrix<Fad<double> >;
 #endif
 
 /** @brief Overload << operator to output entries of the matrix ***/

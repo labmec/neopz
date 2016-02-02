@@ -39,32 +39,39 @@ void TPZCompMeshTools::AddHDivPyramidRestraints(TPZCompMesh *cmesh)
         /// we need to identify the connect to restraint
         /// start with face 14
         int is;
+        int numneigh = 0;
         for (is=14; is<18; is++) {
             TPZGeoElSide gelside(gel,is);
             TPZCompElSide large = gelside.LowerLevelCompElementList2(1);
             // if the side is constrained, it wont be used as a reference
             if (large) {
+                numneigh++;
                 continue;
             }
             // if the side has smaller elements connected to it, discard the side
             TPZStack<TPZCompElSide> celstack;
             gelside.HigherLevelCompElementList2(celstack, 1, 0);
             if (celstack.size()) {
+                numneigh++;
                 continue;
             }
             // see if there is a pyramid element  neighbour of the pyramid
             gelside.EqualLevelCompElementList(celstack, 1, 0);
             int localel;
             for (localel=0; localel<celstack.size(); localel++) {
-                if (celstack[localel].Reference().Element()->Type() == ETetraedro) break;
+                if (celstack[localel].Reference().Element()->Type() == ETetraedro || celstack[localel].Reference().Element()->Type() == ETriangle) break;
+            }
+            if (celstack.size()) {
+                numneigh++;
             }
             TPZCompElHDiv<pzshape::TPZShapeTetra> *pir;
             /// the pyramid has a neighbour of pyramid type
             if (localel < celstack.size()) {
                 // find out if the face is the restrained face
+
                 pir = dynamic_cast<TPZCompElHDiv<pzshape::TPZShapeTetra> *>(celstack[localel].Element());
                 if (pir == NULL) {
-                    DebugStop();
+                    break;
                 }
                 const int restrainedface = pir->RestrainedFace();
                 const int neighbourside = celstack[localel].Side();
@@ -73,6 +80,9 @@ void TPZCompMeshTools::AddHDivPyramidRestraints(TPZCompMesh *cmesh)
                 }
                 break;
             }
+        }
+        if (numneigh == 0) {
+            is = 17;
         }
         if (is == 18 || is == 13) {
             cmesh->Print();

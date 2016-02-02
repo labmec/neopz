@@ -1838,6 +1838,8 @@ template class TPZRestoreClass< TPZFMatrix<long double> , TPZFMATRIX_LONG_DOUBLE
 #ifdef _AUTODIFF
 #include "fad.h"
 template class TPZFMatrix<TFad<6,REAL> >;
+template class TPZFMatrix<Fad<double> >;
+
 //template class TPZFMatrix<TFad<6,double> >;
 //template class TPZFMatrix<TFad<6,float> >;
 //template class TPZFMatrix<TFad<6,long double> >;

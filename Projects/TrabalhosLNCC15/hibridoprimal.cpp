@@ -440,11 +440,11 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 //}
 
 //Malha Hdiv
-bool HDivMaisMais = false;
+bool HDivMaisMais = true;
 int main(int argc, char *argv[])
 {
     
-    HDivPiola = 0;
+    HDivPiola = 1;
     bool hdivskeleton = true;
     if(HDivPiola != 0)
     {
@@ -461,9 +461,10 @@ int main(int argc, char *argv[])
     gRefDBase.InitializeUniformRefPattern(ETriangle);
     gRefDBase.InitializeUniformRefPattern(ETetraedro);
 
-    std::ofstream myerrorfile("Simulacao-Hdiv.txt");
-    myerrorfile<<"\nDADOS PARA O REFINAMENTO hp: Simulacao Hdiv"<<std::endl;
-
+    {
+        std::ofstream myerrorfile("Simulacao-Hdiv.txt",ios::app);
+        myerrorfile<<"\nDADOS PARA O REFINAMENTO hp: Simulacao Hdiv"<<std::endl;
+    }
     TPZGeoMesh *gmesh;
     TPZCompMesh * cmesh1;
     TPZCompMesh * cmesh2;
@@ -487,18 +488,19 @@ int main(int argc, char *argv[])
     int pini = 2;
     for(int p = pini; p<3; p++)
     {
-        int pp = p-1; // Case 1 Pk  Pk-1
-//        int pp = p; // Case 2 P*k  Pk
+//        int pp = p-1; // Case 1 Pk  Pk-1
+        int pp = p; // Case 2 P*k  Pk
         if(HDivMaisMais){ // Case 3 P**k  Pk+1
             
             pp = p+1;
         }
         
-        myerrorfile<<"\nORDEM p = "<<p <<"\n\n";
-    
-        myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
-            "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
-        
+        {
+            std::ofstream myerrorfile("Simulacao-Hdiv.txt",ios::app);
+            myerrorfile<<"\nORDEM p = "<<p <<"\n\n";
+            myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
+                "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
+        }
         for(int ndiv=1; ndiv<5; ndiv++){
             
             if(dim_problema==2){
@@ -521,6 +523,9 @@ int main(int argc, char *argv[])
             long nNzeros=0;
 
             cmesh1= CMeshFlux(p, gmesh);
+            {
+                TPZAnalysis an(cmesh1);
+            }
             if(dim_problema==2) Prefinamento(cmesh1, ndiv, p);
             if(HDivMaisMais){
                 ChangeInternalConnectOrder(cmesh1);
@@ -561,14 +566,14 @@ int main(int argc, char *argv[])
                 TPZSkylMatrix<STATE> matsky(neq,skyline);
                 nNzeros = matsky.GetNelemts();
 
-//                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
-//                skylstr.SetNumThreads(6);                
-//                analysis.SetStructuralMatrix(skylstr);
+                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+                skylstr.SetNumThreads(6);                
+                analysis.SetStructuralMatrix(skylstr);
                 
-                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
-                strmat.SetDecomposeType(ELDLt);
-                strmat.SetNumThreads(6);
-                analysis.SetStructuralMatrix(strmat);
+//                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
+//                strmat.SetDecomposeType(ELDLt);
+//                strmat.SetNumThreads(6);
+//                analysis.SetStructuralMatrix(strmat);
             }
 
             TPZStepSolver<STATE> step;
@@ -581,6 +586,9 @@ int main(int argc, char *argv[])
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
     #endif
             analysis.Assemble();
+            TPZAutoPointer<TPZMatrix<STATE> > glob = analysis.Solver().Matrix()->Clone();
+            TPZFMatrix<STATE> RHS(analysis.Rhs());
+
 //            std::stringstream sout;
 //            analysis.StructMatrix()->Print("Matriz de RigidezBLABLA: ",sout,EMathematicaInput);
 
@@ -588,6 +596,13 @@ int main(int argc, char *argv[])
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
     #endif
             analysis.Solve();
+            
+            TPZFMatrix<STATE> KU;
+            glob->Multiply(analysis.Solution(), KU);
+            
+            KU -= RHS;
+            
+            std::cout << "Norma de KU " << Norm(KU) << std::endl;
 
     #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
@@ -618,11 +633,57 @@ int main(int argc, char *argv[])
                 mphysics->ComputeFillIn(100,vismat);
                 VisualMatrixVTK(vismat,"matrixstruct.vtk");
         }
+            TPZFMatrix<STATE> HDivSol = analysis.Solution();
+
+            if(1)
+            {
+                TPZAnalysis an(cmesh1,false);
+                TPZSkylineStructMatrix strmat(cmesh1);
+                strmat.SetNumThreads(8);
+                an.SetStructuralMatrix(strmat);
+                
+                TPZStepSolver<STATE> step;
+                step.SetDirect(ELDLt);
+                an.SetSolver(step);
+                an.Run();
+                
+            }
+            if(1)
+            {
+                TPZAnalysis an(cmesh2,false);
+                TPZSkylineStructMatrix strmat(cmesh2);
+                strmat.SetNumThreads(8);
+                an.SetStructuralMatrix(strmat);
+                TPZStepSolver<STATE> step;
+                step.SetDirect(ELDLt);
+                an.SetSolver(step);
+                an.Run();
+                
+            }
+            
+            TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+            
+            HDivSol-= mphysics->Solution();
+            analysis.LoadSolution(mphysics->Solution());
+            
+            TPZFMatrix<STATE> resid(glob->Rows(),1);
+            glob->Multiply(analysis.Solution(), resid);
+            resid -= RHS;
+//            glob->MultAdd(analysis.Solution(), resid, RHS,1.,-1.);
 
 //            myerrorfile << ndiv <<  setw(13) << NDoF << setw(15)<< NDoFCond <<"    "<< (t2-t1) << "     "<< (t3-t2) <<"     "<<(t2-t1)+(t3-t2) << setw(18);
 
-            TPZVec<STATE> ErroP;
-            TPZVec<STATE> ErroF;
+            
+            RHS -= analysis.Rhs();
+            
+            std::cout << "Norma diff rhs " << Norm(RHS) << std::endl;
+            std::cout << "Norma de resid " << Norm(resid) << std::endl;
+            {
+                std::ofstream errorel("ErrorElement.txt");
+                analysis.PrintVectorByElement(errorel, resid);
+            }
+            TPZManVector<STATE,5> ErroP;
+            TPZManVector<STATE,5> ErroF;
             ErrorH1(cmesh2, ErroP /*,myerrorfile*/);
             ErrorHDiv(cmesh1, ErroF /*,myerrorfile*/);
             
@@ -631,13 +692,13 @@ int main(int argc, char *argv[])
             REAL NumZeros = totalbanda - nNzeros;
             REAL razao = NumZeros/totalbanda;
             
-            
-            myerrorfile << ndiv <<  setw(13) << NDoF << setw(12) << NDoFCond << setw(13)<< NDoFCond*NDoFCond
-            << setw(15) << NumZeros << setw(12) << razao << "    " << (t2-t1) << "     " << (t3-t2) << "     "
-            << (t2-t1)+(t3-t2) << setw(12) << ErroP[1] << setw(15) << ErroF[1] <<std::endl;
+            {
+                std::ofstream myerrorfile("Simulacao-Hdiv.txt",ios::app);
+                myerrorfile << ndiv <<  setw(13) << NDoF << setw(12) << NDoFCond << setw(13)<< NDoFCond*NDoFCond
+                << setw(15) << NumZeros << setw(12) << razao << "    " << (t2-t1) << "     " << (t3-t2) << "     "
+                << (t2-t1)+(t3-t2) << setw(12) << ErroP[1] << setw(15) << ErroF[1] <<std::endl;
+            }
         }
-
-        myerrorfile <<"\n-------------------------------------------------------------------------"<<std::endl;
     }
 
     return 0;
@@ -1377,6 +1438,8 @@ void Prefinamento(TPZCompMesh * cmesh, int ndiv, int porder){
     cmesh->ExpandSolution();
 }
 
+static REAL alpha = 2.;
+
 void SolShockProblem(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     
     REAL x = loc[0];
@@ -1385,7 +1448,7 @@ void SolShockProblem(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
     
     REAL x0 = 1.25, y0 = -0.25, z0 = 0.25;
     REAL r0 = M_PI/3.;
-    REAL alpha = 0.;
+//    REAL alpha = 0.;
     
     u.Resize(1, 0.);
     du.Resize(3, 1);
@@ -1418,9 +1481,17 @@ void SolShockProblem(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
     }
     else
     {
+        u[0] = 3.+4.*x+5.*y+2.*z-7*z*z+x*x*x;//+9.*x*y+3*y*z+x*z+2.*x*x+2.*y*y-7.*z*z;
+        du(0,0) = 4.+3*x*x;//+9*y+z+4.*x;
+        du(1,0) = 5.;//+9.*x+3.*z+4.*y;
+        du(2,0) = 2.-14.*z;//+3.*y+x-14.*z;
+        du(0,0) = -du(0,0);
+        du(1,0) = -du(1,0);
+        du(2,0) = -du(2,0);
+        return;
         temp1 = (x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0);
         r = sqrt(temp1);
-        alpha = 5.;
+//        alpha = 5.;
         temp2 = (r - r0)*alpha;
         u[0] = M_PI/2. - atan(temp2);
         
@@ -1442,6 +1513,11 @@ void SolShockProblem(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
     }
 }
 
+void SolShockProblem2(const TPZVec<REAL> &loc, TPZVec<STATE> &u){
+    TPZFNMatrix<3,STATE> du(3,1);
+    SolShockProblem(loc, u, du);
+}
+
 void ForcingShockProblem(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix<STATE> &df)
 {
     REAL x = pt[0];
@@ -1450,7 +1526,7 @@ void ForcingShockProblem(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix
     
     REAL x0 = 1.25, y0 = -0.25, z0 = 0.25;
     REAL r0 = M_PI/3.;
-    REAL alpha = 0.;
+//    REAL alpha = 0.;
     
     REAL temp1=0., temp2=0.,temp3=0.,r=0., sol=0.;
     
@@ -1470,9 +1546,17 @@ void ForcingShockProblem(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix
     }
     else
     {
+//        du(0,0) = 4.+9*y+z+4.*x;
+//        du(1,0) = 5.+9.*x+3.*z+4.*y;
+//        du(2,0) = 2.+3.*y+x-14.*z;
+        disp[0] = 14.-6.0*x;//4.+ 4.-14;
+        df(0,0) = 4.+3*x*x;//+9*y+z+4.*x;
+        df(1,0) = 5.;//+9.*x+3.*z+4.*y;
+        df(2,0) = 2.-14.*z;//+3.*y+x-14.*z;
+        return;
         temp1 = (x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0);
         r = sqrt(temp1);
-        alpha = 5.;
+//        alpha = 5.;
         
         temp1 = (2./alpha) + 2.*r0*(r0-r)*alpha;
         temp2 = r*((r - r0)*(r - r0) + 1./(alpha*alpha));
@@ -1485,9 +1569,19 @@ void ForcingShockProblem(const TPZVec<REAL> &pt, TPZVec<STATE> &disp, TPZFMatrix
 }
 
 void ForcingShockProblem2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
-    TPZFMatrix<STATE> df;
+    TPZFNMatrix<3,STATE> df(3,1);
     ForcingShockProblem(pt, disp, df);
 }
+
+void ForcingShockProblem3(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
+    TPZManVector<STATE,1> sol(1);
+    TPZFNMatrix<3,STATE> df(3,1);
+    ForcingShockProblem(pt, sol, df);
+    for (int i=0; i<3; i++) {
+        disp[i] = -df(i,0);
+    }
+}
+
 
 void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     TPZFMatrix<STATE> du(3,1);
@@ -1576,15 +1670,15 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     solexata = new TPZDummyFunction<STATE>(SolShockProblem);
     mymaterial->SetForcingFunctionExact(solexata);
     
-    
+    int forceporder = 10;
     //bc1
     TPZMaterial *bnd = automat->CreateBC(automat, bc1, 1, val1, val2);
-    bnd->SetForcingFunction(NeumannBC1);
+    bnd->SetForcingFunction(NeumannBC1,forceporder);
     comp->InsertMaterialObject(bnd);
     
     //bc2
     bnd = automat->CreateBC (automat, bc2, 1, val1, val2);
-    bnd->SetForcingFunction(NeumannBC2);
+    bnd->SetForcingFunction(NeumannBC2,forceporder);
     comp->InsertMaterialObject(bnd);
     
     //    //bc1
@@ -1599,24 +1693,24 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     
     //bc3
     bnd = automat->CreateBC (automat, bc3, 0, val1, val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(Dirichlet,forceporder);
     comp->InsertMaterialObject(bnd);
     
     //bc4
     bnd = automat->CreateBC (automat, bc4, 0, val1, val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(Dirichlet,forceporder);
     comp->InsertMaterialObject(bnd);
     
     if(dim_problema==3)
     {
         //bc0
         bnd = automat->CreateBC (automat, bc0, 0, val1, val2);
-        bnd->SetForcingFunction(Dirichlet);
+        bnd->SetForcingFunction(Dirichlet,forceporder);
         comp->InsertMaterialObject(bnd);
         
         //bc5
         bnd = automat->CreateBC (automat, bc5, 1, val1, val2);
-        bnd->SetForcingFunction(NeumannAcima);
+        bnd->SetForcingFunction(NeumannAcima,forceporder);
         comp->InsertMaterialObject(bnd);
         
         //bc5
@@ -2082,19 +2176,19 @@ TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim, bool rodarSIPGD)
     cmesh->SetDefaultOrder(pOrder);
     
     cmesh->InsertMaterialObject(mat);
-    
+    int forceporder = 10;
     ///Inserir condicao de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(1,1,0.);
     val2(0,0) = 0.0;
     
         //bc1
         TPZMaterial *bnd = mat->CreateBC(mat, bc1, 1, val1, val2);
-        bnd->SetForcingFunction(NeumannBC1);
+        bnd->SetForcingFunction(NeumannBC1,forceporder);
         cmesh->InsertMaterialObject(bnd);
     
         //bc2
         bnd = mat->CreateBC (mat, bc2, 1, val1, val2);
-        bnd->SetForcingFunction(NeumannBC2);
+        bnd->SetForcingFunction(NeumannBC2,forceporder);
         cmesh->InsertMaterialObject(bnd);
     
 //    //bc1
@@ -2109,24 +2203,24 @@ TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim, bool rodarSIPGD)
     
     //bc3
     bnd = mat->CreateBC (mat, bc3, 0, val1, val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(Dirichlet,forceporder);
     cmesh->InsertMaterialObject(bnd);
     
     //bc4
     bnd = mat->CreateBC (mat, bc4, 0, val1, val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(Dirichlet,forceporder);
     cmesh->InsertMaterialObject(bnd);
     
     if(dim_problema==3)
     {
         //bc0
         bnd = mat->CreateBC (mat, bc0, 0, val1, val2);
-        bnd->SetForcingFunction(Dirichlet);
+        bnd->SetForcingFunction(Dirichlet,forceporder);
         cmesh->InsertMaterialObject(bnd);
         
         //bc5
         bnd = mat->CreateBC (mat, bc5, 1, val1, val2);
-        bnd->SetForcingFunction(NeumannAcima);
+        bnd->SetForcingFunction(NeumannAcima,forceporder);
         cmesh->InsertMaterialObject(bnd);
     }
     
@@ -2214,7 +2308,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     TPZAutoPointer<TPZFunction<STATE> > force;
     TPZDummyFunction<STATE> *dum;
     dum = new TPZDummyFunction<STATE>(ForcingShockProblem2);
-    dum->SetPolynomialOrder(10);
+    dum->SetPolynomialOrder(20);
     force = dum;
     material->SetForcingFunction(force);
     
@@ -2226,37 +2320,43 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     ///Inserir condicao de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(1,1,0.);
     val2(0,0) = 0.0;
-    
+    int forceporder = 10;
     //bc1
-    TPZMaterial *bnd = mat->CreateBC(mat, bc1, 1, val1, val2);
-    bnd->SetForcingFunction(NeumannBC1);
+//    TPZMaterial *bnd = mat->CreateBC(mat, bc1, 1, val1, val2);
+//    bnd->SetForcingFunction(NeumannBC1);
+    TPZMaterial *bnd = mat->CreateBC(mat, bc1, 0, val1, val2);
+    bnd->SetForcingFunction(Dirichlet,forceporder);
     mphysics->InsertMaterialObject(bnd);
     
     //bc2
-    bnd = mat->CreateBC (mat, bc2, 1, val1, val2);
-    bnd->SetForcingFunction(NeumannBC2);
+//    bnd = mat->CreateBC (mat, bc2, 1, val1, val2);
+//    bnd->SetForcingFunction(NeumannBC2);
+    bnd = mat->CreateBC (mat, bc2, 0, val1, val2);
+    bnd->SetForcingFunction(Dirichlet,forceporder);
     mphysics->InsertMaterialObject(bnd);
     
     //bc3
     bnd = mat->CreateBC (mat, bc3, 0, val1, val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(Dirichlet,forceporder);
     mphysics->InsertMaterialObject(bnd);
     
     //bc4
     bnd = mat->CreateBC (mat, bc4, 0, val1, val2);
-    bnd->SetForcingFunction(Dirichlet);
+    bnd->SetForcingFunction(Dirichlet,forceporder);
     mphysics->InsertMaterialObject(bnd);
     
     if(dim_problema==3)
     {
         //bc0
         bnd = mat->CreateBC (mat, bc0, 0, val1, val2);
-        bnd->SetForcingFunction(Dirichlet);
+        bnd->SetForcingFunction(Dirichlet,forceporder);
         mphysics->InsertMaterialObject(bnd);
         
         //bc5
-        bnd = mat->CreateBC (mat, bc5, 1, val1, val2);
-        bnd->SetForcingFunction(NeumannAcima);
+//        bnd = mat->CreateBC (mat, bc5, 1, val1, val2);
+//        bnd->SetForcingFunction(NeumannAcima);
+        bnd = mat->CreateBC (mat, bc5, 0, val1, val2);
+        bnd->SetForcingFunction(Dirichlet,forceporder);
         mphysics->InsertMaterialObject(bnd);
     }
     
@@ -2282,19 +2382,20 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         // create condensed elements
         // increase the NumElConnected of one pressure connects in order to prevent condensation
         mphysics->ComputeNodElCon();
-        for (long icel=0; icel < mphysics->NElements(); icel++) {
-            TPZCompEl  * cel = mphysics->Element(icel);
-            if(!cel) continue;
-            int nc = cel->NConnects();
-            for (int ic=0; ic<nc; ic++) {
-                TPZConnect &c = cel->Connect(ic);
-                if (c.LagrangeMultiplier() > 0) {
-                    c.IncrementElConnected();
-                    break;
-                }
-            }
-            new TPZCondensedCompEl(cel);
-        }
+        // NADA DE CONDENSACAO ESTATICA
+//        for (long icel=0; icel < mphysics->NElements(); icel++) {
+//            TPZCompEl  * cel = mphysics->Element(icel);
+//            if(!cel) continue;
+//            int nc = cel->NConnects();
+//            for (int ic=0; ic<nc; ic++) {
+//                TPZConnect &c = cel->Connect(ic);
+//                if (c.LagrangeMultiplier() > 0) {
+//                    c.IncrementElConnected();
+//                    break;
+//                }
+//            }
+//            new TPZCondensedCompEl(cel);
+//        }
         mphysics->CleanUpUnconnectedNodes();
         mphysics->ExpandSolution();
     }
@@ -2302,6 +2403,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     //Creating multiphysic elements containing skeletal elements.
     else
     {
+        DebugStop();
         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
         mphysics->Reference()->ResetReference();
         mphysics->LoadReferences();
@@ -2400,12 +2502,17 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     return mphysics;
 }
 
+#include "TPZVecL2.h"
+
 TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
 {
     /// criar materiais
     int dim = gmesh->Dimension();
-    TPZMatPoisson3d *material;
-    material = new TPZMatPoisson3d(matId,dim);
+    TPZVecL2 *material;
+    material = new TPZVecL2(matId);
+    material->SetDimension(dim);
+    TPZAutoPointer<TPZFunction<STATE> > dum = new TPZDummyFunction<STATE>(ForcingShockProblem3);
+    material->SetForcingFunction(dum);
     TPZMaterial * mat(material);
     material->NStateVariables();
     
@@ -2450,28 +2557,38 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
     //    cmesh->InsertMaterialObject(mat2);
     
     cmesh->AutoBuild();//Ajuste da estrutura de dados computacional
-    
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
-    //        cmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
+//    
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//        std::stringstream sout;
+//        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
+//        cmesh->Print(sout);
+//        LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif
+    {
+        std::ofstream out("flux_mesh.txt");
+        cmesh->Print(out);
+    }
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
     return cmesh;
 }
 
+#include "pzl2projection.h"
+
+
 TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh)
 {
     /// criar materiais
     int dim = gmesh->Dimension();
-    TPZMatPoisson3d *material;
-    material = new TPZMatPoisson3d(matId,dim);
+    TPZL2Projection *material;
+    TPZManVector<STATE,2> sol(1,0.);
+    material = new TPZL2Projection(matId,dim,1,sol);
+    TPZAutoPointer<TPZFunction<STATE> > dum = new TPZDummyFunction<STATE> (SolShockProblem2);
+    material->SetForcingFunction(dum);
     material->NStateVariables();
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);

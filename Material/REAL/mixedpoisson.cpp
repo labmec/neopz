@@ -584,7 +584,7 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
     if(!strcmp("Divergence",name.c_str()))      return  10;
     if(!strcmp("ExactDiv",name.c_str()))        return  11;
 	
-	return TPZMaterial::VariableIndex(name);
+	return TPZMatPoisson3d::VariableIndex(name);
 }
 
 int TPZMixedPoisson::NSolutionVariables(int var){
@@ -597,7 +597,7 @@ int TPZMixedPoisson::NSolutionVariables(int var){
     if(var == 7) return fDim;
     if(var == 9) return fDim;
     if(var == 10 || var == 11) return 1;
-	return TPZMaterial::NSolutionVariables(var);
+	return TPZMatPoisson3d::NSolutionVariables(var);
 }
 
 void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
@@ -610,8 +610,10 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     SolP = datavec[1].sol[0];
     
     if(var == 1){ //function (state variable Q)
-		Solout[0] = datavec[0].sol[0][0];
-        Solout[1] = datavec[0].sol[0][1];
+        for (int i=0; i<fDim; i++)
+        {
+            Solout[i] = datavec[0].sol[0][i];
+        }
 		return;
 	}
     
@@ -700,6 +702,35 @@ void TPZMixedPoisson::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 	
 }
 
+
+void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
+{
+                             
+                             
+//                             TPZVec<REAL> &x,TPZVec<STATE> &u,
+//                             TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+//                             TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
+    
+    errors.Resize(NEvalErrors());
+    errors.Fill(0.0);
+    TPZManVector<STATE,3> flux(3,0.), pressure(1,0.);
+    this->Solution(data,VariableIndex("Flux"), flux);
+    this->Solution(data,VariableIndex("Pressure"), pressure);
+    
+    
+    int id;
+    //values[1] : eror em norma L2
+    STATE diff = fabs(pressure[0] - u_exact[0]);
+    errors[1]  = diff*diff;
+    //values[2] : erro em semi norma H1
+    errors[2] = 0.;
+    for(id=0; id<fDim; id++) {
+        diff = fabs(flux[id] - du_exact(id,0));
+        errors[2]  += fabs(fK)*diff*diff;
+    }
+    //values[0] : erro em norma H1 <=> norma Energia
+    errors[0]  = errors[1]+errors[2];
+}
 
 
 

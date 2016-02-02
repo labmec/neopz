@@ -23,7 +23,7 @@ public:
     }
 	
 	/** @brief Returns the name of the cubature rule */
-	virtual void Name(std::string &name) const{
+	virtual void Name(std::string &name) const {
 	}
 	
 	/** @brief Returns number of points for the cubature rule related. */
@@ -69,7 +69,7 @@ public:
 	 * @brief Prints information of the cubature rule.
 	 * @param out Ostream to print.
 	 */
-    virtual void Print(std::ostream &out) const ;
+    virtual void Print(std::ostream &out) const;
 };
 
 #endif

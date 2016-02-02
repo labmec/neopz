@@ -701,7 +701,7 @@ void TPZCompMesh::Skyline(TPZVec<long> &skyline) {
     if (neq == 0) {
         return;
     }
-	//cout << "Element Equations";
+//	cout << "Element skyline\n";
 	//int eleq=0;
 	long i, n, l, nelem = NElements();
 	for(i=0; i<neq; i++) skyline[i] = i;
@@ -740,7 +740,8 @@ void TPZCompMesh::Skyline(TPZVec<long> &skyline) {
 			loweq = (loweq > leq) ? leq : loweq;
 			higheq = (higheq < heq) ? heq : higheq;
 		}
-		//cout << endl;
+//        std::cout << "Element " << i << " loweq " << loweq << " higheq " << higheq << std::endl;
+//		cout << "Equations ";
 		for(n=ifirstnode;n<nnod;n++) {
 			np = &fConnectVec[connectlist[n]];
 			if(np->HasDependency() || np->IsCondensed()) continue;
@@ -749,9 +750,12 @@ void TPZCompMesh::Skyline(TPZVec<long> &skyline) {
 			long heq = leq+fBlock.Size(ibl);
 			for(l=leq;l<heq;l++) {
 				skyline[l] = skyline[l] < loweq ? skyline[l] : loweq;
+//                cout << l << "/" << skyline[l] << " ";
 			}
 		}
+//        cout << endl;
 	}
+//    std::cout << "Skyline " << skyline << std::endl;
 }
 
 void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE> &transfer) {

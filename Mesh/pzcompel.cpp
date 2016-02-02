@@ -432,6 +432,14 @@ void TPZCompEl::BuildConnectList(std::set<long> &indepconnectlist,
 		long conind = ConnectIndex(i);
 		Connect(i).BuildConnectList(conind, indepconnectlist,depconnectlist,*Mesh());
 	}
+    std::list<TPZOneShapeRestraint> mylist = GetShapeRestraints();
+    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++) {
+        for (int i=0; i<4; i++) {
+            long conind = it->fFaces[i].first;
+            TPZConnect &c = Mesh()->ConnectVec()[conind];
+            c.BuildConnectList(conind, indepconnectlist, depconnectlist, *Mesh());
+        }
+    }
 }
 
 void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {

@@ -73,6 +73,7 @@ TPZMatrix<STATE> *TPZStructMatrixOR::Create() {
 
 TPZStructMatrixOR *TPZStructMatrixOR::Clone() {
     cout << "TPZStructMatrixOR::Clone should never be called\n";
+    DebugStop();
     return 0;
 }
 
@@ -336,6 +337,13 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             {
                 std::stringstream sout;
                 TPZGeoEl *gel = el->Reference();
+//                el->Print();
+//                int nc = el->NConnects();
+//                for (int ic=0; ic<nc; ic++) {
+//                    std::cout << "Index " << el->ConnectIndex(ic) << " ";
+//                    el->Connect(ic).Print(*fMesh);
+//                    fMesh->ConnectVec()[ic].Print(*fMesh);
+//                }
                 if (gel)
                 {
                     TPZManVector<REAL> center(gel->Dimension()),xcenter(3,0.);
