@@ -422,10 +422,10 @@ public:
     bool IsMeshwithPGQ() {return fIsMeshwithPGQ;}
 
     /** @brief Set the use of heterogeneous k */
-    void SetHeterogeneousQ(bool pg) {this->fIsMeshwithPGQ = pg;}
+    void SetHeterogeneousQ(bool pg) {this->fIsHeterogeneousQ = pg;}
     
     /** @brief Is a heterogeneous k */
-    bool IsHeterogeneousQ() {return fIsMeshwithPGQ;}
+    bool IsHeterogeneousQ() {return fIsHeterogeneousQ;}
     
     /** @brief Set geometric progression ratio */
     void SetPGRatio(REAL ratio) {this->fpg_ratio = ratio;}

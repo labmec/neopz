@@ -621,6 +621,17 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
         }
     }
     
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = datavec[0].x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
+    
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+        DivergenceofPhi *= 1.0/s;
+    }
+    
     return;
     
 }
@@ -630,11 +641,20 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = datavec[0].x[0];
-    x_spatial(2,0) = datavec[0].x[2];
     REAL r = Norm(x_spatial);
+    REAL s = 1.0;
     
      if (fSimulationData->IsAxisymmetricQ()) {
-         weight *= 2.0*M_PI*r;
+         s *= 2.0*M_PI*r;
+         
+         weight *= s;
+         datavec[0].phi *= 1.0/s;
+//         datavec[0].dphix *= 1.0/s;
+         datavec[0].sol[0][0]   *= 1.0/s;
+         datavec[0].sol[0][1]   *= 1.0/s;
+         datavec[0].sol[0][2]   *= 1.0/s;
+         datavec[0].dsol[0]   *= 1.0/s;
+         
      }
     
     this->ContributeDarcy(datavec, weight, ek, ef);
@@ -652,12 +672,21 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = datavec[0].x[0];
-    x_spatial(2,0) = datavec[0].x[2];
     REAL r = Norm(x_spatial);
+    REAL s = 1.0;
     
-     if (fSimulationData->IsAxisymmetricQ()) {
-         weight *= 2.0*M_PI*r;
-     }
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+        
+        weight *= s;
+        datavec[0].phi *= 1.0/s;
+//        datavec[0].dphix *= 1.0/s;
+        datavec[0].sol[0][0]   *= 1.0/s;
+        datavec[0].sol[0][1]   *= 1.0/s;
+        datavec[0].sol[0][2]   *= 1.0/s;
+        datavec[0].dsol[0]   *= 1.0/s;
+        
+    }
     
     this->ContributeDarcy(datavec, weight, ef);
     
@@ -675,7 +704,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = data.x[0];
-    x_spatial(2,0) = data.x[2];
     REAL r = Norm(x_spatial);
     
 //     if (fSimulationData->IsAxisymmetricQ()) {
@@ -697,7 +725,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = data.x[0];
-    x_spatial(2,0) = data.x[2];
     REAL r = Norm(x_spatial);
     
 //     if (fSimulationData->IsAxisymmetricQ()) {
@@ -718,12 +745,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = data.x[0];
-    x_spatial(2,0) = data.x[2];
     REAL r = Norm(x_spatial);
     
-//     if (fSimulationData->IsAxisymmetricQ()) {
-//         weight *= 2.0*M_PI*r;
-//     }
+     if (fSimulationData->IsAxisymmetricQ()) {
+         weight *= 2.0*M_PI*r;
+     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
         this->ContributeBCInterfaceAlpha(data, datavecleft, weight, ek, ef, bc);
@@ -741,12 +767,11 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = data.x[0];
-    x_spatial(2,0) = data.x[2];
     REAL r = Norm(x_spatial);
     
-//     if (fSimulationData->IsAxisymmetricQ()) {
-//         weight *= 2.0*M_PI*r;
-//     }
+     if (fSimulationData->IsAxisymmetricQ()) {
+         weight *= 2.0*M_PI*r;
+     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
         this->ContributeBCInterfaceAlpha(data, datavecleft, weight, ef, bc);
@@ -762,12 +787,20 @@ void TPZAxiSymmetricDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, RE
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = datavec[0].x[0];
-    x_spatial(2,0) = datavec[0].x[2];
     REAL r = Norm(x_spatial);
+    REAL s = 1.0;
     
-     if (fSimulationData->IsAxisymmetricQ()) {
-         weight *= 2.0*M_PI*r;
-     }
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+        
+        weight *= s;
+        datavec[0].phi *= 1.0/s;
+//        datavec[0].dphix *= 1.0/s;
+        datavec[0].sol[0][0]   *= 1.0/s;
+//        datavec[0].sol[0][1]   *= 1.0/s;
+//        datavec[0].sol[0][2]   *= 1.0/s;
+        
+    }
     
     this->ContributeBCDarcy(datavec, weight, ek, ef, bc);
     return;
@@ -817,24 +850,23 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZFNMatrix<660,REAL> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
     
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = datavec[0].x[0];
-    x_spatial(2,0) = datavec[0].x[2];
-    REAL r = Norm(x_spatial);
-    REAL s = 1.0;
-    
-    if (fSimulationData->IsAxisymmetricQ()) {
-        s *= 2.0*M_PI*r;
-    }
-    
-    // Applying the scaling
-    phiuH1      *= 1.0/s;
-    Graduaxes   *= 1.0/s;
-    DivergenceOnDeformed *= 1.0/s;
-    u[0] *= 1.0/s;
-    u[1] *= 1.0/s;
-    u[2] *= 1.0/s;
+//    // Computing the radius
+//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+//    x_spatial(0,0) = datavec[0].x[0];
+//    REAL r = Norm(x_spatial);
+//    REAL s = 1.0;
+//    
+//    if (fSimulationData->IsAxisymmetricQ()) {
+//        s *= 2.0*M_PI*r;
+//    }
+//    
+//    // Applying the scaling
+//    phiuH1      *= 1.0/s;
+//    Graduaxes   *= 1.0/s;
+//    DivergenceOnDeformed *= 1.0/s;
+//    u[0] *= 1.0/s;
+//    u[1] *= 1.0/s;
+//    u[2] *= 1.0/s;
     
     // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
@@ -978,7 +1010,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     // Compute the divergence on deformed element by piola contravariant transformation
     this->ComputeDivergenceOnDeformed(datavec, DivergenceOnDeformed);
     
-    
     // Blocks dimensions and lengths
     int nphiuHdiv   = datavec[ublock].fVecShapeIndex.NElements();       // For Hdiv u
     int nphiPL2     = phiPL2.Rows();                                    // For L2   P
@@ -994,24 +1025,24 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZFNMatrix<660,REAL> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
     
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = datavec[0].x[0];
-    x_spatial(2,0) = datavec[0].x[2];
-    REAL r = Norm(x_spatial);
-    REAL s = 1.0;
+//    // Computing the radius
+//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+//    x_spatial(0,0) = datavec[0].x[0];
+//    x_spatial(2,0) = datavec[0].x[2];
+//    REAL r = Norm(x_spatial);
+//    REAL s = 1.0;
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        s *= 2.0*M_PI*r;
-    }
-    
-    // Applying the scaling
-    phiuH1      *= 1.0/s;
-    Graduaxes   *= 1.0/s;
-    DivergenceOnDeformed *= 1.0/s;
-    u[0] *= 1.0/s;
-    u[1] *= 1.0/s;
-    u[2] *= 1.0/s;
+//    if (fSimulationData->IsAxisymmetricQ()) {
+//        s *= 2.0*M_PI*r;
+//    }
+//    
+//    // Applying the scaling
+//    phiuH1      *= 1.0/s;
+//    Graduaxes   *= 1.0/s;
+//    DivergenceOnDeformed *= 1.0/s;
+//    u[0] *= 1.0/s;
+//    u[1] *= 1.0/s;
+//    u[2] *= 1.0/s;
     
     // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
@@ -1312,20 +1343,20 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
     TPZFMatrix<STATE> iPhiHdiv(2,1);
     TPZFMatrix<STATE> jPhiHdiv(2,1);
     
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = datavec[0].x[0];
-    x_spatial(2,0) = datavec[0].x[2];
-    REAL r = Norm(x_spatial);
-    REAL s = 1.0;
+//    // Computing the radius
+//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+//    x_spatial(0,0) = datavec[0].x[0];
+//    x_spatial(2,0) = datavec[0].x[2];
+//    REAL r = Norm(x_spatial);
+//    REAL s = 1.0;
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        s *= 2.0*M_PI*r;
-    }
-    
-    // Applying the scaling
-    phiuH1      *= 1.0/s;
-    un          *= 1.0/s;
+//    if (fSimulationData->IsAxisymmetricQ()) {
+//        s *= 2.0*M_PI*r;
+//    }
+//    
+//    // Applying the scaling
+//    phiuH1      *= 1.0/s;
+//    un          *= 1.0/s;
     
     REAL Value;
     switch (bc.Type()) {
@@ -1495,6 +1526,26 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<STATE> GradSaxes = datavec[Sablock].dsol[0];
     //    TPZFNMatrix<660,REAL> GradP;
     //    TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
+    
+    
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = datavec[0].x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
+    
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+    }
+    
+    // Applying the scaling
+    phiuH1      *= 1.0/s;
+//    Graduaxes   *= 1.0/s;
+    DivergenceOnDeformed *= 1.0/s;
+    u[0] *= 1.0/s;
+    u[1] *= 1.0/s;
+    u[2] *= 1.0/s;
+    
     
     // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
@@ -1711,6 +1762,24 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
 //    TPZFNMatrix<660,REAL> GradS;
 //    TPZAxesTools<REAL>::Axes2XYZ(GradSaxes, GradS, datavec[Pblock].axes);
     
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = datavec[0].x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
+    
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+    }
+    
+    // Applying the scaling
+    phiuH1      *= 1.0/s;
+//    Graduaxes   *= 1.0/s;
+    DivergenceOnDeformed *= 1.0/s;
+    u[0] *= 1.0/s;
+    u[1] *= 1.0/s;
+    u[2] *= 1.0/s;
+    
     
     // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
@@ -1879,8 +1948,29 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     int ishapeindex;
     int ivectorindex;
     
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = datavecleft[0].x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
+    
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+    }
+    
+    // Applying the scaling
+    phiuH1L      *= 1.0/s;
+    //    Graduaxes   *= 1.0/s;
+    //    DivergenceOnDeformed *= 1.0/s;
+    uL[0] *= 1.0/s;
+    uL[1] *= 1.0/s;
+    uL[2] *= 1.0/s;
+    
+    
+    
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
+    
     
     // Capillary Pressure Pc_beta_beta
     TPZVec< TPZManVector<REAL>  > propsL;
@@ -1888,6 +1978,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     
     ComputeProperties(datavecleft, propsL);
     TPZManVector<REAL> Pc_beta_alphaL          = propsL[9];
+    
     
     
     TPZManVector<REAL,3> vi(2,0.0);
@@ -2323,6 +2414,23 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     REAL P_L              = datavecleft[Pblock].sol[0][0];
     REAL Salpha_L             = datavecleft[Sablock].sol[0][0];
 
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = datavecleft[0].x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
+    
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+    }
+    
+    // Applying the scaling
+    phiuH1L      *= 1.0/s;
+    //    Graduaxes   *= 1.0/s;
+    //    DivergenceOnDeformed *= 1.0/s;
+    uL[0] *= 1.0/s;
+    uL[1] *= 1.0/s;
+    uL[2] *= 1.0/s;
 
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
@@ -2650,6 +2758,28 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
 //    REAL P_R             = datavecright[Pblock].sol[0][0];
     REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = data.x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
+    
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+    }
+    
+    // Applying the scaling
+    phiuH1L      *= 1.0/s;
+    phiuH1R      *= 1.0/s;
+    
+    uL[0] *= 1.0/s;
+    uL[1] *= 1.0/s;
+    uL[2] *= 1.0/s;
+    
+    uR[0] *= 1.0/s;
+    uR[1] *= 1.0/s;
+    uR[2] *= 1.0/s;
+    
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
     
@@ -2970,6 +3100,29 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     TPZManVector<REAL,3> uR      = datavecright[ublock].sol[0];
 //    REAL P_R             = datavecright[Pblock].sol[0][0];
     REAL Salpha_R        = datavecright[Sablock].sol[0][0];
+    
+    // Computing the radius
+    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+    x_spatial(0,0) = data.x[0];
+    REAL r = Norm(x_spatial);
+    REAL s = 1.0;
+    
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+    }
+    
+    // Applying the scaling
+    phiuH1L      *= 1.0/s;
+    phiuH1R      *= 1.0/s;
+    
+    uL[0] *= 1.0/s;
+    uL[1] *= 1.0/s;
+    uL[2] *= 1.0/s;
+    
+    uR[0] *= 1.0/s;
+    uR[1] *= 1.0/s;
+    uR[2] *= 1.0/s;
+    
     
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];

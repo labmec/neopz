@@ -497,6 +497,16 @@ public:
     void IntegrateL2SError(TPZManVector<REAL> & l2_norm);
     
     /**
+     * Computes the integral of the production using Riemman rule
+     */
+    TPZFMatrix<REAL> RiemmanRule(TPZFMatrix<REAL>  current_production);
+    
+    /**
+     * Computes the integral of the production using Trapezoidal rule
+     */
+    TPZFMatrix<REAL> TrapezoidalRule(TPZFMatrix<REAL>  current_production);
+    
+    /**
      * Comute the neigh of higher dimension
      */
     TPZGeoEl * GetVolElement(TPZGeoEl * gel);

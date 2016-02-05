@@ -934,11 +934,12 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     
     int i_time = 0;
     int i_sub_dt = 0;
+    int idt = 0;
     
     TPZManVector<REAL> velocities(3,0.0);
 
-    TPZFNMatrix<100,REAL> current_v(reporting_times.size()+1,4,0.0);
-    TPZFNMatrix<100,REAL> accumul_v(reporting_times.size()+1,4,0.0);
+    TPZFNMatrix<100,REAL> current_v(n_sub_dt*reporting_times.size(),4,0.0);
+    TPZFNMatrix<100,REAL> accumul_v(n_sub_dt*reporting_times.size(),4,0.0);
     
     while (i_time < reporting_times.size()) {
 
@@ -966,6 +967,17 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             std::cout << "Time for Newton: " << timea << std::endl;
             
         }
+        REAL scale = 1.0/fSimulationData->Time_Scale();
+        REAL v_scale = fSimulationData->Velocity_Scale();
+        
+        // Computing the rates at reporting times
+        IntegrateVelocities(velocities);
+        current_v(idt,0) = idt*current_dt*scale;
+        current_v(idt,1) += velocities[0]*v_scale;
+        current_v(idt,2) += velocities[1]*v_scale;
+        current_v(idt,3) += velocities[2]*v_scale;
+        idt++;
+        
         i_sub_dt++;
 
         if (i_sub_dt == n_sub_dt) {
@@ -982,30 +994,6 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
             std::cout << std::endl;
             
             this->PostProcessVTK(an);
-            REAL scale = 1.0/fSimulationData->Time_Scale();
-            REAL v_scale = fSimulationData->Velocity_Scale();
-
-            IntegrateVelocities(velocities);
-            current_v(i_time+1,0) = tk*scale;
-            current_v(i_time+1,1) += velocities[0]*v_scale;
-            current_v(i_time+1,2) += velocities[1]*v_scale;
-            current_v(i_time+1,3) += velocities[2]*v_scale;
-            
-            
-            
-            accumul_v(i_time+1,0) = tk*scale;
-            accumul_v(i_time+1,1) = velocities[0]*v_scale*current_dt*n_sub_dt*scale + accumul_v(i_time,1);
-            accumul_v(i_time+1,2) = velocities[1]*v_scale*current_dt*n_sub_dt*scale + accumul_v(i_time,2);
-            accumul_v(i_time+1,3) = velocities[2]*v_scale*current_dt*n_sub_dt*scale + accumul_v(i_time,3);
-            
-
-            // Computing the rates at reporting times
-            
-//            if (fSimulationData->IsTwoPhaseQ()) {
-//                TPZManVector<REAL> l2_norm_s(1,0.0);
-//                this->IntegrateL2SError(l2_norm_s);
-//                fL2_norm_s[0] = sqrt(l2_norm_s[0]);
-//            }
             
             if (i_time == reporting_times.size()-1) {
                 break;
@@ -1019,12 +1007,11 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
         
     }
     
-//    TPZManVector<REAL> l2_norm_flux(1,0.0);
-//    TPZManVector<REAL> l2_norm(1,0.0);
-//    this->IntegrateFluxPError(l2_norm_flux,l2_norm);
-//
-//    fl2_norm_flux[0] = sqrt(l2_norm_flux[0]);
-//    fL2_norm[0] = sqrt(l2_norm[0]);
+    
+    current_v(0,2) = current_v(1,2);
+    
+
+    accumul_v = TrapezoidalRule(current_v);
     
     std::string out_name_current = fSimulationData->GetDirectory();
     std::string out_name_accumul = fSimulationData->GetDirectory();
@@ -1039,6 +1026,63 @@ void TPZDarcyAnalysis::TimeForward(TPZAnalysis *an)
     return;
     
 }
+
+TPZFMatrix<REAL> TPZDarcyAnalysis::RiemmanRule(TPZFMatrix<REAL>  current_production){
+    
+    int length  = current_production.Rows();
+    TPZFMatrix<REAL> accumulated(length,4,0.0);
+    REAL dt = 0.0;
+    REAL intw = 0.0;
+    REAL into = 0.0;
+    REAL intg = 0.0;
+    
+    for (int i = 1; i < length ; i++) {
+        dt = current_production(i,0) - current_production(i-1,0);
+        
+        intw = current_production(i,1)*dt;
+        into = current_production(i,2)*dt;
+        intg = current_production(i,3)*dt;
+        
+        accumulated(i,0) = current_production(i,0);
+        accumulated(i,1) += intw + accumulated(i-1,1);
+        accumulated(i,2) += into + accumulated(i-1,2);
+        accumulated(i,3) += intg + accumulated(i-1,3);
+        
+    }
+    
+    
+    return accumulated;
+    
+}
+
+TPZFMatrix<REAL> TPZDarcyAnalysis::TrapezoidalRule(TPZFMatrix<REAL>  current_production){
+    
+    int length  = current_production.Rows();
+    TPZFMatrix<REAL> accumulated(length,4,0.0);
+    REAL dt = 0.0;
+    REAL intw = 0.0;
+    REAL into = 0.0;
+    REAL intg = 0.0;
+    
+    for (int i = 1; i < length ; i++) {
+        dt = current_production(i,0) - current_production(i-1,0);
+        
+        intw = current_production(i,1)*dt - 0.5*(current_production(i,1) - current_production(i-1,1))*dt;
+        into = current_production(i,2)*dt - 0.5*(current_production(i,2) - current_production(i-1,2))*dt;
+        intg = current_production(i,3)*dt - 0.5*(current_production(i,3) - current_production(i-1,3))*dt;;
+        
+        accumulated(i,0) = current_production(i,0);
+        accumulated(i,1) += intw + accumulated(i-1,1);
+        accumulated(i,2) += into + accumulated(i-1,2);
+        accumulated(i,3) += intg + accumulated(i-1,3);
+        
+    }
+    
+    
+    return accumulated;
+    
+}
+
 
 void TPZDarcyAnalysis::IntegrateL2SError(TPZManVector<REAL> & l2_norm){
     
@@ -2251,6 +2295,7 @@ void TPZDarcyAnalysis::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STAT
 
 void TPZDarcyAnalysis::ApplyPG(TPZGeoMesh * geomesh){
 
+    std::cout << "Applyging geometric progression. " << std::endl;
     if (!geomesh) {
         DebugStop();
     }
