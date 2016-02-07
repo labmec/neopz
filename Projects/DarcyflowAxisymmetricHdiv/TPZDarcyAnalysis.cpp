@@ -1352,6 +1352,7 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
             // compute the integrals
             TPZManVector<REAL,1> xi_singlet(1,0.0);
             TPZManVector<REAL,2> xi_eta_duplet(2,0.0);
+            TPZManVector<REAL,2> x(3,0.0);
             REAL weight = 0.0;
             for (int it = 0 ; it < npoints; it++) {
 
@@ -1363,12 +1364,13 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
                 
                 NumericIntegral->Point(it, xi_singlet, weight);
                 afine_transformation.Apply(xi_singlet, xi_eta_duplet);
+                gel_2D->X(xi_eta_duplet, x);
                 
-
                 REAL cross_area = (detjac*2.0)*(1.0);
                 if (fSimulationData->IsAxisymmetricQ()) {
-                    REAL rw = fLayers[0]->Layerrw();
+                    REAL rw = fabs(x[0]);//fLayers[0]->Layerrw();
                     cross_area *= 2.0*M_PI*rw;
+                    weight *= 2.0*M_PI*rw;
                 }
                 
 
@@ -2710,15 +2712,17 @@ void TPZDarcyAnalysis::BCNfunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STA
 
 void TPZDarcyAnalysis::Ffunction(const TPZVec<REAL> &pt, REAL time, TPZVec<STATE> &ff, TPZFMatrix<REAL> &Grad)
 {
-    REAL rwD = 0.0*0.127/100.0;
+    REAL rwD = 1.0*0.127/10.0;
     REAL rD  = pt[0];
     REAL zD  = pt[1];
     REAL a = 1.0;
     REAL b = 0.1;
     
-    REAL f  = ((std::pow(a,2.0) + std::pow(b,2.0))*std::pow(M_PI,2.0)*sin((M_PI*rD)/a)*sin((M_PI*zD)/b))/(std::pow(a,2.0)*std::pow(b,2.));
+//    REAL f  = ((std::pow(a,2.0) + std::pow(b,2.0))*std::pow(M_PI,2.0)*sin((M_PI*rD)/a)*sin((M_PI*zD)/b))/(std::pow(a,2.0)*std::pow(b,2.));
 //    REAL f = (M_PI*(-(a*std::pow(b,2.0)*cos((M_PI*(rD - rwD))/a)) + (std::pow(a,2.0) + std::pow(b,2.0))*M_PI*rD*sin((M_PI*(rD - rwD))/a))*sin((M_PI*zD)/b))/(std::pow(a,2.0)*std::pow(b,2.0)*rD);
-    
+//    REAL f = 2.0+ 2.0*(rwD+rD)/rD;
+//    REAL f = (5.0*cos(5.0*(rwD+rD))/rD)-25.0*sin(5.0*(rwD+rD));
+//    REAL f = -1.0/((rwD+rD)*(rwD+rD))+1.0/((rwD+rD)*rD);
 //    ff[0] = f;
     ff[0] = 0.0;
     return;

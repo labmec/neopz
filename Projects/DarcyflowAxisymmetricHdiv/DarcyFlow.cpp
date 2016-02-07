@@ -101,20 +101,27 @@ int main()
     // Cases with quadratic relative permeabilities
     IsNonlinearKr = false;
 
+    output = "CaseRiemmanA";
+    CaseRiemman(IsDimensionlessQ, IsNonlinearKr, output);
+    output = "CaseRiemmanRA";
+    CaseRiemmanR(IsDimensionlessQ, IsNonlinearKr, output);
+    
+    IsNonlinearKr = true;
+    
     output = "CaseIQA";
     CaseRiemman(IsDimensionlessQ, IsNonlinearKr, output);
-//    output = "CaseIQCR";
-//    CaseRiemmanR(IsDimensionlessQ, IsNonlinearKr, output);
-//
-//    output = "CaseEQC";
-//    CaseELC(IsDimensionlessQ, IsNonlinearKr, output);
-//    output = "CaseEQCR";
-//    CaseELCR(IsDimensionlessQ, IsNonlinearKr, output);
-//
-//    output = "CaseUQC";
-//    CaseULC(IsDimensionlessQ, IsNonlinearKr, output);
-//    output = "CaseUQCR";
-//    CaseULCR(IsDimensionlessQ, IsNonlinearKr, output);
+    output = "CaseIQAR";
+    CaseRiemmanR(IsDimensionlessQ, IsNonlinearKr, output);
+
+    output = "CaseEQA";
+    CaseELC(IsDimensionlessQ, IsNonlinearKr, output);
+    output = "CaseEQAR";
+    CaseELCR(IsDimensionlessQ, IsNonlinearKr, output);
+
+    output = "CaseUQA";
+    CaseULC(IsDimensionlessQ, IsNonlinearKr, output);
+    output = "CaseUQAR";
+    CaseULCR(IsDimensionlessQ, IsNonlinearKr, output);
     
     std::cout << "Program successfully executed." << std::endl;
     return 0;
@@ -189,7 +196,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 20;
+    int n_times  = 100;
     int n_sub_dt = 50;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
@@ -197,7 +204,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL v_scale = ((Lstr*Mustr)/(Kstr*Rhostr*Pstr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = (0.5) * day * scale;
+    REAL dt         = (1.0) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -211,7 +218,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL y_l = 10.0;
     REAL ratio = 0.0;
     
-    int  nelemX     =100;
+    int  nelemX     =  100;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -327,7 +334,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.184004629; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.0292845; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -354,7 +361,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL Hres           = 100.0/Lstr;
     REAL Rres           = 1000.0/Lstr;
     REAL Top            = 0.0/Lstr;
-    REAL Rw             = 0.0*0.127/Lstr;
+    REAL Rw             = 1.0*0.127/Lstr;
     
     // Reservoir Description configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
@@ -530,7 +537,7 @@ void CaseULCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 20;
+    int n_times  = 100;
     int n_sub_dt = 50;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
@@ -538,7 +545,7 @@ void CaseULCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL v_scale = ((Lstr*Mustr)/(Kstr*Rhostr*Pstr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = (0.5) * day * scale;
+    REAL dt         = (1.0) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -552,7 +559,7 @@ void CaseULCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL y_l = 10.0;
     REAL ratio = 0.95;
     
-    int  nelemX     =100;
+    int  nelemX     =  100;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -668,7 +675,7 @@ void CaseULCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.184004629; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.0292845; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -695,7 +702,7 @@ void CaseULCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL Hres           = 100.0/Lstr;
     REAL Rres           = 1000.0/Lstr;
     REAL Top            = 0.0/Lstr;
-    REAL Rw             = 0.0*0.127/Lstr;
+    REAL Rw             = 1.0*0.127/Lstr;
     
     // Reservoir Description configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
@@ -871,7 +878,7 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 20;
+    int n_times  = 100;
     int n_sub_dt = 50;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
@@ -879,7 +886,7 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL v_scale = ((Lstr*Mustr)/(Kstr*Rhostr*Pstr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = (0.5) * day * scale;
+    REAL dt         = (1.0) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -891,9 +898,9 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     REAL x_l = 100.0;
     REAL y_l = 10.0;
-    REAL ratio = 0.95;
+    REAL ratio = 1.0;
     
-    int  nelemX     =100;
+    int  nelemX     =  100;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -1009,7 +1016,7 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.184004629; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.0292845; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -1036,7 +1043,7 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL Hres           = 100.0/Lstr;
     REAL Rres           = 1000.0/Lstr;
     REAL Top            = 0.0/Lstr;
-    REAL Rw             = 0.0*0.127/Lstr;
+    REAL Rw             = 1.0*0.127/Lstr;
     
     // Reservoir Description configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
@@ -1212,7 +1219,7 @@ void CaseELCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 20;
+    int n_times  = 100;
     int n_sub_dt = 50;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
@@ -1232,9 +1239,9 @@ void CaseELCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     REAL x_l = 100.0;
     REAL y_l = 10.0;
-    REAL ratio = 0.95;
+    REAL ratio = 1.0;
     
-    int  nelemX     =100;
+    int  nelemX     =  100;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -1350,7 +1357,7 @@ void CaseELCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.184004629; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.0292845; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -1377,7 +1384,7 @@ void CaseELCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL Hres           = 100.0/Lstr;
     REAL Rres           = 1000.0/Lstr;
     REAL Top            = 0.0/Lstr;
-    REAL Rw             = 0.0*0.127/Lstr;
+    REAL Rw             = 1.0*0.127/Lstr;
     
     // Reservoir Description configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);
@@ -1517,7 +1524,7 @@ void CaseRiemman(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
         Pstr           = 2.0e7;
         Tstr           = 355.37;
         Tres           = 355.37;
-        Lstr           = 10.0;
+        Lstr           = 100.0;
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
@@ -1530,38 +1537,38 @@ void CaseRiemman(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
     int maxiter     = 30;
-    int nthread     = 0;
+    int nthread     = 6;
     bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
     bool OptBand    = true;     // Band optimization
-    bool IsAxisy    = axisy;     // Axisymmetric analysis 1.0/s;
+    bool IsAxisy    = axisy;    // Axisymmetric analysis 1.0/s;
     bool IsTMesh    = false;    // Triangular mesh
     bool IsImpes    = false;    // Impes analysis
     bool IsHydro    = false;    // Hydrostatic bc
     bool IsPGMesh   = true;     // Geometric Progression mesh
-    bool IsHetero   = false;     // Heterogeneous k model
+    bool IsHetero   = false;    // Heterogeneous k model
     int fixedJac    = 0;
     
     std::string file_name  = output;     // Output Directory
     
-    int qorder      = 2;
-    int porder      = 2;
+    int qorder      = 1;
+    int porder      = 1;
     int sorder      = 0;
     int hrefinement = 0;
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 20;
-    int n_sub_dt = 1;
+    int n_times  = 100;
+    int n_sub_dt = 50;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL v_scale = ((Lstr*Mustr)/(Kstr*Rhostr*Pstr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = (0.5) * day * scale;
+    REAL dt         = (1.0) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -1571,17 +1578,17 @@ void CaseRiemman(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    REAL x_l = 10.0;
+    REAL x_l = 100.0;
     REAL y_l = 10.0;
     REAL ratio = 1.0;
     
-    int  nelemX     =30;
+    int  nelemX     =  100;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
     REAL dxD        =(x_l/nelemX)/Lstr;
     
-    int nelemY      =1;
+    int nelemY      =   2;
     if (GR && nelemY == 1 && IsTMesh ) {
         nelemY++;
     }
@@ -1598,7 +1605,7 @@ void CaseRiemman(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZStack<std::string> system;
     system.Push("Water");
-//    system.Push("Oil");
+    system.Push("Oil");
     
     Dataset->SetTime_Scale(scale);
     Dataset->SetVelocity_Scale(v_scale);
@@ -1690,14 +1697,14 @@ void CaseRiemman(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     impervious[3] = 0;
     
     TPZVec<REAL> inlet(4,0.0);
-    inlet[0] = 0;
-    inlet[1] = 2.02508;//-0.975229;//-0.00292845;//0.0184004629; // 100 bbl/day or 15.898 m3/day
+    inlet[0] = 1;
+    inlet[1] = -0.0292845;
     inlet[2] = 0.8;
     inlet[3] = 0;
     
     TPZVec<REAL> outlet(4,0.0);
     outlet[0] = 2;
-    outlet[1] = -1.67301;//(1.0*1e7)/(Pstr);
+    outlet[1] = (1.0*1e7)/(Pstr);
     outlet[2] = 0;
     outlet[3] = 0;
     
@@ -1894,7 +1901,7 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 20;
+    int n_times  = 100;
     int n_sub_dt = 50;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
@@ -1902,7 +1909,7 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL v_scale = ((Lstr*Mustr)/(Kstr*Rhostr*Pstr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = (0.5) * day * scale;
+    REAL dt         = (1.0) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -1914,9 +1921,9 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     REAL x_l = 100.0;
     REAL y_l = 10.0;
-    REAL ratio = 0.95;
+    REAL ratio = 1.0;
     
-    int  nelemX     =100;
+    int  nelemX     =  100;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -2032,7 +2039,7 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.184004629; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.0292845;//-0.184004629; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -2059,7 +2066,7 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL Hres           = 100.0/Lstr;
     REAL Rres           = 1000.0/Lstr;
     REAL Top            = 0.0/Lstr;
-    REAL Rw             = 0.0*0.127/Lstr;
+    REAL Rw             = 1.0*0.127/Lstr;
     
     // Reservoir Description configuration
     REAL p_w_ref            = (1.0*1e6)/(Pstr);

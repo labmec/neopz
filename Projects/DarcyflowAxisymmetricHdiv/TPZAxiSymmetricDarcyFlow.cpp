@@ -705,10 +705,25 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = data.x[0];
     REAL r = Norm(x_spatial);
+    REAL s = 1.0;
     
-//     if (fSimulationData->IsAxisymmetricQ()) {
-//         weight *= 2.0*M_PI*r;
-//     }
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+        
+        weight *= s;
+        datavecleft[0].phi *= 1.0/s;
+        datavecleft[0].sol[0][0]   *= 1.0/s;
+        datavecleft[0].sol[0][1]   *= 1.0/s;
+        datavecleft[0].sol[0][2]   *= 1.0/s;
+        datavecleft[0].dsol[0]   *= 1.0/s;
+        
+        datavecright[0].phi *= 1.0/s;
+        datavecright[0].sol[0][0]   *= 1.0/s;
+        datavecright[0].sol[0][1]   *= 1.0/s;
+        datavecright[0].sol[0][2]   *= 1.0/s;
+        datavecright[0].dsol[0]   *= 1.0/s;
+        
+    }
     
 //    this->ContributeInterfaceDarcy(data, datavecleft, datavecright, weight, ek, ef);
     
@@ -722,14 +737,30 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 
 void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
+    
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = data.x[0];
     REAL r = Norm(x_spatial);
+    REAL s = 1.0;
     
-//     if (fSimulationData->IsAxisymmetricQ()) {
-//         weight *= 2.0*M_PI*r;
-//     }
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+        
+        weight *= s;
+        datavecleft[0].phi *= 1.0/s;
+        datavecleft[0].sol[0][0]   *= 1.0/s;
+        datavecleft[0].sol[0][1]   *= 1.0/s;
+        datavecleft[0].sol[0][2]   *= 1.0/s;
+        datavecleft[0].dsol[0]   *= 1.0/s;
+        
+        datavecright[0].phi *= 1.0/s;
+        datavecright[0].sol[0][0]   *= 1.0/s;
+        datavecright[0].sol[0][1]   *= 1.0/s;
+        datavecright[0].sol[0][2]   *= 1.0/s;
+        datavecright[0].dsol[0]   *= 1.0/s;
+        
+    }
     
 //    this->ContributeInterfaceDarcy(data, datavecleft, datavecright, weight, ef);
     
@@ -742,14 +773,24 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
 
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
+    
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = data.x[0];
     REAL r = Norm(x_spatial);
+    REAL s = 1.0;
     
-     if (fSimulationData->IsAxisymmetricQ()) {
-         weight *= 2.0*M_PI*r;
-     }
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+        
+        weight *= s;
+        datavecleft[0].phi *= 1.0/s;
+        datavecleft[0].sol[0][0]   *= 1.0/s;
+        datavecleft[0].sol[0][1]   *= 1.0/s;
+        datavecleft[0].sol[0][2]   *= 1.0/s;
+        datavecleft[0].dsol[0]   *= 1.0/s;
+        
+    }
     
     if (fSimulationData->IsTwoPhaseQ()) {
         this->ContributeBCInterfaceAlpha(data, datavecleft, weight, ek, ef, bc);
@@ -768,10 +809,19 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
     x_spatial(0,0) = data.x[0];
     REAL r = Norm(x_spatial);
+    REAL s = 1.0;
     
-     if (fSimulationData->IsAxisymmetricQ()) {
-         weight *= 2.0*M_PI*r;
-     }
+    if (fSimulationData->IsAxisymmetricQ()) {
+        s *= 2.0*M_PI*r;
+        
+        weight *= s;
+        datavecleft[0].phi *= 1.0/s;
+        datavecleft[0].sol[0][0]   *= 1.0/s;
+        datavecleft[0].sol[0][1]   *= 1.0/s;
+        datavecleft[0].sol[0][2]   *= 1.0/s;
+        datavecleft[0].dsol[0]   *= 1.0/s;
+        
+    }
     
     if (fSimulationData->IsTwoPhaseQ()) {
         this->ContributeBCInterfaceAlpha(data, datavecleft, weight, ef, bc);
@@ -849,24 +899,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
     TPZFNMatrix<660,REAL> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
-    
-//    // Computing the radius
-//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-//    x_spatial(0,0) = datavec[0].x[0];
-//    REAL r = Norm(x_spatial);
-//    REAL s = 1.0;
-//    
-//    if (fSimulationData->IsAxisymmetricQ()) {
-//        s *= 2.0*M_PI*r;
-//    }
-//    
-//    // Applying the scaling
-//    phiuH1      *= 1.0/s;
-//    Graduaxes   *= 1.0/s;
-//    DivergenceOnDeformed *= 1.0/s;
-//    u[0] *= 1.0/s;
-//    u[1] *= 1.0/s;
-//    u[2] *= 1.0/s;
     
     // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
@@ -1024,25 +1056,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
     TPZFNMatrix<660,REAL> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
-    
-//    // Computing the radius
-//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-//    x_spatial(0,0) = datavec[0].x[0];
-//    x_spatial(2,0) = datavec[0].x[2];
-//    REAL r = Norm(x_spatial);
-//    REAL s = 1.0;
-    
-//    if (fSimulationData->IsAxisymmetricQ()) {
-//        s *= 2.0*M_PI*r;
-//    }
-//    
-//    // Applying the scaling
-//    phiuH1      *= 1.0/s;
-//    Graduaxes   *= 1.0/s;
-//    DivergenceOnDeformed *= 1.0/s;
-//    u[0] *= 1.0/s;
-//    u[1] *= 1.0/s;
-//    u[2] *= 1.0/s;
     
     // Rock and fluids parameters
     TPZFMatrix<STATE> KInverse = fReservoirdata->KabsoluteInv();
@@ -1473,14 +1486,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
 }
 
 
-/**
- * It computes a contribution to the stiffness matrix and load vector at one integration point.
- * @param data[in] stores all input data
- * @param weight[in] is the weight of the integration rule
- * @param ek[out] is the stiffness matrix
- * @param ef[out] is the load vector
- * @since April 16, 2007
- */
 void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     
@@ -1528,23 +1533,23 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     //    TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
     
     
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = datavec[0].x[0];
-    REAL r = Norm(x_spatial);
-    REAL s = 1.0;
-    
-    if (fSimulationData->IsAxisymmetricQ()) {
-        s *= 2.0*M_PI*r;
-    }
-    
-    // Applying the scaling
-    phiuH1      *= 1.0/s;
-//    Graduaxes   *= 1.0/s;
-    DivergenceOnDeformed *= 1.0/s;
-    u[0] *= 1.0/s;
-    u[1] *= 1.0/s;
-    u[2] *= 1.0/s;
+//    // Computing the radius
+//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+//    x_spatial(0,0) = datavec[0].x[0];
+//    REAL r = Norm(x_spatial);
+//    REAL s = 1.0;
+//    
+//    if (fSimulationData->IsAxisymmetricQ()) {
+//        s *= 2.0*M_PI*r;
+//    }
+//    
+//    // Applying the scaling
+//    phiuH1      *= 1.0/s;
+////    Graduaxes   *= 1.0/s;
+//    DivergenceOnDeformed *= 1.0/s;
+//    u[0] *= 1.0/s;
+//    u[1] *= 1.0/s;
+//    u[2] *= 1.0/s;
     
     
     // Rock and fluids parameters
@@ -1714,13 +1719,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     
 }
 
-/**
- * It computes a contribution to the load vector at one integration point.
- * @param data[in] stores all input data
- * @param weight[in] is the weight of the integration rule
- * @param ef[out] is the load vector
- * @since April 16, 2007
- */
+
 void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
 {
     
@@ -1762,23 +1761,23 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
 //    TPZFNMatrix<660,REAL> GradS;
 //    TPZAxesTools<REAL>::Axes2XYZ(GradSaxes, GradS, datavec[Pblock].axes);
     
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = datavec[0].x[0];
-    REAL r = Norm(x_spatial);
-    REAL s = 1.0;
-    
-    if (fSimulationData->IsAxisymmetricQ()) {
-        s *= 2.0*M_PI*r;
-    }
-    
-    // Applying the scaling
-    phiuH1      *= 1.0/s;
-//    Graduaxes   *= 1.0/s;
-    DivergenceOnDeformed *= 1.0/s;
-    u[0] *= 1.0/s;
-    u[1] *= 1.0/s;
-    u[2] *= 1.0/s;
+//    // Computing the radius
+//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+//    x_spatial(0,0) = datavec[0].x[0];
+//    REAL r = Norm(x_spatial);
+//    REAL s = 1.0;
+//    
+//    if (fSimulationData->IsAxisymmetricQ()) {
+//        s *= 2.0*M_PI*r;
+//    }
+//    
+//    // Applying the scaling
+//    phiuH1      *= 1.0/s;
+////    Graduaxes   *= 1.0/s;
+//    DivergenceOnDeformed *= 1.0/s;
+//    u[0] *= 1.0/s;
+//    u[1] *= 1.0/s;
+//    u[2] *= 1.0/s;
     
     
     // Rock and fluids parameters
@@ -1900,15 +1899,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     
 }
 
-/**
- * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
- * @param data[in] stores all input data
- * @param weight[in] is the weight of the integration rule
- * @param ek[out] is the stiffness matrix
- * @param ef[out] is the load vector
- * @param bc[in] is the boundary condition material
- * @since April 16, 2007
- */
+
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
     // Full implicit case: there is no n state computations here
@@ -1957,14 +1948,14 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     if (fSimulationData->IsAxisymmetricQ()) {
         s *= 2.0*M_PI*r;
     }
-    
-    // Applying the scaling
-    phiuH1L      *= 1.0/s;
-    //    Graduaxes   *= 1.0/s;
-    //    DivergenceOnDeformed *= 1.0/s;
-    uL[0] *= 1.0/s;
-    uL[1] *= 1.0/s;
-    uL[2] *= 1.0/s;
+//
+//    // Applying the scaling
+//    phiuH1L      *= 1.0/s;
+//    //    Graduaxes   *= 1.0/s;
+//    //    DivergenceOnDeformed *= 1.0/s;
+//    uL[0] *= 1.0/s;
+//    uL[1] *= 1.0/s;
+//    uL[2] *= 1.0/s;
     
     
     
@@ -2242,7 +2233,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
             
         }
             
-            break;
+        break;
             
         case 3 :    // Neumann BC  QN outflow
         {
@@ -2269,7 +2260,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 
                 for (int isw = 0; isw < nphiSaL2L; isw++)
                 {
-                    ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn;
+                    ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn/s;
                     
                     for (int jq = 0; jq < nphiuHdivL; jq++)
                     {
@@ -2369,15 +2360,6 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
 }
 
 
-/**
- * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
- * @param data[in] stores all input data
- * @param weight[in] is the weight of the integration rule
- * @param ek[out] is the stiffness matrix
- * @param ef[out] is the load vector
- * @param bc[in] is the boundary condition material
- * @since April 16, 2007
- */
 void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     
@@ -2424,13 +2406,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
         s *= 2.0*M_PI*r;
     }
     
-    // Applying the scaling
-    phiuH1L      *= 1.0/s;
-    //    Graduaxes   *= 1.0/s;
-    //    DivergenceOnDeformed *= 1.0/s;
-    uL[0] *= 1.0/s;
-    uL[1] *= 1.0/s;
-    uL[2] *= 1.0/s;
+//    // Applying the scaling
+//    phiuH1L      *= 1.0/s;
+//    //    Graduaxes   *= 1.0/s;
+//    //    DivergenceOnDeformed *= 1.0/s;
+//    uL[0] *= 1.0/s;
+//    uL[1] *= 1.0/s;
+//    uL[2] *= 1.0/s;
 
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
@@ -2547,7 +2529,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 
                 for (int isw = 0; isw < nphiSaL2L; isw++)
                 {
-                    ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn;
+                    ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn/s;
                     
                 }
                 
@@ -2629,7 +2611,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 
                 for (int isw = 0; isw < nphiSaL2L; isw++)
                 {
-                    ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn;
+                    ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn/s;
                     
                 }
             }
@@ -2671,7 +2653,7 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
             
             for (int isw = 0; isw < nphiSaL2L; isw++)
             {
-                ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn;
+                ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * qn/s;
                 
             }
             
@@ -2758,27 +2740,27 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
 //    REAL P_R             = datavecright[Pblock].sol[0][0];
     REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = data.x[0];
-    REAL r = Norm(x_spatial);
-    REAL s = 1.0;
-    
-    if (fSimulationData->IsAxisymmetricQ()) {
-        s *= 2.0*M_PI*r;
-    }
-    
-    // Applying the scaling
-    phiuH1L      *= 1.0/s;
-    phiuH1R      *= 1.0/s;
-    
-    uL[0] *= 1.0/s;
-    uL[1] *= 1.0/s;
-    uL[2] *= 1.0/s;
-    
-    uR[0] *= 1.0/s;
-    uR[1] *= 1.0/s;
-    uR[2] *= 1.0/s;
+//    // Computing the radius
+//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+//    x_spatial(0,0) = data.x[0];
+//    REAL r = Norm(x_spatial);
+//    REAL s = 1.0;
+//    
+//    if (fSimulationData->IsAxisymmetricQ()) {
+//        s *= 2.0*M_PI*r;
+//    }
+//    
+//    // Applying the scaling
+//    phiuH1L      *= 1.0/s;
+//    phiuH1R      *= 1.0/s;
+//    
+//    uL[0] *= 1.0/s;
+//    uL[1] *= 1.0/s;
+//    uL[2] *= 1.0/s;
+//    
+//    uR[0] *= 1.0/s;
+//    uR[1] *= 1.0/s;
+//    uR[2] *= 1.0/s;
     
     TPZManVector<REAL,3> n =  data.normal;
     REAL uLn = uL[0]*n[0] + uL[1]*n[1] + uL[2]*n[2];
@@ -3101,27 +3083,27 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
 //    REAL P_R             = datavecright[Pblock].sol[0][0];
     REAL Salpha_R        = datavecright[Sablock].sol[0][0];
     
-    // Computing the radius
-    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-    x_spatial(0,0) = data.x[0];
-    REAL r = Norm(x_spatial);
-    REAL s = 1.0;
-    
-    if (fSimulationData->IsAxisymmetricQ()) {
-        s *= 2.0*M_PI*r;
-    }
-    
-    // Applying the scaling
-    phiuH1L      *= 1.0/s;
-    phiuH1R      *= 1.0/s;
-    
-    uL[0] *= 1.0/s;
-    uL[1] *= 1.0/s;
-    uL[2] *= 1.0/s;
-    
-    uR[0] *= 1.0/s;
-    uR[1] *= 1.0/s;
-    uR[2] *= 1.0/s;
+//    // Computing the radius
+//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+//    x_spatial(0,0) = data.x[0];
+//    REAL r = Norm(x_spatial);
+//    REAL s = 1.0;
+//    
+//    if (fSimulationData->IsAxisymmetricQ()) {
+//        s *= 2.0*M_PI*r;
+//    }
+//    
+//    // Applying the scaling
+//    phiuH1L      *= 1.0/s;
+//    phiuH1R      *= 1.0/s;
+//    
+//    uL[0] *= 1.0/s;
+//    uL[1] *= 1.0/s;
+//    uL[2] *= 1.0/s;
+//    
+//    uR[0] *= 1.0/s;
+//    uR[1] *= 1.0/s;
+//    uR[2] *= 1.0/s;
     
     
     TPZManVector<REAL,3> n =  data.normal;
