@@ -3121,10 +3121,10 @@ void TPZDarcyAnalysis::P_Hydrostatic(const TPZVec< REAL >& pt, REAL time, TPZVec
 //    REAL Tres           = 355.37;
     REAL Lstr           = 500.0;
 //    REAL Mustr          = 0.001;
-    REAL Rhostr         = 1000.0;
+    REAL Rhostr         = 800.0;
 
-    REAL rho_beta = 800.0/Rhostr;
-    REAL P_at_datum = 0.54;//2.0*1.0e7;
+    REAL rho_beta = 900.0/Rhostr;
+    REAL P_at_datum = 0.5240;//2.0*1.0e7;
     REAL g = -10.0*((Lstr*Rhostr)/Pstr);
     P_Hydro[0] = (rho_beta * g * y)+P_at_datum;
     

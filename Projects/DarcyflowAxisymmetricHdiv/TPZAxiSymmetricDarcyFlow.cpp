@@ -1385,6 +1385,26 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
                     fTimedependentBCForcingFunction->Execute(datavec[ublock].x, fSimulationData->GetTime(), P_hydro,GradP_hydro);
                     Value = P_hydro[0];
                 }
+                
+                if (fSimulationData->IsTwoPhaseQ()) {
+                    
+                    REAL sw = datavec[2].sol[0][0];
+                    
+                    //    REAL x = datavec[ublock].x[0];
+                    REAL y = datavec[ublock].x[1];
+                    
+                    //    REAL Kstr           = 1.0e-13;
+                    REAL Pstr           = 2.0e7;
+                    REAL Lstr           = 100.0;
+                    //    REAL Mustr          = 0.001;
+                    REAL Rhostr         = 1000.0;
+                    REAL rho_alpha = 1000.0/Rhostr;
+                    REAL rho_beta = 800.0/Rhostr;
+                    REAL rho = sw * rho_alpha + (1-sw)*rho_beta;
+                    REAL P_at_datum = bc.Val2()(0,0);//2.0*1.0e7;
+                    REAL g = -10.0*((Lstr*Rhostr)/Pstr);
+                    Value = (rho * g * y)+P_at_datum;
+                }
             }
             
             for (int iq = 0; iq < nPhiHdiv; iq++)
@@ -1425,6 +1445,29 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCDarcy(TPZVec<TPZMaterialData> &datave
                     fTimedependentBCForcingFunction->Execute(datavec[ublock].x, fSimulationData->GetTime(), P_hydro,GradP_hydro);
                     Value = P_hydro[0];
                 }
+                
+                if (fSimulationData->IsTwoPhaseQ()) {
+                    
+                    REAL sw = datavec[2].sol[0][0];
+                    
+                    //    REAL x = datavec[ublock].x[0];
+                    REAL y = datavec[ublock].x[1];
+                    
+                    //    REAL Kstr           = 1.0e-13;
+                    REAL Pstr           = 2.0e7;
+                    //    REAL Tstr           = 355.37;
+                    //    REAL Tres           = 355.37;
+                    REAL Lstr           = 100.0;
+                    //    REAL Mustr          = 0.001;
+                    REAL Rhostr         = 1000.0;
+                    REAL rho_alpha = 1000.0/Rhostr;
+                    REAL rho_beta = 800.0/Rhostr;
+                    REAL rho = sw * rho_alpha + (1-sw)*rho_beta;
+                    REAL P_at_datum = bc.Val2()(0,0);//2.0*1.0e7;
+                    REAL g = -10.0*((Lstr*Rhostr)/Pstr);
+                    Value = (rho * g * y)+P_at_datum;
+                }
+                
             }
 
             
@@ -2175,25 +2218,25 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                 {
                     ef(isw + iniSaL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * uLn;
                     
-                    for (int jq = 0; jq < nphiuHdivL; jq++)
-                    {
-                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
-                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
-                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
-                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
-                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
-                    }
-                    
-                    for (int jp = 0; jp < nphiPL2L; jp++)
-                    {
-                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
-                    }
-                    
-                    for (int jsw = 0; jsw < nphiSaL2L; jsw++)
-                    {
-                        ek(isw + iniSaL,jsw + iniSaL) += 1.0 * weight * f_alpha[3] * phiSaL2L(jsw,0)  * phiSaL2L(isw,0) * uLn;
-                    }
+//                    for (int jq = 0; jq < nphiuHdivL; jq++)
+//                    {
+//                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
+//                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
+//                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
+//                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+//                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
+//                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
+//                    }
+//                    
+//                    for (int jp = 0; jp < nphiPL2L; jp++)
+//                    {
+//                        ek(isw + iniSaL,jp + iniPL) += 1.0 * weight * f_alpha[2] * phiPL2L(jp,0)  * phiSaL2L(isw,0) * uLn;
+//                    }
+//                    
+//                    for (int jsw = 0; jsw < nphiSaL2L; jsw++)
+//                    {
+//                        ek(isw + iniSaL,jsw + iniSaL) += 1.0 * weight * f_alpha[3] * phiSaL2L(jsw,0)  * phiSaL2L(isw,0) * uLn;
+//                    }
                 }
             }
             else
