@@ -168,6 +168,9 @@ private:
     /** @brief Time scale for dimensionless calculations */
     REAL ftime_scale;
     
+    /** @brief Length scale for dimensionless calculations */
+    REAL flength_scale;
+    
     /** @brief Velocity scale for dimensionless calculations */
     REAL fvelocity_scale;
     
@@ -468,6 +471,12 @@ public:
     
     /** @brief Get the time scale for dimensionless calculations */
     REAL Time_Scale() {return ftime_scale;}
+    
+    /** @brief Set the length scale for dimensionless calculations */
+    void SetLength_Scale(REAL length_scale) {flength_scale = length_scale;}
+    
+    /** @brief Get the length scale for dimensionless calculations */
+    REAL Length_Scale() {return flength_scale;}
     
     /** @brief Set the velocity scale for dimensionless calculations */
     void SetVelocity_Scale(REAL velocity_scale) {fvelocity_scale = velocity_scale;}

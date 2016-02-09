@@ -125,6 +125,9 @@ SimulationData::SimulationData()
     /** @brief Time scale for dimensionless calculations */
     ftime_scale = 1.0;
     
+    /** @brief Length scale for dimensionless calculations */
+    flength_scale = 1.0;
+    
     /** @brief Velocity scale for dimensionless calculations */
     fvelocity_scale = 1.0;
     

@@ -477,7 +477,7 @@ public:
     /**
      * Compute the caplillary segregational fluxes
      */
-    void CapillarySegregation(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZManVector<REAL,3> > & qc);
+    void CapillarySegregation(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZManVector<REAL,3> > & qc, TPZManVector<REAL,3> & grads);
     
     /**
      * Compute the linearized version of the bubble function f
