@@ -655,6 +655,9 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
          datavec[0].sol[0][2]   *= 1.0/s;
          datavec[0].dsol[0]   *= 1.0/s;
          
+//         datavec[2].sol[0][0]   *= 1.0/s;
+//         datavec[2].dsol[0]    *= 1.0/s;
+         
      }
     
     this->ContributeDarcy(datavec, weight, ek, ef);
@@ -685,6 +688,9 @@ void TPZAxiSymmetricDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         datavec[0].sol[0][1]   *= 1.0/s;
         datavec[0].sol[0][2]   *= 1.0/s;
         datavec[0].dsol[0]   *= 1.0/s;
+        
+//        datavec[2].sol[0][0]   *= 1.0/s;
+//        datavec[2].dsol[0]    *= 1.0/s;
         
     }
     
@@ -717,11 +723,17 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         datavecleft[0].sol[0][2]   *= 1.0/s;
         datavecleft[0].dsol[0]   *= 1.0/s;
         
+//        datavecleft[2].sol[0][0]   *= 1.0/s;
+//        datavecleft[2].dsol[0]    *= 1.0/s;
+        
         datavecright[0].phi *= 1.0/s;
         datavecright[0].sol[0][0]   *= 1.0/s;
         datavecright[0].sol[0][1]   *= 1.0/s;
         datavecright[0].sol[0][2]   *= 1.0/s;
         datavecright[0].dsol[0]   *= 1.0/s;
+        
+//        datavecright[2].sol[0][0]   *= 1.0/s;
+//        datavecright[2].dsol[0]    *= 1.0/s;
         
     }
     
@@ -754,11 +766,17 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterface(TPZMaterialData &data, TPZVec
         datavecleft[0].sol[0][2]   *= 1.0/s;
         datavecleft[0].dsol[0]   *= 1.0/s;
         
+//        datavecleft[2].sol[0][0]   *= 1.0/s;
+//        datavecleft[2].dsol[0]    *= 1.0/s;
+        
         datavecright[0].phi *= 1.0/s;
         datavecright[0].sol[0][0]   *= 1.0/s;
         datavecright[0].sol[0][1]   *= 1.0/s;
         datavecright[0].sol[0][2]   *= 1.0/s;
         datavecright[0].dsol[0]   *= 1.0/s;
+        
+//        datavecright[2].sol[0][0]   *= 1.0/s;
+//        datavecright[2].dsol[0]    *= 1.0/s;
         
     }
     
@@ -790,6 +808,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
         datavecleft[0].sol[0][2]   *= 1.0/s;
         datavecleft[0].dsol[0]   *= 1.0/s;
         
+//        datavecleft[2].sol[0][0]   *= 1.0/s;
+//        datavecleft[2].dsol[0]    *= 1.0/s;
+        
     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
@@ -820,6 +841,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterface(TPZMaterialData &data, TPZV
         datavecleft[0].sol[0][1]   *= 1.0/s;
         datavecleft[0].sol[0][2]   *= 1.0/s;
         datavecleft[0].dsol[0]   *= 1.0/s;
+        
+//        datavecleft[2].sol[0][0]   *= 1.0/s;
+//        datavecleft[2].dsol[0]    *= 1.0/s;
         
     }
     
@@ -1681,13 +1705,13 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
             Gradphis[0] = dphiSL2(0,jsa)*datavec[Sablock].axes(0,0)+dphiSL2(1,jsa)*datavec[Sablock].axes(1,0);
             Gradphis[1] = dphiSL2(0,jsa)*datavec[Sablock].axes(0,1)+dphiSL2(1,jsa)*datavec[Sablock].axes(1,1);
             
-//            ek(iq + iniu,jsa + iniSa) += weight * ( (-lambda[3]/lambda[0])*(Oneoverlambda_Kinv_u(0,0)*vi[0] + Oneoverlambda_Kinv_u(1,0)*vi[1]) - (dgmdS(0,0)*vi[0] + dgmdS(1,0)*vi[1])
-//                                                   - ( S_alpha * Pc_beta_alpha[3] + 1.0 * Pc_beta_alpha[0] ) * DivergenceOnDeformed(iq,0)
-//                                                   - ( f_alpha[3]*(Grad_Pc[0]*vi[0] + Grad_Pc[1]*vi[1]) + (f_alpha[0]*Pc_beta_alpha[3])*(Gradphis[0]*vi[0] + Gradphis[1]*vi[1])) )* Sa_phiPL2(jsa,0) ;
-            
             ek(iq + iniu,jsa + iniSa) += weight * ( (-lambda[3]/lambda[0])*(Oneoverlambda_Kinv_u(0,0)*vi[0] + Oneoverlambda_Kinv_u(1,0)*vi[1]) - (dgmdS(0,0)*vi[0] + dgmdS(1,0)*vi[1])
                                                    - ( S_alpha * Pc_beta_alpha[3] + 1.0 * Pc_beta_alpha[0] ) * DivergenceOnDeformed(iq,0)
-                                                   - ( f_alpha[3]*(Grad_Pc[0]*vi[0] + Grad_Pc[1]*vi[1]) ) )* Sa_phiPL2(jsa,0) ;
+                                                   - ( f_alpha[3]*(Grad_Pc[0]*vi[0] + Grad_Pc[1]*vi[1]) + (f_alpha[0]*Pc_beta_alpha[3])*(Gradphis[0]*vi[0] + Gradphis[1]*vi[1])) )* Sa_phiPL2(jsa,0) ;
+            
+//            ek(iq + iniu,jsa + iniSa) += weight * ( (-lambda[3]/lambda[0])*(Oneoverlambda_Kinv_u(0,0)*vi[0] + Oneoverlambda_Kinv_u(1,0)*vi[1]) - (dgmdS(0,0)*vi[0] + dgmdS(1,0)*vi[1])
+//                                                   - ( S_alpha * Pc_beta_alpha[3] + 1.0 * Pc_beta_alpha[0] ) * DivergenceOnDeformed(iq,0)
+//                                                   - ( f_alpha[3]*(Grad_Pc[0]*vi[0] + Grad_Pc[1]*vi[1]) ) )* Sa_phiPL2(jsa,0) ;
             
         }
         
@@ -1707,9 +1731,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZVec< TPZManVector<REAL,3> > qg;
     this->GravitationalSegregation(datavec,qg);
     
-//    // Capillary Segregation
-//    TPZVec< TPZManVector<REAL,3> > qc;
-//    this->CapillarySegregation(datavec,qc);
+    // Capillary Segregation
+    TPZVec< TPZManVector<REAL,3> > qc;
+    TPZManVector<REAL,3> grad_s(3,0.0);
+    this->CapillarySegregation(datavec,qc,grad_s);
     
     for (int isw = 0; isw < nphiSaL2; isw++)
     {
@@ -1719,12 +1744,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
         Gradphis[0] = dphiSL2(0,isw)*datavec[Sablock].axes(0,0)+dphiSL2(1,isw)*datavec[Sablock].axes(1,0);
         Gradphis[1] = dphiSL2(0,isw)*datavec[Sablock].axes(0,1)+dphiSL2(1,isw)*datavec[Sablock].axes(1,1);
         
-//        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0] * Sa_phiPL2(isw,0)
-//                                       - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
-//                                       - (qg[0][0]*Gradphis[0] + qg[0][1]*Gradphis[1])
-//                                       - (qc[0][0]*Gradphis[0] + qc[0][1]*Gradphis[1]));
+        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0] * Sa_phiPL2(isw,0)
+                                       - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
+                                       - (qg[0][0]*Gradphis[0] + qg[0][1]*Gradphis[1])
+                                       - (qc[0][0]*Gradphis[0] + qc[0][1]*Gradphis[1]));
         
-        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0] * Sa_phiPL2(isw,0) );
+//        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0] * Sa_phiPL2(isw,0) );
 
         
         // du/dalphau terms
@@ -1742,12 +1767,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
         
         for (int jp = 0; jp < nphiPL2; jp++)
         {
-//            ek(isw  + iniSa, jp  + iniP ) += 1.0 * weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[2] * Sa_phiPL2(isw,0)
-//                                                             - f_alpha[2]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
-//                                                             - (qg[2][0]*Gradphis[0] + qg[2][1]*Gradphis[1])
-//                                                             - (qc[2][0]*Gradphis[0] + qc[2][1]*Gradphis[1]) ) * phiPL2(jp,0);
+            ek(isw  + iniSa, jp  + iniP ) += 1.0 * weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[2] * Sa_phiPL2(isw,0)
+                                                             - f_alpha[2]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
+                                                             - (qg[2][0]*Gradphis[0] + qg[2][1]*Gradphis[1])
+                                                             - (qc[2][0]*Gradphis[0] + qc[2][1]*Gradphis[1]) ) * phiPL2(jp,0);
             
-            ek(isw  + iniSa, jp  + iniP ) += 1.0 * weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[2] * Sa_phiPL2(isw,0) ) * phiPL2(jp,0);
+//            ek(isw  + iniSa, jp  + iniP ) += 1.0 * weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[2] * Sa_phiPL2(isw,0) ) * phiPL2(jp,0);
             
             
         }
@@ -1760,14 +1785,14 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
             Gradphis_j[0] = dphiSL2(0,jsw)*datavec[Sablock].axes(0,0)+dphiSL2(1,jsw)*datavec[Sablock].axes(1,0);
             Gradphis_j[1] = dphiSL2(0,jsw)*datavec[Sablock].axes(0,1)+dphiSL2(1,jsw)*datavec[Sablock].axes(1,1);
             
-//            ek(isw  + iniSa, jsw  + iniSa ) += 1.0 * weight * ((1.0/dt) * phi * rho_alpha[0] * Sa_phiPL2(isw,0)
-//                                                               - f_alpha[3]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
-//                                                               - (qg[3][0]*Gradphis[0] + qg[3][1]*Gradphis[1])
-//                                                               - (qc[3][0]*Gradphis[0] + qc[3][1]*Gradphis[1])
-//                                                               - ( (qc[4][0]) * (K(0,0)*Gradphis_j[0] + K(0,1)*Gradphis_j[1]) *Gradphis[0]
-//                                                                  + (qc[4][1]) * (K(1,0)*Gradphis_j[0] + K(1,1)*Gradphis_j[1]) *Gradphis[1] ) ) * Sa_phiPL2(jsw,0) ;
+            ek(isw  + iniSa, jsw  + iniSa ) += 1.0 * weight * ((1.0/dt) * phi * rho_alpha[0] * Sa_phiPL2(isw,0)
+                                                               - f_alpha[3]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
+                                                               - (qg[3][0]*Gradphis[0] + qg[3][1]*Gradphis[1])
+                                                               - (qc[3][0]*Gradphis[0] + qc[3][1]*Gradphis[1])
+                                                               - ( (qc[4][0]) * (K(0,0)*Gradphis_j[0] + K(0,1)*Gradphis_j[1]) *Gradphis[0]
+                                                                  + (qc[4][1]) * (K(1,0)*Gradphis_j[0] + K(1,1)*Gradphis_j[1]) *Gradphis[1] ) ) * Sa_phiPL2(jsw,0) ;
             
-            ek(isw  + iniSa, jsw  + iniSa ) += 1.0 * weight * ((1.0/dt) * phi * rho_alpha[0] * Sa_phiPL2(isw,0)) * Sa_phiPL2(jsw,0) ;
+//            ek(isw  + iniSa, jsw  + iniSa ) += 1.0 * weight * ((1.0/dt) * phi * rho_alpha[0] * Sa_phiPL2(isw,0)) * Sa_phiPL2(jsw,0) ;
             
         }
     }
@@ -1934,9 +1959,10 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
     TPZVec< TPZManVector<REAL,3> > qg;
     this->GravitationalSegregation(datavec,qg);
 
-//    // Capillary Segregation
-//    TPZVec< TPZManVector<REAL,3> > qc;
-//    this->CapillarySegregation(datavec,qc);
+    // Capillary Segregation
+    TPZVec< TPZManVector<REAL,3> > qc;
+    TPZManVector<REAL,3> grad_s(3,0.0);
+    this->CapillarySegregation(datavec,qc,grad_s);
     
     for (int isw = 0; isw < nphiSaL2; isw++)
     {
@@ -1945,12 +1971,12 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
         Gradphis[0] = dphiSL2(0,isw)*datavec[Sablock].axes(0,0)+dphiSL2(1,isw)*datavec[Sablock].axes(1,0);
         Gradphis[1] = dphiSL2(0,isw)*datavec[Sablock].axes(0,1)+dphiSL2(1,isw)*datavec[Sablock].axes(1,1);
         
-//        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0] * Sa_phiPL2(isw,0)
-//                                       - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
-//                                       - (qg[0][0]*Gradphis[0] + qg[0][1]*Gradphis[1])
-//                                       - (qc[0][0]*Gradphis[0] + qc[0][1]*Gradphis[1]));
+        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0] * Sa_phiPL2(isw,0)
+                                       - f_alpha[0]*(u[0]*Gradphis[0] + u[1]*Gradphis[1])
+                                       - (qg[0][0]*Gradphis[0] + qg[0][1]*Gradphis[1])
+                                       - (qc[0][0]*Gradphis[0] + qc[0][1]*Gradphis[1]));
         
-        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0] * Sa_phiPL2(isw,0));
+//        ef(isw  + iniSa ) += weight * ( (1.0/dt) * phi * S_alpha * rho_alpha[0] * Sa_phiPL2(isw,0));
         
     }
     
@@ -2003,9 +2029,9 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     REAL r = Norm(x_spatial);
     REAL s = 1.0;
     
-    if (fSimulationData->IsAxisymmetricQ()) {
-        s *= 2.0*M_PI*r;
-    }
+//    if (fSimulationData->IsAxisymmetricQ()) {
+//        s *= 2.0*M_PI*r;
+//    }
 //
 //    // Applying the scaling
 //    phiuH1L      *= 1.0/s;

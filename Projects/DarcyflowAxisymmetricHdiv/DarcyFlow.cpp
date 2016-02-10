@@ -113,20 +113,22 @@ int main()
     IsNonlinearKr = false;
 
     IsNonlinearKr = true;
-    output = "CaseImexPC";
-    ImexPc(IsDimensionlessQ, IsNonlinearKr, output);
-    output = "CaseImexPCR";
-    ImexPcR(IsDimensionlessQ, IsNonlinearKr, output);
-    output = "CaseImexPCZero";
-    ImexPcZero(IsDimensionlessQ, IsNonlinearKr, output);
+
+//    output = "CaseImexPC";
+//    ImexPc(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseImexPCR";
+//    ImexPcR(IsDimensionlessQ, IsNonlinearKr, output);
+
+//    output = "CaseImexPCZero";
+//    ImexPcZero(IsDimensionlessQ, IsNonlinearKr, output);
     output = "CaseImexPCZeroR";
     ImexPcZeroR(IsDimensionlessQ, IsNonlinearKr, output);
     
     
-    output = "CaseImexNoGravity";
-    ImexNoGravity(IsDimensionlessQ, IsNonlinearKr, output);
-    output = "CaseImexNoGravityR";
-    ImexNoGravityR(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseImexNoGravity";
+//    ImexNoGravity(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseImexNoGravityR";
+//    ImexNoGravityR(IsDimensionlessQ, IsNonlinearKr, output);
 
     
 //    output = "CaseRiemmanA";
@@ -135,27 +137,27 @@ int main()
 //    CaseRiemmanR(IsDimensionlessQ, IsNonlinearKr, output);
 //    
 //    IsNonlinearKr = true;
-//    
+    
 //    output = "CaseIQA";
 //    CaseRiemman(IsDimensionlessQ, IsNonlinearKr, output);
 //    output = "CaseIQAR";
 //    CaseRiemmanR(IsDimensionlessQ, IsNonlinearKr, output);
 
-    output = "CaseEQA";
-    CaseELC(IsDimensionlessQ, IsNonlinearKr, output);
-    output = "CaseEQAR";
-    CaseELCR(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseEQA";
+//    CaseELC(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseEQAR";
+//    CaseELCR(IsDimensionlessQ, IsNonlinearKr, output);
     
-    output = "CaseUQA";
-    CaseULC(IsDimensionlessQ, IsNonlinearKr, output);
-    output = "CaseUQAR";
-    CaseULCR(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseUQA";
+//    CaseULC(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseUQAR";
+//    CaseULCR(IsDimensionlessQ, IsNonlinearKr, output);
     
     
-    output = "CaseImexGravity";
-    ImexGravity(IsDimensionlessQ, IsNonlinearKr, output);
-    output = "CaseImexGravityR";
-    ImexGravityR(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseImexGravity";
+//    ImexGravity(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseImexGravityR";
+//    ImexGravityR(IsDimensionlessQ, IsNonlinearKr, output);
     
     return;
     
@@ -199,8 +201,8 @@ void ImexPc(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -376,7 +378,7 @@ void ImexPc(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
     
     TPZVec<REAL> outlet(4,0.0);
     outlet[0] = 2;
-    outlet[1] = (18.15*1e3)/(Pstr);
+    outlet[1] = (18.1936*1e6)/(Pstr);
     outlet[2] = 0;
     outlet[3] = 0;
     
@@ -406,14 +408,14 @@ void ImexPc(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
     REAL cwater             = (0.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
     REAL oildensity         = 800.0/Rhostr;
-    REAL oilviscosity       = 0.001/Mustr;
+    REAL oilviscosity       = 0.002/Mustr;
     REAL coil               = (0.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
     REAL gasviscosity       = Mustr;
     REAL cgas               = (0.0)*Pstr;
     
-    REAL pc_max             = 1.0*(34.4738*1e3)/(Pstr);
+    REAL pc_max             = 1.0*(17.2369*1e3)/(Pstr);
     
     TPZVec<int> MatIds(5);
     MatIds[0]=1;
@@ -541,8 +543,8 @@ void ImexPcR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -718,7 +720,7 @@ void ImexPcR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
     
     TPZVec<REAL> outlet(4,0.0);
     outlet[0] = 2;
-    outlet[1] = (18.15*1e3)/(Pstr);
+    outlet[1] = (18.1936*1e6)/(Pstr);
     outlet[2] = 0;
     outlet[3] = 0;
     
@@ -748,14 +750,14 @@ void ImexPcR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
     REAL cwater             = (0.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
     REAL oildensity         = 800.0/Rhostr;
-    REAL oilviscosity       = 0.001/Mustr;
+    REAL oilviscosity       = 0.002/Mustr;
     REAL coil               = (0.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
     REAL gasviscosity       = Mustr;
     REAL cgas               = (0.0)*Pstr;
     
-    REAL pc_max             = 1.0*(34.4738*1e3)/(Pstr);
+    REAL pc_max             = 1.0*(17.2369*1e3)/(Pstr);
     
     TPZVec<int> MatIds(5);
     MatIds[0]=1;
@@ -883,8 +885,8 @@ void ImexPcZero(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -915,8 +917,8 @@ void ImexPcZero(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 75;
-    int n_sub_dt = 100;
+    int n_times  = 15;
+    int n_sub_dt = 10;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
@@ -937,7 +939,7 @@ void ImexPcZero(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
     REAL y_l = 10.0;
     REAL ratio = 1.0;
     
-    int  nelemX     =  50;
+    int  nelemX     =  20;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -1060,7 +1062,7 @@ void ImexPcZero(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
     
     TPZVec<REAL> outlet(4,0.0);
     outlet[0] = 2;
-    outlet[1] = (18.15*1e3)/(Pstr);
+    outlet[1] = (18.1936*1e6)/(Pstr);
     outlet[2] = 0;
     outlet[3] = 0;
     
@@ -1090,14 +1092,14 @@ void ImexPcZero(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output){
     REAL cwater             = (0.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
     REAL oildensity         = 800.0/Rhostr;
-    REAL oilviscosity       = 0.001/Mustr;
+    REAL oilviscosity       = 0.002/Mustr;
     REAL coil               = (0.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
     REAL gasviscosity       = Mustr;
     REAL cgas               = (0.0)*Pstr;
     
-    REAL pc_max             = 0.0*(34.4738*1e3)/(Pstr);
+    REAL pc_max             = 0.0*(17.2369*1e3)/(Pstr);
     
     TPZVec<int> MatIds(5);
     MatIds[0]=1;
@@ -1225,8 +1227,8 @@ void ImexPcZeroR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output)
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -1257,8 +1259,8 @@ void ImexPcZeroR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 75;
-    int n_sub_dt = 100;
+    int n_times  = 15;
+    int n_sub_dt = 10;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
@@ -1279,7 +1281,7 @@ void ImexPcZeroR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output)
     REAL y_l = 10.0;
     REAL ratio = 1.0;
     
-    int  nelemX     =  50;
+    int  nelemX     =  20;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -1402,7 +1404,7 @@ void ImexPcZeroR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output)
     
     TPZVec<REAL> outlet(4,0.0);
     outlet[0] = 2;
-    outlet[1] = (18.15*1e3)/(Pstr);
+    outlet[1] = (18.1936*1e6)/(Pstr);
     outlet[2] = 0;
     outlet[3] = 0;
     
@@ -1432,14 +1434,14 @@ void ImexPcZeroR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output)
     REAL cwater             = (0.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
     REAL oildensity         = 800.0/Rhostr;
-    REAL oilviscosity       = 0.001/Mustr;
+    REAL oilviscosity       = 0.002/Mustr;
     REAL coil               = (0.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
     REAL gasviscosity       = Mustr;
     REAL cgas               = (0.0)*Pstr;
     
-    REAL pc_max             = 0.0*(34.4738*1e3)/(Pstr);
+    REAL pc_max             = 0.0*(17.2369*1e3)/(Pstr);
     
     TPZVec<int> MatIds(5);
     MatIds[0]=1;
@@ -1567,8 +1569,8 @@ void ImexGravity(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output)
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -1621,7 +1623,7 @@ void ImexGravity(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output)
     REAL y_l = 10.0;
     REAL ratio = 1.0;
     
-    int  nelemX     =  25;
+    int  nelemX     =  50;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -1908,8 +1910,8 @@ void ImexGravityR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -2250,8 +2252,8 @@ void ImexNoGravity(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string outpu
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -2591,8 +2593,8 @@ void ImexNoGravityR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string outp
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -2935,8 +2937,8 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -2967,7 +2969,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 60;
+    int n_times  = 75;
     int n_sub_dt = 100;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
@@ -2975,7 +2977,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL v_scale = ((Lstr*Mustr)/(Kstr*Rhostr*Pstr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = (1.0) * day * scale;
+    REAL dt         = (4.0) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -2985,11 +2987,11 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    REAL x_l = 50.0;
+    REAL x_l = 100.0;
     REAL y_l = 10.0;
     REAL ratio = 0.0;
     
-    int  nelemX     =  100;
+    int  nelemX     =  50;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -3105,7 +3107,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.0292845; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.00292845; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -3141,7 +3143,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL cwater             = (0.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
     REAL oildensity         = 800.0/Rhostr;
-    REAL oilviscosity       = 0.01/Mustr;
+    REAL oilviscosity       = 0.002/Mustr;
     REAL coil               = (0.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
@@ -3276,8 +3278,8 @@ void CaseULCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -3617,8 +3619,8 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -3649,7 +3651,7 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 60;
+    int n_times  = 75;
     int n_sub_dt = 100;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
@@ -3657,7 +3659,7 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL v_scale = ((Lstr*Mustr)/(Kstr*Rhostr*Pstr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = (1.0) * day * scale;
+    REAL dt         = (4.0) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -3667,11 +3669,11 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    REAL x_l = 50.0;
+    REAL x_l = 100.0;
     REAL y_l = 10.0;
     REAL ratio = 1.0;
     
-    int  nelemX     =  100;
+    int  nelemX     =  50;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -3787,7 +3789,7 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.0292845; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.00292845; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -3823,7 +3825,7 @@ void CaseELC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     REAL cwater             = (0.0*1.0*1e-10)*Pstr;
     REAL p_o_ref            = (1.0*1e6)/(Pstr);
     REAL oildensity         = 800.0/Rhostr;
-    REAL oilviscosity       = 0.0001/Mustr;
+    REAL oilviscosity       = 0.0005/Mustr;
     REAL coil               = (0.0*1.0*1e-8)*Pstr;
     REAL p_g_ref            = Pstr;
     REAL gasdensity         = Rhostr;
@@ -3958,8 +3960,8 @@ void CaseELCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -4128,7 +4130,7 @@ void CaseELCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.0292845; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.00292845; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -4299,8 +4301,8 @@ void CaseRiemman(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -4308,7 +4310,7 @@ void CaseRiemman(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
     int maxiter     = 30;
-int nthread     = 8;
+    int nthread     = 8;
     bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
@@ -4331,15 +4333,15 @@ int nthread     = 8;
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 60;
-    int n_sub_dt = 50;
+    int n_times  = 75;
+    int n_sub_dt = 100;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL v_scale = ((Lstr*Mustr)/(Kstr*Rhostr*Pstr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = (1.0) * day * scale;
+    REAL dt         = (4.0) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -4349,11 +4351,11 @@ int nthread     = 8;
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    REAL x_l = 50.0;
+    REAL x_l = 100.0;
     REAL y_l = 10.0;
     REAL ratio = 1.0;
     
-    int  nelemX     =  100;
+    int  nelemX     =  50;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
@@ -4469,7 +4471,7 @@ int nthread     = 8;
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.0292845;
+    inlet[1] = -0.00292845;
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -4640,8 +4642,8 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
         Mustr          = 0.001;
         Rhostr         = 1000.0;
         TPZMaterial::gBigNumber = 1.0e10;
-        TolRes     = 1.0*1e-3;
-        TolDeltaX  = 1.0*1e-5;
+        TolRes     = 1.0*1e-4;
+        TolDeltaX  = 1.0*1e-6;
     }
     
     TPZFMatrix<REAL> Gravity(2,1);
@@ -4655,12 +4657,12 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
     bool OptBand    = true;     // Band optimization
-    bool IsAxisy    = axisy;     // Axisymmetric analysis 1.0/s;
+    bool IsAxisy    = axisy;    // Axisymmetric analysis 1.0/s;
     bool IsTMesh    = false;    // Triangular mesh
     bool IsImpes    = false;    // Impes analysis
     bool IsHydro    = false;    // Hydrostatic bc
-    bool IsPGMesh   = false;     // Geometric Progression mesh
-    bool IsHetero   = false;     // Heterogeneous k model
+    bool IsPGMesh   = true;     // Geometric Progression mesh
+    bool IsHetero   = false;    // Heterogeneous k model
     int fixedJac    = 0;
     
     std::string file_name  = output;     // Output Directory
@@ -4672,15 +4674,15 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 60;
-    int n_sub_dt = 50;
+    int n_times  = 75;
+    int n_sub_dt = 10;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
     REAL v_scale = ((Lstr*Mustr)/(Kstr*Rhostr*Pstr));
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    REAL dt         = (1.0) * day * scale;
+    REAL dt         = (4.0) * day * scale;
     REAL t0         = 0.0  * day * scale;
     
     for (int it = 0 ; it < n_times; it++) {
@@ -4690,17 +4692,17 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     std::cout << "Reporting times = " << Reporting_times << std::endl;
     std::cout << "Maximum simulation time = " << maxtime <<std::endl;
     
-    REAL x_l = 50.0;
+    REAL x_l = 100.0;
     REAL y_l = 10.0;
     REAL ratio = 1.0;
     
-    int  nelemX     =  100;
+    int  nelemX     =  15;
     if (GR && nelemX == 1 && IsTMesh) {
         nelemX++;
     }
     REAL dxD        =(x_l/nelemX)/Lstr;
     
-    int nelemY      =2;
+    int nelemY      =   2;
     if (GR && nelemY == 1 && IsTMesh ) {
         nelemY++;
     }
@@ -4810,7 +4812,7 @@ void CaseRiemmanR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.0292845;//-0.184004629; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.00292845;
     inlet[2] = 0.8;
     inlet[3] = 0;
     
