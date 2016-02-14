@@ -117,6 +117,9 @@ private:
     /** @brief Definition of the flow system one - two and  ... three phase */
     TPZStack<std::string> fSystemType;
     
+    /** @brief vector that contains materials id to integrate the production */
+    TPZStack<int> fMaterialsToIntegrate;
+    
     /** @brief Is one-phase flow? */
     bool fIsOnePhaseQ;
     
@@ -164,6 +167,9 @@ private:
     
     /** @brief Ouput directory name */
     std::string foutdirectory;
+    
+    /** @brief GID mesh file */
+    std::string fGIDfile;
     
     /** @brief Time scale for dimensionless calculations */
     REAL ftime_scale;
@@ -366,6 +372,17 @@ public:
         fSystemType = SystemType;
     }
     
+    /** @brief Set the vector that contains materials id to integrate the production */
+    void SetMaterialsToIntegrate(TPZStack<int> MaterialsToIntegrate){
+        this->fMaterialsToIntegrate = MaterialsToIntegrate;
+    }
+    
+    /** @brief Set the vector that contains materials id to integrate the production */
+    TPZStack<int> MaterialsToIntegrate(){
+        return this->fMaterialsToIntegrate;
+    }
+    
+    
     /** @brief Mono-phasic system */
     bool IsOnePhaseQ() {return fIsOnePhaseQ;}
     
@@ -464,7 +481,20 @@ public:
     void SetDirectory( std::string outdirectory ) {foutdirectory = outdirectory; }
     
     /** @brief Get the ouput directory name */
-    std::string GetDirectory() {return foutdirectory; }
+    std::string GetDirectory() {
+        return this->foutdirectory;
+    }
+    
+    /** @brief Set GID file */
+    void SetGIDFile( std::string gidfile ) {
+        this->fGIDfile = gidfile;
+    }
+    
+    /** @brief Get GID file */
+    std::string GetGIDFile() {
+        return this->fGIDfile;
+    }
+
 
     /** @brief Set the time scale for dimensionless calculations */
     void SetTime_Scale(REAL time_scale) {ftime_scale = time_scale;}

@@ -154,11 +154,24 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
         }
     }//fNeedsSol
 	
-    data.x.Resize(3., 0.);
+    data.x.Resize(3., 0.0);
     Reference()->X(qsi, data.x);
 
+    TPZManVector<REAL,3> x_center(3,0.0);
     TPZVec<REAL> center_qsi(3,0.0);
-    TPZVec<REAL> x_center(3,0.0);
+    
+    if (Reference()->Type() == EQuadrilateral && Reference()->Dimension() == 2)
+    {
+        center_qsi[0] = 0.0;
+        center_qsi[1] = 0.0;
+    }
+    
+    if (Reference()->Type() == ETriangle && Reference()->Dimension() == 2)
+    {
+        center_qsi[0] = 0.25;
+        center_qsi[1] = 0.25;
+    }
+
     Reference()->X(center_qsi, x_center);
     data.XCenter = x_center;
     

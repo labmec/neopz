@@ -456,7 +456,8 @@ void TPZDarcyAnalysis::RunAnalysis()
     //  Reading mesh
     std::string GridFileName;
     GridFileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-    GridFileName += "SimpleModel.dump";
+
+    GridFileName += fSimulationData->GetGIDFile();
     
     if(fLayers[0]->GetIsGIDGeometry())
     {
@@ -773,6 +774,15 @@ void TPZDarcyAnalysis::CreateInterfaces()
     if(fLayers.size() > 1){
       fgmesh->AddInterfaceMaterial(1,2, 1);
       fgmesh->AddInterfaceMaterial(2,1, 1);
+        
+      fgmesh->AddInterfaceMaterial(2,3, 1);
+      fgmesh->AddInterfaceMaterial(3,2, 1);
+        
+      fgmesh->AddInterfaceMaterial(2,4, 1);
+      fgmesh->AddInterfaceMaterial(4,2, 1);
+        
+      fgmesh->AddInterfaceMaterial(3,4, 1);
+      fgmesh->AddInterfaceMaterial(4,3, 1);
       fgmesh->BuildConnectivity();
     }
     
@@ -830,9 +840,6 @@ void TPZDarcyAnalysis::PrintLS(TPZAnalysis *an)
     TPZFMatrix<STATE> FGlobal;
     KGlobal =   an->Solver().Matrix();
     FGlobal =   fResidualAtn+fResidualAtnplusOne;
-    
-//    KGlobal->Print("KGlobal = ", std::cout,EMathematicaInput);
-//    FGlobal.Print("FGlobal = ", std::cout,EMathematicaInput);
     
 #ifdef PZDEBUG
 #ifdef LOG4CXX
@@ -1270,12 +1277,14 @@ void TPZDarcyAnalysis::IntegrateFluxPError(TPZManVector<REAL> & l2_norm_flux,TPZ
 
 void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
     
-    if (fLayers.size() != 1) {
-        std::cout << " It works for a single hydraulic unit." << std::endl;
+    TPZStack<int> MaterialsToIntegrate = fSimulationData->MaterialsToIntegrate();
+    int n_materials = MaterialsToIntegrate.size();
+    
+    if (n_materials == 1) {
+        std::cout << "There is not material ids to identify." << std::endl;
         DebugStop();
     }
     
-    int mat_id = 5;
     int int_order = 10;
     int int_typ = 0;
     velocities[0] = 0.0;
@@ -1309,8 +1318,18 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
             continue;
         }
         
+        bool IntegrateQ = false;
+        for (int imat = 0; imat < n_materials; imat++) {
+            int mat_id = MaterialsToIntegrate[imat];
+            if (gel->MaterialId() == mat_id) {
+                IntegrateQ = true;
+                break;
+            }
+        }
         
-        if (gel->MaterialId() == mat_id && gel->NumInterfaces() == 0) {
+        
+        
+        if (IntegrateQ && gel->NumInterfaces() == 0) {
             
             
             TPZGeoEl * gel_2D = GetVolElement(gel);
@@ -1368,7 +1387,7 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
                 
                 REAL cross_area = (detjac*2.0)*(1.0);
                 if (fSimulationData->IsAxisymmetricQ()) {
-                    REAL rw = fabs(x[0]);//fLayers[0]->Layerrw();
+                    REAL rw = fabs(x[0]);
                     cross_area *= 2.0*M_PI*rw;
                     weight *= 2.0*M_PI*rw;
                 }
@@ -1528,7 +1547,7 @@ void TPZDarcyAnalysis::NewtonIterations(TPZAnalysis *an)
         an->Rhs() = Residual;
         an->Rhs() *= -1.0;
         
-        this->PrintLS(an);
+//        this->PrintLS(an);
         
         an->Solve();
         
@@ -2180,7 +2199,8 @@ TPZCompMesh * TPZDarcyAnalysis::CmeshSo(int Soorder)
 void TPZDarcyAnalysis::ReadGeoMesh(std::string GridFileName)
 {
     TPZReadGIDGrid GeometryInfo;
-    GeometryInfo.SetfDimensionlessL(1.0);
+    REAL s = fSimulationData->Length_Scale();
+    GeometryInfo.SetfDimensionlessL(s);
     fgmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
     fgmesh->SetDimension(2);
 }
@@ -2633,7 +2653,7 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     scalnames.Push("Rhs");
     scalnames.Push("div_u");
     
-    scalnames.Push("Exact_S");
+//    scalnames.Push("Exact_S");
 //    vecnames.Push("Exact_GradS");
     
     

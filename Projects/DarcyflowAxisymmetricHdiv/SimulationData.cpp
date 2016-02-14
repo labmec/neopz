@@ -83,6 +83,9 @@ SimulationData::SimulationData()
     /** @brief Definition of the flow system one - two and  ... three phase */
     fSystemType.Resize(0);
     
+    /** @brief vector that contains materials id to integrate the production */
+    fMaterialsToIntegrate.Resize(0);
+    
     /** @brief Is one-phase flow? */
     fIsOnePhaseQ = false;
     
@@ -121,6 +124,9 @@ SimulationData::SimulationData()
     
     /** @brief Ouput directory name */
     foutdirectory = "Dump";
+    
+    /** @brief GID mesh file */
+    fGIDfile = "Batata.dump";
 
     /** @brief Time scale for dimensionless calculations */
     ftime_scale = 1.0;
