@@ -19,27 +19,6 @@ using namespace std;
 
 namespace pzgeom {
 	
-	void TPZGeoQuad::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-		
-		REAL x=param[0], y=param[1];
-		
-		phi(0,0) = .25*(1.-x)*(1.-y);
-		phi(1,0) = .25*(1.+x)*(1.-y);
-		phi(2,0) = .25*(1.+x)*(1.+y);
-		phi(3,0) = .25*(1.-x)*(1.+y);
-		
-		dphi(0,0) = .25*(y-1.);
-		dphi(1,0) = .25*(x-1.);
-		
-		dphi(0,1) = .25*(1.-y);
-		dphi(1,1) =-.25*(1.+x);
-		
-		dphi(0,2) = .25*(1.+y);
-		dphi(1,2) = .25*(1.+x);
-		
-		dphi(0,3) =-.25*(1.+y);
-		dphi(1,3) = .25*(1.-x);
-	}
 	//coord Ž uma matrix 3x4
 	void TPZGeoQuad::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> & fVectorSide){
 		if(coord.Rows()!=3)
@@ -300,21 +279,6 @@ namespace pzgeom {
         jacinv *= 1./delx;
         detjac *= (delx*delx);
         
-	}
-	
-	void TPZGeoQuad::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
-		REAL spacephi[4],spacedphi[8];
-		int i,j;
-		TPZFMatrix<REAL> phi(4,1,spacephi,4);
-		TPZFMatrix<REAL> dphi(2,4,spacedphi,8);
-		int space = coord.Rows();
-		Shape(loc,phi,dphi);
-		result.Fill(0.);
-		for(i=0;i<space;i++) {
-			for(j=0;j<4;j++)
-				//result[i] += phi(j,0)*NodePtr(j)->coord.GetVal(i);
-				result[i] += phi(j,0)*coord.GetVal(i,j);
-		}
 	}
 	
 	TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
