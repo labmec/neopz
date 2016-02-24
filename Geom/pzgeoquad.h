@@ -159,22 +159,22 @@ namespace pzgeom {
     inline void TPZGeoQuad::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1];
         
-        phi(0,0) = .25*(1.-qsi)*(1.-eta);
-        phi(1,0) = .25*(1.+qsi)*(1.-eta);
-        phi(2,0) = .25*(1.+qsi)*(1.+eta);
-        phi(3,0) = .25*(1.-qsi)*(1.+eta);
+        phi(0,0) = 0.25*(1.-qsi)*(1.-eta);
+        phi(1,0) = 0.25*(1.+qsi)*(1.-eta);
+        phi(2,0) = 0.25*(1.+qsi)*(1.+eta);
+        phi(3,0) = 0.25*(1.-qsi)*(1.+eta);
         
-        dphi(0,0) = .25*(eta-1.);
-        dphi(1,0) = .25*(qsi-1.);
+        dphi(0,0) = 0.25*(eta-1.);
+        dphi(1,0) = 0.25*(qsi-1.);
         
-        dphi(0,1) = .25*(1.-eta);
-        dphi(1,1) =-.25*(1.+qsi);
+        dphi(0,1) = 0.25*(1.-eta);
+        dphi(1,1) =-0.25*(1.+qsi);
         
-        dphi(0,2) = .25*(1.+eta);
-        dphi(1,2) = .25*(1.+qsi);
+        dphi(0,2) = 0.25*(1.+eta);
+        dphi(1,2) = 0.25*(1.+qsi);
         
-        dphi(0,3) =-.25*(1.+eta);
-        dphi(1,3) = .25*(1.-qsi);
+        dphi(0,3) =-0.25*(1.+eta);
+        dphi(1,3) = 0.25*(1.-qsi);
         
         
     }

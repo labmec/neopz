@@ -27,26 +27,20 @@ namespace pzgeom {
 		
         int spacedim = coord.Rows();
         jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
-		TPZFNMatrix<3> phi(3,1);
-        TPZFNMatrix<6> dphi(2,3),axest(3,2);
+        TPZFNMatrix<6> axest(3,2);
 		jacobian.Zero();
-		Shape(param,phi,dphi);
         TPZFNMatrix<6,REAL> gradx(3,2,0.);
-        for(int i = 0; i < 3; i++) {
-			for(int j = 0; j < spacedim; j++) {
-				gradx(j,0) += coord.GetVal(j,i)*dphi(0,i);
-				gradx(j,1) += coord.GetVal(j,i)*dphi(1,i);
-			}
-        }
+        GradX(coord, param, gradx);
         gradx.GramSchmidt(axest,jacobian);
         axest.Transpose(&axes);
 		detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
-    REAL maxjac = 0.;
-    for (int i=0; i<2; i++) {
-      for (int j=0; j<2; j++) {
-        maxjac = max(maxjac,fabs(jacobian(i,j)));
-      }
-    }
+        
+        REAL maxjac = 0.;
+        for (int i=0; i<2; i++) {
+          for (int j=0; j<2; j++) {
+            maxjac = max(maxjac,fabs(jacobian(i,j)));
+          }
+        }
         if(IsZero(maxjac) || IsZero(detjac/(maxjac*maxjac)))
 		{
 #ifdef PZDEBUG

@@ -1,5 +1,5 @@
 /**
- * @file
+ * @file TPZGeoEl
  * @brief Contains declaration of TPZGeoEl class which defines the behaviour of geometric element.
  */
 
@@ -482,18 +482,24 @@ public:
 	virtual void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) = 0;
 	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) = 0;
 	
-    /** @brief Return the jacobian of the transformation at the given coordinate */
-	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const = 0;
+    /** @brief Compute a QR facotrization of the gradient of the mapping function, Q = Jacobian and R = axes  */
+	void Jacobian(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
+
+    /** @brief Compute a QR facotrization of the gradient of the mapping function, Q = Jacobian and R = axes  */
+	static void Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+    
+    /** @brief Compute Jacobian matrix for afine mappings */    
+	static void JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axesXYZ,REAL &detjac,TPZFMatrix<REAL> &jacinv);
     
     /** @brief Return the gradient of the transformation at the given coordinate */
-    virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const = 0;
+    virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const = 0;
 #ifdef _AUTODIFF
     /** @brief Return the gradient of the transformation at the given coordinate */
-    virtual void GradXFad(TPZVec<REAL> &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
+    virtual void GradXFad(TPZVec<REAL> &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
 #endif
 
 	/** @brief Return the coordinate in real space of the point coordinate in the master element space*/
-	virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const = 0;
+	virtual void X(TPZVec<REAL> &qsi,TPZVec<REAL> &result) const = 0;
 	
 //	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
@@ -551,7 +557,13 @@ public:
 	
 	/** @brief Checks the structure of the Father() and GetSubelement2() */
 	void CheckSubelDataStructure();
-	
+
+    /**
+     * @brief Computes nodes coordinates of the element
+     * @param cooridnates xyz coorinates of each node that belongs to element
+     */
+    void NodesCoordinates(TPZFMatrix<REAL > &cooridnates);
+    
 	/**
 	 * @brief Computes the XInverse and returns true if ksi belongs to master element domain
      * @note ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it

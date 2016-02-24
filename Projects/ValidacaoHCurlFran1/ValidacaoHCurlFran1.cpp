@@ -426,8 +426,9 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, STATE (& ur)(const  TPZVec<REA
   // Criando material
   TPZMatValidacaoHCurlFran1 *material = new TPZMatValidacaoHCurlFran1(matId,freq, ur,er);//criando material que implementa a formulacao fraca do problema de validacao
   
-  //AQUIFRAN
-  material->SetForcingFunction(forcedRHS);
+  //AQUIFRAN, omar escreveu:
+  TPZAutoPointer<TPZFunction<STATE> > forcedrhs = new TPZDummyFunction<STATE>(forcedRHS);
+  material->SetForcingFunction(forcedrhs);
   ///criar malha computacional
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDefaultOrder(pOrder);//seta ordem polimonial de aproximacao

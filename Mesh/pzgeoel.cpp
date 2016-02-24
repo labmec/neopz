@@ -692,7 +692,9 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 		REAL detJ;
 		TPZFNMatrix<9> J(dim,dim,0.),axes(dim,3,0.),Inv(dim,dim,0.);
 		TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
-		Jacobian(qsi,J,axes,detJ,Inv);
+        TPZFNMatrix<9,REAL> gradx(3,dim);
+        GradX(qsi, gradx);
+		Jacobian(gradx,J,axes,detJ,Inv);
 		if(fabs(detJ) < 2.e-10)
 		{
 			TPZManVector<REAL,3> center(Dimension(),0.);
@@ -997,10 +999,11 @@ REAL TPZGeoEl::Volume(){
 	
 	TPZManVector<REAL,3> param(3,0.);
 	REAL detjac;
-	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
+	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3), gradx(3,3);
 	//supondo jacobiano constante: X linear
 	CenterPoint(NSides()-1,param);
-	Jacobian(param,jacobian,axes,detjac,jacinv);
+    GradX(param, gradx);
+	Jacobian(gradx,jacobian,axes,detjac,jacinv);
 	return (RefElVolume()*detjac);//RefElVolume(): volume do elemento de refer�ncia
 }
 
@@ -1071,6 +1074,413 @@ void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<long> &indices) const {
 	indices.Resize(1);
 	MidSideNodeIndex(side,indices[0]);
 	if(indices[0] == -1) indices.Resize(0);
+}
+
+/** @brief Return the jacobian of the transformation at the given coordinate */
+void TPZGeoEl::Jacobian(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const{
+    TPZFNMatrix<9,REAL> gradx;
+    GradX(qsi, gradx);
+    Jacobian(gradx, jac, axes, detjac, jacinv);
+}
+
+
+void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
+
+    int nrows = gradx.Rows();
+    int ncols = gradx.Cols();
+    int dim   = ncols;
+    
+    switch (dim) {
+        case 1:
+        {
+            jac.Resize(dim,dim);
+            axes.Resize(dim,3);
+            jacinv.Resize(dim,dim);
+            jac.Zero();
+            
+            /**  Definitions: v1 -> is the xi_direction of the Gradient */
+            TPZManVector<REAL,3> v_1(3,0.);
+            
+            for (int i = 0; i < nrows; i++) {
+                v_1[i]  = gradx.GetVal(i,0);
+            }
+            
+            REAL norm_v_1 = 0.;
+            for(int i = 0; i < nrows; i++) {
+                norm_v_1 += v_1[i]*v_1[i];
+            }
+            
+            norm_v_1    = sqrt(norm_v_1);
+            jac(0,0)    = norm_v_1;
+            detjac      = norm_v_1;
+            jacinv(0,0) = 1.0/detjac;
+            
+            if(IsZero(detjac))
+            {
+                
+#ifdef PZDEBUG
+            std::stringstream sout;
+                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+            LOGPZ_ERROR(logger, sout.str())
+#endif
+                detjac = ZeroTolerance();
+            }
+            
+            for(int i=0; i < 3; i++) {
+                axes(0,i) = v_1[i]/norm_v_1;
+            }
+            
+        }
+            break;
+        case 2:
+        {
+            
+            jac.Resize(dim,dim);
+            axes.Resize(dim,3);
+            jacinv.Resize(dim,dim);
+            jac.Zero();
+            
+            /**  Definitions: v1 -> is the xi_direction of the Gradient, v2 -> is the eta_direction of the Gradient */
+            TPZManVector<REAL,3> v_1(3,0.), v_2(3,0.);
+            
+            /**  Definitions: v_1_til and v_2_til -> asscoiated orthonormal vectors to v_1 and v_2 */
+            TPZManVector<REAL,3> v_1_til(3,0.), v_2_til(3,0.);
+
+            for (int i = 0; i < nrows; i++) {
+                v_1[i]  = gradx.GetVal(i,0);
+                v_2[i]  = gradx.GetVal(i,1);
+            }
+
+            REAL norm_v_1_til = 0.0;
+            REAL norm_v_2_til = 0.0;
+            REAL v_1_dot_v_2  = 0.0;
+
+            for(int i = 0; i < 3; i++) {
+                norm_v_1_til    += v_1[i]*v_1[i];
+                v_1_dot_v_2     += v_1[i]*v_2[i];
+            }
+            norm_v_1_til = sqrt(norm_v_1_til);
+            
+            for(int i=0 ; i < 3; i++) {
+                v_1_til[i]          = v_1[i] / norm_v_1_til; // Normalizing
+                v_2_til[i]          = v_2[i] - v_1_dot_v_2 * v_1_til[i] / norm_v_1_til;
+                norm_v_2_til   += v_2_til[i]*v_2_til[i];
+            }
+            norm_v_2_til = sqrt(norm_v_2_til);
+            
+            
+            jac(0,0) = norm_v_1_til;
+            jac(0,1) = v_1_dot_v_2/norm_v_1_til;
+            jac(1,1) = norm_v_2_til;
+            detjac = jac(0,0)*jac(1,1)-jac(1,0)*jac(0,1);
+            jacinv(0,0) = +jac(1,1)/detjac;
+            jacinv(1,1) = +jac(0,0)/detjac;
+            jacinv(0,1) = -jac(0,1)/detjac;
+            jacinv(1,0) = -jac(1,0)/detjac;
+            
+            if(IsZero(detjac))
+            {
+                
+#ifdef PZDEBUG
+                std::stringstream sout;
+                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                LOGPZ_ERROR(logger, sout.str())
+#endif
+                detjac = ZeroTolerance();
+            }
+            
+            for(int i=0; i < 3; i++) {
+                v_2_til[i] /= norm_v_2_til; // Normalizing
+                axes(0,i)  = v_1_til[i];
+                axes(1,i)  = v_2_til[i];
+            }
+            
+        }
+            break;
+        case 3:
+        {
+            jac.Resize(dim,dim);
+            axes.Resize(dim,3);
+            jacinv.Resize(dim,dim);
+            jac.Zero();
+            
+            for (int i = 0; i < nrows; i++) {
+                jac(i,0)  = gradx.GetVal(i,0);
+                jac(i,1)  = gradx.GetVal(i,1);
+                jac(i,2)  = gradx.GetVal(i,2);
+            }
+            
+            detjac = -jac(0,2)*jac(1,1)*jac(2,0);//-a02 a11 a20
+            detjac += jac(0,1)*jac(1,2)*jac(2,0);//+ a01 a12 a20
+            detjac += jac(0,2)*jac(1,0)*jac(2,1);//+ a02 a10 a21
+            detjac -= jac(0,0)*jac(1,2)*jac(2,1);//- a00 a12 a21
+            detjac -= jac(0,1)*jac(1,0)*jac(2,2);//- a01 a10 a22
+            detjac += jac(0,0)*jac(1,1)*jac(2,2);//+ a00 a11 a22
+            
+            jacinv(0,0) = (-jac(1,2)*jac(2,1)+jac(1,1)*jac(2,2))/detjac;//-a12 a21 + a11 a22
+            jacinv(0,1) = ( jac(0,2)*jac(2,1)-jac(0,1)*jac(2,2))/detjac;//a02 a21 - a01 a22
+            jacinv(0,2) = (-jac(0,2)*jac(1,1)+jac(0,1)*jac(1,2))/detjac;//-a02 a11 + a01 a12
+            jacinv(1,0) = ( jac(1,2)*jac(2,0)-jac(1,0)*jac(2,2))/detjac;//a12 a20 - a10 a22
+            jacinv(1,1) = (-jac(0,2)*jac(2,0)+jac(0,0)*jac(2,2))/detjac;//-a02 a20 + a00 a22
+            jacinv(1,2) = ( jac(0,2)*jac(1,0)-jac(0,0)*jac(1,2))/detjac;//a02 a10 - a00 a12
+            jacinv(2,0) = (-jac(1,1)*jac(2,0)+jac(1,0)*jac(2,1))/detjac;//-a11 a20 + a10 a21
+            jacinv(2,1) = ( jac(0,1)*jac(2,0)-jac(0,0)*jac(2,1))/detjac;//a01 a20 - a00 a21
+            jacinv(2,2) = (-jac(0,1)*jac(1,0)+jac(0,0)*jac(1,1))/detjac;//-a01 a10 + a00 a11
+            
+            if(IsZero(detjac))
+            {
+                
+#ifdef PZDEBUG
+                std::stringstream sout;
+                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                LOGPZ_ERROR(logger, sout.str())
+#endif
+                detjac = ZeroTolerance();
+            }
+            
+            axes.Zero();
+            axes(0,0) = 1.0;
+            axes(1,1) = 1.0;
+            axes(2,2) = 1.0;
+            
+        }
+            break;
+            
+        default:
+        {
+            std::cout << " Object with wrong dimensions, unable to compute jacobian matrix. Dimension = " << dim << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+    
+}
+
+void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axesXYZ,REAL &detjac,TPZFMatrix<REAL> &jacinv){
+
+    int nrows = gradx.Rows();
+    int ncols = gradx.Cols();
+    int dim   = ncols;
+    
+    switch (dim) {
+        case 1:
+        {
+            jac.Resize(dim,dim);
+            axesXYZ.Resize(dim,3);
+            jacinv.Resize(dim,dim);
+            jac.Zero();
+            
+
+            if (gradx.GetVal(0,0) != 0.0) { // X oriented
+#ifdef PZDEBUG
+                if (! ( IsZero(gradx.GetVal(1,0)) && IsZero(gradx.GetVal(2,0)) ) ) {
+                    std::cout << "TPZGeoEl::JacobianXYZ -> Geometric mesh is not oriented with x axis. Should be called TPZGeoEl::Jacobian " << std::endl;
+                    DebugStop();
+                }
+#endif
+                jac(0,0)    = gradx.GetVal(0,0);
+                detjac      = gradx.GetVal(0,0);
+                jacinv(0,0) = 1.0/gradx.GetVal(0,0);
+                
+                axesXYZ.Zero();
+                axesXYZ(0,0) = 1.0;
+                
+                if(IsZero(detjac))
+                {
+                    
+#ifdef PZDEBUG
+                    std::stringstream sout;
+                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    LOGPZ_ERROR(logger, sout.str())
+#endif
+                    detjac = ZeroTolerance();
+                }
+                
+                return;
+            }
+            
+
+            if (gradx.GetVal(1,0) != 0.0) { // Y oriented
+#ifdef PZDEBUG
+                if (! ( IsZero(gradx.GetVal(0,0)) && IsZero(gradx.GetVal(2,0)) ) ) {
+                    std::cout << "TPZGeoEl::JacobianXYZ -> Geometric mesh is not oriented with y axis. Should be called TPZGeoEl::Jacobian " << std::endl;
+                    DebugStop();
+                }
+#endif
+                jac(0,0)    = gradx.GetVal(1,0);
+                detjac      = gradx.GetVal(1,0);
+                jacinv(0,0) = 1.0/gradx.GetVal(1,0);
+                
+                axesXYZ.Zero();
+                axesXYZ(0,1) = 1.0;
+                
+                if(IsZero(detjac))
+                {
+                    
+#ifdef PZDEBUG
+                    std::stringstream sout;
+                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    LOGPZ_ERROR(logger, sout.str())
+#endif
+                    detjac = ZeroTolerance();
+                }
+                
+                return;
+            }
+            
+            if (gradx.GetVal(2,0) != 0.0) { // Z oriented
+#ifdef PZDEBUG
+                if (! ( IsZero(gradx.GetVal(0,0)) && IsZero(gradx.GetVal(1,0)) ) ) {
+                    std::cout << "TPZGeoEl::JacobianXYZ -> Geometric mesh is not oriented with z axis. Should be called TPZGeoEl::Jacobian " << std::endl;
+                    DebugStop();
+                }
+#endif
+                jac(0,0)    = gradx.GetVal(2,0);
+                detjac      = gradx.GetVal(2,0);
+                jacinv(0,0) = 1.0/gradx.GetVal(2,0);
+                
+                axesXYZ.Zero();
+                axesXYZ(0,2) = 1.0;
+                
+                if(IsZero(detjac))
+                {
+                    
+#ifdef PZDEBUG
+                    std::stringstream sout;
+                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    LOGPZ_ERROR(logger, sout.str())
+#endif
+                    detjac = ZeroTolerance();
+                }
+                
+                return;
+            }
+            
+        }
+            break;
+        case 2:
+        {
+            
+            jac.Resize(dim,dim);
+            axesXYZ.Resize(dim,3);
+            jacinv.Resize(dim,dim);
+            jac.Zero();
+            
+            /**  Definitions: v1 -> is the xi_direction of the Gradient, v2 -> is the eta_direction of the Gradient */
+            TPZManVector<REAL,3> v_1(3,0.), v_2(3,0.);
+            
+            /**  Definitions: v_1_til and v_2_til -> asscoiated orthonormal vectors to v_1 and v_2 */
+            TPZManVector<REAL,3> v_1_til(3,0.), v_2_til(3,0.);
+            
+            for (int i = 0; i < nrows; i++) {
+                v_1[i]  = gradx.GetVal(i,0);
+                v_2[i]  = gradx.GetVal(i,1);
+            }
+            
+            REAL norm_v_1_til = 0.0;
+            REAL norm_v_2_til = 0.0;
+            REAL v_1_dot_v_2  = 0.0;
+            
+            for(int i = 0; i < 3; i++) {
+                norm_v_1_til    += v_1[i]*v_1[i];
+                v_1_dot_v_2     += v_1[i]*v_2[i];
+            }
+            norm_v_1_til = sqrt(norm_v_1_til);
+            
+            for(int i=0 ; i < 3; i++) {
+                v_1_til[i]          = v_1[i] / norm_v_1_til; // Normalizing
+                v_2_til[i]          = v_2[i] - v_1_dot_v_2 * v_1_til[i] / norm_v_1_til;
+                norm_v_2_til   += v_2_til[i]*v_2_til[i];
+            }
+            norm_v_2_til = sqrt(norm_v_2_til);
+            
+            
+            jac(0,0) = norm_v_1_til;
+            jac(0,1) = v_1_dot_v_2/norm_v_1_til;
+            jac(1,1) = norm_v_2_til;
+            detjac = jac(0,0)*jac(1,1)-jac(1,0)*jac(0,1);
+            jacinv(0,0) = +jac(1,1)/detjac;
+            jacinv(1,1) = +jac(0,0)/detjac;
+            jacinv(0,1) = -jac(0,1)/detjac;
+            jacinv(1,0) = -jac(1,0)/detjac;
+            
+            if(IsZero(detjac))
+            {
+                
+#ifdef PZDEBUG
+                std::stringstream sout;
+                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                LOGPZ_ERROR(logger, sout.str())
+#endif
+                detjac = ZeroTolerance();
+            }
+            
+            for(int i=0; i < 3; i++) {
+                v_2_til[i] /= norm_v_2_til; // Normalizing
+                axesXYZ(0,i)  = v_1_til[i];
+                axesXYZ(1,i)  = v_2_til[i];
+            }
+            
+        }
+            break;
+        case 3:
+        {
+            jac.Resize(dim,dim);
+            axesXYZ.Resize(dim,3);
+            jacinv.Resize(dim,dim);
+            jac.Zero();
+            
+            for (int i = 0; i < nrows; i++) {
+                jac(i,0)  = gradx.GetVal(i,0);
+                jac(i,1)  = gradx.GetVal(i,1);
+                jac(i,2)  = gradx.GetVal(i,2);
+            }
+            
+            detjac = -jac(0,2)*jac(1,1)*jac(2,0);//-a02 a11 a20
+            detjac += jac(0,1)*jac(1,2)*jac(2,0);//+ a01 a12 a20
+            detjac += jac(0,2)*jac(1,0)*jac(2,1);//+ a02 a10 a21
+            detjac -= jac(0,0)*jac(1,2)*jac(2,1);//- a00 a12 a21
+            detjac -= jac(0,1)*jac(1,0)*jac(2,2);//- a01 a10 a22
+            detjac += jac(0,0)*jac(1,1)*jac(2,2);//+ a00 a11 a22
+            
+            jacinv(0,0) = (-jac(1,2)*jac(2,1)+jac(1,1)*jac(2,2))/detjac;//-a12 a21 + a11 a22
+            jacinv(0,1) = ( jac(0,2)*jac(2,1)-jac(0,1)*jac(2,2))/detjac;//a02 a21 - a01 a22
+            jacinv(0,2) = (-jac(0,2)*jac(1,1)+jac(0,1)*jac(1,2))/detjac;//-a02 a11 + a01 a12
+            jacinv(1,0) = ( jac(1,2)*jac(2,0)-jac(1,0)*jac(2,2))/detjac;//a12 a20 - a10 a22
+            jacinv(1,1) = (-jac(0,2)*jac(2,0)+jac(0,0)*jac(2,2))/detjac;//-a02 a20 + a00 a22
+            jacinv(1,2) = ( jac(0,2)*jac(1,0)-jac(0,0)*jac(1,2))/detjac;//a02 a10 - a00 a12
+            jacinv(2,0) = (-jac(1,1)*jac(2,0)+jac(1,0)*jac(2,1))/detjac;//-a11 a20 + a10 a21
+            jacinv(2,1) = ( jac(0,1)*jac(2,0)-jac(0,0)*jac(2,1))/detjac;//a01 a20 - a00 a21
+            jacinv(2,2) = (-jac(0,1)*jac(1,0)+jac(0,0)*jac(1,1))/detjac;//-a01 a10 + a00 a11
+            
+            if(IsZero(detjac))
+            {
+                
+#ifdef PZDEBUG
+                std::stringstream sout;
+                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                LOGPZ_ERROR(logger, sout.str())
+#endif
+                detjac = ZeroTolerance();
+            }
+            
+            axesXYZ.Zero();
+            axesXYZ(0,0) = 1.0;
+            axesXYZ(1,1) = 1.0;
+            axesXYZ(2,2) = 1.0;
+            
+        }
+            break;
+            
+        default:
+        {
+            std::cout << " Object with wrong dimensions, unable to compute jacobian matrix. Dimension = " << dim << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
 }
 
 /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
@@ -1955,3 +2365,20 @@ void TPZGeoEl::GetNodeIndices( std::set<int> &nodeindices ){
         nodeindices.insert(this->NodeIndex(i));
     }
 }///void
+
+
+void TPZGeoEl::NodesCoordinates(TPZFMatrix<REAL > &coordinates){
+    coordinates.Resize(this->NNodes(),3);
+    coordinates.Zero();
+    TPZManVector<REAL,3> co;
+    
+    for (int in = 0; in < this->NNodes(); in++) {
+        TPZGeoNode inode = this->Node(in);
+        inode.GetCoordinates(co);
+        coordinates(0,in) = co[0];
+        coordinates(1,in) = co[1];
+        coordinates(2,in) = co[2];
+    }
+    
+}
+

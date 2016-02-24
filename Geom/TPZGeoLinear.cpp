@@ -63,18 +63,17 @@ namespace pzgeom {
         
         // Computing the Gradient of X
         TPZFNMatrix<3,REAL> gradx(3,1);
-        gradx.Zero();
+        GradX(coord, param, gradx);
         
-        int nrow = coord.Rows();
-        REAL mod1 = 0.;
+        int nrow = gradx.Rows();
+        REAL module = 0.;
         for(int i = 0; i < nrow; i++) {
-            gradx(i,0) = (coord.GetVal(i,1)-coord.GetVal(i,0))*0.5;
-            mod1 += gradx(i,0)*gradx(i,0);
+            module += gradx(i,0)*gradx(i,0);
         }
         
-        mod1 = sqrt(mod1);
-        jacobian(0,0) = mod1;
-        detjac = mod1;
+        module = sqrt(module);
+        jacobian(0,0) = module;
+        detjac = module;
         
         if(IsZero(detjac))
         {
@@ -89,7 +88,7 @@ namespace pzgeom {
         
         jacinv(0,0) = 1./detjac;
         for(int i=0; i < 3; i++) {
-            axes(0,i) = gradx(i,0)/mod1;
+            axes(0,i) = gradx(i,0)/module;
         }
     }
     

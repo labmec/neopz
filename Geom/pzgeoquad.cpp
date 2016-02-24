@@ -229,10 +229,7 @@ namespace pzgeom {
 	void TPZGeoQuad::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
 		jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
-		TPZFNMatrix<4> phi(4,1);
-		TPZFNMatrix<8> dphi(2,4);
 		TPZFNMatrix<6> axest(3,2);
-		Shape(param,phi,dphi);
 		jacobian.Zero();
         TPZManVector<REAL,3> minx(3,0.),maxx(3,0.);
 		
@@ -242,26 +239,30 @@ namespace pzgeom {
             minx[j] = coord.GetVal(j,0);
             maxx[j] = coord.GetVal(j,0);
         }
-		TPZFNMatrix<6,REAL> VecMatrix(3,2,0.);
+        
+		TPZFNMatrix<6,REAL> gradx(3,2,0.);
+        GradX(coord, param, gradx);
+        
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < spacedim; j++) {
                 minx[j] = minx[j] < coord.GetVal(j,i) ? minx[j]:coord.GetVal(j,i);
                 maxx[j] = maxx[j] > coord.GetVal(j,i) ? maxx[j]:coord.GetVal(j,i);
-				VecMatrix(j,0) += coord.GetVal(j,i)*dphi(0,i);
-				VecMatrix(j,1) += coord.GetVal(j,i)*dphi(1,i);
 			}
 		}
+        
         REAL delx = 0.;
         for (int j=0; j<spacedim; j++) {
             delx = delx > (maxx[j]-minx[j]) ? delx : (maxx[j]-minx[j]);
         }
-        VecMatrix *= 1./delx;
-		VecMatrix.GramSchmidt(axest,jacobian);
+        
+        gradx *= 1./delx;
+		gradx.GramSchmidt(axest,jacobian);
 		axest.Transpose(&axes);
 		detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
 		
         if(IsZero(detjac))
 		{
+            
 #ifdef PZDEBUG
 			std::stringstream sout;
 			sout << "Singular Jacobian " << detjac;
@@ -276,7 +277,7 @@ namespace pzgeom {
         jacinv(1,0) = -jacobian(1,0)/detjac;
 
         jacobian *= delx;
-        jacinv *= 1./delx;
+        jacinv *= 1.0/delx;
         detjac *= (delx*delx);
         
 	}
@@ -290,7 +291,6 @@ namespace pzgeom {
 			}
 			long index;
 			TPZGeoEl *gel = orig->CreateGeoElement(EQuadrilateral,nodes,bc,index);
-			//    TPZGeoElQ2d *gel = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
 			int iside;
 			for (iside = 0; iside <8; iside++){
 				TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,iside)));
@@ -300,11 +300,9 @@ namespace pzgeom {
 		}
 		else if(side>-1 && side<4) {//side = 0,1,2,3
 			TPZManVector<long> nodeindexes(1);
-			//    TPZGeoElPoint *gel;
 			nodeindexes[0] = orig->SideNodeIndex(side,0);
 			long index;
 			TPZGeoEl *gel = orig->CreateGeoElement(EPoint,nodeindexes,bc,index);
-			//    gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
 			return gel;
 		}
@@ -312,7 +310,6 @@ namespace pzgeom {
 			TPZManVector<long> nodes(2);
 			nodes[0] = orig->SideNodeIndex(side,0);
 			nodes[1] = orig->SideNodeIndex(side,1);
-			//    TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
 			long index;
 			TPZGeoEl *gel = orig->CreateGeoElement(EOned,nodes,bc,index);
 			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,pztopology::TPZQuadrilateral::ContainedSideLocId(side,0)));
@@ -324,7 +321,6 @@ namespace pzgeom {
 		return 0;
 	}
 	
-	/** Creates a geometric element according to the type of the father element */
 	TPZGeoEl *TPZGeoQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										   TPZVec<long>& nodeindexes,
 										   int matid,

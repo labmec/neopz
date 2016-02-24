@@ -154,7 +154,7 @@ ENABLE_TESTING()
 			add_subdirectory(Steam)
 			add_subdirectory(QuadraticElements)
 			add_subdirectory(ThermalStress)
-			Add_subdirectory(Conductivity)
+			#Add_subdirectory(Conductivity)
 			add_subdirectory(ConsLaw)
 			add_subdirectory(Descontinuo2)
 
@@ -218,7 +218,7 @@ ENABLE_TESTING()
 			#
 			# Colaboration with Laurent Stainier
 			
-			add_subdirectory(MatLib)
+			#add_subdirectory(MatLib)
 			
 
 		endif(BUILD_COMPLEX_PROJECTS)
