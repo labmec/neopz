@@ -270,6 +270,8 @@ public:
 		TPZFNMatrix<9> axeslocal(3,3,0.), axesfather(3,3,0.);
 		REAL detjaclocal, detjacfather;
 		
+        TPZFNMatrix<9> gradxlocal;
+        Geo::GradX(fCornerCo,coordinate,gradxlocal);
 		/// Processing Variables (isolated)
 		Geo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);    
 		Geo::X(fCornerCo,coordinate,ksibar);

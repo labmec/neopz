@@ -99,29 +99,17 @@ namespace pzgeom {
             GradX(nodes,loc,gradx);
         }
         
-        /* @brief Computes the jacobian of the map between the master element and deformed element */
-        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
-        }
-        
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
-        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &x);
+        static void X(const TPZFMatrix<REAL> &nodecoordinates,TPZVec<REAL> &loc,TPZVec<REAL> &x);
         
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        static void GradX(const TPZFMatrix<T> &nodecoordinates,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
         static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
-        /** @brief Compute the jacobian associated to the x mapping from local parametric coordinates  */
-        static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
-                             TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
-		
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
 	public:
