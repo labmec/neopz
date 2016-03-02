@@ -71,12 +71,12 @@ namespace pzgeom
             /** @brief Returns the type name of the element */
             static std::string TypeName() { return "Linear";}
         
-            /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+            /** @brief Compute the shape being used to construct the X mapping from local parametric coordinates  */
             static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
                 TShape(loc, phi, dphi);
             }
         
-            /* @brief Compute x mapping from local parametric coordinates */
+            /* @brief Compute X mapping from local parametric coordinates */
             void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &x) const
             {
                 TPZFNMatrix<3*NNodes> coord(3,NNodes);
@@ -84,7 +84,7 @@ namespace pzgeom
                 X(coord,loc,x);
             }
         
-            /** @brief Compute gradient of x mapping from local parametric coordinates */
+            /** @brief Compute gradient of X mapping from local parametric coordinates */
             template<class T>
             void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
             {
@@ -112,10 +112,10 @@ namespace pzgeom
                 Jacobian(coord, param, jacobian, axes, detjac, jacinv);
             }
         
-            /** @brief Compute x mapping from element nodes and local parametric coordinates */
+            /** @brief Compute X mapping from element nodes and local parametric coordinates */
             static void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &x);
         
-            /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
+            /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
             template<class T>
             static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         

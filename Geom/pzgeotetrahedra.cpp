@@ -23,26 +23,6 @@ namespace pzgeom {
 	
 	const double tol = pzgeom_TPZNodeRep_tol;
 	
-	void TPZGeoTetrahedra::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-		phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
-		phi(1,0)  = pt[0];
-		phi(2,0)  = pt[1];
-		phi(3,0)  = pt[2];
-		
-		dphi(0,0) = -1.0;
-		dphi(1,0) = -1.0;
-		dphi(2,0) = -1.0;
-		dphi(0,1) =  1.0;
-		dphi(1,1) =  0.0;
-		dphi(2,1) =  0.0;
-		dphi(0,2) =  0.0;
-		dphi(1,2) =  1.0;
-		dphi(2,2) =  0.0;
-		dphi(0,3) =  0.0;
-		dphi(1,3) =  0.0;
-		dphi(2,3) =  1.0;
-	}
-	
 	void TPZGeoTetrahedra::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
         jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
@@ -95,18 +75,6 @@ namespace pzgeom {
 		axes(2,2) = 1.;
 	}
 	
-	void TPZGeoTetrahedra::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
-		REAL spacephi[10],spacedphi[20];
-		int i,j;
-		TPZFMatrix<REAL> phi(4,1,spacephi,10);
-		TPZFMatrix<REAL> dphi(3,4,spacedphi,20);
-		Shape(loc,phi,dphi);
-		for(j=0;j<3;j++) {
-			result[j] = 0.0;
-			for(i=0;i<4;i++) 
-				result[j] += coord.GetVal(j,i)*phi(i,0);
-		}
-	}
 	
 	TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		if(side<0 || side>14){
@@ -287,7 +255,7 @@ namespace pzgeom {
 												 TPZVec<long>& nodeindexes,
 												 int matid,
 												 long& index)
-	{
+    {
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
 };

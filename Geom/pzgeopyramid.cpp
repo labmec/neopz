@@ -26,71 +26,71 @@ namespace pzgeom {
 	
 	const double tol = pzgeom_TPZNodeRep_tol;
 	
-	void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-		if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
-			//para testes com transforma�es geometricas-->>Que  o que faz o RefPattern!!
-			//(0,0,1) nunca �um ponto de integra�o
-			phi(0,0)  = 0.;
-			phi(1,0)  = 0.;
-			phi(2,0)  = 0.;
-			phi(3,0)  = 0.;
-			phi(4,0)  = 1.;
-			dphi(0,0)  = -0.25;
-			dphi(1,0)  = -0.25;
-			dphi(2,0)  = -0.25;
-			dphi(0,1)  = 0.25;
-			dphi(1,1)  = -0.25;
-			dphi(2,1)  = -0.25;
-			dphi(0,2)  = 0.25;
-			dphi(1,2)  = 0.25;
-			dphi(2,2)  = -0.25;
-			dphi(0,3)  = -0.25;
-			dphi(1,3)  = 0.25;
-			dphi(2,3)  = -0.25;
-			dphi(0,4)  = 0;
-			dphi(1,4)  = 0;
-			dphi(2,4)  = 1.;
-			
-			
-			
-			return;
-		}
-		
-		REAL T0xz = .5*(1.-pt[2]-pt[0]) / (1.-pt[2]);
-		REAL T0yz = .5*(1.-pt[2]-pt[1]) / (1.-pt[2]);
-		REAL T1xz = .5*(1.-pt[2]+pt[0]) / (1.-pt[2]);
-		REAL T1yz = .5*(1.-pt[2]+pt[1]) / (1.-pt[2]);
-		REAL lmez = (1.-pt[2]);
-		phi(0,0)  = T0xz*T0yz*lmez;
-		phi(1,0)  = T1xz*T0yz*lmez;
-		phi(2,0)  = T1xz*T1yz*lmez;
-		phi(3,0)  = T0xz*T1yz*lmez;
-		phi(4,0)  = pt[2];
-		REAL lmexmez = 1.-pt[0]-pt[2];
-		REAL lmeymez = 1.-pt[1]-pt[2];
-		REAL lmaxmez = 1.+pt[0]-pt[2];
-		REAL lmaymez = 1.+pt[1]-pt[2];
-		dphi(0,0) = -.25*lmeymez / lmez;
-		dphi(1,0) = -.25*lmexmez / lmez;
-		dphi(2,0) = -.25*(lmeymez+lmexmez-lmexmez*lmeymez/lmez) / lmez;
-		
-		dphi(0,1) =  .25*lmeymez / lmez;
-		dphi(1,1) = -.25*lmaxmez / lmez;
-		dphi(2,1) = -.25*(lmeymez+lmaxmez-lmaxmez*lmeymez/lmez) / lmez;
-		
-		dphi(0,2) =  .25*lmaymez / lmez;
-		dphi(1,2) =  .25*lmaxmez / lmez;
-		dphi(2,2) = -.25*(lmaymez+lmaxmez-lmaxmez*lmaymez/lmez) / lmez;
-		
-		dphi(0,3) = -.25*lmaymez / lmez;
-		dphi(1,3) =  .25*lmexmez / lmez;
-		dphi(2,3) = -.25*(lmaymez+lmexmez-lmexmez*lmaymez/lmez) / lmez;
-		
-		dphi(0,4) =  0.0;
-		dphi(1,4) =  0.0;
-		dphi(2,4) =  1.0;
-	}
-	
+//    void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+//        if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
+//            //para testes com transforma�es geometricas-->>Que  o que faz o RefPattern!!
+//            //(0,0,1) nunca �um ponto de integra�o
+//            phi(0,0)  = 0.;
+//            phi(1,0)  = 0.;
+//            phi(2,0)  = 0.;
+//            phi(3,0)  = 0.;
+//            phi(4,0)  = 1.;
+//            dphi(0,0)  = -0.25;
+//            dphi(1,0)  = -0.25;
+//            dphi(2,0)  = -0.25;
+//            dphi(0,1)  = 0.25;
+//            dphi(1,1)  = -0.25;
+//            dphi(2,1)  = -0.25;
+//            dphi(0,2)  = 0.25;
+//            dphi(1,2)  = 0.25;
+//            dphi(2,2)  = -0.25;
+//            dphi(0,3)  = -0.25;
+//            dphi(1,3)  = 0.25;
+//            dphi(2,3)  = -0.25;
+//            dphi(0,4)  = 0;
+//            dphi(1,4)  = 0;
+//            dphi(2,4)  = 1.;
+//            
+//            
+//            
+//            return;
+//        }
+//        
+//        REAL T0xz = .5*(1.-pt[2]-pt[0]) / (1.-pt[2]);
+//        REAL T0yz = .5*(1.-pt[2]-pt[1]) / (1.-pt[2]);
+//        REAL T1xz = .5*(1.-pt[2]+pt[0]) / (1.-pt[2]);
+//        REAL T1yz = .5*(1.-pt[2]+pt[1]) / (1.-pt[2]);
+//        REAL lmez = (1.-pt[2]);
+//        phi(0,0)  = T0xz*T0yz*lmez;
+//        phi(1,0)  = T1xz*T0yz*lmez;
+//        phi(2,0)  = T1xz*T1yz*lmez;
+//        phi(3,0)  = T0xz*T1yz*lmez;
+//        phi(4,0)  = pt[2];
+//        REAL lmexmez = 1.-pt[0]-pt[2];
+//        REAL lmeymez = 1.-pt[1]-pt[2];
+//        REAL lmaxmez = 1.+pt[0]-pt[2];
+//        REAL lmaymez = 1.+pt[1]-pt[2];
+//        dphi(0,0) = -.25*lmeymez / lmez;
+//        dphi(1,0) = -.25*lmexmez / lmez;
+//        dphi(2,0) = -.25*(lmeymez+lmexmez-lmexmez*lmeymez/lmez) / lmez;
+//        
+//        dphi(0,1) =  .25*lmeymez / lmez;
+//        dphi(1,1) = -.25*lmaxmez / lmez;
+//        dphi(2,1) = -.25*(lmeymez+lmaxmez-lmaxmez*lmeymez/lmez) / lmez;
+//        
+//        dphi(0,2) =  .25*lmaymez / lmez;
+//        dphi(1,2) =  .25*lmaxmez / lmez;
+//        dphi(2,2) = -.25*(lmaymez+lmaxmez-lmaxmez*lmaymez/lmez) / lmez;
+//        
+//        dphi(0,3) = -.25*lmaymez / lmez;
+//        dphi(1,3) =  .25*lmexmez / lmez;
+//        dphi(2,3) = -.25*(lmaymez+lmexmez-lmexmez*lmaymez/lmez) / lmez;
+//        
+//        dphi(0,4) =  0.0;
+//        dphi(1,4) =  0.0;
+//        dphi(2,4) =  1.0;
+//    }
+    
 	void TPZGeoPyramid::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
         jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
@@ -142,19 +142,6 @@ namespace pzgeom {
 		axes(1,1) = 1.;
 		axes(2,2) = 1.;
 	}
-	
-	void TPZGeoPyramid::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
-		REAL spacephi[10],spacedphi[20];
-		int i,j;
-		TPZFMatrix<REAL> phi(5,1,spacephi,10);
-		TPZFMatrix<REAL> dphi(3,5,spacedphi,20);
-		Shape(loc,phi,dphi);
-		for(j=0;j<3;j++) {
-			result[j] = 0.0;
-			for(i=0;i<5;i++) result[j] += coord.GetVal(j,i)*phi(i,0);
-		}
-	}
-	
 	
 	TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		if(side<0 || side>18) {

@@ -64,39 +64,61 @@ namespace pzgeom {
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Prism";}
 		
-		/** @brief Implementation of two-dimensional bilinear interpolation*/
-		static  void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-
-		/* brief compute the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+            TShape(loc, phi, dphi);
+        }
+        
+        /* @brief Compute x mapping from local parametric coordinates */
+        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &x) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            X(coord,loc,result);
+            X(coord,loc,x);
         }
         
+        /** @brief Compute gradient of x mapping from local parametric coordinates */
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
         {
-            DebugStop();
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            int nrow = coord.Rows();
+            int ncol = coord.Cols();
+            TPZFMatrix<T> nodes(nrow,ncol);
+            for(int i = 0; i < nrow; i++)
+            {
+                for(int j = 0; j < ncol; j++)
+                {
+                    nodes(i,j) = coord(i,j);
+                }
+            }
+            
+            GradX(nodes,loc,gradx);
         }
-		
-        /* @brief compute the jacobian of the map between the master element and deformed element */
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
+        
+        /* @brief Computes the jacobian of the map between the master element and deformed element */
+        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
             Jacobian(coord, param, jacobian, axes, detjac, jacinv);
         }
         
-		/** @brief Computes the jacobian*/
-		static  void Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
-		
-		/** @brief Computes the geometric location*/
-		static  void X(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+        /** @brief Compute x mapping from element nodes and local parametric coordinates */
+        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &x);
         
+        /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
+        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        template<class T>
+        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        
+        /** @brief Compute the jacobian associated to the x mapping from local parametric coordinates  */
+        static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+                             TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
 		/**
 		 * @brief Method which creates a geometric boundary condition 
@@ -122,6 +144,84 @@ namespace pzgeom {
 										  TPZVec<long>& nodeindexes,
 										  int matid, long& index);
 	};
+    
+    template<class T>
+    inline void TPZGeoPrism::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
+        
+        phi(0,0)  = .5*(1.-qsi-eta)*(1.-zeta);
+        phi(1,0)  = .5*qsi*(1.-zeta);
+        phi(2,0)  = .5*eta*(1.-zeta);
+        phi(3,0)  = .5*(1.-qsi-eta)*(1.+zeta);
+        phi(4,0)  = .5*qsi*(1.+zeta);
+        phi(5,0)  = .5*eta*(1.+zeta);
+        
+        dphi(0,0) = -.5*(1.-zeta);
+        dphi(1,0) = -.5*(1.-zeta);
+        dphi(2,0) = -.5*(1.-qsi-eta);
+        dphi(0,1) =  .5*(1.-zeta);
+        dphi(1,1) =  .0;
+        dphi(2,1) = -.5*qsi;
+        dphi(0,2) =  .0;
+        dphi(1,2) =  .5*(1.-zeta);
+        dphi(2,2) = -.5*eta;
+        dphi(0,3) = -.5*(1.+zeta);
+        dphi(1,3) = -.5*(1.+zeta);
+        dphi(2,3) =  .5*(1.-qsi-eta);
+        dphi(0,4) =  .5*(1.+zeta);
+        dphi(1,4) =  .0;
+        dphi(2,4) =  .5*qsi;
+        dphi(0,5) =  .0;
+        dphi(1,5) =  .5*(1.+zeta);
+        dphi(2,5) =  .5*eta;
+        
+    }
+    
+    inline void TPZGeoPrism::X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &x){
+        
+        TPZFNMatrix<6,REAL> phi(6,1);
+        TPZFNMatrix<18,REAL> dphi(3,6);
+        Shape(loc,phi,dphi);
+        int space = nodes.Rows();
+        
+        for(int i = 0; i < space; i++) {
+            x[i] = 0.0;
+            for(int j = 0; j < 6; j++) {
+                x[i] += phi(j,0)*nodes.GetVal(i,j);
+            }
+        }
+    }
+    
+    
+    template<class T>
+    inline void TPZGeoPrism::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+        
+        gradx.Resize(3,3);
+        gradx.Zero();
+        int nrow = nodes.Rows();
+        int ncol = nodes.Cols();
+#ifdef PZDEBUG
+        if(nrow != 3 && ncol  != 6){
+            std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
+            std::cout << "nodes matrix must be 3x6." << std::endl;
+            DebugStop();
+        }
+        
+#endif
+        TPZFNMatrix<6,T> phi(6,1);
+        TPZFNMatrix<18,T> dphi(3,6);
+        TShape(loc,phi,dphi);
+        for(int i = 0; i < 6; i++)
+        {
+            for(int j = 0; j < 3; j++)
+            {
+                gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+                gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
+                gradx(j,2) += nodes.GetVal(j,i)*dphi(2,i);
+            }
+        }
+        
+    }
 	
 };
 #endif 
