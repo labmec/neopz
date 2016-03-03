@@ -697,10 +697,10 @@ void TPZCompMesh::Skyline(TPZVec<long> &skyline) {
 	// in order to take dependent nodes into account
 	
 #ifdef PZDEBUG
-  TPZAdmChunkVector <TPZConnect &> connectVec = this->ConnectVec();
+  TPZAdmChunkVector <TPZConnect > & connectVec = this->ConnectVec();
   int maxSequenceNumberIndependentConnect = 0;
   TPZVec<int> depConInd(0,0);//list of connects that have dependencies
-  for (int i = 0; i < connectVec.size(); i++) {
+  for (int i = 0; i < connectVec.NElements(); i++) {
     if (connectVec[i].HasDependency() ){
       int oldSize = depConInd.size();
       depConInd.Resize( oldSize + 1 );
