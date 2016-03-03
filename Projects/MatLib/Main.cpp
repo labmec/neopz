@@ -56,6 +56,7 @@
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 
+#ifdef USING_MATLIB // NS: Shouldnt there be a define in here? To choose using the lib matlib?
 #include "MatLib.h"
 USING_MATLIB_NAMESPACE
 
@@ -92,6 +93,8 @@ void UniformRefinement(TPZGeoMesh *gMesh, int nh, int MatId);
 void RefinElemComp(TPZCompMesh  *cMesh, int indexEl);
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 void ReservoirPressure(const TPZVec<STATE> &x, TPZVec<STATE> &p,  TPZFMatrix<STATE> &gradp);
+#endif
+
 
 int main(int argc, char *argv[])
 {
@@ -104,6 +107,7 @@ int main(int argc, char *argv[])
     InitializePZLOG(FileName);
 #endif
 
+#ifdef USING_MATLIB
     std::cout << "Printing something\n";
     ModelDictionary::list(std:: cout);
     
@@ -133,4 +137,7 @@ int main(int argc, char *argv[])
     std::cout << "sig=" << locState1.flux << std::endl;
     std::cout << "ïnternal=" << locState1.internal << std::endl;
     std::cout << "K="<< K << std::endl;
+#endif
+  
+  return 0;
 }

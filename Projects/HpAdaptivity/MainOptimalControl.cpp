@@ -380,14 +380,14 @@ TPZCompMesh *MalhaMultifisicaOpt(TPZVec<TPZCompMesh *> meshvec, TPZGeoMesh *gmes
     
 }
 
-//void StateAd(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp){
-//    disp.Redim(2,1);
-//    res[0]=0.;
-//    double x=pt[0];
-//    double y=pt[1];
-//    res[0]=10.*x*y*(1-x)*(1-y);
-//    
-//}
+void StateAd(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp){
+    disp.Redim(2,1);
+    res[0]=0.;
+    double x=pt[0];
+    double y=pt[1];
+    res[0]=10.*x*y*(1-x)*(1-y);
+    
+}
 //
 //void OptForcing(const TPZVec<REAL>&pt,TPZVec<REAL> &res, TPZFMatrix<STATE> & disp){
 //    disp.Redim(2,1);

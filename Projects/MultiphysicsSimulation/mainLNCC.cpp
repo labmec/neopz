@@ -175,6 +175,8 @@ int mainEx1(int argc, char *argv[])
 		mat->SetNonSymmetric();
 	}
   cmesh->InsertMaterialObject(mat);
+  
+	const int pOrder = 2;
 	
   ///Condições de contorno
 	TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
@@ -185,18 +187,18 @@ int mainEx1(int argc, char *argv[])
   cmesh->InsertMaterialObject(BCondNeumannZero);
 	
   TPZMaterial * BCondNeumannEsq = mat->CreateBC(mat, -5, 1, val1, val2);//1 = Neumann
-	BCondNeumannEsq->SetForcingFunction(NeumannEsquerda);
+	BCondNeumannEsq->SetForcingFunction(NeumannEsquerda,pOrder);
   cmesh->InsertMaterialObject(BCondNeumannEsq);
 	
   TPZMaterial * BCondNeumannDir = mat->CreateBC(mat, -4, 1, val1, val2);//1 = Neumann
-	BCondNeumannDir->SetForcingFunction(NeumannDireita);
+	BCondNeumannDir->SetForcingFunction(NeumannDireita,pOrder);
   cmesh->InsertMaterialObject(BCondNeumannDir);
 	
   TPZMaterial * BCondNeumannAcima = mat->CreateBC(mat, -6, 1, val1, val2);//1 = Neumann
-	BCondNeumannAcima->SetForcingFunction(NeumannAcima);		
+	BCondNeumannAcima->SetForcingFunction(NeumannAcima,pOrder);
   cmesh->InsertMaterialObject(BCondNeumannAcima);
     
-	const int pOrder = 2;
+
 	cmesh->SetDefaultOrder(pOrder);
   cmesh->SetDimModel(dim);//dim = 2
 	
