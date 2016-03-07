@@ -495,7 +495,8 @@ void TRMBuildTransfers::TransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh
     fTransferFlux_To_Mixed.Multiply(cmesh_flux->Solution(),flux_at_intpoints);
     
     TRMMemory data;
-    for(long i = 0; i <  n_int_points; i++){
+    for(long i = 0; i <  n_int_points; i++)
+    {
         STATE pressure = flux_at_intpoints(i,0);
         data.SetPressure(pressure);
         material_memory[i] = data;

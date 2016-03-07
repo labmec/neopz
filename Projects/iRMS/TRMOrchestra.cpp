@@ -22,12 +22,6 @@ TRMOrchestra::TRMOrchestra(){
     /** @brief Define the global geometry being used */
     fgmesh = NULL;
     
-//    /** @brief Define the mixed system analysis */
-//    fFluxPressureAnalysis = NULL;
-//    
-//    /** @brief Define the transpor equation analysis */
-//    fTransportAnalysis = NULL;
-    
     /** @brief Define simulation data */
     fSimulationData = NULL;
     
@@ -72,7 +66,7 @@ void TRMOrchestra::CreateAnalysisPrimal()
     const int dim = 3;
     int div = 1;
     TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile =  "../PrimalDarcy.vtk";
+    std::string plotfile =  "PrimalDarcy.vtk";
     scalnames.Push("Pressure");
     vecnames.Push("MinusKGradU");
     AnalysisPrimal->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
@@ -83,8 +77,10 @@ void TRMOrchestra::CreateAnalysisPrimal()
 /** @brief Create a dual analysis using space odissey */
 void TRMOrchestra::CreateAnalysisDualonBox()
 {
-    int nel = 1;
-    TPZManVector<int,2> dx(2,nel), dy(2,nel), dz(2,nel);
+    int nel_x = 1;
+    int nel_y = 1;
+    int nel_z = 1;
+    TPZManVector<int,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
     dx[0] = 1;
     dy[0] = 1;
     dz[0] = 1;
@@ -109,21 +105,19 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     meshvec[Pres] = fSpaceGenerator.GetPressureMesh();
     TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetMixedCmesh();
     
+    TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator.GetTransferGenerator();
+//    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);        // Computing Flux Matrix
+    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);    // Computing Pressure Matrix
+    
     TPZFMatrix<STATE> vec_p = meshvec[Pres]->Solution();
     for (int i = 0; i <  vec_p.Rows(); i++) {
-        vec_p(i,0) = rand();
+        vec_p(i,0) = 1.0;//rand();
     }
     meshvec[Pres]->LoadSolution(vec_p);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
     
-    TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator.GetTransferGenerator();
-    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
-    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
 
-//    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);
-    
-//    transfer->GetTransferPressure_To_Mixed().Print("Pmat = ");
-    transfer->GetTransferPressure_To_Mixed();
+    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
     
     // Analysis
     bool mustOptimizeBandwidth = false;
@@ -131,7 +125,7 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     int numofThreads = 0;
 #ifdef PZDEBUG
     {
-        std::ofstream out("../MixedCompMesh.txt");
+        std::ofstream out("MixedCompMesh.txt");
         Cmesh->Print(out);
     }
 #endif
@@ -159,10 +153,9 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     const int dim = 3;
     int div = 0;
     TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile =  "../DualDarcyOnBox.vtk";
+    std::string plotfile =  "DualDarcyOnBox.vtk";
     scalnames.Push("WeightedPressure");
     scalnames.Push("DivOfBulkVeclocity");
-    scalnames.Push("POrder");
     vecnames.Push("BulkVelocity");
     fFluxPressureAnalysis.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     fFluxPressureAnalysis.PostProcess(div);

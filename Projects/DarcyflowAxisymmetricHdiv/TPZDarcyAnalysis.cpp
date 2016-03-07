@@ -1280,7 +1280,7 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
     TPZStack<int> MaterialsToIntegrate = fSimulationData->MaterialsToIntegrate();
     int n_materials = MaterialsToIntegrate.size();
     
-    if (n_materials == 1) {
+    if (n_materials == 0) {
         std::cout << "There is not material ids to identify." << std::endl;
         DebugStop();
     }
@@ -2666,8 +2666,8 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     
     
     if (fSimulationData->IsTwoPhaseQ()) {
-//        scalnames.Push("Rho_alpha");
-//        scalnames.Push("Rho_beta");
+        scalnames.Push("Rho_alpha");
+        scalnames.Push("Rho_beta");
         scalnames.Push("S_alpha");
         scalnames.Push("S_beta");
         scalnames.Push("f_alpha");

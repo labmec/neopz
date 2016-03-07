@@ -240,7 +240,7 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     TPZDummyFunction<STATE> dummy(PressFunc);
     TPZCompMeshTools::LoadSolution(fPressureCmesh.operator->(), dummy);
 #ifdef PZDEBUG
-    std::ofstream out("../CmeshPress.txt");
+    std::ofstream out("CmeshPress.txt");
     fPressureCmesh->Print(out);
 #endif
     
@@ -272,7 +272,6 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     TRMMixedDarcy * mat = new TRMMixedDarcy(_ReservMatId);
 //    mat->SetForcingFunction(One);
     fMixedFluxPressureCmesh->InsertMaterialObject(mat);
-    
     
     
     // Bc N
@@ -404,7 +403,9 @@ void TRMSpaceOdissey::CreateH1Cmesh()
     fH1Cmesh->SetDimModel(3);
     
     TPZMatLaplacian *material = new TPZMatLaplacian(_ReservMatId,3);
-    material->SetForcingFunction(One);
+    TPZAutoPointer<TPZFunction<STATE> > one = new TPZDummyFunction<STATE>(One);
+    material->SetForcingFunction(one);
+    
     fH1Cmesh->InsertMaterialObject(material);
 
     TPZFNMatrix<1> val1(1,1,0.),val2(1,1,0);
@@ -428,7 +429,7 @@ void TRMSpaceOdissey::CreateH1Cmesh()
     fH1Cmesh->AutoBuild();
     
 #ifdef PZDEBUG
-    std::ofstream out("../CmeshPressH1.txt");
+    std::ofstream out("CmeshPressH1.txt");
     fH1Cmesh->Print(out);
 #endif
     
@@ -463,10 +464,10 @@ void TRMSpaceOdissey::CreateTransportMesh()
 void TRMSpaceOdissey::PrintGeometry()
 {
     //  Print Geometrical Base Mesh
-    std::ofstream argument("../GeometricMesh.txt");
-    fGeoMesh->Print(argument);
-    std::ofstream Dummyfile("../GeometricMesh.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh,Dummyfile, true);
+    std::ofstream planefile("GeometricMesh.txt");
+    fGeoMesh->Print(planefile);
+    std::ofstream file("GeometricMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(fGeoMesh,file, true);
 }
 
 /** @brief Create a reservoir-box geometry */
@@ -506,7 +507,6 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
     CreateGridFrom1D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
-//    CreateGridFrom1D.SetTriangleExtrusion();
     
     dt = dy[0];
     n = dy[1];
@@ -517,7 +517,6 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
-//    CreateGridFrom2D.SetPrismExtrusion();
     
     dt = dz[0];
     n = dz[1];
