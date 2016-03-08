@@ -282,14 +282,14 @@ TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform &t
 /** @brief Return the Gradient of the transformation at the point */
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::GradXFad(TPZVec<REAL> &par, TPZFMatrix<Fad<REAL> > &gradx) const
+TPZGeoElRefLess<TGeo>::GradXFad(TPZVec<Fad<REAL> > &par, TPZFMatrix<Fad<REAL> > &gradx) const
 {
-    TPZManVector<Fad<REAL>,3> parfad(par.size());
-    int sz = par.size();
-    for (int i=0; i<par.size(); i++) {
-        parfad[i] = Fad<REAL>(sz,i,par[i]);
-    }
-    fGeo.GradX(*this,parfad,gradx);
+//    TPZManVector<Fad<REAL>,3> parfad(par.size());
+//    int sz = par.size();
+//    for (int i=0; i<par.size(); i++) {
+//        parfad[i] = Fad<REAL>(sz,i,par[i]);
+//    }
+    fGeo.GradX(*this,par,gradx);
 }
 #endif
 /** @brief Return the gradient of the transformation at the point */

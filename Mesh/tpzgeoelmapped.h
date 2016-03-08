@@ -100,6 +100,8 @@ public:
 	virtual bool IsGeoElMapped() const{
 		return true;
 	}
+    
+    
 	
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
@@ -246,56 +248,112 @@ public:
 		
 	}//method
 	
+#ifdef _AUTODIFF
+    /** @brief Return the Jacobian matrix at the point*/
+    virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const ;
+#endif
+    /** @brief Return the Jacobian matrix at the point*/
+    virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
+
+            /// Creating Variables
+            TPZGeoEl *father = TBase::Father();
+            if(!father)
+            {
+                TBase::GradX(qsi,gradx);
+                return;
+            }
+        
+            TPZGeoEl *nextfather = 0;
+            if(father) nextfather = father->Father();
+            while(nextfather)
+            {
+                father = nextfather;
+                nextfather = father->Father();
+            }
+        
+            const int dim = Geo::Dimension;
+            TPZManVector<REAL,3> ksibar(father->Dimension());
+//            TPZFNMatrix<dim*dim+1> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
+//            TPZFNMatrix<9> axeslocal(3,3,0.), axesfather(3,3,0.);
+//            REAL detjaclocal, detjacfather;
+        
+            TPZFNMatrix<9> gradxlocal;
+            Geo::GradX(fCornerCo,qsi,gradxlocal);
+            /// Processing Variables (isolated)
+            Geo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);
+            Geo::X(fCornerCo,qsi,ksibar);
+            father->Jacobian(ksibar,jacfather,axesfather,detjacfather,jacinvfather);
+            
+            /// @brief Combining Variables
+            TPZFNMatrix<9> aux(dim,dim);
+            
+            //jacinv
+            axeslocal.Resize(dim,dim); //reducing axes local to its correct dimension in this context
+            axeslocal.Multiply(jacinvfather,aux);
+            jacinvlocal.Multiply(aux,jacinv);
+            
+            //jac
+            axeslocal.Transpose();
+            axeslocal.Multiply(jaclocal,aux);
+            jacfather.Multiply(aux,jac);
+            
+            //detjac
+            detjac = detjaclocal*detjacfather;
+            
+            //axes
+            axes = axesfather;
+        
+    }
 	
 	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
 	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-	{
-		/// Creating Variables
-		TPZGeoEl *father = TBase::Father();
-		if(!father) 
-		{
-			TBase::Jacobian(coordinate,jac,axes,detjac,jacinv);
-			return;
-		}
-		TPZGeoEl *nextfather = 0;
-		if(father) nextfather = father->Father();
-		while(nextfather)
-		{
-			father = nextfather;
-			nextfather = father->Father();
-		}
-		const int dim = Geo::Dimension;
-		TPZManVector<REAL,3> ksibar(father->Dimension());
-		TPZFNMatrix<dim*dim+1> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
-		TPZFNMatrix<9> axeslocal(3,3,0.), axesfather(3,3,0.);
-		REAL detjaclocal, detjacfather;
-		
-        TPZFNMatrix<9> gradxlocal;
-        Geo::GradX(fCornerCo,coordinate,gradxlocal);
-		/// Processing Variables (isolated)
-		Geo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);    
-		Geo::X(fCornerCo,coordinate,ksibar);
-		father->Jacobian(ksibar,jacfather,axesfather,detjacfather,jacinvfather);
-		
-		/// @brief Combining Variables
-		TPZFNMatrix<9> aux(dim,dim);
-		
-		//jacinv
-		axeslocal.Resize(dim,dim); //reducing axes local to its correct dimension in this context
-		axeslocal.Multiply(jacinvfather,aux);
-		jacinvlocal.Multiply(aux,jacinv);
-		
-		//jac
-		axeslocal.Transpose();
-		axeslocal.Multiply(jaclocal,aux);
-		jacfather.Multiply(aux,jac);
-		
-		//detjac
-		detjac = detjaclocal*detjacfather;
-		
-		//axes
-		axes = axesfather;
-	}
+//	{
+//		/// Creating Variables
+//		TPZGeoEl *father = TBase::Father();
+//		if(!father) 
+//		{
+//			TBase::Jacobian(coordinate,jac,axes,detjac,jacinv);
+//			return;
+//		}
+//		TPZGeoEl *nextfather = 0;
+//		if(father) nextfather = father->Father();
+//		while(nextfather)
+//		{
+//			father = nextfather;
+//			nextfather = father->Father();
+//		}
+//		const int dim = Geo::Dimension;
+//		TPZManVector<REAL,3> ksibar(father->Dimension());
+//		TPZFNMatrix<dim*dim+1> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
+//		TPZFNMatrix<9> axeslocal(3,3,0.), axesfather(3,3,0.);
+//		REAL detjaclocal, detjacfather;
+//		
+//        TPZFNMatrix<9> gradxlocal;
+//        Geo::GradX(fCornerCo,coordinate,gradxlocal);
+//		/// Processing Variables (isolated)
+//		Geo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);    
+//		Geo::X(fCornerCo,coordinate,ksibar);
+//		father->Jacobian(ksibar,jacfather,axesfather,detjacfather,jacinvfather);
+//		
+//		/// @brief Combining Variables
+//		TPZFNMatrix<9> aux(dim,dim);
+//		
+//		//jacinv
+//		axeslocal.Resize(dim,dim); //reducing axes local to its correct dimension in this context
+//		axeslocal.Multiply(jacinvfather,aux);
+//		jacinvlocal.Multiply(aux,jacinv);
+//		
+//		//jac
+//		axeslocal.Transpose();
+//		axeslocal.Multiply(jaclocal,aux);
+//		jacfather.Multiply(aux,jac);
+//		
+//		//detjac
+//		detjac = detjaclocal*detjacfather;
+//		
+//		//axes
+//		axes = axesfather;
+//	}
 	
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
 	virtual void X(TPZVec<REAL> &ksi,TPZVec<REAL> &result) const

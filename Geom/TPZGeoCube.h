@@ -112,6 +112,10 @@ namespace pzgeom {
         
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
+        /** @brief Compute the jacobian associated to the x mapping from local parametric coordinates  */
+        static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+                             TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+        
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,

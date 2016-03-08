@@ -498,7 +498,7 @@ public:
     virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const = 0;
 #ifdef _AUTODIFF
     /** @brief Return the gradient of the transformation at the given coordinate */
-    virtual void GradXFad(TPZVec<REAL> &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
+    virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
 #endif
 
 	/** @brief Return the coordinate in real space of the point coordinate in the master element space*/
