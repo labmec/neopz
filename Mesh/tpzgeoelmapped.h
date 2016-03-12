@@ -250,7 +250,9 @@ public:
 	
 #ifdef _AUTODIFF
     /** @brief Return the Jacobian matrix at the point*/
-    virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const ;
+    virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const {
+        DebugStop();
+    }
 #endif
     /** @brief Return the Jacobian matrix at the point*/
     virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
@@ -273,40 +275,19 @@ public:
         
             const int dim = Geo::Dimension;
             TPZManVector<REAL,3> ksibar(father->Dimension());
-//            TPZFNMatrix<dim*dim+1> jaclocal(dim,dim,0.),jacinvlocal(dim,dim,0.),jacfather(dim,dim,0.), jacinvfather(dim,dim,0.);
-//            TPZFNMatrix<9> axeslocal(3,3,0.), axesfather(3,3,0.);
-//            REAL detjaclocal, detjacfather;
         
             TPZFNMatrix<9> gradxlocal;
-            Geo::GradX(fCornerCo,qsi,gradxlocal);
-            /// Processing Variables (isolated)
-            Geo::Jacobian(fCornerCo,coordinate,jaclocal,axeslocal,detjaclocal,jacinvlocal);
+            this->GradX(qsi,gradxlocal);
             Geo::X(fCornerCo,qsi,ksibar);
-            father->Jacobian(ksibar,jacfather,axesfather,detjacfather,jacinvfather);
-            
+            TPZFNMatrix<9> gradxfather;
+            father->GradX(ksibar, gradxfather);
+
             /// @brief Combining Variables
-            TPZFNMatrix<9> aux(dim,dim);
-            
-            //jacinv
-            axeslocal.Resize(dim,dim); //reducing axes local to its correct dimension in this context
-            axeslocal.Multiply(jacinvfather,aux);
-            jacinvlocal.Multiply(aux,jacinv);
-            
-            //jac
-            axeslocal.Transpose();
-            axeslocal.Multiply(jaclocal,aux);
-            jacfather.Multiply(aux,jac);
-            
-            //detjac
-            detjac = detjaclocal*detjacfather;
-            
-            //axes
-            axes = axesfather;
-        
+            gradxfather.Multiply(gradxlocal, gradx);
     }
 	
-	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
-	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
+//	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
+//	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
 //	{
 //		/// Creating Variables
 //		TPZGeoEl *father = TBase::Father();
@@ -415,7 +396,7 @@ public:
 		{
 			alpha = i/10.;
 			X(QsiEtaIni,XYZ);//for aproximate compute
-			Jacobian(QsiEtaIni,jacobian,Axes,detJacobian,InvJac);
+			//Jacobian(QsiEtaIni,jacobian,Axes,detJacobian,InvJac);
 			
 			dX = alpha*( jacobian.GetVal(0,0)*deltaQsi + jacobian.GetVal(0,1)*deltaEta + jacobian.GetVal(0,2)*deltaZeta)*Axes(0,0) + alpha*( jacobian.GetVal(1,0)*deltaQsi + jacobian.GetVal(1,1)*deltaEta + jacobian.GetVal(1,2)*deltaZeta)*Axes(1,0) + alpha*( jacobian.GetVal(2,0)*deltaQsi + jacobian.GetVal(2,1)*deltaEta + jacobian.GetVal(2,2)*deltaZeta)*Axes(2,0);
 			XYZaprox[0] = XYZ[0] + dX;
