@@ -696,6 +696,33 @@ void TPZCompMesh::Skyline(TPZVec<long> &skyline) {
 	// modified Philippe 24/7/97
 	// in order to take dependent nodes into account
 	
+#ifdef PZDEBUG
+  TPZAdmChunkVector <TPZConnect > & connectVec = this->ConnectVec();
+  int maxSequenceNumberIndependentConnect = 0;
+  TPZVec<int> depConInd(0,0);//list of connects that have dependencies
+  for (int i = 0; i < connectVec.NElements(); i++) {
+    if (connectVec[i].HasDependency() ){
+      int oldSize = depConInd.size();
+      depConInd.Resize( oldSize + 1 );
+      depConInd[oldSize] = i;
+			continue;
+    }
+    if (connectVec[i].SequenceNumber() > maxSequenceNumberIndependentConnect ) {
+      maxSequenceNumberIndependentConnect  = connectVec[i].SequenceNumber();
+    }
+  }
+  for (int i = 0; i < depConInd.size(); i++) {
+    if (connectVec[ depConInd[i] ].SequenceNumber() < maxSequenceNumberIndependentConnect ) {
+      
+      std::cout<<"A connect that has dependency has "
+      <<"a sequency number smaller than an independent connect. "
+      <<"have you tried this->CleanUpUnconnectedNodes() after "
+      <<"building the computational mesh?"<<std::endl;
+      DebugStop();
+    }
+  }
+#endif
+  
 	long neq = NEquations();
 	skyline.Resize(neq);
     if (neq == 0) {

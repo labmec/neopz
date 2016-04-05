@@ -62,6 +62,8 @@ public:
     TPZManVector<REAL,3> normal;
     /// value of the coordinate at the integration point
     TPZManVector<REAL,3> x;
+    /// value of the coordinate at the integration point corresponding to the x-parametric coordinate (master element)
+    TPZManVector<REAL,3> xParametric;
     /// maximum polinomial order of the shape functions
     int p;
     /// vector of the solutions at the integration point

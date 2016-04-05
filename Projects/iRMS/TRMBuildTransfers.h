@@ -54,7 +54,7 @@ public:
     void CreateTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &A);
     
     /** @brief Create the sparse matrix to transfer the total flux to multiphysics mesh  */
-    void CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &A);
+    void CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &Ax, TPZManVector<STATE> &Ay, TPZManVector<STATE> &Az);
     
     /** @brief Compute the sparse matrix to transfer Pressure to multiphysics mesh  */
     void ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
@@ -62,9 +62,19 @@ public:
     /** @brief Compute the sparse matrix to transfer the total flux to multiphysics mesh  */
     void ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
     
-    /** @brief Get the sparse matrix to transfer the total flux to multiphysics mesh  */
-    TPZFYsmpMatrix<STATE> GetTransferFlux_To_Mixed(){
-        return fTransferFlux_To_Mixed;
+    /** @brief Get the sparse matrix to transfer the total x-flux to multiphysics mesh  */
+    TPZFYsmpMatrix<STATE> GetTransfer_X_Flux_To_Mixed(){
+        return fTransfer_X_Flux_To_Mixed;
+    }
+
+    /** @brief Get the sparse matrix to transfer the total x-flux to multiphysics mesh  */
+    TPZFYsmpMatrix<STATE> GetTransfer_Y_Flux_To_Mixed(){
+        return fTransfer_Y_Flux_To_Mixed;
+    }
+    
+    /** @brief Get the sparse matrix to transfer the total x-flux to multiphysics mesh  */
+    TPZFYsmpMatrix<STATE> GetTransfer_Z_Flux_To_Mixed(){
+        return fTransfer_Z_Flux_To_Mixed;
     }
     
     /** @brief Get the sparse matrix to transfer Pressure to multiphysics mesh  */
@@ -85,8 +95,14 @@ private:
     /** @brief Sparse matrix to transfer Pressure solution to integrations points of the mixed mesh */
     TPZFYsmpMatrix<REAL> fTransferPressure_To_Mixed;
     
-    /** @brief Sparse matrix to transfer Flux solution to integrations points of the mixed mesh */
-    TPZFYsmpMatrix<REAL> fTransferFlux_To_Mixed;
+    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
+    TPZFYsmpMatrix<REAL> fTransfer_X_Flux_To_Mixed;
+    
+    /** @brief Sparse matrix to transfer y-Flux solution to integrations points of the mixed mesh */
+    TPZFYsmpMatrix<REAL> fTransfer_Y_Flux_To_Mixed;
+    
+    /** @brief Sparse matrix to transfer z-Flux solution to integrations points of the mixed mesh */
+    TPZFYsmpMatrix<REAL> fTransfer_Z_Flux_To_Mixed;
     
     /** @brief Sparse matrix to transfer Sw solution to integrations points of the mixed mesh */
     TPZFYsmpMatrix<REAL> fTransferSw_To_Mixed;

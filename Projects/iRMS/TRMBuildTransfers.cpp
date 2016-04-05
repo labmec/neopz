@@ -29,9 +29,11 @@ TRMBuildTransfers::~TRMBuildTransfers(){
 
 }
 
-void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &A){
+void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &Ax, TPZManVector<STATE> &Ay, TPZManVector<STATE> &Az){
     
     long nel = cmesh_multiphysics->NElements();
+    
+    int dimension = cmesh_multiphysics->Dimension();
     
     // Getting the total integration point of the destination cmesh
     TPZMaterial * material = cmesh_multiphysics->FindMaterial(_ReservMatId);
@@ -39,7 +41,7 @@ void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh>
     TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
     int n_int_points = material_memory.NElements();
     
-    IA.Resize((n_int_points+1)*3, 0);
+    IA.Resize((n_int_points+1), 0);
     
     int origin      = mesh_index;
     int destination = mesh_index;
@@ -89,30 +91,28 @@ void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh>
         // Computing the global integration points indexes
         TPZManVector<long> globindexes;
         mf_cel->GetMemoryIndices(globindexes);
-        int el_dim = mf_cel->Reference()->Dimension();
         int nshapes = intel_d->NShapeF();
         
         for(long i=0; i< globindexes.size(); i++)
         {
-            for(int idim = 0; idim < el_dim; idim++)
-            {
-                long glob = globindexes[i];
-                IA[0 + (glob+1)] = nshapes;
-                IA[1 + (glob+1)] = nshapes;
-                IA[2 + (glob+1)] = nshapes;
-            }
+            long glob = globindexes[i];
+            IA[(glob+1)] = nshapes;
         }
         
     }
     
     for(long i=0; i< n_int_points; i++ )
     {
-        IA[i+1] += IA[i];
+        IA[(i+1)] += IA[i];
     }
-    
+
     JA.Resize(IA[n_int_points]);
-    A.Resize(IA[n_int_points]);
-    fTransferFlux_To_Mixed.Resize(n_int_points, mesh_o_nequ);
+    Ax.Resize(IA[n_int_points]);
+    Ay.Resize(IA[n_int_points]);
+    Az.Resize(IA[n_int_points]);
+    fTransfer_X_Flux_To_Mixed.Resize(n_int_points, mesh_o_nequ);
+    fTransfer_Y_Flux_To_Mixed.Resize(n_int_points, mesh_o_nequ);
+    fTransfer_Z_Flux_To_Mixed.Resize(n_int_points, mesh_o_nequ);
     
 }
 
@@ -153,7 +153,7 @@ void TRMBuildTransfers::CreateTransferPressure_To_Mixed(TPZAutoPointer< TPZCompM
             DebugStop();
         }
         
-        // Avoiding al the materials that don't correspond to the volume
+        // Avoiding all materials that don't correspond to volumetric ones
         if(mf_cel->Material()->Id() != _ReservMatId)
         {
             continue;
@@ -177,7 +177,8 @@ void TRMBuildTransfers::CreateTransferPressure_To_Mixed(TPZAutoPointer< TPZCompM
         TPZManVector<long> globindexes;
         mf_cel->GetMemoryIndices(globindexes);
         int nshapes = intel_d->NShapeF();
-        for(long i=0; i< globindexes.size(); i++ )
+        long nglob_indexes = globindexes.size();
+        for(long i=0; i< nglob_indexes; i++ )
         {
             long glob = globindexes[i];
             IA[glob+1] = nshapes;
@@ -217,9 +218,9 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
     // Resizing IA JA and A
     TPZManVector<long> IA;
     TPZManVector<long> JA;
-    TPZManVector<double> A;
+    TPZManVector<double> Ax,Ay,Az;
     
-    this->CreateTransferFlux_To_Mixed(cmesh_multiphysics, mesh_index, IA, JA, A);
+    this->CreateTransferFlux_To_Mixed(cmesh_multiphysics, mesh_index, IA, JA, Ax,Ay,Az);
     
     int origin = mesh_index;
     int destination = mesh_index;
@@ -255,6 +256,7 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
         if (!intel_o || !intel_d) {
             DebugStop();
         }
+        
         TPZCompMesh * cmesh_o = intel_o->Mesh();
         
         // Computing the global integration points indexes
@@ -289,8 +291,7 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
 
             intel_o->InitMaterialData(data);
             intel_o->ComputeRequiredData(data,qsi);
-            
-            int n = 1;
+        
             int nconnect = intel_o->NConnects();
             int iphicount = 0;
             // Compute all the phi values and push inside corresponding j-destination;
@@ -301,38 +302,34 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
                 long position = cmesh_o->Block().Position(seqnumber);
                 int nshape = con.NShape();
                 
-                for (int idim = 0; idim < el_dim; idim++) {
-                    for (int ish=0; ish < nshape; ish++) {
-                        JA[JAcount+ idim] = position + ish;
-                        A[JAcount + idim] = phi(iphicount,0);
-                        iphicount++;
-                        JAcount++;
-                    }
+                for (int ish=0; ish < nshape; ish++) {
+                    
+                    int vector_index = data.fVecShapeIndex[iphicount].first;
+                    int shape_index = data.fVecShapeIndex[iphicount].second;
+                    
+                    TPZManVector<STATE> phi_Hdiv(3);
+                    phi_Hdiv[0] = phi(shape_index,0)*data.fNormalVec(0,vector_index);
+                    phi_Hdiv[1] = phi(shape_index,0)*data.fNormalVec(1,vector_index);
+                    phi_Hdiv[2] = phi(shape_index,0)*data.fNormalVec(2,vector_index);
+                    
+                    JA[JAcount] = position + ish;
+                    Ax[JAcount] = phi_Hdiv[0];
+                    Ay[JAcount] = phi_Hdiv[1];
+                    Az[JAcount] = phi_Hdiv[2];
+                    iphicount++;
+                    JAcount++;
                 }
-                
-                
                 
             }
         }
         
     }
     
-    fTransferFlux_To_Mixed.SetData(IA, JA, A);
+    fTransfer_X_Flux_To_Mixed.SetData(IA, JA, Ax);
+    fTransfer_Y_Flux_To_Mixed.SetData(IA, JA, Ay);
+    fTransfer_Z_Flux_To_Mixed.SetData(IA, JA, Az);
     
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
@@ -465,11 +462,11 @@ void TRMBuildTransfers::TransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> c
     TPZFMatrix<STATE> pressure_at_intpoints;
     fTransferPressure_To_Mixed.Multiply(cmesh_pressure->Solution(),pressure_at_intpoints);
     
-    TRMMemory data;
+//    TRMMemory data;
     for(long i = 0; i <  np_cmesh_des; i++){
         STATE pressure = pressure_at_intpoints(i,0);
-        data.SetPressure(pressure);
-        material_memory[i] = data;
+        material_memory[i].SetPressure(pressure);
+//        material_memory[i] = data;
     }
     
     associated_material->SetMemory(material_memory);
@@ -491,15 +488,20 @@ void TRMBuildTransfers::TransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh
     TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
     int n_int_points = material_memory.NElements();
     
-    TPZFMatrix<STATE> flux_at_intpoints;
-    fTransferFlux_To_Mixed.Multiply(cmesh_flux->Solution(),flux_at_intpoints);
+    TPZFMatrix<STATE> x_flux_at_intpoints, y_flux_at_intpoints, z_flux_at_intpoints;
+    fTransfer_X_Flux_To_Mixed.Multiply(cmesh_flux->Solution(),x_flux_at_intpoints);
+    fTransfer_Y_Flux_To_Mixed.Multiply(cmesh_flux->Solution(),y_flux_at_intpoints);
+    fTransfer_Z_Flux_To_Mixed.Multiply(cmesh_flux->Solution(),z_flux_at_intpoints);
     
-    TRMMemory data;
+//    TRMMemory data;
+    TPZManVector<STATE> flux(3);
     for(long i = 0; i <  n_int_points; i++)
     {
-        STATE pressure = flux_at_intpoints(i,0);
-        data.SetPressure(pressure);
-        material_memory[i] = data;
+        flux[0] = x_flux_at_intpoints(i,0);
+        flux[1] = y_flux_at_intpoints(i,0);
+        flux[2] = z_flux_at_intpoints(i,0);
+        material_memory[i].SetTotal_Flux(flux);
+//        material_memory[i] = data;
     }
     
     associated_material->SetMemory(material_memory);

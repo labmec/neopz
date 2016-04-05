@@ -95,7 +95,7 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     fSpaceGenerator.CreatePressureCmesh();
     fSpaceGenerator.CreateMixedCmesh();
     
-//    fSpaceGenerator.StaticallyCondenseEquations();
+//    fSpaceGenerator.StaticallyCondenseEquations(); // There is a problem with Statically CondenseEquations
     
     // transfer the solution from the meshes to the multiphysics mesh
     TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
@@ -105,24 +105,40 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     meshvec[Pres] = fSpaceGenerator.GetPressureMesh();
     TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetMixedCmesh();
     
+    
+    // With Already defined spaces it is possible to compute all the sparces matrices and arrays
+    
     TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator.GetTransferGenerator();
-//    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);        // Computing Flux Matrix
+    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);        // Computing Flux Matrix
     transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);    // Computing Pressure Matrix
     
+    
+    TPZFMatrix<STATE> vec_flux = meshvec[flux]->Solution();
+    int nflux_equ = vec_flux.Rows();
+    for (int i = 0; i <  nflux_equ; i++) {
+        vec_flux(i,0) = rand();
+    }
+    meshvec[flux]->LoadSolution(vec_flux);
+    
     TPZFMatrix<STATE> vec_p = meshvec[Pres]->Solution();
-    for (int i = 0; i <  vec_p.Rows(); i++) {
-        vec_p(i,0) = 1.0;//rand();
+    int np_equ = vec_p.Rows();
+    for (int i = 0; i <  np_equ; i++) {
+        vec_p(i,0) = rand();
     }
     meshvec[Pres]->LoadSolution(vec_p);
+    
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
     
-
+    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
     transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
+    
+    
+    
+    
     
     // Analysis
     bool mustOptimizeBandwidth = false;
     fFluxPressureAnalysis.SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
-    int numofThreads = 0;
 #ifdef PZDEBUG
     {
         std::ofstream out("MixedCompMesh.txt");
@@ -134,12 +150,13 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     
     TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
     std::cout << "Total dof: " << prevsol.Rows() << std::endl;
-    std::cout << "prevsol: " << prevsol << std::endl;
+//    std::cout << "prevsol: " << prevsol << std::endl;
     
    
     TPZSkylineStructMatrix strmat(Cmesh.operator->());
     //    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
     TPZStepSolver<STATE> step;
+    int numofThreads = 0;
     strmat.SetNumThreads(numofThreads);
     step.SetDirect(ELDLt);
     fFluxPressureAnalysis.SetStructuralMatrix(strmat);

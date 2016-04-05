@@ -66,6 +66,6 @@ SimulationData::~SimulationData()
     
 }
 
-SimulationData(const SimulationData &copy){
+SimulationData::SimulationData(const SimulationData &copy){
     
 }
