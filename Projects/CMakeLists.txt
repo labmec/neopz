@@ -4,6 +4,8 @@ ENABLE_TESTING()
 
 	if(BUILD_TUTORIAL)
 
+	# Testing LAPACK integration with symmetric band matrix
+		add_subdirectory(pzsbndmat_validation)
 		if(BUILD_COMPLEX_PROJECTS)
 			#add_subdirectory(PDElinear1D)
 			#add_subdirectory(PDElinear2D)
