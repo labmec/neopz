@@ -120,6 +120,7 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     TRMMixedDarcy * mat = new TRMMixedDarcy(_ReservMatId);
     fFluxCmesh->InsertMaterialObject(mat);
     
+    
     // Bc N
     TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2Pressure);
     fFluxCmesh->InsertMaterialObject(bcN);
@@ -158,10 +159,6 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     
     TPZBndCond * bcWellFaces = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2Pressure);
     fFluxCmesh->InsertMaterialObject(bcWellFaces);
-     
-
-    
-
     
     // Setando Hdiv
     fFluxCmesh->SetDimModel(dim);
@@ -251,6 +248,42 @@ void One(const TPZVec<REAL> &x, TPZVec<STATE> &f)
     f[0] = 3.*M_PI*M_PI*sin(M_PI*x[0])*sin(M_PI*x[1])*sin(M_PI*x[2]);
 }
 
+/** @brief exact pressure */
+void ExactPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &pressure)
+{
+    REAL x,y,z;
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    pressure[0] = (1. - x)*x*(1. - y)*y*(1. - z)*z;
+}
+
+/** @brief exact flux */
+void ExactFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &flux)
+{
+    REAL x,y,z;
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    flux[0] = 2.*(-0.5 + x)*(-1. + y)*y*(-1. + z)*z;
+    flux[1] = 2.*(-1. + x)*x*(-0.5 + y)*(-1. + z)*z;
+    flux[2] = 2.*(-1. + x)*x*(-1. + y)*y*(-0.5 + z);
+    
+}
+
+/** @brief exact laplacian */
+void ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &f)
+{
+    REAL x,y,z;
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    f[0] = 2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
+}
+
 /** @brief Create a Mixed computational mesh Hdiv-L2 */
 void TRMSpaceOdissey::CreateMixedCmesh(){
     if(!fGeoMesh)
@@ -258,31 +291,37 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         std::cout<< "Geometric mesh doesn't exist" << std::endl;
         DebugStop();
     }
-    bool StaticCondensation = false;
+//    bool StaticCondensation = false;
     int dim = 3;
     
-    const int typeFlux = 1, typePressure = 0;
+    const int typeFlux = 0;
+    const int typePressure = 0;
+    
     TPZFMatrix<STATE> val1(2,2,0.), val2Flux(2,1,0.), val2Pressure(2,1,0.);
-    val2Pressure(0,0) = 1000.;
+    val2Pressure(0,0) = 0.0;
     
     // Malha computacional
     fMixedFluxPressureCmesh = new TPZCompMesh(fGeoMesh);
     
     // Material medio poroso
     TRMMixedDarcy * mat = new TRMMixedDarcy(_ReservMatId);
-//    mat->SetForcingFunction(One);
+
+    // Rigth hand side function
+    mat->SetForcingFunction(ExactLaplacian, 4);
+
     fMixedFluxPressureCmesh->InsertMaterialObject(mat);
     
+
     
     // Bc N
     TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2Pressure);
     TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(Forcing);
-    bcN->SetForcingFunction(0,force);
+//    bcN->SetForcingFunction(0,force);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcN);
     
     // Bc S
     TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2Pressure);
-    bcS->SetForcingFunction(0, force);
+//    bcS->SetForcingFunction(0, force);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcS);
     
     // Bc E
@@ -295,7 +334,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     // Bc B
     TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
-    bcB->SetForcingFunction(0, force);
+//    bcB->SetForcingFunction(0, force);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcB);
     
     // Bc T
@@ -304,11 +343,11 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     
     TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typePressure, val1, val2Pressure);
-    bcToe->SetForcingFunction(0, force);
+//    bcToe->SetForcingFunction(0, force);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcToe);
     
     TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
-    bcHeel->SetForcingFunction(0, force);
+//    bcHeel->SetForcingFunction(0, force);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcHeel);
     
     /*
@@ -317,7 +356,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     */
     
     TPZBndCond * bcWellFaces = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2Pressure);
-    bcWellFaces->SetForcingFunction(0, force);
+//    bcWellFaces->SetForcingFunction(0, force);
     fMixedFluxPressureCmesh->InsertMaterialObject(bcWellFaces);
 
     
@@ -469,7 +508,7 @@ void TRMSpaceOdissey::PrintGeometry()
 }
 
 /** @brief Create a reservoir-box geometry */
-void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVector<int,2> dy, TPZManVector<int,2> dz){
+void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVector<REAL,2> dy, TPZManVector<REAL,2> dz){
     
     REAL t=0.0;
     REAL dt;
@@ -497,7 +536,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     CreateGridFrom0D.SetFrontBackMatId(_ConfinementReservBCbottom,_ConfinementReservBCtop);
     
     dt = dx[0];
-    n = dx[1];
+    n = int(dx[1]);
     // Computing Mesh extruded along the parametric curve Parametricfunction
     TPZGeoMesh * GeoMesh1D = CreateGridFrom0D.ComputeExtrusion(t, dt, n);
     
@@ -507,7 +546,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     CreateGridFrom1D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
     
     dt = dy[0];
-    n = dy[1];
+    n = int(dy[1]);
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh2D = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
         
@@ -517,7 +556,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<int,2> dx, TPZManVecto
     CreateGridFrom2D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
     
     dt = dz[0];
-    n = dz[1];
+    n = int(dz[1]);
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     fGeoMesh = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
     

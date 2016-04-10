@@ -36,7 +36,7 @@ TRMOrchestra::~TRMOrchestra(){
 void TRMOrchestra::CreateAnalysisPrimal()
 {
     
-    TPZManVector<int,2> dx(2,1), dy(2,1), dz(2,1);
+    TPZManVector<REAL,2> dx(2,1), dy(2,1), dz(2,1);
     dx[0] = 1;
     dy[0] = 1;
     dz[0] = 1;
@@ -80,16 +80,16 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     int nel_x = 1;
     int nel_y = 1;
     int nel_z = 1;
-    TPZManVector<int,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 1;
-    dy[0] = 1;
-    dz[0] = 1;
+    TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
+    dx[0] = 1.0;
+    dy[0] = 1.0;
+    dz[0] = 1.0;
     
     fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
 #ifdef PZDEBUG
     fSpaceGenerator.PrintGeometry();
 #endif
-    fSpaceGenerator.SetDefaultPOrder(1);
+    fSpaceGenerator.SetDefaultPOrder(2);
     
     fSpaceGenerator.CreateFluxCmesh();
     fSpaceGenerator.CreatePressureCmesh();
@@ -132,7 +132,7 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
     transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
     
-    
+    // Getting all the required information ate integration points
     
     
     
@@ -162,13 +162,15 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     fFluxPressureAnalysis.SetStructuralMatrix(strmat);
     fFluxPressureAnalysis.SetSolver(step);
     fFluxPressureAnalysis.Run();
-    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
     prevsol -= fFluxPressureAnalysis.Solution();
     Cmesh->LoadSolution(prevsol);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+    fFluxPressureAnalysis.AssembleResidual();
+    fFluxPressureAnalysis.LoadSolution();
+    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
     
     const int dim = 3;
-    int div = 0;
+    int div = 4;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "DualDarcyOnBox.vtk";
     scalnames.Push("WeightedPressure");
@@ -179,10 +181,26 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     
 }
 
+/** @brief Compute the system of equations using transfer matrixces */
+void TRMOrchestra::IntegrateResidue(){
+
+    // Transfer the whole world over the integrations points
+    
+    
+    // Integrate the volumetric forms
+    
+    
+}
+
+/** @brief Compute gradient of the system of equations using transfer matrixces */
+void TRMOrchestra::IntegrateGradientOfResidue(){
+    
+}
+
 /** @brief Create a dual analysis using space odissey */
 void TRMOrchestra::CreateAnalysisDual(){
     int nel = 2;
-    TPZManVector<int,2> dx(2,nel), dy(2,nel), dz(2,nel);
+    TPZManVector<REAL,2> dx(2,nel), dy(2,nel), dz(2,nel);
     dx[0] = 1;
     dy[0] = 1;
     dz[0] = 1;
@@ -387,18 +405,39 @@ void TRMOrchestra::ProjectExactSolution()
 }
 
 /** @brief exact pressure */
-void TRMOrchestra::ExactPressure(const TPZVec<REAL> &x, TPZVec<STATE> &pressure)
+void TRMOrchestra::ExactPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &pressure)
 {
-    pressure[0] = 0.;//x[2];
+    REAL x,y,z;
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    pressure[0] = (1. - x)*x*(1. - y)*y*(1. - z)*z;
 }
 
-/** @brief exact pressure */
-void TRMOrchestra::ExactFlux(const TPZVec<REAL> &x, TPZVec<STATE> &flux)
+/** @brief exact flux */
+void TRMOrchestra::ExactFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &flux)
 {
-    flux[0] = 0.;
-    flux[1] = 0.;
-    flux[2] = 0.;//-1.;
+    REAL x,y,z;
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
     
+    flux[0] = 2.*(-0.5 + x)*(-1. + y)*y*(-1. + z)*z;
+    flux[1] = 2.*(-1. + x)*x*(-0.5 + y)*(-1. + z)*z;
+    flux[2] = 2.*(-1. + x)*x*(-1. + y)*y*(-0.5 + z);
+    
+}
+
+/** @brief exact laplacian */
+void TRMOrchestra::ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &f)
+{
+    REAL x,y,z;
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    f[0] = 2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
 }
 
 /** @brief Compute the production rate of the reservoir */

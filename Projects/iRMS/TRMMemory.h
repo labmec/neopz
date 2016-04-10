@@ -36,6 +36,12 @@ class TRMMemory {
 
     /** @brief Total flux at the previous timestep */
     TPZManVector<STATE> fu_n;
+
+    /** @brief Total flux divergence */
+    STATE fdivu;
+    
+    /** @brief Total flux divergence at the previous timestep */
+    STATE fdivu_n;
     
     /** @brief Weighted Pressure */
     STATE fPressure;
@@ -51,9 +57,22 @@ class TRMMemory {
     
     /** @brief Rock Porosity */
     STATE fporosity;
-    
+
     /** @brief Absolute permeability */
     TPZFNMatrix<9,REAL> K;
+    
+    /** @brief Integration weight */
+    STATE fw;
+    
+    /** @brief Jacobian det */
+    STATE fdet;
+    
+    /** @brief Right hand side */
+    STATE frhs;
+    
+    /** @brief Spatial coordinate */
+    TPZManVector<STATE> fx;
+
     
     //@}
     
@@ -95,6 +114,26 @@ public:
     /** @brief Get the total flux at the previous timestep */
     TPZManVector<STATE> GetTotal_Flux_n(){
         return fu_n;
+    }
+    
+    /** @brief Set the total flux at the previous timestep */
+    void SetDiv_Flux(STATE divu){
+        fdivu = divu;
+    }
+    
+    /** @brief Get the total flux at the previous timestep */
+    STATE GetDiv_Flux(){
+        return fdivu;
+    }
+    
+    /** @brief Set the total flux at the previous timestep */
+    void SetDiv_Flux_n(STATE divu_n){
+        fdivu_n = divu_n;
+    }
+    
+    /** @brief Get the total flux at the previous timestep */
+    STATE GetDiv_Flux_n(){
+        return fdivu_n;
     }
     
     /** @brief Set the weighted pressure */
@@ -147,7 +186,50 @@ public:
         return fporosity;
     }
     
+    /** @brief Set integration weight */
+    void SetWeight(STATE w){
+        fw = w;
+    }
+    
+    /** @brief Get integration weight */
+    STATE GetWeight(){
+        return fw;
+    }
+    
+    /** @brief Set Jacobian det */
+    void SetDetJac(STATE det){
+        fdet = det;
+    }
+    
+    /** @brief Get Jacobian det  */
+    STATE GetDetJac(){
+        return fdet;
+    }
+    
+    /** @brief Set Right hand side */
+    void SetRhs(STATE rhs){
+        frhs = rhs;
+    }
+    
+    /** @brief Get Right hand side */
+    STATE GetRhs(){
+        return frhs;
+    }
+    
+    /** @brief Set Spatial coordinate */
+    void SetX(TPZManVector<STATE>  x){
+        fx = x;
+    }
+    
+    /** @brief Get Spatial coordinate */
+    TPZManVector<STATE>  GetX(){
+        return fx;
+    }
+    
     //@}
+    
+    
+    
     
   
     /**

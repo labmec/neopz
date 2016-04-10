@@ -29,7 +29,7 @@ TRMBuildTransfers::~TRMBuildTransfers(){
 
 }
 
-void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &Ax, TPZManVector<STATE> &Ay, TPZManVector<STATE> &Az){
+void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &Ax, TPZManVector<STATE> &Ay, TPZManVector<STATE> &Az, TPZManVector<STATE> Ad){
     
     long nel = cmesh_multiphysics->NElements();
     
@@ -110,9 +110,11 @@ void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh>
     Ax.Resize(IA[n_int_points]);
     Ay.Resize(IA[n_int_points]);
     Az.Resize(IA[n_int_points]);
+    Ad.Resize(IA[n_int_points]);
     fTransfer_X_Flux_To_Mixed.Resize(n_int_points, mesh_o_nequ);
     fTransfer_Y_Flux_To_Mixed.Resize(n_int_points, mesh_o_nequ);
     fTransfer_Z_Flux_To_Mixed.Resize(n_int_points, mesh_o_nequ);
+    fTransferDivergenceTo_Mixed.Resize(n_int_points, mesh_o_nequ);
     
 }
 
@@ -218,9 +220,11 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
     // Resizing IA JA and A
     TPZManVector<long> IA;
     TPZManVector<long> JA;
-    TPZManVector<double> Ax,Ay,Az;
+    TPZManVector<double> Ax,Ay,Az,Ad;
     
-    this->CreateTransferFlux_To_Mixed(cmesh_multiphysics, mesh_index, IA, JA, Ax,Ay,Az);
+    TPZFMatrix<STATE> VectorOnXYZ(3,1,0.0);
+    
+    this->CreateTransferFlux_To_Mixed(cmesh_multiphysics, mesh_index, IA, JA, Ax,Ay,Az,Ad);
     
     int origin = mesh_index;
     int destination = mesh_index;
@@ -277,6 +281,8 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
         TPZFNMatrix<300,REAL> dphidxi(el_dim,intel_o->NShapeF(),0.0);
         for (int ip = 0; ip < np_cel_d ; ip++)
         {
+            
+            // Here for each integration point
             TPZManVector<REAL,3> qsi(3,0.0);
             STATE w;
             int_points_cel_d.Point(ip, qsi, w);
@@ -284,6 +290,8 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
             // Indetifying the right global index
             long globindex = globindexes[ip];
             long JAcount = IA[globindex];
+            
+            // 
             
             // Get the vectorial phi
             intel_o->Shape(qsi, phi, dphidxi);
@@ -307,10 +315,14 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
                     int vector_index = data.fVecShapeIndex[iphicount].first;
                     int shape_index = data.fVecShapeIndex[iphicount].second;
                     
+                    VectorOnXYZ(0,0) = data.fNormalVec(0,vector_index);
+                    VectorOnXYZ(1,0) = data.fNormalVec(0,vector_index);
+                    VectorOnXYZ(2,0) = data.fNormalVec(0,vector_index);
+                    
                     TPZManVector<STATE> phi_Hdiv(3);
-                    phi_Hdiv[0] = phi(shape_index,0)*data.fNormalVec(0,vector_index);
-                    phi_Hdiv[1] = phi(shape_index,0)*data.fNormalVec(1,vector_index);
-                    phi_Hdiv[2] = phi(shape_index,0)*data.fNormalVec(2,vector_index);
+                    phi_Hdiv[0] = phi(shape_index,0)*VectorOnXYZ(0,0);
+                    phi_Hdiv[1] = phi(shape_index,0)*VectorOnXYZ(1,0);
+                    phi_Hdiv[2] = phi(shape_index,0)*VectorOnXYZ(2,0);
                     
                     JA[JAcount] = position + ish;
                     Ax[JAcount] = phi_Hdiv[0];
@@ -328,6 +340,7 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
     fTransfer_X_Flux_To_Mixed.SetData(IA, JA, Ax);
     fTransfer_Y_Flux_To_Mixed.SetData(IA, JA, Ay);
     fTransfer_Z_Flux_To_Mixed.SetData(IA, JA, Az);
+    fTransferDivergenceTo_Mixed.SetData(IA, JA, Ad);
     
 }
 

@@ -91,10 +91,19 @@ public:
     void ComputeProductionRate(std::map<REAL,STATE> &RatebyPosition, STATE &Total);
     
     /** @brief exact pressure */
-    static void ExactPressure(const TPZVec<REAL> &x, TPZVec<STATE> &pressure);
+    static void ExactPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &pressure);
     
-    /** @brief exact pressure */
-    static void ExactFlux(const TPZVec<REAL> &x, TPZVec<STATE> &flux);
+    /** @brief exact flux */
+    static void ExactFlux(const TPZVec<REAL> &pt, TPZVec<STATE> &flux);
+    
+    /** @brief exact laplacian */
+    static void ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &pressure);
+    
+    /** @brief Compute the system of equations using transfer matrixces */
+    void IntegrateResidue();
+    
+    /** @brief Compute gradient of the system of equations using transfer matrixces */
+    void IntegrateGradientOfResidue();
     
 };
 
