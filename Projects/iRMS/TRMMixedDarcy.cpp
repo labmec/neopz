@@ -340,6 +340,9 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     long global_point_index = datavec[0].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
     STATE pressure = point_memory.GetPressure();
+    STATE rhs = point_memory.GetRhs();
+    STATE w = point_memory.GetWeight();
+    STATE det = point_memory.GetDetJac();
     TPZManVector<STATE> flux = point_memory.GetTotal_Flux();
 
 //    std::cout << "flux = " << flux << std::endl;
@@ -409,7 +412,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
     {
-        ef(ip + iniP) += -1.0 * weight * (divu - fvalue[0]) * phiPL2(ip,0);
+        ef(ip + iniP) += -1.0 * w*det * (divu - rhs) * phiPL2(ip,0);
     }
     
     return;

@@ -282,7 +282,6 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
         for (int ip = 0; ip < np_cel_d ; ip++)
         {
             
-            // Here for each integration point
             TPZManVector<REAL,3> qsi(3,0.0);
             STATE w;
             int_points_cel_d.Point(ip, qsi, w);
@@ -291,15 +290,20 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
             long globindex = globindexes[ip];
             long JAcount = IA[globindex];
             
-            // 
-            
             // Get the vectorial phi
             intel_o->Shape(qsi, phi, dphidxi);
-            
-
             intel_o->InitMaterialData(data);
             intel_o->ComputeRequiredData(data,qsi);
-        
+            TPZManVector<STATE,1> fval(1,0.0);
+            ExactLaplacian(data.x,fval); // defined as static member
+            REAL rhs = fval[0];
+            
+            // Inserting weight
+            material_memory[globindex].SetWeight(w);
+            material_memory[globindex].SetDetJac(data.detjac);
+            material_memory[globindex].SetX(data.x);
+            material_memory[globindex].SetRhs(rhs);
+            
             int nconnect = intel_o->NConnects();
             int iphicount = 0;
             // Compute all the phi values and push inside corresponding j-destination;
@@ -341,9 +345,19 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
     fTransfer_Y_Flux_To_Mixed.SetData(IA, JA, Ay);
     fTransfer_Z_Flux_To_Mixed.SetData(IA, JA, Az);
     fTransferDivergenceTo_Mixed.SetData(IA, JA, Ad);
-    
+    associated_material->SetMemory(material_memory);
 }
 
+/** @brief exact laplacian */
+void TRMBuildTransfers::ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &f)
+{
+    REAL x,y,z;
+    x = pt[0];
+    y = pt[1];
+    z = pt[2];
+    
+    f[0] = 2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
+}
 
 void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
 

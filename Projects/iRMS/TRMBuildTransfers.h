@@ -139,6 +139,9 @@ private:
     
     // @}
     
+    /** @brief exact laplacian */
+    void ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &f);
+    
 };
 
 
