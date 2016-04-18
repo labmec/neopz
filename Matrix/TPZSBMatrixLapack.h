@@ -4,7 +4,7 @@
  * 
  * @details While the class TPZSBMatrix also implements a symmetric band matrix, it does so in a manner not adequate
  * for straightforward use of LAPACK methods, since it stores the relevant diagonals in a column-major fashion, beginning
- * with the main diagonal. LAPACK requires the matrix to be stored in a row-major order, beginning with the
+ * with the main diagonal. LAPACK requires the matrix to be stored in a row-major fashion, beginning with the
  * diagonal in which j - i = fBand
  */
 
@@ -60,6 +60,7 @@ public:
 	TPZSBMatrixLapack &operator-=(const TPZSBMatrixLapack<TVar> &A );
 	// @}
 	TPZSBMatrixLapack<TVar> operator*  (const TVar v ) const;
+	TPZSBMatrixLapack<TVar> &operator+=(const TVar v );
 	TPZSBMatrixLapack<TVar> &operator*=(const TVar v );
 	
 	TPZSBMatrixLapack<TVar> operator-() const { return operator*(-1.0); }
