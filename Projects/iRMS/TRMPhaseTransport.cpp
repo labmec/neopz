@@ -112,6 +112,11 @@ void TRMPhaseTransport::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
 void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     DebugStop();
+    
+    // getting information from q, p system ...
+    
+    // Volume updating
+    
 }
 
 
@@ -155,6 +160,11 @@ void TRMPhaseTransport::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
 void TRMPhaseTransport::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     DebugStop();
+    
+    // getting information from average q, p ...
+    
+    // Jumps updating
+    
 }
 
 

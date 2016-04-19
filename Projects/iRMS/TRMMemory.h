@@ -32,10 +32,10 @@ class TRMMemory {
      */
     
     /** @brief Total flux */
-    TPZManVector<STATE> fu;
+    TPZManVector<STATE,3> fu;
 
     /** @brief Total flux at the previous timestep */
-    TPZManVector<STATE> fu_n;
+    TPZManVector<STATE,3> fu_n;
 
     /** @brief Total flux divergence */
     STATE fdivu;
@@ -71,7 +71,7 @@ class TRMMemory {
     STATE frhs;
     
     /** @brief Spatial coordinate */
-    TPZManVector<STATE> fx;
+    TPZManVector<STATE,3> fx;
 
     
     //@}

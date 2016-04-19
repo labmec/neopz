@@ -53,8 +53,11 @@ public:
     /** @brief Create the sparse matrix to transfer Pressure to multiphysics mesh  */
     void CreateTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &A);
     
+    /** @brief Create the sparse matrix to transfer Geometric information to integration points  */
+    void CreateTransferGeometricData_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &Aweights, TPZManVector<STATE> &Adet, TPZManVector<STATE> &Arhs);
+    
     /** @brief Create the sparse matrix to transfer the total flux to multiphysics mesh  */
-    void CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &Ax, TPZManVector<STATE> &Ay, TPZManVector<STATE> &Az,  TPZManVector<STATE> Ad);
+    void CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &Ax, TPZManVector<STATE> &Ay, TPZManVector<STATE> &Az,  TPZManVector<STATE> &Ad);
     
     /** @brief Compute the sparse matrix to transfer Pressure to multiphysics mesh  */
     void ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
@@ -85,6 +88,21 @@ public:
     /** @brief Get the sparse matrix to transfer Pressure to multiphysics mesh  */
     TPZFYsmpMatrix<STATE> GetTransferPressure_To_Mixed(){
         return fTransferPressure_To_Mixed;
+    }
+    
+    /** @brief Get the sparse matrix to transfer the total x-flux to multiphysics mesh  */
+    TPZFYsmpMatrix<STATE> GetWeightsTo_Mixed(){
+        return fIntegrationWeights;
+    }
+    
+    /** @brief Get the sparse matrix to transfer Pressure to multiphysics mesh  */
+    TPZFYsmpMatrix<STATE> GetJacobianDet_To_Mixed(){
+        return fJacobianDet;
+    }
+    
+    /** @brief Get the sparse matrix to transfer Pressure to multiphysics mesh  */
+    TPZFYsmpMatrix<STATE> GetRhs_To_Mixed(){
+        return fRhs;
     }
 
     
@@ -121,7 +139,7 @@ private:
     // @}
     
     /**
-     * @defgroup Sparses Matrices ot transfer information to saturations meshes
+     * @defgroup Sparses Matrices to transfer information to saturations meshes
      * @{
      */
     
@@ -136,6 +154,24 @@ private:
     
     /** @brief Sparse matrix to transfer Pressure solution to integrations points of oil saturation mesh */
     TPZFYsmpMatrix<REAL> fTransferFlux_To_So;
+    
+    // @}
+    
+    
+    /**
+     * @defgroup Vectors to transfer geometric information to integration points at volumes
+     * @{
+     */
+    
+    /** @brief Sparse matrix to transfer Pressure solution to integrations points of water saturation mesh */
+    TPZFYsmpMatrix<REAL> fIntegrationWeights;
+    
+    /** @brief Sparse matrix to transfer flux solution to integrations points of the water saturation mesh */
+    TPZFYsmpMatrix<REAL> fJacobianDet;
+    
+    /** @brief Sparse matrix to transfer Pressure solution to integrations points of oil saturation mesh */
+    TPZFYsmpMatrix<REAL> fRhs;
+    
     
     // @}
     

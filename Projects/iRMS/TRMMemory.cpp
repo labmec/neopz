@@ -12,8 +12,8 @@
 /** @brief Default constructor */
 TRMMemory::TRMMemory(){
     
-    fu.Resize(0, 0.0);
-    fu_n.Resize(0, 0.0);
+    fu.Resize(3, 0.0);
+    fu_n.Resize(3, 0.0);
     fdivu               = 0.0;
     fdivu_n             = 0.0;
     
@@ -27,7 +27,7 @@ TRMMemory::TRMMemory(){
     K.Zero();
     K.Identity();
     
-    fx.Resize(0,0.0);
+    fx.Resize(3,0.0);
     fw = 0.0;
     fdet = 0.0;
     frhs = 0.0;

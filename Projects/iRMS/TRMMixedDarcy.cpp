@@ -59,6 +59,9 @@ int TRMMixedDarcy::VariableIndex(const std::string &name) {
     if (!strcmp("WeightedPressure", name.c_str())) return 0;
     if (!strcmp("BulkVelocity", name.c_str())) return 1;
     if (!strcmp("DivOfBulkVeclocity", name.c_str())) return 2;
+    if (!strcmp("AWeightedPressure", name.c_str())) return 3;
+    if (!strcmp("ABulkVelocity", name.c_str())) return 4;
+    if (!strcmp("ADivOfBulkVeclocity", name.c_str())) return 5;
     return TPZMatWithMem::VariableIndex(name);
 }
 
@@ -69,6 +72,12 @@ int TRMMixedDarcy::NSolutionVariables(int var) {
         case 1:
             return 3; // Vector
         case 2:
+            return 1; // Scalar
+        case 3:
+            return 1; // Scalar
+        case 4:
+            return 3; // Vector
+        case 5:
             return 1; // Scalar
     }
     return TPZMatWithMem::NSolutionVariables(var);
@@ -102,7 +111,33 @@ void TRMMixedDarcy::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<R
             break;
         case 2:
         {
-            Solout[0] = Solout[0] = dQdx(0,0) + dQdx(1,1) + dQdx(2,2);
+            Solout[0] = dQdx(0,0) + dQdx(1,1) + dQdx(2,2);
+        }
+            break;
+        case 3:
+        {
+            REAL x = datavec[Qblock].x[0];
+            REAL y = datavec[Qblock].x[1];
+            REAL z = datavec[Qblock].x[2];
+            Solout[0] = (1. - x)*x + (1. - y)*y + (1. - z)*z;
+        }
+            break;
+        case 4:
+        {
+            REAL x = datavec[Qblock].x[0];
+            REAL y = datavec[Qblock].x[1];
+            REAL z = datavec[Qblock].x[2];
+            Solout[0] = -1. + 2*x;//2.*(-0.5 + x)*(-1. + y)*y*(-1. + z)*z; // Bulk mass velocity
+            Solout[1] = -1. + 2*y;//2.*(-1. + x)*x*(-0.5 + y)*(-1. + z)*z; // Bulk mass velocity
+            Solout[2] = -1. + 2*z;//2.*(-1. + x)*x*(-1. + y)*y*(-0.5 + z); // Bulk mass velocity
+        }
+            break;
+        case 5:
+        {
+            REAL x = datavec[Qblock].x[0];
+            REAL y = datavec[Qblock].x[1];
+            REAL z = datavec[Qblock].x[2];
+            Solout[0] = 6;//2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
         }
             break;
         default:
@@ -170,9 +205,10 @@ void TRMMixedDarcy::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
                                                           dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) +
                                                           dphiuH1(2,ishapeindex)*VectorOnMaster(2,0) );
         }
+        
         GradOfXInverse.Multiply(gradu, graduMaster);
         graduMaster *= JacobianDet;
-        DivergenceofU = graduMaster(0,0)+graduMaster(1,1)+graduMaster(2,2);
+        DivergenceofU = (graduMaster(0,0)+graduMaster(1,1)+graduMaster(2,2));
     }
     else
     {
@@ -408,11 +444,21 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
     
     divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // uses this for constant jacobian elements
+    REAL divu2 = point_memory.GetDiv_Flux();
+    
+    std::cout << "divu = " << divu << std::endl;
+    std::cout << "divflux = " << divflux << std::endl;
+    std::cout << "divu2 = " << divu2 << std::endl;
+    std::cout << "rhs = " << rhs << std::endl;
+    
+//    std::cout << "fvalue[0] = " << fvalue[0] << std::endl;
+//    std::cout << "rhs = " << rhs << std::endl;
+//    std::cout << "diff = " << fvalue[0] - rhs << std::endl;
     
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
     {
-        ef(ip + iniP) += -1.0 * w*det * (divu - rhs) * phiPL2(ip,0);
+        ef(ip + iniP) += -1.0 * weight * (divu - fvalue[0]) * phiPL2(ip,0);
     }
     
     return;
