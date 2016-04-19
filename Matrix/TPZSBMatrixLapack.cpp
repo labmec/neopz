@@ -10,6 +10,14 @@
 #include "pzfmatrix.h"
 #include "TPZSBMatrixLapack.h"
 
+#ifdef USING_LAPACK
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
+#include <clapack.h>
+#endif
+#endif
+
 #include <sstream>
 #include "pzlog.h"
 #ifdef LOG4CXX
@@ -331,41 +339,8 @@ TPZSBMatrixLapack<TVar>::operator-=(const TPZSBMatrixLapack<TVar> &A )
 template<class TVar>
 void TPZSBMatrixLapack<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 								const TVar alpha,const TVar beta ,const int opt,const int stride ) const {
-	// Computes z = beta * y + alpha * opt(this)*x
-	//          z and x cannot overlap in memory
-	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSBMatrixLapack::MultAdd <matrixs with incompatible dimensions>" );
-	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSBMatrixLapack::MultAdd incompatible dimensions\n");
-	}
-	this->PrepareZ(y,z,beta,opt,stride);
-	long rows = this->Rows();
-	long xcols = x.Cols();
-	long ic, r;
-	for (ic = 0; ic < xcols; ic++) {
-		long begin, end;
-		for ( r = 0; r < rows; r++ ) {
-			begin = MAX( r - fBand, 0 );
-			end   = MIN( r + fBand + 1, rows );
-			TVar val = 0.;
-			// Calcula um elemento da resposta.
-			for ( long i = begin ; i < end; i++ ) val += GetVal( r, i ) * x.GetVal(stride * i, ic );
-			val *= alpha;
-			val += z.GetVal(r*stride,ic);
-			z.PutVal( r*stride , ic, val );
-		}
-	}
+  DebugStop();
 }
-
-/******** Operacoes com MATRIZES GENERICAS ********/
-
-// Estas operacoes com matrizes genericas, usam a parte triangular
-// inferior da maior matriz quadrada de A. Ex.:
-//
-//  Se A = 01 02 03 04   A matriz usada sera':  01 05 09
-//         05 06 07 08                          05 06 10
-//         09 10 11 12                          09 10 11
-//
 
 /******** Operacoes com valores NUMERICOS ********/
 //
@@ -434,7 +409,7 @@ TPZSBMatrixLapack<TVar>::operator*=(const TVar value )
 // Changes matrix dimensions, but keeps its current values.
 // New positions are created with zeros.
 //
-//NOK
+//ok
 template<class TVar>
 int
 TPZSBMatrixLapack<TVar>::Resize(const long newDim ,const long)
@@ -447,23 +422,24 @@ TPZSBMatrixLapack<TVar>::Resize(const long newDim ,const long)
 	long newSize  = newDim * (newBand + 1);
 	
 	TVar *newDiag = new TVar[newSize] ;
-	
-	// Copy elements to new matrix
-	TVar *src = fDiag;
-	TVar *dst = newDiag;
-	long minDim = MIN( newDim , this->Dim() );//AQUIFRAN
-	TVar *end = &newDiag[ MIN(Size(), newSize) ];
-	while ( dst < end )
-		*dst++ = *src++;
-	
-	// Zera as posicoes que sobrarem (se sobrarem).
-	end = &newDiag[newSize];
-	while ( dst < end )
-		*dst++ = 0.0;
-	
-	// Descarta a matriz antiga e valida a nova matriz.
+  
+  //if newBand < fBand, some diagonals are going to be skipped
+  long nSkipDiags = fBand - newBand;
+  //iDiag begins in the smaller diagonal
+  for (long iDiag = 0; iDiag < newBand + 1; iDiag ++) {
+    TVar *ini = newDiag + newDim * iDiag;
+    long pos = 0;
+    for ( ; pos < newBand - iDiag ; pos ++) {
+      *ini++ = 0.; //fills the new positions with zeros
+    }
+    TVar *oldIni = fDiag + this->Dim() * (iDiag + nSkipDiags) + fBand - iDiag;//first valid element of corresponding diagonal
+    for ( ; pos < newDim ; pos++){
+      *ini++ = *oldIni++;
+    }
+  }
+	// Deletes old matrix and takes new one
 	if ( fDiag != NULL )
-		delete( fDiag );
+    DebugStop(); //it really shouldnt be null
 	fDiag = newDiag;
 	this->fCol = this->fRow = newDim;
 	this->fDecomposed = 0;
@@ -581,7 +557,19 @@ TPZSBMatrixLapack<TVar>::Decompose_Cholesky()
 	if (this->fDecomposed) {
 		return 1;
 	}
-	//CHAMAR LAPACK
+  
+#ifdef USING_LAPACK
+  char uplo = 'u';
+  int n = this->Dim();
+  int lda = this->Dim();
+  int info = -666;
+#ifdef STATE_COMPLEX
+  //cpotrf_(&uplo, &n, fDiag, &lda, &info); //nao compila
+#else
+  spotrf_(&uplo, &n, fDiag, &lda, &info);
+#endif
+#endif
+  
 	this->fDecomposed  = ECholesky;
 	this->fDefPositive = 1;
 	return( 1 );
@@ -603,7 +591,31 @@ TPZSBMatrixLapack<TVar>::Decompose_LDLt()
 {
 	
 	if (  this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
-	//chamar lapack
+	
+#ifdef USING_LAPACK
+  char uplo = 'u';
+  int n = this->Dim();
+  int lda = this->Dim();
+  int info = -666;
+  int *ipiv = new int [n];
+  int lwork = this->Dim();
+  TVar *work = new TVar [n];
+  
+#ifdef STATE_COMPLEX
+  
+  //csytrf_(&uplo, &n, fDiag, &lda, ipiv, work, &lwork, &info);
+  
+#else
+  
+  dsytrf_(&uplo, &n, fDiag, &lda, ipiv, work, &lwork, &info);
+  
+#endif
+  
+  if ( work != NULL ) delete[] work;
+  if( ipiv != NULL ) delete[] ipiv;
+  
+#endif
+  
 	this->fDecomposed  = 1;
 	this->fDefPositive = 0;
 	
@@ -614,7 +626,7 @@ TPZSBMatrixLapack<TVar>::Decompose_LDLt()
 /*********************/
 /*** Subst Forward ***/
 //
-//  Faz Ax = b, onde A e' triangular inferior.
+//  Does Ax = b, where A is lower triangular matrix
 //
 //ok
 template<class TVar>
@@ -643,7 +655,7 @@ TPZSBMatrixLapack<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
 	
 	return( 1 );
 }
-//Nok
+//nok
 template<class TVar>
 int TPZSBMatrixLapack<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 {
