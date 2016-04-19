@@ -134,6 +134,8 @@ ENABLE_TESTING()
 			add_subdirectory(MultipleLoad)
 
 			# add_subdirectory(adaptivity_refactor)
+
+			add_subdirectory(testMatLab)
 						
 			add_subdirectory(Cubo_do_Nathan)
 
