@@ -90,6 +90,17 @@ public:
 	  //DebugStop();
 	  return 0;
 	}
+    
+    template<class TVar2>
+    void CopyFrom(TPZMatrix<TVar2> &copy)
+    {
+        fDecomposed = copy.IsDecomposed();
+        fDefPositive = copy.IsDefPositive();
+        fRow = copy.Rows();
+        fCol = copy.Cols();
+        gZero = (TVar)(0);
+
+    }
 
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */

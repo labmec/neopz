@@ -769,7 +769,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
         pivot = *elem_k - sum;
         
         //EBORIN: FIXME: Shouldn't this be IsZero(pivot)???
-        if (pivot < 1.e-10) {
+        if (pivot < TVar(1.e-10)) {
             singular.push_back(k);
             pivot = 1.;
         }
@@ -812,7 +812,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
         }
     }
     
-    if(this->Rows() && (GetVal(this->Rows()-1,this->Rows()-1)) < 1.e-15) {
+    if(this->Rows() && (GetVal(this->Rows()-1,this->Rows()-1)) < TVar(1.e-15)) {
         singular.push_back(this->Rows()-1);
         PutVal(this->Rows()-1,this->Rows()-1,1.);
     }
@@ -886,7 +886,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
         // Faz A(k,k) = sqrt( A(k,k) - sum ).
         pivot = *elem_k - sum;
         minpivot = minpivot < pivot ? minpivot : pivot;
-        if ( pivot < 0. || IsZero(pivot) ) {
+        if ( pivot < TVar(0.) || IsZero(pivot) ) {
             cout << "TPZSkylMatrix::DecomposeCholesky! Matrix is not positive definite" << pivot << endl;
             return 0;
         }
@@ -1554,7 +1554,7 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<long>
     }
     else{
         TVar pivot = *run2;
-        if ( pivot < 1.e-10 ) {
+        if ( pivot < TVar(1.e-10) ) {
 #ifdef LOG4CXX
             std::stringstream sout;
             sout << "equation " << col << " is singular pivot " << pivot;
@@ -1629,7 +1629,7 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol)
         *modify /= *ptrprev;
     }
     else{
-        if ( *modify < 1.e-25 ) {
+        if ( *modify < TVar(1.e-25) ) {
             cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << *modify << endl;
             *modify = 1.e-10;
         }
@@ -1868,7 +1868,7 @@ TPZSkylMatrix<TVar>::operator()(const long r) {
 }
 
 //EBORIN: Define these if you want to use the experimental version.
-//#define DECOMPOSE_CHOLESKY_OPT2
+#define DECOMPOSE_CHOLESKY_OPT2
 //#define SKYLMATRIX_PUTVAL_OPT1
 //#define SKYLMATRIX_GETVAL_OPT1
 

@@ -392,7 +392,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 	{
 		return NULL;
 	}
-	TPZVec<int> sidestorefine;
+	TPZManVector<int,27> sidestorefine;
 	
 	bool thereIsAnyNeighbourRefined = TPZRefPatternTools::SidesToRefine(gel, sidestorefine);
 	if(!thereIsAnyNeighbourRefined)

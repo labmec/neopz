@@ -19,13 +19,27 @@
  * @since Aug 31, 2005.
  */
 class TPZElasticity3D : public TPZMaterial {
+    
+    private:
+    
+    enum PLASTICPOSTPROC{ENonePlasticProc = -1, EVonMises = 0, EMohrCoulomb = 1};
+    
+    STATE VonMisesPlasticFunction( TPZFMatrix<STATE> & StressTensor) const;
+    
+    STATE MohrCoulombPlasticFunction( TPZFMatrix<STATE> & StressTensor) const;
+    
+    void Invariants( TPZFMatrix<STATE> & A, STATE & I1, STATE & I2, STATE & I3) const;
+    
+    void StressDecomposition( TPZFMatrix<STATE> & StressTensor, TPZFMatrix<STATE> & Deviator, STATE & p) const;
 	
 	public :
 	
 	enum SOLUTIONVARS {ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ,
 		EPrincipalStress, EPrincipalStrain, EPrincipalDirection1, EPrincipalDirection2, EPrincipalDirection3,
 		EVonMisesStress, EStress, EStrain, EStrain1, EStress1, ENormalStress, ENormalStrain, EStressX, EStressY, EStressZ,
-        EI1, EI2, EI3};
+        EI1, EI2, EI3, EPlasticFunction};
+    
+
 	
 	/** 
 	 * @brief Class constructor
@@ -82,8 +96,20 @@ class TPZElasticity3D : public TPZMaterial {
 		for(int i = 0; i < 3; i++) this->fPostProcessDirection[i] = Direction[i];
 	}
 	
-	void SetYieldingStress(STATE fy){ this->fFy = fy; }
+	void SetVonMises(STATE fy){
+      this->fFy = fy;
+        this->fFrictionAngle = 0.;
+        this->fCohesion = 0.;
+        this->fPlasticPostProc = EVonMises;
+    }
 	
+    void SetMohrCoulomb(STATE fc, STATE ft){
+        this->fFy = 0.;
+        this->fFrictionAngle = asin( (fc-ft)/(fc+ft) );
+        this->fCohesion = fc*ft/(fc-ft) * tan(fFrictionAngle);
+        this->fPlasticPostProc = EMohrCoulomb;
+    }
+    
 	/** @brief Material name */
 	virtual std::string Name() { return "TPZElasticity3D"; }
 	
@@ -232,8 +258,14 @@ public:
 	/** @brief Direction to compute stress and strain */
 	TPZManVector<STATE,3> fPostProcessDirection;
 	
-	/** @brief Yeilding stress */
+	/** @brief Yeilding stress for von mises post processing */
 	STATE fFy;
+    
+    /** @brief Mohr-Coulomb parameters */
+    STATE fFrictionAngle, fCohesion;
+    
+    /** @brief Plastic model for post-processing */
+    PLASTICPOSTPROC fPlasticPostProc;
     
     TPZManVector<STATE> fPreStress;//just prestress XX, YY and ZZ
 	
