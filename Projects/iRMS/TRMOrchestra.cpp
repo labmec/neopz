@@ -77,13 +77,13 @@ void TRMOrchestra::CreateAnalysisPrimal()
 /** @brief Create a dual analysis using space odissey */
 void TRMOrchestra::CreateAnalysisDualonBox()
 {
-    int nel_x = 20;
-    int nel_y = 20;
-    int nel_z = 20;
+    int nel_x = 4;
+    int nel_y = 4;
+    int nel_z = 4;
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 0.05;
-    dy[0] = 0.05;
-    dz[0] = 0.05;
+    dx[0] = 0.25;
+    dy[0] = 0.25;
+    dz[0] = 0.25;
     
     fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
 #ifdef PZDEBUG
@@ -132,7 +132,7 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
     transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
     
-    //this->IntegrateResidue(fSpaceGenerator.GetFluxCmesh(), transfer); // Integrating Flux Residue;
+//    this->IntegrateResidue(fSpaceGenerator.GetFluxCmesh(), transfer); // Integrating Flux Residue;
     
     
     
@@ -170,8 +170,8 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     std::cout << "Transfer new solution and computing Residue  " << std::endl;
     std::cout << std::endl;
     std::cout << std::endl;
-    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
-    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
+//    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
+//    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
     fFluxPressureAnalysis.AssembleResidual();
     fFluxPressureAnalysis.LoadSolution();
     std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
@@ -193,6 +193,8 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 
 /** @brief Compute the system of equations using transfer matrixces */
 void TRMOrchestra::IntegrateResidue(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer<TRMBuildTransfers> transfer){
+    
+    // once we have
     
     // Integrate the volumetric forms
     transfer->GetTransferPressure_To_Mixed().Print("Flux = ");

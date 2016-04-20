@@ -304,8 +304,8 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
     // Getting the total integration point of the destination cmesh
     TPZMaterial * material = cmesh_multiphysics->FindMaterial(_ReservMatId);
     TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
-//    TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
-    int n_int_points = associated_material->GetMemory().NElements();
+    TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
+    int n_int_points = material_memory.NElements();
     
     
     // Resizing IA JA and A
@@ -318,8 +318,6 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
     
     this->CreateTransferFlux_To_Mixed(cmesh_multiphysics, mesh_index, IA, JA, Ax, Ay, Az, Ad);
     
-    
-    // ISSO EU NAO ENTENDI!!!!
     TPZAutoPointer<TPZVec<long> > IAg = new TPZVec<long>;
     TPZAutoPointer<TPZVec<long> > JAg = new TPZVec<long>;
     TPZAutoPointer<TPZVec<double> >Aw = new TPZVec<double>;
@@ -333,172 +331,170 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
     int volumetric_elements = 0;
     TPZMaterialData data;
     
-//    for (long icel = 0; icel < nel; icel++) {
-    
-//        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
-//        if (!cel) {
-//            DebugStop();
-//        }
-//        
-//        //        TPZCondensedCompEl * mf_cel_condensed = dynamic_cast<TPZCondensedCompEl *> (cel);
-//        //        if(!mf_cel_condensed){
-//        //            DebugStop();
-//        //        }
-//        //        TPZCompEl * mf_cel_cond_ref = mf_cel_condensed->ReferenceCompEl();
-//        
-//        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
-//        if(!mf_cel)
-//        {
-//            DebugStop();
-//        }
-//        
-//        // Avoiding al the materials that don't correspond to the volume
-//        if(mf_cel->Material()->Id() != _ReservMatId)
-//        {
-//            continue;
-//        }
+    for (long icel = 0; icel < nel; icel++) {
         
-//        TPZInterpolationSpace * intel_o = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(origin));
-//        TPZInterpolationSpace * intel_d = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(destination));
-//        if (!intel_o || !intel_d) {
-//            DebugStop();
-//        }
+        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
+        if (!cel) {
+            DebugStop();
+        }
         
-//        TPZCompMesh * cmesh_o = intel_o->Mesh();
+        //        TPZCondensedCompEl * mf_cel_condensed = dynamic_cast<TPZCondensedCompEl *> (cel);
+        //        if(!mf_cel_condensed){
+        //            DebugStop();
+        //        }
+        //        TPZCompEl * mf_cel_cond_ref = mf_cel_condensed->ReferenceCompEl();
         
-//        // Computing the global integration points indexes
-//        TPZManVector<long> globindexes;
-//        mf_cel->GetMemoryIndices(globindexes);
-//        
-//        // Computing the local integration points indexes
-//        const TPZIntPoints & int_points_cel_d = mf_cel->GetIntegrationRule();
-//        int np_cel_d = int_points_cel_d.NPoints();
-//        
-//        if (globindexes.size() != np_cel_d) {
-//            DebugStop();
-//        }
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+        if(!mf_cel)
+        {
+            DebugStop();
+        }
         
-//        volumetric_elements++;
-//        // Computing over all integration points of the compuational element cel
-//        TPZFNMatrix<100,REAL> phi(intel_o->NShapeF(),1,0.0);
-//        int el_dim = mf_cel->Reference()->Dimension();
-//        TPZFNMatrix<300,REAL> dphidxi(el_dim,intel_o->NShapeF(),0.0);
+        // Avoiding al the materials that don't correspond to the volume
+        if(mf_cel->Material()->Id() != _ReservMatId)
+        {
+            continue;
+        }
         
-//        for (int ip = 0; ip < np_cel_d ; ip++)
-//        {
+        TPZInterpolationSpace * intel_o = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(origin));
+        TPZInterpolationSpace * intel_d = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(destination));
+        if (!intel_o || !intel_d) {
+            DebugStop();
+        }
         
-//            TPZManVector<REAL,3> qsi(3,0.0);
-//            STATE w;
-//            int_points_cel_d.Point(ip, qsi, w);
-//            
-//            // Indetifying the right global index
-//            long globindex = globindexes[ip];
-//            long JAcount = IA[globindex];
-//            long JgAcount = IAg[globindex];
-//            
-//            // Get the vectorial phi
-//            intel_o->Shape(qsi, phi, dphidxi);
-//            intel_o->InitMaterialData(data);
-//            intel_o->ComputeRequiredData(data,qsi);
+        TPZCompMesh * cmesh_o = intel_o->Mesh();
+        
+        // Computing the global integration points indexes
+        TPZManVector<long> globindexes;
+        mf_cel->GetMemoryIndices(globindexes);
+        
+        // Computing the local integration points indexes
+        const TPZIntPoints & int_points_cel_d = mf_cel->GetIntegrationRule();
+        int np_cel_d = int_points_cel_d.NPoints();
+        
+        if (globindexes.size() != np_cel_d) {
+            DebugStop();
+        }
+        
+        volumetric_elements++;
+        // Computing over all integration points of the compuational element cel
+        TPZFNMatrix<100,REAL> phi(intel_o->NShapeF(),1,0.0);
+        int el_dim = mf_cel->Reference()->Dimension();
+        TPZFNMatrix<300,REAL> dphidxi(el_dim,intel_o->NShapeF(),0.0);
+        for (int ip = 0; ip < np_cel_d ; ip++)
+        {
             
-//            // Hdiv space
-//            REAL JacobianDet  = data.detjac;
-//            TPZFNMatrix<100,REAL> phiuH1         = data.phi;   // For H1  test functions Q
-//            TPZFNMatrix<300,STATE> dphiuH1       = data.dphi; // Derivative For H1  test functions
-//            TPZFNMatrix<300,STATE> dphiuH1axes   = data.dphix; // Derivative For H1  test functions
-//            
-//            TPZFNMatrix<300,STATE> Qaxes = data.axes;
-//            TPZFNMatrix<300,STATE> QaxesT;
-//            TPZFNMatrix<300,STATE> Jacobian = data.jacobian;
-//            TPZFNMatrix<300,STATE> JacobianInverse = data.jacinv;
-//            
-////            TPZFMatrix<STATE> GradOfX;
-//            TPZFNMatrix<300,STATE> GradOfXInverse;
-//            TPZFNMatrix<3,STATE> VectorOnMaster;
-//            TPZFNMatrix<3,STATE> VectorOnXYZ(3,1,0.0);
-//            
-//            Qaxes.Transpose(&QaxesT);
-////                                QaxesT.Multiply(Jacobian, GradOfX);
-//            JacobianInverse.Multiply(Qaxes, GradOfXInverse);
-//            
-//            TPZManVector<STATE,1> fval(1,0.0);
-//            ExactLaplacian(data.x,fval); // defined as static member
-//            REAL rhs = fval[0];
+            TPZManVector<REAL,3> qsi(3,0.0);
+            STATE w;
+            int_points_cel_d.Point(ip, qsi, w);
             
-//            // Feed material memory
-//            associated_material->GetMemory()[globindex].SetWeight(w);
-//            associated_material->GetMemory()[globindex].SetDetJac(JacobianDet);
-//            associated_material->GetMemory()[globindex].SetX(data.x);
-//            associated_material->GetMemory()[globindex].SetRhs(rhs);
+            // Indetifying the right global index
+            long globindex = globindexes[ip];
+
+            long JAcount = IA->operator[](globindex);
+            long JgAcount = IAg->operator[](globindex);
+            
+            // Get the vectorial phi
+            intel_o->Shape(qsi, phi, dphidxi);
+            intel_o->InitMaterialData(data);
+            intel_o->ComputeRequiredData(data,qsi);
+            
+            // Hdiv space
+            REAL JacobianDet  = data.detjac;
+            TPZFNMatrix<100,REAL> phiuH1         = data.phi;   // For H1  test functions Q
+            TPZFNMatrix<300,STATE> dphiuH1       = data.dphi; // Derivative For H1  test functions
+            TPZFNMatrix<300,STATE> dphiuH1axes   = data.dphix; // Derivative For H1  test functions
+            
+            TPZFNMatrix<300,STATE> Qaxes = data.axes;
+            TPZFNMatrix<300,STATE> QaxesT;
+            TPZFNMatrix<300,STATE> Jacobian = data.jacobian;
+            TPZFNMatrix<300,STATE> JacobianInverse = data.jacinv;
+            
+//            TPZFMatrix<STATE> GradOfX;
+            TPZFNMatrix<300,STATE> GradOfXInverse;
+            TPZFNMatrix<3,STATE> VectorOnMaster;
+            TPZFNMatrix<3,STATE> VectorOnXYZ(3,1,0.0);
+            
+            Qaxes.Transpose(&QaxesT);
+//                                QaxesT.Multiply(Jacobian, GradOfX);
+            JacobianInverse.Multiply(Qaxes, GradOfXInverse);
+            
+            TPZManVector<STATE,1> fval(1,0.0);
+            ExactLaplacian(data.x,fval); // defined as static member
+            REAL rhs = fval[0];
+            
+            // Feed material memory
+            material_memory[globindex].SetWeight(w);
+            material_memory[globindex].SetDetJac(JacobianDet);
+            material_memory[globindex].SetX(data.x);
+            material_memory[globindex].SetRhs(rhs);
 //            std::cout << "globindex = " <<  globindex << std::endl;
             // Feed vectors of geometric data for each volumetric element index
-//            JAg[JgAcount] = volumetric_elements-1;
-//            Aw[JgAcount] = w;
-//            Adet[JgAcount] = JacobianDet;
-//            Arhs[JgAcount] = rhs;
-//            JgAcount++;
+            JAg->operator[](JgAcount) = volumetric_elements-1;
+            Aw->operator[](JgAcount) = w;
+            Adet->operator[](JgAcount) = JacobianDet;
+            Arhs->operator[](JgAcount) = rhs;
+            JgAcount++;
             
-//            int nconnect = intel_o->NConnects();
-//            int iphicount = 0;
+            int nconnect = intel_o->NConnects();
+            int iphicount = 0;
             // Compute all the phi values and push inside corresponding j-destination;
             
             
-//            for (int icon = 0; icon < nconnect; icon++) {
-//                
-//                TPZConnect  & con = intel_o->Connect(icon);
-//                long seqnumber = con.SequenceNumber();
-//                long position = cmesh_o->Block().Position(seqnumber);
-//                int nshape = con.NShape();
-//                
-//                for (int ish=0; ish < nshape; ish++) {
-            
-//                    int vector_index = data.fVecShapeIndex[iphicount].first;
-//                    int shape_index = data.fVecShapeIndex[iphicount].second;
-//                    
-//                    VectorOnXYZ(0,0) = data.fNormalVec(0,vector_index);
-//                    VectorOnXYZ(1,0) = data.fNormalVec(1,vector_index);
-//                    VectorOnXYZ(2,0) = data.fNormalVec(2,vector_index);
-//                    
-//                    GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
-//                    VectorOnMaster *= JacobianDet;
-//                    
-////                    std::cout << "VectorOnMaster = " << VectorOnMaster << std::endl;
-//    
-//                    /* Contravariant Piola mapping preserves the divergence */
-//                    int dim =VectorOnMaster.Rows();
-//                    TPZFNMatrix<9,REAL> GradOfPhi(dim,dim);
-//                    for (int ir = 0; ir < dim; ir++) {
-//                        
-//                        //  Compute grad_{hat}(PhiH1)
-//                        
-//                        GradOfPhi(ir,0) = VectorOnMaster(ir,0)*dphiuH1(0,shape_index);
-//                        GradOfPhi(ir,1) = VectorOnMaster(ir,0)*dphiuH1(1,shape_index);
-//                        GradOfPhi(ir,2) = VectorOnMaster(ir,0)*dphiuH1(2,shape_index);
-//                        
-//                    }
-//                    GradOfPhi *= (1.0/JacobianDet);
-//                    REAL divPhi_Hdiv = ( GradOfPhi(0,0) + GradOfPhi(1,1) + GradOfPhi(2,2));
-//                    
-//                    TPZManVector<STATE> phi_Hdiv(3);
-//                    phi_Hdiv[0] = phi(shape_index,0)*VectorOnXYZ(0,0);
-//                    phi_Hdiv[1] = phi(shape_index,0)*VectorOnXYZ(1,0);
-//                    phi_Hdiv[2] = phi(shape_index,0)*VectorOnXYZ(2,0);
-//                    
-//                    JA[JAcount] = position + ish;
-//                    Ax[JAcount] = phi_Hdiv[0];
-//                    Ay[JAcount] = phi_Hdiv[1];
-//                    Az[JAcount] = phi_Hdiv[2];
-//                    Ad[JAcount] = divPhi_Hdiv;
-//                    iphicount++;
-//                    JAcount++;
-//                }
-        
-//            }
-//        }
-        
-//    }
+            for (int icon = 0; icon < nconnect; icon++) {
+                
+                TPZConnect  & con = intel_o->Connect(icon);
+                long seqnumber = con.SequenceNumber();
+                long position = cmesh_o->Block().Position(seqnumber);
+                int nshape = con.NShape();
+                
+                for (int ish=0; ish < nshape; ish++) {
+                    
+                    int vector_index = data.fVecShapeIndex[iphicount].first;
+                    int shape_index = data.fVecShapeIndex[iphicount].second;
+                    
+                    VectorOnXYZ(0,0) = data.fNormalVec(0,vector_index);
+                    VectorOnXYZ(1,0) = data.fNormalVec(1,vector_index);
+                    VectorOnXYZ(2,0) = data.fNormalVec(2,vector_index);
+                    
+                    GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
+                    VectorOnMaster *= JacobianDet;
+                    
+//                    std::cout << "VectorOnMaster = " << VectorOnMaster << std::endl;
     
-    // @Note:: Philippe after this lineas we have a huge jump in memory use.
+                    /* Contravariant Piola mapping preserves the divergence */
+                    int dim =VectorOnMaster.Rows();
+                    TPZFNMatrix<9,REAL> GradOfPhi(dim,dim);
+                    for (int ir = 0; ir < dim; ir++) {
+                        
+                        //  Compute grad_{hat}(PhiH1)
+                        
+                        GradOfPhi(ir,0) = VectorOnMaster(ir,0)*dphiuH1(0,shape_index);
+                        GradOfPhi(ir,1) = VectorOnMaster(ir,0)*dphiuH1(1,shape_index);
+                        GradOfPhi(ir,2) = VectorOnMaster(ir,0)*dphiuH1(2,shape_index);
+                        
+                    }
+                    GradOfPhi *= (1.0/JacobianDet);
+                    REAL divPhi_Hdiv = ( GradOfPhi(0,0) + GradOfPhi(1,1) + GradOfPhi(2,2));
+                    
+                    TPZManVector<STATE> phi_Hdiv(3);
+                    phi_Hdiv[0] = phi(shape_index,0)*VectorOnXYZ(0,0);
+                    phi_Hdiv[1] = phi(shape_index,0)*VectorOnXYZ(1,0);
+                    phi_Hdiv[2] = phi(shape_index,0)*VectorOnXYZ(2,0);
+                    
+                    JA->operator[](JAcount) = position + ish;
+                    Ax->operator[](JAcount) = phi_Hdiv[0];
+                    Ay->operator[](JAcount) = phi_Hdiv[1];
+                    Az->operator[](JAcount) = phi_Hdiv[2];
+                    Ad->operator[](JAcount) = divPhi_Hdiv;
+                    iphicount++;
+                    JAcount++;
+                }
+                
+            }
+        }
+        
+    }
     
     fTransfer_X_Flux_To_Mixed.SetData(IA, JA, Ax);
     fTransfer_Y_Flux_To_Mixed.SetData(IA, JA, Ay);
@@ -508,9 +504,7 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
     fIntegrationWeights.SetData(IAg,JAg,Aw);
     fJacobianDet.SetData(IAg,JAg,Adet);
     fRhs.SetData(IAg,JAg,Arhs);
-    
-
-    
+    associated_material->SetMemory(material_memory);
 }
 
 /** @brief exact laplacian */
@@ -542,9 +536,10 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
     int n_int_points = material_memory.NElements();
     
     // Resizing IA JA and A
-    TPZManVector<long> IA;
-    TPZManVector<long> JA;
-    TPZManVector<double> A;
+    TPZAutoPointer<TPZVec<long> > IA = new TPZVec<long>;
+    TPZAutoPointer<TPZVec<long> > JA = new TPZVec<long>;
+    TPZAutoPointer<TPZVec<double> > A = new TPZVec<double>;
+
     
     this->CreateTransferPressure_To_Mixed(cmesh_multiphysics, mesh_index, IA, JA, A);
     
@@ -607,7 +602,7 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
             
             // Indetifying the right global index
            long globindex = globindexes[ip];
-           long JAcount = IA[globindex];
+           long JAcount = IA->operator[](globindex);
 
             intel_o->Shape(qsi, phi, dphidxi);
 
@@ -621,8 +616,8 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
                 int nshape = con.NShape();
 
                 for (int ish=0; ish < nshape; ish++) {
-                    JA[JAcount] = position + ish;
-                    A[JAcount] = phi(iphicount,0);
+                    JA->operator[](JAcount) = position + ish;
+                    A->operator[](JAcount) = phi(iphicount,0);
                     iphicount++;
                     JAcount++;
                 }

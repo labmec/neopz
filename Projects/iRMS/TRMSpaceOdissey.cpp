@@ -255,8 +255,8 @@ void ExactPressure(const TPZVec<REAL> &pt, TPZVec<STATE> &pressure)
     x = pt[0];
     y = pt[1];
     z = pt[2];
-    
-    pressure[0] = (1. - x)*x + (1. - y)*y + (1. - z)*z;//(1. - x)*x*(1. - y)*y*(1. - z)*z;
+    STATE p = (1. - x)*x + (1. - y)*y + (1. - z)*z;//(1. - x)*x*(1. - y)*y*(1. - z)*z;
+    pressure[0] = p;
 }
 
 /** @brief exact flux */
