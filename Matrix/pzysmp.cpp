@@ -756,9 +756,9 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 	TVar sum;
 	long xcols = data->fX->Cols();
     long ic,ir,icol;
-    TPZVec<long> &IA = (TPZVec<long> &)(mat->fIA);
-    TPZVec<long> &JA = (TPZVec<long> &)mat->fJA;
-    TPZVec<TVar> &A = (TPZVec<TVar> &)mat->fA;
+    TPZVec<long> &IA = *(mat->fIA.operator->());
+    TPZVec<long> &JA = *(mat->fJA.operator->());
+    TPZVec<TVar> &A = *(mat->fA.operator->());
 
 	// Compute alpha * A * x
 	if(xcols == 1 && data->fStride == 1 && data->fOpt == 0)
