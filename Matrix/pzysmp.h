@@ -72,8 +72,13 @@ public:
 	virtual const TVar &GetVal(const long row,const long col ) const;
 	
 	long NumTerms()
-	{
-		return fIA[this->Rows()];
+    {
+        const TPZVec<long> &IA = fIA;
+        const TPZVec<long> &JA = fJA;
+        const TPZVec<TVar> &A = fA;
+        const TPZVec<TVar> &Diag = fDiag;
+
+		return IA[this->Rows()];
 	}
 	
 	int PutVal(const long row, const long col, const TVar &Value);
@@ -95,7 +100,24 @@ public:
     /** @brief Pass the data to the class. */
     virtual void SetData( TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<TVar> &A );
 	
-	/** @brief Print the matrix along with a identification title */
+    /** @brief Pass the data to the class. */
+    void SetData( TPZAutoPointer<TPZVec<long> > IA, TPZAutoPointer<TPZVec<long> > JA, TPZAutoPointer<TPZVec<TVar> > A )
+    {
+        if (IA->size() != this->Rows() + 1 ) {
+            DebugStop();
+        }
+        
+        if (JA->size() != IA.operator->()->operator[](this->Rows()) ) {
+            DebugStop();
+        }
+        
+        fIA = IA;
+        fJA = JA;
+        fA = A;
+
+    }
+
+    /** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
 	
 	/**
@@ -179,11 +201,11 @@ private:
 	void RowLUUpdate(long sourcerow, long destrow);
 	
 protected:
-	TPZVec<long>  fIA;
-	TPZVec<long>  fJA;
-	TPZVec<TVar> fA;
+	TPZAutoPointer<TPZVec<long> >  fIA;
+	TPZAutoPointer<TPZVec<long> > fJA;
+	TPZAutoPointer<TPZVec<TVar> > fA;
 	
-	TPZVec<TVar> fDiag;
+	TPZAutoPointer<TPZVec<TVar> > fDiag;
 	
 	int   fSymmetric;
 	
@@ -205,13 +227,20 @@ template<class TVar>
 inline void TPZFYsmpMatrix<TVar>::SetData( long *IA, long *JA, TVar *A ) {
 	// Pass the data to the class.
     int nel = this->Rows()+1;
-    fIA.resize(nel);
-    memccpy(&fIA[0], IA, nel, sizeof(long));
-    long nval = fIA[nel-1];
-    fJA.resize(nval);
-    memccpy(&fJA[0], JA, nval, sizeof(long));
-    fA.resize(nval);
-    memccpy(&fA[0], A, nval, sizeof(TVar));
+    fIA = new TPZVec<long>;
+    fJA = new TPZVec<long>;
+    fA = new TPZVec<TVar>;
+    TPZVec<long> &IAv = fIA;
+    TPZVec<long> &JAv = fJA;
+    TPZVec<TVar> &Av = fA;
+
+    IAv.resize(nel);
+    memccpy(&IAv[0], IA, nel, sizeof(long));
+    long nval = IAv[nel-1];
+    JAv.resize(nval);
+    memccpy(&JAv[0], JA, nval, sizeof(long));
+    Av.resize(nval);
+    memccpy(&Av[0], A, nval, sizeof(TVar));
 	ComputeDiagonal();
 }
 
@@ -226,10 +255,13 @@ inline void TPZFYsmpMatrix<TVar>::SetData( TPZVec<long> &IA, TPZVec<long> &JA, T
     if (JA.size() != IA[this->Rows()]) {
         DebugStop();
     }
-    
-    fIA = IA;
-    fJA = JA;
-    fA = A;
+    TPZVec<long> &IAv = fIA;
+    TPZVec<long> &JAv = fJA;
+    TPZVec<TVar> &Av = fA;
+
+    IAv = IA;
+    JAv = JA;
+    Av = A;
 }
 
 #endif

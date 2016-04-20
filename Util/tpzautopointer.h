@@ -178,6 +178,11 @@ public:
 		return *(fRef->fPointer);
 	}
     
+    operator const T&() const
+    {
+        return *(fRef->fPointer);
+    }
+    
 	/** @brief Returns the pointer for referenced object */
 	T *operator->() const
 	{

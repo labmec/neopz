@@ -29,7 +29,7 @@ TRMBuildTransfers::~TRMBuildTransfers(){
 
 }
 
-void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &Ax, TPZManVector<STATE> &Ay, TPZManVector<STATE> &Az, TPZManVector<STATE> &Ad){
+void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &Ax, TPZVec<STATE> &Ay, TPZVec<STATE> &Az, TPZVec<STATE> &Ad){
     
     long nel = cmesh_multiphysics->NElements();
     
@@ -118,7 +118,7 @@ void TRMBuildTransfers::CreateTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh>
     
 }
 
-void TRMBuildTransfers::CreateTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &A){
+void TRMBuildTransfers::CreateTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &A){
     
     long nel = cmesh_multiphysics->NElements();
     
@@ -202,7 +202,7 @@ void TRMBuildTransfers::CreateTransferPressure_To_Mixed(TPZAutoPointer< TPZCompM
 }
 
 
-void TRMBuildTransfers::CreateTransferGeometricData_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZManVector<long> &IA, TPZManVector<long> &JA, TPZManVector<STATE> &Aweights, TPZManVector<STATE> &Adet, TPZManVector<STATE> &Arhs){
+void TRMBuildTransfers::CreateTransferGeometricData_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &Aweights, TPZVec<STATE> &Adet, TPZVec<STATE> &Arhs){
     
     long nel = cmesh_multiphysics->NElements();
     
@@ -309,14 +309,23 @@ void TRMBuildTransfers::ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh
     
     
     // Resizing IA JA and A
-    TPZManVector<long> IA;
-    TPZManVector<long> JA;
-    TPZManVector<double> Ax,Ay,Az,Ad;
+    TPZAutoPointer<TPZVec<long> > IA = new TPZVec<long>;
+    TPZAutoPointer<TPZVec<long> > JA = new TPZVec<long>;
+    TPZAutoPointer<TPZVec<double> > Ax = new TPZVec<double>;
+    TPZAutoPointer<TPZVec<double> > Ay = new TPZVec<double>;
+    TPZAutoPointer<TPZVec<double> > Az = new TPZVec<double>;
+    TPZAutoPointer<TPZVec<double> > Ad = new TPZVec<double>;
+    
     this->CreateTransferFlux_To_Mixed(cmesh_multiphysics, mesh_index, IA, JA, Ax, Ay, Az, Ad);
     
-    TPZManVector<long> IAg;
-    TPZManVector<long> JAg;
-    TPZManVector<double> Aw,Adet,Arhs;
+    
+    // ISSO EU NAO ENTENDI!!!!
+    TPZAutoPointer<TPZVec<long> > IAg = new TPZVec<long>;
+    TPZAutoPointer<TPZVec<long> > JAg = new TPZVec<long>;
+    TPZAutoPointer<TPZVec<double> >Aw = new TPZVec<double>;
+    TPZAutoPointer<TPZVec<double> >Adet = new TPZVec<double>;
+    TPZAutoPointer<TPZVec<double> >Arhs = new TPZVec<double>;
+
     this->CreateTransferGeometricData_To_Mixed(cmesh_multiphysics, mesh_index, IAg, JAg, Aw, Adet, Arhs);
     
     int origin = mesh_index;
