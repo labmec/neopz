@@ -2606,6 +2606,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 				unsigned max_l = end_i - elem_i;
 				unsigned tmp = end_k - elem_k;
 				if (tmp < max_l) max_l = tmp;
+#pragma clang loop vectorize_width(2)
 				for(unsigned l=0; l<max_l; l++) 
                     sum += (*elem_i++) * (*elem_k++);
 				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
