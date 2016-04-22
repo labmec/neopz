@@ -622,6 +622,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
     
+#define NONO
 #ifdef NONO
     step.SetMatrix(an->Solver().Matrix());
 

@@ -756,8 +756,10 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
         // sum = Sum( A(k,p) * A(k,p) ), p = 1, ..., k-1.
         TVar sum = 0.0;
         TVar *elem_k = fElem[k];
-        TVar *end_k  = fElem[k+1]-1; 
-        for ( ; elem_k < end_k; elem_k++ ) 
+        TVar *end_k  = fElem[k+1]-1;
+        
+#pragma clang loop vectorize_width(2)
+        for ( ; elem_k < end_k; elem_k++ )
             sum += (*elem_k) * (*elem_k);
         
         elem_k = fElem[k+1]-1;    // Diagonal element.
@@ -798,7 +800,8 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
                 TVar* ip = last_i - min_sz;
                 TVar* kp = last_k - min_sz;
                 
-                for(unsigned l=0; l<min_sz; l++) 
+#pragma clang loop vectorize_width(2)
+                for(unsigned l=0; l<min_sz; l++)
                     sum += (*ip++) * (*kp++);
                 
                 // A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -875,7 +878,8 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
         TVar sum = 0.0;
         TVar *elem_k = fElem[k];
         TVar *end_k  = fElem[k+1]-1; 
-        for ( ; elem_k < end_k; elem_k++ ) 
+#pragma clang loop vectorize_width(2)
+        for ( ; elem_k < end_k; elem_k++ )
             sum += (*elem_k) * (*elem_k);
         
         elem_k = fElem[k+1]-1;    // Diagonal element.
@@ -915,7 +919,8 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
                 TVar* ip = last_i - min_sz;
                 TVar* kp = last_k - min_sz;
                 
-                for(unsigned l=0; l<min_sz; l++) 
+#pragma clang loop vectorize_width(2)
+                for(unsigned l=0; l<min_sz; l++)
                     sum += (*ip++) * (*kp++);
                 
                 // A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -2575,6 +2580,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 		TVar sum = 0.0;
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
+#pragma clang loop vectorize_width(2)
 		for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
 		
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
@@ -2705,6 +2711,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 		TVar sum = 0.0;
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
+#pragma clang loop vectorize_width(2)
 		for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
 		
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
@@ -2748,7 +2755,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
                     unsigned max_l = end_i - elem_i;
                     unsigned tmp = end_k - elem_k;
                     if (tmp < max_l) max_l = tmp;
-                    for(unsigned l=0; l<max_l; l++) 
+#pragma clang loop vectorize_width(2)
+                    for(unsigned l=0; l<max_l; l++)
                         sum += (*elem_i++) * (*elem_k++);
                     // Faz A(i,k) = (A(i,k) - sum) / A(k,k)
                     fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
@@ -2837,7 +2845,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(long blk_sz)
                 unsigned max_l = end_kj - elem_kj;
                 unsigned tmp = end_ki - elem_ki;
                 if (tmp < max_l) max_l = tmp;
-                for(unsigned l=0; l<max_l; l++) 
+#pragma clang loop vectorize_width(2)
+                for(unsigned l=0; l<max_l; l++)
                     sum += (*elem_kj++) * (*elem_ki++);
                 
                 *u_ij = (*u_ij - sum) / pivot;
@@ -2850,6 +2859,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(long blk_sz)
                 TVar* u_jj = &fElem[j][0];
                 TVar *elem_k = fElem[j]+1;
                 TVar *end_k  = fElem[j+1];
+#pragma clang loop vectorize_width(2)
                 for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
                 pivot = *u_jj - sum;
                 
