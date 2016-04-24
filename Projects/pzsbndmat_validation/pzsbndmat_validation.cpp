@@ -22,18 +22,21 @@ int main(int argc, char *argv[])
   InitializePZLOG();
 #endif
   timer.start();
-  TPZSBMatrixLapack < double > a (4 , 1);
+  TPZSBMatrixLapack < double > a (4 , 2);
   TPZSBMatrixLapack < double > b (4 , 2);
   TPZSBMatrixLapack < double > c (4 , 2);
-  a.PutVal(0,0,1);
-  a.PutVal(1,1,1);
-  a.PutVal(2,2,1);
-  a.PutVal(3,3,1);
-  
-  a.PutVal(0,1,-1);
-  a.PutVal(1,2,-1);
-  a.PutVal(2,3,-1);
-  
+	a.PutVal(0,0,1);
+	a.PutVal(1,1,1);
+	a.PutVal(2,2,1);
+	a.PutVal(3,3,1);
+	
+	a.PutVal(0,1,-1);
+	a.PutVal(1,2,-1);
+	a.PutVal(2,3,-1);
+	
+	a.PutVal(0,2,4);
+	a.PutVal(1,3,4);
+	
   b.PutVal(0,0,1);
   b.PutVal(1,1,1);
   b.PutVal(2,2,1);

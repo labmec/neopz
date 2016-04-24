@@ -5,7 +5,8 @@
  * @details While the class TPZSBMatrix also implements a symmetric band matrix, it does so in a manner not adequate
  * for straightforward use of LAPACK methods, since it stores the relevant diagonals in a column-major fashion, beginning
  * with the main diagonal. LAPACK requires the matrix to be stored in a row-major fashion, beginning with the
- * diagonal in which j - i = fBand
+ * diagonal in which j - i = fBand.
+ * Finally, FORTRAN convention for 2D arrays requires the matrix to be stored column-major wise. (http://www.wikiwand.com/en/Row-major_order)
  */
 
 #ifndef TSBNDMATH
@@ -102,7 +103,7 @@ private:
 	void Copy (const TPZSBMatrixLapack<TVar> & );
 	
 	
-	TVar *fDiag;
+	TPZVec<TVar> fDiag;
 	long  fBand;
 };
 
