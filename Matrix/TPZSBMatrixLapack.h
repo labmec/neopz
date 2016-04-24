@@ -93,17 +93,6 @@ public:
 	int Subst_Diag     ( TPZFMatrix<TVar> *b ) const;
 	// @}
 	
-#ifdef OOPARLIB
-	
-	virtual long GetClassID() const        { return TSBMATRIX_ID; }
-	virtual int Unpack( TReceiveStorage *buf );
-	static TSaveable *Restore(TReceiveStorage *buf);
-	virtual int Pack( TSendStorage *buf ) const;
-	virtual std::string ClassName() const   { return( "TPZSBMatrixLapack"); }
-	virtual int DerivedFrom(const long Classid) const;
-	virtual int DerivedFrom(const char *classname) const; // a class with name classname
-	
-#endif
 	
 private:
 	

@@ -84,7 +84,7 @@ TPZSBMatrixLapack<TVar>::PutVal(const long r,const long c,const TVar& value )
   if ( (index = col-row) > fBand )
   {
 #ifdef PZDEBUG
-    if (value != 0. ) {
+    if (value != TVar(0.) ) {
       DebugStop();
     }
 #endif
@@ -175,39 +175,16 @@ template<class TVar>
 TPZSBMatrixLapack<TVar>
 TPZSBMatrixLapack<TVar>::operator+(const TPZSBMatrixLapack<TVar> &A ) const
 {
-	if ( this->Dim() != A.Dim() )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrixLapack ) <incompatible dimensions>" );
-
-	TVar *elemMax;
-	TVar *elemMin;
-	long  sizeMax;
-	long  sizeMin;
-	if ( fBand > A.fBand )
-    {
-		sizeMax = fBand;
-		elemMax = fDiag;
-		sizeMin = A.fBand;
-		elemMin = A.fDiag;
+    if ( this->Dim() != A.Dim() || fBand != A.fBand )
+        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator-( TPZSBMatrixLapack ) <incompatible dimensions>" );
+    
+    long nel = Size();
+    TPZSBMatrixLapack<TVar> res( this->Dim(), fBand );
+    
+    for (long el=0; el<nel; el++) {
+        res.fDiag[el] = fDiag[el]+A.fDiag[el];
     }
-	else
-    {
-		sizeMax = A.fBand;
-		elemMax = A.fDiag;
-		sizeMin = fBand;
-		elemMin = fDiag;
-    }
-  const long diffSize = sizeMax - sizeMin;
-  const long dim = this->Dim();
-	TPZSBMatrixLapack<TVar> res( this->Dim(), sizeMax );
-	
-	TVar *dest = res.fDiag;
-	long i;
-  for (  i = 0; i < diffSize * dim; i++ )
-    *dest++ = *elemMax++;
-  for ( ; i < ( sizeMax + 1 ) * dim; i++ )
-    *dest++ = (*elemMax++) + (*elemMin++);
-	
-	return( res );
+    return res;
 }
 
 /******************/
@@ -217,43 +194,16 @@ template<class TVar>
 TPZSBMatrixLapack<TVar>
 TPZSBMatrixLapack<TVar>::operator-(const TPZSBMatrixLapack<TVar> &A ) const
 {
-  if ( this->Dim() != A.Dim() )
+  if ( this->Dim() != A.Dim() || fBand != A.fBand )
     TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator-( TPZSBMatrixLapack ) <incompatible dimensions>" );
   
-  TVar *elemMax;
-  TVar *elemMin;
-  long  sizeMax;
-  long  sizeMin;
-  int isThisTheBiggest;
-  if ( fBand > A.fBand )
-  {
-    sizeMax = fBand;
-    elemMax = fDiag;
-    sizeMin = A.fBand;
-    elemMin = A.fDiag;
-    isThisTheBiggest = 2;
-  }
-  else
-  {
-    sizeMax = A.fBand;
-    elemMax = A.fDiag;
-    sizeMin = fBand;
-    elemMin = fDiag;
-    isThisTheBiggest = 0;
-  }
-  const long diffSize = sizeMax - sizeMin;
-  const long dim = this->Dim();
-  TPZSBMatrixLapack<TVar> res( this->Dim(), sizeMax );
-  
-  // SUBTRACT
-  TVar *dest = res.fDiag;
-  long i;
-  for (  i = 0; i < diffSize * dim; i++ )
-    *dest++ = (*elemMax++) * real( isThisTheBiggest - 1 );
-  for ( ; i < ( sizeMax + 1 ) * dim; i++ )
-    *dest++ = (*elemMax++) * real( isThisTheBiggest - 1 ) + (*elemMin++) * real( 1 - isThisTheBiggest );
-  
-  return( res );
+    long nel = Size();
+    TPZSBMatrixLapack<TVar> res( this->Dim(), fBand );
+    
+    for (long el=0; el<nel; el++) {
+        res.fDiag[el] = fDiag[el]-A.fDiag[el];
+    }
+    return res;
 }
 
 /*******************/
@@ -263,37 +213,16 @@ template<class TVar>
 TPZSBMatrixLapack<TVar> &
 TPZSBMatrixLapack<TVar>::operator+=(const TPZSBMatrixLapack<TVar> &A )
 {
-	if ( this->Dim() != A.Dim() )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator+=( TPZSBMatrixLapack ) <incompatible dimensions>" );
-	
-	// No caso de as bandas serem iguais (ou se "tornarem" iguais).
-	if ( fBand <= A.fBand )
-	{
-		if ( fBand < A.fBand ){
-			SetBand( A.fBand );
-		}
-		TVar *pThis = fDiag;
-		TVar *pA = A.fDiag;
-		TVar *end = &fDiag[ Size() ];
-		while ( pThis < end ){
-		*pThis++ += *pA++;
-		}
-	}
-	else
-	{
-		// Se a banda desta matriz for maior...
-		TVar *pThis  = fDiag;
-		TVar *pA     = A.fDiag;
-		long dim = this->Dim();
-		long sizeA    = A.fBand;
-		*pThis += (this->fBand - sizeA) * dim;
-		for ( long i = 0; i < ( sizeA + 1 ) * dim ; i++ ){
-			*pThis++ += *pA++;
-		}
-	}
-	
-	this->fDecomposed = 0;
-	return( *this );
+    if ( this->Dim() != A.Dim() || fBand != A.fBand )
+        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator+=( TPZSBMatrixLapack ) <incompatible dimensions>" );
+    
+    long nel = Size();
+    
+    for (long el=0; el<nel; el++) {
+        fDiag[el] = fDiag[el]+A.fDiag[el];
+    }
+    return *this;
+
 }
 
 /*******************/
@@ -303,37 +232,15 @@ template<class TVar>
 TPZSBMatrixLapack<TVar> &
 TPZSBMatrixLapack<TVar>::operator-=(const TPZSBMatrixLapack<TVar> &A )
 {
-	if ( this->Dim() != A.Dim() )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator-=( TPZSBMatrixLapack ) <incompatible dimensions>" );
-	
-	// No caso de as bandas serem iguais (ou se "tornarem" iguais).
-	if ( fBand <= A.fBand )
-	{
-		if ( fBand < A.fBand ){
-			SetBand( A.fBand );
-		}
-		TVar *pThis = fDiag;
-		TVar *pA = A.fDiag;
-		TVar *end = &fDiag[ Size() ];
-		while ( pThis < end ){
-			*pThis++ -= *pA++;
-		}
-	}
-	else
-	{
-		// Se a banda desta matriz for maior...
-		TVar *pThis  = fDiag;
-		TVar *pA     = A.fDiag;
-		long dim = this->Dim();
-		long sizeA    = A.fBand;
-		*pThis += (this->fBand - sizeA) * dim;
-		for ( long i = 0; i < ( sizeA + 1 ) * dim ; i++ ){
-			*pThis++ -= *pA++;
-		}
-	}
-	
-	this->fDecomposed = 0;
-	return( *this );
+    if ( this->Dim() != A.Dim() || fBand != A.fBand )
+        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator-=( TPZSBMatrixLapack ) <incompatible dimensions>" );
+    
+    long nel = Size();
+    
+    for (long el=0; el<nel; el++) {
+        fDiag[el] = fDiag[el]-A.fDiag[el];
+    }
+    return *this;
 }
 //NOK
 template<class TVar>
@@ -383,7 +290,6 @@ TPZSBMatrixLapack<TVar>::operator+=(const TVar value )
 		}
 	}while ( pm < end )
 	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -549,6 +455,30 @@ TPZSBMatrixLapack<TVar>::Decompose_Cholesky(std::list<long> &singular)
 	return Decompose_Cholesky();
 }
 //NOK
+
+template<>
+int
+TPZSBMatrixLapack<std::complex<double> >::Decompose_Cholesky()
+{
+    if (  this->fDecomposed && this->fDecomposed != ECholesky )  TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
+    if (this->fDecomposed) {
+        return 1;
+    }
+    
+#ifdef USING_LAPACK
+    char uplo = 'u';
+    int n = this->Dim();
+    int lda = this->Dim();
+    int info = -666;
+    cpotrf_(&uplo, &n, fDiag, &lda, &info); //nao compila
+#endif
+    
+    this->fDecomposed  = ECholesky;
+    this->fDefPositive = 1;
+    return( 1 );
+}
+
+
 template<class TVar>
 int
 TPZSBMatrixLapack<TVar>::Decompose_Cholesky()
@@ -573,6 +503,32 @@ TPZSBMatrixLapack<TVar>::Decompose_Cholesky()
 	this->fDecomposed  = ECholesky;
 	this->fDefPositive = 1;
 	return( 1 );
+}
+
+template<>
+int
+TPZSBMatrixLapack<double>::Decompose_Cholesky()
+{
+    if (  this->fDecomposed && this->fDecomposed != ECholesky )  TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
+    if (this->fDecomposed) {
+        return 1;
+    }
+    
+#ifdef USING_LAPACK
+    char uplo = 'u';
+    int n = this->Dim();
+    int lda = this->Dim();
+    int info = -666;
+#ifdef STATE_COMPLEX
+    //cpotrf_(&uplo, &n, fDiag, &lda, &info); //nao compila
+#else
+    spotrf_(&uplo, &n, fDiag, &lda, &info);
+#endif
+#endif
+    
+    this->fDecomposed  = ECholesky;
+    this->fDefPositive = 1;
+    return( 1 );
 }
 
 /**********************/
@@ -805,48 +761,11 @@ TPZSBMatrixLapack<TVar>::Copy(const TPZSBMatrixLapack<TVar> &A )
 		*dst++ = *src++;
 }
 
-#ifdef OOPARLIB
-
-template<class TVar>
-int TPZSBMatrixLapack<TVar>::Unpack (TReceiveStorage *buf ){
-	TSimMatrix::Unpack(buf);
-	buf->UpkInt(&fBand);
-	buf->UpkDouble(fDiag,fBand);
-	return 1;
-}
-
-
-template<class TVar>
-TSaveable *TPZSBMatrixLapack<TVar>::Restore(TReceiveStorage *buf) {
-	TPZSBMatrixLapack<TVar> *m = new TPZSBMatrixLapack<TVar>();
-	m->Unpack(buf);
-	return m;
-}
-
-template<class TVar>
-int TPZSBMatrixLapack<TVar>::Pack( TSendStorage *buf ){
-	TSimMatrix::Pack(buf);
-	buf->PkInt(&fBand);
-	buf->PkDouble(fDiag,fBand);
-	return 1;
-}
-
-template<class TVar>
-int TPZSBMatrixLapack<TVar>::DerivedFrom(long Classid){
-	if(Classid == GetClassID()) return 1;
-	return TSimMatrix::DerivedFrom(Classid);
-}
-
-template<class TVar>
-int TPZSBMatrixLapack<TVar>::DerivedFrom(char *classname){
-	if(!strcmp(ClassName(),classname)) return 1;
-	return TSimMatrix::DerivedFrom(classname);
-}
-
-#endif
 
 // Inicializando os templates
+template class TPZSBMatrixLapack< float >;
 template class TPZSBMatrixLapack< double >;
 template class TPZSBMatrixLapack< long double >;
 template class TPZSBMatrixLapack< complex<double> >;
+template class TPZSBMatrixLapack< complex<float> >;
 
