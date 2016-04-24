@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains TPZSBMatrixLapack class which implements symmetric band matrices using resources from LAPACK.
+ * @brief Contains TPZSBMatrixLapack class which implements symmetric/hermitian band matrices using resources from LAPACK.
  * 
  * @details While the class TPZSBMatrix also implements a symmetric band matrix, it does so in a manner not adequate
  * for straightforward use of LAPACK methods, since it stores the relevant diagonals in a column-major fashion, beginning

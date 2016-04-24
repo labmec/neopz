@@ -751,6 +751,60 @@ TPZSBMatrixLapack<TVar>::Solve_EigenProblem(TPZSBMatrixLapack<TVar> &B , TPZVec 
 //  Does Ax = b, where A is lower triangular matrix
 //
 //final_ok
+template<>
+int
+TPZSBMatrixLapack<complex<float> >::Subst_Forward( TPZFMatrix< complex<float> >*B ) const
+{
+	if ( ( B->Rows() != this->Dim() ) || !this->fDecomposed )
+		TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+	
+	complex<float> *row_k = fDiag.begin() + fBand;//first element of main diagonal
+	for ( long k = 0; k < this->Dim(); row_k += k >= fBand ? fBand + 1 : fBand , k++){
+		for ( long j = 0; j < B->Cols(); j++ )
+		{
+			// Does sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
+			complex<float> sum = this->gZero;
+			complex<float> *current = row_k;
+			for ( long i = 0; i < k ; i++ ){
+				if ( i - k > fBand ) continue; //empty positions
+				sum += std::conj((*current)) * B->GetVal( i, j );
+				current++;
+			}
+			// Does B[k,j] = (B[k,j] - sum) / A[k,k].
+			//
+			B->PutVal( k, j, (B->GetVal(k, j) - sum) / std::conj(*current) );
+		}
+	}
+	return( 1 );
+}
+//final_ok
+template<>
+int
+TPZSBMatrixLapack<complex<double> >::Subst_Forward( TPZFMatrix< complex<double> >*B ) const
+{
+	if ( ( B->Rows() != this->Dim() ) || !this->fDecomposed )
+		TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+	
+	complex<double> *row_k = fDiag.begin() + fBand;//first element of main diagonal
+	for ( long k = 0; k < this->Dim(); row_k += k >= fBand ? fBand + 1 : fBand , k++){
+		for ( long j = 0; j < B->Cols(); j++ )
+		{
+			// Does sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
+			complex<double> sum = this->gZero;
+			complex<double> *current = row_k;
+			for ( long i = 0; i < k ; i++ ){
+				if ( i - k > fBand ) continue; //empty positions
+				sum += std::conj((*current)) * B->GetVal( i, j );
+				current++;
+			}
+			// Does B[k,j] = (B[k,j] - sum) / A[k,k].
+			//
+			B->PutVal( k, j, (B->GetVal(k, j) - sum) / std::conj(*current) );
+		}
+	}
+	return( 1 );
+}
+//final_ok
 template<class TVar>
 int
 TPZSBMatrixLapack<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
@@ -810,6 +864,58 @@ int TPZSBMatrixLapack<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 //   da diagonal sao todos iguais a 1.
 //
 //final_ok
+template<>
+int TPZSBMatrixLapack<complex<float> >::Subst_LForward( TPZFMatrix<complex<float> > *B ) const
+{
+	if ( ( B->Rows() != this->Dim() ) || !this->fDecomposed )
+		TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Subst_LForward-> uncompatible matrices") ;
+	
+	complex<float> *row_k = fDiag.begin() + fBand;//first element of main diagonal
+	for ( long k = 0; k < this->Dim(); row_k += k >= fBand ? fBand + 1 : fBand , k++){
+		for ( long j = 0; j < B->Cols(); j++ )
+		{
+			// Does sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
+			complex<float> sum = this->gZero;
+			complex<float> *current = row_k;
+			for ( long i = 0; i < k ; i++ ){
+				if ( i - k > fBand ) continue; //empty positions
+				sum += std::conj((*current)) * B->GetVal( i, j );
+				current++;
+			}
+			// Does B[k,j] = (B[k,j] - sum) / A[k,k].
+			//
+			B->PutVal( k, j, B->GetVal(k, j) - sum );
+		}
+	}
+	return( 1 );
+}
+//final_ok
+template<>
+int TPZSBMatrixLapack<complex<double> >::Subst_LForward( TPZFMatrix<complex<double> > *B ) const
+{
+	if ( ( B->Rows() != this->Dim() ) || !this->fDecomposed )
+		TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_LForward-> uncompatible matrices") ;
+	
+	complex<double> *row_k = fDiag.begin() + fBand;//first element of main diagonal
+	for ( long k = 0; k < this->Dim(); row_k += k >= fBand ? fBand + 1 : fBand , k++){
+		for ( long j = 0; j < B->Cols(); j++ )
+		{
+			// Does sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
+			complex<double> sum = this->gZero;
+			complex<double> *current = row_k;
+			for ( long i = 0; i < k ; i++ ){
+				if ( i - k > fBand ) continue; //empty positions
+				sum += std::conj((*current)) * B->GetVal( i, j );
+				current++;
+			}
+			// Does B[k,j] = (B[k,j] - sum) / A[k,k].
+			//
+			B->PutVal( k, j, B->GetVal(k, j) - sum );
+		}
+	}
+	return( 1 );
+}
+//final_ok
 template<class TVar>
 int TPZSBMatrixLapack<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
 {
@@ -833,7 +939,8 @@ int TPZSBMatrixLapack<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
 			B->PutVal( k, j, B->GetVal(k, j) - sum );
 		}
 	}
-	return( 1 );}
+	return( 1 );
+}
 
 //final_ok
 template<class TVar>
