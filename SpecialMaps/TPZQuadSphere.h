@@ -99,9 +99,37 @@ namespace pzgeom {
 		}
         
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &param, TPZFMatrix<T> &gradx) const
         {
-            DebugStop();
+            // will first do dxdqsi and then d(phi*v)/dx, finaly d(phi*v)/dx * dxdqsi, where phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
+            
+            TPZManVector<T,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
+            TPZManVector<T,3> xqsiLxc(3,0.); // will store (x,y,z)-xc
+            GeomQuad::X(gel,param,xqsi); // gives the map (qsi,eta) to (x,y,z)
+            T norm = 0.;
+            for (int i = 0; i < 3; i++) { // Does xqsi-xc and calculates its norm
+                xqsiLxc[i] = xqsi[i] - fxc[i];
+                norm += xqsiLxc[i] * xqsiLxc[i];
+            }
+            norm = sqrt(norm);
+            
+            TPZFNMatrix<6,T> dxdqsi(3,2,0.); // But it is a (3,2) matrix. It is set (3,3) because of the later products
+            GeomQuad::GradX(gel,param,dxdqsi);
+            
+            TPZFNMatrix<3,T> gradphi(3,1,0.), v(3,1,0.); // here phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
+            TPZFNMatrix<9,T> gradv(3,3,0.); // here v = (xqsi - xc) * fR
+            T phi = 1./norm;
+            
+            for (int i = 0; i < 3; i++) {
+                v(i,0) = xqsiLxc[i] * fR;
+                gradv(i,i) = fR;
+                gradphi(i,0) = - (1. / (norm*norm*norm) ) * xqsiLxc[i];
+            }
+            
+            TPZFNMatrix <9,T> DphivDx(3,3,0.); // will store d(phi*v)/dx
+            DphivDx = TensorProd(v,gradphi) + phi*gradv;
+            
+            DphivDx.Multiply(dxdqsi, gradx);
         }
 		
 		/* @brief Computes the jacobian of the map between the master element and deformed element */

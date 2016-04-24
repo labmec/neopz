@@ -22,6 +22,7 @@
 #include "pzstepsolver.h"
 
 #include "pzgengrid.h"
+#include "pzfunction.h"
 
 #include "pzlog.h"
 
@@ -185,15 +186,15 @@ int mainEx1(int argc, char *argv[])
   cmesh->InsertMaterialObject(BCondNeumannZero);
 	
   TPZMaterial * BCondNeumannEsq = mat->CreateBC(mat, -5, 1, val1, val2);//1 = Neumann
-	BCondNeumannEsq->SetForcingFunction(NeumannEsquerda);
+	BCondNeumannEsq->SetForcingFunction(NeumannEsquerda,4);
   cmesh->InsertMaterialObject(BCondNeumannEsq);
 	
   TPZMaterial * BCondNeumannDir = mat->CreateBC(mat, -4, 1, val1, val2);//1 = Neumann
-	BCondNeumannDir->SetForcingFunction(NeumannDireita);
+	BCondNeumannDir->SetForcingFunction(NeumannDireita,4);
   cmesh->InsertMaterialObject(BCondNeumannDir);
 	
   TPZMaterial * BCondNeumannAcima = mat->CreateBC(mat, -6, 1, val1, val2);//1 = Neumann
-	BCondNeumannAcima->SetForcingFunction(NeumannAcima);		
+	BCondNeumannAcima->SetForcingFunction(NeumannAcima,4);
   cmesh->InsertMaterialObject(BCondNeumannAcima);
     
 	const int pOrder = 2;

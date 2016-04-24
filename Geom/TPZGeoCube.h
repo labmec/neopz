@@ -87,7 +87,7 @@ namespace pzgeom {
             CornerCoordinates(gel, coord);
             int nrow = coord.Rows();
             int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
+            TPZFNMatrix<3*NNodes,T> nodes(nrow,ncol);
             for(int i = 0; i < nrow; i++)
             {
                 for(int j = 0; j < ncol; j++)
