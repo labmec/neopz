@@ -471,11 +471,13 @@ TPZSBMatrixLapack<std::complex< float > >::Decompose_Cholesky()
     }
     
 #ifdef USING_LAPACK
-    char uplo = 'u';
-    int n = this->Dim();
-    int lda = this->Dim();
-    int info = -666;
-    cpotrf_(&uplo, &n, (__CLPK_complex*) fDiag.begin(), &lda, &info);
+	char uplo = 'u';
+	int n = this->Dim();
+	int lda = this->fBand + 1;
+	int kd = this->fBand;
+	int info = -666;
+
+	cpbtrf_(&uplo, &n, &kd , (__CLPK_complex*) fDiag.begin(), &lda, &info);
 #endif
     
     this->fDecomposed  = ECholesky;
@@ -496,9 +498,10 @@ TPZSBMatrixLapack<std::complex< double > >::Decompose_Cholesky()
 #ifdef USING_LAPACK
 	char uplo = 'u';
 	int n = this->Dim();
-	int lda = this->Dim();
+	int lda = this->fBand + 1;
+	int kd = this->fBand;
 	int info = -666;
-	zpotrf_(&uplo, &n, (__CLPK_doublecomplex *) fDiag.begin(), &lda, &info);
+	zpbtrf_(&uplo, &n, &kd, (__CLPK_doublecomplex *) fDiag.begin(), &lda, &info);
 #endif
 	
 	this->fDecomposed  = ECholesky;
@@ -518,10 +521,11 @@ TPZSBMatrixLapack<double>::Decompose_Cholesky()
 #ifdef USING_LAPACK
 	char uplo = 'u';
 	int n = this->Dim();
-	int lda = this->Dim();
+	int lda = this->fBand + 1;
+	int kd = this->fBand;
 	int info = -666;
 
-	dpotrf_(&uplo, &n, fDiag.begin(), &lda, &info);
+	dpbtrf_(&uplo, &n, &kd, fDiag.begin(), &lda, &info);
 
 #endif
 	
@@ -543,10 +547,11 @@ TPZSBMatrixLapack<float>::Decompose_Cholesky()
 #ifdef USING_LAPACK
 	char uplo = 'u';
 	int n = this->Dim();
-	int lda = this->Dim();
+	int lda = this->fBand + 1;
+	int kd = this->fBand;
 	int info = -666;
 	
-	spotrf_(&uplo, &n, fDiag.begin(), &lda, &info);
+	spbtrf_(&uplo, &n, &kd, fDiag.begin(), &lda, &info);
 
 #endif
 	
@@ -560,149 +565,6 @@ int
 TPZSBMatrixLapack<TVar>::Decompose_Cholesky()
 {
 	TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <LAPACK does not support this specific data type>" );
-	DebugStop();
-	return 0;
-}
-
-/**********************/
-/*** Decompose LDLt ***/
-//final_ok
-template<class TVar>
-int
-TPZSBMatrixLapack<TVar>::Decompose_LDLt(std::list<long> &singular)
-{
-	return Decompose_LDLt();
-}
-//final_ok
-template< >
-int
-TPZSBMatrixLapack< complex<double> >::Decompose_LDLt()
-{
-	
-	if (  this->fDecomposed )  TPZMatrix< complex<double> >::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
-	
-#ifdef USING_LAPACK
-  char uplo = 'u';
-  int n = this->Dim();
-  int lda = this->Dim();
-  int info = -666;
-  int *ipiv = new int [n];
-  int lwork = this->Dim();
-  complex<double> *work = new complex<double> [n];
-	
-  zsytrf_(&uplo, &n, ( __CLPK_doublecomplex * )fDiag.begin(), &lda, ipiv, ( __CLPK_doublecomplex * )work, &lwork, &info);
-  
-  if ( work != NULL ) delete[] work;
-  if( ipiv != NULL ) delete[] ipiv;
-  
-#endif
-  
-	this->fDecomposed  = 1;
-	this->fDefPositive = 0;
-	
-	return( 1 );
-	
-}
-
-//final_ok
-template< >
-int
-TPZSBMatrixLapack< complex<float> >::Decompose_LDLt()
-{
-	
-	if (  this->fDecomposed )  TPZMatrix< complex<float> >::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
-	
-#ifdef USING_LAPACK
-	char uplo = 'u';
-	int n = this->Dim();
-	int lda = this->Dim();
-	int info = -666;
-	int *ipiv = new int [n];
-	int lwork = this->Dim();
-	complex<float> *work = new complex<float> [n];
-	
-	csytrf_(&uplo, &n, ( __CLPK_complex * )fDiag.begin(), &lda, ipiv, ( __CLPK_complex * )work, &lwork, &info);
-	
-	if ( work != NULL ) delete[] work;
-	if( ipiv != NULL ) delete[] ipiv;
-	
-#endif
-	
-	this->fDecomposed  = 1;
-	this->fDefPositive = 0;
-	
-	return( 1 );
-	
-}
-
-//final_ok
-template< >
-int
-TPZSBMatrixLapack< double >::Decompose_LDLt()
-{
-	
-	if (  this->fDecomposed )  TPZMatrix< double >::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
-	
-#ifdef USING_LAPACK
-	char uplo = 'u';
-	int n = this->Dim();
-	int lda = this->Dim();
-	int info = -666;
-	int *ipiv = new int [n];
-	int lwork = this->Dim();
-	double *work = new double [n];
-	
-	dsytrf_(&uplo, &n, fDiag.begin(), &lda, ipiv, work, &lwork, &info);
-	
-	if ( work != NULL ) delete[] work;
-	if( ipiv != NULL ) delete[] ipiv;
-	
-#endif
-	
-	this->fDecomposed  = 1;
-	this->fDefPositive = 0;
-	
-	return( 1 );
-	
-}
-
-//final_ok
-template< >
-int
-TPZSBMatrixLapack< float >::Decompose_LDLt()
-{
-	
-	if (  this->fDecomposed )  TPZMatrix< float >::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
-	
-#ifdef USING_LAPACK
-	char uplo = 'u';
-	int n = this->Dim();
-	int lda = this->Dim();
-	int info = -666;
-	int *ipiv = new int [n];
-	int lwork = this->Dim();
-	float *work = new float [n];
-	
-	ssytrf_(&uplo, &n, fDiag.begin(), &lda, ipiv, work, &lwork, &info);
-	
-	if ( work != NULL ) delete[] work;
-	if( ipiv != NULL ) delete[] ipiv;
-	
-#endif
-	
-	this->fDecomposed  = 1;
-	this->fDefPositive = 0;
-	
-	return( 1 );
-	
-}
-//final_ok
-template< class TVar >
-int
-TPZSBMatrixLapack< TVar >::Decompose_LDLt()
-{
-	
-	TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <LAPACK does not support this specific data type>" );
 	DebugStop();
 	return 0;
 }
