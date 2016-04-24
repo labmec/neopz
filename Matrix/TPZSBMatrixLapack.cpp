@@ -470,7 +470,7 @@ TPZSBMatrixLapack<std::complex<double> >::Decompose_Cholesky()
     int n = this->Dim();
     int lda = this->Dim();
     int info = -666;
-    cpotrf_(&uplo, &n, fDiag, &lda, &info); //nao compila
+    cpotrf_(&uplo, &n, (__CLPK_complex*) fDiag, &lda, &info); //nao compila
 #endif
     
     this->fDecomposed  = ECholesky;
@@ -493,11 +493,8 @@ TPZSBMatrixLapack<TVar>::Decompose_Cholesky()
   int n = this->Dim();
   int lda = this->Dim();
   int info = -666;
-#ifdef STATE_COMPLEX
-  //cpotrf_(&uplo, &n, fDiag, &lda, &info); //nao compila
-#else
-  spotrf_(&uplo, &n, fDiag, &lda, &info);
-#endif
+//  spotrf_(&uplo, &n, fDiag, &lda, &info);
+    DebugStop();
 #endif
   
 	this->fDecomposed  = ECholesky;
@@ -522,7 +519,7 @@ TPZSBMatrixLapack<double>::Decompose_Cholesky()
 #ifdef STATE_COMPLEX
     //cpotrf_(&uplo, &n, fDiag, &lda, &info); //nao compila
 #else
-    spotrf_(&uplo, &n, fDiag, &lda, &info);
+    dpotrf_(&uplo, &n, fDiag, &lda, &info);
 #endif
 #endif
     
@@ -562,8 +559,8 @@ TPZSBMatrixLapack<TVar>::Decompose_LDLt()
   //csytrf_(&uplo, &n, fDiag, &lda, ipiv, work, &lwork, &info);
   
 #else
-  
-  dsytrf_(&uplo, &n, fDiag, &lda, ipiv, work, &lwork, &info);
+    DebugStop();
+//  dsytrf_(&uplo, &n, fDiag, &lda, ipiv, work, &lwork, &info);
   
 #endif
   
