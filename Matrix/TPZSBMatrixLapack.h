@@ -6,7 +6,7 @@
  * for straightforward use of LAPACK methods, since it stores the relevant diagonals in a column-major fashion, beginning
  * with the main diagonal. LAPACK requires the matrix to be stored in a row-major fashion, beginning with the
  * diagonal in which j - i = fBand.
- * Finally, FORTRAN convention for 2D arrays requires the matrix to be stored column-major wise. (http://www.wikiwand.com/en/Row-major_order)
+ * Finally, FORTRAN convention for 2D arrays requires the matrix to be stored column-major wise. ( http://www.wikiwand.com/en/Row-major_order )
  */
 
 #ifndef TSBNDMATH
@@ -67,6 +67,7 @@ public:
 	TPZSBMatrixLapack<TVar> operator-() const { return operator*(-1.0); }
 	
 	/// Redimension the matrix keeping original elements.
+	int Resize(const long newDim) {return Resize(newDim,newDim);}
 	int Resize(const long newDim ,const long);
 	
 	/// Redimension the matrix and zeroes its elements
@@ -85,6 +86,8 @@ public:
 	int Decompose_Cholesky();  // Faz A = GGt.
 	int Decompose_Cholesky(std::list<long> &singular);  // Faz A = GGt.
 	
+	int Solve_EigenProblem(TPZSBMatrixLapack< TVar > &B , TPZVec < double > &w, TPZFMatrix <TVar > eigenVectors);
+	int Solve_EigenProblem(TPZSBMatrixLapack< TVar > &B , TPZVec < float > &w, TPZFMatrix <TVar > eigenVectors);
 	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
 	int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
 	int Subst_LForward ( TPZFMatrix<TVar> *b ) const;

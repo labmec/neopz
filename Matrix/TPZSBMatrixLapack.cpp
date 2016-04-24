@@ -51,7 +51,7 @@ TPZSBMatrixLapack<TVar>::TPZSBMatrixLapack( long dim, long band )
 #endif
 	fBand = ( band > (dim - 1) ? (dim - 1) : band );
 	fDiag.Resize( Size() );
-	if ( fDiag.begin() == NULL )
+	if ( fDiag.size() == 0 )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSBMatrixLapack( dim ) <Error creating Matrix>" );
 	
 	Zero();
@@ -283,7 +283,7 @@ TPZSBMatrixLapack<TVar> &
 TPZSBMatrixLapack<TVar>::operator+=(const TVar value )
 {
 	TVar *pm  = fDiag.begin();
-	TVar *end = fDiag.begin() + Size() * sizeof( TVar );
+	TVar *end = fDiag.begin() + Size();
 	for(long iCol = 0 ; iCol < this->Dim() ; iCol ++){
 		long nElemCol = iCol >= fBand ? fBand + 1 : 1 + iCol;
 		for (int i = 0 ; i < fBand + 1 - nElemCol; i++) {
@@ -306,7 +306,7 @@ TPZSBMatrixLapack<TVar> &
 TPZSBMatrixLapack<TVar>::operator*=(const TVar value )
 {
 	TVar *pm  = fDiag.begin();
-	TVar *end = fDiag.begin() + Size() * sizeof( TVar );
+	TVar *end = fDiag.begin() + Size();
 	while ( pm < end )
 		*pm++ *= value;
 	
@@ -334,6 +334,7 @@ TPZSBMatrixLapack<TVar>::Resize(const long newDim ,const long)
 	long newSize  = newDim * (newBand + 1);
 	
 	TVar *newDiag = new TVar[newSize] ;
+	TVar *const newDiagAlias = newDiag;
 	TVar *oldDiag = fDiag.begin();
 	for (long iCol = 0; iCol <= newDim; iCol++) {
 		for (int iSkip = 0; iSkip < fBand - newBand; iSkip++) {
@@ -351,10 +352,14 @@ TPZSBMatrixLapack<TVar>::Resize(const long newDim ,const long)
 		}
 	}
 	// Deletes old matrix and takes new one
-	if ( fDiag.begin() != NULL )
-		fDiag.clear();
-	fDiag =  *newDiag;
-	delete newDiag;
+	fDiag.Resize( newSize );
+	TVar *ptr = fDiag.begin();
+	newDiag = newDiagAlias;
+	for (int i = 0 ; i < newSize; i++) {
+		*ptr++ = *newDiag++;
+	}
+	if( newDiagAlias != NULL)
+		delete newDiagAlias;
 	this->fCol = this->fRow = newDim;
 	this->fDecomposed = 0;
 	this->fDefPositive = 0;
@@ -387,7 +392,7 @@ int
 TPZSBMatrixLapack<TVar>::Zero()
 {
 	TVar *dst = this->fDiag.begin();
-	TVar *end = this->fDiag.begin() + Size() * sizeof( TVar );
+	TVar *end = this->fDiag.begin() + Size();
 	while ( dst < end )
 		*dst++ = this->gZero;
 	
@@ -439,9 +444,14 @@ TPZSBMatrixLapack<TVar>::SetBand(const long newBand )
 			}
 		}
 	}
-	fDiag.clear();
-	fDiag = * newDiag;
-	delete newDiag;
+	fDiag.Resize ( this->Dim() * (newBand + 1) );
+	src = pNew;
+	dst = fDiag.begin();
+	for(int i = 0; i < fDiag.size() ; i++){
+		*dst++ = *src++;
+	}
+	src = pNew;
+	delete src;
 	fBand = newBand;
 	this->fDecomposed = 0;
 	this->fDefPositive = 0;
@@ -552,6 +562,7 @@ TPZSBMatrixLapack<float>::Decompose_Cholesky()
 	int info = -666;
 	
 	spbtrf_(&uplo, &n, &kd, fDiag.begin(), &lda, &info);
+	
 
 #endif
 	
@@ -559,6 +570,7 @@ TPZSBMatrixLapack<float>::Decompose_Cholesky()
 	this->fDefPositive = 1;
 	return( 1 );
 }
+
 //final_ok
 template<class TVar>
 int
@@ -567,6 +579,170 @@ TPZSBMatrixLapack<TVar>::Decompose_Cholesky()
 	TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <LAPACK does not support this specific data type>" );
 	DebugStop();
 	return 0;
+}
+
+//final_ok
+template<>
+int
+TPZSBMatrixLapack<float>::Solve_EigenProblem(TPZSBMatrixLapack<float> &B , TPZVec <float> &w, TPZFMatrix <float> eigenVectors)
+{
+	if (  this->fRow != B.Rows() && this->fCol != B.Cols() )  TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "Solve_EigenProblem <Uncompatible Dimensions>" );
+	
+#ifdef USING_LAPACK
+	char jobz = 'v'; //compute eigenvectors
+	char uplo = 'u';//assume upper triangular
+	int n = this->Dim();
+	int ka = this->fBand;
+	int kb = B.fBand;
+	int ldab = this->fBand + 1;
+	int ldbb = this->fBand + 1;
+	w.Resize( this->Dim() );
+	TPZVec <float> z( this->Dim() *this->Dim() );
+	int ldz = this->Dim();
+	TPZVec <float> work( 3 *this->Dim() );
+	int info = -666;
+	
+	ssbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), z.begin(), &ldz, work.begin(), &info);
+	
+	eigenVectors.Redim(this->Dim(), this->Dim());
+	float *zPtr = z.begin();
+	for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
+		for (int iCol = 0; iCol < this->Dim(); iCol++) {
+			eigenVectors( iVec , iCol) = *zPtr++;
+		}
+	}
+	
+#endif
+	
+	return( 1 );
+}
+
+//final_ok
+template<>
+int
+TPZSBMatrixLapack<double>::Solve_EigenProblem(TPZSBMatrixLapack<double> &B , TPZVec <double> &w, TPZFMatrix <double> eigenVectors)
+{
+	if (  this->fRow != B.Rows() && this->fCol != B.Cols() )  TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "Solve_EigenProblem <Uncompatible Dimensions>" );
+	
+#ifdef USING_LAPACK
+	char jobz = 'v'; //compute eigenvectors
+	char uplo = 'u';//assume upper triangular
+	int n = this->Dim();
+	int ka = this->fBand;
+	int kb = B.fBand;
+	int ldab = this->fBand + 1;
+	int ldbb = this->fBand + 1;
+	w.Resize( this->Dim() );
+	TPZVec <double> z( this->Dim() *this->Dim() );
+	int ldz = this->Dim();
+	TPZVec <double> work( 3 *this->Dim() );
+	int info = -666;
+	
+	dsbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), z.begin(), &ldz, work.begin(), &info);
+	
+	eigenVectors.Redim(this->Dim(), this->Dim());
+	double *zPtr = z.begin();
+	for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
+		for (int iCol = 0; iCol < this->Dim(); iCol++) {
+			eigenVectors( iVec , iCol) = *zPtr++;
+		}
+	}
+	
+#endif
+	
+	return( 1 );
+}
+
+//final_ok
+template<>
+int
+TPZSBMatrixLapack<complex <float> >::Solve_EigenProblem(TPZSBMatrixLapack<complex <float> > &B , TPZVec <float > &w, TPZFMatrix <complex <float> > eigenVectors)
+{
+	if (  this->fRow != B.Rows() && this->fCol != B.Cols() )  TPZMatrix<complex <float> >::Error(__PRETTY_FUNCTION__, "Solve_EigenProblem <Uncompatible Dimensions>" );
+	
+#ifdef USING_LAPACK
+	char jobz = 'v'; //compute eigenvectors
+	char uplo = 'u';//assume upper triangular
+	int n = this->Dim();
+	int ka = this->fBand;
+	int kb = B.fBand;
+	int ldab = this->fBand + 1;
+	int ldbb = this->fBand + 1;
+	w.Resize( this->Dim() );
+	TPZVec <complex <float> > z( this->Dim() *this->Dim() );
+	int ldz = this->Dim();
+	TPZVec <complex <float> > work( this->Dim() );
+	TPZVec < float > rwork( 3 *this->Dim() );
+	int info = -666;
+
+	chbgv_(&jobz, &uplo, &n, &ka, &kb, (__CLPK_complex *)fDiag.begin(), &ldab,  (__CLPK_complex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_complex *)z.begin(), &ldz, (__CLPK_complex *)work.begin(),rwork.begin(), &info);
+	
+	eigenVectors.Redim(this->Dim(), this->Dim());
+	complex <float>  *zPtr = z.begin();
+	for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
+		for (int iCol = 0; iCol < this->Dim(); iCol++) {
+			eigenVectors( iVec , iCol) = *zPtr++;
+		}
+	}
+	
+#endif
+	
+	return( 1 );
+}
+
+//final_ok
+template<>
+int
+TPZSBMatrixLapack<complex <double> >::Solve_EigenProblem(TPZSBMatrixLapack<complex <double> > &B , TPZVec <double > &w, TPZFMatrix <complex <double> > eigenVectors)
+{
+	if (  this->fRow != B.Rows() && this->fCol != B.Cols() )  TPZMatrix<complex <double> >::Error(__PRETTY_FUNCTION__, "Solve_EigenProblem <Uncompatible Dimensions>" );
+	
+#ifdef USING_LAPACK
+	char jobz = 'v'; //compute eigenvectors
+	char uplo = 'u';//assume upper triangular
+	int n = this->Dim();
+	int ka = this->fBand;
+	int kb = B.fBand;
+	int ldab = this->fBand + 1;
+	int ldbb = this->fBand + 1;
+	w.Resize( this->Dim() );
+	TPZVec <complex <double> > z( this->Dim() *this->Dim() );
+	int ldz = this->Dim();
+	TPZVec <complex <double> > work( this->Dim() );
+	TPZVec < double > rwork( 3 *this->Dim() );
+	int info = -666;
+	
+	zhbgv_(&jobz, &uplo, &n, &ka, &kb, (__CLPK_doublecomplex *)fDiag.begin(), &ldab,  (__CLPK_doublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_doublecomplex *)z.begin(), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
+	
+	eigenVectors.Redim(this->Dim(), this->Dim());
+	complex <double>  *zPtr = z.begin();
+	for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
+		for (int iCol = 0; iCol < this->Dim(); iCol++) {
+			eigenVectors( iVec , iCol) = *zPtr++;
+		}
+	}
+	
+#endif
+	
+	return( 1 );
+}
+
+//final_ok
+template< class TVar>
+int
+TPZSBMatrixLapack<TVar>::Solve_EigenProblem(TPZSBMatrixLapack<TVar> &B , TPZVec < float > &w, TPZFMatrix <TVar > eigenVectors)
+{
+	TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "Solve_EigenProblem <LAPACK does not support this specific data type>" );
+	return( 0 );
+}
+
+//final_ok
+template< class TVar>
+int
+TPZSBMatrixLapack<TVar>::Solve_EigenProblem(TPZSBMatrixLapack<TVar> &B , TPZVec < double > &w, TPZFMatrix <TVar > eigenVectors)
+{
+	TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "Solve_EigenProblem <LAPACK does not support this specific data type>" );
+	return( 0 );
 }
 
 /*********************/
@@ -582,8 +758,8 @@ TPZSBMatrixLapack<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
 	if ( ( B->Rows() != this->Dim() ) || !this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
 	
-	TVar *row_k = fDiag.begin() + fBand * sizeof ( TVar );//first element of main diagonal
-	for ( long k = 0; k < this->Dim(); k++, row_k += k >= fBand ? fBand + 1 : fBand + 1 - k ){
+	TVar *row_k = fDiag.begin() + fBand;//first element of main diagonal
+	for ( long k = 0; k < this->Dim(); row_k += k >= fBand ? fBand + 1 : fBand , k++){
 		for ( long j = 0; j < B->Cols(); j++ )
 		{
 			// Does sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
@@ -596,7 +772,7 @@ TPZSBMatrixLapack<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
 			}
 			// Does B[k,j] = (B[k,j] - sum) / A[k,k].
 			//
-			B->PutVal( k, j, (B->GetVal(k, j) - sum) / *row_k );
+			B->PutVal( k, j, (B->GetVal(k, j) - sum) / *current );
 		}
 	}
 	return( 1 );
@@ -608,24 +784,23 @@ int TPZSBMatrixLapack<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 	if ( ( B->Rows() != this->Dim() ) || !this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
 	
-	TVar *row_k = fDiag.begin() + ( this->Size() - 1 ) * sizeof ( TVar );//last element of main diagonal
-	for ( long k = this->Dim() ; k >= 0; k--, row_k -= fBand + 1 ){
-		for ( long j = B->Cols(); j >= 0; j-- )
+	TVar *row_k = fDiag.begin() + ( this->Size() - 1 ) ;//last element of main diagonal
+	for ( long k = this->Dim() - 1; k >= 0; row_k -= 1 , k-- ){
+		for ( long j = B->Cols() - 1; j >= 0; j-- )
 		{
 			
 			TVar sum = this->gZero;
 			TVar *current = row_k;
-			for ( long i = 0; i < k ; i++ ){
-				if ( i < k ) continue; //empty positions
+			for ( long i = B->Rows() - 1 ; i > k ; i-- ){
+				if ( i - k > fBand) continue; //empty positions
 				sum += (*current) * B->GetVal( i, j );
-				current+= fBand;
+				current-= fBand;
 			}
 			
-			B->PutVal( k, j, (B->GetVal(k, j) - sum) / *row_k );
+			B->PutVal( k, j, (B->GetVal(k, j) - sum) / *current );
 		}
 	}
 	return( 1 );
-	
 }
 
 /***********************/
@@ -640,10 +815,11 @@ int TPZSBMatrixLapack<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
 {
 	if ( ( B->Rows() != this->Dim() ) || !this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LForward-> uncompatible matrices") ;
-	
-	TVar *row_k = fDiag.begin() + fBand * sizeof ( TVar );//first element of main diagonal
-	for ( long k = 0; k < this->Dim(); k++, row_k += k >= fBand ? fBand + 1 : fBand + 1 - k ){
-		for ( long j = 0; j < B->Cols(); j++ ){
+
+	TVar *row_k = fDiag.begin() + fBand;//first element of main diagonal
+	for ( long k = 0; k < this->Dim(); row_k += k >= fBand ? fBand + 1 : fBand , k++){
+		for ( long j = 0; j < B->Cols(); j++ )
+		{
 			// Does sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
 			TVar sum = this->gZero;
 			TVar *current = row_k;
@@ -652,13 +828,12 @@ int TPZSBMatrixLapack<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
 				sum += (*current) * B->GetVal( i, j );
 				current++;
 			}
-			// Does B[k,j] = (B[k,j] - sum)
+			// Does B[k,j] = (B[k,j] - sum) / A[k,k].
 			//
-			B->PutVal( k, j, B->GetVal(k, j) - sum  );
+			B->PutVal( k, j, B->GetVal(k, j) - sum );
 		}
 	}
-	return( 1 );
-}
+	return( 1 );}
 
 //final_ok
 template<class TVar>
@@ -667,24 +842,23 @@ int TPZSBMatrixLapack<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 	if ( ( B->Rows() != this->Dim() ) || !this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LBackward-> uncompatible matrices") ;
 	
-	TVar *row_k = fDiag.begin() + ( this->Size() - 1 ) * sizeof ( TVar );//last element of main diagonal
-	for ( long k = this->Dim() ; k >= 0; k--, row_k -= fBand + 1 ){
-		for ( long j = B->Cols(); j >= 0; j-- )
+	TVar *row_k = fDiag.begin() + ( this->Size() - 1 ) ;//last element of main diagonal
+	for ( long k = this->Dim() - 1; k >= 0; row_k -= 1 , k-- ){
+		for ( long j = B->Cols() - 1; j >= 0; j-- )
 		{
 			
 			TVar sum = this->gZero;
 			TVar *current = row_k;
-			for ( long i = 0; i < k ; i++ ){
-				if ( i < k ) continue; //empty positions
+			for ( long i = B->Rows() - 1 ; i > k ; i-- ){
+				if ( i - k > fBand) continue; //empty positions
 				sum += (*current) * B->GetVal( i, j );
-				current+= fBand;
+				current-= fBand;
 			}
 			
-			B->PutVal( k, j, B->GetVal(k, j) - sum  );
+			B->PutVal( k, j, B->GetVal(k, j) - sum);
 		}
 	}
 	return( 1 );
-	
 }
 
 /******************/
@@ -701,8 +875,8 @@ int TPZSBMatrixLapack<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Diag-> uncompatible matrices") ;
 	
 	
-	TVar *row_k = fDiag.begin() + fBand * sizeof( TVar );//first element of main diagonal
-	for ( long k = 0; k < this->Dim(); k++, row_k += ( fBand + 1 ) * sizeof( TVar ) )
+	TVar *row_k = fDiag.begin() + fBand ;//first element of main diagonal
+	for ( long k = 0; k < this->Dim(); k++, row_k += fBand + 1 )
 		for ( long j = 0; j < B->Cols(); j++ )
 			B->PutVal( k, j, B->GetVal( k, j) / *row_k );
 	
@@ -718,7 +892,7 @@ template<class TVar>
 int
 TPZSBMatrixLapack<TVar>::Clear()
 {
-	if ( this->fDiag.begin() != NULL ){
+	if ( this->fDiag.size() != 0 ){
 		fDiag.clear() ;
 	}
 	this->fRow = this->fCol = 0;
@@ -740,12 +914,12 @@ TPZSBMatrixLapack<TVar>::Copy(const TPZSBMatrixLapack<TVar> &A )
 	this->fDecomposed  = A.fDecomposed;
 	this->fDefPositive = A.fDefPositive;
 	
-	if ( fDiag.begin() == NULL )
+	if ( fDiag.size() == 0 )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Copy( TPZSBMatrixLapack ) <memory allocation error>" );
 	
 	TVar *dst = fDiag.begin();
 	TVar *src = A.fDiag.begin();
-	TVar *end = A.fDiag.begin() + sizeof(TVar) * Size();
+	TVar *end = A.fDiag.begin() + Size();
 	while ( src < end )
 		*dst++ = *src++;
 }
