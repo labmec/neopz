@@ -78,7 +78,12 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            DebugStop();
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            T cosval = cos(fNumWaves*M_PI*par[0]);
+            for (int i=0; i<3; i++) {
+                gradx(i) = (coord(i,1)-coord(i,0))/2. + fNumWaves*M_PI*cosval*fWaveDir[i];
+            }
         }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
