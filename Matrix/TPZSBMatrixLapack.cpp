@@ -488,6 +488,13 @@ TPZSBMatrixLapack<std::complex< float > >::Decompose_Cholesky()
 	int info = -666;
 
 	cpbtrf_(&uplo, &n, &kd , (__CLPK_complex*) fDiag.begin(), &lda, &info);
+	if( info > 0){
+		TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
+	}
+	else{
+		TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
+	}
+	
 #endif
     
     this->fDecomposed  = ECholesky;
@@ -512,6 +519,12 @@ TPZSBMatrixLapack<std::complex< double > >::Decompose_Cholesky()
 	int kd = this->fBand;
 	int info = -666;
 	zpbtrf_(&uplo, &n, &kd, (__CLPK_doublecomplex *) fDiag.begin(), &lda, &info);
+	if( info > 0){
+		TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
+	}
+	else{
+		TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
+	}
 #endif
 	
 	this->fDecomposed  = ECholesky;
@@ -536,6 +549,12 @@ TPZSBMatrixLapack<double>::Decompose_Cholesky()
 	int info = -666;
 
 	dpbtrf_(&uplo, &n, &kd, fDiag.begin(), &lda, &info);
+	if( info > 0){
+		TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
+	}
+	else{
+		TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
+	}
 
 #endif
 	
@@ -562,6 +581,12 @@ TPZSBMatrixLapack<float>::Decompose_Cholesky()
 	int info = -666;
 	
 	spbtrf_(&uplo, &n, &kd, fDiag.begin(), &lda, &info);
+	if( info > 0){
+		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
+	}
+	else{
+		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
+	}
 	
 
 #endif
@@ -604,6 +629,13 @@ TPZSBMatrixLapack<float>::Solve_EigenProblem(TPZSBMatrixLapack<float> &B , TPZVe
 	
 	ssbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), z.begin(), &ldz, work.begin(), &info);
 	
+	if( info > 0){
+		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
+	}
+	else{
+		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
+	}
+	
 	eigenVectors.Redim(this->Dim(), this->Dim());
 	float *zPtr = z.begin();
 	for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
@@ -639,7 +671,12 @@ TPZSBMatrixLapack<double>::Solve_EigenProblem(TPZSBMatrixLapack<double> &B , TPZ
 	int info = -666;
 	
 	dsbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), z.begin(), &ldz, work.begin(), &info);
-	
+	if( info > 0){
+		TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
+	}
+	else{
+		TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
+	}
 	eigenVectors.Redim(this->Dim(), this->Dim());
 	double *zPtr = z.begin();
 	for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
@@ -676,7 +713,12 @@ TPZSBMatrixLapack<complex <float> >::Solve_EigenProblem(TPZSBMatrixLapack<comple
 	int info = -666;
 
 	chbgv_(&jobz, &uplo, &n, &ka, &kb, (__CLPK_complex *)fDiag.begin(), &ldab,  (__CLPK_complex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_complex *)z.begin(), &ldz, (__CLPK_complex *)work.begin(),rwork.begin(), &info);
-	
+	if( info > 0){
+		TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
+	}
+	else{
+		TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
+	}
 	eigenVectors.Redim(this->Dim(), this->Dim());
 	complex <float>  *zPtr = z.begin();
 	for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
@@ -713,7 +755,12 @@ TPZSBMatrixLapack<complex <double> >::Solve_EigenProblem(TPZSBMatrixLapack<compl
 	int info = -666;
 	
 	zhbgv_(&jobz, &uplo, &n, &ka, &kb, (__CLPK_doublecomplex *)fDiag.begin(), &ldab,  (__CLPK_doublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_doublecomplex *)z.begin(), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
-	
+	if( info > 0){
+		TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
+	}
+	else{
+		TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
+	}
 	eigenVectors.Redim(this->Dim(), this->Dim());
 	complex <double>  *zPtr = z.begin();
 	for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
