@@ -86,6 +86,8 @@ public:
 	int Decompose_Cholesky();  // Faz A = GGt.
 	int Decompose_Cholesky(std::list<long> &singular);  // Faz A = GGt.
 	
+	int Solve_LinSys(TPZFMatrix<TVar> &B);
+	
 	int Solve_EigenProblem(TPZSBMatrixLapack< TVar > &B , TPZVec < double > &w, TPZFMatrix <TVar > eigenVectors);
 	int Solve_EigenProblem(TPZSBMatrixLapack< TVar > &B , TPZVec < float > &w, TPZFMatrix <TVar > eigenVectors);
 	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;

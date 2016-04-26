@@ -491,7 +491,7 @@ TPZSBMatrixLapack<std::complex< float > >::Decompose_Cholesky()
 	if( info > 0){
 		TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
 	}
-	else{
+	else if ( info < 0){
 		TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
 	}
 	
@@ -522,7 +522,7 @@ TPZSBMatrixLapack<std::complex< double > >::Decompose_Cholesky()
 	if( info > 0){
 		TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
 	}
-	else{
+	else if ( info < 0){
 		TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
 	}
 #endif
@@ -552,7 +552,7 @@ TPZSBMatrixLapack<double>::Decompose_Cholesky()
 	if( info > 0){
 		TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
 	}
-	else{
+	else if ( info < 0){
 		TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
 	}
 
@@ -584,7 +584,7 @@ TPZSBMatrixLapack<float>::Decompose_Cholesky()
 	if( info > 0){
 		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
 	}
-	else{
+	else if ( info < 0){
 		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
 	}
 	
@@ -602,6 +602,120 @@ int
 TPZSBMatrixLapack<TVar>::Decompose_Cholesky()
 {
 	TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <LAPACK does not support this specific data type>" );
+	DebugStop();
+	return 0;
+}
+
+//final_ok
+template<>
+int
+TPZSBMatrixLapack< complex<double> >::Solve_LinSys(TPZFMatrix< complex<double> > &B)
+{
+#ifdef USING_LAPACK
+	
+	char uplo = 'u';
+	int n = this->Dim();
+	int kd = this->fBand;
+	int nrhs = B.Cols();
+	int ldab = this->fBand + 1;
+	int ldb = B.Rows() + 1;
+	int info = -666;
+	
+	zpbsv_(&uplo, &n, &kd, &nrhs, (__CLPK_doublecomplex *) this->fDiag.begin(), &ldab, (__CLPK_doublecomplex *) B.Adress(), &ldb, &info);
+	if( info > 0){
+		TPZMatrix< complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_LinSys <The matrix is not positive definite>");
+	}
+	else if ( info < 0){
+		TPZMatrix< complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_LinSys <Invalid argument. Check info value for more information>");
+	}
+#endif
+	return 1;
+}
+
+//final_ok
+template<>
+int
+TPZSBMatrixLapack< complex<float> >::Solve_LinSys(TPZFMatrix< complex<float> > &B)
+{
+#ifdef USING_LAPACK
+	
+	char uplo = 'u';
+	int n = this->Dim();
+	int kd = this->fBand;
+	int nrhs = B.Cols();
+	int ldab = this->fBand + 1;
+	int ldb = B.Rows() + 1;
+	int info = -666;
+	
+	cpbsv_(&uplo, &n, &kd, &nrhs, (__CLPK_complex *) this->fDiag.begin(), &ldab, (__CLPK_complex *) B.Adress(), &ldb, &info);
+	if( info > 0){
+		TPZMatrix< complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_LinSys <The matrix is not positive definite>");
+	}
+	else if ( info < 0){
+		TPZMatrix< complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_LinSys <Invalid argument. Check info value for more information>");
+	}
+#endif
+	return 1;
+}
+
+//final_ok
+template<>
+int
+TPZSBMatrixLapack<double>::Solve_LinSys(TPZFMatrix<double> &B)
+{
+#ifdef USING_LAPACK
+	
+	char uplo = 'u';
+	int n = this->Dim();
+	int kd = this->fBand;
+	int nrhs = B.Cols();
+	int ldab = this->fBand + 1;
+	int ldb = B.Rows() + 1;
+	int info = -666;
+	
+	dpbsv_(&uplo, &n, &kd, &nrhs, this->fDiag.begin(), &ldab, B.Adress(), &ldb, &info);
+	if( info > 0){
+		TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"Solve_LinSys <The matrix is not positive definite>");
+	}
+	else if ( info < 0){
+		TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"Solve_LinSys <Invalid argument. Check info value for more information>");
+	}
+#endif
+	return 1;
+}
+
+//final_ok
+template<>
+int
+TPZSBMatrixLapack<float>::Solve_LinSys(TPZFMatrix<float> &B)
+{
+#ifdef USING_LAPACK
+
+	char uplo = 'u';
+	int n = this->Dim();
+	int kd = this->fBand;
+	int nrhs = B.Cols();
+	int ldab = this->fBand + 1;
+	int ldb = B.Rows() + 1;
+	int info = -666;
+	
+	spbsv_(&uplo, &n, &kd, &nrhs, this->fDiag.begin(), &ldab, B.Adress(), &ldb, &info);
+	if( info > 0){
+		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Solve_LinSys <The matrix is not positive definite>");
+	}
+	else if ( info < 0){
+		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Solve_LinSys <Invalid argument. Check info value for more information>");
+	}
+#endif
+	return 1;
+}
+
+//final_ok
+template<class TVar>
+int
+TPZSBMatrixLapack<TVar>::Solve_LinSys(TPZFMatrix<TVar> &B)
+{
+	TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Solve_LinSys <LAPACK does not support this specific data type>" );
 	DebugStop();
 	return 0;
 }

@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 {
   TPZTimer timer;
 
-  timer.start();
+	
 	/*float*/
 	TPZSBMatrixLapack < float > aFloat (3 , 2);
 	aFloat.PutVal(0,0,4);
@@ -34,21 +34,19 @@ int main(int argc, char *argv[])
 	
 	aFloat.Print("a" , std::cout );
 	
-	aFloat.Decompose_Cholesky();
+	
 	TPZFMatrix< float > bFloat( 3 , 1);
 	bFloat(0 , 0) = 28;
 	bFloat(1 , 0) = 86;
 	bFloat(2 , 0) = -102;
-	bFloat.Print("b" , std::cout);
-	aFloat.Print("a_decomposed" , std::cout );
+	timer.start();
+	aFloat.Decompose_Cholesky();
 	aFloat.Subst_Forward(&bFloat);
-	bFloat.Print("b_f" , std::cout);
 	aFloat.Subst_Backward(&bFloat);
+	timer.stop();
+	std::cout<<"time: "<<timer<<std::endl;
+	timer.reset();
 	bFloat.Print("x" , std::cout);
-	aFloat.Resize(10);
-	aFloat.Print("a_decomposed" , std::cout );
-	aFloat.SetBand(4);
-	aFloat.Print("a_decomposed" , std::cout );
 	/*double*/
   TPZSBMatrixLapack < double > aDouble (3 , 2);
 	aDouble.PutVal(0,0,4);
@@ -62,10 +60,18 @@ int main(int argc, char *argv[])
   
   aDouble.Print("a" , std::cout );
 	
-	aDouble.Decompose_Cholesky();
 	
-	aDouble.Print("a" , std::cout );
-	
+	TPZFMatrix< double > bDouble( 3 , 1);
+	bDouble(0 , 0) = 28;
+	bDouble(1 , 0) = 86;
+	bDouble(2 , 0) = -102;
+	bDouble.Print("b" , std::cout);
+	timer.start();
+	aDouble.Solve_LinSys(bDouble);
+	timer.stop();
+	std::cout<<"time: "<<timer<<std::endl;
+	timer.reset();
+	bDouble.Print("sol" , std::cout);
 	/*complex<double>*/
 	TPZSBMatrixLapack < std::complex<double> > aCDouble (3 , 2);
 	aCDouble.PutVal(0,0,4);
