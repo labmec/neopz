@@ -215,6 +215,9 @@ ENABLE_TESTING()
 			#Projetos de Thiago Dias dos Santos
 			#add_subdirectory(SantosProjects)
 
+			#Projeto Nathalia
+			add_subdirectory(Elasticity1D)
+
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)

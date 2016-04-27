@@ -1,0 +1,486 @@
+//
+//  TPZMatElasticity1D.cpp
+//  PZ
+//
+//  Created by Nathalia on 4/15/16.
+//
+//
+
+#include "TPZMatElasticity1D.h"
+#include <iostream>
+#include <string>
+#include "pzbndcond.h"
+#include "pzaxestools.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.elasticity1D"));
+#endif
+
+
+
+
+
+TPZMatElasticity1D::TPZMatElasticity1D():TPZMaterial()
+{
+    flambda = 0.;
+    fmu = 0.;
+    fb.resize(2);
+    fb[0]=0.;
+    fb[1]=0.;
+    fLineStrain=0.;
+
+}
+
+
+TPZMatElasticity1D::TPZMatElasticity1D(int matid, REAL Lambda, REAL Mu, REAL b, int LineStrain):TPZMaterial(matid)
+{
+    flambda = 0.;
+    fmu = 0.;
+    fb.resize(2);
+    fb[0]=0.;
+    fb[1]=0.;
+    fLineStrain=0.;
+}
+
+
+TPZMatElasticity1D::TPZMatElasticity1D(int matid):TPZMaterial(matid)
+{
+    flambda = 0.;
+    fmu = 0.;
+    fb.resize(2);
+    fb[0]=0.;
+    fb[1]=0.;
+    fLineStrain=0.;
+
+}
+
+
+
+TPZMatElasticity1D & TPZMatElasticity1D::operator=(const TPZMatElasticity1D &copy)
+{
+    TPZMaterial::operator = (copy);
+    flambda = copy.flambda;
+    fmu = copy.fmu;
+    fb.resize(copy.fb.size());
+    for (int i = 0; i < copy.fb.size(); i++) {
+        fb[i] = copy.fb[i];
+    }
+    fLineStrain = copy.fLineStrain;
+    return *this;
+
+}
+
+
+
+TPZMatElasticity1D::~TPZMatElasticity1D()
+{
+}
+
+
+TPZMatElasticity1D::TPZMatElasticity1D(const TPZMatElasticity1D & cp):TPZMaterial(cp)
+{
+    flambda = cp.flambda;
+    fmu = cp.fmu;
+    fb.resize(cp.fb.size());
+    for (int i = 0; i < cp.fb.size(); i++) {
+        fb[i] = cp.fb[i];
+    }
+    fLineStrain = cp.fLineStrain;
+
+}
+
+
+int TPZMatElasticity1D::NStateVariables() // nao entendi essa funcao, por que retorna 2?
+{
+    return 2;
+}
+
+
+
+
+void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+    //Getting weight functions
+    TPZFNMatrix<220,REAL> & phi_u  = data.phi;
+    TPZFNMatrix<660,REAL> & dphi_u_axes = data.dphix;
+    TPZFNMatrix<9,REAL> axes = data.axes;
+    
+    int nphi = phi_u.Rows();
+    
+    int FirstU  = 0;
+    
+    REAL LambdaL, MuL;
+    LambdaL     = flambda;
+    MuL         = fmu;
+    
+    // Functions computed at point x_{k} for each integration point
+
+    // Calcula "du" multiplicando as funcoes pelas coordenadas (axes), para o plano desejado (nesse caso x)
+    
+    TPZFMatrix<REAL>	du(2,2);
+    for(int iu = 0; iu < nphi; iu++ )
+    {
+        //	Derivative for Vx, somente em x pois eh 1D
+        du(0,0) = dphi_u_axes(0,iu)*data.axes(0,0); //+dphi_u_axes(1,iu)*data.axes(1,0);
+        
+        for(int ju = 0; ju < nphi; ju++)
+        {
+            //	Derivative for Ux, somente em x pois eh 1D
+            du(0,1) = dphi_u_axes(0,ju)*data.axes(0,0); //+dphi_u_axes(1,ju)*data.axes(1,0);
+
+        if (this->fLineStrain == 1)
+        {
+             /* Line Strain State */
+            ek(2*iu + FirstU,2*ju + FirstU)         += weight*	((LambdaL + 2*MuL)*du(0,0)*du(0,1));
+            
+        }
+    }
+}
+//  ////////////////////////// Jacobian Matrix ///////////////////////////////////
+this->Contribute(data,weight,ef);
+}
+
+
+void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
+
+    //Getting weight functions
+    TPZFNMatrix<220,REAL> & phi_u  = data.phi;
+    TPZFNMatrix<660,REAL> & dphi_u_axes = data.dphix;
+    TPZFNMatrix<9,REAL> axes = data.axes;
+    
+    int nphi = phi_u.Rows();
+    
+    TPZManVector<REAL,3> sol_u =data.sol[0];
+    TPZFMatrix<REAL> dsol_u = data.dsol[0];
+
+    int FirstU  = 0;
+    
+    REAL LambdaL, MuL;
+    LambdaL     = flambda;
+    MuL         = fmu;
+
+    //  ////////////////////////// Residual Vector ///////////////////////////////////
+    //  Contribution of domain integrals for Residual Vector
+    //  Elastic equation
+    //  Linear strain operator
+    //  Ke Matrix
+    
+    TPZFMatrix<REAL>    du(2,2);
+    TPZFMatrix<REAL>    dux(2,2);
+
+    //  Derivative for Ux
+    dux(0,1) = dsol_u(0,0)*data.axes(0,0); //+dsol_u(1,0)*data.axes(1,0); // dUx/dx
+
+    for(int iu = 0; iu < nphi; iu++ )
+    {
+        //  Derivative for Vx
+        du(0,0) = dphi_u_axes (0,iu)*data.axes(0,0); //+dphi_u_axes(1,iu)*data.axes(1,0);
+
+        //  Vector Force right hand term
+        ef(2*iu + FirstU)     +=    weight*fb[0]*phi_u(iu, 0);    // direcao x
+         // weight*ff[0]*phiU(iu, 0)- (du(0,0)*fPreStressXX + du(1,0)*fPreStressXY);
+
+        if (this->fLineStrain == 1)
+        {
+            /* Line Strain State */
+            
+            ef(2*iu + FirstU)           += weight*  ((LambdaL + 2*MuL)*du(0,0)*dux(0,1));
+            
+
+        }
+    }
+
+}
+
+
+
+void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+
+    TPZFNMatrix<220,REAL> & phi_u  = data.phi;
+    TPZManVector<REAL,3> sol_u =data.sol[0];
+    TPZFMatrix<REAL> dsol_u = data.dsol[0];
+    
+    REAL ux = sol_u[0];
+    
+    int nphi = phi_u.Rows();
+    short in,jn;
+    STATE v2[3]; // ja criado para 3 direcoes
+    //TPZFMatrix<STATE> &v1 = bc.Val1(); // nao entendi
+    v2[0] = bc.Val2()(0,0);	//	Ux displacement or Tnx
+
+    //	Here each digit represent an individual boundary condition corresponding to each state variable.
+    //	0 means Dirichlet condition on x
+    //	1 means Neumann condition
+    
+    const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
+    
+    switch (bc.Type())
+    {
+        case 0 :
+        {
+            //	Dirichlet condition for each state variable
+            //	Elasticity Equation
+            
+            for(in = 0 ; in < nphi; in++)
+            {
+                //	Contribution for load Vector
+                ef(2*in,0)      += BIGNUMBER*(ux - v2[0])*phi_u(in,0)*weight;	// X displacement Value
+                
+                for (jn = 0 ; jn < nphi; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(2*in,2*jn)       += BIGNUMBER*phi_u(in,0)*phi_u(jn,0)*weight;	// X displacement
+                }
+            }
+            
+            break;
+        }
+
+        case 1 :
+        {
+            //	Neumann condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in <nphi; in++)
+            {
+                //	Normal Tension Components on neumann boundary
+                ef(2*in,0)      += -1.0*v2[0]*phi_u(in,0)*weight;		//	Tnx
+            }
+            break;
+        }
+            
+        default:
+        {
+            PZError << "TPZMatElasticity2D::ContributeBC error - Wrong boundary condition type" << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+
+}
+
+
+void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+
+    TPZFNMatrix<220,REAL> & phi_u  = data.phi;
+    TPZManVector<REAL,3> sol_u =data.sol[0];
+    TPZFMatrix<REAL> dsol_u = data.dsol[0];
+    
+    REAL ux = sol_u[0];
+    
+    int nphi = phi_u.Rows();
+    short in;
+    STATE v2[3]; // ja criado para 3 direcoes
+    //TPZFMatrix<STATE> &v1 = bc.Val1(); // nao entendi
+    v2[0] = bc.Val2()(0,0);	//	Ux displacement or Tnx
+    
+    //	Here each digit represent an individual boundary condition corresponding to each state variable.
+    //	0 means Dirichlet condition on x-y
+    //	1 means Neumann condition
+    //	7 means Dirichlet condition on x
+    //	8 means Dirichlet condition on y
+    
+    const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
+    
+    switch (bc.Type())
+    {
+        case 0 :
+        {
+            //	Dirichlet condition for each state variable
+            //	Elasticity Equation
+            
+            for(in = 0 ; in < nphi; in++)
+            {
+                //	Contribution for load Vector
+                ef(2*in,0)      += BIGNUMBER*(ux - v2[0])*phi_u(in,0)*weight;	// X displacement Value
+                
+            }
+            
+            break;
+        }
+            
+            
+        case 1 :
+        {
+            //	Neumann condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in <nphi; in++)
+            {
+                //	Normal Tension Components on neumann boundary
+                ef(2*in,0)      += -1.0*v2[0]*phi_u(in,0)*weight;		//	Tnx
+            }
+            break;
+        }
+            
+        default:
+        {
+            PZError << "TPZMatElasticity2D::ContributeBC error - Wrong boundary condition type" << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+
+}
+
+
+//****************** Perguntar ao Omar o que significa ************************//
+
+void TPZMatElasticity1D::FillDataRequirements(TPZMaterialData &data)
+{
+    data.SetAllRequirements(false);
+    data.fNeedsSol = true;
+    data.fNeedsNeighborSol = true;
+    data.fNeedsNeighborCenter = false;
+    data.fNeedsNormal = true;
+}
+
+void TPZMatElasticity1D::FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data){
+    data.SetAllRequirements(false);
+    data.fNeedsSol = true;
+    data.fNeedsNormal = true;
+}
+
+
+void TPZMatElasticity1D::Print(std::ostream &out)
+{
+    out << "Material Name : " << Name() << "\n";
+    out << "1D Problem (for Line Strain conditions) " << fLineStrain << std::endl;
+    out << "Properties for elasticity: \n";
+    out << "\t First Lamé Parameter   = "									<< flambda	<< std::endl;
+    out << "\t Second Lamé Parameter   = "									<< fmu		<< std::endl;
+    out << "\t Body force vector B {X-direction}   = "                      << fb[0] << ' ' << std::endl;
+    out << "Class properties :";
+    TPZMaterial::Print(out);
+    out << "\n";
+    
+}
+
+//****************** Perguntar ao Omar o que significa ************************//
+
+/** Returns the variable index associated with the name */
+int TPZMatElasticity1D::VariableIndex(const std::string &name)
+{
+    //	Elasticity Variables
+    if(!strcmp("Displacement",name.c_str()))				return	1;
+    if(!strcmp("SolidPressure",name.c_str()))				return	2; // do que se trata?
+    if(!strcmp("SigmaX",name.c_str()))						return	3;
+    PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
+    return -1;
+    
+    return TPZMaterial::VariableIndex(name);
+}
+
+
+/**
+ * Save the element data to a stream
+ */
+void TPZMatElasticity1D::Write(TPZStream &buf, int withclassid)
+{
+    TPZMaterial::Write(buf,withclassid);
+    buf.Write(&flambda);
+    buf.Write(&fmu);
+    TPZSaveable::WriteObjects(buf, fb);
+    
+}
+
+
+/**
+ * Read the element data from a stream
+ */
+void TPZMatElasticity1D::Read(TPZStream &buf, void *context)
+{
+    TPZMaterial::Read(buf,context);
+    buf.Read(&flambda);
+    buf.Read(&fmu);
+    TPZSaveable::ReadObjects(buf, fb);
+    
+}
+
+
+
+//****************** Perguntar ao Omar o que significa ************************//
+
+int TPZMatElasticity1D::NSolutionVariables(int var){
+    if(var == 1)	return 3;
+    if(var == 2)	return 1;
+    if(var == 3)	return 1;
+    if(var == 4)	return 1;
+    if(var == 5)	return 1;
+    if(var == 6)	return 1;
+    
+    return TPZMaterial::NSolutionVariables(var);
+}
+
+
+//****************** Entendido mais ou menos, mas seria legal uma explicacao do Omar ************************//
+
+//	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
+void TPZMatElasticity1D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
+    
+    Solout.Resize(this->NSolutionVariables(var));
+    
+    TPZManVector<STATE,3> SolU, SolP;
+    TPZFNMatrix <6,STATE> DSolU, DSolP;
+    TPZFNMatrix <9> axesU, axesP;
+    
+    TPZVec<REAL> ptx(3);
+    TPZVec<STATE> solExata(3);
+    TPZFMatrix<STATE> flux(5,1);
+    
+    if (data.sol.size() != 1) {
+        DebugStop();
+    }
+    
+    SolU	=	data.sol[0];
+    DSolU	=	data.dsol[0];
+    axesU	=	data.axes;
+    
+    
+    //	Displacements
+    if(var == 1){
+        Solout[0] = SolU[0];
+        return;
+    }
+    
+    
+    REAL epsx;
+    REAL SigX;
+    REAL DSolxy[1][1];
+    REAL divu;
+    
+    DSolxy[0][0] = DSolU(0,0)*axesU(0,0)+DSolU(1,0)*axesU(1,0); // dUx/dx
+
+    divu = DSolxy[0][0];
+    
+    epsx = DSolxy[0][0];// du/dx
+
+    
+    if (this->fLineStrain)
+    {
+       SigX = ((flambda + 2*fmu)*(epsx));
+
+    }
+    
+    
+    //	Hydrostatic stress
+    if(var == 2)
+    {
+        Solout[0] = SigX;
+        return;
+    }
+    
+    //	Effective Stress x-direction
+    if(var == 3) {
+        Solout[0] = SigX;
+        return;
+    }
+
+    
+}
+
+
+
+
+
+//
+//#endif /* TPZMatElasticity1D_hpp */
