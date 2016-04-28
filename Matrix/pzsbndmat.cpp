@@ -731,6 +731,45 @@ TPZSBMatrix<TVar>::Copy(const TPZSBMatrix<TVar> &A )
     this->fDiag = A.fDiag;
 }
 
+#ifdef USING_LAPACK
+/*** @name Solve eigenvalues ***/
+/** @{ */
+
+/// Computes the eigenvalues and eigenvectors of the symmetric matrix
+// on exit the matrix contains the eigenvectors
+template<>
+int TPZSBMatrix<float>::SymmetricEigenvalues(TPZFMatrix<float> &eigenvectors, TPZVec<float> &eigenvalues)
+{
+    if (fDecomposed != ENoDecompose) {
+        DebugStop();
+    }
+    TPZSBMatrix copy(*this);
+    char jobv[] = "Vectors", uplo[] = "Upper";
+    int dim = Rows();
+    int band = fBand;
+    int ldab = band+1;
+    eigenvalues.resize(dim);
+    eigenvectors.Redim(dim, dim);
+    TPZVec<float> work(3*dim);
+    int info;
+//    ssbev_(<#char *__jobz#>, <#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kd#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_real *__w#>, <#__CLPK_real *__z__#>, <#__CLPK_integer *__ldz#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__info#>)
+    ssbev_(jobv, uplo, &dim, &band, &copy.fDiag[0], &ldab, &eigenvalues[0], &eigenvectors(0,0), &dim, &work[0], &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    
+}
+
+template<class TVar>
+int TPZSBMatrix<TVar>::SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues)
+{
+    std::cout << "Not Implemented\n";
+}
+
+/** @} */
+#endif
+
 
 // Inicializando os templates
 template class TPZSBMatrix<float>;

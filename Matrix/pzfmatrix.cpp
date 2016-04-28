@@ -2278,6 +2278,124 @@ int TPZFMatrix<TVar>::SetSize(const long newRows,const long newCols) {
     return( 1 );
 }
 
+#ifdef USING_LAPACK
+
+/// Computes the eigenvalues and eigenvectors of the symmetric matrix
+// on exit the matrix contains the eigenvectors
+template <>
+int TPZFMatrix<float>::SymmetricEigenvalues(TPZVec<float> &eigenvalues)
+{
+    char job[]="Vectors", uplo[]="Upper", name[] = "ssyev";
+    int ispec = 1;
+    int n1(0),n2(0),n3(0),n4(0);
+    char opts[] = "Upper";
+    
+    int n= Rows();
+    int blsize = ilaenv_(&ispec, name, uplo, &n1, &n2, &n3, &n4);
+    
+    int dim = Rows();
+    eigenvalues.Resize(dim);
+    int info;
+    int worksize = (blsize+2)*dim;
+    TPZVec<float> work((blsize+2)*dim);
+    ssyev_(job, uplo, &dim, fElem, &dim, &eigenvalues[0], &work[0], &worksize, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+}
+
+template <>
+int TPZFMatrix<double>::SymmetricEigenvalues(TPZVec<double> &eigenvalues)
+{
+    char job[]="Vectors", uplo[]="Upper", name[] = "ssyev";
+    int ispec = 1;
+    int n1(0),n2(0),n3(0),n4(0);
+    char opts[] = "Upper";
+    
+    int n= Rows();
+    int blsize = ilaenv_(&ispec, name, uplo, &n1, &n2, &n3, &n4);
+    
+    int dim = Rows();
+    eigenvalues.Resize(dim);
+    int info;
+    int worksize = (blsize+2)*dim;
+    TPZVec<double> work((blsize+2)*dim);
+    dsyev_(job, uplo, &dim, fElem, &dim, &eigenvalues[0], &work[0], &worksize, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+}
+
+
+
+template <class TVar>
+int TPZFMatrix<TVar>::SymmetricEigenvalues(TPZVec<TVar> &eigenvalues)
+{
+    std::cout << "Not Implemented\n";
+    DebugStop();
+}
+
+/// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
+template <>
+int TPZFMatrix<float>::GeneralEigenvalues(TPZVec<float> &realeigen, TPZVec<float> &imageigen)
+{
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix<float> VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = -1;
+    int info;
+    sgeev_(jobvl, jobvr, &dim, fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &testwork, &lwork, &info);
+    TPZVec<float> work(lwork);
+    sgeev_(jobvl, jobvr, &dim, fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    *this = VR;
+}
+
+
+/// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
+template <>
+int TPZFMatrix<double>::GeneralEigenvalues(TPZVec<double> &realeigen, TPZVec<double> &imageigen)
+{
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix<double> VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    double testwork;
+    int lwork = -1;
+    int info;
+    dgeev_(jobvl, jobvr, &dim, fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &testwork, &lwork, &info);
+    TPZVec<double> work(lwork);
+    dgeev_(jobvl, jobvr, &dim, fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    *this = VR;
+}
+
+
+/// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
+template <class TVar>
+int TPZFMatrix<TVar>::GeneralEigenvalues(TPZVec<TVar> &realeigen, TPZVec<TVar> &imageigen)
+{
+    std::cout << "Not Implemented\n";
+    DebugStop();
+}
+
+#endif
+
+
 #ifdef _AUTODIFF
 /** @brief Returns the norm of the matrix A */
 template<>

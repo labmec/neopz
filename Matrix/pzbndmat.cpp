@@ -623,6 +623,7 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
     return( 1 );
 }
 
+
 /************************** Private **************************/
 
 /*************/

@@ -243,7 +243,7 @@ public:
 	
 	void Transpose();
 	
-	/*** @name Solve some systems ***/
+	/*** @name Solve linear system of equations ***/
 	/** @{ */
 	
 	/** @brief Cholesky Decomposition Optmized. for walks in the direction of the vector that composes the matrix */
@@ -308,6 +308,19 @@ public:
     
 	/** @} */
 	
+#ifdef USING_LAPACK
+    /*** @name Solve eigenvalues ***/
+    /** @{ */
+
+    /// Computes the eigenvalues and eigenvectors of the symmetric matrix
+    // on exit the matrix contains the eigenvectors
+    int SymmetricEigenvalues(TPZVec<TVar> &eigenvalues);
+    
+    /// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
+    int GeneralEigenvalues(TPZVec<TVar> &realeigen, TPZVec<TVar> &imageigen);
+    /** @} */
+#endif
+    
 	/** @brief Routines to send and receive messages */
 	virtual int ClassId() const;
 	

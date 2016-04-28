@@ -99,7 +99,17 @@ public:
 
 	// @}
     
-	
+#ifdef USING_LAPACK
+    /*** @name Solve eigenvalues ***/
+    /** @{ */
+    
+    /// Computes the eigenvalues and eigenvectors of the symmetric matrix
+    // on exit the matrix contains the eigenvectors
+    int SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues);
+    
+    /** @} */
+#endif
+    
 private:
 	
 	long  Size() const

@@ -113,6 +113,8 @@ public:
 	int       Decompose_LU();
 #endif
 	
+
+    
 private:
 	
     long Index(long i, long j) const
