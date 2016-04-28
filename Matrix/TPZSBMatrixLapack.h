@@ -46,7 +46,7 @@ public:
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** z and x cannot overlap in memory */
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const;
+				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const;
 	
 	void Print(const char *name = NULL, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
 	//friend std::ostream & operator<< <>(std::ostream& out,const TPZSBMatrixLapack<TVar>  &A); Leonardo removendo o '<>' antes do (std...

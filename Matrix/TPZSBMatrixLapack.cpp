@@ -247,7 +247,7 @@ TPZSBMatrixLapack<TVar>::operator-=(const TPZSBMatrixLapack<TVar> &A )
 //NOK
 template<class TVar>
 void TPZSBMatrixLapack<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-								const TVar alpha,const TVar beta ,const int opt,const int stride ) const {
+								const TVar alpha,const TVar beta ,const int opt) const {
   DebugStop();
 }
 

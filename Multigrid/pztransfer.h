@@ -55,7 +55,6 @@ class TPZTransfer : public TPZMatrix<TVar> {
 	 * @param nvar indicates the number of TVar variables of the problem
 	 * @param nrowblocks number of rows of the block
 	 * @param ncolblocks number of columns of the block
-     * @note the stride of the matrix will be initialized by nvar
 	 */
 	//void SetBlocks(TPZBlock<REAL> &row, TPZBlock<REAL> &col, int nvar, int nrowblocks, int ncolblocks);
 	void SetBlocks(TPZBlock<TVar> &row, TPZBlock<TVar> &col, int nvar, int nrowblocks, int ncolblocks);
@@ -74,7 +73,7 @@ class TPZTransfer : public TPZMatrix<TVar> {
 	
 	/** @brief Multiplies the transfer matrix and puts the result in z*/
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha,const TVar beta, const int opt = 0, const int stride = 1) const ;
+				 const TVar alpha,const TVar beta, const int opt = 0) const ;
 	
 	/**
 	 * @brief Will transfer the solution, taking into acount there may be more than
@@ -88,8 +87,7 @@ class TPZTransfer : public TPZMatrix<TVar> {
 	 */
 	void TransferResidual(const TPZFMatrix<TVar> &fine, TPZFMatrix<TVar> &coarse);
 	
-	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt,
-				  int stride) const;
+	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const;
 	
 private:
 	

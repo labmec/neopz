@@ -71,7 +71,7 @@ const TVar &TPZSYsmpMatrix<TVar>::GetVal(const int r,const int c ) const {
 template<class TVar>
 void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
 							 TPZFMatrix<TVar> &z,
-							 const TVar alpha,const TVar beta,const int opt,const int stride ) const {
+							 const TVar alpha,const TVar beta,const int opt) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	int  ir, ic;
@@ -81,22 +81,16 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	if(beta != 0) {
 		TVar *zp = &(z(0,0));
 		const REAL *yp = &(y.g(0,0));
-		TVar *zlast = zp+r*stride;
-		if(beta != 1. || (&z != &y && stride != 1)) {
-			while(zp < zlast) {
-				*zp = beta * (*yp);
-				zp += stride;
-				yp += stride;
-			}
-		}
-		else if(&z != &y) {
+		TVar *zlast = zp+r;
+
+        if(&z != &y) {
 			memcpy(zp,yp,r*sizeof(TVar));
 		}
 	} else {
-		TVar *zp = &(z(0,0)), *zlast = zp+r*stride;
+		TVar *zp = &(z(0,0)), *zlast = zp+r;
 		while(zp != zlast) {
 			*zp = 0.;
-			zp += stride;
+			zp ++;
 		}
 	}
 	
@@ -106,9 +100,9 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 		TVar xi = x.g(ir,0);
 		for(ic=fIA[ir]-1; ic<fIA[ir+1]-1; ic++) {
 			jc = fJA[ic] - 1;
-			z(ir*stride,0) += alpha * fA[ic] * x.g(jc*stride,0);
+			z(ir,0) += alpha * fA[ic] * x.g(jc,0);
 			if ( jc != ir ) {
-				z(jc*stride,0) += alpha * fA[ic] * xi;
+				z(jc,0) += alpha * fA[ic] * xi;
 			}
 		}
 	}

@@ -45,7 +45,6 @@ class TPZFYsmpMatrix : public TPZMatrix<TVar> {
 		TPZFMatrix<TVar> *fZ;
 		TVar fAlpha;
 		int fOpt;
-		int fStride;
 	};
 	
 private:
@@ -79,10 +78,10 @@ public:
 	int PutVal(const long row, const long col, const TVar &Value);
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const;
+						 const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const;
 	
 	virtual void MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						   const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 );
+						   const TVar alpha=1.,const TVar beta = 0., const int opt = 0);
 	
 	virtual int GetSub(const long sRow,const long sCol,const long rowSize,
 					   const long colSize, TPZFMatrix<TVar> & A ) const;

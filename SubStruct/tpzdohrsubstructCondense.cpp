@@ -37,7 +37,7 @@ TPZDohrSubstructCondense<TVar>::~TPZDohrSubstructCondense()
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local)
 {
-	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1, 1);
+	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1);
 }
 
 template<class TVar>

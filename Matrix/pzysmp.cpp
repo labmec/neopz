@@ -364,10 +364,12 @@ const TVar & TPZFYsmpMatrix<TVar>::GetVal(const long row,const long col ) const 
 //
 // ****************************************************************************
 
+
+
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
 									 TPZFMatrix<TVar> &z,
-									 const TVar alpha,const TVar beta,const int opt,const int stride )  {
+									 const TVar alpha,const TVar beta,const int opt )  {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || y.Rows() != z.Rows() )
@@ -386,29 +388,23 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 		TVar *zp = &(z(0,ic));
 		if(beta != 0) {
 			const TVar *yp = &(y.g(0,0));
-			TVar *zlast = zp+r*stride;
-			if(beta != 1. || (&z != &y && stride != 1)) {
-				while(zp < zlast) {
-					*zp = beta * (*yp);
-					zp += stride;
-					yp += stride;
-				}
-			}
-			else if(&z != &y) {
+			TVar *zlast = zp+r;
+
+            if(&z != &y) {
 				memcpy(zp,yp,r*sizeof(TVar));
 			}
 		} else {
-			TVar *zp = &(z(0,0)), *zlast = zp+r*stride;
+			TVar *zp = &(z(0,0)), *zlast = zp+r;
 			while(zp != zlast) {
 				*zp = 0.;
-				zp += stride;
+				zp ++;
 			}
 		}
 	}
 	// Compute alpha * A * x
-	if(xcols == 1 && stride == 1 && opt == 0)
+	if(xcols == 1 && opt == 0)
 	{
-		if(this->Cols() != x.Rows()*stride || this->Rows() != y.Rows()*stride)
+		if(this->Cols() != x.Rows() || this->Rows() != y.Rows())
 		{
 			cout << "\nERROR! in TPZFYsmpMatrix::MultiplyAddMT: incompatible dimensions in opt=false\n";
 			return;
@@ -432,16 +428,16 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 				
 				for(ir=0; ir<this->Rows(); ir++) {
 					for(sum = 0.0, icol=fIA[ir]; icol<fIA[ir+1]; icol++ ) {
-						sum += fA[icol] * x.g((fJA[icol])*stride,ic);
+						sum += fA[icol] * x.g((fJA[icol]),ic);
 					}
-					z(ir*stride,ic) += alpha * sum;
+					z(ir,ic) += alpha * sum;
 				}
 			}
 			
 			// Compute alpha * A^T * x
 			else 
 			{
-				if (this->Rows() != x.Rows()*stride || this->Cols() != y.Rows()*stride)
+				if (this->Rows() != x.Rows() || this->Cols() != y.Rows())
 				{
 					cout << "\nERROR! in TPZFYsmpMatrix::MultiplyAddMT: incompatible dimensions in opt=true\n";
 					return; 
@@ -454,7 +450,7 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 						jc = fJA[icol];
 						TVar aval = fA[icol];
 						//cout << "FA["<<icol<<"] = "<<aval<< " * x["<< ir<<"] ="<< x.Get(ir,ic)<< endl;
-						z(jc*stride,ic) += alpha * aval * x.g(ir*stride,ic);
+						z(jc,ic) += alpha * aval * x.g(ir,ic);
 					}
 				}
 			}
@@ -471,7 +467,7 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
 								   TPZFMatrix<TVar> &z,
-								   const TVar alpha,const TVar beta,const int opt,const int stride ) const {
+								   const TVar alpha,const TVar beta,const int opt) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	
@@ -490,22 +486,22 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 		TVar *zp = &(z(0,ic));
 		if(beta != 0) {
 			const TVar *yp = &(y.g(0,0));
-			TVar *zlast = zp+r*stride;
-			if(beta != 1. || (&z != &y && stride != 1)) {
+			TVar *zlast = zp+r;
+			if(beta != 1.) {
 				while(zp < zlast) {
 					*zp = beta * (*yp);
-					zp += stride;
-					yp += stride;
+					zp ++;
+					yp ++;
 				}
 			}
 			else if(&z != &y) {
 				memcpy(zp,yp,r*sizeof(REAL));
 			}
 		} else {
-			TVar *zp = &(z(0,0)), *zlast = zp+r*stride;
+			TVar *zp = &(z(0,0)), *zlast = zp+r;
 			while(zp != zlast) {
 				*zp = 0.;
-				zp += stride;
+				zp ++;
 			}
 		}
 	}
@@ -517,7 +513,6 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	 TPZFMatrix<>*fZ;
 	 REAL fAlpha;
 	 int fOpt;
-	 int fStride;
 	 */
     const int numthreads = 2;
 	pthread_t allthreads[numthreads];
@@ -537,8 +532,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 		alldata[i].fZ = &z;
 		alldata[i].fAlpha = alpha;
 		alldata[i].fOpt = opt;
-		alldata[i].fStride = stride;
-		res[i] = PZ_PTHREAD_CREATE(&allthreads[i], NULL, 
+		res[i] = PZ_PTHREAD_CREATE(&allthreads[i], NULL,
 					   ExecuteMT, &alldata[i], __FUNCTION__);
 	}
 	for(i=0;i<numthreads;i++) {
@@ -705,7 +699,7 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 	long xcols = data->fX->Cols();
 	long ic,ir,icol;
 	// Compute alpha * A * x
-	if(xcols == 1 && data->fStride == 1 && data->fOpt == 0)
+	if(xcols == 1 && data->fOpt == 0)
 	{
 		for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
 			long icolmin = mat->fIA[ir];
@@ -726,9 +720,9 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 				
 				for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
 					for(sum = 0.0, icol=mat->fIA[ir]; icol<mat->fIA[ir+1]; icol++ ) {
-						sum += mat->fA[icol] * data->fX->g((mat->fJA[icol])*data->fStride,ic);
+						sum += mat->fA[icol] * data->fX->g((mat->fJA[icol]),ic);
 					}
-					data->fZ->operator()(ir*data->fStride,ic) += data->fAlpha * sum;
+					data->fZ->operator()(ir,ic) += data->fAlpha * sum;
 				}
 			}
 			
@@ -743,7 +737,7 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 					{
 						if(mat->fJA[icol]==-1) break; //Checa a exist�cia de dado ou n�
 						jc = mat->fJA[icol];
-						data->fZ->operator()(jc*data->fStride,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(ir,ic);			
+						data->fZ->operator()(jc,ic) += data->fAlpha * mat->fA[icol] * data->fX->g(ir,ic);
 					}
 				}
 				

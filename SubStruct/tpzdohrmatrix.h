@@ -117,14 +117,13 @@ public:
 	 * @param alpha Is alpha on the above operation
 	 * @param beta Is beta on the above operation
 	 * @param opt Indicates if is Transpose or not
-	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
     
     /** The only method any matrix class needs to implement with TBB */
-	virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar alpha,const TVar beta,const int opt,const int stride) const;
+	virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar alpha,const TVar beta,const int opt) const;
     
 	/** The only method any matrix class needs to implement */
-	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar alpha,const TVar beta,const int opt,const int stride) const;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar alpha,const TVar beta,const int opt) const;
 	
 	/** @brief Adjust the residual to zero the residual of the internal connects */
 	void AdjustResidual(TPZFMatrix<TVar> &res);

@@ -480,17 +480,17 @@ template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 										   const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 										   const TVar alpha,const TVar beta,
-										   const int opt,const int stride) const
+										   const int opt) const
 {
 	// #warning Not functional yet. Still need to Identify all the variables	
 	if(!fIsReduced)
 	{
 		LOGPZ_WARN(logger,"TPZMatRed not reduced, expect trouble")
-		TPZMatrix<TVar>::MultAdd(x,y,z,alpha,beta,opt,stride);
+		TPZMatrix<TVar>::MultAdd(x,y,z,alpha,beta,opt);
 		return;
 	}
 	
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 	
 	if(!opt)
 	{
@@ -500,7 +500,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		}
 		
 		TPZFMatrix<TVar> l_Res(fK01.Rows(), x.Cols(), 0);
-		fK01.Multiply(x,l_Res,0,1);
+		fK01.Multiply(x,l_Res,0);
 		fSolver->Solve(l_Res,l_Res);
 #ifdef LOG4CXX
 		if(logger->isDebugEnabled())
@@ -511,7 +511,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		}
 #endif
 		TPZFMatrix<TVar> l_ResFinal(fK11.Rows(), x.Cols(), 0);
-		fK11.Multiply(x,l_ResFinal,0,1);
+		fK11.Multiply(x,l_ResFinal,0);
 #ifdef LOG4CXX
 		if(logger->isDebugEnabled())
 		{
@@ -520,7 +520,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-		fK10.MultAdd(l_Res,l_ResFinal,z,-alpha,alpha,opt,stride);
+		fK10.MultAdd(l_Res,l_ResFinal,z,-alpha,alpha,opt);
 #ifdef LOG4CXX
 		if(logger->isDebugEnabled())
 		{

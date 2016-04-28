@@ -120,9 +120,9 @@ TPZFMatrix<TVar> operator*( TPZMatrix<TVar> &A, const TPZFMatrix<TVar> &B ) {
 	return res;
 }
 template<class TVar>
-void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar beta,const int opt,const int stride) const
+void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar beta,const int opt) const
 {
-	long numeq = (opt) ? Cols()*stride : Rows()*stride;
+	long numeq = (opt) ? Cols() : Rows();
 	long xcols = y.Cols();
 	long ic;
 	if(!z.Rows()) return;
@@ -132,32 +132,27 @@ void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,co
 		if(beta != (TVar)0)
 		{
 			const TVar *yp = &y.g(0,ic);
-			if(beta != (TVar)1. || (beta == (TVar)1. && stride != 1 && &z != &y))
-			{
-				while(zp < zlast)
-				{
-					*zp = (TVar)beta * (*yp);
-					zp += stride;
-					yp += stride;
-				}
-			} else if(&z != &y && stride == 1)
+            if(&z != &y)
 			{
 				memcpy(zp,yp,numeq*sizeof(TVar));
 			}
+            for (long i=0; i<numeq; i++) {
+                z(i,ic) *= beta;
+            }
 		} else
 		{
 			while(zp != zlast)
 			{
 				*zp = 0.;
-				zp += stride;
+				zp ++;
 			}
 		}
 	}
 }
 
 template<class TVar>
-void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
-	if ((!opt && Cols() != x.Rows()*stride) || Rows() != x.Rows()*stride)
+void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const {
+	if ((!opt && Cols() != x.Rows()) || Rows() != x.Rows())
 		Error( "Operator* <matrixs with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
@@ -166,23 +161,23 @@ void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &
 	long cols = Cols();
 	long xcols = x.Cols();
 	long ic, c, r;
-	PrepareZ(y,z,beta,opt,stride);
+	PrepareZ(y,z,beta,opt);
 	TVar val = 0.;
 	for (ic = 0; ic < xcols; ic++) {
 		if(!opt) {
 			for ( c = 0; c<cols; c++) {
 				for ( r = 0; r < rows; r++ ) {
-					val = z(r*stride,ic) + alpha * GetVal(r,c) * x.GetVal(c*stride,ic);
-					z.PutVal(r*stride,ic,val);
+					val = z(r,ic) + alpha * GetVal(r,c) * x.GetVal(c,ic);
+					z.PutVal(r,ic,val);
 				}
 			}
 		} else {
 			for (r = 0; r<rows; r++) {
             	val = 0.;
 				for(c = 0; c<cols; c++) {
-					val += GetVal(c,r)* x.GetVal(c*stride,ic);
+					val += GetVal(c,r)* x.GetVal(c,ic);
 				}
-				z.PutVal(r*stride,ic,alpha*val);
+				z.PutVal(r,ic,alpha*val);
 			}
 		}
 	}
@@ -1821,7 +1816,7 @@ TVar TPZMatrix<TVar>::ConditionNumber(int p, long numiter, REAL tol){
 	REAL localtol = tol;
 	TPZFMatrix<TVar> Inv;
 	TVar thisnorm = this->MatrixNorm(p, localnumiter, localtol);
-	if (!this->Inverse(Inv)){
+	if (!this->Inverse(Inv,ENoDecompose)){
 		PZError << __PRETTY_FUNCTION__ << " - it was not possible to compute the inverse matrix." << std:: endl;
 		return 0.;
 	}
@@ -1830,20 +1825,20 @@ TVar TPZMatrix<TVar>::ConditionNumber(int p, long numiter, REAL tol){
 }
 
 template<class TVar>
-void TPZMatrix<TVar>::Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar>&B, int opt, int stride) const {
-	if ((opt==0 && Cols()*stride != A.Rows()) || (opt ==1 && Rows()*stride != A.Rows()))
+void TPZMatrix<TVar>::Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar>&B, int opt) const {
+	if ((opt==0 && Cols() != A.Rows()) || (opt ==1 && Rows() != A.Rows()))
 		Error( "Multiply (TPZMatrix<>&,TPZMatrix<TVar> &) <incompatible dimensions>" );
-	if(!opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
-		B.Redim(Rows()*stride,A.Cols());
+	if(!opt && (B.Rows() != Rows() || B.Cols() != A.Cols())) {
+		B.Redim(Rows(),A.Cols());
 	}
-	else if (opt && (B.Rows() != Cols()*stride || B.Cols() != A.Cols())) {
-		B.Redim(Cols()*stride,A.Cols());
+	else if (opt && (B.Rows() != Cols() || B.Cols() != A.Cols())) {
+		B.Redim(Cols(),A.Cols());
 	}
-	MultAdd( A, B, B, 1.0, 0.0, opt,stride);
+	MultAdd( A, B, B, 1.0, 0.0, opt);
 }
 
 template<class TVar> 
-int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv){
+int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv, DecomposeType dec){
 	const long n = this->Rows();
 	if (!n) return 0;
 	if (n != this->Cols()){
@@ -1859,21 +1854,37 @@ int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv){
 	long i;
 	for(i = 0; i < n; i++) Inv(i,i) = 1.;
 	
-	const int issimetric = this->IsSimetric();
-	if (issimetric)  return this->SolveDirect(Inv, ELDLt);
-	if (!issimetric) return this->SolveDirect(Inv, ELU);
+    if(dec != ENoDecompose)
+    {
+        this->SolveDirect(Inv,dec);
+    }
+    else
+    {
+        const int issimetric = this->IsSimetric();
+        if (issimetric)  return this->SolveDirect(Inv, ELDLt);
+        if (!issimetric) return this->SolveDirect(Inv, ELU);
+    }
 	return 0;
 }//method
 
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
-void TPZMatrix<TVar>::AutoFill() {
+void TPZMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
+    
+    Resize(nrow,ncol);
 	long i, j;
 	TVar val, sum;
 	/** Fill data */
 	for(i=0;i<Rows();i++) {
 		sum = 0.0;
-		for(j=0;j<Cols();j++) {
+        j=0;
+        if (symmetric) {
+            for (j=0; j<i; j++) {
+                PutVal(i, j, GetVal(j,i));
+                sum += fabs(GetVal(i, j));
+            }
+        }
+		for(;j<Cols();j++) {
 			val = ((TVar)rand())/((TVar)RAND_MAX);
 			if(!PutVal(i,j,val))
 				Error("AutoFill (TPZMatrix) failed.");
@@ -1882,7 +1893,7 @@ void TPZMatrix<TVar>::AutoFill() {
 		if (Rows() == Cols()) {
 		  /** Making diagonally dominant and non zero in diagonal */
 		  if(fabs(sum) > fabs(GetVal(i,i)))            // Deve satisfazer:  |Aii| > SUM( |Aij| )  sobre j != i
-			  PutVal(i,i,sum);
+			  PutVal(i,i,sum+(TVar)1.);
 		  // To sure diagonal is not zero.
 		  if(IsZero(sum) && IsZero(GetVal(i,i)))
 			  PutVal(i,i,1.);

@@ -106,17 +106,17 @@ public:
 
 template<class TVar, class TSubStruct>
 void TPZDohrMatrix<TVar,TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                                                const TVar alpha,const TVar beta,const int opt,const int stride) const
+                                                const TVar alpha,const TVar beta,const int opt) const
 {
 
 #ifdef USING_TBB
     
-	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
+	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		this->Error( "Operator* <matrixs with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
 	}
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 	
     
     unsigned int nglob = fGlobal.size();
@@ -146,21 +146,21 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const 
 
 template<class TVar, class TSubStruct>
 void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-											 const TVar alpha,const TVar beta,const int opt,const int stride) const
+											 const TVar alpha,const TVar beta,const int opt) const
 {
     
 #ifdef USING_TBB 
-        MultAddTBB(x, y, z, alpha, beta, opt, stride);
+        MultAddTBB(x, y, z, alpha, beta, opt);
         return;
 #endif
         
 	TPZfTime mult;
-	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
+	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		this->Error( "Operator* <matrixs with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
 	}
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 	
 	typename SubsList::const_iterator iter;
 	int isub = 0;

@@ -9,6 +9,16 @@
 #include "pzfmatrix.h"
 #include "pzsbndmat.h"
 
+#ifdef USING_LAPACK
+/** CBlas Math Library */
+#ifdef MACOSX
+#include <Accelerate/Accelerate.h>
+#else
+#include "cblas.h"
+#define BLAS_MULT
+#endif
+#endif
+
 #include <sstream>
 #include "pzlog.h"
 #ifdef LOG4CXX
@@ -30,13 +40,56 @@ TPZSBMatrix<TVar>::TPZSBMatrix( long dim, long band )
 : TPZMatrix<TVar>( dim, dim )
 {
 	fBand = ( band > (dim - 1) ? (dim - 1) : band );
-	fDiag = new TVar[Size()];
-	if ( fDiag == NULL )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSBMatrix( dim ) <Error creating Matrix>" );
+    fDiag.resize(Size());
 	
 	Zero();
 }
 
+/** Fill the matrix with random values (non singular matrix) */
+template <class TVar>
+void TPZSBMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
+
+    if (nrow != ncol || symmetric == 0) {
+        DebugStop();
+    }
+    fBand = nrow/10;
+    if (fBand == 0) {
+        fBand = nrow-1;
+    }
+    Resize(nrow, ncol);
+
+    long i, j;
+    TVar val, sum;
+    /** Fill data */
+    for(i=0;i<this->Rows();i++) {
+        sum = 0.0;
+        long jmax = i+fBand+1;
+        if (jmax >= this->Rows()) {
+            jmax = this->Rows();
+        }
+        for (j=0; j<i; j++) {
+            sum += fabs(GetVal(i, j));
+        }
+        for(j=i;j<jmax;j++) {
+            val = ((TVar)rand())/((TVar)RAND_MAX);
+            if(!PutVal(i,j,val))
+            {
+                std::cout << "AutoFill (TPZMatrix) failed.";
+                DebugStop();
+            }
+            if(i!=j) sum += fabs(val);
+        }
+        if (this->Rows() == this->Cols()) {
+            /** Making diagonally dominant and non zero in diagonal */
+            if(fabs(sum) > fabs(GetVal(i,i)))            // Deve satisfazer:  |Aii| > SUM( |Aij| )  sobre j != i
+                PutVal(i,i,sum+(TVar)1.);
+            // To sure diagonal is not zero.
+            if(IsZero(sum) && IsZero(GetVal(i,i)))
+                PutVal(i,i,1.);
+        }
+    }
+
+}
 /**************/
 /*** PutVal ***/
 
@@ -59,7 +112,7 @@ TPZSBMatrix<TVar>::PutVal(const long r,const long c,const TVar& value )
 #endif
 		return( 0 );        // O elemento esta fora da banda.
 	}
-	fDiag[ col * (fBand+1) + index ] = value;
+	fDiag[ Index(row,col) ] = value;
 	this->fDecomposed = 0;
 	return( 1 );
 }
@@ -80,7 +133,7 @@ const TVar
 	if ( (index = col-row) > fBand )
 		return( this->gZero );        // O elemento esta fora da banda.
 	
-	return( fDiag[ col * (fBand+1) + index ] );
+	return( fDiag[ Index(row,col) ] );
 }
 
 /*************/
@@ -95,7 +148,7 @@ TPZSBMatrix<TVar> ::Print(const char *name, std::ostream& out,const MatrixOutput
 	
 	out << "Writing matrix '" << name;
 	out << "' (" << this->Rows() << " x " << this->Cols() << ")  Bandwith = "<<fBand<<"\n";
-	TPZMatrix<TVar>::Print(0,out,form);
+	TPZMatrix<TVar>::Print(name,out,form);
 	/*
 	 for ( int row = 0; row < Rows(); row++)
 	 {
@@ -152,44 +205,14 @@ template<class TVar>
 TPZSBMatrix<TVar>
 TPZSBMatrix<TVar>::operator+(const TPZSBMatrix<TVar> &A ) const
 {
-	if ( this->Dim() != A.Dim() )
+	if ( this->Dim() != A.Dim() || fBand != A.fBand)
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
 	
 	// Define os ponteiros e tamanhos para os elementos da maior e da
 	//  menor banda.
-	TVar *elemMax;
-	TVar *elemMin;
-	long  sizeMax;
-	long  sizeMin;
-	if ( fBand > A.fBand )
-    {
-		sizeMax = fBand + 1;
-		elemMax = fDiag;
-		sizeMin = A.fBand + 1;
-		elemMin = A.fDiag;
-    }
-	else
-    {
-		sizeMax = A.fBand + 1;
-		elemMax = A.fDiag;
-		sizeMin = fBand + 1;
-		elemMin = fDiag;
-    }
-	
-	TPZSBMatrix<TVar> res( this->Dim(), sizeMax-1 );
-	
-	// Efetua a SOMA.
-	TVar *dest = res.fDiag;
-	long col,i;
-	for ( col = 0; col < this->Dim(); col++ )
-    {
-		for (  i = 0; i < sizeMin; i++ )
-			*dest++ = (*elemMax++) + (*elemMin++);
-		for ( ; i < sizeMax; i++ )
-			*dest++ = *elemMax++;
-    }
-	
-	return( res );
+    TPZSBMatrix Res(*this);
+    Res += A;
+	return Res;
 }
 
 /******************/
@@ -199,31 +222,13 @@ template<class TVar>
 TPZSBMatrix<TVar>
 TPZSBMatrix<TVar>::operator-(const TPZSBMatrix<TVar> &A ) const
 {
-	if ( this->Dim() != A.Dim() )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator-( TPZSBMatrix ) <incompatible dimensions>" );
-	
-	// Define o tamanho e os elementos das colunas das 2 matrizes.
-	long  sizeThis  = fBand + 1;
-	long  sizeA     = A.fBand + 1;
-	TVar *elemThis = fDiag;
-	TVar *elemA    = A.fDiag;
-	
-	TPZSBMatrix<TVar> res( this->Dim(), MAX(sizeThis, sizeA) );
-	
-	// Efetua a SUBTRACAO.
-	TVar *dest = res.fDiag;
-	long col,i;
-	for (col = 0; col < this->fRow; col++ )
+	if ( this->Dim() != A.Dim() || fBand != A.fBand)
     {
-		for (i = 0; (i < sizeThis) && (i < sizeA); i++ )
-			*dest++ = (*elemThis++) - (*elemA++);
-		if ( i == sizeA )
-			for ( ; i < sizeThis; i++ )
-				*dest++ = *elemThis++;
-		else
-			for ( ; i < sizeA; i++ )
-				*dest++ = -(*elemA++);
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator-( TPZSBMatrix ) <incompatible dimensions>" );
     }
+    
+    TPZSBMatrix<TVar> res(*this);
+    res -= A;
 	
 	return( res );
 }
@@ -235,34 +240,14 @@ template<class TVar>
 TPZSBMatrix<TVar> &
 TPZSBMatrix<TVar>::operator+=(const TPZSBMatrix<TVar> &A )
 {
-	if ( this->Dim() != A.Dim() )
+	if ( this->Dim() != A.Dim() || fBand != A.fBand)
+    {
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator+=( TPZSBMatrix ) <incompatible dimensions>" );
-	
-	// No caso de as bandas serem iguais (ou se "tornarem" iguais).
-	if ( fBand <= A.fBand )
-    {
-		if ( fBand < A.fBand )
-			SetBand( A.fBand );
-		TVar *pm = fDiag;
-		TVar *pa = A.fDiag;
-		TVar *end = &fDiag[ Size() ];
-		while ( pm < end )
-			*pm++ += *pa++;
     }
-	else
-    {
-		// Se a banda desta matriz for maior...
-		TVar *pThis  = fDiag;
-		TVar *pA     = A.fDiag;
-		long sizeThis = fBand + 1;
-		long sizeA    = A.fBand + 1;
-		long inc = sizeThis - sizeA;
-		for ( long col = 0; col < this->Dim(); col++, pThis += inc )
-			for ( long i = 0; i < sizeA; i++ )
-				*pThis++ += *pA++;
+    long siz= fDiag.size();
+    for (long i=0; i<siz; i++) {
+        fDiag[i] += A.fDiag[i];
     }
-	
-	this->fDecomposed = 0;
 	return( *this );
 }
 
@@ -273,48 +258,29 @@ template<class TVar>
 TPZSBMatrix<TVar> &
 TPZSBMatrix<TVar>::operator-=(const TPZSBMatrix<TVar> &A )
 {
-	if ( this->Dim() != A.Dim() )
+	if ( this->Dim() != A.Dim() || fBand != A.fBand)
+    {
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator-=( TPZSBMatrix ) <incompatible dimensions>" );
-	
-	// No caso de as bandas serem iguais (ou se "tornarem" iguais)
-	if ( fBand <= A.fBand )
-    {
-		if ( fBand < A.fBand )
-			SetBand( A.fBand );
-		TVar *pm = fDiag;
-		TVar *pa = A.fDiag;
-		TVar *end = &fDiag[ Size() ];
-		while ( pm < end )
-			*pm++ -= *pa++;
     }
-	else
-    {
-		// Se a banda desta matriz for maior...
-		TVar *pThis  = fDiag;
-		TVar *pA     = A.fDiag;
-		long sizeThis = fBand + 1;
-		long sizeA    = A.fBand + 1;
-		long inc = sizeThis - sizeA;
-		for ( long col = 0; col < this->Dim(); col++, pThis += inc )
-			for ( long i = 0; i < sizeA; i++ )
-				*pThis++ -= *pA++;
+    long siz= fDiag.size();
+    for (long i=0; i<siz; i++) {
+        fDiag[i] -= A.fDiag[i];
     }
-	
-	this->fDecomposed = 0;
+
 	return( *this );
 }
 
 template<class TVar>
 void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-								const TVar alpha,const TVar beta ,const int opt,const int stride ) const {
+								const TVar alpha,const TVar beta ,const int opt) const {
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
-	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())
+	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSBMatrix::MultAdd <matrixs with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
 	}
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 	long rows = this->Rows();
 	long xcols = x.Cols();
 	long ic, r;
@@ -325,10 +291,10 @@ void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 			end   = MIN( r + fBand + 1, rows );
 			TVar val = 0.;
 			// Calcula um elemento da resposta.
-			for ( long i = begin ; i < end; i++ ) val += GetVal( r, i ) * x.GetVal(stride * i, ic );
+			for ( long i = begin ; i < end; i++ ) val += GetVal( r, i ) * x.GetVal(i, ic );
 			val *= alpha;
-			val += z.GetVal(r*stride,ic);
-			z.PutVal( r*stride , ic, val );
+			val += z.GetVal(r,ic);
+			z.PutVal( r , ic, val );
 		}
 	}
 }
@@ -357,13 +323,13 @@ template<class TVar>
 TPZSBMatrix<TVar>
 TPZSBMatrix<TVar>::operator*(const TVar value ) const
 {
-	TPZSBMatrix<TVar> res( this->Dim(), fBand );
+	TPZSBMatrix<TVar> res( *this );
 	
-	TVar *pr  = res.fDiag;
-	TVar *pm  = fDiag;
-	TVar *end = &fDiag[Size()];
-	while ( pm < end )
-		*pr++ = (*pm++) * value;
+    long siz= fDiag.size();
+    for (long i=0; i<siz; i++) {
+        res.fDiag[i] *= value;
+    }
+
 	return( res );
 }
 
@@ -377,12 +343,11 @@ template<class TVar>
 TPZSBMatrix<TVar> &
 TPZSBMatrix<TVar>::operator*=(const TVar value )
 {
-	TVar *pm  = fDiag;
-	TVar *end = &fDiag[Size()];
-	while ( pm < end )
-		*pm++ *= value;
-	
-	this->fDecomposed = 0;
+    long siz= fDiag.size();
+    for (long i=0; i<siz; i++) {
+        fDiag[i] *= value;
+    }
+
 	return( *this );
 }
 
@@ -399,30 +364,7 @@ TPZSBMatrix<TVar>::Resize(const long newDim ,const long)
 	if ( newDim == this->Dim() )
 		return( 1 );
 	
-	if (fBand>this->Dim()-1) fBand=this->Dim()-1;//misael:19/10/96
-	// Cria nova matrix.
-	long newBand = fBand > newDim - 1 ? newDim - 1 : fBand;
-	long  newSize  = newDim * (newBand + 1);
-	TVar *newDiag = new TVar[newSize] ;
-	
-	// Copia os elementos para a nova matriz.
-	TVar *src = fDiag;
-	TVar *dst = newDiag;
-	TVar *end = &newDiag[ MIN(Size(), newSize) ];
-	while ( dst < end )
-		*dst++ = *src++;
-	
-	// Zera as posicoes que sobrarem (se sobrarem).
-	end = &newDiag[newSize];
-	while ( dst < end )
-		*dst++ = 0.0;
-	
-	// Descarta a matriz antiga e valida a nova matriz.
-	if ( fDiag != NULL )
-		delete( fDiag );
-	fDiag = newDiag;
-	this->fCol = this->fRow = newDim;
-	this->fDecomposed = 0;
+    Redim(newDim,newDim);
 	return( 1 );
 }
 
@@ -433,24 +375,22 @@ TPZSBMatrix<TVar>::Resize(const long newDim ,const long)
 //
 template<class TVar>
 int
-TPZSBMatrix<TVar>::Redim(const long newDim ,const long)
+TPZSBMatrix<TVar>::Redim(const long newDim ,const long otherDim)
 {
+    if (newDim != otherDim) {
+        DebugStop();
+    }
+    
 	if ( newDim != this->Dim() )
     {
-		// Aloca a nova matriz.
-		this->fRow = this->fCol = newDim;
-		if ( this->fDiag != NULL )
-			delete( this->fDiag );
-		this->fDiag = new TVar[Size()];
-		if ( fDiag == NULL )
-			TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>" );
+        TPZMatrix<TVar>::Redim(newDim,newDim);
+        if (fBand > newDim-1) {
+            fBand = newDim-1;
+        }
+        fDiag.resize(Size());
     }
 	
-	TVar *dst = fDiag;
-	TVar *end = &fDiag[Size()];
-	while ( dst < end )
-		*dst++ = 0.;
-	
+    Zero();
 	this->fDecomposed = 0;
 	this->fDefPositive = 0;
 	return( 1 );
@@ -460,10 +400,11 @@ template<class TVar>
 int
 TPZSBMatrix<TVar>::Zero()
 {
-	TVar *dst =this->fDiag;
-	TVar *end = &fDiag[this->Size()];
-	while ( dst < end )
-		*dst++ = 0.;
+    long siz= fDiag.size();
+    for (long i=0; i<siz; i++) {
+        fDiag[i] = (TVar)0.;
+    }
+
 	
 	this->fDecomposed = 0;
 	this->fDefPositive = 0;
@@ -475,125 +416,69 @@ TPZSBMatrix<TVar>::Zero()
 /*** Set Band ***/
 template<class TVar>
 int
-TPZSBMatrix<TVar>::SetBand(const long newBand )
+TPZSBMatrix<TVar>::SetBand(long newBand )
 {
 	if ( this->fBand == newBand )
 		return( 1 );
 	
-	if ( this->fBand > (this->Dim() - 1) )
-		return( 0 );
-	
-	TVar *newDiag = new TVar[this->Dim() * (newBand + 1)];
-	
-	// Copia os elementos antigos para a nova alocacao.
-	TVar *pNew = newDiag;
-	TVar *pOld = fDiag;
-	long newSize  = newBand + 1;
-	long oldSize  = fBand + 1;
-	long minSize  = MIN( newSize, oldSize );
-	long i;
-	for ( i = 0; i < minSize; i++ )
+	if ( newBand > (this->Dim() - 1) )
     {
-		TVar *end = pNew + (this->Dim() * newSize);
-		TVar *dst = pNew++;
-		TVar *src = pOld++;
-		for ( ; dst < end; src += oldSize, dst += newSize )
-			*dst = *src;
+		newBand = this->Dim()-1;
     }
-	
-	// Preenche com zero os elementos que sobrarem (se sobrarem).
-	for ( ; i < newSize; i++ )
-    {
-		TVar *end = pNew + (this->Dim() * newSize);
-		TVar *dst = pNew++;
-		for ( ; dst < end; dst += newSize )
-			*dst = 0.0;
-    }
-	
-	if ( fDiag == NULL )
-		delete( fDiag );
-	fDiag = newDiag;
-	
-	if ( newBand < fBand )
-		this->fDecomposed = 0;
-	fBand = newBand;
+    fDiag.resize(Size());
+    Zero();
 	
 	return( 1 );
 }
 
 /********************* Resolucao de sistemas *********************/
 
+
+#ifdef USING_LAPACK
 /**************************/
 /*** Decompose Cholesky ***/
 template<class TVar>
 int
 TPZSBMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 {
-	return Decompose_Cholesky();
+    return Decompose_Cholesky();
+}
+
+template<>
+int TPZSBMatrix<float>::Decompose_Cholesky()
+{
+    if (fDecomposed == ECholesky) {
+        return 1;
+    }
+    if (fDecomposed != ENoDecompose) {
+        DebugStop();
+    }
+    char uplo[]="Upper";
+    int n = Dim();
+    int kd = fBand;
+    int nrhs = 0;
+    float *ab = &fDiag[0];
+    int ldab = fBand+1;
+    float b = 0;
+    int info;
+    
+//    spbsv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kd#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
+    spbsv_(uplo, &n, &kd, &nrhs, ab, &ldab, &b, &n, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    fDecomposed = ECholesky;
+    return 1;
 }
 
 template<class TVar>
 int
 TPZSBMatrix<TVar>::Decompose_Cholesky()
 {
-	if (  this->fDecomposed && this->fDecomposed != ECholesky )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
-	if (this->fDecomposed) {
-		return 1;
-	}
-	long size = fBand + 1; // Tamanho da banda.
-	long next = fBand + 1; // O quanto se soma para "andar" na diagonal.
-	TVar *row_k   = fDiag;
-	TVar *row_end = fDiag + Size();
-	
-	for ( long k = 0; k <this-> Dim(); k++, row_k += next  )
-    {
-		// Faz sum = SOMA( A(k,p) * A(k,p) ), p = 1, ..., k-1.
-		//
-		TVar sum = 0.0;
-		TVar *elem_k = row_k + 1;
-		TVar *end_k  = row_k + next;
-		for ( ; elem_k < end_k; elem_k++ )
-			sum += (*elem_k) * (*elem_k);
-		
-		// Faz A(k,k) = sqrt( A(k,k) - sum ).
-		//
-		if ( (*row_k -= sum) < 1.e-10 )
-			return( 0 );
-		*row_k = sqrt( *row_k );
-		
-		// Loop para i = k+1 ... Dim().
-		//
-		TVar *row_i = row_k + next;
-		for ( long j = 2; row_i < row_end; j++, row_i += next )
-		{
-			// Se tiverem elementos na linha 'i' cuja coluna e'
-			//  menor do que 'K'...
-			if ( j < size )
-			{
-				// Faz sum = SOMA( A(i,p) * A(k,p) ), p = 1,..,k-1.
-				sum = 0.0;
-				TVar *elem_i = row_i + j;
-				TVar *end_i  = row_i + size;
-				elem_k = row_k + 1;
-				while ( elem_i < end_i )
-					sum += (*elem_i++) * (*elem_k++);
-				
-				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
-				row_i[j-1] = (row_i[j-1] -sum) / (*row_k);
-			}
-			
-			// Se nao tiverem estes elementos, sum = 0.0.
-			else if ( j == size )
-				row_i[j-1] /= (*row_k);
-			
-			// Se nao existir nem o elemento A(i,k), nao faz nada.
-		}
-    }
-	
-	this->fDecomposed  = ECholesky;
-	this->fDefPositive = 1;
-	return( 1 );
+    return TPZMatrix<TVar>::Decompose_Cholesky();
 }
+#endif
 
 /**********************/
 /*** Decompose LDLt ***/
@@ -613,7 +498,6 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
 	
 	long j,k,l, begin,end;
 	TVar sum;
-	
 	
 	for ( j = 0; j < this->Dim(); j++ )
     {
@@ -667,61 +551,73 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
 //
 //  Faz Ax = b, onde A e' triangular inferior.
 //
+#ifdef USING_LAPACK
+template<>
+int
+TPZSBMatrix<float>::Subst_Forward( TPZFMatrix<float>*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+//    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        float *bptr = &(*B)(0,ic);
+        cblas_stbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
 template<class TVar>
 int
 TPZSBMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
 {
-	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
-	
-	long size = fBand + 1;
-	TVar *row_k = fDiag;
-	for ( long k = 0; k < this->Dim(); k++, row_k += size )
-		for ( long j = 0; j < B->Cols(); j++ )
-		{
-			// Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
-			long end=(k-fBand>0)? fBand:k;//misael
-			TVar sum = 0.0;
-			TVar *elem_ki = row_k + 1;
-			TVar *end_ki  = row_k + end;  //misael
-			for ( long i = k-1; elem_ki < end_ki ; i-- )
-				sum += (*elem_ki++) * B->GetVal( i, j );
-			
-			// Faz B[k,j] = (B[k,j] - sum) / A[k,k].
-			//
-			B->PutVal( k, j, (B->GetVal(k, j) - sum) / *row_k );
-		}
-	
-	return( 1 );
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+    }
+    return TPZMatrix<TVar>::Subst_Forward(B);
 }
+
+template<>
+int
+TPZSBMatrix<float>::Subst_Backward( TPZFMatrix<float>*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        float *bptr = &(*B)(0,ic);
+        cblas_stbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
 
 template<class TVar>
 int TPZSBMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 {
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
-	long k,j,i,jmax,stepcol=fBand+2;
-	for(k=0; k<B->Cols() ; k++)
-    {
-		for(i=this->Rows()-1; i>=0; i--)
-		{
-			TVar *diagk=fDiag+(fBand+1)*i;
-			jmax=( (i+fBand)>this->Rows()-1)? this->Rows()-1 : i+fBand;
-			for(j=i+1;j<=jmax;j++)
-			{
-				diagk+=stepcol;
-				B->operator()(i,k)-=B->GetVal(j,k)*(*diagk);
-			}
-			B->operator()(i,k)/=GetVal(i,i);
-			
-		}
-		
-    }
-	
+
+    return TPZMatrix<TVar>::Subst_Backward(B);
 	return ( 1 ) ;
 	
 }
 
+#endif
 /***********************/
 /*** Subst L Forward ***/
 //
@@ -735,26 +631,28 @@ int TPZSBMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LForward-> uncompatible matrices") ;
 	
 	long size = fBand + 1;
-	TVar *row_k = fDiag;
 	long i,j,k;
-	for ( k = 0; k < this->Dim(); k++, row_k += size )
+	for ( k = 0; k < this->Dim(); k++ )
+    {
 		for ( j = 0; j < B->Cols(); j++ )
 		{
 			// Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
 			
+            long imin = k-fBand;
+            if(imin < 0) imin = 0;
+        
 			long end=(k-fBand>0)? fBand:k;  //misael
 			TVar sum = 0.0;
-			TVar *elem_ki = row_k + 1;
-			TVar *end_ki  = row_k + end;
-			for ( i = k-1; elem_ki <= end_ki ; i-- )//misael
-				sum += (*elem_ki++) * B->GetVal( i, j );
-			
+			for ( i = imin; i < k ; i++ )//misael
+            {
+				sum += GetVal(k,i) * B->GetVal(i,j);
+            }
 			// Faz b[k] = (b[k] - sum).
 			//
 			B->PutVal( k, j, (B->GetVal( k, j ) - sum) );
 			
 		}
-	
+    }
 	return( 1 );
 }
 
@@ -772,10 +670,9 @@ int TPZSBMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
 	
 	
 	long size = fBand + 1;
-	TVar *row_k = fDiag;
-	for ( long k = 0; k < this->Dim(); k++, row_k += size )
+	for ( long k = 0; k < this->Dim(); k++ )
 		for ( long j = 0; j < B->Cols(); j++ )
-			B->PutVal( k, j, B->GetVal( k, j) / *row_k );
+			B->PutVal( k, j, B->GetVal( k, j) / GetVal(k,k) );
 	
 	return( 1 );
 }
@@ -790,15 +687,16 @@ int TPZSBMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 	
 	for(k=0; k<B->Cols() ; k++)
     {
-		for(i=this->Rows()-1; i>=0; i--)
+		for(long i=this->Rows()-1; i>=0; i--)
 		{
-			TVar *diagk=fDiag+(fBand+1)*i;
-			jmax=( (i+fBand)>this->Rows()-1)? this->Rows()-1 : i+fBand;
-			for(j=i+1;j<=jmax;j++)
+			jmax=( (i+fBand+1)>this->Rows())? this->Rows() : i+fBand+1;
+            TVar sum = 0.;
+			for(j=i+1;j<jmax;j++)
 			{
-				diagk+=stepcol;
-				B->operator()(i,k)-=B->GetVal(j,k)*(*diagk);
+                TVar el = GetVal(i,j);
+				sum += B->GetVal(j,k)*el;
 			}
+            B->operator()(i,k) -= sum;
 		}
 		
     }
@@ -815,10 +713,8 @@ template<class TVar>
 int
 TPZSBMatrix<TVar>::Clear()
 {
-	if ( this->fDiag != NULL )
-		delete []fDiag ;
 	this->fRow = this->fCol = 0;
-	fDiag = NULL;
+	fDiag.resize(0);
 	this->fDecomposed = 0;
 	return( 1 );
 }
@@ -830,63 +726,14 @@ template<class TVar>
 void
 TPZSBMatrix<TVar>::Copy(const TPZSBMatrix<TVar> &A )
 {
+    TPZMatrix<TVar>::operator=(A);
 	this->fBand = A.fBand;
-	this->fRow = this->fCol = A.Dim();
-	this->fDiag = new TVar[Size()];
-	this->fDecomposed  = A.fDecomposed;
-	this->fDefPositive = A.fDefPositive;
-	
-	if ( fDiag == NULL )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Copy( TPZSBMatrix ) <memory allocation error>" );
-	
-	TVar *dst = fDiag;
-	TVar *src = A.fDiag;
-	TVar *end = A.fDiag + Size();
-	while ( src < end )
-		*dst++ = *src++;
+    this->fDiag = A.fDiag;
 }
 
-#ifdef OOPARLIB
-
-template<class TVar>
-int TPZSBMatrix<TVar>::Unpack (TReceiveStorage *buf ){
-	TSimMatrix::Unpack(buf);
-	buf->UpkInt(&fBand);
-	buf->UpkDouble(fDiag,fBand);
-	return 1;
-}
-
-
-template<class TVar>
-TSaveable *TPZSBMatrix<TVar>::Restore(TReceiveStorage *buf) {
-	TPZSBMatrix<TVar> *m = new TPZSBMatrix<TVar>();
-	m->Unpack(buf);
-	return m;
-}
-
-template<class TVar>
-int TPZSBMatrix<TVar>::Pack( TSendStorage *buf ){
-	TSimMatrix::Pack(buf);
-	buf->PkInt(&fBand);
-	buf->PkDouble(fDiag,fBand);
-	return 1;
-}
-
-template<class TVar>
-int TPZSBMatrix<TVar>::DerivedFrom(long Classid){
-	if(Classid == GetClassID()) return 1;
-	return TSimMatrix::DerivedFrom(Classid);
-}
-
-template<class TVar>
-int TPZSBMatrix<TVar>::DerivedFrom(char *classname){
-	if(!strcmp(ClassName(),classname)) return 1;
-	return TSimMatrix::DerivedFrom(classname);
-}
-
-#endif
 
 // Inicializando os templates
+template class TPZSBMatrix<float>;
 template class TPZSBMatrix<double>;
 template class TPZSBMatrix<long double>;
 

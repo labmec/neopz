@@ -37,7 +37,7 @@ public:
     void AddBlock(long i, TPZFMatrix<TVar>& block);
     void BuildFromMatrix(TPZMatrix<TVar>& matrix);
     void GetBlock(long i, TPZFMatrix<TVar>& block);
-    void MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt, const int stride) const;
+    void MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const;
     void FindBlockIndex(long glob, long &block, long &blockind) const;
 	
 	/** @brief Updates the values of the matrix based on the values of the matrix */
@@ -50,8 +50,8 @@ protected:
 	/** @brief Index to first element of each block */
     TPZVec<long> fBlockIndex;
 	
-    void Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out, int stride) const;
-    void Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out, int stride) const;
+    void Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
+    void Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
 };
 
 #endif

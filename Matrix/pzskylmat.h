@@ -154,7 +154,7 @@ public:
     TVar &operator()(const long row) { return operator()(row, row); }
     
     virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                         const TVar alpha,const TVar beta ,const int opt = 0,const int stride = 1 ) const ;
+                         const TVar alpha,const TVar beta ,const int opt = 0) const ;
     
     TPZSkylMatrix& operator= (const TPZSkylMatrix<TVar> &A );
 	
@@ -219,7 +219,7 @@ public:
     int Subst_Diag     ( TPZFMatrix<TVar> *b ) const;
     // @}
 	
-    virtual void AutoFill();
+    virtual void AutoFill(long nrow, long ncol, int symmetric);
 	
     virtual int ClassId() const;
     
@@ -412,7 +412,7 @@ public:
 	TVar &operator()(const long row);
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha,const TVar beta ,const int opt = 0,const int stride = 1 ) const ;
+						 const TVar alpha,const TVar beta ,const int opt = 0) const ;
 	// Operadores com matrizes SKY LINE.
 	TPZSkylMatrix &operator= (const TPZSkylMatrix<TVar> &A );
 	//TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
@@ -473,7 +473,7 @@ public:
 	// @}
 	
 	//void TestSpeed(int col, int prevcol);
-	virtual void AutoFill() ;
+	virtual void AutoFill(long nrow, long ncol, int symmetric) ;
 	
 	virtual int ClassId() const;
     /**

@@ -111,29 +111,23 @@ const TVar & TPZStencilMatrix<TVar>::GetVal(const int row,const int col ) const 
 template<class TVar>
 void TPZStencilMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
 									 TPZFMatrix<TVar> &z,
-									 const TVar alpha,const TVar beta,const int opt,const int stride ) const {
+									 const TVar alpha,const TVar beta,const int opt) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	int ix=0;
 	int r = (opt) ? Cols() : Rows();
 	if(beta != 0) {
-		TVar *zp = &(z(0,0)), *zlast = zp+r*stride;
+		TVar *zp = &(z(0,0)), *zlast = zp+r;
 		const TVar *yp = &(y.GetVal(0,0));
-		if(beta != 1. || (&z != &y && stride != 1)) {
-			while(zp < zlast) {
-				*zp = beta * (*yp);
-				zp += stride;
-				yp += stride;
-			}
-		}
-		else if(&z != &y) {
+    
+        if(&z != &y) {
 			memcpy(zp,yp,r*sizeof(REAL));
 		}
 	} else {
-		TVar *zp = &(z(0,0)), *zlast = zp+r*stride;
+		TVar *zp = &(z(0,0)), *zlast = zp+r;
 		while(zp != zlast) {
 			*zp = 0.;
-			zp += stride;
+			zp ++;
 		}
 	}
 	if(opt == 0) {
@@ -150,12 +144,12 @@ void TPZStencilMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 				int *ialast = ia+numintegers;
 				TVar val;
 				val = 0.;
-				const TVar *xp = &(x.GetVal(ix*stride,0));
+				const TVar *xp = &(x.GetVal(ix,0));
 				while(ia < ialast) {
-					val += *(xp+((*ia++)*stride));
+					val += *(xp+((*ia++)));
 					it++;
 				}
-				z(ir*stride,0) += alpha*val*(*a);
+				z(ir,0) += alpha*val*(*a);
 				a+=numintegers+1;
 			}
 			ix += st->fInc;
@@ -172,9 +166,9 @@ void TPZStencilMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 			while(++it<nitems) {
 				int numintegers = *ia++;
 				int *ialast = ia + numintegers;
-				TVar xval = alpha*x.GetVal(ir*stride,0)*(*a);
+				TVar xval = alpha*x.GetVal(ir,0)*(*a);
 				while(ia<ialast) {
-					z((ix+(*ia++))*stride,0) += xval;
+					z((ix+(*ia++)),0) += xval;
 					it++;
 				}
 				a += numintegers+1;

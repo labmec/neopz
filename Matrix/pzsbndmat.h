@@ -26,7 +26,7 @@ template<class TVar>
 class TPZSBMatrix : public TPZMatrix<TVar>
 {
 public:
-	TPZSBMatrix() : TPZMatrix<TVar>(0,0) { fDiag = NULL; fBand = 0; }
+	TPZSBMatrix() : TPZMatrix<TVar>() { fDiag = NULL; fBand = 0; }
 	TPZSBMatrix(const long dim,const long band );
 	TPZSBMatrix(const TPZSBMatrix<TVar> &A ) : TPZMatrix<TVar>(A)  { Copy(A); }
 	
@@ -37,15 +37,26 @@ public:
 	int    PutVal(const long row,const long col,const TVar& element );
 	const TVar &GetVal(const long row,const long col ) const;
 	
+    /** @brief Checks if the current matrix is symmetric */
+    virtual int IsSimetric() const
+    {
+        return 1;
+    }
+
+    
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** z and x cannot overlap in memory */
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const;
+				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const;
 	
 	void Print(const char *name = NULL, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
 	//friend std::ostream & operator<< <>(std::ostream& out,const TPZSBMatrix<TVar>  &A); Leonardo removendo o '<>' antes do (std...
 	template<class TT>friend std::ostream & operator<< (std::ostream& out,const TPZSBMatrix<TT>  &A); 
 	
+    /** Fill the matrix with random values (non singular matrix) */
+    void AutoFill(long nrow, long ncol, int symmetric);
+
+    
 	/// Operadores com matrizes SKY LINE.
 	// @{
 	TPZSBMatrix &operator= (const TPZSBMatrix<TVar> &A );
@@ -72,43 +83,44 @@ public:
 	long GetBand() const { return fBand; }
 	int   SetBand(const long newBand );
 	
-	
 	/// To solve linear systems
 	// @{
+#ifdef USING_LAPACK
 	int Decompose_Cholesky();  // Faz A = GGt.
-	int Decompose_LDLt    ();  // Faz A = LDLt.
-	int Decompose_Cholesky(std::list<long> &singular);  // Faz A = GGt.
-	int Decompose_LDLt    (std::list<long> &singular);  // Faz A = LDLt.
-	
+    int Decompose_Cholesky(std::list<long> &singular);
 	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
 	int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
-	int Subst_LForward ( TPZFMatrix<TVar> *b ) const;
-	int Subst_LBackward( TPZFMatrix<TVar> *b ) const;
-	int Subst_Diag     ( TPZFMatrix<TVar> *b ) const;
-	// @}
-	
-#ifdef OOPARLIB
-	
-	virtual long GetClassID() const        { return TSBMATRIX_ID; }
-	virtual int Unpack( TReceiveStorage *buf );
-	static TSaveable *Restore(TReceiveStorage *buf);
-	virtual int Pack( TSendStorage *buf ) const;
-	virtual std::string ClassName() const   { return( "TPZSBMatrix"); }
-	virtual int DerivedFrom(const long Classid) const;
-	virtual int DerivedFrom(const char *classname) const; // a class with name classname
-	
 #endif
+    int Decompose_LDLt(std::list<long> &singular);
+    int Decompose_LDLt();
+    int Subst_LForward( TPZFMatrix<TVar> *B ) const;
+    int Subst_LBackward( TPZFMatrix<TVar> *B ) const;
+    int Subst_Diag( TPZFMatrix<TVar> *B ) const;
+
+	// @}
+    
 	
 private:
 	
-	long  Size() const    { return( this->Dim() * (fBand + 1) ); }
+	long  Size() const
+    {
+        return( this->Dim() * (fBand + 1) );
+    }
 	int  PutZero();
 	//static int  Error(const char *msg1,const char* msg2="" ) ;
 	int  Clear();
 	void Copy (const TPZSBMatrix<TVar> & );
 	
-	
-	TVar *fDiag;
+	long Index(long i, long j) const
+    {
+#ifdef PZDEBUG
+        if (i>j) {
+            DebugStop();
+        }
+#endif
+        return fBand+i-j+(fBand+1)*j;
+    }
+	TPZVec<TVar> fDiag;
 	long  fBand;
 };
 

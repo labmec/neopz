@@ -183,7 +183,7 @@ TPZSkylMatrix<TVar>::operator()(long ri, long ci)
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                                  const TVar alpha,const TVar beta ,const int opt,const int stride ) const 
+                                  const TVar alpha,const TVar beta ,const int opt) const
 {
     // Computes z = beta * y + alpha * opt(this)*x
     //          z and x cannot overlap in memory
@@ -193,7 +193,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
         //		DebugStop();
     }
     
-    if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows()) {
+    if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows()) {
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," <matrix with incompatible dimensions>" );
     }
     
@@ -206,7 +206,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," incompatible dimensions\n");
     }
     
-    this->PrepareZ(y,z,beta,opt,stride);
+    this->PrepareZ(y,z,beta,opt);
     
     long rows = this->Rows();
     long xcols = x.Cols();
@@ -215,24 +215,24 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
         for( r = 0 ; r < rows ; r++ ) {
             long offset = Size(r);
             TVar val = 0.;
-            const TVar *p = &x.g((r-offset+1)*stride,ic);
+            const TVar *p = &x.g((r-offset+1),ic);
             TVar *diag = fElem[r];
             TVar *diaglast = fElem[r+1]-1;
             while( diag < diaglast ) {
                 val += *diag++ * *p;
-                p += stride;
+                p ++;
             }
             if( diag == diaglast ) 
                 val += *diag * *p;
             
-            z(r*stride,ic) += val*alpha;
+            z(r,ic) += val*alpha;
             
-            TVar *zp = &z((r-offset+1)*stride,ic);
-            val = x.g(r*stride,ic);
+            TVar *zp = &z((r-offset+1),ic);
+            val = x.g(r,ic);
             diag = fElem[r];
             while( diag < diaglast ) {
                 *zp += alpha * *diag++ * val;
-                zp += stride;
+                zp ++;
             }
         }
     }
@@ -1638,9 +1638,29 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol)
 }
 
 template <class TVar>
-void TPZSkylMatrix<TVar>::AutoFill() {
-    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
-    DebugStop();
+void TPZSkylMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
+    if (nrow != ncol || !symmetric)
+    {
+        DebugStop();
+    }
+    TPZMatrix<TVar>::Redim(nrow,ncol);
+    TPZVec<long> skyline(nrow);
+    fElem.resize(nrow+1);
+    fElem.Fill(0);
+    for (long i=0; i<nrow; i++) {
+        skyline[i]=(i*(rand()+RAND_MAX/2))/RAND_MAX;
+    }
+    InitializeElem(skyline,fStorage,fElem);
+
+    for (long i=0; i<nrow; i++) {
+        TVar sum = 0.;
+        for (long j=skyline[i]; j<i; j++) {
+            TVar val = ((TVar)rand())/RAND_MAX;
+            PutVal(j,i,val);
+            sum += fabs(val);
+        }
+        PutVal(i,i,sum+1.);
+    }
 }
 
 template<class TVar>
@@ -1931,21 +1951,21 @@ TPZSkylMatrix<TVar>::PutVal(const long r,const long c,const TVar & value )
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                                  const TVar alpha,const TVar beta ,const int opt,const int stride ) const {
+                                  const TVar alpha,const TVar beta ,const int opt) const {
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
 	
 	if (this->fDecomposed != ENoDecompose) {
         //		DebugStop();
 	}
-	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())
+	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," <matrixs with incompatible dimensions>" );
 	if(z.Rows() != x.Rows() || z.Cols() != x.Cols()) z.Redim(x.Rows(),x.Cols());
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		cout << "x.Cols = " << x.Cols() << " y.Cols()"<< y.Cols() << " z.Cols() " << z.Cols() << " x.Rows() " << x.Rows() << " y.Rows() "<< y.Rows() << " z.Rows() "<< z.Rows() << endl;
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," incompatible dimensions\n");
 	}
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 	long rows = this->Rows();
 	long xcols = x.Cols();
 	long ic, r;
@@ -1953,21 +1973,21 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 		for( r = 0 ; r < rows ; r++ ) {
 			long offset = Size(r);
 			TVar val = 0.;
-			const TVar *p = &x.g((r-offset+1)*stride,ic);
+			const TVar *p = &x.g((r-offset+1),ic);
 			TVar *diag = fElem[r] + offset-1;
 			TVar *diaglast = fElem[r];
 			while( diag > diaglast ) {
 				val += *diag-- * *p;
-				p += stride;
+				p ++;
 			}
 			if( diag == diaglast ) val += *diag * *p;
-			z(r*stride,ic) += val*alpha;
-			TVar *zp = &z((r-offset+1)*stride,ic);
-			val = x.g(r*stride,ic);
+			z(r,ic) += val*alpha;
+			TVar *zp = &z((r-offset+1),ic);
+			val = x.g(r,ic);
 			diag = fElem[r] + offset-1;
 			while( diag > diaglast ) {
 				*zp += alpha * *diag-- * val;
-				zp += stride;
+				zp ++;
 			}
 		}
 	}
@@ -3469,9 +3489,40 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol){
 }
 
 template <class TVar>
-void TPZSkylMatrix<TVar>::AutoFill() {
-    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
-    DebugStop();
+void TPZSkylMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
+    if (nrow != ncol || !symmetric)
+    {
+        DebugStop();
+    }
+    TPZMatrix<TVar>::Redim(nrow,ncol);
+    TPZVec<long> skyline(nrow);
+    fElem.resize(nrow+1);
+    fElem.Fill(0);
+    for (long i=0; i<nrow; i++) {
+        skyline[i]=(i*(rand()))/RAND_MAX;
+    }
+//    std::cout << "skyline " << skyline << std::endl;
+    InitializeElem(skyline,fStorage,fElem);
+    
+    for (long i=0; i<nrow; i++) {
+        TVar sum = 0.;
+        for (long j=skyline[i]; j<i; j++) {
+            TVar val = ((TVar)rand())/((TVar)RAND_MAX);
+            PutVal(j,i,val);
+            sum += fabs(val);
+        }
+        PutVal(i,i,sum+(TVar)1.);
+    }
+    for (long i=0; i<nrow; i++) {
+        TVar sum = (TVar)0.;
+        for (long j=0; j<nrow; j++) {
+            TVar val;
+            val = GetVal(j,i);
+            sum += fabs(val);
+        }
+        PutVal(i,i,sum+(TVar)1.);
+    }
+
 }
 
 template<class TVar>

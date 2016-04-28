@@ -46,7 +46,7 @@ class TPZSYsmpMatrix : public TPZMatrix<TVar>{
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** @note z and x cannot overlap in memory */
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const ;
+						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const ;
 	
 	/** @brief Sets data to the class */
 	virtual void SetData( int *const IA, int *const JA, TVar *const A );

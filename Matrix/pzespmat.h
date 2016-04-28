@@ -106,7 +106,7 @@ public:
 	/** @} */
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const REAL alpha ,const REAL beta = 0.,const int opt = 0,const int stride = 1) const;
+						 const REAL alpha ,const REAL beta = 0.,const int opt = 0) const;
 	
 	
 	/**

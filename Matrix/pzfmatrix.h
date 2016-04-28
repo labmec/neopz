@@ -136,11 +136,6 @@ public:
 	 */
 	void AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &source, TPZVec<long> &destination);
 	
-	/**
-	 * B = this * X
-	 * If opt = 1 then B = Transpose[this] * X
-	 */
-	void ConstMultiply(const TPZFMatrix<TVar> & x,TPZFMatrix<TVar> & B,const int opt = 0) const;
 	
     /**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
@@ -150,14 +145,13 @@ public:
 	 * @param alpha Is alpha on the above operation
 	 * @param beta Is beta on the above operation
 	 * @param opt Indicates if is Transpose or not
-	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const ;
+						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const ;
     
 	
 	static void MultAdd(const TVar *ptr, long rows, long cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 );
+						const TVar alpha=1.,const TVar beta = 0.,const int opt = 0);
 	
 	/**
      * @name Generic operator with TVar type
@@ -260,19 +254,58 @@ public:
 	virtual int Decompose_LU(std::list<long> &singular);
 	virtual int Decompose_LU();
 	
+    /**
+     * @brief Decomposes the current matrix using LDLt. \n
+     * The current matrix has to be symmetric.
+     * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
+     */
+    virtual int Decompose_LDLt();
+
 	static int Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> *B);
 	
 	virtual int Substitution( TPZFMatrix<TVar> *B ) const;
 	
 	/** @brief LU Decomposition using pivot */
-	virtual int Decompose_LU(TPZVec<long> &index);
+	virtual int Decompose_LU(TPZVec<int> &index);
 	
 	/** @brief LU substitution using pivot. */
-	virtual int Substitution( TPZFMatrix<TVar> *B, TPZVec<long> &index ) const;
+	virtual int Substitution( TPZFMatrix<TVar> *B, const TPZVec<int> &index ) const;
 	
 	/** @brief LU substitution using pivot. Static version. */
-	static int Substitution(const TVar *ptr, long rows,  TPZFMatrix<TVar> *B, TPZVec<long> &index );
+	static int Substitution(const TVar *ptr, long rows,  TPZFMatrix<TVar> *B, const TPZVec<int> &index );
 	
+#ifdef USING_LAPACK
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const;
+    
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const;
+    
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const;
+    
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const;
+    
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const;
+#endif
+    
 	/** @} */
 	
 	/** @brief Routines to send and receive messages */
@@ -308,6 +341,12 @@ private:
 	TVar *fElem;
 	TVar *fGiven;
 	long fSize;
+    
+#ifdef USING_LAPACK
+    TPZManVector<int,5> fPivot;
+    
+    TPZVec<TVar> fWork;
+#endif
 };
 
 /** @} */

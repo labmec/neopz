@@ -37,6 +37,11 @@ public:
 	
 	~TPZSFMatrix();
 	
+    /** @brief Checks if the current matrix is symmetric */
+    virtual int IsSimetric() const    {
+        return 1;
+    }
+
 	int PutVal(const long row,const long col,const TVar &value );
 	const TVar &GetVal(const long row,const long col ) const;
 	

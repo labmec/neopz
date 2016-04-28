@@ -666,7 +666,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
     }
     else if(nneighs==fdim)
     {
-        TPZVec<long> index;
+        TPZVec<int> index;
         DeltaXcenter.Decompose_LU(index);
         DeltaXcenter.Substitution(&DifSol, index);
         grad = DifSol;
@@ -676,7 +676,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
 #ifdef USING_LAPACK
         //QR factorization
         QRFactorization(DeltaXcenter,DifSol);
-        TPZVec<long> index;
+        TPZVec<int> index;
         DeltaXcenter.Decompose_LU(index);
         DeltaXcenter.Substitution(&DifSol, index);
         grad= DifSol;
