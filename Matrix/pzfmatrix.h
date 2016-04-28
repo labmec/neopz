@@ -314,10 +314,10 @@ public:
 
     /// Computes the eigenvalues and eigenvectors of the symmetric matrix
     // on exit the matrix contains the eigenvectors
-    int SymmetricEigenvalues(TPZVec<TVar> &eigenvalues);
+    int SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues) const;
     
     /// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
-    int GeneralEigenvalues(TPZVec<TVar> &realeigen, TPZVec<TVar> &imageigen);
+    int GeneralEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &realeigen, TPZVec<TVar> &imageigen) const;
     /** @} */
 #endif
     

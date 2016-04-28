@@ -2283,7 +2283,7 @@ int TPZFMatrix<TVar>::SetSize(const long newRows,const long newCols) {
 /// Computes the eigenvalues and eigenvectors of the symmetric matrix
 // on exit the matrix contains the eigenvectors
 template <>
-int TPZFMatrix<float>::SymmetricEigenvalues(TPZVec<float> &eigenvalues)
+int TPZFMatrix<float>::SymmetricEigenvalues(TPZFMatrix<float> &eigenvectors, TPZVec<float> &eigenvalues) const
 {
     char job[]="Vectors", uplo[]="Upper", name[] = "ssyev";
     int ispec = 1;
@@ -2298,7 +2298,8 @@ int TPZFMatrix<float>::SymmetricEigenvalues(TPZVec<float> &eigenvalues)
     int info;
     int worksize = (blsize+2)*dim;
     TPZVec<float> work((blsize+2)*dim);
-    ssyev_(job, uplo, &dim, fElem, &dim, &eigenvalues[0], &work[0], &worksize, &info);
+    eigenvectors = *this;
+    ssyev_(job, uplo, &dim, eigenvectors.fElem, &dim, &eigenvalues[0], &work[0], &worksize, &info);
     
     if (info != 0) {
         DebugStop();
@@ -2306,7 +2307,7 @@ int TPZFMatrix<float>::SymmetricEigenvalues(TPZVec<float> &eigenvalues)
 }
 
 template <>
-int TPZFMatrix<double>::SymmetricEigenvalues(TPZVec<double> &eigenvalues)
+int TPZFMatrix<double>::SymmetricEigenvalues(TPZFMatrix<double> &eigenvectors, TPZVec<double> &eigenvalues) const
 {
     char job[]="Vectors", uplo[]="Upper", name[] = "ssyev";
     int ispec = 1;
@@ -2321,7 +2322,8 @@ int TPZFMatrix<double>::SymmetricEigenvalues(TPZVec<double> &eigenvalues)
     int info;
     int worksize = (blsize+2)*dim;
     TPZVec<double> work((blsize+2)*dim);
-    dsyev_(job, uplo, &dim, fElem, &dim, &eigenvalues[0], &work[0], &worksize, &info);
+    eigenvectors = *this;
+    dsyev_(job, uplo, &dim, eigenvectors.fElem, &dim, &eigenvalues[0], &work[0], &worksize, &info);
     
     if (info != 0) {
         DebugStop();
@@ -2331,7 +2333,7 @@ int TPZFMatrix<double>::SymmetricEigenvalues(TPZVec<double> &eigenvalues)
 
 
 template <class TVar>
-int TPZFMatrix<TVar>::SymmetricEigenvalues(TPZVec<TVar> &eigenvalues)
+int TPZFMatrix<TVar>::SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues) const
 {
     std::cout << "Not Implemented\n";
     DebugStop();
@@ -2339,7 +2341,7 @@ int TPZFMatrix<TVar>::SymmetricEigenvalues(TPZVec<TVar> &eigenvalues)
 
 /// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
 template <>
-int TPZFMatrix<float>::GeneralEigenvalues(TPZVec<float> &realeigen, TPZVec<float> &imageigen)
+int TPZFMatrix<float>::GeneralEigenvalues(TPZFMatrix<float> &eigenvectors, TPZVec<float> &realeigen, TPZVec<float> &imageigen) const
 {
     if (Rows() != Cols()) {
         DebugStop();
@@ -2350,20 +2352,22 @@ int TPZFMatrix<float>::GeneralEigenvalues(TPZVec<float> &realeigen, TPZVec<float
     float testwork;
     int lwork = -1;
     int info;
-    sgeev_(jobvl, jobvr, &dim, fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &testwork, &lwork, &info);
+    TPZFMatrix<float> temp(*this);
+    sgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &testwork, &lwork, &info);
     TPZVec<float> work(lwork);
-    sgeev_(jobvl, jobvr, &dim, fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+    sgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
     
     if (info != 0) {
         DebugStop();
     }
-    *this = VR;
+    eigenvectors = VR;
+    return 1;
 }
 
 
 /// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
 template <>
-int TPZFMatrix<double>::GeneralEigenvalues(TPZVec<double> &realeigen, TPZVec<double> &imageigen)
+int TPZFMatrix<double>::GeneralEigenvalues(TPZFMatrix<double> &eigenvectors, TPZVec<double> &realeigen, TPZVec<double> &imageigen) const
 {
     if (Rows() != Cols()) {
         DebugStop();
@@ -2374,23 +2378,26 @@ int TPZFMatrix<double>::GeneralEigenvalues(TPZVec<double> &realeigen, TPZVec<dou
     double testwork;
     int lwork = -1;
     int info;
-    dgeev_(jobvl, jobvr, &dim, fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &testwork, &lwork, &info);
+    TPZFMatrix<double> temp(*this);
+    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &testwork, &lwork, &info);
     TPZVec<double> work(lwork);
-    dgeev_(jobvl, jobvr, &dim, fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
     
     if (info != 0) {
         DebugStop();
     }
-    *this = VR;
+    eigenvectors = VR;
+    return 1;
 }
 
 
 /// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
 template <class TVar>
-int TPZFMatrix<TVar>::GeneralEigenvalues(TPZVec<TVar> &realeigen, TPZVec<TVar> &imageigen)
+int TPZFMatrix<TVar>::GeneralEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &realeigen, TPZVec<TVar> &imageigen) const
 {
     std::cout << "Not Implemented\n";
     DebugStop();
+    return 1;
 }
 
 #endif

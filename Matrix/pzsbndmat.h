@@ -105,7 +105,7 @@ public:
     
     /// Computes the eigenvalues and eigenvectors of the symmetric matrix
     // on exit the matrix contains the eigenvectors
-    int SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues);
+    int SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues) const;
     
     /** @} */
 #endif

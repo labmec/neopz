@@ -738,7 +738,7 @@ TPZSBMatrix<TVar>::Copy(const TPZSBMatrix<TVar> &A )
 /// Computes the eigenvalues and eigenvectors of the symmetric matrix
 // on exit the matrix contains the eigenvectors
 template<>
-int TPZSBMatrix<float>::SymmetricEigenvalues(TPZFMatrix<float> &eigenvectors, TPZVec<float> &eigenvalues)
+int TPZSBMatrix<float>::SymmetricEigenvalues(TPZFMatrix<float> &eigenvectors, TPZVec<float> &eigenvalues) const
 {
     if (fDecomposed != ENoDecompose) {
         DebugStop();
@@ -762,7 +762,7 @@ int TPZSBMatrix<float>::SymmetricEigenvalues(TPZFMatrix<float> &eigenvectors, TP
 }
 
 template<class TVar>
-int TPZSBMatrix<TVar>::SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues)
+int TPZSBMatrix<TVar>::SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues) const
 {
     std::cout << "Not Implemented\n";
 }
