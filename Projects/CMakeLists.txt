@@ -222,6 +222,10 @@ ENABLE_TESTING()
 			# Colaboration with Laurent Stainier
 			
 			add_subdirectory(MatLib)
+
+			if(USING_PARDISO)
+				add_subdirectory(PardisoSample)
+			endif(USING_PARDISO)
 			
 
 		endif(BUILD_COMPLEX_PROJECTS)

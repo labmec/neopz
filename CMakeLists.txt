@@ -185,6 +185,18 @@ if(USING_TBB)
 	endif()
 endif(USING_TBB)
 
+#enabling PARDISO library
+option(USING_PARDISO "Whether the PARDISO library will be linked in" OFF)
+if(USING_PARDISO)
+	add_definitions(-DUSING_PARDISO)
+	find_library(PARDISO_LIB NAMES libpardiso500-MACOS-X86-64.dylib PATHS ${SEARCH_DIRS})
+	if(PARDISO_LIB-NOTFOUND)
+		set (PARDISO_LIB "" CACHE PATH "Directory where the pardiso library can be found")
+	else()
+		link_libraries(${PARDISO_LIB})
+	endif()
+endif(USING_PARDISO)
+
 #enabling OpenMP runtime and library
 option(USING_OPENMP "Whether the OpenMP library and runtime will be linked in" OFF)
 if(USING_OPENMP)
