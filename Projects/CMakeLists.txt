@@ -4,6 +4,8 @@ ENABLE_TESTING()
 
 	if(BUILD_TUTORIAL)
 
+	# Testing LAPACK integration with symmetric band matrix
+		add_subdirectory(pzsbndmat_validation)
 		if(BUILD_COMPLEX_PROJECTS)
 			#add_subdirectory(PDElinear1D)
 			#add_subdirectory(PDElinear2D)
@@ -128,7 +130,57 @@ ENABLE_TESTING()
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
+<<<<<<< HEAD
 			add_subdirectory(Andrade)
+=======
+			add_subdirectory(Frac1DHdiv)
+			add_subdirectory(SubStruct)
+			add_subdirectory(MultiphysicsSimulation)
+			add_subdirectory(ProblemGirkmann)
+			
+			add_subdirectory(multplaca)
+
+			#Projeto Lua 2012
+			add_subdirectory(Lua01)
+
+			#teste nathan
+			add_subdirectory(PlasticityPV)
+
+			#Projeto Denise
+			#add_subdirectory(HdivPressureTeste)
+			add_subdirectory(HpAdaptivity)
+			add_subdirectory(HDiv)
+			add_subdirectory(Hdiv3D)
+			add_subdirectory(AcoplamentoH1Hdiv)
+			add_subdirectory(Validacao)
+
+			#add_subdirectory(prodindex)
+			#Projeto Agnaldo
+			add_subdirectory(Testes_Agnaldo)
+			add_subdirectory(ReducedSpace)
+			add_subdirectory(ReducedSpacePlasticity)
+			add_subdirectory(HydraulicFracturePropagation)
+			add_subdirectory(StabilizedHybridElasticity)
+			add_subdirectory(GlobalPostPro)
+			# validacaoFranHCurl
+			add_subdirectory(ValidacaoHCurlFran1)
+
+			#Projetos de Thiago Dias dos Santos
+			#add_subdirectory(SantosProjects)
+
+			add_subdirectory(Bima1)
+#			add_subdirectory(EstabSUPG)
+#			add_subdirectory(MetodosEstab)
+			#
+			# Colaboration with Laurent Stainier
+			
+			add_subdirectory(MatLib)
+
+			if(USING_PARDISO)
+				add_subdirectory(PardisoSample)
+			endif(USING_PARDISO)
+			
+>>>>>>> master
 
 		endif(BUILD_COMPLEX_PROJECTS)
 		
