@@ -325,7 +325,10 @@ namespace pzgeom {
     {
         TPZManVector<long,4> nodeindexes;
         TPZManVector<REAL,3> co(lowercorner);
-        for (int i=0; i<3; i++) co[i] += 0.2*size[i];
+        for (int i=0; i<3; i++) {
+            co[i] += 0.2*size[i];   
+        }
+        
         nodeindexes[0] = gmesh.NodeVec().AllocateNewElement();
         gmesh.NodeVec()[nodeindexes[0]].Initialize(co, gmesh);
         co[0] += 0.6*size[0];

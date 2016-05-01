@@ -101,7 +101,7 @@ namespace pzgeom {
     void TPZGeoLinear::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
     {
         TPZManVector<REAL,3> co(3),shift(3),scale(3);
-        TPZManVector<long,3> nodeindexes(8);
+        TPZManVector<long,3> nodeindexes(2);
         for (int i=0; i<3; i++) {
             scale[i] = size[i]/3.;
             shift[i] = 1./2.+lowercorner[i];
@@ -109,14 +109,15 @@ namespace pzgeom {
         
         for (int i=0; i<NCornerNodes; i++) {
             ParametricDomainNodeCoord(i, co);
-            for (int j=0; j<3; j++) {
+            for (int j=0; j<co.size(); j++) {
                 co[j] = shift[j]+scale[j]*co[j]+(rand()*0.2/RAND_MAX)-0.1;
             }
             nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
             gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
         }
         long index;
-        CreateGeoElement(gmesh, ECube, nodeindexes, matid, index);
+        CreateGeoElement(gmesh, EOned, nodeindexes, matid, index);
+        lowercorner = co;
     }
     
 

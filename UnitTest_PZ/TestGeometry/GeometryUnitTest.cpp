@@ -26,6 +26,8 @@
 #include "TPZCurve.h"
 #include "TPZSurface.h"
 
+#include "TPZVTKGeoMesh.h"
+
 
 #include "pzlog.h"
 
@@ -65,21 +67,24 @@ void AddElement(TPZGeoMesh &mesh, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 
 void FillGeometricMesh(TPZGeoMesh &mesh)
 {
-    TPZManVector<REAL,3> lowercorner(3,0.),size(3,1.);
+    TPZManVector<REAL,3> lowercorner(3,0.),size(3,1.); // Setting the first corner as the origin and the max element size is 1.0;
+
     AddElement<TPZGeoPoint>(mesh,lowercorner,size);
     AddElement<TPZGeoLinear>(mesh,lowercorner,size);
     AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
-    AddElement<TPZGeoCube>(mesh,lowercorner,size);
-    AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
-    AddElement<TPZGeoPrism>(mesh,lowercorner,size);
-    AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
+
+//    AddElement<TPZGeoQuad>(mesh,lowercorner,size);
+//    AddElement<TPZGeoCube>(mesh,lowercorner,size);
+//    AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
+//    AddElement<TPZGeoPrism>(mesh,lowercorner,size);
+//    AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
 }
 
 /* @} */
@@ -100,6 +105,16 @@ BOOST_AUTO_TEST_SUITE(geometry_tests)
 
 
 BOOST_AUTO_TEST_CASE(gradx_tests) {
+    
+    TPZGeoMesh * gmesh = new TPZGeoMesh;
+    FillGeometricMesh(*gmesh);
+    std::ofstream file("Geometry.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file);
+    
+    
+    
+//    BOOST_CHECK(fabsl(point[0]-point2[0]) < tol);
+//    BOOST_CHECK(fabsl(weight-weight2) < tol);
 
 
 }

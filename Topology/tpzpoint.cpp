@@ -47,8 +47,24 @@ namespace pztopology {
     
     void TPZPoint::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
     {
-        //It doesnt make any sense ask node coordinate of 0D element
-        DebugStop();
+
+        if(node > NCornerNodes)
+        {
+            DebugStop();
+        }
+        nodeCoord.Resize(Dimension, 0.);
+        switch (node) {
+            case (0):
+            {
+                return;
+                break;
+            }
+            default:
+            {
+                DebugStop();
+                break;
+            }
+        }
     }
 	
 	/**
