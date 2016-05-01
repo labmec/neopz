@@ -1295,7 +1295,7 @@ int TPZCompElHDiv<TSHAPE>::NShapeContinuous(TPZVec<int> &order ){
 
 
 template<class TSHAPE>
-TPZTransform TPZCompElHDiv<TSHAPE>::TransformSideToElement(int side){
+TPZTransform<> TPZCompElHDiv<TSHAPE>::TransformSideToElement(int side){
 	return TSHAPE::TransformSideToElement(side);
 }
 

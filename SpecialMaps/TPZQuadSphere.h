@@ -78,13 +78,14 @@ namespace pzgeom {
 		}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-		void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+		void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
 		{
-            TPZManVector<REAL,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
-            TPZManVector<REAL,3> xqsiLxc(3,0.); // will store (x,y,z)-xc
+            TPZManVector<T,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
+            TPZManVector<T,3> xqsiLxc(3,0.); // will store (x,y,z)-xc
             GeomQuad::X(gel,loc,xqsi); // gives the map (qsi,eta) to (x,y,z)
             
-            REAL norm = 0.;
+            T norm = 0.;
             for (int i = 0; i < 3; i++) { // Does xqsi-xc and calculates its norm
                 xqsiLxc[i] = xqsi[i] - fxc[i];
                 norm += xqsiLxc[i] * xqsiLxc[i];
@@ -223,9 +224,10 @@ namespace pzgeom {
             
 		}
         
-        static TPZFMatrix<REAL> TensorProd(TPZFMatrix<REAL> &vec1, TPZFMatrix<REAL> &vec2)
+        template<class T>
+        static TPZFMatrix<T> TensorProd(TPZFMatrix<T> &vec1, TPZFMatrix<T> &vec2)
         {
-            TPZFNMatrix<9,REAL> res(3,3,0.);
+            TPZFNMatrix<9,T> res(3,3,0.);
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     res(i,j) = vec1(i,0) * vec2(j,0);

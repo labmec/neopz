@@ -102,7 +102,7 @@ void ComputeFluxError(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out
 void ComputePressureError(TPZCompMesh *CmeshPres,long NivelRef, std::ostream &out);
 void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &out, bool IsFlux);
 
-void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonqsi, TPZManVector<REAL,3> &Fatherqsi, TPZTransform &Transformation);
+void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonqsi, TPZManVector<REAL,3> &Fatherqsi, TPZTransform<> &Transformation);
 
 
 //void NeumannBound1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
@@ -763,7 +763,7 @@ void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &ou
             REAL weight;
             intrule->Point(ipoint, qsiF, weight);
             
-            TPZTransform Transformation;
+            TPZTransform<> Transformation;
             ComputeFatherqsi(gelF, gelF->Father(), qsiF, qsiC, Transformation);
             
             
@@ -906,7 +906,7 @@ void ComputeErrorNomrs(TPZCompMesh *CMixedCoarse,long NivelRef, std::ostream &ou
     
 }
 
-void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonqsi, TPZManVector<REAL,3> &Fatherqsi, TPZTransform &Transformation)
+void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonqsi, TPZManVector<REAL,3> &Fatherqsi, TPZTransform<> &Transformation)
 {
     
     if ((!Son && !Father) && (Sonqsi.size() != Fatherqsi.size() && Father != Son->Father())) {
@@ -919,7 +919,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
     side = Father->NSides()-1;
     
     if (dimSon == dimFather) {
-        TPZTransform tr(dimSon);
+        TPZTransform<> tr(dimSon);
         Transformation = Son->BuildTransform2(side, Father, tr);
         //        int son = Father->WhichSubel();
         //        Transformation = Father->GetTransform(side, son);
@@ -998,7 +998,7 @@ void ComputeFatherqsi(TPZGeoEl *Son, TPZGeoEl *Father,TPZManVector<REAL,3> &Sonq
 //            REAL weight;
 //            intrule->Point(ip,qsi,weight);
 //            
-//            TPZTransform Transformation;
+//            TPZTransform<> Transformation;
 //            ComputeFatherqsi(gel, FatherGel, qsi, qsiFather, Transformation);
 //            
 //            gel->X(qsi, xVec);

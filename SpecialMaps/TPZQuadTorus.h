@@ -76,7 +76,8 @@ namespace pzgeom {
 		static std::string TypeName() { return "TorusQuad";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -125,8 +126,20 @@ namespace pzgeom {
         /* @brief Computes the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
 
-        
-		void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const;		
+        template<class T>
+		void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const
+        {
+            
+            TPZGeoQuad::X(this->fPhiTheta,loc,result);
+            TPZVec <T> toro(3,0.0);
+            
+            toro[0] = (fR + fr*cos(result[0]))*cos(result[1]);
+            toro[1] = (fR + fr*cos(result[0]))*sin(result[1]);
+            toro[2] = fr*sin(result[0]);		
+            result=toro;
+            
+        }
+
 		
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 

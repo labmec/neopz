@@ -414,7 +414,7 @@ void TPZInterpolatedElement::UpdateNeighbourSideOrder(int side, TPZVec<TPZCompEl
 	}
 }
 
-void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer){
+void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform<> &t, TPZTransfer<STATE> &transfer){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t
 	TPZGeoEl *ref = Reference();
@@ -831,7 +831,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	}
 	TPZGeoElSide thisgeoside(Reference(),side);
 	TPZGeoElSide largeside = largecompside.Reference();
-	TPZTransform t(thisgeoside.Dimension());
+	TPZTransform<> t(thisgeoside.Dimension());
 	thisgeoside.SideTransform3(largeside,t);
     int nsideconnects = NSideConnects(side);
     int maxord=1;
@@ -1066,7 +1066,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
 				TPZFMatrix<REAL> dphil(idim,nshapel);
 				int npts = sirule->NPoints();
 				int ipt;
-				TPZTransform transform (Reference()->SideToSideTransform(iside,sidel));
+				TPZTransform<> transform (Reference()->SideToSideTransform(iside,sidel));
 				for (ipt = 0; ipt<npts; ipt++){
 					TPZVec <REAL> pts(dimsmall);
 					TPZVec <REAL> ptl(idim);
@@ -1089,7 +1089,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
 	return 1;
 }
 
-int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix<REAL> &phis, TPZFMatrix<REAL> &dphis, TPZFMatrix<REAL> &phil, TPZFMatrix<REAL> &dphil, TPZTransform &transform){
+int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix<REAL> &phis, TPZFMatrix<REAL> &dphis, TPZFMatrix<REAL> &phil, TPZFMatrix<REAL> &dphil, TPZTransform<> &transform){
 	int ncons = NSideConnects(sides);
 	int nconl = NSideConnects(sidel);
 	TPZVec<int> posl(nconl+1), poss(ncons+1);

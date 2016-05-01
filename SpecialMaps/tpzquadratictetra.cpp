@@ -23,9 +23,10 @@ TPZQuadraticTetra::~TPZQuadraticTetra()
 {
 }
 
-void TPZQuadraticTetra::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+template<class T>
+void TPZQuadraticTetra::Shape(TPZVec<T> &pt, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
 {
-	REAL qsi = pt[0], eta = pt[1], zeta = pt[2];
+	T qsi = pt[0], eta = pt[1], zeta = pt[2];
 	
 	phi(0,0)  =  (qsi + eta + zeta -1.) * (2.*qsi + 2.*eta + 2.*zeta - 1.);
 	phi(1,0)  =  qsi  * (2.*qsi - 1.);
@@ -70,10 +71,12 @@ void TPZQuadraticTetra::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatri
 	dphi(2,9) =   4.*eta;
 }
 
-void TPZQuadraticTetra::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result)
+template<class T>
+void TPZQuadraticTetra::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result)
 {
-	TPZFNMatrix<10> phi(10,1);
-	TPZFNMatrix<30> dphi(3,10); Shape(loc,phi,dphi);
+	TPZFNMatrix<10,T> phi(10,1);
+	TPZFNMatrix<30,T> dphi(3,10);
+    Shape(loc,phi,dphi);
 	for(int i = 0; i < 3; i++)
 	{
 		result[i] = 0.0;

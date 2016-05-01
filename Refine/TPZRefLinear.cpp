@@ -163,15 +163,15 @@ namespace pzrefine {
 		
 	}
 	
-	TPZTransform TPZRefLinear::GetTransform(int side,int whichsubel) {
+	TPZTransform<> TPZRefLinear::GetTransform(int side,int whichsubel) {
 		if(side<0 || side>TPZShapeLinear::NSides-1){
 			PZError << "TPZRefLinear::GetTransform side out of range or father null\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
 		int smalldim = TPZShapeLinear::SideDimension(side);
 		int fatherside = FatherSide(side,whichsubel);
 		int largedim = TPZShapeLinear::SideDimension(fatherside);
-		TPZTransform trans(largedim,smalldim);
+		TPZTransform<> trans(largedim,smalldim);
 		int i,j;
 		for(i=0; i<largedim; i++) {
 			for(j=0; j<smalldim; j++) {

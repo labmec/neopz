@@ -103,19 +103,37 @@ void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 	
 	TPZManVector< REAL,3 > locElement(fGeoEl->Dimension(), 0.);
 	
-	TPZTransform ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+	TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
 	
 	ElementDim.Apply(loc, locElement);
 	
 	fGeoEl->X(locElement, result);
 }
 
+#ifdef _AUTODIFF
+/** @brief X coordinate of a point loc of the side */
+void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) const
+{
+    TPZManVector<Fad<REAL>,3 > locElement(fGeoEl->Dimension(), 0.);
+    
+    TPZTransform<> ElementDimR = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+    TPZTransform<Fad<REAL> > ElementDim;
+    ElementDim.CopyFrom(ElementDimR);
+    
+    ElementDim.Apply(loc, locElement);
+    
+    fGeoEl->X(locElement, result);
+
+}
+#endif
+
+
 void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const {
 	
 	if(!fGeoEl) return;
 	int DIM = fGeoEl->Dimension();
 	
-	TPZTransform ThisTransf = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+	TPZTransform<> ThisTransf = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
 	TPZManVector< REAL,3 > paramElement(DIM,0.);
 	
 	ThisTransf.Apply(param,paramElement);
@@ -183,7 +201,7 @@ int TPZGeoElSide::NSides() const
 REAL TPZGeoElSide::Area()
 {
 	TPZManVector<REAL,3> elparam(fGeoEl->Dimension(),0.), sideparam(Dimension(),0);
-    TPZTransform tr = fGeoEl->SideToSideTransform(fGeoEl->NSides()-1, fSide);
+    TPZTransform<> tr = fGeoEl->SideToSideTransform(fGeoEl->NSides()-1, fSide);
 	REAL detjac;
 	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
     //supondo jacobiano constante: X linear
@@ -339,7 +357,7 @@ void TPZGeoElSide::CenterPoint(TPZVec<REAL> &center) const
 	if(!fGeoEl) return;
     TPZManVector<REAL,3> gelcenter(fGeoEl->Dimension());
 	fGeoEl->CenterPoint(fSide,gelcenter);
-    TPZTransform tr(Dimension(),fGeoEl->Dimension());
+    TPZTransform<> tr(Dimension(),fGeoEl->Dimension());
     tr = fGeoEl->SideToSideTransform(fGeoEl->NSides()-1,fSide);
     tr.Apply(gelcenter, center);
 }
@@ -427,8 +445,7 @@ void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 }
 
 
-
-TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
+TPZTransform<> TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
 	
 #ifdef PZDEBUG
 	if(!NeighbourExists(neighbour))
@@ -436,12 +453,12 @@ TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
 		stringstream sout;
 		sout << __PRETTY_FUNCTION__ << "Neighbour does not exist : expect trouble";
 		LOGPZ_ERROR(logger,sout.str());
-		TPZTransform toto;
+		TPZTransform<> toto;
 		return toto;
 	}
 #endif
 	int sidedimension = Dimension();
-	TPZTransform tside(sidedimension);//transforma�o local
+	TPZTransform<> tside(sidedimension);//transforma�o local
 	switch (sidedimension) {
 		case 0://canto para canto viz
 			
@@ -522,7 +539,7 @@ int TPZGeoElSide::Dimension() const {
 	return fGeoEl->SideDimension(fSide);
 }
 
-void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform &t)	{
+void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
 	//t : atual -> neighbour
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
@@ -542,7 +559,7 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform &t)	{
 	while(father.Exists())
 	{
 		if(father.NeighbourExists(neighbour)) {
-			TPZTransform Temp =  father.NeighbourSideTransform(neighbour);
+			TPZTransform<> Temp =  father.NeighbourSideTransform(neighbour);
 			//       t =  NeighbourSideTransform(neighbour).Multiply(t);
 			t =  Temp.Multiply(t);
 			return;
@@ -673,7 +690,7 @@ void TPZGeoElSide::SetNeighbour(const TPZGeoElSide &neighbour) const {
 }
 
 
-TPZTransform TPZGeoElSide::SideToSideTransform(TPZGeoElSide &higherdimensionside) {
+TPZTransform<> TPZGeoElSide::SideToSideTransform(TPZGeoElSide &higherdimensionside) {
     if(fGeoEl != higherdimensionside.fGeoEl) {
 		PZError << "TPZGeoElSide::SideToSideTransform inconsistent id1 = " << fGeoEl->Id() << 
 		" id2 = " << higherdimensionside.fGeoEl->Id() << std::endl;

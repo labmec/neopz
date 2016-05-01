@@ -55,7 +55,7 @@ void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel,
 				TPZAutoPointer<TPZRefPattern> neighRefp = neighside.Element()->GetRefPattern();
 				if(neighRefp)
 				{
-					TPZTransform trans = neighside.NeighbourSideTransform(gelside);
+					TPZTransform<> trans = neighside.NeighbourSideTransform(gelside);
 					NeighSideRefPatternVec[side] = neighRefp->SideRefPattern(neighside.Side(),trans);
 					break;
 				}
@@ -144,8 +144,8 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::ModelRefPattern(TPZGeoEl *gel,
 					
 					if(neighRefp && modelsideRefp)
 					{
-						TPZTransform transBetweenNeigh = neighside.NeighbourSideTransform(gelside);
-						TPZTransform transBetweenSides = gel->SideToSideTransform(side, nsides-1);
+						TPZTransform<> transBetweenNeigh = neighside.NeighbourSideTransform(gelside);
+						TPZTransform<> transBetweenSides = gel->SideToSideTransform(side, nsides-1);
 						
 						std::map<int, int> pairedNodes;
 						
@@ -455,8 +455,8 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * g
 				TPZAutoPointer<TPZRefPattern> neighRefp = neighside.Element()->GetRefPattern()->SideRefPattern(neighside.Side());
 				TPZAutoPointer<TPZRefPattern> modelsideRefp = modelPat_copy->SideRefPattern(side);
 				
-				TPZTransform transBetweenNeigh = neighside.NeighbourSideTransform(gelside);
-				TPZTransform transBetweenSides = gel->SideToSideTransform(side, nsides-1);
+				TPZTransform<> transBetweenNeigh = neighside.NeighbourSideTransform(gelside);
+				TPZTransform<> transBetweenSides = gel->SideToSideTransform(side, nsides-1);
 				
 				//correspondencias entre nohs entre LADO DO PADRAO MODELO e LADO DO PADRAO VIZINHO
 				std::map<int, int> pairedNodes = correspIt->second.second;
@@ -503,7 +503,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * g
 
 bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA,
                                            TPZAutoPointer<TPZRefPattern> refB,
-                                           TPZTransform &fromAtoB,
+                                           TPZTransform<> &fromAtoB,
                                            std::map<int, int> &pairedNodes)
 {	
 	pairedNodes.clear();
@@ -710,7 +710,7 @@ bool TPZRefPatternTools::CompareTopologies(TPZAutoPointer<TPZRefPattern> refA,
 
 void TPZRefPatternTools::PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh &meshA,
                                                                   TPZGeoMesh &meshB,
-                                                                  TPZTransform &fromAtoB,
+                                                                  TPZTransform<> &fromAtoB,
                                                                   std::map<int, int> &pairedNodes)
 {
 	TPZVec<REAL> ANodeCoord(3,0.), BNodeCoord(3,0.);
@@ -745,7 +745,7 @@ void TPZRefPatternTools::PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh &me
 
 void TPZRefPatternTools::PairMeshesNodesMatchingCoordinates(TPZGeoMesh &meshA,
                                                             TPZGeoMesh &meshB,
-                                                            TPZTransform &fromAtoB,
+                                                            TPZTransform<> &fromAtoB,
                                                             std::map<int, int> &pairedNodes)
 {
 	TPZVec<REAL> ANodeCoord(3,0.), BNodeCoord(3,0.);
@@ -1343,7 +1343,7 @@ void TPZRefPatternTools::TransformationTest(TPZRefPattern * refp)
 			{
 				//ponto no espaco paramcorico do lado do filho
 				rule->Point(ip,point,weight);
-				TPZTransform sidet(dimsub);//transformacao unitcoia
+				TPZTransform<> sidet(dimsub);//transformacao unitcoia
 				if(dims < dimsub)
 				{
 					sidet = subel->SideToSideTransform(sd,nsides-1);//transf. no elemento metre
@@ -1363,7 +1363,7 @@ void TPZRefPatternTools::TransformationTest(TPZRefPattern * refp)
 				dimfatside = father->SideDimension(fatside);
 				
 				//transformacoo calculada pelo TPZRefPattern
-				TPZTransform trans = refp->Transform(sd,isub);
+				TPZTransform<> trans = refp->Transform(sd,isub);
 				
 				TPZVec<REAL> pf(dimfatside);
 				
@@ -1371,7 +1371,7 @@ void TPZRefPatternTools::TransformationTest(TPZRefPattern * refp)
 				trans.Apply(point,pf);
 				
 				//unitcoia do lado do pai
-				TPZTransform sidetf(dimfatside);
+				TPZTransform<> sidetf(dimfatside);
 				if(dimfatside < dimfat)
 				{
 					//para o interior do sub-elemento

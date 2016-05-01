@@ -219,7 +219,7 @@ TPZGeoElRefLess<TGeo>::SetNodeIndex(int i,long nodeindex){
 }
 
 template<class TGeo>
-TPZTransform
+TPZTransform<>
 TPZGeoElRefLess<TGeo>::SideToSideTransform(int sidefrom,int sideto){
 	return TGeo::SideToSideTransform(sidefrom,sideto);
 }
@@ -274,7 +274,7 @@ TPZGeoElRefLess<TGeo>::LowerDimensionSides(int side,TPZStack<int> &smallsides){
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform &t){
+TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform<> &t){
 	BuildTransform2(side,father,t);
 }
 
@@ -307,6 +307,15 @@ TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
 	fGeo.X(*this,coordinate,result);
 }
 
+#ifdef _AUTODIFF
+/** @brief Return the gradient of the transformation at the point */
+template<class TGeo>
+void
+TPZGeoElRefLess<TGeo>::X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const {
+    fGeo.X(*this,coordinate,result);
+}
+#endif
+
 template<class TGeo>
 bool TPZGeoElRefLess<TGeo>::IsLinearMapping(int side) const
 { 
@@ -320,18 +329,18 @@ bool TPZGeoElRefLess<TGeo>::IsGeoBlendEl() const
 }
 
 template<class TGeo>
-TPZTransform
-TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform &t)
+TPZTransform<>
+TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform<> &t)
 {
 	if(this == father) return t;
 	TPZGeoEl *myfather = Father();
 	if(side<0 || side>(TGeo::NSides-1) || !myfather){
 		PZError << "TPZGeoElRefLess::BuildTransform2 side out of range or father null\n";
-		return TPZTransform(0,0);
+		return TPZTransform<>(0,0);
 	}
 	TPZGeoElSide fathloc = Father2(side);
 	int son = WhichSubel();
-	TPZTransform trans=myfather->GetTransform(side,son);
+	TPZTransform<> trans=myfather->GetTransform(side,son);
 	trans = trans.Multiply(t);
 	if(fathloc.Element() == father) return trans;
 	trans = myfather->BuildTransform2(fathloc.Side(),father,trans);
@@ -339,10 +348,10 @@ TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform
 }
 
 template<class TGeo>
-TPZTransform
+TPZTransform<>
 TPZGeoElRefLess<TGeo>::GetTransform(int /*side*/,int /*son*/){
     PZError << "TPZGeoElRefLess<TGeo>::GetTransform::Never should be called\n";
-    return TPZTransform(0,0);
+    return TPZTransform<>(0,0);
 }
 
 template<class TGeo>

@@ -22,10 +22,12 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-void TPZQuadraticPyramid::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+template<class T>
+void TPZQuadraticPyramid::Shape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
 	
-	REAL qsi = param[0], eta = param[1], zeta = param[2];
-    if(fabs(zeta - 1.) < 1.E-3)
+	T qsi = param[0], eta = param[1], zeta = param[2];
+    T check = zeta-1.;
+    if(fabs(check) < 1.E-3)
     {
         phi(0,0)  = 0.; 
         phi(1,0)  = 0.;  
@@ -153,11 +155,11 @@ void TPZQuadraticPyramid::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMa
 }
 
 
-
-void TPZQuadraticPyramid::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
+template<class T>
+void TPZQuadraticPyramid::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
 	
-	TPZFNMatrix<13> phi(13,1);
-	TPZFNMatrix<39> dphi(3,13);
+	TPZFNMatrix<13,T> phi(13,1);
+	TPZFNMatrix<39,T> dphi(3,13);
 	Shape(loc,phi,dphi);
 	
 	for(int i=0; i<3; i++)

@@ -59,7 +59,8 @@ public:
     }
 	
     /* brief compute the coordinate of a point given in parameter space */
-    void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+    template<class T>
+    void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
     {
         TPZFNMatrix<3*NNodes> coord(3,NNodes);
         CornerCoordinates(gel, coord);
@@ -80,9 +81,13 @@ public:
         Jacobian(coord, param, jacobian, axes, detjac, jacinv);
     }
     
+    template<class T>
+    static void ShapeT(TPZVec<T> &x,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+    
 	static void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
-	static void X(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZVec<REAL> &result);
+    template<class T>
+	static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
 	
 	static void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv);
 	

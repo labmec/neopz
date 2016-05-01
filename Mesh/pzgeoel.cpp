@@ -357,9 +357,9 @@ int TPZGeoEl::FatherSide(int side, int son){
 	return -1;
 }
 
-TPZTransform TPZGeoEl::BuildTransform2(int /*side*/, TPZGeoEl * /*father*/, TPZTransform & /* tr */){//Augusto:09/01/01
+TPZTransform<> TPZGeoEl::BuildTransform2(int /*side*/, TPZGeoEl * /*father*/, TPZTransform<> & /* tr */){//Augusto:09/01/01
 	PZError << "TPZGeoEl::BuildTransform2 should never be called\n";
-	return TPZTransform(0,0);
+	return TPZTransform<>(0,0);
 }
 
 
@@ -434,8 +434,8 @@ int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
 	int is;
 	for(is=0; is<nums; is++) {
 		int sdim = SideDimension(is);
-		TPZTransform t1 = SideToSideTransform(nums-1,is);
-		TPZTransform t2 = SideToSideTransform(is,nums-1);
+		TPZTransform<> t1 = SideToSideTransform(nums-1,is);
+		TPZTransform<> t2 = SideToSideTransform(is,nums-1);
 		TPZVec<REAL> pts(sdim),pt2(dim);
 		t1.Apply(pt,pts);
 		t2.Apply(pts,pt2);
@@ -679,7 +679,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 		if(error <= Tol)
 		{
 			TPZVec<REAL> zero(0);
-			TPZTransform tr = SideToSideTransform(in, NSides()-1);
+			TPZTransform<> tr = SideToSideTransform(in, NSides()-1);
 			tr.Apply(zero, qsi);
 			return true;
 		}
@@ -780,7 +780,7 @@ void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &qsiSon, TP
 	{
 		DebugStop();
 	}
-	TPZTransform tr(dim);
+	TPZTransform<> tr(dim);
 	tr = BuildTransform2(NSides()-1, father, tr);
 	tr.Apply(qsiSon, qsiAncestor);
 	REAL Tol;
@@ -788,7 +788,7 @@ void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &qsiSon, TP
 	father->ComputeXInverse(xson, qsiAncestor,Tol);
 }
 
-TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson){
+TPZTransform<> TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson){
 	
 	//transformacao do lado de elemento pequeno para elemento grande que o contem
 	int dimf = fat->Dimension();
@@ -801,7 +801,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 	}
 	
 	/**para o canto do pai n�o existe transformac�o definida*/
-	if(!fat->SideDimension(fatside)) return TPZTransform(0,0);
+	if(!fat->SideDimension(fatside)) return TPZTransform<>(0,0);
 	
 	REAL weight;
 	TPZFNMatrix<9> jac(dim,dim),axes(3,3,0.);
@@ -840,9 +840,9 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 		}
 	}// final do integral hess
 	//do lado sideson para o elemento atual (filho)
-	TPZTransform tsidetoson(Dimension());//identidade
+	TPZTransform<> tsidetoson(Dimension());//identidade
 	if(dimss<Dimension()) tsidetoson = SideToSideTransform(sideson,NSides()-1);
-	TPZTransform fatelside = fat->SideToSideTransform(fat->NSides()-1,fatside);
+	TPZTransform<> fatelside = fat->SideToSideTransform(fat->NSides()-1,fatside);
 	TPZManVector<REAL,3> sidepoint(Dimension());//dimensao do dominio da transformacao X do filho
 	int j;//transf. para o lado do pai
 	TPZFNMatrix<9> A(dimsf,dimss,0.),sol(dimsf,1,0.);
@@ -874,7 +874,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 		sol(ifat,0) = grad0(dimss,0);
 	}//fim sistema ifat
 	delete intrule;
-	TPZTransform t(dimsf,dimss);
+	TPZTransform<> t(dimsf,dimss);
 	t.SetMatrix(A,sol);
 	return t;
 }
@@ -1821,7 +1821,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 			if(NextSide.Neighbour().IsRelative(ElemSide) == false){
 				if(NextSide.Neighbour().Element()->IsGeoElMapped() == false){
 					TPZGeoElSide NeighSide = NextSide.Neighbour();
-					TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
+					TPZTransform<> NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
 					ElemSide.SideTransform3(NeighSide,NeighTransf);
 					this->SetNeighbourInfo(side,NeighSide,NeighTransf);
 					return;
@@ -1838,7 +1838,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 		{
 			if(NextSide.Neighbour().IsRelative(ElemSide) == false){
 				TPZGeoElSide NeighSide = NextSide.Neighbour();
-				TPZTransform NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
+				TPZTransform<> NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
 				ElemSide.SideTransform3(NeighSide,NeighTransf);
 				this->SetNeighbourInfo(side,NeighSide,NeighTransf);
 				return;
@@ -1860,11 +1860,11 @@ void TPZGeoEl::BuildBlendConnectivity(){
 
 // Projection of the point to the side
 // Compute the projection of the point within the interior of the element to the side of the element
-TPZTransform TPZGeoEl::Projection(int side)
+TPZTransform<> TPZGeoEl::Projection(int side)
 {
-	TPZTransform tr = SideToSideTransform(NSides()-1,side);
-	TPZTransform tr2 = SideToSideTransform(side,NSides()-1);
-	TPZTransform tr3 = tr2.Multiply(tr);
+	TPZTransform<> tr = SideToSideTransform(NSides()-1,side);
+	TPZTransform<> tr2 = SideToSideTransform(side,NSides()-1);
+	TPZTransform<> tr3 = tr2.Multiply(tr);
 	//	std::cout << "interior to side " << side << " trans " << tr << std::endl;
 	//	std::cout << "side to interior " << side << " trans " << tr2 << std::endl;
 	//	std::cout << "side to side " << side << " trans " << tr3 << std::endl;

@@ -68,7 +68,8 @@ namespace pzgeom {
 		static std::string TypeName() { return "Wavy";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -110,10 +111,11 @@ namespace pzgeom {
             }
         }
         
-	void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZGeoLinear::X(nodes,loc,result);
-            REAL sinval = sin(this->fNumWaves*M_PI*loc[0]);
+            T sinval = sin(this->fNumWaves*M_PI*loc[0]);
 
             for (int i=0; i<3; i++) {
                 result[i] += this->fWaveDir[i]*sinval;

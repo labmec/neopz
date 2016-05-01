@@ -22,15 +22,16 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-void TPZQuadraticPrism::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+template<class T>
+void TPZQuadraticPrism::Shape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
 	
-	REAL qsi = param[0], eta = param[1], zeta = param[2];
+	T qsi = param[0], eta = param[1], zeta = param[2];
 	
 	phi(0,0)   = -0.5*(-1. + eta + qsi)*(-1. + zeta)*(2.*(eta + qsi) + zeta);
 	phi(1,0)   =  0.5*qsi*(-1. + zeta)*(2. - 2.*qsi + zeta);
 	phi(2,0)   =  0.5*eta*(-1. + zeta)*(2. - 2.*eta + zeta);
 	phi(3,0)   = -0.5*(-1. + eta + qsi)*(1. + zeta)*(-2.*(eta + qsi) + zeta);
-	phi(4,0)   =  0.5*qsi*(1 + zeta)*(-2. + 2.*qsi + zeta);
+	phi(4,0)   =  0.5*qsi*(1. + zeta)*(-2. + 2.*qsi + zeta);
 	phi(5,0)   =  0.5*eta*(1. + zeta)*(-2. + 2.*eta + zeta);
 	phi(6,0)   =  2.*qsi*(-1. + eta + qsi)*(-1. + zeta);
 	phi(7,0)   = -2.*eta*qsi*(-1. + zeta);
@@ -103,10 +104,11 @@ void TPZQuadraticPrism::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatr
 	dphi(2,14) = -2.*eta*(-1. + eta + qsi);
 }
 
-void TPZQuadraticPrism::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
+template<class T>
+void TPZQuadraticPrism::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
 	
-	TPZFNMatrix<15> phi(15,1);
-	TPZFNMatrix<45> dphi(3,15);
+	TPZFNMatrix<15,T> phi(15,1);
+	TPZFNMatrix<45,T> dphi(3,15);
 	Shape(loc,phi,dphi);
 	
 	for(int i=0; i<3; i++)

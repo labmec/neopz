@@ -119,7 +119,8 @@ namespace pzgeom
         }
 		void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
 		
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -135,7 +136,7 @@ namespace pzgeom
             /** Computing Axes */
             TPZManVector< T > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUTv(3);
             
-            TPZManVector< REAL > middle(1, 0.);
+            TPZManVector< T > middle(1, 0.);
             X(coord,middle,OUTv);
             
             /** Vector From MappedPoint to Ini */

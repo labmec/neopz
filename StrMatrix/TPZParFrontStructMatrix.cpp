@@ -529,8 +529,8 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
         PZ_PTHREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
 	}
 	
-	delete allthreads;// fThreadUsed, fDec;
-	delete res;
+	delete[] allthreads;// fThreadUsed, fDec;
+	delete[] res;
 	mat->GetFront().ProductTensorMTFinish(); // Here it ends the multthread decomposition (comment to deactivate. Remember to coment the initialization also)
 	fStiffness = 0;
 	fRhs = 0;

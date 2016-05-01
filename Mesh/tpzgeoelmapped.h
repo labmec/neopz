@@ -144,9 +144,9 @@ public:
 				fatherside = nextfatherside;
 				nextfatherside = nextfatherside.Father2();			
 			}
-			TPZTransform trzero(0);
-			TPZTransform tr = this->BuildTransform2(in,father,trzero);
-			TPZTransform trfather = fatherside.Element()->SideToSideTransform(fatherside.Side(),fatherside.Element()->NSides()-1);
+			TPZTransform<> trzero(0);
+			TPZTransform<> tr = this->BuildTransform2(in,father,trzero);
+			TPZTransform<> trfather = fatherside.Element()->SideToSideTransform(fatherside.Side(),fatherside.Element()->NSides()-1);
 			tr = trfather.Multiply(tr);
 			TPZVec<REAL> zero(0);
 			tr.Apply(zero, aux);
@@ -154,7 +154,7 @@ public:
 			ptancestor.Fill(0.);
 			father->ComputeXInverse(nodeX, aux, Tol);
 			int pointside = father->WhichSide(aux);
-			TPZTransform project = father->Projection(pointside);
+			TPZTransform<> project = father->Projection(pointside);
 			project.Apply(aux,ptancestor);
 			
 #ifdef PZDEBUG

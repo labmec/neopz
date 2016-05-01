@@ -77,10 +77,11 @@ namespace pzgeom {
 		static std::string TypeName() { return "Wavy";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZGeoTriangle::X(this->fPhiTheta,loc,result);
-            TPZVec <REAL> toro(3,0.0);
+            TPZVec <T> toro(3,0.0);
             
             toro[0] = (fR + fr*cos(result[0]))*cos(result[1]);
             toro[1] = (fR + fr*cos(result[0]))*sin(result[1]);
@@ -134,10 +135,11 @@ namespace pzgeom {
             TPZGeoTriangle::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
         }
         
-		void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+		void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZGeoTriangle::X(this->fPhiTheta,loc,result);
-            TPZVec <REAL> toro(3,0.0);
+            TPZVec <T> toro(3,0.0);
             
             toro[0] = (fR + fr*cos(result[0]))*cos(result[1]);
             toro[1] = (fR + fr*cos(result[0]))*sin(result[1]);

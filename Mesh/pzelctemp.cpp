@@ -316,7 +316,7 @@ void TPZIntelGen<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
 
 /** Returns the transformation which transform a point from the side to the interior of the element */
 template<class TSHAPE>
-TPZTransform TPZIntelGen<TSHAPE>::TransformSideToElement(int side) {
+TPZTransform<> TPZIntelGen<TSHAPE>::TransformSideToElement(int side) {
 	return TSHAPE::TransformSideToElement(side);
 }
 

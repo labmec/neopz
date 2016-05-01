@@ -35,9 +35,10 @@ using namespace pztopology;
  / 2007
  */
 
-void TPZQuadraticTrig::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
+template<class T>
+void TPZQuadraticTrig::Shape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
 {
-	REAL qsi = param[0], eta = param[1];
+	T qsi = param[0], eta = param[1];
     
 	phi(0,0) = (qsi+eta-1.)*(2.*qsi+2.*eta-1.);
 	phi(1,0) = qsi*(2.*qsi-1.);
@@ -49,12 +50,13 @@ void TPZQuadraticTrig::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatri
 	dphi(1,0) = 1.-4.*(1.-qsi-eta); dphi(1,1) = 0.; dphi(1,2) = -1.+4.*eta; dphi(1,3) = -4.*qsi; dphi(1,4) = 4.*qsi; dphi(1,5) = 4.*(1.-qsi-eta)-4.*eta;
 }
 
-void TPZQuadraticTrig::X(TPZFMatrix<REAL> &coord, TPZVec<REAL>& par, TPZVec< REAL >& result)
+template<class T>
+void TPZQuadraticTrig::X(TPZFMatrix<REAL> &coord, TPZVec<T>& par, TPZVec< T >& result)
 {
-	TPZVec<REAL> parMap(2);
+	TPZManVector<T,3> parMap(2);
 	REAL spacephi[6],spacedphi[12];
-	TPZFMatrix<REAL> phi(6,1,spacephi,6);
-	TPZFMatrix<REAL> dphi(2,6,spacedphi,12);
+	TPZFNMatrix<6,T> phi(6,1);
+	TPZFNMatrix<12,T> dphi(2,6);
 	Shape(par,phi,dphi);
 	for(int i = 0; i < 3; i++)
 	{

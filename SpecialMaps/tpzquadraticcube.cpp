@@ -24,13 +24,17 @@ using namespace pzgeom;
 using namespace pztopology;
 
 void TPZQuadraticCube::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-	
-	REAL qsi = param[0], eta = param[1], zeta = param[2];
+    ShapeT<REAL>(param,phi,dphi);
+}
+
+template<class T>
+void TPZQuadraticCube::ShapeT(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+	T qsi = param[0], eta = param[1], zeta = param[2];
 	
 	phi(0,0)   =  1./8.*((-1. + eta)*(-1. + qsi)*(-1. + zeta)*(2. + eta + qsi + zeta));
 	phi(1,0)   = -1./8.*((-1. + eta)*(1. + qsi)*(-1. + zeta)*(2. + eta - qsi + zeta));
 	phi(2,0)   = -1./8.*((1. + eta)*(1. + qsi)*(-2. + eta + qsi - zeta)*(-1. + zeta));
-	phi(3,0)   =  1./8.*((1 + eta)*(-1 + qsi)*(-2 + eta - qsi - zeta)*(-1 + zeta));
+	phi(3,0)   =  1./8.*((1. + eta)*(-1. + qsi)*(-2. + eta - qsi - zeta)*(-1. + zeta));
 	
 	phi(4,0)   = -1./8.*((-1. + eta)*(-1. + qsi)*(2. + eta + qsi - zeta)*(1. + zeta));
 	phi(5,0)   =  1./8.*((-1. + eta)*(1. + qsi)*(2. + eta - qsi - zeta)*(1. + zeta));
@@ -57,7 +61,7 @@ void TPZQuadraticCube::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatri
 	dphi(1,0)  =  1./8.*((-1. + qsi)*(-1. + zeta)*(1. + 2.*eta + qsi + zeta));
 	dphi(2,0)  =  1./8.*((-1. + eta)*(-1. + qsi)*(1. + eta + qsi + 2.*zeta));
 	
-	dphi(0,1)  = -1./8.*((-1. + eta)*(-1. + zeta)*(1 + eta - 2.*qsi + zeta));
+	dphi(0,1)  = -1./8.*((-1. + eta)*(-1. + zeta)*(1. + eta - 2.*qsi + zeta));
 	dphi(1,1)  =  1./8.*((1. + qsi)*(-1. - 2.*eta + qsi - zeta)*(-1. + zeta));
 	dphi(2,1)  = -1./8.*((-1. + eta)*(1. + qsi)*(1. + eta - qsi + 2.*zeta));
 	
@@ -134,11 +138,12 @@ void TPZQuadraticCube::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatri
 	dphi(2,19) =  1./4.*((-1. + eta*eta)*(-1. + qsi));
 }
 
-void TPZQuadraticCube::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
+template<class T>
+void TPZQuadraticCube::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
 	
-	TPZFNMatrix<20> phi(20,1);
-	TPZFNMatrix<60> dphi(3,20);
-	Shape(loc,phi,dphi);
+	TPZFNMatrix<20,T> phi(20,1);
+	TPZFNMatrix<60,T> dphi(3,20);
+	ShapeT(loc,phi,dphi);
 	
 	for(int i=0; i<3; i++)
 	{

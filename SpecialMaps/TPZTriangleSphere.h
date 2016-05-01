@@ -73,19 +73,20 @@ namespace pzgeom {
         }
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
 //            TPZFNMatrix<3*NNodes> coord(3,NNodes);
 //            CornerCoordinates(gel, coord);
 //            X(coord,loc,result);
             
             
-            TPZManVector<REAL,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
-            TPZManVector<REAL,3> XtminusXc(3,0.0); // will store (x,y,z)-xc
+            TPZManVector<T,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
+            TPZManVector<T,3> XtminusXc(3,0.0); // will store (x,y,z)-xc
             GeomTriang::X(gel,loc,xqsi);
             TPZManVector<REAL,3> Xc = fXc;
             
-            REAL NormValue = 0.0;
+            T NormValue = 0.0;
             
             for (int i = 0; i < 3; i++) {
                 XtminusXc[i] = xqsi[i] - Xc[i];
@@ -98,7 +99,7 @@ namespace pzgeom {
             
             NormValue = sqrt(NormValue);
             
-            TPZManVector<REAL,3> Xsphere(3,0.0);
+            TPZManVector<T,3> Xsphere(3,0.0);
             for(int i=0; i<3; i++)
             {
                 result[i] = (fR/NormValue)*(XtminusXc[i])+ Xc[i];
@@ -136,7 +137,9 @@ namespace pzgeom {
             
             GradOneoverNorm(0,0) = XtminusXc(0,0)*GradXt(0,0)+XtminusXc(1,0)*GradXt(1,0)+XtminusXc(2,0)*GradXt(2,0);
             GradOneoverNorm(1,0) = XtminusXc(0,0)*GradXt(0,1)+XtminusXc(1,0)*GradXt(1,1)+XtminusXc(2,0)*GradXt(2,1);
-            GradOneoverNorm = -(fR/(NormValue*NormValue*NormValue))*GradOneoverNorm;
+            T a = (NormValue*NormValue*NormValue);
+            T b = -fR/a;
+            GradOneoverNorm = b*GradOneoverNorm;
             
             TensorXtGradX(0,0)= XtminusXc(0,0)*GradOneoverNorm(0,0);
             TensorXtGradX(0,1)= XtminusXc(0,0)*GradOneoverNorm(1,0);
@@ -144,8 +147,8 @@ namespace pzgeom {
             TensorXtGradX(1,1)= XtminusXc(1,0)*GradOneoverNorm(1,0);
             TensorXtGradX(2,0)= XtminusXc(2,0)*GradOneoverNorm(0,0);
             TensorXtGradX(2,1)= XtminusXc(2,0)*GradOneoverNorm(1,0);
-            
-            gradx=((fR/(NormValue))*GradXt)+TensorXtGradX;
+            a = fR/NormValue;
+            gradx=a*GradXt+TensorXtGradX;
 
         }
 		

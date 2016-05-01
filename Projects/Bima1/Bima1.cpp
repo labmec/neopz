@@ -680,21 +680,21 @@ REAL Compute_dudn(TPZInterpolationSpace * sp, TPZVec<REAL> &intpoint, TPZVec<REA
         TPZGeoElSide gels(gel,gel->NSides()-1);
         TPZGeoElSide gelintef = neighequal[i].Reference();
         TPZGeoElSide gelsideinterf(gelintef.Element(),gelintef.Element()->NSides()-1);
-        TPZTransform tr1 = gels.NeighbourSideTransform(gelintef);
-        TPZTransform tr2 = gelintef.SideToSideTransform(gelsideinterf);
-        TPZTransform transfLagranToInterf = tr2.Multiply(tr1);
+        TPZTransform<> tr1 = gels.NeighbourSideTransform(gelintef);
+        TPZTransform<> tr2 = gelintef.SideToSideTransform(gelsideinterf);
+        TPZTransform<> transfLagranToInterf = tr2.Multiply(tr1);
         TPZManVector<REAL,3> IntPointInterf(2);
         transfLagranToInterf.Apply(intpoint,IntPointInterf);
         
         
         //Transformacao do elemento de interface para o elemento 2D
         TPZCompElSide LeftSide = face->LeftElementSide();
-        TPZTransform transfLeft;
+        TPZTransform<> transfLeft;
         face->ComputeSideTransform(LeftSide, transfLeft);
         TPZInterpolationSpace * LeftEl = dynamic_cast<TPZInterpolationSpace*>(LeftSide.Element());
         
         TPZCompElSide RightSide = face->RightElementSide();
-        TPZTransform transfRight;
+        TPZTransform<> transfRight;
         face->ComputeSideTransform(RightSide, transfRight);
         TPZInterpolationSpace * RightEl = dynamic_cast<TPZInterpolationSpace*>(RightSide.Element());
         

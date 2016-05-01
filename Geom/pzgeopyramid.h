@@ -68,7 +68,8 @@ namespace pzgeom {
         }
         
         /* @brief Compute x mapping from local parametric coordinates */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &x) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -104,7 +105,8 @@ namespace pzgeom {
         }
         
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
-        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &x);
+        template<class T>
+        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x);
         
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
@@ -135,6 +137,15 @@ namespace pzgeom {
 		
 		
 	public:
+        
+        /// create an example element based on the topology
+        /* @param gmesh mesh in which the element should be inserted
+         @param matid material id of the element
+         @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
+         @param size (in) size of space where the element should be created
+         */
+        static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
+
 		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<long>& nodeindexes,
@@ -181,11 +192,12 @@ namespace pzgeom {
         
     }
     
-    inline void TPZGeoPyramid::X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &x){
+    template<class T>
+    inline void TPZGeoPyramid::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
         
-        TPZFNMatrix<5,REAL> phi(5,1);
-        TPZFNMatrix<15,REAL> dphi(3,5);
-        Shape(loc,phi,dphi);
+        TPZFNMatrix<5,T> phi(5,1);
+        TPZFNMatrix<15,T> dphi(3,5);
+        TShape(loc,phi,dphi);
         int space = nodes.Rows();
         
         for(int i = 0; i < space; i++) {

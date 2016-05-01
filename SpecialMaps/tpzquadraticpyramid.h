@@ -57,10 +57,12 @@ namespace pzgeom {
         /** @brief Returns the type name of the element */
         static std::string TypeName() { return "Pyramid";} 
         
-        static void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        template<class T>
+        static void Shape(TPZVec<T> &x,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
 		/* brief compute the coordinate of a point given in parameter space */
-        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        template<class T>
+        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -81,7 +83,8 @@ namespace pzgeom {
             Jacobian(coord, param, jacobian, axes, detjac, jacinv);
         }
         
-        static void X(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZVec<REAL> &result);
+        template<class T>
+        static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
         
         static void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv);
         

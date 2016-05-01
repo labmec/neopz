@@ -1334,7 +1334,7 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
             
             TPZGeoEl * gel_2D = GetVolElement(gel);
             TPZGeoElSide intermediate_side;
-            TPZTransform afine_transformation = Transform_1D_To_2D(gel,gel_2D,intermediate_side);
+            TPZTransform<> afine_transformation = Transform_1D_To_2D(gel,gel_2D,intermediate_side);
             
             int itself_2d = gel_2D->NSides()-1;
             TPZGeoElSide gel_side_2D(gel_2D,itself_2d);
@@ -1432,7 +1432,7 @@ TPZGeoEl * TPZDarcyAnalysis::GetVolElement(TPZGeoEl * gel){
     return gel_2D;
 }
 
-TPZTransform  TPZDarcyAnalysis::Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl * gel_d, TPZGeoElSide & intermediate_side){
+TPZTransform<>  TPZDarcyAnalysis::Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl * gel_d, TPZGeoElSide & intermediate_side){
     
     int itself_o = gel_o->NSides()-1;
     int itself_d = gel_d->NSides()-1;
@@ -1451,9 +1451,9 @@ TPZTransform  TPZDarcyAnalysis::Transform_1D_To_2D(TPZGeoEl * gel_o, TPZGeoEl * 
     }
     
     intermediate_side = neigh;
-    TPZTransform t1 = gel_side_o.NeighbourSideTransform(neigh);
-    TPZTransform t2 = neigh.SideToSideTransform(gel_side_d);
-    TPZTransform t3 = t2.Multiply(t1);
+    TPZTransform<> t1 = gel_side_o.NeighbourSideTransform(neigh);
+    TPZTransform<> t2 = neigh.SideToSideTransform(gel_side_d);
+    TPZTransform<> t3 = t2.Multiply(t1);
     
     return t3;
 }

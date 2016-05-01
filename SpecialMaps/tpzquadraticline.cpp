@@ -23,9 +23,10 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-void TPZQuadraticLine::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+template<class T>
+void TPZQuadraticLine::ShapeT(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
     
-	REAL qsi = param[0];
+	T qsi = param[0];
 	
 	phi(0,0)  = -qsi*(1.-qsi)/2.;
 	phi(1,0)  = +qsi*(1.+qsi)/2.;
@@ -36,10 +37,11 @@ void TPZQuadraticLine::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatri
 	dphi(0,2) = -2.*qsi;
 }
 
-void TPZQuadraticLine::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
-	TPZFNMatrix<9> phi(NNodes,1);
-	TPZFNMatrix<16> dphi(1,NNodes);
-	Shape(loc,phi,dphi);
+template<class T>
+void TPZQuadraticLine::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
+	TPZFNMatrix<9,T> phi(NNodes,1);
+	TPZFNMatrix<16,T> dphi(1,NNodes);
+	ShapeT(loc,phi,dphi);
 	
 	for(int i = 0; i < 3; i++){
 		result[i] = 0.0;

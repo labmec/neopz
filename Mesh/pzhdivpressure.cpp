@@ -525,7 +525,7 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
 }
 
 template<class TSHAPE>
-TPZTransform TPZCompElHDivPressure<TSHAPE>::TransformSideToElement(int side){
+TPZTransform<> TPZCompElHDivPressure<TSHAPE>::TransformSideToElement(int side){
 		return TSHAPE::TransformSideToElement(side);
 }
 
