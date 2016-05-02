@@ -403,6 +403,9 @@ TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateGeoElement(TPZGeoMesh &mesh, MElement
  @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
  @param size (in) size of space where the element should be created
  */
+
+#include "TPZWavyLine.h"
+
 template <class TGeo>
 void pzgeom::TPZGeoBlend<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 {
@@ -412,11 +415,14 @@ void pzgeom::TPZGeoBlend<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int mati
     TPZManVector<long,3> nodeindexes(8);
     TPZGeoEl *gel = gmesh.Element(elid);
     int NNodes = TGeo::NCornerNodes;
-    
-    
     for (int i=0; i<NNodes; i++) {
         nodeindexes[i] = gel->NodeIndex(i);
     }
+    TPZGeoElRefPattern<TPZWavyLine> *gelwave = new TPZGeoElRefPattern<TPZWavyLine>(nodeindexes,matid,gmesh);
+    TPZManVector<REAL,3> wavedir(3,0.02);
+    wavedir[0] = 0.;
+    gelwave->Geom().SetData(wavedir, 2);
+    delete gel;
     long index;
     gmesh.CreateGeoBlendElement(TGeo::Type(), nodeindexes, matid, index);
 }

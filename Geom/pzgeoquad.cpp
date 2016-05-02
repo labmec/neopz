@@ -333,16 +333,17 @@ namespace pzgeom {
         gmesh.NodeVec()[nodeindexes[0]].Initialize(co, gmesh);
         co[0] += 0.6*size[0];
         nodeindexes[1] = gmesh.NodeVec().AllocateNewElement();
-        gmesh.NodeVec()[nodeindexes[0]].Initialize(co, gmesh);
+        gmesh.NodeVec()[nodeindexes[1]].Initialize(co, gmesh);
         co[1] += 0.6*size[0];
-        co[0] -= 0.1*size[0];
+        co[0] += 0.1*size[0];
         co[2] += 0.3*size[0];
         nodeindexes[2] = gmesh.NodeVec().AllocateNewElement();
-        for (int i=0; i<3; i++) co[i] += 0.2*size[i];
+        gmesh.NodeVec()[nodeindexes[2]].Initialize(co, gmesh);
+        for (int i=0; i<3; i++) co[i] = lowercorner[i]+0.2*size[i];
         co[1] += 0.4*size[1];
         co[2] -= 0.2*size[2];
         nodeindexes[3] = gmesh.NodeVec().AllocateNewElement();
-        gmesh.NodeVec()[nodeindexes[0]].Initialize(co, gmesh);
+        gmesh.NodeVec()[nodeindexes[3]].Initialize(co, gmesh);
         long index;
         CreateGeoElement(gmesh, EQuadrilateral, nodeindexes, matid, index);
     }

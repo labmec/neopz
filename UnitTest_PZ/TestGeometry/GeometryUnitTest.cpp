@@ -23,6 +23,10 @@
 #include "pzgeoprism.h"
 #include "pzgeopyramid.h"
 
+#include "tpzquadraticcube.h"
+#include "tpzquadratictetra.h"
+#include "tpzquadraticprism.h"
+#include "tpzquadraticpyramid.h"
 #include "TPZCurve.h"
 #include "TPZSurface.h"
 
@@ -73,21 +77,29 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZGeoPoint>(mesh,lowercorner,size);
     AddElement<TPZGeoLinear>(mesh,lowercorner,size);
     AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
-
     AddElement<TPZGeoQuad>(mesh,lowercorner,size);
     AddElement<TPZGeoCube>(mesh,lowercorner,size);
     AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
     AddElement<TPZGeoPrism>(mesh,lowercorner,size);
     AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
+    lowercorner[0] = 1.;
+    lowercorner[1] = 2.;
     AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
     AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
-    // Nao pode gerar um elemento blend em cima de um volume
-    // neste caso cria-se um elemento vizinho pelo volume - isso nao funciona
-//    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
+    lowercorner[0] = 1.;
+    lowercorner[1] = 1.;
+    AddElement<TPZQuadraticLine>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticTrig>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticQuad>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticCube>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticTetra>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticPrism>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size);
     mesh.BuildConnectivity();
 }
 

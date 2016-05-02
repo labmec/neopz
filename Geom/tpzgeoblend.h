@@ -84,8 +84,8 @@ namespace pzgeom
 		}
 		
         template<class T>
-		void TransfBetweenNeigh(int side, TPZTransform<T> tr) const {
-			return fTrans[side - TGeo::NNodes];
+		void TransfBetweenNeigh(int side, TPZTransform<T> &tr) const {
+			tr = fTrans[side - TGeo::NNodes];
 		}
 		
 		/** @brief Returns the type name of the element */

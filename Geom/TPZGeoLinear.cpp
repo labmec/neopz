@@ -109,8 +109,13 @@ namespace pzgeom {
         
         for (int i=0; i<NCornerNodes; i++) {
             ParametricDomainNodeCoord(i, co);
-            for (int j=0; j<co.size(); j++) {
+            int j;
+            for (j=0; j<co.size(); j++) {
                 co[j] = shift[j]+scale[j]*co[j]+(rand()*0.2/RAND_MAX)-0.1;
+            }
+            co.Resize(3);
+            for (; j<3; j++) {
+                co[j] = shift[j]+(rand()*0.2/RAND_MAX)-0.1;
             }
             nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
             gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
