@@ -93,6 +93,8 @@ public:
 					   const long colSize, TPZFMatrix<TVar> & A ) const;
 	
 	void GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar> &block) const;
+    
+    void GetSub(const TPZVec<long> &i_indices, const TPZVec<long> &j_indices,TPZFMatrix<TVar> &block) const;
 	
 	/** @brief Pass the data to the class. */
 	virtual void SetData( long *IA, long *JA, TVar *A );

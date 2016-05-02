@@ -729,6 +729,9 @@ public:
 	
 	/** @brief Extract the block indicated by the indices from the matrix */
 	virtual void GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar>&block) const;
+    
+    /** @brief Extract the block indicated by the i-j, indices from the matrix */
+    virtual void GetSub(const TPZVec<long> &i_indices, const TPZVec<long> &j_indices,TPZFMatrix<TVar>&block) const;
 	
 	/** @brief Compare values of this to B, with a precision tolerance tol. */
     bool CompareValues(TPZMatrix<TVar>&M, TVar tol);

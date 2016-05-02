@@ -31,8 +31,7 @@ public:
 	
 	~TPZBlockDiagonalStructMatrix();
 	
-	TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : TPZStructMatrix(copy),
-	fBlockStructure(copy.fBlockStructure),fOverlap(copy.fOverlap)
+	TPZBlockDiagonalStructMatrix(const TPZBlockDiagonalStructMatrix &copy) : TPZStructMatrix(copy),fBlockStructure(copy.fBlockStructure),fOverlap(copy.fOverlap)
 	{
 	}
 	

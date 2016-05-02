@@ -519,6 +519,21 @@ int TPZMatrix<TVar>::GetSub(const long sRow,const long sCol,const long rowSize,
     return( 1 );
 }
 
+/** @brief Extract the block indicated by the i-j, indices from the matrix */
+template<class TVar>
+void TPZMatrix<TVar>::GetSub(const TPZVec<long> &i_indices, const TPZVec<long> &j_indices, TPZFMatrix<TVar>& block) const{
+    
+    long ni = i_indices.NElements();
+    long nj = j_indices.NElements();
+    for(long i=0; i<ni; i++)
+    {
+        for(long j=0; j<nj; j++)
+        {
+            block(i,j) = GetVal(i_indices[i],j_indices[j]);
+        }
+    }
+}
+
 
 /***************/
 /*** Add Sub ***/

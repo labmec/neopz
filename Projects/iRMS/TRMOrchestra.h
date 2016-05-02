@@ -100,7 +100,7 @@ public:
     static void ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &pressure);
     
     /** @brief Compute the system of equations using transfer matrixces */
-    void IntegrateResidue(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer<TRMBuildTransfers> transfer);
+    TPZFMatrix<STATE> IntegrateResidue(TPZAutoPointer<TPZCompMesh> cmesh_multiphysics, TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer<TRMBuildTransfers> transfer);
     
     /** @brief Compute gradient of the system of equations using transfer matrixces */
     void IntegrateGradientOfResidue(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer<TRMBuildTransfers> transfer);

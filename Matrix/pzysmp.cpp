@@ -810,7 +810,10 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 }
 static int  FindCol(long *colf, long *coll, long col)
 {
-	if(col == *colf) return 0;
+//    if(col == *colf && col == *coll) {
+//        return 0;
+//    }
+	if(col == *colf || col == *coll) return col;
 	long *begin = colf;
 	long *end = coll;
 	while (begin != end)
@@ -874,6 +877,45 @@ void TPZFYsmpMatrix<TVar>::GetSub(const TPZVec<long> &indices,TPZFMatrix<TVar> &
 			jfirst += col+1;
 		}
 	}
+}
+
+template<class TVar>
+void TPZFYsmpMatrix<TVar>::GetSub(const TPZVec<long> &i_indices, const TPZVec<long> &j_indices,TPZFMatrix<TVar> &block) const
+{
+    std::map<long,long> indord,jndord;
+    long i,j;
+    long i_size = i_indices.NElements();
+    long j_size = j_indices.NElements();
+    const TPZVec<long> &IA = fIA;
+    const TPZVec<long> &JA = fJA;
+    const TPZVec<TVar> &A = fA;
+    const TPZVec<TVar> &Diag = fDiag;
+    
+    for(i=0; i<i_size; i++)
+    {
+        indord[i_indices[i]] = i;
+    }
+    for(j=0; j<j_size; j++)
+    {
+        jndord[j_indices[j]] = j;
+    }
+    
+    std::map<long,long>::iterator itset,jtset;
+    for(itset = indord.begin(); itset != indord.end(); itset++)
+    {
+        long *jfirst = &JA[0]+IA[(*itset).first];
+        long *jlast = &JA[0]+IA[(*itset).first+1]-1;
+        //    int row = (*itset).first;
+        for(jtset = jndord.begin(); jtset != jndord.end(); jtset++)
+        {
+            int last = (*itset).first;
+
+            long col = FindCol(jfirst,jlast,(*jtset).first);
+            long dist = jfirst+col-&JA[0];
+            block((*itset).second,(*jtset).second) = A[dist];
+            jfirst += col+1;
+        }
+    }
 }
 
 /*

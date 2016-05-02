@@ -446,10 +446,10 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // uses this for constant jacobian elements
     REAL divu2 = point_memory.GetDiv_Flux();
     
-    std::cout << "divu = " << divu << std::endl;
-    std::cout << "divflux = " << divflux << std::endl;
-    std::cout << "divu2 = " << divu2 << std::endl;
-    std::cout << "rhs = " << rhs << std::endl;
+//    std::cout << "divu = " << divu << std::endl;
+//    std::cout << "divflux = " << divflux << std::endl;
+//    std::cout << "divu2 = " << divu2 << std::endl;
+//    std::cout << "rhs = " << rhs << std::endl;
     
 //    std::cout << "fvalue[0] = " << fvalue[0] << std::endl;
 //    std::cout << "rhs = " << rhs << std::endl;
