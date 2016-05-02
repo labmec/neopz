@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     
     int dim = 1;//dimensao do problema
     REAL dom = 1.; //comprimento do dominio unidimensional com inicio na origem zero
-    int nel = 4; //numero de elementos a serem utilizados
+    int nel = 1; //numero de elementos a serem utilizados
     int pOrder = 1; //ordem polinomial de aproximacao
     REAL elsize = dom/nel; //tamanho de cada elemento
     TPZGeoMesh *gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     
     //fazendo pos processamento para paraview
     TPZStack<string> scalnames, vecnames;
-    scalnames.Push("State");//setando para imprimir u
+    scalnames.Push("SigmaX");//setando para imprimir u
     string plotfile= "ModelProblemSol.vtk";//arquivo de saida que estara na pasta debug
     an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);//define malha grafica
     int postProcessResolution = 0;//define resolucao do pos processamento
@@ -166,7 +166,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     *material = new TPZMatElasticity1D(matId);//criando material que implementa a formulacao fraca do problema modelo
     
     // Setting up paremeters
-    REAL lamelambda = 0.0e9,lamemu = 0.5e9, fbx= 0;
+    REAL lamelambda = 1. ,lamemu = 2, fbx= 2500*9.81;
     material->SetParameters(lamelambda,lamemu, fbx, linestrain);
    
     

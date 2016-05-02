@@ -132,7 +132,7 @@ void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         if (this->fLineStrain == 1)
         {
              /* Line Strain State */
-            ek(2*iu + FirstU,2*ju + FirstU)         += weight*	((LambdaL + 2*MuL)*du(0,0)*du(0,1));
+            ek(1*iu + FirstU,1*ju + FirstU)         += weight*	((LambdaL + 2*MuL)*du(0,0)*du(0,1));
             
         }
     }
@@ -178,14 +178,14 @@ void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         du(0,0) = dphi_u_axes (0,iu)*data.axes(0,0); //+dphi_u_axes(1,iu)*data.axes(1,0);
 
         //  Vector Force right hand term
-        ef(2*iu + FirstU)     +=    weight*fb[0]*phi_u(iu, 0);    // direcao x
+        ef(1*iu + FirstU)     +=    weight*fb[0]*phi_u(iu, 0);    // direcao x
          // weight*ff[0]*phiU(iu, 0)- (du(0,0)*fPreStressXX + du(1,0)*fPreStressXY);
 
         if (this->fLineStrain == 1)
         {
             /* Line Strain State */
             
-            ef(2*iu + FirstU)           += weight*  ((LambdaL + 2*MuL)*du(0,0)*dux(0,1));
+            ef(1*iu + FirstU)           += weight*  ((LambdaL + 2*MuL)*du(0,0)*dux(0,1));
             
 
         }
@@ -225,12 +225,12 @@ void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
             for(in = 0 ; in < nphi; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)      += BIGNUMBER*(ux - v2[0])*phi_u(in,0)*weight;	// X displacement Value
+                ef(1*in,0)      += BIGNUMBER*(ux - v2[0])*phi_u(in,0)*weight;	// X displacement Value
                 
                 for (jn = 0 ; jn < nphi; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)       += BIGNUMBER*phi_u(in,0)*phi_u(jn,0)*weight;	// X displacement
+                    ek(1*in,1*jn)       += BIGNUMBER*phi_u(in,0)*phi_u(jn,0)*weight;	// X displacement
                 }
             }
             
@@ -244,7 +244,7 @@ void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
             for(in = 0 ; in <nphi; in++)
             {
                 //	Normal Tension Components on neumann boundary
-                ef(2*in,0)      += -1.0*v2[0]*phi_u(in,0)*weight;		//	Tnx
+                ef(1*in,0)      += -1.0*v2[0]*phi_u(in,0)*weight;		//	Tnx
             }
             break;
         }
@@ -292,7 +292,7 @@ void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
             for(in = 0 ; in < nphi; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)      += BIGNUMBER*(ux - v2[0])*phi_u(in,0)*weight;	// X displacement Value
+                ef(1*in,0)      += BIGNUMBER*(ux - v2[0])*phi_u(in,0)*weight;	// X displacement Value
                 
             }
             
@@ -307,7 +307,7 @@ void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
             for(in = 0 ; in <nphi; in++)
             {
                 //	Normal Tension Components on neumann boundary
-                ef(2*in,0)      += -1.0*v2[0]*phi_u(in,0)*weight;		//	Tnx
+                ef(1*in,0)      += -1.0*v2[0]*phi_u(in,0)*weight;		//	Tnx
             }
             break;
         }
@@ -448,7 +448,7 @@ void TPZMatElasticity1D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     REAL DSolxy[1][1];
     REAL divu;
     
-    DSolxy[0][0] = DSolU(0,0)*axesU(0,0)+DSolU(1,0)*axesU(1,0); // dUx/dx
+    DSolxy[0][0] = DSolU(0,0)*axesU(0,0); //+DSolU(1,0)*axesU(1,0); // dUx/dx
 
     divu = DSolxy[0][0];
     
