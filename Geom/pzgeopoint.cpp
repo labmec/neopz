@@ -75,7 +75,6 @@ namespace pzgeom {
         }
         long index;
         CreateGeoElement(gmesh, EPoint, nodeindexes, matid, index);
-        lowercorner = co;
     }
     
 

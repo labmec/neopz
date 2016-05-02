@@ -730,6 +730,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
             {
                 qsi[i] += residual(i,0);
             }
+            
 		}
 		X(qsi,X0);
 		for(i=0; i<3; i++)
@@ -742,18 +743,23 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 		error = Norm(DelX)/radius;
 	}
 	
-    #ifdef PZDEBUG
+#ifdef PZDEBUG
 	if(iter == nMaxIter)
 	{
 		std::stringstream sout;
 		sout << "Error at " << __PRETTY_FUNCTION__ << " - nMaxIter was reached before tolerance is achieved - ElementId" << this->Id() << std::endl;
 		PZError << "\n" << sout.str() << "\n";
-		
+        Print(std::cout);
+        int nnodes = NNodes();
+        for (int i=0; i<NNodes(); i++) {
+            NodePtr(i)->Print();
+        }
+        
         #ifdef LOG4CXX
 		LOGPZ_ERROR(logger,sout.str().c_str());
         #endif
 	}
-    #endif
+#endif
 	
 	return ( this->IsInParametricDomain(qsi) );
 }
@@ -1631,7 +1637,7 @@ bool TPZGeoEl::VerifyNodeCoordinates(REAL tol){
 			error += (NodeX[dim]-MappedX[dim])*(NodeX[dim]-MappedX[dim]);
 		}//dim
 		error = sqrt(error);
-		if(error > tol){
+		if(error > tol || !(error==error)){
 			std::stringstream mess;
 			mess << "FATAL ERROR AT " << __PRETTY_FUNCTION__ << " - Node coordinate differs from mapped node.\n";
 			this->Print(mess);

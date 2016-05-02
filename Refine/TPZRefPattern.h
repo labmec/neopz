@@ -402,7 +402,7 @@ private:
          * @brief Vector of position in fPartitionElSide of the side of the element to
          * be partitioned father
          */
-        TPZVec<int> fInitSide;
+        TPZManVector<int> fInitSide;
 		
         /**
          * @brief Vector that contains the partition of each side of the element 
@@ -411,12 +411,12 @@ private:
          * the partition associated with a vertex corresponds to the on
          * elements to this node
          */
-        TPZVec<TPZGeoElSideIndex> fPartitionSubSide;
+        TPZManVector<TPZGeoElSideIndex> fPartitionSubSide;
 		
         /**
          * @brief Number of asociados distinct sub-elements to the side of the father
          */
-        TPZVec<int> fNSubSideFather;
+        TPZManVector<int> fNSubSideFather;
 		
         /**
          * @brief It prints the properties of the structure
@@ -440,19 +440,19 @@ private:
         /**
          * @brief Vector of position of fSideFather
          */
-        TPZVec<int> fInitSonSides;
+        TPZManVector<int> fInitSonSides;
 		
         /**
          * @brief Side of the element father associated with the side of the
          * sub-element
          */
-        TPZVec<int> fFatherSide;
+        TPZManVector<int> fFatherSide;
 		
         /**
          * @brief Hashing enters the side of the sub-element and the side of the
          * corresponding father
          */
-        TPZVec<TPZTransform<> > fSideTransform;
+        TPZManVector<TPZTransform<> > fSideTransform;
 		
         /**
          * @brief It prints the properties of the structure

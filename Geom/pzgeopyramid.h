@@ -157,10 +157,22 @@ namespace pzgeom {
     inline void TPZGeoPyramid::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T xi = loc[0], eta = loc[1] , zeta  = loc[2];
         
+        if (zeta> 1.) {
+            DebugStop();
+        }
+        
         T T0xz = .5*(1.-zeta-xi) / (1.-zeta);
         T T0yz = .5*(1.-zeta-eta) / (1.-zeta);
         T T1xz = .5*(1.-zeta+xi) / (1.-zeta);
         T T1yz = .5*(1.-zeta+eta) / (1.-zeta);
+        if (IsZero(xi)) {
+            T0xz = 0.5;
+            T1xz = 0.5;
+        }
+        if (IsZero(eta)) {
+            T0yz = 0.5;
+            T1yz = 0.5;
+        }
         T lmez = (1.-zeta);
         
         phi(0,0)  = T0xz*T0yz*lmez;
@@ -173,6 +185,18 @@ namespace pzgeom {
         T lmeymez = 1.-eta-zeta;
         T lmaxmez = 1.+xi-zeta;
         T lmaymez = 1.+eta-zeta;
+        
+        if (IsZero(lmez) && !IsZero(lmexmez) && !IsZero(lmeymez) &&
+            !IsZero(lmaxmez) && !IsZero(lmaymez)) {
+            DebugStop();
+        }
+        if (IsZero(lmez)) {
+            lmexmez = 0.999;
+            lmeymez = 0.999;
+            lmaxmez = 0.999;
+            lmaymez = 0.999;
+            lmez = 0.001;
+        }
         
         dphi(0,0) = -.25*lmeymez / lmez;
         dphi(1,0) = -.25*lmexmez / lmez;

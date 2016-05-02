@@ -63,6 +63,7 @@ void AddElement(TPZGeoMesh &mesh, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 {
     int matid = mesh.NElements()+1;
     T::InsertExampleElement(mesh, matid, lowercorner, size);
+    lowercorner[0] += size[0];
 }
 
 void FillGeometricMesh(TPZGeoMesh &mesh)
@@ -73,18 +74,40 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZGeoLinear>(mesh,lowercorner,size);
     AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
 
-//    AddElement<TPZGeoQuad>(mesh,lowercorner,size);
-//    AddElement<TPZGeoCube>(mesh,lowercorner,size);
-//    AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
-//    AddElement<TPZGeoPrism>(mesh,lowercorner,size);
-//    AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
+    AddElement<TPZGeoQuad>(mesh,lowercorner,size);
+    AddElement<TPZGeoCube>(mesh,lowercorner,size);
+    AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
+    AddElement<TPZGeoPrism>(mesh,lowercorner,size);
+    AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
+    // Nao pode gerar um elemento blend em cima de um volume
+    // neste caso cria-se um elemento vizinho pelo volume - isso nao funciona
 //    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
 //    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
 //    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
 //    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
+    mesh.BuildConnectivity();
+}
+
+void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
+{
+    gRefDBase.InitializeAllUniformRefPatterns();
+    int numref = 3;
+    for (int iref=0; iref<numref; iref++) {
+        long nel = gmesh.NElements();
+        for (long el=0; el<nel; el++) {
+            TPZGeoEl *gel = gmesh.Element(el);
+            if (gel->HasSubElement()) {
+                continue;
+            }
+            TPZStack<TPZGeoEl *> subels;
+            gel->Divide(subels);
+        }
+    }
+    std::ofstream out(filename);
+    TPZVTKGeoMesh::PrintGMeshVTK(&gmesh, out);
 }
 
 /* @} */
@@ -106,10 +129,9 @@ BOOST_AUTO_TEST_SUITE(geometry_tests)
 
 BOOST_AUTO_TEST_CASE(gradx_tests) {
     
-    TPZGeoMesh * gmesh = new TPZGeoMesh;
-    FillGeometricMesh(*gmesh);
-    std::ofstream file("Geometry.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file);
+    TPZGeoMesh gmesh;
+    FillGeometricMesh(gmesh);
+    PlotRefinedMesh(gmesh,"../AllElements.vtk");
     
     
     

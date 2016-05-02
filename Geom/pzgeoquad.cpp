@@ -323,7 +323,7 @@ namespace pzgeom {
 	
     void TPZGeoQuad::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
     {
-        TPZManVector<long,4> nodeindexes;
+        TPZManVector<long,4> nodeindexes(4);
         TPZManVector<REAL,3> co(lowercorner);
         for (int i=0; i<3; i++) {
             co[i] += 0.2*size[i];   
@@ -345,7 +345,6 @@ namespace pzgeom {
         gmesh.NodeVec()[nodeindexes[0]].Initialize(co, gmesh);
         long index;
         CreateGeoElement(gmesh, EQuadrilateral, nodeindexes, matid, index);
-        lowercorner[0] += size[0];
     }
 
     
