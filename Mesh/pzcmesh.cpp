@@ -2074,8 +2074,13 @@ TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<
     std::map<int,TPZMaterial *>::iterator itmap;
     for (itmap = MaterialVec().begin(); itmap != MaterialVec().end(); itmap++) {
         if (matids.find(itmap->first) != matids.end()) {
-            variableids[itmap->first] = itmap->second->VariableIndex(varname);
-            nvars = itmap->second->NSolutionVariables(variableids[itmap->first]);
+            TPZMaterial *mat = itmap->second;
+            TPZBndCond *bndcond = dynamic_cast<TPZBndCond *>(mat);
+            if (bndcond) {
+                mat = bndcond->Material();
+            }
+            variableids[itmap->first] = mat->VariableIndex(varname);
+            nvars = mat->NSolutionVariables(variableids[itmap->first]);
         }
     }
     TPZManVector<STATE,3> result(nvars,0.);
@@ -2099,6 +2104,7 @@ TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<
         {
             result[iv] += locres[iv];
         }
+//        std::cout << "el = " << el << " integral " << locres << " result " << result << std::endl;
     }
     return result;
 }

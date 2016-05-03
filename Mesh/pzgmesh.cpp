@@ -1216,7 +1216,17 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
                                        int matid,
                                        long& index,
                                        int reftype){
-	if (reftype == 0)  
+    
+#ifdef PZDEBUG
+    {
+        for (int i=0; i<nodeindexes.size(); i++) {
+            if (nodeindexes[i] < 0) {
+                DebugStop();
+            }
+        }
+    }
+#endif
+	if (reftype == 0)
     {
         switch( type )
         {
@@ -1384,6 +1394,7 @@ void TPZGeoMesh::DeleteElement(TPZGeoEl *gel,long index)
 	gel->RemoveConnectivities();
 	if(gel) delete gel;
 	fElementVec[index] = NULL;
+    fElementVec.SetFree(index);
 }
 
 #ifndef BORLAND

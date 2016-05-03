@@ -898,8 +898,18 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
             TPZInterpolatedElement *iel = dynamic_cast<TPZInterpolatedElement *> (locexpand[i].Element());
 			int iside = locexpand[i].Side();
 			//if(iel && kel->ConnectIndex(kside) == iel->ConnectIndex(iside))
-            if(iel && kel->MidSideConnectLocId(kside) == iel->MidSideConnectLocId(iside))
-				locexpand[i] = TPZCompElSide();
+            
+            if(iel)
+            {
+                int a = kel->MidSideConnectLocId(kside);
+                int b = iel->MidSideConnectLocId(iside);
+                long connecta = kel->ConnectIndex(a);
+                long connectb = iel->ConnectIndex(b);
+                if(connecta == connectb)
+                {
+                    locexpand[i] = TPZCompElSide();
+                }
+            }
 			i++;
 		}
 	}

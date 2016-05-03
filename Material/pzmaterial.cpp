@@ -136,6 +136,7 @@ int TPZMaterial::VariableIndex(const std::string &name) {
 	if(!strcmp(name.c_str(),"dudxErrorPerArea")) return 109;
 	if(!strcmp(name.c_str(),"dudyErrorPerArea")) return 110;
 	if(!strcmp(name.c_str(),"ContDisc")) return 111;
+    if(!strcmp(name.c_str(),"MaterialId")) return 98;
 	
 	
 	std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
@@ -157,7 +158,7 @@ int TPZMaterial::NSolutionVariables(int index) {
 #else
 	if(index == 0) return NStateVariables();
 #endif
-	if(index == 99) return 1;
+	if(index == 99 || index == 98) return 1;
 	if(index == 100) return 1;
 	if(index == 101) return 1;
 	if(index == 102) return 1;
@@ -199,6 +200,10 @@ void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &datal
 
 void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &/*DSol*/,TPZFMatrix<REAL> &/*axes*/,int var,
 						   TPZVec<STATE> &Solout){
+    if(var == 98){
+        Solout[0] = this->Id();
+        return;
+    }
 #ifdef STATE_COMPLEX
     if(var == 0) 
     {

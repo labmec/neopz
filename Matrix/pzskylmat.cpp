@@ -756,8 +756,10 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
         // sum = Sum( A(k,p) * A(k,p) ), p = 1, ..., k-1.
         TVar sum = 0.0;
         TVar *elem_k = fElem[k];
-        TVar *end_k  = fElem[k+1]-1; 
-        for ( ; elem_k < end_k; elem_k++ ) 
+        TVar *end_k  = fElem[k+1]-1;
+        
+#pragma clang loop vectorize_width(2)
+        for ( ; elem_k < end_k; elem_k++ )
             sum += (*elem_k) * (*elem_k);
         
         elem_k = fElem[k+1]-1;    // Diagonal element.
@@ -769,7 +771,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
         pivot = *elem_k - sum;
         
         //EBORIN: FIXME: Shouldn't this be IsZero(pivot)???
-        if (pivot < 1.e-10) {
+        if (pivot < TVar(1.e-10)) {
             singular.push_back(k);
             pivot = 1.;
         }
@@ -798,7 +800,8 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
                 TVar* ip = last_i - min_sz;
                 TVar* kp = last_k - min_sz;
                 
-                for(unsigned l=0; l<min_sz; l++) 
+#pragma clang loop vectorize_width(2)
+                for(unsigned l=0; l<min_sz; l++)
                     sum += (*ip++) * (*kp++);
                 
                 // A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -812,7 +815,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
         }
     }
     
-    if(this->Rows() && (GetVal(this->Rows()-1,this->Rows()-1)) < 1.e-15) {
+    if(this->Rows() && (GetVal(this->Rows()-1,this->Rows()-1)) < TVar(1.e-15)) {
         singular.push_back(this->Rows()-1);
         PutVal(this->Rows()-1,this->Rows()-1,1.);
     }
@@ -875,7 +878,8 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
         TVar sum = 0.0;
         TVar *elem_k = fElem[k];
         TVar *end_k  = fElem[k+1]-1; 
-        for ( ; elem_k < end_k; elem_k++ ) 
+#pragma clang loop vectorize_width(2)
+        for ( ; elem_k < end_k; elem_k++ )
             sum += (*elem_k) * (*elem_k);
         
         elem_k = fElem[k+1]-1;    // Diagonal element.
@@ -886,7 +890,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
         // Faz A(k,k) = sqrt( A(k,k) - sum ).
         pivot = *elem_k - sum;
         minpivot = minpivot < pivot ? minpivot : pivot;
-        if ( pivot < 0. || IsZero(pivot) ) {
+        if ( pivot < TVar(0.) || IsZero(pivot) ) {
             cout << "TPZSkylMatrix::DecomposeCholesky! Matrix is not positive definite" << pivot << endl;
             return 0;
         }
@@ -915,7 +919,8 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
                 TVar* ip = last_i - min_sz;
                 TVar* kp = last_k - min_sz;
                 
-                for(unsigned l=0; l<min_sz; l++) 
+#pragma clang loop vectorize_width(2)
+                for(unsigned l=0; l<min_sz; l++)
                     sum += (*ip++) * (*kp++);
                 
                 // A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -1554,7 +1559,7 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<long>
     }
     else{
         TVar pivot = *run2;
-        if ( pivot < 1.e-10 ) {
+        if ( pivot < TVar(1.e-10) ) {
 #ifdef LOG4CXX
             std::stringstream sout;
             sout << "equation " << col << " is singular pivot " << pivot;
@@ -1629,7 +1634,7 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol)
         *modify /= *ptrprev;
     }
     else{
-        if ( *modify < 1.e-25 ) {
+        if ( *modify < TVar(1.e-25) ) {
             cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << *modify << endl;
             *modify = 1.e-10;
         }
@@ -1888,7 +1893,7 @@ TPZSkylMatrix<TVar>::operator()(const long r) {
 }
 
 //EBORIN: Define these if you want to use the experimental version.
-//#define DECOMPOSE_CHOLESKY_OPT2
+#define DECOMPOSE_CHOLESKY_OPT2
 //#define SKYLMATRIX_PUTVAL_OPT1
 //#define SKYLMATRIX_GETVAL_OPT1
 
@@ -2595,6 +2600,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 		TVar sum = 0.0;
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
+#pragma clang loop vectorize_width(2)
 		for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
 		
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
@@ -2626,6 +2632,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 				unsigned max_l = end_i - elem_i;
 				unsigned tmp = end_k - elem_k;
 				if (tmp < max_l) max_l = tmp;
+#pragma clang loop vectorize_width(2)
 				for(unsigned l=0; l<max_l; l++) 
                     sum += (*elem_i++) * (*elem_k++);
 				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -2724,6 +2731,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 		TVar sum = 0.0;
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
+#pragma clang loop vectorize_width(2)
 		for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
 		
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
@@ -2767,7 +2775,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
                     unsigned max_l = end_i - elem_i;
                     unsigned tmp = end_k - elem_k;
                     if (tmp < max_l) max_l = tmp;
-                    for(unsigned l=0; l<max_l; l++) 
+#pragma clang loop vectorize_width(2)
+                    for(unsigned l=0; l<max_l; l++)
                         sum += (*elem_i++) * (*elem_k++);
                     // Faz A(i,k) = (A(i,k) - sum) / A(k,k)
                     fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
@@ -2856,7 +2865,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(long blk_sz)
                 unsigned max_l = end_kj - elem_kj;
                 unsigned tmp = end_ki - elem_ki;
                 if (tmp < max_l) max_l = tmp;
-                for(unsigned l=0; l<max_l; l++) 
+#pragma clang loop vectorize_width(2)
+                for(unsigned l=0; l<max_l; l++)
                     sum += (*elem_kj++) * (*elem_ki++);
                 
                 *u_ij = (*u_ij - sum) / pivot;
@@ -2869,6 +2879,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(long blk_sz)
                 TVar* u_jj = &fElem[j][0];
                 TVar *elem_k = fElem[j]+1;
                 TVar *end_k  = fElem[j+1];
+#pragma clang loop vectorize_width(2)
                 for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
                 pivot = *u_jj - sum;
                 

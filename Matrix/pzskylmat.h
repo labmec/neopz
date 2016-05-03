@@ -116,6 +116,41 @@ public:
      */
     void SetSkyline(const TPZVec<long> &skyline);
 	
+    friend class TPZSkylMatrix<float>;
+    friend class TPZSkylMatrix<double>;
+    
+    /// copy the values from a matrix with a different precision
+    template<class TVar2>
+    void CopyFrom(TPZSkylMatrix<TVar2> &orig)
+    {
+        TPZMatrix<TVar>::CopyFrom(orig);
+        TPZVec<TVar2> &origstorage = orig.Storage();
+        TPZVec<TVar2> &origelem = orig.Elem();
+        long nel = origstorage.size();
+        fElem.resize(origelem.size());
+        fStorage.resize(nel);
+        for (long el=0; el<nel; el++) {
+            fStorage[el] = origstorage[el];
+        }
+        long size_el = fElem.size();
+        TVar *first = &fStorage[0];
+        TVar2 *first_orig = &origstorage[0];
+        for (long el=0; el<size_el; el++) {
+            fElem[el] = first+(origelem[el]-first_orig);
+        }
+        
+    }
+    
+
+    const TPZVec<TVar> &Elem()
+    {
+        return fElem;
+    }
+    
+    const TPZVec<TVar. &Storage()
+    {
+        return fStorage;
+    }
     /**
      @brief Returns the height of the skyline for a given column.
      */
@@ -400,7 +435,30 @@ public:
 	 */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
     
-	
+    friend class TPZSkylMatrix<float>;
+    friend class TPZSkylMatrix<double>;
+    
+    /// copy the values from a matrix with a different precision
+    template<class TVar2>
+    void CopyFrom(TPZSkylMatrix<TVar2> &orig)
+    {
+        TPZMatrix<TVar>::CopyFrom(orig);
+        long nel = orig.fStorage.size();
+        fElem.resize(orig.fElem.size());
+        fStorage.resize(nel);
+        for (long el=0; el<nel; el++) {
+            fStorage[el] = orig.fStorage[el];
+        }
+        long size_el = fElem.size();
+        TVar *first = &fStorage[0];
+        TVar2 *first_orig = &orig.fStorage[0];
+        for (long el=0; el<size_el; el++) {
+            fElem[el] = first+(orig.fElem[el]-first_orig);
+        }
+        
+    }
+    
+    
 	int    PutVal(const long row,const long col,const TVar &element );
 	const TVar &GetVal(const long row,const long col ) const;
 	

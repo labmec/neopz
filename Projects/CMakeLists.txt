@@ -127,59 +127,12 @@ ENABLE_TESTING()
 			#projeto Diogo
 			add_subdirectory(Plasticity)
 
-			#add_subdirectory(projteste)
-			
-			# MHM project
-			add_subdirectory(MHM)
-
-
-			add_subdirectory(MultipleLoad)
-
-			# add_subdirectory(adaptivity_refactor)
-
-			add_subdirectory(testMatLab)
-						
-			add_subdirectory(Cubo_do_Nathan)
-
-			add_subdirectory(PyramidHdivTests)
-			
-			add_subdirectory(HyperElasticityFAD)
-
-			#Increment singular shape function: SingularShapeFunction
-			add_subdirectory(SingularShapeFunction)
-			add_subdirectory(angletest)
-			add_subdirectory(checkconv)
-
-			#Orthogonalization process of Gram-Schmidt
-			add_subdirectory(matrix)
-
-			#Inserting material and boundary conditions by function
-			add_subdirectory(termica)
-			add_subdirectory(Steam)
-			add_subdirectory(QuadraticElements)
-			add_subdirectory(ThermalStress)
-			Add_subdirectory(Conductivity)
-			add_subdirectory(ConsLaw)
-			add_subdirectory(Descontinuo2)
-
-			add_subdirectory(SteamInjection)
-			
-			#projeto agnaldo 09-09-2011
-			add_subdirectory(DoubleProjection)
-                        add_subdirectory(artigoPira)
-			add_subdirectory(TrabalhosLNCC15)
-			#projeto omar duran 16-12-2012
-			add_subdirectory(PoroElasticAnalysis)
-			add_subdirectory(Poisson2DGID)
-			add_subdirectory(OilWaterSystem)
-			add_subdirectory(DarcyflowAxisymmetricHdiv)
-			add_subdirectory(DarcyflowHdiv3D)
-			add_subdirectory(MonophasicWell)
-			#collaborative project (NH GH PD, SG, OD) 18-04-2015
-			add_subdirectory(iRMS)
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
+<<<<<<< HEAD
+			add_subdirectory(Andrade)
+=======
 			add_subdirectory(Frac1DHdiv)
 			add_subdirectory(SubStruct)
 			add_subdirectory(MultiphysicsSimulation)
@@ -222,7 +175,12 @@ ENABLE_TESTING()
 			# Colaboration with Laurent Stainier
 			
 			add_subdirectory(MatLib)
+
+			if(USING_PARDISO)
+				add_subdirectory(PardisoSample)
+			endif(USING_PARDISO)
 			
+>>>>>>> master
 
 		endif(BUILD_COMPLEX_PROJECTS)
 		
