@@ -55,15 +55,18 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<long> &connectlist, TPZBlockDiagonal<
 		ek.ApplyConstraints();
 		ef.ApplyConstraints();
 		int numblock = ek.fConstrConnect.NElements();
-		TPZVec<int> blocksize(numblock);
+        TPZVec< std::pair<long, long> > blocksize(numblock);
 		
-		for(b=0; b<numblock; b++) blocksize[b] = ek.fConstrBlock.Size(b);
+        for(b=0; b<numblock; b++) {
+            blocksize[b].first = ek.fConstrBlock.Size(b);
+            blocksize[b].second = ek.fConstrBlock.Size(b);
+        }
 		
 		blockdiag.Initialize(blocksize);
 		connectlist = ek.fConstrConnect;
 		
 		for(b=0; b<numblock; b++) {
-			int blsize = blocksize[b];
+			int blsize = blocksize[b].first;
 			long conind = ek.fConstrConnect[b];
             TPZConnect &con = Mesh()->ConnectVec()[conind];
 			if(con.HasDependency() || con.IsCondensed()) continue;
@@ -82,15 +85,18 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<long> &connectlist, TPZBlockDiagonal<
 		}
 	} else {
 		int numblock = ek.fConnect.NElements();
-		TPZVec<int> blocksize(numblock);
+		TPZVec< std::pair<long, long> > blocksize(numblock);
 		
-		for(b=0; b<numblock; b++) blocksize[b] = ek.fBlock.Size(b);
+        for(b=0; b<numblock; b++) {
+            blocksize[b].first = ek.fConstrBlock.Size(b);
+            blocksize[b].second = ek.fConstrBlock.Size(b);
+        }
 		
 		blockdiag.Initialize(blocksize);
 		connectlist = ek.fConnect;
 		
 		for(b=0; b<numblock; b++) {
-			int blsize = blocksize[b];
+			int blsize = blocksize[b].first;
 			//TPZFMatrix<REAL> ekbl(blsize,blsize);
 			TPZFMatrix<STATE> ekbl(blsize,blsize);
 			long conind = ek.fConnect[b];

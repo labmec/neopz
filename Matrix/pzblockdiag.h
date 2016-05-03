@@ -29,12 +29,12 @@ public:
      * @param blocksizes Size of blocks on Block Diagonal matrix
      * @param glob Global matrix which will be blocked
 	 */
-	TPZBlockDiagonal (const TPZVec<int> &blocksizes, const TPZFMatrix<TVar> &glob );
+	TPZBlockDiagonal (const TPZVec< std::pair<long, long> > &blocksizes, const TPZFMatrix<TVar> &glob );
 	/**
      * @brief Constructor with initialization parameters
      * @param blocksizes Size of blocks on Block Diagonal matrix
 	 */
-	TPZBlockDiagonal (const TPZVec<int> &blocksizes);
+	TPZBlockDiagonal (const TPZVec< std::pair<long, long> > &blocksizes);
 	/** @brief Copy constructor */
 	TPZBlockDiagonal (const TPZBlockDiagonal & );
 	
@@ -67,7 +67,7 @@ public:
 	 * @brief Return the choosen block size
 	 * @param blockid - block index
 	 */
-	int GetSizeofBlock(long blockid) {return fBlockSize[blockid];}
+	std::pair<long, long> GetSizeofBlock(long blockid) {return fBlockSize[blockid];}
 	
 	void Transpose(TPZMatrix<TVar> *const T) const;
 	virtual int Decompose_LU();
@@ -95,7 +95,7 @@ public:
      * @brief Initializes current matrix based on blocksize
      * @param blocksize Used to initialize current matrix
 	 */
-	void Initialize(const TPZVec<int> &blocksize);
+	void Initialize(const TPZVec< std::pair<long, long> > &blocksize);
 	/**
      * @brief Adds a block to current matrix
      * @param i Adds in ith position
@@ -137,7 +137,7 @@ protected:
 	/** @brief Stores blocks data */
 	TPZVec<long> fBlockPos;
 	/** @brief Stores block sizes data */
-	TPZVec<int> fBlockSize;
+	TPZVec< std::pair<long, long> > fBlockSize;
 };
 
 template<class TVar>

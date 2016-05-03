@@ -47,7 +47,7 @@ public:
 	void AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block);
 private:
 	
-    void BlockSizes(TPZVec < int > & blocksizes);
+    void BlockSizes(TPZVec < std::pair<long, long> > & blocksizes);
     
     MBlockStructure fBlockStructure;
     int fOverlap;

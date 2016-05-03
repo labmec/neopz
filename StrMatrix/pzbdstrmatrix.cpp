@@ -23,7 +23,7 @@ TPZBlockDiagonalStructMatrix::~TPZBlockDiagonalStructMatrix(){
 
 void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block){
 	
-	TPZVec<int> blocksizes;
+    TPZVec< std::pair<long, long> > blocksizes;
 	BlockSizes(blocksizes);
 	block.Initialize(blocksizes);
 	int nblock = blocksizes.NElements();
@@ -46,7 +46,7 @@ void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal<STATE>
 			seqnum = con.SequenceNumber();
 			long eqnum = fMesh->Block().Position(seqnum);
 			if(seqnum <0 || seqnum >= nblock) continue;
-			int bsize = blocksizes[seqnum];
+			int bsize = blocksizes[seqnum].first;
             long numactive = fEquationFilter.NumActive(eqnum, eqnum+bsize);
             if (!numactive) {
                 continue;
@@ -66,7 +66,7 @@ void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal<STATE>
 	}
 }
 
-void TPZBlockDiagonalStructMatrix::BlockSizes(TPZVec < int > & blocksizes){
+void TPZBlockDiagonalStructMatrix::BlockSizes(TPZVec < std::pair<long, long> > & blocksizes){
 	
     if(fMesh->FatherMesh() != 0) {
 		TPZSubCompMesh *mesh = (TPZSubCompMesh *) fMesh;
@@ -95,11 +95,13 @@ void TPZBlockDiagonalStructMatrix::BlockSizes(TPZVec < int > & blocksizes){
         }
         if(!numactiv)
         {
-			blocksizes[bl] = 0;
+			blocksizes[bl].first = 0;
+			blocksizes[bl].second = 0;
         }
         else
         {
-			blocksizes[bl] = blsize;
+			blocksizes[bl].first = blsize;
+			blocksizes[bl].second = blsize;
         }
     }
 }
@@ -116,7 +118,7 @@ TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::CreateAssemble(TPZFMatrix<STATE
 	return block;
 }
 TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::Create(){
-	TPZVec<int> blocksize;
+	TPZVec< std::pair<long, long> > blocksize;
 	BlockSizes(blocksize);
 	return new TPZBlockDiagonal<STATE>(blocksize);
 }
