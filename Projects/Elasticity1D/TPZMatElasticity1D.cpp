@@ -93,18 +93,20 @@ TPZMatElasticity1D::TPZMatElasticity1D(const TPZMatElasticity1D & cp):TPZMateria
 
 int TPZMatElasticity1D::NStateVariables() // nao entendi essa funcao, por que retorna 2?
 {
-    return 2;
+    return 1;
 }
 
 
 
 
 void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+
     
     //Getting weight functions
     TPZFNMatrix<220,REAL> & phi_u  = data.phi;
     TPZFNMatrix<660,REAL> & dphi_u_axes = data.dphix;
     TPZFNMatrix<9,REAL> axes = data.axes;
+    
     
     int nphi = phi_u.Rows();
     
@@ -118,36 +120,38 @@ void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
 
     // Calcula "du" multiplicando as funcoes pelas coordenadas (axes), para o plano desejado (nesse caso x)
     
-    TPZFMatrix<REAL>	du(2,2);
+    TPZFMatrix<REAL>	Gradvi(1,1),Gradvj(1,1);
     for(int iu = 0; iu < nphi; iu++ )
     {
         //	Derivative for Vx, somente em x pois eh 1D
-        du(0,0) = dphi_u_axes(0,iu)*data.axes(0,0); //+dphi_u_axes(1,iu)*data.axes(1,0);
+        Gradvi(0,0) = dphi_u_axes(0,iu)*data.axes(0,0)+dphi_u_axes(0,iu)*data.axes(0,1)+dphi_u_axes(0,iu)*data.axes(0,2);
         
         for(int ju = 0; ju < nphi; ju++)
         {
             //	Derivative for Ux, somente em x pois eh 1D
-            du(0,1) = dphi_u_axes(0,ju)*data.axes(0,0); //+dphi_u_axes(1,ju)*data.axes(1,0);
+            Gradvj(0,0) = dphi_u_axes(0,ju)*data.axes(0,0)+dphi_u_axes(0,ju)*data.axes(0,1)+dphi_u_axes(0,ju)*data.axes(0,2);
 
         if (this->fLineStrain == 1)
         {
              /* Line Strain State */
-            ek(1*iu + FirstU,1*ju + FirstU)         += weight*	((LambdaL + 2*MuL)*du(0,0)*du(0,1));
+            ek(1*iu + FirstU,1*ju + FirstU)         += weight*(LambdaL+2.0*MuL)*Gradvi(0,0)*Gradvj(0,0);
             
         }
     }
 }
 //  ////////////////////////// Jacobian Matrix ///////////////////////////////////
-this->Contribute(data,weight,ef);
+    this->Contribute(data,weight,ef);
 }
 
 
 void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
 
+  
     //Getting weight functions
     TPZFNMatrix<220,REAL> & phi_u  = data.phi;
     TPZFNMatrix<660,REAL> & dphi_u_axes = data.dphix;
     TPZFNMatrix<9,REAL> axes = data.axes;
+    TPZFNMatrix<15,REAL> & du_daxes = data.dsol[0];
     
     int nphi = phi_u.Rows();
     
@@ -169,23 +173,26 @@ void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     TPZFMatrix<REAL>    du(2,2);
     TPZFMatrix<REAL>    dux(2,2);
 
+    TPZFMatrix<REAL>	Gradvi(1,1),Gradu(1,1);
+    Gradu(0,0) = du_daxes(0,0)*data.axes(0,0)+du_daxes(0,0)*data.axes(0,1)+du_daxes(0,0)*data.axes(0,2);
+    
     //  Derivative for Ux
     dux(0,1) = dsol_u(0,0)*data.axes(0,0); //+dsol_u(1,0)*data.axes(1,0); // dUx/dx
 
     for(int iu = 0; iu < nphi; iu++ )
     {
-        //  Derivative for Vx
-        du(0,0) = dphi_u_axes (0,iu)*data.axes(0,0); //+dphi_u_axes(1,iu)*data.axes(1,0);
+        //	Derivative for Vx, somente em x pois eh 1D
+        Gradvi(0,0) = dphi_u_axes(0,iu)*data.axes(0,0)+dphi_u_axes(0,iu)*data.axes(0,1)+dphi_u_axes(0,iu)*data.axes(0,2);
 
         //  Vector Force right hand term
-        ef(1*iu + FirstU)     +=    weight*fb[0]*phi_u(iu, 0);    // direcao x
+        ef(1*iu + FirstU)     +=    -1.0*weight*fb[0]*data.x[0]*phi_u(iu, 0);    // direcao x
          // weight*ff[0]*phiU(iu, 0)- (du(0,0)*fPreStressXX + du(1,0)*fPreStressXY);
 
         if (this->fLineStrain == 1)
         {
             /* Line Strain State */
             
-            ef(1*iu + FirstU)           += weight*  ((LambdaL + 2*MuL)*du(0,0)*dux(0,1));
+            ef(1*iu + FirstU)           += weight*  ((LambdaL + 2.0*MuL)*Gradvi(0,0)*Gradu(0,0));
             
 
         }
@@ -197,6 +204,7 @@ void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
 
 void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
 
+    
     TPZFNMatrix<220,REAL> & phi_u  = data.phi;
     TPZManVector<REAL,3> sol_u =data.sol[0];
     TPZFMatrix<REAL> dsol_u = data.dsol[0];
@@ -262,6 +270,7 @@ void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
 
 void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc){
 
+    
     TPZFNMatrix<220,REAL> & phi_u  = data.phi;
     TPZManVector<REAL,3> sol_u =data.sol[0];
     TPZFMatrix<REAL> dsol_u = data.dsol[0];

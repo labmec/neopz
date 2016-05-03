@@ -12,6 +12,9 @@
 #include "pzanalysis.h"
 #include "pzbndcond.h"
 
+#include "pzstepsolver.h"
+#include "TPZSkylineNSymStructMatrix.h"
+
 #include <cmath>
 #include <set>
 
@@ -39,13 +42,15 @@ int main(int argc, char *argv[])
     
     
     int dim = 1;//dimensao do problema
-    REAL dom = 1.; //comprimento do dominio unidimensional com inicio na origem zero
+    REAL dom = 10.0; //comprimento do dominio unidimensional com inicio na origem zero
     int nel = 1; //numero de elementos a serem utilizados
     int pOrder = 1; //ordem polinomial de aproximacao
     REAL elsize = dom/nel; //tamanho de cada elemento
     TPZGeoMesh *gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
-
-    
+    const std::string nm("line");
+    gmesh->SetName(nm);
+    std::ofstream outtxt("gmesh.txt"); //define arquivo de saida para impressao dos dados da malha
+    gmesh->Print(outtxt);
     std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
     
@@ -54,7 +59,37 @@ int main(int argc, char *argv[])
     // Resolvendo o Sistema
     bool optimizeBandwidth = false; //impede a renumeracao das equacoes do problema(para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh, optimizeBandwidth); //cria objeto de analise que gerenciaria a analise do problema
-    an.Run();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
+    
+    int numofThreads = 0;
+    TPZSkylineNSymStructMatrix skylnsym(cmesh);
+    TPZStepSolver<STATE> step;
+    skylnsym.SetNumThreads(numofThreads);
+    step.SetDirect(ELU);
+    an.SetStructuralMatrix(skylnsym);
+    an.SetSolver(step);
+    
+    an.Assemble();
+    an.Rhs() *= -1.0;
+
+    TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
+    TPZFMatrix<STATE> FGlobal;
+    KGlobal =   an.Solver().Matrix();
+    FGlobal =   an.Rhs();
+    
+#ifdef PZDEBUG
+    #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            KGlobal->Print("k = ", sout,EMathematicaInput);
+            FGlobal.Print("r = ", sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+    #endif
+#endif
+    
+    
+    an.Solve();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
     
     TPZFMatrix<REAL> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
     solucao.Print("Sol",cout,EMathematicaInput);//imprime na formatacao do Mathematica
@@ -158,15 +193,15 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     const int dirichlet = 0, neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
 
     // Plane strain assumption
-    int linestrain = 0;
+    int linestrain = 1;
     
       //**************** Criando material  ********************************
     
-      TPZMatElasticity1D
+    TPZMatElasticity1D
     *material = new TPZMatElasticity1D(matId);//criando material que implementa a formulacao fraca do problema modelo
     
     // Setting up paremeters
-    REAL lamelambda = 1. ,lamemu = 2, fbx= 2500*9.81;
+    REAL lamelambda = 1.0 ,lamemu = 2.0, fbx= 2500*9.81;
     material->SetParameters(lamelambda,lamemu, fbx, linestrain);
    
     
@@ -180,10 +215,12 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     
     ///Inserir condicao de contorno esquerda
     TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
+    val2(0,0) = 0.0;
     TPZMaterial * BCond0 = material->CreateBC(material, bc0, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da esquerda
     
     // Condicao de contorno da direita
-    TPZMaterial * BCond1 = material->CreateBC(material, bc1, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da direita
+    val2(0,0) = 1.0e+6;
+    TPZMaterial * BCond1 = material->CreateBC(material, bc1, neumann, val1, val2);//cria material que implementa a condicao de contorno da direita
     
     cmesh->InsertMaterialObject(BCond0);//insere material na malha
     cmesh->InsertMaterialObject(BCond1);//insere material na malha
