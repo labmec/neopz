@@ -319,7 +319,36 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 		}
 		out << "\n";
 	}
-	
+    else if( form == EMatrixMarket)
+    {
+        bool sym = IsSimetric();
+        long numzero = 0;
+        long nrow = Rows();
+        for ( long row = 0; row < Rows(); row++) {
+            long colmax = nrow;
+            if (sym) colmax = row+1;
+            for (long col = 0; col < colmax; col++ )
+            {
+                TVar val = GetVal(row, col);
+                if (val != (TVar)0.) {
+                    numzero++;
+                }
+            }
+        }
+        out << "%%"<< name << std::endl;
+        out << Rows() << ' ' << Cols() << ' ' << numzero << std::endl;
+        for ( long row = 0; row < Rows(); row++) {
+            long colmax = nrow;
+            if (sym) colmax = row+1;
+            for (long col = 0; col < colmax; col++ )
+            {
+                TVar val = GetVal(row, col);
+                if (val != (TVar)0.) {
+                    out << row+1 << ' ' << col+1 << ' ' << val << std::endl;
+                }
+            }
+        }
+    }
 }
 
 template<>

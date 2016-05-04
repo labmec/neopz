@@ -617,6 +617,9 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
 
     an->Assemble();
     
+    std::ofstream andrade("../Andrade.mtx");
+    andrade.precision(16);
+    an->Solver().Matrix()->Print("Andrade",andrade,EMatrixMarket);
     std::cout << "Leaving Assemble\n";
 #ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();

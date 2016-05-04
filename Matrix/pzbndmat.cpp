@@ -425,7 +425,7 @@ TPZFBMatrix<TVar>::Redim(const long newRows,const long newCols )
         fBandUpper = newRows-1;
     }
     TPZMatrix<TVar>::Redim(newRows,newRows);
-	unsigned long size = (2*fBandLower+fBandUpper + 1);
+	unsigned long size = newRows*(2*fBandLower+fBandUpper + 1);
     fElem.Resize(size);
 	Zero();
 	
@@ -461,7 +461,7 @@ TPZFBMatrix<TVar>::SetBand( long newBand )
 	if ( newBand >= Dim() )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SetBand <the band must be lower than the matrix dimension " );
 	
-	unsigned long newSize = (3 * newBand + 1);
+	unsigned long newSize = Dim()*(3 * newBand + 1);
     fBandLower = newBand;
     fBandUpper = newBand;
     fElem.resize(newSize);

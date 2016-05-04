@@ -130,9 +130,8 @@ ENABLE_TESTING()
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
-<<<<<<< HEAD
 			add_subdirectory(Andrade)
-=======
+			add_subdirectory(MatrixMarket)
 			add_subdirectory(Frac1DHdiv)
 			add_subdirectory(SubStruct)
 			add_subdirectory(MultiphysicsSimulation)
@@ -180,7 +179,6 @@ ENABLE_TESTING()
 				add_subdirectory(PardisoSample)
 			endif(USING_PARDISO)
 			
->>>>>>> master
 
 		endif(BUILD_COMPLEX_PROJECTS)
 		

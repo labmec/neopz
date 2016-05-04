@@ -425,6 +425,7 @@ TPZSBMatrix<TVar>::SetBand(long newBand )
     {
 		newBand = this->Dim()-1;
     }
+    fBand = newBand;
     fDiag.resize(Size());
     Zero();
 	
@@ -464,6 +465,34 @@ int TPZSBMatrix<float>::Decompose_Cholesky()
     
 //    spbsv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kd#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     spbsv_(uplo, &n, &kd, &nrhs, ab, &ldab, &b, &n, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    fDecomposed = ECholesky;
+    return 1;
+}
+
+template<>
+int TPZSBMatrix<double>::Decompose_Cholesky()
+{
+    if (fDecomposed == ECholesky) {
+        return 1;
+    }
+    if (fDecomposed != ENoDecompose) {
+        DebugStop();
+    }
+    char uplo[]="Upper";
+    int n = Dim();
+    int kd = fBand;
+    int nrhs = 0;
+    double *ab = &fDiag[0];
+    int ldab = fBand+1;
+    double b = 0;
+    int info;
+    
+    //    spbsv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__kd#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
+    dpbsv_(uplo, &n, &kd, &nrhs, ab, &ldab, &b, &n, &info);
     
     if (info != 0) {
         DebugStop();
@@ -573,6 +602,27 @@ TPZSBMatrix<float>::Subst_Forward( TPZFMatrix<float>*B ) const
     return 1;
 }
 
+template<>
+int
+TPZSBMatrix<double>::Subst_Forward( TPZFMatrix<double>*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        double *bptr = &(*B)(0,ic);
+        cblas_dtbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
 template<class TVar>
 int
 TPZSBMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
@@ -601,6 +651,28 @@ TPZSBMatrix<float>::Subst_Backward( TPZFMatrix<float>*B ) const
         //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
         float *bptr = &(*B)(0,ic);
         cblas_stbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+
+template<>
+int
+TPZSBMatrix<double>::Subst_Backward( TPZFMatrix<double>*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        double *bptr = &(*B)(0,ic);
+        cblas_dtbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
     }
     return 1;
 }
