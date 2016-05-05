@@ -1,6 +1,7 @@
 /**
  * @file
- * @brief Contains TPZSBMatrix class which implements symmetric band matrices.
+ * @brief Contains TPZSBMatrix class which implements symmetric band matrices(hermitian, for the complex case. assumed to be
+ * upper triangular).
  */
 
 #ifndef TSBNDMATH
@@ -26,7 +27,7 @@ template<class TVar>
 class TPZSBMatrix : public TPZMatrix<TVar>
 {
 public:
-	TPZSBMatrix() : TPZMatrix<TVar>() { fDiag = NULL; fBand = 0; }
+	TPZSBMatrix() : TPZMatrix<TVar>() , fDiag() { fBand = 0; }
 	TPZSBMatrix(const long dim,const long band );
 	TPZSBMatrix(const TPZSBMatrix<TVar> &A ) : TPZMatrix<TVar>(A)  { Copy(A); }
 	
@@ -87,7 +88,7 @@ public:
 	// @{
 #ifdef USING_LAPACK
 	int Decompose_Cholesky();  // Faz A = GGt.
-    int Decompose_Cholesky(std::list<long> &singular);
+  int Decompose_Cholesky(std::list<long> &singular);
 	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
 	int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
 #endif
@@ -105,7 +106,24 @@ public:
     
     /// Computes the eigenvalues and eigenvectors of the symmetric matrix
     // on exit the matrix contains the eigenvectors
-    int SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues) const;
+  /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   * @param Stores the correspondent eigenvectors
+   */
+  int SolveEigenProblem(TPZVec < double > &w, TPZFMatrix <TVar > &eigenVectors);
+  /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   */
+  int SolveEigenProblem(TPZVec < double > &w);
+  /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   * @param Stores the correspondent eigenvectors
+   */
+  int SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < double > &w, TPZFMatrix <TVar > &eigenVectors);
+  /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   */
+  int SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < double > &w);
     
     /** @} */
 #endif

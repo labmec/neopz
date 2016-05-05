@@ -238,6 +238,89 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
     BOOST_CHECK(check);
 }
 
+/**
+ * @brief Tests the Eigenvalues/eigenvectors of the generalised eigenproblem Av=wBv to any matrix types. It uses the AutoFill method to create a square matrix with
+ * @param dim Dimension of the square matrix to be build.
+ * @param symmetric Whether to build a symmetric matrix
+ * @note Process: uses LAPACK's routine */
+template <class matx, class TVar>
+void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
+  
+  matx ma ,mb;
+  ma.AutoFill(dim,dim,symmetric);
+  mb.AutoFill(dim,dim,symmetric);
+  ma.Print("a",std::cout , EMathematicaInput);
+  mb.Print("b",std::cout , EMathematicaInput);
+  BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(ma),1);
+  BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(mb),1);
+
+  // Making ma and mb copies because ma and mb are modified by the eigenvalues method
+  bool check = true;
+  matx cpmaOriginal(ma);
+  if(symmetric){
+    TPZFMatrix< TVar > cpma(ma) , cpmb(mb);
+    TPZVec < double > w;
+    TPZFMatrix < TVar > eigenVectors;
+    ma.SolveGeneralisedEigenProblem(mb, w, eigenVectors);
+    std::cout<<w<<std::endl;
+    for(int i = 0 ; i < dim ; i++){
+      std::cout<<w[i]<<std::endl;
+    }
+    eigenVectors.Print("eV",std::cout,EMathematicaInput);
+    for( int i = 0 ; i < dim ; i++){
+      TPZFMatrix< TVar > res(dim,dim,0.);
+      TPZFMatrix< TVar > x(dim,1,0.);
+      eigenVectors.GetSub(0, i, dim, 1, x );
+      
+      res = cpma * x - ( TVar )(w[i]) * cpmb * x;
+      for( int j = 0 ; j < dim ; j++){
+        for( int k = 0 ; k < dim ; k++){
+          bool loccheck = IsZero(TVar(res(j,k)/10.));
+          if (loccheck == false) {
+            std::cout << "diff " << res(j,k) << std::endl;
+          }
+          check &= loccheck;
+        }
+      }
+    }
+  }
+  else{
+    TPZFMatrix< TVar > cpAma(ma) , cpAmb(mb);
+    TPZFMatrix< std::complex<double> > cpma(dim,dim,0.) , cpmb(dim,dim,0.);
+    for( int i = 0 ; i < dim ; i++){
+      for( int j = 0 ; j < dim ; j++){
+        cpma(i,j) = cpAma(i,j);
+        cpmb(i,j) = cpAmb(i,j);
+      }
+    }
+    TPZVec < std::complex<double> > w;
+    TPZFMatrix < std::complex<double> > eigenVectors;
+    cpma.SolveGeneralisedEigenProblem(cpmb, w, eigenVectors);
+    
+    for( int i = 0 ; i < dim ; i++){
+      TPZFMatrix< std::complex<double> > res(dim,dim,0.);
+      TPZFMatrix< std::complex<double> > x(dim,1,0.);
+      eigenVectors.GetSub(0, i, dim,dim, x );
+      
+      res = cpma * x - w[i] * cpmb * x;
+      for( int j = 0 ; j < dim ; j++){
+        for( int k = 0 ; k < dim ; k++){
+          bool loccheck = IsZero(std::complex<double>(res(j,k)/10.));
+          if (loccheck == false) {
+            std::cout << "diff " << res(j,k) << std::endl;
+          }
+          check &= loccheck;
+        }
+      }
+    }
+  }
+  
+  if (!check) {
+    cpmaOriginal.Print("Matrix = ",std::cout,EMathematicaInput);
+  }
+  BOOST_CHECK(check);
+}
+
 BOOST_AUTO_TEST_SUITE(matrix_tests)
 
 BOOST_AUTO_TEST_CASE(diagonaldominant_tests) {
@@ -318,11 +401,20 @@ BOOST_AUTO_TEST_CASE(multadd_tests)
     for (int dim = 5; dim < 6; dim += 10) {
       TestingMultAdd<TPZFMatrix<float>, float>(dim, 1, ECholesky);
       TestingMultAdd<TPZFMatrix<double>, double>(dim, 1, ECholesky);
+      TestingMultAdd<TPZFMatrix<std::complex<double> >, std::complex<double> >(dim, 1, ECholesky);
       TestingMultAdd<TPZSkylMatrix<float>, float>(dim, 1, ECholesky);
       TestingMultAdd<TPZSkylMatrix<double>, double>(dim, 1, ECholesky);
       TestingMultAdd<TPZSkylNSymMatrix<float>, float>(dim, 1, ECholesky);
       TestingMultAdd<TPZSkylNSymMatrix<double>, double>(dim, 1, ECholesky);
     }
+}
+
+BOOST_AUTO_TEST_CASE(eigenvalue_tests)
+{
+  for (int dim = 5; dim < 6; dim += 10) {
+    TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<double>, double >(dim, 1);
+    TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<std::complex<double> >, std::complex<double> >(dim, 1);
+  }
 }
 BOOST_AUTO_TEST_SUITE_END()
 

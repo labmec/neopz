@@ -311,13 +311,44 @@ public:
 #ifdef USING_LAPACK
     /*** @name Solve eigenvalues ***/
     /** @{ */
-
-    /// Computes the eigenvalues and eigenvectors of the symmetric matrix
-    // on exit the matrix contains the eigenvectors
-    int SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues) const;
-    
-    /// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
-    int GeneralEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &realeigen, TPZVec<TVar> &imageigen) const;
+  /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   * @param Stores the correspondent eigenvectors
+   */
+  virtual int SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
+  /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   */
+  virtual int SolveEigenProblem(TPZVec < std::complex<double> > &w);
+  /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   * @param Stores the correspondent eigenvectors
+   */
+  virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
+  /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   */
+  virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w);
+  
+  
+  /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   * @param Stores the correspondent eigenvectors
+   */
+  virtual int SolveEigenProblem(TPZVec < double > &w, TPZFMatrix <TVar > &eigenVectors);
+  /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   */
+  virtual int SolveEigenProblem(TPZVec < double > &w);
+  /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   * @param Stores the correspondent eigenvectors
+   */
+  virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < double > &w, TPZFMatrix < TVar > &eigenVectors);
+  /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors
+   * @param w Stores the eigenvalues
+   */
+  virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < double > &w);
     /** @} */
 #endif
     

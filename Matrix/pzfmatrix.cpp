@@ -2280,124 +2280,102 @@ int TPZFMatrix<TVar>::SetSize(const long newRows,const long newCols) {
 
 #ifdef USING_LAPACK
 
-/// Computes the eigenvalues and eigenvectors of the symmetric matrix
-// on exit the matrix contains the eigenvectors
-template <>
-int TPZFMatrix<float>::SymmetricEigenvalues(TPZFMatrix<float> &eigenvectors, TPZVec<float> &eigenvalues) const
+template < class TVar >
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < double > &w, TPZFMatrix < TVar > &eigenVectors)
 {
-    char job[]="Vectors", uplo[]="Upper", name[] = "ssyev";
-    int ispec = 1;
-    int n1(0),n2(0),n3(0),n4(0);
-    char opts[] = "Upper";
-    
-    int n= Rows();
-    int blsize = ilaenv_(&ispec, name, uplo, &n1, &n2, &n3, &n4);
-    
-    int dim = Rows();
-    eigenvalues.Resize(dim);
-    int info;
-    int worksize = (blsize+2)*dim;
-    TPZVec<float> work((blsize+2)*dim);
-    eigenvectors = *this;
-    ssyev_(job, uplo, &dim, eigenvectors.fElem, &dim, &eigenvalues[0], &work[0], &worksize, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
+  DebugStop();
 }
 
-template <>
-int TPZFMatrix<double>::SymmetricEigenvalues(TPZFMatrix<double> &eigenvectors, TPZVec<double> &eigenvalues) const
+template < class TVar >
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < double > &w)
 {
-    char job[]="Vectors", uplo[]="Upper", name[] = "ssyev";
-    int ispec = 1;
-    int n1(0),n2(0),n3(0),n4(0);
-    char opts[] = "Upper";
-    
-    int n= Rows();
-    int blsize = ilaenv_(&ispec, name, uplo, &n1, &n2, &n3, &n4);
-    
-    int dim = Rows();
-    eigenvalues.Resize(dim);
-    int info;
-    int worksize = (blsize+2)*dim;
-    TPZVec<double> work((blsize+2)*dim);
-    eigenvectors = *this;
-    dsyev_(job, uplo, &dim, eigenvectors.fElem, &dim, &eigenvalues[0], &work[0], &worksize, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
+  DebugStop();
 }
-
-
 
 template <class TVar>
-int TPZFMatrix<TVar>::SymmetricEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &eigenvalues) const
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors)
 {
-    std::cout << "Not Implemented\n";
-    DebugStop();
+  DebugStop();
 }
 
-/// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
-template <>
-int TPZFMatrix<float>::GeneralEigenvalues(TPZFMatrix<float> &eigenvectors, TPZVec<float> &realeigen, TPZVec<float> &imageigen) const
-{
-    if (Rows() != Cols()) {
-        DebugStop();
-    }
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix<float> VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    float testwork;
-    int lwork = -1;
-    int info;
-    TPZFMatrix<float> temp(*this);
-    sgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &testwork, &lwork, &info);
-    TPZVec<float> work(lwork);
-    sgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    eigenvectors = VR;
-    return 1;
-}
-
-
-/// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
-template <>
-int TPZFMatrix<double>::GeneralEigenvalues(TPZFMatrix<double> &eigenvectors, TPZVec<double> &realeigen, TPZVec<double> &imageigen) const
-{
-    if (Rows() != Cols()) {
-        DebugStop();
-    }
-    char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix<double> VL(Rows(),Cols()),VR(Rows(),Cols());
-    int dim = Rows();
-    double testwork;
-    int lwork = -1;
-    int info;
-    TPZFMatrix<double> temp(*this);
-    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &testwork, &lwork, &info);
-    TPZVec<double> work(lwork);
-    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
-    
-    if (info != 0) {
-        DebugStop();
-    }
-    eigenvectors = VR;
-    return 1;
-}
-
-
-/// Computes the right eigenvectors and eigenvalues of a nonsymetric matrix
 template <class TVar>
-int TPZFMatrix<TVar>::GeneralEigenvalues(TPZFMatrix<TVar> &eigenvectors, TPZVec<TVar> &realeigen, TPZVec<TVar> &imageigen) const
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w)
 {
-    std::cout << "Not Implemented\n";
-    DebugStop();
-    return 1;
+  DebugStop();
+}
+
+template < class TVar >
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < double > &w, TPZFMatrix <TVar > &eigenVectors)
+{
+  DebugStop();
+}
+
+template < class TVar>
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < double > &w)
+{
+  DebugStop();
+}
+
+template < class TVar>
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w)
+{
+  DebugStop();
+}
+
+
+template < class TVar>
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w , TPZFMatrix < std::complex<double> > &eigenvectors)
+{
+  DebugStop();
+}
+
+template <>
+int TPZFMatrix<double>::SolveEigenProblem(TPZVec < complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
+{
+  if (Rows() != Cols()) {
+      DebugStop();
+  }
+  char jobvl[] = "None", jobvr[] = "Vectors";
+  TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
+  int dim = Rows();
+  double testwork;
+  int lwork = -1;
+  int info;
+  TPZVec<double> realeigen(dim,0.);
+  TPZVec<double> imageigen(dim,0.);
+
+  TPZFMatrix<double> temp(*this);
+  TPZVec<double> work(lwork);
+  dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+  
+  if (info != 0) {
+      DebugStop();
+  }
+  eigenvectors.Redim(dim,dim);
+  eigenvalues.Resize(dim,0.);
+  for(int i = 0 ; i < dim ; i ++){
+    eigenvalues[i] = realeigen[i] + sqrt(-1)*imageigen[i];
+  }
+  double *vRptr = VR.fElem;
+  for(int i = 0 ; i < dim ; i ++){
+    if(imageigen[i] == 0){
+      for( int iV = 0 ; iV < dim ; iV++ ){
+        eigenvectors(i,iV) = *vRptr++;
+      }
+    }
+    else{
+      double *realVRptr = VR.fElem;
+      double *imagVRptr = VR.fElem + dim;
+      for( int iV = 0 ; iV < dim ; iV++ ){
+        eigenvectors(i,iV) = *realVRptr++ + sqrt(-1) * (*imagVRptr++) ;
+        eigenvectors(i + 1,iV) = *realVRptr++ - sqrt(-1) * (*imagVRptr++) ;
+        i++;
+        vRptr += 2*dim;
+      }
+    }
+  }
+  
+  return 1;
 }
 
 #endif
