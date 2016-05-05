@@ -23,30 +23,59 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
+
 template<class T>
-void TPZQuadraticLine::ShapeT(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+void TPZQuadraticLine::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
     
-	T qsi = param[0];
-	
-	phi(0,0)  = -qsi*(1.-qsi)/2.;
-	phi(1,0)  = +qsi*(1.+qsi)/2.;
-	phi(2,0)  = (1.-qsi)*(1.+qsi);
-	
-	dphi(0,0) = qsi-0.5;
-	dphi(0,1) = qsi+0.5;
-	dphi(0,2) = -2.*qsi;
+    T qsi = loc[0];
+    
+    phi(0,0)  = -qsi*(1.-qsi)/2.;
+    phi(1,0)  = +qsi*(1.+qsi)/2.;
+    phi(2,0)  = (1.-qsi)*(1.+qsi);
+    
+    dphi(0,0) = qsi-0.5;
+    dphi(0,1) = qsi+0.5;
+    dphi(0,2) = -2.*qsi;
 }
 
 template<class T>
 void TPZQuadraticLine::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
-	TPZFNMatrix<9,T> phi(NNodes,1);
-	TPZFNMatrix<16,T> dphi(1,NNodes);
-	ShapeT(loc,phi,dphi);
-	
-	for(int i = 0; i < 3; i++){
-		result[i] = 0.0;
-		for(int j = 0; j < NNodes; j++) result[i] += phi(j,0)*coord(i,j);
-	}
+    TPZFNMatrix<9,T> phi(NNodes,1);
+    TPZFNMatrix<16,T> dphi(1,NNodes);
+    TShape(loc,phi,dphi);
+    
+    for(int i = 0; i < 3; i++){
+        result[i] = 0.0;
+        for(int j = 0; j < NNodes; j++) result[i] += phi(j,0)*coord(i,j);
+    }
+}
+
+template<class T>
+void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    
+    gradx.Resize(3,1);
+    gradx.Zero();
+    int nrow = nodes.Rows();
+    int ncol = nodes.Cols();
+#ifdef PZDEBUG
+    if(nrow != 3 && ncol  != 2){
+        std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
+        std::cout << "nodes matrix must be 3x2." << std::endl;
+        DebugStop();
+    }
+    
+#endif
+    TPZFNMatrix<3,T> phi(NNodes,1);
+    TPZFNMatrix<6,T> dphi(2,NNodes);
+    TShape(loc,phi,dphi);
+    for(int i = 0; i < NNodes; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+        }
+    }
+    
 }
 
 void TPZQuadraticLine::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {

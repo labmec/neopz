@@ -53,6 +53,11 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 
 #endif
 
+//#ifdef _AUTODIFF
+//#include "fad.h"
+//typedef TFad<3, REAL> VarFad;
+//#endif
+
 std::string dirname = PZSOURCEDIR;
 using namespace pzgeom;
 
@@ -74,32 +79,32 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
 {
     TPZManVector<REAL,3> lowercorner(3,0.),size(3,1.); // Setting the first corner as the origin and the max element size is 1.0;
 
-    AddElement<TPZGeoPoint>(mesh,lowercorner,size);
-    AddElement<TPZGeoLinear>(mesh,lowercorner,size);
-    AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
-    AddElement<TPZGeoQuad>(mesh,lowercorner,size);
-    AddElement<TPZGeoCube>(mesh,lowercorner,size);
-    AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
-    AddElement<TPZGeoPrism>(mesh,lowercorner,size);
-    AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
-    lowercorner[0] = 1.;
-    lowercorner[1] = 2.;
-    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
-    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoPoint>(mesh,lowercorner,size);
+//    AddElement<TPZGeoLinear>(mesh,lowercorner,size);
+//    AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
+//    AddElement<TPZGeoQuad>(mesh,lowercorner,size);
+//    AddElement<TPZGeoCube>(mesh,lowercorner,size);
+//    AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
+//    AddElement<TPZGeoPrism>(mesh,lowercorner,size);
+//    AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
+//    lowercorner[0] = 1.;
+//    lowercorner[1] = 2.;
+//    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
+//    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
     lowercorner[0] = 1.;
     lowercorner[1] = 1.;
     AddElement<TPZQuadraticLine>(mesh,lowercorner,size);
-    AddElement<TPZQuadraticTrig>(mesh,lowercorner,size);
-    AddElement<TPZQuadraticQuad>(mesh,lowercorner,size);
-    AddElement<TPZQuadraticCube>(mesh,lowercorner,size);
-    AddElement<TPZQuadraticTetra>(mesh,lowercorner,size);
-    AddElement<TPZQuadraticPrism>(mesh,lowercorner,size);
-    AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size);
+//    AddElement<TPZQuadraticTrig>(mesh,lowercorner,size);
+//    AddElement<TPZQuadraticQuad>(mesh,lowercorner,size);
+//    AddElement<TPZQuadraticCube>(mesh,lowercorner,size);
+//    AddElement<TPZQuadraticTetra>(mesh,lowercorner,size);
+//    AddElement<TPZQuadraticPrism>(mesh,lowercorner,size);
+//    AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size);
     mesh.BuildConnectivity();
 }
 
@@ -143,7 +148,49 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     
     TPZGeoMesh gmesh;
     FillGeometricMesh(gmesh);
-    PlotRefinedMesh(gmesh,"../AllElements.vtk");
+
+    REAL tol = 1.0e-12;
+    TPZVec<Fad<REAL> > qsi(3);
+    
+    std::ofstream file("gmesh.txt");
+    gmesh.Print(file);
+    
+    int nel = gmesh.NElements();
+    for(int iel = 0; iel < nel; iel++){
+        TPZGeoEl *gel = gmesh.Element(iel);
+        int iel_dim = gel->Dimension();
+        
+        for(int i = 0; i < iel_dim; i++){
+            REAL val = (REAL) rand() / (RAND_MAX);
+            Fad<REAL> a(iel_dim,i,val);
+            qsi[i] = a;
+//            std::cout << "a = " << a <<std::endl;
+        }
+
+        TPZVec<Fad<REAL> > x(3);
+        TPZFMatrix< Fad<REAL> > gradx;
+        gel->X(qsi, x);
+        gel->GradXFad(qsi, gradx);
+        int r = gradx.Rows();
+        int c = gradx.Cols();
+        for(int i = 0; i < r; i++ ){
+            for(int j = 0; j < c; j++ ){
+                bool check = fabsl(gradx(i,j).val()-x[i].dx(j)) < tol;
+                std::cout << "grad = " << gradx(i,j).val() <<std::endl;
+                std::cout << "gradfad = " << x[i].dx(j) <<std::endl;
+                std::cout << "check = " << check <<std::endl;
+                if(!check){
+                    int aja =0;
+                }
+                BOOST_CHECK(check);
+                
+            }
+        }
+        
+    }
+    
+    
+//    PlotRefinedMesh(gmesh,"AllElements.vtk");
     
     
     

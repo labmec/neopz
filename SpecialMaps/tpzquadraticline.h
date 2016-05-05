@@ -73,11 +73,11 @@ namespace pzgeom {
 		
 		static void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
         {
-            ShapeT<REAL>(x,phi,dphi);
+            TShape<REAL>(x,phi,dphi);
         }
 
-        template<class T>
-        static void ShapeT(TPZVec<T> &x,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+//        template<class T>
+//        static void ShapeT(TPZVec<T> &x,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
 		/* brief compute the coordinate of a point given in parameter space */
         template<class T>
@@ -91,8 +91,25 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            DebugStop();
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            int nrow = coord.Rows();
+            int ncol = coord.Cols();
+            TPZFMatrix<T> nodes(nrow,ncol);
+            for(int i = 0; i < nrow; i++)
+            {
+                for(int j = 0; j < ncol; j++)
+                {
+                    nodes(i,j) = coord(i,j);
+                }
+            }
+            
+            GradX(nodes,par,gradx);
         }
+        
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        template<class T>
+        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
 		
         /* @brief compute the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
@@ -104,12 +121,17 @@ namespace pzgeom {
         
         template<class T>
 		static void X(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);
+        
+        /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
+        template<class T>
+        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
 		
 		static void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv);
         
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 
 	};
+    
     
 };
 
