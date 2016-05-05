@@ -36,7 +36,7 @@ using namespace pztopology;
  */
 
 template<class T>
-void TPZQuadraticTrig::Shape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
+void TPZQuadraticTrig::TShape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
 {
 	T qsi = param[0], eta = param[1];
     
@@ -65,14 +65,45 @@ void TPZQuadraticTrig::X(TPZFMatrix<REAL> &coord, TPZVec<T>& par, TPZVec< T >& r
 {
 	TPZManVector<T,3> parMap(2);
 	REAL spacephi[6],spacedphi[12];
-	TPZFNMatrix<6,T> phi(6,1);
-	TPZFNMatrix<12,T> dphi(2,6);
-	Shape(par,phi,dphi);
+	TPZFNMatrix<6,T> phi(NNodes,1);
+	TPZFNMatrix<12,T> dphi(2,NNodes);
+	TShape(par,phi,dphi);
 	for(int i = 0; i < 3; i++)
 	{
 		result[i] = 0.0;
 		for(int j = 0; j < 6; j++) result[i] += phi(j,0)*coord(i,j);
 	}
+}
+
+
+template<class T>
+void TPZQuadraticTrig::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    
+    gradx.Resize(3,2);
+    gradx.Zero();
+    int nrow = nodes.Rows();
+    int ncol = nodes.Cols();
+#ifdef PZDEBUG
+    if(nrow != 3 || ncol  != 6){
+        std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
+        std::cout << "nodes matrix must be 3x6." << std::endl;
+        DebugStop();
+    }
+    
+#endif
+    
+    TPZFNMatrix<3,T> phi(NNodes,1);
+    TPZFNMatrix<6,T> dphi(2,NNodes);
+    TShape(loc,phi,dphi);
+    for(int i = 0; i < NNodes; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+            gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
+        }
+    }
+    
 }
 
 void TPZQuadraticTrig::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv)

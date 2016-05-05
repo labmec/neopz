@@ -79,14 +79,14 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
 {
     TPZManVector<REAL,3> lowercorner(3,0.),size(3,1.); // Setting the first corner as the origin and the max element size is 1.0;
 
-//    AddElement<TPZGeoPoint>(mesh,lowercorner,size);
-//    AddElement<TPZGeoLinear>(mesh,lowercorner,size);
-//    AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
-//    AddElement<TPZGeoQuad>(mesh,lowercorner,size);
-//    AddElement<TPZGeoCube>(mesh,lowercorner,size);
-//    AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
-//    AddElement<TPZGeoPrism>(mesh,lowercorner,size);
-//    AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
+    AddElement<TPZGeoPoint>(mesh,lowercorner,size);
+    AddElement<TPZGeoLinear>(mesh,lowercorner,size);
+    AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
+    AddElement<TPZGeoQuad>(mesh,lowercorner,size);
+    AddElement<TPZGeoCube>(mesh,lowercorner,size);
+    AddElement<TPZGeoTetrahedra>(mesh,lowercorner,size);
+    AddElement<TPZGeoPrism>(mesh,lowercorner,size);
+    AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
 //    lowercorner[0] = 1.;
 //    lowercorner[1] = 2.;
 //    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
@@ -99,12 +99,12 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     lowercorner[0] = 1.;
     lowercorner[1] = 1.;
     AddElement<TPZQuadraticLine>(mesh,lowercorner,size);
-//    AddElement<TPZQuadraticTrig>(mesh,lowercorner,size);
-//    AddElement<TPZQuadraticQuad>(mesh,lowercorner,size);
-//    AddElement<TPZQuadraticCube>(mesh,lowercorner,size);
-//    AddElement<TPZQuadraticTetra>(mesh,lowercorner,size);
-//    AddElement<TPZQuadraticPrism>(mesh,lowercorner,size);
-//    AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticTrig>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticQuad>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticCube>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticTetra>(mesh,lowercorner,size);
+    AddElement<TPZQuadraticPrism>(mesh,lowercorner,size);
+//    AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size); //@Omar:: Please uncomment this line
     mesh.BuildConnectivity();
 }
 
@@ -176,12 +176,6 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
         for(int i = 0; i < r; i++ ){
             for(int j = 0; j < c; j++ ){
                 bool check = fabsl(gradx(i,j).val()-x[i].dx(j)) < tol;
-                std::cout << "grad = " << gradx(i,j).val() <<std::endl;
-                std::cout << "gradfad = " << x[i].dx(j) <<std::endl;
-                std::cout << "check = " << check <<std::endl;
-                if(!check){
-                    int aja =0;
-                }
                 BOOST_CHECK(check);
                 
             }
@@ -190,13 +184,9 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     }
     
     
-//    PlotRefinedMesh(gmesh,"AllElements.vtk");
+    PlotRefinedMesh(gmesh,"AllElements.vtk");
     
-    
-    
-//    BOOST_CHECK(fabsl(point[0]-point2[0]) < tol);
-//    BOOST_CHECK(fabsl(weight-weight2) < tol);
-
+    return;
 
 }
 

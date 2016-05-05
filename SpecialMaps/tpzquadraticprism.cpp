@@ -23,9 +23,9 @@ using namespace pzgeom;
 using namespace pztopology;
 
 template<class T>
-void TPZQuadraticPrism::Shape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+void TPZQuadraticPrism::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
 	
-	T qsi = param[0], eta = param[1], zeta = param[2];
+	T qsi = par[0], eta = par[1], zeta = par[2];
 	
 	phi(0,0)   = -0.5*(-1. + eta + qsi)*(-1. + zeta)*(2.*(eta + qsi) + zeta);
 	phi(1,0)   =  0.5*qsi*(-1. + zeta)*(2. - 2.*qsi + zeta);
@@ -42,7 +42,7 @@ void TPZQuadraticPrism::Shape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> 
 	phi(12,0)  = -2.*qsi*(-1. + eta + qsi)*(1. + zeta);
 	phi(13,0)  =  2.*eta*qsi*(1. + zeta);
     phi(14,0)  = -2.*eta*(-1. + eta + qsi)*(1. + zeta);
-	//--------------------------------------
+
 	dphi(0,0)  =  (1. - 2.*eta - 2.*qsi - 0.5*zeta)*(-1. + zeta);
 	dphi(1,0)  =  (1. - 2.*eta - 2.*qsi - 0.5*zeta)*(-1. + zeta);
 	dphi(2,0)  =  (-1. + eta + qsi)*(0.5 - eta - qsi - zeta);
@@ -105,20 +105,50 @@ void TPZQuadraticPrism::Shape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> 
 }
 
 template<class T>
-void TPZQuadraticPrism::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
-	
-	TPZFNMatrix<15,T> phi(15,1);
-	TPZFNMatrix<45,T> dphi(3,15);
-	Shape(loc,phi,dphi);
-	
-	for(int i=0; i<3; i++)
-	{
-		result[i] = 0.0;
-		for(int j=0; j<15; j++) 
-		{
-			result[i] += phi(j,0)*coord(i,j); 
-		}
-	}
+void TPZQuadraticPrism::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+    
+    TPZFNMatrix<15,T> phi(NNodes,1);
+    TPZFNMatrix<45,T> dphi(3,NNodes);
+    TShape(loc,phi,dphi);
+    int space = nodes.Rows();
+    
+    for(int i = 0; i < space; i++) {
+        x[i] = 0.0;
+        for(int j = 0; j < NNodes; j++) {
+            x[i] += phi(j,0)*nodes.GetVal(i,j);
+        }
+    }
+    
+}
+
+template<class T>
+void TPZQuadraticPrism::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    
+    gradx.Resize(3,3);
+    gradx.Zero();
+    int nrow = nodes.Rows();
+    int ncol = nodes.Cols();
+#ifdef PZDEBUG
+    if(nrow != 3 || ncol  != 15){
+        std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
+        std::cout << "nodes matrix must be 3x15." << std::endl;
+        DebugStop();
+    }
+    
+#endif
+    TPZFNMatrix<15,T> phi(NNodes,1);
+    TPZFNMatrix<45,T> dphi(3,NNodes);
+    TShape(loc,phi,dphi);
+    for(int i = 0; i < NNodes; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+            gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
+            gradx(j,2) += nodes.GetVal(j,i)*dphi(2,i);
+        }
+    }
+    
 }
 
 void TPZQuadraticPrism::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {

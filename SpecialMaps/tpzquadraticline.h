@@ -71,13 +71,11 @@ namespace pzgeom {
 										  int matid,
 										  long& index);
 		
-		static void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
-        {
-            TShape<REAL>(x,phi,dphi);
+        /** @brief Compute the shape being used to construct the X mapping from local parametric coordinates  */
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+            TShape(loc, phi, dphi);
         }
 
-//        template<class T>
-//        static void ShapeT(TPZVec<T> &x,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
 		/* brief compute the coordinate of a point given in parameter space */
         template<class T>

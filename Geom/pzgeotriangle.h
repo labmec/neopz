@@ -206,19 +206,19 @@ namespace pzgeom {
         int nrow = nodes.Rows();
         int ncol = nodes.Cols();
 #ifdef PZDEBUG
-        if(nrow != 3 && ncol  != 3){
+        if(nrow != 3 || ncol  != 3){
             std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
             std::cout << "nodes matrix must be 3x3." << std::endl;
             DebugStop();
         }
         
 #endif
-        TPZFNMatrix<3,T> phi(3,1);
-        TPZFNMatrix<6,T> dphi(2,3);
+        TPZFNMatrix<3,T> phi(NNodes,1);
+        TPZFNMatrix<6,T> dphi(2,NNodes);
         TShape(loc,phi,dphi);
         for(int i = 0; i < 3; i++)
         {
-            for(int j = 0; j < 3; j++)
+            for(int j = 0; j < NNodes; j++)
             {
                 gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
                 gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);

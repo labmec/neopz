@@ -181,14 +181,14 @@ namespace pzgeom {
     template<class T>
     inline void TPZGeoTetrahedra::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
         
-        TPZFNMatrix<4,T> phi(4,1);
-        TPZFNMatrix<12,T> dphi(3,4);
+        TPZFNMatrix<4,T> phi(NNodes,1);
+        TPZFNMatrix<12,T> dphi(3,NNodes);
         TShape(loc,phi,dphi);
         int space = nodes.Rows();
         
         for(int i = 0; i < space; i++) {
             x[i] = 0.0;
-            for(int j = 0; j < 4; j++) {
+            for(int j = 0; j < NNodes; j++) {
                 x[i] += phi(j,0)*nodes.GetVal(i,j);
             }
         }
@@ -203,15 +203,15 @@ namespace pzgeom {
         int nrow = nodes.Rows();
         int ncol = nodes.Cols();
 #ifdef PZDEBUG
-        if(nrow != 3 && ncol  != 4){
+        if(nrow != 3 || ncol  != 4){
             std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
             std::cout << "nodes matrix must be 3x4." << std::endl;
             DebugStop();
         }
         
 #endif
-        TPZFNMatrix<4,T> phi(4,1);
-        TPZFNMatrix<12,T> dphi(3,4);
+        TPZFNMatrix<4,T> phi(NNodes,1);
+        TPZFNMatrix<12,T> dphi(3,NNodes);
         TShape(loc,phi,dphi);
         for(int i = 0; i < 4; i++)
         {

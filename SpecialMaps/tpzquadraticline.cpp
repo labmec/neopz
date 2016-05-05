@@ -58,9 +58,9 @@ void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatr
     int nrow = nodes.Rows();
     int ncol = nodes.Cols();
 #ifdef PZDEBUG
-    if(nrow != 3 && ncol  != 2){
+    if(nrow != 3 || ncol  != 3){
         std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
-        std::cout << "nodes matrix must be 3x2." << std::endl;
+        std::cout << "nodes matrix must be 3x3." << std::endl;
         DebugStop();
     }
     

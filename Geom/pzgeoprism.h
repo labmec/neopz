@@ -213,7 +213,7 @@ namespace pzgeom {
         int nrow = nodes.Rows();
         int ncol = nodes.Cols();
 #ifdef PZDEBUG
-        if(nrow != 3 && ncol  != 6){
+        if(nrow != 3 || ncol  != 6){
             std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
             std::cout << "nodes matrix must be 3x6." << std::endl;
             DebugStop();

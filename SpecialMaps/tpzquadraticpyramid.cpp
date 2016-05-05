@@ -23,9 +23,9 @@ using namespace pzgeom;
 using namespace pztopology;
 
 template<class T>
-void TPZQuadraticPyramid::Shape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+void TPZQuadraticPyramid::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
 	
-	T qsi = param[0], eta = param[1], zeta = param[2];
+	T qsi = par[0], eta = par[1], zeta = par[2];
     T check = zeta-1.;
     if(fabs(check) < 1.E-3)
     {
@@ -156,20 +156,50 @@ void TPZQuadraticPyramid::Shape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T
 
 
 template<class T>
-void TPZQuadraticPyramid::X(TPZFMatrix<REAL> & coord, TPZVec<T> & loc,TPZVec<T> &result) {
-	
-	TPZFNMatrix<13,T> phi(13,1);
-	TPZFNMatrix<39,T> dphi(3,13);
-	Shape(loc,phi,dphi);
-	
-	for(int i=0; i<3; i++)
-	{
-		result[i] = 0.0;
-		for(int j=0; j<13; j++) 
-		{
-			result[i] += phi(j,0)*coord(i,j); 
-		}
-	}
+void TPZQuadraticPyramid::X(TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
+    
+    TPZFNMatrix<13,T> phi(NNodes,1);
+    TPZFNMatrix<39,T> dphi(3,NNodes);
+    TShape(loc,phi,dphi);
+    int space = nodes.Rows();
+    
+    for(int i = 0; i < space; i++) {
+        x[i] = 0.0;
+        for(int j = 0; j < NNodes; j++) {
+            x[i] += phi(j,0)*nodes.GetVal(i,j);
+        }
+    }
+    
+}
+
+template<class T>
+void TPZQuadraticPyramid::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    
+    gradx.Resize(3,3);
+    gradx.Zero();
+    int nrow = nodes.Rows();
+    int ncol = nodes.Cols();
+#ifdef PZDEBUG
+    if(nrow != 3 || ncol  != 13){
+        std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
+        std::cout << "nodes matrix must be 3x13." << std::endl;
+        DebugStop();
+    }
+    
+#endif
+    TPZFNMatrix<13,T> phi(NNodes,1);
+    TPZFNMatrix<39,T> dphi(3,NNodes);
+    TShape(loc,phi,dphi);
+    for(int i = 0; i < NNodes; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
+            gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
+            gradx(j,2) += nodes.GetVal(j,i)*dphi(2,i);
+        }
+    }
+    
 }
 
 void TPZQuadraticPyramid::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
