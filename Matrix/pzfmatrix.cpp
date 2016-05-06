@@ -27,6 +27,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
+#ifndef USING_MKL
 #ifdef USING_LAPACK
 /** CBlas Math Library */
 #ifdef MACOSX
@@ -34,6 +35,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #else
 #include "cblas.h"
 #define BLAS_MULT
+#endif
 #endif
 #endif
 

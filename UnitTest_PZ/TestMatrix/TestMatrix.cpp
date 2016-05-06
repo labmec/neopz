@@ -12,6 +12,8 @@
 #include "pzsfulmat.h"
 #include "pzskylnsymmat.h"
 #include "pzskylmat.h"
+#include "pzysmp.h"
+#include "pzsysmp.h"
 
 #ifdef USING_BOOST
 
@@ -170,6 +172,44 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
 }
 
 /**
+ * @brief Tests the Multiply method of the matrix, using AutoFill to build a square matrix of dimension dim (user defined)
+ * @param dim Dimension of the square matrix to be build.
+ * @param symmetric Whether to build a symmetric matrix
+ * @note Process: build square matrix with randomic values, compute its square twice using Multiply function with two different copies of itself and checks whether the result is the same
+ */
+/**
+ * Check if the result is a identity matrix.
+ */
+template <class matx, class TVar>
+void TestingTransposeMultiply(int row, int col, int symmetric) {
+    // ma times inv must to be a identity matrix
+    matx ma;
+    ma.AutoFill(row,col,symmetric);
+    
+    TPZFMatrix<TVar> duplicate(ma);
+    TPZFMatrix<TVar> dup2(ma), square(col,col),square2(col,col);
+    ma.MultAdd(dup2,dup2,square,1.,0.,1);
+    duplicate.MultAdd(dup2,dup2,square2,1.,0.,1);
+
+//    ma.Print("ma",std::cout,EMathematicaInput);
+//    duplicate.Print("duplicate",std::cout,EMathematicaInput);
+//    square.Print("square",std::cout,EMathematicaInput);
+//    square2.Print("square2",std::cout,EMathematicaInput);
+    // Checking whether result matrix is the identity matrix
+    bool check = true;
+    for(int i=0;i<row;i++) {
+        for(int j=0;j<row;j++) {
+            if(!IsZero(fabs(square(i,j)-square2(i,j))))
+            {
+                check = false;
+            }
+        }
+    }
+    BOOST_CHECK(check);
+    
+}
+
+/**
 * @brief Tests the Transpose method of the matrix, using AutoFill to build a matrix of dimension row x cols (user defined)
 * @param rows Number of rows
 * @param cols Number of columns
@@ -323,6 +363,27 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
 
 BOOST_AUTO_TEST_SUITE(matrix_tests)
 
+BOOST_AUTO_TEST_CASE(multiplytranspose_tests)
+{
+    int dim;
+    for(dim = 5;dim < 100; dim+=500) {
+        TestingTransposeMultiply<TPZSYsmpMatrix<double>, double >(dim,dim,1);
+        TestingTransposeMultiply<TPZFYsmpMatrix<double>, double >(10,dim,0);
+        TestingTransposeMultiply<TPZFMatrix<double>, double >(10,dim,0);
+        TestingTransposeMultiply<TPZSkylNSymMatrix<double>, double >(dim,dim,0);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(multiply_tests)
+{
+    int dim;
+    for(dim = 20;dim < 100; dim+=500) {
+        TestingMultiplyWithAutoFill<TPZFYsmpMatrix<double>, double >(dim,0);
+        TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<double> ,double>(dim,0);
+        TestingMultiplyWithAutoFill<TPZFMatrix<REAL>, double >(dim,0);
+    }
+}
+
 BOOST_AUTO_TEST_CASE(diagonaldominant_tests) {
 	int dim, i;
 	
@@ -369,20 +430,12 @@ BOOST_AUTO_TEST_CASE(inverse_tests)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(multiply_tests)
-{
-	int dim;
-	for(dim = 3;dim < 100; dim+=5) {
-		TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<REAL> ,REAL>(dim,0);
-		TestingMultiplyWithAutoFill<TPZFMatrix<REAL>, REAL >(dim,0);
-	}
-}
 BOOST_AUTO_TEST_CASE(multiplyoperator_tests)
 {
 	int dim;
 	for(dim = 3;dim < 100; dim+=5) {
 		TestingMultiplyOperatorWithAutoFill<TPZFMatrix<float>, float >(dim,0);
-    TestingMultiplyOperatorWithAutoFill<TPZFMatrix<double>, double >(dim,0);
+        TestingMultiplyOperatorWithAutoFill<TPZFMatrix<double>, double >(dim,0);
 	}
 }
 BOOST_AUTO_TEST_CASE(transpose_tests)
@@ -391,7 +444,7 @@ BOOST_AUTO_TEST_CASE(transpose_tests)
 	for(rows = 3;rows < 4; rows+=5) {
 		for(cols = 3;cols < 100;cols+=5) {
 			TestingTransposeWithAutoFill<TPZFMatrix<float>, float >(rows,cols,0);
-      TestingTransposeWithAutoFill<TPZFMatrix<double>, double >(rows,cols,0);
+            TestingTransposeWithAutoFill<TPZFMatrix<double>, double >(rows,cols,0);
 		}
 	}
 }

@@ -471,13 +471,31 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	
-	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || y.Rows() != z.Rows() )
-	{
-		cout << "\nERROR! em TPZFYsmpMatrix::MultiplyAdd : incompatible dimensions in x, y or z\n";
-		return;
-	}
-	
-	long  ic, xcols;
+#ifdef PZDEBUG
+    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+        std::cout << "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" ;
+        return;
+    }
+    if(beta != (double)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+        std::cout << "TPZFMatrix::MultAdd matrix y with incompatible dimensions>";
+        return;
+    }
+#endif
+    if(!opt) {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
+            z.Redim(this->Rows(),x.Cols());
+        }
+    } else {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
+            z.Redim(this->Cols(),x.Cols());
+        }
+    }
+    if(this->Cols() == 0) {
+        z.Zero();
+        return;
+    }
+
+    long  ic, xcols;
 	xcols = x.Cols();
 	long  r = (opt) ? this->Cols() : this->Rows();
 	
@@ -856,6 +874,46 @@ void TPZFYsmpMatrix<TVar>::RowLUUpdate(long sourcerow, long destrow)
 	}
 	
 }
+/** @brief Fill matrix storage with randomic values */
+/** This method use GetVal and PutVal which are implemented by each type matrices */
+template<class TVar>
+void TPZFYsmpMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric)
+{
+    if (symmetric && nrow != ncol) {
+        DebugStop();
+    }
+    TPZFMatrix<TVar> orig;
+    orig.AutoFill(nrow,ncol,symmetric);
+    
+    TPZVec<long> IA(nrow+1);
+    TPZStack<long> JA;
+    TPZStack<TVar> A;
+    IA[0] = 0;
+    TPZVec<std::set<long> > eqs(nrow);
+    for (long row=0; row<nrow; row++) {
+        eqs[row].insert(row);
+        for (long col = 0; col<ncol; col++) {
+            REAL test = rand()*1./RAND_MAX;
+            if (test > 0.5) {
+                eqs[row].insert(col);
+                if (symmetric) {
+                    eqs[col].insert(row);
+                }
+            }
+        }
+    }
+    long pos=0;
+    for (long row=0; row< nrow; row++) {
+        for (std::set<long>::iterator col = eqs[row].begin(); col != eqs[row].end(); col++) {
+            JA.Push(*col);
+            A.Push(orig(row,*col));
+        }
+        IA[row+1] = JA.size();
+    }
+    TPZMatrix<TVar>::Resize(nrow,ncol);
+    SetData(IA, JA, A);
+}
+
 
 /**
  * Decomposes the current matrix using LU decomposition.

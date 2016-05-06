@@ -652,7 +652,7 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
         std::cout.flush();
     }
     
-    an->Solve();
+    an->Solve(); 
     
 #ifdef USING_BOOST
     boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();

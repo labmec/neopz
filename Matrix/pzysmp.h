@@ -67,6 +67,12 @@ public:
 	
 	virtual ~TPZFYsmpMatrix();	
 	
+    /** @brief Fill matrix storage with randomic values */
+    /** This method use GetVal and PutVal which are implemented by each type matrices */
+    void AutoFill(long nrow, long ncol, int symmetric);
+    
+
+    
 	/** @brief Get the matrix entry at (row,col) without bound checking */
 	virtual const TVar &GetVal(const long row,const long col ) const;
 	
