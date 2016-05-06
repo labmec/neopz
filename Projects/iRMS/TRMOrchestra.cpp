@@ -115,8 +115,9 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     // With Already defined spaces it is possible to compute all the sparces matrices and arrays
     
     TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator.GetTransferGenerator();
+    
     transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);        // Computing Flux Matrix
-    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);    // Computing Pressure Matrix
+//    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);    // Computing Pressure Matrix
     
     
     TPZFMatrix<STATE> vec_flux = meshvec[flux]->Solution();
@@ -135,8 +136,8 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
     
-    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
-    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
+//    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
+//    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
     
     
     
@@ -167,10 +168,10 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     fFluxPressureAnalysis.SetSolver(step);
 //    fFluxPressureAnalysis.Run();
     fFluxPressureAnalysis.AssembleResidual();
-    TPZFMatrix<STATE> rhs_p = this->IntegrateResidue(Cmesh,fSpaceGenerator.GetFluxCmesh(), fSpaceGenerator.GetPressureMesh(), transfer); // Integrating Residue
+//    TPZFMatrix<STATE> rhs_p = this->IntegrateResidue(Cmesh,fSpaceGenerator.GetFluxCmesh(), fSpaceGenerator.GetPressureMesh(), transfer); // Integrating Residue
     
     fFluxPressureAnalysis.Rhs().Print("Traditional Rhs = ");
-    rhs_p.Print("Pressure Rhs part = ");
+//    rhs_p.Print("Pressure Rhs part = ");
     prevsol -= fFluxPressureAnalysis.Solution();
     Cmesh->LoadSolution(prevsol);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
@@ -179,8 +180,8 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     std::cout << std::endl;
     std::cout << std::endl;
     
-    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
-    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
+//    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
+//    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
     
     fFluxPressureAnalysis.AssembleResidual();
     fFluxPressureAnalysis.LoadSolution();
@@ -211,13 +212,13 @@ TPZFMatrix<STATE> TRMOrchestra::IntegrateResidue(TPZAutoPointer<TPZCompMesh> cme
     // once we have
     
     TPZFMatrix<STATE> u_x_at_intpoints, u_y_at_intpoints, u_z_at_intpoints, divu_at_intpoints;
-    transfer->GetTransfer_X_Flux_To_Mixed().Multiply(cmesh_flux->Solution(), u_x_at_intpoints);
-    transfer->GetTransfer_Y_Flux_To_Mixed().Multiply(cmesh_flux->Solution(), u_y_at_intpoints);
-    transfer->GetTransfer_Z_Flux_To_Mixed().Multiply(cmesh_flux->Solution(), u_z_at_intpoints);
-    transfer->GetTransferDivergenceTo_Mixed().Multiply(cmesh_flux->Solution(),divu_at_intpoints);
+    transfer->GetTransfer_X_Flux_To_Mixed_V().Multiply(cmesh_flux->Solution(), u_x_at_intpoints);
+    transfer->GetTransfer_Y_Flux_To_Mixed_V().Multiply(cmesh_flux->Solution(), u_y_at_intpoints);
+    transfer->GetTransfer_Z_Flux_To_Mixed_V().Multiply(cmesh_flux->Solution(), u_z_at_intpoints);
+    transfer->GetTransferDivergenceTo_Mixed_V().Multiply(cmesh_flux->Solution(),divu_at_intpoints);
     
     TPZFMatrix<STATE> p_at_intpoints;
-    transfer->GetTransferPressure_To_Mixed().Multiply(cmesh_pressure->Solution(), p_at_intpoints);
+    transfer->GetTransferPressure_To_Mixed_V().Multiply(cmesh_pressure->Solution(), p_at_intpoints);
 
     
     // Integrate the volumetric forms
@@ -227,7 +228,7 @@ TPZFMatrix<STATE> TRMOrchestra::IntegrateResidue(TPZAutoPointer<TPZCompMesh> cme
 //    transfer->GetTransferPressure_To_Mixed().Print("Pressure = ");
 //    transfer->GetTransferDivergenceTo_Mixed().Print("DivFlux = ");
 //    transfer->GetJacobianDet_To_Mixed().Print("det = ");
-    transfer->GetWeightsTo_Mixed().Print("w = ");
+//    transfer->GetWeightsTo_Mixed().Print("w = ");
 //    transfer->GetRhs_To_Mixed().Print("Rhs = ");
 //    divu_at_intpoints.Print("Div u = ");
     
@@ -338,11 +339,11 @@ TPZFMatrix<STATE> TRMOrchestra::IntegrateResidue(TPZAutoPointer<TPZCompMesh> cme
             phi_index[0] = equ;
             el_index[0] = volumetric_elements-1;
             
-            transfer->GetWeightsTo_Mixed().GetSub(globindexes, el_index, point_value_w);
-            transfer->GetJacobianDet_To_Mixed().GetSub(globindexes, el_index, point_value_det);
-            transfer->GetRhs_To_Mixed().GetSub(globindexes, el_index, point_value_rhs);
-            
-            transfer->GetTransferPressure_To_Mixed().GetSub(globindexes,phi_index,point_value_phi);
+//            transfer->GetWeightsTo_Mixed().GetSub(globindexes, el_index, point_value_w);
+//            transfer->GetJacobianDet_To_Mixed().GetSub(globindexes, el_index, point_value_det);
+//            transfer->GetRhs_To_Mixed().GetSub(globindexes, el_index, point_value_rhs);
+//            
+//            transfer->GetTransferPressure_To_Mixed().GetSub(globindexes,phi_index,point_value_phi);
             
             
             STATE i_integral = 0.0;
@@ -354,7 +355,7 @@ TPZFMatrix<STATE> TRMOrchestra::IntegrateResidue(TPZAutoPointer<TPZCompMesh> cme
         
     }
     
-    
+    rhs_pressure.Print("rhs_pressure = ");
     
     return rhs_pressure;
 
@@ -477,11 +478,6 @@ void TRMOrchestra::CreateCompMeshes(TRMRawData &rawdata){
     
 }
 
-/// Transfer the flux solution to the saturation mesh
-void TRMOrchestra::TransferToSaturationMesh()
-{
-    //
-}
 
 /** @brief Project an exact solution */
 void TRMOrchestra::ProjectExactSolution()

@@ -35,6 +35,7 @@ public:
      * @param blocksizes Size of blocks on Block Diagonal matrix
 	 */
 	TPZBlockDiagonal (const TPZVec< std::pair<long, long> > &blocksizes);
+    
 	/** @brief Copy constructor */
 	TPZBlockDiagonal (const TPZBlockDiagonal & );
 	

@@ -13,7 +13,6 @@
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 
-class TRMTranportAnalysis;
 
 class TRMFluxPressureAnalysis : public TPZAnalysis {
     
@@ -24,9 +23,7 @@ class TRMFluxPressureAnalysis : public TPZAnalysis {
 
     TPZStepSolver<STATE> fPreconditioner;
     
-    void UpdateTransientMemory(); // updates the transient memory
-    
-    void UpdateSolution(TRMTranportAnalysis &transportAnalysis);
+    void UpdateTransientMemory();
     
 };
 

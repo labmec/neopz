@@ -11,10 +11,21 @@
 
 #include <stdio.h>
 #include "pzreal.h"
+#include "pzstack.h"
+#include "pzfunction.h"
+
 class TRMRawData {
     
 public:
     
+    /** @brief default constructor */
+    TRMRawData();
+
+    /** @brief default destructor */
+    ~TRMRawData();
+    
+    
+    /** @brief unknown part */
     REAL fLw;
     bool fHasLiner;
     bool fHasCasing;
@@ -25,8 +36,32 @@ public:
     REAL fProdVertPosition;
     REAL fWellDiam;
     
-    TRMRawData();
-    ~TRMRawData();
+    /** @brief vector that stores all material ids associated with omega domain */
+    TPZStack< int > fOmegaIds;
+    
+    /** @brief vector that stores all material ids associated with gamma domain */
+    TPZStack< int > fGammaIds;
+    
+    /** @brief vector that stores all material ids associated with skeleton domain */
+    TPZStack< int > fSkeletonIds;
+
+    /** @brief vector that stores pointers to L2 function associated with with gamma domain at intial conditions */
+    TPZStack< TPZVec< TPZAutoPointer<TPZFunction<REAL> > > >  intial_bc_data;
+    
+    /** @brief vector that stores pointers to L2 function associated with with gamma domain at given conditions */
+    TPZStack< TPZVec< TPZAutoPointer<TPZFunction<REAL> > > >  recurrent_bc_data;
+    
+    /**
+     * @ingroup Configuration Cases
+     * @brief Define the colletion of materials ids and functions being used as boundary conditions
+     * @since May 08, 2016
+     */
+    
+    /** @brief Define the materials for a primitive mono-phasic example and their functions associated */
+    void WaterReservoirBox();
+    
+    static void Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);
+    
 };
 
 #endif /* defined(__PZ__TRMRawData__) */

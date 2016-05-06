@@ -129,7 +129,7 @@ public:
     
     /**
      * @ingroup Acces methods
-     * @brief Set and Get fucntion attributes
+     * @brief Set and Get class attributes
      * @since June 09, 2015
      */
     
@@ -158,7 +158,6 @@ public:
     TPZAutoPointer<TPZCompMesh>  GetPressureMesh(){
         return fPressureCmesh;
     }
-    
 
     /** @brief Mixed computational mesh for validation */
     void SetMixedCmesh(TPZAutoPointer<TPZCompMesh> MixedCmesh){

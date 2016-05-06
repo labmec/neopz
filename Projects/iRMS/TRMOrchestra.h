@@ -75,9 +75,6 @@ public:
     /** @brief Run the time steps set in the simulation data */
     void RunSimulation();
     
-    /// Transfer the flux solution to the saturation mesh
-    void TransferToSaturationMesh();
-    
     /** @brief Run a single time step */
     void ExecuteOneTimeStep();
     

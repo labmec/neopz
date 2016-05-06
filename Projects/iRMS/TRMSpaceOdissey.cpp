@@ -518,6 +518,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     REAL dt;
     int n;
     
+    
     // Creating a 0D element to be extruded
     TPZGeoMesh * GeoMesh0D = new TPZGeoMesh;
     GeoMesh0D->NodeVec().Resize(1);
