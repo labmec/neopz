@@ -1,6 +1,6 @@
 /**
- * @file IntegNumUnitTest.cpp
- * @brief Define a Unit Test using Boost for Numerical integration of the NeoPZ
+ * @file GeometryUnitTest.cpp
+ * @brief Define a Unit Test using Boost for all kind of geometries available in the library
  *
  */
 
@@ -53,11 +53,6 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 
 #endif
 
-//#ifdef _AUTODIFF
-//#include "fad.h"
-//typedef TFad<3, REAL> VarFad;
-//#endif
-
 std::string dirname = PZSOURCEDIR;
 using namespace pzgeom;
 
@@ -104,7 +99,7 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZQuadraticCube>(mesh,lowercorner,size);
     AddElement<TPZQuadraticTetra>(mesh,lowercorner,size);
     AddElement<TPZQuadraticPrism>(mesh,lowercorner,size);
-//    AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size); //@Omar:: Please uncomment this line
+    AddElement<TPZQuadraticPyramid>(mesh,lowercorner,size);
     mesh.BuildConnectivity();
 }
 
@@ -149,11 +144,14 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     TPZGeoMesh gmesh;
     FillGeometricMesh(gmesh);
 
-    REAL tol = 1.0e-12;
+    REAL tol = 1.0e-8;
+    TPZManVector< REAL, 3 > qsi_r(3);
     TPZVec<Fad<REAL> > qsi(3);
     
     std::ofstream file("gmesh.txt");
     gmesh.Print(file);
+    
+//    PlotRefinedMesh(gmesh,"AllElements.vtk");
     
     int nel = gmesh.NElements();
     for(int iel = 0; iel < nel; iel++){
@@ -164,18 +162,18 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
             REAL val = (REAL) rand() / (RAND_MAX);
             Fad<REAL> a(iel_dim,i,val);
             qsi[i] = a;
-//            std::cout << "a = " << a <<std::endl;
+            qsi_r[i] = a.val();
         }
 
         TPZVec<Fad<REAL> > x(3);
-        TPZFMatrix< Fad<REAL> > gradx;
+        TPZFMatrix< REAL > gradxr;
         gel->X(qsi, x);
-        gel->GradXFad(qsi, gradx);
-        int r = gradx.Rows();
-        int c = gradx.Cols();
+        gel->GradX(qsi_r, gradxr);
+        int r = gradxr.Rows();
+        int c = gradxr.Cols();
         for(int i = 0; i < r; i++ ){
             for(int j = 0; j < c; j++ ){
-                bool check = fabsl(gradx(i,j).val()-x[i].dx(j)) < tol;
+                bool check = fabsl(gradxr(i,j)-x[i].dx(j)) < tol;
                 BOOST_CHECK(check);
                 
             }
