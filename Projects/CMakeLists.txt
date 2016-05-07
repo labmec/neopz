@@ -175,9 +175,9 @@ ENABLE_TESTING()
 			
 			add_subdirectory(MatLib)
 
-			if(USING_PARDISO)
+			if(USING_MKL)
 				add_subdirectory(PardisoSample)
-			endif(USING_PARDISO)
+			endif(USING_MKL)
 			
 
 		endif(BUILD_COMPLEX_PROJECTS)

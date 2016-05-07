@@ -17,18 +17,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "set"
+
+#include "mkl_pardiso.h"
 
 using namespace std;
 
 /* PARDISO prototype. */
-extern "C" void pardisoinit (void   *, int    *,   int *, int *, double *, int *);
-extern "C" void pardiso     (void   *, int    *,   int *, int *,    int *, int *, 
-                  double *, int    *,    int *, int *,   int *, int *,
-                     int *, double *, double *, int *, double *);
-extern "C" void pardiso_chkmatrix  (int *, int *, double *, int *, int *, int *);
-extern "C" void pardiso_chkvec     (int *, int *, double *, int *);
-extern "C" void pardiso_printstats (int *, int *, double *, int *, int *, int *,
-                           double *, int *);
+//extern "C" void pardisoinit (void   *, int    *,   int *, int *, double *, int *);
+//extern "C" void pardiso     (void   *, int    *,   int *, int *,    int *, int *, 
+//                  double *, int    *,    int *, int *,   int *, int *,
+//                     int *, double *, double *, int *, double *);
+//extern "C" void pardiso_chkmatrix  (int *, int *, double *, int *, int *, int *);
+//extern "C" void pardiso_chkvec     (int *, int *, double *, int *);
+//extern "C" void pardiso_printstats (int *, int *, double *, int *, int *, int *,
+//                           double *, int *);
 
 
 int main( void ) 
@@ -87,7 +90,7 @@ int main( void )
 
     error = 0;
     solver = 0; /* use sparse direct solver */
-    pardisoinit (pt,  &mtype, &solver, iparm, dparm, &error); 
+    pardisoinit (pt,  &mtype, iparm);
 
     if (error != 0) 
     {
@@ -140,11 +143,11 @@ int main( void )
 /*     Use this functionality only for debugging purposes               */
 /* -------------------------------------------------------------------- */
     
-    pardiso_chkmatrix  (&mtype, &n, a, ia, ja, &error);
-    if (error != 0) {
-        printf("\nERROR in consistency of matrix: %d", error);
-        exit(1);
-    }
+//    pardiso_chkmatrix  (&mtype, &n, a, ia, ja, &error);
+//    if (error != 0) {
+//        printf("\nERROR in consistency of matrix: %d", error);
+//        exit(1);
+//    }
 
 /* -------------------------------------------------------------------- */
 /* ..  pardiso_chkvec(...)                                              */
@@ -153,11 +156,11 @@ int main( void )
 /*     Use this functionality only for debugging purposes               */
 /* -------------------------------------------------------------------- */
 
-    pardiso_chkvec (&n, &nrhs, b, &error);
-    if (error != 0) {
-        printf("\nERROR  in right hand side: %d", error);
-        exit(1);
-    }
+//    pardiso_chkvec (&n, &nrhs, b, &error);
+//    if (error != 0) {
+//        printf("\nERROR  in right hand side: %d", error);
+//        exit(1);
+//    }
 
 /* -------------------------------------------------------------------- */
 /* .. pardiso_printstats(...)                                           */
@@ -165,11 +168,11 @@ int main( void )
 /*    Use this functionality only for debugging purposes                */
 /* -------------------------------------------------------------------- */
 
-    pardiso_printstats (&mtype, &n, a, ia, ja, &nrhs, b, &error);
-    if (error != 0) {
-        printf("\nERROR right hand side: %d", error);
-        exit(1);
-    }
+//    pardiso_printstats (&mtype, &n, a, ia, ja, &nrhs, b, &error);
+//    if (error != 0) {
+//        printf("\nERROR right hand side: %d", error);
+//        exit(1);
+//    }
  
 /* -------------------------------------------------------------------- */
 /* ..  Reordering and Symbolic Factorization.  This step also allocates */
@@ -179,7 +182,7 @@ int main( void )
 
     pardiso (pt, &maxfct, &mnum, &mtype, &phase,
        &n, a, ia, ja, &idum, &nrhs,
-             iparm, &msglvl, &ddum, &ddum, &error, dparm);
+             iparm, &msglvl, &ddum, &ddum, &error);
     
     if (error != 0) {
         printf("\nERROR during symbolic factorization: %d", error);
@@ -197,7 +200,7 @@ int main( void )
 
     pardiso (pt, &maxfct, &mnum, &mtype, &phase,
              &n, a, ia, ja, &idum, &nrhs,
-             iparm, &msglvl, &ddum, &ddum, &error,  dparm);
+             iparm, &msglvl, &ddum, &ddum, &error);
    
     if (error != 0) {
         printf("\nERROR during numerical factorization: %d", error);
@@ -214,7 +217,7 @@ int main( void )
    
     pardiso (pt, &maxfct, &mnum, &mtype, &phase,
              &n, a, ia, ja, &idum, &nrhs,
-             iparm, &msglvl, b, x, &error,  dparm);
+             iparm, &msglvl, b, x, &error);
    
     if (error != 0) {
         printf("\nERROR during solution: %d", error);
@@ -245,7 +248,7 @@ int main( void )
     
     pardiso (pt, &maxfct, &mnum, &mtype, &phase,
              &n, &ddum, ia, ja, &idum, &nrhs,
-             iparm, &msglvl, &ddum, &ddum, &error,  dparm);
+             iparm, &msglvl, &ddum, &ddum, &error);
 
     return 0;
 } 
