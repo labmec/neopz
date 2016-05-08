@@ -292,6 +292,12 @@ namespace pzgeom {
                         ChangedPoint.Resize(OriginalPoint.NElements(),0.);
                         ChangedPoint = OriginalPoint;
                 }
+                template<class T>
+                static void TFixSingularity(int side, TPZVec<T>& OriginalPoint, TPZVec<T>& ChangedPoint)
+                {
+                    ChangedPoint.Resize(OriginalPoint.NElements(),0.);
+                    ChangedPoint = OriginalPoint;
+                }
         };
 };
 

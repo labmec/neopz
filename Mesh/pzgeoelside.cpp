@@ -110,6 +110,18 @@ void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 	fGeoEl->X(locElement, result);
 }
 
+/** @brief X coordinate of a point loc of the side */
+void TPZGeoElSide::GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const{
+    TPZManVector< REAL,3 > locElement(fGeoEl->Dimension(), 0.);
+    gradx.Resize(3,fGeoEl->Dimension());
+    
+    TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+    
+    ElementDim.Apply(loc, locElement);
+    
+    fGeoEl->GradX(locElement, gradx);
+}
+
 #ifdef _AUTODIFF
 /** @brief X coordinate of a point loc of the side */
 void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) const
@@ -125,7 +137,21 @@ void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) cons
     fGeoEl->X(locElement, result);
 
 }
+
+/** @brief GradX loc of the side */
+void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &gradx) const{
+    TPZManVector< Fad<REAL> ,3 > locElement(fGeoEl->Dimension(), 0.);
+    gradx.Resize(3,fGeoEl->Dimension());    
+    TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+    
+//    ElementDim.Apply(loc, locElement);
+//    
+//    fGeoEl->GradX(locElement, gradx); // @Omar:: required fix
+    DebugStop();
+}
+
 #endif
+
 
 
 void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const {
