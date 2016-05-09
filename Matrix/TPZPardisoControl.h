@@ -14,7 +14,16 @@
 
 #include "mkl_pardiso.h"
 #include "pzmanvector.h"
+#include "TPZAutoPointer.h"
 
+template<class TVar>
+class TPZFYsmpMatrix;
+
+template<class TVar>
+class TPZSYsmpMatrix;
+
+template<class TVar>
+class TPZFMatrix;
 
 /// class to control the pardiso solution process
 // inspired by PardisoSolver by Armando Duarte
@@ -22,12 +31,43 @@ template<class TVar>
 class TPZPardisoControl
 {
 public:
-    enum MSystemType {ESymmetric, EHermitian, EnonSymmetric};
+    enum MSystemType {ESymmetric, EHermitian, ENonSymmetric};
     
     enum MStructure {EStructureSymmetric, EStructureNonSymmetric};
     
     enum MProperty {EPositiveDefinite, EIndefinite};
     
+    /// empty constructor (non symetric and LU decomposition
+    TPZPardisoControl();
+    
+public:
+    /// constructor indicating if the matrix is symmetric and what type of decomposition is expected
+    TPZPardisoControl(MSystemType systemtype, MProperty prop);
+    
+    TPZPardisoControl(const TPZPardisoControl &copy);
+    
+    TPZPardisoControl &operator=(const TPZPardisoControl &copy);
+    
+    /// change the matrix type
+    // this method should only be called if the pardiso control is zero (non initialized)
+    void SetMatrixType(MSystemType systemtype, MProperty prop);
+    
+    /// call the decomposition method
+    void Decompose();
+    
+    /// initialize the pointer to the nonsymmetric data structure
+    void SetMatrix(TPZFYsmpMatrix<TVar> *matrix)
+    {
+        fNonSymmetricSystem = matrix;
+    }
+    
+    /// initialize the pointer to the symmetric data structure
+    void SetMatrix(TPZSYsmpMatrix<TVar> *matrix)
+    {
+        fSymmetricSystem = matrix;
+    }
+    
+    void Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol);
     
 protected:
     MSystemType fSystemType;
@@ -39,10 +79,12 @@ protected:
     // Solver internal data address pointers
     // 32-bit: int pt[64]; 64-bit: long int pt[64]
     // or void *pt[64] should be OK on both architectures
-    TPZManVector<void*, 64> fPardisoControl;
+    // this datastructure should not be copied or duplicated, therefore the "autopointer" protection
+    
+    TPZAutoPointer<TPZManVector<long long, 64> > fPardisoControl;
     
     // adress of the first element of pt;
-    _MKL_DSS_HANDLE_t fHandle;
+    long long *fHandle;
     //  ConcreteRigidArray1d<long int, 64> pt;
     
     // Array used to pass parameters to Pardiso
@@ -69,11 +111,11 @@ protected:
     /// Compute the matrix type
     long long MatrixType();
     
-public:
+    /// pointer to the nonsymmetric system (where the data structures are stored
+    TPZFYsmpMatrix<TVar> *fNonSymmetricSystem;
     
-    TPZPardisoControl(MSystemType systemtype, MProperty prop);
-    
-    
+    /// pointer to the symmetric system (where the data structures are stored
+    TPZSYsmpMatrix<TVar> *fSymmetricSystem;
     
 };
 

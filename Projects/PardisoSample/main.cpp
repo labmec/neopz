@@ -21,6 +21,8 @@
 
 #include "mkl_pardiso.h"
 
+#include "pzsysmp.h"
+
 using namespace std;
 
 /* PARDISO prototype. */
@@ -113,7 +115,7 @@ int main( void )
         printf("Set environment OMP_NUM_THREADS to 1");
         exit(1);
     }
-    iparm[2]  = num_procs;
+//    iparm[2]  = num_procs;
 
     maxfct = 1;   /* Maximum number of numerical factorizations.  */
     mnum   = 1;         /* Which factorization to use. */
@@ -121,16 +123,17 @@ int main( void )
     msglvl = 1;         /* Print statistical information  */
     error  = 0;         /* Initialize error flag */
 
+    iparm[34] = 1;
 /* -------------------------------------------------------------------- */
 /* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
 /*     notation.                                                        */
 /* -------------------------------------------------------------------- */
-    for (i = 0; i < n+1; i++) {
-        ia[i] += 1;
-    }
-    for (i = 0; i < nnz; i++) {
-        ja[i] += 1;
-    }
+//    for (i = 0; i < n+1; i++) {
+//        ia[i] += 1;
+//    }
+//    for (i = 0; i < nnz; i++) {
+//        ja[i] += 1;
+//    }
 
     /* Set right hand side to one. */
     for (i = 0; i < n; i++) {
@@ -233,14 +236,16 @@ int main( void )
 
 /* -------------------------------------------------------------------- */    
 /* ..  Convert matrix back to 0-based C-notation.                       */
-/* -------------------------------------------------------------------- */ 
-    for (i = 0; i < n+1; i++) {
-        ia[i] -= 1;
+/* -------------------------------------------------------------------- */
+    if(iparm[34] == 0)
+    {
+        for (i = 0; i < n+1; i++) {
+            ia[i] -= 1;
+        }
+        for (i = 0; i < nnz; i++) {
+            ja[i] -= 1;
+        }
     }
-    for (i = 0; i < nnz; i++) {
-        ja[i] -= 1;
-    }
-
 /* -------------------------------------------------------------------- */    
 /* ..  Termination and release of memory.                               */
 /* -------------------------------------------------------------------- */    
@@ -250,5 +255,19 @@ int main( void )
              &n, &ddum, ia, ja, &idum, &nrhs,
              iparm, &msglvl, &ddum, &ddum, &error);
 
+    
+    TPZSYsmpMatrix<double> test(n,n);
+    TPZManVector<long> IA(n+1),JA(18);
+    TPZManVector<double> A(18);
+    for (long i=0; i<n+1; i++) {
+        IA[i] = ia[i];
+    }
+    for (long i=0; i<18; i++) {
+        JA[i] = ja[i];
+        A[i] = a[i];
+    }
+    test.SetData(IA, JA, A);
+    // I need to set the matrix type
+    
     return 0;
 } 

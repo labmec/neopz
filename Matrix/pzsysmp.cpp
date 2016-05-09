@@ -16,6 +16,10 @@
 
 template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZMatrix<TVar>() {
+#ifdef USING_MKL
+    fPardisoControl.SetMatrix(this);
+#endif
+    
 #ifdef CONSTRUCTOR
     cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
 #endif
@@ -23,6 +27,11 @@ TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZMatrix<TVar>() {
 
 template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const long rows,const long cols ) : TPZMatrix<TVar>(rows,cols) {
+
+#ifdef USING_MKL
+    fPardisoControl.SetMatrix(this);
+#endif
+
 #ifdef CONSTRUCTOR
 	cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
 #endif
@@ -36,6 +45,20 @@ TPZSYsmpMatrix<TVar>::~TPZSYsmpMatrix() {
 #endif
 }
 
+template<class TVar>
+TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator=(const TPZSYsmpMatrix<TVar> &copy) 
+{
+    TPZMatrix<TVar>::operator=(copy);
+    fIA =copy.fIA;
+    fJA = copy.fJA;
+    fA = copy.fA;
+    fDiag = copy.fDiag;
+#ifdef USING_MKL
+    fPardisoControl = copy.fPardisoControl;
+    fPardisoControl.SetMatrix(this);
+#endif
+    return *this;
+}
 
 
 // ****************************************************************************
@@ -187,5 +210,38 @@ void TPZSYsmpMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric)
     TPZMatrix<TVar>::Resize(nrow,ncol);
     SetData(IA, JA, A);
 }
+
+#ifdef USING_MKL
+
+#include "TPZPardisoControl.h"
+/**
+ * @name Factorization
+ * @brief Those member functions perform the matrix factorization
+ * @{
+ */
+
+
+/**
+ * @brief Decomposes the current matrix using LDLt. \n
+ * The current matrix has to be symmetric.
+ * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
+{
+    Decompose_LDLt();
+}
+/** @brief Decomposes the current matrix using LDLt. */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
+{
+    fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ESymmetric,TPZPardisoControl<TVar>::EIndefinite);
+    
+}
+
+/** @} */
+#endif
+
+
 
 template class TPZSYsmpMatrix<double>;

@@ -8,6 +8,11 @@
 #define SYSMPMATH
 
 #include "pzmatrix.h"
+
+#ifdef USING_MKL
+#include "TPZPardisoControl.h"
+#endif
+
 template<class TVar>
 class TPZFMatrix;
 
@@ -18,6 +23,10 @@ class TPZFMatrix;
 template<class TVar>
 class TPZSYsmpMatrix : public TPZMatrix<TVar>{
 	
+#ifdef USING_MKL
+    friend class TPZPardisoControl<TVar>;
+#endif
+    
 	public :
     /** @brief Constructor based on number of rows and columns */
     TPZSYsmpMatrix();
@@ -25,9 +34,16 @@ class TPZSYsmpMatrix : public TPZMatrix<TVar>{
     TPZSYsmpMatrix(const long rows, const long cols );
 	/** @brief Copy constructor */
     TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
+#ifdef USING_MKL
+    , fPardisoControl(cp.fPardisoControl)
+#endif
     {
-		
+#ifdef USING_MKL
+        fPardisoControl.SetMatrix(this);
+#endif
     }
+    
+    TPZSYsmpMatrix &operator=(const TPZSYsmpMatrix<TVar> &copy);
     
     CLONEDEF(TPZSYsmpMatrix)
 	/** @brief Destructor */
@@ -50,8 +66,27 @@ class TPZSYsmpMatrix : public TPZMatrix<TVar>{
 	
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const;
-	
-	
+    
+#ifdef USING_MKL
+    /**
+     * @name Factorization
+     * @brief Those member functions perform the matrix factorization
+     * @{
+     */
+    
+
+    /**
+     * @brief Decomposes the current matrix using LDLt. \n
+     * The current matrix has to be symmetric.
+     * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
+     */
+    virtual int Decompose_LDLt(std::list<long> &singular);
+    /** @brief Decomposes the current matrix using LDLt. */
+    virtual int Decompose_LDLt();
+
+    /** @} */
+#endif
+
 private:
 	
 	void ComputeDiagonal();
@@ -60,6 +95,9 @@ private:
 	TPZVec<long>  fJA;
 	TPZVec<TVar> fA;
 	
+#ifdef USING_MKL
+    TPZPardisoControl<TVar> fPardisoControl;
+#endif
 	
 	TPZVec<TVar> fDiag;
 };

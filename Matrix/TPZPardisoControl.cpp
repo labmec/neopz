@@ -8,20 +8,95 @@
 
 #include "TPZPardisoControl.h"
 
+
+/// empty constructor (non symetric and LU decomposition
 template<class TVar>
-TPZPardisoControl<TVar>::TPZPardisoControl(MSystemType systemtype, MProperty prop) : fSystemType(systemtype),
-        fStructure(EStructureSymmetric), fProperty(prop), fPardisoControl(64,0), fHandle(0),
-        fParam(64,0), fMax_num_factors(1), fMatrix_num(1), fMessageLevel(0), fError(0), fPermutation(), fMatrixType(0)
+TPZPardisoControl<TVar>::TPZPardisoControl() : fSystemType(ENonSymmetric),
+fStructure(EStructureNonSymmetric), fProperty(EIndefinite), fPardisoControl(), fHandle(0),
+fParam(64,0), fMax_num_factors(1), fMatrix_num(1), fMessageLevel(0), fError(0), fPermutation(), fMatrixType(0)
 {
-    fHandle = &fPardisoControl[0];
+    fPardisoControl = new TPZManVector<long long,64>(64,0);
+    fHandle = &fPardisoControl.operator->()->operator[](0);
     fMatrixType = MatrixType();
 }
+
+
+template<class TVar>
+TPZPardisoControl<TVar>::TPZPardisoControl(MSystemType systemtype, MProperty prop) : fSystemType(systemtype),
+        fStructure(EStructureSymmetric), fProperty(prop), fPardisoControl(), fHandle(0),
+        fParam(64,0), fMax_num_factors(1), fMatrix_num(1), fMessageLevel(0), fError(0), fPermutation(), fMatrixType(0)
+{
+    fPardisoControl = new TPZManVector<long long,64>(64,0);
+    fHandle = &fPardisoControl.operator->()->operator[](0);
+    fMatrixType = MatrixType();
+}
+
+/// change the matrix type
+// this method should only be called if the pardiso control is zero (non initialized)
+template<class TVar>
+void TPZPardisoControl<TVar>::SetMatrixType(MSystemType systemtype, MProperty prop)
+{
+    fSystemType = systemtype;
+    fProperty = prop;
+    fMatrixType = MatrixType();
+}
+
+//fSystemType(systemtype),
+//fStructure(EStructureSymmetric), fProperty(prop), fPardisoControl(), fHandle(0),
+//fParam(64,0), fMax_num_factors(1), fMatrix_num(1), fMessageLevel(0), fError(0), fPermutation(), fMatrixType(0)
+
+template<class TVar>
+TPZPardisoControl<TVar>::TPZPardisoControl(const TPZPardisoControl<TVar> &copy) : fSystemType(copy.fSystemType),
+fStructure(copy.fStructure), fProperty(copy.fProperty), fPardisoControl(copy.fPardisoControl), fHandle(copy.fHandle),
+fParam(copy.fParam), fMax_num_factors(copy.fMax_num_factors), fMatrix_num(copy.fMatrix_num), fMessageLevel(copy.fMessageLevel),
+fError(copy.fError), fPermutation(copy.fPermutation), fMatrixType(copy.fMatrixType)
+{
+    
+}
+
+template<class TVar>
+TPZPardisoControl<TVar> &TPZPardisoControl<TVar>::operator=(const TPZPardisoControl &copy)
+{
+    fSystemType = copy.fSystemType;
+    fStructure = copy.fStructure;
+    fProperty = copy.fProperty;
+    fPardisoControl = copy.fPardisoControl;
+    fHandle = copy.fHandle;
+    fParam = copy.fParam;
+    fMax_num_factors = copy.fMax_num_factors;
+    fMatrix_num = copy.fMatrix_num;
+    fMessageLevel = copy.fMessageLevel;
+    fError = copy.fError;
+    fPermutation = copy.fPermutation;
+    fMatrixType = copy.fMatrixType;
+    return *this;
+}
+
 
 //enum MSystemType {ESymmetric, EHermitian, EnonSymmetric};
 //
 //enum MStructure {EStructureSymmetric, EStructureNonSymmetric};
 //
 //enum MProperty {EPositiveDefinite, EIndefinite};
+
+template<class TVar>
+int DataType(TVar a)
+{
+    DebugStop();
+}
+
+
+template<>
+int DataType(double a)
+{
+    return 0;
+}
+
+template<>
+int DataType(float a)
+{
+    return 1;
+}
 
 
 template<>
@@ -37,10 +112,10 @@ long long TPZPardisoControl<double>::MatrixType()
     if (fSystemType == ESymmetric && fProperty == EPositiveDefinite) {
         fMatrixType = 2;
     }
-    if (fSystemType == EnonSymmetric && fStructure == EStructureSymmetric) {
+    if (fSystemType == ENonSymmetric && fStructure == EStructureSymmetric) {
         fMatrixType = 1;
     }
-    if (fSystemType == EnonSymmetric && fProperty == EPositiveDefinite) {
+    if (fSystemType == ENonSymmetric && fProperty == EPositiveDefinite) {
         DebugStop();
     }
     
@@ -56,6 +131,14 @@ long long TPZPardisoControl<double>::MatrixType()
     long long ia,ja,perm,nrhs;
     long long Error = 0;
     
+    for (long i=0; i<64; i++) {
+        if (fHandle[i]) {
+            DebugStop();     
+        }
+    }
+    double toto;
+    fParam[27] = ::DataType(toto);
+    fParam[34] = 1;
 //    void pardiso_64( _MKL_DSS_HANDLE_t,       const long long int *, const long long int *, const long long int *,
 //                    const long long int *, const long long int *, const void *,          const long long int *,
 //                    const long long int *, long long int *, const long long int *, long long int *,
@@ -72,3 +155,6 @@ long long TPZPardisoControl<TVar>::MatrixType()
 {
     DebugStop();
 }
+
+
+template class TPZPardisoControl<double>;

@@ -624,7 +624,7 @@ public:
 	
 	/**
 	 * @name Factorization
-	 * @brief Those member functions are related to matrices factorization
+	 * @brief Those member functions perform the matrix factorization
 	 * @{
 	 */
 	
