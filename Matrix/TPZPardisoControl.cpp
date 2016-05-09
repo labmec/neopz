@@ -8,6 +8,8 @@
 
 #include "TPZPardisoControl.h"
 
+#ifdef USING_MKL
+
 template<class TVar>
 TPZPardisoControl<TVar>::TPZPardisoControl(MSystemType systemtype, MProperty prop) : fSystemType(systemtype),
         fStructure(EStructureSymmetric), fProperty(prop), fPardisoControl(64,0), fHandle(0),
@@ -72,3 +74,5 @@ long long TPZPardisoControl<TVar>::MatrixType()
 {
     DebugStop();
 }
+
+#endif
