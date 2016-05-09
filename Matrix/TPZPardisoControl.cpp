@@ -7,7 +7,7 @@
 //
 
 #include "TPZPardisoControl.h"
-
+#ifdef USING_MKL
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
@@ -158,3 +158,4 @@ long long TPZPardisoControl<TVar>::MatrixType()
 
 
 template class TPZPardisoControl<double>;
+#endif
