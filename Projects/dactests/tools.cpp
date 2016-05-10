@@ -125,7 +125,7 @@ void tools::PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mp
     scalnames[2] = "Rhs";
     scalnames[3] = "Divergence";
     
-    int div = 4;
+    int div = 3;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
 
