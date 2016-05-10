@@ -158,7 +158,7 @@ std::map<int,int> fDebugDoF;
 //void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 //void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 
-int dim = 3;
+int dim = 2;
 REAL aa = 0.0;
 REAL bb = 0.0;
 REAL cc = 0.0;
@@ -178,8 +178,8 @@ bool IsSphere = true;
 
 //bool isspheredomain = true, iscircledomain = false, iscylinderdomain = false, isquaddomain = false;
 //bool iscircledomain = true, isspheredomain = false, iscylinderdomain = false, isquaddomain = false;
-bool iscylinderdomain = true, iscircledomain = false, isspheredomain = false, isquaddomain = false;
-//bool isquaddomain = true, iscircledomain = false, isspheredomain = false, iscylinderdomain = false;
+// bool iscylinderdomain = true, iscircledomain = false, isspheredomain = false, isquaddomain = false;
+bool isquaddomain = true, iscircledomain = false, isspheredomain = false, iscylinderdomain = false;
 
 
 #ifdef LOG4CXX
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
     int p = 1;
     int ndiv = 0;
     HDivPiola = 1;
-    ofstream saidaerros("../ErroNormas.txt",ios::app);
+    ofstream saidaerros("ErroNormas.txt",ios::app);
     
     for(p=1;p<2;p++)
     {
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
                 else if(isquaddomain)
                 {
                     LaplaceInQuadrilateral * quad = new LaplaceInQuadrilateral();
-                    quad->setTriangTrue();
+                    //quad->setTriangTrue();
                     //quad->setH1True();
                     bool HdivMaisMais = false;
                     int k = HdivMaisMais ? p+1 : p;
