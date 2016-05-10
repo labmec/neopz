@@ -49,9 +49,9 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D():TPZMaterial(){
 
 TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(int matid, int dim):TPZMaterial(matid){
     
-    if(dim<0 || dim >3){
-        DebugStop();
-    }
+//    if(dim<0 || dim >3){
+//        DebugStop();
+//    }
     
     /** Valor da funcao de carga */
     fF = 0.; //fF

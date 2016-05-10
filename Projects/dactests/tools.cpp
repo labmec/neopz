@@ -38,7 +38,7 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
     
 	bool isdirect = true;
     bool simetrico = true;
-    bool isfrontal = true;
+    bool isfrontal = false;
     if (isdirect)
     {
         if (simetrico)
@@ -57,7 +57,7 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
             {
                 //TPZBandStructMatrix full(fCmesh);
                 TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
-                skylstr.SetNumThreads(8);
+                skylstr.SetNumThreads(0);
                 //    TPZSkylineNSymStructMatrix full(fCmesh);
                 an.SetStructuralMatrix(skylstr);
             }
@@ -117,24 +117,18 @@ void tools::PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mp
 {
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    TPZManVector<std::string,10> scalnames(5), vecnames(3);
+    TPZManVector<std::string,10> scalnames(4), vecnames(2);
     vecnames[0]  = "Flux";
     vecnames[1]  = "ExactFlux";
-    vecnames[2]  = "GradP";
     scalnames[0] = "Pressure";
     scalnames[1] = "ExactPressure";
     scalnames[2] = "Rhs";
-     scalnames[3] = "Divergence";
-     scalnames[4] = "ExactDiv";
+    scalnames[3] = "Divergence";
     
-    int div = 0;
+    int div = 4;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
-    
-//    std::ofstream out("malha.txt");
-//    an.Print("nothing",out);
-    
-    //    mphysics->Solution().Print("Solucao");
+
     
 }
 

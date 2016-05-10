@@ -88,6 +88,7 @@
 #include "LaplaceInSphere.h"
 #include "LaplaceInQuadrilateral.h"
 #include "LaplaceInCube.h"
+#include "LaplaceInSolidSphere.h"
 
 #include <iostream>
 #include <string>
@@ -169,10 +170,11 @@ REAL Epsilon = 0.4;
 
 
 //bool ftriang = false;//true;//
-bool IsCubedomain = true;
+bool IsCubedomain = false;
 bool IsPrism = false;
 bool IsTetra = false;
 bool IsPiram = false;
+bool IsSphere = true;
 
 //bool isspheredomain = true, iscircledomain = false, iscylinderdomain = false, isquaddomain = false;
 //bool iscircledomain = true, isspheredomain = false, iscylinderdomain = false, isquaddomain = false;
@@ -197,15 +199,15 @@ int main(int argc, char *argv[])
 
     int p = 1;
     int ndiv = 0;
-    HDivPiola = 0;
+    HDivPiola = 1;
     ofstream saidaerros("../ErroNormas.txt",ios::app);
     
-    for(p=1;p<4;p++)
+    for(p=1;p<2;p++)
     {
         saidaerros << "\nPARA p = " << p << endl;
         saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(20) << "ErroL2Primal" << setw(20) << "ErroL2Dual" << setw(20) << "ErroL2Div" << setw(20) << "ErroHDivDual"  << endl;
         
-        for (ndiv=1; ndiv<5/*7-p*/; ndiv++)
+        for (ndiv=0; ndiv<1/*7-p*/; ndiv++)
         {
             
             if (dim==2)
@@ -279,6 +281,13 @@ int main(int argc, char *argv[])
 //                    int nref = (int) pow(2., dndiv);
 //                    gmesh = GMeshCubeWithPyramids( nref);
 //                    PyramidalMesh(gmesh,ndiv);
+                }
+                else if(IsSphere)
+                {
+                    LaplaceInSolidSphere * sphere = new LaplaceInSolidSphere();
+                    bool HdivMaisMais = false;
+                    int k = HdivMaisMais ? p+1 : p;
+                    sphere->Run( k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
                 }
                 else
                 {
