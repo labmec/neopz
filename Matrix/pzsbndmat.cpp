@@ -972,8 +972,8 @@ TPZSBMatrix<double>::SolveGeneralisedEigenProblem(TPZSBMatrix<double> &B , TPZVe
   }
   
 #ifdef USING_LAPACK
-  char jobz = 'v'; //compute eigenvectors
-  char uplo = 'u';//assume upper triangular
+  char jobz = 'V'; //compute eigenvectors
+  char uplo = 'U';//assume upper triangular
   int n = this->Dim();
   int ka = this->fBand;
   int kb = B.fBand;

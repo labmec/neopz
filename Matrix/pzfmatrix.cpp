@@ -2341,8 +2341,9 @@ int TPZFMatrix<double>::SolveEigenProblem(TPZVec < complex<double> > &eigenvalue
   TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
   int dim = Rows();
   double testwork;
-  int lwork = -1;
+  int lwork = 10+20*dim;
   int info;
+    std::complex<double> I(0,1.);
   TPZVec<double> realeigen(dim,0.);
   TPZVec<double> imageigen(dim,0.);
 
@@ -2353,27 +2354,27 @@ int TPZFMatrix<double>::SolveEigenProblem(TPZVec < complex<double> > &eigenvalue
   if (info != 0) {
       DebugStop();
   }
+//    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
   eigenvectors.Redim(dim,dim);
   eigenvalues.Resize(dim,0.);
   for(int i = 0 ; i < dim ; i ++){
-    eigenvalues[i] = realeigen[i] + sqrt(-1)*imageigen[i];
+    eigenvalues[i] = realeigen[i] + I*imageigen[i];
   }
-  double *vRptr = VR.fElem;
   for(int i = 0 ; i < dim ; i ++){
     if(imageigen[i] == 0){
       for( int iV = 0 ; iV < dim ; iV++ ){
-        eigenvectors(i,iV) = *vRptr++;
+          eigenvectors(iV,i) = VR(iV,i);
       }
     }
     else{
       double *realVRptr = VR.fElem;
       double *imagVRptr = VR.fElem + dim;
       for( int iV = 0 ; iV < dim ; iV++ ){
-        eigenvectors(i,iV) = *realVRptr++ + sqrt(-1) * (*imagVRptr++) ;
-        eigenvectors(i + 1,iV) = *realVRptr++ - sqrt(-1) * (*imagVRptr++) ;
-        i++;
-        vRptr += 2*dim;
+        eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
+        eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
       }
+        i++;
     }
   }
   

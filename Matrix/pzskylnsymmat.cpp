@@ -296,8 +296,17 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
       long offset = Size(r);
       TVar val = 0.;
       const TVar *p = &x.g((r - offset + 1), ic);
-      TVar *diag = fElemb[r] + offset - 1;
-      TVar *diaglast = fElemb[r];
+        TVar *diag, *diaglast;
+        if (opt == 0)
+        {
+            diag = fElemb[r] + offset - 1;
+            diaglast = fElemb[r];
+        }
+        else
+        {
+            diag = fElem[r] + offset - 1;
+            diaglast = fElem[r];
+        }
       while (diag > diaglast)
       {
         val += *diag--**p;
@@ -311,8 +320,16 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
       z(r, ic) += val * alpha;
       TVar *zp = &z((r - offset + 1), ic);
       val = x.g(r, ic);
-      diag = fElem[r] + offset - 1;
-      diaglast = fElem[r];
+        if(opt == 0)
+        {
+          diag = fElem[r] + offset - 1;
+          diaglast = fElem[r];
+        }
+        else
+        {
+            diag = fElemb[r] + offset - 1;
+            diaglast = fElemb[r];
+        }
       while (diag > diaglast)
       {
         *zp += alpha * *diag--*val;

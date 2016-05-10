@@ -532,7 +532,8 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	 REAL fAlpha;
 	 int fOpt;
 	 */
-    const int numthreads = 2;
+    int numthreads = 2;
+    if(opt) numthreads = 1;
 	pthread_t allthreads[numthreads];
 	TPZMThread alldata[numthreads];
 	int res[numthreads];
@@ -891,7 +892,7 @@ void TPZFYsmpMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric)
     IA[0] = 0;
     TPZVec<std::set<long> > eqs(nrow);
     for (long row=0; row<nrow; row++) {
-        eqs[row].insert(row);
+        if(nrow == ncol) eqs[row].insert(row);
         for (long col = 0; col<ncol; col++) {
             REAL test = rand()*1./RAND_MAX;
             if (test > 0.5) {
