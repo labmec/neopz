@@ -99,7 +99,7 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     
     TPZAnalysis an(mphysics, true);
     
-//    tools::SolveSyst(an, mphysics);
+    tools::SolveSyst(an, mphysics);
     
     stringstream ref,grau;
     grau << ordemP;
