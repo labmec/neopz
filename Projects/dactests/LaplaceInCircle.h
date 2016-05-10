@@ -155,7 +155,7 @@ public:
      */
     TPZGeoMesh *GMeshCirculoQuad( int ndiv);
     
-    TPZManVector<STATE,3> ParametricCircle(REAL radius,REAL theta);
+    TPZManVector<REAL,3> ParametricCircle(REAL radius,REAL theta);
     
     
     TPZGeoMesh *GmeshCirculoPorElementosRetos( int ndiv);

@@ -283,6 +283,7 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
  * @param dim Dimension of the square matrix to be build.
  * @param symmetric Whether to build a symmetric matrix
  * @note Process: uses LAPACK's routine */
+#ifdef USING_LAPACK
 template <class matx, class TVar>
 void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
   
@@ -360,8 +361,36 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
   }
   BOOST_CHECK(check);
 }
+#endif
 
 BOOST_AUTO_TEST_SUITE(matrix_tests)
+
+BOOST_AUTO_TEST_CASE(inverse_tests)
+{
+    int dim;
+    for(dim = 9;dim < 10; dim+=5) {
+        TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim,1,ECholesky);
+        TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim,1,ELDLt);
+        TestingInverseWithAutoFill<TPZSYsmpMatrix<double>, double >(dim,1,ECholesky);
+        TestingInverseWithAutoFill<TPZSYsmpMatrix<double>, double >(dim,1,ELDLt);
+        TestingInverseWithAutoFill<TPZSBMatrix<float>, float >(dim,1,ELDLt);
+        TestingInverseWithAutoFill<TPZSBMatrix<float>, float >(dim,1,ECholesky);
+        TestingInverseWithAutoFill<TPZFBMatrix<double>,double >(dim,0,ELU);
+        TestingInverseWithAutoFill<TPZFBMatrix<float>,float >(dim,0,ELU);
+        TestingInverseWithAutoFill<TPZFMatrix<float>, float>(dim,1,ECholesky);
+        TestingInverseWithAutoFill<TPZFMatrix<float>, float>(dim,0,ELU);
+        TestingInverseWithAutoFill<TPZFMatrix<double>, double>(dim,1,ECholesky);
+        TestingInverseWithAutoFill<TPZFMatrix<float>, float>(dim,1,ELDLt);
+        TestingInverseWithAutoFill<TPZFMatrix<double>, double>(dim,1,ELDLt);
+        TestingInverseWithAutoFill<TPZBlockDiagonal<float>,float >(dim,0,ELU);
+        TestingInverseWithAutoFill<TPZSkylMatrix<float>, float >(dim,1,ELDLt);
+        TestingInverseWithAutoFill<TPZFNMatrix<9,float>, float >(dim,0,ELU);
+        TestingInverseWithAutoFill<TPZSFMatrix<float>, float >(dim,1,ELDLt);
+        TestingInverseWithAutoFill<TPZSkylNSymMatrix<float>, float >(dim,0,ELU);
+        
+    }
+}
+
 
 BOOST_AUTO_TEST_CASE(multiplytranspose_tests)
 {
@@ -408,27 +437,6 @@ BOOST_AUTO_TEST_CASE(diagonaldominant_tests) {
 	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZFBMatrix<REAL> >(mafb),1);
 }
 
-BOOST_AUTO_TEST_CASE(inverse_tests)
-{
-	int dim;
-	for(dim = 9;dim < 10; dim+=5) {
-    TestingInverseWithAutoFill<TPZSBMatrix<float>, float >(dim,1,ELDLt);
-    TestingInverseWithAutoFill<TPZSBMatrix<float>, float >(dim,1,ECholesky);
-    TestingInverseWithAutoFill<TPZFBMatrix<double>,double >(dim,0,ELU);
-    TestingInverseWithAutoFill<TPZFBMatrix<float>,float >(dim,0,ELU);
-    TestingInverseWithAutoFill<TPZFMatrix<float>, float>(dim,1,ECholesky);
-    TestingInverseWithAutoFill<TPZFMatrix<float>, float>(dim,0,ELU);
-    TestingInverseWithAutoFill<TPZFMatrix<double>, double>(dim,1,ECholesky);
-    TestingInverseWithAutoFill<TPZFMatrix<float>, float>(dim,1,ELDLt);
-    TestingInverseWithAutoFill<TPZFMatrix<double>, double>(dim,1,ELDLt);
-    TestingInverseWithAutoFill<TPZBlockDiagonal<float>,float >(dim,0,ELU);
-    TestingInverseWithAutoFill<TPZSkylMatrix<float>, float >(dim,1,ELDLt);
-    TestingInverseWithAutoFill<TPZFNMatrix<9,float>, float >(dim,0,ELU);
-    TestingInverseWithAutoFill<TPZSFMatrix<float>, float >(dim,1,ELDLt);
-    TestingInverseWithAutoFill<TPZSkylNSymMatrix<float>, float >(dim,0,ELU);
-    
-	}
-}
 
 BOOST_AUTO_TEST_CASE(multiplyoperator_tests)
 {

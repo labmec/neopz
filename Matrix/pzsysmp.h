@@ -49,12 +49,25 @@ class TPZSYsmpMatrix : public TPZMatrix<TVar>{
 	/** @brief Destructor */
 	virtual ~TPZSYsmpMatrix();
     
+    /** @brief Checks if the current matrix is symmetric */
+    virtual int IsSimetric() const    { return 1; }
+    /** @brief Checks if current matrix is square */
+    inline int IsSquare() const { return 1;}
+    
+
+    
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
     void AutoFill(long nrow, long ncol, int symmetric);
 	
 	/** @brief Get the matrix entry at (row,col) without bound checking */
 	virtual const TVar &GetVal(const long row, const long col ) const;
+    
+    /** @brief Put values without bounds checking \n
+     *  This method is faster than "Put" if DEBUG is defined.
+     */
+    virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & val );
+
 	
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** @note z and x cannot overlap in memory */
@@ -84,12 +97,63 @@ class TPZSYsmpMatrix : public TPZMatrix<TVar>{
     /** @brief Decomposes the current matrix using LDLt. */
     virtual int Decompose_LDLt();
 
+    /** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
+    virtual int Decompose_Cholesky() ;
+    /**
+     * @brief Decomposes the current matrix using Cholesky method.
+     * @param singular
+     */
+    virtual int Decompose_Cholesky(std::list<long> &singular) ;
+    
+
     /** @} */
+    
+    /**
+     * @name Substitutions
+     * @brief Substitutions forward and backward
+     * @{
+     */
+    
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const;
+    
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const;
+    
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const;
+
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const;
+    
+    /**
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular.
+     * @param b right hand side and result after all
+     */
+    virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const;
+    
+
+    /** @} */
+    
+
 #endif
+
+    void ComputeDiagonal();
 
 private:
 	
-	void ComputeDiagonal();
 	
 	TPZVec<long>  fIA;
 	TPZVec<long>  fJA;

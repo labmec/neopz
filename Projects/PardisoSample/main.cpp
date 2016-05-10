@@ -22,6 +22,7 @@
 #include "mkl_pardiso.h"
 
 #include "pzsysmp.h"
+#include "pzfmatrix.h"
 
 using namespace std;
 
@@ -181,7 +182,11 @@ int main( void )
 /* ..  Reordering and Symbolic Factorization.  This step also allocates */
 /*     all memory that is necessary for the factorization.              */
 /* -------------------------------------------------------------------- */
-    phase = 11; 
+    phase = 11;
+    for (int i=0; i<64; i++) {
+        std::cout << iparm[i] << " ";
+    }
+    std::cout << std::endl;
 
     pardiso (pt, &maxfct, &mnum, &mtype, &phase,
        &n, a, ia, ja, &idum, &nrhs,
@@ -193,7 +198,7 @@ int main( void )
     }
     printf("\nReordering completed ... ");
     printf("\nNumber of nonzeros in factors  = %d", iparm[17]);
-    printf("\nNumber of factorization MFLOPS = %d", iparm[18]);
+    printf("\nNumber of factorization MFLOPS = %d\n", iparm[18]);
    
 /* -------------------------------------------------------------------- */
 /* ..  Numerical factorization.                                         */
@@ -267,7 +272,13 @@ int main( void )
         A[i] = a[i];
     }
     test.SetData(IA, JA, A);
+    TPZFMatrix<double> B(n,1);
+    for (long i=0; i<n; i++) {
+        B(i,0) = i;
+    }
     // I need to set the matrix type
+    test.Solve_LDLt(&B);
     
+    B.Print("Pardiso Solution");
     return 0;
 } 

@@ -36,6 +36,7 @@
 #include "TPZFrontSym.h"
 #include "TPBSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
+#include "TPZSSpStructMatrix.h"
 #include "pzbstrmatrix.h"
 #include "pzl2projection.h"
 
@@ -505,7 +506,7 @@ TPZCompMesh * ComputationalElasticityMesh3D(TPZGeoMesh *gmesh,int pOrder)
         mat->SetVonMises(690.);
         cmesh->InsertMaterialObject(mat);
         //int bcsidex = 9;
-        TPZFNMatrix<9> val1(3,3,0.), val2(3,1,0.);
+        TPZFNMatrix<9,STATE> val1(3,3,0.), val2(3,1,0.);
         val2(0,0) = 1.;
         cmesh->InsertMaterialObject(mat->CreateBC(mat, bctrilho1, 3, val1, val2));
     }
@@ -521,7 +522,7 @@ TPZCompMesh * ComputationalElasticityMesh3D(TPZGeoMesh *gmesh,int pOrder)
         cmesh->InsertMaterialObject(mat);
         
         //int bcsidex = 9;
-        TPZFNMatrix<9> val1(3,3,0.), val2(3,1,0.);
+        TPZFNMatrix<9,STATE> val1(3,3,0.), val2(3,1,0.);
         val2(0,0) = 1.;
         cmesh->InsertMaterialObject(mat->CreateBC(mat, bctrilho2, 3, val1, val2));
     }
@@ -548,7 +549,7 @@ TPZCompMesh * ComputationalElasticityMesh3D(TPZGeoMesh *gmesh,int pOrder)
         
         //c.c.
         //int bcbottom = 8;
-        TPZFNMatrix<9> val1(3,3,0.), val2(3,1,0.);
+        TPZFNMatrix<9,STATE> val1(3,3,0.), val2(3,1,0.);
 //        val1(0,0) = 1.e-3;
 //        val1(1,1) = 1.e-3;
 //        val1(2,2) = 1.e12;
@@ -598,7 +599,8 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
 {
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(Cmesh);
 //    strmat.SetNumThreads(8);
-    TPZSkylineStructMatrix strmat(Cmesh);
+//    TPZSkylineStructMatrix strmat(Cmesh);
+    TPZSymetricSpStructMatrix strmat(Cmesh);
     an->SetStructuralMatrix(strmat);
     
     long neq = Cmesh->NEquations();
@@ -617,15 +619,15 @@ void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
 
     an->Assemble();
     
-    std::ofstream andrade("../Andrade.mtx");
-    andrade.precision(16);
-    an->Solver().Matrix()->Print("Andrade",andrade,EMatrixMarket);
-    std::cout << "Leaving Assemble\n";
+//    std::ofstream andrade("../Andrade.mtx");
+//    andrade.precision(16);
+//    an->Solver().Matrix()->Print("Andrade",andrade,EMatrixMarket);
+//    std::cout << "Leaving Assemble\n";
 #ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-#define NONO
+//#define NONO
 #ifdef NONO
     step.SetMatrix(an->Solver().Matrix());
 
@@ -677,7 +679,7 @@ void PostProcessElasticity(TPZAnalysis &an, std::string plotfile)
     scalnames[5] = "POrder";
     vecnames[0]= "Displacement";
     const int dim = 3;
-    int div = 2;
+    int div = 0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
 }
@@ -756,7 +758,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
     an->Assemble();
     an->Rhs() *= -1.0; //- [R(U0)];
     
-    TPZAutoPointer< TPZMatrix<REAL> > matK; // getting X(Uatn)
+    TPZAutoPointer< TPZMatrix<STATE> > matK; // getting X(Uatn)
     
     bool converged = false;
     while(!converged && iter < numiter) {

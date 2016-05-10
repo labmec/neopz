@@ -82,6 +82,34 @@ const TVar &TPZSYsmpMatrix<TVar>::GetVal(const long r,const long c ) const {
 	return this->gZero;
 }
 
+/** @brief Put values without bounds checking \n
+ *  This method is faster than "Put" if DEBUG is defined.
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::PutVal(const long r,const long c,const TVar & val )
+{
+    // Get the matrix entry at (row,col) without bound checking
+    long row(r),col(c);
+    if (r > c) {
+        long temp = r;
+        row = col;
+        col = temp;
+    }
+    for(int ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
+        if ( fJA[ic] == col )
+        {
+            fA[ic] = val;
+            return;
+        }
+    }
+    if (val != (TVar(0.))) {
+        DebugStop();
+    }
+    return 0;
+    
+}
+
+
 // ****************************************************************************
 //
 // Multiply and Multiply-Add
@@ -230,18 +258,113 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 {
     Decompose_LDLt();
+    return 1;
 }
 /** @brief Decomposes the current matrix using LDLt. */
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
 {
+    if(this->IsDecomposed() == ELDLt) return 1;
+    if (this->IsDecomposed() != ENoDecompose) {
+        DebugStop();
+    }
     fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ESymmetric,TPZPardisoControl<TVar>::EIndefinite);
+    fPardisoControl.Decompose();
+    this->SetIsDecomposed(ELDLt);
+    return 1;
     
 }
 
+/** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
+{
+    if(this->IsDecomposed() == ECholesky) return 1;
+    if (this->IsDecomposed() != ENoDecompose) {
+        DebugStop();
+    }
+
+    fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ESymmetric,TPZPardisoControl<TVar>::EPositiveDefinite);
+    fPardisoControl.Decompose();
+
+    this->SetIsDecomposed(ECholesky);
+    return 1;
+}
+/**
+ * @brief Decomposes the current matrix using Cholesky method.
+ * @param singular
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
+{
+    return Decompose_Cholesky();
+}
+
+
+
 /** @} */
+
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
+{
+    TPZFMatrix<TVar> x(*b);
+    fPardisoControl.Solve(*b,x);
+    *b = x;
+    return 1;
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
+{
+    return 1;
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
+{
+    return 1;
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is lower triangular.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
+{
+    TPZFMatrix<TVar> x(*b);
+    fPardisoControl.Solve(*b,x);
+    *b = x;
+    return 1;
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is upper triangular.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
+{
+    return 1;
+}
+
+
 #endif
 
 
 
 template class TPZSYsmpMatrix<double>;
+template class TPZSYsmpMatrix<float>;

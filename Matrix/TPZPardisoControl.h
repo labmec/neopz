@@ -48,12 +48,11 @@ public:
     
     TPZPardisoControl &operator=(const TPZPardisoControl &copy);
     
+    virtual ~TPZPardisoControl();
+    
     /// change the matrix type
     // this method should only be called if the pardiso control is zero (non initialized)
     void SetMatrixType(MSystemType systemtype, MProperty prop);
-    
-    /// call the decomposition method
-    void Decompose();
     
     /// initialize the pointer to the nonsymmetric data structure
     void SetMatrix(TPZFYsmpMatrix<TVar> *matrix)
@@ -67,7 +66,11 @@ public:
         fSymmetricSystem = matrix;
     }
     
-    void Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol);
+    /// decompose the matrix acording to the method determined by SetMatrixType
+    void Decompose();
+    
+    /// Use the decomposed matrix to invert the system of equations
+    void Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
     
 protected:
     MSystemType fSystemType;

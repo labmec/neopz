@@ -37,26 +37,33 @@ TPZStructMatrix * TPZSymetricSpStructMatrix::Clone(){
 TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
                                               TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
-    LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble starting");
+    if (logger->isDebugEnabled())
+    {
+        LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble starting");
+    }
 	
     long neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
 		cout << "TPZSymetricSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-		return new TPZFYsmpMatrix<STATE>(0,0);
+		return new TPZSYsmpMatrix<STATE>(0,0);
     }
     TPZMatrix<STATE> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
-	//    TPZFYsmpMatrix *mat = dynamic_cast<TPZFYsmpMatrix *> (stiff);
+    TPZSYsmpMatrix<STATE> *mat = dynamic_cast<TPZSYsmpMatrix<STATE> *> (stiff);
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     TPZTimer before("Assembly of a sparse matrix");
     before.start();
-    LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
+    if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
 	Assemble(*stiff,rhs,guiInterface);
+    mat->ComputeDiagonal();
+    
+    std::cout << "Rhs norm " << Norm(rhs) << std::endl;
+    
     before.stop();
     std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-    LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble exiting");
+    if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble exiting");
     return stiff;
 }
 TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
@@ -125,7 +132,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
     
     TPZVec<long> Eq(totaleq+1);
     TPZVec<long> EqCol(totalvar);
-    TPZVec<STATE> EqValue(totalvar);
+    TPZVec<STATE> EqValue(totalvar,0.);
     for(i=0;i<nblock;i++){
         long iblsize = fMesh->Block().Size(i);
         long iblpos = fMesh->Block().Position(i);

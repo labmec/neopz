@@ -151,7 +151,11 @@ public:
 	/** @brief Put values without bounds checking \n
 	 *  This method is faster than "Put" if DEBUG is defined.
 	 */
-	virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & /*val*/ ) { return 0; }
+	virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & val )
+    {
+        if(val != (TVar(0.))) DebugStop();
+        return 0;
+    }
 	/** @brief Get values without bounds checking \n
 	 *  This method is faster than "Get" if DEBUG is defined.
 	 */

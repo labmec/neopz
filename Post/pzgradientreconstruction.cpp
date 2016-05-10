@@ -111,7 +111,8 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
 #endif
         
         //set data of the gradient reconstructed
-        TPZManVector<REAL,3> centerPoint, gradient;
+        TPZManVector<REAL,3> centerPoint;
+        TPZManVector<STATE,3> gradient;
         STATE cellAverage, slopeLimiter;
         fGradData->GetData(centerPoint, gradient, cellAverage, slopeLimiter);
         pGrad->SetData(centerPoint,gradient,cellAverage,slopeLimiter);

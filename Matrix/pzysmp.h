@@ -18,6 +18,10 @@ extern "C"{
 #include "pzmatrix.h"
 #include "tpzverysparsematrix.h" 
 
+#ifdef USING_MKL
+#include "TPZPardisoControl.h"
+#endif
+
 template<class TVar>
 class TPZFMatrix;
 
@@ -192,6 +196,11 @@ protected:
 	
 	int   fSymmetric;
 	
+#ifdef USING_MKL
+    friend class TPZPardisoControl<TVar>;
+    
+    TPZPardisoControl<TVar> fPardisoControl;
+#endif
 protected:
 	
 	/**
