@@ -966,7 +966,10 @@ template<>
 int
 TPZSBMatrix<double>::SolveGeneralisedEigenProblem(TPZSBMatrix<double> &B , TPZVec <double> &w, TPZFMatrix <double> &eigenVectors)
 {
-  if (  this->fRow != B.Rows() && this->fCol != B.Cols() )  TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+  if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
+  {
+      TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+  }
   
 #ifdef USING_LAPACK
   char jobz = 'v'; //compute eigenvectors
@@ -977,25 +980,19 @@ TPZSBMatrix<double>::SolveGeneralisedEigenProblem(TPZSBMatrix<double> &B , TPZVe
   int ldab = this->fBand + 1;
   int ldbb = this->fBand + 1;
   w.Resize( this->Dim() );
-  TPZVec <double> z( this->Dim() *this->Dim() );
+  TPZFMatrix<double> z( this->Dim(), this->Dim() );
   int ldz = this->Dim();
   TPZVec <double> work( 3 *this->Dim() );
   int info = -666;
   
-  dsbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), z.begin(), &ldz, work.begin(), &info);
+  dsbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), &z(0,0), &ldz, work.begin(), &info);
   if( info > 0){
     TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
   }
   else if( info < 0){
     TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
   }
-  eigenVectors.Redim(this->Dim(), this->Dim());
-  double *zPtr = z.begin();
-  for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
-    for (int iCol = 0; iCol < this->Dim(); iCol++) {
-      eigenVectors( iVec , iCol) = *zPtr++;
-    }
-  }
+    eigenVectors = z;
   
 #endif
   
@@ -1009,34 +1006,28 @@ TPZSBMatrix<complex <double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex
   if (  this->fRow != B.Rows() && this->fCol != B.Cols() )  TPZMatrix<complex <double> >::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
   
 #ifdef USING_LAPACK
-  char jobz = 'v'; //compute eigenvectors
-  char uplo = 'u';//assume upper triangular
+  char jobz[] = "Vectors"; //compute eigenvectors
+  char uplo[] = "Upper";//assume upper triangular
   int n = this->Dim();
   int ka = this->fBand;
   int kb = B.fBand;
   int ldab = this->fBand + 1;
   int ldbb = this->fBand + 1;
   w.Resize( this->Dim() );
-  TPZVec <complex <double> > z( this->Dim() *this->Dim() );
+  TPZFMatrix <complex <double> > z( this->Dim(),this->Dim(), 0. );
   int ldz = this->Dim();
   TPZVec <complex <double> > work( this->Dim() );
   TPZVec < double > rwork( 3 *this->Dim() );
   int info = -666;
   
-  zhbgv_(&jobz, &uplo, &n, &ka, &kb, (__CLPK_doublecomplex *)fDiag.begin(), &ldab,  (__CLPK_doublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_doublecomplex *)z.begin(), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
+  zhbgv_(jobz, uplo, &n, &ka, &kb, (__CLPK_doublecomplex *)fDiag.begin(), &ldab,  (__CLPK_doublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_doublecomplex *)&z(0,0), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
   if( info > 0){
     TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
   }
-  else{
-    TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
+  else if(info <0 ){
+      std::cout << "info = " << info << __PRETTY_FUNCTION__ << " SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>" << std::endl;
   }
-  eigenVectors.Redim(this->Dim(), this->Dim());
-  complex <double>  *zPtr = z.begin();
-  for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
-    for (int iCol = 0; iCol < this->Dim(); iCol++) {
-      eigenVectors( iVec , iCol) = *zPtr++;
-    }
-  }
+    eigenVectors = z;
   
 #endif
   
