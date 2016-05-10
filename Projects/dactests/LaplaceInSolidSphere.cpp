@@ -50,8 +50,8 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     {
         TPZCompMesh *cmeshH1 = CMeshH1(gmesh, ordemP, fDim);
         TPZAnalysis anh1(cmeshH1, true);
-        
-        tools::SolveSyst(anh1, cmeshH1);
+        REAL t1,t2;
+        tools::SolveSyst(anh1, cmeshH1, t1, t2);
         
         stringstream refh1,grauh1;
         grauh1 << ordemP;
@@ -98,8 +98,8 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     DofCond = mphysics->NEquations();
     
     TPZAnalysis an(mphysics, true);
-    
-    tools::SolveSyst(an, mphysics);
+    REAL t1,t2;
+    tools::SolveSyst(an, mphysics, t1, t2);
     
     stringstream ref,grau;
     grau << ordemP;
@@ -133,15 +133,19 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     std::string HdivData,L2Data;
     HdivData = filename+str+Hdiv;
     L2Data = filename+str+L2;
+    REAL error_primal, error_dual;
+    ErrorPrimalDual(cmesh2, cmesh1, error_primal, error_dual );
+//     ordemP, ndiv, DoFT, DofCond
     
-    ErrorHDiv(cmesh1, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
+    // Printing required information
     
-    ErrorL2(cmesh2, ordemP, ndiv, fDebugMapL2, fDebugMapHdiv);
+    saidaErro << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(20) << t1 << setw(20) << t2 << setw(20) << (t1+t2) << setw(20) << error_primal << setw(20) << error_dual << endl;
     
-    ErrorPrimalDual( cmesh2, cmesh1,  ordemP, ndiv, saidaErro, DoFT, DofCond);
+//    saidaErro << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" << " Razao " << setw(19) << " Assemble "<< setw(20)<< " Solve " << setw(20) <<" Ttotal " << setw(12) << "Error primal" << setw(16) << "Error dual \n";
+//    
+//    saidaErro << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(20) << sqrt(globalerrorsPrimal[1]) << setw(20) << sqrt(globalerrorsDual[1]) << setw(20) << sqrt(globalerrorsDual[2]) << setw(20) << sqrt(globalerrorsDual[3]) << endl;
     
-    
-    tools::PrintDebugMapForMathematica(HdivData, L2Data, fDebugMapL2, fDebugMapHdiv);
+    saidaErro.flush();
     
     std::cout<< " FIM (ESFERA) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     
@@ -1067,8 +1071,35 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
     mphysics->AdjustBoundaryElements();
     mphysics->CleanUpUnconnectedNodes();
     
-    if (condensacaoestatica)
-    {
+    if(material->IsUsedSecondIntegration()==false){
+        // Creating multiphysic elements into mphysics computational mesh
+        TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+        TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+        
+        
+        mphysics->ComputeNodElCon();
+        // create condensed elements
+        // increase the NumElConnected of one pressure connects in order to prevent condensation
+        for (long icel=0; icel < mphysics->NElements(); icel++) {
+            TPZCompEl  * cel = mphysics->Element(icel);
+            if(!cel) continue;
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                if (c.LagrangeMultiplier() > 0) {
+                    c.IncrementElConnected();
+                    break;
+                }
+            }
+            new TPZCondensedCompEl(cel);
+        }
+        
+        
+        mphysics->CleanUpUnconnectedNodes();
+        mphysics->ExpandSolution();
+    }
+    else{
         //Creating multiphysic elements containing skeletal elements.
         TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
         mphysics->Reference()->ResetReference();
@@ -1158,123 +1189,23 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
                     break;
                 }
             }
-            
             TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
         }
         
         mphysics->CleanUpUnconnectedNodes();
         mphysics->ExpandSolution();
     }
-    else
-    {
-        TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
-        mphysics->Reference()->ResetReference();
-        mphysics->LoadReferences();
-        
-        //        TPZMaterial * skeletonEl = material->CreateBC(mat, matskeleton, 3, val1, val2);
-        //        mphysics->InsertMaterialObject(skeletonEl);
-        
-        //        TPZLagrangeMultiplier *matskelet = new TPZLagrangeMultiplier(matskeleton, dim-1, 1);
-        //        TPZMaterial * mat2(matskelet);
-        //        mphysics->InsertMaterialObject(mat2);
-        
-        int nel = mphysics->ElementVec().NElements();
-        TPZStack< TPZStack< TPZMultiphysicsElement *,7> > wrapEl;
-        for(int el = 0; el < nel; el++)
-        {
-            TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(mphysics->Element(el));
-            if(mfcel->Dimension()==dim) TPZBuildMultiphysicsMesh::AddWrap(mfcel, fmatId, wrapEl);//criei elementos com o mesmo matId interno, portanto nao preciso criar elemento de contorno ou outro material do tipo TPZLagrangeMultiplier
-        }
-        
-        meshvec[0]->CleanUpUnconnectedNodes();
-        TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-        
-        //        //------- Create and add group elements -------
-        //        long index, nenvel;
-        //        nenvel = wrapEl.NElements();
-        //        for(int ienv=0; ienv<nenvel; ienv++){
-        //            TPZElementGroup *elgr = new TPZElementGroup(*wrapEl[ienv][0]->Mesh(),index);
-        //            nel = wrapEl[ienv].NElements();
-        //            for(int jel=0; jel<nel; jel++){
-        //                elgr->AddElement(wrapEl[ienv][jel]);
-        //            }
-        //        }
-        
-    }
-    
-    
-    
-    mphysics->ComputeNodElCon();
-    mphysics->CleanUpUnconnectedNodes();
-    mphysics->ExpandSolution();
     
     return mphysics;
-    
 }
 
 
-void LaplaceInSolidSphere::ErrorHDiv(TPZCompMesh *hdivmesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
+
+void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual)
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
-        TPZCompEl *cel = hdivmesh->ElementVec()[el];
-        if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
-        elerror.Fill(0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
-        int nerr = elerror.size();
-        for (int i=0; i<nerr; i++) {
-            globalerrors[i] += elerror[i]*elerror[i];
-        }
-        
-    }
-    //    out << "Errors associated with HDiv space - ordem polinomial = " << p << "- divisoes = " << ndiv << endl;
-    //    out << "L2 Norm for flux - "<< endl; //L2 Norm for divergence - Hdiv Norm for flux " << endl;
-    //    out <<  setw(16) << sqrt(globalerrors[1]) <<endl;// setw(25)  << sqrt(globalerrors[2]) << setw(21)  << sqrt(globalerrors[3]) << endl;
-    //
-    //    out << "L2 Norm for flux = "    << sqrt(globalerrors[1]) << endl;
-    //    out << "L2 Norm for divergence = "    << sqrt(globalerrors[2])  <<endl;
-    //    out << "Hdiv Norm for flux = "    << sqrt(globalerrors[3])  <<endl;
-    //
-    fDebugMapHdiv.insert(std::pair<REAL, REAL> (ndiv,sqrt(globalerrors[1])));
-}
-
-void LaplaceInSolidSphere::ErrorL2(TPZCompMesh *l2mesh, int p, int ndiv, std::map<REAL, REAL> &fDebugMapL2, std::map<REAL, REAL> &fDebugMapHdiv)
-{
-    long nel = l2mesh->NElements();
-    //int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globalerrors(10,0.);
-    for (long el=0; el<nel; el++) {
-        TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
-        cel->EvaluateError(SolExata, elerror, NULL);
-        int nerr = elerror.size();
-        globalerrors.resize(nerr);
-        //#ifdef LOG4CXX
-        //        if (logdata->isDebugEnabled()) {
-        //            std::stringstream sout;
-        //            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
-        //            LOGPZ_DEBUG(logdata, sout.str())
-        //        }
-        //#endif
-        for (int i=0; i<nerr; i++) {
-            globalerrors[i] += elerror[i]*elerror[i];
-        }
-        
-    }
-    //    out << "Errors associated with L2 space - ordem polinomial = " << p << "- divisoes = " << ndiv << endl;
-    //    out << "L2 Norm = "    << sqrt(globalerrors[1]) << endl;
-    fDebugMapL2.insert(std::pair<REAL, REAL> (ndiv,sqrt(globalerrors[1])));
-}
-
-void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  int p, int ndiv, std::ostream &out, int DoFT, int DofCond)
-{
-    long nel = hdivmesh->NElements();
-    int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globalerrorsDual(10,0.);
+    TPZManVector<STATE,10> globalerrorsDual(10,0.   );
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
@@ -1285,8 +1216,6 @@ void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdi
         for (int i=0; i<nerr; i++) {
             globalerrorsDual[i] += elerror[i]*elerror[i];
         }
-        
-        
     }
     
     
@@ -1299,20 +1228,15 @@ void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdi
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
-        //#ifdef LOG4CXX
-        //        if (logdata->isDebugEnabled()) {
-        //            std::stringstream sout;
-        //            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
-        //            LOGPZ_DEBUG(logdata, sout.str())
-        //        }
-        //#endif
+
         for (int i=0; i<nerr; i++) {
             globalerrorsPrimal[i] += elerror[i]*elerror[i];
         }
         
     }
     
-    out << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(28) << sqrt(globalerrorsPrimal[1]) << setw(35)  << sqrt(globalerrorsDual[1])  << endl;
+    error_primal    = globalerrorsPrimal[1];
+    error_dual      = globalerrorsDual[1];
     
 }
 

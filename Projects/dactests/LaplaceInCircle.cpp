@@ -78,8 +78,8 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     if (fisH1) {
         TPZCompMesh *cmeshH1 = this->CMeshH1(gmesh, ordemP, fDim);
         TPZAnalysis anh1(cmeshH1, true);
-        
-        tools::SolveSyst(anh1, cmeshH1);
+        REAL t1,t2;
+        tools::SolveSyst(anh1, cmeshH1, t1, t2);
         
         stringstream refh1,grauh1;
         grauh1 << ordemP;
@@ -154,8 +154,8 @@ void LaplaceInCircle::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     
     TPZAnalysis an(mphysics, true);
     
-///    tools::PrintLS(&an);
-    tools::SolveSyst(an, mphysics);
+    REAL t1,t2;
+    tools::SolveSyst(an, mphysics, t1 ,t2);
     
     {
         ofstream arg5("saida.txt");

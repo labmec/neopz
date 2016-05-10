@@ -127,7 +127,7 @@ private:
     
     bool fprisma;
     
-    bool isgeoblend;
+//    bool isgeoblend;
     
     TPZFMatrix< int > tetraedra_2;
     //int tetraedra_2[6][4];
