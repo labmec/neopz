@@ -293,72 +293,45 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
     matx ma ,mb;
     ma.AutoFill(dim,dim,symmetric);
     mb.AutoFill(dim,dim,symmetric);
-//    ma.Print("a",std::cout , EMathematicaInput);
-//    mb.Print("b",std::cout , EMathematicaInput);
+    
     BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(ma),1);
     BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(mb),1);
     
     // Making ma and mb copies because ma and mb are modified by the eigenvalues method
     bool check = true;
     matx cpmaOriginal(ma);
-    if(symmetric){
-        TPZFMatrix< TVar > cpma(ma) , cpmb(mb);
-        TPZVec < double > w;
-        TPZFMatrix < TVar > eigenVectors;
-        ma.SolveGeneralisedEigenProblem(mb, w, eigenVectors);
-//        std::cout<<w<<std::endl;
-//        for(int i = 0 ; i < dim ; i++){
-//            std::cout<<w[i]<<std::endl;
-//        }
-//        eigenVectors.Print("eV",std::cout,EMathematicaInput);
-        for( int i = 0 ; i < dim ; i++){
-            TPZFMatrix< TVar > res(dim,1,0.);
-            TPZFMatrix< TVar > x(dim,1,0.);
-            for (int j=0; j<dim; j++) {
-                x(j,0) = eigenVectors(j,i);
-            }
-            
-            res = cpma * x - ( TVar )(w[i]) * cpmb * x;
-            for( int j = 0 ; j < dim ; j++){
-                bool loccheck = IsZero(TVar(res(j,0)));
-                if (loccheck == false) {
-                    std::cout << "diff " << res(j,0) << "i = " << i << " j = " << j <<  std::endl;
-                }
-                check &= loccheck;
-            }
+    matx cpma(ma) , cpmb(mb);
+    TPZFMatrix<std::complex<double> > cpfma(dim, dim) , cpfmb(dim, dim);
+    for (int i = 0 ; i < dim; i ++) {
+        for (int j = 0 ; j < dim ; j++) {
+            cpfma(i,j) = ma(i,j);
+            cpfmb(i,j) = mb(i,j);
         }
     }
-    else
-    {
-        TPZFMatrix< TVar > cpAma(ma) , cpAmb(mb);
-        TPZFMatrix< std::complex<double> > cpma(dim,dim,0.) , cpmb(dim,dim,0.);
-        for( int i = 0 ; i < dim ; i++){
-            for( int j = 0 ; j < dim ; j++){
-                cpma(i,j) = cpAma(i,j);
-                cpmb(i,j) = cpAmb(i,j);
-            }
-        }
-        TPZVec < std::complex<double> > w;
-        TPZFMatrix < std::complex<double> > eigenVectors;
-        cpma.SolveGeneralisedEigenProblem(cpmb, w, eigenVectors);
+    
+    TPZVec < std::complex<double> > w;
+    TPZFMatrix < std::complex<double> > eigenVectors;
+    cpma.SolveGeneralisedEigenProblem(cpmb, w, eigenVectors);
+//    ma.Print("a",std::cout , EMathematicaInput);
+//    mb.Print("b",std::cout , EMathematicaInput);
+//    std::cout<<"w = ";
+//    std::cout<<w<<std::endl;
+//    eigenVectors.Print("eV",std::cout , EMathematicaInput);
+    for( int i = 0 ; i < dim ; i++){
+        TPZFMatrix< std::complex<double> > res(dim,dim,0.);
+        TPZFMatrix< std::complex<double> > x(dim,1,0.);
+        eigenVectors.GetSub(0, i, dim,1, x );
         
-        for( int i = 0 ; i < dim ; i++){
-            TPZFMatrix< std::complex<double> > res(dim,dim,0.);
-            TPZFMatrix< std::complex<double> > x(dim,1,0.);
-            eigenVectors.GetSub(0, i, dim,dim, x );
-            
-            res = cpma * x - w[i] * cpmb * x;
-            for( int j = 0 ; j < dim ; j++){
-                for( int k = 0 ; k < dim ; k++){
-                    bool loccheck = IsZero(std::complex<double>(res(j,k)/10.));
-                    if (loccheck == false) {
-                        std::cout << "diff " << res(j,k) << std::endl;
-                    }
-                    check &= loccheck;
-                }
+        res = cpfma * x - w[i] * cpfmb * x;
+        for( int j = 0 ; j < dim ; j++){
+            bool loccheck = IsZero( res(j,0)/10e8 );
+            if (loccheck == false) {
+                std::cout << "diff " << res(j,0) << std::endl;
             }
+            check &= loccheck;
         }
     }
+
     
     if (!check) {
         cpmaOriginal.Print("Matrix = ",std::cout,EMathematicaInput);
@@ -377,43 +350,47 @@ void TestingEigenValues(int dim, int symmetric) {
     
     matx ma;
     ma.AutoFill(dim,dim,symmetric);
-//    ma.Print("a",std::cout , EMathematicaInput);
+    //    ma.Print("a",std::cout , EMathematicaInput);
     
     // Making ma and mb copies because ma and mb are modified by the eigenvalues method
     bool check = true;
     matx cpmaOriginal(ma);
-//    if(symmetric){
-        TPZFMatrix< TVar > cpma(ma);
-        TPZVec < std::complex<double> > w;
-        TPZFMatrix < std::complex<double> > eigenVectors;
-        ma.SolveEigenProblem(w, eigenVectors);
-//        std::cout<<w<<std::endl;
-//        for(int i = 0 ; i < dim ; i++){
-//            std::cout<<w[i]<<std::endl;
-//        }
-//        eigenVectors.Print("eV",std::cout,EMathematicaInput);
-        for( int i = 0 ; i < dim ; i++){
-            TPZFMatrix< std::complex<double> > res(dim,1,0.);
-            TPZFMatrix< std::complex<double> > x(dim,1,0.);
-            for (int j=0; j<dim; j++) {
-                x(j,0) = eigenVectors(j,i);
-            }
-            for (int k=0; k<dim; k++) {
-                res(k,0) = - (w[i]) * x(k,0);
-                for (int l=0; l<dim; l++)
-                {
-                    res(k,0) += cpma(k,l) * x(l,0) ;
-                }
-            }
-            for( int j = 0 ; j < dim ; j++){
-                bool loccheck = IsZero(res(j,0));
-                if (loccheck == false) {
-                    std::cout << "diff " << res(j,0) << "i = " << i << " j = " << j <<  std::endl;
-                }
-                check &= loccheck;
+    //    if(symmetric){
+    TPZFMatrix< std::complex<double> > cpma( dim , dim);
+    for (int i = 0 ; i < dim; i++){
+        for (int j = 0 ; j < dim ; j++) {
+            cpma(i,j) = ma(i,j);
+        }
+    }
+    TPZVec < std::complex<double> > w;
+    TPZFMatrix < std::complex<double> > eigenVectors;
+    ma.SolveEigenProblem(w, eigenVectors);
+//    ma.Print("a = ",std::cout , EMathematicaInput);
+//    std::cout<<w<<std::endl;
+//
+//    eigenVectors.Print("eV = ",std::cout,EMathematicaInput);
+    for( int i = 0 ; i < dim ; i++){
+        TPZFMatrix< std::complex<double> > res(dim,1,0.);
+        TPZFMatrix< std::complex<double> > x(dim,1,0.);
+        for (int j=0; j<dim; j++) {
+            x(j,0) = eigenVectors(j,i);
+        }
+        for (int k=0; k<dim; k++) {
+            res(k,0) = - (w[i]) * x(k,0);
+            for (int l=0; l<dim; l++)
+            {
+                res(k,0) += cpma(k,l) * x(l,0) ;
             }
         }
-//    }
+        for( int j = 0 ; j < dim ; j++){
+            bool loccheck = IsZero(res(j,0)/10e8 );
+            if (loccheck == false) {
+                std::cout << "diff " << res(j,0) << "i = " << i << " j = " << j <<  std::endl;
+            }
+            check &= loccheck;
+        }
+    }
+    //    }
     
     if (!check) {
         cpmaOriginal.Print("Matrix = ",std::cout,EMathematicaInput);
@@ -434,14 +411,32 @@ BOOST_AUTO_TEST_CASE(eigenvalue_tests)
     for (int dim = 5; dim < 6; dim += 10) {
         TestingEigenValues<TPZFMatrix<double>, double >(dim, 1);
         TestingEigenValues<TPZFMatrix<double>, double >(dim, 0);
+        TestingEigenValues<TPZFMatrix<float>, float >(dim, 1);
+        TestingEigenValues<TPZFMatrix<float>, float >(dim, 0);
+        TestingEigenValues<TPZFMatrix<std::complex<double> >, std::complex<double>  >(dim, 1);
+        TestingEigenValues<TPZFMatrix<std::complex<double> >, std::complex<double>  >(dim, 0);
+        TestingEigenValues<TPZFMatrix<std::complex<float> >, std::complex<float>  >(dim, 1);
+        TestingEigenValues<TPZFMatrix<std::complex<float> >, std::complex<float>  >(dim, 0);
+        
+        TestingEigenValues<TPZSBMatrix<double >, double>(dim, 1);
+        TestingEigenValues<TPZSBMatrix<float>, float>(dim, 1);
+        TestingEigenValues<TPZSBMatrix<std::complex<float> >, std::complex<float>  >(dim, 1);
+        TestingEigenValues<TPZSBMatrix<std::complex<double> >, std::complex<double>  >(dim, 1);
     }
 }
 
 BOOST_AUTO_TEST_CASE(generalized_eigenvalue_tests)
 {
     for (int dim = 5; dim < 6; dim += 10) {
+        TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<float>, float >(dim, 1);
+        TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<std::complex<float> >, std::complex<float> >(dim, 1);
         TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<double>, double >(dim, 1);
         TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<std::complex<double> >, std::complex<double> >(dim, 1);
+        TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<float>, float >(dim, 1);
+        TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<std::complex<float> >, std::complex<float> >(dim, 1);
+        TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<double>, double >(dim, 1);
+        TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<std::complex<double> >, std::complex<double> >(dim, 1);
+        
     }
 }
 #endif
@@ -450,10 +445,12 @@ BOOST_AUTO_TEST_CASE(inverse_tests)
 {
     int dim;
     for(dim = 9;dim < 10; dim+=5) {
+#ifdef USING_MKL
         TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim,1,ECholesky);
         TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim,1,ELDLt);
         TestingInverseWithAutoFill<TPZSYsmpMatrix<double>, double >(dim,1,ECholesky);
         TestingInverseWithAutoFill<TPZSYsmpMatrix<double>, double >(dim,1,ELDLt);
+#endif
         TestingInverseWithAutoFill<TPZSBMatrix<float>, float >(dim,1,ELDLt);
         TestingInverseWithAutoFill<TPZSBMatrix<float>, float >(dim,1,ECholesky);
         TestingInverseWithAutoFill<TPZFBMatrix<double>,double >(dim,0,ELU);

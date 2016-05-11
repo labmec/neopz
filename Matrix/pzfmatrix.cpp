@@ -75,17 +75,17 @@ using namespace std;
 
 template <class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(const TPZMatrix<TVar> &mat) : TPZMatrix<TVar>(mat), fElem(0),fGiven(0),fSize(0) {
-	if(this->fRow*this->fCol) {
+    if(this->fRow*this->fCol) {
         
-		fElem = new TVar[this->fRow*this->fCol];
-		TVar * p = fElem;
-		long i,j;
-		for(j=0; j<this->fCol; j++) {
-			for(i=0; i<this->fRow; i++) {
-				*p++ = mat.GetVal(i,j);
-			}
-		}
-	}
+        fElem = new TVar[this->fRow*this->fCol];
+        TVar * p = fElem;
+        long i,j;
+        for(j=0; j<this->fCol; j++) {
+            for(i=0; i<this->fRow; i++) {
+                *p++ = mat.GetVal(i,j);
+            }
+        }
+    }
 }
 
 
@@ -143,100 +143,100 @@ TPZFMatrix<TVar>::TPZFMatrix(TPZVerySparseMatrix <TVar> const & A)
 /*** Operator = ***/
 template<class TVar>
 TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
-	if(this == &A) return *this;
-	long size = A.fRow * A.fCol;
+    if(this == &A) return *this;
+    long size = A.fRow * A.fCol;
     
-	TVar * newElem = fElem;
-	if(fSize < size && size != this->fRow*this->fCol) {
-		newElem = new TVar
+    TVar * newElem = fElem;
+    if(fSize < size && size != this->fRow*this->fCol) {
+        newElem = new TVar
         [size] ;
-	} else if (fSize >= size) {
-		newElem = fGiven;
-	}
+    } else if (fSize >= size) {
+        newElem = fGiven;
+    }
     
-	if ( newElem == NULL && size > 0) Error( "Operator= <memory allocation error>." );
-	if (fElem && fElem != newElem && fElem != fGiven) delete[]( fElem );
-	this->fRow  = A.fRow;
-	this->fCol  = A.fCol;
-	fElem = newElem;
+    if ( newElem == NULL && size > 0) Error( "Operator= <memory allocation error>." );
+    if (fElem && fElem != newElem && fElem != fGiven) delete[]( fElem );
+    this->fRow  = A.fRow;
+    this->fCol  = A.fCol;
+    fElem = newElem;
     
-	// Copia a matriz
-	memcpy(fElem,A.fElem,(size_t)size*sizeof(TVar));
+    // Copia a matriz
+    memcpy(fElem,A.fElem,(size_t)size*sizeof(TVar));
     
     TPZMatrix<TVar>::operator=(A);
-
-
-	return *this;
+    
+    
+    return *this;
 }
 
 template <class TVar>
 void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &destination) {
-	if(rhs.Cols() != this->Cols()) {
-		PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-		DebugStop();
-		return;
-	}
-	long ncol = this->Cols();
-	long nrow = rhs.Rows();
-	long i,j;
-	for(j=0; j<ncol; j++) {
-		for(i=0; i<nrow; i++) {
-			operator()(destination[i],j) += rhs(i,j);
-		}
-	}
+    if(rhs.Cols() != this->Cols()) {
+        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
+        DebugStop();
+        return;
+    }
+    long ncol = this->Cols();
+    long nrow = rhs.Rows();
+    long i,j;
+    for(j=0; j<ncol; j++) {
+        for(i=0; i<nrow; i++) {
+            operator()(destination[i],j) += rhs(i,j);
+        }
+    }
 }
 
 template<class TVar>
 void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<long> &source, TPZVec<long> &destination) {
-	if(rhs.Cols() != this->Cols() && source.NElements()) {
-		PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-		DebugStop();
-		return;
-	}
-	long ncol = this->Cols();
-	long nrow = source.NElements();
-	long i,j;
-	for(j=0; j<ncol; j++) {
-		for(i=0; i<nrow; i++) {
-			operator()(destination[i],j) += rhs(source[i],j);
-		}
-	}
+    if(rhs.Cols() != this->Cols() && source.NElements()) {
+        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
+        DebugStop();
+        return;
+    }
+    long ncol = this->Cols();
+    long nrow = source.NElements();
+    long i,j;
+    for(j=0; j<ncol; j++) {
+        for(i=0; i<nrow; i++) {
+            operator()(destination[i],j) += rhs(source[i],j);
+        }
+    }
 }
 
 template<>
 void TPZFMatrix<double>::AddFel(TPZFMatrix<double> &rhs,TPZVec<long> &source, TPZVec<long> &destination) {
-	if(rhs.Cols() != this->Cols() && source.NElements()) {
-		PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-		DebugStop();
-		return;
-	}
-	long ncol = this->Cols();
-	long nrow = source.NElements();
-	long i,j;
-	for(j=0; j<ncol; j++) {
-		for(i=0; i<nrow; i++) {
+    if(rhs.Cols() != this->Cols() && source.NElements()) {
+        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
+        DebugStop();
+        return;
+    }
+    long ncol = this->Cols();
+    long nrow = source.NElements();
+    long i,j;
+    for(j=0; j<ncol; j++) {
+        for(i=0; i<nrow; i++) {
 #pragma omp atomic
-			operator()(destination[i],j) += rhs(source[i],j);
-		}
-	}
+            operator()(destination[i],j) += rhs(source[i],j);
+        }
+    }
 }
 
 template<>
 void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<long> &source, TPZVec<long> &destination) {
-	if(rhs.Cols() != this->Cols() && source.NElements()) {
-		PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
-		DebugStop();
-		return;
-	}
-	long ncol = this->Cols();
-	long nrow = source.NElements();
-	long i,j;
-	for(j=0; j<ncol; j++) {
-		for(i=0; i<nrow; i++) {
+    if(rhs.Cols() != this->Cols() && source.NElements()) {
+        PZError << "TPZFMatrix::AddFel number of columns does not correspond\n";
+        DebugStop();
+        return;
+    }
+    long ncol = this->Cols();
+    long nrow = source.NElements();
+    long i,j;
+    for(j=0; j<ncol; j++) {
+        for(i=0; i<nrow; i++) {
 #pragma omp atomic
-			operator()(destination[i],j) += rhs(source[i],j);
-		}
-	}
+            operator()(destination[i],j) += rhs(source[i],j);
+        }
+    }
 }
 
 
@@ -246,44 +246,44 @@ void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<long> &source, TPZV
 
 template <class TVar>
 TPZFMatrix<TVar> TPZFMatrix<TVar>::operator+(const TPZFMatrix<TVar> &A ) const {
-	if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
-		Error( "Operator+ <matrixs with different dimensions>" );
+    if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
+        Error( "Operator+ <matrixs with different dimensions>" );
     
-	TPZFMatrix<TVar> res;
-	res.Redim( this->Rows(), this->Cols() );
-	long size = ((long)this->Rows()) * this->Cols();
-	TVar * pm = fElem, *plast = fElem+size;
-	TVar * pa = A.fElem;
-	TVar * pr = res.fElem;
+    TPZFMatrix<TVar> res;
+    res.Redim( this->Rows(), this->Cols() );
+    long size = ((long)this->Rows()) * this->Cols();
+    TVar * pm = fElem, *plast = fElem+size;
+    TVar * pa = A.fElem;
+    TVar * pr = res.fElem;
     
-	while(pm < plast) *pr++ = (*pm++) + (*pa++);
+    while(pm < plast) *pr++ = (*pm++) + (*pa++);
     
-	return( res );
+    return( res );
 }
 
 /*******************************/
 /*** Operator-( TPZFMatrix<>& ) ***/
 template <class TVar>
 TPZFMatrix<TVar> TPZFMatrix<TVar>::operator-(const TPZFMatrix<TVar> &A ) const {
-	if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
-		Error( "Operator- <matrixs with different dimensions>" );
+    if ( (A.Rows() != this->Rows())  ||  (A.Cols() != this->Cols()) )
+        Error( "Operator- <matrixs with different dimensions>" );
     
-	TPZFMatrix<TVar> res;
-	res.Redim( this->Rows(), this->Cols() );
-	long size = ((long)this->Rows()) * this->Cols();
-	TVar * pm = fElem;
-	TVar * pa = A.fElem;
-	TVar * pr = res.fElem, *prlast =pr+size;
+    TPZFMatrix<TVar> res;
+    res.Redim( this->Rows(), this->Cols() );
+    long size = ((long)this->Rows()) * this->Cols();
+    TVar * pm = fElem;
+    TVar * pa = A.fElem;
+    TVar * pr = res.fElem, *prlast =pr+size;
     
-	while(pr < prlast) *pr++ = (*pm++) - (*pa++);
-	return( res );
+    while(pr < prlast) *pr++ = (*pm++) - (*pa++);
+    return( res );
 }
 
 template<>
 void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &TransfToOrthog)
 {
-	std::cout << "Nothing to do\n";
-	DebugStop();
+    std::cout << "Nothing to do\n";
+    DebugStop();
 }
 
 #ifdef _AUTODIFF
@@ -291,7 +291,7 @@ void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &Tran
 template <>
 void TPZFMatrix<TFad<6,REAL> >::GramSchmidt(TPZFMatrix<TFad<6,REAL> > &Orthog, TPZFMatrix<TFad<6, REAL> > &TransfToOrthog)
 {
-	DebugStop();
+    DebugStop();
 }
 
 template <>
@@ -306,178 +306,178 @@ template <class TVar>
 void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &TransfToOrthog)
 {
 #ifdef LOG4CXX2
-	if (logger->isDebugEnabled())
-	{
-		std::stringstream sout;
-		Print("GrSchmidt Entrada",sout);
-		LOGPZ_DEBUG(logger,sout.str())
-	}
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        Print("GrSchmidt Entrada",sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
 #endif
     
-	double scale = 1.;
-	for(long j = 0; j < this->Cols(); j++)
-	{
-		double norm = 0.;
-		for(long i = 0; i < this->Rows(); i++)
-		{
-			norm += fabs(this->GetVal(i,j)*this->GetVal(i,j));
-		}
-		norm = sqrt(norm);
-		if(norm > 1.e-10)
-		{
-			if((1.)/norm > scale) scale = (1.)/norm;
-		}
-	}
+    double scale = 1.;
+    for(long j = 0; j < this->Cols(); j++)
+    {
+        double norm = 0.;
+        for(long i = 0; i < this->Rows(); i++)
+        {
+            norm += fabs(this->GetVal(i,j)*this->GetVal(i,j));
+        }
+        norm = sqrt(norm);
+        if(norm > 1.e-10)
+        {
+            if((1.)/norm > scale) scale = (1.)/norm;
+        }
+    }
     
-	this->operator *=( scale );
+    this->operator *=( scale );
     
-	long QTDcomp = this->Rows();
-	long QTDvec = this->Cols();
-	Orthog.Resize(QTDcomp,QTDvec);
-	Orthog.Zero();
-	/// Making a copy of *this (Ortog = *this)
-	for(long r = 0; r < QTDcomp; r++)
-	{
-		for(long c = 0; c < QTDvec; c++)
-		{
-			Orthog(r,c) = GetVal(r,c);
-		}
-	}
+    long QTDcomp = this->Rows();
+    long QTDvec = this->Cols();
+    Orthog.Resize(QTDcomp,QTDvec);
+    Orthog.Zero();
+    /// Making a copy of *this (Ortog = *this)
+    for(long r = 0; r < QTDcomp; r++)
+    {
+        for(long c = 0; c < QTDvec; c++)
+        {
+            Orthog(r,c) = GetVal(r,c);
+        }
+    }
     
 #ifdef PZDEBUG
-	int check = 0;
-	for(long c = 0; c < QTDvec; c++)
-	{
-		TVar summ = 0.;
-		for(long r = 0; r < QTDcomp; r++)
-		{
-			summ += fabs(GetVal(r,c));
-		}
-		if(fabs(summ) < 0.00001)
-		{
-			std::stringstream sout;
-			sout << "Null Vector on Gram-Schmidt Method! Col = " << c << "\n";
-			LOGPZ_ERROR(logger,sout.str())
+    int check = 0;
+    for(long c = 0; c < QTDvec; c++)
+    {
+        TVar summ = 0.;
+        for(long r = 0; r < QTDcomp; r++)
+        {
+            summ += fabs(GetVal(r,c));
+        }
+        if(fabs(summ) < 0.00001)
+        {
+            std::stringstream sout;
+            sout << "Null Vector on Gram-Schmidt Method! Col = " << c << "\n";
+            LOGPZ_ERROR(logger,sout.str())
             check = 1;
-		}
-	}
+        }
+    }
 #endif
     
-	TVar dotUp, dotDown;
-	for(long c = 1; c < QTDvec; c++)
-	{
-		for(long stop = 0; stop < c; stop++)
-		{
-			dotUp = 0.;
-			dotDown = 0.;
-			for(long r = 0; r < QTDcomp; r++)
-			{
-				dotUp += GetVal(r,c)*Orthog(r,stop);
-				dotDown += Orthog(r,stop)*Orthog(r,stop);
-			}
-			if(fabs(dotDown) < 1.E-8)
-			{
+    TVar dotUp, dotDown;
+    for(long c = 1; c < QTDvec; c++)
+    {
+        for(long stop = 0; stop < c; stop++)
+        {
+            dotUp = 0.;
+            dotDown = 0.;
+            for(long r = 0; r < QTDcomp; r++)
+            {
+                dotUp += GetVal(r,c)*Orthog(r,stop);
+                dotDown += Orthog(r,stop)*Orthog(r,stop);
+            }
+            if(fabs(dotDown) < 1.E-8)
+            {
 #ifdef PZDEBUG
-				if(check == 0)
-				{
-					std::stringstream sout;
-					sout << "Parallel Vectors on Gram-Schmidt Method! Col = " << stop << "\n";
-					LOGPZ_ERROR(logger,sout.str())
-				}
+                if(check == 0)
+                {
+                    std::stringstream sout;
+                    sout << "Parallel Vectors on Gram-Schmidt Method! Col = " << stop << "\n";
+                    LOGPZ_ERROR(logger,sout.str())
+                }
 #endif
                 
-				for(long r = 0; r < QTDcomp; r++)
-				{
-					Orthog(r,stop) = 0.;
-				}
-			}
-			else
-			{
+                for(long r = 0; r < QTDcomp; r++)
+                {
+                    Orthog(r,stop) = 0.;
+                }
+            }
+            else
+            {
 #ifdef LOG4CXX2
-				if (logger->isDebugEnabled())
-				{
-					std::stringstream sout;
-					sout << "dotdown = " << dotDown << " dotup = " << dotUp;
-					LOGPZ_DEBUG(logger,sout.str())
-				}
+                if (logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "dotdown = " << dotDown << " dotup = " << dotUp;
+                    LOGPZ_DEBUG(logger,sout.str())
+                }
 #endif
                 
-				for(long r = 0; r < QTDcomp; r++)
-				{
-					Orthog(r,c) -= dotUp*Orthog(r,stop)/dotDown;
-				}
-			}
-		}
-	}
-	for(long c = 0; c < QTDvec; c++)
-	{
-		dotUp = 0.;
-		for(long r = 0; r < QTDcomp; r++)
-		{
-			dotUp += Orthog(r,c)*Orthog(r,c);
-		}
-		if(fabs(dotUp) > 1.e-8)
-		{
-			for(long r = 0; r < QTDcomp; r++)
-			{
-				Orthog(r,c) = Orthog(r,c)/sqrt(dotUp);
-			}
-		}
-		else {
+                for(long r = 0; r < QTDcomp; r++)
+                {
+                    Orthog(r,c) -= dotUp*Orthog(r,stop)/dotDown;
+                }
+            }
+        }
+    }
+    for(long c = 0; c < QTDvec; c++)
+    {
+        dotUp = 0.;
+        for(long r = 0; r < QTDcomp; r++)
+        {
+            dotUp += Orthog(r,c)*Orthog(r,c);
+        }
+        if(fabs(dotUp) > 1.e-8)
+        {
+            for(long r = 0; r < QTDcomp; r++)
+            {
+                Orthog(r,c) = Orthog(r,c)/sqrt(dotUp);
+            }
+        }
+        else {
 #ifdef LOG4CXX
-			std::stringstream sout;
-			sout << "Linearly dependent columns dotUp = " << dotUp;
-			LOGPZ_ERROR(logger,sout.str())
+            std::stringstream sout;
+            sout << "Linearly dependent columns dotUp = " << dotUp;
+            LOGPZ_ERROR(logger,sout.str())
 #endif
             
             for(long r = 0; r < QTDcomp; r++)
             {
                 Orthog(r,c) = 0.;
             }
-		}
+        }
         
-	}
-	Orthog.Multiply(*this,TransfToOrthog,1);
+    }
+    Orthog.Multiply(*this,TransfToOrthog,1);
     
-	this->operator*= ( 1./scale );
-	TransfToOrthog.operator*= ( 1./scale );
+    this->operator*= ( 1./scale );
+    TransfToOrthog.operator*= ( 1./scale );
     
 #ifdef LOG4CXX2
-	if (logger->isDebugEnabled())
-	{
-		std::stringstream sout;
-		sout << endl;
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << endl;
         sout << "Output GS" << endl;
-		Orthog.Print("Orthog matrix",sout);
-		TransfToOrthog.Print("TransfToOrthog matrix",sout);
-		LOGPZ_DEBUG(logger,sout.str())
-	}
+        Orthog.Print("Orthog matrix",sout);
+        TransfToOrthog.Print("TransfToOrthog matrix",sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
 #endif
     
 #ifdef PZDEBUG
-	TPZFNMatrix<9, TVar> OrthogT;
-	Orthog.Transpose(&OrthogT);
-	TPZAxesTools<TVar>::VerifyAxes(OrthogT);
+    TPZFNMatrix<9, TVar> OrthogT;
+    Orthog.Transpose(&OrthogT);
+    TPZAxesTools<TVar>::VerifyAxes(OrthogT);
 #endif
 }
 
 template <>
 void TPZFMatrix<TPZFlopCounter>::GramSchmidt(TPZFMatrix<TPZFlopCounter> &Orthog, TPZFMatrix<TPZFlopCounter> &TransfToOrthog)
 {
-	std::cout << __PRETTY_FUNCTION__ << " please implement me\n";
-	DebugStop();
+    std::cout << __PRETTY_FUNCTION__ << " please implement me\n";
+    DebugStop();
 }
 
 template <class TVar>
 void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &inverse)
 {
-	TPZFNMatrix<100, TVar> copy(*this);
-	inverse.Redim(this->Rows(),this->Rows());
-	long r;
-	for(r=0; r<this->Rows(); r++) inverse(r,r) = 1.;
-	copy.Solve_LU(&inverse);
-	determinant = 1.;
-	for(r=0; r<this->Rows(); r++) determinant *= copy(r,r);
+    TPZFNMatrix<100, TVar> copy(*this);
+    inverse.Redim(this->Rows(),this->Rows());
+    long r;
+    for(r=0; r<this->Rows(); r++) inverse(r,r) = 1.;
+    copy.Solve_LU(&inverse);
+    determinant = 1.;
+    for(r=0; r<this->Rows(); r++) determinant *= copy(r,r);
 }
 
 
@@ -487,73 +487,73 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZF
 {
     
     
-	if ((!opt && cols != x.Rows()) || (opt && rows != x.Rows())) {
-		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-		return;
-	}
-	if(beta != (TVar)0. && ((!opt && rows != y.Rows()) || (opt && cols != y.Rows()) || y.Cols() != x.Cols())) {
-		Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-		return;
-	}
-	if(!opt) {
-		if(z.Cols() != x.Cols() || z.Rows() != rows) {
-			z.Redim(rows,x.Cols());
-		}
-	} else {
-		if(z.Cols() != x.Cols() || z.Rows() != cols) {
-			z.Redim(cols,x.Cols());
-		}
-	}
-	unsigned numeq = opt ? cols : rows;
-	long xcols = x.Cols();
-	long ic, c;
-	if(!(rows*cols)) return;
-	for (ic = 0; ic < xcols; ic++) {
-		TVar *zp = &z(0,ic), *zlast = zp+numeq;
-		if(beta != (TVar)0.) {
-			const TVar *yp = &y.g(0,ic);
+    if ((!opt && cols != x.Rows()) || (opt && rows != x.Rows())) {
+        Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+        return;
+    }
+    if(beta != (TVar)0. && ((!opt && rows != y.Rows()) || (opt && cols != y.Rows()) || y.Cols() != x.Cols())) {
+        Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+        return;
+    }
+    if(!opt) {
+        if(z.Cols() != x.Cols() || z.Rows() != rows) {
+            z.Redim(rows,x.Cols());
+        }
+    } else {
+        if(z.Cols() != x.Cols() || z.Rows() != cols) {
+            z.Redim(cols,x.Cols());
+        }
+    }
+    unsigned numeq = opt ? cols : rows;
+    long xcols = x.Cols();
+    long ic, c;
+    if(!(rows*cols)) return;
+    for (ic = 0; ic < xcols; ic++) {
+        TVar *zp = &z(0,ic), *zlast = zp+numeq;
+        if(beta != (TVar)0.) {
+            const TVar *yp = &y.g(0,ic);
             if(&z != &y) {
-				memcpy(zp,yp,numeq*sizeof(TVar));
-			}
+                memcpy(zp,yp,numeq*sizeof(TVar));
+            }
             for(long i=0; i< numeq; i++) for(long c=0; c<xcols; c++) z(i,c) *= beta;
-		} else {
-			while(zp != zlast) {
-				*zp = 0.;
-				zp ++;
-			}
-		}
-	}
+        } else {
+            while(zp != zlast) {
+                *zp = 0.;
+                zp ++;
+            }
+        }
+    }
     
     
-	for (ic = 0; ic < xcols; ic++) {
-		if(!opt) {
-			for ( c = 0; c<cols; c++) {
-				TVar * zp = &z(0,ic), *zlast = zp+rows;
-				const TVar * fp = ptr +rows*c;
-				const TVar * xp = &x.g(c,ic);
-				while(zp < zlast) {
-					*zp += alpha* *fp++ * *xp;
-					zp ++;
-				}
-			}
-		} else {
-			const TVar * fp = ptr;
-			TVar *zp = &z(0,ic);
-			for (c = 0; c<cols; c++) {
-				TVar val = 0.;
-				// bug correction philippe 5/2/97
-				//					 REAL * xp = &x(0,ic), xlast = xp + numeq;
-				const TVar *xp = &x.g(0,ic);
-				const TVar *xlast = xp + rows;
-				while(xp < xlast) {
-					val += *fp++ * *xp;
-					xp ++;
-				}
-				*zp += alpha *val;
-				zp ++;
-			}
-		}
-	}
+    for (ic = 0; ic < xcols; ic++) {
+        if(!opt) {
+            for ( c = 0; c<cols; c++) {
+                TVar * zp = &z(0,ic), *zlast = zp+rows;
+                const TVar * fp = ptr +rows*c;
+                const TVar * xp = &x.g(c,ic);
+                while(zp < zlast) {
+                    *zp += alpha* *fp++ * *xp;
+                    zp ++;
+                }
+            }
+        } else {
+            const TVar * fp = ptr;
+            TVar *zp = &z(0,ic);
+            for (c = 0; c<cols; c++) {
+                TVar val = 0.;
+                // bug correction philippe 5/2/97
+                //					 REAL * xp = &x(0,ic), xlast = xp + numeq;
+                const TVar *xp = &x.g(0,ic);
+                const TVar *xlast = xp + rows;
+                while(xp < xlast) {
+                    val += *fp++ * *xp;
+                    xp ++;
+                }
+                *zp += alpha *val;
+                zp ++;
+            }
+        }
+    }
     
     
     
@@ -562,81 +562,81 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZF
 }
 
 #ifdef USING_LAPACK
-template<> 
+template<>
 void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<double> &y, TPZFMatrix<double> &z,
                                  const double alpha,const double beta,const int opt) const {
     
 #ifdef PZDEBUG
-	if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
-		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-		return;
-	}
-	if(beta != (double)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-		Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-		return;
-	}
-#endif
-	if(!opt) {
-		if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
-			z.Redim(this->Rows(),x.Cols());
-		}
-	} else {
-		if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
-			z.Redim(this->Cols(),x.Cols());
-		}
-	}
-	if(this->Cols() == 0) {
-		z.Zero();
+    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+        Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
         return;
-	}
-	if (beta != (double)0.) {
-	   	z = y;
-	}
-	if (!opt) { 
+    }
+    if(beta != (double)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+        Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+        return;
+    }
+#endif
+    if(!opt) {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
+            z.Redim(this->Rows(),x.Cols());
+        }
+    } else {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
+            z.Redim(this->Cols(),x.Cols());
+        }
+    }
+    if(this->Cols() == 0) {
+        z.Zero();
+        return;
+    }
+    if (beta != (double)0.) {
+        z = y;
+    }
+    if (!opt) {
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
-                alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
-	} else {
+                    alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
+    } else {
         cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans, this->Cols(), x.Cols(), this->Rows(),
                     alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
-	}
+    }
     
-} 
-template<> 
+}
+template<>
 void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<float> &y, TPZFMatrix<float> &z,
                                 const float alpha,const float beta,const int opt) const {
     
 #ifdef PZDEBUG
-	if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
-		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
-		return;
-	}
-	if(beta != (float)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
-		Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
-		return;
-	}
+    if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows())) {
+        Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+        return;
+    }
+    if(beta != (float)0. && ((!opt && this->Rows() != y.Rows()) || (opt && this->Cols() != y.Rows()) || y.Cols() != x.Cols())) {
+        Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+        return;
+    }
 #endif
-	if(!opt) {
-		if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
-			z.Redim(this->Rows(),x.Cols());
-		}
-	} else {
-		if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
-			z.Redim(this->Cols(),x.Cols());
-		}
-	}
-	if(this->Cols() == 0) {
-		z.Zero();
-	}
-	if (beta != (float)0.) {
-	   	z = y;
-	}
-	if (!opt) { 
+    if(!opt) {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Rows()) {
+            z.Redim(this->Rows(),x.Cols());
+        }
+    } else {
+        if(z.Cols() != x.Cols() || z.Rows() != this->Cols()) {
+            z.Redim(this->Cols(),x.Cols());
+        }
+    }
+    if(this->Cols() == 0) {
+        z.Zero();
+    }
+    if (beta != (float)0.) {
+        z = y;
+    }
+    if (!opt) {
         cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
                     alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
-	} else {
+    } else {
         cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans, this->Cols(), x.Cols(), this->Rows(),
                     alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
-	}
+    }
     
 }
 #endif
@@ -690,7 +690,7 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
                     memcpy(zp,yp,numeq*sizeof(TVar));
                 }
                 for(long i=0; i< numeq; i++) z(i,ic) *= beta;
-
+                
             } else {
                 while(zp != zlast) {
                     *zp = 0.;
@@ -785,9 +785,9 @@ void TPZFMatrix<TVar>::ZAXPY(const TVar alpha,const TPZFMatrix<TVar> &p) {
 template<>
 void TPZFMatrix<double>::TimesBetaPlusZ(const double beta,const TPZFMatrix<double> &z)
 {
- 	int size = fRow*fCol;
- 	cblas_dscal(size,beta,fElem,1);
- 	cblas_daxpy(size,1.,z.fElem,1,fElem,1);
+    int size = fRow*fCol;
+    cblas_dscal(size,beta,fElem,1);
+    cblas_daxpy(size,1.,z.fElem,1,fElem,1);
 }
 #endif
 
@@ -1009,12 +1009,12 @@ int TPZFMatrix<float>::Decompose_LU(TPZVec<int> &index) {
     
     fPivot.Resize(nRows);
     
-//    int sgesv_(__CLPK_integer *__n, __CLPK_integer *__nrhs, __CLPK_real *__a,
-//               __CLPK_integer *__lda, __CLPK_integer *__ipiv, __CLPK_real *__b,
-//               __CLPK_integer *__ldb,
-//               __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
-//                                                                __IPHONE_4_0);
-
+    //    int sgesv_(__CLPK_integer *__n, __CLPK_integer *__nrhs, __CLPK_real *__a,
+    //               __CLPK_integer *__lda, __CLPK_integer *__ipiv, __CLPK_real *__b,
+    //               __CLPK_integer *__ldb,
+    //               __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
+    //                                                                __IPHONE_4_0);
+    
     
     sgesv_(&nRows,&zero,fElem,&nRows,&fPivot[0],&b,&nRows,&info);
     index = fPivot;
@@ -1199,7 +1199,7 @@ template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU() {
     
     std::list<long> fake;
-    return this->Decompose_LU(fake); 
+    return this->Decompose_LU(fake);
 }
 
 
@@ -1469,16 +1469,16 @@ int TPZFMatrix<float>::Decompose_Cholesky(std::list<long> &singular) {
     if (  this->fDecomposed ) return ECholesky;
     if ( this->Rows() != this->Cols() ) Error( "Decompose_Cholesky <Matrix must be square>" );
     int dim=this->Dim();
-
+    
     TPZFMatrix<float> B(*this);
     int nrhs = 0;
     float *A = fElem;
     char uplo = 'U';
     int info;
-//    sposv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
+    //    sposv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     spotrf_(&uplo, &dim, A, &dim, &info);
     this->fDecomposed = ECholesky;
-
+    
     if (info != 0) {
         DebugStop();
     }
@@ -1498,7 +1498,7 @@ int TPZFMatrix<double>::Decompose_Cholesky(std::list<long> &singular) {
     int info;
     dpotrf_(&uplo, &dim, A, &dim, &info);
     this->fDecomposed = ECholesky;
-
+    
     if (info != 0) {
         DebugStop();
     }
@@ -1549,7 +1549,7 @@ int TPZFMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular) {
         }
     }
     
-//    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    //    std::cout << __PRETTY_FUNCTION__ << std::endl;
     this->fDecomposed = ECholesky;
     return ECholesky;
 }
@@ -1608,7 +1608,7 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, long rows, TPZFMatrix<TVar> 
 #ifdef USING_LAPACK
 template <>
 int TPZFMatrix<float>::Decompose_LDLt() {
-
+    
     if (  this->fDecomposed && this->fDecomposed != ELDLt) {
         Error( "Decompose_LDLt <Matrix already Decomposed with other scheme> " );
     } else if(this->fDecomposed ) {
@@ -1624,7 +1624,7 @@ int TPZFMatrix<float>::Decompose_LDLt() {
     fWork.Resize(worksize);
     int info;
     
-//    ssysv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__lwork#>, <#__CLPK_integer *__info#>)
+    //    ssysv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__lwork#>, <#__CLPK_integer *__info#>)
     
     ssysv_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], &B, &dim, &fWork[0], &worksize, &info);
     fDecomposed = ELDLt;
@@ -1702,15 +1702,15 @@ template<>
 int TPZFMatrix<float>::Subst_Forward( TPZFMatrix<float>* b ) const
 {
     if (fDecomposed == ECholesky) {
-//        CALL strsm( 'Left', 'Upper', 'Transpose', 'Non-unit', n, nrhs,
-//                   179      $               one, a, lda, b, ldb )
+        //        CALL strsm( 'Left', 'Upper', 'Transpose', 'Non-unit', n, nrhs,
+        //                   179      $               one, a, lda, b, ldb )
         char left[]= "Left", upper[] = "Upper", transpose[] = "Transpose", non_unit[] = "Non-unit";
         int ncol = b->Cols();
         int dim = Rows();
-//        b->Print("before =",std::cout,EMathematicaInput);
+        //        b->Print("before =",std::cout,EMathematicaInput);
         cblas_strsm(CblasColMajor, CblasLeft, CblasUpper, CblasTrans, CblasNonUnit, dim, ncol, 1., fElem, dim, b->fElem, dim);
-//        TPZMatrix<float>::Subst_Forward(b);
-//        b->Print("after =",std::cout,EMathematicaInput);
+        //        TPZMatrix<float>::Subst_Forward(b);
+        //        b->Print("after =",std::cout,EMathematicaInput);
         return 1;
     }
     else
@@ -1769,22 +1769,22 @@ template<>
 int TPZFMatrix<float>::Subst_Backward( TPZFMatrix<float>* b ) const
 {
     if (fDecomposed == ECholesky) {
-
-//        spotrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-//        CALL strsm( 'Left', 'Upper', 'No transpose', 'Non-unit', n,
-//                   184      $               nrhs, one, a, lda, b, ldb )
+        
+        //        spotrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
+        //        CALL strsm( 'Left', 'Upper', 'No transpose', 'Non-unit', n,
+        //                   184      $               nrhs, one, a, lda, b, ldb )
         char left[]= "Left", upper[] = "Upper", transpose[] = "Transpose", non_unit[] = "Non-unit";
         int ncol = b->Cols();
         int dim = Rows();
         int info = 0;
-//        b->Print("before =",std::cout,EMathematicaInput);
-//        TPZMatrix<float>::Subst_Backward(b);
+        //        b->Print("before =",std::cout,EMathematicaInput);
+        //        TPZMatrix<float>::Subst_Backward(b);
         cblas_strsm(CblasColMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit, dim, ncol, 1., fElem, dim, b->fElem, dim);
-//        spotrs_(upper, &dim, &ncol, fElem, &dim, b->fElem, &ncol, &info);
-//        b->Print("after =",std::cout,EMathematicaInput);
-
+        //        spotrs_(upper, &dim, &ncol, fElem, &dim, b->fElem, &ncol, &info);
+        //        b->Print("after =",std::cout,EMathematicaInput);
+        
         return 1;
-  
+        
         if (info != 0) {
             DebugStop();
         }
@@ -1832,7 +1832,7 @@ int TPZFMatrix<double>::Subst_Backward( TPZFMatrix<double>* b ) const
 template<>
 int TPZFMatrix<float>::Subst_LForward( TPZFMatrix<float>* b ) const
 {
-//    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
+    //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     
     if (fDecomposed != ELDLt) {
         DebugStop();
@@ -1843,11 +1843,11 @@ int TPZFMatrix<float>::Subst_LForward( TPZFMatrix<float>* b ) const
     int nrhs = b->Cols();
     float B  = 0.;
     int info;
-
-//    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
+    
+    //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     ssytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
-//    return TPZMatrix<TVar>::Subst_LForward(b);
+    //    return TPZMatrix<TVar>::Subst_LForward(b);
 }
 
 /**
@@ -1883,7 +1883,7 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
 template<class TVar>
 int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
 {
-//    ssytrs2
+    //    ssytrs2
     return TPZMatrix<TVar>::Subst_LForward(b);
 }
 
@@ -2282,103 +2282,739 @@ int TPZFMatrix<TVar>::SetSize(const long newRows,const long newCols) {
 
 #ifdef USING_LAPACK
 
-template < class TVar >
-int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < double > &w, TPZFMatrix < TVar > &eigenVectors)
+template <class TVar>
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
 {
-  DebugStop();
-}
-
-template < class TVar >
-int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < double > &w)
-{
-  DebugStop();
+    DebugStop();
 }
 
 template <class TVar>
-int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors)
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
 {
-  DebugStop();
-}
-
-template <class TVar>
-int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w)
-{
-  DebugStop();
-}
-
-template < class TVar >
-int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < double > &w, TPZFMatrix <TVar > &eigenVectors)
-{
-  DebugStop();
-}
-
-template < class TVar>
-int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < double > &w)
-{
-  DebugStop();
-}
-
-template < class TVar>
-int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w)
-{
-  DebugStop();
-}
-
-
-template < class TVar>
-int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w , TPZFMatrix < std::complex<double> > &eigenvectors)
-{
-  DebugStop();
+    DebugStop();
 }
 
 template <>
-int TPZFMatrix<double>::SolveEigenProblem(TPZVec < complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
+int TPZFMatrix<float>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
 {
-  if (Rows() != Cols()) {
-      DebugStop();
-  }
-  char jobvl[] = "None", jobvr[] = "Vectors";
-  TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
-  int dim = Rows();
-  double testwork;
-  int lwork = 10+20*dim;
-  int info;
-    std::complex<double> I(0,1.);
-  TPZVec<double> realeigen(dim,0.);
-  TPZVec<double> imageigen(dim,0.);
-
-  TPZFMatrix<double> temp(*this);
-  TPZVec<double> work(lwork);
-  dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
-  
-  if (info != 0) {
-      DebugStop();
-  }
-//    VR.Print("VR = ",std::cout,EMathematicaInput);
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "None";
+    TPZFMatrix< float > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<float> I(0,1.);
+    TPZVec<float> realeigen(dim,0.);
+    TPZVec<float> imageigen(dim,0.);
     
-  eigenvectors.Redim(dim,dim);
-  eigenvalues.Resize(dim,0.);
-  for(int i = 0 ; i < dim ; i ++){
-    eigenvalues[i] = realeigen[i] + I*imageigen[i];
-  }
-  for(int i = 0 ; i < dim ; i ++){
-    if(imageigen[i] == 0){
-      for( int iV = 0 ; iV < dim ; iV++ ){
-          eigenvectors(iV,i) = VR(iV,i);
-      }
+    TPZFMatrix<float> temp(*this);
+    TPZVec<float> work(lwork);
+    sgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
     }
-    else{
-      double *realVRptr = VR.fElem;
-      double *imagVRptr = VR.fElem + dim;
-      for( int iV = 0 ; iV < dim ; iV++ ){
-        eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
-        eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
-      }
-        i++;
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        
+        eigenvalues[i] = realeigen[i] + I*imageigen[i];
     }
-  }
-  
-  return 1;
+    return 1;
+}
+
+template <>
+int TPZFMatrix<float>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
+{
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< float > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<float> I(0,1.);
+    TPZVec<float> realeigen(dim,0.);
+    TPZVec<float> imageigen(dim,0.);
+    
+    TPZFMatrix<float> temp(*this);
+    TPZVec<float> work(lwork);
+    sgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvectors.Redim(dim,dim);
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        eigenvalues[i] = realeigen[i] + I*imageigen[i];
+    }
+    for(int i = 0 ; i < dim ; i ++){
+        if(imageigen[i] == 0){
+            for( int iV = 0 ; iV < dim ; iV++ ){
+                eigenvectors(iV,i) = VR(iV,i);
+            }
+        }
+        else{
+            for( int iV = 0 ; iV < dim ; iV++ ){
+                eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
+                eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
+            }
+            i++;
+        }
+    }
+    
+    return 1;
+}
+
+template <>
+int TPZFMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
+{
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "None";
+    TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    double testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<double> I(0,1.);
+    TPZVec<double> realeigen(dim,0.);
+    TPZVec<double> imageigen(dim,0.);
+    
+    TPZFMatrix<double> temp(*this);
+    TPZVec<double> work(lwork);
+    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        eigenvalues[i] = realeigen[i] + I*imageigen[i];
+    }
+    return 1;
+}
+
+template <>
+int TPZFMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
+{
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    double testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<double> I(0,1.);
+    TPZVec<double> realeigen(dim,0.);
+    TPZVec<double> imageigen(dim,0.);
+    
+    TPZFMatrix<double> temp(*this);
+    TPZVec<double> work(lwork);
+    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvectors.Redim(dim,dim);
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        eigenvalues[i] = realeigen[i] + I*imageigen[i];
+    }
+    for(int i = 0 ; i < dim ; i ++){
+        if(imageigen[i] == 0){
+            for( int iV = 0 ; iV < dim ; iV++ ){
+                eigenvectors(iV,i) = VR(iV,i);
+            }
+        }
+        else{
+            double *realVRptr = VR.fElem;
+            double *imagVRptr = VR.fElem + dim;
+            for( int iV = 0 ; iV < dim ; iV++ ){
+                eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
+                eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
+            }
+            i++;
+        }
+    }
+    
+    return 1;
+}
+
+template <>
+int TPZFMatrix<complex<double> >::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
+{
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< complex<double> > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    double testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<double> I(0,1.);
+    TPZVec<complex<double> > eigen(dim,0.);
+    
+    TPZFMatrix<complex<double> > temp(*this);
+    TPZVec<complex<double> > work(lwork);
+    TPZVec< double > rwork( 2 * dim);
+    
+    zgeev_(jobvl, jobvr, &dim, (__CLPK_doublecomplex *)temp.fElem, &dim, (__CLPK_doublecomplex *)&eigen[0], (__CLPK_doublecomplex *)VL.fElem, &dim, (__CLPK_doublecomplex *)VR.fElem, &dim, (__CLPK_doublecomplex *)&work[0], &lwork, &rwork[0], &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+        eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        eigenvalues[i] = eigen[i];
+    }
+    
+    return 1;
+}
+
+template <>
+int TPZFMatrix<complex<double> >::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
+{
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< complex<double> > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    double testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<double> I(0,1.);
+    TPZVec<complex<double> > eigen(dim,0.);
+    
+    TPZFMatrix<complex<double> > temp(*this);
+    TPZVec<complex<double> > work(lwork);
+    TPZVec< double > rwork( 2 * dim);
+   
+    zgeev_(jobvl, jobvr, &dim, (__CLPK_doublecomplex *)temp.fElem, &dim, (__CLPK_doublecomplex *)&eigen[0], (__CLPK_doublecomplex *)VL.fElem, &dim, (__CLPK_doublecomplex *)VR.fElem, &dim, (__CLPK_doublecomplex *)&work[0], &lwork, &rwork[0], &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvectors.Redim(dim,dim);
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        eigenvalues[i] = eigen[i];
+    }
+    for(int i = 0 ; i < dim ; i ++){
+    
+        for( int iV = 0 ; iV < dim ; iV++ ){
+            eigenvectors(iV,i) = VR(iV,i);
+        }
+    
+    }
+    
+    return 1;
+}
+
+template <>
+int TPZFMatrix<complex<float> >::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues)
+{
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< complex<float> > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    double testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<float> I(0,1.);
+    TPZVec<complex<float> > eigen(dim,0.);
+    
+    TPZFMatrix<complex<float> > temp(*this);
+    TPZVec<complex<float> > work(lwork);
+    TPZVec< float > rwork( 2 * dim);
+    
+    cgeev_(jobvl, jobvr, &dim, (__CLPK_complex *)temp.fElem, &dim, (__CLPK_complex *)&eigen[0], (__CLPK_complex *)VL.fElem, &dim, (__CLPK_complex *)VR.fElem, &dim, (__CLPK_complex *)&work[0], &lwork, &rwork[0], &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        eigenvalues[i] = eigen[i];
+    }
+
+}
+
+template <>
+int TPZFMatrix<complex< float> >::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalues, TPZFMatrix < std::complex<double> > &eigenvectors)
+{
+    if (Rows() != Cols()) {
+        DebugStop();
+    }
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< complex<float> > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    double testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<float> I(0,1.);
+    TPZVec<complex<float> > eigen(dim,0.);
+    
+    TPZFMatrix<complex<float> > temp(*this);
+    TPZVec<complex<float> > work(lwork);
+    TPZVec< float > rwork( 2 * dim);
+    
+    cgeev_(jobvl, jobvr, &dim, (__CLPK_complex *)temp.fElem, &dim, (__CLPK_complex *)&eigen[0], (__CLPK_complex *)VL.fElem, &dim, (__CLPK_complex *)VR.fElem, &dim, (__CLPK_complex *)&work[0], &lwork, &rwork[0], &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvectors.Redim(dim,dim);
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        eigenvalues[i] = eigen[i];
+    }
+    for(int i = 0 ; i < dim ; i ++){
+        
+        for( int iV = 0 ; iV < dim ; iV++ ){
+            eigenvectors(iV,i) = VR(iV,i);
+        }
+        
+    }
+    
+    return 1;
+}
+
+
+template< class TVar>
+int
+TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B , TPZVec < complex<double> > &w, TPZFMatrix < complex<double> > &eigenVectors)
+{
+    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
+    return( 0 );
+}
+template< class TVar>
+int
+TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B , TPZVec < complex<double> > &w)
+{
+    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
+    return( 0 );
+}
+
+template<>
+int
+TPZFMatrix<float>::SolveGeneralisedEigenProblem(TPZFMatrix<float> &B , TPZVec <complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
+{
+    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+    }
+    
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< float > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<float> I(0,1.);
+    TPZVec<float> realeigen(dim,0.);
+    TPZVec<float> imageigen(dim,0.);
+    
+    TPZVec<float> beta(dim);
+    
+    TPZFMatrix<float> temp(*this), tempB(B);
+    TPZVec<float> work(lwork);
+
+    sggev_(jobvl, jobvr, &dim, temp.fElem, &dim , tempB.fElem, &dim , &realeigen[0], &imageigen[0], &beta[0]  , VL.fElem, &dim , VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvectors.Redim(dim,dim);
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        if( IsZero(beta[i])){
+            DebugStop(); //fran: i really dont know what to do with this result
+        }
+        else{
+            eigenvalues[i] = (realeigen[i] + I*imageigen[i]) / beta[i];
+        }
+    }
+    for(int i = 0 ; i < dim ; i ++){
+        if(imageigen[i] == 0){
+            for( int iV = 0 ; iV < dim ; iV++ ){
+                eigenvectors(iV,i) = VR(iV,i);
+            }
+        }
+        else{
+            for( int iV = 0 ; iV < dim ; iV++ ){
+                eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
+                eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
+            }
+            i++;
+        }
+    }
+    
+    return 1;
+}
+
+
+template<>
+int
+TPZFMatrix<float>::SolveGeneralisedEigenProblem(TPZFMatrix<float> &B , TPZVec <complex<double> > &eigenvalues)
+{
+    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+    }
+    
+    char jobvl[] = "None", jobvr[] = "None";
+    TPZFMatrix< float > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<float> I(0,1.);
+    TPZVec<float> realeigen(dim,0.);
+    TPZVec<float> imageigen(dim,0.);
+    
+    TPZVec<float> beta(dim);
+    
+    TPZFMatrix<float> temp(*this), tempB(B);
+    TPZVec<float> work(lwork);
+    
+    sggev_(jobvl, jobvr, &dim, temp.fElem, &dim , tempB.fElem, &dim , &realeigen[0], &imageigen[0], &beta[0]  , VL.fElem, &dim , VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        if( IsZero(beta[i])){
+            DebugStop(); //fran: i really dont know what to do with this result
+        }
+        else{
+            eigenvalues[i] = (realeigen[i] + I*imageigen[i]) / beta[i];
+        }
+    }
+    
+    return 1;
+}
+template<>
+int
+TPZFMatrix<double>::SolveGeneralisedEigenProblem(TPZFMatrix<double> &B , TPZVec <complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
+{
+    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+    }
+    
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<double> I(0,1.);
+    TPZVec<double> realeigen(dim,0.);
+    TPZVec<double> imageigen(dim,0.);
+    
+    TPZVec<double> beta(dim);
+    
+    TPZFMatrix<double> temp(*this), tempB(B);
+    TPZVec<double> work(lwork);
+    
+    dggev_(jobvl, jobvr, &dim, temp.fElem, &dim , tempB.fElem, &dim , &realeigen[0], &imageigen[0], &beta[0]  , VL.fElem, &dim , VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvectors.Redim(dim,dim);
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        if( IsZero(beta[i])){
+            DebugStop(); //fran: i really dont know what to do with this result
+        }
+        else{
+            eigenvalues[i] = (realeigen[i] + I*imageigen[i]) / beta[i];
+        }
+    }
+    for(int i = 0 ; i < dim ; i ++){
+        if(imageigen[i] == 0){
+            for( int iV = 0 ; iV < dim ; iV++ ){
+                eigenvectors(iV,i) = VR(iV,i);
+            }
+        }
+        else{
+            for( int iV = 0 ; iV < dim ; iV++ ){
+                eigenvectors(iV,i) = VR(iV,i) + I * VR(iV,i+1) ;
+                eigenvectors(iV,i + 1) = VR(iV,i) - I * VR(iV,i+1) ;
+            }
+            i++;
+        }
+    }
+    
+    return 1;
+}
+
+
+template<>
+int
+TPZFMatrix<double>::SolveGeneralisedEigenProblem(TPZFMatrix<double> &B , TPZVec <complex<double> > &eigenvalues)
+{
+    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
+    {
+        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+    }
+    
+    char jobvl[] = "None", jobvr[] = "None";
+    TPZFMatrix< double > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    double testwork;
+    int lwork = 10+20*dim;
+    int info;
+    std::complex<double> I(0,1.);
+    TPZVec<double> realeigen(dim,0.);
+    TPZVec<double> imageigen(dim,0.);
+    
+    TPZVec<double> beta(dim);
+    
+    TPZFMatrix<double> temp(*this), tempB(B);
+    TPZVec<double> work(lwork);
+    
+    dggev_(jobvl, jobvr, &dim, temp.fElem, &dim , tempB.fElem, &dim , &realeigen[0], &imageigen[0], &beta[0]  , VL.fElem, &dim , VR.fElem, &dim, &work[0], &lwork, &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        if( IsZero(beta[i])){
+            DebugStop(); //fran: i really dont know what to do with this result
+        }
+        else{
+            eigenvalues[i] = (realeigen[i] + I*imageigen[i]) / beta[i];
+        }
+    }
+    
+    return 1;
+}
+
+template<>
+int
+TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<float> > &B , TPZVec <complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
+{
+    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+    }
+    
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< complex<float> > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = 10+20*dim;
+    int info;
+    TPZVec<complex<float> > eigen(dim,0.);
+    
+    TPZVec<complex<float> > beta(dim);
+    
+    TPZFMatrix<complex<float> > temp(*this), tempB(B);
+    TPZVec<complex<float> > work(lwork);
+    TPZVec<float> rwork( 8 * dim );
+
+    cggev_(jobvl, jobvr, &dim, (__CLPK_complex *)temp.fElem, &dim , (__CLPK_complex *)tempB.fElem, &dim , (__CLPK_complex *)&eigen[0], (__CLPK_complex *)&beta[0]  , (__CLPK_complex *)VL.fElem, &dim , (__CLPK_complex *)VR.fElem, &dim, (__CLPK_complex *)&work[0], &lwork, &rwork[0], &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvectors.Redim(dim,dim);
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        if( IsZero(beta[i])){
+            DebugStop(); //fran: i really dont know what to do with this result
+        }
+        else{
+            eigenvalues[i] = eigen[i] / beta[i];
+        }
+    }
+    for(int i = 0 ; i < dim ; i ++){
+        for( int iV = 0 ; iV < dim ; iV++ ){
+            eigenvectors(iV,i) = VR(iV,i);
+        }
+    }
+    
+    return 1;
+}
+
+
+template<>
+int
+TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<float> > &B , TPZVec <complex<double> > &eigenvalues)
+{
+    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+    }
+    
+    char jobvl[] = "None", jobvr[] = "None";
+    TPZFMatrix< complex<float> > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = 10+20*dim;
+    int info;
+    TPZVec<complex<float> > eigen(dim,0.);
+    
+    TPZVec<complex<float> > beta(dim);
+    
+    TPZFMatrix<complex<float> > temp(*this), tempB(B);
+    TPZVec<complex<float> > work(lwork);
+    TPZVec<float> rwork( 8 * dim );
+    
+    cggev_(jobvl, jobvr, &dim, (__CLPK_complex *)temp.fElem, &dim , (__CLPK_complex *)tempB.fElem, &dim , (__CLPK_complex *)&eigen[0], (__CLPK_complex *)&beta[0]  , (__CLPK_complex *)VL.fElem, &dim , (__CLPK_complex *)VR.fElem, &dim, (__CLPK_complex *)&work[0], &lwork, &rwork[0], &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        if( IsZero(beta[i])){
+            DebugStop(); //fran: i really dont know what to do with this result
+        }
+        else{
+            eigenvalues[i] = eigen[i] / beta[i];
+        }
+    }
+    return 1;
+
+}
+
+template<>
+int
+TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<double> > &B , TPZVec <complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenvectors)
+{
+    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
+    {
+        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+    }
+    
+    char jobvl[] = "None", jobvr[] = "Vectors";
+    TPZFMatrix< complex<double> > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = 10+20*dim;
+    int info;
+    TPZVec<complex<double> > eigen(dim,0.);
+    
+    TPZVec<complex<double> > beta(dim);
+    
+    TPZFMatrix<complex<double> > temp(*this), tempB(B);
+    TPZVec<complex<double> > work(lwork);
+    TPZVec<double> rwork( 8 * dim );
+
+    zggev_(jobvl, jobvr, &dim, (__CLPK_doublecomplex *)temp.fElem, &dim , (__CLPK_doublecomplex *)tempB.fElem, &dim , (__CLPK_doublecomplex *)&eigen[0], (__CLPK_doublecomplex *)&beta[0]  , (__CLPK_doublecomplex *)VL.fElem, &dim , (__CLPK_doublecomplex *)VR.fElem, &dim, (__CLPK_doublecomplex *)&work[0], &lwork, &rwork[0], &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvectors.Redim(dim,dim);
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        if( IsZero(beta[i])){
+            DebugStop(); //fran: i really dont know what to do with this result
+        }
+        else{
+            eigenvalues[i] = eigen[i] / beta[i];
+        }
+    }
+    for(int i = 0 ; i < dim ; i ++){
+        for( int iV = 0 ; iV < dim ; iV++ ){
+            eigenvectors(iV,i) = VR(iV,i);
+        }
+    }
+    
+    return 1;
+}
+
+
+template<>
+int
+TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<double> > &B , TPZVec <complex<double> > &eigenvalues)
+{
+    if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
+    {
+        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+    }
+    
+    char jobvl[] = "None", jobvr[] = "None";
+    TPZFMatrix< complex<double> > VL(Rows(),Cols()),VR(Rows(),Cols());
+    int dim = Rows();
+    float testwork;
+    int lwork = 10+20*dim;
+    int info;
+    TPZVec<complex<double> > eigen(dim,0.);
+    
+    TPZVec<complex<double> > beta(dim);
+    
+    TPZFMatrix<complex<double> > temp(*this), tempB(B);
+    TPZVec<complex<double> > work(lwork);
+    TPZVec<double> rwork( 8 * dim );
+    
+    zggev_(jobvl, jobvr, &dim, (__CLPK_doublecomplex *)temp.fElem, &dim , (__CLPK_doublecomplex *)tempB.fElem, &dim , (__CLPK_doublecomplex *)&eigen[0], (__CLPK_doublecomplex *)&beta[0]  , (__CLPK_doublecomplex *)VL.fElem, &dim , (__CLPK_doublecomplex *)VR.fElem, &dim, (__CLPK_doublecomplex *)&work[0], &lwork, &rwork[0], &info);
+    
+    if (info != 0) {
+        DebugStop();
+    }
+    //    VR.Print("VR = ",std::cout,EMathematicaInput);
+    
+    eigenvalues.Resize(dim,0.);
+    for(int i = 0 ; i < dim ; i ++){
+        if( IsZero(beta[i])){
+            DebugStop(); //fran: i really dont know what to do with this result
+        }
+        else{
+            eigenvalues[i] = eigen[i] / beta[i];
+        }
+    }
+    
+    return 1;
+    
 }
 
 #endif
@@ -2400,6 +3036,9 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
     Fad<REAL> res;
     return res;
 }
+
+
+
 #endif
 
 #include <complex>
