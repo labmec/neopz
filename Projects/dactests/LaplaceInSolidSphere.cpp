@@ -88,12 +88,15 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     
     TPZCompMesh * mphysics = CMeshMixed(gmesh,meshvec);
     
+#ifdef PZDBUG
+    
     std::ofstream sout("FluxcmeshFinal.txt");
     meshvec[0]->Print(sout);
     
-    
     std::ofstream sout2("cmeshmphysics.txt");
     mphysics->Print(sout2);
+    
+#endif
     
     DofCond = mphysics->NEquations();
     
@@ -114,7 +117,7 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     plotData = plotname+Grau+strg+Ref+strr+VTK;
     std::string plotfile(plotData);
     
-    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile,fDim);
+    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
     
     //Calculo do erro
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
@@ -144,8 +147,6 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
 //    saidaErro << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" << " Razao " << setw(19) << " Assemble "<< setw(20)<< " Solve " << setw(20) <<" Ttotal " << setw(12) << "Error primal" << setw(16) << "Error dual \n";
 //    
 //    saidaErro << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(20) << sqrt(globalerrorsPrimal[1]) << setw(20) << sqrt(globalerrorsDual[1]) << setw(20) << sqrt(globalerrorsDual[2]) << setw(20) << sqrt(globalerrorsDual[3]) << endl;
-    
-    saidaErro.flush();
     
     std::cout<< " FIM (ESFERA) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     
@@ -477,17 +478,29 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     REAL Phiunity = cosphi;
     REAL Phiunitz = 0.0;
     
-    REAL dfdr       = 4.0*r*r*r*npowerofsintheta*sinphi*sinphi;
-    REAL dfdTheta   = 6.0*r*r*r*costheta*(sintheta*sintheta*sintheta*sintheta*sintheta)*sinphi*sinphi;
-    REAL dfdPhi     = r*r*r*(sintheta*sintheta*sintheta*sintheta*sintheta)*sin2phi;
+//    REAL dfdr       = 4.0*r*r*r*npowerofsintheta*sinphi*sinphi;
+//    REAL dfdTheta   = 6.0*r*r*r*costheta*(sintheta*sintheta*sintheta*sintheta*sintheta)*sinphi*sinphi;
+//    REAL dfdPhi     = r*r*r*(sintheta*sintheta*sintheta*sintheta*sintheta)*sin2phi;
+//    
+//    solp[0] = p;
+//    
+//    flux(0,0) = -1.0*(dfdr * Radialunitx + dfdTheta * Thetaunitx + dfdPhi * Phiunitx);
+//    flux(1,0) = -1.0*(dfdr * Radialunity + dfdTheta * Thetaunity + dfdPhi * Phiunity);
+//    flux(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz + dfdPhi * Phiunitz);
+//    
+//    flux(3,0) = -2.0*r*r*sintheta*sintheta*sintheta*sintheta*( cos2phi + 0.5*(25.0+11.0*cos2theta)*sinphi*sinphi );
     
-    solp[0] = p;
+    REAL dfdr       = 2.0*r;
+    REAL dfdTheta   = 0.0;
+    REAL dfdPhi     = 0.0;
+    
+    solp[0] = r*r;
     
     flux(0,0) = -1.0*(dfdr * Radialunitx + dfdTheta * Thetaunitx + dfdPhi * Phiunitx);
     flux(1,0) = -1.0*(dfdr * Radialunity + dfdTheta * Thetaunity + dfdPhi * Phiunity);
     flux(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz + dfdPhi * Phiunitz);
     
-    flux(3,0) = -2.0*r*r*sintheta*sintheta*sintheta*sintheta*( cos2phi + 0.5*(25.0+11.0*cos2theta)*sinphi*sinphi );
+    flux(3,0) = -6.0;
     
     return;
 
@@ -507,12 +520,10 @@ void LaplaceInSolidSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     
     REAL sintheta = sin(theta);
     REAL sinphi = sin(phi);
-    REAL cosphi = cos(phi);
-    REAL costheta = cos(theta);
     REAL cos2phi = cos(2.0*phi);
     REAL cos2theta = cos(2.0*theta);
     
-    ff[0] = -2.0*r*r*sintheta*sintheta*sintheta*sintheta*( cos2phi + 0.5*(25.0+11.0*cos2theta)*sinphi*sinphi );
+    ff[0] = -6.0;//-2.0*r*r*sintheta*sintheta*sintheta*sintheta*( cos2phi + 0.5*(25.0+11.0*cos2theta)*sinphi*sinphi );
     
     return;
 }
@@ -712,7 +723,8 @@ void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
     
     p = r*r*r*r*npowerofsintheta*oneminuscosphicosphi;
     
-    solp[0] = p;
+//    solp[0] = p;
+    solp[0] = r*r;
     
     
     return;
@@ -997,8 +1009,8 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, 
 
 TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 {
-    bool condensacaoestatica = true; //false; //
-    int intorder = 10;
+
+    int intorder = 15;
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
     TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
@@ -1189,7 +1201,7 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
                     break;
                 }
             }
-            TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
+            new TPZCondensedCompEl(elgr);
         }
         
         mphysics->CleanUpUnconnectedNodes();
