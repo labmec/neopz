@@ -641,10 +641,11 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
 void TPZMatMixedPoisson3D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
     
     Solout.Resize( this->NSolutionVariables(var));
-    
+   
+    int nsv = this->NSolutionVariables(var); 
     
     if(var == 1){ //function (state variable Q)
-        for (int ip = 0; ip<3; ip++)
+        for (int ip = 0; ip< this->NSolutionVariables(var)/*3*/; ip++)
         {
             Solout[ip] = data.sol[0][ip];
         }
@@ -707,7 +708,7 @@ void TPZMatMixedPoisson3D::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exa
     values.Fill(0.0);
     TPZVec<STATE> sol(1),dsol(3),div(1);
     //    if(data.numberdualfunctions) Solution(data,2,sol);//pressao
-    Solution(data,1,dsol);//fluxo
+    Solution(data,1,dsol);//fluxo   // esse metodo redefine o tamanho de dsol. Para d==2 da errado
     //Solution(data,14,div);//divergente
     
 #ifdef LOG4CXX
@@ -734,7 +735,8 @@ void TPZMatMixedPoisson3D::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exa
     //        values[0]  = diffP*diffP;
     //    }
     //values[1] : flux error using L2 norm
-    for(int id=0; id<3; id++) {
+    // AQUI!!! //pela redefinicao feita em Solution, acima, tive que mudar para tentar acertar
+    for(int id=0; id<Dimension()/*3*/; id++) {  
         REAL diffFlux = abs(dsol[id] - du_exact(id,0));
         values[1]  += diffFlux*diffFlux;
     }
