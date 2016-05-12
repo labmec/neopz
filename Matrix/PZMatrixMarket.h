@@ -14,6 +14,7 @@
 #include "pzsbndmat.h"
 #include "pzbndmat.h"
 #include "pzskylmat.h"
+#include "pzsysmp.h"
 #include <fstream>
 
 class TPZMatrixMarket
@@ -31,6 +32,9 @@ public:
     
     template<class T>
     static void Read(std::string filename, TPZSkylMatrix<T> &fmat);
+    
+    template<class T>
+    static void Read(std::string filename, TPZSYsmpMatrix<T> &fmat);
 };
 
 template<class T>
@@ -190,6 +194,9 @@ void TPZMatrixMarket::Read(std::string filename, TPZSkylMatrix<T>&fmat)
             if(row< col ) nsup++;
         }
     }
+    if (nlower && nsup) {
+        std::cout << "The matrix is probably not symmetric, expect trouble\n";
+    }
     fmat.Redim(nrow,ncol);
     fmat.SetSkyline(skyline);
     {
@@ -207,5 +214,65 @@ void TPZMatrixMarket::Read(std::string filename, TPZSkylMatrix<T>&fmat)
         }
     }
 }
+
+template<class T>
+void TPZMatrixMarket::Read(std::string filename, TPZSYsmpMatrix<T> &fmat)
+{
+    long nrow,ncol,nonzero=0,nsup=0,nlower=0;
+    TPZVec<long> numrowel(nrow,0);
+    {
+        std::ifstream input(filename);
+        std::string buf;
+        std::getline(input,buf);
+        input >> nrow >> ncol >> nonzero;
+        if (nrow != ncol) {
+            DebugStop();
+        }
+        numrowel.resize(nrow);
+        numrowel.Fill(0);
+        fmat.Redim(nrow,ncol);
+        for (long el=0; el<nonzero; el++) {
+            long row, col;
+            T val;
+            input >> row >> col >> val;
+            row--;
+            col--;
+            numrowel[row]++;
+            if(row > col) nlower++;
+            if(row< col ) nsup++;
+        }
+    }
+    if (nlower && nsup) {
+        std::cout << "The matrix is probably not symmetric, expect trouble\n";
+    }
+    TPZVec<long> IA(nrow+1);
+    TPZVec<long> JA(nonzero,0);
+    TPZVec<T> A(nonzero,0.);
+    TPZVec<long> IAcounter(nonzero);
+    IA[0] = 0;
+    for (long i=0; i<nrow; i++) {
+        IA[i+1] = IA[i]+numrowel[i];
+    }
+    IAcounter = IA;
+    fmat.Redim(nrow,ncol);
+    {
+        std::ifstream input(filename);
+        std::string buf;
+        std::getline(input,buf);
+        input >> nrow >> ncol >> nonzero;
+        for (long el=0; el<nonzero; el++) {
+            long row, col;
+            T val;
+            input >> row >> col >> val;
+            row--;
+            col--;
+            JA[IAcounter[row]] = col;
+            A[IAcounter[row]] = val;
+            IAcounter[row]++;
+        }
+    }
+    fmat.SetData(IA,JA,A);
+}
+
 
 #endif /* PZMatrixMarket_hpp */

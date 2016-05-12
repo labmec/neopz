@@ -27,7 +27,7 @@ class TPZSYsmpMatrix : public TPZMatrix<TVar>{
     friend class TPZPardisoControl<TVar>;
 #endif
     
-	public :
+public :
     /** @brief Constructor based on number of rows and columns */
     TPZSYsmpMatrix();
 	/** @brief Constructor based on number of rows and columns */

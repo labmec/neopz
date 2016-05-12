@@ -122,6 +122,22 @@ public:
 	virtual TVar &s(const long row, const long col);
 	
 	TVar &g(const long row, const long col) const;
+    
+    friend class TPZFMatrix<float>;
+    friend class TPZFMatrix<double>;
+
+    /// copy the values from a matrix with a different precision
+    template<class TVar2>
+    void CopyFrom(TPZFMatrix<TVar2> &orig)
+    {
+        Resize(orig.Rows(), orig.Cols());
+        TPZMatrix<TVar>::CopyFrom(orig);
+        long nel = orig.Rows()*orig.Cols();
+        for (long el=0; el<nel; el++) {
+            fElem[el] = orig.fElem[el];
+        }
+    }
+
 	/**
 	 * @brief Performs a right hand side assemblage
 	 * @param rhs Load vector

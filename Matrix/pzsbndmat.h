@@ -44,6 +44,22 @@ public:
         return 1;
     }
 
+    friend class TPZSBMatrix<float>;
+    friend class TPZSBMatrix<double>;
+    
+    /// copy the values from a matrix with a different precision
+    template<class TVar2>
+    void CopyFrom(TPZSBMatrix<TVar2> &orig)
+    {
+        TPZMatrix<TVar>::CopyFrom(orig);
+        fDiag.resize(orig.fDiag.size());
+        long nel = fDiag.size();
+        for (long el=0; el<nel; el++) {
+            fDiag[el] = orig.fDiag[el];
+        }
+    }
+    
+
     
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** z and x cannot overlap in memory */

@@ -42,6 +42,32 @@ public:
 	/** @brief Simple destructor */
 	~TPZFBMatrix();
 
+    friend class TPZFBMatrix<float>;
+    friend class TPZFBMatrix<double>;
+    
+    /// copy the values from a matrix with a different precision
+    template<class TVar2>
+    void CopyFrom(TPZFBMatrix<TVar2> &orig)
+    {
+        TPZMatrix<TVar>::CopyFrom(orig);
+        fBandLower = orig.fBandLower;
+        fBandUpper = orig.fBandUpper;
+        fElem.resize(orig.fElem.size());
+        long nel = fElem.size();
+        for (long el=0; el<nel; el++) {
+            fElem[el] = orig.fElem[el];
+        }
+#ifdef USING_LAPACK
+        fPivot = orig.fPivot;
+        long nwork = orig.fWork.size();
+        for (long el=0; el<nwork; el++) {
+            fWork[el] = orig.fWork[el];
+        }
+#endif
+        
+    }
+    
+
     
     void AutoFill(long nrow, long ncol, int symmetric);
 
