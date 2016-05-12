@@ -218,6 +218,9 @@ ENABLE_TESTING()
 			#Projeto Nathalia
 			add_subdirectory(Elasticity1D)
 
+			#Projeto Nathalia Batalha
+			add_subdirectory(Wellbore_Elasticity2D)
+
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)

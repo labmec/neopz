@@ -91,7 +91,7 @@ TPZMatElasticity1D::TPZMatElasticity1D(const TPZMatElasticity1D & cp):TPZMateria
 }
 
 
-int TPZMatElasticity1D::NStateVariables() // nao entendi essa funcao, por que retorna 2?
+int TPZMatElasticity1D::NStateVariables() // retorna 1, pois tenho apenas uma variavel de estado
 {
     return 1;
 }
@@ -123,12 +123,12 @@ void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     TPZFMatrix<REAL>	Gradvi(1,1),Gradvj(1,1);
     for(int iu = 0; iu < nphi; iu++ )
     {
-        //	Derivative for Vx, somente em x pois eh 1D
+        //	Derivative for Vx, somente em x pois eh 1D (em y e z serao = 0)
         Gradvi(0,0) = dphi_u_axes(0,iu)*data.axes(0,0)+dphi_u_axes(0,iu)*data.axes(0,1)+dphi_u_axes(0,iu)*data.axes(0,2);
         
         for(int ju = 0; ju < nphi; ju++)
         {
-            //	Derivative for Ux, somente em x pois eh 1D
+            //	Derivative for Ux, somente em x pois eh 1D (em y e z serao = 0)
             Gradvj(0,0) = dphi_u_axes(0,ju)*data.axes(0,0)+dphi_u_axes(0,ju)*data.axes(0,1)+dphi_u_axes(0,ju)*data.axes(0,2);
 
         if (this->fLineStrain == 1)
@@ -173,20 +173,19 @@ void TPZMatElasticity1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     TPZFMatrix<REAL>    du(2,2);
     TPZFMatrix<REAL>    dux(2,2);
 
+    //  Derivative for Ux
     TPZFMatrix<REAL>	Gradvi(1,1),Gradu(1,1);
+    
+    //	Derivative for Ux, somente em x pois eh 1D (em y e z serao = 0)
     Gradu(0,0) = du_daxes(0,0)*data.axes(0,0)+du_daxes(0,0)*data.axes(0,1)+du_daxes(0,0)*data.axes(0,2);
     
-    //  Derivative for Ux
-    dux(0,1) = dsol_u(0,0)*data.axes(0,0); //+dsol_u(1,0)*data.axes(1,0); // dUx/dx
-
     for(int iu = 0; iu < nphi; iu++ )
     {
-        //	Derivative for Vx, somente em x pois eh 1D
+        //	Derivative for Vx, somente em x pois eh 1D (em y e z serao = 0)
         Gradvi(0,0) = dphi_u_axes(0,iu)*data.axes(0,0)+dphi_u_axes(0,iu)*data.axes(0,1)+dphi_u_axes(0,iu)*data.axes(0,2);
 
         //  Vector Force right hand term
         ef(1*iu + FirstU)     +=    -1.0*weight*fb[0]*data.x[0]*phi_u(iu, 0);    // direcao x
-         // weight*ff[0]*phiU(iu, 0)- (du(0,0)*fPreStressXX + du(1,0)*fPreStressXY);
 
         if (this->fLineStrain == 1)
         {
@@ -214,7 +213,6 @@ void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
     int nphi = phi_u.Rows();
     short in,jn;
     STATE v2[3]; // ja criado para 3 direcoes
-    //TPZFMatrix<STATE> &v1 = bc.Val1(); // nao entendi
     v2[0] = bc.Val2()(0,0);	//	Ux displacement or Tnx
 
     //	Here each digit represent an individual boundary condition corresponding to each state variable.
@@ -280,14 +278,12 @@ void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
     int nphi = phi_u.Rows();
     short in;
     STATE v2[3]; // ja criado para 3 direcoes
-    //TPZFMatrix<STATE> &v1 = bc.Val1(); // nao entendi
     v2[0] = bc.Val2()(0,0);	//	Ux displacement or Tnx
     
     //	Here each digit represent an individual boundary condition corresponding to each state variable.
-    //	0 means Dirichlet condition on x-y
+    //	0 means Dirichlet condition on x
     //	1 means Neumann condition
-    //	7 means Dirichlet condition on x
-    //	8 means Dirichlet condition on y
+
     
     const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
     
@@ -332,7 +328,7 @@ void TPZMatElasticity1D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
 }
 
 
-//****************** Perguntar ao Omar o que significa ************************//
+//****************************************//
 
 void TPZMatElasticity1D::FillDataRequirements(TPZMaterialData &data)
 {
@@ -364,14 +360,13 @@ void TPZMatElasticity1D::Print(std::ostream &out)
     
 }
 
-//****************** Perguntar ao Omar o que significa ************************//
+//*****************************************//
 
 /** Returns the variable index associated with the name */
 int TPZMatElasticity1D::VariableIndex(const std::string &name)
 {
     //	Elasticity Variables
     if(!strcmp("Displacement",name.c_str()))				return	1;
-    if(!strcmp("SolidPressure",name.c_str()))				return	2; // do que se trata?
     if(!strcmp("SigmaX",name.c_str()))						return	3;
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
@@ -407,7 +402,7 @@ void TPZMatElasticity1D::Read(TPZStream &buf, void *context)
 
 
 
-//****************** Perguntar ao Omar o que significa ************************//
+//************************************//
 
 int TPZMatElasticity1D::NSolutionVariables(int var){
     if(var == 1)	return 3;
@@ -421,7 +416,7 @@ int TPZMatElasticity1D::NSolutionVariables(int var){
 }
 
 
-//****************** Entendido mais ou menos, mas seria legal uma explicacao do Omar ************************//
+//******************************************//
 
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
 void TPZMatElasticity1D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     
     int dim = 1;//dimensao do problema
     REAL dom = 10.0; //comprimento do dominio unidimensional com inicio na origem zero
-    int nel = 1; //numero de elementos a serem utilizados
+    int nel = 2; //numero de elementos a serem utilizados
     int pOrder = 1; //ordem polinomial de aproximacao
     REAL elsize = dom/nel; //tamanho de cada elemento
     TPZGeoMesh *gmesh = CreateGMesh(nel, elsize); //funcao para criar a malha geometrica
@@ -60,6 +60,8 @@ int main(int argc, char *argv[])
     bool optimizeBandwidth = false; //impede a renumeracao das equacoes do problema(para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh, optimizeBandwidth); //cria objeto de analise que gerenciaria a analise do problema
     
+    
+    //************ Para visualizar K e Rhs ******************************//
     int numofThreads = 0;
     TPZSkylineNSymStructMatrix skylnsym(cmesh);
     TPZStepSolver<STATE> step;
@@ -190,7 +192,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 {
     const int dim = 1; //dimensao do problema
     const int matId = 1, bc0 = -1, bc1 = -2; //MESMOS ids da malha geometrica
-    const int dirichlet = 0, neumann = 1, mixed = 2; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
+    const int dirichlet = 0, neumann = 1; //tipo da condicao de contorno do problema ->default dirichlet na esquerda e na direita
 
     // Plane strain assumption
     int linestrain = 1;

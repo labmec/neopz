@@ -3,7 +3,7 @@
 //  PZ
 //
 //  Created by Omar on 10/27/14.
-//
+//  Changed by Nathalia on 05/12/14
 //
 
 #ifndef __PZ__TPZMatElasticity2D__
@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "pzmaterial.h"
 #include "pzvec.h"
+#include "math.h"
 #include <iostream>
 
 
@@ -75,6 +76,25 @@ protected:
      */
     int fPlaneStress;
     
+    /** @brief Uses inclined borehole
+     * @note \f$fInclinedWell = 1\f$ => Inclined Borehole Elasticity
+     * @note \f$fInclinedWell != 1\f$ => Generalized Elasticity
+     */
+    int fInclinedWell;
+    
+    
+    /** @brief Wellbore Direction/Azimuth angle (degrees) */
+    double falpha;
+    
+    /** @brief Wellbore Inclination angle (degrees) */
+    double fbeta;
+    
+    /** @brief InSitu Vertical and Horizontal Stresses */
+    REAL fPreStressHH;
+    REAL fPreStresshh;
+    REAL fPreStressVV;
+
+    
     
 public:
     TPZMatElasticity2D();
@@ -133,9 +153,9 @@ public:
      * @param fx forcing function \f$ -x = 0 \f$
      * @param fy forcing function \f$ -y = 0 \f$
      */
-    void SetElasticParameters(REAL Eyoung, REAL nu)
+    void SetElasticParameters(REAL Eyoung, REAL nu, REAL fbx, REAL fby)
     {
-        this->SetElasticity(Eyoung,nu);
+        this->SetElasticity(Eyoung,nu, fbx, fby);
     }
     
     /**
@@ -146,14 +166,16 @@ public:
      * @param fy forcing function \f$ -y = fy \f$
      * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
      */
-    void SetElasticity(REAL Ey, REAL nu)
+    void SetElasticity(REAL Ey, REAL nu, REAL fx, REAL fy)
     {
         fE = Ey;
         fnu = nu;
         flambda = (Ey*nu)/((1+nu)*(1-2*nu));
         fmu = Ey/(2*(1+nu));
+        ff[0] = fx;
+        ff[1] = fy;
 
-    }    
+    }
     
     /** @brief Set plane problem
      * planestress = 1 => Plain stress state
@@ -171,16 +193,94 @@ public:
     void SetPlaneStrain()
     {
         fPlaneStress = 0;
-    }    
+    }
+    
+    
+    /** @brief Set Inclined Well Problem
+     * @note \f$fInclinedWell = 1\f$ => Inclined Borehole Elasticity
+     * @note \f$fInclinedWell != 1\f$ => Generalized Elasticity
+     */
+    void SetInclinedWellProblem(int inclinedwell)
+    {
+        fInclinedWell = inclinedwell;
+    }
+    
+    
+    /** @brief Generalized Elasticity
+     * InclinedWell = 1 => Inclined Borehole Elasticity Used
+     * InclinedWell != 1 => Generalized Elasticity
+     */
+    void GeneralizedElasticity()
+    {
+        fInclinedWell = 0;
+    }
+    
     
     /** @brief Set Initial Stress */
     void SetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
     {
+        // Checking if the simulation is about a inclined Wellbore
+        if ((fInclinedWell = 1)) {
+            // Convert the insitu stresses in local inicial stresses
+            this->SetLocalInSituStresses(SigmaXX, SigmaXY, SigmaYY, SigmaZZ);
+        }
+        
         fPreStressXX = SigmaXX;
         fPreStressXY = SigmaXY;
         fPreStressYY = SigmaYY;
         fPreStressZZ = SigmaZZ;
+
     }
+    
+    /**
+     * @brief Set parameters of a inclined wellbore:
+     * @param Maximum Horizontal Stress - SigmaH
+     * @param Minimum Horizontal Stress - Sigmah
+     * @param Vertical Stress - SigmaV
+     * @param Wellbore Direction/Azimuth angle (degrees) - alpha
+     * @param Wellbore Inclination angle (degrees) - beta
+     */
+    void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV, double alpha, double beta, int wellborestate)
+    {
+        fPreStressHH  = SigmaH;
+        fPreStresshh  = Sigmah;
+        fPreStressVV  = SigmaV;
+        falpha        = alpha;
+        fbeta         = beta;
+        fInclinedWell = wellborestate;
+    }
+    
+    /** @brief Calculates the Initial Stress in Local Coordinates */
+    void SetLocalInSituStresses(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
+    {
+        /**** Rotation Matrix ******/
+        // alpha = direction/azimuth
+        // beta  = wellbore inclination
+        
+        // x-diretion
+        REAL lxx = cos(falpha)*cos(fbeta);
+        REAL lxy = sin(falpha)*cos(fbeta);
+        REAL lxz = -sin(fbeta);
+        // y-direction
+        REAL lyx = -sin(falpha);
+        REAL lyy = cos(falpha);
+        REAL lyz = 0;
+        // z-direction
+        REAL lzx = cos(falpha)*sin(fbeta);
+        REAL lzy = sin(falpha)*sin(fbeta);
+        REAL lzz = cos(fbeta);
+        
+        
+        // Local Inicial Stresses after Inclination
+        SigmaXX = ((lxx*lxx) * fPreStressHH) + ((lxy*lxy) * fPreStresshh) + ((lxz*lxz) * fPreStressVV);
+        SigmaYY = ((lyx*lyx) * fPreStressHH) + ((lyy*lyy) * fPreStresshh) + ((lyz*lyz) * fPreStressVV);
+        SigmaZZ = ((lzx*lzx) * fPreStressHH) + ((lzy*lzy) * fPreStresshh) + ((lzz*lzz) * fPreStressVV);
+        SigmaXY = ((lxx*lyx) * fPreStressHH) + ((lxy*lyy) * fPreStresshh) + ((lxz*lyz) * fPreStressVV);
+      //SigmaYZ = ((lyx*lzx) * fPreStressHH) + ((lyy*lzy) * fPreStresshh) + ((lyz*lzz) * fPreStressVV);
+      //SigmaXZ = ((lzx*lxx) * fPreStressHH) + ((lzy*lxy) * fPreStresshh) + ((lzz*lxz) * fPreStressVV);
+        
+    }
+
     
     
     // Get Elastic Materials Parameters
