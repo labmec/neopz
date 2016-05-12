@@ -353,8 +353,67 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 
 template<>
 void TPZMatrix<std::complex<float> >::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const {
-    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
-    DebugStop();
+    if(form == EFormatted) {
+        out << "Writing matrix '";
+        if(name) out << name;
+        out << "' (" << Rows() << " x " << Cols() << "):\n";
+        
+        for ( long row = 0; row < Rows(); row++) {
+            out << "\t";
+            for ( long col = 0; col < Cols(); col++ ) {
+                out << Get( row, col).real() << "  " << Get(row, col).imag() << " ";
+            }
+            out << "\n";
+        }
+        out << "\n";
+    } else if (form == EInputFormat) {
+        out << Rows() << " " << Cols() << endl;
+        for ( long row = 0; row < Rows(); row++) {
+            for ( long col = 0; col < Cols(); col++ ) {
+                std::complex<double> val = Get (row, col);
+                if(val != 0.) out << row << ' ' << col << ' ' << val.real() << " " << val.imag() << std::endl;
+            }
+        }
+        out << "-1 -1 0.\n";
+    } else if( form == EMathematicaInput)
+    {
+        char number[128];
+        out << name << "\n{ ";
+        for ( long row = 0; row < Rows(); row++) {
+            out << "\n{ ";
+            for ( long col = 0; col < Cols(); col++ ) {
+                std::complex<double> val = Get (row, col);
+                
+                sprintf(number, "{%16.16lf,%16.16lf}", val.real(), val.imag());
+                
+                
+                out << number;
+                if(col < Cols()-1)
+                    out << ", ";
+                if((col+1) % 6 == 0)out << std::endl;
+            }
+            out << " }";
+            if(row < Rows()-1)
+                out << ",";
+        }
+        
+        out << " };\n";
+        
+    }else if( form == EMatlabNonZeros)
+    {
+        out << name;
+        for ( long row = 0; row < Rows(); row++) {
+            out << "\n|";
+            for ( long col = 0; col < Cols(); col++ )
+                if(IsZero(Get (row, col)) ){
+                    out << "."; 
+                }else{
+                    out << "#";
+                }
+            out << "|";
+        }
+        out << "\n";
+    }
 }
 
 template<>
