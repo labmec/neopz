@@ -25,7 +25,7 @@ public:
     ~TRMRawData();
     
     
-    /** @brief unknown part */
+    /** @brief unknown part will be deprecated in time */
     REAL fLw;
     bool fHasLiner;
     bool fHasCasing;
@@ -46,10 +46,10 @@ public:
     TPZStack< int > fSkeletonIds;
 
     /** @brief vector that stores pointers to L2 function associated with with gamma domain at intial conditions */
-    TPZStack< TPZVec< TPZAutoPointer<TPZFunction<REAL> > > >  intial_bc_data;
+    TPZStack< TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > >  fIntial_bc_data;
     
     /** @brief vector that stores pointers to L2 function associated with with gamma domain at given conditions */
-    TPZStack< TPZVec< TPZAutoPointer<TPZFunction<REAL> > > >  recurrent_bc_data;
+    TPZStack< TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > >  fRecurrent_bc_data;
     
     /**
      * @ingroup Configuration Cases
@@ -61,6 +61,10 @@ public:
     void WaterReservoirBox();
     
     static void Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);
+    
+    static void Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF);
+    
+    static void Impervious(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF);
     
 };
 

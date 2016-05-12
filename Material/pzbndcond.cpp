@@ -123,7 +123,11 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-  TPZBndCond copy(*this);
+    
+    TPZBndCond copy(*this);
+    copy.SetForcingFunction(0, this->ForcingFunction());
+    copy.SetTimeDependentForcingFunction(0, this->TimeDependentForcingFunction());
+    copy.SetTimedependentBCForcingFunction(0, this->TimedependentBCForcingFunction());
 	copy.UpdateBCValues(data);
 	int numbersol = data.sol.size();
 	//clone meshes required analysis
@@ -153,28 +157,31 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 //----
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
-  TPZBndCond copy(*this);
-	int typetmp = copy.fType;
-	if (fType == 50) {
-				int i;
-#ifdef LOG4CXX
+    TPZBndCond copy(*this);
+    copy.SetForcingFunction(0, this->ForcingFunction());
+    copy.SetTimeDependentForcingFunction(0, this->TimeDependentForcingFunction());
+    copy.SetTimedependentBCForcingFunction(0, this->TimedependentBCForcingFunction());
+    int typetmp = copy.fType;
+    if (fType == 50) {
+                int i;
+    #ifdef LOG4CXX
         if (logger->isDebugEnabled())
-		{
-			for(int iref=0; iref < datavec.size(); iref++){
-				std::stringstream sout;
-				sout << __PRETTY_FUNCTION__ << datavec[iref].sol << " " << datavec[iref].x;
-				LOGPZ_DEBUG(logger,sout.str().c_str());
-			}
-		}
-#endif
-		for (i = 0; i <datavec[0].sol[0].NElements(); i++){
-					copy.fBCVal2(i,0) = ((STATE)gBigNumber)*datavec[0].sol[0][i];
-					copy.fBCVal1(i,i) = ((STATE)gBigNumber);
+        {
+            for(int iref=0; iref < datavec.size(); iref++){
+                std::stringstream sout;
+                sout << __PRETTY_FUNCTION__ << datavec[iref].sol << " " << datavec[iref].x;
+                LOGPZ_DEBUG(logger,sout.str().c_str());
+            }
+        }
+    #endif
+        for (i = 0; i <datavec[0].sol[0].NElements(); i++){
+                    copy.fBCVal2(i,0) = ((STATE)gBigNumber)*datavec[0].sol[0][i];
+                    copy.fBCVal1(i,i) = ((STATE)gBigNumber);
         }
         copy.fType = 2;
-	}
-	this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
-	copy.fType = typetmp;
+    }
+    this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
+    copy.fType = typetmp;
 }
 //----
 

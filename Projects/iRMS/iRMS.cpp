@@ -68,9 +68,17 @@ void LinearTracerDual()
 
 void BoxLinearTracerDual()
 {
+    // Materials ids and boundary settings
+    TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
+    RawData->WaterReservoirBox();
     
-    TRMOrchestra  * SymphonyX = new TRMOrchestra;
-    SymphonyX->CreateAnalysisDualonBox();
+    TPZAutoPointer<TRMSimulationData> SimData = new TRMSimulationData;
+    SimData->SetRawData(RawData);
+    
+    TRMOrchestra  * SymphonyX           = new TRMOrchestra;
+    SymphonyX->SetSimulationData(SimData);
+//    SymphonyX->CreateAnalysisDualonBox();
+    SymphonyX->CreateMonolithicAnalysis();
     std::cout << "Dual complete normally." << std::endl;
     
 }

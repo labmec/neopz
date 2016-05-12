@@ -362,6 +362,11 @@ public:
 	{
 		fForcingFunctionExact = fp;
 	}
+    
+    /** @brief Returns a procedure as source function for the material */
+    TPZAutoPointer<TPZFunction<STATE> > &ForcingFunctionExact() {
+        return fForcingFunctionExact;
+    }
 	
     /** 
 	 * @brief Sets a procedure as source function for the material.
@@ -373,6 +378,11 @@ public:
     {
 		fTimeDependentForcingFunction = fp;
     }
+    
+    /** @brief Returns a procedure as source function for the material */
+    TPZAutoPointer<TPZFunction<STATE> > &TimeDependentForcingFunction() {
+        return fTimeDependentForcingFunction;
+    }
 	
     /** 
 	 * @brief Sets a procedure as exact solution for the problem
@@ -382,6 +392,11 @@ public:
 	{
 		fTimedependentFunctionExact = fp;
 	}
+    
+    /** @brief Returns a procedure as source function for the material */
+    TPZAutoPointer<TPZFunction<STATE> > &TimedependentFunctionExact() {
+        return fTimedependentFunctionExact;
+    }
 	
     /** 
      * @brief Sets a procedure as variable boundary condition
@@ -392,6 +407,11 @@ public:
         fBCForcingFunction = fp;
     }
     
+    /** @brief Returns a procedure as source function for the material */
+    TPZAutoPointer<TPZFunction<STATE> > &BCForcingFunction() {
+        return fBCForcingFunction;
+    }
+    
     /** 
      * @brief Sets a procedure as variable boundary condition
      * @param fp pointer of exact solution function
@@ -399,12 +419,18 @@ public:
     void SetTimedependentBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
         fTimedependentBCForcingFunction = fp;
-    }    
+    }
+    
+    /** @brief Returns a procedure as source function for the material */
+    TPZAutoPointer<TPZFunction<STATE> > &TimedependentBCForcingFunction() {
+        return fTimedependentBCForcingFunction;
+    }
         
     
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
 	virtual int HasfForcingFunctionExact() {return (fForcingFunctionExact != 0);}
     virtual int HasffBCForcingFunction() {return (fBCForcingFunction != 0);}
+    virtual int HasfTimedependentForcingFunction() {return (fTimeDependentForcingFunction != 0);}
     virtual int HasfTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}    
     
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */

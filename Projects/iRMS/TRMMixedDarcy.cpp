@@ -375,10 +375,10 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     // Get the pressure at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
-    STATE pressure = point_memory.GetPressure();
-    STATE rhs = point_memory.GetRhs();
-    STATE w = point_memory.GetWeight();
-    STATE det = point_memory.GetDetJac();
+//    STATE pressure = point_memory.GetPressure();
+//    STATE rhs = point_memory.GetRhs();
+//    STATE w = point_memory.GetWeight();
+//    STATE det = point_memory.GetDetJac();
     TPZManVector<STATE> flux = point_memory.GetTotal_Flux();
 
 //    std::cout << "flux = " << flux << std::endl;
@@ -520,20 +520,16 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
     
     // Number of phis
     int nPhiHdiv = PhiH1.Rows();  // For Hdiv
-    int nPhiL2   = WL2.Rows();                                  // For L2
+//    int nPhiL2   = WL2.Rows();                                  // For L2
     TPZVec<STATE> &x = datavec[0].x;
     
     REAL Value = bc.Val2()(0,0);
-    if (bc.HasForcingFunction()) {
-        TPZManVector<STATE,2> forceval(1);
-        bc.ForcingFunction()->Execute(datavec[0].x, forceval);
-        Value = forceval[0];
-    }
-    
-    TPZManVector<STATE,2> myval2(1,0.);
-    if (bc.HasForcingFunction()){
-        bc.ForcingFunction()->Execute(x, myval2);
-        Value = myval2[0];
+    if (bc.HasfTimedependentBCForcingFunction()) {
+        TPZManVector<STATE,2> force(1);
+        REAL time = 0.0;
+        TPZFMatrix<double> gradf;
+        bc.TimedependentBCForcingFunction()->Execute(x, time, force, gradf);
+        Value = force[0];
     }
     else{
         Value = bc.Val2()(0,0);

@@ -46,56 +46,38 @@ static void CreateExampleRawData(TRMRawData &data)
 
 
 /** @brief Default constructor */
-TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox), fPOrder(4)
+TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
 {
-    fGeoMesh                = NULL;
-    fH1Cmesh                = NULL;
-    fSimulationData         = NULL;
-    fFluxCmesh              = NULL;
-    fPressureCmesh          = NULL;
-    fMixedFluxPressureCmesh = NULL;
-    fSaturationMesh         = NULL;
-    fGeoMechanicsCmesh      = NULL;
-    fTransferGenerator      = new TRMBuildTransfers;
+   
+    fPOrder = 1;
+    fGeoMesh                    = NULL;
+    fSimulationData             = NULL;
+    fH1Cmesh                    = NULL;
+    fFluxCmesh                  = NULL;
+    fPressureCmesh              = NULL;
+    fWaterSaturationMesh        = NULL;
+    fOilSaturationMesh          = NULL;
+    fGeoMechanicsCmesh          = NULL;
+    fMixedFluxPressureCmesh     = NULL;
+    fPressureSaturationCmesh    = NULL;
+    fMonolithicMultiphaseCmesh  = NULL;
+    fTransferGenerator          = new TRMBuildTransfers;
     
 }
 
 /** @brief Default desconstructor */
 TRMSpaceOdissey::~TRMSpaceOdissey(){
     
-    /** @brief H1 computational mesh for validation */
-    if(fH1Cmesh)
-    {
-        fH1Cmesh->CleanUp();
-    }
+    if(fH1Cmesh)                    fH1Cmesh->CleanUp();
+    if(fFluxCmesh)                  fFluxCmesh->CleanUp();
+    if(fPressureCmesh)              fPressureCmesh->CleanUp();
+    if(fWaterSaturationMesh)        fWaterSaturationMesh->CleanUp();
+    if(fOilSaturationMesh)          fOilSaturationMesh->CleanUp();
+    if(fGeoMechanicsCmesh)          fGeoMechanicsCmesh->CleanUp();
+    if(fMixedFluxPressureCmesh)     fMixedFluxPressureCmesh->CleanUp();
+    if(fPressureSaturationCmesh)    fPressureSaturationCmesh->CleanUp();
+    if(fMonolithicMultiphaseCmesh)  fMonolithicMultiphaseCmesh->CleanUp();
     
-    /** @brief Mixed computational mesh for a dual analysis */
-    if(fMixedFluxPressureCmesh)
-    {
-        fMixedFluxPressureCmesh->CleanUp();
-    }
-    
-    /** @brief Autopointer of Simulation data */
-    TPZAutoPointer<TRMSimulationData> fSimulationData;
-    
-    /** @brief Hdiv computational mesh conservative vector field */
-    if(fFluxCmesh)
-    {
-        fFluxCmesh->CleanUp();
-    }
-    
-    /** @brief L2 computational mesh the restriction equation */
-    if(fPressureCmesh)
-    {
-        fPressureCmesh->CleanUp();
-    }
-    
-    /** @brief H1 computational mesh for Maurice Biot Linear Poroelasticity */
-    if(fGeoMechanicsCmesh)
-    {
-        fGeoMechanicsCmesh->CleanUp();
-    }
-
 }
 
 
@@ -109,56 +91,37 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     }
     
     int dim = 3;
+    int flux_or_pressure = 0;
     int qorder = fPOrder;
     
-    const int typeFlux = 1, typePressure = 0;
-    TPZFMatrix<STATE> val1(1,1,0.), val2Flux(1,1,0.), val2Pressure(1,1,1000.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     
     // Malha computacional
     fFluxCmesh = new TPZCompMesh(fGeoMesh);
     
-    TRMMixedDarcy * mat = new TRMMixedDarcy(_ReservMatId);
-    fFluxCmesh->InsertMaterialObject(mat);
-    
-    
-    // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2Pressure);
-    fFluxCmesh->InsertMaterialObject(bcN);
-    
-    // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2Pressure);
-    fFluxCmesh->InsertMaterialObject(bcS);
-    
-    // Bc E
-    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
-    fFluxCmesh->InsertMaterialObject(bcE);
-    
-    // Bc W
-//    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-//    fFluxCmesh->InsertMaterialObject(bcW);
-    
-    // Bc B
-//    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-//    fFluxCmesh->InsertMaterialObject(bcB);
-    
-    // Bc T
-//    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2);
-//    fFluxCmesh->InsertMaterialObject(bcT);
-    
-
-    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typeFlux, val1, val2Pressure);
-    fFluxCmesh->InsertMaterialObject(bcToe);
-    
-    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
-    fFluxCmesh->InsertMaterialObject(bcHeel);
-    
-    /*
-    TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
-    fFluxCmesh->InsertMaterialObject(bcWellRes);
-     */
-    
-    TPZBndCond * bcWellFaces = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2Pressure);
-    fFluxCmesh->InsertMaterialObject(bcWellFaces);
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
+        fFluxCmesh->InsertMaterialObject(mat);
+        
+        // Inserting volumetric materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            bc_item = bc[flux_or_pressure];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            boundary_c->SetTimedependentBCForcingFunction(bc_item.second);
+            fFluxCmesh->InsertMaterialObject(boundary_c);
+        }
+        
+    }
     
     // Setando Hdiv
     fFluxCmesh->SetDimModel(dim);
@@ -208,13 +171,18 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     int dim = 3;
     int porder = fPOrder;
     
-    TPZFMatrix<STATE> val1(1,1,0.), val2Pressure(1,1,0.), val2Flux(1,1,1000.);
-    
     // Malha computacional
     fPressureCmesh = new TPZCompMesh(fGeoMesh);
     
-    TRMMixedDarcy * mat = new TRMMixedDarcy(_ReservMatId);
-    fPressureCmesh->InsertMaterialObject(mat);
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
+        fPressureCmesh->InsertMaterialObject(mat);
+        
+    }
 
     // Setando L2
     fPressureCmesh->SetDimModel(dim);
@@ -291,77 +259,39 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         std::cout<< "Geometric mesh doesn't exist" << std::endl;
         DebugStop();
     }
-//    bool StaticCondensation = false;
+
     int dim = 3;
-    int int_bc_order = 1;
+    int flux_or_pressure = 0;
     
-    const int typeFlux = 0;
-    const int typePressure = 0;
-    
-    TPZFMatrix<STATE> val1(2,2,0.), val2Flux(2,1,0.), val2Pressure(2,1,0.);
-    val2Pressure(0,0) = 0.0;
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     
     // Malha computacional
     fMixedFluxPressureCmesh = new TPZCompMesh(fGeoMesh);
     
-    // Material medio poroso
-    TRMMixedDarcy * mat = new TRMMixedDarcy(_ReservMatId);
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
+        fMixedFluxPressureCmesh->InsertMaterialObject(mat);
+        
+        // Inserting boundary materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            bc_item = bc[flux_or_pressure];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            boundary_c->SetTimedependentBCForcingFunction(bc_item.second); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            fMixedFluxPressureCmesh->InsertMaterialObject(boundary_c);
 
-    // Rigth hand side function
-    mat->SetForcingFunction(ExactLaplacian, int_bc_order);
-    
-
-    fMixedFluxPressureCmesh->InsertMaterialObject(mat);
-    TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(ExactPressure);
-    mat->SetForcingFunctionExact(force);
-    
-    // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, _ConfinementReservBCbottom, typePressure, val1, val2Pressure);
-    bcN->SetForcingFunction(0,force);
-    fMixedFluxPressureCmesh->InsertMaterialObject(bcN);
-    
-    // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, _ConfinementReservBCtop, typePressure, val1, val2Pressure);
-    bcS->SetForcingFunction(0,force);
-    fMixedFluxPressureCmesh->InsertMaterialObject(bcS);
-    
-    // Bc E
-    val2Flux(0,0) = 0.0;
-    TPZBndCond * bcE = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2Flux);
-    bcE->SetForcingFunction(0,force);
-    
-    // Bc W
-    val2Flux(0,0) = 0.0;
-    TPZBndCond * bcW = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2Flux);
-    bcW->SetForcingFunction(0,force);
-    
-    // Bc B
-    TPZBndCond * bcB = mat->CreateBC(mat, _LateralReservBC, typePressure, val1, val2Pressure);
-    bcB->SetForcingFunction(0,force);
-    fMixedFluxPressureCmesh->InsertMaterialObject(bcB);
-    
-    // Bc T
-    val2Flux(0,0) = 0.0;
-    TPZBndCond * bcT = mat->CreateBC(mat, _LateralReservBC, typeFlux, val1, val2Flux);
-    bcT->SetForcingFunction(0,force);
-    
-    
-//    TPZBndCond * bcToe = mat->CreateBC(mat, _WellToeMatId, typePressure, val1, val2Pressure);
-////    bcToe->SetForcingFunction(0, force);
-//    fMixedFluxPressureCmesh->InsertMaterialObject(bcToe);
-//    
-//    TPZBndCond * bcHeel = mat->CreateBC(mat, _WellHeelMatId, typePressure, val1, val2Pressure);
-////    bcHeel->SetForcingFunction(0, force);
-//    fMixedFluxPressureCmesh->InsertMaterialObject(bcHeel);
-//    
-//    /*
-//    TPZBndCond * bcWellRes = mat->CreateBC(mat, _WellFacesMatId, typePressure, val1, val2Pressure);
-//    fMixedFluxPressureCmesh->InsertMaterialObject(bcWellRes);
-//    */
-//    
-//    TPZBndCond * bcWellFaces = mat->CreateBC(mat, _Well3DReservoirFaces, typePressure, val1, val2Pressure);
-//    bcWellFaces->SetForcingFunction(3, force);
-//    fMixedFluxPressureCmesh->InsertMaterialObject(bcWellFaces);
+        }
+        
+    }
 
     
     fMixedFluxPressureCmesh->SetDimModel(dim);
@@ -369,8 +299,6 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     fMixedFluxPressureCmesh->AutoBuild();
     
     TPZManVector<TPZCompMesh * ,2> meshvector(2);
-    
-    
     meshvector[0] = fFluxCmesh.operator->();
     meshvector[1] = fPressureCmesh.operator->();
     
@@ -389,6 +317,12 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         mfcel->InitializeIntegrationRule();
         mfcel->PrepareIntPtIndices();
     }
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshMixed.txt");
+    fMixedFluxPressureCmesh->Print(out);
+#endif
+    
 }
 
 /** @brief Statically condense the internal equations of the elements */
@@ -477,19 +411,19 @@ void TRMSpaceOdissey::CreateH1Cmesh()
 }
 
 /** @brief Create a computational mesh L2 */
-void TRMSpaceOdissey::CreateTransportMesh()
+void TRMSpaceOdissey::CreateWaterTransportMesh()
 {
-    // criamos elementos descontinuos e de interface com memoria...
-    if (fSaturationMesh) {
+
+    if (fWaterSaturationMesh) {
         DebugStop();
     }
-    fSaturationMesh = new TPZCompMesh(fGeoMesh);
-    fSaturationMesh->SetDimModel(3);
-    fSaturationMesh->SetDefaultOrder(0);
-    fSaturationMesh->SetAllCreateFunctionsDiscontinuous();
+    fWaterSaturationMesh = new TPZCompMesh(fGeoMesh);
+    fWaterSaturationMesh->SetDimModel(3);
+    fWaterSaturationMesh->SetDefaultOrder(0);
+    fWaterSaturationMesh->SetAllCreateFunctionsDiscontinuous();
     
     TRMPhaseTransport *mat = new TRMPhaseTransport(_ReservMatId);
-    fSaturationMesh->InsertMaterialObject(mat);
+    fWaterSaturationMesh->InsertMaterialObject(mat);
     
     TRMPhaseInterfaceTransport *matint = new TRMPhaseInterfaceTransport(_ReservoirInterface);
     fGeoMesh->AddInterfaceMaterial(_ReservMatId, _ReservMatId,_ReservoirInterface);
@@ -497,9 +431,32 @@ void TRMSpaceOdissey::CreateTransportMesh()
     // WE NEED TO ADD THE BOUNDARY CONDITION MATERIALS
     DebugStop();
     
-    fSaturationMesh->ApproxSpace().CreateInterfaces(fSaturationMesh);
+    fWaterSaturationMesh->ApproxSpace().CreateInterfaces(fWaterSaturationMesh);
 }
 
+/** @brief Create a computational mesh L2 */
+void TRMSpaceOdissey::CreateOilTransportMesh()
+{
+    
+    if (fOilSaturationMesh) {
+        DebugStop();
+    }
+    fOilSaturationMesh = new TPZCompMesh(fGeoMesh);
+    fOilSaturationMesh->SetDimModel(3);
+    fOilSaturationMesh->SetDefaultOrder(0);
+    fOilSaturationMesh->SetAllCreateFunctionsDiscontinuous();
+    
+    TRMPhaseTransport *mat = new TRMPhaseTransport(_ReservMatId);
+    fOilSaturationMesh->InsertMaterialObject(mat);
+    
+    TRMPhaseInterfaceTransport *matint = new TRMPhaseInterfaceTransport(_ReservoirInterface);
+    fGeoMesh->AddInterfaceMaterial(_ReservMatId, _ReservMatId,_ReservoirInterface);
+    
+    // WE NEED TO ADD THE BOUNDARY CONDITION MATERIALS
+    DebugStop();
+    
+    fOilSaturationMesh->ApproxSpace().CreateInterfaces(fOilSaturationMesh);
+}
 
 
 void TRMSpaceOdissey::PrintGeometry()
@@ -518,6 +475,13 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     REAL dt;
     int n;
     
+    int rock = +1;
+    int bc_W = -1;
+    int bc_E = -2;
+    int bc_S = -3;
+    int bc_N = -4;
+    int bc_B = -5;
+    int bc_T = -6;
     
     // Creating a 0D element to be extruded
     TPZGeoMesh * GeoMesh0D = new TPZGeoMesh;
@@ -531,14 +495,14 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     TPZVec<long> Topology(1,0);
     int elid=0;
     
-    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,_ReservMatId,*GeoMesh0D);
+    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,rock,*GeoMesh0D);
     GeoMesh0D->BuildConnectivity();
     GeoMesh0D->SetDimension(0);
     
     TPZHierarquicalGrid CreateGridFrom0D(GeoMesh0D);
     TPZAutoPointer<TPZFunction<STATE> > ParFuncX = new TPZDummyFunction<STATE>(ParametricfunctionX);
     CreateGridFrom0D.SetParametricFunction(ParFuncX);
-    CreateGridFrom0D.SetFrontBackMatId(_ConfinementReservBCbottom,_ConfinementReservBCtop);
+    CreateGridFrom0D.SetFrontBackMatId(bc_W,bc_E);
     
     dt = dx[0];
     n = int(dx[1]);
@@ -548,7 +512,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     TPZHierarquicalGrid CreateGridFrom1D(GeoMesh1D);
     TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
-    CreateGridFrom1D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
+    CreateGridFrom1D.SetFrontBackMatId(bc_S,bc_N);
     
     dt = dy[0];
     n = int(dy[1]);
@@ -558,7 +522,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
     TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
-    CreateGridFrom2D.SetFrontBackMatId(_LateralReservBC,_LateralReservBC);
+    CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
     
     dt = dz[0];
     n = int(dz[1]);

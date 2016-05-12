@@ -22,6 +22,9 @@ class TRMSimulationData {
     
 protected:
     
+    /** @brief Autopointer of the RawData */
+    TPZAutoPointer<TRMRawData> fRawData;
+    
     /** @brief Stores all the petrophysics data */
     TRMPetrophysicsProperties fPetroProp;
     
@@ -38,21 +41,28 @@ protected:
 public:
     
     
-    /** @brief Initialize the raw data */
-    TRMSimulationData(TRMRawData &RawData);
+    /** @brief default constructor */
+    TRMSimulationData();
     
     /** @brief destructor */
     ~TRMSimulationData();
     
     /**
-     * @defgroup Water Properties of water from few field parameters
+     * @defgroup Access methods
      * @brief    Implements several set/get attributes for the simulation data:
-     *           TRMPetrophysicsProperties
-     *           TRMBlackOilProperties
-     *           TRMSpatialPropertiesMap
      *
      * @{
      */
+    
+    /** @brief Set autopointer of the RawData */
+    void SetRawData(TPZAutoPointer<TRMRawData> RawData){
+        fRawData = RawData;
+    }
+    
+    /** @brief Get autopointer of the RawData */
+    TPZAutoPointer<TRMRawData>  RawData(){
+        return fRawData;
+    }
     
     /** @brief Stores all the petrophysics data */
     void SetPetroProp(TRMPetrophysicsProperties PetroProp)
@@ -60,7 +70,7 @@ public:
         fPetroProp = PetroProp;
     }
     
-    TRMPetrophysicsProperties & GetPetroProp()
+    TRMPetrophysicsProperties & PetroProp()
     {
         return fPetroProp;
     }
@@ -71,7 +81,7 @@ public:
         fBlackOilProp = BlackOilProp;
     }
     
-    TRMBlackOilProperties & GetBlackOilProp()
+    TRMBlackOilProperties & BlackOilProp()
     {
         return fBlackOilProp;
     }
@@ -82,7 +92,7 @@ public:
         fRockProp = RockProp;
     }
     
-    TRMRockProperties & GetRockProp()
+    TRMRockProperties & RockProp()
     {
         return fRockProp;
     }

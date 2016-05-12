@@ -29,7 +29,7 @@ class TRMSpaceOdissey{
 public:
     
     /** @brief Define the type of geometry being used */
-    enum MGeoMeshType {ENone = 0,EBox = 1, EReservoir = 2};
+    enum MGeoMeshType {ENone = 0,EBox = 1, EReservoir = 2, EGIDReservoir = 3};
     
     /** @brief Define the type of geometry being used */
     MGeoMeshType fMeshType;
@@ -42,11 +42,11 @@ private:
     /** @brief Autopointer of the Geometric mesh shared with all the classes involved */
     TPZAutoPointer<TPZGeoMesh> fGeoMesh;
     
-    /** @brief H1 computational mesh for validation */
-    TPZAutoPointer<TPZCompMesh> fH1Cmesh;
-    
     /** @brief Autopointer of Simulation data */
     TPZAutoPointer<TRMSimulationData> fSimulationData;
+    
+    /** @brief H1 computational mesh for primal approach */
+    TPZAutoPointer<TPZCompMesh> fH1Cmesh;
     
     /** @brief Hdiv computational mesh conservative vector field */
     TPZAutoPointer<TPZCompMesh> fFluxCmesh;
@@ -54,14 +54,23 @@ private:
     /** @brief L2 computational mesh the restriction equation */
     TPZAutoPointer<TPZCompMesh> fPressureCmesh;
     
+    /** @brief L2 computational mesh water saturation equations */
+    TPZAutoPointer<TPZCompMesh> fWaterSaturationMesh;
+
+    /** @brief L2 computational mesh oil saturation equations */
+    TPZAutoPointer<TPZCompMesh> fOilSaturationMesh;
+    
+    /** @brief H1 computational mesh for Maurice Biot linear poroelasticity */
+    TPZAutoPointer<TPZCompMesh> fGeoMechanicsCmesh;
+    
     /** @brief Mixed computational mesh for a dual analysis */
     TPZAutoPointer<TPZCompMesh> fMixedFluxPressureCmesh;
     
-    /** @brief Mesh with Saturation values */
-    TPZAutoPointer<TPZCompMesh> fSaturationMesh;
+    /** @brief H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */
+    TPZAutoPointer<TPZCompMesh> fPressureSaturationCmesh;
     
-    /** @brief H1 computational mesh for Maurice Biot Linear Poroelasticity */
-    TPZAutoPointer<TPZCompMesh> fGeoMechanicsCmesh;
+    /** @brief Computational mesh for multiphase monolithic approach */
+    TPZAutoPointer<TPZCompMesh> fMonolithicMultiphaseCmesh;
     
     /** @brief Object that generates and contains all the sparse matrices to transfer informations */
     TPZAutoPointer<TRMBuildTransfers> fTransferGenerator;
@@ -104,7 +113,10 @@ public:
     void ConfigureWellConstantPressure(STATE wellpressure, STATE farfieldpressure);
     
     /** @brief Create a computational mesh L2 */
-    void CreateTransportMesh();
+    void CreateWaterTransportMesh();
+    
+    /** @brief Create a computational mesh L2 */
+    void CreateOilTransportMesh();
     
     /** @brief Create a H1 computational mesh for Maurice Biot Linear Poroelasticity */
     void CreateGeoMechanicMesh();
@@ -127,53 +139,148 @@ public:
     /** @brief Parametric function that computes elements in the z direction */
     static  void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X);
     
+    
+    
     /**
-     * @ingroup Acces methods
-     * @brief Set and Get class attributes
-     * @since June 09, 2015
+     * @defgroup Access Methods
+     * @brief    Implements Access methods:
+     * @{
      */
     
-    /** @brief Autopointer of the Geometric mesh shared with all the classes involved */
+    /** @brief Set autopointer of the Geometric mesh */
     void SetGmesh(TPZAutoPointer<TPZGeoMesh> GeoMesh){
         fGeoMesh = GeoMesh;
     }
-    TPZAutoPointer<TPZGeoMesh>  GetGmesh(){
+    
+    /** @brief Get autopointer of the Geometric mesh */
+    TPZAutoPointer<TPZGeoMesh>  Gmesh(){
         return fGeoMesh;
     }
     
-    /** @brief H1 computational mesh for validation */
-    void SetH1Cmesh(TPZAutoPointer<TPZCompMesh> H1Cmesh){
+    /** @brief Set autopointer of Simulation data */
+    void SetSimulationData(TPZAutoPointer<TRMSimulationData> SimulationData){
+        fSimulationData = SimulationData;
+    }
+    
+    /** @brief Get autopointer of Simulation data */
+    TPZAutoPointer<TRMSimulationData>  SimulationData(){
+        return fSimulationData;
+    }
+    
+    /** @brief Set autopointer of H1 computational mesh for primal approach */
+    void SetH1CMesh(TPZAutoPointer<TPZCompMesh> H1Cmesh){
         fH1Cmesh = H1Cmesh;
     }
-    TPZAutoPointer<TPZCompMesh>  GetH1Cmesh(){
+    
+    /** @brief Get autopointer of H1 computational mesh for primal approach */
+    TPZAutoPointer<TPZCompMesh>  H1CMesh(){
         return fH1Cmesh;
     }
-
-    /// Access method for the flux mesh
-    TPZAutoPointer<TPZCompMesh>  GetFluxCmesh(){
+    
+    /** @brief Set autopointer of Hdiv computational mesh conservative vector field */
+    void SetFluxCmesh(TPZAutoPointer<TPZCompMesh> FluxCmesh){
+        fFluxCmesh = FluxCmesh;
+    }
+    
+    /** @brief Get autopointer of Hdiv computational mesh conservative vector field */
+    TPZAutoPointer<TPZCompMesh>  FluxCmesh(){
         return fFluxCmesh;
     }
     
-    /// Access method for the pressure mesh
-    TPZAutoPointer<TPZCompMesh>  GetPressureMesh(){
+    /** @brief Set autopointer of L2 computational mesh the restriction equation */
+    void SetPressureCmesh(TPZAutoPointer<TPZCompMesh> PressureCmesh){
+        fPressureCmesh = PressureCmesh;
+    }
+    
+    /** @brief Get autopointer of L2 computational mesh the restriction equation */
+    TPZAutoPointer<TPZCompMesh>  PressureCmesh(){
         return fPressureCmesh;
     }
-
-    /** @brief Mixed computational mesh for validation */
-    void SetMixedCmesh(TPZAutoPointer<TPZCompMesh> MixedCmesh){
-        fMixedFluxPressureCmesh = MixedCmesh;
+    
+    /** @brief Set autopointer of L2 computational mesh water saturation equations */
+    void SetWaterSaturationMesh(TPZAutoPointer<TPZCompMesh> WaterSaturationMesh){
+        fWaterSaturationMesh = WaterSaturationMesh;
     }
-    TPZAutoPointer<TPZCompMesh>  GetMixedCmesh(){
+    
+    /** @brief Get autopointer of L2 computational mesh water saturation equations */
+    TPZAutoPointer<TPZCompMesh>  WaterSaturationMesh(){
+        return fWaterSaturationMesh;
+    }
+    
+    /** @brief Set autopointer of L2 computational mesh oil saturation equations */
+    void SetOilSaturationMesh(TPZAutoPointer<TPZCompMesh> OilSaturationMesh){
+        fOilSaturationMesh = OilSaturationMesh;
+    }
+    
+    /** @brief Get autopointer of L2 computational mesh oil saturation equations */
+    TPZAutoPointer<TPZCompMesh>  OilSaturationMesh(){
+        return fOilSaturationMesh;
+    }
+    
+    /** @brief Set autopointer of H1 computational mesh for Maurice Biot linear poroelasticity */
+    void SetGeoMechanicsCmesh(TPZAutoPointer<TPZCompMesh> GeoMechanicsCmesh){
+        fGeoMechanicsCmesh = GeoMechanicsCmesh;
+    }
+    
+    /** @brief Get autopointer of H1 computational mesh for Maurice Biot linear poroelasticity */
+    TPZAutoPointer<TPZCompMesh>  GeoMechanicsCmesh(){
+        return fGeoMechanicsCmesh;
+    }
+    
+    /** @brief Set autopointer of Mixed computational mesh for a dual analysis */
+    void SetMixedFluxPressureCmesh(TPZAutoPointer<TPZCompMesh> MixedFluxPressureCmesh){
+        fMixedFluxPressureCmesh = MixedFluxPressureCmesh;
+    }
+    
+    /** @brief Get autopointer of Mixed computational mesh for a dual analysis */
+    TPZAutoPointer<TPZCompMesh>  MixedFluxPressureCmesh(){
         return fMixedFluxPressureCmesh;
     }
     
-    /// Access method for the transfer tenerator objet
-    TPZAutoPointer<TRMBuildTransfers>  GetTransferGenerator(){
+    /** @brief Set autopointer of H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */
+    void SetPressureSaturationCmesh(TPZAutoPointer<TPZCompMesh> PressureSaturationCmesh){
+        fPressureSaturationCmesh = PressureSaturationCmesh;
+    }
+    
+    /** @brief Get autopointer of H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */
+    TPZAutoPointer<TPZCompMesh>  PressureSaturationCmesh(){
+        return fPressureSaturationCmesh;
+    }
+    
+    /** @brief Set autopointer of Computational mesh for multiphase monolithic approach */
+    void SetMonolithicMultiphaseCmesh(TPZAutoPointer<TPZCompMesh> MonolithicMultiphaseCmesh){
+        fMonolithicMultiphaseCmesh = MonolithicMultiphaseCmesh;
+    }
+    
+    /** @brief Get autopointer of Computational mesh for multiphase monolithic approach */
+    TPZAutoPointer<TPZCompMesh>  MonolithicMultiphaseCmesh(){
+        return fMonolithicMultiphaseCmesh;
+    }
+    
+    /** @brief Set autopointer of Object that generates and contains all the sparse matrices to transfer informations */
+    void SetTransferGenerator(TPZAutoPointer<TRMBuildTransfers> TransferGenerator){
+        fTransferGenerator = TransferGenerator;
+    }
+    
+    /** @brief Get autopointer of Object that generates and contains all the sparse matrices to transfer informations */
+    TPZAutoPointer<TRMBuildTransfers>  TransferGenerator(){
         return fTransferGenerator;
     }
     
-    /// Adjust the polinomial order of the elements
+    
+    // @}
+    
+    /**
+     * @defgroup Utilities and other Methods
+     * @brief    Implements Methods for h and p refinement:
+     * @{
+     */
+    
+    /** @brief Adjust the polinomial order of the elements */
     void IncreaseOrderAroundWell(int numlayers);
+    
+    // @}
+    
     
 };
 

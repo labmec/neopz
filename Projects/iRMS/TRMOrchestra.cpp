@@ -22,18 +22,19 @@
 #include "pzinterpolationspace.h"
 
 
-/** @brief Default constructor */
 TRMOrchestra::TRMOrchestra(){
     
-    /** @brief Define the global geometry being used */
-    fgmesh = NULL;
-    
-    /** @brief Define simulation data */
-    fSimulationData = NULL;
+    fgmesh                          = NULL;
+    fSimulationData                 = NULL;
+    fPrimalMultiphaseAnalysis       = new TRMPrimalMultiphaseAnalysis;
+    fMonolithicMultiphaseAnalysis   = new TRMMonolithicMultiphaseAnalysis;
+    fFluxPressureAnalysis           = new TRMFluxPressureAnalysis;
+    fWaterTransportAnalysis         = new TRMTransportAnalysis;
+    fOilTransportAnalysis           = new TRMTransportAnalysis;
     
 }
 
-/** @brief Default desconstructor */
+
 TRMOrchestra::~TRMOrchestra(){
     
 }
@@ -50,10 +51,10 @@ void TRMOrchestra::CreateAnalysisPrimal()
     fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
 //    spacegenerator.CreateGeometricReservoirMesh();
     fSpaceGenerator.PrintGeometry();
-    fgmesh = fSpaceGenerator.GetGmesh();
+    fgmesh = fSpaceGenerator.Gmesh();
     fSpaceGenerator.CreateH1Cmesh();
     
-    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetH1Cmesh();
+    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.H1CMesh();
     
     // Analysis
     bool mustOptimizeBandwidth = true;
@@ -83,6 +84,7 @@ void TRMOrchestra::CreateAnalysisPrimal()
 /** @brief Create a dual analysis using space odissey */
 void TRMOrchestra::CreateAnalysisDualonBox()
 {
+    
     int nel_x = 2;
     int nel_y = 1;
     int nel_z = 1;
@@ -107,16 +109,14 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     TPZManVector<TPZAutoPointer<TPZCompMesh>, 3 > meshvec(2);
     int flux    = 0;
     int Pres    = 1;
-    meshvec[flux] = fSpaceGenerator.GetFluxCmesh();
-    meshvec[Pres] = fSpaceGenerator.GetPressureMesh();
-    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetMixedCmesh();
+    meshvec[flux] = fSpaceGenerator.FluxCmesh();
+    meshvec[Pres] = fSpaceGenerator.PressureCmesh();
+    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.MixedFluxPressureCmesh();
     
     
     // With Already defined spaces it is possible to compute all the sparces matrices and arrays
-    
-    TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator.GetTransferGenerator();
-    
-    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);        // Computing Flux Matrix
+//    TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator.TransferGenerator();
+//    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);        // Computing Flux Matrix
 //    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);    // Computing Pressure Matrix
     
     
@@ -143,17 +143,17 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     
     // Analysis
     bool mustOptimizeBandwidth = false;
-    fFluxPressureAnalysis.SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
+    fFluxPressureAnalysis->SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
 #ifdef PZDEBUG
     {
         std::ofstream out("MixedCompMesh.txt");
         Cmesh->Print(out);
     }
 #endif
-//    fFluxPressureAnalysis.Solution().Zero();
-    fFluxPressureAnalysis.LoadSolution();
+//    fFluxPressureAnalysis->Solution().Zero();
+    fFluxPressureAnalysis->LoadSolution();
     
-    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
+    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis->Solution();
     std::cout << "Total dof: " << prevsol.Rows() << std::endl;
 //    std::cout << "prevsol: " << prevsol << std::endl;
     
@@ -164,15 +164,15 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     int numofThreads = 0;
     strmat.SetNumThreads(numofThreads);
     step.SetDirect(ELDLt);
-    fFluxPressureAnalysis.SetStructuralMatrix(strmat);
-    fFluxPressureAnalysis.SetSolver(step);
+    fFluxPressureAnalysis->SetStructuralMatrix(strmat);
+    fFluxPressureAnalysis->SetSolver(step);
 //    fFluxPressureAnalysis.Run();
-    fFluxPressureAnalysis.AssembleResidual();
+    fFluxPressureAnalysis->AssembleResidual();
 //    TPZFMatrix<STATE> rhs_p = this->IntegrateResidue(Cmesh,fSpaceGenerator.GetFluxCmesh(), fSpaceGenerator.GetPressureMesh(), transfer); // Integrating Residue
     
-    fFluxPressureAnalysis.Rhs().Print("Traditional Rhs = ");
+    fFluxPressureAnalysis->Rhs().Print("Traditional Rhs = ");
 //    rhs_p.Print("Pressure Rhs part = ");
-    prevsol -= fFluxPressureAnalysis.Solution();
+    prevsol -= fFluxPressureAnalysis->Solution();
     Cmesh->LoadSolution(prevsol);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
     std::cout << std::endl;
@@ -183,9 +183,9 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 //    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
 //    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
     
-    fFluxPressureAnalysis.AssembleResidual();
-    fFluxPressureAnalysis.LoadSolution();
-    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
+    fFluxPressureAnalysis->AssembleResidual();
+    fFluxPressureAnalysis->LoadSolution();
+    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
     
     const int dim = 3;
     int div = 1;
@@ -197,9 +197,82 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     scalnames.Push("AWeightedPressure");
     scalnames.Push("ADivOfBulkVeclocity");
     vecnames.Push("ABulkVelocity");
-    fFluxPressureAnalysis.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-    fFluxPressureAnalysis.PostProcess(div);
+    fFluxPressureAnalysis->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+    fFluxPressureAnalysis->PostProcess(div);
 
+    
+}
+
+/** @brief Create a monolithic dual analysis on box geometry using space odissey */
+void TRMOrchestra::CreateMonolithicAnalysis(){
+    
+    int nel_x = 2;
+    int nel_y = 2;
+    int nel_z = 2;
+    TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
+    dx[0] = 0.5;
+    dy[0] = 0.5;
+    dz[0] = 0.5;
+    
+    fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
+#ifdef PZDEBUG
+    fSpaceGenerator.PrintGeometry();
+#endif
+    fSpaceGenerator.SetDefaultPOrder(1);
+    fSpaceGenerator.CreateFluxCmesh();
+    fSpaceGenerator.CreatePressureCmesh();
+    fSpaceGenerator.CreateMixedCmesh();
+    
+    //    fSpaceGenerator.StaticallyCondenseEquations(); // There is a problem with Statically CondenseEquations
+    
+    // transfer the solution from the meshes to the multiphysics mesh
+    TPZManVector<TPZAutoPointer<TPZCompMesh>, 3 > meshvec(2);
+    int flux    = 0;
+    int Pres    = 1;
+    meshvec[flux] = fSpaceGenerator.FluxCmesh();
+    meshvec[Pres] = fSpaceGenerator.PressureCmesh();
+    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.MixedFluxPressureCmesh();
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
+    
+    
+    // Analysis
+    bool mustOptimizeBandwidth = false;
+    fFluxPressureAnalysis->SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
+    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis->Solution();
+    std::cout << "Total dof: " << prevsol.Rows() << std::endl;    
+    
+    
+    TPZSkylineStructMatrix strmat(Cmesh.operator->());
+    //    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
+    TPZStepSolver<STATE> step;
+    int numofThreads = 0;
+    strmat.SetNumThreads(numofThreads);
+    step.SetDirect(ELDLt);
+    fFluxPressureAnalysis->SetStructuralMatrix(strmat);
+    fFluxPressureAnalysis->SetSolver(step);
+    
+    
+    fFluxPressureAnalysis->Run();
+    prevsol -= fFluxPressureAnalysis->Solution();
+    Cmesh->LoadSolution(prevsol);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+    fFluxPressureAnalysis->AssembleResidual();
+    fFluxPressureAnalysis->LoadSolution();
+    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
+    
+    const int dim = 3;
+    int div = 1;
+    TPZStack<std::string> scalnames, vecnames;
+    std::string plotfile =  "DualMonolithicDarcyOnBox.vtk";
+    scalnames.Push("WeightedPressure");
+    scalnames.Push("DivOfBulkVeclocity");
+    vecnames.Push("BulkVelocity");
+    fFluxPressureAnalysis->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+    fFluxPressureAnalysis->PostProcess(div);
+}
+
+/** @brief Computes the post processed results */
+void TRMOrchestra::PostProcess(){
     
 }
 
@@ -400,9 +473,9 @@ void TRMOrchestra::CreateAnalysisDual(){
     
     // transfer the solution from the meshes to the multiphysics mesh
     TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
-    meshvec[0] = fSpaceGenerator.GetFluxCmesh();
-    meshvec[1] = fSpaceGenerator.GetPressureMesh();
-    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.GetMixedCmesh();
+    meshvec[0] = fSpaceGenerator.FluxCmesh();
+    meshvec[1] = fSpaceGenerator.PressureCmesh();
+    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator.MixedFluxPressureCmesh();
     
     
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
@@ -410,7 +483,7 @@ void TRMOrchestra::CreateAnalysisDual(){
     
     // Analysis
     bool mustOptimizeBandwidth = true;
-    fFluxPressureAnalysis.SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
+    fFluxPressureAnalysis->SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
 //    TPZAnalysis * AnalysisDual = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
     int numofThreads = 8;
 #ifdef PZDEBUG
@@ -419,10 +492,10 @@ void TRMOrchestra::CreateAnalysisDual(){
         Cmesh->Print(out);
     }
 #endif
-    fFluxPressureAnalysis.Solution().Zero();
-    fFluxPressureAnalysis.LoadSolution();
+    fFluxPressureAnalysis->Solution().Zero();
+    fFluxPressureAnalysis->LoadSolution();
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
+    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis->Solution();
     std::cout << "Total dof: " << prevsol.Rows() << std::endl;
     
     std::map<REAL,STATE> RatebyPosition;
@@ -434,11 +507,11 @@ void TRMOrchestra::CreateAnalysisDual(){
     TPZStepSolver<STATE> step;
     strmat.SetNumThreads(numofThreads);
     step.SetDirect(ELDLt);
-    fFluxPressureAnalysis.SetStructuralMatrix(strmat);
-    fFluxPressureAnalysis.SetSolver(step);
-    fFluxPressureAnalysis.Run();
-    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
-    prevsol -= fFluxPressureAnalysis.Solution();
+    fFluxPressureAnalysis->SetStructuralMatrix(strmat);
+    fFluxPressureAnalysis->SetSolver(step);
+    fFluxPressureAnalysis->Run();
+    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
+    prevsol -= fFluxPressureAnalysis->Solution();
     Cmesh->LoadSolution(prevsol);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
 
@@ -452,13 +525,13 @@ void TRMOrchestra::CreateAnalysisDual(){
     
     if (0)
     {
-        fFluxPressureAnalysis.Run();
-        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
-        prevsol -= fFluxPressureAnalysis.Solution();
+        fFluxPressureAnalysis->Run();
+        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
+        prevsol -= fFluxPressureAnalysis->Solution();
         Cmesh->LoadSolution(prevsol);
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-        fFluxPressureAnalysis.AssembleResidual();
-        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
+        fFluxPressureAnalysis->AssembleResidual();
+        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
     }
     const int dim = 3;
     int div = 0;
@@ -468,13 +541,13 @@ void TRMOrchestra::CreateAnalysisDual(){
     scalnames.Push("DivOfBulkVeclocity");
     scalnames.Push("POrder");
     vecnames.Push("BulkVelocity");
-    fFluxPressureAnalysis.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-    fFluxPressureAnalysis.PostProcess(div);
+    fFluxPressureAnalysis->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+    fFluxPressureAnalysis->PostProcess(div);
     
 }
 
 /** @brief Create computational meshes using space odissey */
-void TRMOrchestra::CreateCompMeshes(TRMRawData &rawdata){
+void TRMOrchestra::CreateCompMeshes(){
     
 }
 
@@ -482,7 +555,7 @@ void TRMOrchestra::CreateCompMeshes(TRMRawData &rawdata){
 /** @brief Project an exact solution */
 void TRMOrchestra::ProjectExactSolution()
 {
-    TPZAutoPointer<TPZCompMesh> mesh = fSpaceGenerator.GetFluxCmesh();
+    TPZAutoPointer<TPZCompMesh> mesh = fSpaceGenerator.FluxCmesh();
     if (!mesh) {
         DebugStop();
     }
@@ -521,7 +594,7 @@ void TRMOrchestra::ProjectExactSolution()
     delete vecmat;
     mesh->MaterialVec() = matmap;
     
-    mesh = fSpaceGenerator.GetPressureMesh();
+    mesh = fSpaceGenerator.PressureCmesh();
     matmap.clear();// = mesh->MaterialVec();
     for (it= mesh->MaterialVec().begin(); it != mesh->MaterialVec().end(); it++) {
         it->second->Clone(matmap);
@@ -558,7 +631,7 @@ void TRMOrchestra::ProjectExactSolution()
     delete l2proj;
     mesh->MaterialVec() = matmap;
     
-    mesh = fSpaceGenerator.GetMixedCmesh();
+    mesh = fSpaceGenerator.MixedFluxPressureCmesh();
     for (it = mesh->MaterialVec().begin(); it != mesh->MaterialVec().end(); it++) {
         TPZBndCond * bnd = dynamic_cast<TPZBndCond *>(it->second);
         if (bnd)
@@ -608,9 +681,9 @@ void TRMOrchestra::ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &f)
 /** @brief Compute the production rate of the reservoir */
 void TRMOrchestra::ComputeProductionRate(std::map<REAL,STATE> &RatebyPosition, STATE &TotalIntegral)
 {
-    fSpaceGenerator.GetGmesh()->ResetReference();
-    fSpaceGenerator.GetFluxCmesh()->LoadReferences();
-    TPZAutoPointer<TPZGeoMesh> gmesh = fSpaceGenerator.GetGmesh();
+    fSpaceGenerator.Gmesh()->ResetReference();
+    fSpaceGenerator.FluxCmesh()->LoadReferences();
+    TPZAutoPointer<TPZGeoMesh> gmesh = fSpaceGenerator.Gmesh();
     TPZInt1d intrule(14);
     int np = intrule.NPoints();
     TotalIntegral = 0.;

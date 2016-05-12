@@ -10,7 +10,7 @@
 
 
 /** @brief Initialize the raw data */
-TRMSimulationData::TRMSimulationData(TRMRawData &RawData){
+TRMSimulationData::TRMSimulationData(){
     
 }
 
