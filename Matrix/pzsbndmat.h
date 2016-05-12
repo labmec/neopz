@@ -38,6 +38,8 @@ public:
     int    PutVal(const long row,const long col,const TVar& element );
     const TVar &GetVal(const long row,const long col ) const;
     
+    TVar &operator()(long row, long col);
+    
     /** @brief Checks if the current matrix is symmetric */
     virtual int IsSimetric() const
     {

@@ -207,6 +207,10 @@ void TestingTransposeMultiply(int row, int col, int symmetric) {
     }
     if (!check) {
         std::cout << __PRETTY_FUNCTION__ << "failed \n";
+        square2.Print("Full");
+        square.Print("Matrix");
+        square2 -= square;
+        square2.Print("Diff");
     }
     BOOST_CHECK(check);
     
@@ -317,6 +321,10 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
 //    std::cout<<"w = ";
 //    std::cout<<w<<std::endl;
 //    eigenVectors.Print("eV",std::cout , EMathematicaInput);
+    double mult = 10;
+    if (sizeof(TVar) == 4) {
+        mult *= 10.;
+    }
     for( int i = 0 ; i < dim ; i++){
         TPZFMatrix< std::complex<double> > res(dim,dim,0.);
         TPZFMatrix< std::complex<double> > x(dim,1,0.);
@@ -324,7 +332,7 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
         
         res = cpfma * x - w[i] * cpfmb * x;
         for( int j = 0 ; j < dim ; j++){
-            bool loccheck = IsZero( res(j,0)/10e8 );
+            bool loccheck = IsZero(TVar(res(j,0).real()/mult) ) && IsZero(TVar(res(j,0).imag()/mult) );
             if (loccheck == false) {
                 std::cout << "diff " << res(j,0) << std::endl;
             }
@@ -369,6 +377,10 @@ void TestingEigenValues(int dim, int symmetric) {
 //    std::cout<<w<<std::endl;
 //
 //    eigenVectors.Print("eV = ",std::cout,EMathematicaInput);
+    double mult = 10.;
+    if (sizeof(TVar) == 4) {
+        mult *= 10.;
+    }
     for( int i = 0 ; i < dim ; i++){
         TPZFMatrix< std::complex<double> > res(dim,1,0.);
         TPZFMatrix< std::complex<double> > x(dim,1,0.);
@@ -383,7 +395,7 @@ void TestingEigenValues(int dim, int symmetric) {
             }
         }
         for( int j = 0 ; j < dim ; j++){
-            bool loccheck = IsZero(res(j,0)/10e8 );
+            bool loccheck = IsZero(TVar(res(j,0).real()/mult) ) && IsZero(TVar(res(j,0).imag()/mult) );
             if (loccheck == false) {
                 std::cout << "diff " << res(j,0) << "i = " << i << " j = " << j <<  std::endl;
             }
@@ -409,33 +421,33 @@ BOOST_AUTO_TEST_SUITE(matrix_tests)
 BOOST_AUTO_TEST_CASE(eigenvalue_tests)
 {
     for (int dim = 5; dim < 6; dim += 10) {
+        TestingEigenValues<TPZSBMatrix<std::complex<double> >, std::complex<double>  >(dim, 1);
+        TestingEigenValues<TPZSBMatrix<std::complex<float> >, std::complex<float>  >(dim, 1);
+        TestingEigenValues<TPZSBMatrix<float>, float>(dim, 1);
+        TestingEigenValues<TPZSBMatrix<double >, double>(dim, 1);
         TestingEigenValues<TPZFMatrix<double>, double >(dim, 1);
         TestingEigenValues<TPZFMatrix<double>, double >(dim, 0);
         TestingEigenValues<TPZFMatrix<float>, float >(dim, 1);
         TestingEigenValues<TPZFMatrix<float>, float >(dim, 0);
         TestingEigenValues<TPZFMatrix<std::complex<double> >, std::complex<double>  >(dim, 1);
         TestingEigenValues<TPZFMatrix<std::complex<double> >, std::complex<double>  >(dim, 0);
-        TestingEigenValues<TPZFMatrix<std::complex<float> >, std::complex<float>  >(dim, 1);
-        TestingEigenValues<TPZFMatrix<std::complex<float> >, std::complex<float>  >(dim, 0);
+        TestingEigenValues<TPZFMatrix<std::complex<float> >, float  >(dim, 1);
+        TestingEigenValues<TPZFMatrix<std::complex<float> >, float  >(dim, 0);
         
-        TestingEigenValues<TPZSBMatrix<double >, double>(dim, 1);
-        TestingEigenValues<TPZSBMatrix<float>, float>(dim, 1);
-        TestingEigenValues<TPZSBMatrix<std::complex<float> >, std::complex<float>  >(dim, 1);
-        TestingEigenValues<TPZSBMatrix<std::complex<double> >, std::complex<double>  >(dim, 1);
     }
 }
 
 BOOST_AUTO_TEST_CASE(generalized_eigenvalue_tests)
 {
     for (int dim = 5; dim < 6; dim += 10) {
-        TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<float>, float >(dim, 1);
-        TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<std::complex<float> >, std::complex<float> >(dim, 1);
         TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<double>, double >(dim, 1);
         TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<std::complex<double> >, std::complex<double> >(dim, 1);
+        TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<float>, float >(dim, 1);
+        TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<std::complex<float> >, float >(dim, 1);
         TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<float>, float >(dim, 1);
-        TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<std::complex<float> >, std::complex<float> >(dim, 1);
+        TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<std::complex<float> >, float >(dim, 1);
         TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<double>, double >(dim, 1);
-        TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<std::complex<double> >, std::complex<double> >(dim, 1);
+        TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<std::complex<double> >, double >(dim, 1);
         
     }
 }
@@ -474,8 +486,8 @@ BOOST_AUTO_TEST_CASE(multiplytranspose_tests)
 {
     int dim;
     for(dim = 5;dim < 100; dim+=500) {
-        TestingTransposeMultiply<TPZSYsmpMatrix<double>, double >(dim,dim,1);
         TestingTransposeMultiply<TPZFYsmpMatrix<double>, double >(10,dim,0);
+        TestingTransposeMultiply<TPZSYsmpMatrix<double>, double >(dim,dim,1);
         TestingTransposeMultiply<TPZFMatrix<double>, double >(10,dim,0);
         TestingTransposeMultiply<TPZSkylNSymMatrix<double>, double >(dim,dim,0);
     }

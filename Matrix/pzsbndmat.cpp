@@ -136,6 +136,21 @@ const TVar
     return( fDiag[ Index(row,col) ] );
 }
 
+template<class TVar>
+TVar &TPZSBMatrix<TVar>::operator()(long row, long col)
+{
+    // inicializando row e col para trabalhar com a triangular superior
+    if ( row > col )
+        this->Swap( &row, &col );
+    
+    long index;
+    if ( (index = col-row) > fBand )
+        return( this->gZero );        // O elemento esta fora da banda.
+    
+    return( fDiag[ Index(row,col) ] );
+
+}
+
 /*************/
 /*** Print ***/
 
@@ -897,20 +912,20 @@ TPZSBMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenval
 {
     
 #ifdef USING_LAPACK
-    char jobz = 'v'; //compute eigenvectors
-    char uplo = 'u';//assume upper triangular
+    char jobz = 'V'; //compute eigenvectors
+    char uplo = 'U';//assume upper triangular
     int n = this->Dim();
     int kd = this->fBand;
     int ldab = this->fBand + 1;
     int ldbb = this->fBand + 1;
     TPZVec < double > w(0,0.);
     w.Resize( this->Dim() );
-    TPZVec <double> z( this->Dim() *this->Dim() );
+    TPZFMatrix<double> z( this->Dim() ,this->Dim() );
     int ldz = this->Dim();
     TPZVec <double> work( 3 *this->Dim() );
     int info = -666;
     
-    dsbev_(&jobz, &uplo, &n, &kd, fDiag.begin(), &ldab, w.begin(), z.begin(), &ldz, work.begin(), &info);
+    dsbev_(&jobz, &uplo, &n, &kd, fDiag.begin(), &ldab, w.begin(), &z(0,0), &ldz, work.begin(), &info);
     if( info > 0){
         TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
@@ -922,10 +937,9 @@ TPZSBMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenval
         eigenvalues[i] = w[i];
     }
     eigenVectors.Redim(this->Dim(), this->Dim());
-    double *zPtr = z.begin();
     for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
         for (int iCol = 0; iCol < this->Dim(); iCol++) {
-            eigenVectors( iVec , iCol) = *zPtr++;
+            eigenVectors( iVec , iCol) = z(iVec, iCol);
         }
     }
     
@@ -940,20 +954,20 @@ TPZSBMatrix<complex <double> >::SolveEigenProblem(TPZVec <complex<double> > &eig
 {
     
 #ifdef USING_LAPACK
-    char jobz = 'v'; //compute eigenvectors
-    char uplo = 'u';//assume upper triangular
+    char jobz = 'V'; //compute eigenvectors
+    char uplo = 'U';//assume upper triangular
     int n = this->Dim();
     int kd = this->fBand;
     int ldab = this->fBand + 1;
     TPZVec < double > w;
     w.Resize( this->Dim() );
-    TPZVec <complex <double> > z( this->Dim() *this->Dim() );
+    TPZFMatrix <complex <double> > z( this->Dim(),this->Dim() );
     int ldz = this->Dim();
     TPZVec <complex <double> > work( this->Dim() );
     TPZVec < double > rwork( 3 *this->Dim() );
     int info = -666;
     
-    zhbev_(&jobz, &uplo, &n, &kd, (__CLPK_doublecomplex *)fDiag.begin(), &ldab, w.begin(), (__CLPK_doublecomplex *)z.begin(), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
+    zhbev_(&jobz, &uplo, &n, &kd, (__CLPK_doublecomplex *)fDiag.begin(), &ldab, w.begin(), (__CLPK_doublecomplex *)&z(0,0), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
@@ -965,10 +979,9 @@ TPZSBMatrix<complex <double> >::SolveEigenProblem(TPZVec <complex<double> > &eig
         eigenvalues[i] = w[i];
     }
     eigenVectors.Redim(this->Dim(), this->Dim());
-    complex <double>  *zPtr = z.begin();
     for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
         for (int iCol = 0; iCol < this->Dim(); iCol++) {
-            eigenVectors( iVec , iCol) = *zPtr++;
+            eigenVectors( iVec , iCol) = z(iVec,iCol);
         }
     }
     
@@ -1052,20 +1065,20 @@ TPZSBMatrix<float>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalu
 {
     
 #ifdef USING_LAPACK
-    char jobz = 'v'; //compute eigenvectors
-    char uplo = 'u';//assume upper triangular
+    char jobz = 'V'; //compute eigenvectors
+    char uplo = 'U';//assume upper triangular
     int n = this->Dim();
     int kd = this->fBand;
     int ldab = this->fBand + 1;
     int ldbb = this->fBand + 1;
     TPZVec < float > w(0,0.);
     w.Resize( this->Dim() );
-    TPZVec <float> z( this->Dim() *this->Dim() );
+    TPZFMatrix <float> z( this->Dim(),this->Dim() );
     int ldz = this->Dim();
     TPZVec <float> work( 3 *this->Dim() );
     int info = -666;
     
-    ssbev_(&jobz, &uplo, &n, &kd, fDiag.begin(), &ldab, w.begin(), z.begin(), &ldz, work.begin(), &info);
+    ssbev_(&jobz, &uplo, &n, &kd, fDiag.begin(), &ldab, w.begin(), &z(0,0), &ldz, work.begin(), &info);
     if( info > 0){
         TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
@@ -1077,10 +1090,9 @@ TPZSBMatrix<float>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalu
         eigenvalues[i] = w[i];
     }
     eigenVectors.Redim(this->Dim(), this->Dim());
-    float *zPtr = z.begin();
     for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
         for (int iCol = 0; iCol < this->Dim(); iCol++) {
-            eigenVectors( iVec , iCol) = *zPtr++;
+            eigenVectors( iVec , iCol) = z(iVec,iCol);
         }
     }
     
@@ -1095,20 +1107,20 @@ TPZSBMatrix<complex <float> >::SolveEigenProblem(TPZVec <complex<double> > &eige
 {
     
 #ifdef USING_LAPACK
-    char jobz = 'v'; //compute eigenvectors
-    char uplo = 'u';//assume upper triangular
+    char jobz = 'V'; //compute eigenvectors
+    char uplo = 'U';//assume upper triangular
     int n = this->Dim();
     int kd = this->fBand;
     int ldab = this->fBand + 1;
     TPZVec < float > w;
     w.Resize( this->Dim() );
-    TPZVec <complex <float> > z( this->Dim() *this->Dim() );
+    TPZFMatrix <complex <float> > z( this->Dim(), this->Dim() );
     int ldz = this->Dim();
     TPZVec <complex <float> > work( this->Dim() );
     TPZVec < float > rwork( 3 *this->Dim() );
     int info = -666;
     
-    chbev_(&jobz, &uplo, &n, &kd, (__CLPK_complex *)fDiag.begin(), &ldab, w.begin(), (__CLPK_complex *)z.begin(), &ldz, (__CLPK_complex *)work.begin(),rwork.begin(), &info);
+    chbev_(&jobz, &uplo, &n, &kd, (__CLPK_complex *)fDiag.begin(), &ldab, w.begin(), (__CLPK_complex *)&z(0,0), &ldz, (__CLPK_complex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
@@ -1120,10 +1132,9 @@ TPZSBMatrix<complex <float> >::SolveEigenProblem(TPZVec <complex<double> > &eige
         eigenvalues[i] = w[i];
     }
     eigenVectors.Redim(this->Dim(), this->Dim());
-    complex <float>  *zPtr = z.begin();
     for (int iVec = 0 ; iVec < this->Dim(); iVec++) {
         for (int iCol = 0; iCol < this->Dim(); iCol++) {
-            eigenVectors( iVec , iCol) = *zPtr++;
+            eigenVectors( iVec , iCol) = z(iVec,iCol);
         }
     }
     
