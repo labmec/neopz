@@ -728,8 +728,8 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
 // metodo para computar erros
 void TPZMatMixedPoisson3D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
     
-    Solout.Resize( this->NSolutionVariables(var));
-    
+    Solout.Resize( 3 /*this->NSolutionVariables(var)*/);
+    // AQUI!!! //redefinicao feita  acima, antigamente mudava para 2, por exemplo, e nao ficava compativel com o resto que era 3
     
     if(var == 1){ //function (state variable Q)
         for (int ip = 0; ip<3; ip++)
@@ -799,11 +799,10 @@ void TPZMatMixedPoisson3D::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exa
     
     for(int id=0; id<3; id++) {
         REAL diffFlux = abs(dual[id] - du_exact(id,0));
+
         values[1]  += diffFlux*diffFlux;
     }
 
-//    std::cout << " flux  = " << dual <<std::endl;
-//    du_exact.Print("du_exact = ");
 }
 
 
