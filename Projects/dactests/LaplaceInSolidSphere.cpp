@@ -10,8 +10,12 @@
 #include "pzcheckgeom.h"
 #include "tools.h"
 
-//#define TROPICO
-#define CompleteShpere
+
+//#define Solution1
+//#define Solution2
+//#define Solution3
+#define Solution4
+
 const int  norder = 6;
 
 LaplaceInSolidSphere::LaplaceInSolidSphere()
@@ -28,8 +32,7 @@ LaplaceInSolidSphere::LaplaceInSolidSphere()
     fbc5 = -6;
     fmatskeleton = -7;
     fisH1 = false;
-    ftriang = false;
-    isgeoblend = true;
+    fIsNonLinearMeshQ = false;
 }
 
 LaplaceInSolidSphere::~LaplaceInSolidSphere()
@@ -41,9 +44,14 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
 {
     std::cout<< " (SOLID SPHERE) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     std::cout<< " Dimensao == " << fDim << std::endl;
+    TPZGeoMesh *gmesh;
     
-    TPZGeoMesh *gmesh = MakeSphereFromQuadrilateralFaces(fDim, ndiv);
-    
+    if(fIsNonLinearMeshQ){
+        gmesh = MakeSphereFromQuadrilateralFaces(ndiv);
+    }
+    else{
+        gmesh = MakeSphereFromLinearQuadrilateralFaces(ndiv);
+    }
     
     // Um teste para a solucao via H1, sem hdiv
     if (fisH1)
@@ -138,15 +146,10 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     L2Data = filename+str+L2;
     REAL error_primal, error_dual;
     ErrorPrimalDual(cmesh2, cmesh1, error_primal, error_dual );
-//     ordemP, ndiv, DoFT, DofCond
     
     // Printing required information
     
     saidaErro << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(20) << t1 << setw(20) << t2 << setw(20) << (t1+t2) << setw(20) << error_primal << setw(20) << error_dual << endl;
-    
-//    saidaErro << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" << " Razao " << setw(19) << " Assemble "<< setw(20)<< " Solve " << setw(20) <<" Ttotal " << setw(12) << "Error primal" << setw(16) << "Error dual \n";
-//    
-//    saidaErro << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(20) << sqrt(globalerrorsPrimal[1]) << setw(20) << sqrt(globalerrorsDual[1]) << setw(20) << sqrt(globalerrorsDual[2]) << setw(20) << sqrt(globalerrorsDual[3]) << endl;
     
     std::cout<< " FIM (ESFERA) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     
@@ -174,10 +177,240 @@ TPZVec<REAL> LaplaceInSolidSphere::SphereToKartesian(TPZManVector<REAL> xc, REAL
     return xyz;
 }
 
-TPZGeoMesh *LaplaceInSolidSphere::MakeSphereFromQuadrilateralFaces(int dim, int ndiv)
+TPZGeoMesh *LaplaceInSolidSphere::MakeSphereFromLinearQuadrilateralFaces(int ndiv){
+
+    TPZGeoMesh * geomesh = new TPZGeoMesh;
+    geomesh->SetDimension(fDim);
+    int nl = 2;// Let it fixed
+    int basenodes = 8;
+    int nodes =  basenodes * (nl);
+    REAL radius_o = 1.0;
+    REAL radius_i = 0.25;
+    
+    REAL dr = (radius_o- radius_i)/REAL(nl-1);
+    geomesh->SetMaxNodeId(nodes-1);
+    geomesh->NodeVec().Resize(nodes);
+    TPZManVector<TPZGeoNode,4> Node(nodes);
+    
+    TPZManVector<long,4> TopolQuad(4);
+    TPZManVector<long,8> TopolCube(8);
+    TPZManVector<REAL,3> coord(3,0.);
+    TPZVec<REAL> xc(3,0.);
+    REAL cphi = atan(sqrt(2.0));
+    
+    int nodeindex = 0;
+    long id = 0;
+    int matid = 1;
+    
+    TPZManVector< TPZManVector<REAL,3> , 8 > points(nodes,0.);
+    for (int il = 0; il < nl; il++) {
+        
+        if (il==0) {
+            matid = fbc0;
+        }
+        
+        if (il==nl-1) {
+            matid = fbc1;
+        }
+        
+        REAL radius = radius_o - REAL(il)*dr;
+        points[0].Resize(3, 0.0);
+        points[0][0]=radius;
+        points[0][1]=M_PI-cphi;
+        points[0][2]=M_PI/4.0;
+        
+        points[1].Resize(3, 0.0);
+        points[1][0]=radius;
+        points[1][1]=cphi;
+        points[1][2]=M_PI/4.0;
+        
+        points[2].Resize(3, 0.0);
+        points[2][0]=radius;
+        points[2][1]=cphi;
+        points[2][2]=-M_PI/4.0;
+        
+        points[3].Resize(3, 0.0);
+        points[3][0]=radius;
+        points[3][1]=M_PI-cphi;
+        points[3][2]=-M_PI/4.0;
+        
+        points[4].Resize(3, 0.0);
+        points[4][0]=radius;
+        points[4][1]=M_PI-cphi;
+        points[4][2]=3.0*M_PI/4.0;
+        
+        points[5].Resize(3, 0.0);
+        points[5][0]=radius;
+        points[5][1]=cphi;
+        points[5][2]=3.0*M_PI/4.0;
+        
+        points[6].Resize(3, 0.0);
+        points[6][0]=radius;
+        points[6][1]=cphi;
+        points[6][2]=-3.0*M_PI/4.0;
+        
+        points[7].Resize(3, 0.0);
+        points[7][0]=radius;
+        points[7][1]=M_PI-cphi;
+        points[7][2]=-3.0*M_PI/4.0;
+        
+        
+        
+        for (int i = 0; i < basenodes; i++) {
+            coord = ParametricSphere(points[i][0],points[i][1],points[i][2]);
+            geomesh->NodeVec()[nodeindex].SetCoord(coord);
+            geomesh->NodeVec()[nodeindex].SetNodeId(nodeindex);
+            nodeindex++;
+        }
+        
+        
+        TopolQuad[0] = 0+il*basenodes;
+        TopolQuad[1] = 1+il*basenodes;
+        TopolQuad[2] = 2+il*basenodes;
+        TopolQuad[3] = 3+il*basenodes;
+        new TPZGeoElRefPattern<  pzgeom::TPZGeoQuad  > (id,TopolQuad,matid,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 4+il*basenodes;
+        TopolQuad[1] = 5+il*basenodes;
+        TopolQuad[2] = 6+il*basenodes;
+        TopolQuad[3] = 7+il*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 0+il*basenodes;
+        TopolQuad[1] = 4+il*basenodes;
+        TopolQuad[2] = 5+il*basenodes;
+        TopolQuad[3] = 1+il*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 3+il*basenodes;
+        TopolQuad[1] = 7+il*basenodes;
+        TopolQuad[2] = 6+il*basenodes;
+        TopolQuad[3] = 2+il*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad  > (id,TopolQuad,matid,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 0+il*basenodes;
+        TopolQuad[1] = 4+il*basenodes;
+        TopolQuad[2] = 7+il*basenodes;
+        TopolQuad[3] = 3+il*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 1+il*basenodes;
+        TopolQuad[1] = 5+il*basenodes;
+        TopolQuad[2] = 6+il*basenodes;
+        TopolQuad[3] = 2+il*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
+        id++;
+    }
+    
+    matid = 1;
+    
+    for (int il = 0; il < nl - 1 ; il++) {
+        //      Inserting blend elements
+        TopolCube[0] = 0+il*basenodes;
+        TopolCube[1] = 1+il*basenodes;
+        TopolCube[2] = 2+il*basenodes;
+        TopolCube[3] = 3+il*basenodes;
+        TopolCube[4] = 0+(il+1)*basenodes;
+        TopolCube[5] = 1+(il+1)*basenodes;
+        TopolCube[6] = 2+(il+1)*basenodes;
+        TopolCube[7] = 3+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
+        TopolCube[0] = 4+il*basenodes;
+        TopolCube[1] = 5+il*basenodes;
+        TopolCube[2] = 6+il*basenodes;
+        TopolCube[3] = 7+il*basenodes;
+        TopolCube[4] = 4+(il+1)*basenodes;
+        TopolCube[5] = 5+(il+1)*basenodes;
+        TopolCube[6] = 6+(il+1)*basenodes;
+        TopolCube[7] = 7+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
+        TopolCube[0] = 0+il*basenodes;
+        TopolCube[1] = 4+il*basenodes;
+        TopolCube[2] = 5+il*basenodes;
+        TopolCube[3] = 1+il*basenodes;
+        TopolCube[4] = 0+(il+1)*basenodes;
+        TopolCube[5] = 4+(il+1)*basenodes;
+        TopolCube[6] = 5+(il+1)*basenodes;
+        TopolCube[7] = 1+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
+        TopolCube[0] = 3+il*basenodes;
+        TopolCube[1] = 7+il*basenodes;
+        TopolCube[2] = 6+il*basenodes;
+        TopolCube[3] = 2+il*basenodes;
+        TopolCube[4] = 3+(il+1)*basenodes;
+        TopolCube[5] = 7+(il+1)*basenodes;
+        TopolCube[6] = 6+(il+1)*basenodes;
+        TopolCube[7] = 2+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
+        TopolCube[0] = 0+il*basenodes;
+        TopolCube[1] = 4+il*basenodes;
+        TopolCube[2] = 7+il*basenodes;
+        TopolCube[3] = 3+il*basenodes;
+        TopolCube[4] = 0+(il+1)*basenodes;
+        TopolCube[5] = 4+(il+1)*basenodes;
+        TopolCube[6] = 7+(il+1)*basenodes;
+        TopolCube[7] = 3+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
+        TopolCube[0] = 1+il*basenodes;
+        TopolCube[1] = 5+il*basenodes;
+        TopolCube[2] = 6+il*basenodes;
+        TopolCube[3] = 2+il*basenodes;
+        TopolCube[4] = 1+(il+1)*basenodes;
+        TopolCube[5] = 5+(il+1)*basenodes;
+        TopolCube[6] = 6+(il+1)*basenodes;
+        TopolCube[7] = 2+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
+    }
+    
+    geomesh->BuildConnectivity();
+    
+    TPZVec<TPZGeoEl *> sons;
+    const int nref = ndiv;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = geomesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = geomesh->ElementVec()[iel];
+            if(!gel->HasSubElement())
+            {
+                gel->Divide(sons);
+            }
+        }
+    }
+    
+    int axis = 1;
+    REAL angle = -45.0;
+    this->RotateGeomesh(geomesh, angle, axis);
+    
+    ofstream argm("NiceSphere.txt");
+    geomesh->Print(argm);
+    
+    std::ofstream outfile("NiceSphere.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
+    
+    return geomesh;
+}
+
+TPZGeoMesh *LaplaceInSolidSphere::MakeSphereFromQuadrilateralFaces(int ndiv)
 {
     TPZGeoMesh * geomesh = new TPZGeoMesh;
-    geomesh->SetDimension(dim);
+    geomesh->SetDimension(fDim);
     int nl = 2;// Let it fixed
     int basenodes = 8;
     int nodes =  basenodes * (nl);
@@ -406,7 +639,7 @@ TPZGeoMesh *LaplaceInSolidSphere::MakeSphereFromQuadrilateralFaces(int dim, int 
     
     std::ofstream outfile("NiceSphere.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile, true);
-    
+
     return geomesh;
 }
 
@@ -426,6 +659,7 @@ TPZManVector<STATE,3> LaplaceInSolidSphere::ParametricSphere(REAL radius,REAL ph
 
 void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp, TPZFMatrix<STATE> &flux){
     
+    REAL flambda = 2.0;
     solp.resize(1);
     flux.Resize(4, 1);
     
@@ -454,6 +688,7 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     REAL cosphi = cos(phi);
     REAL sin2phi = sin(2.0*phi);
     
+    
     REAL oneminuscosphicosphi = (1.0-cosphi*cosphi);
     
     REAL npowerofsintheta = 1.0;
@@ -478,17 +713,7 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     REAL Phiunity = cosphi;
     REAL Phiunitz = 0.0;
     
-//    REAL dfdr       = 4.0*r*r*r*npowerofsintheta*sinphi*sinphi;
-//    REAL dfdTheta   = 6.0*r*r*r*costheta*(sintheta*sintheta*sintheta*sintheta*sintheta)*sinphi*sinphi;
-//    REAL dfdPhi     = r*r*r*(sintheta*sintheta*sintheta*sintheta*sintheta)*sin2phi;
-//    
-//    solp[0] = p;
-//    
-//    flux(0,0) = -1.0*(dfdr * Radialunitx + dfdTheta * Thetaunitx + dfdPhi * Phiunitx);
-//    flux(1,0) = -1.0*(dfdr * Radialunity + dfdTheta * Thetaunity + dfdPhi * Phiunity);
-//    flux(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz + dfdPhi * Phiunitz);
-//    
-//    flux(3,0) = -2.0*r*r*sintheta*sintheta*sintheta*sintheta*( cos2phi + 0.5*(25.0+11.0*cos2theta)*sinphi*sinphi );
+#ifdef Solution1
     
     REAL dfdr       = 2.0*r;
     REAL dfdTheta   = 0.0;
@@ -502,12 +727,62 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     
     flux(3,0) = -6.0;
     
+#endif
+    
+#ifdef Solution2
+    
+    REAL dfdr       = 4.0*r*r*r*npowerofsintheta*sinphi*sinphi;
+    REAL dfdTheta   = 6.0*r*r*r*costheta*(sintheta*sintheta*sintheta*sintheta*sintheta)*sinphi*sinphi;
+    REAL dfdPhi     = r*r*r*(sintheta*sintheta*sintheta*sintheta*sintheta)*sin2phi;
+    
+    solp[0] = p;
+    
+    flux(0,0) = -1.0*(dfdr * Radialunitx + dfdTheta * Thetaunitx + dfdPhi * Phiunitx);
+    flux(1,0) = -1.0*(dfdr * Radialunity + dfdTheta * Thetaunity + dfdPhi * Phiunity);
+    flux(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz + dfdPhi * Phiunitz);
+    
+    flux(3,0) = -2.0*r*r*sintheta*sintheta*sintheta*sintheta*( cos2phi + 0.5*(25.0+11.0*cos2theta)*sinphi*sinphi );
+
+#endif
+    
+#ifdef Solution3
+    
+    REAL sinlpix = sin(flambda*M_PI*x);
+    REAL sinlpiy = sin(flambda*M_PI*y);
+    REAL sinlpiz = sin(flambda*M_PI*z);
+
+    REAL coslpix = cos(flambda*M_PI*x);
+    REAL coslpiy = cos(flambda*M_PI*y);
+    REAL coslpiz = cos(flambda*M_PI*z);
+
+    
+    solp[0] = sinlpix*sinlpiy*sinlpiz;
+    
+    flux(0,0) = -1.0*(flambda*M_PI*coslpix*sinlpiy*sinlpiz);
+    flux(1,0) = -1.0*(flambda*M_PI*sinlpix*coslpiy*sinlpiz);
+    flux(2,0) = -1.0*(flambda*M_PI*sinlpix*sinlpiy*coslpiz);
+    flux(3,0) = 3.0*M_PI*M_PI*flambda*flambda*sinlpix*sinlpiy*sinlpiz;
+    
+#endif
+    
+#ifdef Solution4
+    
+    solp[0] = (1. - x)*x*(1. - y)*y*(1. - z)*z;
+    
+    flux(0,0) = -1.0*(-2.*(-0.5 + x)*(-1. + y)*y*(-1. + z)*z);
+    flux(1,0) = -1.0*(-2.*(-1. + x)*x*(-0.5 + y)*(-1. + z)*z);
+    flux(2,0) = -1.0*(-2.*(-1. + x)*x*(-1. + y)*y*(-0.5 + z));
+    flux(3,0) = 2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
+    
+#endif
+    
     return;
 
 }
 
 void LaplaceInSolidSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     
+    REAL flambda = 2.0;
     REAL x,y,z;
     
     x = pt[0];
@@ -518,12 +793,46 @@ void LaplaceInSolidSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     REAL theta = acos(z/r);
     REAL phi = atan2(y,x);
     
+#ifdef Solution1
+    
     REAL sintheta = sin(theta);
     REAL sinphi = sin(phi);
     REAL cos2phi = cos(2.0*phi);
     REAL cos2theta = cos(2.0*theta);
     
-    ff[0] = -6.0;//-2.0*r*r*sintheta*sintheta*sintheta*sintheta*( cos2phi + 0.5*(25.0+11.0*cos2theta)*sinphi*sinphi );
+    ff[0] = -6.0;
+    
+#endif
+    
+#ifdef Solution2
+    
+    REAL sintheta = sin(theta);
+    REAL sinphi = sin(phi);
+    REAL cos2phi = cos(2.0*phi);
+    REAL cos2theta = cos(2.0*theta);
+    
+    ff[0] = -2.0*r*r*sintheta*sintheta*sintheta*sintheta*( cos2phi + 0.5*(25.0+11.0*cos2theta)*sinphi*sinphi );
+    
+#endif
+    
+    
+    
+#ifdef Solution3
+    
+    REAL sinlpix = sin(flambda*M_PI*x);
+    REAL sinlpiy = sin(flambda*M_PI*y);
+    REAL sinlpiz = sin(flambda*M_PI*z);
+    
+    ff[0] = 3.0*M_PI*M_PI*flambda*flambda*sinlpix*sinlpiy*sinlpiz;
+    
+#endif
+    
+#ifdef Solution4
+    
+    ff[0] = 2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
+    
+#endif
+    
     
     return;
 }
@@ -688,6 +997,7 @@ void LaplaceInSolidSphere::ForcingBC4D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
 
 void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     
+    REAL flambda = 2.0;
     solp.resize(1);
     
     solp[0]=0.;
@@ -721,10 +1031,39 @@ void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
         npowerofsintheta *= sintheta;
     }
     
-    p = r*r*r*r*npowerofsintheta*oneminuscosphicosphi;
     
-//    solp[0] = p;
+#ifdef Solution1
+    
     solp[0] = r*r;
+    
+#endif
+    
+#ifdef Solution2
+    
+    p = r*r*r*r*npowerofsintheta*oneminuscosphicosphi;
+    solp[0] = p;
+    
+#endif
+
+#ifdef Solution3
+    
+    
+    REAL sinlpix = sin(flambda*M_PI*x);
+    REAL sinlpiy = sin(flambda*M_PI*y);
+    REAL sinlpiz = sin(flambda*M_PI*z);
+    
+    p = sinlpix*sinlpiy*sinlpiz;
+    solp[0] = p;
+    
+#endif
+    
+#ifdef Solution4
+    
+    p = (1. - x)*x*(1. - y)*y*(1. - z)*z;
+    solp[0] = p;
+    
+#endif
+    
     
     
     return;
@@ -994,11 +1333,11 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, 
             celdisc->SetTrueUseQsiEta();
             
             
-            if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
-            {
-                if(ftriang==true) celdisc->SetTotalOrderShape();
-                else celdisc->SetTensorialShape();
-            }
+//            if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+//            {
+//                if(ftriang==true) celdisc->SetTotalOrderShape();
+//                else celdisc->SetTensorialShape();
+//            }
             
         }
     }

@@ -137,12 +137,11 @@ private:
     
     bool fisH1;
     
-    bool ftriang;
-    
-    bool isgeoblend;
+    bool fIsNonLinearMeshQ;
     
     
 public:
+    
     LaplaceInSolidSphere( );
     
     ~LaplaceInSolidSphere();
@@ -166,7 +165,9 @@ public:
     TPZVec<REAL> SphereToKartesian(TPZManVector<REAL> xc, REAL r, REAL theta, REAL phi);
     TPZManVector<STATE,3> ParametricSphere(REAL radius, REAL phi,REAL theta);
     
-    TPZGeoMesh *MakeSphereFromQuadrilateralFaces(int dim, int ndiv);
+    TPZGeoMesh *MakeSphereFromQuadrilateralFaces(int ndiv);
+    
+    TPZGeoMesh *MakeSphereFromLinearQuadrilateralFaces(int ndiv);
     
     //--------------------
     
@@ -206,6 +207,11 @@ public:
     
     void ChangeExternalOrderConnects(TPZCompMesh *mesh);
     
+    void SetNonLinearMesh(bool nonlinear){
+     
+        fIsNonLinearMeshQ = nonlinear;
+        
+    }
     
 };
 
