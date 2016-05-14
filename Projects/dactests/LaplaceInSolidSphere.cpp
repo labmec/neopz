@@ -125,7 +125,7 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     plotData = plotname+Grau+strg+Ref+strr+VTK;
     std::string plotfile(plotData);
     
-    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
+//    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
     
     //Calculo do erro
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
@@ -1554,6 +1554,8 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
 
 void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual)
 {
+    std::cout << "Computing Error " << std::endl;
+    
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
     TPZManVector<STATE,10> globalerrorsDual(10,0.   );
@@ -1588,6 +1590,9 @@ void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdi
     
     error_primal    = globalerrorsPrimal[1];
     error_dual      = globalerrorsDual[1];
+ 
+    std::cout << "Finished Computing Error " << std::endl;
+    
     
 }
 

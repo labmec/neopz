@@ -585,13 +585,20 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
             z.Redim(this->Cols(),x.Cols());
         }
     }
-    if(this->Cols() == 0) {
+    if(this->Cols() == 0 ) {
         z.Zero();
         return;
     }
     if (beta != (double)0.) {
         z = y;
     }
+    
+    if(this->Rows() ==0 || this->Cols() == 0 ) {
+        return;
+    }
+    
+    //std::cout << "xrow " << x.Rows() << "xcol " << x.Cols() << "thiscols " << this->Cols() << "thisrows " << this->Rows() <<std::endl;
+    //std::cout.flush();
     if (!opt) {
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
                     alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
@@ -1649,7 +1656,10 @@ int TPZFMatrix<double>::Decompose_LDLt() {
     fWork.Resize(worksize);
     int info;
     
-    //    ssysv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__lwork#>, <#__CLPK_integer *__info#>)
+    if(dim == 0){
+        fDecomposed = ELDLt;
+        return 1;
+    }
     
     dsysv_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], &B, &dim, &fWork[0], &worksize, &info);
     fDecomposed = ELDLt;
@@ -1840,6 +1850,9 @@ int TPZFMatrix<float>::Subst_LForward( TPZFMatrix<float>* b ) const
     
     char uplo = 'U';
     int dim = Rows();
+    if (dim == 0) {
+        return 1;
+    }
     int nrhs = b->Cols();
     float B  = 0.;
     int info;
@@ -1868,6 +1881,9 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     int nrhs = b->Cols();
     double B  = 0.;
     int info;
+    if (dim == 0) {
+        return 1;
+    }
     
     //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);

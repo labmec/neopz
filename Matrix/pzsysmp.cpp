@@ -166,13 +166,13 @@ void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const Mat
 		out << "\tIA\tJA\tA\n"
 		<< "\t--\t--\t-\n";
 		for(i=0; i<=this->Rows(); i++) {
-			std::cout << i      << '\t'
+			out << i      << '\t'
 			<< fIA[i] << '\t'
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}
 		for(i=this->Rows()+1; i<fIA[this->Rows()]-1; i++) {
-			std::cout << i      << "\t\t"
+			out << i      << "\t\t"
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}

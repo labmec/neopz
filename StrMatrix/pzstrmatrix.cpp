@@ -580,7 +580,7 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
         PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
     }
     
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
     if(loggerCheck->isDebugEnabled())
     {
         std::stringstream sout;
