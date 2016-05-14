@@ -213,9 +213,11 @@ void TPZPardisoControl<TVar>::Decompose()
     /// analyse and factor the equations
     long long phase = 12;
     
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
 
+    std::cout << "Done\n";
     if (Error) {
         DebugStop();
     }

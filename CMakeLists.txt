@@ -365,6 +365,8 @@ find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
         endif()
         if(MKL_LIB-NOTFOUND)
                 set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
+	else()
+		link_libraries(libmkl_core.dylib,libmkl_intel_thread.dylib,libiomp5.dylib)
         endif()
 endif(USING_MKL)
 

@@ -40,6 +40,14 @@
 #include "pzbstrmatrix.h"
 #include "pzl2projection.h"
 
+// renumbering options
+#include "TPZCutHillMcKee.h"
+#include "TPZSloanRenumbering.h"
+#include "pzsloan.h"
+#include "TPZBoostGraph.h"
+#include "pzmetis.h"
+
+#include "pzvisualmatrix.h"
 #include "pzpoisson3d.h"
 #include "pzpoisson3dreferred.h"
 
@@ -184,8 +192,20 @@ int main(int argc, char *argv[])
         std::ofstream out("../CmeshRef.vtk");
         TPZVTKGeoMesh::PrintCMeshVTK(cmesh, out);
     }
+    {
+        TPZFMatrix<STATE> visualf;
+        cmesh->ComputeFillIn(150, visualf);
+        VisualMatrix(visualf,"../VisualMatrixBefore.vtk");
+    }
+
     
-    TPZAnalysis an(cmesh);
+    TPZAnalysis an;
+    TPZAutoPointer<TPZRenumbering> renumber;
+//    renumber = new TPZSloan;
+//    renumber = new TPZCutHillMcKee;
+    renumber = new TPZMetis;
+    an.SetRenumber(renumber);
+    an.SetCompMesh(cmesh, true);
     
 #ifdef PZDEBUG
     {
@@ -197,7 +217,13 @@ int main(int argc, char *argv[])
         std::ofstream out("../cmesh.txt");
         cmesh->Print(out);
     }
+    
 #endif
+    {
+        TPZFMatrix<STATE> visualf;
+        cmesh->ComputeFillIn(150, visualf);
+        VisualMatrix(visualf,"../MatrixMetis.vtk");
+    }
 
     std::cout << "NEquations " << an.Solution().Rows() << std::endl;
     
@@ -598,11 +624,11 @@ TPZCompMesh * ComputationalElasticityMesh3D(TPZGeoMesh *gmesh,int pOrder)
 void SolveSist(TPZAnalysis *an, TPZCompMesh *Cmesh)
 {
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(Cmesh);
-//    strmat.SetNumThreads(8);
-//    TPZSkylineStructMatrix strmat(Cmesh);
-    TPZSymetricSpStructMatrix strmat(Cmesh);
+    TPZSkylineStructMatrix strmat(Cmesh);
+//    TPZSymetricSpStructMatrix strmat(Cmesh);
+    strmat.SetNumThreads(8);
     an->SetStructuralMatrix(strmat);
-    
+
     long neq = Cmesh->NEquations();
     
     if(neq > 20000)

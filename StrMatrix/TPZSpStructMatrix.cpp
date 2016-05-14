@@ -75,7 +75,8 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     //    int nnodes = 0;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
     /**Creates a element graph*/
-    TPZMetis metis(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
+    TPZMetis metis;
+    metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
 	
     TPZVec<long> nodegraph;

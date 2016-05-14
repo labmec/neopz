@@ -37,10 +37,12 @@ TPZStructMatrix * TPZSymetricSpStructMatrix::Clone(){
 TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
                                               TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
+#ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
         LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble starting");
     }
+#endif
 	
     long neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
@@ -53,7 +55,9 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     TPZTimer before("Assembly of a sparse matrix");
     before.start();
+#ifdef LOG4CXX
     if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
+#endif
 	Assemble(*stiff,rhs,guiInterface);
     mat->ComputeDiagonal();
     
@@ -63,7 +67,9 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
+#ifdef LOG4CXX
     if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble exiting");
+#endif
     return stiff;
 }
 TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
@@ -82,7 +88,8 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
     //    int nnodes = 0;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
     /**Creates a element graph*/
-    TPZMetis metis(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
+    TPZMetis metis;
+    metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
     
     TPZVec<long> nodegraph;
