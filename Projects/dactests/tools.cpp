@@ -10,6 +10,8 @@
 #ifdef USING_BOOST
 #include "boost/date_time/posix_time/posix_time.hpp"
 #endif
+#include "TPZSSpStructMatrix.h"
+
 
 tools::tools()
 {
@@ -48,6 +50,7 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time,
             //TPZSkylineStructMatrix strmat(fCmesh);
             if (isfrontal) {
                 TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+                //                TPZSymetricSpStructMatrix< STATE > strmat(fCmesh);
                 strmat.SetDecomposeType(ELDLt);
                 int numthreads = 1;
                 strmat.SetNumThreads(numthreads);

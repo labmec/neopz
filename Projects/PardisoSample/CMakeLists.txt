@@ -2,7 +2,7 @@
 
 file(GLOB header *.h)
 
-set(main_SRCS main.cpp pardiso_mkl.cpp)
+set(main_SRCS main.cpp)
 
 add_executable(PardisoSample ${main_SRCS} ${header})
 

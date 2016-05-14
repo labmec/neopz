@@ -185,18 +185,6 @@ if(USING_TBB)
 	endif()
 endif(USING_TBB)
 
-#enabling PARDISO library
-option(USING_PARDISO "Whether the PARDISO library will be linked in" OFF)
-if(USING_PARDISO)
-	add_definitions(-DUSING_PARDISO)
-	find_library(PARDISO_LIB NAMES libpardiso500-MACOS-X86-64.dylib PATHS ${SEARCH_DIRS})
-	if(PARDISO_LIB-NOTFOUND)
-		set (PARDISO_LIB "" CACHE PATH "Directory where the pardiso library can be found")
-	else()
-		link_libraries(${PARDISO_LIB})
-	endif()
-endif(USING_PARDISO)
-
 #enabling OpenMP runtime and library
 option(USING_OPENMP "Whether the OpenMP library and runtime will be linked in" OFF)
 if(USING_OPENMP)
@@ -366,7 +354,10 @@ find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
         if(MKL_LIB-NOTFOUND)
                 set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
 	else()
-		link_libraries(libmkl_core.dylib,libmkl_intel_thread.dylib,libiomp5.dylib)
+		link_libraries(${MKL_LIB_INTEL})
+		link_libraries(${MKL_LIB_CORE})
+		link_libraries(${MKL_LIB_THREAD})
+		link_libraries(${COMPOSER_OMP})
         endif()
 endif(USING_MKL)
 
