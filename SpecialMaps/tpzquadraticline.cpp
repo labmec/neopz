@@ -78,40 +78,6 @@ void TPZQuadraticLine::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatr
     
 }
 
-void TPZQuadraticLine::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-	
-	jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
-	
-	TPZFNMatrix<3> phi(NNodes,1);
-	TPZFNMatrix<3> dphi(1,NNodes);
-	Shape(param,phi,dphi);
-	jacobian.Zero();
-	
-	TPZFNMatrix<3> VecMatrix(3,1,0.);
-	for(int i = 0; i < NNodes; i++) {
-		for(int j = 0; j < 3; j++) {
-			VecMatrix(j,0) += coord(j,i)*dphi(0,i);
-		}
-	}
-	
-	TPZFNMatrix<9> axest;
-	VecMatrix.GramSchmidt(axest,jacobian);
-	axest.Transpose(&axes);
-	
-	detjac = jacobian(0,0);
-    
-    if(IsZero(detjac))
-    {
-#ifdef PZDEBUG
-        std::stringstream sout;
-        sout << "Singular Jacobian " << detjac;
-        LOGPZ_ERROR(logger, sout.str())
-#endif
-        detjac = ZeroTolerance();
-    }
-    
-	jacinv(0,0) =  1./detjac;
-}
 
 TPZGeoEl *TPZQuadraticLine::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	

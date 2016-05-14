@@ -183,58 +183,6 @@ void TPZQuadraticCube::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> 
     
 }
 
-void TPZQuadraticCube::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-#ifdef PZDEBUG
-	if (NNodes != 20) {
-		PZError << "TPZQuadraticCube.jacobian only implemented for 20, NumberOfNodes = " << NNodes << "\n";
-	}
-#endif
-	
-	jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
-    jacobian.Zero(); axes.Zero();
-    for(int d = 0; d < 3; d++) axes(d,d) = 1.;
-	
-	REAL spacephi[20]; REAL spacedphi[60];
-	TPZFMatrix<REAL> phi(20,1,spacephi,20);
-	TPZFMatrix<REAL> dphi(3,20,spacedphi,60);
-	Shape(param,phi,dphi);
-	for(int i = 0; i < 20; i++) {
-		for(int j = 0; j < 3; j++) {
-			jacobian(j,0) += coord(j,i)*dphi(0,i);
-			jacobian(j,1) += coord(j,i)*dphi(1,i);
-			jacobian(j,2) += coord(j,i)*dphi(2,i);
-		}
-	}
-	
-	detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0)
-	+ jacobian(0,1)*jacobian(1,2)*jacobian(2,0)
-	+ jacobian(0,2)*jacobian(1,0)*jacobian(2,1)
-	- jacobian(0,0)*jacobian(1,2)*jacobian(2,1)
-	- jacobian(0,1)*jacobian(1,0)*jacobian(2,2)
-	+ jacobian(0,0)*jacobian(1,1)*jacobian(2,2);
-    
-    if(IsZero(detjac))
-    {
-#ifdef PZDEBUG
-        std::stringstream sout;
-        sout << "Singular Jacobian " << detjac;
-        LOGPZ_ERROR(logger, sout.str())
-#endif
-        detjac = ZeroTolerance();
-    }
-    
-	jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2))/detjac;//-a12 a21 + a11 a22
-	jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2))/detjac;// a02 a21 - a01 a22
-	jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2))/detjac;//-a02 a11 + a01 a12
-	jacinv(1,0) = ( jacobian(1,2)*jacobian(2,0)-jacobian(1,0)*jacobian(2,2))/detjac;// a12 a20 - a10 a22
-	jacinv(1,1) = (-jacobian(0,2)*jacobian(2,0)+jacobian(0,0)*jacobian(2,2))/detjac;//-a02 a20 + a00 a22
-	jacinv(1,2) = ( jacobian(0,2)*jacobian(1,0)-jacobian(0,0)*jacobian(1,2))/detjac;// a02 a10 - a00 a12
-	jacinv(2,0) = (-jacobian(1,1)*jacobian(2,0)+jacobian(1,0)*jacobian(2,1))/detjac;//-a11 a20 + a10 a21
-	jacinv(2,1) = ( jacobian(0,1)*jacobian(2,0)-jacobian(0,0)*jacobian(2,1))/detjac;// a01 a20 - a00 a21
-	jacinv(2,2) = (-jacobian(0,1)*jacobian(1,0)+jacobian(0,0)*jacobian(1,1))/detjac;//-a01 a10 + a00 a11
-}
-
-
 /**
  * Creates a geometric element according to the type of the father element
  */

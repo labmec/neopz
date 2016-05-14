@@ -106,35 +106,6 @@ void TPZQuadraticTrig::GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> 
     
 }
 
-void TPZQuadraticTrig::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv)
-{
-	jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
-	REAL spacephi[6],spacedphi[12];
-	TPZFMatrix<REAL> phi(6,1,spacephi,6);
-	TPZFMatrix<REAL> dphi(2,6,spacedphi,12);
-	Shape(par,phi,dphi);
-	jacobian.Zero();
-	
-	TPZFMatrix<REAL> VecMatrix(3,2,0.);
-	for(int i = 0; i < 6; i++)
-	{
-		for(int j = 0; j < 3; j++)
-		{
-			VecMatrix(j,0) += coord(j,i)*dphi(0,i);
-			VecMatrix(j,1) += coord(j,i)*dphi(1,i);
-		}
-	}
-	TPZFMatrix<REAL> axest;
-	VecMatrix.GramSchmidt(axest,jacobian);
-	axest.Transpose(&axes);
-	
-	detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
-	jacinv(0,0) =  jacobian(1,1)/detjac;
-	jacinv(1,1) =  jacobian(0,0)/detjac;
-	jacinv(0,1) = -jacobian(0,1)/detjac;
-	jacinv(1,0) = -jacobian(1,0)/detjac;
-}
-
 TPZGeoEl *TPZQuadraticTrig::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 {
 	if(side==6)

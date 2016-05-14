@@ -103,50 +103,6 @@ inline void TPZQuadraticQuad::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, T
     
 }
 
-void TPZQuadraticQuad::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-#ifdef PZDEBUG
-	if (NNodes != 8) {
-		PZError << "TPZQuadraticQuad.jacobian only implemented for 8, NumberOfNodes = " << NNodes << "\n";
-	}
-#endif
-	
-	jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
-	
-	REAL spacephi[8]; REAL spacedphi[16];
-	TPZFMatrix<REAL> phi(8,1,spacephi,8);
-	TPZFMatrix<REAL> dphi(2,8,spacedphi,16);
-	Shape(param,phi,dphi);
-	jacobian.Zero();
-	
-	TPZFMatrix<REAL> VecMatrix(3,2,0.);
-	for(int i = 0; i < 8; i++) {
-		for(int j = 0; j < 3; j++) {
-			VecMatrix(j,0) += coord(j,i)*dphi(0,i);
-			VecMatrix(j,1) += coord(j,i)*dphi(1,i);
-		}
-	}
-	
-	TPZFNMatrix<9,REAL> axest;
-	VecMatrix.GramSchmidt(axest,jacobian);
-	axest.Transpose(&axes);
-	
-	detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
-    
-    if(IsZero(detjac))
-    {
-#ifdef PZDEBUG
-        std::stringstream sout;
-        sout << "Singular Jacobian " << detjac;
-        LOGPZ_ERROR(logger, sout.str())
-#endif
-        detjac = ZeroTolerance();
-    }
-    
-	jacinv(0,0) =  jacobian(1,1)/detjac;
-	jacinv(1,1) =  jacobian(0,0)/detjac;
-	jacinv(0,1) = -jacobian(0,1)/detjac;
-	jacinv(1,0) = -jacobian(1,0)/detjac;
-}
 
 TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	

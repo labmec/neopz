@@ -94,14 +94,6 @@ public:
     
     template<class T>
     static void TShape(TPZVec<T> &x,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
-    
-    /* @brief compute the jacobian of the map between the master element and deformed element */
-    void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-    {
-        TPZFNMatrix<3*NNodes> coord(3,NNodes);
-        CornerCoordinates(gel, coord);
-        Jacobian(coord, param, jacobian, axes, detjac, jacinv);
-    }
 
     /** @brief Compute X mapping from element nodes and local parametric coordinates */    
     template<class T>
@@ -110,10 +102,7 @@ public:
     /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
     template<class T>
     static void GradX(TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
-	
-	static void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv);
-	
-	
+
 	/** @brief Creates a geometric element according to the type of the father element */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 									  TPZVec<long>& nodeindexes,
