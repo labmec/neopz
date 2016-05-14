@@ -177,7 +177,7 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     if(fPermeabilityFunction){
         PermTensor.Redim(fDim,fDim);
         InvPermTensor.Redim(fDim,fDim);
-        TPZFNMatrix<3,REAL> resultMat;
+        TPZFNMatrix<3,STATE> resultMat;
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
@@ -376,7 +376,7 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
     if(fPermeabilityFunction){
         PermTensor.Redim(fDim,fDim);
         InvPermTensor.Redim(fDim,fDim);
-        TPZFNMatrix<3,REAL> resultMat;
+        TPZFNMatrix<3,STATE> resultMat;
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
@@ -697,8 +697,8 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     if(var==9){
         
-        TPZFNMatrix<660> GradofP;
-        TPZAxesTools<REAL>::Axes2XYZ(datavec[1].dsol[0], GradofP, datavec[1].axes);
+        TPZFNMatrix<660,STATE> GradofP;
+        TPZAxesTools<STATE>::Axes2XYZ(datavec[1].dsol[0], GradofP, datavec[1].axes);
         //        int nc = GradofP.Cols();
         //        int nl = GradofP.Rows();
         

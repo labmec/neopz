@@ -746,9 +746,9 @@ TPZGeoMesh *LaplaceInCircle::MakeCircle( int ndiv)
 }
 
 
-TPZManVector<STATE,3> LaplaceInCircle::ParametricCircle(REAL radius,REAL theta)
+TPZManVector<REAL,3> LaplaceInCircle::ParametricCircle(REAL radius,REAL theta)
 {
-    TPZManVector<STATE,3> xcoor(3,0.0);
+    TPZManVector<REAL,3> xcoor(3,0.0);
     xcoor[0] = radius * cos(theta);
     xcoor[1] = radius * sin(theta);
     xcoor[2] = 0.0 ;

@@ -91,7 +91,7 @@ template<class TVar>
 void TPZDohrSubstruct<TVar>::Contribute_rc(TPZFMatrix<TVar> &rc) {
 	int i;
 	TPZFMatrix<TVar> temp;
-	fPhiC.Multiply(fLocalWeightedResidual, temp, 1, 1);
+	fPhiC.Multiply(fLocalWeightedResidual, temp, 1);
 	for (i=0;i<fCoarseIndex.NElements();i++) {
 		rc(fCoarseIndex[i],0) += temp(i,0);
 	}
@@ -104,7 +104,7 @@ void TPZDohrSubstruct<TVar>::Contribute_rc(TPZFMatrix<TVar> &rc) {
 template<class TVar>
 void TPZDohrSubstruct<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local)
 {
-	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1, 1);
+	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1);
 }
 
 
@@ -130,7 +130,7 @@ void TPZDohrSubstruct<TVar>::Contribute_v1(TPZFMatrix<TVar> &v1, TPZFMatrix<TVar
 		temp(i, 0) = invKc_rc(fCoarseIndex[i],0);
 	}
 	//temp2 = Phi*temp
-	fPhiC.Multiply(temp, temp2, 0, 1);
+	fPhiC.Multiply(temp, temp2, 0);
 	//v1 += R(i)_transposta*W(i)*temp2
 #ifdef ZERO_INTERNAL_RESIDU
 	for(i=0; i<fInternalEqs.NElements(); i++)
@@ -206,7 +206,7 @@ void TPZDohrSubstruct<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &residual_loca
 	//Obtaining lambda_star
 	TPZFMatrix<TVar> Lambda_star(ncoarse+nnull,1);
 	TPZFMatrix<TVar> CstarKW(ncoarse+nnull,ncols);
-	fC_star.MultAdd(KWeightedResidual,KWeightedResidual,CstarKW,-1,0,0,1);
+	fC_star.MultAdd(KWeightedResidual,KWeightedResidual,CstarKW,-1,0,0);
 	TPZFMatrix<TVar> temp2(ncoarse+nnull,ncols);
 	I_lambda.Add(CstarKW,temp2);
 	finv.Solve(temp2, Lambda_star);
@@ -265,7 +265,7 @@ void TPZDohrSubstruct<TVar>::Contribute_v3(TPZFMatrix<TVar> &v3, const TPZFMatri
 		vec_t(ind.first,0) = v1Plusv2(ind.second,0);
 	}
 	//vec_t2=K(i)*vec_t
-	fStiffness->Multiply(vec_t, vec_t2, 0, 1);
+	fStiffness->Multiply(vec_t, vec_t2, 0);
 	//vec_t=R(i)r
 	for (i=0;i<neqs;i++) {
 		std::pair<int,int> ind = fGlobalEqs[i];
@@ -414,7 +414,7 @@ void TPZDohrSubstruct<TVar>::SolveSystemZi() {
 	//Obtaining lambda_star
 	TPZFMatrix<TVar> Lambda_star(ncoarse+nnull,1);
 	TPZFMatrix<TVar> CstarKW(ncoarse+nnull,1);
-	fC_star.MultAdd(KWeightedResidual,KWeightedResidual,CstarKW,-1,0,0,1);
+	fC_star.MultAdd(KWeightedResidual,KWeightedResidual,CstarKW,-1,0,0);
 	TPZFMatrix<TVar> temp2(ncoarse+nnull,1);
 	I_lambda.Add(CstarKW,temp2);
 	finv.Solve(temp2, Lambda_star);
@@ -439,7 +439,7 @@ void TPZDohrSubstruct<TVar>::ComputeCoarseStiffness() {
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	fPhiC.MultAdd(temp1,temp1,fKCi,1,0,1,1);
+	fPhiC.MultAdd(temp1,temp1,fKCi,1,0,1);
 #ifdef LOG4CXX
 	if(logger->isDebugEnabled())
 	{
@@ -834,7 +834,7 @@ void TPZDohrSubstruct<TVar>::PrepareSystems() {
 	fInvertedStiffness.Solve(C_star_trans,fKeC_star);
 	//Constructing StepSolver finv
 	TPZFMatrix<TVar> *temp1 = new TPZFMatrix<TVar>(ncoarse+fNullPivots.Rows(),ncoarse+fNullPivots.Rows());
-	fC_star.MultAdd(fKeC_star,I_star,*temp1,-1,1,0,1);
+	fC_star.MultAdd(fKeC_star,I_star,*temp1,-1,1,0);
 	finv.SetMatrix(temp1);
 	finv.SetDirect(ELU);
 }

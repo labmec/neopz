@@ -198,9 +198,9 @@ void TPZTransfer<TVar>::ExpandDoubleValueEntries(int num){
 
 template<class TVar>
 void TPZTransfer<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						  TVar alpha, TVar beta, int opt, int stride) const{
+						  TVar alpha, TVar beta, int opt) const{
 	// multiplies the transfer matrix and puts the result in z
-	if ((!opt && this->Cols()*stride != x.Rows()) || (opt && this->Rows()*stride != x.Rows()))
+	if ((!opt && this->Cols() != x.Rows()) || (opt && this->Rows() != x.Rows()))
 		this->Error( "TPZTransfer<TVar>::MultAdd <matrices with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols()) {
 		this->Error ("TPZTransfer<TVar>::MultiplyAdd incompatible dimensions\n");
@@ -208,7 +208,7 @@ void TPZTransfer<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 	int rows = fRowBlock.MaxBlockSize();
 	int xcols = x.Cols();
 	int ic, c, r;
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 	for (ic = 0; ic < xcols; ic++) {
 		if(!opt) {
 			for ( r=0; r < rows; r++) {
@@ -219,15 +219,15 @@ void TPZTransfer<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 				if(colpos == -1) continue;
 				int numcolbl = fNumberofColumnBlocks[r];
 				if(numcolbl == 0) continue;
-				TPZFMatrix<TVar> zloc(rowblocksize*stride,1,&z(rowblockpos*stride,ic),rowblocksize*stride);
+				TPZFMatrix<TVar> zloc(rowblocksize,1,&z(rowblockpos,ic),rowblocksize);
 				for( c=0; c < numcolbl; c++) {
 					int col = fColumnBlockNumber[colpos+c];
 					int colblockpos = fColBlock.Position(col);
 					int colblocksize = fColBlock.Size(col);
-					TPZFMatrix<TVar> xloc(colblocksize*stride,1,&x.g(colblockpos*stride,ic), colblocksize*stride);
+					TPZFMatrix<TVar> xloc(colblocksize,1,&x.g(colblockpos,ic), colblocksize);
 					TPZFMatrix<TVar> aloc(rowblocksize,colblocksize,
 									&fDoubleValues[fColumnBlockPosition[colpos+c]],rowblocksize*colblocksize);
-					aloc.MultAdd(xloc,zloc,zloc,alpha,1.,opt,stride);
+					aloc.MultAdd(xloc,zloc,zloc,alpha,1.,opt);
 				}
 			}
 		} else {
@@ -235,7 +235,7 @@ void TPZTransfer<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 				int rowblockpos = fRowBlock.Position(r);
 				int rowblocksize = fRowBlock.Size(r);
 				if(!rowblocksize) continue;
-				TPZFMatrix<TVar> xloc(rowblocksize*stride,1,&x.g(rowblockpos*stride,ic),rowblocksize*stride);
+				TPZFMatrix<TVar> xloc(rowblocksize,1,&x.g(rowblockpos,ic),rowblocksize);
 				int colpos = fColPosition[r];
 				if(colpos == -1) continue;
 				int numcolbl = fNumberofColumnBlocks[r];
@@ -244,10 +244,10 @@ void TPZTransfer<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 					int col = fColumnBlockNumber[colpos+c];
 					int colblockpos = fColBlock.Position(col);
 					int colblocksize = fColBlock.Size(col);
-					TPZFMatrix<TVar> zloc(colblocksize*stride,1,&z(colblockpos*stride,ic),colblocksize*stride);
+					TPZFMatrix<TVar> zloc(colblocksize,1,&z(colblockpos,ic),colblocksize);
 					TPZFMatrix<TVar> aloc(rowblocksize,colblocksize,
 									&fDoubleValues[fColumnBlockPosition[colpos+c]],rowblocksize*colblocksize);
-					aloc.MultAdd(xloc,zloc,zloc,alpha,1.,opt,stride);
+					aloc.MultAdd(xloc,zloc,zloc,alpha,1.,opt);
 					col = rowblockpos-1;
 					rowblockpos = col+1;
 				}
@@ -267,18 +267,35 @@ void TPZTransfer<TVar>::TransferSolution(const TPZFMatrix<TVar> &coarsesol, TPZF
 	int ncf = finesol.Cols();
 	int nrc = coarsesol.Rows();
 	int ncc = coarsesol.Cols();
+    int thisr = this->Rows();
+    int thisc = this->Cols();
 	if(nrf != this->Rows()*fNTVarVar || ncf != ncc) {
 		nrf = this->Rows()*fNTVarVar;
 		ncf = ncc;
 		finesol.Redim(nrf,ncf);
 	}
-	for(iv=0; iv<fNTVarVar; iv++) {
-		TVar *fvp = &finesol.g(iv,0);
-		TVar *cvp = &coarsesol.g(iv,0);
-		TPZFMatrix<TVar> finewrap(nrf,ncf,fvp,nrf*ncf);
-		TPZFMatrix<TVar> coarsewrap(nrc,ncc,cvp,nrc*ncc);
-		Multiply(coarsewrap,finewrap,0,fNTVarVar);
-	}
+    if (fNTVarVar == 1) {
+        Multiply(coarsesol,finesol,0);
+    }
+    else
+    {
+        for(iv=0; iv<fNTVarVar; iv++) {
+            TPZFMatrix<TVar> tempcoarse(thisc,ncc), tempfine(thisr,ncf);
+            for (int i=0; i<thisr; i++) {
+                for (int c=0; c<ncf; c++) {
+                    tempcoarse(i,c) = coarsesol.GetVal(iv+i*fNTVarVar,c);
+
+                }
+            }
+            Multiply(tempcoarse, tempfine, 0);
+            for (int i=0; i<thisr; i++) {
+                for (int c=0; c<ncf; c++) {
+                    finesol(iv+i*fNTVarVar,c) = tempfine.GetVal(i,c);
+                    
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -292,34 +309,51 @@ void TPZTransfer<TVar>::TransferResidual(const TPZFMatrix<TVar> &fine, TPZFMatri
 	int ncf = fine.Cols();
 	int nrc = coarse.Rows();
 	int ncc = coarse.Cols();
+    int thisr = this->Rows();
+    int thisc = this->Cols();
 	if(ncc != ncf || nrc != this->Cols()*fNTVarVar) {
 		ncc = ncf;
 		nrc = this->Cols()*fNTVarVar;
 		coarse.Redim(nrc,ncf);
 	}
-	for(iv=0; iv<fNTVarVar; iv++) {
-		TVar *fvp = &fine.g(iv,0);
-		TVar *cvp = &coarse.g(iv,0);
-		TPZFMatrix<TVar> finewrap(nrf,ncf,fvp,nrf*ncf);
-		TPZFMatrix<TVar> coarsewrap(nrc,ncc,cvp,nrc*ncc);
-		Multiply(finewrap, coarsewrap,1,fNTVarVar);
-	}
+    if (fNTVarVar == 1) {
+        Multiply(fine,coarse,1);
+    }
+    else
+    {
+        for(iv=0; iv<fNTVarVar; iv++) {
+            TPZFMatrix<TVar> tempcoarse(thisr,ncc), tempfine(thisc,ncf);
+            for (int i=0; i<thisc; i++) {
+                for (int c=0; c<ncf; c++) {
+                    tempfine(i,c) = fine.GetVal(iv+i*fNTVarVar,c);
+                    
+                }
+            }
+            Multiply(tempfine, tempcoarse, 1);
+            for (int i=0; i<thisr; i++) {
+                for (int c=0; c<ncf; c++) {
+                    coarse(iv+i*fNTVarVar,c) = tempcoarse(i,c);
+                    
+                }
+            }
+        }
+    }
+
 }
 
 template<class TVar>
-void TPZTransfer<TVar>::Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B,const int opt,
-						   const int stride) const {
-	if ((opt==0 && this->Cols()*stride != A.Rows()) || (opt ==1 && this->Rows()*stride != A.Rows()))
+void TPZTransfer<TVar>::Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B,const int opt) const {
+	if ((opt==0 && this->Cols() != A.Rows()) || (opt ==1 && this->Rows() != A.Rows()))
     {
 		this->Error( "TPZTransfer<TVar>::Multiply incompatible dimensions" );
 	}
-	if(!opt && (B.Rows() != this->Rows()*stride || B.Cols() != A.Cols())) {
-		B.Redim(this->Rows()*stride,A.Cols());
+	if(!opt && (B.Rows() != this->Rows() || B.Cols() != A.Cols())) {
+		B.Redim(this->Rows(),A.Cols());
 	}
-	else if (opt && (B.Rows() != this->Cols()*stride || B.Cols() != A.Cols())) {
-		B.Redim(this->Cols()*stride,A.Cols());
+	else if (opt && (B.Rows() != this->Cols() || B.Cols() != A.Cols())) {
+		B.Redim(this->Cols(),A.Cols());
 	}
-	MultAdd( A, B, B, 1.0, 0.0, opt,stride);
+	MultAdd( A, B, B, 1.0, 0.0, opt);
 }
 
 template class TPZTransfer<float>;

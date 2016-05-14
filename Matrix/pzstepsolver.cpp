@@ -109,12 +109,13 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
             fNumIterations = numiterations;
             fTol = tol;
 #ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			sout << "Number of equations " << mat->Rows() << std::endl;
-			sout << "Number of CG iterations " << numiterations << " tol = " << tol;
-			LOGPZ_DEBUG(logger,sout.str().c_str());
-		}
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Number of equations " << mat->Rows() << std::endl;
+                sout << "Number of CG iterations " << numiterations << " tol = " << tol;
+                LOGPZ_DEBUG(logger,sout.str().c_str());
+            }
 #endif
 			break;
 		case TPZStepSolver::EGMRES: {

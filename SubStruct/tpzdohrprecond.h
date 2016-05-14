@@ -85,7 +85,6 @@ public:
 	 * @param alpha Is alpha on the above operation
 	 * @param beta Is beta on the above operation
 	 * @param opt Indicates if is Transpose or not
-	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
 	/**
 	 * In this case the variable x represents the rhs and z the result of the preconditioning \n
@@ -93,10 +92,10 @@ public:
 	 * In fact, it will compute \f$v1+v2+v3\f$ \n
 	 * It computes \f$ z = beta * y + alpha * opt(this)*x\f$ but z and x can not overlap in memory.
 	 */
-	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const;
 	
     /** Copy of the MultAdd using TBB */
-    virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const;
+    virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const;
     
 	/** @brief Specify the solution process for the coarse matrix */
 	void SetSolver(TPZSolver<TVar> &solver);

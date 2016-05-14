@@ -673,9 +673,9 @@ TPZGeoMesh *hdivCurvedJCompAppMath::MakeCircle( int ndiv)
     return geomesh;
 }
 
-TPZManVector<STATE,3> hdivCurvedJCompAppMath::ParametricCircle(REAL radius,REAL theta)
+TPZManVector<REAL,3> hdivCurvedJCompAppMath::ParametricCircle(REAL radius,REAL theta)
 {
-    TPZManVector<STATE,3> xcoor(3,0.0);
+    TPZManVector<REAL,3> xcoor(3,0.0);
     xcoor[0] = radius * cos(theta);
     xcoor[1] = radius * sin(theta);
     xcoor[2] = 0.0 ;
@@ -895,8 +895,8 @@ void hdivCurvedJCompAppMath::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockw
             break;
     }
     
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     
     //RotationMatrix.Print("Rotation = ");
     
@@ -917,9 +917,9 @@ void hdivCurvedJCompAppMath::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockw
 
 
 
-TPZManVector<STATE,3> hdivCurvedJCompAppMath::ParametricSphere(REAL radius,REAL phi,REAL theta)
+TPZManVector<REAL,3> hdivCurvedJCompAppMath::ParametricSphere(REAL radius,REAL phi,REAL theta)
 {
-    TPZManVector<STATE,3> xcoor(3,0.0);
+    TPZManVector<REAL,3> xcoor(3,0.0);
     xcoor[0] = radius * cos(theta) * sin(phi);
     xcoor[1] = radius * sin(theta) * sin(phi);
     xcoor[2] = radius * cos(phi) ;
@@ -942,7 +942,7 @@ TPZGeoMesh *hdivCurvedJCompAppMath::GMeshCilindricalMesh( int ndiv)
     REAL z0 = -M_PI/2.0;
     REAL z1 = M_PI/2.0;
     
-    TPZVec<STATE> coord(3,0.0);
+    TPZVec<REAL> coord(3,0.0);
     int Axis = 3;
     REAL angrot = 0.0;
     
@@ -1163,11 +1163,11 @@ TPZGeoMesh *hdivCurvedJCompAppMath::GMeshCilindricalMesh( int ndiv)
     
 }
 
-void hdivCurvedJCompAppMath::RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis)
+void hdivCurvedJCompAppMath::RotateNode(TPZVec<REAL> &iCoords, REAL CounterClockwiseAngle, int &Axis)
 {
     REAL theta =  (M_PI/180.0)*CounterClockwiseAngle;
     // It represents a 3D rotation around the z axis.
-    TPZFMatrix<STATE> RotationMatrix(3,3,0.0);
+    TPZFMatrix<REAL> RotationMatrix(3,3,0.0);
     
     switch (Axis) {
         case 1:
@@ -1208,7 +1208,7 @@ void hdivCurvedJCompAppMath::RotateNode(TPZVec<STATE> &iCoords, REAL CounterCloc
             break;
     }
     
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     // Apply rotation
     iCoordsRotated[0] = RotationMatrix(0,0)*iCoords[0]+RotationMatrix(0,1)*iCoords[1]+RotationMatrix(0,2)*iCoords[2];
     iCoordsRotated[1] = RotationMatrix(1,0)*iCoords[0]+RotationMatrix(1,1)*iCoords[1]+RotationMatrix(1,2)*iCoords[2];
@@ -2770,7 +2770,7 @@ void hdivCurvedJCompAppMath::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, int p
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExataH1, elerror, NULL);
         
@@ -2805,7 +2805,7 @@ void hdivCurvedJCompAppMath::ErrorH1(TPZCompMesh *l2mesh, int p, int ndiv, std::
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExataH1, elerror, NULL);
         
@@ -2830,7 +2830,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -2847,7 +2847,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);
@@ -2875,7 +2875,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if(cel->Reference()->Dimension()!=dim) continue;
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
@@ -2892,7 +2892,7 @@ void hdivCurvedJCompAppMath::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *h
     TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExata, elerror, NULL);
         int nerr = elerror.size();
         globalerrorsPrimal.resize(nerr);

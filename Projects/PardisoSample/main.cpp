@@ -17,18 +17,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "set"
+
+#include "mkl_pardiso.h"
+
+#include "pzsysmp.h"
+#include "pzfmatrix.h"
 
 using namespace std;
 
 /* PARDISO prototype. */
-extern "C" void pardisoinit (void   *, int    *,   int *, int *, double *, int *);
-extern "C" void pardiso     (void   *, int    *,   int *, int *,    int *, int *, 
-                  double *, int    *,    int *, int *,   int *, int *,
-                     int *, double *, double *, int *, double *);
-extern "C" void pardiso_chkmatrix  (int *, int *, double *, int *, int *, int *);
-extern "C" void pardiso_chkvec     (int *, int *, double *, int *);
-extern "C" void pardiso_printstats (int *, int *, double *, int *, int *, int *,
-                           double *, int *);
+//extern "C" void pardisoinit (void   *, int    *,   int *, int *, double *, int *);
+//extern "C" void pardiso     (void   *, int    *,   int *, int *,    int *, int *, 
+//                  double *, int    *,    int *, int *,   int *, int *,
+//                     int *, double *, double *, int *, double *);
+//extern "C" void pardiso_chkmatrix  (int *, int *, double *, int *, int *, int *);
+//extern "C" void pardiso_chkvec     (int *, int *, double *, int *);
+//extern "C" void pardiso_printstats (int *, int *, double *, int *, int *, int *,
+//                           double *, int *);
 
 
 int main( void ) 
@@ -87,7 +93,7 @@ int main( void )
 
     error = 0;
     solver = 0; /* use sparse direct solver */
-    pardisoinit (pt,  &mtype, &solver, iparm, dparm, &error); 
+    pardisoinit (pt,  &mtype, iparm);
 
     if (error != 0) 
     {
@@ -110,7 +116,7 @@ int main( void )
         printf("Set environment OMP_NUM_THREADS to 1");
         exit(1);
     }
-    iparm[2]  = num_procs;
+//    iparm[2]  = num_procs;
 
     maxfct = 1;   /* Maximum number of numerical factorizations.  */
     mnum   = 1;         /* Which factorization to use. */
@@ -118,16 +124,17 @@ int main( void )
     msglvl = 1;         /* Print statistical information  */
     error  = 0;         /* Initialize error flag */
 
+    iparm[34] = 1;
 /* -------------------------------------------------------------------- */
 /* ..  Convert matrix from 0-based C-notation to Fortran 1-based        */
 /*     notation.                                                        */
 /* -------------------------------------------------------------------- */
-    for (i = 0; i < n+1; i++) {
-        ia[i] += 1;
-    }
-    for (i = 0; i < nnz; i++) {
-        ja[i] += 1;
-    }
+//    for (i = 0; i < n+1; i++) {
+//        ia[i] += 1;
+//    }
+//    for (i = 0; i < nnz; i++) {
+//        ja[i] += 1;
+//    }
 
     /* Set right hand side to one. */
     for (i = 0; i < n; i++) {
@@ -140,11 +147,11 @@ int main( void )
 /*     Use this functionality only for debugging purposes               */
 /* -------------------------------------------------------------------- */
     
-    pardiso_chkmatrix  (&mtype, &n, a, ia, ja, &error);
-    if (error != 0) {
-        printf("\nERROR in consistency of matrix: %d", error);
-        exit(1);
-    }
+//    pardiso_chkmatrix  (&mtype, &n, a, ia, ja, &error);
+//    if (error != 0) {
+//        printf("\nERROR in consistency of matrix: %d", error);
+//        exit(1);
+//    }
 
 /* -------------------------------------------------------------------- */
 /* ..  pardiso_chkvec(...)                                              */
@@ -153,11 +160,11 @@ int main( void )
 /*     Use this functionality only for debugging purposes               */
 /* -------------------------------------------------------------------- */
 
-    pardiso_chkvec (&n, &nrhs, b, &error);
-    if (error != 0) {
-        printf("\nERROR  in right hand side: %d", error);
-        exit(1);
-    }
+//    pardiso_chkvec (&n, &nrhs, b, &error);
+//    if (error != 0) {
+//        printf("\nERROR  in right hand side: %d", error);
+//        exit(1);
+//    }
 
 /* -------------------------------------------------------------------- */
 /* .. pardiso_printstats(...)                                           */
@@ -165,21 +172,25 @@ int main( void )
 /*    Use this functionality only for debugging purposes                */
 /* -------------------------------------------------------------------- */
 
-    pardiso_printstats (&mtype, &n, a, ia, ja, &nrhs, b, &error);
-    if (error != 0) {
-        printf("\nERROR right hand side: %d", error);
-        exit(1);
-    }
+//    pardiso_printstats (&mtype, &n, a, ia, ja, &nrhs, b, &error);
+//    if (error != 0) {
+//        printf("\nERROR right hand side: %d", error);
+//        exit(1);
+//    }
  
 /* -------------------------------------------------------------------- */
 /* ..  Reordering and Symbolic Factorization.  This step also allocates */
 /*     all memory that is necessary for the factorization.              */
 /* -------------------------------------------------------------------- */
-    phase = 11; 
+    phase = 11;
+    for (int i=0; i<64; i++) {
+        std::cout << iparm[i] << " ";
+    }
+    std::cout << std::endl;
 
     pardiso (pt, &maxfct, &mnum, &mtype, &phase,
        &n, a, ia, ja, &idum, &nrhs,
-             iparm, &msglvl, &ddum, &ddum, &error, dparm);
+             iparm, &msglvl, &ddum, &ddum, &error);
     
     if (error != 0) {
         printf("\nERROR during symbolic factorization: %d", error);
@@ -187,7 +198,7 @@ int main( void )
     }
     printf("\nReordering completed ... ");
     printf("\nNumber of nonzeros in factors  = %d", iparm[17]);
-    printf("\nNumber of factorization MFLOPS = %d", iparm[18]);
+    printf("\nNumber of factorization MFLOPS = %d\n", iparm[18]);
    
 /* -------------------------------------------------------------------- */
 /* ..  Numerical factorization.                                         */
@@ -197,7 +208,7 @@ int main( void )
 
     pardiso (pt, &maxfct, &mnum, &mtype, &phase,
              &n, a, ia, ja, &idum, &nrhs,
-             iparm, &msglvl, &ddum, &ddum, &error,  dparm);
+             iparm, &msglvl, &ddum, &ddum, &error);
    
     if (error != 0) {
         printf("\nERROR during numerical factorization: %d", error);
@@ -214,7 +225,7 @@ int main( void )
    
     pardiso (pt, &maxfct, &mnum, &mtype, &phase,
              &n, a, ia, ja, &idum, &nrhs,
-             iparm, &msglvl, b, x, &error,  dparm);
+             iparm, &msglvl, b, x, &error);
    
     if (error != 0) {
         printf("\nERROR during solution: %d", error);
@@ -230,14 +241,16 @@ int main( void )
 
 /* -------------------------------------------------------------------- */    
 /* ..  Convert matrix back to 0-based C-notation.                       */
-/* -------------------------------------------------------------------- */ 
-    for (i = 0; i < n+1; i++) {
-        ia[i] -= 1;
+/* -------------------------------------------------------------------- */
+    if(iparm[34] == 0)
+    {
+        for (i = 0; i < n+1; i++) {
+            ia[i] -= 1;
+        }
+        for (i = 0; i < nnz; i++) {
+            ja[i] -= 1;
+        }
     }
-    for (i = 0; i < nnz; i++) {
-        ja[i] -= 1;
-    }
-
 /* -------------------------------------------------------------------- */    
 /* ..  Termination and release of memory.                               */
 /* -------------------------------------------------------------------- */    
@@ -245,7 +258,27 @@ int main( void )
     
     pardiso (pt, &maxfct, &mnum, &mtype, &phase,
              &n, &ddum, ia, ja, &idum, &nrhs,
-             iparm, &msglvl, &ddum, &ddum, &error,  dparm);
+             iparm, &msglvl, &ddum, &ddum, &error);
 
+    
+    TPZSYsmpMatrix<double> test(n,n);
+    TPZManVector<long> IA(n+1),JA(18);
+    TPZManVector<double> A(18);
+    for (long i=0; i<n+1; i++) {
+        IA[i] = ia[i];
+    }
+    for (long i=0; i<18; i++) {
+        JA[i] = ja[i];
+        A[i] = a[i];
+    }
+    test.SetData(IA, JA, A);
+    TPZFMatrix<double> B(n,1);
+    for (long i=0; i<n; i++) {
+        B(i,0) = i;
+    }
+    // I need to set the matrix type
+    test.Solve_LDLt(&B);
+    
+    B.Print("Pardiso Solution");
     return 0;
 } 

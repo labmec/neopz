@@ -322,17 +322,17 @@ const TVar &TPZBlockDiagonal<TVar>::GetVal(const long row,const long col ) const
 
 template<class TVar>
 void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-							   const TVar alpha,const TVar beta ,const int opt,const int stride ) const {
+							   const TVar alpha,const TVar beta ,const int opt) const {
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
 	
-	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())
+	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZBlockDiagonal::MultAdd <matrixs with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZBlockDiagonal::MultAdd incompatible dimensions\n");
 	}
 	
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 	long xcols = x.Cols();
 	long nb= fBlockSize.NElements();
 	long ic, b, eq=0;
@@ -345,7 +345,7 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 				long pos = fBlockPos[b];
 				for(r=0; r<bsize; r++) {
 					for(c=0; c<bsize; c++) {
-						z(eq+r,ic) += alpha*fStorage[pos+r+bsize*c]*x.GetVal((eq+c)*stride,ic);
+						z(eq+r,ic) += alpha*fStorage[pos+r+bsize*c]*x.GetVal((eq+c),ic);
 					}
 				}
 				eq += bsize;
@@ -360,7 +360,7 @@ void TPZBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 				long pos = fBlockPos[b];
 				for(r=0; r<bsize; r++) {
 					for(c=0; c<bsize; c++) {
-						z(eq+r,ic) += alpha*fStorage[pos+r+bsize*c]*x.GetVal((eq+c)*stride,ic);
+						z(eq+r,ic) += alpha*fStorage[pos+r+bsize*c]*x.GetVal((eq+c),ic);
 					}
 				}
 				eq+=bsize;
@@ -581,22 +581,47 @@ void TPZBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 
 /** Fill the matrix with random values (non singular matrix) */
 template<class TVar>
-void TPZBlockDiagonal<TVar>::AutoFill() {
+void TPZBlockDiagonal<TVar>::AutoFill(long neq, long jeq, int symmetric) {
 
+    if (neq != jeq) {
+        DebugStop();
+    }
+    TPZStack<int> blsizes;
+    long totalsize = 0;
+    while (totalsize < neq) {
+        long blsize = (neq*rand())/RAND_MAX;
+        blsize = blsize < neq-totalsize ? blsize : neq-totalsize;
+        blsizes.Push(blsize);
+        totalsize += blsize;
+    }
+    Initialize(blsizes);
+    // Initialize the blocksizes!!
 	long b, bsize, eq = 0, pos;
 	long nb = fBlockSize.NElements(), r, c;
 	for ( b=0; b<nb; b++) {
 		pos= fBlockPos[b];
 		bsize = fBlockSize[b];
-		for(r=0; r<bsize; r++) {
+		for(c=0; c<bsize; c++) {
             float sum = 0.;
-			for(c=0; c<bsize; c++) {
+            r=0;
+            if (symmetric == 1) {
+                for (r=0; r<c; r++) {
+                    fStorage[pos+c+r*bsize]=fStorage[pos+r+c*bsize];
+                    sum += fabs(fStorage[pos+r+c*bsize]);
+                }
+            }
+			for(; r<bsize; r++) {
                 float val = ((float)rand())/RAND_MAX;
 				fStorage[pos+c+r*bsize] = (TVar)(val);
                 if(c!= r) sum += fabs(val);
 			}
-            if (fabs(fStorage[pos+r+r*bsize]) < sum) {
-                fStorage[pos+r+r*bsize] = (TVar)(sum + (float)1.);
+            //totototo
+//            if(r==4)
+//            {
+//                std::cout << "sum " << sum << std::endl;
+//            }
+            if (fabs(fStorage[pos+c+c*bsize]) < sum) {
+                fStorage[pos+c+c*bsize] = (TVar)(sum + (float)1.);
             }
 		}
 		eq += bsize;

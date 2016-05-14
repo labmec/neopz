@@ -593,8 +593,8 @@ TPZSpMatrix<TVar>::ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
 
 template<class TVar>
 void TPZSpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						  const REAL alpha,const REAL beta,const int opt,const int stride) const  {
-	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())
+						  const REAL alpha,const REAL beta,const int opt) const  {
+	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSpMatrix::MultAdd <matrixs with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSpMatrix::MultAdd incompatible dimensions\n");
@@ -602,7 +602,7 @@ void TPZSpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 	long rows = this->Rows();
 	long xcols = x.Cols();
 	long ic, r;
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 	TVar val;
 	for (ic = 0; ic < xcols; ic++) {
 		if(!opt) {
@@ -614,22 +614,22 @@ void TPZSpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 				val = 0.;
 				currentnode = runner->GetNode();
 				while(currentnode) {
-					val += *(firstel+(currentnode->col*stride)) * currentnode->elem;
+					val += *(firstel+(currentnode->col)) * currentnode->elem;
 					runner->Next();
 					currentnode = runner->GetNode();
 				}
-				z(r*stride,ic) += alpha*val;
+				z(r,ic) += alpha*val;
 			}
 		} else {
 			TVar * firstelz = &z(0,ic);
 			TPZNode *currentnode;
 			for (r = 0; r<rows; r++) {
-				TVar elx = x.g(r*stride,ic);
+				TVar elx = x.g(r,ic);
 				TPZLink<TPZNode> *runner = &fElem[r];
 				if(!runner->Head()) continue;
 				do {
 					currentnode = runner->GetNode();
-					*(firstelz+(currentnode->col*stride)) += alpha* elx * currentnode->elem;
+					*(firstelz+(currentnode->col)) += alpha* elx * currentnode->elem;
 				} while (runner->Next());
 			}
 		}

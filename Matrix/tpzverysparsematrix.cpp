@@ -134,18 +134,18 @@ const TVar & TPZVerySparseMatrix<TVar>::GetVal(const long row, const long col) c
 
 template<class TVar>
 void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMatrix<TVar> & y, TPZFMatrix<TVar> & z,
-								  const TVar alpha, const TVar beta, const int opt, const int stride ) const
+								  const TVar alpha, const TVar beta, const int opt) const
 {
     if (!opt) 
     {
-        if(this->Cols() != x.Rows()*stride || this->Rows() != y.Rows()*stride)
+        if(this->Cols() != x.Rows() || this->Rows() != y.Rows())
         {
             cout << "\nERROR! em TPZVerySparseMatrix::MultiplyAdd: incompatible dimensions in opt=false\n";
             return;
         } 
     } 
 	else
-		if (this->Rows() != x.Rows()*stride || this->Cols() != y.Rows()*stride)
+		if (this->Rows() != x.Rows() || this->Cols() != y.Rows())
 		{
 			cout << "\nERROR! em TPZVerySparseMatrix::MultiplyAdd: incompatible dimensions in opt=true\n";
 			return; 
@@ -158,7 +158,7 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
     
     long xcols = x.Cols();
     long ic, c, r;
-    this->PrepareZ(y,z,beta,opt,stride);
+    this->PrepareZ(y,z,beta,opt);
     TVar val = 0.;
 	
     for (ic = 0; ic < xcols; ic++)
@@ -174,8 +174,8 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
 				r = position.first;
 				TVar matrixval = it->second;
 				
-				val = z(r*stride,ic) + alpha * matrixval * x.GetVal(c*stride,ic);
-				z.PutVal(r*stride,ic,val);
+				val = z(r,ic) + alpha * matrixval * x.GetVal(c,ic);
+				z.PutVal(r,ic,val);
 			}
         } else 
 		{
@@ -187,7 +187,7 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
 				r = posicao.second;
 				c = posicao.first;
 				TVar matrixval = it->second;
-				z(r*stride,ic) += (alpha*matrixval)*x.GetVal(c*stride,ic);
+				z(r,ic) += (alpha*matrixval)*x.GetVal(c,ic);
 			}
 		}
     }

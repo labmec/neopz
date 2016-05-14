@@ -162,7 +162,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
             continue;
         }
 		int type = gel->Type();
-		if(type==2 || type==3) {//triangle
+		if(type==ETriangle || type==EQuadrilateral) {//triangle
 			nnodes = gel->NNodes();
 			incidelorig.Resize(nnodes);
 			for(j=0;j<nnodes;j++)
@@ -181,13 +181,13 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 					for(j=0;j<nnodes;j++) incidelorig[j] = incidel[j];
 				}
 				matind = gel->MaterialId();
-				if(type==2) gel = extendedmesh->CreateGeoElement(EPrisma,incidel,matind,index,fEltype);
+				if(type==ETriangle) gel = extendedmesh->CreateGeoElement(EPrisma,incidel,matind,index,fEltype);
 				else gel = extendedmesh->CreateGeoElement(ECube,incidel,matind,index,fEltype);
 			}
 		}
 		// When the geometric element has boundary condition
 		else {
-			if(gel->MaterialId() < 0) {
+			if(gel->MaterialId() != 0) {
 				nnodes = gel->NNodes();
 				incidelorig.Resize(nnodes);
 				for(j=0;j<nnodes;j++) incidelorig[j] = gel->NodeIndex(j);
@@ -196,12 +196,15 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 					if(fThickness > 0) {
 						for(j=0;j<nnodes;j++) incidel[j] = incidelorig[j];
 						for(j=nnodes;j<2*nnodes;j++) incidel[j] = incidel[j-nnodes]+maxid;
-                        // reordena os indices
-                        long a = incidel[3];
-                        incidel[3] = incidel[2];
-                        incidel[2] = a;
-						// initial indexes of the nodes must to be update, upper triangle
-						for(j=0;j<nnodes;j++) incidelorig[j] = incidel[j+nnodes];
+                        if (nnodes > 1)
+                        {
+                            // reordena os indices
+                            long a = incidel[3];
+                            incidel[3] = incidel[2];
+                            incidel[2] = a;
+                        }
+                        // initial indexes of the nodes must to be update, upper triangle
+                        for(j=0;j<nnodes;j++) incidelorig[j] = incidel[j+nnodes];
 					} else if(fThickness < 0) {
 						for(j=0;j<nnodes;j++) incidel[j] = incidelorig[j]+maxid;
 						for(j=nnodes;j<2*nnodes;j++) incidel[j] = incidelorig[j-nnodes];
@@ -216,7 +219,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 		}
 	}
 	// Inserting all the elements of the original two-dimensional mesh as bc elements (bottom bc)
-	if(matidbottom < 0) {
+	if(matidbottom != 0) {
 		for(i=0;i<nelem;i++) {
 			gel = fFineGeoMesh->ElementVec()[i];
 			if(!gel || gel->MaterialId() < 0) continue;
@@ -228,12 +231,18 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 			incidelorig.Resize(nnodes);
 			for(j=0;j<nnodes;j++)
 				incidelorig[j] = gel->NodeIndex(j);
-			if(nnodes==3) gel = extendedmesh->CreateGeoElement(ETriangle,incidelorig,matidbottom,index,fEltype);
-			else gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidelorig,matidbottom,index,fEltype);
+            if(nnodes==3)
+            {
+                gel = extendedmesh->CreateGeoElement(ETriangle,incidelorig,matidbottom,index,fEltype);
+            }
+            else if(nnodes==4)
+            {
+                gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidelorig,matidbottom,index,fEltype);
+            }
 		}
 	}
 	// Inserting all the elements on last layer inserted as bc elements (top bc)
-	if(matidtop < 0) {
+	if(matidtop != 0) {
 		for(i=0;i<nelem;i++) {
 			gel = fFineGeoMesh->ElementVec()[i];
 			if(!gel || gel->MaterialId() < 0) continue;
@@ -245,8 +254,13 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 			incidelorig.Resize(nnodes);
 			for(j=0;j<nnodes;j++)
 				incidelorig[j] = gel->NodeIndex(j)+(naumentedlayers*maxid);
-			if(nnodes==3) gel = extendedmesh->CreateGeoElement(ETriangle,incidelorig,matidtop,index,fEltype);
-			else gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidelorig,matidtop,index,fEltype);
+            if(nnodes==3){
+                gel = extendedmesh->CreateGeoElement(ETriangle,incidelorig,matidtop,index,fEltype);
+            }
+			else if(nnodes == 4)
+            {
+                gel = extendedmesh->CreateGeoElement(EQuadrilateral,incidelorig,matidtop,index,fEltype);
+            }
 		}
 	}
 	extendedmesh->BuildConnectivity();

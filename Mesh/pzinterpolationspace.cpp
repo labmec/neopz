@@ -1161,10 +1161,38 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
 		return result;
 	}
 	const int dim = this->Dimension();
+    int meshdim = Mesh()->Dimension();
 	REAL weight;
 	TPZMaterialData data;
     TPZInterpolationSpace *thisnonconst = (TPZInterpolationSpace *) this;
-	thisnonconst->InitMaterialData(data);
+    
+    TPZInterpolationSpace *effective = thisnonconst;
+    TPZTransform tr(dim);
+    if (dim != Mesh()->Dimension()) {
+        TPZGeoElSide gelside(thisnonconst->Reference(),this->Reference()->NSides()-1);
+        TPZGeoElSide neighbour = gelside.Neighbour();
+        while(neighbour != gelside)
+        {
+            if (neighbour.Element()->Reference() && neighbour.Element()->Dimension() == Mesh()->Dimension()) {
+                break;
+            }
+            neighbour = neighbour.Neighbour();
+        }
+        if (neighbour == gelside) {
+            DebugStop();
+        }
+        gelside.SideTransform3(neighbour, tr);
+        TPZTransform tr2 = neighbour.Element()->SideToSideTransform(neighbour.Side(), neighbour.Element()->NSides()-1);
+        tr = tr2.Multiply(tr);
+        effective = dynamic_cast<TPZInterpolationSpace *> (neighbour.Element()->Reference());
+        material = effective->Material();
+    }
+    
+    if(!effective) DebugStop();
+    TPZMaterialData data2d;
+    thisnonconst->InitMaterialData(data2d);
+	effective->InitMaterialData(data);
+    data.fNeedsSol = true;
 	
 	TPZManVector<REAL, 3> intpoint(dim,0.);
 	const int varsize = material->NSolutionVariables(variable);
@@ -1176,21 +1204,25 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
 	for(ip=0;ip<npoints;ip++) {
 		intrule.Point(ip,intpoint,weight);
         
+        TPZManVector<REAL,3> intpointTR(meshdim,0.);
+        tr.Apply(intpoint, intpointTR);
         //Tiago: Next call is performed only for computing detcaj. The previous method (Solution) has already computed jacobian.
         //       It means that the next call would not be necessary if I wrote the whole code here.
-        this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+        thisnonconst->Reference()->Jacobian(intpoint, data2d.jacobian, data2d.axes, data2d.detjac, data2d.jacinv);
+        effective->Reference()->Jacobian(intpointTR, data.jacobian, data.axes, data.detjac, data.jacinv);
         data.intLocPtIndex = ip;
 
-        thisnonconst->ComputeRequiredData(data, intpoint);
+        effective->ComputeRequiredData(data, intpointTR);
         
 		sol.Fill(0.);
         material->Solution(data, variable, sol);
-		weight *= fabs(data.detjac);
+		weight *= fabs(data2d.detjac);
 		for(iv = 0; iv < varsize; iv++) {
 #ifdef STATE_COMPLEX
 			value[iv] += sol[iv].real()*weight;
 #else
-			value[iv] += sol[iv]*weight;
+            
+            value[iv] += sol[iv]*weight;
 #endif
 		}//for iv
 	}//for ip

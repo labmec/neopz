@@ -19,7 +19,7 @@ STATE TPZElasticity3D::gTolerance = 1.e-11;
 
 TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force,
                                  STATE preStressXX, STATE preStressYY, STATE preStressZZ) :
-                                            TPZMaterial(nummat)
+                                            TPZMaterial(nummat),fFy(0.),fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
 {
 	this->fE = E;
 	this->fPoisson = poisson;
@@ -33,7 +33,6 @@ TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STAT
 	this->fPostProcessDirection.Resize(3);
 	this->fPostProcessDirection.Fill(0.);
 	this->fPostProcessDirection[0] = 1.;
-	this->SetYieldingStress(1.);
     SetC();
     
     fPreStress.Resize(3);
@@ -45,13 +44,15 @@ TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STAT
 
 TPZElasticity3D::TPZElasticity3D(int nummat) : TPZMaterial(nummat), fE(0.), fPoisson(0.),
                                                fForce(3,0.),
-                                               fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.)
+                                               fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.),
+                                               fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
 {
     SetC();
 }
 
 TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.), C1(-999.), C2(-999.), C3(-999.),
-                                     fForce(3,0.), fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.)
+                                     fForce(3,0.), fPostProcessDirection(3,0.), fFy(0.), fPreStress(3,0.),
+                                     fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(ENonePlasticProc)
 {
 }
 
@@ -60,7 +61,8 @@ TPZElasticity3D::~TPZElasticity3D(){}
 TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),
                                                               fForce(cp.fForce),
                                                               fPostProcessDirection(cp.fPostProcessDirection), fFy(cp.fFy),
-                                                              fPreStress(cp.fPreStress)
+                                                              fPreStress(cp.fPreStress),
+                                                              fFrictionAngle(cp.fFrictionAngle),fCohesion(cp.fCohesion),fPlasticPostProc(cp.fPlasticPostProc)
 {
     SetC();
 }
@@ -70,6 +72,7 @@ void TPZElasticity3D::Print(std::ostream & out){
 	out << "\tfE       = " << this->fE << std::endl;
 	out << "\tfPoisson = " << this->fPoisson << std::endl;
 	out << "\tfForce   = " << this->fForce << std::endl;
+//    DebugStop();    //TODO   fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(
 	out << "\tBase class print\n";
 	TPZMaterial::Print(out);
 	out << "End of TPZElasticity3D::Print\n";
@@ -654,7 +657,7 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
 				{
 					for(idf=0; idf<3; idf++) for(jdf=0; jdf<3; jdf++)
 					{
-						ek(3*in+idf,3*jn+jdf) += bc.Val1()(idf,jdf);
+						ek(3*in+idf,3*jn+jdf) += bc.Val1()(idf,jdf)*weight*phi(in,0)*phi(jn,0);
 					}
 				}
 			}//in
@@ -710,6 +713,7 @@ int TPZElasticity3D::VariableIndex(const std::string &name) {
 	if(!strcmp("I1",name.c_str()))  return TPZElasticity3D::EI1;
 	if(!strcmp("I2",name.c_str()))  return TPZElasticity3D::EI2;
 	if(!strcmp("I3",name.c_str()))  return TPZElasticity3D::EI3;
+    if(!strcmp("PlasticFunction",name.c_str())) return TPZElasticity3D::EPlasticFunction;
     
 	//   cout << "TPZElasticityMaterial::VariableIndex Error\n";
 	return TPZMaterial::VariableIndex(name);
@@ -740,6 +744,7 @@ int TPZElasticity3D::NSolutionVariables(int var) {
         case TPZElasticity3D::EI1 :
         case TPZElasticity3D::EI2 :
         case TPZElasticity3D::EI3 :
+        case TPZElasticity3D::EPlasticFunction :
 			return 1;
 		default:
 			return TPZMaterial::NSolutionVariables(var);
@@ -773,7 +778,16 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		//    int i;
 		Solout[0] = Sol[2];
 		return;
-	}//TPZElasticity3D::EDisplacementZ  
+	}//TPZElasticity3D::EDisplacementZ
+    
+    if(var == TPZElasticity3D::EPlasticFunction){
+        TPZFNMatrix<9,STATE> StressTensor(3,3);
+        this->ComputeStressTensor(StressTensor, DSol);
+        if(fPlasticPostProc == EVonMises) Solout[0] = this->VonMisesPlasticFunction(StressTensor);
+        else if(fPlasticPostProc == EMohrCoulomb) Solout[0] = this->MohrCoulombPlasticFunction(StressTensor);
+        else DebugStop();
+        return;
+    }
 	
 	if(var == TPZElasticity3D::EPrincipalStress) {
 		TPZFNMatrix<9,STATE> StressTensor(3,3);
@@ -976,7 +990,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
         
         return;
     }//I3
-	
+    TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }//Solution
 
 void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, 
@@ -1093,6 +1107,48 @@ void TPZElasticity3D::PrincipalDirection(TPZFMatrix<STATE> &DSol, TPZVec< STATE 
 	for(int i = 0; i < 3; i++) Solout[i] = Eigenvectors(direction,i);
 }
 
+void TPZElasticity3D::Invariants( TPZFMatrix<STATE> & A, STATE & I1, STATE & I2, STATE & I3) const
+{
+    I1 = A(0,0)+A(1,1)+A(2,2);
+    I2 = A(0,0)*A(1,1)-A(1,0)*A(0,1) + A(1,1)*A(2,2)-A(2,1)*A(1,2) + A(0,0)*A(2,2) - A(2,0)*A(0,2);
+    I3 = A(0,0)*A(1,1)*A(2,2) + A(2,0)*A(0,1)*A(1,2) + A(1,0)*A(2,1)*A(0,2) - ( A(2,0)*A(1,1)*A(0,2) + A(1,0)*A(0,1)*A(2,2) + A(2,1)*A(1,2)*A(0,0) );
+}
+
+void TPZElasticity3D::StressDecomposition( TPZFMatrix<STATE> & A, TPZFMatrix<STATE> & Deviator, STATE & p) const
+{
+    p = (A(0,0)+A(1,1)+A(2,2))/3.;
+    Deviator = A;
+    for(int i = 0; i < 3; i++) Deviator(i,i) -= p;
+}
+
+STATE TPZElasticity3D::VonMisesPlasticFunction( TPZFMatrix<STATE> & StressTensor) const
+{
+    TPZFNMatrix<9,STATE> S(3,3);
+    STATE p = 0.;
+    this->StressDecomposition(StressTensor, S, p);
+    STATE J1, J2, J3;
+    this->Invariants(S, J1, J2, J3);
+    STATE result = sqrt(3.*fabs(J2))-this->fFy;
+    return result;
+}
+
+STATE TPZElasticity3D::MohrCoulombPlasticFunction( TPZFMatrix<STATE> & StressTensor) const
+{
+    TPZFNMatrix<9,STATE> S(3,3);
+    STATE p = 0.;
+    this->StressDecomposition(StressTensor, S, p);
+    STATE J1, J2, J3;
+    this->Invariants(S, J1, J2, J3);
+    STATE val = -3.*sqrt(3)*J3/(2.*pow(fabs(J2),3./2.));
+    if(val < -1.) val = -1.;
+    if(val > +1) val = +1.;
+    const STATE theta = 1./3.*asin(val);
+    const REAL c = fCohesion;
+    const REAL phi = fFrictionAngle;
+    STATE result = (cos(theta)-1./sqrt(3.)*sin(theta)*sin(phi))*sqrt(fabs(J2))+p*sin(phi)-c*cos(phi);
+    return result;
+}
+
 /** Save the element data to a stream */
 void TPZElasticity3D::Write(TPZStream &buf, int withclassid)
 {
@@ -1100,6 +1156,7 @@ void TPZElasticity3D::Write(TPZStream &buf, int withclassid)
 	buf.Write(&fE,1);
 	buf.Write(&fForce[0],3);
 	buf.Write(&fFy,1);
+    DebugStop();    //TODO   fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(
 	buf.Write(&fPoisson,1);
 	buf.Write(&fPostProcessDirection[0],3);
 	
@@ -1114,6 +1171,7 @@ void TPZElasticity3D::Read(TPZStream &buf, void *context)
 	buf.Read(&fForce[0],3);
 	buf.Read(&fFy,1);
 	buf.Read(&fPoisson,1);
+    DebugStop();    //TODO  fFrictionAngle(0.),fCohesion(0.),fPlasticPostProc(
 	fPostProcessDirection.Resize(3);
 	buf.Read(&fPostProcessDirection[0],3);
     SetC();

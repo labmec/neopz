@@ -37,7 +37,7 @@ class TPZStencilMatrix : public TPZMatrix<TVar> {
 	/** @brief computes \f$ z = beta * y + alpha * opt(this)*x \f$ */
 	/**          z and x cannot overlap in memory */
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha=1., const TVar beta = 0., const int opt = 0 , const int stride = 1) const;
+						 const TVar alpha=1., const TVar beta = 0., const int opt = 0) const;
 	
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;

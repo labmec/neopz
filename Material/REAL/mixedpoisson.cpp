@@ -121,7 +121,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     if(fPermeabilityFunction){
         PermTensor.Redim(fDim,fDim);
         InvPermTensor.Redim(fDim,fDim);
-        TPZFNMatrix<3,REAL> resultMat;
+        TPZFNMatrix<3,STATE> resultMat;
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         

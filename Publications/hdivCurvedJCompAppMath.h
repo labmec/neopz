@@ -144,10 +144,10 @@ private:
     
     /*  Geometrical meshes */
     TPZGeoMesh *MakeCircle( int ndiv);
-    TPZManVector<STATE,3> ParametricCircle(REAL radius,REAL theta);
-    TPZManVector<STATE,3> ParametricSphere(REAL radius,REAL phi,REAL theta);
+    TPZManVector<REAL,3> ParametricCircle(REAL radius,REAL theta);
+    TPZManVector<REAL,3> ParametricSphere(REAL radius,REAL phi,REAL theta);
     TPZGeoMesh *MakeSphereFromQuadrilateral(int dimensao, bool triang, int ndiv);
-    void RotateNode(TPZVec<STATE> &iCoords, REAL CounterClockwiseAngle, int &Axis);
+    void RotateNode(TPZVec<REAL> &iCoords, REAL CounterClockwiseAngle, int &Axis);
     TPZGeoMesh *GMeshCilindricalMesh( int ndiv);
     void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
     

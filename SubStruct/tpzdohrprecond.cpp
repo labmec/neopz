@@ -125,10 +125,10 @@ public:
 
 
 template<class TVar, class TSubStruct>
-void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
+void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const {
 
 #ifdef USING_TBB
-    if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
+    if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		this->Error( "Operator* <matrices with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
@@ -136,7 +136,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
 
 	long rows = this->Rows();
 	long cols = this->Cols();
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
     
     TPZFMatrix<TVar> v1(rows,x.Cols(),0.);
 	TPZFMatrix<TVar> v2(cols,x.Cols(),0.);
@@ -190,14 +190,14 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
 }
 
 template<class TVar, class TSubStruct>
-void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt,const int stride) const {
+void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const {
     
 #ifdef USING_TBB
-	MultAddTBB(x, y, z, alpha, beta, opt, stride);
+	MultAddTBB(x, y, z, alpha, beta, opt);
 	return;
 #endif
     
-	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
+	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		this->Error( "Operator* <matrices with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
@@ -206,7 +206,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 	long rows = this->Rows();
 	long cols = this->Cols();
 	long c;
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
