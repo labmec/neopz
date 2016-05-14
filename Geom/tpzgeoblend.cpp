@@ -95,9 +95,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
 #endif
     
     TPZFNMatrix<24,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
-    TGeo::TShape(par,blend,Dblend); // @Omar:: Calling the template form of shape
+    TGeo::TShape(par,blend,Dblend);
     
-//    TPZFNMatrix<9> J1, J2, Ax, JacTemp(3,TGeo::Dimension, 0.);
     TPZFNMatrix<9,T> Grad1, Grad2, Gradient(3,TGeo::Dimension, 0.), Jneighbourhood;
     REAL Det;
     TPZGeoMesh *gmesh = gel.Mesh();
@@ -117,45 +116,15 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
             }
             Neighbour(byside,gmesh).X(NeighPar,Xside);
             Neighbour(byside, gmesh).GradX(NeighPar,Grad2);
-//            Neighbour(byside,gmesh).GradX(NeighPar,Grad2);
-//            Neighbour(byside,gmesh).Jacobian(NeighPar,J1,Ax,Det,Inv);
-//            Ax.Transpose();
-//            Ax.Multiply(J1,J2);
-            
-#ifdef LOG4CXX
-            if(logger->isDebugEnabled())
-            {
-                std::stringstream sout;
-                sout << "byside " << byside << std::endl;
-                sout << "side of the neighbour " << Neighbour(byside,gmesh).Side() << std::endl;
-                Neighbour(byside,gmesh).Element()->Print(sout);
-                sout << "neighbour parameter(NeighPar) " << NeighPar << std::endl;
-                sout << "Jacobian of the map(Jneighborhood) " << Jneighbourhood << std::endl;
-                sout << "Xside " << Xside << std::endl;
-                sout << "jacobian neighbour(J1) " << J1 << std::endl;
-                Ax.Print("Ax of the neighbour (Ax) ",sout);
-                sout << "jacobian of the neighbour multiplied by the axes(J2) " << J2 << std::endl;
-                LOGPZ_DEBUG(logger,sout.str())
-            }
-#endif
             
             Grad2.Multiply(Jneighbourhood,Grad1);
-            
-#ifdef LOG4CXX
-            if(logger->isDebugEnabled())
-            {
-                std::stringstream sout;
-                sout << "acumulated jacobian(J1) " << J1 << std::endl;
-                LOGPZ_DEBUG(logger,sout.str())
-            }
-#endif
             
             T blendTemp = 0.;
             TPZManVector<T,3> DblendTemp(TGeo::Dimension,0.);
             for(int a = 0; a < LowNodeSides.NElements(); a++)
             {
-                TPZManVector<T> parChanged(par.NElements());
-//                TGeo::TFixSingularity(byside,par,parChanged); @Omar:: Fix wich kind of singularity? and why?
+                TPZManVector<T> parChanged(par);
+                TGeo::TFixSingularity(byside,par,parChanged);
                 TGeo::TShape(parChanged,blend,Dblend);
                 
                 blendTemp += blend(LowNodeSides[a],0);
@@ -178,18 +147,6 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFM
             }
         }
     }
-    
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        JacTemp.Print("Jabobian before contributing the nodes",sout);
-        sout << "SidesCounter " << SidesCounter << std::endl;
-        sout << "DBlend " << Dblend << std::endl;
-        sout << "NodeCoord " << coord << std::endl;
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
     
     for(int a = 0; a < TGeo::NNodes; a++)
     {

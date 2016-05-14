@@ -84,13 +84,13 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZGeoPyramid>(mesh,lowercorner,size);
     lowercorner[0] = 1.;
     lowercorner[1] = 2.;
-//    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
-//    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoLinear> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTriangle> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoQuad> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoCube> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoTetrahedra> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
+    AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
     lowercorner[0] = 1.;
     lowercorner[1] = 1.;
     AddElement<TPZQuadraticLine>(mesh,lowercorner,size);
@@ -143,8 +143,9 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     
     TPZGeoMesh gmesh;
     FillGeometricMesh(gmesh);
-
-    REAL tol = 1.0e-8;
+    
+    int npoints = 10;
+    REAL tol = 1.0e-10;
     TPZManVector< REAL, 3 > qsi_r(3);
     TPZVec<Fad<REAL> > qsi(3);
     
@@ -155,29 +156,30 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     for(int iel = 0; iel < nel; iel++){
         TPZGeoEl *gel = gmesh.Element(iel);
         int iel_dim = gel->Dimension();
-        
-        for(int i = 0; i < iel_dim; i++){
-            REAL val = (REAL) rand() / (RAND_MAX);
-            Fad<REAL> a(iel_dim,i,val);
-            qsi[i] = a;
-            qsi_r[i] = a.val();
-        }
 
-        TPZVec<Fad<REAL> > x(3);
-        TPZFMatrix< REAL > gradxr;
-        gel->X(qsi, x);
-        gel->GradX(qsi_r, gradxr);
-        int r = gradxr.Rows();
-        int c = gradxr.Cols();
-        for(int i = 0; i < r; i++ ){
-            for(int j = 0; j < c; j++ ){
-                bool check = fabsl(gradxr(i,j)-x[i].dx(j)) < tol;
-//                std::cout<< "gradxr(i,j) = " << gradxr(i,j)<< std::endl;
-//                std::cout<< "x[i].dx(j) = " << x[i].dx(j)<< std::endl;
-                BOOST_CHECK(check);
-                
+        for(int ip = 0; ip < npoints; ip++){
+            for(int i = 0; i < iel_dim; i++){
+                REAL val = (REAL) rand() / (RAND_MAX);
+                Fad<REAL> a(iel_dim,i,val);
+                qsi[i] = a;
+                qsi_r[i] = a.val();
+            }
+            
+            TPZVec<Fad<REAL> > x(3);
+            TPZFMatrix< REAL > gradxr;
+            gel->X(qsi, x);
+            gel->GradX(qsi_r, gradxr);
+            int r = gradxr.Rows();
+            int c = gradxr.Cols();
+            for(int i = 0; i < r; i++ ){
+                for(int j = 0; j < c; j++ ){
+                    bool check = fabs(gradxr(i,j)-x[i].dx(j)) < tol;
+                    BOOST_CHECK(check);
+                    
+                }
             }
         }
+
         
     }
                 
