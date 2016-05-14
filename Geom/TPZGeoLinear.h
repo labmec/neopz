@@ -105,14 +105,6 @@ namespace pzgeom
             GradX(nodes,loc,gradx);
         }
         
-        /* @brief Computes the jacobian of the map between the master element and deformed element */
-        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
-        }
-        
         /** @brief Compute X mapping from element nodes and local parametric coordinates */
         template<class T>
         static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x);

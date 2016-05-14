@@ -14,18 +14,6 @@ using namespace std;
 
 namespace pzgeom {
 	
-	void TPZGeoPoint::Jacobian(const TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
-							   TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-		jacobian.Redim(0,0);
-		jacinv.Redim(0,0);
-		detjac = 1.;
-		axes.Zero();
-		axes.Redim(0,3);
-		axes.Zero();
-		/*axes(0,0) = 1.;
-		axes(1,1) = 1.;
-		axes(2,2) = 1.;*/
-	}
 	
 	TPZGeoEl *TPZGeoPoint::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
 		if(side==0) {

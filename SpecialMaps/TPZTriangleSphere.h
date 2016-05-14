@@ -170,8 +170,9 @@ namespace pzgeom {
             for (int i = 0; i < XTriangle.size(); i++)
             { XtminusXc(i,0)= XTriangle[i] - Xc[i]; }
             REAL NormValue = Norm(XtminusXc);
-            
-            GeomTriang::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
+
+            DebugStop();
+//            GeomTriang::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
             TPZFNMatrix<6> axest(3,2);
             axes.Transpose(&axest);
             

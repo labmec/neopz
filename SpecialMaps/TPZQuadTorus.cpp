@@ -65,7 +65,8 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 	{
 		
 		TPZFNMatrix<9,REAL> GradPhi(3,3,0.);
-		TPZGeoQuad::Jacobian(fPhiTheta, param, jacobian, axes, detjac, jacinv);
+        DebugStop();
+        //TPZGeoQuad::Jacobian(fPhiTheta, param, jacobian, axes, detjac, jacinv);
 		TPZFNMatrix<6> axest(3,2);
 		axes.Transpose(&axest);
 		axest.Multiply(jacobian, GradPhi);

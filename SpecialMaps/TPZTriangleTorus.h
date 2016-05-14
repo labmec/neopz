@@ -132,7 +132,7 @@ namespace pzgeom {
         {
             std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
             DebugStop();
-            TPZGeoTriangle::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
+            //TPZGeoTriangle::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
         }
         
         template<class T>

@@ -156,7 +156,8 @@ namespace pzgeom {
 		TPZFMatrix<REAL> axes;
 		REAL detjac;
 		TPZFMatrix<REAL> jacinv;
-		Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
+        DebugStop();
+        //Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
 		fNormalVec(16,0)=axes(0,0);
 		fNormalVec(16,1)=axes(0,1);
 		fNormalVec(16,2)=axes(0,2);
@@ -225,62 +226,6 @@ namespace pzgeom {
 		VectorialProduct(v1,normal,result);	
 	}
 	
-	
-	void TPZGeoQuad::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
-		
-		jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
-		TPZFNMatrix<6> axest(3,2);
-		jacobian.Zero();
-        TPZManVector<REAL,3> minx(3,0.),maxx(3,0.);
-		
-		int spacedim = coord.Rows();
-        
-        for (int j=0; j<spacedim; j++) {
-            minx[j] = coord.GetVal(j,0);
-            maxx[j] = coord.GetVal(j,0);
-        }
-        
-		TPZFNMatrix<6,REAL> gradx(3,2,0.);
-        GradX(coord, param, gradx);
-        
-		for(int i = 0; i < 4; i++) {
-			for(int j = 0; j < spacedim; j++) {
-                minx[j] = minx[j] < coord.GetVal(j,i) ? minx[j]:coord.GetVal(j,i);
-                maxx[j] = maxx[j] > coord.GetVal(j,i) ? maxx[j]:coord.GetVal(j,i);
-			}
-		}
-        
-        REAL delx = 0.;
-        for (int j=0; j<spacedim; j++) {
-            delx = delx > (maxx[j]-minx[j]) ? delx : (maxx[j]-minx[j]);
-        }
-        
-        gradx *= 1./delx;
-		gradx.GramSchmidt(axest,jacobian);
-		axest.Transpose(&axes);
-		detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
-		
-        if(IsZero(detjac))
-		{
-            
-#ifdef PZDEBUG
-			std::stringstream sout;
-			sout << "Singular Jacobian " << detjac;
-			LOGPZ_ERROR(logger, sout.str())
-#endif
-			detjac = ZeroTolerance();
-		}
-        
-        jacinv(0,0) =  jacobian(1,1)/detjac;
-        jacinv(1,1) =  jacobian(0,0)/detjac;
-        jacinv(0,1) = -jacobian(0,1)/detjac;
-        jacinv(1,0) = -jacobian(1,0)/detjac;
-
-        jacobian *= delx;
-        jacinv *= 1.0/delx;
-        detjac *= (delx*delx);
-        
-	}
 	
 	TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		if(side==8) {//8

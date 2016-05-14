@@ -56,42 +56,6 @@ namespace pzgeom {
     }
     
     
-    void TPZGeoLinear::Jacobian(const TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
-                                TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-        
-        jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
-        
-        // Computing the Gradient of X
-        TPZFNMatrix<3,REAL> gradx(3,1);
-        GradX(coord, param, gradx);
-        
-        int nrow = gradx.Rows();
-        REAL module = 0.;
-        for(int i = 0; i < nrow; i++) {
-            module += gradx(i,0)*gradx(i,0);
-        }
-        
-        module = sqrt(module);
-        jacobian(0,0) = module;
-        detjac = module;
-        
-        if(IsZero(detjac))
-        {
-            
-#ifdef PZDEBUG
-            std::stringstream sout;
-            sout << "Singular Jacobian " << detjac;
-            LOGPZ_ERROR(logger, sout.str())
-#endif
-            detjac = ZeroTolerance();
-        }
-        
-        jacinv(0,0) = 1./detjac;
-        for(int i=0; i < 3; i++) {
-            axes(0,i) = gradx(i,0)/module;
-        }
-    }
-    
     /// create an example element based on the topology
     /* @param gmesh mesh in which the element should be inserted
      @param matid material id of the element

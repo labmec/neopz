@@ -79,6 +79,8 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
+            gradx.Resize(3,1);
+            gradx.Zero();
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
             T cosval = cos(fNumWaves*M_PI*par[0]);
@@ -120,10 +122,7 @@ namespace pzgeom {
             for (int i=0; i<3; i++) {
                 result[i] += this->fWaveDir[i]*sinval;
             }
-/*	    std::cout << "loc " << loc << std::endl;
-	    std::cout << "sinval " << sinval << std::endl;
-	    std::cout << "this->fNumWaves*M_PI*loc[0] " << this->fNumWaves*M_PI*loc[0] << std::endl;	    
-	    std::cout << "result " << result << std::endl;*/	    
+
         }
 		
 		

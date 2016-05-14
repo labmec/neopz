@@ -20,10 +20,6 @@ using namespace std;
 
 namespace pzgeom {
 	
-    void TPZGeoCube::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
-        
-        DebugStop();
-    }
     
 	TPZGeoEl *TPZGeoCube::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc) {
 		

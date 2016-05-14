@@ -559,7 +559,7 @@ void pzgeom::TPZGeoBlend<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int mati
     gelwave->Geom().SetData(wavedir, 2);
     delete gel;
     long index;
-    gmesh.CreateGeoBlendElement(TGeo::Type(), nodeindexes, matid, index); /* Porque é necessario inserir dos elementos */
+    gmesh.CreateGeoBlendElement(TGeo::Type(), nodeindexes, matid, index);
 }
 
 

@@ -151,7 +151,8 @@ namespace pzgeom {
             norm = sqrt(norm);
             
             TPZFNMatrix<6,REAL> dxdqsi(3,2,0.); // But it is a (3,2) matrix. It is set (3,3) because of the later products
-            GeomQuad::Jacobian(gel, param, jacobian, axes, detjac, jacinv); // first calculate the derivative dxdqsi (note a lot of dummies in the parameters)
+            DebugStop();
+            //GeomQuad::Jacobian(gel, param, jacobian, axes, detjac, jacinv); // first calculate the derivative dxdqsi (note a lot of dummies in the parameters)
             TPZFMatrix<REAL> axest;
             axes.Transpose(&axest);
             axest.Multiply(jacobian, dxdqsi);
