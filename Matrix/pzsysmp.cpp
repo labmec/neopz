@@ -264,6 +264,8 @@ int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
 {
+    
+    std::cout << "Norm of Matrix " << Norm(*this) << std::endl;
     if(this->IsDecomposed() == ELDLt) return 1;
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();
@@ -313,8 +315,11 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
+    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*b) << std::endl;
     fPardisoControl.Solve(*b,x);
     *b = x;
+    std::cout << __PRETTY_FUNCTION__ << " norm x " << Norm(*b) << std::endl;
+    
     return 1;
 }
 

@@ -12,7 +12,7 @@
 #include "pzelmat.h"
 
 #ifdef USING_BLAS
-#define USING_DGER
+//#define USING_DGER
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
 #else

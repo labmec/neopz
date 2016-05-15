@@ -1048,7 +1048,8 @@ int TPZSkylMatrix<TVar>::Decompose_LDLt()
 #ifdef DUMP_BEFORE_DECOMPOSE
     dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt()");
 #endif
-    
+    std::cout << "Norm of Matrix " << Norm(*this) << std::endl;
+
     // Third try
     TVar *elj,*ell;
     long j,l,minj,minl,minrow,dimension = this->Dim();
@@ -1221,6 +1222,7 @@ int TPZSkylMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
     if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," TPZSkylMatrix::Subst_Forward not decomposed with cholesky");
     
+    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*B) << std::endl;
 #ifdef DUMP_BEFORE_SUBST
 	dump_matrices(this, B, "TPZSkylMatrix::Subst_Forward(B)");
 #endif
@@ -1313,6 +1315,8 @@ TPZSkylMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
     if ( (B->Rows() != this->Dim()) || (this->fDecomposed != ELDLt && this->fDecomposed != ELU) )
         return( 0 );
     
+    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*B) << std::endl;
+
     long dimension =this->Dim();
     for ( long k = 0; k < dimension; k++ ) {
         for ( long j = 0; j < B->Cols(); j++ ) {
@@ -1382,6 +1386,8 @@ int TPZSkylMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
         }
     }
     
+    std::cout << __PRETTY_FUNCTION__ << " norm x " << Norm(*B) << std::endl;
+
     return 1;
 }
 
@@ -2914,7 +2920,8 @@ TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 #ifdef DUMP_BEFORE_DECOMPOSE
     dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt(singular)");
 #endif
-    
+    std::cout << "Norm of Matrix " << Norm(*this) << std::endl;
+
     singular.clear();
     
     // Third try
@@ -2972,7 +2979,8 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 #ifdef DUMP_BEFORE_DECOMPOSE
     dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt()");
 #endif
-    
+    std::cout << "Norm of Matrix " << Norm(*this) << std::endl;
+
     // Third try
     TVar *elj,*ell;
     long j,l,minj,minl,minrow,dimension = this->Dim();
@@ -3148,7 +3156,8 @@ int
 TPZSkylMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const {
     if ( (B->Rows() != this->Dim()) || (this->fDecomposed != ELDLt && this->fDecomposed != ELU) )
         return( 0 );
-    
+    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*B) << std::endl;
+
     long dimension =this->Dim();
     for ( long k = 0; k < dimension; k++ ) {
         for ( long j = 0; j < B->Cols(); j++ ) {
@@ -3202,7 +3211,7 @@ TPZSkylMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 {
     if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed == ECholesky)
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_LBackward not decomposed properly");
-    
+
     long Dimension = this->Dim();
     for ( long k = Dimension-1; k > 0; k-- ) {
         for ( long j = 0; j < B->Cols(); j++ ) {
@@ -3218,6 +3227,9 @@ TPZSkylMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
             while(elem_ki < end_ki) *--BPtr -= (*elem_ki++) * val;
         }
     }
+    
+    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*B) << std::endl;
+
     return( 1 );
 }
 
