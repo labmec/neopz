@@ -113,9 +113,6 @@ TPZDarcyAnalysis::~TPZDarcyAnalysis()
 
 void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
     
-//    PVTData[0] = Water.operator->();
-//    PVTData[1] = Oil.operator->();
-//    PVTData[2] = Gas.operator->();
     TPZStack<std::string> System =  fSimulationData->GetsystemType();
     int nphases = System.size();
     

@@ -148,17 +148,17 @@ public:
      */
     
     /** @brief Set autopointer of the Geometric mesh */
-    void SetGmesh(TPZAutoPointer<TPZGeoMesh> GeoMesh){
+    void SetGmesh(TPZAutoPointer<TPZGeoMesh> &GeoMesh){
         fGeoMesh = GeoMesh;
     }
     
     /** @brief Get autopointer of the Geometric mesh */
-    TPZAutoPointer<TPZGeoMesh>  Gmesh(){
+    TPZAutoPointer<TPZGeoMesh>  &Gmesh(){
         return fGeoMesh;
     }
     
     /** @brief Set autopointer of Simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData> SimulationData){
+    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData){
         fSimulationData = SimulationData;
     }
     
@@ -168,7 +168,7 @@ public:
     }
     
     /** @brief Set autopointer of H1 computational mesh for primal approach */
-    void SetH1CMesh(TPZAutoPointer<TPZCompMesh> H1Cmesh){
+    void SetH1CMesh(TPZAutoPointer<TPZCompMesh> &H1Cmesh){
         fH1Cmesh = H1Cmesh;
     }
     
@@ -178,7 +178,7 @@ public:
     }
     
     /** @brief Set autopointer of Hdiv computational mesh conservative vector field */
-    void SetFluxCmesh(TPZAutoPointer<TPZCompMesh> FluxCmesh){
+    void SetFluxCmesh(TPZAutoPointer<TPZCompMesh> &FluxCmesh){
         fFluxCmesh = FluxCmesh;
     }
     
@@ -188,7 +188,7 @@ public:
     }
     
     /** @brief Set autopointer of L2 computational mesh the restriction equation */
-    void SetPressureCmesh(TPZAutoPointer<TPZCompMesh> PressureCmesh){
+    void SetPressureCmesh(TPZAutoPointer<TPZCompMesh> &PressureCmesh){
         fPressureCmesh = PressureCmesh;
     }
     
@@ -198,7 +198,7 @@ public:
     }
     
     /** @brief Set autopointer of L2 computational mesh water saturation equations */
-    void SetWaterSaturationMesh(TPZAutoPointer<TPZCompMesh> WaterSaturationMesh){
+    void SetWaterSaturationMesh(TPZAutoPointer<TPZCompMesh> &WaterSaturationMesh){
         fWaterSaturationMesh = WaterSaturationMesh;
     }
     
@@ -208,7 +208,7 @@ public:
     }
     
     /** @brief Set autopointer of L2 computational mesh oil saturation equations */
-    void SetOilSaturationMesh(TPZAutoPointer<TPZCompMesh> OilSaturationMesh){
+    void SetOilSaturationMesh(TPZAutoPointer<TPZCompMesh> &OilSaturationMesh){
         fOilSaturationMesh = OilSaturationMesh;
     }
     
@@ -218,7 +218,7 @@ public:
     }
     
     /** @brief Set autopointer of H1 computational mesh for Maurice Biot linear poroelasticity */
-    void SetGeoMechanicsCmesh(TPZAutoPointer<TPZCompMesh> GeoMechanicsCmesh){
+    void SetGeoMechanicsCmesh(TPZAutoPointer<TPZCompMesh> &GeoMechanicsCmesh){
         fGeoMechanicsCmesh = GeoMechanicsCmesh;
     }
     
@@ -228,7 +228,7 @@ public:
     }
     
     /** @brief Set autopointer of Mixed computational mesh for a dual analysis */
-    void SetMixedFluxPressureCmesh(TPZAutoPointer<TPZCompMesh> MixedFluxPressureCmesh){
+    void SetMixedFluxPressureCmesh(TPZAutoPointer<TPZCompMesh> &MixedFluxPressureCmesh){
         fMixedFluxPressureCmesh = MixedFluxPressureCmesh;
     }
     
@@ -238,7 +238,7 @@ public:
     }
     
     /** @brief Set autopointer of H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */
-    void SetPressureSaturationCmesh(TPZAutoPointer<TPZCompMesh> PressureSaturationCmesh){
+    void SetPressureSaturationCmesh(TPZAutoPointer<TPZCompMesh> &PressureSaturationCmesh){
         fPressureSaturationCmesh = PressureSaturationCmesh;
     }
     
@@ -248,7 +248,7 @@ public:
     }
     
     /** @brief Set autopointer of Computational mesh for multiphase monolithic approach */
-    void SetMonolithicMultiphaseCmesh(TPZAutoPointer<TPZCompMesh> MonolithicMultiphaseCmesh){
+    void SetMonolithicMultiphaseCmesh(TPZAutoPointer<TPZCompMesh> &MonolithicMultiphaseCmesh){
         fMonolithicMultiphaseCmesh = MonolithicMultiphaseCmesh;
     }
     
@@ -258,7 +258,7 @@ public:
     }
     
     /** @brief Set autopointer of Object that generates and contains all the sparse matrices to transfer informations */
-    void SetTransferGenerator(TPZAutoPointer<TRMBuildTransfers> TransferGenerator){
+    void SetTransferGenerator(TPZAutoPointer<TRMBuildTransfers> &TransferGenerator){
         fTransferGenerator = TransferGenerator;
     }
     

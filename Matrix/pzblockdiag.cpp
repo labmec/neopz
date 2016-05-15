@@ -475,7 +475,7 @@ int TPZBlockDiagonal<TVar>::Decompose_LU()
         if (logger->isDebugEnabled())
         {
             std::stringstream mess;
-            mess << "TPZBlockDiagonal::Decompose_LU() - bsize = " << bsize << ", bsize*bsize = " << bsize*bsize;
+            mess << "TPZBlockDiagonal::Decompose_LU() - bsize = " << b_isize << ", b_isize*b_jsize = " << b_isize*b_jsize;
             LOGPZ_DEBUG(logger,mess.str());
         }
 #endif

@@ -52,12 +52,50 @@ public:
     TPZStack< TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > >  fRecurrent_bc_data;
     
     /**
-     * @ingroup Configuration Cases
+     * @ingroup Required data for a simulation
      * @brief Define the colletion of materials ids and functions being used as boundary conditions
      * @since May 08, 2016
      */
     
-    /** @brief Define the materials for a primitive mono-phasic example and their functions associated */
+    /** @brief Definition of the flow system one - two or three phase */
+    TPZStack<std::string> fSystemType;
+    
+    /** @brief ntime steps */
+    int fn_steps;
+    
+    /** @brief Time step */
+    STATE fdt;
+    
+    /** @brief Min time step */
+    STATE fdt_min;
+    
+    /** @brief Max time step */
+    STATE fdt_max;
+    
+    /** @brief Increment dt factor */
+    STATE fdt_up;
+    
+    /** @brief Decrement dt factor */
+    STATE fdt_down;
+    
+    /** @brief number of corrections steps */
+    int fn_correction;
+    
+    /** @brief residue overal tolerance */
+    STATE fepsilon_res;
+    
+    /** @brief correction overal tolerance */
+    STATE fepsilon_cor;
+    
+    // @}
+    
+    /**
+     * @ingroup Configuration Cases :: Water flow
+     * @brief Define the colletion of materials ids and functions being used as boundary conditions
+     * @since May 08, 2016
+     */
+    
+    /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
     void WaterReservoirBox();
     
     static void Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);
@@ -66,6 +104,16 @@ public:
     
     static void Impervious(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF);
     
+    
+    // @}
+    
+    /**
+     * @ingroup Configuration Cases :: Oil flow
+     * @brief Define the colletion of materials ids and functions being used as boundary conditions
+     * @since May 08, 2016
+     */
+    
+    // @}
 };
 
 #endif /* defined(__PZ__TRMRawData__) */

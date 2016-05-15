@@ -33,8 +33,8 @@ private:
     /** @brief Define the global geometry being used */
     TPZAutoPointer<TPZGeoMesh > fgmesh;
 
-    /** @brief The space generator */
-    TRMSpaceOdissey fSpaceGenerator;
+    /** @brief Define the space generator */
+    TPZAutoPointer<TRMSpaceOdissey> fSpaceGenerator;
     
     /** @brief Define simulation data */
     TPZAutoPointer<TRMSimulationData> fSimulationData;
@@ -86,21 +86,21 @@ public:
     }
     
     /** @brief Set the space generator */
-    void SetSpaceGenerator(TRMSpaceOdissey SpaceGenerator)
+    void SetSpaceGenerator(TPZAutoPointer<TRMSpaceOdissey> &SpaceGenerator)
     {
         fSpaceGenerator = SpaceGenerator;
     }
     /** @brief Get the space generator */
-    TRMSpaceOdissey SpaceGenerator()
+    TPZAutoPointer<TRMSpaceOdissey> SpaceGenerator()
     {
         return fSpaceGenerator;
     }
     
     /** @brief Set autopointer of the simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData > SimulationData)
+    void SetSimulationData(TPZAutoPointer<TRMSimulationData > &SimulationData)
     {
         fSimulationData = SimulationData;
-        fSpaceGenerator.SetSimulationData(SimulationData);
+        fSpaceGenerator->SetSimulationData(SimulationData);
     }
     /** @brief Get autopointer of the simulation data */
     TPZAutoPointer<TRMSimulationData > SimulationData()
@@ -109,7 +109,7 @@ public:
     }
     
     /** @brief Set autopointer of the primal with global post-processing analysis */
-    void SetPrimalMultiphaseAnalysis(TPZAutoPointer<TRMPrimalMultiphaseAnalysis > PrimalMultiphaseAnalysis)
+    void SetPrimalMultiphaseAnalysis(TPZAutoPointer<TRMPrimalMultiphaseAnalysis > &PrimalMultiphaseAnalysis)
     {
         fPrimalMultiphaseAnalysis = PrimalMultiphaseAnalysis;
     }
@@ -120,7 +120,7 @@ public:
     }
     
     /** @brief Set autopointer of the monolithic multiphase analysis */
-    void SetMonolithicMultiphaseAnalysis(TPZAutoPointer<TRMMonolithicMultiphaseAnalysis > MonolithicMultiphaseAnalysis)
+    void SetMonolithicMultiphaseAnalysis(TPZAutoPointer<TRMMonolithicMultiphaseAnalysis > &MonolithicMultiphaseAnalysis)
     {
         fMonolithicMultiphaseAnalysis = MonolithicMultiphaseAnalysis;
     }
@@ -131,7 +131,7 @@ public:
     }
     
     /** @brief Set autopointer of the mixed system analysis */
-    void SetFluxPressureAnalysis(TPZAutoPointer<TRMFluxPressureAnalysis > FluxPressureAnalysis)
+    void SetFluxPressureAnalysis(TPZAutoPointer<TRMFluxPressureAnalysis > &FluxPressureAnalysis)
     {
         fFluxPressureAnalysis = FluxPressureAnalysis;
     }
@@ -142,7 +142,7 @@ public:
     }
     
     /** @brief Set autopointer of the water transpor equation analysis */
-    void SetWaterTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > WaterTransportAnalysis)
+    void SetWaterTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &WaterTransportAnalysis)
     {
         fWaterTransportAnalysis = WaterTransportAnalysis;
     }
@@ -153,7 +153,7 @@ public:
     }
     
     /** @brief Set autopointer of the oil transpor equation analysis */
-    void SetOilTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > OilTransportAnalysis)
+    void SetOilTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &OilTransportAnalysis)
     {
         fOilTransportAnalysis = OilTransportAnalysis;
     }
@@ -185,6 +185,12 @@ public:
     
     /** @brief Create a monolithic dual analysis on box geometry using space odissey */
     void CreateMonolithicAnalysis();
+    
+    /** @brief Create a monolithic dual analysis on box geometry using space odissey */
+    void OneStepMonolithicAnalysis();
+    
+    /** @brief Create a monolithic dual analysis on box geometry using space odissey */
+    void PostProMonolithicAnalysis();
     
     /** @brief Run the time steps set in the simulation data */
     void RunSimulation();

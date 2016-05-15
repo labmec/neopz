@@ -79,6 +79,7 @@ void BoxLinearTracerDual()
     SymphonyX->SetSimulationData(SimData);
 //    SymphonyX->CreateAnalysisDualonBox();
     SymphonyX->CreateMonolithicAnalysis();
+    SymphonyX->OneStepMonolithicAnalysis();
     std::cout << "Dual complete normally." << std::endl;
     
 }

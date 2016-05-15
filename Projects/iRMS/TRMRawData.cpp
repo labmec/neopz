@@ -36,6 +36,36 @@ TRMRawData::TRMRawData()
     /** @brief vector that stores pointers to L2 function associated with with gamma domain at given conditions */
     fRecurrent_bc_data.Resize(0);
     
+    /** @brief Definition of the flow system one - two or three phase */
+    TPZStack<std::string> fSystemType;
+    
+    /** @brief ntime steps */
+    fn_steps = 0;
+    
+    /** @brief Time step */
+    fdt = 0.0;
+    
+    /** @brief Min time step */
+    fdt_min = 0.0;
+    
+    /** @brief Max time step */
+    fdt_max = 0.0;
+    
+    /** @brief Increment dt factor */
+    fdt_up = 0.0;
+    
+    /** @brief Decrement dt factor */
+    fdt_down = 0.0;
+    
+    /** @brief number of corrections steps */
+    fn_correction = 0;
+    
+    /** @brief residue overal tolerance */
+    fepsilon_res = 0.0;
+    
+    /** @brief correction overal tolerance */
+    fepsilon_cor = 0.0;
+    
 }
 
 TRMRawData::~TRMRawData()
@@ -43,13 +73,37 @@ TRMRawData::~TRMRawData()
     
 }
 
+
+/**
+ * @ingroup Configuration Cases
+ * @brief one-phase water flow configuration
+ * @since May 08, 2016
+ */
+
+
 /** @brief Define the materials for a primitive mono-phasic example */
 void TRMRawData::WaterReservoirBox(){
     
     std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
     
     // Single flow
-    int n_data = 1;
+    fSystemType.Push("Water");
+    int n_data = fSystemType.size();
+
+    // Time control parameters
+    REAL hour       = 3600.0;
+    REAL day        = hour * 24.0;
+    
+    fn_steps  = 1;
+    fdt = 1.0*day;
+    fdt_up = 1.0;
+    fdt_down = 1.0;
+
+    // Numeric controls
+    fn_correction = 10;
+    fepsilon_res = 0.001;
+    fepsilon_cor = 0.001;
+    
     
     // Rock materials ids
     int Rock = 1;
@@ -115,3 +169,5 @@ void TRMRawData::Impervious(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >&
     F[0] = f;
     return;
 }
+
+// @}
