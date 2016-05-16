@@ -1885,7 +1885,6 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
         return 1;
     }
     
-    //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
     //    return TPZMatrix<TVar>::Subst_LForward(b);
