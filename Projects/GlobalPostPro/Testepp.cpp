@@ -178,6 +178,7 @@ void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 
 TPZGeoMesh *GetMesh (REAL Lx,REAL Ly, bool triang_elements){
   
+    return 0;
 // 	int Qnodes = 4;
 // 	
 // 	TPZGeoMesh * gmesh = new TPZGeoMesh;

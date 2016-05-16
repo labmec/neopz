@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <fstream>
-#include "TPZSBMatrixLapack.h"
 #include "pzfmatrix.cpp"
 #include "pzlog.h"
 #include "TPZTimer.h"

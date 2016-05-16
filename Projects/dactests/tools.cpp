@@ -90,9 +90,9 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time,
             an.Solve();
 #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
-#endif
             assemble_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
             solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
+#endif
         }
         else
         {
@@ -134,9 +134,9 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time,
         
 #ifdef USING_BOOST
         boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
-#endif
         assemble_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
         solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
+#endif
     }
     
     
