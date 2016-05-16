@@ -461,6 +461,66 @@ TPZSBMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 }
 
 template<>
+int
+TPZSBMatrix<std::complex< float > >::Decompose_Cholesky()
+{
+    if (fDecomposed == ECholesky) {
+        return 1;
+    }
+    if (fDecomposed != ENoDecompose) {
+        DebugStop();
+    }
+    
+    char uplo[] = "Upper";
+    int n = this->Dim();
+    int lda = this->fBand + 1;
+    int kd = this->fBand;
+    int info = -666;
+    
+    cpbtrf_(uplo, &n, &kd , (__CLPK_complex*) fDiag.begin(), &lda, &info);
+    if( info > 0){
+        TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
+    }
+    else if ( info < 0){
+        TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
+    }
+    
+    this->fDecomposed  = ECholesky;
+    this->fDefPositive = 1;
+    return( 1 );
+}
+
+//final_ok
+template<>
+int
+TPZSBMatrix<std::complex< double > >::Decompose_Cholesky()
+{
+    if (fDecomposed == ECholesky) {
+        return 1;
+    }
+    if (fDecomposed != ENoDecompose) {
+        DebugStop();
+    }
+    
+    char uplo[] = "Upper";
+    int n = this->Dim();
+    int lda = this->fBand + 1;
+    int kd = this->fBand;
+    int info = -666;
+    zpbtrf_(uplo, &n, &kd, (__CLPK_doublecomplex *) fDiag.begin(), &lda, &info);
+    if( info > 0){
+        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
+    }
+    else if ( info < 0){
+        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
+    }
+    
+    this->fDecomposed  = ECholesky;
+    this->fDefPositive = 1;
+    return( 1 );
+}
+
+template<>
 int TPZSBMatrix<float>::Decompose_Cholesky()
 {
     if (fDecomposed == ECholesky) {
