@@ -207,14 +207,14 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(){
     
-    int nel_x = 2;
-    int nel_y = 2;
-    int nel_z = 2;
+    int nel_x = 4;
+    int nel_y = 4;
+    int nel_z = 4;
     
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 0.5;
-    dy[0] = 0.5;
-    dz[0] = 0.5;
+    dx[0] = 0.25;
+    dy[0] = 0.25;
+    dz[0] = 0.25;
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
 #ifdef PZDEBUG
@@ -239,7 +239,8 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
     TPZFMatrix<STATE> prevsol = fMonolithicMultiphaseAnalysis->Solution();
     std::cout << "Total dof: " << prevsol.Rows() << std::endl;    
     
-    TPZSkylineNSymStructMatrix strmat(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
+//    TPZSkylineNSymStructMatrix strmat(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
+    TPZSymetricSpStructMatrix strmat(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
     TPZStepSolver<STATE> step;
     int numofThreads = 0;
     strmat.SetNumThreads(numofThreads);

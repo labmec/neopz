@@ -15,6 +15,7 @@
 
 // Type of structural matrices
 #include "TPZSkylineNSymStructMatrix.h"
+#include "TPZSSpStructMatrix.h"
 
 #include "TRMSpaceOdissey.h"
 #include "TRMSimulationData.h"
