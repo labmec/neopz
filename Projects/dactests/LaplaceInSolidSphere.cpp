@@ -117,19 +117,18 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     REAL t1,t2;
     tools::SolveSyst(an, mphysics, t1, t2);
     
-    stringstream ref,grau;
-    grau << ordemP;
-    ref << ndiv;
-    string strg = grau.str();
-    string strr = ref.str();
-    std::string plotname("OurSolutionMetaEsfera");
-    std::string Grau("P");
-    std::string Ref("H");
-    std::string VTK(".vtk");
-    std::string plotData;
-    plotData = plotname+Grau+strg+Ref+strr+VTK;
-    std::string plotfile(plotData);
-    
+//    stringstream ref,grau;
+//    grau << ordemP;
+//    ref << ndiv;
+//    string strg = grau.str();
+//    string strr = ref.str();
+//    std::string plotname("OurSolutionMetaEsfera");
+//    std::string Grau("P");
+//    std::string Ref("H");
+//    std::string VTK(".vtk");
+//    std::string plotData;
+//    plotData = plotname+Grau+strg+Ref+strr+VTK;
+//    std::string plotfile(plotData);
 //    tools::PosProcessMultphysics(meshvec,  mphysics, an, plotfile, fDim);
     
     //Calculo do erro
@@ -1430,10 +1429,10 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
 {
 
 #ifdef Solution4
-    int intorder = 5;
+    int intorder = 8;
 #endif
 #ifdef Solution5
-    int intorder = 5;
+    int intorder = 8;
 #endif
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
