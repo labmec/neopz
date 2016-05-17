@@ -52,7 +52,7 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time,
                 TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
                 //                TPZSymetricSpStructMatrix< STATE > strmat(fCmesh);
                 strmat.SetDecomposeType(ELDLt);
-                int numthreads = 1;
+                int numthreads = 8;
                 strmat.SetNumThreads(numthreads);
                 
                 an.SetStructuralMatrix(strmat);
