@@ -268,12 +268,11 @@ int TPZSkylNSymMatrix<TVar>::PutVal(const long r, const long c, const TVar & val
 
 template <class TVar>
 void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &y,
-  TPZFMatrix<TVar> &z, const TVar alpha, const TVar beta, const int opt,
-  const int stride)const
+  TPZFMatrix<TVar> &z, const TVar alpha, const TVar beta, const int opt)const
 {
   // Computes z = beta * y + alpha * opt(this)*x
   // z and x cannot overlap in memory
-  if ((!opt && this->Cols() * stride != x.Rows()) || this->Rows() * stride != x.Rows())
+  if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
     TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,
     " <matrixs with incompatible dimensions>");
   if (z.Rows() != x.Rows() || z.Cols() != x.Cols())
@@ -286,7 +285,7 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
         << " y.Rows() " << y.Rows() << " z.Rows() " << z.Rows() << endl;
     TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, " incompatible dimensions\n");
   }
-  this->PrepareZ(y, z, beta, opt, stride);
+  this->PrepareZ(y, z, beta, opt);
   long rows = this->Rows();
   long xcols = x.Cols();
   long ic, r;
@@ -296,28 +295,45 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
     {
       long offset = Size(r);
       TVar val = 0.;
-      const TVar *p = &x.g((r - offset + 1) * stride, ic);
-      TVar *diag = fElemb[r] + offset - 1;
-      TVar *diaglast = fElemb[r];
+      const TVar *p = &x.g((r - offset + 1), ic);
+        TVar *diag, *diaglast;
+        if (opt == 0)
+        {
+            diag = fElemb[r] + offset - 1;
+            diaglast = fElemb[r];
+        }
+        else
+        {
+            diag = fElem[r] + offset - 1;
+            diaglast = fElem[r];
+        }
       while (diag > diaglast)
       {
         val += *diag--**p;
-        p += stride;
+        p ++;
       }
       if (diag == diaglast)
       {
         diag = fElem[r];
         val += *diag * *p;
       }
-      z(r * stride, ic) += val * alpha;
-      TVar *zp = &z((r - offset + 1) * stride, ic);
-      val = x.g(r * stride, ic);
-      diag = fElem[r] + offset - 1;
-      diaglast = fElem[r];
+      z(r, ic) += val * alpha;
+      TVar *zp = &z((r - offset + 1), ic);
+      val = x.g(r, ic);
+        if(opt == 0)
+        {
+          diag = fElem[r] + offset - 1;
+          diaglast = fElem[r];
+        }
+        else
+        {
+            diag = fElemb[r] + offset - 1;
+            diaglast = fElemb[r];
+        }
       while (diag > diaglast)
       {
         *zp += alpha * *diag--*val;
-        zp += stride;
+        zp ++;
       }
       //z.Print("z");
     }
@@ -1566,8 +1582,12 @@ int TPZSkylNSymMatrix<float>::ClassId() const
  
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
-void TPZSkylNSymMatrix<TVar>::AutoFill() {
+void TPZSkylNSymMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
     
+    if (nrow != ncol) {
+        DebugStop();
+    }
+    TPZMatrix<TVar>::Resize(nrow,nrow);
     // initialize the skyline
     TPZManVector<long> skyline(this->Rows());
     for (long i=0; i<this->Rows(); i++) {
@@ -1585,7 +1605,9 @@ void TPZSkylNSymMatrix<TVar>::AutoFill() {
             {
 				this->Error("AutoFill (TPZMatrix) failed.");
             }
-			val = ((TVar)rand())/((TVar)RAND_MAX);
+            if (symmetric == 0) {
+                val = ((TVar)rand())/((TVar)RAND_MAX);
+            }
 			if(!PutVal(j,i,val))
             {
 				this->Error("AutoFill (TPZMatrix) failed.");
@@ -1601,7 +1623,7 @@ void TPZSkylNSymMatrix<TVar>::AutoFill() {
         }
         /** Making diagonally dominant and non zero in diagonal */
         if(fabs(sum) > fabs(GetVal(i,i))) {           // Deve satisfazer:  |Aii| > SUM( |Aij| )  sobre j != i
-            PutVal(i,i,sum);
+            PutVal(i,i,sum+(TVar)1.);
         }
         // To sure diagonal is not zero.
         if(IsZero(sum) && IsZero(GetVal(i,i)))
@@ -1621,8 +1643,6 @@ template class TPZSkylNSymMatrix<std::complex<double> >;
 template class TPZSkylNSymMatrix<long double>;
 template class TPZSkylNSymMatrix<std::complex<long double> >;
 
-#ifndef BORLAND
 template class TPZRestoreClass<TPZSkylNSymMatrix<double>, TSKYLNSYMMATRIX_DOUBLE_ID>;
 template class TPZRestoreClass<TPZSkylNSymMatrix<float>, TSKYLNSYMMATRIX_FLOAT_ID>;
-#endif
 

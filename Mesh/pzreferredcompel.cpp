@@ -248,7 +248,7 @@ void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &ax
 {
 	TPZFNMatrix<9> axesinner, axesfromlocal;
 	axesfrom.Transpose(&axesfromlocal);
-	axesto.ConstMultiply(axesfromlocal,axesinner);
+	axesto.MultAdd(axesfromlocal,axesinner,axesinner,1.,0.);
 	long nderiv = dsolfrom.Rows();
 	long nstate = dsolfrom.Cols();
 	dsolto.Resize(nderiv,nstate);

@@ -85,11 +85,10 @@ public:
 	 * @param alpha Is alpha on the above operation
 	 * @param beta Is beta on the above operation
 	 * @param opt Indicates if is Transpose or not
-	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
 	virtual void MultAdd(const TPZFMatrix<TVar> & x, const TPZFMatrix<TVar> & y,
 						 TPZFMatrix<TVar> & z, const TVar alpha = 1, const TVar beta = 0,
-						 const int opt = 0, const int stride = 1) const;
+						 const int opt = 0) const;
 	
 	/** @brief It makes *T the transpose of current matrix. */
 	virtual void Transpose(TPZVerySparseMatrix<TVar>* T) const;

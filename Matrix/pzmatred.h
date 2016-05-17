@@ -188,11 +188,10 @@ public:
 	 * @param alpha Is alpha on the above operation
 	 * @param beta Is beta on the above operation
 	 * @param opt Indicates if is Transpose or not
-	 * @param stride Indicates n/N where n is dimension of the right hand side
 	 * vector and N is matrix dimension
 	 */
 	void MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha, const TVar beta, const int opt, const int stride) const;
+				 const TVar alpha, const TVar beta, const int opt) const;
 	
 	/** @brief If fK00 is simetric, only part of the matrix is accessible to external objects. */
 	/** Simetrizes copies the data of the matrix to make its data simetric */

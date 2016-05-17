@@ -18,6 +18,10 @@ extern "C"{
 #include "pzmatrix.h"
 #include "tpzverysparsematrix.h" 
 
+#ifdef USING_MKL
+#include "TPZPardisoControl.h"
+#endif
+
 template<class TVar>
 class TPZFMatrix;
 
@@ -45,7 +49,6 @@ class TPZFYsmpMatrix : public TPZMatrix<TVar> {
 		TPZFMatrix<TVar> *fZ;
 		TVar fAlpha;
 		int fOpt;
-		int fStride;
 	};
 	
 private:
@@ -68,6 +71,12 @@ public:
 	
 	virtual ~TPZFYsmpMatrix();	
 	
+    /** @brief Fill matrix storage with randomic values */
+    /** This method use GetVal and PutVal which are implemented by each type matrices */
+    void AutoFill(long nrow, long ncol, int symmetric);
+    
+
+    
 	/** @brief Get the matrix entry at (row,col) without bound checking */
 	virtual const TVar &GetVal(const long row,const long col ) const;
 	
@@ -84,10 +93,10 @@ public:
 	int PutVal(const long row, const long col, const TVar &Value);
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const;
+						 const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const;
 	
 	virtual void MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						   const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 );
+						   const TVar alpha=1.,const TVar beta = 0., const int opt = 0);
 	
 	virtual int GetSub(const long sRow,const long sCol,const long rowSize,
 					   const long colSize, TPZFMatrix<TVar> & A ) const;
@@ -211,6 +220,11 @@ protected:
 	
 	int   fSymmetric;
 	
+#ifdef USING_MKL
+    friend class TPZPardisoControl<TVar>;
+    
+    TPZPardisoControl<TVar> fPardisoControl;
+#endif
 protected:
 	
 	/**

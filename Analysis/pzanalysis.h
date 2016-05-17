@@ -132,6 +132,12 @@ protected:
     /// deletes all data structures
     void CleanUp();
     
+    /// Change the renumbering scheme
+    void SetRenumber(TPZAutoPointer<TPZRenumbering> renumber)
+    {
+        fRenumber = renumber;
+    }
+    
 	/** @brief Sets the computer connection block number from the graphical connections block number otimization */
 	void OptimizeBandwidth();
 	

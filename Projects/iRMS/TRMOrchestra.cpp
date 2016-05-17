@@ -210,6 +210,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
     int nel_x = 2;
     int nel_y = 2;
     int nel_z = 2;
+    
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
     dx[0] = 0.5;
     dy[0] = 0.5;
@@ -221,14 +222,19 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
 #endif
     fSpaceGenerator->SetDefaultPOrder(1);
 
+    // Structure for one-phase flow
     if(fSimulationData->IsOnePhaseQ()){
         
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateMixedCmesh();
+        
+        fMonolithicMultiphaseAnalysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
+        fMonolithicMultiphaseAnalysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
+        
     }
     
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = false;
     fMonolithicMultiphaseAnalysis->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh().operator->(), mustOptimizeBandwidth);
     TPZFMatrix<STATE> prevsol = fMonolithicMultiphaseAnalysis->Solution();
     std::cout << "Total dof: " << prevsol.Rows() << std::endl;    
@@ -240,6 +246,9 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
     step.SetDirect(ELDLt);
     fMonolithicMultiphaseAnalysis->SetStructuralMatrix(strmat);
     fMonolithicMultiphaseAnalysis->SetSolver(step);
+    fMonolithicMultiphaseAnalysis->SetSimulationData(fSimulationData);
+    fMonolithicMultiphaseAnalysis->AdjustVectors();
+    
     
 }
 
@@ -258,6 +267,8 @@ void TRMOrchestra::PostProMonolithicAnalysis(){
 
 /** @brief Computes the post processed results */
 void TRMOrchestra::PostProcess(){
+    
+    fMonolithicMultiphaseAnalysis->PostProcessStep();
     
 }
 

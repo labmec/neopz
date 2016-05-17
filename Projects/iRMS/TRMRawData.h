@@ -79,7 +79,7 @@ public:
     STATE fdt_down;
     
     /** @brief number of corrections steps */
-    int fn_correction;
+    int fn_corrections;
     
     /** @brief residue overal tolerance */
     STATE fepsilon_res;

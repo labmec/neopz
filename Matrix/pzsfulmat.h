@@ -37,6 +37,27 @@ public:
 	
 	~TPZSFMatrix();
 	
+    /** @brief Checks if the current matrix is symmetric */
+    virtual int IsSimetric() const    {
+        return 1;
+    }
+
+    friend class TPZSFMatrix<float>;
+    friend class TPZSFMatrix<double>;
+    
+    /// copy the values from a matrix with a different precision
+    template<class TVar2>
+    void CopyFrom(TPZSFMatrix<TVar2> &orig)
+    {
+        Resize(orig.Rows(), orig.Cols());
+        TPZMatrix<TVar>::CopyFrom(orig);
+        long nel = (this->Rows()*(this->Rows()+1))/2;
+        for (long el=0; el<nel; el++) {
+            fElem[el] = orig.fElem[el];
+        }
+    }
+    
+
 	int PutVal(const long row,const long col,const TVar &value );
 	const TVar &GetVal(const long row,const long col ) const;
 	

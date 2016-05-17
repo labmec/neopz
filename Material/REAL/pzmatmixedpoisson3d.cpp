@@ -49,9 +49,9 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D():TPZMaterial(){
 
 TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(int matid, int dim):TPZMaterial(matid){
     
-    if(dim<0 || dim >3){
-        DebugStop();
-    }
+//    if(dim<0 || dim >3){
+//        DebugStop();
+//    }
     
     /** Valor da funcao de carga */
     fF = 0.; //fF
@@ -177,7 +177,7 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     if(fPermeabilityFunction){
         PermTensor.Redim(fDim,fDim);
         InvPermTensor.Redim(fDim,fDim);
-        TPZFNMatrix<3,REAL> resultMat;
+        TPZFNMatrix<3,STATE> resultMat;
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
@@ -273,6 +273,86 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     }
 }
 
+// Divergence on master element
+void TPZMatMixedPoisson3D::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
+{
+    int ublock = 0;
+    
+    // Getting test and basis functions
+    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
+    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
+    TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
+    TPZFNMatrix<9,STATE> gradu = datavec[ublock].dsol[0];
+    TPZFNMatrix<9,STATE> graduMaster;
+    gradu.Transpose();
+    
+    TPZFNMatrix<660> GradphiuH1;
+    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
+    
+    int nphiuHdiv = datavec[ublock].fVecShapeIndex.NElements();
+    
+    DivergenceofPhi.Resize(nphiuHdiv,1);
+    
+    REAL JacobianDet = datavec[ublock].detjac;
+    
+    TPZFMatrix<STATE> Qaxes = datavec[ublock].axes;
+    TPZFMatrix<STATE> QaxesT;
+    TPZFMatrix<STATE> Jacobian = datavec[ublock].jacobian;
+    TPZFMatrix<STATE> JacobianInverse = datavec[ublock].jacinv;
+    
+    TPZFMatrix<STATE> GradOfX;
+    TPZFMatrix<STATE> GradOfXInverse;
+    TPZFMatrix<STATE> VectorOnMaster;
+    TPZFMatrix<STATE> VectorOnXYZ(3,1,0.0);
+    Qaxes.Transpose(&QaxesT);
+    QaxesT.Multiply(Jacobian, GradOfX);
+    JacobianInverse.Multiply(Qaxes, GradOfXInverse);
+    
+    int ivectorindex = 0;
+    int ishapeindex = 0;
+    
+    if (HDivPiola == 1)
+    {
+        for (int iq = 0; iq < nphiuHdiv; iq++)
+        {
+            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
+            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+            
+            VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
+            VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
+            VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
+            
+            GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
+            VectorOnMaster *= JacobianDet;
+            
+            /* Contravariant Piola mapping preserves the divergence */
+            // the division by the jacobianDet is to make the integral on the master element???
+            DivergenceofPhi(iq,0) = ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) +
+                                     dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) +
+                                     dphiuH1(2,ishapeindex)*VectorOnMaster(2,0) );
+        }
+//        GradOfXInverse.Multiply(gradu, graduMaster);
+//        graduMaster *= JacobianDet;
+//        DivergenceofU = graduMaster(0,0)+graduMaster(1,1)+graduMaster(2,2);
+    }
+    else
+    {
+        for (int iq = 0; iq < nphiuHdiv; iq++)
+        {
+            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
+            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+            
+            /* Computing the divergence for constant jacobian elements */
+            DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
+            datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
+            datavec[ublock].fNormalVec(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
+        }
+    }
+    
+    return;
+    
+}
+
 ///This method use piola contravariant mapping for nonlinear mappings
 void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 #ifdef PZDEBUG
@@ -296,7 +376,7 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
     if(fPermeabilityFunction){
         PermTensor.Redim(fDim,fDim);
         InvPermTensor.Redim(fDim,fDim);
-        TPZFNMatrix<3,REAL> resultMat;
+        TPZFNMatrix<3,STATE> resultMat;
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
@@ -354,6 +434,9 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
         }
     }
     
+    TPZFMatrix<STATE> divphi;
+    STATE divu;
+    this->ComputeDivergenceOnMaster(datavec, divphi, divu);
     
     // Coupling terms between flux and pressure. Matrix B
     for(int iq=0; iq<phrq; iq++)
@@ -364,8 +447,8 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<fDim; id++){
             ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
-            //ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-            //ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+            ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
+            ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
         }
         TPZFNMatrix<3,REAL> axesvec(3,1,0.);
         datavec[0].axes.Multiply(ivec,axesvec);
@@ -375,6 +458,11 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
         {
             divwq += axesvec(iloc,0)*dphiQ(iloc,ishapeind);
         }
+        
+        if (HDivPiola == 1) {
+            divwq = divphi(iq,0)/datavec[0].detjac;
+        }
+        
         for (int jp=0; jp<phrp; jp++) {
             
             REAL fact = (-1.)*weight*phip(jp,0)*divwq;
@@ -609,8 +697,8 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     if(var==9){
         
-        TPZFNMatrix<660> GradofP;
-        TPZAxesTools<REAL>::Axes2XYZ(datavec[1].dsol[0], GradofP, datavec[1].axes);
+        TPZFNMatrix<660,STATE> GradofP;
+        TPZAxesTools<STATE>::Axes2XYZ(datavec[1].dsol[0], GradofP, datavec[1].axes);
         //        int nc = GradofP.Cols();
         //        int nl = GradofP.Rows();
         
@@ -640,8 +728,8 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
 // metodo para computar erros
 void TPZMatMixedPoisson3D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
     
-    Solout.Resize( this->NSolutionVariables(var));
-    
+    Solout.Resize( 3 /*this->NSolutionVariables(var)*/);
+    // AQUI!!! //redefinicao feita  acima, antigamente mudava para 2, por exemplo, e nao ficava compativel com o resto que era 3
     
     if(var == 1){ //function (state variable Q)
         for (int ip = 0; ip<3; ip++)
@@ -705,46 +793,16 @@ void TPZMatMixedPoisson3D::FillDataRequirements(TPZVec<TPZMaterialData > &datave
 void TPZMatMixedPoisson3D::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
     
     values.Fill(0.0);
-    TPZVec<STATE> sol(1),dsol(3),div(1);
-    //    if(data.numberdualfunctions) Solution(data,2,sol);//pressao
-    Solution(data,1,dsol);//fluxo
+    TPZVec<STATE> primal(1),dual(3),div(1);
+    Solution(data,1,dual);//fluxo
     //Solution(data,14,div);//divergente
     
-#ifdef LOG4CXX
-    //    if(logger->isDebugEnabled()){
-    //        std::stringstream sout;
-    //        sout<< "\n";
-    //        sout << " Pto  " << data.x << std::endl;
-    //        sout<< " pressao exata " <<u_exact <<std::endl;
-    //        sout<< " pressao aprox " <<sol <<std::endl;
-    //        sout<< " ---- "<<std::endl;
-    //        sout<< " fluxo exato " <<du_exact(0,0)<<", " << du_exact(1,0)<<std::endl;
-    //        sout<< " fluxo aprox " <<dsol<<std::endl;
-    //        sout<< " ---- "<<std::endl;
-    //        if(du_exact.Rows()>fDim) sout<< " div exato " <<du_exact(2,0)<<std::endl;
-    //        sout<< " div aprox " <<div<<std::endl;
-    //        LOGPZ_DEBUG(logger,sout.str())
-    //    }
-#endif
-    
-    
-    //    //values[0] : pressure error using L2 norm
-    //    if(data.numberdualfunctions){
-    //        REAL diffP = abs(u_exact[0]-sol[0]);
-    //        values[0]  = diffP*diffP;
-    //    }
-    //values[1] : flux error using L2 norm
     for(int id=0; id<3; id++) {
-        REAL diffFlux = abs(dsol[id] - du_exact(id,0));
+        REAL diffFlux = abs(dual[id] - du_exact(id,0));
+
         values[1]  += diffFlux*diffFlux;
     }
-    //    if(du_exact.Rows()>3){
-    //        //values[2] : divergence using L2 norm
-    //        REAL diffDiv = abs(div[0] - du_exact(2,0));
-    //        values[2]=diffDiv*diffDiv;
-    //        //values[3] : Hdiv norm => values[1]+values[2];
-    //        values[3]= values[1]+values[2];
-    //    }
+
 }
 
 

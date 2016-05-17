@@ -246,6 +246,14 @@ public:
      */
     //virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
     
+    /**
+     * @brief .
+     * @param datavec [in] Data material vector
+     * @param DivergenceofPhi Divergence of Phi over the master element
+     * @param DivergenceofU Divergence of flux over the master element
+     */
+    void ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU);
+    
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
     virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);

@@ -53,7 +53,7 @@ void TPZLinearConvecDiff::Contribute(TPZMaterialData &data,REAL weight,TPZFMatri
   TPZFMatrix<REAL>  &phi = data.phi;
   TPZFMatrix<REAL> &dphidaxes = data.dphix;
   TPZFNMatrix<200,REAL> dphi(dphidaxes.Rows(),dphidaxes.Cols(),0.);
-  TPZAxesTools<STATE>::Axes2XYZ(dphidaxes, dphi, data.axes);
+  TPZAxesTools<REAL>::Axes2XYZ(dphidaxes, dphi, data.axes);
 
   TPZVec<REAL>  &x = data.x;
 //  TPZFMatrix<REAL> &axes = data.axes;

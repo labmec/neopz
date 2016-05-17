@@ -22,6 +22,27 @@ TRMMonolithicMultiphaseAnalysis::~TRMMonolithicMultiphaseAnalysis(){
     
 }
 
+/** @brief Resize and fill residue and solution vectors */
+void TRMMonolithicMultiphaseAnalysis::AdjustVectors(){
+    
+    if(fSolution.Rows() == 0){
+        DebugStop();
+    }
+    
+    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());    
+    
+    fX.Resize(fSolution.Rows(),1);
+    fX.Zero();
+    fX_n.Resize(fSolution.Rows(),1);
+    fX_n.Zero();
+    fR.Resize(fSolution.Rows(),1);
+    fR.Zero();
+    fR_n.Resize(fSolution.Rows(),1);
+    fR_n.Zero();
+}
 
 // set the type of the system
 //void TRMMonolithicMultiphaseAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
@@ -124,38 +145,42 @@ TRMMonolithicMultiphaseAnalysis::~TRMMonolithicMultiphaseAnalysis(){
 
 void TRMMonolithicMultiphaseAnalysis::NewtonIteration(){
     
-    this->Rhs() = -1.0*fResidue_n;
     this->Assemble();
-    this->Solve();
+    this->Rhs() += fR; // total residue
+    this->Rhs() *= -1.0;
+
+    this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
-    fSolution_n += this->Solution(); // update
+    fX_n += this->Solution(); // update state
     
-    this->Mesh()->LoadSolution(fSolution_n);
+    this->Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     this->AssembleResidual();
-    
-    fResidue_n  = this->Rhs() + fResidue;
-    ferror =  Norm(fResidue_n); // residue error
+    fR_n = this->Rhs();
+    fR_n += fR; // total residue
+    ferror =  Norm(fR_n); // residue error
 
     
 }
 
 void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
     
-    this->SimulationData()->SetCurrentStateQ(false);
-    this->LoadSolution(fSolution);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    this->AssembleResidual();
-    fResidue = this->Rhs();
+//    this->SimulationData()->SetCurrentStateQ(false);
+//    this->LoadSolution(fX);
+//    
+//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+//    this->AssembleResidual();
+//    fR = this->Rhs();
     
-    this->SimulationData()->SetCurrentStateQ(true);
-    this->LoadSolution(fSolution);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());    
-    this->AssembleResidual();
-    fResidue_n = this->Rhs();
-    
-    fResidue_n += fResidue;
+//    this->SimulationData()->SetCurrentStateQ(true);
+//    this->LoadSolution(fX_n);
+//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());    
+//    this->AssembleResidual();
+//    fR_n = this->Rhs();
+//    
+//    fR_n += fR;
+
     ferror = 1.0;
     
     
@@ -165,21 +190,21 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
 
 
     
-    for (int k = 0; k < n; k++) {
+    for (int k = 1; k <= n; k++) {
+        
         this->NewtonIteration();
         
-#ifdef PZDEBUG
-                std::stringstream sout;
-                fResidue.Print("R = ", sout,EMathematicaInput);
-                fResidue_n.Print("Rn = ", sout,EMathematicaInput);
-                fSolution_n.Print("X = ", sout,EMathematicaInput);
-                std::cout << sout << std::endl;
-#endif
+//#ifdef PZDEBUG
+//        fR.Print("R = ", std::cout,EMathematicaInput);
+//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+//        fX_n.Print("X = ", std::cout,EMathematicaInput);
+//#endif
+        
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-            fSolution = fSolution_n;
+            fX = fX_n;
             return;
         }
         
@@ -193,7 +218,7 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
 void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
     
     const int dim = 3;
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "DualMonolithicDarcyOnBox.vtk";
     scalnames.Push("p");

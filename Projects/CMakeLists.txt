@@ -4,6 +4,8 @@ ENABLE_TESTING()
 
 	if(BUILD_TUTORIAL)
 
+	# Testing LAPACK integration with symmetric band matrix
+		add_subdirectory(pzsbndmat_validation)
 		if(BUILD_COMPLEX_PROJECTS)
 			#add_subdirectory(PDElinear1D)
 			#add_subdirectory(PDElinear2D)
@@ -173,9 +175,12 @@ ENABLE_TESTING()
 			add_subdirectory(MonophasicWell)
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			add_subdirectory(iRMS)
+
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
+			#add_subdirectory(Andrade)
+			add_subdirectory(MatrixMarket)
 			add_subdirectory(Frac1DHdiv)
 			add_subdirectory(SubStruct)
 			add_subdirectory(MultiphysicsSimulation)
@@ -218,6 +223,10 @@ ENABLE_TESTING()
 			# Colaboration with Laurent Stainier
 			
 			add_subdirectory(MatLib)
+
+			if(USING_MKL)
+				add_subdirectory(PardisoSample)
+			endif(USING_MKL)
 			
 
 		endif(BUILD_COMPLEX_PROJECTS)

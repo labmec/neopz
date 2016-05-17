@@ -64,8 +64,9 @@ TRMSimulationData::~TRMSimulationData(){
 /** @brief Set autopointer of the RawData */
 void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     fRawData = RawData;
+    SetSystemType(RawData->fSystemType);
     SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_up);
-    SetNumericControls(RawData->fn_correction, RawData->fepsilon_res, RawData->fepsilon_cor);
+    SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor);
 }
 
 /** @brief Setup reporting times and time step size */
@@ -81,7 +82,7 @@ void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STAT
 /** @brief Setup reporting times and time step size */
 void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor){
     fn_corrections  = n_corrections;
-    fepsilon_cor    = epsilon_cor;
+    fepsilon_res    = epsilon_res;
     fepsilon_cor    = epsilon_cor;
 }
 

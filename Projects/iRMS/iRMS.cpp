@@ -4,6 +4,7 @@
 #include <time.h>
 #include "pzgmesh.h"
 #include "TPZRefPatternTools.h"
+#include "pzmaterial.h"
 
 #include "TRMRawData.h"
 #include "TRMSimworxMeshGenerator.h"
@@ -33,7 +34,7 @@ int main()
 #endif
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
-
+    TPZMaterial::gBigNumber = 1.0e12;
     // Running primal problem
 //    LinearTracerPrimal();
 
@@ -80,6 +81,7 @@ void BoxLinearTracerDual()
 //    SymphonyX->CreateAnalysisDualonBox();
     SymphonyX->CreateMonolithicAnalysis();
     SymphonyX->OneStepMonolithicAnalysis();
+    SymphonyX->PostProcess();
     std::cout << "Dual complete normally." << std::endl;
     
 }

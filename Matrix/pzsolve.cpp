@@ -46,12 +46,6 @@ TPZMatrixSolver<TVar>::~TPZMatrixSolver()
 }
 
 template <class TVar>
-void TPZMatrixSolver<TVar>::SetMatrix(TPZAutoPointer<TPZMatrix<TVar> > Refmat)
-{
-	fContainer = Refmat;
-}
-
-template <class TVar>
 void TPZMatrixSolver<TVar>::ResetMatrix()
 {
 	TPZAutoPointer<TPZMatrix<TVar> > reset;

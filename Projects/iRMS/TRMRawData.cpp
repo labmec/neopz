@@ -58,7 +58,7 @@ TRMRawData::TRMRawData()
     fdt_down = 0.0;
     
     /** @brief number of corrections steps */
-    fn_correction = 0;
+    fn_corrections = 0;
     
     /** @brief residue overal tolerance */
     fepsilon_res = 0.0;
@@ -100,7 +100,7 @@ void TRMRawData::WaterReservoirBox(){
     fdt_down = 1.0;
 
     // Numeric controls
-    fn_correction = 10;
+    fn_corrections = 3;
     fepsilon_res = 0.001;
     fepsilon_cor = 0.001;
     

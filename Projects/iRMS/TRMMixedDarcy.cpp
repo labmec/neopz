@@ -56,9 +56,9 @@ void TRMMixedDarcy::Print(std::ostream &out) {
 }
 
 int TRMMixedDarcy::VariableIndex(const std::string &name) {
-    if (!strcmp("WeightedPressure", name.c_str())) return 0;
-    if (!strcmp("BulkVelocity", name.c_str())) return 1;
-    if (!strcmp("DivOfBulkVeclocity", name.c_str())) return 2;
+    if (!strcmp("p", name.c_str())) return 0;
+    if (!strcmp("u", name.c_str())) return 1;
+    if (!strcmp("div_u", name.c_str())) return 2;
     if (!strcmp("AWeightedPressure", name.c_str())) return 3;
     if (!strcmp("ABulkVelocity", name.c_str())) return 4;
     if (!strcmp("ADivOfBulkVeclocity", name.c_str())) return 5;

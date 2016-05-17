@@ -27,16 +27,16 @@ private:
     TPZManVector<TPZCompMesh * , 4> fmeshvec;
 
     /** @brief Part of residue at n state  */
-    TPZFMatrix<STATE> fResidue_n;
+    TPZFMatrix<STATE> fR_n;
     
     /** @brief Part of residue at past state  */
-    TPZFMatrix<STATE> fResidue;
+    TPZFMatrix<STATE> fR;
     
     /** @brief Solution ate n state */
-    TPZFMatrix<STATE> fSolution_n;
+    TPZFMatrix<STATE> fX_n;
     
     /** @brief Solution at past state */
-    TPZFMatrix<STATE> fSolution;
+    TPZFMatrix<STATE> fX;
     
     /** @brief Residue error */
     STATE ferror;
@@ -60,15 +60,42 @@ public:
      */
     
     /** @brief Set the simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData> SimulationData)
+    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
     {
         fSimulationData = SimulationData;
+        if (fSimulationData->IsOnePhaseQ()) {
+            fmeshvec.Resize(2);
+        }
+        
+        if (fSimulationData->IsTwoPhaseQ()) {
+            fmeshvec.Resize(3);
+        }
+        
+        if (fSimulationData->IsThreePhaseQ()) {
+            fmeshvec.Resize(4);
+        }
+        
     }
+    
     /** @brief Get the space generator */
     TPZAutoPointer<TRMSimulationData> SimulationData()
     {
         return fSimulationData;
     }
+    
+    /** @brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure, fmeshvec[2] = Water, fmeshvec[3] = Oil */
+    void SetMeshvec(TPZManVector<TPZCompMesh * , 4> &Meshvec)
+    {
+        fmeshvec = Meshvec;
+    }
+    /** @brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure, fmeshvec[2] = Water, fmeshvec[3] = Oil */
+    TPZManVector<TPZCompMesh * , 4> & Meshvec()
+    {
+        return fmeshvec;
+    }
+    
+    /** @brief Resize and fill residue and solution vectors */
+    void AdjustVectors();
     
     // @}
     

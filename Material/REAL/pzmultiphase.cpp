@@ -913,16 +913,16 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     Kinverse=this->Kinv(Kabsolute);
     Gfield = this->Gravity();
     
-    TPZManVector<REAL,3> sol_u =    datavec[0].sol[0];
-    TPZManVector<REAL,3> sol_q =    datavec[1].sol[0];
-    TPZManVector<REAL,3> sol_p =    datavec[2].sol[0];
-    TPZManVector<REAL,3> sol_s =    datavec[3].sol[0];
-    TPZManVector<REAL,3> sol_qg =   datavec[4].sol[0];
+    TPZManVector<STATE,3> sol_u =    datavec[0].sol[0];
+    TPZManVector<STATE,3> sol_q =    datavec[1].sol[0];
+    TPZManVector<STATE,3> sol_p =    datavec[2].sol[0];
+    TPZManVector<STATE,3> sol_s =    datavec[3].sol[0];
+    TPZManVector<STATE,3> sol_qg =   datavec[4].sol[0];
 
-    TPZFMatrix<REAL> dsol_u = datavec[0].dsol[0];
-    TPZFMatrix<REAL> dsol_q =datavec[1].dsol[0];
-    TPZFMatrix<REAL> dsol_p =datavec[2].dsol[0];
-    TPZFMatrix<REAL> dsol_s =datavec[3].dsol[0];    
+    TPZFMatrix<STATE> dsol_u = datavec[0].dsol[0];
+    TPZFMatrix<STATE> dsol_q =datavec[1].dsol[0];
+    TPZFMatrix<STATE> dsol_p =datavec[2].dsol[0];
+    TPZFMatrix<STATE> dsol_s =datavec[3].dsol[0];
     
     REAL LambdaL, LambdaLU, MuL;
     REAL Balpha, Sestr;
@@ -1615,16 +1615,16 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
     Kinverse=this->Kinv(Kabsolute);
     Gfield = this->Gravity();
-    TPZManVector<REAL,3> sol_u =datavec[0].sol[0];
-    TPZManVector<REAL,3> sol_q =datavec[1].sol[0];
-    TPZManVector<REAL,3> sol_p =datavec[2].sol[0];
-    TPZManVector<REAL,3> sol_s =datavec[3].sol[0];
-    TPZManVector<REAL,3> sol_qg =datavec[4].sol[0];
+    TPZManVector<STATE,3> sol_u =datavec[0].sol[0];
+    TPZManVector<STATE,3> sol_q =datavec[1].sol[0];
+    TPZManVector<STATE,3> sol_p =datavec[2].sol[0];
+    TPZManVector<STATE,3> sol_s =datavec[3].sol[0];
+    TPZManVector<STATE,3> sol_qg =datavec[4].sol[0];
     
-    TPZFMatrix<REAL> dsol_u = datavec[0].dsol[0];
-    TPZFMatrix<REAL> dsol_q =datavec[1].dsol[0];
-    TPZFMatrix<REAL> dsol_p =datavec[2].dsol[0];
-    TPZFMatrix<REAL> dsol_s =datavec[3].dsol[0];
+    TPZFMatrix<STATE> dsol_u = datavec[0].dsol[0];
+    TPZFMatrix<STATE> dsol_q =datavec[1].dsol[0];
+    TPZFMatrix<STATE> dsol_p =datavec[2].dsol[0];
+    TPZFMatrix<STATE> dsol_s =datavec[3].dsol[0];
     
     TPZFMatrix<> axesQ, axesP;
     axesQ=datavec[1].axes;
@@ -2056,17 +2056,17 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     REAL n2 = normal[1];
     //  REAL n3 = normal[2];
 
-    TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
-    TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
-    TPZManVector<REAL,3> sol_pL =dataleft[2].sol[0];
-    TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
-    TPZManVector<REAL,3> sol_qgL =dataleft[4].sol[0];
+    TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
+    TPZManVector<STATE,3> sol_qL =dataleft[1].sol[0];
+    TPZManVector<STATE,3> sol_pL =dataleft[2].sol[0];
+    TPZManVector<STATE,3> sol_sL =dataleft[3].sol[0];
+    TPZManVector<STATE,3> sol_qgL =dataleft[4].sol[0];
 
-    TPZManVector<REAL,3> sol_uR =dataright[0].sol[0];
-    TPZManVector<REAL,3> sol_qR =dataright[1].sol[0];
-    TPZManVector<REAL,3> sol_pR =dataright[2].sol[0];
-    TPZManVector<REAL,3> sol_sR =dataright[3].sol[0];
-    TPZManVector<REAL,3> sol_qgR =dataright[4].sol[0];
+    TPZManVector<STATE,3> sol_uR =dataright[0].sol[0];
+    TPZManVector<STATE,3> sol_qR =dataright[1].sol[0];
+    TPZManVector<STATE,3> sol_pR =dataright[2].sol[0];
+    TPZManVector<STATE,3> sol_sR =dataright[3].sol[0];
+    TPZManVector<STATE,3> sol_qgR =dataright[4].sol[0];
     
     //  Getting Q solution for left and right side
     REAL qxL = sol_qL[0];
@@ -2713,17 +2713,17 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     REAL n1 = normal[0];
     REAL n2 = normal[1];
     
-    TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];    
-    TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
-    TPZManVector<REAL,3> sol_pL =dataleft[2].sol[0];
-    TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
-    TPZManVector<REAL,3> sol_qgL =dataleft[4].sol[0];    
+    TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
+    TPZManVector<STATE,3> sol_qL =dataleft[1].sol[0];
+    TPZManVector<STATE,3> sol_pL =dataleft[2].sol[0];
+    TPZManVector<STATE,3> sol_sL =dataleft[3].sol[0];
+    TPZManVector<STATE,3> sol_qgL =dataleft[4].sol[0];
     
-    TPZManVector<REAL,3> sol_uR =dataright[0].sol[0];    
-    TPZManVector<REAL,3> sol_qR =dataright[1].sol[0];
-    TPZManVector<REAL,3> sol_pR =dataright[2].sol[0];
-    TPZManVector<REAL,3> sol_sR =dataright[3].sol[0];
-    TPZManVector<REAL,3> sol_qgR    =dataright[4].sol[0];    
+    TPZManVector<STATE,3> sol_uR =dataright[0].sol[0];
+    TPZManVector<STATE,3> sol_qR =dataright[1].sol[0];
+    TPZManVector<STATE,3> sol_pR =dataright[2].sol[0];
+    TPZManVector<STATE,3> sol_sR =dataright[3].sol[0];
+    TPZManVector<STATE,3> sol_qgR    =dataright[4].sol[0];
     
     
     //  Getting Q solution for left and right side
@@ -3354,10 +3354,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     REAL n1 = normal[0];
     REAL n2 = normal[1];
 
-    TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
-    TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
-    TPZManVector<REAL,3> sol_pL =dataleft[2].sol[0];
-    TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
+    TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
+    TPZManVector<STATE,3> sol_qL =dataleft[1].sol[0];
+    TPZManVector<STATE,3> sol_pL =dataleft[2].sol[0];
+    TPZManVector<STATE,3> sol_sL =dataleft[3].sol[0];
     
     //  Getting Q solution for left and right side
 //    REAL uxL = sol_uL[0];
@@ -3877,7 +3877,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
       
 }
 
-    void TPZMultiphase::ApplyUxD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplyUxD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
 
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -3905,7 +3905,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 //        int FirstQGL = SRowsleft + FirstSL;
 
 
-        TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
+        TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
 
         //  Getting Q solution for left and right side
         REAL uxL = sol_uL[0];
@@ -3939,7 +3939,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplyUyD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplyUyD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
 
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -3967,7 +3967,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 //        int FirstQGL = SRowsleft + FirstSL;
 
 
-        TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
+        TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
 
         //  Getting Q solution for left and right side
 //        REAL uxL = sol_uL[0];
@@ -4000,7 +4000,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySigmaN    (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySigmaN    (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4028,7 +4028,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
 //        int FirstQGL = SRowsleft + FirstSL;
 
 
-        TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
+        TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
 
         //  Getting Q solution for left and right side
 //        REAL uxL = sol_uL[0];
@@ -4054,7 +4054,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4084,7 +4084,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         REAL n1 = normal[0];
         REAL n2 = normal[1];
 
-        TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
+        TPZManVector<STATE,3> sol_qL =dataleft[1].sol[0];
         
         //  Getting Q solution for left and right side
         REAL qxL = sol_qL[0];
@@ -4128,7 +4128,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     }
 
     
-    void TPZMultiphase::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4158,10 +4158,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         REAL n1 = normal[0];
         REAL n2 = normal[1];
 
-        TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
-        TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
-        TPZManVector<REAL,3> sol_pL =dataleft[2].sol[0];
-        TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
+        TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
+        TPZManVector<STATE,3> sol_qL =dataleft[1].sol[0];
+        TPZManVector<STATE,3> sol_pL =dataleft[2].sol[0];
+        TPZManVector<STATE,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
 //        REAL uxL = sol_uL[0];
@@ -4247,7 +4247,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySin       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySin       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4277,10 +4277,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         REAL n1 = normal[0];
         REAL n2 = normal[1];
 
-        TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
-        TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
-        TPZManVector<REAL,3> sol_pL =dataleft[2].sol[0];
-        TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
+        TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
+        TPZManVector<STATE,3> sol_qL =dataleft[1].sol[0];
+        TPZManVector<STATE,3> sol_pL =dataleft[2].sol[0];
+        TPZManVector<STATE,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
 //        REAL uxL = sol_uL[0];
@@ -4415,7 +4415,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySout      (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySout      (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
     
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4445,10 +4445,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         REAL n1 = normal[0];
         REAL n2 = normal[1];
 
-        TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
-        TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
-        TPZManVector<REAL,3> sol_pL =dataleft[2].sol[0];
-        TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
+        TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
+        TPZManVector<STATE,3> sol_qL =dataleft[1].sol[0];
+        TPZManVector<STATE,3> sol_pL =dataleft[2].sol[0];
+        TPZManVector<STATE,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
 //        REAL uxL = sol_uL[0];
@@ -4582,7 +4582,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySin       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight,TPZFMatrix<> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySin       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4612,10 +4612,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         REAL n1 = normal[0];
         REAL n2 = normal[1];
 
-        TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
-        TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
-        TPZManVector<REAL,3> sol_pL =dataleft[2].sol[0];
-        TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
+        TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
+        TPZManVector<STATE,3> sol_qL =dataleft[1].sol[0];
+        TPZManVector<STATE,3> sol_pL =dataleft[2].sol[0];
+        TPZManVector<STATE,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
 //        REAL uxL = sol_uL[0];
@@ -4721,7 +4721,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySout      (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight,TPZFMatrix<> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySout      (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4751,10 +4751,10 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         REAL n1 = normal[0];
         REAL n2 = normal[1];
 
-        TPZManVector<REAL,3> sol_uL =dataleft[0].sol[0];
-        TPZManVector<REAL,3> sol_qL =dataleft[1].sol[0];
-        TPZManVector<REAL,3> sol_pL =dataleft[2].sol[0];
-        TPZManVector<REAL,3> sol_sL =dataleft[3].sol[0];
+        TPZManVector<STATE,3> sol_uL =dataleft[0].sol[0];
+        TPZManVector<STATE,3> sol_qL =dataleft[1].sol[0];
+        TPZManVector<STATE,3> sol_pL =dataleft[2].sol[0];
+        TPZManVector<STATE,3> sol_sL =dataleft[3].sol[0];
         
         //  Getting Q solution for left and right side
 //        REAL uxL = sol_uL[0];

@@ -122,8 +122,9 @@ public:
     bool IsThreePhaseQ() {return fIsThreePhaseQ;}
     
     /** @brief Definition of the flow system one - two and  ... three phase */
-    void SetSystemType(){
-        
+    void SetSystemType(TPZStack<std::string> &SystemType){
+
+        fSystemType = SystemType;
         switch (fSystemType.size()) {
             case 1:
             {

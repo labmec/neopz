@@ -145,10 +145,10 @@ template<class TVar>
 int TPZSparseBlockDiagonal<TVar>::Substitution(TPZFMatrix<TVar>* B) const
 {
 	TPZFNMatrix<1000,TVar > BG(fBlock.NElements(),B->Cols());
-	Gather(*B,BG,1);
+	Gather(*B,BG);
 	int result = TPZBlockDiagonal<TVar>::Substitution(&BG);
 	B->Zero();
-	Scatter(BG,*B,1);
+	Scatter(BG,*B);
 	return result;
 	
 }
@@ -218,7 +218,7 @@ void TPZSparseBlockDiagonal<TVar>::GetBlock(long i, TPZFMatrix<TVar>& block)
 }
 
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt, const int stride) const
+void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const
 {
 	LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::MultAdd");
 	TPZFNMatrix<1000,TVar> xsc(0,0),ysc(0,0,0.),zsc(0,0);
@@ -226,10 +226,10 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 	z.Zero();
 	if(abs(beta) != 0.) ysc.Resize(fBlock.NElements(),y.Cols());
 	zsc.Resize(fBlock.NElements(),z.Cols());
-	Gather(x,xsc,stride);
-	if(abs(beta) != 0.) Scatter(y,ysc,stride);
-	TPZBlockDiagonal<TVar>::MultAdd(xsc, ysc, zsc, alpha, beta, opt,1);
-	Scatter(zsc,z,stride);
+	Gather(x,xsc);
+	if(abs(beta) != 0.) Scatter(y,ysc);
+	TPZBlockDiagonal<TVar>::MultAdd(xsc, ysc, zsc, alpha, beta, opt);
+	Scatter(zsc,z);
 }
 
 /*!
@@ -260,29 +260,29 @@ void TPZSparseBlockDiagonal<TVar>::FindBlockIndex(long glob, long &block, long &
  \fn TPZSparseBlockDiagonal::Scatter(TPZFMatrix<>&in, TPZFMatrix<>&out) const
  */
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out, int stride) const
+void TPZSparseBlockDiagonal<TVar>::Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const
 {
     long neq = fBlock.NElements();
     long nc = in.Cols();
     long ieq,ic;
     for(ic=0; ic<nc; ic++)
     {
-		for(ieq=0; ieq<neq; ieq++) out(fBlock[ieq]*stride,ic) += in.GetVal(ieq,ic);
+		for(ieq=0; ieq<neq; ieq++) out(fBlock[ieq],ic) += in.GetVal(ieq,ic);
     }
 }
 
 /*!
- \fn TPZSparseBlockDiagonal::Gather(TPZFMatrix<>&in, TPZFMatrix<>&out, int stride) const
+ \fn TPZSparseBlockDiagonal::Gather(TPZFMatrix<>&in, TPZFMatrix<>&out) const
  */
 template<class TVar>
-void TPZSparseBlockDiagonal<TVar>::Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out, int stride) const
+void TPZSparseBlockDiagonal<TVar>::Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const
 {
     long neq = fBlock.NElements();
     long nc = in.Cols();
     long ieq,ic;
     for(ic=0; ic<nc; ic++)
     {
-		for(ieq=0; ieq<neq; ieq++) out(ieq,ic) = in.GetVal(fBlock[ieq]*stride,ic);
+		for(ieq=0; ieq<neq; ieq++) out(ieq,ic) = in.GetVal(fBlock[ieq],ic);
     }
 }
 

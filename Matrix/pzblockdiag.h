@@ -57,7 +57,7 @@ public:
 	/** @brief Computes z = alpha * opt(this)*x + beta * y */
 	/** @note z and x cannot overlap in memory */
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const ;
+				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const ;
 	
 	long Dim() const     { return this->Rows(); }
 	
@@ -84,7 +84,7 @@ public:
 	static int main();
     
     /** Fill the matrix with random values (non singular matrix) */
-    void AutoFill();
+    void AutoFill(long dim, long dimj, int symmetric);
 	
 private:
 	

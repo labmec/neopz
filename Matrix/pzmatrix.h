@@ -50,7 +50,7 @@ extern "C"{
 enum DecomposeType {ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt};
 
 /** @brief Defines output format */
-enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNonZeros};
+enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNonZeros, EMatrixMarket};
 
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
 /** Abstract class TPZMatrix<TVar>which defines interface of derived matrix classes. */
@@ -90,10 +90,21 @@ public:
 	  //DebugStop();
 	  return 0;
 	}
+    
+    template<class TVar2>
+    void CopyFrom(TPZMatrix<TVar2> &copy)
+    {
+        fDecomposed = copy.IsDecomposed();
+        fDefPositive = copy.IsDefPositive();
+        fRow = copy.Rows();
+        fCol = copy.Cols();
+        gZero = (TVar)(0);
+
+    }
 
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
-	void AutoFill();
+	void AutoFill(long nrow, long ncol, int symmetric);
 	
 	/** @brief Checks if current matrix value is symmetric */
 	virtual int VerifySymmetry(REAL tol = 1.e-13) const;
@@ -140,7 +151,11 @@ public:
 	/** @brief Put values without bounds checking \n
 	 *  This method is faster than "Put" if DEBUG is defined.
 	 */
-	virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & /*val*/ ) { return 0; }
+	virtual int PutVal(const long /*row*/,const long /*col*/,const TVar & val )
+    {
+        if(val != (TVar(0.))) DebugStop();
+        return 0;
+    }
 	/** @brief Get values without bounds checking \n
 	 *  This method is faster than "Get" if DEBUG is defined.
 	 */
@@ -156,9 +171,8 @@ public:
 	 * @param A TPZMatrix<TVar>object to multiplied to
 	 * @param res TPZFMatrix<TVar>containing the result
 	 * @param opt Indicates if is Transpose or not
-	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
-	virtual void Multiply(const TPZFMatrix<TVar>& A,TPZFMatrix<TVar>& res, int opt = 0, int stride = 1) const;
+	virtual void Multiply(const TPZFMatrix<TVar>& A,TPZFMatrix<TVar>& res, int opt = 0) const;
 	/**
 	 * @brief It adds itself to TPZMatrix<TVar>A putting the result in res
 	 * @param A TPZMatrix<TVar>to added to current matrix
@@ -173,10 +187,9 @@ public:
 	 * @param alpha Is alpha on the above operation
 	 * @param beta Is beta on the above operation
 	 * @param opt Indicates if is Transpose or not
-	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
 	virtual void MultAdd(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
-						 const TVar alpha=1., const TVar beta = 0., const int opt = 0, const int stride = 1 ) const;
+						 const TVar alpha=1., const TVar beta = 0., const int opt = 0) const;
 	
 	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;
@@ -193,7 +206,7 @@ public:
 	 * IMPORTANT OBSERVATION --> The original matrix (calling object) no is more equal. 
 	 * It containts the some decomposition (LU or Cholesky or ...)
 	 */
-	int Inverse(TPZFMatrix<TVar>&Inv);
+	int Inverse(TPZFMatrix<TVar>&Inv, DecomposeType dec);
 	
 	/**
 	 * @brief Computes the matrix norm of this
@@ -592,7 +605,7 @@ public:
 	 * @brief Solves the linear system using Cholesky method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 */
-	int Solve_Cholesky( TPZFMatrix<TVar>* B);
+	virtual int Solve_Cholesky( TPZFMatrix<TVar>* B);
 	/**
 	 * @brief Solves the linear system using Cholesky method\n
 	 * @param B The right hand side of the system and where the solution is stored.
@@ -615,7 +628,7 @@ public:
 	
 	/**
 	 * @name Factorization
-	 * @brief Those member functions are related to matrices factorization
+	 * @brief Those member functions perform the matrix factorization
 	 * @{
 	 */
 	
@@ -742,7 +755,7 @@ protected:
 	 * @brief Is an auxiliar method used by MultiplyAdd
 	 * @see MultAdd
 	 */
-	void PrepareZ(const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,const TVar beta,const int opt,const int stride) const;
+	void PrepareZ(const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,const TVar beta,const int opt) const;
 	
 	/**
 	 * @brief Constructor

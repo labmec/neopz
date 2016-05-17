@@ -717,11 +717,11 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 			}
             else
             {
-				axest.Multiply(J,JX,0,1);
+				axest.Multiply(J,JX,0);
 			}
 			
 			JX.Transpose(&JXt);
-			JXt.Multiply(JX,JXtJX,0,1);//JXtJX = JXt*JX;
+			JXt.Multiply(JX,JXtJX,0);//JXtJX = JXt*JX;
 			JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
 			JXtJX.SolveDirect(residual,ELU);//cout << "Atual/dimensao : " << Id() << " / " << Dimension();
 			for(i=0; i<dim; i++)

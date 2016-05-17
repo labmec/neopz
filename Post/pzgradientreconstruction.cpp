@@ -111,7 +111,8 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
 #endif
         
         //set data of the gradient reconstructed
-        TPZManVector<REAL,3> centerPoint, gradient;
+        TPZManVector<REAL,3> centerPoint;
+        TPZManVector<STATE,3> gradient;
         STATE cellAverage, slopeLimiter;
         fGradData->GetData(centerPoint, gradient, cellAverage, slopeLimiter);
         pGrad->SetData(centerPoint,gradient,cellAverage,slopeLimiter);
@@ -666,7 +667,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
     }
     else if(nneighs==fdim)
     {
-        TPZVec<long> index;
+        TPZVec<int> index;
         DeltaXcenter.Decompose_LU(index);
         DeltaXcenter.Substitution(&DifSol, index);
         grad = DifSol;
@@ -676,7 +677,7 @@ void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
 #ifdef USING_LAPACK
         //QR factorization
         QRFactorization(DeltaXcenter,DifSol);
-        TPZVec<long> index;
+        TPZVec<int> index;
         DeltaXcenter.Decompose_LU(index);
         DeltaXcenter.Substitution(&DifSol, index);
         grad= DifSol;

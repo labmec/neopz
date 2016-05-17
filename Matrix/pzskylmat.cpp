@@ -183,7 +183,7 @@ TPZSkylMatrix<TVar>::operator()(long ri, long ci)
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                                  const TVar alpha,const TVar beta ,const int opt,const int stride ) const 
+                                  const TVar alpha,const TVar beta ,const int opt) const
 {
     // Computes z = beta * y + alpha * opt(this)*x
     //          z and x cannot overlap in memory
@@ -193,7 +193,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
         //		DebugStop();
     }
     
-    if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows()) {
+    if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows()) {
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," <matrix with incompatible dimensions>" );
     }
     
@@ -206,7 +206,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," incompatible dimensions\n");
     }
     
-    this->PrepareZ(y,z,beta,opt,stride);
+    this->PrepareZ(y,z,beta,opt);
     
     long rows = this->Rows();
     long xcols = x.Cols();
@@ -215,24 +215,24 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
         for( r = 0 ; r < rows ; r++ ) {
             long offset = Size(r);
             TVar val = 0.;
-            const TVar *p = &x.g((r-offset+1)*stride,ic);
+            const TVar *p = &x.g((r-offset+1),ic);
             TVar *diag = fElem[r];
             TVar *diaglast = fElem[r+1]-1;
             while( diag < diaglast ) {
                 val += *diag++ * *p;
-                p += stride;
+                p ++;
             }
             if( diag == diaglast ) 
                 val += *diag * *p;
             
-            z(r*stride,ic) += val*alpha;
+            z(r,ic) += val*alpha;
             
-            TVar *zp = &z((r-offset+1)*stride,ic);
-            val = x.g(r*stride,ic);
+            TVar *zp = &z((r-offset+1),ic);
+            val = x.g(r,ic);
             diag = fElem[r];
             while( diag < diaglast ) {
                 *zp += alpha * *diag++ * val;
-                zp += stride;
+                zp ++;
             }
         }
     }
@@ -756,8 +756,10 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
         // sum = Sum( A(k,p) * A(k,p) ), p = 1, ..., k-1.
         TVar sum = 0.0;
         TVar *elem_k = fElem[k];
-        TVar *end_k  = fElem[k+1]-1; 
-        for ( ; elem_k < end_k; elem_k++ ) 
+        TVar *end_k  = fElem[k+1]-1;
+        
+#pragma clang loop vectorize_width(2)
+        for ( ; elem_k < end_k; elem_k++ )
             sum += (*elem_k) * (*elem_k);
         
         elem_k = fElem[k+1]-1;    // Diagonal element.
@@ -769,7 +771,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
         pivot = *elem_k - sum;
         
         //EBORIN: FIXME: Shouldn't this be IsZero(pivot)???
-        if (pivot < 1.e-10) {
+        if (pivot < TVar(1.e-10)) {
             singular.push_back(k);
             pivot = 1.;
         }
@@ -798,7 +800,8 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
                 TVar* ip = last_i - min_sz;
                 TVar* kp = last_k - min_sz;
                 
-                for(unsigned l=0; l<min_sz; l++) 
+#pragma clang loop vectorize_width(2)
+                for(unsigned l=0; l<min_sz; l++)
                     sum += (*ip++) * (*kp++);
                 
                 // A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -812,7 +815,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
         }
     }
     
-    if(this->Rows() && (GetVal(this->Rows()-1,this->Rows()-1)) < 1.e-15) {
+    if(this->Rows() && (GetVal(this->Rows()-1,this->Rows()-1)) < TVar(1.e-15)) {
         singular.push_back(this->Rows()-1);
         PutVal(this->Rows()-1,this->Rows()-1,1.);
     }
@@ -875,7 +878,8 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
         TVar sum = 0.0;
         TVar *elem_k = fElem[k];
         TVar *end_k  = fElem[k+1]-1; 
-        for ( ; elem_k < end_k; elem_k++ ) 
+#pragma clang loop vectorize_width(2)
+        for ( ; elem_k < end_k; elem_k++ )
             sum += (*elem_k) * (*elem_k);
         
         elem_k = fElem[k+1]-1;    // Diagonal element.
@@ -886,7 +890,7 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
         // Faz A(k,k) = sqrt( A(k,k) - sum ).
         pivot = *elem_k - sum;
         minpivot = minpivot < pivot ? minpivot : pivot;
-        if ( pivot < 0. || IsZero(pivot) ) {
+        if ( pivot < TVar(0.) || IsZero(pivot) ) {
             cout << "TPZSkylMatrix::DecomposeCholesky! Matrix is not positive definite" << pivot << endl;
             return 0;
         }
@@ -915,7 +919,8 @@ int TPZSkylMatrix<TVar>::Decompose_Cholesky()
                 TVar* ip = last_i - min_sz;
                 TVar* kp = last_k - min_sz;
                 
-                for(unsigned l=0; l<min_sz; l++) 
+#pragma clang loop vectorize_width(2)
+                for(unsigned l=0; l<min_sz; l++)
                     sum += (*ip++) * (*kp++);
                 
                 // A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -1554,7 +1559,7 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(long col, long prevcol,std::list<long>
     }
     else{
         TVar pivot = *run2;
-        if ( pivot < 1.e-10 ) {
+        if ( pivot < TVar(1.e-10) ) {
 #ifdef LOG4CXX
             std::stringstream sout;
             sout << "equation " << col << " is singular pivot " << pivot;
@@ -1629,7 +1634,7 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol)
         *modify /= *ptrprev;
     }
     else{
-        if ( *modify < 1.e-25 ) {
+        if ( *modify < TVar(1.e-25) ) {
             cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << *modify << endl;
             *modify = 1.e-10;
         }
@@ -1638,9 +1643,29 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol)
 }
 
 template <class TVar>
-void TPZSkylMatrix<TVar>::AutoFill() {
-    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
-    DebugStop();
+void TPZSkylMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
+    if (nrow != ncol || !symmetric)
+    {
+        DebugStop();
+    }
+    TPZMatrix<TVar>::Redim(nrow,ncol);
+    TPZVec<long> skyline(nrow);
+    fElem.resize(nrow+1);
+    fElem.Fill(0);
+    for (long i=0; i<nrow; i++) {
+        skyline[i]=(i*(rand()+RAND_MAX/2))/RAND_MAX;
+    }
+    InitializeElem(skyline,fStorage,fElem);
+
+    for (long i=0; i<nrow; i++) {
+        TVar sum = 0.;
+        for (long j=skyline[i]; j<i; j++) {
+            TVar val = ((TVar)rand())/RAND_MAX;
+            PutVal(j,i,val);
+            sum += fabs(val);
+        }
+        PutVal(i,i,sum+1.);
+    }
 }
 
 template<class TVar>
@@ -1868,7 +1893,7 @@ TPZSkylMatrix<TVar>::operator()(const long r) {
 }
 
 //EBORIN: Define these if you want to use the experimental version.
-//#define DECOMPOSE_CHOLESKY_OPT2
+#define DECOMPOSE_CHOLESKY_OPT2
 //#define SKYLMATRIX_PUTVAL_OPT1
 //#define SKYLMATRIX_GETVAL_OPT1
 
@@ -1931,21 +1956,21 @@ TPZSkylMatrix<TVar>::PutVal(const long r,const long c,const TVar & value )
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                                  const TVar alpha,const TVar beta ,const int opt,const int stride ) const {
+                                  const TVar alpha,const TVar beta ,const int opt) const {
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
 	
 	if (this->fDecomposed != ENoDecompose) {
         //		DebugStop();
 	}
-	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())
+	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," <matrixs with incompatible dimensions>" );
 	if(z.Rows() != x.Rows() || z.Cols() != x.Cols()) z.Redim(x.Rows(),x.Cols());
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		cout << "x.Cols = " << x.Cols() << " y.Cols()"<< y.Cols() << " z.Cols() " << z.Cols() << " x.Rows() " << x.Rows() << " y.Rows() "<< y.Rows() << " z.Rows() "<< z.Rows() << endl;
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," incompatible dimensions\n");
 	}
-	this->PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt);
 	long rows = this->Rows();
 	long xcols = x.Cols();
 	long ic, r;
@@ -1953,21 +1978,21 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 		for( r = 0 ; r < rows ; r++ ) {
 			long offset = Size(r);
 			TVar val = 0.;
-			const TVar *p = &x.g((r-offset+1)*stride,ic);
+			const TVar *p = &x.g((r-offset+1),ic);
 			TVar *diag = fElem[r] + offset-1;
 			TVar *diaglast = fElem[r];
 			while( diag > diaglast ) {
 				val += *diag-- * *p;
-				p += stride;
+				p ++;
 			}
 			if( diag == diaglast ) val += *diag * *p;
-			z(r*stride,ic) += val*alpha;
-			TVar *zp = &z((r-offset+1)*stride,ic);
-			val = x.g(r*stride,ic);
+			z(r,ic) += val*alpha;
+			TVar *zp = &z((r-offset+1),ic);
+			val = x.g(r,ic);
 			diag = fElem[r] + offset-1;
 			while( diag > diaglast ) {
 				*zp += alpha * *diag-- * val;
-				zp += stride;
+				zp ++;
 			}
 		}
 	}
@@ -2575,6 +2600,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 		TVar sum = 0.0;
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
+#pragma clang loop vectorize_width(2)
 		for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
 		
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
@@ -2606,6 +2632,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
 				unsigned max_l = end_i - elem_i;
 				unsigned tmp = end_k - elem_k;
 				if (tmp < max_l) max_l = tmp;
+#pragma clang loop vectorize_width(2)
 				for(unsigned l=0; l<max_l; l++) 
                     sum += (*elem_i++) * (*elem_k++);
 				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -2704,6 +2731,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 		TVar sum = 0.0;
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
+#pragma clang loop vectorize_width(2)
 		for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
 		
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
@@ -2747,7 +2775,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
                     unsigned max_l = end_i - elem_i;
                     unsigned tmp = end_k - elem_k;
                     if (tmp < max_l) max_l = tmp;
-                    for(unsigned l=0; l<max_l; l++) 
+#pragma clang loop vectorize_width(2)
+                    for(unsigned l=0; l<max_l; l++)
                         sum += (*elem_i++) * (*elem_k++);
                     // Faz A(i,k) = (A(i,k) - sum) / A(k,k)
                     fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
@@ -2836,7 +2865,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(long blk_sz)
                 unsigned max_l = end_kj - elem_kj;
                 unsigned tmp = end_ki - elem_ki;
                 if (tmp < max_l) max_l = tmp;
-                for(unsigned l=0; l<max_l; l++) 
+#pragma clang loop vectorize_width(2)
+                for(unsigned l=0; l<max_l; l++)
                     sum += (*elem_kj++) * (*elem_ki++);
                 
                 *u_ij = (*u_ij - sum) / pivot;
@@ -2849,6 +2879,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(long blk_sz)
                 TVar* u_jj = &fElem[j][0];
                 TVar *elem_k = fElem[j]+1;
                 TVar *end_k  = fElem[j+1];
+#pragma clang loop vectorize_width(2)
                 for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
                 pivot = *u_jj - sum;
                 
@@ -3469,9 +3500,40 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(long col, long prevcol){
 }
 
 template <class TVar>
-void TPZSkylMatrix<TVar>::AutoFill() {
-    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
-    DebugStop();
+void TPZSkylMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
+    if (nrow != ncol || !symmetric)
+    {
+        DebugStop();
+    }
+    TPZMatrix<TVar>::Redim(nrow,ncol);
+    TPZVec<long> skyline(nrow);
+    fElem.resize(nrow+1);
+    fElem.Fill(0);
+    for (long i=0; i<nrow; i++) {
+        skyline[i]=(i*(rand()))/RAND_MAX;
+    }
+//    std::cout << "skyline " << skyline << std::endl;
+    InitializeElem(skyline,fStorage,fElem);
+    
+    for (long i=0; i<nrow; i++) {
+        TVar sum = 0.;
+        for (long j=skyline[i]; j<i; j++) {
+            TVar val = ((TVar)rand())/((TVar)RAND_MAX);
+            PutVal(j,i,val);
+            sum += fabs(val);
+        }
+        PutVal(i,i,sum+(TVar)1.);
+    }
+    for (long i=0; i<nrow; i++) {
+        TVar sum = (TVar)0.;
+        for (long j=0; j<nrow; j++) {
+            TVar val;
+            val = GetVal(j,i);
+            sum += fabs(val);
+        }
+        PutVal(i,i,sum+(TVar)1.);
+    }
+
 }
 
 template<class TVar>

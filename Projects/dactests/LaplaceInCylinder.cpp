@@ -69,7 +69,8 @@ void LaplaceInCylinder::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMa
         for (long iel=0; iel<cmeshH1->NElements(); iel++) {
             TPZCompEl *cel = cmeshH1->Element(iel);
             if(!cel) continue;
-            TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
+            new TPZCondensedCompEl(cel);
+//            TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
         }
         
         cmeshH1->ExpandSolution();
@@ -79,8 +80,8 @@ void LaplaceInCylinder::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMa
         
         
         TPZAnalysis anh1(cmeshH1, true);
-        
-        tools::SolveSyst(anh1, cmeshH1);
+        REAL t1,t2;
+        tools::SolveSyst(anh1, cmeshH1, t1, t2);
         
         stringstream refh1,grauh1;
         grauh1 << ordemP;
@@ -137,8 +138,8 @@ void LaplaceInCylinder::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMa
         DofCond = mphysics->NEquations();
         
         TPZAnalysis an(mphysics, true);
-        
-        tools::SolveSyst(an, mphysics);
+        REAL t1,t2;
+        tools::SolveSyst(an, mphysics, t1, t2);
         
         stringstream ref,grau;
         grau << ordemP;
@@ -1242,8 +1243,8 @@ TPZCompMesh *LaplaceInCylinder::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMes
                     break;
                 }
             }
-            
-            TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
+            new TPZCondensedCompEl(elgr);
+//            TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
         }
         
         mphysics->CleanUpUnconnectedNodes();

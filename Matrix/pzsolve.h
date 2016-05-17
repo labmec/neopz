@@ -105,7 +105,10 @@ public:
 	 * @brief Sets a matrix to the current object
 	 * @param Refmat Sets reference matrix to RefMat
 	 */
-	virtual void SetMatrix(TPZAutoPointer<TPZMatrix<TVar> > Refmat);
+	virtual void SetMatrix(TPZAutoPointer<TPZMatrix<TVar> > Refmat)
+    {
+        fContainer = Refmat;
+    }
 	
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)

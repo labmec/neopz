@@ -42,6 +42,36 @@ public:
 	/** @brief Simple destructor */
 	~TPZFBMatrix();
 
+    friend class TPZFBMatrix<float>;
+    friend class TPZFBMatrix<double>;
+    
+    /// copy the values from a matrix with a different precision
+    template<class TVar2>
+    void CopyFrom(TPZFBMatrix<TVar2> &orig)
+    {
+        TPZMatrix<TVar>::CopyFrom(orig);
+        fBandLower = orig.fBandLower;
+        fBandUpper = orig.fBandUpper;
+        fElem.resize(orig.fElem.size());
+        long nel = fElem.size();
+        for (long el=0; el<nel; el++) {
+            fElem[el] = orig.fElem[el];
+        }
+#ifdef USING_LAPACK
+        fPivot = orig.fPivot;
+        long nwork = orig.fWork.size();
+        for (long el=0; el<nwork; el++) {
+            fWork[el] = orig.fWork[el];
+        }
+#endif
+        
+    }
+    
+
+    
+    void AutoFill(long nrow, long ncol, int symmetric);
+
+    
 	int    Put(const long row,const long col,const TVar& value );
 	const TVar &Get(const long row,const long col ) const;
 	
@@ -52,7 +82,7 @@ public:
 	inline const TVar &GetVal(const long row,const long col ) const;
 	
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha=1,const TVar beta = 0,const int opt = 0,const int stride = 1 ) const;
+				 const TVar alpha=1,const TVar beta = 0,const int opt = 0) const;
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
 	
@@ -72,7 +102,21 @@ public:
 	
 	long Dim() const     { return this->Rows(); }
 	/** @brief Returns band size */
-	long GetBand() const { return fBand; }
+	long GetBandLower() const
+    {
+        return fBandLower;
+    }
+    long GetBandUpper() const
+    {
+        return fBandUpper;
+    }
+    long GetBand() const
+    {
+        if (fBandLower != fBandUpper) {
+            DebugStop();
+        }
+        return fBandUpper;
+    }
 	/**
      * @brief Sets band size
      * @param newBand New band size
@@ -89,28 +133,30 @@ public:
 	int Zero();
 	
 	void Transpose(TPZMatrix<TVar> *const T) const;
+    
+#ifdef USING_LAPACK
 	int       Decompose_LU(std::list<long> &singular);
 	int       Decompose_LU();
-	
-#ifdef OOPARLIB
-	
-	virtual long GetClassID() const   { return TFBMATRIX_ID; }
-	virtual int Unpack( TReceiveStorage *buf );
-	static TSaveable *Restore(TReceiveStorage *buf);
-	inline virtual int Pack( TSendStorage *buf ) const;
-	virtual std::string ClassName() const   { return( "TPZFBMatrix" ); }
-	virtual int DerivedFrom(const long Classid) const;
-	virtual int DerivedFrom(const char *classname) const;
-	
 #endif
 	
+
+    
 private:
 	
+    long Index(long i, long j) const
+    {
+        return fBandLower+fBandUpper+i-j+(fBandUpper+2*fBandLower+1)*j;
+    }
 	int Clear();
 	
-//	TPZVec<TVar> fElem;
-	TVar *fElem;
-	long  fBand;
+	TPZVec<TVar> fElem;
+	long  fBandLower, fBandUpper;
+#ifdef USING_LAPACK
+    TPZManVector<int,5> fPivot;
+    
+    TPZVec<TVar> fWork;
+#endif
+
 };
 
 
@@ -121,8 +167,15 @@ template<class TVar>
 inline int
 TPZFBMatrix<TVar>::PutVal(const long row,const long col,const TVar& value )
 {
-	if ( (col+fBand >= row) && (col <= (row+fBand)) )
-		fElem[((unsigned long) fBand * (2*row + 1)) + col ] = value;
+	if ( (col-row <=fBandUpper) && (row-col <= fBandLower) )
+    {
+        long index = Index(row,col);
+		fElem[index] = value;
+    }
+    else if(!IsZero(value))
+    {
+        DebugStop();
+    }
 	return( 1 );
 }
 
@@ -133,17 +186,24 @@ TPZFBMatrix<TVar>::PutVal(const long row,const long col,const TVar& value )
 template<class TVar>
 inline const TVar &
 TPZFBMatrix<TVar>::GetVal(const long row,const long col ) const {
-	if ( (col+fBand >= row) && (col <= (row+fBand)) )
-		return( fElem[ ((unsigned long)fBand * (2*row + 1)) + col ] );
+#ifdef PZDEBUG
+    if (row <0 || row > this->fRow || col < 0 || col >= this->fCol) {
+        DebugStop();
+    }
+#endif
+    if ( (col-row <=fBandUpper) && (row-col <= fBandLower) )
+    {
+        return fElem[Index(row,col)];
+    }
 	this->gZero = (TVar)0;
 	return( this->gZero );
 }
 
 template<class TVar>
 inline TVar &TPZFBMatrix<TVar>::operator()(const long row, const long col){  
-	if( (col+fBand >= row) && (col <= (row+fBand)) )
+    if ( (col-row <=fBandUpper) && (row-col <= fBandLower) )
 	{
-		return( fElem[ ((unsigned long)fBand * (2*row + 1)) + col ] );
+		return( fElem[Index(row,col)] );
 	}
     DebugStop();
 	this->gZero = (TVar)(0);
