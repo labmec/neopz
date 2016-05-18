@@ -117,6 +117,54 @@ TPZSBMatrix<TVar>::PutVal(const long r,const long c,const TVar& value )
     return( 1 );
 }
 
+template <>
+int
+TPZSBMatrix< std::complex<float> >::PutVal(const long r,const long c,const std::complex<float>& value )
+{
+    // inicializando row e col para trabalhar com a triangular superior
+    long row(r),col(c);
+    if ( row > col )
+        DebugStop();//this->Swap( &row, &col );
+    
+    long index;
+    if ( (index = col-row) > fBand )
+    {
+#ifdef PZDEBUG
+        if (value != this->gZero) {
+            DebugStop();
+        }
+#endif
+        return( 0 );        // O elemento esta fora da banda.
+    }
+    fDiag[ Index(row,col) ] = value;
+    this->fDecomposed = 0;
+    return( 1 );
+}
+
+template <>
+int
+TPZSBMatrix< std::complex<double> >::PutVal(const long r,const long c,const std::complex<double>& value )
+{
+    // inicializando row e col para trabalhar com a triangular superior
+    long row(r),col(c);
+    if ( row > col )
+        DebugStop();//this->Swap( &row, &col );
+    
+    long index;
+    if ( (index = col-row) > fBand )
+    {
+#ifdef PZDEBUG
+        if (value != this->gZero) {
+            DebugStop();
+        }
+#endif
+        return( 0 );        // O elemento esta fora da banda.
+    }
+    fDiag[ Index(row,col) ] = value;
+    this->fDecomposed = 0;
+    return( 1 );
+}
+
 /**************/
 /*** GetVal ***/
 template<class TVar>
@@ -136,6 +184,54 @@ const TVar
     return( fDiag[ Index(row,col) ] );
 }
 
+template<>
+const std::complex<float>
+&TPZSBMatrix< std::complex<float> >::GetVal(const long r,const long c ) const
+{
+    
+    // inicializando row e col para trabalhar com a triangular superior
+    long row(r),col(c);
+    bool mustConj = false;
+    if ( row > col ){
+        this->Swap( &row, &col );
+        mustConj = true;
+    }
+    
+    long index;
+    if ( (index = col-row) > fBand )
+        return( this->gZero );        // O elemento esta fora da banda.
+    if( mustConj ){
+        static std::complex<float> cpVal = std::conj( fDiag[ Index(row,col) ] );
+        return cpVal;
+    }
+    else
+        return( fDiag[ Index(row,col) ] );
+}
+
+template<>
+const std::complex<double>
+&TPZSBMatrix< std::complex<double> >::GetVal(const long r,const long c ) const
+{
+    
+    // inicializando row e col para trabalhar com a triangular superior
+    long row(r),col(c);
+    bool mustConj = false;
+    if ( row > col ){
+        this->Swap( &row, &col );
+        mustConj = true;
+    }
+    
+    long index;
+    if ( (index = col-row) > fBand )
+        return( this->gZero );        // O elemento esta fora da banda.
+    if( mustConj ){
+        static std::complex<double> cpVal = std::conj( fDiag[ Index(row,col) ] );
+        return cpVal;
+    }
+    else
+        return( fDiag[ Index(row,col) ] );
+}
+
 template<class TVar>
 TVar &TPZSBMatrix<TVar>::operator()(long row, long col)
 {
@@ -149,6 +245,54 @@ TVar &TPZSBMatrix<TVar>::operator()(long row, long col)
     
     return( fDiag[ Index(row,col) ] );
 
+}
+
+template<>
+std::complex<float>
+&TPZSBMatrix< std::complex< float> >::operator()(const long r,const long c )
+{
+    
+    // inicializando row e col para trabalhar com a triangular superior
+    long row(r),col(c);
+    bool mustConj = false;
+    if ( row > col ){
+        this->Swap( &row, &col );
+        mustConj = true;
+    }
+    
+    long index;
+    if ( (index = col-row) > fBand )
+        return( this->gZero );        // O elemento esta fora da banda.
+    if( mustConj ){
+        static std::complex<float> cpVal = std::conj( fDiag[ Index(row,col) ] );
+        return cpVal;
+    }
+    else
+        return( fDiag[ Index(row,col) ] );
+}
+
+template<>
+std::complex<double>
+&TPZSBMatrix< std::complex<double> >::operator()(const long r,const long c )
+{
+    
+    // inicializando row e col para trabalhar com a triangular superior
+    long row(r),col(c);
+    bool mustConj = false;
+    if ( row > col ){
+        this->Swap( &row, &col );
+        mustConj = true;
+    }
+    
+    long index;
+    if ( (index = col-row) > fBand )
+        return( this->gZero );        // O elemento esta fora da banda.
+    if( mustConj ){
+        static std::complex<double> cpVal = std::conj( fDiag[ Index(row,col) ] );
+        return cpVal;
+    }
+    else
+        return( fDiag[ Index(row,col) ] );
 }
 
 /*************/
@@ -698,15 +842,46 @@ TPZSBMatrix<double>::Subst_Forward( TPZFMatrix<double>*B ) const
     return 1;
 }
 
-template<class TVar>
+template<>
 int
-TPZSBMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
+TPZSBMatrix<std::complex<float> >::Subst_Forward( TPZFMatrix<std::complex<float> >*B ) const
 {
     if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
     {
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+        TPZMatrix<std::complex<float>  >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
-    return TPZMatrix<TVar>::Subst_Forward(B);
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        std::complex<float>  *bptr = &(*B)(0,ic);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+template<>
+int
+TPZSBMatrix<std::complex<double> >::Subst_Forward( TPZFMatrix<std::complex<double> >*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        std::complex<double>  *bptr = &(*B)(0,ic);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
 }
 
 template<>
@@ -752,57 +927,261 @@ TPZSBMatrix<double>::Subst_Backward( TPZFMatrix<double>*B ) const
     return 1;
 }
 
+template<>
+int
+TPZSBMatrix< std::complex<float> >::Subst_Backward( TPZFMatrix< std::complex<float> >*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix< std::complex<float> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        std::complex<float> *bptr = &(*B)(0,ic);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+template<>
+int
+TPZSBMatrix< std::complex<double> >::Subst_Backward( TPZFMatrix< std::complex<double> >*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix< std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        std::complex<double> *bptr = &(*B)(0,ic);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+template<>
+int
+TPZSBMatrix<float>::Subst_LForward( TPZFMatrix<float>*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        float *bptr = &(*B)(0,ic);
+        cblas_stbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+template<>
+int
+TPZSBMatrix<double>::Subst_LForward( TPZFMatrix<double>*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        double *bptr = &(*B)(0,ic);
+        cblas_dtbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+template<>
+int
+TPZSBMatrix<std::complex<float> >::Subst_LForward( TPZFMatrix<std::complex<float> >*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<std::complex<float>  >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        std::complex<float>  *bptr = &(*B)(0,ic);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+template<>
+int
+TPZSBMatrix<std::complex<double> >::Subst_LForward( TPZFMatrix<std::complex<double> >*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        std::complex<double>  *bptr = &(*B)(0,ic);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+template<>
+int
+TPZSBMatrix<float>::Subst_LBackward( TPZFMatrix<float>*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        float *bptr = &(*B)(0,ic);
+        cblas_stbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+
+template<>
+int
+TPZSBMatrix<double>::Subst_LBackward( TPZFMatrix<double>*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        double *bptr = &(*B)(0,ic);
+        cblas_dtbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+template<>
+int
+TPZSBMatrix< std::complex<float> >::Subst_LBackward( TPZFMatrix< std::complex<float> >*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix< std::complex<float> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        std::complex<float> *bptr = &(*B)(0,ic);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+template<>
+int
+TPZSBMatrix< std::complex<double> >::Subst_LBackward( TPZFMatrix< std::complex<double> >*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix< std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+    }
+    int n = Rows();
+    int kd = fBand;
+    int lda = 1+fBand;
+    long bcols = B->Cols();
+    for(long ic=0; ic<bcols; ic++)
+    {
+        //    cblas_stbsv(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_UPLO __Uplo#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_DIAG __Diag#>, <#const int __N#>, <#const int __K#>, <#const float *__A#>, <#const int __lda#>, <#float *__X#>, <#const int __incX#>)
+        std::complex<double> *bptr = &(*B)(0,ic);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasNoTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+    }
+    return 1;
+}
+
+
+#endif
+
+template<class TVar>
+int
+TPZSBMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
+{
+    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    {
+        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+    }
+    return TPZMatrix<TVar>::Subst_Forward(B);
+}
 
 template<class TVar>
 int TPZSBMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 {
     if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     
     return TPZMatrix<TVar>::Subst_Backward(B);
     return ( 1 ) ;
     
 }
 
-#endif
-/***********************/
-/*** Subst L Forward ***/
-//
-//  Faz a "Forward substitution" assumindo que os elementos
-//   da diagonal sao todos iguais a 1.
-//
 template<class TVar>
 int TPZSBMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
 {
     if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LForward-> uncompatible matrices") ;
     
-    long size = fBand + 1;
-    long i,j,k;
-    for ( k = 0; k < this->Dim(); k++ )
-    {
-        for ( j = 0; j < B->Cols(); j++ )
-        {
-            // Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
-            
-            long imin = k-fBand;
-            if(imin < 0) imin = 0;
-            
-            long end=(k-fBand>0)? fBand:k;  //misael
-            TVar sum = 0.0;
-            for ( i = imin; i < k ; i++ )//misael
-            {
-                sum += GetVal(k,i) * B->GetVal(i,j);
-            }
-            // Faz b[k] = (b[k] - sum).
-            //
-            B->PutVal( k, j, (B->GetVal( k, j ) - sum) );
-            
-        }
-    }
-    return( 1 );
+    return TPZMatrix<TVar>::Subst_LForward(B);
+    return ( 1 ) ;
 }
 
+template<class TVar>
+int TPZSBMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
+{
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
+        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LBackward-> uncompatible matrices") ;
+    
+    return TPZMatrix<TVar>::Subst_LBackward(B);
+    return ( 1 ) ;
+}
 /******************/
 /*** Subst Diag ***/
 //
@@ -824,33 +1203,6 @@ int TPZSBMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
     return( 1 );
 }
 
-template<class TVar>
-int TPZSBMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
-{
-    if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LBackward-> uncompatible matrices") ;
-    
-    long k,j,i,jmax,stepcol=fBand+2;
-    
-    for(k=0; k<B->Cols() ; k++)
-    {
-        for(long i=this->Rows()-1; i>=0; i--)
-        {
-            jmax=( (i+fBand+1)>this->Rows())? this->Rows() : i+fBand+1;
-            TVar sum = 0.;
-            for(j=i+1;j<jmax;j++)
-            {
-                TVar el = GetVal(i,j);
-                sum += B->GetVal(j,k)*el;
-            }
-            B->operator()(i,k) -= sum;
-        }
-        
-    }
-    
-    return 1;
-    
-}
 
 /**************************** PRIVATE ****************************/
 
