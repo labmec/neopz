@@ -60,7 +60,7 @@ TPZCompCloneMesh::~TPZCompCloneMesh() {
 void TPZCompCloneMesh::AutoBuild() {
     TPZAdmChunkVector<TPZGeoEl *> &elvec = Reference()->ElementVec();
     int i,j, nelem = elvec.NElements();
-    int index;
+    long index;
     TPZGeoCloneMesh *gclm =  dynamic_cast<TPZGeoCloneMesh *>(Reference());
     if (!gclm) {
         cout << "TPZCompCloneMesh::AutoBuild : clone mesh not initialised" <<endl;
@@ -68,9 +68,11 @@ void TPZCompCloneMesh::AutoBuild() {
     }
     gclm->SetName("Malha Clone Geometrica");
     
-    if (gDebug) {
+#ifdef PZDEBUG
+
         gclm->Print(cout);
-    }
+
+#endif
 
     for(i=0; i<nelem; i++) {
         TPZGeoEl *gel = elvec[i];
@@ -104,18 +106,18 @@ void TPZCompCloneMesh::AutoBuild() {
                     }
                     clone_intel->PRefine(porder);
 
-                    if (gDebug){
+#ifdef PZDEBUG
                         cout << "TPZCompCloneMesh::AutoBuild : Computational element created:\n" << endl;
                         clcel->Print();
-                    }
+#endif
 
                     int ncon = clcel->NConnects();
                     for (j=0; j<ncon; j++) {
                         int refcon = cel->ConnectIndex(j);
                         int conid = clcel->ConnectIndex(j);
-                        if (gDebug) {
+#ifdef PZDEBUG
                             cout << "Connects --- Reference :  " << refcon << "   Clone   " << conid << endl;
-                        }
+#endif
 
                         if (! HasConnect(refcon) ) {
                             fMapConnects [refcon] = conid;
@@ -165,10 +167,10 @@ void TPZCompCloneMesh::AutoBuild() {
     //CleanUp
     ExpandSolution();
     CleanUpUnconnectedNodes();
-    if (gDebug){
+#ifdef PZDEBUG
         cout << "TPZCompCloneMesh::AutoBuild :Computational Mesh Before BC\n " << endl;
         Print(cout);
-    }
+#endif
     
     
     CreateCloneBC();
@@ -190,11 +192,11 @@ void TPZCompCloneMesh::AutoBuild() {
                     }
                     if(gclm->IsPatchSon(cloned_gel)) {
                         
-                        if (gDebug){
+#ifdef PZDEBUG
                             cout << "TPZCompCloneMesh::AutoBuild : Creating computational element \n Geometric Reference Element:\n"
                             << endl;
                             cloned_gel->Print();
-                        }
+#endif
                         
                         TPZCompEl *cloned_cel = cloned_gel->Reference();//this->CreateCompEl(gel,index);
                         
@@ -592,15 +594,15 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         int ncon = cint->NConnects();
         int porder = cint->PreferredSideOrder(ncon-1);
         
-        if (gDebug){
+#ifdef PZDEBUG
             cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data Before PRefine\n";
             cout << "NConnects() :  " << ncon << "   POrder : " << porder;
-        }
+#endif
         
-        TPZVec<int> subelindex;
+        TPZVec<long> subelindex;
         cint->Divide(el,subelindex,1);
         
-        if (gDebug) {
+#ifdef PZDEBUG
             cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After Divide\n";
             int idbg, indbg, neldbg = subelindex.NElements();
             for (idbg = 0; idbg<neldbg; idbg++){
@@ -610,7 +612,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
                 if (celdbg) celdbg->Print(cout);
                 else cout << "SubElement not initialized!!\n";
             }
-        }
+#endif
         
         int isub;
         for (isub=0; isub<subelindex.NElements();isub++){
@@ -622,10 +624,11 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
                 chk.VerifyAllConnects();
             }
 #endif
-            if (gDebug){
+            
+#ifdef PZDEBUG
                 cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After PRefine\n";
                 intel->Print(cout);
-            }
+#endif
             
         }
         cmesh->ExpandSolution();
@@ -649,7 +652,7 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
             int maxp = TPZOneDRef::gMaxP;
             elord = elord > maxp ? maxp : elord;
             cmesh->SetDefaultOrder(elord);
-            int indexsub;
+            long indexsub;
             cmesh->CreateCompEl(bcsubgel[is],indexsub);
         }
     }

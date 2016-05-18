@@ -166,13 +166,13 @@ void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const Mat
 		out << "\tIA\tJA\tA\n"
 		<< "\t--\t--\t-\n";
 		for(i=0; i<=this->Rows(); i++) {
-			std::cout << i      << '\t'
+			out << i      << '\t'
 			<< fIA[i] << '\t'
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}
 		for(i=this->Rows()+1; i<fIA[this->Rows()]-1; i++) {
-			std::cout << i      << "\t\t"
+			out << i      << "\t\t"
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}
@@ -264,6 +264,8 @@ int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
 {
+    
+//    std::cout << "Norm of Matrix " << Norm(*this) << std::endl;
     if(this->IsDecomposed() == ELDLt) return 1;
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();
@@ -313,8 +315,11 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
+    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*b) << std::endl;
     fPardisoControl.Solve(*b,x);
     *b = x;
+    std::cout << __PRETTY_FUNCTION__ << " norm x " << Norm(*b) << std::endl;
+    
     return 1;
 }
 
