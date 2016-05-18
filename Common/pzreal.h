@@ -669,10 +669,6 @@ inline const T& Min( const T & a, const T &b ) {
 
 // In the math library (cmath.h) don't exist some overloading for some functions
 
-inline float
-pow(float __x, double __y)
-{ return pow(__x, (float)(__y)); }
-
 
 // SPECIAL FUNCTIONS NON STANDARD IN WINDOWS SYSTEM
 

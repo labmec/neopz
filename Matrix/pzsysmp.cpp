@@ -99,7 +99,7 @@ int TPZSYsmpMatrix<TVar>::PutVal(const long r,const long c,const TVar & val )
         if ( fJA[ic] == col )
         {
             fA[ic] = val;
-            return;
+            return 0;
         }
     }
     if (val != (TVar(0.))) {
