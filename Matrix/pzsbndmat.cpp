@@ -804,7 +804,7 @@ template<>
 int
 TPZSBMatrix<float>::Subst_Forward( TPZFMatrix<float>*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
@@ -825,7 +825,7 @@ template<>
 int
 TPZSBMatrix<double>::Subst_Forward( TPZFMatrix<double>*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
@@ -846,7 +846,7 @@ template<>
 int
 TPZSBMatrix<std::complex<float> >::Subst_Forward( TPZFMatrix<std::complex<float> >*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<std::complex<float>  >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
@@ -867,7 +867,7 @@ template<>
 int
 TPZSBMatrix<std::complex<double> >::Subst_Forward( TPZFMatrix<std::complex<double> >*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
@@ -888,7 +888,7 @@ template<>
 int
 TPZSBMatrix<float>::Subst_Backward( TPZFMatrix<float>*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
@@ -910,7 +910,7 @@ template<>
 int
 TPZSBMatrix<double>::Subst_Backward( TPZFMatrix<double>*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
@@ -931,7 +931,7 @@ template<>
 int
 TPZSBMatrix< std::complex<float> >::Subst_Backward( TPZFMatrix< std::complex<float> >*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix< std::complex<float> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
@@ -952,7 +952,7 @@ template<>
 int
 TPZSBMatrix< std::complex<double> >::Subst_Backward( TPZFMatrix< std::complex<double> >*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix< std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
@@ -973,7 +973,7 @@ template<>
 int
 TPZSBMatrix<float>::Subst_LForward( TPZFMatrix<float>*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
@@ -994,7 +994,7 @@ template<>
 int
 TPZSBMatrix<double>::Subst_LForward( TPZFMatrix<double>*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
@@ -1015,7 +1015,7 @@ template<>
 int
 TPZSBMatrix<std::complex<float> >::Subst_LForward( TPZFMatrix<std::complex<float> >*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<std::complex<float>  >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
@@ -1036,7 +1036,7 @@ template<>
 int
 TPZSBMatrix<std::complex<double> >::Subst_LForward( TPZFMatrix<std::complex<double> >*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
@@ -1057,7 +1057,7 @@ template<>
 int
 TPZSBMatrix<float>::Subst_LBackward( TPZFMatrix<float>*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
@@ -1079,7 +1079,7 @@ template<>
 int
 TPZSBMatrix<double>::Subst_LBackward( TPZFMatrix<double>*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
@@ -1100,7 +1100,7 @@ template<>
 int
 TPZSBMatrix< std::complex<float> >::Subst_LBackward( TPZFMatrix< std::complex<float> >*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix< std::complex<float> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
@@ -1121,7 +1121,7 @@ template<>
 int
 TPZSBMatrix< std::complex<double> >::Subst_LBackward( TPZFMatrix< std::complex<double> >*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix< std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
@@ -1145,7 +1145,7 @@ template<class TVar>
 int
 TPZSBMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
 {
-    if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
+    if ( (B->Rows() != this->Dim()) || !this->fDecomposed)
     {
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
