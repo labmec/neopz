@@ -21,9 +21,6 @@ class TPZFMatrix;
 
 /**
  * @brief Implements symmetric band matrices. \ref matrix "Matrix"
- * @detail For the complex case (as every other symmetric matrix in NeoPZ), 
- * it is a hermitian band matrix. The
- * upper-triangular part is stored only.
  * @ingroup matrix
  */
 template<class TVar>
