@@ -9,6 +9,7 @@
 #include "pzquad.h"
 #include "tpzgeoelrefpattern.h"
 
+
 #include "pzlog.h"
 
 #ifdef LOG4CXX
