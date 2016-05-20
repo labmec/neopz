@@ -113,6 +113,8 @@ public:
     int Subst_LForward( TPZFMatrix<TVar> *B ) const;
     int Subst_LBackward( TPZFMatrix<TVar> *B ) const;
     int Subst_Diag( TPZFMatrix<TVar> *B ) const;
+    int Subst_Forward( TPZFMatrix<TVar>*B ) const;
+    int Subst_Backward( TPZFMatrix<TVar> *B ) const;
     
     // @}
     
