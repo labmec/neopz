@@ -95,7 +95,10 @@ void TPZSBMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric) {
             }
             if(i!=j) sum += fabs(val);
             else{
-                val = std::real( val );
+	      // AQUI !!!
+	      std::complex<double> complex_val(val);
+	      val = std::real(complex_val);
+                //val = std::real( val );
             }
         }
         if (this->Rows() == this->Cols()) {
@@ -606,12 +609,15 @@ TPZSBMatrix<TVar>::SetBand(long newBand )
 {
     if ( this->fBand == newBand )
         return( 1 );
-    
+    // AQUI!!!
+    long nB = newBand;
     if ( newBand > (this->Dim() - 1) )
     {
-        newBand = this->Dim()-1;
+        //newBand = this->Dim()-1;
+      nB = this->Dim()-1;
     }
-    fBand = newBand;
+    //fBand = newBand;
+    fBand = nB;
     fDiag.resize(Size());
     Zero();
     
