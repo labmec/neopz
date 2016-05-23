@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "pzreal.h"
-#include "TRMBlackOilProperties.h"
+#include "TRMPhaseProperties.h"
 #include "TRMRockProperties.h"
 #include "TRMPetrophysicsProperties.h"
 #include "TRMSpatialPropertiesMap.h"
@@ -21,7 +21,6 @@
 class TRMSimulationData {
     
 protected:
-    
     
     /** @brief current time state */
     bool fIsCurrentStateQ;
@@ -80,8 +79,14 @@ protected:
     /** @brief Stores all the petrophysics data */
     TRMPetrophysicsProperties fPetroProp;
     
-    /** @brief Stores all the blackoil fluid properties */
-    TRMBlackOilProperties fBlackOilProp;
+    /** @brief phase alpha */
+    TPZAutoPointer<TRMPhaseProperties> fPhase_alpha;
+    
+    /** @brief phase beta */
+    TPZAutoPointer<TRMPhaseProperties> fPhase_Beta;
+    
+    /** @brief phase gamma */
+    TPZAutoPointer<TRMPhaseProperties> fPhase_gamma;
     
     /** @brief Stores all the rock and geomechanic properties */
     TRMRockProperties fRockProp;
@@ -185,6 +190,9 @@ public:
     STATE dt_down() { return fdt_down; }
     
     /** @brief number of corrections steps */
+    int n_steps() { return fn_steps; }
+    
+    /** @brief number of corrections steps */
     int n_corrections() { return fn_corrections; }
     
     /** @brief residue overal tolerance */
@@ -212,16 +220,42 @@ public:
         return fPetroProp;
     }
 
-    /** @brief Stores all the blackoil fluid properties */
-    void SetBlackOilProp(TRMBlackOilProperties BlackOilProp)
+    /** @brief Set phase alpha */
+    void SetPhaseAlpha(TPZAutoPointer<TRMPhaseProperties> &alpha)
     {
-        fBlackOilProp = BlackOilProp;
+        fPhase_alpha = alpha;
+    }
+
+    /** @brief Get phase alpha */
+    TPZAutoPointer<TRMPhaseProperties> & AlphaProp()
+    {
+        return fPhase_alpha;
     }
     
-    TRMBlackOilProperties & BlackOilProp()
+    /** @brief Set phase beta */
+    void SetPhaseBeta(TPZAutoPointer<TRMPhaseProperties> &beta)
     {
-        return fBlackOilProp;
+        fPhase_Beta = beta;
     }
+    
+    /** @brief Get phase beta */
+    TPZAutoPointer<TRMPhaseProperties> & BetaProp()
+    {
+        return fPhase_Beta;
+    }
+    
+    /** @brief Set phase gamma */
+    void SetPhaseGamma(TPZAutoPointer<TRMPhaseProperties> &gamma)
+    {
+        fPhase_gamma = gamma;
+    }
+    
+    /** @brief Get phase gamma */
+    TPZAutoPointer<TRMPhaseProperties> & GammaProp()
+    {
+        return fPhase_gamma;
+    }
+    
   
     /** @brief Stores all the rock and geomechanic properties */
     void SetRockProp(TRMRockProperties RockProp)

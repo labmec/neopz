@@ -86,11 +86,11 @@ void TRMOrchestra::CreateAnalysisPrimal()
 void TRMOrchestra::CreateAnalysisDualonBox()
 {
     
-    int nel_x = 2;
+    int nel_x = 1;
     int nel_y = 1;
     int nel_z = 1;
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 0.5;
+    dx[0] = 1.0;
     dy[0] = 1.0;
     dz[0] = 1.0;
     
@@ -207,14 +207,14 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(){
     
-    int nel_x = 4;
-    int nel_y = 4;
-    int nel_z = 4;
+    int nel_x = 3;
+    int nel_y = 3;
+    int nel_z = 3;
     
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 0.25;
-    dy[0] = 0.25;
-    dz[0] = 0.25;
+    dx[0] = 1.0/REAL(3.0);
+    dy[0] = 1.0/REAL(3.0);
+    dz[0] = 1.0/REAL(3.0);
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
 #ifdef PZDEBUG
@@ -227,22 +227,23 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
         
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
-        fSpaceGenerator->CreateMixedCmesh();
+        fSpaceGenerator->CreateMultiphaseCmesh();
         
         fMonolithicMultiphaseAnalysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
         fMonolithicMultiphaseAnalysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
         
     }
     
-    bool mustOptimizeBandwidth = false;
-    fMonolithicMultiphaseAnalysis->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh().operator->(), mustOptimizeBandwidth);
+    bool mustOptimizeBandwidth = true;
+    fMonolithicMultiphaseAnalysis->SetCompMesh(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->(), mustOptimizeBandwidth);
     TPZFMatrix<STATE> prevsol = fMonolithicMultiphaseAnalysis->Solution();
     std::cout << "Total dof: " << prevsol.Rows() << std::endl;    
     
-//    TPZSkylineNSymStructMatrix strmat(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
-    TPZSymetricSpStructMatrix strmat(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
+//    TPZSkylineNSymStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
+    TPZSkylineStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
+//    TPZSymetricSpStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
     TPZStepSolver<STATE> step;
-    int numofThreads = 0;
+    int numofThreads = 4;
     strmat.SetNumThreads(numofThreads);
     step.SetDirect(ELDLt);
     fMonolithicMultiphaseAnalysis->SetStructuralMatrix(strmat);
@@ -264,6 +265,16 @@ void TRMOrchestra::PostProMonolithicAnalysis(){
     
     fMonolithicMultiphaseAnalysis->PostProcessStep();
     
+}
+
+/** @brief Run the time steps set in the simulation data */
+void TRMOrchestra::RunSimulation(){
+    
+    int n = fSimulationData->n_steps();
+    for (int i = 0; i < n; i++) {
+        this->OneStepMonolithicAnalysis();
+        this->PostProMonolithicAnalysis();
+    }
 }
 
 /** @brief Computes the post processed results */

@@ -94,7 +94,7 @@ void TRMRawData::WaterReservoirBox(){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 1;
+    fn_steps  = 10;
     fdt = 1.0*day;
     fdt_up = 1.0;
     fdt_down = 1.0;

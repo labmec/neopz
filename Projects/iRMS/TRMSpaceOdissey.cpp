@@ -9,6 +9,7 @@
 #include "TRMSpaceOdissey.h"
 #include "TRMFlowConstants.h"
 
+#include "TRMMultiphase.h"
 #include "TRMMixedDarcy.h"
 #include "TPZMatLaplacian.h"
 #include "pzbndcond.h"
@@ -324,6 +325,79 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
 #endif
     
 }
+
+/** @brief Create a Mixed-Transport muliphase computational mesh Hdiv-L2-L2-L2 */
+void TRMSpaceOdissey::CreateMultiphaseCmesh(){
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+    
+    int dim = 3;
+    int flux_or_pressure = 0;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    
+    // Malha computacional
+    fMonolithicMultiphaseCmesh = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMMultiphase * mat = new TRMMultiphase(rock_id);
+        fMonolithicMultiphaseCmesh->InsertMaterialObject(mat);
+        
+        // Inserting boundary materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            bc_item = bc[flux_or_pressure];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            boundary_c->SetTimedependentBCForcingFunction(bc_item.second); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            fMonolithicMultiphaseCmesh->InsertMaterialObject(boundary_c);
+            
+        }
+        
+    }
+    
+    
+    fMonolithicMultiphaseCmesh->SetDimModel(dim);
+    fMonolithicMultiphaseCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    fMonolithicMultiphaseCmesh->AutoBuild();
+    
+    TPZManVector<TPZCompMesh * ,2> meshvector(2);
+    meshvector[0] = fFluxCmesh.operator->();
+    meshvector[1] = fPressureCmesh.operator->();
+    
+    // Transferindo para a multifisica
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, fMonolithicMultiphaseCmesh.operator->());
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMonolithicMultiphaseCmesh.operator->());
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMonolithicMultiphaseCmesh.operator->());
+    
+    long nel = fMonolithicMultiphaseCmesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = fMonolithicMultiphaseCmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshMultiphase.txt");
+    fMonolithicMultiphaseCmesh->Print(out);
+#endif
+}
+
 
 /** @brief Statically condense the internal equations of the elements */
 void TRMSpaceOdissey::StaticallyCondenseEquations()

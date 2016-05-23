@@ -54,6 +54,15 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Decrement dt factor */
     fdt_down = 0.0;
     
+    /** @brief phase alpha */
+    fPhase_alpha = NULL;
+    
+    /** @brief phase beta */
+    fPhase_Beta = NULL;
+    
+    /** @brief phase gamma */
+    fPhase_gamma = NULL;
+    
 }
 
 /** @brief destructor */
@@ -71,12 +80,13 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
 
 /** @brief Setup reporting times and time step size */
 void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de){
-    fReportingTimes.Resize(n_times, 0.0);
-    for (int it = 0 ; it < n_times; it++) {
+    fn_steps = n_times;
+    fReportingTimes.Resize(fn_steps, 0.0);
+    for (int it = 0 ; it < fn_steps; it++) {
         fReportingTimes[it] = REAL(it+1)*dt;
     }
     ftime_0    = fReportingTimes[0];
-    ftime_n    = fReportingTimes[n_times-1];
+    ftime_n    = fReportingTimes[fn_steps-1];
 }
 
 /** @brief Setup reporting times and time step size */

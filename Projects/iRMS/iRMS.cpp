@@ -78,10 +78,8 @@ void BoxLinearTracerDual()
     
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
-//    SymphonyX->CreateAnalysisDualonBox();
     SymphonyX->CreateMonolithicAnalysis();
-    SymphonyX->OneStepMonolithicAnalysis();
-    SymphonyX->PostProcess();
+    SymphonyX->RunSimulation();
     std::cout << "Dual complete normally." << std::endl;
     
 }
