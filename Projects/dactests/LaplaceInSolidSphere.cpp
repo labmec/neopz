@@ -13,10 +13,10 @@
 
 
 //#define Solution1
-//#define Solution2
+#define Solution2
 //#define Solution3
 //#define Solution4
-#define Solution5
+//#define Solution5
 
 const int  norder = 6;
 
@@ -1428,12 +1428,15 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, 
 TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 {
 
-#ifdef Solution4
-    int intorder = 8;
-#endif
-#ifdef Solution5
-    int intorder = 8;
-#endif
+    int intorder = 12;
+    
+//#ifdef Solution4
+//    int intorder = 10;
+//#endif
+//#ifdef Solution5
+//    int intorder = 10;
+//#endif
+    
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
     TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
