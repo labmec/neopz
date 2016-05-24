@@ -83,7 +83,7 @@ protected:
     TPZAutoPointer<TRMPhaseProperties> fPhase_alpha;
     
     /** @brief phase beta */
-    TPZAutoPointer<TRMPhaseProperties> fPhase_Beta;
+    TPZAutoPointer<TRMPhaseProperties> fPhase_beta;
     
     /** @brief phase gamma */
     TPZAutoPointer<TRMPhaseProperties> fPhase_gamma;
@@ -126,25 +126,35 @@ public:
     /** @brief Three-phasic system */
     bool IsThreePhaseQ() {return fIsThreePhaseQ;}
     
-    /** @brief Definition of the flow system one - two and  ... three phase */
-    void SetSystemType(TPZStack<std::string> &SystemType){
+    /** @brief Set the type of flow system one, two or three phase */
+    void SetSystemType(TPZStack<std::string> &SystemType, TPZStack< TPZAutoPointer<TRMPhaseProperties> > &Phases){
 
+        if(Phases.size() != SystemType.size()){
+            DebugStop();
+        }
+        
         fSystemType = SystemType;
         switch (fSystemType.size()) {
             case 1:
             {
-                fIsOnePhaseQ = true;
+                fIsOnePhaseQ    = true;
+                SetPhaseAlpha(Phases[0]);
             }
                 break;
             case 2:
             {
                 fIsTwoPhaseQ = true;
+                SetPhaseAlpha(Phases[0]);
+                SetPhaseBeta(Phases[1]);
                 
             }
                 break;
             case 3:
             {
                 fIsThreePhaseQ = true;
+                SetPhaseAlpha(Phases[0]);
+                SetPhaseBeta(Phases[1]);
+                SetPhaseGamma(Phases[2]);
             }
                 break;
                 
@@ -156,6 +166,29 @@ public:
                 break;
         }
     }
+    
+    /** @brief Get the type of flow system one, two or three phase */
+    TPZStack<std::string>  SystemType(){
+        return fSystemType;
+    }
+    
+    /** @brief Set phase alpha */
+    void SetPhaseAlpha(TPZAutoPointer<TRMPhaseProperties> &alpha);
+    
+    /** @brief Get phase alpha */
+    TPZAutoPointer<TRMPhaseProperties> & AlphaProp();
+    
+    /** @brief Set phase beta */
+    void SetPhaseBeta(TPZAutoPointer<TRMPhaseProperties> &beta);
+    
+    /** @brief Get phase beta */
+    TPZAutoPointer<TRMPhaseProperties> & BetaProp();
+    
+    /** @brief Set phase gamma */
+    void SetPhaseGamma(TPZAutoPointer<TRMPhaseProperties> &gamma);
+    
+    /** @brief Get phase gamma */
+    TPZAutoPointer<TRMPhaseProperties> & GammaProp();
     
     /** @brief Setup reporting times and time step size */
     void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de);
@@ -218,44 +251,7 @@ public:
     TRMPetrophysicsProperties & PetroProp()
     {
         return fPetroProp;
-    }
-
-    /** @brief Set phase alpha */
-    void SetPhaseAlpha(TPZAutoPointer<TRMPhaseProperties> &alpha)
-    {
-        fPhase_alpha = alpha;
-    }
-
-    /** @brief Get phase alpha */
-    TPZAutoPointer<TRMPhaseProperties> & AlphaProp()
-    {
-        return fPhase_alpha;
-    }
-    
-    /** @brief Set phase beta */
-    void SetPhaseBeta(TPZAutoPointer<TRMPhaseProperties> &beta)
-    {
-        fPhase_Beta = beta;
-    }
-    
-    /** @brief Get phase beta */
-    TPZAutoPointer<TRMPhaseProperties> & BetaProp()
-    {
-        return fPhase_Beta;
-    }
-    
-    /** @brief Set phase gamma */
-    void SetPhaseGamma(TPZAutoPointer<TRMPhaseProperties> &gamma)
-    {
-        fPhase_gamma = gamma;
-    }
-    
-    /** @brief Get phase gamma */
-    TPZAutoPointer<TRMPhaseProperties> & GammaProp()
-    {
-        return fPhase_gamma;
-    }
-    
+    }    
   
     /** @brief Stores all the rock and geomechanic properties */
     void SetRockProp(TRMRockProperties RockProp)

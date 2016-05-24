@@ -348,6 +348,7 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         TRMMultiphase * mat = new TRMMultiphase(rock_id);
+        mat->SetSimulationData(fSimulationData);
         fMonolithicMultiphaseCmesh->InsertMaterialObject(mat);
         
         // Inserting boundary materials
@@ -543,19 +544,31 @@ void TRMSpaceOdissey::PrintGeometry()
 }
 
 /** @brief Create a reservoir-box geometry */
+void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
+    
+    TPZReadGIDGrid GeometryInfo;
+    REAL s = 1.0;
+    GeometryInfo.SetfDimensionlessL(s);
+    fGeoMesh = GeometryInfo.GeometricGIDMesh(grid);
+    fGeoMesh->SetDimension(3);
+    
+}
+
+/** @brief Create a reservoir-box geometry */
 void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVector<REAL,2> dy, TPZManVector<REAL,2> dz){
     
     REAL t=0.0;
     REAL dt;
     int n;
     
-    int rock = +1;
-    int bc_W = -1;
-    int bc_E = -2;
-    int bc_S = -3;
-    int bc_N = -4;
-    int bc_B = -5;
-    int bc_T = -6;
+
+    int rock =  this->SimulationData()->RawData()->fOmegaIds[0];
+    int bc_W =  this->SimulationData()->RawData()->fGammaIds[0];
+    int bc_E =  this->SimulationData()->RawData()->fGammaIds[1];
+    int bc_S =  this->SimulationData()->RawData()->fGammaIds[2];
+    int bc_N =  this->SimulationData()->RawData()->fGammaIds[3];
+    int bc_B =  this->SimulationData()->RawData()->fGammaIds[4];
+    int bc_T =  this->SimulationData()->RawData()->fGammaIds[5];
     
     // Creating a 0D element to be extruded
     TPZGeoMesh * GeoMesh0D = new TPZGeoMesh;

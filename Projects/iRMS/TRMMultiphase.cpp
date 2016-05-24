@@ -135,9 +135,9 @@ void TRMMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<R
             break;
         case 5:
         {
-            REAL x = datavec[Qblock].x[0];
-            REAL y = datavec[Qblock].x[1];
-            REAL z = datavec[Qblock].x[2];
+//            REAL x = datavec[Qblock].x[0];
+//            REAL y = datavec[Qblock].x[1];
+//            REAL z = datavec[Qblock].x[2];
             Solout[0] = 6;//2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
         }
             break;
@@ -148,7 +148,119 @@ void TRMMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<R
     }
 }
 
+// Jacobian contribution
+void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
+    
+    switch (fSimulationData->SystemType().size()) {
+        case 1:
+        {
+            Contribute_a(datavec, weight, ek, ef);
+        }
+            break;
+        case 2:
+        {
+            DebugStop();
+        }
+            break;
+        case 3:
+        {
+            DebugStop();
+        }
+            break;
+        default:
+        {
+            DebugStop();
+        }
+            break;
+    }
+    
+}
+
+
+void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
+{
+    switch (fSimulationData->SystemType().size()) {
+        case 1:
+        {
+            Contribute_a(datavec, weight, ef);
+        }
+            break;
+        case 2:
+        {
+            DebugStop();
+        }
+            break;
+        case 3:
+        {
+            DebugStop();
+        }
+            break;
+        default:
+        {
+            DebugStop();
+        }
+            break;
+    }
+}
+
+void TRMMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
+{
+    std::cout << " This method should be called only for Capillary pressure terms " << std::endl;
+    DebugStop();
+    
+}
+
+void TRMMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
+{
+    std::cout << " This method should be called only for Capillary pressure terms " << std::endl;
+    DebugStop();
+}
+
+
+void TRMMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+{
+    std::cout << " This method should be called only for Capillary pressure terms " << std::endl;
+    DebugStop();
+}
+
+void TRMMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+{
+    std::cout << " This method should be called only for Capillary pressure terms " << std::endl;
+    DebugStop();
+}
+
+
+void TRMMultiphase::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+{
+    
+    switch (fSimulationData->SystemType().size()) {
+        case 1:
+        {
+            ContributeBC_a(datavec, weight, ek, ef, bc);
+        }
+            break;
+        case 2:
+        {
+            DebugStop();
+        }
+            break;
+        case 3:
+        {
+            DebugStop();
+        }
+            break;
+        default:
+        {
+            DebugStop();
+        }
+            break;
+    }
+    
+}
+
 // Divergence on master element
+
 void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
 {
     int ublock = 0;
@@ -229,9 +341,11 @@ void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
     
 }
 
-// Jacobian contribution
-void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
-{
+// ------------------------------------------------------------------- //
+// one phase flow case
+// ------------------------------------------------------------------- //
+
+void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     // Getting data from different approximation spaces
     
@@ -260,7 +374,7 @@ void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
     
     // Getting linear combinations from different approximation spaces
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
-    //    REAL                 P      = datavec[Pblock].sol[0][0];
+    REAL                 P      = datavec[Pblock].sol[0][0];
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
@@ -302,6 +416,9 @@ void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
         iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
         iphiuHdiv(2,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(2,ivectorindex);
         
+        ef(iq + iniu) += weight * ((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0) + oneoverlambda_Kinv_u(2,0)*iphiuHdiv(2,0)));
+        ef(iq + iniu) += weight/JacobianDet *(-P) * DivergenceOnMaster(iq,0);
+        
         // du/dalphau terms
         for (int jq = 0; jq < nphiuHdiv; jq++)
         {
@@ -329,9 +446,21 @@ void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
     }
     
     
+    TPZManVector<STATE,1> fvalue(1,0.0);
+    if(fForcingFunction)
+    {
+        fForcingFunction->Execute(datavec[Pblock].x,fvalue);
+    }
+    
+    
+    REAL divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // uses this for constant jacobian elements
+    
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
     {
+        
+        ef(ip + iniP) += -1.0 * weight * (divu - fvalue[0]) * phiPL2(ip,0);
+        
         // du/dalphau terms
         for (int jq = 0; jq < nphiuHdiv; jq++)
         {
@@ -340,13 +469,9 @@ void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
     }
     
     
-    this->Contribute(datavec,weight,ef);
-    
 }
 
-// Residual contribution
-void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
-{
+void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     int ublock = 0;         // u Bulk velocity needs H1 scalar functions        (phiuH1) for the construction of Hdiv basis functions phiuHdiv
     int Pblock = 1;         // P Average Pressure needs L2 scalar functions     (phiPL2)
@@ -376,18 +501,7 @@ void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     // Get the pressure at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
-    //    STATE pressure = point_memory.GetPressure();
-    //    STATE rhs = point_memory.GetRhs();
-    //    STATE w = point_memory.GetWeight();
-    //    STATE det = point_memory.GetDetJac();
     TPZManVector<STATE> flux = point_memory.GetTotal_Flux();
-    
-    //    std::cout << "flux = " << flux << std::endl;
-    //    std::cout << "u    = " << u << std::endl;
-    //    std::cout << "flux x difference = " << flux[0] - u[0] << std::endl;
-    //    std::cout << "flux y difference = " << flux[1] - u[1] << std::endl;
-    //    std::cout << "flux z difference = " << flux[2] - u[2] << std::endl;
-    //    std::cout << "Pressure difference = " << pressure - P << std::endl;
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
@@ -445,16 +559,6 @@ void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
     
     divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // uses this for constant jacobian elements
-    REAL divu2 = point_memory.GetDiv_Flux();
-    
-    //    std::cout << "divu = " << divu << std::endl;
-    //    std::cout << "divflux = " << divflux << std::endl;
-    //    std::cout << "divu2 = " << divu2 << std::endl;
-    //    std::cout << "rhs = " << rhs << std::endl;
-    
-    //    std::cout << "fvalue[0] = " << fvalue[0] << std::endl;
-    //    std::cout << "rhs = " << rhs << std::endl;
-    //    std::cout << "diff = " << fvalue[0] - rhs << std::endl;
     
     /* $ - \underset{\Omega}{\int}w\; div\left(\mathbf{q}\right)\partial\Omega $ */
     for (int ip = 0; ip < nphiPL2; ip++)
@@ -466,38 +570,9 @@ void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
 }
 
-void TRMMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
-{
-    std::cout << " This method should be called only for Capillary pressure terms " << std::endl;
-    DebugStop();
-    
-}
-
-void TRMMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
-{
-    std::cout << " This method should be called only for Capillary pressure terms " << std::endl;
-    DebugStop();
-}
-
-
-void TRMMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
-{
-    std::cout << " This method should be called only for Capillary pressure terms " << std::endl;
-    DebugStop();
-}
-
-void TRMMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
-{
-    std::cout << " This method should be called only for Capillary pressure terms " << std::endl;
-    DebugStop();
-}
-
-
-void TRMMultiphase::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
-{
+void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
     // At each Integration Point.
-    
     int Qblock = 0;
     int Pblock = 1;
     
@@ -574,6 +649,73 @@ void TRMMultiphase::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
     }
     
     return;
+    
+}
+
+// ------------------------------------------------------------------- //
+// two phase flow case
+// ------------------------------------------------------------------- //
+
+
+void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+}
+
+void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+    
+}
+
+void TRMMultiphase::ContributeBC_ab(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+}
+
+void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+}
+
+void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+}
+
+void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+    
+}
+
+void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){
+    
+}
+
+
+// ------------------------------------------------------------------- //
+// three phase flow case
+// ------------------------------------------------------------------- //
+
+
+void TRMMultiphase::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+}
+
+void TRMMultiphase::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+    
+}
+
+void TRMMultiphase::ContributeBC_abc(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+}
+
+void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+}
+
+void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+}
+
+void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+    
+}
+
+void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){
     
 }
 

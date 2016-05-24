@@ -207,16 +207,22 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(){
     
-    int nel_x = 3;
-    int nel_y = 3;
-    int nel_z = 3;
+//    int nel_x = 3;
+//    int nel_y = 3;
+//    int nel_z = 3;
+//    
+//    TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
+//    dx[0] = 1.0/REAL(nel_x);
+//    dy[0] = 1.0/REAL(nel_y);
+//    dz[0] = 1.0/REAL(nel_z);
+//    
+//    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
     
-    TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 1.0/REAL(3.0);
-    dy[0] = 1.0/REAL(3.0);
-    dz[0] = 1.0/REAL(3.0);
+    std::string dirname = PZSOURCEDIR;
+    std::string file;
+    file = dirname + "/Projects/iRMS/Meshes/Singlewell.dump";
+    fSpaceGenerator->CreateGeometricGIDMesh(file);
     
-    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
 #ifdef PZDEBUG
     fSpaceGenerator->PrintGeometry();
 #endif
@@ -243,7 +249,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
     TPZSkylineStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
 //    TPZSymetricSpStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
     TPZStepSolver<STATE> step;
-    int numofThreads = 4;
+    int numofThreads = 2;
     strmat.SetNumThreads(numofThreads);
     step.SetDirect(ELDLt);
     fMonolithicMultiphaseAnalysis->SetStructuralMatrix(strmat);

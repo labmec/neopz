@@ -58,7 +58,7 @@ TRMSimulationData::TRMSimulationData(){
     fPhase_alpha = NULL;
     
     /** @brief phase beta */
-    fPhase_Beta = NULL;
+    fPhase_beta = NULL;
     
     /** @brief phase gamma */
     fPhase_gamma = NULL;
@@ -73,7 +73,7 @@ TRMSimulationData::~TRMSimulationData(){
 /** @brief Set autopointer of the RawData */
 void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     fRawData = RawData;
-    SetSystemType(RawData->fSystemType);
+    SetSystemType(RawData->fSystemType,RawData->fPhases);
     SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_up);
     SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor);
 }
@@ -94,6 +94,42 @@ void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res,
     fn_corrections  = n_corrections;
     fepsilon_res    = epsilon_res;
     fepsilon_cor    = epsilon_cor;
+}
+
+/** @brief Set phase alpha */
+void TRMSimulationData::SetPhaseAlpha(TPZAutoPointer<TRMPhaseProperties> &alpha)
+{
+    fPhase_alpha = alpha;
+}
+
+/** @brief Get phase alpha */
+TPZAutoPointer<TRMPhaseProperties> & TRMSimulationData::AlphaProp()
+{
+    return fPhase_alpha;
+}
+
+/** @brief Set phase beta */
+void TRMSimulationData::SetPhaseBeta(TPZAutoPointer<TRMPhaseProperties> &beta)
+{
+    fPhase_beta = beta;
+}
+
+/** @brief Get phase beta */
+TPZAutoPointer<TRMPhaseProperties> & TRMSimulationData::BetaProp()
+{
+    return fPhase_beta;
+}
+
+/** @brief Set phase gamma */
+void TRMSimulationData::SetPhaseGamma(TPZAutoPointer<TRMPhaseProperties> &gamma)
+{
+    fPhase_gamma = gamma;
+}
+
+/** @brief Get phase gamma */
+TPZAutoPointer<TRMPhaseProperties> & TRMSimulationData::GammaProp()
+{
+    return fPhase_gamma;
 }
 
 

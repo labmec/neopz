@@ -20,6 +20,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzcondensedcompel.h"
 
+#include "TPZReadGIDGrid.h"
 #include "TPZVTKGeoMesh.h"
 
 
@@ -129,6 +130,9 @@ public:
     
     /** @brief Print the reservoir geometry */
     void PrintGeometry();
+    
+    /** @brief Create a reservoir-box geometry */
+    void CreateGeometricGIDMesh(std::string &grid);
     
     /** @brief Create a reservoir-box geometry */
     void CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVector<REAL,2> dy, TPZManVector<REAL,2> dz);

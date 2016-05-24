@@ -14,6 +14,11 @@
 #include "pzstack.h"
 #include "pzfunction.h"
 
+#include "TRMPhaseProperties.h"
+#include "TRMWaterPhase.h"
+#include "TRMOilPhase.h"
+#include "TRMGasPhase.h"
+
 class TRMRawData {
     
 public:
@@ -86,6 +91,9 @@ public:
     
     /** @brief correction overal tolerance */
     STATE fepsilon_cor;
+    
+    /** @brief phases = {alpha, beta, gamma} */
+    TPZStack< TPZAutoPointer<TRMPhaseProperties> > fPhases;
     
     // @}
     
