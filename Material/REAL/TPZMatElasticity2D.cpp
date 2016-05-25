@@ -381,8 +381,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
         }
         case 4 :
         {
-            //	Stress Field as Neumann condition for each state variable
-            //	Elasticity Equation
+     
             
             for(in = 0; in < this->Dimension(); in ++){ v2[in] = ( v1(in,0) * data.normal[0] + v1(in,1) * data.normal[1]);}
             
@@ -425,7 +424,8 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             //	Elasticity Equation
             {
                 TPZFNMatrix<2,STATE> res(2,1,0.);
-                for(int i=0; i<2; i++) for(int j=0; j<2; j++)
+                for(int i=0; i<2; i++)
+                    for(int j=0; j<2; j++)
                 {
                     res(i,0) += data.normal[i]*bc.Val1()(i,j)*data.sol[0][j]*data.normal[j];
                 }

@@ -14,6 +14,7 @@
 #include "pzvec.h"
 #include "math.h"
 #include <iostream>
+#include <cmath>
 
 
 /**
@@ -83,11 +84,11 @@ protected:
     int fInclinedWell;
     
     
-    /** @brief Wellbore Direction/Azimuth angle (degrees) */
-    double falpha;
+    /** @brief Wellbore Direction/Azimuth angle (rad) */
+    REAL falpha;
     
-    /** @brief Wellbore Inclination angle (degrees) */
-    double fbeta;
+    /** @brief Wellbore Inclination angle (rad) */
+    REAL fbeta;
     
     /** @brief InSitu Vertical and Horizontal Stresses */
     REAL fPreStressHH;
@@ -203,18 +204,14 @@ public:
     void SetInclinedWellProblem(int inclinedwell)
     {
         fInclinedWell = inclinedwell;
+        
+        if (inclinedwell == 1) {
+            SetPlaneStrain();
+        }
+
     }
     
-    
-    /** @brief Generalized Elasticity
-     * InclinedWell = 1 => Inclined Borehole Elasticity Used
-     * InclinedWell != 1 => Generalized Elasticity
-     */
-    void GeneralizedElasticity()
-    {
-        fInclinedWell = 0;
-    }
-    
+
     
     /** @brief Set Initial Stress */
     void SetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
@@ -232,15 +229,16 @@ public:
 
     }
     
+    
     /**
      * @brief Set parameters of a inclined wellbore:
      * @param Maximum Horizontal Stress - SigmaH
      * @param Minimum Horizontal Stress - Sigmah
      * @param Vertical Stress - SigmaV
-     * @param Wellbore Direction/Azimuth angle (degrees) - alpha
-     * @param Wellbore Inclination angle (degrees) - beta
+     * @param Wellbore Direction/Azimuth angle (rad) - alpha
+     * @param Wellbore Inclination angle (rad) - beta
      */
-    void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV, double alpha, double beta, int wellborestate)
+    void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV, REAL alpha, REAL beta, int wellborestate)
     {
         fPreStressHH  = SigmaH;
         fPreStresshh  = Sigmah;
@@ -253,35 +251,54 @@ public:
     /** @brief Calculates the Initial Stress in Local Coordinates */
     void SetLocalInSituStresses(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
     {
+        
+        REAL SigmaH =  fPreStressHH;
+        REAL Sigmah =  fPreStresshh;
+        REAL SigmaV =  fPreStressVV;
+        
         /**** Rotation Matrix ******/
         // alpha = direction/azimuth
         // beta  = wellbore inclination
         
+        REAL alpha = falpha;
+        REAL beta  = fbeta;
+        
         // x-diretion
-        REAL lxx = cos(falpha)*cos(fbeta);
-        REAL lxy = sin(falpha)*cos(fbeta);
-        REAL lxz = -sin(fbeta);
+        REAL lxx = cos(alpha)*cos(beta);
+        REAL lxy = sin(alpha)*cos(beta);
+        REAL lxz = -sin(beta);
         // y-direction
-        REAL lyx = -sin(falpha);
-        REAL lyy = cos(falpha);
+        REAL lyx = -sin(alpha);
+        REAL lyy = cos(alpha);
         REAL lyz = 0;
         // z-direction
-        REAL lzx = cos(falpha)*sin(fbeta);
-        REAL lzy = sin(falpha)*sin(fbeta);
-        REAL lzz = cos(fbeta);
+        REAL lzx = cos(alpha)*sin(beta);
+        REAL lzy = sin(alpha)*sin(beta);
+        REAL lzz = cos(alpha);
         
         
         // Local Inicial Stresses after Inclination
-        SigmaXX = ((lxx*lxx) * fPreStressHH) + ((lxy*lxy) * fPreStresshh) + ((lxz*lxz) * fPreStressVV);
-        SigmaYY = ((lyx*lyx) * fPreStressHH) + ((lyy*lyy) * fPreStresshh) + ((lyz*lyz) * fPreStressVV);
-        SigmaZZ = ((lzx*lzx) * fPreStressHH) + ((lzy*lzy) * fPreStresshh) + ((lzz*lzz) * fPreStressVV);
-        SigmaXY = ((lxx*lyx) * fPreStressHH) + ((lxy*lyy) * fPreStresshh) + ((lxz*lyz) * fPreStressVV);
-      //SigmaYZ = ((lyx*lzx) * fPreStressHH) + ((lyy*lzy) * fPreStresshh) + ((lyz*lzz) * fPreStressVV);
-      //SigmaXZ = ((lzx*lxx) * fPreStressHH) + ((lzy*lxy) * fPreStresshh) + ((lzz*lxz) * fPreStressVV);
+        SigmaXX = ((lxx*lxx) * SigmaH) + ((lxy*lxy) * Sigmah) + ((lxz*lxz) * SigmaV);
+        SigmaYY = ((lyx*lyx) * SigmaH) + ((lyy*lyy) * Sigmah) + ((lyz*lyz) * SigmaV);
+        SigmaZZ = ((lzx*lzx) * SigmaH) + ((lzy*lzy) * Sigmah) + ((lzz*lzz) * SigmaV);
+        SigmaXY = ((lxx*lyx) * SigmaH) + ((lxy*lyy) * Sigmah) + ((lxz*lyz) * SigmaV);
+      //SigmaYZ = ((lyx*lzx) * SigmaH) + ((lyy*lzy) * Sigmah) + ((lyz*lzz) * SigmaV);
+      //SigmaXZ = ((lzx*lxx) * SigmaH) + ((lzy*lxy) * Sigmah) + ((lzz*lxz) * SigmaV);
         
     }
 
     
+    // Get Initial Stress */
+    void GetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
+    {
+        
+        SigmaXX = fPreStressXX;
+        SigmaXY = fPreStressXY;
+        SigmaYY = fPreStressYY;
+        SigmaZZ = fPreStressZZ;
+        
+    }
+
     
     // Get Elastic Materials Parameters
     void GetElasticParameters(REAL &Ey, REAL &nu, REAL &Lambda, REAL &G)
