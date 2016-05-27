@@ -1040,14 +1040,10 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	if(Reference()->Dimension() < problemdimension) return;
 	
 	// Adjust the order of the integration rule
-	//Cesar 2007-06-27 ==>> Begin
-	//this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
-	//fp can be any function and max order of the integration rule could produce best results
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
-    // tototototo ????
-    maxIntOrder = 15;
+    maxIntOrder= 1;
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);
@@ -1102,11 +1098,12 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 			}
         
 			for(int ier = 0; ier < NErrors; ier++)
-				errors[ier] += values[ier]*weight;
+				errors[ier] += weight*values[ier];
 		}
 		
 	}//fim for : integration rule
-	//Norma sobre o elemento
+
+    //Norma sobre o elemento
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier

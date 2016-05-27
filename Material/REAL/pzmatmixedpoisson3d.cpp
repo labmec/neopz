@@ -279,9 +279,9 @@ void TPZMatMixedPoisson3D::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &da
     int ublock = 0;
     
     // Getting test and basis functions
-    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
-    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
-    TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
+    TPZFNMatrix<100,REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
+    TPZFNMatrix<300,STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
+    TPZFNMatrix<300,STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
     TPZFNMatrix<9,STATE> gradu = datavec[ublock].dsol[0];
     TPZFNMatrix<9,STATE> graduMaster;
     gradu.Transpose();
@@ -295,15 +295,15 @@ void TPZMatMixedPoisson3D::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &da
     
     REAL JacobianDet = datavec[ublock].detjac;
     
-    TPZFMatrix<STATE> Qaxes = datavec[ublock].axes;
-    TPZFMatrix<STATE> QaxesT;
-    TPZFMatrix<STATE> Jacobian = datavec[ublock].jacobian;
-    TPZFMatrix<STATE> JacobianInverse = datavec[ublock].jacinv;
+    TPZFNMatrix<9,STATE> Qaxes = datavec[ublock].axes;
+    TPZFNMatrix<9,STATE> QaxesT;
+    TPZFNMatrix<9,STATE> Jacobian = datavec[ublock].jacobian;
+    TPZFNMatrix<9,STATE> JacobianInverse = datavec[ublock].jacinv;
     
-    TPZFMatrix<STATE> GradOfX;
-    TPZFMatrix<STATE> GradOfXInverse;
-    TPZFMatrix<STATE> VectorOnMaster;
-    TPZFMatrix<STATE> VectorOnXYZ(3,1,0.0);
+    TPZFNMatrix<9,STATE> GradOfX;
+    TPZFNMatrix<9,STATE> GradOfXInverse;
+    TPZFNMatrix<9,STATE> VectorOnMaster;
+    TPZFNMatrix<9,STATE> VectorOnXYZ(3,1,0.0);
     Qaxes.Transpose(&QaxesT);
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
@@ -434,7 +434,7 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
         }
     }
     
-    TPZFMatrix<STATE> divphi;
+    TPZFNMatrix<100,STATE> divphi;
     STATE divu;
     this->ComputeDivergenceOnMaster(datavec, divphi, divu);
     
@@ -794,12 +794,10 @@ void TPZMatMixedPoisson3D::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exa
     
     values.Fill(0.0);
     TPZVec<STATE> primal(1),dual(3),div(1);
-    Solution(data,1,dual);//fluxo
-    //Solution(data,14,div);//divergente
-    
+    Solution(data,1,dual);
+    REAL diffFlux = 0.0;
     for(int id=0; id<3; id++) {
-        REAL diffFlux = abs(dual[id] - du_exact(id,0));
-
+        diffFlux += dual[id] - du_exact(id,0);
         values[1]  += diffFlux*diffFlux;
     }
 
@@ -819,12 +817,12 @@ void TPZMatMixedPoisson3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     Solution(u,dudx,axes,1,dsol);
     int id;
     //values[1] : eror em norma L2
-    REAL  diff = fabs(sol[0] - u_exact[0]);
+    REAL  diff = sol[0] - u_exact[0];
     values[1]  = diff*diff;
     //values[2] : erro em semi norma H1
     values[2] = 0.;
     for(id=0; id<fDim; id++) {
-        diff = fabs(dsol[id] - du_exact(id,0));
+        diff = dsol[id] - du_exact(id,0);
         values[2]  += abs(fK)*diff*diff;
     }
     //values[0] : erro em norma H1 <=> norma Energia
