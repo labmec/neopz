@@ -211,22 +211,31 @@ public:
 
     }
     
-
-    
-    /** @brief Set Initial Stress */
-    void SetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
+    /** @brief Set Initial Inclined Wellbore Stress */
+    void SetInclinedWellborePreStress(REAL &SigmaXX, REAL &SigmaXY, REAL &SigmaYY, REAL &SigmaZZ)
     {
         // Checking if the simulation is about a inclined Wellbore
         if ((fInclinedWell = 1)) {
             // Convert the insitu stresses in local inicial stresses
             this->SetLocalInSituStresses(SigmaXX, SigmaXY, SigmaYY, SigmaZZ);
+            SigmaXX = fPreStressXX;
+            SigmaXY = fPreStressXY;
+            SigmaYY = fPreStressYY;
+            SigmaZZ = fPreStressZZ;
+            SetPlaneStrain();
         }
-        
+      
+    }
+    
+    /** @brief Set Initial Stress */
+    void SetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
+    {
+    
         fPreStressXX = SigmaXX;
         fPreStressXY = SigmaXY;
         fPreStressYY = SigmaYY;
         fPreStressZZ = SigmaZZ;
-
+        
     }
     
     
@@ -249,7 +258,7 @@ public:
     }
     
     /** @brief Calculates the Initial Stress in Local Coordinates */
-    void SetLocalInSituStresses(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
+    void SetLocalInSituStresses(REAL &SigmaXX, REAL &SigmaXY, REAL &SigmaYY, REAL &SigmaZZ)
     {
         
         REAL SigmaH =  fPreStressHH;
@@ -284,6 +293,12 @@ public:
         SigmaXY = ((lxx*lyx) * SigmaH) + ((lxy*lyy) * Sigmah) + ((lxz*lyz) * SigmaV);
       //SigmaYZ = ((lyx*lzx) * SigmaH) + ((lyy*lzy) * Sigmah) + ((lyz*lzz) * SigmaV);
       //SigmaXZ = ((lzx*lxx) * SigmaH) + ((lzy*lxy) * Sigmah) + ((lzz*lxz) * SigmaV);
+        
+        fPreStressXX = SigmaXX;
+        fPreStressXY = SigmaXY;
+        fPreStressYY = SigmaYY;
+        fPreStressZZ = SigmaZZ;
+        
         
     }
 

@@ -286,7 +286,8 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
     
     int phru = phiu.Rows();
     short in,jn;
-    STATE v2[3]; TPZFMatrix<STATE> &v1 = bc.Val1();
+    TPZManVector<STATE,3> v2(3);
+    TPZFMatrix<STATE> &v1 = bc.Val1();
     v2[0] = bc.Val2()(0,0);	//	Ux displacement or Tnx
     v2[1] = bc.Val2()(1,0);	//	Uy displacement or Tny
     
@@ -383,7 +384,9 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
         {
      
             
-            for(in = 0; in < this->Dimension(); in ++){ v2[in] = ( v1(in,0) * data.normal[0] + v1(in,1) * data.normal[1]);}
+            for(in = 0; in < this->Dimension(); in ++){
+                v2[in] = ( v1(in,0) * data.normal[0] + v1(in,1) * data.normal[1]);
+            }
             
             for(in = 0 ; in <phru; in++)
             {
@@ -395,30 +398,6 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             break;
         }
         case 5 :
-            //	Normal Pressure condition Pressure value Should be inserted in v2[0]
-            //	Elasticity Equation
-            {
-                TPZFNMatrix<2,STATE> res(2,1,0.);
-                for(int i=0; i<2; i++) for(int j=0; j<2; j++)
-                {
-                    res(i,0) += data.normal[i]*bc.Val1()(i,j)*data.sol[0][j]*data.normal[j];
-                }
-                for(int in = 0 ; in < phru; in++)
-                {
-                    ef(2*in+0,0) += (v2[0]*data.normal[0]-res(0,0)) * phiu(in,0) * weight ;
-                    ef(2*in+1,0) += (v2[0]*data.normal[1]-res(1,0)) * phiu(in,0) * weight ;
-                    for(int jn=0; jn< phru; jn++)
-                    {
-                        for(int idf=0; idf < this->Dimension(); idf++) for(int jdf=0; jdf < this->Dimension(); jdf++)
-                        {
-                            ek(2*in+idf,2*jn+jdf) += bc.Val1()(idf,jdf)*data.normal[idf]*data.normal[jdf]*phiu(in,0)*phiu(jn,0)*weight;
-                            //      Not Complete with val2? HERE! PHIL!!!!
-                            //      DebugStop();
-                        }
-                    }
-                }
-            }
-            break;
         case 6 :
             //	Normal Pressure condition Pressure value Should be inserted in v2[0]
             //	Elasticity Equation
