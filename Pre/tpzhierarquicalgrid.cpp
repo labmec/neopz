@@ -152,13 +152,12 @@ void TPZHierarquicalGrid::CreateGeometricElement(int n, int iel,int eldim, int e
     
     TPZGeoEl *gel =  fBase->ElementVec()[iel];
     int gelNodes = gel->NNodes();
-    
+
     // Computing  current topology
     TPZVec<long> CTopology(gelNodes);
     for(int inode = 0; inode < CTopology.size(); inode++)
     {
-        TPZGeoNode GelNode = gel->Node(inode);
-        CTopology[inode] = GelNode.Id();
+        CTopology[inode] = gel->Node(inode).Id();
     }
     
     bool Is1D = false;

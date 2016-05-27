@@ -114,63 +114,64 @@ void TRMRawData::WaterReservoirBox(){
     int Rock = 1;
     fOmegaIds.Push(Rock);
 
-    int bc_W = 2;
-    int bc_A = 3;
-    int bc_I = 4;
-    
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > W(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > A(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > I(n_data);
-    
-    fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
-    fRecurrent_bc_data.Push(W);
-    
-    fGammaIds.Push(bc_A);
-    A[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
-    fRecurrent_bc_data.Push(A);
-    
-    fGammaIds.Push(bc_I);
-    I[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
-    fRecurrent_bc_data.Push(I);
-    
-//    int bc_W = 11;
-//    int bc_E = 12;
-//    int bc_S = 13;
-//    int bc_N = 14;
-//    int bc_B = 15;
-//    int bc_T = 16;
+//    // Singlewell mesh
+//    int bc_W = 2;
+//    int bc_A = 3;
+//    int bc_I = 4;
 //    
-//    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > E(n_data);
 //    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > W(n_data);
-//    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > S(n_data);
-//    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > N(n_data);
-//    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
-//    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+//    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > A(n_data);
+//    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > I(n_data);
 //    
 //    fGammaIds.Push(bc_W);
 //    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
 //    fRecurrent_bc_data.Push(W);
 //    
-//    fGammaIds.Push(bc_E);
-//    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
-//    fRecurrent_bc_data.Push(E);
+//    fGammaIds.Push(bc_A);
+//    A[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+//    fRecurrent_bc_data.Push(A);
 //    
-//    fGammaIds.Push(bc_S);
-//    S[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
-//    fRecurrent_bc_data.Push(S);
-//    
-//    fGammaIds.Push(bc_N);
-//    N[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
-//    fRecurrent_bc_data.Push(N);
-//    
-//    fGammaIds.Push(bc_B);
-//    B[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
-//    fRecurrent_bc_data.Push(B);
-//    
-//    fGammaIds.Push(bc_T);
-//    T[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
-//    fRecurrent_bc_data.Push(T);
+//    fGammaIds.Push(bc_I);
+//    I[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+//    fRecurrent_bc_data.Push(I);
+    
+    int bc_W = 11;
+    int bc_E = 12;
+    int bc_S = 13;
+    int bc_N = 14;
+    int bc_B = 15;
+    int bc_T = 16;
+    
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > E(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > W(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > S(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > N(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+    
+    fGammaIds.Push(bc_W);
+    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
+    fRecurrent_bc_data.Push(W);
+    
+    fGammaIds.Push(bc_E);
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    fRecurrent_bc_data.Push(E);
+    
+    fGammaIds.Push(bc_S);
+    S[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    fRecurrent_bc_data.Push(S);
+    
+    fGammaIds.Push(bc_N);
+    N[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    fRecurrent_bc_data.Push(N);
+    
+    fGammaIds.Push(bc_B);
+    B[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    fRecurrent_bc_data.Push(B);
+    
+    fGammaIds.Push(bc_T);
+    T[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    fRecurrent_bc_data.Push(T);
     
 }
 

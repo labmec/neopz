@@ -9,12 +9,21 @@
 #ifndef TRMBuildTransfers_h
 #define TRMBuildTransfers_h
 
+#include "tpzintpoints.h"
+#include "pzmatwithmem.h"
+#include "TRMMemory.h"
+#include "TRMMixedDarcy.h"
+#include "pzmaterial.h"
+#include "TRMFlowConstants.h"
+#include "pzinterpolationspace.h"
+#include "pzmultiphysicselement.h"
+#include "pzcondensedcompel.h"
+
+
 #include "pzysmp.h"
 #include "pzblockdiag.h"
-#include <stdio.h>
-#include "pzgmesh.h"
-#include "pzcmesh.h"
-
+#include "TRMSimulationData.h"
+#include "TRMIrregularBlockDiagonal.h"
 
 
 class TRMBuildTransfers{
@@ -52,7 +61,7 @@ public:
      */
     
     /** @brief Create the sparse matrix to transfer Pressure to multiphysics mesh over volumetric elements */
-    void CreateTransferPressure_To_Mixed_V(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &A);
+    void CreateTransferPressure_To_Mixed_V(TPZAutoPointer< TPZCompMesh> &cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &A);
     
     /** @brief Create the sparse matrix to transfer Geometric information to integration points over volumetric elements */
     void CreateTransferGeometricData_To_Mixed_V(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &Aweights, TPZVec<STATE> &Adet, TPZVec<STATE> &Arhs);
@@ -96,8 +105,8 @@ public:
     }
     
     /** @brief Get the sparse matrix to transfer Pressure to multiphysics mesh  */
-    TPZBlockDiagonal<STATE> GetTransferPressure_To_Mixed_V(){
-        return fTransferPressure_To_Mixed_V;
+    TRMIrregularBlockDiagonal<STATE> GetTransferPressure_To_Mixed_V(){
+        return fp_To_Mixed;
     }
     
     /** @brief Get the sparse matrix to transfer the total x-flux to multiphysics mesh  */
@@ -118,7 +127,43 @@ public:
     
     // @}
     
+    
+    /** @brief Set autopointer of Simulation data */
+    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData){
+        fSimulationData = SimulationData;
+    }
+    
+    /** @brief Get autopointer of Simulation data */
+    TPZAutoPointer<TRMSimulationData>  SimulationData(){
+        return fSimulationData;
+    }
+    
 private:
+    
+    
+    
+    /**
+     * @defgroup Attributes
+     * @{
+     */
+    
+    /** @brief Autopointer of simulation data */
+    TPZAutoPointer<TRMSimulationData> fSimulationData;
+    
+    // @}
+    
+    
+    /**
+     * @defgroup Methods for change the attributes
+     * @{
+     */
+    
+    /** @brief Compute element dof indexes */
+    void ElementDofIndexes(TPZInterpolationSpace * intel,  TPZVec<long> &dof_indexes);
+    
+    // @}
+    
+    /** @brief Autopointer of simulation data */
     
     /**
      * @defgroup Sparses Matrices to transfer information to the mixed problem on Omega
@@ -126,7 +171,7 @@ private:
      */
     
     /** @brief Sparse matrix to transfer Pressure solution to integrations points of the mixed mesh */
-    TPZBlockDiagonal<REAL> fTransferPressure_To_Mixed_V;
+    TRMIrregularBlockDiagonal<STATE> fp_To_Mixed;
     
     /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
     TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_V;

@@ -9,18 +9,14 @@
 
 #include "TRMBuildTransfers.h"
 
-#include "tpzintpoints.h"
-#include "pzmatwithmem.h"
-#include "TRMMemory.h"
-#include "TRMMixedDarcy.h"
-#include "pzmaterial.h"
-#include "TRMFlowConstants.h"
-#include "pzinterpolationspace.h"
-#include "pzmultiphysicselement.h"
-#include "pzcondensedcompel.h"
+#include <stdio.h>
+#include "pzgmesh.h"
+#include "pzcmesh.h"
 
 /** @brief Default constructor */
 TRMBuildTransfers::TRMBuildTransfers(){
+    
+    fSimulationData == NULL;
 
 }
 
@@ -117,7 +113,7 @@ void TRMBuildTransfers::CreateTransferFlux_To_Mixed_V(TPZAutoPointer< TPZCompMes
     
 }
 
-void TRMBuildTransfers::CreateTransferPressure_To_Mixed_V(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &A){
+void TRMBuildTransfers::CreateTransferPressure_To_Mixed_V(TPZAutoPointer< TPZCompMesh> &cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &A){
     
     long nel = cmesh_multiphysics->NElements();
     
@@ -194,7 +190,7 @@ void TRMBuildTransfers::CreateTransferPressure_To_Mixed_V(TPZAutoPointer< TPZCom
     
     JA.Resize(IA[n_int_points]);
     A.Resize(IA[n_int_points]);
-    fTransferPressure_To_Mixed_V.Resize(n_int_points, mesh_o_nequ);
+    fp_To_Mixed.Resize(n_int_points, mesh_o_nequ);
 
 
     
@@ -550,7 +546,7 @@ void TRMBuildTransfers::ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &f)
     f[0] = 6;//2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
 }
 
-void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_multiphysics, int mesh_index){
 
 #ifdef PZDEBUG
     if (!cmesh_multiphysics) {
@@ -560,20 +556,76 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
 #endif
     
     long nel = cmesh_multiphysics->NElements();
+    //int n_data = 1; // scalar
+    mesh_index = 0;
+    long element_index = 0;
+    int imat = 0;
+    
+    // For the imat
+    
+    int rockid = this->SimulationData()->RawData()->fOmegaIds[imat];
     
     // Getting the total integration point of the destination cmesh
-    TPZMaterial * material = cmesh_multiphysics->FindMaterial(_ReservMatId);
+    TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
     TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
     TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
-    int n_int_points = material_memory.NElements();
+    //int n_int_points = material_memory.NElements();
+    
+    // Compute destination index scatter by element (Omega and Gamma)
+    TPZManVector< TPZVec<long>, 1000000 > dof_scatter(nel);
+    
+    // Block size structue including (Omega and Gamma)
+    TPZVec< std::pair<long, long> > blocks_dimensions(nel);
+    
+    for (long icel = 0; icel < nel; icel++) {
+        
+        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
+        if (!cel) {
+            DebugStop();
+        }
+        
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+        if(!mf_cel)
+        {
+            DebugStop();
+        }
+        
+        TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
+        
+        // Increassing new block
+        element_index++;
+        
+        // Getting local integration index
+        TPZManVector<long> int_point_indexes;
+        TPZManVector<long> dof_indexes;
+        
+        mf_cel->GetMemoryIndices(int_point_indexes);
+        this->ElementDofIndexes(intel, dof_indexes);
+        dof_scatter[element_index] = dof_indexes;
+        
+        
+        
+    }
+    
+    
+    
+    // Initialize block matrix
+    TRMIrregularBlockDiagonal<REAL> p_to_Mixed;
+    
+
+    
+    
     
     // Resizing IA JA and A
     TPZAutoPointer<TPZVec<long> > IA = new TPZVec<long>;
     TPZAutoPointer<TPZVec<long> > JA = new TPZVec<long>;
     TPZAutoPointer<TPZVec<double> > A = new TPZVec<double>;
-
     
-    this->CreateTransferPressure_To_Mixed_V(cmesh_multiphysics, mesh_index, IA, JA, A);
+    
+    
+
+//    
+//    this->CreateTransferPressure_To_Mixed_V(cmesh_multiphysics, mesh_index, IA, JA, A);
     
     int origin = mesh_index;
     int destination = mesh_index;
@@ -585,11 +637,6 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
             DebugStop();
         }
         
-//        TPZCondensedCompEl * mf_cel_condensed = dynamic_cast<TPZCondensedCompEl *> (cel);
-//        if(!mf_cel_condensed){
-//            DebugStop();
-//        }
-//        TPZCompEl * mf_cel_cond_ref = mf_cel_condensed->ReferenceCompEl();
         
         TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
         if(!mf_cel)
@@ -659,6 +706,30 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
     }
     
 //    fTransferPressure_To_Mixed_V.SetData(IA, JA, A);
+}
+
+void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * intel, TPZVec<long> &dof_indexes){
+
+#ifdef PZDEBUG
+    if (!intel) {
+        DebugStop();
+    }
+#endif
+    
+    TPZStack<long> index;
+    int nconnect = intel->NConnects();
+    for (int icon = 0; icon < nconnect; icon++) {
+        TPZConnect  & con = intel->Connect(icon);
+        long seqnumber = con.SequenceNumber();
+        long position = intel->Mesh()->Block().Position(seqnumber);
+        int nshape = con.NShape();
+        for (int ish=0; ish < nshape; ish++) {
+            index.Push(position+ ish);
+        }
+    }
+    
+    dof_indexes = index;
+    return;
 }
 
 //

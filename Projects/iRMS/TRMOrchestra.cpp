@@ -85,14 +85,17 @@ void TRMOrchestra::CreateAnalysisPrimal()
 /** @brief Create a dual analysis using space odissey */
 void TRMOrchestra::CreateAnalysisDualonBox()
 {
+
+    // BuildConectivity takes too much time for  one million, doesn't make sense.
     
     int nel_x = 1;
     int nel_y = 1;
     int nel_z = 1;
+    
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 1.0;
-    dy[0] = 1.0;
-    dz[0] = 1.0;
+    dx[0] = 1.0/REAL(nel_x);
+    dy[0] = 1.0/REAL(nel_y);
+    dz[0] = 1.0/REAL(nel_z);
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
 #ifdef PZDEBUG
@@ -100,11 +103,13 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 #endif
     fSpaceGenerator->SetDefaultPOrder(1);
     
+    // it depends on the type of system.
     fSpaceGenerator->CreateFluxCmesh();
     fSpaceGenerator->CreatePressureCmesh();
     fSpaceGenerator->CreateMixedCmesh();
     
-//    fSpaceGenerator.StaticallyCondenseEquations(); // There is a problem with Statically CondenseEquations
+    
+
     
     // transfer the solution from the meshes to the multiphysics mesh
     TPZManVector<TPZAutoPointer<TPZCompMesh>, 3 > meshvec(2);
@@ -114,11 +119,30 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     meshvec[Pres] = fSpaceGenerator->PressureCmesh();
     TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator->MixedFluxPressureCmesh();
     
+     // Transfer object
+    TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator->TransferGenerator();
+    transfer->SetSimulationData(fSimulationData);
+
+#ifdef PZDEBUG
+    std::ofstream out("CmeshMixed2.txt");
+    Cmesh->Print(out);
+#endif
     
-    // With Already defined spaces it is possible to compute all the sparces matrices and arrays
-//    TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator.TransferGenerator();
-//    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);        // Computing Flux Matrix
-//    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);    // Computing Pressure Matrix
+    fSpaceGenerator->SetSimulationData(fSimulationData);
+    fSpaceGenerator->TransferGenerator()->ComputeTransferPressure_To_Mixed(Cmesh.operator->(), Pres);
+
+    
+//    // Tranfer Flux to Integration Poins of mixed system.
+//    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);
+
+    // Tranfer Pressure to Integration Poins of mixed system.
+//    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
+
+//    // Tranfer Water Saturation to Integration Poins of water transport.
+//    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
+//
+//    // Tranfer Oil Saturation to Integration Poins of oil transport.
+//    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
     
     
     TPZFMatrix<STATE> vec_flux = meshvec[flux]->Solution();
@@ -207,21 +231,21 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(){
     
-//    int nel_x = 3;
-//    int nel_y = 3;
-//    int nel_z = 3;
-//    
-//    TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-//    dx[0] = 1.0/REAL(nel_x);
-//    dy[0] = 1.0/REAL(nel_y);
-//    dz[0] = 1.0/REAL(nel_z);
-//    
-//    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
+    int nel_x = 1;
+    int nel_y = 1;
+    int nel_z = 1;
     
-    std::string dirname = PZSOURCEDIR;
-    std::string file;
-    file = dirname + "/Projects/iRMS/Meshes/Singlewell.dump";
-    fSpaceGenerator->CreateGeometricGIDMesh(file);
+    TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
+    dx[0] = 1.0/REAL(nel_x);
+    dy[0] = 1.0/REAL(nel_y);
+    dz[0] = 1.0/REAL(nel_z);
+    
+    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
+    
+//    std::string dirname = PZSOURCEDIR;
+//    std::string file;
+//    file = dirname + "/Projects/iRMS/Meshes/Singlewell.dump";
+//    fSpaceGenerator->CreateGeometricGIDMesh(file);
     
 #ifdef PZDEBUG
     fSpaceGenerator->PrintGeometry();
