@@ -92,7 +92,7 @@ protected:
     TRMRockProperties fRockProp;
     
     /** @brief Stores the spatial information given in maps */
-    TRMSpatialPropertiesMap fSpatialProp;
+    TPZAutoPointer<TRMSpatialPropertiesMap> fMap;
     
     
 public:
@@ -278,14 +278,14 @@ public:
     }
     
     /** @brief Stores the spatial information given in maps */
-    void SetSpatialProp(TRMSpatialPropertiesMap SpatialProp)
+    void SetMap(TPZAutoPointer<TRMSpatialPropertiesMap> &SpatialProp)
     {
-        fSpatialProp = SpatialProp;
+        fMap = SpatialProp;
     }
     
-    TRMSpatialPropertiesMap & GetSpatialProp()
+    TPZAutoPointer<TRMSpatialPropertiesMap> & Map()
     {
-        return fSpatialProp;
+        return fMap;
     }
     
     static STATE Gravity();

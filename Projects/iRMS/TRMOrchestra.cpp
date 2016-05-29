@@ -33,6 +33,10 @@ TRMOrchestra::TRMOrchestra(){
     fWaterTransportAnalysis         = new TRMTransportAnalysis;
     fOilTransportAnalysis           = new TRMTransportAnalysis;
     
+    fIsMonolithicQ         =  false;
+    fIsSegregatedQ         =  false;
+    fIsSegregatedwithCGQ   =  false;
+    
 }
 
 
@@ -103,107 +107,34 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 #endif
     fSpaceGenerator->SetDefaultPOrder(1);
     
-    // it depends on the type of system.
     fSpaceGenerator->CreateFluxCmesh();
     fSpaceGenerator->CreatePressureCmesh();
     fSpaceGenerator->CreateMixedCmesh();
     
-    // transfer the solution from the meshes to the multiphysics mesh
-    TPZManVector<TPZAutoPointer<TPZCompMesh>, 3 > meshvec(2);
-    int flux    = 0;
-    int pres    = 1;
-    meshvec[flux] = fSpaceGenerator->FluxCmesh();
-    meshvec[pres] = fSpaceGenerator->PressureCmesh();
-    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator->MixedFluxPressureCmesh();
+    fFluxPressureAnalysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
+    fFluxPressureAnalysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
     
      // Transfer object
-    TPZAutoPointer<TRMBuildTransfers> transfer = new TRMBuildTransfers;
-    transfer->SetSimulationData(fSimulationData);
-    
-    transfer->Fill_u_To_Mixed(Cmesh, flux);
-    transfer->Fill_p_To_Mixed(Cmesh, pres);
-    
-    
-    TPZFMatrix<STATE> vec_flux = meshvec[flux]->Solution();
-    int nflux_equ = vec_flux.Rows();
-    for (int i = 0; i <  nflux_equ; i++) {
-        vec_flux(i,0) = 1.0;//rand();
-    }
-    meshvec[flux]->LoadSolution(vec_flux);
-    
-    TPZFMatrix<STATE> vec_p = meshvec[pres]->Solution();
-    int np_equ = vec_p.Rows();
-    for (int i = 0; i <  np_equ; i++) {
-        vec_p(i,0) = rand();
-    }
-    meshvec[pres]->LoadSolution(vec_p);
-
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
-
-    transfer->Transfer_u_To_Mixed_Memory(fSpaceGenerator->FluxCmesh(), Cmesh);
-    transfer->Transfer_p_To_Mixed_Memory(fSpaceGenerator->PressureCmesh(), Cmesh);
+    TPZAutoPointer<TRMBuildTransfers> Transfer = new TRMBuildTransfers;
+    Transfer->SetSimulationData(fSimulationData);
+    Transfer->Fill_u_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 0);
+    Transfer->Fill_p_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 1);
     
     
     
-    // Analysis
-    bool mustOptimizeBandwidth = false;
-    fFluxPressureAnalysis->SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
-#ifdef PZDEBUG
-    {
-        std::ofstream out("MixedCompMesh.txt");
-        Cmesh->Print(out);
-    }
-#endif
-//    fFluxPressureAnalysis->Solution().Zero();
-    fFluxPressureAnalysis->LoadSolution();
-    
-    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis->Solution();
-    std::cout << "Total dof: " << prevsol.Rows() << std::endl;
-//    std::cout << "prevsol: " << prevsol << std::endl;
-    
-   
-    TPZSkylineStructMatrix strmat(Cmesh.operator->());
-    //    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
+    // Analysis for linear tracer
+    bool mustOptimizeBandwidth = true;
+    fFluxPressureAnalysis->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh().operator->(), mustOptimizeBandwidth);
+    TPZSkylineStructMatrix strmat(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
     TPZStepSolver<STATE> step;
     int numofThreads = 0;
     strmat.SetNumThreads(numofThreads);
     step.SetDirect(ELDLt);
     fFluxPressureAnalysis->SetStructuralMatrix(strmat);
     fFluxPressureAnalysis->SetSolver(step);
-//    fFluxPressureAnalysis.Run();
-    fFluxPressureAnalysis->AssembleResidual();
-//    TPZFMatrix<STATE> rhs_p = this->IntegrateResidue(Cmesh,fSpaceGenerator.GetFluxCmesh(), fSpaceGenerator.GetPressureMesh(), transfer); // Integrating Residue
-    
-//    fFluxPressureAnalysis->Rhs().Print("Traditional Rhs = ");
-//    rhs_p.Print("Pressure Rhs part = ");
-    prevsol -= fFluxPressureAnalysis->Solution();
-    Cmesh->LoadSolution(prevsol);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-    std::cout << std::endl;
-    std::cout << "Transfer new solution and computing Residue  " << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-    
-    transfer->Transfer_u_To_Mixed_Memory(fSpaceGenerator->FluxCmesh(), Cmesh);
-    transfer->Transfer_p_To_Mixed_Memory(fSpaceGenerator->PressureCmesh(), Cmesh);
-    
-    fFluxPressureAnalysis->AssembleResidual();
-    fFluxPressureAnalysis->LoadSolution();
-    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
-    
-    const int dim = 3;
-    int div = 1;
-    TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile =  "DualDarcyOnBox.vtk";
-    scalnames.Push("p");
-    scalnames.Push("div_u");
-    vecnames.Push("u");
-    scalnames.Push("AWeightedPressure");
-    scalnames.Push("ADivOfBulkVeclocity");
-    vecnames.Push("ABulkVelocity");
-    fFluxPressureAnalysis->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-    fFluxPressureAnalysis->PostProcess(div);
-
+    fFluxPressureAnalysis->AdjustVectors();
+    fFluxPressureAnalysis->SetSimulationData(fSimulationData);
+    fFluxPressureAnalysis->SetTransfer(Transfer);
     
 }
 
@@ -248,9 +179,8 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
     TPZFMatrix<STATE> prevsol = fMonolithicMultiphaseAnalysis->Solution();
     std::cout << "Total dof: " << prevsol.Rows() << std::endl;    
     
-//    TPZSkylineNSymStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
+    // Use this matrix for a linear tracer
     TPZSkylineStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
-//    TPZSymetricSpStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
     TPZStepSolver<STATE> step;
     int numofThreads = 2;
     strmat.SetNumThreads(numofThreads);
@@ -263,26 +193,21 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
     
 }
 
-void TRMOrchestra::OneStepMonolithicAnalysis(){
-    
-    fMonolithicMultiphaseAnalysis->ExcecuteOneStep();
-    
-
-}
-
-void TRMOrchestra::PostProMonolithicAnalysis(){
-    
-    fMonolithicMultiphaseAnalysis->PostProcessStep();
-    
-}
-
 /** @brief Run the time steps set in the simulation data */
 void TRMOrchestra::RunSimulation(){
     
     int n = fSimulationData->n_steps();
     for (int i = 0; i < n; i++) {
-        this->OneStepMonolithicAnalysis();
-        this->PostProMonolithicAnalysis();
+        if (IsMonolithicQ()) {
+            fMonolithicMultiphaseAnalysis->ExcecuteOneStep();
+            fMonolithicMultiphaseAnalysis->PostProcessStep();
+        }
+        
+        if (IsSegregatedQ()) {
+            fFluxPressureAnalysis->ExcecuteOneStep();
+            fFluxPressureAnalysis->PostProcessStep();
+        }
+
     }
 }
 
@@ -565,7 +490,7 @@ void TRMOrchestra::CreateAnalysisDual(){
 
 /** @brief Create computational meshes using space odissey */
 void TRMOrchestra::CreateCompMeshes(){
-    
+    DebugStop();
 }
 
 

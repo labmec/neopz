@@ -69,6 +69,9 @@ TRMRawData::TRMRawData()
     /** @brief phases = {alpha, beta, gamma} */
     fPhases.resize(0);
     
+    /** @brief Porperties map */    
+    fMap = NULL;
+    
 }
 
 TRMRawData::~TRMRawData()
@@ -94,6 +97,10 @@ void TRMRawData::WaterReservoirBox(){
     fSystemType.Push("Water");
     fPhases.Push(water);
     int n_data = fSystemType.size();
+    
+    int map_model = 0; // constant
+    fMap = new TRMSpatialPropertiesMap;
+    fMap->SetMapModel(map_model);
 
     // Time control parameters
     REAL hour       = 3600.0;
@@ -105,7 +112,7 @@ void TRMRawData::WaterReservoirBox(){
     fdt_down = 1.0;
 
     // Numeric controls
-    fn_corrections = 3;
+    fn_corrections = 2;
     fepsilon_res = 0.001;
     fepsilon_cor = 0.001;
     
@@ -177,14 +184,14 @@ void TRMRawData::WaterReservoirBox(){
 
 void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP)
 {
-    REAL p = 1.0;//1.0342e+7; // 1500 psi
+    REAL p = 1.0342e+7; // 1500 psi
     P[0] = p;
     return;
 }
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL f = -1.0;
+    REAL f = -0.001;
     F[0] = f;
     return;
 }

@@ -62,6 +62,9 @@ TRMSimulationData::TRMSimulationData(){
     
     /** @brief phase gamma */
     fPhase_gamma = NULL;
+
+    /** @brief Stores the spatial information given in maps */
+    fMap = NULL;
     
 }
 
@@ -73,6 +76,7 @@ TRMSimulationData::~TRMSimulationData(){
 /** @brief Set autopointer of the RawData */
 void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     fRawData = RawData;
+    SetMap(RawData->fMap);
     SetSystemType(RawData->fSystemType,RawData->fPhases);
     SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_up);
     SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor);

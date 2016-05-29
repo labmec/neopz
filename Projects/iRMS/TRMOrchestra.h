@@ -55,6 +55,14 @@ private:
     /** @brief Define the oil transpor equation analysis */
     TPZAutoPointer<TRMTransportAnalysis> fOilTransportAnalysis;
     
+    /** @brief Define the use of monolithic analysis  */
+    bool fIsMonolithicQ;
+    
+    /** @brief Define the use of segregated analysis */
+    bool fIsSegregatedQ;
+
+    /** @brief Define the use of segregated with GC plus projection analysis */
+    bool fIsSegregatedwithCGQ;
     
 protected:
     
@@ -177,6 +185,38 @@ public:
         return fOilTransportAnalysis;
     }
     
+    
+    /** @brief Set the use of monolithic analysis  */
+    void SetMonolithicQ(bool IsMonolithicQ){
+        fIsMonolithicQ = IsMonolithicQ;
+    }
+    
+    /** @brief Get the use of monolithic analysis  */
+    bool IsMonolithicQ(){
+        return fIsMonolithicQ;
+    }
+    
+    /** @brief Set the use of segregated analysis  */
+    void SetSegregatedQ(bool IsSegregatedQ){
+        fIsSegregatedQ = IsSegregatedQ;
+    }
+    
+    /** @brief Get the use of segregated analysis  */
+    bool IsSegregatedQ(){
+        return fIsSegregatedQ;
+    }
+
+    /** @brief Set the use of segregated with GC plus projection analysis  */
+    void SetSegregatedwithCGQ(bool IsSegregatedwithCGQ){
+        fIsSegregatedwithCGQ = IsSegregatedwithCGQ;
+    }
+    
+    /** @brief Get the use of segregated with GC plus projection analysis  */
+    bool IsSegregatedwithCGQ(){
+        return fIsSegregatedwithCGQ;
+    }
+
+    
     // @}
     
     /**
@@ -199,12 +239,6 @@ public:
     
     /** @brief Create a monolithic dual analysis on box geometry using space odissey */
     void CreateMonolithicAnalysis();
-    
-    /** @brief Create a monolithic dual analysis on box geometry using space odissey */
-    void OneStepMonolithicAnalysis();
-    
-    /** @brief Create a monolithic dual analysis on box geometry using space odissey */
-    void PostProMonolithicAnalysis();
     
     /** @brief Run the time steps set in the simulation data */
     void RunSimulation();

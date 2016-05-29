@@ -374,17 +374,26 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     // Getting linear combinations from different approximation spaces
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
-    REAL                 P      = datavec[Pblock].sol[0][0];
+    REAL                 p      = datavec[Pblock].sol[0][0];
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];
     TPZFNMatrix<660> GradP;
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
-    TPZFMatrix<STATE> KInverse(3,3,0.0);
     
-    KInverse(0,0) = 1.0;
-    KInverse(1,1) = 1.0;
-    KInverse(2,2) = 1.0;
+    
+    int nvars = 4;
+    TPZManVector<STATE, 10> v(nvars);
+    v[0] = p;
+    
+    // Fluid parameters
+    TPZManVector<STATE, 10> rho,mu;
+    fSimulationData->AlphaProp()->Density(rho, v);
+    fSimulationData->AlphaProp()->Viscosity(mu, v);
+    
+    // Rock parameters
+    TPZFMatrix<STATE> K,KInverse;
+    fSimulationData->Map()->Kappa(datavec[ublock].x, K, KInverse, v);
     
     
     
@@ -392,9 +401,9 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZFMatrix<STATE> oneoverlambda_Kinv_u(3,1);
     TPZFMatrix<STATE> oneoverlambda_Kinv_jphiuHdiv(3,1);
     
-    oneoverlambda_Kinv_u(0,0) = (1.0/1.0)* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1] + KInverse(0,2)*u[2]);
-    oneoverlambda_Kinv_u(1,0) = (1.0/1.0)* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1] + KInverse(1,2)*u[2]);
-    oneoverlambda_Kinv_u(2,0) = (1.0/1.0)* (KInverse(2,0)*u[0] + KInverse(2,1)*u[1] + KInverse(2,2)*u[2]);
+    oneoverlambda_Kinv_u(0,0) = (mu[0]/rho[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1] + KInverse(0,2)*u[2]);
+    oneoverlambda_Kinv_u(1,0) = (mu[0]/rho[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1] + KInverse(1,2)*u[2]);
+    oneoverlambda_Kinv_u(2,0) = (mu[0]/rho[0])* (KInverse(2,0)*u[0] + KInverse(2,1)*u[1] + KInverse(2,2)*u[2]);
     
     
     TPZFMatrix<STATE> iphiuHdiv(3,1);
@@ -417,7 +426,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         iphiuHdiv(2,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(2,ivectorindex);
         
         ef(iq + iniu) += weight * ((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0) + oneoverlambda_Kinv_u(2,0)*iphiuHdiv(2,0)));
-        ef(iq + iniu) += weight/JacobianDet *(-P) * DivergenceOnMaster(iq,0);
+        ef(iq + iniu) += weight/JacobianDet *(-p) * DivergenceOnMaster(iq,0);
         
         // du/dalphau terms
         for (int jq = 0; jq < nphiuHdiv; jq++)
@@ -496,7 +505,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     // Getting linear combinations from different approximation spaces
     TPZManVector<REAL,3> u      = datavec[ublock].sol[0];
-    REAL P              = datavec[Pblock].sol[0][0];
+    REAL p              = datavec[Pblock].sol[0][0];
     
     // Get the pressure at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
@@ -510,20 +519,26 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZAxesTools<REAL>::Axes2XYZ(GradPaxes, GradP, datavec[Pblock].axes);
     
     
-    // Rock and fluids parameters
-    TPZFMatrix<STATE> KInverse(3,3,0.0);
-    KInverse(0,0) = 1.0;
-    KInverse(1,1) = 1.0;
-    KInverse(2,2) = 1.0;
+    int nvars = 4;
+    TPZManVector<STATE, 10> v(nvars);
+    v[0] = p;
+
+    // Fluid parameters
+    TPZManVector<STATE, 10> rho,mu;
+    fSimulationData->AlphaProp()->Density(rho, v);
+    fSimulationData->AlphaProp()->Viscosity(mu, v);
     
+    // Rock parameters
+    TPZFMatrix<STATE> K,KInverse;
+    fSimulationData->Map()->Kappa(datavec[ublock].x, K, KInverse, v);
     
     // Defining local variables
     TPZFNMatrix<3,STATE> oneoverlambda_Kinv_u(3,1);
     TPZFNMatrix<3,STATE> Gravity(3,1);
     
-    oneoverlambda_Kinv_u(0,0) = (1.0/1.0)* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1] + KInverse(0,2)*u[2]);
-    oneoverlambda_Kinv_u(1,0) = (1.0/1.0)* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1] + KInverse(1,2)*u[2]);
-    oneoverlambda_Kinv_u(2,0) = (1.0/1.0)* (KInverse(2,0)*u[0] + KInverse(2,1)*u[1] + KInverse(2,2)*u[2]);
+    oneoverlambda_Kinv_u(0,0) = (mu[0]/rho[0])* (KInverse(0,0)*u[0] + KInverse(0,1)*u[1] + KInverse(0,2)*u[2]);
+    oneoverlambda_Kinv_u(1,0) = (mu[0]/rho[0])* (KInverse(1,0)*u[0] + KInverse(1,1)*u[1] + KInverse(1,2)*u[2]);
+    oneoverlambda_Kinv_u(2,0) = (mu[0]/rho[0])* (KInverse(2,0)*u[0] + KInverse(2,1)*u[1] + KInverse(2,2)*u[2]);
     
     Gravity(0,0) = -0.0;
     Gravity(1,0) = -0.0;
@@ -547,7 +562,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         iphiuHdiv(2,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(2,ivectorindex);
         
         ef(iq + iniu) += weight * ((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0) + oneoverlambda_Kinv_u(2,0)*iphiuHdiv(2,0)));
-        ef(iq + iniu) += weight/JacobianDet *(-P) * DivergenceOnMaster(iq,0);
+        ef(iq + iniu) += weight/JacobianDet *(-p) * DivergenceOnMaster(iq,0);
         
     }
     

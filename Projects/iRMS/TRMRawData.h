@@ -15,6 +15,7 @@
 #include "pzfunction.h"
 
 #include "TRMPhaseProperties.h"
+#include "TRMSpatialPropertiesMap.h"
 #include "TRMWaterPhase.h"
 #include "TRMOilPhase.h"
 #include "TRMGasPhase.h"
@@ -53,6 +54,9 @@ public:
     REAL fReservoirHeight;
     REAL fProdVertPosition;
     REAL fWellDiam;
+    
+    /** @brief Porperties map */
+    TPZAutoPointer<TRMSpatialPropertiesMap> fMap;
     
     /** @brief vector that stores all material ids associated with omega domain */
     TPZStack< int > fOmegaIds;
