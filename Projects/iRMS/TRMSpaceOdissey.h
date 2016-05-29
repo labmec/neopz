@@ -83,6 +83,19 @@ public:
     /** @brief Default constructor */
     TRMSpaceOdissey();
     
+    /** @brief Default constructor */
+    TRMSpaceOdissey(const TRMSpaceOdissey &copy)
+    {
+        DebugStop();
+    }
+    
+    /** @brief Default constructor */
+    TRMSpaceOdissey &operator=(const TRMSpaceOdissey &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /** @brief Default desconstructor */
     ~TRMSpaceOdissey();
     

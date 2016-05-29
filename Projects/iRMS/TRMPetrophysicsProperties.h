@@ -26,6 +26,17 @@ public:
     
     ~TRMPetrophysicsProperties();
     
+    TRMPetrophysicsProperties(const TRMPetrophysicsProperties &copy)
+    {
+        DebugStop();
+    }
+    
+    TRMPetrophysicsProperties &operator=(const TRMPetrophysicsProperties &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     // Capillary Pressure models
     
     /** @brief Oil-Water Capillary Pressure - Pa $P_{cow}$ */

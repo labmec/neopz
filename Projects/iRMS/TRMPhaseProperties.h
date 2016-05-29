@@ -50,6 +50,19 @@ public:
     /** @brief default constructor */
     TRMPhaseProperties();
     
+    /** @brief default constructor */
+    TRMPhaseProperties(TRMPhaseProperties &copy)
+    {
+        DebugStop();
+    }
+    
+    /** @brief default constructor */
+    TRMPhaseProperties &operator=(TRMPhaseProperties &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /** @brief default destructor */
     ~TRMPhaseProperties();
 

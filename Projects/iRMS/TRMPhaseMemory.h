@@ -29,6 +29,19 @@ class TRMPhaseMemory
 
 public:
 
+    TRMPhaseMemory()
+    {
+        DebugStop();
+    }
+    TRMPhaseMemory(const TRMPhaseMemory &copy)
+    {
+        DebugStop();
+    }
+    TRMPhaseMemory &operator=(const TRMPhaseMemory &copy)
+    {
+        DebugStop();
+        return *this;
+    }
 // Note describe this class into the lyx doc
 void UpdateSolutionMemory()
 {

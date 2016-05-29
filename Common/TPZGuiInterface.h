@@ -8,7 +8,7 @@
 #define TPZGuiInterfaceH
 
 #include <iostream>
-#include "pzerror.h"
+#include "pzreal.h"
 /**
  * @ingroup common
  * @brief This class implements a very simple interface from PZ kernel to GUI. Module: \ref common "Common".

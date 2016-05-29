@@ -52,6 +52,18 @@ public:
     /** @brief default desconstructor  */    
     ~TRMMonolithicMultiphaseAnalysis();
     
+    /** @brief default constructor  */
+    TRMMonolithicMultiphaseAnalysis(const TRMMonolithicMultiphaseAnalysis &copy)
+    {
+        DebugStop();
+    }
+    
+    /** @brief default constructor  */
+    TRMMonolithicMultiphaseAnalysis &operator=(const TRMMonolithicMultiphaseAnalysis &copy)
+    {
+        DebugStop();
+        return *this;
+    }
     
     /**
      * @defgroup Access Methods

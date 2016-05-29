@@ -30,6 +30,22 @@ class TRMPhaseInterfaceMemory
 
 public:
 
+    TRMPhaseInterfaceMemory()
+    {
+        DebugStop();
+    }
+
+    TRMPhaseInterfaceMemory(const TRMPhaseInterfaceMemory &copy)
+    {
+        DebugStop();
+    }
+    
+    TRMPhaseInterfaceMemory &operator=(const TRMPhaseInterfaceMemory &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
 // Note describe this class into the lyx doc
 void UpdateSolutionMemory()
 {

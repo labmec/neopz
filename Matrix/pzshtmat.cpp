@@ -4,7 +4,7 @@
  */
 
 #include "pzshtmat.h"
-#include "pzerror.h"
+#include "pzreal.h"
 
 using namespace std;
 

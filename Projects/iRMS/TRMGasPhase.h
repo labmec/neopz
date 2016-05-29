@@ -22,6 +22,17 @@ public:
     /** @brief default destructor */
     ~TRMGasPhase();
     
+    TRMGasPhase(const TRMGasPhase &copy)
+    {
+        DebugStop();
+    }
+    
+    TRMGasPhase &operator=(const TRMGasPhase &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /** @brief Density - kg/m3  $\rho$ */
     void Density(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars);
     

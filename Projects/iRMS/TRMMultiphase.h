@@ -41,6 +41,13 @@ public:
     /** @brief Constructor based on a TRMMultiphase object */
     TRMMultiphase(const TRMMultiphase &mat);
     
+    /** @brief Constructor based on a TRMMultiphase object */
+    TRMMultiphase &operator=(const TRMMultiphase &mat)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /** @brief Default destructor */
     ~TRMMultiphase();
     

@@ -69,6 +69,19 @@ public:
     /** @brief Default desconstructor */
     ~TRMOrchestra();
     
+    /** @brief Default constructor */
+    TRMOrchestra(const TRMOrchestra &copy)
+    {
+        DebugStop();
+    }
+    
+    /** @brief Default constructor */
+    TRMOrchestra &operator=(const TRMOrchestra &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /**
      * @defgroup Access Methods
      * @brief    Implements Access methods:

@@ -59,7 +59,7 @@ class TRMMemory {
     STATE fporosity;
 
     /** @brief Absolute permeability */
-    TPZFNMatrix<9,REAL> K;
+    TPZFNMatrix<9,REAL> fK;
     
     /** @brief Integration weight */
     STATE fw;
@@ -84,6 +84,57 @@ public:
     /** @brief Default destructor */
     ~TRMMemory();
     
+    TRMMemory(const TRMMemory &copy)
+    {
+        DebugStop();
+    }
+    
+    TRMMemory &operator=(const TRMMemory &cp)
+    {
+        /** @brief Total flux */
+        fu = cp.fu;
+        
+        /** @brief Total flux at the previous timestep */
+        fu_n = cp.fu_n;
+        
+        /** @brief Total flux divergence */
+        fdivu = cp.fdivu;
+        
+        /** @brief Total flux divergence at the previous timestep */
+        fdivu_n = cp.fdivu_n;
+        
+        /** @brief Weighted Pressure */
+        fPressure = cp.fPressure;
+        
+        /** @brief Weighted Pressure at the previous timestep */
+        fPressure_n = cp.fPressure_n;
+        
+        /** @brief Water Saturation */
+        fSw = cp.fSw;
+        
+        /** @brief Water saturation at the previous timestep */
+        fSw_n = cp.fSw_n;
+        
+        /** @brief Rock Porosity */
+        fporosity = cp.fporosity;
+        
+        /** @brief Absolute permeability */
+        fK = cp.fK;
+        
+        /** @brief Integration weight */
+        fw = cp.fw;
+        
+        /** @brief Jacobian det */
+        fdet = cp.fdet;
+        
+        /** @brief Right hand side */
+        frhs = cp.frhs;
+        
+        /** @brief Spatial coordinate */
+        fx = cp.fx;
+        
+        return *this;
+    }
 
     void UpdateSolutionMemory()
     {

@@ -19,6 +19,19 @@ public:
     /** @brief default constructor */
     TRMWaterPhase();
     
+    /** @brief default constructor */
+    TRMWaterPhase(const TRMWaterPhase &copy)
+    {
+        DebugStop();
+    }
+    
+    /** @brief default constructor */
+    TRMWaterPhase &operator=(const TRMWaterPhase &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /** @brief default destructor */
     ~TRMWaterPhase();
     

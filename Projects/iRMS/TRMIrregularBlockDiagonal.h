@@ -42,7 +42,14 @@ public:
     TRMIrregularBlockDiagonal (TPZVec< std::pair<long, long> > &blocksizes);
     /** @brief Copy constructor */
     TRMIrregularBlockDiagonal (const TRMIrregularBlockDiagonal & );
-    
+
+    /** @brief Copy constructor */
+    TRMIrregularBlockDiagonal &operator=(const TRMIrregularBlockDiagonal & copy)
+    {
+        DebugStop();
+        return *this;
+    }
+
     CLONEDEF(TRMIrregularBlockDiagonal)
     /** @brief Simple destructor */
     ~TRMIrregularBlockDiagonal();

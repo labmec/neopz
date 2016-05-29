@@ -16,13 +16,15 @@
 /** @brief Default constructor */
 TRMBuildTransfers::TRMBuildTransfers(){
     
-    fSimulationData == NULL;
+    fSimulationData = NULL;
 
 }
 
 /** @brief Default desconstructor */
 TRMBuildTransfers::~TRMBuildTransfers(){
-
+#ifdef PZDEBUG
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+#endif
 }
 
 void TRMBuildTransfers::CreateTransferFlux_To_Mixed_V(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &Ax, TPZVec<STATE> &Ay, TPZVec<STATE> &Az, TPZVec<STATE> &Ad){
@@ -555,6 +557,7 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
     }
 #endif
     
+    
     long nel = cmesh_multiphysics->NElements();
     //int n_data = 1; // scalar
     mesh_index = 0;
@@ -572,11 +575,11 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
     //int n_int_points = material_memory.NElements();
     
     // Compute destination index scatter by element (Omega and Gamma)
-    TPZManVector< TPZVec<long>, 1000000 > dof_scatter(nel);
+    TPZManVector< TPZVec<long> > dof_scatter(nel);
     
     // Block size structue including (Omega and Gamma)
     TPZVec< std::pair<long, long> > blocks_dimensions(nel);
-    
+    /*
     for (long icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = cmesh_multiphysics->Element(icel);
@@ -706,6 +709,7 @@ void TRMBuildTransfers::ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZComp
     }
     
 //    fTransferPressure_To_Mixed_V.SetData(IA, JA, A);
+     */
 }
 
 void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * intel, TPZVec<long> &dof_indexes){

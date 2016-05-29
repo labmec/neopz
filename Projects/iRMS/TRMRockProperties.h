@@ -19,6 +19,19 @@ public:
     /** @brief Default constructor */
     TRMRockProperties();
 
+    /** @brief Default constructor */
+    TRMRockProperties(const TRMRockProperties &copy)
+    {
+        DebugStop();
+    }
+    
+    /** @brief Default constructor */
+    TRMRockProperties &operator=(const TRMRockProperties &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /** @brief Default destructor */
     ~TRMRockProperties();
     

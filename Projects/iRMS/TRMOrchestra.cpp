@@ -129,7 +129,12 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 #endif
     
     fSpaceGenerator->SetSimulationData(fSimulationData);
-    fSpaceGenerator->TransferGenerator()->ComputeTransferPressure_To_Mixed(Cmesh.operator->(), Pres);
+    if(!Cmesh)
+    {
+        DebugStop();
+    }
+    
+    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
 
     
 //    // Tranfer Flux to Integration Poins of mixed system.

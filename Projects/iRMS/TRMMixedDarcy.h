@@ -49,6 +49,12 @@ public:
      */
     TRMMixedDarcy(const TRMMixedDarcy &mat);
     
+    TRMMixedDarcy &operator=(const TRMMixedDarcy &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /**
      * Destructor
      */

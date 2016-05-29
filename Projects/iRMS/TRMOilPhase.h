@@ -19,6 +19,20 @@ public:
     /** @brief default constructor */
     TRMOilPhase();
     
+    /** @brief default constructor */
+    TRMOilPhase(const TRMOilPhase &copy)
+    {
+        DebugStop();
+    }
+    
+    /** @brief default constructor */
+    TRMOilPhase &operator=(const TRMOilPhase &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
+
     /** @brief default destructor */
     ~TRMOilPhase();
     

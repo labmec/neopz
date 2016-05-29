@@ -34,7 +34,18 @@ public:
     TRMBuildTransfers();
     
     /** @brief Default desconstructor */
-    ~TRMBuildTransfers();
+    virtual ~TRMBuildTransfers();
+    
+    TRMBuildTransfers(const TRMBuildTransfers &copy)
+    {
+        DebugStop();
+    }
+    
+    TRMBuildTransfers &operator=(const TRMBuildTransfers &copy)
+    {
+        DebugStop();
+        return *this;
+    }
 
     /**
      * @defgroup Do the transfers
@@ -79,7 +90,7 @@ public:
     void CreateTransferFlux_To_Mixed_S(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index, TPZVec<long> &IA, TPZVec<long> &JA, TPZVec<STATE> &Ax, TPZVec<STATE> &Ay, TPZVec<STATE> &Az,  TPZVec<STATE> &Ad);
     
     /** @brief Compute the sparse matrix to transfer Pressure to multiphysics mesh  */
-    void ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    virtual void ComputeTransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
     
     /** @brief Compute the sparse matrix to transfer the total flux to multiphysics mesh  */
     void ComputeTransferFlux_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);

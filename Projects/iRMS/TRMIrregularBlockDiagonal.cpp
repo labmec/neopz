@@ -15,6 +15,8 @@ static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 
 using namespace std;
 
+
+
 template<class TVar>
 void TRMIrregularBlockDiagonal<TVar>::AddBlock(long i, TPZFMatrix<TVar> &block){
     

@@ -36,6 +36,15 @@ public:
      */
     TRMPhaseInterfaceTransport(const TRMPhaseInterfaceTransport &mat);
     
+    /** Creates a material object based on the referred object and
+     *  inserts it in the vector of material pointers of the mesh.
+     */
+    TRMPhaseInterfaceTransport &operator=(const TRMPhaseInterfaceTransport &mat)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /**
      * Destructor
      */

@@ -37,7 +37,7 @@ int main()
     TPZMaterial::gBigNumber = 1.0e12;
     // Running primal problem
 //    LinearTracerPrimal();
-
+    
     // Running dual problem on box shape
     BoxLinearTracerDual();
     
@@ -75,6 +75,7 @@ void BoxLinearTracerDual()
     
     TPZAutoPointer<TRMSimulationData> SimData = new TRMSimulationData;
     SimData->SetRawData(RawData);
+    
     
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);

@@ -27,6 +27,15 @@ struct StructMioloData
 public:
     
     StructMioloData();
+    StructMioloData(const StructMioloData &copy)
+    {
+        DebugStop();
+    }
+    StructMioloData &operator=(const StructMioloData &copy)
+    {
+        DebugStop();
+        return *this;
+    }
     ~StructMioloData(){}
     
     /// largura do miolo (dimensao em planta na direcao X
@@ -119,6 +128,15 @@ private:
 public:
     
     TRMSimworxMeshGenerator();
+    TRMSimworxMeshGenerator(const TRMSimworxMeshGenerator &copy)
+    {
+        DebugStop();
+    }
+    TRMSimworxMeshGenerator &operator=(const TRMSimworxMeshGenerator &copy)
+    {
+        DebugStop();
+        return *this;
+    }
     ~TRMSimworxMeshGenerator();
     
     TPZGeoEl * CreateBCGeoBlendEl(TPZGeoEl *orig, int side, int bc);

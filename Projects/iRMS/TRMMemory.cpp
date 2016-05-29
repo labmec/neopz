@@ -23,9 +23,9 @@ TRMMemory::TRMMemory(){
     fSw_n               = 0.0;
     fporosity           = 0.0;
     
-    K.Resize(3,3);
-    K.Zero();
-    K.Identity();
+    fK.Resize(3,3);
+    fK.Zero();
+    fK.Identity();
     
     fx.Resize(3,0.0);
     fw = 0.0;

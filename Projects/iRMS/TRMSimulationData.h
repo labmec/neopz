@@ -101,6 +101,19 @@ public:
     /** @brief default constructor */
     TRMSimulationData();
     
+    /** @brief default constructor */
+    TRMSimulationData(const TRMSimulationData &copy)
+    {
+        DebugStop();
+    }
+    
+    /** @brief default constructor */
+    TRMSimulationData &operator=(const TRMSimulationData &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /** @brief destructor */
     ~TRMSimulationData();
     

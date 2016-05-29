@@ -26,6 +26,19 @@ public:
     /** @brief default constructor */
     TRMRawData();
 
+    /** @brief default constructor */
+    TRMRawData(const TRMRawData &copy)
+    {
+        DebugStop();
+    }
+    
+    /** @brief default constructor */
+    TRMRawData &operator=(const TRMRawData &copy)
+    {
+        DebugStop();
+        return *this;
+    }
+    
     /** @brief default destructor */
     ~TRMRawData();
     
