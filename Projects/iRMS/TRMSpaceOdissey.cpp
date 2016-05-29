@@ -62,7 +62,7 @@ TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
     fMixedFluxPressureCmesh     = NULL;
     fPressureSaturationCmesh    = NULL;
     fMonolithicMultiphaseCmesh  = NULL;
-    fTransferGenerator          = new TRMBuildTransfers;
+//    fTransferGenerator          = new TRMBuildTransfers;
     
 }
 

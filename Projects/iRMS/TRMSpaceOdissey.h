@@ -73,8 +73,8 @@ private:
     /** @brief Computational mesh for multiphase monolithic approach */
     TPZAutoPointer<TPZCompMesh> fMonolithicMultiphaseCmesh;
     
-    /** @brief Object that generates and contains all the sparse matrices to transfer informations */
-    TPZAutoPointer<TRMBuildTransfers> fTransferGenerator;
+//    /** @brief Object that generates and contains all the sparse matrices to transfer informations */
+//    TPZAutoPointer<TRMBuildTransfers> fTransferGenerator;
     
     void ModifyElementOrders(std::map<long,int> &elorders);
 
@@ -277,15 +277,15 @@ public:
         return fMonolithicMultiphaseCmesh;
     }
     
-    /** @brief Set autopointer of Object that generates and contains all the sparse matrices to transfer informations */
-    void SetTransferGenerator(TPZAutoPointer<TRMBuildTransfers> &TransferGenerator){
-        fTransferGenerator = TransferGenerator;
-    }
-    
-    /** @brief Get autopointer of Object that generates and contains all the sparse matrices to transfer informations */
-    TPZAutoPointer<TRMBuildTransfers>  TransferGenerator(){
-        return fTransferGenerator;
-    }
+//    /** @brief Set autopointer of Object that generates and contains all the sparse matrices to transfer informations */
+//    void SetTransferGenerator(TPZAutoPointer<TRMBuildTransfers> &TransferGenerator){
+//        fTransferGenerator = TransferGenerator;
+//    }
+//    
+//    /** @brief Get autopointer of Object that generates and contains all the sparse matrices to transfer informations */
+//    TPZAutoPointer<TRMBuildTransfers>  TransferGenerator(){
+//        return fTransferGenerator;
+//    }
     
     
     // @}

@@ -48,6 +48,13 @@ void TRMIrregularBlockDiagonal<TVar>::SetBlock(long i, TPZFMatrix<TVar> &block){
 }
 
 template<class TVar>
+void TRMIrregularBlockDiagonal<TVar>::SetBlockSize(long i, std::pair<long, long> &block_size){
+
+    fBlockSize[i].first = block_size.first;
+    fBlockSize[i].second = block_size.second;
+}
+
+template<class TVar>
 void TRMIrregularBlockDiagonal<TVar>::GetBlock(long i, TPZFMatrix<TVar> &block){
 
     long firstpos = fBlockPos[i];
@@ -83,7 +90,7 @@ void TRMIrregularBlockDiagonal<TVar>::Initialize(TPZVec< std::pair<long, long> >
     for(b=0; b<nblock; b++) {
         b_isize = blocksize[b].first;
         b_jsize = blocksize[b].second;
-        fBlockPos[b+1] = fBlockPos[b]+b_isize*b_isize;
+        fBlockPos[b+1] = fBlockPos[b]+b_isize*b_jsize;
         ndata += b_isize*b_jsize;
         nr += b_isize;
         nc += b_jsize;
@@ -102,6 +109,21 @@ void TRMIrregularBlockDiagonal<TVar>::Initialize(TPZVec< std::pair<long, long> >
     this->fDecomposed = 0;
     this->fRow = nr;
     this->fCol = nc;
+}
+
+template<class TVar>
+void TRMIrregularBlockDiagonal<TVar>::Initialize(long nblock){
+
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Number of blocks \t" << nblock;
+        LOGPZ_DEBUG(logger,sout.str());
+    }
+#endif
+    fBlockSize.Resize(nblock);
+    fBlockPos.Resize(nblock,0);
 }
 
 template<class TVar>
@@ -350,9 +372,9 @@ void TRMIrregularBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TP
     // Computes z = beta * y + alpha * opt(this)*x
     //          z and x cannot overlap in memory
     
-    if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
+    if ((!opt && this->Cols() != x.Rows()) /*|| this->Rows() != x.Rows()*/)
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TRMIrregularBlockDiagonal::MultAdd <matrixs with incompatible dimensions>" );
-    if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
+    if(x.Cols() != y.Cols() || x.Cols() != z.Cols() /*|| x.Rows() != y.Rows() || x.Rows() != z.Rows()*/) {
         TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TRMIrregularBlockDiagonal::MultAdd incompatible dimensions\n");
     }
     
@@ -591,8 +613,8 @@ void TRMIrregularBlockDiagonal<TVar>::Print(const char *msg, std::ostream &out, 
         out << "block number " << b << " size : " << b_isize << " x " << b_jsize << std::endl;
         long r,c;
         pos = fBlockPos[b];
-        for(c=0; c<b_isize; c++) {
-            for(r=0; r<b_jsize ; r++) {
+        for(r=0; r<b_isize ; r++) {
+            for(c=0; c<b_jsize; c++) {
                 out << fStorage[pos+r+b_isize*c] << ' ';
             }
             out << std::endl;

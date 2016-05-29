@@ -148,7 +148,7 @@ public:
      */
     
     /** @brief Set the total flux */
-    void SetTotal_Flux(TPZManVector<STATE> u){
+    void SetTotal_Flux(TPZManVector<STATE> &u){
         fu = u;
     }
     
@@ -158,7 +158,7 @@ public:
     }
     
     /** @brief Set the total flux at the previous timestep */
-    void SetTotal_Flux_n(TPZManVector<STATE> u_n){
+    void SetTotal_Flux_n(TPZManVector<STATE> &u_n){
         fu_n = u_n;
     }
     

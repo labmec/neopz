@@ -108,46 +108,20 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     fSpaceGenerator->CreatePressureCmesh();
     fSpaceGenerator->CreateMixedCmesh();
     
-    
-
-    
     // transfer the solution from the meshes to the multiphysics mesh
     TPZManVector<TPZAutoPointer<TPZCompMesh>, 3 > meshvec(2);
     int flux    = 0;
-    int Pres    = 1;
+    int pres    = 1;
     meshvec[flux] = fSpaceGenerator->FluxCmesh();
-    meshvec[Pres] = fSpaceGenerator->PressureCmesh();
+    meshvec[pres] = fSpaceGenerator->PressureCmesh();
     TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator->MixedFluxPressureCmesh();
     
      // Transfer object
-    TPZAutoPointer<TRMBuildTransfers> transfer = fSpaceGenerator->TransferGenerator();
+    TPZAutoPointer<TRMBuildTransfers> transfer = new TRMBuildTransfers;
     transfer->SetSimulationData(fSimulationData);
-
-#ifdef PZDEBUG
-    std::ofstream out("CmeshMixed2.txt");
-    Cmesh->Print(out);
-#endif
     
-    fSpaceGenerator->SetSimulationData(fSimulationData);
-    if(!Cmesh)
-    {
-        DebugStop();
-    }
-    
-    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
-
-    
-//    // Tranfer Flux to Integration Poins of mixed system.
-//    transfer->ComputeTransferFlux_To_Mixed(Cmesh, flux);
-
-    // Tranfer Pressure to Integration Poins of mixed system.
-//    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
-
-//    // Tranfer Water Saturation to Integration Poins of water transport.
-//    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
-//
-//    // Tranfer Oil Saturation to Integration Poins of oil transport.
-//    transfer->ComputeTransferPressure_To_Mixed(Cmesh, Pres);
+    transfer->Fill_u_To_Mixed(Cmesh, flux);
+    transfer->Fill_p_To_Mixed(Cmesh, pres);
     
     
     TPZFMatrix<STATE> vec_flux = meshvec[flux]->Solution();
@@ -157,17 +131,17 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     }
     meshvec[flux]->LoadSolution(vec_flux);
     
-    TPZFMatrix<STATE> vec_p = meshvec[Pres]->Solution();
+    TPZFMatrix<STATE> vec_p = meshvec[pres]->Solution();
     int np_equ = vec_p.Rows();
     for (int i = 0; i <  np_equ; i++) {
         vec_p(i,0) = rand();
     }
-    meshvec[Pres]->LoadSolution(vec_p);
-    
+    meshvec[pres]->LoadSolution(vec_p);
+
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
-    
-//    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
-//    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
+
+    transfer->Transfer_u_To_Mixed_Memory(fSpaceGenerator->FluxCmesh(), Cmesh);
+    transfer->Transfer_p_To_Mixed_Memory(fSpaceGenerator->PressureCmesh(), Cmesh);
     
     
     
@@ -200,7 +174,7 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     fFluxPressureAnalysis->AssembleResidual();
 //    TPZFMatrix<STATE> rhs_p = this->IntegrateResidue(Cmesh,fSpaceGenerator.GetFluxCmesh(), fSpaceGenerator.GetPressureMesh(), transfer); // Integrating Residue
     
-    fFluxPressureAnalysis->Rhs().Print("Traditional Rhs = ");
+//    fFluxPressureAnalysis->Rhs().Print("Traditional Rhs = ");
 //    rhs_p.Print("Pressure Rhs part = ");
     prevsol -= fFluxPressureAnalysis->Solution();
     Cmesh->LoadSolution(prevsol);
@@ -210,8 +184,8 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     std::cout << std::endl;
     std::cout << std::endl;
     
-//    transfer->TransferFlux_To_Mixed(fSpaceGenerator.GetFluxCmesh(), Cmesh);
-//    transfer->TransferPressure_To_Mixed(fSpaceGenerator.GetPressureMesh(), Cmesh);
+    transfer->Transfer_u_To_Mixed_Memory(fSpaceGenerator->FluxCmesh(), Cmesh);
+    transfer->Transfer_p_To_Mixed_Memory(fSpaceGenerator->PressureCmesh(), Cmesh);
     
     fFluxPressureAnalysis->AssembleResidual();
     fFluxPressureAnalysis->LoadSolution();
@@ -221,9 +195,9 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     int div = 1;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "DualDarcyOnBox.vtk";
-    scalnames.Push("WeightedPressure");
-    scalnames.Push("DivOfBulkVeclocity");
-    vecnames.Push("BulkVelocity");
+    scalnames.Push("p");
+    scalnames.Push("div_u");
+    vecnames.Push("u");
     scalnames.Push("AWeightedPressure");
     scalnames.Push("ADivOfBulkVeclocity");
     vecnames.Push("ABulkVelocity");
@@ -319,163 +293,163 @@ void TRMOrchestra::PostProcess(){
     
 }
 
-/** @brief Compute the system of equations using transfer matrixces */
-TPZFMatrix<STATE> TRMOrchestra::IntegrateResidue(TPZAutoPointer<TPZCompMesh> cmesh_multiphysics, TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer<TRMBuildTransfers> transfer){
-    
-    TPZFMatrix<STATE> rhs_flux(cmesh_flux->NEquations(),1,0.0);
-    TPZFMatrix<STATE> rhs_pressure(cmesh_pressure->NEquations(),1,0.0);
-    
-    // once we have
-    
-    TPZFMatrix<STATE> u_x_at_intpoints, u_y_at_intpoints, u_z_at_intpoints, divu_at_intpoints;
-    transfer->GetTransfer_X_Flux_To_Mixed_V().Multiply(cmesh_flux->Solution(), u_x_at_intpoints);
-    transfer->GetTransfer_Y_Flux_To_Mixed_V().Multiply(cmesh_flux->Solution(), u_y_at_intpoints);
-    transfer->GetTransfer_Z_Flux_To_Mixed_V().Multiply(cmesh_flux->Solution(), u_z_at_intpoints);
-    transfer->GetTransferDivergenceTo_Mixed_V().Multiply(cmesh_flux->Solution(),divu_at_intpoints);
-    
-    TPZFMatrix<STATE> p_at_intpoints;
-    transfer->GetTransferPressure_To_Mixed_V().Multiply(cmesh_pressure->Solution(), p_at_intpoints);
-
-    
-    // Integrate the volumetric forms
-//    transfer->GetTransfer_X_Flux_To_Mixed().Print("Flux_x = ");
-//    transfer->GetTransfer_Y_Flux_To_Mixed().Print("Flux_y = ");
-//    transfer->GetTransfer_Z_Flux_To_Mixed().Print("Flux_z = ");
-//    transfer->GetTransferPressure_To_Mixed().Print("Pressure = ");
-//    transfer->GetTransferDivergenceTo_Mixed().Print("DivFlux = ");
-//    transfer->GetJacobianDet_To_Mixed().Print("det = ");
-//    transfer->GetWeightsTo_Mixed().Print("w = ");
-//    transfer->GetRhs_To_Mixed().Print("Rhs = ");
-//    divu_at_intpoints.Print("Div u = ");
-    
-
-    
-    long nel = cmesh_multiphysics->NElements();
-    
-    // Getting the total integration point of the destination cmesh
-    TPZMaterial * material = cmesh_multiphysics->FindMaterial(_ReservMatId);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
-    TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
-
-    
-    int origin      = 1;
-//    int destination = 1;
-    int volumetric_elements = 0;
-    TPZCompMesh * cmesh_o;
-//    TPZCompMesh * cmesh_d;
-    int mesh_o_nequ = 0;
-    
-    for (long icel = 0; icel < nel; icel++) {
-        
-        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
-        if (!cel) {
-            DebugStop();
-        }
-        
-        //         TPZCondensedCompEl * mf_cel_condensed = dynamic_cast<TPZCondensedCompEl *> (cel);
-        //         if(!mf_cel_condensed){
-        //             DebugStop();
-        //         }
-        //        TPZCompEl * mf_cel_cond_ref = mf_cel_condensed->ReferenceCompEl();
-        
-        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
-        if(!mf_cel)
-        {
-            DebugStop();
-        }
-        
-        // Avoiding all materials that don't correspond to volumetric ones
-        if(mf_cel->Material()->Id() != _ReservMatId)
-        {
-            continue;
-        }
-        
-        TPZInterpolationSpace * intel_o = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(origin));
-//        TPZInterpolationSpace * intel_d = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(destination));
-        if (!intel_o /*|| !intel_d*/) {
-            DebugStop();
-        }
-        
-        volumetric_elements++;
-        cmesh_o = intel_o->Mesh();
-//        cmesh_d = intel_d->Mesh();
-        if (!cmesh_o /*|| !cmesh_d*/) {
-            DebugStop();
-        }
-        
-        mesh_o_nequ = cmesh_o->NEquations();
-        
-        // Computing the global integration points indexes
-        TPZManVector<long> globindexes;
-        mf_cel->GetMemoryIndices(globindexes);
-        
-        int nshapes = intel_o->NShapeF();
-        int npoints = globindexes.size();
-        
-
-        
-        // Computing the global dof indexes for pressure mesh
-        TPZManVector<long> pressure_dofs(nshapes);
-        
-        int nconnect = intel_o->NConnects();
-        int iphicount = 0;
-        // Compute all the phi values and push inside corresponding j-destination;
-        for (int icon = 0; icon < nconnect; icon++) {
-            TPZConnect  & con = intel_o->Connect(icon);
-            long seqnumber = con.SequenceNumber();
-            long position = cmesh_o->Block().Position(seqnumber);
-            int nconnectshape = con.NShape();
-            
-            for (int ish=0; ish < nconnectshape; ish++) {
-                long i_equ = position + ish;
-                // Computing the global dof for pressure mesh
-                pressure_dofs[iphicount] = i_equ;
-                iphicount++;
-            }
-            
-        }
-
-
-        TPZFMatrix<double> point_value_phi(npoints,1);
-        TPZFMatrix<double> point_value_det(npoints,1);
-        TPZFMatrix<double> point_value_w(npoints,1);
-        TPZFMatrix<double> point_value_divu(npoints,1);
-        TPZFMatrix<double> point_value_rhs(npoints,1);
-
-        TPZManVector<long> phi_index(1);
-        TPZManVector<long> el_index(1);
-        TPZManVector<long> unique_index(1,0);
-        
-        divu_at_intpoints.GetSub(globindexes, unique_index, point_value_divu);
-        
-        for (int iphi = 0; iphi < nshapes; iphi++) {
-            // Testing the volumetric forms of the weak statement
-            
-            long equ = pressure_dofs[iphi];
-            phi_index[0] = equ;
-            el_index[0] = volumetric_elements-1;
-            
-//            transfer->GetWeightsTo_Mixed().GetSub(globindexes, el_index, point_value_w);
-//            transfer->GetJacobianDet_To_Mixed().GetSub(globindexes, el_index, point_value_det);
-//            transfer->GetRhs_To_Mixed().GetSub(globindexes, el_index, point_value_rhs);
+///** @brief Compute the system of equations using transfer matrixces */
+//TPZFMatrix<STATE> TRMOrchestra::IntegrateResidue(TPZAutoPointer<TPZCompMesh> cmesh_multiphysics, TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer<TRMBuildTransfers> transfer){
+//    
+//    TPZFMatrix<STATE> rhs_flux(cmesh_flux->NEquations(),1,0.0);
+//    TPZFMatrix<STATE> rhs_pressure(cmesh_pressure->NEquations(),1,0.0);
+//    
+//    // once we have
+//    
+//    TPZFMatrix<STATE> u_x_at_intpoints, u_y_at_intpoints, u_z_at_intpoints, divu_at_intpoints;
+//    transfer->GetTransfer_X_Flux_To_Mixed_V().Multiply(cmesh_flux->Solution(), u_x_at_intpoints);
+//    transfer->GetTransfer_Y_Flux_To_Mixed_V().Multiply(cmesh_flux->Solution(), u_y_at_intpoints);
+//    transfer->GetTransfer_Z_Flux_To_Mixed_V().Multiply(cmesh_flux->Solution(), u_z_at_intpoints);
+//    transfer->GetTransferDivergenceTo_Mixed_V().Multiply(cmesh_flux->Solution(),divu_at_intpoints);
+//    
+//    TPZFMatrix<STATE> p_at_intpoints;
+//    transfer->GetTransferPressure_To_Mixed_V().Multiply(cmesh_pressure->Solution(), p_at_intpoints);
+//
+//    
+//    // Integrate the volumetric forms
+////    transfer->GetTransfer_X_Flux_To_Mixed().Print("Flux_x = ");
+////    transfer->GetTransfer_Y_Flux_To_Mixed().Print("Flux_y = ");
+////    transfer->GetTransfer_Z_Flux_To_Mixed().Print("Flux_z = ");
+////    transfer->GetTransferPressure_To_Mixed().Print("Pressure = ");
+////    transfer->GetTransferDivergenceTo_Mixed().Print("DivFlux = ");
+////    transfer->GetJacobianDet_To_Mixed().Print("det = ");
+////    transfer->GetWeightsTo_Mixed().Print("w = ");
+////    transfer->GetRhs_To_Mixed().Print("Rhs = ");
+////    divu_at_intpoints.Print("Div u = ");
+//    
+//
+//    
+//    long nel = cmesh_multiphysics->NElements();
+//    
+//    // Getting the total integration point of the destination cmesh
+//    TPZMaterial * material = cmesh_multiphysics->FindMaterial(_ReservMatId);
+//    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
+//    TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
+//
+//    
+//    int origin      = 1;
+////    int destination = 1;
+//    int volumetric_elements = 0;
+//    TPZCompMesh * cmesh_o;
+////    TPZCompMesh * cmesh_d;
+//    int mesh_o_nequ = 0;
+//    
+//    for (long icel = 0; icel < nel; icel++) {
+//        
+//        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
+//        if (!cel) {
+//            DebugStop();
+//        }
+//        
+//        //         TPZCondensedCompEl * mf_cel_condensed = dynamic_cast<TPZCondensedCompEl *> (cel);
+//        //         if(!mf_cel_condensed){
+//        //             DebugStop();
+//        //         }
+//        //        TPZCompEl * mf_cel_cond_ref = mf_cel_condensed->ReferenceCompEl();
+//        
+//        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+//        if(!mf_cel)
+//        {
+//            DebugStop();
+//        }
+//        
+//        // Avoiding all materials that don't correspond to volumetric ones
+//        if(mf_cel->Material()->Id() != _ReservMatId)
+//        {
+//            continue;
+//        }
+//        
+//        TPZInterpolationSpace * intel_o = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(origin));
+////        TPZInterpolationSpace * intel_d = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(destination));
+//        if (!intel_o /*|| !intel_d*/) {
+//            DebugStop();
+//        }
+//        
+//        volumetric_elements++;
+//        cmesh_o = intel_o->Mesh();
+////        cmesh_d = intel_d->Mesh();
+//        if (!cmesh_o /*|| !cmesh_d*/) {
+//            DebugStop();
+//        }
+//        
+//        mesh_o_nequ = cmesh_o->NEquations();
+//        
+//        // Computing the global integration points indexes
+//        TPZManVector<long> globindexes;
+//        mf_cel->GetMemoryIndices(globindexes);
+//        
+//        int nshapes = intel_o->NShapeF();
+//        int npoints = globindexes.size();
+//        
+//
+//        
+//        // Computing the global dof indexes for pressure mesh
+//        TPZManVector<long> pressure_dofs(nshapes);
+//        
+//        int nconnect = intel_o->NConnects();
+//        int iphicount = 0;
+//        // Compute all the phi values and push inside corresponding j-destination;
+//        for (int icon = 0; icon < nconnect; icon++) {
+//            TPZConnect  & con = intel_o->Connect(icon);
+//            long seqnumber = con.SequenceNumber();
+//            long position = cmesh_o->Block().Position(seqnumber);
+//            int nconnectshape = con.NShape();
 //            
-//            transfer->GetTransferPressure_To_Mixed().GetSub(globindexes,phi_index,point_value_phi);
-            
-            
-            STATE i_integral = 0.0;
-            for (int ip = 0; ip < npoints; ip++) {
-                i_integral += point_value_w(ip,0)*point_value_det(ip,0)*(- point_value_divu(ip,0)+ point_value_rhs(ip,0)) * point_value_phi(ip,0);
-            }
-            rhs_pressure(equ,0) += i_integral;
-        }
-        
-    }
-    
-    rhs_pressure.Print("rhs_pressure = ");
-    
-    return rhs_pressure;
-
-}
+//            for (int ish=0; ish < nconnectshape; ish++) {
+//                long i_equ = position + ish;
+//                // Computing the global dof for pressure mesh
+//                pressure_dofs[iphicount] = i_equ;
+//                iphicount++;
+//            }
+//            
+//        }
+//
+//
+//        TPZFMatrix<double> point_value_phi(npoints,1);
+//        TPZFMatrix<double> point_value_det(npoints,1);
+//        TPZFMatrix<double> point_value_w(npoints,1);
+//        TPZFMatrix<double> point_value_divu(npoints,1);
+//        TPZFMatrix<double> point_value_rhs(npoints,1);
+//
+//        TPZManVector<long> phi_index(1);
+//        TPZManVector<long> el_index(1);
+//        TPZManVector<long> unique_index(1,0);
+//        
+//        divu_at_intpoints.GetSub(globindexes, unique_index, point_value_divu);
+//        
+//        for (int iphi = 0; iphi < nshapes; iphi++) {
+//            // Testing the volumetric forms of the weak statement
+//            
+//            long equ = pressure_dofs[iphi];
+//            phi_index[0] = equ;
+//            el_index[0] = volumetric_elements-1;
+//            
+////            transfer->GetWeightsTo_Mixed().GetSub(globindexes, el_index, point_value_w);
+////            transfer->GetJacobianDet_To_Mixed().GetSub(globindexes, el_index, point_value_det);
+////            transfer->GetRhs_To_Mixed().GetSub(globindexes, el_index, point_value_rhs);
+////            
+////            transfer->GetTransferPressure_To_Mixed().GetSub(globindexes,phi_index,point_value_phi);
+//            
+//            
+//            STATE i_integral = 0.0;
+//            for (int ip = 0; ip < npoints; ip++) {
+//                i_integral += point_value_w(ip,0)*point_value_det(ip,0)*(- point_value_divu(ip,0)+ point_value_rhs(ip,0)) * point_value_phi(ip,0);
+//            }
+//            rhs_pressure(equ,0) += i_integral;
+//        }
+//        
+//    }
+//    
+//    rhs_pressure.Print("rhs_pressure = ");
+//    
+//    return rhs_pressure;
+//
+//}
 
 /** @brief Compute gradient of the system of equations using transfer matrixces */
 void TRMOrchestra::IntegrateGradientOfResidue(TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer<TRMBuildTransfers> transfer){

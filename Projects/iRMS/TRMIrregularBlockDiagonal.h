@@ -108,6 +108,13 @@ public:
      * @param blocksize Used to initialize current matrix
      */
     void Initialize(TPZVec< std::pair<long, long> > &blocksize);
+    
+    /**
+     * @brief Partial initialization of the current matrix based on the number of blocks
+     * @param nblock of blocks
+     */
+    void Initialize(long nblock);
+    
     /**
      * @brief Adds a block to current matrix
      * @param i Adds in ith position
@@ -120,6 +127,13 @@ public:
      * @param block Block to be added
      */
     void SetBlock(long i, TPZFMatrix<TVar> &block);
+    
+    /**
+     * @brief Sets block dimensions in the current matrix
+     * @param i Adds in ith position
+     * @param block_size seize to be fixed
+     */
+    void SetBlockSize(long i, std::pair<long, long> &block_size);
     
     /**
      * @brief Gets a block from current matrix
