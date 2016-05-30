@@ -480,6 +480,15 @@ void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &i
     for(r=0; r<this->Rows(); r++) determinant *= copy(r,r);
 }
 
+template <class TVar>
+/** @brief Initialize pivot with i = i  */
+void TPZFMatrix<TVar>::InitializePivot()
+{
+    fPivot.Resize(this->Rows());
+    for(long i = 0; i < this->Rows(); i++){
+        fPivot[i] = i+1; // Fortran based indexing
+    }
+}
 
 template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
@@ -1857,8 +1866,7 @@ int TPZFMatrix<float>::Subst_LForward( TPZFMatrix<float>* b ) const
 template<>
 int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
 {
-    //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-    
+   
     if (fDecomposed != ELDLt) {
         DebugStop();
     }
@@ -1868,8 +1876,6 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     int nrhs = b->Cols();
     double B  = 0.;
     int info;
-    
-    //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
     dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
     //    return TPZMatrix<TVar>::Subst_LForward(b);
