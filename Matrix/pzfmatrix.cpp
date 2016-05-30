@@ -480,6 +480,8 @@ void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &i
     for(r=0; r<this->Rows(); r++) determinant *= copy(r,r);
 }
 
+#ifdef USING_LAPACK
+
 template <class TVar>
 /** @brief Initialize pivot with i = i  */
 void TPZFMatrix<TVar>::InitializePivot()
@@ -489,6 +491,8 @@ void TPZFMatrix<TVar>::InitializePivot()
         fPivot[i] = i+1; // Fortran based indexing
     }
 }
+
+#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,

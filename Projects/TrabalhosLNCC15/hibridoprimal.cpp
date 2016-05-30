@@ -473,8 +473,8 @@ int main(int argc, char *argv[])
                 AjustarContorno(gmesh);
             }
             else{
-                gmesh = CreateOneCubo(ndiv);///MALHA HEXAEDRO
-                //gmesh = CreateOneCuboWithTetraedrons(ndiv);///MALHA TETRAEDRO
+                //gmesh = CreateOneCubo(ndiv);///MALHA HEXAEDRO
+                gmesh = CreateOneCuboWithTetraedrons(ndiv);///MALHA TETRAEDRO
             }
             
             

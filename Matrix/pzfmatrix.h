@@ -242,8 +242,11 @@ public:
     /** @brief Makes Zero all the elements */
     int Zero();
     
+#ifdef USING_LAPACK
     /** @brief Initialize pivot with i = i  */
     void InitializePivot();
+#endif
+
     
     /**
      * @brief This method implements a Gram Schimidt method. \n this = Orthog.TransfToOrthog
