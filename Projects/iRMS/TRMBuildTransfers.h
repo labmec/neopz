@@ -203,18 +203,14 @@ public:
     TRMBuildTransfers();
     
     /** @brief Default desconstructor */
-    virtual ~TRMBuildTransfers();
+    ~TRMBuildTransfers();
     
-    TRMBuildTransfers(const TRMBuildTransfers &copy)
-    {
-        DebugStop();
-    }
+    /** @brief Copy constructor $ */
+    TRMBuildTransfers(const TRMBuildTransfers &copy);
     
-    TRMBuildTransfers &operator=(const TRMBuildTransfers &copy)
-    {
-        DebugStop();
-        return *this;
-    }
+    /** @brief Copy assignemnt operator $ */
+    TRMBuildTransfers &operator=(const TRMBuildTransfers &other);
+    
 
     /**
      * @defgroup Apply transfers to different meshes

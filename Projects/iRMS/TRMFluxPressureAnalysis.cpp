@@ -11,15 +11,65 @@
 
 TRMFluxPressureAnalysis::TRMFluxPressureAnalysis() : TPZAnalysis() {
     
+    /** @brief define the simulation data */
     fSimulationData = NULL;
-    fmeshvec.Resize(2); // Start with monophasic approach
-    ferror = 1.0;
-    fdx_norm = 1.0;
+    
+    /** @brief define the transfer matrices */
+    fTransfer = NULL;
+    
+    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
+    fmeshvec.Resize(2);
+    
+    /** @brief Part of residue at n state  */
+    fR_n.Resize(0,0);
+    
+    /** @brief Solution ate n state */
+    fX_n.Resize(0,0);
+    
+    /** @brief Solution at past state */
+    fX.Resize(0, 0);
+    
+    /** @brief Residue error */
+    ferror    = 1.0;
+    
+    /** @brief Correction variation */
+    fdx_norm  = 1.0;
     
 }
 
 TRMFluxPressureAnalysis::~TRMFluxPressureAnalysis(){
     
+}
+
+/** @brief Copy constructor $ */
+TRMFluxPressureAnalysis::TRMFluxPressureAnalysis(const TRMFluxPressureAnalysis &copy)
+{    
+    fSimulationData = copy.fSimulationData;
+    fTransfer       = copy.fTransfer;
+    fmeshvec        = copy.fmeshvec;
+    fR_n            = copy.fR_n;
+    fX_n            = copy.fX_n;
+    fX              = copy.fX;
+    ferror          = copy.ferror;
+    fdx_norm        = copy.fdx_norm;
+
+}
+
+/** @brief Copy assignemnt operator $ */
+TRMFluxPressureAnalysis & TRMFluxPressureAnalysis::operator=(const TRMFluxPressureAnalysis &other)
+{
+    if (this != & other) {  // prevent self-assignment
+        
+        fSimulationData = other.fSimulationData;
+        fTransfer       = other.fTransfer;
+        fmeshvec        = other.fmeshvec;
+        fR_n            = other.fR_n;
+        fX_n            = other.fX_n;
+        fX              = other.fX;
+        ferror          = other.ferror;
+        fdx_norm        = other.fdx_norm;
+    }
+    return *this;
 }
 
 /** @brief Resize and fill residue and solution vectors */

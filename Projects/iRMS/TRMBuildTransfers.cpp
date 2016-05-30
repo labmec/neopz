@@ -22,9 +22,23 @@ TRMBuildTransfers::TRMBuildTransfers(){
 
 /** @brief Default desconstructor */
 TRMBuildTransfers::~TRMBuildTransfers(){
-#ifdef PZDEBUG
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
-#endif
+
+}
+
+/** @brief Copy constructor $ */
+TRMBuildTransfers::TRMBuildTransfers(const TRMBuildTransfers &copy)
+{
+    fSimulationData = copy.fSimulationData;
+}
+
+/** @brief Copy assignemnt operator $ */
+TRMBuildTransfers & TRMBuildTransfers::operator=(const TRMBuildTransfers &other)
+{
+    if (this != & other) // prevent self-assignment
+    {
+        fSimulationData = other.fSimulationData;
+    }
+    return *this;
 }
 
 

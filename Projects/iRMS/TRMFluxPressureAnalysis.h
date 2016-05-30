@@ -62,18 +62,11 @@ public:
     /** @brief default desconstructor  */
     ~TRMFluxPressureAnalysis();
     
-    /** @brief default constructor  */
-    TRMFluxPressureAnalysis(const TRMFluxPressureAnalysis &copy)
-    {
-        DebugStop();
-    }
+    /** @brief Copy constructor $ */
+    TRMFluxPressureAnalysis(const TRMFluxPressureAnalysis &copy);
     
-    /** @brief default constructor  */
-    TRMFluxPressureAnalysis &operator=(const TRMFluxPressureAnalysis &copy)
-    {
-        DebugStop();
-        return *this;
-    }
+    /** @brief Copy assignemnt operator $ */
+    TRMFluxPressureAnalysis &operator=(const TRMFluxPressureAnalysis &other);
     
     /**
      * @defgroup Access Methods
