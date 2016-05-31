@@ -40,6 +40,8 @@
 #include "pzshapetetra.h"
 #include "pzelementgroup.h"
 
+#include "TPZAcademicGeoMesh.h"
+
 #include "TPZVecL2.h"
 
 
@@ -183,6 +185,8 @@ int main2(int argc, char *argv[])
 
     //   gRefDBase.InitializeAllUniformRefPatterns();
     HDivPiola = 1;
+    TPZAcademicGeoMesh academic;
+    academic.SetMeshType(TPZAcademicGeoMesh::EPyramid);
     //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
     //    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
     TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPirTetra();
@@ -1045,9 +1049,9 @@ int main1(int argc, char *argv[])
     
 //    TTimer tref;
 //    tref.start();
-    gRefDBase.InitializeUniformRefPattern(ETetraedro);
-    gRefDBase.InitializeUniformRefPattern(ETriangle);
-    gRefDBase.InitializeUniformRefPattern(EPiramide);
+//    gRefDBase.InitializeUniformRefPattern(ETetraedro);
+//    gRefDBase.InitializeUniformRefPattern(ETriangle);
+//    gRefDBase.InitializeUniformRefPattern(EPiramide);
 //    tref.stop();
 //    cout << "\ntempo de refpattern = " << tref.seconds() << endl;
     
@@ -1073,8 +1077,8 @@ int main1(int argc, char *argv[])
 #endif
     
     // Parametros
-    int dim = 2;
-    int plevel = 4;
+    int dim = 3;
+    int plevel = 1;
     int numthreads = 2;
 
     // Para 2D
@@ -1121,6 +1125,7 @@ int main1(int argc, char *argv[])
 //    timer.start();
     TPZGeoMesh *gmesh = NULL;
     if (dim == 3){
+        
         gmesh = MalhaCubo(projectpath,nref);
     }
     else if (dim == 2){
@@ -1718,16 +1723,16 @@ static void CheckDRham(TPZCompEl *cel)
 static void VerifyPressureShapeProperties(int order, TPZMaterialData &data, TPZVec<REAL> &pt)
 {
     // funcao quadratica singular
-    REAL bolha = data.phi(0)*data.phi(2)*16.*(1-pt[2]);
-    int ibolha = 4+4*(order-1);
+    REAL bolha = data.phi(4)*data.phi(6)*16.;
+    int ibolha = 4+4+8*(order-1);
     REAL phival = data.phi(ibolha);
     REAL diff = bolha-phival;
     if (fabs(diff) > 1.e-9) {
         std::cout << "Bolha nao identificada\n";
     }
     // funcao lateral singular
-    int offset = 0;
-    bolha = (data.phi(0+offset)*data.phi(1+offset)+data.phi(0+offset)*data.phi(2+offset))*4.*(1-pt[2]);
+    int offset = 4;
+    bolha = (data.phi(0+offset)*data.phi(1+offset)+data.phi(0+offset)*data.phi(2+offset))*4.;
     ibolha = offset+4;
     phival = data.phi(ibolha);
     diff = bolha-phival;
@@ -1735,7 +1740,7 @@ static void VerifyPressureShapeProperties(int order, TPZMaterialData &data, TPZV
         std::cout << "Bolha nao identificada\n";
     }
     // funcao quadratica original
-    offset = (order+1)*(order+1);
+    offset = (order)*(order);
     bolha = data.phi(0+offset)*data.phi(2+offset)*16;
     ibolha = offset+4+8*(order-1);
     phival = data.phi(ibolha);
@@ -1814,11 +1819,12 @@ static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<ST
             out << PosSub << " { x-> "<< pos[0] << ", y-> " << pos[1] << ", z-> " << pos[2] << "};" << std::endl;
         }
 
-        if(intelP->Connect(6).Order() > 1)
+        int order6 = intelP->Connect(6).Order();
+        if(order6 > 1)
         {
             VerifyPressureShapeProperties(intelP->Connect(6).Order(), dataB,pos);
         }
-        if (intelP->Connect(6).Order() == 3)
+        if (order6 == 3)
         {
             int vecindex = dataA.fVecShapeIndex[85].first;
             int phiindex = dataA.fVecShapeIndex[85].second;

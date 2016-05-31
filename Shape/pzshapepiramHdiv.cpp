@@ -20,15 +20,22 @@ namespace pzshape {
         
         TPZShapePiram::Shape(pt, id, order, phi, dphi);
 
+        // we need to push more functions, according to the order
+        int allorder = order[0];
+        int numshift = (allorder+1)*(allorder+1);
+        int numbubbles = (allorder-1)*(allorder-1);
         
         TPZFNMatrix<20,REAL> phicp(phi);
         TPZFNMatrix<60,REAL> dphicp(dphi);
+        // remove the tip function
         for (int i = 4; i > 0; i--) {
             phicp(i) = phicp(i-1);
             for (int j=0; j<3; j++) {
                 dphicp(j,i) = dphicp(j,i-1);
             }
         }
+        
+        DebugStop();
         
         // I decided to put the four new functions (without * (1-z)) in the begining of the vector
         const int stride = 4;
