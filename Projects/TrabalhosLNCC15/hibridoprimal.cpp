@@ -597,10 +597,11 @@ int main(int argc, char *argv[])
             REAL NumZeros = totalbanda - nNzeros;
             REAL razao = NumZeros/totalbanda;
             
-            
+#ifdef USING_BOOST
             myerrorfile << ndiv <<  setw(13) << NDoF << setw(12) << NDoFCond << setw(13)<< NDoFCond*NDoFCond
             << setw(15) << NumZeros << setw(12) << razao << "    " << (t2-t1) << "     " << (t3-t2) << "     "
             << (t2-t1)+(t3-t2) << setw(12) << ErroP[1] << setw(15) << ErroF[1] <<std::endl;
+#endif
         }
         
         myerrorfile <<"\n-------------------------------------------------------------------------"<<std::endl;
