@@ -197,8 +197,8 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     int phrU = phiU.Rows();
     int FirstU  = 0;
     
-    TPZManVector<REAL,3> sol_u =data.sol[0];
-    TPZFMatrix<REAL> dsol_u = data.dsol[0];
+    TPZManVector<STATE,3> sol_u =data.sol[0];
+    TPZFNMatrix<4,STATE> dsol_u = data.dsol[0];
     REAL LambdaL, MuL;
     
     LambdaL = flambda;
@@ -219,9 +219,9 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     //  Linear strain operator
     //  Ke Matrix
     
-    TPZFMatrix<REAL>    du(2,2);
-    TPZFMatrix<REAL>    dux(2,2);
-    TPZFMatrix<REAL>    duy(2,2);
+    TPZFNMatrix<4,REAL>    du(2,2);
+    TPZFNMatrix<4,REAL>    dux(2,2,0.);
+    TPZFNMatrix<4,REAL>    duy(2,2,0.);
     // Required check out of this implementation
     //  Derivative for Ux
     dux(0,1) = dsol_u(0,0)*data.axes(0,0)+dsol_u(1,0)*data.axes(1,0); // dUx/dx
@@ -239,8 +239,8 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         du(1,0) = dphiU(0,iu)*data.axes(0,1)+dphiU(1,iu)*data.axes(1,1);
         
 //          Vector Force right hand term
-             ef(2*iu + FirstU)     +=    weight*ff[0]*phiU(iu, 0)- (du(0,0)*fPreStressXX + du(1,0)*fPreStressXY);    // direcao x
-             ef(2*iu+1 + FirstU)   +=    weight*ff[1]*phiU(iu, 0)- (du(0,0)*fPreStressXY + du(1,0)*fPreStressYY);    // direcao y
+             ef(2*iu + FirstU)     +=    weight*(ff[0]*phiU(iu, 0)- (du(0,0)*fPreStressXX + du(1,0)*fPreStressXY));    // direcao x
+             ef(2*iu+1 + FirstU)   +=    weight*(ff[1]*phiU(iu, 0)- (du(0,0)*fPreStressXY + du(1,0)*fPreStressYY));    // direcao y
         
         if (fPlaneStress == 1)
         {
@@ -391,8 +391,8 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumann boundary
-                ef(2*in,0)      += -1.0*v2[0]*phiu(in,0)*weight;        //	Tnx
-                ef(2*in+1,0)	+= -1.0*v2[1]*phiu(in,0)*weight;		//	Tny
+                ef(2*in,0)      += 1.0*v2[0]*phiu(in,0)*weight;        //	Tnx
+                ef(2*in+1,0)	+= 1.0*v2[1]*phiu(in,0)*weight;		//	Tny
             }
             
             break;
@@ -989,6 +989,8 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Solout[0] = Tau + fPreStressXY;
         return;
     }
+    
+    // Polar Coordinates
     
 }
 
