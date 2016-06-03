@@ -182,6 +182,17 @@ public:
 		C2 = fE * fPoisson / (-1. + fPoisson + 2.*fPoisson*fPoisson);
 		C3 = fE * (fPoisson - 1.) / (-1. + fPoisson +2. * fPoisson * fPoisson);
 	}
+    
+    /**
+     * @brief Set the intial stress field
+     */
+    void SetPreStress(STATE preStressXX, STATE preStressYY, STATE preStressZZ)
+    {
+        fPreStress.Resize(3);
+        fPreStress[0] = preStressXX;
+        fPreStress[1] = preStressYY;
+        fPreStress[2] = preStressZZ;
+    }
 	
 	void SetForce(TPZVec <STATE> force)
 	{

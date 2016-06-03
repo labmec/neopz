@@ -990,6 +990,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         return;
     }
     
+    //data.axes;
     // Polar Coordinates
     
 }

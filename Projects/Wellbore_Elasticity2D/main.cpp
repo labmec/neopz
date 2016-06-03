@@ -54,10 +54,12 @@
 #include "pzstepsolver.h"
 #include "math.h"
 #include "TPZSkylineNSymStructMatrix.h"
+#include "TPZReadGIDGrid.h"
 
 #include <cmath>
 #include <set>
 
+#include "pzelast3d.h"
 #include <pzgengrid.h>
 
 #ifdef LOG4CXX
@@ -73,15 +75,35 @@ static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 
 using namespace std;
 
+#define CASE3D
+
 
 TPZGeoMesh *GetMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc);
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder);
 TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc);
 TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder);
 
+TPZCompMesh *CMesh3D(TPZGeoMesh *gmesh, int pOrder);
+
+TPZGeoMesh * ReadGeoMesh(std::string GridFileName);
+
+int Problem2D();
+
+int Problem3D();
 
 int main(int argc, char *argv[])
 {
+#ifdef CASE3D
+    Problem3D();
+    
+#else
+    Problem2D();
+#endif
+
+}
+
+
+int Problem2D(){
     
     std::string dirname = PZSOURCEDIR;
 #ifdef LOG4CXX
@@ -115,7 +137,7 @@ int main(int argc, char *argv[])
     std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
     
-
+    
     
     //******** Configura malha Computacional ***************/
     
@@ -123,7 +145,7 @@ int main(int argc, char *argv[])
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
-
+    
     // Solving linear equations
     // Initial steps
     TPZAnalysis an (cmesh);
@@ -136,36 +158,36 @@ int main(int argc, char *argv[])
     delete direct;
     direct = 0;
     
-//    an.Run();
-
-  
+    //    an.Run();
+    
+    
     an.Assemble();
     
-//  an.Rhs() ;
+    //  an.Rhs() ;
     
-//    TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
-//    TPZFMatrix<STATE> FGlobal;
-//    KGlobal =   an.Solver().Matrix();
-//    FGlobal =   an.Rhs();
-//    
-//#ifdef PZDEBUG
-////    #ifdef LOG4CXX
-////            if(logger->isDebugEnabled())
-////            {
-////                std::stringstream sout;
-////                KGlobal->Print("k = ", sout,EMathematicaInput);
-////                FGlobal.Print("r = ", sout,EMathematicaInput);
-////                LOGPZ_DEBUG(logger,sout.str())
-////            }
-////    #endif
-//#endif
+    //    TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
+    //    TPZFMatrix<STATE> FGlobal;
+    //    KGlobal =   an.Solver().Matrix();
+    //    FGlobal =   an.Rhs();
+    //
+    //#ifdef PZDEBUG
+    ////    #ifdef LOG4CXX
+    ////            if(logger->isDebugEnabled())
+    ////            {
+    ////                std::stringstream sout;
+    ////                KGlobal->Print("k = ", sout,EMathematicaInput);
+    ////                FGlobal.Print("r = ", sout,EMathematicaInput);
+    ////                LOGPZ_DEBUG(logger,sout.str())
+    ////            }
+    ////    #endif
+    //#endif
     
-////
+    ////
     an.Solve();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
     
     TPZFMatrix<REAL> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
     solucao.Print("Sol",cout,EMathematicaInput);//imprime na formatacao do Mathematica
-
+    
     
     // Post processing
     int ndiv = 1;
@@ -180,19 +202,111 @@ int main(int argc, char *argv[])
     an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions.vtk");
     
     an.PostProcess(ndiv);
-//
-//
-//    
+    //
+    //
+    //
     std::cout << "FINISHED!" << std::endl;
     
     return 0;
+    
+    
+}
 
+int Problem3D(){
+    
+    std::string dirname = PZSOURCEDIR;
+#ifdef LOG4CXX
+    std::string FileName = dirname;
+    FileName = dirname + "/Projects/Wellbore_Elasticity2D/";
+    FileName += "Wellbore_Elasticity2DLog.cfg";
+    InitializePZLOG(FileName);
+#endif
+    
+    std::string grid = dirname;
+    grid = grid + "/Projects/Wellbore_Elasticity2D/";
+    grid += "SingleWellRef.dump";
+    TPZGeoMesh *gmesh = ReadGeoMesh(grid);
+    
+    const std::string nm("Single_Well");
+    gmesh->SetName(nm);
+    std::ofstream outtxt("gmesh.txt"); //define arquivo de saida para impressao dos dados da malha
+    gmesh->Print(outtxt);
+    std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
+    
+    
+    
+    //******** Configura malha Computacional ***************/
+    
+    int p = 1;
+    TPZCompEl::SetgOrder(p);
+    TPZCompMesh *cmesh = CMesh3D(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
+    
+    // Solving linear equations
+    // Initial steps
+    TPZAnalysis an (cmesh);
+    TPZSkylineStructMatrix strskyl(cmesh);
+    an.SetStructuralMatrix(strskyl);
+    // Solver (is your choose)
+    TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+    direct->SetDirect(ECholesky);
+    an.SetSolver(*direct);
+    delete direct;
+    direct = 0;
+    
+    //    an.Run();
+    
+    
+    an.Assemble();
+    
+    //  an.Rhs() ;
+    
+    //    TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
+    //    TPZFMatrix<STATE> FGlobal;
+    //    KGlobal =   an.Solver().Matrix();
+    //    FGlobal =   an.Rhs();
+    //
+    //#ifdef PZDEBUG
+    ////    #ifdef LOG4CXX
+    ////            if(logger->isDebugEnabled())
+    ////            {
+    ////                std::stringstream sout;
+    ////                KGlobal->Print("k = ", sout,EMathematicaInput);
+    ////                FGlobal.Print("r = ", sout,EMathematicaInput);
+    ////                LOGPZ_DEBUG(logger,sout.str())
+    ////            }
+    ////    #endif
+    //#endif
+    
+    ////
+    an.Solve();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
+    
+    TPZFMatrix<REAL> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
+    solucao.Print("Sol",cout,EMathematicaInput);//imprime na formatacao do Mathematica
+    
+    
+    // Post processing
+    int ndiv = 1;
+    int dimension = gmesh->Dimension();
+    TPZManVector<std::string> scalarnames(3), vecnames(1);
+    scalarnames[0] = "StressX";
+    scalarnames[1] = "StressY";
+    scalarnames[2] = "StressZ";
+    vecnames[0] = "Displacement";
+    //vecnames[1] = "";
+    an.DefineGraphMesh(dimension,scalarnames,vecnames,"ElasticitySolutions3D.vtk");
+    
+    an.PostProcess(ndiv);
+    //
+    //
+    //
+    std::cout << "FINISHED!" << std::endl;
+    
+    return 0;
+    
 }
 
 /******************************************************** FIM do MAIN *********************************************************/
-
-
-
 
 
 //********************************** Cria malha Geometrica Circular (360 graus) *********************************************************/
@@ -383,6 +497,8 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
 
 
 
+
+
 //************************************ Cria malha Computacional para malha 360 graus ***********************************************************//
 
 TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
@@ -406,7 +522,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     // problem assumption, inclined wellbore state = 1
     // Pwb = pressao da lama em MPa
     REAL Pi = 3.14159;
-    REAL direction = 90., inclination = 30.; // graus
+    REAL direction = 0., inclination = 0.; // graus
     REAL directionT   = direction*(Pi/180); // rad
     REAL inclinationT = inclination*(Pi/180); // rad
     int inclinedwellbore = 1;
@@ -458,12 +574,12 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
     ///Inserir condicao de contorno parede do poco
-    val1(0,0) = 1;
+    val1(0,0) = Pwb;
     val1(1,0) = 0;
     val1(0,1) = 0;
-    val1(1,1) = 1;
-    val2(0,0) = Pwb;
-    val2(1,0) = Pwb;
+    val1(1,1) = Pwb;
+    val2(0,0) = 0;
+    val2(1,0) = 0;
     TPZMaterial * BCond0 = material->CreateBC(material, bc0, normalpressure, val1, val2);//cria material
     
     ///Inserir condicao de contorno circunferencia externa
@@ -531,9 +647,143 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
 }
 
+TPZCompMesh *CMesh3D(TPZGeoMesh *gmesh, int pOrder){
+    
+    int matId = 1;
+    const int dim = 3; //dimensao do problema
+    
+    
+    //**************** Criando material  ********************************
+    TPZElasticity3D *material = new TPZElasticity3D(matId);//criando material que implementa a formulacao fraca do problema modelo
+    
+    // Setting up paremeters
+    REAL Eyoung = 1.0 , ni = 0.25, fbx = 0., fby = 0.;
+    
+    TPZManVector<STATE> f(3,0);
+    f[0] = 0.0;
+    f[1] = 0.0;
+    f[2] = 2500*9.81;
+    material->SetMaterialDataHook(Eyoung, ni);
+    material->SetForce(f);
+    
 
+    
+    
+    /******* Calculating Inicial Stresses *******/
+    // direction = direction/azimuth
+    // inclination = wellbore inclination
+    // problem assumption, inclined wellbore state = 1
+    // Pwb = pressao da lama em MPa
+    REAL Pi = 3.14159;
+    REAL direction = 0., inclination = 0.; // graus
+    REAL directionT   = direction*(Pi/180); // rad
+    REAL inclinationT = inclination*(Pi/180); // rad
+    int inclinedwellbore = 1;
+    REAL Pwb = 28.9; // MPa
+    
+    // Tensoes in Situ, horizontais e vertical em MPa
+    REAL SigmaVV = -48.2, Sigmahh = -45.9, SigmaHH = -62.1;
+    
+    material->SetPreStress(SigmaVV, Sigmahh, SigmaHH);
+    
+//    // Seta os parametros do poco
+//    material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore);
+//    
+//    //Eh necessario chamar esse metodo para que sejam calculadas as tensoes iniciais apos a rotacao
+//    //Obtem tensor de tensoes iniciais
+//    REAL SigmaX = 0., SigmaXY = 0., SigmaY = 0., SigmaZ = 0.;
+//    material->SetInclinedWellborePreStress(SigmaX, SigmaXY, SigmaY, SigmaZ);
+    
+   
+    
+    ///criar malha computacional
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDefaultOrder(pOrder);//seta ordem polimonial de aproximacao
+    cmesh->SetDimModel(dim);//seta dimensao do modelo
+    
+    // Inserindo material na malha
+    cmesh->InsertMaterialObject(material);
+    
+    
+    // Matrial ids for boundaries
+    
+    int bcw = 2;
+    int bce = 3;
+    int bcs = 4;
+    int bcn = 5;
+    int bcb = 6;
+    int bct = 7;
+    int bcwell = 8;
+    
+    const int normalpressure = 4, stressfield = 1, fixed_u = 0, lateralfixed = 5 ; // tipo de condicao de contorno
+    //neumann = 1;
+    //material->GetPreStress(SigmaX, SigmaXY, SigmaY, SigmaZ); // obtem tensoes iniciais
+    
+    TPZFMatrix<REAL> val1(2,2,0.), val2(3,1,0.);
+    
+    ///Inserir condicao de contorno parede do poco
+    val2(0,0) = Pwb;
+    val2(1,0) = Pwb;
+    TPZMaterial * BCond1 = material->CreateBC(material, bcwell, normalpressure, val1, val2);//cria material
+    
+    val2(0,0) = 0;
+    val2(1,0) = 0;
+    val2(2,0) = 0;
+    TPZMaterial * BCond2 = material->CreateBC(material, bct, stressfield, val1, val2);//cria material
+    
+    
+    val2(0,0) = 0;
+    val2(1,0) = 0;
+    val2(2,0) = 0;
+    TPZMaterial * BCond3 = material->CreateBC(material, bcb, fixed_u, val1, val2);//cria material
+    
+    val2(0,0) = 0;
+    val2(1,0) = 0;
+    val2(2,0) = 0;
+    TPZMaterial * BCond4 = material->CreateBC(material, bcw, lateralfixed, val1, val2);
+    TPZMaterial * BCond5 = material->CreateBC(material, bce, lateralfixed, val1, val2);
+    TPZMaterial * BCond6 = material->CreateBC(material, bcs, lateralfixed, val1, val2);
+    TPZMaterial * BCond7 = material->CreateBC(material, bcn, lateralfixed, val1, val2);
+    
+    cmesh->InsertMaterialObject(BCond1);//insere material na malha
+    cmesh->InsertMaterialObject(BCond2);//insere material na malha
+    cmesh->InsertMaterialObject(BCond3);//insere material na malha
+    cmesh->InsertMaterialObject(BCond4);//insere material na malha
+    cmesh->InsertMaterialObject(BCond5);//insere material na malha
+    cmesh->InsertMaterialObject(BCond6);//insere material na malha
+    cmesh->InsertMaterialObject(BCond7);//insere material na malha
+    
+    cmesh->SetAllCreateFunctionsContinuous();
+    
+    //Cria elementos computacionais que gerenciarao o espaco de aproximacao da malha
+    cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        cmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+    
+    return cmesh;
+    
+}
 
-
+TPZGeoMesh * ReadGeoMesh(std::string GridFileName)
+{
+    TPZReadGIDGrid GeometryInfo;
+    REAL s = 1.0;
+    GeometryInfo.SetfDimensionlessL(s);
+    TPZGeoMesh * gmesh = GeometryInfo.GeometricGIDMesh(GridFileName);
+    gmesh->SetDimension(3);
+    return gmesh;
+}
 
 
 
