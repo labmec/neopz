@@ -47,10 +47,8 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
             if (isfrontal) {
                 TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
                 strmat.SetDecomposeType(ELDLt);
-                
                 int numthreads = 8;
-                strmat.SetNumThreads(numthreads);
-                
+                strmat.SetNumThreads(numthreads)
                 an.SetStructuralMatrix(strmat);
             }
             else

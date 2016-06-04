@@ -161,6 +161,9 @@ public:
 	
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
 	void FillDataRequirements(TPZMaterialData &data);
+    
+    /** @brief Fill material data parameter with necessary requirements for the Contribute BC method. */
+    void FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data);
 	
 	void SetMaterialDataHook(STATE Ela, STATE poisson)
 	{

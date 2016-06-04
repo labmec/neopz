@@ -1143,6 +1143,12 @@ void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){
 	data.fNeedsSol = false;
 }
 
+void TPZElasticity3D::FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data){
+    data.SetAllRequirements(false);
+    data.fNeedsSol = true;
+    data.fNeedsNormal = true;
+}
+
 #ifndef BORLAND
 template class TPZRestoreClass<TPZElasticity3D,TPZELASTICITY3DMATERIALID>;
 #endif

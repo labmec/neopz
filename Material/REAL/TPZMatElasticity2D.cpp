@@ -962,7 +962,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //	Hydrostatic stress
     if(var == 2) 
     {
-        Solout[0] = SigX+SigY+SigZ;
+        Solout[0] = (SigX+SigY+SigZ)/3.0;
         return;
     }
     
