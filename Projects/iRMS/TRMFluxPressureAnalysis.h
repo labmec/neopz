@@ -51,8 +51,7 @@ private:
 //    // it will simply converges the residuum in one time step considering fixed saturation (inverse for transport analysis)
 //    
 //    TPZStepSolver<STATE> fPreconditioner;
-//    
-//    void UpdateTransientMemory();
+//
     
 public:
     

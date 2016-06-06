@@ -49,6 +49,12 @@ class TRMMemory {
     /** @brief Weighted Pressure at the previous timestep */
     STATE fPressure_n;
     
+    /** @brief Average Weighted Pressure */
+    STATE fA_Pressure;
+    
+    /** @brief Average Weighted Pressure at the previous timestep */
+    STATE fA_Pressure_n;
+    
     /** @brief Water Saturation */
     STATE fSw;
     

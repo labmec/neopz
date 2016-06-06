@@ -451,7 +451,14 @@ void TRMBuildTransfers::Fill_u_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_mult
     return;
 }
 
-void TRMBuildTransfers::Transfer_u_To_Mixed_Memory(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh > cmesh_multiphysics){
+void TRMBuildTransfers::Transfer_u_To_Mixed_Memory(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_multiphysics){
+    
+
+#ifdef PZDEBUG
+    if (!cmesh_multiphysics) {
+        DebugStop();
+    }
+#endif
     
     int nel = cmesh_multiphysics->NElements();
     int dim = cmesh_flux->Dimension();
@@ -463,8 +470,7 @@ void TRMBuildTransfers::Transfer_u_To_Mixed_Memory(TPZAutoPointer< TPZCompMesh> 
     //  Getting the total integration point of the destination cmesh
     TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
     TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
-    TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
-    int np_cmesh = material_memory.NElements();
+    int np_cmesh = associated_material->GetMemory().NElements();
     
     // Step one
     TPZFMatrix<STATE> ScatterFlux(fu_To_Mixed.Cols(),1,0.0);
@@ -631,8 +637,15 @@ void TRMBuildTransfers::Fill_p_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_mult
 }
 
 
-void TRMBuildTransfers::Transfer_p_To_Mixed_Memory(TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer< TPZCompMesh > cmesh_multiphysics){
+void TRMBuildTransfers::Transfer_p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompMesh * cmesh_multiphysics){
 
+    
+#ifdef PZDEBUG
+    if (!cmesh_multiphysics) {
+        DebugStop();
+    }
+#endif
+    
     int nel = cmesh_multiphysics->NElements();
     
     // For the imat
@@ -642,8 +655,7 @@ void TRMBuildTransfers::Transfer_p_To_Mixed_Memory(TPZAutoPointer< TPZCompMesh> 
     //  Getting the total integration point of the destination cmesh
     TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
     TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
-    TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
-    int np_cmesh = material_memory.NElements();
+    int np_cmesh = associated_material->GetMemory().NElements();
     
     // Step one
     TPZFMatrix<STATE> ScatterPressure(fp_To_Mixed.Cols(),1,0.0);

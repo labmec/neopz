@@ -383,10 +383,10 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 
 //    std::cout << "flux = " << flux << std::endl;
 //    std::cout << "u    = " << u << std::endl;
-    std::cout << "flux x difference = " << flux[0] - u[0] << std::endl;
-    std::cout << "flux y difference = " << flux[1] - u[1] << std::endl;
-    std::cout << "flux z difference = " << flux[2] - u[2] << std::endl;
-    std::cout << "Pressure difference = " << pressure - P << std::endl;
+//    std::cout << "flux x difference = " << flux[0] - u[0] << std::endl;
+//    std::cout << "flux y difference = " << flux[1] - u[1] << std::endl;
+//    std::cout << "flux z difference = " << flux[2] - u[2] << std::endl;
+//    std::cout << "Pressure difference = " << pressure - P << std::endl;
     
     TPZFMatrix<STATE> Graduaxes = datavec[ublock].dsol[0]; // Piola divengence may works, needed set piola computation on the solution elchiv method!!!
     TPZFMatrix<STATE> GradPaxes = datavec[Pblock].dsol[0];

@@ -92,8 +92,6 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
     fR_n.Zero();
 }
 
-
-
 void TRMFluxPressureAnalysis::NewtonIteration(){
     
     this->Assemble();
@@ -106,11 +104,13 @@ void TRMFluxPressureAnalysis::NewtonIteration(){
     fX_n += this->Solution(); // update state
     
     this->Mesh()->LoadSolution(fX_n);
+    
+    this->UpdateMemory_at_n();
+    
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     this->AssembleResidual();
-    fR_n += this->Rhs(); // total residue
-    ferror =  Norm(fR_n); // residue error
-    
+    fR_n += this->Rhs();    // total residue
+    ferror =  Norm(fR_n);   // residue error
     
 }
 

@@ -217,11 +217,11 @@ public:
      * @{
      */
 
-    /** @brief Transfer Pressure to integration points of multiphysics mesh over volumetric elements */
-    void Transfer_u_To_Mixed_Memory(TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer< TPZCompMesh > cmesh_multiphysics);
+    /** @brief Transfer Flux to integration points of multiphysics mesh over volumetric elements */
+    void Transfer_u_To_Mixed_Memory(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_multiphysics);
     
     /** @brief Transfer Pressure to integration points of multiphysics mesh over volumetric elements */
-    void Transfer_p_To_Mixed_Memory(TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer< TPZCompMesh > cmesh_multiphysics);
+    void Transfer_p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompMesh * cmesh_multiphysics);
     
     // @}
     
