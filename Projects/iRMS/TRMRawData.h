@@ -82,6 +82,9 @@ public:
     /** @brief Definition of the flow system one - two or three phase */
     TPZStack<std::string> fSystemType;
     
+    /** @brief Definition of the gravity vector flied */
+    TPZVec<STATE> fg;
+    
     /** @brief ntime steps */
     int fn_steps;
     

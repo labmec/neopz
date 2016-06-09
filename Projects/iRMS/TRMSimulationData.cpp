@@ -27,6 +27,9 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Definition of the flow system one - two or three phase */
     fSystemType.Resize(0);
     
+    /** @brief Definition gravity field */
+    fg.Resize(0);
+    
     /** @brief Store time values to be reported */
     fReportingTimes.Resize(0);
     
@@ -77,6 +80,7 @@ TRMSimulationData::~TRMSimulationData(){
 void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     fRawData = RawData;
     SetMap(RawData->fMap);
+    SetGravity(RawData->fg);
     SetSystemType(RawData->fSystemType,RawData->fPhases);
     SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_up);
     SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor);

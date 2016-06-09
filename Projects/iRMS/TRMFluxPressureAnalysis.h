@@ -14,7 +14,7 @@
 #include "pzstepsolver.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TRMSimulationData.h"
-#include "TRMBuildTransfers.h";
+#include "TRMBuildTransfers.h"
 
 class TRMFluxPressureAnalysis : public TPZAnalysis {
     

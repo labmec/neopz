@@ -141,9 +141,9 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(){
     
-    int nel_x = 2;
-    int nel_y = 2;
-    int nel_z = 2;
+    int nel_x = 3;
+    int nel_y = 3;
+    int nel_z = 3;
     
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
     dx[0] = 1.0/REAL(nel_x);
@@ -182,7 +182,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
     // Use this matrix for a linear tracer
     TPZSkylineStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
     TPZStepSolver<STATE> step;
-    int numofThreads = 2;
+    int numofThreads = 0;
     strmat.SetNumThreads(numofThreads);
     step.SetDirect(ELDLt);
     fMonolithicMultiphaseAnalysis->SetStructuralMatrix(strmat);

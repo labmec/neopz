@@ -47,11 +47,11 @@ void TRMMonolithicMultiphaseAnalysis::AdjustVectors(){
 
 
 void TRMMonolithicMultiphaseAnalysis::NewtonIteration(){
-    
+ 
     this->Assemble();
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
-
+    
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
@@ -59,6 +59,7 @@ void TRMMonolithicMultiphaseAnalysis::NewtonIteration(){
     
     this->Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+
     this->AssembleResidual();
     fR_n = this->Rhs();
     fR_n += fR; // total residue
@@ -103,7 +104,6 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
 //        fX_n.Print("X = ", std::cout,EMathematicaInput);
 //#endif
         
-        
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
@@ -113,7 +113,7 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
         
     }
     
-    std::cout << "Exit with iterations:  " << n << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    std::cout << "Warning:: Exit with iterations:  " << n << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
     
     
 }

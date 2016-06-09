@@ -81,12 +81,17 @@ void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE
 
     kappa.Resize(3,3);
     kappa.Zero();
-    STATE val = 1.0e-13;
+    STATE val = 1.0e-14;
     kappa(0,0) = val;
     kappa(1,1) = val;
     kappa(2,2) = val;
     
-    kappa.Inverse(inv_kappa,ELU);
+    inv_kappa.Resize(3,3);
+    inv_kappa.Zero();
+    inv_kappa(0,0) = 1.0/kappa(0,0);
+    inv_kappa(1,1) = 1.0/kappa(1,1);
+    inv_kappa(2,2) = 1.0/kappa(2,2);
+    
 }
 
 

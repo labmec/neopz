@@ -37,7 +37,10 @@ TRMRawData::TRMRawData()
     fRecurrent_bc_data.Resize(0);
     
     /** @brief Definition of the flow system one - two or three phase */
-    TPZStack<std::string> fSystemType;
+    fSystemType.Resize(0);
+    
+    /** @brief Definition of the gravity vector flied */
+    fg.Resize(0);
     
     /** @brief ntime steps */
     fn_steps = 0;
@@ -98,6 +101,10 @@ void TRMRawData::WaterReservoirBox(){
     fPhases.Push(water);
     int n_data = fSystemType.size();
     
+    // Setting up gravity
+    fg.Resize(3, 0.0);
+    fg[2] = 9.81;
+    
     int map_model = 0; // constant
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
@@ -149,8 +156,8 @@ void TRMRawData::WaterReservoirBox(){
     int bc_B = 15;
     int bc_T = 16;
     
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > E(n_data);
     TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > W(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > E(n_data);    
     TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > S(n_data);
     TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > N(n_data);
     TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
@@ -184,14 +191,14 @@ void TRMRawData::WaterReservoirBox(){
 
 void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP)
 {
-    REAL p = 1.0342e+7; // 1500 psi
+    REAL p = 1.0e+7;// 1.0342e+7; // 1500 psi
     P[0] = p;
     return;
 }
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL f = -0.001;
+    REAL f = -0.01;
     F[0] = f;
     return;
 }

@@ -563,6 +563,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     
 
     int rock =  this->SimulationData()->RawData()->fOmegaIds[0];
+    
     int bc_W =  this->SimulationData()->RawData()->fGammaIds[0];
     int bc_E =  this->SimulationData()->RawData()->fGammaIds[1];
     int bc_S =  this->SimulationData()->RawData()->fGammaIds[2];

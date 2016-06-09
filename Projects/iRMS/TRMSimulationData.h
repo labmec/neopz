@@ -37,6 +37,9 @@ protected:
     /** @brief Definition of the flow system one - two or three phase */
     TPZStack<std::string> fSystemType;
     
+    /** @brief Definition gravity field */
+    TPZVec<STATE> fg;
+    
     /** @brief Store time values to be reported */
     TPZStack< STATE , 500 > fReportingTimes;
     
@@ -288,7 +291,15 @@ public:
         return fMap;
     }
     
-    static STATE Gravity();
+    void SetGravity(TPZVec<STATE> &g)
+    {
+        fg = g;
+    }
+    
+    TPZVec<STATE> & Gravity()
+    {
+        return fg;
+    }
     
     // @}
     
