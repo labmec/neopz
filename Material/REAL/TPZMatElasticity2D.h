@@ -214,19 +214,18 @@ public:
     /** @brief Set Initial Inclined Wellbore Stress */
     void SetInclinedWellborePreStress(REAL &SigmaXX, REAL &SigmaXY, REAL &SigmaYY, REAL &SigmaZZ)
     {
-        // Checking if the simulation is about a inclined Wellbore
-        if ((fInclinedWell = 1)) {
             // Convert the insitu stresses in local inicial stresses
             this->CalculateLocalInSituStresses(SigmaXX, SigmaXY, SigmaYY, SigmaZZ);
-            SetPlaneStrain();
-        }
-            SetPreStress(SigmaXX, SigmaXY, SigmaYY, SigmaZZ);
-      
     }
     
+    
     /** @brief Set Initial Stress */
-    void SetPreStress(REAL SigmaXX, REAL SigmaXY, REAL SigmaYY, REAL SigmaZZ)
+    void SetPreStress(REAL &SigmaXX, REAL &SigmaXY, REAL &SigmaYY, REAL &SigmaZZ)
     {
+        if ((fInclinedWell = 1)) {
+            SetInclinedWellborePreStress(SigmaXX, SigmaXY, SigmaYY, SigmaZZ);
+            
+        }
     
         fPreStressXX = SigmaXX;
         fPreStressXY = SigmaXY;
@@ -246,6 +245,7 @@ public:
      */
     void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV, REAL alpha, REAL beta, int wellborestate)
     {
+        
         fPreStressHH  = SigmaH;
         fPreStresshh  = Sigmah;
         fPreStressVV  = SigmaV;
@@ -258,39 +258,34 @@ public:
     /** @brief Calculates the Initial Stress in Local Coordinates */
     void CalculateLocalInSituStresses(REAL &SigmaXX, REAL &SigmaXY, REAL &SigmaYY, REAL &SigmaZZ)
     {
-        
-        REAL SigmaH =  fPreStressHH;
-        REAL Sigmah =  fPreStresshh;
-        REAL SigmaV =  fPreStressVV;
-        
+      
         /**** Rotation Matrix ******/
         // alpha = direction/azimuth
         // beta  = wellbore inclination
-        
-        REAL alpha = falpha;
-        REAL beta  = fbeta;
+       
+        REAL lxx = 0., lxy = 0., lxz = 0., lyx =0., lyy = 0., lyz = 0., lzx = 0., lzy = 0., lzz = 0.;
         
         // x-diretion
-        REAL lxx = cos(alpha)*cos(beta);
-        REAL lxy = sin(alpha)*cos(beta);
-        REAL lxz = -sin(beta);
+        lxx = cos(falpha)*cos(fbeta);
+        lxy = sin(falpha)*cos(fbeta);
+        lxz = -sin(fbeta);
         // y-direction
-        REAL lyx = -sin(alpha);
-        REAL lyy = cos(alpha);
-        REAL lyz = 0;
+        lyx = -sin(falpha);
+        lyy = cos(falpha);
+        lyz = 0;
         // z-direction
-        REAL lzx = cos(alpha)*sin(beta);
-        REAL lzy = sin(alpha)*sin(beta);
-        REAL lzz = cos(beta);
+        lzx = cos(falpha)*sin(fbeta);
+        lzy = sin(falpha)*sin(fbeta);
+        lzz = cos(fbeta);
         
         
         // Local Inicial Stresses after Inclination
-        SigmaXX = ((lxx*lxx) * SigmaH) + ((lxy*lxy) * Sigmah) + ((lxz*lxz) * SigmaV);
-        SigmaYY = ((lyx*lyx) * SigmaH) + ((lyy*lyy) * Sigmah) + ((lyz*lyz) * SigmaV);
-        SigmaZZ = ((lzx*lzx) * SigmaH) + ((lzy*lzy) * Sigmah) + ((lzz*lzz) * SigmaV);
-        SigmaXY = ((lxx*lyx) * SigmaH) + ((lxy*lyy) * Sigmah) + ((lxz*lyz) * SigmaV);
-      //SigmaYZ = ((lyx*lzx) * SigmaH) + ((lyy*lzy) * Sigmah) + ((lyz*lzz) * SigmaV);
-      //SigmaXZ = ((lzx*lxx) * SigmaH) + ((lzy*lxy) * Sigmah) + ((lzz*lxz) * SigmaV);
+        SigmaXX = ((lxx*lxx) * fPreStressHH) + ((lxy*lxy) * fPreStresshh) + ((lxz*lxz) * fPreStressVV);
+        SigmaYY = ((lyx*lyx) * fPreStressHH) + ((lyy*lyy) * fPreStresshh) + ((lyz*lyz) * fPreStressVV);
+        SigmaZZ = ((lzx*lzx) * fPreStressHH) + ((lzy*lzy) * fPreStresshh) + ((lzz*lzz) * fPreStressVV);
+        SigmaXY = ((lxx*lyx) * fPreStressHH) + ((lxy*lyy) * fPreStresshh) + ((lxz*lyz) * fPreStressVV);
+      //SigmaYZ = ((lyx*lzx) * fPreStressHH) + ((lyy*lzy) * fPreStresshh) + ((lyz*lzz) * fPreStressVV);
+      //SigmaXZ = ((lzx*lxx) * fPreStressHH) + ((lzy*lxy) * fPreStresshh) + ((lzz*lxz) * fPreStressVV);
     
         
     }
@@ -301,10 +296,7 @@ public:
     void GetPreStress(REAL &SigmaXX, REAL &SigmaXY, REAL &SigmaYY, REAL &SigmaZZ)
     {
         
-        SigmaXX = fPreStressXX;
-        SigmaXY = fPreStressXY;
-        SigmaYY = fPreStressYY;
-        SigmaZZ = fPreStressZZ;
+        SetPreStress(SigmaXX, SigmaXY, SigmaYY, SigmaZZ);
         
     }
 

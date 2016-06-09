@@ -307,8 +307,8 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)      += BIGNUMBER*(ux - v2[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(2*in+1,0)	+= BIGNUMBER*(uy - v2[1])*phiu(in,0)*weight;	// y displacement Value
+                ef(2*in,0)      += (BIGNUMBER*(ux - v2[0])*phiu(in,0))*weight;	// X displacement Value
+                ef(2*in+1,0)	+= (BIGNUMBER*(uy - v2[1])*phiu(in,0))*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -344,8 +344,8 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             
             for(in = 0 ; in < phru; in++)
             {
-                ef(2*in+0,0) += weight * (v2[0]-res(0,0)) * phiu(in,0);
-                ef(2*in+1,0) += weight * (v2[1]-res(1,0)) * phiu(in,0);
+                ef(2*in+0,0) += weight * ((v2[0]-res(0,0)) * phiu(in,0));
+                ef(2*in+1,0) += weight * ((v2[1]-res(1,0)) * phiu(in,0));
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -367,8 +367,8 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)      += BIGNUMBER*(0.0 - v2[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(2*in+1,0)	+= BIGNUMBER*(0.0 - v2[1])*phiu(in,0)*weight;	// y displacement Value
+                ef(2*in,0)      += (BIGNUMBER*(0.0 - v2[0])*phiu(in,0))*weight;	// X displacement Value
+                ef(2*in+1,0)	+= (BIGNUMBER*(0.0 - v2[1])*phiu(in,0))*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -382,7 +382,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
         }
         case 4 :
         {
-     
+            // Stress field
             
             for(in = 0; in < this->Dimension(); in ++){
                 v2[in] = ( v1(in,0) * data.normal[0] + v1(in,1) * data.normal[1]);
@@ -398,6 +398,10 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             break;
         }
         case 5 :
+        {
+            DebugStop();
+        }
+        break;
         case 6 :
             //	Normal Pressure condition Pressure value Should be inserted in v2[0]
             //	Elasticity Equation
@@ -410,8 +414,8 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
                 }
                 for(int in = 0 ; in < phru; in++)
                 {
-                    ef(2*in+0,0) += (v2[0]*data.normal[0]-res(0,0)) * phiu(in,0) * weight ;
-                    ef(2*in+1,0) += (v2[0]*data.normal[1]-res(1,0)) * phiu(in,0) * weight ;
+                    ef(2*in+0,0) += ((v2[0]*data.normal[0]-res(0,0)) * phiu(in,0)) * weight ;
+                    ef(2*in+1,0) += ((v2[0]*data.normal[1]-res(1,0)) * phiu(in,0)) * weight ;
                     for(int jn=0; jn< phru; jn++)
                     {
                         for(int idf=0; idf < this->Dimension(); idf++) for(int jdf=0; jdf < this->Dimension(); jdf++)
@@ -431,7 +435,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)		+= BIGNUMBER*(ux - v2[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(2*in,0)		+= (BIGNUMBER*(ux - v2[0])*phiu(in,0))*weight;	// X displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -449,7 +453,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in+1,0)	+= BIGNUMBER*(uy - v2[1])*phiu(in,0)*weight;	// y displacement Value
+                ef(2*in+1,0)	+= (BIGNUMBER*(uy - v2[1])*phiu(in,0))*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -962,7 +966,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //	Hydrostatic stress
     if(var == 2) 
     {
-        Solout[0] = (SigX+SigY+SigZ)/3.0;
+        Solout[0] = (SigX+SigY+SigZ)/3;
         return;
     }
     
