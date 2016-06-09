@@ -126,306 +126,306 @@ void AjustarContorno(TPZGeoMesh *gmesh);
 #include "boost/date_time/posix_time/posix_time.hpp"
 #endif
 
-int dim_problema = 3;
+int dim_problema = 2;
 int nbc = dim_problema*2;
 bool fTriang = false;
 int flevel=3;
 
 bool rodarH1 = false;
-bool rodarSIPGD = false;
-bool rodarHdiv = true;
+bool rodarSIPGD = true;
+bool rodarHdiv = false;
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.hibridoprimal"));
 #endif
 void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 
-//int main2(int argc, char *argv[])
-//{
+int main(int argc, char *argv[])
+{
 //#ifdef LOG4CXX
 //    InitializePZLOG();
 //#endif
-//
-//    ///Refinamento
-//    gRefDBase.InitializeUniformRefPattern(EOned);
-//    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-//
-//
-//    bool multiplicadorH1 = true;
-//    bool MudarOrdemPdoMultiplicador = false;
-//    std::ofstream myerrorfile("Simulacao-Primal.txt");
-//
-//    if(rodarH1){
-//        myerrorfile<<"\nDADOS PARA O REFINAMENTO hp E FORMULAÇÃO H1"<<std::endl;
-//        myerrorfile<<std::endl;
-//
-//    }else if(rodarSIPGD){
-//        myerrorfile<<"\nDADOS PARA O REFINAMENTO hp E FORMULAÇÃO DG"<<std::endl;
-//        myerrorfile<<std::endl;
-//
-//    }
-//    else if(multiplicadorH1){
-//        myerrorfile<<"\nDADOS PARA O REFINAMENTO hp E MULTIPLICADOR CONTINUO"<<std::endl;
-//        myerrorfile<<std::endl;
-//
-//    }else {
-//        myerrorfile<<"\nDADOS PARA O REFINAMENTO hp E MULTIPLICADOR DESCONTINUO"<<std::endl;
-//        myerrorfile<<std::endl;
-//    }
-//
-//    TPZCompMesh *cmesh;
-//    TPZGeoMesh *gmesh;
-//
-//    int pini =1;
-//    for(int p = pini; p<5; p++)
-//    {
-//
-//        myerrorfile<<"\nORDEM p = "<<p <<"\n\n";
-//        if(dim_problema==2){
-//            myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(15)<<"NDoFCond" << setw(19)<< "Assemble"<< setw(20)<<
-//            "Solve" << setw(20) <<"Ttotal" << setw(18) <<"Error u" << setw(20)<<"Error gradU\n";
-//        }else{
-//            myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
-//            "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" << setw(12) <<"Error u" << setw(16)<<"Error gradU\n";
-//        }
-//        for(int ndiv=0; ndiv<5; ndiv++){
-//
-//
-//            if(dim_problema==2){
-//                gmesh = GMesh2D(fTriang);//malha geometrica
-//                UniformRefine(gmesh, flevel);
-//                RefiningNearCircunference(dim_problema, gmesh,ndiv,1);
-//                //DirectionalRef(gmesh, 1, ndiv);
-//                AjustarContorno(gmesh);
-//
-//
-//            }else{
-//                //gmesh = CreateOneCubo(ndiv);
-//                gmesh = CreateOneCuboWithTetraedrons(ndiv);
+
+    ///Refinamento
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+
+
+    bool multiplicadorH1 = true;
+    bool MudarOrdemPdoMultiplicador = false;
+    std::ofstream myerrorfile("Simulacao-Primal.txt");
+
+    if(rodarH1){
+        myerrorfile<<"\nDADOS PARA O REFINAMENTO hp E FORMULAÇÃO H1"<<std::endl;
+        myerrorfile<<std::endl;
+
+    }else if(rodarSIPGD){
+        myerrorfile<<"\nDADOS PARA O REFINAMENTO hp E FORMULAÇÃO DG"<<std::endl;
+        myerrorfile<<std::endl;
+
+    }
+    else if(multiplicadorH1){
+        myerrorfile<<"\nDADOS PARA O REFINAMENTO hp E MULTIPLICADOR CONTINUO"<<std::endl;
+        myerrorfile<<std::endl;
+
+    }else {
+        myerrorfile<<"\nDADOS PARA O REFINAMENTO hp E MULTIPLICADOR DESCONTINUO"<<std::endl;
+        myerrorfile<<std::endl;
+    }
+
+    TPZCompMesh *cmesh;
+    TPZGeoMesh *gmesh;
+
+    int pini =2;
+    for(int p = pini; p<3; p++)
+    {
+
+        myerrorfile<<"\nORDEM p = "<<p <<"\n\n";
+        if(dim_problema==2){
+            myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(15)<<"NDoFCond" << setw(19)<< "Assemble"<< setw(20)<<
+            "Solve" << setw(20) <<"Ttotal" << setw(18) <<"Error u" << setw(20)<<"Error gradU\n";
+        }else{
+            myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
+            "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" << setw(12) <<"Error u" << setw(16)<<"Error gradU\n";
+        }
+        for(int ndiv=1; ndiv<5; ndiv++){
+
+
+            if(dim_problema==2){
+                gmesh = GMesh2D(fTriang);//malha geometrica
+                UniformRefine(gmesh, flevel);
+                RefiningNearCircunference(dim_problema, gmesh,ndiv,1);
+                //DirectionalRef(gmesh, 1, ndiv);
+                AjustarContorno(gmesh);
+
+
+            }else{
+                //gmesh = CreateOneCubo(ndiv);
+                gmesh = CreateOneCuboWithTetraedrons(ndiv);
+            }
+
+//            {
+//                std::ofstream out("gmesh.txt");
+//                gmesh->Print(out);
+//                std::ofstream filemesh("MalhaGeometricaInicial.vtk");
+//                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filemesh, true);
 //            }
-//
-////            {
-////                std::ofstream out("gmesh.txt");
-////                gmesh->Print(out);
-////                std::ofstream filemesh("MalhaGeometricaInicial.vtk");
-////                TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filemesh, true);
-////            }
-//
-//
-//            long NDoF=0, NDoFCond=0;
-//            long nNzeros=0;
-//
-//            if(!rodarH1 && !rodarSIPGD){
-//                cmesh= CreateHybridCompMesh(*gmesh, p, multiplicadorH1);//malha computacional
-//
-//                //------- Criar elementos de Lagrange (Ribs)--------
-//                //materiais do problema
-//                std::set<int>matids;
-//                matids.insert(matId);
-//                for(int i=1; i<=nbc; i++)
+
+
+            long NDoF=0, NDoFCond=0;
+            long nNzeros=0;
+
+            if(!rodarH1 && !rodarSIPGD){
+                cmesh= CreateHybridCompMesh(*gmesh, p, multiplicadorH1);//malha computacional
+
+                //------- Criar elementos de Lagrange (Ribs)--------
+                //materiais do problema
+                std::set<int>matids;
+                matids.insert(matId);
+                for(int i=1; i<=nbc; i++)
+                {
+                    if(dim_problema==2){
+                        matids.insert(-(i+1));
+                    }else{
+                        matids.insert(-i);
+                    }
+                }
+                if(dim_problema==2) Prefinamento(cmesh, ndiv, p);
+                cmesh->ApproxSpace().Hybridize(*cmesh, matids, multiplicadorH1);
+
+
+                if(MudarOrdemPdoMultiplicador){
+                    SetPOrderRibsHybridMesh(cmesh, 2/*p-(pini-1)*/);
+                    cmesh->CleanUpUnconnectedNodes();
+                    cmesh->ExpandSolution();
+                }
+
 //                {
-//                    if(dim_problema==2){
-//                        matids.insert(-(i+1));
-//                    }else{
-//                        matids.insert(-i);
-//                    }
+//                    std::ofstream out("cmeshHib2.txt");
+//                    cmesh->Print(out);
 //                }
-//                if(dim_problema==2) Prefinamento(cmesh, ndiv, p);
-//                cmesh->ApproxSpace().Hybridize(*cmesh, matids, multiplicadorH1);
-//
-//
-//                if(MudarOrdemPdoMultiplicador){
-//                    SetPOrderRibsHybridMesh(cmesh, 2/*p-(pini-1)*/);
-//                    cmesh->CleanUpUnconnectedNodes();
-//                    cmesh->ExpandSolution();
+
+
+                //myerrorfile << "\nRefinamento h = "<< ndiv <<"\n";
+                NDoF = cmesh->NEquations();
+                //myerrorfile << "\nDOF Total = "<< cmesh->NEquations() << "\n";
+
+                //condesacao estatica
+                GroupElements(cmesh, dim_problema);
+                cmesh->LoadReferences();//mapeia para a malha geometrica lo
+                NDoFCond = cmesh->NEquations();
+
+//                {
+//                    std::ofstream out("cmeshHib2-AfterGroup.txt");
+//                    cmesh->Print(out);
 //                }
-//
-////                {
-////                    std::ofstream out("cmeshHib2.txt");
-////                    cmesh->Print(out);
-////                }
-//
-//
-//                //myerrorfile << "\nRefinamento h = "<< ndiv <<"\n";
-//                NDoF = cmesh->NEquations();
-//                //myerrorfile << "\nDOF Total = "<< cmesh->NEquations() << "\n";
-//
-//                //condesacao estatica
-//                GroupElements(cmesh, dim_problema);
-//                cmesh->LoadReferences();//mapeia para a malha geometrica lo
-//                NDoFCond = cmesh->NEquations();
-//
-////                {
-////                    std::ofstream out("cmeshHib2-AfterGroup.txt");
-////                    cmesh->Print(out);
-////                }
-//            }
-//            else {//Malha H1
-//                cmesh = CMeshH1(gmesh, p, dim_problema, rodarSIPGD);
-//                cmesh->ExpandSolution();
-//                cmesh->CleanUpUnconnectedNodes();
-////                {
-////                    std::ofstream out("cmeshH1-1.txt");
-////                    cmesh->Print(out);
-////                }
-//
-//                if(dim_problema==2) Prefinamento(cmesh, ndiv, p);
-//
-//                if(rodarSIPGD){
-//                    TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
-//                    cmesh->ExpandSolution();
-//                    cmesh->CleanUpUnconnectedNodes();
+            }
+            else {//Malha H1
+                cmesh = CMeshH1(gmesh, p, dim_problema, rodarSIPGD);
+                cmesh->ExpandSolution();
+                cmesh->CleanUpUnconnectedNodes();
+//                {
+//                    std::ofstream out("cmeshH1-1.txt");
+//                    cmesh->Print(out);
 //                }
-////
-////                {
-////                    std::ofstream out("cmeshH1-2.txt");
-////                    cmesh->Print(out);
-////
-////                    std::ofstream out2("gmesh-2.txt");
-////                    gmesh->Print(out2);
-////                }
+
+                if(dim_problema==2) Prefinamento(cmesh, ndiv, p);
+
+                if(rodarSIPGD){
+                    TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
+                    cmesh->ExpandSolution();
+                    cmesh->CleanUpUnconnectedNodes();
+                }
 //
-//                NDoF = cmesh->NEquations();
-//                //condensar
-//                if(rodarH1){
-//                    if(rodarSIPGD) DebugStop();
-//                    for (long iel=0; iel<cmesh->NElements(); iel++) {
-//                        TPZCompEl *cel = cmesh->Element(iel);
-//                        if(!cel) continue;
-//                        TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
+//                {
+//                    std::ofstream out("cmeshH1-2.txt");
+//                    cmesh->Print(out);
+//
+//                    std::ofstream out2("gmesh-2.txt");
+//                    gmesh->Print(out2);
 //                }
-//                    cmesh->ExpandSolution();
-//                    cmesh->CleanUpUnconnectedNodes();
-//                }
-//
-//                NDoFCond = cmesh->NEquations();
-//            }
-//
-//
-//            //Resolver problema
-//            TPZAnalysis analysis(cmesh);
-//            if(dim_problema==2){
-//
-//                TPZSkylineStructMatrix skylstr(cmesh); //caso simetrico
-//                //TPZSkylineNSymStructMatrix skylstr(cmesh); //caso nao simetrico
-//                skylstr.SetNumThreads(8);
-//                analysis.SetStructuralMatrix(skylstr);
-//
-//                long neq = NDoFCond;
-//                TPZVec<long> skyline;
-//                cmesh->Skyline(skyline);
-//                TPZSkylMatrix<STATE> matsky(neq,skyline);
-//                nNzeros = matsky.GetNelemts();
-//
-////                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(cmesh);
-////                strmat.SetDecomposeType(ELDLt);
-////                strmat.SetNumThreads(8);
-////                analysis.SetStructuralMatrix(strmat);
-//
-//
-////                TPZBandStructMatrix bdmat(cmesh);
-////                //bdmat.SetNumThreads(8);
-////                analysis.SetStructuralMatrix(bdmat);
-//
-//
-////                TPZParFrontStructMatrix<TPZFrontNonSym<STATE> > strmat(cmesh);
-////                strmat.SetDecomposeType(ELU);
-////                strmat.SetNumThreads(8);
-////                analysis.SetStructuralMatrix(strmat);
-//
-//            }else{
-//
-//                long neq = NDoFCond;
-//                TPZVec<long> skyline;
-//                cmesh->Skyline(skyline);
-//                TPZSkylMatrix<STATE> matsky(neq,skyline);
-//                nNzeros = matsky.GetNelemts();
-//
+
+                NDoF = cmesh->NEquations();
+                //condensar
+                if(rodarH1){
+                    if(rodarSIPGD) DebugStop();
+                    for (long iel=0; iel<cmesh->NElements(); iel++) {
+                        TPZCompEl *cel = cmesh->Element(iel);
+                        if(!cel) continue;
+                        TPZCondensedCompEl *condense = new TPZCondensedCompEl(cel);
+                }
+                    cmesh->ExpandSolution();
+                    cmesh->CleanUpUnconnectedNodes();
+                }
+
+                NDoFCond = cmesh->NEquations();
+            }
+
+
+            //Resolver problema
+            TPZAnalysis analysis(cmesh);
+            if(dim_problema==2){
+
+                TPZSkylineStructMatrix skylstr(cmesh); //caso simetrico
+                //TPZSkylineNSymStructMatrix skylstr(cmesh); //caso nao simetrico
+             //   skylstr.SetNumThreads(8);
+                analysis.SetStructuralMatrix(skylstr);
+
+                long neq = NDoFCond;
+                TPZVec<long> skyline;
+                cmesh->Skyline(skyline);
+                TPZSkylMatrix<STATE> matsky(neq,skyline);
+                nNzeros = matsky.GetNelemts();
+
 //                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(cmesh);
 //                strmat.SetDecomposeType(ELDLt);
 //                strmat.SetNumThreads(8);
 //                analysis.SetStructuralMatrix(strmat);
-//            }
-//
-//            TPZStepSolver<STATE> step;
-//            step.SetDirect(ELDLt); //caso simetrico
-//            //step.SetDirect(ELU);
-//            analysis.SetSolver(step);
-//
-//#ifdef USING_BOOST
-//            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
-//#else
-//            REAL t1=0.;
-//#endif
-//            analysis.Assemble();
-//
-//#ifdef USING_BOOST
-//            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-//#else
-//            REAL t2 = 0.;
-//#endif
-//            analysis.Solve();
-//
-//#ifdef USING_BOOST
-//            boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
-//#else
-//            REAL t3 = 0.;
-//#endif
-//
-//            //REAL t1=0., t2=0., t3=0.;
-//
-//            //            std::ofstream out("cmeshHib22.txt");
-//            //            cmesh->Print(out);
-//
-//            if(p==5){
-//                TPZVec<std::string> scalnames(3), vecnames;
-//                scalnames[0] = "Solution";
-//                scalnames[1] = "POrder";
-//                scalnames[2] = "ExactSolution";
-//                if(rodarH1 || rodarSIPGD){
-//                    vecnames.Resize(1);
-//                    vecnames[0] = "Derivative";
-//                }else{
-//                    vecnames.Resize(2);
-//                    vecnames[0] = "Grad";
-//                    vecnames[1] = "ExactGrad";
-//                }
-//
-//                std::stringstream name;
-//                name << "Solution_bima" <<ndiv<< ".vtk";
-//                std::string paraviewfile(name.str());
-//                analysis.DefineGraphMesh(dim_problema,scalnames,vecnames,paraviewfile);
-//                analysis.PostProcess(0);
-//
-//                //visualizar matriz no vtk
-//                TPZFMatrix<REAL> vismat(100,100);
-//                cmesh->ComputeFillIn(100,vismat);
-//                VisualMatrixVTK(vismat,"matrixstruct.vtk");
-//            }
-//
-//            analysis.SetExact(SolShockProblem);
-//            TPZVec<REAL> erros(3);
-//            analysis.PostProcessError(erros);
-//
-//            if(dim_problema==2){
-//                //            myerrorfile << ndiv <<  setw(13) << NDoF << setw(15)<< NDoFCond <<"     "<< (t2-t1) << "     "<< (t3-t2) <<"     "<<(t2-t1)+(t3-t2) << setw(18) << erros[1]<< setw(19)<< erros[2]<<std::endl;
-//            }else{
-//
-//                REAL totalbanda = NDoFCond*NDoFCond;
-//                REAL NZeros = totalbanda - nNzeros;
-//                REAL razao = NZeros/totalbanda;
-//                myerrorfile << ndiv <<  setw(13) << NDoF << setw(12)<< NDoFCond <<setw(13)<< NDoFCond*NDoFCond <<setw(15)<<NZeros <<setw(12)<< razao <<"    "<< (t2-t1) << "     "<< (t3-t2) <<"     "<<(t2-t1)+(t3-t2) <<setw(12) << erros[1]<< setw(15)<< erros[2]<<std::endl;
-//            }
-//        }
-//        myerrorfile<<"\n-------------------------------------------------------------------------"<<std::endl;
-//    }
-//
-//    return 0;
-//}
+
+
+//                TPZBandStructMatrix bdmat(cmesh);
+//                //bdmat.SetNumThreads(8);
+//                analysis.SetStructuralMatrix(bdmat);
+
+
+//                TPZParFrontStructMatrix<TPZFrontNonSym<STATE> > strmat(cmesh);
+//                strmat.SetDecomposeType(ELU);
+//                strmat.SetNumThreads(8);
+//                analysis.SetStructuralMatrix(strmat);
+
+            }else{
+
+                long neq = NDoFCond;
+                TPZVec<long> skyline;
+                cmesh->Skyline(skyline);
+                TPZSkylMatrix<STATE> matsky(neq,skyline);
+                nNzeros = matsky.GetNelemts();
+
+                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(cmesh);
+                strmat.SetDecomposeType(ELDLt);
+                strmat.SetNumThreads(8);
+                analysis.SetStructuralMatrix(strmat);
+            }
+
+            TPZStepSolver<STATE> step;
+            step.SetDirect(ELDLt); //caso simetrico
+            //step.SetDirect(ELU);
+            analysis.SetSolver(step);
+
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#else
+            REAL t1=0.;
+#endif
+            analysis.Assemble();
+
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#else
+            REAL t2 = 0.;
+#endif
+            analysis.Solve();
+
+#ifdef USING_BOOST
+            boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
+#else
+            REAL t3 = 0.;
+#endif
+
+            //REAL t1=0., t2=0., t3=0.;
+
+            //            std::ofstream out("cmeshHib22.txt");
+            //            cmesh->Print(out);
+
+            if(p==2){
+                TPZVec<std::string> scalnames(3), vecnames;
+                scalnames[0] = "Solution";
+                scalnames[1] = "POrder";
+                scalnames[2] = "ExactSolution";
+                if(rodarH1 || rodarSIPGD){
+                    vecnames.Resize(1);
+                    vecnames[0] = "Derivative";
+                }else{
+                    vecnames.Resize(2);
+                    vecnames[0] = "Grad";
+                    vecnames[1] = "ExactGrad";
+                }
+
+                std::stringstream name;
+                name << "Solution_bima" <<ndiv<< ".vtk";
+                std::string paraviewfile(name.str());
+                analysis.DefineGraphMesh(dim_problema,scalnames,vecnames,paraviewfile);
+                analysis.PostProcess(0);
+
+                //visualizar matriz no vtk
+                TPZFMatrix<REAL> vismat(100,100);
+                cmesh->ComputeFillIn(100,vismat);
+                VisualMatrixVTK(vismat,"matrixstruct.vtk");
+            }
+
+            analysis.SetExact(SolShockProblem);
+            TPZVec<REAL> erros(3);
+            analysis.PostProcessError(erros);
+
+            if(dim_problema==0){
+                //            myerrorfile << ndiv <<  setw(13) << NDoF << setw(15)<< NDoFCond <<"     "<< (t2-t1) << "     "<< (t3-t2) <<"     "<<(t2-t1)+(t3-t2) << setw(18) << erros[1]<< setw(19)<< erros[2]<<std::endl;
+            }else{
+
+                REAL totalbanda = NDoFCond*NDoFCond;
+                REAL NZeros = totalbanda - nNzeros;
+                REAL razao = NZeros/totalbanda;
+                myerrorfile << ndiv <<  setw(13) << NDoF << setw(12)<< NDoFCond <<setw(13)<< NDoFCond*NDoFCond <<setw(15)<<NZeros <<setw(12)<< razao <<"    "<< (t2-t1) << "     "<< (t3-t2) <<"     "<<(t2-t1)+(t3-t2) <<setw(12) << erros[1]<< setw(15)<< erros[2]<<std::endl;
+            }
+        }
+        myerrorfile<<"\n-------------------------------------------------------------------------"<<std::endl;
+    }
+
+    return 0;
+}
 
 //Malha Hdiv
 bool HDivMaisMais = false;
-int main(int argc, char *argv[])
+int main2(int argc, char *argv[])
 {
     //#ifdef LOG4CXX
     //    InitializePZLOG();
