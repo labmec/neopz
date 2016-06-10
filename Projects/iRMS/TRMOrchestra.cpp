@@ -141,14 +141,14 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(){
     
-    int nel_x = 8;
+    int nel_x = 10;
     int nel_y = 1;
     int nel_z = 1;
     
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 10.0/REAL(nel_x);
-    dy[0] = 1.0/REAL(nel_y);
-    dz[0] = 1.0/REAL(nel_z);
+    dx[0] = 100.0/REAL(nel_x);
+    dy[0] = 10.0/REAL(nel_y);
+    dz[0] = 10.0/REAL(nel_z);
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
     

@@ -105,7 +105,7 @@ void TRMRawData::WaterReservoirBox(){
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-    fg[2] = 9.81;
+    fg[0] = -9.81;
     
     int map_model = 0; // constant
     fMap = new TRMSpatialPropertiesMap;
@@ -115,8 +115,8 @@ void TRMRawData::WaterReservoirBox(){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 10;
-    fdt = 1000.0*day;
+    fn_steps  = 2;
+    fdt = 100.0*day;
     fdt_up = 1.0;
     fdt_down = 1.0;
 
@@ -174,19 +174,19 @@ void TRMRawData::WaterReservoirBox(){
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
-    S[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    S[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(S);
     
     fGammaIds.Push(bc_N);
-    N[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(N);
     
     fGammaIds.Push(bc_B);
-    B[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    B[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(B);
     
     fGammaIds.Push(bc_T);
-    T[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    T[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(T);
     
 }
@@ -200,7 +200,7 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL f = -1.0;
+    REAL f = -0.0001;
     F[0] = f;
     return;
 }

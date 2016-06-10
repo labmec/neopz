@@ -348,7 +348,7 @@ void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
 void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     
-    int nvars = 4;
+    int nvars = 5; // {u,p,sa,sb,t}
     
     int ub = 0;
     int pb = 1;
@@ -398,14 +398,14 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
-    TPZVec<STATE> Gravity = fSimulationData->Gravity();
+    TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
     for (int i = 0; i < u.size(); i++) {
         STATE dot = 0.0;
         for (int j =0; j < u.size(); j++) {
-            dot += (mu[0]/rho[0])* Kinv(i,j)*u[j];
+            dot += Kinv(i,j)*u[j];
         }
-        lambda_K_inv_u(i,0) = dot;
+        lambda_K_inv_u(i,0) = (mu[0]/rho[0]) * dot;
     }
     
     // Integration point contribution
@@ -432,14 +432,14 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         v_i = datavec[ub].fVecShapeIndex[iu].first;
         s_i = datavec[ub].fVecShapeIndex[iu].second;
         
-        STATE Kl_inv_dot_u = 0.0;
+        STATE Kl_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
             phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
             Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
+            rho_g_dot_phi_u += rho[0]*Gravity[i]*phi_u_i(i,0);
         }
         
-        
-        ef(iu + firstu) += weight * ( Kl_inv_dot_u - (1.0/jac_det) * (p) * div_on_master(iu,0) );
+        ef(iu + firstu) += weight * ( Kl_inv_dot_u - (1.0/jac_det) * (p) * div_on_master(iu,0) - rho_g_dot_phi_u);
         
         for (int ju = 0; ju < nphiu; ju++)
         {
@@ -495,7 +495,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
-    int nvars = 4;
+    int nvars = 5; // {u,p,sa,sb,t}
     
     int ub = 0;
     int pb = 1;
@@ -546,14 +546,14 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1);
-    TPZVec<STATE> Gravity = fSimulationData->Gravity();
+    TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
     for (int i = 0; i < u.size(); i++) {
         STATE dot = 0.0;
         for (int j =0; j < u.size(); j++) {
-             dot += (mu[0]/rho[0])* Kinv(i,j)*u[j];
+             dot += Kinv(i,j)*u[j];
         }
-        lambda_K_inv_u(i,0) = dot;
+        lambda_K_inv_u(i,0) = (mu[0]/rho[0]) * dot;
     }
     
     
@@ -583,14 +583,15 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         v_i = datavec[ub].fVecShapeIndex[iu].first;
         s_i = datavec[ub].fVecShapeIndex[iu].second;
         
-        STATE Kl_inv_dot_u = 0.0;
+        STATE Kl_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
             phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
             Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
+            rho_g_dot_phi_u += rho[0]*Gravity[i]*phi_u_i(i,0);
         }
         
         
-        ef(iu + firstu) += weight * ( Kl_inv_dot_u - (1.0/jac_det) * (p) * div_on_master(iu,0) );
+        ef(iu + firstu) += weight * ( Kl_inv_dot_u - (1.0/jac_det) * (p) * div_on_master(iu,0) - rho_g_dot_phi_u);
         
     }
     
@@ -667,6 +668,25 @@ void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
                 {
                     
                     ek(iu + firstu,ju + firstu) += weight * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
+                }
+                
+            }
+            
+        }
+            break;
+            
+        case 2 :    // Neumann BC  Impervious bc
+        {
+            
+            for (int iu = 0; iu < nphiu; iu++)
+            {
+                STATE un = u[0];
+                ef(iu + firstu) += weight * 100000.0 * gBigNumber * (un - 0.0) * phi_us(iu,0);
+                
+                for (int ju = 0; ju < nphiu; ju++)
+                {
+                    
+                    ek(iu + firstu,ju + firstu) += weight * 100000.0 * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
                 }
                 
             }
