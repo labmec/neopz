@@ -115,7 +115,14 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
         for (int j = 0; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
-            bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
             bc_item = bc[flux_or_pressure];
             TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
             boundary_c->SetTimedependentBCForcingFunction(bc_item.second);
@@ -284,7 +291,14 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
         for (int j = 0; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
-            bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
             bc_item = bc[flux_or_pressure];
             TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
             boundary_c->SetTimedependentBCForcingFunction(bc_item.second); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
@@ -358,7 +372,14 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
         TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
         for (int j = 0; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
-            bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
             bc_item = bc[flux_or_pressure];
             TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
             boundary_c->SetTimedependentBCForcingFunction(bc_item.second); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions

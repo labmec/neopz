@@ -42,6 +42,9 @@ private:
     
     /** @brief Define the primal with global post-processing analysis */
     TPZAutoPointer<TRMPrimalMultiphaseAnalysis> fPrimalMultiphaseAnalysis;
+
+    /** @brief Define the initial monolithic multiphase analysis */
+    TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> fMonolithicMultiphaseAnalysis_I;
     
     /** @brief Define the monolithic multiphase analysis */
     TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> fMonolithicMultiphaseAnalysis;
@@ -139,6 +142,17 @@ public:
     TPZAutoPointer<TRMPrimalMultiphaseAnalysis > PrimalMultiphaseAnalysis()
     {
         return fPrimalMultiphaseAnalysis;
+    }
+
+    /** @brief Set autopointer of the initial monolithic multiphase analysis */
+    void SetMonolithicMultiphaseAnalysis_I(TPZAutoPointer<TRMMonolithicMultiphaseAnalysis > &MonolithicMultiphaseAnalysis_I)
+    {
+        fMonolithicMultiphaseAnalysis_I = MonolithicMultiphaseAnalysis_I;
+    }
+    /** @brief Get autopointer of the initial monolithic multiphase analysis */
+    TPZAutoPointer<TRMMonolithicMultiphaseAnalysis > MonolithicMultiphaseAnalysis_I()
+    {
+        return fMonolithicMultiphaseAnalysis_I;
     }
     
     /** @brief Set autopointer of the monolithic multiphase analysis */
@@ -238,10 +252,13 @@ public:
     void CreateAnalysisDualonBox();
     
     /** @brief Create a monolithic dual analysis on box geometry using space odissey */
-    void CreateMonolithicAnalysis();
+    void CreateMonolithicAnalysis(bool IsInitialQ);
+
+    /** @brief Run the static problem for a single step with a large time step */
+    void RunStaticProblem();
     
-    /** @brief Run the time steps set in the simulation data */
-    void RunSimulation();
+    /** @brief Run the evolutionary problem for all steps set in the simulation data */
+    void RunEvolutionaryProblem();
     
     /** @brief Run a single time step */
     void ExecuteOneTimeStep();

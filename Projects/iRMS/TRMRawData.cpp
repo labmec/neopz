@@ -99,13 +99,14 @@ void TRMRawData::WaterReservoirBox(){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("water");
-    fPhases.Push(water);
+    fSystemType.Push("oil");
+    oil->SetRhoModel(1);
+    fPhases.Push(oil);
     int n_data = fSystemType.size();
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-    fg[0] = -9.81;
+//    fg[0] = -9.81;
     
     int map_model = 0; // constant
     fMap = new TRMSpatialPropertiesMap;
@@ -115,13 +116,13 @@ void TRMRawData::WaterReservoirBox(){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 2;
-    fdt = 100.0*day;
+    fn_steps  = 10;
+    fdt = 0.1*day;
     fdt_up = 1.0;
     fdt_down = 1.0;
 
     // Numeric controls
-    fn_corrections = 2;
+    fn_corrections = 10;
     fepsilon_res = 0.001;
     fepsilon_cor = 0.001;
     
@@ -166,26 +167,38 @@ void TRMRawData::WaterReservoirBox(){
     TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
     
     fGammaIds.Push(bc_W);
+    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    fIntial_bc_data.Push(W);
     W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
     E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    fIntial_bc_data.Push(E);
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
+    S[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fIntial_bc_data.Push(S);
     S[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(S);
     
     fGammaIds.Push(bc_N);
     N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fIntial_bc_data.Push(N);
+    N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(N);
     
     fGammaIds.Push(bc_B);
     B[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fIntial_bc_data.Push(B);
+    B[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(B);
     
     fGammaIds.Push(bc_T);
+    T[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fIntial_bc_data.Push(T);
     T[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(T);
     

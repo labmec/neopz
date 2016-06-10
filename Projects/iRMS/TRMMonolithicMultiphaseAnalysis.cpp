@@ -118,7 +118,14 @@ void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
     const int dim = 3;
     int div = 0;
     TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile =  "DualMonolithicDarcyOnBox.vtk";
+    std::string plotfile;
+    if (fSimulationData->IsInitialStateQ()) {
+        plotfile =  "DualMonolithicDarcyOnBox_I.vtk";
+    }
+    else{
+        plotfile =  "DualMonolithicDarcyOnBox.vtk";
+    }
+
     scalnames.Push("p");
     scalnames.Push("div_u");
     vecnames.Push("u");

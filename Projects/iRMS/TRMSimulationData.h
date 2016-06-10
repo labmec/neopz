@@ -21,6 +21,9 @@
 class TRMSimulationData {
     
 protected:
+
+    /** @brief initial state */
+    bool fIsInitialStateQ;
     
     /** @brief current time state */
     bool fIsCurrentStateQ;
@@ -129,6 +132,12 @@ public:
      *
      * @{
      */
+
+    /** @brief Set initial state */
+    void SetInitialStateQ(bool state) { fIsInitialStateQ = state; }
+    
+    /** @brief Get initial state */
+    bool IsInitialStateQ() {return fIsInitialStateQ;}
     
     /** @brief current time state */
     void SetCurrentStateQ(bool state) { fIsCurrentStateQ = state; }

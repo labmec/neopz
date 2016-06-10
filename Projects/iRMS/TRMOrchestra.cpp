@@ -28,6 +28,7 @@ TRMOrchestra::TRMOrchestra(){
     fSpaceGenerator                 = new TRMSpaceOdissey;
     fSimulationData                 = NULL;
     fPrimalMultiphaseAnalysis       = new TRMPrimalMultiphaseAnalysis;
+    fMonolithicMultiphaseAnalysis_I = new TRMMonolithicMultiphaseAnalysis;
     fMonolithicMultiphaseAnalysis   = new TRMMonolithicMultiphaseAnalysis;
     fFluxPressureAnalysis           = new TRMFluxPressureAnalysis;
     fWaterTransportAnalysis         = new TRMTransportAnalysis;
@@ -36,6 +37,7 @@ TRMOrchestra::TRMOrchestra(){
     fIsMonolithicQ         =  false;
     fIsSegregatedQ         =  false;
     fIsSegregatedwithCGQ   =  false;
+    
     
 }
 
@@ -139,7 +141,11 @@ void TRMOrchestra::CreateAnalysisDualonBox()
 }
 
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
-void TRMOrchestra::CreateMonolithicAnalysis(){
+void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
+    
+    fSimulationData->SetInitialStateQ(IsInitialQ);
+    
+    TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> mono_analysis = new TRMMonolithicMultiphaseAnalysis;
     
     int nel_x = 10;
     int nel_y = 1;
@@ -155,7 +161,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
 //    std::string dirname = PZSOURCEDIR;
 //    std::string file;
 //    file = dirname + "/Projects/iRMS/Meshes/Singlewell.dump";
-//    fSpaceGenerator->CreateGeometricGIDMesh(file);
+//    fSpaceGenerator->CreateGeometricGIDMesh(file); // @Omar:: Capability for GID meshes
     
 #ifdef PZDEBUG
     fSpaceGenerator->PrintGeometry();
@@ -169,15 +175,14 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateMultiphaseCmesh();
         
-        fMonolithicMultiphaseAnalysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
-        fMonolithicMultiphaseAnalysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
         
     }
     
     bool mustOptimizeBandwidth = true;
-    fMonolithicMultiphaseAnalysis->SetCompMesh(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->(), mustOptimizeBandwidth);
-    TPZFMatrix<STATE> prevsol = fMonolithicMultiphaseAnalysis->Solution();
-    std::cout << "Total dof: " << prevsol.Rows() << std::endl;    
+    mono_analysis->SetCompMesh(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->(), mustOptimizeBandwidth);
+    std::cout << "Total dof: " << mono_analysis->Solution().Rows() << std::endl;
     
     // Use this matrix for a linear tracer
     TPZSkylineStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
@@ -185,16 +190,49 @@ void TRMOrchestra::CreateMonolithicAnalysis(){
     int numofThreads = 0;
     strmat.SetNumThreads(numofThreads);
     step.SetDirect(ELDLt);
-    fMonolithicMultiphaseAnalysis->SetStructuralMatrix(strmat);
-    fMonolithicMultiphaseAnalysis->SetSolver(step);
-    fMonolithicMultiphaseAnalysis->SetSimulationData(fSimulationData);
-    fMonolithicMultiphaseAnalysis->AdjustVectors();
+    mono_analysis->SetStructuralMatrix(strmat);
+    mono_analysis->SetSolver(step);
+    mono_analysis->SetSimulationData(fSimulationData);
+    mono_analysis->AdjustVectors();
     
+    if (IsInitialQ) {
+        fMonolithicMultiphaseAnalysis_I = mono_analysis;
+    }
+    else{
+        fMonolithicMultiphaseAnalysis   =  mono_analysis;
+    }
     
 }
 
-/** @brief Run the time steps set in the simulation data */
-void TRMOrchestra::RunSimulation(){
+/** @brief Run the static problem for a single step with a large time step */
+void TRMOrchestra::RunStaticProblem(){
+    
+    int n = 1;//fSimulationData->n_steps();
+    REAL dt = fSimulationData->dt();
+    fSimulationData->Setdt(1.0e20);
+    
+    for (int i = 0; i < n; i++) {
+        if (IsMonolithicQ()) {
+            fMonolithicMultiphaseAnalysis_I->ExcecuteOneStep();
+            fMonolithicMultiphaseAnalysis_I->PostProcessStep();
+        }
+        
+        if (IsSegregatedQ()) {
+            std::cout <<  " Sgregated initialization not implemented yet" << std::endl;
+            DebugStop();
+        }
+        
+    }
+    fSimulationData->Setdt(dt);
+}
+
+/** @brief Run the evolutionary problem for all steps set in the simulation data */
+void TRMOrchestra::RunEvolutionaryProblem(){
+    
+    if (IsMonolithicQ()) {
+        fMonolithicMultiphaseAnalysis->SetX(fMonolithicMultiphaseAnalysis_I->X_n());
+        fMonolithicMultiphaseAnalysis->SetX_n(fMonolithicMultiphaseAnalysis_I->X_n());
+    }
     
     int n = fSimulationData->n_steps();
     for (int i = 0; i < n; i++) {
@@ -207,9 +245,10 @@ void TRMOrchestra::RunSimulation(){
             fFluxPressureAnalysis->ExcecuteOneStep();
             fFluxPressureAnalysis->PostProcessStep();
         }
-
+        
     }
 }
+
 
 /** @brief Computes the post processed results */
 void TRMOrchestra::PostProcess(){

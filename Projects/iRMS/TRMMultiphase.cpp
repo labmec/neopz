@@ -348,7 +348,7 @@ void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
 void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     
-    int nvars = 5; // {u,p,sa,sb,t}
+    int nvars = 4; // {p,sa,sb,t}
     
     int ub = 0;
     int pb = 1;
@@ -397,7 +397,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     fSimulationData->Map()->phi(datavec[ub].x, phi, v);
 
     // Defining local variables
-    TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
+    TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1),lambda_dp_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
     TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
     for (int i = 0; i < u.size(); i++) {
@@ -405,7 +405,8 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         for (int j =0; j < u.size(); j++) {
             dot += Kinv(i,j)*u[j];
         }
-        lambda_K_inv_u(i,0) = (mu[0]/rho[0]) * dot;
+        lambda_K_inv_u(i,0)     = (mu[0]/rho[0]) * dot;
+        lambda_dp_K_inv_u(i,0)  = (mu[1]/(rho[0]) - mu[0]*rho[1]/(rho[0]*rho[0])) * dot;
     }
     
     // Integration point contribution
@@ -432,11 +433,13 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         v_i = datavec[ub].fVecShapeIndex[iu].first;
         s_i = datavec[ub].fVecShapeIndex[iu].second;
         
-        STATE Kl_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0;
+        STATE Kl_inv_dot_u = 0.0, Kl_dp_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0, rho_dp_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
             phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
-            Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
-            rho_g_dot_phi_u += rho[0]*Gravity[i]*phi_u_i(i,0);
+            Kl_inv_dot_u        += lambda_K_inv_u(i,0)*phi_u_i(i,0);
+            Kl_dp_inv_dot_u     += lambda_dp_K_inv_u(i,0)*phi_u_i(i,0);
+            rho_g_dot_phi_u     += rho[0]*Gravity[i]*phi_u_i(i,0);
+            rho_dp_g_dot_phi_u  += rho[1]*Gravity[i]*phi_u_i(i,0);
         }
         
         ef(iu + firstu) += weight * ( Kl_inv_dot_u - (1.0/jac_det) * (p) * div_on_master(iu,0) - rho_g_dot_phi_u);
@@ -464,7 +467,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         for (int jp = 0; jp < nphip; jp++)
         {
-            ek(iu + firstu, jp + firstp) += -1.0 * weight * (1.0/jac_det) * phi_ps(jp,0) * div_on_master(iu,0);
+            ek(iu + firstu, jp + firstp) += weight * ( Kl_dp_inv_dot_u - (1.0/jac_det) * div_on_master(iu,0) + rho_dp_g_dot_phi_u) * phi_ps(jp,0);
         }
         
     }
@@ -488,6 +491,12 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         {
             ek(ip + firstp, ju + firstu) += -1.0 * weight * (1.0/jac_det) * div_on_master(ju,0) * phi_ps(ip,0);
         }
+        
+        for (int jp = 0; jp < nphip; jp++)
+        {
+            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * (rho[0] * phi[1] + rho[1] * phi[0]) * phi_ps(ip,0) ) * phi_ps(jp,0);
+        }
+        
     }
     
     
@@ -495,7 +504,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
-    int nvars = 5; // {u,p,sa,sb,t}
+    int nvars = 4; // {p,sa,sb,t}
     
     int ub = 0;
     int pb = 1;

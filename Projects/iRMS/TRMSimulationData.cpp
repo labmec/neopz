@@ -12,6 +12,9 @@
 /** @brief Initialize the raw data */
 TRMSimulationData::TRMSimulationData(){
     
+    /** @brief initial state */
+    fIsInitialStateQ = false;
+    
     /** @brief current time state */
     fIsCurrentStateQ =  false;
     
