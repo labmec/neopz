@@ -96,8 +96,10 @@ void TRMRawData::WaterReservoirBox(){
     std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
     
     // Single flow
-    TPZAutoPointer<TRMPhaseProperties> water = new TRMWaterPhase;
-    fSystemType.Push("Water");
+    TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
+    TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
+    TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
+    fSystemType.Push("water");
     fPhases.Push(water);
     int n_data = fSystemType.size();
     
@@ -113,8 +115,8 @@ void TRMRawData::WaterReservoirBox(){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 1;
-    fdt = 1.0*day;
+    fn_steps  = 10;
+    fdt = 1000.0*day;
     fdt_up = 1.0;
     fdt_down = 1.0;
 
@@ -198,7 +200,7 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL f = -0.01;
+    REAL f = -1.0;
     F[0] = f;
     return;
 }

@@ -69,24 +69,19 @@ void TRMMonolithicMultiphaseAnalysis::NewtonIteration(){
 }
 
 void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
+       
+    this->SimulationData()->SetCurrentStateQ(false);
+    this->LoadSolution(fX);
     
-//    this->SimulationData()->SetCurrentStateQ(false);
-//    this->LoadSolution(fX);
-//    
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-//    this->AssembleResidual();
-//    fR = this->Rhs();
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    this->AssembleResidual();
+    fR = this->Rhs();
     
-//    this->SimulationData()->SetCurrentStateQ(true);
-//    this->LoadSolution(fX_n);
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());    
-//    this->AssembleResidual();
-//    fR_n = this->Rhs();
-//    
-//    fR_n += fR;
+    this->SimulationData()->SetCurrentStateQ(true);
+    this->LoadSolution(fX_n);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
 
     ferror = 1.0;
-    
     
     STATE epsilon_res = this->SimulationData()->epsilon_res();
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();

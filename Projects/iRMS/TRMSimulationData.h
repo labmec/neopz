@@ -55,6 +55,9 @@ protected:
     /** @brief Time step */
     STATE fdt;
     
+    /** @brief Time step */
+    STATE ftime;
+    
     /** @brief Min time step */
     STATE fdt_min;
     
@@ -223,8 +226,17 @@ public:
     /** @brief Final time */
     STATE time_n() { return ftime_n; }
     
+    /** @brief Set Time step */
+    void Setdt(STATE dt) { fdt = dt; }
+    
     /** @brief Time step */
     STATE dt() { return fdt; }
+
+    /** @brief Time */
+    void SetTime(STATE time) { ftime = time; }
+    
+    /** @brief Time */
+    STATE t() { return ftime; }
     
     /** @brief Min time step */
     STATE dt_min() { return fdt_min; }

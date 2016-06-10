@@ -121,7 +121,7 @@ void TRMOilPhase::Density_c(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> 
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 1000.0;
+    STATE val = 800.0;
     rho.Resize(n,0.0);
     rho[0] = val;
     
@@ -139,7 +139,7 @@ void TRMOilPhase::Viscosity_c(TPZManVector<STATE,10> &mu, TPZManVector<STATE,10>
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 0.001;
+    STATE val = 0.01;
     mu.Resize(n,0.0);
     mu[0] = val;
     

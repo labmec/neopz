@@ -45,6 +45,9 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Time step */
     fdt = 0.0;
     
+    /** @brief Time step */
+    ftime = 0.0;
+    
     /** @brief Min time step */
     fdt_min = 0.0;
     
@@ -88,10 +91,11 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
 
 /** @brief Setup reporting times and time step size */
 void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de){
+    fdt = dt;
     fn_steps = n_times;
     fReportingTimes.Resize(fn_steps, 0.0);
     for (int it = 0 ; it < fn_steps; it++) {
-        fReportingTimes[it] = REAL(it+1)*dt;
+        fReportingTimes[it] = REAL(it+1)*fdt;
     }
     ftime_0    = fReportingTimes[0];
     ftime_n    = fReportingTimes[fn_steps-1];

@@ -203,7 +203,7 @@ void TRMWaterPhase::Viscosity_l(TPZManVector<STATE,10> &mu, TPZManVector<STATE,1
     
     STATE val = mu[0];
     STATE p = state_vars[0];
-    STATE c = 1.0e-12;
+    STATE c = 1.0e-20;
     
     mu[0] = val*(1.0+c*(p - fPRef));
     mu[1] = val*c;

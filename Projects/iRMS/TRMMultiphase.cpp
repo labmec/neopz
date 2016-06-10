@@ -373,6 +373,9 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     TPZFNMatrix<10,STATE> Graduaxes = datavec[ub].dsol[0];
     
+    // Time
+    STATE dt = fSimulationData->dt();
+    
     //  Average values p_a
     
     REAL p_a    = p;
@@ -389,7 +392,9 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
+    TPZManVector<STATE, 10> phi;
     fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
 
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
@@ -409,6 +414,17 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     int s_i, s_j;
     int v_i, v_j;
+    
+    if(! fSimulationData->IsCurrentStateQ()){
+        for (int ip = 0; ip < nphip; ip++)
+        {
+            
+            ef(ip + firstp) += -1.0 * weight * (-1.0/dt) * rho[0] * phi[0] * phi_ps(ip,0);
+            
+        }
+        
+        return;
+    }
     
     for (int iu = 0; iu < nphiu; iu++)
     {
@@ -466,7 +482,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     for (int ip = 0; ip < nphip; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (divu - f[0]) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * rho[0] * phi[0] - f[0]) * phi_ps(ip,0);
         
         for (int ju = 0; ju < nphiu; ju++)
         {
@@ -504,6 +520,9 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     TPZFNMatrix<10,STATE> Graduaxes = datavec[ub].dsol[0];
 
+    // Time
+    STATE dt = fSimulationData->dt();
+    
     //  Average values p_a
     
     REAL p_a    = p;
@@ -517,10 +536,13 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZManVector<STATE, 10> rho,mu;
     fSimulationData->AlphaProp()->Density(rho, v);
     fSimulationData->AlphaProp()->Viscosity(mu, v);
+
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
+    TPZManVector<STATE, 10> phi;
     fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
     
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1);
@@ -541,6 +563,19 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     int s_i;
     int v_i;
+    
+    if(! fSimulationData->IsCurrentStateQ()){
+        for (int ip = 0; ip < nphip; ip++)
+        {
+            
+            ef(ip + firstp) += -1.0 * weight * (-1.0/dt) * rho[0] * phi[0] * phi_ps(ip,0);
+            
+        }
+        
+        return;
+    }
+    
+
     
     for (int iu = 0; iu < nphiu; iu++)
     {
@@ -572,7 +607,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     for (int ip = 0; ip < nphip; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (divu - f[0]) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * rho[0] * phi[0] - f[0]) * phi_ps(ip,0);
 
     }
     
@@ -581,7 +616,12 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 }
 
 void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
-        
+    
+    
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
     int ub = 0;
     int pb = 1;
     
@@ -591,7 +631,6 @@ void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
     int firstu      = 0;
     
     TPZManVector<REAL,3> u  = datavec[ub].sol[0];
-    REAL jac_det = datavec[ub].detjac;
     
     REAL Value = bc.Val2()(0,0);
     if (bc.HasfTimedependentBCForcingFunction()) {
