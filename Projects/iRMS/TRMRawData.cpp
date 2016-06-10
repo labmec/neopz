@@ -213,7 +213,7 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL f = -0.0001;
+    REAL f = -0.01;
     F[0] = f;
     return;
 }

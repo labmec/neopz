@@ -34,7 +34,7 @@ int main()
 #endif
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
-    TPZMaterial::gBigNumber = 1.0e15;
+    TPZMaterial::gBigNumber = 1.0e14;
     // Running primal problem
 //    LinearTracerPrimal();
     
