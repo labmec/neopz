@@ -272,6 +272,7 @@ int main(int argc, char *argv[])
                 if(dim_problema==2) Prefinamento(cmesh, ndiv, p);
 
                 if(rodarSIPGD){
+                    cmesh->LoadReferences();
                     TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
                     cmesh->ExpandSolution();
                     cmesh->CleanUpUnconnectedNodes();
@@ -302,6 +303,13 @@ int main(int argc, char *argv[])
             }
 
 
+            if(0)
+            {
+                std::ofstream gout("../gmesh.txt");
+                cmesh->Reference()->Print(gout);
+                std::ofstream out("../cmesh.txt");
+                cmesh->Print(out);
+            }
             //Resolver problema
             TPZAnalysis analysis(cmesh);
             if(dim_problema==2){
