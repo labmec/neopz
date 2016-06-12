@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     for(p=1;p<2;p++)
     {
         saidaerros << "\nPARA p = " << p << endl;
-        saidaerros << "ndiv" << setw(10) <<"NDoF"<< setw(20)<<"NDoFCond"<< setw(20)<< "Assemble"<< setw(20) << "Solve" << setw(20) <<"Ttotal" << setw(20) << "Error primal" << setw(20) <<"Error dual \n";
+        saidaerros << "ndiv" << setw(10) <<"NDoF"<< setw(20)<<"NDoFCond"<< setw(20)<< "Assemble"<< setw(20) << "Solve" << setw(20) <<"Ttotal" << setw(20) << "Error primal" << setw(20) <<"Error dual" << setw(20) <<"Error div \n";
         
         for (ndiv=0; ndiv<4; ndiv++)
         {

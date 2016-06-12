@@ -467,6 +467,7 @@ int main(int argc, char *argv[])
         std::ofstream myerrorfile("Simulacao-Hdiv.txt",ios::app);
         myerrorfile<<"\nDADOS PARA O REFINAMENTO hp: Simulacao Hdiv"<<std::endl;
     }
+    
     TPZGeoMesh *gmesh;
     TPZCompMesh * cmesh1;
     TPZCompMesh * cmesh2;

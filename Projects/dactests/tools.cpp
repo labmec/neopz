@@ -49,10 +49,11 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time,
         {
             //TPZSkylineStructMatrix strmat(fCmesh);
             if (isfrontal) {
-                //TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
-                //strmat.SetDecomposeType(ELDLt);
-                TPZSymetricSpStructMatrix strmat(fCmesh);
-                int numthreads = 10;
+                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+                strmat.SetDecomposeType(ELDLt);
+                //TPZSymetricSpStructMatrix strmat(fCmesh);
+
+                int numthreads = 16;
                 strmat.SetNumThreads(numthreads);
                 
                 an.SetStructuralMatrix(strmat);

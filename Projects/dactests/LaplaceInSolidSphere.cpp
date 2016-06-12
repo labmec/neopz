@@ -10,7 +10,9 @@
 #include "pzcheckgeom.h"
 #include "tools.h"
 #include "tpzchangeel.h"
-
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
 
 //#define Solution1
 //#define Solution2
@@ -149,12 +151,21 @@ void LaplaceInSolidSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebu
     std::string HdivData,L2Data;
     HdivData = filename+str+Hdiv;
     L2Data = filename+str+L2;
-    REAL error_primal, error_dual;
-    ErrorPrimalDual(cmesh2, cmesh1, error_primal, error_dual );
+    REAL error_primal, error_dual, error_div;
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1_e = boost::posix_time::microsec_clock::local_time();
+#endif
+    ErrorPrimalDual(cmesh2, cmesh1, error_primal, error_dual, error_div );
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2_e = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+    REAL error_time = boost::numeric_cast<double>((t2_e-t1_e).total_milliseconds());
     
     // Printing required information
     
-    saidaErro << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(20) << t1 << setw(20) << t2 << setw(20) << (t1+t2) << setw(20) << error_primal << setw(20) << error_dual << endl;
+    saidaErro << ndiv << setw(10) << DoFT << setw(20) << DofCond << setw(20) << t1 << setw(20) << t2 << setw(20) << (t1+t2) << setw(20) << error_primal << setw(20) << error_dual << setw(20) << error_div << setw(20) << error_time << endl;
     
     std::cout<< " FIM (ESFERA) - grau  polinomio " << ordemP << " numero de divisoes " << ndiv << std::endl;
     
@@ -834,7 +845,7 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 6.0;
+    REAL d = 5.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -847,7 +858,7 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
 
     
     REAL denomfactor1 = -9.0 + d*d*(-9.0*rad+M_PI*(-M_PI+6.0*sqrt_rad));
-    REAL numfactro1   = 18.0*d*(-9.0-d*d*M_PI*(-M_PI+3.0*sqrt_rad));
+    REAL numfactro1   = 18.0*d*(-9.0+d*d*M_PI*(-M_PI+3.0*sqrt_rad));
     
     solp[0] = piover2 - artan_arg;
     
@@ -939,7 +950,7 @@ void LaplaceInSolidSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 6.0;
+    REAL d = 5.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -948,7 +959,7 @@ void LaplaceInSolidSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     REAL sqrt_rad = sqrt(rad);
     
     REAL denomfactor1 = -9.0 + d*d*(-9.0*rad+M_PI*(-M_PI+6.0*sqrt_rad));
-    REAL numfactro1   = 18.0*d*(-9.0-d*d*M_PI*(-M_PI+3.0*sqrt_rad));
+    REAL numfactro1   = 18.0*d*(-9.0+d*d*M_PI*(-M_PI+3.0*sqrt_rad));
     
     ff[0] = -1.0*(numfactro1)/(denomfactor1*denomfactor1*sqrt_rad);
     
@@ -1165,7 +1176,7 @@ void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 6.0;
+    REAL d = 5.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -1678,7 +1689,7 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
 
 
 
-void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual)
+void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual, REAL & error_div)
 {
     std::cout << "Computing Error " << std::endl;
     
@@ -1715,8 +1726,9 @@ void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdi
         
     }
     
+    error_div    = sqrt(globalerrorsPrimal[0]);
     error_dual      = sqrt(globalerrorsDual[1]);
-    error_primal    = sqrt(globalerrorsPrimal[1]);    
+    error_primal    = sqrt(globalerrorsPrimal[1]);
  
     std::cout << "Finished Computing Error " << std::endl;
     

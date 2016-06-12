@@ -625,7 +625,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
-    
+
     if(var == 1){ //function (state variable Q)
         for (int ip = 0; ip<fDim; ip++)
         {
@@ -727,11 +727,10 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
 
 // metodo para computar erros
 void TPZMatMixedPoisson3D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
-    
-    Solout.Resize( 3 /*this->NSolutionVariables(var)*/);
-    // AQUI!!! //redefinicao feita  acima, antigamente mudava para 2, por exemplo, e nao ficava compativel com o resto que era 3
+
     
     if(var == 1){ //function (state variable Q)
+        Solout.Resize(3);
         for (int ip = 0; ip<3; ip++)
         {
             Solout[ip] = data.sol[0][ip];
@@ -741,13 +740,25 @@ void TPZMatMixedPoisson3D::Solution(TPZMaterialData &data, int var, TPZVec<STATE
     }
     
     if(var == 2){ //function (state variable p)
-        
+        Solout.Resize(1);
         TPZVec<STATE> SolP;
         SolP = data.sol[0];
         
         Solout[0] = SolP[0];
         return;
     }
+    
+    if(var == 3){ //function (div of state variable Q)
+        Solout.Resize(1);
+        REAL val = 0.;
+        for(int i=0; i<fDim; i++){
+            val += data.dsol[0](i,i);
+        }
+        Solout[0] = val;
+        return;
+    }
+    
+
     
     
 }
@@ -794,11 +805,25 @@ void TPZMatMixedPoisson3D::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exa
     
     values.Fill(0.0);
     TPZVec<STATE> primal(1),dual(3),div(1);
-    Solution(data,1,dual);
-    REAL diffFlux = 0.0;
+    this->Solution(data,1,dual);
+    this->Solution(data,3,div);
+    
+    if(du_exact.Rows() != 4){
+        std::cout<< "Error:: Implement laplcacian in possition du_exact(3,0)" <<  std::endl;
+        DebugStop();
+    }
+    
+    REAL diff_Flux = 0.0, diff_div = 0.0;
+
+//    std::cout << "div[0] = " << div[0] << std::endl;
+//    std::cout << "du_exact(3,0) = " <<  du_exact(3,0) << std::endl;
+//    std::cout << "div[0] - du_exact(3,0) = " << div[0] - du_exact(3,0) << std::endl;
+    
     for(int id=0; id<3; id++) {
-        diffFlux += dual[id] - du_exact(id,0);
-        values[1]  += diffFlux*diffFlux;
+        diff_div += div[0] - du_exact(3,0);
+        diff_Flux += dual[id] - du_exact(id,0);
+        values[0]  += diff_div*diff_div;
+        values[1]  += diff_Flux*diff_Flux;
     }
 
 }
