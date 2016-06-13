@@ -77,6 +77,9 @@ void TPZCondensedCompEl::Unwrap()
         gel->ResetReference();
     }
     delete this;
+    if (gel) {
+        gel->SetReference(fReferenceCompEl);
+    }
 }
 
 /**

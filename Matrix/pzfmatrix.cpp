@@ -1190,7 +1190,7 @@ int TPZFMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
 #ifdef USING_LAPACK
     fPivot.resize(nrows);
     for (int i=0; i<nrows; i++) {
-        fPivot[i] = i;
+        fPivot[i] = i+1;
     }
     this->fDecomposed = ELUPivot;
 #endif
