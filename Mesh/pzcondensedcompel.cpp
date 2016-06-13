@@ -72,6 +72,10 @@ void TPZCondensedCompEl::Unwrap()
     for (int ic=0; ic<ncon ; ic++) {
         Connect(ic).SetCondensed(false);
     }
+    TPZGeoEl *gel = Reference();
+    if (gel) {
+        gel->ResetReference();
+    }
     delete this;
 }
 

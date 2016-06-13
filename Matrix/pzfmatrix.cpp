@@ -605,6 +605,9 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
     if (beta != (double)0.) {
         z = y;
     }
+    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
+        return;
+    }
     if (!opt) {
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
                     alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
@@ -1183,13 +1186,14 @@ int TPZFMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
             }
         }
     }
+    this->fDecomposed=ELU;
 #ifdef USING_LAPACK
     fPivot.resize(nrows);
     for (int i=0; i<nrows; i++) {
         fPivot[i] = i;
     }
+    this->fDecomposed = ELUPivot;
 #endif
-    this->fDecomposed=ELU;
     return 1;
 }
 
@@ -1880,6 +1884,9 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     int nrhs = b->Cols();
     double B  = 0.;
     int info;
+    if (dim == 0 || nrhs == 0) {
+        return;
+    }
     dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
     //    return TPZMatrix<TVar>::Subst_LForward(b);
