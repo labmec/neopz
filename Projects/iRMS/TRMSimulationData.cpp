@@ -63,6 +63,9 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Decrement dt factor */
     fdt_down = 0.0;
     
+    /** @brief Autopointer of all the petrophysics data */
+    fPetroPhysics = NULL;
+    
     /** @brief phase alpha */
     fPhase_alpha = NULL;
     

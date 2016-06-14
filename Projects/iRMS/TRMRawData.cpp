@@ -226,3 +226,152 @@ void TRMRawData::Impervious(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >&
 }
 
 // @}
+
+
+
+/** @brief Define the materials for a primitive two-phase flow example and their functions associated */
+void TRMRawData::WaterOilReservoirBox(){
+    
+    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
+    
+    // Single flow
+    TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
+    TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
+    TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
+    fSystemType.Push("water");
+    fSystemType.Push("oil");
+    water->SetRhoModel(1);
+    oil->SetRhoModel(1);
+    fPhases.Push(water);
+    fPhases.Push(oil);
+    int n_data = fSystemType.size();
+    
+    // Setting up gravity
+    fg.Resize(3, 0.0);
+    //    fg[0] = -9.81;
+    
+    int map_model = 0; // constant
+    fMap = new TRMSpatialPropertiesMap;
+    fMap->SetMapModel(map_model);
+    
+    // Time control parameters
+    REAL hour       = 3600.0;
+    REAL day        = hour * 24.0;
+    
+    fn_steps  = 10;
+    fdt = 0.1*day;
+    fdt_up = 1.0;
+    fdt_down = 1.0;
+    
+    // Numeric controls
+    fn_corrections = 10;
+    fepsilon_res = 0.001;
+    fepsilon_cor = 0.001;
+    
+    
+    // Rock materials ids
+    int Rock = 1;
+    fOmegaIds.Push(Rock);
+    
+    //    // Singlewell mesh
+    //    int bc_W = 2;
+    //    int bc_A = 3;
+    //    int bc_I = 4;
+    //
+    //    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > W(n_data);
+    //    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > A(n_data);
+    //    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > I(n_data);
+    //
+    //    fGammaIds.Push(bc_W);
+    //    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
+    //    fRecurrent_bc_data.Push(W);
+    //
+    //    fGammaIds.Push(bc_A);
+    //    A[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    //    fRecurrent_bc_data.Push(A);
+    //
+    //    fGammaIds.Push(bc_I);
+    //    I[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    //    fRecurrent_bc_data.Push(I);
+    
+    int bc_W = 11;
+    int bc_E = 12;
+    int bc_S = 13;
+    int bc_N = 14;
+    int bc_B = 15;
+    int bc_T = 16;
+    
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > W(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > E(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > S(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > N(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+    
+    fGammaIds.Push(bc_W);
+    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious_tp));
+    fIntial_bc_data.Push(W);
+    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(FluxInlet));
+    fRecurrent_bc_data.Push(W);
+    
+    fGammaIds.Push(bc_E);
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet));
+    fIntial_bc_data.Push(E);
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet));
+    fRecurrent_bc_data.Push(E);
+    
+    fGammaIds.Push(bc_S);
+    S[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious_tp));
+    fIntial_bc_data.Push(S);
+    S[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious_tp));
+    fRecurrent_bc_data.Push(S);
+    
+    fGammaIds.Push(bc_N);
+    N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious_tp));
+    fIntial_bc_data.Push(N);
+    N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious_tp));
+    fRecurrent_bc_data.Push(N);
+    
+    fGammaIds.Push(bc_B);
+    B[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious_tp));
+    fIntial_bc_data.Push(B);
+    B[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious_tp));
+    fRecurrent_bc_data.Push(B);
+    
+    fGammaIds.Push(bc_T);
+    T[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious_tp));
+    fIntial_bc_data.Push(T);
+    T[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious_tp));
+    fRecurrent_bc_data.Push(T);
+ 
+    
+}
+
+void TRMRawData::PressureOutlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
+    
+    REAL p = 1.0e+7;// 1.0342e+7; // 1500 psi
+    f[0] = p;
+    return;
+    
+}
+
+void TRMRawData::FluxInlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
+    
+    REAL flux = -0.01, S = 1.0;
+    f[0] = flux;
+    f[1] = S;
+    return;
+    
+}
+
+void TRMRawData::Impervious_tp(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
+
+    REAL flux = 0.0, S = 1.0;
+    f[0] = flux;
+    f[1] = S;
+    return;
+}
+
+
+// @}
+

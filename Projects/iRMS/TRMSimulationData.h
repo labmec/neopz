@@ -85,8 +85,8 @@ protected:
     /** @brief Autopointer of the RawData */
     TPZAutoPointer<TRMRawData> fRawData;
     
-    /** @brief Stores all the petrophysics data */
-    TRMPetrophysicsProperties fPetroProp;
+    /** @brief Autopointer of all the petrophysics data */
+    TPZAutoPointer<TRMPetrophysicsProperties> fPetroPhysics;
     
     /** @brief phase alpha */
     TPZAutoPointer<TRMPhaseProperties> fPhase_alpha;
@@ -161,12 +161,14 @@ public:
             DebugStop();
         }
         
-        fSystemType = SystemType;
-        switch (fSystemType.size()) {
+        TPZAutoPointer<TRMPetrophysicsProperties> petro_physics = new TRMPetrophysicsProperties;
+        petro_physics->SetSystemType(SystemType);
+        switch (SystemType.size()) {
             case 1:
             {
                 fIsOnePhaseQ    = true;
                 SetPhaseAlpha(Phases[0]);
+                petro_physics->SetPhaseAlpha(Phases[0]);
             }
                 break;
             case 2:
@@ -174,7 +176,9 @@ public:
                 fIsTwoPhaseQ = true;
                 SetPhaseAlpha(Phases[0]);
                 SetPhaseBeta(Phases[1]);
-                
+        
+                petro_physics->SetPhaseAlpha(Phases[0]);
+                petro_physics->SetPhaseBeta(Phases[1]);
             }
                 break;
             case 3:
@@ -183,6 +187,10 @@ public:
                 SetPhaseAlpha(Phases[0]);
                 SetPhaseBeta(Phases[1]);
                 SetPhaseGamma(Phases[2]);
+                
+                petro_physics->SetPhaseAlpha(Phases[0]);
+                petro_physics->SetPhaseBeta(Phases[1]);
+                petro_physics->SetPhaseGamma(Phases[2]);
             }
                 break;
                 
@@ -193,6 +201,9 @@ public:
             }
                 break;
         }
+        fSystemType = SystemType;
+        fPetroPhysics  = petro_physics;
+        
     }
     
     /** @brief Get the type of flow system one, two or three phase */
@@ -280,14 +291,14 @@ public:
     }
     
     /** @brief Stores all the petrophysics data */
-    void SetPetroProp(TRMPetrophysicsProperties PetroProp)
+    void SetPetroPhysics(TPZAutoPointer<TRMPetrophysicsProperties> &PetroPhysics)
     {
-        fPetroProp = PetroProp;
+        fPetroPhysics = PetroPhysics;
     }
     
-    TRMPetrophysicsProperties & PetroProp()
+    TPZAutoPointer<TRMPetrophysicsProperties> & PetroPhysics()
     {
-        return fPetroProp;
+        return fPetroPhysics;
     }    
   
     /** @brief Stores all the rock and geomechanic properties */

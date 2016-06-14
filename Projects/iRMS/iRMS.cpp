@@ -71,7 +71,8 @@ void BoxLinearTracerDual()
 {
     // Materials ids and boundary settings
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
-    RawData->WaterReservoirBox();
+//    RawData->WaterReservoirBox(); // Single-phase flow
+    RawData->WaterOilReservoirBox(); // Two-phase flow
     
     TPZAutoPointer<TRMSimulationData> SimData = new TRMSimulationData;
     SimData->SetRawData(RawData);

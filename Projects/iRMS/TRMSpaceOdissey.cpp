@@ -51,13 +51,14 @@ TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
 {
    
     fPOrder = 1;
+    fSOrder = 1;
     fGeoMesh                    = NULL;
     fSimulationData             = NULL;
     fH1Cmesh                    = NULL;
     fFluxCmesh                  = NULL;
     fPressureCmesh              = NULL;
-    fWaterSaturationMesh        = NULL;
-    fOilSaturationMesh          = NULL;
+    fAlphaSaturationMesh        = NULL;
+    fBetaSaturationMesh         = NULL;
     fGeoMechanicsCmesh          = NULL;
     fMixedFluxPressureCmesh     = NULL;
     fPressureSaturationCmesh    = NULL;
@@ -72,8 +73,8 @@ TRMSpaceOdissey::~TRMSpaceOdissey(){
     if(fH1Cmesh)                    fH1Cmesh->CleanUp();
     if(fFluxCmesh)                  fFluxCmesh->CleanUp();
     if(fPressureCmesh)              fPressureCmesh->CleanUp();
-    if(fWaterSaturationMesh)        fWaterSaturationMesh->CleanUp();
-    if(fOilSaturationMesh)          fOilSaturationMesh->CleanUp();
+    if(fAlphaSaturationMesh)        fAlphaSaturationMesh->CleanUp();
+    if(fBetaSaturationMesh)         fBetaSaturationMesh->CleanUp();
     if(fGeoMechanicsCmesh)          fGeoMechanicsCmesh->CleanUp();
     if(fMixedFluxPressureCmesh)     fMixedFluxPressureCmesh->CleanUp();
     if(fPressureSaturationCmesh)    fPressureSaturationCmesh->CleanUp();
@@ -395,8 +396,19 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     fMonolithicMultiphaseCmesh->AutoBuild();
     
     TPZManVector<TPZCompMesh * ,2> meshvector(2);
-    meshvector[0] = fFluxCmesh.operator->();
-    meshvector[1] = fPressureCmesh.operator->();
+    
+    if (fSimulationData->IsOnePhaseQ()) {
+        meshvector[0] = fFluxCmesh.operator->();
+        meshvector[1] = fPressureCmesh.operator->();
+    }
+    
+    if (fSimulationData->IsTwoPhaseQ()) {
+        meshvector.Resize(3);
+        meshvector[0] = fFluxCmesh.operator->();
+        meshvector[1] = fPressureCmesh.operator->();
+        meshvector[2] = fAlphaSaturationMesh.operator->();
+    }
+
     
     // Transferindo para a multifisica
     TPZBuildMultiphysicsMesh::AddElements(meshvector, fMonolithicMultiphaseCmesh.operator->());
@@ -418,6 +430,37 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     std::ofstream out("CmeshMultiphase.txt");
     fMonolithicMultiphaseCmesh->Print(out);
 #endif
+}
+
+/** @brief Create computational interfaces for jumps  */
+void TRMSpaceOdissey::CreateInterfacesInside(TPZAutoPointer<TPZCompMesh> cmesh){ //@Omar:: It is requiered to robust for several materials in the same hydraulic unit!!!
+    
+    fGeoMesh->ResetReference();
+    cmesh->LoadReferences();
+
+    // Creation of interface elements
+    int nel = cmesh->ElementVec().NElements();
+    for(int el = 0; el < nel; el++)
+    {
+        TPZCompEl * compEl = cmesh->ElementVec()[el];
+        if(!compEl) continue;
+        TPZGeoEl * gel = compEl->Reference();
+        if(!gel) {continue;}
+        if(gel->HasSubElement()) {continue;}
+        int index = compEl ->Index();
+        if(compEl->Dimension() == cmesh->Dimension())
+        {
+            TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(cmesh->ElementVec()[index]);
+            if(!InterpEl) continue;
+            InterpEl->CreateInterfaces();
+        }
+    }
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshWithInterfaces.txt");
+    cmesh->Print(out);
+#endif
+    
 }
 
 
@@ -507,43 +550,81 @@ void TRMSpaceOdissey::CreateH1Cmesh()
 }
 
 /** @brief Create a computational mesh L2 */
-void TRMSpaceOdissey::CreateWaterTransportMesh()
+void TRMSpaceOdissey::CreateAlphaTransportMesh()
 {
-
-    if (fWaterSaturationMesh) {
+    
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
         DebugStop();
     }
-    fWaterSaturationMesh = new TPZCompMesh(fGeoMesh);
-    fWaterSaturationMesh->SetDimModel(3);
-    fWaterSaturationMesh->SetDefaultOrder(0);
-    fWaterSaturationMesh->SetAllCreateFunctionsDiscontinuous();
     
-    TRMPhaseTransport *mat = new TRMPhaseTransport(_ReservMatId);
-    fWaterSaturationMesh->InsertMaterialObject(mat);
+    int dim = 3;
+    int saturation = 0;
+    int sorder = fSOrder;
     
-    TRMPhaseInterfaceTransport *matint = new TRMPhaseInterfaceTransport(_ReservoirInterface);
-    fGeoMesh->AddInterfaceMaterial(_ReservMatId, _ReservMatId,_ReservoirInterface);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     
-    // WE NEED TO ADD THE BOUNDARY CONDITION MATERIALS
-    DebugStop();
+    // Malha computacional
+    fAlphaSaturationMesh = new TPZCompMesh(fGeoMesh);
     
-    fWaterSaturationMesh->ApproxSpace().CreateInterfaces(fWaterSaturationMesh);
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
+        fAlphaSaturationMesh->InsertMaterialObject(mat);
+        
+        // Inserting volumetric materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[saturation];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            boundary_c->SetTimedependentBCForcingFunction(bc_item.second);
+            fAlphaSaturationMesh->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+    
+    fAlphaSaturationMesh->SetDimModel(dim);
+    fAlphaSaturationMesh->SetDefaultOrder(sorder);
+    fAlphaSaturationMesh->SetAllCreateFunctionsDiscontinuous();
+    fAlphaSaturationMesh->AutoBuild();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshS_alpha.txt");
+    fAlphaSaturationMesh->Print(out);
+#endif
+    
 }
 
 /** @brief Create a computational mesh L2 */
-void TRMSpaceOdissey::CreateOilTransportMesh()
+void TRMSpaceOdissey::CreateBetaTransportMesh()
 {
     
-    if (fOilSaturationMesh) {
+    if (fBetaSaturationMesh) {
         DebugStop();
     }
-    fOilSaturationMesh = new TPZCompMesh(fGeoMesh);
-    fOilSaturationMesh->SetDimModel(3);
-    fOilSaturationMesh->SetDefaultOrder(0);
-    fOilSaturationMesh->SetAllCreateFunctionsDiscontinuous();
+    fBetaSaturationMesh = new TPZCompMesh(fGeoMesh);
+    fBetaSaturationMesh->SetDimModel(3);
+    fBetaSaturationMesh->SetDefaultOrder(0);
+    fBetaSaturationMesh->SetAllCreateFunctionsDiscontinuous();
     
     TRMPhaseTransport *mat = new TRMPhaseTransport(_ReservMatId);
-    fOilSaturationMesh->InsertMaterialObject(mat);
+    fBetaSaturationMesh->InsertMaterialObject(mat);
     
     TRMPhaseInterfaceTransport *matint = new TRMPhaseInterfaceTransport(_ReservoirInterface);
     fGeoMesh->AddInterfaceMaterial(_ReservMatId, _ReservMatId,_ReservoirInterface);
@@ -551,7 +632,7 @@ void TRMSpaceOdissey::CreateOilTransportMesh()
     // WE NEED TO ADD THE BOUNDARY CONDITION MATERIALS
     DebugStop();
     
-    fOilSaturationMesh->ApproxSpace().CreateInterfaces(fOilSaturationMesh);
+    fBetaSaturationMesh->ApproxSpace().CreateInterfaces(fBetaSaturationMesh);
 }
 
 

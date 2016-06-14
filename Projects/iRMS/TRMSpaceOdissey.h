@@ -37,8 +37,11 @@ public:
     
 private:
     
-    /** @brief order of approximation */
+    /** @brief order of approximation flux and pressure */
     int fPOrder;
+    
+    /** @brief order of approximation transport */
+    int fSOrder;
     
     /** @brief Autopointer of the Geometric mesh shared with all the classes involved */
     TPZAutoPointer<TPZGeoMesh> fGeoMesh;
@@ -55,11 +58,11 @@ private:
     /** @brief L2 computational mesh the restriction equation */
     TPZAutoPointer<TPZCompMesh> fPressureCmesh;
     
-    /** @brief L2 computational mesh water saturation equations */
-    TPZAutoPointer<TPZCompMesh> fWaterSaturationMesh;
+    /** @brief L2 computational mesh alpha saturation equations */
+    TPZAutoPointer<TPZCompMesh> fAlphaSaturationMesh;
 
-    /** @brief L2 computational mesh oil saturation equations */
-    TPZAutoPointer<TPZCompMesh> fOilSaturationMesh;
+    /** @brief L2 computational mesh beta saturation equations */
+    TPZAutoPointer<TPZCompMesh> fBetaSaturationMesh;
     
     /** @brief H1 computational mesh for Maurice Biot linear poroelasticity */
     TPZAutoPointer<TPZCompMesh> fGeoMechanicsCmesh;
@@ -72,9 +75,6 @@ private:
     
     /** @brief Computational mesh for multiphase monolithic approach */
     TPZAutoPointer<TPZCompMesh> fMonolithicMultiphaseCmesh;
-    
-//    /** @brief Object that generates and contains all the sparse matrices to transfer informations */
-//    TPZAutoPointer<TRMBuildTransfers> fTransferGenerator;
     
     void ModifyElementOrders(std::map<long,int> &elorders);
 
@@ -102,10 +102,16 @@ public:
     /** @brief Initialize the simulation data */
     void InitializeSimulationData(TRMRawData &rawdata);
     
-    /// Change the default polynomial order
+    /** @brief Set the order of approximation flux and pressure */
     void SetDefaultPOrder(int porder)
     {
         fPOrder = porder;
+    }
+    
+    /** @brief Set the order of approximation transport */
+    void SetDefaultSOrder(int sorder)
+    {
+        fSOrder = sorder;
     }
     
     /** @brief Create a H1 computational mesh */
@@ -130,10 +136,10 @@ public:
     void ConfigureWellConstantPressure(STATE wellpressure, STATE farfieldpressure);
     
     /** @brief Create a computational mesh L2 */
-    void CreateWaterTransportMesh();
+    void CreateAlphaTransportMesh();
     
     /** @brief Create a computational mesh L2 */
-    void CreateOilTransportMesh();
+    void CreateBetaTransportMesh();
     
     /** @brief Create a H1 computational mesh for Maurice Biot Linear Poroelasticity */
     void CreateGeoMechanicMesh();
@@ -218,23 +224,23 @@ public:
     }
     
     /** @brief Set autopointer of L2 computational mesh water saturation equations */
-    void SetWaterSaturationMesh(TPZAutoPointer<TPZCompMesh> &WaterSaturationMesh){
-        fWaterSaturationMesh = WaterSaturationMesh;
+    void SetWaterSaturationMesh(TPZAutoPointer<TPZCompMesh> &AlphaSaturationMesh){
+        fAlphaSaturationMesh = AlphaSaturationMesh;
     }
     
     /** @brief Get autopointer of L2 computational mesh water saturation equations */
-    TPZAutoPointer<TPZCompMesh>  WaterSaturationMesh(){
-        return fWaterSaturationMesh;
+    TPZAutoPointer<TPZCompMesh>  AlphaSaturationMesh(){
+        return fAlphaSaturationMesh;
     }
     
     /** @brief Set autopointer of L2 computational mesh oil saturation equations */
-    void SetOilSaturationMesh(TPZAutoPointer<TPZCompMesh> &OilSaturationMesh){
-        fOilSaturationMesh = OilSaturationMesh;
+    void SetBetaSaturationMesh(TPZAutoPointer<TPZCompMesh> &BetaSaturationMesh){
+        fBetaSaturationMesh = BetaSaturationMesh;
     }
     
     /** @brief Get autopointer of L2 computational mesh oil saturation equations */
-    TPZAutoPointer<TPZCompMesh>  OilSaturationMesh(){
-        return fOilSaturationMesh;
+    TPZAutoPointer<TPZCompMesh>  BetaSaturationMesh(){
+        return fBetaSaturationMesh;
     }
     
     /** @brief Set autopointer of H1 computational mesh for Maurice Biot linear poroelasticity */
@@ -277,16 +283,8 @@ public:
         return fMonolithicMultiphaseCmesh;
     }
     
-//    /** @brief Set autopointer of Object that generates and contains all the sparse matrices to transfer informations */
-//    void SetTransferGenerator(TPZAutoPointer<TRMBuildTransfers> &TransferGenerator){
-//        fTransferGenerator = TransferGenerator;
-//    }
-//    
-//    /** @brief Get autopointer of Object that generates and contains all the sparse matrices to transfer informations */
-//    TPZAutoPointer<TRMBuildTransfers>  TransferGenerator(){
-//        return fTransferGenerator;
-//    }
-    
+    /** @brief Create computational interfaces inside for flux computations  */
+    void CreateInterfacesInside(TPZAutoPointer<TPZCompMesh> cmesh);
     
     // @}
     

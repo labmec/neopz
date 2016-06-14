@@ -147,7 +147,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> mono_analysis = new TRMMonolithicMultiphaseAnalysis;
     
-    int nel_x = 10;
+    int nel_x = 1;
     int nel_y = 1;
     int nel_z = 1;
     
@@ -167,6 +167,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     fSpaceGenerator->PrintGeometry();
 #endif
     fSpaceGenerator->SetDefaultPOrder(1);
+    fSpaceGenerator->SetDefaultSOrder(0);
 
     // Structure for one-phase flow
     if(fSimulationData->IsOnePhaseQ()){
@@ -177,6 +178,20 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
         
         mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
         mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
+        
+    }
+    
+    if(fSimulationData->IsTwoPhaseQ()){
+        mono_analysis->Meshvec().Resize(3);
+        fSpaceGenerator->CreateFluxCmesh();
+        fSpaceGenerator->CreatePressureCmesh();
+        fSpaceGenerator->CreateAlphaTransportMesh();
+        fSpaceGenerator->CreateMultiphaseCmesh();
+        fSpaceGenerator->CreateInterfacesInside(fSpaceGenerator->MonolithicMultiphaseCmesh());
+        
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->AlphaSaturationMesh().operator->();
         
     }
     
