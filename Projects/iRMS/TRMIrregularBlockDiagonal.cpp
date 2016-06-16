@@ -498,7 +498,7 @@ int TRMIrregularBlockDiagonal<TVar>::Decompose_LU()
         if (logger->isDebugEnabled())
         {
             std::stringstream mess;
-            mess << "TRMIrregularBlockDiagonal::Decompose_LU() - bsize = " << bsize << ", bsize*bsize = " << bsize*bsize;
+            mess << "TRMIrregularBlockDiagonal::Decompose_LU() - b_isize = " << b_isize << ", b_isize*b_jsize = " << b_isize*b_jsize;
             LOGPZ_DEBUG(logger,mess.str());
         }
 #endif

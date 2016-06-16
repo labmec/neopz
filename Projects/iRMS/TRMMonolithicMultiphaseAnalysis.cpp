@@ -126,9 +126,19 @@ void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
         plotfile =  "DualMonolithicDarcyOnBox.vtk";
     }
 
-    scalnames.Push("p");
-    scalnames.Push("div_u");
-    vecnames.Push("u");
+    if (fSimulationData->IsOnePhaseQ()) {
+        scalnames.Push("p");
+        scalnames.Push("div_u");
+        vecnames.Push("u");
+    }
+
+    if (fSimulationData->IsTwoPhaseQ()) {
+        scalnames.Push("p");
+        scalnames.Push("s_a");        
+        scalnames.Push("div_u");
+        vecnames.Push("u");
+    }
+
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);
     

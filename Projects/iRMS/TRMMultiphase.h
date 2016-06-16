@@ -185,6 +185,7 @@ public:
     
     void ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
+    void Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
     // two phase flow case
     
@@ -202,7 +203,7 @@ public:
     
     void ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef);
     
-    void Flux_a(TPZVec<TPZMaterialData> &datavec,TPZManVector<STATE,10> &flux);
+    void Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
     // three phase flow case
     

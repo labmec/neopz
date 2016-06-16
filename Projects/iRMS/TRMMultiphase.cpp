@@ -60,9 +60,10 @@ int TRMMultiphase::VariableIndex(const std::string &name) {
     if (!strcmp("p", name.c_str())) return 0;
     if (!strcmp("u", name.c_str())) return 1;
     if (!strcmp("div_u", name.c_str())) return 2;
-    if (!strcmp("AWeightedPressure", name.c_str())) return 3;
-    if (!strcmp("ABulkVelocity", name.c_str())) return 4;
-    if (!strcmp("ADivOfBulkVeclocity", name.c_str())) return 5;
+    if (!strcmp("s_a", name.c_str())) return 3;
+//    if (!strcmp("AWeightedPressure", name.c_str())) return 3;
+//    if (!strcmp("ABulkVelocity", name.c_str())) return 4;
+//    if (!strcmp("ADivOfBulkVeclocity", name.c_str())) return 5;
     return TPZMatWithMem::VariableIndex(name);
 }
 
@@ -76,76 +77,35 @@ int TRMMultiphase::NSolutionVariables(int var) {
             return 1; // Scalar
         case 3:
             return 1; // Scalar
-        case 4:
-            return 3; // Vector
-        case 5:
-            return 1; // Scalar
     }
     return TPZMatWithMem::NSolutionVariables(var);
 }
 
 void TRMMultiphase::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
-    
-    int ub = 0;
-    int pb = 1;
-    
-    TPZManVector<REAL,3> u = datavec[ub].sol[0];
-    REAL p = datavec[pb].sol[0][0];
-    
-    TPZFMatrix<STATE> dudx = datavec[ub].dsol[0];
-    TPZFMatrix<STATE> dpdx = datavec[pb].dsol[0];
-    
-    Solout.Resize(this->NSolutionVariables(var));
-    
-    switch(var) {
-        case 0:
-        {
-            Solout[0] = p;
-        }
-            break;
+
+    switch (fSimulationData->SystemType().size()) {
         case 1:
         {
-            Solout[0] = u[0]; // Bulk mass velocity
-            Solout[1] = u[1]; // Bulk mass velocity
-            Solout[2] = u[2]; // Bulk mass velocity
+            Solution_a(datavec, var, Solout);
         }
             break;
         case 2:
         {
-            Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
+            Solution_ab(datavec, var, Solout);
         }
             break;
         case 3:
         {
-            REAL x = datavec[ub].x[0];
-            REAL y = datavec[ub].x[1];
-            REAL z = datavec[ub].x[2];
-            Solout[0] = (1. - x)*x + (1. - y)*y + (1. - z)*z;
-        }
-            break;
-        case 4:
-        {
-            REAL x = datavec[ub].x[0];
-            REAL y = datavec[ub].x[1];
-            REAL z = datavec[ub].x[2];
-            Solout[0] = -1. + 2*x;//2.*(-0.5 + x)*(-1. + y)*y*(-1. + z)*z; // Bulk mass velocity
-            Solout[1] = -1. + 2*y;//2.*(-1. + x)*x*(-0.5 + y)*(-1. + z)*z; // Bulk mass velocity
-            Solout[2] = -1. + 2*z;//2.*(-1. + x)*x*(-1. + y)*y*(-0.5 + z); // Bulk mass velocity
-        }
-            break;
-        case 5:
-        {
-//            REAL x = datavec[Qblock].x[0];
-//            REAL y = datavec[Qblock].x[1];
-//            REAL z = datavec[Qblock].x[2];
-            Solout[0] = 6;//2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
+            DebugStop();
         }
             break;
         default:
         {
-            TPZMatWithMem::Solution(datavec, var, Solout);
+            DebugStop();
         }
+            break;
     }
+    
 }
 
 // Jacobian contribution
@@ -160,7 +120,7 @@ void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
             break;
         case 2:
         {
-            DebugStop();
+            Contribute_ab(datavec, weight, ek, ef);
         }
             break;
         case 3:
@@ -519,7 +479,6 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
     }
     
-    
 }
 
 void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
@@ -734,6 +693,44 @@ void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
     
 }
 
+void TRMMultiphase::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
+    
+    int ub = 0;
+    int pb = 1;
+    
+    TPZManVector<REAL,3> u = datavec[ub].sol[0];
+    REAL p = datavec[pb].sol[0][0];
+    
+    TPZFMatrix<STATE> dudx = datavec[ub].dsol[0];
+    TPZFMatrix<STATE> dpdx = datavec[pb].dsol[0];
+    
+    Solout.Resize(this->NSolutionVariables(var));
+    
+    switch(var) {
+        case 0:
+        {
+            Solout[0] = p;
+        }
+            break;
+        case 1:
+        {
+            Solout[0] = u[0]; // Bulk mass velocity
+            Solout[1] = u[1]; // Bulk mass velocity
+            Solout[2] = u[2]; // Bulk mass velocity
+        }
+            break;
+        case 2:
+        {
+            Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
+        }
+            break;
+        default:
+        {
+            DebugStop();
+        }
+    }
+}
+
 // ------------------------------------------------------------------- //
 // two phase flow case
 // ------------------------------------------------------------------- //
@@ -763,7 +760,7 @@ void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     int nphis_a     = phi_ss.Rows();
     int firstu      = 0;
     int firstp      = nphiu + firstu;
-    int firsts_a    = nphis_a + firstp;
+    int firsts_a    = nphip + firstp;
     
     TPZManVector<REAL,3> u  = datavec[ub].sol[0];
     REAL p                  = datavec[pb].sol[0][0];
@@ -946,7 +943,7 @@ void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     int nphis_a     = phi_ss.Rows();
     int firstu      = 0;
     int firstp      = nphiu + firstu;
-    int firsts_a    = nphis_a + firstp;
+    int firsts_a    = nphip + firstp;
     
     TPZManVector<REAL,3> u  = datavec[ub].sol[0];
     REAL p                  = datavec[pb].sol[0][0];
@@ -1084,7 +1081,7 @@ void TRMMultiphase::ContributeBC_ab(TPZVec<TPZMaterialData> &datavec, REAL weigh
     
     REAL Value = bc.Val2()(0,0);
     if (bc.HasfTimedependentBCForcingFunction()) {
-        TPZManVector<STATE,2> f(1);
+        TPZManVector<STATE,2> f(2);
         TPZFMatrix<double> gradf;
         REAL time = 0.0;
         bc.TimedependentBCForcingFunction()->Execute(datavec[pb].x, time, f, gradf);
@@ -1185,23 +1182,687 @@ void TRMMultiphase::ContributeBC_ab(TPZVec<TPZMaterialData> &datavec, REAL weigh
 }
 
 void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
-    DebugStop();
+    
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
+    int nvars = 4; // {p,sa,sb,t}
+    
+    int ub      = 0;
+    int pb      = 1;
+    int sb_a    = 2;
+    
+    TPZFNMatrix<100,STATE> phi_us_l       = datavecleft[ub].phi;
+    TPZFNMatrix<100,STATE> phi_ps_l       = datavecleft[pb].phi;
+    TPZFNMatrix<100,STATE> phi_ss_l       = datavecleft[sb_a].phi;
+    TPZFNMatrix<300,STATE> dphi_us_l      = datavecleft[ub].dphix;
+    TPZFNMatrix<100,STATE> dphi_ps_l      = datavecleft[pb].dphix;
+    
+    int nphiu_l       = datavecleft[ub].fVecShapeIndex.NElements();
+    int nphip_l       = phi_ps_l.Rows();
+    int nphis_a_l     = phi_ss_l.Rows();
+    int firstu_l      = 0;
+    int firstp_l      = nphiu_l + firstu_l;
+    int firsts_a_l    = nphip_l + firstp_l;
+    
+    TPZManVector<STATE,3> n = data.normal;
+    TPZManVector<REAL,3> u_l  = datavecleft[ub].sol[0];
+    REAL p_l                  = datavecleft[pb].sol[0][0];
+    REAL s_l                  = datavecleft[sb_a].sol[0][0];
+    
+    STATE un_l = 0.0;
+    
+    for (int i = 0; i < u_l.size(); i++) {
+        un_l += u_l[i]*n[i];
+    }
+    
+    //  Average values p_a
+    
+    STATE p_a_l    = p_l;
+    STATE s_a_l    = s_l;
+    
+    STATE beta = 0.0;
+    // upwinding
+    if (un_l > 0) {
+        beta = 1.0;
+    }
+    
+    TPZManVector<STATE, 10> fa_l,v_l(nvars+1);
+    
+    TPZFNMatrix<3,STATE> phi_u_i_l(3,1);
+    STATE phi_un_l = 0.0;
+    int s_j;
+    int v_j;
+    
+    REAL Value_m    = 0.0;
+    REAL Value_s    = 0.0;
+    if (bc.HasfTimedependentBCForcingFunction()) {
+        TPZManVector<STATE,2> f(2);
+        TPZFMatrix<double> gradf;
+        REAL time = 0.0;
+        bc.TimedependentBCForcingFunction()->Execute(datavecleft[ub].x, time, f, gradf);
+        Value_m = f[0];
+        Value_s = f[1];
+    }
+    else{
+        Value_m = bc.Val2()(0,0);
+    }
+    
+    switch (bc.Type()) {
+            
+        case 0 :    // Dirichlet BC  PD outlet
+        {
+            STATE p_D = Value_m;
+            
+            v_l[0] = p_D;
+            v_l[1] = s_a_l;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0])*phi_ss_l(is,0)*un_l;
+                
+                for (int ju = 0; ju < nphiu_l; ju++) {
+                    
+                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+                    
+                    for (int j = 0; j < u_l.size(); j++) {
+                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+                        phi_un_l += phi_u_i_l(j,0)*n[j];
+                    }
+                    
+                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta*fa_l[0] * phi_ss_l(is,0)*phi_un_l;
+                }
+                
+                for (int js = 0; js < nphis_a_l; js++) {
+                    ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_l(is,0)*un_l;
+                }
+                
+                
+            }
+            
+        }
+            break;
+            
+        case 1 :    // Neumann BC  QN outlet
+        {
+            
+            STATE un_N = Value_m;
+            
+            v_l[0] = p_a_l;
+            v_l[1] = s_a_l;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
+                
+                
+                for (int jp = 0; jp < nphip_l; jp++) {
+                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_N;
+                }
+                
+                
+                for (int js = 0; js < nphis_a_l; js++) {
+                    ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_l(is,0)*un_N;
+                }
+                
+                
+            }
+            
+        }
+            break;
+            
+        case 2 :    // Dirichlet BC  PD inlet
+        {
+            STATE p_D = Value_m;
+            
+            v_l[0] = p_D;
+            v_l[1] = Value_s;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_l;
+                
+                for (int ju = 0; ju < nphiu_l; ju++) {
+                    
+                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+                    
+                    for (int j = 0; j < u_l.size(); j++) {
+                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+                        phi_un_l += phi_u_i_l(j,0)*n[j];
+                    }
+                    
+                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta*fa_l[0] * phi_ss_l(is,0)*phi_un_l;
+                }
+    
+                
+            }
+            
+        }
+            break;
+            
+        case 3 :    // Neumann BC  QN inlet
+        {
+            
+            STATE un_N = Value_m;
+            
+            v_l[0] = p_a_l;
+            v_l[1] = Value_s;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
+                
+                for (int jp = 0; jp < nphip_l; jp++) {
+                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_N;
+                }
+                
+            }
+            
+        }
+            break;
+            
+        case 4 :    // Neumann BC  Impervious bc
+        {
+            
+            STATE un_N = 0.0;
+            
+            v_l[0] = p_a_l;
+            v_l[1] = Value_s;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
+                
+                for (int jp = 0; jp < nphip_l; jp++) {
+                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_N;
+                }
+                
+            }
+            
+        }
+            break;
+            
+        default: std::cout << "This BC doesn't exist." << std::endl;
+        {
+            
+            DebugStop();
+        }
+            break;
+    }
+    
+    return;
 }
 
 void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
-    DebugStop();
+    
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
+    int nvars = 4; // {p,sa,sb,t}
+    
+    int ub      = 0;
+    int pb      = 1;
+    int sb_a    = 2;
+    
+    TPZFNMatrix<100,STATE> phi_us_l       = datavecleft[ub].phi;
+    TPZFNMatrix<100,STATE> phi_ps_l       = datavecleft[pb].phi;
+    TPZFNMatrix<100,STATE> phi_ss_l       = datavecleft[sb_a].phi;
+    TPZFNMatrix<300,STATE> dphi_us_l      = datavecleft[ub].dphix;
+    TPZFNMatrix<100,STATE> dphi_ps_l      = datavecleft[pb].dphix;
+    
+    int nphiu_l       = datavecleft[ub].fVecShapeIndex.NElements();
+    int nphip_l       = phi_ps_l.Rows();
+    int nphis_a_l     = phi_ss_l.Rows();
+    int firstu_l      = 0;
+    int firstp_l      = nphiu_l + firstu_l;
+    int firsts_a_l    = nphip_l + firstp_l;
+    
+    TPZManVector<STATE,3> n = data.normal;
+    TPZManVector<REAL,3> u_l  = datavecleft[ub].sol[0];
+    REAL p_l                  = datavecleft[pb].sol[0][0];
+    REAL s_l                  = datavecleft[sb_a].sol[0][0];
+    
+    STATE un_l = 0.0;
+    
+    for (int i = 0; i < u_l.size(); i++) {
+        un_l += u_l[i]*n[i];
+    }
+    
+    //  Average values p_a
+    
+    STATE p_a_l    = p_l;
+    STATE s_a_l    = s_l;
+    
+    STATE beta = 0.0;
+    // upwinding
+    if (un_l > 0) {
+        beta = 1.0;
+    }
+    
+    TPZManVector<STATE, 10> fa_l,v_l(nvars+1);
+    
+    REAL Value_m    = 0.0;
+    REAL Value_s    = 0.0;
+    if (bc.HasfTimedependentBCForcingFunction()) {
+        TPZManVector<STATE,2> f(1);
+        TPZFMatrix<double> gradf;
+        REAL time = 0.0;
+        bc.TimedependentBCForcingFunction()->Execute(datavecleft[ub].x, time, f, gradf);
+        Value_m = f[0];
+        Value_s = f[1];
+    }
+    else{
+        Value_m = bc.Val2()(0,0);
+    }
+    
+    switch (bc.Type()) {
+            
+        case 0 :    // Dirichlet BC  PD outlet
+        {
+            STATE p_D = Value_m;
+            
+            v_l[0] = p_D;
+            v_l[1] = s_a_l;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0])*phi_ss_l(is,0)*un_l;
+                
+            }
+            
+        }
+            break;
+            
+        case 1 :    // Neumann BC  QN outlet
+        {
+            
+            STATE un_N = Value_m;
+            
+            v_l[0] = p_a_l;
+            v_l[1] = s_a_l;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
+                
+            }
+            
+        }
+            break;
+            
+        case 2 :    // Dirichlet BC  PD inlet
+        {
+            STATE p_D = Value_m;
+            
+            v_l[0] = p_D;
+            v_l[1] = Value_s;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_l;
+                
+            }
+            
+        }
+            break;
+            
+        case 3 :    // Neumann BC  QN inlet
+        {
+            
+            STATE un_N = Value_m;
+            
+            v_l[0] = p_a_l;
+            v_l[1] = Value_s;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
+                
+            }
+            
+        }
+            break;
+            
+        case 4 :    // Neumann BC  Impervious bc
+        {
+            
+            STATE un_N = 0.0;
+            
+            v_l[0] = p_a_l;
+            v_l[1] = Value_s;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
+
+            }
+            
+        }
+            break;
+            
+        default: std::cout << "This BC doesn't exist." << std::endl;
+        {
+            
+            DebugStop();
+        }
+            break;
+    }
+    
+    return;
+    
+    
+    
 }
 
 void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
-     DebugStop();
+    
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
+    int nvars = 4; // {p,sa,sb,t}
+    
+    int ub      = 0;
+    int pb      = 1;
+    int sb_a    = 2;
+    
+    TPZFNMatrix<100,STATE> phi_us_l       = datavecleft[ub].phi;
+    TPZFNMatrix<100,STATE> phi_ps_l       = datavecleft[pb].phi;
+    TPZFNMatrix<100,STATE> phi_ss_l       = datavecleft[sb_a].phi;
+    TPZFNMatrix<300,STATE> dphi_us_l      = datavecleft[ub].dphix;
+    TPZFNMatrix<100,STATE> dphi_ps_l      = datavecleft[pb].dphix;
+    
+    TPZFNMatrix<100,STATE> phi_us_r       = datavecright[ub].phi;
+    TPZFNMatrix<100,STATE> phi_ps_r       = datavecright[pb].phi;
+    TPZFNMatrix<100,STATE> phi_ss_r       = datavecright[sb_a].phi;
+    TPZFNMatrix<300,STATE> dphi_us_r      = datavecright[ub].dphix;
+    TPZFNMatrix<100,STATE> dphi_ps_r      = datavecright[pb].dphix;
+    
+    int nphiu_l       = datavecleft[ub].fVecShapeIndex.NElements();
+    int nphip_l       = phi_ps_l.Rows();
+    int nphis_a_l     = phi_ss_l.Rows();
+    int firstu_l      = 0;
+    int firstp_l      = nphiu_l + firstu_l;
+    int firsts_a_l    = nphip_l + firstp_l;
+    
+    int nphiu_r       = datavecright[ub].fVecShapeIndex.NElements();
+    int nphip_r       = phi_ps_r.Rows();
+    int nphis_a_r     = phi_ss_r.Rows();
+    int firstu_r      = firsts_a_l + nphis_a_l;
+    int firstp_r      = nphiu_r + firstu_r;
+    int firsts_a_r    = nphip_r + firstp_r;
+    
+    TPZManVector<STATE,3> n = data.normal;
+    TPZManVector<REAL,3> u_l  = datavecleft[ub].sol[0];
+    REAL p_l                  = datavecleft[pb].sol[0][0];
+    REAL s_l                  = datavecleft[sb_a].sol[0][0];
+    
+    TPZManVector<REAL,3> u_r  = datavecright[ub].sol[0];
+    REAL p_r                  = datavecright[pb].sol[0][0];
+    REAL s_r                  = datavecright[sb_a].sol[0][0];
+    
+    STATE un_l = 0.0, un_r = 0.0;
+    
+    for (int i = 0; i < u_l.size(); i++) {
+        un_l += u_l[i]*n[i];
+        un_r += u_r[i]*n[i];
+    }
+    
+    
+    //  Average values p_a
+    
+    STATE p_a_l    = p_l;
+    STATE s_a_l    = s_l;
+    STATE p_a_r    = p_r;
+    STATE s_a_r    = s_r;
+    
+    STATE beta = 0.0;
+    // upwinding
+    if (un_l > 0) {
+        beta = 1.0;
+    }
+    
+    TPZManVector<STATE, 10> fa_l,v_l(nvars+1),fa_r,v_r(nvars+1);
+    v_l[0] = p_a_l;
+    v_l[1] = s_a_l;
+    v_r[0] = p_a_r;
+    v_r[1] = s_a_r;
+    
+    this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+    this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
+    
+    TPZFNMatrix<3,STATE> phi_u_i_l(3,1);
+    STATE phi_un_l = 0.0;
+    int s_j;
+    int v_j;
+    
+    for (int is = 0; is < nphis_a_l; is++) {
+        
+        ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_l(is,0)*un_l;
+        
+        for (int ju = 0; ju < nphiu_l; ju++) {
+            
+            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+            
+            for (int j = 0; j < u_l.size(); j++) {
+                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+                phi_un_l += phi_u_i_l(j,0)*n[j];
+            }
+            
+            ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0]) * phi_ss_l(is,0)*phi_un_l;
+        }
+        
+        for (int jp = 0; jp < nphip_l; jp++) {
+            ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_l;
+        }
+        
+        for (int jp = 0; jp < nphip_r; jp++) {
+            ek(is + firsts_a_l, jp + firstp_r) += +1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ss_l(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_l; js++) {
+            ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_l(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_r; js++) {
+            ek(is + firsts_a_l, js + firsts_a_r) += +1.0*weight * (1.0-beta) * fa_r[2] * phi_ss_r(js,0) * phi_ss_l(is,0)*un_l;
+        }
+        
+    }
+    
+    for (int is = 0; is < nphis_a_r; is++) {
+        
+        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ps_r(is,0)*un_l;
+        
+        for (int ju = 0; ju < nphiu_l; ju++) {
+            
+            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+            
+            for (int j = 0; j < u_l.size(); j++) {
+                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+                phi_un_l += phi_u_i_l(j,0)*n[j];
+            }
+            
+            ef(is + firsts_a_r, ju + firstu_l) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ps_r(is,0)*phi_un_l;
+        }
+        
+        for (int jp = 0; jp < nphip_l; jp++) {
+            ek(is + firsts_a_r, jp + firstp_l) += -1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ps_r(is,0)*un_l;
+        }
+        
+        for (int jp = 0; jp < nphip_r; jp++) {
+            ek(is + firsts_a_r, jp + firstp_r) += -1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ps_r(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_l; js++) {
+            ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ps_r(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_r; js++) {
+            ek(is + firsts_a_r, js + firsts_a_r) += -1.0*weight * (1.0-beta) * fa_r[2] * phi_ss_r(js,0) * phi_ps_r(is,0)*un_l;
+        }
+        
+    }
+    
 }
 
 void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){
-     DebugStop();
+    
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
+    int nvars = 4; // {p,sa,sb,t}
+    
+    int ub      = 0;
+    int pb      = 1;
+    int sb_a    = 2;
+    
+    TPZFNMatrix<100,STATE> phi_us_l       = datavecleft[ub].phi;
+    TPZFNMatrix<100,STATE> phi_ps_l       = datavecleft[pb].phi;
+    TPZFNMatrix<100,STATE> phi_ss_l       = datavecleft[sb_a].phi;
+    
+    TPZFNMatrix<100,STATE> phi_us_r       = datavecright[ub].phi;
+    TPZFNMatrix<100,STATE> phi_ps_r       = datavecright[pb].phi;
+    TPZFNMatrix<100,STATE> phi_ss_r       = datavecright[sb_a].phi;
+    
+    int nphiu_l       = datavecleft[ub].fVecShapeIndex.NElements();
+    int nphip_l       = phi_ps_l.Rows();
+    int nphis_a_l     = phi_ss_l.Rows();
+    int firstu_l      = 0;
+    int firstp_l      = nphiu_l + firstu_l;
+    int firsts_a_l    = nphip_l + firstp_l;
+    
+    int nphiu_r       = datavecright[ub].fVecShapeIndex.NElements();
+    int nphip_r       = phi_ps_r.Rows();
+    int nphis_a_r     = phi_ss_r.Rows();
+    int firstu_r      = firsts_a_l + nphis_a_l;
+    int firstp_r      = nphiu_r + firstu_r;
+    int firsts_a_r    = nphip_r + firstp_r;
+    
+    TPZManVector<STATE,3> n = data.normal;
+    TPZManVector<REAL,3> u_l  = datavecleft[ub].sol[0];
+    REAL p_l                  = datavecleft[pb].sol[0][0];
+    REAL s_l                  = datavecleft[sb_a].sol[0][0];
+
+    TPZManVector<REAL,3> u_r  = datavecright[ub].sol[0];
+    REAL p_r                  = datavecright[pb].sol[0][0];
+    REAL s_r                  = datavecright[sb_a].sol[0][0];
+    
+    STATE un_l = 0.0, un_r = 0.0;
+    
+    for (int i = 0; i < u_l.size(); i++) {
+        un_l += u_l[i]*n[i];
+        un_r += u_r[i]*n[i];
+    }
+    
+    
+    //  Average values p_a
+    
+    STATE p_a_l    = p_l;
+    STATE s_a_l    = s_l;
+    STATE p_a_r    = p_r;
+    STATE s_a_r    = s_r;
+    
+    STATE beta = 0.0;
+    // upwinding
+    if (un_l > 0) {
+        beta = 1.0;
+    }
+    
+    TPZManVector<STATE, 10> fa_l,v_l(nvars+1),fa_r,v_r(nvars+1);
+    v_l[0] = p_a_l;
+    v_l[1] = s_a_l;
+    v_r[0] = p_a_r;
+    v_r[1] = s_a_r;
+    
+    this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+    this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
+    
+    for (int is = 0; is < nphis_a_l; is++) {
+        
+        ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ps_l(is,0)*un_l;
+    }
+    
+    for (int is = 0; is < nphis_a_r; is++) {
+        
+        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ps_r(is,0)*un_l;
+    }
+    
+    
 }
 
-void TRMMultiphase::Flux_a(TPZVec<TPZMaterialData> &datavec,TPZManVector<STATE,10> &flux){
-     DebugStop();   
+void TRMMultiphase::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
+    
+    int ub = 0;
+    int pb = 1;
+    int sb = 2;
+    
+    TPZManVector<REAL,3> u = datavec[ub].sol[0];
+    REAL p = datavec[pb].sol[0][0];
+    REAL s = datavec[sb].sol[0][0];
+    
+    TPZFMatrix<STATE> dudx = datavec[ub].dsol[0];
+    TPZFMatrix<STATE> dpdx = datavec[pb].dsol[0];
+    
+    Solout.Resize(this->NSolutionVariables(var));
+    
+    switch(var) {
+        case 0:
+        {
+            Solout[0] = p;
+        }
+            break;
+        case 1:
+        {
+            Solout[0] = u[0]; // Bulk mass velocity
+            Solout[1] = u[1]; // Bulk mass velocity
+            Solout[2] = u[2]; // Bulk mass velocity
+        }
+            break;
+        case 2:
+        {
+            Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
+        }
+            break;
+        case 3:
+        {
+            Solout[0] = s;
+        }
+            break;
+        default:
+        {
+            DebugStop();
+        }
+    }
 }
 
 
