@@ -77,6 +77,30 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
     this->AssembleResidual();
     fR = this->Rhs();
     
+    
+    STATE v = -0.25;
+    fX_n(0,0) = v;
+    fX_n(1,0) = v;
+    fX_n(2,0) = v;
+    fX_n(3,0) = v;
+
+    fX_n(4,0) = -v;
+    fX_n(5,0) = -v;
+    fX_n(6,0) = -v;
+    fX_n(7,0) = -v;
+    
+    STATE  pr = 1.0e+7;
+    STATE  pl = 1.1e+7;
+    fX_n(36,0) = pl;
+    fX_n(37,0) = pr;
+    fX_n(38,0) = pr;
+    fX_n(39,0) = pl;
+    fX_n(40,0) = pl;
+    fX_n(41,0) = pr;
+    fX_n(42,0) = pr;
+    fX_n(43,0) = pl;
+    fX_n(44,0) = 1.0;
+    
     this->SimulationData()->SetCurrentStateQ(true);
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
@@ -90,14 +114,17 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
 
     
     for (int k = 1; k <= n; k++) {
+
+        this->Assemble();
+        fR_n = this->Rhs();
+//        this->NewtonIteration();
         
-        this->NewtonIteration();
-        
-//#ifdef PZDEBUG
-//        fR.Print("R = ", std::cout,EMathematicaInput);
-//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-//        fX_n.Print("X = ", std::cout,EMathematicaInput);
-//#endif
+#ifdef PZDEBUG
+        fR.Print("R = ", std::cout,EMathematicaInput);
+        fX.Print("X = ", std::cout,EMathematicaInput);        
+        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+#endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {

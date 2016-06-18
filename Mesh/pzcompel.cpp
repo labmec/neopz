@@ -596,7 +596,7 @@ void TPZCompEl::LoadElementReference()
 }
 
 void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
-    TPZElementMatrix ek(this->Mesh(), TPZElementMatrix::EK);
+    TPZElementMatrix ek;
     CalcStiff(ek,ef);
 }
 

@@ -1079,22 +1079,25 @@ void TRMMultiphase::ContributeBC_ab(TPZVec<TPZMaterialData> &datavec, REAL weigh
     
     TPZManVector<REAL,3> u  = datavec[ub].sol[0];
     
-    REAL Value = bc.Val2()(0,0);
+    REAL Value_m    = 0.0;
+    REAL Value_s    = 0.0;
     if (bc.HasfTimedependentBCForcingFunction()) {
         TPZManVector<STATE,2> f(2);
         TPZFMatrix<double> gradf;
         REAL time = 0.0;
         bc.TimedependentBCForcingFunction()->Execute(datavec[pb].x, time, f, gradf);
-        Value = f[0];
+        Value_m = f[0];
+        Value_s = f[1];
     }
     else{
-        Value = bc.Val2()(0,0);
+        Value_m = bc.Val2()(0,0);
+        Value_s = bc.Val2()(1,0);
     }
     
     switch (bc.Type()) {
         case 0 :    // Dirichlet BC  PD outlet
         {
-            STATE p_D = Value;
+            STATE p_D = Value_m;
             for (int iu = 0; iu < nphiu; iu++)
             {
                 ef(iu + firstu) += weight * p_D * phi_us(iu,0);
@@ -1107,7 +1110,7 @@ void TRMMultiphase::ContributeBC_ab(TPZVec<TPZMaterialData> &datavec, REAL weigh
             
             for (int iu = 0; iu < nphiu; iu++)
             {
-                STATE un_N = Value, un = u[0];
+                STATE un_N = Value_m, un = u[0];
                 ef(iu + firstu) += weight * gBigNumber * (un - un_N) * phi_us(iu,0);
                 
                 for (int ju = 0; ju < nphiu; ju++)
@@ -1123,7 +1126,7 @@ void TRMMultiphase::ContributeBC_ab(TPZVec<TPZMaterialData> &datavec, REAL weigh
 
         case 2 :    // Dirichlet BC  PD inlet
         {
-            STATE p_D = Value;
+            STATE p_D = Value_m;
             for (int iu = 0; iu < nphiu; iu++)
             {
                 ef(iu + firstu) += weight * p_D * phi_us(iu,0);
@@ -1136,7 +1139,7 @@ void TRMMultiphase::ContributeBC_ab(TPZVec<TPZMaterialData> &datavec, REAL weigh
             
             for (int iu = 0; iu < nphiu; iu++)
             {
-                STATE un_N = Value, un = u[0];
+                STATE un_N = Value_m, un = u[0];
                 ef(iu + firstu) += weight * gBigNumber * (un - un_N) * phi_us(iu,0);
                 
                 for (int ju = 0; ju < nphiu; ju++)
@@ -1222,11 +1225,11 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
     STATE p_a_l    = p_l;
     STATE s_a_l    = s_l;
     
-    STATE beta = 0.0;
-    // upwinding
-    if (un_l > 0) {
-        beta = 1.0;
-    }
+    STATE beta = 1.0;
+//    // upwinding
+//    if (un_l > 0) {
+//        beta = 1.0;
+//    }
     
     TPZManVector<STATE, 10> fa_l,v_l(nvars+1);
     
@@ -1448,11 +1451,11 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
     STATE p_a_l    = p_l;
     STATE s_a_l    = s_l;
     
-    STATE beta = 0.0;
-    // upwinding
-    if (un_l > 0) {
-        beta = 1.0;
-    }
+    STATE beta = 1.0;
+//    // upwinding
+//    if (un_l > 0) {
+//        beta = 1.0;
+//    }
     
     TPZManVector<STATE, 10> fa_l,v_l(nvars+1);
     

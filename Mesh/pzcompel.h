@@ -294,6 +294,7 @@ public:
 	 * @param ef element load vector
 	 */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+    
 	
 	/** @brief Verifies if the material associated with the element is contained in the set */
 	virtual bool HasMaterial(const std::set<int> &materialids);

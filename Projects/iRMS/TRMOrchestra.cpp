@@ -195,7 +195,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
         
     }
     
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = false;
     mono_analysis->SetCompMesh(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->(), mustOptimizeBandwidth);
     std::cout << "Total dof: " << mono_analysis->Solution().Rows() << std::endl;
     
