@@ -228,7 +228,6 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         ek.Reset();
         ef.Reset();
         el->CalcStiff(ek,ef);
-        
         if(guiInterface) if(guiInterface->AmIKilled()){
             return;
         }

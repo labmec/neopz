@@ -91,20 +91,24 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     SetMap(RawData->fMap);
     SetGravity(RawData->fg);
     SetSystemType(RawData->fSystemType,RawData->fPhases);
-    SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_up);
+    SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_down, RawData->fdt_max, RawData->fdt_min);
     SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor);
 }
 
 /** @brief Setup reporting times and time step size */
-void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de){
+void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min){
     fdt = dt;
     fn_steps = n_times;
     fReportingTimes.Resize(fn_steps, 0.0);
     for (int it = 0 ; it < fn_steps; it++) {
         fReportingTimes[it] = REAL(it+1)*fdt;
     }
-    ftime_0    = fReportingTimes[0];
-    ftime_n    = fReportingTimes[fn_steps-1];
+    fdt_max     = dt_max;
+    fdt_min     = dt_min;
+    fdt_up      = dt_in;
+    fdt_down    = dt_de;
+    ftime_0     = fReportingTimes[0];
+    ftime_n     = fReportingTimes[fn_steps-1];
 }
 
 /** @brief Setup reporting times and time step size */

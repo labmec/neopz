@@ -51,7 +51,7 @@ void TRMMonolithicMultiphaseAnalysis::NewtonIteration(){
     this->Assemble();
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
-    
+        
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
@@ -60,7 +60,7 @@ void TRMMonolithicMultiphaseAnalysis::NewtonIteration(){
     this->Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
 
-    this->AssembleResidual();
+    this->Assemble(); // This is stupid! i cannot easily compute rhs without "fake" ek
     fR_n = this->Rhs();
     fR_n += fR; // total residue
     ferror =  Norm(fR_n); // residue error
@@ -77,71 +77,87 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
     this->AssembleResidual();
     fR = this->Rhs();
     
-    
-    STATE v = -0.25;
-    fX_n(0,0) = v;
-    fX_n(1,0) = v;
-    fX_n(2,0) = v;
-    fX_n(3,0) = v;
-
-    fX_n(4,0) = -v;
-    fX_n(5,0) = -v;
-    fX_n(6,0) = -v;
-    fX_n(7,0) = -v;
-    
-    STATE  pr = 1.0e+7;
-    STATE  pl = 1.1e+7;
-    fX_n(36,0) = pl;
-    fX_n(37,0) = pr;
-    fX_n(38,0) = pr;
-    fX_n(39,0) = pl;
-    fX_n(40,0) = pl;
-    fX_n(41,0) = pr;
-    fX_n(42,0) = pr;
-    fX_n(43,0) = pl;
-    fX_n(44,0) = 1.0;
-    
     this->SimulationData()->SetCurrentStateQ(true);
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
 
     ferror = 1.0;
     
+    STATE dt_min    = fSimulationData->dt_min();
+    STATE dt_max    = fSimulationData->dt_max();
+    STATE dt_up     = fSimulationData->dt_up();
+    STATE dt_down   = fSimulationData->dt_down();
+    STATE dt        = fSimulationData->dt();
+    
     STATE epsilon_res = this->SimulationData()->epsilon_res();
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
-
+    
 
     
     for (int k = 1; k <= n; k++) {
 
-        this->Assemble();
-        fR_n = this->Rhs();
-//        this->NewtonIteration();
+        this->NewtonIteration();
         
-#ifdef PZDEBUG
-        fR.Print("R = ", std::cout,EMathematicaInput);
-        fX.Print("X = ", std::cout,EMathematicaInput);        
-        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
-#endif
+//#ifdef PZDEBUG
+//        fR.Print("R = ", std::cout,EMathematicaInput);
+//        fX.Print("X = ", std::cout,EMathematicaInput);        
+//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+//#endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+            if (k == 1 && dt_max > dt && dt_up > 1.0) {
+                dt *= dt_up;
+                if(dt_max < dt ){
+                    fSimulationData->Setdt(dt_max);
+                }
+                else{
+                    fSimulationData->Setdt(dt);
+                }
+                std::cout << "Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+            }
+            
             fX = fX_n;
             return;
         }
         
+        if(k == n  && dt > dt_min && dt_down < 1.0){
+            dt *= dt_down;
+            if(dt_min > dt ){
+                fSimulationData->Setdt(dt_min);
+            }
+            else{
+                fSimulationData->Setdt(dt);
+            }
+            std::cout << "Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+            std::cout << "Restarting current time step correction " << std::endl;
+            
+            this->SimulationData()->SetCurrentStateQ(false);
+            this->LoadSolution(fX);
+            
+            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+            this->AssembleResidual();
+            fR = this->Rhs();
+            
+            this->SimulationData()->SetCurrentStateQ(true);
+            fX_n = fX;
+            k = 1;
+        }
+
+        
     }
     
-    std::cout << "Warning:: Exit with iterations:  " << n << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    std::cout << "Warning:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
     
     
 }
 
 void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
     
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = 3;
     int div = 0;
     TPZStack<std::string> scalnames, vecnames;

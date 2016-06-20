@@ -191,10 +191,10 @@ long TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
     
-    if(!ek.fMesh){ /* @Omar:: Why is not implemented CalcResidual without unefficient "fake ek"  */
-        this->CalcStiff(ef);
-        return;
-    }
+//    if(!ek.fMesh){ /* @Omar:: Why is not implemented CalcResidual without unefficient "fake ek"  */
+//        this->CalcStiff(ef);
+//        return;
+//    }
     
 	TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (this->Material());
 	if(!material){

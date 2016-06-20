@@ -166,8 +166,28 @@ void TRMMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 
 void TRMMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
-    std::cout << " This method should be called only for Capillary pressure terms " << std::endl;
-    DebugStop();
+    switch (fSimulationData->SystemType().size()) {
+        case 1:
+        {
+            DebugStop();
+        }
+            break;
+        case 2:
+        {
+            ContributeInterface_ab(data, datavecleft, datavecright, weight, ek, ef);
+        }
+            break;
+        case 3:
+        {
+            DebugStop();
+        }
+            break;
+        default:
+        {
+            DebugStop();
+        }
+            break;
+    }
     
 }
 
@@ -917,6 +937,24 @@ void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         
     }
     
+    
+    for (int is = 0; is < nphis_a; is++)
+    {
+        
+        ef(is + firsts_a) += weight * (1.0/dt) * s * rho_a[0] * phi[0] * phi_ss(is,0);
+        
+        for (int jp = 0; jp < nphip; jp++)
+        {
+            ek(is + firsts_a, jp + firstp) += weight * ( (1.0/dt) * ( s*rho_a[0] * phi[1] + s*rho_a[1] * phi[0]) * phi_ss(is,0) ) * phi_ps(jp,0);
+        }
+        
+        for (int js = 0; js < nphis_a; js++)
+        {
+            ek(is + firsts_a, js + firsts_a) += weight * (1.0/dt) * rho_a[0] * phi[0] * phi_ss(js,0) * phi_ss(is,0);
+        }
+        
+    }
+    
 }
 
 void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
@@ -1225,11 +1263,8 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
     STATE p_a_l    = p_l;
     STATE s_a_l    = s_l;
     
-    STATE beta = 1.0;
-//    // upwinding
-//    if (un_l > 0) {
-//        beta = 1.0;
-//    }
+    STATE beta = 0.0;
+
     
     TPZManVector<STATE, 10> fa_l,v_l(nvars+1);
     
@@ -1256,6 +1291,12 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
             
         case 0 :    // Dirichlet BC  PD outlet
         {
+            
+            // upwinding
+            if (un_l > 0) {
+                beta = 1.0;
+            }
+
             STATE p_D = Value_m;
             
             v_l[0] = p_D;
@@ -1294,6 +1335,11 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
         case 1 :    // Neumann BC  QN outlet
         {
             
+            // upwinding
+            if (Value_m > 0) {
+                beta = 1.0;
+            }
+            
             STATE un_N = Value_m;
             
             v_l[0] = p_a_l;
@@ -1323,6 +1369,12 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
             
         case 2 :    // Dirichlet BC  PD inlet
         {
+            
+            // upwinding
+            if (un_l > 0) {
+                beta = 1.0;
+            }
+            
             STATE p_D = Value_m;
             
             v_l[0] = p_D;
@@ -1356,6 +1408,11 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
         case 3 :    // Neumann BC  QN inlet
         {
             
+            // upwinding
+            if (Value_m < 0) {
+                beta = 1.0;
+            }
+            
             STATE un_N = Value_m;
             
             v_l[0] = p_a_l;
@@ -1364,7 +1421,7 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
             this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
 
             for (int is = 0; is < nphis_a_l; is++) {
-                
+
                 ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
                 
                 for (int jp = 0; jp < nphip_l; jp++) {
@@ -1378,6 +1435,9 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
             
         case 4 :    // Neumann BC  Impervious bc
         {
+            
+            // upwinding
+            beta = 1.0;
             
             STATE un_N = 0.0;
             
@@ -1416,171 +1476,7 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
         return;
     }
     
-    int nvars = 4; // {p,sa,sb,t}
-    
-    int ub      = 0;
-    int pb      = 1;
-    int sb_a    = 2;
-    
-    TPZFNMatrix<100,STATE> phi_us_l       = datavecleft[ub].phi;
-    TPZFNMatrix<100,STATE> phi_ps_l       = datavecleft[pb].phi;
-    TPZFNMatrix<100,STATE> phi_ss_l       = datavecleft[sb_a].phi;
-    TPZFNMatrix<300,STATE> dphi_us_l      = datavecleft[ub].dphix;
-    TPZFNMatrix<100,STATE> dphi_ps_l      = datavecleft[pb].dphix;
-    
-    int nphiu_l       = datavecleft[ub].fVecShapeIndex.NElements();
-    int nphip_l       = phi_ps_l.Rows();
-    int nphis_a_l     = phi_ss_l.Rows();
-    int firstu_l      = 0;
-    int firstp_l      = nphiu_l + firstu_l;
-    int firsts_a_l    = nphip_l + firstp_l;
-    
-    TPZManVector<STATE,3> n = data.normal;
-    TPZManVector<REAL,3> u_l  = datavecleft[ub].sol[0];
-    REAL p_l                  = datavecleft[pb].sol[0][0];
-    REAL s_l                  = datavecleft[sb_a].sol[0][0];
-    
-    STATE un_l = 0.0;
-    
-    for (int i = 0; i < u_l.size(); i++) {
-        un_l += u_l[i]*n[i];
-    }
-    
-    //  Average values p_a
-    
-    STATE p_a_l    = p_l;
-    STATE s_a_l    = s_l;
-    
-    STATE beta = 1.0;
-//    // upwinding
-//    if (un_l > 0) {
-//        beta = 1.0;
-//    }
-    
-    TPZManVector<STATE, 10> fa_l,v_l(nvars+1);
-    
-    REAL Value_m    = 0.0;
-    REAL Value_s    = 0.0;
-    if (bc.HasfTimedependentBCForcingFunction()) {
-        TPZManVector<STATE,2> f(1);
-        TPZFMatrix<double> gradf;
-        REAL time = 0.0;
-        bc.TimedependentBCForcingFunction()->Execute(datavecleft[ub].x, time, f, gradf);
-        Value_m = f[0];
-        Value_s = f[1];
-    }
-    else{
-        Value_m = bc.Val2()(0,0);
-    }
-    
-    switch (bc.Type()) {
-            
-        case 0 :    // Dirichlet BC  PD outlet
-        {
-            STATE p_D = Value_m;
-            
-            v_l[0] = p_D;
-            v_l[1] = s_a_l;
-            
-            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
-            
-            
-            for (int is = 0; is < nphis_a_l; is++) {
-                
-                ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0])*phi_ss_l(is,0)*un_l;
-                
-            }
-            
-        }
-            break;
-            
-        case 1 :    // Neumann BC  QN outlet
-        {
-            
-            STATE un_N = Value_m;
-            
-            v_l[0] = p_a_l;
-            v_l[1] = s_a_l;
-            
-            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
-            
-            for (int is = 0; is < nphis_a_l; is++) {
-                
-                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
-                
-            }
-            
-        }
-            break;
-            
-        case 2 :    // Dirichlet BC  PD inlet
-        {
-            STATE p_D = Value_m;
-            
-            v_l[0] = p_D;
-            v_l[1] = Value_s;
-            
-            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
-            
-            for (int is = 0; is < nphis_a_l; is++) {
-                
-                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_l;
-                
-            }
-            
-        }
-            break;
-            
-        case 3 :    // Neumann BC  QN inlet
-        {
-            
-            STATE un_N = Value_m;
-            
-            v_l[0] = p_a_l;
-            v_l[1] = Value_s;
-            
-            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
-            
-            for (int is = 0; is < nphis_a_l; is++) {
-                
-                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
-                
-            }
-            
-        }
-            break;
-            
-        case 4 :    // Neumann BC  Impervious bc
-        {
-            
-            STATE un_N = 0.0;
-            
-            v_l[0] = p_a_l;
-            v_l[1] = Value_s;
-            
-            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
-            
-            for (int is = 0; is < nphis_a_l; is++) {
-                
-                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
-
-            }
-            
-        }
-            break;
-            
-        default: std::cout << "This BC doesn't exist." << std::endl;
-        {
-            
-            DebugStop();
-        }
-            break;
-    }
-    
-    return;
-    
-    
-    
+    DebugStop();    
 }
 
 void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
@@ -1647,7 +1543,7 @@ void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMate
     
     STATE beta = 0.0;
     // upwinding
-    if (un_l > 0) {
+    if (un_l > 0.0) {
         beta = 1.0;
     }
     
@@ -1702,7 +1598,7 @@ void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMate
     
     for (int is = 0; is < nphis_a_r; is++) {
         
-        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ps_r(is,0)*un_l;
+        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_r(is,0)*un_l;
         
         for (int ju = 0; ju < nphiu_l; ju++) {
             
@@ -1713,24 +1609,24 @@ void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMate
                 phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
                 phi_un_l += phi_u_i_l(j,0)*n[j];
             }
-            
-            ef(is + firsts_a_r, ju + firstu_l) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ps_r(is,0)*phi_un_l;
+
+            ek(is + firsts_a_r, ju + firstu_l) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_r(is,0)*phi_un_l;
         }
         
         for (int jp = 0; jp < nphip_l; jp++) {
-            ek(is + firsts_a_r, jp + firstp_l) += -1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ps_r(is,0)*un_l;
+            ek(is + firsts_a_r, jp + firstp_l) += -1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_r(is,0)*un_l;
         }
         
         for (int jp = 0; jp < nphip_r; jp++) {
-            ek(is + firsts_a_r, jp + firstp_r) += -1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ps_r(is,0)*un_l;
+            ek(is + firsts_a_r, jp + firstp_r) += -1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ss_r(is,0)*un_l;
         }
         
         for (int js = 0; js < nphis_a_l; js++) {
-            ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ps_r(is,0)*un_l;
+            ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_r(is,0)*un_l;
         }
         
         for (int js = 0; js < nphis_a_r; js++) {
-            ek(is + firsts_a_r, js + firsts_a_r) += -1.0*weight * (1.0-beta) * fa_r[2] * phi_ss_r(js,0) * phi_ps_r(is,0)*un_l;
+            ek(is + firsts_a_r, js + firsts_a_r) += -1.0*weight * (1.0-beta) * fa_r[2] * phi_ss_r(js,0) * phi_ss_r(is,0)*un_l;
         }
         
     }
@@ -1812,12 +1708,12 @@ void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMate
     
     for (int is = 0; is < nphis_a_l; is++) {
         
-        ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ps_l(is,0)*un_l;
+        ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_l(is,0)*un_l;
     }
     
     for (int is = 0; is < nphis_a_r; is++) {
         
-        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ps_r(is,0)*un_l;
+        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_r(is,0)*un_l;
     }
     
     

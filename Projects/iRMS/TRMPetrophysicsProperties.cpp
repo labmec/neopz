@@ -161,7 +161,7 @@ void TRMPetrophysicsProperties::Krb(TPZManVector<STATE,10> &kr, TPZManVector<STA
 
     int n = x.size() + 1;
     kr.Resize(n,0.0);
-    kr[0] = 1-x[1];
+    kr[0] = (1-x[1]);
     kr[2] = -1.0;
 }
 

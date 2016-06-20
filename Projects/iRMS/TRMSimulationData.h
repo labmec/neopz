@@ -230,7 +230,7 @@ public:
     TPZAutoPointer<TRMPhaseProperties> & GammaProp();
     
     /** @brief Setup reporting times and time step size */
-    void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de);
+    void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min);
     
     /** @brief Setup reporting times and time step size */
     void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor);

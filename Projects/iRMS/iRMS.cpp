@@ -90,7 +90,25 @@ void BoxLinearTracerDual()
     SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution
 //    SymphonyX->RunStaticProblem();
     SymphonyX->CreateMonolithicAnalysis(false); // Evolutionary Solution
-    SymphonyX->RunEvolutionaryProblem();
+    
+    TPZManVector<STATE, 10> v(4);
+    v[0] = 1.0e+7;
+    v[1] = 0.5;
+    
+    // Fluid parameters
+    TPZManVector<STATE, 10> rho_a,rho_b,f_a,f_b;
+    SymphonyX->MonolithicMultiphaseAnalysis()->SimulationData()->PetroPhysics()->AlphaProp()->Density(rho_a, v);
+    SymphonyX->MonolithicMultiphaseAnalysis()->SimulationData()->PetroPhysics()->BetaProp()->Density(rho_b, v);
+    SymphonyX->MonolithicMultiphaseAnalysis()->SimulationData()->PetroPhysics()->fa(f_a, v);
+    SymphonyX->MonolithicMultiphaseAnalysis()->SimulationData()->PetroPhysics()->fb(f_b, v);
+    
+    std::cout << "rho_a = " << rho_a << std::endl;
+    std::cout << "rho_b = " << rho_b << std::endl;
+    
+    std::cout << "f_a = " << f_a << std::endl;
+    std::cout << "f_b = " << f_b << std::endl;
+    
+//    SymphonyX->RunEvolutionaryProblem();
 
     
     std::cout << "Dual complete normally." << std::endl;

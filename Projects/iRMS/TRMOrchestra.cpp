@@ -147,7 +147,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> mono_analysis = new TRMMonolithicMultiphaseAnalysis;
     
-    int nel_x = 1;
+    int nel_x = 20;
     int nel_y = 1;
     int nel_z = 1;
     
@@ -195,17 +195,17 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
         
     }
     
-    bool mustOptimizeBandwidth = false;
+    bool mustOptimizeBandwidth = true;
     mono_analysis->SetCompMesh(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->(), mustOptimizeBandwidth);
     std::cout << "Total dof: " << mono_analysis->Solution().Rows() << std::endl;
     
     // Use this matrix for a linear tracer
-    TPZSkylineStructMatrix strmat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
+    TPZSkylineNSymStructMatrix skyns_mat(fSpaceGenerator->MonolithicMultiphaseCmesh().operator->());
     TPZStepSolver<STATE> step;
     int numofThreads = 0;
-    strmat.SetNumThreads(numofThreads);
-    step.SetDirect(ELDLt);
-    mono_analysis->SetStructuralMatrix(strmat);
+    skyns_mat.SetNumThreads(numofThreads);
+    step.SetDirect(ELU);
+    mono_analysis->SetStructuralMatrix(skyns_mat);
     mono_analysis->SetSolver(step);
     mono_analysis->SetSimulationData(fSimulationData);
     mono_analysis->AdjustVectors();
@@ -224,7 +224,7 @@ void TRMOrchestra::RunStaticProblem(){
     
     int n = 1;//fSimulationData->n_steps();
     REAL dt = fSimulationData->dt();
-    fSimulationData->Setdt(1.0e20);
+    fSimulationData->Setdt(1.0e10);
     
     for (int i = 0; i < n; i++) {
         if (IsMonolithicQ()) {
@@ -239,6 +239,7 @@ void TRMOrchestra::RunStaticProblem(){
         
     }
     fSimulationData->Setdt(dt);
+    
 }
 
 /** @brief Run the evolutionary problem for all steps set in the simulation data */
@@ -247,6 +248,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     if (IsMonolithicQ()) {
         fMonolithicMultiphaseAnalysis->SetX(fMonolithicMultiphaseAnalysis_I->X_n());
         fMonolithicMultiphaseAnalysis->SetX_n(fMonolithicMultiphaseAnalysis_I->X_n());
+        fMonolithicMultiphaseAnalysis->LoadSolution(fMonolithicMultiphaseAnalysis_I->X_n());
+        fMonolithicMultiphaseAnalysis->PostProcessStep();        
     }
     
     int n = fSimulationData->n_steps();
