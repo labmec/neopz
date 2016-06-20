@@ -154,7 +154,7 @@ void TRMWaterPhase::Compressibility_c(TPZManVector<STATE,10> &c, TPZManVector<ST
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 1.0e-9;
+    STATE val = 1.0e-10;
     c.Resize(n,0.0);
     c[0] = val;
     

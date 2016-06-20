@@ -878,7 +878,7 @@ void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
             v_j = datavec[ub].fVecShapeIndex[ju].first;
             s_j = datavec[ub].fVecShapeIndex[ju].second;
             
-            STATE Kl_inv_phi_u_j_dot_phi_u_j = 0.0;
+            STATE Kl_inv_phi_u_j_dot_phi_u_i = 0.0;
             for (int j = 0; j < u.size(); j++) {
                 phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fNormalVec(j,v_j);
                 STATE dot = 0.0;
@@ -886,11 +886,11 @@ void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
                     dot += (1.0/l[0]) * Kinv(j,k)*phi_u_j(k,0);
                 }
                 lambda_K_inv_phi_u_j(j,0) = dot;
-                Kl_inv_phi_u_j_dot_phi_u_j += lambda_K_inv_phi_u_j(j,0)*phi_u_i(j,0);
+                Kl_inv_phi_u_j_dot_phi_u_i += lambda_K_inv_phi_u_j(j,0)*phi_u_i(j,0);
             }
             
             
-            ek(iu + firstu,ju + firstu) += weight * Kl_inv_phi_u_j_dot_phi_u_j;
+            ek(iu + firstu,ju + firstu) += weight * Kl_inv_phi_u_j_dot_phi_u_i;
         }
         
         for (int jp = 0; jp < nphip; jp++)

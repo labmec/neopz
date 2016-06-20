@@ -240,8 +240,8 @@ void TRMRawData::WaterOilReservoirBox(){
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
     fSystemType.Push("oil");
-    water->SetRhoModel(0);
-    oil->SetRhoModel(0);
+    water->SetRhoModel(1);
+    oil->SetRhoModel(1);
     fPhases.Push(water);
     fPhases.Push(oil);
     int n_data = fSystemType.size();
@@ -266,7 +266,7 @@ void TRMRawData::WaterOilReservoirBox(){
     fdt_down = 0.5;
     
     // Numeric controls
-    fn_corrections = 10;
+    fn_corrections = 20;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     
@@ -359,7 +359,7 @@ void TRMRawData::PressureOutlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REA
 
 void TRMRawData::FluxInlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.001, S = 1.0;
+    REAL flux = -0.00368, S = 1.0;
     f[0] = flux;
     f[1] = S;
     return;
