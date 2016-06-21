@@ -52,11 +52,11 @@ private:
     /** @brief Define the mixed system analysis */
     TPZAutoPointer<TRMFluxPressureAnalysis> fFluxPressureAnalysis;
     
-    /** @brief Define the water transpor equation analysis */
-    TPZAutoPointer<TRMTransportAnalysis> fWaterTransportAnalysis;
+    /** @brief Define the alpha transpor equation analysis */
+    TPZAutoPointer<TRMTransportAnalysis> fAlphaTransportAnalysis;
     
-    /** @brief Define the oil transpor equation analysis */
-    TPZAutoPointer<TRMTransportAnalysis> fOilTransportAnalysis;
+    /** @brief Define the beta transpor equation analysis */
+    TPZAutoPointer<TRMTransportAnalysis> fBetaTransportAnalysis;
     
     /** @brief Define the use of monolithic analysis  */
     bool fIsMonolithicQ;
@@ -178,25 +178,25 @@ public:
     }
     
     /** @brief Set autopointer of the water transpor equation analysis */
-    void SetWaterTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &WaterTransportAnalysis)
+    void SetWaterTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &AlphaTransportAnalysis)
     {
-        fWaterTransportAnalysis = WaterTransportAnalysis;
+        fAlphaTransportAnalysis = AlphaTransportAnalysis;
     }
     /** @brief Get autopointer of the water transpor equation analysis */
-    TPZAutoPointer<TRMTransportAnalysis > WaterTransportAnalysis()
+    TPZAutoPointer<TRMTransportAnalysis > AlphaTransportAnalysis()
     {
-        return fWaterTransportAnalysis;
+        return fAlphaTransportAnalysis;
     }
     
     /** @brief Set autopointer of the oil transpor equation analysis */
-    void SetOilTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &OilTransportAnalysis)
+    void SetBetaTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &BetaTransportAnalysis)
     {
-        fOilTransportAnalysis = OilTransportAnalysis;
+        fBetaTransportAnalysis = BetaTransportAnalysis;
     }
     /** @brief Get autopointer of the oil transpor equation analysis */
-    TPZAutoPointer<TRMTransportAnalysis > OilTransportAnalysis()
+    TPZAutoPointer<TRMTransportAnalysis > BetaTransportAnalysis()
     {
-        return fOilTransportAnalysis;
+        return fBetaTransportAnalysis;
     }
     
     
@@ -249,7 +249,7 @@ public:
     void CreateAnalysisDual();
     
     /** @brief Create a dual analysis on box geometry using space odissey */
-    void CreateAnalysisDualonBox();
+    void CreateAnalysisDualonBox(bool IsInitialQ);
     
     /** @brief Create a monolithic dual analysis on box geometry using space odissey */
     void CreateMonolithicAnalysis(bool IsInitialQ);

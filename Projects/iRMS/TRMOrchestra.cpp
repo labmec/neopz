@@ -31,8 +31,8 @@ TRMOrchestra::TRMOrchestra(){
     fMonolithicMultiphaseAnalysis_I = new TRMMonolithicMultiphaseAnalysis;
     fMonolithicMultiphaseAnalysis   = new TRMMonolithicMultiphaseAnalysis;
     fFluxPressureAnalysis           = new TRMFluxPressureAnalysis;
-    fWaterTransportAnalysis         = new TRMTransportAnalysis;
-    fOilTransportAnalysis           = new TRMTransportAnalysis;
+    fAlphaTransportAnalysis         = new TRMTransportAnalysis;
+    fBetaTransportAnalysis          = new TRMTransportAnalysis;
     
     fIsMonolithicQ         =  false;
     fIsSegregatedQ         =  false;
@@ -89,9 +89,11 @@ void TRMOrchestra::CreateAnalysisPrimal()
 }
 
 /** @brief Create a dual analysis using space odissey */
-void TRMOrchestra::CreateAnalysisDualonBox()
+void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
+    fSimulationData->SetInitialStateQ(IsInitialQ);    
+    
     // BuildConectivity takes too much time for  one million, doesn't make sense.
     
     int nel_x = 1;
@@ -122,8 +124,6 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     Transfer->Fill_u_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 0);
     Transfer->Fill_p_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 1);
     
-    
-    
     // Analysis for linear tracer
     bool mustOptimizeBandwidth = true;
     fFluxPressureAnalysis->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh().operator->(), mustOptimizeBandwidth);
@@ -137,6 +137,12 @@ void TRMOrchestra::CreateAnalysisDualonBox()
     fFluxPressureAnalysis->AdjustVectors();
     fFluxPressureAnalysis->SetSimulationData(fSimulationData);
     fFluxPressureAnalysis->SetTransfer(Transfer);
+    
+    if(fSimulationData->IsTwoPhaseQ()){
+    fSpaceGenerator->CreateAlphaTransportMesh();
+        
+    }
+    
     
 }
 

@@ -81,10 +81,11 @@ void BoxLinearTracerDual()
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
     
-//    SymphonyX->SetSegregatedQ(true);
-//    SymphonyX->CreateAnalysisDualonBox();
-//    SymphonyX->RunSimulation();
-//    SymphonyX->SetSegregatedQ(false);
+    SymphonyX->SetSegregatedQ(true);
+    SymphonyX->CreateAnalysisDualonBox(true);
+    SymphonyX->RunStaticProblem();
+    SymphonyX->RunEvolutionaryProblem();
+    SymphonyX->SetSegregatedQ(false);
 
     SymphonyX->SetMonolithicQ(true);
     SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution

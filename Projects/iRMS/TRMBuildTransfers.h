@@ -70,8 +70,17 @@ private:
     /** @brief Diagonal block matrix to transfer Pressure solution to integrations points of the mixed mesh */
     TRMIrregularBlockDiagonal<STATE> fp_To_Mixed;
     
+    /** @brief Diagonal block matrix to transfer Average pressure solution to integrations points of the mixed mesh */
+    TRMIrregularBlockDiagonal<STATE> fap_To_Mixed;
+    
     /** @brief pressure dof indexes per element */
     TPZVec< TPZVec<long> > fp_dof_scatter;
+    
+    /** @brief Diagonal block matrix to transfer Average alpha saturation solution to integrations points of the mixed mesh */
+    TRMIrregularBlockDiagonal<STATE> fs_a_To_Mixed;
+    
+    /** @brief pressure dof indexes per element */
+    TPZVec< TPZVec<long> > fs_a_dof_scatter;
     
     //    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
     //    TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_V;
