@@ -433,7 +433,7 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
 }
 
 /** @brief Create computational interfaces for jumps  */
-void TRMSpaceOdissey::CreateInterfacesInside(TPZAutoPointer<TPZCompMesh> cmesh){ //@Omar:: It is requiered to robust for several materials in the same hydraulic unit!!!
+void TRMSpaceOdissey::CreateInterfacesInside(TPZAutoPointer<TPZCompMesh> cmesh){ //@Omar:: It is required to robust for several materials in the same hydraulic unit!!!
     
     fGeoMesh->ResetReference();
     cmesh->LoadReferences();
@@ -450,9 +450,9 @@ void TRMSpaceOdissey::CreateInterfacesInside(TPZAutoPointer<TPZCompMesh> cmesh){
         int index = compEl ->Index();
         if(compEl->Dimension() == cmesh->Dimension())
         {
-            TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(cmesh->ElementVec()[index]);
-            if(!InterpEl) continue;
-            InterpEl->CreateInterfaces();
+            TPZMultiphysicsElement * inter_el_mult = dynamic_cast<TPZMultiphysicsElement *>(cmesh->ElementVec()[index]);
+            if(!inter_el_mult) continue;
+            inter_el_mult->CreateInterfaces();
         }
     }
     

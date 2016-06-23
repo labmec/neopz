@@ -51,6 +51,9 @@ private:
     
     /** @brief Compute element dof indexes */
     void ElementDofIndexes(TPZInterpolationSpace * intel,  TPZVec<long> &dof_indexes);
+
+    /** @brief Compute element dof indexes at faces */    
+    void ElementDofFaceIndexes(TPZInterpolationSpace * intel, TPZVec<long> &dof_indexes);
     
     // @}
     
@@ -81,6 +84,12 @@ private:
     
     /** @brief pressure dof indexes per element */
     TPZVec< TPZVec<long> > fs_a_dof_scatter;
+    
+    /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh */
+    TRMIrregularBlockDiagonal<STATE> fun_To_Transport_a;
+    
+    /** @brief pressure dof indexes per element */
+    TPZVec< TPZVec<long> > fun_dof_scatter;
     
     //    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
     //    TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_V;
@@ -260,6 +269,19 @@ public:
     TRMIrregularBlockDiagonal<STATE> Transfer_p_To_Mixed(){
         return fp_To_Mixed;
     }
+        
+    /** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+    void Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    
+    /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+    void Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    
+    /** @brief Get the sparse matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+    TRMIrregularBlockDiagonal<STATE> Transfer_un_To_Transport_a(){
+        return fun_To_Transport_a;
+    }
+        
+
     
     // @}
     

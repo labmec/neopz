@@ -373,7 +373,7 @@ void TRMBuildTransfers::Initialize_u_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh
 
 void TRMBuildTransfers::Fill_u_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_multiphysics, int mesh_index){
     
-    // It verify the consistency of dynamic_cast and mesh structure and at the end Initialize diagonal matrix blocks
+    // It verify the consistency of dynamic_cast operations and mesh structure, and  finally it initialize diagonal matrix blocks
     Initialize_u_To_Mixed(cmesh_multiphysics, mesh_index);
     
     long nel = cmesh_multiphysics->NElements();
@@ -700,6 +700,194 @@ void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * intel, TPZVec<
     dof_indexes = index;
     return;
 }
+
+/** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+    
+#ifdef PZDEBUG
+    if (!cmesh_multiphysics) {
+        std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    //* seeking for total blocks */
+    
+    
+    long nel = cmesh_multiphysics->NElements();
+    int n_var_dim = 3; // vectorial
+    long element_index = 0;
+    
+    // Compute destination index scatter by element (Omega and Gamma)
+    fun_dof_scatter.Resize(nel);
+    
+    // Block size structue including (Omega and Gamma)
+    TPZVec< std::pair<long, long> > blocks_dimensions(nel);
+    
+    
+    for (long icel = 0; icel < nel; icel++) {
+        
+        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
+#ifdef PZDEBUG
+        if (!cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+#ifdef PZDEBUG
+        if(!mf_cel)
+        {
+            DebugStop();
+        }
+#endif
+        element_index = mf_cel->Index();
+        TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
+        
+        // Getting local integration index
+        TPZManVector<long> int_point_indexes(0,0);
+        TPZManVector<long> dof_indexes(0,0);
+        
+        if(intel->Dimension() < n_var_dim){
+            // there is boundary elements for normal flux where it is a scalar variable
+            //            mf_cel->GetMemoryIndices(int_point_indexes);
+            //            this->ElementDofIndexes(intel, dof_indexes);
+            //            fu_dof_scatter[element_index] = dof_indexes;
+            blocks_dimensions[element_index].first = 0;
+            blocks_dimensions[element_index].second = 0;
+            fu_dof_scatter[element_index] = dof_indexes;
+            continue;
+        }
+        
+        
+        mf_cel->GetMemoryIndices(int_point_indexes);
+        this->ElementDofIndexes(intel, dof_indexes);
+        fu_dof_scatter[element_index] = dof_indexes;
+        blocks_dimensions[element_index].first = int_point_indexes.size()*n_var_dim;
+        blocks_dimensions[element_index].second = dof_indexes.size();
+        fu_dof_scatter[element_index] = dof_indexes;
+    }
+    
+    // Initialize the matrix
+    fu_To_Mixed.Initialize(blocks_dimensions);
+    
+}
+
+void TRMBuildTransfers::ElementDofFaceIndexes(TPZInterpolationSpace * intel, TPZVec<long> &dof_indexes){
+    
+    
+    DebugStop(); // method not implemented!
+    
+#ifdef PZDEBUG
+    if (!intel) {
+        DebugStop();
+    }
+#endif
+    
+    TPZStack<long> index(0,0);
+    int nconnect = intel->NConnects();
+    for (int icon = 0; icon < nconnect; icon++) {
+        TPZConnect  & con = intel->Connect(icon);
+        long seqnumber = con.SequenceNumber();
+        long position = intel->Mesh()->Block().Position(seqnumber);
+        int nshape = con.NShape();
+        for (int ish=0; ish < nshape; ish++) {
+            index.Push(position+ ish);
+        }
+    }
+    
+    dof_indexes = index;
+    return;
+}
+
+/** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+void Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+    
+}
+
+/** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+void Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+    
+    // It verify the consistency of dynamic_cast operations and mesh structure, and  finally it initialize diagonal matrix blocks
+    Initialize_un_To_Transport_a(cmesh_multiphysics, mesh_index);
+    
+//    long nel = cmesh_multiphysics->NElements();
+//    int n_var_dim = 3; // vector
+//    long element_index = 0;
+//    
+//    TPZMaterialData data;
+//    
+//    std::pair<long, long> block_dim;
+//    
+//    for (long icel = 0; icel < nel; icel++) {
+//        
+//        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
+//        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+//        TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
+//        element_index = mf_cel->Index();
+//        
+//        // Getting local integration index
+//        TPZManVector<long> int_point_indexes(0,0);
+//        TPZManVector<long> dof_indexes(0,0);
+//        
+//        mf_cel->GetMemoryIndices(int_point_indexes);
+//        dof_indexes = fu_dof_scatter[element_index];
+//        
+//        block_dim.first = int_point_indexes.size();
+//        block_dim.second = dof_indexes.size();
+//        
+//        
+//        // Computing the local integration points indexes
+//        const TPZIntPoints & int_points_mixed = mf_cel->GetIntegrationRule();
+//        int np_cel = int_points_mixed.NPoints();
+//        
+//#ifdef PZDEBUG
+//        if (int_point_indexes.size() != np_cel) {
+//            DebugStop();
+//        }
+//#endif
+//        
+//        // Computing over all integration points of the compuational element cel
+//        TPZFNMatrix<100,REAL> phi(intel->NShapeF(),1,0.0);
+//        int el_dim = mf_cel->Reference()->Dimension();
+//        TPZFNMatrix<300,REAL> dphidxi(el_dim,intel->NShapeF(),0.0);
+//        TPZFMatrix<double> block;
+//        
+//        if(intel->Dimension() < n_var_dim){ // two dimensional elements
+//            block.Resize(block_dim.first,block_dim.second);        }
+//        else{
+//            block.Resize(block_dim.first*n_var_dim,block_dim.second);
+//        }
+//        
+//        for (int ip = 0; ip < block_dim.first ; ip++)
+//        {
+//            TPZManVector<REAL,3> qsi(el_dim,0.0);
+//            STATE w;
+//            int_points_mixed.Point(ip, qsi, w);
+//            // Get the vectorial phi
+//            intel->Shape(qsi, phi, dphidxi);
+//            intel->InitMaterialData(data);
+//            intel->ComputeRequiredData(data,qsi);
+//            
+//            for (int id = 0; id < n_var_dim; id++) {
+//                for (int jp = 0; jp < block_dim.second; jp++) {
+//                    int vector_index = data.fVecShapeIndex[jp].first;
+//                    int shape_index = data.fVecShapeIndex[jp].second;
+//                    block(ip*n_var_dim+id,jp) = phi(shape_index,0)*data.fNormalVec(id,vector_index);
+//                }
+//            }
+//            
+//        }
+//        
+//        fu_To_Mixed.SetBlock(element_index, block);
+//        
+//    }
+    
+    return;
+    
+    
+}
+
 
 //
 //void TRMBuildTransfers::TransferPressure_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer< TPZCompMesh> cmesh_multiphysics){
