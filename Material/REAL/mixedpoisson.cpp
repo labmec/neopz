@@ -36,6 +36,9 @@ TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
 }
 
 TPZMixedPoisson::TPZMixedPoisson(int matid, int dim): TPZMatPoisson3d(matid,dim), fDim(dim) {
+    if (dim < 1) {
+        DebugStop();
+    }
 	fk = 1.;
     fvisc = 1.;
 	ff = 0.;
@@ -720,13 +723,13 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
     
     int id;
     //values[1] : eror em norma L2
-    STATE diff = fabs(pressure[0] - u_exact[0]);
+    STATE diff = pressure[0] - u_exact[0];
     errors[1]  = diff*diff;
     //values[2] : erro em semi norma H1
     errors[2] = 0.;
     for(id=0; id<fDim; id++) {
-        diff = fabs(flux[id] - du_exact(id,0));
-        errors[2]  += fabs(fK)*diff*diff;
+        diff = flux[id]/fK + du_exact(id,0);
+        errors[2]  += fK*diff*diff;
     }
     //values[0] : erro em norma H1 <=> norma Energia
     errors[0]  = errors[1]+errors[2];

@@ -674,7 +674,7 @@ inline long TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
     TPZConnect &c = fConnectVec[connectindex];
     c.SetNShape(nshape);
     c.SetNState(nstate);
-    c.SetOrder(order);
+    c.SetOrder(order,connectindex);
     c.SetLagrangeMultiplier(0);
 	long blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);

@@ -84,7 +84,7 @@ void GenerateNodes(TPZGeoMesh *gmesh, long nelem);
 bool MyDoubleComparer(REAL a, REAL b);
 
 void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs);
-void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
+void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL,3> > &Points);
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL &distance,bool &isdefined);
 void RegularizeMesh(TPZGeoMesh *gmesh);
 
@@ -142,9 +142,9 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
 
     ///Refinamento
     gRefDBase.InitializeUniformRefPattern(EOned);
@@ -261,13 +261,20 @@ int main(int argc, char *argv[])
 //                }
             }
             else {//Malha H1
+                {
+                    std::ofstream gout("gmeshH1-1.txt");
+                    gmesh->Print(gout);
+                }
                 cmesh = CMeshH1(gmesh, p, dim_problema, rodarSIPGD, ndiv);
                 cmesh->ExpandSolution();
                 cmesh->CleanUpUnconnectedNodes();
-//                {
-//                    std::ofstream out("cmeshH1-1.txt");
-//                    cmesh->Print(out);
-//                }
+                
+                {
+                    std::ofstream out("cmeshH1-1.txt");
+                    cmesh->Print(out);
+                    std::ofstream gout("gmeshH1-1.txt");
+                    cmesh->Reference()->Print(gout);
+                }
 
                 if(dim_problema==2) Prefinamento(cmesh, ndiv, p);
 
@@ -307,7 +314,7 @@ int main(int argc, char *argv[])
             }
 
 
-            if(0)
+            if(1)
             {
                 std::ofstream gout("../gmesh.txt");
                 cmesh->Reference()->Print(gout);
@@ -328,6 +335,7 @@ int main(int argc, char *argv[])
                 cmesh->Skyline(skyline);
                 TPZSkylMatrix<STATE> matsky(neq,skyline);
                 nNzeros = matsky.GetNelemts();
+                
 
 //                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(cmesh);
 //                strmat.SetDecomposeType(ELDLt);
@@ -428,6 +436,8 @@ int main(int argc, char *argv[])
                 REAL razao = NZeros/totalbanda;
                 myerrorfile << ndiv <<  setw(13) << NDoF << setw(12)<< NDoFCond <<setw(13)<< NDoFCond*NDoFCond <<setw(15)<<NZeros <<setw(12)<< razao <<"    "<< (t2-t1) << "     "<< (t3-t2) <<"     "<<(t2-t1)+(t3-t2) <<setw(12) << erros[1]<< setw(15)<< erros[2]<<std::endl;
             }
+            delete cmesh;
+            delete gmesh;
         }
         myerrorfile<<"\n-------------------------------------------------------------------------"<<std::endl;
     }
@@ -1762,8 +1772,8 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
     TPZVec<REAL> point(3);
     point[0] = 1.; point[1] = 0.0; point[2] = 0.0;
     REAL r = 0.72;
-    TPZVec<TPZManVector<REAL> > Points(npoints);
-    GetPointsOnCircunference(npoints,point,r,Points);
+//    TPZVec<TPZManVector<REAL,3> > Points(npoints);
+//    GetPointsOnCircunference(npoints,point,r,Points);
     
     if(ntyperefs==2) {
         REAL radius = 0.19;
@@ -1799,7 +1809,7 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
     gmesh->BuildConnectivity();
 }
 
-void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points) {
+void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL,3> > &Points) {
     Points.Resize(npoints);
     TPZManVector<REAL> point(3,0.);
     REAL angle = (2*M_PI)/npoints;
@@ -1834,6 +1844,7 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL
         }
         REAL centerdist = TPZGeoEl::Distance(center,point);
         if(fabs(r-centerdist) < distance) {
+//            std::cout << "Dividing gel index " << gel->Index() << " nsubel " << gel->NSubElements()  <<std::endl;
             gel->Divide(sub);
         }
     }

@@ -41,10 +41,10 @@ protected:
 	REAL fk;
     
     /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
-	TPZFMatrix<REAL> fTensorK;
+	TPZFNMatrix<9,REAL> fTensorK;
     
     /** @brief inverse of the permeability tensor.*/
-	TPZFMatrix<REAL> fInvK;
+	TPZFNMatrix<9,REAL> fInvK;
     
     /** @brief fluid viscosity*/
 	REAL fvisc;
@@ -156,7 +156,7 @@ public:
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
 	
     
-    virtual int NEvalErrors() {return 6;}
+    virtual int NEvalErrors() {return 3;}
 
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
 

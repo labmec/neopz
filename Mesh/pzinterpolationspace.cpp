@@ -57,6 +57,10 @@ int TPZInterpolationSpace::MaxOrder(){
 	int result = -1;
 	int side;
 	for(int i = 0; i < n; i++){
+        // skip unidentified connects
+        if (ConnectIndex(i) < 0) {
+            continue;
+        }
 		side = this->Connect(i).Order();
 		if (side > result) result = side;
 	}//i
@@ -407,13 +411,10 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
 	int i;
     int numeq=0;
 	for(i=0; i<ncon; i++){
-        int nshape = NConnectShapeF(i);
         TPZConnect &c = Connect(i);
         int nstate = c.NState();
         
 #ifdef PZDEBUG
-        int cNShape = c.NShape();
-        if(cNShape != nshape || nstate != numdof)
         {
             DebugStop();
         }
@@ -446,10 +447,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	ef.fNumStateVars = numdof;
 	int i;
 	for(i=0; i<ncon; i++){
-        unsigned int nshapec = NConnectShapeF(i);
-#ifdef PZDEBUG
         TPZConnect &c = Connect(i);
-        if (c.NShape() != nshapec || c.NState() != numdof) {
             DebugStop();
         }
 #endif
@@ -1460,10 +1458,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	TPZBlock<REAL> locblock(0,locnod);
 	
 	for(in = 0; in < locnod; in++) {
-        unsigned int nshape = NConnectShapeF(in);
-#ifdef PZDEBUG
         TPZConnect &c = Connect(in);
-        if(c.NShape() != nshape)
         {
             DebugStop();
         }

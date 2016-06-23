@@ -67,7 +67,9 @@ TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMe
 /** @brief unwrap the condensed element from the computational element and delete the condensed element */
 void TPZCondensedCompEl::Unwrap()
 {
-    fMesh->ElementVec()[fIndex] = fReferenceCompEl;
+    long myindex = fIndex;
+    fMesh->ElementVec()[myindex] = 0;
+    TPZCompEl *ReferenceEl = fReferenceCompEl;
     int ncon = NConnects();
     for (int ic=0; ic<ncon ; ic++) {
         Connect(ic).SetCondensed(false);
@@ -77,8 +79,9 @@ void TPZCondensedCompEl::Unwrap()
         gel->ResetReference();
     }
     delete this;
+    ReferenceEl->Mesh()->ElementVec()[myindex] = ReferenceEl;
     if (gel) {
-        gel->SetReference(fReferenceCompEl);
+        gel->SetReference(ReferenceEl);
     }
 }
 
@@ -370,12 +373,12 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     
 #endif
     
-
+#ifdef USING_DGER
 #ifdef USING_LAPACK
     TPZFMatrix<STATE> * K00_temp = dynamic_cast<TPZFMatrix<STATE> * >(fCondensed.K00().operator->());
     K00_temp->InitializePivot();
 #endif
-
+#endif
     
     
 #ifdef LOG4CXX
