@@ -94,7 +94,19 @@ protected:
     REAL fPreStressHH;
     REAL fPreStresshh;
     REAL fPreStressVV;
-
+    
+    
+    /** @brief Wellbore pressure */
+    REAL fPw;
+    
+    /** @brief Wellbore radius (m)  */
+    REAL frw;
+    
+    /** @brief Uses Analytical Solution
+     * @note \f$fAnalytics = 1\f$ => Uses Analytical Solution
+     * @note \f$fAnalytics != 1\f$ => Does not use Analytical Solution for fPreStresses
+     */
+    int fAnalytics;
     
     
 public:
@@ -243,7 +255,7 @@ public:
      * @param Wellbore Direction/Azimuth angle (rad) - alpha
      * @param Wellbore Inclination angle (rad) - beta
      */
-    void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV, REAL alpha, REAL beta, int wellborestate)
+    void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV, REAL alpha, REAL beta, int wellborestate, REAL Pw, REAL rw, int analytics)
     {
         
         fPreStressHH  = SigmaH;
@@ -252,6 +264,9 @@ public:
         falpha        = alpha;
         fbeta         = beta;
         fInclinedWell = wellborestate;
+        fPw = Pw;
+        frw = rw;
+        fAnalytics = analytics;
     }
     
     
@@ -290,6 +305,38 @@ public:
         
     }
 
+    
+    // Calculates analytical solution to be used as fPreStresses
+    void AnalyticalWellboreSolution(REAL &TauX, REAL &TauY, REAL &TauXY, REAL &TauZ, REAL theta, REAL R)
+    {
+        TauX = (2*fPreStressXX*pow(R,4) - (3*fPreStressXX - fPreStressYY - 2*fPw)*pow(frw,2)*pow(R,2)*cos(2*theta) +
+                (fPreStressXX - fPreStressYY)*pow(frw,2)*(3*pow(frw,2) - 2*pow(R,2))*cos(4*theta) - 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(2*theta) +
+                6*fPreStressXY*pow(frw,4)*sin(4*theta) - 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
+        
+        TauY = -(-2*fPreStressYY*pow(R,4) + (fPreStressXX - 3*fPreStressYY + 2*fPw)*pow(frw,2)*pow(R,2)*cos(2*theta) +
+                 (fPreStressXX - fPreStressYY)*pow(frw,2)*(3*pow(frw,2) - 2*pow(R,2))*cos(4*theta) + 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(2*theta) +
+                 6*fPreStressXY*pow(frw,4)*sin(4*theta) - 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
+        
+        TauXY = (2*fPreStressXY*pow(R,4) + fPreStressXY*(-6*pow(frw,4) + 4*pow(frw,2)*pow(R,2))*cos(4*theta) -
+                 (fPreStressXX + fPreStressYY - 2*fPw)*pow(frw,2)*pow(R,2)*sin(2*theta) + 3*fPreStressXX*pow(frw,4)*sin(4*theta) -
+                 3*fPreStressYY*pow(frw,4)*sin(4*theta) - 2*fPreStressXX*pow(frw,2)*pow(R,2)*sin(4*theta) +
+                 2*fPreStressYY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
+        
+        TauZ = fPreStressZZ - (2*fnu*pow(frw,2)*(2*fPreStressXY + (fPreStressXX - fPreStressYY)*cos(2*theta))*sin(2*theta))/pow(R,2);
+        
+    }
+    
+    
+    /** @brief Uses Analytical Solution
+     * @note \f$fAnalytics = 1\f$ => Uses Analytical Solution
+     * @note \f$fAnalytics != 1\f$ => Does not use Analytical Solution for fPreStresses
+     */
+    void SetAnalyticalSolution(int analytics)
+    {
+        fAnalytics = analytics;
+        
+    }
+    
     
     
     // Get Initial Stress */

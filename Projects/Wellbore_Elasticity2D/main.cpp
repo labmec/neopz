@@ -94,8 +94,8 @@ int Problem3D();
 int main(int argc, char *argv[])
 {
 
-    Problem3D();
-    //Problem2D();
+    //Problem3D();
+    Problem2D();
 
     return 0;
 }
@@ -143,7 +143,7 @@ int Problem2D(){
     
     //******** Configura malha Computacional ***************/
     
-    int p = 2;
+    int p = 1;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
@@ -266,14 +266,14 @@ int Problem3D(){
     
     //******** Configura malha Computacional ***************/
     
-    int p = 3;
+    int p = 2;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CMesh3D(gmesh, p, Is3DQ); //funcao para criar a malha COMPUTACIONAL de todo o poco
     
     // Solving linear equations
     // Initial steps
     TPZAnalysis an (cmesh);
-    int numthreads = 8;
+    int numthreads = 2;
     std::cout << "Entering into Assemble ..." << std::endl;
     std::cout << "number of dof = " << cmesh->NEquations() << std::endl;
     
@@ -569,7 +569,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 90.; // graus********
+    direction   = 0.; // graus********
     inclination = 0.; // graus********
     
     // transforma graus em rad
@@ -586,8 +586,13 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     // Tensoes in Situ, horizontais e vertical em Pa
     REAL SigmaVV = 0., Sigmahh = 0., SigmaHH = 0.; // inicializa
     SigmaVV = -50.0, Sigmahh = -40.0, SigmaHH = -60.0; //preenche
+    
+    REAL rw = 0.1;
+    int analytic = 0;
+    
     // Seta os parametros do poco
-    material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore);
+    material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic);
+    
     
     //Obtem tensor de tensoes iniciais
     REAL SigmaX = 0., SigmaXY = 0., SigmaY = 0., SigmaZ = 0.;
@@ -622,20 +627,20 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     // cond contorno
     const int bc0 = -1, bc1 = -2, bc2 = -1, bc3 = -3, bc4 = -4; // ids igual da malha geometrica
     //bc2 = -3, bc3 = -4, bc4 = -5, bc5 = -6;
-    const int normalpressure = 6, stressfield = 4, mixed = 2; // tipo de condicao de contorno
+    const int normalpressure = 6, stressfield = 4, mixed = 2, dirichlet = 0; // tipo de condicao de contorno
     //neumann = 1;
     //material->GetPreStress(SigmaX, SigmaXY, SigmaY, SigmaZ); // obtem tensoes iniciais
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
-//    ///Inserir condicao de contorno parede do poco
-//    val1(0,0) = Pwb;
-//    val1(1,0) = 0;
-//    val1(0,1) = 0;
-//    val1(1,1) = Pwb;
-//    val2(0,0) = 0;
-//    val2(1,0) = 0;
-//    TPZMaterial * BCond0 = material->CreateBC(material, bc0, normalpressure, val1, val2);//cria material
+    ///Inserir condicao de contorno parede do poco
+    val1(0,0) = Pwb;
+    val1(1,0) = 0;
+    val1(0,1) = 0;
+    val1(1,1) = Pwb;
+    val2(0,0) = 0;
+    val2(1,0) = 0;
+    TPZMaterial * BCond0 = material->CreateBC(material, bc0, normalpressure, val1, val2);//cria material
     
     ///Inserir condicao de contorno circunferencia externa
     val1(0,0) = SigmaX;
@@ -646,14 +651,18 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     val2(1,0) = 0;
     TPZMaterial * BCond1 = material->CreateBC(material, bc1, stressfield, val1, val2);//cria material
     
-    ///Inserir condicao de contorno circunferencia interna
-    val1(0,0) = SigmaX;
-    val1(1,0) = SigmaXY;
-    val1(0,1) = SigmaXY;
-    val1(1,1) = SigmaY;
-    val2(0,0) = 0;
-    val2(1,0) = 0;
-    TPZMaterial * BCond2 = material->CreateBC(material, bc2, stressfield, val1, val2);//cria material
+//    ///Inserir condicao de contorno circunferencia externa
+//    val1.Zero();
+//    TPZMaterial * BCond1 = material->CreateBC(material, bc1, dirichlet, val1, val2);//cria material
+    
+//    ///Inserir condicao de contorno circunferencia interna
+//    val1(0,0) = SigmaX;
+//    val1(1,0) = SigmaXY;
+//    val1(0,1) = SigmaXY;
+//    val1(1,1) = SigmaY;
+//    val2(0,0) = 0;
+//    val2(1,0) = 0;
+//    TPZMaterial * BCond2 = material->CreateBC(material, bc2, stressfield, val1, val2);//cria material
     
     ///Inserir condicao de contorno ponto externo bottom
     val1(0,0) = 1.;
@@ -674,9 +683,9 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond4 = material->CreateBC(material, bc4, mixed, val1, val2);//cria material que implementa a condicao de contorno da parede do poco
     
     
-    //cmesh->InsertMaterialObject(BCond0);//insere material na malha
+    cmesh->InsertMaterialObject(BCond0);//insere material na malha
     cmesh->InsertMaterialObject(BCond1);//insere material na malha
-    cmesh->InsertMaterialObject(BCond2);//insere material na malha
+//    cmesh->InsertMaterialObject(BCond2);//insere material na malha
     cmesh->InsertMaterialObject(BCond3);//insere material na malha
     cmesh->InsertMaterialObject(BCond4);//insere material na malha
     
@@ -864,7 +873,7 @@ TPZCompMesh *CMesh3D(TPZGeoMesh *gmesh, int pOrder, bool Is3DQ){
 //        REAL Pwb = 30.0e+6; // Pa
 //        
         // Tensoes in Situ, horizontais e vertical em Pa
-        REAL SigmaVV = -50.0e6, Sigmahh = -40.0e6, SigmaHH = -60.0e6;
+        REAL SigmaVV = 50.0e+6, Sigmahh = -40.0e6, SigmaHH = -60.0e6;
 //        
 //        material->SetPreStress(SigmaHH, Sigmahh, SigmaVV);
         
@@ -878,16 +887,16 @@ TPZCompMesh *CMesh3D(TPZGeoMesh *gmesh, int pOrder, bool Is3DQ){
         
         int bcw, bce, bcs, bcn, bcwell;
         
-        // Matrial ids for boundaries 3D case
-        
+        // Material ids for boundaries 3D case
         bcw = 2;
         bce = 3;
         bcs = 4;
         bcn = 5;
         bcwell = 6;
         
-        // Matrial ids for boundaries 3D case
         
+        
+        // Matrial ids for boundaries 2D case
         const int pressure = 6, neumann = 1, fixed_u = 0; // tipo de condicao de contorno
         
         TPZFMatrix<REAL> val1(2,2,0.0), val2(2,1,0.0);
@@ -898,16 +907,16 @@ TPZCompMesh *CMesh3D(TPZGeoMesh *gmesh, int pOrder, bool Is3DQ){
         TPZMaterial * BCond1 = material->CreateBC(material, bcwell, pressure, val1, val2);//cria material
         
         val1.Zero();
-        TPZMaterial * BCond2 = material->CreateBC(material, bcw, fixed_u, val1, val2);
-        TPZMaterial * BCond3 = material->CreateBC(material, bce, fixed_u, val1, val2);
+        TPZMaterial * BCond2 = material->CreateBC(material, bce, fixed_u, val1, val2);
+        TPZMaterial * BCond3 = material->CreateBC(material, bcw, fixed_u, val1, val2);
         
         val2(0,0) = 0.0;
         val2(1,0) = +1.0*SigmaVV;
-        TPZMaterial * BCond4 = material->CreateBC(material, bcs, neumann, val1, val2);
+        TPZMaterial * BCond4 = material->CreateBC(material, bcn, neumann, val1, val2);
         
         val2(0,0) = 0.0;
         val2(1,0) = -1.0*SigmaVV;
-        TPZMaterial * BCond5 = material->CreateBC(material, bcn, neumann, val1, val2);
+        TPZMaterial * BCond5 = material->CreateBC(material, bcs, neumann, val1, val2);
         
         cmesh->InsertMaterialObject(BCond1);//insere material na malha
         cmesh->InsertMaterialObject(BCond2);//insere material na malha
@@ -1183,12 +1192,19 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     directionT = direction*(Pi/180); // rad
     inclinationT = inclination*(Pi/180); // rad
     int inclinedwellbore = 1;
-    //REAL Pwb = 28.9; //MPa
+    REAL Pwb = 28.9; //MPa
     
     // Tensoes in Situ, horizontais e vertical em MPa
     REAL SigmaVV = -48.2e+6, Sigmahh = -45.9e+6, SigmaHH = -62.1e+6;
+
+    
+    REAL rw = 0.1;
+    int analytic = 1;
+    
     // Seta os parametros do poco
-    material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore);
+    material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic);
+    
+    
     
     
     //Obtem tensor de tensoes iniciais

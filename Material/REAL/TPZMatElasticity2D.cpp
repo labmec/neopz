@@ -13,6 +13,7 @@
 #include "pzbndcond.h"
 #include "pzaxestools.h"
 #include "pzlog.h"
+#include <cmath>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
@@ -207,11 +208,40 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     TPZVec<STATE> P(1,0.0);
     TPZFMatrix<STATE> GradP(2,1,0.0);
     
-    if(this->HasffBCForcingFunction())
-    {
-        fForcingFunction->Execute(data.x,P,GradP);
-//        REAL Pressure = P[0];
+//    if(this->HasffBCForcingFunction())
+//    {
+//        fForcingFunction->Execute(data.x,P,GradP);
+////        REAL Pressure = P[0];
+//    }
+    
+    
+    //*************** fPreStress by Analytical Solution ****************//
+    
+    REAL SigmaX = 0., SigmaY = 0., SigmaXY = 0., SigmaZ = 0.;
+    
+    
+    if (fAnalytics == 1) {
+        REAL theta = 0.;
+        REAL coordY = 0.;
+        REAL coordX = 0.;
+        coordX = data.x[0];
+        coordY = data.x[1];
+        theta = atan(coordY/coordX);
+        REAL r = 0.;
+        r = sqrt((coordX*coordX)+(coordY*coordY));
+        
+        AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, theta, r);
+
     }
+    
+    else{
+        
+        SigmaX  = fPreStressXX;
+        SigmaY  = fPreStressYY;
+        SigmaXY = fPreStressXY;
+        SigmaZ  = fPreStressZZ;
+    }
+    
     
     //  ////////////////////////// Residual Vector ///////////////////////////////////
     //  Contribution of domain integrals for Residual Vector
@@ -239,8 +269,8 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         du(1,0) = dphiU(0,iu)*data.axes(0,1)+dphiU(1,iu)*data.axes(1,1);
         
 //          Vector Force right hand term
-             ef(2*iu + FirstU)     +=    weight*(ff[0]*phiU(iu, 0)- (du(0,0)*fPreStressXX + du(1,0)*fPreStressXY));    // direcao x
-             ef(2*iu+1 + FirstU)   +=    weight*(ff[1]*phiU(iu, 0)- (du(0,0)*fPreStressXY + du(1,0)*fPreStressYY));    // direcao y
+             ef(2*iu + FirstU)     +=    weight*(ff[0]*phiU(iu, 0)- (du(0,0)* SigmaX + du(1,0)* SigmaXY));    // direcao x
+             ef(2*iu+1 + FirstU)   +=    weight*(ff[1]*phiU(iu, 0)- (du(0,0)* SigmaXY + du(1,0)* SigmaY));    // direcao y
         
         if (fPlaneStress == 1)
         {
@@ -966,7 +996,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //	Hydrostatic stress
     if(var == 2) 
     {
-        Solout[0] = (SigX+SigY+SigZ)/3;
+        Solout[0] = ((SigX + fPreStressXX)+(SigY + fPreStressYY)+(SigZ+fPreStressZZ))/3;
         return;
     }
     
