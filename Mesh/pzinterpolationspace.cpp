@@ -396,6 +396,7 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef){
     TPZMaterial *mat = this->Material();
 	const int numdof = mat->NStateVariables();
+	const int nshape = this->NShapeF();
 	const int ncon = this->NConnects();
     const int numloadcases = mat->NumLoadCases();
     
@@ -414,11 +415,6 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
         TPZConnect &c = Connect(i);
         int nstate = c.NState();
         
-#ifdef PZDEBUG
-        {
-            DebugStop();
-        }
-#endif
 		ek.fBlock.Set(i,nshape*nstate);
 		ef.fBlock.Set(i,nshape*nstate);
         numeq += nshape*nstate;
@@ -448,10 +444,8 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	int i;
 	for(i=0; i<ncon; i++){
         TPZConnect &c = Connect(i);
-            DebugStop();
-        }
-#endif
-		ef.fBlock.Set(i,nshapec*numdof);
+
+		ef.fBlock.Set(i,nshape*numdof);
 	}
 	ef.fConnect.Resize(ncon);
 	for(i=0; i<ncon; i++){
@@ -1459,11 +1453,8 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	
 	for(in = 0; in < locnod; in++) {
         TPZConnect &c = Connect(in);
-        {
-            DebugStop();
-        }
-#endif
-		locblock.Set(in,nshape);
+
+		locblock.Set(in,locmatsize);
 	}
 	locblock.Resequence();
 	

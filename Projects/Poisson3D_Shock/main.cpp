@@ -137,7 +137,7 @@ void GetFilenameFromGID(MElementType typeel, std::string &name);
 
 
 /** PROBLEMS */
-bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel);
+bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel, struct SimulationCase sim_case);
 bool SolveLaplaceProblemOnLShapeMesh();
 
 
@@ -165,6 +165,14 @@ void Replay(TPZCompMesh *cmesh, std::string filename, long countmax);
 static LoggerPtr  logger(Logger::getLogger("pz.refine"));
 #endif
 
+// Simulation Case
+struct SimulationCase {
+    bool  IsHdivQ = false;
+    int   n_acc_terms = 0;
+    int   eltype = 7;
+    int   nthreads = 0;
+    std::string  dir_name = "dump";
+};
 
 REAL GlobScale = 1.;
 // MAIN FUNCTION TO NUMERICAL SOLVE WITH AUTO ADAPTIVE HP REFINEMENTS
@@ -179,29 +187,88 @@ int main(int argc,char *argv[]) {
 	gRefDBase.InitializeAllUniformRefPatterns();
 //    gRefDBase.InitializeRefPatterns();
 
+    bool IsOldSettingQ = false;
+    
+
+    
 	// Getting input data
     // 4 -> tetraedro
     // 6 -> prisma
     // 7 -> cubo
-	int itypeel = 7;
-	int count = 0;
-	do {
-		if(argc > 1)
-			itypeel = atoi(argv[count+1]);
-		if(itypeel > 7 || itypeel < 2)
-			itypeel = 7;
-		count++;
-		// Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
-	    if(!SolveSymmetricPoissonProblemOnCubeMesh(itypeel))
-		    return 1;
-	} while(count < argc-1);
+    
+    if (IsOldSettingQ) {
+        
+    struct SimulationCase dummied;
+        
+        int itypeel = 7;
+        int count = 0;
+        do {
+            if(argc > 1)
+                itypeel = atoi(argv[count+1]);
+            if(itypeel > 7 || itypeel < 2)
+                itypeel = 7;
+            count++;
+            // Solving symmetricPoissonProblem on [0,1]^d with d=1, d=2 and d=3
+            if(!SolveSymmetricPoissonProblemOnCubeMesh(itypeel,dummied))
+                return 1;
+        } while(count < argc-1);
+    }
+    else{
+       
+        //////////////////////////////////////////////////////////
+        // Data defined on overleaf file
+        // Case 1
+        
+        struct SimulationCase Case_1;
+        Case_1.IsHdivQ = false;
+        Case_1.n_acc_terms = 0;
+        Case_1.eltype = 7;
+        Case_1.nthreads = 12;
+        Case_1.dir_name = "H1_Case_1";
+        
+        struct SimulationCase Case_2;
+        Case_2.IsHdivQ = true;
+        Case_2.n_acc_terms = 0;
+        Case_2.eltype = 6;
+        Case_2.nthreads = 12;
+        Case_2.dir_name = "PrismHdiv_Case_2";
+        
+        struct SimulationCase Case_3;
+        Case_3.IsHdivQ = true;
+        Case_3.n_acc_terms = 0;
+        Case_3.eltype = 7;
+        Case_3.nthreads = 12;
+        Case_3.dir_name = "CubeHdiv_Case_3";
+        
+//        if(!SolveSymmetricPoissonProblemOnCubeMesh(Case_1.eltype,Case_1)){ // this breaks after adaptation
+//            return 1;
+//        }
+        
+        if(!SolveSymmetricPoissonProblemOnCubeMesh(Case_2.eltype,Case_2)){
+            return 1;
+        }
+        
+        if(!SolveSymmetricPoissonProblemOnCubeMesh(Case_3.eltype,Case_3)){
+            return 1;
+        }
+        
+
+        
+        
+    }
+    
+
     
     return 0;
 }
 
-bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
+bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel, struct SimulationCase sim_case) {
 	// Variables
 
+    // Creating the directory
+    std::string command = "mkdir " + sim_case.dir_name;
+    system(command.c_str());
+    
 	/** Printing level */
 	int gPrintLevel = 0;
 	int printingsol = 0;
@@ -228,7 +295,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	memset(time_formated,0,256);
 	
 	// Output files
-	std::ofstream fileerrors("ErrorsHP_Poisson.txt",ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
+    std::string file_name = sim_case.dir_name + "/" + "ErrorsHP_Poisson.txt";
+	std::ofstream fileerrors(file_name,ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
 	time(&sttime);
 	ptime = ctime(&sttime);
@@ -246,8 +314,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 	MElementType typeel;
 
 	/** Solving for type of geometric elements */
-	typeel = (MElementType)itypeel;
-	fileerrors << "\nType of element: " << typeel << endl;
+	typeel = (MElementType)sim_case.eltype;
+//	fileerrors << "\nType of element: " << typeel << endl;
 	TPZGeoMesh *gmesh;
 	gmesh = CreateGeomMesh(typeel,materialId,id_bc0,id_bc1);
 	ModelDimension = DefineDimensionOverElementType(typeel);
@@ -312,30 +380,34 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		sprintf(saida,"gmesh_%02dD_H%dE%dIndex.vtk",ModelDimension,nref,typeel);
 		PrintGeoMeshAsCompMeshInVTKWithElementIndexAsData(gmesh,saida);
 	}
-    cmesh = CreateComputationalMesh(gmesh,ModelDimension,materialId,1,id_bc0,id_bc1);     // Forcing function is out 2013_07_25
     
-    /// Escolha do tipo de espaco
-    TPZManVector<TPZCompMesh *,2> meshvec(2,0);
-    // ****************************
-    // ****************************
-    int hdivplusplus = 2;
+    int n_meshes = 0;
+    if (sim_case.IsHdivQ) {
+        n_meshes = 2;
+    }
     
-    
-    
-//    cmesh = CreateHDivMesh(gmesh, meshvec, p, ModelDimension,hdivplusplus);
-    
+    TPZManVector<TPZCompMesh *,2> meshvec(n_meshes,0);
+
+    int hdivplusplus = sim_case.n_acc_terms;
+    if(meshvec.size() == 0)
+    {
+        cmesh = CreateComputationalMesh(gmesh,ModelDimension,materialId,1,id_bc0,id_bc1);     // Forcing function is out 2013_07_25
+    }
+    else{
+        cmesh = CreateHDivMesh(gmesh, meshvec, p, ModelDimension,hdivplusplus);
+    }
 	// To storing number of equations and errors obtained for all iterations
 	ErrorVec.Resize(NRefs);
 	ErrorVec.Fill(0.0L);
 	NEquations.Resize(NRefs);
 	NEquations.Fill(0L);
-    if(meshvec[1])
+    if(meshvec.size() == 0)
     {
-        ReconstructHDivMesh(cmesh, meshvec, hdivplusplus);
+        AdjustFluxPolynomialOrders(cmesh, hdivplusplus);
     }
     else
     {
-        AdjustFluxPolynomialOrders(cmesh, hdivplusplus);
+        ReconstructHDivMesh(cmesh, meshvec, hdivplusplus);
     }
 
 //    long countmax = 3000;
@@ -370,13 +442,13 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		an.SetExact(ExactSolutionArcTangent);
 		{
 			std::stringstream sout;
-			sout << "Poisson" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+			sout << sim_case.dir_name << "/" << "Poisson" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
 			an.DefineGraphMesh(ModelDimension,scalnames,vecnames,sout.str());
 		}
 		std::string MeshFileName;
 		{
-			std::stringstream sout;
-			sout << "meshAngle" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
+			std::stringstream sout(sim_case.dir_name + "/");
+			sout << sim_case.dir_name << "/" << "meshAngle" << ModelDimension << "D_E" << typeel << "Thr" << nthread << "H" << std::setprecision(2) << nref << "P" << pinit << ".vtk";
 			MeshFileName = sout.str();
 		}
         
@@ -395,7 +467,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		// Solve using symmetric matrix then using Cholesky (direct method)
         
 #ifdef USING_MKL
-        if(meshvec[0] == 0)
+        if(meshvec.size() == 0)
         {
             TPZSymetricSpStructMatrix strmat(cmesh);
             strmat.SetNumThreads(8);
@@ -452,7 +524,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
         
         UnwrapMesh(cmesh);
 		
-        if(meshvec[0])
+        if(! meshvec.size() == 0)
         {
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, cmesh);
         }
@@ -511,17 +583,18 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		}
         std::cout << "NElements " << cmesh->NElements() << " NEquations " << cmesh->NEquations() << std::endl;
         // refazer a malha multifisica
-        if (meshvec[1])
-        {
-            ReconstructHDivMesh(cmesh, meshvec, hdivplusplus);
-        }
-        else
+        if (meshvec.size() == 0)
         {
             AdjustFluxPolynomialOrders(cmesh, hdivplusplus);
         }
+        else
+        {
+            ReconstructHDivMesh(cmesh, meshvec, hdivplusplus);
+        }
 #ifdef PZDEBUG
         {
-            std::ofstream outcheck("CheckMesh.txt");
+            std::string mesh_file = sim_case.dir_name + "/" + "CheckMesh.txt";
+            std::ofstream outcheck(mesh_file);
             TPZCheckMesh check(cmesh, NULL);
             if(check.CheckElementShapeDimension() != 0)
             {
@@ -535,7 +608,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel) {
 		out.flush();
 		// Sometimes Writing a relation between number of degree of freedom and L2 error.
     
-        if (meshvec[0] == 0) {
+        if (meshvec.size() == 0) {
             fileerrors << "H1 approximation\n";
             fileerrors << "H1plusplus = " << hdivplusplus << std::endl;
         }
@@ -1096,11 +1169,12 @@ REAL ProcessingError(TPZAnalysis &analysis,TPZVec<REAL> &ervec,TPZVec<REAL> &erv
 // Writing a relation between number of degree of freedom and L2 error.
 bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquations,std::ostream &fileerrors) {
 	int nref;
+    STATE fact = 1.0e6;
 	long NRefs = ErrorVec.NElements();
 	// setting format for ostream
-	fileerrors << setprecision(13);
+	fileerrors << setprecision(20);
 	fileerrors.setf(std::ios::fixed, std::ios::floatfield);
-	fileerrors << "\n\nNEquations = {";
+	fileerrors << "\n\n NEquations = {";
 
 	// printing number of equations into a list
 	for(nref=0;nref<NRefs-1;nref++) {
@@ -1109,9 +1183,9 @@ bool PrintResultsInMathematicaFormat(TPZVec<REAL> &ErrorVec,TPZVec<long> &NEquat
 	fileerrors << NEquations[nref] << "};" << std::endl << "L2Error = {";
 	// printing error values into a list
 	for(nref=0;nref<NRefs-1;nref++) {
-		fileerrors << ErrorVec[nref] << ", ";
+		fileerrors << ErrorVec[nref]*fact << ", ";
 	}
-	fileerrors << ErrorVec[nref] << "};";
+	fileerrors << ErrorVec[nref] << "}/1000000.0;";
 	// printing lines to create lists of logarithms
 	fileerrors << std::endl << "LogNEquations = Table[Log[10,NEquations[[i]]],{i,1,Length[NEquations]}];" << std::endl;
 	fileerrors << "LogL2Errors = Table[Log[10,L2Error[[i]]],{i,1,Length[L2Error]}];" << std::endl;
