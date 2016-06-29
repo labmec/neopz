@@ -224,22 +224,19 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         REAL theta = 0.;
         REAL coordY = 0.;
         REAL coordX = 0.;
+        REAL r = 0.;
         coordX = data.x[0];
         coordY = data.x[1];
-        theta = atan(coordY/coordX);
-        REAL r = 0.;
+        theta = atan2(coordY,coordX);
         r = sqrt((coordX*coordX)+(coordY*coordY));
         
         AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, theta, r);
-
     }
-    
     else{
-        
-        SigmaX  = fPreStressXX;
-        SigmaY  = fPreStressYY;
+        SigmaX = fPreStressXX;
+        SigmaY = fPreStressYY;
         SigmaXY = fPreStressXY;
-        SigmaZ  = fPreStressZZ;
+        SigmaZ = fPreStressZZ;
     }
     
     
@@ -436,25 +433,19 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             //	Normal Pressure condition Pressure value Should be inserted in v2[0]
             //	Elasticity Equation
             {
-                TPZFNMatrix<2,STATE> res(2,1,0.);
+                TPZFNMatrix<2,STATE> Tn(2,1,0.);
                 for(int i=0; i<2; i++)
-                    for(int j=0; j<2; j++)
                 {
-                    res(i,0) += data.normal[i]*bc.Val1()(i,j)*data.sol[0][j]*data.normal[j];
+                    for(int j=0; j<2; j++)
+                    {
+                        Tn(i,0) += bc.Val1()(i,j)*data.normal[j];
+                    }
                 }
+                
                 for(int in = 0 ; in < phru; in++)
                 {
-                    ef(2*in+0,0) += ((v2[0]*data.normal[0]-res(0,0)) * phiu(in,0)) * weight ;
-                    ef(2*in+1,0) += ((v2[0]*data.normal[1]-res(1,0)) * phiu(in,0)) * weight ;
-                    for(int jn=0; jn< phru; jn++)
-                    {
-                        for(int idf=0; idf < this->Dimension(); idf++) for(int jdf=0; jdf < this->Dimension(); jdf++)
-                        {
-                            ek(2*in+idf,2*jn+jdf) += bc.Val1()(idf,jdf)*data.normal[idf]*data.normal[jdf]*phiu(in,0)*phiu(jn,0)*weight;
-                            //      Not Complete
-                            //      DebugStop();
-                        }
-                    }
+                    ef(2*in+0,0) += weight * Tn(0,0)* phiu(in,0);
+                    ef(2*in+1,0) += weight * Tn(1,0) * phiu(in,0);
                 }
             }
             break;
@@ -868,6 +859,11 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("SigmaY",name.c_str()))						return	4;
     if(!strcmp("SigmaZ",name.c_str()))						return	5;
     if(!strcmp("TauXY",name.c_str()))						return	6;
+    if(!strcmp("SigmaXAnalytic",name.c_str()))				return	7;
+    if(!strcmp("SigmaYAnalytic",name.c_str()))				return	8;
+    if(!strcmp("SigmaZAnalytic",name.c_str()))				return	9;
+    if(!strcmp("TauXYAnalytic",name.c_str()))				return	10;
+    if(!strcmp("SolidPressureAnalytic",name.c_str()))		return	11;
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
     
@@ -919,6 +915,11 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 4)	return 1;
     if(var == 5)	return 1;
     if(var == 6)	return 1;
+    if(var == 7)	return 1;
+    if(var == 8)	return 1;
+    if(var == 9)	return 1;
+    if(var == 10)	return 1;
+    if(var == 11)	return 1;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -940,6 +941,9 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         DebugStop();
     }
     
+    STATE x = data.x[0];
+    STATE y = data.x[1];
+    
     SolU	=	data.sol[0];
     DSolU	=	data.dsol[0];
     axesU	=	data.axes;
@@ -951,6 +955,30 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Solout[1] = SolU[1];
         Solout[2] = 0.0;
         return;
+    }
+    
+    
+    // Analytic Test
+    REAL SigmaX = 0., SigmaY = 0., SigmaXY = 0., SigmaZ = 0.;    
+
+    if (fAnalytics == 1) {
+        REAL theta = 0.;
+        REAL coordY = 0.;
+        REAL coordX = 0.;
+        REAL r = 0.;
+        coordX = data.x[0];
+        coordY = data.x[1];
+        theta = atan(coordY/coordX);
+        r = sqrt((coordX*coordX)+(coordY*coordY));
+        
+        AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, theta, r);
+    }
+    else{
+        
+        SigmaX = fPreStressXX;
+        SigmaY = fPreStressYY;
+        SigmaXY = fPreStressXY;
+        SigmaZ = fPreStressZZ;
     }
     
     
@@ -996,36 +1024,69 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //	Hydrostatic stress
     if(var == 2) 
     {
-        Solout[0] = ((SigX + fPreStressXX)+(SigY + fPreStressYY)+(SigZ+fPreStressZZ))/3;
+        Solout[0] = ((SigX + SigmaX)+(SigY + SigmaY)+(SigZ+SigmaZ))/3;
         return;
     }
     
     //	Effective Stress x-direction
     if(var == 3) {
-        Solout[0] = SigX + fPreStressXX;
+        Solout[0] = SigX + SigmaX;
         return;
     }
     
     //	Effective Stress y-direction	
     if(var == 4) {
-        Solout[0] = SigY + fPreStressYY;
+        Solout[0] = SigY + SigmaY;
         return;
     }
     
     //	Effective Stress y-direction
     if(var == 5) {
-        Solout[0] = SigZ + fPreStressZZ;
+        Solout[0] = SigZ + SigmaZ;
         return;
     }
     
     //	Shear Stress	
     if(var == 6) {
-        Solout[0] = Tau + fPreStressXY;
+        Solout[0] = Tau + SigmaXY;
         return;
     }
     
-    //data.axes;
-    // Polar Coordinates
+    
+    /******** Analytical Solution ********/
+    
+    //	Analytical Stress x-direction
+    if(var == 7) {
+        Solout[0] = SigmaX;
+        return;
+    }
+    
+    //	Analytical Stress y-direction
+    if(var == 8) {
+        Solout[0] = SigmaY;
+        return;
+    }
+    
+    // Analytical Stress z-direction
+    if(var == 9) {
+        Solout[0] = SigmaZ;
+        return;
+    }
+    
+    
+    //	Analytical Shear Stress
+    if(var == 10) {
+        Solout[0] = SigmaXY;
+        return;
+    }
+    
+    
+    //	Hydrostatic Analytical stress
+    if(var == 11)
+    {
+        Solout[0] = ((SigmaX)+(SigmaY)+(SigmaZ))/3;
+        return;
+    }
     
 }
 

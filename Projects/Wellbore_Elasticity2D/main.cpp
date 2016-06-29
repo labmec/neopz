@@ -120,9 +120,9 @@ int Problem2D(){
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
-    REAL rext = 5.0;
+    REAL rext = 2.0;
     int ncircle = 20;
-    int nradial = 20;
+    int nradial = 30;
     REAL drdcirc = 1.5;
     
     
@@ -143,7 +143,7 @@ int Problem2D(){
     
     //******** Configura malha Computacional ***************/
     
-    int p = 1;
+    int p = 2;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
@@ -181,47 +181,74 @@ int Problem2D(){
         direct = 0;
     }
 
+  
+    
+    
     
     std::cout << "Entering into Assemble ..." << std::endl;
     std::cout << "number of dof = " << cmesh->NEquations() << std::endl;
     an.Assemble();
     
-    //  an.Rhs() ;
     
-    //    TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
-    //    TPZFMatrix<STATE> FGlobal;
-    //    KGlobal =   an.Solver().Matrix();
-    //    FGlobal =   an.Rhs();
-    //
-    //#ifdef PZDEBUG
-    ////    #ifdef LOG4CXX
-    ////            if(logger->isDebugEnabled())
-    ////            {
-    ////                std::stringstream sout;
-    ////                KGlobal->Print("k = ", sout,EMathematicaInput);
-    ////                FGlobal.Print("r = ", sout,EMathematicaInput);
-    ////                LOGPZ_DEBUG(logger,sout.str())
-    ////            }
-    ////    #endif
-    //#endif
+//    
+//      an.Rhs() ;
+//    
+//        TPZAutoPointer< TPZMatrix<REAL> > KGlobal;
+//        TPZFMatrix<STATE> FGlobal;
+//        KGlobal =   an.Solver().Matrix();
+//        FGlobal =   an.Rhs();
+//    
+//    #ifdef PZDEBUG
+//        #ifdef LOG4CXX
+//                if(logger->isDebugEnabled())
+//                {
+//                    std::stringstream sout;
+//                    KGlobal->Print("k = ", sout,EMathematicaInput);
+//                    FGlobal.Print("r = ", sout,EMathematicaInput);
+//                    LOGPZ_DEBUG(logger,sout.str())
+//                }
+//        #endif
+//    #endif
+    
+    
+//    std::cout << "Rhs ..." << std::endl;
+    
+//#ifdef LOG4CXX
+//    TPZFMatrix<REAL> FGlobal = an.Rhs();
+//    FGlobal.Print("Rhs = ",cout,EMathematicaInput);
+//#endif
+//    
+//    std::cout << std::endl;
+    
     
     std::cout << "Entering into Solve ..." << std::endl;
     an.Solve();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
     
-#ifdef LOG4CXX
-    TPZFMatrix<REAL> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
-    solucao.Print("Sol = ",cout,EMathematicaInput);//imprime na formatacao do Mathematica
-#endif
+//#ifdef LOG4CXX
+//    TPZFMatrix<REAL> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
+//    solucao.Print("Sol = ",cout,EMathematicaInput);//imprime na formatacao do Mathematica
+//#endif
+    
+
+    
+
+    
+    
 
     std::cout << "Entering into Post processing ..." << std::endl;
     // Post processing
-    int ndiv = 1;
+    int ndiv = 2;
     TPZManVector<std::string> scalarnames(5), vecnames(1);
-    scalarnames[0] = "SigmaX";
-    scalarnames[1] = "SigmaY";
-    scalarnames[2] = "SigmaZ";
-    scalarnames[3] = "TauXY";
+//    scalarnames[0] = "SigmaX";
+//    scalarnames[1] = "SigmaY";
+//    scalarnames[2] = "SigmaZ";
+//    scalarnames[3] = "TauXY";
     scalarnames[4] = "SolidPressure";
+    scalarnames[0] = "SigmaXAnalytic";
+    scalarnames[1] = "SigmaYAnalytic";
+    scalarnames[2] = "SigmaZAnalytic";
+    scalarnames[3] = "TauXYAnalytic";
+    scalarnames[4] = "SolidPressureAnalytic";
     vecnames[0] = "Displacement";
     //vecnames[1] = "";
     an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
@@ -485,11 +512,11 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
             connect[3] = connect[0]+1;
             //Allocates and define the geometric element
             gmesh->CreateGeoElement(EQuadrilateral,connect,1,id);
-            //std::cout << "connect: " << connect << endl;
+//            std::cout << "connect: " << connect << endl;
             
             gmesh->ElementVec()[id];
             
-            //std::cout << "id: " << id << endl;
+//            std::cout << "id: " << id << endl;
             
         }
         
@@ -498,17 +525,29 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
     //*******Conecta os nos dos ultimos elementos da circunferencia com os primeiros *****************
         for (int k=0; k < nrad; k++) {
             TPZGeoEl *gel = gmesh->Element(((k+1)*(ncirc-1))+k);
-            gel->SetNodeIndex(3, (nrad+1)*k);
-            gel->SetNodeIndex(2, (nrad+1)*(k+1));
+            
+            gel->Print(); // verifica
+            
+            TPZGeoEl *gelAbove = gmesh->Element((((k+1)*(ncirc-1))+k)-(ncirc-1));
+            TPZVec <int> gelAboveIndex(4,0);
+            gelAbove->GetNodeIndices(gelAboveIndex);
+            
+            gelAbove->Print(); // verifica
+            
+            gel->SetNodeIndex(3, gelAboveIndex[0]);
+            gel->SetNodeIndex(2, gelAboveIndex[1]);
+            
+            gel->Print(); // verifica se a conexao esta correta
         
-//        gel->Print(); // verifica se a conexao esta correta
-//        std::cout << endl;
+           std::cout << endl;
         
         }
    
     
     //Generate neighborhod information
     gmesh->BuildConnectivity();
+    
+    //gmesh->Print();
     
     
     
@@ -586,9 +625,10 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     // Tensoes in Situ, horizontais e vertical em Pa
     REAL SigmaVV = 0., Sigmahh = 0., SigmaHH = 0.; // inicializa
     SigmaVV = -50.0, Sigmahh = -40.0, SigmaHH = -60.0; //preenche
+//    SigmaVV = -30.0, Sigmahh = -30.0, SigmaHH = -30.0; //preenche
     
     REAL rw = 0.1;
-    int analytic = 0;
+    int analytic = 1;
     
     // Seta os parametros do poco
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic);
@@ -662,19 +702,20 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
 //    val1(1,1) = SigmaY;
 //    val2(0,0) = 0;
 //    val2(1,0) = 0;
-//    TPZMaterial * BCond2 = material->CreateBC(material, bc2, stressfield, val1, val2);//cria material
+//    TPZMaterial * BCond0 = material->CreateBC(material, bc2, stressfield, val1, val2);//cria material
+    
     
     ///Inserir condicao de contorno ponto externo bottom
-    val1(0,0) = 1.;
+    val1(0,0) = 0.0;
     val1(1,0) = 0.;
     val1(0,1) = 0.;
-    val1(1,1) = 1;
+    val1(1,1) = 1.0;
     val2(0,0) = 0;
     val2(1,0) = 0;
     TPZMaterial * BCond3 = material->CreateBC(material, bc3, mixed, val1, val2);//cria material
     
     ///Inserir condicao de contorno ponto externo lateral direita
-    val1(0,0) = 1;
+    val1(0,0) = 1.0;
     val1(1,0) = 0;
     val1(0,1) = 0;
     val1(1,1) = 0;
