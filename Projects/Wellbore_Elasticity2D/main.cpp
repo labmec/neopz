@@ -121,8 +121,8 @@ int Problem2D(){
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
     REAL rext = 2.0;
-    int ncircle = 20;
-    int nradial = 30;
+    int ncircle = 40;
+    int nradial = 60;
     REAL drdcirc = 1.5;
     
     
@@ -153,7 +153,7 @@ int Problem2D(){
     TPZAnalysis an (cmesh);
     int numthreads = 2;
     
-    bool UseIterativeSolverQ = false;
+    bool UseIterativeSolverQ = true;
     
     if (UseIterativeSolverQ) {
         TPZSkylineStructMatrix skylstr(cmesh); //caso simetrico
@@ -237,19 +237,19 @@ int Problem2D(){
 
     std::cout << "Entering into Post processing ..." << std::endl;
     // Post processing
-    int ndiv = 2;
-    TPZManVector<std::string> scalarnames(5), vecnames(1);
-//    scalarnames[0] = "SigmaX";
-//    scalarnames[1] = "SigmaY";
-//    scalarnames[2] = "SigmaZ";
-//    scalarnames[3] = "TauXY";
-    scalarnames[4] = "SolidPressure";
-    scalarnames[0] = "SigmaXAnalytic";
-    scalarnames[1] = "SigmaYAnalytic";
-    scalarnames[2] = "SigmaZAnalytic";
-    scalarnames[3] = "TauXYAnalytic";
-    scalarnames[4] = "SolidPressureAnalytic";
-    vecnames[0] = "Displacement";
+    int ndiv = 3;
+    TPZStack<std::string> scalarnames, vecnames;
+    scalarnames.Push("SigmaX");
+    scalarnames.Push("SigmaY");
+    scalarnames.Push("SigmaZ");
+    scalarnames.Push("TauXY");
+    scalarnames.Push("SolidPressure");
+    scalarnames.Push("SigmaXAnalytic");
+    scalarnames.Push("SigmaYAnalytic");
+    scalarnames.Push("SigmaZAnalytic");
+    scalarnames.Push("TauXYAnalytic");
+    scalarnames.Push("SolidPressureAnalytic");
+    vecnames.Push("Displacement");
     //vecnames[1] = "";
     an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
     
@@ -620,7 +620,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     int inclinedwellbore = 1;
     
     // pressao da lama de perfuracao
-    REAL Pwb = 30.0; // Pa
+    REAL Pwb = -30.0; // Pa
     
     // Tensoes in Situ, horizontais e vertical em Pa
     REAL SigmaVV = 0., Sigmahh = 0., SigmaHH = 0.; // inicializa
@@ -628,7 +628,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
 //    SigmaVV = -30.0, Sigmahh = -30.0, SigmaHH = -30.0; //preenche
     
     REAL rw = 0.1;
-    int analytic = 1;
+    int analytic = 0;
     
     // Seta os parametros do poco
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic);

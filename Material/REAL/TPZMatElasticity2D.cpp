@@ -1055,6 +1055,19 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     /******** Analytical Solution ********/
     
+    // Analytic Test
+    
+    REAL theta = 0.;
+    REAL coordY = 0.;
+    REAL coordX = 0.;
+    REAL r = 0.;
+    coordX = data.x[0];
+    coordY = data.x[1];
+    theta = atan(coordY/coordX);
+    r = sqrt((coordX*coordX)+(coordY*coordY));
+    
+    AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, theta, r);
+    
     //	Analytical Stress x-direction
     if(var == 7) {
         Solout[0] = SigmaX;

@@ -264,7 +264,7 @@ public:
         falpha        = alpha;
         fbeta         = beta;
         fInclinedWell = wellborestate;
-        fPw = -1.0*Pw;
+        fPw = Pw;
         frw = rw;
         fAnalytics = analytics;
     }
