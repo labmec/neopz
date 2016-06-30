@@ -709,24 +709,41 @@ void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh
     }
 #endif
   
+
+    
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
-    std::pair<long, long> duplet;
-    long n_interfaces = fleft_right_indexes.size();
+    TPZVec<long> dof_indexes;
     
-    for (int k_face = 0; k_face < 1; k_face) {
+    std::pair<long, long> duplet;
+    long face_index;
+    long n_interfaces = fleft_right_indexes.size();
+    int nconnects;
+    
+    for (int k_face = 0; k_face < 1; k_face++) {
         
         duplet = fleft_right_indexes[k_face];
         
-        long left_index = duplet.first;
-        long right_index = duplet.first;
+        long left_geo_index     = duplet.first;
+        long right_geo_index    = duplet.second;
         
-        TPZCompEl *left_cel = flux_mesh->Reference()->Element(left_index)->Reference();
-        TPZCompEl *right_cel = flux_mesh->Reference()->Element(right_index)->Reference();
+        TPZCompEl *left_cel = flux_mesh->Reference()->Element(left_geo_index)->Reference();
+        TPZCompEl *right_cel = flux_mesh->Reference()->Element(right_geo_index)->Reference();
         
         if (!left_cel || !right_cel) {
             DebugStop();
         }
+        
+        TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace *> (left_cel);
+        this->ElementDofFaceIndexes(intel, dof_indexes);
+        nconnects = left_cel->NConnects();
+        
+        
+        left_cel->Print();
+//        left_cel
+        
+        
+        
     }
     
 
@@ -745,6 +762,7 @@ void TRMBuildTransfers::ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_
 #endif
 
     long nel = transport_mesh->NElements();
+    long face_index;
     std::pair <long,long> duplet;
     
     for (long icel = 0; icel < nel; icel++) {
@@ -768,9 +786,10 @@ void TRMBuildTransfers::ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_
         if(!left_cel || !right_cel){
             DebugStop();
         }
-        
+        face_index = interface->Reference()->Index();
         duplet = std::make_pair(left_cel->Reference()->Index(), right_cel->Reference()->Index());
         fleft_right_indexes.Push(duplet);
+        finterfaces_indexes.Push(face_index);
     }
     
 #ifdef PZDEBUG
