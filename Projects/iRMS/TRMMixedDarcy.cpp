@@ -134,9 +134,9 @@ void TRMMixedDarcy::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<R
             break;
         case 5:
         {
-            REAL x = datavec[Qblock].x[0];
-            REAL y = datavec[Qblock].x[1];
-            REAL z = datavec[Qblock].x[2];
+//            REAL x = datavec[Qblock].x[0];
+//            REAL y = datavec[Qblock].x[1];
+//            REAL z = datavec[Qblock].x[2];
             Solout[0] = 6;//2.*(-1. + x)*x*(-1. + y)*y + 2.*(-1. + x)*x*(-1. + z)*z + 2.*(-1. + y)*y*(-1. + z)*z;
         }
             break;
@@ -375,7 +375,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     // Get the pressure at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
-    STATE pressure = point_memory.GetPressure();
+//    STATE pressure = point_memory.GetPressure();
 //    STATE rhs = point_memory.GetRhs();
 //    STATE w = point_memory.GetWeight();
 //    STATE det = point_memory.GetDetJac();
@@ -444,7 +444,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
     
     divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2)); // uses this for constant jacobian elements
-    REAL divu2 = point_memory.GetDiv_Flux();
+//    REAL divu2 = point_memory.GetDiv_Flux();
     
 //    std::cout << "divu = " << divu << std::endl;
 //    std::cout << "divflux = " << divflux << std::endl;

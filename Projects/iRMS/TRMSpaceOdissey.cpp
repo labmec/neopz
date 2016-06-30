@@ -138,27 +138,81 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     fFluxCmesh->SetAllCreateFunctionsHDiv();
     fFluxCmesh->AutoBuild();
     
-    long nel = fFluxCmesh->NElements();
-    for (long el=0; el<nel; el++) {
-        TPZCompEl *cel = fFluxCmesh->Element(el);
-        if (!cel) {
-            continue;
-        }
-        TPZGeoEl *gel = cel->Reference();
-        int matid = gel->MaterialId();
-        if (!gel || (matid != _Well3DReservoirFaces && matid != _WellHeelMatId && matid != _WellToeMatId)) {
-            continue;
-        }
-        TPZCompElHDivBound2<pzshape::TPZShapeQuad> *bound = dynamic_cast<TPZCompElHDivBound2<pzshape::TPZShapeQuad> *>(cel);
-        if (!bound) {
-            DebugStop();
-        }
-        bound->SetSideOrient(8, -1);
-    }
-    
 #ifdef PZDEBUG
     std::ofstream out("CmeshFlux.txt");
     fFluxCmesh->Print(out);
+#endif
+    
+}
+
+/** @brief Create a Hdiv computational mesh with interfaces */
+void TRMSpaceOdissey::CreateFluxCmeshInterfaces(){
+    
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+    
+    int dim = 3;
+    int flux_or_pressure = 0;
+    int qorder = fPOrder;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    
+    // Malha computacional
+    fFluxCmesh_Int = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
+        fFluxCmesh_Int->InsertMaterialObject(mat);
+        
+        // Inserting volumetric materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[flux_or_pressure];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            boundary_c->SetTimedependentBCForcingFunction(bc_item.second);
+            fFluxCmesh_Int->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+    
+    // Setando Hdiv
+    fFluxCmesh_Int->SetDimModel(dim);
+    fFluxCmesh_Int->SetDefaultOrder(qorder);
+    fFluxCmesh_Int->SetAllCreateFunctionsHDiv();
+    fFluxCmesh_Int->AutoBuild();
+    
+    
+
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshFlux_before.txt");
+    fFluxCmesh_Int->Print(out);
+#endif
+    
+    fFluxCmesh_Int->ApproxSpace().CreateInterfaceElements(fFluxCmesh_Int.operator->());
+    
+#ifdef PZDEBUG
+    std::ofstream out_int("CmeshFlux_Int.txt");
+    fFluxCmesh_Int->Print(out_int);
 #endif
     
 }

@@ -92,7 +92,23 @@ public:
     
     TRMMemory(const TRMMemory &copy)
     {
-        DebugStop();
+
+        fu = copy.fu;
+        fu_n = copy.fu_n;
+        fdivu = copy.fdivu;
+        fdivu_n = copy.fdivu_n;
+        fPressure = copy.fPressure;
+        fPressure_n = copy.fA_Pressure_n;
+        fA_Pressure = copy.fA_Pressure;
+        fA_Pressure_n = copy.fA_Pressure_n;
+        fSw = copy.fSw;
+        fSw_n = copy.fSw_n;
+        fporosity = copy.fporosity;
+        fK = copy.fK;
+        fw = copy.fw;
+        fdet = copy.fdet;
+        frhs = copy.frhs;
+        fx = copy.fx;
     }
     
     TRMMemory &operator=(const TRMMemory &cp)

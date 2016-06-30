@@ -139,12 +139,15 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fFluxPressureAnalysis->SetTransfer(Transfer);
     
     if(fSimulationData->IsTwoPhaseQ()){
+        fSpaceGenerator->CreateFluxCmeshInterfaces();
         fSpaceGenerator->CreateAlphaTransportMesh();
         fSpaceGenerator->AlphaSaturationMesh()->ApproxSpace().CreateInterfaceElements(fSpaceGenerator->AlphaSaturationMesh().operator->());
 #ifdef PZDEBUG
         std::ofstream out("CmeshS_alpha_Interfaces.txt");
         fSpaceGenerator->AlphaSaturationMesh()->Print(out);
 #endif
+        Transfer->ComputeLeftRight(fSpaceGenerator->AlphaSaturationMesh());
+        Transfer->Fill_un_To_Transport_a(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->AlphaSaturationMesh());
         
     }
     

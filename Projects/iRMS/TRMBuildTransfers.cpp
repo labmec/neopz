@@ -9,9 +9,7 @@
 
 #include "TRMBuildTransfers.h"
 
-#include <stdio.h>
-#include "pzgmesh.h"
-#include "pzcmesh.h"
+
 
 /** @brief Default constructor */
 TRMBuildTransfers::TRMBuildTransfers(){
@@ -677,7 +675,7 @@ void TRMBuildTransfers::Transfer_p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure,
     
 }
 
-void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * intel, TPZVec<long> &dof_indexes){
+void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
 
 #ifdef PZDEBUG
     if (!intel) {
@@ -702,81 +700,93 @@ void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * intel, TPZVec<
 }
 
 /** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh){
     
 #ifdef PZDEBUG
-    if (!cmesh_multiphysics) {
+    if (!flux_mesh || !transport_mesh) {
         std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
         DebugStop();
     }
 #endif
-    
+  
     //* seeking for total blocks */
+    flux_mesh->LoadReferences();
+    std::pair<long, long> duplet;
+    long n_interfaces = fleft_right_indexes.size();
+    
+    for (int k_face = 0; k_face < 1; k_face) {
+        
+        duplet = fleft_right_indexes[k_face];
+        
+        long left_index = duplet.first;
+        long right_index = duplet.first;
+        
+        TPZCompEl *left_cel = flux_mesh->Reference()->Element(left_index)->Reference();
+        TPZCompEl *right_cel = flux_mesh->Reference()->Element(right_index)->Reference();
+        
+        if (!left_cel || !right_cel) {
+            DebugStop();
+        }
+    }
+    
+
     
     
-    long nel = cmesh_multiphysics->NElements();
-    int n_var_dim = 3; // vectorial
-    long element_index = 0;
+}
+
+/** @brief Compute left and right geometric element indexes */
+void TRMBuildTransfers::ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_mesh){
     
-    // Compute destination index scatter by element (Omega and Gamma)
-    fun_dof_scatter.Resize(nel);
-    
-    // Block size structue including (Omega and Gamma)
-    TPZVec< std::pair<long, long> > blocks_dimensions(nel);
-    
+#ifdef PZDEBUG
+    if (!transport_mesh) {
+        std::cout << "There is no computational transport mesh, transport_mesh = Null." << std::endl;
+        DebugStop();
+    }
+#endif
+
+    long nel = transport_mesh->NElements();
+    std::pair <long,long> duplet;
     
     for (long icel = 0; icel < nel; icel++) {
         
-        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
+        TPZCompEl * cel = transport_mesh->Element(icel);
 #ifdef PZDEBUG
         if (!cel) {
             DebugStop();
         }
 #endif
+
+        TPZInterfaceElement * interface = dynamic_cast<TPZInterfaceElement * >(cel);
         
-        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
-#ifdef PZDEBUG
-        if(!mf_cel)
-        {
-            DebugStop();
-        }
-#endif
-        element_index = mf_cel->Index();
-        TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
-        
-        // Getting local integration index
-        TPZManVector<long> int_point_indexes(0,0);
-        TPZManVector<long> dof_indexes(0,0);
-        
-        if(intel->Dimension() < n_var_dim){
-            // there is boundary elements for normal flux where it is a scalar variable
-            //            mf_cel->GetMemoryIndices(int_point_indexes);
-            //            this->ElementDofIndexes(intel, dof_indexes);
-            //            fu_dof_scatter[element_index] = dof_indexes;
-            blocks_dimensions[element_index].first = 0;
-            blocks_dimensions[element_index].second = 0;
-            fu_dof_scatter[element_index] = dof_indexes;
+        if (!interface) {
             continue;
         }
         
+        TPZCompEl * left_cel = interface->LeftElement();
+        TPZCompEl * right_cel = interface->RightElement();
         
-        mf_cel->GetMemoryIndices(int_point_indexes);
-        this->ElementDofIndexes(intel, dof_indexes);
-        fu_dof_scatter[element_index] = dof_indexes;
-        blocks_dimensions[element_index].first = int_point_indexes.size()*n_var_dim;
-        blocks_dimensions[element_index].second = dof_indexes.size();
-        fu_dof_scatter[element_index] = dof_indexes;
+        if(!left_cel || !right_cel){
+            DebugStop();
+        }
+        
+        duplet = std::make_pair(left_cel->Reference()->Index(), right_cel->Reference()->Index());
+        fleft_right_indexes.Push(duplet);
     }
     
-    // Initialize the matrix
-    fu_To_Mixed.Initialize(blocks_dimensions);
+#ifdef PZDEBUG
+    std::cout << "fleft_right_indexes = " << fleft_right_indexes<< std::endl;
+#endif
     
 }
 
-void TRMBuildTransfers::ElementDofFaceIndexes(TPZInterpolationSpace * intel, TPZVec<long> &dof_indexes){
-    
-    
-    DebugStop(); // method not implemented!
+/** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+void TRMBuildTransfers::Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh){
+    Initialize_un_To_Transport_a(flux_mesh,transport_mesh);
+    DebugStop();
+}
+
+void TRMBuildTransfers::ElementDofFaceIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
+
     
 #ifdef PZDEBUG
     if (!intel) {
@@ -786,7 +796,7 @@ void TRMBuildTransfers::ElementDofFaceIndexes(TPZInterpolationSpace * intel, TPZ
     
     TPZStack<long> index(0,0);
     int nconnect = intel->NConnects();
-    for (int icon = 0; icon < nconnect; icon++) {
+    for (int icon = 0; icon < nconnect - 1; icon++) {
         TPZConnect  & con = intel->Connect(icon);
         long seqnumber = con.SequenceNumber();
         long position = intel->Mesh()->Block().Position(seqnumber);

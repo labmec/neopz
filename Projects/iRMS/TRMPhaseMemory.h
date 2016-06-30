@@ -21,11 +21,11 @@ class TRMPhaseMemory
     // Also it can store the nonlinear part of the flux at n step
     // Store the xyz of the spatial properties
     /// Pressure at the integration point
-    STATE fPressure;
+//    STATE fPressure;
     /// Saturation at the previous time step
-    STATE fSaturationN;    
+//    STATE fSaturationN;    
     /// Saturation at the current time step
-    STATE fSaturationNP1;
+//    STATE fSaturationNP1;
 
 public:
 
@@ -46,7 +46,7 @@ public:
 void UpdateSolutionMemory()
 {
     //update saturation and pressure and total flux (un = unp1)
-    fSaturationN = fSaturationNP1;
+//    fSaturationN = fSaturationNP1;
 }
 
 void Write(TPZStream &buf, int withclassid)

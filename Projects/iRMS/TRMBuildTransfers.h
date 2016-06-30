@@ -9,6 +9,8 @@
 #ifndef TRMBuildTransfers_h
 #define TRMBuildTransfers_h
 
+#include <stdio.h>
+
 #include "tpzintpoints.h"
 #include "pzmatwithmem.h"
 #include "TRMMemory.h"
@@ -19,6 +21,10 @@
 #include "pzmultiphysicselement.h"
 #include "pzcondensedcompel.h"
 
+
+#include "pzgmesh.h"
+#include "pzcmesh.h"
+#include "TPZInterfaceEl.h"
 
 #include "pzysmp.h"
 #include "pzblockdiag.h"
@@ -50,10 +56,10 @@ private:
      */
     
     /** @brief Compute element dof indexes */
-    void ElementDofIndexes(TPZInterpolationSpace * intel,  TPZVec<long> &dof_indexes);
+    void ElementDofIndexes(TPZInterpolationSpace * &intel,  TPZVec<long> &dof_indexes);
 
     /** @brief Compute element dof indexes at faces */    
-    void ElementDofFaceIndexes(TPZInterpolationSpace * intel, TPZVec<long> &dof_indexes);
+    void ElementDofFaceIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
     
     // @}
     
@@ -90,6 +96,9 @@ private:
     
     /** @brief pressure dof indexes per element */
     TPZVec< TPZVec<long> > fun_dof_scatter;
+
+    /** @brief left and right geometric element indexes */
+    TPZStack < std::pair<long, long> > fleft_right_indexes;
     
     //    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
     //    TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_V;
@@ -271,10 +280,10 @@ public:
     }
         
     /** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-    void Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    void Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh);
     
     /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-    void Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    void Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh);
     
     /** @brief Get the sparse matrix to transfer average normal flux solution to integrations points of the transport mesh  */
     TRMIrregularBlockDiagonal<STATE> Transfer_un_To_Transport_a(){
@@ -285,6 +294,20 @@ public:
     
     // @}
     
+    
+    /**
+     * @defgroup Fill class attributes
+     * @{
+     */
+    
+    /** @brief Compute left and right geometric element indexes associated with the transport mesh */
+    void ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_mesh);
+    
+    
+    
+    // @}
+    
+
     
     /** @brief Set autopointer of Simulation data */
     void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData){

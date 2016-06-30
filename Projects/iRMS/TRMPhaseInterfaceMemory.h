@@ -21,12 +21,12 @@ class TRMPhaseInterfaceMemory
     // Also it can store the nonlinear part of the flux at n step
     // Store the xyz of the spatial properties
     /// Flux from left to right at the integration point
-    STATE fNormalFlux;
+//    STATE fNormalFlux;
     /// Saturation at the left
-    STATE fLeftSaturation;
+//    STATE fLeftSaturation;
     
     /// Saturation at the right
-    STATE fRightSaturation;
+//    STATE fRightSaturation;
 
 public:
 

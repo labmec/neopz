@@ -52,8 +52,11 @@ private:
     /** @brief H1 computational mesh for primal approach */
     TPZAutoPointer<TPZCompMesh> fH1Cmesh;
     
-    /** @brief Hdiv computational mesh conservative vector field */
+    /** @brief Hdiv computational mesh, conservative vector field */
     TPZAutoPointer<TPZCompMesh> fFluxCmesh;
+    
+    /** @brief Hdiv computational mesh with interfaces, conservative vector field */
+    TPZAutoPointer<TPZCompMesh> fFluxCmesh_Int;
     
     /** @brief L2 computational mesh the restriction equation */
     TPZAutoPointer<TPZCompMesh> fPressureCmesh;
@@ -117,8 +120,11 @@ public:
     /** @brief Create a H1 computational mesh */
     void CreateH1Cmesh();
     
-    /** @brief Create a Hdiv computational mesh Hdiv */
+    /** @brief Create a Hdiv computational mesh */
     void CreateFluxCmesh();
+    
+    /** @brief Create a Hdiv computational mesh with interfaces */
+    void CreateFluxCmeshInterfaces();
 
     /** @brief Create a Discontinuous computational mesh L2 */
     void CreatePressureCmesh();
@@ -211,6 +217,16 @@ public:
     /** @brief Get autopointer of Hdiv computational mesh conservative vector field */
     TPZAutoPointer<TPZCompMesh>  FluxCmesh(){
         return fFluxCmesh;
+    }
+    
+    /** @brief Set autopointer of Hdiv computational mesh with interfaces */
+    void SetFluxCmeshInt(TPZAutoPointer<TPZCompMesh> &FluxCmesh_Int){
+        fFluxCmesh_Int = FluxCmesh_Int;
+    }
+    
+    /** @brief Get autopointer of Hdiv computational mesh with interfaces */
+    TPZAutoPointer<TPZCompMesh>  FluxCmeshInt(){
+        return fFluxCmesh_Int;
     }
     
     /** @brief Set autopointer of L2 computational mesh the restriction equation */
