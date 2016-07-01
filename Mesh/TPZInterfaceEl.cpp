@@ -843,10 +843,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	long ic = 0;
 	long n = ConnectL.NElements();
 	for(long i = 0; i < n; i++) {
-		const unsigned int nshape = left->NConnectShapeF(i);
+        TPZConnect &c = left->Connect(i);
+		const unsigned int nshape = left->NConnectShapeF(i,c.Order());
 		const int con_neq = nstatel * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = left->Connect(i);
         if(c.NShape() != nshape || c.NState() != nstatel)
         {
             DebugStop();
@@ -858,10 +858,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	}
 	n = ConnectR.NElements();
 	for(long i = 0; i < n; i++) {
-		const unsigned int nshape = right->NConnectShapeF(i);
+        TPZConnect &c = right->Connect(i);
+		const unsigned int nshape = right->NConnectShapeF(i,c.Order());
 		const int con_neq = nstater * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = right->Connect(i);
         if (c.NShape() != nshape || c.NState() != nstater) {
             DebugStop();
         }
@@ -933,10 +933,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	long ic = 0;
 	long n = ConnectL.NElements();
 	for(int i = 0; i < n; i++) {
-		const unsigned int nshape = left->NConnectShapeF(i);
+        TPZConnect &c = left->Connect(i);
+		const unsigned int nshape = left->NConnectShapeF(i,c.Order());
 		const int con_neq = nstatel * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = left->Connect(i);
         if(c.NShape() != nshape || c.NState() != nstatel)
         {
             DebugStop();
@@ -960,10 +960,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	}
 	n = ConnectR.NElements();
 	for(long i = 0; i < n; i++) {
-		const unsigned int nshape = right->NConnectShapeF(i);
+        TPZConnect &c = right->Connect(i);
+		const unsigned int nshape = right->NConnectShapeF(i,c.Order());
 		const int con_neq = nstater * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = right->Connect(i);
         if (c.NShape() != nshape || c.NState() != nstater) {
             DebugStop();
         }

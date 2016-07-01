@@ -78,7 +78,7 @@ public:
 	
 	virtual void SetConnectIndex(int i, long connectindex);
 	
-	virtual int NConnectShapeF(int connect) const;
+	virtual int NConnectShapeF(int connect, int order) const;
 	
 	virtual int Dimension() const {
 		return TSHAPE::Dimension;
@@ -107,7 +107,7 @@ public:
 	virtual void SetSideOrder(int side, int order);
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-	virtual int SideOrder(int side) const;
+	virtual int EffectiveSideOrder(int side) const;
 	
 	virtual int ConnectOrder(int connect) const;
 

@@ -486,7 +486,7 @@ TPZSFMatrix<TVar> ::Redim( long newDim , long)
 		this->fRow = this->fCol = newDim;
 		if ( fElem != NULL )
 			delete( fElem );
-		fElem = new( TVar[Size()] );
+		fElem = new TVar[Size()] ;
     }
 	
 	// Zera a matriz.

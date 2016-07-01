@@ -66,7 +66,7 @@ bool GradientAndLaplacian(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian)
 void ComputingMaxGradientAndLaplacian(TPZCompMesh *cmesh,REAL &MaxGrad,REAL &MaxLaplacian);
 
 
-bool LaplacianValue(TPZInterpolatedElement *el,REAL &Laplacian);
+bool LaplacianValue(TPZCompEl *el,REAL &Laplacian);
 void ComputingMaxLaplacian(TPZCompMesh *cmesh,REAL &MaxLaplacian,REAL &Min);
 
 
@@ -76,7 +76,8 @@ void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatr
 void ExactSolutionArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 bool GradientAndLaplacianOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian);
 /** We are considering - f, because is as TPZMatPoisson3d was implemented in Contribute method */
-void RightTermArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce);
+void RightTermArcTangentBad(const TPZVec<REAL> &x, TPZVec<STATE> &force, TPZFMatrix<STATE> &dforce);
+void RightTermArcTangent(const TPZVec<REAL> &x, TPZVec<STATE> &force);
 
 /* To high gradient generate by arc tangent term - and a term Pi was factored as coefficient of the funcion */
 bool GradientAndLaplacianToSphereOnCorners(TPZInterpolatedElement *el,REAL &Grad,REAL &Laplacian);

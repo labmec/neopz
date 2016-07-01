@@ -74,12 +74,22 @@ TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMe
 /** @brief unwrap the condensed element from the computational element and delete the condensed element */
 void TPZCondensedCompEl::Unwrap()
 {
-    fMesh->ElementVec()[fIndex] = fReferenceCompEl;
+    long myindex = fIndex;
+    fMesh->ElementVec()[myindex] = 0;
+    TPZCompEl *ReferenceEl = fReferenceCompEl;
     int ncon = NConnects();
     for (int ic=0; ic<ncon ; ic++) {
         Connect(ic).SetCondensed(false);
     }
+    TPZGeoEl *gel = Reference();
+    if (gel) {
+        gel->ResetReference();
+    }
     delete this;
+    ReferenceEl->Mesh()->ElementVec()[myindex] = ReferenceEl;
+    if (gel) {
+        gel->SetReference(ReferenceEl);
+    }
 }
 
 /**
@@ -283,7 +293,6 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         }
         
 #ifdef STATEdouble
-
         cblas_dger (CblasColMajor, rows-i-1, cols-i-1,
                     -KF(i,i), &KF(i+1,i), 1,
                     &KF(i,i+1), rows, &KF(i+1,i+1), rows);
@@ -378,6 +387,14 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     
     
 #endif
+    
+#ifdef USING_DGER
+#ifdef USING_LAPACK
+    TPZFMatrix<STATE> * K00_temp = dynamic_cast<TPZFMatrix<STATE> * >(fCondensed.K00().operator->());
+    K00_temp->InitializePivot();
+#endif
+#endif
+    
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -497,6 +514,7 @@ void TPZCondensedCompEl::LoadSolution()
             u1(count++,0) = bl(seqnum,0,ibl,0);
         }
     }
+
     fCondensed.UGlobal(u1, elsol);
     count = 0;
     for (ic=0; ic<nc0 ; ic++) {

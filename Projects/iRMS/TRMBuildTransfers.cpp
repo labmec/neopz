@@ -710,19 +710,32 @@ void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh
 #endif
   
 
+    TPZGeoMesh * gmesh = flux_mesh->Reference();
     
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
     TPZVec<long> dof_indexes;
     
+    TPZCompEl * cel_face;
+    TPZGeoEl * left_gel;
+    TPZGeoEl * right_gel;
+    
+    TPZManVector<long> indices;
     std::pair<long, long> duplet;
     long face_index;
     long n_interfaces = fleft_right_indexes.size();
     int nconnects;
     
     for (int k_face = 0; k_face < 1; k_face++) {
+
+        face_index  = finterface_indexes[k_face];
+        duplet      = fleft_right_indexes[k_face];
+        cel_face    = transport_mesh->Element(face_index);
         
-        duplet = fleft_right_indexes[k_face];
+        
+        if (!cel_face) {
+            DebugStop();
+        }
         
         long left_geo_index     = duplet.first;
         long right_geo_index    = duplet.second;
@@ -734,15 +747,34 @@ void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh
             DebugStop();
         }
         
-        TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace *> (left_cel);
-        this->ElementDofFaceIndexes(intel, dof_indexes);
+        TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace *> (left_cel);
+        this->ElementDofFaceIndexes(intel_vol, dof_indexes);
         nconnects = left_cel->NConnects();
         
-        
+        TPZInterpolationSpace * intel_face = dynamic_cast<TPZInterpolationSpace *> (cel_face);
+//        if (!intel_face) {
+//            DebugStop();
+//        }
+
+
         left_cel->Print();
+        cel_face->Print();
+//        cel_face->
+//        cel_face->Nor
+//        left_gel->CreateSideIntegrationRule(0, 1);
+//        flux_mesh->Reference()->Element(left_geo_index)->CreateSideIntegrationRule(<#int side#>, <#int order#>)
+        
+        const TPZIntPoints & face_int_points = intel_face->GetIntegrationRule();
+        int npoints = face_int_points.NPoints();
+        
+        
+        cel_face->GetMemoryIndices(indices);
+        
+        std::cout << "indices = " << indices << std::endl;
 //        left_cel
         
-        
+//        intel->Int
+//        left_cel->
         
     }
     
@@ -768,6 +800,7 @@ void TRMBuildTransfers::ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_
     for (long icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = transport_mesh->Element(icel);
+        
 #ifdef PZDEBUG
         if (!cel) {
             DebugStop();
@@ -786,10 +819,15 @@ void TRMBuildTransfers::ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_
         if(!left_cel || !right_cel){
             DebugStop();
         }
-        face_index = interface->Reference()->Index();
-        duplet = std::make_pair(left_cel->Reference()->Index(), right_cel->Reference()->Index());
+        
+        face_index  = interface->Index();
+        duplet      = std::make_pair(left_cel->Reference()->Index(), right_cel->Reference()->Index());
+        
         fleft_right_indexes.Push(duplet);
-        finterfaces_indexes.Push(face_index);
+        finterface_indexes.Push(face_index);
+        
+        
+        
     }
     
 #ifdef PZDEBUG

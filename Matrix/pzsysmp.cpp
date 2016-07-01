@@ -158,7 +158,7 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 template<class TVar>
 void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const MatrixOutputFormat form) const {
 	// Print the matrix along with a identification title
-	if(form != EInputFormat) {
+	if(form == EInputFormat) {
 		out << "\nTSYsmpMatrix Print: " << title << '\n'
 		<< "\tRows    = " << this->Rows()  << '\n'
 		<< "\tColumns = " << this->Cols() << '\n';

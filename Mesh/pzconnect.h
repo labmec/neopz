@@ -8,6 +8,7 @@
 
 #include "pzfmatrix.h"
 #include "pzstack.h"
+#include "pzlog.h"
 #include <iostream>
 #include <set>
 
@@ -67,10 +68,10 @@ public:
 	struct TPZDepend
 	{
 		long			fDepConnectIndex;
-		TPZFNMatrix<50,STATE>	fDepMatrix;
+		TPZFNMatrix<50,REAL> fDepMatrix;
 		TPZDepend		*fNext;
 		
-		TPZDepend(long DepConnectIndex,TPZFMatrix<STATE> &depmat,long ipos,long jpos, int isize, int jsize);
+		TPZDepend(long DepConnectIndex,TPZFMatrix<REAL> &depmat,long ipos,long jpos, int isize, int jsize);
 		
 		TPZDepend(const TPZDepend &copy);
 		TPZDepend(long connectindex);
@@ -108,7 +109,7 @@ public:
     {
         SetSequenceNumber(-1);
         SetNState(0);
-        SetOrder(0);
+        SetOrder(0,-1);
         SetNShape(0);
         ResetElConnected();
         SetCondensed(false);
@@ -159,12 +160,29 @@ public:
 	void SetSequenceNumber(long i) {fSequenceNumber = i;}
 	
 	/** @brief Set the order of the shapefunction associated with the connect */
-	void SetOrder(int order) {
+	void SetOrder(int order, long index) {
 #ifdef PZDEBUG
         if(order < 0 || order > 255)
         {
             DebugStop();
         }
+//        long crit[] = {5004,5005,4978,5170,5516,5515,5544,5555,4997,4973,4966,4965,5520,5519,5546,5556,5523,5549,5557,5558,4962,5527,5552,5559,5560,5561,5562};
+//        static std::set<long> critical;
+//        static int once = 1;
+//        if (once)
+//        {
+//            once = 0;
+//            for (int i=0; i<27; i++) {
+//                critical.insert(crit[i]);
+//            }
+//        }
+//        if (critical.find(index) != critical.end()) {
+//            std::cout << "Connect index " << index << " set to order " << order << std::endl;
+//            if(order == 5)
+//            {
+//                StopError();
+//            }
+//        }
 #endif
 		fCompose.fOrder = order;
 	}
@@ -247,7 +265,7 @@ public:
 	 * @param depmat [in] dependency matrix which defines the relation between the connects
 	 * @param ipos, jpos, isize, jsize are parameters which define the submatrix within depmat which is to be used
 	 */
-	void AddDependency(long myindex, long dependindex,TPZFMatrix<STATE> &depmat,long ipos,long jpos, int isize, int jsize);
+	TPZDepend *AddDependency(long myindex, long dependindex,TPZFMatrix<STATE> &depmat,long ipos,long jpos, int isize, int jsize);
 	
 	/**
 	 * @brief Remove dependency between connects if exist
@@ -259,7 +277,12 @@ public:
 	/** @brief Deletes all dependency information */
 	void RemoveDepend();
 
-	long DependencyDepth(TPZCompMesh &mesh);
+    /// the maximum number of recursive dependencies
+	int DependencyDepth(TPZCompMesh &mesh);
+    
+    /// size of the dependency list
+    int NumDepend() const;
+    
 	/** @brief Returns whether exist dependecy information */
 	int HasDependency()const { return fDependList != 0; }
 	

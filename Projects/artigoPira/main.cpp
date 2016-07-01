@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
     //   IntegrationRuleConvergence(true);
     //   DebugStop();
     bool QuarterPoint = true;
-    bool QuarterPointRule = false;
+    bool QuarterPointRule = true;
     
     bool HDivMaisMais = false;
     int order_reduce = 0;
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
     
     HDivPiola = 1;//1- mapeamento piola, 0- sem piola
     std::ofstream myerrorfile("../Simulacao-MistaHdiv.txt");
-    for(int ndiv=1; ndiv<9; ndiv++)
+    for(int ndiv=1; ndiv<2; ndiv++)
     {
         
         TPZGeoMesh *gmesh = GMesh(QuarterPoint);

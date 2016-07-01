@@ -101,7 +101,7 @@ private:
     TPZStack < std::pair<long, long> > fleft_right_indexes;
     
     /** @brief left and right geometric element indexes */
-    TPZStack < long > finterfaces_indexes;
+    TPZStack < long > finterface_indexes;
     
     //    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
     //    TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_V;

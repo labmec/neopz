@@ -2927,7 +2927,7 @@ void hdivCurvedJCompAppMath::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-                    co.SetOrder(cordermin);
+                    co.SetOrder(cordermin,cel->ConnectIndex(icon));
                     co.SetNShape(nshape-1);
                     mesh->Block().Set(co.SequenceNumber(),nshape-1);
                 }

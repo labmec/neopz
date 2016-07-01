@@ -85,7 +85,7 @@ public:
 	/** @brief Destructor. */
 	virtual ~TPZSubCompMesh();
 	
-	virtual int NConnectShapeF(int inod){
+	virtual int NConnectShapeF(int inod, int order){
 		PZError << "\nPLEASE IMPLEMENT ME: " << __PRETTY_FUNCTION__ << "\n";
 		return 0;
 	}
