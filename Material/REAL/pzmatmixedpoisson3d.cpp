@@ -326,14 +326,13 @@ void TPZMatMixedPoisson3D::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &da
             VectorOnMaster *= JacobianDet;
             
             /* Contravariant Piola mapping preserves the divergence */
-            // the division by the jacobianDet is to make the integral on the master element???
-            DivergenceofPhi(iq,0) = ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) +
-                                     dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) +
-                                     dphiuH1(2,ishapeindex)*VectorOnMaster(2,0) );
+            REAL dot = 0.0;
+            for (int i = 0;  i < fDim; i++) {
+                dot += dphiuH1(i,ishapeindex)*VectorOnMaster(i,0);
+            }
+            DivergenceofPhi(iq,0) = dot;
         }
-//        GradOfXInverse.Multiply(gradu, graduMaster);
-//        graduMaster *= JacobianDet;
-//        DivergenceofU = graduMaster(0,0)+graduMaster(1,1)+graduMaster(2,2);
+
     }
     else
     {
@@ -343,9 +342,11 @@ void TPZMatMixedPoisson3D::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &da
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
             /* Computing the divergence for constant jacobian elements */
-            DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
-            datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
-            datavec[ublock].fNormalVec(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
+            REAL dot = 0.0;
+            for (int i = 0;  i < fDim; i++) {
+                dot += datavec[ublock].fNormalVec(i,ivectorindex)*GradphiuH1(i,ishapeindex);
+            }
+            DivergenceofPhi(iq,0) = dot;
         }
     }
     

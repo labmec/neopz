@@ -58,20 +58,17 @@ public:
     }
 	
 	/** @brief Returns the number of dof nodes along side iside*/
-	virtual int NSideConnects(int iside) const 
-    {
-        return NConnects();
-    }
+    virtual int NSideConnects(int iside) const = 0;
 	
 	/**
 	 * @brief Returns the local node number of icon along is
 	 * @param icon connect number along side is
 	 * @param is side which is being queried
 	 */
-	virtual int SideConnectLocId(int icon,int is) const
-    {
-        return icon;
-    }
+    virtual int SideConnectLocId(int icon,int is) const = 0;
+//    {
+//        return icon;
+//    }
 		
 	/** @brief Returns the index of the c th connect object along side is*/
 	long SideConnectIndex(int icon,int is) const
@@ -80,16 +77,16 @@ public:
     }
 	
 	/** @brief Returns a pointer to the icon th connect object along side is */
-	TPZConnect *SideConnect(int icon,int is) const
+	TPZConnect &SideConnect(int icon,int is) const
     {
-        return &Connect(icon);
+        return Connect(SideConnectLocId(icon,is));
     }
     
 	/** @brief It returns the shapes number of the element */
 	virtual int NShapeF() const = 0;
 	
 	/** @brief Returns the number of shapefunctions associated with a connect*/
-	virtual int NConnectShapeF(int icon) const = 0;
+	virtual int NConnectShapeF(int icon, int order) const = 0;
 	
 	/** @brief Returns the max order of interpolation. */
 	virtual int MaxOrder();
@@ -159,7 +156,7 @@ public:
 									 TPZVec<REAL> &qsi);
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-	virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
+	virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<REAL> > &trvec, TPZVec<TPZMaterialData> &datavec)
   {
 		PZError << "This Should never be called in this class, only in its children" << std::endl;
 		DebugStop();
@@ -330,7 +327,7 @@ public:
 	/**
 	 * This method forms the basis for the multigrid method
 	 */
-	void BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer);
+	void BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform<> &t, TPZTransfer<STATE> &transfer);
 	
 protected:
 	

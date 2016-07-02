@@ -827,7 +827,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,TPZVec<REAL> &ervec,
         TPZCompElSide cellargeside = gellarge.Reference();
         TPZCompEl *cellarge = cellargeside.Element();
         TPZInterpolatedElement *cintlarge = (TPZInterpolatedElement *) cellarge;
-        TPZTransform transform(gelside.Dimension(),gellarge.Dimension());
+        TPZTransform<> transform(gelside.Dimension(),gellarge.Dimension());
         gelside.SideTransform3(gellarge,transform);
         
         long anelindex = cellarge->Index();
@@ -881,7 +881,7 @@ int TPZCompCloneMesh::IsSonOfRootElement(TPZGeoEl *el){
     return 0;
 }
 
-REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedElement *coarse, TPZTransform &tr,
+REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedElement *coarse, TPZTransform<> &tr,
                                     void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),REAL &truerror){
     // accumulates the transfer coefficients between the current element and the
     // coarse element into the transfer matrix, using the transformation t

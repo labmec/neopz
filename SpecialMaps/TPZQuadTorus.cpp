@@ -58,24 +58,15 @@ TPZGeoEl *TPZQuadTorus::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
         return ::CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
     }
 
-	void TPZQuadTorus::X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
-	{
-		
-		TPZGeoQuad::X(this->fPhiTheta,loc,result);
-		TPZVec <REAL> toro(3,0.0);
-		
-		toro[0] = (fR + fr*cos(result[0]))*cos(result[1]);
-		toro[1] = (fR + fr*cos(result[0]))*sin(result[1]);		
-		toro[2] = fr*sin(result[0]);		
-		result=toro;
+    
 
-	}
     
 	void TPZQuadTorus::Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
 	{
 		
 		TPZFNMatrix<9,REAL> GradPhi(3,3,0.);
-		TPZGeoQuad::Jacobian(fPhiTheta, param, jacobian, axes, detjac, jacinv);
+        DebugStop();
+        //TPZGeoQuad::Jacobian(fPhiTheta, param, jacobian, axes, detjac, jacinv);
 		TPZFNMatrix<6> axest(3,2);
 		axes.Transpose(&axest);
 		axest.Multiply(jacobian, GradPhi);
@@ -156,4 +147,7 @@ template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadTorus>, TPZGEO
 
 
 template class TPZGeoElRefLess<pzgeom::TPZQuadTorus>;
+
+
+
 

@@ -330,7 +330,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 	const int npoints = intrule->NPoints();
 	
 	//integration points in left and right elements: making transformations to neighbour elements
-	TPZTransform TransfLeft, TransfRight;
+	TPZTransform<> TransfLeft, TransfRight;
 	this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
 	this->ComputeSideTransform(this->RightElementSide(), TransfRight);
 	
@@ -843,10 +843,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	long ic = 0;
 	long n = ConnectL.NElements();
 	for(long i = 0; i < n; i++) {
-		const unsigned int nshape = left->NConnectShapeF(i);
+        TPZConnect &c = left->Connect(i);
+		const unsigned int nshape = left->NConnectShapeF(i,c.Order());
 		const int con_neq = nstatel * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = left->Connect(i);
         if(c.NShape() != nshape || c.NState() != nstatel)
         {
             DebugStop();
@@ -858,10 +858,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	}
 	n = ConnectR.NElements();
 	for(long i = 0; i < n; i++) {
-		const unsigned int nshape = right->NConnectShapeF(i);
+        TPZConnect &c = right->Connect(i);
+		const unsigned int nshape = right->NConnectShapeF(i,c.Order());
 		const int con_neq = nstater * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = right->Connect(i);
         if (c.NShape() != nshape || c.NState() != nstater) {
             DebugStop();
         }
@@ -933,10 +933,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	long ic = 0;
 	long n = ConnectL.NElements();
 	for(int i = 0; i < n; i++) {
-		const unsigned int nshape = left->NConnectShapeF(i);
+        TPZConnect &c = left->Connect(i);
+		const unsigned int nshape = left->NConnectShapeF(i,c.Order());
 		const int con_neq = nstatel * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = left->Connect(i);
         if(c.NShape() != nshape || c.NState() != nstatel)
         {
             DebugStop();
@@ -960,10 +960,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	}
 	n = ConnectR.NElements();
 	for(long i = 0; i < n; i++) {
-		const unsigned int nshape = right->NConnectShapeF(i);
+        TPZConnect &c = right->Connect(i);
+		const unsigned int nshape = right->NConnectShapeF(i,c.Order());
 		const int con_neq = nstater * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = right->Connect(i);
         if (c.NShape() != nshape || c.NState() != nstater) {
             DebugStop();
         }
@@ -1137,7 +1137,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	const int npoints = intrule->NPoints();
 	
 	//integration points in left and right elements: making transformations to neighbour elements
-	TPZTransform TransfLeft, TransfRight;
+	TPZTransform<> TransfLeft, TransfRight;
 	this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
 	this->ComputeSideTransform(this->RightElementSide(), TransfRight);
 	
@@ -1353,7 +1353,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 	const int npoints = intrule->NPoints();
 	
 	//integration points in left and right elements: making transformations to neighbour elements
-	TPZTransform TransfLeft, TransfRight;
+	TPZTransform<> TransfLeft, TransfRight;
 	this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
 	this->ComputeSideTransform(this->RightElementSide(), TransfRight);
 	
@@ -1475,10 +1475,10 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 	
 }//method
 
-void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf){
+void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform<> &transf){
 	TPZGeoEl * neighel = Neighbor.Element()->Reference();
 	const int dim = this->Dimension();
-	TPZTransform LocalTransf(dim);
+	TPZTransform<> LocalTransf(dim);
 	TPZGeoElSide thisgeoside(this->Reference(), this->Reference()->NSides()-1);
 	TPZGeoElSide neighgeoside(neighel, Neighbor.Side());
 #ifdef LOG4CXX
@@ -1499,7 +1499,7 @@ void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTrans
 }//ComputeSideTransform
 
 void TPZInterfaceElement::MapQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL> &NeighIntPoint){
-	TPZTransform Transf;
+	TPZTransform<> Transf;
 	this->ComputeSideTransform(Neighbor, Transf);
 	Transf.Apply( qsi, NeighIntPoint );
 #ifdef PZDEBUG

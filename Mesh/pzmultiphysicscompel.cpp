@@ -70,7 +70,7 @@ TPZMultiphysicsCompEl<TGeometry>::~TPZMultiphysicsCompEl(){
 }
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform> &trVec) const
+void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform<> > &trVec) const
 {
 	long nel;
 	int side, dim, dimmf;
@@ -87,7 +87,7 @@ void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform
 		geoel = fElementVec[i].Element()->Reference();
 		dim =  geoel->Dimension();
         if (dim == dimmf) {
-            TPZTransform tr(dim);
+            TPZTransform<> tr(dim);
             TPZGeoElSide gelside(geoel,geoel->NSides()-1);
             TPZGeoElSide gelmfside(gelmf,side);
             if (gelside.NeighbourExists(gelmfside))
@@ -102,7 +102,7 @@ void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform
         }
         else
         {
-            TPZTransform LocalTransf(dimmf);
+            TPZTransform<> LocalTransf(dimmf);
             TPZGeoElSide thisgeoside(gelmf,gelmf->NSides()-1);
             TPZGeoElSide neighgeoside = fElementVec[i].Reference();
             thisgeoside.SideTransform3(neighgeoside, LocalTransf);
@@ -275,7 +275,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
         if(!cel->Reference()) continue;
 		out << "\tReference Index = " << cel->Reference()->Index();
         
-        TPZManVector<TPZTransform> tr;
+        TPZManVector<TPZTransform<> > tr;
         AffineTransform(tr);
         out << "\n\tAffine transformation of the multiphysics element for this computational element:"<<"\n";
         out << std::endl;
@@ -399,7 +399,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 		return;
 	}
 	
-	TPZManVector<TPZTransform> trvec;
+	TPZManVector<TPZTransform<> > trvec;
 	AffineTransform(trvec);
 	
 	TPZVec<REAL> myqsi;
@@ -631,7 +631,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	datavec.resize(nref);
 	InitMaterialData(datavec);
 	
-	TPZManVector<TPZTransform> trvec;
+	TPZManVector<TPZTransform<> > trvec;
 	AffineTransform(trvec);
 	
 	int dim = Dimension();
@@ -710,7 +710,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
     datavec.resize(nref);
     InitMaterialData(datavec);
     
-    TPZManVector<TPZTransform> trvec;
+    TPZManVector<TPZTransform<> > trvec;
     AffineTransform(trvec);
     
     int dim = Dimension();
@@ -787,7 +787,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
     datavec.resize(nref);
     thisnonconst->InitMaterialData(datavec);
     
-    TPZManVector<TPZTransform> trvec;
+    TPZManVector<TPZTransform<> > trvec;
     AffineTransform(trvec);
     
     int dim = Dimension();
@@ -857,7 +857,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
 
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
+void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
 {
 	long ElemVecSize = fElementVec.size();
 	for (long iref = 0; iref < ElemVecSize; iref++)
@@ -970,7 +970,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	int ndof = material->NStateVariables();
 	int nflux = material->NFluxes();
 	TPZManVector<STATE,10> u_exact(ndof);
-	TPZFNMatrix<90,STATE> du_exact(dim+1,ndof);
+	TPZFNMatrix<3,STATE> du_exact(dim,ndof);
 	TPZManVector<REAL,10> intpoint(3), values(NErrors);
 	values.Fill(0.0);
 	REAL weight;
@@ -985,7 +985,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
     datavec[0].fNeedsSol = true;
     datavec[1].fNeedsSol = true;
 	
-	TPZManVector<TPZTransform> trvec;
+	TPZManVector<TPZTransform<> > trvec;
 	AffineTransform(trvec);
 	 
 	int nintpoints = intrule->NPoints();

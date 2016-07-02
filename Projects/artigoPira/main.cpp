@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
     //   IntegrationRuleConvergence(true);
     //   DebugStop();
     bool QuarterPoint = true;
-    bool QuarterPointRule = false;
+    bool QuarterPointRule = true;
     
     bool HDivMaisMais = false;
     int order_reduce = 0;
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
     
     HDivPiola = 1;//1- mapeamento piola, 0- sem piola
     std::ofstream myerrorfile("../Simulacao-MistaHdiv.txt");
-    for(int ndiv=1; ndiv<9; ndiv++)
+    for(int ndiv=1; ndiv<2; ndiv++)
     {
         
         TPZGeoMesh *gmesh = GMesh(QuarterPoint);
@@ -1777,12 +1777,20 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     TPZFMatrix<STATE> val1(1,1,1.),val2(1,1,0.);
     
     TPZMaterial *bnd = automat->CreateBC (automat,-1,2,val1,val2);//misto tbem
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet2,8);
+=======
     bnd->SetForcingFunction(Dirichlet2,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
     bnd = automat->CreateBC (automat,-2,0,val1,val2);
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet,8);
+=======
     bnd->SetForcingFunction(Dirichlet,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
@@ -1793,17 +1801,29 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     
     // Mixed
     bnd = automat->CreateBC (automat,-4,0,val1,val2);
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet,8);
+=======
     bnd->SetForcingFunction(Dirichlet,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
     bnd = automat->CreateBC (automat,-5,0,val1,val2);
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet,8);
+=======
     bnd->SetForcingFunction(Dirichlet,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Mixed
     bnd = automat->CreateBC (automat,-6,0,val1,val2);
+<<<<<<< HEAD
+    bnd->SetForcingFunction(Dirichlet,8);
+=======
     bnd->SetForcingFunction(Dirichlet,porder);
+>>>>>>> master
     comp->InsertMaterialObject(bnd);
     
     // Ajuste da estrutura de dados computacional

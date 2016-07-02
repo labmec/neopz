@@ -68,7 +68,7 @@ public:
 	
 	virtual void SetConnectIndex(int i, long connectindex);
 	
-	virtual int NConnectShapeF(int connect) const;
+	virtual int NConnectShapeF(int connect, int order) const;
 	
 	virtual int Dimension() const {
 		return TSHAPE::Dimension;
@@ -104,7 +104,7 @@ public:
 	virtual void SetSideOrder(int side, int order);
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-    virtual int SideOrder(int side) const;
+    virtual int EffectiveSideOrder(int side) const;
 	/** @brief Returns the actual interpolation order of the polynomial for a connect*/
 	virtual int ConnectOrder(int connect) const;
 
@@ -116,7 +116,7 @@ public:
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
 	
 	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
-	TPZTransform TransformSideToElement(int side);
+	TPZTransform<> TransformSideToElement(int side);
 	
 	virtual const TPZIntPoints &GetIntegrationRule() const {
     if (this->fIntegrationRule) {

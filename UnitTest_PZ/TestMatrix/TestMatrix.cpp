@@ -367,15 +367,16 @@ void TestingEigenValues(int dim, int symmetric) {
     TPZFMatrix< std::complex<double> > cpma( dim , dim);
     for (int i = 0 ; i < dim; i++){
         for (int j = 0 ; j < dim ; j++) {
-            cpma(i,j) = ma(i,j);
+            cpma(i,j) = ma.GetVal(i,j);
         }
     }
+
     TPZVec < std::complex<double> > w;
     TPZFMatrix < std::complex<double> > eigenVectors;
     ma.SolveEigenProblem(w, eigenVectors);
-//    ma.Print("a = ",std::cout , EMathematicaInput);
+    
+//    cpma.Print("a = ",std::cout , EMathematicaInput);
 //    std::cout<<w<<std::endl;
-//
 //    eigenVectors.Print("eV = ",std::cout,EMathematicaInput);
     double mult = 10.;
     if (sizeof(TVar) == 4) {

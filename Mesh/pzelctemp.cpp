@@ -26,14 +26,7 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 //		IdentifySideOrder(i);
 	}
 	
-	// Comp
-    TPZMaterial *mat = Material();
-    if (Material())
-    {
-        int order = mat->IntegrationRuleOrder(MaxOrder());
-        TPZManVector<int,3> ord(gel->Dimension(),order);
-        fIntRule.SetOrder(ord);
-    }
+    AdjustIntegrationRule();
 
 	
 }
@@ -133,16 +126,14 @@ void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, long connectindex){
 }
 
 template<class TSHAPE>
-int TPZIntelGen<TSHAPE>::NConnectShapeF(int connect) const{
+int TPZIntelGen<TSHAPE>::NConnectShapeF(int connect, int order) const{
     
     if(connect < TSHAPE::NCornerNodes) return TSHAPE::NConnectShapeF(connect,0);
-	int order = SideOrder(connect);
 	if(order < 0) return 0;
     int nshape = TSHAPE::NConnectShapeF(connect, order);
 #ifdef PZDEBUG
     if(nshape < 0 )
     {
-        order = SideOrder(connect);
         nshape = TSHAPE::NConnectShapeF(connect, order);
         DebugStop();
     }
@@ -178,7 +169,7 @@ void TPZIntelGen<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
 	ord.Resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
 	int i;
 	for(i=0; i<TSHAPE::NSides-TSHAPE::NCornerNodes; i++) {
-		ord[i] = SideOrder(i+TSHAPE::NCornerNodes);
+		ord[i] = Connect(i+TSHAPE::NCornerNodes).Order();
 	}
 }
 
@@ -236,25 +227,46 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
 	}
 	if(side>= TSHAPE::NCornerNodes) {
 		if(fConnectIndexes[side] == -1) return;
+        int prevorder = fPreferredOrder;
+        if (ConnectIndex(TSHAPE::NSides-1) != -1) {
+            prevorder = EffectiveSideOrder(TSHAPE::NSides-1);
+        }
 		TPZConnect &c = Connect(side);
-		c.SetOrder(order);
-		long seqnum = c.SequenceNumber();
-		int nvar = 1;
-		TPZMaterial * mat = Material();
-		if(mat) nvar = mat->NStateVariables();
-        int nshape = NConnectShapeF(side);
-        c.SetNShape(nshape);
-        c.SetNState(nvar);
-		Mesh()->Block().Set(seqnum,nshape*nvar);
-		if(side == TSHAPE::NSides-1) {
-			SetIntegrationRule(2*order);
+        int previousconnectorder = c.Order();
+        if (order != previousconnectorder)
+        {
+            c.SetOrder(order,ConnectIndex(side));
+            long seqnum = c.SequenceNumber();
+            int nvar = 1;
+            TPZMaterial * mat = Material();
+            if(mat) nvar = mat->NStateVariables();
+            int nshape = TSHAPE::NConnectShapeF(side, order);
+            c.SetNShape(nshape);
+            c.SetNState(nvar);
+            Mesh()->Block().Set(seqnum,nshape*nvar);
+            TPZGeoElSide gelside(Reference(),side);
+            TPZStack<TPZCompElSide> equal;
+            gelside.EqualLevelCompElementList(equal, 1, 0);
+            long neq = equal.size();
+            for (long eq=0; eq<neq; eq++) {
+                TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement*>(equal[eq].Element());
+                intel->AdjustIntegrationRule();
+            }
+        }
+        
+        int neworder = prevorder;
+        if (ConnectIndex(TSHAPE::NSides-1) != -1) {
+            neworder = EffectiveSideOrder(TSHAPE::NSides-1);
+        }
+		if(neworder != prevorder) {
+            AdjustIntegrationRule();
 		}
 	}
 }
 
 /**returns the actual interpolation order of the polynomial along the side*/
 template<class TSHAPE>
-int TPZIntelGen<TSHAPE>::SideOrder(int side) const {
+int TPZIntelGen<TSHAPE>::EffectiveSideOrder(int side) const {
 	if(side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) return 0;
 	if(fConnectIndexes[side] == -1)
 	{
@@ -269,13 +281,20 @@ int TPZIntelGen<TSHAPE>::SideOrder(int side) const {
 		DebugStop();
 		return -1;
 	}
+    TPZStack<int> lowdim;
+    Reference()->LowerDimensionSides(side,lowdim);
 	TPZConnect &c = Connect(side);
-	return c.Order();
+	int order = c.Order();
+    for (int is=0; is<lowdim.size(); is++) {
+        TPZConnect &c = MidSideConnect(lowdim[is]);
+        if(c.Order() > order) order = c.Order();
+    }
+    return order;
 }
 /**returns the actual interpolation order of the polynomial for a connect*/
 template<class TSHAPE>
 int TPZIntelGen<TSHAPE>::ConnectOrder(int connect) const {
-	return SideOrder(connect);
+	return Connect(connect).Order();
 }
 
 /**compute the values of the shape function of the side*/
@@ -294,7 +313,7 @@ void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMat
 	}
 	for (c=nn;c<nc;c++){
 		int conloc = TSHAPE::ContainedSideLocId(side,c);
-		order[c-nn] = SideOrder(conloc);
+        order[c-nn] = Connect(conloc).Order();
 	}
 	TSHAPE::SideShape(side, point, id, order, phi, dphi);
 }
@@ -309,14 +328,14 @@ void TPZIntelGen<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
 		id[i] = ref->NodePtr(i)->Id();
 	}
 	for(i=0; i<TSHAPE::NSides-TSHAPE::NCornerNodes; i++) {
-		ord[i] = SideOrder(i+TSHAPE::NCornerNodes);
+		ord[i] = Connect(i+TSHAPE::NCornerNodes).Order();
 	}
 	TSHAPE::Shape(pt,id,ord,phi,dphi);
 }
 
 /** Returns the transformation which transform a point from the side to the interior of the element */
 template<class TSHAPE>
-TPZTransform TPZIntelGen<TSHAPE>::TransformSideToElement(int side) {
+TPZTransform<> TPZIntelGen<TSHAPE>::TransformSideToElement(int side) {
 	return TSHAPE::TransformSideToElement(side);
 }
 

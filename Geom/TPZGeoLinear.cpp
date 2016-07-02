@@ -19,24 +19,14 @@ using namespace pzshape;
 using namespace std;
 
 namespace pzgeom {
-    
-    void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-        REAL x = pt[0];
-        phi(0,0) = (1-x)/2.;
-        phi(1,0) = (1+x)/2.;
-        dphi(0,0) = -0.5;
-        dphi(0,1) = 0.5;
-    }
-    
-    
-    TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
+
+    TPZGeoEl * TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
         if(side==2) {
             TPZManVector<long> nodes(2);
             nodes[0] = orig->SideNodeIndex(side,0);
             nodes[1] = orig->SideNodeIndex(side,1);
             long index;
             TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-            //      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
             TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
             TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
             TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
@@ -44,22 +34,20 @@ namespace pzgeom {
         }
         else if(side==0 || side==1) {
             TPZManVector<long> nodeindexes(1);
-            //      TPZGeoElPoint *gel;
             nodeindexes[0] = orig->SideNodeIndex(side,0);
             long index;
             TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-            //      gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
             TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
             return gel;
         }
-        else PZError << "TPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
+        else {
+            PZError << "TPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
+        }
+        
         return 0;
     }
     
-    /**
-     * Creates a geometric element according to the type of the father element
-     */
-    TPZGeoEl *TPZGeoLinear::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+    TPZGeoEl * TPZGeoLinear::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
                                              TPZVec<long>& nodeindexes,
                                              int matid,
                                              long& index)
@@ -67,37 +55,38 @@ namespace pzgeom {
         return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
     }
     
-    void TPZGeoLinear::Jacobian(const TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
-                                TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-        
-        //VERSAO FUNCIONAL
-        jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
-        int ic;
-        REAL v1[3] = {0.};
-        int nrow = coord.Rows();
-        REAL mod1 = 0.;
-        for(ic=0; ic<nrow; ic++) {
-            v1[ic] = (coord.GetVal(ic,1)-coord.GetVal(ic,0))*0.5;
-            mod1 += v1[ic]*v1[ic];
-        }
-        mod1 = sqrt(mod1);
-        jacobian(0,0) = mod1;
-        detjac = mod1;
-        
-        if(IsZero(detjac))
-        {
-#ifdef PZDEBUG
-            std::stringstream sout;
-            sout << "Singular Jacobian " << detjac;
-            LOGPZ_ERROR(logger, sout.str())
-#endif
-            detjac = ZeroTolerance();
+    
+    /// create an example element based on the topology
+    /* @param gmesh mesh in which the element should be inserted
+     @param matid material id of the element
+     @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
+     @param size (in) size of space where the element should be created
+     */
+    void TPZGeoLinear::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
+    {
+        TPZManVector<REAL,3> co(3),shift(3),scale(3);
+        TPZManVector<long,3> nodeindexes(2);
+        for (int i=0; i<3; i++) {
+            scale[i] = size[i]/3.;
+            shift[i] = 1./2.+lowercorner[i];
         }
         
-        jacinv(0,0) = 1./detjac;
-        
-        for(ic=0; ic<3; ic++) {
-            axes(0,ic) = v1[ic]/mod1;
+        for (int i=0; i<NCornerNodes; i++) {
+            ParametricDomainNodeCoord(i, co);
+            int j;
+            for (j=0; j<co.size(); j++) {
+                co[j] = shift[j]+scale[j]*co[j]+(rand()*0.2/RAND_MAX)-0.1;
+            }
+            co.Resize(3);
+            for (; j<3; j++) {
+                co[j] = shift[j]+(rand()*0.2/RAND_MAX)-0.1;
+            }
+            nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
+            gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
         }
+        long index;
+        CreateGeoElement(gmesh, EOned, nodeindexes, matid, index);
     }
-};
+    
+
+}

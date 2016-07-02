@@ -45,7 +45,7 @@ void ImexPcZeroR(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output)
 
 void FullModel(bool IsDimensionlessQ, bool IsNonlinearKr,  std::string output);
 
-static bool axisy = true;
+static bool axisy = false;
 
 int main()
 {
@@ -114,10 +114,10 @@ int main()
     // Cases with quadratic relative permeabilities
     IsNonlinearKr = false;
 
-    IsNonlinearKr = true;
+    IsNonlinearKr = false;
 
-    output = "CaseFullModelTrianglesPc";
-    FullModel(IsDimensionlessQ, IsNonlinearKr, output);
+//    output = "CaseFullModelTrianglesPc";
+//    FullModel(IsDimensionlessQ, IsNonlinearKr, output);
     
     
 //    output = "CaseImexPC";
@@ -154,10 +154,10 @@ int main()
 //    output = "CaseEQAR";
 //    CaseELCR(IsDimensionlessQ, IsNonlinearKr, output);
     
-//    output = "CaseUQA";
+//    output = "CaseUQARec";
 //    CaseULC(IsDimensionlessQ, IsNonlinearKr, output);
-//    output = "CaseUQAR";
-//    CaseULCR(IsDimensionlessQ, IsNonlinearKr, output);
+    output = "CaseUQAR";
+    CaseULCR(IsDimensionlessQ, IsNonlinearKr, output);
     
     
 //    output = "CaseImexGravity";
@@ -3654,12 +3654,12 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     int qorder      = 1;
     int porder      = 1;
-    int sorder      = 0;
+    int sorder      = 1;
     int hrefinement = 0;
     int hpostref    = 0;
     
     // Time control parameters
-    int n_times  = 75;
+    int n_times  = 50;
     int n_sub_dt = 100;
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
@@ -3687,14 +3687,14 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     }
     REAL dxD        =(x_l/nelemX)/Lstr;
     
-    int nelemY      =2;
+    int nelemY      =10;
     if (GR && nelemY == 1 && IsTMesh ) {
         nelemY++;
     }
     REAL dyD        =(y_l/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
-    Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
+    Gravity(1,0)= -10.0*((Lstr*Rhostr)/Pstr);
     bool LinearSegregation = false;
     
     REAL angle = 0.0;
@@ -3797,7 +3797,7 @@ void CaseULC(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.00292845; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.0184; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -3978,7 +3978,7 @@ void CaseULCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     int maxiter     = 30;
     int nthread     = 8;
-    bool GR         = true;    // Use Gradient Reconstruction
+    bool GR         = false;    // Use Gradient Reconstruction
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
@@ -3995,7 +3995,7 @@ void CaseULCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     int qorder      = 1;
     int porder      = 1;
-    int sorder      = 1;
+    int sorder      = 0;
     int hrefinement = 0;
     int hpostref    = 0;
     
@@ -4138,7 +4138,7 @@ void CaseULCR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
-    inlet[1] = -0.0292845; // 100 bbl/day or 15.898 m3/day
+    inlet[1] = -0.184; // 100 bbl/day or 15.898 m3/day
     inlet[2] = 0.8;
     inlet[3] = 0;
     

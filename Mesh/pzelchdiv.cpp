@@ -58,7 +58,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
     }	
     
 	
-    int sideorder = SideOrder(TSHAPE::NSides-1);
+    int sideorder = EffectiveSideOrder(TSHAPE::NSides-1);
 //    if(TSHAPE::Type()==EQuadrilateral)
 //    {
 //        sideorder++;
@@ -143,7 +143,7 @@ template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::~TPZCompElHDiv(){
     TPZGeoEl *gel = this->Reference();
     if (gel->Reference() != this) {
-        DebugStop();
+        return;
     }
     for (int side=TSHAPE::NCornerNodes; side < TSHAPE::NSides; side++) {
         if (TSHAPE::SideDimension(side) != TSHAPE::Dimension-1) {
@@ -213,18 +213,23 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, long connectindex){
 }
 
 template<class TSHAPE>
-int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
+int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
 {
+#ifdef DEBUG
+    if (connect < || connect >= NConnects()) {
+        DebugStop();
+    }
+#endif
      if (connect < this->NConnects()-1) {
          long connectindex = ConnectIndex(connect);
-         int order = 0;
-         if (connectindex >= 0) {
-             order = this->Connect(connect).Order();
-         }
-         else
-         {
-             order = this->fPreferredOrder;
-         }
+//         int order = 0;
+//         if (connectindex >= 0) {
+//             order = this->Connect(connect).Order();
+//         }
+//         else
+//         {
+//             order = this->fPreferredOrder;
+//         }
          const int nfaces = TSHAPE::NumSides(TSHAPE::Dimension-1);
          int face = TSHAPE::NSides-nfaces+connect-1;
          TPZStack<int> lowerdimensionsides;
@@ -246,7 +251,6 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
      
      TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides+1> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
      TSHAPE::GetSideDirections(vecside,directions,bilinear);
-     int pressureorder = this->fPreferredOrder;
 //     if (TSHAPE::Type()==ETriangle||TSHAPE::Type()==ETetraedro) {
 ////         pressureorder=this->fPreferredOrder-1;
 //     }
@@ -258,9 +262,9 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
 //         // Tipo nao implementado
 //         DebugStop();
 //     }
-     TPZManVector<int,27> order(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
-     FillOrder(order);
-     int nshape = TSHAPE::NShapeF(order);
+     TPZManVector<int,27> orders(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
+     FillOrder(orders);
+     int nshape = TSHAPE::NShapeF(orders);
      
      TPZManVector<long, TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes);
      for (int i=0; i<id.size(); i++) {
@@ -272,7 +276,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
      nexternalvectors = nvecignore;
      
      TPZGenMatrix<int> shapeorders(nshape,3);
-     TSHAPE::ShapeOrder(id, order, shapeorders);
+     TSHAPE::ShapeOrder(id, orders, shapeorders);
     {
         static int first = 0;
         if (first==0) {
@@ -281,7 +285,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
         }
     }
      // VectorSide indicates the side associated with each vector entry
-     TPZManVector<long,27> FirstIndex(TSHAPE::NSides+1);
+     TPZManVector<long,30> FirstIndex(TSHAPE::NSides+1);
      // the first index of the shape functions
      FirstShapeIndex(FirstIndex); 
      //FirstIndex.Print();
@@ -296,6 +300,8 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
 #endif
      
      int count = 0;
+    
+    int internalorder = this->Connect(connect).Order();
     
      long nvec = vecside.NElements();
      for (int locvec = nexternalvectors; locvec<nvec; locvec++)
@@ -312,7 +318,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
          for (int ish = firstshape; ish<lastshape; ish++)
          {
              int sidedimension = TSHAPE::SideDimension(side);
-             int maxorder[3] = {pressureorder,pressureorder,pressureorder};
+             int maxorder[3] = {internalorder,internalorder,internalorder};
              if (bil) {
                  maxorder[dir]++;
              }
@@ -517,13 +523,13 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrder(int side, int order){
 		return;
 	}
 	TPZConnect &c = this->Connect(connectaux);
-    c.SetOrder(order);
+    c.SetOrder(order,this->fConnectIndexes[connectaux]);
     long seqnum = c.SequenceNumber();
     int nvar = 1;
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
     c.SetNState(nvar);
-    int nshape =this-> NConnectShapeF(connectaux);
+    int nshape =this->NConnectShapeF(connectaux,order);
     c.SetNShape(nshape);
 	this-> Mesh()->Block().Set(seqnum,nshape*nvar);
 }
@@ -560,7 +566,7 @@ int TPZCompElHDiv<TSHAPE>::ConnectOrder(int connect) const{
 }
 
 template<class TSHAPE>
-int TPZCompElHDiv<TSHAPE>::SideOrder(int side) const
+int TPZCompElHDiv<TSHAPE>::EffectiveSideOrder(int side) const
 {
 	if(!NSideConnects(side)) return -1;
 	int corder =SideConnectLocId(0, side);
@@ -620,7 +626,8 @@ int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
 //				sout << "conect " << in<< " seq number "<<seqnum<<" num func "<<TPZCompElHDiv::NConnectShapeF(in);
 //				LOGPZ_DEBUG(logger,sout.str())
 //#endif
-        result += TPZCompElHDiv::NConnectShapeF(in);
+        int order = this->Connect(in).Order();
+        result += TPZCompElHDiv::NConnectShapeF(in,order);
     }
 		
 		
@@ -1295,7 +1302,7 @@ int TPZCompElHDiv<TSHAPE>::NShapeContinuous(TPZVec<int> &order ){
 
 
 template<class TSHAPE>
-TPZTransform TPZCompElHDiv<TSHAPE>::TransformSideToElement(int side){
+TPZTransform<> TPZCompElHDiv<TSHAPE>::TransformSideToElement(int side){
 	return TSHAPE::TransformSideToElement(side);
 }
 
@@ -1312,7 +1319,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<long> &
 	for(is=0 ; is<nsides; is++)
 	{
 		int side = sides[is];
-		int sideorder= this->SideOrder(side);
+        int conind = SideConnectLocId(0, side);
+		int sideorder = this->Connect(conind).Order();
 		int NShapeFace = TSHAPE::NConnectShapeF(side,sideorder);
 		int ishapeface;
 		for(ishapeface=0; ishapeface<NShapeFace; ishapeface++)
@@ -1444,11 +1452,10 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     if(HDivPiola == 2)
     {
         TPZIntelGen<TSHAPE>::Reference()->ComputeNormals(data.fNormalVec, normalsides);
-        int pressureorder=0;
-        pressureorder=this->fPreferredOrder;
+        int internalorder=this->Connect(NConnects()-1).Order();
         TPZVec<std::pair<int,long> > IndexVecShape;
         TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsides);
-        IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,pressureorder);
+        IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
         
         // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
         // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
@@ -1473,9 +1480,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     else
     {
 		
-        int pressureorder=0;
-
-        pressureorder=this->fPreferredOrder;
+        int internalorder = this->Connect(NConnects()-1).Order();
         TPZVec<std::pair<int,long> > IndexVecShape;
         if (TSHAPE::Type()==EPiramide) {
             normalsides.resize(3*TSHAPE::NSides+1);
@@ -1486,7 +1491,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
             numvec++;
         }
         data.fNormalVec.Resize(3, numvec);
-        IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,pressureorder);
+        IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
     }
     data.fShapeType = TPZMaterialData::EVecShape;
     
@@ -1613,15 +1618,15 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 		
 		if (TSHAPE::Type()==EQuadrilateral) {
 				hdivpressure->SetPressureOrder(order);
-				con.SetOrder(order);
+				con.SetOrder(order,this->fConnectIndexes[ncon-1]);
 
 		}
 		else {
 				hdivpressure->SetPressureOrder(order-1);
-				con.SetOrder(order-1);
+				con.SetOrder(order-1,this->fConnectIndexes[ncon-1]);
 
 		}
-		int nshape = hdivpressure-> NConnectShapeF(ncon-1);
+		int nshape = hdivpressure-> NConnectShapeF(ncon-1,con.Order());
 		con.SetNShape(nshape);
 		long seqnum = con.SequenceNumber();
 		this->Mesh()->Block().Set(seqnum,nshape);

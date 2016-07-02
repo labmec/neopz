@@ -1499,9 +1499,9 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZVec<REAL> &point,REAL r,REAL
 		}
 	}
 }
-void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points) {
+void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL,3> > &Points) {
 	Points.Resize(npoints);
-	TPZManVector<REAL> point(3,0.);
+	TPZManVector<REAL,3> point(3,0.);
 	REAL angle = (2*M_PI)/npoints;
 	for(int i=0;i<npoints;i++) {
 		point[0] = center[0]+radius*cos(i*angle);

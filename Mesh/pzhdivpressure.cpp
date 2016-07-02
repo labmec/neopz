@@ -172,12 +172,12 @@ void TPZCompElHDivPressure<TSHAPE>::SetConnectIndex(int i, long connectindex){
 }
 
 template<class TSHAPE>
-int TPZCompElHDivPressure<TSHAPE>::NConnectShapeF(int connect)const
+int TPZCompElHDivPressure<TSHAPE>::NConnectShapeF(int connect, int order)const
 {
     int dualorder=this->fPressureOrder;
     if(connect< NConnects()-1)
     {//tirando o connect da pressao
-        int numshape=TPZCompElHDiv<TSHAPE>::NConnectShapeF(connect);
+        int numshape=TPZCompElHDiv<TSHAPE>::NConnectShapeF(connect,order);
         return numshape;   
     }
 		
@@ -277,7 +277,7 @@ void TPZCompElHDivPressure<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &poi
 		// I hate exceptions...
 		if( side == TSHAPE::NSides)
 		{
-				int nshapedual = NConnectShapeF(NConnects()-1);
+				int nshapedual = NConnectShapeF(NConnects()-1,fPressureOrder);
 				TPZFNMatrix<300> phi1(nshapedual,1),phi2(phi);
 				TPZFNMatrix<900> dphi1(TSHAPE::Dimension,nshapedual),dphi2(dphi);
 				ShapeDual(point,phi1,dphi1);
@@ -525,7 +525,7 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
 }
 
 template<class TSHAPE>
-TPZTransform TPZCompElHDivPressure<TSHAPE>::TransformSideToElement(int side){
+TPZTransform<> TPZCompElHDivPressure<TSHAPE>::TransformSideToElement(int side){
 		return TSHAPE::TransformSideToElement(side);
 }
 
@@ -545,7 +545,7 @@ void TPZCompElHDivPressure<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		//#endif
     data.fShapeType = TPZMaterialData::EVecandShape;
     TPZCompElHDiv<TSHAPE>::InitMaterialData(data);
-    data.numberdualfunctions = NConnectShapeF(NConnects()-1);
+    data.numberdualfunctions = NConnectShapeF(NConnects()-1,fPressureOrder);
 }
 
 ///  Save the element data to a stream

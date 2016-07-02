@@ -67,7 +67,7 @@ int TPZReducedSpace::NShapeF() const
 }
 
 /** @brief Returns the number of shapefunctions associated with a connect*/
-int TPZReducedSpace::NConnectShapeF(int inod) const
+int TPZReducedSpace::NConnectShapeF(int inod, int order) const
 {
 #ifdef PZDEBUG
     if (inod != 0) {
@@ -229,14 +229,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
 	ef.fNumStateVars = numdof;
 	int i;
 	for(i=0; i<ncon; i++){
-        unsigned int nshape = NConnectShapeF(i);
-#ifdef PZDEBUG
-        TPZConnect &c = Connect(i);
-        if(c.NShape() != nshape || c.NState() != numdof)
-        {
-            DebugStop();
-        }
-#endif
+        unsigned int nshape = Connect(i).NShape();
 		ek.fBlock.Set(i,nshape*numdof);
 		ef.fBlock.Set(i,nshape*numdof);
 	}
@@ -268,14 +261,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ef)
 	ef.fNumStateVars = numdof;
 	int i;
 	for(i=0; i<ncon; i++){
-        unsigned int nshape = NConnectShapeF(i);
-#ifdef PZDEBUG
-        TPZConnect &c = Connect(i);
-        if(c.NShape() != nshape || c.NState() != numdof)
-        {
-            DebugStop();
-        }
-#endif
+        unsigned int nshape = Connect(i).NShape();
 		ef.fBlock.Set(i,nshape*numdof);
 	}
 	ef.fConnect.Resize(ncon);

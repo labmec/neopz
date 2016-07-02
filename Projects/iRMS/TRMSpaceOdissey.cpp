@@ -404,7 +404,11 @@ void TRMSpaceOdissey::CreateH1Cmesh()
     fH1Cmesh->SetDimModel(3);
     
     TPZMatLaplacian *material = new TPZMatLaplacian(_ReservMatId,3);
+<<<<<<< HEAD
+    TPZAutoPointer<TPZFunction<STATE> > one = new TPZDummyFunction<STATE>(One);
+=======
     material->SetForcingFunction(One,fPOrder);
+>>>>>>> master
     fH1Cmesh->InsertMaterialObject(material);
 
     TPZFNMatrix<1> val1(1,1,0.),val2(1,1,0);

@@ -87,7 +87,9 @@ TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 }
 TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    {
 		return new TPZIntelGen<TPZShapeQuad>(mesh,gel,index);
+    }
     index = -1;
 	return NULL;
 }

@@ -53,3 +53,4 @@ void TPZLine::SetTolerance(const REAL &tol){
 REAL TPZLine::GetTolerance(){
 	return fTolerance;
 }
+

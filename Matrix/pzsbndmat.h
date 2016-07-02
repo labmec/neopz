@@ -105,14 +105,18 @@ public:
 #ifdef USING_LAPACK
     int Decompose_Cholesky();  // Faz A = GGt.
     int Decompose_Cholesky(std::list<long> &singular);
-    int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
-    int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
 #endif
+    
+    int Subst_Forward( TPZFMatrix<TVar>*B ) const;
+    int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
+
     int Decompose_LDLt(std::list<long> &singular);
     int Decompose_LDLt();
     int Subst_LForward( TPZFMatrix<TVar> *B ) const;
     int Subst_LBackward( TPZFMatrix<TVar> *B ) const;
     int Subst_Diag( TPZFMatrix<TVar> *B ) const;
+//    int Subst_Forward( TPZFMatrix<TVar>*B ) const;
+//    int Subst_Backward( TPZFMatrix<TVar> *B ) const;
     
     // @}
     

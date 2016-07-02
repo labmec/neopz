@@ -329,7 +329,7 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 	int side, con, point, shape, conside;
 	TPZIntPoints *pointIntRule = 0;
 	TPZVec<REAL> peso(1000,0);
-	TPZTransform transform;
+	TPZTransform<> transform;
 
 	nconnects = el->NConnects();
 	nshapef = el->NShapeF();
@@ -417,7 +417,7 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
 	int conn, sideconnect, sideconnectshapef, point;
 	TPZIntPoints *pointIntRule = 0;
 	TPZVec<REAL> peso(1000,0.);
-	TPZTransform transform;
+	TPZTransform<> transform;
 	TPZVec<REAL> n_unit(3,0.);
 	REAL n_modulo;
 
@@ -492,7 +492,7 @@ void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
 	int i, j;
 	TPZIntPoints *pointIntRule = 0;
 	TPZVec<REAL> peso(1000,0);
-	TPZTransform transform;
+	TPZTransform<> transform;
 	bool notequal = false;
 
 	nconnects = el->NConnects();

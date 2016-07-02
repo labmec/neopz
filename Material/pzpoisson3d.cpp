@@ -24,6 +24,10 @@ using namespace std;
 STATE TPZMatPoisson3d::gAlfa = 0.5;
 
 TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
+    if(dim < 1)
+    {
+        DebugStop();
+    }
 	fK = 1.;
 	fC = 0.;
 	fConvDir[0] = 0.;
@@ -154,6 +158,7 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         }
     }
 
+//    std::cout << " fxfloc " << fXfLoc << " weight " << weight << " prod " << fXfLoc*weight << std::endl;
     //Equacao de Poisson
     for( int in = 0; in < phr; in++ ) {
         int kd;

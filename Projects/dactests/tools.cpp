@@ -51,9 +51,13 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time,
             if (isfrontal) {
                 TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
                 strmat.SetDecomposeType(ELDLt);
+<<<<<<< HEAD
                 //TPZSymetricSpStructMatrix strmat(fCmesh);
 
                 int numthreads = 16;
+=======
+                int numthreads = 8;
+>>>>>>> GradOfX
                 strmat.SetNumThreads(numthreads);
                 
                 an.SetStructuralMatrix(strmat);
@@ -91,9 +95,9 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time,
             an.Solve();
 #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
-#endif
             assemble_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
             solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
+#endif
         }
         else
         {
@@ -135,9 +139,9 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time,
         
 #ifdef USING_BOOST
         boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
-#endif
         assemble_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
         solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
+#endif
     }
     
     

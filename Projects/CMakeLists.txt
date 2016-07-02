@@ -4,8 +4,6 @@ ENABLE_TESTING()
 
 	if(BUILD_TUTORIAL)
 
-	# Testing LAPACK integration with symmetric band matrix
-		add_subdirectory(pzsbndmat_validation)
 		if(BUILD_COMPLEX_PROJECTS)
 			#add_subdirectory(PDElinear1D)
 			#add_subdirectory(PDElinear2D)
@@ -127,7 +125,60 @@ ENABLE_TESTING()
 			#projeto Diogo
 			add_subdirectory(Plasticity)
 
+<<<<<<< HEAD
 			add_subdirectory(adaptivity)
+=======
+			#add_subdirectory(projteste)
+			
+			# MHM project
+			add_subdirectory(MHM)
+
+
+			add_subdirectory(MultipleLoad)
+
+			# add_subdirectory(adaptivity_refactor)
+						
+			add_subdirectory(Cubo_do_Nathan)
+
+			add_subdirectory(PyramidHdivTests)
+			
+			add_subdirectory(HyperElasticityFAD)
+
+			#Increment singular shape function: SingularShapeFunction
+			add_subdirectory(SingularShapeFunction)
+			add_subdirectory(angletest)
+			add_subdirectory(checkconv)
+
+			#Orthogonalization process of Gram-Schmidt
+			add_subdirectory(matrix)
+
+			#Inserting material and boundary conditions by function
+			add_subdirectory(termica)
+			add_subdirectory(Steam)
+			add_subdirectory(QuadraticElements)
+			add_subdirectory(ThermalStress)
+			#Add_subdirectory(Conductivity)
+			add_subdirectory(ConsLaw)
+			add_subdirectory(Descontinuo2)
+
+			add_subdirectory(SteamInjection)
+			
+			#projeto agnaldo 09-09-2011
+			add_subdirectory(DoubleProjection)
+                        add_subdirectory(artigoPira)
+			add_subdirectory(TrabalhosLNCC15)
+			#projeto omar duran 16-12-2012
+			add_subdirectory(PoroElasticAnalysis)
+			add_subdirectory(Poisson2DGID)
+			add_subdirectory(OilWaterSystem)
+			add_subdirectory(DarcyflowAxisymmetricHdiv)
+			add_subdirectory(DarcyflowHdiv3D)
+			add_subdirectory(MonophasicWell)
+			add_subdirectory(GradOfX)
+			#collaborative project (NH GH PD, SG, OD) 18-04-2015
+			add_subdirectory(iRMS)
+
+>>>>>>> GradOfX
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
@@ -185,6 +236,3 @@ ENABLE_TESTING()
 		
 		
 	endif(BUILD_PROJECTS)
-
-
-   

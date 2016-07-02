@@ -988,7 +988,7 @@ TPZFMatrix<STATE> * ComputeInverse(TPZCompMesh * mphysics)
 //    }
 //#endif
     
-    matfrac->Inverse( * PreInverse);
+    matfrac->Inverse( * PreInverse,ELDLt);
     
     
 //#ifdef LOG4CXX

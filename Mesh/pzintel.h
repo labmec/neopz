@@ -120,14 +120,14 @@ public:
      * @brief Returns a reference to the connect in the middle of the side
      * @param is side which is being queried
      */
-    virtual TPZConnect &MidSideConnect(int is);
+    virtual TPZConnect &MidSideConnect(int is) const;
     
 	
 	/** @brief Returns the index of the c th connect object along side is*/
 	long SideConnectIndex(int icon,int is) const;
 	
 	/** @brief Returns a pointer to the icon th connect object along side is */
-	TPZConnect *SideConnect(int icon,int is);
+	TPZConnect &SideConnect(int icon,int is);
 	
 	/** @brief Returns the dimension of the element */
 	virtual int Dimension() const = 0;
@@ -160,8 +160,10 @@ public:
 	int AdjustPreferredSideOrder(int side, int order);
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-	virtual int SideOrder(int side) const = 0;
+	virtual int EffectiveSideOrder(int side) const = 0;
 	
+    /// return true if the connects associated with the side have dependency with large and if the dependency dimensions match
+    bool VerifyConstraintConsistency(int side, TPZCompElSide large) const;
 	/** @} */
 	
 	/**
@@ -372,7 +374,7 @@ private:
 	 * @param transfer transfer matrix mapping the solution of the coarse mesh into the fine mesh
 	 */
 	/** This method forms the basis for the multigrid method */
-	virtual void BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer);
+	virtual void BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform<> &t, TPZTransfer<STATE> &transfer);
 	
 	/**
 	 * @brief Verify the neighbours of the element and create a node along this side
@@ -416,15 +418,15 @@ private:
 	 * @param dphil large side gradient function values
 	 * @param transform transformation matrix from large side to small side
 	 */
-	int CompareShapeF(int sides, int sidel, TPZFMatrix<REAL> &phis, TPZFMatrix<REAL> &dphis, TPZFMatrix<REAL> &phil, TPZFMatrix<REAL> &dphil, TPZTransform &transform);
+	int CompareShapeF(int sides, int sidel, TPZFMatrix<REAL> &phis, TPZFMatrix<REAL> &dphis, TPZFMatrix<REAL> &phil, TPZFMatrix<REAL> &dphil, TPZTransform<> &transform);
 	
 	/**
 	 * @brief Returns the transformation which transform a point from the side to the interior of the element
 	 * @param side side from which the point will be tranformed (0<=side<=2)
-	 * @return TPZTransform object
+	 * @return TPZTransform<> object
 	 * @see the class TPZTransform
 	 */
-	virtual TPZTransform TransformSideToElement(int side) = 0;
+	virtual TPZTransform<> TransformSideToElement(int side) = 0;
 	
 	/** @} */
 	

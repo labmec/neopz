@@ -68,9 +68,10 @@ TPZCheckRestraint::TPZCheckRestraint(TPZCompElSide smalll, TPZCompElSide large) 
 	int nc = nsmallconnect;
 	if(nc) fSmallPos[0] = 0;
 	for(ic=0; ic<nc; ic++) {
-		int connect = smallel->SideConnectLocId(ic,smallside);
-		fSmallSize[ic] = smallel->NConnectShapeF(connect);
-		if(smallel->Connect(connect).CheckDependency(fSmallSize[ic], fMesh, nstate) == -1) {
+		int connectindex = smallel->SideConnectLocId(ic,smallside);
+        TPZConnect &connect = smallel->Connect(connectindex);
+		fSmallSize[ic] = smallel->NConnectShapeF(connectindex,connect.Order());
+		if(smallel->Connect(connectindex).CheckDependency(fSmallSize[ic], fMesh, nstate) == -1) {
 			cout << "TPZCheckRestraint incompatible small element connect dimensions\n";
 		}
 		if(ic) fSmallPos[ic] = fSmallPos[ic-1] + fSmallSize[ic-1];
@@ -79,9 +80,10 @@ TPZCheckRestraint::TPZCheckRestraint(TPZCompElSide smalll, TPZCompElSide large) 
 	nc = nlargeconnect;
 	if(nc) fLargePos[0] = 0;
 	for(ic=0; ic<nc; ic++) {
-		int connect = largel->SideConnectLocId(ic,largeside);
-		fLargeSize[ic] = largel->NConnectShapeF(connect);
-		if(largel->Connect(connect).CheckDependency(fLargeSize[ic], fMesh, nstate) == -1 ){
+		int connectindex = largel->SideConnectLocId(ic,largeside);
+        TPZConnect &c = largel->Connect(connectindex);
+		fLargeSize[ic] = largel->NConnectShapeF(connectindex,c.Order());
+		if(largel->Connect(connectindex).CheckDependency(fLargeSize[ic], fMesh, nstate) == -1 ){
 			cout << "TPZCheckRestraint incompatible large element connect dimensions\n";
 		}
 		if(ic) fLargePos[ic] = fLargePos[ic-1] + fLargeSize[ic-1];
@@ -228,10 +230,10 @@ int TPZCheckRestraint::CheckRestraint() {
 	intrule->SetOrder(ord);
 	TPZGeoElSide smallside = fSmall.Reference();
 	TPZGeoElSide largeside = fLarge.Reference();
-	TPZTransform t(smallside.Dimension());
+	TPZTransform<> t(smallside.Dimension());
 	smallside.SideTransform3(largeside,t);
 	
-	TPZTransform T = smallel->Reference()->ComputeParamTrans(largel->Reference(),fLarge.Side(), fSmall.Side());//transforma��o direta, sem acumulo
+	TPZTransform<> T = smallel->Reference()->ComputeParamTrans(largel->Reference(),fLarge.Side(), fSmall.Side());//transforma��o direta, sem acumulo
 	if(T.Compare(t))//caso erro � maior que tol=1.e-6 retorna 1
 		PZError << "TPZCheckRestraint::CheckRestraint transformation error!\n";
 	
