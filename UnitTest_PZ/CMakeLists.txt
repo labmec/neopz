@@ -7,7 +7,6 @@ if(BUILD_UNITTESTING)
 
 	if(USING_BOOST)
 
-<<<<<<< HEAD
 		if(BUILD_COMPLEX_PROJECTS)
 
 			add_subdirectory(TestMatrixComplex)
@@ -27,20 +26,6 @@ if(BUILD_UNITTESTING)
 			source_group(UnitTestGeometry FILES ${pztestgeometry})
 
 		endif()
-=======
-		add_subdirectory(TestTopology)
-		add_subdirectory(TestMatrix)
-		add_subdirectory(TestMesh)
-		add_subdirectory(TestMaterial)
-		add_subdirectory(TestIntegNum)
-
-		source_group(UnitTestTopology FILES ${pztesttopology})
-		source_group(UnitTestMatrix FILES ${pztestmatrix})
-		source_group(UnitTestMesh FILES ${pztestmesh})
-		source_group(UnitTestIntegNum FILES ${pztestintegnum})
-
-		
->>>>>>> master
 
 	else()
 
