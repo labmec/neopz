@@ -65,31 +65,31 @@ TPZGeoEl::TPZGeoEl(long id,int materialid,TPZGeoMesh &mesh) {
 }
 
 TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSaveable(el){
-	fMesh = el.fMesh;
-	fId = fMesh->CreateUniqueElementId();
-	fMatId = el.fMatId;
+	this->fMesh = el.fMesh;
+	this->fId = fMesh->CreateUniqueElementId();
+	this->fMatId = el.fMatId;
 	this->fReference = NULL;
-	fFatherIndex = el.fFatherIndex;
-	fIndex = fMesh->ElementVec().AllocateNewElement();
-	fMesh->ElementVec()[fIndex] = this;
+	this->fFatherIndex = el.fFatherIndex;
+	this->fIndex = fMesh->ElementVec().AllocateNewElement();
+	this->fMesh->ElementVec()[fIndex] = this;
 	this->fNumInterfaces = 0;
 }
 
 TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh, long &index) {
-	fId = mesh.CreateUniqueElementId();
-	fMesh = &mesh;
-	fMatId = materialid;
-	fReference = NULL;
-	fFatherIndex = -1;
-	index = fMesh->ElementVec().AllocateNewElement();
-	fIndex = index;
-	fMesh->ElementVec()[index] = this;
+	this->fMesh = &mesh;
+    this->fId = fMesh->CreateUniqueElementId();
+	this->fMatId = materialid;
+	this->fReference = NULL;
+	this->fFatherIndex = -1;
+	index = this->fMesh->ElementVec().AllocateNewElement();
+	this->fIndex = index;
+	this->fMesh->ElementVec()[fIndex] = this;
 	this->fNumInterfaces = 0;
 }
 
 TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh) {
-	this->fId = mesh.CreateUniqueElementId();
-	this->fMesh = &mesh;
+    this->fMesh = &mesh;
+    this->fId = fMesh->CreateUniqueElementId();
 	this->fMatId = materialid;
 	this->fReference = NULL;
 	this->fFatherIndex = -1;

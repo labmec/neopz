@@ -92,7 +92,7 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     AddElement<TPZGeoBlend<TPZGeoPrism> >(mesh,lowercorner,size);
     AddElement<TPZGeoBlend<TPZGeoPyramid> >(mesh,lowercorner,size);
     lowercorner[0] = 1.;
-    lowercorner[1] = 1.;
+    lowercorner[1] = 3.;
     AddElement<TPZQuadraticLine>(mesh,lowercorner,size);
     AddElement<TPZQuadraticTrig>(mesh,lowercorner,size);
     AddElement<TPZQuadraticQuad>(mesh,lowercorner,size);
@@ -106,7 +106,7 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
 void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
 {
     gRefDBase.InitializeAllUniformRefPatterns();
-    int numref = 3;
+    int numref = 4;
     for (int iref=0; iref<numref; iref++) {
         long nel = gmesh.NElements();
         for (long el=0; el<nel; el++) {
