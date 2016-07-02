@@ -125,9 +125,6 @@ ENABLE_TESTING()
 			#projeto Diogo
 			add_subdirectory(Plasticity)
 
-<<<<<<< HEAD
-			add_subdirectory(adaptivity)
-=======
 			#add_subdirectory(projteste)
 			
 			# MHM project
@@ -178,7 +175,7 @@ ENABLE_TESTING()
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			add_subdirectory(iRMS)
 
->>>>>>> GradOfX
+
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
