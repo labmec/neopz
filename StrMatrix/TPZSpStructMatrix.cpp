@@ -75,7 +75,8 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     //    int nnodes = 0;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
     /**Creates a element graph*/
-    TPZMetis metis(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
+    TPZMetis metis;
+    metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
 	
     TPZVec<long> nodegraph;
@@ -88,7 +89,9 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     /**vector sizes*/
     long i;
     long nblock = nodegraphindex.NElements()-1;
+    // number of values in the sparse matrix
     long totalvar = 0;
+    // number of equations
     long totaleq = 0;
     for(i=0;i<nblock;i++){
 		long iblsize = fMesh->Block().Size(i);
@@ -116,30 +119,40 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     }
 	
     long ieq = 0;
+    // pos is the position where we will put the column value
     long pos = 0;
 	
     nblock=fMesh->NIndependentConnects();
 	
-    long * Eq = new long[totaleq+1];
-    long * EqCol = new long[totalvar];
-    STATE * EqValue = new STATE [totalvar];
+    TPZVec<long> Eq(totaleq+1);
+    TPZVec<long> EqCol(totalvar);
+    TPZVec<STATE> EqValue(totalvar);
     for(i=0;i<nblock;i++){
 		long iblsize = fMesh->Block().Size(i);
 		long iblpos = fMesh->Block().Position(i);
-        long numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
-        if (!numactive) {
-            continue;
+        TPZManVector<long> rowdestindices(iblsize);
+        for (long i=0; i<iblsize; i++) {
+            rowdestindices[i] = iblpos+i;
         }
+        fEquationFilter.Filter(rowdestindices);
+
 		long ibleq;
-		for(ibleq=0; ibleq<iblsize; ibleq++) {
+        // working equation by equation
+		for(ibleq=0; ibleq<rowdestindices.size(); ibleq++) {
+            if (rowdestindices[ibleq] != pos) {
+                DebugStop();
+            }
 			Eq[ieq] = pos;
 			long colsize,colpos,jbleq;
 			long diagonalinsert = 0;
 			long icfirst = nodegraphindex[i];
 			long iclast = nodegraphindex[i+1];
 			long j;
-			for(j=icfirst;j<iclast;j++) {
+			for(j=icfirst;j<iclast;j++)
+            {
 				long col = nodegraph[j];
+                // force the diagonal block to be inserted
+                // the nodegraph does not contain the pointer to itself
 				if(!diagonalinsert && col > i)
 				{
 					diagonalinsert = 1;
@@ -176,6 +189,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 					pos++;
 				}
 			}
+            // all elements are below (last block certainly)
 			if(!diagonalinsert)
 			{
 				diagonalinsert = 1;

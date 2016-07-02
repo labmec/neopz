@@ -268,7 +268,7 @@ TPZGeoElRefLess<TGeo>::AllHigherDimensionSides(int side,int targetdimension,TPZS
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::LowerDimensionSides(int side,TPZStack<int> &smallsides){
+TPZGeoElRefLess<TGeo>::LowerDimensionSides(int side,TPZStack<int> &smallsides) const {
 	TGeo::LowerDimensionSides(side,smallsides);
 }
 

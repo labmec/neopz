@@ -243,7 +243,7 @@ public:
 	
 	virtual  void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides);
 	
-	virtual  void LowerDimensionSides(int side,TPZStack<int> &smallsides);
+	virtual  void LowerDimensionSides(int side,TPZStack<int> &smallsides) const;
 	
 	/** @brief Accumulates the transformation of the jacobian which maps the current
      master element space into the space of the master element of the father*/

@@ -27,7 +27,12 @@ public:
 	 * Instantiates an object which will compute the resequencing
 	 * scheme of the metis package.
 	 */
-	TPZMetis(int NElements, int NNodes);
+    TPZMetis(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes)
+    {
+        
+    }
+    
+    TPZMetis();
 	/** @brief Destructor */
 	virtual ~TPZMetis() {}
 	/** @brief Prints the current object data structure. */

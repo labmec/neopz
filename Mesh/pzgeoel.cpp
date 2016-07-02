@@ -409,18 +409,19 @@ int TPZGeoEl::WhichSubel() const{
 	int nsub = father->NSubElements();
 	for(son=0;son<nsub;son++) if(father->SubElement(son) == this) break;
 	if(son > (nsub-1)){
-		PZError << "TPZGeoEl::WhichSubel son not exist\n";
-//#ifdef LOG4CXX
-//		{
-//			std::stringstream sout;
-//			sout << "Father element\n";
-//			father->Print(sout);
-//			sout << "Son element\n";
-//			Print(sout);
-//            Mesh()->Print(sout);
-//			LOGPZ_ERROR(logger,sout.str())
-//		}
-//#endif
+		PZError << "TPZGeoEl::WhichSubel son does not exist\n";
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "Father element\n";
+			father->Print(sout);
+			sout << "Son element\n";
+            TPZGeoEl *foefel = (TPZGeoEl *) this;
+			foefel->Print(sout);
+            Mesh()->Print(sout);
+			LOGPZ_ERROR(logger,sout.str())
+		}
+#endif
 		DebugStop();
 		return -1;
 	}
@@ -719,11 +720,11 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 			}
             else
             {
-				axest.Multiply(J,JX,0,1);
+				axest.Multiply(J,JX,0);
 			}
 			
 			JX.Transpose(&JXt);
-			JXt.Multiply(JX,JXtJX,0,1);//JXtJX = JXt*JX;
+			JXt.Multiply(JX,JXtJX,0);//JXtJX = JXt*JX;
 			JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
 			JXtJX.SolveDirect(residual,ELU);//cout << "Atual/dimensao : " << Id() << " / " << Dimension();
 			for(i=0; i<dim; i++)

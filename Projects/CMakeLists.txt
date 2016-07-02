@@ -125,6 +125,7 @@ ENABLE_TESTING()
 			#projeto Diogo
 			add_subdirectory(Plasticity)
 
+<<<<<<< HEAD
 			#add_subdirectory(projteste)
 			
 			# MHM project
@@ -174,9 +175,13 @@ ENABLE_TESTING()
 			add_subdirectory(GradOfX)
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			add_subdirectory(iRMS)
+=======
+>>>>>>> master
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
+			add_subdirectory(Andrade)
+			add_subdirectory(MatrixMarket)
 			add_subdirectory(Frac1DHdiv)
 			add_subdirectory(SubStruct)
 			add_subdirectory(MultiphysicsSimulation)
@@ -218,7 +223,16 @@ ENABLE_TESTING()
 			#
 			# Colaboration with Laurent Stainier
 			
+<<<<<<< HEAD
 			#add_subdirectory(MatLib)
+=======
+			add_subdirectory(MatLib)
+			add_subdirectory(TrabalhosLNCC15)
+
+			if(USING_MKL)
+				add_subdirectory(PardisoSample)
+			endif(USING_MKL)
+>>>>>>> master
 			
 
 		endif(BUILD_COMPLEX_PROJECTS)
@@ -228,3 +242,4 @@ ENABLE_TESTING()
 
 
    
+add_subdirectory(artigoPira)

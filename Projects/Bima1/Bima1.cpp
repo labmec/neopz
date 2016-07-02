@@ -247,8 +247,12 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	TPZFMatrix<STATE> val1(1,1,1.),val2(1,1,0.);
 	
 	TPZMaterial *bnd = automat->CreateBC (automat,-1,2,val1,val2);//misto tbem
+<<<<<<< HEAD
     TPZAutoPointer<TPZFunction<STATE> > dirichlet2 = new TPZDummyFunction<STATE>(Dirichlet2);
     bnd->SetForcingFunction(dirichlet2);
+=======
+    bnd->SetForcingFunction(Dirichlet2,porder);
+>>>>>>> master
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
@@ -256,8 +260,12 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-2,0,val1,val2);
 	TPZBndCond *bndcond = dynamic_cast<TPZBndCond *> (bnd);
+<<<<<<< HEAD
     TPZAutoPointer<TPZFunction<STATE> > dirichletSuave = new TPZDummyFunction<STATE>(DirichletSuave);
     bnd->SetForcingFunction(dirichletSuave);
+=======
+    bnd->SetForcingFunction(DirichletSuave,porder);
+>>>>>>> master
 //	bndcond->SetValFunction(ValFunction);
 	comp->InsertMaterialObject(bnd);
 	
@@ -265,28 +273,44 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-3,0,val1,val2);
+<<<<<<< HEAD
     bnd->SetForcingFunction(dirichletSuave);
+=======
+    bnd->SetForcingFunction(DirichletSuave,porder);
+>>>>>>> master
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-4,0,val1,val2);
+<<<<<<< HEAD
     bnd->SetForcingFunction(dirichletSuave);
+=======
+    bnd->SetForcingFunction(DirichletSuave,porder);
+>>>>>>> master
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-5,0,val1,val2);
+<<<<<<< HEAD
     bnd->SetForcingFunction(dirichletSuave);
+=======
+    bnd->SetForcingFunction(DirichletSuave,porder);
+>>>>>>> master
 	comp->InsertMaterialObject(bnd);
 	
 	// Mixed
 	val1(0,0) = 1.;
 	val2(0,0)=0.;
 	bnd = automat->CreateBC (automat,-6,0,val1,val2);
+<<<<<<< HEAD
     bnd->SetForcingFunction(dirichletSuave);
+=======
+    bnd->SetForcingFunction(DirichletSuave,porder);
+>>>>>>> master
 	comp->InsertMaterialObject(bnd);
 	
 	// Ajuste da estrutura de dados computacional

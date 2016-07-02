@@ -24,7 +24,8 @@ template<class TVar>
 TPZSFMatrix<TVar> ::TPZSFMatrix(const long dim )
 : TPZMatrix<TVar>( dim, dim )
 {
-	fElem = new( TVar[ Size() ] );
+    long size = Size();
+	fElem = new TVar[ size ] ;
 	
 	if ( fElem == NULL )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
@@ -39,7 +40,8 @@ template<class TVar>
 TPZSFMatrix<TVar> ::TPZSFMatrix (const TPZSFMatrix<TVar>  & A)
 : TPZMatrix<TVar> ( A.Dim(), A.Dim() )
 {
-	fElem = new( REAL[Size()] );
+    long size = Size();
+	fElem = new TVar[size] ;
 	if ( fElem == NULL )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
 	
@@ -60,7 +62,8 @@ template<class TVar>
 TPZSFMatrix<TVar> ::TPZSFMatrix(const  TPZMatrix<TVar>  &A )
 : TPZMatrix<TVar> ( A )
 {
-	fElem = new( TVar[Size()] );
+    long size = Size();
+	fElem = new TVar[size] ;
 	
 	if ( fElem == NULL )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
@@ -98,8 +101,11 @@ TPZSFMatrix<TVar> ::operator=(const TPZSFMatrix<TVar>  &A )
 	if ( this->Dim() != A.Dim() )
     {
 		if ( fElem != NULL )
+        {
 			delete( fElem );
-		fElem = new( TVar[ A.Size() ] );
+        }
+        long size = A.Size();
+		fElem = new TVar[ size ] ;
 		if ( fElem == NULL )
 			TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Operator= <memory allocation error>." );
     }
@@ -227,7 +233,7 @@ TPZSFMatrix<TVar> ::operator=(const TPZMatrix<TVar>  &A )
     {
 		if ( fElem != NULL )
 			delete( fElem );
-		fElem = new REAL[ size ] ;
+		fElem = new TVar[ size ] ;
     }
 	
 	// Copia a matriz.
@@ -240,7 +246,7 @@ TPZSFMatrix<TVar> ::operator=(const TPZMatrix<TVar>  &A )
 	
 	// Ajusta Status de decomposicao.
 	
-	SetIsDecomposed(A.IsDecomposed());
+	this->SetIsDecomposed(A.IsDecomposed());
 	this->fDefPositive = (char)A.IsDefPositive();
 	
 	return( *this );
@@ -480,7 +486,7 @@ TPZSFMatrix<TVar> ::Redim( long newDim , long)
 		this->fRow = this->fCol = newDim;
 		if ( fElem != NULL )
 			delete( fElem );
-		fElem = new( REAL[Size()] );
+		fElem = new TVar[Size()] ;
     }
 	
 	// Zera a matriz.
@@ -582,63 +588,12 @@ template<class TVar>
 int
 TPZSFMatrix<TVar> ::Decompose_LDLt()
 {
-	/* REAL *aux;
-     aux=new REAL [ Dim() - 1 ];
-     REAL *ptr_k = fElem;
-	 
-     for ( long k = 0; k < Dim(); k++, ptr_k += k  )
-     {
-     // Faz aux(p) = A(p,p) * A(k,p), p = 1, ..., k-1.
-     //
-     REAL *pk    = ptr_k;
-     REAL *pDiag = fElem;
-     REAL *pAux  = aux;
-     for ( long p = 0; p < k; p++, pDiag += p )
-     *pAux++ = (*pDiag++) * (*pk++);
-	 
-	 // Faz sum = SOMA( A(k,p) * aux(p) ), p = 1, ..., k-1.
-	 //
-	 REAL sum  = 0.0;
-	 REAL *end = ptr_k + k;
-	 pk   = ptr_k;
-	 pAux = aux;
-	 while ( pk < end )
-	 sum += (*pk++) * (*pAux++);
-	 
-	 // Faz A(k,k) = A(k,k) - sum;
-	 //
-	 *pk -= sum;
-	 if ( IsZero(*pk) )
-	 return( 0 );
-	 
-	 // Loop para i = k+1 ... Dim().
-	 //
-	 REAL *ptr_i = ptr_k;
-	 REAL *pi;
-	 for ( long i = k+1; i < Dim(); i++ )
-	 {
-	 // Faz sum = SOMA( A(i,p) * aux(p) ), p = 1, ..., k-1.
-	 //
-	 sum   =  0.0;
-	 ptr_i += i;
-	 pAux  =  aux;
-	 pi    =  ptr_i;
-	 end   =  ptr_i + k;
-	 while ( pi < end )
-	 sum += (*pi++) * (*pAux++);
-	 
-	 // Faz A(i,k) = (A(i,k) - sum) / A(k,k).
-	 //
-	 *pi = (*pi - sum) / *pk;
-	 }
-	 }
-	 */
 	if (  this->fDecomposed && this->fDecomposed != ELDLt)
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__,"Decompose_LDLt <Matrix already Decomposed with a different scheme>" );
 	else if ( this->fDecomposed ) return 0;
 	
 	long j,k,l;
-	//	REAL sum;
+	//	TVar sum;
 	
 	
 	for ( j = 0; j < this->Dim(); j++ )
@@ -663,6 +618,7 @@ TPZSFMatrix<TVar> ::Decompose_LDLt()
 	this->fDecomposed  = ELDLt;
 	this->fDefPositive = 0;
 	
+    
 	return( 1 );
 }
 
@@ -688,8 +644,8 @@ TPZSFMatrix<TVar> ::Subst_Forward( TPZFMatrix<TVar>  *B ) const
 		{
 			// Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1,.., k-1.
 			//
-			REAL *pk = ptr_k;
-			REAL sum = 0.0;
+			TVar *pk = ptr_k;
+			TVar sum = 0.0;
 			for ( long i = 0; i < k; i++ )
 				sum += (*pk++) * B->GetVal( i, j );
 			
@@ -753,7 +709,7 @@ TPZSFMatrix<TVar> ::Subst_LForward( TPZFMatrix<TVar>  *B ) const
 	if ( B->IsSimetric() )
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__, "Subst_LForward <the matrix result can not be simetric>" );
 	
-	REAL *ptr_k = fElem;
+	TVar *ptr_k = fElem;
 	for ( long k = 0; k < this->Dim(); k++, ptr_k += k )
 		for ( long j = 0; j < B->Cols(); j++ )
 		{
@@ -867,6 +823,11 @@ TPZSFMatrix<TVar> ::Clear()
 	this->fRow = this->fCol = 0;
 	return( 1 );
 }
+
+template class TPZSFMatrix<float>;
+template class TPZSFMatrix<double>;
+template class TPZSFMatrix<long double>;
+
 
 #ifdef OOPARLIB
 

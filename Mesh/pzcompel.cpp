@@ -502,7 +502,11 @@ void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
         TPZConnect &c = Connect(i);
         if (c.HasDependency()) {
             TPZConnect::TPZDepend * dep= c.FirstDepend();
-            buf2.insert(dep->fDepConnectIndex);
+            while(dep)
+            {
+                buf2.insert(dep->fDepConnectIndex);
+                dep = dep->fNext;
+            }
         }
     }
     TPZConnect::BuildConnectList(buf, buf2, *Mesh());
@@ -898,8 +902,18 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
             TPZInterpolatedElement *iel = dynamic_cast<TPZInterpolatedElement *> (locexpand[i].Element());
 			int iside = locexpand[i].Side();
 			//if(iel && kel->ConnectIndex(kside) == iel->ConnectIndex(iside))
-            if(iel && kel->MidSideConnectLocId(kside) == iel->MidSideConnectLocId(iside))
-				locexpand[i] = TPZCompElSide();
+            
+            if(iel)
+            {
+                int a = kel->MidSideConnectLocId(kside);
+                int b = iel->MidSideConnectLocId(iside);
+                long connecta = kel->ConnectIndex(a);
+                long connectb = iel->ConnectIndex(b);
+                if(connecta == connectb)
+                {
+                    locexpand[i] = TPZCompElSide();
+                }
+            }
 			i++;
 		}
 	}

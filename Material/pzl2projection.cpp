@@ -227,16 +227,28 @@ void TPZL2Projection::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     
     TPZManVector<STATE> sol(1),dsol(3,0.);
     int id;
+    //values[0] : erro em norma H1 <=> norma Energia
     //values[1] : eror em norma L2
+    //values[2] : erro em semi norma H1
     STATE diff = (u[0] - u_exact[0]);
-    values[1]  = diff*diff;
+#ifdef STATE_COMPLEX
+    values[1]  = std::real(diff*std::conj(diff));
     //values[2] : erro em semi norma H1
     values[2] = 0.;
     for(id=0; id<fDim; id++) {
-        diff = (gradu(id) - du_exact(id,0));
-        values[2]  += diff*diff;
+      diff = (gradu(id) - du_exact(id,0));
+      values[2]  += std::real(diff*std::conj(diff));
     }
-    //values[0] : erro em norma H1 <=> norma Energia
+#else
+    values[1]  = diff*diff;
+  
+    values[2] = 0.;
+  
+    for(id=0; id<fDim; id++) {
+      diff = (gradu(id) - du_exact(id,0));
+      values[2]  += diff*diff;
+    }
+#endif
     values[0]  = values[1]+values[2];
 }
 

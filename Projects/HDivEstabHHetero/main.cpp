@@ -679,7 +679,7 @@ TPZFMatrix<STATE> * ComputeInverse(TPZCompMesh * mphysics)
     TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
     TPZAutoPointer<TPZMatrix<STATE> > matfrac = skyl.CreateAssemble(rhsfrac, gui);
     TPZFMatrix<STATE> oldmat = *matfrac.operator->();
-    matfrac->Inverse( * PreInverse);
+    matfrac->Inverse( * PreInverse,ELDLt);
     return PreInverse;
     
 }

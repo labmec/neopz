@@ -34,9 +34,9 @@
 #include "TPZFrontNonSym.h"
 
 #include "math.h"
-#include <boost/cstdfloat.hpp> // For float_64_t. Must be first include!
+//#include <boost/cstdfloat.hpp> // For float_64_t. Must be first include!
 #include <cmath>  // for pow function.
-#include <boost/math/special_functions.hpp> // For gamma function.
+//#include <boost/math/special_functions.hpp> // For gamma function.
 
 #include "TPZMultiphysicsInterfaceEl.h"
 
@@ -2942,9 +2942,9 @@ void TPZDarcyAnalysis::Morris_Muskat(const TPZVec<REAL> &pt, REAL time, TPZVec<S
     
     double x = 0.2;
     int p = 0;
-    double J = boost::math::cyl_bessel_j(p,x);
-    double Y = boost::math::cyl_neumann(p,x);
-    std::cout << "x = " << x << ", J = " << J << ", Y = " << Y << std::endl;
+    //double J = boost::math::cyl_bessel_j(p,x);
+    //double Y = boost::math::cyl_neumann(p,x);
+    //std::cout << "x = " << x << ", J = " << J << ", Y = " << Y << std::endl;
     int p2 = 0;
 }
 

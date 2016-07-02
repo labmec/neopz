@@ -386,7 +386,7 @@ long TPZSubCompMesh::AllocateNewConnect(int nshape, int nstate, int order){
 	long seqnum = fConnectVec[connectindex].SequenceNumber();
     int blocksize = nshape*nstate;
 	fBlock.Set(seqnum,blocksize);
-	fConnectVec[connectindex].SetOrder(order);
+	fConnectVec[connectindex].SetOrder(order,connectindex);
 	long i,oldsize = fExternalLocIndex.NElements();
 	
 	if(oldsize <= connectindex) {

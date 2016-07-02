@@ -72,7 +72,7 @@ public:
 	
 	virtual void SetConnectIndex(int i, long connectindex);
 	
-	virtual int NConnectShapeF(int connect) const;
+	virtual int NConnectShapeF(int connect, int order) const;
 	
 	virtual int Dimension() const {
 		return TSHAPE::Dimension;

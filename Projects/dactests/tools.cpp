@@ -7,6 +7,10 @@
 //
 
 #include "tools.h"
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
+#include "TPZSSpStructMatrix.h"
 
 
 tools::tools()
@@ -32,10 +36,10 @@ void tools::PrintLS(TPZAnalysis *an)
     FGlobal.Print("FGlobal = ", std::cout,EMathematicaInput);
 }
 
-void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
+void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time, REAL &solving_time)
 {
     std::cout <<"Numero de equacoes "<< fCmesh->NEquations()<< std::endl;
-    
+
 	bool isdirect = true;
     bool simetrico = true;
     bool isfrontal = true;
@@ -46,8 +50,8 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
             //TPZSkylineStructMatrix strmat(fCmesh);
             if (isfrontal) {
                 TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
+                //                TPZSymetricSpStructMatrix< STATE > strmat(fCmesh);
                 strmat.SetDecomposeType(ELDLt);
-                
                 int numthreads = 8;
                 strmat.SetNumThreads(numthreads);
                 
@@ -66,7 +70,29 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
             TPZStepSolver<STATE> step;
             step.SetDirect(ELDLt); //caso simetrico
             an.SetSolver(step);
-            an.Run();
+            
+//#ifdef USING_BOOST // NS: Essas variaveis soh existem se estiver com boost
+//            {
+//                std::ofstream myerrorfile("Simulacao-Hdiv.txt",ios::app);
+//                myerrorfile << ndiv <<  setw(13) << NDoF << setw(12) << NDoFCond << setw(13)<< NDoFCond*NDoFCond
+//                << setw(15) << NumZeros << setw(12) << razao << "    " << (t2-t1) << "     " << (t3-t2) << "     "
+//                << (t2-t1)+(t3-t2) << setw(12) << ErroP[1] << setw(15) << ErroF[1] <<std::endl;
+//            }
+//#endif
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+            an.Assemble();
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            an.Solve();
+#ifdef USING_BOOST
+            boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
+            assemble_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
+            solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
+#endif
         }
         else
         {
@@ -95,9 +121,23 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
         Solver->SetGMRES(20, 20, *precond, 1.e-18, 0);
         //        Solver->SetCG(10, *precond, 1.0e-10, 0);
         an.SetSolver(*Solver);
-        an.Run();
+        
+#ifdef USING_BOOST
+        boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+        an.Assemble();
+        
+#ifdef USING_BOOST
+        boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+        an.Solve();
+        
+#ifdef USING_BOOST
+        boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
+        assemble_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
+        solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
+#endif
     }
-    
     
     
 }
@@ -117,24 +157,17 @@ void tools::PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mp
 {
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    TPZManVector<std::string,10> scalnames(5), vecnames(3);
+    TPZManVector<std::string,10> scalnames(4), vecnames(2);
     vecnames[0]  = "Flux";
     vecnames[1]  = "ExactFlux";
-    vecnames[2]  = "GradP";
     scalnames[0] = "Pressure";
     scalnames[1] = "ExactPressure";
     scalnames[2] = "Rhs";
-     scalnames[3] = "Divergence";
-     scalnames[4] = "ExactDiv";
+    scalnames[3] = "Divergence";
     
     int div = 0;
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(div,dim);
-    
-//    std::ofstream out("malha.txt");
-//    an.Print("nothing",out);
-    
-    //    mphysics->Solution().Print("Solucao");
     
 }
 

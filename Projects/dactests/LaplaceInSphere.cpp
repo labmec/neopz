@@ -70,8 +70,8 @@ void LaplaceInSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     {
         TPZCompMesh *cmeshH1 = CMeshH1(gmesh, ordemP, fDim);
         TPZAnalysis anh1(cmeshH1, true);
-        
-        tools::SolveSyst(anh1, cmeshH1);
+        REAL t1,t2;
+        tools::SolveSyst(anh1, cmeshH1, t1, t2);
         
         stringstream refh1,grauh1;
         grauh1 << ordemP;
@@ -144,8 +144,8 @@ void LaplaceInSphere::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDebugMapL
     }
     
     TPZAnalysis an(mphysics, true);
-    
-    tools::SolveSyst(an, mphysics);
+    REAL t1,t2;
+    tools::SolveSyst(an, mphysics, t1, t2);
     
     stringstream ref,grau;
     grau << ordemP;
@@ -3227,15 +3227,15 @@ void LaplaceInSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &solp){
     REAL theta = acos(z/r);
     REAL phi = atan2(y,x);
     
-    REAL costheta = cos(theta);
+//    REAL costheta = cos(theta);
     REAL sintheta = sin(theta);
     //    REAL sin2theta = sin(2.0*theta);
     
     
     
-    REAL sinphi = sin(phi);
+//    REAL sinphi = sin(phi);
     REAL cosphi = cos(phi);
-    REAL sin2phi = sin(2.0*phi);
+//    REAL sin2phi = sin(2.0*phi);
     
     REAL oneminuscosphicosphi = (1.0-cosphi*cosphi);
     
@@ -3494,7 +3494,7 @@ void LaplaceInSphere::SetupDisconnectedHdivboud(const int left,const int rigth, 
                     }
                     int localindex = InterpElside->SideConnectLocId(0, cels.Side());
                     InterpElside->SetConnectIndex(localindex, newindex);
-                    int orientside = InterpElside->GetSideOrient(cels.Side());
+//                    int orientside = InterpElside->GetSideOrient(cels.Side());
                     InterpElside->SetSideOrient(cels.Side(),1);
                     
                     cel->SetConnectIndex(0, newindex);
@@ -3842,8 +3842,8 @@ TPZCompMesh *LaplaceInSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
                     break;
                 }
             }
-            
-            TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
+            new TPZCondensedCompEl(elgr);
+//            TPZCondensedCompEl *condense = new TPZCondensedCompEl(elgr);
         }
         
         mphysics->CleanUpUnconnectedNodes();

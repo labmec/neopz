@@ -4,6 +4,7 @@
 #endif
 
 #include "pzgmesh.h"
+#include "pzcheckgeom.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzbndcond.h"
@@ -540,12 +541,17 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder, int dim)
     cmesh->SetAllCreateFunctionsHDiv();
     
     
-    if( dim == 3 ) { cmesh->InsertMaterialObject(BCond0); }
+    if( dim == 3 ) {
+        cmesh->InsertMaterialObject(BCond0);
+    }
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
     cmesh->InsertMaterialObject(BCond4);
-    if( dim == 3 ) { cmesh->InsertMaterialObject(BCond5); }
+    if(dim == 3 )
+    {
+        cmesh->InsertMaterialObject(BCond5);
+    }
     
     cmesh->SetDefaultOrder(pOrder);
     
@@ -743,6 +749,11 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     dum->SetPolynomialOrder(0);
     forcef = dum;
     material->SetForcingFunction(forcef);
+    
+    if (!hdivantigo)
+    {
+        material->UseSecondIntegrationByParts();
+    }
     
     //inserindo o material na malha computacional
     TPZMaterial *mat(material);
@@ -1809,6 +1820,7 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isP
         id++;
     }
     
+    geomesh->SetMaxNodeId(id);
     long elementid = 0;
     // Using triangle to sphere special map
     TPZVec<long> topology(3);
@@ -1878,7 +1890,6 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isP
     REAL r = 1.0;
     TPZManVector<REAL,3> xc(3,0.0);
     
-    
     // Create Geometrical Quad #1
     topology.Resize(4);    
     topology[0] = 0;
@@ -1888,6 +1899,7 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isP
     TPZGeoElRefPattern< pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > > * SphereEighth1 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend < pzgeom::TPZGeoQuad > > > (elementid, topology,materialId,*geomesh);
     SphereEighth1->Geom().SetData(r,xc);
     elementid++;
+    geomesh->SetMaxElementId(elementid);
     
     
     //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
@@ -1934,6 +1946,10 @@ TPZGeoMesh *GMeshTropicodeCancer(int ndiv , TPZVec<bool>  &CurvesSides, bool isP
     std::ofstream outfileAnel("TropicodeCancer.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfileAnel, true);
     
+#ifdef PZDEBUG
+    TPZCheckGeom check(geomesh);
+    check.CheckUniqueId();
+#endif
     return geomesh;
     
 

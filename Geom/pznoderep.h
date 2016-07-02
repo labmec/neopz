@@ -69,6 +69,12 @@ namespace pzgeom {
                 TPZNodeRep(TPZVec<long> &nodeindexes)
                 {
                         int nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
+#ifdef PZDEBUG
+                    if(nn<N)
+                    {
+                        DebugStop();
+                    }
+#endif
                         memcpy(fNodeIndexes,&nodeindexes[0],nn*sizeof(long));
                         int i;
                         for(i=nn; i<N; i++) fNodeIndexes[i]=-1;

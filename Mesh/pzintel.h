@@ -120,14 +120,14 @@ public:
      * @brief Returns a reference to the connect in the middle of the side
      * @param is side which is being queried
      */
-    virtual TPZConnect &MidSideConnect(int is);
+    virtual TPZConnect &MidSideConnect(int is) const;
     
 	
 	/** @brief Returns the index of the c th connect object along side is*/
 	long SideConnectIndex(int icon,int is) const;
 	
 	/** @brief Returns a pointer to the icon th connect object along side is */
-	TPZConnect *SideConnect(int icon,int is);
+	TPZConnect &SideConnect(int icon,int is);
 	
 	/** @brief Returns the dimension of the element */
 	virtual int Dimension() const = 0;
@@ -160,8 +160,10 @@ public:
 	int AdjustPreferredSideOrder(int side, int order);
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-	virtual int SideOrder(int side) const = 0;
+	virtual int EffectiveSideOrder(int side) const = 0;
 	
+    /// return true if the connects associated with the side have dependency with large and if the dependency dimensions match
+    bool VerifyConstraintConsistency(int side, TPZCompElSide large) const;
 	/** @} */
 	
 	/**

@@ -480,7 +480,7 @@ public:
 	
 	/** */
 	virtual void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) = 0;
-	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) = 0;
+	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) const = 0;
 	
     /** @brief Compute a decomposition of the gradient of the mapping function, as a rotation matrix (Jacobian) and orthonormal basis (axes)  */
 	void Jacobian(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;

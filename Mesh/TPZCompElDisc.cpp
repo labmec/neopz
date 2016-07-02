@@ -450,13 +450,16 @@ int TPZCompElDisc::NShapeF() const {
 	
 }
 
-int TPZCompElDisc::NConnectShapeF(int inod) const {
+int TPZCompElDisc::NConnectShapeF(int inod, int order) const {
 #ifdef PZDEBUG2
 	if (inod != 0){
 		PZError << "\nFATAL ERROR AT " << __PRETTY_FUNCTION__
 		<< " - TPZCompElDisc has only one connect and inod = " << inod << "\n";
 	}
 #endif
+    if (order != Degree()) {
+        DebugStop();
+    }
 	return this->NShapeF();
 }
 
@@ -850,7 +853,7 @@ void TPZCompElDisc::SetDegree(int degree) {
 	this->fPreferredOrder = degree;
 	if (fConnectIndex < 0) return;
 	TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
-	c.SetOrder(degree);
+	c.SetOrder(degree,fConnectIndex);
 	long seqnum = c.SequenceNumber();
 	int nvar = 1;
 	TPZMaterial * mat = Material();

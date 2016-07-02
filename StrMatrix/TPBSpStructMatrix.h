@@ -18,7 +18,7 @@ class TPZMatrix;
 
 /** 
  * @ingroup structural
- * @brief Assembles on the pair equations. \ref structural "Structural Matrix"
+ * @brief Assembles only the pair equations. \ref structural "Structural Matrix"
  */
 class TPBSpStructMatrix : public TPZSpStructMatrix {
 public:    

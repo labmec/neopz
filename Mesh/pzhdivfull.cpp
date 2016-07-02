@@ -97,20 +97,20 @@ void TPZCompElHDivFull<TSHAPE>::SetSideOrder(int side, int order){
 		return;
 	}
 	TPZConnect &c = this->Connect(connectaux);
-    c.SetOrder(order);
+    c.SetOrder(order,this->fConnectIndexes[connectaux]);
     long seqnum = c.SequenceNumber();
     int nvar = 1;
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
     c.SetNState(nvar);
-    int nshape =this-> NConnectShapeF(connectaux);
+    int nshape =this-> NConnectShapeF(connectaux,order);
     c.SetNShape(nshape);
 	this-> Mesh()->Block().Set(seqnum,nshape*nvar);
 }
 
 
 template<class TSHAPE>
-int TPZCompElHDivFull<TSHAPE>::NConnectShapeF(int connect)const
+int TPZCompElHDivFull<TSHAPE>::NConnectShapeF(int connect, int order)const
 {
 	//TPZCompElHDiv<TSHAPE>::NConnectShapeF(connect);
 	
@@ -129,7 +129,6 @@ int TPZCompElHDivFull<TSHAPE>::NConnectShapeF(int connect)const
 			return -1;
 			
 		}
-		int order = TPZCompElHDiv<TSHAPE>::ConnectOrder(connect);
 		if(order < 0) return 0;
 		
 		TPZStack<int> smallsides;
@@ -190,7 +189,6 @@ int TPZCompElHDivFull<TSHAPE>::NConnectShapeF(int connect)const
 				return -1;
 				
 			}
-			int order = TPZCompElHDiv<TSHAPE>::ConnectOrder(connect);
 			
 			if(order < 0) return 0;
 			
@@ -276,7 +274,8 @@ void TPZCompElHDivFull<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<s
 				int lside=VectorSide[jvec];
                 long fshape1= FirstIndex[lside];
                 int nconside=this-> SideConnectLocId(0,lside);
-                int nshapecon=NConnectShapeF(nconside);
+                TPZConnect &c = this->Connect(nconside);
+                int nshapecon= c.NShape();
                 long fshape2= fshape1+nshapecon-2;
                 for (long ishape=fshape1; ishape<fshape2; ishape++)
                 {
@@ -325,7 +324,8 @@ void TPZCompElHDivFull<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<s
                 int lside=VectorSide[jvec];
                 long fshape1= FirstIndex[lside];
                 int nconside=this-> SideConnectLocId(0,lside);
-                int nshapecon=NConnectShapeF(nconside);
+                TPZConnect &c = this->Connect(nconside);
+                int nshapecon=c.NShape();
                 long fshape2= fshape1+nshapecon-2;
                 for (long ishape=fshape1; ishape<fshape2; ishape++)
                 {
@@ -369,7 +369,8 @@ int TPZCompElHDivFull<TSHAPE>::NFluxShapeF() const{
     int in,result=0;
     int nn=this->NConnects();
     for(in=0;in<nn;in++){
-        result += this-> NConnectShapeF(in);
+        TPZConnect &c = this->Connect(in);
+        result += this-> NConnectShapeF(in,c.Order());
     }
 	
 	

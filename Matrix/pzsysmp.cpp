@@ -15,11 +15,23 @@
 // ****************************************************************************
 
 template<class TVar>
-TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int rows,const int cols ) : TPZMatrix<TVar>(rows,cols) {
-	fDiag = 0;
-	fIA = 0;
-	fJA = 0;
-	fA = 0;
+TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZMatrix<TVar>() {
+#ifdef USING_MKL
+    fPardisoControl.SetMatrix(this);
+#endif
+    
+#ifdef CONSTRUCTOR
+    cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
+#endif
+}
+
+template<class TVar>
+TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const long rows,const long cols ) : TPZMatrix<TVar>(rows,cols) {
+
+#ifdef USING_MKL
+    fPardisoControl.SetMatrix(this);
+#endif
+
 #ifdef CONSTRUCTOR
 	cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
 #endif
@@ -28,14 +40,26 @@ TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int rows,const int cols ) : TPZMatrix
 template<class TVar>
 TPZSYsmpMatrix<TVar>::~TPZSYsmpMatrix() {
 	// Deletes everything associated with a TPZSYsmpMatrix
-	delete fDiag;       fDiag = 0;
-	delete fIA;			fIA = 0;
-	delete fJA;			fJA = 0;
-	delete fA;				fA = 0;
 #ifdef DESTRUCTOR
 	cerr << "~TPZSYsmpMatrix()\n";
 #endif
 }
+
+template<class TVar>
+TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator=(const TPZSYsmpMatrix<TVar> &copy) 
+{
+    TPZMatrix<TVar>::operator=(copy);
+    fIA =copy.fIA;
+    fJA = copy.fJA;
+    fA = copy.fA;
+    fDiag = copy.fDiag;
+#ifdef USING_MKL
+    fPardisoControl = copy.fPardisoControl;
+    fPardisoControl.SetMatrix(this);
+#endif
+    return *this;
+}
+
 
 // ****************************************************************************
 //
@@ -44,23 +68,47 @@ TPZSYsmpMatrix<TVar>::~TPZSYsmpMatrix() {
 // ****************************************************************************
 
 template<class TVar>
-const TVar &TPZSYsmpMatrix<TVar>::GetVal(const int r,const int c ) const {
+const TVar &TPZSYsmpMatrix<TVar>::GetVal(const long r,const long c ) const {
 	// Get the matrix entry at (row,col) without bound checking
-	
-	// Now look through the requested row and see if there is anything
-	// in column col
-	int row(r),col(c);
-	if ( col < row ) {
-		int t = col;
-		col = row;
-		row = t;
-	}
-	col++;
-	for(int ic=fIA[row]-1 ; ic < fIA[row+1]-1; ic++ ) {
+    long row(r),col(c);
+    if (r > c) {
+        long temp = r;
+        row = col;
+        col = temp;
+    }
+	for(int ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
 		if ( fJA[ic] == col ) return fA[ic];
 	}
 	return this->gZero;
 }
+
+/** @brief Put values without bounds checking \n
+ *  This method is faster than "Put" if DEBUG is defined.
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::PutVal(const long r,const long c,const TVar & val )
+{
+    // Get the matrix entry at (row,col) without bound checking
+    long row(r),col(c);
+    if (r > c) {
+        long temp = r;
+        row = col;
+        col = temp;
+    }
+    for(int ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
+        if ( fJA[ic] == col )
+        {
+            fA[ic] = val;
+            return 0;
+        }
+    }
+    if (val != (TVar(0.))) {
+        DebugStop();
+    }
+    return 0;
+    
+}
+
 
 // ****************************************************************************
 //
@@ -71,48 +119,34 @@ const TVar &TPZSYsmpMatrix<TVar>::GetVal(const int r,const int c ) const {
 template<class TVar>
 void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
 							 TPZFMatrix<TVar> &z,
-							 const TVar alpha,const TVar beta,const int opt,const int stride ) const {
+							 const TVar alpha,const TVar beta,const int opt) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
-	int  ir, ic;
-	int  r = (opt) ? this->Cols() : this->Rows();
+	long  ir, ic;
+	long  r = (opt) ? this->Cols() : this->Rows();
 	
 	// Determine how to initialize z
 	if(beta != 0) {
-		TVar *zp = &(z(0,0));
-		const REAL *yp = &(y.g(0,0));
-		TVar *zlast = zp+r*stride;
-		if(beta != 1. || (&z != &y && stride != 1)) {
-			while(zp < zlast) {
-				*zp = beta * (*yp);
-				zp += stride;
-				yp += stride;
-			}
-		}
-		else if(&z != &y) {
-			memcpy(zp,yp,r*sizeof(TVar));
-		}
+        z = y*beta;
 	} else {
-		TVar *zp = &(z(0,0)), *zlast = zp+r*stride;
-		while(zp != zlast) {
-			*zp = 0.;
-			zp += stride;
-		}
+        z.Zero();
 	}
 	
 	// Compute alpha * A * x
-	int jc;
-	for(ir=0; ir<this->Rows(); ir++) {
-		TVar xi = x.g(ir,0);
-		for(ic=fIA[ir]-1; ic<fIA[ir+1]-1; ic++) {
-			jc = fJA[ic] - 1;
-			z(ir*stride,0) += alpha * fA[ic] * x.g(jc*stride,0);
-			if ( jc != ir ) {
-				z(jc*stride,0) += alpha * fA[ic] * xi;
-			}
-		}
-	}
-	
+    long ncols = x.Cols();
+    for (long col=0; col<ncols; col++)
+    {
+        for(long ir=0; ir<this->Rows(); ir++) {
+            for(long ic=fIA[ir]; ic<fIA[ir+1]; ic++) {
+                long jc = fJA[ic];
+                z(ir,col) += alpha * fA[ic] * x.g(jc,col);
+                if(jc != ir)
+                {
+                    z(jc,col) += alpha * fA[ic] * x.g(ir,col);
+                }
+            }
+        }
+    }
 }
 
 // ****************************************************************************
@@ -124,7 +158,7 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 template<class TVar>
 void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const MatrixOutputFormat form) const {
 	// Print the matrix along with a identification title
-	if(form != EInputFormat) {
+	if(form == EInputFormat) {
 		out << "\nTSYsmpMatrix Print: " << title << '\n'
 		<< "\tRows    = " << this->Rows()  << '\n'
 		<< "\tColumns = " << this->Cols() << '\n';
@@ -132,13 +166,13 @@ void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const Mat
 		out << "\tIA\tJA\tA\n"
 		<< "\t--\t--\t-\n";
 		for(i=0; i<=this->Rows(); i++) {
-			std::cout << i      << '\t'
+			out << i      << '\t'
 			<< fIA[i] << '\t'
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}
 		for(i=this->Rows()+1; i<fIA[this->Rows()]-1; i++) {
-			std::cout << i      << "\t\t"
+			out << i      << "\t\t"
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}
@@ -156,89 +190,181 @@ void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const Mat
 
 template<class TVar>
 void TPZSYsmpMatrix<TVar>::ComputeDiagonal() {
-	if(!fDiag) fDiag = new TVar[this->Rows()];
+	if(!fDiag.size()) fDiag.resize(this->Rows());
 	for(int ir=0; ir<this->Rows(); ir++) {
 		fDiag[ir] = GetVal(ir,ir);
 	}
 }
 
+/** @brief Fill matrix storage with randomic values */
+/** This method use GetVal and PutVal which are implemented by each type matrices */
 template<class TVar>
-void TPZSYsmpMatrix<TVar>::SolveSOR( int &numiterations,const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
-							  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,
-							  const TVar overrelax, TVar &tol,
-							  const int FromCurrent,const int direction )  {
-	
-	if(!fDiag) {
-		std::cout << "TPZSYsmpMatrix::SolveSOR cannot be called without diagonal\n";
-		numiterations = 0;
-		if(residual) {
-			Residual(x,rhs,*residual);
-			tol = sqrt(Norm(*residual));
-		}
-		return;
-	}
-	int irStart = 0,irLast = this->Rows(),irInc = 1;
-	if(direction < 0) {
-		irStart = this->Rows()-1;
-		irLast = -1;
-		irInc = -1;
-	}
-	if(!FromCurrent) x.Zero();
-	TVar eqres = 2.*tol;
-	TVar xnewval;
-	
-	int  iteration, ij, ic;
-	TVar xi;
-	
-	for(iteration=0; iteration<numiterations && eqres >= tol; iteration++) {
-		eqres = 0.;
-		int ir=irStart;
-		if( irInc < 0 ) {
-			scratch = rhs;
-			for(ir=0; ir<this->Rows(); ir++) {
-				xi = x(ir,0);
-				for(ic=fIA[ir]-1; ic<fIA[ir+1]-1; ic++) {
-					ij = fJA[ic]-1;
-					if( ij != ir ) {
-						scratch(ij,0) -= fA[ic] * xi;
-					}
-				}
-			}
-			for(ir=irStart; ir!=irLast; ir+=irInc) {
-				xnewval = 0.0;
-				for(ic=fIA[ir]-1; ic<fIA[ir+1]-1; ic++) {
-					ij = fJA[ic]-1;
-					xnewval -= fA[ic] * x(ij,0);
-				}
-				scratch(ir,0) += xnewval;
-				eqres += scratch(ir,0)*scratch(ir,0);
-				x(ir,0) += overrelax*(scratch(ir,0)/fDiag[ir]);
-			}
-		}
-		else {
-			scratch = rhs;
-			while(ir != irLast) {
-				xnewval=0.0;
-				for(ic=fIA[ir]-1; ic<fIA[ir+1]-1; ic++) {
-					xnewval -= fA[ic] * x(fJA[ic]-1,0);
-				}
-				scratch(ir,0) += xnewval;
-				eqres += scratch(ir,0)*scratch(ir,0);
-				x(ir,0) += overrelax*(scratch(ir,0)/fDiag[ir]);
-				xi = x(ir,0);
-				for(ic=fIA[ir]-1; ic<fIA[ir+1]-1; ic++) {
-					ij = fJA[ic]-1;
-					if( ij != ir ) {
-						scratch(ij,0) -= fA[ic] * xi;
-					}
-				}
-				ir += irInc;
-			}
-		}
-		eqres = sqrt(eqres);
-	}
-	tol = eqres;
-	numiterations = iteration;
-	if(residual) Residual(x,rhs,*residual);
+void TPZSYsmpMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric)
+{
+    if (!symmetric || nrow != ncol) {
+        DebugStop();
+    }
+    TPZFMatrix<TVar> orig;
+    orig.AutoFill(nrow,ncol,symmetric);
+    
+    TPZVec<long> IA(nrow+1);
+    TPZStack<long> JA;
+    TPZStack<TVar> A;
+    IA[0] = 0;
+    TPZVec<std::set<long> > eqs(nrow);
+    for (long row=0; row<nrow; row++) {
+        eqs[row].insert(row);
+        for (long col = 0; col<ncol; col++) {
+            REAL test = rand()*1./RAND_MAX;
+            if (test > 0.5) {
+                eqs[row].insert(col);
+                if (symmetric) {
+                    eqs[col].insert(row);
+                }
+            }
+        }
+    }
+    long pos=0;
+    for (long row=0; row< nrow; row++) {
+        for (std::set<long>::iterator col = eqs[row].begin(); col != eqs[row].end(); col++) {
+            if(*col >= row)
+            {
+                JA.Push(*col);
+                A.Push(orig(row,*col));
+            }
+        }
+        IA[row+1] = JA.size();
+    }
+    TPZMatrix<TVar>::Resize(nrow,ncol);
+    SetData(IA, JA, A);
 }
 
+#ifdef USING_MKL
+
+#include "TPZPardisoControl.h"
+/**
+ * @name Factorization
+ * @brief Those member functions perform the matrix factorization
+ * @{
+ */
+
+
+/**
+ * @brief Decomposes the current matrix using LDLt. \n
+ * The current matrix has to be symmetric.
+ * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<long> &singular)
+{
+    Decompose_LDLt();
+    return 1;
+}
+/** @brief Decomposes the current matrix using LDLt. */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
+{
+    if(this->IsDecomposed() == ELDLt) return 1;
+    if (this->IsDecomposed() != ENoDecompose) {
+        DebugStop();
+    }
+    fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ESymmetric,TPZPardisoControl<TVar>::EIndefinite);
+    fPardisoControl.Decompose();
+    this->SetIsDecomposed(ELDLt);
+    return 1;
+    
+}
+
+/** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
+{
+    if(this->IsDecomposed() == ECholesky) return 1;
+    if (this->IsDecomposed() != ENoDecompose) {
+        DebugStop();
+    }
+
+    fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ESymmetric,TPZPardisoControl<TVar>::EPositiveDefinite);
+    fPardisoControl.Decompose();
+
+    this->SetIsDecomposed(ECholesky);
+    return 1;
+}
+/**
+ * @brief Decomposes the current matrix using Cholesky method.
+ * @param singular
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<long> &singular)
+{
+    return Decompose_Cholesky();
+}
+
+
+
+/** @} */
+
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
+{
+    TPZFMatrix<TVar> x(*b);
+    fPardisoControl.Solve(*b,x);
+    *b = x;
+    return 1;
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
+{
+    return 1;
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
+{
+    return 1;
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is lower triangular.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
+{
+    TPZFMatrix<TVar> x(*b);
+    fPardisoControl.Solve(*b,x);
+    *b = x;
+    return 1;
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is upper triangular.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
+{
+    return 1;
+}
+
+
+#endif
+
+
+
+template class TPZSYsmpMatrix<double>;
+template class TPZSYsmpMatrix<float>;

@@ -78,11 +78,11 @@ public:
 	 * @brief It reads the mesh since the archive of entrance finemesh, or since the fFineGeoMesh
 	 * passed in the constructor, and returns extended mesh. \n
 	 * The extension is from n (=1,2) dimensional mesh to (n+1) (=2,3) dimensional.
-	 * @param naumentedlayers Numbers of layers to be incremented.
+	 * @param numlayers Numbers of layers to be incremented.
 	 * @param matidbottom Material id to bottom boundary surface after to extrude process.
 	 * @param matidtop Material id to top boundary surface after to extrude process.
 	 */
-	TPZGeoMesh* ExtendedMesh(int naumentedlayers,int matidbottom=0,int matidtop=0);
+	TPZGeoMesh* ExtendedMesh(int numlayers,int matidbottom=0,int matidtop=0);
     
     void SetElType(int eltype)
     {

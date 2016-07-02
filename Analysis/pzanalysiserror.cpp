@@ -310,7 +310,7 @@ void TPZAnalysisError::HPAdapt(REAL CurrentEtaAdmissible, std::ostream &out) {
 		if(ising < nsing) continue;
 		//calculo da ordem pn do elemento atual
 		int nsides = elem->Reference()->NSides();
-		REAL pFo = double(elem->SideOrder(nsides-1));//quadrilatero
+		REAL pFo = double(elem->EffectiveSideOrder(nsides-1));//quadrilatero
 		
 		// Newton's Method -> compute pNew    
 		REAL pFn = pFo, res = 10.0, phi, del, dph, tol = 0.001;

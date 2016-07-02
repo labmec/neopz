@@ -88,7 +88,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   TVar &operator()(const long row);
 
   virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-		       const TVar	alpha,const TVar beta ,const int opt = 0,const int stride = 1 ) const ;
+		       const TVar	alpha,const TVar beta ,const int opt = 0) const ;
     
     
     /** @brief Updates the values of the matrix based on the values of the matrix */
@@ -159,7 +159,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
     
     /** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
-	void AutoFill();
+	void AutoFill(long nrow, long ncol, int symmetric);
 
 
  protected:
