@@ -17,9 +17,9 @@
 //#define Solution1
 //#define Solution2
 //#define Solution3
-//#define Solution4
+#define Solution4
 //#define Solution5
-#define Solution6
+//#define Solution6
 
 const int  norder = 6;
 
@@ -845,7 +845,7 @@ void LaplaceInSolidSphere::SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &solp,
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 5.0;
+    REAL d = 1.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -950,7 +950,7 @@ void LaplaceInSolidSphere::Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &ff){
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 5.0;
+    REAL d = 1.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -1176,7 +1176,7 @@ void LaplaceInSolidSphere::ForcingBC5D(const TPZVec<REAL> &pt, TPZVec<STATE> &so
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 5.0;
+    REAL d = 1.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -1478,7 +1478,7 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, 
 TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 {
 
-    int intorder = 12;
+    int intorder = 0;
     
 //#ifdef Solution4
 //    int intorder = 10;
@@ -1691,7 +1691,7 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZComp
 
 void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual, REAL & error_div)
 {
-    std::cout << "Computing Error " << std::endl;
+    std::cout << "Begin:: Computing Error " << std::endl;
     
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
@@ -1730,7 +1730,7 @@ void LaplaceInSolidSphere::ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdi
     error_dual      = sqrt(globalerrorsDual[1]);
     error_primal    = sqrt(globalerrorsPrimal[1]);
  
-    std::cout << "Finished Computing Error " << std::endl;
+    std::cout << "End:: Computing Error " << std::endl;
     
     
 }

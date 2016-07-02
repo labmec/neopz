@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
         saidaerros << "\nPARA p = " << p << endl;
         saidaerros << "ndiv" << setw(10) <<"NDoF"<< setw(20)<<"NDoFCond"<< setw(20)<< "Assemble"<< setw(20) << "Solve" << setw(20) <<"Ttotal" << setw(20) << "Error primal" << setw(20) <<"Error dual" << setw(20) <<"Error div \n";
         
-        for (ndiv=0; ndiv<4; ndiv++)
+        for (ndiv=0; ndiv<3; ndiv++)
         {
             
             if (dim==2)
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
                     LaplaceInSolidSphere * sphere = new LaplaceInSolidSphere();
                     bool HdivMaisMais = false;
                     int k = HdivMaisMais ? p+1 : p;
-                    sphere->SetMeshStyle(LaplaceInSolidSphere::EBlend);
+                    sphere->SetMeshStyle(LaplaceInSolidSphere::EQuadratic);
                     sphere->Run( k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
                 }
                 else
