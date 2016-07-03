@@ -11,8 +11,6 @@
 #include "pzmanvector.h"
 #include "pzelmat.h"
 
-<<<<<<< HEAD
-=======
 #ifdef USING_BLAS
 #define USING_DGER
 #ifdef MACOSX
@@ -29,7 +27,6 @@
 //#define USING_DGER
 #endif
 
->>>>>>> GradOfX
 
 /**
  * @brief Class which implements an element which condenses the internal connects
