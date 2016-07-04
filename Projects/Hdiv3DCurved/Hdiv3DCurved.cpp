@@ -181,7 +181,7 @@ void ComputeApproximation(SimulationCase sim_data){
             boost::posix_time::ptime int_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
             
-            std::cout << "Domain volume = " << volume << "; Time for integration = " << int_t2-int_t1 <<std::endl;
+//            std::cout << "Domain volume = " << volume << "; Time for integration = " << int_t2-int_t1 <<std::endl;
             
 #ifdef PZDEBUG
             
@@ -232,7 +232,8 @@ void ComputeApproximation(SimulationCase sim_data){
             STATE error_time = 0.0;
             
             // current summary
-            convergence << setw(5) << h << setw(10) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
+//            convergence << setw(5) << h << setw(10) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
+            convergence << setw(5) << h << setw(10) << ndof << setw(25) << ndof_cond << setw(25) << -1 << setw(25) << -1 << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
             
         }
         
