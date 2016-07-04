@@ -1,3 +1,9 @@
+
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <math.h>
+
 #include "pzlog.h"
 #include "tpzautopointer.h"
 #include "TPZRefPatternTools.h"
@@ -72,12 +78,12 @@ TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase sim_data);
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase sim_data);
 TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase sim_data);
 
-TPZManVector<STATE,3> ParametricSphere(REAL radius,REAL phi,REAL theta);
+TPZManVector<STATE,3> ParametricSphere(REAL radius,REAL theta,REAL phi);
 void TransformToQuadratic(TPZGeoMesh *gmesh);
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
 
 
-TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data);
+TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof);
 
 TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); //  Primal approximation
 TPZCompMesh * DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // Dual approximation
@@ -89,8 +95,10 @@ TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase sim_data);
 void PosProcess(TPZCompMesh* cmesh, TPZAnalysis * an, std::string file, SimulationCase sim_data);
 
 void ComputeCases(TPZStack<SimulationCase> cases);
-void ComputeConvergenceRates(SimulationCase sim_data);
+void ComputeApproximation(SimulationCase sim_data);
+void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence);
 
+STATE IntegrateVolume(TPZGeoMesh * geometry);
 
 int main()
 {
@@ -104,11 +112,11 @@ int main()
     // Primal Formulation over the solid sphere
     struct SimulationCase H1Case;
     H1Case.IsHdivQ = false;
-    H1Case.n_h_levels = 2;
+    H1Case.n_h_levels = 1;
     H1Case.n_p_levels = 1;
     H1Case.int_order  = 5;
     H1Case.n_threads  = 0;
-    H1Case.mesh_type = "quadratic";
+    H1Case.mesh_type = "linear";
     H1Case.domain_type = "sphere";
     H1Case.conv_summary = "convergence_summary";
     H1Case.dump_folder = "H1_sphere";
@@ -126,24 +134,54 @@ void ComputeCases(TPZStack<SimulationCase> cases){
     
     int n_cases = cases.size();
     for (int i = 0; i < n_cases; i++) {
-        ComputeConvergenceRates(cases[i]);
+        ComputeApproximation(cases[i]);
     }
 }
 
-void ComputeConvergenceRates(SimulationCase sim_data){
+void ComputeApproximation(SimulationCase sim_data){
     
     // Creating the directory
     std::string command = "mkdir " + sim_data.dump_folder;
     system(command.c_str());
     
+    std::stringstream summary;
+    summary   << sim_data.dump_folder << "/" "conv" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << ".txt";
+    std::ofstream convergence(summary.str(),ios::app);
+    
+    TPZManVector<STATE,10> p_error(sim_data.n_h_levels+1,1.0);
+    TPZManVector<STATE,10> d_error(sim_data.n_h_levels+1,1.0);
+    TPZManVector<STATE,10> h_error(sim_data.n_h_levels+1,1.0);
+    
+    TPZManVector<STATE,10> p_conv(sim_data.n_h_levels,0.0);
+    TPZManVector<STATE,10> d_conv(sim_data.n_h_levels,0.0);
+    TPZManVector<STATE,10> h_conv(sim_data.n_h_levels,0.0);
+    
     int n_h_levels = sim_data.n_h_levels;
     int n_p_levels = sim_data.n_p_levels;
     
+
     for (int p = 1; p <= n_p_levels; p++) {
+        
+        convergence << std::endl;        
+        convergence << " Polynomial order  =  " << p << std::endl;
+        convergence << setw(5)  << " h" << setw(10) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
+        
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
             TPZGeoMesh * gmesh = GeomtricMesh(h, sim_data);
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime int_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+            STATE volume = IntegrateVolume(gmesh);
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime int_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+            std::cout << "Domain volume = " << volume << "; Time for integration = " << int_t2-int_t1 <<std::endl;
             
 #ifdef PZDEBUG
             
@@ -160,7 +198,8 @@ void ComputeConvergenceRates(SimulationCase sim_data){
 #endif
             
             // Compute the geometry
-            TPZCompMesh * cmesh = ComputationalMesh(gmesh, p, sim_data);
+            long ndof, ndof_cond;
+            TPZCompMesh * cmesh = ComputationalMesh(gmesh, p, sim_data, ndof);
             
             // Create Analysis
             TPZAnalysis * analysis = CreateAnalysis(cmesh,sim_data);
@@ -168,11 +207,13 @@ void ComputeConvergenceRates(SimulationCase sim_data){
 #ifdef USING_BOOST
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-            analysis->Assemble();
             
+            analysis->Assemble();
+            ndof_cond = analysis->Rhs().Rows();
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
+            
             analysis->Solve();
             
 #ifdef USING_BOOST
@@ -188,18 +229,44 @@ void ComputeConvergenceRates(SimulationCase sim_data){
             PosProcess(cmesh, analysis, file, sim_data);
             
             // compute the error
+            STATE error_time = 0.0;
             
-            
-            // current output summary
+            // current summary
+            convergence << setw(5) << h << setw(10) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
             
         }
         
+        // compute rates
+        ComputeConvergenceRates(p_error,p_conv);
+        ComputeConvergenceRates(d_error,d_conv);
+        ComputeConvergenceRates(h_error,h_conv);
+        
+        
         // print convergence summary
+        convergence << std::endl;
+        convergence << " Convergence rates summary " << std::endl;
+        convergence << " Polynomial order  =  " << p << std::endl;
+        convergence << " Primal convergence rates = " << setw(5) << p_conv << std::endl;
+        convergence << " Dual convergence rates = " << setw(5) << d_conv << std::endl;
+        convergence << " H1 or Hdiv convergence rates = " << setw(5) << h_conv << std::endl;
+        convergence << std::endl;
+        convergence << " ------------------------------------------------------------------ " << std::endl;
+        
         
     }
     
 }
 
+void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence){
+    
+    int ndata = error.size();
+    STATE log0p5 = log(0.5);
+    for (int i = 1; i < ndata; i++) {
+        STATE logerror = log(error[i-1]);
+        STATE logerrori = log(error[i]);
+        convergence[i-1] = (logerrori - logerror)/log0p5;
+    }
+}
 
 void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     DebugStop();
@@ -241,6 +308,53 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
 #endif
 }
 
+STATE IntegrateVolume(TPZGeoMesh * geometry){
+
+    int order = 10;
+    int nel = geometry->NElements();
+    STATE domain_volume = 0.0;
+    
+    for(int iel  = 0; iel < nel; iel++)
+    {
+    
+        TPZGeoEl * gel = geometry->Element(iel);
+
+#ifdef Solution1
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->Dimension() !=3) {
+            continue;
+        }
+        
+        if (gel->HasSubElement()){
+            continue;
+        }
+        
+        int gel_volume_side = gel->NSides() - 1;
+        TPZIntPoints * int_rule = gel->CreateSideIntegrationRule(gel_volume_side, order);
+        int npoints = int_rule->NPoints();
+        
+        TPZManVector<STATE,3> triplet(3,0.0);
+        STATE w;
+        
+        TPZFMatrix<REAL> jac;
+        TPZFMatrix<REAL> axes;
+        TPZFMatrix<REAL> jacinv;
+        REAL detjac;
+        
+        STATE el_volume = 0.0;
+        for (int i = 0; i < npoints ; i++) {
+            int_rule->Point(i, triplet, w);
+            gel->Jacobian(triplet, jac, axes, detjac, jacinv);
+            el_volume += w * detjac;
+        }
+        
+        domain_volume += el_volume;
+    }
+    return domain_volume;
+}
 
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase sim_data){
     
@@ -274,7 +388,7 @@ TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase sim_data){
     return geometry;
 }
 
-TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
+TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof){
     
     TPZCompMesh * mesh = NULL;
     
@@ -335,15 +449,15 @@ void PosProcess(TPZCompMesh* cmesh, TPZAnalysis  * an, std::string file, Simulat
     
     if (sim_data.IsHdivQ) {
         vecnames.Push("Flux");
-        vecnames.Push("ExactFlux");
+//        vecnames.Push("ExactFlux");
         scalnames.Push("Pressure");
-        scalnames.Push("ExactPressure");
-        scalnames.Push("Rhs");
+//        scalnames.Push("ExactPressure");
+//        scalnames.Push("Rhs");
         scalnames.Push("Divergence");
     }
     else{
         vecnames.Push("Flux");
-        scalnames.Push("Solution");
+        scalnames.Push("Pressure");
     }
 
     int div = 0;
@@ -475,45 +589,43 @@ TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase sim
         REAL radius = radius_o - REAL(il)*dr;
         points[0].Resize(3, 0.0);
         points[0][0]=radius;
-        points[0][1]=M_PI-cphi;
+        points[0][1]=cphi;
         points[0][2]=M_PI/4.0;
         
         points[1].Resize(3, 0.0);
         points[1][0]=radius;
         points[1][1]=cphi;
-        points[1][2]=M_PI/4.0;
+        points[1][2]=-M_PI/4.0;
         
         points[2].Resize(3, 0.0);
         points[2][0]=radius;
         points[2][1]=cphi;
-        points[2][2]=-M_PI/4.0;
+        points[2][2]=-3.0*M_PI/4.0;
         
         points[3].Resize(3, 0.0);
         points[3][0]=radius;
-        points[3][1]=M_PI-cphi;
-        points[3][2]=-M_PI/4.0;
+        points[3][1]=cphi;
+        points[3][2]=3.0*M_PI/4.0;
         
         points[4].Resize(3, 0.0);
         points[4][0]=radius;
         points[4][1]=M_PI-cphi;
-        points[4][2]=3.0*M_PI/4.0;
+        points[4][2]=M_PI/4.0;
         
         points[5].Resize(3, 0.0);
         points[5][0]=radius;
-        points[5][1]=cphi;
-        points[5][2]=3.0*M_PI/4.0;
+        points[5][1]=M_PI-cphi;
+        points[5][2]=-M_PI/4.0;
         
         points[6].Resize(3, 0.0);
         points[6][0]=radius;
-        points[6][1]=cphi;
+        points[6][1]=M_PI-cphi;
         points[6][2]=-3.0*M_PI/4.0;
         
         points[7].Resize(3, 0.0);
         points[7][0]=radius;
         points[7][1]=M_PI-cphi;
-        points[7][2]=-3.0*M_PI/4.0;
-        
-        
+        points[7][2]=3.0*M_PI/4.0;
         
         for (int i = 0; i < basenodes; i++) {
             coord = ParametricSphere(points[i][0],points[i][1],points[i][2]);
@@ -530,43 +642,43 @@ TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase sim
         new TPZGeoElRefPattern<  pzgeom::TPZGeoQuad  > (id,TopolQuad,matid,*geomesh);
         id++;
         
+        TopolQuad[0] = 0+il*basenodes;
+        TopolQuad[1] = 3+il*basenodes;
+        TopolQuad[2] = 7+il*basenodes;
+        TopolQuad[3] = 4+il*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 0+il*basenodes;
+        TopolQuad[1] = 1+il*basenodes;
+        TopolQuad[2] = 5+il*basenodes;
+        TopolQuad[3] = 4+il*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 3+il*basenodes;
+        TopolQuad[1] = 2+il*basenodes;
+        TopolQuad[2] = 6+il*basenodes;
+        TopolQuad[3] = 7+il*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad  > (id,TopolQuad,matid,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 1+il*basenodes;
+        TopolQuad[1] = 2+il*basenodes;
+        TopolQuad[2] = 6+il*basenodes;
+        TopolQuad[3] = 5+il*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
+        id++;
+        
         TopolQuad[0] = 4+il*basenodes;
         TopolQuad[1] = 5+il*basenodes;
         TopolQuad[2] = 6+il*basenodes;
         TopolQuad[3] = 7+il*basenodes;
         new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
         id++;
-        
-        TopolQuad[0] = 0+il*basenodes;
-        TopolQuad[1] = 4+il*basenodes;
-        TopolQuad[2] = 5+il*basenodes;
-        TopolQuad[3] = 1+il*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
-        id++;
-        
-        TopolQuad[0] = 3+il*basenodes;
-        TopolQuad[1] = 7+il*basenodes;
-        TopolQuad[2] = 6+il*basenodes;
-        TopolQuad[3] = 2+il*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad  > (id,TopolQuad,matid,*geomesh);
-        id++;
-        
-        TopolQuad[0] = 0+il*basenodes;
-        TopolQuad[1] = 4+il*basenodes;
-        TopolQuad[2] = 7+il*basenodes;
-        TopolQuad[3] = 3+il*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
-        id++;
-        
-        TopolQuad[0] = 1+il*basenodes;
-        TopolQuad[1] = 5+il*basenodes;
-        TopolQuad[2] = 6+il*basenodes;
-        TopolQuad[3] = 2+il*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (id,TopolQuad,matid,*geomesh);
-        id++;
     }
     
-    matid = 1;
+    matid = sim_data.omega_ids[0];
     
     for (int il = 0; il < nl - 1 ; il++) {
         //      Inserting blend elements
@@ -581,6 +693,50 @@ TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase sim
         new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
         id++;
         
+        TopolCube[0] = 0+il*basenodes;
+        TopolCube[1] = 3+il*basenodes;
+        TopolCube[2] = 7+il*basenodes;
+        TopolCube[3] = 4+il*basenodes;
+        TopolCube[4] = 0+(il+1)*basenodes;
+        TopolCube[5] = 3+(il+1)*basenodes;
+        TopolCube[6] = 7+(il+1)*basenodes;
+        TopolCube[7] = 4+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
+        TopolCube[0] = 0+il*basenodes;
+        TopolCube[1] = 1+il*basenodes;
+        TopolCube[2] = 5+il*basenodes;
+        TopolCube[3] = 4+il*basenodes;
+        TopolCube[4] = 0+(il+1)*basenodes;
+        TopolCube[5] = 1+(il+1)*basenodes;
+        TopolCube[6] = 5+(il+1)*basenodes;
+        TopolCube[7] = 4+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
+        TopolCube[0] = 3+il*basenodes;
+        TopolCube[1] = 2+il*basenodes;
+        TopolCube[2] = 6+il*basenodes;
+        TopolCube[3] = 7+il*basenodes;
+        TopolCube[4] = 3+(il+1)*basenodes;
+        TopolCube[5] = 2+(il+1)*basenodes;
+        TopolCube[6] = 6+(il+1)*basenodes;
+        TopolCube[7] = 7+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
+        TopolCube[0] = 1+il*basenodes;
+        TopolCube[1] = 2+il*basenodes;
+        TopolCube[2] = 6+il*basenodes;
+        TopolCube[3] = 5+il*basenodes;
+        TopolCube[4] = 1+(il+1)*basenodes;
+        TopolCube[5] = 2+(il+1)*basenodes;
+        TopolCube[6] = 6+(il+1)*basenodes;
+        TopolCube[7] = 5+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
+        id++;
+        
         TopolCube[0] = 4+il*basenodes;
         TopolCube[1] = 5+il*basenodes;
         TopolCube[2] = 6+il*basenodes;
@@ -589,50 +745,6 @@ TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase sim
         TopolCube[5] = 5+(il+1)*basenodes;
         TopolCube[6] = 6+(il+1)*basenodes;
         TopolCube[7] = 7+(il+1)*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
-        id++;
-        
-        TopolCube[0] = 0+il*basenodes;
-        TopolCube[1] = 4+il*basenodes;
-        TopolCube[2] = 5+il*basenodes;
-        TopolCube[3] = 1+il*basenodes;
-        TopolCube[4] = 0+(il+1)*basenodes;
-        TopolCube[5] = 4+(il+1)*basenodes;
-        TopolCube[6] = 5+(il+1)*basenodes;
-        TopolCube[7] = 1+(il+1)*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
-        id++;
-        
-        TopolCube[0] = 3+il*basenodes;
-        TopolCube[1] = 7+il*basenodes;
-        TopolCube[2] = 6+il*basenodes;
-        TopolCube[3] = 2+il*basenodes;
-        TopolCube[4] = 3+(il+1)*basenodes;
-        TopolCube[5] = 7+(il+1)*basenodes;
-        TopolCube[6] = 6+(il+1)*basenodes;
-        TopolCube[7] = 2+(il+1)*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
-        id++;
-        
-        TopolCube[0] = 0+il*basenodes;
-        TopolCube[1] = 4+il*basenodes;
-        TopolCube[2] = 7+il*basenodes;
-        TopolCube[3] = 3+il*basenodes;
-        TopolCube[4] = 0+(il+1)*basenodes;
-        TopolCube[5] = 4+(il+1)*basenodes;
-        TopolCube[6] = 7+(il+1)*basenodes;
-        TopolCube[7] = 3+(il+1)*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
-        id++;
-        
-        TopolCube[0] = 1+il*basenodes;
-        TopolCube[1] = 5+il*basenodes;
-        TopolCube[2] = 6+il*basenodes;
-        TopolCube[3] = 2+il*basenodes;
-        TopolCube[4] = 1+(il+1)*basenodes;
-        TopolCube[5] = 5+(il+1)*basenodes;
-        TopolCube[6] = 6+(il+1)*basenodes;
-        TopolCube[7] = 2+(il+1)*basenodes;
         new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (id,TopolCube,matid,*geomesh);
         id++;
         
@@ -654,7 +766,7 @@ TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase sim
     }
     
     int axis = 1;
-    REAL angle = -45.0;
+    REAL angle = 0.0;//-45.0;
     RotateGeomesh(geomesh, angle, axis);
     return geomesh;
 }
@@ -706,44 +818,43 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase sim_data)
         REAL radius = radius_o - REAL(il)*dr;
         points[0].Resize(3, 0.0);
         points[0][0]=radius;
-        points[0][1]=M_PI-cphi;
+        points[0][1]=cphi;
         points[0][2]=M_PI/4.0;
         
         points[1].Resize(3, 0.0);
         points[1][0]=radius;
         points[1][1]=cphi;
-        points[1][2]=M_PI/4.0;
+        points[1][2]=-M_PI/4.0;
         
         points[2].Resize(3, 0.0);
         points[2][0]=radius;
         points[2][1]=cphi;
-        points[2][2]=-M_PI/4.0;
+        points[2][2]=-3.0*M_PI/4.0;
         
         points[3].Resize(3, 0.0);
         points[3][0]=radius;
-        points[3][1]=M_PI-cphi;
-        points[3][2]=-M_PI/4.0;
+        points[3][1]=cphi;
+        points[3][2]=3.0*M_PI/4.0;
         
         points[4].Resize(3, 0.0);
         points[4][0]=radius;
         points[4][1]=M_PI-cphi;
-        points[4][2]=3.0*M_PI/4.0;
+        points[4][2]=M_PI/4.0;
         
         points[5].Resize(3, 0.0);
         points[5][0]=radius;
-        points[5][1]=cphi;
-        points[5][2]=3.0*M_PI/4.0;
+        points[5][1]=M_PI-cphi;
+        points[5][2]=-M_PI/4.0;
         
         points[6].Resize(3, 0.0);
         points[6][0]=radius;
-        points[6][1]=cphi;
+        points[6][1]=M_PI-cphi;
         points[6][2]=-3.0*M_PI/4.0;
         
         points[7].Resize(3, 0.0);
         points[7][0]=radius;
         points[7][1]=M_PI-cphi;
-        points[7][2]=-3.0*M_PI/4.0;
-        
+        points[7][2]=3.0*M_PI/4.0;
         
         
         for (int i = 0; i < basenodes; i++) {
@@ -762,48 +873,48 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase sim_data)
         quad1->Geom().SetData(radius, xc);
         id++;
         
-        TopolQuad[0] = 4+il*basenodes;
-        TopolQuad[1] = 5+il*basenodes;
-        TopolQuad[2] = 6+il*basenodes;
-        TopolQuad[3] = 7+il*basenodes;
+        TopolQuad[0] = 0+il*basenodes;
+        TopolQuad[1] = 3+il*basenodes;
+        TopolQuad[2] = 7+il*basenodes;
+        TopolQuad[3] = 4+il*basenodes;
         TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad2 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
         quad2->Geom().SetData(radius, xc);
         id++;
         
         TopolQuad[0] = 0+il*basenodes;
-        TopolQuad[1] = 4+il*basenodes;
+        TopolQuad[1] = 1+il*basenodes;
         TopolQuad[2] = 5+il*basenodes;
-        TopolQuad[3] = 1+il*basenodes;
+        TopolQuad[3] = 4+il*basenodes;
         TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad3 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
         quad3->Geom().SetData(radius, xc);
         id++;
         
         TopolQuad[0] = 3+il*basenodes;
-        TopolQuad[1] = 7+il*basenodes;
+        TopolQuad[1] = 2+il*basenodes;
         TopolQuad[2] = 6+il*basenodes;
-        TopolQuad[3] = 2+il*basenodes;
+        TopolQuad[3] = 7+il*basenodes;
         TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad4 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
         quad4->Geom().SetData(radius, xc);
         id++;
         
-        TopolQuad[0] = 0+il*basenodes;
-        TopolQuad[1] = 4+il*basenodes;
-        TopolQuad[2] = 7+il*basenodes;
-        TopolQuad[3] = 3+il*basenodes;
+        TopolQuad[0] = 1+il*basenodes;
+        TopolQuad[1] = 2+il*basenodes;
+        TopolQuad[2] = 6+il*basenodes;
+        TopolQuad[3] = 5+il*basenodes;
         TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad5 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
         quad5->Geom().SetData(radius, xc);
         id++;
         
-        TopolQuad[0] = 1+il*basenodes;
+        TopolQuad[0] = 4+il*basenodes;
         TopolQuad[1] = 5+il*basenodes;
         TopolQuad[2] = 6+il*basenodes;
-        TopolQuad[3] = 2+il*basenodes;
+        TopolQuad[3] = 7+il*basenodes;
         TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > * quad6 = new TPZGeoElRefPattern< pzgeom::TPZQuadSphere< pzgeom::TPZGeoQuad > > (id,TopolQuad,matid,*geomesh);
         quad6->Geom().SetData(radius, xc);
         id++;
     }
     
-    matid = 1;
+    matid = sim_data.omega_ids[0];
     
     for (int il = 0; il < nl - 1 ; il++) {
         //      Inserting blend elements
@@ -818,6 +929,50 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase sim_data)
         geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
         id++;
         
+        TopolCube[0] = 0+il*basenodes;
+        TopolCube[1] = 3+il*basenodes;
+        TopolCube[2] = 7+il*basenodes;
+        TopolCube[3] = 4+il*basenodes;
+        TopolCube[4] = 0+(il+1)*basenodes;
+        TopolCube[5] = 3+(il+1)*basenodes;
+        TopolCube[6] = 7+(il+1)*basenodes;
+        TopolCube[7] = 4+(il+1)*basenodes;
+        geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
+        id++;
+        
+        TopolCube[0] = 0+il*basenodes;
+        TopolCube[1] = 1+il*basenodes;
+        TopolCube[2] = 5+il*basenodes;
+        TopolCube[3] = 4+il*basenodes;
+        TopolCube[4] = 0+(il+1)*basenodes;
+        TopolCube[5] = 1+(il+1)*basenodes;
+        TopolCube[6] = 5+(il+1)*basenodes;
+        TopolCube[7] = 4+(il+1)*basenodes;
+        geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
+        id++;
+        
+        TopolCube[0] = 3+il*basenodes;
+        TopolCube[1] = 2+il*basenodes;
+        TopolCube[2] = 6+il*basenodes;
+        TopolCube[3] = 7+il*basenodes;
+        TopolCube[4] = 3+(il+1)*basenodes;
+        TopolCube[5] = 7+(il+1)*basenodes;
+        TopolCube[6] = 6+(il+1)*basenodes;
+        TopolCube[7] = 2+(il+1)*basenodes;
+        geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
+        id++;
+        
+        TopolCube[0] = 1+il*basenodes;
+        TopolCube[1] = 2+il*basenodes;
+        TopolCube[2] = 6+il*basenodes;
+        TopolCube[3] = 5+il*basenodes;
+        TopolCube[4] = 1+(il+1)*basenodes;
+        TopolCube[5] = 2+(il+1)*basenodes;
+        TopolCube[6] = 6+(il+1)*basenodes;
+        TopolCube[7] = 5+(il+1)*basenodes;
+        geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
+        id++;
+        
         TopolCube[0] = 4+il*basenodes;
         TopolCube[1] = 5+il*basenodes;
         TopolCube[2] = 6+il*basenodes;
@@ -826,50 +981,6 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase sim_data)
         TopolCube[5] = 5+(il+1)*basenodes;
         TopolCube[6] = 6+(il+1)*basenodes;
         TopolCube[7] = 7+(il+1)*basenodes;
-        geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
-        id++;
-        
-        TopolCube[0] = 0+il*basenodes;
-        TopolCube[1] = 4+il*basenodes;
-        TopolCube[2] = 5+il*basenodes;
-        TopolCube[3] = 1+il*basenodes;
-        TopolCube[4] = 0+(il+1)*basenodes;
-        TopolCube[5] = 4+(il+1)*basenodes;
-        TopolCube[6] = 5+(il+1)*basenodes;
-        TopolCube[7] = 1+(il+1)*basenodes;
-        geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
-        id++;
-        
-        TopolCube[0] = 3+il*basenodes;
-        TopolCube[1] = 7+il*basenodes;
-        TopolCube[2] = 6+il*basenodes;
-        TopolCube[3] = 2+il*basenodes;
-        TopolCube[4] = 3+(il+1)*basenodes;
-        TopolCube[5] = 7+(il+1)*basenodes;
-        TopolCube[6] = 6+(il+1)*basenodes;
-        TopolCube[7] = 2+(il+1)*basenodes;
-        geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
-        id++;
-        
-        TopolCube[0] = 0+il*basenodes;
-        TopolCube[1] = 4+il*basenodes;
-        TopolCube[2] = 7+il*basenodes;
-        TopolCube[3] = 3+il*basenodes;
-        TopolCube[4] = 0+(il+1)*basenodes;
-        TopolCube[5] = 4+(il+1)*basenodes;
-        TopolCube[6] = 7+(il+1)*basenodes;
-        TopolCube[7] = 3+(il+1)*basenodes;
-        geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
-        id++;
-        
-        TopolCube[0] = 1+il*basenodes;
-        TopolCube[1] = 5+il*basenodes;
-        TopolCube[2] = 6+il*basenodes;
-        TopolCube[3] = 2+il*basenodes;
-        TopolCube[4] = 1+(il+1)*basenodes;
-        TopolCube[5] = 5+(il+1)*basenodes;
-        TopolCube[6] = 6+(il+1)*basenodes;
-        TopolCube[7] = 2+(il+1)*basenodes;
         geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
         id++;
         
@@ -891,7 +1002,7 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase sim_data)
     }
     
     int axis = 1;
-    REAL angle = -45.0;
+    REAL angle = 0.0;//-45.0;
     RotateGeomesh(geomesh, angle, axis);
 
     return geomesh;
@@ -916,12 +1027,12 @@ void TransformToQuadratic(TPZGeoMesh *gmesh)
 }
 
 
-TPZManVector<STATE,3> ParametricSphere(REAL radius,REAL phi,REAL theta)
+TPZManVector<STATE,3> ParametricSphere(REAL radius, REAL theta, REAL phi)
 {
     TPZManVector<STATE,3> xcoor(3,0.0);
-    xcoor[0] = radius * cos(theta) * sin(phi);
-    xcoor[1] = radius * sin(theta) * sin(phi);
-    xcoor[2] = radius * cos(phi) ;
+    xcoor[0] = radius * sin(theta) * cos(phi) ;
+    xcoor[1] = radius * sin(theta) * sin(phi) ;
+    xcoor[2] = radius * cos(theta) ;
     return xcoor;
 }
 
@@ -989,3 +1100,49 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
     }
     
 }
+
+//void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual, REAL & error_div)
+//{
+//    std::cout << "Begin:: Computing Error " << std::endl;
+//    
+//    long nel = hdivmesh->NElements();
+//    int dim = hdivmesh->Dimension();
+//    TPZManVector<STATE,10> globalerrorsDual(10,0.   );
+//    for (long el=0; el<nel; el++) {
+//        TPZCompEl *cel = hdivmesh->ElementVec()[el];
+//        if(cel->Reference()->Dimension()!=dim) continue;
+//        TPZManVector<STATE,10> elerror(10,0.);
+//        elerror.Fill(0.);
+//        cel->EvaluateError(SolExata, elerror, NULL);
+//        int nerr = elerror.size();
+//        for (int i=0; i<nerr; i++) {
+//            globalerrorsDual[i] += elerror[i]*elerror[i];
+//            
+//        }
+//    }
+//    
+//    
+//    nel = l2mesh->NElements();
+//    //int dim = l2mesh->Dimension();
+//    TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
+//    for (long el=0; el<nel; el++) {
+//        TPZCompEl *cel = l2mesh->ElementVec()[el];
+//        TPZManVector<STATE,10> elerror(10,0.);
+//        cel->EvaluateError(SolExata, elerror, NULL);
+//        int nerr = elerror.size();
+//        globalerrorsPrimal.resize(nerr);
+//        
+//        for (int i=0; i<nerr; i++) {
+//            globalerrorsPrimal[i] += elerror[i]*elerror[i];
+//        }
+//        
+//    }
+//    
+//    error_div    = sqrt(globalerrorsPrimal[0]);
+//    error_dual      = sqrt(globalerrorsDual[1]);
+//    error_primal    = sqrt(globalerrorsPrimal[1]);
+//    
+//    std::cout << "End:: Computing Error " << std::endl;
+//    
+//    
+//}

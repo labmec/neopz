@@ -1100,6 +1100,7 @@ void TPZGeoEl::JacobianXYZ(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<RE
 
 void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 
+    detjac = 0.0;
     int nrows = gradx.Rows();
     int ncols = gradx.Cols();
     int dim   = ncols;
@@ -1128,6 +1129,8 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jac(0,0)    = norm_v_1;
             detjac      = norm_v_1;
             jacinv(0,0) = 1.0/detjac;
+            
+            detjac = fabs(detjac);            
             
             if(IsZero(detjac))
             {
@@ -1186,11 +1189,15 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jac(0,0) = norm_v_1_til;
             jac(0,1) = v_1_dot_v_2/norm_v_1_til;
             jac(1,1) = norm_v_2_til;
+            
             detjac = jac(0,0)*jac(1,1)-jac(1,0)*jac(0,1);
+            
             jacinv(0,0) = +jac(1,1)/detjac;
             jacinv(1,1) = +jac(0,0)/detjac;
             jacinv(0,1) = -jac(0,1)/detjac;
             jacinv(1,0) = -jac(1,0)/detjac;
+            
+            detjac = fabs(detjac);
             
             if(IsZero(detjac))
             {
@@ -1224,7 +1231,7 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
                 jac(i,2)  = gradx.GetVal(i,2);
             }
             
-            detjac = -jac(0,2)*jac(1,1)*jac(2,0);//-a02 a11 a20
+            detjac -= jac(0,2)*jac(1,1)*jac(2,0);//- a02 a11 a20
             detjac += jac(0,1)*jac(1,2)*jac(2,0);//+ a01 a12 a20
             detjac += jac(0,2)*jac(1,0)*jac(2,1);//+ a02 a10 a21
             detjac -= jac(0,0)*jac(1,2)*jac(2,1);//- a00 a12 a21
@@ -1240,6 +1247,8 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jacinv(2,0) = (-jac(1,1)*jac(2,0)+jac(1,0)*jac(2,1))/detjac;//-a11 a20 + a10 a21
             jacinv(2,1) = ( jac(0,1)*jac(2,0)-jac(0,0)*jac(2,1))/detjac;//a01 a20 - a00 a21
             jacinv(2,2) = (-jac(0,1)*jac(1,0)+jac(0,0)*jac(1,1))/detjac;//-a01 a10 + a00 a11
+            
+            detjac = fabs(detjac);
             
             if(IsZero(detjac))
             {
