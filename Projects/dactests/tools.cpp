@@ -58,6 +58,10 @@ void tools::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL &assemble_time,
                 strmat.SetNumThreads(numthreads);
                 
                 an.SetStructuralMatrix(strmat);
+                
+                TPZStepSolver<STATE> step;
+                step.SetDirect(ELDLt); //caso simetrico
+                an.SetSolver(step);
             }
             else
             {

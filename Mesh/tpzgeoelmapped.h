@@ -276,14 +276,16 @@ public:
             const int dim = Geo::Dimension;
             TPZManVector<REAL,3> ksibar(father->Dimension());
         
-            TPZFNMatrix<9> gradxlocal;
-            this->GradX(qsi,gradxlocal);
+            TPZFNMatrix<9> gradxlocal(3,dim),gradxlocalT(dim,3);
             Geo::X(fCornerCo,qsi,ksibar);
+            Geo::GradX(fCornerCo,qsi,gradxlocal);
+            gradxlocal.Transpose(&gradxlocalT);
+        
             TPZFNMatrix<9> gradxfather;
             father->GradX(ksibar, gradxfather);
 
-            /// @brief Combining Variables
-            gradxfather.Multiply(gradxlocal, gradx);
+            // @brief Combining Variables
+            gradxfather.Multiply(gradxlocalT, gradx);
     }
 	
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/

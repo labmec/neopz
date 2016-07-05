@@ -6,4 +6,4 @@
 //
 //
 
-#include "TPZDualPoisson.hpp"
+#include "TPZDualPoisson.h"

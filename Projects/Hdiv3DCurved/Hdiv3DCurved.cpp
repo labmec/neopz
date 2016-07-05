@@ -1,3 +1,10 @@
+//
+//  Hdiv3DCurved.cpp
+//  Publication about Curved piola mapping for mixed formulation 3D simulations
+//
+//  Created by omar on 01/07/2016.
+//
+//
 
 #include <iostream>
 #include <string>
@@ -35,12 +42,15 @@
 
 #include "pzpoisson3d.h"
 #include "mixedpoisson.h"
+
+#include "TPZPrimalPoisson.h"
 #include "pzbndcond.h"
 
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
+#include "TPZSSpStructMatrix.h"
 
 #include "pzgmesh.h"
 #include "TPZVTKGeoMesh.h"
@@ -52,6 +62,8 @@
 
 struct SimulationCase {
     bool            IsHdivQ;
+    bool            UsePardisoQ;
+    bool            UseFrontalQ;
     int             n_h_levels;
     int             n_p_levels;
     int             int_order;
@@ -98,10 +110,16 @@ void ComputeCases(TPZStack<SimulationCase> cases);
 void ComputeApproximation(SimulationCase sim_data);
 void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence);
 
-STATE IntegrateVolume(TPZGeoMesh * geometry);
+STATE IntegrateVolume(TPZGeoMesh * geometry, SimulationCase sim_data);
+STATE IntegrateSolution(TPZCompMesh * cmesh,  SimulationCase sim_data);
+
+void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_h1);
 
 int main()
 {
+    
+  gRefDBase.InitializeAllUniformRefPatterns();
+    //	gRefDBase.InitializeRefPatterns();
     
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -112,11 +130,13 @@ int main()
     // Primal Formulation over the solid sphere
     struct SimulationCase H1Case;
     H1Case.IsHdivQ = false;
-    H1Case.n_h_levels = 1;
+    H1Case.UsePardisoQ = true;
+    H1Case.UseFrontalQ = false;
+    H1Case.n_h_levels = 2;
     H1Case.n_p_levels = 1;
-    H1Case.int_order  = 5;
-    H1Case.n_threads  = 0;
-    H1Case.mesh_type = "linear";
+    H1Case.int_order  = 15;
+    H1Case.n_threads  = 24;
+    H1Case.mesh_type = "blended";
     H1Case.domain_type = "sphere";
     H1Case.conv_summary = "convergence_summary";
     H1Case.dump_folder = "H1_sphere";
@@ -164,26 +184,28 @@ void ComputeApproximation(SimulationCase sim_data){
         
         convergence << std::endl;        
         convergence << " Polynomial order  =  " << p << std::endl;
-        convergence << setw(5)  << " h" << setw(10) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
+        convergence << setw(5)  << " h" << setw(25) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
         
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
             TPZGeoMesh * gmesh = GeomtricMesh(h, sim_data);
+     
+#ifdef PZDEBUG
             
 #ifdef USING_BOOST
             boost::posix_time::ptime int_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
             
-            STATE volume = IntegrateVolume(gmesh);
+            STATE volume = IntegrateVolume(gmesh, sim_data);
             
 #ifdef USING_BOOST
             boost::posix_time::ptime int_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
             
-//            std::cout << "Domain volume = " << volume << "; Time for integration = " << int_t2-int_t1 <<std::endl;
+            std::cout << "Domain volume = " << volume << "; Time for integration = " << int_t2-int_t1 <<std::endl;
             
-#ifdef PZDEBUG
+
             
             std::stringstream text_name;
             std::stringstream vtk_name;
@@ -201,6 +223,18 @@ void ComputeApproximation(SimulationCase sim_data){
             long ndof, ndof_cond;
             TPZCompMesh * cmesh = ComputationalMesh(gmesh, p, sim_data, ndof);
             
+#ifdef USING_BOOST
+            boost::posix_time::ptime int_p_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+            STATE p_integral = IntegrateSolution(cmesh, sim_data);
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime int_p_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+            std::cout << "Analytic pressure integral = " << p_integral << "; Time for integration = " << int_p_t2-int_p_t1 <<std::endl;
+            
             // Create Analysis
             TPZAnalysis * analysis = CreateAnalysis(cmesh,sim_data);
             
@@ -209,6 +243,7 @@ void ComputeApproximation(SimulationCase sim_data){
 #endif
             
             analysis->Assemble();
+            analysis->Rhs() *= -1.0;
             ndof_cond = analysis->Rhs().Rows();
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
@@ -229,11 +264,24 @@ void ComputeApproximation(SimulationCase sim_data){
             PosProcess(cmesh, analysis, file, sim_data);
             
             // compute the error
-            STATE error_time = 0.0;
+#ifdef USING_BOOST
+            boost::posix_time::ptime error_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+            if (sim_data.IsHdivQ) {
+                DebugStop();
+            }
+            else{
+                ErrorH1(cmesh, p_error[h], d_error[h], h_error[h]);
+            }
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime error_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            STATE error_time = boost::numeric_cast<double>((error_t2 - error_t1).total_milliseconds());
             
             // current summary
-//            convergence << setw(5) << h << setw(10) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
-            convergence << setw(5) << h << setw(10) << ndof << setw(25) << ndof_cond << setw(25) << -1 << setw(25) << -1 << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
+            convergence << setw(5) << h << setw(25) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
             
         }
         
@@ -252,9 +300,11 @@ void ComputeApproximation(SimulationCase sim_data){
         convergence << " H1 or Hdiv convergence rates = " << setw(5) << h_conv << std::endl;
         convergence << std::endl;
         convergence << " ------------------------------------------------------------------ " << std::endl;
-        
+        convergence.flush();
         
     }
+    
+    std::cout << "Case closed " << std::endl;
     
 }
 
@@ -270,7 +320,51 @@ void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence){
 }
 
 void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
-    DebugStop();
+    
+    STATE x,y,z;
+    x = p[0];
+    y = p[1];
+    z = p[2];
+    
+    STATE r = sqrt(x*x+y*y+z*z);
+    STATE theta = acos(z/r);
+    STATE phi = atan2(y,x);
+    
+    STATE costheta = cos(theta);
+    STATE cosphi = cos(phi);
+    STATE sintheta = sin(theta);
+    STATE sinphi = sin(phi);
+    
+    // Gradient computations
+    
+    STATE Radialunitx = sintheta*cosphi;
+    STATE Radialunity = sintheta*sinphi;
+    STATE Radialunitz = costheta;
+    
+    STATE Thetaunitx = cosphi*costheta;
+    STATE Thetaunity = costheta*sinphi;
+    STATE Thetaunitz = -sintheta;
+    
+    STATE Phiunitx = -sinphi;
+    STATE Phiunity = cosphi;
+    STATE Phiunitz = 0.0;
+    
+#ifdef Solution1
+    
+    STATE dfdr       = 2.0*r;
+    STATE dfdTheta   = 0.0;
+    STATE dfdPhi     = 0.0;
+    
+    u[0] = r*r;
+    
+    gradu(0,0) = -1.0*(dfdr * Radialunitx + dfdTheta * Thetaunitx + dfdPhi * Phiunitx);
+    gradu(1,0) = -1.0*(dfdr * Radialunity + dfdTheta * Thetaunity + dfdPhi * Phiunity);
+    gradu(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz + dfdPhi * Phiunitz);
+    
+    gradu(3,0) = -6.0;
+    
+#endif
+    
 }
 
 void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
@@ -309,9 +403,9 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
 #endif
 }
 
-STATE IntegrateVolume(TPZGeoMesh * geometry){
+STATE IntegrateVolume(TPZGeoMesh * geometry, SimulationCase sim_data){
 
-    int order = 10;
+    int order = sim_data.int_order;
     int nel = geometry->NElements();
     STATE domain_volume = 0.0;
     
@@ -320,7 +414,7 @@ STATE IntegrateVolume(TPZGeoMesh * geometry){
     
         TPZGeoEl * gel = geometry->Element(iel);
 
-#ifdef Solution1
+#ifdef PZDEBUG
         if (!gel) {
             DebugStop();
         }
@@ -355,6 +449,56 @@ STATE IntegrateVolume(TPZGeoMesh * geometry){
         domain_volume += el_volume;
     }
     return domain_volume;
+}
+
+STATE IntegrateSolution(TPZCompMesh * cmesh, SimulationCase sim_data){
+    
+    int order = sim_data.int_order;
+    STATE p_integral = 0.0;
+    
+    long nel = cmesh->NElements();
+    int dim = cmesh->Dimension();
+    TPZManVector<STATE,10> globalerror(3,0.   );
+    for (long iel = 0; iel < nel; iel++) {
+        TPZCompEl *cel = cmesh->ElementVec()[iel];
+        
+        if(cel->Reference()->Dimension()!=dim) {
+            continue;
+        }
+        
+        TPZGeoEl * gel = cel->Reference();
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        int gel_volume_side = gel->NSides() - 1;
+        TPZIntPoints * int_rule = gel->CreateSideIntegrationRule(gel_volume_side, order);
+        int npoints = int_rule->NPoints();
+        
+        TPZManVector<STATE,3> triplet(3,0.0);
+        STATE w;
+        
+        TPZFMatrix<REAL> jac;
+        TPZFMatrix<REAL> axes;
+        TPZFMatrix<REAL> jacinv;
+        REAL detjac;
+        TPZManVector<STATE,1> p;
+        STATE el_interal = 0.0;
+        for (int i = 0; i < npoints ; i++) {
+            int_rule->Point(i, triplet, w);
+            gel->Jacobian(triplet, jac, axes, detjac, jacinv);
+            cel->Solution(triplet, 4, p);
+            el_interal += w * detjac * p[0];
+        }
+        
+        p_integral += el_interal;
+    }
+    
+    return p_integral;
+    
 }
 
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase sim_data){
@@ -399,6 +543,7 @@ TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim
     else
     {
         mesh = PrimalMesh(geometry, p, sim_data);
+        ndof = mesh->NEquations();
         return mesh;        
     }
     
@@ -411,18 +556,33 @@ TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase sim_data){
     
     TPZAnalysis * analysis = new TPZAnalysis(cmesh, true);
     
-    // solver settings
-    bool IsFrontQ      = sim_data.IsHdivQ;
-    bool IsParsidoQ    = !sim_data.IsHdivQ;
-    
-    if (IsFrontQ) {
-        TPZParFrontStructMatrix<TPZFrontSym<STATE> > matrix(cmesh);
-        matrix.SetDecomposeType(ECholesky);
+    if (sim_data.UsePardisoQ) {
+        
+        TPZSymetricSpStructMatrix matrix(cmesh);
         matrix.SetNumThreads(sim_data.n_threads);
         analysis->SetStructuralMatrix(matrix);
+        TPZStepSolver<STATE> step;
+        step.SetDirect(ELDLt);
+        analysis->SetSolver(step);
+        
+        return analysis;
+    }
+    
+    if (sim_data.UseFrontalQ) {
+
+        TPZParFrontStructMatrix<TPZFrontSym<STATE> > matrix(cmesh);
+        matrix.SetDecomposeType(ELDLt);
+        matrix.SetNumThreads(sim_data.n_threads);
+        
+        analysis->SetStructuralMatrix(matrix);
+        TPZStepSolver<STATE> step;
+        step.SetDirect(ELDLt);
+        analysis->SetSolver(step);
+        
         return analysis;
     }
     else{
+        
         TPZSkylineStructMatrix matrix(cmesh);
         matrix.SetNumThreads(sim_data.n_threads);        
         TPZStepSolver<STATE> step;
@@ -432,11 +592,7 @@ TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase sim_data){
         return analysis;
     }
     
-    if (IsParsidoQ) {
-        TPZParFrontStructMatrix<TPZFrontSym<STATE> > matrix(cmesh);
-        analysis->SetStructuralMatrix(matrix);
-        return analysis;        
-    }
+
     
    return analysis;
     
@@ -449,16 +605,19 @@ void PosProcess(TPZCompMesh* cmesh, TPZAnalysis  * an, std::string file, Simulat
     TPZStack<std::string,10> scalnames, vecnames;
     
     if (sim_data.IsHdivQ) {
-        vecnames.Push("Flux");
+        vecnames.Push("q");
 //        vecnames.Push("ExactFlux");
-        scalnames.Push("Pressure");
+        scalnames.Push("p");
 //        scalnames.Push("ExactPressure");
 //        scalnames.Push("Rhs");
-        scalnames.Push("Divergence");
+        scalnames.Push("div_q");
     }
     else{
-        vecnames.Push("Flux");
-        scalnames.Push("Pressure");
+        vecnames.Push("q");
+        vecnames.Push("q_exact");
+        scalnames.Push("p");
+        scalnames.Push("p_exact");
+        scalnames.Push("f_exact");
     }
 
     int div = 0;
@@ -473,7 +632,6 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
     int dirichlet = 0;
     int nvolumes = sim_data.omega_ids.size();
     int nboundaries = sim_data.gamma_ids.size();
-
     
 #ifdef PZDEBUG
     if (nvolumes != 1) {
@@ -487,29 +645,36 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
     TPZMaterial * volume;
     TPZMaterial * face;
     
-    TPZFMatrix<STATE> val1(dimension,dimension,0.),val2(dimension,1,0.);
+    TPZFMatrix<STATE> val1(dimension,dimension,0.0),val2(dimension,1,0.0);
     for (int iv = 0; iv < nvolumes ; iv++) {
         
-        volume = new TPZMatPoisson3d(sim_data.omega_ids[iv],dimension);
-        TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(f);
-        dum->SetPolynomialOrder(sim_data.int_order);
-        TPZAutoPointer<TPZFunction<STATE> > rhs = dum;
+        volume = new TPZPrimalPoisson(sim_data.omega_ids[iv]);
+        
+        TPZDummyFunction<STATE> * rhs_exact = new TPZDummyFunction<STATE>(f);
+        rhs_exact->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > rhs = rhs_exact;
         volume->SetForcingFunction(rhs);
+        
+        TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
+        analytic_bc->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > solution = analytic_bc;
+        volume->SetfBCForcingFunction(solution);
+        
+        
+        TPZDummyFunction<STATE> * analytic = new TPZDummyFunction<STATE>(Analytic);
+        analytic->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > analytic_full = analytic;
+        volume->SetForcingFunctionExact(analytic_full);
+        
         cmesh->InsertMaterialObject(volume);
         
         for (int ib = 0; ib < nboundaries; ib++) {
             face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
-            
-            TPZDummyFunction<STATE> *analytic = new TPZDummyFunction<STATE>(Solution);
-            analytic->SetPolynomialOrder(sim_data.int_order);
-            TPZAutoPointer<TPZFunction<STATE> > solution = analytic;
-            face->SetForcingFunction(solution);
-            
             cmesh->InsertMaterialObject(face);
         }
         
     }
-    
+    cmesh->SetDimModel(dimension);
     cmesh->SetDefaultOrder(p);
     cmesh->SetAllCreateFunctionsContinuous();
     
@@ -1102,48 +1267,33 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
     
 }
 
-//void ErrorPrimalDual(TPZCompMesh *l2mesh, TPZCompMesh *hdivmesh,  REAL &error_primal , REAL & error_dual, REAL & error_div)
-//{
-//    std::cout << "Begin:: Computing Error " << std::endl;
-//    
-//    long nel = hdivmesh->NElements();
-//    int dim = hdivmesh->Dimension();
-//    TPZManVector<STATE,10> globalerrorsDual(10,0.   );
-//    for (long el=0; el<nel; el++) {
-//        TPZCompEl *cel = hdivmesh->ElementVec()[el];
-//        if(cel->Reference()->Dimension()!=dim) continue;
-//        TPZManVector<STATE,10> elerror(10,0.);
-//        elerror.Fill(0.);
-//        cel->EvaluateError(SolExata, elerror, NULL);
-//        int nerr = elerror.size();
-//        for (int i=0; i<nerr; i++) {
-//            globalerrorsDual[i] += elerror[i]*elerror[i];
-//            
-//        }
-//    }
-//    
-//    
-//    nel = l2mesh->NElements();
-//    //int dim = l2mesh->Dimension();
-//    TPZManVector<STATE,10> globalerrorsPrimal(10,0.);
-//    for (long el=0; el<nel; el++) {
-//        TPZCompEl *cel = l2mesh->ElementVec()[el];
-//        TPZManVector<STATE,10> elerror(10,0.);
-//        cel->EvaluateError(SolExata, elerror, NULL);
-//        int nerr = elerror.size();
-//        globalerrorsPrimal.resize(nerr);
-//        
-//        for (int i=0; i<nerr; i++) {
-//            globalerrorsPrimal[i] += elerror[i]*elerror[i];
-//        }
-//        
-//    }
-//    
-//    error_div    = sqrt(globalerrorsPrimal[0]);
-//    error_dual      = sqrt(globalerrorsDual[1]);
-//    error_primal    = sqrt(globalerrorsPrimal[1]);
-//    
-//    std::cout << "End:: Computing Error " << std::endl;
-//    
-//    
-//}
+void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_h1)
+{
+    
+    long nel = cmesh->NElements();
+    int dim = cmesh->Dimension();
+    TPZManVector<STATE,10> globalerror(3,0.   );
+    for (long iel = 0; iel < nel; iel++) {
+        TPZCompEl *cel = cmesh->ElementVec()[iel];
+
+        if(cel->Reference()->Dimension()!=dim) {
+            continue;
+        }
+        
+        TPZManVector<STATE,10> elerror(3,0.);
+        elerror.Fill(0.);
+        cel->EvaluateError(Analytic, elerror, NULL);
+        int nerr = elerror.size();
+        for (int i=0; i<nerr; i++) {
+            globalerror[i] += elerror[i]*elerror[i];
+            
+        }
+    }
+    
+    error_primal    = sqrt(globalerror[0]);
+    error_dual      = sqrt(globalerror[1]);
+    error_h1        = sqrt(globalerror[2]);
+    
+    
+}
+

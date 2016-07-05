@@ -94,14 +94,23 @@ namespace pzgeom {
         }
 		
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
         {
-            gradx.Zero();
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            int nrow = coord.Rows();
+            int ncol = coord.Cols();
+            TPZFMatrix<T> nodes(nrow,ncol);
+            for(int i = 0; i < nrow; i++)
+            {
+                for(int j = 0; j < ncol; j++)
+                {
+                    nodes(i,j) = coord(i,j);
+                }
+            }
+            GradX(nodes,loc,gradx);
         }
         
-        template<class T>
-		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
-		
 		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
         {
             phi(0,0) = 1.;
@@ -113,11 +122,13 @@ namespace pzgeom {
             phi(0,0) = (T)1.;
         }
         
-		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
-		
-		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian) {
-			jacobian.Redim(nodes.Rows(),0);
-		}
+        template<class T>
+        static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
+        
+        /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
+        template<class T>
+        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
 	public:
@@ -138,10 +149,14 @@ namespace pzgeom {
 	
     template<class T>
     inline void TPZGeoPoint::X(const TPZFMatrix<REAL> &coord,TPZVec<T> &loc,TPZVec<T> &result){
-        int i;
-        for (i=0;i<coord.Rows();i++){
+        for (int i=0;i<coord.Rows();i++){
             result[i] = coord.GetVal(i,0);
         }
+    }
+    
+    template<class T>
+    inline void TPZGeoPoint::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+        gradx.Resize(3,0);
     }
     
 

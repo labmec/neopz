@@ -1067,7 +1067,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
-    maxIntOrder= 5;
+    maxIntOrder= 15;
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);

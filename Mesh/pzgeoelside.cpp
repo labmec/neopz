@@ -112,14 +112,24 @@ void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 
 /** @brief X coordinate of a point loc of the side */
 void TPZGeoElSide::GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const{
-    TPZManVector< REAL,3 > locElement(fGeoEl->Dimension(), 0.);
-    gradx.Resize(3,fGeoEl->Dimension());
     
-    TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+#ifdef PZDEBUG
+    if(!fGeoEl) return;
+#endif
     
-    ElementDim.Apply(loc, locElement);
+    int dim = fGeoEl->Dimension();
+    TPZFNMatrix<9,REAL> gradx_vol(3,dim);
     
-    fGeoEl->GradX(locElement, gradx);
+    TPZManVector< REAL,3 > locElement(dim, 0.);
+    
+    TPZTransform<> Transformation = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+
+    Transformation.Apply(loc, locElement);
+    TPZFNMatrix<9,REAL> trans_mult(Transformation.Mult().Cols(),Transformation.Mult().Rows());
+    Transformation.Mult().Transpose(&trans_mult);
+    fGeoEl->GradX(locElement, gradx_vol);
+    gradx_vol.Multiply(Transformation.Mult(), gradx);
+    
 }
 
 #ifdef _AUTODIFF
