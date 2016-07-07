@@ -267,6 +267,15 @@ public:
         fPw = Pw;
         frw = rw;
         fAnalytics = analytics;
+        
+        // Sets inclined wellbore PreStress
+        REAL SigXX, SigXY, SigYY, SigZZ;
+        SetInclinedWellborePreStress(SigXX, SigXY, SigYY, SigZZ);
+        fPreStressXX = SigXX;
+        fPreStressXY = SigXY;
+        fPreStressYY = SigYY;
+        fPreStressZZ = SigZZ;
+        
     }
     
     
@@ -307,22 +316,26 @@ public:
 
     
     // Calculates analytical solution to be used as fPreStresses
-    void AnalyticalWellboreSolution(REAL &TauX, REAL &TauY, REAL &TauXY, REAL &TauZ, REAL theta, REAL R)
+    void AnalyticalWellboreSolution(REAL &SigmaX, REAL &SigmaY, REAL &SigmaXY, REAL &SigmaZ, REAL theta, REAL R)
     {
-        TauX = (2*fPreStressXX*pow(R,4) - (3*fPreStressXX - fPreStressYY - 2*fPw)*pow(frw,2)*pow(R,2)*cos(2*theta) +
+        
+        
+        SigmaX = (2*fPreStressXX*pow(R,4) - (3*fPreStressXX - fPreStressYY - 2*fPw)*pow(frw,2)*pow(R,2)*cos(2*theta) +
                 (fPreStressXX - fPreStressYY)*pow(frw,2)*(3*pow(frw,2) - 2*pow(R,2))*cos(4*theta) - 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(2*theta) +
                 6*fPreStressXY*pow(frw,4)*sin(4*theta) - 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
         
-        TauY = -(-2*fPreStressYY*pow(R,4) + (fPreStressXX - 3*fPreStressYY + 2*fPw)*pow(frw,2)*pow(R,2)*cos(2*theta) +
+        SigmaY = -(-2*fPreStressYY*pow(R,4) + (fPreStressXX - 3*fPreStressYY + 2*fPw)*pow(frw,2)*pow(R,2)*cos(2*theta) +
                  (fPreStressXX - fPreStressYY)*pow(frw,2)*(3*pow(frw,2) - 2*pow(R,2))*cos(4*theta) + 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(2*theta) +
                  6*fPreStressXY*pow(frw,4)*sin(4*theta) - 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
         
-        TauXY = (2*fPreStressXY*pow(R,4) + fPreStressXY*(-6*pow(frw,4) + 4*pow(frw,2)*pow(R,2))*cos(4*theta) -
+        SigmaXY = (2*fPreStressXY*pow(R,4) + fPreStressXY*(-6*pow(frw,4) + 4*pow(frw,2)*pow(R,2))*cos(4*theta) -
                  (fPreStressXX + fPreStressYY - 2*fPw)*pow(frw,2)*pow(R,2)*sin(2*theta) + 3*fPreStressXX*pow(frw,4)*sin(4*theta) -
                  3*fPreStressYY*pow(frw,4)*sin(4*theta) - 2*fPreStressXX*pow(frw,2)*pow(R,2)*sin(4*theta) +
                  2*fPreStressYY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
         
-        TauZ = fPreStressZZ - (2*fnu*pow(frw,2)*(2*fPreStressXY + (fPreStressXX - fPreStressYY)*cos(2*theta))*sin(2*theta))/pow(R,2);
+        SigmaZ = fPreStressZZ - (2*fnu*pow(frw,2)*(2*fPreStressXY + (fPreStressXX - fPreStressYY)*cos(2*theta))*sin(2*theta))/pow(R,2);
+
+        
         
     }
     

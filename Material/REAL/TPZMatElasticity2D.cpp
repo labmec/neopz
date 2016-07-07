@@ -219,6 +219,7 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     
     REAL SigmaX = 0., SigmaY = 0., SigmaXY = 0., SigmaZ = 0.;
     
+    //data.dphix.Print(" Socorro ");
     
     if (fAnalytics == 1) {
         REAL theta = 0.;
@@ -410,6 +411,30 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
         case 4 :
         {
             // Stress field
+            
+            if (fAnalytics == 1) {
+                REAL theta = 0.;
+                REAL coordY = 0.;
+                REAL coordX = 0.;
+                REAL r = 0.;
+                coordX = data.x[0];
+                coordY = data.x[1];
+                theta = atan2(coordY,coordX);
+                r = sqrt((coordX*coordX)+(coordY*coordY));
+                
+                REAL Sx=0., Sy=0., Sxy=0., Sz=0.;
+                
+                AnalyticalWellboreSolution(Sx, Sy, Sxy, Sz, theta, r);
+                
+                v1(0,0) = Sx;
+                v1(0,1) = Sxy;
+                v1(1,0) = Sxy;
+                v1(1,1) = Sy;
+                
+                //v1.Print(" Valor de v1 ");
+                
+            }
+
             
             for(in = 0; in < this->Dimension(); in ++){
                 v2[in] = ( v1(in,0) * data.normal[0] + v1(in,1) * data.normal[1]);
@@ -647,7 +672,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatr
 void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 
-    
+    DebugStop();
     
     TPZFMatrix<REAL>  &phiu = data.phi;
     TPZManVector<REAL,3> sol_u = data.sol[0];
@@ -968,7 +993,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         REAL r = 0.;
         coordX = data.x[0];
         coordY = data.x[1];
-        theta = atan(coordY/coordX);
+        theta = atan2(coordY,coordX);
         r = sqrt((coordX*coordX)+(coordY*coordY));
         
         AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, theta, r);
@@ -997,7 +1022,6 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     DSolxy[0][1] = DSolU(0,1)*axesU(0,0)+DSolU(1,1)*axesU(1,0); // dUy/dx
     DSolxy[1][1] = DSolU(0,1)*axesU(0,1)+DSolU(1,1)*axesU(1,1); // dUy/dy
     
-    divu = DSolxy[0][0]+DSolxy[1][1]+0.0;	
     
     epsx = DSolxy[0][0];// du/dx
     epsy = DSolxy[1][1];// dv/dy
@@ -1016,7 +1040,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     {
         SigX = ((flambda + 2*fmu)*(epsx) + (flambda)*epsy);
         SigY = ((flambda + 2*fmu)*(epsy) + (flambda)*epsx);
-        SigZ = flambda*divu;
+        SigZ = fnu*(SigX+SigY);
         Tau = 2.0*fmu*epsxy;		
     }
     
@@ -1063,7 +1087,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     REAL r = 0.;
     coordX = data.x[0];
     coordY = data.x[1];
-    theta = atan(coordY/coordX);
+    theta = atan2(coordY,coordX);
     r = sqrt((coordX*coordX)+(coordY*coordY));
     
     AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, theta, r);
