@@ -276,6 +276,8 @@ public:
         fPreStressYY = SigYY;
         fPreStressZZ = SigZZ;
         
+        SetInclinedWellProblem(wellborestate);
+        
     }
     
     
@@ -333,7 +335,9 @@ public:
                  3*fPreStressYY*pow(frw,4)*sin(4*theta) - 2*fPreStressXX*pow(frw,2)*pow(R,2)*sin(4*theta) +
                  2*fPreStressYY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
         
-        SigmaZ = fPreStressZZ - (2*fnu*pow(frw,2)*(2*fPreStressXY + (fPreStressXX - fPreStressYY)*cos(2*theta))*sin(2*theta))/pow(R,2);
+        SigmaZ = fPreStressZZ - (2*fnu*pow(frw,2)*((fPreStressXX - fPreStressYY)*cos(2*theta) + 2*fPreStressXY*sin(2*theta)))/pow(R,2);
+        
+        //fPreStressZZ - (2*fnu*pow(frw,2)*(2*fPreStressXY + (fPreStressXX - fPreStressYY)*cos(2*theta))*sin(2*theta))/pow(R,2);
 
         
         
@@ -356,7 +360,10 @@ public:
     void GetPreStress(REAL &SigmaXX, REAL &SigmaXY, REAL &SigmaYY, REAL &SigmaZZ)
     {
         
-        SetPreStress(SigmaXX, SigmaXY, SigmaYY, SigmaZZ);
+        SigmaXX = fPreStressXX;
+        SigmaXY = fPreStressXY;
+        SigmaYY = fPreStressYY;
+        SigmaZZ = fPreStressZZ;
         
     }
 

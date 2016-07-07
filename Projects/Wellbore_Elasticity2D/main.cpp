@@ -595,8 +595,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     //  copy this link http://ceae.colorado.edu/~amadei/CVEN5768/PDF/NOTES5.pdf
     REAL Eyoung = 15300, ni = 0.24, fbx = 0., fby = 0.;
     material->SetElasticity(Eyoung, ni, fbx, fby);
-    material->SetPlaneStrain();
-    
+       
     /******* Calculating Inicial Stresses *******/
     // direction = direction/azimuth
     // inclination = wellbore inclination
@@ -671,43 +670,43 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
-//    ///Inserir condicao de contorno parede do poco
-//    val1(0,0) = Pwb;
-//    val1(1,0) = 0;
-//    val1(0,1) = 0;
-//    val1(1,1) = Pwb;
-//    val2(0,0) = 0;
-//    val2(1,0) = 0;
-//    TPZMaterial * BCond0 = material->CreateBC(material, bc0, normalpressure, val1, val2);//cria material
-//    
-//    ///Inserir condicao de contorno circunferencia externa
-//    val1(0,0) = SigmaX;
-//    val1(1,0) = SigmaXY;
-//    val1(0,1) = SigmaXY;
-//    val1(1,1) = SigmaY;
-//    val2(0,0) = 0.0;
-//    val2(1,0) = 0.0;
-//    TPZMaterial * BCond1 = material->CreateBC(material, bc1, stressfield, val1, val2);//cria material
-    
-    
-    ///Inserir condicao de contorno circunferencia interna
-    val1(0,0) = 0.; //SigmaX;
-    val1(1,0) = 0.; //SigmaXY;
-    val1(0,1) = 0.; //SigmaXY;
-    val1(1,1) = 0.; //SigmaY;
-    val2(0,0) = 0.0;
-    val2(1,0) = 0.0;
-    TPZMaterial * BCond0 = material->CreateBC(material, bc0, stressfield, val1, val2);//cria material
-    
+    ///Inserir condicao de contorno parede do poco
+    val1(0,0) = Pwb;
+    val1(1,0) = 0;
+    val1(0,1) = 0;
+    val1(1,1) = Pwb;
+    val2(0,0) = 0;
+    val2(1,0) = 0;
+    TPZMaterial * BCond0 = material->CreateBC(material, bc0, normalpressure, val1, val2);//cria material
     
     ///Inserir condicao de contorno circunferencia externa
-    val1(0,0) = 0.; //SigmaX;
-    val1(1,0) = 0.; //SigmaXY;
-    val1(0,1) = 0.; //SigmaXY;
-    val1(1,1) = 0.; //SigmaY;
+    val1(0,0) = SigmaX;
+    val1(1,0) = SigmaXY;
+    val1(0,1) = SigmaXY;
+    val1(1,1) = SigmaY;
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     TPZMaterial * BCond1 = material->CreateBC(material, bc1, stressfield, val1, val2);//cria material
+    
+    
+//    ///Inserir condicao de contorno circunferencia interna
+//    val1(0,0) = 0.; //SigmaX;
+//    val1(1,0) = 0.; //SigmaXY;
+//    val1(0,1) = 0.; //SigmaXY;
+//    val1(1,1) = 0.; //SigmaY;
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    TPZMaterial * BCond0 = material->CreateBC(material, bc0, stressfield, val1, val2);//cria material
+//    
+//    
+//    ///Inserir condicao de contorno circunferencia externa
+//    val1(0,0) = 0.; //SigmaX;
+//    val1(1,0) = 0.; //SigmaXY;
+//    val1(0,1) = 0.; //SigmaXY;
+//    val1(1,1) = 0.; //SigmaY;
+//    val2(0,0) = 0.0;
+//    val2(1,0) = 0.0;
+//    TPZMaterial * BCond1 = material->CreateBC(material, bc1, stressfield, val1, val2);//cria material
    
     
     ///Inserir condicao de contorno ponto externo bottom
