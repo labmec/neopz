@@ -116,15 +116,15 @@ int Problem2D(){
     // ncircle = nro elementos na parede do poco
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
-    REAL rw = 0.1;
-    REAL rext = 4.0;
-    int ncircle = 20.0;
-    int nradial = 12.0;
+    REAL rw = 1.0;
+    REAL rext = 2.0;
+    int ncircle = 1.0;
+    int nradial = 1.0;
     REAL drdcirc = 1.5;
     
     
-    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de todo o poco
-    //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de 1/4 do poco
+    //TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de todo o poco
+    TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de 1/4 do poco
     
     
     const std::string nm("line");
@@ -140,10 +140,10 @@ int Problem2D(){
     
     //******** Configura malha Computacional ***************/
     
-    int p = 3;
+    int p = 1;
     TPZCompEl::SetgOrder(p);
-    TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
-    //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
+    //TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
+    TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
     
     // Solving linear equations
     // Initial steps
@@ -207,9 +207,6 @@ int Problem2D(){
 //        #endif
 //    #endif
     
-    //std::ofstream vecout("VecByElement");
-    //<#TPZFMatrix<STATE> &vec#>
-    //an.PrintVectorByElement(vecout, <#TPZFMatrix<STATE> &vec#>);
     
     std::cout << "Rhs ..." << std::endl;
     
@@ -291,7 +288,7 @@ int Problem3D(){
     
     //******** Configura malha Computacional ***************/
     
-    int p = 3;
+    int p = 1;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CMesh3D(gmesh, p, Is3DQ); //funcao para criar a malha COMPUTACIONAL de todo o poco
     

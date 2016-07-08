@@ -315,6 +315,9 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     REAL weight = 0.;
     
     TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
+    
+    
+    
 //    if(material->HasForcingFunction())
 //    {
 //        int maxorder = intrule->GetMaxOrder();
@@ -322,8 +325,11 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 //            order = maxorder;
 //        }
 //    }
-    TPZManVector<int,3> intorder(dim,10);
+    
+    // MODIFICADO NANANANA
+    TPZManVector<int,3> intorder(dim, 10);
     intrule->SetOrder(intorder);
+    
     
     int intrulepoints = intrule->NPoints();
     for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
