@@ -58,8 +58,8 @@ private:
     /** @brief Compute element dof indexes */
     void ElementDofIndexes(TPZInterpolationSpace * &intel,  TPZVec<long> &dof_indexes);
 
-    /** @brief Compute element dof indexes at faces */    
-    void ElementDofFaceIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
+    /** @brief Compute element dof indexes at given connect */    
+    void ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
     
     // @}
     
@@ -302,9 +302,30 @@ public:
      * @defgroup Fill class attributes
      * @{
      */
-    
+
     /** @brief Compute left and right geometric element indexes associated with the transport mesh */
     void ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_mesh);
+    
+    
+    // @}
+    
+    /**
+     * @defgroup Utilities class
+     * @{
+     */
+    
+    /** @brief Ifdentify the which side of the volume is associated with the face */
+    bool IdentifyFace(int &side, TPZGeoEl * vol, TPZGeoEl * face);
+    
+    /** @brief Dimensionla Measure of the elemnt */
+    REAL DimensionalMeasure(TPZCompEl * cel);
+    
+    /** @brief Compute indices associated to faces on 3D topologies */
+    void ComputeFaceIndex(TPZGeoEl * gel , TPZVec<int> &sides);
+    
+    /** @brief Compute sides associated to faces on 3D topologies */
+    void ComputeFaceNormals(TPZGeoEl * gel , TPZVec<int> &sides, TPZFMatrix<STATE> &normals);
+    
     
     
     

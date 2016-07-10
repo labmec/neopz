@@ -162,7 +162,7 @@ ENABLE_TESTING()
 			
 			#projeto agnaldo 09-09-2011
 			add_subdirectory(DoubleProjection)
-                        add_subdirectory(artigoPira)
+            add_subdirectory(artigoPira)
 			add_subdirectory(TrabalhosLNCC15)
 			#projeto omar duran 16-12-2012
 			add_subdirectory(PoroElasticAnalysis)
@@ -222,7 +222,6 @@ ENABLE_TESTING()
 			# Colaboration with Laurent Stainier
 			
 			add_subdirectory(MatLib)
-			add_subdirectory(TrabalhosLNCC15)
 
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
@@ -233,7 +232,3 @@ ENABLE_TESTING()
 		
 		
 	endif(BUILD_PROJECTS)
-
-
-   
-add_subdirectory(artigoPira)

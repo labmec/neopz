@@ -8,7 +8,9 @@
 
 
 #include "TRMBuildTransfers.h"
-
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
 
 
 /** @brief Default constructor */
@@ -702,15 +704,13 @@ void TRMBuildTransfers::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec
 /** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
 void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh){
     
+    
 #ifdef PZDEBUG
     if (!flux_mesh || !transport_mesh) {
         std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
         DebugStop();
     }
 #endif
-  
-
-    TPZGeoMesh * gmesh = flux_mesh->Reference();
     
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
@@ -719,14 +719,20 @@ void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh
     TPZCompEl * cel_face;
     TPZGeoEl * left_gel;
     TPZGeoEl * right_gel;
+    TPZGeoEl * face_gel;
+
     
     TPZManVector<long> indices;
     std::pair<long, long> duplet;
+    TPZManVector<int,10> face_sides;
     long face_index;
     long n_interfaces = fleft_right_indexes.size();
-    int nconnects;
+
     
-    for (int k_face = 0; k_face < 1; k_face++) {
+    // Block size structue including (Gamma and gamma (Inner element interfaces))
+    TPZVec< std::pair<long, long> > blocks_dimensions(n_interfaces);
+    
+    for (int k_face = 0; k_face < n_interfaces; k_face++) {
 
         face_index  = finterface_indexes[k_face];
         duplet      = fleft_right_indexes[k_face];
@@ -736,50 +742,158 @@ void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh
         if (!cel_face) {
             DebugStop();
         }
+        face_gel = cel_face->Reference();
         
         long left_geo_index     = duplet.first;
         long right_geo_index    = duplet.second;
         
-        TPZCompEl *left_cel = flux_mesh->Reference()->Element(left_geo_index)->Reference();
-        TPZCompEl *right_cel = flux_mesh->Reference()->Element(right_geo_index)->Reference();
+        left_gel    = flux_mesh->Reference()->Element(left_geo_index);
+        right_gel   = flux_mesh->Reference()->Element(right_geo_index);
+        
+        TPZCompEl *left_cel = left_gel->Reference();
+        TPZCompEl *right_cel = right_gel->Reference();
         
         if (!left_cel || !right_cel) {
             DebugStop();
         }
         
+        // Computing face connec index associated to the element face being integrated
+        this->ComputeFaceIndex(left_gel,face_sides);
+        
         TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace *> (left_cel);
-        this->ElementDofFaceIndexes(intel_vol, dof_indexes);
-        nconnects = left_cel->NConnects();
+        this->ElementDofFaceIndexes(0,intel_vol, dof_indexes);
+//        nconnects = left_cel->NConnects();
         
-        TPZInterpolationSpace * intel_face = dynamic_cast<TPZInterpolationSpace *> (cel_face);
-//        if (!intel_face) {
-//            DebugStop();
-//        }
-
-
-        left_cel->Print();
-        cel_face->Print();
-//        cel_face->
-//        cel_face->Nor
-//        left_gel->CreateSideIntegrationRule(0, 1);
-//        flux_mesh->Reference()->Element(left_geo_index)->CreateSideIntegrationRule(<#int side#>, <#int order#>)
+        int nfaces = face_sides.size();
         
-        const TPZIntPoints & face_int_points = intel_face->GetIntegrationRule();
-        int npoints = face_int_points.NPoints();
+        int face_side   = -1;
+        int i_face      = -1;
         
+        if(!IdentifyFace(face_side,left_gel,face_gel)){
+            std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
+            DebugStop();
+        }
+        else{
+            for (int i = 0; i < nfaces; i++) {
+                if (face_sides[i] == face_side) {
+                    i_face = i;
+                    break;
+                }
+            }
+            if (i_face == -1) {
+                std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
+                DebugStop();
+            }
+        }
         
-        cel_face->GetMemoryIndices(indices);
+        TPZIntPoints *face_int_points = left_gel->CreateSideIntegrationRule(face_sides[i_face], cel_face->GetgOrder());
+        int npoints = face_int_points->NPoints();
+        int nshapes = left_cel->Connect(i_face).NShape();
         
-        std::cout << "indices = " << indices << std::endl;
-//        left_cel
+        blocks_dimensions[k_face].first = npoints;
+        blocks_dimensions[k_face].second = nshapes;
         
-//        intel->Int
-//        left_cel->
         
     }
     
-
+    // Initialize the matrix
+    fun_To_Transport_a.Initialize(blocks_dimensions);
     
+}
+
+bool TRMBuildTransfers::IdentifyFace(int &side, TPZGeoEl * vol, TPZGeoEl * face){
+    
+    int volu_nsides = vol->NSides();
+    int face_nsides = face->NSides();
+    side = -1;
+    TPZGeoElSide face_itself =  face->Neighbour(face_nsides-1);
+    bool IsMembershipQ;
+    for (int iside = 0; iside < volu_nsides; iside++) {
+        IsMembershipQ = bool(vol->NeighbourExists(iside, face_itself));
+        if (IsMembershipQ) {
+            side = iside;
+            break;
+        }
+    }
+    
+    return IsMembershipQ;
+}
+
+/** @brief Compute indices associated to faces on 3D topologies */
+void TRMBuildTransfers::ComputeFaceIndex(TPZGeoEl * gel , TPZVec<int> &sides){
+    
+    
+    switch (gel->Type()) {
+        case ECube:
+        {
+            int nfaces = 6;
+            sides.Resize(nfaces);
+            sides[0] = 20;
+            sides[1] = 21;
+            sides[2] = 22;
+            sides[3] = 23;
+            sides[4] = 24;
+            sides[5] = 25;
+            
+        }
+            break;
+            
+        default:
+        {
+            std::cout << "Element not implemented " << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+}
+
+/** @brief Compute sides associated to faces on 3D topologies */
+void TRMBuildTransfers::ComputeFaceNormals(TPZGeoEl * gel , TPZVec<int> &sides, TPZFMatrix<STATE> &normals){
+    
+    //  @omar:: Just for linear mapping
+    
+    TPZFMatrix<REAL> mat_normals;
+    TPZVec<int> v_sides;
+    gel->ComputeNormals(mat_normals, v_sides);
+    
+    switch (gel->Type()) {
+        case ECube:
+        {
+            int nfaces = 6;
+            sides.Resize(nfaces);
+            sides[0] = 20;
+            sides[1] = 21;
+            sides[2] = 22;
+            sides[3] = 23;
+            sides[4] = 24;
+            sides[5] = 25;
+            int iside = 0;
+            normals.Resize(3, nfaces);
+            
+            for (int i = 0 ; i < v_sides.size(); i++) {
+                if (nfaces <= iside) {
+                    break;
+                }
+                if(v_sides[i] ==  sides[iside]){
+                    normals(0,iside) = mat_normals(0,i);
+                    normals(1,iside) = mat_normals(1,i);
+                    normals(2,iside) = mat_normals(2,i);
+                    iside++;
+                }
+            }
+            
+
+        }
+        break;
+            
+        default:
+        {
+            std::cout << "Element not implemented " << std::endl;
+            DebugStop();
+        }
+            break;
+    }
     
 }
 
@@ -836,13 +950,175 @@ void TRMBuildTransfers::ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_
     
 }
 
-/** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-void TRMBuildTransfers::Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh){
-    Initialize_un_To_Transport_a(flux_mesh,transport_mesh);
-    DebugStop();
+/** @brief Dimensionla Measure of the elemnt */
+REAL TRMBuildTransfers::DimensionalMeasure(TPZCompEl * cel){
+    
+#ifdef PZDEBUG
+    if (!cel) {
+        DebugStop();
+    }
+#endif
+    REAL measures = 0.0;
+    int order = 10;
+    TPZGeoEl * gel = cel->Reference();
+    int element_itself  = gel->NSides() - 1;
+    TPZIntPoints * int_points = gel->CreateSideIntegrationRule(element_itself, order);
+    REAL detjac, w;
+    TPZVec<REAL> par(gel->Dimension(),0.0);
+    TPZFMatrix<REAL> jac;
+    TPZFMatrix<REAL> axes;
+    TPZFMatrix<REAL> jacinv;
+    for (int i = 0; i < int_points->NPoints(); i++) {
+        int_points->Point(i, par, w);
+        gel->Jacobian(par, jac, axes, detjac, jacinv);
+        measures += w * detjac;
+    }
+    
+    return measures;
+    
 }
 
-void TRMBuildTransfers::ElementDofFaceIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
+/** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+void TRMBuildTransfers::Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh){
+    
+
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+
+    // It verify the consistency of dynamic_cast and mesh structure and at the end Initialize diagonal matrix blocks
+    Initialize_un_To_Transport_a(flux_mesh,transport_mesh);
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+
+#ifdef USING_BOOST
+    std::cout  << "Time for Matrix Initialization " << (t2-t1) << std::endl;
+#endif
+    
+    
+    //* seeking for total blocks */
+    flux_mesh->LoadReferences();
+    TPZManVector<long,10> dof_indexes;
+    
+    TPZCompEl * cel_face;
+    TPZGeoEl * left_gel;
+    TPZGeoEl * right_gel;
+    TPZGeoEl * face_gel;
+    
+    TPZManVector<long> indices;
+    std::pair<long, long> duplet;
+    TPZManVector<int,10> face_sides;
+    TPZFMatrix<REAL> normals;
+    long face_index;
+    long n_interfaces = fleft_right_indexes.size();
+    //    int nconnects;
+    
+    TPZFNMatrix<100,double> block;
+    
+    for (int k_face = 0; k_face < n_interfaces; k_face++) {
+        
+        face_index  = finterface_indexes[k_face];
+        duplet      = fleft_right_indexes[k_face];
+        cel_face    = transport_mesh->Element(face_index);
+        
+        
+        if (!cel_face) {
+            DebugStop();
+        }
+        face_gel = cel_face->Reference();
+        
+        long left_geo_index     = duplet.first;
+        long right_geo_index    = duplet.second;
+        
+        left_gel    = flux_mesh->Reference()->Element(left_geo_index);
+        right_gel   = flux_mesh->Reference()->Element(right_geo_index);
+        
+        TPZCompEl *left_cel = left_gel->Reference();
+        TPZCompEl *right_cel = right_gel->Reference();
+        
+        if (!left_cel || !right_cel) {
+            DebugStop();
+        }
+        
+        // Computing face connec index associated to the element face being integrated
+        // The method is really simple the inteface is detected by connec shred between hdiv elements
+        
+        
+        this->ComputeFaceNormals(left_gel,face_sides,normals);
+        
+        TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace *> (left_cel);
+        
+        int nfaces = face_sides.size();
+        
+        int face_side   = -1;
+        int i_face      = -1;
+        
+        if(!IdentifyFace(face_side,left_gel,face_gel)){
+            std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
+            DebugStop();
+        }
+        else{
+            for (int i = 0; i < nfaces; i++) {
+                if (face_sides[i] == face_side) {
+                    i_face = i;
+                    break;
+                }
+            }
+            if (i_face == -1) {
+                std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
+                DebugStop();
+            }
+        }
+        
+        this->ElementDofFaceIndexes(i_face,intel_vol, dof_indexes);
+        TPZIntPoints *face_int_points   = left_gel->CreateSideIntegrationRule(face_sides[i_face], cel_face->GetgOrder());
+        
+        int npoints = face_int_points->NPoints();
+        int nshapes = left_cel->Connect(i_face).NShape();
+  
+#ifdef PZDEBUG
+        if (npoints != fun_To_Transport_a.GetSizeofBlock(k_face).first || nshapes != fun_To_Transport_a.GetSizeofBlock(k_face).second){
+            DebugStop();
+        }
+#endif
+        
+
+        
+        // Computing over all integration points of the compuational element cel
+        TPZFNMatrix<100,REAL> phi(nshapes,1,0.0);
+        int el_dim = face_gel->Dimension();
+        TPZFNMatrix<300,REAL> dphidxi(el_dim,nshapes,0.0);
+        TPZFNMatrix<50,double> block(npoints,nshapes);
+        
+        REAL w;
+        TPZManVector<STATE,2> par_duplet(el_dim,0.0);
+        REAL ElementMeasure   = DimensionalMeasure(cel_face);
+        
+        for (int ip = 0; ip < npoints; ip++) {
+         
+            // Get the vectorial phi
+            face_int_points->Point(ip, par_duplet, w);
+            intel_vol->SideShapeFunction(face_sides[i_face], par_duplet, phi, dphidxi);
+            
+            
+            for (int jp = 0; jp < nshapes; jp++) {
+                block(ip,jp) = phi(jp,0)/ElementMeasure;
+            }
+            
+        }
+        
+        block.Print("block = ");
+        
+        fun_To_Transport_a.SetBlock(k_face, block);
+        
+    }
+    
+    fun_To_Transport_a.Print("  ");
+}
+
+void TRMBuildTransfers::ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
 
     
 #ifdef PZDEBUG
@@ -852,31 +1128,31 @@ void TRMBuildTransfers::ElementDofFaceIndexes(TPZInterpolationSpace * &intel, TP
 #endif
     
     TPZStack<long> index(0,0);
-    int nconnect = intel->NConnects();
-    for (int icon = 0; icon < nconnect - 1; icon++) {
-        TPZConnect  & con = intel->Connect(icon);
+//    int nconnect = intel->NConnects();
+//    for (int icon = 0; icon < nconnect - 1; icon++) {
+        TPZConnect  & con = intel->Connect(connect);
         long seqnumber = con.SequenceNumber();
         long position = intel->Mesh()->Block().Position(seqnumber);
         int nshape = con.NShape();
         for (int ish=0; ish < nshape; ish++) {
             index.Push(position+ ish);
         }
-    }
+//    }
     
     dof_indexes = index;
     return;
 }
 
-/** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-void Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
-    
-}
+///** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+//void Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+//    
+//}
 
 /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
 void Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
     
     // It verify the consistency of dynamic_cast operations and mesh structure, and  finally it initialize diagonal matrix blocks
-    Initialize_un_To_Transport_a(cmesh_multiphysics, mesh_index);
+//    Initialize_un_To_Transport_a(cmesh_multiphysics, mesh_index);
     
 //    long nel = cmesh_multiphysics->NElements();
 //    int n_var_dim = 3; // vector

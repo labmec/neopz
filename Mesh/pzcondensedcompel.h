@@ -11,10 +11,8 @@
 #include "pzmanvector.h"
 #include "pzelmat.h"
 
-<<<<<<< HEAD
-=======
 #ifdef USING_BLAS
-#define USING_DGER
+//#define USING_DGER
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
 #else
@@ -29,7 +27,6 @@
 //#define USING_DGER
 #endif
 
->>>>>>> master
 
 /**
  * @brief Class which implements an element which condenses the internal connects

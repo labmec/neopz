@@ -162,7 +162,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> mono_analysis = new TRMMonolithicMultiphaseAnalysis;
     
-    int nel_x = 10;
+    int nel_x = 1;
     int nel_y = 1;
     int nel_z = 1;
     
