@@ -14,6 +14,8 @@
 #include "tpzintpoints.h"
 #include "pzmatwithmem.h"
 #include "TRMMemory.h"
+#include "TRMPhaseMemory.h"
+#include "TRMPhaseInterfaceMemory.h"
 #include "TRMMixedDarcy.h"
 #include "pzmaterial.h"
 #include "TRMFlowConstants.h"
@@ -94,7 +96,7 @@ private:
     /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh */
     TRMIrregularBlockDiagonal<STATE> fun_To_Transport_a;
     
-    /** @brief pressure dof indexes per element */
+    /** @brief normal flux dof indexes per interface element */
     TPZVec< TPZVec<long> > fun_dof_scatter;
 
     /** @brief left and right geometric element indexes */
@@ -252,6 +254,9 @@ public:
     
     /** @brief Transfer Pressure to integration points of multiphysics mesh over volumetric elements */
     void Transfer_p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompMesh * cmesh_multiphysics);
+    
+    /** @brief Transfer normal fluxes to integration points of transport meshes */
+    void Transfer_up_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_transport);
     
     // @}
     

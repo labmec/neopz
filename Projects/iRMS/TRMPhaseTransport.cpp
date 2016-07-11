@@ -49,20 +49,30 @@ TRMPhaseTransport::~TRMPhaseTransport()
  */
 void TRMPhaseTransport::FillDataRequirements(TPZVec<TPZMaterialData> &datavec)
 {
-    DebugStop();
+    int ndata = datavec.size();
+    for (int idata=0; idata < ndata ; idata++) {
+        datavec[idata].SetAllRequirements(false);
+        datavec[idata].fNeedsSol = true;
+    }
 }
 
 void TRMPhaseTransport::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData> &datavec)
 {
-    DebugStop();
+    int ndata = datavec.size();
+    for (int idata=0; idata < ndata ; idata++) {
+        datavec[idata].SetAllRequirements(false);
+        datavec[idata].fNeedsSol = true;
+        datavec[idata].fNeedsNormal = true;
+    }
 }
-
 
 
 /** print out the data associated with the material */
 void TRMPhaseTransport::Print(std::ostream &out)
 {
-    DebugStop();
+    out << "\t Base class print:\n";
+    out << " name of material : " << this->Name() << "\n";
+    TPZMaterial::Print(out);
 }
 
 

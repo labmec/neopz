@@ -25,6 +25,9 @@
 #include "pzelchdivbound2.h"
 #include "pzshapequad.h"
 
+#include "TPZMultiphysicsInterfaceEl.h"
+#include "pzcompelwithmem.h"
+
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     f.Resize(1,0.);
@@ -51,7 +54,7 @@ TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
 {
    
     fPOrder = 1;
-    fSOrder = 1;
+    fSOrder = 0;
     fGeoMesh                    = NULL;
     fSimulationData             = NULL;
     fH1Cmesh                    = NULL;
@@ -60,6 +63,7 @@ TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
     fAlphaSaturationMesh        = NULL;
     fBetaSaturationMesh         = NULL;
     fGeoMechanicsCmesh          = NULL;
+    fTransportMesh              = NULL;
     fMixedFluxPressureCmesh     = NULL;
     fPressureSaturationCmesh    = NULL;
     fMonolithicMultiphaseCmesh  = NULL;
@@ -76,6 +80,7 @@ TRMSpaceOdissey::~TRMSpaceOdissey(){
     if(fAlphaSaturationMesh)        fAlphaSaturationMesh->CleanUp();
     if(fBetaSaturationMesh)         fBetaSaturationMesh->CleanUp();
     if(fGeoMechanicsCmesh)          fGeoMechanicsCmesh->CleanUp();
+    if(fTransportMesh)              fTransportMesh->CleanUp();
     if(fMixedFluxPressureCmesh)     fMixedFluxPressureCmesh->CleanUp();
     if(fPressureSaturationCmesh)    fPressureSaturationCmesh->CleanUp();
     if(fMonolithicMultiphaseCmesh)  fMonolithicMultiphaseCmesh->CleanUp();
@@ -141,78 +146,6 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
 #ifdef PZDEBUG
     std::ofstream out("CmeshFlux.txt");
     fFluxCmesh->Print(out);
-#endif
-    
-}
-
-/** @brief Create a Hdiv computational mesh with interfaces */
-void TRMSpaceOdissey::CreateFluxCmeshInterfaces(){
-    
-    if(!fGeoMesh)
-    {
-        std::cout<< "Geometric mesh doesn't exist" << std::endl;
-        DebugStop();
-    }
-    
-    int dim = 3;
-    int flux_or_pressure = 0;
-    int qorder = fPOrder;
-    
-    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
-    
-    // Malha computacional
-    fFluxCmesh_Int = new TPZCompMesh(fGeoMesh);
-    
-    // Inserting volumetric materials
-    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
-    int rock_id = 0;
-    for (int i = 0; i < n_rocks; i++) {
-        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
-        fFluxCmesh_Int->InsertMaterialObject(mat);
-        
-        // Inserting volumetric materials
-        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
-        int bc_id = 0;
-        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
-        for (int j = 0; j < n_boundauries; j++) {
-            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
-            
-            if (fSimulationData->IsInitialStateQ()) {
-                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
-            }
-            else{
-                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
-            }
-            
-            bc_item = bc[flux_or_pressure];
-            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
-            boundary_c->SetTimedependentBCForcingFunction(bc_item.second);
-            fFluxCmesh_Int->InsertMaterialObject(boundary_c);
-        }
-        
-    }
-    
-    // Setando Hdiv
-    fFluxCmesh_Int->SetDimModel(dim);
-    fFluxCmesh_Int->SetDefaultOrder(qorder);
-    fFluxCmesh_Int->SetAllCreateFunctionsHDiv();
-    fFluxCmesh_Int->AutoBuild();
-    
-    
-
-    
-#ifdef PZDEBUG
-    std::ofstream out("CmeshFlux_before.txt");
-    fFluxCmesh_Int->Print(out);
-#endif
-    
-    fFluxCmesh_Int->ApproxSpace().CreateInterfaceElements(fFluxCmesh_Int.operator->());
-    
-#ifdef PZDEBUG
-    std::ofstream out_int("CmeshFlux_Int.txt");
-    fFluxCmesh_Int->Print(out_int);
 #endif
     
 }
@@ -363,7 +296,6 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         
     }
 
-    
     fMixedFluxPressureCmesh->SetDimModel(dim);
     fMixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
     fMixedFluxPressureCmesh->AutoBuild();
@@ -627,7 +559,7 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
+        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id);
         fAlphaSaturationMesh->InsertMaterialObject(mat);
         
         // Inserting volumetric materials
@@ -669,24 +601,247 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
 void TRMSpaceOdissey::CreateBetaTransportMesh()
 {
     
-    if (fBetaSaturationMesh) {
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
         DebugStop();
     }
+    
+    int dim = 3;
+    int saturation = 0;
+    int sorder = fSOrder;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    
+    // Malha computacional
     fBetaSaturationMesh = new TPZCompMesh(fGeoMesh);
-    fBetaSaturationMesh->SetDimModel(3);
-    fBetaSaturationMesh->SetDefaultOrder(0);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id);
+        fBetaSaturationMesh->InsertMaterialObject(mat);
+        
+        // Inserting volumetric materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[saturation];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            boundary_c->SetTimedependentBCForcingFunction(bc_item.second);
+            fBetaSaturationMesh->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+    
+    fBetaSaturationMesh->SetDimModel(dim);
+    fBetaSaturationMesh->SetDefaultOrder(sorder);
     fBetaSaturationMesh->SetAllCreateFunctionsDiscontinuous();
+    fBetaSaturationMesh->AutoBuild();
     
-    TRMPhaseTransport *mat = new TRMPhaseTransport(_ReservMatId);
-    fBetaSaturationMesh->InsertMaterialObject(mat);
+#ifdef PZDEBUG
+    std::ofstream out("CmeshS_beta.txt");
+    fBetaSaturationMesh->Print(out);
+#endif
     
-    TRMPhaseInterfaceTransport *matint = new TRMPhaseInterfaceTransport(_ReservoirInterface);
-    fGeoMesh->AddInterfaceMaterial(_ReservMatId, _ReservMatId,_ReservoirInterface);
+//    if (fBetaSaturationMesh) {
+//        DebugStop();
+//    }
+//    fBetaSaturationMesh = new TPZCompMesh(fGeoMesh);
+//    fBetaSaturationMesh->SetDimModel(3);
+//    fBetaSaturationMesh->SetDefaultOrder(0);
+//    fBetaSaturationMesh->SetAllCreateFunctionsDiscontinuous();
+//    
+//    TRMPhaseTransport *mat = new TRMPhaseTransport(_ReservMatId);
+//    fBetaSaturationMesh->InsertMaterialObject(mat);
+//    
+//    TRMPhaseInterfaceTransport *matint = new TRMPhaseInterfaceTransport(_ReservoirInterface);
+//    fGeoMesh->AddInterfaceMaterial(_ReservMatId, _ReservMatId,_ReservoirInterface);
+//    
+//    // WE NEED TO ADD THE BOUNDARY CONDITION MATERIALS
+//    DebugStop();
+//    
+//    fBetaSaturationMesh->ApproxSpace().CreateInterfaces(fBetaSaturationMesh);
     
-    // WE NEED TO ADD THE BOUNDARY CONDITION MATERIALS
-    DebugStop();
+}
+
+/** @brief Create a multiphysics computational mesh L2 */
+void TRMSpaceOdissey::CreateTransportMesh(){
+    // Second option put all the transpor meshes inside a multiphysics mesh
+
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
     
-    fBetaSaturationMesh->ApproxSpace().CreateInterfaces(fBetaSaturationMesh);
+    int dim = 3;
+    int saturation = 0;
+    int interface_id = 1000;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    
+    // Malha computacional
+    fTransportMesh = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id);
+        fTransportMesh->InsertMaterialObject(mat);
+        
+        TRMPhaseInterfaceTransport * matint = new TRMPhaseInterfaceTransport(interface_id);
+        fTransportMesh->InsertMaterialObject(matint);
+        fGeoMesh->AddInterfaceMaterial(rock_id, rock_id,interface_id);
+        
+        // Inserting volumetric materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[saturation];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            boundary_c->SetTimedependentBCForcingFunction(bc_item.second);
+            fTransportMesh->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+
+    fTransportMesh->SetDimModel(dim);
+    fTransportMesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    fTransportMesh->AutoBuild();
+    
+    TPZManVector<TPZCompMesh * ,2> meshvector;
+    
+    if(this->SimulationData()->IsTwoPhaseQ()){
+        
+        meshvector.Resize(1);
+        meshvector[0] = fAlphaSaturationMesh.operator->();
+        
+        // Transferindo para a multifisica
+        TPZBuildMultiphysicsMesh::AddElements(meshvector, fTransportMesh.operator->());
+        TPZBuildMultiphysicsMesh::AddConnects(meshvector, fTransportMesh.operator->());
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fTransportMesh.operator->());
+        
+    }
+    
+    if(this->SimulationData()->IsThreePhaseQ()){
+
+        meshvector.Resize(2);
+        meshvector[0] = fAlphaSaturationMesh.operator->();
+        meshvector[1] = fBetaSaturationMesh.operator->();
+        
+        // Transferindo para a multifisica
+        TPZBuildMultiphysicsMesh::AddElements(meshvector, fTransportMesh.operator->());
+        TPZBuildMultiphysicsMesh::AddConnects(meshvector, fTransportMesh.operator->());
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fTransportMesh.operator->());
+    }
+
+    
+    fGeoMesh->ResetReference();
+    fTransportMesh->LoadReferences();
+    long nel = fTransportMesh->ElementVec().NElements();
+    // Creation of interface elements
+    for(int el = 0; el < nel; el++)
+    {
+        TPZCompEl * compEl = fTransportMesh->ElementVec()[el];
+        if(!compEl) continue;
+        TPZGeoEl * gel = compEl->Reference();
+        if(!gel) {continue;}
+        if(gel->HasSubElement()) {continue;}
+        int index = compEl ->Index();
+        if(compEl->Dimension() == fTransportMesh->Dimension())
+        {
+            TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(fTransportMesh->ElementVec()[index]);
+            if(!InterpEl) {
+                continue;
+            }
+            InterpEl->CreateInterfaces();
+        }
+    }
+
+    fTransportMesh->CleanUpUnconnectedNodes();
+    fTransportMesh->AdjustBoundaryElements();
+    fTransportMesh->AutoBuild();
+    
+    nel = fTransportMesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = fTransportMesh->Element(el);
+        TPZMultiphysicsElement *mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        TPZMultiphysicsInterfaceElement * mf_int_cel = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
+        if (!mf_cel) {
+            
+            if (!mf_int_cel) {
+                continue;
+            }
+            else
+            {
+                
+//                mf_int_cel->Pr
+                
+//                TPZCompElSide left_side =  mf_int_cel->Left();
+//                TPZCompElSide right_side =  mf_int_cel->Right();
+                
+//                TPZMultiphysicsElement * mf_l_cel = dynamic_cast<TPZMultiphysicsElement *>(left_side.Element());
+//                mf_l_cel->GetMemoryIndices(<#TPZVec<long> &indices#>)
+                const TPZIntPoints &intrule = mf_int_cel->GetIntegrationRule();
+                int intrulepoints = intrule.NPoints();
+                TPZManVector<long> indices;
+                indices.Resize(intrulepoints);
+                
+                for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+                    indices[int_ind] = mf_int_cel->Material()->PushMemItem();
+                } //Loop over integratin points generating a reference vector of memory
+                //entries in the related pzmatwithmem for further use.
+                mf_int_cel->SetMemoryIndices(indices);
+//                mf_int_cel->InitializeIntegrationRule();
+//                mf_int_cel->PrepareIntPtIndices();
+            }
+            
+            continue;
+        }
+        else
+        {
+            
+            mf_cel->InitializeIntegrationRule();
+            mf_cel->PrepareIntPtIndices();
+        }
+        
+
+
+    }
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshTransport.txt");
+    fTransportMesh->Print(out);
+#endif
+    
+    
 }
 
 

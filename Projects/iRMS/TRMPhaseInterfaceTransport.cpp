@@ -57,12 +57,12 @@ void TRMPhaseInterfaceTransport::FillBoundaryConditionDataRequirement(int type,T
     DebugStop();
 }
 
-
-
 /** print out the data associated with the material */
 void TRMPhaseInterfaceTransport::Print(std::ostream &out)
 {
-    DebugStop();
+    out << "\t Base class print:\n";
+    out << " name of material : " << this->Name() << "\n";
+    TPZMaterial::Print(out);
 }
 
 
@@ -70,6 +70,7 @@ void TRMPhaseInterfaceTransport::Print(std::ostream &out)
 int TRMPhaseInterfaceTransport::VariableIndex(const std::string &name)
 {
     DebugStop();
+    return 0;
 }
 
 
@@ -78,6 +79,7 @@ int TRMPhaseInterfaceTransport::VariableIndex(const std::string &name)
 int TRMPhaseInterfaceTransport::NSolutionVariables(int var)
 {
     DebugStop();
+    return 0;
 }
 
 

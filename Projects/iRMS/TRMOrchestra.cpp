@@ -139,8 +139,15 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fFluxPressureAnalysis->SetTransfer(Transfer);
     
     if(fSimulationData->IsTwoPhaseQ()){
-        fSpaceGenerator->CreateFluxCmeshInterfaces();
         fSpaceGenerator->CreateAlphaTransportMesh();
+        fSpaceGenerator->CreateTransportMesh();
+        
+        
+        int rockid = 1000;
+        TPZMaterial * material = fSpaceGenerator->TransportMesh()->FindMaterial(rockid);
+        TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> *>(material);
+        int np_cmesh = associated_material->GetMemory().NElements();
+        
         fSpaceGenerator->AlphaSaturationMesh()->ApproxSpace().CreateInterfaceElements(fSpaceGenerator->AlphaSaturationMesh().operator->());
         
 #ifdef PZDEBUG
@@ -149,6 +156,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 #endif
         Transfer->ComputeLeftRight(fSpaceGenerator->AlphaSaturationMesh());
         Transfer->Fill_un_To_Transport_a(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->AlphaSaturationMesh());
+        Transfer->Transfer_up_To_Transport_Mesh(fSpaceGenerator->FluxCmesh(), fSpaceGenerator->AlphaSaturationMesh());
         
     }
     

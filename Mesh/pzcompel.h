@@ -367,11 +367,21 @@ public:
     {
         indices.resize(0);
     }
+    
+    /** @brief Set the indices of the vector of element memory associated with the integration points */
+    /**
+     * Will return an empty vector if no memory is associated with the integration point
+     * Is implemented in TPZCompElWithMem
+     */
+    virtual void SetMemoryIndices(TPZVec<long> &indices) const
+    {
+        indices.resize(0);
+    }
 	
-		/** @brief Prepare the vector of the material withmem with the correct integration point indexes */
- 		virtual void PrepareIntPtIndices(){
-			
-		}
+    /** @brief Prepare the vector of the material withmem with the correct integration point indexes */
+    virtual void PrepareIntPtIndices(){
+        
+    }
   
   /** @brief PrepareIntPtIndices initializes the material damage varibles memory in the proper material class. */
 	virtual void ForcePrepareIntPtIndices(){

@@ -727,6 +727,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh
     TPZManVector<int,10> face_sides;
     long face_index;
     long n_interfaces = fleft_right_indexes.size();
+    fun_dof_scatter.Resize(n_interfaces);
 
     
     // Block size structue including (Gamma and gamma (Inner element interfaces))
@@ -761,8 +762,6 @@ void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh
         this->ComputeFaceIndex(left_gel,face_sides);
         
         TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace *> (left_cel);
-        this->ElementDofFaceIndexes(0,intel_vol, dof_indexes);
-//        nconnects = left_cel->NConnects();
         
         int nfaces = face_sides.size();
         
@@ -786,12 +785,15 @@ void TRMBuildTransfers::Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh
             }
         }
         
+        this->ElementDofFaceIndexes(i_face,intel_vol, dof_indexes);
+        
         TPZIntPoints *face_int_points = left_gel->CreateSideIntegrationRule(face_sides[i_face], cel_face->GetgOrder());
         int npoints = face_int_points->NPoints();
         int nshapes = left_cel->Connect(i_face).NShape();
         
         blocks_dimensions[k_face].first = npoints;
         blocks_dimensions[k_face].second = nshapes;
+        fun_dof_scatter[k_face] = dof_indexes;
         
         
     }
@@ -1109,16 +1111,13 @@ void TRMBuildTransfers::Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux
             
         }
         
-        block.Print("block = ");
-        
         fun_To_Transport_a.SetBlock(k_face, block);
         
     }
     
-    fun_To_Transport_a.Print("  ");
 }
 
-void TRMBuildTransfers::ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
+void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
 
     
 #ifdef PZDEBUG
@@ -1128,108 +1127,65 @@ void TRMBuildTransfers::ElementDofFaceIndexes(int connect,TPZInterpolationSpace 
 #endif
     
     TPZStack<long> index(0,0);
-//    int nconnect = intel->NConnects();
-//    for (int icon = 0; icon < nconnect - 1; icon++) {
-        TPZConnect  & con = intel->Connect(connect);
-        long seqnumber = con.SequenceNumber();
-        long position = intel->Mesh()->Block().Position(seqnumber);
-        int nshape = con.NShape();
-        for (int ish=0; ish < nshape; ish++) {
-            index.Push(position+ ish);
-        }
-//    }
+    TPZConnect  & con = intel->Connect(connect_index);
+    long seqnumber = con.SequenceNumber();
+    long position = intel->Mesh()->Block().Position(seqnumber);
+    int nshape = con.NShape();
+    for (int ish=0; ish < nshape; ish++) {
+        index.Push(position+ ish);
+    }
     
     dof_indexes = index;
     return;
 }
 
-///** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-//void Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
-//    
-//}
+/** @brief Transfer normal fluxes to integration points of transport meshes */
+void TRMBuildTransfers::Transfer_up_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_transport){
+  
+#ifdef PZDEBUG
+    if (!cmesh_flux || !cmesh_transport) {
+        std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
+        DebugStop();
+    }
+#endif
+    
 
-/** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-void Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+    long n_interfaces = fleft_right_indexes.size();
     
-    // It verify the consistency of dynamic_cast operations and mesh structure, and  finally it initialize diagonal matrix blocks
-//    Initialize_un_To_Transport_a(cmesh_multiphysics, mesh_index);
+    // For the imat
+    int imat = 0;
+    int rockid = this->SimulationData()->RawData()->fOmegaIds[imat];
     
-//    long nel = cmesh_multiphysics->NElements();
-//    int n_var_dim = 3; // vector
-//    long element_index = 0;
-//    
-//    TPZMaterialData data;
-//    
-//    std::pair<long, long> block_dim;
-//    
-//    for (long icel = 0; icel < nel; icel++) {
-//        
-//        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
-//        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
-//        TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
-//        element_index = mf_cel->Index();
-//        
-//        // Getting local integration index
-//        TPZManVector<long> int_point_indexes(0,0);
-//        TPZManVector<long> dof_indexes(0,0);
-//        
-//        mf_cel->GetMemoryIndices(int_point_indexes);
-//        dof_indexes = fu_dof_scatter[element_index];
-//        
-//        block_dim.first = int_point_indexes.size();
-//        block_dim.second = dof_indexes.size();
-//        
-//        
-//        // Computing the local integration points indexes
-//        const TPZIntPoints & int_points_mixed = mf_cel->GetIntegrationRule();
-//        int np_cel = int_points_mixed.NPoints();
-//        
-//#ifdef PZDEBUG
-//        if (int_point_indexes.size() != np_cel) {
-//            DebugStop();
-//        }
-//#endif
-//        
-//        // Computing over all integration points of the compuational element cel
-//        TPZFNMatrix<100,REAL> phi(intel->NShapeF(),1,0.0);
-//        int el_dim = mf_cel->Reference()->Dimension();
-//        TPZFNMatrix<300,REAL> dphidxi(el_dim,intel->NShapeF(),0.0);
-//        TPZFMatrix<double> block;
-//        
-//        if(intel->Dimension() < n_var_dim){ // two dimensional elements
-//            block.Resize(block_dim.first,block_dim.second);        }
-//        else{
-//            block.Resize(block_dim.first*n_var_dim,block_dim.second);
-//        }
-//        
-//        for (int ip = 0; ip < block_dim.first ; ip++)
-//        {
-//            TPZManVector<REAL,3> qsi(el_dim,0.0);
-//            STATE w;
-//            int_points_mixed.Point(ip, qsi, w);
-//            // Get the vectorial phi
-//            intel->Shape(qsi, phi, dphidxi);
-//            intel->InitMaterialData(data);
-//            intel->ComputeRequiredData(data,qsi);
-//            
-//            for (int id = 0; id < n_var_dim; id++) {
-//                for (int jp = 0; jp < block_dim.second; jp++) {
-//                    int vector_index = data.fVecShapeIndex[jp].first;
-//                    int shape_index = data.fVecShapeIndex[jp].second;
-//                    block(ip*n_var_dim+id,jp) = phi(shape_index,0)*data.fNormalVec(id,vector_index);
-//                }
-//            }
-//            
-//        }
-//        
-//        fu_To_Mixed.SetBlock(element_index, block);
-//        
+    //  Getting the total integration point of the destination cmesh
+    TPZMaterial * material = cmesh_transport->FindMaterial(rockid);
+    TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
+    int np_cmesh = associated_material->GetMemory().NElements();
+    
+    
+    // Step one
+    TPZFMatrix<STATE> ScatterFluxes(fun_To_Transport_a.Cols(),1,0.0);
+    long pos = 0;
+    for (int iface = 0; iface < n_interfaces; iface++) {
+        for(int iflux = 0; iflux < fun_dof_scatter[iface].size(); iflux++) {
+            ScatterFluxes(pos,0) = cmesh_flux->Solution()(fun_dof_scatter[iface][iflux],0);
+            pos++;
+        }
+    }
+    
+    // Step two
+    TPZFMatrix<STATE> un_at_intpoints;
+    fun_To_Transport_a.Multiply(ScatterFluxes,un_at_intpoints);
+    un_at_intpoints.Print("un = ");
+    
+    // Step three
+//    // Trasnfering integrated normal fluxes values
+//    for(long i = 0; i <  np_cmesh; i++){
+//        associated_material->GetMemory()[i].SetPressure(un_at_intpoints(i,0));
 //    }
-    
-    return;
     
     
 }
+
 
 
 //

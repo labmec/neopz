@@ -16,60 +16,48 @@
 
 class TRMPhaseInterfaceMemory
 {
-    // Store all the data required for the integration points
-    // Store the saturation at n step
-    // Also it can store the nonlinear part of the flux at n step
-    // Store the xyz of the spatial properties
-    /// Flux from left to right at the integration point
-//    STATE fNormalFlux;
-    /// Saturation at the left
-//    STATE fLeftSaturation;
-    
-    /// Saturation at the right
-//    STATE fRightSaturation;
+
+    /** @brief contains the normal flux per surface area */
+    REAL fun;
 
 public:
 
-    TRMPhaseInterfaceMemory()
-    {
-        DebugStop();
+    /** @brief Default constructor */
+    TRMPhaseInterfaceMemory();
+    
+    /** @brief Default destructor */
+    ~TRMPhaseInterfaceMemory();
+
+    /** @brief Constructor based on a copy */
+    TRMPhaseInterfaceMemory(const TRMPhaseInterfaceMemory &copy){
+        fun      = copy.fun;
     }
 
-    TRMPhaseInterfaceMemory(const TRMPhaseInterfaceMemory &copy)
-    {
-        DebugStop();
-    }
-    
-    TRMPhaseInterfaceMemory &operator=(const TRMPhaseInterfaceMemory &copy)
-    {
-        DebugStop();
+    /** @brief Assignment operator */
+    TRMPhaseInterfaceMemory &operator=(const TRMPhaseInterfaceMemory &other){
+        if (this != & other) // prevent self-assignment
+        {
+            fun      = other.fun;
+        }
         return *this;
     }
     
-// Note describe this class into the lyx doc
-void UpdateSolutionMemory()
-{
-    //update saturation and pressure and total flux (un = unp1)
-//    fPressureN = fPressureNp1;
-}
 
-void Write(TPZStream &buf, int withclassid)
-{
-//    buf.Write(&fPressureN);
-//    buf.Write(&fPressureNp1);
-}
-
-void Read(TPZStream &buf, void *context)
-{
-//    buf.Read(&fPressureN);
-//    buf.Read(&fPressureNp1);
-}
-
-void Print(std::ostream &out) const
-{
-//    out << fPressureN;
-//    out << fPressureNp1;
-}
+    void Write(TPZStream &buf, int withclassid)
+    {
+        buf.Write(&fun);
+    }
+    
+    void Read(TPZStream &buf, void *context)
+    {
+        buf.Read(&fun);
+    }
+    
+    void Print(std::ostream &out) const
+    {
+        out << "TRMPhaseInterfaceMemory item, with values ";
+        out << fun;
+    }
 
 
 };
@@ -79,7 +67,6 @@ inline std::ostream &operator<<(std::ostream &out,const TRMPhaseInterfaceMemory 
     mem.Print(out);
     return out;
 }
-
 
 
 #endif /* defined(__PZ__TRMPhaseInterfaceMemory__) */

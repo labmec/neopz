@@ -55,9 +55,6 @@ private:
     /** @brief Hdiv computational mesh, conservative vector field */
     TPZAutoPointer<TPZCompMesh> fFluxCmesh;
     
-    /** @brief Hdiv computational mesh with interfaces, conservative vector field */
-    TPZAutoPointer<TPZCompMesh> fFluxCmesh_Int;
-    
     /** @brief L2 computational mesh the restriction equation */
     TPZAutoPointer<TPZCompMesh> fPressureCmesh;
     
@@ -69,6 +66,9 @@ private:
     
     /** @brief H1 computational mesh for Maurice Biot linear poroelasticity */
     TPZAutoPointer<TPZCompMesh> fGeoMechanicsCmesh;
+    
+    /** @brief L2 computational multiphysics mesh transport equations */
+    TPZAutoPointer<TPZCompMesh> fTransportMesh;
     
     /** @brief Mixed computational mesh for a dual analysis */
     TPZAutoPointer<TPZCompMesh> fMixedFluxPressureCmesh;
@@ -122,9 +122,6 @@ public:
     
     /** @brief Create a Hdiv computational mesh */
     void CreateFluxCmesh();
-    
-    /** @brief Create a Hdiv computational mesh with interfaces */
-    void CreateFluxCmeshInterfaces();
 
     /** @brief Create a Discontinuous computational mesh L2 */
     void CreatePressureCmesh();
@@ -132,7 +129,7 @@ public:
     /** @brief Create a Mixed computational mesh Hdiv-L2 */
     void CreateMixedCmesh();
     
-    /** @brief Create a Mixed-Transport muliphase computational mesh Hdiv-L2-L2-L2 */
+    /** @brief Create a Mixed-Transport multiphase computational mesh Hdiv-L2-L2-L2 */
     void CreateMultiphaseCmesh();
     
     /** @brief Statically condense the internal equations of the elements */
@@ -141,11 +138,14 @@ public:
     /** @brief Configure the boundary conditions of a well with reservoir boundary conditions */
     void ConfigureWellConstantPressure(STATE wellpressure, STATE farfieldpressure);
     
-    /** @brief Create a computational mesh L2 */
+    /** @brief Create a computational mesh L2 of alpha phase */
     void CreateAlphaTransportMesh();
     
-    /** @brief Create a computational mesh L2 */
+    /** @brief Create a computational mesh L2 of beta phase  */
     void CreateBetaTransportMesh();
+    
+    /** @brief Create a multiphysics computational mesh L2 */
+    void CreateTransportMesh();
     
     /** @brief Create a H1 computational mesh for Maurice Biot Linear Poroelasticity */
     void CreateGeoMechanicMesh();
@@ -219,14 +219,14 @@ public:
         return fFluxCmesh;
     }
     
-    /** @brief Set autopointer of Hdiv computational mesh with interfaces */
-    void SetFluxCmeshInt(TPZAutoPointer<TPZCompMesh> &FluxCmesh_Int){
-        fFluxCmesh_Int = FluxCmesh_Int;
+    /** @brief Set L2 computational multiphysics mesh transport equations */
+    void SetTransportMesh(TPZAutoPointer<TPZCompMesh> &FluxCmesh_Int){
+        fTransportMesh = FluxCmesh_Int;
     }
     
-    /** @brief Get autopointer of Hdiv computational mesh with interfaces */
-    TPZAutoPointer<TPZCompMesh>  FluxCmeshInt(){
-        return fFluxCmesh_Int;
+    /** @brief Get L2 computational multiphysics mesh transport equations */
+    TPZAutoPointer<TPZCompMesh>  TransportMesh(){
+        return fTransportMesh;
     }
     
     /** @brief Set autopointer of L2 computational mesh the restriction equation */

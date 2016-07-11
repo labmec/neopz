@@ -61,7 +61,7 @@ public:
     
     /** returns the name of the material */
     std::string Name() {
-        return "TRMMixedDarcy";
+        return "TRMPhaseTransport";
     }
     
     /** returns the integrable dimension of the material */

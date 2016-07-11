@@ -271,8 +271,6 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
     KInverse(1,1) = 1.0;
     KInverse(2,2) = 1.0;
     
-    
-    
     // Defining local variables
     TPZFMatrix<STATE> oneoverlambda_Kinv_u(3,1);
     TPZFMatrix<STATE> oneoverlambda_Kinv_jphiuHdiv(3,1);
