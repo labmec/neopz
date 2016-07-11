@@ -2136,13 +2136,12 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh){
             TPZConnect &conel = cel->Connect(ncon-1);
             corder = conel.Order();
             nshape = conel.NShape();
-            
             int neworder = corder + 1;
-            conel.SetOrder(neworder);
+            conel.SetOrder(neworder,cel->ConnectIndex(ncon-1));
             nshape = 2*(corder + 1)*(corder + 2);
             TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
             intel->SetPreferredOrder(neworder);
-            nshape2 = intel->NConnectShapeF(ncon-1);
+            nshape2 = intel->NConnectShapeF(ncon-1,neworder);
             
             conel.SetNShape(nshape);
             mesh->Block().Set(conel.SequenceNumber(),nshape);
@@ -2176,9 +2175,9 @@ void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int reduction_value){
                 if(corder!=neworder)
                 {
                     neworder = corder - reduction_value;
-                    conel.SetOrder(neworder);
+                    conel.SetOrder(neworder, cel->ConnectIndex(icon));
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-                    nshape = intel->NConnectShapeF(icon);
+                    nshape = intel->NConnectShapeF(icon,neworder);
                     conel.SetNShape(nshape);
                     mesh->Block().Set(conel.SequenceNumber(),nshape);
                 }
@@ -2186,9 +2185,9 @@ void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int reduction_value){
                 if(conel.HasDependency())
                 {
                     int order = corder - reduction_value;
-                    conel.SetOrder(order);
+                    conel.SetOrder(order,cel->ConnectIndex(icon));
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-                    nshape = intel->NConnectShapeF(icon);
+                    nshape = intel->NConnectShapeF(icon,order);
                     conel.SetNShape(nshape);
                     mesh->Block().Set(conel.SequenceNumber(),nshape);
                 }
