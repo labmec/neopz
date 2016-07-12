@@ -690,7 +690,8 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     
     int dim = 3;
     int saturation = 0;
-    int interface_id = 1000;
+    int sorder = fSOrder;
+    int interface_id = fSimulationData->InterfacesMatId();
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     
@@ -733,7 +734,9 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     }
 
     fTransportMesh->SetDimModel(dim);
+    fTransportMesh->SetDefaultOrder(sorder);
     fTransportMesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    fTransportMesh->ApproxSpace().CreateWithMemory(true);// Force the creating of interfaces with memory.
     fTransportMesh->AutoBuild();
     
     TPZManVector<TPZCompMesh * ,2> meshvector;
@@ -792,48 +795,13 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     nel = fTransportMesh->NElements();
     for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = fTransportMesh->Element(el);
-        TPZMultiphysicsElement *mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
-        TPZMultiphysicsInterfaceElement * mf_int_cel = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
+        TPZMultiphysicsElement              * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
         if (!mf_cel) {
-            
-            if (!mf_int_cel) {
-                continue;
-            }
-            else
-            {
-                
-//                mf_int_cel->Pr
-                
-//                TPZCompElSide left_side =  mf_int_cel->Left();
-//                TPZCompElSide right_side =  mf_int_cel->Right();
-                
-//                TPZMultiphysicsElement * mf_l_cel = dynamic_cast<TPZMultiphysicsElement *>(left_side.Element());
-//                mf_l_cel->GetMemoryIndices(<#TPZVec<long> &indices#>)
-                const TPZIntPoints &intrule = mf_int_cel->GetIntegrationRule();
-                int intrulepoints = intrule.NPoints();
-                TPZManVector<long> indices;
-                indices.Resize(intrulepoints);
-                
-                for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-                    indices[int_ind] = mf_int_cel->Material()->PushMemItem();
-                } //Loop over integratin points generating a reference vector of memory
-                //entries in the related pzmatwithmem for further use.
-                mf_int_cel->SetMemoryIndices(indices);
-//                mf_int_cel->InitializeIntegrationRule();
-//                mf_int_cel->PrepareIntPtIndices();
-            }
-            
             continue;
         }
-        else
-        {
-            
-            mf_cel->InitializeIntegrationRule();
-            mf_cel->PrepareIntPtIndices();
-        }
         
-
-
+        mf_cel->InitializeIntegrationRule();
+        mf_cel->PrepareIntPtIndices();
     }
     
 #ifdef PZDEBUG
@@ -927,6 +895,9 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     n = int(dz[1]);
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     fGeoMesh = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
+
+    const std::string name("Reservoir box");
+    fGeoMesh->SetName(name);
     
 }
 void TRMSpaceOdissey::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)

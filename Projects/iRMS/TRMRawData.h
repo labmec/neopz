@@ -78,6 +78,9 @@ public:
      * @brief Define the colletion of materials ids and functions being used as boundary conditions
      * @since May 08, 2016
      */
+   
+    /** @brief Material identifier for interfaces */
+    int fInterface_mat_Id;
     
     /** @brief Definition of the flow system one - two or three phase */
     TPZStack<std::string> fSystemType;

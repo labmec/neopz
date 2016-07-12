@@ -377,7 +377,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 //    STATE rhs = point_memory.GetRhs();
 //    STATE w = point_memory.GetWeight();
 //    STATE det = point_memory.GetDetJac();
-    TPZManVector<STATE> flux = point_memory.GetTotal_Flux();
+//    TPZManVector<STATE> flux = point_memory.GetTotal_Flux();
 
 //    std::cout << "flux = " << flux << std::endl;
 //    std::cout << "u    = " << u << std::endl;

@@ -21,6 +21,9 @@ TRMRawData::TRMRawData()
     fProdVertPosition = 0.;
     fWellDiam = 0.;
     
+    /** @brief Material identifier for interfaces */
+    fInterface_mat_Id = 10000;
+    
     /** @brief vector that stores all material ids associated with omega domain */
     fOmegaIds.Resize(0);
     

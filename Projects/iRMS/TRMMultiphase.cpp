@@ -1821,9 +1821,6 @@ void TRMMultiphase::Read(TPZStream &buf, void *context) {
 // Update element memory by copying the n+1 data to the n data
 void TRMMultiphase::UpdateMemory()
 {
-    long nel = fMemory.NElements();
-    for (long el=0; el<nel; el++) {
-        fMemory[el].UpdateSolutionMemory();
-    }
+    DebugStop();
 }
 

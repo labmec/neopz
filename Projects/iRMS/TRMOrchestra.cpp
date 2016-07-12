@@ -31,8 +31,7 @@ TRMOrchestra::TRMOrchestra(){
     fMonolithicMultiphaseAnalysis_I = new TRMMonolithicMultiphaseAnalysis;
     fMonolithicMultiphaseAnalysis   = new TRMMonolithicMultiphaseAnalysis;
     fFluxPressureAnalysis           = new TRMFluxPressureAnalysis;
-    fAlphaTransportAnalysis         = new TRMTransportAnalysis;
-    fBetaTransportAnalysis          = new TRMTransportAnalysis;
+    fTransportAnalysis              = new TRMTransportAnalysis;
     
     fIsMonolithicQ         =  false;
     fIsSegregatedQ         =  false;
@@ -124,16 +123,16 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     Transfer->Fill_u_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 0);
     Transfer->Fill_p_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 1);
     
-    // Analysis for linear tracer
-    bool mustOptimizeBandwidth = true;
-    fFluxPressureAnalysis->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh().operator->(), mustOptimizeBandwidth);
-    TPZSkylineStructMatrix strmat(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
-    TPZStepSolver<STATE> step;
-    int numofThreads = 0;
-    strmat.SetNumThreads(numofThreads);
-    step.SetDirect(ELDLt);
-    fFluxPressureAnalysis->SetStructuralMatrix(strmat);
-    fFluxPressureAnalysis->SetSolver(step);
+    // Analysis for parabolic part
+    bool mustOptimizeBandwidth_p = true;
+    fFluxPressureAnalysis->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh().operator->(), mustOptimizeBandwidth_p);
+    TPZSkylineNSymStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
+    TPZStepSolver<STATE> step_p;
+    int numofThreads_p = 0;
+    strmat_p.SetNumThreads(numofThreads_p);
+    step_p.SetDirect(ELDLt);
+    fFluxPressureAnalysis->SetStructuralMatrix(strmat_p);
+    fFluxPressureAnalysis->SetSolver(step_p);
     fFluxPressureAnalysis->AdjustVectors();
     fFluxPressureAnalysis->SetSimulationData(fSimulationData);
     fFluxPressureAnalysis->SetTransfer(Transfer);
@@ -141,25 +140,43 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if(fSimulationData->IsTwoPhaseQ()){
         fSpaceGenerator->CreateAlphaTransportMesh();
         fSpaceGenerator->CreateTransportMesh();
+                
+//        int rockid = fSimulationData->InterfacesMatId();
+//        TPZMaterial * material = fSpaceGenerator->TransportMesh()->FindMaterial(rockid);
+//        TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> *>(material);
+//        int np_cmesh = associated_material->GetMemory().NElements();
+//        
+//        int rockid1 = fSimulationData->RawData()->fOmegaIds[0];
+//        TPZMaterial * material1 = fSpaceGenerator->TransportMesh()->FindMaterial(rockid1);
+//        TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material1 = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material1);
+//        int np_cmesh1 = associated_material1->GetMemory().NElements();
         
+//        Transfer->ComputeLeftRight(fSpaceGenerator->AlphaSaturationMesh());
+//        Transfer->Fill_un_To_Transport_a(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->AlphaSaturationMesh());
+//        Transfer->Transfer_up_To_Transport_Mesh(fSpaceGenerator->FluxCmesh(), fSpaceGenerator->AlphaSaturationMesh());
         
-        int rockid = 1000;
-        TPZMaterial * material = fSpaceGenerator->TransportMesh()->FindMaterial(rockid);
-        TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> *>(material);
-        int np_cmesh = associated_material->GetMemory().NElements();
-        
-        fSpaceGenerator->AlphaSaturationMesh()->ApproxSpace().CreateInterfaceElements(fSpaceGenerator->AlphaSaturationMesh().operator->());
-        
-#ifdef PZDEBUG
-        std::ofstream out("CmeshS_alpha_Interfaces.txt");
-        fSpaceGenerator->AlphaSaturationMesh()->Print(out);
-#endif
-        Transfer->ComputeLeftRight(fSpaceGenerator->AlphaSaturationMesh());
-        Transfer->Fill_un_To_Transport_a(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->AlphaSaturationMesh());
-        Transfer->Transfer_up_To_Transport_Mesh(fSpaceGenerator->FluxCmesh(), fSpaceGenerator->AlphaSaturationMesh());
+        fTransportAnalysis->Meshvec().Resize(1);
+        fTransportAnalysis->Meshvec()[0] = fSpaceGenerator->AlphaSaturationMesh().operator->();
         
     }
     
+    if(fSimulationData->IsThreePhaseQ()){
+        DebugStop();
+    }
+    
+    // Analysis for hyperbolic part
+    bool mustOptimizeBandwidth_t = true;
+    fTransportAnalysis->SetCompMesh(fSpaceGenerator->TransportMesh().operator->(), mustOptimizeBandwidth_t);
+    TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh().operator->());
+    TPZStepSolver<STATE> step_t;
+    int numofThreads_t = 0;
+    strmat_t.SetNumThreads(numofThreads_t);
+    step_t.SetDirect(ELDLt);
+    fTransportAnalysis->SetStructuralMatrix(strmat_t);
+    fTransportAnalysis->SetSolver(step_t);
+    fTransportAnalysis->AdjustVectors();
+    fTransportAnalysis->SetSimulationData(fSimulationData);
+    fTransportAnalysis->SetTransfer(Transfer);
     
 }
 
@@ -242,7 +259,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
 }
 
-/** @brief Run the static problem for a single step with a large time step */
+/** @brief Run the static problem over a single large time step */
 void TRMOrchestra::RunStaticProblem(){
     
     int n = 1;//fSimulationData->n_steps();
@@ -256,7 +273,8 @@ void TRMOrchestra::RunStaticProblem(){
         }
         
         if (IsSegregatedQ()) {
-            std::cout <<  " Sgregated initialization not implemented yet" << std::endl;
+            fFluxPressureAnalysis->ExcecuteOneStep();
+            std::cout <<  " Segregated initialization not implemented yet" << std::endl;
             DebugStop();
         }
         

@@ -52,11 +52,8 @@ private:
     /** @brief Define the mixed system analysis */
     TPZAutoPointer<TRMFluxPressureAnalysis> fFluxPressureAnalysis;
     
-    /** @brief Define the alpha transpor equation analysis */
-    TPZAutoPointer<TRMTransportAnalysis> fAlphaTransportAnalysis;
-    
-    /** @brief Define the beta transpor equation analysis */
-    TPZAutoPointer<TRMTransportAnalysis> fBetaTransportAnalysis;
+    /** @brief Define analysis for transport phases */
+    TPZAutoPointer<TRMTransportAnalysis> fTransportAnalysis;
     
     /** @brief Define the use of monolithic analysis  */
     bool fIsMonolithicQ;
@@ -177,26 +174,15 @@ public:
         return fFluxPressureAnalysis;
     }
     
-    /** @brief Set autopointer of the water transpor equation analysis */
-    void SetWaterTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &AlphaTransportAnalysis)
+    /** @brief Set autopointer of the transpor equations analysis */
+    void SetTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &TransportAnalysis)
     {
-        fAlphaTransportAnalysis = AlphaTransportAnalysis;
+        fTransportAnalysis = TransportAnalysis;
     }
     /** @brief Get autopointer of the water transpor equation analysis */
-    TPZAutoPointer<TRMTransportAnalysis > AlphaTransportAnalysis()
+    TPZAutoPointer<TRMTransportAnalysis > TransportAnalysis()
     {
-        return fAlphaTransportAnalysis;
-    }
-    
-    /** @brief Set autopointer of the oil transpor equation analysis */
-    void SetBetaTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &BetaTransportAnalysis)
-    {
-        fBetaTransportAnalysis = BetaTransportAnalysis;
-    }
-    /** @brief Get autopointer of the oil transpor equation analysis */
-    TPZAutoPointer<TRMTransportAnalysis > BetaTransportAnalysis()
-    {
-        return fBetaTransportAnalysis;
+        return fTransportAnalysis;
     }
     
     

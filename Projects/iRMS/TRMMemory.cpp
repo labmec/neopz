@@ -17,10 +17,18 @@ TRMMemory::TRMMemory(){
     fdivu               = 0.0;
     fdivu_n             = 0.0;
     
-    fPressure           = 0.0;
-    fPressure_n         = 0.0;
-    fSw                 = 0.0;
-    fSw_n               = 0.0;
+    // Required
+    fp              = 0.0;
+    fp_n            = 0.0;
+    fp_avg          = 0.0;
+    fp_avg_n        = 0.0;
+    fsa             = 0.0;
+    fsa_n           = 0.0;
+    fsb             = 0.0;
+    fsb_n           = 0.0;
+
+    
+    
     fporosity           = 0.0;
     
     fK.Resize(3,3);

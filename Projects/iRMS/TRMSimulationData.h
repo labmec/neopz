@@ -43,6 +43,9 @@ protected:
     /** @brief Definition gravity field */
     TPZVec<STATE> fg;
     
+    /** @brief Material identifier for interfaces */
+    int fInterface_mat_Id;
+    
     /** @brief Store time values to be reported */
     TPZStack< STATE , 500 > fReportingTimes;
     
@@ -281,6 +284,9 @@ public:
     
     /** @brief correction overal tolerance */
     STATE epsilon_cor() { return fepsilon_cor; }
+    
+    /** @brief Material identifier for interfaces */
+    int InterfacesMatId() { return fInterface_mat_Id; }
     
     /** @brief Set autopointer of the RawData */
     void SetRawData(TPZAutoPointer<TRMRawData> &RawData);
