@@ -27,6 +27,7 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "TPZInterfaceEl.h"
+#include "TPZMultiphysicsInterfaceEl.h"
 
 #include "pzysmp.h"
 #include "pzblockdiag.h"
@@ -68,29 +69,47 @@ private:
     /** @brief Diagonal block matrix to transfer Pressure solution to integrations points of the mixed mesh */
     TRMIrregularBlockDiagonal<STATE> fp_To_Mixed;
     
-    /** @brief Diagonal block matrix to transfer Average pressure solution to integrations points of the mixed mesh */
-    TRMIrregularBlockDiagonal<STATE> fap_To_Mixed;
-    
     /** @brief pressure dof indexes per element */
     TPZVec< TPZVec<long> > fp_dof_scatter;
     
-    /** @brief Diagonal block matrix to transfer Average alpha saturation solution to integrations points of the mixed mesh */
-    TRMIrregularBlockDiagonal<STATE> fs_a_To_Mixed;
+    /** @brief Diagonal block matrix to transfer saturation solution to integrations points of the transport mesh */
+    TRMIrregularBlockDiagonal<STATE> fs_To_Transport;
     
     /** @brief pressure dof indexes per element */
-    TPZVec< TPZVec<long> > fs_a_dof_scatter;
+    TPZVec< TPZVec<long> > fs_dof_scatter;
     
-    /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh */
-    TRMIrregularBlockDiagonal<STATE> fun_To_Transport_a;
+//    /** @brief Diagonal block matrix to transfer Average alpha saturation solution to integrations points of the mixed mesh */
+//    TRMIrregularBlockDiagonal<STATE> fs_a_To_Mixed;
     
-    /** @brief normal flux dof indexes per interface element */
-    TPZVec< TPZVec<long> > fun_dof_scatter;
+//    /** @brief pressure dof indexes per element */
+//    TPZVec< TPZVec<long> > fs_a_dof_scatter;
     
-    /** @brief left and right geometric element indexes */
-    TPZStack < std::pair<long, long> > fleft_right_indexes;
+    /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh over gamma */
+    TRMIrregularBlockDiagonal<STATE> fun_To_Transport_gamma;
     
-    /** @brief left and right geometric element indexes */
-    TPZStack < long > finterface_indexes;
+    /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh over Gamma */
+    TRMIrregularBlockDiagonal<STATE> fun_To_Transport_Gamma;
+    
+    /** @brief normal flux dof indexes per interface element on gamma (inner interfaces)*/
+    TPZVec< TPZVec<long> > fun_dof_scatter_gamma;
+    
+    /** @brief normal flux dof indexes per interface element on Gamma (boundary interfaces) */
+    TPZVec< TPZVec<long> > fun_dof_scatter_Gamma;
+
+    /** @brief mixed and transpor computational multiphysics element indexes, every element is indexed by geometric element */
+    TPZStack< std::pair<long, std::pair<long, long> >  > fmixed_transport_indexes;
+    
+    /** @brief left and right geometric element indexes on gamma */
+    TPZStack < std::pair<long, long> > fleft_right_indexes_gamma;
+    
+    /** @brief geometric interface element indexes on Gamma */
+    TPZStack < long > finterface_indexes_gamma;
+    
+    /** @brief left and right geometric element indexes on Gamma */
+    TPZStack < std::pair<long, long> > fleft_right_indexes_Gamma;
+    
+    /** @brief geometric interface element indexes on Gamma */
+    TPZStack < long > finterface_indexes_Gamma;
     
     //    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
     //    TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_V;
@@ -243,20 +262,13 @@ public:
     void p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompMesh * cmesh_multiphysics);
 
     /** @brief Transfer saturations to integration points of multiphysics transport mesh over volumetric elements */
-    void s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TPZCompMesh * cmesh_multiphysics);
+    void s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TPZCompMesh * cmesh_multiphysics, int mesh_index);
     
     /** @brief Transfer average quantities to integration points of multiphysics mixed/ transpor meshes over volumetric elements */
-    void Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);
-    
-    
-    /** @brief Transfer average pressure to integration points of multiphysics mixed mesh over volumetric elements */
-    void Transfer_avg_p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompMesh * cmesh_multiphysics);
-    
-    /** @brief Transfer average pressure to integration points of multiphysics transport mesh over volumetric elements */
-    void Transfer_avg_p_To_Transport_Memory(TPZCompMesh * cmesh_pressure, TPZCompMesh * cmesh_multiphysics);
+    void Reciprocal_Memory_Transfer(TPZAutoPointer< TPZCompMesh> cmesh_mf_mixed, TPZAutoPointer< TPZCompMesh> cmesh_mf_transport);
     
     /** @brief Transfer normal fluxes to integration points of transport meshes */
-    void Transfer_up_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_transport);
+    void un_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_mf_trans, bool IsBoundaryQ);
     
     // @}
     
@@ -286,19 +298,34 @@ public:
     TRMIrregularBlockDiagonal<STATE> Transfer_p_To_Mixed(){
         return fp_To_Mixed;
     }
-        
-    /** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-    void Initialize_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh);
     
-    /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-    void Fill_un_To_Transport_a(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh);
+    /** @brief Initializate  diagonal block matrix to transfer Pressure to multiphysics mesh  */
+    void Initialize_s_To_Transport(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
     
-    /** @brief Get the sparse matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-    TRMIrregularBlockDiagonal<STATE> Transfer_un_To_Transport_a(){
-        return fun_To_Transport_a;
+    /** @brief Initializate diagonal block matrix to transfer Pressure to multiphysics mesh  */
+    void Fill_s_To_Transport(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    
+    /** @brief Get the sparse matrix to transfer saturation to multiphysics mesh  */
+    TRMIrregularBlockDiagonal<STATE> Transfer_s_To_Transport(){
+        return fs_To_Transport;
     }
         
-
+    /** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh over Gamma or gamma */
+    void Initialize_un_To_Transport(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh, bool IsBoundaryQ);
+    
+    /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh over Gamma or gamma */
+    void Fill_un_To_Transport(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh, bool IsBoundaryQ);
+    
+    
+    /** @brief Get the sparse matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+    TRMIrregularBlockDiagonal<STATE> Transfer_un_To_Transport_gamma(){
+        return fun_To_Transport_gamma;
+    }
+    
+    /** @brief Get the sparse matrix to transfer average normal flux solution to integrations points of the transport mesh  */
+    TRMIrregularBlockDiagonal<STATE> Transfer_un_To_Transport_Gamma(){
+        return fun_To_Transport_Gamma;
+    }
     
     // @}
     
@@ -330,7 +357,12 @@ public:
     void GlobalPointIndexes(TPZCompEl * cel, TPZManVector<long,30> &int_point_indexes);
     
 
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Computational mesh operations
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
+    /** @brief Compute compuational mesh pair (mixed, transport) indexed by geometric volumetic element index */
+    void FillComputationalElPairs(TPZAutoPointer< TPZCompMesh>  cmesh_mf_mixed, TPZAutoPointer< TPZCompMesh>  cmesh_mf_transport);
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Computational element operations

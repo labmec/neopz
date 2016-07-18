@@ -42,6 +42,23 @@ public:
         return *this;
     }
     
+    
+    /**
+     * @defgroup Set and Get methods
+     * @{
+     */
+    
+    /** @brief Set the average normal flux */
+    void Set_un(REAL un){
+        fun = un;
+    }
+    
+    /** @brief Set the average normal flux */
+    REAL un(){
+        return fun;
+    }
+    
+    //@}
 
     void Write(TPZStream &buf, int withclassid)
     {

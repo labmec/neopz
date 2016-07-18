@@ -25,6 +25,7 @@
 #include "pzelchdivbound2.h"
 #include "pzshapequad.h"
 
+#include "pzbndcond.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzcompelwithmem.h"
 
@@ -710,6 +711,8 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         fTransportMesh->InsertMaterialObject(matint);
         fGeoMesh->AddInterfaceMaterial(rock_id, rock_id,interface_id);
         
+        
+        
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
         int bc_id = 0;
@@ -726,9 +729,13 @@ void TRMSpaceOdissey::CreateTransportMesh(){
             }
             
             bc_item = bc[saturation];
-            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
-            boundary_c->SetTimedependentBCForcingFunction(bc_item.second);
-            fTransportMesh->InsertMaterialObject(boundary_c);
+            TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> * boundary_bc = new TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>;
+            boundary_bc->SetMaterial(mat);
+            boundary_bc->SetId(bc_id);
+            boundary_bc->SetType(bc_item.first);
+            TPZMaterial * material_bc = dynamic_cast<TPZMaterial * >(boundary_bc);
+            material_bc->SetTimedependentBCForcingFunction(bc_item.second);
+            fTransportMesh->InsertMaterialObject(boundary_bc);
         }
         
     }
@@ -795,8 +802,20 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     nel = fTransportMesh->NElements();
     for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = fTransportMesh->Element(el);
-        TPZMultiphysicsElement              * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        
+        if(cel->Dimension() != 3){
+            continue;
+        }
+        
+        TPZMultiphysicsElement  * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+//        TPZCompElWithMem<TPZMultiphysicsInterfaceElement> * bc_cel = dynamic_cast<TPZCompElWithMem<TPZMultiphysicsInterfaceElement> *>(mf_cel);
+//        TPZBndCond * bc = dynamic_cast<TPZBndCond *>(face_cel);
         if (!mf_cel) {
+            
+//            if(!bc){
+////                bc->PrepareIntPtIndices();
+//            }
+            
             continue;
         }
         

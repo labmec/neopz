@@ -21,6 +21,10 @@
 static LoggerPtr logdata(Logger::getLogger("pz.iRMS"));
 #endif
 
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
+
 void LinearTracerPrimal();
 void LinearTracerDual();
 void BoxLinearTracerDual();
@@ -81,11 +85,25 @@ void BoxLinearTracerDual()
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
     
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
     SymphonyX->SetSegregatedQ(true);
     SymphonyX->CreateAnalysisDualonBox(true);
-    SymphonyX->RunStaticProblem();
-    SymphonyX->RunEvolutionaryProblem();
-    SymphonyX->SetSegregatedQ(false);
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    std::cout  << "Time for objects initialization " << (t2-t1) << std::endl;
+#endif
+    
+
+//    SymphonyX->RunStaticProblem();
+//    SymphonyX->RunEvolutionaryProblem();
+//    SymphonyX->SetSegregatedQ(false);
 
 //    SymphonyX->SetMonolithicQ(true);
 //    SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution

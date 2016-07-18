@@ -12,12 +12,12 @@
 /** @brief Default constructor */
 TRMPhaseMemory::TRMPhaseMemory(){
 
-    fp      = 0.0;
-    fp_n    = 0.0;
-    fsa     = 0.0;
-    fsa_n   = 0.0;    
-    fsb     = 0.0;
-    fsb_n   = 0.0;
+    fp_avg      = 0.0;
+    fp_avg_n    = 0.0;
+    fsa         = 0.0;
+    fsa_n       = 0.0;
+    fsb         = 0.0;
+    fsb_n       = 0.0;
     
 }
 
@@ -25,3 +25,4 @@ TRMPhaseMemory::TRMPhaseMemory(){
 TRMPhaseMemory::~TRMPhaseMemory(){
     
 }
+
