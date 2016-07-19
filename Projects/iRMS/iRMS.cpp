@@ -75,8 +75,8 @@ void BoxLinearTracerDual()
 {
     // Materials ids and boundary settings
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
-//    RawData->WaterReservoirBox(); // Single-phase flow
-    RawData->WaterOilReservoirBox(); // Two-phase flow
+    RawData->WaterReservoirBox(); // Single-phase flow
+//    RawData->WaterOilReservoirBox(); // Two-phase flow
     
     TPZAutoPointer<TRMSimulationData> SimData = new TRMSimulationData;
     SimData->SetRawData(RawData);
@@ -85,25 +85,12 @@ void BoxLinearTracerDual()
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
     
-#ifdef USING_BOOST
-    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
-#endif
-    
     SymphonyX->SetSegregatedQ(true);
     SymphonyX->CreateAnalysisDualonBox(true);
-    
-#ifdef USING_BOOST
-    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-    
-#ifdef USING_BOOST
-    std::cout  << "Time for objects initialization " << (t2-t1) << std::endl;
-#endif
-    
+    SymphonyX->RunStaticProblem();
+    SymphonyX->CreateAnalysisDualonBox(false);
+    SymphonyX->RunEvolutionaryProblem();
 
-//    SymphonyX->RunStaticProblem();
-//    SymphonyX->RunEvolutionaryProblem();
-//    SymphonyX->SetSegregatedQ(false);
 
 //    SymphonyX->SetMonolithicQ(true);
 //    SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution

@@ -33,8 +33,8 @@ TRMOrchestra::TRMOrchestra(){
     fPrimalMultiphaseAnalysis       = new TRMPrimalMultiphaseAnalysis;
     fMonolithicMultiphaseAnalysis_I = new TRMMonolithicMultiphaseAnalysis;
     fMonolithicMultiphaseAnalysis   = new TRMMonolithicMultiphaseAnalysis;
-    fFluxPressureAnalysis           = new TRMFluxPressureAnalysis;
-    fTransportAnalysis              = new TRMTransportAnalysis;
+    fSegregatedAnalysis_I           = new TRMSegregatedAnalysis;
+    fSegregatedAnalysis             = new TRMSegregatedAnalysis;
     
     fIsMonolithicQ         =  false;
     fIsSegregatedQ         =  false;
@@ -95,15 +95,17 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
     fSimulationData->SetInitialStateQ(IsInitialQ);
+    TPZAutoPointer<TRMFluxPressureAnalysis > parabolic    = new TRMFluxPressureAnalysis;
+    TPZAutoPointer<TRMTransportAnalysis > hyperbolic      = new TRMTransportAnalysis;
     
-    int nel_x = 2;
+    int nel_x = 1;
     int nel_y = 1;
     int nel_z = 1;
     
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 1.0/REAL(nel_x);
-    dy[0] = 1.0/REAL(nel_y);
-    dz[0] = 1.0/REAL(nel_z);
+    dx[0] = 500.0/REAL(nel_x);
+    dy[0] = 50.0/REAL(nel_y);
+    dz[0] = 50.0/REAL(nel_z);
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
     fSpaceGenerator->PrintGeometry();
@@ -116,104 +118,127 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->CreatePressureCmesh();
     fSpaceGenerator->CreateMixedCmesh();
     
-    fFluxPressureAnalysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
-    fFluxPressureAnalysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
+    parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
+    parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
     
     if(fSimulationData->IsTwoPhaseQ()){
         fSpaceGenerator->CreateAlphaTransportMesh();
-        fTransportAnalysis->Meshvec().Resize(1);
-        fTransportAnalysis->Meshvec()[0] = fSpaceGenerator->AlphaSaturationMesh().operator->();
+        hyperbolic->Meshvec().Resize(1);
+        hyperbolic->Meshvec()[0] = fSpaceGenerator->AlphaSaturationMesh().operator->();
+        fSpaceGenerator->CreateTransportMesh();        
     }
     
     if(fSimulationData->IsThreePhaseQ()){
         fSpaceGenerator->CreateAlphaTransportMesh();
         fSpaceGenerator->CreateBetaTransportMesh();
-        fTransportAnalysis->Meshvec().Resize(2);
-        fTransportAnalysis->Meshvec()[0] = fSpaceGenerator->AlphaSaturationMesh().operator->();
-        fTransportAnalysis->Meshvec()[1] = fSpaceGenerator->BetaSaturationMesh().operator->();
+        hyperbolic->Meshvec().Resize(2);
+        hyperbolic->Meshvec()[0] = fSpaceGenerator->AlphaSaturationMesh().operator->();
+        hyperbolic->Meshvec()[1] = fSpaceGenerator->BetaSaturationMesh().operator->();
+        fSpaceGenerator->CreateTransportMesh();
     }
     
-    fSpaceGenerator->CreateTransportMesh();
+
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
     
     // Transfer object
     TPZAutoPointer<TRMBuildTransfers> Transfer = new TRMBuildTransfers;
     Transfer->SetSimulationData(fSimulationData);
-    Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->TransportMesh());
     Transfer->Fill_u_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 0);
     Transfer->Fill_p_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 1);
-    Transfer->Fill_s_To_Transport(fSpaceGenerator->TransportMesh(), 0);
     
-    Transfer->ComputeLeftRight(fSpaceGenerator->TransportMesh());
-    Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),true);
-    Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
+    if(fSimulationData->IsTwoPhaseQ()){
+        Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->TransportMesh());        
+        Transfer->Fill_s_To_Transport(fSpaceGenerator->TransportMesh(), 0);
+        Transfer->ComputeLeftRight(fSpaceGenerator->TransportMesh());
+        Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),true);
+        Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
+    }
+    
+
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    TPZVec<TPZCompMesh *> cmeshVecmixed(2),cmeshVectras(1);
-    cmeshVecmixed[0] = fSpaceGenerator->FluxCmesh().operator->();
-    cmeshVecmixed[1] = fSpaceGenerator->PressureCmesh().operator->();
-    cmeshVectras[0]  = fSpaceGenerator->AlphaSaturationMesh().operator->();
-    
-    long nequq = fSpaceGenerator->FluxCmesh()->NEquations();
-    for (int i = 0; i < nequq; i++) {
-        fSpaceGenerator->FluxCmesh()->Solution()(i,0) = 0.01;
-    }
-    
-    long nequp = fSpaceGenerator->PressureCmesh()->NEquations();
-    for (int i = 0; i < nequp; i++) {
-        fSpaceGenerator->PressureCmesh()->Solution()(i,0) = 1.0;
-    }
-    
-    long nequs = fSpaceGenerator->AlphaSaturationMesh()->NEquations();
-    for (int i = 0; i < nequs; i++) {
-        fSpaceGenerator->AlphaSaturationMesh()->Solution()(i,0) = 1.0;
-    }
-    
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshVecmixed, fSpaceGenerator->MixedFluxPressureCmesh().operator->());
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshVectras, fSpaceGenerator->TransportMesh().operator->());
-    
-    Transfer->u_To_Mixed_Memory(fSpaceGenerator->FluxCmesh().operator->(), fSpaceGenerator->MixedFluxPressureCmesh().operator->());
-    Transfer->p_To_Mixed_Memory(fSpaceGenerator->PressureCmesh().operator->(), fSpaceGenerator->MixedFluxPressureCmesh().operator->());
-    Transfer->s_To_Transport_Memory(fSpaceGenerator->AlphaSaturationMesh().operator->(), fSpaceGenerator->TransportMesh().operator->(),0);
-    Transfer->s_To_Transport_Memory(fSpaceGenerator->AlphaSaturationMesh().operator->(), fSpaceGenerator->TransportMesh().operator->(),1);
-    Transfer->Reciprocal_Memory_Transfer(fSpaceGenerator->MixedFluxPressureCmesh(), fSpaceGenerator->TransportMesh());
-    
-    Transfer->un_To_Transport_Mesh(fSpaceGenerator->FluxCmesh(), fSpaceGenerator->TransportMesh(),true);
-    Transfer->un_To_Transport_Mesh(fSpaceGenerator->FluxCmesh(), fSpaceGenerator->TransportMesh(),false);
+//    TPZVec<TPZCompMesh *> cmeshVecmixed(2),cmeshVectras(1);
+//    cmeshVecmixed[0] = fSpaceGenerator->FluxCmesh().operator->();
+//    cmeshVecmixed[1] = fSpaceGenerator->PressureCmesh().operator->();
+//    cmeshVectras[0]  = fSpaceGenerator->AlphaSaturationMesh().operator->();
+//    
+//    long nequq = fSpaceGenerator->FluxCmesh()->NEquations();
+//    for (int i = 0; i < nequq; i++) {
+//        fSpaceGenerator->FluxCmesh()->Solution()(i,0) = 0.01;
+//    }
+//    
+//    long nequp = fSpaceGenerator->PressureCmesh()->NEquations();
+//    for (int i = 0; i < nequp; i++) {
+//        fSpaceGenerator->PressureCmesh()->Solution()(i,0) = 1.0;
+//    }
+//    
+//    long nequs = fSpaceGenerator->AlphaSaturationMesh()->NEquations();
+//    for (int i = 0; i < nequs; i++) {
+//        fSpaceGenerator->AlphaSaturationMesh()->Solution()(i,0) = 1.0;
+//    }
+//    
+//    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshVecmixed, fSpaceGenerator->MixedFluxPressureCmesh().operator->());
+//    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshVectras, fSpaceGenerator->TransportMesh().operator->());
+//    
+//    // updating process
+//    Transfer->u_To_Mixed_Memory(fSpaceGenerator->FluxCmesh().operator->(), fSpaceGenerator->MixedFluxPressureCmesh().operator->());
+//    Transfer->p_To_Mixed_Memory(fSpaceGenerator->PressureCmesh().operator->(), fSpaceGenerator->MixedFluxPressureCmesh().operator->());
+//    Transfer->s_To_Transport_Memory(fSpaceGenerator->AlphaSaturationMesh().operator->(), fSpaceGenerator->TransportMesh().operator->(),0);// sa
+//    Transfer->s_To_Transport_Memory(fSpaceGenerator->AlphaSaturationMesh().operator->(), fSpaceGenerator->TransportMesh().operator->(),1);// sb
+//    Transfer->Reciprocal_Memory_Transfer(fSpaceGenerator->MixedFluxPressureCmesh(), fSpaceGenerator->TransportMesh());
+//    Transfer->un_To_Transport_Mesh(fSpaceGenerator->FluxCmesh(), fSpaceGenerator->TransportMesh(),true);
+//    Transfer->un_To_Transport_Mesh(fSpaceGenerator->FluxCmesh(), fSpaceGenerator->TransportMesh(),false);
     
     // Analysis for parabolic part
     bool mustOptimizeBandwidth_parabolic = true;
-    fFluxPressureAnalysis->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh().operator->(), mustOptimizeBandwidth_parabolic);
+    parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh().operator->(), mustOptimizeBandwidth_parabolic);
     TPZSkylineNSymStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
     TPZStepSolver<STATE> step_p;
     int numofThreads_p = 0;
     strmat_p.SetNumThreads(numofThreads_p);
     step_p.SetDirect(ELDLt);
-    fFluxPressureAnalysis->SetStructuralMatrix(strmat_p);
-    fFluxPressureAnalysis->SetSolver(step_p);
-    fFluxPressureAnalysis->AdjustVectors();
-    fFluxPressureAnalysis->SetSimulationData(fSimulationData);
-    fFluxPressureAnalysis->SetTransfer(Transfer);
+    parabolic->SetStructuralMatrix(strmat_p);
+    parabolic->SetSolver(step_p);
+    parabolic->AdjustVectors();
+    parabolic->SetSimulationData(fSimulationData);
+    parabolic->SetTransfer(Transfer);
+    
+    std::cout << "ndof parabolic = " << parabolic->Solution().Rows() << std::endl;
+    
+    if (fSimulationData->IsTwoPhaseQ()) {
+        // Analysis for hyperbolic part
+        bool mustOptimizeBandwidth_hyperbolic = true;
+        hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh().operator->(), mustOptimizeBandwidth_hyperbolic);
+        TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh().operator->());
+        TPZStepSolver<STATE> step_t;
+        int numofThreads_t = 0;
+        strmat_t.SetNumThreads(numofThreads_t);
+        step_t.SetDirect(ELDLt);
+        hyperbolic->SetStructuralMatrix(strmat_t);
+        hyperbolic->SetSolver(step_t);
+        hyperbolic->AdjustVectors();
+        hyperbolic->SetSimulationData(fSimulationData);
+        hyperbolic->SetTransfer(Transfer);
+        std::cout << "ndof hyperbolic = " << hyperbolic->Solution().Rows() << std::endl;
+    }
+
     
     
-    // Analysis for hyperbolic part
-    bool mustOptimizeBandwidth_hyperbolic = true;
-    fTransportAnalysis->SetCompMesh(fSpaceGenerator->TransportMesh().operator->(), mustOptimizeBandwidth_hyperbolic);
-    TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh().operator->());
-    TPZStepSolver<STATE> step_t;
-    int numofThreads_t = 0;
-    strmat_t.SetNumThreads(numofThreads_t);
-    step_t.SetDirect(ELDLt);
-    fTransportAnalysis->SetStructuralMatrix(strmat_t);
-    fTransportAnalysis->SetSolver(step_t);
-    fTransportAnalysis->AdjustVectors();
-    fTransportAnalysis->SetSimulationData(fSimulationData);
-    fTransportAnalysis->SetTransfer(Transfer);
+    TPZAutoPointer<TRMSegregatedAnalysis> segregated = new TRMSegregatedAnalysis;
+    segregated->SetTransfer(Transfer);
+    segregated->SetSimulationData(fSimulationData);
+    segregated->SetParabolic(parabolic);
+    segregated->SetHyperbolic(hyperbolic);
     
-    std::cout << "ndof mixed = " << fFluxPressureAnalysis->Solution().Rows() << std::endl;
-    std::cout << "ndof trans = " << fTransportAnalysis->Solution().Rows() << std::endl;
+    if (IsInitialQ) {
+        fSegregatedAnalysis_I = segregated;
+    }
+    else{
+        fSegregatedAnalysis   =  segregated;
+    }
+    
     
 }
 
@@ -310,9 +335,7 @@ void TRMOrchestra::RunStaticProblem(){
         }
         
         if (IsSegregatedQ()) {
-            fFluxPressureAnalysis->ExcecuteOneStep();
-            std::cout <<  " Segregated initialization not implemented yet" << std::endl;
-            DebugStop();
+            fSegregatedAnalysis_I->ExcecuteOneStep();
         }
         
     }
@@ -330,6 +353,13 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fMonolithicMultiphaseAnalysis->PostProcessStep();        
     }
     
+    if (IsSegregatedQ()) {
+        fSegregatedAnalysis->Parabolic()->SetX(fSegregatedAnalysis_I->Parabolic()->X_n());
+        fSegregatedAnalysis->Parabolic()->SetX_n(fSegregatedAnalysis_I->Parabolic()->X_n());
+        fSegregatedAnalysis->Parabolic()->LoadSolution(fSegregatedAnalysis_I->Parabolic()->X_n());
+        fSegregatedAnalysis->PostProcessStep();
+    }
+    
     int n = fSimulationData->n_steps();
     for (int i = 0; i < n; i++) {
         if (IsMonolithicQ()) {
@@ -338,8 +368,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         }
         
         if (IsSegregatedQ()) {
-            fFluxPressureAnalysis->ExcecuteOneStep();
-            fFluxPressureAnalysis->PostProcessStep();
+            fSegregatedAnalysis->ExcecuteOneStep();
+            fSegregatedAnalysis->PostProcessStep();
         }
         
     }
@@ -519,107 +549,108 @@ void TRMOrchestra::IntegrateGradientOfResidue(TPZAutoPointer< TPZCompMesh> cmesh
 
 /** @brief Create a dual analysis using space odissey */
 void TRMOrchestra::CreateAnalysisDual(){
-    int nel = 2;
-    TPZManVector<REAL,2> dx(2,nel), dy(2,nel), dz(2,nel);
-    dx[0] = 1;
-    dy[0] = 1;
-    dz[0] = 1;
-    
-    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
-//    fSpaceGenerator.CreateGeometricReservoirMesh();
-#ifdef PZDEBUG
-    fSpaceGenerator->PrintGeometry();
-#endif
-    
-    fSpaceGenerator->SetDefaultPOrder(2);
-    
-    fSpaceGenerator->CreateFluxCmesh();
-    fSpaceGenerator->CreatePressureCmesh();
-
-    
-    fSpaceGenerator->CreateMixedCmesh();
-    
-//    ProjectExactSolution();
-    
-    
-    fSpaceGenerator->IncreaseOrderAroundWell(2);
-
-    fSpaceGenerator->ConfigureWellConstantPressure(0., 1000.);
-
-    fSpaceGenerator->StaticallyCondenseEquations();
-    
-    // transfer the solution from the meshes to the multiphysics mesh
-    TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
-    meshvec[0] = fSpaceGenerator->FluxCmesh();
-    meshvec[1] = fSpaceGenerator->PressureCmesh();
-    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator->MixedFluxPressureCmesh();
-    
-    
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
-    
-    
-    // Analysis
-    bool mustOptimizeBandwidth = true;
-    fFluxPressureAnalysis->SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
-//    TPZAnalysis * AnalysisDual = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
-    int numofThreads = 8;
-#ifdef PZDEBUG
-    {
-        std::ofstream out("../MFCompMesh.txt");
-        Cmesh->Print(out);
-    }
-#endif
-    fFluxPressureAnalysis->Solution().Zero();
-    fFluxPressureAnalysis->LoadSolution();
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis->Solution();
-    std::cout << "Total dof: " << prevsol.Rows() << std::endl;
-    
-    std::map<REAL,STATE> RatebyPosition;
-    STATE TotalFlux = 0.;
-     ComputeProductionRate(RatebyPosition, TotalFlux);
-
-    TPZSkylineStructMatrix strmat(Cmesh.operator->());
-//    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
-    TPZStepSolver<STATE> step;
-    strmat.SetNumThreads(numofThreads);
-    step.SetDirect(ELDLt);
-    fFluxPressureAnalysis->SetStructuralMatrix(strmat);
-    fFluxPressureAnalysis->SetSolver(step);
-    fFluxPressureAnalysis->Run();
-    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
-    prevsol -= fFluxPressureAnalysis->Solution();
-    Cmesh->LoadSolution(prevsol);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-
-    RatebyPosition.clear();
-    TotalFlux = 0.;
-    ComputeProductionRate(RatebyPosition, TotalFlux);    
-    std::cout << "Total flux " << TotalFlux << std::endl;
-    for (std::map<REAL,STATE>::iterator it = RatebyPosition.begin(); it != RatebyPosition.end(); it++) {
-        std::cout << "Y_position " << it->first << " rate " << it->second << std::endl;
-    }
-    
-    if (0)
-    {
-        fFluxPressureAnalysis->Run();
-        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
-        prevsol -= fFluxPressureAnalysis->Solution();
-        Cmesh->LoadSolution(prevsol);
-        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-        fFluxPressureAnalysis->AssembleResidual();
-        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
-    }
-    const int dim = 3;
-    int div = 0;
-    TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile =  "../DualDarcy.vtk";
-    scalnames.Push("WeightedPressure");
-    scalnames.Push("DivOfBulkVeclocity");
-    scalnames.Push("POrder");
-    vecnames.Push("BulkVelocity");
-    fFluxPressureAnalysis->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-    fFluxPressureAnalysis->PostProcess(div);
+    DebugStop();
+//    int nel = 2;
+//    TPZManVector<REAL,2> dx(2,nel), dy(2,nel), dz(2,nel);
+//    dx[0] = 1;
+//    dy[0] = 1;
+//    dz[0] = 1;
+//    
+//    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
+////    fSpaceGenerator.CreateGeometricReservoirMesh();
+//#ifdef PZDEBUG
+//    fSpaceGenerator->PrintGeometry();
+//#endif
+//    
+//    fSpaceGenerator->SetDefaultPOrder(2);
+//    
+//    fSpaceGenerator->CreateFluxCmesh();
+//    fSpaceGenerator->CreatePressureCmesh();
+//
+//    
+//    fSpaceGenerator->CreateMixedCmesh();
+//    
+////    ProjectExactSolution();
+//    
+//    
+//    fSpaceGenerator->IncreaseOrderAroundWell(2);
+//
+//    fSpaceGenerator->ConfigureWellConstantPressure(0., 1000.);
+//
+//    fSpaceGenerator->StaticallyCondenseEquations();
+//    
+//    // transfer the solution from the meshes to the multiphysics mesh
+//    TPZManVector<TPZAutoPointer<TPZCompMesh>,3 > meshvec(2);
+//    meshvec[0] = fSpaceGenerator->FluxCmesh();
+//    meshvec[1] = fSpaceGenerator->PressureCmesh();
+//    TPZAutoPointer<TPZCompMesh > Cmesh = fSpaceGenerator->MixedFluxPressureCmesh();
+//    
+//    
+//    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, Cmesh);
+//    
+//    
+//    // Analysis
+//    bool mustOptimizeBandwidth = true;
+//    fFluxPressureAnalysis->SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
+////    TPZAnalysis * AnalysisDual = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
+//    int numofThreads = 8;
+//#ifdef PZDEBUG
+//    {
+//        std::ofstream out("../MFCompMesh.txt");
+//        Cmesh->Print(out);
+//    }
+//#endif
+//    fFluxPressureAnalysis->Solution().Zero();
+//    fFluxPressureAnalysis->LoadSolution();
+//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+//    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis->Solution();
+//    std::cout << "Total dof: " << prevsol.Rows() << std::endl;
+//    
+//    std::map<REAL,STATE> RatebyPosition;
+//    STATE TotalFlux = 0.;
+//     ComputeProductionRate(RatebyPosition, TotalFlux);
+//
+//    TPZSkylineStructMatrix strmat(Cmesh.operator->());
+////    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
+//    TPZStepSolver<STATE> step;
+//    strmat.SetNumThreads(numofThreads);
+//    step.SetDirect(ELDLt);
+//    fFluxPressureAnalysis->SetStructuralMatrix(strmat);
+//    fFluxPressureAnalysis->SetSolver(step);
+//    fFluxPressureAnalysis->Run();
+//    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
+//    prevsol -= fFluxPressureAnalysis->Solution();
+//    Cmesh->LoadSolution(prevsol);
+//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+//
+//    RatebyPosition.clear();
+//    TotalFlux = 0.;
+//    ComputeProductionRate(RatebyPosition, TotalFlux);    
+//    std::cout << "Total flux " << TotalFlux << std::endl;
+//    for (std::map<REAL,STATE>::iterator it = RatebyPosition.begin(); it != RatebyPosition.end(); it++) {
+//        std::cout << "Y_position " << it->first << " rate " << it->second << std::endl;
+//    }
+//    
+//    if (0)
+//    {
+//        fFluxPressureAnalysis->Run();
+//        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
+//        prevsol -= fFluxPressureAnalysis->Solution();
+//        Cmesh->LoadSolution(prevsol);
+//        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
+//        fFluxPressureAnalysis->AssembleResidual();
+//        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis->Rhs()) << std::endl;
+//    }
+//    const int dim = 3;
+//    int div = 0;
+//    TPZStack<std::string> scalnames, vecnames;
+//    std::string plotfile =  "../DualDarcy.vtk";
+//    scalnames.Push("WeightedPressure");
+//    scalnames.Push("DivOfBulkVeclocity");
+//    scalnames.Push("POrder");
+//    vecnames.Push("BulkVelocity");
+//    fFluxPressureAnalysis->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+//    fFluxPressureAnalysis->PostProcess(div);
     
 }
 

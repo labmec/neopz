@@ -1178,20 +1178,13 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_
     }
 
     
-    // For the imat
-    int iface = 0;
-    int material_id = 0;
-    
-    
-
-    
     if (IsBoundaryQ) {
         
         int nbc = this->SimulationData()->RawData()->fGammaIds.size();
         
         for (int ibc = 0; ibc < nbc; ibc++) {
             
-            material_id = this->SimulationData()->RawData()->fGammaIds[ibc];
+            int material_id = this->SimulationData()->RawData()->fGammaIds[ibc];
             //  Getting the total integration point of the destination cmesh
             TPZMaterial * material = cmesh_transport->FindMaterial(material_id);
             
@@ -1200,8 +1193,6 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_
             if (!material_bc_mem) {
                 DebugStop();
             }
-            
-            int np_cmesh = material_bc_mem->GetMemory().NElements();
             
             // Step one
             TPZFMatrix<STATE> ScatterFluxes(fun_To_Transport_Gamma.Cols(),1,0.0);
@@ -1216,9 +1207,6 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_
             // Step two
             TPZFMatrix<STATE> un_at_intpoints;
             fun_To_Transport_Gamma.Multiply(ScatterFluxes,un_at_intpoints);
-            
-            // @omar:: Not complete for gamma boundaries
-            un_at_intpoints.Print("un = ");
             
             // Step three
             // Trasnfering integrated normal fluxes values
@@ -1248,7 +1236,7 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_
     }
     else{
         
-        material_id = this->SimulationData()->InterfacesMatId();        
+        int material_id = this->SimulationData()->InterfacesMatId();        
         //  Getting the total integration point of the destination cmesh
         TPZMaterial * material = cmesh_transport->FindMaterial(material_id);
         
@@ -1273,9 +1261,6 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_
         // Step two
         TPZFMatrix<STATE> un_at_intpoints;
         fun_To_Transport_gamma.Multiply(ScatterFluxes,un_at_intpoints);
-
-        // @omar:: Not complete for gamma boundaries
-        un_at_intpoints.Print("un = ");
 
         // Step three
         // Trasnfering integrated normal fluxes values

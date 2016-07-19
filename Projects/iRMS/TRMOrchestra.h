@@ -21,8 +21,11 @@
 #include "TRMSimulationData.h"
 #include "TRMPrimalMultiphaseAnalysis.h"
 #include "TRMMonolithicMultiphaseAnalysis.h"
+#include "TRMSegregatedAnalysis.h"
+
 #include "TRMFluxPressureAnalysis.h"
 #include "TRMTransportAnalysis.h"
+
 
 
 class TRMRawData;
@@ -49,11 +52,24 @@ private:
     /** @brief Define the monolithic multiphase analysis */
     TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> fMonolithicMultiphaseAnalysis;
     
-    /** @brief Define the mixed system analysis */
-    TPZAutoPointer<TRMFluxPressureAnalysis> fFluxPressureAnalysis;
+//    /** @brief Define the initial mixed system analysis */
+//    TPZAutoPointer<TRMFluxPressureAnalysis> fFluxPressureAnalysis_I;
+//    
+//    /** @brief Define the initial analysis for transport phases */
+//    TPZAutoPointer<TRMTransportAnalysis> fTransportAnalysis_I;
+//    
+//    /** @brief Define the mixed system analysis */
+//    TPZAutoPointer<TRMFluxPressureAnalysis> fFluxPressureAnalysis;
+//    
+//    /** @brief Define analysis for transport phases */
+//    TPZAutoPointer<TRMTransportAnalysis> fTransportAnalysis;
     
-    /** @brief Define analysis for transport phases */
-    TPZAutoPointer<TRMTransportAnalysis> fTransportAnalysis;
+    /** @brief Define initial multiphase segregated analysis for transport phases */
+    TPZAutoPointer<TRMSegregatedAnalysis> fSegregatedAnalysis_I;
+    
+    /** @brief Define multiphase segregated analysis for transport phases */
+    TPZAutoPointer<TRMSegregatedAnalysis> fSegregatedAnalysis;
+    
     
     /** @brief Define the use of monolithic analysis  */
     bool fIsMonolithicQ;
@@ -163,27 +179,27 @@ public:
         return fMonolithicMultiphaseAnalysis;
     }
     
-    /** @brief Set autopointer of the mixed system analysis */
-    void SetFluxPressureAnalysis(TPZAutoPointer<TRMFluxPressureAnalysis > &FluxPressureAnalysis)
-    {
-        fFluxPressureAnalysis = FluxPressureAnalysis;
-    }
-    /** @brief Get autopointer of the mixed system analysis */
-    TPZAutoPointer<TRMFluxPressureAnalysis > FluxPressureAnalysis()
-    {
-        return fFluxPressureAnalysis;
-    }
-    
-    /** @brief Set autopointer of the transpor equations analysis */
-    void SetTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &TransportAnalysis)
-    {
-        fTransportAnalysis = TransportAnalysis;
-    }
-    /** @brief Get autopointer of the water transpor equation analysis */
-    TPZAutoPointer<TRMTransportAnalysis > TransportAnalysis()
-    {
-        return fTransportAnalysis;
-    }
+//    /** @brief Set autopointer of the mixed system analysis */
+//    void SetFluxPressureAnalysis(TPZAutoPointer<TRMFluxPressureAnalysis > &FluxPressureAnalysis)
+//    {
+//        fFluxPressureAnalysis = FluxPressureAnalysis;
+//    }
+//    /** @brief Get autopointer of the mixed system analysis */
+//    TPZAutoPointer<TRMFluxPressureAnalysis > FluxPressureAnalysis()
+//    {
+//        return fFluxPressureAnalysis;
+//    }
+//    
+//    /** @brief Set autopointer of the transpor equations analysis */
+//    void SetTransportAnalysis(TPZAutoPointer<TRMTransportAnalysis > &TransportAnalysis)
+//    {
+//        fTransportAnalysis = TransportAnalysis;
+//    }
+//    /** @brief Get autopointer of the water transpor equation analysis */
+//    TPZAutoPointer<TRMTransportAnalysis > TransportAnalysis()
+//    {
+//        return fTransportAnalysis;
+//    }
     
     
     /** @brief Set the use of monolithic analysis  */

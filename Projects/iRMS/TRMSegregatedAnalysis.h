@@ -1,13 +1,15 @@
 //
-//  TRMFluxPressureAnalysis.h
+//  TRMSegregatedAnalysis.hpp
 //  PZ
 //
-//  Created by omar duran on 5/05/2015.
+//  Created by Omar on 7/18/16.
 //
 //
 
-#ifndef __PZ__TRMFluxPressureAnalysis__
-#define __PZ__TRMFluxPressureAnalysis__
+#ifndef TRMSegregatedAnalysis_h
+#define TRMSegregatedAnalysis_h
+
+#include <stdio.h>
 
 #include <stdio.h>
 #include "pzanalysis.h"
@@ -15,8 +17,10 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"
+#include "TRMFluxPressureAnalysis.h"
+#include "TRMTransportAnalysis.h"
 
-class TRMFluxPressureAnalysis : public TPZAnalysis {
+class TRMSegregatedAnalysis : public TPZAnalysis {
     
 private:
     
@@ -26,41 +30,38 @@ private:
     /** @brief define the transfer matrices */
     TPZAutoPointer<TRMBuildTransfers> fTransfer;
     
-    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
-    TPZManVector<TPZCompMesh * , 2> fmeshvec;
+    /** @brief define the parabolic system */
+    TPZAutoPointer<TRMFluxPressureAnalysis> fParabolic;
     
-    /** @brief Part of residue at n state  */
-    TPZFMatrix<STATE> fR_n;
+    /** @brief define the hyperbolic system */
+    TPZAutoPointer<TRMTransportAnalysis> fHyperbolic;
     
-    /** @brief Part of residue at past state  */
-    TPZFMatrix<STATE> fR;
+    /** @brief Residue error for flux - pressure */
+    STATE ferror_flux_pressure;
     
-    /** @brief Solution ate n state */
-    TPZFMatrix<STATE> fX_n;
+    /** @brief Residue error for saturations */
+    STATE ferror_saturation;
     
-    /** @brief Solution at past state */
-    TPZFMatrix<STATE> fX;
+    /** @brief Correction variation for flux - pressure */
+    STATE fdx_norm_flux_pressure;
     
-    /** @brief Residue error */
-    STATE ferror;
-    
-    /** @brief Correction variation */
-    STATE fdx_norm;
-    
+    /** @brief Correction variation for saturations */
+    STATE fdx_norm_saturation;
+
     
 public:
     
     /** @brief default constructor  */
-    TRMFluxPressureAnalysis();
+    TRMSegregatedAnalysis();
     
     /** @brief default desconstructor  */
-    ~TRMFluxPressureAnalysis();
+    ~TRMSegregatedAnalysis();
     
     /** @brief Copy constructor $ */
-    TRMFluxPressureAnalysis(const TRMFluxPressureAnalysis &copy);
+    TRMSegregatedAnalysis(const TRMSegregatedAnalysis &copy);
     
     /** @brief Copy assignemnt operator $ */
-    TRMFluxPressureAnalysis &operator=(const TRMFluxPressureAnalysis &other);
+    TRMSegregatedAnalysis &operator=(const TRMSegregatedAnalysis &other);
     
     /**
      * @defgroup Access Methods
@@ -68,31 +69,11 @@ public:
      * @{
      */
     
-    /** @brief Set Solution at n state */
-    void SetX_n(TPZFMatrix<STATE> x){
-        fX_n = x;
-    }
-    
-    /** @brief Set Solution at n state */
-    TPZFMatrix<STATE> X_n(){
-        return fX_n;
-    }
-    
-    /** @brief Set Solution at past state */
-    void SetX(TPZFMatrix<STATE> x){
-        fX = x;
-    }
-    
-    /** @brief Set Solution at past state */
-    TPZFMatrix<STATE> X(){
-        return fX;
-    }
     
     /** @brief Set the simulation data */
     void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
     {
         fSimulationData = SimulationData;
-        fmeshvec.Resize(2);
     }
     
     /** @brief Get the space generator */
@@ -112,16 +93,29 @@ public:
     {
         return fTransfer;
     }
-    
-    /** @brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
-    void SetMeshvec(TPZManVector<TPZCompMesh * , 2> &Meshvec)
+
+    /** @brief Set the parabolic part */
+    void SetParabolic(TPZAutoPointer<TRMFluxPressureAnalysis> &parabolic)
     {
-        fmeshvec = Meshvec;
+        fParabolic = parabolic;
     }
-    /** @brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
-    TPZManVector<TPZCompMesh * , 2> & Meshvec()
+    
+    /** @brief Get the parabolic part  */
+    TPZAutoPointer<TRMFluxPressureAnalysis> Parabolic()
     {
-        return fmeshvec;
+        return fParabolic;
+    }
+    
+    /** @brief Set the hyperbolic part */
+    void SetHyperbolic(TPZAutoPointer<TRMTransportAnalysis> &hyperbolic)
+    {
+        fHyperbolic = hyperbolic;
+    }
+    
+    /** @brief Get the hyperbolic part  */
+    TPZAutoPointer<TRMTransportAnalysis> Hyperbolic()
+    {
+        return fHyperbolic;
     }
     
     /** @brief Resize and fill residue and solution vectors */
@@ -140,21 +134,25 @@ public:
     /** @brief Execute a newton iteration  */
     void NewtonIteration();
     
+    /** @brief Execute a picard iteration  */
+    void PicardIteration();
+    
     /** @brief PostProcess results */
     void PostProcessStep();
     
     /** @brief Update memory using the Transfer object at state n */
     void UpdateMemory_at_n();
-
+    
     /** @brief Update memory using the Transfer object */
     void UpdateMemory();
     
     
     // @}
-
+    
     
     
     
 };
 
-#endif /* defined(__PZ__TRMFluxPressureAnalysis__) */
+
+#endif /* TRMSegregatedAnalysis_h */

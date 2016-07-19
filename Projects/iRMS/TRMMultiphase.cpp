@@ -61,9 +61,6 @@ int TRMMultiphase::VariableIndex(const std::string &name) {
     if (!strcmp("u", name.c_str())) return 1;
     if (!strcmp("div_u", name.c_str())) return 2;
     if (!strcmp("s_a", name.c_str())) return 3;
-//    if (!strcmp("AWeightedPressure", name.c_str())) return 3;
-//    if (!strcmp("ABulkVelocity", name.c_str())) return 4;
-//    if (!strcmp("ADivOfBulkVeclocity", name.c_str())) return 5;
     return TPZMatWithMem::VariableIndex(name);
 }
 
