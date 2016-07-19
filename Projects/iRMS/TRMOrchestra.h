@@ -52,17 +52,11 @@ private:
     /** @brief Define the monolithic multiphase analysis */
     TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> fMonolithicMultiphaseAnalysis;
     
-//    /** @brief Define the initial mixed system analysis */
-//    TPZAutoPointer<TRMFluxPressureAnalysis> fFluxPressureAnalysis_I;
+//    /** @brief Define the analysis mixed system  */
+//    TPZAutoPointer<TRMFluxPressureAnalysis> fparabolic;
 //    
-//    /** @brief Define the initial analysis for transport phases */
-//    TPZAutoPointer<TRMTransportAnalysis> fTransportAnalysis_I;
-//    
-//    /** @brief Define the mixed system analysis */
-//    TPZAutoPointer<TRMFluxPressureAnalysis> fFluxPressureAnalysis;
-//    
-//    /** @brief Define analysis for transport phases */
-//    TPZAutoPointer<TRMTransportAnalysis> fTransportAnalysis;
+//    /** @brief Define the analysis for transport phases */
+//    TPZAutoPointer<TRMTransportAnalysis> fhyperbolic;
     
     /** @brief Define initial multiphase segregated analysis for transport phases */
     TPZAutoPointer<TRMSegregatedAnalysis> fSegregatedAnalysis_I;

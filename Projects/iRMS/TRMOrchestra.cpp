@@ -35,6 +35,8 @@ TRMOrchestra::TRMOrchestra(){
     fMonolithicMultiphaseAnalysis   = new TRMMonolithicMultiphaseAnalysis;
     fSegregatedAnalysis_I           = new TRMSegregatedAnalysis;
     fSegregatedAnalysis             = new TRMSegregatedAnalysis;
+//    fparabolic                      = new TRMFluxPressureAnalysis;
+//    fhyperbolic                     = new TRMTransportAnalysis;
     
     fIsMonolithicQ         =  false;
     fIsSegregatedQ         =  false;
@@ -95,10 +97,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
     fSimulationData->SetInitialStateQ(IsInitialQ);
-    TPZAutoPointer<TRMFluxPressureAnalysis > parabolic    = new TRMFluxPressureAnalysis;
-    TPZAutoPointer<TRMTransportAnalysis > hyperbolic      = new TRMTransportAnalysis;
+    TPZAutoPointer<TRMFluxPressureAnalysis> parabolic = new TRMFluxPressureAnalysis;
+    TPZAutoPointer<TRMTransportAnalysis> hyperbolic = new TRMTransportAnalysis;
     
-    int nel_x = 1;
+    int nel_x = 10;
     int nel_y = 1;
     int nel_z = 1;
     
@@ -108,7 +110,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     dz[0] = 50.0/REAL(nel_z);
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
-    fSpaceGenerator->PrintGeometry();
+
 #ifdef PZDEBUG
     fSpaceGenerator->PrintGeometry();
 #endif
@@ -136,7 +138,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         hyperbolic->Meshvec()[1] = fSpaceGenerator->BetaSaturationMesh().operator->();
         fSpaceGenerator->CreateTransportMesh();
     }
-    
 
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
@@ -155,8 +156,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),true);
         Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
     }
-    
-
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -209,6 +208,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     std::cout << "ndof parabolic = " << parabolic->Solution().Rows() << std::endl;
     
     if (fSimulationData->IsTwoPhaseQ()) {
+        
         // Analysis for hyperbolic part
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh().operator->(), mustOptimizeBandwidth_hyperbolic);
@@ -250,7 +250,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> mono_analysis = new TRMMonolithicMultiphaseAnalysis;
     
-    int nel_x = 1;
+    int nel_x = 10;
     int nel_y = 1;
     int nel_z = 1;
     
@@ -337,6 +337,7 @@ void TRMOrchestra::RunStaticProblem(){
         
         if (IsSegregatedQ()) {
             fSegregatedAnalysis_I->ExcecuteOneStep();
+            fSegregatedAnalysis_I->PostProcessStep();
         }
         
     }
@@ -360,6 +361,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSegregatedAnalysis->Parabolic()->LoadSolution(fSegregatedAnalysis_I->Parabolic()->X_n());
         fSegregatedAnalysis->PostProcessStep();
     }
+    
+    // Evolutionary problems
     
     int n = fSimulationData->n_steps();
     for (int i = 0; i < n; i++) {

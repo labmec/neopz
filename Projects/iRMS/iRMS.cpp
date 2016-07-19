@@ -91,7 +91,6 @@ void BoxLinearTracerDual()
     SymphonyX->CreateAnalysisDualonBox(false);
     SymphonyX->RunEvolutionaryProblem();
 
-
 //    SymphonyX->SetMonolithicQ(true);
 //    SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution
 //    SymphonyX->RunStaticProblem();

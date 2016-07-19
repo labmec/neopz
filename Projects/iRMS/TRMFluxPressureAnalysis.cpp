@@ -112,9 +112,8 @@ void TRMFluxPressureAnalysis::NewtonIteration(){
     
     this->Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    
-    fTransfer->p_To_Mixed_Memory(this->Meshvec()[1], this->Mesh());
-    fTransfer->p_avg_Memory_Transfer(this->Mesh()); // Loading average pressure
+
+    this->UpdateMemory_at_n();
     
     this->Assemble();
     fR_n = this->Rhs();
@@ -127,6 +126,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     
     this->SimulationData()->SetCurrentStateQ(false);
     this->LoadSolution(fX);
+    this->UpdateMemory();
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     this->AssembleResidual();
@@ -135,6 +135,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     this->SimulationData()->SetCurrentStateQ(true);
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    this->UpdateMemory_at_n();
     
     ferror = 1.0;
     
@@ -219,6 +220,7 @@ void TRMFluxPressureAnalysis::UpdateMemory_at_n(){
     // Volumetric update    
     fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
     fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
+    fTransfer->p_avg_Memory_Transfer(Mesh());
     
 }
 
@@ -231,6 +233,7 @@ void TRMFluxPressureAnalysis::UpdateMemory(){
     // Volumetric update
     fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
     fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
+    fTransfer->p_avg_Memory_Transfer(Mesh());    
     
 }
 

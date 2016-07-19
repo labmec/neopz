@@ -69,22 +69,22 @@ public:
      */
     
     /** @brief Set Solution at n state */
-    void SetX_n(TPZFMatrix<STATE> x){
+    void SetX_n(TPZFMatrix<STATE> &x){
         fX_n = x;
     }
     
     /** @brief Set Solution at n state */
-    TPZFMatrix<STATE> X_n(){
+    TPZFMatrix<STATE> & X_n(){
         return fX_n;
     }
     
     /** @brief Set Solution at past state */
-    void SetX(TPZFMatrix<STATE> x){
+    void SetX(TPZFMatrix<STATE> &x){
         fX = x;
     }
     
     /** @brief Set Solution at past state */
-    TPZFMatrix<STATE> X(){
+    TPZFMatrix<STATE> & X(){
         return fX;
     }
     

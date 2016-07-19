@@ -121,11 +121,11 @@ void TRMRawData::WaterReservoirBox(){
     
     fn_steps  = 10;
     fdt = 0.1*day;
-    fdt_up = 1.0;
+    fdt_up = 0.1;
     fdt_down = 1.0;
 
     // Numeric controls
-    fn_corrections = 10;
+    fn_corrections = 20;
     fepsilon_res = 0.001;
     fepsilon_cor = 0.001;
     
@@ -170,7 +170,7 @@ void TRMRawData::WaterReservoirBox(){
     TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fIntial_bc_data.Push(W);
     W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
     fRecurrent_bc_data.Push(W);

@@ -868,7 +868,6 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
         REAL element_measure = DimensionalMeasure(mixed_cel);
         
         GlobalPointIndexes(mixed_cel, p_point_indexes);
-        
         TPZMultiphysicsElement * mf_mixed_cel = dynamic_cast<TPZMultiphysicsElement * >(mixed_cel);
         
 #ifdef PZDEBUG
