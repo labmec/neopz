@@ -263,6 +263,9 @@ public:
 
     /** @brief Transfer saturations to integration points of multiphysics transport mesh over volumetric elements */
     void s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TPZCompMesh * cmesh_multiphysics, int mesh_index);
+
+    /** @brief Transfer average pressure to integration points of multiphysics mixed meshes over volumetric elements */
+    void p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed);
     
     /** @brief Transfer average quantities to integration points of multiphysics mixed/ transpor meshes over volumetric elements */
     void Reciprocal_Memory_Transfer(TPZAutoPointer< TPZCompMesh> cmesh_mf_mixed, TPZAutoPointer< TPZCompMesh> cmesh_mf_transport);

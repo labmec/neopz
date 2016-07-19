@@ -113,6 +113,9 @@ void TRMFluxPressureAnalysis::NewtonIteration(){
     this->Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     
+    fTransfer->p_To_Mixed_Memory(this->Meshvec()[1], this->Mesh());
+    fTransfer->p_avg_Memory_Transfer(this->Mesh()); // Loading average pressure
+    
     this->Assemble();
     fR_n = this->Rhs();
     fR_n += fR; // total residue
@@ -150,7 +153,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     for (int k = 1; k <= n; k++) {
         
         this->NewtonIteration();
-        
+
 //#ifdef PZDEBUG
 //        fR.Print("R = ", std::cout,EMathematicaInput);
 //        fX.Print("X = ", std::cout,EMathematicaInput);

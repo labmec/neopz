@@ -146,6 +146,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     Transfer->SetSimulationData(fSimulationData);
     Transfer->Fill_u_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 0);
     Transfer->Fill_p_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 1);
+    Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->MixedFluxPressureCmesh());
     
     if(fSimulationData->IsTwoPhaseQ()){
         Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->TransportMesh());        
