@@ -103,6 +103,8 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     int qorder = fPOrder;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
     
     // Malha computacional
     fFluxCmesh = new TPZCompMesh(fGeoMesh);
@@ -118,8 +120,7 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
         int bc_id = 0;
-        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+
         for (int j = 0; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
@@ -261,6 +262,8 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     int flux_or_pressure = 0;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
     
     // Malha computacional
     fMixedFluxPressureCmesh = new TPZCompMesh(fGeoMesh);
@@ -277,8 +280,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         // Inserting boundary materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
         int bc_id = 0;
-        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+
         for (int j = 0; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
@@ -341,6 +343,8 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     int flux_or_pressure = 0;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
     
     // Malha computacional
     fMonolithicMultiphaseCmesh = new TPZCompMesh(fGeoMesh);
@@ -357,8 +361,7 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
         // Inserting boundary materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
         int bc_id = 0;
-        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+
         for (int j = 0; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
@@ -696,6 +699,8 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     int interface_id = fSimulationData->InterfacesMatId();
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
+    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
     
     // Malha computacional
     fTransportMesh = new TPZCompMesh(fGeoMesh);
@@ -706,19 +711,19 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id);
+        mat->SetSimulationData(fSimulationData);
         fTransportMesh->InsertMaterialObject(mat);
         
         TRMPhaseInterfaceTransport * matint = new TRMPhaseInterfaceTransport(interface_id);
+        matint->SetSimulationData(fSimulationData);
         fTransportMesh->InsertMaterialObject(matint);
         fGeoMesh->AddInterfaceMaterial(rock_id, rock_id,interface_id);
-        
-        
+
         
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
         int bc_id = 0;
-        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+
         for (int j = 0; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             

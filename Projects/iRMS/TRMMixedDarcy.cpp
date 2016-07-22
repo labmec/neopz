@@ -37,6 +37,7 @@ void TRMMixedDarcy::FillDataRequirements(TPZVec<TPZMaterialData> &datavec)
         datavec[idata].SetAllRequirements(false);
         datavec[idata].fNeedsSol = true;
     }
+    
 }
 
 void TRMMixedDarcy::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData> &datavec)
@@ -376,17 +377,18 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     // Get the pressure at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
-    REAL p_a_n    = point_memory.p_avg_n();
+    REAL p_avg_n    = point_memory.p_avg_n();
     
     //  Computing closure relationship at given average values
     
-    TPZManVector<STATE, 10> v(nvars);
-    v[0] = p_a_n;
+    TPZManVector<STATE, 10> v(nvars),v_avg(nvars);
+    v[0]        = p;
+    v_avg[0]    = p_avg_n;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho,l;
     fSimulationData->AlphaProp()->Density(rho, v);
-    fSimulationData->PetroPhysics()->l(l, v);
+    fSimulationData->PetroPhysics()->l(l, v_avg);
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
@@ -419,7 +421,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         REAL p_a    = point_memory.p_avg();
         
         TPZManVector<STATE, 10> v(nvars);
-        v[0] = p_a;
+        v[0] = p;//p_a;
         
         // Fluid parameters
         TPZManVector<STATE, 10> rho,l;
@@ -548,17 +550,19 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     long global_point_index = datavec[0].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
     
-    REAL p_a_n  = point_memory.p_avg_n();
+    REAL p_avg_n  = point_memory.p_avg_n();
     
     //  Computing closure relationship at given average values
     
-    TPZManVector<STATE, 10> v(nvars);
-    v[0] = p_a_n;
+    TPZManVector<STATE, 10> v(nvars),v_avg(nvars);
+    v[0]        = p;
+    v_avg[0]    = p_avg_n;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho,l;
     fSimulationData->AlphaProp()->Density(rho, v);
-    fSimulationData->PetroPhysics()->l(l, v);
+    fSimulationData->PetroPhysics()->l(l, v_avg);
+    
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
@@ -588,10 +592,10 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     if(! fSimulationData->IsCurrentStateQ()){
         
-        REAL p_a    = point_memory.p_avg();
+        REAL p_avg    = point_memory.p_avg();
         
         TPZManVector<STATE, 10> v(nvars);
-        v[0] = p_a;
+        v[0] = p;//p_avg;
         
         // Fluid parameters
         TPZManVector<STATE, 10> rho,l;

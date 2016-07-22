@@ -102,14 +102,14 @@ void TRMRawData::WaterReservoirBox(){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("water");
-    water->SetRhoModel(1);
-    fPhases.Push(water);
+    fSystemType.Push("oil");
+    oil->SetRhoModel(1);
+    fPhases.Push(oil);
     int n_data = fSystemType.size();
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-//    fg[0] = -9.81;
+    //fg[1] = -9.81;
     
     int map_model = 0; // constant
     fMap = new TRMSpatialPropertiesMap;
@@ -119,14 +119,16 @@ void TRMRawData::WaterReservoirBox(){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 10;
-    fdt = 0.1*day;
-    fdt_up = 0.1;
-    fdt_down = 1.0;
-
+    fn_steps  = 30;
+    fdt = 1.0*day;
+    fdt_max = 30.0*day;
+    fdt_min = 0.5*day;
+    fdt_up = 1.5;
+    fdt_down = 0.5;
+    
     // Numeric controls
     fn_corrections = 20;
-    fepsilon_res = 0.001;
+    fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     
     
@@ -170,7 +172,7 @@ void TRMRawData::WaterReservoirBox(){
     TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(W);
     W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
     fRecurrent_bc_data.Push(W);
@@ -216,7 +218,7 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL f = -0.01;
+    REAL f = -0.001;
     F[0] = f;
     return;
 }
@@ -242,16 +244,16 @@ void TRMRawData::WaterOilReservoirBox(){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("oil");
-    water->SetRhoModel(1);
-    oil->SetRhoModel(1);
+    fSystemType.Push("water");
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(oil);
+    fPhases.Push(water);
     int n_data = fSystemType.size();
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-    //    fg[0] = -9.81;
+    //fg[2] = -9.81;
     
     int map_model = 0; // constant
     fMap = new TRMSpatialPropertiesMap;
@@ -261,7 +263,7 @@ void TRMRawData::WaterOilReservoirBox(){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 30;
+    fn_steps  = 20;
     fdt = 1.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;

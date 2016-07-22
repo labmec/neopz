@@ -683,7 +683,7 @@ void TRMBuildTransfers::s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TP
 
 
 /** @brief Reciprocal (mixed <-> transpor) transfer average quantities to integration points of multiphysics meshes over volumetric elements */
-void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZAutoPointer< TPZCompMesh> cmesh_mf_mixed, TPZAutoPointer< TPZCompMesh> cmesh_mf_trans){
+void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_trans){
     
     
 #ifdef PZDEBUG
@@ -823,6 +823,8 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZAutoPointer< TPZCompMesh> 
         }
         
     }
+    
+    return;
     
 }
 
@@ -1253,7 +1255,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZAutoPointer< TPZCompMesh> flux_m
 
 
 /** @brief Transfer normal fluxes to integration points of transport meshes */
-void TRMBuildTransfers::un_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_transport, bool IsBoundaryQ){
+void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_transport, bool IsBoundaryQ){
   
 #ifdef PZDEBUG
     if (!cmesh_flux || !cmesh_transport) {

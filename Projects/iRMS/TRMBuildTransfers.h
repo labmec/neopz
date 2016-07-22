@@ -260,18 +260,18 @@ public:
     
     /** @brief Transfer Pressure to integration points of multiphysics mesh over volumetric elements */
     void p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompMesh * cmesh_multiphysics);
-
+    
     /** @brief Transfer saturations to integration points of multiphysics transport mesh over volumetric elements */
     void s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TPZCompMesh * cmesh_multiphysics, int mesh_index);
-
+    
     /** @brief Transfer average pressure to integration points of multiphysics mixed meshes over volumetric elements */
     void p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed);
     
     /** @brief Transfer average quantities to integration points of multiphysics mixed/ transpor meshes over volumetric elements */
-    void Reciprocal_Memory_Transfer(TPZAutoPointer< TPZCompMesh> cmesh_mf_mixed, TPZAutoPointer< TPZCompMesh> cmesh_mf_transport);
+    void Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_trans);
     
     /** @brief Transfer normal fluxes to integration points of transport meshes */
-    void un_To_Transport_Mesh(TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_mf_trans, bool IsBoundaryQ);
+    void un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_transport, bool IsBoundaryQ);
     
     // @}
     
@@ -367,6 +367,7 @@ public:
     /** @brief Compute compuational mesh pair (mixed, transport) indexed by geometric volumetic element index */
     void FillComputationalElPairs(TPZAutoPointer< TPZCompMesh>  cmesh_mf_mixed, TPZAutoPointer< TPZCompMesh>  cmesh_mf_transport);
     
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Computational element operations
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -376,8 +377,6 @@ public:
     
     /** @brief Compute element dof indexes at given connect */
     void ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
-    
-    
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -395,7 +394,6 @@ public:
     
     /** @brief Compute sides associated to faces on 3D topologies */
     void ComputeFaceNormals(TPZGeoEl * gel , TPZVec<int> &sides, TPZFMatrix<STATE> &normals);
-    
     
     
     // @}

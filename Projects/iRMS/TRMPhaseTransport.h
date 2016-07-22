@@ -14,6 +14,7 @@
 #include "TRMPhaseMemory.h"
 #include "TRMPhaseTransport.h"
 #include "TRMSimulationData.h"
+#include "TRMBuildTransfers.h"
 #include "pzdiscgal.h"
 
 class TRMPhaseTransport : public TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> {
@@ -22,6 +23,9 @@ private:
     
     /** @brief Autopointer of Simulation data */
     TPZAutoPointer<TRMSimulationData> fSimulationData;
+    
+    /** @brief define the transfer matrices */
+    TPZAutoPointer<TRMBuildTransfers> fTransfer;
     
 public:
     
@@ -80,6 +84,31 @@ public:
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
     
+    /** @brief Set the simulation data */
+    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
+    {
+        fSimulationData = SimulationData;
+    }
+    
+    /** @brief Get the space generator */
+    TPZAutoPointer<TRMSimulationData> SimulationData()
+    {
+        return fSimulationData;
+    }
+    
+    /** @brief Set the transfer object */
+    void SetTransfer(TPZAutoPointer<TRMBuildTransfers> &Transfer)
+    {
+        fTransfer = Transfer;
+    }
+    
+    /** @brief Get the transfer object */
+    TPZAutoPointer<TRMBuildTransfers> Transfer()
+    {
+        return fTransfer;
+    }
+    
+    
     /** @brief Not used contribute methods */
     void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){ DebugStop();}
     void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){DebugStop();}
@@ -87,7 +116,7 @@ public:
     void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc){DebugStop();}
     void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){DebugStop();}
     void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){DebugStop();}
-    void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){DebugStop();}
+    void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){return;}//DebugStop();} @omar:: lets see ,.,...,.,.,.,.
     void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){DebugStop();}
     void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){DebugStop();}
     void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){DebugStop();}

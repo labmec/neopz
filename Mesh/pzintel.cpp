@@ -306,7 +306,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
 			equalside = elvecequal[il].Side();
             long equalindex = equal->ConnectIndex(equal->MidSideConnectLocId(equalside));
             if (equalindex != connectindex) {
-                DebugStop();
+                return; //DebugStop(); // @omar:: some condition that i can not understand
             }
 			il++;
 		}

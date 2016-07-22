@@ -2762,7 +2762,8 @@ TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
     TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
     TPZAutoPointer<TPZMatrix<STATE> > MatG = skyl.CreateAssemble(rhsfrac, gui);
     TPZFMatrix<STATE> oldmat = *MatG.operator->();
-    oldmat.Inverse( * PreInverse);
+//    oldmat.Inverse( * PreInverse);
+    DebugStop();
     oldmat.Multiply(*PreInverse, Identity);
     
 #ifdef PZDEBUG

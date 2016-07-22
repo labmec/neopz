@@ -12,10 +12,20 @@
 #include <stdio.h>
 #include "pzmatwithmem.h"
 #include "TRMPhaseInterfaceMemory.h"
-#include "TRMPhaseTransport.h"
+#include "TRMPhaseMemory.h"
+#include "TRMSimulationData.h"
+#include "TRMBuildTransfers.h"
 #include "pzdiscgal.h"
 
 class TRMPhaseInterfaceTransport : public TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> {
+    
+private:
+    
+    /** @brief Autopointer of Simulation data */
+    TPZAutoPointer<TRMSimulationData> fSimulationData;
+    
+    /** @brief define the transfer matrices */
+    TPZAutoPointer<TRMBuildTransfers> fTransfer;
     
     
 public:
@@ -93,6 +103,29 @@ public:
      * the finite element approximation */
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
+    /** @brief Set the simulation data */
+    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
+    {
+        fSimulationData = SimulationData;
+    }
+    
+    /** @brief Get the space generator */
+    TPZAutoPointer<TRMSimulationData> SimulationData()
+    {
+        return fSimulationData;
+    }
+    
+    /** @brief Set the transfer object */
+    void SetTransfer(TPZAutoPointer<TRMBuildTransfers> &Transfer)
+    {
+        fTransfer = Transfer;
+    }
+    
+    /** @brief Get the transfer object */
+    TPZAutoPointer<TRMBuildTransfers> Transfer()
+    {
+        return fTransfer;
+    }
     
     /** @brief Not used contribute methods */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){DebugStop();}

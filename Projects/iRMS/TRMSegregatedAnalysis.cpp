@@ -108,21 +108,26 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }
-    
-    DebugStop();
+
+//    this->UpdateMemory_at_n();    
+    this->UpdateMemory_at_n();
+    fHyperbolic->ExcecuteOneStep();
     
 }
 
 /** @brief Update memory using the Transfer object at state n */
 void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     
-    DebugStop();
-//    Mesh()->LoadSolution(fX_n);
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
-//    
-//    // Volumetric update
-//    fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
-//    fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
+    fTransfer->s_To_Transport_Memory(fHyperbolic->Meshvec()[0], fHyperbolic->Mesh(),0);// sa
+//    fTransfer->s_To_Transport_Memory(fHyperbolic->Meshvec()[0], fSpaceGenerator->TransportMesh().operator->(),1);// sb
+    
+    fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
+    fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
+    fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
+    
+    if (fSimulationData->IsThreePhaseQ()) {
+        DebugStop(); 
+    }
     
 }
 

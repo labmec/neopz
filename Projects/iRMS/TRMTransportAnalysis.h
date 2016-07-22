@@ -27,10 +27,13 @@ private:
     TPZAutoPointer<TRMBuildTransfers> fTransfer;
     
     /** @brief Vector of compmesh pointers. fmeshvec = { alpha, beta, gamma , etc...} phases */
-    TPZManVector<TPZCompMesh * , 2> fmeshvec;
+    TPZVec<TPZCompMesh *> fmeshvec;
     
     /** @brief Part of residue at n state  */
     TPZFMatrix<STATE> fR_n;
+    
+    /** @brief Part of residue at past state  */
+    TPZFMatrix<STATE> fR;
     
     /** @brief Solution ate n state */
     TPZFMatrix<STATE> fX_n;
@@ -68,7 +71,6 @@ public:
     void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
     {
         fSimulationData = SimulationData;
-        fmeshvec.Resize(2);
     }
     
     /** @brief Get the space generator */
@@ -90,12 +92,12 @@ public:
     }
     
     /** @brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
-    void SetMeshvec(TPZManVector<TPZCompMesh * , 2> &Meshvec)
+    void SetMeshvec(TPZVec<TPZCompMesh *> &Meshvec)
     {
         fmeshvec = Meshvec;
     }
     /** @brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
-    TPZManVector<TPZCompMesh * , 2> & Meshvec()
+    TPZVec<TPZCompMesh *> & Meshvec()
     {
         return fmeshvec;
     }

@@ -100,14 +100,14 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     TPZAutoPointer<TRMFluxPressureAnalysis> parabolic = new TRMFluxPressureAnalysis;
     TPZAutoPointer<TRMTransportAnalysis> hyperbolic = new TRMTransportAnalysis;
     
-    int nel_x = 10;
+    int nel_x = 3;
     int nel_y = 1;
     int nel_z = 1;
     
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
     dx[0] = 500.0/REAL(nel_x);
     dy[0] = 50.0/REAL(nel_y);
-    dz[0] = 50.0/REAL(nel_z);
+    dz[0] = 500.0/REAL(nel_z);
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
 
@@ -198,7 +198,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     TPZStepSolver<STATE> step_p;
     int numofThreads_p = 0;
     strmat_p.SetNumThreads(numofThreads_p);
-    step_p.SetDirect(ELDLt);
+    step_p.SetDirect(ELU);
     parabolic->SetStructuralMatrix(strmat_p);
     parabolic->SetSolver(step_p);
     parabolic->AdjustVectors();
@@ -216,7 +216,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         TPZStepSolver<STATE> step_t;
         int numofThreads_t = 0;
         strmat_t.SetNumThreads(numofThreads_t);
-        step_t.SetDirect(ELDLt);
+        step_t.SetDirect(ELU);
         hyperbolic->SetStructuralMatrix(strmat_t);
         hyperbolic->SetSolver(step_t);
         hyperbolic->AdjustVectors();
@@ -257,7 +257,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
     dx[0] = 500.0/REAL(nel_x);
     dy[0] = 50.0/REAL(nel_y);
-    dz[0] = 50.0/REAL(nel_z);
+    dz[0] = 500.0/REAL(nel_z);
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
     

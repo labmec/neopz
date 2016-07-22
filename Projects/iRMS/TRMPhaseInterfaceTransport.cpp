@@ -187,7 +187,86 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface(TPZMaterialData &data, TP
  */
 void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
+    int nvars = 4; // {p,sa,sb,t}
+    int sb_a    = 0;
+    
+    TPZFNMatrix<100,STATE> phi_ss_l       = datavecleft[sb_a].phi;
+    TPZFNMatrix<100,STATE> phi_ss_r       = datavecright[sb_a].phi;
+    
+    int nphis_a_l     = phi_ss_l.Rows();
+    int firsts_a_l    = 0;
+    
+    int nphis_a_r     = phi_ss_r.Rows();
+    int firsts_a_r    = firsts_a_l + nphis_a_l;
+    
+    TPZManVector<STATE,3> n = data.normal;
+
+    REAL s_l                  = datavecleft[sb_a].sol[0][0];
+    
+    REAL s_r                  = datavecright[sb_a].sol[0][0];
+    
+    STATE un_l = 0.0, un_r = 0.0;// memory
     DebugStop();
+    
+    
+    //  Average values p_a
+    
+    STATE p_a_l    = 0.0;
+    STATE s_a_l    = 0.0;
+    STATE p_a_r    = 0.0;
+    STATE s_a_r    = 0.0;
+    
+    STATE beta = 0.0;
+    // upwinding
+    if (un_l > 0.0) {
+        beta = 1.0;
+    }
+    
+    TPZManVector<STATE, 10> fa_l,v_l(nvars+1),fa_r,v_r(nvars+1);
+    v_l[0] = p_a_l;
+    v_l[1] = s_a_l;
+    v_r[0] = p_a_r;
+    v_r[1] = s_a_r;
+    
+    this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+    this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
+    
+    TPZFNMatrix<3,STATE> phi_u_i_l(3,1);
+    STATE phi_un_l = 0.0;
+    int s_j;
+    int v_j;
+    
+    for (int is = 0; is < nphis_a_l; is++) {
+        
+        ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_l(is,0)*un_l;
+        
+        for (int js = 0; js < nphis_a_l; js++) {
+            ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_l(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_r; js++) {
+            ek(is + firsts_a_l, js + firsts_a_r) += +1.0*weight * (1.0-beta) * fa_r[2] * phi_ss_r(js,0) * phi_ss_l(is,0)*un_l;
+        }
+        
+    }
+    
+    for (int is = 0; is < nphis_a_r; is++) {
+        
+        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_r(is,0)*un_l;
+        
+        for (int js = 0; js < nphis_a_l; js++) {
+            ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_r(is,0)*un_l;
+        }
+        
+        for (int js = 0; js < nphis_a_r; js++) {
+            ek(is + firsts_a_r, js + firsts_a_r) += -1.0*weight * (1.0-beta) * fa_r[2] * phi_ss_r(js,0) * phi_ss_r(is,0)*un_l;
+        }
+        
+    }
 }
 
 
@@ -201,7 +280,66 @@ void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZV
  */
 void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef)
 {
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
+    int nvars = 4; // {p,sa,sb,t}
+    int sb_a    = 0;
+    
+    TPZFNMatrix<100,STATE> phi_ss_l       = datavecleft[sb_a].phi;
+    TPZFNMatrix<100,STATE> phi_ss_r       = datavecright[sb_a].phi;
+    
+    int nphis_a_l     = phi_ss_l.Rows();
+    int firsts_a_l    = 0;
+    
+    int nphis_a_r     = phi_ss_r.Rows();
+    int firsts_a_r    = firsts_a_l + nphis_a_l;
+    
+    TPZManVector<STATE,3> n = data.normal;
+    
+    REAL s_l                  = datavecleft[sb_a].sol[0][0];
+    
+    REAL s_r                  = datavecright[sb_a].sol[0][0];
+    
+    STATE un_l = 0.0, un_r = 0.0;// memory
     DebugStop();
+    
+    
+    //  Average values p_a
+    
+    STATE p_a_l    = 0.0;
+    STATE s_a_l    = 0.0;
+    STATE p_a_r    = 0.0;
+    STATE s_a_r    = 0.0;
+    
+    STATE beta = 0.0;
+    // upwinding
+    if (un_l > 0.0) {
+        beta = 1.0;
+    }
+    
+    TPZManVector<STATE, 10> fa_l,v_l(nvars+1),fa_r,v_r(nvars+1);
+    v_l[0] = p_a_l;
+    v_l[1] = s_a_l;
+    v_r[0] = p_a_r;
+    v_r[1] = s_a_r;
+    
+    this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+    this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
+    
+    for (int is = 0; is < nphis_a_l; is++) {
+        
+        ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_l(is,0)*un_l;
+        
+    }
+    
+    for (int is = 0; is < nphis_a_r; is++) {
+        
+        ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_r(is,0)*un_l;
+        
+    }
+
 }
 
 
