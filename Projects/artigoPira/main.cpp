@@ -141,9 +141,9 @@ long ComputeAverageBandWidth(TPZCompMesh *cmesh){
 
 int main(int argc, char *argv[])
 {
-    //#ifdef LOG4CXX
-    //    InitializePZLOG();
-    //#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     //   IntegrationRuleConvergence(true);
     //   DebugStop();
@@ -1390,7 +1390,7 @@ void DirectionalRef(TPZGeoMesh *gmesh, int nodeAtOriginId, int divide){
     
     for (int idivide = 0; idivide < divide; idivide++){
         const int nels = gmesh->NElements();
-        TPZVec< TPZGeoEl * > allEls(nels);
+        TPZManVector< TPZGeoEl * > allEls(nels);
         for(int iel = 0; iel < nels; iel++){
             allEls[iel] = gmesh->ElementVec()[iel];
         }
