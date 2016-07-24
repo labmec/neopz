@@ -254,7 +254,7 @@ void TRMTransportAnalysis::PostProcessStep(){
     int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "DualSegregatedDarcyOnBox_Saturations.vtk";
-    scalnames.Push("s");
+    scalnames.Push("sa");
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);
     

@@ -364,7 +364,8 @@ void TRMRawData::PressureOutlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REA
 
 void TRMRawData::FluxInlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.00368, S = 1.0;
+//    REAL flux = -0.00368, S = 1.0;
+    REAL flux = -0.001, S = 1.0;
     f[0] = flux;
     f[1] = S;
     return;

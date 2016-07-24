@@ -38,7 +38,7 @@ TRMPhaseInterfaceTransport::TRMPhaseInterfaceTransport(const TRMPhaseInterfaceTr
  */
 TRMPhaseInterfaceTransport::~TRMPhaseInterfaceTransport()
 {
-    DebugStop();
+
 }
 
 /** Fill material data parameter with necessary requirements for the
@@ -54,7 +54,12 @@ void TRMPhaseInterfaceTransport::FillDataRequirements(TPZVec<TPZMaterialData> &d
 
 void TRMPhaseInterfaceTransport::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData> &datavec)
 {
-    DebugStop();
+    int ndata = datavec.size();
+    for (int idata=0; idata < ndata ; idata++) {
+        datavec[idata].SetAllRequirements(false);
+        datavec[idata].fNeedsSol = true;
+        datavec[idata].fNeedsNormal = true;
+    }
 }
 
 /** print out the data associated with the material */
@@ -156,7 +161,196 @@ void TRMPhaseInterfaceTransport::ContributeBC(TPZVec<TPZMaterialData> &datavec, 
  */
 void TRMPhaseInterfaceTransport::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
-    DebugStop();
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
+    int nvars = 4; // {p,sa,sb,t}
+    int sb_a    = 0;
+    
+    TPZFNMatrix<100,STATE> phi_ss_l       = datavecleft[sb_a].phi;
+    
+    int nphis_a_l     = phi_ss_l.Rows();
+    int firsts_a_l    = 0;
+    
+    // Get the pressure at the integrations points
+    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>  * material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> *>(bc.Material());
+//    long global_point_index = data.intGlobPtIndex;
+//    TRMPhaseInterfaceMemory &point_memory = material_bc_mem->GetMemory()[global_point_index];
+    REAL p_avg_n    = 0.0;//point_memory.p_avg_n_l();
+    REAL sa_avg_n    = 0.0;//point_memory.sa_n_l();
+    REAL un_l    = 0.0;//point_memory.un();
+    
+    TPZManVector<STATE,3> n = data.normal;
+    REAL p_l                  = p_avg_n;
+    REAL s_l                  = sa_avg_n;
+    
+    
+    //  Average values p_a
+    STATE p_a_l    = p_l;
+    STATE s_a_l    = s_l;
+    
+    STATE beta = 0.0;
+    
+    TPZManVector<STATE, 10> fa_l,v_l(nvars+1);
+    
+    
+    REAL Value_m    = 0.0;
+    REAL Value_s    = 0.0;
+    if (bc.HasfTimedependentBCForcingFunction()) {
+        TPZManVector<STATE,2> f(2);
+        TPZFMatrix<double> gradf;
+        REAL time = 0.0;
+        bc.TimedependentBCForcingFunction()->Execute(datavecleft[sb_a].x, time, f, gradf);
+        Value_m = f[0];
+        Value_s = f[1];
+    }
+    else{
+        Value_m = bc.Val2()(0,0);
+    }
+    
+    switch (bc.Type()) {
+            
+        case 0 :    // Dirichlet BC  PD outlet
+        {
+            
+            // upwinding
+            if (un_l > 0) {
+                beta = 1.0;
+            }
+            
+            STATE p_D = Value_m;
+            
+            v_l[0] = p_D;
+            v_l[1] = s_a_l;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0])*phi_ss_l(is,0)*un_l;
+                
+                for (int js = 0; js < nphis_a_l; js++) {
+                    ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_l(is,0)*un_l;
+                }
+                
+                
+            }
+            
+        }
+            break;
+            
+        case 1 :    // Neumann BC  QN outlet
+        {
+            
+            // upwinding
+            if (Value_m > 0) {
+                beta = 1.0;
+            }
+            
+            STATE un_N = Value_m;
+            
+            v_l[0] = p_a_l;
+            v_l[1] = s_a_l;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
+                
+                for (int js = 0; js < nphis_a_l; js++) {
+                    ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_l(is,0)*un_N;
+                }
+                
+                
+            }
+            
+        }
+            break;
+            
+        case 2 :    // Dirichlet BC  PD inlet
+        {
+            
+            // upwinding
+            if (un_l > 0) {
+                beta = 1.0;
+            }
+            
+            STATE p_D = Value_m;
+            
+            v_l[0] = p_D;
+            v_l[1] = Value_s;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_l;
+                
+            }
+            
+        }
+            break;
+            
+        case 3 :    // Neumann BC  QN inlet
+        {
+            
+            // upwinding
+            if (Value_m < 0) {
+                beta = 1.0;
+            }
+            
+            STATE un_N = Value_m;
+            
+            v_l[0] = p_a_l;
+            v_l[1] = Value_s;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
+                
+                
+            }
+            
+        }
+            break;
+            
+        case 4 :    // Neumann BC  Impervious bc
+        {
+            
+            // upwinding
+            beta = 1.0;
+            
+            STATE un_N = 0.0;
+            
+            v_l[0] = p_a_l;
+            v_l[1] = Value_s;
+            
+            this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
+            
+            for (int is = 0; is < nphis_a_l; is++) {
+                
+                ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
+                
+                
+            }
+            
+        }
+            break;
+            
+        default: std::cout << "This BC doesn't exist." << std::endl;
+        {
+            
+            DebugStop();
+        }
+            break;
+    }
+    
+    return;
 }
 
 
@@ -205,20 +399,27 @@ void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZV
     
     TPZManVector<STATE,3> n = data.normal;
 
-    REAL s_l                  = datavecleft[sb_a].sol[0][0];
+    REAL sa_l                  = datavecleft[sb_a].sol[0][0];
+    REAL sa_r                  = datavecright[sb_a].sol[0][0];
+    REAL p_avg_l = 0.0;
+    REAL p_avg_r = 0.0;
+    REAL un_l = 0.0;
     
-    REAL s_r                  = datavecright[sb_a].sol[0][0];
-    
-    STATE un_l = 0.0, un_r = 0.0;// memory
-    DebugStop();
-    
+    // Interface memory
+    // Get the pressure at the integrations points
+    long global_point_index = data.intGlobPtIndex;
+    TRMPhaseInterfaceMemory &point_memory = GetMemory()[global_point_index];
+    un_l = point_memory.un();
+    p_avg_l = point_memory.p_avg_n_l();
+    p_avg_r = point_memory.p_avg_n_r();
+
     
     //  Average values p_a
     
-    STATE p_a_l    = 0.0;
-    STATE s_a_l    = 0.0;
-    STATE p_a_r    = 0.0;
-    STATE s_a_r    = 0.0;
+    STATE p_a_l    = p_avg_l;
+    STATE s_a_l    = sa_l;
+    STATE p_a_r    = p_avg_r;
+    STATE s_a_r    = sa_r;
     
     STATE beta = 0.0;
     // upwinding
@@ -234,11 +435,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZV
     
     this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
     this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
-    
-    TPZFNMatrix<3,STATE> phi_u_i_l(3,1);
-    STATE phi_un_l = 0.0;
-    int s_j;
-    int v_j;
+
     
     for (int is = 0; is < nphis_a_l; is++) {
         
@@ -298,20 +495,27 @@ void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZV
     
     TPZManVector<STATE,3> n = data.normal;
     
-    REAL s_l                  = datavecleft[sb_a].sol[0][0];
+    REAL sa_l                  = datavecleft[sb_a].sol[0][0];
+    REAL sa_r                  = datavecright[sb_a].sol[0][0];
+    REAL p_avg_l = 0.0;
+    REAL p_avg_r = 0.0;
+    REAL un_l = 0.0;
     
-    REAL s_r                  = datavecright[sb_a].sol[0][0];
-    
-    STATE un_l = 0.0, un_r = 0.0;// memory
-    DebugStop();
+    // Interface memory
+    // Get the pressure at the integrations points
+    long global_point_index = data.intGlobPtIndex;
+    TRMPhaseInterfaceMemory &point_memory = GetMemory()[global_point_index];
+    un_l = point_memory.un();
+    p_avg_l = point_memory.p_avg_n_l();
+    p_avg_r = point_memory.p_avg_n_r();
     
     
     //  Average values p_a
     
-    STATE p_a_l    = 0.0;
-    STATE s_a_l    = 0.0;
-    STATE p_a_r    = 0.0;
-    STATE s_a_r    = 0.0;
+    STATE p_a_l    = p_avg_l;
+    STATE s_a_l    = sa_l;
+    STATE p_a_r    = p_avg_r;
+    STATE s_a_r    = sa_r;
     
     STATE beta = 0.0;
     // upwinding

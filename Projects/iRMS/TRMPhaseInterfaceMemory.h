@@ -19,6 +19,24 @@ class TRMPhaseInterfaceMemory
 
     /** @brief contains the normal flux per surface area */
     REAL fun;
+    
+    /** @brief contains the volumetric left average pressure at last time step */
+    REAL fp_avg_n_l;
+    
+    /** @brief contains the volumetric left saturation of alhpa at last time step */
+    REAL fsa_n_l;
+    
+    /** @brief contains the volumetric left saturation of alhpa at last time step */
+    REAL fsb_n_l;
+    
+    /** @brief contains the volumetric right average pressure at last time step */
+    REAL fp_avg_n_r;
+    
+    /** @brief contains the volumetric right saturation of alhpa at last time step */
+    REAL fsa_n_r;
+    
+    /** @brief contains the volumetric right saturation of alhpa at last time step */
+    REAL fsb_n_r;
 
 public:
 
@@ -56,6 +74,66 @@ public:
     /** @brief Set the average normal flux */
     REAL un(){
         return fun;
+    }
+    
+    /** @brief Set the average weighted pressure at the previous timestep */
+    void Set_p_avg_n_l(REAL p_avg_n_l){
+        fp_avg_n_l = p_avg_n_l;
+    }
+    
+    /** @brief Get the average weighted pressure at the previous timestep */
+    REAL p_avg_n_l(){
+        return fp_avg_n_l;
+    }
+    
+    /** @brief Set the average weighted pressure at the previous timestep */
+    void Set_p_avg_n_r(REAL p_avg_n_r){
+        fp_avg_n_r = p_avg_n_r;
+    }
+    
+    /** @brief Get the average weighted pressure at the previous timestep */
+    REAL p_avg_n_r(){
+        return fp_avg_n_r;
+    }
+    
+    /** @brief Set alpha saturation at last step */
+    void Set_sa_n_l(REAL sa_n_l){
+        fsa_n_l = sa_n_l;
+    }
+    
+    /** @brief Get alpha saturation at last step */
+    REAL sa_n_l(){
+        return fsa_n_l;
+    }
+    
+    /** @brief Set alpha saturation at last step */
+    void Set_sa_n_r(REAL sa_n_r){
+        fsa_n_r = sa_n_r;
+    }
+    
+    /** @brief Get alpha saturation at last step */
+    REAL sa_n_r(){
+        return fsa_n_r;
+    }
+    
+    /** @brief Set alpha saturation at last step */
+    void Set_sb_n_l(REAL sb_n_l){
+        fsb_n_l = sb_n_l;
+    }
+    
+    /** @brief Get alpha saturation at last step */
+    REAL sb_n_l(){
+        return fsb_n_l;
+    }
+    
+    /** @brief Set alpha saturation at last step */
+    void Set_sb_n_r(REAL sb_n_r){
+        fsb_n_r = sb_n_r;
+    }
+    
+    /** @brief Get alpha saturation at last step */
+    REAL sb_n_r(){
+        return fsb_n_r;
     }
     
     //@}

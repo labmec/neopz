@@ -109,7 +109,6 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
         return;
     }
 
-//    this->UpdateMemory_at_n();    
     this->UpdateMemory_at_n();
     fHyperbolic->ExcecuteOneStep();
     
@@ -152,7 +151,5 @@ void TRMSegregatedAnalysis::PostProcessStep(){
     }
     
     fHyperbolic->PostProcessStep();
-
-    DebugStop();
     
 }

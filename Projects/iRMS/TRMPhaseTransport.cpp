@@ -70,7 +70,7 @@ int TRMPhaseTransport::VariableIndex(const std::string &name) {
     if (!strcmp("p", name.c_str())) return 0;
     if (!strcmp("u", name.c_str())) return 1;
     if (!strcmp("div_u", name.c_str())) return 2;
-    if (!strcmp("s_a", name.c_str())) return 3;
+    if (!strcmp("sa", name.c_str())) return 3;
 
     return TPZMatWithMem::VariableIndex(name);
 }
@@ -137,7 +137,7 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     int nphis_a     = phi_ss.Rows();
     int firsts_a    = 0;
     
-    REAL s                  = datavec[sb_a].sol[0][0];
+//    REAL s                  = datavec[sb_a].sol[0][0];
     
     // Time
     STATE dt = fSimulationData->dt();
@@ -153,20 +153,15 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     //  Average values p_a
     
-    REAL p_a    = p_avg_n;
-    REAL s_a    = sa_avg_n;
-    
     //  Computing closure relationship at given average values
-    
     TPZManVector<STATE, 10> v(nvars);
-    v[0] = p_a;
-    v[1] = s_a;
+    v[0] = p_avg_n;
+    v[1] = sa_avg_n;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho_a,rho_b,l;
     fSimulationData->AlphaProp()->Density(rho_a, v);
     fSimulationData->BetaProp()->Density(rho_b, v);
-    fSimulationData->PetroPhysics()->l(l, v);
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
@@ -174,20 +169,22 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     fSimulationData->Map()->Kappa(datavec[sb_a].x, K, Kinv, v);
     fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
     
-    // Defining local variables
-    TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1),lambda_dp_K_inv_u(3,1), lambda_ds_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
-    TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
     // Integration point contribution
 
     
     if(! fSimulationData->IsCurrentStateQ()){
-
+        v[0] = p_avg;
+        v[1] = sa_avg;
+        fSimulationData->AlphaProp()->Density(rho_a, v);
+        fSimulationData->BetaProp()->Density(rho_b, v);
+        fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
+        
         
         for (int is = 0; is < nphis_a; is++)
         {
             
-            ef(is + firsts_a) += weight * (-1.0/dt) * s * rho_a[0] * phi[0] * phi_ss(is,0);
+            ef(is + firsts_a) += weight * (-1.0/dt) * sa_avg * rho_a[0] * phi[0] * phi_ss(is,0);
             
         }
         
@@ -198,7 +195,7 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     for (int is = 0; is < nphis_a; is++)
     {
         
-        ef(is + firsts_a) += weight * (1.0/dt) * s * rho_a[0] * phi[0] * phi_ss(is,0);
+        ef(is + firsts_a) += weight * (1.0/dt) * sa_avg_n * rho_a[0] * phi[0] * phi_ss(is,0);
         
         for (int js = 0; js < nphis_a; js++)
         {
@@ -224,7 +221,7 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     int nphis_a     = phi_ss.Rows();
     int firsts_a    = 0;
     
-    REAL s                  = datavec[sb_a].sol[0][0];
+//    REAL s                  = datavec[sb_a].sol[0][0];
     
     // Time
     STATE dt = fSimulationData->dt();
@@ -240,20 +237,16 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     //  Average values p_a
     
-    REAL p_a    = p_avg_n;
-    REAL s_a    = sa_avg_n;
+    TPZManVector<STATE, 10> v(nvars);
+    v[0] = p_avg_n;
+    v[1] = sa_avg_n;
     
     //  Computing closure relationship at given average values
-    
-    TPZManVector<STATE, 10> v(nvars);
-    v[0] = p_a;
-    v[1] = s_a;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho_a,rho_b,l;
     fSimulationData->AlphaProp()->Density(rho_a, v);
     fSimulationData->BetaProp()->Density(rho_b, v);
-    fSimulationData->PetroPhysics()->l(l, v);
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
@@ -261,20 +254,21 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     fSimulationData->Map()->Kappa(datavec[sb_a].x, K, Kinv, v);
     fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
     
-    // Defining local variables
-    TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1),lambda_dp_K_inv_u(3,1), lambda_ds_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
-    TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
     // Integration point contribution
     
-    
     if(! fSimulationData->IsCurrentStateQ()){
         
+        v[0] = p_avg;
+        v[1] = sa_avg;
+        fSimulationData->AlphaProp()->Density(rho_a, v);
+        fSimulationData->BetaProp()->Density(rho_b, v);
+        fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
         
         for (int is = 0; is < nphis_a; is++)
         {
             
-            ef(is + firsts_a) += weight * (-1.0/dt) * s * rho_a[0] * phi[0] * phi_ss(is,0);
+            ef(is + firsts_a) += weight * (-1.0/dt) * sa_avg * rho_a[0] * phi[0] * phi_ss(is,0);
             
         }
         
@@ -285,13 +279,19 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     for (int is = 0; is < nphis_a; is++)
     {
         
-        ef(is + firsts_a) += weight * (1.0/dt) * s * rho_a[0] * phi[0] * phi_ss(is,0);
+        ef(is + firsts_a) += weight * (1.0/dt) * sa_avg_n * rho_a[0] * phi[0] * phi_ss(is,0);
         
     }
     
     if(fSimulationData->IsThreePhaseQ()){
         DebugStop();
     }
+    
+}
+
+void TRMPhaseTransport::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+
+    DebugStop();
     
 }
 

@@ -1264,6 +1264,20 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
     }
 #endif
     
+#ifdef PZDEBUG
+    if (this->SimulationData()->RawData()->fOmegaIds[0] != 1) {
+        DebugStop();
+    }
+    
+#endif
+    
+    TPZManVector<long,30>  point_index_trans;
+    TPZManVector<long,30>  point_index_l;
+    TPZManVector<long,30>  point_index_r;
+    
+    REAL p_avg_n_l = -1.0;
+    REAL p_avg_n_r = -1.0;
+    
     cmesh_transport->LoadReferences();
     TPZGeoMesh * geometry = cmesh_transport->Reference();
     long n_interfaces;
@@ -1274,10 +1288,17 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
     else{
         n_interfaces = fleft_right_indexes_gamma.size();
     }
+    
+    int rock_id = this->SimulationData()->RawData()->fOmegaIds[0];
+    //  Getting the total integration point of the destination cmesh
+    TPZMaterial * rock_material = cmesh_flux->FindMaterial(rock_id);
+    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material);
 
     
     if (IsBoundaryQ) {
         
+        geometry->ResetReference();
+        cmesh_flux->LoadReferences();
         int nbc = this->SimulationData()->RawData()->fGammaIds.size();
         
         for (int ibc = 0; ibc < nbc; ibc++) {
@@ -1311,18 +1332,41 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
             int counter = 0;
             int i = 0;
             for (int iface = 0; iface < n_interfaces; iface++) {
-                TPZGeoEl *gel = geometry->Element(finterface_indexes_Gamma[iface]);
+                TPZGeoEl *gel    = geometry->Element(finterface_indexes_Gamma[iface]);
+                TPZGeoEl *gel_l  = geometry->Element(fleft_right_indexes_Gamma[iface].first);
+                TPZGeoEl *gel_r  = geometry->Element(fleft_right_indexes_Gamma[iface].second);
+
+                
 #ifdef PZDEBUG
-                if (!gel) {
+                if (!gel || !gel_l || !gel_r) {
+                    DebugStop();
+                }
+                
+                if (gel_l->Dimension() != 3) {
                     DebugStop();
                 }
 #endif
+                TPZCompEl * mixed_cel_l = gel_l->Reference();
+                TPZCompEl * mixed_cel_r = gel_r->Reference();
+
                 
                 if(gel->MaterialId() != material_bc_mem->Id()){
                     counter++;
                     continue;
                 }
                 
+                
+#ifdef PZDEBUG
+                if (!mixed_cel_l || !mixed_cel_r) {
+                    DebugStop();
+                }
+                
+#endif
+                
+                GlobalPointIndexes(mixed_cel_l, point_index_l);
+                
+                p_avg_n_l = material_mixe_mem->GetMemory()[point_index_l[0]].p_avg_n();
+                material_bc_mem->GetMemory()[i].Set_p_avg_n_l(p_avg_n_l);
                 material_bc_mem->GetMemory()[i].Set_un(un_at_intpoints(counter,0));
                 i++;
                 counter++;
@@ -1333,6 +1377,7 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
         
     }
     else{
+        
         
         int material_id = this->SimulationData()->InterfacesMatId();        
         //  Getting the total integration point of the destination cmesh
@@ -1365,6 +1410,48 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
         for(long i = 0; i < np_cmesh; i++){
             material_mem->GetMemory()[i].Set_un(un_at_intpoints(i,0));
         }
+        
+        geometry->ResetReference();
+        cmesh_flux->LoadReferences();
+        int i = 0;
+        for (int iface = 0; iface < n_interfaces; iface++) {
+
+            TPZGeoEl *gel_l  = geometry->Element(fleft_right_indexes_gamma[iface].first);
+            TPZGeoEl *gel_r  = geometry->Element(fleft_right_indexes_gamma[iface].second);
+            
+            
+#ifdef PZDEBUG
+            if (!gel_l || !gel_r) {
+                DebugStop();
+            }
+            
+            if (gel_l->Dimension() != 3 || gel_r->Dimension() != 3) {
+                DebugStop();
+            }
+#endif
+            
+            TPZCompEl * mixed_cel_l = gel_l->Reference();
+            TPZCompEl * mixed_cel_r = gel_r->Reference();
+            
+            
+#ifdef PZDEBUG
+            if (!mixed_cel_l || !mixed_cel_r) {
+                DebugStop();
+            }
+            
+#endif
+
+            GlobalPointIndexes(mixed_cel_l, point_index_l);
+            GlobalPointIndexes(mixed_cel_r, point_index_r);
+            
+            p_avg_n_l = material_mixe_mem->GetMemory()[point_index_l[0]].p_avg_n();
+            p_avg_n_r = material_mixe_mem->GetMemory()[point_index_r[0]].p_avg_n();
+            
+            material_mem->GetMemory()[i].Set_p_avg_n_l(p_avg_n_l);
+            material_mem->GetMemory()[i].Set_p_avg_n_r(p_avg_n_r);
+            i++;
+            
+        }
        
     }
     
@@ -1393,6 +1480,21 @@ void TRMBuildTransfers::GlobalPointIndexes(TPZCompEl * cel, TPZManVector<long,30
     
 }
 
+/** @brief Get Global integration point indexes associaded  */
+void TRMBuildTransfers::GlobalPointIndexesInterface(TPZCompEl * int_cel, TPZManVector<long,30> &int_point_indexes){
+    
+    TPZMultiphysicsInterfaceElement * mf_int_cel = dynamic_cast<TPZMultiphysicsInterfaceElement * >(int_cel);
+    
+#ifdef PZDEBUG
+    if(!mf_int_cel)
+    {
+        DebugStop();
+    }
+#endif
+    
+    mf_int_cel->GetMemoryIndices(int_point_indexes);
+    
+}
 
 bool TRMBuildTransfers::IdentifyFace(int &side, TPZGeoEl * vol, TPZGeoEl * face){
     

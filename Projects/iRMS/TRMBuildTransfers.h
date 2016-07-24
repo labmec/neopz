@@ -358,7 +358,9 @@ public:
     
     /** @brief Get Global integration point indexes associaded  */
     void GlobalPointIndexes(TPZCompEl * cel, TPZManVector<long,30> &int_point_indexes);
-    
+
+    /** @brief Get Global integration point indexes associaded with interfaces */
+    void GlobalPointIndexesInterface(TPZCompEl * int_cel, TPZManVector<long,30> &int_point_indexes);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Computational mesh operations

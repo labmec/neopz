@@ -100,7 +100,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     TPZAutoPointer<TRMFluxPressureAnalysis> parabolic = new TRMFluxPressureAnalysis;
     TPZAutoPointer<TRMTransportAnalysis> hyperbolic = new TRMTransportAnalysis;
     
-    int nel_x = 3;
+    int nel_x = 1;
     int nel_y = 1;
     int nel_z = 1;
     

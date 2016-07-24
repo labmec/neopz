@@ -12,6 +12,7 @@
 /** @brief Default constructor */
 TRMPhaseMemory::TRMPhaseMemory(){
 
+    fun = 0.0;
     fp_avg      = 0.0;
     fp_avg_n    = 0.0;
     fsa         = 0.0;

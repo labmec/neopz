@@ -1237,7 +1237,7 @@ void TRMMixedDarcy::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
     
     TPZManVector<REAL,3> u = datavec[ub].sol[0];
     REAL p = datavec[pb].sol[0][0];
-    REAL s = datavec[sb].sol[0][0];
+    REAL s = 0.0;//datavec[sb].sol[0][0];
     
     TPZFMatrix<STATE> dudx = datavec[ub].dsol[0];
     TPZFMatrix<STATE> dpdx = datavec[pb].dsol[0];

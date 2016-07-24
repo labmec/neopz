@@ -736,7 +736,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
             
             bc_item = bc[saturation];
             TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> * boundary_bc = new TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>;
-            boundary_bc->SetMaterial(mat);
+            boundary_bc->SetMaterial(matint);
             boundary_bc->SetId(bc_id);
             boundary_bc->SetType(bc_item.first);
             TPZMaterial * material_bc = dynamic_cast<TPZMaterial * >(boundary_bc);

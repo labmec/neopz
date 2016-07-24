@@ -19,6 +19,9 @@ class TRMPhaseMemory
 
 private:
     
+    /** @brief contains the normal flux per surface area */
+    REAL fun;
+    
     /** @brief contains the volumetric average pressure */
     REAL fp_avg;
 
@@ -78,6 +81,16 @@ public:
      * @defgroup Set and Get methods
      * @{
      */
+    
+    /** @brief Set the average normal flux */
+    void Set_un(REAL un){
+        fun = un;
+    }
+    
+    /** @brief Set the average normal flux */
+    REAL un(){
+        return fun;
+    }
     
     /** @brief Set the average weighted pressure */
     void Set_p_avg(REAL p_avg){

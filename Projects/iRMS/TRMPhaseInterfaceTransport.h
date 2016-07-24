@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include "pzmatwithmem.h"
 #include "TRMPhaseInterfaceMemory.h"
-#include "TRMPhaseMemory.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"
 #include "pzdiscgal.h"
