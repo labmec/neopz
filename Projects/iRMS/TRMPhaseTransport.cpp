@@ -171,7 +171,6 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     
     // Integration point contribution
-
     
     if(! fSimulationData->IsCurrentStateQ()){
         v[0] = p_avg;

@@ -172,9 +172,14 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface(TPZMaterialData &data, TP
     
     int nphis_a_l     = phi_ss_l.Rows();
     int firsts_a_l    = 0;
+  
     
+//  TPZMaterial * material =   bc.Material();
+
     // Get the pressure at the integrations points
-    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>  * material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> *>(bc.Material());
+//    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> mat_bc;
+//    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>  * material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> *>(material);
+//    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> &>(bc);
 //    long global_point_index = data.intGlobPtIndex;
 //    TRMPhaseInterfaceMemory &point_memory = material_bc_mem->GetMemory()[global_point_index];
     REAL p_avg_n    = 0.0;//point_memory.p_avg_n_l();
