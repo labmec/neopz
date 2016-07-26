@@ -1533,6 +1533,17 @@ void TRMBuildTransfers::ComputeFaceIndex(TPZGeoEl * gel , TPZVec<int> &sides){
             
         }
             break;
+        case ETetraedro:
+        {
+            int nfaces = 4;
+            sides.Resize(nfaces);
+            sides[0] = 10;
+            sides[1] = 11;
+            sides[2] = 12;
+            sides[3] = 13;
+            
+        }
+            break;
             
         default:
         {
@@ -1581,7 +1592,34 @@ void TRMBuildTransfers::ComputeFaceNormals(TPZGeoEl * gel , TPZVec<int> &sides, 
             
             
         }
-            break;
+        break;
+        case ETetraedro:
+        {
+            int nfaces = 4;
+            sides.Resize(nfaces);
+            sides[0] = 10;
+            sides[1] = 11;
+            sides[2] = 12;
+            sides[3] = 13;
+            int iside = 0;
+            normals.Resize(3, nfaces);
+            
+            for (int i = 0 ; i < v_sides.size(); i++) {
+                if (nfaces <= iside) {
+                    break;
+                }
+                if(v_sides[i] ==  sides[iside]){
+                    normals(0,iside) = mat_normals(0,i);
+                    normals(1,iside) = mat_normals(1,i);
+                    normals(2,iside) = mat_normals(2,i);
+                    iside++;
+                }
+            }
+            
+            
+        }
+        break;
+            
             
         default:
         {

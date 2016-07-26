@@ -101,8 +101,8 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     TPZAutoPointer<TRMTransportAnalysis> hyperbolic = new TRMTransportAnalysis;
     
     int nel_x = 10;
-    int nel_y = 1;
-    int nel_z = 10;
+    int nel_y = 3;
+    int nel_z = 3;
     
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
     dx[0] = 500.0/REAL(nel_x);
@@ -337,7 +337,7 @@ void TRMOrchestra::RunStaticProblem(){
         
         if (IsSegregatedQ()) {
             fSegregatedAnalysis_I->ExcecuteOneStep(true);
-            fSegregatedAnalysis_I->PostProcessStep();
+            fSegregatedAnalysis_I->PostProcessStep(true);
         }
         
     }
@@ -364,7 +364,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         
-        fSegregatedAnalysis->PostProcessStep();
+        fSegregatedAnalysis->PostProcessStep(true);
     }
     
     // Evolutionary problems
@@ -379,11 +379,11 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         if (IsSegregatedQ()) {
             if(i==0){
                 fSegregatedAnalysis->ExcecuteOneStep(true);
-                fSegregatedAnalysis->PostProcessStep();
+                fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
             fSegregatedAnalysis->ExcecuteOneStep(false);
-            fSegregatedAnalysis->PostProcessStep();
+            fSegregatedAnalysis->PostProcessStep(false);
         }
         
     }

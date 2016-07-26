@@ -87,14 +87,12 @@ void TRMSegregatedAnalysis::SegregatedIteration(){
     }
     
     this->UpdateFluxes_at_n();
-    this->UpdateMemory_at_n();
-    fHyperbolic->ExcecuteOneStep();
     
 }
 
-void TRMSegregatedAnalysis::ExcecuteOneStep(bool flag){
+void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsFrozenQ){
 
-    if (flag) {
+    if (IsFrozenQ) {
         this->SegregatedIteration();
     }
     
@@ -142,9 +140,12 @@ void TRMSegregatedAnalysis::UpdateMemory(){
     
 }
 
-void TRMSegregatedAnalysis::PostProcessStep(){
+void TRMSegregatedAnalysis::PostProcessStep(bool IsFrozenQ){
     
-    fParabolic->PostProcessStep();
+    if(IsFrozenQ){
+        fParabolic->PostProcessStep();
+    }
+    
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }

@@ -864,7 +864,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     REAL t=0.0;
     REAL dt;
     int n;
-    
+    bool IsTetrahedronMeshQ = true;
 
     int rock =  this->SimulationData()->RawData()->fOmegaIds[0];
     
@@ -905,6 +905,10 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
     CreateGridFrom1D.SetParametricFunction(ParFuncY);
     CreateGridFrom1D.SetFrontBackMatId(bc_S,bc_N);
+    if(IsTetrahedronMeshQ){
+        CreateGridFrom1D.SetTriangleExtrusion();
+    }
+    
     
     dt = dy[0];
     n = int(dy[1]);
@@ -915,6 +919,11 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
     CreateGridFrom2D.SetParametricFunction(ParFuncZ);
     CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
+    if(IsTetrahedronMeshQ){
+        CreateGridFrom2D.SetTriangleExtrusion();
+        CreateGridFrom2D.SetTetrahedonExtrusion();
+    }
+    
     
     dt = dz[0];
     n = int(dz[1]);

@@ -264,9 +264,9 @@ void TRMRawData::WaterOilReservoirBox(){
     REAL day        = hour * 24.0;
     
     fn_steps  = 20;
-    fdt = 1.0*day;
-    fdt_max = 30.0*day;
-    fdt_min = 1.0*day;
+    fdt = 0.5*day;
+    fdt_max = 0.5*day;
+    fdt_min = 0.5*day;
     fdt_up = 1.5;
     fdt_down = 0.5;
     
