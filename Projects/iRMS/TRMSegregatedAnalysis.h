@@ -129,16 +129,19 @@ public:
      */
     
     /** @brief Execute a euler method step */
-    void ExcecuteOneStep();
+    void ExcecuteOneStep(bool flag);
     
     /** @brief Execute a newton iteration  */
     void NewtonIteration();
     
-    /** @brief Execute a picard iteration  */
-    void PicardIteration();
+    /** @brief Execute a segregated iteration  */
+    void SegregatedIteration();
     
     /** @brief PostProcess results */
     void PostProcessStep();
+
+    /** @brief Update memory using the Transfer object at state n */
+    void UpdateFluxes_at_n();
     
     /** @brief Update memory using the Transfer object at state n */
     void UpdateMemory_at_n();

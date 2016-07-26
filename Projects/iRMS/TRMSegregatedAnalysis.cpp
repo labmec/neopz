@@ -79,39 +79,28 @@ void TRMSegregatedAnalysis::AdjustVectors(){
     fHyperbolic->AdjustVectors();
 }
 
-void TRMSegregatedAnalysis::NewtonIteration(){
-    
-    DebugStop();
-//    this->Assemble();
-//    this->Rhs() += fR_n; // total residue
-//    this->Rhs() *= -1.0;
-//    
-//    this->Solve(); // update correction
-//    fdx_norm = Norm(this->Solution()); // correction variation
-//    
-//    fX_n += this->Solution(); // update state
-//    
-//    this->Mesh()->LoadSolution(fX_n);
-//    
-//    this->UpdateMemory_at_n();
-//    
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-//    this->AssembleResidual();
-//    fR_n += this->Rhs();    // total residue
-//    ferror =  Norm(fR_n);   // residue error
-    
-}
+void TRMSegregatedAnalysis::SegregatedIteration(){
 
-void TRMSegregatedAnalysis::ExcecuteOneStep(){
-    
     fParabolic->ExcecuteOneStep();
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }
-
+    
+    this->UpdateFluxes_at_n();
     this->UpdateMemory_at_n();
     fHyperbolic->ExcecuteOneStep();
     
+}
+
+void TRMSegregatedAnalysis::ExcecuteOneStep(bool flag){
+
+    if (flag) {
+        this->SegregatedIteration();
+    }
+    
+    this->UpdateMemory_at_n();
+    fHyperbolic->ExcecuteOneStep();
+
 }
 
 /** @brief Update memory using the Transfer object at state n */
@@ -119,13 +108,23 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     
     fTransfer->s_To_Transport_Memory(fHyperbolic->Meshvec()[0], fHyperbolic->Mesh(),0);// sa
 //    fTransfer->s_To_Transport_Memory(fHyperbolic->Meshvec()[0], fSpaceGenerator->TransportMesh().operator->(),1);// sb
-    
+
     fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
+    if (fSimulationData->IsThreePhaseQ()) {
+        DebugStop(); 
+    }
+    
+}
+
+/** @brief Update memory using the Transfer object at state n */
+void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
+
+    fParabolic->UpdateMemory_at_n();
     fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
     fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
     
     if (fSimulationData->IsThreePhaseQ()) {
-        DebugStop(); 
+        DebugStop();
     }
     
 }

@@ -266,12 +266,12 @@ void TRMRawData::WaterOilReservoirBox(){
     fn_steps  = 20;
     fdt = 1.0*day;
     fdt_max = 30.0*day;
-    fdt_min = 0.5*day;
+    fdt_min = 1.0*day;
     fdt_up = 1.5;
     fdt_down = 0.5;
     
     // Numeric controls
-    fn_corrections = 20;
+    fn_corrections = 2;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     
@@ -365,7 +365,7 @@ void TRMRawData::PressureOutlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REA
 void TRMRawData::FluxInlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
 //    REAL flux = -0.00368, S = 1.0;
-    REAL flux = -0.001, S = 1.0;
+    REAL flux = -0.1, S = 1.0;
     f[0] = flux;
     f[1] = S;
     return;

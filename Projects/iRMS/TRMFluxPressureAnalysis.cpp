@@ -164,7 +164,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
-            std::cout << "Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+            std::cout << "Parabolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             if (k == 1 && dt_max > dt && dt_up > 1.0) {
                 dt *= dt_up;
                 if(dt_max < dt ){
@@ -173,7 +173,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
                 else{
                     fSimulationData->Setdt(dt);
                 }
-                std::cout << "Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+                std::cout << "Parabolic:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
             }
             
             fX = fX_n;
@@ -188,8 +188,8 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
             else{
                 fSimulationData->Setdt(dt);
             }
-            std::cout << "Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-            std::cout << "Restarting current time step correction " << std::endl;
+            std::cout << "Parabolic:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+            std::cout << "Parabolic:: Restarting current time step correction " << std::endl;
             
             this->SimulationData()->SetCurrentStateQ(false);
             this->LoadSolution(fX);
@@ -206,7 +206,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
         
     }
     
-    std::cout << "Warning:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    std::cout << "Parabolic:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
     
     
 }

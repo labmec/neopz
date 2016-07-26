@@ -169,23 +169,20 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface(TPZMaterialData &data, TP
     int sb_a    = 0;
     
     TPZFNMatrix<100,STATE> phi_ss_l       = datavecleft[sb_a].phi;
+    REAL sa = datavecleft[sb_a].sol[0][0];
     
     int nphis_a_l     = phi_ss_l.Rows();
     int firsts_a_l    = 0;
   
-    
-//  TPZMaterial * material =   bc.Material();
+    int global_point_index = data.intGlobPtIndex;
 
     // Get the pressure at the integrations points
-//    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> mat_bc;
-//    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>  * material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> *>(material);
-//    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> &>(bc);
-//    long global_point_index = data.intGlobPtIndex;
-//    TRMPhaseInterfaceMemory &point_memory = material_bc_mem->GetMemory()[global_point_index];
-    REAL p_avg_n    = 0.0;//point_memory.p_avg_n_l();
-    REAL sa_avg_n    = 0.0;//point_memory.sa_n_l();
-    REAL un_l    = 0.0;//point_memory.un();
-    
+    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>  & material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond > & >(bc);
+    TRMPhaseInterfaceMemory &point_memory = material_bc_mem.GetMemory()[global_point_index];
+    REAL p_avg_n    = point_memory.p_avg_n_l();
+    REAL sa_avg_n    = sa;//point_memory.sa_n_l(); @omar:: saturation is not updated at faces
+    REAL un_l    = point_memory.un();
+
     TPZManVector<STATE,3> n = data.normal;
     REAL p_l                  = p_avg_n;
     REAL s_l                  = sa_avg_n;
@@ -404,8 +401,8 @@ void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZV
     
     TPZManVector<STATE,3> n = data.normal;
 
-    REAL sa_l                  = datavecleft[sb_a].sol[0][0];
-    REAL sa_r                  = datavecright[sb_a].sol[0][0];
+    REAL sa_avg_l                  = datavecleft[sb_a].sol[0][0];
+    REAL sa_avg_r                  = datavecright[sb_a].sol[0][0];
     REAL p_avg_l = 0.0;
     REAL p_avg_r = 0.0;
     REAL un_l = 0.0;
@@ -417,14 +414,14 @@ void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZV
     un_l = point_memory.un();
     p_avg_l = point_memory.p_avg_n_l();
     p_avg_r = point_memory.p_avg_n_r();
+//    sa_avg_l = point_memory.sa_n_l(); @omar:: saturation is not updated
+//    sa_avg_r = point_memory.sa_n_r();
 
-    
     //  Average values p_a
-    
     STATE p_a_l    = p_avg_l;
-    STATE s_a_l    = sa_l;
+    STATE s_a_l    = sa_avg_l;
     STATE p_a_r    = p_avg_r;
-    STATE s_a_r    = sa_r;
+    STATE s_a_r    = sa_avg_r;
     
     STATE beta = 0.0;
     // upwinding
@@ -500,8 +497,8 @@ void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZV
     
     TPZManVector<STATE,3> n = data.normal;
     
-    REAL sa_l                  = datavecleft[sb_a].sol[0][0];
-    REAL sa_r                  = datavecright[sb_a].sol[0][0];
+    REAL sa_avg_l                  = datavecleft[sb_a].sol[0][0];
+    REAL sa_avg_r                  = datavecright[sb_a].sol[0][0];
     REAL p_avg_l = 0.0;
     REAL p_avg_r = 0.0;
     REAL un_l = 0.0;
@@ -513,14 +510,14 @@ void TRMPhaseInterfaceTransport::ContributeInterface(TPZMaterialData &data, TPZV
     un_l = point_memory.un();
     p_avg_l = point_memory.p_avg_n_l();
     p_avg_r = point_memory.p_avg_n_r();
-    
+    //    sa_avg_l = point_memory.sa_n_l(); @omar:: saturation is not updated
+    //    sa_avg_r = point_memory.sa_n_r();
     
     //  Average values p_a
-    
     STATE p_a_l    = p_avg_l;
-    STATE s_a_l    = sa_l;
+    STATE s_a_l    = sa_avg_l;
     STATE p_a_r    = p_avg_r;
-    STATE s_a_r    = sa_r;
+    STATE s_a_r    = sa_avg_r;
     
     STATE beta = 0.0;
     // upwinding

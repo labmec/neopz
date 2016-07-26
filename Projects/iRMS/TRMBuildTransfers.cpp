@@ -662,18 +662,18 @@ void TRMBuildTransfers::s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TP
         
         if(!mesh_index){
             if(fSimulationData->IsCurrentStateQ()){
-                associated_material->GetMemory()[i].Set_sa(Saturation_at_intpoints(i,0));
+                associated_material->GetMemory()[i].Set_sa_n(Saturation_at_intpoints(i,0));
             }
             else{
-                associated_material->GetMemory()[i].Set_sa_n(Saturation_at_intpoints(i,0));
+                associated_material->GetMemory()[i].Set_sa(Saturation_at_intpoints(i,0));
             }
         }
         else{
             if(fSimulationData->IsCurrentStateQ()){
-                associated_material->GetMemory()[i].Set_sb(Saturation_at_intpoints(i,0));
+                associated_material->GetMemory()[i].Set_sb_n(Saturation_at_intpoints(i,0));
             }
             else{
-                associated_material->GetMemory()[i].Set_sb_n(Saturation_at_intpoints(i,0));
+                associated_material->GetMemory()[i].Set_sb(Saturation_at_intpoints(i,0));
             }
         }
     
@@ -794,14 +794,14 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
         // Inserting average pressure and saturation in mixed memory
         for (int ip = 0; ip < np_mixed_cel; ip++) {
             if (fSimulationData->IsCurrentStateQ()) {
-                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_p_avg(p_avg);
-                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa(sa);
-                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb(sb);
-            }
-            else{
                 mixed_memory->GetMemory()[p_point_indexes[ip]].Set_p_avg_n(p_avg_n);
                 mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa_n(sa_n);
                 mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb_n(sb_n);
+            }
+            else{
+                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_p_avg(p_avg);
+                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa(sa);
+                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb(sb);
             }
 
         }
@@ -810,14 +810,14 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
         for (int ip = 0; ip < np_trans_cel; ip++) {
             
             if (fSimulationData->IsCurrentStateQ()) {
-                trans_memory->GetMemory()[s_point_indexes[ip]].Set_p_avg(p_avg);
-                trans_memory->GetMemory()[s_point_indexes[ip]].Set_sa(sa);
-                trans_memory->GetMemory()[s_point_indexes[ip]].Set_sa(sb);
-            }
-            else{
                 trans_memory->GetMemory()[s_point_indexes[ip]].Set_p_avg_n(p_avg_n);
                 trans_memory->GetMemory()[s_point_indexes[ip]].Set_sa_n(sa_n);
                 trans_memory->GetMemory()[s_point_indexes[ip]].Set_sa_n(sb_n);
+            }
+            else{
+                trans_memory->GetMemory()[s_point_indexes[ip]].Set_p_avg(p_avg);
+                trans_memory->GetMemory()[s_point_indexes[ip]].Set_sa(sa);
+                trans_memory->GetMemory()[s_point_indexes[ip]].Set_sa(sb);
             }
 
         }

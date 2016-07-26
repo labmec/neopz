@@ -137,8 +137,6 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     int nphis_a     = phi_ss.Rows();
     int firsts_a    = 0;
     
-//    REAL s                  = datavec[sb_a].sol[0][0];
-    
     // Time
     STATE dt = fSimulationData->dt();
     
@@ -149,7 +147,7 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     REAL p_avg      = point_memory.p_avg();
     
     REAL sa_avg_n    = point_memory.sa_n();
-    REAL sa_avg      = point_memory.sa_n();
+    REAL sa_avg      = point_memory.sa();
     
     //  Average values p_a
     
@@ -232,7 +230,7 @@ void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     REAL p_avg      = point_memory.p_avg();
     
     REAL sa_avg_n    = point_memory.sa_n();
-    REAL sa_avg      = point_memory.sa_n();
+    REAL sa_avg      = point_memory.sa();
     
     //  Average values p_a
     
