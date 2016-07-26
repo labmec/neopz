@@ -42,8 +42,21 @@ int main()
     // Running primal problem
 //    LinearTracerPrimal();
     
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
     // Running dual problem on box shape
     BoxLinearTracerDual();
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    std::cout  << "Overal execution time = " << (t2-t1) << std::endl;
+#endif
+    
     
 //    // Running dual problem on Reservoir
 //    LinearTracerDual();

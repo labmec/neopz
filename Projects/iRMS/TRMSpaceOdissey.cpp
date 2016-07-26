@@ -864,7 +864,7 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     REAL t=0.0;
     REAL dt;
     int n;
-    bool IsTetrahedronMeshQ = true;
+    bool IsTetrahedronMeshQ = false;
 
     int rock =  this->SimulationData()->RawData()->fOmegaIds[0];
     
