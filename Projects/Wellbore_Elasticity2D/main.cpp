@@ -670,8 +670,8 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 60.; // graus********
-    inclination = 30.; // graus********
+    direction   = 30.; // graus********
+    inclination = 0.; // graus********
     
     // transforma graus em rad
     REAL directionT = 0.,inclinationT = 0.; // inicializa

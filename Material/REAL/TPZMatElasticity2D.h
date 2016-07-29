@@ -322,20 +322,20 @@ public:
     {
         
         
-        SigmaX = (2*fPreStressXX*pow(R,4) - (3*fPreStressXX - fPreStressYY - 2*fPw)*pow(frw,2)*pow(R,2)*cos(2*theta) +
-                (fPreStressXX - fPreStressYY)*pow(frw,2)*(3*pow(frw,2) - 2*pow(R,2))*cos(4*theta) - 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(2*theta) +
-                6*fPreStressXY*pow(frw,4)*sin(4*theta) - 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
+        SigmaX = (2.0*fPreStressXX*pow(R,4.0) - (3.0*fPreStressXX - fPreStressYY - 2.0*fPw)*pow(frw,2.0)*pow(R,2.0)*cos(2.0*theta) +
+                (fPreStressXX - fPreStressYY)*pow(frw,2.0)*(3*pow(frw,2.0) - 2.0*pow(R,2.0))*cos(4.0*theta) - 4*fPreStressXY*pow(frw,2.0)*pow(R,2.0)*sin(2.0*theta) +
+                6.0*fPreStressXY*pow(frw,4.0)*sin(4.0*theta) - 4.0*fPreStressXY*pow(frw,2.0)*pow(R,2.0)*sin(4.0*theta))/(2.*pow(R,4.0));
         
-        SigmaY = -(-2*fPreStressYY*pow(R,4) + (fPreStressXX - 3*fPreStressYY + 2*fPw)*pow(frw,2)*pow(R,2)*cos(2*theta) +
-                 (fPreStressXX - fPreStressYY)*pow(frw,2)*(3*pow(frw,2) - 2*pow(R,2))*cos(4*theta) + 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(2*theta) +
-                 6*fPreStressXY*pow(frw,4)*sin(4*theta) - 4*fPreStressXY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
+        SigmaY = -(-2.0*fPreStressYY*pow(R,4.0) + (fPreStressXX - 3.0*fPreStressYY + 2.0*fPw)*pow(frw,2.0)*pow(R,2.0)*cos(2.0*theta) +
+                 (fPreStressXX - fPreStressYY)*pow(frw,2.0)*(3.0*pow(frw,2.0) - 2.0*pow(R,2.0))*cos(4.0*theta) + 4.0*fPreStressXY*pow(frw,2.0)*pow(R,2.0)*sin(2.0*theta) +
+                 6.0*fPreStressXY*pow(frw,4.0)*sin(4.0*theta) - 4.0*fPreStressXY*pow(frw,2.0)*pow(R,2.0)*sin(4.0*theta))/(2.*pow(R,4.0));
         
-        SigmaXY = (2*fPreStressXY*pow(R,4) + fPreStressXY*(-6*pow(frw,4) + 4*pow(frw,2)*pow(R,2))*cos(4*theta) -
-                 (fPreStressXX + fPreStressYY - 2*fPw)*pow(frw,2)*pow(R,2)*sin(2*theta) + 3*fPreStressXX*pow(frw,4)*sin(4*theta) -
-                 3*fPreStressYY*pow(frw,4)*sin(4*theta) - 2*fPreStressXX*pow(frw,2)*pow(R,2)*sin(4*theta) +
-                 2*fPreStressYY*pow(frw,2)*pow(R,2)*sin(4*theta))/(2.*pow(R,4));
+        SigmaXY = (2.0*fPreStressXY*pow(R,4.0) + fPreStressXY*(-6.0*pow(frw,4.0) + 4.0*pow(frw,2.0)*pow(R,2.0))*cos(4.0*theta) -
+                 (fPreStressXX + fPreStressYY - 2.0*fPw)*pow(frw,2.0)*pow(R,2.0)*sin(2.0*theta) + 3.0*fPreStressXX*pow(frw,4.0)*sin(4.0*theta) -
+                 3.0*fPreStressYY*pow(frw,4.0)*sin(4.0*theta) - 2.0*fPreStressXX*pow(frw,2.0)*pow(R,2.0)*sin(4.0*theta) +
+                 2.0*fPreStressYY*pow(frw,2.0)*pow(R,2.0)*sin(4.0*theta))/(2.*pow(R,4.0));
         
-        SigmaZ = fPreStressZZ - (2*fnu*pow(frw,2)*((fPreStressXX - fPreStressYY)*cos(2*theta) + 2*fPreStressXY*sin(2*theta)))/pow(R,2);
+        SigmaZ = fPreStressZZ - (2.0*fnu*pow(frw,2.0)*((fPreStressXX - fPreStressYY)*cos(2.0*theta) + 2.0*fPreStressXY*sin(2.0*theta)))/pow(R,2.0);
         
         //fPreStressZZ - (2*fnu*pow(frw,2)*(2*fPreStressXY + (fPreStressXX - fPreStressYY)*cos(2*theta))*sin(2*theta))/pow(R,2);
 
