@@ -345,6 +345,7 @@ void TPZCompEl::Print(std::ostream & out) const {
 	out << endl;
 }
 
+
 std::ostream& operator<<(std::ostream &s,TPZCompEl & el){
 	el.Print(s);
 	return s;

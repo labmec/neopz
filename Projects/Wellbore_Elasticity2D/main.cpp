@@ -118,22 +118,22 @@ int Problem2D(){
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
     REAL rext = 4.0;
-    int ncircle = 20;
-    int nradial = 15;
-    REAL drdcirc = 1.5;
+    int ncircle = 30;
+    int nradial = 25;
+    REAL drdcirc = 0.5;
     
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 60.; // graus********
-    inclination = 30.; // graus********
+    direction   = 60.; // Azimuth em graus********
+    inclination = 30.; // Polar Inclination em graus********
     
     // transforma graus em rad
     REAL alpha = 0., beta = 0.; // inicializa
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
  
-    int projection = 0; // define se sera projecao
+    int projection = 1; // define se sera projecao
     
     TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, projection); //funcao para criar a malha GEOMETRICA de todo o poco
     //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de 1/4 do poco
@@ -152,7 +152,7 @@ int Problem2D(){
     
     //******** Configura malha Computacional ***************/
     
-    int p = 3;
+    int p = 2;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
@@ -190,7 +190,6 @@ int Problem2D(){
         direct = 0;
     }
 
-  
     
     
     
@@ -237,10 +236,10 @@ int Problem2D(){
 #ifdef LOG4CXX
     TPZFMatrix<REAL> solucao=cmesh->Solution(); //Pegando o vetor de solucao, alphaj
     
-    std::ofstream fileAlpha("alpha.txt");
-    an.Solution().Print("Alpha = ", fileAlpha, EMathematicaInput);
-    
-    solucao.Print("Sol = ",cout,EMathematicaInput);//imprime na formatacao do Mathematica
+//    std::ofstream fileAlpha("alpha.txt");
+//    an.Solution().Print("Alpha = ", fileAlpha, EMathematicaInput);
+//    
+//    solucao.Print("Sol = ",cout,EMathematicaInput);//imprime na formatacao do Mathematica
 #endif
     
     std::cout << "Entering into Post processing ..." << std::endl;
@@ -544,12 +543,12 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
 //            std::cout << sin(theta[j-1]);
 //            std::cout << endl;
             
-            std::cout << "Coord x: " << coord[0] << ";" << " Coord y: " << coord[1] << ";" << " Coord z: " << coord[2] << endl;
-            std::cout << endl;
-            
-            std::cout << "alpha: " << alpha << ";" << " beta: " << beta  << endl;
-            std::cout << "CoordT x: " << coordT[0] << ";" << " CoordT y: " << coordT[1] << ";" << " CoordT z: " << coordT[2] << ";" << endl;
-            std::cout << endl;
+//            std::cout << "Coord x: " << coord[0] << ";" << " Coord y: " << coord[1] << ";" << " Coord z: " << coord[2] << endl;
+//            std::cout << endl;
+//            
+//            std::cout << "alpha: " << alpha << ";" << " beta: " << beta  << endl;
+//            std::cout << "CoordT x: " << coordT[0] << ";" << " CoordT y: " << coordT[1] << ";" << " CoordT z: " << coordT[2] << ";" << endl;
+//            std::cout << endl;
             
             
         }
@@ -670,8 +669,8 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 30.; // graus********
-    inclination = 0.; // graus********
+    direction   = 60.; // graus********
+    inclination = 30.; // graus********
     
     // transforma graus em rad
     REAL directionT = 0.,inclinationT = 0.; // inicializa
@@ -733,15 +732,12 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     //neumann = 1;
     //material->GetPreStress(SigmaX, SigmaXY, SigmaY, SigmaZ); // obtem tensoes iniciais
     
-    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.), val2(2,1,0.);
     
     ///Inserir condicao de contorno parede do poco
     val1(0,0) = Pwb;
-    val1(1,0) = 0;
-    val1(0,1) = 0;
     val1(1,1) = Pwb;
-    val2(0,0) = 0;
-    val2(1,0) = 0;
+    val1(2,2) = Pwb;
     TPZMaterial * BCond0 = material->CreateBC(material, bc0, normalpressure, val1, val2);//cria material
     
     ///Inserir condicao de contorno circunferencia externa
@@ -754,25 +750,26 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond1 = material->CreateBC(material, bc1, stressfield, val1, val2);//cria material
     
     
-//    ///Inserir condicao de contorno circunferencia interna
-//    val1(0,0) = 0.; //SigmaX;
-//    val1(1,0) = 0.; //SigmaXY;
-//    val1(0,1) = 0.; //SigmaXY;
-//    val1(1,1) = 0.; //SigmaY;
-//    val2(0,0) = 0.0;
-//    val2(1,0) = 0.0;
-//    TPZMaterial * BCond0 = material->CreateBC(material, bc0, stressfield, val1, val2);//cria material
-//    
-//    
-//    ///Inserir condicao de contorno circunferencia externa
-//    val1(0,0) = 0.; //SigmaX;
-//    val1(1,0) = 0.; //SigmaXY;
-//    val1(0,1) = 0.; //SigmaXY;
-//    val1(1,1) = 0.; //SigmaY;
-//    val2(0,0) = 0.0;
-//    val2(1,0) = 0.0;
-//    TPZMaterial * BCond1 = material->CreateBC(material, bc1, stressfield, val1, val2);//cria material
-   
+    //    ///Inserir condicao de contorno circunferencia interna
+    //    val1(0,0) = 0.; //SigmaX;
+    //    val1(1,0) = 0.; //SigmaXY;
+    //    val1(0,1) = 0.; //SigmaXY;
+    //    val1(1,1) = 0.; //SigmaY;
+    //    val2(0,0) = 0.0;
+    //    val2(1,0) = 0.0;
+    //    TPZMaterial * BCond0 = material->CreateBC(material, bc0, stressfield, val1, val2);//cria material
+    //
+    //
+    //    ///Inserir condicao de contorno circunferencia externa
+    //    val1(0,0) = 0.; //SigmaX;
+    //    val1(1,0) = 0.; //SigmaXY;
+    //    val1(0,1) = 0.; //SigmaXY;
+    //    val1(1,1) = 0.; //SigmaY;
+    //    val2(0,0) = 0.0;
+    //    val2(1,0) = 0.0;
+    //    TPZMaterial * BCond1 = material->CreateBC(material, bc1, stressfield, val1, val2);//cria material
+
+    
     
     ///Inserir condicao de contorno ponto externo bottom
     val1(0,0) = 0.0;

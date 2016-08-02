@@ -327,7 +327,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 //    }
     
     // MODIFICADO NANANANA
-    TPZManVector<int,3> intorder(dim, 10);
+    //TPZManVector<int,3> intorder(dim, 10);
+    TPZManVector<int,3> intorder(dim, this->MaxOrder()*2);
     intrule->SetOrder(intorder);
     
     

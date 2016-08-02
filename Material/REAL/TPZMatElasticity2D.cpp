@@ -447,7 +447,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumann boundary
-                ef(2*in,0)      += 1.0*v2[0]*phiu(in,0)*weight;        //	Tnx
+                ef(2*in,0)      += 1.0*v2[0]*phiu(in,0)*weight;      //	Tnx
                 ef(2*in+1,0)	+= 1.0*v2[1]*phiu(in,0)*weight;		//	Tny
             }
             
@@ -465,12 +465,35 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             //	Normal Pressure condition Pressure value Should be inserted in v2[0]
             //	Elasticity Equation
             {
+                
+                TPZManVector<REAL> n = data.normal;
+//                TPZManVector<REAL> n_ab = data.normal;
+//                
+//                REAL lxx = 0., lxy = 0., lxz = 0., lyx =0., lyy = 0., lyz = 0., lzx = 0., lzy = 0., lzz = 0.;
+//                
+//                // x-diretion
+//                lxx = cos(falpha)*cos(fbeta);
+//                lxy = sin(falpha)*cos(fbeta);
+//                lxz = -sin(fbeta);
+//                // y-direction
+//                lyx = -sin(falpha);
+//                lyy = cos(falpha);
+//                lyz = 0;
+//                // z-direction
+//                lzx = cos(falpha)*sin(fbeta);
+//                lzy = sin(falpha)*sin(fbeta);
+//                lzz = cos(fbeta);
+//                
+//                n_ab[0] = lxx*n[0] + lxy*n[1] + lxz*n[2];
+//                n_ab[1] = lyx*n[0] + lyy*n[1] + lyz*n[2];
+//                n_ab[2] = lzx*n[0] + lzy*n[1] + lzz*n[2];
+                
                 TPZFNMatrix<2,STATE> Tn(2,1,0.);
                 for(int i=0; i<2; i++)
                 {
                     for(int j=0; j<2; j++)
                     {
-                        Tn(i,0) += bc.Val1()(i,j)*data.normal[j];
+                        Tn(i,0) += bc.Val1()(i,j)*n[j];
                     }
                 }
                 
@@ -820,6 +843,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Solout[0] = ((SigmaX)+(SigmaY)+(SigmaZ))/3;
         return;
     }
+    
     
 }
 
