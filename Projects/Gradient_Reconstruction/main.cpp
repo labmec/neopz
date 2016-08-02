@@ -146,7 +146,7 @@ void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid)
 static LoggerPtr logdata(Logger::getLogger("pz.material"));
 #endif
 
-int MaxRefs = 9;
+int MaxRefs = 6;
 int InitRefs = 5;
 
 int main(int argc, char *argv[]) {
