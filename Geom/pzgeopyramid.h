@@ -63,7 +63,10 @@ namespace pzgeom {
 		static std::string TypeName() { return "Pyramid";}
 		
 		/** @brief Implementation of two-dimensional bilinear interpolation*/
-		static  void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+		static  void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
+        {
+            CornerShape(x, phi, dphi);
+        }
 		
 		/* brief compute the coordinate of a point given in parameter space */
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const

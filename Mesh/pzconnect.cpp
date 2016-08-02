@@ -129,7 +129,7 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 }
 
 TPZConnect::TPZDepend *TPZConnect::AddDependency(long myindex, long dependindex,TPZFMatrix<STATE> &depmat,long ipos,long jpos,int isize,int jsize){
-	if(dependindex == myindex) return;
+	if(dependindex == myindex) return 0;
 	TPZDepend *connect =0;
 	if(dependindex == -1)
     {
