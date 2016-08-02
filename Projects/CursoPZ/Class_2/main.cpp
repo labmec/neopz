@@ -26,8 +26,8 @@ int main() {
   skyline->AutoFill(neq,neq,1);
 //  FillMatrix(*skyline,neq,banda);
 
-  cheia->Print( "Matriz cheia ",cout);
-  skyline->Print( "Matriz skyline ",cout);
+//  cheia->Print( "Matriz cheia ",cout);
+//  skyline->Print( "Matriz skyline ",cout);
 
   TPZFMatrix<REAL> F;
   F.AutoFill(neq,1,0);
