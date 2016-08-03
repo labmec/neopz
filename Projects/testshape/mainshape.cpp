@@ -336,7 +336,7 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
         TPZFMatrix<REAL> phiint(nshapef,1,0.), dphiint(3,nshapef,0.);
         TPZVec<int> firstindexinternal(nconnects+1,0);
 	for(con=0;con<nconnects;con++) 
-		firstindexinternal[con+1] = firstindexinternal[con]+el->NConnectShapeF(con);
+		firstindexinternal[con+1] = firstindexinternal[con]+el->Connect(con).NShape();
 	// Imprime dados do elemento, numero de connects e funçoes shape dependendo da ordem escolhida
 	saida << "Elemento: " << el->Index() << "  Order = " << order << endl;
 	saida << " " << "connects: " << nconnects << "  n shape: " << nshapef << endl;
@@ -346,7 +346,7 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
                 TPZFMatrix<REAL> phi(nsideshapef,1,0.), dphi(3,nsideshapef,0.);
                 TPZVec<int> firstindexside(nsideconnects+1,0);
 		for(conside=0;conside<nsideconnects;conside++) {
-			firstindexside[conside+1] = firstindexside[conside] + el->NConnectShapeF(el->SideConnectLocId(conside,side));
+			firstindexside[conside+1] = firstindexside[conside] + el->Connect(el->SideConnectLocId(conside,side)).NShape();
 		}
 		saida << "  Side " << side << ": " << "  side connects: " << nsideconnects << "  n side shape: " << nsideshapef << endl;
 		transform = gel->SideToSideTransform(side,(nsides-1));
@@ -370,20 +370,20 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 			saida << " " << " Point " << point << " (" << p[0] << "," << p[1] << "," << p[2] << ")" << "  peso = " << peso[point] << endl;
 			saida << " " << " " << " MATRIX Side Shape: ";
 			for(conside=0;conside<nsideconnects;conside++) {
-				nshapef = el->NConnectShapeF(el->SideConnectLocId(conside,side));
+				nshapef = el->Connect(el->SideConnectLocId(conside,side)).NShape();
 				for(shape=0;shape<nshapef;shape++) 
 					saida << phi((firstindexside[conside]+shape),0) << "  ";
 			}
 			saida << endl << " " << " " << " MATRIX Shape:      ";
 			for(conside=0;conside<nsideconnects;conside++) {
-				nshapef = el->NConnectShapeF(el->SideConnectLocId(conside,side));
+				nshapef = el->Connect(el->SideConnectLocId(conside,side)).NShape();
 				for(shape=0;shape<nshapef;shape++) 
 					saida << phiint((firstindexinternal[el->SideConnectLocId(conside,side)]+shape),0) << "  ";
 			}
 			saida << endl;
 			// Repassando e verificando se as diferencas sao nao nulas
 			for(conside=0;conside<nsideconnects;conside++) {
-				nshapef = el->NConnectShapeF(el->SideConnectLocId(conside,side));
+				nshapef = el->Connect(el->SideConnectLocId(conside,side)).NShape();
 				for(shape=0;shape<nshapef;shape++) {
 					if(!IsZero(phi((firstindexside[conside]+shape),0)-phiint((firstindexinternal[el->SideConnectLocId(conside,side)]+shape),0)))
 						saida << "  Ops -> " << side << " " << conside << " " << shape << " side,connectside,shapefconnectside." << endl;
@@ -423,7 +423,7 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
 
 	TPZVec<int> firstindexinternal(cel->NConnects()+1,0);
 	for(conn=0;conn<cel->NConnects();conn++) 
-		firstindexinternal[conn+1] = firstindexinternal[conn]+cel->NConnectShapeF(conn);
+		firstindexinternal[conn+1] = firstindexinternal[conn]+cel->Connect(conn).NShape();
 
 	// Normalizing the normal vetor
 	n_modulo = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
@@ -457,7 +457,7 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
 		saida << " - Point3 " << " (" << p3[0] << "," << p3[1] << "," << p3[2] << ")" << endl;
 		// Computing dphi.normal to all shape functions associated to connects on this side
 		for(sideconnect=0;sideconnect<nsideconnects;sideconnect++) {
-			nconnectshapef = cel->NConnectShapeF(cel->SideConnectLocId(sideconnect,side));
+			nconnectshapef = cel->Connect(cel->SideConnectLocId(sideconnect,side)).NShape();
 			for(sideconnectshapef=0;sideconnectshapef<nconnectshapef;sideconnectshapef++) {
 				int index = firstindexinternal[cel->SideConnectLocId(sideconnect,side)] + sideconnectshapef;
 				prod_int1 = dphi1(0,index)*n_unit[0] + dphi1(1,index)*n_unit[1] + dphi1(2,index)*n_unit[2];
@@ -500,7 +500,7 @@ void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
 	TPZVec<int> firstindexinternal(el->NConnects()+1,0);
 	for(i=0; i<nsides; i++)
 	{
-		firstindexinternal[i+1] = firstindexinternal[i]+el->NConnectShapeF(i);
+		firstindexinternal[i+1] = firstindexinternal[i]+el->Connect(i).NShape();
 	}
 	saida << endl;
 	for(i=0;i<nsides;i++) {
@@ -509,7 +509,7 @@ void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
 		TPZVec<int> firstindexside(el->NSideConnects(i)+1,0);
 		int isc;
 		for(isc=0; isc<nsideconnects; isc++)
-			firstindexside[isc+1] = firstindexside[isc]+el->NConnectShapeF(el->SideConnectLocId(isc,i));
+			firstindexside[isc+1] = firstindexside[isc]+el->Connect(el->SideConnectLocId(isc,i)).NShape();
 		transform = gel->SideToSideTransform(i,nsides-1);
 		pointIntRule = el->Reference()->CreateSideIntegrationRule(i,order);
 		npoints = pointIntRule->NPoints();

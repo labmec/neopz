@@ -2571,7 +2571,8 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh){
             nshape = conel.NShape();
             
             int neworder = corder + 1;
-            conel.SetOrder(neworder);
+            long cindex = cel->ConnectIndex(ncon-1);
+            conel.SetOrder(neworder,cindex);
             
             if(fTriang){
                 nshape2 = (corder + 2)*(corder + 2)-1;
@@ -2581,7 +2582,7 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh){
             
             TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
             intel->SetPreferredOrder(neworder);
-            nshape = intel->NConnectShapeF(ncon-1);
+            nshape = intel->NConnectShapeF(ncon-1,neworder);
             
             if(dim==2){
                 if(nshape2!=nshape){

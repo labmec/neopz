@@ -9,20 +9,37 @@ ENABLE_TESTING()
 			#add_subdirectory(PDElinear2D)
 		else(BUILD_COMPLEX_PROJECTS)
 
+			source_group(CursoPZ FILES ${pzcurso})
+			#source_group(Shape FILES ${pztutorshape})
+			#source_group(Geometry FILES ${pztutorgeom})
+			#source_group(Matrix FILES ${pztutormat})
+			#source_group(VisualMatrixDX FILES ${visualmatrix})
+
+			#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
+
+			#add_custom_target(PZTutorial SOURCES ${pztutorial})
+			#add_subdirectory(Finite3DElasticity)
+
+			#Curso PZ:
+			add_subdirectory(CursoPZ)
+
+			#Example to reading and using geometric mesh
+			add_subdirectory(testgeom)
+
+			#Testing and using shape functions
+			add_subdirectory(testshape)
+            
+			#Generic Example 2D with elasticity, using matrices phi, phi, etc
+			add_subdirectory(testmat)
+
+			#Using visual matrix of the DX
+			add_subdirectory(visualmatrix)
+			
+
 			# project to save and load a computational mesh
 			add_subdirectory(SaveAndLoad)
 
-			#Using discontinuous approximation functions
-			add_subdirectory(descontinuo)
-
-                	#Testing gradient reconstruction
-			add_subdirectory(Gradient_Reconstruction)
-                	#Testing generating ellipse from a vector of points by least square method
-			add_subdirectory(EllipseGenerator)
-
 			# Tutorial about hp-adaptive techniques
-			add_subdirectory(Poisson_ArcTan)
-			add_subdirectory(Poisson2D_ArcTan_Disc)
 			add_subdirectory(Poisson3D_Fichera)
 			add_subdirectory(Poisson3D_Shock)
 			# the auto adaptive process is working again!!!
@@ -45,36 +62,7 @@ ENABLE_TESTING()
 			#Example of the  convection problem
 			add_subdirectory(Problema_Transporte)
 
-			#Testes Douglas
-			add_subdirectory(dactests)
- 
 	
-			#Example to reading and using geometric mesh
-			add_subdirectory(testgeom)
-
-			#Testing and using shape functions
-			add_subdirectory(testshape)
-            
-			#Generic Example 2D with elasticity, using matrices phi, phi, etc
-			add_subdirectory(testmat)
-
-			#Using visual matrix of the DX
-			add_subdirectory(visualmatrix)
-			
-			source_group(CursoPZ FILES ${pzcurso})
-			#source_group(Shape FILES ${pztutorshape})
-			#source_group(Geometry FILES ${pztutorgeom})
-			#source_group(Matrix FILES ${pztutormat})
-			#source_group(VisualMatrixDX FILES ${visualmatrix})
-
-			#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
-
-			#add_custom_target(PZTutorial SOURCES ${pztutorial})
-			#add_subdirectory(Finite3DElasticity)
-
-			#Curso PZ:
-			add_subdirectory(CursoPZ)
-
 			# Simple project to test rational function defined by Cedric on pyramids
 			add_subdirectory(RationalFunctionPyramid)
 
@@ -86,6 +74,20 @@ ENABLE_TESTING()
 
 	endif(BUILD_TUTORIAL)
 
+	if(BUILD_BROKEN)
+		if(BUILD_COMPLEX_PROJECTS)
+			#add_subdirectory(PDElinear1D)
+			#add_subdirectory(PDElinear2D)
+		else(BUILD_COMPLEX_PROJECTS)
+                	#Testing gradient reconstruction
+			add_subdirectory(Gradient_Reconstruction)
+			#exercise on gradient reconstruction, but the results are wrong!
+			add_subdirectory(Poisson2D_ArcTan_Disc)
+
+			
+		endif(BUILD_COMPLEX_PROJECTS)
+	endif(BUILD_BROKEN)
+	
 	if(BUILD_PROJECTS)
 		
 		#
@@ -121,6 +123,18 @@ ENABLE_TESTING()
 				#add_subdirectory(HydraulicFracturePropagation)
 			endif()
 			##########################
+			#Testes Douglas
+			add_subdirectory(dactests)
+ 
+			#Using discontinuous approximation functions - masters thesis of Erick Slis
+			add_subdirectory(descontinuo)
+
+ 
+                	#Testing generating ellipse from a vector of points by least square method
+			add_subdirectory(EllipseGenerator)
+
+			#Adaptivity based on mesh cloning (Edimar Cesar thesis)
+			add_subdirectory(Poisson_ArcTan)
 
 			#projeto Diogo
 			add_subdirectory(Plasticity)
