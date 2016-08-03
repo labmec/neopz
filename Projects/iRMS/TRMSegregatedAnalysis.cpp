@@ -96,6 +96,10 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsFrozenQ){
         this->SegregatedIteration();
     }
     
+    if (fSimulationData->IsOnePhaseQ()) {
+        return;
+    }
+    
     this->UpdateMemory_at_n();
     fHyperbolic->ExcecuteOneStep();
 

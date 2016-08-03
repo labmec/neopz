@@ -102,15 +102,21 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     int nel_x = 10;
     int nel_y = 1;
-    int nel_z = 10;
+    int nel_z = 1;
     
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
     dx[0] = 500.0/REAL(nel_x);
-    dy[0] = 500.0/REAL(nel_y);
-    dz[0] = 500.0/REAL(nel_z);
+    dy[0] = 50.0/REAL(nel_y);
+    dz[0] = 50.0/REAL(nel_z);
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
-
+    
+//    std::string dirname = PZSOURCEDIR;
+//    std::string file;
+//    file = dirname + "/Projects/iRMS/Meshes/iRMSGID5SpotQ.dump";
+//    fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
+    
+//    fSpaceGenerator->PrintGeometry();
 #ifdef PZDEBUG
     fSpaceGenerator->PrintGeometry();
 #endif
@@ -256,7 +262,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
     dx[0] = 500.0/REAL(nel_x);
-    dy[0] = 50.0/REAL(nel_y);
+    dy[0] = 500.0/REAL(nel_y);
     dz[0] = 500.0/REAL(nel_z);
     
     fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
@@ -325,6 +331,8 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
 /** @brief Run the static problem over a single large time step */
 void TRMOrchestra::RunStaticProblem(){
     
+    std::cout<< "iRMS:: Finding Initial State" << std::endl;
+    
     int n = 1;//fSimulationData->n_steps();
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
@@ -347,6 +355,8 @@ void TRMOrchestra::RunStaticProblem(){
 
 /** @brief Run the evolutionary problem for all steps set in the simulation data */
 void TRMOrchestra::RunEvolutionaryProblem(){
+    
+    std::cout<< "iRMS:: Running Evolutionary problem" << std::endl;
     
     if (IsMonolithicQ()) {
         fMonolithicMultiphaseAnalysis->SetX(fMonolithicMultiphaseAnalysis_I->X_n());
@@ -382,8 +392,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
-            fSegregatedAnalysis->ExcecuteOneStep(false);
-            fSegregatedAnalysis->PostProcessStep(false);
+            fSegregatedAnalysis->ExcecuteOneStep(true);
+            fSegregatedAnalysis->PostProcessStep(true);
         }
         
     }

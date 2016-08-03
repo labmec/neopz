@@ -859,6 +859,45 @@ void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
 }
 
 /** @brief Create a reservoir-box geometry */
+void TRMSpaceOdissey::CreateGeometricExtrudedGIDMesh(std::string &grid, TPZManVector<REAL,2> dz){
+
+    
+    TPZReadGIDGrid GeometryInfo;
+    REAL s = 1.0;
+    GeometryInfo.SetfDimensionlessL(s);
+    TPZGeoMesh * GeoMesh2D = GeometryInfo.GeometricGIDMesh(grid);
+    GeoMesh2D->SetDimension(2);
+    
+    
+    REAL t=0.0;
+    REAL dt;
+    int n;
+    bool IsTetrahedronMeshQ = false;
+    
+    int bc_B =  this->SimulationData()->RawData()->fGammaIds[3];
+    int bc_T =  this->SimulationData()->RawData()->fGammaIds[4];
+    
+    TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
+    TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);
+    CreateGridFrom2D.SetParametricFunction(ParFuncZ);
+    CreateGridFrom2D.SetFrontBackMatId(bc_B,bc_T);
+    if(IsTetrahedronMeshQ){
+        CreateGridFrom2D.SetTriangleExtrusion();
+        CreateGridFrom2D.SetTetrahedonExtrusion();
+    }
+    
+    
+    dt = dz[0];
+    n = int(dz[1]);
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    fGeoMesh = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
+    
+    const std::string name("Reservoir with vertical extrusion");
+    fGeoMesh->SetName(name);
+    
+}
+
+/** @brief Create a reservoir-box geometry */
 void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVector<REAL,2> dy, TPZManVector<REAL,2> dz){
     
     REAL t=0.0;

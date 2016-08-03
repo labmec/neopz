@@ -165,6 +165,35 @@ public:
     
     // @}
     
+    /**
+     * @ingroup Configuration Cases :: Oil flow
+     * @brief Define the colletion of materials ids and functions being used as boundary conditions
+     * @since May 08, 2016
+     */
+    
+    // @}
+    
+    
+    /**
+     * @ingroup Configuration Cases :: Water-Oil flow
+     * @brief Define the colletion of materials ids and functions being used as boundary conditions
+     * @since May 08, 2016
+     */
+    
+    /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
+    void WaterOilReservoirVertical();
+    
+//    static void PressureOutlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+//    
+//    static void FluxInlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+//    
+//    static void Impervious_tp(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
+    
+    // @}
+    
+    
+    
 };
 
 #endif /* defined(__PZ__TRMRawData__) */

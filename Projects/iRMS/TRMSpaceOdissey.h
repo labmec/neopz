@@ -162,6 +162,9 @@ public:
     /** @brief Create a reservoir-box geometry */
     void CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVector<REAL,2> dy, TPZManVector<REAL,2> dz);
     
+    /** @brief Create a reservoir-box geometry */
+    void CreateGeometricExtrudedGIDMesh(std::string &grid, TPZManVector<REAL,2> dz);
+    
     /** @brief Parametric function that computes elements in the x direction */
     static  void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X);
     
