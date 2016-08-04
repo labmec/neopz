@@ -133,9 +133,9 @@ int Problem2D(){
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
  
-    int projection = 0; // define se sera projecao
+    int rotation = 1; // define se rotaciona a malha geometrica
     
-    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, projection); //funcao para criar a malha GEOMETRICA de todo o poco
+    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, rotation); //funcao para criar a malha GEOMETRICA de todo o poco
     //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de 1/4 do poco
     
     
@@ -239,12 +239,14 @@ int Problem2D(){
 //    std::ofstream fileAlpha("alpha.txt");
 //    an.Solution().Print("Alpha = ", fileAlpha, EMathematicaInput);
 //    
-//    solucao.Print("Sol = ",cout,EMathematicaInput);//imprime na formatacao do Mathematica
+    solucao.Print("Sol = ",cout,EMathematicaInput);//imprime na formatacao do Mathematica
 #endif
     
     std::cout << "Entering into Post processing ..." << std::endl;
     // Post processing
     int ndiv = 2;
+    
+    int projection = 1; // define se sera projecao
     
     if (projection==1) {
         TPZStack<std::string> scalarnames, vecnames;
@@ -681,7 +683,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     int inclinedwellbore = 1;
     
     // pressao da lama de perfuracao
-    REAL Pwb = -30.0; // MPa
+    REAL Pwb = -130.0; // MPa
     
     // Tensoes in Situ, horizontais e vertical em MPa
     REAL SigmaVV = 0., Sigmahh = 0., SigmaHH = 0.; // inicializa
@@ -690,7 +692,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     REAL rw = 0.1;
     int analytic = 0;
-    int projection = 0;
+    int projection = 1;
     
     // Seta os parametros do poco
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);

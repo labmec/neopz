@@ -99,24 +99,55 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
 		if(st == EMVStyle || st == EV3DStyle) fGraphMesh->Out() << ip++ << " ";
         
         TPZMatElasticity2D projectmaterial;
-        REAL alpha = 0.; // azimuth
-        REAL beta = 0.; // inclination
-        int projection = 0.;
+        REAL Pi = M_PI;
+        
+        //******* angulos colocados a mao para fazer teste *********
+        REAL alpha = (60.*(Pi/180)); // azimuth
+        REAL beta = (30.*(Pi/180)); // inclination
+        
+        int projection = 1;
+        //obtem angulos da rotacao do poco (como??)
         projectmaterial.GetWellboreAngles(alpha, beta, projection);
+        
+        //Print Rotated Coordinate
+//        std::cout << "Coord Rotacionada: " << endl;
+//        std::cout << "x: " << x[0] << " " << "y: " << x[1] << " " << "z: " << x[2] << endl;
         
         //************ O codigo nao esta pegando os dados do material ja inseridos no main, pois estou criando um novo construtor, como faco????  *****************//
         
         if (projection==1) {
             
-            REAL xP = 0., yP = 0., zP = 0.;
+            // cria vetor normal rotacionada e coordenada projetada
+            TPZVec<REAL> nRot(3,0.),xP(3,0.);
             
-            xP =  x[0]*cos(alpha)*cos(beta) + x[1]*cos(beta)*sin(alpha) - x[2]*sin(beta) + (x[2]*cos(beta) + x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
-            yP = x[1]*cos(alpha) - x[0]*sin(alpha);
-            zP = 0;
+            nRot[0] = -sin(beta);
+            nRot[1] = 0;
+            nRot[2] = cos(beta);
             
-            x[0] = xP;
-            x[1] = yP;
-            x[2] = zP;
+            REAL gamma = 0.;
+            gamma = x[2]/cos(beta);
+            
+            xP[0] = x[0] - gamma*nRot[0];
+            xP[1] = x[1] - gamma*nRot[1];
+            xP[2] = x[2] - gamma*nRot[2];
+            
+            x[0] = xP[0];
+            x[1] = xP[1];
+            x[2] = xP[2];
+            
+            
+            
+//            //********* Desse jeito eh preciso passar a coordenada sem rotacionar a malha, mas e o z, sendo sempre zero, nao interfere???  **********//
+//            REAL xP = 0., yP = 0., zP = 0.;
+            
+//            xP =  x[0]*cos(alpha)*cos(beta) + x[1]*cos(beta)*sin(alpha) - x[2]*sin(beta) + (x[2]*cos(beta) + x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
+//            yP = x[1]*cos(alpha) - x[0]*sin(alpha);
+//            zP = 0;
+//            
+//            x[0] = xP;
+//            x[1] = yP;
+//            x[2] = zP;
+            
             
             fGraphMesh->Out() << x[0] << " " << x[1] << " " << x[2] << endl;
         }
@@ -127,7 +158,9 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         }
         
 		NextIJ(in,co,incr);
-//        co.Print();
+        
+        //Print Projected Coordinate
+//        std::cout << "Coord Projetada: " << endl;
 //        std::cout << "x: " << x[0] << " " << "y: " << x[1] << " " << "z: " << x[2] << endl;
         
 		point++;
