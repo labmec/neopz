@@ -29,7 +29,7 @@ ENABLE_TESTING()
 			#Testing and using shape functions
 			add_subdirectory(testshape)
             
-			#Generic Example 2D with elasticity, using matrices phi, phi, etc
+			#Generic Example 2D with elasticity and 2D linear problem showing an example call to Contribute
 			add_subdirectory(testmat)
 
 			#Using visual matrix of the DX
