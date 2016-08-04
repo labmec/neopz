@@ -133,7 +133,7 @@ int Problem2D(){
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
  
-    int projection = 1; // define se sera projecao
+    int projection = 0; // define se sera projecao
     
     TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, projection); //funcao para criar a malha GEOMETRICA de todo o poco
     //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de 1/4 do poco
@@ -245,20 +245,43 @@ int Problem2D(){
     std::cout << "Entering into Post processing ..." << std::endl;
     // Post processing
     int ndiv = 2;
-    TPZStack<std::string> scalarnames, vecnames;
-    scalarnames.Push("SigmaX");
-    scalarnames.Push("SigmaY");
-    scalarnames.Push("SigmaZ");
-    scalarnames.Push("TauXY");
-    scalarnames.Push("SolidPressure");
-    scalarnames.Push("SigmaXAnalytic");
-    scalarnames.Push("SigmaYAnalytic");
-    scalarnames.Push("SigmaZAnalytic");
-    scalarnames.Push("TauXYAnalytic");
-    scalarnames.Push("SolidPressureAnalytic");
-    vecnames.Push("Displacement");
-    //vecnames[1] = "";
-    an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
+    
+    if (projection==1) {
+        TPZStack<std::string> scalarnames, vecnames;
+        scalarnames.Push("SigmaXProjected");
+        scalarnames.Push("SigmaYProjected");
+        scalarnames.Push("SigmaZProjected");
+        scalarnames.Push("TauXYProjected");
+        scalarnames.Push("SolidPressureProjected");
+        scalarnames.Push("SigmaXAnalyticProjected");
+        scalarnames.Push("SigmaYAnalyticProjected");
+        scalarnames.Push("SigmaZAnalyticProjected");
+        scalarnames.Push("TauXYAnalyticProjected");
+        scalarnames.Push("SolidPressureAnalyticProjected");
+        vecnames.Push("Displacement");
+        //vecnames[1] = "";
+        an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
+
+    }
+    
+    else {
+    
+        TPZStack<std::string> scalarnames, vecnames;
+        scalarnames.Push("SigmaX");
+        scalarnames.Push("SigmaY");
+        scalarnames.Push("SigmaZ");
+        scalarnames.Push("TauXY");
+        scalarnames.Push("SolidPressure");
+        scalarnames.Push("SigmaXAnalytic");
+        scalarnames.Push("SigmaYAnalytic");
+        scalarnames.Push("SigmaZAnalytic");
+        scalarnames.Push("TauXYAnalytic");
+        scalarnames.Push("SolidPressureAnalytic");
+        vecnames.Push("Displacement");
+        //vecnames[1] = "";
+        an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
+        
+    }
     
     an.PostProcess(ndiv);
     //
@@ -469,22 +492,6 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
     // aloca valor acumulado dos raios
     REAL rsum = 0.;
     REAL sz = szmin;
-    
-    TPZFMatrix<REAL> rotMatrix(3,3,0.);
-    
-    // x-diretion
-    rotMatrix(0,0) = cos(alpha)*cos(beta);
-    rotMatrix(0,1) =  sin(alpha)*cos(beta);
-    rotMatrix(0,2) =  -sin(beta);
-    // y-direction
-    rotMatrix(1,0) =  -sin(alpha);
-    rotMatrix(1,1) = cos(alpha);
-    rotMatrix(1,2) =  0;
-    // z-direction
-    rotMatrix(2,0) =  cos(alpha)*sin(beta);
-    rotMatrix(2,1) = sin(alpha)*sin(beta);
-    rotMatrix(2,2) = cos(beta);
-    
    
     
     //Nodes initialization
@@ -498,17 +505,10 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
             
             //Transforma coordenadas no eixo no poco
             if (projection==1) {
-                coordT[0] = (coord[0]*cos(alpha)*cos(beta)) + coord[1]*cos(beta)*sin(alpha) - coord[2]*sin(beta);
-                coordT[1] = coord[1]*cos(alpha) - coord[0]*sin(alpha);
+                coordT[0] = coord[0]*cos(alpha)*cos(beta) + coord[1]*cos(beta)*sin(alpha) - coord[2]*sin(beta);
+                coordT[1] = coord[1]*cos(alpha) - coord[0]*sin(alpha);               
                 coordT[2] = coord[2]*cos(beta) + coord[0]*cos(alpha)*sin(beta) + coord[1]*sin(alpha)*sin(beta);
-                
-//            for (int l = 0; l < 3; l++) {
-//                
-//                for (int k = 0; k < 3; k++) {
-//                    coordT[l] += rotMatrix(l,k)*coord[k];
-//                    }
-//                }
-                
+               
                 
             // id do elemento
             id = (i) * ny + (j);
@@ -690,9 +690,10 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     REAL rw = 0.1;
     int analytic = 0;
+    int projection = 0;
     
     // Seta os parametros do poco
-    material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic);
+    material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);
     
     
     //Obtem tensor de tensoes iniciais
@@ -1314,9 +1315,10 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     
     REAL rw = 1.0;
     int analytic = 1;
+    int projection = 0;
     
     // Seta os parametros do poco
-    material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic);
+    material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);
     
     
     

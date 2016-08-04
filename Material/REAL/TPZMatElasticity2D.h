@@ -109,6 +109,14 @@ protected:
     int fAnalytics;
     
     
+    /** @brief Uses Projection
+     * @note \f$fProjection = 1\f$ =>  Uses Projection
+     * @note \f$fProjection != 1\f$ => Does not use Projection
+     */
+    int fProjection;
+    
+    
+    
 public:
     TPZMatElasticity2D();
     
@@ -254,8 +262,13 @@ public:
      * @param Vertical Stress - SigmaV
      * @param Wellbore Direction/Azimuth angle (rad) - alpha
      * @param Wellbore Inclination angle (rad) - beta
+     * @param Wellbore State - Inclined (1) or Not Inclined (!=1)
+     * @param Wellbore Mud Pressure - Pw
+     * @param Wellbore Radius - rw
+     * @param Uses Analytical Solution as PreStress - Uses (1) or not (!=1)
+     * @param Wellbore Projection - Uses projection in Post Process (1) or Not (!=1)
      */
-    void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV, REAL alpha, REAL beta, int wellborestate, REAL Pw, REAL rw, int analytics)
+    void SetInclinedWellboreParameters(REAL SigmaH, REAL Sigmah, REAL SigmaV, REAL alpha, REAL beta, int wellborestate, REAL Pw, REAL rw, int analytics, int projection)
     {
         
         fPreStressHH  = SigmaH;
@@ -267,6 +280,7 @@ public:
         fPw = Pw;
         frw = rw;
         fAnalytics = analytics;
+        fProjection = projection;
         
         // Sets inclined wellbore PreStress
         REAL SigXX, SigXY, SigYY, SigZZ;
@@ -355,6 +369,16 @@ public:
     }
     
     
+    /** @brief Uses Projection
+     * @note \f$fProjection = 1\f$ =>  Uses Projection
+     * @note \f$fProjection != 1\f$ => Does not use Projection
+     */
+    void SetProjection(int projection)
+    {
+        fProjection = projection;
+        
+    }
+    
     
     // Get Initial Stress */
     void GetPreStress(REAL &SigmaXX, REAL &SigmaXY, REAL &SigmaYY, REAL &SigmaZZ)
@@ -376,6 +400,17 @@ public:
         Lambda =  flambda;
         G = fmu;
     }
+    
+    
+    // Get Wellbore angles
+    void GetWellboreAngles(REAL alpha, REAL beta, int projection)
+    {
+        alpha = falpha;
+        beta = fbeta;
+        projection = fProjection;
+        
+    }
+    
     
     /** @brief Get Eyoung and Poisson
      * fE young modulus

@@ -9,6 +9,7 @@
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzmaterial.h"
+#include "TPZMatElasticity2D.h"
 
 using namespace std;
 
@@ -96,8 +97,39 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
 		QsiEta(co,imax,qsi);
 		fCompEl->Reference()->X(qsi,x);
 		if(st == EMVStyle || st == EV3DStyle) fGraphMesh->Out() << ip++ << " ";
+        
+        TPZMatElasticity2D projectmaterial;
+        REAL alpha = 0.; // azimuth
+        REAL beta = 0.; // inclination
+        int projection = 0.;
+        projectmaterial.GetWellboreAngles(alpha, beta, projection);
+        
+        //************ O codigo nao esta pegando os dados do material ja inseridos no main, pois estou criando um novo construtor, como faco????  *****************//
+        
+        if (projection==1) {
+            
+            REAL xP = 0., yP = 0., zP = 0.;
+            
+            xP =  x[0]*cos(alpha)*cos(beta) + x[1]*cos(beta)*sin(alpha) - x[2]*sin(beta) + (x[2]*cos(beta) + x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
+            yP = x[1]*cos(alpha) - x[0]*sin(alpha);
+            zP = 0;
+            
+            x[0] = xP;
+            x[1] = yP;
+            x[2] = zP;
+            
+            fGraphMesh->Out() << x[0] << " " << x[1] << " " << x[2] << endl;
+        }
+        
+        else{
+            
 		fGraphMesh->Out() << x[0] << " " << x[1] << " " << x[2] << endl;
+        }
+        
 		NextIJ(in,co,incr);
+//        co.Print();
+//        std::cout << "x: " << x[0] << " " << "y: " << x[1] << " " << "z: " << x[2] << endl;
+        
 		point++;
 	}
 }
