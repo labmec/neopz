@@ -109,12 +109,13 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         //obtem angulos da rotacao do poco (como??)
         projectmaterial.GetWellboreAngles(alpha, beta, projection);
         
-        //Print Rotated Coordinate
+//        //Print Rotated Coordinate
 //        std::cout << "Coord Rotacionada: " << endl;
 //        std::cout << "x: " << x[0] << " " << "y: " << x[1] << " " << "z: " << x[2] << endl;
         
         //************ O codigo nao esta pegando os dados do material ja inseridos no main, pois estou criando um novo construtor, como faco????  *****************//
         
+        // Por este metodo, eh preciso rotacionar a malha geometrica para obter projecao.
         if (projection==1) {
             
             // cria vetor normal rotacionada e coordenada projetada
@@ -159,7 +160,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         
 		NextIJ(in,co,incr);
         
-        //Print Projected Coordinate
+//        //Print Projected Coordinate
 //        std::cout << "Coord Projetada: " << endl;
 //        std::cout << "x: " << x[0] << " " << "y: " << x[1] << " " << "z: " << x[2] << endl;
         

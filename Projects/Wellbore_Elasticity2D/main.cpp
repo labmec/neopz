@@ -246,9 +246,9 @@ int Problem2D(){
     // Post processing
     int ndiv = 2;
     
-    int projection = 1; // define se sera projecao
+    //int projection = 1; // define se sera projecao
     
-    if (projection==1) {
+    if (rotation==1) {
         TPZStack<std::string> scalarnames, vecnames;
         scalarnames.Push("SigmaXProjected");
         scalarnames.Push("SigmaYProjected");

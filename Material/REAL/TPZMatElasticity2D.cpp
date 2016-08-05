@@ -866,11 +866,12 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         return;
     }
    
-
+    
+    
     
     /******** Projected Solution ********/
-    //******* Cod feito com giro desfeito somente no eixo y ***********//
-
+    //******* Cod feito com rotacao inversa ***********//
+    
     REAL SigXP = 0., SigYP = 0., TauP = 0., SigZP = 0.;
     
     // *********** What????? *******************
@@ -881,16 +882,17 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //FEM Sol: Sig
     //Analytic Sol: Sigma
     
-    SigXP  = SigX*pow(cos(fbeta),2) + SigZ*pow(sin(fbeta),2) + SigXZ*sin(2*fbeta);
-    //Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta])
+    SigXP  = SigY*pow(sin(falpha),2) - sin(2*falpha)*(Tau*cos(fbeta) + SigYZ*sin(fbeta)) + pow(cos(falpha),2)*(SigX*pow(cos(fbeta),2) + SigZ*pow(sin(fbeta),2) + SigXZ*sin(2*fbeta));
+       //Sigy*Power(Sin(Degree*\[Alpha]),2) - Sin(2*Degree*\[Alpha])*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) + Power(Cos(Degree*\[Alpha]),2)*(Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta]))
     
-    SigYP  = SigY;
-    
-    TauP   = Tau*cos(fbeta) + SigYZ*sin(fbeta);
-    //Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])
+    SigYP  = SigY*pow(cos(falpha),2) + SigX*pow(cos(fbeta),2)*pow(sin(falpha),2) + Tau*cos(fbeta)*sin(2*falpha) + SigYZ*sin(2*falpha)*sin(fbeta) + SigZ*pow(sin(falpha),2)*pow(sin(fbeta),2) + SigXZ*pow(sin(falpha),2)*sin(2*fbeta);
+       //Sigy*Power(Cos(Degree*\[Alpha]),2) + Sigx*Power(Cos(Degree*\[Beta]),2)*Power(Sin(Degree*\[Alpha]),2) + Sigxy*Cos(Degree*\[Beta])*Sin(2*Degree*\[Alpha]) + Sigyz*Sin(2*Degree*\[Alpha])*Sin(Degree*\[Beta]) + Sigz*Power(Sin(Degree*\[Alpha]),2)*Power(Sin(Degree*\[Beta]),2) + Sigxz*Power(Sin(Degree*\[Alpha]),2)*Sin(2*Degree*\[Beta])
     
     SigZP  = SigZ*pow(cos(fbeta),2) + SigX*pow(sin(fbeta),2) - SigXZ*sin(2*fbeta);
-    // Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
+        //Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
+    
+    TauP   = pow(cos(falpha),2)*(Tau*cos(fbeta) + SigYZ*sin(fbeta)) - pow(sin(falpha),2)*(Tau*cos(fbeta) + SigYZ*sin(fbeta)) + (sin(2*falpha)*(SigX - 2*SigY + SigZ + (SigX - SigZ)*cos(2*fbeta) + 2*SigXZ*sin(2*fbeta)))/4.;
+        //Power(Cos(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) - Power(Sin(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) +     (Sin(2*Degree*\[Alpha])*(Sigx - 2*Sigy + Sigz + (Sigx - Sigz)*Cos(2*Degree*\[Beta]) + 2*Sigxz*Sin(2*Degree*\[Beta])))/4.
     
     
     //	Projected Stress x-direction
@@ -928,7 +930,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     
     /******** Analytical Projected Solution ********/
-    //******* Cod feito com giro desfeito somente no eixo y ***********//
+    //*******  Cod feito com rotacao inversa ***********//
     
     REAL SigmaXP = 0., SigmaYP = 0., SigmaXYP = 0., SigmaZP = 0.;
     
@@ -940,16 +942,17 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //FEM Sol: Sig
     //Analytic Sol: Sigma
     
-    SigmaXP  = SigmaX*pow(cos(fbeta),2) + SigmaZ*pow(sin(fbeta),2) + SigmaXZ*sin(2*fbeta);
-    //Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta])
+    SigmaXP  = SigmaY*pow(sin(falpha),2) - sin(2*falpha)*(SigmaXY*cos(fbeta) + SigmaYZ*sin(fbeta)) + pow(cos(falpha),2)*(SigmaX*pow(cos(fbeta),2) + SigmaZ*pow(sin(fbeta),2) + SigmaXZ*sin(2*fbeta));
+    //Sigy*Power(Sin(Degree*\[Alpha]),2) - Sin(2*Degree*\[Alpha])*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) + Power(Cos(Degree*\[Alpha]),2)*(Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta]))
     
-    SigmaYP  = SigmaY;
-    
-    SigmaXYP   = SigmaXY*cos(fbeta) + SigmaYZ*sin(fbeta);
-    //Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])
+    SigmaYP  = SigmaY*pow(cos(falpha),2) + SigmaX*pow(cos(fbeta),2)*pow(sin(falpha),2) + SigmaXY*cos(fbeta)*sin(2*falpha) + SigmaYZ*sin(2*falpha)*sin(fbeta) + SigmaZ*pow(sin(falpha),2)*pow(sin(fbeta),2) + SigmaXZ*pow(sin(falpha),2)*sin(2*fbeta);
+    //Sigy*Power(Cos(Degree*\[Alpha]),2) + Sigx*Power(Cos(Degree*\[Beta]),2)*Power(Sin(Degree*\[Alpha]),2) + Sigxy*Cos(Degree*\[Beta])*Sin(2*Degree*\[Alpha]) + Sigyz*Sin(2*Degree*\[Alpha])*Sin(Degree*\[Beta]) + Sigz*Power(Sin(Degree*\[Alpha]),2)*Power(Sin(Degree*\[Beta]),2) + Sigxz*Power(Sin(Degree*\[Alpha]),2)*Sin(2*Degree*\[Beta])
     
     SigmaZP  = SigmaZ*pow(cos(fbeta),2) + SigmaX*pow(sin(fbeta),2) - SigmaXZ*sin(2*fbeta);
-    // Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
+    //Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
+    
+    SigmaXYP   = pow(cos(falpha),2)*(SigmaXY*cos(fbeta) + SigmaYZ*sin(fbeta)) - pow(sin(falpha),2)*(SigmaXY*cos(fbeta) + SigmaYZ*sin(fbeta)) + (sin(2*falpha)*(SigmaX - 2*SigmaY + SigmaZ + (SigmaX - SigmaZ)*cos(2*fbeta) + 2*SigmaXZ*sin(2*fbeta)))/4.;
+    //Power(Cos(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) - Power(Sin(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) +     (Sin(2*Degree*\[Alpha])*(Sigx - 2*Sigy + Sigz + (Sigx - Sigz)*Cos(2*Degree*\[Beta]) + 2*Sigxz*Sin(2*Degree*\[Beta])))/4.
     
     
     //	Projected Stress x-direction
@@ -984,6 +987,125 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Solout[0] = ((SigmaXP)+(SigmaYP)+(SigmaZP))/3;
         return;
     }
+
+
+    
+//    /******** Projected Solution ********/
+//    //******* Cod feito com giro desfeito somente no eixo y ***********//
+//
+//    REAL SigXP = 0., SigYP = 0., TauP = 0., SigZP = 0.;
+//    
+//    // *********** What????? *******************
+//    //******** SigXZ e SigYZ nao sao calculados!!! **********
+//    REAL SigXZ = 0.;
+//    REAL SigYZ = 0.;
+//    
+//    //FEM Sol: Sig
+//    //Analytic Sol: Sigma
+//    
+//    SigXP  = SigX*pow(cos(fbeta),2) + SigZ*pow(sin(fbeta),2) + SigXZ*sin(2*fbeta);
+//    //Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta])
+//    
+//    SigYP  = SigY;
+//    
+//    TauP   = Tau*cos(fbeta) + SigYZ*sin(fbeta);
+//    //Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])
+//    
+//    SigZP  = SigZ*pow(cos(fbeta),2) + SigX*pow(sin(fbeta),2) - SigXZ*sin(2*fbeta);
+//    // Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
+//    
+//    
+//    //	Projected Stress x-direction
+//    if(var == 12) {
+//        Solout[0] = SigXP;
+//        return;
+//    }
+//    
+//    //	Projected Stress y-direction
+//    if(var == 13) {
+//        Solout[0] = SigYP;
+//        return;
+//    }
+//    
+//    // Projected Stress z-direction
+//    if(var == 14) {
+//        Solout[0] = SigZP;
+//        return;
+//    }
+//    
+//    
+//    //	Projected Shear Stress
+//    if(var == 15) {
+//        Solout[0] = TauP;
+//        return;
+//    }
+//    
+//    
+//    //	Projected Hydrostatic Stress
+//    if(var == 16)
+//    {
+//        Solout[0] = ((SigXP)+(SigYP)+(SigZP))/3;
+//        return;
+//    }
+//    
+//    
+//    /******** Analytical Projected Solution ********/
+//    //******* Cod feito com giro desfeito somente no eixo y ***********//
+//    
+//    REAL SigmaXP = 0., SigmaYP = 0., SigmaXYP = 0., SigmaZP = 0.;
+//    
+//    // *********** What????? *******************
+//    //******** SigXZ e SigYZ nao sao calculados!!! **********
+//    REAL SigmaXZ = 0.;
+//    REAL SigmaYZ = 0.;
+//    
+//    //FEM Sol: Sig
+//    //Analytic Sol: Sigma
+//    
+//    SigmaXP  = SigmaX*pow(cos(fbeta),2) + SigmaZ*pow(sin(fbeta),2) + SigmaXZ*sin(2*fbeta);
+//    //Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta])
+//    
+//    SigmaYP  = SigmaY;
+//    
+//    SigmaXYP   = SigmaXY*cos(fbeta) + SigmaYZ*sin(fbeta);
+//    //Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])
+//    
+//    SigmaZP  = SigmaZ*pow(cos(fbeta),2) + SigmaX*pow(sin(fbeta),2) - SigmaXZ*sin(2*fbeta);
+//    // Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
+//    
+//    
+//    //	Projected Stress x-direction
+//    if(var == 17) {
+//        Solout[0] = SigmaXP;
+//        return;
+//    }
+//    
+//    //	Projected Stress y-direction
+//    if(var == 18) {
+//        Solout[0] = SigmaYP;
+//        return;
+//    }
+//    
+//    // Projected Stress z-direction
+//    if(var == 19) {
+//        Solout[0] = SigmaZP;
+//        return;
+//    }
+//    
+//    
+//    //	Projected Shear Stress
+//    if(var == 20) {
+//        Solout[0] = SigmaXYP;
+//        return;
+//    }
+//    
+//    
+//    //	Projected Hydrostatic Stress
+//    if(var == 21)
+//    {
+//        Solout[0] = ((SigmaXP)+(SigmaYP)+(SigmaZP))/3;
+//        return;
+//    }
     
 }
 
