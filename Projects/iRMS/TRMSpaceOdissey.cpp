@@ -399,6 +399,14 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
         meshvector[1] = fPressureCmesh.operator->();
         meshvector[2] = fAlphaSaturationMesh.operator->();
     }
+    
+    if (fSimulationData->IsThreePhaseQ()) {
+        meshvector.Resize(4);
+        meshvector[0] = fFluxCmesh.operator->();
+        meshvector[1] = fPressureCmesh.operator->();
+        meshvector[2] = fAlphaSaturationMesh.operator->();
+        meshvector[3] = fBetaSaturationMesh.operator->();
+    }
 
     
     // Transferindo para a multifisica

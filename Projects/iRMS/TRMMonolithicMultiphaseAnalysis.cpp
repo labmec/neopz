@@ -181,6 +181,15 @@ void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
         scalnames.Push("div_u");
         vecnames.Push("u");
     }
+    
+    if (fSimulationData->IsThreePhaseQ()) {
+        scalnames.Push("p");
+        scalnames.Push("s_a");
+        scalnames.Push("s_b");
+        scalnames.Push("s_c");        
+        scalnames.Push("div_u");
+        vecnames.Push("u");
+    }
 
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

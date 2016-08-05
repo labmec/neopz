@@ -255,7 +255,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> mono_analysis = new TRMMonolithicMultiphaseAnalysis;
     
-    int nel_x = 10;
+    int nel_x = 2;
     int nel_y = 1;
     int nel_z = 1;
     
@@ -268,7 +268,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
+    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
     fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
     fSpaceGenerator->PrintGeometry();
 #ifdef PZDEBUG
@@ -300,6 +300,24 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
         mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
         mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
         mono_analysis->Meshvec()[2] = fSpaceGenerator->AlphaSaturationMesh().operator->();
+        
+    }
+    
+    
+    if(fSimulationData->IsThreePhaseQ()){
+        
+        mono_analysis->Meshvec().Resize(4);
+        fSpaceGenerator->CreateFluxCmesh();
+        fSpaceGenerator->CreatePressureCmesh();
+        fSpaceGenerator->CreateAlphaTransportMesh();
+        fSpaceGenerator->CreateBetaTransportMesh();
+        fSpaceGenerator->CreateMultiphaseCmesh();
+        fSpaceGenerator->CreateInterfacesInside(fSpaceGenerator->MonolithicMultiphaseCmesh());
+        
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh().operator->();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh().operator->();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->AlphaSaturationMesh().operator->();
+        mono_analysis->Meshvec()[3] = fSpaceGenerator->BetaSaturationMesh().operator->();
         
     }
     

@@ -184,7 +184,7 @@ public:
     /** @brief Alpha-Alpha phase realtive permeability $k_{ra}$ */
     void Kra(TPZManVector<STATE,10> &kr, TPZManVector<STATE,10> &x);
 
-    /** @brief Beta-Beta phase realtive permeability $k_{ra}$ */
+    /** @brief Beta-Beta phase realtive permeability $k_{rb}$ */
     void Krb(TPZManVector<STATE,10> &kr, TPZManVector<STATE,10> &x);
     
     // Mobilities models
@@ -192,13 +192,13 @@ public:
     /** @brief Alpha-Alpha phase moblity $l_{a}$ */
     void la(TPZManVector<STATE,10> &l, TPZManVector<STATE,10> &x);
 
-    /** @brief Beta-Beta phase moblity $l_{a}$ */
+    /** @brief Beta-Beta phase moblity $l_{b}$ */
     void lb(TPZManVector<STATE,10> &l, TPZManVector<STATE,10> &x);
     
     /** @brief Alpha-Alpha phase fractional flow $f_{a}$ */
     void fa(TPZManVector<STATE,10> &f, TPZManVector<STATE,10> &x);
 
-    /** @brief Beta-Beta phase fractional flow $f_{a}$ */
+    /** @brief Beta-Beta phase fractional flow $f_{b}$ */
     void fb(TPZManVector<STATE,10> &f, TPZManVector<STATE,10> &x);
     
     // @}
@@ -209,6 +209,44 @@ public:
      *
      * @{
      */
+    
+    // Capillary Pressure models
+    
+    /** @brief Alpha-Alpha Capillary Pressure - Pa $P_{caa}$ */
+    void Pcab_3p(TPZManVector<STATE,10> &pc, TPZManVector<STATE,10> &x);
+    
+    void Pcbc_3p(TPZManVector<STATE,10> &pc, TPZManVector<STATE,10> &x);
+    
+    // Relative permeabilities models
+    
+    /** @brief Alpha-Alpha phase realtive permeability $k_{ra}$ */
+    void Kra_3p(TPZManVector<STATE,10> &kr, TPZManVector<STATE,10> &x);
+    
+    /** @brief Beta-Beta phase realtive permeability $k_{rb}$ */
+    void Krb_3p(TPZManVector<STATE,10> &kr, TPZManVector<STATE,10> &x);
+    
+    /** @brief Gamma-Gamma phase realtive permeability $k_{rc}$ */
+    void Krc_3p(TPZManVector<STATE,10> &kr, TPZManVector<STATE,10> &x);
+    
+    // Mobilities models
+    
+    /** @brief Alpha-Alpha phase moblity $l_{a}$ */
+    void la_3p(TPZManVector<STATE,10> &l, TPZManVector<STATE,10> &x);
+    
+    /** @brief Beta-Beta phase moblity $l_{b}$ */
+    void lb_3p(TPZManVector<STATE,10> &l, TPZManVector<STATE,10> &x);
+    
+    /** @brief Gamma-Gamma phase moblity $l_{c}$ */
+    void lc_3p(TPZManVector<STATE,10> &l, TPZManVector<STATE,10> &x);
+    
+    /** @brief Alpha-Alpha phase fractional flow $f_{a}$ */
+    void fa_3p(TPZManVector<STATE,10> &f, TPZManVector<STATE,10> &x);
+    
+    /** @brief Beta-Beta phase fractional flow $f_{b}$ */
+    void fb_3p(TPZManVector<STATE,10> &f, TPZManVector<STATE,10> &x);
+    
+    /** @brief Beta-Beta phase fractional flow $f_{c}$ */
+    void fc_3p(TPZManVector<STATE,10> &f, TPZManVector<STATE,10> &x);
     
     
     // @}
