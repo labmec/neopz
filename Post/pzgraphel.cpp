@@ -115,39 +115,41 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         
         //************ O codigo nao esta pegando os dados do material ja inseridos no main, pois estou criando um novo construtor, como faco????  *****************//
         
-        // Por este metodo, eh preciso rotacionar a malha geometrica para obter projecao.
+
         if (projection==1) {
             
-            // cria vetor normal rotacionada e coordenada projetada
-            TPZVec<REAL> nRot(3,0.),xP(3,0.);
             
-            nRot[0] = -sin(beta);
-            nRot[1] = 0;
-            nRot[2] = cos(beta);
-            
-            REAL gamma = 0.;
-            gamma = x[2]/cos(beta);
-            
-            xP[0] = x[0] - gamma*nRot[0];
-            xP[1] = x[1] - gamma*nRot[1];
-            xP[2] = x[2] - gamma*nRot[2];
-            
-            x[0] = xP[0];
-            x[1] = xP[1];
-            x[2] = xP[2];
+            // Por este metodo, eh preciso rotacionar a malha geometrica para obter projecao.
+//            // cria vetor normal rotacionada e coordenada projetada
+//            TPZVec<REAL> nRot(3,0.),xP(3,0.);
+//            
+//            nRot[0] = -sin(beta);
+//            nRot[1] = 0;
+//            nRot[2] = cos(beta);
+//            
+//            REAL gamma = 0.;
+//            gamma = x[2]/cos(beta);
+//            
+//            xP[0] = x[0] - gamma*nRot[0];
+//            xP[1] = x[1] - gamma*nRot[1];
+//            xP[2] = x[2] - gamma*nRot[2];
+//            
+//            x[0] = xP[0];
+//            x[1] = xP[1];
+//            x[2] = xP[2];
             
             
             
 //            //********* Desse jeito eh preciso passar a coordenada sem rotacionar a malha, mas e o z, sendo sempre zero, nao interfere???  **********//
-//            REAL xP = 0., yP = 0., zP = 0.;
+            REAL xP = 0., yP = 0., zP = 0.;
             
-//            xP =  x[0]*cos(alpha)*cos(beta) + x[1]*cos(beta)*sin(alpha) - x[2]*sin(beta) + (x[2]*cos(beta) + x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
-//            yP = x[1]*cos(alpha) - x[0]*sin(alpha);
-//            zP = 0;
-//            
-//            x[0] = xP;
-//            x[1] = yP;
-//            x[2] = zP;
+            xP =  x[0]*cos(alpha)*cos(beta) + x[1]*cos(beta)*sin(alpha) - x[2]*sin(beta) + (x[2]*cos(beta) + x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
+            yP = x[1]*cos(alpha) - x[0]*sin(alpha);
+            zP = 0;
+            
+            x[0] = xP;
+            x[1] = yP;
+            x[2] = zP;
             
             
             fGraphMesh->Out() << x[0] << " " << x[1] << " " << x[2] << endl;

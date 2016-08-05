@@ -133,7 +133,7 @@ int Problem2D(){
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
  
-    int rotation = 1; // define se rotaciona a malha geometrica
+    int rotation = 0; // define se rotaciona a malha geometrica
     
     TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, rotation); //funcao para criar a malha GEOMETRICA de todo o poco
     //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de 1/4 do poco
@@ -246,9 +246,9 @@ int Problem2D(){
     // Post processing
     int ndiv = 2;
     
-    //int projection = 1; // define se sera projecao
+    int projection = 1; // define se sera projecao
     
-    if (rotation==1) {
+    if (projection==1) {
         TPZStack<std::string> scalarnames, vecnames;
         scalarnames.Push("SigmaXProjected");
         scalarnames.Push("SigmaYProjected");
@@ -260,7 +260,6 @@ int Problem2D(){
         scalarnames.Push("SigmaZAnalyticProjected");
         scalarnames.Push("TauXYAnalyticProjected");
         scalarnames.Push("SolidPressureAnalyticProjected");
-        vecnames.Push("Displacement");
         //vecnames[1] = "";
         an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
 
@@ -683,7 +682,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     int inclinedwellbore = 1;
     
     // pressao da lama de perfuracao
-    REAL Pwb = -130.0; // MPa
+    REAL Pwb = -30.0; // MPa
     
     // Tensoes in Situ, horizontais e vertical em MPa
     REAL SigmaVV = 0., Sigmahh = 0., SigmaHH = 0.; // inicializa

@@ -605,11 +605,11 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("SigmaZAnalytic",name.c_str()))				    return	9;
     if(!strcmp("TauXYAnalytic",name.c_str()))				    return	10;
     if(!strcmp("SolidPressureAnalytic",name.c_str()))		    return	11;
-    if(!strcmp("SolidPressureProjected",name.c_str()))		    return	12;
-    if(!strcmp("SigmaXProjected",name.c_str()))				    return	13;
-    if(!strcmp("SigmaYProjected",name.c_str()))				    return	14;
-    if(!strcmp("SigmaZProjected",name.c_str()))				    return	15;
-    if(!strcmp("TauXYProjected",name.c_str()))				    return	16;
+    if(!strcmp("SigmaXProjected",name.c_str()))		            return	12;
+    if(!strcmp("SigmaYProjected",name.c_str()))				    return	13;
+    if(!strcmp("SigmaZProjected",name.c_str()))				    return	14;
+    if(!strcmp("TauXYProjected",name.c_str()))				    return	15;
+    if(!strcmp("SolidPressureProjected",name.c_str()))		    return	16;
     if(!strcmp("SigmaXAnalyticProjected",name.c_str()))		    return	17;
     if(!strcmp("SigmaYAnalyticProjected",name.c_str()))		    return	18;
     if(!strcmp("SigmaZAnalyticProjected",name.c_str()))		    return	19;
@@ -671,7 +671,7 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 9)	return 1;
     if(var == 10)	return 1;
     if(var == 11)	return 1;
-    if(var == 12)	return 3;
+    if(var == 12)	return 1;
     if(var == 13)	return 1;
     if(var == 14)	return 1;
     if(var == 15)	return 1;
@@ -720,7 +720,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     }
     
     
-    //***** Analytic Stresses *******//
+    //***** Analytic PreStresses *******//
     REAL SigmaX = 0., SigmaY = 0., SigmaXY = 0., SigmaZ = 0.;    
 
     if (fAnalytics == 1) {
@@ -822,6 +822,9 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     /******** Analytical Solution ********/
     
+    //***** Analytic Stresses *******//
+    REAL SigmaAnX = 0., SigmaAnY = 0., SigmaAnXY = 0., SigmaAnZ = 0.;
+    
     REAL theta = 0.;
     REAL coordY = 0.;
     REAL coordX = 0.;
@@ -831,30 +834,30 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     theta = atan2(coordY,coordX);
     r = sqrt((coordX*coordX)+(coordY*coordY));
     
-    AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, theta, r);
+    AnalyticalWellboreSolution(SigmaAnX, SigmaAnY, SigmaAnXY, SigmaAnZ, theta, r);
     
     //	Analytical Stress x-direction
     if(var == 7) {
-        Solout[0] = SigmaX;
+        Solout[0] = SigmaAnX;
         return;
     }
     
     //	Analytical Stress y-direction
     if(var == 8) {
-        Solout[0] = SigmaY;
+        Solout[0] = SigmaAnY;
         return;
     }
     
     // Analytical Stress z-direction
     if(var == 9) {
-        Solout[0] = SigmaZ;
+        Solout[0] = SigmaAnZ;
         return;
     }
     
     
     //	Analytical Shear Stress
     if(var == 10) {
-        Solout[0] = SigmaXY;
+        Solout[0] = SigmaAnXY;
         return;
     }
     
@@ -862,7 +865,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //	Hydrostatic Analytical stress
     if(var == 11)
     {
-        Solout[0] = ((SigmaX)+(SigmaY)+(SigmaZ))/3;
+        Solout[0] = ((SigmaAnX)+(SigmaAnY)+(SigmaAnZ))/3;
         return;
     }
    
@@ -879,19 +882,28 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     REAL SigXZ = 0.;
     REAL SigYZ = 0.;
     
+    // Cria variavel para solucao FEM
+    REAL SolX = 0., SolY = 0., SolZ = 0., SolTau = 0.;
+    
+    SolX =    SigX+SigmaX;
+    SolY =    SigY+SigmaY;
+    SolZ =    SigZ+SigmaZ;
+    SolTau =  Tau+SigmaXY;
+    
+    
     //FEM Sol: Sig
     //Analytic Sol: Sigma
     
-    SigXP  = SigY*pow(sin(falpha),2) - sin(2*falpha)*(Tau*cos(fbeta) + SigYZ*sin(fbeta)) + pow(cos(falpha),2)*(SigX*pow(cos(fbeta),2) + SigZ*pow(sin(fbeta),2) + SigXZ*sin(2*fbeta));
+    SigXP  = (SolY)*pow(sin(falpha),2) - sin(2*falpha)*((SolTau)*cos(fbeta) + SigYZ*sin(fbeta)) + pow(cos(falpha),2)*((SolX)*pow(cos(fbeta),2) + (SolZ)*pow(sin(fbeta),2) + SigXZ*sin(2*fbeta));
        //Sigy*Power(Sin(Degree*\[Alpha]),2) - Sin(2*Degree*\[Alpha])*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) + Power(Cos(Degree*\[Alpha]),2)*(Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta]))
     
-    SigYP  = SigY*pow(cos(falpha),2) + SigX*pow(cos(fbeta),2)*pow(sin(falpha),2) + Tau*cos(fbeta)*sin(2*falpha) + SigYZ*sin(2*falpha)*sin(fbeta) + SigZ*pow(sin(falpha),2)*pow(sin(fbeta),2) + SigXZ*pow(sin(falpha),2)*sin(2*fbeta);
+    SigYP  = (SolY)*pow(cos(falpha),2) + (SolX)*pow(cos(fbeta),2)*pow(sin(falpha),2) + (SolTau)*cos(fbeta)*sin(2*falpha) + SigYZ*sin(2*falpha)*sin(fbeta) + (SolZ)*pow(sin(falpha),2)*pow(sin(fbeta),2) + SigXZ*pow(sin(falpha),2)*sin(2*fbeta);
        //Sigy*Power(Cos(Degree*\[Alpha]),2) + Sigx*Power(Cos(Degree*\[Beta]),2)*Power(Sin(Degree*\[Alpha]),2) + Sigxy*Cos(Degree*\[Beta])*Sin(2*Degree*\[Alpha]) + Sigyz*Sin(2*Degree*\[Alpha])*Sin(Degree*\[Beta]) + Sigz*Power(Sin(Degree*\[Alpha]),2)*Power(Sin(Degree*\[Beta]),2) + Sigxz*Power(Sin(Degree*\[Alpha]),2)*Sin(2*Degree*\[Beta])
     
-    SigZP  = SigZ*pow(cos(fbeta),2) + SigX*pow(sin(fbeta),2) - SigXZ*sin(2*fbeta);
+    SigZP  = (SolZ)*pow(cos(fbeta),2) + (SolX)*pow(sin(fbeta),2) - SigXZ*sin(2*fbeta);
         //Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
     
-    TauP   = pow(cos(falpha),2)*(Tau*cos(fbeta) + SigYZ*sin(fbeta)) - pow(sin(falpha),2)*(Tau*cos(fbeta) + SigYZ*sin(fbeta)) + (sin(2*falpha)*(SigX - 2*SigY + SigZ + (SigX - SigZ)*cos(2*fbeta) + 2*SigXZ*sin(2*fbeta)))/4.;
+    TauP   = pow(cos(falpha),2)*((SolTau)*cos(fbeta) + SigYZ*sin(fbeta)) - pow(sin(falpha),2)*((SolTau)*cos(fbeta) + SigYZ*sin(fbeta)) + (sin(2*falpha)*((SolX) - 2*(SolY) + (SolZ) + ((SolX) - (SolZ))*cos(2*fbeta) + 2*SigXZ*sin(2*fbeta)))/4.;
         //Power(Cos(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) - Power(Sin(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) +     (Sin(2*Degree*\[Alpha])*(Sigx - 2*Sigy + Sigz + (Sigx - Sigz)*Cos(2*Degree*\[Beta]) + 2*Sigxz*Sin(2*Degree*\[Beta])))/4.
     
     
@@ -938,20 +950,23 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //******** SigXZ e SigYZ nao sao calculados!!! **********
     REAL SigmaXZ = 0.;
     REAL SigmaYZ = 0.;
+    REAL SigmaAnYZ = 0.;
+    REAL SigmaAnXZ = 0.;
     
     //FEM Sol: Sig
     //Analytic Sol: Sigma
     
-    SigmaXP  = SigmaY*pow(sin(falpha),2) - sin(2*falpha)*(SigmaXY*cos(fbeta) + SigmaYZ*sin(fbeta)) + pow(cos(falpha),2)*(SigmaX*pow(cos(fbeta),2) + SigmaZ*pow(sin(fbeta),2) + SigmaXZ*sin(2*fbeta));
+    
+    SigmaXP  = SigmaAnY*pow(sin(falpha),2) - sin(2*falpha)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) + pow(cos(falpha),2)*(SigmaAnX*pow(cos(fbeta),2) + SigmaAnZ*pow(sin(fbeta),2) + SigmaAnXZ*sin(2*fbeta));
     //Sigy*Power(Sin(Degree*\[Alpha]),2) - Sin(2*Degree*\[Alpha])*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) + Power(Cos(Degree*\[Alpha]),2)*(Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta]))
     
-    SigmaYP  = SigmaY*pow(cos(falpha),2) + SigmaX*pow(cos(fbeta),2)*pow(sin(falpha),2) + SigmaXY*cos(fbeta)*sin(2*falpha) + SigmaYZ*sin(2*falpha)*sin(fbeta) + SigmaZ*pow(sin(falpha),2)*pow(sin(fbeta),2) + SigmaXZ*pow(sin(falpha),2)*sin(2*fbeta);
+    SigmaYP  = SigmaAnY*pow(cos(falpha),2) + SigmaAnX*pow(cos(fbeta),2)*pow(sin(falpha),2) + SigmaAnXY*cos(fbeta)*sin(2*falpha) + SigmaAnYZ*sin(2*falpha)*sin(fbeta) + SigmaAnZ*pow(sin(falpha),2)*pow(sin(fbeta),2) + SigmaAnXZ*pow(sin(falpha),2)*sin(2*fbeta);
     //Sigy*Power(Cos(Degree*\[Alpha]),2) + Sigx*Power(Cos(Degree*\[Beta]),2)*Power(Sin(Degree*\[Alpha]),2) + Sigxy*Cos(Degree*\[Beta])*Sin(2*Degree*\[Alpha]) + Sigyz*Sin(2*Degree*\[Alpha])*Sin(Degree*\[Beta]) + Sigz*Power(Sin(Degree*\[Alpha]),2)*Power(Sin(Degree*\[Beta]),2) + Sigxz*Power(Sin(Degree*\[Alpha]),2)*Sin(2*Degree*\[Beta])
     
-    SigmaZP  = SigmaZ*pow(cos(fbeta),2) + SigmaX*pow(sin(fbeta),2) - SigmaXZ*sin(2*fbeta);
+    SigmaZP  = SigmaAnZ*pow(cos(fbeta),2) + SigmaAnX*pow(sin(fbeta),2) - SigmaAnXZ*sin(2*fbeta);
     //Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
     
-    SigmaXYP   = pow(cos(falpha),2)*(SigmaXY*cos(fbeta) + SigmaYZ*sin(fbeta)) - pow(sin(falpha),2)*(SigmaXY*cos(fbeta) + SigmaYZ*sin(fbeta)) + (sin(2*falpha)*(SigmaX - 2*SigmaY + SigmaZ + (SigmaX - SigmaZ)*cos(2*fbeta) + 2*SigmaXZ*sin(2*fbeta)))/4.;
+    SigmaXYP   = pow(cos(falpha),2)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) - pow(sin(falpha),2)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) + (sin(2*falpha)*(SigmaAnX - 2*SigmaAnY + SigmaAnZ + (SigmaAnX - SigmaAnZ)*cos(2*fbeta) + 2*SigmaAnXZ*sin(2*fbeta)))/4.;
     //Power(Cos(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) - Power(Sin(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) +     (Sin(2*Degree*\[Alpha])*(Sigx - 2*Sigy + Sigz + (Sigx - Sigz)*Cos(2*Degree*\[Beta]) + 2*Sigxz*Sin(2*Degree*\[Beta])))/4.
     
     
