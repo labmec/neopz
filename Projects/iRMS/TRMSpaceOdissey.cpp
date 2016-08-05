@@ -874,8 +874,11 @@ void TRMSpaceOdissey::CreateGeometricExtrudedGIDMesh(std::string &grid, TPZManVe
     int n;
     bool IsTetrahedronMeshQ = false;
     
-    int bc_B =  this->SimulationData()->RawData()->fGammaIds[3];
-    int bc_T =  this->SimulationData()->RawData()->fGammaIds[4];
+    int bc_B =  this->SimulationData()->RawData()->fGammaIds[0];
+    int bc_T =  this->SimulationData()->RawData()->fGammaIds[0];
+    
+//    int bc_B =  this->SimulationData()->RawData()->fGammaIds[3];
+//    int bc_T =  this->SimulationData()->RawData()->fGammaIds[4];
     
     TPZHierarquicalGrid CreateGridFrom2D(GeoMesh2D);
     TPZAutoPointer<TPZFunction<STATE> > ParFuncZ = new TPZDummyFunction<STATE>(ParametricfunctionZ);

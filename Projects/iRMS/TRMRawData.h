@@ -138,6 +138,18 @@ public:
     
     // @}
     
+    
+    /**
+     * @ingroup Configuration Cases :: Water flow oncircle domain
+     * @brief Define the colletion of materials ids and functions being used as boundary conditions
+     * @since May 08, 2016
+     */
+    
+    /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
+    void WaterReservoirCircle();
+
+    // @}
+    
     /**
      * @ingroup Configuration Cases :: Oil flow
      * @brief Define the colletion of materials ids and functions being used as boundary conditions
@@ -183,14 +195,39 @@ public:
     /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
     void WaterOilReservoirVertical();
     
-//    static void PressureOutlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
-//    
-//    static void FluxInlet(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
-//    
-//    static void Impervious_tp(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    // @}
+    
+    
+    /**
+     * @ingroup Configuration Cases :: Water-Oil flow
+     * @brief Define the colletion of materials ids and functions being used as boundary conditions
+     * @since May 08, 2016
+     */
+    
+    /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
+    void WaterOilReservoirCircular();
+    
+    // @}
+    
+    /**
+     * @ingroup Configuration Cases :: Water-Oil flow
+     * @brief Define the colletion of materials ids and functions being used as boundary conditions
+     * @since May 08, 2016
+     */
+    
+    /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
+    void WaterOilGasReservoirBox();
+    
+    static void PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
+    static void FluxInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
+    static void Impervious_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     
     // @}
+    
+    
     
     
     
