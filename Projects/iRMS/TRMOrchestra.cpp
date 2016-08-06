@@ -113,7 +113,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
+    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
     fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
     fSpaceGenerator->PrintGeometry();
 #ifdef PZDEBUG
@@ -162,39 +162,16 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
     }
     
+    if(fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()){
+        Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->TransportMesh());
+        Transfer->Fill_s_To_Transport(fSpaceGenerator->TransportMesh(), 0);
+        Transfer->ComputeLeftRight(fSpaceGenerator->TransportMesh());
+        Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),true);
+        Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
+    }
+    
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//    TPZVec<TPZCompMesh *> cmeshVecmixed(2),cmeshVectras(1);
-//    cmeshVecmixed[0] = fSpaceGenerator->FluxCmesh().operator->();
-//    cmeshVecmixed[1] = fSpaceGenerator->PressureCmesh().operator->();
-//    cmeshVectras[0]  = fSpaceGenerator->AlphaSaturationMesh().operator->();
-//    
-//    long nequq = fSpaceGenerator->FluxCmesh()->NEquations();
-//    for (int i = 0; i < nequq; i++) {
-//        fSpaceGenerator->FluxCmesh()->Solution()(i,0) = 0.01;
-//    }
-//    
-//    long nequp = fSpaceGenerator->PressureCmesh()->NEquations();
-//    for (int i = 0; i < nequp; i++) {
-//        fSpaceGenerator->PressureCmesh()->Solution()(i,0) = 1.0;
-//    }
-//    
-//    long nequs = fSpaceGenerator->AlphaSaturationMesh()->NEquations();
-//    for (int i = 0; i < nequs; i++) {
-//        fSpaceGenerator->AlphaSaturationMesh()->Solution()(i,0) = 1.0;
-//    }
-//    
-//    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshVecmixed, fSpaceGenerator->MixedFluxPressureCmesh().operator->());
-//    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshVectras, fSpaceGenerator->TransportMesh().operator->());
-//    
-//    // updating process
-//    Transfer->u_To_Mixed_Memory(fSpaceGenerator->FluxCmesh().operator->(), fSpaceGenerator->MixedFluxPressureCmesh().operator->());
-//    Transfer->p_To_Mixed_Memory(fSpaceGenerator->PressureCmesh().operator->(), fSpaceGenerator->MixedFluxPressureCmesh().operator->());
-//    Transfer->s_To_Transport_Memory(fSpaceGenerator->AlphaSaturationMesh().operator->(), fSpaceGenerator->TransportMesh().operator->(),0);// sa
-//    Transfer->s_To_Transport_Memory(fSpaceGenerator->AlphaSaturationMesh().operator->(), fSpaceGenerator->TransportMesh().operator->(),1);// sb
-//    Transfer->Reciprocal_Memory_Transfer(fSpaceGenerator->MixedFluxPressureCmesh(), fSpaceGenerator->TransportMesh());
-//    Transfer->un_To_Transport_Mesh(fSpaceGenerator->FluxCmesh(), fSpaceGenerator->TransportMesh(),true);
-//    Transfer->un_To_Transport_Mesh(fSpaceGenerator->FluxCmesh(), fSpaceGenerator->TransportMesh(),false);
     
     // Analysis for parabolic part
     bool mustOptimizeBandwidth_parabolic = true;
@@ -212,7 +189,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     std::cout << "ndof parabolic = " << parabolic->Solution().Rows() << std::endl;
     
-    if (fSimulationData->IsTwoPhaseQ()) {
+    if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
         
         // Analysis for hyperbolic part
         bool mustOptimizeBandwidth_hyperbolic = true;

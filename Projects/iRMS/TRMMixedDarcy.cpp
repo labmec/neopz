@@ -1225,8 +1225,7 @@ void TRMMixedDarcy::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMate
 void TRMMixedDarcy::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){
     
     DebugStop();
-    
-    
+
 }
 
 void TRMMixedDarcy::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
@@ -1282,21 +1281,438 @@ void TRMMixedDarcy::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 
 void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
+    int nvars = 4; // {p,sa,sb,t}
+    
+    int ub      = 0;
+    int pb      = 1;
+    
+    TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
+    TPZFNMatrix<100,STATE> phi_ps       = datavec[pb].phi;
+    TPZFNMatrix<300,STATE> dphi_us      = datavec[ub].dphix;
+    TPZFNMatrix<100,STATE> dphi_ps      = datavec[pb].dphix;
+    
+    TPZFNMatrix<40,STATE> div_on_master;
+    STATE divflux;
+    this->ComputeDivergenceOnMaster(datavec, div_on_master,divflux);
+    REAL jac_det = datavec[ub].detjac;
+    
+    int nphiu       = datavec[ub].fVecShapeIndex.NElements();
+    int nphip       = phi_ps.Rows();
+    int firstu      = 0;
+    int firstp      = nphiu + firstu;
+    
+    TPZManVector<REAL,3> u  = datavec[ub].sol[0];
+    REAL p                  = datavec[pb].sol[0][0];
+    
+    TPZFNMatrix<10,STATE> Graduaxes = datavec[ub].dsol[0];
+    
+    // Time
+    STATE dt = fSimulationData->dt();
+    
+    //  Average values p_a
+    
+    REAL s = 0.0;
+    
+    REAL p_a   = p;
+    REAL sa    = s;
+    REAL sb    = s;
+    
+    //  Computing closure relationship at given average values
+    
+    TPZManVector<STATE, 10> v(nvars);
+    v[0] = p_a;
+    v[1] = sa;
+    v[2] = sb;
+    
+    // Fluid parameters
+    TPZManVector<STATE, 10> rho_a,rho_b,rho_c,l;
+    fSimulationData->AlphaProp()->Density(rho_a, v);
+    fSimulationData->BetaProp()->Density(rho_b, v);
+    fSimulationData->GammaProp()->Density(rho_c, v);
+    fSimulationData->PetroPhysics()->l(l, v);
+    
+    // Rock parameters
+    TPZFNMatrix<9,STATE> K,Kinv;
+    TPZManVector<STATE, 10> phi;
+    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Defining local variables
+    TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1),lambda_dp_K_inv_u(3,1), lambda_dsa_K_inv_u(3,1), lambda_dsb_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
+    TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
+    
+    for (int i = 0; i < u.size(); i++) {
+        STATE dot = 0.0;
+        for (int j =0; j < u.size(); j++) {
+            dot += Kinv(i,j)*u[j];
+        }
+        lambda_K_inv_u(i,0)      = (1.0/l[0]) * dot;
+        lambda_dp_K_inv_u(i,0)   = (-l[1]/(l[0]*l[0])) * dot;
+        lambda_dsa_K_inv_u(i,0)  = (-l[2]/(l[0]*l[0])) * dot;
+        lambda_dsb_K_inv_u(i,0)  = (-l[3]/(l[0]*l[0])) * dot;
+    }
+    
+    // Integration point contribution
+    STATE divu = 0.0;
+    TPZFNMatrix<3,STATE> phi_u_i(3,1), phi_u_j(3,1);
+    
+    int s_i, s_j;
+    int v_i, v_j;
+    
+    if(! fSimulationData->IsCurrentStateQ()){
+        for (int ip = 0; ip < nphip; ip++)
+        {
+            
+            ef(ip + firstp) += -1.0 * weight * (-1.0/dt) * (sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0]) * phi[0] * phi_ps(ip,0);
+            
+        }
+        
+        return;
+    }
+    
+    for (int iu = 0; iu < nphiu; iu++)
+    {
+        
+        v_i = datavec[ub].fVecShapeIndex[iu].first;
+        s_i = datavec[ub].fVecShapeIndex[iu].second;
+        
+        STATE Kl_inv_dot_u = 0.0, Kl_dp_inv_dot_u = 0.0, Kl_dsa_inv_dot_u = 0.0, Kl_dsb_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0, rho_dp_g_dot_phi_u = 0.0, rho_ds_g_dot_phi_u = 0.0;
+        
+        for (int i = 0; i < u.size(); i++) {
+            
+            phi_u_i(i,0)         = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
+            Kl_inv_dot_u        += lambda_K_inv_u(i,0)*phi_u_i(i,0);
+            Kl_dp_inv_dot_u     += lambda_dp_K_inv_u(i,0)*phi_u_i(i,0);
+            Kl_dsa_inv_dot_u    += lambda_dsa_K_inv_u(i,0)*phi_u_i(i,0);
+            Kl_dsb_inv_dot_u    += lambda_dsb_K_inv_u(i,0)*phi_u_i(i,0);
+            rho_g_dot_phi_u     += (sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0])*Gravity[i]*phi_u_i(i,0);
+            rho_dp_g_dot_phi_u  += (sa*rho_a[1]+sb*rho_b[1]+(1.0-sa-sb)*rho_c[1])*Gravity[i]*phi_u_i(i,0);
+            rho_ds_g_dot_phi_u  += (rho_a[0]-rho_b[0])*Gravity[i]*phi_u_i(i,0);
+            
+        }
+        
+        ef(iu + firstu) += weight * ( Kl_inv_dot_u - (1.0/jac_det) * (p) * div_on_master(iu,0) - rho_g_dot_phi_u);
+        
+        for (int ju = 0; ju < nphiu; ju++)
+        {
+            
+            v_j = datavec[ub].fVecShapeIndex[ju].first;
+            s_j = datavec[ub].fVecShapeIndex[ju].second;
+            
+            STATE Kl_inv_phi_u_j_dot_phi_u_i = 0.0;
+            
+            for (int j = 0; j < u.size(); j++) {
+                
+                phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fNormalVec(j,v_j);
+                STATE dot = 0.0;
+            
+                for (int k = 0; k < u.size(); k++) {
+                    dot += (1.0/l[0]) * Kinv(j,k)*phi_u_j(k,0);
+                }
+                
+                lambda_K_inv_phi_u_j(j,0) = dot;
+                Kl_inv_phi_u_j_dot_phi_u_i += lambda_K_inv_phi_u_j(j,0)*phi_u_i(j,0);
+            }
+            
+            ek(iu + firstu,ju + firstu) += weight * Kl_inv_phi_u_j_dot_phi_u_i;
+        }
+        
+        for (int jp = 0; jp < nphip; jp++)
+        {
+            ek(iu + firstu, jp + firstp) += weight * ( Kl_dp_inv_dot_u - (1.0/jac_det) * div_on_master(iu,0) + rho_dp_g_dot_phi_u) * phi_ps(jp,0);
+        }
+        
+    }
+    
+    
+    TPZManVector<STATE,1> f(1,0.0);
+    if(fForcingFunction)
+    {
+        fForcingFunction->Execute(datavec[pb].x,f);
+    }
+    
+    divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2));
+    
+    for (int ip = 0; ip < nphip; ip++)
+    {
+        
+        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * (sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0]) * phi[0] - f[0]) * phi_ps(ip,0);
+        
+        for (int ju = 0; ju < nphiu; ju++)
+        {
+            ek(ip + firstp, ju + firstu) += -1.0 * weight * (1.0/jac_det) * div_on_master(ju,0) * phi_ps(ip,0);
+        }
+        
+        for (int jp = 0; jp < nphip; jp++)
+        {
+            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0]) * phi[1] + (sa*rho_a[1]+sb*rho_b[1]+(1.0-sa-sb)*rho_c[1]) * phi[0]) * phi_ps(ip,0) ) * phi_ps(jp,0);
+        }
+        
+    }
+    
 }
 
 void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+    
+    int nvars = 4; // {p,sa,sb,t}
+    
+    int ub      = 0;
+    int pb      = 1;
+    
+    TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
+    TPZFNMatrix<100,STATE> phi_ps       = datavec[pb].phi;
+    TPZFNMatrix<300,STATE> dphi_us      = datavec[ub].dphix;
+    TPZFNMatrix<100,STATE> dphi_ps      = datavec[pb].dphix;
+    
+    TPZFNMatrix<40,STATE> div_on_master;
+    STATE divflux;
+    this->ComputeDivergenceOnMaster(datavec, div_on_master,divflux);
+    REAL jac_det = datavec[ub].detjac;
+    
+    int nphiu       = datavec[ub].fVecShapeIndex.NElements();
+    int nphip       = phi_ps.Rows();
+    int firstu      = 0;
+    int firstp      = nphiu + firstu;
+    
+    TPZManVector<REAL,3> u  = datavec[ub].sol[0];
+    REAL p                  = datavec[pb].sol[0][0];
+    
+    TPZFNMatrix<10,STATE> Graduaxes = datavec[ub].dsol[0];
+    
+    // Time
+    STATE dt = fSimulationData->dt();
+    
+    REAL s = 0.0;
+    
+    //  Average values p_a
+    
+    REAL p_a    = p;
+    REAL sa    = s;
+    REAL sb    = s;
+    
+    //  Computing closure relationship at given average values
+    
+    TPZManVector<STATE, 10> v(nvars);
+    v[0] = p_a;
+    v[1] = sa;
+    v[2] = sb;
+    
+    // Fluid parameters
+    TPZManVector<STATE, 10> rho_a,rho_b,rho_c,l;
+    fSimulationData->AlphaProp()->Density(rho_a, v);
+    fSimulationData->BetaProp()->Density(rho_b, v);
+    fSimulationData->GammaProp()->Density(rho_c, v);
+    fSimulationData->PetroPhysics()->l(l, v);
+    
+    // Rock parameters
+    TPZFNMatrix<9,STATE> K,Kinv;
+    TPZManVector<STATE, 10> phi;
+    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Defining local variables
+    TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1);
+    TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
+    
+    for (int i = 0; i < u.size(); i++) {
+        
+        STATE dot = 0.0;
+        for (int j =0; j < u.size(); j++) {
+            dot += Kinv(i,j)*u[j];
+        }
+        
+        lambda_K_inv_u(i,0) = (1.0/l[0]) * dot;
+    }
+    
+    
+    // Integration point contribution
+    STATE divu = 0.0;
+    TPZFNMatrix<3,STATE> phi_u_i(3,1);
+    
+    int s_i;
+    int v_i;
+    
+    if(!fSimulationData->IsCurrentStateQ()){
+        
+        for (int ip = 0; ip < nphip; ip++)
+        {
+            ef(ip + firstp) += -1.0 * weight * (-1.0/dt) * ( sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0] ) * phi[0] * phi_ps(ip,0);
+        }
+        
+        return;
+    }
+    
+    for(int iu = 0; iu < nphiu; iu++)
+    {
+        
+        v_i = datavec[ub].fVecShapeIndex[iu].first;
+        s_i = datavec[ub].fVecShapeIndex[iu].second;
+        
+        STATE Kl_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0;
+        for (int i = 0; i < u.size(); i++) {
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
+            Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
+            rho_g_dot_phi_u += (sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0])*Gravity[i]*phi_u_i(i,0);
+        }
+        
+        ef(iu + firstu) += weight * ( Kl_inv_dot_u - (1.0/jac_det) * (p) * div_on_master(iu,0) - rho_g_dot_phi_u );
+        
+    }
+    
+    TPZManVector<STATE,1> f(1,0.0);
+    if(fForcingFunction)
+    {
+        fForcingFunction->Execute(datavec[pb].x,f);
+    }
+    
+    divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2));
+    
+    for (int ip = 0; ip < nphip; ip++)
+    {
+        
+        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * ( sa * rho_a[0] + sb * rho_b[0] + (1.0-sa-sb) * rho_c[0] ) * phi[0] - f[0]) * phi_ps(ip,0);
+        
+    }
+    
+    return;
+
     
 }
 
 void TRMMixedDarcy::ContributeBC_abc(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
+    int ub = 0;
+    int pb = 1;
+    
+    TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
+    
+    int nphiu       = phi_us.Rows();
+    int firstu      = 0;
+    
+    TPZManVector<REAL,3> u  = datavec[ub].sol[0];
+    
+    REAL Value_m    = 0.0;
+    REAL Value_s    = 0.0;
+    if (bc.HasfTimedependentBCForcingFunction()) {
+        TPZManVector<STATE,2> f(2);
+        TPZFMatrix<double> gradf;
+        REAL time = 0.0;
+        bc.TimedependentBCForcingFunction()->Execute(datavec[pb].x, time, f, gradf);
+        Value_m = f[0];
+        Value_s = f[1];
+    }
+    else{
+        Value_m = bc.Val2()(0,0);
+        Value_s = bc.Val2()(1,0);
+    }
+    
+    switch (bc.Type()) {
+        case 0 :    // Dirichlet BC  PD outlet
+        {
+            STATE p_D = Value_m;
+            for (int iu = 0; iu < nphiu; iu++)
+            {
+                ef(iu + firstu) += weight * p_D * phi_us(iu,0);
+            }
+        }
+            break;
+            
+        case 1 :    // Neumann BC  QN outlet
+        {
+            
+            for (int iu = 0; iu < nphiu; iu++)
+            {
+                STATE un_N = Value_m, un = u[0];
+                ef(iu + firstu) += weight * gBigNumber * (un - un_N) * phi_us(iu,0);
+                
+                for (int ju = 0; ju < nphiu; ju++)
+                {
+                    
+                    ek(iu + firstu,ju + firstu) += weight * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
+                }
+                
+            }
+            
+        }
+            break;
+            
+        case 2 :    // Dirichlet BC  PD inlet
+        {
+            STATE p_D = Value_m;
+            for (int iu = 0; iu < nphiu; iu++)
+            {
+                ef(iu + firstu) += weight * p_D * phi_us(iu,0);
+            }
+        }
+            break;
+            
+        case 3 :    // Neumann BC  QN inlet
+        {
+            
+            for (int iu = 0; iu < nphiu; iu++)
+            {
+                STATE un_N = Value_m, un = u[0];
+                ef(iu + firstu) += weight * gBigNumber * (un - un_N) * phi_us(iu,0);
+                
+                for (int ju = 0; ju < nphiu; ju++)
+                {
+                    
+                    ek(iu + firstu,ju + firstu) += weight * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
+                }
+                
+            }
+            
+        }
+            break;
+            
+        case 4 :    // Neumann BC  Impervious bc
+        {
+            
+            for (int iu = 0; iu < nphiu; iu++)
+            {
+                STATE un = u[0];
+                ef(iu + firstu) += weight * 100000.0 * gBigNumber * (un - 0.0) * phi_us(iu,0);
+                
+                for (int ju = 0; ju < nphiu; ju++)
+                {
+                    
+                    ek(iu + firstu,ju + firstu) += weight * 100000.0 * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
+                }
+                
+            }
+            
+        }
+            break;
+            
+        default: std::cout << "This BC doesn't exist." << std::endl;
+        {
+            
+            DebugStop();
+        }
+            break;
+    }
+    
+    return;
+    
 }
 
 void TRMMixedDarcy::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
+    DebugStop();
+    
 }
 
 void TRMMixedDarcy::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
+    DebugStop();
     
 }
 
@@ -1306,6 +1722,7 @@ void TRMMixedDarcy::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
 
 void TRMMixedDarcy::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef){
     
+    DebugStop();
 }
 
 
