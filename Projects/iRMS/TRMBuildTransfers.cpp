@@ -945,22 +945,22 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
             
         }
         
-        REAL sa      = 0.0;
-        REAL sa_n    = 0.0;
-        REAL sb      = 0.0;
-        REAL sb_n    = 0.0;
+//        REAL sa      = 0.0;
+//        REAL sa_n    = 0.0;
+//        REAL sb      = 0.0;
+//        REAL sb_n    = 0.0;
         
         // Inserting average pressure and saturation in mixed memory
         for (int ip = 0; ip < np_mixed_cel; ip++) {
             if (fSimulationData->IsCurrentStateQ()) {
                 mixed_memory->GetMemory()[p_point_indexes[ip]].Set_p_avg_n(p_avg_n);
-                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa_n(sa_n);
-                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb_n(sb_n);
+//                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa_n(sa_n);
+//                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb_n(sb_n);
             }
             else{
                 mixed_memory->GetMemory()[p_point_indexes[ip]].Set_p_avg(p_avg);
-                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa(sa);
-                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb(sb);
+//                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa(sa);
+//                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb(sb);
 
             }
             

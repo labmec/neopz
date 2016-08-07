@@ -387,14 +387,14 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho,l;
-    fSimulationData->AlphaProp()->Density(rho, v);
+    fSimulationData->AlphaProp()->Density(rho, v_avg);
     fSimulationData->PetroPhysics()->l(l, v_avg);
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
     TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v_avg);
+    fSimulationData->Map()->phi(datavec[ub].x, phi, v_avg);
     
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1),lambda_dp_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
@@ -419,17 +419,15 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     if(! fSimulationData->IsCurrentStateQ()){
         
         REAL p_a    = point_memory.p_avg();
-        
-        TPZManVector<STATE, 10> v(nvars);
-        v[0] = p;//p_a;
+        v_avg[0] = p_a;
         
         // Fluid parameters
         TPZManVector<STATE, 10> rho,l;
-        fSimulationData->AlphaProp()->Density(rho, v);
+        fSimulationData->AlphaProp()->Density(rho, v_avg);
         
         // Rock parameters
         TPZManVector<STATE, 10> phi;
-        fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+        fSimulationData->Map()->phi(datavec[ub].x, phi, v_avg);
         
         for (int ip = 0; ip < nphip; ip++)
         {
@@ -820,15 +818,23 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     STATE dt = fSimulationData->dt();
     
     //  Average values p_a
+    // Get the pressure at the integrations points
+    long global_point_index = datavec[0].intGlobPtIndex;
+    TRMMemory &point_memory = GetMemory()[global_point_index];
+    REAL p_avg_n    = point_memory.p_avg_n();
+    REAL s_avg_n    = point_memory.sa_n();
+    
+    REAL p_avg    = point_memory.p_avg();
+    REAL s_avg    = point_memory.sa();
     
     REAL s = 0.0;
     
-    REAL p_a    = p;
-    REAL s_a    = s;
+    REAL p_a    = p_avg_n;
+    REAL s_a    = s_avg_n;
     
     //  Computing closure relationship at given average values
     
-    TPZManVector<STATE, 10> v(nvars);
+    TPZManVector<STATE, 10> v(nvars),vavg(nvars);
     v[0] = p_a;
     v[1] = s_a;
     
@@ -866,6 +872,15 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     int v_i, v_j;
     
     if(! fSimulationData->IsCurrentStateQ()){
+        
+        v[0] = p_avg;
+        v[1] = s_avg;
+        
+        fSimulationData->AlphaProp()->Density(rho_a, v);
+        fSimulationData->BetaProp()->Density(rho_b, v);
+        
+        fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+        
         for (int ip = 0; ip < nphip; ip++)
         {
             

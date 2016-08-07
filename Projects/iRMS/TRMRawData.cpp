@@ -103,7 +103,7 @@ void TRMRawData::WaterReservoirBox(){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("oil");
-    oil->SetRhoModel(0);
+    oil->SetRhoModel(1);
     fPhases.Push(oil);
     int n_data = fSystemType.size();
     
@@ -120,11 +120,11 @@ void TRMRawData::WaterReservoirBox(){
     REAL day        = hour * 24.0;
     
     fn_steps  = 10;
-    fdt = 1.0*day;
+    fdt = 5.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;
-    fdt_up = 1.5;
-    fdt_down = 0.5;
+    fdt_up = 1.0;
+    fdt_down = 1.0;
     
     // Numeric controls
     fn_corrections = 20;
@@ -328,11 +328,11 @@ void TRMRawData::WaterOilReservoirBox(){
     REAL day        = hour * 24.0;
     
     fn_steps  = 10;
-    fdt = 10.0*day;
+    fdt = 5.0*day;
     fdt_max = 30.0*day;
-    fdt_min = 0.1*day;
-    fdt_up = 1.5;
-    fdt_down = 0.5;
+    fdt_min = 0.5*day;
+    fdt_up = 1.0;
+    fdt_down = 1.0;
     
     // Numeric controls
     fn_corrections = 20;

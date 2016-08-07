@@ -109,12 +109,12 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     dy[0] = 20.0/REAL(nel_y);
     dz[0] = 20.0/REAL(nel_z);
     
-//    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
+    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
     
-    std::string dirname = PZSOURCEDIR;
-    std::string file;
-    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-    fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
+//    std::string dirname = PZSOURCEDIR;
+//    std::string file;
+//    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+//    fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
 
     fSpaceGenerator->PrintGeometry();
 #ifdef PZDEBUG
@@ -388,8 +388,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
-            fSegregatedAnalysis->ExcecuteOneStep(false);
-            fSegregatedAnalysis->PostProcessStep(false);
+            fSegregatedAnalysis->ExcecuteOneStep(true);
+            fSegregatedAnalysis->PostProcessStep(true);
         }
         
     }
