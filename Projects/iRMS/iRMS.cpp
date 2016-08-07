@@ -91,9 +91,8 @@ void BoxLinearTracerDual()
     
     // on box reservoir
 //    RawData->WaterReservoirBox(); // Single-phase flow
-    RawData->WaterOilReservoirBox(); // Two-phase flow
-//    RawData->WaterOilReservoirVertical(); // Two-phase flow
-//    RawData->WaterOilGasReservoirBox(); // Three-phase flow
+//    RawData->WaterOilReservoirBox(); // Two-phase flow
+    RawData->WaterOilGasReservoirBox(); // Three-phase flow
     
     // On cricular reservoir
 //    RawData->WaterReservoirCircle();

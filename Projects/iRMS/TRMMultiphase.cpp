@@ -1312,18 +1312,18 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
                 
                 ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0])*phi_ss_l(is,0)*un_l;
                 
-                for (int ju = 0; ju < nphiu_l; ju++) {
-                    
-                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-                    
-                    for (int j = 0; j < u_l.size(); j++) {
-                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                        phi_un_l += phi_u_i_l(j,0)*n[j];
-                    }
-                    
-                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta*fa_l[0] * phi_ss_l(is,0)*phi_un_l;
-                }
+//                for (int ju = 0; ju < nphiu_l; ju++) {
+//                    
+//                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//                    
+//                    for (int j = 0; j < u_l.size(); j++) {
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                        phi_un_l += phi_u_i_l(j,0)*n[j];
+//                    }
+//                    
+//                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta*fa_l[0] * phi_ss_l(is,0)*phi_un_l;
+//                }
                 
                 for (int js = 0; js < nphis_a_l; js++) {
                     ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_l(is,0)*un_l;
@@ -1355,9 +1355,9 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
                 ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
                 
                 
-                for (int jp = 0; jp < nphip_l; jp++) {
-                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_N;
-                }
+//                for (int jp = 0; jp < nphip_l; jp++) {
+//                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_N;
+//                }
                 
                 
                 for (int js = 0; js < nphis_a_l; js++) {
@@ -1389,18 +1389,18 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
                 
                 ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_l;
                 
-                for (int ju = 0; ju < nphiu_l; ju++) {
-                    
-                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-                    
-                    for (int j = 0; j < u_l.size(); j++) {
-                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                        phi_un_l += phi_u_i_l(j,0)*n[j];
-                    }
-                    
-                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta*fa_l[0] * phi_ss_l(is,0)*phi_un_l;
-                }
+//                for (int ju = 0; ju < nphiu_l; ju++) {
+//                    
+//                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//                    
+//                    for (int j = 0; j < u_l.size(); j++) {
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                        phi_un_l += phi_u_i_l(j,0)*n[j];
+//                    }
+//                    
+//                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta*fa_l[0] * phi_ss_l(is,0)*phi_un_l;
+//                }
     
                 
             }
@@ -1427,9 +1427,9 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
 
                 ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
                 
-                for (int jp = 0; jp < nphip_l; jp++) {
-                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_N;
-                }
+//                for (int jp = 0; jp < nphip_l; jp++) {
+//                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_N;
+//                }
                 
             }
             
@@ -1453,9 +1453,9 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
                 
                 ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ss_l(is,0)*un_N;
                 
-                for (int jp = 0; jp < nphip_l; jp++) {
-                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_N;
-                }
+//                for (int jp = 0; jp < nphip_l; jp++) {
+//                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_N;
+//                }
                 
             }
             
@@ -2061,8 +2061,9 @@ void TRMMultiphase::ContributeBC_abc(TPZVec<TPZMaterialData> &datavec, REAL weig
         Value_sb = f[2];
     }
     else{
-        Value_m = bc.Val2()(0,0);
+        Value_m  = bc.Val2()(0,0);
         Value_sa = bc.Val2()(1,0);
+        Value_sb = bc.Val2()(2,0);
     }
     
     switch (bc.Type()) {
@@ -2254,18 +2255,18 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 
                 ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0])*phi_ssa_l(is,0)*un_l;
                 
-                for (int ju = 0; ju < nphiu_l; ju++) {
-                    
-                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-                    
-                    for (int j = 0; j < u_l.size(); j++) {
-                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                        phi_un_l += phi_u_i_l(j,0)*n[j];
-                    }
-                    
-                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta*fa_l[0] * phi_ssa_l(is,0)*phi_un_l;
-                }
+//                for (int ju = 0; ju < nphiu_l; ju++) {
+//                    
+//                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//                    
+//                    for (int j = 0; j < u_l.size(); j++) {
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                        phi_un_l += phi_u_i_l(j,0)*n[j];
+//                    }
+//                    
+//                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta * fa_l[0] * phi_ssa_l(is,0)*phi_un_l;
+//                }
                 
                 for (int js = 0; js < nphis_a_l; js++) {
                     ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ssa_l(js,0) * phi_ssa_l(is,0)*un_l;
@@ -2278,18 +2279,18 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 
                 ef(is + firsts_b_l) += +1.0*weight * (beta*fb_l[0])*phi_ssb_l(is,0)*un_l;
                 
-                for (int ju = 0; ju < nphiu_l; ju++) {
-                    
-                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-                    
-                    for (int j = 0; j < u_l.size(); j++) {
-                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                        phi_un_l += phi_u_i_l(j,0)*n[j];
-                    }
-                    
-                    ek(is + firsts_b_l, ju + firstu_l) += +1.0*weight * beta*fb_l[0] * phi_ssb_l(is,0)*phi_un_l;
-                }
+//                for (int ju = 0; ju < nphiu_l; ju++) {
+//                    
+//                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//                    
+//                    for (int j = 0; j < u_l.size(); j++) {
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                        phi_un_l += phi_u_i_l(j,0)*n[j];
+//                    }
+//                    
+//                    ek(is + firsts_b_l, ju + firstu_l) += +1.0*weight * beta*fb_l[0] * phi_ssb_l(is,0)*phi_un_l;
+//                }
                 
                 for (int js = 0; js < nphis_b_l; js++) {
                     ek(is + firsts_b_l, js + firsts_b_l) += +1.0*weight * beta * fb_l[3] * phi_ssb_l(js,0) * phi_ssb_l(is,0)*un_l;
@@ -2324,9 +2325,9 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ssa_l(is,0)*un_N;
                 
                 
-                for (int jp = 0; jp < nphip_l; jp++) {
-                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_l(is,0)*un_N;
-                }
+//                for (int jp = 0; jp < nphip_l; jp++) {
+//                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_l(is,0)*un_N;
+//                }
                 
                 
                 for (int js = 0; js < nphis_a_l; js++) {
@@ -2341,9 +2342,9 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 ef(is + firsts_b_l) += +1.0*weight * beta*fb_l[0]*phi_ssb_l(is,0)*un_N;
                 
                 
-                for (int jp = 0; jp < nphip_l; jp++) {
-                    ek(is + firsts_b_l, jp + firstp_l) += +1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_l(is,0)*un_N;
-                }
+//                for (int jp = 0; jp < nphip_l; jp++) {
+//                    ek(is + firsts_b_l, jp + firstp_l) += +1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_l(is,0)*un_N;
+//                }
                 
                 
                 for (int js = 0; js < nphis_b_l; js++) {
@@ -2377,18 +2378,18 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 
                 ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ssa_l(is,0)*un_l;
                 
-                for (int ju = 0; ju < nphiu_l; ju++) {
-                    
-                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-                    
-                    for (int j = 0; j < u_l.size(); j++) {
-                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                        phi_un_l += phi_u_i_l(j,0)*n[j];
-                    }
-                    
-                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta*fa_l[0] * phi_ssa_l(is,0)*phi_un_l;
-                }
+//                for (int ju = 0; ju < nphiu_l; ju++) {
+//                    
+//                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//                    
+//                    for (int j = 0; j < u_l.size(); j++) {
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                        phi_un_l += phi_u_i_l(j,0)*n[j];
+//                    }
+//                    
+//                    ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * beta*fa_l[0] * phi_ssa_l(is,0)*phi_un_l;
+//                }
                 
                 
             }
@@ -2397,18 +2398,18 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 
                 ef(is + firsts_b_l) += +1.0*weight * beta*fb_l[0]*phi_ssb_l(is,0)*un_l;
                 
-                for (int ju = 0; ju < nphiu_l; ju++) {
-                    
-                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-                    
-                    for (int j = 0; j < u_l.size(); j++) {
-                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                        phi_un_l += phi_u_i_l(j,0)*n[j];
-                    }
-                    
-                    ek(is + firsts_b_l, ju + firstu_l) += +1.0*weight * beta*fb_l[0] * phi_ssb_l(is,0)*phi_un_l;
-                }
+//                for (int ju = 0; ju < nphiu_l; ju++) {
+//                    
+//                    v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//                    s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//                    
+//                    for (int j = 0; j < u_l.size(); j++) {
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                        phi_un_l += phi_u_i_l(j,0)*n[j];
+//                    }
+//                    
+//                    ek(is + firsts_b_l, ju + firstu_l) += +1.0*weight * beta*fb_l[0] * phi_ssb_l(is,0)*phi_un_l;
+//                }
                 
                 
             }
@@ -2437,9 +2438,9 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 
                 ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ssa_l(is,0)*un_N;
                 
-                for (int jp = 0; jp < nphip_l; jp++) {
-                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_l(is,0)*un_N;
-                }
+//                for (int jp = 0; jp < nphip_l; jp++) {
+//                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_l(is,0)*un_N;
+//                }
                 
             }
             
@@ -2447,9 +2448,9 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 
                 ef(is + firsts_b_l) += +1.0*weight * beta*fb_l[0]*phi_ssb_l(is,0)*un_N;
                 
-                for (int jp = 0; jp < nphip_l; jp++) {
-                    ek(is + firsts_b_l, jp + firstp_l) += +1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_l(is,0)*un_N;
-                }
+//                for (int jp = 0; jp < nphip_l; jp++) {
+//                    ek(is + firsts_b_l, jp + firstp_l) += +1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_l(is,0)*un_N;
+//                }
                 
             }
             
@@ -2475,9 +2476,9 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 
                 ef(is + firsts_a_l) += +1.0*weight * beta*fa_l[0]*phi_ssa_l(is,0)*un_N;
                 
-                for (int jp = 0; jp < nphip_l; jp++) {
-                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_l(is,0)*un_N;
-                }
+//                for (int jp = 0; jp < nphip_l; jp++) {
+//                    ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_l(is,0)*un_N;
+//                }
                 
             }
             
@@ -2485,9 +2486,9 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
                 
                 ef(is + firsts_b_l) += +1.0*weight * beta*fb_l[0]*phi_ssb_l(is,0)*un_N;
                 
-                for (int jp = 0; jp < nphip_l; jp++) {
-                    ek(is + firsts_b_l, jp + firstp_l) += +1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_l(is,0)*un_N;
-                }
+//                for (int jp = 0; jp < nphip_l; jp++) {
+//                    ek(is + firsts_b_l, jp + firstp_l) += +1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_l(is,0)*un_N;
+//                }
                 
             }
             
@@ -2618,26 +2619,26 @@ void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
         
         ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ssa_l(is,0)*un_l;
         
-        for (int ju = 0; ju < nphiu_l; ju++) {
-            
-            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-            
-            for (int j = 0; j < u_l.size(); j++) {
-                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                phi_un_l += phi_u_i_l(j,0)*n[j];
-            }
-            
-            ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0]) * phi_ssa_l(is,0)*phi_un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_l; jp++) {
-            ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_l(is,0)*un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_r; jp++) {
-            ek(is + firsts_a_l, jp + firstp_r) += +1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ssa_l(is,0)*un_l;
-        }
+//        for (int ju = 0; ju < nphiu_l; ju++) {
+//            
+//            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//            
+//            for (int j = 0; j < u_l.size(); j++) {
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                phi_un_l += phi_u_i_l(j,0)*n[j];
+//            }
+//            
+//            ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0]) * phi_ssa_l(is,0)*phi_un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_l; jp++) {
+//            ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_l(is,0)*un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_r; jp++) {
+//            ek(is + firsts_a_l, jp + firstp_r) += +1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ssa_l(is,0)*un_l;
+//        }
         
         for (int js = 0; js < nphis_a_l; js++) {
             ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ssa_l(js,0) * phi_ssa_l(is,0)*un_l;
@@ -2661,26 +2662,26 @@ void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
         
         ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ssa_r(is,0)*un_l;
         
-        for (int ju = 0; ju < nphiu_l; ju++) {
-            
-            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-            
-            for (int j = 0; j < u_l.size(); j++) {
-                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                phi_un_l += phi_u_i_l(j,0)*n[j];
-            }
-            
-            ek(is + firsts_a_r, ju + firstu_l) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ssa_r(is,0)*phi_un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_l; jp++) {
-            ek(is + firsts_a_r, jp + firstp_l) += -1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_r(is,0)*un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_r; jp++) {
-            ek(is + firsts_a_r, jp + firstp_r) += -1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ssa_r(is,0)*un_l;
-        }
+//        for (int ju = 0; ju < nphiu_l; ju++) {
+//            
+//            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//            
+//            for (int j = 0; j < u_l.size(); j++) {
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                phi_un_l += phi_u_i_l(j,0)*n[j];
+//            }
+//            
+//            ek(is + firsts_a_r, ju + firstu_l) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ssa_r(is,0)*phi_un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_l; jp++) {
+//            ek(is + firsts_a_r, jp + firstp_l) += -1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ssa_r(is,0)*un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_r; jp++) {
+//            ek(is + firsts_a_r, jp + firstp_r) += -1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ssa_r(is,0)*un_l;
+//        }
         
         for (int js = 0; js < nphis_a_l; js++) {
             ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta * fa_l[2] * phi_ssa_l(js,0) * phi_ssa_r(is,0)*un_l;
@@ -2704,26 +2705,26 @@ void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
         
         ef(is + firsts_b_l) += +1.0*weight * (beta*fb_l[0] + (1.0-beta)*fb_r[0])*phi_ssb_l(is,0)*un_l;
         
-        for (int ju = 0; ju < nphiu_l; ju++) {
-            
-            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-            
-            for (int j = 0; j < u_l.size(); j++) {
-                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                phi_un_l += phi_u_i_l(j,0)*n[j];
-            }
-            
-            ek(is + firsts_b_l, ju + firstu_l) += +1.0*weight * (beta*fb_l[0] + (1.0-beta)*fb_r[0]) * phi_ssb_l(is,0)*phi_un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_l; jp++) {
-            ek(is + firsts_b_l, jp + firstp_l) += +1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_l(is,0)*un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_r; jp++) {
-            ek(is + firsts_b_l, jp + firstp_r) += +1.0*weight * (1.0-beta) * fb_r[1] * phi_ps_r(jp,0) * phi_ssb_l(is,0)*un_l;
-        }
+//        for (int ju = 0; ju < nphiu_l; ju++) {
+//            
+//            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//            
+//            for (int j = 0; j < u_l.size(); j++) {
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                phi_un_l += phi_u_i_l(j,0)*n[j];
+//            }
+//            
+//            ek(is + firsts_b_l, ju + firstu_l) += +1.0*weight * (beta*fb_l[0] + (1.0-beta)*fb_r[0]) * phi_ssb_l(is,0)*phi_un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_l; jp++) {
+//            ek(is + firsts_b_l, jp + firstp_l) += +1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_l(is,0)*un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_r; jp++) {
+//            ek(is + firsts_b_l, jp + firstp_r) += +1.0*weight * (1.0-beta) * fb_r[1] * phi_ps_r(jp,0) * phi_ssb_l(is,0)*un_l;
+//        }
         
         for (int js = 0; js < nphis_a_l; js++) {
             ek(is + firsts_b_l, js + firsts_a_l) += +1.0*weight * beta * fb_l[2] * phi_ssa_l(js,0) * phi_ssb_l(is,0)*un_l;
@@ -2747,26 +2748,26 @@ void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
         
         ef(is + firsts_b_r) += -1.0*weight * (beta*fb_l[0] + (1.0-beta)*fb_r[0])*phi_ssb_r(is,0)*un_l;
         
-        for (int ju = 0; ju < nphiu_l; ju++) {
-            
-            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-            
-            for (int j = 0; j < u_l.size(); j++) {
-                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                phi_un_l += phi_u_i_l(j,0)*n[j];
-            }
-            
-            ek(is + firsts_b_r, ju + firstu_l) += -1.0*weight * (beta*fb_l[0] + (1.0-beta)*fb_r[0])*phi_ssb_r(is,0)*phi_un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_l; jp++) {
-            ek(is + firsts_b_r, jp + firstp_l) += -1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_r(is,0)*un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_r; jp++) {
-            ek(is + firsts_b_r, jp + firstp_r) += -1.0*weight * (1.0-beta) * fb_r[1] * phi_ps_r(jp,0) * phi_ssb_r(is,0)*un_l;
-        }
+//        for (int ju = 0; ju < nphiu_l; ju++) {
+//            
+//            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//            
+//            for (int j = 0; j < u_l.size(); j++) {
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                phi_un_l += phi_u_i_l(j,0)*n[j];
+//            }
+//            
+//            ek(is + firsts_b_r, ju + firstu_l) += -1.0*weight * (beta*fb_l[0] + (1.0-beta)*fb_r[0])*phi_ssb_r(is,0)*phi_un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_l; jp++) {
+//            ek(is + firsts_b_r, jp + firstp_l) += -1.0*weight * beta * fb_l[1] * phi_ps_l(jp,0) * phi_ssb_r(is,0)*un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_r; jp++) {
+//            ek(is + firsts_b_r, jp + firstp_r) += -1.0*weight * (1.0-beta) * fb_r[1] * phi_ps_r(jp,0) * phi_ssb_r(is,0)*un_l;
+//        }
         
         for (int js = 0; js < nphis_a_l; js++) {
             ek(is + firsts_b_r, js + firsts_a_l) += -1.0*weight * beta * fb_l[2] * phi_ssa_l(js,0) * phi_ssb_r(is,0)*un_l;
