@@ -93,7 +93,7 @@ void TRMSegregatedAnalysis::SegregatedIteration(){
 void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsFrozenQ){
     
     this->UpdateMemory();
-    
+    this->UpdateMemory_at_n();    
     
     if (IsFrozenQ) {
         this->SegregatedIteration();
@@ -105,9 +105,6 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsFrozenQ){
     }
     
     fHyperbolic->ExcecuteOneStep();
-    
-    
-    this->UpdateMemory_at_n();
 
 }
 
