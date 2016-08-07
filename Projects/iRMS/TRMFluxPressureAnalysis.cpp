@@ -260,7 +260,12 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     
     if (fSimulationData->IsTwoPhaseQ()) {
         scalnames.Push("p");
-        scalnames.Push("s_a");
+        scalnames.Push("div_u");
+        vecnames.Push("u");
+    }
+    
+    if (fSimulationData->IsThreePhaseQ()) {
+        scalnames.Push("p");
         scalnames.Push("div_u");
         vecnames.Push("u");
     }

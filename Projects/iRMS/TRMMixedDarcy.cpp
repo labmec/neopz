@@ -91,7 +91,7 @@ void TRMMixedDarcy::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<R
             break;
         case 3:
         {
-            DebugStop();
+            Solution_abc(datavec, var, Solout);
         }
             break;
         default:
@@ -120,7 +120,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZ
             break;
         case 3:
         {
-            DebugStop();
+            Contribute_abc(datavec, weight, ek, ef);
         }
             break;
         default:
@@ -148,7 +148,7 @@ void TRMMixedDarcy::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
             break;
         case 3:
         {
-            DebugStop();
+            Contribute_abc(datavec, weight, ef);
         }
             break;
         default:
@@ -242,7 +242,7 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
             break;
         case 3:
         {
-            DebugStop();
+            ContributeBC_abc(datavec, weight, ek, ef, bc);
         }
             break;
         default:
@@ -1232,7 +1232,6 @@ void TRMMixedDarcy::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
     
     int ub = 0;
     int pb = 1;
-    int sb = 2;
     
     TPZManVector<REAL,3> u = datavec[ub].sol[0];
     REAL p = datavec[pb].sol[0][0];
@@ -1596,18 +1595,21 @@ void TRMMixedDarcy::ContributeBC_abc(TPZVec<TPZMaterialData> &datavec, REAL weig
     TPZManVector<REAL,3> u  = datavec[ub].sol[0];
     
     REAL Value_m    = 0.0;
-    REAL Value_s    = 0.0;
+    REAL Value_sa   = 0.0;
+    REAL Value_sb   = 0.0;
     if (bc.HasfTimedependentBCForcingFunction()) {
-        TPZManVector<STATE,2> f(2);
+        TPZManVector<STATE,2> f(3);
         TPZFMatrix<double> gradf;
         REAL time = 0.0;
         bc.TimedependentBCForcingFunction()->Execute(datavec[pb].x, time, f, gradf);
-        Value_m = f[0];
-        Value_s = f[1];
+        Value_m  = f[0];
+        Value_sa = f[1];
+        Value_sb = f[1];
     }
     else{
-        Value_m = bc.Val2()(0,0);
-        Value_s = bc.Val2()(1,0);
+        Value_m  = bc.Val2()(0,0);
+        Value_sa = bc.Val2()(1,0);
+        Value_sb = bc.Val2()(1,0);
     }
     
     switch (bc.Type()) {
@@ -1698,6 +1700,50 @@ void TRMMixedDarcy::ContributeBC_abc(TPZVec<TPZMaterialData> &datavec, REAL weig
     
     return;
     
+}
+
+void TRMMixedDarcy::Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
+    
+    int ub = 0;
+    int pb = 1;
+    
+    TPZManVector<REAL,3> u = datavec[ub].sol[0];
+    REAL p = datavec[pb].sol[0][0];
+    REAL s = 0.0;//datavec[sb].sol[0][0];
+    
+    TPZFMatrix<STATE> dudx = datavec[ub].dsol[0];
+    TPZFMatrix<STATE> dpdx = datavec[pb].dsol[0];
+    
+    Solout.Resize(this->NSolutionVariables(var));
+    
+    switch(var) {
+        case 0:
+        {
+            Solout[0] = p;
+        }
+            break;
+        case 1:
+        {
+            Solout[0] = u[0]; // Bulk mass velocity
+            Solout[1] = u[1]; // Bulk mass velocity
+            Solout[2] = u[2]; // Bulk mass velocity
+        }
+            break;
+        case 2:
+        {
+            Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
+        }
+            break;
+        case 3:
+        {
+            Solout[0] = s;
+        }
+            break;
+        default:
+        {
+            DebugStop();
+        }
+    }
 }
 
 void TRMMixedDarcy::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){

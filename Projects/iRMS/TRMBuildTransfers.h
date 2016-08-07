@@ -75,8 +75,14 @@ private:
     /** @brief Diagonal block matrix to transfer saturation solution to integrations points of the transport mesh */
     TRMIrregularBlockDiagonal<STATE> fs_To_Transport;
     
-    /** @brief pressure dof indexes per element */
-    TPZVec< TPZVec<long> > fs_dof_scatter;
+//    /** @brief saturations dof indexes per element */
+//    TPZVec< TPZVec<long> > fs_dof_scatter;
+    
+    /** @brief saturation a dof indexes per element */
+    TPZVec< TPZVec<long> > fsa_dof_scatter;
+    
+    /** @brief staruation b dof indexes per element */
+    TPZVec< TPZVec<long> > fsb_dof_scatter;
     
 //    /** @brief Diagonal block matrix to transfer Average alpha saturation solution to integrations points of the mixed mesh */
 //    TRMIrregularBlockDiagonal<STATE> fs_a_To_Mixed;

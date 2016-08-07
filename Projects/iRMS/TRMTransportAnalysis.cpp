@@ -162,6 +162,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
 //        fX.Print("X = ", std::cout,EMathematicaInput);
 //        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+//        this->Solver().Matrix()->Print("K = ",std::cout,EMathematicaInput);
 //#endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
@@ -227,6 +228,7 @@ void TRMTransportAnalysis::UpdateMemory_at_n(){
     
     // Volumetric update
     if (fSimulationData->IsThreePhaseQ()) {
+        fTransfer->s_To_Transport_Memory(fmeshvec[0], Mesh(),0);
         fTransfer->s_To_Transport_Memory(fmeshvec[1], Mesh(),1);
     }
     
@@ -245,6 +247,7 @@ void TRMTransportAnalysis::UpdateMemory(){
 
     // Volumetric update
     if (fSimulationData->IsThreePhaseQ()) {
+        fTransfer->s_To_Transport_Memory(fmeshvec[0], Mesh(),0);        
         fTransfer->s_To_Transport_Memory(fmeshvec[1], Mesh(),1);
     }
     
@@ -256,7 +259,13 @@ void TRMTransportAnalysis::PostProcessStep(){
     int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "DualSegregatedDarcyOnBox_Saturations.vtk";
-    scalnames.Push("sa");
+    scalnames.Push("s_a");
+    scalnames.Push("s_b");
+    
+    if (fSimulationData->IsThreePhaseQ()) {
+        scalnames.Push("s_c");
+    }
+    
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);
     

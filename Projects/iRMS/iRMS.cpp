@@ -93,7 +93,7 @@ void BoxLinearTracerDual()
 //    RawData->WaterReservoirBox(); // Single-phase flow
 //    RawData->WaterOilReservoirBox(); // Two-phase flow
 //    RawData->WaterOilReservoirVertical(); // Two-phase flow
-//    RawData->WaterOilGasReservoirBox(); // Two-phase flow
+//    RawData->WaterOilGasReservoirBox(); // Three-phase flow
     
     // On cricular reservoir
 //    RawData->WaterReservoirCircle();
@@ -107,17 +107,17 @@ void BoxLinearTracerDual()
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
     
-    SymphonyX->SetSegregatedQ(true);
-    SymphonyX->CreateAnalysisDualonBox(true);
-    SymphonyX->RunStaticProblem();
-    SymphonyX->CreateAnalysisDualonBox(false);
-    SymphonyX->RunEvolutionaryProblem();
-
-//    SymphonyX->SetMonolithicQ(true);
-//    SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution
+//    SymphonyX->SetSegregatedQ(true);
+//    SymphonyX->CreateAnalysisDualonBox(true);
 //    SymphonyX->RunStaticProblem();
-//    SymphonyX->CreateMonolithicAnalysis(false); // Evolutionary Solution
+//    SymphonyX->CreateAnalysisDualonBox(false);
 //    SymphonyX->RunEvolutionaryProblem();
+
+    SymphonyX->SetMonolithicQ(true);
+    SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution
+    SymphonyX->RunStaticProblem();
+    SymphonyX->CreateMonolithicAnalysis(false); // Evolutionary Solution
+    SymphonyX->RunEvolutionaryProblem();
 
     
     std::cout << "Dual complete normally." << std::endl;

@@ -210,7 +210,13 @@ void TRMBuildTransfers::Initialize_s_To_Transport(TPZAutoPointer< TPZCompMesh> c
     long element_index = 0;
     
     // Compute destination index scatter by element (Omega and Gamma)
-    fs_dof_scatter.Resize(nel);
+    if (!mesh_index) {
+        fsa_dof_scatter.Resize(nel);
+    }
+    else{
+        fsb_dof_scatter.Resize(nel);
+    }
+
     
     // Block size structue including (Omega and Gamma)
     TPZVec< std::pair<long, long> > blocks_dimensions(nel);
@@ -260,14 +266,27 @@ void TRMBuildTransfers::Initialize_s_To_Transport(TPZAutoPointer< TPZCompMesh> c
             // there is no boundary elements for saturation
             blocks_dimensions[element_index].first = 0*n_var_dim;
             blocks_dimensions[element_index].second = 0;
-            fs_dof_scatter[element_index] = dof_indexes;
+            if (!mesh_index) {
+                fsa_dof_scatter[element_index] = dof_indexes;
+            }
+            else{
+                fsb_dof_scatter[element_index] = dof_indexes;
+            }
+            
             continue;
         }
         
         
         mf_cel->GetMemoryIndices(int_point_indexes);
         this->ElementDofIndexes(intel, dof_indexes);
-        fs_dof_scatter[element_index] = dof_indexes;
+
+        if (!mesh_index) {
+            fsa_dof_scatter[element_index] = dof_indexes;
+        }
+        else{
+            fsb_dof_scatter[element_index] = dof_indexes;
+        }
+        
         blocks_dimensions[element_index].first = int_point_indexes.size()*n_var_dim;
         blocks_dimensions[element_index].second = dof_indexes.size();
     }
@@ -474,7 +493,13 @@ void TRMBuildTransfers::Fill_s_To_Transport(TPZAutoPointer< TPZCompMesh > cmesh_
         }
         
         mf_cel->GetMemoryIndices(int_point_indexes);
-        dof_indexes = fs_dof_scatter[element_index];
+        if (!mesh_index) {
+            dof_indexes = fsa_dof_scatter[element_index];
+        }
+        else{
+            dof_indexes = fsb_dof_scatter[element_index];
+        }
+        
         
         block_dim.first = int_point_indexes.size();
         block_dim.second = dof_indexes.size();
@@ -623,9 +648,9 @@ void TRMBuildTransfers::p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompM
 
 void TRMBuildTransfers::s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TPZCompMesh * cmesh_multiphysics, int mesh_index){
     
-    if(fSimulationData->IsThreePhaseQ()){
-        DebugStop();
-    }
+//    if(fSimulationData->IsThreePhaseQ()){
+//        DebugStop();
+//    }
     
 #ifdef PZDEBUG
     if (!cmesh_multiphysics) {
@@ -648,10 +673,20 @@ void TRMBuildTransfers::s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TP
     TPZFMatrix<STATE> ScatterSaturation(fs_To_Transport.Cols(),1,0.0);
     long pos = 0;
     for (int el = 0; el < nel; el++) {
-        for(int ip = 0; ip < fs_dof_scatter[el].size(); ip++) {
-            ScatterSaturation(pos,0) = cmesh_saturation->Solution()(fs_dof_scatter[el][ip],0);
-            pos++;
+        
+        if (!mesh_index) {
+            for(int ip = 0; ip < fsa_dof_scatter[el].size(); ip++) {
+                ScatterSaturation(pos,0) = cmesh_saturation->Solution()(fsa_dof_scatter[el][ip],0);
+                pos++;
+            }
         }
+        else{
+            for(int ip = 0; ip < fsb_dof_scatter[el].size(); ip++) {
+                ScatterSaturation(pos,0) = cmesh_saturation->Solution()(fsb_dof_scatter[el][ip],0);
+                pos++;
+            }
+        }
+        
     }
     
     // Step two

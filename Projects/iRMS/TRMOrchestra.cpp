@@ -113,8 +113,9 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
     fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
+
     fSpaceGenerator->PrintGeometry();
 #ifdef PZDEBUG
     fSpaceGenerator->PrintGeometry();
@@ -162,9 +163,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
     }
     
-    if(fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()){
+    if(fSimulationData->IsThreePhaseQ()){
         Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->TransportMesh());
         Transfer->Fill_s_To_Transport(fSpaceGenerator->TransportMesh(), 0);
+        Transfer->Fill_s_To_Transport(fSpaceGenerator->TransportMesh(), 1);
         Transfer->ComputeLeftRight(fSpaceGenerator->TransportMesh());
         Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),true);
         Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
@@ -245,7 +247,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
     fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
     fSpaceGenerator->PrintGeometry();
 #ifdef PZDEBUG

@@ -670,25 +670,6 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
     fBetaSaturationMesh->Print(out);
 #endif
     
-//    if (fBetaSaturationMesh) {
-//        DebugStop();
-//    }
-//    fBetaSaturationMesh = new TPZCompMesh(fGeoMesh);
-//    fBetaSaturationMesh->SetDimModel(3);
-//    fBetaSaturationMesh->SetDefaultOrder(0);
-//    fBetaSaturationMesh->SetAllCreateFunctionsDiscontinuous();
-//    
-//    TRMPhaseTransport *mat = new TRMPhaseTransport(_ReservMatId);
-//    fBetaSaturationMesh->InsertMaterialObject(mat);
-//    
-//    TRMPhaseInterfaceTransport *matint = new TRMPhaseInterfaceTransport(_ReservoirInterface);
-//    fGeoMesh->AddInterfaceMaterial(_ReservMatId, _ReservMatId,_ReservoirInterface);
-//    
-//    // WE NEED TO ADD THE BOUNDARY CONDITION MATERIALS
-//    DebugStop();
-//    
-//    fBetaSaturationMesh->ApproxSpace().CreateInterfaces(fBetaSaturationMesh);
-    
 }
 
 /** @brief Create a multiphysics computational mesh L2 */

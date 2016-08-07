@@ -86,14 +86,13 @@ void TRMSegregatedAnalysis::SegregatedIteration(){
         return;
     }
     
-    this->UpdateFluxes_at_n();
-    
 }
 
 void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsFrozenQ){
 
     if (IsFrozenQ) {
         this->SegregatedIteration();
+        this->UpdateFluxes_at_n();
     }
     
     if (fSimulationData->IsOnePhaseQ()) {
@@ -107,14 +106,20 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsFrozenQ){
 
 /** @brief Update memory using the Transfer object at state n */
 void TRMSegregatedAnalysis::UpdateMemory_at_n(){
+
+    if (fSimulationData->IsTwoPhaseQ()) {
+        fTransfer->s_To_Transport_Memory(fHyperbolic->Meshvec()[0], fHyperbolic->Mesh(),0);// sa
+    }
     
-    fTransfer->s_To_Transport_Memory(fHyperbolic->Meshvec()[0], fHyperbolic->Mesh(),0);// sa
-//    fTransfer->s_To_Transport_Memory(fHyperbolic->Meshvec()[0], fSpaceGenerator->TransportMesh().operator->(),1);// sb
+
+    if (fSimulationData->IsThreePhaseQ()) {
+        fTransfer->s_To_Transport_Memory(fHyperbolic->Meshvec()[0], fHyperbolic->Mesh(),0);// sa        
+        fTransfer->s_To_Transport_Memory(fHyperbolic->Meshvec()[1], fHyperbolic->Mesh(),1);// sb
+    }
+
 
     fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
-    if (fSimulationData->IsThreePhaseQ()) {
-        DebugStop(); 
-    }
+
     
 }
 
@@ -125,9 +130,6 @@ void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
     fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
     fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
     
-    if (fSimulationData->IsThreePhaseQ()) {
-        DebugStop();
-    }
     
 }
 
