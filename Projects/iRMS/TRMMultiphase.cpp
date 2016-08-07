@@ -1760,6 +1760,11 @@ void TRMMultiphase::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
             Solout[0] = s;
         }
             break;
+        case 4:
+        {
+            Solout[0] = 1.0-s;
+        }
+            break;
         default:
         {
             DebugStop();

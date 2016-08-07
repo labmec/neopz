@@ -177,7 +177,8 @@ void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
 
     if (fSimulationData->IsTwoPhaseQ()) {
         scalnames.Push("p");
-        scalnames.Push("s_a");        
+        scalnames.Push("s_a");
+        scalnames.Push("s_b");        
         scalnames.Push("div_u");
         vecnames.Push("u");
     }

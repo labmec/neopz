@@ -91,14 +91,14 @@ void BoxLinearTracerDual()
     
     // on box reservoir
 //    RawData->WaterReservoirBox(); // Single-phase flow
-//    RawData->WaterOilReservoirBox(); // Two-phase flow
+    RawData->WaterOilReservoirBox(); // Two-phase flow
 //    RawData->WaterOilReservoirVertical(); // Two-phase flow
 //    RawData->WaterOilGasReservoirBox(); // Three-phase flow
     
     // On cricular reservoir
 //    RawData->WaterReservoirCircle();
 //    RawData->WaterOilReservoirCircular();
-    RawData->WaterOilGasReservoirCircular();
+//    RawData->WaterOilGasReservoirCircular();
     
     TPZAutoPointer<TRMSimulationData> SimData = new TRMSimulationData;
     SimData->SetRawData(RawData);
