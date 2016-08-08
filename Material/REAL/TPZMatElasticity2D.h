@@ -69,7 +69,9 @@ protected:
     REAL fPreStressXX;
     REAL fPreStressXY;
     REAL fPreStressYY;
-    REAL fPreStressZZ;    
+    REAL fPreStressZZ;
+    REAL fPreStressXZ;
+    REAL fPreStressYZ;
     
     /** @brief Uses plain stress
      * @note \f$fPlaneStress = 1\f$ => Plain stress state
@@ -320,38 +322,40 @@ public:
         
         
         // Local Inicial Stresses after Inclination
-        SigmaXX = ((lxx*lxx) * fPreStressHH) + ((lxy*lxy) * fPreStresshh) + ((lxz*lxz) * fPreStressVV);
-        SigmaYY = ((lyx*lyx) * fPreStressHH) + ((lyy*lyy) * fPreStresshh) + ((lyz*lyz) * fPreStressVV);
-        SigmaZZ = ((lzx*lzx) * fPreStressHH) + ((lzy*lzy) * fPreStresshh) + ((lzz*lzz) * fPreStressVV);
-        SigmaXY = ((lxx*lyx) * fPreStressHH) + ((lxy*lyy) * fPreStresshh) + ((lxz*lyz) * fPreStressVV);
-      //SigmaYZ = ((lyx*lzx) * fPreStressHH) + ((lyy*lzy) * fPreStresshh) + ((lyz*lzz) * fPreStressVV);
-      //SigmaXZ = ((lzx*lxx) * fPreStressHH) + ((lzy*lxy) * fPreStresshh) + ((lzz*lxz) * fPreStressVV);
+        SigmaXX      = ((lxx*lxx) * fPreStressHH) + ((lxy*lxy) * fPreStresshh) + ((lxz*lxz) * fPreStressVV);
+        SigmaYY      = ((lyx*lyx) * fPreStressHH) + ((lyy*lyy) * fPreStresshh) + ((lyz*lyz) * fPreStressVV);
+        SigmaZZ      = ((lzx*lzx) * fPreStressHH) + ((lzy*lzy) * fPreStresshh) + ((lzz*lzz) * fPreStressVV);
+        SigmaXY      = ((lxx*lyx) * fPreStressHH) + ((lxy*lyy) * fPreStresshh) + ((lxz*lyz) * fPreStressVV);
+        fPreStressYZ = ((lyx*lzx) * fPreStressHH) + ((lyy*lzy) * fPreStresshh) + ((lyz*lzz) * fPreStressVV);
+        fPreStressXZ = ((lzx*lxx) * fPreStressHH) + ((lzy*lxy) * fPreStresshh) + ((lzz*lxz) * fPreStressVV);
     
         
     }
 
     
     // Calculates analytical solution to be used as fPreStresses
-    void AnalyticalWellboreSolution(REAL &SigmaX, REAL &SigmaY, REAL &SigmaXY, REAL &SigmaZ, REAL theta, REAL R)
+    void AnalyticalWellboreSolution(REAL &SigmaX, REAL &SigmaY, REAL &SigmaXY, REAL &SigmaZ, REAL &SigmaXZ, REAL &SigmaYZ, REAL theta, REAL R)
     {
         
         
-        SigmaX = (2.0*fPreStressXX*pow(R,4.0) - (3.0*fPreStressXX - fPreStressYY - 2.0*fPw)*pow(frw,2.0)*pow(R,2.0)*cos(2.0*theta) +
+        SigmaX   = (2.0*fPreStressXX*pow(R,4.0) - (3.0*fPreStressXX - fPreStressYY - 2.0*fPw)*pow(frw,2.0)*pow(R,2.0)*cos(2.0*theta) +
                 (fPreStressXX - fPreStressYY)*pow(frw,2.0)*(3*pow(frw,2.0) - 2.0*pow(R,2.0))*cos(4.0*theta) - 4*fPreStressXY*pow(frw,2.0)*pow(R,2.0)*sin(2.0*theta) +
                 6.0*fPreStressXY*pow(frw,4.0)*sin(4.0*theta) - 4.0*fPreStressXY*pow(frw,2.0)*pow(R,2.0)*sin(4.0*theta))/(2.*pow(R,4.0));
         
-        SigmaY = -(-2.0*fPreStressYY*pow(R,4.0) + (fPreStressXX - 3.0*fPreStressYY + 2.0*fPw)*pow(frw,2.0)*pow(R,2.0)*cos(2.0*theta) +
+        SigmaY   = -(-2.0*fPreStressYY*pow(R,4.0) + (fPreStressXX - 3.0*fPreStressYY + 2.0*fPw)*pow(frw,2.0)*pow(R,2.0)*cos(2.0*theta) +
                  (fPreStressXX - fPreStressYY)*pow(frw,2.0)*(3.0*pow(frw,2.0) - 2.0*pow(R,2.0))*cos(4.0*theta) + 4.0*fPreStressXY*pow(frw,2.0)*pow(R,2.0)*sin(2.0*theta) +
                  6.0*fPreStressXY*pow(frw,4.0)*sin(4.0*theta) - 4.0*fPreStressXY*pow(frw,2.0)*pow(R,2.0)*sin(4.0*theta))/(2.*pow(R,4.0));
         
-        SigmaXY = (2.0*fPreStressXY*pow(R,4.0) + fPreStressXY*(-6.0*pow(frw,4.0) + 4.0*pow(frw,2.0)*pow(R,2.0))*cos(4.0*theta) -
+        SigmaXY  = (2.0*fPreStressXY*pow(R,4.0) + fPreStressXY*(-6.0*pow(frw,4.0) + 4.0*pow(frw,2.0)*pow(R,2.0))*cos(4.0*theta) -
                  (fPreStressXX + fPreStressYY - 2.0*fPw)*pow(frw,2.0)*pow(R,2.0)*sin(2.0*theta) + 3.0*fPreStressXX*pow(frw,4.0)*sin(4.0*theta) -
                  3.0*fPreStressYY*pow(frw,4.0)*sin(4.0*theta) - 2.0*fPreStressXX*pow(frw,2.0)*pow(R,2.0)*sin(4.0*theta) +
                  2.0*fPreStressYY*pow(frw,2.0)*pow(R,2.0)*sin(4.0*theta))/(2.*pow(R,4.0));
         
-        SigmaZ = fPreStressZZ - (2.0*fnu*pow(frw,2.0)*((fPreStressXX - fPreStressYY)*cos(2.0*theta) + 2.0*fPreStressXY*sin(2.0*theta)))/pow(R,2.0);
+        SigmaZ   = fPreStressZZ - (2.0*fnu*pow(frw,2.0)*((fPreStressXX - fPreStressYY)*cos(2.0*theta) + 2.0*fPreStressXY*sin(2.0*theta)))/pow(R,2.0);
         
-        //fPreStressZZ - (2*fnu*pow(frw,2)*(2*fPreStressXY + (fPreStressXX - fPreStressYY)*cos(2*theta))*sin(2*theta))/pow(R,2);
+        SigmaXZ  = fPreStressXZ - (fPreStressXZ*pow(frw,2)*cos(2*theta))/pow(R,2) - (fPreStressYZ*pow(frw,2)*sin(2*theta))/pow(R,2);
+        
+        SigmaYZ  = fPreStressYZ + (fPreStressYZ*pow(frw,2)*cos(2*theta))/pow(R,2) - (fPreStressXZ*pow(frw,2)*sin(2*theta))/pow(R,2);
 
         
         

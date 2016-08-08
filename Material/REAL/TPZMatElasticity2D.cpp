@@ -214,7 +214,7 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     
     //*************** fPreStress by Analytical Solution ****************//
     
-    REAL SigmaX = 0., SigmaY = 0., SigmaXY = 0., SigmaZ = 0.;
+    REAL SigmaX = 0., SigmaY = 0., SigmaXY = 0., SigmaZ = 0., SigmaXZ = 0., SigmaYZ = 0.;
     
     //data.dphix.Print(" Socorro ");
     
@@ -228,7 +228,7 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         theta = atan2(coordY,coordX);
         r = sqrt((coordX*coordX)+(coordY*coordY));
         
-        AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, theta, r);
+        AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, SigmaXZ ,SigmaYZ ,theta, r);
     }
     else{
         SigmaX = fPreStressXX;
@@ -424,9 +424,9 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
                 theta = atan2(coordY,coordX);
                 r = sqrt((coordX*coordX)+(coordY*coordY));
                 
-                REAL Sx=0., Sy=0., Sxy=0., Sz=0.;
+                REAL Sx=0., Sy=0., Sxy=0., Sz=0., Sxz=0., Syz=0.;
                 
-                AnalyticalWellboreSolution(Sx, Sy, Sxy, Sz, theta, r);
+                AnalyticalWellboreSolution(Sx, Sy, Sxy, Sz, Sxz, Syz, theta, r);
                 
                 v1(0,0) = Sx;
                 v1(0,1) = Sxy;
@@ -721,7 +721,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     
     //***** Analytic PreStresses *******//
-    REAL SigmaX = 0., SigmaY = 0., SigmaXY = 0., SigmaZ = 0.;    
+    REAL SigmaX = 0., SigmaY = 0., SigmaXY = 0., SigmaZ = 0., SigmaXZ = 0., SigmaYZ = 0.;
 
     if (fAnalytics == 1) {
         REAL theta = 0.;
@@ -733,7 +733,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         theta = atan2(coordY,coordX);
         r = sqrt((coordX*coordX)+(coordY*coordY));
         
-        AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, theta, r);
+        AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, SigmaXZ, SigmaYZ, theta, r);
     }
     else{
         
@@ -823,7 +823,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     /******** Analytical Solution ********/
     
     //***** Analytic Stresses *******//
-    REAL SigmaAnX = 0., SigmaAnY = 0., SigmaAnXY = 0., SigmaAnZ = 0.;
+    REAL SigmaAnX = 0., SigmaAnY = 0., SigmaAnXY = 0., SigmaAnZ = 0., SigmaAnXZ = 0., SigmaAnYZ = 0.;
     
     REAL theta = 0.;
     REAL coordY = 0.;
@@ -834,7 +834,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     theta = atan2(coordY,coordX);
     r = sqrt((coordX*coordX)+(coordY*coordY));
     
-    AnalyticalWellboreSolution(SigmaAnX, SigmaAnY, SigmaAnXY, SigmaAnZ, theta, r);
+    AnalyticalWellboreSolution(SigmaAnX, SigmaAnY, SigmaAnXY, SigmaAnZ, SigmaAnXZ, SigmaAnYZ, theta, r);
     
     //	Analytical Stress x-direction
     if(var == 7) {
@@ -948,10 +948,6 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     // *********** What????? *******************
     //******** SigXZ e SigYZ nao sao calculados!!! **********
-    REAL SigmaXZ = 0.;
-    REAL SigmaYZ = 0.;
-    REAL SigmaAnYZ = 0.;
-    REAL SigmaAnXZ = 0.;
     
     //FEM Sol: Sig
     //Analytic Sol: Sigma

@@ -123,7 +123,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
 //            // cria vetor normal rotacionada e coordenada projetada
 //            TPZVec<REAL> nRot(3,0.),xP(3,0.);
 //            
-//            nRot[0] = -sin(beta);
+//            nRot[0] = sin(beta);
 //            nRot[1] = 0;
 //            nRot[2] = cos(beta);
 //            
@@ -143,8 +143,12 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
 //            //********* Desse jeito eh preciso passar a coordenada sem rotacionar a malha, mas e o z, sendo sempre zero, nao interfere???  **********//
             REAL xP = 0., yP = 0., zP = 0.;
             
-            xP =  x[0]*cos(alpha)*cos(beta) + x[1]*cos(beta)*sin(alpha) - x[2]*sin(beta) + (x[2]*cos(beta) + x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
-            yP = x[1]*cos(alpha) - x[0]*sin(alpha);
+            xP =  x[0]*cos(alpha)*cos(beta) - x[1]*cos(beta)*sin(alpha) + x[2]*sin(beta) - (x[2]*cos(beta) - x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
+            //x*Cos(\[Alpha])*Cos(\[Beta]) - y*Cos(\[Beta])*Sin(\[Alpha]) + z*Sin(\[Beta]) - (z*Cos(\[Beta]) - x*Cos(\[Alpha])*Sin(\[Beta]) + y*Sin(\[Alpha])*Sin(\[Beta]))*Tan(\[Beta])
+            
+            yP = x[1]*cos(alpha) + x[0]*sin(alpha);
+            //y*Cos(\[Alpha]) + x*Sin(\[Alpha])
+            
             zP = 0;
             
             x[0] = xP;
