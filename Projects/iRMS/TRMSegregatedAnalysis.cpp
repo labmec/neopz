@@ -79,25 +79,17 @@ void TRMSegregatedAnalysis::AdjustVectors(){
     fHyperbolic->AdjustVectors();
 }
 
-void TRMSegregatedAnalysis::SegregatedIteration(){
-
-    fParabolic->ExcecuteOneStep();
-    if (fSimulationData->IsOnePhaseQ()) {
-        return;
-    }
+void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
     
-    this->UpdateFluxes_at_n();    
-    
-}
-
-void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsFrozenQ){
-    
+//    std::cout << "Last step " << std::endl;
     this->UpdateMemory();
     this->UpdateMemory_at_n();    
-    
-    if (IsFrozenQ) {
-        this->SegregatedIteration();
-
+    if (IsActiveQ) {
+        fParabolic->ExcecuteOneStep();
+        if (fSimulationData->IsOnePhaseQ()) {
+            return;
+        }
+        this->UpdateFluxes_at_n();
     }
     
     if (fSimulationData->IsOnePhaseQ()) {
@@ -105,6 +97,15 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsFrozenQ){
     }
     
     fHyperbolic->ExcecuteOneStep();
+    
+//    std::cout << "Current step " << std::endl;
+    this->UpdateMemory_at_n();
+    
+}
+
+void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsActiveQ){
+
+   this->SegregatedIteration(IsActiveQ);
 
 }
 
@@ -113,9 +114,29 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     
     fSimulationData->SetCurrentStateQ(true);
     Parabolic()->UpdateMemory();
+    
+    if (fSimulationData->IsOnePhaseQ()) {
+        return;
+    }
+    
     Hyperbolic()->UpdateMemory();
     fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
 
+}
+
+/** @brief Update memory using the Transfer object */
+void TRMSegregatedAnalysis::UpdateMemory(){
+    
+    fSimulationData->SetCurrentStateQ(false);
+    Parabolic()->UpdateMemory();
+    
+    if (fSimulationData->IsOnePhaseQ()) {
+        return;
+    }
+    
+    Hyperbolic()->UpdateMemory();
+    fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
+    
 }
 
 /** @brief Update memory using the Transfer object at state n */
@@ -128,19 +149,9 @@ void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
     
 }
 
-/** @brief Update memory using the Transfer object */
-void TRMSegregatedAnalysis::UpdateMemory(){
+void TRMSegregatedAnalysis::PostProcessStep(bool IsActiveQ){
     
-    fSimulationData->SetCurrentStateQ(false);
-    Parabolic()->UpdateMemory();
-    Hyperbolic()->UpdateMemory();
-    fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
-    
-}
-
-void TRMSegregatedAnalysis::PostProcessStep(bool IsFrozenQ){
-    
-    if(IsFrozenQ){
+    if(IsActiveQ){
         fParabolic->PostProcessStep();
     }
     

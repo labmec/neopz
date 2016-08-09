@@ -235,6 +235,9 @@ public:
      * @{
      */
     
+    /** @brief Create geometric mesh being used by space odissey */
+    void BuildGeometry(bool Is3DGeometryQ);
+    
     /** @brief Create computational meshes using space odissey */
     void CreateCompMeshes();
     

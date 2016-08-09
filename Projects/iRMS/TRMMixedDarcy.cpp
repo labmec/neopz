@@ -11,18 +11,18 @@
 
 TRMMixedDarcy::TRMMixedDarcy() : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>()
 {
-    
+    fdimension = 0;
 }
 
-TRMMixedDarcy::TRMMixedDarcy(int matid) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(matid)
+TRMMixedDarcy::TRMMixedDarcy(int matid, int dimension) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(matid)
 {
-    
+    fdimension = dimension;
 }
 
 
 TRMMixedDarcy::TRMMixedDarcy(const TRMMixedDarcy &mat) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(mat)
 {
-    
+    this->fdimension = mat.fdimension;
 }
 
 TRMMixedDarcy::~TRMMixedDarcy()
@@ -260,7 +260,7 @@ void TRMMixedDarcy::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
 void TRMMixedDarcy::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
 {
     int ublock = 0;
-    
+    int dim = this->Dimension();
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
     TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
@@ -301,23 +301,25 @@ void TRMMixedDarcy::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
             ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
-            VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
-            VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
-            VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
+            for (int k = 0; k < dim; k++) {
+                VectorOnXYZ(k,0) = datavec[ublock].fNormalVec(k,ivectorindex);
+            }
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
             VectorOnMaster *= JacobianDet;
             
             /* Contravariant Piola mapping preserves the divergence */
-            // the division by the jacobianDet is to make the integral on the master element???
-            DivergenceofPhi(iq,0) = ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) +
-                                     dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) +
-                                     dphiuH1(2,ishapeindex)*VectorOnMaster(2,0) );
+            for (int k = 0; k < dim; k++) {
+                DivergenceofPhi(iq,0) +=  dphiuH1(k,ishapeindex)*VectorOnMaster(k,0);
+            }
         }
         
         GradOfXInverse.Multiply(gradu, graduMaster);
         graduMaster *= JacobianDet;
-        DivergenceofU = (graduMaster(0,0)+graduMaster(1,1)+graduMaster(2,2));
+        for (int k = 0; k < dim; k++) {
+            DivergenceofU += graduMaster(k,k);
+        }
+        
     }
     else
     {
@@ -327,9 +329,9 @@ void TRMMixedDarcy::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
             /* Computing the divergence for constant jacobian elements */
-            DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
-            datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
-            datavec[ublock].fNormalVec(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
+            for (int k = 0; k < dim; k++) {
+                DivergenceofPhi(iq,0) +=  datavec[ublock].fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
+            }
         }
     }
     
@@ -826,13 +828,16 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     
     REAL p_avg    = point_memory.p_avg();
     REAL s_avg    = point_memory.sa();
-    
-    REAL s = 0.0;
+    REAL s_n = s_avg_n;
+    REAL s = s_avg;
     
     REAL p_a    = p_avg_n;
     REAL s_a    = s_avg_n;
     
     //  Computing closure relationship at given average values
+    
+//    std::cout << "s_n = " << s_n << std::endl;
+//    std::cout << "s = " << s << std::endl;
     
     TPZManVector<STATE, 10> v(nvars),vavg(nvars);
     v[0] = p_a;
@@ -903,8 +908,8 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
             Kl_inv_dot_u        += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dp_inv_dot_u     += lambda_dp_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_ds_inv_dot_u     += lambda_ds_K_inv_u(i,0)*phi_u_i(i,0);
-            rho_g_dot_phi_u     += (s*rho_a[0]+(1.0-s)*rho_b[0])*Gravity[i]*phi_u_i(i,0);
-            rho_dp_g_dot_phi_u  += (s*rho_a[1]+(1.0-s)*rho_b[1])*Gravity[i]*phi_u_i(i,0);
+            rho_g_dot_phi_u     += (s_n*rho_a[0]+(1.0-s_n)*rho_b[0])*Gravity[i]*phi_u_i(i,0);
+            rho_dp_g_dot_phi_u  += (s_n*rho_a[1]+(1.0-s_n)*rho_b[1])*Gravity[i]*phi_u_i(i,0);
             rho_ds_g_dot_phi_u  += (rho_a[0]-rho_b[0])*Gravity[i]*phi_u_i(i,0);
         }
         
@@ -951,7 +956,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     for (int ip = 0; ip < nphip; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) *(s*rho_a[0]+(1.0-s)*rho_b[0]) * phi[0] - f[0]) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) *(s_n*rho_a[0]+(1.0-s_n)*rho_b[0]) * phi[0] - f[0]) * phi_ps(ip,0);
         
         for (int ju = 0; ju < nphiu; ju++)
         {
@@ -960,7 +965,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         
         for (int jp = 0; jp < nphip; jp++)
         {
-            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((s*rho_a[0]+(1.0-s)*rho_b[0]) * phi[1] + (s*rho_a[1]+(1.0-s)*rho_b[1]) * phi[0]) * phi_ps(ip,0) ) * phi_ps(jp,0);
+            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((s_n*rho_a[0]+(1.0-s_n)*rho_b[0]) * phi[1] + (s_n*rho_a[1]+(1.0-s_n)*rho_b[1]) * phi[0]) * phi_ps(ip,0) ) * phi_ps(jp,0);
         }
         
     }

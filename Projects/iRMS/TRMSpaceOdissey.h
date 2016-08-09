@@ -160,6 +160,9 @@ public:
     void CreateGeometricGIDMesh(std::string &grid);
     
     /** @brief Create a reservoir-box geometry */
+    void CreateGeometricBoxMesh2D(TPZManVector<REAL,2> dx, TPZManVector<REAL,2> dy);
+    
+    /** @brief Create a reservoir-box geometry */
     void CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVector<REAL,2> dy, TPZManVector<REAL,2> dz);
     
     /** @brief Create a reservoir-box geometry */

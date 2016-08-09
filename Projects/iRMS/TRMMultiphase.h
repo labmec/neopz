@@ -30,13 +30,16 @@ private:
     /** @brief Autopointer of Simulation data */
     TPZAutoPointer<TRMSimulationData> fSimulationData;
     
+    /** @brief Material dimension */
+    int fdimension;
+    
 public:
     
     /** @brief Default constructor */
     TRMMultiphase();
     
     /** @brief Constructor based on a material id */
-    TRMMultiphase(int matid);
+    TRMMultiphase(int matid, int dimension);
     
     /** @brief Constructor based on a TRMMultiphase object */
     TRMMultiphase(const TRMMultiphase &mat);
@@ -63,7 +66,7 @@ public:
     }
     
     /** @brief Returns the integrable dimension of the material */
-    int Dimension() const {return 3;}
+    int Dimension() const {return fdimension;}
     
     /** @brief Returns the number of state variables associated with the material */
     int NStateVariables() {return 1;} // Deprecated, must to be removed

@@ -129,16 +129,16 @@ public:
      */
     
     /** @brief Execute a euler method step */
-    void ExcecuteOneStep(bool IsFrozenQ);
+    void ExcecuteOneStep(bool IsActiveQ);
     
     /** @brief Execute a newton iteration  */
     void NewtonIteration();
     
     /** @brief Execute a segregated iteration  */
-    void SegregatedIteration();
+    void SegregatedIteration(bool IsActiveQ);
     
     /** @brief PostProcess results */
-    void PostProcessStep(bool IsFrozenQ);
+    void PostProcessStep(bool IsActiveQ);
 
     /** @brief Update memory using the Transfer object at state n */
     void UpdateFluxes_at_n();

@@ -27,13 +27,16 @@ private:
     /** @brief define the transfer matrices */
     TPZAutoPointer<TRMBuildTransfers> fTransfer;
     
+    /** @brief material dimension */
+    int fdimension;
+    
 public:
     
     /** @brief Default constructor */
     TRMPhaseTransport();
     
     /** @brief Constructor based on a material id */
-    TRMPhaseTransport(int matid);
+    TRMPhaseTransport(int matid, int dimension);
     
     /** @brief Constructor based on a TRMMultiphase object */
     TRMPhaseTransport(const TRMPhaseTransport &mat);
@@ -60,7 +63,7 @@ public:
     }
     
     /** @brief Returns the integrable dimension of the material */
-    int Dimension() const {return 3;}
+    int Dimension() const {return fdimension;}
     
     /** @brief Returns the number of state variables associated with the material */
     int NStateVariables() {return 1;} // Deprecated, must to be removed

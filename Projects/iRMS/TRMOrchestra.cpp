@@ -50,6 +50,65 @@ TRMOrchestra::~TRMOrchestra(){
     
 }
 
+/** @brief Create geometric mesh being used by space odissey */
+void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
+    
+    bool IsReservoirBoxQ = true;
+    
+    if (Is3DGeometryQ) {
+        
+        int nel_x = 2;
+        int nel_y = 1;
+        int nel_z = 1;
+        
+        TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
+        dx[0] = 100.0/REAL(nel_x);
+        dy[0] = 20.0/REAL(nel_y);
+        dz[0] = 20.0/REAL(nel_z);
+        
+        if (IsReservoirBoxQ) {
+            fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
+        }
+        else
+        {
+            std::string dirname = PZSOURCEDIR;
+            std::string file;
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
+        }
+        
+        fSpaceGenerator->Gmesh()->SetDimension(3);
+        fSpaceGenerator->PrintGeometry();
+    }
+    else{
+        
+        int nel_x = 100;
+        int nel_y = 10;
+        
+        TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
+        dx[0] = 100.0/REAL(nel_x);
+        dy[0] = 20.0/REAL(nel_y);
+        
+        if (IsReservoirBoxQ) {
+            fSpaceGenerator->CreateGeometricBoxMesh2D(dx, dy);
+        }
+        else
+        {
+            std::string dirname = PZSOURCEDIR;
+            std::string file;
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            fSpaceGenerator->CreateGeometricGIDMesh(file);
+        }
+        
+        fSpaceGenerator->Gmesh()->SetDimension(2);
+        fSpaceGenerator->PrintGeometry();
+        
+    }
+    
+
+    
+}
+
 /** @brief Create a primal analysis using space odissey */
 void TRMOrchestra::CreateAnalysisPrimal()
 {
@@ -100,26 +159,14 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     TPZAutoPointer<TRMFluxPressureAnalysis> parabolic = new TRMFluxPressureAnalysis;
     TPZAutoPointer<TRMTransportAnalysis> hyperbolic = new TRMTransportAnalysis;
     
-    int nel_x = 10;
-    int nel_y = 1;
-    int nel_z = 1;
-    
-    TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 100.0/REAL(nel_x);
-    dy[0] = 20.0/REAL(nel_y);
-    dz[0] = 20.0/REAL(nel_z);
-    
-    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
-    
-//    std::string dirname = PZSOURCEDIR;
-//    std::string file;
-//    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-//    fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
-
-    fSpaceGenerator->PrintGeometry();
 #ifdef PZDEBUG
+    if (!fSpaceGenerator->Gmesh()) {
+        std::cout << "iRMS:: Call BuildGeometry " << std::endl;
+        DebugStop();
+    }
     fSpaceGenerator->PrintGeometry();
 #endif
+    
     fSpaceGenerator->SetDefaultPOrder(1);
     
     fSpaceGenerator->CreateFluxCmesh();
@@ -153,7 +200,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     Transfer->SetSimulationData(fSimulationData);
     Transfer->Fill_u_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 0);
     Transfer->Fill_p_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 1);
-    Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->MixedFluxPressureCmesh());
+    
+    if(fSimulationData->IsOnePhaseQ()){
+        Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->MixedFluxPressureCmesh());
+    }
     
     if(fSimulationData->IsTwoPhaseQ()){
         Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->TransportMesh());        
@@ -234,25 +284,14 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> mono_analysis = new TRMMonolithicMultiphaseAnalysis;
     
-    int nel_x = 10;
-    int nel_y = 1;
-    int nel_z = 1;
-    
-    TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 100.0/REAL(nel_x);
-    dy[0] = 20.0/REAL(nel_y);
-    dz[0] = 20.0/REAL(nel_z);
-    
-    fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
-    
-//    std::string dirname = PZSOURCEDIR;
-//    std::string file;
-//    file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-//    fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
-    fSpaceGenerator->PrintGeometry();
 #ifdef PZDEBUG
+    if (!fSpaceGenerator->Gmesh()) {
+        std::cout << "iRMS:: Call BuildGeometry " << std::endl;
+        DebugStop();
+    }
     fSpaceGenerator->PrintGeometry();
 #endif
+    
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
@@ -388,8 +427,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
-            fSegregatedAnalysis->ExcecuteOneStep(true);
-            fSegregatedAnalysis->PostProcessStep(true);
+            fSegregatedAnalysis->ExcecuteOneStep(false);
+            fSegregatedAnalysis->PostProcessStep(false);
         }
         
     }

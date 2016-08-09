@@ -184,7 +184,7 @@ public:
     }
     
     /** @brief Set the weighted pressure */
-    void Set_p(REAL &p){
+    void Set_p(REAL p){
         fp = p;
     }
     
@@ -194,7 +194,7 @@ public:
     }
     
     /** @brief Set the weighted pressure at the previous timestep */
-    void Set_p_n(REAL &p_n){
+    void Set_p_n(REAL p_n){
         fp_n = p_n;
     }
     
@@ -204,7 +204,7 @@ public:
     }
     
     /** @brief Set the average weighted pressure */
-    void Set_p_avg(REAL &p_avg){
+    void Set_p_avg(REAL p_avg){
         fp_avg = p_avg;
     }
     
@@ -214,7 +214,7 @@ public:
     }
     
     /** @brief Set the average weighted pressure at the previous timestep */
-    void Set_p_avg_n(REAL &p_avg_n){
+    void Set_p_avg_n(REAL p_avg_n){
         fp_avg_n = p_avg_n;
     }
     
@@ -224,7 +224,7 @@ public:
     }
     
     /** @brief Set alpha saturation */
-    void Set_sa(REAL &sa){
+    void Set_sa(REAL sa){
         fsa = sa;
     }
     
@@ -234,7 +234,7 @@ public:
     }
     
     /** @brief Set alpha saturation at last step */
-    void Set_sa_n(REAL &sa_n){
+    void Set_sa_n(REAL sa_n){
         fsa_n = sa_n;
     }
     
@@ -244,7 +244,7 @@ public:
     }
     
     /** @brief Set beta saturation */
-    void Set_sb(REAL &sb){
+    void Set_sb(REAL sb){
         fsb = sb;
     }
     
@@ -254,7 +254,7 @@ public:
     }
     
     /** @brief Set beta saturation at last step */
-    void Set_sb_n(REAL &sb_n){
+    void Set_sb_n(REAL sb_n){
         fsb_n = sb_n;
     }
     

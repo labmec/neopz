@@ -12,18 +12,20 @@
 
 TRMMultiphase::TRMMultiphase() : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>()
 {
+
+    fdimension = 0;
     
 }
 
-TRMMultiphase::TRMMultiphase(int matid) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(matid)
+TRMMultiphase::TRMMultiphase(int matid, int dimension) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(matid)
 {
-    
+    fdimension = dimension;
 }
 
 
 TRMMultiphase::TRMMultiphase(const TRMMultiphase &mat) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(mat)
 {
-    
+    this->fdimension = mat.fdimension;
 }
 
 TRMMultiphase::~TRMMultiphase()
@@ -267,7 +269,7 @@ void TRMMultiphase::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,T
 void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
 {
     int ublock = 0;
-    
+    int dim = this->Dimension();
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
     TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
@@ -297,7 +299,7 @@ void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
     Qaxes.Transpose(&QaxesT);
     QaxesT.Multiply(Jacobian, GradOfX);
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
-    
+
     int ivectorindex = 0;
     int ishapeindex = 0;
     
@@ -308,23 +310,25 @@ void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
             ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
-            VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
-            VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
-            VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
+            for (int k = 0; k < dim; k++) {
+                VectorOnXYZ(k,0) = datavec[ublock].fNormalVec(k,ivectorindex);
+            }
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
             VectorOnMaster *= JacobianDet;
             
             /* Contravariant Piola mapping preserves the divergence */
-            // the division by the jacobianDet is to make the integral on the master element???
-            DivergenceofPhi(iq,0) = ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) +
-                                     dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) +
-                                     dphiuH1(2,ishapeindex)*VectorOnMaster(2,0) );
+            for (int k = 0; k < dim; k++) {
+                DivergenceofPhi(iq,0) +=  dphiuH1(k,ishapeindex)*VectorOnMaster(k,0);
+            }
         }
         
         GradOfXInverse.Multiply(gradu, graduMaster);
         graduMaster *= JacobianDet;
-        DivergenceofU = (graduMaster(0,0)+graduMaster(1,1)+graduMaster(2,2));
+        for (int k = 0; k < dim; k++) {
+            DivergenceofU += graduMaster(k,k);
+        }
+
     }
     else
     {
@@ -334,9 +338,9 @@ void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
             /* Computing the divergence for constant jacobian elements */
-            DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
-            datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
-            datavec[ublock].fNormalVec(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
+            for (int k = 0; k < dim; k++) {
+                DivergenceofPhi(iq,0) +=  datavec[ublock].fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
+            }
         }
     }
     
@@ -1560,34 +1564,34 @@ void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMate
     this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
     
     TPZFNMatrix<3,STATE> phi_u_i_l(3,1);
-    STATE phi_un_l = 0.0;
-    int s_j;
-    int v_j;
+//    STATE phi_un_l = 0.0;
+//    int s_j;
+//    int v_j;
     
     for (int is = 0; is < nphis_a_l; is++) {
         
         ef(is + firsts_a_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_l(is,0)*un_l;
         
-        for (int ju = 0; ju < nphiu_l; ju++) {
-            
-            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-            
-            for (int j = 0; j < u_l.size(); j++) {
-                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                phi_un_l += phi_u_i_l(j,0)*n[j];
-            }
-            
-            ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0]) * phi_ss_l(is,0)*phi_un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_l; jp++) {
-            ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_r; jp++) {
-            ek(is + firsts_a_l, jp + firstp_r) += +1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ss_l(is,0)*un_l;
-        }
+//        for (int ju = 0; ju < nphiu_l; ju++) {
+//            
+//            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//            
+//            for (int j = 0; j < u_l.size(); j++) {
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                phi_un_l += phi_u_i_l(j,0)*n[j];
+//            }
+//            
+//            ek(is + firsts_a_l, ju + firstu_l) += +1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0]) * phi_ss_l(is,0)*phi_un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_l; jp++) {
+//            ek(is + firsts_a_l, jp + firstp_l) += +1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_l(is,0)*un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_r; jp++) {
+//            ek(is + firsts_a_l, jp + firstp_r) += +1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ss_l(is,0)*un_l;
+//        }
         
         for (int js = 0; js < nphis_a_l; js++) {
             ek(is + firsts_a_l, js + firsts_a_l) += +1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_l(is,0)*un_l;
@@ -1603,26 +1607,26 @@ void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMate
         
         ef(is + firsts_a_r) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_r(is,0)*un_l;
         
-        for (int ju = 0; ju < nphiu_l; ju++) {
-            
-            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
-            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
-            
-            for (int j = 0; j < u_l.size(); j++) {
-                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
-                phi_un_l += phi_u_i_l(j,0)*n[j];
-            }
-
-            ek(is + firsts_a_r, ju + firstu_l) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_r(is,0)*phi_un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_l; jp++) {
-            ek(is + firsts_a_r, jp + firstp_l) += -1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_r(is,0)*un_l;
-        }
-        
-        for (int jp = 0; jp < nphip_r; jp++) {
-            ek(is + firsts_a_r, jp + firstp_r) += -1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ss_r(is,0)*un_l;
-        }
+//        for (int ju = 0; ju < nphiu_l; ju++) {
+//            
+//            v_j = datavecleft[ub].fVecShapeIndex[ju].first;
+//            s_j = datavecleft[ub].fVecShapeIndex[ju].second;
+//            
+//            for (int j = 0; j < u_l.size(); j++) {
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[ub].fNormalVec(j,v_j);
+//                phi_un_l += phi_u_i_l(j,0)*n[j];
+//            }
+//
+//            ek(is + firsts_a_r, ju + firstu_l) += -1.0*weight * (beta*fa_l[0] + (1.0-beta)*fa_r[0])*phi_ss_r(is,0)*phi_un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_l; jp++) {
+//            ek(is + firsts_a_r, jp + firstp_l) += -1.0*weight * beta * fa_l[1] * phi_ps_l(jp,0) * phi_ss_r(is,0)*un_l;
+//        }
+//        
+//        for (int jp = 0; jp < nphip_r; jp++) {
+//            ek(is + firsts_a_r, jp + firstp_r) += -1.0*weight * (1.0-beta) * fa_r[1] * phi_ps_r(jp,0) * phi_ss_r(is,0)*un_l;
+//        }
         
         for (int js = 0; js < nphis_a_l; js++) {
             ek(is + firsts_a_r, js + firsts_a_l) += -1.0*weight * beta * fa_l[2] * phi_ss_l(js,0) * phi_ss_r(is,0)*un_l;
@@ -2209,9 +2213,9 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
     TPZManVector<STATE, 10> fa_l,fb_l,v_l(nvars+1);
     
     TPZFNMatrix<3,STATE> phi_u_i_l(3,1);
-    STATE phi_un_l = 0.0;
-    int s_j;
-    int v_j;
+//    STATE phi_un_l = 0.0;
+//    int s_j;
+//    int v_j;
     
     REAL Value_m    = 0.0;
     REAL Value_sa    = 0.0;
@@ -2611,9 +2615,9 @@ void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
     this->fSimulationData->PetroPhysics()->fb_3p(fb_r, v_r);
     
     TPZFNMatrix<3,STATE> phi_u_i_l(3,1);
-    STATE phi_un_l = 0.0;
-    int s_j;
-    int v_j;
+//    STATE phi_un_l = 0.0;
+//    int s_j;
+//    int v_j;
     
     for (int is = 0; is < nphis_a_l; is++) {
         

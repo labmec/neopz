@@ -98,7 +98,7 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         DebugStop();
     }
     
-    int dim = 3;
+    int dim = fGeoMesh->Dimension();
     int flux_or_pressure = 0;
     int qorder = fPOrder;
     
@@ -114,7 +114,7 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
         fFluxCmesh->InsertMaterialObject(mat);
         
         // Inserting volumetric materials
@@ -166,7 +166,7 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
         DebugStop();
     }
     
-    int dim = 3;
+    int dim = fGeoMesh->Dimension();
     int porder = fPOrder;
     
     // Malha computacional
@@ -177,7 +177,7 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
         fPressureCmesh->InsertMaterialObject(mat);
         
     }
@@ -258,7 +258,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         DebugStop();
     }
 
-    int dim = 3;
+    int dim = fGeoMesh->Dimension();
     int flux_or_pressure = 0;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
@@ -273,7 +273,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id);
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
         mat->SetSimulationData(fSimulationData);        
         fMixedFluxPressureCmesh->InsertMaterialObject(mat);
         
@@ -339,7 +339,7 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
         DebugStop();
     }
     
-    int dim = 3;
+    int dim = fGeoMesh->Dimension();
     int flux_or_pressure = 0;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
@@ -354,7 +354,7 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMMultiphase * mat = new TRMMultiphase(rock_id);
+        TRMMultiphase * mat = new TRMMultiphase(rock_id,dim);
         mat->SetSimulationData(fSimulationData);
         fMonolithicMultiphaseCmesh->InsertMaterialObject(mat);
         
@@ -558,7 +558,7 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
         DebugStop();
     }
     
-    int dim = 3;
+    int dim = fGeoMesh->Dimension();
     int saturation = 0;
     int sorder = fSOrder;
     
@@ -572,7 +572,7 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id);
+        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id,dim);
         fAlphaSaturationMesh->InsertMaterialObject(mat);
         
         // Inserting volumetric materials
@@ -620,7 +620,7 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
         DebugStop();
     }
     
-    int dim = 3;
+    int dim = fGeoMesh->Dimension();
     int saturation = 0;
     int sorder = fSOrder;
     
@@ -634,7 +634,7 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id);
+        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id,dim);
         fBetaSaturationMesh->InsertMaterialObject(mat);
         
         // Inserting volumetric materials
@@ -682,7 +682,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         DebugStop();
     }
     
-    int dim = 3;
+    int dim = fGeoMesh->Dimension();
     int saturation = 0;
     int sorder = fSOrder;
     int interface_id = fSimulationData->InterfacesMatId();
@@ -699,7 +699,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id);
+        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id,dim);
         mat->SetSimulationData(fSimulationData);
         fTransportMesh->InsertMaterialObject(mat);
         
@@ -798,7 +798,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = fTransportMesh->Element(el);
         
-        if(cel->Dimension() != 3){
+        if(cel->Dimension() != dim){
             continue;
         }
         
@@ -843,7 +843,6 @@ void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
     REAL s = 1.0;
     GeometryInfo.SetfDimensionlessL(s);
     fGeoMesh = GeometryInfo.GeometricGIDMesh(grid);
-    fGeoMesh->SetDimension(3);
     
 }
 
@@ -885,6 +884,66 @@ void TRMSpaceOdissey::CreateGeometricExtrudedGIDMesh(std::string &grid, TPZManVe
     fGeoMesh = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
     
     const std::string name("Reservoir with vertical extrusion");
+    fGeoMesh->SetName(name);
+    
+}
+
+/** @brief Create a reservoir-box geometry */
+void TRMSpaceOdissey::CreateGeometricBoxMesh2D(TPZManVector<REAL,2> dx, TPZManVector<REAL,2> dy){
+    
+    REAL t=0.0;
+    REAL dt;
+    int n;
+    bool IsTetrahedronMeshQ = false;
+    
+    int rock =  this->SimulationData()->RawData()->fOmegaIds[0];
+    
+    int bc_W =  this->SimulationData()->RawData()->fGammaIds[0];
+    int bc_E =  this->SimulationData()->RawData()->fGammaIds[1];
+    int bc_S =  this->SimulationData()->RawData()->fGammaIds[2];
+    int bc_N =  this->SimulationData()->RawData()->fGammaIds[3];
+    
+    // Creating a 0D element to be extruded
+    TPZGeoMesh * GeoMesh0D = new TPZGeoMesh;
+    GeoMesh0D->NodeVec().Resize(1);
+    TPZGeoNode Node;
+    TPZVec<REAL> coors(3,0.0);
+    Node.SetCoord(coors);
+    Node.SetNodeId(0);
+    GeoMesh0D->NodeVec()[0]=Node;
+    
+    TPZVec<long> Topology(1,0);
+    int elid=0;
+    
+    new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,rock,*GeoMesh0D);
+    GeoMesh0D->BuildConnectivity();
+    GeoMesh0D->SetDimension(0);
+    
+    TPZHierarquicalGrid CreateGridFrom0D(GeoMesh0D);
+    TPZAutoPointer<TPZFunction<STATE> > ParFuncX = new TPZDummyFunction<STATE>(ParametricfunctionX);
+    CreateGridFrom0D.SetParametricFunction(ParFuncX);
+    CreateGridFrom0D.SetFrontBackMatId(bc_W,bc_E);
+    
+    dt = dx[0];
+    n = int(dx[1]);
+    // Computing Mesh extruded along the parametric curve Parametricfunction
+    TPZGeoMesh * GeoMesh1D = CreateGridFrom0D.ComputeExtrusion(t, dt, n);
+    
+    TPZHierarquicalGrid CreateGridFrom1D(GeoMesh1D);
+    TPZAutoPointer<TPZFunction<STATE> > ParFuncY = new TPZDummyFunction<STATE>(ParametricfunctionY);
+    CreateGridFrom1D.SetParametricFunction(ParFuncY);
+    CreateGridFrom1D.SetFrontBackMatId(bc_S,bc_N);
+    if(IsTetrahedronMeshQ){
+        CreateGridFrom1D.SetTriangleExtrusion();
+    }
+    
+    
+    dt = dy[0];
+    n = int(dy[1]);
+    // Computing Mesh extruded along the parametric curve Parametricfunction2
+    fGeoMesh = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
+    
+    const std::string name("Reservoir box 2D");
     fGeoMesh->SetName(name);
     
 }
@@ -965,6 +1024,8 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     fGeoMesh->SetName(name);
     
 }
+
+
 void TRMSpaceOdissey::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
     X[0] = par[0];

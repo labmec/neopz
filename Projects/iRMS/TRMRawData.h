@@ -127,7 +127,7 @@ public:
      */
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
-    void WaterReservoirBox();
+    void WaterReservoirBox(bool Is3DGeometryQ);
     
     static void Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);
     
@@ -146,7 +146,7 @@ public:
      */
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
-    void WaterReservoirCircle();
+    void WaterReservoirCircle(bool Is3DGeometryQ);
 
     // @}
     
@@ -166,7 +166,7 @@ public:
      */
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
-    void WaterOilReservoirBox();
+    void WaterOilReservoirBox(bool Is3DGeometryQ);
     
     static void PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
@@ -193,7 +193,7 @@ public:
      */
     
     /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
-    void WaterOilReservoirVertical();
+    void WaterOilReservoirVertical(bool Is3DGeometryQ);
     
     // @}
     
@@ -205,7 +205,7 @@ public:
      */
     
     /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
-    void WaterOilReservoirCircular();
+    void WaterOilReservoirCircular(bool Is3DGeometryQ);
     
     // @}
     
@@ -216,7 +216,7 @@ public:
      */
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
-    void WaterOilGasReservoirBox();
+    void WaterOilGasReservoirBox(bool Is3DGeometryQ);
     
     static void PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
@@ -235,7 +235,7 @@ public:
      */
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
-    void WaterOilGasReservoirCircular();
+    void WaterOilGasReservoirCircular(bool Is3DGeometryQ);
     
     
     // @}

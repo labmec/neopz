@@ -94,7 +94,7 @@ TRMRawData::~TRMRawData()
 
 
 /** @brief Define the materials for a primitive mono-phasic example */
-void TRMRawData::WaterReservoirBox(){
+void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     
     std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
     
@@ -175,6 +175,10 @@ void TRMRawData::WaterReservoirBox(){
     N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(N);
     
+    if (!Is3DGeometryQ) {
+        return;
+    }
+    
     fGammaIds.Push(bc_B);
     B[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(B);
@@ -221,7 +225,7 @@ void TRMRawData::Impervious(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >&
 
 
 /** @brief Define the materials for a primitive mono-phasic example */
-void TRMRawData::WaterReservoirCircle(){
+void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     
     std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
     
@@ -230,7 +234,7 @@ void TRMRawData::WaterReservoirCircle(){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("oil");
-    oil->SetRhoModel(0);
+    oil->SetRhoModel(1);
     fPhases.Push(oil);
     int n_data = fSystemType.size();
     
@@ -299,7 +303,7 @@ void TRMRawData::WaterReservoirCircle(){
 
 
 /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
-void TRMRawData::WaterOilReservoirBox(){
+void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     
     std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
     
@@ -307,12 +311,15 @@ void TRMRawData::WaterOilReservoirBox(){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
+    
     fSystemType.Push("water");
-    fSystemType.Push("gas");
+    fSystemType.Push("oil");
+    
     water->SetRhoModel(1);
-    gas->SetRhoModel(1);
+    oil->SetRhoModel(1);
     fPhases.Push(water);
-    fPhases.Push(gas);
+    fPhases.Push(oil);
+    
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -382,6 +389,10 @@ void TRMRawData::WaterOilReservoirBox(){
     N[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fRecurrent_bc_data.Push(N);
     
+    if (!Is3DGeometryQ) {
+        return;
+    }
+    
     fGammaIds.Push(bc_B);
     B[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fIntial_bc_data.Push(B);
@@ -407,7 +418,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.001, S = 1.0;
+    REAL flux = -0.1, S = 1.0;
     f[0] = flux;
     f[1] = S;
     return;
@@ -427,7 +438,7 @@ void TRMRawData::Impervious_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL
 
 
 /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
-void TRMRawData::WaterOilReservoirVertical(){
+void TRMRawData::WaterOilReservoirVertical(bool Is3DGeometryQ){
     
     std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
     
@@ -529,7 +540,7 @@ void TRMRawData::WaterOilReservoirVertical(){
 
 
 /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
-void TRMRawData::WaterOilReservoirCircular(){
+void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     
     std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
     
@@ -538,11 +549,11 @@ void TRMRawData::WaterOilReservoirCircular(){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("water");
+    fSystemType.Push("oil");
     water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    oil->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(oil);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -564,15 +575,15 @@ void TRMRawData::WaterOilReservoirCircular(){
     //    fdt_up = 1.5;
     //    fdt_down = 0.5;
     
-    fn_steps  = 10;
-    fdt = 3.0*day;
+    fn_steps  = 20;
+    fdt = 10.0*day;
     fdt_max = 30.0*day;
     fdt_min = 1.0*day;
     fdt_up = 1.0;
-    fdt_down = 0.5;
+    fdt_down = 1.0;
     
     // Numeric controls
-    fn_corrections = 2;
+    fn_corrections = 20;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     
@@ -581,8 +592,8 @@ void TRMRawData::WaterOilReservoirCircular(){
     int Rock = 1;
     fOmegaIds.Push(Rock);
     
-    int bc_Inlet    = 2;
-    int bc_Outlet   = 3;
+    int bc_Outlet   = 2;
+    int bc_Inlet    = 3;
     int bc_Noflux   = 4;
     
     TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Noflux(n_data);
@@ -615,7 +626,7 @@ void TRMRawData::WaterOilReservoirCircular(){
 // @}
 
 /** @brief Define the materials for a primitive three-phase flow example and their functions associated */
-void TRMRawData::WaterOilGasReservoirBox(){
+void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     
     std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
     
@@ -624,14 +635,14 @@ void TRMRawData::WaterOilGasReservoirBox(){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("oil");
-    fSystemType.Push("gas");
-    water->SetRhoModel(1);
-    oil->SetRhoModel(1);
-    gas->SetRhoModel(1);
+    fSystemType.Push("water");
+    fSystemType.Push("water");
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(oil);
-    fPhases.Push(gas);
+    fPhases.Push(water);
+    fPhases.Push(water);
     
     int n_data = fSystemType.size();
     
@@ -702,6 +713,10 @@ void TRMRawData::WaterOilGasReservoirBox(){
     N[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
     fRecurrent_bc_data.Push(N);
     
+    if (!Is3DGeometryQ) {
+        return;
+    }
+    
     fGammaIds.Push(bc_B);
     B[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
     fIntial_bc_data.Push(B);
@@ -727,7 +742,7 @@ void TRMRawData::PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.01, S_w = 0.6, S_o = 0.4;
+    REAL flux = -0.1, S_w = 0.6, S_o = 0.4;
     f[0] = flux;
     f[1] = S_w;
     f[2] = S_o;
@@ -749,7 +764,7 @@ void TRMRawData::Impervious_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL
 
 
 /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
-void TRMRawData::WaterOilGasReservoirCircular(){
+void TRMRawData::WaterOilGasReservoirCircular(bool Is3DGeometryQ){
     
     std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
     
@@ -761,11 +776,11 @@ void TRMRawData::WaterOilGasReservoirCircular(){
     fSystemType.Push("oil");
     fSystemType.Push("gas");
     water->SetRhoModel(0);
-    oil->SetRhoModel(0);
-    gas->SetRhoModel(0);
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(oil);
-    fPhases.Push(gas);
+    fPhases.Push(water);
+    fPhases.Push(water);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -787,7 +802,7 @@ void TRMRawData::WaterOilGasReservoirCircular(){
     //    fdt_up = 1.5;
     //    fdt_down = 0.5;
     
-    fn_steps  = 10;
+    fn_steps  = 20;
     fdt = 1.0*day;
     fdt_max = 30.0*day;
     fdt_min = 1.0*day;
@@ -804,8 +819,8 @@ void TRMRawData::WaterOilGasReservoirCircular(){
     int Rock = 1;
     fOmegaIds.Push(Rock);
     
-    int bc_Inlet    = 2;
-    int bc_Outlet   = 3;
+    int bc_Outlet   = 2;
+    int bc_Inlet    = 3;
     int bc_Noflux   = 4;
     
     TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Noflux(n_data);

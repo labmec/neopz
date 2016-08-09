@@ -27,6 +27,9 @@ private:
     
     /** @brief Autopointer of Simulation data */
     TPZAutoPointer<TRMSimulationData> fSimulationData;
+
+    /** @brief material dimension */
+    int fdimension;
     
 public:
     
@@ -35,7 +38,7 @@ public:
     TRMMixedDarcy();
     
     /** @brief Constructor based on a material id */
-    TRMMixedDarcy(int matid);
+    TRMMixedDarcy(int matid, int dimension);
     
     /** @brief Constructor based on a TRMMultiphase object */
     TRMMixedDarcy(const TRMMixedDarcy &mat);
@@ -62,7 +65,7 @@ public:
     }
     
     /** returns the integrable dimension of the material */
-    int Dimension() const {return 3;}
+    int Dimension() const {return fdimension;}
     
     /** returns the number of state variables associated with the material */
     int NStateVariables() {return 1;} // for hdiv are 3

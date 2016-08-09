@@ -60,7 +60,7 @@ void TRMBuildTransfers::Initialize_u_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh
     
     cmesh_multiphysics->LoadReferences();
     long nel = cmesh_multiphysics->NElements();
-    int n_var_dim = 3; // vectorial
+    int n_var_dim = cmesh_multiphysics->Reference()->Dimension(); // vectorial
     long element_index = 0;
     
     // Compute destination index scatter by element (Omega and Gamma)
@@ -208,7 +208,7 @@ void TRMBuildTransfers::Initialize_s_To_Transport(TPZAutoPointer< TPZCompMesh> c
     long nel = cmesh_multiphysics->NElements();
     int n_var_dim = 1; // scalar
     long element_index = 0;
-    
+    int dimension = cmesh_multiphysics->Reference()->Dimension();
     // Compute destination index scatter by element (Omega and Gamma)
     if (!mesh_index) {
         fsa_dof_scatter.Resize(nel);
@@ -262,7 +262,7 @@ void TRMBuildTransfers::Initialize_s_To_Transport(TPZAutoPointer< TPZCompMesh> c
         TPZManVector<long> int_point_indexes(0,0);
         TPZManVector<long> dof_indexes(0,0);
         
-        if(intel->Dimension() < 3){
+        if(intel->Dimension() < dimension){
             // there is no boundary elements for saturation
             blocks_dimensions[element_index].first = 0*n_var_dim;
             blocks_dimensions[element_index].second = 0;
@@ -309,7 +309,7 @@ void TRMBuildTransfers::Fill_u_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_mult
     Initialize_u_To_Mixed(cmesh_multiphysics, mesh_index);
     
     long nel = cmesh_multiphysics->NElements();
-    int n_var_dim = 3; // vector
+    int n_var_dim = cmesh_multiphysics->Reference()->Dimension();; // vector
     long element_index = 0;
     
     TPZMaterialData data;
@@ -349,7 +349,7 @@ void TRMBuildTransfers::Fill_u_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_mult
         TPZFNMatrix<300,REAL> dphidxi(el_dim,intel->NShapeF(),0.0);
         TPZFMatrix<double> block;
         
-        if(intel->Dimension() < n_var_dim){ // two dimensional elements
+        if(intel->Dimension() < n_var_dim){ // lower dimensional elements
             block.Resize(block_dim.first,block_dim.second);        }
         else{
             block.Resize(block_dim.first*n_var_dim,block_dim.second);
@@ -406,10 +406,6 @@ void TRMBuildTransfers::Fill_p_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_mult
         TPZManVector<long> dof_indexes(0,0);
         
         if(!intel){
-//            // there is no boundary elements for pressure
-//            block_dim.first = 0;
-//            block_dim.second = 0;
-//            fp_dof_scatter[element_index] = dof_indexes;
             continue;
         }
         
@@ -467,7 +463,7 @@ void TRMBuildTransfers::Fill_s_To_Transport(TPZAutoPointer< TPZCompMesh > cmesh_
     long nel = cmesh_multiphysics->NElements();
     int n_var_dim = 1; // scalar
     long element_index = 0;
-    
+    int dimension = cmesh_multiphysics->Reference()->Dimension();
     std::pair<long, long> block_dim;
     
     for (long icel = 0; icel < nel; icel++) {
@@ -488,7 +484,7 @@ void TRMBuildTransfers::Fill_s_To_Transport(TPZAutoPointer< TPZCompMesh > cmesh_
         TPZManVector<long> int_point_indexes(0,0);
         TPZManVector<long> dof_indexes(0,0);
         
-        if(intel->Dimension() < 3){
+        if(intel->Dimension() < dimension){
             continue;
         }
         
@@ -804,8 +800,8 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
             int_points_mixed.Point(ip, triplet, w);
             gel->Jacobian(triplet, jac, axes, detjac, jacinv);
             
-            p_avg +=  w * detjac * mixed_memory->GetMemory()[p_point_indexes[ip]].p()/element_measure;
             p_avg_n += w * detjac * mixed_memory->GetMemory()[p_point_indexes[ip]].p_n()/element_measure;
+            p_avg +=  w * detjac * mixed_memory->GetMemory()[p_point_indexes[ip]].p()/element_measure;
             
         }
 
@@ -816,15 +812,22 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
         
         // Integrating Saturation
         for (int ip = 0; ip < np_trans_cel; ip++) {
+            
             int_points_trans.Point(ip, triplet, w);
             gel->Jacobian(triplet, jac, axes, detjac, jacinv);
             
-            sa +=  w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sa()/element_measure;
             sa_n += w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sa_n()/element_measure;
-            sb +=  w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sb()/element_measure;
             sb_n += w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sb_n()/element_measure;
-            
+            sa +=  w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sa()/element_measure;
+            sb +=  w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sb()/element_measure;
+
         }
+        
+//        std::cout << "p_avg_n = "<< p_avg_n << std::endl;
+//        std::cout << "p_avg = "<< p_avg << std::endl;
+//        
+//        std::cout << "sa_n = "<< sa_n << std::endl;
+//        std::cout << "sa = "<< sa << std::endl;
         
         // Inserting average pressure and saturation in mixed memory
         for (int ip = 0; ip < np_mixed_cel; ip++) {
@@ -841,7 +844,7 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
 
         }
 
-        // Inserting average pressure in mixed memory
+        // Inserting average pressure in transport memory
         for (int ip = 0; ip < np_trans_cel; ip++) {
             
             if (fSimulationData->IsCurrentStateQ()) {
@@ -945,22 +948,13 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
             
         }
         
-//        REAL sa      = 0.0;
-//        REAL sa_n    = 0.0;
-//        REAL sb      = 0.0;
-//        REAL sb_n    = 0.0;
-        
         // Inserting average pressure and saturation in mixed memory
         for (int ip = 0; ip < np_mixed_cel; ip++) {
             if (fSimulationData->IsCurrentStateQ()) {
                 mixed_memory->GetMemory()[p_point_indexes[ip]].Set_p_avg_n(p_avg_n);
-//                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa_n(sa_n);
-//                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb_n(sb_n);
             }
             else{
                 mixed_memory->GetMemory()[p_point_indexes[ip]].Set_p_avg(p_avg);
-//                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa(sa);
-//                mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb(sb);
 
             }
             
@@ -1316,7 +1310,7 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
     cmesh_transport->LoadReferences();
     TPZGeoMesh * geometry = cmesh_transport->Reference();
     long n_interfaces;
-    
+    int dimension = geometry->Dimension();
     if (IsBoundaryQ) {
         n_interfaces = fleft_right_indexes_Gamma.size();
     }
@@ -1377,7 +1371,7 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
                     DebugStop();
                 }
                 
-                if (gel_l->Dimension() != 3) {
+                if (gel_l->Dimension() != dimension) {
                     DebugStop();
                 }
 #endif
@@ -1460,7 +1454,7 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
                 DebugStop();
             }
             
-            if (gel_l->Dimension() != 3 || gel_r->Dimension() != 3) {
+            if (gel_l->Dimension() != dimension || gel_r->Dimension() != dimension) {
                 DebugStop();
             }
 #endif
@@ -1579,7 +1573,27 @@ void TRMBuildTransfers::ComputeFaceIndex(TPZGeoEl * gel , TPZVec<int> &sides){
             
         }
             break;
+        case EQuadrilateral:
+        {
+            int nfaces = 4;
+            sides.Resize(nfaces);
+            sides[0] = 4;
+            sides[1] = 5;
+            sides[2] = 6;
+            sides[3] = 7;
             
+        }
+            break;
+        case ETriangle:
+        {
+            int nfaces = 3;
+            sides.Resize(nfaces);
+            sides[0] = 3;
+            sides[1] = 4;
+            sides[2] = 4;
+            
+        }
+            break;
         default:
         {
             std::cout << "Element not implemented " << std::endl;
@@ -1654,7 +1668,57 @@ void TRMBuildTransfers::ComputeFaceNormals(TPZGeoEl * gel , TPZVec<int> &sides, 
             
         }
         break;
+        case EQuadrilateral:
+        {
+            int nfaces = 4;
+            sides.Resize(nfaces);
+            sides[0] = 4;
+            sides[1] = 5;
+            sides[2] = 6;
+            sides[3] = 7;
+            int iside = 0;
+            normals.Resize(3, nfaces);
             
+            for (int i = 0 ; i < v_sides.size(); i++) {
+                if (nfaces <= iside) {
+                    break;
+                }
+                if(v_sides[i] ==  sides[iside]){
+                    normals(0,iside) = mat_normals(0,i);
+                    normals(1,iside) = mat_normals(1,i);
+                    normals(2,iside) = mat_normals(2,i);
+                    iside++;
+                }
+            }
+            
+            
+        }
+            break;
+        case ETriangle:
+        {
+            int nfaces = 3;
+            sides.Resize(nfaces);
+            sides[0] = 3;
+            sides[1] = 4;
+            sides[2] = 5;
+            int iside = 0;
+            normals.Resize(3, nfaces);
+            
+            for (int i = 0 ; i < v_sides.size(); i++) {
+                if (nfaces <= iside) {
+                    break;
+                }
+                if(v_sides[i] ==  sides[iside]){
+                    normals(0,iside) = mat_normals(0,i);
+                    normals(1,iside) = mat_normals(1,i);
+                    normals(2,iside) = mat_normals(2,i);
+                    iside++;
+                }
+            }
+            
+            
+        }
+            break;
             
         default:
         {
@@ -1679,7 +1743,7 @@ void TRMBuildTransfers::ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_
     long nel = transport_mesh->NElements();
     long face_index;
     std::pair <long,long> duplet;
-    
+    int dimension = transport_mesh->Reference()->Dimension();
     for (long icel = 0; icel < nel; icel++) {
         
         TPZCompEl * cel = transport_mesh->Element(icel);
@@ -1706,7 +1770,7 @@ void TRMBuildTransfers::ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_
         face_index  = interface->Index();
         duplet      = std::make_pair(left_cel->Reference()->Index(), right_cel->Reference()->Index());
         
-        if(left_cel->Dimension() != 3 ||  right_cel->Dimension() != 3){
+        if(left_cel->Dimension() != dimension ||  right_cel->Dimension() != dimension){
             
             fleft_right_indexes_Gamma.Push(duplet);
             finterface_indexes_Gamma.Push(face_index);
@@ -1808,6 +1872,8 @@ void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index,TPZInterpolation
 /** @brief Compute compuational mesh pair (mixed, transport) indexed by geometric volumetic element index */
 void TRMBuildTransfers::FillComputationalElPairs(TPZAutoPointer< TPZCompMesh>  cmesh_mf_mixed, TPZAutoPointer< TPZCompMesh>  cmesh_mf_transport){
 
+    fmixed_transport_indexes.Resize(0);
+    
 #ifdef PZDEBUG
     if (!cmesh_mf_mixed) {
         DebugStop();
@@ -1821,6 +1887,7 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZAutoPointer< TPZCompMesh>  c
     
     cmesh_mf_mixed->LoadReferences();
     TPZGeoMesh * geometry = cmesh_mf_mixed->Reference();
+    int dimension = geometry->Dimension();
     
 #ifdef PZDEBUG
     if (!geometry) {
@@ -1838,7 +1905,7 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZAutoPointer< TPZCompMesh>  c
             DebugStop();
         }
 #endif
-        if (gel->Dimension() != 3) {
+        if (gel->Dimension() != dimension) {
             continue;
         }
         gel_indexes.first = gel->Index();
@@ -1885,12 +1952,6 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZAutoPointer< TPZCompMesh>  c
         fmixed_transport_indexes[ivol].second.second = trans_cel->Index();
         
     }
-    
-//    for (int i = 0; i < nvol_elements; i++) {
-//        std::cout << "geo index = " << fmixed_transport_indexes[i].first << std::endl;        
-//        std::cout << "mixed index = " << fmixed_transport_indexes[i].second.first << std::endl;
-//        std::cout << "transport index = " << fmixed_transport_indexes[i].second.second << std::endl;
-//    }
     
 }
 

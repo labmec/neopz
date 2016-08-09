@@ -17,9 +17,12 @@ TRMPhaseTransport::TRMPhaseTransport() : TPZMatWithMem<TRMPhaseMemory, TPZDiscon
     /** @brief define the transfer matrices */
     fTransfer = NULL;
     
+    /** @brief material dimension */
+    fdimension = 0;
+    
 }
 
-TRMPhaseTransport::TRMPhaseTransport(int matid) : TPZMatWithMem<TRMPhaseMemory, TPZDiscontinuousGalerkin>(matid)
+TRMPhaseTransport::TRMPhaseTransport(int matid, int dimension) : TPZMatWithMem<TRMPhaseMemory, TPZDiscontinuousGalerkin>(matid)
 {
     
     /** @brief define the simulation data */
@@ -28,12 +31,17 @@ TRMPhaseTransport::TRMPhaseTransport(int matid) : TPZMatWithMem<TRMPhaseMemory, 
     /** @brief define the transfer matrices */
     fTransfer = NULL;
     
+    /** @brief material dimension */
+    fdimension = dimension;
+    
 }
 
 
 TRMPhaseTransport::TRMPhaseTransport(const TRMPhaseTransport &mat) : TPZMatWithMem<TRMPhaseMemory, TPZDiscontinuousGalerkin>(mat)
 {
-    
+    this->fSimulationData   = mat.fSimulationData;
+    this->fTransfer         = mat.fTransfer;
+    this->fdimension        = mat.fdimension;
 }
 
 TRMPhaseTransport::~TRMPhaseTransport()
