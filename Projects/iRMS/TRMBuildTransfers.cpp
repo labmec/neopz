@@ -1590,7 +1590,7 @@ void TRMBuildTransfers::ComputeFaceIndex(TPZGeoEl * gel , TPZVec<int> &sides){
             sides.Resize(nfaces);
             sides[0] = 3;
             sides[1] = 4;
-            sides[2] = 4;
+            sides[2] = 5;
             
         }
             break;

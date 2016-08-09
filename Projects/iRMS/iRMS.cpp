@@ -95,14 +95,13 @@ void BoxLinearTracerDual()
 //    On box reservoir
 //    RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
 //    RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
-    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
+//    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
     
 //    On cricular reservoir
 //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
 //    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
-//    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
+    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
     
-
     
     TPZAutoPointer<TRMSimulationData> SimData = new TRMSimulationData;
     SimData->SetRawData(RawData);

@@ -121,7 +121,7 @@ void TRMGasPhase::Density_c(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> 
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 500.0;
+    STATE val = 1.0;
     rho.Resize(n,0.0);
     rho[0] = val;
     
@@ -139,7 +139,7 @@ void TRMGasPhase::Viscosity_c(TPZManVector<STATE,10> &mu, TPZManVector<STATE,10>
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 1.0e-4;
+    STATE val = 1.0e-5;
     mu.Resize(n,0.0);
     mu[0] = val;
     
@@ -155,7 +155,7 @@ void TRMGasPhase::Compressibility_c(TPZManVector<STATE,10> &c, TPZManVector<STAT
 #endif
     
     int n = state_vars.size() + 1;
-    STATE val = 1.0e-7;
+    STATE val = 1.0e-8;
     c.Resize(n,0.0);
     c[0] = val;
     

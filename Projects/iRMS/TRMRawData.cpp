@@ -635,14 +635,14 @@ void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("water");
-    fSystemType.Push("water");
+    fSystemType.Push("oil");
+    fSystemType.Push("gas");
     water->SetRhoModel(0);
-    water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    oil->SetRhoModel(0);
+    gas->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(oil);
+    fPhases.Push(gas);
     
     int n_data = fSystemType.size();
     
@@ -662,8 +662,8 @@ void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     fdt = 1.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;
-    fdt_up = 1.5;
-    fdt_down = 0.5;
+    fdt_up = 1.0;
+    fdt_down = 1.0;
     
     // Numeric controls
     fn_corrections = 20;
@@ -742,7 +742,7 @@ void TRMRawData::PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.1, S_w = 0.6, S_o = 0.4;
+    REAL flux = -100.0, S_w = 1.0, S_o = 0.0;
     f[0] = flux;
     f[1] = S_w;
     f[2] = S_o;
@@ -775,12 +775,12 @@ void TRMRawData::WaterOilGasReservoirCircular(bool Is3DGeometryQ){
     fSystemType.Push("water");
     fSystemType.Push("oil");
     fSystemType.Push("gas");
-    water->SetRhoModel(0);
-    water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    water->SetRhoModel(1);
+    oil->SetRhoModel(1);
+    gas->SetRhoModel(1);
     fPhases.Push(water);
-    fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(oil);
+    fPhases.Push(gas);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -811,8 +811,8 @@ void TRMRawData::WaterOilGasReservoirCircular(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 10;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.001;
+    fepsilon_res = 0.001;
+    fepsilon_cor = 0.0001;
     
     
     // Rock materials ids

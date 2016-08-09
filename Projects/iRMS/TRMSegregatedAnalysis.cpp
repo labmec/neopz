@@ -81,9 +81,9 @@ void TRMSegregatedAnalysis::AdjustVectors(){
 
 void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
     
-//    std::cout << "Last step " << std::endl;
+
     this->UpdateMemory();
-    this->UpdateMemory_at_n();    
+//    this->UpdateMemory_at_n();    
     if (IsActiveQ) {
         fParabolic->ExcecuteOneStep();
         if (fSimulationData->IsOnePhaseQ()) {
@@ -96,10 +96,12 @@ void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
         return;
     }
     
+    this->UpdateMemory_at_n();
+    
     fHyperbolic->ExcecuteOneStep();
     
-//    std::cout << "Current step " << std::endl;
     this->UpdateMemory_at_n();
+
     
 }
 
