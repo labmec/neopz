@@ -742,7 +742,7 @@ void TRMRawData::PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -100.0, S_w = 1.0, S_o = 0.0;
+    REAL flux = -10.0, S_w = 0.6, S_o = 0.4;
     f[0] = flux;
     f[1] = S_w;
     f[2] = S_o;
@@ -810,7 +810,7 @@ void TRMRawData::WaterOilGasReservoirCircular(bool Is3DGeometryQ){
     fdt_down = 1.0;
     
     // Numeric controls
-    fn_corrections = 10;
+    fn_corrections = 15;
     fepsilon_res = 0.001;
     fepsilon_cor = 0.0001;
     

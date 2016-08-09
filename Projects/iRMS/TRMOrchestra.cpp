@@ -97,7 +97,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
+            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
             fSpaceGenerator->CreateGeometricGIDMesh(file);
         }
         
