@@ -879,8 +879,8 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     // *********** What????? *******************
     //******** SigXZ e SigYZ nao sao calculados!!! **********
-    REAL SigXZ = 0.;
-    REAL SigYZ = 0.;
+    REAL SigXZ = SigmaAnXZ; //*** Modificado: considerando Sol da Eq Analitica ***//
+    REAL SigYZ = SigmaAnYZ; //*** Modificado: considerando Sol da Eq Analitica ***//
     
     // Cria variavel para solucao FEM
     REAL SolX = 0., SolY = 0., SolZ = 0., SolTau = 0.;

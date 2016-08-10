@@ -110,7 +110,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         projectmaterial.GetWellboreAngles(alpha, beta, projection);
         
 //        //Print Rotated Coordinate
-//        std::cout << "Coord Rotacionada: " << endl;
+//        std::cout << "Coord: " << endl;
 //        std::cout << "x: " << x[0] << " " << "y: " << x[1] << " " << "z: " << x[2] << endl;
         
         //************ O codigo nao esta pegando os dados do material ja inseridos no main, pois estou criando um novo construtor, como faco????  *****************//

@@ -120,7 +120,7 @@ int Problem2D(){
     REAL rext = 4.0;
     int ncircle = 30;
     int nradial = 25;
-    REAL drdcirc = 0.5;
+    REAL drdcirc = 0.2;
     
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
@@ -690,7 +690,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
 //    SigmaVV = -30.0, Sigmahh = -30.0, SigmaHH = -30.0; //preenche
     
     REAL rw = 0.1;
-    int analytic = 0;
+    int analytic = 1;
     int projection = 1;
     
     // Seta os parametros do poco
