@@ -53,7 +53,7 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = false;
+    bool IsReservoirBoxQ = true;
     
     if (Is3DGeometryQ) {
         
@@ -82,7 +82,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 10;
+        int nel_x = 1;
         int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
@@ -97,8 +97,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-//            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
-            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
+            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
             fSpaceGenerator->CreateGeometricGIDMesh(file);
         }
         

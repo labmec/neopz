@@ -836,9 +836,6 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     
     //  Computing closure relationship at given average values
     
-//    std::cout << "s_n = " << s_n << std::endl;
-//    std::cout << "s = " << s << std::endl;
-    
     TPZManVector<STATE, 10> v(nvars),vavg(nvars);
     v[0] = p_a;
     v[1] = s_a;
@@ -883,7 +880,6 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         
         fSimulationData->AlphaProp()->Density(rho_a, v);
         fSimulationData->BetaProp()->Density(rho_b, v);
-        
         fSimulationData->Map()->phi(datavec[ub].x, phi, v);
         
         for (int ip = 0; ip < nphip; ip++)
@@ -1003,16 +999,24 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     // Time
     STATE dt = fSimulationData->dt();
     
-    REAL s = 0.0;
-    
     //  Average values p_a
+    // Get the pressure at the integrations points
+    long global_point_index = datavec[0].intGlobPtIndex;
+    TRMMemory &point_memory = GetMemory()[global_point_index];
+    REAL p_avg_n    = point_memory.p_avg_n();
+    REAL s_avg_n    = point_memory.sa_n();
     
-    REAL p_a    = p;
-    REAL s_a    = s;
+    REAL p_avg    = point_memory.p_avg();
+    REAL s_avg    = point_memory.sa();
+    REAL s_n = s_avg_n;
+    REAL s = s_avg;
+    
+    REAL p_a    = p_avg_n;
+    REAL s_a    = s_avg_n;
     
     //  Computing closure relationship at given average values
     
-    TPZManVector<STATE, 10> v(nvars);
+    TPZManVector<STATE, 10> v(nvars),vavg(nvars);
     v[0] = p_a;
     v[1] = s_a;
     
@@ -1049,6 +1053,14 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     int v_i;
     
     if(! fSimulationData->IsCurrentStateQ()){
+        
+        v[0] = p_avg;
+        v[1] = s_avg;
+        
+        fSimulationData->AlphaProp()->Density(rho_a, v);
+        fSimulationData->BetaProp()->Density(rho_b, v);
+        fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+        
         for (int ip = 0; ip < nphip; ip++)
         {
             
@@ -1093,7 +1105,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     for (int ip = 0; ip < nphip; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * (s*rho_a[0]+(1.0-s)*rho_b[0]) * phi[0] - f[0]) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * (s_n*rho_a[0]+(1.0-s_n)*rho_b[0]) * phi[0] - f[0]) * phi_ps(ip,0);
         
     }
     
@@ -1330,6 +1342,15 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     //  Average values p_a
     
+    // Get the pressure at the integrations points
+    long global_point_index = datavec[ub].intGlobPtIndex;
+    TRMMemory &point_memory = GetMemory()[global_point_index];
+    REAL p_avg_n    = point_memory.p_avg_n();
+    REAL p_avg      = point_memory.p_avg();
+    
+    REAL sa_avg_n    = point_memory.sa_n();
+    REAL sa_avg      = point_memory.sa();
+    
     REAL s = 0.0;
     
     REAL p_a   = p;
@@ -1339,7 +1360,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     //  Computing closure relationship at given average values
     
     TPZManVector<STATE, 10> v(nvars);
-    v[0] = p_a;
+    v[0] = p_avg_n;
     v[1] = sa;
     v[2] = sb;
     

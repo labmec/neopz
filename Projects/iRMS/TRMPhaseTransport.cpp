@@ -219,6 +219,8 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     int sb_a    = 0;
     
     TPZFNMatrix<100,STATE> phi_ss       = datavec[sb_a].phi;
+    REAL sa = datavec[sb_a].sol[0][0];
+    
     int nphis_a     = phi_ss.Rows();
     int firsts_a    = 0;
     
@@ -295,10 +297,10 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     int sb_a    = 0;
     
     TPZFNMatrix<100,STATE> phi_ss       = datavec[sb_a].phi;
+    REAL sa = datavec[sb_a].sol[0][0];
+    
     int nphis_a     = phi_ss.Rows();
     int firsts_a    = 0;
-    
-    //    REAL s                  = datavec[sb_a].sol[0][0];
     
     // Time
     STATE dt = fSimulationData->dt();
@@ -311,6 +313,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     REAL sa_avg_n    = point_memory.sa_n();
     REAL sa_avg      = point_memory.sa();
+    
     
     //  Average values p_a
     
@@ -406,6 +409,9 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     
     TPZFNMatrix<100,STATE> phi_ssa       = datavec[sb_a].phi;
     TPZFNMatrix<100,STATE> phi_ssb       = datavec[sb_b].phi;
+    REAL sa = datavec[sb_a].sol[0][0];
+    REAL sb = datavec[sb_b].sol[0][0];
+    
     int nphis_a     = phi_ssa.Rows();
     int nphis_b     = phi_ssb.Rows();
     int firsts_a    = 0;
@@ -420,11 +426,11 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
     
-    REAL sa_avg_n    = point_memory.sa_n();
-    REAL sa_avg      = point_memory.sa();
+    REAL sa_avg_n    = sa;//point_memory.sa_n();
+    REAL sa_avg      = sa;//point_memory.sa();
 
-    REAL sb_avg_n    = point_memory.sb_n();
-    REAL sb_avg      = point_memory.sb();
+    REAL sb_avg_n    = sb;//point_memory.sb_n();
+    REAL sb_avg      = sb;//point_memory.sb();
     
     //  Average values
     
@@ -511,6 +517,9 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     
     TPZFNMatrix<100,STATE> phi_ssa       = datavec[sb_a].phi;
     TPZFNMatrix<100,STATE> phi_ssb       = datavec[sb_b].phi;
+    REAL sa = datavec[sb_a].sol[0][0];
+    REAL sb = datavec[sb_b].sol[0][0];
+    
     int nphis_a     = phi_ssa.Rows();
     int nphis_b     = phi_ssb.Rows();
     int firsts_a    = 0;
@@ -525,11 +534,11 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
     
-    REAL sa_avg_n    = point_memory.sa_n();
-    REAL sa_avg      = point_memory.sa();
+    REAL sa_avg_n    = sa;//point_memory.sa_n();
+    REAL sa_avg      = sa;//point_memory.sa();
     
-    REAL sb_avg_n    = point_memory.sb_n();
-    REAL sb_avg      = point_memory.sb();
+    REAL sb_avg_n    = sb;//point_memory.sb_n();
+    REAL sb_avg      = sb;//point_memory.sb();
     
     //  Average values
     

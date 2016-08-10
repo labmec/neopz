@@ -108,6 +108,62 @@ void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
 void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsActiveQ){
 
    this->SegregatedIteration(IsActiveQ);
+    
+    STATE epsilon_res = this->SimulationData()->epsilon_res();
+    STATE epsilon_cor = this->SimulationData()->epsilon_cor();
+    int n  =   this->SimulationData()->n_corrections();
+    
+//    for (int k = 1; k <= n; k++) {
+
+        this->SegregatedIteration(IsActiveQ);
+
+//        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
+//        {
+//            std::cout << "Hyperbolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+//            if (k == 1 && dt_max > dt && dt_up > 1.0) {
+//                dt *= dt_up;
+//                if(dt_max < dt ){
+//                    fSimulationData->Setdt(dt_max);
+//                }
+//                else{
+//                    fSimulationData->Setdt(dt);
+//                }
+//                std::cout << "Hyperbolic:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+//            }
+//            
+//            fX = fX_n;
+//            return;
+//        }
+//        
+//        if(k == n  && dt > dt_min && dt_down < 1.0){
+//            dt *= dt_down;
+//            if(dt_min > dt ){
+//                fSimulationData->Setdt(dt_min);
+//            }
+//            else{
+//                fSimulationData->Setdt(dt);
+//            }
+//            std::cout << "Hyperbolic:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+//            std::cout << "Hyperbolic:: Restarting current time step correction " << std::endl;
+//            
+//            this->SimulationData()->SetCurrentStateQ(false);
+//            this->LoadSolution(fX);
+//            
+//            this->UpdateMemory();
+//            this->AssembleResidual();
+//            fR = this->Rhs();
+//            
+//            this->SimulationData()->SetCurrentStateQ(true);
+//            this->UpdateMemory_at_n();
+//            fX_n = fX;
+//            k = 1;
+//        }
+//        
+//        
+//    }
+//    
+//    std::cout << "Hyperbolic:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    
 
 }
 

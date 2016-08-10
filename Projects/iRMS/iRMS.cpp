@@ -94,13 +94,13 @@ void BoxLinearTracerDual()
     
 //    On box reservoir
 //    RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
-//    RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
+    RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
 //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
     
 //    On cricular reservoir
 //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
 //    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
-    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
+//    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
     
     
     TPZAutoPointer<TRMSimulationData> SimData = new TRMSimulationData;
@@ -110,6 +110,28 @@ void BoxLinearTracerDual()
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
     SymphonyX->BuildGeometry(Is3DGeometry);
+    
+//    TPZManVector<REAL, 10> fa_l(4,0.0),v_l(4,0.0);
+//    STATE p_D = 10;
+//    
+//    v_l[0] = p_D;
+//    v_l[1] = 0.5;
+//    SimData->PetroPhysics()->fa(fa_l, v_l);
+//    std::cout << "x = " << v_l << std::endl;
+//    std::cout << "f = " <<  fa_l << std::endl;
+//
+//    v_l[0] = p_D;
+//    v_l[1] = -0.5;
+//    SimData->PetroPhysics()->fa(fa_l, v_l);
+//    std::cout << "x = " << v_l << std::endl;
+//    std::cout << "f = " <<  fa_l << std::endl;
+//
+//    
+//    v_l[0] = p_D;
+//    v_l[1] = 100.5;
+//    SimData->PetroPhysics()->fa(fa_l, v_l);
+//    std::cout << "x = " << v_l << std::endl;
+//    std::cout << "f = " <<  fa_l << std::endl;
     
     
     SymphonyX->SetSegregatedQ(true);

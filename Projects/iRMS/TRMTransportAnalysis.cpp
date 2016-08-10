@@ -38,6 +38,9 @@ TRMTransportAnalysis::TRMTransportAnalysis() : TPZAnalysis() {
     /** @brief Correction variation */
     fdx_norm  = 1.0;
     
+    /** @brief number of newton corrections */
+    fk_iterations = 0;
+    
 }
 
 TRMTransportAnalysis::~TRMTransportAnalysis(){
@@ -110,8 +113,8 @@ void TRMTransportAnalysis::NewtonIteration(){
     
     fX_n += this->Solution(); // update state
     
-//    this->Rhs().Print("rhs = ");
-//    fX_n.Print("x_n = ");
+    this->Rhs().Print("rhs = ");
+    fX_n.Print("x_n = ");
     
     this->Mesh()->LoadSolution(fX_n);
     this->UpdateMemory_at_n();
@@ -142,8 +145,8 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     ferror = 1.0;
     
     STATE dt_min    = fSimulationData->dt_min();
-    STATE dt_max    = fSimulationData->dt_max();
-    STATE dt_up     = fSimulationData->dt_up();
+//    STATE dt_max    = fSimulationData->dt_max();
+//    STATE dt_up     = fSimulationData->dt_up();
     STATE dt_down   = fSimulationData->dt_down();
     STATE dt        = fSimulationData->dt();
     
@@ -154,30 +157,30 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     
     
     for (int k = 1; k <= n; k++) {
-        
+        this->fk_iterations = k;
         this->NewtonIteration();
         
-//#ifdef PZDEBUG
-//        fR.Print("R = ", std::cout,EMathematicaInput);
-//        fX.Print("X = ", std::cout,EMathematicaInput);
-//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
-//        this->Solver().Matrix()->Print("K = ",std::cout,EMathematicaInput);
-//#endif
+#ifdef PZDEBUG
+        fR.Print("R = ", std::cout,EMathematicaInput);
+        fX.Print("X = ", std::cout,EMathematicaInput);
+        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+        this->Solver().Matrix()->Print("K = ",std::cout,EMathematicaInput);
+#endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Hyperbolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-            if (k == 1 && dt_max > dt && dt_up > 1.0) {
-                dt *= dt_up;
-                if(dt_max < dt ){
-                    fSimulationData->Setdt(dt_max);
-                }
-                else{
-                    fSimulationData->Setdt(dt);
-                }
-                std::cout << "Hyperbolic:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-            }
+//            if (k == 1 && dt_max > dt && dt_up > 1.0) {
+//                dt *= dt_up;
+//                if(dt_max < dt ){
+//                    fSimulationData->Setdt(dt_max);
+//                }
+//                else{
+//                    fSimulationData->Setdt(dt);
+//                }
+//                std::cout << "Hyperbolic:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+//            }
             
             fX = fX_n;
             return;
