@@ -102,9 +102,9 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("oil");
-    oil->SetRhoModel(1);
-    fPhases.Push(oil);
+    fSystemType.Push("water");
+    water->SetRhoModel(0);
+    fPhases.Push(water);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -119,8 +119,8 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 10;
-    fdt = 5.0*day;
+    fn_steps  = 20;
+    fdt = 1.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;
     fdt_up = 1.0;
@@ -418,7 +418,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.01, S = 1.0;
+    REAL flux = -0.001, S = 1.0;
     f[0] = flux;
     f[1] = S;
     return;

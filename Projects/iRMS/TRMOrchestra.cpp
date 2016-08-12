@@ -232,7 +232,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh().operator->(), mustOptimizeBandwidth_parabolic);
     TPZSkylineNSymStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh().operator->());
     TPZStepSolver<STATE> step_p;
-    int numofThreads_p = 0;
+    int numofThreads_p = 8;
     strmat_p.SetNumThreads(numofThreads_p);
     step_p.SetDirect(ELU);
     parabolic->SetStructuralMatrix(strmat_p);
