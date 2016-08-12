@@ -60,7 +60,7 @@ int TRMMixedDarcy::VariableIndex(const std::string &name) {
     if (!strcmp("p", name.c_str())) return 0;
     if (!strcmp("u", name.c_str())) return 1;
     if (!strcmp("div_u", name.c_str())) return 2;
-    if (!strcmp("s_a", name.c_str())) return 2;    
+    if (!strcmp("cfl", name.c_str())) return 3;
     return TPZMatWithMem::VariableIndex(name);
 }
 
@@ -71,6 +71,8 @@ int TRMMixedDarcy::NSolutionVariables(int var) {
         case 1:
             return 3; // Vector
         case 2:
+            return 1; // Scalar
+        case 3:
             return 1; // Scalar
     }
     return TPZMatWithMem::NSolutionVariables(var);
@@ -777,6 +779,26 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
         }
             break;
+        case 3:
+        {
+            int nvars = 4;
+            REAL dt = fSimulationData->dt();
+            REAL volume = datavec[0].detjac*4.0;
+            TPZManVector<STATE, 10> phi;
+            TPZManVector<STATE, 10> v(nvars);
+            v[0] = p;
+            fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+            
+            REAL flux_norm = 0.0;
+            for (int i = 0; i < Dimension() ; i++) {
+                flux_norm += u[i];
+            }
+            flux_norm = sqrt(flux_norm);
+            
+            REAL cfl = flux_norm*(dt/volume*phi[0]);
+            Solout[0] = cfl;
+        }
+            break;
         default:
         {
             DebugStop();
@@ -1267,7 +1289,6 @@ void TRMMixedDarcy::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
     
     TPZManVector<REAL,3> u = datavec[ub].sol[0];
     REAL p = datavec[pb].sol[0][0];
-    REAL s = 0.0;//datavec[sb].sol[0][0];
     
     TPZFMatrix<STATE> dudx = datavec[ub].dsol[0];
     TPZFMatrix<STATE> dpdx = datavec[pb].dsol[0];
@@ -1294,7 +1315,22 @@ void TRMMixedDarcy::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
             break;
         case 3:
         {
-            Solout[0] = s;
+            int nvars = 4;
+            REAL dt = fSimulationData->dt();
+            REAL volume = datavec[0].detjac*4.0;
+            TPZManVector<STATE, 10> phi;
+            TPZManVector<STATE, 10> v(nvars);
+            v[0] = p;
+            fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+            
+            REAL flux_norm = 0.0;
+            for (int i = 0; i < Dimension() ; i++) {
+                flux_norm += u[i]*u[i];
+            }
+            flux_norm = sqrt(flux_norm);
+            
+            REAL cfl = flux_norm*(dt/(volume*phi[0]));
+            Solout[0] = cfl;
         }
             break;
         default:
@@ -1750,7 +1786,6 @@ void TRMMixedDarcy::Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZV
     
     TPZManVector<REAL,3> u = datavec[ub].sol[0];
     REAL p = datavec[pb].sol[0][0];
-    REAL s = 0.0;//datavec[sb].sol[0][0];
     
     TPZFMatrix<STATE> dudx = datavec[ub].dsol[0];
     TPZFMatrix<STATE> dpdx = datavec[pb].dsol[0];
@@ -1777,7 +1812,22 @@ void TRMMixedDarcy::Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZV
             break;
         case 3:
         {
-            Solout[0] = s;
+            int nvars = 4;
+            REAL dt = fSimulationData->dt();
+            REAL volume = datavec[0].detjac*4.0;
+            TPZManVector<STATE, 10> phi;
+            TPZManVector<STATE, 10> v(nvars);
+            v[0] = p;
+            fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+            
+            REAL flux_norm = 0.0;
+            for (int i = 0; i < Dimension() ; i++) {
+                flux_norm += u[i];
+            }
+            flux_norm = sqrt(flux_norm);
+            
+            REAL cfl = flux_norm*(dt/volume*phi[0]);
+            Solout[0] = cfl;
         }
             break;
         default:

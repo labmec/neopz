@@ -111,28 +111,6 @@ void BoxLinearTracerDual()
     SymphonyX->SetSimulationData(SimData);
     SymphonyX->BuildGeometry(Is3DGeometry);
     
-//    TPZManVector<REAL, 10> fa_l(4,0.0),v_l(4,0.0);
-//    STATE p_D = 10;
-//    
-//    v_l[0] = p_D;
-//    v_l[1] = 0.5;
-//    SimData->PetroPhysics()->fa(fa_l, v_l);
-//    std::cout << "x = " << v_l << std::endl;
-//    std::cout << "f = " <<  fa_l << std::endl;
-//
-//    v_l[0] = p_D;
-//    v_l[1] = -0.5;
-//    SimData->PetroPhysics()->fa(fa_l, v_l);
-//    std::cout << "x = " << v_l << std::endl;
-//    std::cout << "f = " <<  fa_l << std::endl;
-//
-//    
-//    v_l[0] = p_D;
-//    v_l[1] = 100.5;
-//    SimData->PetroPhysics()->fa(fa_l, v_l);
-//    std::cout << "x = " << v_l << std::endl;
-//    std::cout << "f = " <<  fa_l << std::endl;
-    
     
     SymphonyX->SetSegregatedQ(true);
     SymphonyX->CreateAnalysisDualonBox(true); //  Static Solution

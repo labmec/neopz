@@ -151,8 +151,8 @@ void TRMPetrophysicsProperties::Kra(TPZManVector<STATE,10> &kr, TPZManVector<STA
     
     int n = x.size() + 1;
     kr.Resize(n,0.0);
-//    kr[0] = x[1];
-//    kr[2] = 1.0;
+    kr[0] = x[1];
+    kr[2] = 1.0;
     
     kr[0] = x[1]*x[1];
     kr[2] = 2.0*x[1];
@@ -164,8 +164,8 @@ void TRMPetrophysicsProperties::Krb(TPZManVector<STATE,10> &kr, TPZManVector<STA
 
     int n = x.size() + 1;
     kr.Resize(n,0.0);
-//    kr[0] = (1.0-x[1]);
-//    kr[2] = -1.0;
+    kr[0] = (1.0-x[1]);
+    kr[2] = -1.0;
     
     kr[0] = (1.0-x[1])*(1.0-x[1]);
     kr[2] = -2.0*(1.0-x[1]);

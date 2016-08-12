@@ -82,7 +82,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 1;
+        int nel_x = 50;
         int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
@@ -429,8 +429,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
-            fSegregatedAnalysis->ExcecuteOneStep(true);
-            fSegregatedAnalysis->PostProcessStep(true);
+            fSegregatedAnalysis->ExcecuteOneStep(false);
+            fSegregatedAnalysis->PostProcessStep(false);
         }
         
     }

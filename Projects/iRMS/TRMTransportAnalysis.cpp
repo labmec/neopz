@@ -113,8 +113,8 @@ void TRMTransportAnalysis::NewtonIteration(){
     
     fX_n += this->Solution(); // update state
     
-    this->Rhs().Print("rhs = ");
-    fX_n.Print("x_n = ");
+//    this->Rhs().Print("rhs = ");
+//    fX_n.Print("x_n = ");
     
     this->Mesh()->LoadSolution(fX_n);
     this->UpdateMemory_at_n();
@@ -154,19 +154,18 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
     
-    
-    
     for (int k = 1; k <= n; k++) {
+        
         this->fk_iterations = k;
         this->NewtonIteration();
         
-#ifdef PZDEBUG
-        fR.Print("R = ", std::cout,EMathematicaInput);
-        fX.Print("X = ", std::cout,EMathematicaInput);
-        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
-        this->Solver().Matrix()->Print("K = ",std::cout,EMathematicaInput);
-#endif
+//#ifdef PZDEBUG
+//        fR.Print("R = ", std::cout,EMathematicaInput);
+//        fX.Print("X = ", std::cout,EMathematicaInput);
+//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+//        this->Solver().Matrix()->Print("K = ",std::cout,EMathematicaInput);
+//#endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {

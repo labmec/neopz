@@ -255,23 +255,10 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
         plotfile =  "DualSegregatedDarcyOnBox.vtk";
     }
     
-    if (fSimulationData->IsOnePhaseQ()) {
-        scalnames.Push("p");
-        scalnames.Push("div_u");
-        vecnames.Push("u");
-    }
-    
-    if (fSimulationData->IsTwoPhaseQ()) {
-        scalnames.Push("p");
-        scalnames.Push("div_u");
-        vecnames.Push("u");
-    }
-    
-    if (fSimulationData->IsThreePhaseQ()) {
-        scalnames.Push("p");
-        scalnames.Push("div_u");
-        vecnames.Push("u");
-    }
+    scalnames.Push("p");
+    scalnames.Push("div_u");
+    scalnames.Push("cfl");
+    vecnames.Push("u");
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

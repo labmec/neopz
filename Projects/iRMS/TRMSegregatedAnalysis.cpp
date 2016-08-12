@@ -109,13 +109,13 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsActiveQ){
 
    this->SegregatedIteration(IsActiveQ);
     
-    STATE epsilon_res = this->SimulationData()->epsilon_res();
-    STATE epsilon_cor = this->SimulationData()->epsilon_cor();
-    int n  =   this->SimulationData()->n_corrections();
+//    STATE epsilon_res = this->SimulationData()->epsilon_res();
+//    STATE epsilon_cor = this->SimulationData()->epsilon_cor();
+//    int n  =   this->SimulationData()->n_corrections();
     
 //    for (int k = 1; k <= n; k++) {
 
-        this->SegregatedIteration(IsActiveQ);
+//        this->SegregatedIteration(IsActiveQ);
 
 //        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
 //        {
