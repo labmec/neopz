@@ -57,6 +57,10 @@ int TPZInterpolationSpace::MaxOrder(){
 	int result = -1;
 	int side;
 	for(int i = 0; i < n; i++){
+        // skip unidentified connects
+        if (ConnectIndex(i) < 0) {
+            continue;
+        }
 		side = this->Connect(i).Order();
 		if (side > result) result = side;
 	}//i
@@ -77,7 +81,6 @@ void TPZInterpolationSpace::AdjustIntegrationRule()
     }
     TPZManVector<int,3> vecorder(3,integrationruleorder);
     GetIntegrationRule().SetOrder(vecorder);
-    
 }
 
 
@@ -315,6 +318,22 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     REAL weight = 0.;
     
     TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
+    
+//#ifdef PZDEBUG
+//    {
+
+        TPZManVector<int,3> intorder(dim,this->MaxOrder()*2);
+        TPZAutoPointer<TPZIntPoints> intrule_clone = intrule->Clone();
+        intrule_clone->SetOrder(intorder);
+    
+        if(intrule_clone->NPoints() > intrule->NPoints()){
+            std::cout << "Element " << fIndex << " Bad integration rule points needed = " << intrule_clone->NPoints() << "; points obtained  = " <<  intrule->NPoints() << std::endl;
+            intrule = intrule_clone;
+        }
+    
+//    }
+//#endif
+    
 //    if(material->HasForcingFunction())
 //    {
 //        int maxorder = intrule->GetMaxOrder();
@@ -392,6 +411,7 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef){
     TPZMaterial *mat = this->Material();
 	const int numdof = mat->NStateVariables();
+	const int nshape = this->NShapeF();
 	const int ncon = this->NConnects();
     const int numloadcases = mat->NumLoadCases();
     
@@ -407,13 +427,17 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
 	int i;
     int numeq=0;
 	for(i=0; i<ncon; i++){
-        int nshape = NConnectShapeF(i);
         TPZConnect &c = Connect(i);
+        int nshape = c.NShape();
+#ifdef PZDEBUG
+        if (nshape != NConnectShapeF(i,c.Order())) {
+            DebugStop();
+        }
+#endif
         int nstate = c.NState();
         
 #ifdef PZDEBUG
-        int cNShape = c.NShape();
-        if(cNShape != nshape || nstate != numdof)
+        if(nstate != numdof)
         {
             DebugStop();
         }
@@ -446,10 +470,10 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	ef.fNumStateVars = numdof;
 	int i;
 	for(i=0; i<ncon; i++){
-        unsigned int nshapec = NConnectShapeF(i);
-#ifdef PZDEBUG
         TPZConnect &c = Connect(i);
-        if (c.NShape() != nshapec || c.NState() != numdof) {
+        unsigned int nshapec = c.NShape();
+#ifdef PZDEBUG
+        if (NConnectShapeF(i, c.Order()) != nshapec || c.NState() != numdof) {
             DebugStop();
         }
 #endif
@@ -1460,10 +1484,10 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	TPZBlock<REAL> locblock(0,locnod);
 	
 	for(in = 0; in < locnod; in++) {
-        unsigned int nshape = NConnectShapeF(in);
-#ifdef PZDEBUG
         TPZConnect &c = Connect(in);
-        if(c.NShape() != nshape)
+        unsigned int nshape = c.NShape();
+#ifdef PZDEBUG
+        if(NConnectShapeF(in, c.Order()) != nshape)
         {
             DebugStop();
         }

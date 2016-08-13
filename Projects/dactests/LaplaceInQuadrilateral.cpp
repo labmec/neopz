@@ -55,8 +55,8 @@ void LaplaceInQuadrilateral::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDe
     
     gmesh->SetDimension(fDim);
     {
-        //        ofstream argm("gmesh2d-circulo.txt");
-        //        gmesh->Print(argm);
+      ofstream argm("gmesh2d-Quadrilatero.txt");
+      gmesh->Print(argm);
     }
     
     
@@ -121,14 +121,14 @@ void LaplaceInQuadrilateral::Run(int ordemP, int ndiv, std::map<REAL, REAL> &fDe
     int DofCond, DoFT;
     DoFT = cmesh1->NEquations() + cmesh2->NEquations();
     {
-        //        ofstream arg1("cmeshflux.txt");
-        //        cmesh1->Print(arg1);
-        //
-        //        ofstream arg2("cmeshpressure.txt");
-        //        cmesh2->Print(arg2);
-        //
-        //        ofstream arg4("gmesh2.txt");
-        //        gmesh->Print(arg4);
+               ofstream arg1("cmeshflux.txt");
+               cmesh1->Print(arg1);
+        
+               ofstream arg2("cmeshpressure.txt");
+               cmesh2->Print(arg2);
+        
+               ofstream arg4("gmesh2.txt");
+               gmesh->Print(arg4);
     }
     
     //malha multifisica
@@ -357,15 +357,15 @@ TPZGeoMesh *LaplaceInQuadrilateral::GMesh(int dim, bool ftriang, int ndiv)
     }
     
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Geometrica Inicial\n ";
-    //        gmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
+//     #ifdef LOG4CXX
+//     	if(logdata->isDebugEnabled())
+//     	{
+//            std::stringstream sout;
+//            sout<<"\n\n Malha Geometrica Inicial\n ";
+//            gmesh->Print(sout);
+//            LOGPZ_DEBUG(logdata,sout.str())
+//     	}
+//     #endif
     
     std::ofstream outfile("malhaQuadm.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outfile, true);
@@ -1330,10 +1330,17 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     material->SetPermeabilityTensor(PermTensor, InvPermTensor);
     
     //solucao exata
-    TPZAutoPointer<TPZFunction<STATE> > solexata;
+//     TPZAutoPointer<TPZFunction<STATE> > solexata;
+//     
+//     solexata = new TPZDummyFunction<STATE>(SolExata);
+//     material->SetForcingFunctionExact(solexata);
     
-    solexata = new TPZDummyFunction<STATE>(SolExata);
-    material->SetForcingFunctionExact(solexata);
+    TPZDummyFunction<STATE> *solexata = new TPZDummyFunction<STATE>(SolExata);
+    TPZAutoPointer<TPZFunction<STATE> > forcefexact;
+    solexata->SetPolynomialOrder(10);
+    forcefexact = solexata;
+    material->SetForcingFunctionExact(forcefexact);
+    
     mphysics->SetDimModel(dim);
     //funcao do lado direito da equacao do problema
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing);
@@ -1870,7 +1877,8 @@ void LaplaceInQuadrilateral::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-                    co.SetOrder(cordermin);
+                    long cindex = cel->ConnectIndex(icon);
+                    co.SetOrder(cordermin,cindex);
                     co.SetNShape(nshape-1);
                     mesh->Block().Set(co.SequenceNumber(),nshape-1);
                 }

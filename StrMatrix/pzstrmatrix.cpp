@@ -78,8 +78,8 @@ TPZStructMatrixOR *TPZStructMatrixOR::Clone() {
 }
 
 
-RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
-RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
+static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
+static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 void TPZStructMatrixOR::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	ass_stiff.start();
@@ -409,13 +409,13 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
         LOGPZ_DEBUG(loggerCheck,sout.str())
     }
-    if (loggerel->isDebugEnabled())
-    {
-        std::stringstream sout;
-        stiffness.Print("GK = ",sout,EMathematicaInput);
-        rhs.Print("GR = ", sout,EMathematicaInput);
-        LOGPZ_DEBUG(loggerel,sout.str())
-    }
+//    if (loggerel->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        stiffness.Print("GK = ",sout,EMathematicaInput);
+//        rhs.Print("GR = ", sout,EMathematicaInput);
+//        LOGPZ_DEBUG(loggerel,sout.str())
+//    }
     
 #endif
     

@@ -10,6 +10,11 @@
 
 const int  norder = 6;
 
+bool hdivCurvedJCompAppMath::probAtCircle = false;
+bool hdivCurvedJCompAppMath::probAtCylinder = false;
+bool hdivCurvedJCompAppMath::probAtSphere = false;
+
+
 hdivCurvedJCompAppMath::hdivCurvedJCompAppMath()
 {
     
@@ -2927,7 +2932,7 @@ void hdivCurvedJCompAppMath::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-                    co.SetOrder(cordermin);
+                    co.SetOrder(cordermin,cel->ConnectIndex(icon));
                     co.SetNShape(nshape-1);
                     mesh->Block().Set(co.SequenceNumber(),nshape-1);
                 }

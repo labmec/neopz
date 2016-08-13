@@ -402,6 +402,7 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
             grouped.insert(grindex);
         }
     }
+    cmesh->ComputeNodElCon();
 }
 
 /// Put the element set into a subcompmesh and make the connects internal

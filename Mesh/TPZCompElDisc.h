@@ -277,6 +277,28 @@ protected:
 	/** @brief Returns the connect index from the element */
 	long ConnectIndex(int side = 0) const;
 	void  SetConnectIndex(int /*inode*/, long index) {fConnectIndex = index;}
+    
+    /** @brief Returns the number of dof nodes along side iside*/
+    virtual int NSideConnects(int iside) const
+    {
+        return NConnects();
+    }
+
+    /**
+     * @brief Returns the local node number of icon along is
+     * @param icon connect number along side is
+     * @param is side which is being queried
+     */
+    virtual int SideConnectLocId(int icon,int is) const
+    {
+#ifdef PZDEBUG
+        if (icon != 0) {
+            DebugStop();
+        }
+#endif
+        return 0;
+    }
+
 	
 	/** @brief Returns the shapes number of the element */
 	virtual int NShapeF() const;
@@ -288,7 +310,7 @@ protected:
 	int MaxOrderExceptExternalShapes();
 	
 	/** @brief Returns the number of shapefunctions associated with a connect*/
-	virtual int NConnectShapeF(int inod) const;
+	virtual int NConnectShapeF(int inod, int order) const;
 	
 	REAL CenterPoint(int index) const {return fCenterPoint[index];}
 	

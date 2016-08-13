@@ -81,7 +81,7 @@ public:
     
     virtual void SetConnectIndex(int i, long connectindex);
     
-    virtual int NConnectShapeF(int connect) const;
+    virtual int NConnectShapeF(int connect, int order) const;
     
     virtual int SideConnectLocId(int node, int side) const;
     
@@ -93,7 +93,7 @@ public:
 #endif
 	}
 	
-	virtual MElementType Type();
+    //	virtual MElementType Type();
 	
 	
 	virtual int Dimension() const {
@@ -104,19 +104,19 @@ public:
 		return 0;
 	}
 	
-	virtual int NSideConnects(int side) const;
+//	virtual int NSideConnects(int side) const;
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
 	virtual void GetInterpolationOrder(TPZVec<int> &ord);
 	
 	/** @brief Returns the preferred order of the polynomial along side iside*/
-	virtual int PreferredSideOrder(int iside);
+    //	virtual int PreferredSideOrder(int iside);
 	
 	/** @brief Sets the interpolation order of side to order*/
 	virtual void SetSideOrder(int side, int order);
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-	virtual int SideOrder(int side) const;
+	virtual int EffectiveSideOrder(int side) const;
 	
 	virtual int ConnectOrder(int connect) const;
     

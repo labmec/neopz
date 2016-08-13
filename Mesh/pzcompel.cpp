@@ -502,7 +502,11 @@ void TPZCompEl::BuildConnectList(TPZStack<long> &connectlist) {
         TPZConnect &c = Connect(i);
         if (c.HasDependency()) {
             TPZConnect::TPZDepend * dep= c.FirstDepend();
-            buf2.insert(dep->fDepConnectIndex);
+            while(dep)
+            {
+                buf2.insert(dep->fDepConnectIndex);
+                dep = dep->fNext;
+            }
         }
     }
     TPZConnect::BuildConnectList(buf, buf2, *Mesh());

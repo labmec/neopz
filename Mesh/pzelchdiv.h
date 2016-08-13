@@ -91,7 +91,7 @@ public:
      * @param connect connect number
      * @return number of shape functions
      */
-	virtual int NConnectShapeF(int connect) const;
+	virtual int NConnectShapeF(int connect, int order) const;
 	
 	virtual int Dimension() const {
 		return TSHAPE::Dimension;
@@ -171,7 +171,7 @@ public:
 	virtual void SetSideOrder(int side, int order);
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-	virtual int SideOrder(int side) const;
+	virtual int EffectiveSideOrder(int side) const;
 	
     /**
      * @brief return the interpolation order of the polynomial for connect

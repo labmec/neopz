@@ -230,8 +230,8 @@ void TPZPostProcAnalysis::AutoBuildDisc()
         celspace->SetPreferredOrder(porder);
         for (int ic=0; ic<nc; ic++) {
             int conorder = celref->Connect(ic).Order();
-            cel->Connect(ic).SetOrder(conorder);
-            int nshape = celspace->NConnectShapeF(ic);
+            cel->Connect(ic).SetOrder(conorder,cel->ConnectIndex(ic));
+            int nshape = celspace->NConnectShapeF(ic,conorder);
             cel->Connect(ic).SetNShape(nshape);
         }
         TPZIntPoints &intrule = celspace->GetIntegrationRule();

@@ -480,6 +480,19 @@ void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &i
     for(r=0; r<this->Rows(); r++) determinant *= copy(r,r);
 }
 
+#ifdef USING_LAPACK
+
+template <class TVar>
+/** @brief Initialize pivot with i = i  */
+void TPZFMatrix<TVar>::InitializePivot()
+{
+    fPivot.Resize(this->Rows());
+    for(long i = 0; i < this->Rows(); i++){
+        fPivot[i] = i+1; // Fortran based indexing
+    }
+}
+
+#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, long rows, long cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
@@ -591,6 +604,9 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
     }
     if (beta != (double)0.) {
         z = y;
+    }
+    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
+        return;
     }
     if (!opt) {
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
@@ -1170,13 +1186,14 @@ int TPZFMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
             }
         }
     }
+    this->fDecomposed=ELU;
 #ifdef USING_LAPACK
     fPivot.resize(nrows);
     for (int i=0; i<nrows; i++) {
-        fPivot[i] = i;
+        fPivot[i] = i+1;
     }
+    this->fDecomposed = ELUPivot;
 #endif
-    this->fDecomposed=ELU;
     return 1;
 }
 
@@ -1857,8 +1874,7 @@ int TPZFMatrix<float>::Subst_LForward( TPZFMatrix<float>* b ) const
 template<>
 int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
 {
-    //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
-    
+   
     if (fDecomposed != ELDLt) {
         DebugStop();
     }
@@ -1868,8 +1884,9 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     int nrhs = b->Cols();
     double B  = 0.;
     int info;
-    
-    //    ssytrs_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
+    if (dim == 0 || nrhs == 0) {
+        return;
+    }
     dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
     //    return TPZMatrix<TVar>::Subst_LForward(b);

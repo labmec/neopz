@@ -47,7 +47,7 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 
 #ifdef USING_TBB
 
-RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the graph creation, coloring and tbb::flow::graph TPZStructMatrixTBB.");
+static RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the graph creation, coloring and tbb::flow::graph TPZStructMatrixTBB.");
 
 
 
@@ -100,8 +100,8 @@ TPZStructMatrixTBB *TPZStructMatrixTBB::Clone() {
     
 }
 
-RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
-RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
+static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
+static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 void TPZStructMatrixTBB::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     ass_stiff.start();

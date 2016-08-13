@@ -843,10 +843,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	long ic = 0;
 	long n = ConnectL.NElements();
 	for(long i = 0; i < n; i++) {
-		const unsigned int nshape = left->NConnectShapeF(i);
+        TPZConnect &c = left->Connect(i);
+		const unsigned int nshape = left->NConnectShapeF(i,c.Order());
 		const int con_neq = nstatel * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = left->Connect(i);
         if(c.NShape() != nshape || c.NState() != nstatel)
         {
             DebugStop();
@@ -858,10 +858,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	}
 	n = ConnectR.NElements();
 	for(long i = 0; i < n; i++) {
-		const unsigned int nshape = right->NConnectShapeF(i);
+        TPZConnect &c = right->Connect(i);
+		const unsigned int nshape = right->NConnectShapeF(i,c.Order());
 		const int con_neq = nstater * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = right->Connect(i);
         if (c.NShape() != nshape || c.NState() != nstater) {
             DebugStop();
         }
@@ -898,6 +898,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 #endif
 	
     ek.fMesh = Mesh();
+    ek.fType = TPZElementMatrix::EK;
+    ef.fType = TPZElementMatrix::EF;
     ef.fMesh = ek.fMesh;
     TPZMaterial *mat = Material();
 	const int numdof = mat->NStateVariables();
@@ -933,10 +935,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	long ic = 0;
 	long n = ConnectL.NElements();
 	for(int i = 0; i < n; i++) {
-		const unsigned int nshape = left->NConnectShapeF(i);
+        TPZConnect &c = left->Connect(i);
+		const unsigned int nshape = left->NConnectShapeF(i,c.Order());
 		const int con_neq = nstatel * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = left->Connect(i);
         if(c.NShape() != nshape || c.NState() != nstatel)
         {
             DebugStop();
@@ -960,10 +962,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	}
 	n = ConnectR.NElements();
 	for(long i = 0; i < n; i++) {
-		const unsigned int nshape = right->NConnectShapeF(i);
+        TPZConnect &c = right->Connect(i);
+		const unsigned int nshape = right->NConnectShapeF(i,c.Order());
 		const int con_neq = nstater * nshape;
 #ifdef PZDEBUG
-        TPZConnect &c = right->Connect(i);
         if (c.NShape() != nshape || c.NState() != nstater) {
             DebugStop();
         }
@@ -1005,7 +1007,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		sout << "elemento de interface Indice deste Material--> " <<this->Material()->Id()<< std::endl;
+		sout << "elemento de interface " << Index() << " Indice deste Material--> " <<this->Material()->Id()<< std::endl;
 		
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}

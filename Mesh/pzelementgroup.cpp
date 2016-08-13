@@ -275,11 +275,16 @@ void TPZElementGroup::EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<ST
 {
     int nerr = errors.size();
     errors.Fill(0.);
+    int meshdim = Mesh()->Dimension();
     int nel = fElGroup.size();
     for (int el=0; el<nel; el++) {
         TPZManVector<REAL,10> errloc(nerr,0.);
+        TPZGeoEl *elref = fElGroup[el]->Reference();
+        if (elref && elref->Dimension() != meshdim) {
+            continue;
+        }
         fElGroup[el]->EvaluateError(fp, errloc, flux);
-        if (errloc.size()> nerr) {
+        if (errloc.size() != nerr) {
             nerr = errloc.size();
             errors.Resize(nerr, 0.);
         }

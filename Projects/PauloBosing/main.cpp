@@ -70,7 +70,6 @@ const int bc1 = -2;
 const int bc2 = -3;
 const int bc3 = -4;
 
-TPZGeoMesh *MalhaGeom();
 TPZGeoMesh *GMesh(bool triang_elements);
 
 TPZCompMesh *MalhaCompUm(TPZGeoMesh * gmesh,int pOrder, bool isdiscontinuous);
@@ -92,7 +91,7 @@ void SolExataP(const TPZVec<REAL> &pt, TPZVec<STATE> &solP, TPZFMatrix<STATE> &G
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material"));
+static LoggerPtr logdata(Logger::getLogger("pz.tutorial.multiphysics"));
 #endif
 
 bool disc_functions = true;
@@ -102,11 +101,12 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
-    
+
+    // example log statement
 #ifdef LOG4CXX
     {
         std::stringstream sout;
-        sout<<"\n Elemento computacional " << std::endl;
+        sout<<"Starting up " << std::endl;
         LOGPZ_DEBUG(logdata,sout.str())
     }
 #endif
@@ -124,16 +124,15 @@ int main(int argc, char *argv[])
         {
             arg12<<"\nREFINAMENTO h  = " << h <<"\n\n";
             
-            //---- Criando a malha geométrica ----
-            // TPZGeoMesh * gmesh = MalhaGeom();
+            //---- Create a 2D geometric mesh ----
             TPZGeoMesh * gmesh = GMesh(true);
             //            ofstream arg1("gmesh_inicial.txt");
             //            gmesh->Print(arg1);
             
-            //---- Criando a primeira malha computacional -----
+            //---- Create a first computational mesh -----
             TPZCompMesh * cmesh1= MalhaCompUm(gmesh, p,disc_functions);
             
-            //----- Criando a segunda malha computacional ------
+            //----- Create a second computational mesh ------
             TPZCompMesh * cmesh2 = MalhaCompDois(gmesh, p,disc_functions);
             
             
@@ -219,83 +218,13 @@ int main(int argc, char *argv[])
 }
 
 
-TPZGeoMesh *MalhaGeom()
-{
-    
-    int Qnodes = 4;
-    
-    TPZGeoMesh * gmesh = new TPZGeoMesh;
-    gmesh->SetMaxNodeId(Qnodes-1);
-    gmesh->NodeVec().Resize(Qnodes);
-    TPZVec<TPZGeoNode> Node(Qnodes);
-    
-    TPZVec <long> TopolQuad(4);
-    TPZVec <long> TopolLine(2);
-    
-    //indice dos nos
-    long id = 0;
-    REAL valx;
-    REAL dx=1.;
-    for(int xi = 0; xi < Qnodes/2; xi++)
-    {
-        valx = xi*dx;
-        Node[id].SetNodeId(id);
-        Node[id].SetCoord(0 ,valx );//coord X
-        Node[id].SetCoord(1 ,0. );//coord Y
-        gmesh->NodeVec()[id] = Node[id];
-        id++;
-    }
-    
-    for(int xi = 0; xi < Qnodes/2; xi++)
-    {
-        valx = 1. - xi*dx;
-        Node[id].SetNodeId(id);
-        Node[id].SetCoord(0 ,valx );//coord X
-        Node[id].SetCoord(1 ,1. );//coord Y
-        gmesh->NodeVec()[id] = Node[id];
-        id++;
-    }
-    
-    //indice dos elementos
-    id = 0;
-    
-    TopolQuad[0] = 0;
-    TopolQuad[1] = 1;
-    TopolQuad[2] = 2;
-    TopolQuad[3] = 3;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
-    id++;
-    
-    TopolLine[0] = 0;
-    TopolLine[1] = 1;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
-    id++;
-    
-    TopolLine[0] = 1;
-    TopolLine[1] = 2;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
-    id++;
-    
-    TopolLine[0] = 2;
-    TopolLine[1] = 3;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
-    id++;
-    
-    TopolLine[0] = 3;
-    TopolLine[1] = 0;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
-    
-    gmesh->BuildConnectivity();
-    
-    return gmesh;
-    
-}
 
 TPZGeoMesh *GMesh(bool triang_elements){
     
     int Qnodes = 4;
     
     TPZGeoMesh * gmesh = new TPZGeoMesh;
+    gmesh->SetDimension(2);
     gmesh->SetMaxNodeId(Qnodes-1);
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec<TPZGeoNode> Node(Qnodes);

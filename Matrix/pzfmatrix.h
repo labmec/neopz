@@ -242,6 +242,12 @@ public:
     /** @brief Makes Zero all the elements */
     int Zero();
     
+#ifdef USING_LAPACK
+    /** @brief Initialize pivot with i = i  */
+    void InitializePivot();
+#endif
+
+    
     /**
      * @brief This method implements a Gram Schimidt method. \n this = Orthog.TransfToOrthog
      * @param Orthog [out] each column represents a vector orthogonalized with respect to the first vector (first column of *this). Vectors are normalized

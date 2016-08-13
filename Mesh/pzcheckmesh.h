@@ -21,14 +21,14 @@ class TPZCheckMesh {
 	
 protected:
 	TPZCompMesh *fMesh;
-	std::iostream *fOut;
+	std::ostream *fOut;
 	
 public:
 	int CheckConstraintDimension();
 	int CheckElementShapeDimension();
 	int CheckDimensions();
 	/** @brief Constructor */
-	TPZCheckMesh(TPZCompMesh *mesh, std::iostream *out);
+	TPZCheckMesh(TPZCompMesh *mesh, std::ostream *out);
 
 	/**
 	 * @brief This method will write a report to the std::ostream about all connects

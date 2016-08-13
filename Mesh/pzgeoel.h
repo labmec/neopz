@@ -480,7 +480,7 @@ public:
 	
 	/** */
 	virtual void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) = 0;
-	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) = 0;
+	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) const = 0;
 	
     /** @brief Return the jacobian of the transformation at the given coordinate */
 	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const = 0;

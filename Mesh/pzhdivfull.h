@@ -50,7 +50,7 @@ public:
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	virtual int NConnectShapeF(int connect) const;
+	virtual int NConnectShapeF(int connect, int order) const;
 	virtual void SetSideOrder(int side, int order);
 	virtual void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,long> > & ShapeAndVec, int pressureorder);
 	virtual void FirstShapeIndex(TPZVec<long> &Index);

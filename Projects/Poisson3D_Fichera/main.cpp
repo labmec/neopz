@@ -116,9 +116,13 @@ int main(int argc, char *argv[]) {
 	else if(problem==2) 
 		out << "\t As Rachowicz (2006).";
 	
-	for(int ntyperefs=2;ntyperefs>0;ntyperefs--) {
+	for(int ntyperefs=1;ntyperefs<3;ntyperefs++) {
 		fileerrors << "Type of refinement: " << ntyperefs << " Level. " << endl;
-		for(int typeel=0;typeel<3;typeel++) {
+        
+        // typeel = 0 -> hexahedra
+        // typeel = 1 -> prisms
+        // typeel = 2 -> pyramids
+		for(int typeel=2;typeel>=0;typeel--) {
 			REAL radius = 1.2;
 			// Constructing geometric mesh as Fichera corner using hexahedra
 			TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL,typeel,problem);
@@ -133,7 +137,7 @@ int main(int argc, char *argv[]) {
 				cout << "\nConstructing Fichera problem. Refinement: " << nref+1 << " Threads: " << nthread << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << endl;
 				
 				// h_refinement
-				// Refining near the points belong a circunference with radio r - maxime distance radius
+				// Refining elemenst whose center belong a circunference with radio r +- maxime distance radius
 				RefiningNearCircunference(dim,gmesh3D,radius,ntyperefs);
 				if(ntyperefs==2) {
 					nref++;
@@ -221,7 +225,7 @@ int main(int argc, char *argv[]) {
 				out << "\tRefinement: " << nref+1 << " TypeRef: " << ntyperefs << " TypeElement: " << typeel << " Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 				
 				// Post processing
-				char pp[3];
+				char pp[300];
 				std::string filename = "Poisson3DSol_";
 				if(problem==1) filename += "S_";
 				else if(problem==2) filename += "R_";
@@ -738,7 +742,7 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,REAL radius,int ntypere
 	bool isdefined = true;
 
 	if(ntyperefs==2) {
-		// To refine elements with center near to points than radius
+		// To refine elements with distance from center to point less than radius
 		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
 		RefineGeoElements(dim,gmesh,point,r,radius,isdefined);
 	}

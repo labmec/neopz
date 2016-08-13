@@ -89,7 +89,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	int sideorder = SideOrder(TSHAPE::NSides-1);
+	int sideorder = EffectiveSideOrder(TSHAPE::NSides-1);
 	sideorder = 2*sideorder;
 	if (sideorder > this->fIntRule.GetMaxOrder()) sideorder = this->fIntRule.GetMaxOrder();
 	//  TPZManVector<int,3> order(3,2*sideorder+2);
@@ -192,6 +192,8 @@ template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
     TPZGeoEl *gel = this->Reference();
     if (gel->Reference() != this) {
+        // tototototo
+        return;
         DebugStop();
     }
     int side = TSHAPE::NSides-1;
@@ -264,12 +266,12 @@ void TPZCompElHDivBound2<TSHAPE>::SetConnectIndex(int i, long connectindex)
 }
 
 template<class TSHAPE>
-int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
+int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect, int connectorder) const
 {
 	if(connect == 0)
 	{
 		
-		TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,ConnectOrder(connect));
+		TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
         return TSHAPE::NShapeF(order);
     }
     return -1;
@@ -335,12 +337,12 @@ void TPZCompElHDivBound2<TSHAPE>::SetSideOrder(int side, int order) {
 		return;
 	}
 	TPZConnect &c = this->Connect(connectaux);
-    c.SetOrder(order);
+    c.SetOrder(order,this->fConnectIndexes[connectaux]);
     long seqnum = c.SequenceNumber();
     int nvar = 1;
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
-    int nshape = NConnectShapeF(connectaux);
+    int nshape = NConnectShapeF(connectaux,order);
     c.SetNShape(nshape);
     c.SetNState(nvar);
     this-> Mesh()->Block().Set(seqnum,nshape*nvar);
@@ -473,7 +475,7 @@ void TPZCompElHDivBound2<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<l
 	for(is=0 ; is<nsides; is++)
 	{
 		int side = sides[is];
-		int sideorder= this->SideOrder(side);
+		int sideorder= this->EffectiveSideOrder(side);
 		int NShapeFace = TSHAPE::NConnectShapeF(side,sideorder);
 		int ishapeface;
 		for(ishapeface=0; ishapeface<NShapeFace; ishapeface++)
@@ -585,7 +587,8 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 {
     TPZManVector<int,TSHAPE::NSides> ordl;
     this->GetInterpolationOrder(ordl);
-    int nshape = NConnectShapeF(0);
+    TPZConnect &c = this->Connect(0);
+    int nshape = NConnectShapeF(0,c.Order());
     phi.Resize(nshape, 1);
     dphi.Resize(TSHAPE::Dimension, nshape);
     SideShapeFunction(TSHAPE::NSides-1, pt, phi, dphi);
@@ -757,7 +760,7 @@ void TPZCompElHDivBound2<TSHAPE>::Print(std::ostream &out) const
 
 /** Returns the actual interpolation order of the polynomial along the side */
 template<class TSHAPE>
-int TPZCompElHDivBound2<TSHAPE>::SideOrder(int side) const
+int TPZCompElHDivBound2<TSHAPE>::EffectiveSideOrder(int side) const
 {
 	if(side == TSHAPE::NSides-1)
 	{

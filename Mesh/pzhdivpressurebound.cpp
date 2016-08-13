@@ -100,12 +100,12 @@ void TPZCompElHDivPressureBound<TSHAPE>::SetConnectIndex(int i, long connectinde
 }
 
 template<class TSHAPE>
-int TPZCompElHDivPressureBound<TSHAPE>::NConnectShapeF(int connect) const
+int TPZCompElHDivPressureBound<TSHAPE>::NConnectShapeF(int connect, int order) const
 {
     
     if(connect<NConnects()-2){
         
-        return TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(connect);
+        return TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(connect, order);
     }
     else{
         
@@ -155,7 +155,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord)
 
 /** Returns the actual interpolation order of the polynomial along the side */
 template<class TSHAPE>
-int TPZCompElHDivPressureBound<TSHAPE>::SideOrder(int side) const
+int TPZCompElHDivPressureBound<TSHAPE>::EffectiveSideOrder(int side) const
 {
 	DebugStop();
     std::cout<<"\nNao implementado";
@@ -176,12 +176,12 @@ void TPZCompElHDivPressureBound<TSHAPE>::SetSideOrder(int side, int order)
 		return;
 	}
 	TPZConnect &c = this->Connect(connectaux);
-    c.SetOrder(order);
+    c.SetOrder(order,this->fConnectIndexes[connectaux]);
     long seqnum = c.SequenceNumber();
     int nvar = 1;
     TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
-    int nshape = NConnectShapeF(connectaux);
+    int nshape = NConnectShapeF(connectaux,order);
     c.SetNShape(nshape);
     c.SetNState(nvar);
     this-> Mesh()->Block().Set(seqnum,nshape*nvar);
@@ -216,7 +216,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
     data.fShapeType = TPZMaterialData::EVecandShape;
     TPZCompElHDivBound2<TSHAPE>::InitMaterialData(data);
-    data.numberdualfunctions = NConnectShapeF(NConnects()-1);
+    data.numberdualfunctions = NConnectShapeF(NConnects()-1,fPressureOrder);
 }
 
 template<class TSHAPE>
@@ -232,7 +232,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, T
 	for(is=0 ; is<nsides; is++)
 	{
 		int side = sides[is];
-		int sideorder= this->SideOrder(side);
+		int sideorder= this->EffectiveSideOrder(side);
 		int NShapeFace = TSHAPE::NConnectShapeF(side,sideorder);
 		int ishapeface;
 		for(ishapeface=0; ishapeface<NShapeFace; ishapeface++)
