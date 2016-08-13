@@ -21,7 +21,7 @@ class TRMMonolithicMultiphaseAnalysis : public TPZAnalysis {
 private:
     
     /** @brief define the simulation data */
-    TPZAutoPointer<TRMSimulationData> fSimulationData;
+    TRMSimulationData * fSimulationData;
 
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2, fmeshvec[2] = SaturationL2 */
     TPZManVector<TPZCompMesh * , 4> fmeshvec;
@@ -93,7 +93,7 @@ public:
     
     
     /** @brief Set the simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
+    void SetSimulationData(TRMSimulationData * SimulationData)
     {
         fSimulationData = SimulationData;
         if (fSimulationData->IsOnePhaseQ()) {
@@ -111,7 +111,7 @@ public:
     }
     
     /** @brief Get the space generator */
-    TPZAutoPointer<TRMSimulationData> SimulationData()
+    TRMSimulationData * SimulationData()
     {
         return fSimulationData;
     }

@@ -83,7 +83,7 @@ TRMTransportAnalysis & TRMTransportAnalysis::operator=(const TRMTransportAnalysi
 /** @brief Resize and fill residue and solution vectors */
 void TRMTransportAnalysis::AdjustVectors(){
     
-    if(fSolution.Rows() == 0){
+    if(fSolution.Rows() == 0  /*|| fRhs.Rows() == 0 */ ){
         DebugStop();
     }
     

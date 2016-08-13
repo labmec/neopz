@@ -337,6 +337,7 @@ public:
     {
 			fForcingFunction = fp;
     }
+    
     void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result), int porder )
 		{
 				if(fp)

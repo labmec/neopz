@@ -25,16 +25,16 @@ class TRMSegregatedAnalysis : public TPZAnalysis {
 private:
     
     /** @brief define the simulation data */
-    TPZAutoPointer<TRMSimulationData> fSimulationData;
+    TRMSimulationData * fSimulationData;
     
     /** @brief define the transfer matrices */
-    TPZAutoPointer<TRMBuildTransfers> fTransfer;
+    TRMBuildTransfers * fTransfer;
     
     /** @brief define the parabolic system */
-    TPZAutoPointer<TRMFluxPressureAnalysis> fParabolic;
+    TRMFluxPressureAnalysis * fParabolic;
     
     /** @brief define the hyperbolic system */
-    TPZAutoPointer<TRMTransportAnalysis> fHyperbolic;
+    TRMTransportAnalysis * fHyperbolic;
     
     /** @brief Residue error for flux - pressure */
     STATE ferror_flux_pressure;
@@ -71,49 +71,49 @@ public:
     
     
     /** @brief Set the simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
+    void SetSimulationData(TRMSimulationData * SimulationData)
     {
         fSimulationData = SimulationData;
     }
     
     /** @brief Get the space generator */
-    TPZAutoPointer<TRMSimulationData> SimulationData()
+    TRMSimulationData * SimulationData()
     {
         return fSimulationData;
     }
     
     /** @brief Set the transfer object */
-    void SetTransfer(TPZAutoPointer<TRMBuildTransfers> &Transfer)
+    void SetTransfer(TRMBuildTransfers *Transfer)
     {
         fTransfer = Transfer;
     }
     
     /** @brief Get the transfer object */
-    TPZAutoPointer<TRMBuildTransfers> Transfer()
+    TRMBuildTransfers * Transfer()
     {
         return fTransfer;
     }
 
     /** @brief Set the parabolic part */
-    void SetParabolic(TPZAutoPointer<TRMFluxPressureAnalysis> &parabolic)
+    void SetParabolic(TRMFluxPressureAnalysis * parabolic)
     {
         fParabolic = parabolic;
     }
     
     /** @brief Get the parabolic part  */
-    TPZAutoPointer<TRMFluxPressureAnalysis> Parabolic()
+    TRMFluxPressureAnalysis * Parabolic()
     {
         return fParabolic;
     }
     
     /** @brief Set the hyperbolic part */
-    void SetHyperbolic(TPZAutoPointer<TRMTransportAnalysis> &hyperbolic)
+    void SetHyperbolic(TRMTransportAnalysis * hyperbolic)
     {
         fHyperbolic = hyperbolic;
     }
     
     /** @brief Get the hyperbolic part  */
-    TPZAutoPointer<TRMTransportAnalysis> Hyperbolic()
+    TRMTransportAnalysis * Hyperbolic()
     {
         return fHyperbolic;
     }

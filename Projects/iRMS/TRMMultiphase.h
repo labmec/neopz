@@ -99,7 +99,7 @@ public:
     void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){DebugStop();}
     
     /** @brief Set autopointer of Simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData){
+    void SetSimulationData(TRMSimulationData * SimulationData){
         fSimulationData = SimulationData;
     }
     

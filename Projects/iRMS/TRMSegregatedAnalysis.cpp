@@ -99,6 +99,7 @@ void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
     this->UpdateMemory_at_n();
     
     fHyperbolic->ExcecuteOneStep();
+
     
     this->UpdateMemory_at_n();
 

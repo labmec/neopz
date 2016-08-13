@@ -96,7 +96,7 @@ TRMRawData::~TRMRawData()
 /** @brief Define the materials for a primitive mono-phasic example */
 void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc;
     
     // Single flow
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
@@ -144,12 +144,12 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     int bc_B = 15;
     int bc_T = 16;
     
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > W(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > E(n_data);    
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > S(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > N(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > S(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > N(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
     W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
@@ -227,7 +227,7 @@ void TRMRawData::Impervious(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >&
 /** @brief Define the materials for a primitive mono-phasic example */
 void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc;
     
     // Single flow
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
@@ -271,11 +271,11 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     int bc_Outlet   = 3;
     int bc_Noflux   = 4;
     
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Noflux(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Inlet(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Outlet(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Noflux(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Inlet(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Outlet(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_Noflux);
     Noflux[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
@@ -305,7 +305,7 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
 /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
 void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc;
     
     // two phase flow
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
@@ -358,12 +358,12 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     int bc_B = 15;
     int bc_T = 16;
     
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > W(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > E(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > S(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > N(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > S(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > N(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
     W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
@@ -440,7 +440,7 @@ void TRMRawData::Impervious_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL
 /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
 void TRMRawData::WaterOilReservoirVertical(bool Is3DGeometryQ){
     
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc;
     
     // Single flow
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
@@ -496,11 +496,11 @@ void TRMRawData::WaterOilReservoirVertical(bool Is3DGeometryQ){
     int bc_B        = 5;
     int bc_T        = 6;
     
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Noflux(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Inlet(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Outlet(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Noflux(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Inlet(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Outlet(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_Noflux);
     Noflux[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
@@ -542,7 +542,7 @@ void TRMRawData::WaterOilReservoirVertical(bool Is3DGeometryQ){
 /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
 void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc;
     
     // Single flow
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
@@ -596,11 +596,11 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     int bc_Inlet    = 3;
     int bc_Noflux   = 4;
     
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Noflux(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Inlet(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Outlet(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Noflux(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Inlet(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Outlet(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_Noflux);
     Noflux[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
@@ -628,7 +628,7 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
 /** @brief Define the materials for a primitive three-phase flow example and their functions associated */
 void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc;
     
     // Single flow
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
@@ -682,12 +682,12 @@ void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     int bc_B = 15;
     int bc_T = 16;
     
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > W(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > E(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > S(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > N(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > S(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > N(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
     W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
@@ -766,7 +766,7 @@ void TRMRawData::Impervious_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL
 /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
 void TRMRawData::WaterOilGasReservoirCircular(bool Is3DGeometryQ){
     
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc;
     
     // Single flow
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
@@ -823,11 +823,11 @@ void TRMRawData::WaterOilGasReservoirCircular(bool Is3DGeometryQ){
     int bc_Inlet    = 3;
     int bc_Noflux   = 4;
     
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Noflux(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Inlet(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > Outlet(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > B(n_data);
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > T(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Noflux(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Inlet(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > Outlet(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_Noflux);
     Noflux[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));

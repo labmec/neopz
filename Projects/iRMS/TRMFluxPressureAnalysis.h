@@ -21,10 +21,10 @@ class TRMFluxPressureAnalysis : public TPZAnalysis {
 private:
     
     /** @brief define the simulation data */
-    TPZAutoPointer<TRMSimulationData> fSimulationData;
+    TRMSimulationData * fSimulationData;
     
     /** @brief define the transfer matrices */
-    TPZAutoPointer<TRMBuildTransfers> fTransfer;
+    TRMBuildTransfers * fTransfer;
     
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 2> fmeshvec;
@@ -91,26 +91,26 @@ public:
     }
     
     /** @brief Set the simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
+    void SetSimulationData(TRMSimulationData * SimulationData)
     {
         fSimulationData = SimulationData;
         fmeshvec.Resize(2);
     }
     
     /** @brief Get the space generator */
-    TPZAutoPointer<TRMSimulationData> SimulationData()
+    TRMSimulationData * SimulationData()
     {
         return fSimulationData;
     }
     
     /** @brief Set the transfer object */
-    void SetTransfer(TPZAutoPointer<TRMBuildTransfers> &Transfer)
+    void SetTransfer(TRMBuildTransfers * Transfer)
     {
         fTransfer = Transfer;
     }
     
     /** @brief Get the transfer object */
-    TPZAutoPointer<TRMBuildTransfers> Transfer()
+    TRMBuildTransfers * Transfer()
     {
         return fTransfer;
     }

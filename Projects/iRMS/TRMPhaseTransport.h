@@ -85,7 +85,7 @@ public:
     
     
     /** @brief Set the simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
+    void SetSimulationData(TRMSimulationData * SimulationData)
     {
         fSimulationData = SimulationData;
     }

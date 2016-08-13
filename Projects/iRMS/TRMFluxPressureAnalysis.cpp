@@ -83,7 +83,7 @@ TRMFluxPressureAnalysis & TRMFluxPressureAnalysis::operator=(const TRMFluxPressu
 /** @brief Resize and fill residue and solution vectors */
 void TRMFluxPressureAnalysis::AdjustVectors(){
     
-    if(fSolution.Rows() == 0){
+    if(fSolution.Rows() == 0 /* || fRhs.Rows() == 0 */){
         DebugStop();
     }
     

@@ -35,22 +35,22 @@ class TRMOrchestra{
 private:
 
     /** @brief Define the global geometry being used */
-    TPZAutoPointer<TPZGeoMesh > fgmesh;
+    TPZGeoMesh * fgmesh;
 
     /** @brief Define the space generator */
-    TPZAutoPointer<TRMSpaceOdissey> fSpaceGenerator;
+    TRMSpaceOdissey * fSpaceGenerator;
     
     /** @brief Define simulation data */
-    TPZAutoPointer<TRMSimulationData> fSimulationData;
+    TRMSimulationData * fSimulationData;
     
     /** @brief Define the primal with global post-processing analysis */
-    TPZAutoPointer<TRMPrimalMultiphaseAnalysis> fPrimalMultiphaseAnalysis;
+    TRMPrimalMultiphaseAnalysis * fPrimalMultiphaseAnalysis;
 
     /** @brief Define the initial monolithic multiphase analysis */
-    TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> fMonolithicMultiphaseAnalysis_I;
+    TRMMonolithicMultiphaseAnalysis * fMonolithicMultiphaseAnalysis_I;
     
     /** @brief Define the monolithic multiphase analysis */
-    TPZAutoPointer<TRMMonolithicMultiphaseAnalysis> fMonolithicMultiphaseAnalysis;
+    TRMMonolithicMultiphaseAnalysis * fMonolithicMultiphaseAnalysis;
     
 //    /** @brief Define the analysis mixed system  */
 //    TPZAutoPointer<TRMFluxPressureAnalysis> fparabolic;
@@ -59,10 +59,10 @@ private:
 //    TPZAutoPointer<TRMTransportAnalysis> fhyperbolic;
     
     /** @brief Define initial multiphase segregated analysis for transport phases */
-    TPZAutoPointer<TRMSegregatedAnalysis> fSegregatedAnalysis_I;
+    TRMSegregatedAnalysis * fSegregatedAnalysis_I;
     
     /** @brief Define multiphase segregated analysis for transport phases */
-    TPZAutoPointer<TRMSegregatedAnalysis> fSegregatedAnalysis;
+    TRMSegregatedAnalysis * fSegregatedAnalysis;
     
     
     /** @brief Define the use of monolithic analysis  */
@@ -107,7 +107,7 @@ public:
      */
     
     /** @brief Set autopointer of the global geometry being used */
-    void SetGMesh(TPZAutoPointer<TPZGeoMesh > gmesh)
+    void SetGMesh(TPZGeoMesh * gmesh)
     {
         fgmesh = gmesh;
     }
@@ -118,57 +118,57 @@ public:
     }
     
     /** @brief Set the space generator */
-    void SetSpaceGenerator(TPZAutoPointer<TRMSpaceOdissey> &SpaceGenerator)
+    void SetSpaceGenerator(TRMSpaceOdissey * SpaceGenerator)
     {
         fSpaceGenerator = SpaceGenerator;
     }
     /** @brief Get the space generator */
-    TPZAutoPointer<TRMSpaceOdissey> SpaceGenerator()
+    TRMSpaceOdissey * SpaceGenerator()
     {
         return fSpaceGenerator;
     }
     
     /** @brief Set autopointer of the simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData > &SimulationData)
+    void SetSimulationData(TRMSimulationData * SimulationData)
     {
         fSimulationData = SimulationData;
         fSpaceGenerator->SetSimulationData(SimulationData);
     }
     /** @brief Get autopointer of the simulation data */
-    TPZAutoPointer<TRMSimulationData > SimulationData()
+    TRMSimulationData * SimulationData()
     {
         return fSimulationData;
     }
     
     /** @brief Set autopointer of the primal with global post-processing analysis */
-    void SetPrimalMultiphaseAnalysis(TPZAutoPointer<TRMPrimalMultiphaseAnalysis > &PrimalMultiphaseAnalysis)
+    void SetPrimalMultiphaseAnalysis(TRMPrimalMultiphaseAnalysis * PrimalMultiphaseAnalysis)
     {
         fPrimalMultiphaseAnalysis = PrimalMultiphaseAnalysis;
     }
     /** @brief Get autopointer of the primal with global post-processing analysis */
-    TPZAutoPointer<TRMPrimalMultiphaseAnalysis > PrimalMultiphaseAnalysis()
+    TRMPrimalMultiphaseAnalysis * PrimalMultiphaseAnalysis()
     {
         return fPrimalMultiphaseAnalysis;
     }
 
     /** @brief Set autopointer of the initial monolithic multiphase analysis */
-    void SetMonolithicMultiphaseAnalysis_I(TPZAutoPointer<TRMMonolithicMultiphaseAnalysis > &MonolithicMultiphaseAnalysis_I)
+    void SetMonolithicMultiphaseAnalysis_I(TRMMonolithicMultiphaseAnalysis * MonolithicMultiphaseAnalysis_I)
     {
         fMonolithicMultiphaseAnalysis_I = MonolithicMultiphaseAnalysis_I;
     }
     /** @brief Get autopointer of the initial monolithic multiphase analysis */
-    TPZAutoPointer<TRMMonolithicMultiphaseAnalysis > MonolithicMultiphaseAnalysis_I()
+    TRMMonolithicMultiphaseAnalysis * MonolithicMultiphaseAnalysis_I()
     {
         return fMonolithicMultiphaseAnalysis_I;
     }
     
     /** @brief Set autopointer of the monolithic multiphase analysis */
-    void SetMonolithicMultiphaseAnalysis(TPZAutoPointer<TRMMonolithicMultiphaseAnalysis > &MonolithicMultiphaseAnalysis)
+    void SetMonolithicMultiphaseAnalysis(TRMMonolithicMultiphaseAnalysis * MonolithicMultiphaseAnalysis)
     {
         fMonolithicMultiphaseAnalysis = MonolithicMultiphaseAnalysis;
     }
     /** @brief Get autopointer of the monolithic multiphase analysis */
-    TPZAutoPointer<TRMMonolithicMultiphaseAnalysis > MonolithicMultiphaseAnalysis()
+    TRMMonolithicMultiphaseAnalysis * MonolithicMultiphaseAnalysis()
     {
         return fMonolithicMultiphaseAnalysis;
     }

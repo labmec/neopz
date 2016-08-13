@@ -68,10 +68,10 @@ public:
     TPZStack< int > fSkeletonIds;
 
     /** @brief vector that stores pointers to L2 function associated with with gamma domain at intial conditions */
-    TPZStack< TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > >  fIntial_bc_data;
+    TPZStack< TPZVec< std::pair< int, TPZFunction<REAL> * > > >  fIntial_bc_data;
     
     /** @brief vector that stores pointers to L2 function associated with with gamma domain at given conditions */
-    TPZStack< TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > >  fRecurrent_bc_data;
+    TPZStack< TPZVec< std::pair< int, TPZFunction<REAL> * > > >  fRecurrent_bc_data;
     
     /**
      * @ingroup Required data for a simulation

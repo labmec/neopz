@@ -268,7 +268,8 @@ protected:
     
     virtual int MinimumNumberofLoadCases()
     {
-        return 1+fBCs.size();
+        return fBCs.size(); // @omar:: why + 1 ???
+//        return 1+fBCs.size();
     }
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */

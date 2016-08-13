@@ -49,7 +49,7 @@ TRMBuildTransfers & TRMBuildTransfers::operator=(const TRMBuildTransfers &other)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void TRMBuildTransfers::Initialize_u_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+void TRMBuildTransfers::Initialize_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index){
     
 #ifdef PZDEBUG
     if (!cmesh_multiphysics) {
@@ -119,7 +119,7 @@ void TRMBuildTransfers::Initialize_u_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh
 }
 
 
-void TRMBuildTransfers::Initialize_p_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+void TRMBuildTransfers::Initialize_p_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index){
     
 #ifdef PZDEBUG
     if (!cmesh_multiphysics) {
@@ -195,7 +195,7 @@ void TRMBuildTransfers::Initialize_p_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh
 }
 
 
-void TRMBuildTransfers::Initialize_s_To_Transport(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index){
+void TRMBuildTransfers::Initialize_s_To_Transport(TPZCompMesh * cmesh_multiphysics, int mesh_index){
     
 #ifdef PZDEBUG
     if (!cmesh_multiphysics) {
@@ -303,7 +303,7 @@ void TRMBuildTransfers::Initialize_s_To_Transport(TPZAutoPointer< TPZCompMesh> c
 /// Matrices Filling Methods
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TRMBuildTransfers::Fill_u_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_multiphysics, int mesh_index){
+void TRMBuildTransfers::Fill_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index){
     
     // It verify the consistency of dynamic_cast operations and mesh structure, and  finally it initialize diagonal matrix blocks
     Initialize_u_To_Mixed(cmesh_multiphysics, mesh_index);
@@ -383,7 +383,7 @@ void TRMBuildTransfers::Fill_u_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_mult
 }
 
 
-void TRMBuildTransfers::Fill_p_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_multiphysics, int mesh_index){
+void TRMBuildTransfers::Fill_p_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index){
     
     // It verify the consistency of dynamic_cast and mesh structure and at the end Initialize diagonal matrix blocks
     Initialize_p_To_Mixed(cmesh_multiphysics, mesh_index);
@@ -455,7 +455,7 @@ void TRMBuildTransfers::Fill_p_To_Mixed(TPZAutoPointer< TPZCompMesh > cmesh_mult
 
 
 
-void TRMBuildTransfers::Fill_s_To_Transport(TPZAutoPointer< TPZCompMesh > cmesh_multiphysics, int mesh_index){
+void TRMBuildTransfers::Fill_s_To_Transport(TPZCompMesh * cmesh_multiphysics, int mesh_index){
     
     // It verify the consistency of dynamic_cast and mesh structure and at the end Initialize diagonal matrix blocks
     Initialize_s_To_Transport(cmesh_multiphysics, mesh_index);
@@ -967,7 +967,7 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
 
 
 /** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-void TRMBuildTransfers::Initialize_un_To_Transport(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh, bool IsBoundaryQ){
+void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ){
     
     
 #ifdef PZDEBUG
@@ -1104,7 +1104,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZAutoPointer< TPZCompMesh> 
 }
 
 /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
-void TRMBuildTransfers::Fill_un_To_Transport(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh, bool IsBoundaryQ){
+void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ){
     
 
 #ifdef USING_BOOST
@@ -1731,7 +1731,7 @@ void TRMBuildTransfers::ComputeFaceNormals(TPZGeoEl * gel , TPZVec<int> &sides, 
 }
 
 /** @brief Compute left and right geometric element indexes */
-void TRMBuildTransfers::ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_mesh){
+void TRMBuildTransfers::ComputeLeftRight(TPZCompMesh * transport_mesh){
     
 #ifdef PZDEBUG
     if (!transport_mesh) {
@@ -1870,7 +1870,7 @@ void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index,TPZInterpolation
 
 
 /** @brief Compute compuational mesh pair (mixed, transport) indexed by geometric volumetic element index */
-void TRMBuildTransfers::FillComputationalElPairs(TPZAutoPointer< TPZCompMesh>  cmesh_mf_mixed, TPZAutoPointer< TPZCompMesh>  cmesh_mf_transport){
+void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport){
 
     fmixed_transport_indexes.Resize(0);
     

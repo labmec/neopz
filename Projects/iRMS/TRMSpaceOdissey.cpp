@@ -103,8 +103,8 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     int qorder = fPOrder;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
     
     // Malha computacional
     fFluxCmesh = new TPZCompMesh(fGeoMesh);
@@ -133,7 +133,8 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
             
             bc_item = bc[flux_or_pressure];
             TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
-            boundary_c->SetTimedependentBCForcingFunction(bc_item.second);
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
             fFluxCmesh->InsertMaterialObject(boundary_c);
         }
         
@@ -201,7 +202,7 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     }
     
     TPZDummyFunction<STATE> dummy(PressFunc);
-    TPZCompMeshTools::LoadSolution(fPressureCmesh.operator->(), dummy);
+    TPZCompMeshTools::LoadSolution(fPressureCmesh, dummy);
 #ifdef PZDEBUG
     std::ofstream out("CmeshPress.txt");
     fPressureCmesh->Print(out);
@@ -262,8 +263,8 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     int flux_or_pressure = 0;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
     
     // Malha computacional
     fMixedFluxPressureCmesh = new TPZCompMesh(fGeoMesh);
@@ -292,8 +293,10 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
             }
             
             bc_item = bc[flux_or_pressure];
+            
             TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
-            boundary_c->SetTimedependentBCForcingFunction(bc_item.second); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
             fMixedFluxPressureCmesh->InsertMaterialObject(boundary_c);
 
         }
@@ -305,13 +308,13 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     fMixedFluxPressureCmesh->AutoBuild();
     
     TPZManVector<TPZCompMesh * ,2> meshvector(2);
-    meshvector[0] = fFluxCmesh.operator->();
-    meshvector[1] = fPressureCmesh.operator->();
+    meshvector[0] = fFluxCmesh;
+    meshvector[1] = fPressureCmesh;
     
     // Transferindo para a multifisica
-    TPZBuildMultiphysicsMesh::AddElements(meshvector, fMixedFluxPressureCmesh.operator->());
-    TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmesh.operator->());
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmesh.operator->());
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, fMixedFluxPressureCmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmesh);
     
     long nel = fMixedFluxPressureCmesh->NElements();
     for (long el = 0; el<nel; el++) {
@@ -343,8 +346,8 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     int flux_or_pressure = 0;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
     
     // Malha computacional
     fMonolithicMultiphaseCmesh = new TPZCompMesh(fGeoMesh);
@@ -374,7 +377,8 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
             
             bc_item = bc[flux_or_pressure];
             TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
-            boundary_c->SetTimedependentBCForcingFunction(bc_item.second); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
             fMonolithicMultiphaseCmesh->InsertMaterialObject(boundary_c);
             
         }
@@ -389,30 +393,30 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     TPZManVector<TPZCompMesh * ,2> meshvector(2);
     
     if (fSimulationData->IsOnePhaseQ()) {
-        meshvector[0] = fFluxCmesh.operator->();
-        meshvector[1] = fPressureCmesh.operator->();
+        meshvector[0] = fFluxCmesh;
+        meshvector[1] = fPressureCmesh;
     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
         meshvector.Resize(3);
-        meshvector[0] = fFluxCmesh.operator->();
-        meshvector[1] = fPressureCmesh.operator->();
-        meshvector[2] = fAlphaSaturationMesh.operator->();
+        meshvector[0] = fFluxCmesh;
+        meshvector[1] = fPressureCmesh;
+        meshvector[2] = fAlphaSaturationMesh;
     }
     
     if (fSimulationData->IsThreePhaseQ()) {
         meshvector.Resize(4);
-        meshvector[0] = fFluxCmesh.operator->();
-        meshvector[1] = fPressureCmesh.operator->();
-        meshvector[2] = fAlphaSaturationMesh.operator->();
-        meshvector[3] = fBetaSaturationMesh.operator->();
+        meshvector[0] = fFluxCmesh;
+        meshvector[1] = fPressureCmesh;
+        meshvector[2] = fAlphaSaturationMesh;
+        meshvector[3] = fBetaSaturationMesh;
     }
 
     
     // Transferindo para a multifisica
-    TPZBuildMultiphysicsMesh::AddElements(meshvector, fMonolithicMultiphaseCmesh.operator->());
-    TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMonolithicMultiphaseCmesh.operator->());
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMonolithicMultiphaseCmesh.operator->());
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, fMonolithicMultiphaseCmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMonolithicMultiphaseCmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMonolithicMultiphaseCmesh);
     
     long nel = fMonolithicMultiphaseCmesh->NElements();
     for (long el = 0; el<nel; el++) {
@@ -432,7 +436,7 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
 }
 
 /** @brief Create computational interfaces for jumps  */
-void TRMSpaceOdissey::CreateInterfacesInside(TPZAutoPointer<TPZCompMesh> cmesh){ //@Omar:: It is required to robust for several materials in the same hydraulic unit!!!
+void TRMSpaceOdissey::CreateInterfacesInside(TPZCompMesh * cmesh){ //@Omar:: It is required to robust for several materials in the same hydraulic unit!!!
     
     fGeoMesh->ResetReference();
     cmesh->LoadReferences();
@@ -466,20 +470,20 @@ void TRMSpaceOdissey::CreateInterfacesInside(TPZAutoPointer<TPZCompMesh> cmesh){
 /** @brief Statically condense the internal equations of the elements */
 void TRMSpaceOdissey::StaticallyCondenseEquations()
 {
-    if (!fMixedFluxPressureCmesh.operator->()) {
+    if (!fMixedFluxPressureCmesh) {
         std::cout<< "No multiphysic computational mesh " << std::endl;
         DebugStop();
     }
     
     
-    fMixedFluxPressureCmesh.operator->()->Reference()->ResetReference();
-    fMixedFluxPressureCmesh.operator->()->LoadReferences();
+    fMixedFluxPressureCmesh->Reference()->ResetReference();
+    fMixedFluxPressureCmesh->LoadReferences();
     
-    fMixedFluxPressureCmesh.operator->()->ComputeNodElCon();
+    fMixedFluxPressureCmesh->ComputeNodElCon();
     // create condensed elements
     // increase the NumElConnected of one pressure connects in order to prevent condensation
-    for (long icel=0; icel < fMixedFluxPressureCmesh.operator->()->NElements(); icel++) {
-        TPZCompEl  * cel = fMixedFluxPressureCmesh.operator->()->Element(icel);
+    for (long icel=0; icel < fMixedFluxPressureCmesh->NElements(); icel++) {
+        TPZCompEl  * cel = fMixedFluxPressureCmesh->Element(icel);
         
         int nc = cel->NConnects();
         for (int ic=0; ic<nc; ic++) {
@@ -494,11 +498,11 @@ void TRMSpaceOdissey::StaticallyCondenseEquations()
     }
             
     TPZManVector<TPZCompMesh * ,2> meshvector(2);
-    meshvector[0] = fFluxCmesh.operator->();
-    meshvector[1] = fPressureCmesh.operator->();
+    meshvector[0] = fFluxCmesh;
+    meshvector[1] = fPressureCmesh;
     
     int DOF = meshvector[0]->NEquations() + meshvector[1]->NEquations();
-    REAL PercentCondensedDOF = 100.0*(1.0 - REAL(fMixedFluxPressureCmesh.operator->()->NEquations())/REAL(DOF));
+    REAL PercentCondensedDOF = 100.0*(1.0 - REAL(fMixedFluxPressureCmesh->NEquations())/REAL(DOF));
     std::cout << "Degrees of freedom: " << DOF << std::endl;
     std::cout << "Percent of condensed Degrees of freedom: " << PercentCondensedDOF << std::endl;
 }
@@ -578,8 +582,8 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
         int bc_id = 0;
-        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+        std::pair< int, TPZFunction<REAL> * > bc_item;
+        TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
         for (int j = 0; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
@@ -640,8 +644,8 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
         int bc_id = 0;
-        std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-        TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+        std::pair< int, TPZFunction<REAL> * > bc_item;
+        TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
         for (int j = 0; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
@@ -688,8 +692,8 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     int interface_id = fSimulationData->InterfacesMatId();
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
-    std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > bc_item;
-    TPZVec< std::pair< int, TPZAutoPointer<TPZFunction<REAL> > > > bc;
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
     
     // Malha computacional
     fTransportMesh = new TPZCompMesh(fGeoMesh);
@@ -725,11 +729,15 @@ void TRMSpaceOdissey::CreateTransportMesh(){
             
             bc_item = bc[saturation];
             TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> * boundary_bc = new TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>;
+            boundary_bc->SetNumLoadCases(1);
             boundary_bc->SetMaterial(matint);
             boundary_bc->SetId(bc_id);
             boundary_bc->SetType(bc_item.first);
-            TPZMaterial * material_bc = dynamic_cast<TPZMaterial * >(boundary_bc);
-            material_bc->SetTimedependentBCForcingFunction(bc_item.second);
+//            TPZMaterial * material_bc = dynamic_cast<TPZMaterial * >(boundary_bc);
+//            material_bc->SetTimedependentBCForcingFunction(bc_item.second);
+            
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_bc->SetTimedependentBCForcingFunction(0,boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
             fTransportMesh->InsertMaterialObject(boundary_bc);
         }
         
@@ -746,25 +754,25 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     if(this->SimulationData()->IsTwoPhaseQ()){
         
         meshvector.Resize(1);
-        meshvector[0] = fAlphaSaturationMesh.operator->();
+        meshvector[0] = fAlphaSaturationMesh;
         
         // Transferindo para a multifisica
-        TPZBuildMultiphysicsMesh::AddElements(meshvector, fTransportMesh.operator->());
-        TPZBuildMultiphysicsMesh::AddConnects(meshvector, fTransportMesh.operator->());
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fTransportMesh.operator->());
+        TPZBuildMultiphysicsMesh::AddElements(meshvector, fTransportMesh);
+        TPZBuildMultiphysicsMesh::AddConnects(meshvector, fTransportMesh);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fTransportMesh);
         
     }
     
     if(this->SimulationData()->IsThreePhaseQ()){
 
         meshvector.Resize(2);
-        meshvector[0] = fAlphaSaturationMesh.operator->();
-        meshvector[1] = fBetaSaturationMesh.operator->();
+        meshvector[0] = fAlphaSaturationMesh;
+        meshvector[1] = fBetaSaturationMesh;
         
         // Transferindo para a multifisica
-        TPZBuildMultiphysicsMesh::AddElements(meshvector, fTransportMesh.operator->());
-        TPZBuildMultiphysicsMesh::AddConnects(meshvector, fTransportMesh.operator->());
-        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fTransportMesh.operator->());
+        TPZBuildMultiphysicsMesh::AddElements(meshvector, fTransportMesh);
+        TPZBuildMultiphysicsMesh::AddConnects(meshvector, fTransportMesh);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fTransportMesh);
     }
 
     

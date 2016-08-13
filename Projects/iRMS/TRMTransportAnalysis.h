@@ -21,10 +21,10 @@ class TRMTransportAnalysis : public TPZAnalysis{
 private:
     
     /** @brief define the simulation data */
-    TPZAutoPointer<TRMSimulationData> fSimulationData;
+    TRMSimulationData * fSimulationData;
     
     /** @brief define the transfer matrices */
-    TPZAutoPointer<TRMBuildTransfers> fTransfer;
+    TRMBuildTransfers * fTransfer;
     
     /** @brief Vector of compmesh pointers. fmeshvec = { alpha, beta, gamma , etc...} phases */
     TPZVec<TPZCompMesh *> fmeshvec;
@@ -91,25 +91,25 @@ public:
     }
     
     /** @brief Set the simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData)
+    void SetSimulationData(TRMSimulationData * SimulationData)
     {
         fSimulationData = SimulationData;
     }
     
     /** @brief Get the space generator */
-    TPZAutoPointer<TRMSimulationData> SimulationData()
+    TRMSimulationData * SimulationData()
     {
         return fSimulationData;
     }
     
     /** @brief Set the transfer object */
-    void SetTransfer(TPZAutoPointer<TRMBuildTransfers> &Transfer)
+    void SetTransfer(TRMBuildTransfers * Transfer)
     {
         fTransfer = Transfer;
     }
     
     /** @brief Get the transfer object */
-    TPZAutoPointer<TRMBuildTransfers> Transfer()
+    TRMBuildTransfers * Transfer()
     {
         return fTransfer;
     }

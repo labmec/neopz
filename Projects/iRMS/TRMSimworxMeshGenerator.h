@@ -198,14 +198,14 @@ public:
                                                   StructMioloData & mioloData,
                                                   TRMRawData &rawdata);
     
-    TPZAutoPointer<TPZGeoMesh> ReallyGenerateGeoMesh(const REAL semiAxeX,
+    TPZGeoMesh * ReallyGenerateGeoMesh(const REAL semiAxeX,
                                                      const REAL semiAxeY,
                                                      const REAL mioloLx,
                                                      const TPZVec<REAL> & espacamentoMioloY,
                                                      const TPZVec<REAL> & espacamentoZ,
                                                      const bool thereIsCutPlane,
                                                      TRMRawData &rawdata);
-    TPZAutoPointer<TPZGeoMesh> CreateSimworxGeoMesh(TRMRawData &rawdata, bool withwellbc);
+    TPZGeoMesh * CreateSimworxGeoMesh(TRMRawData &rawdata, bool withwellbc);
     
     /**
      * Os cornerNodes do retangulo inscrito na elipse sao movidos para um ponto que

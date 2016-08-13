@@ -48,7 +48,7 @@ private:
      */
     
     /** @brief Autopointer of simulation data */
-    TPZAutoPointer<TRMSimulationData> fSimulationData;
+    TRMSimulationData * fSimulationData;
     
     // @}
 
@@ -287,10 +287,10 @@ public:
      */
 
     /** @brief Initializate diagonal block matrix to transfer flux to multiphysics mesh  */
-    void Initialize_u_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    void Initialize_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index);
     
     /** @brief Initializate diagonal block matrix to transfer flux to multiphysics mesh  */
-    void Fill_u_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    void Fill_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index);
     
     /** @brief Get the sparse matrix to transfer Pressure to multiphysics mesh  */
     TRMIrregularBlockDiagonal<STATE> Transfer_u_To_Mixed(){
@@ -298,10 +298,10 @@ public:
     }
     
     /** @brief Initializate  diagonal block matrix to transfer Pressure to multiphysics mesh  */
-    void Initialize_p_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    void Initialize_p_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index);
     
     /** @brief Initializate diagonal block matrix to transfer Pressure to multiphysics mesh  */
-    void Fill_p_To_Mixed(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    void Fill_p_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index);
     
     /** @brief Get the sparse matrix to transfer Pressure to multiphysics mesh  */
     TRMIrregularBlockDiagonal<STATE> Transfer_p_To_Mixed(){
@@ -309,10 +309,10 @@ public:
     }
     
     /** @brief Initializate  diagonal block matrix to transfer Pressure to multiphysics mesh  */
-    void Initialize_s_To_Transport(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    void Initialize_s_To_Transport(TPZCompMesh * cmesh_multiphysics, int mesh_index);
     
     /** @brief Initializate diagonal block matrix to transfer Pressure to multiphysics mesh  */
-    void Fill_s_To_Transport(TPZAutoPointer< TPZCompMesh> cmesh_multiphysics, int mesh_index);
+    void Fill_s_To_Transport(TPZCompMesh * cmesh_multiphysics, int mesh_index);
     
     /** @brief Get the sparse matrix to transfer saturation to multiphysics mesh  */
     TRMIrregularBlockDiagonal<STATE> Transfer_s_To_Transport(){
@@ -320,10 +320,10 @@ public:
     }
         
     /** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh over Gamma or gamma */
-    void Initialize_un_To_Transport(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh, bool IsBoundaryQ);
+    void Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ);
     
     /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh over Gamma or gamma */
-    void Fill_un_To_Transport(TPZAutoPointer< TPZCompMesh> flux_mesh, TPZAutoPointer< TPZCompMesh> transport_mesh, bool IsBoundaryQ);
+    void Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ);
     
     
     /** @brief Get the sparse matrix to transfer average normal flux solution to integrations points of the transport mesh  */
@@ -345,7 +345,7 @@ public:
      */
 
     /** @brief Compute left and right geometric element indexes associated with the transport mesh */
-    void ComputeLeftRight(TPZAutoPointer< TPZCompMesh> transport_mesh);
+    void ComputeLeftRight(TPZCompMesh * transport_mesh);
     
     
     // @}
@@ -373,7 +373,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /** @brief Compute compuational mesh pair (mixed, transport) indexed by geometric volumetic element index */
-    void FillComputationalElPairs(TPZAutoPointer< TPZCompMesh>  cmesh_mf_mixed, TPZAutoPointer< TPZCompMesh>  cmesh_mf_transport);
+    void FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -409,12 +409,12 @@ public:
 
     
     /** @brief Set autopointer of Simulation data */
-    void SetSimulationData(TPZAutoPointer<TRMSimulationData> &SimulationData){
+    void SetSimulationData(TRMSimulationData * SimulationData){
         fSimulationData = SimulationData;
     }
     
     /** @brief Get autopointer of Simulation data */
-    TPZAutoPointer<TRMSimulationData>  SimulationData(){
+    TRMSimulationData * SimulationData(){
         return fSimulationData;
     }
     
