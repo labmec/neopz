@@ -20,6 +20,7 @@
 #include "TRMMemory.h"
 #include "TRMMixedDarcy.h"
 #include "pzinterpolationspace.h"
+#include "pzysmp.h"
 
 #ifdef USING_BOOST
 #include "boost/date_time/posix_time/posix_time.hpp"
@@ -82,8 +83,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 50;
-        int nel_y = 50;
+        int nel_x = 200;
+        int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 100.0/REAL(nel_x);
@@ -225,32 +226,58 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    bool IsDirectSolverQ = true;
+    bool IsGCQ = true;
     
     // Analysis for parabolic part
+    int numofThreads_p = 16;
     bool mustOptimizeBandwidth_parabolic = true;
+    
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
     TPZSkylineNSymStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     TPZStepSolver<STATE> step_p;
-    int numofThreads_p = 16;
-    strmat_p.SetNumThreads(numofThreads_p);
     step_p.SetDirect(ELU);
+    strmat_p.SetNumThreads(numofThreads_p);
+    
     parabolic->SetStructuralMatrix(strmat_p);
     parabolic->SetSolver(step_p);
     parabolic->AdjustVectors();
     parabolic->SetSimulationData(fSimulationData);
     parabolic->SetTransfer(Transfer);
     
+    if (IsDirectSolverQ) {
+        
+        TPZAutoPointer<TPZMatrix<STATE> > skylnsyma = strmat_p.Create();
+        TPZAutoPointer<TPZMatrix<STATE> > skylnsymaClone = skylnsyma->Clone();
+        
+        TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(skylnsymaClone);
+        TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(skylnsyma);
+        TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(skylnsyma);
+        
+        stepre->SetDirect(ELU);
+        stepre->SetReferenceMatrix(skylnsyma);
+        stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
+        stepGC->SetCG(10, *stepre, 1.0e-10, 0);
+        if (IsGCQ) {
+            parabolic->SetSolver(*stepGC);
+        }
+        else{
+            parabolic->SetSolver(*stepGMRES);
+        }
+        
+    }
+    
     std::cout << "ndof parabolic = " << parabolic->Solution().Rows() << std::endl;
     
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
+        int numofThreads_t = 16;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;
-        int numofThreads_t = 16;
+
         strmat_t.SetNumThreads(numofThreads_t);
         step_t.SetDirect(ELU);
         hyperbolic->SetStructuralMatrix(strmat_t);
@@ -429,8 +456,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
-            fSegregatedAnalysis->ExcecuteOneStep(true);
-            fSegregatedAnalysis->PostProcessStep(true);
+            fSegregatedAnalysis->ExcecuteOneStep(false);
+            fSegregatedAnalysis->PostProcessStep(false);
         }
         
     }
