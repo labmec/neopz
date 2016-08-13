@@ -441,7 +441,10 @@
  
  \section analysis Analysis: Solving process
  
- \page pg_app_projects DESCRIPTION OF THE APPLICATION PROJECTS
+ \page pg_app_projects Documentation of the application projects
+ 
+ The application projects are projects created by students to support their graduate work. The documentation depends
+ on the effort of the student.
  
  \page pg_tut_projects Documentation of the tutorial projects
  
