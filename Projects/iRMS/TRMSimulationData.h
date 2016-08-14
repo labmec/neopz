@@ -84,6 +84,9 @@ protected:
     
     /** @brief correction overal tolerance */
     STATE fepsilon_cor;
+
+    /** @brief Use of quasi newton method */
+    bool fIsQuasiNewtonQ;
     
     /** @brief Autopointer of the RawData */
     TPZAutoPointer<TRMRawData> fRawData;
@@ -236,7 +239,7 @@ public:
     void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min);
     
     /** @brief Setup reporting times and time step size */
-    void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor);
+    void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ);
     
     /** @brief Store time values to be reported */
     TPZStack< STATE , 500 > ReportingTimes(){
@@ -284,6 +287,9 @@ public:
     
     /** @brief correction overal tolerance */
     STATE epsilon_cor() { return fepsilon_cor; }
+    
+    /** @brief Get directive for the use of quasi newton method */
+    bool IsQuasiNewtonQ() {return fIsQuasiNewtonQ;}
     
     /** @brief Material identifier for interfaces */
     int InterfacesMatId() { return fInterface_mat_Id; }

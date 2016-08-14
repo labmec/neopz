@@ -44,6 +44,9 @@ private:
     /** @brief Correction variation */
     STATE fdx_norm;
     
+    /** @brief number of newton corrections */
+    int fk_iterations;
+    
 public:
     
     /** @brief default constructor  */
@@ -130,6 +133,16 @@ public:
     /** @brief Resize and fill residue and solution vectors */
     void AdjustVectors();
     
+    /** @brief Get k iterations */
+    int k_ietrarions(){
+        return fk_iterations;
+    }
+    
+    /** @brief Get k iterations */
+    void Set_k_ietrarions(int k){
+        fk_iterations = k;
+    }
+    
     // @}
     
     /**
@@ -142,6 +155,9 @@ public:
 
     /** @brief Execute a newton iteration  */
     void NewtonIteration();
+
+    /** @brief Execute a quasi newton iteration  */
+    void QuasiNewtonIteration();
     
     /** @brief PostProcess results */
     void PostProcessStep();

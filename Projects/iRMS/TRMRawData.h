@@ -115,6 +115,9 @@ public:
     /** @brief correction overal tolerance */
     STATE fepsilon_cor;
     
+    /** @brief set the use of quasi newton method */
+    bool fIsQuasiNewtonQ;
+    
     /** @brief phases = {alpha, beta, gamma} */
     TPZStack< TPZAutoPointer<TRMPhaseProperties> > fPhases;
     

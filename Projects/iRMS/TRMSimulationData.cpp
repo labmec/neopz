@@ -66,6 +66,9 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Decrement dt factor */
     fdt_down = 0.0;
     
+    /** @brief Use of quasi newton method */
+    fIsQuasiNewtonQ = false;
+    
     /** @brief Autopointer of all the petrophysics data */
     fPetroPhysics = NULL;
     
@@ -95,7 +98,7 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     SetGravity(RawData->fg);
     SetSystemType(RawData->fSystemType,RawData->fPhases);
     SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_down, RawData->fdt_max, RawData->fdt_min);
-    SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor);
+    SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ);
 }
 
 /** @brief Setup reporting times and time step size */
@@ -115,10 +118,11 @@ void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STAT
 }
 
 /** @brief Setup reporting times and time step size */
-void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor){
+void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ){
     fn_corrections  = n_corrections;
     fepsilon_res    = epsilon_res;
     fepsilon_cor    = epsilon_cor;
+    fIsQuasiNewtonQ = IsQuasiNewtonQ;
 }
 
 /** @brief Set phase alpha */

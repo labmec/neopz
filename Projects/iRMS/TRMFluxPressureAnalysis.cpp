@@ -118,7 +118,36 @@ void TRMFluxPressureAnalysis::NewtonIteration(){
 
     this->UpdateMemory_at_n();
     
-    this->Assemble();
+    this->AssembleResidual();
+    fR_n = this->Rhs();
+    fR_n += fR; // total residue
+    ferror =  Norm(fR_n); // residue error
+    
+}
+
+void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
+    
+    if (k_ietrarions() == 1) {
+        this->Assemble();
+    }
+    else{
+        this->AssembleResidual();
+    }
+    
+    this->Rhs() += fR; // total residue
+    this->Rhs() *= -1.0;
+    
+    this->Solve(); // update correction
+    fdx_norm = Norm(this->Solution()); // correction variation
+    
+    fX_n += this->Solution(); // update state
+    
+    this->Mesh()->LoadSolution(fX_n);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    
+    this->UpdateMemory_at_n();
+    
+    this->AssembleResidual();
     fR_n = this->Rhs();
     fR_n += fR; // total residue
     ferror =  Norm(fR_n); // residue error
@@ -155,8 +184,16 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     
     
     for (int k = 1; k <= n; k++) {
-        this->fk_iterations = k;
-        this->NewtonIteration();
+        
+        this->Set_k_ietrarions(k);
+        
+        if (fSimulationData->IsQuasiNewtonQ()) {
+            this->QuasiNewtonIteration();
+        }
+        else{
+            this->NewtonIteration();
+        }
+        
 
 //#ifdef PZDEBUG
 //        fR.Print("R = ", std::cout,EMathematicaInput);

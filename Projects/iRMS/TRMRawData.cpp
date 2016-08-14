@@ -72,6 +72,9 @@ TRMRawData::TRMRawData()
     /** @brief correction overal tolerance */
     fepsilon_cor = 0.0;
     
+    /** @brief set the use of quasi newton method */
+    fIsQuasiNewtonQ = false;
+    
     /** @brief phases = {alpha, beta, gamma} */
     fPhases.resize(0);
     
@@ -261,6 +264,7 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     fn_corrections = 20;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
+    fIsQuasiNewtonQ = false;
     
     
     // Rock materials ids
@@ -345,6 +349,7 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fn_corrections = 50;
     fepsilon_res = 0.0001;
     fepsilon_cor = 0.00001;
+    fIsQuasiNewtonQ = false;
     
     
     // Rock materials ids
@@ -484,6 +489,7 @@ void TRMRawData::WaterOilReservoirVertical(bool Is3DGeometryQ){
     fn_corrections = 2;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
+    fIsQuasiNewtonQ = false;
     
     
     // Rock materials ids
@@ -550,8 +556,8 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
     fSystemType.Push("oil");
-    water->SetRhoModel(1);
-    oil->SetRhoModel(1);
+    water->SetRhoModel(0);
+    oil->SetRhoModel(0);
     fPhases.Push(water);
     fPhases.Push(oil);
     int n_data = fSystemType.size();
@@ -586,6 +592,7 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     fn_corrections = 50;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
+    fIsQuasiNewtonQ = false;
     
     
     // Rock materials ids
@@ -669,6 +676,7 @@ void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     fn_corrections = 20;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
+    fIsQuasiNewtonQ = false;
     
     
     // Rock materials ids
@@ -773,14 +781,14 @@ void TRMRawData::WaterOilGasReservoirCircular(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("water");
-    fSystemType.Push("water");
+    fSystemType.Push("oil");
+    fSystemType.Push("gas");
     water->SetRhoModel(0);
-    water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    oil->SetRhoModel(0);
+    gas->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(oil);
+    fPhases.Push(gas);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -810,9 +818,10 @@ void TRMRawData::WaterOilGasReservoirCircular(bool Is3DGeometryQ){
     fdt_down = 1.0;
     
     // Numeric controls
-    fn_corrections = 15;
-    fepsilon_res = 0.001;
-    fepsilon_cor = 0.0001;
+    fn_corrections = 50;
+    fepsilon_res = 0.01;
+    fepsilon_cor = 0.001;
+    fIsQuasiNewtonQ = false;
     
     
     // Rock materials ids

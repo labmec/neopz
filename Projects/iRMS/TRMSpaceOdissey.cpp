@@ -29,6 +29,8 @@
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzcompelwithmem.h"
 
+#include "pzcreateapproxspace.h"
+
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     f.Resize(1,0.);

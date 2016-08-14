@@ -113,13 +113,38 @@ void TRMTransportAnalysis::NewtonIteration(){
     
     fX_n += this->Solution(); // update state
     
-//    this->Rhs().Print("rhs = ");
-//    fX_n.Print("x_n = ");
+    this->Mesh()->LoadSolution(fX_n);
+    this->UpdateMemory_at_n();
+    
+    this->AssembleResidual();
+    fR_n = this->Rhs();
+    fR_n += fR; // total residue
+    ferror =  Norm(fR_n); // residue error
+    
+}
+
+void TRMTransportAnalysis::QuasiNewtonIteration(){
+    
+    if (k_ietrarions() == 1) {
+        this->Assemble();
+    }
+    else{
+        this->AssembleResidual();
+    }
+    
+    this->Rhs() += fR; // total residue
+    this->Rhs() *= -1.0;
+    
+    this->Solve(); // update correction
+    fdx_norm = Norm(this->Solution()); // correction variation
+    
+    fX_n += this->Solution(); // update state
+    
     
     this->Mesh()->LoadSolution(fX_n);
     this->UpdateMemory_at_n();
     
-    this->Assemble();
+    this->AssembleResidual();
     fR_n = this->Rhs();
     fR_n += fR; // total residue
     ferror =  Norm(fR_n); // residue error
@@ -155,9 +180,15 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     int n  =   this->SimulationData()->n_corrections();
     
     for (int k = 1; k <= n; k++) {
-        
-        this->fk_iterations = k;
-        this->NewtonIteration();
+
+        this->Set_k_ietrarions(k);
+
+        if (fSimulationData->IsQuasiNewtonQ()) {
+            this->QuasiNewtonIteration();
+        }
+        else{
+            this->NewtonIteration();
+        }
         
 //#ifdef PZDEBUG
 //        fR.Print("R = ", std::cout,EMathematicaInput);

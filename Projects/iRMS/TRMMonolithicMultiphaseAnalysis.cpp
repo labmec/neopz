@@ -15,6 +15,7 @@ TRMMonolithicMultiphaseAnalysis::TRMMonolithicMultiphaseAnalysis() : TPZAnalysis
     fmeshvec.Resize(2); // Start with monophasic approach
     ferror = 1.0;
     fdx_norm = 1.0;
+    fk_iterations = 0;
     
 }
 
@@ -68,6 +69,35 @@ void TRMMonolithicMultiphaseAnalysis::NewtonIteration(){
     
 }
 
+void TRMMonolithicMultiphaseAnalysis::QuasiNewtonIteration(){
+    
+   
+    if (k_ietrarions() == 1) {
+        this->Assemble();
+    }
+    else{
+        this->AssembleResidual();
+    }
+    
+    this->Rhs() += fR; // total residue
+    this->Rhs() *= -1.0;
+    
+    this->Solve(); // update correction
+    fdx_norm = Norm(this->Solution()); // correction variation
+    
+    fX_n += this->Solution(); // update state
+    
+    this->Mesh()->LoadSolution(fX_n);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    
+    this->Assemble(); // This is stupid! i cannot easily compute rhs without "fake" ek
+    fR_n = this->Rhs();
+    fR_n += fR; // total residue
+    ferror =  Norm(fR_n); // residue error
+    
+    
+}
+
 void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
        
     this->SimulationData()->SetCurrentStateQ(false);
@@ -97,7 +127,15 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
     
     for (int k = 1; k <= n; k++) {
 
-        this->NewtonIteration();
+        this->Set_k_ietrarions(k);
+        
+        if (fSimulationData->IsQuasiNewtonQ()) {
+            this->QuasiNewtonIteration();
+        }
+        else{
+            this->NewtonIteration();
+        }
+
         
 //#ifdef PZDEBUG
 //        fR.Print("R = ", std::cout,EMathematicaInput);

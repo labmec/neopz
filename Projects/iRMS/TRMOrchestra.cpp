@@ -228,10 +228,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     bool IsIterativeSolverQ = false;
-    bool IsGCQ = true;
+    bool IsGCQ = false;
     
     // Analysis for parabolic part
-    int numofThreads_p = 4;
+    int numofThreads_p = 16;
     bool mustOptimizeBandwidth_parabolic = true;
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
@@ -259,6 +259,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         stepre->SetReferenceMatrix(skylnsyma);
         stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
         stepGC->SetCG(10, *stepre, 1.0e-10, 0);
+        
         if (IsGCQ) {
             parabolic->SetSolver(*stepGC);
         }
@@ -273,7 +274,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 4;
+        int numofThreads_t = 16;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());

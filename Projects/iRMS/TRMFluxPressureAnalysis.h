@@ -151,6 +151,9 @@ public:
     
     /** @brief Execute a newton iteration  */
     void NewtonIteration();
+
+    /** @brief Execute a quasi newton iteration  */
+    void QuasiNewtonIteration();
     
     /** @brief PostProcess results */
     void PostProcessStep();

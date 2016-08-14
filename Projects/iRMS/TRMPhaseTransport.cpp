@@ -297,7 +297,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     int sb_a    = 0;
     
     TPZFNMatrix<100,STATE> phi_ss       = datavec[sb_a].phi;
-    REAL sa = datavec[sb_a].sol[0][0];
+//    REAL sa = datavec[sb_a].sol[0][0];
     
     int nphis_a     = phi_ss.Rows();
     int firsts_a    = 0;
