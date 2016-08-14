@@ -83,7 +83,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 200;
+        int nel_x = 100;
         int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
