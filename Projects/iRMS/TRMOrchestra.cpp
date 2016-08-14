@@ -54,7 +54,7 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = true;
+    bool IsReservoirBoxQ = false;
     
     if (Is3DGeometryQ) {
         
@@ -74,7 +74,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
-            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
             fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
         }
         
@@ -226,11 +227,11 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    bool IsDirectSolverQ = true;
+    bool IsIterativeSolverQ = false;
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 16;
+    int numofThreads_p = 4;
     bool mustOptimizeBandwidth_parabolic = true;
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
@@ -245,7 +246,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->SetSimulationData(fSimulationData);
     parabolic->SetTransfer(Transfer);
     
-    if (IsDirectSolverQ) {
+    if (IsIterativeSolverQ) {
         
         TPZAutoPointer<TPZMatrix<STATE> > skylnsyma = strmat_p.Create();
         TPZAutoPointer<TPZMatrix<STATE> > skylnsymaClone = skylnsyma->Clone();
@@ -272,7 +273,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 16;
+        int numofThreads_t = 4;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
@@ -456,8 +457,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
-            fSegregatedAnalysis->ExcecuteOneStep(false);
-            fSegregatedAnalysis->PostProcessStep(false);
+            fSegregatedAnalysis->ExcecuteOneStep(true);
+            fSegregatedAnalysis->PostProcessStep(true);
         }
         
     }

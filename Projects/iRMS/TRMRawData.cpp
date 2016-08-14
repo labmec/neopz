@@ -315,8 +315,8 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fSystemType.Push("water");
     fSystemType.Push("water");
     
-    water->SetRhoModel(1);
-    water->SetRhoModel(1);
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
     fPhases.Push(water);
     
@@ -342,9 +342,9 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fdt_down = 1.0;
     
     // Numeric controls
-    fn_corrections = 20;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.001;
+    fn_corrections = 50;
+    fepsilon_res = 0.0001;
+    fepsilon_cor = 0.00001;
     
     
     // Rock materials ids
@@ -418,7 +418,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.01, S = 1.0;
+    REAL flux = -10.0, S = 1.0;
     f[0] = flux;
     f[1] = S;
     return;
@@ -549,11 +549,11 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("water");
-    water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    fSystemType.Push("oil");
+    water->SetRhoModel(1);
+    oil->SetRhoModel(1);
     fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(oil);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -576,14 +576,14 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     //    fdt_down = 0.5;
     
     fn_steps  = 20;
-    fdt = 10.0*day;
+    fdt = 2.0*day;
     fdt_max = 30.0*day;
     fdt_min = 1.0*day;
     fdt_up = 1.0;
     fdt_down = 1.0;
     
     // Numeric controls
-    fn_corrections = 20;
+    fn_corrections = 50;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     
