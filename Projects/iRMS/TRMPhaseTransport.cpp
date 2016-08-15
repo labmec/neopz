@@ -426,11 +426,13 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
     
-    REAL sa_avg_n    = sa;//point_memory.sa_n();
-    REAL sa_avg      = sa;//point_memory.sa();
+    REAL sa_avg_n    = point_memory.sa_n();
+    REAL sa_avg      = point_memory.sa();
 
-    REAL sb_avg_n    = sb;//point_memory.sb_n();
-    REAL sb_avg      = sb;//point_memory.sb();
+    REAL sb_avg_n    = point_memory.sb_n();
+    REAL sb_avg      = point_memory.sb();
+    
+    
     
     //  Average values
     
@@ -534,11 +536,11 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
     
-    REAL sa_avg_n    = sa;//point_memory.sa_n();
-    REAL sa_avg      = sa;//point_memory.sa();
+    REAL sa_avg_n    = point_memory.sa_n();
+    REAL sa_avg      = point_memory.sa();
     
-    REAL sb_avg_n    = sb;//point_memory.sb_n();
-    REAL sb_avg      = sb;//point_memory.sb();
+    REAL sb_avg_n    = point_memory.sb_n();
+    REAL sb_avg      = point_memory.sb();
     
     //  Average values
     

@@ -54,18 +54,18 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = false;
+    bool IsReservoirBoxQ = true;
     
     if (Is3DGeometryQ) {
         
-        int nel_x = 2;
+        int nel_x = 10;
         int nel_y = 1;
         int nel_z = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-        dx[0] = 100.0/REAL(nel_x);
-        dy[0] = 20.0/REAL(nel_y);
-        dz[0] = 20.0/REAL(nel_z);
+        dx[0] = 1000.0/REAL(nel_x);
+        dy[0] = 100.0/REAL(nel_y);
+        dz[0] = 100.0/REAL(nel_z);
         
         if (IsReservoirBoxQ) {
             fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
@@ -84,12 +84,12 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 100;
+        int nel_x = 10;
         int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
-        dx[0] = 100.0/REAL(nel_x);
-        dy[0] = 20.0/REAL(nel_y);
+        dx[0] = 1000.0/REAL(nel_x);
+        dy[0] = 100.0/REAL(nel_y);
         
         if (IsReservoirBoxQ) {
             fSpaceGenerator->CreateGeometricBoxMesh2D(dx, dy);
@@ -415,6 +415,17 @@ void TRMOrchestra::RunStaticProblem(){
         }
         
     }
+    
+//    int neq_sa = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution().Rows();
+    int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
+    for (int i = 0; i < neq_sb; i++) {
+        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
+        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 1.0;
+    }
+
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fSegregatedAnalysis_I->Hyperbolic()->Meshvec(), fSegregatedAnalysis_I->Hyperbolic()->Mesh());
+    fSegregatedAnalysis_I->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution());
+    
     fSimulationData->Setdt(dt);
     
 }

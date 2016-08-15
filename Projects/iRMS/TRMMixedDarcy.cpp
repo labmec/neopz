@@ -382,12 +382,13 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     long global_point_index = datavec[0].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
     REAL p_avg_n    = point_memory.p_avg_n();
+    REAL p_avg      = point_memory.p_avg();
     
     //  Computing closure relationship at given average values
     
     TPZManVector<STATE, 10> v(nvars),v_avg(nvars);
     v[0]        = p;
-    v_avg[0]    = p_avg_n;
+    v_avg[0]    = p;//p_avg_n;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho,l;
@@ -422,8 +423,8 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     if(! fSimulationData->IsCurrentStateQ()){
         
-        REAL p_a    = point_memory.p_avg();
-        v_avg[0] = p_a;
+   
+        v_avg[0] = p;//p_avg;
         
         // Fluid parameters
         TPZManVector<STATE, 10> rho,l;
@@ -553,12 +554,13 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TRMMemory &point_memory = GetMemory()[global_point_index];
     
     REAL p_avg_n  = point_memory.p_avg_n();
+    REAL p_avg    = point_memory.p_avg();    
     
     //  Computing closure relationship at given average values
     
     TPZManVector<STATE, 10> v(nvars),v_avg(nvars);
     v[0]        = p;
-    v_avg[0]    = p_avg_n;
+    v_avg[0]    = p;//p_avg_n;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho,l;
@@ -593,8 +595,6 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     int v_i;
     
     if(! fSimulationData->IsCurrentStateQ()){
-        
-        REAL p_avg    = point_memory.p_avg();
         
         TPZManVector<STATE, 10> v(nvars);
         v[0] = p;//p_avg;
@@ -1377,28 +1377,29 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     STATE dt = fSimulationData->dt();
     
     //  Average values p_a
-    
     // Get the pressure at the integrations points
     long global_point_index = datavec[ub].intGlobPtIndex;
     TRMMemory &point_memory = GetMemory()[global_point_index];
     REAL p_avg_n    = point_memory.p_avg_n();
-    REAL p_avg      = point_memory.p_avg();
-    
     REAL sa_avg_n    = point_memory.sa_n();
-    REAL sa_avg      = point_memory.sa();
+    REAL sb_avg_n    = point_memory.sb_n();
     
-    REAL s = 0.0;
+    REAL p_avg    = point_memory.p_avg();
+    REAL sa_avg    = point_memory.sa();
+    REAL sb_avg    = point_memory.sb();
     
-    REAL p_a   = p;
-    REAL sa    = s;
-    REAL sb    = s;
+    REAL sa_n = sa_avg_n;
+    REAL sa = sa_avg;
+    
+    REAL sb_n = sb_avg_n;
+    REAL sb = sb_avg;
     
     //  Computing closure relationship at given average values
     
     TPZManVector<STATE, 10> v(nvars);
     v[0] = p_avg_n;
-    v[1] = sa;
-    v[2] = sb;
+    v[1] = sa_avg_n;
+    v[2] = sb_avg_n;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho_a,rho_b,rho_c,l;
@@ -1436,6 +1437,16 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     int v_i, v_j;
     
     if(! fSimulationData->IsCurrentStateQ()){
+        
+        v[0] = p_avg;
+        v[1] = sa_avg;
+        v[2] = sb_avg;
+        
+        fSimulationData->AlphaProp()->Density(rho_a, v);
+        fSimulationData->BetaProp()->Density(rho_b, v);
+        fSimulationData->BetaProp()->Density(rho_c, v);
+        fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+        
         for (int ip = 0; ip < nphip; ip++)
         {
             
@@ -1461,8 +1472,8 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
             Kl_dp_inv_dot_u     += lambda_dp_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dsa_inv_dot_u    += lambda_dsa_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dsb_inv_dot_u    += lambda_dsb_K_inv_u(i,0)*phi_u_i(i,0);
-            rho_g_dot_phi_u     += (sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0])*Gravity[i]*phi_u_i(i,0);
-            rho_dp_g_dot_phi_u  += (sa*rho_a[1]+sb*rho_b[1]+(1.0-sa-sb)*rho_c[1])*Gravity[i]*phi_u_i(i,0);
+            rho_g_dot_phi_u     += (sa_n*rho_a[0]+sb_n*rho_b[0]+(1.0-sa_n-sb_n)*rho_c[0])*Gravity[i]*phi_u_i(i,0);
+            rho_dp_g_dot_phi_u  += (sa_n*rho_a[1]+sb_n*rho_b[1]+(1.0-sa_n-sb_n)*rho_c[1])*Gravity[i]*phi_u_i(i,0);
             rho_ds_g_dot_phi_u  += (rho_a[0]-rho_b[0])*Gravity[i]*phi_u_i(i,0);
             
         }
@@ -1512,7 +1523,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     for (int ip = 0; ip < nphip; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * (sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0]) * phi[0] - f[0]) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * (sa_n*rho_a[0]+sb_n*rho_b[0]+(1.0-sa_n-sb_n)*rho_c[0]) * phi[0] - f[0]) * phi_ps(ip,0);
         
         for (int ju = 0; ju < nphiu; ju++)
         {
@@ -1521,7 +1532,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
         
         for (int jp = 0; jp < nphip; jp++)
         {
-            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0]) * phi[1] + (sa*rho_a[1]+sb*rho_b[1]+(1.0-sa-sb)*rho_c[1]) * phi[0]) * phi_ps(ip,0) ) * phi_ps(jp,0);
+            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((sa_n*rho_a[0]+sb_n*rho_b[0]+(1.0-sa_n-sb_n)*rho_c[0]) * phi[1] + (sa_n*rho_a[1]+sb_n*rho_b[1]+(1.0-sa_n-sb_n)*rho_c[1]) * phi[0]) * phi_ps(ip,0) ) * phi_ps(jp,0);
         }
         
     }
@@ -1557,21 +1568,32 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     // Time
     STATE dt = fSimulationData->dt();
-    
-    REAL s = 0.0;
+
     
     //  Average values p_a
+    // Get the pressure at the integrations points
+    long global_point_index = datavec[ub].intGlobPtIndex;
+    TRMMemory &point_memory = GetMemory()[global_point_index];
+    REAL p_avg_n    = point_memory.p_avg_n();
+    REAL sa_avg_n    = point_memory.sa_n();
+    REAL sb_avg_n    = point_memory.sb_n();
     
-    REAL p_a    = p;
-    REAL sa    = s;
-    REAL sb    = s;
+    REAL p_avg    = point_memory.p_avg();
+    REAL sa_avg    = point_memory.sa();
+    REAL sb_avg    = point_memory.sb();
+    
+    REAL sa_n = sa_avg_n;
+    REAL sa = sa_avg;
+    
+    REAL sb_n = sb_avg_n;
+    REAL sb = sb_avg;
     
     //  Computing closure relationship at given average values
     
     TPZManVector<STATE, 10> v(nvars);
-    v[0] = p_a;
-    v[1] = sa;
-    v[2] = sb;
+    v[0] = p_avg_n;
+    v[1] = sa_avg_n;
+    v[2] = sb_avg_n;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho_a,rho_b,rho_c,l;
@@ -1610,6 +1632,15 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     if(!fSimulationData->IsCurrentStateQ()){
         
+        v[0] = p_avg;
+        v[1] = sa_avg;
+        v[2] = sb_avg;
+        
+        fSimulationData->AlphaProp()->Density(rho_a, v);
+        fSimulationData->BetaProp()->Density(rho_b, v);
+        fSimulationData->BetaProp()->Density(rho_c, v);
+        fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+        
         for (int ip = 0; ip < nphip; ip++)
         {
             ef(ip + firstp) += -1.0 * weight * (-1.0/dt) * ( sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0] ) * phi[0] * phi_ps(ip,0);
@@ -1628,7 +1659,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
         for (int i = 0; i < u.size(); i++) {
             phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
             Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
-            rho_g_dot_phi_u += (sa*rho_a[0]+sb*rho_b[0]+(1.0-sa-sb)*rho_c[0])*Gravity[i]*phi_u_i(i,0);
+            rho_g_dot_phi_u += (sa_n*rho_a[0]+sb_n*rho_b[0]+(1.0-sa_n-sb_n)*rho_c[0])*Gravity[i]*phi_u_i(i,0);
         }
         
         ef(iu + firstu) += weight * ( Kl_inv_dot_u - (1.0/jac_det) * (p) * div_on_master(iu,0) - rho_g_dot_phi_u );
@@ -1646,7 +1677,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     for (int ip = 0; ip < nphip; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * ( sa * rho_a[0] + sb * rho_b[0] + (1.0-sa-sb) * rho_c[0] ) * phi[0] - f[0]) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * ( sa_n * rho_a[0] + sb_n * rho_b[0] + (1.0-sa_n-sb_n) * rho_c[0] ) * phi[0] - f[0]) * phi_ps(ip,0);
         
     }
     
