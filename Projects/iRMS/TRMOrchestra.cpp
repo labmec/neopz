@@ -420,11 +420,14 @@ void TRMOrchestra::RunStaticProblem(){
     int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
     for (int i = 0; i < neq_sb; i++) {
         fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
-        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 1.0;
+        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
     }
 
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fSegregatedAnalysis_I->Hyperbolic()->Meshvec(), fSegregatedAnalysis_I->Hyperbolic()->Mesh());
     fSegregatedAnalysis_I->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution());
+    
+//    fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution().Print("ah = ");
+//    fSegregatedAnalysis_I->Hyperbolic()->X_n().Print("ah = ");
     
     fSimulationData->Setdt(dt);
     

@@ -172,13 +172,13 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsActiveQ){
 void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     
     fSimulationData->SetCurrentStateQ(true);
-    Parabolic()->UpdateMemory();
+    Parabolic()->UpdateMemory_at_n();
     
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }
     
-    Hyperbolic()->UpdateMemory();
+    Hyperbolic()->UpdateMemory_at_n();
     fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
 
 }

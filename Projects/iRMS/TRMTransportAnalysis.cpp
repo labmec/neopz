@@ -288,6 +288,7 @@ void TRMTransportAnalysis::UpdateMemory(){
 
 void TRMTransportAnalysis::PostProcessStep(){
     
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());    
     const int dim = this->Mesh()->Reference()->Dimension();
     int div = 0;
     TPZStack<std::string> scalnames, vecnames;
