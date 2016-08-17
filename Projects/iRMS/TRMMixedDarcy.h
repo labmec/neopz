@@ -30,6 +30,9 @@ private:
 
     /** @brief material dimension */
     int fdimension;
+
+    /** @brief Material parameter for non symetric system  */
+    REAL fnon_symetric;
     
 public:
     

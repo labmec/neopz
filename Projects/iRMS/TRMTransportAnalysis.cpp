@@ -184,7 +184,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
         this->Set_k_ietrarions(k);
 
         if (fSimulationData->IsQuasiNewtonQ()) {
-            this->QuasiNewtonIteration();
+            this->NewtonIteration(); // @omar:: I prefer no linearize this matrix
         }
         else{
             this->NewtonIteration();

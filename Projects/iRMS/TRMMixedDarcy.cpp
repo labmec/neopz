@@ -12,6 +12,7 @@
 TRMMixedDarcy::TRMMixedDarcy() : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>()
 {
     fdimension = 0;
+    fnon_symetric = 0.0;
 }
 
 TRMMixedDarcy::TRMMixedDarcy(int matid, int dimension) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(matid)
@@ -22,7 +23,8 @@ TRMMixedDarcy::TRMMixedDarcy(int matid, int dimension) : TPZMatWithMem<TRMMemory
 
 TRMMixedDarcy::TRMMixedDarcy(const TRMMixedDarcy &mat) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(mat)
 {
-    this->fdimension = mat.fdimension;
+    this->fdimension    = mat.fdimension;
+    this->fnon_symetric = mat.fnon_symetric;
 }
 
 TRMMixedDarcy::~TRMMixedDarcy()
@@ -69,7 +71,7 @@ int TRMMixedDarcy::NSolutionVariables(int var) {
         case 0:
             return 1; // Scalar
         case 1:
-            return 3; // Vector
+            return fdimension; // Vector
         case 2:
             return 1; // Scalar
         case 3:
@@ -387,8 +389,8 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     //  Computing closure relationship at given average values
     
     TPZManVector<STATE, 10> v(nvars),v_avg(nvars);
-    v[0]        = p;
-    v_avg[0]    = p;//p_avg_n;
+    v[0]        = p_avg_n;
+    v_avg[0]    = p_avg_n;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho,l;
@@ -424,7 +426,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     if(! fSimulationData->IsCurrentStateQ()){
         
    
-        v_avg[0] = p;//p_avg;
+        v_avg[0] = p_avg;
         
         // Fluid parameters
         TPZManVector<STATE, 10> rho,l;
@@ -484,7 +486,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         for (int jp = 0; jp < nphip; jp++)
         {
-            ek(iu + firstu, jp + firstp) += weight * ( Kl_dp_inv_dot_u - (1.0/jac_det) * div_on_master(iu,0) + rho_dp_g_dot_phi_u) * phi_ps(jp,0);
+            ek(iu + firstu, jp + firstp) += weight * ( fnon_symetric * Kl_dp_inv_dot_u - (1.0/jac_det) * div_on_master(iu,0) + fnon_symetric * rho_dp_g_dot_phi_u) * phi_ps(jp,0);
         }
         
     }
@@ -560,7 +562,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     TPZManVector<STATE, 10> v(nvars),v_avg(nvars);
     v[0]        = p;
-    v_avg[0]    = p;//p_avg_n;
+    v_avg[0]    = p_avg_n;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho,l;
@@ -597,7 +599,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     if(! fSimulationData->IsCurrentStateQ()){
         
         TPZManVector<STATE, 10> v(nvars);
-        v[0] = p;//p_avg;
+        v[0] = p_avg;
         
         // Fluid parameters
         TPZManVector<STATE, 10> rho,l;
@@ -769,9 +771,9 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             break;
         case 1:
         {
-            Solout[0] = u[0]; // Bulk mass velocity
-            Solout[1] = u[1]; // Bulk mass velocity
-            Solout[2] = u[2]; // Bulk mass velocity
+            for (int i = 0; i < fdimension; i++) {
+                Solout[i] = u[i]; // Bulk mass velocity
+            }
         }
             break;
         case 2:
@@ -791,7 +793,7 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             
             REAL flux_norm = 0.0;
             for (int i = 0; i < Dimension() ; i++) {
-                flux_norm += u[i];
+                flux_norm += u[i]*u[i];
             }
             flux_norm = sqrt(flux_norm);
             
@@ -956,7 +958,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         
         for (int jp = 0; jp < nphip; jp++)
         {
-            ek(iu + firstu, jp + firstp) += weight * ( Kl_dp_inv_dot_u - (1.0/jac_det) * div_on_master(iu,0) + rho_dp_g_dot_phi_u) * phi_ps(jp,0);
+            ek(iu + firstu, jp + firstp) += weight * ( fnon_symetric * Kl_dp_inv_dot_u - (1.0/jac_det) * div_on_master(iu,0) + fnon_symetric * rho_dp_g_dot_phi_u) * phi_ps(jp,0);
         }
         
     }
@@ -1303,9 +1305,9 @@ void TRMMixedDarcy::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
             break;
         case 1:
         {
-            Solout[0] = u[0]; // Bulk mass velocity
-            Solout[1] = u[1]; // Bulk mass velocity
-            Solout[2] = u[2]; // Bulk mass velocity
+            for (int i = 0; i < fdimension; i++) {
+                Solout[i] = u[i]; // Bulk mass velocity
+            }
         }
             break;
         case 2:
@@ -1506,7 +1508,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
         
         for (int jp = 0; jp < nphip; jp++)
         {
-            ek(iu + firstu, jp + firstp) += weight * ( Kl_dp_inv_dot_u - (1.0/jac_det) * div_on_master(iu,0) + rho_dp_g_dot_phi_u) * phi_ps(jp,0);
+            ek(iu + firstu, jp + firstp) += weight * ( fnon_symetric * Kl_dp_inv_dot_u - (1.0/jac_det) * div_on_master(iu,0) + fnon_symetric * rho_dp_g_dot_phi_u) * phi_ps(jp,0);
         }
         
     }
@@ -1532,7 +1534,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
         
         for (int jp = 0; jp < nphip; jp++)
         {
-            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((sa_n*rho_a[0]+sb_n*rho_b[0]+(1.0-sa_n-sb_n)*rho_c[0]) * phi[1] + (sa_n*rho_a[1]+sb_n*rho_b[1]+(1.0-sa_n-sb_n)*rho_c[1]) * phi[0]) * phi_ps(ip,0) ) * phi_ps(jp,0);
+            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((sa_n*rho_a[0]+sb_n*rho_b[0]+(1.0-sa_n-sb_n)*rho_c[0]) * phi[1] + (sa_n*rho_a[1]+sb_n*rho_b[1]+(1.0-sa_n-sb_n)*rho_c[1]) * phi[0]) * phi_ps(ip,0)) * phi_ps(jp,0);
         }
         
     }
@@ -1831,9 +1833,9 @@ void TRMMixedDarcy::Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZV
             break;
         case 1:
         {
-            Solout[0] = u[0]; // Bulk mass velocity
-            Solout[1] = u[1]; // Bulk mass velocity
-            Solout[2] = u[2]; // Bulk mass velocity
+            for (int i = 0; i < fdimension; i++) {
+                Solout[i] = u[i]; // Bulk mass velocity
+            }
         }
             break;
         case 2:
@@ -1853,7 +1855,7 @@ void TRMMixedDarcy::Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZV
             
             REAL flux_norm = 0.0;
             for (int i = 0; i < Dimension() ; i++) {
-                flux_norm += u[i];
+                flux_norm += u[i]*u[i];
             }
             flux_norm = sqrt(flux_norm);
             

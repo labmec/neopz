@@ -65,7 +65,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
         dx[0] = 1000.0/REAL(nel_x);
         dy[0] = 100.0/REAL(nel_y);
-        dz[0] = 100.0/REAL(nel_z);
+        dz[0] = 50.0/REAL(nel_z);
         
         if (IsReservoirBoxQ) {
             fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
@@ -99,7 +99,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
+            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
             fSpaceGenerator->CreateGeometricGIDMesh(file);
         }
@@ -227,18 +228,25 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     bool IsIterativeSolverQ = false;
-    bool IsGCQ = false;
+    bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 16;
+    int numofThreads_p = 24;
     bool mustOptimizeBandwidth_parabolic = true;
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
-    TPZSkylineNSymStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    strmat_p.SetDecomposeType(ELDLt);
+
+//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    
     TPZStepSolver<STATE> step_p;
-    step_p.SetDirect(ELU);
+    step_p.SetDirect(ELDLt);
     strmat_p.SetNumThreads(numofThreads_p);
+    
     
     parabolic->SetStructuralMatrix(strmat_p);
     parabolic->SetSolver(step_p);
@@ -255,7 +263,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(skylnsyma);
         TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(skylnsyma);
         
-        stepre->SetDirect(ELU);
+        stepre->SetDirect(ELDLt);
         stepre->SetReferenceMatrix(skylnsyma);
         stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
         stepGC->SetCG(10, *stepre, 1.0e-10, 0);
@@ -274,7 +282,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 16;
+        int numofThreads_t = 24;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
@@ -416,20 +424,29 @@ void TRMOrchestra::RunStaticProblem(){
         
     }
     
-//    int neq_sa = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution().Rows();
-    int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
-    for (int i = 0; i < neq_sb; i++) {
-        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
-        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
+    fSimulationData->Setdt(dt);
+    
+    
+    // @omar:: initial conditions
+    
+    if(fSimulationData->IsOnePhaseQ()){
+        return;
     }
-
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fSegregatedAnalysis_I->Hyperbolic()->Meshvec(), fSegregatedAnalysis_I->Hyperbolic()->Mesh());
-    fSegregatedAnalysis_I->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution());
+    
+//    int neq_sa = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution().Rows();
+//    int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
+//    for (int i = 0; i < neq_sb; i++) {
+//        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
+//        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
+//    }
+//
+//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fSegregatedAnalysis_I->Hyperbolic()->Meshvec(), fSegregatedAnalysis_I->Hyperbolic()->Mesh());
+//    fSegregatedAnalysis_I->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution());
     
 //    fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution().Print("ah = ");
 //    fSegregatedAnalysis_I->Hyperbolic()->X_n().Print("ah = ");
     
-    fSimulationData->Setdt(dt);
+
     
 }
 
@@ -472,8 +489,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
-            fSegregatedAnalysis->ExcecuteOneStep(true);
-            fSegregatedAnalysis->PostProcessStep(true);
+            fSegregatedAnalysis->ExcecuteOneStep(false);
+            fSegregatedAnalysis->PostProcessStep(false);
         }
         
     }
@@ -486,6 +503,21 @@ void TRMOrchestra::PostProcess(){
     fMonolithicMultiphaseAnalysis->PostProcessStep();
     
 }
+
+void TRMOrchestra::ComputationalMeshUniformRefinement(TPZCompMesh  *cmesh, int ndiv){
+    TPZVec<long > subindex;
+    for (long iref = 0; iref < ndiv; iref++) {
+        TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
+        long nel = elvec.NElements();
+        for(long el=0; el < nel; el++){
+            TPZCompEl * cel = elvec[el];
+            if(!cel) continue;
+            long ind = cel->Index();
+            cel->Divide(ind, subindex, 0);
+        }
+    }
+}
+
 
 ///** @brief Compute the system of equations using transfer matrixces */
 //TPZFMatrix<STATE> TRMOrchestra::IntegrateResidue(TPZAutoPointer<TPZCompMesh> cmesh_multiphysics, TPZAutoPointer< TPZCompMesh> cmesh_flux, TPZAutoPointer< TPZCompMesh> cmesh_pressure, TPZAutoPointer<TRMBuildTransfers> transfer){

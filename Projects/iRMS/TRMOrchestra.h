@@ -16,6 +16,7 @@
 // Type of structural matrices
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
 
 #include "TRMSpaceOdissey.h"
 #include "TRMSimulationData.h"
@@ -264,6 +265,9 @@ public:
     
     /** @brief Computes the post processed results */
     void PostProcess();
+
+    /** @brief Computes the post processed results */
+    void ComputationalMeshUniformRefinement(TPZCompMesh  *cmesh, int ndiv);
     
     /** @brief Project an exact solution */
     void ProjectExactSolution();
