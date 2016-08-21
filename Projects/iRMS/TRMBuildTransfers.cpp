@@ -1905,7 +1905,7 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
             DebugStop();
         }
 #endif
-        if (gel->Dimension() != dimension) {
+        if (gel->Dimension() != dimension || gel->HasSubElement()) {
             continue;
         }
         gel_indexes.first = gel->Index();

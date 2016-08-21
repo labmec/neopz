@@ -109,6 +109,12 @@ protected:
     /** @brief Stores the spatial information given in maps */
     TPZAutoPointer<TRMSpatialPropertiesMap> fMap;
     
+    /** @brief L2 projection material id for gradient reconstruction */
+    int fl2_projection_material_id;
+    
+    /** @brief Define the use of linear gradient reconstruction */
+    bool fUseGradientRQ;
+    
     
 public:
     
@@ -294,6 +300,12 @@ public:
     /** @brief Material identifier for interfaces */
     int InterfacesMatId() { return fInterface_mat_Id; }
     
+    /** @brief Set the directive for use of gradient reconstruction */
+    void SetUseGradientR(bool UseGR) { return fUseGradientRQ = UseGR; }
+    
+    /** @brief Get the directive for use of gradient reconstruction */
+    int UseGradientR() { return fUseGradientRQ; }
+    
     /** @brief Set autopointer of the RawData */
     void SetRawData(TPZAutoPointer<TRMRawData> &RawData);
     
@@ -343,6 +355,11 @@ public:
     TPZVec<STATE> & Gravity()
     {
         return fg;
+    }
+    
+    /** @brief L2 projection material id for gradient reconstruction */
+    int L2_Projection_material_Id(){
+        return fl2_projection_material_id;
     }
     
     // @}

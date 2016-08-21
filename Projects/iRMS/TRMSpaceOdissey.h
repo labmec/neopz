@@ -177,14 +177,6 @@ public:
     /** @brief Parametric function that computes elements in the z direction */
     static  void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X);
     
-    
-    
-    /**
-     * @defgroup Access Methods
-     * @brief    Implements Access methods:
-     * @{
-     */
-    
     /** @brief Set autopointer of the Geometric mesh */
     void SetGmesh(TPZGeoMesh *GeoMesh){
         fGeoMesh = GeoMesh;
@@ -194,6 +186,9 @@ public:
     TPZGeoMesh * Gmesh(){
         return fGeoMesh;
     }
+    
+    /** @brief Apply uniform refinement on the Geometric mesh */
+    void UniformRefinement(int n_ref);
     
     /** @brief Set autopointer of Simulation data */
     void SetSimulationData(TRMSimulationData * SimulationData){
@@ -308,18 +303,9 @@ public:
     /** @brief Create computational interfaces inside for flux computations  */
     void CreateInterfacesInside(TPZCompMesh * cmesh);
     
-    // @}
-    
-    /**
-     * @defgroup Utilities and other Methods
-     * @brief    Implements Methods for h and p refinement:
-     * @{
-     */
-    
     /** @brief Adjust the polinomial order of the elements */
     void IncreaseOrderAroundWell(int numlayers);
     
-    // @}
     
     
 };

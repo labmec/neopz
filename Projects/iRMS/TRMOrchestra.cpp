@@ -65,7 +65,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
         dx[0] = 1000.0/REAL(nel_x);
         dy[0] = 100.0/REAL(nel_y);
-        dz[0] = 50.0/REAL(nel_z);
+        dz[0] = 10.0/REAL(nel_z);
         
         if (IsReservoirBoxQ) {
             fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
@@ -75,12 +75,12 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-            file = dirname + "/Projects/iRMS/Meshes/FiveSpotT.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/FiveSpotT.dump";
+            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
             fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
         }
         
         fSpaceGenerator->Gmesh()->SetDimension(3);
-        fSpaceGenerator->PrintGeometry();
     }
     else{
         
@@ -100,17 +100,19 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
-            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesT.dump";
+            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
             fSpaceGenerator->CreateGeometricGIDMesh(file);
         }
         
         fSpaceGenerator->Gmesh()->SetDimension(2);
-        fSpaceGenerator->PrintGeometry();
+
         
     }
     
-
+    int ref = 0;
+    fSpaceGenerator->UniformRefinement(ref);
+    fSpaceGenerator->PrintGeometry();
     
 }
 
@@ -173,6 +175,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 #endif
     
     fSpaceGenerator->SetDefaultPOrder(1);
+    fSpaceGenerator->SetDefaultSOrder(0);
     
     fSpaceGenerator->CreateFluxCmesh();
     fSpaceGenerator->CreatePressureCmesh();
@@ -233,7 +236,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 16;
+    int numofThreads_p = 24;
     bool mustOptimizeBandwidth_parabolic = true;
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
@@ -282,7 +285,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 16;
+        int numofThreads_t = 24;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());

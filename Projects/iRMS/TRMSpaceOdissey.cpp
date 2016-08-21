@@ -23,6 +23,7 @@
 #include "TRMSimworxMeshGenerator.h"
 #include "TPZCompMeshTools.h"
 #include "pzelchdivbound2.h"
+#include "pzl2projection.h"
 #include "pzshapequad.h"
 
 #include "pzbndcond.h"
@@ -568,6 +569,10 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
     int saturation = 0;
     int sorder = fSOrder;
     
+    if(sorder > 0 ){
+        fSimulationData->SetUseGradientR(true);
+    }
+    
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     
     // Malha computacional
@@ -580,6 +585,13 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id,dim);
         fAlphaSaturationMesh->InsertMaterialObject(mat);
+        
+        if(fSimulationData->UseGradientR()){
+            int L2Proj_material = fSimulationData->L2_Projection_material_Id();
+            TPZVec<STATE> sol(1,0.);
+            TPZL2Projection *matl2proj = new TPZL2Projection(L2Proj_material,dim,mat->NStateVariables(),sol);
+            fAlphaSaturationMesh->InsertMaterialObject(matl2proj);
+        }
         
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
@@ -630,6 +642,10 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
     int saturation = 0;
     int sorder = fSOrder;
     
+    if(sorder > 0 ){
+        fSimulationData->SetUseGradientR(true);
+    }
+    
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     
     // Malha computacional
@@ -642,6 +658,13 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id,dim);
         fBetaSaturationMesh->InsertMaterialObject(mat);
+        
+        if(fSimulationData->UseGradientR()){
+            int L2Proj_material = fSimulationData->L2_Projection_material_Id();
+            TPZVec<STATE> sol(1,0.);
+            TPZL2Projection *matl2proj = new TPZL2Projection(L2Proj_material,dim,mat->NStateVariables(),sol);
+            fBetaSaturationMesh->InsertMaterialObject(matl2proj);
+        }
         
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
@@ -1057,7 +1080,18 @@ void TRMSpaceOdissey::ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE
     X[2] = par[0];
 }
 
-
+/** @brief Apply uniform refinement on the Geometric mesh */
+void TRMSpaceOdissey::UniformRefinement(int n_ref){
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> filhos;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if (gel->Dimension() != 0) gel->Divide (filhos);
+        }//for i
+    }//ref
+    fGeoMesh->BuildConnectivity();
+}
 
 /** @brief Create the reservoir geometry */
 void TRMSpaceOdissey::CreateGeometricReservoirMesh(){

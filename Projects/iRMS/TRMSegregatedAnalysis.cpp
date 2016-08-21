@@ -83,7 +83,7 @@ void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
     
 
     this->UpdateMemory();
-//    this->UpdateMemory_at_n();    
+    this->UpdateMemory_at_n();
     if (IsActiveQ) {
         fParabolic->ExcecuteOneStep();
         if (fSimulationData->IsOnePhaseQ()) {
@@ -100,8 +100,8 @@ void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
     
     fHyperbolic->ExcecuteOneStep();
 
-    
-    this->UpdateMemory_at_n();
+//    
+//    this->UpdateMemory_at_n();
 
     
 }
