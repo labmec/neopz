@@ -41,6 +41,21 @@ TRMTransportAnalysis::TRMTransportAnalysis() : TPZAnalysis() {
     /** @brief number of newton corrections */
     fk_iterations = 0;
     
+    /** @brief active equations of alpha saturation */
+    factive_sa.Resize(0);
+    
+    /** @brief no active equations of alpha saturation */
+    fno_active_sa.Resize(0);
+    
+    /** @brief active equations of beta saturation */
+    factive_sb.Resize(0);
+    
+    /** @brief no active equations of beta saturation */
+    fno_active_sb.Resize(0);
+    
+    /** @brief Gradient reconstruction object */
+    fgradreconst = new TPZGradientReconstruction(false,1.);
+    
 }
 
 TRMTransportAnalysis::~TRMTransportAnalysis(){
@@ -114,6 +129,16 @@ void TRMTransportAnalysis::NewtonIteration(){
     fX_n += this->Solution(); // update state
     
     this->Mesh()->LoadSolution(fX_n);
+    
+    if (fSimulationData->UseGradientR())
+    {
+//        CleanUpGradients();
+        fX_n.Print("ahfem");
+        this->SaturationReconstruction();
+        fX_n = Solution();
+        Solution().Print("ahfem");
+    }
+    
     this->UpdateMemory_at_n();
     
     this->AssembleResidual();
@@ -142,6 +167,12 @@ void TRMTransportAnalysis::QuasiNewtonIteration(){
     
     
     this->Mesh()->LoadSolution(fX_n);
+    if (fSimulationData->UseGradientR())
+    {
+        CleanUpGradients();
+        this->SaturationReconstruction();
+        fX_n = Solution();
+    }
     this->UpdateMemory_at_n();
     
     this->AssembleResidual();
@@ -303,4 +334,126 @@ void TRMTransportAnalysis::PostProcessStep(){
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);
     
+}
+
+void TRMTransportAnalysis::FilterSaturationGradients()
+{
+    
+    int ncon_sa = fmeshvec[0]->NConnects();
+    int ncon = Mesh()->NConnects();
+    
+    
+    // DOF related with Constant
+    for(int i = 0; i < ncon_sa; i++)
+    {
+        TPZConnect &con = Mesh()->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = Mesh()->Block().Position(seqnum);
+        int blocksize = Mesh()->Block().Size(seqnum);
+        int vs = factive_sa.size();
+        factive_sa.Resize(vs+1);
+        
+        int ieq = blocksize-1;
+        factive_sa[vs] = pos+ieq;
+    }
+    
+    // DOF Related with S grandients
+    for(int i = 0; i< ncon_sa; i++)
+    {
+        TPZConnect &con = Mesh()->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = Mesh()->Block().Position(seqnum);
+        int blocksize = Mesh()->Block().Size(seqnum);
+        int vs = fno_active_sa.size();
+        fno_active_sa.Resize(vs+blocksize-1);
+        for(int ieq = 0; ieq<blocksize-1; ieq++)
+        {
+            fno_active_sa[vs+ieq] = pos+ieq;
+        }
+        
+    }
+    
+    if(fSimulationData->IsTwoPhaseQ()){
+        return;
+    }
+    
+    // DOF related with Constant
+    for(int i = ncon - ncon_sa; i < ncon; i++)
+    {
+        TPZConnect &con = Mesh()->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = Mesh()->Block().Position(seqnum);
+        int blocksize = Mesh()->Block().Size(seqnum);
+        int vs = factive_sa.size();
+        factive_sa.Resize(vs+1);
+        
+        int ieq = blocksize-1;
+        factive_sa[vs] = pos+ieq;
+    }
+    
+    // DOF Related with S grandients
+    for(int i = ncon - ncon_sa; i < ncon; i++)
+    {
+        TPZConnect &con = Mesh()->ConnectVec()[i];
+        int seqnum = con.SequenceNumber();
+        int pos = Mesh()->Block().Position(seqnum);
+        int blocksize = Mesh()->Block().Size(seqnum);
+        int vs = fno_active_sa.size();
+        fno_active_sa.Resize(vs+blocksize-1);
+        for(int ieq = 0; ieq<blocksize-1; ieq++)
+        {
+            fno_active_sa[vs+ieq] = pos+ieq;
+        }
+        
+    }
+    
+}
+
+void TRMTransportAnalysis::CleanUpGradients(){
+    
+    long numofdof_sa = fno_active_sa.size();
+    long numofdof_sb = fno_active_sb.size();
+    TPZFMatrix<REAL> SolToLoad = Solution();
+    for(long i=0; i < numofdof_sa; i++)
+    {
+        Solution()(fno_active_sa[i],0) = 0.0;
+    }
+    for(long i=0; i < numofdof_sb; i++)
+    {
+        Solution()(fno_active_sb[i],0) = 0.0;
+    }
+    
+}
+
+void TRMTransportAnalysis::SaturationReconstruction()
+{
+    Mesh()->LoadSolution(Solution());
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
+    
+    if(fSimulationData->IsTwoPhaseQ()){
+        fmeshvec[0]->Reference()->ResetReference();
+        fmeshvec[0]->LoadReferences();
+        fgradreconst->ProjectionL2GradientReconstructed(fmeshvec[0], fSimulationData->L2_Projection_material_Id());
+    }
+    
+    if(fSimulationData->IsThreePhaseQ()){
+        fmeshvec[0]->Reference()->ResetReference();
+        fmeshvec[0]->LoadReferences();
+        fgradreconst->ProjectionL2GradientReconstructed(fmeshvec[0], fSimulationData->L2_Projection_material_Id());
+        
+        fmeshvec[1]->Reference()->ResetReference();
+        fmeshvec[1]->LoadReferences();
+        fgradreconst->ProjectionL2GradientReconstructed(fmeshvec[1], fSimulationData->L2_Projection_material_Id());
+    }
+    
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, Mesh());
+    LoadSolution(Mesh()->Solution());
+    
+}
+
+
+void TRMTransportAnalysis::FilterEquations(){
+    FilterSaturationGradients();
+    this->StructMatrix()->EquationFilter().Reset();
+    this->StructMatrix()->EquationFilter().SetActiveEquations(factive_sa);
 }

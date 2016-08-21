@@ -23,7 +23,7 @@
 #include "TPZReadGIDGrid.h"
 #include "TPZVTKGeoMesh.h"
 
-
+#include "pzpoisson3d.h"
 
 class TRMSpaceOdissey{
     

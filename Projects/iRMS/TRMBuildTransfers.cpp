@@ -1078,7 +1078,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
         int npoints = face_int_points->NPoints();
         int nshapes = left_cel->Connect(i_face).NShape();
         
-        blocks_dimensions[k_face].first = 1;//npoints;
+        blocks_dimensions[k_face].first = npoints;
         blocks_dimensions[k_face].second = nshapes;
         if (IsBoundaryQ) {
             fun_dof_scatter_Gamma[k_face] = dof_indexes;
@@ -1220,12 +1220,12 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
   
 #ifdef PZDEBUG
         if (IsBoundaryQ) {
-            if (1 != fun_To_Transport_Gamma.GetSizeofBlock(k_face).first || nshapes != fun_To_Transport_Gamma.GetSizeofBlock(k_face).second){
+            if (npoints != fun_To_Transport_Gamma.GetSizeofBlock(k_face).first || nshapes != fun_To_Transport_Gamma.GetSizeofBlock(k_face).second){
                 DebugStop();
             }
         }
         else{
-            if (1 != fun_To_Transport_gamma.GetSizeofBlock(k_face).first || nshapes != fun_To_Transport_gamma.GetSizeofBlock(k_face).second){
+            if (npoints != fun_To_Transport_gamma.GetSizeofBlock(k_face).first || nshapes != fun_To_Transport_gamma.GetSizeofBlock(k_face).second){
                 DebugStop();
             }
             
@@ -1237,7 +1237,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         int el_dim = face_gel->Dimension();
         TPZFNMatrix<300,REAL> dphidxi(el_dim,nshapes,0.0);
         TPZFNMatrix<50,double> block(npoints,nshapes);
-        TPZFNMatrix<50,double> block_integral(1,nshapes,0.0);
+        TPZFNMatrix<50,double> block_integral(2,nshapes,0.0);
         
         REAL w;
         TPZManVector<STATE,2> par_duplet(el_dim,0.0);
@@ -1264,6 +1264,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         
             for (int jp = 0; jp < nshapes; jp++) {
                 block_integral(0,jp) += block(ip,jp);
+                block_integral(1,jp) += block(ip,jp);
             }
             
         }

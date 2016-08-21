@@ -15,6 +15,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"
+#include "pzgradientreconstruction.h"
 
 class TRMTransportAnalysis : public TPZAnalysis{
         
@@ -49,6 +50,21 @@ private:
     
     /** @brief number of newton corrections */
     int fk_iterations;
+    
+    /** @brief active equations of alpha saturation */
+    TPZManVector<long> factive_sa;
+    
+    /** @brief no active equations of alpha saturation */
+    TPZManVector<long> fno_active_sa;
+    
+    /** @brief active equations of beta saturation */
+    TPZManVector<long> factive_sb;
+    
+    /** @brief no active equations of beta saturation */
+    TPZManVector<long> fno_active_sb;
+    
+    /** @brief Gradient reconstruction object */
+    TPZGradientReconstruction *fgradreconst;
     
 public:
     
@@ -138,12 +154,6 @@ public:
         fk_iterations = k;
     }
     
-    // @}
-    
-    /**
-     * @defgroup Time foward methods
-     * @{
-     */
     
     /** @brief Execute a euler method step */
     void ExcecuteOneStep();
@@ -162,9 +172,18 @@ public:
     
     /** @brief Update memory using the Transfer object */
     void UpdateMemory();
+
+    /** @brief Filter Saturations on the non linear system */
+    void FilterSaturationGradients();
     
+    /** @brief clean up gradiens on solution vector */
+    void CleanUpGradients();
     
-    // @}
+    /** @brief Saturation reconstruction */
+    void SaturationReconstruction();
+    
+    /** @brief Filtering equations for saturation reconstruction */
+    void FilterEquations();
         
     
     

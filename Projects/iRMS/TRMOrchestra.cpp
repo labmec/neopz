@@ -54,7 +54,7 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = false;
+    bool IsReservoirBoxQ = true;
     
     if (Is3DGeometryQ) {
         
@@ -84,7 +84,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 10;
+        int nel_x = 2;
         int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
@@ -175,7 +175,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 #endif
     
     fSpaceGenerator->SetDefaultPOrder(1);
-    fSpaceGenerator->SetDefaultSOrder(0);
+    fSpaceGenerator->SetDefaultSOrder(1);
     
     fSpaceGenerator->CreateFluxCmesh();
     fSpaceGenerator->CreatePressureCmesh();
@@ -236,7 +236,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 24;
+    int numofThreads_p = 2;
     bool mustOptimizeBandwidth_parabolic = true;
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
@@ -285,7 +285,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 24;
+        int numofThreads_t = 2;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
@@ -298,6 +298,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         hyperbolic->AdjustVectors();
         hyperbolic->SetSimulationData(fSimulationData);
         hyperbolic->SetTransfer(Transfer);
+        hyperbolic->FilterEquations();
         std::cout << "ndof hyperbolic = " << hyperbolic->Solution().Rows() << std::endl;
     }
 

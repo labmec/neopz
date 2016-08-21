@@ -583,7 +583,7 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id,dim);
+        TPZMatPoisson3d * mat = new TPZMatPoisson3d(rock_id,dim);
         fAlphaSaturationMesh->InsertMaterialObject(mat);
         
         if(fSimulationData->UseGradientR()){
@@ -656,7 +656,7 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMPhaseTransport * mat = new TRMPhaseTransport(rock_id,dim);
+        TPZMatPoisson3d * mat = new TPZMatPoisson3d(rock_id,dim);
         fBetaSaturationMesh->InsertMaterialObject(mat);
         
         if(fSimulationData->UseGradientR()){
