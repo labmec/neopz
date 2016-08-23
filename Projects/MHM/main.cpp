@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     }
 #endif
     
-    bool KeepOneLagrangian = false;
+    bool KeepOneLagrangian = true;
     HideTheElements(CHDivPressureMesh,KeepOneLagrangian);
 
     std::cout << "Reduced number of equations " << CHDivPressureMesh->NEquations() << std::endl;
@@ -227,13 +227,13 @@ int main(int argc, char *argv[])
         CHDivPressureMesh->Print(out);
     }
 #endif
-    an.LoadSolution();
-//    an.Solution().Print("sol = ");
+    an.LoadSolution(); // compute internal dofs
+    an.Solution().Print("sol = ");
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(cmeshes, an.Mesh());
 //    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshes, an.Mesh());
-//    cmeshes[0]->Solution().Print("solq = ");
-//    cmeshes[1]->Solution().Print("solp = ");
+    cmeshes[0]->Solution().Print("solq = ");
+    cmeshes[1]->Solution().Print("solp = ");
     std::string plotfile("mixed_solution.vtk");
     TPZStack<std::string> scalnames,vecnames;
     scalnames.Push("Pressure");
@@ -1516,34 +1516,19 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian)
     std::cout << "Number of element groups " << ElementGroups.size() << std::endl;
     std::map<long,TCompIndexes>::iterator it;
     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
-//        std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
-//        std::cout << " elements ";
-//        std::set<long>::iterator its;
-//        for (its = it->second.begin(); its != it->second.end(); its++) {
-//            std::cout << *its << " ";
-//        }
-//        std::cout << std::endl;
+        std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
+        std::cout << " elements ";
+        std::set<long>::iterator its;
+        for (its = it->second.begin(); its != it->second.end(); its++) {
+            std::cout << *its << " ";
+        }
+        std::cout << std::endl;
     }
     
     std::set<long> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(Multiphysics, ElementGroups, submeshindices, KeepOneLagrangian);
-    /*
-    int count =0;
-    for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
-        long index;
-        count++;
-        TPZCompMeshTools::PutinSubmeshes(Multiphysics.operator->(), it->second, index,KeepOneLagrangian);
-        submeshindices.insert(index);
-        if (!(count%500)) {
-            std::cout << count << " ";
-            std::cout.flush();
-        }
-    }
-    if (count >= 500) {
-        std::cout << std::endl;
-    }
-     */
     std::cout << "After putting in substructures\n";
+    
     Multiphysics->ComputeNodElCon();
     Multiphysics->CleanUpUnconnectedNodes();
     for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
@@ -1558,5 +1543,7 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian)
         subcmesh->CleanUpUnconnectedNodes();
         subcmesh->SetAnalysisSkyline(0, 0, 0);
     }
+    Multiphysics->ComputeNodElCon();
+    Multiphysics->CleanUpUnconnectedNodes();
     std::cout << "Finished substructuring\n";
 }
