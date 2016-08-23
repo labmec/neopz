@@ -130,7 +130,7 @@ ENABLE_TESTING()
 			add_subdirectory(descontinuo)
 
  
-                	#Testing generating ellipse from a vector of points by least square method
+			#Testing generating ellipse from a vector of points by least square method
 			add_subdirectory(EllipseGenerator)
 
 			#Adaptivity based on mesh cloning (Edimar Cesar thesis)
@@ -187,6 +187,8 @@ ENABLE_TESTING()
 			
 			add_subdirectory(MatLib)
 			add_subdirectory(TrabalhosLNCC15)
+
+			add_subdirectory(MHM)
 
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)

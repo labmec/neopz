@@ -51,10 +51,10 @@ int main()
 //    LinearTracerPrimal();
 
     // Running dual problem on box shape
-    BoxLinearTracerDual();
+//    BoxLinearTracerDual();
     
 //    // Running dual problem on Reservoir
-//    LinearTracerDual();
+    LinearTracerDual();
     
     
     std::cout << "Process complete normally." << std::endl;
