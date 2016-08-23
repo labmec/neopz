@@ -707,7 +707,8 @@ void TPZCompMesh::Skyline(TPZVec<long> &skyline) {
       depConInd[oldSize] = i;
 			continue;
     }
-    if (connectVec[i].SequenceNumber() > maxSequenceNumberIndependentConnect ) {
+    if (connectVec[i].SequenceNumber() > maxSequenceNumberIndependentConnect && !connectVec[i].IsCondensed())
+    {
       maxSequenceNumberIndependentConnect  = connectVec[i].SequenceNumber();
     }
   }

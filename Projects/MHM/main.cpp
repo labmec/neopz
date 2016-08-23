@@ -158,8 +158,8 @@ int main(int argc, char *argv[])
 //    gRefDBase.InitializeUniformRefPattern(ECube);
     
     REAL Lx = 1.,Ly = 1., Lz = 0.5;
-    int nref = 1;
-    TPZManVector<int> nblocks(2,1);
+    int nref = 2;
+    TPZManVector<int> nblocks(10,10);
 //    nblocks[1] = 30;
     TPZGeoMesh * gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref);
 
@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
     TPZAnalysis an(CHDivPressureMesh);
     TPZSkylineStructMatrix skyl(CHDivPressureMesh);
 #ifndef DEBUG
-    skyl.SetNumThreads(8);
+    skyl.SetNumThreads(16);
 #endif
     an.SetStructuralMatrix(skyl);
     TPZStepSolver<STATE> step;
@@ -228,12 +228,12 @@ int main(int argc, char *argv[])
     }
 #endif
     an.LoadSolution(); // compute internal dofs
-    an.Solution().Print("sol = ");
+//    an.Solution().Print("sol = ");
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(cmeshes, an.Mesh());
 //    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshes, an.Mesh());
-    cmeshes[0]->Solution().Print("solq = ");
-    cmeshes[1]->Solution().Print("solp = ");
+//    cmeshes[0]->Solution().Print("solq = ");
+//    cmeshes[1]->Solution().Print("solp = ");
     std::string plotfile("mixed_solution.vtk");
     TPZStack<std::string> scalnames,vecnames;
     scalnames.Push("Pressure");
@@ -1334,10 +1334,9 @@ TPZGeoMesh * MalhaGeomBig(REAL Lx, REAL Ly, REAL Lz, TPZVec<int> &nblocks, int n
     
     InsertInterfaceElements(meshresult3d);
     
-#ifdef PZDEBUG
-    std::ofstream vtkfile("gmesh.vtk");
+    std::ofstream vtkfile("geometry.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(meshresult3d, vtkfile);
-#endif
+    
     return meshresult3d;
 }
 
@@ -1514,16 +1513,16 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian)
         }
     }
     std::cout << "Number of element groups " << ElementGroups.size() << std::endl;
-    std::map<long,TCompIndexes>::iterator it;
-    for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
-        std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
-        std::cout << " elements ";
-        std::set<long>::iterator its;
-        for (its = it->second.begin(); its != it->second.end(); its++) {
-            std::cout << *its << " ";
-        }
-        std::cout << std::endl;
-    }
+//    std::map<long,TCompIndexes>::iterator it;
+//    for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
+//        std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
+//        std::cout << " elements ";
+//        std::set<long>::iterator its;
+//        for (its = it->second.begin(); its != it->second.end(); its++) {
+//            std::cout << *its << " ";
+//        }
+//        std::cout << std::endl;
+//    }
     
     std::set<long> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(Multiphysics, ElementGroups, submeshindices, KeepOneLagrangian);
@@ -1541,9 +1540,9 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian)
         subcmesh->ComputeNodElCon();
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->CleanUpUnconnectedNodes();
-        subcmesh->SetAnalysisSkyline(0, 0, 0);
+        subcmesh->SetAnalysisSkyline(16, 0, 0);
     }
-    Multiphysics->ComputeNodElCon();
-    Multiphysics->CleanUpUnconnectedNodes();
+//    Multiphysics->ComputeNodElCon();
+//    Multiphysics->CleanUpUnconnectedNodes();
     std::cout << "Finished substructuring\n";
 }
