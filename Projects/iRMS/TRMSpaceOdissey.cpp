@@ -254,6 +254,167 @@ void ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &f)
     f[0] = rhs;
 }
 
+/** @brief Build MHM form the current hdvi mesh */
+void TRMSpaceOdissey::BuildMixed_Mesh(){
+    
+    this->CreateFluxCmesh();
+    this->CreatePressureCmesh();
+    this->CreateMixedCmesh();
+    
+}
+
+/** @brief Build MHM form the current hdvi mesh */
+void TRMSpaceOdissey::BuildMHM_Mesh(){
+    
+    this->CreateFluxCmesh();
+    this->CreatePressureCmesh();
+    
+    SeparateConnectsByNeighborhood();
+    
+    this->CreateMixedCmesh();
+    
+    this->BuildMacroElements();
+    
+    
+}
+
+/** @brief Sparated connects by given selected skeleton ids */
+void TRMSpaceOdissey::SeparateConnectsBySkeletonIds(TPZVec<long> skeleton_ids){
+    DebugStop();
+}
+
+/** @brief Sparated connects by hdiv connect neighborhood */
+void TRMSpaceOdissey::SeparateConnectsByNeighborhood(){
+    
+#ifdef PZDEBUG
+    if(!fFluxCmesh){
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh *gmesh = fFluxCmesh->Reference();
+    gmesh->ResetReference();
+    fFluxCmesh->LoadReferences();
+    fFluxCmesh->ComputeNodElCon();
+    long nel = fFluxCmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fFluxCmesh->Element(el);
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || gel->Dimension() != gmesh->Dimension()) {
+            continue;
+        }
+        int nc = cel->NConnects();
+        for (int ic =0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            if (c.HasDependency() && c.NElConnected() == 2) // @omar:: Hdiv connects have this invariant characteristic
+            {
+                // duplicate the connect
+                long cindex = fFluxCmesh->AllocateNewConnect(c);
+                TPZConnect &newc = fFluxCmesh->ConnectVec()[cindex];
+                newc = c;
+                c.DecrementElConnected();
+                newc.DecrementElConnected();
+                cel->SetConnectIndex(ic, cindex);
+            }
+        }
+    }
+    fFluxCmesh->ExpandSolution();
+}
+
+/** @brief Construc computational macro elements */
+void TRMSpaceOdissey::BuildMacroElements()
+{
+    
+#ifdef PZDEBUG
+    if(!fMixedFluxPressureCmesh){
+        DebugStop();
+    }
+#endif
+    
+    bool KeepOneLagrangian = true;
+    typedef std::set<long> TCompIndexes;
+    std::map<long, TCompIndexes> ElementGroups;
+    TPZGeoMesh *gmesh = fMixedFluxPressureCmesh->Reference();
+    gmesh->ResetReference();
+    fMixedFluxPressureCmesh->LoadReferences();
+    long nelg = gmesh->NElements();
+    for (long el=0; el<nelg; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (gel->Father() != NULL) {
+            continue;
+        }
+        if (gel->Dimension() == gmesh->Dimension() - 1 && gel->MaterialId() > 0) {
+            continue;
+        }
+        long mapindex = gel->Index();
+        if (gel->Dimension() == gmesh->Dimension() - 1) {
+            TPZGeoElSide neighbour = gel->Neighbour(gel->NSides()-1);
+            if (neighbour.Element()->Dimension() != gmesh->Dimension()) {
+                DebugStop();
+            }
+            mapindex= neighbour.Element()->Index();
+        }
+        TPZStack<TPZCompElSide> highlevel;
+        TPZGeoElSide gelside(gel,gel->NSides()-1);
+        gelside.HigherLevelCompElementList3(highlevel, 0, 0);
+        long nelst = highlevel.size();
+        for (long elst=0; elst<nelst; elst++) {
+            ElementGroups[mapindex].insert(highlevel[elst].Element()->Index());
+        }
+        if (gel->Reference()) {
+            if (nelst) {
+                DebugStop();
+            }
+            ElementGroups[mapindex].insert(gel->Reference()->Index());
+        }
+    }
+    std::cout << "Number of macro elements = " << ElementGroups.size() << std::endl;
+    std::map<long,TCompIndexes>::iterator it;
+    for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
+        //        std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
+        //        std::cout << " elements ";
+        //        std::set<long>::iterator its;
+        //        for (its = it->second.begin(); its != it->second.end(); its++) {
+        //            std::cout << *its << " ";
+        //        }
+        //        std::cout << std::endl;
+    }
+    
+    std::set<long> submeshindices;
+    TPZCompMeshTools::PutinSubmeshes(fMixedFluxPressureCmesh, ElementGroups, submeshindices, KeepOneLagrangian);
+    /*
+     int count =0;
+     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
+     long index;
+     count++;
+     TPZCompMeshTools::PutinSubmeshes(Multiphysics.operator->(), it->second, index,KeepOneLagrangian);
+     submeshindices.insert(index);
+     if (!(count%500)) {
+     std::cout << count << " ";
+     std::cout.flush();
+     }
+     }
+     if (count >= 500) {
+     std::cout << std::endl;
+     }
+     */
+    std::cout << "Inserting  macro element in substructures" << std::endl;
+    fMixedFluxPressureCmesh->ComputeNodElCon();
+    fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
+    for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
+        TPZCompEl *cel = fMixedFluxPressureCmesh->Element(*it);
+        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
+        if (!subcmesh) {
+            DebugStop();
+        }
+        TPZCompMeshTools::GroupElements(subcmesh);
+        subcmesh->ComputeNodElCon();
+        TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
+        subcmesh->SetAnalysisSkyline(0, 0, 0);
+    }
+    std::cout << "Finished substructuring" << std::endl;
+}
+
 /** @brief Create a Mixed computational mesh Hdiv-L2 */
 void TRMSpaceOdissey::CreateMixedCmesh(){
     if(!fGeoMesh)

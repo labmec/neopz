@@ -106,7 +106,16 @@ public:
 	 * Is also used to load the solution within SuperElements
 	 */
 	virtual void LoadSolution();
+    
+    virtual void TransferMultiphysicsElementSolution()
+    {
+        if(fReferenceCompEl)
+        {
+            fReferenceCompEl->TransferMultiphysicsElementSolution();
+        }
+    }
 
+    
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh
 	 * @param mesh Patch clone mesh

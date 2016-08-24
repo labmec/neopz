@@ -417,13 +417,14 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
         }
     }
     cmesh->ComputeNodElCon();
-    if (KeepOneLagrangian)
-    {
-        for (std::set<long>::iterator it = indices.begin(); it != indices.end(); it++) {
-            TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cmesh->Element(*it));
-            if (!subcmesh) {
-                DebugStop();
-            }
+    for (std::set<long>::iterator it = indices.begin(); it != indices.end(); it++) {
+        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cmesh->Element(*it));
+        if (!subcmesh) {
+            DebugStop();
+        }
+        if (KeepOneLagrangian)
+        {
+            
             long nconnects = subcmesh->NConnects();
             for (long ic=0; ic<nconnects; ic++) {
                 TPZConnect &c = subcmesh->Connect(ic);
@@ -432,9 +433,10 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
                     break;
                 }
             }
-            subcmesh->MakeAllInternal();
         }
+        subcmesh->MakeAllInternal();
     }
+    
     
 }
 

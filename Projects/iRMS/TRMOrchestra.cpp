@@ -85,7 +85,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     else{
         
         int nel_x = 2;
-        int nel_y = 1;
+        int nel_y = 2;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -177,12 +177,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(1);
     
-    fSpaceGenerator->CreateFluxCmesh();
-    fSpaceGenerator->CreatePressureCmesh();
-    fSpaceGenerator->CreateMixedCmesh();
-    
-    parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-    parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
+    fSpaceGenerator->BuildMixed_Mesh();
     
     if(fSimulationData->IsTwoPhaseQ()){
         fSpaceGenerator->CreateAlphaTransportMesh();
@@ -232,12 +227,21 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
+    bool UseMHMQ = false;
+    
+    if(UseMHMQ){
+        fSpaceGenerator->BuildMHM_Mesh();
+    }
+    
     bool IsIterativeSolverQ = false;
     bool IsGCQ = true;
     
     // Analysis for parabolic part
     int numofThreads_p = 2;
     bool mustOptimizeBandwidth_parabolic = true;
+    
+    parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
+    parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 //    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());

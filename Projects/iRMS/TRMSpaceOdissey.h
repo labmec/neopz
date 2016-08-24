@@ -25,6 +25,10 @@
 
 #include "pzpoisson3d.h"
 
+#include "pzelementgroup.h"
+#include "TPZCompMeshTools.h"
+#include "pzsubcmesh.h"
+
 class TRMSpaceOdissey{
     
 public:
@@ -300,12 +304,28 @@ public:
         return fMonolithicMultiphaseCmesh;
     }
     
+    /** @brief Build MHM form the current hdvi mesh */
+    void BuildMixed_Mesh();
+    
     /** @brief Create computational interfaces inside for flux computations  */
     void CreateInterfacesInside(TPZCompMesh * cmesh);
     
     /** @brief Adjust the polinomial order of the elements */
     void IncreaseOrderAroundWell(int numlayers);
     
+    // MHM
+    
+    /** @brief Build MHM form the current hdvi mesh */
+    void BuildMHM_Mesh();
+    
+    /** @brief Sparated connects by given selected skeleton ids */
+    void SeparateConnectsBySkeletonIds(TPZVec<long> skeleton_ids);
+    
+    /** @brief Sparated connects by hdiv connect neighborhood */
+    void SeparateConnectsByNeighborhood();
+    
+    /** @brief Construc computational macro elements */
+    void BuildMacroElements();
     
     
 };

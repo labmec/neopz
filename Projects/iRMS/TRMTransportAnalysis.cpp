@@ -133,10 +133,8 @@ void TRMTransportAnalysis::NewtonIteration(){
     if (fSimulationData->UseGradientR())
     {
 //        CleanUpGradients();
-        fX_n.Print("ahfem");
         this->SaturationReconstruction();
         fX_n = Solution();
-        Solution().Print("ahfem");
     }
     
     this->UpdateMemory_at_n();
