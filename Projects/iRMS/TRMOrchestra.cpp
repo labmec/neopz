@@ -326,7 +326,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
 }
 
-<<<<<<< HEAD
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
@@ -334,18 +333,6 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
     TRMMonolithicMultiphaseAnalysis * mono_analysis = new TRMMonolithicMultiphaseAnalysis;
     
-=======
-/** @brief Create a dual analysis using space odissey */
-void TRMOrchestra::CreateAnalysisDual(){
-    int nel = 2;
-    TPZManVector<int,2> dx(2,nel), dy(2,nel), dz(2,nel);
-    dx[0] = 1;
-    dy[0] = 1;
-    dz[0] = 1;
-    
-    //fSpaceGenerator.CreateGeometricBoxMesh(dx, dy, dz);
-    fSpaceGenerator.CreateGeometricReservoirMesh();
->>>>>>> master
 #ifdef PZDEBUG
     if (!fSpaceGenerator->Gmesh()) {
         std::cout << "iRMS:: Call BuildGeometry " << std::endl;
@@ -469,12 +456,6 @@ void TRMOrchestra::RunStaticProblem(){
 //    fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution().Print("ah = ");
 //    fSegregatedAnalysis_I->Hyperbolic()->X_n().Print("ah = ");
     
-<<<<<<< HEAD
-=======
-    //fSpaceGenerator.IncreaseOrderAroundWell(2);
->>>>>>> master
-
-    
 }
 
 /** @brief Run the evolutionary problem for all steps set in the simulation data */
@@ -502,8 +483,6 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     }
     
     // Evolutionary problems
-    
-<<<<<<< HEAD
     int n = fSimulationData->n_steps();
     for (int i = 0; i < n; i++) {
         if (IsMonolithicQ()) {
@@ -520,60 +499,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
             fSegregatedAnalysis->ExcecuteOneStep(false);
             fSegregatedAnalysis->PostProcessStep(false);
         }
-        
-=======
-    // Analysis
-    bool mustOptimizeBandwidth = true;
-    fFluxPressureAnalysis.SetCompMesh(Cmesh.operator->(), mustOptimizeBandwidth);
-//    TPZAnalysis * AnalysisDual = new TPZAnalysis(Cmesh.operator->(),mustOptimizeBandwidth);
-    int numofThreads = 0;
-#ifdef PZDEBUG
-    {
-        std::ofstream out("../MFCompMesh.txt");
-        Cmesh->Print(out);
-    }
-#endif
-    fFluxPressureAnalysis.Solution().Zero();
-    fFluxPressureAnalysis.LoadSolution();
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-    TPZFMatrix<STATE> prevsol = fFluxPressureAnalysis.Solution();
-    std::cout << "Total dof: " << prevsol.Rows() << std::endl;
-    
-    std::map<REAL,STATE> RatebyPosition;
-    STATE TotalFlux = 0.;
-     ComputeProductionRate(RatebyPosition, TotalFlux);
 
-    TPZSkylineStructMatrix strmat(Cmesh.operator->());
-//    TPZSkylineNSymStructMatrix strmat(Cmesh.operator->());
-    TPZStepSolver<STATE> step;
-    strmat.SetNumThreads(numofThreads);
-    step.SetDirect(ELDLt);
-    fFluxPressureAnalysis.SetStructuralMatrix(strmat);
-    fFluxPressureAnalysis.SetSolver(step);
-    fFluxPressureAnalysis.Run();
-    std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
-    prevsol -= fFluxPressureAnalysis.Solution();
-    Cmesh->LoadSolution(prevsol);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-
-    RatebyPosition.clear();
-    TotalFlux = 0.;
-    ComputeProductionRate(RatebyPosition, TotalFlux);    
-    std::cout << "Total flux " << TotalFlux << std::endl;
-    for (std::map<REAL,STATE>::iterator it = RatebyPosition.begin(); it != RatebyPosition.end(); it++) {
-        std::cout << "Y_position " << it->first << " rate " << it->second << std::endl;
-    }
-    
-    if (0)
-    {
-        fFluxPressureAnalysis.Run();
-        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
-        prevsol -= fFluxPressureAnalysis.Solution();
-        Cmesh->LoadSolution(prevsol);
-        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, Cmesh);
-        fFluxPressureAnalysis.AssembleResidual();
-        std::cout << "Rhs norm " << Norm(fFluxPressureAnalysis.Rhs()) << std::endl;
->>>>>>> master
     }
 }
 

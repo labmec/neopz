@@ -58,18 +58,8 @@ int main()
     std::cout  << "Overal execution time = " << (t2-t1) << std::endl;
 #endif
     
-<<<<<<< HEAD
-=======
-
-    // Running primal problem
-//    LinearTracerPrimal();
-
-    // Running dual problem on box shape
-//    BoxLinearTracerDual();
->>>>>>> master
-    
 //    // Running dual problem on Reservoir
-    LinearTracerDual();
+    //LinearTracerDual();
     
     
     std::cout << "Process complete normally." << std::endl;

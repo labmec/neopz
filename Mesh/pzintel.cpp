@@ -306,11 +306,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
 			equalside = elvecequal[il].Side();
             long equalindex = equal->ConnectIndex(equal->MidSideConnectLocId(equalside));
             if (equalindex != connectindex) {
-<<<<<<< HEAD
-                return; //DebugStop(); // @omar:: some condition that i can not understand
-=======
                 DebugStop();
->>>>>>> master
             }
 			il++;
 		}
@@ -371,13 +367,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
                 }
             }
         }
-<<<<<<< HEAD
-		
-		
-=======
-		
-		
->>>>>>> master
+
 		for(long il=0; il<highdim.size(); il++) {
 			
 			// verify if the higher dimension element/side is restrained.

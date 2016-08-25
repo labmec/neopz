@@ -82,11 +82,7 @@ int TPZCheckMesh::VerifyConnect(int connect) {
             *fOut << "Connect " << connect << " has dependency but no large element\n";
             check = 0;
         }
-<<<<<<< HEAD
-        if(!c.HasDependency() && large)
-=======
         if(c.NShape() && !c.HasDependency() && large)
->>>>>>> master
         {
             *fOut << "Connect " << connect << " has no dependency but has large element\n";
             check = 0;

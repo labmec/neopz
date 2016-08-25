@@ -115,18 +115,7 @@ public:
         }
     }
 
-<<<<<<< HEAD
-    
-=======
-    virtual void TransferMultiphysicsElementSolution()
-    {
-        if(fReferenceCompEl)
-        {
-            fReferenceCompEl->TransferMultiphysicsElementSolution();
-        }
-    }
 
->>>>>>> master
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh
 	 * @param mesh Patch clone mesh
