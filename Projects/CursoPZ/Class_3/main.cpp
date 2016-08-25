@@ -53,6 +53,11 @@ int main(){
  REAL Tol;
  ZeroTolerance(Tol);
  elvec[1]->ComputeXInverse (gpt, mpt, Tol);
+    
+    TPZManVector<REAL,3> xvalue(3);
+    elvec[1]->X(mpt, xvalue);
+    
+    std::cout << "Original x value " << gpt << " After inversion x value " << xvalue << std::endl;
  
  TPZFMatrix<REAL> jac(dim,dim,0.);
  TPZFMatrix<REAL> axes(3,3,0.);

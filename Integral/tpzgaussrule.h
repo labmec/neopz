@@ -42,6 +42,9 @@ class TPZGaussRule {
 	long double fAlpha;
 	/** @brief BETA is the exponent of (1+X) in the quadrature rule: weight = (1-X)^ALPHA * (1+X)^BETA */
 	long double fBeta;
+    
+    /// order of the integration rule
+    int fOrder;
 
 	/**
 	 * @brief Constructor of quadrature rule 
@@ -52,6 +55,11 @@ class TPZGaussRule {
 	 * @note If alpha = beta = 0.0L the Jacobi type is identical to Legendre type
 	 */
     TPZGaussRule(int order,int type = 0,long double alpha = 0.0L,long double beta = 0.0L);
+    
+    TPZGaussRule(const TPZGaussRule &copy);
+    
+    TPZGaussRule &operator=(const TPZGaussRule &copy);
+    
 	/** @brief Default destructor */
     ~TPZGaussRule();
 
@@ -74,6 +82,11 @@ public:
 	/** @brief Returns BETA: it is the exponent of (1-X) in the quadrature rule:  \f$ weight = (1-X)^ALPHA * (1+X)^BETA \f$ */
 	long double Beta() { return fBeta; }
 	
+    /// return the order of the integration rule
+    int Order()
+    {
+        return fOrder;
+    }
 	/**
 	 * @brief Sets alpha and beta, the parameters of the Jacobi polynomials 
 	 * @param alpha Exponent of the factor (1 - ksi) to Jacobi type
@@ -99,7 +112,7 @@ protected:
 	 * @brief Computes the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0] 
 	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
 	 */
-	void ComputingGaussLegendreQuadrature(int order);
+	int ComputingGaussLegendreQuadrature(int order);
 	/** 
 	 * @brief Computes the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0] 
 	 * It is util to be called by another rule that need the Gaussian quadrature based on number of points not on order.
@@ -107,7 +120,7 @@ protected:
 	 * @param Location Vector of integration points ksi
 	 * @param Weight Vector of corresponding weights
 	 */
-	void ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight);
+	int ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight);
 	/** 
 	 * @brief Computes the points and weights for Gauss Lobatto Quadrature over the parametric 1D element \f$ [-1.0, 1.0] \f$
 	 * It is to integrate functions \f$ f(x) \f$, but the first and last integration points are \f$ -1.0 \f$ and \f$1.0\f$ respectively
@@ -115,14 +128,15 @@ protected:
 	 * @note The implementation follow Karniadakis and Sherwin: "Spectral/hp element methods for computational fluid dynamics
 	 * (Oxford University Press, 2005).
 	 */
-	void ComputingGaussLobattoQuadrature(int order);
-	/** 
-	 * @brief Computes the points and weights for Gauss Lobatto Quadrature over the parametric 1D element \f$ [-1.0, 1.0] \f$
-	 * It is to integrate functions \f$ f(x) \f$, but one of integration point is \f$-1.0\f$ or \f$1.0\f$ 
-	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
-	 */
-	void ComputingGaussRadauQuadrature(int order) {
-	}
+	int ComputingGaussLobattoQuadrature(int order);
+//	/** 
+//	 * @brief Computes the points and weights for Gauss Lobatto Quadrature over the parametric 1D element \f$ [-1.0, 1.0] \f$
+//	 * It is to integrate functions \f$ f(x) \f$, but one of integration point is \f$-1.0\f$ or \f$1.0\f$ 
+//	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
+//	 */
+//	int ComputingGaussRadauQuadrature(int order) {
+//        DebugStop();
+//	}
 
 	/** 
 	 * @brief Compute numerical integration points and weight for Gauss Jacobi quadrature over \f$ [-1,1] \f$
@@ -131,7 +145,7 @@ protected:
 	 * @param alpha Exponent of the factor (1 - ksi) to Jacobi type
 	 * @param beta Exponent of the factor (1 + ksi) to Jacobi type
 	 */
-	void ComputingGaussJacobiQuadrature(int order,long double alpha,long double beta);
+	int ComputingGaussJacobiQuadrature(int order,long double alpha,long double beta);
 	/** 
 	 * @brief Compute numerical integration points and weight for Gauss Jacobi quadrature over \f$ [-1,1] \f$
 	 * It is to integrate functions as \f$ (1-x)^\alpha (1+x)^\beta f(x) \f$. It is util to be called by another rule.
@@ -142,7 +156,7 @@ protected:
 	 * @param Location Vector of integration points ksi
 	 * @param Weight Vector of corresponding weights
 	 */
-	void ComputingGaussJacobiQuadrature(int *npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight);
+	int ComputingGaussJacobiQuadrature(int *npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight);
 
 	/**
 	 * @brief Evaluates the Jacobi polinomial for real x.
@@ -173,7 +187,7 @@ protected:
 	 * It is to integrate functions as \f$ f(x)/\sqrt(1-x^2)) \f$ 
 	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
 	 */
-	void ComputingGaussChebyshevQuadrature(int order);
+	int ComputingGaussChebyshevQuadrature(int order);
 	
 };
 

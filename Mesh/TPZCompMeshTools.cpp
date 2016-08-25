@@ -424,7 +424,11 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
         }
         if (KeepOneLagrangian)
         {
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> master
             long nconnects = subcmesh->NConnects();
             for (long ic=0; ic<nconnects; ic++) {
                 TPZConnect &c = subcmesh->Connect(ic);
@@ -436,6 +440,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
         }
         subcmesh->MakeAllInternal();
     }
+
     
     
 }

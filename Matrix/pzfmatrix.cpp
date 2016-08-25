@@ -606,6 +606,7 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
         z = y;
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
     
     if(this->Rows() ==0 || this->Cols() == 0 ) {
         return;
@@ -613,6 +614,11 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
     
     //std::cout << "xrow " << x.Rows() << "xcol " << x.Cols() << "thiscols " << this->Cols() << "thisrows " << this->Rows() <<std::endl;
     //std::cout.flush();
+=======
+    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
+        return;
+    }
+>>>>>>> master
 =======
     if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
         return;
@@ -1901,10 +1907,16 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     double B  = 0.;
     int info;
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (dim == 0) {
         return 1;
     }
     
+=======
+    if (dim == 0 || nrhs == 0) {
+        return;
+    }
+>>>>>>> master
 =======
     if (dim == 0 || nrhs == 0) {
         return;

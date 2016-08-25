@@ -115,9 +115,9 @@ void NEquationsCondensed(TPZCompMesh *cmesh, long &neqglob,long &neqcond, bool i
 
 bool metodomisto;
 bool solsuave;
-int main()
+int main3()
 {
-    HDivPiola = 2;
+    HDivPiola = 1;
     bool SecondIntegration=false;
     
     InitializePZLOG();
@@ -1361,11 +1361,18 @@ void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int order){
                
                 corder = conel.Order();
                 nshape = conel.NShape();
+                long cindex = cel->ConnectIndex(icon);
                 if(corder!=order)
                 {
+<<<<<<< HEAD
                     conel.SetOrder(order,0);
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
                     nshape = intel->NConnectShapeF(icon,0);
+=======
+                    conel.SetOrder(order,cindex);
+                    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+                    nshape = intel->NConnectShapeF(icon,order);
+>>>>>>> master
                     conel.SetNShape(nshape);
                     mesh->Block().Set(conel.SequenceNumber(),nshape);
                 }
@@ -1391,8 +1398,13 @@ void ChangeInternalOrderH1(TPZCompMesh *mesh, int neworder){
         if(cel->Dimension()== dim)
         {
             TPZConnect &co  = cel->Connect(ncon-1);
+            long cindex = cel->ConnectIndex(ncon-1);
             ninternalshape = (neworder-1)*(neworder-1);
+<<<<<<< HEAD
             co.SetOrder(neworder,0);
+=======
+            co.SetOrder(neworder,cindex);
+>>>>>>> master
             co.SetNShape(ninternalshape);
             mesh->Block().Set(co.SequenceNumber(),ninternalshape);
         }

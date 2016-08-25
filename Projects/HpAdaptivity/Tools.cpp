@@ -1601,7 +1601,7 @@ void RefiningNearCircunference(int dim,TPZGeoMesh *gmesh,int nref,int ntyperefs)
 	TPZVec<REAL> point(3);
 	point[0] = point[1] = 0.5; point[2] = 0.0;
 	REAL r = 0.25;
-	TPZVec<TPZManVector<REAL> > Points(npoints);
+	TPZVec<TPZManVector<REAL,3> > Points(npoints);
 	GetPointsOnCircunference(npoints,point,r,Points);
 	
 	if(ntyperefs==2) {

@@ -37,58 +37,6 @@ namespace pzshape {
 	
 	REAL TPZShapePiram::gFaceSum3dPiram2d[5][2] = { {.0,0.},{-.5,0.},{-.5,0.},{-.5,0.},{-.5,0.} };//{ {.0,0.},{-.5,0.},{-.5,0.},{-.5,0.},{-.5,0.} };//original
 	
-	void TPZShapePiram::CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-		
-		REAL T0xz,T0yz,T1xz,T1yz;
-		if (fabs(1.-pt[2]) < 1.e-8) 
-		{
-			if (fabs(pt[0]) > 1.e-8 || fabs(pt[1]) > 1.e-8) 
-			{
-				DebugStop();
-			}
-			T0xz = 0.5;
-			T0yz = 0.5;
-			T1xz = 0.5;
-			T1yz = 0.5;
-		}
-		else 
-		{
-			T0xz = .5*(1.-pt[2]-pt[0]) / (1.-pt[2]);
-			T0yz = .5*(1.-pt[2]-pt[1]) / (1.-pt[2]);
-			T1xz = .5*(1.-pt[2]+pt[0]) / (1.-pt[2]);
-			T1yz = .5*(1.-pt[2]+pt[1]) / (1.-pt[2]);
-		}
-		
-		REAL lmez = (1.-pt[2]);
-		phi(0,0)  = T0xz*T0yz*lmez;
-		phi(1,0)  = T1xz*T0yz*lmez;
-		phi(2,0)  = T1xz*T1yz*lmez;
-		phi(3,0)  = T0xz*T1yz*lmez;
-		phi(4,0)  = pt[2];
-		REAL lmexmez = 1.-pt[0]-pt[2];
-		REAL lmeymez = 1.-pt[1]-pt[2];
-		REAL lmaxmez = 1.+pt[0]-pt[2];
-		REAL lmaymez = 1.+pt[1]-pt[2];
-		dphi(0,0) = -.25*lmeymez / lmez;
-		dphi(1,0) = -.25*lmexmez / lmez;
-		dphi(2,0) = -.25*(lmeymez+lmexmez-lmexmez*lmeymez/lmez) / lmez;
-		
-		dphi(0,1) =  .25*lmeymez / lmez;
-		dphi(1,1) = -.25*lmaxmez / lmez;
-		dphi(2,1) = -.25*(lmeymez+lmaxmez-lmaxmez*lmeymez/lmez) / lmez;
-		
-		dphi(0,2) =  .25*lmaymez / lmez;
-		dphi(1,2) =  .25*lmaxmez / lmez;
-		dphi(2,2) = -.25*(lmaymez+lmaxmez-lmaxmez*lmaymez/lmez) / lmez;
-		
-		dphi(0,3) = -.25*lmaymez / lmez;
-		dphi(1,3) =  .25*lmexmez / lmez;
-		dphi(2,3) = -.25*(lmaymez+lmexmez-lmexmez*lmaymez/lmez) / lmez;
-		
-		dphi(0,4) =  0.0;
-		dphi(1,4) =  0.0;
-		dphi(2,4) =  1.0;
-	}
 	
 	/**
 	 * Computes the generating shape functions for a quadrilateral element
