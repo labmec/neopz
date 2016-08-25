@@ -87,6 +87,9 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief L2 projection material id for gradient reconstruction */
     fl2_projection_material_id = 2001;
     
+    /** @brief Skeleton dfault material id for MHM substructuring */
+    fSkeleton_material_id = 1001;
+    
     /** @brief Define the use of linear gradient reconstruction */
     fUseGradientRQ = false;
     

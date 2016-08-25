@@ -84,8 +84,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 2;
-        int nel_y = 2;
+        int nel_x = 1;
+        int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -171,11 +171,13 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         std::cout << "iRMS:: Call BuildGeometry " << std::endl;
         DebugStop();
     }
-    fSpaceGenerator->PrintGeometry();
 #endif
     
+    fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
+    fSpaceGenerator->PrintGeometry();
+    
     fSpaceGenerator->SetDefaultPOrder(1);
-    fSpaceGenerator->SetDefaultSOrder(1);
+    fSpaceGenerator->SetDefaultSOrder(0);
     
     fSpaceGenerator->BuildMixed_Mesh();
     
@@ -227,7 +229,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    bool UseMHMQ = false;
+    bool UseMHMQ = true;
     
     if(UseMHMQ){
         fSpaceGenerator->BuildMHM_Mesh();
@@ -237,16 +239,16 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 2;
+    int numofThreads_p = 0;
     bool mustOptimizeBandwidth_parabolic = true;
     
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
-//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    strmat_p.SetDecomposeType(ELDLt);
+    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    strmat_p.SetDecomposeType(ELDLt);
 
 //    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     

@@ -112,6 +112,9 @@ protected:
     /** @brief L2 projection material id for gradient reconstruction */
     int fl2_projection_material_id;
     
+    /** @brief Skeleton dfault material id for MHM substructuring */
+    int fSkeleton_material_id;
+    
     /** @brief Define the use of linear gradient reconstruction */
     bool fUseGradientRQ;
     
@@ -360,6 +363,11 @@ public:
     /** @brief L2 projection material id for gradient reconstruction */
     int L2_Projection_material_Id(){
         return fl2_projection_material_id;
+    }
+    
+    /** @brief Skeleton dfault material id for MHM substructuring */
+    int Skeleton_material_Id(){
+        return fSkeleton_material_id;
     }
     
     // @}

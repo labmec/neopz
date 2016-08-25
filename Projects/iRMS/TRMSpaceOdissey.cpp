@@ -120,6 +120,9 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
         fFluxCmesh->InsertMaterialObject(mat);
         
+        TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
+        fFluxCmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
+        
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
         int bc_id = 0;
@@ -143,10 +146,10 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         
     }
     
-    // Setando Hdiv
     fFluxCmesh->SetDimModel(dim);
     fFluxCmesh->SetDefaultOrder(qorder);
     fFluxCmesh->SetAllCreateFunctionsHDiv();
+    fFluxCmesh->ApproxSpace().SetAllCreateFunctionsHDiv(dim);
     fFluxCmesh->AutoBuild();
     
 #ifdef PZDEBUG
@@ -272,7 +275,7 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     SeparateConnectsByNeighborhood();
     
     this->CreateMixedCmesh();
-    
+    std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     this->BuildMacroElements();
     
     
@@ -321,6 +324,41 @@ void TRMSpaceOdissey::SeparateConnectsByNeighborhood(){
     fFluxCmesh->ExpandSolution();
 }
 
+/** @brief Build MHM form the current hdvi mesh */
+void TRMSpaceOdissey::InsertSkeletonInterfaces(){
+    
+#ifdef PZDEBUG
+    if(!fGeoMesh){
+        DebugStop();
+    }
+#endif
+    
+    long nel = fGeoMesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZGeoEl *gel = fGeoMesh->Element(el);
+        if (!gel || gel->Level() != 0 || gel->Dimension() != fGeoMesh->Dimension()) {
+            continue;
+        }
+        int nsides = gel->NSides();
+        for (int is = gel->NCornerNodes(); is<nsides; is++) {
+            if (gel->SideDimension(is) != fGeoMesh->Dimension() - 1) {
+                continue;
+            }
+            TPZGeoElSide gelside(gel,is);
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            while (neighbour != gelside) {
+                if (neighbour.Element()->Dimension() == fGeoMesh->Dimension() - 1) {
+                    break;
+                }
+                neighbour = neighbour.Neighbour();
+            }
+            if (neighbour == gelside) {
+                TPZGeoElBC(gelside, fSimulationData->Skeleton_material_Id());
+            }
+        }
+    }
+}
+
 /** @brief Construc computational macro elements */
 void TRMSpaceOdissey::BuildMacroElements()
 {
@@ -343,7 +381,7 @@ void TRMSpaceOdissey::BuildMacroElements()
         if (gel->Father() != NULL) {
             continue;
         }
-        if (gel->Dimension() == gmesh->Dimension() - 1 && gel->MaterialId() > 0) {
+        if (gel->Dimension() == gmesh->Dimension() - 1 && gel->MaterialId() > fSimulationData->Skeleton_material_Id()) {
             continue;
         }
         long mapindex = gel->Index();
@@ -368,37 +406,24 @@ void TRMSpaceOdissey::BuildMacroElements()
             ElementGroups[mapindex].insert(gel->Reference()->Index());
         }
     }
-    std::cout << "Number of macro elements = " << ElementGroups.size() << std::endl;
+    
+#ifdef PZDEBUG
     std::map<long,TCompIndexes>::iterator it;
     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
-        //        std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
-        //        std::cout << " elements ";
-        //        std::set<long>::iterator its;
-        //        for (its = it->second.begin(); its != it->second.end(); its++) {
-        //            std::cout << *its << " ";
-        //        }
-        //        std::cout << std::endl;
+        std::cout << "Group " << it->first << " with size " << it->second.size() << std::endl;
+        std::cout << " elements ";
+        std::set<long>::iterator its;
+        for (its = it->second.begin(); its != it->second.end(); its++) {
+            std::cout << *its << " ";
+        }
+        std::cout << std::endl;
     }
+#endif
     
     std::set<long> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(fMixedFluxPressureCmesh, ElementGroups, submeshindices, KeepOneLagrangian);
-    /*
-     int count =0;
-     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
-     long index;
-     count++;
-     TPZCompMeshTools::PutinSubmeshes(Multiphysics.operator->(), it->second, index,KeepOneLagrangian);
-     submeshindices.insert(index);
-     if (!(count%500)) {
-     std::cout << count << " ";
-     std::cout.flush();
-     }
-     }
-     if (count >= 500) {
-     std::cout << std::endl;
-     }
-     */
-    std::cout << "Inserting  macro element in substructures" << std::endl;
+ 
+    std::cout << "Inserting " << ElementGroups.size()  <<  " macro elements into MHM substructures" << std::endl;
     fMixedFluxPressureCmesh->ComputeNodElCon();
     fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
     for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
@@ -412,7 +437,7 @@ void TRMSpaceOdissey::BuildMacroElements()
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->SetAnalysisSkyline(0, 0, 0);
     }
-    std::cout << "Finished substructuring" << std::endl;
+
 }
 
 /** @brief Create a Mixed computational mesh Hdiv-L2 */

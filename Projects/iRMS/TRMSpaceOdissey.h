@@ -318,6 +318,9 @@ public:
     /** @brief Build MHM form the current hdvi mesh */
     void BuildMHM_Mesh();
     
+    /** @brief Build MHM form the current hdvi mesh */
+    void InsertSkeletonInterfaces();
+    
     /** @brief Sparated connects by given selected skeleton ids */
     void SeparateConnectsBySkeletonIds(TPZVec<long> skeleton_ids);
     

@@ -130,7 +130,7 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     fdt_down = 1.0;
     
     // Numeric controls
-    fn_corrections = 50;
+    fn_corrections = 1;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
