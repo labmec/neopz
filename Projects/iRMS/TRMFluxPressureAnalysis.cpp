@@ -87,9 +87,9 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-//    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
-//    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
-//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     
     fX.Resize(fSolution.Rows(),1);
@@ -112,9 +112,6 @@ void TRMFluxPressureAnalysis::NewtonIteration(){
     fdx_norm = Norm(this->Solution()); // correction variation
     
     fX_n += this->Solution(); // update state
-    
-    this->Mesh()->LoadSolution(fX_n);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
 
     this->UpdateMemory_at_n();
     
@@ -137,21 +134,11 @@ void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
     
-    fmeshvec[0]->Solution().Print("q = ");
-    fmeshvec[1]->Solution().Print("p = ");
-    
     this->Solve(); // update correction
-    
-    fmeshvec[0]->Solution().Print("q = ");
-    fmeshvec[1]->Solution().Print("p = ");
-
     
     fdx_norm = Norm(this->Solution()); // correction variation
     
     fX_n += this->Solution(); // update state
-    
-    this->Mesh()->LoadSolution(fX_n);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     
     this->UpdateMemory_at_n();
     
@@ -266,9 +253,9 @@ void TRMFluxPressureAnalysis::UpdateMemory_at_n(){
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
     
     // Volumetric update    
-//    fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
-//    fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
-//    fTransfer->p_avg_Memory_Transfer(Mesh());
+    fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
+    fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
+    fTransfer->p_avg_Memory_Transfer(Mesh());
     
 }
 
@@ -279,9 +266,9 @@ void TRMFluxPressureAnalysis::UpdateMemory(){
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
     
     // Volumetric update
-//    fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
-//    fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
-//    fTransfer->p_avg_Memory_Transfer(Mesh());
+    fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
+    fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
+    fTransfer->p_avg_Memory_Transfer(Mesh());
     
 }
 

@@ -158,8 +158,8 @@ int main(int argc, char *argv[])
 //    gRefDBase.InitializeUniformRefPattern(ECube);
     
     REAL Lx = 1.,Ly = 1., Lz = 0.5;
-    int nref = 2;
-    TPZManVector<int> nblocks(10,10);
+    int nref = 0;
+    TPZManVector<int> nblocks(4,4);
 //    nblocks[1] = 30;
     TPZGeoMesh * gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref);
 
@@ -1344,8 +1344,9 @@ TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
 {
     TPZCompMesh * cmeshHDiv = new TPZCompMesh(gmesh);
     cmeshHDiv->SetDimModel(3);
-    cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(3);
-    cmeshHDiv->SetDefaultOrder(porder);
+    cmeshHDiv->SetAllCreateFunctionsHDiv();
+//    cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(3);
+    
     TPZVecL2 *matl2 = new TPZVecL2(1);
     cmeshHDiv->InsertMaterialObject(matl2);
     matl2 = new TPZVecL2(2);
@@ -1355,7 +1356,21 @@ TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
     cmeshHDiv->InsertMaterialObject(bc);
     bc = matl2->CreateBC(matl2, -2, 0, val1, val2);
     cmeshHDiv->InsertMaterialObject(bc);
-    cmeshHDiv->AutoBuild();
+    
+    cmeshHDiv->SetDefaultOrder(porder);
+    std::set<int> mat_skeleton;
+    mat_skeleton.insert(2);
+    cmeshHDiv->AutoBuild(mat_skeleton);
+    
+    cmeshHDiv->SetDefaultOrder(porder);
+    std::set<int> mat_vol;
+    mat_vol.insert(1);
+    mat_vol.insert(-1);
+    mat_vol.insert(-2);
+    cmeshHDiv->AutoBuild(mat_vol);
+    
+    
+    
     
 #ifdef PZDEBUG
     {
@@ -1450,10 +1465,6 @@ TPZCompMesh * CreateHDivPressureMHMMesh(TPZVec<TPZCompMesh * > & cmeshes)
     TPZBndCond * bcS = mat->CreateBC(mat, -2, typePressure, val1, val2Pressure);
     bcS->SetForcingFunction(0, force);
     MixedFluxPressureCmesh->InsertMaterialObject(bcS);
-    
-    
-    
-    
     
     MixedFluxPressureCmesh->SetDimModel(dim);
     MixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElem();

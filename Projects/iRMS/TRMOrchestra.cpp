@@ -84,8 +84,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 1;
-        int nel_y = 1;
+        int nel_x = 2;
+        int nel_y = 2;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -98,9 +98,9 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
-//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
-            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
             fSpaceGenerator->CreateGeometricGIDMesh(file);
         }
@@ -110,7 +110,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         
     }
     
-    int ref = 0;
+    int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
     
@@ -173,13 +173,20 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
 #endif
     
-    fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
-    fSpaceGenerator->PrintGeometry();
-    
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
+
     
-    fSpaceGenerator->BuildMixed_Mesh();
+    bool UseMHMQ = false;
+    
+    if(UseMHMQ){
+        fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
+        fSpaceGenerator->PrintGeometry();
+        fSpaceGenerator->BuildMHM_Mesh();
+    }
+    else{
+        fSpaceGenerator->BuildMixed_Mesh();        
+    }
     
     if(fSimulationData->IsTwoPhaseQ()){
         fSpaceGenerator->CreateAlphaTransportMesh();
@@ -228,12 +235,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    bool UseMHMQ = true;
-    
-    if(UseMHMQ){
-        fSpaceGenerator->BuildMHM_Mesh();
-    }
     
     bool IsIterativeSolverQ = false;
     bool IsGCQ = true;
@@ -286,12 +287,12 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         
     }
     
-    std::cout << "ndof parabolic = " << parabolic->Solution().Rows() << std::endl;
+    std::cout << "ndof parabolic = " << parabolic->Mesh()->Solution().Rows() << std::endl;
     
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 2;
+        int numofThreads_t = 0;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
@@ -419,7 +420,7 @@ void TRMOrchestra::RunStaticProblem(){
     
     int n = 1;//fSimulationData->n_steps();
     REAL dt = fSimulationData->dt();
-    fSimulationData->Setdt(1.0e10);
+    fSimulationData->Setdt(1.0e8);
     
     for (int i = 0; i < n; i++) {
         if (IsMonolithicQ()) {
@@ -496,8 +497,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
-            fSegregatedAnalysis->ExcecuteOneStep(false);
-            fSegregatedAnalysis->PostProcessStep(false);
+            fSegregatedAnalysis->ExcecuteOneStep(true);
+            fSegregatedAnalysis->PostProcessStep(true);
         }
 
     }

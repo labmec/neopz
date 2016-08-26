@@ -1364,15 +1364,9 @@ void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int order){
                 long cindex = cel->ConnectIndex(icon);
                 if(corder!=order)
                 {
-<<<<<<< HEAD
-                    conel.SetOrder(order,0);
-                    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-                    nshape = intel->NConnectShapeF(icon,0);
-=======
                     conel.SetOrder(order,cindex);
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
                     nshape = intel->NConnectShapeF(icon,order);
->>>>>>> master
                     conel.SetNShape(nshape);
                     mesh->Block().Set(conel.SequenceNumber(),nshape);
                 }
@@ -1400,11 +1394,7 @@ void ChangeInternalOrderH1(TPZCompMesh *mesh, int neworder){
             TPZConnect &co  = cel->Connect(ncon-1);
             long cindex = cel->ConnectIndex(ncon-1);
             ninternalshape = (neworder-1)*(neworder-1);
-<<<<<<< HEAD
-            co.SetOrder(neworder,0);
-=======
             co.SetOrder(neworder,cindex);
->>>>>>> master
             co.SetNShape(ninternalshape);
             mesh->Block().Set(co.SequenceNumber(),ninternalshape);
         }

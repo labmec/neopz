@@ -979,7 +979,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
     
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
-    TPZVec<long> dof_indexes;
+    TPZManVector<long,10> dof_indexes;
     
     TPZCompEl * cel_face;
     TPZGeoEl * left_gel;
@@ -1045,7 +1045,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
             DebugStop();
         }
         
-        // Computing face connec index associated to the element face being integrated
+        // Computing face connect index associated to the element face being integrated
         this->ComputeFaceIndex(left_gel,face_sides);
         
         TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace *> (left_cel);
@@ -1078,7 +1078,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
         int npoints = face_int_points->NPoints();
         int nshapes = left_cel->Connect(i_face).NShape();
         
-        blocks_dimensions[k_face].first = npoints;
+        blocks_dimensions[k_face].first = 1;//npoints;
         blocks_dimensions[k_face].second = nshapes;
         if (IsBoundaryQ) {
             fun_dof_scatter_Gamma[k_face] = dof_indexes;
@@ -1086,7 +1086,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
         else{
             fun_dof_scatter_gamma[k_face] = dof_indexes;
         }
-        
+
         
     }
     
@@ -1220,12 +1220,12 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
   
 #ifdef PZDEBUG
         if (IsBoundaryQ) {
-            if (npoints != fun_To_Transport_Gamma.GetSizeofBlock(k_face).first || nshapes != fun_To_Transport_Gamma.GetSizeofBlock(k_face).second){
+            if (1 != fun_To_Transport_Gamma.GetSizeofBlock(k_face).first || nshapes != fun_To_Transport_Gamma.GetSizeofBlock(k_face).second){
                 DebugStop();
             }
         }
         else{
-            if (npoints != fun_To_Transport_gamma.GetSizeofBlock(k_face).first || nshapes != fun_To_Transport_gamma.GetSizeofBlock(k_face).second){
+            if (1 != fun_To_Transport_gamma.GetSizeofBlock(k_face).first || nshapes != fun_To_Transport_gamma.GetSizeofBlock(k_face).second){
                 DebugStop();
             }
             
@@ -1237,7 +1237,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         int el_dim = face_gel->Dimension();
         TPZFNMatrix<300,REAL> dphidxi(el_dim,nshapes,0.0);
         TPZFNMatrix<50,double> block(npoints,nshapes);
-        TPZFNMatrix<50,double> block_integral(2,nshapes,0.0);
+        TPZFNMatrix<50,double> block_integral(1,nshapes,0.0);
         
         REAL w;
         TPZManVector<STATE,2> par_duplet(el_dim,0.0);
@@ -1264,7 +1264,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         
             for (int jp = 0; jp < nshapes; jp++) {
                 block_integral(0,jp) += block(ip,jp);
-                block_integral(1,jp) += block(ip,jp);
+//                block_integral(1,jp) += block(ip,jp);
             }
             
         }
@@ -1434,13 +1434,13 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
         // Step two
         TPZFMatrix<STATE> un_at_intpoints;
         fun_To_Transport_gamma.Multiply(ScatterFluxes,un_at_intpoints);
-
+        
         // Step three
         // Trasnfering integrated normal fluxes values
         for(long i = 0; i < np_cmesh; i++){
             material_mem->GetMemory()[i].Set_un(un_at_intpoints(i,0));
         }
-        
+
         geometry->ResetReference();
         cmesh_flux->LoadReferences();
         int i = 0;
@@ -1744,6 +1744,7 @@ void TRMBuildTransfers::ComputeLeftRight(TPZCompMesh * transport_mesh){
     long nel = transport_mesh->NElements();
     long face_index;
     std::pair <long,long> duplet;
+    transport_mesh->LoadReferences();
     int dimension = transport_mesh->Reference()->Dimension();
     for (long icel = 0; icel < nel; icel++) {
         

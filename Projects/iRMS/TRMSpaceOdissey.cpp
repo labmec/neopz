@@ -149,7 +149,6 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     fFluxCmesh->SetDimModel(dim);
     fFluxCmesh->SetDefaultOrder(qorder);
     fFluxCmesh->SetAllCreateFunctionsHDiv();
-    fFluxCmesh->ApproxSpace().SetAllCreateFunctionsHDiv(dim);
     fFluxCmesh->AutoBuild();
     
 #ifdef PZDEBUG
@@ -275,8 +274,10 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     SeparateConnectsByNeighborhood();
     
     this->CreateMixedCmesh();
-    std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
-    this->BuildMacroElements();
+
+    std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
+    
+    //this->BuildMacroElements();
     
     
 }
@@ -357,11 +358,14 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(){
             }
         }
     }
+    
 }
 
 /** @brief Construc computational macro elements */
 void TRMSpaceOdissey::BuildMacroElements()
 {
+    
+    std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
 #ifdef PZDEBUG
     if(!fMixedFluxPressureCmesh){
@@ -381,7 +385,7 @@ void TRMSpaceOdissey::BuildMacroElements()
         if (gel->Father() != NULL) {
             continue;
         }
-        if (gel->Dimension() == gmesh->Dimension() - 1 && gel->MaterialId() > fSimulationData->Skeleton_material_Id()) {
+        if (gel->Dimension() == gmesh->Dimension() - 1 && gel->MaterialId() == fSimulationData->Skeleton_material_Id()) {
             continue;
         }
         long mapindex = gel->Index();
@@ -442,12 +446,15 @@ void TRMSpaceOdissey::BuildMacroElements()
 
 /** @brief Create a Mixed computational mesh Hdiv-L2 */
 void TRMSpaceOdissey::CreateMixedCmesh(){
+    
+#ifdef PZDEBUG
     if(!fGeoMesh)
     {
         std::cout<< "Geometric mesh doesn't exist" << std::endl;
         DebugStop();
     }
-
+#endif
+    
     int dim = fGeoMesh->Dimension();
     int flux_or_pressure = 0;
     
@@ -506,6 +513,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmesh);
     
     long nel = fMixedFluxPressureCmesh->NElements();
+    TPZVec<long> indices;
     for (long el = 0; el<nel; el++) {
         TPZCompEl *cel = fMixedFluxPressureCmesh->Element(el);
         TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
@@ -953,7 +961,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         }
         
     }
-
+    
     fTransportMesh->SetDimModel(dim);
     fTransportMesh->SetDefaultOrder(sorder);
     fTransportMesh->SetAllCreateFunctionsMultiphysicElemWithMem();
@@ -1040,6 +1048,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
 #ifdef PZDEBUG
     std::ofstream out("CmeshTransport.txt");
     fTransportMesh->Print(out);
+    PrintGeometry();
 #endif
     
     
@@ -1062,6 +1071,15 @@ void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
     REAL s = 1.0;
     GeometryInfo.SetfDimensionlessL(s);
     fGeoMesh = GeometryInfo.GeometricGIDMesh(grid);
+    
+    long last_node = fGeoMesh->NNodes() - 1;
+    long last_element = fGeoMesh->NElements() - 1;
+    long node_id = fGeoMesh->NodeVec()[last_node].Id();
+    long element_id = fGeoMesh->Element(last_element)->Id();
+    const std::string name("GID Reservoir geometry");
+    fGeoMesh->SetName(name);
+    fGeoMesh->SetMaxNodeId(node_id);
+    fGeoMesh->SetMaxElementId(element_id);
     
 }
 
@@ -1102,8 +1120,14 @@ void TRMSpaceOdissey::CreateGeometricExtrudedGIDMesh(std::string &grid, TPZManVe
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     fGeoMesh = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
     
+    long last_node = fGeoMesh->NNodes() - 1;
+    long last_element = fGeoMesh->NElements() - 1;
+    long node_id = fGeoMesh->NodeVec()[last_node].Id();
+    long element_id = fGeoMesh->Element(last_element)->Id();
     const std::string name("Reservoir with vertical extrusion");
     fGeoMesh->SetName(name);
+    fGeoMesh->SetMaxNodeId(node_id);
+    fGeoMesh->SetMaxElementId(element_id);
     
 }
 
@@ -1162,8 +1186,15 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh2D(TPZManVector<REAL,2> dx, TPZManVe
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     fGeoMesh = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
     
+
+    long last_node = fGeoMesh->NNodes() - 1;
+    long last_element = fGeoMesh->NElements() - 1;
+    long node_id = fGeoMesh->NodeVec()[last_node].Id();
+    long element_id = fGeoMesh->Element(last_element)->Id();
     const std::string name("Reservoir box 2D");
     fGeoMesh->SetName(name);
+    fGeoMesh->SetMaxNodeId(node_id);
+    fGeoMesh->SetMaxElementId(element_id);
     
 }
 
@@ -1239,8 +1270,14 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     fGeoMesh = CreateGridFrom2D.ComputeExtrusion(t, dt, n);
 
+    long last_node = fGeoMesh->NNodes() - 1;
+    long last_element = fGeoMesh->NElements() - 1;
+    long node_id = fGeoMesh->NodeVec()[last_node].Id();
+    long element_id = fGeoMesh->Element(last_element)->Id();
     const std::string name("Reservoir box");
     fGeoMesh->SetName(name);
+    fGeoMesh->SetMaxNodeId(node_id);
+    fGeoMesh->SetMaxElementId(element_id);
     
 }
 
