@@ -924,11 +924,6 @@ TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int p, bool hdivmm)
         else
         {
             TPZCompEl *cel = new TPZIntelGen<TPZShapePiramHdiv>(*cmesh,gel,index);
-            TPZConnect &c = cel->Connect(0);
-            c.SetNShape((p+1)*(p+1));
-            c.SetOrder(p);
-            cmesh->Block().Set(c.SequenceNumber(), (p+1)*(p+1));
-//            cel->Print();
         }
         gel->ResetReference();
     }
@@ -947,7 +942,7 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
     const int dirichlet = 0;
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
-    cmesh->SetDefaultOrder(p);
+    cmesh->SetDefaultOrder(1);
     
     TPZVecL2 *mymat = new TPZVecL2(matid);
     mymat->SetForcingFunction(FluxFunc, p);
@@ -962,7 +957,7 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
     
     cmesh->AutoBuild();
     
-    if (hdivmm)
+    if (true)
     {
         cmesh->SetDefaultOrder(p+1);
         long nel = cmesh->NElements();
@@ -976,7 +971,11 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
             }
             TPZGeoEl *gel = intel->Reference();
             int ns = gel->NSides();
-            intel->ForceSideOrder(ns-1, p+1);
+            int porder = p;
+            if (hdivmm) {
+                porder++;
+            }
+            intel->ForceSideOrder(ns-1, porder);
         }
     }
     cmesh->ExpandSolution();
@@ -1619,19 +1618,15 @@ void LoadSolution(TPZCompMesh *cpressure)
             top->GetCoordinates(topco);
             Forcing(topco, valvec);
             STATE topval = valvec[0];
-            TPZConnect &c = cel->Connect(0);
-            long seqnum = c.SequenceNumber();
             for (int i=0; i<4; i++) {
-                cpressure->Block()(seqnum,0,i,0) = topval;
-            }
-            for (int i=0; i<4; i++) {
-                TPZConnect &c = cel->Connect(i+1);
+                TPZConnect &c = cel->Connect(0);
+                long seqnum = c.SequenceNumber();
+                cpressure->Block()(seqnum,0,1,0) = topval;
                 TPZGeoNode *no = gel->NodePtr(i);
                 no->GetCoordinates(topco);
                 Forcing(topco, valvec);
                 STATE nodeval = valvec[0];
-                seqnum = c.SequenceNumber();
-                cpressure->Block()(seqnum,0,0,0) = nodeval-topval;
+                cpressure->Block()(seqnum,0,1,0) = nodeval-topval;
             }
         }
         else if(gel->Type() == ETetraedro)
@@ -1663,7 +1658,7 @@ void ProjectFlux(TPZCompMesh *cfluxmesh)
     an.Run();
 }
 
-static int gfluxorder = 2;
+static int gfluxorder = 3;
 
 /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
 static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner);
@@ -1722,36 +1717,35 @@ static void CheckDRham(TPZCompEl *cel)
 
 static void VerifyPressureShapeProperties(int order, TPZMaterialData &data, TPZVec<REAL> &pt)
 {
-    // funcao quadratica singular
-    REAL bolha = data.phi(4)*data.phi(6)*16.;
-    int ibolha = 4+4+8*(order-1);
+    // quadratic bubble function
+    REAL bolha = data.phi(0)*data.phi(4)*16.;
+    int ibolha = 2*(order+1)*(order+1)+4*(order-1)-2;
     REAL phival = data.phi(ibolha);
     REAL diff = bolha-phival;
     if (fabs(diff) > 1.e-9) {
         std::cout << "Bolha nao identificada\n";
     }
-    // funcao lateral singular
-    int offset = 4;
-    bolha = (data.phi(0+offset)*data.phi(1+offset)+data.phi(0+offset)*data.phi(2+offset))*4.;
-    ibolha = offset+4;
+    // lateral function
+    int offset = 0;
+    bolha = (data.phi(0+offset)*data.phi(2+offset)+data.phi(0+offset)*data.phi(4+offset))*4.;
+    ibolha = offset+8;
     phival = data.phi(ibolha);
     diff = bolha-phival;
     if (fabs(diff) > 1.e-9) {
         std::cout << "Bolha nao identificada\n";
     }
-    // funcao quadratica original
-    offset = (order)*(order);
-    bolha = data.phi(0+offset)*data.phi(2+offset)*16;
-    ibolha = offset+4+8*(order-1);
+    // quadratic singular bubble function
+    offset = 1;
+    bolha = data.phi(0)*data.phi(4+offset)*16.;
+    ibolha = 2*(order+1)*(order+1)+4*(order-1)-2+offset;
     phival = data.phi(ibolha);
     diff = bolha-phival;
     if (fabs(diff) > 1.e-9) {
         std::cout << "Bolha nao identificada\n";
     }
-    // funcao lateral original
-    offset = (order+1)*(order+1);
-    bolha = (data.phi(0+offset)*data.phi(1+offset)+data.phi(0+offset)*data.phi(2+offset))*4.;
-    ibolha = offset+4;
+    // lateral singular function
+    bolha = (data.phi(0)*data.phi(2+offset)+data.phi(0)*data.phi(4+offset))*4.;
+    ibolha = offset+8;
     phival = data.phi(ibolha);
     diff = bolha-phival;
     if (fabs(diff) > 1.e-9) {
@@ -1790,7 +1784,7 @@ static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<ST
         intel->ComputeRequiredData(dataA, pos);
         intelP->ComputeRequiredData(dataB, pos);
         {
-            int order = intel->Mesh()->GetDefaultOrder()+1;
+            int order = intel->Mesh()->GetDefaultOrder();
             std::stringstream filename;
             filename << "../phis"<< order << ".nb";
             std::ofstream out(filename.str().c_str());

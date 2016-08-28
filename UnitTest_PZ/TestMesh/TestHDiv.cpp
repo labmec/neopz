@@ -119,7 +119,7 @@ static void GenerateNodes(TPZGeoMesh *gmesh, long nelem)
 }
 
 
-static const int gfluxorder = 3;
+static const int gfluxorder = 1;
 static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec,MElementType type, int nelem = 3, int fluxorder = gfluxorder, int ndiv = 0);
 
 static TPZAutoPointer<TPZGeoMesh> /*TPZGeoMesh * */ CreateOneCuboWithTetraedrons(int nref);
@@ -163,14 +163,28 @@ static void ExactNormalFluxBottom(const TPZVec<REAL> &x, TPZVec<REAL> &force)
 /// verify if the divergence of each vector function is included in the pressure space
 static void CheckDRham(TPZCompEl *cel);
 
+/// verify if the divergence of each vector function is included in the pressure space
+static void CheckTwowayDRham(TPZCompEl *cel);
+
+
 /// run a problem simulating a bilinear solution for the given element type
 static void RunBilinear(MElementType eltype);
 
 /// verify is the shape functions have continuity
 static void VerifySideShapeContinuity(MElementType eltype);
 
+/// verify which pressure functions are not included in the HDiv space and vice versa
+static void VerifyThroughDecomposition(const TPZFMatrix<STATE> &L2, int npress, int nflux, std::set<int> &fluxNot, std::set<int> &pressureNot);
+
+
 /// verify if the pressure space is compatible with the flux space
 static void VerifyDRhamCompatibility(MElementType eltype);
+
+/// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
+static void GlobalProjectionMatrix(TPZCompEl *cel, TPZFMatrix<STATE> &L2, int &HDivSize, int &PressureSize);
+
+
+
 
 // Tests for the 'voidflux' class.
 BOOST_AUTO_TEST_SUITE(mesh_tests)
@@ -198,14 +212,27 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
     VerifySideShapeContinuity(ETriangle);
     std::cout << "Leaving sideshape_continuity check\n";
 }
-    
+
+    /// Check that the Div of the vector functions can be represented
+    BOOST_AUTO_TEST_CASE(drham_check)
+    {
+        std::cout << "Initializing DRham consistency check\n";
+        VerifyDRhamCompatibility(EQuadrilateral);
+        VerifyDRhamCompatibility(EPiramide);
+        VerifyDRhamCompatibility(ETriangle);
+        VerifyDRhamCompatibility(ETetraedro);
+        VerifyDRhamCompatibility(EPrisma);
+        VerifyDRhamCompatibility(ECube);
+        std::cout << "Leaving  DRham consistency check\n";
+    }
+
     
 BOOST_AUTO_TEST_CASE(shape_order)
 {
     std::cout << "Initializing shape_order check\n";
-    CheckShapeOrder<pzshape::TPZShapePiram>(6);
-    CheckShapeOrder<pzshape::TPZShapeTetra>(6);
     CheckShapeOrder<pzshape::TPZShapeQuad>(6);
+    CheckShapeOrder<pzshape::TPZShapePiram>(1);
+    CheckShapeOrder<pzshape::TPZShapeTetra>(6);
     CheckShapeOrder<pzshape::TPZShapeTriang>(6);
     CheckShapeOrder<pzshape::TPZShapeCube>(6);
     CheckShapeOrder<pzshape::TPZShapePrism>(6);
@@ -213,18 +240,6 @@ BOOST_AUTO_TEST_CASE(shape_order)
 }
     
 
-/// Check that the Div of the vector functions can be represented
-BOOST_AUTO_TEST_CASE(drham_check)
-{
-    std::cout << "Initializing DRham consistency check\n";
-    VerifyDRhamCompatibility(EPiramide);
-    VerifyDRhamCompatibility(ETetraedro);
-    VerifyDRhamCompatibility(EPrisma);
-    VerifyDRhamCompatibility(ECube);
-    VerifyDRhamCompatibility(EQuadrilateral);
-    VerifyDRhamCompatibility(ETriangle);
-    std::cout << "Leaving  DRham consistency check\n";
-}
 
 BOOST_AUTO_TEST_CASE(drham_permute_check)
 {
@@ -874,6 +889,32 @@ static void CheckDRham(TPZCompEl *cel)
 
 }
 
+/// verify if the divergence of each vector function is included in the pressure space
+static void CheckTwowayDRham(TPZCompEl *cel)
+{
+    TPZFMatrix<STATE> L2;
+    int HDivSize(-1), PressureSize(-1);
+    if(cel->Reference()->Type() == EQuadrilateral)
+    {
+        std::cout << "I should stop\n";
+    }
+    GlobalProjectionMatrix(cel, L2, HDivSize, PressureSize);
+    std::set<int> pressureNot, HDivNot;
+    
+    VerifyThroughDecomposition(L2, PressureSize, HDivSize, HDivNot, pressureNot);
+    int nwrong = 0;
+    nwrong = HDivNot.size()+pressureNot.size();
+    if(nwrong)
+    {
+        std::cout << "Number of functions with wrongfCheck projection " << nwrong << std::endl;
+    }
+    BOOST_CHECK(nwrong == 0);
+    //return nwrong;
+    
+}
+    
+
+    
 /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
 static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<STATE> > L2, TPZFMatrix<STATE> &inner)
 {
@@ -931,6 +972,172 @@ static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<ST
         }
     }
 }
+    
+/// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
+static void GlobalProjectionMatrix(TPZCompEl *cel, TPZFMatrix<STATE> &L2, int &HDivSize, int &PressureSize)
+{
+    TPZMaterialData dataA,dataB;
+    TPZMultiphysicsElement *celMF = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    if (!celMF) {
+        DebugStop();
+    }
+    TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(celMF->Element(0));
+    TPZInterpolationSpace *intelP = dynamic_cast<TPZInterpolationSpace *>(celMF->Element(1));
+    if (!intel || ! intelP) {
+        DebugStop();
+    }
+    intel->InitMaterialData(dataA);
+    intelP->InitMaterialData(dataB);
+    int dim = intel->Reference()->Dimension();
+    const TPZIntPoints &intrule = intel->GetIntegrationRule();
+    int np = intrule.NPoints();
+    int npressure = dataB.phi.Rows();
+    int nflux = dataA.fVecShapeIndex.NElements();
+    HDivSize = nflux;
+    PressureSize = npressure;
+    int totalsize = npressure+nflux;
+    L2.Redim(totalsize,totalsize);
+    for (int ip=0; ip<np; ip++) {
+        REAL weight;
+        TPZManVector<REAL,3> pos(dim);
+        intrule.Point(ip, pos, weight);
+        //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
+        intel->ComputeRequiredData(dataA, pos);
+        intelP->ComputeShape(pos, dataB);
+        for (int ish=0; ish<npressure; ish++) {
+            for (int jsh=0; jsh<npressure; jsh++) {
+                L2(nflux+ish,nflux+jsh) += dataB.phi(ish,0)*dataB.phi(jsh,0)*weight*fabs(dataB.detjac);
+            }
+            for (int jsh=0; jsh<nflux; jsh++) {
+                // compute the divergence of the shapefunction
+                TPZManVector<REAL,3> vecinner(intel->Dimension(),0.);
+                int vecindex = dataA.fVecShapeIndex[jsh].first;
+                int phiindex = dataA.fVecShapeIndex[jsh].second;
+                for (int d=0; d<dim; d++) {
+                    vecinner[d]=0;
+                    for (int j=0; j<3; j++) {
+                        vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
+                    }
+                }
+                REAL divphi = 0.;
+                for (int d=0; d<dim; d++) {
+                    divphi += dataA.dphix(d,phiindex)*vecinner[d];
+                }
+                L2(nflux+ish,jsh) += dataB.phi(ish,0)*divphi*weight*fabs(dataA.detjac);
+                L2(jsh,nflux+ish) += dataB.phi(ish,0)*divphi*weight*fabs(dataA.detjac);
+            }
+        }
+        for (int ish=0; ish<nflux; ish++) {
+            // compute the divergence of the shapefunction
+            TPZManVector<REAL,3> vecinner(intel->Dimension(),0.);
+            int vecindex = dataA.fVecShapeIndex[ish].first;
+            int phiindex = dataA.fVecShapeIndex[ish].second;
+            for (int d=0; d<dim; d++) {
+                vecinner[d]=0;
+                for (int j=0; j<3; j++) {
+                    vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
+                }
+            }
+            REAL divphiI = 0.;
+            for (int d=0; d<dim; d++) {
+                divphiI += dataA.dphix(d,phiindex)*vecinner[d];
+            }
+            for (int jsh=0; jsh<nflux; jsh++) {
+                // compute the divergence of the shapefunction
+                TPZManVector<REAL,3> vecinner(intel->Dimension(),0.);
+                int vecindex = dataA.fVecShapeIndex[jsh].first;
+                int phiindex = dataA.fVecShapeIndex[jsh].second;
+                for (int d=0; d<dim; d++) {
+                    vecinner[d]=0;
+                    for (int j=0; j<3; j++) {
+                        vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
+                    }
+                }
+                REAL divphiJ = 0.;
+                for (int d=0; d<dim; d++) {
+                    divphiJ += dataA.dphix(d,phiindex)*vecinner[d];
+                }
+                L2(ish,jsh) += divphiI*divphiJ*weight*fabs(dataA.detjac);
+            }
+        }
+    }
+}
+
+    
+static void EliminateRow(TPZFMatrix<STATE> &matrix, int row)
+{
+    STATE diag = matrix(row,row);
+    if(diag < 0. || IsZero(diag))
+    {
+        DebugStop();
+    }
+    int nrow = matrix.Rows();
+    TPZVec<STATE> rowvec(nrow);
+    for(int i=0; i<nrow; i++) rowvec[i] = matrix(i,row);
+    
+    for(int i = 0; i<nrow; i++)
+    {
+        for(int j = 0; j<nrow; j++)
+        {
+            matrix(i,j) -= rowvec[i]*rowvec[j]/diag;
+        }
+    }
+}
+static void VerifyThroughDecomposition(const TPZFMatrix<STATE> &L2, int npress, int nflux, std::set<int> &fluxNot, std::set<int> &pressureNot)
+{
+    TPZFMatrix<STATE> fluxdecompose(L2);
+    if(npress+nflux != L2.Rows())
+    {
+        DebugStop();
+    }
+    for(int i=0; i< nflux; i++)
+    {
+        STATE diag = fluxdecompose(i,i);
+        std::cout << "i = " << i << " fluxdiag " << diag;
+        if(! IsZero(diag/10000.) )
+        {
+            EliminateRow(fluxdecompose, i);
+            std::cout << " not zero\n";
+        }
+        else
+        {
+            std::cout << " zero\n";
+        }
+    }
+    for(int i= nflux; i<nflux+npress; i++)
+    {
+        std::cout << "i = " << i-nflux << " presssure diag " << fluxdecompose(i,i);
+        if( !IsZero(fluxdecompose(i,i)))
+        {
+            pressureNot.insert(i-nflux);
+            std::cout << " not zero\n";
+        }
+        else
+        {
+            std::cout << " zero\n";
+        }
+    }
+    TPZFMatrix<STATE> pressuredecompose(L2);
+    for(int i=nflux; i< nflux+npress; i++)
+    {
+        EliminateRow(pressuredecompose, i);
+    }
+    for(int i= 0; i<nflux; i++)
+    {
+        std::cout << "i = " << i << " flux diag " << pressuredecompose(i,i);
+        if( !IsZero(fluxdecompose(i,i)/10.))
+        {
+            std::cout << " not zero\n";
+            fluxNot.insert(i-nflux);
+        }
+        else
+        {
+            std::cout << " zero\n";
+        }
+    }
+
+}
+
 
 /// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
 static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
@@ -1130,7 +1337,7 @@ void CheckShapeOrder(int order)
 //                else{tshape::MapToSide(is, sidecenterel, sidecenter, jac);}
                 tshape::MapToSide(is, sidecenterel, sidecenter, jac);
                 for (int i=0; i<sidedim; i++) {
-                    sidecenter[i] += M_PI/230.;
+                    sidecenter[i] += M_PI/30.;
                 }
                 TPZFNMatrix<500,REAL> integrationvals(numlegendre,nsideshape,0.);
                 TPZManVector<REAL,1> pos(1);
@@ -1185,11 +1392,25 @@ void CheckShapeOrder(int order)
                 
                 
                 for (int ishape = 0; ishape < nsideshape; ishape++) {
+                    REAL maxleg = 0;
+                    for(int il=0; il < numlegendre; il++)
+                    {
+                        if(fabs(integrationvals(il,ishape)) > maxleg) maxleg = fabs(integrationvals(il,ishape));
+                    }
                     int ilegendre = numlegendre-1;
-                    while (fabs(integrationvals(ilegendre,ishape)) < 1.e-6 && ilegendre > 0) {
+                    while (fabs(integrationvals(ilegendre,ishape)/maxleg) < 1.e-6 && ilegendre > 0) {
                         ilegendre--;
                     }
                     estimatedshapeorders(shapecounter+ishape,dim) = ilegendre;
+                    if(shapecounter+ishape == -1)
+                    {
+                        std::cout << "side " << is << " side shape " << ishape << " shape index " << shapecounter+ishape << " dim = " << dim << " L2 match ";
+                        for(int il=0; il < numlegendre; il++)
+                        {
+                            std::cout << integrationvals(il,ishape) << " ";
+                        }
+                        std::cout << std::endl;
+                    }
                 }
                 
             }
@@ -1199,6 +1420,10 @@ void CheckShapeOrder(int order)
             for( int idim = 0; idim<3; idim++)
             {
                 if (shapeorders(ishape,idim) != estimatedshapeorders(ishape,idim)) {
+                    std::cout << "shape index " << ishape << " order declared/estimated " <<
+                        shapeorders(ishape,0) << "/" << estimatedshapeorders(ishape,0) << " " <<
+                        shapeorders(ishape,1) << "/" << estimatedshapeorders(ishape,1) << " " <<
+                        shapeorders(ishape,2) << "/" << estimatedshapeorders(ishape,2) << std::endl;
                     numwrong++;
                 }
             }
@@ -1701,7 +1926,7 @@ void VerifyDRhamCompatibility(MElementType eltype)
             DebugStop();
         }
         if(intel->Reference()->Dimension() != meshdim) continue;
-        CheckDRham(intel);
+        CheckTwowayDRham(intel);
     }
 }
 

@@ -269,7 +269,7 @@ namespace pztopology {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,1,1,1,
         1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1};
+        1,1,1,1,1,1,1,0};
     
     static int direcaoksioueta [58] = {
         0,0,0,0,0,0,0,0,0,0,
@@ -1477,7 +1477,7 @@ namespace pztopology {
 
     void TPZPyramid::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
-        int nsides = NumSides()*3;
+        int nsides = NumSides()*3+1;
         
         sides.Resize(nsides);
         dir.Resize(nsides);

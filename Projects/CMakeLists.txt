@@ -181,14 +181,16 @@ ENABLE_TESTING()
 			#Projetos de Thiago Dias dos Santos
 			#add_subdirectory(SantosProjects)
 
-			add_subdirectory(TrabalhosLNCC15)
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
 			#
 			# Colaboration with Laurent Stainier
 			
-			add_subdirectory(MatLib)
+			if(USING_MATLIB)
+				add_subdirectory(MatLib)
+			endif(USING_MATLIB)
+			
 			add_subdirectory(TrabalhosLNCC15)
 
 			if(USING_MKL)
