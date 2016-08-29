@@ -97,11 +97,11 @@ int main(int argc, char *argv[])
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.1;
+    REAL dt = 0.001;
     int n_steps = 10;
     REAL epsilon_res = 0.01;
-    REAL epsilon_corr = 0.0001;
-    int n_corrections = 2;
+    REAL epsilon_corr = 0.01;
+    int n_corrections = 20;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
@@ -124,10 +124,10 @@ int main(int argc, char *argv[])
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
     
-    dx_dy[0] = 0.5; // x - direction
-    dx_dy[1] = 1.0; // y - direction
-    n[0] = 10; // x - direction
-    n[1] = 10; // y - direction
+    dx_dy[0] = 1.0; // x - direction
+    dx_dy[1] = 2.0; // y - direction
+    n[0] = 5; // x - direction
+    n[1] = 5; // y - direction
     
     TPZGeoMesh * gmesh = RockBox(dx_dy,n);
     
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 #endif
     
     // Create the approximation space
-    int deformation_order = 1;
+    int deformation_order = 2;
     int pore_pressure_order = 1;
     
     // Create multiphysisc mesh
@@ -226,44 +226,58 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     
     REAL l = 6.009e6;
     REAL mu = 3.486e6;
-    REAL l_u = 6.009e6;
-    
-    // Aproximation Space of order -> pOrder
+    REAL l_u = 7.009e6;
+    REAL alpha = 0.8;
+    REAL Se = 1.0e-8;
+    REAL k = 1.0e-14;
+    REAL porosity = 0.25;
+    REAL eta = 0.001;
+
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
     // Creating a material object
     TPZPoroPermCoupling * material = new TPZPoroPermCoupling(matid,dim);
     material->SetSimulationData(sim_data);
     material->SetPlaneProblem(planestress);
-    material->SetParameters(l, mu, l_u);
+    material->SetPorolasticParameters(l, mu, l_u);
+    material->SetBiotParameters(alpha, Se);
+    material->SetParameters(k, porosity, eta);
     cmesh->InsertMaterialObject(material);
     
     // Inserting boundary conditions
-    int dirichlet_x_y   = 0;
-    int dirichlet_x     = 1;
-    int dirichlet_y     = 2;
-    int neumann_y     = 5;
+    int dirichlet_x_y_vn   = 6;
+    int dirichlet_x_vn     = 7;
+    int neumann_y_p     = 5;
+    
+    REAL s_n = -1.0e6;
     
     TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
     
-
-    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_x_y, val1, val2);
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    val2(2,0) = 0.0;
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_x_y_vn, val1, val2);
     cmesh->InsertMaterialObject(bc_bottom_mat);
     
-    TPZMaterial * bc_right_mat = material->CreateBC(material, bc_right, dirichlet_x, val1, val2);
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    val2(2,0) = 0.0;
+    TPZMaterial * bc_right_mat = material->CreateBC(material, bc_right, dirichlet_x_vn, val1, val2);
     cmesh->InsertMaterialObject(bc_right_mat);
     
     val2(0,0) = 0.0;
-    val2(1,0) = -1000.0;
-    TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, neumann_y, val1, val2);
+    val2(1,0) = s_n;
+    val2(2,0) = 0.0;
+    TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, neumann_y_p, val1, val2);
     cmesh->InsertMaterialObject(bc_top_mat);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZMaterial * bc_left_mat = material->CreateBC(material, bc_left, dirichlet_x, val1, val2);
+    val2(2,0) = 0.0;
+    TPZMaterial * bc_left_mat = material->CreateBC(material, bc_left, dirichlet_x_vn, val1, val2);
     cmesh->InsertMaterialObject(bc_left_mat);
     
-    // Setando Multifisico
+    // Setting up multiphysics functions
     cmesh->SetDimModel(dim);
     cmesh->SetAllCreateFunctionsMultiphysicElem();
     cmesh->AutoBuild();

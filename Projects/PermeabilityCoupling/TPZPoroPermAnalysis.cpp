@@ -99,19 +99,15 @@ void TPZPoroPermAnalysis::AdjustVectors(){
 
 void TPZPoroPermAnalysis::QuasiNewtonIteration(){
     
-//    fX_n(3,0) = -0.01;
-//    fX_n(7,0) = -0.01;
-//    fX_n(8,0) = M_PI;
-//    fX_n(9,0) = M_PI;
-//    fX_n(10,0) = M_PI;
-//    fX_n(11,0) = M_PI;
-//    
-//    this->Update_at_n_State();
-//    this->Solution().Print("x = ");
-    this->Assemble();
+    if(fk_iterations == 1){
+        this->Assemble();
+    }
+    else{
+        this->AssembleResidual();
+    }
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
-//    this->Rhs().Print("rhs = ");
+
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
@@ -158,14 +154,14 @@ void TPZPoroPermAnalysis::ExcecuteOneStep(){
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
-            std::cout << "PermeabilityCoupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+            std::cout << "Permeability Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             fX = fX_n;
             return;
         }
         
     }
     
-    std::cout << "PermeabilityCoupling:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    std::cout << "Permeability Coupling:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
     
     
 }
@@ -192,8 +188,9 @@ void TPZPoroPermAnalysis::PostProcessStep(){
     scalnames.Push("s_x");
     scalnames.Push("s_y");
     scalnames.Push("t_xy");    
-//    scalnames.Push("k_x");
+    scalnames.Push("k_x");
 //    scalnames.Push("k_y");
+    scalnames.Push("phi");    
     scalnames.Push("p_ex");
     vecnames.Push("u");
     

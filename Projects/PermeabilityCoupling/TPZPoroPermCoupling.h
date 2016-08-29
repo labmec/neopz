@@ -47,11 +47,14 @@ protected:
     /** @brief Storage coefficient poroelasticity */
     REAL fSe;
     
+    /** @brief Intact rock porosity */
+    REAL fporosity_0;
+    
     /** @brief Permeability of the rock */
     REAL fk;
     
     /** @brief Fluid viscosity */
-    REAL fvisc;
+    REAL feta;
     
     /** @brief Uses plain stress
      * @note \f$fPlaneStress = 1\f$ => Plain stress state
@@ -89,10 +92,11 @@ public:
     
     
     /** @brief Parameters of rock and fluid: */
-    void SetParameters(REAL perm, REAL visc)
+    void SetParameters(REAL perm, REAL fporosity, REAL eta)
     {
         fk = perm;
-        fvisc = visc;
+        feta = eta;
+        fporosity_0 = fporosity;
     }
     
     /** @brief Set the simulation data */
@@ -107,17 +111,11 @@ public:
         return fSimulationData;
     }
     
-    void SetParameters(REAL l, REAL mu, REAL l_u)
+    void SetPorolasticParameters(REAL l, REAL mu, REAL l_u)
     {
-//        fE = (mu*(3.0*Lambda+2.0*mu))/(Lambda+mu);
-//        fnu = (Lambda)/(2*(Lambda+mu));
-//        
-//        fEu = (mu*(3.0*Lambdau+2.0*mu))/(Lambdau+mu);
-//        fnuu = (Lambdau)/(2*(Lambdau+mu));
-        
-        flambdau = l_u;
         flambda = l;
         fmu = mu;
+        flambdau = l_u;
     }
     
     void SetBiotParameters(REAL alpha, REAL Se)
@@ -140,17 +138,16 @@ public:
     
     void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
 
-    void ContributeII(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
     void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-    void ContributeBCII(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     int VariableIndex(const std::string &name);
     
     int NSolutionVariables(int var);
     
-    void Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u);
+    void Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u,  REAL p_ex);
+    void Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v);
     
     REAL Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T);
     
@@ -183,7 +180,15 @@ public:
     
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
         DebugStop();
-    }	
+    }
+    
+    /** @brief Rudnicki diffusion coefficient */
+    /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic di usive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
+    REAL c_diffusion(REAL phi);
+    
+    /** @brief Poroelastic porosity correction */
+    REAL porosoty_corrected(TPZVec<TPZMaterialData> &datavec);
+    
 };
 
 
