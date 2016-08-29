@@ -22,7 +22,7 @@
 #include "TPZTimer.h"
 #include "TPZThreadTools.h"
 
-
+#include "pzcheckmesh.h"
 #include "pzcheckconsistency.h"
 #include "pzmaterial.h"
 #include "run_stats_table.h"
@@ -50,11 +50,25 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 TPZStructMatrixOR::TPZStructMatrixOR(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
     fMesh = mesh;
     this->SetNumThreads(0);
+#ifdef PZDEBUG
+    TPZCheckMesh checkmesh(fMesh,&std::cout);
+    if(checkmesh.CheckConnectSeqNumberConsistency() != 0)
+    {
+        DebugStop();
+    }
+#endif
 }
 
 TPZStructMatrixOR::TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
     fMesh = cmesh.operator->();
     this->SetNumThreads(0);
+#ifdef PZDEBUG
+    TPZCheckMesh checkmesh(fMesh,&std::cout);
+    if(checkmesh.CheckConnectSeqNumberConsistency() != 0)
+    {
+        DebugStop();
+    }
+#endif
 }
 
 TPZStructMatrixOR::TPZStructMatrixOR(const TPZStructMatrixOR &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)

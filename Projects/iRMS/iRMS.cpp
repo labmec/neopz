@@ -113,6 +113,7 @@ void BoxLinearTracerDual()
     
     SymphonyX->SetSegregatedQ(true);
     SymphonyX->CreateAnalysisDualonBox(true); //  Static Solution
+        
     SymphonyX->RunStaticProblem();
     SymphonyX->CreateAnalysisDualonBox(false);  // Evolutionary Solution
     SymphonyX->RunEvolutionaryProblem();

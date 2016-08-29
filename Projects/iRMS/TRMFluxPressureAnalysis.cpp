@@ -7,6 +7,7 @@
 //
 
 #include "TRMFluxPressureAnalysis.h"
+#include "pzcheckmesh.h"
 
 
 TRMFluxPressureAnalysis::TRMFluxPressureAnalysis() : TPZAnalysis() {
@@ -87,10 +88,22 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
+    TPZCheckMesh check1(Mesh(),&std::cout);
+    if(check1.CheckConnectSeqNumberConsistency() != 0)
+    {
+        DebugStop();
+    }
+    
+//    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    
+    TPZCheckMesh check2(Mesh(),&std::cout);
+    if(check2.CheckConnectSeqNumberConsistency() != 0)
+    {
+        DebugStop();
+    }
     
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
@@ -156,6 +169,15 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     this->UpdateMemory();
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    
+#ifdef PZDEBUG
+    TPZCheckMesh check(Mesh(),&std::cout);
+    if(check.CheckConnectSeqNumberConsistency() != 0)
+    {
+        DebugStop();
+    }
+#endif
+    
     this->AssembleResidual();
     fR = this->Rhs();
     

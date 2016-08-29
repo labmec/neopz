@@ -177,7 +177,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultSOrder(0);
 
     
-    bool UseMHMQ = false;
+    bool UseMHMQ = true;
     
     if(UseMHMQ){
         fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
