@@ -186,6 +186,7 @@ int main2(int argc, char *argv[])
 //    return 0;
 
     //   gRefDBase.InitializeAllUniformRefPatterns();
+    const int dim = 3;
     HDivPiola = 1;
     TPZAcademicGeoMesh academic;
     academic.SetMeshType(TPZAcademicGeoMesh::EPyramid);
@@ -207,6 +208,7 @@ int main2(int argc, char *argv[])
       //    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
       //    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
     }
+    gmesh->SetDimension(dim);
 
     int nref = 0;
     UniformRefine(gmesh, nref);
@@ -296,8 +298,7 @@ int main2(int argc, char *argv[])
         sol << "Solution obtained by matrix inversion\n";
         an.PrintVectorByElement(sol, cmeshMult->Solution(),1.e-8);
     }
-    
-    int dim = 3;
+  
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("Pressure");
     vecnames.Push("Flux");
