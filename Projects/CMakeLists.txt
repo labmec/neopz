@@ -140,6 +140,7 @@ ENABLE_TESTING()
 			add_subdirectory(Plasticity)
 
 			add_subdirectory(PermeabilityCoupling)
+			add_subdirectory(PoroElasticAnalysis)
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
