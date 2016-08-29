@@ -182,8 +182,8 @@ int main2(int argc, char *argv[])
 #endif
     
     /// verify if the pressure space is compatible with the flux space
-    VerifyDRhamCompatibility();
-    return 0;
+//    VerifyDRhamCompatibility();
+//    return 0;
 
     //   gRefDBase.InitializeAllUniformRefPatterns();
     HDivPiola = 1;
@@ -195,7 +195,10 @@ int main2(int argc, char *argv[])
     if (convergenceMesh){
       const int nelem = 2; // num of hexes in x y and z
       const int matid = 1;
-      gmesh = PyramidalAndTetrahedralMesh(nelem, matid);
+      academic.SetMaterialId(matid);
+      academic.SetNumberElements(nelem);
+//      gmesh = PyramidalAndTetrahedralMesh(nelem, matid);
+      gmesh = academic.PyramidalAndTetrahedralMesh();
     }
     else{
       //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
@@ -207,9 +210,17 @@ int main2(int argc, char *argv[])
 
     int nref = 0;
     UniformRefine(gmesh, nref);
-    {
-        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, "../PyramidGMesh.vtk", true);
+  
+    bool iWantToSeeMaterial = true;
+    std::string geoMeshName = "../PyramidGMesh.vtk";
+    if (iWantToSeeMaterial) {
+      std::ofstream out(geoMeshName);
+      TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
     }
+    else{ // Here it shows substructures
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, geoMeshName.c_str(), true);
+    }
+  
     int pPressure = 1;
     int pFlux = 1;
     

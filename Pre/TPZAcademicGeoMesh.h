@@ -50,7 +50,6 @@ protected:
     
     /** Constructing geometrical mesh depends on type of element wished. */
     TPZGeoMesh *HexahedralMesh();
-    TPZGeoMesh *PyramidalAndTetrahedralMesh();
     TPZGeoMesh *TetrahedralMesh();
     TPZGeoMesh *TetrahedralMeshUsingRefinement();
     
@@ -107,6 +106,7 @@ public:
     
     /// create a geometric mesh acording to the parameters of the object
     TPZGeoMesh *CreateGeoMesh();
+    TPZGeoMesh *PyramidalAndTetrahedralMesh();
     
     
 };
