@@ -158,8 +158,8 @@ int main(int argc, char *argv[])
 //    gRefDBase.InitializeUniformRefPattern(ECube);
     
     REAL Lx = 1.,Ly = 1., Lz = 0.5;
-    int nref = 0;
-    TPZManVector<int> nblocks(4,4);
+    int nref = 2;
+    TPZManVector<int> nblocks(2,2);
 //    nblocks[1] = 30;
     TPZGeoMesh * gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref);
 
@@ -195,8 +195,8 @@ int main(int argc, char *argv[])
     }
 #endif
     
-    bool KeepOneLagrangian = true;
-    HideTheElements(CHDivPressureMesh,KeepOneLagrangian);
+//    bool KeepOneLagrangian = true;
+//    HideTheElements(CHDivPressureMesh,KeepOneLagrangian);
 
     std::cout << "Reduced number of equations " << CHDivPressureMesh->NEquations() << std::endl;
 #ifdef PZDEBUG
@@ -1550,10 +1550,9 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian)
         TPZCompMeshTools::GroupElements(subcmesh);
         subcmesh->ComputeNodElCon();
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
-        subcmesh->CleanUpUnconnectedNodes();
         subcmesh->SetAnalysisSkyline(16, 0, 0);
     }
-//    Multiphysics->ComputeNodElCon();
-//    Multiphysics->CleanUpUnconnectedNodes();
+    Multiphysics->ComputeNodElCon();
+    Multiphysics->CleanUpUnconnectedNodes();
     std::cout << "Finished substructuring\n";
 }

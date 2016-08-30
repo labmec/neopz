@@ -140,9 +140,6 @@ ENABLE_TESTING()
 			add_subdirectory(Plasticity)
 
 			#add_subdirectory(projteste)
-			
-			# MHM project
-			add_subdirectory(MHM)
 
 
 			add_subdirectory(MultipleLoad)
@@ -176,7 +173,7 @@ ENABLE_TESTING()
 			
 			#projeto agnaldo 09-09-2011
 			add_subdirectory(DoubleProjection)
-            	    	add_subdirectory(artigoPira)
+            add_subdirectory(artigoPira)
 			add_subdirectory(TrabalhosLNCC15)
 			#projeto omar duran 16-12-2012
 			add_subdirectory(PoroElasticAnalysis)
@@ -190,6 +187,7 @@ ENABLE_TESTING()
 
 
 			add_subdirectory(Elasticity2D)
+			add_subdirectory(MHM)			
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
 			#add_subdirectory(Andrade)
@@ -247,6 +245,3 @@ ENABLE_TESTING()
 		
 		
 	endif(BUILD_PROJECTS)
-
-
-   

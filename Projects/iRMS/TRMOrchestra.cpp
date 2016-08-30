@@ -85,7 +85,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     else{
         
         int nel_x = 2;
-        int nel_y = 2;
+        int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -171,6 +171,12 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         std::cout << "iRMS:: Call BuildGeometry " << std::endl;
         DebugStop();
     }
+    
+    TPZCheckGeom check(fSpaceGenerator->Gmesh());
+    if (check.PerformCheck() != 0){
+        DebugStop();
+    }
+    
 #endif
     
     fSpaceGenerator->SetDefaultPOrder(1);

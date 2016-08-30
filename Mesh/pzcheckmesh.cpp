@@ -360,6 +360,9 @@ int TPZCheckMesh::CheckConnectSeqNumberConsistency()
             numindepconnect++;
         }
     }
+    if (numindepconnect == 0) {
+        return 0;
+    }
     for (long ic=0; ic<nconnect; ic++) {
         TPZConnect &c = fMesh->ConnectVec()[ic];
         if (c.HasDependency() || !c.NElConnected() || c.IsCondensed()) {

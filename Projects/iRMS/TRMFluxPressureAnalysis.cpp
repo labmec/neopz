@@ -96,7 +96,7 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
     
 //    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
 //    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     
     TPZCheckMesh check2(Mesh(),&std::cout);
@@ -212,12 +212,12 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
         }
         
 
-//#ifdef PZDEBUG
-//        fR.Print("R = ", std::cout,EMathematicaInput);
-//        fX.Print("X = ", std::cout,EMathematicaInput);
-//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
-//#endif
+#ifdef PZDEBUG
+        fR.Print("R = ", std::cout,EMathematicaInput);
+        fX.Print("X = ", std::cout,EMathematicaInput);
+        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+#endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {

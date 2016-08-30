@@ -507,7 +507,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     meshvector[0] = fFluxCmesh;
     meshvector[1] = fPressureCmesh;
     
-    // Transferindo para a multifisica
+    // Trensfer information
     TPZBuildMultiphysicsMesh::AddElements(meshvector, fMixedFluxPressureCmesh);
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmesh);
@@ -1057,6 +1057,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
 
 void TRMSpaceOdissey::PrintGeometry()
 {
+    
     //  Print Geometrical Base Mesh
     std::ofstream planefile("GeometricMesh.txt");
     fGeoMesh->Print(planefile);

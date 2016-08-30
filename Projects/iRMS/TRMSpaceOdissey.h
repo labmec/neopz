@@ -29,6 +29,8 @@
 #include "TPZCompMeshTools.h"
 #include "pzsubcmesh.h"
 
+#include "pzcheckgeom.h"
+
 class TRMSpaceOdissey{
     
 public:
