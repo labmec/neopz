@@ -176,7 +176,7 @@ int main2(int argc, char *argv[])
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream str;
-        str << "\nRodando testes de piramede Hdiv" << std::endl;
+        str << "\nRodando testes de pyramide Hdiv" << std::endl;
         LOGPZ_DEBUG(logger,str.str())
     }
 #endif
@@ -194,7 +194,7 @@ int main2(int argc, char *argv[])
     bool convergenceMesh = true;
     TPZGeoMesh *gmesh = NULL;
     if (convergenceMesh){
-      const int nelem = 2; // num of hexes in x y and z
+      const int nelem = 1; // num of hexes in x y and z
       const int matid = 1;
       academic.SetMaterialId(matid);
       academic.SetNumberElements(nelem);
@@ -1719,14 +1719,14 @@ void LoadSolution(TPZCompMesh *cpressure)
             Forcing(topco, valvec);
             STATE topval = valvec[0];
             for (int i=0; i<4; i++) {
-                TPZConnect &c = cel->Connect(0);
+                TPZConnect &c = cel->Connect(i);
                 long seqnum = c.SequenceNumber();
                 cpressure->Block()(seqnum,0,1,0) = topval;
                 TPZGeoNode *no = gel->NodePtr(i);
                 no->GetCoordinates(topco);
                 Forcing(topco, valvec);
                 STATE nodeval = valvec[0];
-                cpressure->Block()(seqnum,0,1,0) = nodeval-topval;
+                cpressure->Block()(seqnum,0,0,0) = nodeval-topval;
             }
         }
         else if(gel->Type() == ETetraedro)
