@@ -105,7 +105,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         REAL alpha = (60.*(Pi/180)); // azimuth
         REAL beta = (30.*(Pi/180)); // inclination
         
-        int projection = 1;
+        int projection = 0;
         //obtem angulos da rotacao do poco (como??)
         projectmaterial.GetWellboreAngles(alpha, beta, projection);
         

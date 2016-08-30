@@ -119,8 +119,8 @@ int Problem2D(){
     REAL rw = 0.1;
     REAL rext = 4.0;
     int ncircle = 30;
-    int nradial = 25;
-    REAL drdcirc = 0.2;
+    int nradial = 15;
+    REAL drdcirc = 2.0;
     
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
@@ -233,20 +233,20 @@ int Problem2D(){
     an.Solve();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
     
     
-#ifdef LOG4CXX
-    TPZFMatrix<REAL> solucao=cmesh->Solution(); //Pegando o vetor de solucao, alphaj
-    
-//    std::ofstream fileAlpha("alpha.txt");
-//    an.Solution().Print("Alpha = ", fileAlpha, EMathematicaInput);
+//#ifdef LOG4CXX
+//    TPZFMatrix<REAL> solucao=cmesh->Solution(); //Pegando o vetor de solucao, alphaj
 //    
-    solucao.Print("Sol = ",cout,EMathematicaInput);//imprime na formatacao do Mathematica
-#endif
+////    std::ofstream fileAlpha("alpha.txt");
+////    an.Solution().Print("Alpha = ", fileAlpha, EMathematicaInput);
+////    
+//    solucao.Print("Sol = ",cout,EMathematicaInput);//imprime na formatacao do Mathematica
+//#endif
     
     std::cout << "Entering into Post processing ..." << std::endl;
     // Post processing
     int ndiv = 2;
     
-    int projection = 1; // define se sera projecao
+    int projection = 0; // define se sera projecao
     
     if (projection==1) {
         TPZStack<std::string> scalarnames, vecnames;
@@ -421,7 +421,7 @@ int Problem3D(){
 // nrad -> nro elem da parede do poco ate contorno externo
 // DrDcirc -> proporcao dos elementos da parede do poco
 
-TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc, REAL alpha, REAL beta, int projection) {
+TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc, REAL alpha, REAL beta, int rotation) {
     
     
     // calcula comprimento radial do primeiro elemento
@@ -505,7 +505,7 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
             coord[2] = 0.;
             
             //Transforma coordenadas no eixo no poco
-            if (projection==1) {
+            if (rotation==1) {
                 coordT[0] = coord[0]*cos(alpha)*cos(beta) + coord[1]*cos(beta)*sin(alpha) - coord[2]*sin(beta);
                 coordT[1] = coord[1]*cos(alpha) - coord[0]*sin(alpha);               
                 coordT[2] = coord[2]*cos(beta) + coord[0]*cos(alpha)*sin(beta) + coord[1]*sin(alpha)*sin(beta);
@@ -670,7 +670,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 60.; // graus********
+    direction   = 90.; // graus********
     inclination = 30.; // graus********
     
     // transforma graus em rad
@@ -690,8 +690,8 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
 //    SigmaVV = -30.0, Sigmahh = -30.0, SigmaHH = -30.0; //preenche
     
     REAL rw = 0.1;
-    int analytic = 1;
-    int projection = 1;
+    int analytic = 0;
+    int projection = 0;
     
     // Seta os parametros do poco
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);
