@@ -90,9 +90,9 @@ void VerifyDRhamCompatibility();
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
-    TPZFNMatrix<3,STATE> dsol(3,1);
-    ExactSolution(pt, f, dsol);
-    return;
+//    TPZFNMatrix<3,STATE> dsol(3,1);
+//    ExactSolution(pt, f, dsol);
+//    return;
 
     f[0] = pt[0];
     return;
@@ -199,9 +199,6 @@ int main2(int argc, char *argv[])
       const int matid = 1;
       
       TPZManVector<int,6> BCids(6,-1); // ids of the bcs
-//      for (int i = 0; i < 6; i++) {
-//        BCids[i] = -1 - i;
-//      }
       academic.SetBCIDVector(BCids);
       
       academic.SetMaterialId(matid);
@@ -222,8 +219,8 @@ int main2(int argc, char *argv[])
     bool iWantToSeeMaterial = true;
     std::string geoMeshName = "../PyramidGMesh.vtk";
     if (iWantToSeeMaterial) {
-      std::ofstream out(geoMeshName);
-      TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
+        std::ofstream out(geoMeshName);
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true);
     }
     else{ // Here it shows substructures
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh, geoMeshName.c_str(), true);
@@ -958,7 +955,7 @@ TPZCompMesh * CreateCmeshPressure(TPZGeoMesh *gmesh, int p, bool hdivmm)
     
     TPZMixedPoisson *mymat = new TPZMixedPoisson(matid, dim);
     cmesh->InsertMaterialObject(mymat);
-
+  
     const long nel = gmesh->NElements();
     long index;
     for (long iel = 0; iel < nel; iel++) {
@@ -995,12 +992,12 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
     TPZVecL2 *mymat = new TPZVecL2(matid);
     mymat->SetForcingFunction(FluxFunc, p);
     cmesh->InsertMaterialObject(mymat);
-    
+  
     TPZFMatrix<> val1(3,3,0.);
     TPZFMatrix<> val2(3,1,0.);
     TPZBndCond *bnd = mymat->CreateBC(mymat, bc0, dirichlet, val1, val2);
     cmesh->InsertMaterialObject(bnd);
-    
+  
     cmesh->SetAllCreateFunctionsHDiv();
     
     cmesh->AutoBuild();
@@ -1056,12 +1053,12 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec)
     
     //Criando condicoes de contorno
     TPZFMatrix<> val1(3,3,0.), val2(3,1,1.);
-    TPZBndCond * BCond0 = mat->CreateBC(mat, bc0,dirichlet, val1, val2);
+    TPZBndCond * BCond0 = NULL;
+    BCond0 = mat->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(Forcing);
     BCond0->SetForcingFunction(0,force);
-    
     mphysics->InsertMaterialObject(BCond0);
-    
+  
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     
     //Fazendo auto build
