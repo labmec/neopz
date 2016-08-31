@@ -136,8 +136,10 @@ TPZGeoMesh *TPZAcademicGeoMesh::PyramidalAndTetrahedralMesh()
     long nelem = fNumberElements;
     int MaterialId = fMaterialId;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
+    const int dim = 3;
+    gmesh->SetDimension(dim);
     GenerateNodes(gmesh);
-    
+  
     for (long i=0; i<nelem; i++) {
         for (long j=0; j<nelem; j++) {
             for (long k=0; k<nelem; k++) {
@@ -175,7 +177,8 @@ TPZGeoMesh *TPZAcademicGeoMesh::PyramidalAndTetrahedralMesh()
         }
     }
     gmesh->BuildConnectivity();
-    AddBoundaryElements(gmesh);
+//    AddBoundaryElements(gmesh);
+    AddBoundaryElementsByCoord(gmesh);
     if (fShouldDeform) {
         DeformGMesh(*gmesh);
     }
@@ -334,13 +337,13 @@ int TPZAcademicGeoMesh::AddBoundaryElements(TPZGeoMesh *gmesh)
                 continue;
             }
             TPZManVector<REAL,2> xi(2,0.);
-            gelside.CenterPoint(xi);
+            //gelside.CenterPoint(xi);
             TPZFNMatrix<6,REAL> axes(2,3);
             TPZFNMatrix<4,REAL> jac(2,2),jacinv(2,2);
             REAL detjac;
             gelside.Jacobian(xi, jac, axes, detjac, jacinv);
             TPZManVector<REAL,3> x(3,0.);
-            gelside.X(xi, x);
+            //gelside.X(xi, x);
             TPZManVector<REAL,3> normal(3);
             normal[0] = axes(0,1)*axes(1,2)-axes(0,2)*axes(1,1);
             normal[1] = -axes(0,0)*axes(1,2)+axes(0,2)*axes(1,0);
@@ -391,5 +394,95 @@ int TPZAcademicGeoMesh::AddBoundaryElements(TPZGeoMesh *gmesh)
         }
     }
 }
+
+int TPZAcademicGeoMesh::AddBoundaryElementsByCoord(TPZGeoMesh *gmesh)
+{
+  long nel = gmesh->NElements();
+  for(long el=0; el<nel; el++) {
+    TPZGeoEl *gel = gmesh->ElementVec()[el];
+    int nsides = gel->NSides();
+    for(int is=0; is<nsides; is++) {
+      TPZGeoElSide gelside(gel,is);
+      if(gelside.Dimension() != 2) {
+        continue;
+      }
+      if(gelside.Neighbour() != gelside) {
+        continue;
+      }
+      TPZManVector<REAL,2> xi(2,0.);
+      TPZFNMatrix<6,REAL> axes(2,3);
+      TPZFNMatrix<4,REAL> jac(2,2),jacinv(2,2);
+      REAL detjac;
+      gelside.Jacobian(xi, jac, axes, detjac, jacinv);
+      TPZManVector<REAL,3> x(3,0.);
+
+      REAL tol = 1.e-6;
+      REAL coordmin = 0., coordmax = 0.;
+      const int nnodes = gelside.NSideNodes();
+      int nxbot = 0, nybot = 0, nzbot = 0, nxtop = 0, nytop = 0, nztop = 0;
+      for (int i = 0; i < nnodes; i++) {
+        const int nodeindex = gelside.SideNodeIndex(i);
+        TPZManVector<REAL,3> coord(3,0);
+        gmesh->NodeVec()[nodeindex].GetCoordinates(coord);
+        const REAL diffxbot = fabs(coord[0]);
+        const REAL diffybot = fabs(coord[1]);
+        const REAL diffzbot = fabs(coord[2]);
+        const REAL diffxtop = fabs(coord[0]-1.);
+        const REAL diffytop = fabs(coord[1]-1.);
+        const REAL diffztop = fabs(coord[2]-1.);
+        if(diffxbot == 0){
+          nxbot++;
+        }
+        if(diffybot == 0){
+          nybot++;
+        }
+        if(diffzbot == 0){
+          nzbot++;
+        }
+        if(diffxtop == 0){
+          nxtop++;
+        }
+        if(diffytop == 0){
+          nytop++;
+        }
+        if(diffztop == 0){
+          nztop++;
+        }
+      }
+      
+      int numbcsfound = 0;
+      if (nxbot >= 3) {
+        TPZGeoElBC(gelside,fBCNumbers[0]);
+        numbcsfound++;
+      }
+      if (nybot >= 3) {
+        TPZGeoElBC(gelside,fBCNumbers[1]);
+        numbcsfound++;
+      }
+      if (nzbot >= 3) {
+        TPZGeoElBC(gelside,fBCNumbers[2]);
+        numbcsfound++;
+      }
+      if (nxtop >= 3) {
+        TPZGeoElBC(gelside,fBCNumbers[3]);
+        numbcsfound++;
+      }
+      if (nytop >= 3) {
+        TPZGeoElBC(gelside,fBCNumbers[4]);
+        numbcsfound++;
+      }
+      if (nztop >= 3) {
+        TPZGeoElBC(gelside,fBCNumbers[5]);
+        numbcsfound++;
+      }
+
+      if (numbcsfound != 1) {
+        DebugStop();
+      }
+    }
+  }
+}
+
+
 
 

@@ -62,7 +62,6 @@ static LoggerPtr logger(Logger::getLogger("pz.pyramtests"));
 
 using namespace std;
 
-TPZGeoMesh *PyramidalAndTetrahedralMesh(long nelem,int MaterialId);
 TPZGeoMesh *MalhaCubo(string &projectpath, const int &nref);
 TPZGeoMesh *MalhaQuadrada(int &nelx, int &nely);
 void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
@@ -196,9 +195,15 @@ int main2(int argc, char *argv[])
     if (convergenceMesh){
       const int nelem = 1; // num of hexes in x y and z
       const int matid = 1;
+      
+      TPZManVector<int,6> BCids(6,-1); // ids of the bcs
+//      for (int i = 0; i < 6; i++) {
+//        BCids[i] = -1 - i;
+//      }
+      academic.SetBCIDVector(BCids);
+      
       academic.SetMaterialId(matid);
       academic.SetNumberElements(nelem);
-//      gmesh = PyramidalAndTetrahedralMesh(nelem, matid);
       gmesh = academic.PyramidalAndTetrahedralMesh();
     }
     else{
@@ -323,68 +328,6 @@ static int tetraedra[2][4]=
   {1,2,5,4},
   {4,7,3,2}
 };
-
-void GenerateNodes(TPZGeoMesh *gmesh, long nelem)
-{
-  gmesh->NodeVec().Resize((nelem+1)*(nelem+1)*(nelem+1));
-  for (long i=0; i<=nelem; i++) {
-    for (long j=0; j<=nelem; j++) {
-      for (long k=0; k<=nelem; k++) {
-        TPZManVector<REAL,3> x(3);
-        x[0] = k*1./nelem;
-        x[1] = j*1./nelem;
-        x[2] = i*1./nelem;
-        gmesh->NodeVec()[i*(nelem+1)*(nelem+1)+j*(nelem+1)+k].Initialize(x, *gmesh);
-      }
-    }
-  }
-}
-
-// Codigo achado em arquivo CedricTest.cpp
-TPZGeoMesh *PyramidalAndTetrahedralMesh(long nelem,int MaterialId)
-{
-  TPZGeoMesh *gmesh = new TPZGeoMesh;
-  GenerateNodes(gmesh, nelem);
-  
-  for (long i=0; i<nelem; i++) {
-    for (long j=0; j<nelem; j++) {
-      for (long k=0; k<nelem; k++) {
-        TPZManVector<long,8> nodes(8,0);
-        nodes[0] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
-        nodes[1] = k*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
-        nodes[2] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
-        nodes[3] = k*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
-        nodes[4] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i;
-        nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
-        nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
-        nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
-#ifdef LOG4CXX
-        {
-        std::stringstream sout;
-        sout << "Pyramid and tetrahedral nodes " << nodes;
-        LOGPZ_DEBUG(logger, sout.str())
-        }
-#endif
-        for (int el=0; el<2; el++)
-          {
-          TPZManVector<long,5> elnodes(5);
-          for (int il=0; il<5; il++) {
-            elnodes[il] = nodes[pyramid[el][il]];
-          }
-          long index;
-          gmesh->CreateGeoElement(EPiramide, elnodes, MaterialId, index);
-          elnodes.resize(4);
-          for (int il=0; il<4; il++) {
-            elnodes[il] = nodes[tetraedra[el][il]];
-          }
-          gmesh->CreateGeoElement(ETetraedro, elnodes, MaterialId, index);
-          }
-      }
-    }
-  }
-  gmesh->BuildConnectivity();
-  return gmesh;
-}
 
 void ApproximationError(int nref, int porder, TPZVec<STATE> &errors, bool hdivmm);
 

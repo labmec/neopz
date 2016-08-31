@@ -54,7 +54,9 @@ protected:
     TPZGeoMesh *TetrahedralMeshUsingRefinement();
     
     int AddBoundaryElements(TPZGeoMesh *gmesh);
-    
+  
+    int AddBoundaryElementsByCoord(TPZGeoMesh *gmesh);
+      
     void CheckConsistency(TPZGeoMesh *gmesh);
 
     
@@ -107,7 +109,27 @@ public:
     /// create a geometric mesh acording to the parameters of the object
     TPZGeoMesh *CreateGeoMesh();
     TPZGeoMesh *PyramidalAndTetrahedralMesh();
-    
+  
+    /**
+    *  Sets the bc id vector for the hexaedral mesh
+    *
+    *  @param BCNumbers id of bcs with order and location on global mesh
+    *  0: x = 0
+    *  1: y = 0
+    *  2: z = 0
+    *  3: x = 1
+    *  4: y = 1
+    *  5: z = 1
+    */
+  void SetBCIDVector(TPZVec<int> &BCNumbers){
+    if(fBCNumbers.size() != BCNumbers.size()){
+      DebugStop();
+    }
+    for (int i = 0; i < BCNumbers.size(); i++) {
+      fBCNumbers[i] = BCNumbers[i];
+    }
+  }
+  
     
 };
 
