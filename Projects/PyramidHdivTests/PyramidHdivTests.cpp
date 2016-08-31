@@ -45,6 +45,8 @@
 
 #include "TPZVecL2.h"
 
+#include "pzmatrix.h"
+
 
 #include <sys/time.h>
 
@@ -209,11 +211,10 @@ int main2(int argc, char *argv[])
     else{
       //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
       //    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
-      TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPirTetra();
+      gmesh = CreateGeoMeshHexaOfPirTetra();
       //    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
       //    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
     }
-    gmesh->SetDimension(dim);
 
     int nref = 0;
     UniformRefine(gmesh, nref);
@@ -278,6 +279,11 @@ int main2(int argc, char *argv[])
     
     an.Assemble();
     TPZAutoPointer<TPZMatrix<STATE> > mat = an.Solver().Matrix();
+  
+    if(0){
+      std::ofstream outmat("mat.nb");
+      mat->Print("stiff=",outmat,EMathematicaInput);
+    }
     TPZFMatrix<STATE> solution = cmeshMult->Solution();
     {
         std::ofstream sol("../SolInterpolate.txt");
