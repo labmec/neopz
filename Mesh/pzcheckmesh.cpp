@@ -367,7 +367,7 @@ int TPZCheckMesh::CheckConnectSeqNumberConsistency()
         TPZConnect &c = fMesh->ConnectVec()[ic];
         if (c.HasDependency() || !c.NElConnected() || c.IsCondensed()) {
             long seqnum = c.SequenceNumber();
-            if (seqnum < numindepconnect) {
+            if (seqnum < numindepconnect && seqnum != -1) { // @omar need more information about this case seqnum != -1
                 *fOut << "Connect index " << ic << " has inconsistent sequence number " << seqnum << " nindependent connects " << numindepconnect << std::endl;
                 wrong = true;
             }

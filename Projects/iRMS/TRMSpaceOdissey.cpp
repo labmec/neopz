@@ -277,7 +277,7 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
 
     std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
-    //this->BuildMacroElements();
+//    this->BuildMacroElements(); // @omar:: require the use of sofisticated transfer structures ....
     
     
 }
@@ -358,7 +358,7 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(){
             }
         }
     }
-    
+    fGeoMesh->BuildConnectivity();
 }
 
 /** @brief Construc computational macro elements */
@@ -441,6 +441,8 @@ void TRMSpaceOdissey::BuildMacroElements()
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->SetAnalysisSkyline(0, 0, 0);
     }
+    fMixedFluxPressureCmesh->ComputeNodElCon();
+    fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
 
 }
 

@@ -106,7 +106,7 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    water->SetRhoModel(0);
+    water->SetRhoModel(1);
     fPhases.Push(water);
     int n_data = fSystemType.size();
     
@@ -131,8 +131,8 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 50;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.001;
+    fepsilon_res = 0.0001;
+    fepsilon_cor = 0.00001;
     fIsQuasiNewtonQ = true;
     
     
@@ -156,7 +156,7 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fIntial_bc_data.Push(W);
     W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
     fRecurrent_bc_data.Push(W);
@@ -237,9 +237,9 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("water");
-    water->SetRhoModel(0);
-    fPhases.Push(water);
+    fSystemType.Push("gas");
+    gas->SetRhoModel(1);
+    fPhases.Push(gas);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -320,8 +320,8 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fSystemType.Push("water");
     fSystemType.Push("water");
     
-    water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    water->SetRhoModel(1);
+    water->SetRhoModel(1);
     fPhases.Push(water);
     fPhases.Push(water);
     
@@ -340,7 +340,7 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     REAL day        = hour * 24.0;
     
     fn_steps  = 20;
-    fdt = 10.0*day;
+    fdt = 1.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;
     fdt_up = 1.0;
@@ -372,7 +372,7 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
     fIntial_bc_data.Push(W);
     W[0] = std::make_pair(3,new TPZDummyFunction<REAL>(FluxInlet_2p));
     fRecurrent_bc_data.Push(W);
@@ -661,7 +661,7 @@ void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     REAL day        = hour * 24.0;
     
     fn_steps  = 20;
-    fdt = 10.0*day;
+    fdt = 1.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;
     fdt_up = 1.0;
@@ -671,7 +671,7 @@ void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     fn_corrections = 50;
     fepsilon_res = 0.001;
     fepsilon_cor = 0.0001;
-    fIsQuasiNewtonQ = false;
+    fIsQuasiNewtonQ = true;
     
     
     // Rock materials ids
@@ -693,7 +693,7 @@ void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_3p));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_3p));
     fIntial_bc_data.Push(W);
     W[0] = std::make_pair(3,new TPZDummyFunction<REAL>(FluxInlet_3p));
     fRecurrent_bc_data.Push(W);
@@ -745,7 +745,7 @@ void TRMRawData::PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -1.84, S_w = 1.0, S_o = 0.0;
+    REAL flux = -0.184, S_w = 1.0, S_o = 0.0;
     f[0] = flux;
     f[1] = S_w;
     f[2] = S_o;

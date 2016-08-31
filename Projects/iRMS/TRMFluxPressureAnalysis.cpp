@@ -88,22 +88,10 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-    TPZCheckMesh check1(Mesh(),&std::cout);
-    if(check1.CheckConnectSeqNumberConsistency() != 0)
-    {
-        DebugStop();
-    }
-    
 //    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
 //    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
 //    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    
-    TPZCheckMesh check2(Mesh(),&std::cout);
-    if(check2.CheckConnectSeqNumberConsistency() != 0)
-    {
-        DebugStop();
-    }
     
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
@@ -148,7 +136,7 @@ void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
     this->Rhs() *= -1.0;
     
     this->Solve(); // update correction
-    
+
     fdx_norm = Norm(this->Solution()); // correction variation
     
     fX_n += this->Solution(); // update state
@@ -213,10 +201,10 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
         
 
 #ifdef PZDEBUG
-        fR.Print("R = ", std::cout,EMathematicaInput);
-        fX.Print("X = ", std::cout,EMathematicaInput);
-        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+//        fR.Print("R = ", std::cout,EMathematicaInput);
+//        fX.Print("X = ", std::cout,EMathematicaInput);
+//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)

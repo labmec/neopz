@@ -161,8 +161,6 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<fDim; id++){
             ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
-            //ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-            //ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
         }
         
         //Inserindo termo de estabilizacao no termo de fonte
@@ -189,8 +187,6 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             
             for(int id=0; id<fDim; id++){
                 jvec(id,0) = datavec[0].fNormalVec(id,jvecind);
-                //jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
-                //jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
             }
             
             //dot product between Kinv[u]v
@@ -525,10 +521,10 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 	int phrq = phiQ.Rows();
 
 	REAL v2;
-    if(bc.HasForcingFunction())
+    if(bc.HasffBCForcingFunction())
     {
 		TPZManVector<STATE> res(3);
-		bc.ForcingFunction()->Execute(datavec[0].x,res);
+		bc.BCForcingFunction()->Execute(datavec[0].x,res);
 		v2 = res[0];
 	}else
     {

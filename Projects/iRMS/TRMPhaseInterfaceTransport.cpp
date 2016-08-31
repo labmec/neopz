@@ -291,7 +291,7 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_ab(TPZMaterialData &data,
                 beta = 1.0;
             }
             
-            STATE un_N = Value_m;
+            STATE un_N = un_l;//Value_m;
             
             v_l[0] = p_a_l;
             v_l[1] = s_a_l;
@@ -344,7 +344,7 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_ab(TPZMaterialData &data,
                 beta = 1.0;
             }
             
-            STATE un_N = Value_m;
+            STATE un_N = un_l;//Value_m;
             
             v_l[0] = p_a_l;
             v_l[1] = Value_s;
@@ -677,7 +677,7 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_abc(TPZMaterialData &data
                 beta = 1.0;
             }
             
-            STATE un_N = Value_m;
+            STATE un_N = un_l;//Value_m;
             
             v_l[0] = p_a_l;
             v_l[1] = s_a_l;
@@ -747,7 +747,7 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_abc(TPZMaterialData &data
                 beta = 1.0;
             }
             
-            STATE un_N = Value_m;
+            STATE un_N = un_l;//Value_m;
             
             v_l[0] = p_a_l;
             v_l[1] = Value_sa;
