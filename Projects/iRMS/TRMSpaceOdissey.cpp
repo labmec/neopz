@@ -120,8 +120,8 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
         fFluxCmesh->InsertMaterialObject(mat);
         
-        TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
-        fFluxCmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
+//        TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
+//        fFluxCmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
         
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
@@ -1304,6 +1304,37 @@ void TRMSpaceOdissey::ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE
     X[0] = 0.0;
     X[1] = 0.0;
     X[2] = par[0];
+}
+
+void TRMSpaceOdissey::CElemtentRefinement(TPZCompMesh  *cmesh, int element_index)
+{
+    
+    TPZVec<long > subindex;
+    long nel = cmesh->ElementVec().NElements();
+    for(long el=0; el < nel; el++){
+        TPZCompEl * compEl = cmesh->ElementVec()[el];
+        if(!compEl) continue;
+        long ind = compEl->Index();
+        if(ind==element_index){
+            compEl->Divide(element_index, subindex, 1);
+        }
+    }
+}
+
+void TRMSpaceOdissey::CMeshRefinement(TPZCompMesh  *cmesh, int ndiv)
+{
+    
+    TPZVec<long > subindex;
+    for (long iref = 0; iref < ndiv; iref++) {
+        TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
+        long nel = elvec.NElements();
+        for(long el=0; el < nel; el++){
+            TPZCompEl * compEl = elvec[el];
+            if(!compEl) continue;
+            long ind = compEl->Index();
+            compEl->Divide(ind, subindex, 0);
+        }
+    }
 }
 
 /** @brief Apply uniform refinement on the Geometric mesh */

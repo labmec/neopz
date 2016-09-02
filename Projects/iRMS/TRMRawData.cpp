@@ -255,7 +255,7 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     REAL day        = hour * 24.0;
     
     fn_steps  = 20;
-    fdt = 1.0*day;
+    fdt = 0.0001*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;
     fdt_up = 1.0;
@@ -320,8 +320,8 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fSystemType.Push("water");
     fSystemType.Push("water");
     
-    water->SetRhoModel(1);
-    water->SetRhoModel(1);
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
     fPhases.Push(water);
     

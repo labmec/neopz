@@ -34,7 +34,7 @@ TRMSimulationData::TRMSimulationData(){
     fg.Resize(0);
     
     /** @brief Material identifier for interfaces */
-    fInterface_mat_Id = 10000;
+    fInterface_mat_Id = 99999;
     
     /** @brief Store time values to be reported */
     fReportingTimes.Resize(0);

@@ -54,7 +54,7 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = false;
+    bool IsReservoirBoxQ = true;
     
     if (Is3DGeometryQ) {
         
@@ -74,8 +74,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
-//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
             fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
         }
@@ -84,8 +84,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 20;
-        int nel_y = 10;
+        int nel_x = 1;
+        int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -107,10 +107,9 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         
         fSpaceGenerator->Gmesh()->SetDimension(2);
 
-        
     }
     
-    int ref = 2;
+    int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
     
@@ -200,7 +199,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
 
     
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     // Transfer object
     TRMBuildTransfers * Transfer = new TRMBuildTransfers;
@@ -231,7 +230,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    bool UseMHMQ = true;
+    bool UseMHMQ = false;
     
     if(UseMHMQ){
         fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
@@ -243,24 +242,22 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 16;
+    int numofThreads_p = 0;
     bool mustOptimizeBandwidth_parabolic = true;
     
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
-//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    strmat_p.SetDecomposeType(ELDLt);
+    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    strmat_p.SetDecomposeType(ELDLt);
 
 //    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
     strmat_p.SetNumThreads(numofThreads_p);
-    
-    
     parabolic->SetStructuralMatrix(strmat_p);
     parabolic->SetSolver(step_p);
     parabolic->AdjustVectors();
@@ -300,7 +297,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 16;
+        int numofThreads_t = 0;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());

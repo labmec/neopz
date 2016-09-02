@@ -332,6 +332,11 @@ public:
     /** @brief Construc computational macro elements */
     void BuildMacroElements();
     
+    /** @brief Computational element refinement by index */
+    void CElemtentRefinement(TPZCompMesh  *cmesh, int element_index);
+    
+    /** @brief Computational mesh uniform refinement */
+    void CMeshRefinement(TPZCompMesh  *cmesh, int ndiv);
     
 };
 

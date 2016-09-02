@@ -233,6 +233,10 @@ void TRMBuildTransfers::Initialize_s_To_Transport(TPZCompMesh * cmesh_multiphysi
         
         TPZGeoEl * gel = cel->Reference();
         
+        if(gel->HasSubElement()){
+            continue;
+        }
+        
 #ifdef PZDEBUG
         if (!gel) {
             DebugStop();
@@ -534,7 +538,6 @@ void TRMBuildTransfers::Fill_s_To_Transport(TPZCompMesh * cmesh_multiphysics, in
         fs_To_Transport.SetBlock(element_index, block);
         
     }
-    
     return;
 }
 
@@ -1166,6 +1169,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         }
 
         face_gel = cel_face->Reference();
+
         
         if (!face_gel) {
             DebugStop();
@@ -1181,6 +1185,10 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         TPZCompEl *right_cel = right_gel->Reference();
         
         if (!left_cel || !right_cel) {
+            DebugStop();
+        }
+        
+        if(left_gel->HasSubElement() && right_gel->HasSubElement() && face_gel->HasSubElement()){
             DebugStop();
         }
         
@@ -1213,7 +1221,8 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         }
         
         this->ElementDofFaceIndexes(i_face,intel_vol, dof_indexes);
-        TPZIntPoints *face_int_points   = left_gel->CreateSideIntegrationRule(face_sides[i_face], cel_face->GetgOrder());
+//        TPZIntPoints *face_int_points_II   = left_gel->CreateSideIntegrationRule(face_sides[i_face], cel_face->GetgOrder());
+        TPZIntPoints *face_int_points   = face_gel->CreateSideIntegrationRule(face_gel->NSides() - 1, cel_face->GetgOrder());
         
         int npoints = face_int_points->NPoints();
         int nshapes = left_cel->Connect(i_face).NShape();
@@ -1357,6 +1366,8 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
             TPZFMatrix<STATE> un_at_intpoints;
             fun_To_Transport_Gamma.Multiply(ScatterFluxes,un_at_intpoints);
             
+//            un_at_intpoints.Print("u_Gamma = ");
+            
             // Step three
             // Trasnfering integrated normal fluxes values
             int counter = 0;
@@ -1434,6 +1445,8 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
         // Step two
         TPZFMatrix<STATE> un_at_intpoints;
         fun_To_Transport_gamma.Multiply(ScatterFluxes,un_at_intpoints);
+        
+//        un_at_intpoints.Print("u_gamma = ");        
         
         // Step three
         // Trasnfering integrated normal fluxes values
