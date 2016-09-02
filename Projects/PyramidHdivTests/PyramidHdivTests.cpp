@@ -94,8 +94,14 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 //    ExactSolution(pt, f, dsol);
 //    return;
 
-    f[0] = pt[0];
+    f[0] = pt[0]*pt[0];
     return;
+}
+
+void BodyForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
+  
+  f[0] = 2.;
+  return;
 }
 
 void FluxFunc(const TPZVec<REAL> &pt, TPZVec<STATE> &flux)
@@ -194,8 +200,9 @@ int main2(int argc, char *argv[])
   
     bool convergenceMesh = true;
     TPZGeoMesh *gmesh = NULL;
+    std::cout << "Creating gmesh and cmesh..." << std::endl;
     if (convergenceMesh){
-      const int nelem = 1; // num of hexes in x y and z
+      const int nelem = 4; // num of hexes in x y and z
       const int matid = 1;
       
       TPZManVector<int,6> BCids(6,-1); // ids of the bcs
@@ -273,33 +280,38 @@ int main2(int argc, char *argv[])
     //    TPZFStructMatrix skyl(cmeshMult);
     an.SetStructuralMatrix(skyl);
     an.SetSolver(step);
-    
+  
+    std::cout << "Starting assemble..." << std::endl;
     an.Assemble();
     TPZAutoPointer<TPZMatrix<STATE> > mat = an.Solver().Matrix();
   
-    if(0){
-      std::ofstream outmat("mat.nb");
-      mat->Print("stiff=",outmat,EMathematicaInput);
-    }
-    TPZFMatrix<STATE> solution = cmeshMult->Solution();
-    {
-        std::ofstream sol("../SolInterpolate.txt");
-        sol << "Solution obtained by interpolation\n";
-        an.PrintVectorByElement(sol, solution,1.e-8);
-    }
-    TPZFMatrix<STATE> rhs;
-    mat->Multiply(solution, rhs);
-    {
-        std::ofstream theory("../RhsbyMult.txt");
-        theory << "Rhs obtained by matrix vector multiply\n";
-        an.PrintVectorByElement(theory, rhs,1.e-8);
-    }
-    {
-        std::ofstream practice("../RhsComputed.txt");
-        practice << "Rhs obtained by assembly process\n";
-        an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
-    }
-    
+    std::cout << "Assembled!" << std::endl;
+  
+//    if(0){
+//      std::ofstream outmat("mat.nb");
+//      mat->Print("stiff=",outmat,EMathematicaInput);
+//    }
+//    TPZFMatrix<STATE> solution = cmeshMult->Solution();
+//    {
+//        std::ofstream sol("../SolInterpolate.txt");
+//        sol << "Solution obtained by interpolation\n";
+//        an.PrintVectorByElement(sol, solution,1.e-8);
+//    }
+//    TPZFMatrix<STATE> rhs;
+//    mat->Multiply(solution, rhs);
+//    {
+//        std::ofstream theory("../RhsbyMult.txt");
+//        theory << "Rhs obtained by matrix vector multiply\n";
+//        an.PrintVectorByElement(theory, rhs,1.e-8);
+//    }
+//    {
+//        std::ofstream practice("../RhsComputed.txt");
+//        practice << "Rhs obtained by assembly process\n";
+//        an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
+//    }
+  
+    std::cout << "Starting Solve..." << std::endl;
+  
     an.Solve();
     {
         std::ofstream sol("../SolComputed.txt");
@@ -307,6 +319,9 @@ int main2(int argc, char *argv[])
         an.PrintVectorByElement(sol, cmeshMult->Solution(),1.e-8);
     }
   
+    std::cout << "Solved!" << std::endl;
+  
+    std::cout << "Starting Post-processing..." << std::endl;
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("Pressure");
     vecnames.Push("Flux");
@@ -315,7 +330,9 @@ int main2(int argc, char *argv[])
     
     int postprocessresolution = 0;
     an.PostProcess(postprocessresolution);
-    
+  
+    std::cout << "Code finished!" << std::endl;
+  
     return 0;
   
   
@@ -1046,7 +1063,9 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec)
     mphysics->SetDimModel(dim);
     
     TPZMixedPoisson *mat = new TPZMixedPoisson(matid,dim);
-    
+  
+    TPZAutoPointer<TPZFunction<STATE> > bodyforce = new TPZDummyFunction<STATE>(BodyForcing);
+    mat->SetForcingFunction(bodyforce);
     //inserindo o material na malha computacional
     mphysics->InsertMaterialObject(mat);
     
