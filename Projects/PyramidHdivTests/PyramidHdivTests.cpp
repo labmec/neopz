@@ -100,7 +100,7 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
 void BodyForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
   
-  f[0] = 2.;
+  f[0] = -2.;
   return;
 }
 
