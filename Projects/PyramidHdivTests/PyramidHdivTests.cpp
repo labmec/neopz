@@ -87,18 +87,36 @@ void ExactSolution(const TPZVec<REAL> &pt, TPZVec<STATE> &sol, TPZFMatrix<STATE>
 /// verify if the pressure space is compatible with the flux space
 void VerifyDRhamCompatibility();
 
+void ExactNathan(const TPZVec<REAL> &pt, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
+
+  sol[0] = pt[0]*pt[0] + pt[1]*pt[1] + pt[2]*pt[2];
+  dsol(0,0) = 2*pt[0];
+  dsol(1,0) = 2*pt[1];
+  dsol(2,0) = 2*pt[2];
+  return;
+  
+  
+  sol[0] = pt[0]*pt[0];
+  dsol(0,0) = 2*pt[0];
+  dsol(1,0) = 0.;
+  dsol(2,0) = 0.;
+  return;
+}
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
-//    TPZFNMatrix<3,STATE> dsol(3,1);
-//    ExactSolution(pt, f, dsol);
-//    return;
+    TPZFNMatrix<3,STATE> dsol(3,1);
+    ExactNathan(pt, f, dsol);
+    return;
 
     f[0] = pt[0]*pt[0];
     return;
 }
 
 void BodyForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
+
+  f[0] = -6.;
+  return;
   
   f[0] = -2.;
   return;
@@ -106,8 +124,10 @@ void BodyForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
 void FluxFunc(const TPZVec<REAL> &pt, TPZVec<STATE> &flux)
 {
-    flux[0] = 0.;
+  flux[0] = 0.;
 }
+
+
 
 void ExactSolution(const TPZVec<REAL> &pt, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol)
 {
@@ -202,7 +222,7 @@ int main2(int argc, char *argv[])
     TPZGeoMesh *gmesh = NULL;
     std::cout << "Creating gmesh and cmesh..." << std::endl;
     if (convergenceMesh){
-      const int nelem = 4; // num of hexes in x y and z
+      const int nelem = 1; // num of hexes in x y and z
       const int matid = 1;
       
       TPZManVector<int,6> BCids(6,-1); // ids of the bcs
@@ -277,6 +297,7 @@ int main2(int argc, char *argv[])
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     TPZSkylineStructMatrix skyl(cmeshMult);
+    skyl.SetNumThreads(4);
     //    TPZFStructMatrix skyl(cmeshMult);
     an.SetStructuralMatrix(skyl);
     an.SetSolver(step);
@@ -331,23 +352,27 @@ int main2(int argc, char *argv[])
     int postprocessresolution = 0;
     an.PostProcess(postprocessresolution);
   
+    std::ofstream out("erros.txt",std::ios::app);
+    out << "\n\n ------------ NEW SIMULATION -----------" << std::endl;
+    out << "Nequations = " << cmeshMult->NEquations() << std::endl;
+  
+  
+    std::cout << "Calculating error..." << std::endl;
+    an.SetExact(ExactNathan);
+    TPZManVector<REAL,3> errors(3,1);
+    an.PostProcessError(errors);
+  
+    out << "Errors:" << std::endl;
+    out << "Norma H1 = " << errors[0] << std::endl;
+    out << "Norma L1 = " << errors[1] << std::endl;
+    out << "Semi-Norma H1 = " << errors[2] << std::endl;
+  
     std::cout << "Code finished!" << std::endl;
   
     return 0;
   
   
 }
-
-static int pyramid[2][5]=
-{
-  {0,1,2,3,4},
-  {4,5,6,7,2}
-};
-static int tetraedra[2][4]=
-{
-  {1,2,5,4},
-  {4,7,3,2}
-};
 
 void ApproximationError(int nref, int porder, TPZVec<STATE> &errors, bool hdivmm);
 
