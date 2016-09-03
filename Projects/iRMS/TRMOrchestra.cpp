@@ -54,7 +54,7 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = true;
+    bool IsReservoirBoxQ = false;
     
     if (Is3DGeometryQ) {
         
@@ -109,7 +109,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 1;
+    int ref = 0;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
     
@@ -214,7 +214,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if(fSimulationData->IsTwoPhaseQ()){
         Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->TransportMesh());        
         Transfer->Fill_s_To_Transport(fSpaceGenerator->TransportMesh(), 0);
-        Transfer->ComputeLeftRight(fSpaceGenerator->TransportMesh());
+        Transfer->ComputeLeftRight(fSpaceGenerator->TransportMesh());// @omar:: assuming it consistent ...
         Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),true);
         Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
     }
@@ -243,7 +243,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     // Analysis for parabolic part
     int numofThreads_p = 0;
-    bool mustOptimizeBandwidth_parabolic = true;
+    bool mustOptimizeBandwidth_parabolic = false;
     
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
@@ -298,7 +298,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
         // Analysis for hyperbolic part
         int numofThreads_t = 0;
-        bool mustOptimizeBandwidth_hyperbolic = true;
+        bool mustOptimizeBandwidth_hyperbolic = false;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;

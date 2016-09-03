@@ -721,7 +721,7 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
     
     
 #ifdef PZDEBUG
-    if ( fmixed_transport_indexes.size() == 0 ) {
+    if ( fmixed_transport_cindexes.size() == 0 ) {
         DebugStop();
     }
 
@@ -746,13 +746,13 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
     
     TPZManVector<long,30> p_point_indexes;
     TPZManVector<long,30> s_point_indexes;
-    long nvolumes = fmixed_transport_indexes.size();
+    long nvolumes = fmixed_transport_cindexes.size();
     
     for (int ivol = 0; ivol < nvolumes; ivol++) {
         
-    TPZGeoEl  * gel = geometry->Element(fmixed_transport_indexes[ivol].first);
-    TPZCompEl * mixed_cel = cmesh_mf_mixed->Element(fmixed_transport_indexes[ivol].second.first);
-    TPZCompEl * trans_cel = cmesh_mf_trans->Element(fmixed_transport_indexes[ivol].second.second);
+    TPZGeoEl  * gel = geometry->Element(fmixed_transport_cindexes[ivol].first);
+    TPZCompEl * mixed_cel = cmesh_mf_mixed->Element(fmixed_transport_cindexes[ivol].second.first);
+    TPZCompEl * trans_cel = cmesh_mf_trans->Element(fmixed_transport_cindexes[ivol].second.second);
         
 #ifdef PZDEBUG
         if (!mixed_cel || !trans_cel || !gel) {
@@ -760,7 +760,7 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
         }
 #endif
 
-        REAL element_measure = DimensionalMeasure(mixed_cel);
+        REAL element_measure = DimensionalMeasure(mixed_cel->Reference());
     
         GlobalPointIndexes(mixed_cel, p_point_indexes);
         GlobalPointIndexes(trans_cel, s_point_indexes);
@@ -874,7 +874,7 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
     
     
 #ifdef PZDEBUG
-    if ( fmixed_transport_indexes.size() == 0 ) {
+    if ( fmixed_transport_cindexes.size() == 0 ) {
         DebugStop();
     }
     
@@ -895,12 +895,12 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
     TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * mixed_memory = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(mixed_material);
     
     TPZManVector<long,30> p_point_indexes;
-    long nvolumes = fmixed_transport_indexes.size();
+    long nvolumes = fmixed_transport_cindexes.size();
     
     for (int ivol = 0; ivol < nvolumes; ivol++) {
         
-        TPZGeoEl  * gel = geometry->Element(fmixed_transport_indexes[ivol].first);
-        TPZCompEl * mixed_cel = cmesh_mf_mixed->Element(fmixed_transport_indexes[ivol].second.first);
+        TPZGeoEl  * gel = geometry->Element(fmixed_transport_cindexes[ivol].first);
+        TPZCompEl * mixed_cel = cmesh_mf_mixed->Element(fmixed_transport_cindexes[ivol].second.first);
         
 #ifdef PZDEBUG
         if (!mixed_cel || !gel) {
@@ -908,7 +908,7 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
         }
 #endif
         
-        REAL element_measure = DimensionalMeasure(mixed_cel);
+        REAL element_measure = DimensionalMeasure(mixed_cel->Reference());
         
         GlobalPointIndexes(mixed_cel, p_point_indexes);
         TPZMultiphysicsElement * mf_mixed_cel = dynamic_cast<TPZMultiphysicsElement * >(mixed_cel);
@@ -980,11 +980,13 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
     }
 #endif
     
+    TPZGeoMesh * geometry = flux_mesh->Reference();
+    
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
     TPZManVector<long,10> dof_indexes;
     
-    TPZCompEl * cel_face;
+//    TPZCompEl * cel_face;
     TPZGeoEl * left_gel;
     TPZGeoEl * right_gel;
     TPZGeoEl * face_gel;
@@ -997,12 +999,12 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
     long n_interfaces;
     
     if (IsBoundaryQ) {
-        n_interfaces = fleft_right_indexes_Gamma.size();
+        n_interfaces = fleft_right_g_indexes_Gamma.size();
         fun_dof_scatter_Gamma.Resize(n_interfaces);
         fun_To_Transport_Gamma.Resize(0, 0);
     }
     else{
-        n_interfaces = fleft_right_indexes_gamma.size();
+        n_interfaces = fleft_right_g_indexes_gamma.size();
         fun_dof_scatter_gamma.Resize(n_interfaces);
         fun_To_Transport_gamma.Resize(0, 0);
     }
@@ -1015,21 +1017,20 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
 
 
         if (IsBoundaryQ) {
-            face_index  = finterface_indexes_Gamma[k_face];
-            duplet      = fleft_right_indexes_Gamma[k_face];
+            face_index  = finterface_g_indexes_Gamma[k_face];
+            duplet      = fleft_right_g_indexes_Gamma[k_face];
         }
         else{
-            face_index  = finterface_indexes_gamma[k_face];
-            duplet      = fleft_right_indexes_gamma[k_face];
+            face_index  = finterface_g_indexes_gamma[k_face];
+            duplet      = fleft_right_g_indexes_gamma[k_face];
         }
         
-        cel_face    = transport_mesh->Element(face_index);
+//        cel_face    = transport_mesh->Element(face_index);
         
-        
-        if (!cel_face) {
-            DebugStop();
-        }
-        face_gel = cel_face->Reference();
+//        if (!cel_face) {
+//            DebugStop();
+//        }
+        face_gel = geometry->Element(face_index);
         
         if (!face_gel) {
             DebugStop();
@@ -1038,8 +1039,8 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
         long left_geo_index     = duplet.first;
         long right_geo_index    = duplet.second;
         
-        left_gel    = flux_mesh->Reference()->Element(left_geo_index);
-        right_gel   = flux_mesh->Reference()->Element(right_geo_index);
+        left_gel    = geometry->Element(left_geo_index);
+        right_gel   = geometry->Element(right_geo_index);
         
         TPZCompEl *left_cel = left_gel->Reference();
         TPZCompEl *right_cel = right_gel->Reference();
@@ -1053,35 +1054,37 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
         
         TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace *> (left_cel);
         
-        int nfaces = face_sides.size();
+//        int nfaces = face_sides.size();
         
-        int face_side   = -1;
-        int i_face      = -1;
-        
+        int face_side     = -1;
+        int connect_index = -1;
+
         if(!IdentifyFace(face_side,left_gel,face_gel)){
             std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
             DebugStop();
         }
         else{
-            for (int i = 0; i < nfaces; i++) {
-                if (face_sides[i] == face_side) {
-                    i_face = i;
+            
+            for(int ic = 0; ic < intel_vol->NConnects(); ic++){
+                connect_index = intel_vol->SideConnectLocId(ic, face_side);
+                if (connect_index != -1) {
                     break;
                 }
             }
-            if (i_face == -1) {
+            
+            if (connect_index == -1) {
                 std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
                 DebugStop();
             }
         }
+
+        this->ElementDofFaceIndexes(connect_index,intel_vol, dof_indexes);
         
-        this->ElementDofFaceIndexes(i_face,intel_vol, dof_indexes);
+//        TPZIntPoints *face_int_points = left_gel->CreateSideIntegrationRule(face_sides[connect_index], left_cel->GetgOrder());
+//        int npoints = face_int_points->NPoints();
+        int nshapes = left_cel->Connect(connect_index).NShape();
         
-        TPZIntPoints *face_int_points = left_gel->CreateSideIntegrationRule(face_sides[i_face], cel_face->GetgOrder());
-        int npoints = face_int_points->NPoints();
-        int nshapes = left_cel->Connect(i_face).NShape();
-        
-        blocks_dimensions[k_face].first = 1;//npoints;
+        blocks_dimensions[k_face].first = 1;
         blocks_dimensions[k_face].second = nshapes;
         if (IsBoundaryQ) {
             fun_dof_scatter_Gamma[k_face] = dof_indexes;
@@ -1125,6 +1128,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
     std::cout  << "Time for Matrix Initialization " << (t2-t1) << std::endl;
 #endif
     
+    TPZGeoMesh * geometry = flux_mesh->Reference();
     
     //* seeking for total blocks */
     flux_mesh->LoadReferences();
@@ -1143,10 +1147,10 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
     long n_interfaces;
     
     if (IsBoundaryQ) {
-        n_interfaces = fleft_right_indexes_Gamma.size();
+        n_interfaces = fleft_right_g_indexes_Gamma.size();
     }
     else{
-        n_interfaces = fleft_right_indexes_gamma.size();
+        n_interfaces = fleft_right_g_indexes_gamma.size();
     }
     
     TPZFNMatrix<100,double> block;
@@ -1154,21 +1158,21 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
     for (int k_face = 0; k_face < n_interfaces; k_face++) {
         
         if (IsBoundaryQ) {
-            face_index  = finterface_indexes_Gamma[k_face];
-            duplet      = fleft_right_indexes_Gamma[k_face];
+            face_index  = finterface_g_indexes_Gamma[k_face];
+            duplet      = fleft_right_g_indexes_Gamma[k_face];
         }
         else{
-            face_index  = finterface_indexes_gamma[k_face];
-            duplet      = fleft_right_indexes_gamma[k_face];
+            face_index  = finterface_g_indexes_gamma[k_face];
+            duplet      = fleft_right_g_indexes_gamma[k_face];
         }
         
-        cel_face    = transport_mesh->Element(face_index);
-        
-        if (!cel_face) {
-            DebugStop();
-        }
+//        cel_face    = transport_mesh->Element(face_index);
+//        
+//        if (!cel_face) {
+//            DebugStop();
+//        }
 
-        face_gel = cel_face->Reference();
+        face_gel = geometry->Element(face_index);
 
         
         if (!face_gel) {
@@ -1178,8 +1182,8 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         long left_geo_index     = duplet.first;
         long right_geo_index    = duplet.second;
         
-        left_gel    = flux_mesh->Reference()->Element(left_geo_index);
-        right_gel   = flux_mesh->Reference()->Element(right_geo_index);
+        left_gel    = geometry->Element(left_geo_index);
+        right_gel   = geometry->Element(right_geo_index);
         
         TPZCompEl *left_cel = left_gel->Reference();
         TPZCompEl *right_cel = right_gel->Reference();
@@ -1192,40 +1196,42 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
             DebugStop();
         }
         
-        // Computing face connect index associated to the element face being integrated
-        // The method is really simple the inteface is detected by connect shared between hdiv volumetric elements
-        this->ComputeFaceNormals(left_gel,face_sides,normals);
-        
+//        // Computing face connect index associated to the element face being integrated
+//        // The method is really simple the inteface is detected by connect shared between hdiv volumetric elements
+//        this->ComputeFaceNormals(left_gel,face_sides,normals);
+
         TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace *> (left_cel);
         
         int nfaces = face_sides.size();
         
-        int face_side   = -1;
-        int i_face      = -1;
+        int face_side       = -1;
+        int connect_index   = -1;
         
         if(!IdentifyFace(face_side,left_gel,face_gel)){
             std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
             DebugStop();
         }
         else{
-            for (int i = 0; i < nfaces; i++) {
-                if (face_sides[i] == face_side) {
-                    i_face = i;
+            
+            for(int ic = 0; ic < intel_vol->NConnects(); ic++){
+                connect_index = intel_vol->SideConnectLocId(ic, face_side);
+                if (connect_index != -1) {
                     break;
                 }
             }
-            if (i_face == -1) {
+            
+            if (connect_index == -1) {
                 std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
                 DebugStop();
             }
         }
         
-        this->ElementDofFaceIndexes(i_face,intel_vol, dof_indexes);
+        this->ElementDofFaceIndexes(connect_index,intel_vol, dof_indexes);
 //        TPZIntPoints *face_int_points_II   = left_gel->CreateSideIntegrationRule(face_sides[i_face], cel_face->GetgOrder());
-        TPZIntPoints *face_int_points   = face_gel->CreateSideIntegrationRule(face_gel->NSides() - 1, cel_face->GetgOrder());
+        TPZIntPoints *int_points   = left_gel->CreateSideIntegrationRule(face_side, left_cel->GetgOrder());
         
-        int npoints = face_int_points->NPoints();
-        int nshapes = left_cel->Connect(i_face).NShape();
+        int npoints = int_points->NPoints();
+        int nshapes = left_cel->Connect(connect_index).NShape();
   
 #ifdef PZDEBUG
         if (IsBoundaryQ) {
@@ -1250,7 +1256,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         
         REAL w;
         TPZManVector<STATE,2> par_duplet(el_dim,0.0);
-        REAL ElementMeasure   = DimensionalMeasure(cel_face);
+        REAL ElementMeasure   = DimensionalMeasure(face_gel);
 
         REAL detjac;
         TPZFMatrix<REAL> jac,axes,jacinv;
@@ -1258,25 +1264,25 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
         for (int ip = 0; ip < npoints; ip++) {
          
             // Get the vectorial phi
-            face_int_points->Point(ip, par_duplet, w);
+            int_points->Point(ip, par_duplet, w);
             face_gel->Jacobian(par_duplet, jac, axes, detjac, jacinv);
-            intel_vol->SideShapeFunction(face_sides[i_face], par_duplet, phi, dphidxi);
+            intel_vol->SideShapeFunction(face_side, par_duplet, phi, dphidxi);
             
             
             for (int jp = 0; jp < nshapes; jp++) {
-                block(ip,jp) =  w * detjac * phi(jp,0)/ElementMeasure;
+                block_integral(0,jp) =  w * detjac * phi(jp,0)/ElementMeasure;
             }
             
         }
         
-        for (int ip = 0; ip < npoints; ip++) {
-        
-            for (int jp = 0; jp < nshapes; jp++) {
-                block_integral(0,jp) += block(ip,jp);
-//                block_integral(1,jp) += block(ip,jp);
-            }
-            
-        }
+//        for (int ip = 0; ip < npoints; ip++) {
+//        
+//            for (int jp = 0; jp < nshapes; jp++) {
+//                block_integral(0,jp) += block(ip,jp);
+////                block_integral(1,jp) += block(ip,jp);
+//            }
+//            
+//        }
         
         if (IsBoundaryQ) {
             fun_To_Transport_Gamma.SetBlock(k_face, block_integral);
@@ -1288,6 +1294,13 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
 
         
     }
+    
+//    if (IsBoundaryQ) {
+//        fun_To_Transport_Gamma.Print("Gamma = ");
+//    }
+//    else{
+//        fun_To_Transport_gamma.Print("gamma = ");
+//    }
     
 }
 
@@ -1322,10 +1335,10 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
     long n_interfaces;
     int dimension = geometry->Dimension();
     if (IsBoundaryQ) {
-        n_interfaces = fleft_right_indexes_Gamma.size();
+        n_interfaces = fleft_right_g_indexes_Gamma.size();
     }
     else{
-        n_interfaces = fleft_right_indexes_gamma.size();
+        n_interfaces = fleft_right_g_indexes_gamma.size();
     }
     
     int rock_id = this->SimulationData()->RawData()->fOmegaIds[0];
@@ -1373,9 +1386,9 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
             int counter = 0;
             int i = 0;
             for (int iface = 0; iface < n_interfaces; iface++) {
-                TPZGeoEl *gel    = geometry->Element(finterface_indexes_Gamma[iface]);
-                TPZGeoEl *gel_l  = geometry->Element(fleft_right_indexes_Gamma[iface].first);
-                TPZGeoEl *gel_r  = geometry->Element(fleft_right_indexes_Gamma[iface].second);
+                TPZGeoEl *gel    = geometry->Element(finterface_g_indexes_Gamma[iface]);
+                TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_Gamma[iface].first);
+                TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_Gamma[iface].second);
 
                 
 #ifdef PZDEBUG
@@ -1459,8 +1472,8 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
         int i = 0;
         for (int iface = 0; iface < n_interfaces; iface++) {
 
-            TPZGeoEl *gel_l  = geometry->Element(fleft_right_indexes_gamma[iface].first);
-            TPZGeoEl *gel_r  = geometry->Element(fleft_right_indexes_gamma[iface].second);
+            TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_gamma[iface].first);
+            TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_gamma[iface].second);
             
             
 #ifdef PZDEBUG
@@ -1782,26 +1795,26 @@ void TRMBuildTransfers::ComputeLeftRight(TPZCompMesh * transport_mesh){
             DebugStop();
         }
         
-        face_index  = interface->Index();
+        face_index  = interface->Reference()->Index();
         duplet      = std::make_pair(left_cel->Reference()->Index(), right_cel->Reference()->Index());
         
         if(left_cel->Dimension() != dimension ||  right_cel->Dimension() != dimension){
             
-            fleft_right_indexes_Gamma.Push(duplet);
-            finterface_indexes_Gamma.Push(face_index);
+            fleft_right_g_indexes_Gamma.Push(duplet);
+            finterface_g_indexes_Gamma.Push(face_index);
             continue;
         }
         
-        fleft_right_indexes_gamma.Push(duplet);
-        finterface_indexes_gamma.Push(face_index);
+        fleft_right_g_indexes_gamma.Push(duplet);
+        finterface_g_indexes_gamma.Push(face_index);
         
     }
     
 #ifdef PZDEBUG
-    if (finterface_indexes_Gamma.size() == 0) {
+    if (finterface_g_indexes_Gamma.size() == 0) {
         DebugStop();
     }
-    if (finterface_indexes_gamma.size() == 0) {
+    if (finterface_g_indexes_gamma.size() == 0) {
         std::cout << "Warning:: No inner interfaces were found" << std::endl;
     }
 #endif
@@ -1809,16 +1822,15 @@ void TRMBuildTransfers::ComputeLeftRight(TPZCompMesh * transport_mesh){
 }
 
 /** @brief Dimensionla Measure of the elemnt */
-REAL TRMBuildTransfers::DimensionalMeasure(TPZCompEl * cel){
+REAL TRMBuildTransfers::DimensionalMeasure(TPZGeoEl * gel){
     
 #ifdef PZDEBUG
-    if (!cel) {
+    if (!gel) {
         DebugStop();
     }
 #endif
     REAL measure = 0.0;
     int order = 5;
-    TPZGeoEl * gel = cel->Reference();
     int element_itself  = gel->NSides() - 1;
     TPZIntPoints * int_points = gel->CreateSideIntegrationRule(element_itself, order);
     REAL detjac, w;
@@ -1887,7 +1899,7 @@ void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index,TPZInterpolation
 /** @brief Compute compuational mesh pair (mixed, transport) indexed by geometric volumetic element index */
 void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport){
 
-    fmixed_transport_indexes.Resize(0);
+    fmixed_transport_cindexes.Resize(0);
     
 #ifdef PZDEBUG
     if (!cmesh_mf_mixed) {
@@ -1926,26 +1938,26 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
         gel_indexes.first = gel->Index();
         gel_indexes.second.first = -1;
         gel_indexes.second.second = -1;
-        fmixed_transport_indexes.Push(gel_indexes);
+        fmixed_transport_cindexes.Push(gel_indexes);
 
     }
     
     // counting volumetric elements
-    long nvol_elements = fmixed_transport_indexes.size();
-    fmixed_transport_indexes.Resize(nvol_elements);
+    long nvol_elements = fmixed_transport_cindexes.size();
+    fmixed_transport_cindexes.Resize(nvol_elements);
     
     // inserting mixed indexes
     cmesh_mf_mixed->LoadReferences();
     for(long ivol = 0; ivol < nvol_elements; ivol++){
 
-        TPZCompEl * mixed_cel = geometry->Element(fmixed_transport_indexes[ivol].first)->Reference();
+        TPZCompEl * mixed_cel = geometry->Element(fmixed_transport_cindexes[ivol].first)->Reference();
         
 #ifdef PZDEBUG
         if (!mixed_cel) {
             DebugStop();
         }
 #endif
-        fmixed_transport_indexes[ivol].second.first = mixed_cel->Index();
+        fmixed_transport_cindexes[ivol].second.first = mixed_cel->Index();
         
     }
     
@@ -1957,14 +1969,14 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
     cmesh_mf_transport->LoadReferences();
     for(long ivol = 0; ivol < nvol_elements; ivol++){
         
-        TPZCompEl * trans_cel = geometry->Element(fmixed_transport_indexes[ivol].first)->Reference();
+        TPZCompEl * trans_cel = geometry->Element(fmixed_transport_cindexes[ivol].first)->Reference();
         
 #ifdef PZDEBUG
         if (!trans_cel) {
             DebugStop();
         }
 #endif
-        fmixed_transport_indexes[ivol].second.second = trans_cel->Index();
+        fmixed_transport_cindexes[ivol].second.second = trans_cel->Index();
         
     }
     

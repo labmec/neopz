@@ -103,19 +103,19 @@ private:
     TPZVec< TPZVec<long> > fun_dof_scatter_Gamma;
 
     /** @brief mixed and transpor computational multiphysics element indexes, every element is indexed by geometric element */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fmixed_transport_indexes;
+    TPZStack< std::pair<long, std::pair<long, long> >  > fmixed_transport_cindexes;
     
     /** @brief left and right geometric element indexes on gamma */
-    TPZStack < std::pair<long, long> > fleft_right_indexes_gamma;
+    TPZStack < std::pair<long, long> > fleft_right_g_indexes_gamma;
     
     /** @brief geometric interface element indexes on Gamma */
-    TPZStack < long > finterface_indexes_gamma;
+    TPZStack < long > finterface_g_indexes_gamma;
     
     /** @brief left and right geometric element indexes on Gamma */
-    TPZStack < std::pair<long, long> > fleft_right_indexes_Gamma;
+    TPZStack < std::pair<long, long> > fleft_right_g_indexes_Gamma;
     
     /** @brief geometric interface element indexes on Gamma */
-    TPZStack < long > finterface_indexes_Gamma;
+    TPZStack < long > finterface_g_indexes_Gamma;
     
     //    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
     //    TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_V;
@@ -395,7 +395,7 @@ public:
     bool IdentifyFace(int &side, TPZGeoEl * vol, TPZGeoEl * face);
     
     /** @brief Dimensionla Measure of the elemnt */
-    REAL DimensionalMeasure(TPZCompEl * cel);
+    REAL DimensionalMeasure(TPZGeoEl * gel);
     
     /** @brief Compute indices associated to faces on 3D topologies */
     void ComputeFaceIndex(TPZGeoEl * gel , TPZVec<int> &sides);

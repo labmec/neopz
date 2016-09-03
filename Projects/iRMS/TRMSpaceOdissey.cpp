@@ -954,9 +954,6 @@ void TRMSpaceOdissey::CreateTransportMesh(){
             boundary_bc->SetMaterial(matint);
             boundary_bc->SetId(bc_id);
             boundary_bc->SetType(bc_item.first);
-//            TPZMaterial * material_bc = dynamic_cast<TPZMaterial * >(boundary_bc);
-//            material_bc->SetTimedependentBCForcingFunction(bc_item.second);
-            
             TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
             boundary_bc->SetTimedependentBCForcingFunction(0,boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
             fTransportMesh->InsertMaterialObject(boundary_bc);
@@ -1003,13 +1000,13 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     // Creation of interface elements
     for(int el = 0; el < nel; el++)
     {
-        TPZCompEl * compEl = fTransportMesh->ElementVec()[el];
-        if(!compEl) continue;
-        TPZGeoEl * gel = compEl->Reference();
+        TPZCompEl * cel = fTransportMesh->ElementVec()[el];
+        if(!cel) continue;
+        TPZGeoEl * gel = cel->Reference();
         if(!gel) {continue;}
         if(gel->HasSubElement()) {continue;}
-        int index = compEl ->Index();
-        if(compEl->Dimension() == fTransportMesh->Dimension())
+        int index = cel ->Index();
+        if(cel->Dimension() == fTransportMesh->Dimension())
         {
             TPZMultiphysicsElement * InterpEl = dynamic_cast<TPZMultiphysicsElement *>(fTransportMesh->ElementVec()[index]);
             if(!InterpEl) {
