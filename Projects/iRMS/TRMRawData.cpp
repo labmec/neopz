@@ -106,7 +106,7 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    water->SetRhoModel(1);
+    water->SetRhoModel(0);
     fPhases.Push(water);
     int n_data = fSystemType.size();
     
@@ -131,8 +131,8 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 50;
-    fepsilon_res = 0.0001;
-    fepsilon_cor = 0.00001;
+    fepsilon_res = 0.01;
+    fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
     
     
@@ -318,12 +318,12 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     
     fSystemType.Push("water");
-    fSystemType.Push("water");
+    fSystemType.Push("gas");
     
     water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    gas->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(gas);
     
     int n_data = fSystemType.size();
     
@@ -577,7 +577,7 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     
     
     fn_steps  = 20;
-    fdt = 1.0*day;
+    fdt = 10.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;
     fdt_up = 1.0;
@@ -669,8 +669,8 @@ void TRMRawData::WaterOilGasReservoirBox(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 50;
-    fepsilon_res = 0.001;
-    fepsilon_cor = 0.0001;
+    fepsilon_res = 0.01;
+    fepsilon_cor = 0.01;
     fIsQuasiNewtonQ = true;
     
     

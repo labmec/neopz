@@ -54,7 +54,7 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = false;
+    bool IsReservoirBoxQ = true;
     
     if (Is3DGeometryQ) {
         
@@ -98,8 +98,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
-            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-//            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
             fSpaceGenerator->CreateGeometricGIDMesh(file);
@@ -109,7 +109,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 0;
+    int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
     
@@ -161,6 +161,8 @@ void TRMOrchestra::CreateAnalysisPrimal()
 void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
+    BuildGeometry(false);
+    
     fSimulationData->SetInitialStateQ(IsInitialQ);
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
     TRMTransportAnalysis * hyperbolic = new TRMTransportAnalysis;
@@ -180,7 +182,17 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
-    fSpaceGenerator->BuildMixed_Mesh();
+
+    
+    bool UseMHMQ = false;
+    
+    if(UseMHMQ){
+        fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
+        fSpaceGenerator->BuildMHM_Mesh();
+    }
+    else{
+        fSpaceGenerator->BuildMixed_Mesh();
+    }
     
     if(fSimulationData->IsTwoPhaseQ()){
         fSpaceGenerator->CreateAlphaTransportMesh();
@@ -197,54 +209,13 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         hyperbolic->Meshvec()[1] = fSpaceGenerator->BetaSaturationMesh();
         fSpaceGenerator->CreateTransportMesh();
     }
-
-    
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    // Transfer object
-    TRMBuildTransfers * Transfer = new TRMBuildTransfers;
-    Transfer->SetSimulationData(fSimulationData);
-    Transfer->Fill_u_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 0);
-    Transfer->Fill_p_To_Mixed(fSpaceGenerator->MixedFluxPressureCmesh(), 1);
-    
-    if(fSimulationData->IsOnePhaseQ()){
-        Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->MixedFluxPressureCmesh());
-    }
-    
-    if(fSimulationData->IsTwoPhaseQ()){
-        Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->TransportMesh());        
-        Transfer->Fill_s_To_Transport(fSpaceGenerator->TransportMesh(), 0);
-        Transfer->ComputeLeftRight(fSpaceGenerator->TransportMesh());// @omar:: assuming it consistent ...
-        Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),true);
-        Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
-    }
-    
-    if(fSimulationData->IsThreePhaseQ()){
-        Transfer->FillComputationalElPairs(fSpaceGenerator->MixedFluxPressureCmesh(),fSpaceGenerator->TransportMesh());
-        Transfer->Fill_s_To_Transport(fSpaceGenerator->TransportMesh(), 0);
-        Transfer->Fill_s_To_Transport(fSpaceGenerator->TransportMesh(), 1);
-        Transfer->ComputeLeftRight(fSpaceGenerator->TransportMesh());
-        Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),true);
-        Transfer->Fill_un_To_Transport(fSpaceGenerator->FluxCmesh(),fSpaceGenerator->TransportMesh(),false);
-    }
-    
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    bool UseMHMQ = false;
-    
-    if(UseMHMQ){
-        fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
-        fSpaceGenerator->PrintGeometry();
-        fSpaceGenerator->BuildMHM_Mesh();
-    }
     
     bool IsIterativeSolverQ = false;
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 0;
-    bool mustOptimizeBandwidth_parabolic = false;
-    
+    int numofThreads_p = 16;
+    bool mustOptimizeBandwidth_parabolic = true;
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     
@@ -262,7 +233,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->SetSolver(step_p);
     parabolic->AdjustVectors();
     parabolic->SetSimulationData(fSimulationData);
-    parabolic->SetTransfer(Transfer);
     
     if (IsIterativeSolverQ) {
         
@@ -297,8 +267,8 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 0;
-        bool mustOptimizeBandwidth_hyperbolic = false;
+        int numofThreads_t = 16;
+        bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;
@@ -309,12 +279,48 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         hyperbolic->SetSolver(step_t);
         hyperbolic->AdjustVectors();
         hyperbolic->SetSimulationData(fSimulationData);
-        hyperbolic->SetTransfer(Transfer);
         hyperbolic->FilterEquations();
         std::cout << "ndof hyperbolic = " << hyperbolic->Solution().Rows() << std::endl;
     }
 
     
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    parabolic->Mesh()->ComputeNodElCon();
+    parabolic->Mesh()->CleanUpUnconnectedNodes();
+    
+    // Transfer object
+    TRMBuildTransfers * Transfer = new TRMBuildTransfers;
+    Transfer->SetSimulationData(fSimulationData);
+    Transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
+    Transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
+    
+    if(fSimulationData->IsOnePhaseQ()){
+        Transfer->FillComputationalElPairs(parabolic->Mesh(),parabolic->Mesh());
+    }
+    
+    if(fSimulationData->IsTwoPhaseQ()){
+        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
+        Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
+        Transfer->ComputeLeftRight(hyperbolic->Mesh());
+        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
+        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
+    }
+    
+    if(fSimulationData->IsThreePhaseQ()){
+        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
+        Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
+        Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 1);
+        Transfer->ComputeLeftRight(hyperbolic->Mesh());
+        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
+        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    parabolic->SetTransfer(Transfer);
+    if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
+        hyperbolic->SetTransfer(Transfer);
+    }
     
     TRMSegregatedAnalysis * segregated = new TRMSegregatedAnalysis;
     segregated->SetTransfer(Transfer);
@@ -426,7 +432,7 @@ void TRMOrchestra::RunStaticProblem(){
     
     int n = 2;//fSimulationData->n_steps();
     REAL dt = fSimulationData->dt();
-    fSimulationData->Setdt(1.0e12);
+    fSimulationData->Setdt(1.0e10);
     
     for (int i = 0; i < n; i++) {
         if (IsMonolithicQ()) {
@@ -489,7 +495,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSegregatedAnalysis->PostProcessStep(true);
     }
     
-    // Evolutionary problems
+    // Evolutionary problem
     int n = fSimulationData->n_steps();
     for (int i = 0; i < n; i++) {
         if (IsMonolithicQ()) {

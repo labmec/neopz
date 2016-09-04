@@ -120,8 +120,8 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
         fFluxCmesh->InsertMaterialObject(mat);
         
-//        TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
-//        fFluxCmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
+        TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
+        fFluxCmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
         
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
@@ -359,6 +359,7 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(){
         }
     }
     fGeoMesh->BuildConnectivity();
+    this->PrintGeometry();
 }
 
 /** @brief Construc computational macro elements */
@@ -525,6 +526,8 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         mfcel->InitializeIntegrationRule();
         mfcel->PrepareIntPtIndices();
     }
+    
+//    TPZCompMeshTools::OptimizeBandwidth(fMixedFluxPressureCmesh);
     
 #ifdef PZDEBUG
     std::ofstream out("CmeshMixed.txt");
@@ -1285,8 +1288,8 @@ void TRMSpaceOdissey::CreateGeometricBoxMesh(TPZManVector<REAL,2> dx, TPZManVect
 void TRMSpaceOdissey::ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 {
     X[0] = par[0];
-    X[1] = 0.0;
-    X[2] = 0.0*25.0*sin(0.1*par[0]);
+    X[1] = 0.0*sin(0.01*par[0]);
+    X[2] = 0.0;
 }
 
 void TRMSpaceOdissey::ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X)

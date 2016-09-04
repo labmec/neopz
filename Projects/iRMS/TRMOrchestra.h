@@ -26,7 +26,7 @@
 
 #include "TRMFluxPressureAnalysis.h"
 #include "TRMTransportAnalysis.h"
-
+#include "TPZCompMeshTools.h"
 
 
 class TRMRawData;

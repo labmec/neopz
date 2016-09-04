@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "pzcmesh.h"
 #include "pzfunction.h"
+#include "pzrenumbering.h"
 
 /// class whose methods implement a functionality on a computational mesh
 class TPZCompMeshTools
@@ -38,6 +39,8 @@ public:
     
     /// created condensed elements for the elements that have internal nodes
     static void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian);
+    
+    static void OptimizeBandwidth(TPZCompMesh *cmesh);
 };
 
 #endif /* defined(__PZ__TPZCompMeshTools__) */

@@ -158,14 +158,6 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     
-#ifdef PZDEBUG
-    TPZCheckMesh check(Mesh(),&std::cout);
-    if(check.CheckConnectSeqNumberConsistency() != 0)
-    {
-        DebugStop();
-    }
-#endif
-    
     this->AssembleResidual();
     fR = this->Rhs();
     

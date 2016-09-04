@@ -39,7 +39,7 @@ int main()
 #endif
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
-    TPZMaterial::gBigNumber = 1.0e12;
+    TPZMaterial::gBigNumber = 1.0e14;
     // Running primal problem
 //    LinearTracerPrimal();
     
@@ -92,36 +92,34 @@ void BoxLinearTracerDual()
     bool Is3DGeometry = false;
     
 //    On box reservoir
-//   RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
-//    RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
+   RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
+//   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
 //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
     
 //    On cricular reservoir
 //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
-    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
+//    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
 //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
     
     
     TRMSimulationData * SimData = new TRMSimulationData;
     SimData->SetRawData(RawData);
     
-    
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
-    SymphonyX->BuildGeometry(Is3DGeometry);
+    SymphonyX->BuildGeometry(Is3DGeometry); // @omar:: This mesh must to be unique???
     
-    
-    SymphonyX->SetSegregatedQ(true);
-    SymphonyX->CreateAnalysisDualonBox(true); //  Static Solution
-    SymphonyX->RunStaticProblem();
-    SymphonyX->CreateAnalysisDualonBox(false);  // Evolutionary Solution
-    SymphonyX->RunEvolutionaryProblem();
-
-//    SymphonyX->SetMonolithicQ(true);
-//    SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution
+//    SymphonyX->SetSegregatedQ(true);
+//    SymphonyX->CreateAnalysisDualonBox(true); //  Static Solution
 //    SymphonyX->RunStaticProblem();
-//    SymphonyX->CreateMonolithicAnalysis(false); // Evolutionary Solution
+//    SymphonyX->CreateAnalysisDualonBox(false);  // Evolutionary Solution
 //    SymphonyX->RunEvolutionaryProblem();
+
+    SymphonyX->SetMonolithicQ(true);
+    SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution
+    SymphonyX->RunStaticProblem();
+    SymphonyX->CreateMonolithicAnalysis(false); // Evolutionary Solution
+    SymphonyX->RunEvolutionaryProblem();
 
     
     std::cout << "Dual complete normally." << std::endl;
