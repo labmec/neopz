@@ -91,6 +91,71 @@ TRMSpaceOdissey::~TRMSpaceOdissey(){
     
 }
 
+/** @brief Create a Biot H1 computational mesh */
+void TRMSpaceOdissey::CreateBiotCmesh(){
+    
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+    
+    int dim = fGeoMesh->Dimension();
+    int flux_or_pressure = 0;
+    int qorder = fPOrder;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
+    
+    // Malha computacional
+    fBiotCmesh = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
+        fBiotCmesh->InsertMaterialObject(mat);
+        
+        TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
+        fBiotCmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
+        
+        // Inserting volumetric materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[flux_or_pressure];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            fBiotCmesh->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+    
+    fBiotCmesh->SetDimModel(dim);
+    fBiotCmesh->SetDefaultOrder(qorder);
+    fBiotCmesh->SetAllCreateFunctionsContinuous();
+    fBiotCmesh->AutoBuild();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshBiot.txt");
+    fBiotCmesh->Print(out);
+#endif
+    
+}
 
 /** @brief Create a Hdiv computational mesh Hdiv */
 void TRMSpaceOdissey::CreateFluxCmesh(){

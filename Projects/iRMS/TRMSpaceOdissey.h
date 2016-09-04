@@ -55,6 +55,9 @@ private:
     /** @brief Autopointer of Simulation data */
     TRMSimulationData * fSimulationData;
     
+    /** @brief H1 computational mesh for biot linear poroelasticity approach */
+    TPZCompMesh * fBiotCmesh;
+    
     /** @brief H1 computational mesh for primal approach */
     TPZCompMesh * fH1Cmesh;
     
@@ -122,6 +125,9 @@ public:
     {
         fSOrder = sorder;
     }
+    
+    /** @brief Create a Biot H1 computational mesh */
+    void CreateBiotCmesh();
     
     /** @brief Create a H1 computational mesh */
     void CreateH1Cmesh();
@@ -204,6 +210,17 @@ public:
     /** @brief Get autopointer of Simulation data */
     TRMSimulationData *  SimulationData(){
         return fSimulationData;
+    }
+    
+    
+    /** @brief Set autopointer of Biot H1 computational mesh for primal approach */
+    void SetBiotCMesh(TPZCompMesh * BiotCmesh){
+        fBiotCmesh = BiotCmesh;
+    }
+    
+    /** @brief Get autopointer of Biot H1 computational mesh for primal approach */
+    TPZCompMesh *  BiotCMesh(){
+        return fBiotCmesh;
     }
     
     /** @brief Set autopointer of H1 computational mesh for primal approach */
