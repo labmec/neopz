@@ -222,7 +222,7 @@ int main2(int argc, char *argv[])
     TPZGeoMesh *gmesh = NULL;
     std::cout << "Creating gmesh and cmesh..." << std::endl;
     if (convergenceMesh){
-      const int nelem = 1; // num of hexes in x y and z
+      const int nelem = 6; // num of hexes in x y and z
       const int matid = 1;
       
       TPZManVector<int,6> BCids(6,-1); // ids of the bcs
