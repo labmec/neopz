@@ -89,13 +89,21 @@ void VerifyDRhamCompatibility();
 
 void ExactNathan(const TPZVec<REAL> &pt, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
 
+  // Sine problem
+  sol[0] = sin(M_PI*pt[0])*sin(M_PI*pt[1])*sin(M_PI*pt[2]);
+  dsol(0,0) = M_PI*cos(M_PI*pt[0])*sin(M_PI*pt[1])*sin(M_PI*pt[2]);
+  dsol(1,0) = M_PI*cos(M_PI*pt[1])*sin(M_PI*pt[0])*sin(M_PI*pt[2]);
+  dsol(2,0) = M_PI*cos(M_PI*pt[2])*sin(M_PI*pt[0])*sin(M_PI*pt[1]);
+  return;
+  
+  // x^2 + y^2 + z^2
   sol[0] = pt[0]*pt[0] + pt[1]*pt[1] + pt[2]*pt[2];
   dsol(0,0) = 2*pt[0];
   dsol(1,0) = 2*pt[1];
   dsol(2,0) = 2*pt[2];
   return;
   
-  
+  // x^2 only
   sol[0] = pt[0]*pt[0];
   dsol(0,0) = 2*pt[0];
   dsol(1,0) = 0.;
@@ -115,9 +123,15 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
 void BodyForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
+  // Sine problem
+  f[0]= 3*pow(M_PI,2)*sin(M_PI*pt[0])*sin(M_PI*pt[1])*sin(M_PI*pt[2]);
+  return;
+  
+  // x^2 + y^2 + z^2
   f[0] = -6.;
   return;
   
+  // x^2 only
   f[0] = -2.;
   return;
 }
@@ -353,7 +367,7 @@ int main2(int argc, char *argv[])
     int postprocessresolution = 0;
     an.PostProcess(postprocessresolution);
   
-    std::ofstream out("errosTetMesh.txt",std::ios::app);
+    std::ofstream out("errosPyrMeshSin.txt",std::ios::app);
     out << "\n\n ------------ NEW SIMULATION -----------" << std::endl;
     out << "Nequations = " << cmeshMult->NEquations() << std::endl;
   
@@ -365,7 +379,7 @@ int main2(int argc, char *argv[])
   
     out << "Errors:" << std::endl;
     out << "Norma H1 = " << errors[0] << std::endl;
-    out << "Norma L1 = " << errors[1] << std::endl;
+    out << "Norma L2 = " << errors[1] << std::endl;
     out << "Semi-Norma H1 = " << errors[2] << std::endl;
   
     std::cout << "Code finished!" << std::endl;
