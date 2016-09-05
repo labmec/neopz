@@ -50,7 +50,6 @@ protected:
     
     /** Constructing geometrical mesh depends on type of element wished. */
     TPZGeoMesh *HexahedralMesh();
-    TPZGeoMesh *TetrahedralMesh();
     TPZGeoMesh *TetrahedralMeshUsingRefinement();
     
     int AddBoundaryElements(TPZGeoMesh *gmesh);
@@ -108,7 +107,9 @@ public:
     
     /// create a geometric mesh acording to the parameters of the object
     TPZGeoMesh *CreateGeoMesh();
+  
     TPZGeoMesh *PyramidalAndTetrahedralMesh();
+    TPZGeoMesh *TetrahedralMesh();
   
     /**
     *  Sets the bc id vector for the hexaedral mesh

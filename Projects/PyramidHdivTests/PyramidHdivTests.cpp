@@ -222,7 +222,7 @@ int main2(int argc, char *argv[])
     TPZGeoMesh *gmesh = NULL;
     std::cout << "Creating gmesh and cmesh..." << std::endl;
     if (convergenceMesh){
-      const int nelem = 6; // num of hexes in x y and z
+      const int nelem = 5; // num of hexes in x y and z
       const int matid = 1;
       
       TPZManVector<int,6> BCids(6,-1); // ids of the bcs
@@ -230,7 +230,8 @@ int main2(int argc, char *argv[])
       
       academic.SetMaterialId(matid);
       academic.SetNumberElements(nelem);
-      gmesh = academic.PyramidalAndTetrahedralMesh();
+//      gmesh = academic.PyramidalAndTetrahedralMesh();
+      gmesh = academic.TetrahedralMesh();
     }
     else{
       //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
@@ -352,7 +353,7 @@ int main2(int argc, char *argv[])
     int postprocessresolution = 0;
     an.PostProcess(postprocessresolution);
   
-    std::ofstream out("erros.txt",std::ios::app);
+    std::ofstream out("errosTetMesh.txt",std::ios::app);
     out << "\n\n ------------ NEW SIMULATION -----------" << std::endl;
     out << "Nequations = " << cmeshMult->NEquations() << std::endl;
   

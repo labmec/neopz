@@ -191,7 +191,8 @@ TPZGeoMesh *TPZAcademicGeoMesh::TetrahedralMesh()
     int MaterialId = fMaterialId;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     GenerateNodes(gmesh);
-    
+    gmesh->SetDimension(3);
+  
     for (long i=0; i<nelem; i++) {
         for (long j=0; j<nelem; j++) {
             for (long k=0; k<nelem; k++) {
