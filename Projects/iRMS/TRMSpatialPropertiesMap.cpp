@@ -47,7 +47,7 @@ void TRMSpatialPropertiesMap::Kappa(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> 
     
 }
 
-/** @brief Absolute Permeability m2  $\kappa$ */
+/** @brief Porosity fraction  $\phi$ */
 void TRMSpatialPropertiesMap::phi(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
     
     switch (this->MapModel()) {
@@ -76,6 +76,124 @@ void TRMSpatialPropertiesMap::phi(TPZManVector<STATE,3> &x, TPZManVector<STATE,1
     
 }
 
+/** @brief first lamé parameter $\lambda$ */
+void TRMSpatialPropertiesMap::lambda(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars){
+    
+    switch (this->MapModel()) {
+        case 0:
+        {
+            this->lambda(x, lambda, state_vars);
+        }
+            break;
+        case 1:
+        {
+            DebugStop();
+        }
+            break;
+        case 2:
+        {
+            DebugStop();
+        }
+            break;
+        default:
+        {
+            std::cout << "Error: Model not implemented." << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+}
+
+
+/** @brief undrained first lamé parameter  $\lambda_{u}$ */
+void TRMSpatialPropertiesMap::lambda_u(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars){
+    
+    switch (this->MapModel()) {
+        case 0:
+        {
+            this->lambda_u_c(x, lambda_u, state_vars);
+        }
+            break;
+        case 1:
+        {
+            DebugStop();
+        }
+            break;
+        case 2:
+        {
+            DebugStop();
+        }
+            break;
+        default:
+        {
+            std::cout << "Error: Model not implemented." << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+}
+
+/** @brief second lamé parameter  $\mu$ */
+void TRMSpatialPropertiesMap::mu(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars){
+    
+    switch (this->MapModel()) {
+        case 0:
+        {
+            this->mu_c(x, mu, state_vars);
+        }
+            break;
+        case 1:
+        {
+            DebugStop();
+        }
+            break;
+        case 2:
+        {
+            DebugStop();
+        }
+            break;
+        default:
+        {
+            std::cout << "Error: Model not implemented." << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+}
+
+/** @brief Biot's poroelastic parameter  $\alpha$ */
+void TRMSpatialPropertiesMap::alpha(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars){
+    
+    switch (this->MapModel()) {
+        case 0:
+        {
+            this->lambda_c(x, alpha, state_vars);
+        }
+            break;
+        case 1:
+        {
+            DebugStop();
+        }
+            break;
+        case 2:
+        {
+            DebugStop();
+        }
+            break;
+        default:
+        {
+            std::cout << "Error: Model not implemented." << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+}
+
+
 /** @brief Absolute Permeability m2  $\kappa$ */
 void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars){
 
@@ -99,6 +217,43 @@ void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE
 
 /** @brief Porosity fraction  $\phi$ */
 void TRMSpatialPropertiesMap::phi_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+    
+    phi.Resize(10, 0.0);
+    STATE val = 0.25;
+    phi[0] = val;
+    
+}
+
+/** @brief first lamé parameter $\lambda$ */
+void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+    
+    phi.Resize(10, 0.0);
+    STATE val = 0.25;
+    phi[0] = val;
+    
+}
+
+
+/** @brief undrained first lamé parameter  $\lambda_{u}$ */
+void TRMSpatialPropertiesMap::lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+    
+    phi.Resize(10, 0.0);
+    STATE val = 0.25;
+    phi[0] = val;
+    
+}
+
+/** @brief second lamé parameter  $\mu$ */
+void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+    
+    phi.Resize(10, 0.0);
+    STATE val = 0.25;
+    phi[0] = val;
+    
+}
+
+/** @brief Biot's poroelastic parameter  $\alpha$ */
+void TRMSpatialPropertiesMap::alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
     
     phi.Resize(10, 0.0);
     STATE val = 0.25;

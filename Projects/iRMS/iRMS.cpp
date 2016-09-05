@@ -107,7 +107,7 @@ void BoxLinearTracerDual()
     
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
-    SymphonyX->BuildGeometry(Is3DGeometry); // @omar:: This mesh must to be unique???
+//    SymphonyX->BuildGeometry(Is3DGeometry); // @omar:: This mesh must to be unique???
     
 //    SymphonyX->SetSegregatedQ(true);
 //    SymphonyX->CreateAnalysisDualonBox(true); //  Static Solution

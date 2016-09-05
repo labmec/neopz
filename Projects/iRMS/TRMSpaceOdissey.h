@@ -23,13 +23,36 @@
 #include "TPZReadGIDGrid.h"
 #include "TPZVTKGeoMesh.h"
 
+
 #include "pzpoisson3d.h"
+#include "TRMMultiphase.h"
+#include "TRMMixedDarcy.h"
+#include "TRMBiotPoroelasticity.h"
+#include "TPZMatLaplacian.h"
+#include "pzbndcond.h"
+#include "TRMPhaseTransport.h"
+#include "TRMPhaseInterfaceTransport.h"
 
 #include "pzelementgroup.h"
 #include "TPZCompMeshTools.h"
 #include "pzsubcmesh.h"
-
 #include "pzcheckgeom.h"
+
+#include "tpzgeoelrefpattern.h"
+#include "TPZRefPatternTools.h"
+#include "tpzhierarquicalgrid.h"
+#include "pzgeopoint.h"
+#include "TRMSimworxMeshGenerator.h"
+#include "TPZCompMeshTools.h"
+#include "pzelchdivbound2.h"
+#include "pzl2projection.h"
+#include "pzshapequad.h"
+
+#include "pzbndcond.h"
+#include "TPZMultiphysicsInterfaceEl.h"
+#include "pzcompelwithmem.h"
+
+#include "pzcreateapproxspace.h"
 
 class TRMSpaceOdissey{
     
@@ -42,6 +65,9 @@ public:
     MGeoMeshType fMeshType;
     
 private:
+    
+    /** @brief order of approximation displacements */
+    int fUOrder;
     
     /** @brief order of approximation flux and pressure */
     int fPOrder;
@@ -113,6 +139,12 @@ public:
     
     /** @brief Initialize the simulation data */
     void InitializeSimulationData(TRMRawData &rawdata);
+    
+    /** @brief Set the order of approximation displacements */
+    void SetDefaultUOrder(int porder)
+    {
+        fUOrder = porder;
+    }
     
     /** @brief Set the order of approximation flux and pressure */
     void SetDefaultPOrder(int porder)

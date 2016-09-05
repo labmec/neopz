@@ -7,30 +7,7 @@
 //
 
 #include "TRMSpaceOdissey.h"
-#include "TRMFlowConstants.h"
 
-#include "TRMMultiphase.h"
-#include "TRMMixedDarcy.h"
-#include "TPZMatLaplacian.h"
-#include "pzbndcond.h"
-#include "TRMPhaseTransport.h"
-#include "TRMPhaseInterfaceTransport.h"
-
-#include "tpzgeoelrefpattern.h"
-#include "TPZRefPatternTools.h"
-#include "tpzhierarquicalgrid.h"
-#include "pzgeopoint.h"
-#include "TRMSimworxMeshGenerator.h"
-#include "TPZCompMeshTools.h"
-#include "pzelchdivbound2.h"
-#include "pzl2projection.h"
-#include "pzshapequad.h"
-
-#include "pzbndcond.h"
-#include "TPZMultiphysicsInterfaceEl.h"
-#include "pzcompelwithmem.h"
-
-#include "pzcreateapproxspace.h"
 
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
@@ -116,11 +93,10 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
-        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
+        
+        TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(rock_id,dim);
         fBiotCmesh->InsertMaterialObject(mat);
         
-        TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
-        fBiotCmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
         
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
@@ -652,31 +628,33 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
         
     }
     
-    
     fMonolithicMultiphaseCmesh->SetDimModel(dim);
     fMonolithicMultiphaseCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
     fMonolithicMultiphaseCmesh->AutoBuild();
     
-    TPZManVector<TPZCompMesh * ,2> meshvector(2);
+    TPZManVector<TPZCompMesh * ,2> meshvector(3);
     
     if (fSimulationData->IsOnePhaseQ()) {
-        meshvector[0] = fFluxCmesh;
-        meshvector[1] = fPressureCmesh;
+        meshvector[0] = fBiotCmesh;
+        meshvector[1] = fFluxCmesh;
+        meshvector[2] = fPressureCmesh;
     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
-        meshvector.Resize(3);
-        meshvector[0] = fFluxCmesh;
-        meshvector[1] = fPressureCmesh;
-        meshvector[2] = fAlphaSaturationMesh;
+        meshvector.Resize(4);
+        meshvector[0] = fBiotCmesh;
+        meshvector[1] = fFluxCmesh;
+        meshvector[2] = fPressureCmesh;
+        meshvector[3] = fAlphaSaturationMesh;
     }
     
     if (fSimulationData->IsThreePhaseQ()) {
-        meshvector.Resize(4);
-        meshvector[0] = fFluxCmesh;
-        meshvector[1] = fPressureCmesh;
-        meshvector[2] = fAlphaSaturationMesh;
-        meshvector[3] = fBetaSaturationMesh;
+        meshvector.Resize(5);
+        meshvector[0] = fBiotCmesh;
+        meshvector[2] = fFluxCmesh;
+        meshvector[3] = fPressureCmesh;
+        meshvector[4] = fAlphaSaturationMesh;
+        meshvector[5] = fBetaSaturationMesh;
     }
 
     
@@ -700,6 +678,7 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     std::ofstream out("CmeshMultiphase.txt");
     fMonolithicMultiphaseCmesh->Print(out);
 #endif
+    
 }
 
 /** @brief Create computational interfaces for jumps  */

@@ -12,7 +12,7 @@
 TRMMonolithicMultiphaseAnalysis::TRMMonolithicMultiphaseAnalysis() : TPZAnalysis() {
     
     fSimulationData = NULL;
-    fmeshvec.Resize(2); // Start with monophasic approach
+    fmeshvec.Resize(3);
     ferror = 1.0;
     fdx_norm = 1.0;
     fk_iterations = 0;

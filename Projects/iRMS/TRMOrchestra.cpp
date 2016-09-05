@@ -342,6 +342,8 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
+    this->BuildGeometry(false);
+    
     fSimulationData->SetInitialStateQ(IsInitialQ);
     
     TRMMonolithicMultiphaseAnalysis * mono_analysis = new TRMMonolithicMultiphaseAnalysis;
@@ -354,39 +356,45 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     fSpaceGenerator->PrintGeometry();
 #endif
     
+    fSpaceGenerator->SetDefaultUOrder(1);
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
     // Structure for one-phase flow
     if(fSimulationData->IsOnePhaseQ()){
         
+        fSpaceGenerator->CreateBiotCmesh();
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateMultiphaseCmesh();
-        
-        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
+
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->FluxCmesh();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->PressureCmesh();
         
     }
     
     if(fSimulationData->IsTwoPhaseQ()){
-        mono_analysis->Meshvec().Resize(3);
+        mono_analysis->Meshvec().Resize(4);
+        fSpaceGenerator->CreateBiotCmesh();
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateAlphaTransportMesh();
         fSpaceGenerator->CreateMultiphaseCmesh();
         fSpaceGenerator->CreateInterfacesInside(fSpaceGenerator->MonolithicMultiphaseCmesh());
-        
-        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-        mono_analysis->Meshvec()[2] = fSpaceGenerator->AlphaSaturationMesh();
+
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->FluxCmesh();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->PressureCmesh();
+        mono_analysis->Meshvec()[3] = fSpaceGenerator->AlphaSaturationMesh();
         
     }
     
     
     if(fSimulationData->IsThreePhaseQ()){
         
-        mono_analysis->Meshvec().Resize(4);
+        mono_analysis->Meshvec().Resize(5);
+        fSpaceGenerator->CreateBiotCmesh();        
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateAlphaTransportMesh();
@@ -394,10 +402,11 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
         fSpaceGenerator->CreateMultiphaseCmesh();
         fSpaceGenerator->CreateInterfacesInside(fSpaceGenerator->MonolithicMultiphaseCmesh());
         
-        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-        mono_analysis->Meshvec()[2] = fSpaceGenerator->AlphaSaturationMesh();
-        mono_analysis->Meshvec()[3] = fSpaceGenerator->BetaSaturationMesh();
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->FluxCmesh();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->PressureCmesh();
+        mono_analysis->Meshvec()[3] = fSpaceGenerator->AlphaSaturationMesh();
+        mono_analysis->Meshvec()[4] = fSpaceGenerator->BetaSaturationMesh();
         
     }
     
@@ -408,7 +417,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     // Use this matrix for a linear tracer
     TPZSkylineNSymStructMatrix skyns_mat(fSpaceGenerator->MonolithicMultiphaseCmesh());
     TPZStepSolver<STATE> step;
-    int numofThreads = 16;
+    int numofThreads = 0;
     skyns_mat.SetNumThreads(numofThreads);
     step.SetDirect(ELU);
     mono_analysis->SetStructuralMatrix(skyns_mat);
