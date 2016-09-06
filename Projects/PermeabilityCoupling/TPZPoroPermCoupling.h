@@ -11,13 +11,16 @@
 
 #include <stdio.h>
 #include "pzmaterial.h"
+#include "pzmatwithmem.h"
+#include "TPZPoroPermMemory.h"
 #include "pzdiscgal.h"
 #include "pzvec.h"
 #include "TPZSimulationData.h"
 #include <iostream>
+#include <cmath>
 
 
-class TPZPoroPermCoupling : public TPZDiscontinuousGalerkin {
+class TPZPoroPermCoupling : public TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin> {
     
 protected:
     
@@ -37,6 +40,10 @@ protected:
     /** @brief first Lame Parameter */
     REAL flambda;
     REAL flambdau;
+
+    /** @brief Bulk modulus */
+    REAL fK;
+    REAL fKu;
     
     /** @brief Second Lame Parameter */
     REAL fmu;
@@ -55,6 +62,12 @@ protected:
     
     /** @brief Fluid viscosity */
     REAL feta;
+    
+    /** @brief coehsion of the rock */
+    REAL fc;
+    
+    /** @brief Friction angle */
+    REAL fphi_f;
     
     /** @brief Uses plain stress
      * @note \f$fPlaneStress = 1\f$ => Plain stress state
@@ -116,12 +129,20 @@ public:
         flambda = l;
         fmu = mu;
         flambdau = l_u;
+        fK = flambda + (2.0/3.0)*fmu;
+        fKu = flambdau + (2.0/3.0)*fmu;
     }
     
     void SetBiotParameters(REAL alpha, REAL Se)
     {
         falpha = alpha;
         fSe = Se;
+    }
+    
+    void SetDruckerPragerParameters(REAL phi_f, REAL c)
+    {
+        fphi_f = phi_f;
+        fc = c;
     }
     
     /** @brief Set plane problem
@@ -188,6 +209,39 @@ public:
     
     /** @brief Poroelastic porosity correction */
     REAL porosoty_corrected(TPZVec<TPZMaterialData> &datavec);
+    
+public:
+    
+    /** @brief mean stress */
+    REAL p(TPZFMatrix<REAL> T);
+    
+    /** @brief mean stress */
+    TPZFMatrix<REAL> s(TPZFMatrix<REAL> T);
+    
+    /** @brief J2 invariant stress */
+    REAL J2(TPZFMatrix<REAL> T);
+    
+    /** @brief J3 invariant stress */
+    REAL J3(TPZFMatrix<REAL> T);
+    
+    /** @brief theta */
+    REAL theta(TPZFMatrix<REAL> T);
+    
+    /** @brief theta */
+    REAL Phi_DP(TPZFMatrix<REAL> T);
+    
+    /** @brief plasticity multiplier delta_gamma */
+    REAL Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest);
+    
+    /** @brief Drucker prager strain update */
+    TPZFMatrix<REAL> strain_DP(TPZFMatrix<REAL> T);
+    
+    /** @brief Drucker prager stress update */
+    TPZFMatrix<REAL> stress_DP(TPZFMatrix<REAL> T);
+    
+    /** @brief Drucker prager elastoplastic corrector  */
+    void corrector_DP(TPZFMatrix<REAL> T);
+    
     
 };
 

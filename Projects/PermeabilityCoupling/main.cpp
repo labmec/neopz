@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.0000001;
+    REAL dt = 0.00001;
     int n_steps = 10;
     REAL epsilon_res = 0.01;
     REAL epsilon_corr = 0.001;
@@ -124,10 +124,10 @@ int main(int argc, char *argv[])
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
     
-    dx_dy[0] = 0.5; // x - direction
-    dx_dy[1] = 0.2; // y - direction
-    n[0] = 2; // x - direction
-    n[1] = 10; // y - direction
+    dx_dy[0] = 1.0; // x - direction
+    dx_dy[1] = 2.0; // y - direction
+    n[0] = 1; // x - direction
+    n[1] = 1; // y - direction
     
     TPZGeoMesh * gmesh = RockBox(dx_dy,n);
     
@@ -221,6 +221,9 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     bc_top = -3;
     bc_left = -4;
     
+    REAL MPa = 1.0e6;
+    REAL rad = M_PI/180.0;
+    
     // Getting mesh dimension
     int dim = 2;
     
@@ -232,6 +235,9 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     REAL k = 1.0e-13;
     REAL porosity = 0.25;
     REAL eta = 0.001;
+    
+    REAL c = 27.2*MPa;
+    REAL phi_f = 30.0*rad;
 
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
@@ -242,14 +248,25 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     material->SetPorolasticParameters(l, mu, l_u);
     material->SetBiotParameters(alpha, Se);
     material->SetParameters(k, porosity, eta);
+    material->SetDruckerPragerParameters(phi_f, c);
     cmesh->InsertMaterialObject(material);
     
+    TPZFMatrix<REAL> g(2,2,0.0);
+    g(0,0) = 7.9;
+    g(1,1) = 1.0;
+    
+    std::cout << "p = " << material->p(g) << std::endl;
+    std::cout << "s = " << material->s(g) << std::endl;
+    std::cout << "j2 = " << material->J2(material->s(g)) << std::endl;
+    std::cout << "j3 = " << material->J3(material->s(g)) << std::endl;
+    std::cout << "theta = " << material->theta(g) << std::endl;
+    std::cout << "theta = " << material->Phi_DP(g) << std::endl;    
     // Inserting boundary conditions
     int dirichlet_x_vn   = 7;
     int dirichlet_y_vn   = 8;
     int neumann_y_p      = 5;
     int dirichlet_y_p    = 2;
-    REAL MPa = 1.0e6;
+
     REAL s_n = -10.0*MPa;
 //    REAL u_y = -0.000333333;
     
@@ -281,6 +298,7 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     
     // Setting up multiphysics functions
     cmesh->SetDimModel(dim);
+//    cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
     cmesh->SetAllCreateFunctionsMultiphysicElem();
     cmesh->AutoBuild();
     
@@ -288,6 +306,19 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     TPZBuildMultiphysicsMesh::AddElements(mesh_vector, cmesh);
     TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
+    
+    
+//    long nel = cmesh->NElements();
+//    TPZVec<long> indices;
+//    for (long el = 0; el<nel; el++) {
+//        TPZCompEl *cel = cmesh->Element(el);
+//        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+//        if (!mfcel) {
+//            continue;
+//        }
+//        mfcel->InitializeIntegrationRule();
+//        mfcel->PrepareIntPtIndices();
+//    }
     
 #ifdef PZDEBUG
     std::ofstream out("CMeshMultiPhysics.txt");

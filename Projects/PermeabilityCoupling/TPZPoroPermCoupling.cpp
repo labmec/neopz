@@ -19,7 +19,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.permeabilityc"));
 #endif
 
 
-TPZPoroPermCoupling::TPZPoroPermCoupling():TPZDiscontinuousGalerkin(), fnu(0.), falpha(0.), fk(0.), feta(0.), fPlaneStress(0) {
+TPZPoroPermCoupling::TPZPoroPermCoupling():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(), fnu(0.), falpha(0.), fk(0.), feta(0.), fPlaneStress(0) {
 
     fDim = 2;
     fb.resize(2);
@@ -32,7 +32,7 @@ TPZPoroPermCoupling::TPZPoroPermCoupling():TPZDiscontinuousGalerkin(), fnu(0.), 
     
 }
 
-TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZDiscontinuousGalerkin(matid), fnu(0.), falpha(0.), fk(0.), feta(0.),fPlaneStress(0) {
+TPZPoroPermCoupling::TPZPoroPermCoupling(int matid, int dim):TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>(matid), fnu(0.), falpha(0.), fk(0.), feta(0.),fPlaneStress(0) {
 
     fDim = dim;
     fb.resize(2);
@@ -762,6 +762,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     int u_b = 0;
     int p_b = 1;
     
+    
     // Getting the space functions
     TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
     TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
@@ -866,3 +867,121 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     
 }
 
+/** @brief mean stress */
+REAL TPZPoroPermCoupling::p(TPZFMatrix<REAL> T){
+    
+#ifdef PZDEBUG
+    if (T.Rows() != 2 && T.Cols() != 2) {
+        DebugStop();
+    }
+#endif
+    
+    REAL mean_stress = 0.0;
+    mean_stress = (T(0,0) + T(1,1) + T(1,1))/3;
+    return mean_stress;
+}
+
+/** @brief mean stress */
+TPZFMatrix<REAL> TPZPoroPermCoupling::s(TPZFMatrix<REAL> T){
+
+#ifdef PZDEBUG
+    if (T.Rows() != 2 && T.Cols() != 2) {
+        DebugStop();
+    }
+#endif
+    
+    REAL  mean_stress = p(T);
+    TPZFMatrix<REAL> H = T;
+    TPZFNMatrix<6,REAL> I(2,2,0.0);
+    I.Identity();
+    H = T - mean_stress * I;
+    return H;
+}
+
+/** @brief J2 invariant stress */
+REAL TPZPoroPermCoupling::J2(TPZFMatrix<REAL> T){
+    
+#ifdef PZDEBUG
+    if (T.Rows() != 2 && T.Cols() != 2) {
+        DebugStop();
+    }
+#endif
+    TPZFMatrix<REAL> S = T;
+    TPZFMatrix<REAL> S_inner = T;
+    S.Transpose(&S);
+    S.Multiply(T,S_inner);
+    
+    REAL j2 = 0.5*(S_inner(0,0) + S_inner(1,1) + S_inner(1,1));
+    
+    return j2
+    ;
+}
+
+/** @brief J3 invariant stress */
+REAL TPZPoroPermCoupling::J3(TPZFMatrix<REAL> T){
+    
+#ifdef PZDEBUG
+    if (T.Rows() != 2 && T.Cols() != 2) {
+        DebugStop();
+    }
+#endif
+    TPZFMatrix<REAL> Tinv = T;
+    REAL det = T(0,0)*T(1,1)-T(1,0)*T(0,1);
+    Tinv.Resize(3, 3);
+    Tinv(2,2) = Tinv(1,1);
+    Tinv.DeterminantInverse(det, Tinv);
+    
+    return det;
+    
+}
+
+/** @brief theta */
+REAL TPZPoroPermCoupling::theta(TPZFMatrix<REAL> T){
+    
+#ifdef PZDEBUG
+    if (T.Rows() != 2 && T.Cols() != 2) {
+        DebugStop();
+    }
+#endif
+    
+    REAL theta;
+    REAL arg = -3.0*sqrt(3.0)*J3(s(T))/(2.0*pow(J2(s(T)), 1.5)) + 1.0e-14;
+    theta = (1.0/3.0)*asin(arg);
+    
+    return theta;
+}
+
+/** @brief theta */
+REAL TPZPoroPermCoupling::Phi_DP(TPZFMatrix<REAL> T){
+
+#ifdef PZDEBUG
+    if (T.Rows() != 2 && T.Cols() != 2) {
+        DebugStop();
+    }
+#endif
+    
+    REAL theta_v = theta(T);
+    
+    REAL phi = (cos(theta_v) - (1.0/sqrt(3.0))*sin(theta_v)*sin(fphi_f)) * sqrt(J2(s(T))) + p(T)*sin(fphi_f) - fc * cos(fphi_f);
+    return phi;
+}
+
+/** @brief plasticity multiplier delta_gamma */
+REAL TPZPoroPermCoupling::Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest){
+    DebugStop();
+}
+
+/** @brief Drucker prager strain update */
+TPZFMatrix<REAL> TPZPoroPermCoupling::strain_DP(TPZFMatrix<REAL> T){
+    DebugStop();
+}
+
+/** @brief Drucker prager stress update */
+TPZFMatrix<REAL> TPZPoroPermCoupling::stress_DP(TPZFMatrix<REAL> T){
+    DebugStop();
+}
+
+/** @brief Drucker prager elastoplastic corrector  */
+void TPZPoroPermCoupling::corrector_DP(TPZFMatrix<REAL> T){
+    DebugStop();
+}
