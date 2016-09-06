@@ -97,15 +97,15 @@ int main(int argc, char *argv[])
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.001;
+    REAL dt = 0.0000001;
     int n_steps = 10;
     REAL epsilon_res = 0.01;
-    REAL epsilon_corr = 0.01;
-    int n_corrections = 20;
+    REAL epsilon_corr = 0.001;
+    int n_corrections = 10;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
-    g[1] = -0.0*9.81;
+    g[1] = -1.0*9.81;
     
     sim_data->SetGravity(g);
     sim_data->SetTimeControls(n_steps, dt);
@@ -124,10 +124,10 @@ int main(int argc, char *argv[])
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
     
-    dx_dy[0] = 1.0; // x - direction
-    dx_dy[1] = 2.0; // y - direction
-    n[0] = 5; // x - direction
-    n[1] = 5; // y - direction
+    dx_dy[0] = 0.5; // x - direction
+    dx_dy[1] = 0.2; // y - direction
+    n[0] = 2; // x - direction
+    n[1] = 10; // y - direction
     
     TPZGeoMesh * gmesh = RockBox(dx_dy,n);
     
@@ -142,8 +142,8 @@ int main(int argc, char *argv[])
 #endif
     
     // Create the approximation space
-    int deformation_order = 2;
-    int pore_pressure_order = 1;
+    int deformation_order = 3;
+    int pore_pressure_order = 2;
     
     // Create multiphysisc mesh
     TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
     
     // Create the Transient analysis
     
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = false;
     TPZPoroPermAnalysis * time_analysis = new TPZPoroPermAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -224,12 +224,12 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     // Getting mesh dimension
     int dim = 2;
     
-    REAL l = 6.009e6;
-    REAL mu = 3.486e6;
-    REAL l_u = 7.009e6;
+    REAL l = 5.33333e8;
+    REAL mu = 7.0e8;
+    REAL l_u = 5.34333e8;
     REAL alpha = 0.8;
     REAL Se = 1.0e-8;
-    REAL k = 1.0e-14;
+    REAL k = 1.0e-13;
     REAL porosity = 0.25;
     REAL eta = 0.001;
 
@@ -245,18 +245,20 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     cmesh->InsertMaterialObject(material);
     
     // Inserting boundary conditions
-    int dirichlet_x_y_vn   = 6;
-    int dirichlet_x_vn     = 7;
-    int neumann_y_p     = 5;
-    
-    REAL s_n = -1.0e6;
+    int dirichlet_x_vn   = 7;
+    int dirichlet_y_vn   = 8;
+    int neumann_y_p      = 5;
+    int dirichlet_y_p    = 2;
+    REAL MPa = 1.0e6;
+    REAL s_n = -10.0*MPa;
+//    REAL u_y = -0.000333333;
     
     TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_x_y_vn, val1, val2);
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_y_vn, val1, val2);
     cmesh->InsertMaterialObject(bc_bottom_mat);
     
     val2(0,0) = 0.0;
