@@ -109,7 +109,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 1;
+    int ref = 2;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
     
@@ -410,7 +410,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
         
     }
     
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = false;
     mono_analysis->SetCompMesh(fSpaceGenerator->MonolithicMultiphaseCmesh(), mustOptimizeBandwidth);
     std::cout << "Total dof: " << mono_analysis->Solution().Rows() << std::endl;
     

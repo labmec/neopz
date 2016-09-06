@@ -63,7 +63,9 @@ public:
     int Dimension() const {return fdimension;}
     
     /** returns the number of state variables associated with the material */
-    int NStateVariables() {return fdimension;} // for 2d Cases Plane Strain is being considered
+    int NStateVariables() {
+        return fdimension;
+    } // for 2d Cases Plane Strain is being considered
     
     virtual TPZMaterial *NewMaterial()
     {

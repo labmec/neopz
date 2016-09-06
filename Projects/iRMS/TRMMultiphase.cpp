@@ -59,21 +59,23 @@ void TRMMultiphase::Print(std::ostream &out) {
 }
 
 int TRMMultiphase::VariableIndex(const std::string &name) {
-    if (!strcmp("p", name.c_str())) return 0;
-    if (!strcmp("u", name.c_str())) return 1;
+    if (!strcmp("u", name.c_str())) return 0;
+    if (!strcmp("q", name.c_str())) return 1;
     if (!strcmp("div_u", name.c_str())) return 2;
-    if (!strcmp("s_a", name.c_str())) return 3;
-    if (!strcmp("s_b", name.c_str())) return 4;
-    if (!strcmp("s_c", name.c_str())) return 5;
+    if (!strcmp("div_q", name.c_str())) return 3;
+    if (!strcmp("p", name.c_str())) return 4;
+    if (!strcmp("s_a", name.c_str())) return 5;
+    if (!strcmp("s_b", name.c_str())) return 6;
+    if (!strcmp("s_c", name.c_str())) return 7;
     return TPZMatWithMem::VariableIndex(name);
 }
 
 int TRMMultiphase::NSolutionVariables(int var) {
     switch(var) {
         case 0:
-            return 1; // Scalar
+            return fdimension; // Vector
         case 1:
-            return 3; // Vector
+            return fdimension; // Vector
         case 2:
             return 1; // Scalar
         case 3:
@@ -81,6 +83,10 @@ int TRMMultiphase::NSolutionVariables(int var) {
         case 4:
             return 1; // Scalar
         case 5:
+            return 1; // Scalar
+        case 6:
+            return 1; // Scalar
+        case 7:
             return 1; // Scalar
     }
     return TPZMatWithMem::NSolutionVariables(var);
@@ -373,13 +379,15 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     this->ComputeDivergenceOnMaster(datavec, div_on_master,divflux);
     REAL jac_det = datavec[qb].detjac;
 
+    int n_u         = fdimension;
     int nphiu       = phi_us.Rows();
     int nphiq       = datavec[qb].fVecShapeIndex.NElements();
     int nphip       = phi_ps.Rows();
     int firstu      = 0;
-    int firstq      = nphiu + firstu;
+    int firstq      = nphiu*n_u + firstu;
     int firstp      = nphiq + firstq;
-    
+
+    TPZManVector<REAL,3> u  = datavec[ub].sol[0];
     TPZManVector<REAL,3> q  = datavec[qb].sol[0];
     REAL p                  = datavec[pb].sol[0][0];
     
@@ -438,6 +446,21 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         return;
     }
     
+    for (int iu = 0; iu < nphiu; iu++)
+    {
+
+        ef(iu*n_u + 0 + firstu) += weight * ( u[0]  - M_PI) * phi_us(iu,0);
+        ef(iu*n_u + 1 + firstu) += weight * ( u[1]  - M_PI) * phi_us(iu,0);
+        //        ef(iu*n_u + 2 + firstu) += weight * ( u[2]  - M_PI) * phi_us(iu,0);
+        
+        for (int ju = 0; ju < nphiu; ju++)
+        {
+            ek(iu*n_u + 0 + firstu, ju*n_u + 0 + firstu) += weight * ( phi_us(ju,0) ) * phi_us(iu,0);
+            ek(iu*n_u + 1 + firstu, ju*n_u + 1 + firstu) += weight * ( phi_us(ju,0) ) * phi_us(iu,0);
+//            ek(iu*n_u + 2 + firstu, ju*n_u + 2 + firstu) += weight * ( phi_us(ju,0) ) * phi_us(iu,0);
+        }
+    }
+    
     for (int iq = 0; iq < nphiq; iq++)
     {
         
@@ -446,7 +469,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         STATE Kl_inv_dot_q = 0.0, Kl_dp_inv_dot_q = 0.0, rho_g_dot_phi_q = 0.0, rho_dp_g_dot_phi_q = 0.0;
         for (int i = 0; i < q.size(); i++) {
-            phi_q_i(i,0) = phi_us(s_i,0) * datavec[qb].fNormalVec(i,v_i);
+            phi_q_i(i,0) = phi_qs(s_i,0) * datavec[qb].fNormalVec(i,v_i);
             Kl_inv_dot_q        += lambda_K_inv_q(i,0)*phi_q_i(i,0);
             Kl_dp_inv_dot_q     += lambda_dp_K_inv_q(i,0)*phi_q_i(i,0);
             rho_g_dot_phi_q     += rho[0]*Gravity[i]*phi_q_i(i,0);
@@ -461,7 +484,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             v_j = datavec[qb].fVecShapeIndex[jq].first;
             s_j = datavec[qb].fVecShapeIndex[jq].second;
             
-            STATE Kl_inv_phi_q_j_dot_phi_q_j = 0.0;
+            REAL Kl_inv_phi_q_j_dot_phi_q_j = 0.0;
             for (int j = 0; j < q.size(); j++) {
                 phi_q_j(j,0) = phi_qs(s_j,0) * datavec[qb].fNormalVec(j,v_j);
                 STATE dot = 0.0;
@@ -515,11 +538,13 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     int nvars = 4; // {p,sa,sb,t}
-    
-    int qb = 0;
-    int pb = 1;
-    
-    TPZFNMatrix<100,STATE> phi_us       = datavec[qb].phi;
+
+    int ub = 0;
+    int qb = 1;
+    int pb = 2;
+
+    TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
+    TPZFNMatrix<100,STATE> phi_qs       = datavec[qb].phi;
     TPZFNMatrix<100,STATE> phi_ps       = datavec[pb].phi;
     TPZFNMatrix<300,STATE> dphi_us      = datavec[qb].dphix;
     TPZFNMatrix<100,STATE> dphi_ps      = datavec[pb].dphix;
@@ -529,12 +554,16 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     this->ComputeDivergenceOnMaster(datavec, div_on_master,divflux);
     REAL jac_det = datavec[qb].detjac;
     
-    int nphiu       = datavec[qb].fVecShapeIndex.NElements();
+    int n_u         = fdimension;
+    int nphiu       = phi_us.Rows();
+    int nphiq       = datavec[qb].fVecShapeIndex.NElements();
     int nphip       = phi_ps.Rows();
     int firstu      = 0;
-    int firstp      = nphiu + firstu;
+    int firstq      = nphiu*n_u + firstu;
+    int firstp      = nphiq + firstq;
     
-    TPZManVector<REAL,3> u  = datavec[qb].sol[0];
+    TPZManVector<REAL,3> u  = datavec[ub].sol[0];
+    TPZManVector<REAL,3> q  = datavec[qb].sol[0];
     REAL p                  = datavec[pb].sol[0][0];
     
     TPZFNMatrix<10,STATE> Graduaxes = datavec[qb].dsol[0];
@@ -563,21 +592,21 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     fSimulationData->Map()->phi(datavec[qb].x, phi, v);
     
     // Defining local variables
-    TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1);
+    TPZFNMatrix<3,STATE> lambda_K_inv_q(3,1);
     TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
-    for (int i = 0; i < u.size(); i++) {
+    for (int i = 0; i < q.size(); i++) {
         STATE dot = 0.0;
-        for (int j =0; j < u.size(); j++) {
-             dot += Kinv(i,j)*u[j];
+        for (int j =0; j < q.size(); j++) {
+             dot += Kinv(i,j)*q[j];
         }
-        lambda_K_inv_u(i,0) = (1.0/l[0]) * dot;
+        lambda_K_inv_q(i,0) = (1.0/l[0]) * dot;
     }
     
     
     // Integration point contribution
-    STATE divu = 0.0;
-    TPZFNMatrix<3,STATE> phi_u_i(3,1);
+    STATE divq = 0.0;
+    TPZFNMatrix<3,STATE> phi_q_i(3,1);
     
     int s_i;
     int v_i;
@@ -594,22 +623,31 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     }
     
 
-    
     for (int iu = 0; iu < nphiu; iu++)
     {
         
-        v_i = datavec[qb].fVecShapeIndex[iu].first;
-        s_i = datavec[qb].fVecShapeIndex[iu].second;
+        ef(iu*n_u + 0 + firstu) += weight * ( u[0]  - M_PI) * phi_us(iu,0);
+        ef(iu*n_u + 1 + firstu) += weight * ( u[1]  - M_PI) * phi_us(iu,0);
+//        ef(iu*n_u + 2 + firstu) += weight * ( u[2]  - M_PI) * phi_us(iu,0);
         
-        STATE Kl_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0;
-        for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[qb].fNormalVec(i,v_i);
-            Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
-            rho_g_dot_phi_u += rho[0]*Gravity[i]*phi_u_i(i,0);
+    }
+    
+    
+    for (int iq = 0; iq < nphiq; iq++)
+    {
+        
+        v_i = datavec[qb].fVecShapeIndex[iq].first;
+        s_i = datavec[qb].fVecShapeIndex[iq].second;
+        
+        STATE Kl_inv_dot_q = 0.0, rho_g_dot_phi_q = 0.0;
+        for (int i = 0; i < q.size(); i++) {
+            phi_q_i(i,0) = phi_qs(s_i,0) * datavec[qb].fNormalVec(i,v_i);
+            Kl_inv_dot_q += lambda_K_inv_q(i,0)*phi_q_i(i,0);
+            rho_g_dot_phi_q += rho[0]*Gravity[i]*phi_q_i(i,0);
         }
         
         
-        ef(iu + firstu) += weight * ( Kl_inv_dot_u - (1.0/jac_det) * (p) * div_on_master(iu,0) - rho_g_dot_phi_u);
+        ef(iq + firstq) += weight * ( Kl_inv_dot_q - (1.0/jac_det) * (p) * div_on_master(iq,0) - rho_g_dot_phi_q);
         
     }
     
@@ -621,12 +659,12 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     }
     
     
-    divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2));
+    divq = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2));
     
     for (int ip = 0; ip < nphip; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (divu + (1.0/dt) * rho[0] * phi[0] - f[0]) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (divq + (1.0/dt) * rho[0] * phi[0] - f[0]) * phi_ps(ip,0);
 
     }
     
@@ -636,20 +674,26 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
-    
+
     if (!fSimulationData->IsCurrentStateQ()) {
         return;
     }
     
-    int qb = 0;
-    int pb = 1;
-    
-    TPZFNMatrix<100,STATE> phi_us       = datavec[qb].phi;
-    
+    int ub = 0;
+    int qb = 1;
+    int pb = 2;
+
+    TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
+    TPZFNMatrix<100,STATE> phi_qs       = datavec[qb].phi;
+
+    int n_u         = fdimension;
     int nphiu       = phi_us.Rows();
+    int nphiq       = phi_qs.Rows();
     int firstu      = 0;
+    int firstq      = nphiu*n_u + firstu;
     
-    TPZManVector<REAL,3> u  = datavec[qb].sol[0];
+    TPZManVector<REAL,3> u  = datavec[ub].sol[0];
+    TPZManVector<REAL,3> q  = datavec[qb].sol[0];
     
     REAL Value = bc.Val2()(0,0);
     if (bc.HasfTimedependentBCForcingFunction()) {
@@ -667,9 +711,9 @@ void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
         case 0 :    // Dirichlet BC  PD
         {
             STATE p_D = Value;
-            for (int iu = 0; iu < nphiu; iu++)
+            for (int iq = 0; iq < nphiq; iq++)
             {
-                ef(iu + firstu) += weight * p_D * phi_us(iu,0);
+                ef(iq + firstq) += weight * p_D * phi_qs(iq,0);
             }
         }
             break;
@@ -677,15 +721,15 @@ void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
         case 1 :    // Neumann BC  QN
         {
             
-            for (int iu = 0; iu < nphiu; iu++)
+            for (int iq = 0; iq < nphiq; iq++)
             {
-                STATE un_N = Value, un = u[0];
-                ef(iu + firstu) += weight * gBigNumber * (un - un_N) * phi_us(iu,0);
+                STATE qn_N = Value, qn = q[0];
+                ef(iq + firstq) += weight * gBigNumber * (qn - qn_N) * phi_qs(iq,0);
                 
-                for (int ju = 0; ju < nphiu; ju++)
+                for (int jq = 0; jq < nphiq; jq++)
                 {
                     
-                    ek(iu + firstu,ju + firstu) += weight * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
+                    ek(iq + firstq,jq + firstq) += weight * gBigNumber * phi_qs(jq,0) * phi_qs(iq,0);
                 }
                 
             }
@@ -696,15 +740,15 @@ void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
         case 2 :    // Neumann BC  Impervious bc
         {
             
-            for (int iu = 0; iu < nphiu; iu++)
+            for (int iq = 0; iq < nphiq; iq++)
             {
-                STATE un = u[0];
-                ef(iu + firstu) += weight * 100000.0 * gBigNumber * (un - 0.0) * phi_us(iu,0);
+                STATE qn = q[0];
+                ef(iq + firstq) += weight * 100000.0 * gBigNumber * (qn - 0.0) * phi_qs(iq,0);
                 
-                for (int ju = 0; ju < nphiu; ju++)
+                for (int jq = 0; jq < nphiq; jq++)
                 {
                     
-                    ek(iu + firstu,ju + firstu) += weight * 100000.0 * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
+                    ek(iq + firstq,jq + firstq) += weight * 100000.0 * gBigNumber * phi_qs(jq,0) * phi_qs(iq,0);
                 }
                 
             }
@@ -725,14 +769,16 @@ void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
 }
 
 void TRMMultiphase::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
+
+    int ub = 0;
+    int qb = 1;
+    int pb = 2;
     
-    int qb = 0;
-    int pb = 1;
-    
-    TPZManVector<REAL,3> u = datavec[qb].sol[0];
+    TPZManVector<REAL,3> u = datavec[ub].sol[0];
+    TPZManVector<REAL,3> q = datavec[qb].sol[0];
     REAL p = datavec[pb].sol[0][0];
     
-    TPZFMatrix<STATE> dudx = datavec[qb].dsol[0];
+    TPZFMatrix<STATE> dqdx = datavec[qb].dsol[0];
     TPZFMatrix<STATE> dpdx = datavec[pb].dsol[0];
     
     Solout.Resize(this->NSolutionVariables(var));
@@ -740,19 +786,37 @@ void TRMMultiphase::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     switch(var) {
         case 0:
         {
-            Solout[0] = p;
+            // Displacement
+            for (int i = 0; i < fdimension; i++) {
+                Solout[i] = u[i];
+            }
+
         }
             break;
         case 1:
         {
-            Solout[0] = u[0]; // Bulk mass velocity
-            Solout[1] = u[1]; // Bulk mass velocity
-            Solout[2] = u[2]; // Bulk mass velocity
+            // Bulk mass velocity
+            for (int i = 0; i < fdimension; i++) {
+                Solout[i] = q[i];
+            }
         }
             break;
         case 2:
         {
-            Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
+            Solout[0] = M_PI;
+        }
+            break;
+        case 3:
+        {
+            // div_q
+            for (int i = 0; i < fdimension; i++) {
+                Solout[0] += dqdx(i,i);
+            }
+        }
+            break;
+        case 4:
+        {
+            Solout[0] = p;
         }
             break;
         default:

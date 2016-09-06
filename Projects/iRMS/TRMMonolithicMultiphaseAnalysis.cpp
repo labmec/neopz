@@ -123,8 +123,6 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
     
-
-    
     for (int k = 1; k <= n; k++) {
 
         this->Set_k_ietrarions(k);
@@ -136,13 +134,13 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
             this->NewtonIteration();
         }
 
-        
-//#ifdef PZDEBUG
+#ifdef PZDEBUG
+//        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
 //        fR.Print("R = ", std::cout,EMathematicaInput);
 //        fX.Print("X = ", std::cout,EMathematicaInput);        
 //        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
-//#endif
+#endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
@@ -210,24 +208,30 @@ void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
     if (fSimulationData->IsOnePhaseQ()) {
         scalnames.Push("p");
         scalnames.Push("div_u");
+        scalnames.Push("div_q");
         vecnames.Push("u");
+        vecnames.Push("q");
     }
 
     if (fSimulationData->IsTwoPhaseQ()) {
         scalnames.Push("p");
+        scalnames.Push("div_u");
+        scalnames.Push("div_q");
         scalnames.Push("s_a");
         scalnames.Push("s_b");        
-        scalnames.Push("div_u");
         vecnames.Push("u");
+        vecnames.Push("q");
     }
     
     if (fSimulationData->IsThreePhaseQ()) {
         scalnames.Push("p");
+        scalnames.Push("div_u");
+        scalnames.Push("div_q");
         scalnames.Push("s_a");
         scalnames.Push("s_b");
         scalnames.Push("s_c");        
-        scalnames.Push("div_u");
         vecnames.Push("u");
+        vecnames.Push("q");
     }
 
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
