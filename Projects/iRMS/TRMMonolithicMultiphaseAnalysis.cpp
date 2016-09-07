@@ -82,10 +82,19 @@ void TRMMonolithicMultiphaseAnalysis::QuasiNewtonIteration(){
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
     
+#ifdef PZDEBUG
+    //        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
+    this->Rhs().Print("R = ", std::cout,EMathematicaInput);
+#endif
+    
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
     fX_n += this->Solution(); // update state
+    
+#ifdef PZDEBUG
+    fX_n.Print("X_n = ", std::cout,EMathematicaInput);
+#endif
     
     this->Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
@@ -136,10 +145,10 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
 
 #ifdef PZDEBUG
 //        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
-//        fR.Print("R = ", std::cout,EMathematicaInput);
-//        fX.Print("X = ", std::cout,EMathematicaInput);        
-//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+        fR.Print("R = ", std::cout,EMathematicaInput);
+        fX.Print("X = ", std::cout,EMathematicaInput);        
+        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
@@ -209,6 +218,9 @@ void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
         scalnames.Push("p");
         scalnames.Push("div_u");
         scalnames.Push("div_q");
+        scalnames.Push("s_xx");
+        scalnames.Push("s_yy");
+        scalnames.Push("s_xy");
         vecnames.Push("u");
         vecnames.Push("q");
     }
@@ -217,6 +229,9 @@ void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
         scalnames.Push("p");
         scalnames.Push("div_u");
         scalnames.Push("div_q");
+        scalnames.Push("s_xx");
+        scalnames.Push("s_yy");
+        scalnames.Push("s_xy");
         scalnames.Push("s_a");
         scalnames.Push("s_b");        
         vecnames.Push("u");
@@ -227,6 +242,9 @@ void TRMMonolithicMultiphaseAnalysis::PostProcessStep(){
         scalnames.Push("p");
         scalnames.Push("div_u");
         scalnames.Push("div_q");
+        scalnames.Push("s_xx");
+        scalnames.Push("s_yy");
+        scalnames.Push("s_xy");
         scalnames.Push("s_a");
         scalnames.Push("s_b");
         scalnames.Push("s_c");        

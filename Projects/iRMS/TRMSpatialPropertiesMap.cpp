@@ -82,7 +82,7 @@ void TRMSpatialPropertiesMap::lambda(TPZManVector<STATE,3> &x, TPZManVector<STAT
     switch (this->MapModel()) {
         case 0:
         {
-            this->lambda(x, lambda, state_vars);
+            this->lambda_c(x, lambda, state_vars);
         }
             break;
         case 1:
@@ -170,7 +170,7 @@ void TRMSpatialPropertiesMap::alpha(TPZManVector<STATE,3> &x, TPZManVector<STATE
     switch (this->MapModel()) {
         case 0:
         {
-            this->lambda_c(x, alpha, state_vars);
+            this->alpha_c(x, alpha, state_vars);
         }
             break;
         case 1:
@@ -225,38 +225,41 @@ void TRMSpatialPropertiesMap::phi_c(TPZManVector<STATE,3> &x, TPZManVector<STATE
 }
 
 /** @brief first lamé parameter $\lambda$ */
-void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars){
     
-    phi.Resize(10, 0.0);
-    STATE val = 0.25;
-    phi[0] = val;
+    REAL GPa = 1.0e9;
+    lambda.Resize(10, 0.0);
+    STATE val = 9.4541*GPa;
+    lambda[0] = val;
     
 }
 
 
 /** @brief undrained first lamé parameter  $\lambda_{u}$ */
-void TRMSpatialPropertiesMap::lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+void TRMSpatialPropertiesMap::lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars){
     
-    phi.Resize(10, 0.0);
-    STATE val = 0.25;
-    phi[0] = val;
+    REAL GPa = 1.0e9;
+    lambda_u.Resize(10, 0.0);
+    STATE val = 9.5541*GPa;
+    lambda_u[0] = val;
     
 }
 
 /** @brief second lamé parameter  $\mu$ */
-void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars){
     
-    phi.Resize(10, 0.0);
-    STATE val = 0.25;
-    phi[0] = val;
+    REAL GPa = 1.0e9;
+    mu.Resize(10, 0.0);
+    STATE val = 0.0965*GPa;
+    mu[0] = val;
     
 }
 
 /** @brief Biot's poroelastic parameter  $\alpha$ */
-void TRMSpatialPropertiesMap::alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+void TRMSpatialPropertiesMap::alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars){
     
-    phi.Resize(10, 0.0);
-    STATE val = 0.25;
-    phi[0] = val;
+    alpha.Resize(10, 0.0);
+    STATE val = 0.8;
+    alpha[0] = val;
     
 }

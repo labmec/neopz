@@ -90,16 +90,32 @@ void BoxLinearTracerDual()
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
     bool Is3DGeometry = false;
+    bool IsGeoMechanic = true;
     
-//    On box reservoir
-   RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
-//   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
-//    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
+    if(IsGeoMechanic){
+        //    On box reservoir
+        RawData->WaterGeoReservoirBox(Is3DGeometry); // Single-phase flow
+        //   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
+        //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
+        
+        //    On cricular reservoir
+        //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
+        //    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
+        //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
+    }
+    else{
+        //    On box reservoir
+        RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
+        //   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
+        //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
+        
+        //    On cricular reservoir
+        //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
+        //    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
+        //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
+    }
     
-//    On cricular reservoir
-//    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
-//    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
-//    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
+
     
     
     TRMSimulationData * SimData = new TRMSimulationData;
@@ -118,8 +134,8 @@ void BoxLinearTracerDual()
     SymphonyX->SetMonolithicQ(true);
     SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution
     SymphonyX->RunStaticProblem();
-    SymphonyX->CreateMonolithicAnalysis(false); // Evolutionary Solution
-    SymphonyX->RunEvolutionaryProblem();
+//    SymphonyX->CreateMonolithicAnalysis(false); // Evolutionary Solution
+//    SymphonyX->RunEvolutionaryProblem();
 
     
     std::cout << "Dual complete normally." << std::endl;
