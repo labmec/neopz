@@ -367,8 +367,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
                 }
             }
         }
-		
-		
+
 		for(long il=0; il<highdim.size(); il++) {
 			
 			// verify if the higher dimension element/side is restrained.

@@ -14,10 +14,13 @@
 #include "pzmatwithmem.h"
 #include "TPZPoroPermMemory.h"
 #include "pzdiscgal.h"
+#include "tpzautopointer.h"
+#include "pzbndcond.h"
 #include "pzvec.h"
 #include "TPZSimulationData.h"
 #include <iostream>
 #include <cmath>
+#include "pzlog.h"
 
 
 class TPZPoroPermCoupling : public TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin> {
@@ -68,6 +71,12 @@ protected:
     
     /** @brief Friction angle */
     REAL fphi_f;
+    
+    /** @brief eta parameter for Drucker-Prager model */
+    REAL feta_dp;
+    
+    /** @brief xi parameter for Drucker-Prager model  */
+    REAL fxi_dp;
     
     /** @brief Uses plain stress
      * @note \f$fPlaneStress = 1\f$ => Plain stress state
@@ -143,6 +152,8 @@ public:
     {
         fphi_f = phi_f;
         fc = c;
+        feta_dp = 6.0*(sin(fphi_f))/(sqrt(3.0)*(3.0-sin(fphi_f)));
+        fxi_dp = 6.0*(cos(fphi_f))/(sqrt(3.0)*(3.0-sin(fphi_f)));
     }
     
     /** @brief Set plane problem
@@ -227,11 +238,20 @@ public:
     /** @brief theta */
     REAL theta(TPZFMatrix<REAL> T);
     
-    /** @brief theta */
+    /** @brief Phi Mohr-Coulomb */
+    REAL Phi_MC(TPZFMatrix<REAL> T);
+    
+    /** @brief Phi Drucker-Prager */
     REAL Phi_DP(TPZFMatrix<REAL> T);
     
     /** @brief plasticity multiplier delta_gamma */
     REAL Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest);
+    
+    /** @brief plasticity multiplier delta_gamma */
+    REAL Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_gamma_guest);
+    
+    /** @brief plasticity multiplier delta_gamma using newton iterations */
+    REAL delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_guest);
     
     /** @brief Drucker prager strain update */
     TPZFMatrix<REAL> strain_DP(TPZFMatrix<REAL> T);
@@ -240,7 +260,7 @@ public:
     TPZFMatrix<REAL> stress_DP(TPZFMatrix<REAL> T);
     
     /** @brief Drucker prager elastoplastic corrector  */
-    void corrector_DP(TPZFMatrix<REAL> T);
+    void corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
     
     
 };

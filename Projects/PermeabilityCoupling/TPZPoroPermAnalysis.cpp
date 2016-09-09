@@ -29,6 +29,9 @@ TPZPoroPermAnalysis::TPZPoroPermAnalysis() : TPZAnalysis() {
     /** @brief Solution at past state */
     fX.Resize(0, 0);
     
+    /** @brief Strain-Stress solution data */
+    fstrain_stress_duplets.Resize(0);
+    
     /** @brief Residue error */
     ferror    = 1.0;
     
@@ -202,14 +205,97 @@ void TPZPoroPermAnalysis::PostProcessStep(){
 }
 
 /** @brief execute the evolutionary problem */
-void TPZPoroPermAnalysis::Run_Evolution(){
+void TPZPoroPermAnalysis::Run_Evolution(TPZVec<REAL> &x){
     
     int n = fSimulationData->n_steps();
+    REAL time = 0.0;
+    REAL dt = this->SimulationData()->dt();
+    
     for (int i = 0; i < n; i++) {
-        
+        time = (i+1)*dt;
+        this->SimulationData()->SetTime(time);
         this->ExcecuteOneStep();
         this->PostProcessStep();
+        this->AppendStrain_Stress(x);
         
     }
     
+}
+
+/** @brief Compute the strain and the stress at x euclidean point for each time */
+void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x){
+    
+    
+    // Finding the geometic element that x bleongs to.
+    REAL Tol = 1.0e-4;
+    TPZGeoMesh * geometry = this->Mesh()->Reference();
+    this->Mesh()->LoadReferences();
+    
+    int dim = geometry->Dimension();
+    bool IsTargetElementQ = false;
+    long n_elemenst = geometry->NElements();
+    
+    int sx_var = 2;
+    int sy_var = 3;
+    int ey_var = 11;
+    TPZVec<STATE> sx;
+    TPZVec<STATE> sy;
+    TPZVec<STATE> ey;
+    
+    std::pair<REAL,REAL> duplet;
+    
+    TPZVec<REAL> parametric_space(dim,0.0);
+    for (long iel = 0; iel < n_elemenst; iel++) {
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+
+        if (gel->Dimension() != dim) {
+            continue;
+        }
+        
+
+        IsTargetElementQ = gel->ComputeXInverse(x, parametric_space, Tol);
+        
+        if(IsTargetElementQ){
+            TPZCompEl * cel = gel->Reference();
+            cel->Solution(parametric_space, sx_var, sx);
+            cel->Solution(parametric_space, sy_var, sy);
+            cel->Solution(parametric_space, ey_var, ey);
+            duplet.first = ey[0];
+            duplet.second = sy[0] - sx[0];
+            
+            duplet.first = fabs(duplet.first);
+            duplet.second = fabs(duplet.second);
+        }
+        
+    }
+
+    fstrain_stress_duplets.Push(duplet);
+}
+
+/** @brief Compute the strain and the stress at x euclidean point for each time */
+void TPZPoroPermAnalysis::PlotStrainStress(std::string file_name){
+    
+#ifdef PZDEBUG
+    if (fstrain_stress_duplets.size() == 0) {
+        DebugStop();
+    }
+#endif
+    
+    int n_data = fstrain_stress_duplets.size();
+    TPZFMatrix<REAL> points(n_data,2,0.0);
+    for(int i = 0; i < n_data; i++){
+        points(i,0) = fstrain_stress_duplets[i].first;
+        points(i,1) = fstrain_stress_duplets[i].second;
+    }
+    
+    {
+        std::ofstream out(file_name.c_str());
+        points.Print("data = ",out,EMathematicaInput);
+    }
 }

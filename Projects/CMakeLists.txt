@@ -130,7 +130,7 @@ ENABLE_TESTING()
 			add_subdirectory(descontinuo)
 
  
-                	#Testing generating ellipse from a vector of points by least square method
+			#Testing generating ellipse from a vector of points by least square method
 			add_subdirectory(EllipseGenerator)
 
 			#Adaptivity based on mesh cloning (Edimar Cesar thesis)
@@ -139,12 +139,63 @@ ENABLE_TESTING()
 			#projeto Diogo
 			add_subdirectory(Plasticity)
 
+<<<<<<< HEAD
 			add_subdirectory(PermeabilityCoupling)
 			add_subdirectory(PoroElasticAnalysis)
+=======
+			#add_subdirectory(projteste)
+
+
+			add_subdirectory(MultipleLoad)
+
+			# add_subdirectory(adaptivity_refactor)
+						
+			add_subdirectory(Cubo_do_Nathan)
+
+			add_subdirectory(PyramidHdivTests)
+			
+			add_subdirectory(HyperElasticityFAD)
+
+			#Increment singular shape function: SingularShapeFunction
+			add_subdirectory(SingularShapeFunction)
+			add_subdirectory(angletest)
+			add_subdirectory(checkconv)
+
+			#Orthogonalization process of Gram-Schmidt
+			add_subdirectory(matrix)
+
+			#Inserting material and boundary conditions by function
+			add_subdirectory(termica)
+			add_subdirectory(Steam)
+			add_subdirectory(QuadraticElements)
+			add_subdirectory(ThermalStress)
+			Add_subdirectory(Conductivity)
+			add_subdirectory(ConsLaw)
+			add_subdirectory(Descontinuo2)
+
+			add_subdirectory(SteamInjection)
+			
+			#projeto agnaldo 09-09-2011
+			add_subdirectory(DoubleProjection)
+            add_subdirectory(artigoPira)
+			add_subdirectory(TrabalhosLNCC15)
+			#projeto omar duran 16-12-2012
+			add_subdirectory(PoroElasticAnalysis)
+			add_subdirectory(Poisson2DGID)
+			add_subdirectory(OilWaterSystem)
+			add_subdirectory(DarcyflowAxisymmetricHdiv)
+			add_subdirectory(DarcyflowHdiv3D)
+			add_subdirectory(MonophasicWell)
+			#collaborative project (NH GH PD, SG, OD) 18-04-2015
+			add_subdirectory(iRMS)
+
+
+>>>>>>> iRMS_MHM
 			add_subdirectory(Elasticity2D)
+			add_subdirectory(MHM)			
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
-			add_subdirectory(Andrade)
+			#add_subdirectory(Andrade)
 			add_subdirectory(MatrixMarket)
 			add_subdirectory(Frac1DHdiv)
 			add_subdirectory(SubStruct)
@@ -188,7 +239,7 @@ ENABLE_TESTING()
 			# Colaboration with Laurent Stainier
 			
 			add_subdirectory(MatLib)
-			add_subdirectory(TrabalhosLNCC15)
+
 
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
@@ -199,7 +250,3 @@ ENABLE_TESTING()
 		
 		
 	endif(BUILD_PROJECTS)
-
-
-   
-add_subdirectory(artigoPira)

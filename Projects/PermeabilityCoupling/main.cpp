@@ -57,6 +57,7 @@ void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
 void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id);
 
+static void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
 
 // Create a computational mesh for deformation
 TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order);
@@ -173,9 +174,15 @@ int main(int argc, char *argv[])
     time_analysis->SetSolver(step);
     time_analysis->SetStructuralMatrix(skyl);
     
-    // Run Transient analysis
-    time_analysis->Run_Evolution();
+    TPZVec<REAL> x(3);
+    x[0] = 0.5;
+    x[1] = 1.0;
+    x[2] = 0.0;
+    std::string file_name("plot.nb");
     
+    // Run Transient analysis
+    time_analysis->Run_Evolution(x);
+    time_analysis->PlotStrainStress(file_name);
     std::cout << " Execution finished" << std::endl;
 	return EXIT_SUCCESS;
 }
@@ -227,9 +234,9 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     // Getting mesh dimension
     int dim = 2;
     
-    REAL l = 5.33333e8;
-    REAL mu = 7.0e8;
-    REAL l_u = 5.34333e8;
+    REAL l = 15.3333e9;
+    REAL mu = 7.0e9;
+    REAL l_u = 16.3333e9;
     REAL alpha = 0.8;
     REAL Se = 1.0e-8;
     REAL k = 1.0e-13;
@@ -251,16 +258,20 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     material->SetDruckerPragerParameters(phi_f, c);
     cmesh->InsertMaterialObject(material);
     
-    TPZFMatrix<REAL> g(2,2,0.0);
-    g(0,0) = 7.9;
-    g(1,1) = 1.0;
+//    TPZFMatrix<REAL> g(2,2,0.0);
+//    g(0,0) = 7.9;
+//    g(1,1) = 1.0;
+//    g(0,0) = 44.0*MPa;
+//    g(1,1) = 23.0*MPa;
+//    
+//    std::cout << "p = " << material->p(g) << std::endl;
+//    std::cout << "s = " << material->s(g) << std::endl;
+//    std::cout << "j2 = " << material->J2(material->s(g)) << std::endl;
+//    std::cout << "j3 = " << material->J3(material->s(g)) << std::endl;
+//    std::cout << "phi = " << material->Phi_DP(g) << std::endl;
+//    std::cout << "delta_gamma = " << material->delta_gamma_finder(g, 0.0) << std::endl;
     
-    std::cout << "p = " << material->p(g) << std::endl;
-    std::cout << "s = " << material->s(g) << std::endl;
-    std::cout << "j2 = " << material->J2(material->s(g)) << std::endl;
-    std::cout << "j3 = " << material->J3(material->s(g)) << std::endl;
-    std::cout << "theta = " << material->theta(g) << std::endl;
-    std::cout << "theta = " << material->Phi_DP(g) << std::endl;    
+    
     // Inserting boundary conditions
     int dirichlet_x_vn   = 7;
     int dirichlet_y_vn   = 8;
@@ -288,6 +299,8 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     val2(1,0) = s_n;
     val2(2,0) = 0.0;
     TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, neumann_y_p, val1, val2);
+    TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(Sigma);
+    bc_top_mat->SetTimedependentBCForcingFunction(boundary_data);
     cmesh->InsertMaterialObject(bc_top_mat);
     
     val2(0,0) = 0.0;
@@ -301,6 +314,9 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
 //    cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
     cmesh->SetAllCreateFunctionsMultiphysicElem();
     cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
     
     // Transferindo para a multifisica
     TPZBuildMultiphysicsMesh::AddElements(mesh_vector, cmesh);
@@ -327,6 +343,16 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     
     return cmesh;
     
+}
+
+void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
+{
+    
+    DebugStop();
+    REAL MPa = 1.0e6;
+    REAL s_n = -10.0*MPa;
+    f[0] = s_n;
+    return;
 }
 
 // Create a computational mesh for deformation;

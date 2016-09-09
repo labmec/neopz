@@ -12,21 +12,163 @@
 #include <stdio.h>
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
-
-class TRMTranportAnalysis;
+#include "pzbuildmultiphysicsmesh.h"
+#include "TRMSimulationData.h"
+#include "TRMBuildTransfers.h"
 
 class TRMFluxPressureAnalysis : public TPZAnalysis {
     
-    // Setting up data
-    // Create a struture for nonlinear analysis
-    // required a initialization process of the fPreconditioner with the decomposition fo the first linear system
-    // it will simply converges the residuum in one time step considering fixed saturation (inverse for transport analysis)
+private:
+    
+    /** @brief define the simulation data */
+    TRMSimulationData * fSimulationData;
+    
+    /** @brief define the transfer matrices */
+    TRMBuildTransfers * fTransfer;
+    
+    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
+    TPZManVector<TPZCompMesh * , 2> fmeshvec;
+    
+    /** @brief Part of residue at n state  */
+    TPZFMatrix<STATE> fR_n;
+    
+    /** @brief Part of residue at past state  */
+    TPZFMatrix<STATE> fR;
+    
+    /** @brief Solution ate n state */
+    TPZFMatrix<STATE> fX_n;
+    
+    /** @brief Solution at past state */
+    TPZFMatrix<STATE> fX;
+    
+    /** @brief Residue error */
+    STATE ferror;
+    
+    /** @brief Correction variation */
+    STATE fdx_norm;
+    
+    /** @brief number of newton corrections */
+    int fk_iterations;
+    
+public:
+    
+    /** @brief default constructor  */
+    TRMFluxPressureAnalysis();
+    
+    /** @brief default desconstructor  */
+    ~TRMFluxPressureAnalysis();
+    
+    /** @brief Copy constructor $ */
+    TRMFluxPressureAnalysis(const TRMFluxPressureAnalysis &copy);
+    
+    /** @brief Copy assignemnt operator $ */
+    TRMFluxPressureAnalysis &operator=(const TRMFluxPressureAnalysis &other);
+    
+    /**
+     * @defgroup Access Methods
+     * @brief    Implements Access methods:
+     * @{
+     */
+    
+    /** @brief Set Solution at n state */
+    void SetX_n(TPZFMatrix<STATE> &x){
+        fX_n = x;
+    }
+    
+    /** @brief Set Solution at n state */
+    TPZFMatrix<STATE> & X_n(){
+        return fX_n;
+    }
+    
+    /** @brief Set Solution at past state */
+    void SetX(TPZFMatrix<STATE> &x){
+        fX = x;
+    }
+    
+    /** @brief Set Solution at past state */
+    TPZFMatrix<STATE> & X(){
+        return fX;
+    }
+    
+    /** @brief Set the simulation data */
+    void SetSimulationData(TRMSimulationData * SimulationData)
+    {
+        fSimulationData = SimulationData;
+        fmeshvec.Resize(2);
+    }
+    
+    /** @brief Get the space generator */
+    TRMSimulationData * SimulationData()
+    {
+        return fSimulationData;
+    }
+    
+    /** @brief Set the transfer object */
+    void SetTransfer(TRMBuildTransfers * Transfer)
+    {
+        fTransfer = Transfer;
+    }
+    
+    /** @brief Get the transfer object */
+    TRMBuildTransfers * Transfer()
+    {
+        return fTransfer;
+    }
+    
+    /** @brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
+    void SetMeshvec(TPZManVector<TPZCompMesh * , 2> &Meshvec)
+    {
+        fmeshvec = Meshvec;
+    }
+    /** @brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
+    TPZManVector<TPZCompMesh * , 2> & Meshvec()
+    {
+        return fmeshvec;
+    }
+    
+    /** @brief Resize and fill residue and solution vectors */
+    void AdjustVectors();
+    
+    /** @brief Get k iterations */
+    int k_ietrarions(){
+        return fk_iterations;
+    }
+    
+    /** @brief Get k iterations */
+    void Set_k_ietrarions(int k){
+        fk_iterations = k;
+    }
+    
+    // @}
+    
+    /**
+     * @defgroup Time foward methods
+     * @{
+     */
+    
+    /** @brief Execute a euler method step */
+    void ExcecuteOneStep();
+    
+    /** @brief Execute a newton iteration  */
+    void NewtonIteration();
 
-    TPZStepSolver<STATE> fPreconditioner;
+    /** @brief Execute a quasi newton iteration  */
+    void QuasiNewtonIteration();
     
-    void UpdateTransientMemory(); // updates the transient memory
+    /** @brief PostProcess results */
+    void PostProcessStep();
     
-    void UpdateSolution(TRMTranportAnalysis &transportAnalysis);
+    /** @brief Update memory using the Transfer object at state n */
+    void UpdateMemory_at_n();
+
+    /** @brief Update memory using the Transfer object */
+    void UpdateMemory();
+    
+    
+    // @}
+
+    
+    
     
 };
 

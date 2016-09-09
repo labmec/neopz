@@ -21,9 +21,9 @@ public:
     TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows);
     
     TPZSparseBlockDiagonal(TPZVec<long> &blockgraph, TPZVec<long> &blockgraphindex,long rows, int color, TPZVec<int> &colors);
-	
+    
     ~TPZSparseBlockDiagonal();
-	
+    
     const TVar& Get(const long row, const long col) const;
     const TVar& GetVal(const long row, const long col) const;
     int Put(const long row, const long col, const TVar& value);
@@ -39,17 +39,17 @@ public:
     void GetBlock(long i, TPZFMatrix<TVar>& block);
     void MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const;
     void FindBlockIndex(long glob, long &block, long &blockind) const;
-	
-	/** @brief Updates the values of the matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
-	
+    
+    /** @brief Updates the values of the matrix based on the values of the matrix */
+    virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
+    
     
 protected:
-	/** @brief Equation numbers for each block */
+    /** @brief Equation numbers for each block */
     TPZVec<long> fBlock;
-	/** @brief Index to first element of each block */
+    /** @brief Index to first element of each block */
     TPZVec<long> fBlockIndex;
-	
+    
     void Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
     void Gather(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out) const;
 };

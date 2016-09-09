@@ -297,6 +297,22 @@ public:
     static int Substitution(const TVar *ptr, long rows,  TPZFMatrix<TVar> *B, const TPZVec<int> &index );
     
 #ifdef USING_LAPACK
+    
+    /**
+     * @brief Decomposes the current matrix using LDLt from tpzmatrix class. \n
+     * The current matrix has to be symmetric.
+     * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
+     */
+//    virtual int Decompose_LDLt(std::list<long> &singular)
+//    {
+//        fPivot.Resize(this->Rows(),0);
+//        for(long i = 0; i < this->Rows(); i++ ){
+//            fPivot[i] = i;
+//        }
+//        TPZMatrix<TVar>::Decompose_LDLt(singular);
+//        return 1;
+//    }
+    
     /**
      * @brief Computes B = Y, where A*Y = B, A is lower triangular.
      * @param b right hand side and result after all

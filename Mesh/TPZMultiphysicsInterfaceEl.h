@@ -128,9 +128,14 @@ public:
     }
 
     /**
-     * Compute the stiffness matrix of the interface element
+     * Compute the stiffness matrix and load vector of the interface element
      */
     void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    
+    /**
+     * Compute the load vector of the interface element
+     */
+    void CalcStiff(TPZElementMatrix &ef);
 
     /**
      * Return max integration rule of this interface element
@@ -147,6 +152,10 @@ public:
 
     /** @brief Initialize the structure of the stiffness matrix */
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    
+    /** @brief Initialize the structure of the stiffness matrix */
+    void InitializeElementMatrix(TPZElementMatrix &ef);
+    
     
     /** @brief access function to the left element */
     TPZCompElSide Left() const

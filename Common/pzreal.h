@@ -45,6 +45,12 @@
 extern int gPrintLevel;
 
 /**
+ * @ingroup common
+ * @brief Returns a message to user put a breakpoint in
+ */
+void DebugStop();
+
+/**
  * Operations to be counted: Sum, Product, Division, Square root, Power, \n
  * Sine, Cosine, Arc Sine, Arc Cosine, Arc Tangent, Exponencial and Logarithm.
  */

@@ -751,13 +751,16 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
     
     TPZFMatrix<REAL> jac, axe, jacInv;
     REAL detJac;
+    int nmeshes = datavec.size();
     for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
     {
         intrule->Point(int_ind,intpointtemp,weight);
         ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
         weight *= fabs(detJac);
-        datavec[0].intLocPtIndex = int_ind;
-        datavec[1].intLocPtIndex = int_ind;
+        for (int imesh = 0; imesh < nmeshes; imesh++) {
+            datavec[imesh].intLocPtIndex = int_ind;
+        }
+
         
         this->ComputeRequiredData(intpointtemp,trvec,datavec);
         

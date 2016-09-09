@@ -598,7 +598,7 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
             z.Redim(this->Cols(),x.Cols());
         }
     }
-    if(this->Cols() == 0) {
+    if(this->Cols() == 0 ) {
         z.Zero();
         return;
     }
@@ -1666,7 +1666,10 @@ int TPZFMatrix<double>::Decompose_LDLt() {
     fWork.Resize(worksize);
     int info;
     
-    //    ssysv_(<#char *__uplo#>, <#__CLPK_integer *__n#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__a#>, <#__CLPK_integer *__lda#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_real *__work#>, <#__CLPK_integer *__lwork#>, <#__CLPK_integer *__info#>)
+    if(dim == 0){
+        fDecomposed = ELDLt;
+        return 1;
+    }
     
     dsysv_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], &B, &dim, &fWork[0], &worksize, &info);
     fDecomposed = ELDLt;
@@ -1857,6 +1860,9 @@ int TPZFMatrix<float>::Subst_LForward( TPZFMatrix<float>* b ) const
     
     char uplo = 'U';
     int dim = Rows();
+    if (dim == 0) {
+        return 1;
+    }
     int nrhs = b->Cols();
     float B  = 0.;
     int info;

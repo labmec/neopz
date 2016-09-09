@@ -39,6 +39,9 @@ private:
     /** @brief Solution at past state */
     TPZFMatrix<STATE> fX;
     
+    /** @brief Strain-Stress solution data */
+    TPZStack< std::pair<REAL,REAL> > fstrain_stress_duplets;
+    
     /** @brief Residue error */
     STATE ferror;
     
@@ -142,7 +145,13 @@ public:
     void Update_at_n_State();
 
     /** @brief execute the evolutionary problem */
-    void Run_Evolution();
+    void Run_Evolution(TPZVec<REAL> & x);
+    
+    /** @brief Compute the strain and the stress at x euclidean point for each time */
+    void AppendStrain_Stress(TPZVec<REAL> & x);
+    
+    /** @brief Compute the strain and the stress at x euclidean point for each time */
+    void PlotStrainStress(std::string file_name);
     
 };
 

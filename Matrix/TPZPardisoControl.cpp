@@ -196,13 +196,28 @@ void TPZPardisoControl<TVar>::Decompose()
         n = fNonSymmetricSystem->Rows();
 
     }
-//    for (int i=0; i<n+1; i++) {
-//        std::cout << ia[i] << ' ';
-//    }
-//    std::cout << std::endl;
-//    for (int i=0; i<ia[n]; i++) {
-//        std::cout << ja[i] << ' ' << a[i] << "| ";
-//    }
+    for (int i=0; i<n; i++) {
+        bool hasdiag = false;
+        if (ia[i+1] == ia[i]+1 && ja[ia[i]] == i ) {
+            hasdiag = true;
+        }
+        for (int j = ia[i]; j < ia[i+1]-1; j++) {
+            if (ja[j] == i || ja[j+1] == i) {
+                hasdiag = true;
+            }
+            if (ja[j] >= ja[j+1]) {
+                DebugStop();
+            }
+        }
+        if (hasdiag == false) {
+            std::cout << "i = " << i << std::endl;
+            for (int k=ia[i]; k<ia[i+1]; k++) {
+                std::cout << ja[k] << " ";
+            }
+            std::cout << std::endl;
+            DebugStop();
+        }
+    }
 //    std::cout << std::endl;
     long long *perm = 0,nrhs = 0;
     long long Error = 0;
@@ -211,6 +226,12 @@ void TPZPardisoControl<TVar>::Decompose()
     perm = &fPermutation[0];
     fParam[34] = 1;
     /// analyse and factor the equations
+    
+    /// testing RTFM = READ THE FUCKING MANUAL
+    if (fProperty == EIndefinite && fSystemType == ESymmetric) {
+        fParam[10] = 1;
+        fParam[12] = 1;
+    }
     long long phase = 12;
     
     std::cout << __PRETTY_FUNCTION__ << std::endl;

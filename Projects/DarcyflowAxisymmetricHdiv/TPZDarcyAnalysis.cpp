@@ -113,9 +113,6 @@ TPZDarcyAnalysis::~TPZDarcyAnalysis()
 
 void TPZDarcyAnalysis::SetFluidData(TPZVec< TPZAutoPointer<Phase> > PVTData){
     
-//    PVTData[0] = Water.operator->();
-//    PVTData[1] = Oil.operator->();
-//    PVTData[2] = Gas.operator->();
     TPZStack<std::string> System =  fSimulationData->GetsystemType();
     int nphases = System.size();
     
@@ -1280,7 +1277,7 @@ void TPZDarcyAnalysis::IntegrateVelocities(TPZManVector<REAL> & velocities){
     TPZStack<int> MaterialsToIntegrate = fSimulationData->MaterialsToIntegrate();
     int n_materials = MaterialsToIntegrate.size();
     
-    if (n_materials == 1) {
+    if (n_materials == 0) {
         std::cout << "There is not material ids to identify." << std::endl;
         DebugStop();
     }
@@ -2666,8 +2663,8 @@ void TPZDarcyAnalysis::PostProcessVTK(TPZAnalysis *an)
     
     
     if (fSimulationData->IsTwoPhaseQ()) {
-//        scalnames.Push("Rho_alpha");
-//        scalnames.Push("Rho_beta");
+        scalnames.Push("Rho_alpha");
+        scalnames.Push("Rho_beta");
         scalnames.Push("S_alpha");
         scalnames.Push("S_beta");
         scalnames.Push("f_alpha");
@@ -2765,7 +2762,8 @@ TPZFMatrix<STATE> * TPZDarcyAnalysis::ComputeInverse()
     TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
     TPZAutoPointer<TPZMatrix<STATE> > MatG = skyl.CreateAssemble(rhsfrac, gui);
     TPZFMatrix<STATE> oldmat = *MatG.operator->();
-    oldmat.Inverse( * PreInverse);
+//    oldmat.Inverse( * PreInverse);
+    DebugStop();
     oldmat.Multiply(*PreInverse, Identity);
     
 #ifdef PZDEBUG

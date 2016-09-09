@@ -51,6 +51,21 @@ class TPBRWellBBox
             
         }
         
+        ~TFace()
+        {
+            
+        }
+        
+        TFace(const TFace &copy)
+        {
+            DebugStop();
+        }
+        
+        TFace &operator=(const TFace &copy)
+        {
+            DebugStop();
+            return *this;
+        }
         TPZManVector<int,4> fOuterNodeIndices;
         TPZManVector<int,4> fWellNodeIndices;
         
@@ -98,6 +113,17 @@ public:
     fWellDiameter(WellDiam), fPlaneZcoordinate(0.)
     {
         
+    }
+    
+    TPBRWellBBox(const TPBRWellBBox&copy)
+    {
+        DebugStop();
+    }
+    
+    TPBRWellBBox &operator=(const TPBRWellBBox &copy)
+    {
+        DebugStop();
+        return *this;
     }
     
     /// Set the well partitions and the rib indices

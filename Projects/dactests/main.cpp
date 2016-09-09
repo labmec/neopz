@@ -158,7 +158,7 @@ std::map<int,int> fDebugDoF;
 //void Parametricfunction2(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 //void Parametricfunction3(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 
-int dim = 2;
+int dim = 3;
 REAL aa = 0.0;
 REAL bb = 0.0;
 REAL cc = 0.0;
@@ -202,13 +202,14 @@ int main(int argc, char *argv[])
     HDivPiola = 1;
     ofstream saidaerros("ErroNormas.txt",ios::app);
     
-    for(p=1;p<2;p++)
+    for(p=1;p<3;p++)
     {
         saidaerros << "\nPARA p = " << p << endl;
 //        saidaerros << "ndiv " << setw(6) << "DoFT" << setw(20) << "DofCond" << setw(20) << "ErroL2Primal" << setw(20) << "ErroL2Dual" << setw(20) << "ErroL2Div" << setw(20) << "ErroHDivDual"  << endl;
         saidaerros << "ndiv" << setw(10) <<"NDoF"<< setw(20)<<"NDoFCond"<< setw(20)<< "Assemble"<< setw(20) << "Solve" << setw(20) <<"Ttotal" << setw(20) << "Error primal" << setw(20) <<"Error dual \n";
         
-        for (ndiv=0; ndiv<1; ndiv++)
+        for (ndiv=0; ndiv<5; ndiv++)
+
         {
             
             if (dim==2)
@@ -288,7 +289,7 @@ int main(int argc, char *argv[])
                     LaplaceInSolidSphere * sphere = new LaplaceInSolidSphere();
                     bool HdivMaisMais = false;
                     int k = HdivMaisMais ? p+1 : p;
-                    sphere->SetNonLinearMesh(false);
+                    sphere->SetMeshStyle(LaplaceInSolidSphere::EBlend);
                     sphere->Run( k, ndiv, fDebugMapL2, fDebugMapHdiv, saidaerros, HdivMaisMais);
                 }
                 else

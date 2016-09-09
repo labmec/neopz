@@ -17,6 +17,33 @@
 #include "pzcondensedcompel.h"
 #include <algorithm>
 
+#include "pzmetis.h"
+#include "pzsloan.h"
+#include "TPZSloanRenumbering.h"
+#include "TPZCutHillMcKee.h"
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.analysis"));
+#endif
+
+#ifdef USING_BOOST
+#include "TPZBoostGraph.h"
+/**
+ * @brief To renumbering will use boost library.
+ * @ingroup analysis
+ */
+#define RENUMBER TPZSloanRenumbering()
+#else
+/**
+ * @brief To renumbering will use sloan library.
+ * @ingroup analysis
+ */
+#define RENUMBER TPZSloanRenumbering()
+//#define RENUMBER TPZCutHillMcKee()
+#endif
+
 static TPZOneShapeRestraint SetupPyramidRestraint(TPZCompEl *cel, int side);
 
 using namespace pzshape;
@@ -417,13 +444,13 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
         }
     }
     cmesh->ComputeNodElCon();
-    if (KeepOneLagrangian)
-    {
-        for (std::set<long>::iterator it = indices.begin(); it != indices.end(); it++) {
-            TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cmesh->Element(*it));
-            if (!subcmesh) {
-                DebugStop();
-            }
+    for (std::set<long>::iterator it = indices.begin(); it != indices.end(); it++) {
+        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cmesh->Element(*it));
+        if (!subcmesh) {
+            DebugStop();
+        }
+        if (KeepOneLagrangian)
+        {
             long nconnects = subcmesh->NConnects();
             for (long ic=0; ic<nconnects; ic++) {
                 TPZConnect &c = subcmesh->Connect(ic);
@@ -432,9 +459,11 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
                     break;
                 }
             }
-            subcmesh->MakeAllInternal();
         }
+        subcmesh->MakeAllInternal();
     }
+
+    
     
 }
 
@@ -500,4 +529,61 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
     }
     cmesh->CleanUpUnconnectedNodes();
     
+}
+
+void TPZCompMeshTools::OptimizeBandwidth(TPZCompMesh *cmesh){
+    
+    /** @brief Renumbering scheme */
+    TPZAutoPointer<TPZRenumbering> fRenumber(new RENUMBER);
+    
+    //enquanto nao compilamos o BOOST no windows, vai o sloan antigo
+#ifdef WIN32
+    if(!fCompMesh) return;
+    cmesh->InitializeBlock();
+    TPZVec<long> perm,iperm;
+    
+    TPZStack<long> elgraph;
+    TPZStack<long> elgraphindex;
+    long nindep = cmesh->NIndependentConnects();
+    cmesh->ComputeElGraph(elgraph,elgraphindex);
+    long nel = elgraphindex.NElements()-1;
+    TPZSloan sloan(nel,nindep);
+    sloan.SetElementGraph(elgraph,elgraphindex);
+    sloan.Resequence(perm,iperm);
+    cmesh->Permute(perm);
+#else
+    if(!cmesh) return;
+    cmesh->InitializeBlock();
+    
+    TPZVec<long> perm,iperm;
+    
+    TPZStack<long> elgraph,elgraphindex;
+    long nindep = cmesh->NIndependentConnects();
+    cmesh->ComputeElGraph(elgraph,elgraphindex);
+    long nel = elgraphindex.NElements()-1;
+    long el,ncel = cmesh->NElements();
+    int maxelcon = 0;
+    for(el = 0; el<ncel; el++)
+    {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        if(!cel) continue;
+        std::set<long> indepconlist,depconlist;
+        cel->BuildConnectList(indepconlist,depconlist);
+        long locnindep = indepconlist.size();
+        maxelcon = maxelcon < locnindep ? locnindep : maxelcon;
+    }
+    fRenumber->SetElementsNodes(nel,nindep);
+    fRenumber->SetElementGraph(elgraph,elgraphindex);
+    fRenumber->Resequence(perm,iperm);
+    cmesh->Permute(perm);
+    if (nel > 100000) {
+        std::cout << "Applying Saddle Permute\n";
+        }
+        cmesh->SaddlePermute();
+    
+    std::cout << "perm = " << perm << std::endl;
+    std::cout << "iperm = " << iperm << std::endl;
+    
+#endif
+        
 }
