@@ -190,12 +190,20 @@ void TPZPoroPermAnalysis::PostProcessStep(){
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("s_x");
     scalnames.Push("s_y");
-    scalnames.Push("t_xy");    
+    scalnames.Push("t_xy");
+    scalnames.Push("e_x");
+    scalnames.Push("e_y");
+    scalnames.Push("e_xy");
+    scalnames.Push("ep_x");
+    scalnames.Push("ep_y");
+    scalnames.Push("ep_xy");
     scalnames.Push("k_x");
-//    scalnames.Push("k_y");
+    scalnames.Push("k_y");
+    scalnames.Push("K_0");
     scalnames.Push("phi");    
     scalnames.Push("p_ex");
     vecnames.Push("u");
+    vecnames.Push("v");    
     
     std::string plotfile = "Poro_Permeability_2D.vtk";
 
@@ -211,8 +219,9 @@ void TPZPoroPermAnalysis::Run_Evolution(TPZVec<REAL> &x){
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
     
-    for (int i = 0; i < n; i++) {
-        time = (i+1)*dt;
+    for (int i = 0; i <= n; i++) {
+        time = i * dt;
+        std::cout<< "Permeability Coupling:: Current time (s) = " << time << std::endl;
         this->SimulationData()->SetTime(time);
         this->ExcecuteOneStep();
         this->PostProcessStep();
@@ -237,10 +246,12 @@ void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x){
     
     int sx_var = 2;
     int sy_var = 3;
-    int ey_var = 11;
+    int eey_var = 12;
+    int epy_var = 15;
     TPZVec<STATE> sx;
     TPZVec<STATE> sy;
-    TPZVec<STATE> ey;
+    TPZVec<STATE> eey;
+    TPZVec<STATE> epy;
     
     std::pair<REAL,REAL> duplet;
     
@@ -265,8 +276,9 @@ void TPZPoroPermAnalysis::AppendStrain_Stress(TPZVec<REAL> & x){
             TPZCompEl * cel = gel->Reference();
             cel->Solution(parametric_space, sx_var, sx);
             cel->Solution(parametric_space, sy_var, sy);
-            cel->Solution(parametric_space, ey_var, ey);
-            duplet.first = ey[0];
+            cel->Solution(parametric_space, eey_var, eey);
+            cel->Solution(parametric_space, epy_var, epy);
+            duplet.first = eey[0] + epy[0];
             duplet.second = sy[0] - sx[0];
             
             duplet.first = fabs(duplet.first);

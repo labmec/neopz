@@ -78,6 +78,9 @@ protected:
     /** @brief xi parameter for Drucker-Prager model  */
     REAL fxi_dp;
     
+    /** @brief permeability coupling model  */
+    int fk_model;
+    
     /** @brief Uses plain stress
      * @note \f$fPlaneStress = 1\f$ => Plain stress state
      * @note \f$fPlaneStress != 1\f$ => Plain Strain state
@@ -144,6 +147,10 @@ public:
     
     void SetBiotParameters(REAL alpha, REAL Se)
     {
+        if(alpha==0){
+            std::cout << "Biot constan should be at leats equal to the intact porosity, alpha = " << alpha  << std::endl;
+            DebugStop();
+        }
         falpha = alpha;
         fSe = Se;
     }
@@ -165,6 +172,17 @@ public:
         fPlaneStress = planestress;
     }
     
+    /** @brief Parameters of rock and fluid: */
+    void SetKModel(int model)
+    {
+        fk_model = model;
+    }
+    
+    /** @brief Parameters of rock and fluid: */
+    int KModel()
+    {
+        return fk_model;
+    }
     
     void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
@@ -258,6 +276,9 @@ public:
     
     /** @brief Drucker prager stress update */
     TPZFMatrix<REAL> stress_DP(TPZFMatrix<REAL> T);
+    
+    /** @brief Principal Stress */
+    void Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S);
     
     /** @brief Drucker prager elastoplastic corrector  */
     void corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
