@@ -364,9 +364,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
     if (bc.HasfTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(3);
         TPZFMatrix<REAL> gradf;
-        DebugStop();
-
-//        bc.TimedependentBCForcingFunction()->Execute(datavec[p_b].x, time, f, gradf);
+        bc.TimedependentBCForcingFunction()->Execute(datavec[p_b].x, time, f, gradf);
         v[0] = f[0];	//	Ux displacement or Tx
         v[1] = f[1];	//	Uy displacement or Ty
         v[2] = f[2];	//	Pressure

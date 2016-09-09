@@ -98,8 +98,8 @@ int main(int argc, char *argv[])
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.00001;
-    int n_steps = 10;
+    REAL dt = 1.0;
+    int n_steps = 20;
     REAL epsilon_res = 0.01;
     REAL epsilon_corr = 0.001;
     int n_corrections = 10;
@@ -348,10 +348,12 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
 void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
 {
     
-    DebugStop();
     REAL MPa = 1.0e6;
-    REAL s_n = -10.0*MPa;
-    f[0] = s_n;
+    REAL s_n = (0.25*time+0.25)*MPa;
+    
+    f[0] = 0.0;
+    f[1] = -s_n;
+    f[2] = 0.0;
     return;
 }
 
