@@ -232,9 +232,8 @@ public:
         DebugStop();
     }
     
-    /** @brief Rudnicki diffusion coefficient */
-    /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic di usive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
-    REAL c_diffusion(REAL phi);
+
+    REAL k_permeability(REAL &phi, REAL &k);
     
     /** @brief Poroelastic porosity correction */
     REAL porosoty_corrected(TPZVec<TPZMaterialData> &datavec);

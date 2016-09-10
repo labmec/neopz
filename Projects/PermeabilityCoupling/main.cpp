@@ -40,6 +40,7 @@
 
 // Matrix
 #include "pzskylstrmatrix.h"
+#include "TPZParFrontStructMatrix.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "pzstepsolver.h"
 
@@ -106,7 +107,7 @@ int main(int argc, char *argv[])
     int n_steps = 30;
     REAL epsilon_res = 1.0e-3;
     REAL epsilon_corr = 1.0e-10;
-    int n_corrections = 30;
+    int n_corrections = 50;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
@@ -129,10 +130,10 @@ int main(int argc, char *argv[])
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
 
-    REAL Lx = 0.1; // meters
-    REAL Ly = 0.2; // meters
+    REAL Lx = 5.0; // meters
+    REAL Ly = 10.0; // meters
     
-    n[0] = 3; // x - direction
+    n[0] = 5; // x - direction
     n[1] = 10; // y - direction
 
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
@@ -160,8 +161,8 @@ int main(int argc, char *argv[])
     mesh_vector[0] = CMesh_Deformation(gmesh, deformation_order);
     mesh_vector[1] = CMesh_PorePressure(gmesh, pore_pressure_order);
     
-//    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCoupling(gmesh, mesh_vector, sim_data);
-    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCouplingII(gmesh, mesh_vector, sim_data);
+    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCoupling(gmesh, mesh_vector, sim_data);
+//    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCouplingII(gmesh, mesh_vector, sim_data);
 
     // Create the static analysis
     
@@ -170,28 +171,41 @@ int main(int argc, char *argv[])
     
     // Create the Transient analysis
     
-    bool mustOptimizeBandwidth = false;
+    bool mustOptimizeBandwidth = true;
+    int number_threads = 8;
     TPZPoroPermAnalysis * time_analysis = new TPZPoroPermAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    TPZSkylineNSymStructMatrix skyl(cmesh_poro_perm_coupling);
+//    TPZSkylineNSymStructMatrix skyl(cmesh_poro_perm_coupling);
+//    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+    
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
+    struct_mat.SetDecomposeType(ELDLt);
+    
     TPZStepSolver<STATE> step;
-    step.SetDirect(ELU);
+    struct_mat.SetNumThreads(number_threads);
+    step.SetDirect(ELDLt);
     time_analysis->SetSolver(step);
-    time_analysis->SetStructuralMatrix(skyl);
+    time_analysis->SetStructuralMatrix(struct_mat);
     
     TPZVec<REAL> x(3);
     x[0] = Lx/2.0;
     x[1] = Ly/2.0;
     x[2] = 0.0;
-    std::string file_name("plot.nb");
+    std::string file_ss_name("plot.nb");
+    std::string file_sp_name("porosity.nb");
+    std::string file_sk_name("permeability.nb");
+    std::string file_spex_name("porepressure.nb");
     
     // Run Transient analysis
     time_analysis->Run_Evolution(x);
-    time_analysis->PlotStrainStress(file_name);
+    time_analysis->PlotStrainStress(file_ss_name);
+    time_analysis->PlotStrainPorosity(file_sp_name);
+    time_analysis->PlotStrainPermeability(file_sk_name);
+    time_analysis->PlotStrainPressure(file_spex_name);
     std::cout << " Execution finished" << std::endl;
 	return EXIT_SUCCESS;
 }
@@ -242,18 +256,19 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     
     // Getting mesh dimension
     int dim = 2;
-    int kmodel = 0;
+    
+    int kmodel = 3;
     REAL l = 15.3333e8;
     REAL mu = 5.1111e8;
     REAL l_u = 16.3333e8;
-    REAL alpha = 0.5;
-    REAL Se = 1.0e-8;
-    REAL k = 1.0e-13;
+    REAL alpha = 0.95;
+    REAL Se = 1.0e-7;
+    REAL k = 1.0e-14;
     REAL porosity = 0.25;
     REAL eta = 0.001;
     
     REAL c = 27.2*MPa;
-    REAL phi_f = 10.0*rad;
+    REAL phi_f = 30.0*rad;
 
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
@@ -268,27 +283,6 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     material->SetDruckerPragerParameters(phi_f, c);
     cmesh->InsertMaterialObject(material);
     
-//    TPZFMatrix<REAL> g(3,3,0.0),S;
-//    g(0,0) = 5.0;
-//    g(0,1) = 58.0;
-//    g(0,2) = 0.9;
-//    
-//    g(1,0) = 58.0;
-//    g(1,1) = 2.0;
-//    g(1,2) = 0.9;
-//    
-//    g(2,0) = 0.9;
-//    g(2,1) = 0.9;
-//    g(2,2) = -0.5;
-//    
-//    std::cout << "p = " << material->p(g) << std::endl;
-//    std::cout << "s = " << material->s(g) << std::endl;
-//    std::cout << "j2 = " << material->J2(material->s(g)) << std::endl;
-//    std::cout << "j3 = " << material->J3(material->s(g)) << std::endl;
-//    std::cout << "phi = " << material->Phi_DP(g) << std::endl;
-//    std::cout << "delta_gamma = " << material->delta_gamma_finder(g, 0.0) << std::endl;
-//    material->Principal_Stress(g, S);
-//    S.Print("S = ");
     
     // Inserting boundary conditions
     int dirichlet_x_vn   = 7;
@@ -303,7 +297,7 @@ TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompM
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    val2(2,0) = 0.0;
+    val2(2,0) = 0.0013801;
     TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_y_vn, val1, val2);
     cmesh->InsertMaterialObject(bc_bottom_mat);
     
@@ -381,7 +375,7 @@ TPZCompMesh * CMesh_PorePermeabilityCouplingII(TPZGeoMesh * gmesh, TPZVec<TPZCom
     
     // Getting mesh dimension
     int dim = 2;
-    int kmodel = 0;
+    int kmodel = 3;
     REAL l = 15.3333e8;
     REAL mu = 5.1111e8;
     REAL l_u = 16.3333e8;
@@ -412,6 +406,7 @@ TPZCompMesh * CMesh_PorePermeabilityCouplingII(TPZGeoMesh * gmesh, TPZVec<TPZCom
     int dirichlet_xy_vn  = 6;
     int neumann_y_p      = 5;
     int dirichlet_xy_p   = 0;
+    int dirichlet_y_vn   = 8;
     
     REAL s_n = -10.0*MPa;
     //    REAL u_y = -0.000333333;
@@ -420,8 +415,8 @@ TPZCompMesh * CMesh_PorePermeabilityCouplingII(TPZGeoMesh * gmesh, TPZVec<TPZCom
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    val2(2,0) = 10.0;
-    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_xy_p, val1, val2);
+    val2(2,0) = -100.0013801;
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_y_vn, val1, val2);
     cmesh->InsertMaterialObject(bc_bottom_mat);
     
     val2(0,0) = 0.0;
@@ -714,7 +709,7 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     GeoMesh3->SetName(name);
     GeoMesh3->SetMaxNodeId(node_id);
     GeoMesh3->SetMaxElementId(element_id);
-    
+    GeoMesh3->SetDimension(2);
     return GeoMesh3;
     
 }

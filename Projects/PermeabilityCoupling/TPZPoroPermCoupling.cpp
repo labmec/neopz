@@ -60,48 +60,44 @@ int TPZPoroPermCoupling::NStateVariables() {
 }
 
 
-REAL TPZPoroPermCoupling::c_diffusion(REAL phi){
+REAL TPZPoroPermCoupling::k_permeability(REAL &phi, REAL &k){
 
     
-    REAL c = 0.0;
-
+    k = 0.0;
+    REAL tom2 = 9.869233e-16;
     switch (fk_model) {
         case 0:
         {
-            REAL k = fk;
-            c = (k/feta)*(flambdau-flambda)*(flambdau + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
+            k = fk;
         }
             break;
             
         case 1:
         {
-            REAL k = fk*(phi/fporosity_0);
-            c = (k/feta)*(flambdau-flambda)*(flambdau + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
+            k = fk*pow((phi/fporosity_0),4.0);
         }
             break;
             
         case 2:
         {
-            REAL k = fk*(pow(phi,1.4));
-            c = (k/feta)*(flambdau-flambda)*(flambdau + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
+            k = 0.136*(pow(phi,1.4))*tom2;
         }
             break;
             
         case 3:
         {
-            REAL k = fk*(pow(phi,1.4));
-            c = (k/feta)*(flambdau-flambda)*(flambdau + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
+            k = (100.0*pow(phi,2.25))*(100.0*pow(phi,2.25))*tom2;
         }
             break;
         default:
+        {
+            DebugStop();
+        }
             break;
     }
     
 
-    
-    
-    
-    return c;
+    return k;
 }
 
 /** @brief Poroelastic porosity correction */
@@ -247,8 +243,6 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 
     corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
     
-//    Compute_Sigma(S, Grad_u);
-    
     
     TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0),Si_x;
     TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0),Si_y;
@@ -297,8 +291,6 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     //	Coupling matrix
     for(int iu = 0; iu < nphi_u; iu++ )
     {
-//        dv(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0);
-//        dv(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1);
         
         for(int jp = 0; jp < nphi_p; jp++)
         {
@@ -328,7 +320,11 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
         }
     }
     
-    REAL c = c_diffusion(phi_poro);
+    /** @brief Rudnicki diffusion coefficient */
+    /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic di usive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
+    REAL k = 0.0;
+    k_permeability(phi_poro,k);
+    REAL c = (k/feta)*(flambdau-flambda)*(flambda + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
     
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++) {
@@ -904,22 +900,29 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     
     //	v
     if(var == 7) {
-        Solout[0] = -(fk/feta) * Grad_p(0,0);
-        Solout[1] = -(fk/feta) * Grad_p(1,0);
+        REAL phi = porosoty_corrected(datavec);
+        REAL k;
+        k_permeability(phi, k);
+        Solout[0] = -(k/feta) * Grad_p(0,0);
+        Solout[1] = -(k/feta) * Grad_p(1,0);
         return;
     }
     
     //	k_x
     if(var == 8) {
         REAL phi = porosoty_corrected(datavec);
-        Solout[0] = fk*(phi/fporosity_0)*to_Darcy;
+        REAL k = 0.0;
+        k_permeability(phi, k);
+        Solout[0] = k*to_Darcy;
         return;
     }
     
     //	k_y
     if(var == 9) {
         REAL phi = porosoty_corrected(datavec);
-        Solout[0] = fk*(phi/fporosity_0)*to_Darcy;
+        REAL k = 0.0;
+        k_permeability(phi, k);
+        Solout[0] = k*to_Darcy;
         return;
     }
     

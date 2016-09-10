@@ -42,6 +42,15 @@ private:
     /** @brief Strain-Stress solution data */
     TPZStack< std::pair<REAL,REAL> > fstrain_stress_duplets;
     
+    /** @brief Strain-Porosity solution data */
+    TPZStack< std::pair<REAL,REAL> > fstrain_porosity_duplets;
+    
+    /** @brief Strain-Permeability solution data */
+    TPZStack< std::pair<REAL,REAL> > fstrain_permeability_duplets;
+    
+    /** @brief Strain-Pressure solution data */
+    TPZStack< std::pair<REAL,REAL> > fstrain_pressure_duplets;
+    
     /** @brief Residue error */
     STATE ferror;
     
@@ -150,8 +159,26 @@ public:
     /** @brief Compute the strain and the stress at x euclidean point for each time */
     void AppendStrain_Stress(TPZVec<REAL> & x);
     
+    /** @brief Compute the strain and the Porosity at x euclidean point for each time */
+    void AppendStrain_Pososity(TPZVec<REAL> & x);
+    
+    /** @brief Compute the strain and the Permeability at x euclidean point for each time */
+    void AppendStrain_Permeability(TPZVec<REAL> & x);
+    
+    /** @brief Compute the strain and the Pressure at x euclidean point for each time */
+    void AppendStrain_Pressure(TPZVec<REAL> & x);
+    
     /** @brief Compute the strain and the stress at x euclidean point for each time */
     void PlotStrainStress(std::string file_name);
+    
+    /** @brief Compute the strain and the Porosity at x euclidean point for each time */
+    void PlotStrainPorosity(std::string file_name);
+    
+    /** @brief Compute the strain and the Permeability at x euclidean point for each time */
+    void PlotStrainPermeability(std::string file_name);
+    
+    /** @brief Compute the strain and the Pressure at x euclidean point for each time */
+    void PlotStrainPressure(std::string file_name);
     
 };
 
