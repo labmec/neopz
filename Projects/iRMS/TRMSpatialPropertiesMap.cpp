@@ -193,6 +193,18 @@ void TRMSpatialPropertiesMap::alpha(TPZManVector<STATE,3> &x, TPZManVector<STATE
     
 }
 
+/** @brief Geological Stress $\sigma_{0}$ */
+void TRMSpatialPropertiesMap::S_0(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &s_0){
+    
+    s_0.Resize(3, 3);
+    s_0.Zero();
+    REAL MPa = 1.0e6;
+    s_0(0,0) = -40.0*MPa;
+    s_0(1,1) = -50.0*MPa;
+    s_0(2,2) = -60.0*MPa;
+    
+    
+}
 
 /** @brief Absolute Permeability m2  $\kappa$ */
 void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars){

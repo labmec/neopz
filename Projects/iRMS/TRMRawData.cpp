@@ -865,7 +865,7 @@ void TRMRawData::WaterGeoReservoirBox(bool Is3DGeometryQ){
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-    //fg[1] = -9.81;
+//    fg[1] = -9.81;
     
     int map_model = 0; // constant
     fMap = new TRMSpatialPropertiesMap;
@@ -972,7 +972,7 @@ void TRMRawData::GeoFlux_fixed_x(const TPZVec< REAL >& pt, REAL time, TPZVec< RE
     REAL ux = 0.0;
     REAL uy = 0.0;
     REAL uz = 0.0;
-    REAL f = -0.184;
+    REAL f = -0.00184;
 
     F[0] = ux;
     F[1] = uy;
@@ -983,8 +983,9 @@ void TRMRawData::GeoFlux_fixed_x(const TPZVec< REAL >& pt, REAL time, TPZVec< RE
 
 void TRMRawData::GeoImpervious_traction(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF){
     
+    REAL MPa = 1.0e6;
     REAL tx = 0.0;
-    REAL ty = -1.0*1.0e6;
+    REAL ty = -50.0*MPa;
     REAL tz = 0.0;
     REAL f = 0.0;
     

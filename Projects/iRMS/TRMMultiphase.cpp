@@ -371,13 +371,13 @@ void TRMMultiphase::Sigma(TPZManVector<STATE, 10> & l, TPZManVector<STATE, 10> &
         DebugStop();
     }
 #endif
-    
+
     TPZFMatrix<REAL> Grad_u_t = Grad_u, e;
     Grad_u.Transpose(&Grad_u_t);
-    
+
     e = Grad_u + Grad_u_t;
     e *= 0.5;
-    
+
     TPZFMatrix<REAL> I(fdimension,fdimension);
     I.Identity();
     
@@ -387,12 +387,39 @@ void TRMMultiphase::Sigma(TPZManVector<STATE, 10> & l, TPZManVector<STATE, 10> &
     }
     
     S = 2.0 * mu[0] * e + l[0] * tr_e * I;
-    
+
 }
 
 // ------------------------------------------------------------------- //
 // one phase flow case
 // ------------------------------------------------------------------- //
+
+////** @brief Compute elastic stress */
+//void TRMMultiphase::Porosity_correction(TPZManVector<STATE, 10> & l, TPZManVector<STATE, 10> & mu, TPZFMatrix<REAL> & Grad_u, TPZFMatrix<REAL> & S){
+//    
+//#ifdef PZDEBUG
+//    if(Grad_u.Rows() != fdimension && Grad_u.Cols() != fdimension){
+//        DebugStop();
+//    }
+//#endif
+//    
+//    TPZFMatrix<REAL> Grad_u_t = Grad_u, e;
+//    Grad_u.Transpose(&Grad_u_t);
+//    
+//    e = Grad_u + Grad_u_t;
+//    e *= 0.5;
+//    
+//    TPZFMatrix<REAL> I(fdimension,fdimension);
+//    I.Identity();
+//    
+//    REAL tr_e = 0.0;
+//    for (int i = 0; i < fdimension; i++) {
+//        tr_e += e(i,i);
+//    }
+//    
+//    S = 2.0 * mu[0] * e + l[0] * tr_e * I;
+//    
+//}
 
 void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
@@ -428,9 +455,11 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     REAL p                  = datavec[pb].sol[0][0];
     
     TPZFNMatrix <9,REAL> du         = datavec[ub].dsol[0];
+    TPZFNMatrix <9,REAL> dp         = datavec[pb].dsol[0];
     TPZFNMatrix<10,STATE> Gradqaxes = datavec[qb].dsol[0];
     
     TPZFNMatrix <9,REAL>	&axes_u	=	datavec[ub].axes;
+    TPZFNMatrix <9,REAL>	&axes_p	=	datavec[pb].axes;
 
     
     // Time
@@ -458,11 +487,18 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_q(3,1),lambda_dp_K_inv_q(3,1), lambda_K_inv_phi_q_j(3,1);
     TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
+    TPZFMatrix<STATE> S_geo;
     
+    fSimulationData->Map()->S_0(datavec[ub].x, S_geo);
     fSimulationData->Map()->lambda(datavec[ub].x, lambda, v);
     fSimulationData->Map()->lambda_u(datavec[ub].x, lambda_u, v);
     fSimulationData->Map()->mu(datavec[ub].x, mu, v);
     fSimulationData->Map()->alpha(datavec[ub].x, alpha, v);
+    
+    // Computing Gradient of the Solution
+    TPZFNMatrix<6,REAL> Grad_p(n_u,n_u,0.0);
+    Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0); // dp/dx
+    Grad_p(0,1) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1); // dp/dy
     
     // Computing Gradient of the Solution
     TPZFNMatrix<6,REAL> Grad_u(n_u,n_u,0.0),S;
@@ -473,7 +509,19 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
     Sigma(lambda, mu, Grad_u, S);
     
+    TPZManVector<STATE, 10> phi_star(nvars+1);// @omar:: problems with the definition of state var now is reuired introduce u
+    REAL rho_s = 2500.0;
+    REAL tr = Grad_u(0,0) + Grad_u(1,1);
+    REAL Se = rho[1]/rho[0]; // average compressibility
+    phi_star[0] = phi[0] + alpha[0] * tr + Se * p;
+    phi_star[1] = Se;
+    
+    REAL rho_solid_avg =  rho_s*(1.0-phi_star[0])+rho[0]*phi_star[0];
 
+    TPZManVector<REAL , 3 > b(3,0.0);
+    b[0] = rho_solid_avg * Gravity[0];
+    b[1] = rho_solid_avg * Gravity[1];
+    
     for (int i = 0; i < q.size(); i++) {
         REAL dot = 0.0;
         for (int j =0; j < q.size(); j++) {
@@ -507,18 +555,23 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZFNMatrix<6,REAL> Grad_vx_j(n_u,1,0.0);
     TPZFNMatrix<6,REAL> Grad_vy_j(n_u,1,0.0);
     
+    TPZFNMatrix<6,REAL> Grad_phip_j(n_u,1,0.0);
+    
     for (int iu = 0; iu < nphiu; iu++)
     {
 
         // Computing Gradient of the test function for each component
-        Grad_vx_i(0,0) = dphi_us(0,iu)*axes_u(0,0)+dphi_us(1,iu)*dphi_us(1,0); // dvx/dx
-        Grad_vx_i(1,0) = dphi_us(0,iu)*axes_u(0,1)+dphi_us(1,iu)*dphi_us(1,1); // dvx/dy
+        Grad_vx_i(0,0) = dphi_us(0,iu)*axes_u(0,0)+dphi_us(1,iu)*axes_u(1,0); // dvx/dx
+        Grad_vx_i(1,0) = dphi_us(0,iu)*axes_u(0,1)+dphi_us(1,iu)*axes_u(1,1); // dvx/dy
         
         Grad_vy_i(0,0) = dphi_us(0,iu)*axes_u(0,0)+dphi_us(1,iu)*axes_u(1,0); // dvy/dx
         Grad_vy_i(1,0) = dphi_us(0,iu)*axes_u(0,1)+dphi_us(1,iu)*axes_u(1,1); // dvy/dy
         
-        ef(n_u*iu + firstu, 0)      += weight * (S(0,0) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) + 0.0 * phi_us(iu, 0));
-        ef(n_u*iu+1 + firstu, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + S(1,1) * Grad_vy_i(1,0) + 0.0 * phi_us(iu, 0));
+//        ef(n_u*iu + firstu, 0)      += -1.0 * weight * ( S_geo(0,0) * Grad_vx_i(0,0) + S_geo(0,1) * Grad_vx_i(1,0));
+//        ef(n_u*iu+1 + firstu, 0)	+= -1.0 * weight * ( S_geo(1,0) * Grad_vy_i(0,0) + S_geo(1,1) * Grad_vy_i(1,0));
+        
+        ef(n_u*iu + firstu, 0)      += weight * (( S(0,0) - alpha[0] * p) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - b[0] * phi_us(iu, 0));
+        ef(n_u*iu+1 + firstu, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + ( S(1,1) - alpha[0] * p) * Grad_vy_i(1,0) - b[1] * phi_us(iu, 0));
         
         for (int ju = 0; ju < nphiu; ju++) {
             
@@ -535,6 +588,13 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             ek(n_u*iu+1 + firstu, n_u*ju + firstu)      += weight * (  mu[0] * Grad_vx_j(1,0) * Grad_vy_i(0,0) + lambda[0] * Grad_vx_j(0,0) * Grad_vy_i(1,0));
             ek(n_u*iu+1 + firstu, n_u*ju+1 + firstu)	+= weight * ( (2.0*mu[0] + lambda[0]) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + mu[0] * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
             
+        }
+        
+        for (int jp = 0; jp < nphip; jp++) {
+            
+            
+            ek(n_u*iu + 0 + firstu, jp + firstp)      += weight * ( -1.0 * alpha[0] * phi_ps(jp,0) ) * Grad_vx_i(0,0);
+            ek(n_u*iu + 1 + firstu, jp + firstp)      += weight * ( -1.0 * alpha[0] * phi_ps(jp,0) ) * Grad_vy_i(1,0);
             
         }
         
@@ -599,6 +659,16 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         ef(ip + firstp) += -1.0 * weight * (divq + (1.0/dt) * rho[0] * phi[0] - f[0]) * phi_ps(ip,0);
         
+        for (int ju = 0; ju < nphiu; ju++)
+        {
+            // Computing Gradient of the test function
+            Grad_vx_j(0,0) = dphi_us(0,ju)*axes_u(0,0)+dphi_us(1,ju)*axes_u(1,0); // dvx/dx
+            Grad_vx_j(1,0) = dphi_us(0,ju)*axes_u(0,1)+dphi_us(1,ju)*axes_u(1,1); // dvx/dy
+            
+            ek(ip + firstp, n_u*ju + 0 + firstu) += -0.0 * weight * ( (1.0/dt) * rho[0] * alpha[0] * Grad_vx_j(0,0) ) * phi_ps(ip,0);
+            ek(ip + firstp, n_u*ju + 1 + firstu) += -0.0 * weight * ( (1.0/dt) * rho[0] * alpha[0] * Grad_vx_j(1,0) ) * phi_ps(ip,0);
+        }
+        
         for (int jq = 0; jq < nphiq; jq++)
         {
             ek(ip + firstp, jq + firstq) += -1.0 * weight * (1.0/jac_det) * div_on_master(jq,0) * phi_ps(ip,0);
@@ -606,7 +676,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         for (int jp = 0; jp < nphip; jp++)
         {
-            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * (rho[0] * phi[1] + rho[1] * phi[0]) * phi_ps(ip,0) ) * phi_ps(jp,0);
+            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * (rho[0] * phi_star[1] + rho[1] * phi_star[0]) * phi_ps(ip,0) ) * phi_ps(jp,0);
         }
         
     }
@@ -614,6 +684,11 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 }
 
 void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+    
+    
+    TPZFMatrix<STATE> ek_fake(ef.Rows(),ef.Rows(),0.0);
+    this->Contribute_a(datavec, weight, ek_fake, ef);
+    return;
     
     int nvars = 4; // {p,sa,sb,t}
 
@@ -728,15 +803,14 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     {
         
         // Computing Gradient of the test function for each component
-        Grad_vx_i(0,0) = dphi_us(0,iu)*axes_u(0,0)+dphi_us(1,iu)*dphi_us(1,0); // dvx/dx
-        Grad_vx_i(1,0) = dphi_us(0,iu)*axes_u(0,1)+dphi_us(1,iu)*dphi_us(1,1); // dvx/dy
+        Grad_vx_i(0,0) = dphi_us(0,iu)*axes_u(0,0)+dphi_us(1,iu)*axes_u(1,0); // dvx/dx
+        Grad_vx_i(1,0) = dphi_us(0,iu)*axes_u(0,1)+dphi_us(1,iu)*axes_u(1,1); // dvx/dy
         
         Grad_vy_i(0,0) = dphi_us(0,iu)*axes_u(0,0)+dphi_us(1,iu)*axes_u(1,0); // dvy/dx
         Grad_vy_i(1,0) = dphi_us(0,iu)*axes_u(0,1)+dphi_us(1,iu)*axes_u(1,1); // dvy/dy
         
-        ef(2*iu + firstu, 0)   += weight * (S(0,0) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0));
-        ef(2*iu+1 + firstu, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + S(1,1) * Grad_vy_i(1,0));
-        
+        ef(n_u*iu + firstu, 0)      += weight * (S(0,0) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) + 0.0 * phi_us(iu, 0));
+        ef(n_u*iu+1 + firstu, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + S(1,1) * Grad_vy_i(1,0) + 0.0 * phi_us(iu, 0));
         
     }
     
@@ -943,7 +1017,7 @@ void TRMMultiphase::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             break;
         case 3:
         {
-            // Bulk mass velocity
+            // div_u
             for (int i = 0; i < fdimension; i++) {
                 Solout[0] += Grad_u(i,i);
             }
@@ -3251,12 +3325,12 @@ void TRMMultiphase::apply_ux(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZF
     REAL u_x = Value;
     for (int iu = 0; iu < nphiu; iu++)
     {
-        ef(n_u*iu + 0 + firstu) += weight * gBigNumber * (u[0] - u_x) * phi_us(iu,0);
+        ef(n_u*iu + 0 + firstu) += weight * 0.1 * gBigNumber * (u[0] - u_x) * phi_us(iu,0);
         
         for (int ju = 0; ju < nphiu; ju++)
         {
             
-            ek(n_u*iu + 0 + firstu, n_u*iu + 0 + firstu) += weight * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
+            ek(n_u*iu + 0 + firstu, n_u*iu + 0 + firstu) += weight * 0.1 * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
         }
     }
     
@@ -3295,12 +3369,12 @@ void TRMMultiphase::apply_uy(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZF
     REAL u_y = Value;
     for (int iu = 0; iu < nphiu; iu++)
     {
-        ef(n_u*iu + 1 + firstu) += weight * gBigNumber * (u[1] - u_y) * phi_us(iu,0);
+        ef(n_u*iu + 1 + firstu) += weight * 0.1 * gBigNumber * (u[1] - u_y) * phi_us(iu,0);
         
         for (int ju = 0; ju < nphiu; ju++)
         {
             
-            ek(n_u*iu + 1 + firstu, n_u*iu + 1 + firstu) += weight * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
+            ek(n_u*iu + 1 + firstu, n_u*iu + 1 + firstu) += weight * 0.1 * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
         }
     }
     
@@ -3338,12 +3412,12 @@ void TRMMultiphase::apply_uz(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZF
     REAL u_z = Value;
     for (int iu = 0; iu < nphiu; iu++)
     {
-        ef(n_u*iu + 2 + firstu) += weight * gBigNumber * (u[3] - u_z) * phi_us(iu,0);
+        ef(n_u*iu + 2 + firstu) += weight * 0.1 * gBigNumber * (u[3] - u_z) * phi_us(iu,0);
         
         for (int ju = 0; ju < nphiu; ju++)
         {
             
-            ek(n_u*iu + 2 + firstu, n_u*iu + 2 + firstu) += weight * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
+            ek(n_u*iu + 2 + firstu, n_u*iu + 2 + firstu) += weight * 0.1 * gBigNumber * phi_us(ju,0) * phi_us(iu,0);
         }
     }
     

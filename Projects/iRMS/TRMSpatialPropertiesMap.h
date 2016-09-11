@@ -79,6 +79,9 @@ public:
     {
         return fMap_model;
     }
+
+    /** @brief Geological Stress $\sigma_{0}$ */    
+    void S_0(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &s_0);
     
     void Kappa(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
     
