@@ -99,7 +99,7 @@ void TRMMonolithicMultiphaseAnalysis::QuasiNewtonIteration(){
     this->Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     
-    this->Assemble(); // This is stupid! i cannot easily compute rhs without "fake" ek
+    this->AssembleResidual(); // This is stupid! i cannot easily compute rhs without "fake" ek
     fR_n = this->Rhs();
     fR_n += fR; // total residue
     ferror =  Norm(fR_n); // residue error
@@ -181,10 +181,10 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
 
 #ifdef PZDEBUG
 //        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
-//        fR.Print("R = ", std::cout,EMathematicaInput);
-//        fX.Print("X = ", std::cout,EMathematicaInput);        
-//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+        fR.Print("R = ", std::cout,EMathematicaInput);
+        fX.Print("X = ", std::cout,EMathematicaInput);        
+        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)

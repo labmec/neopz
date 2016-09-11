@@ -875,7 +875,7 @@ void TRMRawData::WaterGeoReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 20;
+    fn_steps  = 1;
     fdt = 1.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;
@@ -883,7 +883,7 @@ void TRMRawData::WaterGeoReservoirBox(bool Is3DGeometryQ){
     fdt_down = 1.0;
     
     // Numeric controls
-    fn_corrections = 50;
+    fn_corrections = 1;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;

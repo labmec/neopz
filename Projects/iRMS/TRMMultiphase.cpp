@@ -542,7 +542,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         for (int ip = 0; ip < nphip; ip++)
         {
             
-            ef(ip + firstp) += -1.0 * weight * (-1.0/dt) * rho[0] * phi[0] * phi_ps(ip,0);
+            ef(ip + firstp) += -1.0 * weight * (-1.0/dt) * rho[0] * phi_star[0] * phi_ps(ip,0);
             
         }
         
@@ -570,8 +570,11 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 //        ef(n_u*iu + firstu, 0)      += -1.0 * weight * ( S_geo(0,0) * Grad_vx_i(0,0) + S_geo(0,1) * Grad_vx_i(1,0));
 //        ef(n_u*iu+1 + firstu, 0)	+= -1.0 * weight * ( S_geo(1,0) * Grad_vy_i(0,0) + S_geo(1,1) * Grad_vy_i(1,0));
         
-        ef(n_u*iu + firstu, 0)      += weight * (( S(0,0) - alpha[0] * p) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - b[0] * phi_us(iu, 0));
-        ef(n_u*iu+1 + firstu, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + ( S(1,1) - alpha[0] * p) * Grad_vy_i(1,0) - b[1] * phi_us(iu, 0));
+        ef(n_u*iu + firstu, 0)      += weight * (S(0,0) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - b[0] * phi_us(iu, 0));
+        ef(n_u*iu+1 + firstu, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + S(1,1) * Grad_vy_i(1,0) - b[1] * phi_us(iu, 0));
+        
+        ef(n_u*iu + firstu, 0)      += weight * ( -alpha[0] * Grad_p(0,0) * phi_us(iu, 0));
+        ef(n_u*iu+1 + firstu, 0)	+= weight * ( -alpha[0] * Grad_p(1,0) * phi_us(iu, 0));
         
         for (int ju = 0; ju < nphiu; ju++) {
             
@@ -592,9 +595,15 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         for (int jp = 0; jp < nphip; jp++) {
             
+            // Computing Gradient of the test function for each component
+            Grad_phip_j(0,0) = dphi_ps(0,jp)*axes_p(0,0)+dphi_ps(1,jp)*axes_p(1,0); // dvx/dx
+            Grad_phip_j(1,0) = dphi_ps(0,jp)*axes_p(0,1)+dphi_ps(1,jp)*axes_p(1,1); // dvx/dy
             
-            ek(n_u*iu + 0 + firstu, jp + firstp)      += weight * ( -1.0 * alpha[0] * phi_ps(jp,0) ) * Grad_vx_i(0,0);
-            ek(n_u*iu + 1 + firstu, jp + firstp)      += weight * ( -1.0 * alpha[0] * phi_ps(jp,0) ) * Grad_vy_i(1,0);
+            ek(n_u*iu + 0 + firstu, jp + firstp)      += weight * ( -1.0 * alpha[0] * Grad_phip_j(0,0) ) * phi_us(iu, 0);
+            ek(n_u*iu + 1 + firstu, jp + firstp)      += weight * ( -1.0 * alpha[0] * Grad_phip_j(1,0) ) * phi_us(iu, 0);
+            
+//            ek(n_u*iu + 0 + firstu, jp + firstp)      += weight * ( -1.0 * alpha[0] * phi_ps(jp,0) ) * Grad_vx_i(0,0);
+//            ek(n_u*iu + 1 + firstu, jp + firstp)      += weight * ( -1.0 * alpha[0] * phi_ps(jp,0) ) * Grad_vy_i(1,0);
             
         }
         
@@ -657,7 +666,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     for (int ip = 0; ip < nphip; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (divq + (1.0/dt) * rho[0] * phi[0] - f[0]) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (divq + (1.0/dt) * rho[0] * phi_star[0] - f[0]) * phi_ps(ip,0);
         
         for (int ju = 0; ju < nphiu; ju++)
         {
@@ -665,8 +674,8 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             Grad_vx_j(0,0) = dphi_us(0,ju)*axes_u(0,0)+dphi_us(1,ju)*axes_u(1,0); // dvx/dx
             Grad_vx_j(1,0) = dphi_us(0,ju)*axes_u(0,1)+dphi_us(1,ju)*axes_u(1,1); // dvx/dy
             
-            ek(ip + firstp, n_u*ju + 0 + firstu) += -0.0 * weight * ( (1.0/dt) * rho[0] * alpha[0] * Grad_vx_j(0,0) ) * phi_ps(ip,0);
-            ek(ip + firstp, n_u*ju + 1 + firstu) += -0.0 * weight * ( (1.0/dt) * rho[0] * alpha[0] * Grad_vx_j(1,0) ) * phi_ps(ip,0);
+            ek(ip + firstp, n_u*ju + 0 + firstu) += -1.0 * weight * ( (1.0/dt) * rho[0] * alpha[0] * Grad_vx_j(0,0) ) * phi_ps(ip,0);
+            ek(ip + firstp, n_u*ju + 1 + firstu) += -1.0 * weight * ( (1.0/dt) * rho[0] * alpha[0] * Grad_vx_j(1,0) ) * phi_ps(ip,0);
         }
         
         for (int jq = 0; jq < nphiq; jq++)
