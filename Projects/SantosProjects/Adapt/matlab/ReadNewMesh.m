@@ -13,8 +13,8 @@ fX = zeros(NPoints, 1);
 fY = zeros(NPoints, 1);
 
 for i = 1:NPoints
-    xv = fscanf(fid,'%f\t',1);
-    yv = fscanf(fid,'%f\n',1);
+    xv = fscanf(fid,'%e\t',1);
+    yv = fscanf(fid,'%e\n',1);
     
     fX(i)=xv;
     fY(i)=yv;    

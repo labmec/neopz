@@ -27,7 +27,7 @@ fprintf(fid, '%i\n', nnodes);
 for i = 1:nnodes
     xValue = x(i);
     yValue = y(i);
-    fprintf(fid, '%f\t%f\n', xValue, yValue);
+    fprintf(fid, '%.12e\t%.12e\n', xValue, yValue);
 end
 
 
