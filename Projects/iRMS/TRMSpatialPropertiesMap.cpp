@@ -252,7 +252,7 @@ void TRMSpatialPropertiesMap::lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<
     
     REAL GPa = 1.0e9;
     lambda_u.Resize(10, 0.0);
-    STATE val = 9.5541*GPa;
+    STATE val = 0.95541*GPa;
     lambda_u[0] = val;
     
 }
@@ -262,7 +262,7 @@ void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,
     
     REAL GPa = 1.0e9;
     mu.Resize(10, 0.0);
-    STATE val = 0.0965*GPa;
+    STATE val = 0.965*GPa;
     mu[0] = val;
     
 }
@@ -271,7 +271,7 @@ void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,
 void TRMSpatialPropertiesMap::alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars){
     
     alpha.Resize(10, 0.0);
-    STATE val = 1.0;
+    STATE val = 0.0;
     alpha[0] = val;
     
 }

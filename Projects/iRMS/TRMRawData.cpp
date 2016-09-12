@@ -858,9 +858,9 @@ void TRMRawData::WaterGeoReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("water");
-    water->SetRhoModel(0);
-    fPhases.Push(water);
+    fSystemType.Push("oil");
+    oil->SetRhoModel(0);
+    fPhases.Push(oil);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -883,7 +883,7 @@ void TRMRawData::WaterGeoReservoirBox(bool Is3DGeometryQ){
     fdt_down = 1.0;
     
     // Numeric controls
-    fn_corrections = 1;
+    fn_corrections = 50;
     fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
@@ -972,7 +972,7 @@ void TRMRawData::GeoFlux_fixed_x(const TPZVec< REAL >& pt, REAL time, TPZVec< RE
     REAL ux = 0.0;
     REAL uy = 0.0;
     REAL uz = 0.0;
-    REAL f = -0.00184;
+    REAL f = -0.000184;
 
     F[0] = ux;
     F[1] = uy;

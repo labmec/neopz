@@ -78,8 +78,8 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
     }
     
     int dim = fGeoMesh->Dimension();
-    int flux_or_pressure = 0;
-    int qorder = fPOrder;
+    int Sigma_or_displacement = 0;
+    int uorder = fUOrder;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     std::pair< int, TPZFunction<REAL> * > bc_item;
@@ -112,7 +112,7 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
                 bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
             }
             
-            bc_item = bc[flux_or_pressure];
+            bc_item = bc[Sigma_or_displacement];
             TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
             TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
             boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
@@ -122,9 +122,12 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
     }
     
     fBiotCmesh->SetDimModel(dim);
-    fBiotCmesh->SetDefaultOrder(qorder);
+    fBiotCmesh->SetDefaultOrder(uorder);
     fBiotCmesh->SetAllCreateFunctionsContinuous();
     fBiotCmesh->AutoBuild();
+    
+    fBiotCmesh->AdjustBoundaryElements();
+    fBiotCmesh->CleanUpUnconnectedNodes();
     
 #ifdef PZDEBUG
     std::ofstream out("CmeshBiot.txt");
@@ -627,7 +630,7 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
         }
         
     }
-    
+
     fMonolithicMultiphaseCmesh->SetDimModel(dim);
     fMonolithicMultiphaseCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
     fMonolithicMultiphaseCmesh->AutoBuild();

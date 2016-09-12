@@ -30,10 +30,10 @@ void TRMMonolithicMultiphaseAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());    
+//    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());    
     
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
@@ -83,7 +83,7 @@ void TRMMonolithicMultiphaseAnalysis::QuasiNewtonIteration(){
     this->Rhs() *= -1.0;
     
 //#ifdef PZDEBUG
-//    //        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
+//    this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
 //    this->Rhs().Print("R = ", std::cout,EMathematicaInput);
 //#endif
     
@@ -181,10 +181,10 @@ void TRMMonolithicMultiphaseAnalysis::ExcecuteOneStep(){
 
 #ifdef PZDEBUG
 //        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
-        fR.Print("R = ", std::cout,EMathematicaInput);
-        fX.Print("X = ", std::cout,EMathematicaInput);        
-        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+//        fR.Print("R = ", std::cout,EMathematicaInput);
+//        fX.Print("X = ", std::cout,EMathematicaInput);        
+//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
