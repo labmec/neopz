@@ -54,7 +54,7 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = true;
+    bool IsReservoirBoxQ = false;
     
     if (Is3DGeometryQ) {
         
@@ -74,7 +74,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
-            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
             fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
@@ -98,8 +99,9 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
+            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
             fSpaceGenerator->CreateGeometricGIDMesh(file);
@@ -109,10 +111,12 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 1;
+    int ref = 2;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
-    
+//    int father_index = 9;
+//    fSpaceGenerator->UniformRefinement_at_Father(1, father_index);
+//    fSpaceGenerator->PrintGeometry();
 }
 
 /** @brief Create a primal analysis using space odissey */
@@ -161,7 +165,7 @@ void TRMOrchestra::CreateAnalysisPrimal()
 void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
-    BuildGeometry(false);
+    this->BuildGeometry(false);
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
@@ -187,6 +191,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool UseMHMQ = false;
     
     if(UseMHMQ){
+        int skeleton_id = 0;
         fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
         fSpaceGenerator->BuildMHM_Mesh();
     }
@@ -214,15 +219,15 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 16;
+    int numofThreads_p = 24;
     bool mustOptimizeBandwidth_parabolic = true;
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
-    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    strmat_p.SetDecomposeType(ELDLt);
+//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    strmat_p.SetDecomposeType(ELDLt);
 
 //    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
@@ -267,7 +272,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 16;
+        int numofThreads_t = 24;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
@@ -430,7 +435,9 @@ void TRMOrchestra::RunStaticProblem(){
     
     std::cout<< "iRMS:: Finding Initial State" << std::endl;
     
-    int n = 2;//fSimulationData->n_steps();
+
+    
+    int n = 0;//fSimulationData->n_steps();
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
     
@@ -457,14 +464,14 @@ void TRMOrchestra::RunStaticProblem(){
     }
     
 //    int neq_sa = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution().Rows();
-//    int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
-//    for (int i = 0; i < neq_sb; i++) {
-//        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
-//        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
-//    }
-//
-//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fSegregatedAnalysis_I->Hyperbolic()->Meshvec(), fSegregatedAnalysis_I->Hyperbolic()->Mesh());
-//    fSegregatedAnalysis_I->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution());
+    int neq_sb = fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution().Rows();
+    for (int i = 0; i < neq_sb; i++) {
+        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
+        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
+    }
+
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fSegregatedAnalysis_I->Hyperbolic()->Meshvec(), fSegregatedAnalysis_I->Hyperbolic()->Mesh());
+    fSegregatedAnalysis_I->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution());
     
 //    fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution().Print("ah = ");
 //    fSegregatedAnalysis_I->Hyperbolic()->X_n().Print("ah = ");
@@ -509,8 +516,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fSegregatedAnalysis->PostProcessStep(true);
                 continue;
             }
-            fSegregatedAnalysis->ExcecuteOneStep(true);
-            fSegregatedAnalysis->PostProcessStep(true);
+            fSegregatedAnalysis->ExcecuteOneStep(false);
+            fSegregatedAnalysis->PostProcessStep(false);
         }
 
     }

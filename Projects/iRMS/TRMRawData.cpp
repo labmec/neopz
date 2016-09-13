@@ -237,7 +237,7 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("gas");
+    fSystemType.Push("water");
     gas->SetRhoModel(1);
     fPhases.Push(gas);
     int n_data = fSystemType.size();
@@ -745,7 +745,7 @@ void TRMRawData::PressureOutlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_3p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.184, S_w = 1.0, S_o = 0.0;
+    REAL flux = -1.84, S_w = 1.0, S_o = 0.0;
     f[0] = flux;
     f[1] = S_w;
     f[2] = S_o;
@@ -817,8 +817,8 @@ void TRMRawData::WaterOilGasReservoirCircular(bool Is3DGeometryQ){
     int Rock = 1;
     fOmegaIds.Push(Rock);
     
-    int bc_Outlet   = 2;
-    int bc_Inlet    = 3;
+    int bc_Inlet    = 2;
+    int bc_Outlet   = 3;
     int bc_Noflux   = 4;
     
     TPZVec< std::pair< int, TPZFunction<REAL> * > > Noflux(n_data);

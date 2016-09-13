@@ -196,6 +196,9 @@ public:
     /** @brief Apply uniform refinement on the Geometric mesh */
     void UniformRefinement(int n_ref);
     
+    /** @brief Apply uniform refinement on the given father index mesh */
+    void UniformRefinement_at_Father(int n_ref, int father_index);
+    
     /** @brief Set autopointer of Simulation data */
     void SetSimulationData(TRMSimulationData * SimulationData){
         fSimulationData = SimulationData;
@@ -321,7 +324,7 @@ public:
     void BuildMHM_Mesh();
     
     /** @brief Build MHM form the current hdvi mesh */
-    void InsertSkeletonInterfaces();
+    void InsertSkeletonInterfaces(int skeleton_id = 0);
     
     /** @brief Sparated connects by given selected skeleton ids */
     void SeparateConnectsBySkeletonIds(TPZVec<long> skeleton_ids);

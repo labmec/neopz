@@ -361,8 +361,18 @@ public:
     }
     
     /** @brief L2 projection material id for gradient reconstruction */
+    void SetL2_Projection_material_Id(int l2_projection){
+        fl2_projection_material_id = l2_projection;
+    }
+    
+    /** @brief L2 projection material id for gradient reconstruction */
     int L2_Projection_material_Id(){
         return fl2_projection_material_id;
+    }
+    
+    /** @brief Set the Skeleton material id for MHM substructuring */
+    void SetSkeleton_material_Id(int skeleton_id){
+        fSkeleton_material_id = skeleton_id;
     }
     
     /** @brief Skeleton dfault material id for MHM substructuring */

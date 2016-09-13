@@ -304,13 +304,13 @@ void TRMSpaceOdissey::SeparateConnectsByNeighborhood(){
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = fFluxCmesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
-        if (!gel || gel->Dimension() != gmesh->Dimension()) {
+        if (!gel || (gel->Dimension() != gmesh->Dimension() && gel->MaterialId() != fSimulationData->Skeleton_material_Id()) ) {
             continue;
         }
         int nc = cel->NConnects();
         for (int ic =0; ic<nc; ic++) {
             TPZConnect &c = cel->Connect(ic);
-            if (c.HasDependency() && c.NElConnected() == 2) // @omar:: Hdiv connects have this invariant characteristic
+            if ((c.HasDependency() && c.NElConnected() == 2) || (gel->MaterialId() == fSimulationData->Skeleton_material_Id() && c.NElConnected() == 2)) // @omar:: Hdiv connects have this invariant characteristic
             {
                 // duplicate the connect
                 long cindex = fFluxCmesh->AllocateNewConnect(c);
@@ -326,13 +326,17 @@ void TRMSpaceOdissey::SeparateConnectsByNeighborhood(){
 }
 
 /** @brief Build MHM form the current hdvi mesh */
-void TRMSpaceOdissey::InsertSkeletonInterfaces(){
+void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
     
 #ifdef PZDEBUG
     if(!fGeoMesh){
         DebugStop();
     }
 #endif
+    
+    if(skeleton_id != 0){
+        fSimulationData->SetSkeleton_material_Id(skeleton_id);
+    }
     
     long nel = fGeoMesh->NElements();
     for (long el = 0; el<nel; el++) {
@@ -1347,6 +1351,30 @@ void TRMSpaceOdissey::UniformRefinement(int n_ref){
             if (gel->Dimension() != 0) gel->Divide (filhos);
         }//for i
     }//ref
+    fGeoMesh->BuildConnectivity();
+}
+
+/** @brief Apply uniform refinement on the Geometric mesh */
+void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> filhos;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if(gel->HasSubElement()){
+                continue;
+            }
+            if(gel->Index() == father_index ){
+                if (gel->Dimension() != 0) gel->Divide (filhos);
+            }
+
+        }//for i
+    }//ref
+    
+//    int side;
+//    TPZStack<TPZGeoElSide> subel;
+//    gel->GetSubElements2(<#int side#>, subel)
+    
     fGeoMesh->BuildConnectivity();
 }
 
