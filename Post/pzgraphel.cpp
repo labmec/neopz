@@ -105,7 +105,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         REAL alpha = (60.*(Pi/180)); // azimuth
         REAL beta = (30.*(Pi/180)); // inclination
         
-        int projection = 0;
+        int projection = 1;
         //obtem angulos da rotacao do poco (como??)
         projectmaterial.GetWellboreAngles(alpha, beta, projection);
         
@@ -140,15 +140,14 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
             
             
             
-//            //********* Desse jeito eh preciso passar a coordenada sem rotacionar a malha, mas e o z, sendo sempre zero, nao interfere???  **********//
+//            //********* Essa transformacao assume a mesma matriz de rotacao do poco inclinado, ou seja, rotacoes no sentido horario em z e depois em y  **********//
             REAL xP = 0., yP = 0., zP = 0.;
             
-            xP =  x[0]*cos(alpha)*cos(beta) - x[1]*cos(beta)*sin(alpha) + x[2]*sin(beta) - (x[2]*cos(beta) - x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
-            //x*Cos(\[Alpha])*Cos(\[Beta]) - y*Cos(\[Beta])*Sin(\[Alpha]) + z*Sin(\[Beta]) - (z*Cos(\[Beta]) - x*Cos(\[Alpha])*Sin(\[Beta]) + y*Sin(\[Alpha])*Sin(\[Beta]))*Tan(\[Beta])
+            xP =  x[0]*cos(alpha)*cos(beta) + x[1]*cos(beta)*sin(alpha) - x[2]*sin(beta) + (x[2]*cos(beta) + x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
+            //x*Cos(\[Alpha])*Cos(\[Beta]) + y*Cos(\[Beta])*Sin(\[Alpha]) - z*Sin(\[Beta]) + (z*Cos(\[Beta]) + x*Cos(\[Alpha])*Sin(\[Beta]) + y*Sin(\[Alpha])*Sin(\[Beta]))*Tan(\[Beta])
             
-            yP = x[1]*cos(alpha) + x[0]*sin(alpha);
-            //y*Cos(\[Alpha]) + x*Sin(\[Alpha])
-            
+            yP = x[1]*cos(alpha) - x[0]*sin(alpha);
+            //y*Cos(\[Alpha]) - x*Sin(\[Alpha])
             zP = 0;
             
             x[0] = xP;
