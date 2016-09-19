@@ -934,9 +934,10 @@ bool TPZRefPatternTools::SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref)
 					
 					DebugStop();
 				}
-				elrefpattern->SideNodes(ns, MidNodesIndexes);
+                int nsub = elrefpattern->NSideSubElements(ns);
+//				elrefpattern->SideNodes(ns, MidNodesIndexes);
 				
-				sidestoref[s] = MidNodesIndexes.NElements();
+                sidestoref[s] = nsub-1;
 				
 				break;
 			} 
