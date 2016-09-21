@@ -271,7 +271,7 @@ void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,
 void TRMSpatialPropertiesMap::alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars){
     
     alpha.Resize(10, 0.0);
-    STATE val = 0.0;
+    STATE val = 0.8;
     alpha[0] = val;
     
 }

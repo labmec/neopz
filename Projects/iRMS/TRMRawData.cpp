@@ -875,7 +875,7 @@ void TRMRawData::WaterGeoReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 1;
+    fn_steps  = 10;
     fdt = 1.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.5*day;
@@ -985,7 +985,7 @@ void TRMRawData::GeoImpervious_traction(const TPZVec< REAL >& pt, REAL time, TPZ
     
     REAL MPa = 1.0e6;
     REAL tx = 0.0;
-    REAL ty = -50.0*MPa;
+    REAL ty = -40.0*MPa;
     REAL tz = 0.0;
     REAL f = 0.0;
     

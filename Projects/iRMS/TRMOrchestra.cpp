@@ -84,8 +84,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 1;
-        int nel_y = 1;
+        int nel_x = 4;
+        int nel_y = 4;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -109,7 +109,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 2;
+    int ref = 0;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
     
@@ -356,8 +356,8 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     fSpaceGenerator->PrintGeometry();
 #endif
     
-    fSpaceGenerator->SetDefaultUOrder(1);
-    fSpaceGenerator->SetDefaultPOrder(1);
+    fSpaceGenerator->SetDefaultUOrder(2);
+    fSpaceGenerator->SetDefaultPOrder(2);
     fSpaceGenerator->SetDefaultSOrder(0);
 
     // Structure for one-phase flow
@@ -410,7 +410,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
         
     }
     
-    bool mustOptimizeBandwidth = false;
+    bool mustOptimizeBandwidth = true;
     mono_analysis->SetCompMesh(fSpaceGenerator->MonolithicMultiphaseCmesh(), mustOptimizeBandwidth);
     std::cout << "Total dof: " << mono_analysis->Solution().Rows() << std::endl;
     
