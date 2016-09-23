@@ -21,8 +21,8 @@ static LoggerPtr logdata(Logger::getLogger("pz.permeabilityc"));
 TPZNonLinearElliptic::TPZNonLinearElliptic():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>() {
 
     fDim = 2;
-    fmu_1 = 0.0;
-    fmu_2 = 0.0;
+    fmu_1 = 1.0;
+    fmu_2 = 1.0;
     
 }
 
@@ -30,8 +30,8 @@ TPZNonLinearElliptic::TPZNonLinearElliptic(int matid, int dim): TPZMatWithMem<TP
 
     fDim = dim;
     fDim = 2;
-    fmu_1 = 0.0;
-    fmu_2 = 0.0;
+    fmu_1 = 1.0;
+    fmu_2 = 1.0;
     
 }
 
@@ -91,7 +91,7 @@ void TPZNonLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
             dot += Gradu_xy(i,0)*Grad_phiu_xy(i,iu);
         }
         
-        ef(iu + first_u, 0)   += weight * ( dot - (f[0]) * phiu(iu, 0) );
+        ef(iu + first_u, 0)   += weight * ( dot + (fmu_1 * ((exp(fmu_2*u[0])-1.0)/fmu_2) - f[0]) * phiu(iu, 0) );
         
         for (int ju = 0; ju < nphi_u; ju++) {
             
@@ -100,7 +100,7 @@ void TPZNonLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
                 dot += Grad_phiu_xy(i,ju)*Grad_phiu_xy(i,iu);
             }
             
-            ek(iu + first_u, ju + first_u)   += weight * dot;
+            ek(iu + first_u, ju + first_u)   += weight * (dot + fmu_1 * exp(fmu_2*u[0]) * phiu(ju, 0) * phiu(iu, 0));
             
         }
         

@@ -125,6 +125,26 @@ void TPZGeomechanicAnalysis::QuasiNewtonIteration(){
     
 }
 
+void TPZGeomechanicAnalysis::NewtonIteration(){
+    
+    this->Assemble();
+    this->Rhs() += fR; // total residue
+    this->Rhs() *= -1.0;
+    
+    this->Solve(); // update correction
+    fdx_norm = Norm(this->Solution()); // correction variation
+    
+    fX_n += this->Solution(); // update state
+    
+    this->Update_at_n_State();
+    
+    this->AssembleResidual();
+    fR_n = this->Rhs();
+    fR_n += fR; // total residue
+    ferror =  Norm(fR_n); // residue error
+    
+}
+
 void TPZGeomechanicAnalysis::ExcecuteOneStep(){
     
     this->SimulationData()->SetCurrentStateQ(false);
@@ -145,7 +165,8 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
     for (int k = 1; k <= n; k++) {
         
         this->Set_k_ietrarions(k);
-        this->QuasiNewtonIteration();
+//        this->QuasiNewtonIteration();
+        this->NewtonIteration();
 
         
 #ifdef PZDEBUG

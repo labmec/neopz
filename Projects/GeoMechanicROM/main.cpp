@@ -115,7 +115,7 @@ int NonLinearElliptic(){
     
     REAL dt = 1.0;
     int n_steps = 30;
-    REAL epsilon_res = 1.0e-3;
+    REAL epsilon_res = 1.0e-5;
     REAL epsilon_corr = 1.0e-10;
     int n_corrections = 50;
     
@@ -133,8 +133,8 @@ int NonLinearElliptic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 1.0; // meters
     
-    n[0] = 4; // x - direction
-    n[1] = 4; // y - direction
+    n[0] = 10; // x - direction
+    n[1] = 10; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -153,7 +153,7 @@ int NonLinearElliptic(){
     TPZCompMesh * nonlinear_cmesh = CMesh_Elliptic_M(gmesh, mesh_vector, sim_data);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 2;
+    int number_threads = 4;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(nonlinear_cmesh,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -161,16 +161,18 @@ int NonLinearElliptic(){
     time_analysis->AdjustVectors();
     
 //    TPZSkylineNSymStructMatrix struct_mat(nonlinear_cmesh);
-//    TPZSkylineStructMatrix struct_mat(nonlinear_cmesh);
+    TPZSkylineStructMatrix struct_mat(nonlinear_cmesh);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(nonlinear_cmesh);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(nonlinear_cmesh);
+//    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
     step.SetDirect(ELDLt);
     time_analysis->SetSolver(step);
     time_analysis->SetStructuralMatrix(struct_mat);
+    
+    std::cout<< "ndof = " << nonlinear_cmesh->NEquations() << std::endl;
     
     time_analysis->ExcecuteOneStep();
     time_analysis->PostNonlinearProcessStep();
@@ -413,7 +415,7 @@ TPZCompMesh * CMesh_Elliptic_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     int dim = 2;
     
     REAL mu_1 = 0.0;
-    REAL mu_2 = 0.0;
+    REAL mu_2 = 20.0;
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
