@@ -33,10 +33,11 @@
 #include "pzl2projection.h"
 #include "pzbndcond.h"
 #include "TPZPoroPermCoupling.h"
+#include "TPZNonLinearElliptic.h"
 
 // Analysis
 #include "pzanalysis.h"
-#include "TPZPoroPermAnalysis.h"
+#include "TPZGeomechanicAnalysis.h"
 
 // Matrix
 #include "pzskylstrmatrix.h"
@@ -62,6 +63,12 @@ static void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMa
 static void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
 static void u_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
 
+// Create a computational mesh for nonlinear elliptic benchmark
+TPZCompMesh * CMesh_Elliptic(TPZGeoMesh * gmesh, int order);
+
+// Create a computational mesh for nonlinear elliptic benchmark multiphysisc version
+TPZCompMesh * CMesh_Elliptic_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data);
+
 // Create a computational mesh for deformation
 TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order);
 
@@ -78,8 +85,20 @@ TPZCompMesh * CMesh_PorePermeabilityCouplingII(TPZGeoMesh * gmesh, TPZVec<TPZCom
 static LoggerPtr log_data(Logger::getLogger("pz.permeabilityc"));
 #endif
 
+
+int NonLinearElliptic();
+
+int Geomchanic();
+
 int main(int argc, char *argv[])
 {
+    
+    NonLinearElliptic();
+    
+//    Geomchanic();
+}
+
+int NonLinearElliptic(){
     
     TPZMaterial::gBigNumber = 1.0e14;
     
@@ -87,7 +106,88 @@ int main(int argc, char *argv[])
     std::string dirname = PZSOURCEDIR;
     std::string FileName = dirname;
     FileName = dirname + "/Projects/PermeabilityCoupling/";
-    FileName += "permeability_c_log.cfg";
+    FileName += "geomechanics_rom_log.cfg";
+    InitializePZLOG(FileName);
+#endif
+    
+    TPZSimulationData * sim_data = new TPZSimulationData;
+    
+    REAL dt = 1.0;
+    int n_steps = 30;
+    REAL epsilon_res = 1.0e-3;
+    REAL epsilon_corr = 1.0e-10;
+    int n_corrections = 50;
+    
+    /** @brief Definition gravity field */
+    TPZVec<REAL> g(2,0.0);
+    g[1] = -0.0*9.81;
+    
+    sim_data->SetGravity(g);
+    sim_data->SetTimeControls(n_steps, dt);
+    sim_data->SetNumericControls(n_corrections, epsilon_res, epsilon_corr);
+    
+    TPZVec<REAL> dx_dy(2);
+    TPZVec<int> n(2);
+    
+    REAL Lx = 1.0; // meters
+    REAL Ly = 1.0; // meters
+    
+    n[0] = 1; // x - direction
+    n[1] = 1; // y - direction
+    
+    dx_dy[0] = Lx/REAL(n[0]); // x - direction
+    dx_dy[1] = Ly/REAL(n[1]); // y - direction
+    
+    TPZGeoMesh * gmesh = RockBox(dx_dy,n);
+
+    std::cout<< "Geometry complete ... " << std::endl;
+    
+    // Create the approximation space
+    int potential_order = 1;
+    
+    // Create multiphysisc mesh
+    TPZVec<TPZCompMesh * > mesh_vector(1);
+    mesh_vector[0] = CMesh_Elliptic(gmesh, potential_order);
+    
+    TPZCompMesh * nonlinear_cmesh = CMesh_Elliptic_M(gmesh, mesh_vector, sim_data);
+    
+    bool mustOptimizeBandwidth = false;
+    int number_threads = 0;
+    TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
+    time_analysis->SetCompMesh(nonlinear_cmesh,mustOptimizeBandwidth);
+    time_analysis->SetSimulationData(sim_data);
+    time_analysis->SetMeshvec(mesh_vector);
+    time_analysis->AdjustVectors();
+    
+        TPZSkylineNSymStructMatrix struct_mat(nonlinear_cmesh);
+    //    TPZSkylineStructMatrix struct_mat(nonlinear_cmesh);
+    
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(nonlinear_cmesh);
+//    struct_mat.SetDecomposeType(ELDLt);
+    
+    TPZStepSolver<STATE> step;
+    struct_mat.SetNumThreads(number_threads);
+    step.SetDirect(ELDLt);
+    time_analysis->SetSolver(step);
+    time_analysis->SetStructuralMatrix(struct_mat);
+    
+    time_analysis->ExcecuteOneStep();
+    time_analysis->PostNonlinearProcessStep();
+    
+    std::cout << " Execution finished" << std::endl;
+    return EXIT_SUCCESS;
+    
+}
+
+int Geomchanic(){
+    
+    TPZMaterial::gBigNumber = 1.0e14;
+    
+#ifdef LOG4CXX
+    std::string dirname = PZSOURCEDIR;
+    std::string FileName = dirname;
+    FileName = dirname + "/Projects/PermeabilityCoupling/";
+    FileName += "geomechanics_rom_log.cfg";
     InitializePZLOG(FileName);
 #endif
     
@@ -129,13 +229,13 @@ int main(int argc, char *argv[])
     
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
-
+    
     REAL Lx = 5.0; // meters
     REAL Ly = 10.0; // meters
     
     n[0] = 5; // x - direction
     n[1] = 10; // y - direction
-
+    
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
     
@@ -162,8 +262,8 @@ int main(int argc, char *argv[])
     mesh_vector[1] = CMesh_PorePressure(gmesh, pore_pressure_order);
     
     TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCoupling(gmesh, mesh_vector, sim_data);
-//    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCouplingII(gmesh, mesh_vector, sim_data);
-
+    //    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCouplingII(gmesh, mesh_vector, sim_data);
+    
     // Create the static analysis
     
     // Run Static analysis
@@ -173,14 +273,14 @@ int main(int argc, char *argv[])
     
     bool mustOptimizeBandwidth = true;
     int number_threads = 8;
-    TPZPoroPermAnalysis * time_analysis = new TPZPoroPermAnalysis;
+    TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//    TPZSkylineNSymStructMatrix skyl(cmesh_poro_perm_coupling);
-//    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+    //    TPZSkylineNSymStructMatrix skyl(cmesh_poro_perm_coupling);
+    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
     
     TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
     struct_mat.SetDecomposeType(ELDLt);
@@ -207,7 +307,8 @@ int main(int argc, char *argv[])
     time_analysis->PlotStrainPermeability(file_sk_name);
     time_analysis->PlotStrainPressure(file_spex_name);
     std::cout << " Execution finished" << std::endl;
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
+    
 }
 
 void UniformRefinement(TPZGeoMesh *gmesh, int nh)
@@ -236,6 +337,146 @@ void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id)
             }
         }//for i
     }//ref
+}
+
+// Create a computational mesh for pore pressure excess
+TPZCompMesh * CMesh_Elliptic(TPZGeoMesh * gmesh, int order){
+
+    
+    // Material identifiers
+    int matid =1;
+    int bc_bottom, bc_right, bc_top, bc_left;
+    bc_bottom = -1;
+    bc_right = -2;
+    bc_top = -3;
+    bc_left = -4;
+    
+    // Getting mesh dimension
+    int dim = 2;
+    
+    // Aproximation Space of order -> pOrder
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    
+    // Creating a material object
+    TPZNonLinearElliptic * material = new TPZNonLinearElliptic(matid,dim);
+    cmesh->InsertMaterialObject(material);
+    
+    // Inserting boundary conditions
+    int dirichlet = 0;
+    
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_bottom_mat);
+    
+    TPZMaterial * bc_right_mat = material->CreateBC(material, bc_right, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_right_mat);
+    
+    TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_top_mat);
+    
+    TPZMaterial * bc_left_mat = material->CreateBC(material, bc_left, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_left_mat);
+    
+    // Setting H1 approximation space
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(order);
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->AutoBuild();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshElliptic.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
+}
+
+// Create a computational mesh for nonlinear elliptic benchmark multiphysisc version
+TPZCompMesh * CMesh_Elliptic_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data){
+    
+    // Material identifiers
+    int matid =1;
+    int bc_bottom, bc_right, bc_top, bc_left;
+    bc_bottom = -1;
+    bc_right = -2;
+    bc_top = -3;
+    bc_left = -4;
+    
+    // Getting mesh dimension
+    int dim = 2;
+    
+    REAL mu_1 = 0.0;
+    REAL mu_2 = 0.0;
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    // Creating a material object
+    TPZNonLinearElliptic * material = new TPZNonLinearElliptic(matid,dim);
+    material->SetSimulationData(sim_data);
+    material->SetParameters(mu_1, mu_2);
+    cmesh->InsertMaterialObject(material);
+    
+    
+    // Inserting boundary conditions
+    int dirichlet_u    = 0;
+    int neumann_sigma  = 1;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    
+    val2(0,0) = 0.0;
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_u, val1, val2);
+    cmesh->InsertMaterialObject(bc_bottom_mat);
+    
+    val2(0,0) = 0.0;
+    TPZMaterial * bc_right_mat = material->CreateBC(material, bc_right, dirichlet_u, val1, val2);
+    cmesh->InsertMaterialObject(bc_right_mat);
+    
+    val2(0,0) = 0.0;
+    TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, dirichlet_u, val1, val2);
+//    TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(Sigma);
+//    bc_top_mat->SetTimedependentBCForcingFunction(boundary_data);
+    cmesh->InsertMaterialObject(bc_top_mat);
+    
+    val2(0,0) = 0.0;
+    TPZMaterial * bc_left_mat = material->CreateBC(material, bc_left, dirichlet_u, val1, val2);
+    cmesh->InsertMaterialObject(bc_left_mat);
+    
+    // Setting up multiphysics functions
+    cmesh->SetDimModel(dim);
+    cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    // Transferindo para a multifisica
+    TPZBuildMultiphysicsMesh::AddElements(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
+    
+    
+    long nel = cmesh->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
+    
+#ifdef PZDEBUG
+    std::ofstream out("CMeshEllipticMultiPhysics.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
 }
 
 TPZCompMesh * CMesh_PorePermeabilityCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data){
@@ -655,13 +896,13 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     new TPZGeoElRefPattern < pzgeom::TPZGeoPoint >(elid,Topology,matid,*GeoMesh1);
     GeoMesh1->BuildConnectivity();
     GeoMesh1->SetDimension(0);
-    {
-        //  Print Geometrical Base Mesh
-        std::ofstream argument("GeometicMeshNew1.txt");
-        GeoMesh1->Print(argument);
-        std::ofstream Dummyfile("GeometricMeshNew1.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh1,Dummyfile, true);
-    }
+//    {
+//        //  Print Geometrical Base Mesh
+//        std::ofstream argument("GeometicMeshNew1.txt");
+//        GeoMesh1->Print(argument);
+//        std::ofstream Dummyfile("GeometricMeshNew1.vtk");
+//        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh1,Dummyfile, true);
+//    }
     
     
     TPZHierarquicalGrid CreateGridFrom(GeoMesh1);
@@ -674,13 +915,13 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     // Computing Mesh extruded along the parametric curve Parametricfunction
     TPZGeoMesh * GeoMesh2 = CreateGridFrom.ComputeExtrusion(t, dx, n_elements);
     
-    {
-        //  Print Geometrical Base Mesh
-        std::ofstream argument("GeometicMeshNew2.txt");
-        GeoMesh2->Print(argument);
-        std::ofstream Dummyfile("GeometricMeshNew2.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh2,Dummyfile, true);
-    }
+//    {
+//        //  Print Geometrical Base Mesh
+//        std::ofstream argument("GeometicMeshNew2.txt");
+//        GeoMesh2->Print(argument);
+//        std::ofstream Dummyfile("GeometricMeshNew2.vtk");
+//        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh2,Dummyfile, true);
+//    }
     
     
     
@@ -695,9 +936,9 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     TPZGeoMesh * GeoMesh3 = CreateGridFrom2.ComputeExtrusion(t, dy, n_elements);
     {
         //  Print Geometrical Base Mesh
-        std::ofstream argument("GeometicMeshNew3.txt");
+        std::ofstream argument("Geometry.txt");
         GeoMesh3->Print(argument);
-        std::ofstream Dummyfile("GeometricMeshNew3.vtk");
+        std::ofstream Dummyfile("Geometry.vtk");
         TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh3,Dummyfile, true);
     }
     

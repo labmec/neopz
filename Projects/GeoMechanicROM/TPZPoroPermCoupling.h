@@ -20,6 +20,7 @@
 #include "TPZSimulationData.h"
 #include <iostream>
 #include <cmath>
+#include <algorithm>    // std::max
 #include "pzlog.h"
 
 

@@ -1,13 +1,13 @@
 //
-//  TPZPoroPermAnalysis.hpp
+//  TPZGeomechanicAnalysis.hpp
 //  PZ
 //
 //  Created by Omar on 8/28/16.
 //
 //
 
-#ifndef TPZPoroPermAnalysis_hpp
-#define TPZPoroPermAnalysis_hpp
+#ifndef TPZGeomechanicAnalysis_hpp
+#define TPZGeomechanicAnalysis_hpp
 
 #include <stdio.h>
 
@@ -17,7 +17,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSimulationData.h"
 
-class TPZPoroPermAnalysis : public TPZAnalysis {
+class TPZGeomechanicAnalysis : public TPZAnalysis {
     
 private:
     
@@ -63,16 +63,16 @@ private:
 public:
     
     /** @brief default constructor  */
-    TPZPoroPermAnalysis();
+    TPZGeomechanicAnalysis();
     
     /** @brief default desconstructor  */
-    ~TPZPoroPermAnalysis();
+    ~TPZGeomechanicAnalysis();
     
     /** @brief Copy constructor $ */
-    TPZPoroPermAnalysis(const TPZPoroPermAnalysis &copy);
+    TPZGeomechanicAnalysis(const TPZGeomechanicAnalysis &copy);
     
     /** @brief Copy assignemnt operator $ */
-    TPZPoroPermAnalysis &operator=(const TPZPoroPermAnalysis &other);
+    TPZGeomechanicAnalysis &operator=(const TPZGeomechanicAnalysis &other);
     
     /**
      * @defgroup Access Methods
@@ -115,12 +115,12 @@ public:
 
     
     /** @brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
-    void SetMeshvec(TPZManVector<TPZCompMesh * , 2> &Meshvec)
+    void SetMeshvec(TPZVec<TPZCompMesh * > &Meshvec)
     {
         fmeshvec = Meshvec;
     }
     /** @brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
-    TPZManVector<TPZCompMesh * , 2> & Meshvec()
+    TPZVec<TPZCompMesh *> & Meshvec()
     {
         return fmeshvec;
     }
@@ -143,6 +143,9 @@ public:
     
     /** @brief Execute a quasi newton iteration  */
     void QuasiNewtonIteration();
+    
+    /** @brief PostProcess results for nonlinear case */
+    void PostNonlinearProcessStep();
     
     /** @brief PostProcess results */
     void PostProcessStep();
@@ -183,4 +186,4 @@ public:
 };
 
 
-#endif /* TPZPoroPermAnalysis_hpp */
+#endif /* TPZGeomechanicAnalysis_hpp */

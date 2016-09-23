@@ -12,7 +12,6 @@
 #include "pzbndcond.h"
 #include "pzaxestools.h"
 
-
 #include "pzlog.h"
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.permeabilityc"));
@@ -1273,8 +1272,8 @@ void TPZPoroPermCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> 
     r[2] = A*cos((1.0/3.0) * (C+4.0*M_PI))+B;
     
     // sorting
-    REAL s1 = max(r[0], max(r[1], r[2]));
-    REAL s3 = min(r[0], min(r[1], r[2]));
+    REAL s1 = 0.0;//max(r[0], max(r[1], r[2]));
+    REAL s3 = 0.0;//min(r[0], min(r[1], r[2]));
     REAL s2 = 0.0;
     for (int i = 0; i < 3 ; i++) {
         if(fabs(r[i]  - s1) <= 1.0e-10 || fabs(r[i] - s3) <= 1.0e-10){
