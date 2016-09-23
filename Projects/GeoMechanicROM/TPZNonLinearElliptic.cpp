@@ -57,8 +57,15 @@ void TPZNonLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     // Getting the solutions and derivatives
     TPZManVector<REAL,2> u = datavec[u_b].sol[0];
-    
     TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
+    
+    
+    TPZFNMatrix<300,REAL> Grad_phiu_xy;
+    TPZFNMatrix<9,REAL> axes_u_T, Gradu_xy;
+    
+    axes_u.Transpose(&axes_u_T);
+    axes_u.Multiply(dphiu,Grad_phiu_xy,1/* Transpose axes_u */);
+    axes_u.Multiply(du,Gradu_xy,1/* Transpose axes_u */);
     
     int nphi_u = phiu.Rows();
     int first_u = 0;
@@ -68,18 +75,32 @@ void TPZNonLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
         return;
     }
     
-
-    // Computing Gradient of the Solution
-    TPZFNMatrix<6,REAL> Grad_u(1,2,0.0);
-    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
-    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
+    TPZManVector<STATE,1> f(1,0.0);
+    
+    if(HasfTimedependentForcingFunction())
+    {
+        TPZFMatrix<double> gradf;
+        REAL time = 0.;
+        TimeDependentForcingFunction()->Execute(datavec[u_b].x, time, f, gradf);
+    }
     
     for (int iu = 0; iu < nphi_u; iu++) {
         
-        ef(iu + first_u, 0)   += weight * (u[0] - M_PI) * phiu(iu, 0);
+        REAL dot = 0.0;
+        for (int i = 0; i < fDim; i++) {
+            dot += Gradu_xy(i,0)*Grad_phiu_xy(i,iu);
+        }
+        
+        ef(iu + first_u, 0)   += weight * ( dot - (f[0]) * phiu(iu, 0) );
         
         for (int ju = 0; ju < nphi_u; ju++) {
-            ek(iu + first_u, ju + first_u)   += weight * phiu(ju, 0) * phiu(iu, 0);
+            
+            REAL dot = 0.0;
+            for (int i = 0; i < fDim; i++) {
+                dot += Grad_phiu_xy(i,ju)*Grad_phiu_xy(i,iu);
+            }
+            
+            ek(iu + first_u, ju + first_u)   += weight * dot;
             
         }
         
@@ -100,7 +121,6 @@ void TPZNonLinearElliptic::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL we
         return;
     }
     
-    return; // @omar:: for testing H1 projection
     int u_b = 0;
     
     TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
@@ -130,19 +150,13 @@ void TPZNonLinearElliptic::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL we
     {
         case 0 :
         {
-            //	Dirichlet condition for each state variable
-            //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
             {
-                //	Contribution for load Vector
-                ef(2*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(2*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
+                ef(in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// u
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //	Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
-                    ek(2*in+1,2*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(in,jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;
                 }
             }
             
@@ -151,13 +165,9 @@ void TPZNonLinearElliptic::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL we
             
         case 1 :
         {
-            //	Neumann condition for each state variable
-            //	Elasticity Equation
             for(in = 0 ; in <phru; in++)
             {
-                //	Normal Tension Components on neumman boundary
-                ef(2*in,0)		+= -1.0*v[0]*phiu(in,0)*weight;		//	Tnx
-                ef(2*in+1,0)	+= -1.0*v[1]*phiu(in,0)*weight;		//	Tny
+                ef(in,0)		+= -1.0*v[0]*phiu(in,0)*weight;		//	flux
             }
             
             break;

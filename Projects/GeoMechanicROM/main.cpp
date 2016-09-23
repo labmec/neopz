@@ -59,6 +59,7 @@ void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
 void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id);
 
+static void f_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
 static void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
 static void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
 static void u_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
@@ -132,8 +133,8 @@ int NonLinearElliptic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 1.0; // meters
     
-    n[0] = 1; // x - direction
-    n[1] = 1; // y - direction
+    n[0] = 4; // x - direction
+    n[1] = 4; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -143,7 +144,7 @@ int NonLinearElliptic(){
     std::cout<< "Geometry complete ... " << std::endl;
     
     // Create the approximation space
-    int potential_order = 1;
+    int potential_order = 2;
     
     // Create multiphysisc mesh
     TPZVec<TPZCompMesh * > mesh_vector(1);
@@ -151,25 +152,28 @@ int NonLinearElliptic(){
     
     TPZCompMesh * nonlinear_cmesh = CMesh_Elliptic_M(gmesh, mesh_vector, sim_data);
     
-    bool mustOptimizeBandwidth = false;
-    int number_threads = 0;
+    bool mustOptimizeBandwidth = true;
+    int number_threads = 2;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(nonlinear_cmesh,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-        TPZSkylineNSymStructMatrix struct_mat(nonlinear_cmesh);
-    //    TPZSkylineStructMatrix struct_mat(nonlinear_cmesh);
+//    TPZSkylineNSymStructMatrix struct_mat(nonlinear_cmesh);
+//    TPZSkylineStructMatrix struct_mat(nonlinear_cmesh);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(nonlinear_cmesh);
-//    struct_mat.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(nonlinear_cmesh);
+    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
     step.SetDirect(ELDLt);
     time_analysis->SetSolver(step);
     time_analysis->SetStructuralMatrix(struct_mat);
+    
+    time_analysis->ExcecuteOneStep();
+    time_analysis->PostNonlinearProcessStep();
     
     time_analysis->ExcecuteOneStep();
     time_analysis->PostNonlinearProcessStep();
@@ -417,8 +421,10 @@ TPZCompMesh * CMesh_Elliptic_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     TPZNonLinearElliptic * material = new TPZNonLinearElliptic(matid,dim);
     material->SetSimulationData(sim_data);
     material->SetParameters(mu_1, mu_2);
-    cmesh->InsertMaterialObject(material);
     
+    TPZFunction<REAL> * fun_xy = new TPZDummyFunction<REAL>(f_xy);
+    material->SetTimeDependentForcingFunction(fun_xy);
+    cmesh->InsertMaterialObject(material);
     
     // Inserting boundary conditions
     int dirichlet_u    = 0;
@@ -714,6 +720,17 @@ TPZCompMesh * CMesh_PorePermeabilityCouplingII(TPZGeoMesh * gmesh, TPZVec<TPZCom
     
     return cmesh;
     
+}
+
+void f_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
+    
+    REAL x = pt[0];
+    REAL y = pt[1];
+    
+    REAL f_val = 100.0*sin(2.0*M_PI*x)*sin(2.0*M_PI*y);
+    
+    f[0] = f_val;
+    return;
 }
 
 void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
