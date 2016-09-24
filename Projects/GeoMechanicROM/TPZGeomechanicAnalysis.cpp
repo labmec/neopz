@@ -203,7 +203,7 @@ void TPZGeomechanicAnalysis::Update_at_n_State(){
 }
 
 /** @brief PostProcess results for nonlinear case */
-void TPZGeomechanicAnalysis::PostNonlinearProcessStep(){
+void TPZGeomechanicAnalysis::PostNonlinearProcessStep(std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
@@ -211,8 +211,6 @@ void TPZGeomechanicAnalysis::PostNonlinearProcessStep(){
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("u");
     vecnames.Push("sigma");
-    
-    std::string plotfile = "Nonlinear_Elliptic.vtk";
     
     this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     this->PostProcess(div,dim);

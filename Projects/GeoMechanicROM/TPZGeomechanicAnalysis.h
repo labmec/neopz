@@ -148,7 +148,7 @@ public:
     void NewtonIteration();
     
     /** @brief PostProcess results for nonlinear case */
-    void PostNonlinearProcessStep();
+    void PostNonlinearProcessStep(std::string plotfile);
     
     /** @brief PostProcess results */
     void PostProcessStep();

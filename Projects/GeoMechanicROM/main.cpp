@@ -95,6 +95,10 @@ static LoggerPtr log_data(Logger::getLogger("pz.permeabilityc"));
 #endif
 
 
+void OffLine_Benchmark(TPZGeoMesh * gmesh);
+
+void OnLine_Benchmark(TPZCompMesh * gmesh);
+
 int NonLinearElliptic();
 
 int Geomchanic();
@@ -188,7 +192,7 @@ int NonLinearElliptic(){
     {
         
         // Create the approximation space
-        
+        std::string plotfile("Nonlinear_Elliptic_bc.vtk");
         // Create multiphysisc mesh
         TPZVec<TPZCompMesh * > mesh_vector(1);
         mesh_vector[0] = CMesh_Elliptic_RB(nonlinear_cmesh);
@@ -218,12 +222,12 @@ int NonLinearElliptic(){
         std::cout<< "ndof = " << nonlinear_rb_cmesh->NEquations() << std::endl;
         
         time_analysis->ExcecuteOneStep();
-        time_analysis->PostNonlinearProcessStep();
+        time_analysis->PostNonlinearProcessStep(plotfile);
         
         time_analysis->X_n().Print("rb x = ");
         
         time_analysis->ExcecuteOneStep();
-        time_analysis->PostNonlinearProcessStep();
+        time_analysis->PostNonlinearProcessStep(plotfile);
     }
     std::cout << " Execution finished " << std::endl;
     return EXIT_SUCCESS;
