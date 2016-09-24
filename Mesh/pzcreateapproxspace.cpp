@@ -182,10 +182,10 @@ TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,long &index) {
 /** Only element of material id in the set<int> will be created */
 void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs) const {
 	TPZAdmChunkVector<TPZGeoEl *> &elvec = cmesh.Reference()->ElementVec();
-	long i, nelem = elvec.NElements();
+	long  nelem = elvec.NElements();
 	long neltocreate = 0;
 	long index;
-	for(i=0; i<nelem; i++) {
+	for(long i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
 		if(!gel) continue;
         if (gel->Reference()) {
@@ -203,7 +203,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
     }
     cmesh.Block().SetNBlocks(nbl);
 	
-	for(i=0; i<nelem; i++) {
+	for(long i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
 		if(!gel || gel->Reference()) continue;
 		if(!gel->HasSubElement()) {

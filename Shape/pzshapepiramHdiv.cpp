@@ -59,7 +59,7 @@ namespace pzshape {
             countorig+= norig;
             count += nshape;
         }
-        if (!IsZero(IsZero(temp - 1.)))
+        if (IsZero(temp - 1.))
         {
             pt[2] = temp;
         }

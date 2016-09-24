@@ -95,6 +95,10 @@ void VerifyDRhamCompatibility();
 
 void ExactNathan(const TPZVec<REAL> &pt, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
     
+    // Constant one
+    sol[0] = 1.;
+    dsol.Zero();
+    return;
     // Sine problem
     sol[0] = sin(M_PI*pt[0])*sin(M_PI*pt[1])*sin(M_PI*pt[2]);
     dsol(0,0) = M_PI*cos(M_PI*pt[0])*sin(M_PI*pt[1])*sin(M_PI*pt[2]);
@@ -129,6 +133,9 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 
 void BodyForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     
+    // Exact one
+    f[0] = 0.;
+    return;
     // Sine problem
     f[0]= 3*pow(M_PI,2)*sin(M_PI*pt[0])*sin(M_PI*pt[1])*sin(M_PI*pt[2]);
     return;
@@ -316,7 +323,7 @@ int main2(int argc, char *argv[])
         IncreasePyramidSonOrder(meshvec,pFlux);
     }
     
-    ProjectFlux(meshvec[0]);
+//    ProjectFlux(meshvec[0]);
     
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
@@ -341,13 +348,13 @@ int main2(int argc, char *argv[])
 #endif
     cmeshMult->CleanUpUnconnectedNodes();
     
-    bool shouldrenumber = true;
+    bool shouldrenumber = false;
     
     TPZAnalysis an(cmeshMult,shouldrenumber);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     TPZSkylineStructMatrix skyl(cmeshMult);
-    skyl.SetNumThreads(4);
+    skyl.SetNumThreads(0);
     //    TPZFStructMatrix skyl(cmeshMult);
     an.SetStructuralMatrix(skyl);
     an.SetSolver(step);
@@ -358,28 +365,29 @@ int main2(int argc, char *argv[])
     
     std::cout << "Assembled!" << std::endl;
     
-    //    if(0){
-    //      std::ofstream outmat("mat.nb");
-    //      mat->Print("stiff=",outmat,EMathematicaInput);
-    //    }
-    //    TPZFMatrix<STATE> solution = cmeshMult->Solution();
-    //    {
-    //        std::ofstream sol("../SolInterpolate.txt");
-    //        sol << "Solution obtained by interpolation\n";
-    //        an.PrintVectorByElement(sol, solution,1.e-8);
-    //    }
-    //    TPZFMatrix<STATE> rhs;
-    //    mat->Multiply(solution, rhs);
-    //    {
-    //        std::ofstream theory("../RhsbyMult.txt");
-    //        theory << "Rhs obtained by matrix vector multiply\n";
-    //        an.PrintVectorByElement(theory, rhs,1.e-8);
-    //    }
-    //    {
-    //        std::ofstream practice("../RhsComputed.txt");
-    //        practice << "Rhs obtained by assembly process\n";
-    //        an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
-    //    }
+    if(1){
+      std::ofstream outmat("../mat.nb");
+      mat->Print("stiff=",outmat,EMathematicaInput);
+    }
+    TPZFMatrix<STATE> solution = cmeshMult->Solution();
+    {
+        std::ofstream sol("../SolInterpolate.txt");
+        sol << "Solution obtained by interpolation\n";
+        an.PrintVectorByElement(sol, solution,1.e-8);
+    }
+    TPZFMatrix<STATE> rhs;
+    solution.Resize(cmeshMult->NEquations(), 1);
+    mat->Multiply(solution, rhs);
+    {
+        std::ofstream theory("../RhsbyMult.txt");
+        theory << "Rhs obtained by matrix vector multiply\n";
+        an.PrintVectorByElement(theory, rhs,1.e-8);
+    }
+    {
+        std::ofstream practice("../RhsComputed.txt");
+        practice << "Rhs obtained by assembly process\n";
+        an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
+    }
     
     std::cout << "Starting Solve..." << std::endl;
     
