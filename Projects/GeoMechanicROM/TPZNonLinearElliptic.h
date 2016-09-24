@@ -34,11 +34,13 @@ protected:
     /** @brief Problem dimension */
     int fDim;
 
+    /** @brief Parameter 0 */
+    REAL fmu_0;
     
-    /** @brief Second Lame Parameter */
+    /** @brief Parameter 1 */
     REAL fmu_1;
     
-    /** @brief Second Lame Parameter */
+    /** @brief Parameter 2 */
     REAL fmu_2;
     
     
@@ -66,8 +68,9 @@ public:
     
     
     /** @brief set parameters  */
-    void SetParameters(REAL mu_1, REAL mu_2)
+    void SetParameters(REAL mu_0, REAL mu_1, REAL mu_2)
     {
+        fmu_0 = mu_0;
         fmu_1 = mu_1;
         fmu_2 = mu_2;
     }

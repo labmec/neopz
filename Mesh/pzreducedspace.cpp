@@ -9,6 +9,7 @@
 #include <iostream>
 #include "pzreducedspace.h"
 #include "tpzcompmeshreferred.h"
+#include "pzmultiphysicselement.h"
 #include "pzmaterial.h"
 #include "pzelmat.h"
 #include "pzlog.h"
@@ -302,8 +303,20 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 #endif
     
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+    TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
 
 #ifdef PZDEBUG
+    
+    if(!mf_cel){
+        DebugStop();
+    }
+    
+    TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: garbage solution
+    
+    if(mf_cel){
+        return intel_mf;
+    }
+    
     if (!intel) {
         DebugStop();
     }
