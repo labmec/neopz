@@ -356,11 +356,14 @@ TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data
     TPZFMatrix<REAL> sol(ndof,n,0.0);
     
     for (int i = 0; i < n; i++) {
-        mu_vector[0] = 1.0 + REAL(i) * 0.1;
+        mu_vector[0] = 2.0 + REAL(i) * 0.1;
         SetParameters(time_analysis->Mesh(), mu_vector);
         time_analysis->ExcecuteOneStep();
         time_analysis->PostNonlinearProcessStep(plotfile);
         sol.AddSub(0, i, time_analysis->X_n());
+        time_analysis->X().Zero();
+        time_analysis->X_n().Zero();
+        time_analysis->Mesh()->Solution().Zero();
     }
     
     mesh_vector[0]->LoadSolution(sol);
