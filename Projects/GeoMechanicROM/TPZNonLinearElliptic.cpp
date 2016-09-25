@@ -21,6 +21,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.permeabilityc"));
 TPZNonLinearElliptic::TPZNonLinearElliptic():TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin>() {
 
     fDim = 2;
+    fnstate = 1;
     fmu_0 = 1.0;
     fmu_1 = 1.0;
     fmu_2 = 1.0;
@@ -30,6 +31,7 @@ TPZNonLinearElliptic::TPZNonLinearElliptic():TPZMatWithMem<TPZPoroPermMemory,TPZ
 TPZNonLinearElliptic::TPZNonLinearElliptic(int matid, int dim): TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin> (matid)   {
 
     fDim = dim;
+    fnstate = 1;    
     fmu_0 = 1.0;
     fmu_1 = 1.0;
     fmu_2 = 1.0;
@@ -41,7 +43,7 @@ TPZNonLinearElliptic::~TPZNonLinearElliptic(){
 
 
 int TPZNonLinearElliptic::NStateVariables() {
-    return 1;
+    return fnstate;
 }
 
 

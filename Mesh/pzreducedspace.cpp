@@ -303,20 +303,24 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 #endif
     
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+    
+    
     TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
-
+    
 #ifdef PZDEBUG
     
     if(!mf_cel){
         DebugStop();
     }
+
+#endif
     
     TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: garbage solution
-    
-    if(mf_cel){
+    if(intel_mf){
         return intel_mf;
     }
-    
+
+#ifdef PZDEBUG
     if (!intel) {
         DebugStop();
     }

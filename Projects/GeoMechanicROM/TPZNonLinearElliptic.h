@@ -34,6 +34,9 @@ protected:
     /** @brief Problem dimension */
     int fDim;
 
+    /** @brief Problem dimension nstate variables */
+    int fnstate;
+
     /** @brief Parameter 0 */
     REAL fmu_0;
     
@@ -60,12 +63,17 @@ public:
     
     virtual int NStateVariables();
     
-    /** @brief Parameters of rock and fluid: */
+    /** @brief Dimension of the problem */
     void SetDimension(int dimension)
     {
         fDim = dimension;
     }
     
+    /** @brief Ste n state variables */
+    void SetNState(int nstate)
+    {
+        fnstate = nstate;
+    }
     
     /** @brief set parameters  */
     void SetParameters(REAL mu_0, REAL mu_1, REAL mu_2)

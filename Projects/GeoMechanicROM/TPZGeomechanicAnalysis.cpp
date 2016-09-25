@@ -207,7 +207,7 @@ void TPZGeomechanicAnalysis::PostNonlinearProcessStep(std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 2;
+    int div = 0;
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("u");
     vecnames.Push("sigma");
