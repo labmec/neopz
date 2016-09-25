@@ -244,7 +244,7 @@ int main2(int argc, char *argv[])
     
     enum MVariation {ETetrahedra, EPyramid,EDividedPyramid, EDividedPyramidIncreasedOrder};
     
-    MVariation runtype = EPyramid;
+    MVariation runtype = EDividedPyramid;
     
     TPZAutoPointer<TPZRefPattern> pyramidref = PyramidRef();
     /// verify if the pressure space is compatible with the flux space
@@ -267,6 +267,7 @@ int main2(int argc, char *argv[])
     TPZManVector<REAL,nSimulations> semih1ErrVec(nSimulations,0.);
   
     for (int i = 0 ; i < nSimulations ; i++){
+      std::cout << "---------- START OF SIMULATION WITH NELEM = " << i+1 << " ------------" << std::endl;
       std::cout << "Creating gmesh and cmesh..." << std::endl;
       const int nelem = i+1; // num of hexes in x y and z
       if (convergenceMesh){
@@ -330,7 +331,7 @@ int main2(int argc, char *argv[])
           IncreasePyramidSonOrder(meshvec,pFlux);
       }
       
-  //    ProjectFlux(meshvec[0]);
+      //ProjectFlux(meshvec[0]);
       
   #ifdef LOG4CXX
       if (logger->isDebugEnabled())
@@ -448,6 +449,7 @@ int main2(int argc, char *argv[])
       std::cout << "Calculating error..." << std::endl;
       an.SetExact(ExactNathan);
       TPZManVector<REAL,3> errors(3,1);
+      cout << "NEquation = " << cmeshMult->NEquations() << endl;
       an.PostProcessError(errors);
       
       out << "Errors:" << std::endl;
@@ -1857,6 +1859,7 @@ void LoadSolution(TPZCompMesh *cpressure)
 
 void ProjectFlux(TPZCompMesh *cfluxmesh)
 {
+    cout << "\n**** Projecting Flux ******" << endl;
     TPZAnalysis an(cfluxmesh,false);
     TPZSkylineStructMatrix str(cfluxmesh);
     an.SetStructuralMatrix(str);
