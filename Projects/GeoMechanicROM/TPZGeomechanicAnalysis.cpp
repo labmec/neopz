@@ -178,14 +178,14 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
-            std::cout << "Permeability Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+            std::cout << "Geomechanic Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             fX = fX_n;
             return;
         }
         
     }
     
-    std::cout << "Permeability Coupling:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    std::cout << "Geomechanic Coupling:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
     
     
 }
@@ -217,31 +217,29 @@ void TPZGeomechanicAnalysis::PostNonlinearProcessStep(std::string plotfile){
     
 }
 
-void TPZGeomechanicAnalysis::PostProcessStep(){
+void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
     
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 1;
+    int div = 0;
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("s_x");
     scalnames.Push("s_y");
     scalnames.Push("t_xy");
-    scalnames.Push("e_x");
-    scalnames.Push("e_y");
-    scalnames.Push("e_xy");
-    scalnames.Push("ep_x");
-    scalnames.Push("ep_y");
-    scalnames.Push("ep_xy");
-    scalnames.Push("k_x");
-    scalnames.Push("k_y");
-    scalnames.Push("K_0");
-    scalnames.Push("phi");    
+//    scalnames.Push("e_x");
+//    scalnames.Push("e_y");
+//    scalnames.Push("e_xy");
+//    scalnames.Push("ep_x");
+//    scalnames.Push("ep_y");
+//    scalnames.Push("ep_xy");
+//    scalnames.Push("k_x");
+//    scalnames.Push("k_y");
+//    scalnames.Push("K_0");
+//    scalnames.Push("phi");    
     scalnames.Push("p_ex");
     vecnames.Push("u");
-    vecnames.Push("v");    
-    
-    std::string plotfile = "Poro_Permeability_2D.vtk";
+//    vecnames.Push("v");
 
     this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     this->PostProcess(div,dim);

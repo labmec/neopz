@@ -123,11 +123,13 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
     int nsol = sol.size();
     int nstate = sol[0].size();
     int dim = axes.Rows();
-    phi.Resize(nstate, nsol);
-    dphix.Resize(nstate*dim, nsol);
+//    phi.Resize(nstate, nsol);
+//    dphix.Resize(nstate*dim, nsol);
+    phi.Resize(nsol,nstate);// @omar:: Reduzed space implementation is not agree with normal contribute material.
+    dphix.Resize(nstate*dim,nsol);
     for (int isol =0; isol<nsol; isol++) {
         for (int istate=0; istate<nstate; istate++) {
-            phi(istate,isol) = sol[isol][istate];
+            phi(isol,istate) = sol[isol][istate];
             for (int id=0; id<dim; id++) {
                 dphix(id+istate*dim,isol) = dsol[isol](id,istate);
             }
@@ -372,11 +374,11 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     for(int jn=0; jn<dfvar; jn++) {
 #ifdef PZDEBUG
         {
-            if(phi.Rows() != numdof)
+            if(phi.Rows() != dfvar)
             {
                 DebugStop();
             }
-            if (phi.Cols() != dfvar) {
+            if (phi.Cols() != numdof) {
                 DebugStop();
             }
             if (dphix.Rows() != dim*numdof) {
@@ -390,7 +392,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
 #endif
         for (long is=0; is<numbersol; is++) {
             for(d=0; d<numdof; d++){
-                sol[is][d%numdof] += (STATE)phi(d,jn)*MeshSol(pos+jn,is);
+                sol[is][d%numdof] += (STATE)phi(jn,d)*MeshSol(pos+jn,is);
             }
             for(d=0; d<dim*numdof; d++){
                 dsol[is](d%dim,d/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);

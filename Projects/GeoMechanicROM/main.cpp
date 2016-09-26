@@ -36,6 +36,7 @@
 #include "pzbndcond.h"
 #include "TPZPoroPermCoupling.h"
 #include "TPZNonLinearElliptic.h"
+#include "TPZLinearElliptic.h"
 
 // Analysis
 #include "pzanalysis.h"
@@ -95,23 +96,46 @@ TPZCompMesh * CMesh_PorePermeabilityCouplingII(TPZGeoMesh * gmesh, TPZVec<TPZCom
 static LoggerPtr log_data(Logger::getLogger("pz.permeabilityc"));
 #endif
 
+// Nonlinear Methods
 
-TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data);
+TPZCompMesh * Reference_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data);
 
-void OnLine_Benchmark(TPZCompMesh * cmesh, TPZSimulationData * sim_data);
+TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data, TPZVec<TPZCompMesh * > & mesh_vector, int n, TPZFMatrix<REAL> &G_projts);
+
+TPZCompMesh * OnLine_Benchmark(TPZCompMesh * cmesh, TPZSimulationData * sim_data);
+
+REAL Error_Benchmark(TPZCompMesh * cmesh_rb, TPZCompMesh * cmesh_ref);
+
+
+// Geomechanic Methods H1-H1 case
+
+
+// Create a computational mesh for define unit pressures
+TPZCompMesh * CMesh_Pressures(TPZGeoMesh * gmesh);
+
+// Create a computational mesh for integrate the projections of the unit pressures
+TPZCompMesh * CMesh_Elasticity(TPZGeoMesh * gmesh, int order);
+
+// Create a computational mesh for basis generation multiphysisc version
+TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data);
+
+//TPZCompMesh * Unit_Pressures(TPZGeoMesh * gmesh, TPZSimulationData * sim_data);
+
+
+
 
 void SetParameters(TPZCompMesh * cmesh, TPZVec<REAL> mu_vector);
 
 int NonLinearElliptic();
 
-int Geomchanic();
+int Geomechanic();
 
 int main(int argc, char *argv[])
 {
     
-    NonLinearElliptic();
+//    NonLinearElliptic();
     
-//    Geomchanic();
+    Geomechanic();
 }
 
 int NonLinearElliptic(){
@@ -130,8 +154,8 @@ int NonLinearElliptic(){
     
     REAL dt = 1.0;
     int n_steps = 30;
-    REAL epsilon_res = 1.0e-5;
-    REAL epsilon_corr = 1.0e-10;
+    REAL epsilon_res = 1.0e-4;
+    REAL epsilon_corr = 1.0e-8;
     int n_corrections = 50;
     
     /** @brief Definition gravity field */
@@ -148,33 +172,52 @@ int NonLinearElliptic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 1.0; // meters
     
-    n[0] = 5; // x - direction
-    n[1] = 5; // y - direction
+    n[0] = 1; // x - direction
+    n[1] = 1; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
     
     TPZGeoMesh * gmesh = RockBox(dx_dy,n);
+    UniformRefinement(gmesh, 2);
     std::cout<< "Geometry done. " << std::endl;
-    
+
+    int n_data = 3;
+    TPZFMatrix<REAL> projections, sel_projections;
+    TPZVec<TPZCompMesh * > mesh_vector;
     std::cout<< "off line process. " << std::endl;
-    
-    TPZCompMesh * nonlinear_cmesh = OffLine_Benchmark(gmesh, sim_data);
-    
+    TPZCompMesh * nonlinear_cmesh = OffLine_Benchmark(gmesh, sim_data, mesh_vector, n_data, projections);
     std::cout<< "off line process done . " << std::endl;
     
-    std::cout<< "on line process. " << std::endl;
+    std::cout<< "Reference solution. " << std::endl;
+    TPZCompMesh * nonlinear_ref_cmesh = Reference_Benchmark(gmesh, sim_data);
+    std::cout<< "Reference solution. " << std::endl;
     
-    OnLine_Benchmark(nonlinear_cmesh, sim_data);
-    
-    std::cout<< "on line process done . " << std::endl;
+    int n_rb = 3;
+    TPZFMatrix<REAL> errors(n_rb,2,0.0);
+    for (int irb = 1; irb <= n_rb; irb ++) {
+        projections.GetSub(0, 0, projections.Rows(), irb*irb, sel_projections);
+        mesh_vector[0]->LoadSolution(sel_projections);
+        nonlinear_cmesh->LoadSolution(sel_projections);
+        
+        std::cout<< "on line process. " << std::endl;
+        TPZCompMesh * nonlinear_rb_cmesh = OnLine_Benchmark(nonlinear_cmesh, sim_data);
+        std::cout<< "on line process done . " << std::endl;
+        
+        REAL error = Error_Benchmark(nonlinear_rb_cmesh,nonlinear_ref_cmesh);
+        
+        errors(irb-1,0) = REAL(irb-1);
+        errors(irb-1,1) = sqrt(error);
+    }
+
+    errors.Print("data = ",std::cout,EMathematicaInput);
     
     std::cout << " Execution finished " << std::endl;
     return EXIT_SUCCESS;
     
 }
 
-int Geomchanic(){
+int Geomechanic(){
     
     TPZMaterial::gBigNumber = 1.0e14;
     
@@ -186,22 +229,12 @@ int Geomchanic(){
     InitializePZLOG(FileName);
 #endif
     
-#ifdef LOG4CXX
-    
-    if(log_data->isInfoEnabled())
-    {
-        std::stringstream sout;
-        sout << " Defining the case ... " << std::endl;
-        LOGPZ_DEBUG(log_data,sout.str())
-    }
-#endif
-    
     TPZSimulationData * sim_data = new TPZSimulationData;
     
     REAL dt = 1.0;
     int n_steps = 30;
-    REAL epsilon_res = 1.0e-3;
-    REAL epsilon_corr = 1.0e-10;
+    REAL epsilon_res = 1.0e-4;
+    REAL epsilon_corr = 1.0e-8;
     int n_corrections = 50;
     
     /** @brief Definition gravity field */
@@ -212,73 +245,46 @@ int Geomchanic(){
     sim_data->SetTimeControls(n_steps, dt);
     sim_data->SetNumericControls(n_corrections, epsilon_res, epsilon_corr);
     
-#ifdef LOG4CXX
-    
-    if(log_data->isInfoEnabled())
-    {
-        std::stringstream sout;
-        sout << " Computing Geometry ... " << std::endl;
-        LOGPZ_DEBUG(log_data,sout.str())
-    }
-#endif
-    
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
     
-    REAL Lx = 5.0; // meters
-    REAL Ly = 10.0; // meters
+    REAL Lx = 1.0; // meters
+    REAL Ly = 1.0; // meters
     
-    n[0] = 5; // x - direction
-    n[1] = 10; // y - direction
+    n[0] = 1; // x - direction
+    n[1] = 1; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
     
     TPZGeoMesh * gmesh = RockBox(dx_dy,n);
+    UniformRefinement(gmesh, 0);
+    std::cout<< "Geometry done. " << std::endl;
     
-#ifdef LOG4CXX
+    int order = 3;
+    TPZVec<TPZCompMesh * > mesh_vector(2);
+    mesh_vector[0] = CMesh_Elasticity(gmesh, order);
+    mesh_vector[1] = CMesh_Pressures(gmesh);
     
-    if(log_data->isInfoEnabled())
-    {
-        std::stringstream sout;
-        sout << " Computing Geometry accomplished... " << std::endl;
-        LOGPZ_DEBUG(log_data,sout.str())
-    }
-#endif
+    TPZCompMesh * geo_modes = CMesh_GeoModes_M(gmesh, mesh_vector, sim_data);
+
     
-    // Create the approximation space
-    int deformation_order = 3;
-    int pore_pressure_order = 2;
-    
-    // Create multiphysisc mesh
-    TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
-    
-    mesh_vector[0] = CMesh_Deformation(gmesh, deformation_order);
-    mesh_vector[1] = CMesh_PorePressure(gmesh, pore_pressure_order);
-    
-    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCoupling(gmesh, mesh_vector, sim_data);
-    //    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermeabilityCouplingII(gmesh, mesh_vector, sim_data);
-    
-    // Create the static analysis
-    
-    // Run Static analysis
-    // @omar:: the initial condition is set up to zero for displacement and pore pressure excess
-    
-    // Create the Transient analysis
-    
-    bool mustOptimizeBandwidth = true;
-    int number_threads = 8;
+    bool mustOptimizeBandwidth = false;
+    int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
-    time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
+    time_analysis->SetCompMesh(geo_modes,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    //    TPZSkylineNSymStructMatrix skyl(cmesh_poro_perm_coupling);
-    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+    //    TPZSkylineNSymStructMatrix struct_mat(nonlinear_cmesh);
+    TPZSkylineStructMatrix struct_mat(geo_modes);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
-    struct_mat.SetDecomposeType(ELDLt);
+    //    TPZSymetricSpStructMatrix struct_mat(nonlinear_cmesh);
+    //    struct_mat.SetNumThreads(number_threads);
+    
+    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(nonlinear_cmesh);
+    //    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -286,29 +292,316 @@ int Geomchanic(){
     time_analysis->SetSolver(step);
     time_analysis->SetStructuralMatrix(struct_mat);
     
-    TPZVec<REAL> x(3);
-    x[0] = Lx/2.0;
-    x[1] = Ly/2.0;
-    x[2] = 0.0;
-    std::string file_ss_name("plot.nb");
-    std::string file_sp_name("porosity.nb");
-    std::string file_sk_name("permeability.nb");
-    std::string file_spex_name("porepressure.nb");
+    int ndof = geo_modes->NEquations();
+    std::cout<< "ndof = " << ndof << std::endl;
     
-    // Run Transient analysis
-    time_analysis->Run_Evolution(x);
-    time_analysis->PlotStrainStress(file_ss_name);
-    time_analysis->PlotStrainPorosity(file_sp_name);
-    time_analysis->PlotStrainPermeability(file_sk_name);
-    time_analysis->PlotStrainPressure(file_spex_name);
-    std::cout << " Execution finished" << std::endl;
+    // Set up the empirical interpolation based on unitary pressures
+    std::string plotfile("Geo_Modes.vtk");
+    
+    mesh_vector[1]->Solution()(0,0) = 1.0e6;
+    mesh_vector[1]->Solution().Print("p = ");
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, time_analysis->Mesh());
+    time_analysis->X_n() = time_analysis->Mesh()->Solution();
+    time_analysis->SimulationData()->SetCurrentStateQ(true);
+    time_analysis->AssembleResidual();
+    time_analysis->Rhs().Print("rhs = ");
+    
+    time_analysis->ExcecuteOneStep();
+    time_analysis->PostProcessStep(plotfile);
+    time_analysis->PostProcessStep(plotfile);
+    
+    std::cout << " Execution finished " << std::endl;
     return EXIT_SUCCESS;
     
 }
 
-TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data){
+//TPZCompMesh * Unit_Pressures(TPZGeoMesh * gmesh, TPZSimulationData * sim_data){
+//    
+//    TPZCompMesh * unit_pressures = CMesh_Pressures(gmesh);
+//    
+//    int nel = unit_pressures->NElements();
+//    
+//    for (int icel = 0; icel < nel; icel++) {
+//        TPZCompEl * cel = unit_pressures->Element(icel);
+//        
+//        cel->S
+//    }
+//    
+//}
+
+TPZCompMesh * CMesh_Pressures(TPZGeoMesh * gmesh){
     
-    std::string plotfile("Nonlinear_Elliptic.vtk");
+    // Material identifiers
+    int matid =1;
+    // Getting mesh dimension
+    int dim = 2;
+    
+    // Aproximation Space of order -> pOrder
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    // Creating a material object
+    int nstate = 1;
+    TPZVec<STATE> sol;
+    TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+    cmesh->InsertMaterialObject(material);
+    
+    // Setting piecewise constant approximation space
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(0);
+    cmesh->SetAllCreateFunctionsDiscontinuous();
+    cmesh->AutoBuild();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshUnitPressures.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
+}
+
+TPZCompMesh * CMesh_Elasticity(TPZGeoMesh * gmesh, int order){
+    
+    // Material identifiers
+    int matid =1;
+    int bc_bottom, bc_right, bc_top, bc_left;
+    bc_bottom = -1;
+    bc_right = -2;
+    bc_top = -3;
+    bc_left = -4;
+    
+    // Getting mesh dimension
+    int dim = 2;
+    
+    // Aproximation Space of order -> pOrder
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    // Creating a material object
+    int nstate = 2;
+    TPZVec<STATE> sol;
+    TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+    cmesh->InsertMaterialObject(material);
+    
+    // Inserting boundary conditions
+    int dirichlet = 0;
+    
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_bottom_mat);
+    
+    TPZMaterial * bc_right_mat = material->CreateBC(material, bc_right, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_right_mat);
+    
+    TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_top_mat);
+    
+    TPZMaterial * bc_left_mat = material->CreateBC(material, bc_left, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_left_mat);
+    
+    // Setting H1 approximation space
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(order);
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->AutoBuild();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshElasticity.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
+}
+
+// Create a computational mesh for basis generation multiphysisc version
+TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data){
+    
+    // Plane strain assumption
+    int planestress = 0;
+    
+    // Material identifiers
+    int matid =1;
+    int bc_bottom, bc_right, bc_top, bc_left;
+    bc_bottom = -1;
+    bc_right = -2;
+    bc_top = -3;
+    bc_left = -4;
+    
+    REAL MPa = 1.0e6;
+    REAL rad = M_PI/180.0;
+    
+    // Getting mesh dimension
+    int dim = 2;
+    
+    int kmodel = 3;
+    REAL l = 15.3333e8;
+    REAL mu = 5.1111e8;
+    REAL l_u = 16.3333e8;
+    REAL alpha = 0.95;
+    REAL Se = 1.0e-7;
+    REAL k = 1.0e-14;
+    REAL porosity = 0.25;
+    REAL eta = 0.001;
+    
+    REAL c = 27.2*MPa;
+    REAL phi_f = 30.0*rad;
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    // Creating a material object
+    TPZLinearElliptic * material = new TPZLinearElliptic(matid,dim);
+    material->SetSimulationData(sim_data);
+    material->SetPlaneProblem(planestress);
+    material->SetPorolasticParameters(l, mu, l_u);
+    material->SetBiotParameters(alpha, Se);
+    material->SetParameters(k, porosity, eta);
+    material->SetKModel(kmodel);
+    material->SetDruckerPragerParameters(phi_f, c);
+    cmesh->InsertMaterialObject(material);
+    
+    
+    // Inserting boundary conditions
+    int dirichlet_x_vn   = 7;
+    int dirichlet_y_vn   = 8;
+    int neumann_y_p      = 5;
+    int dirichlet_y_p    = 2;
+    
+    REAL s_n = -10.0*MPa;
+    //    REAL u_y = -0.000333333;
+    
+    TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    val2(2,0) = 0.0;
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_y_vn, val1, val2);
+    cmesh->InsertMaterialObject(bc_bottom_mat);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    val2(2,0) = 0.0;
+    TPZMaterial * bc_right_mat = material->CreateBC(material, bc_right, dirichlet_x_vn, val1, val2);
+    cmesh->InsertMaterialObject(bc_right_mat);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = s_n;
+    val2(2,0) = 0.0;
+    TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, neumann_y_p, val1, val2);
+    TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(Sigma);
+    bc_top_mat->SetTimedependentBCForcingFunction(boundary_data);
+    cmesh->InsertMaterialObject(bc_top_mat);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    val2(2,0) = 0.0;
+    TPZMaterial * bc_left_mat = material->CreateBC(material, bc_left, dirichlet_x_vn, val1, val2);
+    cmesh->InsertMaterialObject(bc_left_mat);
+    
+    // Setting up multiphysics functions
+    cmesh->SetDimModel(dim);
+    cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    //    cmesh->SetAllCreateFunctionsMultiphysicElem();
+    cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    // Transferindo para a multifisica
+    TPZBuildMultiphysicsMesh::AddElements(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
+    
+    
+    long nel = cmesh->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
+    
+#ifdef PZDEBUG
+    std::ofstream out("CMeshGeoModesMultiPhysics.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
+    
+}
+
+REAL Error_Benchmark(TPZCompMesh * cmesh_rb, TPZCompMesh * cmesh_ref){
+    
+#ifdef PZDEBUG
+    
+    if(!cmesh_rb){
+        DebugStop();
+    }
+    
+    if(!cmesh_ref){
+        DebugStop();
+    }
+    
+#endif
+    
+    REAL error  = 0.0;
+    
+    int nel_rb = cmesh_rb->NElements();
+    int nel_re = cmesh_ref->NElements();
+    
+#ifdef PZDEBUG
+    
+    if(nel_rb != nel_re){
+        DebugStop();
+    }
+    
+#endif
+    int side_gel = 0;
+    int order = 4;
+    
+    int var_index = 1; // u
+    TPZManVector<REAL,1> u_rb;
+    TPZManVector<REAL,1> u_re;
+    
+    TPZVec<REAL> pos(3,0.0);
+    REAL w, el_error;
+    
+    TPZFMatrix<REAL> jac,axes,jacinv;
+    REAL detjac;
+    for (int icel = 0 ; icel < nel_rb; icel++) {
+        TPZCompEl * cel_rb = cmesh_rb->Element(icel);
+        TPZCompEl * cel_re = cmesh_ref->Element(icel);
+        
+        TPZGeoEl *gel  = cel_re->Reference();
+        if (gel->Dimension()  != 2) {
+            continue;
+        }
+        side_gel = gel->NSides() - 1;
+        TPZIntPoints * int_points = gel->CreateSideIntegrationRule(side_gel, order);
+        el_error = 0.0;
+        int npoints = int_points->NPoints();
+        for (int i = 0; i < npoints; i++) {
+            int_points->Point(i, pos, w);
+            gel->Jacobian(pos, jac, axes, detjac, jacinv);
+            cel_rb->Solution(pos, var_index, u_rb);
+            cel_re->Solution(pos, var_index, u_re);
+            el_error += w * detjac * (u_rb[0] - u_re[0])*(u_rb[0] - u_re[0]);
+        }
+        
+        error += el_error;
+        
+    }
+    
+    return error;
+    
+}
+
+TPZCompMesh * Reference_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data){
     
     // Create the approximation space
     int potential_order = 2;
@@ -321,7 +614,7 @@ TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data
     
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 0;
+    int number_threads = 16;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(nonlinear_cmesh,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -329,10 +622,10 @@ TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data
     time_analysis->AdjustVectors();
     
     //    TPZSkylineNSymStructMatrix struct_mat(nonlinear_cmesh);
-//    TPZSkylineStructMatrix struct_mat(nonlinear_cmesh);
+    TPZSkylineStructMatrix struct_mat(nonlinear_cmesh);
     
-    TPZSymetricSpStructMatrix struct_mat(nonlinear_cmesh);
-    struct_mat.SetNumThreads(number_threads);
+    //    TPZSymetricSpStructMatrix struct_mat(nonlinear_cmesh);
+    //    struct_mat.SetNumThreads(number_threads);
     
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(nonlinear_cmesh);
 //    struct_mat.SetDecomposeType(ELDLt);
@@ -345,31 +638,82 @@ TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data
     
     int ndof = nonlinear_cmesh->NEquations();
     std::cout<< "ndof = " << ndof << std::endl;
- 
+    
+    // Reference Solution
+    std::string plotfile_ref("Nonlinear_Elliptic_ref.vtk");
+    
+    time_analysis->ExcecuteOneStep();
+    time_analysis->PostNonlinearProcessStep(plotfile_ref);
+    time_analysis->PostNonlinearProcessStep(plotfile_ref);
+
+    return nonlinear_cmesh;
+    
+}
+
+TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data, TPZVec<TPZCompMesh * > & mesh_vector, int n, TPZFMatrix<REAL> &G_projts){
+    
+    // Create the approximation space
+    int potential_order = 2;
+    
+    // Create multiphysisc mesh
+    mesh_vector.Resize(1);
+    mesh_vector[0] = CMesh_Elliptic(gmesh, potential_order);
+    
+    TPZCompMesh * nonlinear_cmesh = CMesh_Elliptic_M(gmesh, mesh_vector, sim_data);
+    
+    
+    bool mustOptimizeBandwidth = true;
+    int number_threads = 16;
+    TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
+    time_analysis->SetCompMesh(nonlinear_cmesh,mustOptimizeBandwidth);
+    time_analysis->SetSimulationData(sim_data);
+    time_analysis->SetMeshvec(mesh_vector);
+    time_analysis->AdjustVectors();
+    
+    //    TPZSkylineNSymStructMatrix struct_mat(nonlinear_cmesh);
+    TPZSkylineStructMatrix struct_mat(nonlinear_cmesh);
+    
+//    TPZSymetricSpStructMatrix struct_mat(nonlinear_cmesh);
+//    struct_mat.SetNumThreads(number_threads);
+    
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(nonlinear_cmesh);
+//    struct_mat.SetDecomposeType(ELDLt);
+    
+    TPZStepSolver<STATE> step;
+    struct_mat.SetNumThreads(number_threads);
+    step.SetDirect(ELDLt);
+    time_analysis->SetSolver(step);
+    time_analysis->SetStructuralMatrix(struct_mat);
+    
+    int ndof = nonlinear_cmesh->NEquations();
+    std::cout<< "ndof = " << ndof << std::endl;
+    
     // Set up the empirical interpolation
+    std::string plotfile("Nonlinear_Elliptic.vtk");
+    TPZManVector<REAL,3> mu_vector(3,0.0);
+    int n0 = 1;
+    int n1 = n;
+    int n2 = n;
     
-    TPZVec<REAL> mu_vector(3,0.0);
-    int n = 2;
-    mu_vector[1] = 0.0;
-    mu_vector[2] = 1.0;
+    G_projts.Resize(ndof,n0*n1*n2);
+    G_projts.Zero();
     
-    TPZFMatrix<REAL> sol(ndof,n,0.0);
-    
-    for (int i = 0; i < n; i++) {
-        mu_vector[0] = 2.0 + REAL(i) * 0.1;
-        SetParameters(time_analysis->Mesh(), mu_vector);
-        time_analysis->ExcecuteOneStep();
-        time_analysis->PostNonlinearProcessStep(plotfile);
-        sol.AddSub(0, i, time_analysis->X_n());
-        time_analysis->X().Zero();
-        time_analysis->X_n().Zero();
-        time_analysis->Mesh()->Solution().Zero();
+    int count = 0;
+    for (int i = 0; i < n0; i++) {
+        mu_vector[0] = 1.0 + REAL(i) * 0.0;
+        for (int j = 0; j < n1; j++) {
+            mu_vector[1] = 0.1 + REAL(j) * 1.0;
+            for (int k = 0; k < n2; k++) {
+                mu_vector[2] = 0.1 + REAL(k) * 1.0;
+                SetParameters(time_analysis->Mesh(), mu_vector);
+                time_analysis->ExcecuteOneStep();
+                time_analysis->PostNonlinearProcessStep(plotfile);
+                G_projts.AddSub(0, count, time_analysis->X_n());
+                count++;
+            }
+        }
     }
-    
-    mesh_vector[0]->LoadSolution(sol);
-    nonlinear_cmesh->LoadSolution(sol);
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, nonlinear_cmesh);
-//    nonlinear_cmesh->Solution().Print("sol = ");
+
     return nonlinear_cmesh;
     
 }
@@ -400,12 +744,12 @@ void SetParameters(TPZCompMesh * cmesh, TPZVec<REAL> mu_vector){
     
 }
 
-void OnLine_Benchmark(TPZCompMesh * cmesh, TPZSimulationData * sim_data){
+TPZCompMesh * OnLine_Benchmark(TPZCompMesh * cmesh, TPZSimulationData * sim_data){
     
     // Create the approximation space
     TPZGeoMesh * gmesh = cmesh->Reference();
     
-    std::string plotfile("Nonlinear_Elliptic_bc.vtk");
+    std::string plotfile("Nonlinear_Elliptic_rb.vtk");
     
     // Create multiphysisc mesh
     TPZVec<TPZCompMesh * > mesh_vector(1);
@@ -413,7 +757,7 @@ void OnLine_Benchmark(TPZCompMesh * cmesh, TPZSimulationData * sim_data){
 
     TPZCompMesh * nonlinear_rb_cmesh = CMesh_Elliptic_M_RB(gmesh, mesh_vector, sim_data);
     
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = false;
     int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(nonlinear_rb_cmesh,mustOptimizeBandwidth);
@@ -437,9 +781,10 @@ void OnLine_Benchmark(TPZCompMesh * cmesh, TPZSimulationData * sim_data){
     
     time_analysis->ExcecuteOneStep();
     time_analysis->PostNonlinearProcessStep(plotfile);
-    
-    time_analysis->ExcecuteOneStep();
     time_analysis->PostNonlinearProcessStep(plotfile);
+//    time_analysis->X_n().Print("Selected modes = ");
+    
+    return nonlinear_rb_cmesh;
 }
 
 void UniformRefinement(TPZGeoMesh *gmesh, int nh)
@@ -604,9 +949,9 @@ TPZCompMesh * CMesh_Elliptic_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     // Getting mesh dimension
     int dim = 2;
     
-    REAL mu_0 = 2.0;
-    REAL mu_1 = 0.0;
-    REAL mu_2 = 20.0;
+    REAL mu_0 = 1.0;
+    REAL mu_1 = M_PI/10000000.0;
+    REAL mu_2 = 4.0*M_PI;
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
@@ -692,9 +1037,9 @@ TPZCompMesh * CMesh_Elliptic_M_RB(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mes
     // Getting mesh dimension
     int dim = 2;
     
-    REAL mu_0 = 2.0;
-    REAL mu_1 = 0.0;
-    REAL mu_2 = 20.0;
+    REAL mu_0 = 1.0;
+    REAL mu_1 = M_PI/10000000.0;
+    REAL mu_2 = 4.0*M_PI;
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 
@@ -1168,8 +1513,6 @@ TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order){
     return cmesh;
     
 }
-
-
 
 TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     

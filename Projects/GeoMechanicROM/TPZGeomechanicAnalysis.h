@@ -151,7 +151,7 @@ public:
     void PostNonlinearProcessStep(std::string plotfile);
     
     /** @brief PostProcess results */
-    void PostProcessStep();
+    void PostProcessStep(std::string plotfile);
     
     /** @brief update last state solution */
     void UpdateState();
