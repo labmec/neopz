@@ -240,8 +240,8 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
 
-    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
-    
+//    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
+    Compute_Sigma(S, Grad_u);
     
     TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0),Si_x;
     TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0),Si_y;

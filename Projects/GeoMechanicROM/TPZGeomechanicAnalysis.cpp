@@ -222,7 +222,7 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 0;
+    int div = 2;
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("s_x");
     scalnames.Push("s_y");
@@ -247,7 +247,7 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
 }
 
 /** @brief execute the evolutionary problem */
-void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x){
+void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile){
     
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
@@ -255,10 +255,10 @@ void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x){
     
     for (int i = 0; i <= n; i++) {
         time = i * dt;
-        std::cout<< "Permeability Coupling:: Current time (s) = " << time << std::endl;
+        std::cout<< "Geomechanic Coupling:: Current time (s) = " << time << std::endl;
         this->SimulationData()->SetTime(time);
         this->ExcecuteOneStep();
-//        this->PostProcessStep();
+        this->PostProcessStep(plotfile);
         this->AppendStrain_Stress(x);
         this->AppendStrain_Pososity(x);
         this->AppendStrain_Permeability(x);

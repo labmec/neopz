@@ -160,7 +160,7 @@ public:
     void Update_at_n_State();
 
     /** @brief execute the evolutionary problem */
-    void Run_Evolution(TPZVec<REAL> & x);
+    void Run_Evolution(TPZVec<REAL> &x, std::string plotfile);
     
     /** @brief Compute the strain and the stress at x euclidean point for each time */
     void AppendStrain_Stress(TPZVec<REAL> & x);
