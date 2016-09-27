@@ -244,7 +244,7 @@ int main2(int argc, char *argv[])
     
     enum MVariation {ETetrahedra, EPyramid,EDividedPyramid, EDividedPyramidIncreasedOrder};
     
-    MVariation runtype = EDividedPyramid;
+    MVariation runtype = EDividedPyramidIncreasedOrder;
     
     TPZAutoPointer<TPZRefPattern> pyramidref = PyramidRef();
     /// verify if the pressure space is compatible with the flux space
@@ -265,8 +265,10 @@ int main2(int argc, char *argv[])
     TPZManVector<REAL,nSimulations> h1ErrVec(nSimulations,0.);
     TPZManVector<REAL,nSimulations> l2ErrVec(nSimulations,0.);
     TPZManVector<REAL,nSimulations> semih1ErrVec(nSimulations,0.);
-  
+    TPZTimer simTime("Time to complete one simulation");
     for (int i = 0 ; i < nSimulations ; i++){
+      simTime.reset();
+      simTime.start();
       std::cout << "---------- START OF SIMULATION WITH NELEM = " << i+1 << " ------------" << std::endl;
       std::cout << "Creating gmesh and cmesh..." << std::endl;
       const int nelem = i+1; // num of hexes in x y and z
@@ -372,6 +374,7 @@ int main2(int argc, char *argv[])
       TPZAutoPointer<TPZMatrix<STATE> > mat = an.Solver().Matrix();
       
       std::cout << "Assembled!" << std::endl;
+      std::cout << "Nequations = " << cmeshMult->NEquations() << std::endl;
       
       if(0){
         std::ofstream outmat("../mat.nb");
@@ -463,6 +466,8 @@ int main2(int argc, char *argv[])
       hSizeVec[i] = 1./REAL(nelem);
       
       std::cout << "Simulation with nelem " << nelem << " finished!" << std::endl;
+      simTime.stop();
+      std::cout << "total time of simulation = " << simTime.seconds() << " s" << std::endl;
     }//nsimulations
   
     std::string mathematicaFilename = "NoName.nb";
@@ -2422,7 +2427,7 @@ void IncreasePyramidSonOrder(TPZVec<TPZCompMesh *> &meshvec, int pFlux)
         meshvec[0]->Block().Set(seqnum, nshape);
         TPZInterpolatedElement *largeintel = dynamic_cast<TPZInterpolatedElement *>(large.Element());
         intel->RestrainSide(10, largeintel, large.Side());
-        c.FirstDepend()->fDepMatrix.Print(std::cout);
+        //c.FirstDepend()->fDepMatrix.Print(std::cout);
     }
     meshvec[0]->ExpandSolution();
     meshvec[1]->Reference()->ResetReference();
@@ -2462,6 +2467,10 @@ void GenerateMathematicaWithConvergenceRates(TPZVec<REAL> &neqVec, TPZVec<REAL> 
                                              TPZVec<REAL> &semih1ErrVec, std::string &mathematicaFilename)
 {
   std::ofstream out(mathematicaFilename.c_str());
+  
+  out << "myAxesSize = 15;" << endl;
+  out << "myLabelSize = 12;" << endl;
+  out << "myImageSize = 500;" << endl;
   
   PrintArrayInMathematica(neqVec,out,"neq");
   PrintArrayInMathematica(hSizeVec,out,"h");
