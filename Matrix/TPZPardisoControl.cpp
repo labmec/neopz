@@ -231,6 +231,7 @@ void TPZPardisoControl<TVar>::Decompose()
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
         fParam[10] = 1;
         fParam[12] = 1;
+        // @omar:: find the parameter ....
     }
     long long phase = 12;
     

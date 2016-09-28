@@ -83,6 +83,7 @@ TPZCompMesh * CMesh_Elliptic_M_RB(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mes
 // Create a computational mesh for deformation
 TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order);
 
+
 // Create a computational mesh for pore pressure excess
 TPZCompMesh * CMesh_PorePressure(TPZGeoMesh * gmesh, int order);
 
@@ -119,7 +120,8 @@ TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
 // Compute Galerkin projections of unit pressures
 TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_data, int order);
 
-
+// Create a computational mesh for reduced deformation
+TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh);
 
 
 void SetParameters(TPZCompMesh * cmesh, TPZVec<REAL> mu_vector);
@@ -249,8 +251,8 @@ int Geomechanic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 2; // x - direction
-    n[1] = 10; // y - direction
+    n[0] = 1; // x - direction
+    n[1] = 1; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -258,19 +260,20 @@ int Geomechanic(){
     TPZGeoMesh * gmesh = RockBox(dx_dy,n);
     UniformRefinement(gmesh, 0);
     std::cout<< "Geometry done. " << std::endl;
-    int order = 3;
+    int order = 2;
     
-//    TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order);
+    TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order);
 
     // Computing reference solution
-    
+    cmesh_gp->Solution().Print("sol = ");
     TPZVec<TPZCompMesh * > mesh_vector(2);
-    mesh_vector[0] = CMesh_Deformation(gmesh, order);
+//    mesh_vector[0] = CMesh_Deformation(gmesh, order);
+    mesh_vector[0] = CMesh_Deformation_rb(cmesh_gp);
     mesh_vector[1] = CMesh_PorePressure(gmesh, order-1);
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data);
     
-    bool mustOptimizeBandwidth = true;
-    int number_threads = 16;
+    bool mustOptimizeBandwidth = false;
+    int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -297,7 +300,7 @@ int Geomechanic(){
     x[0] = Lx/2.0;
     x[1] = Ly/2.0;
     x[2] = 0.0;
-    std::string plotfile("geomechanic_ref.vtk");
+    std::string plotfile("geomechanic_ref_rb.vtk");
     // Run Transient analysis
     time_analysis->Run_Evolution(x,plotfile);
     
@@ -315,7 +318,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     TPZCompMesh * geo_modes = CMesh_GeoModes_M(gmesh, mesh_vector, sim_data);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 16;
+    int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geo_modes,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -325,11 +328,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     //    TPZSkylineNSymStructMatrix struct_mat(geo_modes);
 //    TPZSkylineStructMatrix struct_mat(geo_modes);
     
-//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+//    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -367,7 +370,8 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         galerkin_projts.AddSub(0, ip, mesh_vector[0]->Solution());
     }
     
-    mesh_vector[0]->Solution() = galerkin_projts;
+//    mesh_vector[0]->Solution() = galerkin_projts;
+    mesh_vector[0]->LoadSolution(galerkin_projts);
     return mesh_vector[0];
     
 }
@@ -1381,10 +1385,75 @@ TPZCompMesh * CMesh_PorePressure(TPZGeoMesh * gmesh, int order){
 }
 
 // Create a computational mesh for deformation;
-TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order){
+TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh){
         
     // Plane strain assumption
 //    int planestress = 0;
+    TPZGeoMesh * gmesh = cmesh->Reference();
+    
+    // Material identifiers
+    int matid =1;
+    int bc_bottom, bc_right, bc_top, bc_left;
+    bc_bottom = -1;
+    bc_right = -2;
+    bc_top = -3;
+    bc_left = -4;
+    
+    // Getting mesh dimension
+    int dim = 2;
+    
+    TPZCompMeshReferred * cmesh_rb = new TPZCompMeshReferred(gmesh);
+
+
+    // Creating a material object
+    int nstate = 1;
+    TPZVec<STATE> sol;
+    TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+    cmesh_rb->InsertMaterialObject(material);
+    
+    // Inserting boundary conditions
+    int dirichlet = 0;
+
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet, val1, val2);
+    cmesh_rb->InsertMaterialObject(bc_bottom_mat);
+    
+    TPZMaterial * bc_right_mat = material->CreateBC(material, bc_right, dirichlet, val1, val2);
+    cmesh_rb->InsertMaterialObject(bc_right_mat);
+    
+    TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, dirichlet, val1, val2);
+    cmesh_rb->InsertMaterialObject(bc_top_mat);
+    
+    TPZMaterial * bc_left_mat = material->CreateBC(material, bc_left, dirichlet, val1, val2);
+    cmesh_rb->InsertMaterialObject(bc_left_mat);
+    
+    
+    // Setting RB approximation space
+    cmesh_rb->SetDimModel(dim);
+    int numsol = cmesh->Solution().Cols();
+    cmesh_rb->AllocateNewConnect(numsol, 2, 1);
+    TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh_rb);
+    cmesh_rb->AutoBuild();
+    
+    cmesh_rb->AdjustBoundaryElements();
+    cmesh_rb->CleanUpUnconnectedNodes();
+    cmesh_rb->LoadReferred(cmesh);
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshDeformationRB.txt");
+    cmesh_rb->Print(out);
+#endif
+    
+    return cmesh_rb;
+    
+}
+
+// Create a computational mesh for deformation;
+TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order){
+    
+    // Plane strain assumption
+    //    int planestress = 0;
     
     // Material identifiers
     int matid =1;
@@ -1399,8 +1468,8 @@ TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order){
     
     // Aproximation Space of order -> pOrder
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-
-
+    
+    
     // Creating a material object
     int nstate = 2;
     TPZVec<STATE> sol;
@@ -1409,7 +1478,7 @@ TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order){
     
     // Inserting boundary conditions
     int dirichlet = 0;
-
+    
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
     TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet, val1, val2);
@@ -1439,6 +1508,7 @@ TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order){
     return cmesh;
     
 }
+
 
 TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     

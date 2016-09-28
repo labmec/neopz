@@ -123,13 +123,11 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
     int nsol = sol.size();
     int nstate = sol[0].size();
     int dim = axes.Rows();
-//    phi.Resize(nstate, nsol);
-//    dphix.Resize(nstate*dim, nsol);
-    phi.Resize(nsol,nstate);// @omar:: Reduzed space implementation is not agree with normal contribute material.
-    dphix.Resize(nstate*dim,nsol);
+    phi.Resize(nstate, nsol);
+    dphix.Resize(nstate*dim, nsol);
     for (int isol =0; isol<nsol; isol++) {
         for (int istate=0; istate<nstate; istate++) {
-            phi(isol,istate) = sol[isol][istate];
+            phi(istate,isol) = sol[isol][istate];
             for (int id=0; id<dim; id++) {
                 dphix(id+istate*dim,isol) = dsol[isol](id,istate);
             }
@@ -307,20 +305,20 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
     
     
-    TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
-    
-#ifdef PZDEBUG
-    
-    if(!mf_cel){
-        DebugStop();
-    }
-
-#endif
-    
-    TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: garbage solution
-    if(intel_mf){
-        return intel_mf;
-    }
+//    TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+//    
+//#ifdef PZDEBUG
+//    
+//    if(!mf_cel){
+//        DebugStop();
+//    }
+//
+//#endif
+//    
+//    TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: garbage solution
+//    if(intel_mf){
+//        return intel_mf;
+//    }
 
 #ifdef PZDEBUG
     if (!intel) {
@@ -381,10 +379,10 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
             if (phi.Cols() != numdof) {
                 DebugStop();
             }
-            if (dphix.Rows() != dim*numdof) {
+            if (dphix.Rows() != dfvar*dim) {
                 DebugStop();
             }
-            if (dphix.Cols() != dfvar) {
+            if (dphix.Cols() != numdof) {
                 DebugStop();
             }
             
@@ -395,7 +393,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
                 sol[is][d%numdof] += (STATE)phi(jn,d)*MeshSol(pos+jn,is);
             }
             for(d=0; d<dim*numdof; d++){
-                dsol[is](d%dim,d/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);
+                dsol[is](d%dim,d/dim) += (STATE)dphix(jn,d)*MeshSol(pos+jn,is);
             }
         }
     }
