@@ -74,8 +74,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
-            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
-//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
             fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
@@ -99,8 +99,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
-            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
-//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
@@ -111,7 +111,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 2;
+    int ref = 0;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
 //    int father_index = 9;
@@ -226,10 +226,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 //    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    strmat_p.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    strmat_p.SetDecomposeType(ELDLt);
 
-//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);

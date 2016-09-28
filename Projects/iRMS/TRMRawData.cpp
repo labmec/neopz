@@ -238,7 +238,7 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    gas->SetRhoModel(1);
+    gas->SetRhoModel(0);
     fPhases.Push(gas);
     int n_data = fSystemType.size();
     
@@ -263,8 +263,8 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 50;
-    fepsilon_res = 0.0001;
-    fepsilon_cor = 0.00001;
+    fepsilon_res = 0.01;
+    fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
     
     

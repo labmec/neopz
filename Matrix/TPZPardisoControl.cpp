@@ -225,20 +225,48 @@ void TPZPardisoControl<TVar>::Decompose()
     fPermutation.resize(n);
     perm = &fPermutation[0];
     fParam[34] = 1;
-    /// analyse and factor the equations
     
+    /// analyse and factor the equations
+// https://github.com/boyle/meagre-crowd/blob/master/src/solver_pardiso.c
     /// testing RTFM = READ THE FUCKING MANUAL
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
-        fParam[10] = 1;
-        fParam[12] = 1;
+//        fParam[10] = 10;
+//        fParam[5] = 1;
+        
+//        fParam[12] = 0;
+
+        // Note: other values unused
+        fParam[1 ] = 0; // use default values (2, 4..64), 3 MUST be set .. this will overwrite the following config with defaults (it mostly here for documentation)
+        fParam[2 ] = 2; // fill-in reducing ordering (0: min-degree, 2: METIS)
+        fParam[3 ] = 1; // number of processors: must match OMP_NUM_THREADS TODO  -- NOTE this is an *upper-limit* on the number of processors...
+        fParam[4 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
+        fParam[5 ] = 1; // user permutation PERM
+        fParam[6 ] = 0; // overwrite b with x "write solution on x"
+        
+//        fParam[5] = 1;
+//        fParam[10] = 8;
+//        fParam[11] = 1;
+//        fParam[12] = 1;
+//        fParam[13] = 1;
+        
+//        p->IPARM( 10 ) = 8;
+//        p->IPARM( 11 ) = 1; // scaling vectors (MTYPE=11,13, if(IPARM(13) then also -2,-4,6)
+//        // use IPARM(11) = IPARM(13) = 1 for highly indefinite matrices: requires numerical values of A in analysis
+//        p->IPARM( 12 ) = 0; // solve transpose matrix A^t x = b TODO support this
+//        // improved accuracy, 1: normal matchines, 2: advanced matchings (highly indefinite matrices)
+//        if (( p->MTYPE == REAL_UNSYM ) || ( p->MTYPE == COMPLEX_UNSYM ) )
+//            p->IPARM( 13 ) = 1;
     }
     long long phase = 12;
     
     std::cout << __PRETTY_FUNCTION__ << std::endl;
+    std::cout  << " fParam = "<< fParam[14] << std::endl;
+    
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
 
-    std::cout << "Done\n";
+    std::cout  << " fParam = "<< fParam[14] << std::endl;
+    std::cout << "Pardiso:: Done." << std::endl;
     if (Error) {
         DebugStop();
     }
