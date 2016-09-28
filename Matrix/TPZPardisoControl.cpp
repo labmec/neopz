@@ -223,25 +223,34 @@ void TPZPardisoControl<TVar>::Decompose()
     long long Error = 0;
     nrhs = 0;
     fPermutation.resize(n);
+    
+    for(long i = 0; i < n; i++){
+        fPermutation[i] = i;
+    }
+    
     perm = &fPermutation[0];
     fParam[34] = 1;
+    
+    
     
     /// analyse and factor the equations
 // https://github.com/boyle/meagre-crowd/blob/master/src/solver_pardiso.c
     /// testing RTFM = READ THE FUCKING MANUAL
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
+        fParam[4] = 1;
+        
 //        fParam[10] = 10;
 //        fParam[5] = 1;
         
 //        fParam[12] = 0;
 
         // Note: other values unused
-        fParam[1 ] = 0; // use default values (2, 4..64), 3 MUST be set .. this will overwrite the following config with defaults (it mostly here for documentation)
-        fParam[2 ] = 2; // fill-in reducing ordering (0: min-degree, 2: METIS)
-        fParam[3 ] = 1; // number of processors: must match OMP_NUM_THREADS TODO  -- NOTE this is an *upper-limit* on the number of processors...
-        fParam[4 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
-        fParam[5 ] = 1; // user permutation PERM
-        fParam[6 ] = 0; // overwrite b with x "write solution on x"
+//        fParam[1 ] = 0; // use default values (2, 4..64), 3 MUST be set .. this will overwrite the following config with defaults (it mostly here for documentation)
+//        fParam[2 ] = 2; // fill-in reducing ordering (0: min-degree, 2: METIS)
+//        fParam[3 ] = 1; // number of processors: must match OMP_NUM_THREADS TODO  -- NOTE this is an *upper-limit* on the number of processors...
+//        fParam[4 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
+//        fParam[5 ] = 1; // user permutation PERM
+//        fParam[6 ] = 0; // overwrite b with x "write solution on x"
         
 //        fParam[5] = 1;
 //        fParam[10] = 8;

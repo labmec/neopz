@@ -84,9 +84,13 @@ TPZCompMesh *MalhaCompTemporaria(TPZAutoPointer<TPZGeoMesh>  gmesh);
 TPZCompMesh *MalhaComp2(TPZAutoPointer<TPZGeoMesh>  gmesh,int pOrder,std::set<long> coarseindex);
 TPZGeoMesh *GMeshSteklov(bool triang_elements);
 
+void RefinamentoSingular(TPZGeoMesh *gmesh,int nref);
+
 void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref);
 
 void RefinamentoUniforme(TPZAutoPointer<TPZGeoMesh> gmesh, int nref,TPZVec<int> dims);
+void RefinamentoUniforme(TPZGeoMesh *gmesh, int nref,TPZVec<int> dims);
+
 void RefinamentoAdaptado(TPZAutoPointer<TPZGeoMesh> gmesh, TPZStack<TPZManVector<REAL,3> > coordcentro);
 
 TPZCompMesh *SkeletonCoarseCompMesh (TPZCompMesh *cmesh, int matId);
@@ -151,7 +155,7 @@ REAL flambda = 50.;
 bool problemaarctan=false;
 
 
-int main(int argc, char *argv[])
+int main33(int argc, char *argv[])
 {
     HDivPiola = 1;
 #ifdef LOG4CXX
@@ -258,7 +262,7 @@ int main(int argc, char *argv[])
 }
 
 
-int main33(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     HDivPiola = 1;
     InitializePZLOG();
@@ -276,7 +280,11 @@ int main33(int argc, char *argv[])
     }
     
 
-    
+    {
+        ofstream arg1("gmesh1.txt");
+        gmesh->Print(arg1);
+    }
+
     
     //-------- construindo malha coarse ----------
     
@@ -286,6 +294,11 @@ int main33(int argc, char *argv[])
     int nref = 1;
     RefinamentoUniforme(gmesh, nref, dims);
     
+    {
+        ofstream arg1("gmesh1.txt");
+        gmesh->Print(arg1);
+    }
+    
     if(!problemasuave){
         nref = 2;
         RefinamentoSingular(gmesh, nref);
@@ -294,8 +307,10 @@ int main33(int argc, char *argv[])
     std::ofstream Dummyfile("GeometricMesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
     
-    ofstream arg1("gmesh1.txt");
-	gmesh->Print(arg1);
+    {
+        ofstream arg1("gmesh1.txt");
+        gmesh->Print(arg1);
+    }
     //index dos elementos da malha coarse
     std::set<long> coarseindex;
     GetElIndexCoarseMesh(gmesh, coarseindex);
@@ -809,7 +824,15 @@ TPZCompMesh* MalhaComp2(TPZAutoPointer<TPZGeoMesh> gmesh, int pOrder,std::set<lo
 }
 
 
+
 void RefinamentoUniforme(TPZAutoPointer<TPZGeoMesh> gmesh, int nref,TPZVec<int> dims)
+{
+    RefinamentoUniforme(gmesh.operator->(), nref, dims);
+}
+
+
+
+void RefinamentoUniforme(TPZGeoMesh *gmesh, int nref,TPZVec<int> dims)
 {
     
     int ir, iel, k;
@@ -1178,6 +1201,11 @@ void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE
 }
 
 void RefinamentoSingular(TPZAutoPointer<TPZGeoMesh> gmesh,int nref)
+{
+    RefinamentoSingular(gmesh.operator->(), nref);
+}
+
+void RefinamentoSingular(TPZGeoMesh *gmesh,int nref)
 {
     long nnodes = gmesh->NNodes();
     long in;

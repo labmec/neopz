@@ -89,7 +89,7 @@ void BoxLinearTracerDual()
     // Materials ids and boundary settings
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
-    bool Is3DGeometry = true;
+    bool Is3DGeometry = false;
     
 //    On box reservoir
 //   RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow

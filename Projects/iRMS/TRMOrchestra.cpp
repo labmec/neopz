@@ -60,7 +60,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         
         int nel_x = 20;
         int nel_y = 10;
-        int nel_z = 1;
+        int nel_z = 2;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
         dx[0] = 1000.0/REAL(nel_x);
@@ -75,7 +75,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
-            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
             fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
@@ -100,7 +100,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
-            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
@@ -111,7 +111,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 0;
+    int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
 //    int father_index = 9;
@@ -165,7 +165,7 @@ void TRMOrchestra::CreateAnalysisPrimal()
 void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
-    this->BuildGeometry(false);
+    this->BuildGeometry(true);
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
@@ -219,7 +219,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 24;
+    int numofThreads_p = 8;
     bool mustOptimizeBandwidth_parabolic = true;
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
