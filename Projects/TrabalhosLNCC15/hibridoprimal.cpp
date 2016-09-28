@@ -448,7 +448,7 @@ int main2(int argc, char *argv[])
 //Malha Hdiv
 bool HDivMaisMais = false;
 bool hp_method = true;
-REAL alpha_param = 20.;
+REAL alpha_param = 100.;
 int main(int argc, char *argv[])
 {
     //#ifdef LOG4CXX
@@ -607,7 +607,7 @@ int main(int argc, char *argv[])
             
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             
-            if(ndiv!=5  && p==1){
+            if(ndiv!=5  && p!=5){
                 TPZManVector<std::string,10> scalnames(3), vecnames(2);
                 scalnames[0] = "Pressure";
                 scalnames[1] = "ExactPressure";
@@ -1287,7 +1287,7 @@ void Prefinamento(TPZCompMesh * cmesh, int ndiv, int porder){
                 sp->PRefine(porder + (level-flevel) + (ndiv-1));
             }else
             {
-                sp->PRefine(porder + (level-flevel));
+                sp->PRefine(porder + (level-flevel)+ (ndiv-1));
             }
         }
         cmesh->AdjustBoundaryElements();
