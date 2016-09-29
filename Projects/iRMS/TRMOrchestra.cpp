@@ -65,7 +65,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
         dx[0] = 1000.0/REAL(nel_x);
         dy[0] = 100.0/REAL(nel_y);
-        dz[0] = 10.0/REAL(nel_z);
+        dz[0] = 25.0/REAL(nel_z);
         
         if (IsReservoirBoxQ) {
             fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
@@ -75,7 +75,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
-            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
             fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
@@ -111,7 +111,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 1;
+    int ref = 0;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
 //    int father_index = 9;
