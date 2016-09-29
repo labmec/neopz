@@ -245,7 +245,10 @@ int main2(int argc, char *argv[])
     
     enum MVariation {ETetrahedra, EPyramid,EDividedPyramid, EDividedPyramidIncreasedOrder};
     
-    MVariation runtype = EDividedPyramidIncreasedOrder;
+    MVariation runtype = EPyramid;
+    int pPressure = 2;
+    int pFlux = 2;
+
     
     TPZAutoPointer<TPZRefPattern> pyramidref = PyramidRef();
     /// verify if the pressure space is compatible with the flux space
@@ -307,8 +310,6 @@ int main2(int argc, char *argv[])
       std::ofstream outPara(geoMeshName);
       TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outPara, true);
       
-      int pPressure = 1;
-      int pFlux = 1;
       
       if (runtype == ETetrahedra || runtype == EDividedPyramid || runtype == EDividedPyramidIncreasedOrder) {
           // the order of the elements can be increased
@@ -364,8 +365,8 @@ int main2(int argc, char *argv[])
       TPZAnalysis an(cmeshMult,shouldrenumber);
       TPZStepSolver<STATE> step;
       step.SetDirect(ELDLt);
-//      TPZSkylineStructMatrix skyl(cmeshMult);
-//        skyl.SetNumThreads(8);
+      TPZSkylineStructMatrix skyl(cmeshMult);
+        skyl.SetNumThreads(8);
         TPZSymetricSpStructMatrix sparse(cmeshMult);
       //    TPZFStructMatrix skyl(cmeshMult);
       an.SetStructuralMatrix(sparse);
@@ -474,11 +475,14 @@ int main2(int argc, char *argv[])
     }//nsimulations
   
     std::string mathematicaFilename = "NoName.nb";
-    if(runtype == ETetrahedra){mathematicaFilename = "../convergenceRatesTetMesh.nb";}
-    if(runtype == EPyramid){mathematicaFilename = "../convergenceRatesPyrMesh.nb";}
-    if(runtype == EDividedPyramid){mathematicaFilename = "../convergenceRatesDividedPyrMesh.nb";}
-    if(runtype == EDividedPyramidIncreasedOrder){mathematicaFilename = "../convergenceRatesDivPyrIncOrdMesh.nb";}
-  
+    std::stringstream Mathsout;
+    if(runtype == ETetrahedra){Mathsout << "../convergenceRatesTetMesh";}
+    if(runtype == EPyramid){Mathsout << "../convergenceRatesPyrMesh";}
+    if(runtype == EDividedPyramid){Mathsout << "../convergenceRatesDividedPyrMesh";}
+    if(runtype == EDividedPyramidIncreasedOrder){Mathsout << "../convergenceRatesDivPyrIncOrdMesh";}
+    Mathsout << pFlux << ".nb";
+    mathematicaFilename = Mathsout.str();
+    
     GenerateMathematicaWithConvergenceRates(neqVec,hSizeVec,h1ErrVec,l2ErrVec,semih1ErrVec,mathematicaFilename);
   
     std::cout << "Code finished!" << std::endl;
