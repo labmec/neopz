@@ -36,6 +36,7 @@
 #include "pzpoisson3d.h"
 #include "TPZCompMeshTools.h"
 #include "TPZSkylineNSymStructMatrix.h"
+#include "TPZSSpStructMatrix.h"
 #include "pzfstrmatrix.h"
 #include "pzelchdiv.h"
 #include "pzshapetetra.h"
@@ -363,10 +364,11 @@ int main2(int argc, char *argv[])
       TPZAnalysis an(cmeshMult,shouldrenumber);
       TPZStepSolver<STATE> step;
       step.SetDirect(ELDLt);
-      TPZSkylineStructMatrix skyl(cmeshMult);
-      skyl.SetNumThreads(0);
+//      TPZSkylineStructMatrix skyl(cmeshMult);
+//        skyl.SetNumThreads(8);
+        TPZSymetricSpStructMatrix sparse(cmeshMult);
       //    TPZFStructMatrix skyl(cmeshMult);
-      an.SetStructuralMatrix(skyl);
+      an.SetStructuralMatrix(sparse);
       an.SetSolver(step);
       
       std::cout << "Starting assemble..." << std::endl;
@@ -380,29 +382,30 @@ int main2(int argc, char *argv[])
         std::ofstream outmat("../mat.nb");
         mat->Print("stiff=",outmat,EMathematicaInput);
       }
-      TPZFMatrix<STATE> solution = cmeshMult->Solution();
-      {
-          std::ofstream sol("../SolInterpolate.txt");
-          sol << "Solution obtained by interpolation\n";
-          an.PrintVectorByElement(sol, solution,1.e-8);
-      }
-      TPZFMatrix<STATE> rhs;
-      solution.Resize(cmeshMult->NEquations(), 1);
-      mat->Multiply(solution, rhs);
-      {
-          std::ofstream theory("../RhsbyMult.txt");
-          theory << "Rhs obtained by matrix vector multiply\n";
-          an.PrintVectorByElement(theory, rhs,1.e-8);
-      }
-      {
-          std::ofstream practice("../RhsComputed.txt");
-          practice << "Rhs obtained by assembly process\n";
-          an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
-      }
+//      TPZFMatrix<STATE> solution = cmeshMult->Solution();
+//      {
+//          std::ofstream sol("../SolInterpolate.txt");
+//          sol << "Solution obtained by interpolation\n";
+//          an.PrintVectorByElement(sol, solution,1.e-8);
+//      }
+//      TPZFMatrix<STATE> rhs;
+//      solution.Resize(cmeshMult->NEquations(), 1);
+//      mat->Multiply(solution, rhs);
+//      {
+//          std::ofstream theory("../RhsbyMult.txt");
+//          theory << "Rhs obtained by matrix vector multiply\n";
+//          an.PrintVectorByElement(theory, rhs,1.e-8);
+//      }
+//      {
+//          std::ofstream practice("../RhsComputed.txt");
+//          practice << "Rhs obtained by assembly process\n";
+//          an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
+//      }
       
       std::cout << "Starting Solve..." << std::endl;
       
       an.Solve();
+        if(0)
       {
           std::ofstream sol("../SolComputed.txt");
           sol << "Solution obtained by matrix inversion\n";
@@ -456,9 +459,9 @@ int main2(int argc, char *argv[])
       an.PostProcessError(errors);
       
       out << "Errors:" << std::endl;
-      out << "Norma H1 = " << errors[0] << std::endl;
-      out << "Norma L2 = " << errors[1] << std::endl;
-      out << "Semi-Norma H1 = " << errors[2] << std::endl;
+      out << "Norma pressao e fluxo = " << errors[0] << std::endl;
+      out << "Norma L2 pressao = " << errors[1] << std::endl;
+      out << "Norma L2 fluxo = " << errors[2] << std::endl;
       neqVec[i] = cmeshMult->NEquations();
       h1ErrVec[i] = errors[0];
       l2ErrVec[i] = errors[1];
