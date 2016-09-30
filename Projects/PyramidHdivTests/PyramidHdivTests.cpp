@@ -245,7 +245,7 @@ int main2(int argc, char *argv[])
     
     enum MVariation {ETetrahedra, EPyramid,EDividedPyramid, EDividedPyramidIncreasedOrder};
     
-    MVariation runtype = EPyramid;
+    MVariation runtype = EDividedPyramid;
     int pPressure = 2;
     int pFlux = 2;
 
@@ -260,6 +260,9 @@ int main2(int argc, char *argv[])
     HDivPiola = 1;
     TPZAcademicGeoMesh academic;
     academic.SetMeshType(TPZAcademicGeoMesh::EPyramid);
+    if (runtype == ETetrahedra) {
+        academic.SetMeshType(TPZAcademicGeoMesh::ETetrahedra);
+    }
   
     bool convergenceMesh = true;
     TPZGeoMesh *gmesh = NULL;
@@ -1152,7 +1155,7 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
     const int dirichlet = 0;
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
-    cmesh->SetDefaultOrder(1);
+    cmesh->SetDefaultOrder(p);
     
     TPZVecL2 *mymat = new TPZVecL2(matid);
     mymat->SetForcingFunction(FluxFunc, p);
@@ -1170,7 +1173,7 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
     
     cmesh->AutoBuild();
     
-    if (true)
+    if (hdivmm)
     {
         cmesh->SetDefaultOrder(p+1);
         long nel = cmesh->NElements();
