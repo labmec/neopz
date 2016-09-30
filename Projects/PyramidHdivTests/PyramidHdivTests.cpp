@@ -247,7 +247,8 @@ int main2(int argc, char *argv[])
     
     MVariation runtype = EDividedPyramid;
     int pPressure = 2;
-    int pFlux = 2;
+    bool HDivMaisMais = true;
+    int pFlux = pPressure;
 
     
     TPZAutoPointer<TPZRefPattern> pyramidref = PyramidRef();
@@ -328,9 +329,9 @@ int main2(int argc, char *argv[])
   #endif
     
       TPZManVector<TPZCompMesh*,2> meshvec(2);
-      meshvec[1] = CreateCmeshPressure(gmesh, pPressure, false);
+      meshvec[1] = CreateCmeshPressure(gmesh, pPressure, HDivMaisMais);
       LoadSolution(meshvec[1]);
-      meshvec[0] = CreateCmeshFlux(gmesh, pFlux,false);
+      meshvec[0] = CreateCmeshFlux(gmesh, pFlux,HDivMaisMais);
       TPZCompMeshTools::AddHDivPyramidRestraints(meshvec[0]);
       
       if (runtype == EDividedPyramidIncreasedOrder)
@@ -483,7 +484,11 @@ int main2(int argc, char *argv[])
     if(runtype == EPyramid){Mathsout << "../convergenceRatesPyrMesh";}
     if(runtype == EDividedPyramid){Mathsout << "../convergenceRatesDividedPyrMesh";}
     if(runtype == EDividedPyramidIncreasedOrder){Mathsout << "../convergenceRatesDivPyrIncOrdMesh";}
-    Mathsout << pFlux << ".nb";
+    Mathsout << pFlux;
+    if (HDivMaisMais) {
+        Mathsout << "MaisMais";
+    }
+    Mathsout << ".nb";
     mathematicaFilename = Mathsout.str();
     
     GenerateMathematicaWithConvergenceRates(neqVec,hSizeVec,h1ErrVec,l2ErrVec,semih1ErrVec,mathematicaFilename);
