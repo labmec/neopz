@@ -163,22 +163,24 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     
     this->SimulationData()->SetCurrentStateQ(true);
     this->LoadSolution(fX_n);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     this->UpdateMemory_at_n();
     
-    ferror = 1.0;
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+
+    this->AssembleResidual();
+    fR_n = this->Rhs();
     
-    STATE dt_min    = fSimulationData->dt_min();
-//    STATE dt_max    = fSimulationData->dt_max();
-//    STATE dt_up     = fSimulationData->dt_up();
-    STATE dt_down   = fSimulationData->dt_down();
-    STATE dt        = fSimulationData->dt();
+    ferror = Norm(fR+fR_n);
+    this->Set_k_ietrarions(0);
     
     STATE epsilon_res = this->SimulationData()->epsilon_res();
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
     
-    
+    // check if the new state is almost stationary
+    if(ferror < epsilon_res){
+        return;
+    }
     
     for (int k = 1; k <= n; k++) {
         
@@ -202,45 +204,9 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Parabolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-//            if (k == 1 && dt_max > dt && dt_up > 1.0) {
-//                dt *= dt_up;
-//                if(dt_max < dt ){
-//                    fSimulationData->Setdt(dt_max);
-//                }
-//                else{
-//                    fSimulationData->Setdt(dt);
-//                }
-//                std::cout << "Parabolic:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-//            }
-            
-            fX = fX_n;
             return;
         }
-        
-        if(k == n  && dt > dt_min && dt_down < 1.0){
-            dt *= dt_down;
-            if(dt_min > dt ){
-                fSimulationData->Setdt(dt_min);
-            }
-            else{
-                fSimulationData->Setdt(dt);
-            }
-            std::cout << "Parabolic:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-            std::cout << "Parabolic:: Restarting current time step correction " << std::endl;
-            
-            this->SimulationData()->SetCurrentStateQ(false);
-            this->LoadSolution(fX);
-            
-            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-            this->AssembleResidual();
-            fR = this->Rhs();
-            
-            this->SimulationData()->SetCurrentStateQ(true);
-            fX_n = fX;
-            k = 1;
-        }
-        
-        
+    
     }
     
     std::cout << "Parabolic:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;

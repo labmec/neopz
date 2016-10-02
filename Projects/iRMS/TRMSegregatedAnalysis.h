@@ -37,16 +37,16 @@ private:
     TRMTransportAnalysis * fHyperbolic;
     
     /** @brief Residue error for flux - pressure */
-    STATE ferror_flux_pressure;
+    REAL ferror_flux_pressure;
     
     /** @brief Residue error for saturations */
-    STATE ferror_saturation;
+    REAL ferror_saturation;
     
     /** @brief Correction variation for flux - pressure */
-    STATE fdx_norm_flux_pressure;
+    REAL fdx_norm_flux_pressure;
     
     /** @brief Correction variation for saturations */
-    STATE fdx_norm_saturation;
+    REAL fdx_norm_saturation;
 
     
 public:
@@ -140,15 +140,20 @@ public:
     /** @brief PostProcess results */
     void PostProcessStep(bool IsActiveQ);
 
-    /** @brief Update memory using the Transfer object at state n */
+    /** @brief Update memory using the Transfer object at REAL n */
     void UpdateFluxes_at_n();
     
-    /** @brief Update memory using the Transfer object at state n */
+    /** @brief Update memory using the Transfer object at REAL n */
     void UpdateMemory_at_n();
     
     /** @brief Update memory using the Transfer object */
     void UpdateMemory();
     
+    /** @brief update global state for the new euler step */
+    void UpdateGlobalSolution();
+    
+    /** @brief keep global last state for restart a euler step */
+    void KeepGlobalSolution();
     
     // @}
     
