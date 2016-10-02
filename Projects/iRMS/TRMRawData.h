@@ -91,6 +91,9 @@ public:
     /** @brief ntime steps */
     int fn_steps;
     
+    /** @brief Store time values to be reported */
+    TPZStack< STATE , 500 > fReportingTimes;
+    
     /** @brief Time step */
     STATE fdt;
     

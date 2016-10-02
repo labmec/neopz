@@ -79,25 +79,20 @@ void TRMSegregatedAnalysis::AdjustVectors(){
     fHyperbolic->AdjustVectors();
 }
 
-void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
+void TRMSegregatedAnalysis::SegregatedIteration(){
     
 
     this->UpdateMemory();
 //    this->UpdateMemory_at_n(); // @omar:: It is time to verify
     
-    if (IsActiveQ) {
-        fParabolic->ExcecuteOneStep();
-        if (fSimulationData->IsOnePhaseQ()) {
-            return;
-        }
-        this->UpdateFluxes_at_n();
-    }
-    
+    fParabolic->ExcecuteOneStep();
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }
+    this->UpdateFluxes_at_n();
     
-//    this->UpdateMemory_at_n();
+
+    this->UpdateMemory_at_n();
     
     fHyperbolic->ExcecuteOneStep();
     
@@ -106,7 +101,7 @@ void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
     
 }
 
-void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsActiveQ){
+void TRMSegregatedAnalysis::ExcecuteOneStep(){
 
     
     REAL dt_min    = fSimulationData->dt_min();
@@ -130,7 +125,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsActiveQ){
     
     for (int k = 1; k <= n; k++) {
 
-        this->SegregatedIteration(IsActiveQ);
+        this->SegregatedIteration();
         
         ferror_flux_pressure = fParabolic->error_norm();
         ferror_saturation = fHyperbolic->error_norm();
@@ -145,6 +140,10 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsActiveQ){
         if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
         {
             std::cout << "Segregated:: Converged with iterations:  " << k << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
+            
+            // update Time value
+            REAL current_time = fSimulationData->t() + fSimulationData->dt();
+            fSimulationData->SetTime(current_time);
             
             if (k <= 5 && dt_max > dt && dt_up > 1.0) {
                 dt *= dt_up;
@@ -178,6 +177,10 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsActiveQ){
         
         
     }
+    
+    // update Time value
+    REAL current_time = fSimulationData->t() + fSimulationData->dt();
+    fSimulationData->SetTime(current_time);
     
     std::cout << "Segregated:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
 
@@ -239,11 +242,9 @@ void TRMSegregatedAnalysis::KeepGlobalSolution(){
     
 }
 
-void TRMSegregatedAnalysis::PostProcessStep(bool IsActiveQ){
+void TRMSegregatedAnalysis::PostProcessStep(){
     
-    if(IsActiveQ){
-        fParabolic->PostProcessStep();
-    }
+    fParabolic->PostProcessStep();
     
     if (fSimulationData->IsOnePhaseQ()) {
         return;

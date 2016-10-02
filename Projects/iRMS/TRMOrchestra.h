@@ -263,6 +263,9 @@ public:
     /** @brief Run a single time step */
     void ExecuteOneTimeStep();
     
+    /** @brief Must report time */
+    bool MustResporTimeQ(REAL time);
+    
     /** @brief Computes the post processed results */
     void PostProcess();
 

@@ -129,16 +129,16 @@ public:
      */
     
     /** @brief Execute a euler method step */
-    void ExcecuteOneStep(bool IsActiveQ);
+    void ExcecuteOneStep();
     
     /** @brief Execute a newton iteration  */
     void NewtonIteration();
     
     /** @brief Execute a segregated iteration  */
-    void SegregatedIteration(bool IsActiveQ);
+    void SegregatedIteration();
     
     /** @brief PostProcess results */
-    void PostProcessStep(bool IsActiveQ);
+    void PostProcessStep();
 
     /** @brief Update memory using the Transfer object at REAL n */
     void UpdateFluxes_at_n();

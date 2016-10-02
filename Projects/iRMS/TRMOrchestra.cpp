@@ -100,7 +100,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
-            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_Reservoir.dump";
+            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
@@ -225,10 +225,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 //    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    strmat_p.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    strmat_p.SetDecomposeType(ELDLt);
 
-//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
@@ -445,8 +445,8 @@ void TRMOrchestra::RunStaticProblem(){
         }
         
         if (IsSegregatedQ()) {
-            fSegregatedAnalysis_I->ExcecuteOneStep(true);
-            fSegregatedAnalysis_I->PostProcessStep(true);
+            fSegregatedAnalysis_I->ExcecuteOneStep();
+            fSegregatedAnalysis_I->PostProcessStep();
         }
         
     }
@@ -483,8 +483,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     if (IsMonolithicQ()) {
         fMonolithicMultiphaseAnalysis->SetX(fMonolithicMultiphaseAnalysis_I->X_n());
         fMonolithicMultiphaseAnalysis->SetX_n(fMonolithicMultiphaseAnalysis_I->X_n());
-        fMonolithicMultiphaseAnalysis->LoadSolution(fMonolithicMultiphaseAnalysis_I->X_n());
-        fMonolithicMultiphaseAnalysis->PostProcessStep();        
+        fMonolithicMultiphaseAnalysis->LoadSolution(fMonolithicMultiphaseAnalysis_I->X_n());     
     }
     
     if (IsSegregatedQ()) {
@@ -496,30 +495,67 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         
-        fSegregatedAnalysis->PostProcessStep(true);
     }
     
     // Evolutionary problem
     int n = fSimulationData->n_steps();
+    REAL time = 0.0;
+    fSimulationData->SetTime(time);
+    bool MustReportQ = false;
+    
     for (int i = 0; i < n; i++) {
+        
+        if (fSimulationData->ReportingTimes().size() == 0) {
+            return;
+        }
+        
+        time = fSimulationData->t();
+        MustReportQ = MustResporTimeQ(time);
+        
         if (IsMonolithicQ()) {
+            
+            if (MustReportQ) {
+                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                fMonolithicMultiphaseAnalysis->PostProcessStep();
+            }
+            
             fMonolithicMultiphaseAnalysis->ExcecuteOneStep();
-            fMonolithicMultiphaseAnalysis->PostProcessStep();
+
         }
         
         if (IsSegregatedQ()) {
-            if(i==0){
-                fSegregatedAnalysis->ExcecuteOneStep(true);
-                fSegregatedAnalysis->PostProcessStep(true);
-                continue;
+            
+            if (MustReportQ) {
+                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                fSegregatedAnalysis->PostProcessStep();
             }
-            fSegregatedAnalysis->ExcecuteOneStep(true);
-            fSegregatedAnalysis->PostProcessStep(true);
+            
+            fSegregatedAnalysis->ExcecuteOneStep();
         }
 
     }
 }
 
+/** @brief Must report time */
+bool TRMOrchestra::MustResporTimeQ(REAL time){
+    
+    int index = fSimulationData->ReportingTimes().size();
+    REAL time_r = fSimulationData->ReportingTimes()[index-1];
+    REAL dt = fSimulationData->dt();
+    REAL t_range = dt;
+    REAL deltat = time-time_r;
+    REAL tolerance = 1.0e-3;
+    if(fabs(deltat) <= tolerance){
+        fSimulationData->ReportingTimes().Pop();
+        return true;
+    }
+    
+    if (fabs(deltat) < t_range) {
+        fSimulationData->Setdt(fabs(deltat));
+    }
+    
+    return false;
+}
 
 /** @brief Computes the post processed results */
 void TRMOrchestra::PostProcess(){
