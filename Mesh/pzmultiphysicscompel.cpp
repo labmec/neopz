@@ -1006,8 +1006,25 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		//contribuicoes dos erros
 		if(fp) {
 			fp(datavec[0].x,u_exact,du_exact);
-      material->Errors(datavec,u_exact,du_exact,values);
-      
+            material->Errors(datavec,u_exact,du_exact,values);
+            
+            
+#ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                static int count = 0;
+                if (count < 10) {
+                    std::stringstream sout;
+                    sout << "count = " << count << std::endl;
+                    sout << "fem sol0 " << datavec[0].sol[0] << std::endl;
+                    sout << "fem sol1 " << datavec[1].sol[0] << std::endl;
+                    sout << "uexact " << u_exact << std::endl;
+                    du_exact.Print("du_exact", sout);
+                    LOGPZ_DEBUG(logger, sout.str())
+                    count++;
+                }
+            }
+#endif
 			for(int ier = 0; ier < NErrors; ier++)
 				errors[ier] += values[ier]*weight;
 		}

@@ -561,6 +561,7 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
             {
                 errors.Fill(0.0);
                 el->EvaluateError(fExact, errors, 0);
+//                std::cout << "Element " << i << " errors " << errors << std::endl;
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
                 for(int ier = 0; ier < nerrors; ier++)
@@ -1149,8 +1150,8 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
             long cindex = cel->ConnectIndex(ic);
             TPZConnect &c = fCompMesh->ConnectVec()[cindex];
             if(c.HasDependency() || c.IsCondensed()) {
-                out << "connect " << ic << " is restrained\n";
-                continue;
+                out << "connect " << ic << " is restrained ";
+//                continue;
             }
             ConnectSolution(cindex, fCompMesh, vec, connectsol);
             for (int i=0; i<connectsol.size(); i++) {

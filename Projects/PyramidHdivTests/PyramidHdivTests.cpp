@@ -245,7 +245,8 @@ int main2(int argc, char *argv[])
     
     enum MVariation {ETetrahedra, EPyramid,EDividedPyramid, EDividedPyramidIncreasedOrder};
     
-    MVariation runtype = EDividedPyramid;
+    MVariation runtype = EDividedPyramidIncreasedOrder;
+    const int nSimulations = 4;
     int pPressure = 2;
     bool HDivMaisMais = true;
     int pFlux = pPressure;
@@ -267,7 +268,6 @@ int main2(int argc, char *argv[])
   
     bool convergenceMesh = true;
     TPZGeoMesh *gmesh = NULL;
-    const int nSimulations = 4;
     TPZManVector<REAL,nSimulations> neqVec(nSimulations,0.);
     TPZManVector<REAL,nSimulations> hSizeVec(nSimulations,0.);
     TPZManVector<REAL,nSimulations> h1ErrVec(nSimulations,0.);
@@ -353,7 +353,11 @@ int main2(int argc, char *argv[])
       
       TPZCompMesh *cmeshMult = CreateCmeshMulti(meshvec);
       TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, cmeshMult);
-      //    GroupElements(cmeshMult);
+        /// created condensed elements for the elements that have internal nodes
+        bool keeplagrangian = true;
+        TPZCompMeshTools::CreatedCondensedElements(cmeshMult, keeplagrangian);
+
+        //GroupElements(cmeshMult);
   #ifdef LOG4CXX
       if (logger->isDebugEnabled())
       {
@@ -364,7 +368,7 @@ int main2(int argc, char *argv[])
   #endif
       cmeshMult->CleanUpUnconnectedNodes();
       
-      bool shouldrenumber = false;
+      bool shouldrenumber = true;
       
       TPZAnalysis an(cmeshMult,shouldrenumber);
       TPZStepSolver<STATE> step;
@@ -372,6 +376,7 @@ int main2(int argc, char *argv[])
       TPZSkylineStructMatrix skyl(cmeshMult);
         skyl.SetNumThreads(8);
         TPZSymetricSpStructMatrix sparse(cmeshMult);
+        sparse.SetNumThreads(8);
       //    TPZFStructMatrix skyl(cmeshMult);
       an.SetStructuralMatrix(sparse);
       an.SetSolver(step);
@@ -410,7 +415,8 @@ int main2(int argc, char *argv[])
       std::cout << "Starting Solve..." << std::endl;
       
       an.Solve();
-        if(0)
+
+        if(1)
       {
           std::ofstream sol("../SolComputed.txt");
           sol << "Solution obtained by matrix inversion\n";
@@ -1258,6 +1264,8 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec)
     
     meshvec[0]->CleanUpUnconnectedNodes();
     TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+    
+
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     
     mphysics->ExpandSolution();
