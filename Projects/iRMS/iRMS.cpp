@@ -39,7 +39,7 @@ int main()
 #endif
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
-    TPZMaterial::gBigNumber = 1.0e12;
+    TPZMaterial::gBigNumber = 1.0e14;
     // Running primal problem
 //    LinearTracerPrimal();
     
@@ -93,12 +93,12 @@ void BoxLinearTracerDual()
     
 //    On box reservoir
 //   RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
-//   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
+   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
 //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
     
 //    On cricular reservoir
 //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
-    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
+//    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
 //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
     
     

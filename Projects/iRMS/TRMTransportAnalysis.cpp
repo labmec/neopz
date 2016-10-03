@@ -33,10 +33,10 @@ TRMTransportAnalysis::TRMTransportAnalysis() : TPZAnalysis() {
     fX.Resize(0, 0);
     
     /** @brief Residue error */
-    ferror    = 1.0;
+    ferror    = 0.0;
     
     /** @brief Correction variation */
-    fdx_norm  = 1.0;
+    fdx_norm  = 0.0;
     
     /** @brief number of newton corrections */
     fk_iterations = 0;
@@ -119,20 +119,19 @@ void TRMTransportAnalysis::AdjustVectors(){
 
 void TRMTransportAnalysis::NewtonIteration(){
     
-    this->Assemble();
+    this->Assemble();    
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
     
     this->Solve(); // update correction
+    
     fdx_norm = Norm(this->Solution()); // correction variation
     
     fX_n += this->Solution(); // update state
     
-    this->Mesh()->LoadSolution(fX_n);
-    
     if (fSimulationData->UseGradientR())
     {
-//        CleanUpGradients();
+        //        CleanUpGradients();
         this->SaturationReconstruction();
         fX_n = Solution();
     }

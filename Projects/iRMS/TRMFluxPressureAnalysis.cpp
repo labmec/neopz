@@ -34,10 +34,10 @@ TRMFluxPressureAnalysis::TRMFluxPressureAnalysis() : TPZAnalysis() {
     fX.Resize(0, 0);
     
     /** @brief Residue error */
-    ferror    = 1.0;
+    ferror    = 0.0;
     
     /** @brief Correction variation */
-    fdx_norm  = 1.0;
+    fdx_norm  = 0.0;
     
     /** @brief number of newton corrections */
     fk_iterations = 0;
@@ -125,7 +125,7 @@ void TRMFluxPressureAnalysis::NewtonIteration(){
 
 void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
     
-    if (k_ietrarions() == 1) {
+    if (k_ietrarions() <= 3) {
         this->Assemble();
     }
     else{

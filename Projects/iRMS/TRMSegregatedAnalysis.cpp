@@ -83,7 +83,7 @@ void TRMSegregatedAnalysis::SegregatedIteration(){
     
 
     this->UpdateMemory();
-//    this->UpdateMemory_at_n(); // @omar:: It is time to verify
+    this->UpdateMemory_at_n(); // @omar:: It is time to verify
     
     fParabolic->ExcecuteOneStep();
     if (fSimulationData->IsOnePhaseQ()) {
@@ -135,7 +135,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
         
         IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
         IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
-        IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) && (fHyperbolic->k_ietrarions() <= 5);
+        IsConverged_iQ = /*(fParabolic->k_ietrarions() <= 30) && */ (fHyperbolic->k_ietrarions() <= 5);
         
         if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
         {
@@ -145,7 +145,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
             REAL current_time = fSimulationData->t() + fSimulationData->dt();
             fSimulationData->SetTime(current_time);
             
-            if (k <= 5 && dt_max > dt && dt_up > 1.0) {
+            if (k <= 1 && dt_max > dt && dt_up > 1.0) {
                 dt *= dt_up;
                 if(dt_max < dt ){
                     fSimulationData->Setdt(dt_max);

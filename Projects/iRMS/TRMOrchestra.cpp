@@ -54,7 +54,7 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = false;
+    bool IsReservoirBoxQ = true;
     
     if (Is3DGeometryQ) {
         
@@ -85,8 +85,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 10;
-        int nel_y = 1;
+        int nel_x = 100;
+        int nel_y = 5;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -225,10 +225,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 //    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    strmat_p.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    strmat_p.SetDecomposeType(ELDLt);
 
-    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
@@ -503,11 +503,11 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     fSimulationData->SetTime(time);
     bool MustReportQ = false;
     
+    if (fSimulationData->ReportingTimes().size() == 0) {
+        return;
+    }
+    
     for (int i = 0; i < n; i++) {
-        
-        if (fSimulationData->ReportingTimes().size() == 0) {
-            return;
-        }
         
         time = fSimulationData->t();
         MustReportQ = MustResporTimeQ(time);
@@ -519,6 +519,10 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 fMonolithicMultiphaseAnalysis->PostProcessStep();
             }
             
+            if (fSimulationData->ReportingTimes().size() == 0) {
+                return;
+            }
+            
             fMonolithicMultiphaseAnalysis->ExcecuteOneStep();
 
         }
@@ -528,6 +532,10 @@ void TRMOrchestra::RunEvolutionaryProblem(){
             if (MustReportQ) {
                 std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
                 fSegregatedAnalysis->PostProcessStep();
+            }
+            
+            if (fSimulationData->ReportingTimes().size() == 0) {
+                return;
             }
             
             fSegregatedAnalysis->ExcecuteOneStep();

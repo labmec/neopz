@@ -108,9 +108,9 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("water");
-    water->SetRhoModel(0);
-    fPhases.Push(water);
+    fSystemType.Push("gas");
+    gas->SetRhoModel(1);
+    fPhases.Push(gas);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -125,12 +125,20 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 20;
-    fdt = 1.0*day;
+    fReportingTimes.Push(10.0*day);
+    fReportingTimes.Push(5.0*day);
+    fReportingTimes.Push(4.0*day);
+    fReportingTimes.Push(3.0*day);
+    fReportingTimes.Push(2.0*day);
+    fReportingTimes.Push(1.0*day);
+    fReportingTimes.Push(0.0*day);
+    
+    fn_steps  = 100;
+    fdt = 0.1*day;
     fdt_max = 30.0*day;
-    fdt_min = 0.5*day;
-    fdt_up = 1.0;
-    fdt_down = 1.0;
+    fdt_min = 0.1*day;
+    fdt_up = 1.5;
+    fdt_down = 0.1;
     
     // Numeric controls
     fn_corrections = 50;
@@ -257,12 +265,20 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 20;
-    fdt = 0.0001*day;
+    fReportingTimes.Push(60.0*day);
+    fReportingTimes.Push(50.0*day);
+    fReportingTimes.Push(40.0*day);
+    fReportingTimes.Push(30.0*day);
+    fReportingTimes.Push(20.0*day);
+    fReportingTimes.Push(10.0*day);
+    fReportingTimes.Push(0.0*day);
+    
+    fn_steps  = 100;
+    fdt = 0.1*day;
     fdt_max = 30.0*day;
-    fdt_min = 0.5*day;
-    fdt_up = 1.0;
-    fdt_down = 1.0;
+    fdt_min = 0.1*day;
+    fdt_up = 1.5;
+    fdt_down = 0.1;
     
     // Numeric controls
     fn_corrections = 50;
@@ -342,17 +358,25 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fn_steps  = 20;
-    fdt = 1.0*day;
+    fReportingTimes.Push(10.0*day);
+    fReportingTimes.Push(5.0*day);
+    fReportingTimes.Push(4.0*day);
+    fReportingTimes.Push(3.0*day);
+    fReportingTimes.Push(2.0*day);
+    fReportingTimes.Push(1.0*day);
+    fReportingTimes.Push(0.0*day);
+    
+    fn_steps  = 100;
+    fdt = 0.5*day;
     fdt_max = 30.0*day;
     fdt_min = 0.1*day;
     fdt_up = 1.5;
-    fdt_down = 0.5;
+    fdt_down = 0.1;
     
     // Numeric controls
-    fn_corrections = 15;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.001;
+    fn_corrections = 50;
+    fepsilon_res = 0.1;
+    fepsilon_cor = 0.0001;
     fIsQuasiNewtonQ = true;
     
     
@@ -427,7 +451,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.0184, S = 1.0;
+    REAL flux = -0.184, S = 1.0;
     f[0] = flux;
     f[1] = S;
     return;
@@ -559,11 +583,11 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("gas");
+    fSystemType.Push("oil");
     water->SetRhoModel(1);
-    gas->SetRhoModel(1);
+    oil->SetRhoModel(1);
     fPhases.Push(water);
-    fPhases.Push(gas);
+    fPhases.Push(oil);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -589,7 +613,7 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     fn_steps  = 100;
     fdt = 0.1*day;
     fdt_max = 30.0*day;
-    fdt_min = 0.01*day;
+    fdt_min = 0.1*day;
     fdt_up = 1.5;
     fdt_down = 0.1;
     
