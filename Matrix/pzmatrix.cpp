@@ -764,6 +764,7 @@ void TPZMatrix<TVar>::SolveJacobi(long &numiterations,const TPZFMatrix<TVar> &F,
 		}
 		Residual(result,F,scratch);
 		res = Norm(scratch);
+        std::cout << "res = " << res << std::endl;
 	}
 	if(residual) *residual = scratch;
 }

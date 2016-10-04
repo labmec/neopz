@@ -108,9 +108,9 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("gas");
-    gas->SetRhoModel(1);
-    fPhases.Push(gas);
+    fSystemType.Push("water");
+    water->SetRhoModel(0);
+    fPhases.Push(water);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -125,16 +125,16 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
+    fReportingTimes.Push(100.0*day);
+    fReportingTimes.Push(50.0*day);
+    fReportingTimes.Push(40.0*day);
+    fReportingTimes.Push(30.0*day);
+    fReportingTimes.Push(20.0*day);
     fReportingTimes.Push(10.0*day);
-    fReportingTimes.Push(5.0*day);
-    fReportingTimes.Push(4.0*day);
-    fReportingTimes.Push(3.0*day);
-    fReportingTimes.Push(2.0*day);
-    fReportingTimes.Push(1.0*day);
     fReportingTimes.Push(0.0*day);
     
     fn_steps  = 100;
-    fdt = 0.1*day;
+    fdt = 10.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.1*day;
     fdt_up = 1.5;
@@ -143,7 +143,7 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     // Numeric controls
     fn_corrections = 50;
     fepsilon_res = 0.01;
-    fepsilon_cor = 0.001;
+    fepsilon_cor = 0.0001;
     fIsQuasiNewtonQ = true;
     
     
@@ -217,8 +217,13 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL f = -0.184;
-    F[0] = f;
+
+    REAL flux_b = -0.0184;
+    
+    REAL day = 86400;
+    REAL flux = flux_b + 0.00*(sin((time/day)/100));
+    
+    F[0] = flux;
     return;
 }
 
@@ -339,10 +344,10 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fSystemType.Push("water");
     fSystemType.Push("water");
     
-    water->SetRhoModel(1);
-    oil->SetRhoModel(1);
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(oil);
+    fPhases.Push(water);
     
     int n_data = fSystemType.size();
     
@@ -454,7 +459,7 @@ void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL 
     REAL flux_b = -0.0184, S = 1.0;
     
     REAL day = 86400;
-    REAL flux = flux_b + 0.01*(sin((time/day)/100));
+    REAL flux = flux_b + 0.00*(sin((time/day)/100));
     
     f[0] = flux;
     f[1] = S;

@@ -17,6 +17,7 @@
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
+#include "TPZSpStructMatrix.h"
 
 #include "TRMSpaceOdissey.h"
 #include "TRMSimulationData.h"

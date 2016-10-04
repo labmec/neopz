@@ -661,8 +661,10 @@ int TPZFYsmpMatrix<TVar>::Zero()
  * @param tol The tolerance value.
  * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
  */
+
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::SolveJacobi(long & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result, TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, REAL & tol, const int FromCurrent)
+
 {
     if(!fDiag.size()) {
         cout << "TPZSYsmpMatrix::Jacobi cannot be called without diagonal\n";
@@ -703,8 +705,11 @@ void TPZFYsmpMatrix<TVar>::SolveJacobi(long & numiterations, const TPZFMatrix<TV
             }
             this->Residual(result,F,scratch);
             res = Norm(scratch);
+            std::cout << "res = " << res << std::endl;
         }
+        
     }
+    
     if(residual) *residual = scratch;
 }
 
