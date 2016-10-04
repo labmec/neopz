@@ -478,7 +478,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
-        mat->SetSimulationData(fSimulationData);        
+        mat->SetSimulationData(this->SimulationData());        
         fMixedFluxPressureCmesh->InsertMaterialObject(mat);
         
         // Inserting boundary materials
