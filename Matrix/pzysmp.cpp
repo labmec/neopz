@@ -613,7 +613,7 @@ void TPZFYsmpMatrix<TVar>::SolveSOR( long &numiterations, const TPZFMatrix<TVar>
                                     const REAL overrelax, REAL &tol,
                                     const int FromCurrent,const int direction ) {
     
-    //    if(!fDiag) ComputeDiagonal();
+    if(!fDiag.size()) ComputeDiagonal();
     long irStart = 0,irLast = this->Rows(),irInc = 1;
     if(direction < 0) {
         irStart = this->Rows()-1;
@@ -646,7 +646,10 @@ template<class TVar>
 int TPZFYsmpMatrix<TVar>::Zero()
 {
     fA.Fill(TVar(0.));
-    fDiag.Fill(TVar(0.));
+    fDiag.resize(0)
+    
+    
+    ;
     return 1;
 }
 
@@ -667,13 +670,15 @@ void TPZFYsmpMatrix<TVar>::SolveJacobi(long & numiterations, const TPZFMatrix<TV
 
 {
     if(!fDiag.size()) {
-        cout << "TPZSYsmpMatrix::Jacobi cannot be called without diagonal\n";
-        numiterations = 0;
-        if(residual) {
-            this->Residual(result,F,*residual);
-            tol = sqrt(Norm(*residual));
-        }
-        return;
+//        cout << "TPZSYsmpMatrix::Jacobi cannot be called without diagonal\n";
+        ComputeDiagonal();
+        std::cout << "Diag " << fDiag << std::endl;
+//        numiterations = 0;
+//        if(residual) {
+//            this->Residual(result,F,*residual);
+//            tol = sqrt(Norm(*residual));
+//        }
+//        return;
     }
     long c = F.Cols();
     long r = this->Rows();
@@ -697,6 +702,7 @@ void TPZFYsmpMatrix<TVar>::SolveJacobi(long & numiterations, const TPZFMatrix<TV
     {
         this->Residual(result,F,scratch);
         TVar res = Norm(scratch);
+        std::cout << "iteration " << it << " res = " << res << std::endl;
         for(long it=1; it<numiterations && res > tol; it++) {
             for(long ic=0; ic<c; ic++) {
                 for(long i=0; i<r; i++) {
@@ -705,7 +711,7 @@ void TPZFYsmpMatrix<TVar>::SolveJacobi(long & numiterations, const TPZFMatrix<TV
             }
             this->Residual(result,F,scratch);
             res = Norm(scratch);
-            std::cout << "res = " << res << std::endl;
+            std::cout << "iteration " << it << " res = " << res << std::endl;
         }
         
     }

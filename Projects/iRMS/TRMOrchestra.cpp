@@ -85,7 +85,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 100;
+        int nel_x = 10;
         int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
@@ -278,7 +278,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;
         
-        const long numiterations = 10;
+        const long numiterations = 20;
         const REAL tol = 1.0e-6;
         step_t.SetJacobi(numiterations, tol, 1);
 

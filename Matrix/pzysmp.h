@@ -177,10 +177,10 @@ public:
     
     //@}
     
-    
 private:
     
     void ComputeDiagonal();
+    
     
     /*
      * @brief Perform row update of the sparse matrix
