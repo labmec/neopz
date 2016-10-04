@@ -416,7 +416,7 @@ void TPZMatElasticity2D::ContributeBC(TPZMaterialData &data,REAL weight, TPZFMat
             // Stress field
             
             // BC as a function of the Analytic Solution
-            if (fAnalytics == 1) {
+            if (fAnalytics == 1||2) {
                 REAL theta = 0.;
                 REAL coordY = 0.;
                 REAL coordX = 0.;
@@ -617,6 +617,12 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("SigmaZAnalyticProjected",name.c_str()))		    return	19;
     if(!strcmp("TauXYAnalyticProjected",name.c_str()))		    return	20;
     if(!strcmp("SolidPressureAnalyticProjected",name.c_str()))	return	21;
+    if(!strcmp("ExxAnalytic",name.c_str()))                     return	22;
+    if(!strcmp("EyyAnalytic",name.c_str()))                     return	23;
+    if(!strcmp("ExyAnalytic",name.c_str()))                     return	24;
+    if(!strcmp("Exx",name.c_str()))                             return	25;
+    if(!strcmp("Eyy",name.c_str()))                             return	26;
+    if(!strcmp("Exy",name.c_str()))                             return	27;
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
     
@@ -683,6 +689,12 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 19)	return 1;
     if(var == 20)	return 1;
     if(var == 21)	return 1;
+    if(var == 22)	return 1;
+    if(var == 23)	return 1;
+    if(var == 24)	return 1;
+    if(var == 25)	return 1;
+    if(var == 26)	return 1;
+    if(var == 27)	return 1;
 
     
     return TPZMaterial::NSolutionVariables(var);
@@ -737,7 +749,8 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         
         AnalyticalWellboreSolution(SigmaX, SigmaY, SigmaXY, SigmaZ, SigmaXZ, SigmaYZ, theta, r);
     }
-    else{
+    
+    else {
         
         SigmaX = fPreStressXX;
         SigmaY = fPreStressYY;
@@ -836,7 +849,8 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     theta = atan2(coordY,coordX);
     r = sqrt((coordX*coordX)+(coordY*coordY));
     
-    AnalyticalWellboreSolution(SigmaAnX, SigmaAnY, SigmaAnXY, SigmaAnZ, SigmaAnXZ, SigmaAnYZ, theta, r);
+            AnalyticalWellboreSolution(SigmaAnX, SigmaAnY, SigmaAnXY, SigmaAnZ, SigmaAnXZ, SigmaAnYZ, theta, r);
+    
     
     //	Analytical Stress x-direction
     if(var == 7) {
@@ -894,7 +908,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     
     //FEM Sol: Sig
-    //Analytic Sol: Sigma
+    //PreStress: Sigma
     
     SigXP  = (SolY)*pow(sin(falpha),2) - sin(2*falpha)*((SolTau)*cos(fbeta) + SigYZ*sin(fbeta)) + pow(cos(falpha),2)*((SolX)*pow(cos(fbeta),2) + (SolZ)*pow(sin(fbeta),2) + SigXZ*sin(2*fbeta));
        //Sigy*Power(Sin(Degree*\[Alpha]),2) - Sin(2*Degree*\[Alpha])*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) + Power(Cos(Degree*\[Alpha]),2)*(Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta]))
@@ -952,7 +966,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //******** SigXZ e SigYZ nao sao calculados!!! **********
     
     //FEM Sol: Sig
-    //Analytic Sol: Sigma
+    //Analytic Stress: SigmaAn
     
     
     SigmaXP  = SigmaAnY*pow(sin(falpha),2) - sin(2*falpha)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) + pow(cos(falpha),2)*(SigmaAnX*pow(cos(fbeta),2) + SigmaAnZ*pow(sin(fbeta),2) + SigmaAnXZ*sin(2*fbeta));
@@ -1000,126 +1014,69 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Solout[0] = ((SigmaXP)+(SigmaYP)+(SigmaZP))/3;
         return;
     }
-
-
     
-//    /******** Projected Solution ********/
-//    //******* Cod feito com giro desfeito somente no eixo y ***********//
-//
-//    REAL SigXP = 0., SigYP = 0., TauP = 0., SigZP = 0.;
-//    
-//    // *********** What????? *******************
-//    //******** SigXZ e SigYZ nao sao calculados!!! **********
-//    REAL SigXZ = 0.;
-//    REAL SigYZ = 0.;
-//    
-//    //FEM Sol: Sig
-//    //Analytic Sol: Sigma
-//    
-//    SigXP  = SigX*pow(cos(fbeta),2) + SigZ*pow(sin(fbeta),2) + SigXZ*sin(2*fbeta);
-//    //Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta])
-//    
-//    SigYP  = SigY;
-//    
-//    TauP   = Tau*cos(fbeta) + SigYZ*sin(fbeta);
-//    //Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])
-//    
-//    SigZP  = SigZ*pow(cos(fbeta),2) + SigX*pow(sin(fbeta),2) - SigXZ*sin(2*fbeta);
-//    // Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
-//    
-//    
-//    //	Projected Stress x-direction
-//    if(var == 12) {
-//        Solout[0] = SigXP;
-//        return;
-//    }
-//    
-//    //	Projected Stress y-direction
-//    if(var == 13) {
-//        Solout[0] = SigYP;
-//        return;
-//    }
-//    
-//    // Projected Stress z-direction
-//    if(var == 14) {
-//        Solout[0] = SigZP;
-//        return;
-//    }
-//    
-//    
-//    //	Projected Shear Stress
-//    if(var == 15) {
-//        Solout[0] = TauP;
-//        return;
-//    }
-//    
-//    
-//    //	Projected Hydrostatic Stress
-//    if(var == 16)
-//    {
-//        Solout[0] = ((SigXP)+(SigYP)+(SigZP))/3;
-//        return;
-//    }
-//    
-//    
-//    /******** Analytical Projected Solution ********/
-//    //******* Cod feito com giro desfeito somente no eixo y ***********//
-//    
-//    REAL SigmaXP = 0., SigmaYP = 0., SigmaXYP = 0., SigmaZP = 0.;
-//    
-//    // *********** What????? *******************
-//    //******** SigXZ e SigYZ nao sao calculados!!! **********
-//    REAL SigmaXZ = 0.;
-//    REAL SigmaYZ = 0.;
-//    
-//    //FEM Sol: Sig
-//    //Analytic Sol: Sigma
-//    
-//    SigmaXP  = SigmaX*pow(cos(fbeta),2) + SigmaZ*pow(sin(fbeta),2) + SigmaXZ*sin(2*fbeta);
-//    //Sigx*Power(Cos(Degree*\[Beta]),2) + Sigz*Power(Sin(Degree*\[Beta]),2) + Sigxz*Sin(2*Degree*\[Beta])
-//    
-//    SigmaYP  = SigmaY;
-//    
-//    SigmaXYP   = SigmaXY*cos(fbeta) + SigmaYZ*sin(fbeta);
-//    //Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])
-//    
-//    SigmaZP  = SigmaZ*pow(cos(fbeta),2) + SigmaX*pow(sin(fbeta),2) - SigmaXZ*sin(2*fbeta);
-//    // Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
-//    
-//    
-//    //	Projected Stress x-direction
-//    if(var == 17) {
-//        Solout[0] = SigmaXP;
-//        return;
-//    }
-//    
-//    //	Projected Stress y-direction
-//    if(var == 18) {
-//        Solout[0] = SigmaYP;
-//        return;
-//    }
-//    
-//    // Projected Stress z-direction
-//    if(var == 19) {
-//        Solout[0] = SigmaZP;
-//        return;
-//    }
-//    
-//    
-//    //	Projected Shear Stress
-//    if(var == 20) {
-//        Solout[0] = SigmaXYP;
-//        return;
-//    }
-//    
-//    
-//    //	Projected Hydrostatic Stress
-//    if(var == 21)
-//    {
-//        Solout[0] = ((SigmaXP)+(SigmaYP)+(SigmaZP))/3;
-//        return;
-//    }
     
+    
+    /******** Analytical Deformation ********/
+    
+    REAL exx = 0., eyy = 0., exy = 0.;
+    
+    exx= (SigmaAnX-fnu*(SigmaAnY+SigmaAnZ))/fE;
+    //(\[Sigma]xx - \[Nu]*(\[Sigma]yy + \[Sigma]zz))/El
+    
+    eyy= (SigmaAnY-fnu*(SigmaAnX+SigmaAnZ))/fE;
+    //(\[Sigma]yy - \[Nu]*(\[Sigma]xx + \[Sigma]zz))/El
+    
+    exy = ((1+fnu)*SigmaAnXY)/fE;
+    //((1 + \[Nu])*\[Sigma]xy)/El
+    
+    
+    //	exx analytical
+    if(var == 22)
+    {
+        Solout[0] = exx;
+        return;
+    }
+    
+    //	eyy analytical
+    if(var == 23)
+    {
+        Solout[0] = eyy;
+        return;
+    }
+    
+        //	exy analytical
+    if(var == 24)
+    {
+        Solout[0] = exy;
+        return;
+    }
+    
+    
+    
+    /******** Numerical Deformation ********/
+    
+    //	exx Numerical
+    if(var == 25)
+    {
+        Solout[0] = epsx;
+        return;
+    }
+    
+    //	eyy Numerical
+    if(var == 26)
+    {
+        Solout[0] = epsy;
+        return;
+    }
+    
+    //	exy Numerical
+    if(var == 27)
+    {
+        Solout[0] = epsxy;
+        return;
+    }
+
 }
 
 

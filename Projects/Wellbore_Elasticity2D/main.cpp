@@ -102,12 +102,14 @@ void UniformRefinement(TPZGeoMesh *gmesh, int nh);
 
 REAL Inner_Product(TPZFNMatrix<4,REAL> S, TPZFNMatrix<4,REAL> T);
 
+
+//******* EXECUTA O CODIGO ***********//
 int main(int argc, char *argv[])
 {
 
-    //Problem3D();
+//    Problem3D();
 //    Problem2D();
-    
+//
     ApproximationRates();
 
     return 0;
@@ -153,7 +155,7 @@ int ApproximationRates(){
     
     int numthreads = 16;
     int nh = 2;
-    int p = 2;
+    int p = 1;
     
     for (int ih = 0; ih < nh; ih++) {
         
@@ -187,10 +189,7 @@ int ApproximationRates(){
         ComputeErrorL2(cmesh, error);
         
     }
-    
-
-    
-    
+  
     
     return 0;
     
@@ -221,14 +220,38 @@ void ComputeErrorL2(TPZCompMesh * cmesh, REAL &error){
     TPZVec<REAL> syan;
     TPZVec<REAL> sxyan;
     
+    
+    int defx_nu = 25;
+    int defy_nu = 26;
+    int defxy_nu = 27;
+    
+    int defx_an = 22;
+    int defy_an = 23;
+    int defxy_an = 24;
+    
+    TPZVec<REAL> defxnu;
+    TPZVec<REAL> defynu;
+    TPZVec<REAL> defxynu;
+    
+    TPZVec<REAL> defxan;
+    TPZVec<REAL> defyan;
+    TPZVec<REAL> defxyan;
+    
     error = 0.0;
 
     TPZFNMatrix<4,REAL> snu(2,2,0.0);
     TPZFNMatrix<4,REAL> san(2,2,0.0);
-    TPZFNMatrix<4,REAL> e(2,2,0.0);
+    
+    TPZFNMatrix<4,REAL> defnu(2,2,0.0);
+    TPZFNMatrix<4,REAL> defan(2,2,0.0);
+    
+    TPZFNMatrix<4,REAL> esig(2,2,0.0);
+    TPZFNMatrix<4,REAL> edef(2,2,0.0);
+    
     
     for (int icel = 0; icel < nel; icel++) {
         TPZCompEl * cel = cmesh->Element(icel);
+        
         
         if (!cel) {
             DebugStop();
@@ -287,9 +310,31 @@ void ComputeErrorL2(TPZCompMesh * cmesh, REAL &error){
             snu(1,0) = sxynu[0];
             snu(0,1) = sxynu[0];
             
-            e = san - snu;
+            /** Computing analytic deformation **/
+            cel->Solution(duplet_xi_eta, defx_an, defxan);
+            cel->Solution(duplet_xi_eta, defy_an, defyan);
+            cel->Solution(duplet_xi_eta, defxy_an, defxyan);
             
-            inner = Inner_Product(e,e);
+            /** Computing numeric deformation **/
+            cel->Solution(duplet_xi_eta, defx_nu, defxnu);
+            cel->Solution(duplet_xi_eta, defy_nu, defynu);
+            cel->Solution(duplet_xi_eta, defxy_nu, defxynu);
+            
+            defan(0,0) = defxan[0];
+            defan(1,1) = defyan[0];
+            defan(1,0) = defxyan[0];
+            defan(0,1) = defxyan[0];
+            
+            defnu(0,0) = defxnu[0];
+            defnu(1,1) = defynu[0];
+            defnu(1,0) = defxynu[0];
+            defnu(0,1) = defxynu[0];
+        
+            
+            esig = san - snu;
+            edef = defan - defnu;
+            
+            inner = Inner_Product(edef,esig);
             element_error += w * detjac * inner;
         }
         
@@ -311,6 +356,10 @@ REAL Inner_Product(TPZFNMatrix<4,REAL> S, TPZFNMatrix<4,REAL> T){
     return inner_product;
 }
 
+
+
+
+//******************* Refinamento *****************************//
 void UniformRefinement(TPZGeoMesh *gmesh, int nh)
 {
     for ( int ref = 0; ref < nh; ref++ ){
@@ -324,6 +373,11 @@ void UniformRefinement(TPZGeoMesh *gmesh, int nh)
     gmesh->BuildConnectivity();
 }
 
+
+
+
+
+//*********************************************** PROBELMA 2D ******************************************************//
 int Problem2D(){
     
     std::string dirname = PZSOURCEDIR;
@@ -373,7 +427,7 @@ int Problem2D(){
     
     //******** Configura malha Computacional ***************/
     
-    int p = 3;
+    int p = 2;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
@@ -500,6 +554,12 @@ int Problem2D(){
         scalarnames.Push("TauXYAnalytic");
         scalarnames.Push("SolidPressureAnalytic");
         vecnames.Push("Displacement");
+        scalarnames.Push("ExxAnalytic");
+        scalarnames.Push("EyyAnalytic");
+        scalarnames.Push("ExyAnalytic");
+        scalarnames.Push("Exx");
+        scalarnames.Push("Eyy");
+        scalarnames.Push("Exy");
         //vecnames[1] = "";
         an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
         
@@ -518,6 +578,7 @@ int Problem2D(){
 
 
 
+//*********************************************** PROBELMA 3D ******************************************************//
 int Problem3D(){
     
     bool Is3DQ = false;
@@ -911,7 +972,11 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
 //    SigmaVV = -30.0, Sigmahh = -30.0, SigmaHH = -30.0; //preenche
     
     REAL rw = 0.1;
-    int analytic = 1;
+    
+    //analytic=0 nao usa sol analitica como prestress e BC
+    //analytic=1 usa sol analitica como prestress e BC (zerar BCond0 e BCond1)
+    //analytic=0 nao usa sol analitica como prestress mas usa como BC (zerar BCond0 e BCond1)
+    int analytic = 2;
     int projection = 0;
     
     // Seta os parametros do poco
