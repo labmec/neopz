@@ -125,7 +125,7 @@ void TRMFluxPressureAnalysis::NewtonIteration(){
 
 void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
     
-    if (k_ietrarions() <= 3) {
+    if (k_ietrarions() <= 4) {
         this->Assemble();
     }
     else{

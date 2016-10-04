@@ -85,8 +85,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 100;
-        int nel_y = 5;
+        int nel_x = 200;
+        int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -218,7 +218,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 16;
+    int numofThreads_p = 4;
     bool mustOptimizeBandwidth_parabolic = true;
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
@@ -271,7 +271,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 16;
+        int numofThreads_t = 4;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
@@ -507,10 +507,15 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         return;
     }
     
+    time = fSimulationData->t();
+    MustReportQ = MustResporTimeQ(time);
+    
+    if (MustReportQ) {
+        std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+        fSegregatedAnalysis->PostProcessStep();
+    }
+    
     for (int i = 0; i < n; i++) {
-        
-        time = fSimulationData->t();
-        MustReportQ = MustResporTimeQ(time);
         
         if (IsMonolithicQ()) {
             
@@ -528,6 +533,11 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         }
         
         if (IsSegregatedQ()) {
+
+            fSegregatedAnalysis->ExcecuteOneStep();
+
+            time = fSimulationData->t();
+            MustReportQ = MustResporTimeQ(time);
             
             if (MustReportQ) {
                 std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
@@ -537,8 +547,6 @@ void TRMOrchestra::RunEvolutionaryProblem(){
             if (fSimulationData->ReportingTimes().size() == 0) {
                 return;
             }
-            
-            fSegregatedAnalysis->ExcecuteOneStep();
         }
 
     }
@@ -553,6 +561,15 @@ bool TRMOrchestra::MustResporTimeQ(REAL time){
     REAL t_range = dt;
     REAL deltat = time-time_r;
     REAL tolerance = 1.0e-3;
+    
+    if(index > 1){
+        REAL c_dt_max = fSimulationData->ReportingTimes()[index-2] - time_r;
+        if(dt > c_dt_max){
+            fSimulationData->Setdt(c_dt_max);
+            std::cout << "Segregated:: Reporting time:: Set time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+        }
+    }
+    
     if(fabs(deltat) <= tolerance){
         fSimulationData->ReportingTimes().Pop();
         return true;
@@ -560,6 +577,7 @@ bool TRMOrchestra::MustResporTimeQ(REAL time){
     
     if (fabs(deltat) < t_range) {
         fSimulationData->Setdt(fabs(deltat));
+            std::cout << "Segregated:: Reporting time:: Set time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;        
     }
     
     return false;
