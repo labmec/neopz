@@ -155,7 +155,7 @@ REAL flambda = 50.;
 bool problemaarctan=false;
 
 
-int main33(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     HDivPiola = 1;
 #ifdef LOG4CXX
@@ -203,8 +203,8 @@ int main33(int argc, char *argv[])
     std::cout << "Number of equations " << CHDivPressureMesh->NEquations() << std::endl;
     
     
-//    bool KeepOneLagrangian = true;
-//    HideTheElements(CHDivPressureMesh,KeepOneLagrangian);
+    bool KeepOneLagrangian = true;
+    HideTheElements(CHDivPressureMesh,KeepOneLagrangian);
 
     std::cout << "Reduced number of equations " << CHDivPressureMesh->NEquations() << std::endl;
     
@@ -262,7 +262,7 @@ int main33(int argc, char *argv[])
 }
 
 
-int main(int argc, char *argv[])
+int main_not_used(int argc, char *argv[])
 {
     HDivPiola = 1;
     InitializePZLOG();

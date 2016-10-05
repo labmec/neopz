@@ -342,18 +342,18 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     
     fSystemType.Push("water");
-    fSystemType.Push("water");
+    fSystemType.Push("oil");
     
-    water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    water->SetRhoModel(1);
+    oil->SetRhoModel(1);
     fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(oil);
     
     int n_data = fSystemType.size();
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-    //fg[2] = -9.81;
+    fg[2] = -9.81;
     
     int map_model = 0; // constant
     fMap = new TRMSpatialPropertiesMap;
@@ -592,11 +592,11 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("oil");
-    water->SetRhoModel(1);
-    oil->SetRhoModel(1);
+    fSystemType.Push("water");
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(oil);
+    fPhases.Push(water);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -611,7 +611,7 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
 
-    fReportingTimes.Push(60.0*day);
+    fReportingTimes.Push(100.0*day);
     fReportingTimes.Push(50.0*day);
     fReportingTimes.Push(40.0*day);
     fReportingTimes.Push(30.0*day);
@@ -620,7 +620,7 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     fReportingTimes.Push(0.0*day);
     
     fn_steps  = 100;
-    fdt = 0.1*day;
+    fdt = 10.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.1*day;
     fdt_up = 1.5;
@@ -629,7 +629,7 @@ void TRMRawData::WaterOilReservoirCircular(bool Is3DGeometryQ){
     // Numeric controls
     fn_corrections = 50;
     fepsilon_res = 0.01;
-    fepsilon_cor = 0.001;
+    fepsilon_cor = 0.0001;
     fIsQuasiNewtonQ = true;
     
     

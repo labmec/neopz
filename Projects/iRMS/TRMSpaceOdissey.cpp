@@ -277,7 +277,7 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
 
     std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
-//    this->BuildMacroElements(); // @omar:: require the use of sofisticated transfer structures ....
+    this->BuildMacroElements(); // @omar:: require the use of sofisticated transfer structures ....
     
     
 }
