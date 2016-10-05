@@ -245,9 +245,9 @@ int main2(int argc, char *argv[])
     
     enum MVariation {ETetrahedra, EPyramid,EDividedPyramid, EDividedPyramidIncreasedOrder};
     
-    MVariation runtype = EDividedPyramidIncreasedOrder;
+    MVariation runtype = ETetrahedra;
     const int nSimulations = 4;
-    int pPressure = 2;
+    int pPressure = 1;
     bool HDivMaisMais = true;
     int pFlux = pPressure;
 
@@ -374,11 +374,11 @@ int main2(int argc, char *argv[])
       TPZStepSolver<STATE> step;
       step.SetDirect(ELDLt);
       TPZSkylineStructMatrix skyl(cmeshMult);
-        skyl.SetNumThreads(8);
-        TPZSymetricSpStructMatrix sparse(cmeshMult);
-        sparse.SetNumThreads(8);
-      //    TPZFStructMatrix skyl(cmeshMult);
-      an.SetStructuralMatrix(sparse);
+      skyl.SetNumThreads(8);
+      //TPZSymetricSpStructMatrix sparse(cmeshMult);
+      //sparse.SetNumThreads(8);
+      //TPZFStructMatrix skyl(cmeshMult);
+      an.SetStructuralMatrix(skyl);
       an.SetSolver(step);
       
       std::cout << "Starting assemble..." << std::endl;
@@ -467,6 +467,9 @@ int main2(int argc, char *argv[])
       an.SetExact(ExactNathan);
       TPZManVector<REAL,3> errors(3,1);
       cout << "NEquation = " << cmeshMult->NEquations() << endl;
+      
+      const int nthreadsForError = 8;
+      an.SetThreadsForError(nthreadsForError);
       an.PostProcessError(errors);
       
       out << "Errors:" << std::endl;
