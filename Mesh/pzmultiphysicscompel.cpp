@@ -965,6 +965,15 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	//end
 	intrule->GetOrder(prevorder);
 	
+    for (int i=0; i<prevorder.size(); i++) {
+        if (prevorder[i] < 4) {
+            maxorder[i] = 4;
+        }
+        else
+        {
+            maxorder[i] = prevorder[i];
+        }
+    }
 	intrule->SetOrder(maxorder);
 	
 	int ndof = material->NStateVariables();

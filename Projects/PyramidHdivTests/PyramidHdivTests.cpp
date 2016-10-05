@@ -101,11 +101,11 @@ void VerifyDRhamCompatibility();
 void ExactNathan(const TPZVec<REAL> &pt, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
     
     // Linear one
-//    sol[0] = pt[0];
-//    dsol.Zero();
-//    dsol(0,0) = 1;
-//    return;
-  
+    //    sol[0] = pt[0];
+    //    dsol.Zero();
+    //    dsol(0,0) = 1;
+    //    return;
+    
     // Sine problem
     sol[0] = sin(M_PI*pt[0])*sin(M_PI*pt[1])*sin(M_PI*pt[2]);
     dsol(0,0) = M_PI*cos(M_PI*pt[0])*sin(M_PI*pt[1])*sin(M_PI*pt[2]);
@@ -141,10 +141,10 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 void BodyForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     
     // Linear one
-//    f[0] = 0.;
-//    return;
-
-  // Sine problem
+    //    f[0] = 0.;
+    //    return;
+    
+    // Sine problem
     f[0]= 3*pow(M_PI,2)*sin(M_PI*pt[0])*sin(M_PI*pt[1])*sin(M_PI*pt[2]);
     return;
     
@@ -245,12 +245,12 @@ int main2(int argc, char *argv[])
     
     enum MVariation {ETetrahedra, EPyramid,EDividedPyramid, EDividedPyramidIncreasedOrder};
     
-    MVariation runtype = ETetrahedra;
+    MVariation runtype = EDividedPyramidIncreasedOrder;
     const int nSimulations = 4;
     int pPressure = 1;
-    bool HDivMaisMais = true;
+    bool HDivMaisMais = false;
     int pFlux = pPressure;
-
+    
     
     TPZAutoPointer<TPZRefPattern> pyramidref = PyramidRef();
     /// verify if the pressure space is compatible with the flux space
@@ -265,7 +265,7 @@ int main2(int argc, char *argv[])
     if (runtype == ETetrahedra) {
         academic.SetMeshType(TPZAcademicGeoMesh::ETetrahedra);
     }
-  
+    
     bool convergenceMesh = true;
     TPZGeoMesh *gmesh = NULL;
     TPZManVector<REAL,nSimulations> neqVec(nSimulations,0.);
@@ -275,218 +275,222 @@ int main2(int argc, char *argv[])
     TPZManVector<REAL,nSimulations> semih1ErrVec(nSimulations,0.);
     TPZTimer simTime("Time to complete one simulation");
     for (int i = 0 ; i < nSimulations ; i++){
-      simTime.reset();
-      simTime.start();
-      std::cout << "---------- START OF SIMULATION WITH NELEM = " << i+1 << " ------------" << std::endl;
-      std::cout << "Creating gmesh and cmesh..." << std::endl;
-      const int nelem = i+1; // num of hexes in x y and z
-      if (convergenceMesh){
-          const int matid = 1;
-          TPZManVector<int,6> BCids(6,-1); // ids of the bcs
-          academic.SetBCIDVector(BCids);
-          academic.SetMaterialId(matid);
-          academic.SetNumberElements(nelem);
-          if (runtype != ETetrahedra) {
-              gmesh = academic.PyramidalAndTetrahedralMesh();
-          }
-          else
-          {
-              gmesh = academic.TetrahedralMesh();
-          }
-      }
-      else{
-          //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
-          //    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
-          gmesh = CreateGeoMeshHexaOfPirTetra();
-          //    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
-          //    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
-      }
-      
-      int nref = 0;
-      UniformRefine(gmesh, nref);
-      
-      if(runtype == EDividedPyramid || runtype == EDividedPyramidIncreasedOrder)
-      {
-          DividePyramids(*gmesh);
-      }
-
-      std::string geoMeshName = "../PyramidGMesh.vtk";
-      std::ofstream outPara(geoMeshName);
-      TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outPara, true);
-      
-      
-      if (runtype == ETetrahedra || runtype == EDividedPyramid || runtype == EDividedPyramidIncreasedOrder) {
-          // the order of the elements can be increased
-      }
-      
-  #ifdef LOG4CXX
-      if(logger->isDebugEnabled())
-      {
-          std::stringstream sout;
-          gmesh->Print(sout);
-          LOGPZ_DEBUG(logger, sout.str())
-      }
-  #endif
-    
-      TPZManVector<TPZCompMesh*,2> meshvec(2);
-      meshvec[1] = CreateCmeshPressure(gmesh, pPressure, HDivMaisMais);
-      LoadSolution(meshvec[1]);
-      meshvec[0] = CreateCmeshFlux(gmesh, pFlux,HDivMaisMais);
-      TPZCompMeshTools::AddHDivPyramidRestraints(meshvec[0]);
-      
-      if (runtype == EDividedPyramidIncreasedOrder)
-      {
-          IncreasePyramidSonOrder(meshvec,pFlux);
-      }
-      
-      //ProjectFlux(meshvec[0]);
-      
-  #ifdef LOG4CXX
-      if (logger->isDebugEnabled())
-      {
-          std::stringstream sout;
-          meshvec[0]->Print(sout);
-          meshvec[1]->Print(sout);
-          LOGPZ_DEBUG(logger, sout.str())
-      }
-  #endif
-      
-      TPZCompMesh *cmeshMult = CreateCmeshMulti(meshvec);
-      TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, cmeshMult);
+        simTime.reset();
+        simTime.start();
+        const int nelem = 5*i+1; // num of hexes in x y and z
+        std::cout << "---------- START OF SIMULATION WITH NELEM = " << nelem << " ------------" << std::endl;
+        std::cout << "Creating gmesh and cmesh..." << std::endl;
+        if (convergenceMesh){
+            const int matid = 1;
+            TPZManVector<int,6> BCids(6,-1); // ids of the bcs
+            academic.SetBCIDVector(BCids);
+            academic.SetMaterialId(matid);
+            academic.SetNumberElements(nelem);
+            if (runtype != ETetrahedra) {
+                gmesh = academic.PyramidalAndTetrahedralMesh();
+            }
+            else
+            {
+                gmesh = academic.TetrahedralMesh();
+            }
+        }
+        else{
+            //    TPZGeoMesh *gmesh = CreateGeoMesh1Pir();
+            //    TPZGeoMesh *gmesh = CreateGeoMeshHexaOfPir();
+            gmesh = CreateGeoMeshHexaOfPirTetra();
+            //    TPZGeoMesh *gmesh = CreateGeoMesh1Tet();
+            //    TPZGeoMesh *gmesh = CreateGeoMeshPrism();
+        }
+        
+        int nref = 0;
+        UniformRefine(gmesh, nref);
+        
+        if(runtype == EDividedPyramid || runtype == EDividedPyramidIncreasedOrder)
+        {
+            DividePyramids(*gmesh);
+        }
+        
+        //      std::string geoMeshName = "../PyramidGMesh.vtk";
+        //      std::ofstream outPara(geoMeshName);
+        //      TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outPara, true);
+        
+        
+        if (runtype == ETetrahedra || runtype == EDividedPyramid || runtype == EDividedPyramidIncreasedOrder) {
+            // the order of the elements can be increased
+        }
+        
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            gmesh->Print(sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        
+        TPZManVector<TPZCompMesh*,2> meshvec(2);
+        meshvec[1] = CreateCmeshPressure(gmesh, pPressure, HDivMaisMais);
+        LoadSolution(meshvec[1]);
+        meshvec[0] = CreateCmeshFlux(gmesh, pFlux,HDivMaisMais);
+        TPZCompMeshTools::AddHDivPyramidRestraints(meshvec[0]);
+        
+        if (runtype == EDividedPyramidIncreasedOrder)
+        {
+            IncreasePyramidSonOrder(meshvec,pFlux);
+        }
+        
+        //ProjectFlux(meshvec[0]);
+        
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            meshvec[0]->Print(sout);
+            meshvec[1]->Print(sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        
+        TPZCompMesh *cmeshMult = CreateCmeshMulti(meshvec);
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, cmeshMult);
         /// created condensed elements for the elements that have internal nodes
         bool keeplagrangian = true;
         TPZCompMeshTools::CreatedCondensedElements(cmeshMult, keeplagrangian);
-
+        
         //GroupElements(cmeshMult);
-  #ifdef LOG4CXX
-      if (logger->isDebugEnabled())
-      {
-          std::stringstream sout;
-          cmeshMult->Print(sout);
-          LOGPZ_DEBUG(logger, sout.str())
-      }
-  #endif
-      cmeshMult->CleanUpUnconnectedNodes();
-      
-      bool shouldrenumber = true;
-      
-      TPZAnalysis an(cmeshMult,shouldrenumber);
-      TPZStepSolver<STATE> step;
-      step.SetDirect(ELDLt);
-      TPZSkylineStructMatrix skyl(cmeshMult);
-      skyl.SetNumThreads(8);
-      //TPZSymetricSpStructMatrix sparse(cmeshMult);
-      //sparse.SetNumThreads(8);
-      //TPZFStructMatrix skyl(cmeshMult);
-      an.SetStructuralMatrix(skyl);
-      an.SetSolver(step);
-      
-      std::cout << "Starting assemble..." << std::endl;
-      an.Assemble();
-      TPZAutoPointer<TPZMatrix<STATE> > mat = an.Solver().Matrix();
-      
-      std::cout << "Assembled!" << std::endl;
-      std::cout << "Nequations = " << cmeshMult->NEquations() << std::endl;
-      
-      if(0){
-        std::ofstream outmat("../mat.nb");
-        mat->Print("stiff=",outmat,EMathematicaInput);
-      }
-//      TPZFMatrix<STATE> solution = cmeshMult->Solution();
-//      {
-//          std::ofstream sol("../SolInterpolate.txt");
-//          sol << "Solution obtained by interpolation\n";
-//          an.PrintVectorByElement(sol, solution,1.e-8);
-//      }
-//      TPZFMatrix<STATE> rhs;
-//      solution.Resize(cmeshMult->NEquations(), 1);
-//      mat->Multiply(solution, rhs);
-//      {
-//          std::ofstream theory("../RhsbyMult.txt");
-//          theory << "Rhs obtained by matrix vector multiply\n";
-//          an.PrintVectorByElement(theory, rhs,1.e-8);
-//      }
-//      {
-//          std::ofstream practice("../RhsComputed.txt");
-//          practice << "Rhs obtained by assembly process\n";
-//          an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
-//      }
-      
-      std::cout << "Starting Solve..." << std::endl;
-      
-      an.Solve();
-
-        if(1)
-      {
-          std::ofstream sol("../SolComputed.txt");
-          sol << "Solution obtained by matrix inversion\n";
-          an.PrintVectorByElement(sol, cmeshMult->Solution(),1.e-8);
-      }
-      
-      std::cout << "Solved!" << std::endl;
-      
-      std::cout << "Starting Post-processing..." << std::endl;
-      TPZStack<std::string> scalnames, vecnames;
-      scalnames.Push("Pressure");
-      vecnames.Push("Flux");
-      std::string plotfile = "../Pyramid_Solution.vtk";
-      an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-      
-      int postprocessresolution = 0;
-      an.PostProcess(postprocessresolution);
-      
-      std::ofstream out("../errosPyrMeshSin.txt",std::ios::app);
-      out << "\n\n ------------ NEW SIMULATION -----------" << std::endl;
-  #ifdef PZDEBUG
-      out << "Debug Run\n";
-  #endif
-      out << "Nequations = " << cmeshMult->NEquations() << std::endl;
-      out << "Flux order " << pFlux << std::endl;
-      out << "NElements in each direction " << nelem << std::endl;
-      if (runtype == ETetrahedra) {
-          out << "Using tetrahedral elements\n";
-      }
-      else if (runtype == EPyramid) {
-          out << "Using pyramid elements\n";
-      }
-      else if(runtype == EDividedPyramid)
-      {
-          out << "Using pyramid divided by tetraedra and nonconforming restraints\n";
-      }
-      else if(runtype == EDividedPyramidIncreasedOrder)
-      {
-          out << "Using pyramid divided by tetraedra and conforming restraints\n";
-      }
-      else
-      {
-          DebugStop();
-      }
-      
-      
-      std::cout << "Calculating error..." << std::endl;
-      an.SetExact(ExactNathan);
-      TPZManVector<REAL,3> errors(3,1);
-      cout << "NEquation = " << cmeshMult->NEquations() << endl;
-      
-      const int nthreadsForError = 8;
-      an.SetThreadsForError(nthreadsForError);
-      an.PostProcessError(errors);
-      
-      out << "Errors:" << std::endl;
-      out << "Norma pressao e fluxo = " << errors[0] << std::endl;
-      out << "Norma L2 pressao = " << errors[1] << std::endl;
-      out << "Norma L2 fluxo = " << errors[2] << std::endl;
-      neqVec[i] = cmeshMult->NEquations();
-      h1ErrVec[i] = errors[0];
-      l2ErrVec[i] = errors[1];
-      semih1ErrVec[i] = errors[2];
-      hSizeVec[i] = 1./REAL(nelem);
-      
-      std::cout << "Simulation with nelem " << nelem << " finished!" << std::endl;
-      simTime.stop();
-      std::cout << "total time of simulation = " << simTime.seconds() << " s" << std::endl;
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            cmeshMult->Print(sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        cmeshMult->CleanUpUnconnectedNodes();
+        
+        bool shouldrenumber = true;
+        
+        TPZAnalysis an(cmeshMult,shouldrenumber);
+        TPZStepSolver<STATE> step;
+        step.SetDirect(ELDLt);
+        TPZSkylineStructMatrix skyl(cmeshMult);
+        skyl.SetNumThreads(8);
+        TPZSymetricSpStructMatrix sparse(cmeshMult);
+        sparse.SetNumThreads(8);
+        //    TPZFStructMatrix skyl(cmeshMult);
+        an.SetStructuralMatrix(sparse);
+        an.SetSolver(step);
+        
+        std::cout << "Starting assemble..." << std::endl;
+        std::cout << "Nequations = " << cmeshMult->NEquations() << std::endl;
+        an.Assemble();
+        TPZAutoPointer<TPZMatrix<STATE> > mat = an.Solver().Matrix();
+        
+        std::cout << "Assembled!" << std::endl;
+        
+        if(0){
+            std::ofstream outmat("../mat.nb");
+            mat->Print("stiff=",outmat,EMathematicaInput);
+        }
+        //      TPZFMatrix<STATE> solution = cmeshMult->Solution();
+        //      {
+        //          std::ofstream sol("../SolInterpolate.txt");
+        //          sol << "Solution obtained by interpolation\n";
+        //          an.PrintVectorByElement(sol, solution,1.e-8);
+        //      }
+        //      TPZFMatrix<STATE> rhs;
+        //      solution.Resize(cmeshMult->NEquations(), 1);
+        //      mat->Multiply(solution, rhs);
+        //      {
+        //          std::ofstream theory("../RhsbyMult.txt");
+        //          theory << "Rhs obtained by matrix vector multiply\n";
+        //          an.PrintVectorByElement(theory, rhs,1.e-8);
+        //      }
+        //      {
+        //          std::ofstream practice("../RhsComputed.txt");
+        //          practice << "Rhs obtained by assembly process\n";
+        //          an.PrintVectorByElement(practice, an.Rhs(),1.e-8);
+        //      }
+        
+        std::cout << "Starting Solve..." << std::endl;
+        
+        an.Solve();
+        
+        if(0)
+        {
+            std::ofstream sol("../SolComputed.txt");
+            sol << "Solution obtained by matrix inversion\n";
+            an.PrintVectorByElement(sol, cmeshMult->Solution(),1.e-8);
+        }
+        
+        std::cout << "Solved!" << std::endl;
+        
+        std::cout << "Starting Post-processing..." << std::endl;
+        TPZStack<std::string> scalnames, vecnames;
+        scalnames.Push("Pressure");
+        vecnames.Push("Flux");
+        std::string plotfile = "../Pyramid_Solution.vtk";
+        an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+        
+        int postprocessresolution = 0;
+        an.PostProcess(postprocessresolution);
+        
+        std::ofstream out("../errosPyrMeshSin.txt",std::ios::app);
+        out << "\n\n ------------ NEW SIMULATION -----------" << std::endl;
+#ifdef PZDEBUG
+        out << "Debug Run\n";
+#endif
+        out << "Nequations = " << cmeshMult->NEquations() << std::endl;
+        out << "Flux order " << pFlux << std::endl;
+        out << "NElements in each direction " << nelem << std::endl;
+        if (runtype == ETetrahedra) {
+            out << "Using tetrahedral elements\n";
+        }
+        else if (runtype == EPyramid) {
+            out << "Using pyramid elements\n";
+        }
+        else if(runtype == EDividedPyramid)
+        {
+            out << "Using pyramid divided by tetraedra and nonconforming restraints\n";
+        }
+        else if(runtype == EDividedPyramidIncreasedOrder)
+        {
+            out << "Using pyramid divided by tetraedra and conforming restraints\n";
+        }
+        else
+        {
+            DebugStop();
+        }
+        
+        
+        std::cout << "Calculating error..." << std::endl;
+        an.SetExact(ExactNathan);
+        TPZManVector<REAL,3> errors(3,1);
+        cout << "NEquation = " << cmeshMult->NEquations() << endl;
+        const int nthreadsForError = 8;
+        an.SetThreadsForError(nthreadsForError);
+        an.PostProcessError(errors);
+        
+        out << "Errors:" << std::endl;
+        out << "Norma pressao e fluxo = " << errors[0] << std::endl;
+        out << "Norma L2 pressao = " << errors[1] << std::endl;
+        out << "Norma L2 fluxo = " << errors[2] << std::endl;
+        neqVec[i] = cmeshMult->NEquations();
+        h1ErrVec[i] = errors[0];
+        l2ErrVec[i] = errors[1];
+        semih1ErrVec[i] = errors[2];
+        hSizeVec[i] = 1./REAL(nelem);
+        
+        std::cout << "Simulation with nelem " << nelem << " finished!" << std::endl;
+        simTime.stop();
+        std::cout << "total time of simulation = " << simTime.seconds() << " s" << std::endl;
+        
+        delete cmeshMult;
+        delete meshvec[0];
+        delete meshvec[1];
+        delete gmesh;
     }//nsimulations
-  
+    
     std::string mathematicaFilename = "NoName.nb";
     std::stringstream Mathsout;
     if(runtype == ETetrahedra){Mathsout << "../convergenceRatesTetMesh";}
@@ -501,8 +505,8 @@ int main2(int argc, char *argv[])
     mathematicaFilename = Mathsout.str();
     
     GenerateMathematicaWithConvergenceRates(neqVec,hSizeVec,h1ErrVec,l2ErrVec,semih1ErrVec,mathematicaFilename);
-  
-    std::cout << "Code finished!" << std::endl;
+    
+    std::cout << "Code finished! file " << mathematicaFilename << " written" << std::endl;
     
     return 0;
     
@@ -1268,7 +1272,7 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec)
     meshvec[0]->CleanUpUnconnectedNodes();
     TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
     
-
+    
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     
     mphysics->ExpandSolution();
@@ -2239,7 +2243,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
      }
      fluxes << " };\n";
      }
-     */     
+     */
     return nwrong;
 }
 
@@ -2480,56 +2484,56 @@ void IncreasePyramidSonOrder(TPZVec<TPZCompMesh *> &meshvec, int pFlux)
 
 void PrintArrayInMathematica(TPZVec<REAL> &array, std::ofstream &out, std::string arrayName)
 {
-  const int size = array.size();
-  out << arrayName << " = {" << array[0];
-  for (int i = 1; i < size ; i++) {
-    out <<  "," << array[i];
-  }
-  out << "};" << endl;
+    const int size = array.size();
+    out << arrayName << " = {" << array[0];
+    for (int i = 1; i < size ; i++) {
+        out <<  "," << array[i];
+    }
+    out << "};" << endl;
 }
 
 void GenerateMathematicaWithConvergenceRates(TPZVec<REAL> &neqVec, TPZVec<REAL> &hSizeVec,
                                              TPZVec<REAL> &h1ErrVec, TPZVec<REAL> &l2ErrVec,
                                              TPZVec<REAL> &semih1ErrVec, std::string &mathematicaFilename)
 {
-  std::ofstream out(mathematicaFilename.c_str());
-  
-  out << "myAxesSize = 15;" << endl;
-  out << "myLabelSize = 12;" << endl;
-  out << "myImageSize = 500;" << endl;
-  
-  PrintArrayInMathematica(neqVec,out,"neq");
-  PrintArrayInMathematica(hSizeVec,out,"h");
-  PrintArrayInMathematica(h1ErrVec,out,"h1");
-  PrintArrayInMathematica(l2ErrVec,out,"l2");
-  PrintArrayInMathematica(semih1ErrVec,out,"semih1");
-  
-  // Tables with the points to plot
-  out << "ptsh1 = Table[{h[[i]], h1[[i]]}, {i, Length[neq]}];" << endl;
-  out << "ptsl2 = Table[{h[[i]], l2[[i]]}, {i, Length[neq]}];" << endl;
-  out << "ptssemih1 = Table[{h[[i]], semih1[[i]]}, {i, Length[neq]}];" << endl;
-  
-  // ListLogLogPlot
-  out << "ListLogLogPlot[{ptsh1, ptsl2, ptssemih1}, PlotRange -> All," <<
-  "PlotStyle -> Thickness[0.003], ImageSize -> myImageSize 1.5,\n" <<
-  "AxesLabel -> {Style[\"h\", myAxesSize, Black],Style[Err, myAxesSize, Black]}," <<
-  "LabelStyle -> Directive[myLabelSize, Bold, Black], Joined -> True,\n" <<
-  "PlotMarkers -> Automatic," <<
-  "PlotLegends -> Placed[{\"H1\", \"L2\", \"Semi-H1\"}, {0.25, 0.85}]]" << endl;
-  
-  out << "convratesh1 = Range[Length[neq] - 1];" << endl;
-  out << "convratesl2 = Range[Length[neq] - 1];" << endl;
-  out << "convratesh1semi = Range[Length[neq] - 1];" << endl;
-  
-  out << "For[i = 1, i <= Length[neq] - 1, i++,\n" <<
-  "\tconvratesh1[[i]] = Log[h1[[i]]/h1[[i + 1]]]/Log[h[[i]]/h[[i + 1]]];\n" <<
-  "\tconvratesl2[[i]] = Log[l2[[i]]/l2[[i + 1]]]/Log[h[[i]]/h[[i + 1]]];\n" <<
-  "\tconvratesh1semi[[i]] = Log[semih1[[i]]/semih1[[i + 1]]]/Log[h[[i]]/h[[i + 1]]];\n" <<
-  "]" << endl;
-  
-  out << "convratesh1" << endl;
-  out << "convratesl2" << endl;
-  out << "convratesh1semi" << endl;
-  
+    std::ofstream out(mathematicaFilename.c_str());
+    
+    out << "myAxesSize = 15;" << endl;
+    out << "myLabelSize = 12;" << endl;
+    out << "myImageSize = 500;" << endl;
+    
+    PrintArrayInMathematica(neqVec,out,"neq");
+    PrintArrayInMathematica(hSizeVec,out,"h");
+    PrintArrayInMathematica(h1ErrVec,out,"h1");
+    PrintArrayInMathematica(l2ErrVec,out,"l2");
+    PrintArrayInMathematica(semih1ErrVec,out,"semih1");
+    
+    // Tables with the points to plot
+    out << "ptsh1 = Table[{h[[i]], h1[[i]]}, {i, Length[neq]}];" << endl;
+    out << "ptsl2 = Table[{h[[i]], l2[[i]]}, {i, Length[neq]}];" << endl;
+    out << "ptssemih1 = Table[{h[[i]], semih1[[i]]}, {i, Length[neq]}];" << endl;
+    
+    // ListLogLogPlot
+    out << "ListLogLogPlot[{ptsh1, ptsl2, ptssemih1}, PlotRange -> All," <<
+    "PlotStyle -> Thickness[0.003], ImageSize -> myImageSize 1.5,\n" <<
+    "AxesLabel -> {Style[\"h\", myAxesSize, Black],Style[Err, myAxesSize, Black]}," <<
+    "LabelStyle -> Directive[myLabelSize, Bold, Black], Joined -> True,\n" <<
+    "PlotMarkers -> Automatic," <<
+    "PlotLegends -> Placed[{\"H1\", \"L2\", \"Semi-H1\"}, {0.25, 0.85}]]" << endl;
+    
+    out << "convratesh1 = Range[Length[neq] - 1];" << endl;
+    out << "convratesl2 = Range[Length[neq] - 1];" << endl;
+    out << "convratesh1semi = Range[Length[neq] - 1];" << endl;
+    
+    out << "For[i = 1, i <= Length[neq] - 1, i++,\n" <<
+    "\tconvratesh1[[i]] = Log[h1[[i]]/h1[[i + 1]]]/Log[h[[i]]/h[[i + 1]]];\n" <<
+    "\tconvratesl2[[i]] = Log[l2[[i]]/l2[[i + 1]]]/Log[h[[i]]/h[[i + 1]]];\n" <<
+    "\tconvratesh1semi[[i]] = Log[semih1[[i]]/semih1[[i + 1]]]/Log[h[[i]]/h[[i + 1]]];\n" <<
+    "]" << endl;
+    
+    out << "convratesh1" << endl;
+    out << "convratesl2" << endl;
+    out << "convratesh1semi" << endl;
+    
 }
 
