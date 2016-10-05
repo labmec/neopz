@@ -1,6 +1,6 @@
 //
 //  Hdiv3DCurved.cpp
-//  Publication about Curved piola mapping for mixed formulation 3D simulations
+//  Publication about 3D Curved piola mapping for mixed formulation
 //
 //  Created by omar on 01/07/2016.
 //
@@ -132,17 +132,17 @@ int main()
     H1Case.IsHdivQ = false;
     H1Case.UsePardisoQ = true;
     H1Case.UseFrontalQ = false;
-    H1Case.n_h_levels = 2;
+    H1Case.n_h_levels = 3;
     H1Case.n_p_levels = 1;
-    H1Case.int_order  = 15;
-    H1Case.n_threads  = 24;
+    H1Case.int_order  = 1;
+    H1Case.n_threads  = 16;
     H1Case.mesh_type = "blended";
     H1Case.domain_type = "sphere";
     H1Case.conv_summary = "convergence_summary";
     H1Case.dump_folder = "H1_sphere";
     H1Case.omega_ids.Push(1);     // Domain
-    H1Case.gamma_ids.Push(-1);    // Gamma_D inner surface
-    H1Case.gamma_ids.Push(-2);    // Gamma_D outer surface
+    H1Case.gamma_ids.Push(-1);    // Gamma_D outer surface
+    H1Case.gamma_ids.Push(-2);    // Gamma_D inner surface
     simulations.Push(H1Case);
 
     ComputeCases(simulations);
@@ -186,10 +186,12 @@ void ComputeApproximation(SimulationCase sim_data){
         convergence << " Polynomial order  =  " << p << std::endl;
         convergence << setw(5)  << " h" << setw(25) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
         
+        int h_base = 2;
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
-            TPZGeoMesh * gmesh = GeomtricMesh(h, sim_data);
+            h_base = h + 1;
+            TPZGeoMesh * gmesh = GeomtricMesh(h_base, sim_data);
      
 #ifdef PZDEBUG
             
@@ -222,6 +224,8 @@ void ComputeApproximation(SimulationCase sim_data){
             // Compute the geometry
             long ndof, ndof_cond;
             TPZCompMesh * cmesh = ComputationalMesh(gmesh, p, sim_data, ndof);
+
+#ifdef PZDEBUG
             
 #ifdef USING_BOOST
             boost::posix_time::ptime int_p_t1 = boost::posix_time::microsec_clock::local_time();
@@ -234,6 +238,8 @@ void ComputeApproximation(SimulationCase sim_data){
 #endif
             
             std::cout << "Analytic pressure integral = " << p_integral << "; Time for integration = " << int_p_t2-int_p_t1 <<std::endl;
+
+#endif
             
             // Create Analysis
             TPZAnalysis * analysis = CreateAnalysis(cmesh,sim_data);
@@ -955,7 +961,7 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase sim_data)
     REAL radius_o = 1.0;
     REAL radius_i = 0.25;
     
-    REAL dr = (radius_o- radius_i)/REAL(nl-1);
+    REAL dr = (radius_o - radius_i)/REAL(nl-1);
     geomesh->SetMaxNodeId(nodes-1);
     geomesh->NodeVec().Resize(nodes);
     TPZManVector<TPZGeoNode,4> Node(nodes);
@@ -1122,9 +1128,9 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase sim_data)
         TopolCube[2] = 6+il*basenodes;
         TopolCube[3] = 7+il*basenodes;
         TopolCube[4] = 3+(il+1)*basenodes;
-        TopolCube[5] = 7+(il+1)*basenodes;
+        TopolCube[5] = 2+(il+1)*basenodes;
         TopolCube[6] = 6+(il+1)*basenodes;
-        TopolCube[7] = 2+(il+1)*basenodes;
+        TopolCube[7] = 7+(il+1)*basenodes;
         geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
         id++;
         

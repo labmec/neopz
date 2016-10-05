@@ -274,18 +274,18 @@ public:
             }
         
             const int dim = Geo::Dimension;
-            TPZManVector<REAL,3> ksibar(father->Dimension());
+            const int father_dim = father->Dimension();
+            TPZManVector<REAL,3> ksibar(father_dim,0.0);
         
-            TPZFNMatrix<9> gradxlocal(3,dim),gradxlocalT(dim,3);
+            TPZFNMatrix<9> gradxlocal(father_dim,dim);
             Geo::X(fCornerCo,qsi,ksibar);
             Geo::GradX(fCornerCo,qsi,gradxlocal);
-            gradxlocal.Transpose(&gradxlocalT);
         
             TPZFNMatrix<9> gradxfather;
             father->GradX(ksibar, gradxfather);
 
             // @brief Combining Variables
-            gradxfather.Multiply(gradxlocalT, gradx);
+            gradxfather.Multiply(gradxlocal, gradx);
     }
 	
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
