@@ -85,7 +85,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 10;
+        int nel_x = 1000;
         int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
@@ -275,22 +275,47 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 //        TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
+//        strmat_t.SetNumThreads(numofThreads_t);
+//        step_t.SetDirect(ELU);
+//        hyperbolic->SetStructuralMatrix(strmat_t);
+//        hyperbolic->SetSolver(step_t);
+//        hyperbolic->AdjustVectors();
+//        hyperbolic->SetSimulationData(fSimulationData);
+//        hyperbolic->FilterEquations();
+        
         TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;
-        
+
         const long numiterations = 20;
         const REAL tol = 1.0e-6;
         step_t.SetJacobi(numiterations, tol, 1);
 
-//        strmat_t.SetNumThreads(numofThreads_t);
-//        step_t.SetDirect(ELU);
-//        
-        
+        strmat_t.SetNumThreads(numofThreads_t);
         hyperbolic->SetStructuralMatrix(strmat_t);
         hyperbolic->SetSolver(step_t);
         hyperbolic->AdjustVectors();
         hyperbolic->SetSimulationData(fSimulationData);
         hyperbolic->FilterEquations();
+        
+        
+//        TPZAutoPointer<TPZMatrix<STATE> > nsyma = strmat_t.Create();
+//        TPZAutoPointer<TPZMatrix<STATE> > nsymaClone = nsyma->Clone();
+//        
+//        TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(nsymaClone);
+//        TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(nsyma);
+//        
+//        const long numiterations = 20;
+//        const REAL tol = 1.0e-6;
+//        step_t.SetJacobi(numiterations, tol, 1);
+//        stepre->SetReferenceMatrix(nsyma);
+//        stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
+//        strmat_t.SetNumThreads(numofThreads_t);
+//        hyperbolic->SetStructuralMatrix(strmat_t);
+//        hyperbolic->SetSolver(*stepGMRES);
+//        hyperbolic->AdjustVectors();
+//        hyperbolic->SetSimulationData(fSimulationData);
+//        hyperbolic->FilterEquations();
+
         
         
         std::cout << "ndof hyperbolic = " << hyperbolic->Solution().Rows() << std::endl;
