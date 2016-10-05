@@ -126,9 +126,9 @@ int ApproximationRates(){
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
-    REAL rext = 10.0;
-    int ncircle = 20;
-    int nradial = 15;
+    REAL rext = 4.0;
+    int ncircle = 15;
+    int nradial = 10;
     REAL drdcirc = 2.0;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
@@ -157,39 +157,65 @@ int ApproximationRates(){
     int nh = 2;
     int p = 1;
     
-    for (int ih = 0; ih < nh; ih++) {
+    TPZVec<REAL> errorvec;
+    errorvec.Resize(nh);
+    
+    TPZVec<REAL> rates;
+    rates.Resize(nh);
+    
+    
+    for (int ip = 0; ip < p; ip++) {
         
-        //******** Apply geometric refinement ***************/
-        UniformRefinement(gmesh, ih);
+        for (int ih = 0; ih < nh; ih++) {
+            
+            //******** Apply geometric refinement ***************/
+            UniformRefinement(gmesh, ih);
+            
+            std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
+            
+            //******** Configura malha Computacional ***************/
+            
+            TPZCompEl::SetgOrder(p);
+            TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
+            TPZAnalysis an (cmesh);
+            TPZSkylineStructMatrix strskyl(cmesh);
+            strskyl.SetNumThreads(numthreads);
+            an.SetStructuralMatrix(strskyl);
+            TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+            direct->SetDirect(ECholesky);
+            an.SetSolver(*direct);
+            delete direct;
+            direct = 0;
+            
+            std::cout << "number of dof = " << cmesh->NEquations() << std::endl;
+            
+            an.Assemble();
+            an.Solve();
+            
+            cmesh->LoadSolution(an.Solution());
+            REAL error;
+            ComputeErrorL2(cmesh, error);
+            
+            errorvec[ih] = sqrt(error);
+            
+        }
         
-        std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
-        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
+        for (int i = 0; i < nh; i++) {
+            if (i+1 > errorvec.size()) {
+                continue;
+            }
+            
+            rates[i]    = (log10(errorvec[i]-errorvec[i+1]))/(log10(0.5));
+            
+        }
         
-        //******** Configura malha Computacional ***************/
+        std::cout << "P = " << ip << "Rate = " << rates << std::endl;
         
-        TPZCompEl::SetgOrder(p);
-        TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
-        TPZAnalysis an (cmesh);
-        TPZSkylineStructMatrix strskyl(cmesh);
-        strskyl.SetNumThreads(numthreads);
-        an.SetStructuralMatrix(strskyl);
-        TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
-        direct->SetDirect(ECholesky);
-        an.SetSolver(*direct);
-        delete direct;
-        direct = 0;
+
+        }
         
-        std::cout << "number of dof = " << cmesh->NEquations() << std::endl;
-        
-        an.Assemble();
-        an.Solve();
-        
-        cmesh->LoadSolution(an.Solution());
-        REAL error;
-        ComputeErrorL2(cmesh, error);
-        
-    }
-  
+    
     
     return 0;
     
@@ -342,6 +368,7 @@ void ComputeErrorL2(TPZCompMesh * cmesh, REAL &error){
     }
     
     std::cout << "error = " << sqrt(error) << std::endl;
+    
     
 }
 
