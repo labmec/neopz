@@ -238,16 +238,9 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
 	TPZStack<TPZCompElSide> elvecall,elvecequal;
     elvecall.Push(thisside);
     thisside.EqualLevelElementList(elvecall,1,0);
-    int index = MidSideConnectLocId(side);
-    long sideconnectindex = ConnectIndex(index);
 	int i;
 	for(i=0; i<elvecall.NElements(); i++)
 	{
-        long elvecconnectindex = elvecall[i].ConnectIndex();
-        // skip the element/sides which have a different connect than my own
-        if (sideconnectindex != -1 && sideconnectindex != elvecconnectindex) {
-            continue;
-        }
 		if(elvecall[i].ConnectIndex() != -1) elvecequal.Push(elvecall[i]);
 	}
 	
@@ -1580,8 +1573,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 #ifdef PZDEBUG
         if(c.NShape() != NConnectShapeF(nod, c.Order()))
         {
-            out << "**** NShape stored in connect " << c.NShape() << " different from computed quantity " << NConnectShapeF(nod, c.Order())
-            << std::endl;
+            DebugStop();
         }
 #endif
 		out << ConnectIndex(nod) <<  '/' << c.NShape() << ' ' ;

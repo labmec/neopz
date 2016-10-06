@@ -446,7 +446,7 @@ private:
          * @brief Side of the element father associated with the side of the
          * sub-element
          */
-        TPZManVector<int> fFatherSide;
+        TPZVec<int> fFatherSide;
 		
         /**
          * @brief Hashing enters the side of the sub-element and the side of the

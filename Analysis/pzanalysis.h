@@ -70,9 +70,6 @@ protected:
 	/** @brief Time variable which is used in dx output */
 	REAL fTime;
 	
-  /** @brief Number of threads to be used for post-processing error */
-  int fNthreadsError;
-  
 	/** @brief Structural matrix */
 	TPZAutoPointer<TPZStructMatrix>  fStructMatrix;
 	
@@ -197,12 +194,7 @@ protected:
     {
         return fStep;
     }
-  
-  void SetThreadsForError(int nthreads)
-  {
-    fNthreadsError = nthreads;
-  }
-  
+    
 	/** @brief Sets time will be used in dx files */
 	void SetTime(REAL time);
 	/** @brief Gets time used in dx files */
@@ -212,7 +204,7 @@ private:
 	
 	/** @brief Build a sequence solver based on the block graph and its colors */
 	TPZMatrixSolver<STATE> *BuildSequenceSolver(TPZVec<long> &graph, TPZVec<long> &graphindex, long neq, int numcolors, TPZVec<int> &colors);
-  
+
 public:
 	/** @brief Graphic of the solution as V3DGrap visualization */
 	void ShowShape(const std::string &plotfile, TPZVec<long> &equationindices);
@@ -271,17 +263,11 @@ public:
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
     
-  /**
-	* @brief Compute the local error over all elements and global errors in several norms and print out
-	* without calculating the errors of the variables for hdiv spaces.
-  */
-  virtual void PostProcessError(TPZVec<REAL> &, std::ostream &out = std::cout);
-  
-  virtual void PostProcessErrorSerial(TPZVec<REAL> &, std::ostream &out = std::cout);
-  
-  virtual void PostProcessErrorParallel(TPZVec<REAL> &, std::ostream &out = std::cout);
-  
-  void CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvec);
+    /**
+	 * @brief Compute the local error over all elements and global errors in several norms and print out 
+	 * without calculating the errors of the variables for hdiv spaces.
+     */
+    virtual void PostProcessError(TPZVec<REAL> &, std::ostream &out = std::cout);
 	
 	/** @brief Print connect and solution information */
 	void Print( const std::string &name , std::ostream &out );
@@ -300,33 +286,6 @@ public:
 	void SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix);
 	/** @brief Set structural matrix for analysis */	
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
-  
-  
-  struct ThreadData{
-    
-    TPZAdmChunkVector<TPZCompEl *> fElvec;
-    
-    ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
-    
-    ~ThreadData();
-    
-    static void *ThreadWork(void *threaddata);
-    
-    void (*fExact)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
-    
-    long fNextElement;
-    
-    TPZManVector<REAL,10> fvalues;
-    
-    /** @brief Mutexes (to choose which element is next) */
-    pthread_mutex_t fAccessElement;
-    
-    /** @brief Mutexes (to sum error) */
-    pthread_mutex_t fSumError;
-    
-  };
-  
-  friend struct ThreadData;
 	
 };
 

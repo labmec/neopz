@@ -223,14 +223,17 @@ namespace pzshape {
 				shape++;
 			}
 		}
-		if(order[13]<2) return;//order indices do not include vertices
+		if(order[13]<3) return;//n�o h� ordens para cantos
 		//volume shapes
-        int ord=(order[13]-1)*(order[13]-1)*(order[13]-1);
+		int ord=0,i;
+		for(i=0;i<order[13]-2;i++) {
+			ord += (i+1)*(i+2) / 2;
+		}
 		TPZFNMatrix<40> phin(ord,1),dphin(3,ord);
 		phin.Zero();
 		dphin.Zero();
 		ShapeInternal(pt,order[13],phin,dphin);
-		for(int i=0;i<ord;i++)	{
+		for(i=0;i<ord;i++)	{
 			phi(shape,0) = phiblend(NSides-1,0)*phin(i,0);
 			for(int xj=0;xj<3;xj++) {
 				dphi(xj,shape) = dphiblend(xj,NSides-1) * phin(i ,0) +
@@ -381,21 +384,29 @@ namespace pzshape {
         }
         else
         {
-            // internal
-            int nshape = (order-1)*(order-1)*(order-1);
+            // interno
+            int totsum = 0;
+            for(int i=0;i<order - 2;i++) {
+                totsum += (i+1)*(i+2) / 2;
+            }
+            int nshape = totsum;
             
             if (shapeorders.Rows() != nshape) {
                 DebugStop();
             }
             int count = 0;
-            int ord = order-1;
+            int ord = order-2;
             for (int i=0;i<ord;i++) {
                 for (int j=0;j<ord;j++) {
                     for (int k=0;k<ord;k++) {
-                            shapeorders(count,0) = 2 + i;
-                            shapeorders(count,1) = 2 + j;
-                            shapeorders(count,2) = 2 + k;
+                        int soma = i+j+k;
+                        if( i+j+k < ord ) // Duvida
+                        {
+                            shapeorders(count,0) = 3 + soma;
+                            shapeorders(count,1) = 3 + soma;
+                            shapeorders(count,2) = 3 + soma;
                             count++;
+                        }
                     }
                 }
             }
@@ -406,29 +417,26 @@ namespace pzshape {
 	void TPZShapePiram::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
 									  TPZFMatrix<REAL> &dphi) {
 		// calculate the values of the function and derivatives of the product of the orthogonal functions
-		if(order < 2) return;
-		int ord = order-1;
+		if(order < 3) return;
+		int ord = order-2;
 		REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
 		TPZFMatrix<REAL> phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
 		dphi0(1,ord,store4,20),dphi1(1,ord,store5,20),dphi2(1,ord,store6,20);
-        REAL zst = 1.-x[2];
-        REAL xst = x[0]/zst;
-        REAL yst = x[1]/zst;
-		TPZShapeLinear::fOrthogonal(xst,ord,phi0,dphi0);//f e df            -1<=x0<=1
-		TPZShapeLinear::fOrthogonal(yst,ord,phi1,dphi1);//g e dg            -1<=x1<=1
-		TPZShapeLinear::fOrthogonal(2.*zst-1.,ord,phi2,dphi2);//h e dh       0<=x3<=1 -> -1<=2*x2-1<=1
+		TPZShapeLinear::fOrthogonal(x[0],ord,phi0,dphi0);//f e df            -1<=x0<=1
+		TPZShapeLinear::fOrthogonal(x[1],ord,phi1,dphi1);//g e dg            -1<=x1<=1
+		TPZShapeLinear::fOrthogonal(2.*x[2]-1.,ord,phi2,dphi2);//h e dh       0<=x3<=1 -> -1<=2*x2-1<=1
 		int index = 0;   // integration point internal to pyramid
 		for (int i=0;i<ord;i++) {
 			for (int j=0;j<ord;j++) {
 				for (int k=0;k<ord;k++) {
-                    //int index = ord*(ord*i+j)+k; //i,j,k is the polynomial order of the orthogonal functions
-                    phi(index,0) =    phi0(i,0)* phi1(j,0)* phi2(k,0);
-                    dphi(0,index) =   dphi0(0,i)* phi1(j,0)* phi2(k,0);
-                    dphi(1,index) =    phi0(i,0)*dphi1(0,j)* phi2(k,0);
-                    dphi(2,index) = -2.*phi0(i,0)* phi1(j,0)*dphi2(0,k);
-                    dphi(2,index) += dphi0(0,i)* phi1(j,0)* phi2(k,0)/zst/zst;
-                    dphi(2,index) += phi0(i,0)* dphi1(0,j)* phi2(k,0)/zst/zst;
-                    index++;
+					if( i+j+k < ord ) {
+						//int index = ord*(ord*i+j)+k; //i,j,k � o grau das fun��es ortogonais
+						phi(index,0) =    phi0(i,0)* phi1(j,0)* phi2(k,0);
+						dphi(0,index) =   dphi0(0,i)* phi1(j,0)* phi2(k,0);
+						dphi(1,index) =    phi0(i,0)*dphi1(0,j)* phi2(k,0);
+						dphi(2,index) = 2.*phi0(i,0)* phi1(j,0)*dphi2(0,k);
+						index++;
+					}
 				}
 			}
 		}
@@ -484,10 +492,12 @@ namespace pzshape {
 			return ((order-2)*(order-1)/2);
 		}
 		if(side==18) {
-            if (order <2) {
-                return 0;
-            }
-			return (order-1)*(order-1)*(order-1);
+			int totsum = 0,sum;
+			for(int i=1;i<order-1;i++) {
+				sum = i*(i+1) / 2;
+				totsum += sum;
+			}
+			return totsum;
 		}
 		PZError << "TPZShapePiram::NConnectShapeF, bad parameter side " << side << endl;
 		return 0;

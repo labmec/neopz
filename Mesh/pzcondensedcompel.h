@@ -94,14 +94,6 @@ public:
     {
         return fReferenceCompEl->Dimension();
     }
-    
-    /// transfer the solution of the multiphysics element to the atomic meshes
-    virtual void TransferMultiphysicsElementSolution()
-    {
-        fReferenceCompEl->TransferMultiphysicsElementSolution();
-    }
-    
-
 	/** @brief Method for creating a copy of the element */
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const 
     {

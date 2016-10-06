@@ -174,8 +174,8 @@ void TPZCompMeshTools::ExpandHDivPyramidRestraints(TPZCompMesh *cmesh)
         // we will insert the restraints afterwards
         cel->ResetShapeRestraints();
         for (itlist it = ellist.begin(); it != ellist.end(); it++) {
-//            std::cout << "1 including connect index " << it->fFaces[0].first << " to restraint map\n";
-//            it->Print(std::cout);
+            std::cout << "1 including connect index " << it->fFaces[0].first << " to restraint map\n";
+            it->Print(std::cout);
             restraintmap[it->fFaces[0].first] = *it;
             for (int i=1; i<4; i++) {
                 connectset.insert(it->fFaces[i].first);
@@ -186,8 +186,8 @@ void TPZCompMeshTools::ExpandHDivPyramidRestraints(TPZCompMesh *cmesh)
             connectset.erase(cindex);
             if (AllRestraints.find(cindex) != AllRestraints.end()) {
                 TPZOneShapeRestraint restloc = AllRestraints[cindex];
-//                std::cout << "2 including connect index " << cindex << " to restraint map\n";
-//                restloc.Print(std::cout);
+                std::cout << "2 including connect index " << cindex << " to restraint map\n";
+                restloc.Print(std::cout);
                 restraintmap[cindex] = restloc;
                 for (int i=1; i<4; i++) {
                     long locindex = restloc.fFaces[i].first;
