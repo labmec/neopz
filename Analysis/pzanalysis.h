@@ -316,13 +316,16 @@ public:
     
     long fNextElement;
     
-    TPZManVector<REAL,10> fvalues;
+    int ftid;
+    
+    // Vector with errors. Assuming no more than a 100 threads
+    TPZManVector<TPZManVector<REAL,10>,100> fvalues;
     
     /** @brief Mutexes (to choose which element is next) */
     pthread_mutex_t fAccessElement;
     
     /** @brief Mutexes (to sum error) */
-    pthread_mutex_t fSumError;
+    pthread_mutex_t fGetUniqueId;
     
   };
   

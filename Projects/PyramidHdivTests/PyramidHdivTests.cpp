@@ -56,6 +56,9 @@
 #include <tbb/tbb.h>
 #endif
 
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
 
 
 #ifdef LOG4CXX
@@ -242,12 +245,12 @@ int main2(int argc, char *argv[])
         LOGPZ_DEBUG(logger,str.str())
     }
 #endif
-    
+  
     enum MVariation {ETetrahedra, EPyramid,EDividedPyramid, EDividedPyramidIncreasedOrder};
     
     MVariation runtype = EDividedPyramidIncreasedOrder;
-    const int nSimulations = 4;
-    int pPressure = 1;
+    const int nSimulations = 2;
+    int pPressure = 2;
     bool HDivMaisMais = false;
     int pFlux = pPressure;
     
@@ -273,11 +276,12 @@ int main2(int argc, char *argv[])
     TPZManVector<REAL,nSimulations> h1ErrVec(nSimulations,0.);
     TPZManVector<REAL,nSimulations> l2ErrVec(nSimulations,0.);
     TPZManVector<REAL,nSimulations> semih1ErrVec(nSimulations,0.);
-    TPZTimer simTime("Time to complete one simulation");
     for (int i = 0 ; i < nSimulations ; i++){
-        simTime.reset();
-        simTime.start();
+#ifdef USING_BOOST
+      boost::posix_time::ptime tsim1 = boost::posix_time::microsec_clock::local_time();
+#endif
         const int nelem = 5*i+1; // num of hexes in x y and z
+        //const int nelem = 10; // num of hexes in x y and z
         std::cout << "---------- START OF SIMULATION WITH NELEM = " << nelem << " ------------" << std::endl;
         std::cout << "Creating gmesh and cmesh..." << std::endl;
         if (convergenceMesh){
@@ -383,7 +387,15 @@ int main2(int argc, char *argv[])
         
         std::cout << "Starting assemble..." << std::endl;
         std::cout << "Nequations = " << cmeshMult->NEquations() << std::endl;
+#ifdef USING_BOOST
+        boost::posix_time::ptime tass1 = boost::posix_time::microsec_clock::local_time();
+#endif
         an.Assemble();
+#ifdef USING_BOOST
+        boost::posix_time::ptime tass2 = boost::posix_time::microsec_clock::local_time();
+#endif
+        std::cout << "Total wall time of Assemble = " << tass2 - tass1 << " s" << std::endl;
+      
         TPZAutoPointer<TPZMatrix<STATE> > mat = an.Solver().Matrix();
         
         std::cout << "Assembled!" << std::endl;
@@ -413,9 +425,16 @@ int main2(int argc, char *argv[])
         //      }
         
         std::cout << "Starting Solve..." << std::endl;
-        
+
+#ifdef USING_BOOST
+      boost::posix_time::ptime tsolve1 = boost::posix_time::microsec_clock::local_time();
+#endif
         an.Solve();
-        
+#ifdef USING_BOOST
+      boost::posix_time::ptime tsolve2 = boost::posix_time::microsec_clock::local_time();
+#endif
+      std::cout << "Total wall time of Solve = " << tsolve2 - tsolve1 << " s" << std::endl;
+      
         if(0)
         {
             std::ofstream sol("../SolComputed.txt");
@@ -433,7 +452,7 @@ int main2(int argc, char *argv[])
         an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
         
         int postprocessresolution = 0;
-        an.PostProcess(postprocessresolution);
+        //an.PostProcess(postprocessresolution);
         
         std::ofstream out("../errosPyrMeshSin.txt",std::ios::app);
         out << "\n\n ------------ NEW SIMULATION -----------" << std::endl;
@@ -466,24 +485,31 @@ int main2(int argc, char *argv[])
         std::cout << "Calculating error..." << std::endl;
         an.SetExact(ExactNathan);
         TPZManVector<REAL,3> errors(3,1);
-        cout << "NEquation = " << cmeshMult->NEquations() << endl;
         const int nthreadsForError = 8;
         an.SetThreadsForError(nthreadsForError);
+#ifdef USING_BOOST
+        boost::posix_time::ptime terr1 = boost::posix_time::microsec_clock::local_time();
+#endif
         an.PostProcessError(errors);
-        
+#ifdef USING_BOOST
+        boost::posix_time::ptime terr2 = boost::posix_time::microsec_clock::local_time();
+#endif
         out << "Errors:" << std::endl;
         out << "Norma pressao e fluxo = " << errors[0] << std::endl;
         out << "Norma L2 pressao = " << errors[1] << std::endl;
         out << "Norma L2 fluxo = " << errors[2] << std::endl;
+        std::cout << "Total wall time of PostProcessError = " << terr2 - terr1 << " s" << std::endl;
         neqVec[i] = cmeshMult->NEquations();
         h1ErrVec[i] = errors[0];
         l2ErrVec[i] = errors[1];
         semih1ErrVec[i] = errors[2];
         hSizeVec[i] = 1./REAL(nelem);
         
-        std::cout << "Simulation with nelem " << nelem << " finished!" << std::endl;
-        simTime.stop();
-        std::cout << "total time of simulation = " << simTime.seconds() << " s" << std::endl;
+        std::cout << "\n**** Simulation with nelem " << nelem << " finished! ****" << std::endl;
+#ifdef USING_BOOST
+        boost::posix_time::ptime tsim2 = boost::posix_time::microsec_clock::local_time();
+#endif
+        std::cout << "Total wall time of simulation = " << tsim2 - tsim1 << " s" << std::endl;
         
         delete cmeshMult;
         delete meshvec[0];

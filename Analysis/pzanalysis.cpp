@@ -549,6 +549,10 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, std::ostream &out ){
   }
 }
 
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
+
 void TPZAnalysis::CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvecToComputeError){
   
   long neq = fCompMesh->NEquations();
@@ -578,6 +582,13 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
   ThreadData *data = (ThreadData *) datavoid;
   const long nelem = data->fElvec.NElements();
   TPZManVector<REAL,10> errors(10);
+ 
+  // Getting unique id for each thread
+  PZ_PTHREAD_MUTEX_LOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+  const long myid = data->ftid;
+  data->ftid++;
+  PZ_PTHREAD_MUTEX_UNLOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+  
   
   do{
     PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZAnalysis::ThreadData::ThreadWork");
@@ -593,13 +604,16 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     cel->EvaluateError(data->fExact, errors, 0);
     
     const int nerrors = errors.NElements();
-    data->fvalues.Resize(nerrors, 0.);
-    PZ_PTHREAD_MUTEX_LOCK(&data->fSumError,"TPZAnalysis::ThreadData::ThreadWork");
+    data->fvalues[myid].Resize(nerrors, 0.);
+
+    //PZ_PTHREAD_MUTEX_LOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+    //std::cout << "size of fvalues[" << myid << "] = " << data->fvalues[myid].NElements() << std::endl;
     for(int ier = 0; ier < nerrors; ier++)
     {
-      data->fvalues[ier] += errors[ier] * errors[ier];
+      (data->fvalues[myid])[ier] += errors[ier] * errors[ier];
     }
-    PZ_PTHREAD_MUTEX_UNLOCK(&data->fSumError,"TPZAnalysis::ThreadData::ThreadWork");
+    //PZ_PTHREAD_MUTEX_UNLOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+    
     
   } while (data->fNextElement < nelem);
   
@@ -612,9 +626,26 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
   TPZVec<pthread_t> allthreads(numthreads);
 
   TPZAdmChunkVector<TPZCompEl *> elvec;
+  
+#ifdef USING_BOOST
+  boost::posix_time::ptime tsim1 = boost::posix_time::microsec_clock::local_time();
+#endif
   CreateListOfCompElsToComputeError(elvec);
+#ifdef USING_BOOST
+  boost::posix_time::ptime tsim2 = boost::posix_time::microsec_clock::local_time();
+#endif
+  std::cout << "Total wall time of CreateListOfCompElsToComputeError = " << tsim2 - tsim1 << " s" << std::endl;
   
   ThreadData threaddata(elvec,this->fExact);
+  threaddata.fvalues.Resize(numthreads);
+  for(int iv = 0 ; iv < numthreads ; iv++){
+      threaddata.fvalues[iv].Resize(10);
+      threaddata.fvalues[iv].Fill(0.0);
+  }
+  
+#ifdef USING_BOOST
+  boost::posix_time::ptime tthread1 = boost::posix_time::microsec_clock::local_time();
+#endif
   
   for(int itr=0; itr<numthreads; itr++)
   {
@@ -626,8 +657,29 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
     PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
   }
   
-  TPZManVector<REAL,10> values(threaddata.fvalues);
-  const int nerrors = values.NElements();
+#ifdef USING_BOOST
+  boost::posix_time::ptime tthread2 = boost::posix_time::microsec_clock::local_time();
+#endif
+  std::cout << "Total wall time of ThreadWork = " << tthread2 - tthread1 << " s" << std::endl;
+  
+  // Sanity check. There should be number of ids equal to number of threads
+  if(threaddata.ftid != numthreads){
+    DebugStop();
+  }
+
+  
+  TPZManVector<REAL,10> values;
+  // Assuming the first is equal to the others
+  const int nerrors = threaddata.fvalues[0].NElements();
+  values.Resize(nerrors,0);
+  // Summing up all the values of all threads
+  for(int it = 0 ; it < numthreads ; it++){
+      for(int ir = 0 ; ir < nerrors ; ir++){
+          values[ir] += (threaddata.fvalues[it])[ir];
+      }
+  }
+  
+  //const int nerrors = values.NElements();
   ervec.Resize(nerrors);
   ervec.Fill(-10.0);
   
@@ -1278,16 +1330,14 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
 
 }
 
-TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) : fNextElement(0), fvalues(10), fExact(f){
-  fElvec = elvec;
-  fvalues.Fill(0.0);
+TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)) : fNextElement(0), fvalues(0), fExact(f), ftid(0), fElvec(elvec){
   PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZAnalysis::ThreadData::ThreadData()");
-  PZ_PTHREAD_MUTEX_INIT(&fSumError,NULL,"TPZAnalysis::ThreadData::ThreadData()");
+  PZ_PTHREAD_MUTEX_INIT(&fGetUniqueId,NULL,"TPZAnalysis::ThreadData::ThreadData()");
 }
 
 
 TPZAnalysis::ThreadData::~ThreadData()
 {
   PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixOR::ThreadData::~ThreadData()");
-  PZ_PTHREAD_MUTEX_DESTROY(&fSumError,"TPZStructMatrixOR::ThreadData::~ThreadData()");
+  PZ_PTHREAD_MUTEX_DESTROY(&fGetUniqueId,"TPZStructMatrixOR::ThreadData::~ThreadData()");
 }
