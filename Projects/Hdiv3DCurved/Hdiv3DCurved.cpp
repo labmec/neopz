@@ -76,7 +76,8 @@ struct SimulationCase {
     TPZStack<int>   gamma_ids;
 };
 
-#define Solution1
+//#define Solution1
+#define Solution6
 
 
 
@@ -371,6 +372,37 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
 #endif
     
+#ifdef Solution6
+    
+    REAL a = +5.0/4.0;
+    REAL b = -1.0/4.0;
+    REAL c = -1.0/4.0;
+    
+    REAL d = 5.0;
+    
+    REAL xma = x-a;
+    REAL ymb = y-b;
+    REAL zmc = z-c;
+    REAL piover2 = M_PI/2.0;
+    REAL piover3 = M_PI/3.0;
+    REAL rad = xma*xma + ymb*ymb+ zmc*zmc;
+    REAL sqrt_rad = sqrt(rad);
+    REAL artan_arg = atan(d*(sqrt_rad - piover3));
+    
+    
+    REAL denomfactor1 = -9.0 + d*d*(-9.0*rad+M_PI*(-M_PI+6.0*sqrt_rad));
+    REAL numfactro1   = 18.0*d*(-9.0+d*d*M_PI*(-M_PI+3.0*sqrt_rad));
+    
+    u[0] = piover2 - artan_arg;
+    
+    gradu(0,0) = -1.0*((-d*xma)/( (1.0+d*d*(sqrt_rad - piover3)*(sqrt_rad - piover3)) * (sqrt_rad) ));
+    gradu(1,0) = -1.0*((-d*ymb)/( (1.0+d*d*(sqrt_rad - piover3)*(sqrt_rad - piover3)) * (sqrt_rad) ));
+    gradu(2,0) = -1.0*((-d*zmc)/( (1.0+d*d*(sqrt_rad - piover3)*(sqrt_rad - piover3)) * (sqrt_rad) ));
+    
+    gradu(3,0) = -1.0*(numfactro1)/(denomfactor1*denomfactor1*sqrt_rad);
+    
+#endif
+    
 }
 
 void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
@@ -390,6 +422,32 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
     
 #endif
     
+#ifdef Solution6
+    
+    REAL a = +5.0/4.0;
+    REAL b = -1.0/4.0;
+    REAL c = -1.0/4.0;
+    
+    REAL d = 5.0;
+    
+    REAL xma = x-a;
+    REAL ymb = y-b;
+    REAL zmc = z-c;
+    REAL piover2 = M_PI/2.0;
+    REAL piover3 = M_PI/3.0;
+    REAL rad = xma*xma + ymb*ymb+ zmc*zmc;
+    REAL sqrt_rad = sqrt(rad);
+    REAL artan_arg = atan(d*(sqrt_rad - piover3));
+    
+    
+    REAL denomfactor1 = -9.0 + d*d*(-9.0*rad+M_PI*(-M_PI+6.0*sqrt_rad));
+    REAL numfactro1   = 18.0*d*(-9.0+d*d*M_PI*(-M_PI+3.0*sqrt_rad));
+    
+    f[0] = piover2 - artan_arg;
+    
+#endif
+    
+    
 }
 
 void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
@@ -407,6 +465,32 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     f[0] = -6.0;
     
 #endif
+    
+#ifdef Solution6
+    
+    REAL a = +5.0/4.0;
+    REAL b = -1.0/4.0;
+    REAL c = -1.0/4.0;
+    
+    REAL d = 5.0;
+    
+    REAL xma = x-a;
+    REAL ymb = y-b;
+    REAL zmc = z-c;
+    REAL piover2 = M_PI/2.0;
+    REAL piover3 = M_PI/3.0;
+    REAL rad = xma*xma + ymb*ymb+ zmc*zmc;
+    REAL sqrt_rad = sqrt(rad);
+    REAL artan_arg = atan(d*(sqrt_rad - piover3));
+    
+    
+    REAL denomfactor1 = -9.0 + d*d*(-9.0*rad+M_PI*(-M_PI+6.0*sqrt_rad));
+    REAL numfactro1   = 18.0*d*(-9.0+d*d*M_PI*(-M_PI+3.0*sqrt_rad));
+    
+    f[0] = -1.0*(numfactro1)/(denomfactor1*denomfactor1*sqrt_rad);
+    
+#endif
+    
 }
 
 STATE IntegrateVolume(TPZGeoMesh * geometry, SimulationCase sim_data){
