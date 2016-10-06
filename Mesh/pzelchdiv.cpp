@@ -277,13 +277,14 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
      
      TPZGenMatrix<int> shapeorders(nshape,3);
      TSHAPE::ShapeOrder(id, orders, shapeorders);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
-        static int first = 0;
-        if (first==0) {
-            shapeorders.Print("ShapeOrders");
-            first++;
-        }
+        std::stringstream sout;
+        shapeorders.Print("ShapeOrders",sout);
+        LOGPZ_DEBUG(logger, sout.str())
     }
+#endif
      // VectorSide indicates the side associated with each vector entry
      TPZManVector<long,30> FirstIndex(TSHAPE::NSides+1);
      // the first index of the shape functions
@@ -298,7 +299,8 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
          LOGPZ_DEBUG(logger,sout.str())
      }
 #endif
-     
+    
+    std::map<int,int> numvecshapes;
      int count = 0;
     
     int internalorder = this->Connect(connect).Order();
@@ -373,10 +375,23 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
              }
              if (include)
              {
+                 numvecshapes[side]++;
                  count++;
              }
          }
      }
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        std::map<int,int>::iterator it;
+        for (it = numvecshapes.begin(); it != numvecshapes.end(); it++) {
+            sout << "side " <<  it->first << " numvec " << it->second << std::endl;
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     return count;
 	
  
@@ -711,6 +726,8 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
+        sout << "vecpermute " << vecpermute << std::endl;
+        sout << "facevector " << facevector << std::endl;
         sout << "FirstIndex "<<FirstIndex << std::endl;
         LOGPZ_DEBUG(logger,sout.str())
     }
@@ -1443,7 +1460,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 				LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHDiv")
 		}
 #endif
-    TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
+    TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides+1> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
     
     TPZFNMatrix<TSHAPE::NSides*TSHAPE::Dimension*3> NormalsDouglas(3,TSHAPE::Dimension*TSHAPE::NSides);
 	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension+1> normalsides(TSHAPE::Dimension*TSHAPE::NSides);

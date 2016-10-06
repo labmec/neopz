@@ -210,11 +210,20 @@ TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
     for (long el=0; el<ncel; el++) {
         TPZCompElSide celside = celstack[el];
         TPZCompEl *cel = celside.Element();
+        TPZGeoEl *gelst = cel->Reference();
+        if (gelst->SideDimension(celside.Side()) != gel->Dimension()) {
+            continue;
+        }
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!intel) {
             DebugStop();
         }
         int cindex = intel->SideConnectLocId(0, celside.Side());
+#ifdef PZDEBUG
+        if (cindex < 0) {
+            DebugStop();
+        }
+#endif
         TPZConnect &c = intel->Connect(cindex);
         c.RemoveDepend();
     }

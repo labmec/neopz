@@ -388,6 +388,7 @@ public:
 		return 1;
 	}
     
+    /// transfer the solution of the multiphysics element to the atomic meshes
     virtual void TransferMultiphysicsElementSolution()
     {
         // Nothing to be done here

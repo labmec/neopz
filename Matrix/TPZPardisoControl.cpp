@@ -196,6 +196,10 @@ void TPZPardisoControl<TVar>::Decompose()
         n = fNonSymmetricSystem->Rows();
 
     }
+    
+    
+    
+
 //    for (int i=0; i<n+1; i++) {
 //        std::cout << ia[i] << ' ';
 //    }
@@ -208,8 +212,18 @@ void TPZPardisoControl<TVar>::Decompose()
     long long Error = 0;
     nrhs = 0;
     fPermutation.resize(n);
+    
+    for(long i = 0; i < n; i++){
+        fPermutation[i] = i;
+    }
+
     perm = &fPermutation[0];
+    
+    if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+        fParam[4] = 1;
+    }
     fParam[34] = 1;
+
     /// analyse and factor the equations
     long long phase = 12;
     

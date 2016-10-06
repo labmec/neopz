@@ -17,47 +17,74 @@ namespace pzshape {
             temp = pt[2];
             pt[2] -= 1.e-8;
         }
-        
-        TPZShapePiram::Shape(pt, id, order, phi, dphi);
 
-        
         TPZFNMatrix<20,REAL> phicp(phi);
         TPZFNMatrix<60,REAL> dphicp(dphi);
-        for (int i = 4; i > 0; i--) {
-            phicp(i) = phicp(i-1);
-            for (int j=0; j<3; j++) {
-                dphicp(j,i) = dphicp(j,i-1);
+
+        TPZShapePiram::Shape(pt, id, order, phicp, dphicp);
+
+        REAL zst = 1./(1.-pt[2]);
+        int count = 0;
+        int countorig = 0;
+        for (int is=0; is<NSides; is++) {
+            if (is == 4) {
+                countorig++;
+                continue;
             }
-        }
-        
-        // I decided to put the four new functions (without * (1-z)) in the begining of the vector
-        const int stride = 4;
-        for (int i = 0 ; i < phicp.Rows() - 4; i++) {
-            phi(i+stride,0) = phicp(i+1,0);
-            for (int j = 0; j < 3; j++) {
-                dphi(j,i+stride) = dphicp(j,i+1);
+            int norig = 1;
+            int nshape = 2;
+            if (is>4)
+            {
+                norig = TPZShapePiram::NConnectShapeF(is, order[is-5]);
+                nshape = NConnectShapeF(is, order[is-5]);
             }
-        }
-        
-        for (int i = 0; i < 4; i++) {
-            phi(i,0) = phi(i+stride,0)/(1.-pt[2]);
-            for (int j = 0; j < 3; j++) {
-                dphi(j,i) = dphi(j,i+stride)/(1.-pt[2]);
+            for (int shape = 0; shape<norig; shape++)
+            {
+                phi(shape+count,0) = phicp(shape+countorig,0);
+                for (int d=0; d<3; d++) {
+                    dphi(d,shape+count) = dphicp(d,shape+countorig);
+                }
             }
-            dphi(2,i) += phi(i,0)/(1-pt[2])/(1.-pt[2]);
+            if(norig*2 == nshape)
+            {
+                for (int shape = 0; shape<norig; shape++)
+                {
+                    phi(shape+norig+count,0) = phicp(shape+countorig,0)*zst;
+                    for (int d=0; d<3; d++) {
+                        dphi(d,shape+norig+count) = dphicp(d,shape+countorig)*zst;
+                    }
+                    dphi(2,shape+norig+count) += phicp(shape+countorig,0)*zst*zst;
+                }
+            }
+            countorig+= norig;
+            count += nshape;
         }
-        if (!IsZero(temp)){
+        if (IsZero(temp - 1.))
+        {
             pt[2] = temp;
         }
     }
 	
     int TPZShapePiramHdiv::NConnectShapeF(int side, int order) {
-        if (side == 0){ // the first connect has now 4 shapefunctions
-            return 4;
-        } // the other connects remain the same
-        else
-        {
-            return TPZShapePiram::NConnectShapeF(side, order);
+        switch (side) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 13:
+                
+                return TPZShapePiram::NConnectShapeF(side, order)*2;
+                break;
+            case 4:
+                return 0;
+                break;
+            default:
+                return TPZShapePiram::NConnectShapeF(side, order);
+                break;
         }
     }
 

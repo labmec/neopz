@@ -1826,11 +1826,12 @@ int TPZGeoEl::NormalOrientation(int side)
     // case there is no neighbour (should put a debugstop here)
 	if(!neighbour.Exists() ) 
 	{
+        DebugStop();
 		return 1;
 	}
     
     // look for a neighbour of equal dimension
-    while (neighbour.Element()->Dimension() != Dimension() && neighbour != thisside) {
+    while ((thisside.IsRelative(neighbour) || neighbour.Element()->Dimension() != Dimension()) && neighbour != thisside) {
         neighbour = neighbour.Neighbour();
     }
     if (neighbour == thisside) {
@@ -1840,8 +1841,12 @@ int TPZGeoEl::NormalOrientation(int side)
 //	fatherside = thisside.Neighbour();
     neighbour = thisside.Neighbour();
     // Considerando elementos hibridos, o elemento pode ter um vizinho de dimensao menor
-    while (neighbour.Element()->Dimension() != Dimension() && neighbour != thisside) {
+    while (( thisside.IsRelative(neighbour) || neighbour.Element()->Dimension() != Dimension() ) && neighbour != thisside ) {
         neighbour = neighbour.Neighbour();
+    }
+    
+    while (neighbour.Father2() && neighbour.Father2().Dimension() == neighbour.Dimension()) {
+        neighbour = neighbour.Father2();
     }
 //	while (fatherside.Exists()&& fatherside.Dimension() == dimside) {//eu inclui agora a segunda condicao
 //		neighbour = fatherside;
