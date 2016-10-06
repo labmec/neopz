@@ -26,6 +26,7 @@ namespace pzgeom {
 	
 	const double tol = pzgeom_TPZNodeRep_tol;
 	
+<<<<<<< HEAD
 //    void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 //        if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
 //            //para testes com transforma�es geometricas-->>Que  o que faz o RefPattern!!
@@ -91,6 +92,72 @@ namespace pzgeom {
 //        dphi(2,4) =  1.0;
 //    }
     
+=======
+	void TPZGeoPyramid::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
+		
+        jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
+		REAL spacephi[5];
+		TPZFMatrix<REAL> phi(5,1,spacephi,5);
+		REAL spacedphi[15];
+		TPZFMatrix<REAL> dphi(3,5,spacedphi,15);
+		CornerShape(param,phi,dphi);
+		jacobian.Zero();
+		
+		int i,j;
+		for(i=0;i<5;i++) {
+			for(j=0;j<3;j++) {
+				jacobian(j,0) += coord.GetVal(j,i)*dphi(0,i);
+				jacobian(j,1) += coord.GetVal(j,i)*dphi(1,i);
+				jacobian(j,2) += coord.GetVal(j,i)*dphi(2,i);
+			}
+		}
+		
+		detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0);//-a02 a11 a20
+		detjac += jacobian(0,1)*jacobian(1,2)*jacobian(2,0);//+ a01 a12 a20
+		detjac += jacobian(0,2)*jacobian(1,0)*jacobian(2,1);//+ a02 a10 a21
+		detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
+		detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
+		detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
+		
+        if(IsZero(detjac))
+		{
+#ifdef PZDEBUG
+			std::stringstream sout;
+			sout << "Singular Jacobian " << detjac;
+			LOGPZ_ERROR(logger, sout.str())
+#endif
+			detjac = ZeroTolerance();
+		}
+		
+		jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2))/detjac;//-a12 a21 + a11 a22
+		jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2))/detjac;//a02 a21 - a01 a22
+		jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2))/detjac;//-a02 a11 + a01 a12
+		jacinv(1,0) = ( jacobian(1,2)*jacobian(2,0)-jacobian(1,0)*jacobian(2,2))/detjac;//a12 a20 - a10 a22
+		jacinv(1,1) = (-jacobian(0,2)*jacobian(2,0)+jacobian(0,0)*jacobian(2,2))/detjac;//-a02 a20 + a00 a22
+		jacinv(1,2) = ( jacobian(0,2)*jacobian(1,0)-jacobian(0,0)*jacobian(1,2))/detjac;//a02 a10 - a00 a12
+		jacinv(2,0) = (-jacobian(1,1)*jacobian(2,0)+jacobian(1,0)*jacobian(2,1))/detjac;//-a11 a20 + a10 a21
+		jacinv(2,1) = ( jacobian(0,1)*jacobian(2,0)-jacobian(0,0)*jacobian(2,1))/detjac;//a01 a20 - a00 a21
+		jacinv(2,2) = (-jacobian(0,1)*jacobian(1,0)+jacobian(0,0)*jacobian(1,1))/detjac;//-a01 a10 + a00 a11
+		
+		axes.Zero();
+		axes(0,0) = 1.;
+		axes(1,1) = 1.;
+		axes(2,2) = 1.;
+	}
+	
+	void TPZGeoPyramid::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
+		REAL spacephi[10],spacedphi[20];
+		int i,j;
+		TPZFMatrix<REAL> phi(5,1,spacephi,10);
+		TPZFMatrix<REAL> dphi(3,5,spacedphi,20);
+		CornerShape(loc,phi,dphi);
+		for(j=0;j<3;j++) {
+			result[j] = 0.0;
+			for(i=0;i<5;i++) result[j] += coord.GetVal(j,i)*phi(i,0);
+		}
+	}
+	
+>>>>>>> iRMS_MHM
 	
 	TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		if(side<0 || side>18) {

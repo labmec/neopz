@@ -14,10 +14,5 @@
  */
 #define PZError std::cout
 
-/**
- * @ingroup common
- * @brief Returns a message to user put a breakpoint in 
- */
-void DebugStop();
 
 #endif

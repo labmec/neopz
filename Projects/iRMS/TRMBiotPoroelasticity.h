@@ -13,7 +13,22 @@
 
 class TRMBiotPoroelasticity{
     
-    // This material 
+private:
+    
+public:
+    
+    /** @brief Default constructor */
+    TRMBiotPoroelasticity();
+    
+    /** @brief Default desconstructor */
+    ~TRMBiotPoroelasticity();
+    
+    /** @brief Copy constructor $ */
+    TRMBiotPoroelasticity(const TRMBiotPoroelasticity& other);
+    
+    /** @brief Copy assignemnt operator $ */
+    TRMBiotPoroelasticity & operator = (const TRMBiotPoroelasticity& other);
+    
 };
 
 #endif /* defined(__PZ__TRMBiotPoroelasticity__) */

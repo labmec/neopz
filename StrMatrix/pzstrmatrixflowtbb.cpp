@@ -45,7 +45,7 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 
 #include "run_stats_table.h"
 
-RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the graph creation, coloring and tbb::flow::graph TPZStructMatrixTBBFlow.");
+static RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the graph creation, coloring and tbb::flow::graph TPZStructMatrixTBBFlow.");
 
 
 TPZStructMatrixTBBFlow::TPZStructMatrixTBBFlow(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
@@ -97,8 +97,8 @@ TPZStructMatrixTBBFlow *TPZStructMatrixTBBFlow::Clone() {
     return 0;
 }
 
-RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
-RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
+static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
+static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 void TPZStructMatrixTBBFlow::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     ass_stiff.start();

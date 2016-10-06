@@ -92,7 +92,7 @@ void TRMSimworxMeshGenerator::FillCaseHolesData(TPZFMatrix<> &caseHolesData)
     
 }
 
-TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRawData &rawdata, bool withwellbc)
+TPZGeoMesh * TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRawData &rawdata, bool withwellbc)
 {
     const REAL reservoirWidth = rawdata.fReservoirWidth;
     const REAL reservoirLength = rawdata.fReservoirLength;
@@ -127,7 +127,7 @@ TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRaw
     espacamentoZ[4] = reservoirheight/2.;
     bool thereIsCutPlane = true;
     
-    TPZAutoPointer<TPZGeoMesh> reservoirGMesh = ReallyGenerateGeoMesh(reservoirSemiAxeX,reservoirSemiAxeY,mioloWidth,espacamentoReservY,espacamentoZ,thereIsCutPlane,rawdata);
+    TPZGeoMesh * reservoirGMesh = ReallyGenerateGeoMesh(reservoirSemiAxeX,reservoirSemiAxeY,mioloWidth,espacamentoReservY,espacamentoZ,thereIsCutPlane,rawdata);
     if (withwellbc) {
         CreateWellBoundaries(reservoirGMesh);
     }
@@ -135,7 +135,7 @@ TPZAutoPointer<TPZGeoMesh>  TRMSimworxMeshGenerator::CreateSimworxGeoMesh(TRMRaw
     return reservoirGMesh;
 }
 
-TPZAutoPointer<TPZGeoMesh> TRMSimworxMeshGenerator::ReallyGenerateGeoMesh(const REAL semiAxeX,
+TPZGeoMesh * TRMSimworxMeshGenerator::ReallyGenerateGeoMesh(const REAL semiAxeX,
                                                  const REAL semiAxeY,
                                                  const REAL mioloLx,
                                                  const TPZVec<REAL> & espacamentoMioloY,

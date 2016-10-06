@@ -29,6 +29,8 @@ class TPZIntRuleP3D {
     TPZVec<long double>	fLocationZeta;
 	/** @brief Weight of the integration point */
     TPZVec<long double>	fWeight;
+    /// polynomial order of the integration rule
+    int fOrder;
 
 	/** 
 	 * @brief Constructor of cubature rule for pyramid 
@@ -41,6 +43,23 @@ class TPZIntRuleP3D {
 
 public:
 	
+    TPZIntRuleP3D(const TPZIntRuleP3D &copy) : fNumInt(copy.fNumInt), fLocationKsi(copy.fLocationKsi), fLocationEta(copy.fLocationEta),
+        fLocationZeta(copy.fLocationZeta), fWeight(copy.fWeight), fOrder(copy.fOrder)
+    {
+        
+    }
+    
+    TPZIntRuleP3D &operator=(const TPZIntRuleP3D &copy)
+    {
+        fNumInt = copy.fNumInt;
+        fLocationKsi = copy.fLocationKsi;
+        fLocationEta = copy.fLocationEta;
+        fLocationZeta = copy.fLocationZeta;
+        fWeight = copy.fWeight;
+        fOrder = copy.fOrder;
+        return *this;
+    }
+    
     enum {NRULESPYRAMID_ORDER = 37};
 	
 	/** @brief Returns number of integration points */
@@ -51,6 +70,12 @@ public:
 	
 	/** @brief Returns weight for the ith point */
 	REAL W(int i) const;
+    
+    /// return the order of the polynomial order that can be integrated
+    int Order()
+    {
+        return fOrder;
+    }
 
 	/** @brief Prints the number of integration points, all points and weights (as one dimension) */
 	void Print(std::ostream & out = std::cout);
@@ -61,7 +86,7 @@ protected:
 	 * @brief Computes the points and weights for pyramid cubature rule as first version of PZ 
 	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
 	 */
-	void ComputingCubatureRuleForPyramid(int order);
+	int ComputingCubatureRuleForPyramid(int order);
 
 };
 

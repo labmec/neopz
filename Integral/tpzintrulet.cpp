@@ -9,13 +9,13 @@
 
 TPZIntRuleT::TPZIntRuleT(int order) {
 	// Checking argument (polinomial order to integrate exactly)
-	if(order < 0 && order >= NRULESTRIANGLE_ORDER) {
+	if(order < 0 || order >= NRULESTRIANGLE_ORDER) {
 		PZError << "TPZGaussRule creation precision = " << order << " not available\n";
-		order = 0;
+		order = NRULESTRIANGLE_ORDER;
 		PZError << "TPZGaussRule creation precision gotten = " << order << "\n";
 	}
 
-	ComputingSymmetricCubatureRule(order);
+    fOrder = ComputingSymmetricCubatureRule(order);
 }
 
 TPZIntRuleT::~TPZIntRuleT() {
@@ -637,7 +637,7 @@ long double QUAD_TRI_P21_pts[Length(QUAD_TRI_P21_wts) * 3] = {
 			.31214446687089088167080460581557645L)
 };
 
-void TPZIntRuleT::ComputingSymmetricCubatureRule(int order) {
+int TPZIntRuleT::ComputingSymmetricCubatureRule(int order) {
 	if(order > 21) order = 21;
 	int NRGAUPO[22] = {1, 1, 3, 6, 6, 7, 12, 15, 16, 19, 25, 28, 33, 37, 46, 52, 55, 61, 72, 73, 88, 91};
 	fNumInt = NRGAUPO[order];
@@ -713,6 +713,7 @@ void TPZIntRuleT::ComputingSymmetricCubatureRule(int order) {
 		default:
 			PZError << "TPZIntRuleT not implemented by order " << order << std::endl;
 	}
+    return order;
 }
 
 void TPZIntRuleT::TransformBarycentricCoordInCartesianCoord(long double baryvec[],long double weightvec[]) {

@@ -12,7 +12,7 @@
 #include "pzelmat.h"
 
 #ifdef USING_BLAS
-#define USING_DGER
+//#define USING_DGER
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
 #else
@@ -21,11 +21,6 @@
 #endif
 #endif
 
-#ifdef USING_MKL
-#include <mkl.h>
-//#include <omp.h>
-//#define USING_DGER
-#endif
 
 
 /**
@@ -106,6 +101,15 @@ public:
 	 * Is also used to load the solution within SuperElements
 	 */
 	virtual void LoadSolution();
+    
+    virtual void TransferMultiphysicsElementSolution()
+    {
+        if(fReferenceCompEl)
+        {
+            fReferenceCompEl->TransferMultiphysicsElementSolution();
+        }
+    }
+
 
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh

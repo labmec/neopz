@@ -12,7 +12,7 @@ TPZIntRuleT3D::TPZIntRuleT3D(int order) {
 		PZError << "TPZGaussRule creation precision = " << order << " not available\n";
 		order = NRULESTETRAHEDRA_ORDER;
 	}
-	ComputingSymmetricCubatureRule(order);
+	fOrder = ComputingSymmetricCubatureRule(order);
 }
 
 REAL TPZIntRuleT3D::W(int i) const {	
@@ -444,7 +444,7 @@ long double QUAD_TETRAH_P14_pts[Length(QUAD_TETRAH_P14_wts) * 4] = {
 			 .08672172833222153946294387400858277L)
 };
 
-void TPZIntRuleT3D::ComputingSymmetricCubatureRule(int order) {
+int TPZIntRuleT3D::ComputingSymmetricCubatureRule(int order) {
 	if(order > 14) order = 14; 
 	int NRGAUPO[15] = { 1, 1, 4, 8, 14, 14, 24, 35, 46, 61, 81, 109, 140, 171, 236};
 	fNumInt = NRGAUPO[order];
@@ -500,6 +500,8 @@ void TPZIntRuleT3D::ComputingSymmetricCubatureRule(int order) {
 		default:
 			PZError << "TPZIntRuleT3D not implemented by order " << order << std::endl;
 	}
+    
+    return order;
 }
 
 void TPZIntRuleT3D::TransformBarycentricCoordInCartesianCoord(long double baryvec[],long double weightvec[]) {

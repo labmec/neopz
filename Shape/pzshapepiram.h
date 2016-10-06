@@ -53,14 +53,6 @@ namespace pzshape {
          */
         static void SideShapeOrder(int side,  TPZVec<long> &id, int order, TPZGenMatrix<int> &shapeorders);
         
-		/**
-		 * @brief Computes the corner shape functions of the element
-		 * @param pt (input) point where the shape function is computed
-		 * @param phi (output) value of the (5) shape functions
-		 * @param dphi (output) value of the derivatives of the (5) shape functions holding the derivatives in a column
-		 */
-		static void CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-		
 		/** 
 		 * @brief Compute the internal functions of the pyramid shape function at a point\n
 		 * @param x coordinate of the point

@@ -239,23 +239,6 @@ if(USING_LIBNUMA)
 	endif()
 endif(USING_LIBNUMA)
 
-# ----------------------- enabling MatLab library -----------------------
-option(USING_MATLAB_ENGINE "Whether MatLab Engine will be linked in" OFF)
-if(USING_MATLAB_ENGINE)
-	add_definitions(-DUSING_MATLAB)
-	find_package(MATLAB REQUIRED)
-	if (NOT MATLAB_FOUND)
-		message(FATAL_ERROR "This project requires the MATLAB library. Please inform the path to your matlab application")
-	endif()
-
-	if(NOT EXISTS "/usr/bin/matlab")
-		message(FATAL_ERROR "Error! Please create matlab symlink on /usr/bin by typing on terminal:\nsudo ln -sf PATH_TO_YOUR_MATLAB/bin/matlab /usr/bin/matlab")
-	endif()
-
-	include_directories(${Matlab_ROOT_DIR}/extern/include)	
-	
-endif(USING_MATLAB_ENGINE)
-
 #enabling BLAS library
 option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
 if(USING_BLAS)
@@ -386,6 +369,13 @@ endif()
 
 #To building several examples for training and experimentation PZ
 option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
+if(BUILD_TUTORIAL)
+	add_definitions(-DBUILD_TUTORIAL)
+endif()
+
+#To building several examples for training and experimentation PZ
+option(BUILD_BROKEN "To build projects which are broken" OFF)
+
 if(BUILD_TUTORIAL)
 	add_definitions(-DBUILD_TUTORIAL)
 endif()

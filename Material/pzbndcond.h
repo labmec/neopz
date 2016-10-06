@@ -132,6 +132,14 @@ protected:
 		fType = type;
 		
 	}
+    
+//    int HasForcingFunction() {return (fForcingFunction != 0);}
+//    int HasForcingFunctionExact() {return (fForcingFunctionExact != 0);}
+//    int HasTimedependentForcingFunction() {return (fTimeDependentForcingFunction != 0);}
+//    int HasTimedependentForcingFunctionExact() {return (fTimedependentFunctionExact != 0);}
+//    int HasBCForcingFunction() {return (fBCForcingFunction != 0);}
+//    int HasTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}
+    
 	
 	TPZBndCond(TPZBndCond &copy, TPZMaterial * ref) : TPZDiscontinuousGalerkin(copy), fBCs(copy.fBCs), fType(copy.fType),
 	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
@@ -144,7 +152,8 @@ protected:
 	void SetForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
     {
         if (loadcase == 0) {
-            TPZMaterial::SetForcingFunction(func);
+            fForcingFunction = func;
+//            fMaterial->SetForcingFunction(func);
         }
         else {
             fBCs[loadcase].fForcingFunction = func;
@@ -154,7 +163,8 @@ protected:
 	void SetForcingFunctionExact(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
     {
         if (loadcase == 0) {
-            TPZMaterial::SetForcingFunctionExact(func);
+            fForcingFunctionExact = func;
+            fMaterial->SetForcingFunctionExact(func);
         }
         else {
             fBCs[loadcase].fForcingFunctionExact = func;
@@ -164,7 +174,8 @@ protected:
     void SetTimeDependentForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
     {
         if (loadcase == 0) {
-            TPZMaterial::SetTimeDependentForcingFunction(func);
+            fTimeDependentForcingFunction = func;
+            fMaterial->SetTimeDependentForcingFunction(func);
         }
         else {
             fBCs[loadcase].fTimeDependentForcingFunction = func;
@@ -174,7 +185,8 @@ protected:
     void SetTimeDependentFunctionExact(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
     {
         if (loadcase == 0) {
-            TPZMaterial::SetTimeDependentFunctionExact(func);
+            fTimedependentFunctionExact = func;
+            fMaterial->SetTimeDependentFunctionExact(func);
         }
         else {
             fBCs[loadcase].fTimedependentFunctionExact = func;
@@ -184,7 +196,9 @@ protected:
     void SetBCForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
     {
         if (loadcase == 0) {
-            TPZMaterial::SetfBCForcingFunction(func);
+            fBCForcingFunction = func;
+            fMaterial->SetfBCForcingFunction(func);
+//            TPZMaterial::SetfBCForcingFunction(func);
         }
         else {
             fBCs[loadcase].fBCForcingFunction = func;
@@ -194,7 +208,11 @@ protected:
     void SetTimedependentBCForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
     {
         if (loadcase == 0) {
-            TPZMaterial::SetTimedependentBCForcingFunction(func);
+            fTimedependentBCForcingFunction = func;
+            fMaterial->SetTimedependentBCForcingFunction(func);
+            fBCs.Resize(1);
+            fBCs[loadcase].fTimedependentBCForcingFunction = func;            
+//            TPZMaterial::SetTimedependentBCForcingFunction(func);
         }
         else {
             fBCs[loadcase].fTimedependentBCForcingFunction = func;
@@ -250,7 +268,8 @@ protected:
     
     virtual int MinimumNumberofLoadCases()
     {
-        return 1+fBCs.size();
+        return fBCs.size(); // @omar:: why + 1 ???
+//        return 1+fBCs.size();
     }
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
@@ -259,12 +278,18 @@ protected:
 	}
 	
 	void Print(std::ostream & out = std::cout) {
+		out << " Boundary condition element " << "\n";        
 		out << " Boundary condition number = " << Id() << "\n";
 		out << " boundary condition type = " << fType << "\n";
 		out << " val1 = \n"; fBCVal1.Print("fBCVal1",out);
 		out << " val2 = \n"; fBCVal2.Print("fBCVal2",out);
-		if (HasForcingFunction()) out << " has forcing function\n";
-		else out << "has no forcing function\n";
+		out << " has forcing function ? : ";if (HasForcingFunction()) out << " yes \n";
+		else out << " no \n";
+        out << " has time forcing function ? : ";if (HasfTimedependentForcingFunction()) out << " yes \n";
+        else out << " no \n";
+        out << " has time bc forcing function ? : ";if (HasfTimedependentBCForcingFunction()) out << " yes \n";
+        else out << " no \n";
+        
 	}
 	
 	void UpdateBCValues(TPZMaterialData &data);

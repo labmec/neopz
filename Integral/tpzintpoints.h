@@ -21,7 +21,22 @@ public:
 	/** @brief Default destructor */
     virtual ~TPZIntPoints() {
     }
+    
+    TPZIntPoints()
+    {
+        
+    }
 	
+    TPZIntPoints(const TPZIntPoints &copy)
+    {
+        
+    }
+    
+    TPZIntPoints &operator=(const TPZIntPoints &copy)
+    {
+        return *this;
+    }
+    
 	/** @brief Returns the name of the cubature rule */
 	virtual void Name(std::string &name) const {
 	}

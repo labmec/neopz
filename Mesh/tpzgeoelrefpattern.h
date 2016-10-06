@@ -378,7 +378,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	int j, k, sub, matid=this->MaterialId();
 	
 	long totalnodes = this->GetRefPattern()->NNodes();
-	TPZManVector<long> np(totalnodes,0);
+	TPZManVector<long,30> np(totalnodes,0);
 	int nnodes = this->NCornerNodes();
 	
 	for(j=0;j<nnodes;j++) {
@@ -390,7 +390,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	// creating new subelements
 	for(i=0;i<NSubEl;i++) {
 		int subcorner = this->GetRefPattern()->Element(i+1)->NCornerNodes();
-		TPZManVector<long> cornerindexes(subcorner);
+		TPZManVector<long,30> cornerindexes(subcorner);
 		for(j=0;j<subcorner;j++) {
 			long cornerid = this->GetRefPattern()->Element(i+1)->NodeIndex(j);
 			cornerindexes[j] = np[cornerid];

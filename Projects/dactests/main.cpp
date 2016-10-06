@@ -155,7 +155,12 @@ int main(int argc, char *argv[])
         saidaerros << "\nPARA p = " << p << endl;
         saidaerros << "ndiv" << setw(10) <<"NDoF"<< setw(20)<<"NDoFCond"<< setw(20)<< "Assemble"<< setw(20) << "Solve" << setw(20) <<"Ttotal" << setw(20) << "Error primal" << setw(20) <<"Error dual" << setw(20) <<"Error div \n";
         
+<<<<<<< HEAD
         for (ndiv=0; ndiv<3; ndiv++)
+=======
+        for (ndiv=0; ndiv<5; ndiv++)
+
+>>>>>>> iRMS_MHM
         {
             
             if (dim==2)

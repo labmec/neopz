@@ -127,7 +127,7 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         soltemp.Print("External DOF Solution",sout);
-        uglobal.Print("Epxanded solution",sout);
+        uglobal.Print("Expanded solution",sout);
         fSolution.Print("fSolution",sout);
         LOGPZ_DEBUG(logger, sout.str())
     }

@@ -33,7 +33,8 @@ public:
 	
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
-    virtual TPZStructMatrix * Clone(); 	
+    virtual TPZStructMatrix * Clone();
+    
 	
     /** Used only for testing */
 	static int main();

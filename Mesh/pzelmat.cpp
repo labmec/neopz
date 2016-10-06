@@ -113,6 +113,10 @@ void TPZElementMatrix::Print(std::ostream &out){
 		//sout << "ConstrainedMatrix = ";
 		constrmatrix.Print(sout.str().c_str(), out, EMathematicaInput);
 	}
+    else
+    {
+        DebugStop();
+    }
 }
 
 void TPZElementMatrix::ComputeDestinationIndices(){

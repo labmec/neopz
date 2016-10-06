@@ -93,7 +93,7 @@ public:
 #endif
 	}
 	
-	virtual MElementType Type();
+    //	virtual MElementType Type();
 	
 	
 	virtual int Dimension() const {
@@ -104,13 +104,13 @@ public:
 		return 0;
 	}
 	
-	virtual int NSideConnects(int side) const;
+//	virtual int NSideConnects(int side) const;
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
 	virtual void GetInterpolationOrder(TPZVec<int> &ord);
 	
 	/** @brief Returns the preferred order of the polynomial along side iside*/
-	virtual int PreferredSideOrder(int iside);
+    //	virtual int PreferredSideOrder(int iside);
 	
 	/** @brief Sets the interpolation order of side to order*/
 	virtual void SetSideOrder(int side, int order);
