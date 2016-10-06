@@ -70,6 +70,7 @@ struct SimulationCase {
     bool            UseFrontalQ;
     int             n_h_levels;
     int             n_p_levels;
+    int             n_acc_terms;
     int             int_order;
     int             n_threads;
     std::string     mesh_type;
@@ -80,15 +81,15 @@ struct SimulationCase {
     TPZStack<int>   gamma_ids;
 };
 
-#define Solution1
-//#define Solution6
+//#define Solution1
+#define Solution6
 
 
 
 
-void Analytic(const TPZVec<REAL> &x, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu);
-void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f);
-void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
+static void Analytic(const TPZVec<REAL> &x, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu);
+static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f);
+static void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
 
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase sim_data);
 
@@ -141,41 +142,61 @@ int main()
     
     TPZStack<SimulationCase> simulations;
     
-//    // Primal Formulation over the solid sphere
-//    struct SimulationCase H1Case;
-//    H1Case.IsHdivQ = false;
-//    H1Case.UsePardisoQ = true;
-//    H1Case.UseFrontalQ = false;
-//    H1Case.n_h_levels = 3;
-//    H1Case.n_p_levels = 1;
-//    H1Case.int_order  = 1;
-//    H1Case.n_threads  = 16;
-//    H1Case.mesh_type = "blended";
-//    H1Case.domain_type = "sphere";
-//    H1Case.conv_summary = "convergence_summary";
-//    H1Case.dump_folder = "H1_sphere";
-//    H1Case.omega_ids.Push(1);     // Domain
-//    H1Case.gamma_ids.Push(-1);    // Gamma_D outer surface
-//    H1Case.gamma_ids.Push(-2);    // Gamma_D inner surface
-//    simulations.Push(H1Case);
+    // Primal Formulation over the solid sphere
+    struct SimulationCase common;
+    common.UsePardisoQ = true;
+    common.UseFrontalQ = false;
+    common.n_h_levels = 4;
+    common.n_p_levels = 3;
+    common.int_order  = 10;
+    common.n_threads  = 2;
+    common.domain_type = "sphere";
+    common.conv_summary = "convergence_summary";
+    common.omega_ids.Push(1);     // Domain
+    common.gamma_ids.Push(-1);    // Gamma_D outer surface
+    common.gamma_ids.Push(-2);    // Gamma_D inner surface
+    
+    // Primal Formulation over the solid sphere
+    struct SimulationCase H1Case_1 = common;
+    H1Case_1.IsHdivQ = false;
+    H1Case_1.mesh_type = "linear";
+    H1Case_1.dump_folder = "H1_sphere";
+    simulations.Push(H1Case_1);
+    
+    // Primal Formulation over the solid sphere
+    struct SimulationCase H1Case_2 = common;
+    H1Case_2.IsHdivQ = false;
+    H1Case_2.mesh_type = "quadratic";
+    H1Case_2.dump_folder = "H1_sphere";
+    simulations.Push(H1Case_2);
+    
+    // Primal Formulation over the solid sphere
+    struct SimulationCase H1Case_3 = common;
+    H1Case_3.IsHdivQ = false;
+    H1Case_3.mesh_type = "blended";
+    H1Case_3.dump_folder = "H1_sphere";
+    simulations.Push(H1Case_3);
     
     // Dual Formulation over the solid sphere
-    struct SimulationCase HdivCase;
-    HdivCase.IsHdivQ = true;
-    HdivCase.UsePardisoQ = false;
-    HdivCase.UseFrontalQ = true;
-    HdivCase.n_h_levels = 2;
-    HdivCase.n_p_levels = 1;
-    HdivCase.int_order  = 1;
-    HdivCase.n_threads  = 16;
-    HdivCase.mesh_type = "blended";
-    HdivCase.domain_type = "sphere";
-    HdivCase.conv_summary = "convergence_summary";
-    HdivCase.dump_folder = "Hdiv_sphere";
-    HdivCase.omega_ids.Push(1);     // Domain
-    HdivCase.gamma_ids.Push(-1);    // Gamma_D outer surface
-    HdivCase.gamma_ids.Push(-2);    // Gamma_D inner surface
-    simulations.Push(HdivCase);
+    struct SimulationCase HdivCase_1 = common;
+    HdivCase_1.IsHdivQ = true;
+    HdivCase_1.mesh_type = "linear";
+    HdivCase_1.dump_folder = "Hdiv_sphere";
+    simulations.Push(HdivCase_1);
+    
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivCase_2 = common;
+    HdivCase_2.IsHdivQ = true;
+    HdivCase_2.mesh_type = "quadratic";
+    HdivCase_2.dump_folder = "Hdiv_sphere";
+    simulations.Push(HdivCase_2);
+    
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivCase_3 = common;
+    HdivCase_3.IsHdivQ = true;
+    HdivCase_3.mesh_type = "blended";
+    HdivCase_3.dump_folder = "Hdiv_sphere";
+    simulations.Push(HdivCase_3);
 
     ComputeCases(simulations);
     
@@ -191,6 +212,10 @@ void ComputeCases(TPZStack<SimulationCase> cases){
 }
 
 void ComputeApproximation(SimulationCase sim_data){
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
     
     // Creating the directory
     std::string command = "mkdir " + sim_data.dump_folder;
@@ -222,7 +247,7 @@ void ComputeApproximation(SimulationCase sim_data){
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
-            h_base = h + 1;
+            h_base = h + 0;
             TPZGeoMesh * gmesh = GeomtricMesh(h_base, sim_data);
      
 #ifdef PZDEBUG
@@ -257,21 +282,21 @@ void ComputeApproximation(SimulationCase sim_data){
             long ndof, ndof_cond;
             TPZCompMesh * cmesh = ComputationalMesh(gmesh, p, sim_data, ndof);
 
-#ifdef PZDEBUG
-            
-#ifdef USING_BOOST
-            boost::posix_time::ptime int_p_t1 = boost::posix_time::microsec_clock::local_time();
-#endif
-            
-            STATE p_integral = 1.0;//IntegrateSolution(cmesh, sim_data);
-            
-#ifdef USING_BOOST
-            boost::posix_time::ptime int_p_t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-            
-            std::cout << "Analytic pressure integral = " << p_integral << "; Time for integration = " << int_p_t2-int_p_t1 <<std::endl;
-
-#endif
+//#ifdef PZDEBUG
+//            
+//#ifdef USING_BOOST
+//            boost::posix_time::ptime int_p_t1 = boost::posix_time::microsec_clock::local_time();
+//#endif
+//            
+//            STATE p_integral = 1.0;//IntegrateSolution(cmesh, sim_data);
+//            
+//#ifdef USING_BOOST
+//            boost::posix_time::ptime int_p_t2 = boost::posix_time::microsec_clock::local_time();
+//#endif
+//            
+//            std::cout << "Analytic pressure integral = " << p_integral << "; Time for integration = " << int_p_t2-int_p_t1 <<std::endl;
+//
+//#endif
             
             // Create Analysis
             TPZAnalysis * analysis = CreateAnalysis(cmesh,sim_data);
@@ -342,7 +367,16 @@ void ComputeApproximation(SimulationCase sim_data){
         
     }
     
-    std::cout << "Case closed " << std::endl;
+#ifdef USING_BOOST
+    boost::posix_time::ptime int_case_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    STATE case_solving_time = boost::numeric_cast<double>((int_case_t2-int_case_t1).total_milliseconds());
+#endif
+    
+    convergence <<  "Case closed in :" << setw(10) <<  case_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
+    std::cout << "Case closed in :" << setw(10) <<  case_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
     
 }
 
@@ -411,7 +445,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 5.0;
+    REAL d = 1.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -461,7 +495,7 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 5.0;
+    REAL d = 1.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -505,7 +539,7 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 5.0;
+    REAL d = 1.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -772,24 +806,16 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
 #endif
     
     TPZCompMesh *cmesh = new TPZCompMesh(geometry);
-    
-    TPZMaterial * volume;
-    TPZMaterial * face;
-    
+        
     TPZFMatrix<STATE> val1(dimension,dimension,0.0),val2(dimension,1,0.0);
     for (int iv = 0; iv < nvolumes ; iv++) {
         
-        volume = new TPZPrimalPoisson(sim_data.omega_ids[iv]);
+        TPZMaterial * volume = new TPZPrimalPoisson(sim_data.omega_ids[iv]);
         
         TPZDummyFunction<STATE> * rhs_exact = new TPZDummyFunction<STATE>(f);
         rhs_exact->SetPolynomialOrder(sim_data.int_order);
         TPZAutoPointer<TPZFunction<STATE> > rhs = rhs_exact;
         volume->SetForcingFunction(rhs);
-        
-        TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
-        analytic_bc->SetPolynomialOrder(sim_data.int_order);
-        TPZAutoPointer<TPZFunction<STATE> > solution = analytic_bc;
-        volume->SetfBCForcingFunction(solution);
         
         
         TPZDummyFunction<STATE> * analytic = new TPZDummyFunction<STATE>(Analytic);
@@ -800,7 +826,12 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
         cmesh->InsertMaterialObject(volume);
         
         for (int ib = 0; ib < nboundaries; ib++) {
-            face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
+            TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
+            analytic_bc->SetPolynomialOrder(sim_data.int_order);
+            TPZAutoPointer< TPZFunction<STATE> > solution = analytic_bc;
+            
+            TPZMaterial * face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
+            face->SetfBCForcingFunction(solution);
             cmesh->InsertMaterialObject(face);
         }
         
@@ -843,23 +874,16 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data)
     
     TPZCompMesh *cmesh = new TPZCompMesh(geometry);
     
-    TPZMaterial * volume;
-    TPZMaterial * face;
     
     TPZFMatrix<STATE> val1(dimension,dimension,0.0),val2(dimension,1,0.0);
     for (int iv = 0; iv < nvolumes ; iv++) {
         
-        volume = new TPZDualPoisson(sim_data.omega_ids[iv]);
+        TPZMaterial * volume = new TPZDualPoisson(sim_data.omega_ids[iv]);
         
         TPZDummyFunction<STATE> * rhs_exact = new TPZDummyFunction<STATE>(f);
         rhs_exact->SetPolynomialOrder(sim_data.int_order);
         TPZAutoPointer<TPZFunction<STATE> > rhs = rhs_exact;
         volume->SetForcingFunction(rhs);
-        
-        TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
-        analytic_bc->SetPolynomialOrder(sim_data.int_order);
-        TPZAutoPointer<TPZFunction<STATE> > solution = analytic_bc;
-        volume->SetfBCForcingFunction(solution);
         
         
         TPZDummyFunction<STATE> * analytic = new TPZDummyFunction<STATE>(Analytic);
@@ -870,7 +894,13 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data)
         cmesh->InsertMaterialObject(volume);
         
         for (int ib = 0; ib < nboundaries; ib++) {
-            face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
+            
+            TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
+            analytic_bc->SetPolynomialOrder(sim_data.int_order);
+            TPZAutoPointer< TPZFunction<STATE> > solution = analytic_bc;
+            
+            TPZMaterial * face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
+            face->SetfBCForcingFunction(solution);
             cmesh->InsertMaterialObject(face);
         }
         
@@ -889,7 +919,7 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data)
     meshvector[0] = qMesh(geometry, p, sim_data);
     meshvector[1] = pMesh(geometry, p, sim_data);
     
-//    AdjustFluxPolynomialOrders(meshvector[0], hdivplusplus);
+//    AdjustFluxPolynomialOrders(meshvector[0], sim_data.n_acc_terms);
 //    SetPressureOrders(meshvector[0], meshvector[1]);
     
     

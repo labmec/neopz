@@ -1516,8 +1516,6 @@ namespace pztopology {
         }
     }
     
-<<<<<<< HEAD
-=======
     void TPZPyramid::CornerShape(const TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
         if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
             //para testes com transforma�es geometricas-->>Que  o que faz o RefPattern!!
@@ -1583,9 +1581,6 @@ namespace pztopology {
         dphi(2,4) =  1.0;
     }
     
-
-
->>>>>>> iRMS_MHM
 }
 
 template

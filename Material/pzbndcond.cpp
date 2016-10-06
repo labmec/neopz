@@ -126,6 +126,7 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
     
     TPZBndCond copy(*this);
     copy.SetForcingFunction(0, this->ForcingFunction());
+    copy.SetBCForcingFunction(0, this->BCForcingFunction());
     copy.SetTimeDependentForcingFunction(0, this->TimeDependentForcingFunction());
     copy.SetTimedependentBCForcingFunction(0, this->TimedependentBCForcingFunction());
 	copy.UpdateBCValues(data);
@@ -159,6 +160,7 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
 	
     TPZBndCond copy(*this);
     copy.fForcingFunction = this->fForcingFunction;
+    copy.SetBCForcingFunction(0, this->BCForcingFunction());
     copy.fTimeDependentForcingFunction = this->fTimeDependentForcingFunction;
     copy.fTimedependentBCForcingFunction = this->fTimedependentBCForcingFunction;
 //    copy.SetForcingFunction(0, this->ForcingFunction());

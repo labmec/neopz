@@ -217,8 +217,8 @@ void TPZPrimalPoisson::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix
 
     TPZManVector<STATE,1> bc_data(1,0.0);
     bc_data[0] = bc.Val2()(0,0);
-    if (this->HasffBCForcingFunction()) {
-        this->fBCForcingFunction->Execute(data.x, bc_data);
+    if (bc.HasffBCForcingFunction()) {
+        bc.BCForcingFunction()->Execute(data.x, bc_data);
     }
 
     

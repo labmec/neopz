@@ -304,7 +304,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
     InitMaterialData(datavecleft, leftel);
     InitMaterialData(datavecright, rightel);
     
-    TPZManVector<TPZTransform> leftcomptr, rightcomptr;
+    TPZManVector<TPZTransform<> > leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);
     rightel->AffineTransform(rightcomptr);
     
@@ -328,14 +328,14 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
     TPZAutoPointer<TPZIntPoints> intrule = gel->CreateSideIntegrationRule(thisside, integrationorder);
     TPZManVector<REAL,3> Point(dimension), leftPoint(leftel->Dimension()), rightPoint(rightel->Dimension());
     TPZGeoElSide neighleft(fLeftElSide.Reference()), neighright(fRightElSide.Reference());
-    TPZTransform trleft(dimension),trright(dimension);
+    TPZTransform<> trleft(dimension),trright(dimension);
     TPZGeoElSide gelside(this->Reference(),thisside);
     // compute the transformation between neighbours
     gelside.SideTransform3(neighleft, trleft);
     gelside.SideTransform3(neighright, trright);
     
-    TPZTransform leftloctr = leftgel->SideToSideTransform(neighleft.Side(), leftgel->NSides()-1);
-    TPZTransform rightloctr = rightgel->SideToSideTransform(neighright.Side(), rightgel->NSides()-1);
+    TPZTransform<> leftloctr = leftgel->SideToSideTransform(neighleft.Side(), leftgel->NSides()-1);
+    TPZTransform<> rightloctr = rightgel->SideToSideTransform(neighright.Side(), rightgel->NSides()-1);
     // transform from the element to the interior of the neighbours
     trleft = leftloctr.Multiply(trleft);
     trright = rightloctr.Multiply(trright);

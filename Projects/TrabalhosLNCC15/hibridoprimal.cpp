@@ -76,11 +76,8 @@ REAL const Pi = 4.*atan(1.);
 TPZGeoMesh *CreateOneCubo(int ndiv);
 TPZGeoMesh * CreateOneCuboWithTetraedrons(int ndiv);
 TPZGeoMesh *GMesh2D(bool ftriang);
-<<<<<<< HEAD
 TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder,bool ismultiplierH1);
-=======
-TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder,bool ismultiplierH1, int ndiv);
->>>>>>> master
+
 
 TPZCompMesh *CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim, bool rodarSIPGD, int ndiv);
 
@@ -180,13 +177,10 @@ int main(int argc, char *argv[])
     TPZCompMesh *cmesh;
     TPZGeoMesh *gmesh;
 
-<<<<<<< HEAD
+
     int pini =2;
     for(int p = pini; p<3; p++)
-=======
-    int pini =4;
-    for(int p = pini; p<5; p++)
->>>>>>> master
+
     {
 
         myerrorfile<<"\nORDEM p = "<<p <<"\n\n";
@@ -197,26 +191,18 @@ int main(int argc, char *argv[])
             myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
             "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" << setw(12) <<"Error u" << setw(16)<<"Error gradU\n";
         }
-<<<<<<< HEAD
+
         for(int ndiv=0; ndiv<2; ndiv++){
-=======
-        for(int ndiv=0; ndiv<5; ndiv++){
->>>>>>> master
+
+
 
 
             if(dim_problema==2){
                 gmesh = GMesh2D(fTriang);//malha geometrica
-<<<<<<< HEAD
                 UniformRefine(gmesh, flevel);
                 RefiningNearCircunference(dim_problema, gmesh,ndiv,1);
                 //DirectionalRef(gmesh, 1, ndiv);
                 AjustarContorno(gmesh);
-=======
-                UniformRefine(gmesh, flevel+ndiv);
-//                RefiningNearCircunference(dim_problema, gmesh,ndiv,1);
-//                //DirectionalRef(gmesh, 1, ndiv);
-//                AjustarContorno(gmesh);
->>>>>>> master
 
 
             }else{
@@ -236,11 +222,8 @@ int main(int argc, char *argv[])
             long nNzeros=0;
 
             if(!rodarH1 && !rodarSIPGD){
-<<<<<<< HEAD
                 cmesh= CreateHybridCompMesh(*gmesh, p, multiplicadorH1);//malha computacional
-=======
-                cmesh= CreateHybridCompMesh(*gmesh, p, multiplicadorH1, ndiv);//malha computacional
->>>>>>> master
+
 
                 //------- Criar elementos de Lagrange (Ribs)--------
                 //materiais do problema
@@ -254,11 +237,8 @@ int main(int argc, char *argv[])
                         matids.insert(-i);
                     }
                 }
-<<<<<<< HEAD
+                
                 if(dim_problema==2) Prefinamento(cmesh, ndiv, p);
-=======
-                //if(dim_problema==2) Prefinamento(cmesh, ndiv, p);
->>>>>>> master
                 cmesh->ApproxSpace().Hybridize(*cmesh, matids, multiplicadorH1);
 
 
@@ -353,17 +333,11 @@ int main(int argc, char *argv[])
             TPZAnalysis analysis(cmesh);
             if(dim_problema==2){
 
-<<<<<<< HEAD
                 TPZSkylineStructMatrix skylstr(cmesh); //caso simetrico
                 //TPZSkylineNSymStructMatrix skylstr(cmesh); //caso nao simetrico
                 //skylstr.SetNumThreads(8);
                 analysis.SetStructuralMatrix(skylstr);
-=======
-//                TPZSkylineStructMatrix skylstr(cmesh); //caso simetrico
-//                //TPZSkylineNSymStructMatrix skylstr(cmesh); //caso nao simetrico
-//                //skylstr.SetNumThreads(8);
-//                analysis.SetStructuralMatrix(skylstr);
->>>>>>> master
+
 
                 long neq = NDoFCond;
                 TPZVec<long> skyline;
@@ -371,18 +345,11 @@ int main(int argc, char *argv[])
                 TPZSkylMatrix<STATE> matsky(neq,skyline);
                 nNzeros = matsky.GetNelemts();
                 
-
-<<<<<<< HEAD
 //                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(cmesh);
 //                strmat.SetDecomposeType(ELDLt);
 //                strmat.SetNumThreads(6);
 //                analysis.SetStructuralMatrix(strmat);
-=======
-                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(cmesh);
-                strmat.SetDecomposeType(ELDLt);
-                strmat.SetNumThreads(6);
-                analysis.SetStructuralMatrix(strmat);
->>>>>>> master
+
 
 
 //                TPZBandStructMatrix bdmat(cmesh);
@@ -439,11 +406,7 @@ int main(int argc, char *argv[])
             //            std::ofstream out("cmeshHib22.txt");
             //            cmesh->Print(out);
 
-<<<<<<< HEAD
             if(p==2){
-=======
-            if(p==4){
->>>>>>> master
                 TPZVec<std::string> scalnames(3), vecnames;
                 scalnames[0] = "Solution";
                 scalnames[1] = "POrder";
@@ -514,10 +477,8 @@ int main2(int argc, char *argv[])
         hdivskeleton = false;
     }
     
-<<<<<<< HEAD
-=======
+
     
->>>>>>> GradOfX
     TPZGeoMesh *gmesh;
     TPZCompMesh * cmesh1;
     TPZCompMesh * cmesh2;

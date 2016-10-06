@@ -140,12 +140,9 @@ ENABLE_TESTING()
 			add_subdirectory(Plasticity)
 
 			#add_subdirectory(projteste)
-<<<<<<< HEAD
-			
+		
 			# MHM project
 			add_subdirectory(MHM)
-=======
->>>>>>> iRMS_MHM
 
 
 			add_subdirectory(MultipleLoad)
@@ -171,11 +168,7 @@ ENABLE_TESTING()
 			add_subdirectory(Steam)
 			add_subdirectory(QuadraticElements)
 			add_subdirectory(ThermalStress)
-<<<<<<< HEAD
 			#Add_subdirectory(Conductivity)
-=======
-			Add_subdirectory(Conductivity)
->>>>>>> iRMS_MHM
 			add_subdirectory(ConsLaw)
 			add_subdirectory(Descontinuo2)
 
@@ -183,11 +176,7 @@ ENABLE_TESTING()
 			
 			#projeto agnaldo 09-09-2011
 			add_subdirectory(DoubleProjection)
-<<<<<<< HEAD
-                        add_subdirectory(artigoPira)
-=======
             add_subdirectory(artigoPira)
->>>>>>> iRMS_MHM
 			add_subdirectory(TrabalhosLNCC15)
 			#projeto omar duran 16-12-2012
 			add_subdirectory(PoroElasticAnalysis)
@@ -196,17 +185,13 @@ ENABLE_TESTING()
 			add_subdirectory(DarcyflowAxisymmetricHdiv)
 			add_subdirectory(DarcyflowHdiv3D)
 			add_subdirectory(MonophasicWell)
-<<<<<<< HEAD
 			add_subdirectory(GradOfX)
 			add_subdirectory(Hdiv3DCurved)
-=======
->>>>>>> iRMS_MHM
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			add_subdirectory(iRMS)
 
 
-			add_subdirectory(Elasticity2D)
-			add_subdirectory(MHM)			
+			add_subdirectory(Elasticity2D)			
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
 			#add_subdirectory(Andrade)
@@ -253,10 +238,6 @@ ENABLE_TESTING()
 			# Colaboration with Laurent Stainier
 			
 			add_subdirectory(MatLib)
-<<<<<<< HEAD
-=======
-
->>>>>>> iRMS_MHM
 
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
@@ -266,8 +247,4 @@ ENABLE_TESTING()
 		endif(BUILD_COMPLEX_PROJECTS)
 		
 		
-<<<<<<< HEAD
 	endif(BUILD_PROJECTS)
-=======
-	endif(BUILD_PROJECTS)
->>>>>>> iRMS_MHM
