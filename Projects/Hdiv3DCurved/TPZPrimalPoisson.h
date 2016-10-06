@@ -17,7 +17,7 @@
 
 /**
  * @ingroup Material that implements Continuous Galerkin Approximation of laplace equation
- * @brief This material consider exactly just laplace equation (i.e. units coefficients)
+ * @brief This material consider exactly just laplace equation (i.e. coefficient equal to 1)
  */
 
 /**
@@ -52,7 +52,7 @@ public:
      */
 
     /** @brief return the euclidean dimension of the weak statement */
-    int Dimension() const; //{ return 3;}
+    int Dimension() const;
     
     /** @brief return the number of state variables associated with each trial function */
     int NStateVariables();
@@ -148,10 +148,6 @@ public:
 
         /** @brief Compute errors, no comments!!! */
         void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &du, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &error);
-
-//        /** @brief Compute errors, no comments!!! */
-//        void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
-
     
     /** @} */
 

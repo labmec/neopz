@@ -961,6 +961,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
+    maxIntOrder = 5;
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);
@@ -1006,7 +1007,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 		//contribuicoes dos erros
 		if(fp) {
 			fp(datavec[0].x,u_exact,du_exact);
-      material->Errors(datavec,u_exact,du_exact,values);
+            material->Errors(datavec,u_exact,du_exact,values);
       
 			for(int ier = 0; ier < NErrors; ier++)
 				errors[ier] += values[ier]*weight;

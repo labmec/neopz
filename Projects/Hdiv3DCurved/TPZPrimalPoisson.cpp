@@ -395,8 +395,4 @@ void TPZPrimalPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE>
 }
 
 
-//        /** @brief Compute errors, no comments!!! */
-//        void TPZPrimalPoisson::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
-
-
 /** @} */

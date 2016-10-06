@@ -44,7 +44,11 @@
 #include "mixedpoisson.h"
 
 #include "TPZPrimalPoisson.h"
+#include "TPZDualPoisson.h"
 #include "pzbndcond.h"
+#include "pzbuildmultiphysicsmesh.h"
+
+#include "TPZCompMeshTools.h"
 
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
@@ -76,8 +80,8 @@ struct SimulationCase {
     TPZStack<int>   gamma_ids;
 };
 
-//#define Solution1
-#define Solution6
+#define Solution1
+//#define Solution6
 
 
 
@@ -100,8 +104,14 @@ TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim
 
 TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); //  Primal approximation
 TPZCompMesh * DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // Dual approximation
-TPZCompMesh * uMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // Hdiv space
+TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // Hdiv space
 TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // L2 space
+
+/// adjust the polynomial orders of the hdiv elements such that the internal order is higher than the sideorders
+void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus);
+
+/// set the pressure order acording to the order of internal connect of the elements of the fluxmesh
+void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh);
 
 
 TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase sim_data);
@@ -115,9 +125,12 @@ STATE IntegrateVolume(TPZGeoMesh * geometry, SimulationCase sim_data);
 STATE IntegrateSolution(TPZCompMesh * cmesh,  SimulationCase sim_data);
 
 void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_h1);
+void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_hdiv);
 
 int main()
 {
+
+  HDivPiola = 1;
     
   gRefDBase.InitializeAllUniformRefPatterns();
     //	gRefDBase.InitializeRefPatterns();
@@ -128,23 +141,41 @@ int main()
     
     TPZStack<SimulationCase> simulations;
     
-    // Primal Formulation over the solid sphere
-    struct SimulationCase H1Case;
-    H1Case.IsHdivQ = false;
-    H1Case.UsePardisoQ = true;
-    H1Case.UseFrontalQ = false;
-    H1Case.n_h_levels = 3;
-    H1Case.n_p_levels = 1;
-    H1Case.int_order  = 1;
-    H1Case.n_threads  = 16;
-    H1Case.mesh_type = "blended";
-    H1Case.domain_type = "sphere";
-    H1Case.conv_summary = "convergence_summary";
-    H1Case.dump_folder = "H1_sphere";
-    H1Case.omega_ids.Push(1);     // Domain
-    H1Case.gamma_ids.Push(-1);    // Gamma_D outer surface
-    H1Case.gamma_ids.Push(-2);    // Gamma_D inner surface
-    simulations.Push(H1Case);
+//    // Primal Formulation over the solid sphere
+//    struct SimulationCase H1Case;
+//    H1Case.IsHdivQ = false;
+//    H1Case.UsePardisoQ = true;
+//    H1Case.UseFrontalQ = false;
+//    H1Case.n_h_levels = 3;
+//    H1Case.n_p_levels = 1;
+//    H1Case.int_order  = 1;
+//    H1Case.n_threads  = 16;
+//    H1Case.mesh_type = "blended";
+//    H1Case.domain_type = "sphere";
+//    H1Case.conv_summary = "convergence_summary";
+//    H1Case.dump_folder = "H1_sphere";
+//    H1Case.omega_ids.Push(1);     // Domain
+//    H1Case.gamma_ids.Push(-1);    // Gamma_D outer surface
+//    H1Case.gamma_ids.Push(-2);    // Gamma_D inner surface
+//    simulations.Push(H1Case);
+    
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivCase;
+    HdivCase.IsHdivQ = true;
+    HdivCase.UsePardisoQ = false;
+    HdivCase.UseFrontalQ = true;
+    HdivCase.n_h_levels = 2;
+    HdivCase.n_p_levels = 1;
+    HdivCase.int_order  = 1;
+    HdivCase.n_threads  = 16;
+    HdivCase.mesh_type = "blended";
+    HdivCase.domain_type = "sphere";
+    HdivCase.conv_summary = "convergence_summary";
+    HdivCase.dump_folder = "Hdiv_sphere";
+    HdivCase.omega_ids.Push(1);     // Domain
+    HdivCase.gamma_ids.Push(-1);    // Gamma_D outer surface
+    HdivCase.gamma_ids.Push(-2);    // Gamma_D inner surface
+    simulations.Push(HdivCase);
 
     ComputeCases(simulations);
     
@@ -187,7 +218,7 @@ void ComputeApproximation(SimulationCase sim_data){
         convergence << " Polynomial order  =  " << p << std::endl;
         convergence << setw(5)  << " h" << setw(25) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
         
-        int h_base = 2;
+        int h_base = 0;
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
@@ -232,7 +263,7 @@ void ComputeApproximation(SimulationCase sim_data){
             boost::posix_time::ptime int_p_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
             
-            STATE p_integral = IntegrateSolution(cmesh, sim_data);
+            STATE p_integral = 1.0;//IntegrateSolution(cmesh, sim_data);
             
 #ifdef USING_BOOST
             boost::posix_time::ptime int_p_t2 = boost::posix_time::microsec_clock::local_time();
@@ -276,7 +307,7 @@ void ComputeApproximation(SimulationCase sim_data){
 #endif
             
             if (sim_data.IsHdivQ) {
-                DebugStop();
+                ErrorHdiv(cmesh, p_error[h], d_error[h], h_error[h]);
             }
             else{
                 ErrorH1(cmesh, p_error[h], d_error[h], h_error[h]);
@@ -327,6 +358,8 @@ void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence){
 }
 
 void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
+    
+    gradu.Resize(4,1);
     
     STATE x,y,z;
     x = p[0];
@@ -552,6 +585,12 @@ STATE IntegrateSolution(TPZCompMesh * cmesh, SimulationCase sim_data){
     for (long iel = 0; iel < nel; iel++) {
         TPZCompEl *cel = cmesh->ElementVec()[iel];
         
+#ifdef PZDEBUG
+        if (!cel) {
+            DebugStop();
+        }
+#endif
+        
         if(cel->Reference()->Dimension()!=dim) {
             continue;
         }
@@ -628,7 +667,9 @@ TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim
     TPZCompMesh * mesh = NULL;
     
     if (sim_data.IsHdivQ) {
-        
+        mesh = DualMesh(geometry, p, sim_data);
+        ndof = mesh->NEquations();
+        return mesh;
     }
     else
     {
@@ -696,10 +737,10 @@ void PosProcess(TPZCompMesh* cmesh, TPZAnalysis  * an, std::string file, Simulat
     
     if (sim_data.IsHdivQ) {
         vecnames.Push("q");
-//        vecnames.Push("ExactFlux");
+        vecnames.Push("q_exact");
         scalnames.Push("p");
-//        scalnames.Push("ExactPressure");
-//        scalnames.Push("Rhs");
+        scalnames.Push("p_exact");
+        scalnames.Push("f_exact");
         scalnames.Push("div_q");
     }
     else{
@@ -784,19 +825,318 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
     
 }
 
+
 TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data)
 {
-//    TPZCompMesh *fluxmesh = CMeshFlux(gmesh,porder,dim);
-//    TPZCompMesh *pressuremesh = CMeshPressure(gmesh, porder, dim);
-//    AdjustFluxPolynomialOrders(fluxmesh, hdivplusplus);
-//    SetPressureOrders(fluxmesh, pressuremesh);
-//    meshvec.resize(2);
-//    meshvec[0] = fluxmesh;
-//    meshvec[1] = pressuremesh;
-//    TPZCompMesh *mixed = CMeshMixed(gmesh, meshvec);
-//    TPZCompMeshTools::GroupElements(mixed);
-//    TPZCompMeshTools::CreatedCondensedElements(mixed, true);
-//    return mixed;
+    
+    int dimension = 3;
+    int dirichlet = 0;
+    int nvolumes = sim_data.omega_ids.size();
+    int nboundaries = sim_data.gamma_ids.size();
+    
+#ifdef PZDEBUG
+    if (nvolumes != 1) {
+        std::cout << "Error:: unable to compute the given case = " << &sim_data << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TPZCompMesh *cmesh = new TPZCompMesh(geometry);
+    
+    TPZMaterial * volume;
+    TPZMaterial * face;
+    
+    TPZFMatrix<STATE> val1(dimension,dimension,0.0),val2(dimension,1,0.0);
+    for (int iv = 0; iv < nvolumes ; iv++) {
+        
+        volume = new TPZDualPoisson(sim_data.omega_ids[iv]);
+        
+        TPZDummyFunction<STATE> * rhs_exact = new TPZDummyFunction<STATE>(f);
+        rhs_exact->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > rhs = rhs_exact;
+        volume->SetForcingFunction(rhs);
+        
+        TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
+        analytic_bc->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > solution = analytic_bc;
+        volume->SetfBCForcingFunction(solution);
+        
+        
+        TPZDummyFunction<STATE> * analytic = new TPZDummyFunction<STATE>(Analytic);
+        analytic->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > analytic_full = analytic;
+        volume->SetForcingFunctionExact(analytic_full);
+        
+        cmesh->InsertMaterialObject(volume);
+        
+        for (int ib = 0; ib < nboundaries; ib++) {
+            face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
+            cmesh->InsertMaterialObject(face);
+        }
+        
+    }
+    cmesh->SetDimModel(dimension);
+    cmesh->SetDefaultOrder(p);
+    cmesh->SetAllCreateFunctionsMultiphysicElem();
+    
+    cmesh->AutoBuild();
+    cmesh->ExpandSolution();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    
+    TPZManVector<TPZCompMesh * ,2> meshvector(2);
+    meshvector[0] = qMesh(geometry, p, sim_data);
+    meshvector[1] = pMesh(geometry, p, sim_data);
+    
+//    AdjustFluxPolynomialOrders(meshvector[0], hdivplusplus);
+//    SetPressureOrders(meshvector[0], meshvector[1]);
+    
+    
+    // Transferindo para a multifisica
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, cmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, cmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, cmesh);
+    
+//    TPZCompMeshTools::GroupElements(cmesh);
+//    TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
+
+    
+#ifdef PZDEBUG
+    std::stringstream file_name;
+    file_name   << sim_data.dump_folder << "/" << "Dual_cmesh" << ".txt";
+    std::ofstream sout(file_name.str());
+    cmesh->Print(sout);
+#endif
+    
+    return cmesh;
+    
+
+}
+
+/// adjust the polynomial orders of the hdiv elements such that the internal order is higher than the sideorders
+void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
+{
+    int dim = fluxmesh->Dimension();
+    /// loop over all the elements
+    long nel = fluxmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fluxmesh->Element(el);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        if (gel->Dimension() != dim) {
+            continue;
+        }
+        // compute the maxorder
+        int maxorder = -1;
+        int ncon = intel->NConnects();
+        for (int i=0; i<ncon-1; i++) {
+            int conorder = intel->Connect(i).Order();
+            maxorder = maxorder < conorder ? conorder : maxorder;
+        }
+        int nsides = gel->NSides();
+        int nconside = intel->NSideConnects(nsides-1);
+        // tive que tirar para rodar H1
+        //        if (nconside != 1 || maxorder == -1) {
+        //            DebugStop();
+        //        }
+        long cindex = intel->SideConnectIndex(nconside-1, nsides-1);
+        TPZConnect &c = fluxmesh->ConnectVec()[cindex];
+        if (c.NElConnected() != 1) {
+            DebugStop();
+        }
+        if (c.Order()+hdivplusplus != maxorder) {
+            //            std::cout << "Changing the order of the central connect " << cindex << " from " << c.Order() << " to " << maxorder+hdivplusplus << std::endl;
+            // change the internal connect order to be equal do maxorder
+            intel->SetSideOrder(nsides-1, maxorder+hdivplusplus);
+        }
+    }
+    fluxmesh->ExpandSolution();
+}
+
+void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
+{
+    // build a vector with the required order of each element in the pressuremesh
+    // if an element of the mesh dimension of the fluxmesh does not have a corresponding element in the pressuremesh DebugStop is called
+    int meshdim = fluxmesh->Dimension();
+    pressuremesh->Reference()->ResetReference();
+    pressuremesh->LoadReferences();
+    TPZManVector<long> pressorder(pressuremesh->NElements(),-1);
+    long nel = fluxmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fluxmesh->Element(el);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        if (gel->Dimension() != meshdim) {
+            continue;
+        }
+        int nsides = gel->NSides();
+        long cindex = intel->SideConnectIndex(0, nsides-1);
+        TPZConnect &c = fluxmesh->ConnectVec()[cindex];
+        int order = c.Order();
+        TPZCompEl *pressureel = gel->Reference();
+        TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(pressureel);
+        if (!pintel) {
+            DebugStop();
+        }
+        pressorder[pintel->Index()] = order;
+    }
+    pressuremesh->Reference()->ResetReference();
+    nel = pressorder.size();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = pressuremesh->Element(el);
+        TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!pintel) {
+            continue;
+        }
+        if (pressorder[el] == -1) {
+            continue;
+        }
+        pintel->PRefine(pressorder[el]);
+    }
+    
+    pressuremesh->ExpandSolution();
+}
+
+TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
+    
+    int dimension = 3;
+    int dirichlet = 0;
+    int nvolumes = sim_data.omega_ids.size();
+    int nboundaries = sim_data.gamma_ids.size();
+    
+#ifdef PZDEBUG
+    if (nvolumes != 1) {
+        std::cout << "Error:: unable to compute the given case = " << &sim_data << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TPZCompMesh *cmesh = new TPZCompMesh(geometry);
+    
+    TPZMaterial * volume;
+    TPZMaterial * face;
+    
+    TPZFMatrix<STATE> val1(dimension,dimension,0.0),val2(dimension,1,0.0);
+    for (int iv = 0; iv < nvolumes ; iv++) {
+        
+        volume = new TPZDualPoisson(sim_data.omega_ids[iv]);
+        
+        TPZDummyFunction<STATE> * rhs_exact = new TPZDummyFunction<STATE>(f);
+        rhs_exact->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > rhs = rhs_exact;
+        volume->SetForcingFunction(rhs);
+        
+        TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
+        analytic_bc->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > solution = analytic_bc;
+        volume->SetfBCForcingFunction(solution);
+        
+        
+        TPZDummyFunction<STATE> * analytic = new TPZDummyFunction<STATE>(Analytic);
+        analytic->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > analytic_full = analytic;
+        volume->SetForcingFunctionExact(analytic_full);
+        
+        cmesh->InsertMaterialObject(volume);
+        
+        for (int ib = 0; ib < nboundaries; ib++) {
+            face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
+            cmesh->InsertMaterialObject(face);
+        }
+        
+    }
+    cmesh->SetDimModel(dimension);
+    cmesh->SetDefaultOrder(p);
+    cmesh->SetAllCreateFunctionsHDiv();
+    
+    cmesh->AutoBuild();
+    cmesh->ExpandSolution();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+#ifdef PZDEBUG
+    std::stringstream file_name;
+    file_name   << sim_data.dump_folder << "/" << "q_cmesh" << ".txt";
+    std::ofstream sout(file_name.str());
+    cmesh->Print(sout);
+#endif
+    
+    return cmesh;
+    
+}
+TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
+    
+    int dimension = 3;
+    int nvolumes = sim_data.omega_ids.size();
+    
+#ifdef PZDEBUG
+    if (nvolumes != 1) {
+        std::cout << "Error:: unable to compute the given case = " << &sim_data << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TPZCompMesh *cmesh = new TPZCompMesh(geometry);
+    
+    TPZMaterial * volume;
+    
+    TPZFMatrix<STATE> val1(dimension,dimension,0.0),val2(dimension,1,0.0);
+    for (int iv = 0; iv < nvolumes ; iv++) {
+        
+        volume = new TPZMatPoisson3d(sim_data.omega_ids[iv]);
+        
+        TPZDummyFunction<STATE> * rhs_exact = new TPZDummyFunction<STATE>(f);
+        rhs_exact->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > rhs = rhs_exact;
+        volume->SetForcingFunction(rhs);
+        
+        TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
+        analytic_bc->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > solution = analytic_bc;
+        volume->SetfBCForcingFunction(solution);
+        
+        
+        TPZDummyFunction<STATE> * analytic = new TPZDummyFunction<STATE>(Analytic);
+        analytic->SetPolynomialOrder(sim_data.int_order);
+        TPZAutoPointer<TPZFunction<STATE> > analytic_full = analytic;
+        volume->SetForcingFunctionExact(analytic_full);
+        
+        cmesh->InsertMaterialObject(volume);
+        
+    }
+    cmesh->SetDimModel(dimension);
+    cmesh->SetDefaultOrder(p);
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    
+    cmesh->AutoBuild();
+    cmesh->ExpandSolution();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    int ncon = cmesh->NConnects();
+    for(int i=0; i<ncon; i++)
+    {
+        TPZConnect &newnod = cmesh->ConnectVec()[i];
+        newnod.SetLagrangeMultiplier(1);
+    }
+    
+#ifdef PZDEBUG
+    std::stringstream file_name;
+    file_name   << sim_data.dump_folder << "/" << "p_cmesh" << ".txt";
+    std::ofstream sout(file_name.str());
+    cmesh->Print(sout);
+#endif
+    
+    return cmesh;
+    
 }
 
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase sim_data){
@@ -1387,3 +1727,30 @@ void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & 
     
 }
 
+void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_hdiv){
+    
+    long nel = cmesh->NElements();
+    int dim = cmesh->Dimension();
+    TPZManVector<STATE,10> globalerror(3,0.   );
+    for (long iel = 0; iel < nel; iel++) {
+        TPZCompEl *cel = cmesh->ElementVec()[iel];
+        
+        if(cel->Reference()->Dimension()!=dim) {
+            continue;
+        }
+        
+        TPZManVector<STATE,10> elerror(3,0.);
+        elerror.Fill(0.);
+        cel->EvaluateError(Analytic, elerror, NULL);
+        int nerr = elerror.size();
+        for (int i=0; i<nerr; i++) {
+            globalerror[i] += elerror[i]*elerror[i];
+            
+        }
+    }
+    
+    error_primal    = sqrt(globalerror[0]);
+    error_dual      = sqrt(globalerror[1]);
+    error_hdiv      = sqrt(globalerror[1] + globalerror[2]);
+    
+}
