@@ -86,7 +86,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     else{
         
         int nel_x = 2;
-        int nel_y = 2;
+        int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -191,7 +191,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     if(UseMHMQ){
         int skeleton_id = 0;
-        fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
+        fSpaceGenerator->InsertSkeletonInterfaces(skeleton_id); // @omar:: Primitive use of the mhm capabilities
         fSpaceGenerator->BuildMHM_Mesh();
     }
     else{
@@ -327,10 +327,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-//    parabolic->Mesh()->ComputeNodElCon();
-//    parabolic->Mesh()->CleanUpUnconnectedNodes();
-    
+       
     // Transfer object
     TRMBuildTransfers * Transfer = new TRMBuildTransfers;
     Transfer->SetSimulationData(fSimulationData);

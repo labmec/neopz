@@ -648,7 +648,6 @@ int TPZFYsmpMatrix<TVar>::Zero()
     fA.Fill(TVar(0.));
     fDiag.resize(0)
     
-    
     ;
     return 1;
 }
