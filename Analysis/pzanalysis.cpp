@@ -108,7 +108,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         fGraphMesh[1] = 0;
         fGraphMesh[2] = 0;
         if(fSolver) fSolver->ResetMatrix();
-        fCompMesh->ExpandSolution();
+        fCompMesh->InitializeBlock();
         long neq = fCompMesh->NEquations();
         if(neq > 20000)
         {

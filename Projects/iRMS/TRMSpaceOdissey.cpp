@@ -531,6 +531,8 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         mfcel->PrepareIntPtIndices();
     }
     
+    fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
+    
 //    TPZCompMeshTools::OptimizeBandwidth(fMixedFluxPressureCmesh);
     
 #ifdef PZDEBUG
