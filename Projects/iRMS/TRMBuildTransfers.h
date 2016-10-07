@@ -386,6 +386,9 @@ public:
     /** @brief Compute element dof indexes at given connect */
     void ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
     
+    /** @brief Compute element dof indexes at given connect */
+    void ElementDofFaceIndexes(int connect,TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes);
+    
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Geometry Operations

@@ -988,7 +988,6 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
     flux_mesh->LoadReferences();
     TPZManVector<long,10> dof_indexes;
     
-//    TPZCompEl * cel_face;
     TPZGeoEl * left_gel;
     TPZGeoEl * right_gel;
     TPZGeoEl * face_gel;
@@ -1056,7 +1055,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
         
         
         int face_side     = -1;
-        int connect_index = -1;
+        long connect_index = -1;
 
         if(!IdentifyFace(face_side,left_gel,face_gel)){
             std::cout << "iRMS Error:: Given Face is not part of the volume element" << std::endl;
@@ -1077,7 +1076,7 @@ void TRMBuildTransfers::Initialize_un_To_Transport(TPZCompMesh * flux_mesh, TPZC
             }
         }
 
-        this->ElementDofFaceIndexes(connect_index,intel_vol, dof_indexes);
+        this->ElementDofFaceIndexes(connect_index, mf_cel, dof_indexes);
         
         int nshapes = left_cel->Connect(connect_index).NShape();
         
@@ -1225,8 +1224,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
             }
         }
         
-        this->ElementDofFaceIndexes(connect_index,intel_vol, dof_indexes);
-//        TPZIntPoints *face_int_points_II   = left_gel->CreateSideIntegrationRule(face_sides[i_face], cel_face->GetgOrder());
+        this->ElementDofFaceIndexes(connect_index, mf_cel, dof_indexes);
         TPZIntPoints *int_points   = left_gel->CreateSideIntegrationRule(face_side, left_cel->GetgOrder());
         
         int npoints = int_points->NPoints();
@@ -1284,6 +1282,7 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
 
         
     }
+    
     
 }
 
@@ -1869,6 +1868,29 @@ void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index,TPZInterpolation
     TPZConnect  & con = intel->Connect(connect_index);
     long seqnumber = con.SequenceNumber();
     long position = intel->Mesh()->Block().Position(seqnumber);
+    int nshape = con.NShape();
+    for (int ish=0; ish < nshape; ish++) {
+        index.Push(position+ ish);
+    }
+    
+    dof_indexes = index;
+    return;
+}
+
+void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index, TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes){
+    
+    
+#ifdef PZDEBUG
+    if (!m_el && connect_index > 4) {
+        DebugStop();
+    }
+#endif
+    
+
+    TPZStack<long> index(0,0);
+    TPZConnect  & con = m_el->Connect(connect_index);
+    long seqnumber = con.SequenceNumber();
+    long position = m_el->Mesh()->Block().Position(seqnumber);
     int nshape = con.NShape();
     for (int ish=0; ish < nshape; ish++) {
         index.Push(position+ ish);

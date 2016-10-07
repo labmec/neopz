@@ -111,7 +111,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 1;
+    int ref = 2;
     fSpaceGenerator->UniformRefinement(ref);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 12);
@@ -232,7 +232,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 
 //    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
-    parabolic->Mesh()->ConnectVec()[9].Print(*parabolic->Mesh(),std::cout);
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
     strmat_p.SetNumThreads(numofThreads_p);
@@ -240,7 +239,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->SetSolver(step_p);
     parabolic->AdjustVectors();
     parabolic->SetSimulationData(fSimulationData);
-    parabolic->Mesh()->ConnectVec()[9].Print(*parabolic->Mesh(),std::cout);
     
     if (IsIterativeSolverQ) {
         

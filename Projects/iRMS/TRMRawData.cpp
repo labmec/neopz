@@ -342,12 +342,12 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     
     fSystemType.Push("water");
-    fSystemType.Push("oil");
+    fSystemType.Push("water");
     
-    water->SetRhoModel(1);
-    oil->SetRhoModel(1);
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(oil);
+    fPhases.Push(water);
     
     int n_data = fSystemType.size();
     
