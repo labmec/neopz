@@ -1541,12 +1541,40 @@ bool TRMBuildTransfers::IdentifyFace(int &side, TPZGeoEl * vol, TPZGeoEl * face)
     int face_nsides = face->NSides();
     side = -1;
     TPZGeoElSide face_itself =  face->Neighbour(face_nsides-1);
-    bool IsMembershipQ;
+    bool IsMembershipQ = false;
+    
     for (int iside = 0; iside < volu_nsides; iside++) {
         IsMembershipQ = bool(vol->NeighbourExists(iside, face_itself));
         if (IsMembershipQ) {
             side = iside;
             break;
+        }
+    }
+    
+    TPZGeoElSide vol_itself =  vol->Neighbour(volu_nsides-1);
+    
+    if(!IsMembershipQ){
+        TPZGeoElSide neigh = face->Neighbour(face_nsides-1);
+        
+        if(!neigh.Element()){
+            DebugStop();
+        }
+        
+        TPZGeoElSide neigh_father = neigh.Father2();
+        
+        if(!neigh_father.Element()){
+            DebugStop();
+        }
+        bool IsNeighQ = false;
+        for (int iside = vol_itself.Element()->NNodes(); iside < volu_nsides; iside++) {
+ 
+            IsNeighQ = bool(vol_itself.Element()->NeighbourExists(iside, neigh_father));
+            
+            if (IsNeighQ) {
+                side = iside;
+                IsMembershipQ = IsNeighQ;
+                break;
+            }
         }
     }
     

@@ -1390,17 +1390,30 @@ void TRMSpaceOdissey::UniformRefinement_Around_MaterialId(int n_ref, int mat_id)
                 }
                 
                 if (gel->MaterialId()== mat_id){
-                    gel->Divide(sons);
                     
                     int gel_nsides = gel->NSides();
                     TPZGeoElSide gel_itself =  gel->Neighbour(gel_nsides-1);
                     
-                    if(!gel_itself .Element()){
+                    if(!gel_itself.Element()){
                         continue;
                     }
                     
                     if(gel_itself.Element()->HasSubElement()){
                         continue;
+                    }
+                    
+                    int high_gel_nsides = gel_itself.Element()->NSides() - 1;
+                    for (int is = gel_itself.Element()->NNodes() ; is < high_gel_nsides; is++) {
+                        TPZGeoElSide side = gel_itself.Element()->Neighbour(is);
+                        if(!side.Element()){
+                            continue;
+                        }
+                        
+                        if(side.Element()->Dimension() != dim-1 || side.Element()->HasSubElement()){
+                            continue;
+                        }
+                        
+                        side.Element()->Divide(sons);
                     }
                     
                     gel_itself.Element()->Divide(sons);
@@ -1410,6 +1423,7 @@ void TRMSpaceOdissey::UniformRefinement_Around_MaterialId(int n_ref, int mat_id)
         }//for i
     }//ref
     
+    fGeoMesh->BuildConnectivity();
 }
 
 /** @brief Apply uniform refinement on the Geometric mesh */
@@ -1428,10 +1442,6 @@ void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
 
         }//for i
     }//ref
-    
-//    int side;
-//    TPZStack<TPZGeoElSide> subel;
-//    gel->GetSubElements2(<#int side#>, subel)
     
     fGeoMesh->BuildConnectivity();
 }
