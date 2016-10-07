@@ -1478,15 +1478,12 @@ TPZCompMesh *LaplaceInSolidSphere::CMeshPressure(TPZGeoMesh *gmesh, int pOrder, 
 TPZCompMesh *LaplaceInSolidSphere::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
 {
 
-    int intorder = 0;
-    
-//#ifdef Solution4
-//    int intorder = 10;
-//#endif
-//#ifdef Solution5
-//    int intorder = 10;
-//#endif
-    
+#ifdef Solution4
+    int intorder = 5;
+#endif
+#ifdef Solution5
+    int intorder = 8;
+#endif
     //Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
     TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
@@ -1755,12 +1752,8 @@ void LaplaceInSolidSphere::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
-<<<<<<< HEAD
-                    co.SetOrder(cordermin,1);
-=======
                     long cindex = cel->ConnectIndex(icon);
                     co.SetOrder(cordermin,cindex);
->>>>>>> iRMS_MHM
                     co.SetNShape(nshape-1);
                     mesh->Block().Set(co.SequenceNumber(),nshape-1);
                 }

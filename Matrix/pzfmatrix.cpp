@@ -605,25 +605,9 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
     if (beta != (double)0.) {
         z = y;
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-    
-    if(this->Rows() ==0 || this->Cols() == 0 ) {
-        return;
-    }
-    
-    //std::cout << "xrow " << x.Rows() << "xcol " << x.Cols() << "thiscols " << this->Cols() << "thisrows " << this->Rows() <<std::endl;
-    //std::cout.flush();
-=======
     if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
         return;
     }
->>>>>>> GradOfX
-=======
-    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
-        return;
-    }
->>>>>>> iRMS_MHM
     if (!opt) {
         cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
                     alpha, this->fElem, this->Rows(), x.fElem, x.Rows(), beta, z.fElem, z.Rows());
@@ -1906,22 +1890,9 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     int nrhs = b->Cols();
     double B  = 0.;
     int info;
-<<<<<<< HEAD
-<<<<<<< HEAD
-    if (dim == 0) {
-        return 1;
-    }
-    
-=======
     if (dim == 0 || nrhs == 0) {
         return;
     }
->>>>>>> GradOfX
-=======
-    if (dim == 0 || nrhs == 0) {
-        return;
-    }
->>>>>>> iRMS_MHM
     dsytrs_(&uplo, &dim, &nrhs, fElem, &dim, &fPivot[0], b->fElem, &dim, &info);
     return 1;
     //    return TPZMatrix<TVar>::Subst_LForward(b);

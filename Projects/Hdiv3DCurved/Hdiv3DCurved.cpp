@@ -79,6 +79,39 @@ struct SimulationCase {
     std::string     dump_folder;
     TPZStack<int>   omega_ids;
     TPZStack<int>   gamma_ids;
+    
+    SimulationCase() : IsHdivQ(false), UsePardisoQ(true), UseFrontalQ(false), n_h_levels(0), n_p_levels(1), n_acc_terms(1), int_order(1), n_threads(0), mesh_type(""),
+    domain_type(""),conv_summary(""),dump_folder(""),omega_ids(),gamma_ids()
+    {
+        
+    }
+    
+    SimulationCase(const SimulationCase &copy) : IsHdivQ(copy.IsHdivQ), UsePardisoQ(copy.UsePardisoQ), UseFrontalQ(copy.UseFrontalQ),
+        n_h_levels(copy.n_h_levels), n_p_levels(copy.n_p_levels), n_acc_terms(copy.n_acc_terms), int_order(copy.int_order),
+        n_threads(copy.n_threads), mesh_type(copy.mesh_type), domain_type(copy.domain_type), conv_summary(copy.conv_summary),
+        dump_folder(copy.dump_folder), omega_ids(copy.omega_ids), gamma_ids(copy.gamma_ids)
+    {
+        
+    }
+    
+    SimulationCase &operator=(const SimulationCase &copy)
+    {
+        IsHdivQ = copy.IsHdivQ;
+        UsePardisoQ = copy.UsePardisoQ;
+        UseFrontalQ = copy.UseFrontalQ;
+        n_h_levels = copy.n_h_levels;
+        n_p_levels = copy.n_p_levels;
+        n_acc_terms = copy.n_acc_terms;
+        int_order = copy.int_order;
+        n_threads = copy.n_threads;
+        mesh_type = copy.mesh_type;
+        domain_type = copy.domain_type;
+        conv_summary = copy.conv_summary;
+        dump_folder = copy.dump_folder;
+        omega_ids = copy.omega_ids;
+        gamma_ids = copy.gamma_ids;
+        return *this;
+    }
 };
 
 //#define Solution1
@@ -224,7 +257,7 @@ void ComputeApproximation(SimulationCase sim_data){
     
     std::stringstream summary;
     summary   << sim_data.dump_folder << "/" "conv" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << ".txt";
-    std::ofstream convergence(summary.str(),ios::app);
+    std::ofstream convergence(summary.str(),std::ios::app);
     
     TPZManVector<STATE,10> p_error(sim_data.n_h_levels+1,1.0);
     TPZManVector<STATE,10> d_error(sim_data.n_h_levels+1,1.0);
@@ -238,6 +271,8 @@ void ComputeApproximation(SimulationCase sim_data){
     int n_p_levels = sim_data.n_p_levels;
     
 
+    using namespace std;
+    
     for (int p = 3; p <= n_p_levels; p++) {
         
         convergence << std::endl;        
