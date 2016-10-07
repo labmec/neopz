@@ -149,7 +149,7 @@ int main()
     common.n_h_levels = 4;
     common.n_p_levels = 3;
     common.int_order  = 10;
-    common.n_threads  = 2;
+    common.n_threads  = 8;
     common.domain_type = "sphere";
     common.conv_summary = "convergence_summary";
     common.omega_ids.Push(1);     // Domain
@@ -157,11 +157,11 @@ int main()
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     
     // Primal Formulation over the solid sphere
-    struct SimulationCase H1Case_1 = common;
-    H1Case_1.IsHdivQ = false;
-    H1Case_1.mesh_type = "linear";
-    H1Case_1.dump_folder = "H1_sphere";
-    simulations.Push(H1Case_1);
+//    struct SimulationCase H1Case_1 = common;
+//    H1Case_1.IsHdivQ = false;
+//    H1Case_1.mesh_type = "linear";
+//    H1Case_1.dump_folder = "H1_sphere";
+//    simulations.Push(H1Case_1);
     
     // Primal Formulation over the solid sphere
     struct SimulationCase H1Case_2 = common;
@@ -169,34 +169,35 @@ int main()
     H1Case_2.mesh_type = "quadratic";
     H1Case_2.dump_folder = "H1_sphere";
     simulations.Push(H1Case_2);
+
+//    // Primal Formulation over the solid sphere
+//    struct SimulationCase H1Case_3 = common;
+//    H1Case_3.IsHdivQ = false;
+//    H1Case_3.mesh_type = "blended";
+//    H1Case_3.dump_folder = "H1_sphere";
+//    simulations.Push(H1Case_3);
+//
     
-    // Primal Formulation over the solid sphere
-    struct SimulationCase H1Case_3 = common;
-    H1Case_3.IsHdivQ = false;
-    H1Case_3.mesh_type = "blended";
-    H1Case_3.dump_folder = "H1_sphere";
-    simulations.Push(H1Case_3);
+//    // Dual Formulation over the solid sphere
+//    struct SimulationCase HdivCase_1 = common;
+//    HdivCase_1.IsHdivQ = true;
+//    HdivCase_1.mesh_type = "linear";
+//    HdivCase_1.dump_folder = "Hdiv_sphere";
+//    simulations.Push(HdivCase_1);
     
-    // Dual Formulation over the solid sphere
-    struct SimulationCase HdivCase_1 = common;
-    HdivCase_1.IsHdivQ = true;
-    HdivCase_1.mesh_type = "linear";
-    HdivCase_1.dump_folder = "Hdiv_sphere";
-    simulations.Push(HdivCase_1);
+//    // Dual Formulation over the solid sphere
+//    struct SimulationCase HdivCase_2 = common;
+//    HdivCase_2.IsHdivQ = true;
+//    HdivCase_2.mesh_type = "quadratic";
+//    HdivCase_2.dump_folder = "Hdiv_sphere";
+//    simulations.Push(HdivCase_2);
     
-    // Dual Formulation over the solid sphere
-    struct SimulationCase HdivCase_2 = common;
-    HdivCase_2.IsHdivQ = true;
-    HdivCase_2.mesh_type = "quadratic";
-    HdivCase_2.dump_folder = "Hdiv_sphere";
-    simulations.Push(HdivCase_2);
-    
-    // Dual Formulation over the solid sphere
-    struct SimulationCase HdivCase_3 = common;
-    HdivCase_3.IsHdivQ = true;
-    HdivCase_3.mesh_type = "blended";
-    HdivCase_3.dump_folder = "Hdiv_sphere";
-    simulations.Push(HdivCase_3);
+//    // Dual Formulation over the solid sphere
+//    struct SimulationCase HdivCase_3 = common;
+//    HdivCase_3.IsHdivQ = true;
+//    HdivCase_3.mesh_type = "blended";
+//    HdivCase_3.dump_folder = "Hdiv_sphere";
+//    simulations.Push(HdivCase_3);
 
     ComputeCases(simulations);
     
@@ -237,17 +238,17 @@ void ComputeApproximation(SimulationCase sim_data){
     int n_p_levels = sim_data.n_p_levels;
     
 
-    for (int p = 1; p <= n_p_levels; p++) {
+    for (int p = 3; p <= n_p_levels; p++) {
         
         convergence << std::endl;        
         convergence << " Polynomial order  =  " << p << std::endl;
         convergence << setw(5)  << " h" << setw(25) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
         
         int h_base = 0;
-        for (int h = 0; h <= n_h_levels; h++) {
+        for (int h = 4; h <= n_h_levels; h++) {
             
             // Compute the geometry
-            h_base = h + 0;
+            h_base = h + 1;
             TPZGeoMesh * gmesh = GeomtricMesh(h_base, sim_data);
      
 #ifdef PZDEBUG
@@ -445,7 +446,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 1.0;
+    REAL d = 5.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -495,7 +496,7 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 1.0;
+    REAL d = 5.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
@@ -539,7 +540,7 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     REAL b = -1.0/4.0;
     REAL c = -1.0/4.0;
     
-    REAL d = 1.0;
+    REAL d = 5.0;
     
     REAL xma = x-a;
     REAL ymb = y-b;
