@@ -88,13 +88,6 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-<<<<<<< HEAD
-//    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
-//    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
-//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-=======
->>>>>>> origin/iRMS_MHM
     
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();

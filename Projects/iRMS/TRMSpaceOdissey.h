@@ -199,6 +199,12 @@ public:
     /** @brief Apply uniform refinement on the given father index mesh */
     void UniformRefinement_at_Father(int n_ref, int father_index);
     
+    /** @brief Apply uniform refinement at specific material id */
+    void UniformRefinement_at_MaterialId(int n_ref, int mat_id);
+    
+    /** @brief Apply uniform refinement around at specific material id */
+    void UniformRefinement_Around_MaterialId(int n_ref, int mat_id);
+    
     /** @brief Set autopointer of Simulation data */
     void SetSimulationData(TRMSimulationData * SimulationData){
         fSimulationData = SimulationData;

@@ -58,18 +58,14 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
     if (Is3DGeometryQ) {
         
-<<<<<<< HEAD
-        int nel_x = 20;
-=======
-        int nel_x = 2;
->>>>>>> origin/iRMS_MHM
+        int nel_x = 5;
         int nel_y = 1;
         int nel_z = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
         dx[0] = 1000.0/REAL(nel_x);
         dy[0] = 100.0/REAL(nel_y);
-        dz[0] = 20.0/REAL(nel_z);
+        dz[0] = 100.0/REAL(nel_z);
         
         if (IsReservoirBoxQ) {
             fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
@@ -89,7 +85,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 2;
+        int nel_x = 10;
         int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
@@ -117,6 +113,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
     int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
+    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
+    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 12);
     fSpaceGenerator->PrintGeometry();
 //    int father_index = 9;
 //    fSpaceGenerator->UniformRefinement_at_Father(1, father_index);
@@ -169,7 +167,7 @@ void TRMOrchestra::CreateAnalysisPrimal()
 void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
-    this->BuildGeometry(false);
+    this->BuildGeometry(true);
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;

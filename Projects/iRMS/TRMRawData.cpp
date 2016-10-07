@@ -108,9 +108,9 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("gas");
-    gas->SetRhoModel(1);
-    fPhases.Push(gas);
+    fSystemType.Push("water");
+    water->SetRhoModel(1);
+    fPhases.Push(water);
     int n_data = fSystemType.size();
     
     // Setting up gravity

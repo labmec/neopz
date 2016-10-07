@@ -277,7 +277,7 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
 
     std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
-    this->BuildMacroElements(); // @omar:: require the use of sofisticated transfer structures ....
+    //this->BuildMacroElements(); // @omar:: require the use of sofisticated transfer structures ....
     
     
 }
@@ -1346,20 +1346,76 @@ void TRMSpaceOdissey::CMeshRefinement(TPZCompMesh  *cmesh, int ndiv)
 /** @brief Apply uniform refinement on the Geometric mesh */
 void TRMSpaceOdissey::UniformRefinement(int n_ref){
     for ( int ref = 0; ref < n_ref; ref++ ){
-        TPZVec<TPZGeoEl *> filhos;
+        TPZVec<TPZGeoEl *> sons;
         long n = fGeoMesh->NElements();
         for ( long i = 0; i < n; i++ ){
             TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
-            if (gel->Dimension() != 0) gel->Divide (filhos);
+            if (gel->Dimension() != 0) gel->Divide (sons);
         }//for i
     }//ref
     fGeoMesh->BuildConnectivity();
 }
 
+/** @brief Apply uniform refinement at specific material id */
+void TRMSpaceOdissey::UniformRefinement_at_MaterialId(int n_ref, int mat_id){
+    
+    int dim = fGeoMesh->Dimension();
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> sons;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if (gel->Dimension() == dim || gel->Dimension() == dim - 1){
+                if (gel->MaterialId()== mat_id){
+                    gel->Divide(sons);
+                }
+            }
+        }//for i
+    }//ref
+}
+
+/** @brief Apply uniform refinement around at specific material id */
+void TRMSpaceOdissey::UniformRefinement_Around_MaterialId(int n_ref, int mat_id){
+    
+    int dim = fGeoMesh->Dimension();
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> sons;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if (gel->Dimension() == dim || gel->Dimension() == dim - 1){
+                
+                if(gel->HasSubElement()){
+                    continue;
+                }
+                
+                if (gel->MaterialId()== mat_id){
+                    gel->Divide(sons);
+                    
+                    int gel_nsides = gel->NSides();
+                    TPZGeoElSide gel_itself =  gel->Neighbour(gel_nsides-1);
+                    
+                    if(!gel_itself .Element()){
+                        continue;
+                    }
+                    
+                    if(gel_itself.Element()->HasSubElement()){
+                        continue;
+                    }
+                    
+                    gel_itself.Element()->Divide(sons);
+                    
+                }
+            }
+        }//for i
+    }//ref
+    
+}
+
 /** @brief Apply uniform refinement on the Geometric mesh */
 void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
     for ( int ref = 0; ref < n_ref; ref++ ){
-        TPZVec<TPZGeoEl *> filhos;
+        TPZVec<TPZGeoEl *> sons;
         long n = fGeoMesh->NElements();
         for ( long i = 0; i < n; i++ ){
             TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
@@ -1367,7 +1423,7 @@ void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
                 continue;
             }
             if(gel->Index() == father_index ){
-                if (gel->Dimension() != 0) gel->Divide (filhos);
+                if (gel->Dimension() != 0) gel->Divide (sons);
             }
 
         }//for i
