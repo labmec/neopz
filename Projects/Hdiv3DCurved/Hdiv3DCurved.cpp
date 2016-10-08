@@ -133,11 +133,11 @@ TPZManVector<STATE,3> ParametricSphere(REAL radius,REAL theta,REAL phi);
 void TransformToQuadratic(TPZGeoMesh *gmesh);
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis);
 
+TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZVec<TPZCompMesh *> &meshvec);
 
-TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof);
+TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof, TPZVec<TPZCompMesh *> &meshvec);
 
 TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); //  Primal approximation
-TPZCompMesh * DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // Dual approximation
 TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // Hdiv space
 TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // L2 space
 
@@ -179,8 +179,8 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 4;
-    common.n_p_levels = 3;
+    common.n_h_levels = 1;
+    common.n_p_levels = 1;
     common.int_order  = 10;
     common.n_threads  = 8;
     common.domain_type = "sphere";
@@ -273,14 +273,14 @@ void ComputeApproximation(SimulationCase sim_data){
 
     using namespace std;
     
-    for (int p = 3; p <= n_p_levels; p++) {
+    for (int p = 1; p <= n_p_levels; p++) {
         
         convergence << std::endl;        
         convergence << " Polynomial order  =  " << p << std::endl;
         convergence << setw(5)  << " h" << setw(25) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
         
         int h_base = 0;
-        for (int h = 4; h <= n_h_levels; h++) {
+        for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
             h_base = h + 1;
@@ -316,7 +316,8 @@ void ComputeApproximation(SimulationCase sim_data){
             
             // Compute the geometry
             long ndof, ndof_cond;
-            TPZCompMesh * cmesh = ComputationalMesh(gmesh, p, sim_data, ndof);
+            TPZManVector<TPZCompMesh *,5> meshvec;
+            TPZCompMesh * cmesh = ComputationalMesh(gmesh, p, sim_data, ndof, meshvec);
 
 //#ifdef PZDEBUG
 //            
@@ -382,6 +383,11 @@ void ComputeApproximation(SimulationCase sim_data){
             // current summary
             convergence << setw(5) << h << setw(25) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
             
+            delete cmesh;
+            for (int i=0; i<meshvec.size(); i++) {
+                delete meshvec[i];
+            }
+            delete gmesh;
         }
         
         // compute rates
@@ -732,12 +738,12 @@ TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase sim_data){
     return geometry;
 }
 
-TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof){
+TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof, TPZVec<TPZCompMesh *> &meshvec){
     
     TPZCompMesh * mesh = NULL;
     
     if (sim_data.IsHdivQ) {
-        mesh = DualMesh(geometry, p, sim_data);
+        mesh = DualMesh(geometry, p, sim_data, meshvec);
         ndof = mesh->NEquations();
         return mesh;
     }
@@ -893,7 +899,7 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
 }
 
 
-TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data)
+TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZVec<TPZCompMesh *> &meshvec)
 {
     
     int dimension = 3;
@@ -974,6 +980,8 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data)
     std::ofstream sout(file_name.str());
     cmesh->Print(sout);
 #endif
+    
+    meshvec = meshvector;
     
     return cmesh;
     
