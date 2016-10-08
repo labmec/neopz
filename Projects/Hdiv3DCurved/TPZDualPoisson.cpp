@@ -331,19 +331,17 @@ void TPZDualPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,T
 void TPZDualPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     int ub = 0;
-    
     TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
     
     int nphiu       = phi_us.Rows();
     int firstu      = 0;
     
     TPZManVector<REAL,3> u  = datavec[ub].sol[0];
-   
     
     TPZManVector<STATE,1> bc_data(1,0.0);
     bc_data[0] = bc.Val2()(0,0);
-    if (this->HasffBCForcingFunction()) {
-        this->fBCForcingFunction->Execute(datavec[ub].x, bc_data);
+    if (bc.HasBCForcingFunction()) {
+        bc.BCForcingFunction()->Execute(datavec[ub].x, bc_data);
     }
     
     switch (bc.Type()) {
@@ -456,7 +454,7 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     if(var == 3){
         TPZManVector<STATE,1> f(1,0.0);
         TPZFNMatrix<4,STATE> df(4,1,0.0);
-        if (this->HasfForcingFunctionExact()) {
+        if (this->HasForcingFunctionExact()) {
             this->fForcingFunctionExact->Execute(datavec[ub].x, f, df);
         }
         
@@ -470,7 +468,7 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     if(var == 4){
         TPZManVector<STATE,1> f(1,0.0);
         TPZFNMatrix<4,STATE> df(4,1,0.0);
-        if (this->HasfForcingFunctionExact()) {
+        if (this->HasForcingFunctionExact()) {
             this->fForcingFunctionExact->Execute(datavec[ub].x, f, df);
         }
         Solout[0] = f[0];
@@ -480,7 +478,7 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     if(var == 5){
         TPZManVector<STATE,1> f(1,0.0);
         TPZFNMatrix<4,STATE> df(4,1,0.0);
-        if (this->HasfForcingFunctionExact()) {
+        if (this->HasForcingFunctionExact()) {
             this->fForcingFunctionExact->Execute(datavec[ub].x, f, df);
         }
         Solout[0] = df(3,0);

@@ -385,35 +385,22 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
         
         std::set<long> connectlist;
         cel->BuildConnectList(connectlist);
-//        std::cout << "cel " << cel->Index() << " connects ";
-//        for (std::set<long>::iterator it=connectlist.begin(); it != connectlist.end(); it++) {
-//            std::cout << *it << " ";
-//        }
-//        std::cout << std::endl;
         int ns = gel->NSides();
         for (int is=0; is<ns; is++) {
-//            std::cout << "side " << is << std::endl;
             TPZGeoElSide gelside(gel,is);
             TPZStack<TPZCompElSide> celstack;
             gelside.ConnectedCompElementList(celstack, 0, 0);
             long nelstack = celstack.size();
             for (long elst=0; elst<nelstack; elst++) {
                 TPZCompElSide celst=celstack[elst];
-                //                TPZGeoElSide gelst =celst.Reference();
                 TPZCompEl *celsidelement = celst.Element();
                 if (grouped.find(celsidelement->Index()) != grouped.end()) {
                     continue;
                 }
                 std::set<long> smallset;
                 celsidelement->BuildConnectList(smallset);
-//                std::cout << "neigh " << celsidelement->Index() << " connects ";
-//                for (std::set<long>::iterator it=smallset.begin(); it != smallset.end(); it++) {
-//                    std::cout << *it << " ";
-//                }
-//                std::cout << std::endl;
                 if (std::includes(connectlist.begin(), connectlist.end(), smallset.begin(), smallset.end()))
                 {
-//                    std::cout << "Is included\n";
                     elgroup.insert(celsidelement->Index());
                 }
             }

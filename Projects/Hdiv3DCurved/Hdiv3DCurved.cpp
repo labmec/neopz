@@ -35,6 +35,9 @@
 #include "TPZQuadSphere.h"
 #include "TPZTriangleSphere.h"
 
+#include "pzcondensedcompel.h"
+#include "pzelementgroup.h"
+
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
 #include "pzfunction.h"
@@ -141,6 +144,9 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data);
 TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // Hdiv space
 TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // L2 space
 
+/// uncondense the elements unwrap the elements
+void UnwrapMesh(TPZCompMesh *cmesh);
+
 /// adjust the polynomial orders of the hdiv elements such that the internal order is higher than the sideorders
 void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus);
 
@@ -149,7 +155,7 @@ void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh);
 
 
 TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase sim_data);
-void PosProcess(TPZCompMesh* cmesh, TPZAnalysis * an, std::string file, SimulationCase sim_data);
+void PosProcess(TPZAnalysis * an, std::string file, SimulationCase sim_data);
 
 void ComputeCases(TPZStack<SimulationCase> cases);
 void ComputeApproximation(SimulationCase sim_data);
@@ -179,10 +185,10 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 1;
-    common.n_p_levels = 1;
+    common.n_h_levels = 3;
+    common.n_p_levels = 2;
     common.int_order  = 10;
-    common.n_threads  = 8;
+    common.n_threads  = 16;
     common.domain_type = "sphere";
     common.conv_summary = "convergence_summary";
     common.omega_ids.Push(1);     // Domain
@@ -218,12 +224,12 @@ int main()
 //    HdivCase_1.dump_folder = "Hdiv_sphere";
 //    simulations.Push(HdivCase_1);
     
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivCase_2 = common;
-//    HdivCase_2.IsHdivQ = true;
-//    HdivCase_2.mesh_type = "quadratic";
-//    HdivCase_2.dump_folder = "Hdiv_sphere";
-//    simulations.Push(HdivCase_2);
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivCase_2 = common;
+    HdivCase_2.IsHdivQ = true;
+    HdivCase_2.mesh_type = "quadratic";
+    HdivCase_2.dump_folder = "Hdiv_sphere";
+    simulations.Push(HdivCase_2);
     
 //    // Dual Formulation over the solid sphere
 //    struct SimulationCase HdivCase_3 = common;
@@ -319,22 +325,6 @@ void ComputeApproximation(SimulationCase sim_data){
             TPZManVector<TPZCompMesh *,5> meshvec;
             TPZCompMesh * cmesh = ComputationalMesh(gmesh, p, sim_data, ndof, meshvec);
 
-//#ifdef PZDEBUG
-//            
-//#ifdef USING_BOOST
-//            boost::posix_time::ptime int_p_t1 = boost::posix_time::microsec_clock::local_time();
-//#endif
-//            
-//            STATE p_integral = 1.0;//IntegrateSolution(cmesh, sim_data);
-//            
-//#ifdef USING_BOOST
-//            boost::posix_time::ptime int_p_t2 = boost::posix_time::microsec_clock::local_time();
-//#endif
-//            
-//            std::cout << "Analytic pressure integral = " << p_integral << "; Time for integration = " << int_p_t2-int_p_t1 <<std::endl;
-//
-//#endif
-            
             // Create Analysis
             TPZAnalysis * analysis = CreateAnalysis(cmesh,sim_data);
             
@@ -343,7 +333,7 @@ void ComputeApproximation(SimulationCase sim_data){
 #endif
             
             analysis->Assemble();
-            analysis->Rhs() *= -1.0;
+            
             ndof_cond = analysis->Rhs().Rows();
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
@@ -357,11 +347,40 @@ void ComputeApproximation(SimulationCase sim_data){
             STATE solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
 #endif
             
+            if(sim_data.IsHdivQ){
+                
+#ifdef USING_BOOST
+                boost::posix_time::ptime int_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+                UnwrapMesh(cmesh);
+                analysis->LoadSolution();
+                cmesh->Solution() *= -1.0; /* consequence of newton correction */
+                analysis->LoadSolution(cmesh->Solution());
+                TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, cmesh);
+                
+#ifdef USING_BOOST
+                boost::posix_time::ptime int_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+                std::cout << "StaticCondensation::Time for uncondense equations = " << int_t2-int_t1 <<std::endl;
+
+            }
+            else{
+                
+                analysis->LoadSolution();
+                cmesh->Solution() *= -1.0; /* consequence of newton correction */
+                analysis->LoadSolution(cmesh->Solution());
+            }
+            
+
+            
             // PostProccessing
             std::stringstream sol_vtk_name;
             sol_vtk_name    << sim_data.dump_folder << "/" "sol" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
             std::string file(sol_vtk_name.str());
-            PosProcess(cmesh, analysis, file, sim_data);
+            PosProcess(analysis, file, sim_data);
+            
             
             // compute the error
 #ifdef USING_BOOST
@@ -384,7 +403,7 @@ void ComputeApproximation(SimulationCase sim_data){
             convergence << setw(5) << h << setw(25) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
             
             delete cmesh;
-            for (int i=0; i<meshvec.size(); i++) {
+            for (int i = 0; i < meshvec.size(); i++) {
                 delete meshvec[i];
             }
             delete gmesh;
@@ -419,6 +438,7 @@ void ComputeApproximation(SimulationCase sim_data){
     
     convergence <<  "Case closed in :" << setw(10) <<  case_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
     std::cout << "Case closed in :" << setw(10) <<  case_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
+    std::cout << std::endl;
     
 }
 
@@ -744,7 +764,7 @@ TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim
     
     if (sim_data.IsHdivQ) {
         mesh = DualMesh(geometry, p, sim_data, meshvec);
-        ndof = mesh->NEquations();
+        ndof = meshvec[0]->NEquations() + meshvec[1]->NEquations();
         return mesh;
     }
     else
@@ -805,10 +825,9 @@ TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase sim_data){
     
 }
 
-void PosProcess(TPZCompMesh* cmesh, TPZAnalysis  * an, std::string file, SimulationCase sim_data)
+void PosProcess(TPZAnalysis  * an, std::string file, SimulationCase sim_data)
 {
     int dim = 3;
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, cmesh);
     TPZStack<std::string,10> scalnames, vecnames;
     
     if (sim_data.IsHdivQ) {
@@ -873,7 +892,7 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
             TPZAutoPointer< TPZFunction<STATE> > solution = analytic_bc;
             
             TPZMaterial * face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
-            face->SetfBCForcingFunction(solution);
+            face->SetBCForcingFunction(solution);
             cmesh->InsertMaterialObject(face);
         }
         
@@ -942,7 +961,7 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
             TPZAutoPointer< TPZFunction<STATE> > solution = analytic_bc;
             
             TPZMaterial * face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
-            face->SetfBCForcingFunction(solution);
+            face->SetBCForcingFunction(solution);
             cmesh->InsertMaterialObject(face);
         }
         
@@ -952,9 +971,7 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
     cmesh->SetAllCreateFunctionsMultiphysicElem();
     
     cmesh->AutoBuild();
-    cmesh->ExpandSolution();
     cmesh->AdjustBoundaryElements();
-    cmesh->CleanUpUnconnectedNodes();
     
     
     TPZManVector<TPZCompMesh * ,2> meshvector(2);
@@ -970,8 +987,11 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, cmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, cmesh);
     
-//    TPZCompMeshTools::GroupElements(cmesh);
-//    TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
+    TPZCompMeshTools::GroupElements(cmesh);
+    TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
+    
+    cmesh->CleanUpUnconnectedNodes();
+    cmesh->ExpandSolution();
 
     
 #ifdef PZDEBUG
@@ -1110,7 +1130,7 @@ TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
         TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
         analytic_bc->SetPolynomialOrder(sim_data.int_order);
         TPZAutoPointer<TPZFunction<STATE> > solution = analytic_bc;
-        volume->SetfBCForcingFunction(solution);
+        volume->SetBCForcingFunction(solution);
         
         
         TPZDummyFunction<STATE> * analytic = new TPZDummyFunction<STATE>(Analytic);
@@ -1159,12 +1179,10 @@ TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
     
     TPZCompMesh *cmesh = new TPZCompMesh(geometry);
     
-    TPZMaterial * volume;
-    
     TPZFMatrix<STATE> val1(dimension,dimension,0.0),val2(dimension,1,0.0);
     for (int iv = 0; iv < nvolumes ; iv++) {
         
-        volume = new TPZMatPoisson3d(sim_data.omega_ids[iv]);
+        TPZMaterial * volume = new TPZMatPoisson3d(sim_data.omega_ids[iv]);
         
         TPZDummyFunction<STATE> * rhs_exact = new TPZDummyFunction<STATE>(f);
         rhs_exact->SetPolynomialOrder(sim_data.int_order);
@@ -1174,7 +1192,7 @@ TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
         TPZDummyFunction<STATE> * analytic_bc = new TPZDummyFunction<STATE>(Solution);
         analytic_bc->SetPolynomialOrder(sim_data.int_order);
         TPZAutoPointer<TPZFunction<STATE> > solution = analytic_bc;
-        volume->SetfBCForcingFunction(solution);
+        volume->SetBCForcingFunction(solution);
         
         
         TPZDummyFunction<STATE> * analytic = new TPZDummyFunction<STATE>(Analytic);
@@ -1185,6 +1203,7 @@ TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
         cmesh->InsertMaterialObject(volume);
         
     }
+    
     cmesh->SetDimModel(dimension);
     cmesh->SetDefaultOrder(p);
     cmesh->SetAllCreateFunctionsContinuous();
@@ -1687,8 +1706,13 @@ void TransformToQuadratic(TPZGeoMesh *gmesh)
         if (!gel || gel->HasSubElement()) {
             continue;
         }
+        
+        int whichsubel =-1;
         TPZGeoEl *father = gel->Father();
-        int whichsubel = gel->WhichSubel();
+        if (gel->HasSubElement()) {
+            whichsubel = gel->WhichSubel();
+        }
+
         gel = TPZChangeEl::ChangeToQuadratic(gmesh, el);
         if (whichsubel != -1) {
             father->SetSubElement(whichsubel, gel);
@@ -1805,9 +1829,14 @@ void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL 
     
     long nel = cmesh->NElements();
     int dim = cmesh->Dimension();
-    TPZManVector<STATE,10> globalerror(3,0.   );
+    TPZManVector<STATE,10> globalerror(3,0.0);
+    
     for (long iel = 0; iel < nel; iel++) {
+        
         TPZCompEl *cel = cmesh->ElementVec()[iel];
+        if (!cel) {
+            continue;
+        }
         
         if(cel->Reference()->Dimension()!=dim) {
             continue;
@@ -1821,10 +1850,37 @@ void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL 
             globalerror[i] += elerror[i]*elerror[i];
             
         }
+        
     }
     
     error_primal    = sqrt(globalerror[0]);
     error_dual      = sqrt(globalerror[1]);
     error_hdiv      = sqrt(globalerror[1] + globalerror[2]);
     
+}
+
+/// uncondense the elements unwrap the elements
+void UnwrapMesh(TPZCompMesh *cmesh)
+{
+    long nel = cmesh->NElements();
+    bool change = true;
+    while(change)
+    {
+        change = false;
+        for (long el=0; el<nel; el++) {
+            
+            TPZCompEl *cel = cmesh->Element(el);
+            TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
+            if (condense) {
+                condense->Unwrap();
+                change = true;
+            }
+            cel = cmesh->Element(el);
+            TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+            if (elgr) {
+                elgr->Unwrap();
+                change = true;
+            }
+        }
+    }
 }

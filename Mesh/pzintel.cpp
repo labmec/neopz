@@ -298,14 +298,23 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
             orderchanged = 1;
             SetSideOrder(side, neworder);
         }
+        
 #ifdef PZDEBUG
         long cap = elvecequal.NElements();
         long il = 0;
         while(il<cap) {//SideOrder(int side)
 			equal = dynamic_cast<TPZInterpolatedElement *> (elvecequal[il].Element());
 			equalside = elvecequal[il].Side();
+            TPZConnect connect = equal->Connect(equal->MidSideConnectLocId(equalside));
+            
             long equalindex = equal->ConnectIndex(equal->MidSideConnectLocId(equalside));
             if (equalindex != connectindex) {
+                
+                if(connect.LagrangeMultiplier() == 1){
+                    il++;
+                    continue;
+                }
+                
                 DebugStop();
             }
 			il++;

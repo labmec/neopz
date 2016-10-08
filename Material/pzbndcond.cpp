@@ -174,7 +174,7 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
         }
         copy.fType = 2;
     }
-    this->fMaterial->ContributeBC(datavec,weight,ek,ef,*this);
+    this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
     copy.fType = typetmp;
 }
 //----

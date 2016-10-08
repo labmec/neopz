@@ -521,7 +521,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 	int phrq = phiQ.Rows();
 
 	REAL v2;
-    if(bc.HasffBCForcingFunction())
+    if(bc.HasBCForcingFunction())
     {
 		TPZManVector<STATE> res(3);
 		bc.BCForcingFunction()->Execute(datavec[0].x,res);

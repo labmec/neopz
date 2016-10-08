@@ -406,7 +406,7 @@ public:
      * @brief Sets a procedure as variable boundary condition
      * @param fp pointer of exact solution function
      */
-    void SetfBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    void SetBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
         fBCForcingFunction = fp;
     }
@@ -432,10 +432,10 @@ public:
         
     
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
-	virtual int HasfForcingFunctionExact() {return (fForcingFunctionExact != 0);}
-    virtual int HasffBCForcingFunction() {return (fBCForcingFunction != 0);}
-    virtual int HasfTimedependentForcingFunction() {return (fTimeDependentForcingFunction != 0);}
-    virtual int HasfTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}    
+	virtual int HasForcingFunctionExact() {return (fForcingFunctionExact != 0);}
+    virtual int HasBCForcingFunction() {return (fBCForcingFunction != 0);}
+    virtual int HasTimedependentForcingFunction() {return (fTimeDependentForcingFunction != 0);}
+    virtual int HasTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}
     
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
