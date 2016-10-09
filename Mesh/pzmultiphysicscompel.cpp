@@ -658,7 +658,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		datavec[iref].p = msp->MaxOrder();
 		ordervec[svec-1] = datavec[iref].p;
 	}
-	int order = material->IntegrationRuleOrder(ordervec);
+    int order = material->IntegrationRuleOrder(ordervec);
 	
 	TPZGeoEl *ref = this->Reference();
 	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
@@ -965,7 +965,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
     // tototototo
-    maxIntOrder = 5;
+    maxIntOrder = 10;
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);

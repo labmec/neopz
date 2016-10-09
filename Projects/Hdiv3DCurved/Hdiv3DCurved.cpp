@@ -84,7 +84,7 @@ struct SimulationCase {
     TPZStack<int>   omega_ids;
     TPZStack<int>   gamma_ids;
     
-    SimulationCase() : IsHdivQ(false), IsMHMQ(false), UsePardisoQ(true), UseFrontalQ(false), n_h_levels(0), n_p_levels(1), n_acc_terms(1), int_order(1), n_threads(0), mesh_type(""),
+    SimulationCase() : IsHdivQ(false), IsMHMQ(false), UsePardisoQ(true), UseFrontalQ(false), n_h_levels(0), n_p_levels(1), n_acc_terms(0), int_order(1), n_threads(0), mesh_type(""),
     domain_type(""),conv_summary(""),dump_folder(""),omega_ids(),gamma_ids()
     {
         
@@ -200,8 +200,8 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 1;
-    common.n_p_levels = 2;
+    common.n_h_levels = 3;
+    common.n_p_levels = 3;
     common.int_order  = 10;
     common.n_threads  = 16;
     common.domain_type = "sphere";
@@ -210,27 +210,27 @@ int main()
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     
-    // Primal Formulation over the solid sphere
+//    // Primal Formulation over the solid sphere
 //    struct SimulationCase H1Case_1 = common;
 //    H1Case_1.IsHdivQ = false;
 //    H1Case_1.mesh_type = "linear";
 //    H1Case_1.dump_folder = "H1_sphere";
 //    simulations.Push(H1Case_1);
-    
-//    // Primal Formulation over the solid sphere
-//    struct SimulationCase H1Case_2 = common;
-//    H1Case_2.IsHdivQ = false;
-//    H1Case_2.mesh_type = "quadratic";
-//    H1Case_2.dump_folder = "H1_sphere";
-//    simulations.Push(H1Case_2);
+//    
+    // Primal Formulation over the solid sphere
+    struct SimulationCase H1Case_2 = common;
+    H1Case_2.IsHdivQ = false;
+    H1Case_2.mesh_type = "quadratic";
+    H1Case_2.dump_folder = "H1_sphere";
+    simulations.Push(H1Case_2);
 
-//    // Primal Formulation over the solid sphere
-//    struct SimulationCase H1Case_3 = common;
-//    H1Case_3.IsHdivQ = false;
-//    H1Case_3.mesh_type = "blended";
-//    H1Case_3.dump_folder = "H1_sphere";
-//    simulations.Push(H1Case_3);
-//
+    // Primal Formulation over the solid sphere
+    struct SimulationCase H1Case_3 = common;
+    H1Case_3.IsHdivQ = false;
+    H1Case_3.mesh_type = "blended";
+    H1Case_3.dump_folder = "H1_sphere";
+    simulations.Push(H1Case_3);
+
     
 //    // Dual Formulation over the solid sphere
 //    struct SimulationCase HdivCase_1 = common;
@@ -242,18 +242,32 @@ int main()
     // Dual Formulation over the solid sphere
     struct SimulationCase HdivCase_2 = common;
     HdivCase_2.IsHdivQ = true;
-    HdivCase_2.IsMHMQ  = false;
-    HdivCase_2.n_acc_terms = 0;
     HdivCase_2.mesh_type = "quadratic";
     HdivCase_2.dump_folder = "Hdiv_sphere";
     simulations.Push(HdivCase_2);
     
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivCase_3 = common;
-//    HdivCase_3.IsHdivQ = true;
-//    HdivCase_3.mesh_type = "blended";
-//    HdivCase_3.dump_folder = "Hdiv_sphere";
-//    simulations.Push(HdivCase_3);
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivCase_3 = common;
+    HdivCase_3.IsHdivQ = true;
+    HdivCase_3.mesh_type = "blended";
+    HdivCase_3.dump_folder = "Hdiv_sphere";
+    simulations.Push(HdivCase_3);
+    
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivplusCase_2 = common;
+    HdivplusCase_2.IsHdivQ = true;
+    HdivplusCase_2.n_acc_terms = 1;
+    HdivplusCase_2.mesh_type = "quadratic";
+    HdivplusCase_2.dump_folder = "Hdivplus_sphere";
+    simulations.Push(HdivplusCase_2);
+    
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivplusCase_3 = common;
+    HdivplusCase_3.IsHdivQ = true;
+    HdivplusCase_3.n_acc_terms = 1;
+    HdivplusCase_3.mesh_type = "blended";
+    HdivplusCase_3.dump_folder = "Hdivplus_sphere";
+    simulations.Push(HdivplusCase_3);
 
     ComputeCases(simulations);
     
@@ -262,10 +276,23 @@ int main()
 
 void ComputeCases(TPZStack<SimulationCase> cases){
     
+
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime int_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
     int n_cases = cases.size();
     for (int i = 0; i < n_cases; i++) {
         ComputeApproximation(cases[i]);
     }
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime int_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+    std::cout << "End:: Overal time = " << int_t2-int_t1 << std::endl;
+    
 }
 
 void ComputeApproximation(SimulationCase sim_data){
@@ -306,8 +333,8 @@ void ComputeApproximation(SimulationCase sim_data){
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
-            TPZGeoMesh * gmesh = GeomtricMesh(h_base, sim_data);
-            UniformRefinement(gmesh, h);
+            TPZGeoMesh * gmesh = GeomtricMesh(h + h_base, sim_data);
+//            UniformRefinement(gmesh, h);
 
 #ifdef PZDEBUG
             
@@ -403,7 +430,7 @@ void ComputeApproximation(SimulationCase sim_data){
 #endif
             
             if (sim_data.IsHdivQ) {
-//                ErrorHdiv(cmesh, p_error[h], d_error[h], h_error[h]);
+                ErrorHdiv(cmesh, p_error[h], d_error[h], h_error[h]);
             }
             else{
                 ErrorH1(cmesh, p_error[h], d_error[h], h_error[h]);
@@ -1173,6 +1200,7 @@ TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
         
         for (int ib = 0; ib < nboundaries; ib++) {
             TPZMaterial * face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
+            set_vol.insert(sim_data.gamma_ids[ib]);
             cmesh->InsertMaterialObject(face);
         }
         
