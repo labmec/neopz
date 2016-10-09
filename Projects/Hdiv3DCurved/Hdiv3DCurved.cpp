@@ -145,7 +145,7 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
 
 TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof, TPZVec<TPZCompMesh *> &meshvec);
 
-TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); //  Primal approximation
+TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof); //  Primal approximation
 TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // Hdiv space
 TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data); // L2 space
 
@@ -224,12 +224,12 @@ int main()
     H1Case_2.dump_folder = "H1_sphere";
     simulations.Push(H1Case_2);
 
-    // Primal Formulation over the solid sphere
-    struct SimulationCase H1Case_3 = common;
-    H1Case_3.IsHdivQ = false;
-    H1Case_3.mesh_type = "blended";
-    H1Case_3.dump_folder = "H1_sphere";
-    simulations.Push(H1Case_3);
+//    // Primal Formulation over the solid sphere
+//    struct SimulationCase H1Case_3 = common;
+//    H1Case_3.IsHdivQ = false;
+//    H1Case_3.mesh_type = "blended";
+//    H1Case_3.dump_folder = "H1_sphere";
+//    simulations.Push(H1Case_3);
 
     
 //    // Dual Formulation over the solid sphere
@@ -246,12 +246,12 @@ int main()
     HdivCase_2.dump_folder = "Hdiv_sphere";
     simulations.Push(HdivCase_2);
     
-    // Dual Formulation over the solid sphere
-    struct SimulationCase HdivCase_3 = common;
-    HdivCase_3.IsHdivQ = true;
-    HdivCase_3.mesh_type = "blended";
-    HdivCase_3.dump_folder = "Hdiv_sphere";
-    simulations.Push(HdivCase_3);
+//    // Dual Formulation over the solid sphere
+//    struct SimulationCase HdivCase_3 = common;
+//    HdivCase_3.IsHdivQ = true;
+//    HdivCase_3.mesh_type = "blended";
+//    HdivCase_3.dump_folder = "Hdiv_sphere";
+//    simulations.Push(HdivCase_3);
     
     // Dual Formulation over the solid sphere
     struct SimulationCase HdivplusCase_2 = common;
@@ -261,13 +261,13 @@ int main()
     HdivplusCase_2.dump_folder = "Hdivplus_sphere";
     simulations.Push(HdivplusCase_2);
     
-    // Dual Formulation over the solid sphere
-    struct SimulationCase HdivplusCase_3 = common;
-    HdivplusCase_3.IsHdivQ = true;
-    HdivplusCase_3.n_acc_terms = 1;
-    HdivplusCase_3.mesh_type = "blended";
-    HdivplusCase_3.dump_folder = "Hdivplus_sphere";
-    simulations.Push(HdivplusCase_3);
+//    // Dual Formulation over the solid sphere
+//    struct SimulationCase HdivplusCase_3 = common;
+//    HdivplusCase_3.IsHdivQ = true;
+//    HdivplusCase_3.n_acc_terms = 1;
+//    HdivplusCase_3.mesh_type = "blended";
+//    HdivplusCase_3.dump_folder = "Hdivplus_sphere";
+//    simulations.Push(HdivplusCase_3);
 
     ComputeCases(simulations);
     
@@ -323,7 +323,7 @@ void ComputeApproximation(SimulationCase sim_data){
 
     using namespace std;
     
-    for (int p = 1; p <= n_p_levels; p++) {
+    for (int p = 3; p <= n_p_levels; p++) {
         
         convergence << std::endl;        
         convergence << " Polynomial order  =  " << p << std::endl;
@@ -389,10 +389,8 @@ void ComputeApproximation(SimulationCase sim_data){
             STATE solving_time  = boost::numeric_cast<double>((t3-t2).total_milliseconds());
 #endif
             
-            if(sim_data.IsHdivQ){
-                
 #ifdef USING_BOOST
-                boost::posix_time::ptime int_t1 = boost::posix_time::microsec_clock::local_time();
+                boost::posix_time::ptime int_unwrap_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
                 
                 UnwrapMesh(cmesh);
@@ -402,19 +400,10 @@ void ComputeApproximation(SimulationCase sim_data){
                 TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, cmesh);
                 
 #ifdef USING_BOOST
-                boost::posix_time::ptime int_t2 = boost::posix_time::microsec_clock::local_time();
+                boost::posix_time::ptime int_unwrap_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
                 
-                std::cout << "StaticCondensation::Time for uncondense equations = " << int_t2-int_t1 <<std::endl;
-
-            }
-            else{
-                
-                analysis->LoadSolution();
-                cmesh->Solution() *= -1.0; /* consequence of newton correction */
-                analysis->LoadSolution(cmesh->Solution());
-            }
-            
+            std::cout << "StaticCondensation::Time for uncondense equations = " << int_unwrap_t2-int_unwrap_t1 <<std::endl;
 
             
             // PostProccessing
@@ -812,8 +801,7 @@ TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim
     }
     else
     {
-        mesh = PrimalMesh(geometry, p, sim_data);
-        ndof = mesh->NEquations();
+        mesh = PrimalMesh(geometry, p, sim_data, ndof);
         return mesh;        
     }
     
@@ -895,7 +883,7 @@ void PosProcess(TPZAnalysis  * an, std::string file, SimulationCase sim_data)
     
 }
 
-TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
+TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, long &ndof){
     
     int dimension = 3;
     int dirichlet = 0;
@@ -948,6 +936,14 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
     cmesh->ExpandSolution();
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
+    
+    ndof = cmesh->NEquations();
+    
+    TPZCompMeshTools::GroupElements(cmesh);
+    TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
+    
+    cmesh->CleanUpUnconnectedNodes();
+    cmesh->ExpandSolution();
     
 #ifdef PZDEBUG
     std::stringstream file_name;
@@ -1898,6 +1894,10 @@ void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & 
     for (long iel = 0; iel < nel; iel++) {
         TPZCompEl *cel = cmesh->ElementVec()[iel];
 
+        if (!cel) {
+            continue;
+        }
+        
         if(cel->Reference()->Dimension()!=dim) {
             continue;
         }
