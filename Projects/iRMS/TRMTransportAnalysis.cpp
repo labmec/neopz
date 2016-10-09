@@ -102,10 +102,6 @@ void TRMTransportAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-//    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
-//    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
-//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();

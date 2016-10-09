@@ -648,7 +648,7 @@ void TRMMultiphase::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
     TPZManVector<REAL,3> u  = datavec[ub].sol[0];
     
     REAL Value = bc.Val2()(0,0);
-    if (bc.HasfTimedependentBCForcingFunction()) {
+    if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<STATE,2> f(1);
         TPZFMatrix<double> gradf;
         REAL time = 0.0;
@@ -1126,7 +1126,7 @@ void TRMMultiphase::ContributeBC_ab(TPZVec<TPZMaterialData> &datavec, REAL weigh
     
     REAL Value_m    = 0.0;
     REAL Value_s    = 0.0;
-    if (bc.HasfTimedependentBCForcingFunction()) {
+    if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<STATE,2> f(2);
         TPZFMatrix<double> gradf;
         REAL time = 0.0;
@@ -1282,7 +1282,7 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
     
     REAL Value_m    = 0.0;
     REAL Value_s    = 0.0;
-    if (bc.HasfTimedependentBCForcingFunction()) {
+    if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<STATE,2> f(2);
         TPZFMatrix<double> gradf;
         REAL time = 0.0;
@@ -2055,7 +2055,7 @@ void TRMMultiphase::ContributeBC_abc(TPZVec<TPZMaterialData> &datavec, REAL weig
     REAL Value_m    = 0.0;
     REAL Value_sa    = 0.0;
     REAL Value_sb    = 0.0;
-    if (bc.HasfTimedependentBCForcingFunction()) {
+    if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<STATE,2> f(3);
         TPZFMatrix<double> gradf;
         REAL time = 0.0;
@@ -2220,7 +2220,7 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
     REAL Value_m    = 0.0;
     REAL Value_sa    = 0.0;
     REAL Value_sb    = 0.0;
-    if (bc.HasfTimedependentBCForcingFunction()) {
+    if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<STATE,2> f(3);
         TPZFMatrix<double> gradf;
         REAL time = 0.0;

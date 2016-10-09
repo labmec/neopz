@@ -85,7 +85,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 1000;
+        int nel_x = 2;
         int nel_y = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
@@ -111,7 +111,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 0;
+    int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->PrintGeometry();
 //    int father_index = 9;
@@ -187,7 +187,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
-    bool UseMHMQ = false;
+    bool UseMHMQ = true;
     
     if(UseMHMQ){
         int skeleton_id = 0;

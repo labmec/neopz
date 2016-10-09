@@ -128,8 +128,11 @@ public:
 		REAL Tol;
 		ZeroTolerance(Tol);
 		if(Tol < 1.e-10) Tol = 1.e-10;
-
+        
 		//  Pira 18 maio 2009: nova implementação
+        
+        // @omar:: decreased for non linear mappings
+        REAL epsilon = 0.01;
 		for(in=0; in<nnodes; in++)
 		{
 			for(int id = 0; id < 3; id++){
@@ -152,7 +155,7 @@ public:
 			tr.Apply(zero, aux);
 			//aux.Fill(0.);
 			ptancestor.Fill(0.);
-			father->ComputeXInverse(nodeX, aux, Tol);
+			father->ComputeXInverse(nodeX, aux, epsilon);
 			int pointside = father->WhichSide(aux);
 			TPZTransform<> project = father->Projection(pointside);
 			project.Apply(aux,ptancestor);
@@ -184,7 +187,7 @@ public:
 					error += diff*diff;
 				}
 				error = sqrt(error);
-				if(error > 1e-3){
+				if(error > epsilon){
 					std::cout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
 					std::cout << "this->Index = " << this->Index() << "\n";
 					std::cout << "aux:\n";

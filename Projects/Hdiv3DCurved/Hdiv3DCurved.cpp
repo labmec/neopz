@@ -69,6 +69,7 @@
 
 struct SimulationCase {
     bool            IsHdivQ;
+    bool            IsMHMQ;
     bool            UsePardisoQ;
     bool            UseFrontalQ;
     int             n_h_levels;
@@ -83,13 +84,13 @@ struct SimulationCase {
     TPZStack<int>   omega_ids;
     TPZStack<int>   gamma_ids;
     
-    SimulationCase() : IsHdivQ(false), UsePardisoQ(true), UseFrontalQ(false), n_h_levels(0), n_p_levels(1), n_acc_terms(1), int_order(1), n_threads(0), mesh_type(""),
+    SimulationCase() : IsHdivQ(false), IsMHMQ(false), UsePardisoQ(true), UseFrontalQ(false), n_h_levels(0), n_p_levels(1), n_acc_terms(1), int_order(1), n_threads(0), mesh_type(""),
     domain_type(""),conv_summary(""),dump_folder(""),omega_ids(),gamma_ids()
     {
         
     }
     
-    SimulationCase(const SimulationCase &copy) : IsHdivQ(copy.IsHdivQ), UsePardisoQ(copy.UsePardisoQ), UseFrontalQ(copy.UseFrontalQ),
+    SimulationCase(const SimulationCase &copy) : IsHdivQ(copy.IsHdivQ), IsMHMQ(copy.IsMHMQ), UsePardisoQ(copy.UsePardisoQ), UseFrontalQ(copy.UseFrontalQ),
         n_h_levels(copy.n_h_levels), n_p_levels(copy.n_p_levels), n_acc_terms(copy.n_acc_terms), int_order(copy.int_order),
         n_threads(copy.n_threads), mesh_type(copy.mesh_type), domain_type(copy.domain_type), conv_summary(copy.conv_summary),
         dump_folder(copy.dump_folder), omega_ids(copy.omega_ids), gamma_ids(copy.gamma_ids)
@@ -100,6 +101,7 @@ struct SimulationCase {
     SimulationCase &operator=(const SimulationCase &copy)
     {
         IsHdivQ = copy.IsHdivQ;
+        IsMHMQ = copy.IsMHMQ;
         UsePardisoQ = copy.UsePardisoQ;
         UseFrontalQ = copy.UseFrontalQ;
         n_h_levels = copy.n_h_levels;
@@ -128,6 +130,9 @@ static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f);
 static void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf);
 
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase sim_data);
+void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase sim_data);
+void UniformRefinement(TPZGeoMesh * gmesh, int n_ref);
+
 
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase sim_data);
 TPZGeoMesh * MakeSphereFromQuadrilateralFaces(int ndiv, SimulationCase sim_data);
@@ -164,6 +169,16 @@ void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence);
 STATE IntegrateVolume(TPZGeoMesh * geometry, SimulationCase sim_data);
 STATE IntegrateSolution(TPZCompMesh * cmesh,  SimulationCase sim_data);
 
+// MHM utilities
+/** @brief Sparated connects by hdiv connect neighborhood */
+void SeparateConnectsByNeighborhood(TPZCompMesh * mixed_cmesh);
+
+/** @brief Insert low dimentional elements defining the skeleton */
+void InsertSkeletonInterfaces(TPZGeoMesh * gmesh);
+
+/** @brief Build mhm macro elements following the mixed sense (space constrains) */
+void BuildMacroElements(TPZCompMesh * mixed_cmesh);
+
 void ErrorH1(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_h1);
 void ErrorHdiv(TPZCompMesh *cmesh, REAL &error_primal , REAL & error_dual, REAL & error_hdiv);
 
@@ -185,7 +200,7 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 3;
+    common.n_h_levels = 1;
     common.n_p_levels = 2;
     common.int_order  = 10;
     common.n_threads  = 16;
@@ -202,12 +217,12 @@ int main()
 //    H1Case_1.dump_folder = "H1_sphere";
 //    simulations.Push(H1Case_1);
     
-    // Primal Formulation over the solid sphere
-    struct SimulationCase H1Case_2 = common;
-    H1Case_2.IsHdivQ = false;
-    H1Case_2.mesh_type = "quadratic";
-    H1Case_2.dump_folder = "H1_sphere";
-    simulations.Push(H1Case_2);
+//    // Primal Formulation over the solid sphere
+//    struct SimulationCase H1Case_2 = common;
+//    H1Case_2.IsHdivQ = false;
+//    H1Case_2.mesh_type = "quadratic";
+//    H1Case_2.dump_folder = "H1_sphere";
+//    simulations.Push(H1Case_2);
 
 //    // Primal Formulation over the solid sphere
 //    struct SimulationCase H1Case_3 = common;
@@ -227,6 +242,8 @@ int main()
     // Dual Formulation over the solid sphere
     struct SimulationCase HdivCase_2 = common;
     HdivCase_2.IsHdivQ = true;
+    HdivCase_2.IsMHMQ  = false;
+    HdivCase_2.n_acc_terms = 0;
     HdivCase_2.mesh_type = "quadratic";
     HdivCase_2.dump_folder = "Hdiv_sphere";
     simulations.Push(HdivCase_2);
@@ -285,13 +302,13 @@ void ComputeApproximation(SimulationCase sim_data){
         convergence << " Polynomial order  =  " << p << std::endl;
         convergence << setw(5)  << " h" << setw(25) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
         
-        int h_base = 0;
+        int h_base = 1;
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
-            h_base = h + 1;
             TPZGeoMesh * gmesh = GeomtricMesh(h_base, sim_data);
-     
+            UniformRefinement(gmesh, h);
+
 #ifdef PZDEBUG
             
 #ifdef USING_BOOST
@@ -305,8 +322,6 @@ void ComputeApproximation(SimulationCase sim_data){
 #endif
             
             std::cout << "Domain volume = " << volume << "; Time for integration = " << int_t2-int_t1 <<std::endl;
-            
-
             
             std::stringstream text_name;
             std::stringstream vtk_name;
@@ -388,7 +403,7 @@ void ComputeApproximation(SimulationCase sim_data){
 #endif
             
             if (sim_data.IsHdivQ) {
-                ErrorHdiv(cmesh, p_error[h], d_error[h], h_error[h]);
+//                ErrorHdiv(cmesh, p_error[h], d_error[h], h_error[h]);
             }
             else{
                 ErrorH1(cmesh, p_error[h], d_error[h], h_error[h]);
@@ -452,6 +467,7 @@ void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence){
         convergence[i-1] = (logerrori - logerror)/log0p5;
     }
 }
+
 
 void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
@@ -926,6 +942,11 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
     int nvolumes = sim_data.omega_ids.size();
     int nboundaries = sim_data.gamma_ids.size();
     
+    if (sim_data.IsMHMQ) {
+        InsertSkeletonInterfaces(geometry);
+        PrintGeometry(geometry, sim_data);
+    }
+    
 #ifdef PZDEBUG
     if (nvolumes != 1) {
         std::cout << "Error:: unable to compute the given case = " << &sim_data << std::endl;
@@ -978,21 +999,30 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
     meshvector[0] = qMesh(geometry, p, sim_data);
     meshvector[1] = pMesh(geometry, p, sim_data);
     
-//    AdjustFluxPolynomialOrders(meshvector[0], sim_data.n_acc_terms);
-//    SetPressureOrders(meshvector[0], meshvector[1]);
+    AdjustFluxPolynomialOrders(meshvector[0], sim_data.n_acc_terms);
+    SetPressureOrders(meshvector[0], meshvector[1]);
     
+    if (sim_data.IsMHMQ) {
+        SeparateConnectsByNeighborhood(meshvector[0]);
+    }
     
     // Transferindo para a multifisica
     TPZBuildMultiphysicsMesh::AddElements(meshvector, cmesh);
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, cmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, cmesh);
     
-    TPZCompMeshTools::GroupElements(cmesh);
-    TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
-    
-    cmesh->CleanUpUnconnectedNodes();
-    cmesh->ExpandSolution();
-
+    if (sim_data.IsMHMQ) {
+        BuildMacroElements(cmesh);
+        cmesh->CleanUpUnconnectedNodes();
+        cmesh->ExpandSolution();
+    }
+    else{
+        
+        TPZCompMeshTools::GroupElements(cmesh);
+        TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
+        cmesh->CleanUpUnconnectedNodes();
+        cmesh->ExpandSolution();
+    }
     
 #ifdef PZDEBUG
     std::stringstream file_name;
@@ -1112,15 +1142,17 @@ TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
     }
 #endif
     
+    int Skeleton_material_Id = 100;
+    
     TPZCompMesh *cmesh = new TPZCompMesh(geometry);
     
-    TPZMaterial * volume;
-    TPZMaterial * face;
+    std::set<int> set_vol, set_skeleton;
     
     TPZFMatrix<STATE> val1(dimension,dimension,0.0),val2(dimension,1,0.0);
     for (int iv = 0; iv < nvolumes ; iv++) {
         
-        volume = new TPZDualPoisson(sim_data.omega_ids[iv]);
+        TPZMaterial * volume = new TPZDualPoisson(sim_data.omega_ids[iv]);
+        set_vol.insert(sim_data.omega_ids[iv]);
         
         TPZDummyFunction<STATE> * rhs_exact = new TPZDummyFunction<STATE>(f);
         rhs_exact->SetPolynomialOrder(sim_data.int_order);
@@ -1132,7 +1164,6 @@ TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
         TPZAutoPointer<TPZFunction<STATE> > solution = analytic_bc;
         volume->SetBCForcingFunction(solution);
         
-        
         TPZDummyFunction<STATE> * analytic = new TPZDummyFunction<STATE>(Analytic);
         analytic->SetPolynomialOrder(sim_data.int_order);
         TPZAutoPointer<TPZFunction<STATE> > analytic_full = analytic;
@@ -1141,19 +1172,29 @@ TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
         cmesh->InsertMaterialObject(volume);
         
         for (int ib = 0; ib < nboundaries; ib++) {
-            face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
+            TPZMaterial * face = volume->CreateBC(volume,sim_data.gamma_ids[ib],dirichlet,val1,val2);
             cmesh->InsertMaterialObject(face);
         }
         
     }
+    
+
     cmesh->SetDimModel(dimension);
     cmesh->SetDefaultOrder(p);
     cmesh->SetAllCreateFunctionsHDiv();
+    cmesh->AutoBuild(set_vol);
     
-    cmesh->AutoBuild();
-    cmesh->ExpandSolution();
-    cmesh->AdjustBoundaryElements();
-    cmesh->CleanUpUnconnectedNodes();
+    if (sim_data.IsMHMQ) {
+        TPZDualPoisson * mat_skeleton = new TPZDualPoisson(Skeleton_material_Id);
+        set_skeleton.insert(Skeleton_material_Id);
+        cmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
+        cmesh->SetDefaultOrder(p);
+        if (p > 1) {
+            cmesh->SetDefaultOrder(p-1);
+        }
+        
+        cmesh->AutoBuild(set_skeleton);
+    }
     
 #ifdef PZDEBUG
     std::stringstream file_name;
@@ -1730,6 +1771,31 @@ TPZManVector<STATE,3> ParametricSphere(REAL radius, REAL theta, REAL phi)
     return xcoor;
 }
 
+void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase sim_data){
+    std::stringstream text_name;
+    std::stringstream vtk_name;
+    text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << ".txt";
+    vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << ".vtk";
+    ofstream textfile(text_name.str());
+    gmesh->Print(textfile);
+    
+    std::ofstream vtkfile(vtk_name.str());
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
+}
+
+/** @brief Apply uniform refinement on the Geometric mesh */
+void UniformRefinement(TPZGeoMesh * gmesh, int n_ref){
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> filhos;
+        long n = gmesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = gmesh->ElementVec() [i];
+            if (gel->Dimension() != 0) gel->Divide (filhos);
+        }//for i
+    }//ref
+    gmesh->BuildConnectivity();
+}
+
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
 {
     REAL theta =  (M_PI/180.0)*CounterClockwiseAngle;
@@ -1883,4 +1949,171 @@ void UnwrapMesh(TPZCompMesh *cmesh)
             }
         }
     }
+}
+
+
+/** @brief Sparated connects by hdiv connect neighborhood */
+void SeparateConnectsByNeighborhood(TPZCompMesh * mixed_cmesh){
+    
+#ifdef PZDEBUG
+    if(!mixed_cmesh){
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh *gmesh = mixed_cmesh->Reference();
+    gmesh->ResetReference();
+    mixed_cmesh->LoadReferences();
+    mixed_cmesh->ComputeNodElCon();
+    long nel = mixed_cmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = mixed_cmesh->Element(el);
+        TPZGeoEl *gel = cel->Reference();
+        if (!gel || (gel->Dimension() != gmesh->Dimension()) ) {
+            continue;
+        }
+        int nc = cel->NConnects();
+        for (int ic =0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            if (c.HasDependency() && c.NElConnected() == 2) // @omar:: Hdiv connects have this invariant characteristic
+            {
+                // duplicate the connect
+                long cindex = mixed_cmesh->AllocateNewConnect(c);
+                TPZConnect &newc = mixed_cmesh->ConnectVec()[cindex];
+                newc = c;
+                c.DecrementElConnected();
+                newc.DecrementElConnected();
+                cel->SetConnectIndex(ic, cindex);
+            }
+        }
+    }
+    mixed_cmesh->ExpandSolution();
+}
+
+/** @brief Build MHM form the current hdvi mesh */
+void InsertSkeletonInterfaces(TPZGeoMesh * gmesh){
+    
+#ifdef PZDEBUG
+    if(!gmesh){
+        DebugStop();
+    }
+#endif
+    
+    int Skeleton_material_Id = 100;
+    long nel = gmesh->NElements();
+    for (long el = 0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+//        if (!gel || gel->Level() != 0 || gel->Dimension() != gmesh->Dimension()) {
+//            continue;
+//        }
+        
+        if (!gel || gel->HasSubElement() || gel->Dimension() != gmesh->Dimension()) {
+            continue;
+        }
+        
+        int nsides = gel->NSides();
+        for (int is = gel->NCornerNodes(); is<nsides; is++) {
+            if (gel->SideDimension(is) != gmesh->Dimension() - 1) {
+                continue;
+            }
+            TPZGeoElSide gelside(gel,is);
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            while (neighbour != gelside) {
+                if (neighbour.Element()->Dimension() == gmesh->Dimension() - 1) {
+                    break;
+                }
+                neighbour = neighbour.Neighbour();
+            }
+            if (neighbour == gelside) {
+                TPZGeoElBC(gelside, Skeleton_material_Id);
+            }
+        }
+    }
+    gmesh->BuildConnectivity();
+}
+
+/** @brief Construc computational macro elements */
+void BuildMacroElements(TPZCompMesh * mixed_cmesh)
+{
+    
+    std::cout << "ndof Elliptic before MHM substructuring = " << mixed_cmesh->Solution().Rows() << std::endl;
+    
+#ifdef PZDEBUG
+    if(!mixed_cmesh){
+        DebugStop();
+    }
+#endif
+    
+    bool KeepOneLagrangian = true;
+    typedef std::set<long> TCompIndexes;
+    std::map<long, TCompIndexes> ElementGroups;
+    TPZGeoMesh *gmesh = mixed_cmesh->Reference();
+    gmesh->ResetReference();
+    mixed_cmesh->LoadReferences();
+    long nelg = gmesh->NElements();
+    for (long el=0; el<nelg; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (gel->Father() != NULL) {
+            continue;
+        }
+        if (gel->Dimension() == gmesh->Dimension() - 1) {
+            continue;
+        }
+        long mapindex = gel->Index();
+        if (gel->Dimension() == gmesh->Dimension() - 1) {
+            TPZGeoElSide neighbour = gel->Neighbour(gel->NSides()-1);
+            if (neighbour.Element()->Dimension() != gmesh->Dimension()) {
+                DebugStop();
+            }
+            mapindex= neighbour.Element()->Index();
+        }
+        TPZStack<TPZCompElSide> highlevel;
+        TPZGeoElSide gelside(gel,gel->NSides()-1);
+        gelside.HigherLevelCompElementList3(highlevel, 0, 0);
+        long nelst = highlevel.size();
+        for (long elst=0; elst<nelst; elst++) {
+            ElementGroups[mapindex].insert(highlevel[elst].Element()->Index());
+        }
+        if (gel->Reference()) {
+            if (nelst) {
+                DebugStop();
+            }
+            ElementGroups[mapindex].insert(gel->Reference()->Index());
+        }
+    }
+    
+#ifdef PZDEBUG
+    std::map<long,TCompIndexes>::iterator it;
+    for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
+        std::cout << "Group " << it->first << " with size " << it->second.size() << std::endl;
+        std::cout << " elements ";
+        std::set<long>::iterator its;
+        for (its = it->second.begin(); its != it->second.end(); its++) {
+            std::cout << *its << " ";
+        }
+        std::cout << std::endl;
+    }
+#endif
+    
+    std::set<long> submeshindices;
+    TPZCompMeshTools::PutinSubmeshes(mixed_cmesh, ElementGroups, submeshindices, KeepOneLagrangian);
+    
+    std::cout << "Inserting " << ElementGroups.size()  <<  " macro elements into MHM substructures" << std::endl;
+    mixed_cmesh->ComputeNodElCon();
+    mixed_cmesh->CleanUpUnconnectedNodes();
+    for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
+        TPZCompEl *cel = mixed_cmesh->Element(*it);
+        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
+        if (!subcmesh) {
+            DebugStop();
+        }
+        TPZCompMeshTools::GroupElements(subcmesh);
+        subcmesh->ComputeNodElCon();
+        TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
+        subcmesh->SetAnalysisSkyline(0, 0, 0);
+    }
+    mixed_cmesh->ComputeNodElCon();
+    mixed_cmesh->CleanUpUnconnectedNodes();
+    mixed_cmesh->ExpandSolution();
+    
 }
