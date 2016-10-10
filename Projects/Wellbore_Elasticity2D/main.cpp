@@ -127,8 +127,8 @@ int ApproximationRates(){
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
     REAL rext = 4.0;
-    int ncircle = 15;
-    int nradial = 10;
+    int ncircle = 10;
+    int nradial = 5;
     REAL drdcirc = 2.0;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
@@ -143,42 +143,40 @@ int ApproximationRates(){
     
     int rotation = 0; // define se rotaciona a malha geometrica
     
-    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, rotation); //funcao para criar a malha GEOMETRICA de todo o poco
-    const std::string nm("wellbore");
-    gmesh->SetName(nm);
-    
-    std::ofstream outtxt("gmesh.txt"); //define arquivo de saida para impressao dos dados da malha
-    gmesh->Print(outtxt);
-
-    std::ofstream out("gmesh_base.vtk"); //define arquivo de saida para impressao da malha no paraview
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
-    
     int numthreads = 16;
-    int nh = 2;
-    int p = 1;
+    int nh = 6;
+    int np = 3;
     
     TPZVec<REAL> errorvec;
     errorvec.Resize(nh);
     
     TPZVec<REAL> rates;
-    rates.Resize(nh);
+    rates.Resize(nh-1);
     
+    TPZFNMatrix<10,REAL> rates_array(np,nh-1,0.0);
+    TPZFNMatrix<10,REAL> error_array(np,nh,0.0);
     
-    for (int ip = 0; ip < p; ip++) {
+    int current_p = 0;
+    
+    for (int ip = 1; ip <= np; ip++) {
+        
+        current_p = ip;
         
         for (int ih = 0; ih < nh; ih++) {
+            
+            //******** geometric mesh ***************/
+            TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, rotation); //funcao para criar a malha GEOMETRICA de todo o poco
+            const std::string nm("wellbore");
+            gmesh->SetName(nm);
             
             //******** Apply geometric refinement ***************/
             UniformRefinement(gmesh, ih);
             
-            std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
-            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
-            
             //******** Configura malha Computacional ***************/
             
-            TPZCompEl::SetgOrder(p);
-            TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
+            TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p); //funcao para criar a malha COMPUTACIONAL de todo o poco
             TPZAnalysis an (cmesh);
+            
             TPZSkylineStructMatrix strskyl(cmesh);
             strskyl.SetNumThreads(numthreads);
             an.SetStructuralMatrix(strskyl);
@@ -192,30 +190,40 @@ int ApproximationRates(){
             
             an.Assemble();
             an.Solve();
+            std::cout << "problem solved. " << std::endl;
             
             cmesh->LoadSolution(an.Solution());
-            REAL error;
+            REAL error = 0.0;
             ComputeErrorL2(cmesh, error);
+            std::cout << "error computed. " << std::endl;
             
             errorvec[ih] = sqrt(error);
+            error_array(ip-1,ih) = errorvec[ih];
             
         }
         
-        for (int i = 0; i < nh; i++) {
+        for (int i = 0; i < nh - 1; i++) {
             if (i+1 > errorvec.size()) {
                 continue;
             }
             
-            rates[i]    = (log10(errorvec[i]-errorvec[i+1]))/(log10(0.5));
+            rates[i]    = (log10(errorvec[i+1])-log10(errorvec[i]))/(log10(0.5));
+            rates_array(ip-1,i) = rates[i];
             
         }
         
-        std::cout << "P = " << ip << "Rate = " << rates << std::endl;
+        
+        
+        std::cout << "P = " << current_p << " Error = " << errorvec << std::endl;
+        std::cout << "P = " << current_p << " Rate = " << rates << std::endl;
         
 
         }
-        
     
+    std::ofstream out_error("error_file.txt");
+    std::ofstream out_rates("rates_file.txt");
+    error_array.Print("Errors = ",out_error,EMathematicaInput);
+    rates_array.Print("Rates = ",out_rates,EMathematicaInput);
     
     return 0;
     
@@ -781,6 +789,8 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
     {
         q=radiallength;
     }
+    
+    q = 1;
     // std::cout<< "valor de q " << q << endl; // imprime razao da PG
     
    
