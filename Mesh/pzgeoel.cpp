@@ -741,18 +741,18 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 		error = Norm(DelX)/radius;
 	}
 	
-    #ifdef PZDEBUG
+#ifdef PZDEBUG
 	if(iter == nMaxIter)
 	{
 		std::stringstream sout;
 		sout << "Error at " << __PRETTY_FUNCTION__ << " - nMaxIter was reached before tolerance is achieved - ElementId" << this->Id() << std::endl;
 		PZError << "\n" << sout.str() << "\n";
 		
-        #ifdef LOG4CXX
+#ifdef LOG4CXX
 		LOGPZ_ERROR(logger,sout.str().c_str());
-        #endif
+#endif
 	}
-    #endif
+#endif
 	
 	return ( this->IsInParametricDomain(qsi) );
 }
@@ -1077,6 +1077,7 @@ void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<long> &indices) const {
 /** Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
 void TPZGeoEl::SetRefPattern(TPZAutoPointer<TPZRefPattern> ){
 	PZError << "TPZGeoEl::SetRefPattern ERROR : Should not be called in TPZGeoEl" << endl;
+    DebugStop();
 }
 
 void TPZGeoEl::Read(TPZStream &buf, void *context) {

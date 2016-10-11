@@ -925,7 +925,10 @@ bool TPZRefPatternTools::SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref)
 				int ns = neighside.Side();
 				TPZVec<int> MidNodesIndexes;
 				
-				TPZAutoPointer<TPZRefPattern> elrefpattern = neighside.Element()->GetRefPattern();				
+				TPZAutoPointer<TPZRefPattern> elrefpattern = neighside.Element()->GetRefPattern();
+                if (!elrefpattern) {
+                    DebugStop();
+                }
 				TPZAutoPointer<TPZRefPattern> refSide = elrefpattern->SideRefPattern(ns);
 				if (!refSide)
 				{

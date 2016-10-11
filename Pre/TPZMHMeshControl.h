@@ -18,6 +18,8 @@
 /// class oriented towards the creation of multiscale hybrid meshes
 class TPZMHMeshControl
 {
+    
+protected:
     /// geometric mesh used to create the computational mesh
     TPZAutoPointer<TPZGeoMesh> fGMesh;
     
