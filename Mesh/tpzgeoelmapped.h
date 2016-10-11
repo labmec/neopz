@@ -132,7 +132,7 @@ public:
 		//  Pira 18 maio 2009: nova implementação
         
         // @omar:: decreased for non linear mappings
-        REAL epsilon = 0.01;
+        REAL epsilon = 0.001;
 		for(in=0; in<nnodes; in++)
 		{
 			for(int id = 0; id < 3; id++){

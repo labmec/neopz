@@ -639,7 +639,7 @@ REAL TPZGeoEl::SmallerEdge()
 bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 	REAL error = 10.;
 	int iter = 0;
-	const int nMaxIter = 1000;
+	const int nMaxIter = 10000;
 	REAL radius = CharacteristicSize();
 	int dim = Dimension();
 	TPZManVector<REAL,3> X0(3);

@@ -733,11 +733,11 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<long> &n
 				mindifindex = i;
 			}
 		}
-		if (mindif < 1e-6 && sideindices.NElements() != 0)
+		if (mindif < 1e-3 && sideindices.NElements() != 0)
 		{
 			newnodeindexes[index] = sideindices[mindifindex];
 		}
-		if (mindif >= 1.e-6 && sideindices.NElements() != 0)
+		if (mindif >= 1.e-2 && sideindices.NElements() != 0)
 		{
 #ifdef LOG4CXX
 			{
