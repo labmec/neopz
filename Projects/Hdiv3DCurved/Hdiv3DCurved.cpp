@@ -35,6 +35,7 @@
 #include "TPZQuadSphere.h"
 #include "TPZTriangleSphere.h"
 #include "tpzquadraticquad.h"
+#include "tpzarc3d.h"
 
 #include "pzcondensedcompel.h"
 #include "pzelementgroup.h"
@@ -203,9 +204,9 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 3;
-    common.n_p_levels = 1;
-    common.int_order  = 10;
+    common.n_h_levels = 4;
+    common.n_p_levels = 3;
+    common.int_order  = 8;
     common.n_threads  = 16;
     common.domain_type = "sphere";
     common.conv_summary = "convergence_summary";
@@ -243,12 +244,12 @@ int main()
 //    HdivCase_1.dump_folder = "Hdiv_sphere";
 //    simulations.Push(HdivCase_1);
     
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivCase_2 = common;
-//    HdivCase_2.IsHdivQ = true;
-//    HdivCase_2.mesh_type = "quadratic";
-//    HdivCase_2.dump_folder = "Hdiv_sphere";
-//    simulations.Push(HdivCase_2);
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivCase_2 = common;
+    HdivCase_2.IsHdivQ = true;
+    HdivCase_2.mesh_type = "quadratic";
+    HdivCase_2.dump_folder = "Hdiv_sphere";
+    simulations.Push(HdivCase_2);
     
 //    // Dual Formulation over the solid sphere
 //    struct SimulationCase HdivCase_3 = common;
@@ -327,7 +328,7 @@ void ComputeApproximation(SimulationCase sim_data){
 
     using namespace std;
     
-    for (int p = 1; p <= n_p_levels; p++) {
+    for (int p = 3; p <= n_p_levels; p++) {
         
         convergence << std::endl;        
         convergence << " Polynomial order  =  " << p << std::endl;
@@ -337,8 +338,8 @@ void ComputeApproximation(SimulationCase sim_data){
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
-            TPZGeoMesh * gmesh = GeomtricMesh(h + h_base, sim_data);
-//            UniformRefinement(gmesh, h);
+            TPZGeoMesh * gmesh = GeomtricMesh(h_base, sim_data);
+            UniformRefinement(gmesh, h);
 
 #ifdef PZDEBUG
             
@@ -1796,8 +1797,8 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFacesR(int ndiv, SimulationCase sim_data
     TPZManVector<TPZGeoNode,4> Node(nodes);
     
     TPZManVector<long,1> TopolPoint(1);
-    TPZManVector<long,4> TopolQuad(4),TopolQuadQua(8);
-    TPZManVector<long,8> TopolCube(8);
+    TPZManVector<long,4> TopolQuad(4),TopolArc(3);
+    TPZManVector<long,8> TopolCube(8),TopolQuadQua(8);
     TPZManVector<REAL,3> coord(3,0.);
     TPZVec<REAL> xc(3,0.);
     REAL cphi = atan(sqrt(2.0));
@@ -2042,58 +2043,149 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFacesR(int ndiv, SimulationCase sim_data
         geomesh->CreateGeoBlendElement(ECube, TopolCube, matid, id);
         id++;
         
+        
         // Adding hole boundary
+        int auxiliar_id = -10;
         int external_id = -1;
         
-        TopolQuadQua[0] = 3+il*basenodes;
-        TopolQuadQua[1] = 2+il*basenodes;
-        TopolQuadQua[2] = 2+(il+1)*basenodes;
-        TopolQuadQua[3] = 3+(il+1)*basenodes;
+        //////////////////////////////////////////////////////////////////////////////
+        // outer arcs
         
-        TopolQuadQua[4] = 0 + 2*basenodes;
-        TopolQuadQua[5] = 1 + 2*basenodes;
-        TopolQuadQua[6] = 2 + 2*basenodes;
-        TopolQuadQua[7] = 3 + 2*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad  > (id,TopolQuadQua,external_id,*geomesh);
+        TopolArc[0] = 3+il*basenodes;
+        TopolArc[1] = 2+il*basenodes;
+        TopolArc[2] = 0 + 2*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc, auxiliar_id,*geomesh);
         id++;
         
         
-        TopolQuadQua[0] = 2+il*basenodes;
-        TopolQuadQua[1] = 6+il*basenodes;
-        TopolQuadQua[2] = 6+(il+1)*basenodes;
-        TopolQuadQua[3] = 2+(il+1)*basenodes;
-        
-        TopolQuadQua[4] = 10 + 2*basenodes;
-        TopolQuadQua[5] = 8 + 2*basenodes;
-        TopolQuadQua[6] = 11 + 2*basenodes;
-        TopolQuadQua[7] = 1 + 2*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad  > (id,TopolQuadQua,external_id,*geomesh);
+        TopolArc[0] = 2+il*basenodes;
+        TopolArc[1] = 6+il*basenodes;
+        TopolArc[2] = 10 + 2*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc, auxiliar_id,*geomesh);
         id++;
         
-
-        TopolQuadQua[0] = 6+il*basenodes;
-        TopolQuadQua[1] = 7+il*basenodes;
-        TopolQuadQua[2] = 7+(il+1)*basenodes;
-        TopolQuadQua[3] = 6+(il+1)*basenodes;
-        
-        TopolQuadQua[4] = 7 + 2*basenodes;
-        TopolQuadQua[5] = 5 + 2*basenodes;
-        TopolQuadQua[6] = 9 + 2*basenodes;
-        TopolQuadQua[7] = 8 + 2*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad  > (id,TopolQuadQua,external_id,*geomesh);
+        TopolArc[0] = 6+il*basenodes;
+        TopolArc[1] = 7+il*basenodes;
+        TopolArc[2] = 7 + 2*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc, auxiliar_id,*geomesh);
         id++;
-
-        TopolQuadQua[0] = 3+il*basenodes;
-        TopolQuadQua[1] = 7+il*basenodes;
-        TopolQuadQua[2] = 7+(il+1)*basenodes;
-        TopolQuadQua[3] = 3+(il+1)*basenodes;
         
-        TopolQuadQua[4] = 4 + 2*basenodes;
-        TopolQuadQua[5] = 5 + 2*basenodes;
-        TopolQuadQua[6] = 6 + 2*basenodes;
-        TopolQuadQua[7] = 3 + 2*basenodes;
-        new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad  > (id,TopolQuadQua,external_id,*geomesh);
+        TopolArc[0] = 3+il*basenodes;
+        TopolArc[1] = 7+il*basenodes;
+        TopolArc[2] = 4 + 2*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc, auxiliar_id,*geomesh);
         id++;
+        
+        
+        //////////////////////////////////////////////////////////////////////////////
+        // inner arcs
+        
+        TopolArc[0] = 3+(il+1)*basenodes;
+        TopolArc[1] = 2+(il+1)*basenodes;
+        TopolArc[2] = 2 + 2*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc, auxiliar_id,*geomesh);
+        id++;
+        
+        TopolArc[0] = 2+(il+1)*basenodes;
+        TopolArc[1] = 6+(il+1)*basenodes;
+        TopolArc[2] = 11 + 2*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc, auxiliar_id,*geomesh);
+        id++;
+        
+        TopolArc[0] = 6+(il+1)*basenodes;
+        TopolArc[1] = 7+(il+1)*basenodes;
+        TopolArc[2] = 9 + 2*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc, auxiliar_id,*geomesh);
+        id++;
+        
+        
+        TopolArc[0] = 3+(il+1)*basenodes;
+        TopolArc[1] = 7+(il+1)*basenodes;
+        TopolArc[2] = 6 + 2*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc, auxiliar_id,*geomesh);
+        id++;
+        
+        //////////////////////////////////////////////////////////////////////////////
+        // bc of the hole
+        
+        TopolQuad[0] = 3+il*basenodes;
+        TopolQuad[1] = 2+il*basenodes;
+        TopolQuad[2] = 2+(il+1)*basenodes;
+        TopolQuad[3] = 3+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad > > (id,TopolQuad, external_id,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 2+il*basenodes;
+        TopolQuad[1] = 6+il*basenodes;
+        TopolQuad[2] = 6+(il+1)*basenodes;
+        TopolQuad[3] = 2+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad > > (id,TopolQuad, external_id,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 6+il*basenodes;
+        TopolQuad[1] = 7+il*basenodes;
+        TopolQuad[2] = 7+(il+1)*basenodes;
+        TopolQuad[3] = 6+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad > > (id,TopolQuad, external_id,*geomesh);
+        id++;
+        
+        TopolQuad[0] = 3+il*basenodes;
+        TopolQuad[1] = 7+il*basenodes;
+        TopolQuad[2] = 7+(il+1)*basenodes;
+        TopolQuad[3] = 3+(il+1)*basenodes;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad > > (id,TopolQuad, external_id,*geomesh);
+        id++;
+        
+        
+//        TopolQuadQua[0] = 3+il*basenodes;
+//        TopolQuadQua[1] = 2+il*basenodes;
+//        TopolQuadQua[2] = 2+(il+1)*basenodes;
+//        TopolQuadQua[3] = 3+(il+1)*basenodes;
+//        
+//        TopolQuadQua[4] = 0 + 2*basenodes;
+//        TopolQuadQua[5] = 1 + 2*basenodes;
+//        TopolQuadQua[6] = 2 + 2*basenodes;
+//        TopolQuadQua[7] = 3 + 2*basenodes;
+//        new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad  > (id,TopolQuadQua,external_id,*geomesh);
+//        id++;
+//        
+//        
+//        TopolQuadQua[0] = 2+il*basenodes;
+//        TopolQuadQua[1] = 6+il*basenodes;
+//        TopolQuadQua[2] = 6+(il+1)*basenodes;
+//        TopolQuadQua[3] = 2+(il+1)*basenodes;
+//        
+//        TopolQuadQua[4] = 10 + 2*basenodes;
+//        TopolQuadQua[5] = 8 + 2*basenodes;
+//        TopolQuadQua[6] = 11 + 2*basenodes;
+//        TopolQuadQua[7] = 1 + 2*basenodes;
+//        new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad  > (id,TopolQuadQua,external_id,*geomesh);
+//        id++;
+//        
+//
+//        TopolQuadQua[0] = 6+il*basenodes;
+//        TopolQuadQua[1] = 7+il*basenodes;
+//        TopolQuadQua[2] = 7+(il+1)*basenodes;
+//        TopolQuadQua[3] = 6+(il+1)*basenodes;
+//        
+//        TopolQuadQua[4] = 7 + 2*basenodes;
+//        TopolQuadQua[5] = 5 + 2*basenodes;
+//        TopolQuadQua[6] = 9 + 2*basenodes;
+//        TopolQuadQua[7] = 8 + 2*basenodes;
+//        new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad  > (id,TopolQuadQua,external_id,*geomesh);
+//        id++;
+//
+//        TopolQuadQua[0] = 3+il*basenodes;
+//        TopolQuadQua[1] = 7+il*basenodes;
+//        TopolQuadQua[2] = 7+(il+1)*basenodes;
+//        TopolQuadQua[3] = 3+(il+1)*basenodes;
+//        
+//        TopolQuadQua[4] = 4 + 2*basenodes;
+//        TopolQuadQua[5] = 5 + 2*basenodes;
+//        TopolQuadQua[6] = 6 + 2*basenodes;
+//        TopolQuadQua[7] = 3 + 2*basenodes;
+//        new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad  > (id,TopolQuadQua,external_id,*geomesh);
+//        id++;
         
         
         TopolCube[0] = 1+il*basenodes;

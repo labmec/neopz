@@ -654,7 +654,7 @@ public:
 	 * of the corner nodes of parametric elements
 	 * @return true if everything OK else false
 	 */
-	bool VerifyNodeCoordinates(REAL tol = 1e-2);
+	bool VerifyNodeCoordinates(REAL tol = 1e-1);
 
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
 	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1.e-2) = 0;
