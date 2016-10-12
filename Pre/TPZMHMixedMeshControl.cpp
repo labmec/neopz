@@ -19,8 +19,10 @@
 
 TPZMHMixedMeshControl::TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices) : TPZMHMeshControl(gmesh,coarseindices)
 {
-    fFluxMesh = new TPZCompMesh(gmesh);
-    fFluxMesh->SetDimModel(gmesh->Dimension());
+}
+
+TPZMHMixedMeshControl::TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices) : TPZMHMeshControl(gmesh,coarseindices)
+{
 }
 
 
@@ -28,24 +30,29 @@ TPZMHMixedMeshControl::TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, s
 /// Create all data structures for the computational mesh
 void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
 {
-    fFluxMesh = CreateHDivMHMMesh(fGMesh.operator->(),fpOrderInternal);
-    DuplicateNeighbouringConnects(fFluxMesh.operator->());
-    fPressureFineMesh = CreatePressureMHMMesh(fGMesh.operator->(),fpOrderInternal);
-}
-
-/// will create 1D elements on the interfaces between the coarse element indices
-void TPZMHMixedMeshControl::CreateCoarseInterfaces(int matid)
-{
+    if (fpOrderInternal == 0 || fpOrderSkeleton == 0) {
+        DebugStop();
+    }
+    fFluxMesh = CreateHDivMHMMesh();
+    DuplicateNeighbouringConnects();
+    fPressureFineMesh = CreatePressureMHMMesh();
     
+    
+    fCMesh = CreateHDivPressureMHMMesh();
+    if (usersubstructure) {
+        HideTheElements();
+    }
 }
 
-TPZCompMesh * TPZMHMixedMeshControl::CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
+
+TPZCompMesh * TPZMHMixedMeshControl::CreateHDivMHMMesh()
 {
+    TPZGeoMesh *gmesh = fGMesh.operator->();
     int meshdim = gmesh->Dimension();
     TPZCompMesh * cmeshHDiv = new TPZCompMesh(gmesh);
     cmeshHDiv->SetDimModel(meshdim);
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
-    cmeshHDiv->SetDefaultOrder(porder);
+    cmeshHDiv->SetDefaultOrder(fpOrderInternal);
     TPZVecL2 *matl2 = new TPZVecL2(1);
     cmeshHDiv->InsertMaterialObject(matl2);
     matl2 = new TPZVecL2(2);
@@ -55,19 +62,32 @@ TPZCompMesh * TPZMHMixedMeshControl::CreateHDivMHMMesh(TPZGeoMesh * gmesh, int p
     cmeshHDiv->InsertMaterialObject(bc);
     bc = matl2->CreateBC(matl2, -2, 0, val1, val2);
     cmeshHDiv->InsertMaterialObject(bc);
-    cmeshHDiv->AutoBuild();
+    bc = matl2->CreateBC(matl2, fSkeletonMatId, 0, val1, val2);
+    cmeshHDiv->InsertMaterialObject(bc);
+
+    std::set<int> materialids;
+    materialids.insert(1);
+    materialids.insert(-1);
+    materialids.insert(-2);
+    cmeshHDiv->AutoBuild(materialids);
+    
+    cmeshHDiv->SetDefaultOrder(fpOrderSkeleton);
+    materialids.clear();
+    materialids.insert(fSkeletonMatId);
+    cmeshHDiv->AutoBuild(materialids);
     
 #ifdef PZDEBUG
     {
-        std::ofstream outmesh("BigHDivMesh.txt");
+        std::ofstream outmesh("MixedMeshControl_HDivMesh.txt");
         cmeshHDiv->Print(outmesh);
     }
 #endif
     return cmeshHDiv;
 }
 
-void TPZMHMixedMeshControl::DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh)
+void TPZMHMixedMeshControl::DuplicateNeighbouringConnects()
 {
+    TPZCompMesh *HDivMesh = fFluxMesh.operator->();
     TPZGeoMesh *gmesh = HDivMesh->Reference();
     int dimension = gmesh->Dimension();
     gmesh->ResetReference();
@@ -98,8 +118,10 @@ void TPZMHMixedMeshControl::DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh
     HDivMesh->ExpandSolution();
 }
 
-TPZCompMesh * TPZMHMixedMeshControl::CreatePressureMHMMesh(TPZGeoMesh * gmesh, int porder)
+TPZCompMesh * TPZMHMixedMeshControl::CreatePressureMHMMesh()
 {
+    TPZGeoMesh * gmesh = fGMesh.operator->();
+    int porder = fpOrderInternal;
     TPZCompMesh * cmeshPressure = new TPZCompMesh(gmesh);
     cmeshPressure->SetDimModel(gmesh->Dimension());
     cmeshPressure->ApproxSpace().SetAllCreateFunctionsContinuous();
@@ -116,8 +138,11 @@ TPZCompMesh * TPZMHMixedMeshControl::CreatePressureMHMMesh(TPZGeoMesh * gmesh, i
     return cmeshPressure;
 }
 
-TPZCompMesh * TPZMHMixedMeshControl::CreateHDivPressureMHMMesh(TPZVec<TPZCompMesh * > & cmeshes)
+TPZCompMesh * TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
 {
+    TPZManVector<TPZCompMesh *,2 > cmeshes(2);
+    cmeshes[0] = fFluxMesh.operator->();
+    cmeshes[1] = fPressureFineMesh.operator->();
     TPZGeoMesh *gmesh = cmeshes[0]->Reference();
     if(!gmesh)
     {
@@ -175,18 +200,18 @@ TPZCompMesh * TPZMHMixedMeshControl::CreateHDivPressureMHMMesh(TPZVec<TPZCompMes
     
 }
 
-void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian, TPZVec<long> &coarseindices)
+void TPZMHMixedMeshControl::HideTheElements()
 {
+    bool KeepOneLagrangian = true;
     typedef std::set<long> TCompIndexes;
     std::map<long, TCompIndexes> ElementGroups;
-    TPZGeoMesh *gmesh = Multiphysics->Reference();
+    TPZGeoMesh *gmesh = fCMesh->Reference();
     gmesh->ResetReference();
     int dim = gmesh->Dimension();
-    Multiphysics->LoadReferences();
-    long nelg = coarseindices.NElements();
-    for (long iel=0; iel<nelg; iel++) {
-        long el = coarseindices[iel];
-        TPZGeoEl *gel = gmesh->Element(el);
+    fCMesh->LoadReferences();
+    for (std::set<long>::iterator it= fCoarseIndices.begin(); it != fCoarseIndices.end(); it++) {
+        long iel = *it;
+        TPZGeoEl *gel = gmesh->Element(iel);
         if (gel->Dimension() != dim && gel->MaterialId() > 0) {
             DebugStop();
         }
@@ -196,13 +221,13 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian, TPZVec<
         gelside.HigherLevelCompElementList3(highlevel, 0, 0);
         long nelst = highlevel.size();
         for (long elst=0; elst<nelst; elst++) {
-            ElementGroups[el].insert(highlevel[elst].Element()->Index());
+            ElementGroups[iel].insert(highlevel[elst].Element()->Index());
         }
         if (gel->Reference()) {
             if (nelst) {
                 DebugStop();
             }
-            ElementGroups[el].insert(gel->Reference()->Index());
+            ElementGroups[iel].insert(gel->Reference()->Index());
         }
     }
     std::cout << "Number of element groups " << ElementGroups.size() << std::endl;
@@ -218,13 +243,13 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian, TPZVec<
     }
     
     std::set<long> submeshindices;
-    TPZCompMeshTools::PutinSubmeshes(Multiphysics, ElementGroups, submeshindices, KeepOneLagrangian);
+    TPZCompMeshTools::PutinSubmeshes(fCMesh.operator->(), ElementGroups, submeshindices, KeepOneLagrangian);
     std::cout << "After putting in substructures\n";
     
-    Multiphysics->ComputeNodElCon();
-    Multiphysics->CleanUpUnconnectedNodes();
+    fCMesh->ComputeNodElCon();
+    fCMesh->CleanUpUnconnectedNodes();
     for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
-        TPZCompEl *cel = Multiphysics->Element(*it);
+        TPZCompEl *cel = fCMesh->Element(*it);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
         if (!subcmesh) {
             DebugStop();
@@ -238,5 +263,91 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian, TPZVec<
     //    Multiphysics->ComputeNodElCon();
     //    Multiphysics->CleanUpUnconnectedNodes();
     std::cout << "Finished substructuring\n";
+}
+
+/// print the data structure
+void TPZMHMixedMeshControl::Print(std::ostream &out)
+{
+    
+    /// geometric mesh used to create the computational mesh
+    if (fGMesh)
+    {
+        out << "******************* GEOMETRIC MESH *****************\n";
+        fGMesh->Print(out);
+    }
+    
+    /// computational mesh to contain the pressure elements
+    // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
+    if (fFluxMesh)
+    {
+        out << "******************* FLUX MESH *****************\n";
+        fFluxMesh->Print(out);
+    }
+    
+    /// computational mesh to contain the pressure elements
+    // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
+    if (fPressureFineMesh)
+    {
+        out << "******************* PRESSURE MESH *****************\n";
+        fPressureFineMesh->Print(out);
+    }
+    
+    
+    /// computational MHM mesh being built by this class
+    if (fCMesh)
+    {
+        out << "******************* COMPUTATIONAL MESH *****************\n";
+        fCMesh->Print(out);
+    }
+    
+    /// computational mesh to represent the constant states
+    if (fCMeshLagrange)
+    {
+        out << "******************* LAGRANGE MULTIPLIER MESH *****************\n";
+        fCMeshLagrange->Print(out);
+    }
+    
+    /// computational mesh to represent the constant states
+    if (fCMeshConstantPressure)
+    {
+        out << "******************* CONSTANTE PRESSURE MESH *****************\n";
+        fCMeshConstantPressure->Print(out);
+    }
+    
+    /// material id associated with the skeleton elements
+    out << "Skeleton Mat Id " <<  fSkeletonMatId << std::endl;
+    
+    /// material id associated with the lagrange multiplier elements
+    out << "Lagrange mat id left - right " <<  fLagrangeMatIdLeft << " - " << fLagrangeMatIdRight << std::endl;
+    
+    /// interpolation order of the internal elements
+    out << "Internal polynomial order " <<  fpOrderInternal << std::endl;
+    
+    /// interpolation order of the skeleton elements
+    out << "Skeleton polynomial order " << fpOrderSkeleton << std::endl;
+    
+    /// indices of the geometric elements which define the skeleton mesh
+    {
+        out << "Geometric element indices of the coarse mesh ";
+        std::ostream_iterator< double > output( out, " " );
+        std::copy( fCoarseIndices.begin(), fCoarseIndices.end(), output );
+        out << std::endl;
+    }
+    /// indices of the skeleton elements and their left/right elements of the skeleton mesh
+    out << "Skeleton element indices with associated left and right coarse element indices\n";
+    {
+        std::map<long, std::pair<long,long> >::iterator it;
+        for (it = fInterfaces.begin(); it != fInterfaces.end(); it++) {
+            out << "skel index " << it->first << " Left Right indices " << it->second.first << " " << it->second.second << std::endl;
+        }
+    }
+    
+    /// flag to determine whether a lagrange multiplier is included to force zero average pressures in the subdomains
+    /**
+     * when imposing average pressure to be zero, a multiphysics mesh is created
+     */
+    out << "Will generate a constant pressure mesh " <<  fLagrangeAveragePressure << std::endl;
+    
+    
 }
 

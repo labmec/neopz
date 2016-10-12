@@ -68,6 +68,8 @@ public:
     
     TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
     
+    TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices);
+    
     TPZMHMeshControl(const TPZMHMeshControl &copy);
     
     TPZMHMeshControl &operator=(const TPZMHMeshControl &cp);
@@ -86,7 +88,7 @@ public:
     void SetInternalPOrder(int order)
     {
         fpOrderInternal = order;
-        fCMesh->SetDefaultOrder(order);
+        if(fCMesh) fCMesh->SetDefaultOrder(order);
     }
     
     void SetSkeletonPOrder(int order)
@@ -104,7 +106,13 @@ public:
     void BuildComputationalMesh(bool usersubstructure);
     
     /// will create 1D elements on the interfaces between the coarse element indices
-    void CreateCoarseInterfaces(int matid);
+    void CreateSkeletonElements(int matid);
+    
+    /// divide the skeleton elements
+    void DivideSkeletonElements(int ndivide);
+    
+    /// print the data structure
+    void Print(std::ostream &out);
     
     /// Print diagnostics
     void PrintDiagnostics(std::ostream &out);

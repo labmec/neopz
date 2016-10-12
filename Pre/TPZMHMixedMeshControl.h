@@ -31,10 +31,12 @@ public:
     
     TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices);
     
+    TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices);
+    
     
     TPZMHMixedMeshControl(const TPZMHMixedMeshControl &copy) : TPZMHMeshControl(copy)
     {
-        
+        fFluxMesh = copy.fFluxMesh;
     }
     
     TPZMHMixedMeshControl &operator=(const TPZMHMixedMeshControl &cp)
@@ -47,24 +49,33 @@ public:
     /// Create all data structures for the computational mesh
     void BuildComputationalMesh(bool usersubstructure);
     
-    /// will create 1D elements on the interfaces between the coarse element indices
-    void CreateCoarseInterfaces(int matid);
-    
-
     TPZAutoPointer<TPZCompMesh> FluxMesh()
     {
         return fFluxMesh;
     }
     
+    /// Put the pointers to the meshes in a vector
+    void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
+    {
+        meshvec.Resize(2);
+        meshvec[0] = fFluxMesh.operator->();
+        meshvec[1] = fPressureFineMesh.operator->();
+    }
+
+    /// print the data structure
+    void Print(std::ostream &out);
+
 protected:
     
-    TPZCompMesh *CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder);
+    TPZCompMesh *CreateHDivMHMMesh();
     
-    TPZCompMesh * CreatePressureMHMMesh(TPZGeoMesh * gmesh, int porder);
+    TPZCompMesh * CreatePressureMHMMesh();
     
-    void DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh);
+    void DuplicateNeighbouringConnects();
 
-    TPZCompMesh * CreateHDivPressureMHMMesh(TPZVec<TPZCompMesh * > & cmeshes);
+    TPZCompMesh * CreateHDivPressureMHMMesh();
+
+    void HideTheElements();
 
 };
 

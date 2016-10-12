@@ -17,6 +17,7 @@
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzsubcmesh.h"
+#include "TPZRefPatternTools.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -36,7 +37,33 @@ fSkeletonMatId(0), fLagrangeMatIdLeft(50), fLagrangeMatIdRight(51), fCoarseIndic
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    
+    fpOrderInternal = 2;
+    fpOrderSkeleton = 1;
+    fCMesh = new TPZCompMesh(fGMesh);
+    fPressureFineMesh = fCMesh;
+    fCMesh->SetDimModel(fGMesh->Dimension());
+}
+
+TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices) : fGMesh(gmesh),
+fSkeletonMatId(0), fLagrangeMatIdLeft(50), fLagrangeMatIdRight(51), fCoarseIndices(), fLagrangeAveragePressure(false)
+{
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Coarse element indexes ";
+        for (std::set<long>::iterator it=fCoarseIndices.begin(); it != fCoarseIndices.end(); it++) {
+            sout << *it << " ";
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    fpOrderInternal = 2;
+    fpOrderSkeleton = 1;
+
+    long nc = coarseindices.size();
+    for (long c=0; c<nc; c++) {
+        fCoarseIndices.insert(coarseindices[c]);
+    }
     fCMesh = new TPZCompMesh(fGMesh);
     fPressureFineMesh = fCMesh;
     fCMesh->SetDimModel(fGMesh->Dimension());
@@ -65,7 +92,7 @@ TPZMHMeshControl &TPZMHMeshControl::operator=(const TPZMHMeshControl &cp){
 }
 
 /// will create 1D elements on the interfaces between the coarse element indices
-void TPZMHMeshControl::CreateCoarseInterfaces(int matid)
+void TPZMHMeshControl::CreateSkeletonElements(int matid)
 {
     if (fInterfaces.size()) {
         DebugStop();
@@ -137,6 +164,29 @@ void TPZMHMeshControl::CreateCoarseInterfaces(int matid)
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+}
+
+/// divide the skeleton elements
+void TPZMHMeshControl::DivideSkeletonElements(int ndivide)
+{
+    std::map<long, std::pair<long,long> >::iterator it;
+    for (int divide=0; divide<ndivide; divide++)
+    {
+        std::map<long, std::pair<long,long> > mapdivided;
+        for (it=fInterfaces.begin(); it!=fInterfaces.end(); it++) {
+            long elindex = it->first;
+            TPZGeoEl *gel = fGMesh->Element(elindex);
+            TPZAutoPointer<TPZRefPattern> refpat = TPZRefPatternTools::PerfectMatchRefPattern(gel);
+            gel->SetRefPattern(refpat);
+            TPZManVector<TPZGeoEl *,10> subels;
+            gel->Divide(subels);
+            long nsub = subels.size();
+            for (int is=0; is<nsub; is++) {
+                mapdivided[subels[is]->Index()] = it->second;
+            }
+        }
+        fInterfaces = mapdivided;
+    }
 }
 
 
@@ -1128,5 +1178,83 @@ void TPZMHMeshControl::SubStructure()
     }
     
     fCMesh->SaddlePermute();
+}
+
+/// print the data structure
+void TPZMHMeshControl::Print(std::ostream &out)
+{
+    
+    /// geometric mesh used to create the computational mesh
+    if (fGMesh)
+    {
+        out << "******************* GEOMETRIC MESH *****************\n";
+        fGMesh->Print(out);
+    }
+    
+    /// computational mesh to contain the pressure elements
+    // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
+    if (fPressureFineMesh)
+    {
+        out << "******************* PRESSURE MESH *****************\n";
+        fPressureFineMesh->Print(out);
+    }
+    
+
+    /// computational MHM mesh being built by this class
+    if (fCMesh)
+    {
+        out << "******************* COMPUTATIONAL MESH *****************\n";
+        fCMesh->Print(out);
+    }
+    
+    /// computational mesh to represent the constant states
+    if (fCMeshLagrange)
+    {
+        out << "******************* LAGRANGE MULTIPLIER MESH *****************\n";
+        fCMeshLagrange->Print(out);
+    }
+    
+    /// computational mesh to represent the constant states
+    if (fCMeshConstantPressure)
+    {
+        out << "******************* CONSTANTE PRESSURE MESH *****************\n";
+        fCMeshConstantPressure->Print(out);
+    }
+    
+    /// material id associated with the skeleton elements
+    out << "Skeleton Mat Id " <<  fSkeletonMatId << std::endl;
+    
+    /// material id associated with the lagrange multiplier elements
+    out << "Lagrange mat id left - right " <<  fLagrangeMatIdLeft << " - " << fLagrangeMatIdRight << std::endl;
+    
+    /// interpolation order of the internal elements
+    out << "Internal polynomial order " <<  fpOrderInternal << std::endl;
+    
+    /// interpolation order of the skeleton elements
+    out << "Skeleton polynomial order " << fpOrderSkeleton << std::endl;
+    
+    /// indices of the geometric elements which define the skeleton mesh
+    {
+        out << "Geometric element indices of the coarse mesh ";
+        std::ostream_iterator< double > output( out, " " );
+        std::copy( fCoarseIndices.begin(), fCoarseIndices.end(), output );
+        out << std::endl;
+    }
+    /// indices of the skeleton elements and their left/right elements of the skeleton mesh
+    out << "Skeleton element indices with associated left and right coarse element indices\n";
+    {
+        std::map<long, std::pair<long,long> >::iterator it;
+        for (it = fInterfaces.begin(); it != fInterfaces.end(); it++) {
+            out << "skel index " << it->first << " Left Right indices " << it->second.first << " " << it->second.second << std::endl;
+        }
+    }
+    
+    /// flag to determine whether a lagrange multiplier is included to force zero average pressures in the subdomains
+    /**
+     * when imposing average pressure to be zero, a multiphysics mesh is created
+     */
+    out << "Will generate a constant pressure mesh " <<  fLagrangeAveragePressure << std::endl;
+    
+
 }
 
