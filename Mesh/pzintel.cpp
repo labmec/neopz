@@ -298,7 +298,7 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
             orderchanged = 1;
             SetSideOrder(side, neworder);
         }
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
         long cap = elvecequal.NElements();
         long il = 0;
         while(il<cap) {//SideOrder(int side)
