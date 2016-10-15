@@ -51,7 +51,7 @@ protected:
     /// indices of the geometric elements which define the skeleton mesh
     std::set<long> fCoarseIndices;
     
-    /// indices of the skeleton elements and their left/right elements of the skeleton mesh
+    /// indices of the skeleton elements and their left/right geometric elements of the skeleton mesh
     std::map<long, std::pair<long,long> > fInterfaces;
     
     /// flag to determine whether a lagrange multiplier is included to force zero average pressures in the subdomains
@@ -105,11 +105,14 @@ public:
     /// Create all data structures for the computational mesh
     void BuildComputationalMesh(bool usersubstructure);
     
-    /// will create 1D elements on the interfaces between the coarse element indices
+    /// will create dim-1 geometric elements on the interfaces between the coarse element indices
     void CreateSkeletonElements(int matid);
     
     /// divide the skeleton elements
     void DivideSkeletonElements(int ndivide);
+    
+    /// divide one skeleton element
+    void DivideOneSkeletonElement(long index);
     
     /// print the data structure
     void Print(std::ostream &out);
@@ -120,10 +123,17 @@ public:
     /// Put the pointers to the meshes in a vector
     void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
     {
-        meshvec.Resize(3);
-        meshvec[0] = fPressureFineMesh.operator->();
-        meshvec[1] = fCMeshLagrange.operator->();
-        meshvec[2] = fCMeshConstantPressure.operator->();
+        if (fCMeshLagrange)
+        {
+            meshvec.Resize(3);
+            meshvec[0] = fPressureFineMesh.operator->();
+            meshvec[1] = fCMeshLagrange.operator->();
+            meshvec[2] = fCMeshConstantPressure.operator->();
+        }
+        else
+        {
+            meshvec.resize(0);
+        }
     }
     
 

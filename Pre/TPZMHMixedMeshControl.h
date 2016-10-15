@@ -54,6 +54,12 @@ public:
         return fFluxMesh;
     }
     
+    /// Set the flag for creating Lagrange Dofs for the average pressure
+    void SetLagrangeAveragePressure(bool flag)
+    {
+    }
+    
+
     /// Put the pointers to the meshes in a vector
     void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
     {

@@ -19,10 +19,18 @@
 
 TPZMHMixedMeshControl::TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<long> &coarseindices) : TPZMHMeshControl(gmesh,coarseindices)
 {
+    fFluxMesh = new TPZCompMesh(gmesh);
+    fFluxMesh->SetDimModel(gmesh->Dimension());
+    fCMesh = new TPZCompMesh(gmesh);
+    fCMesh->SetDimModel(gmesh->Dimension());
 }
 
 TPZMHMixedMeshControl::TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<long> &coarseindices) : TPZMHMeshControl(gmesh,coarseindices)
 {
+    fFluxMesh = new TPZCompMesh(gmesh);
+    fFluxMesh->SetDimModel(gmesh->Dimension());
+    fCMesh = new TPZCompMesh(gmesh);
+    fCMesh->SetDimModel(gmesh->Dimension());
 }
 
 
@@ -33,12 +41,12 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     if (fpOrderInternal == 0 || fpOrderSkeleton == 0) {
         DebugStop();
     }
-    fFluxMesh = CreateHDivMHMMesh();
+    CreateHDivMHMMesh();
     DuplicateNeighbouringConnects();
-    fPressureFineMesh = CreatePressureMHMMesh();
+    CreatePressureMHMMesh();
     
     
-    fCMesh = CreateHDivPressureMHMMesh();
+    CreateHDivPressureMHMMesh();
     if (usersubstructure) {
         HideTheElements();
     }
@@ -49,7 +57,9 @@ TPZCompMesh * TPZMHMixedMeshControl::CreateHDivMHMMesh()
 {
     TPZGeoMesh *gmesh = fGMesh.operator->();
     int meshdim = gmesh->Dimension();
-    TPZCompMesh * cmeshHDiv = new TPZCompMesh(gmesh);
+    TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
+    gmesh->ResetReference();
+    cmeshHDiv->LoadReferences();
     cmeshHDiv->SetDimModel(meshdim);
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     cmeshHDiv->SetDefaultOrder(fpOrderInternal);
@@ -121,8 +131,12 @@ void TPZMHMixedMeshControl::DuplicateNeighbouringConnects()
 TPZCompMesh * TPZMHMixedMeshControl::CreatePressureMHMMesh()
 {
     TPZGeoMesh * gmesh = fGMesh.operator->();
+    gmesh->ResetReference();
+    
     int porder = fpOrderInternal;
-    TPZCompMesh * cmeshPressure = new TPZCompMesh(gmesh);
+    TPZCompMesh * cmeshPressure = fPressureFineMesh.operator->();
+    cmeshPressure->LoadReferences();
+    cmeshPressure->SetName("PressureMesh");
     cmeshPressure->SetDimModel(gmesh->Dimension());
     cmeshPressure->ApproxSpace().SetAllCreateFunctionsContinuous();
     cmeshPressure->ApproxSpace().CreateDisconnectedElements(true);
@@ -150,34 +164,8 @@ TPZCompMesh * TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
         DebugStop();
     }
     int dim = gmesh->Dimension();
-    
-    const int typeFlux = 1, typePressure = 0;
-    TPZFMatrix<STATE> val1(1,1,0.), val2Flux(1,1,0.), val2Pressure(1,1,10.);
-    val2Pressure(0,0) = 1000.;
-    
     // Malha computacional
-    TPZCompMesh * MixedFluxPressureCmesh = new TPZCompMesh(gmesh);
-    
-    // Material medio poroso
-    TPZMixedPoisson * mat = new TPZMixedPoisson(1,dim);
-    mat->SetSymmetric();
-    //    mat->SetForcingFunction(One);
-    MixedFluxPressureCmesh->InsertMaterialObject(mat);
-    
-    
-    
-    // Bc N
-    TPZBndCond * bcN = mat->CreateBC(mat, -1, typePressure, val1, val2Pressure);
-//    TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(DirichletValidacao);
-//    bcN->SetForcingFunction(0,force);
-    MixedFluxPressureCmesh->InsertMaterialObject(bcN);
-    
-    // Bc S
-    TPZBndCond * bcS = mat->CreateBC(mat, -2, typePressure, val1, val2Pressure);
-//    bcS->SetForcingFunction(0, force);
-    MixedFluxPressureCmesh->InsertMaterialObject(bcS);
-    
-    
+    TPZCompMesh * MixedFluxPressureCmesh = fCMesh.operator->();
     
     
     
@@ -258,7 +246,9 @@ void TPZMHMixedMeshControl::HideTheElements()
         subcmesh->ComputeNodElCon();
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->CleanUpUnconnectedNodes();
-        subcmesh->SetAnalysisSkyline(16, 0, 0);
+        int numthreads = 16;
+        int preconditioned = 0;
+        subcmesh->SetAnalysisSkyline(numthreads, preconditioned, 0);
     }
     //    Multiphysics->ComputeNodElCon();
     //    Multiphysics->CleanUpUnconnectedNodes();
