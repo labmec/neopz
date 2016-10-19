@@ -68,6 +68,8 @@ ENABLE_TESTING()
 
 			add_subdirectory(proDG)
 			
+			#Project which generates pyramid HDiv elements
+			add_subdirectory(PyramidHdivTests)
 
 		endif(BUILD_COMPLEX_PROJECTS)
 

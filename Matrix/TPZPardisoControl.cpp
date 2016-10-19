@@ -213,6 +213,13 @@ void TPZPardisoControl<TVar>::Decompose()
     /// analyse and factor the equations
     long long phase = 12;
     
+    for(long i = 0; i < n; i++){
+        fPermutation[i] = i;
+    }
+    if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+        fParam[4] = 1;
+    }
+
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);

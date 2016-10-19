@@ -70,6 +70,9 @@ protected:
 	/** @brief Time variable which is used in dx output */
 	REAL fTime;
 	
+    /** @brief Number of threads to be used for post-processing error */
+    int fNthreadsError;
+    
 	/** @brief Structural matrix */
 	TPZAutoPointer<TPZStructMatrix>  fStructMatrix;
 	
@@ -190,6 +193,12 @@ protected:
     {
         fStep = step;
     }
+    
+    void SetThreadsForError(int nthreads)
+    {
+        fNthreadsError = nthreads;
+    }
+    
     int GetStep()
     {
         return fStep;
@@ -242,7 +251,9 @@ public:
 	virtual void PrePostProcessTable();
 	/** @brief Print the solution related with the computational element vector in post process */
 	virtual void PostProcessTable();
-	/** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */
+
+    
+    /** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */
 	void PostProcessTable(  TPZFMatrix<REAL> &pos,std::ostream &out= std::cout );
 
 	/** @} */
@@ -264,10 +275,16 @@ public:
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
     
     /**
-	 * @brief Compute the local error over all elements and global errors in several norms and print out 
-	 * without calculating the errors of the variables for hdiv spaces.
+     * @brief Compute the local error over all elements and global errors in several norms and print out
+     * without calculating the errors of the variables for hdiv spaces.
      */
     virtual void PostProcessError(TPZVec<REAL> &, std::ostream &out = std::cout);
+    
+    virtual void PostProcessErrorSerial(TPZVec<REAL> &, std::ostream &out = std::cout);
+    
+    virtual void PostProcessErrorParallel(TPZVec<REAL> &, std::ostream &out = std::cout);
+    
+    void CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvec);
 	
 	/** @brief Print connect and solution information */
 	void Print( const std::string &name , std::ostream &out );
