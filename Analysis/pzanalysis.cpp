@@ -27,6 +27,8 @@
 #include "pzsloan.h"
 #include "pzmaterial.h"
 #include "pzbndcond.h"
+
+#include "TPZLagrangeMultiplier.h"
 #include "pzstrmatrix.h"
 
 #include "tpznodesetcompute.h"
@@ -72,7 +74,7 @@ void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
 void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix){
 	fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
 }
-TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER)
+TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER)
 , fGuiInterface(NULL), fTable() {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -81,7 +83,7 @@ TPZAnalysis::TPZAnalysis() : fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSo
 
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -90,7 +92,7 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -707,8 +709,9 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, std::ostream &ou
 
 void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out ){
 
-  
     long neq = fCompMesh->NEquations();
+    TPZVec<REAL> ux(neq);
+    TPZVec<REAL> sigx(neq);
     TPZManVector<REAL,10> values(10,0.);
     fCompMesh->LoadSolution(fSolution);
     //	SetExact(&Exact);
@@ -725,7 +728,6 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out 
             {
                 errors.Fill(0.0);
                 el->EvaluateError(fExact, errors, 0);
-//                std::cout << "Element " << i << " errors " << errors << std::endl;
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
                 for(int ier = 0; ier < nerrors; ier++)
@@ -737,8 +739,8 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out 
     }
     
     int nerrors = errors.NElements();
-    ervec.Resize(nerrors);
-    ervec.Fill(-10.0);
+	ervec.Resize(nerrors);
+	ervec.Fill(-10.0);
 
     if (nerrors < 3) {
         PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
@@ -754,10 +756,9 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, std::ostream &out 
         for(int ier = 3; ier < nerrors; ier++)
             out << "other norms = " << sqrt(values[ier]) << endl;
     }
-  
-    // Returns the calculated errors.
-    for(i=0;i<nerrors;i++)
-        ervec[i] = sqrt(values[i]);
+	// Returns the calculated errors.
+	for(i=0;i<nerrors;i++)
+		ervec[i] = sqrt(values[i]);
     return;
 }
 
@@ -907,7 +908,8 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
 	{
 		TPZBndCond *bc = dynamic_cast<TPZBndCond *>(matit->second);
-		if(matit->second && !bc && matit->second->Dimension() == dimension) break;
+        TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *>(matit->second);
+		if(matit->second && !bc && !lag && matit->second->Dimension() == dimension) break;
 	}
 	if(matit == fCompMesh->MaterialVec().end()) return;
 	fGraphMesh[dim1]->SetCompMesh(fCompMesh,matit->second);
@@ -1315,8 +1317,8 @@ void TPZAnalysis::PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec
             long cindex = cel->ConnectIndex(ic);
             TPZConnect &c = fCompMesh->ConnectVec()[cindex];
             if(c.HasDependency() || c.IsCondensed()) {
-                out << "connect " << ic << " is restrained ";
-//                continue;
+                out << "connect " << ic << " is restrained\n";
+                continue;
             }
             ConnectSolution(cindex, fCompMesh, vec, connectsol);
             for (int i=0; i<connectsol.size(); i++) {

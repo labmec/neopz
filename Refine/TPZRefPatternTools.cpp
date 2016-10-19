@@ -925,7 +925,10 @@ bool TPZRefPatternTools::SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref)
 				int ns = neighside.Side();
 				TPZVec<int> MidNodesIndexes;
 				
-				TPZAutoPointer<TPZRefPattern> elrefpattern = neighside.Element()->GetRefPattern();				
+				TPZAutoPointer<TPZRefPattern> elrefpattern = neighside.Element()->GetRefPattern();
+                if (!elrefpattern) {
+                    DebugStop();
+                }
 				TPZAutoPointer<TPZRefPattern> refSide = elrefpattern->SideRefPattern(ns);
 				if (!refSide)
 				{
@@ -934,10 +937,9 @@ bool TPZRefPatternTools::SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref)
 					
 					DebugStop();
 				}
-                int nsub = elrefpattern->NSideSubElements(ns);
-//				elrefpattern->SideNodes(ns, MidNodesIndexes);
+				elrefpattern->SideNodes(ns, MidNodesIndexes);
 				
-                sidestoref[s] = nsub-1;
+				sidestoref[s] = MidNodesIndexes.NElements();
 				
 				break;
 			} 

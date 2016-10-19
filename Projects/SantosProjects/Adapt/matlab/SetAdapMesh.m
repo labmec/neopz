@@ -33,6 +33,12 @@ NewModel.mesh.vertexonboundary(NewModel.mesh.segments(:,1:2)) = 1;
 NewModel.mesh.vertexconnectivity = NodeConnectivity(NewModel.mesh.elements,NewModel.mesh.numberofvertices);
 NewModel.mesh.elementconnectivity = ElementConnectivity(NewModel.mesh.elements,NewModel.mesh.vertexconnectivity);
 
+% Itapopo testando aqui
+NewModel = setmask(NewModel,'','');
+NewModel = parameterize(NewModel, parfile);
+% NewModel = parameterize(NewModel, './Exp_Par/Mismip.par');
+
+
 % interpolating data
 %LastTime = size(md.results.TransientSolution);    
 %LastTime = LastTime(2);
@@ -44,7 +50,9 @@ NewModel.geometry.thickness = NewModel.geometry.surface - NewModel.geometry.base
 
 % common settings
 %disp('!!!!!!!!!!!!!!!     USAR BC.par       !!!!!!!!!!!!!!!' );
-NewModel = parameterize(NewModel, parfile);%'BCdebug.par');%itapopo usar BC.par, inclusive no MAIN!!!
+% itapopo testando em outro lugar esta chamada
+%NewModel = setmask(NewModel,'','');
+%NewModel = parameterize(NewModel, './Exp_Par/Mismip.par');% parfle 'BCdebug.par');%itapopo usar BC.par, inclusive no MAIN!!!
 
 % initialization from last md.results time step
 NewModel.initialization.pressure = zeros(NewModel.mesh.numberofvertices,1);
@@ -63,8 +71,8 @@ NewModel.initialization.temperature = temperature;%InterpData( edgenodes, md.ini
 % groundedice_levelset from last md.results time step
 %NewModel.mask.groundedice_levelset = InterpData( edgenodes, md.results.TransientSolution(LastTime).MaskGroundediceLevelset, md, NewModel);
 
-NewModel.mask.groundedice_levelset = NewModel.geometry.thickness + (NewModel.materials.rho_water/NewModel.materials.rho_ice) * NewModel.geometry.bed;
-%NewModel.mask.groundedice_levelset = masklevelset;
+%NewModel.mask.groundedice_levelset = NewModel.geometry.thickness + (NewModel.materials.rho_water/NewModel.materials.rho_ice) * NewModel.geometry.bed;
+NewModel.mask.groundedice_levelset = masklevelset;
 
 pos = find(NewModel.mask.groundedice_levelset>0.);
 pos2 = find(abs( NewModel.geometry.base(pos)-NewModel.geometry.bed(pos) ) > 10^-10 );
@@ -72,11 +80,11 @@ posSize = length(pos2);
 for i = 1:posSize
     point = pos(pos2(i));
     NewModel.geometry.base(point) = NewModel.geometry.bed(point);%itapopo
-    %NewModel.mask.groundedice_levelset(point) = 0.;
+    NewModel.mask.groundedice_levelset(point) = 0.;
 end
 %itapopo
 NewModel.geometry.thickness = NewModel.geometry.surface - NewModel.geometry.base;
-NewModel.mask.groundedice_levelset = NewModel.geometry.thickness + (NewModel.materials.rho_water/NewModel.materials.rho_ice) * NewModel.geometry.bed;
+%NewModel.mask.groundedice_levelset = NewModel.geometry.thickness + (NewModel.materials.rho_water/NewModel.materials.rho_ice) * NewModel.geometry.bed;
 %itapopo
 
 mdOut = NewModel;

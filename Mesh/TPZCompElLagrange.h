@@ -154,6 +154,11 @@ public:
     {
         return 0;
     }
+    
+    void CreateGraphicalElement(TPZGraphMesh &, int)
+    {
+    }
+
 	
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<long> &connectindexes) const
