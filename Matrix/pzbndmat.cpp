@@ -10,9 +10,10 @@
 /** CBlas Math Library */
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
+#elif USING_MKL
+#include <mkl.h>
 #else
-#include "cblas.h"
-#define BLAS_MULT
+//#include "clapack.h"
 #endif
 #endif
 
@@ -521,7 +522,14 @@ TPZFBMatrix<float>::Decompose_LU()
     int info;
     
 //    sgbsv_(<#__CLPK_integer *__n#>, <#__CLPK_integer *__kl#>, <#__CLPK_integer *__ku#>, <#__CLPK_integer *__nrhs#>, <#__CLPK_real *__ab#>, <#__CLPK_integer *__ldab#>, <#__CLPK_integer *__ipiv#>, <#__CLPK_real *__b#>, <#__CLPK_integer *__ldb#>, <#__CLPK_integer *__info#>)
+//    lapack_int LAPACKE_sgbsv( int matrix_layout, lapack_int n, lapack_int kl,
+//                             lapack_int ku, lapack_int nrhs, float* ab,
+//                             lapack_int ldab, lapack_int* ipiv, float* b,
+//                             lapack_int ldb );
+
     sgbsv_(&rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab,&fPivot[0], &B,&rows, &info);
+    int matrix_layout = 0;
+//    LAPACKE_sgbsv(matrix_layout,rows, bandlower, bandupper, nrhs, &fElem[0], ldab,&fPivot[0], &B,rows);
     
     if (info != 0) {
         DebugStop();
