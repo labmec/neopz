@@ -178,46 +178,23 @@ int main(int argc, char *argv[])
     REAL Lx = 1000.,Ly = 100., Lz = 10;
     int nref = 1;
     
-<<<<<<< HEAD
-    if(UseGenGridQ){
-        TPZManVector<int> nblocks(4,4);
-        //    nblocks[1] = 30;
-        gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref);
-    }
-    else{
-        int nel_x = 2;
-        int nel_y = 1;
-        int nel_z = 1;
-        
-        TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-        dx[0] = Lx/REAL(nel_x);
-        dy[0] = Ly/REAL(nel_y);
-        dz[0] = Lz/REAL(nel_z);
-        gmesh = CreateGeometricBoxMesh2D(nref, dx, dy);
-//        gmesh = CreateGeometricBoxMesh(nref,dx, dy, dz);
-    }
-
-=======
     std::string quad = "QuadByTriangles";
     std::string triangle = "TriangleBy9Triangles";
     TPZAutoPointer<TPZRefPattern> refpatquad = DivideQuadbyTriangles(quad);
-    
-    
     TPZAutoPointer<TPZRefPattern> refpattriangle = DivideTriangleby9Triangles(triangle);
     
-    int nelx = 30;
-    int nely = 10;
+    int nelx = 10;
+    int nely = 4;
     TPZVec<long> coarseindices;
-    TPZGeoMesh *gmesh = MalhaGeomFred(nelx, nely, quad, triangle, coarseindices);
+    gmesh = MalhaGeomFred(nelx, nely, quad, triangle, coarseindices);
     
     TPZAutoPointer<TPZGeoMesh> gmeshauto(gmesh);
     
     TPZMHMeshControl meshcontrol(gmeshauto, coarseindices);
     
-    meshcontrol.SetLagrangeAveragePressure(true);
+    meshcontrol.SetLagrangeAveragePressure(false);
     
     InsertMaterialObjects(meshcontrol);
->>>>>>> master
 
     meshcontrol.SetInternalPOrder(1);
     meshcontrol.SetSkeletonPOrder(1);
@@ -257,8 +234,7 @@ int main(int argc, char *argv[])
 //    cmeshes[1] = CreatePressureMHMMesh(gmesh, porder);
 
     std::cout << "Computational meshes created\n";
-<<<<<<< HEAD
-=======
+
 #ifdef PZDEBUG
     {
         std::ofstream gfile("geometry.txt");
@@ -269,7 +245,6 @@ int main(int argc, char *argv[])
 
     }
 #endif
->>>>>>> master
     
     TPZCompMesh * CHDivPressureMesh = meshcontrol.CMesh().operator->();
 
@@ -285,16 +260,10 @@ int main(int argc, char *argv[])
     //calculo solution
     TPZAnalysis an(CHDivPressureMesh);
     TPZSkylineStructMatrix skyl(CHDivPressureMesh);
-<<<<<<< HEAD
-    skyl.SetNumThreads(16);
-    
-#ifdef PZDEBUG
-    std::ofstream out_flux("MHM_hdiv.txt");
-    an.Mesh()->Print(out_flux);
-=======
+
 #ifndef PZDEBUG
 //    skyl.SetNumThreads(16);
->>>>>>> master
+
 #endif
     
     an.SetStructuralMatrix(skyl);
@@ -304,17 +273,6 @@ int main(int argc, char *argv[])
     
     std::cout << "Assembling\n";
     an.Assemble();
-<<<<<<< HEAD
-    
-#ifdef PZDEBUG
-    {
-        std::ofstream out_k_f("system.txt");
-        an.Solver().Matrix()->Print("k = ",out_k_f,EMathematicaInput);
-        an.Rhs().Print("f = ",out_k_f,EMathematicaInput);
-    }
-#endif
-    
-=======
     if(0)
     {
         std::ofstream global("Global.nb");
@@ -322,7 +280,6 @@ int main(int argc, char *argv[])
         an.Solver().Matrix()->Print("Glob = ",global,EMathematicaInput);
         an.Rhs().Print("Rhs = ",global,EMathematicaInput);
     }
->>>>>>> master
     std::cout << "Solving\n";
     an.Solve();
     std::cout << "Finished\n";
@@ -1466,30 +1423,20 @@ static void InsertInterfaceElements(TPZGeoMesh * gmesh, int level, int levelinte
     int dim = gmesh->Dimension();
     for (long el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
-<<<<<<< HEAD
-        if (!gel || gel->Level() != 0 || gel->Dimension() != dim) {
-=======
+
         if (!gel || gel->Level() != levelinterface || gel->Dimension() != dimension) {
->>>>>>> master
             continue;
         }
         int nsides = gel->NSides();
         for (int is = gel->NCornerNodes(); is<nsides; is++) {
-<<<<<<< HEAD
-            if (gel->SideDimension(is) != dim -1 ) {
-=======
+
             if (gel->SideDimension(is) != dimension-1) {
->>>>>>> master
                 continue;
             }
             TPZGeoElSide gelside(gel,is);
             TPZGeoElSide neighbour = gelside.Neighbour();
             while (neighbour != gelside) {
-<<<<<<< HEAD
-                if (neighbour.Element()->Dimension() == dim - 1) {
-=======
                 if (neighbour.Element()->Dimension() == dimension-1) {
->>>>>>> master
                     break;
                 }
                 neighbour = neighbour.Neighbour();
@@ -1544,9 +1491,6 @@ TPZGeoMesh * MalhaGeomBig(REAL Lx, REAL Ly, REAL Lz, TPZVec<int> &nblocks, int n
     }
 #endif
     
-<<<<<<< HEAD
-//    InsertInterfaceElements(meshresult3d);
-=======
     res3d->SetDimension(3);
     
     TPZCheckGeom check(res3d);
@@ -1569,7 +1513,6 @@ TPZGeoMesh * MalhaGeomBig(REAL Lx, REAL Ly, REAL Lz, TPZVec<int> &nblocks, int n
     check.UniformRefine(nref);
     
     InsertInterfaceElements(meshresult3d,0,0);
->>>>>>> master
     
     std::ofstream vtkfile("geometry.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(meshresult3d, vtkfile);
@@ -1676,7 +1619,7 @@ TPZGeoMesh * CreateGeometricBoxMesh(int nref ,TPZManVector<REAL,2> dx, TPZManVec
     }
 #endif
     
-    InsertInterfaceElements(gmesh);
+//    InsertInterfaceElements(gmesh);
     
     std::ofstream vtkfile("geometry.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile);
@@ -1769,7 +1712,7 @@ TPZGeoMesh * CreateGeometricBoxMesh2D(int nref, TPZManVector<REAL,2> dx, TPZManV
     }
 #endif
     
-    InsertInterfaceElements(gmesh);
+//    InsertInterfaceElements(gmesh);
     
     std::ofstream vtkfile("geometry.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile);
@@ -1808,19 +1751,13 @@ void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 
 TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
 {
-<<<<<<< HEAD
-    int dim = gmesh->Dimension();
-    TPZCompMesh * cmeshHDiv = new TPZCompMesh(gmesh);
-    cmeshHDiv->SetDimModel(dim);
-    cmeshHDiv->SetAllCreateFunctionsHDiv();
-    
-=======
+
     int meshdim = gmesh->Dimension();
     TPZCompMesh * cmeshHDiv = new TPZCompMesh(gmesh);
     cmeshHDiv->SetDimModel(meshdim);
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     cmeshHDiv->SetDefaultOrder(porder);
->>>>>>> master
+
     TPZVecL2 *matl2 = new TPZVecL2(1);
     cmeshHDiv->InsertMaterialObject(matl2);
     matl2 = new TPZVecL2(2);
@@ -1862,11 +1799,9 @@ TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
 void DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh)
 {
     TPZGeoMesh *gmesh = HDivMesh->Reference();
-<<<<<<< HEAD
-    int dim = gmesh->Dimension();
-=======
+
     int dimension = gmesh->Dimension();
->>>>>>> master
+
     gmesh->ResetReference();
     HDivMesh->LoadReferences();
     HDivMesh->ComputeNodElCon();
@@ -1874,11 +1809,9 @@ void DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh)
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = HDivMesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
-<<<<<<< HEAD
-        if (!gel || gel->Dimension() != dim) {
-=======
+
         if (!gel || gel->Dimension() != dimension) {
->>>>>>> master
+
             continue;
         }
         int nc = cel->NConnects();
@@ -1944,11 +1877,9 @@ TPZCompMesh * CreateHDivPressureMHMMesh(TPZVec<TPZCompMesh * > & cmeshes)
     
     // Material medio poroso
     TPZMixedPoisson * mat = new TPZMixedPoisson(1,dim);
-<<<<<<< HEAD
-//    mat->SetSymmetric();
-=======
+
     mat->SetSymmetric();
->>>>>>> master
+
     //    mat->SetForcingFunction(One);
     MixedFluxPressureCmesh->InsertMaterialObject(mat);
     
@@ -1995,30 +1926,14 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian, TPZVec<
     TPZGeoMesh *gmesh = Multiphysics->Reference();
     int dim = gmesh->Dimension();
     gmesh->ResetReference();
-    int dim = gmesh->Dimension();
+
     Multiphysics->LoadReferences();
     long nelg = coarseindices.NElements();
     for (long iel=0; iel<nelg; iel++) {
         long el = coarseindices[iel];
         TPZGeoEl *gel = gmesh->Element(el);
-<<<<<<< HEAD
-        if (gel->Father() != NULL) {
-            continue;
-        }
-        if (gel->Dimension() == dim - 1 && gel->MaterialId() > 0) {
-            continue;
-        }
-        long mapindex = gel->Index();
-        if (gel->Dimension() == dim - 1) {
-            TPZGeoElSide neighbour = gel->Neighbour(gel->NSides()-1);
-            if (neighbour.Element()->Dimension() != dim) {
-                DebugStop();
-            }
-            mapindex= neighbour.Element()->Index();
-=======
         if (gel->Dimension() != dim && gel->MaterialId() > 0) {
             DebugStop();
->>>>>>> master
         }
         // we took any neighbour of gel and identified a mapindex with it??
         TPZStack<TPZCompElSide> highlevel;
