@@ -112,8 +112,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     
     int ref = 1;
-//    fSpaceGenerator->UniformRefinement(ref);
-    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
+    fSpaceGenerator->UniformRefinement(ref);
+//    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 12);
     fSpaceGenerator->PrintGeometry();
 //    int father_index = 9;
