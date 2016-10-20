@@ -1158,12 +1158,12 @@ void TPZRefPattern::SetRefPatternMeshToMasterDomain()
 {
 	//Levando a fRefPatternMesh para o espaço parametrico do elemento mestre
 	int nnodes = fRefPatternMesh.NodeVec().NElements();
-	TPZVec< TPZVec<REAL> > nodecoords_inQSI(nnodes);
-	TPZVec<REAL> nodecoords_inX;
+	TPZManVector< TPZManVector<REAL,3> ,20> nodecoords_inQSI(nnodes);
+	TPZManVector<REAL,3> nodecoords_inX;
 	TPZGeoEl * gel = fRefPatternMesh.ElementVec()[0];
 	
 	int dim = gel->Dimension();
-	TPZVec<REAL> temp(3,0.);
+	TPZManVector<REAL,3> temp(3,0.);
 	REAL Tol;
 	ZeroTolerance(Tol);
 	

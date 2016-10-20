@@ -13,7 +13,7 @@ surface = zeros(NPoints, 1);
 
 for i = 1:NPoints
     
-    value = fscanf(fid,'%f\t',1);
+    value = fscanf(fid,'%e\t',1);
     
     surface(i) = value;
   
@@ -24,7 +24,7 @@ base = zeros(NPoints, 1);
 
 for i = 1:NPoints
     
-    value = fscanf(fid,'%f\t',1);
+    value = fscanf(fid,'%e\t',1);
     
     base(i) = value;
   
@@ -35,7 +35,7 @@ bed = zeros(NPoints, 1);
 
 for i = 1:NPoints
     
-    value = fscanf(fid,'%f\t',1);
+    value = fscanf(fid,'%e\t',1);
     
     bed(i) = value;
   
@@ -46,7 +46,7 @@ pressure = zeros(NPoints, 1);
 
 for i = 1:NPoints
     
-    value = fscanf(fid,'%f\t',1);
+    value = fscanf(fid,'%e\t',1);
     
     pressure(i) = value;
   
@@ -57,7 +57,7 @@ temperature = zeros(NPoints, 1);
 
 for i = 1:NPoints
     
-    value = fscanf(fid,'%f\t',1);
+    value = fscanf(fid,'%e\t',1);
     
     temperature(i) = value;
   
@@ -68,7 +68,7 @@ vx = zeros(NPoints, 1);
 
 for i = 1:NPoints
     
-    value = fscanf(fid,'%f\t',1);
+    value = fscanf(fid,'%e\t',1);
     
     vx(i) = value;
   
@@ -79,7 +79,7 @@ vy = zeros(NPoints, 1);
 
 for i = 1:NPoints
     
-    value = fscanf(fid,'%f\t',1);
+    value = fscanf(fid,'%e\t',1);
     
     vy(i) = value;
   
@@ -90,7 +90,7 @@ masklevelset = zeros(NPoints, 1);
 
 for i = 1:NPoints
     
-    value = fscanf(fid,'%f\t',1);
+    value = fscanf(fid,'%e\t',1);
     
     masklevelset(i) = value;
   

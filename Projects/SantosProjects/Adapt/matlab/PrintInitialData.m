@@ -1,4 +1,4 @@
-function PrintSolution(md, solutionfile)
+function PrintInitialData(md, solutionfile)
 % print the solution for each node
 % the sequence is the same of the mesh nodes
 
@@ -10,25 +10,19 @@ fid = fopen(solutionfile, 'w');
 
 % nodes data
 nnodes = md.mesh.numberofvertices;
-if(md.mesh.dimension==3)
-    nnodes = md.mesh.numberofvertices2d;
-end
+
 % number of nodes
 fprintf(fid, '%i\n', nnodes);
 
-% last time with solution
-LastTime = size(md.results.TransientSolution);    
-LastTime = LastTime(2);
-
 % surface
-surface = md.results.TransientSolution(LastTime).Surface;
+surface = md.geometry.surface;
 for i = 1:nnodes
     value = surface(i);
     fprintf(fid, '%.12e\n', value);
 end
 
 % base
-base = md.results.TransientSolution(LastTime).Base;
+base = md.geometry.base;
 for i = 1:nnodes
     value = base(i);
     fprintf(fid, '%.12e\n', value);
@@ -42,7 +36,7 @@ for i = 1:nnodes
 end
 
 % pressure
-pressure = md.results.TransientSolution(LastTime).Pressure;
+pressure = md.initialization.pressure;
 for i = 1:nnodes
     value = pressure(i);
     fprintf(fid, '%.12e\n', value);
@@ -56,21 +50,21 @@ for i = 1:nnodes
 end
 
 % vx
-vx = md.results.TransientSolution(LastTime).Vx;
+vx = md.initialization.vx;
 for i = 1:nnodes
     value = vx(i);
     fprintf(fid, '%.12e\n', value);
 end
 
 % vy
-vy = md.results.TransientSolution(LastTime).Vy;
+vy = md.initialization.vy;
 for i = 1:nnodes
     value = vy(i);
     fprintf(fid, '%.12e\n', value);
 end
 
 % MaskGroundediceLevelset
-maskLevelSet = md.results.TransientSolution(LastTime).MaskGroundediceLevelset;
+maskLevelSet = md.mask.groundedice_levelset;
 for i = 1:nnodes
     value = maskLevelSet(i);
     fprintf(fid, '%.12e\n', value);

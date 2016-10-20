@@ -479,7 +479,7 @@ long TPZSubCompMesh::GetFromSuperMesh(long superind, TPZCompMesh *super){
 		long j;
 		j = it->second;
 		
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
         if(logger->isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -823,8 +823,8 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
             for (int ic=0; ic<ncon ; ic++) {
                 long superind = left->ConnectIndex(ic);
                 long commind = left->Mesh()->PutinSuperMesh(superind, comm);
+                long subindex = GetFromSuperMesh(commind, comm);
                 if (multinterf) {
-                    long subindex = GetFromSuperMesh(commind, comm);
                     cel->SetConnectIndex(ic, subindex);
                 }
             }
@@ -835,8 +835,8 @@ long TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, long elindex){
             for (int ic=0; ic<ncon ; ic++) {
                 long superind = right->ConnectIndex(ic);
                 long commind = right->Mesh()->PutinSuperMesh(superind, comm);
+                long subindex = GetFromSuperMesh(commind, comm);
                 if (multinterf) {
-                    long subindex = GetFromSuperMesh(commind, comm);
                     cel->SetConnectIndex(ic+nleftcon, subindex);
                 }
             }
@@ -1190,7 +1190,8 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	TPZAutoPointer<TPZStructMatrix> str = NULL;
 	
 	if(numThreads > 0){
-		str = new TPZParSkylineStructMatrix(this,numThreads);
+		str = new TPZSkylineStructMatrix(this);
+        str->SetNumThreads(numThreads);
 	}
 	else{
 		str = new TPZSkylineStructMatrix(this);

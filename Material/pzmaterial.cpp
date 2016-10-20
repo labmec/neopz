@@ -253,6 +253,7 @@ void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<ST
 
 void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	int nref=datavec.size();
+<<<<<<< HEAD
     bool zerophi = true;
     for (int ir = 1; ir < nref; ir++) {
         if (datavec[ir].phi.Rows() != 0) {
@@ -260,13 +261,25 @@ void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZF
         }
     }
 	if (zerophi) {
+=======
+    int ndif = 0;
+    for (int ir = 1; ir < nref; ir++) {
+        if (datavec[ir].phi.Rows()) {
+            ndif++;
+        }
+    }
+	if (ndif == 0) {
+>>>>>>> master
 		this->Contribute(datavec[0], weight, ek,ef);
         return;
 	}
-    DebugStop();
+    else
+    {
+        DebugStop();
+    }
 }
 
-void TPZMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, 
+void TPZMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,
 							   TPZFMatrix<STATE> &ef, TPZBndCond &bc){
 	int nref=datavec.size();
 	if (nref== 1) {

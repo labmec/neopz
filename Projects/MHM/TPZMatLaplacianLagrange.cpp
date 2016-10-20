@@ -97,15 +97,15 @@ void TPZMatLaplacianLagrange::Contribute(TPZVec<TPZMaterialData> &data,REAL weig
 }
 
 int TPZMatLaplacianLagrange::VariableIndex(const std::string &name){
-	if(!strcmp("Solution",name.c_str()))        return  1;
-	if(!strcmp("ExactSolution",name.c_str()))   return  2;
-    if(!strcmp("PressureConstante",name.c_str())) return 3;
-	return TPZMaterial::VariableIndex(name);
+	if(!strcmp("Solution",name.c_str()))        return  31;
+	if(!strcmp("ExactSolution",name.c_str()))   return  32;
+    if(!strcmp("PressureConstante",name.c_str())) return 33;
+	return TPZMatLaplacian::VariableIndex(name);
 }
 
 int TPZMatLaplacianLagrange::NSolutionVariables(int var){
-	if(var==1 || var==2 || var==3) return 1;
-	return TPZMaterial::NSolutionVariables(var);
+	if(var==31 || var==32 || var==33) return 1;
+	return TPZMatLaplacian::NSolutionVariables(var);
 }
 
 
@@ -131,6 +131,7 @@ void TPZMatLaplacianLagrange::Solution(TPZVec<TPZMaterialData> &datavec, int var
 		Solout[0] = solExata[0];
 		return;
 	}
+    TPZMatLaplacian::Solution(datavec[0], var, Solout);
 }
 
 

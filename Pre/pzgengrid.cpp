@@ -743,6 +743,9 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
 			}
 		}
 		for(iel = ielfirst; iel<iellast; iel += ielinc) {
+            if (iel >= g->NElements()) {
+                DebugStop();
+            }
 			gel = g->ElementVec()[iel];
 			if(gel->HasSubElement()) continue;
 			TPZGeoElBC(gel,elementside,bc);

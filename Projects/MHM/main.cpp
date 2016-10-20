@@ -59,6 +59,7 @@
 #include "pzcheckgeom.h"
 #include "tpzhierarquicalgrid.h"
 #include "TPZMHMeshControl.h"
+#include "TPZMHMixedMeshControl.h"
 
 #include <iostream>
 #include <string>
@@ -77,8 +78,14 @@ void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 
+TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices);
+
+TPZAutoPointer<TPZRefPattern> DivideQuadbyTriangles(const std::string refpatname);
+
+TPZAutoPointer<TPZRefPattern> DivideTriangleby9Triangles(const std::string refpatname);
+
 /// malha geometrica de grande porte
-TPZGeoMesh * MalhaGeomBig(REAL Lx, REAL Ly, REAL Lz, TPZVec<int> &nblocks, int nref);
+TPZGeoMesh * MalhaGeomBig(REAL Lx, REAL Ly, REAL Lz, TPZVec<int> &nblocks, int nref, TPZVec<long> &coarseindices);
 
 TPZCompMesh *MalhaCompTemporaria(TPZAutoPointer<TPZGeoMesh>  gmesh);
 TPZCompMesh *MalhaComp2(TPZAutoPointer<TPZGeoMesh>  gmesh,int pOrder,std::set<long> coarseindex);
@@ -95,14 +102,15 @@ void RefinamentoAdaptado(TPZAutoPointer<TPZGeoMesh> gmesh, TPZStack<TPZManVector
 
 TPZCompMesh *SkeletonCoarseCompMesh (TPZCompMesh *cmesh, int matId);
 
-void InsertMaterialObjects(TPZCompMesh &cmesh);
+void InsertMaterialObjects(TPZMHMeshControl &control);
+void InsertMaterialObjects(TPZMHMixedMeshControl &control);
 
 TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder);
 TPZCompMesh * CreatePressureMHMMesh(TPZGeoMesh * gmesh, int porder);
 TPZCompMesh * CreateHDivPressureMHMMesh(TPZVec<TPZCompMesh * > &cmesh);
 void DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh);
 
-void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian);
+void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian, TPZVec<long> &coarseindices);
 
 
 void ChangeIndex(TPZGeoMesh * gmesh, int matcoarse1D);
@@ -170,6 +178,7 @@ int main(int argc, char *argv[])
     REAL Lx = 1000.,Ly = 100., Lz = 10;
     int nref = 1;
     
+<<<<<<< HEAD
     if(UseGenGridQ){
         TPZManVector<int> nblocks(4,4);
         //    nblocks[1] = 30;
@@ -188,34 +197,104 @@ int main(int argc, char *argv[])
 //        gmesh = CreateGeometricBoxMesh(nref,dx, dy, dz);
     }
 
+=======
+    std::string quad = "QuadByTriangles";
+    std::string triangle = "TriangleBy9Triangles";
+    TPZAutoPointer<TPZRefPattern> refpatquad = DivideQuadbyTriangles(quad);
+    
+    
+    TPZAutoPointer<TPZRefPattern> refpattriangle = DivideTriangleby9Triangles(triangle);
+    
+    int nelx = 30;
+    int nely = 10;
+    TPZVec<long> coarseindices;
+    TPZGeoMesh *gmesh = MalhaGeomFred(nelx, nely, quad, triangle, coarseindices);
+    
+    TPZAutoPointer<TPZGeoMesh> gmeshauto(gmesh);
+    
+    TPZMHMeshControl meshcontrol(gmeshauto, coarseindices);
+    
+    meshcontrol.SetLagrangeAveragePressure(true);
+    
+    InsertMaterialObjects(meshcontrol);
+>>>>>>> master
 
-    int porder = 1;
-    std::cout << "Geometric mesh created\n";
-    TPZManVector<TPZCompMesh *,2 > cmeshes(2);
-    cmeshes[0] = CreateHDivMHMMesh(gmesh, porder);
-    DuplicateNeighbouringConnects(cmeshes[0]);
-    cmeshes[1] = CreatePressureMHMMesh(gmesh, porder);
+    meshcontrol.SetInternalPOrder(1);
+    meshcontrol.SetSkeletonPOrder(1);
+    
+    if(1)
+    {
+        int matskeleton = 2;
+        meshcontrol.CreateSkeletonElements(matskeleton);
+        meshcontrol.DivideSkeletonElements(1);
+        
+
+        meshcontrol.BuildComputationalMesh(true);
+    }
+//    REAL Lx = 1.,Ly = 1., Lz = 0.5;
+//    int nref = 2;
+//    TPZManVector<int> nblocks(2,1);
+//    nblocks[1] = 3;
+//    TPZGeoMesh * gmesh = MalhaGeomBig(Lx, Ly, Lz, nblocks, nref, coarseindices);
+
+#ifdef PZDEBUG
+    {
+        std::ofstream file("GMeshControl.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(meshcontrol.GMesh().operator->(), file);
+    }
+#endif
+#ifdef PZDEBUG
+    {
+        std::ofstream out("MixedMeshControl.txt");
+        meshcontrol.Print(out);
+    }
+#endif
+//    int porder = 1;
+//    std::cout << "Geometric mesh created\n";
+//    TPZManVector<TPZCompMesh *,2 > cmeshes(2);
+//    cmeshes[0] = CreateHDivMHMMesh(gmesh, porder);
+//    DuplicateNeighbouringConnects(cmeshes[0]);
+//    cmeshes[1] = CreatePressureMHMMesh(gmesh, porder);
 
     std::cout << "Computational meshes created\n";
+<<<<<<< HEAD
+=======
+#ifdef PZDEBUG
+    {
+        std::ofstream gfile("geometry.txt");
+        gmesh->Print(gfile);
+
+        std::ofstream out_mhm("MHM_hdiv.txt");
+        meshcontrol.CMesh()->Print(out_mhm);
+
+    }
+#endif
+>>>>>>> master
     
-    TPZCompMesh * CHDivPressureMesh = CreateHDivPressureMHMMesh(cmeshes);
+    TPZCompMesh * CHDivPressureMesh = meshcontrol.CMesh().operator->();
 
     std::cout << "Number of equations " << CHDivPressureMesh->NEquations() << std::endl;
     
     
-    bool KeepOneLagrangian = true;
-    HideTheElements(CHDivPressureMesh,KeepOneLagrangian);
+//    bool KeepOneLagrangian = true;
+//    int level = 1;
+//    HideTheElements(CHDivPressureMesh,KeepOneLagrangian, coarseindices);
 
     std::cout << "Reduced number of equations " << CHDivPressureMesh->NEquations() << std::endl;
     
     //calculo solution
     TPZAnalysis an(CHDivPressureMesh);
     TPZSkylineStructMatrix skyl(CHDivPressureMesh);
+<<<<<<< HEAD
     skyl.SetNumThreads(16);
     
 #ifdef PZDEBUG
     std::ofstream out_flux("MHM_hdiv.txt");
     an.Mesh()->Print(out_flux);
+=======
+#ifndef PZDEBUG
+//    skyl.SetNumThreads(16);
+>>>>>>> master
 #endif
     
     an.SetStructuralMatrix(skyl);
@@ -225,6 +304,7 @@ int main(int argc, char *argv[])
     
     std::cout << "Assembling\n";
     an.Assemble();
+<<<<<<< HEAD
     
 #ifdef PZDEBUG
     {
@@ -234,6 +314,15 @@ int main(int argc, char *argv[])
     }
 #endif
     
+=======
+    if(0)
+    {
+        std::ofstream global("Global.nb");
+        TPZAutoPointer<TPZStructMatrix> strmat = an.StructMatrix();
+        an.Solver().Matrix()->Print("Glob = ",global,EMathematicaInput);
+        an.Rhs().Print("Rhs = ",global,EMathematicaInput);
+    }
+>>>>>>> master
     std::cout << "Solving\n";
     an.Solve();
     std::cout << "Finished\n";
@@ -247,8 +336,13 @@ int main(int argc, char *argv[])
     an.LoadSolution(); // compute internal dofs
 //    an.Solution().Print("sol = ");
     
+    TPZManVector<TPZCompMesh *,5> cmeshes;
+    meshcontrol.GetMeshVec(cmeshes);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(cmeshes, an.Mesh());
 //    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshes, an.Mesh());
+//    for (int i=0; i<cmeshes.size(); i++) {
+//        cmeshes[i]->Solution().Print("sol = ");
+//    }
 //    cmeshes[0]->Solution().Print("solq = ");
 //    cmeshes[1]->Solution().Print("solp = ");
     std::string plotfile("mixed_solution.vtk");
@@ -331,11 +425,11 @@ int main_not_used(int argc, char *argv[])
     mhm.SetLagrangeAveragePressure(uselagrange);
     mhm.SetInternalPOrder(3);
     mhm.SetSkeletonPOrder(1);
-    mhm.CreateCoarseInterfaces(matCoarse);
+    mhm.CreateSkeletonElements(matCoarse);
 //    if(problemasuave || problemaarctan){
 //        InsertMaterialObjectsSuave(mhm.CMesh());
 //    }else {
-        InsertMaterialObjects(mhm.CMesh());
+        InsertMaterialObjects(mhm);
 //    }
     mhm.BuildComputationalMesh(true);
     {
@@ -596,8 +690,9 @@ TPZCompMesh* MalhaCompTemporaria(TPZAutoPointer<TPZGeoMesh>  gmesh)
     return cmesh;
 }
 
-void InsertMaterialObjects(TPZCompMesh &cmesh)
+void InsertMaterialObjects(TPZMHMeshControl &control)
 {
+    TPZCompMesh &cmesh = control.CMesh();
 	/// criar materiais
 	int dim = cmesh.Dimension();
     TPZMatLaplacianLagrange *material1 = new TPZMatLaplacianLagrange(matInterno,dim);
@@ -625,31 +720,69 @@ void InsertMaterialObjects(TPZCompMesh &cmesh)
 	
     //BC -1
     TPZMaterial * BCondD1 = material1->CreateBC(mat1, bc1,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(Dirichlet);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet1 = new TPZDummyFunction<REAL>(DirichletValidacao);
     BCondD1->SetForcingFunction(bcmatDirichlet1);
     cmesh.InsertMaterialObject(BCondD1);
     
     //BC -2
 	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(Dirichlet);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(DirichletValidacao);
     BCondD2->SetForcingFunction(bcmatDirichlet2);
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3
-	TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(Dirichlet);
+	TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(DirichletValidacao);
     BCondD3->SetForcingFunction(bcmatDirichlet3);
     cmesh.InsertMaterialObject(BCondD3);
     
     //BC -4
-	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(Dirichlet);
+	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
+    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(DirichletValidacao);
     BCondD4->SetForcingFunction(bcmatDirichlet4);
     cmesh.InsertMaterialObject(BCondD4);
     
     //BC -5: dirichlet nulo
-    TPZMaterial * BCondD5 = material1->CreateBC(mat1, bc5,neumann, val1, val2);
+    TPZMaterial * BCondD5 = material1->CreateBC(mat1, bc5,dirichlet, val1, val2);
     cmesh.InsertMaterialObject(BCondD5);
+}
+
+void InsertMaterialObjects(TPZMHMixedMeshControl &control)
+{
+    TPZCompMesh &cmesh = control.CMesh();
+
+    TPZGeoMesh &gmesh = control.GMesh();
+    const int typeFlux = 1, typePressure = 0;
+    TPZFMatrix<STATE> val1(1,1,0.), val2Flux(1,1,0.), val2Pressure(1,1,10.);
+    val2Pressure(0,0) = 1000.;
+
+    int dim = gmesh.Dimension();
+    cmesh.SetDimModel(dim);
+    
+    TPZCompMesh *MixedFluxPressureCmesh = &cmesh;
+    
+    // Material medio poroso
+    TPZMixedPoisson * mat = new TPZMixedPoisson(1,dim);
+    mat->SetSymmetric();
+    //    mat->SetForcingFunction(One);
+    MixedFluxPressureCmesh->InsertMaterialObject(mat);
+    
+    
+    
+    // Bc N
+    TPZBndCond * bcN = mat->CreateBC(mat, -1, typePressure, val1, val2Pressure);
+    TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(DirichletValidacao);
+    bcN->SetForcingFunction(0,force);
+    MixedFluxPressureCmesh->InsertMaterialObject(bcN);
+    
+    // Bc S
+    TPZBndCond * bcS = mat->CreateBC(mat, -2, typePressure, val1, val2Pressure);
+    bcS->SetForcingFunction(0, force);
+    MixedFluxPressureCmesh->InsertMaterialObject(bcS);
+    
+    
+    
+
 }
 
 void InsertMaterialObjectsSuave(TPZCompMesh &cmesh)
@@ -736,7 +869,8 @@ TPZCompMesh* MalhaComp2(TPZAutoPointer<TPZGeoMesh> gmesh, int pOrder,std::set<lo
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDimModel(dim);
     
-    InsertMaterialObjects(*cmesh);
+    DebugStop();
+//    InsertMaterialObjects(*cmesh);
     TPZMatPoisson3d *material2 = new TPZMatPoisson3d(matCoarse,dim);
     cmesh->InsertMaterialObject(material2);
     
@@ -1322,28 +1456,55 @@ void ForcingTang(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 }
 
 /// insert face elements between elements of level 0
-static void InsertInterfaceElements(TPZGeoMesh * gmesh)
+static void InsertInterfaceElements(TPZGeoMesh * gmesh, int level, int levelinterface)
 {
+    int dimension = gmesh->Dimension();
+    if (dimension < 0 ) {
+        DebugStop();
+    }
     long nel = gmesh->NElements();
     int dim = gmesh->Dimension();
     for (long el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
+<<<<<<< HEAD
         if (!gel || gel->Level() != 0 || gel->Dimension() != dim) {
+=======
+        if (!gel || gel->Level() != levelinterface || gel->Dimension() != dimension) {
+>>>>>>> master
             continue;
         }
         int nsides = gel->NSides();
         for (int is = gel->NCornerNodes(); is<nsides; is++) {
+<<<<<<< HEAD
             if (gel->SideDimension(is) != dim -1 ) {
+=======
+            if (gel->SideDimension(is) != dimension-1) {
+>>>>>>> master
                 continue;
             }
             TPZGeoElSide gelside(gel,is);
             TPZGeoElSide neighbour = gelside.Neighbour();
             while (neighbour != gelside) {
+<<<<<<< HEAD
                 if (neighbour.Element()->Dimension() == dim - 1) {
+=======
+                if (neighbour.Element()->Dimension() == dimension-1) {
+>>>>>>> master
                     break;
                 }
                 neighbour = neighbour.Neighbour();
             }
+            if (neighbour != gelside) {
+                continue;
+            }
+            TPZGeoElSide neighfather = gelside;
+            for (int il = level; il< levelinterface; il++) {
+                neighfather = neighfather.Father2();
+            }
+            if (!neighfather || neighfather.Dimension() != dimension-1) {
+                continue;
+            }
+            
             if (neighbour == gelside) {
                 TPZGeoElBC(gelside, 2);
             }
@@ -1352,8 +1513,9 @@ static void InsertInterfaceElements(TPZGeoMesh * gmesh)
 }
 
 /// malha geometrica de grande porte
-TPZGeoMesh * MalhaGeomBig(REAL Lx, REAL Ly, REAL Lz, TPZVec<int> &nblocks, int nref)
+TPZGeoMesh * MalhaGeomBig(REAL Lx, REAL Ly, REAL Lz, TPZVec<int> &nblocks, int nref, TPZVec<long> &coarseindices)
 {
+    int dimension = 3;
     TPZManVector<REAL,3> x0(3,0.),x1(3,0.);
     x1[0] = Lx;
     x1[1] = Ly;
@@ -1382,7 +1544,32 @@ TPZGeoMesh * MalhaGeomBig(REAL Lx, REAL Ly, REAL Lz, TPZVec<int> &nblocks, int n
     }
 #endif
     
+<<<<<<< HEAD
 //    InsertInterfaceElements(meshresult3d);
+=======
+    res3d->SetDimension(3);
+    
+    TPZCheckGeom check(res3d);
+    
+    long nel = res3d->NElements();
+    coarseindices.resize(nel);
+    long elcount = 0;
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = meshresult3d->Element(el);
+        if (gel->HasSubElement() ||  gel->Dimension() != dimension) {
+            continue;
+        }
+        coarseindices[elcount] = el;
+        elcount++;
+    }
+    coarseindices.resize(elcount);
+
+    
+    
+    check.UniformRefine(nref);
+    
+    InsertInterfaceElements(meshresult3d,0,0);
+>>>>>>> master
     
     std::ofstream vtkfile("geometry.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(meshresult3d, vtkfile);
@@ -1621,11 +1808,19 @@ void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 
 TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
 {
+<<<<<<< HEAD
     int dim = gmesh->Dimension();
     TPZCompMesh * cmeshHDiv = new TPZCompMesh(gmesh);
     cmeshHDiv->SetDimModel(dim);
     cmeshHDiv->SetAllCreateFunctionsHDiv();
     
+=======
+    int meshdim = gmesh->Dimension();
+    TPZCompMesh * cmeshHDiv = new TPZCompMesh(gmesh);
+    cmeshHDiv->SetDimModel(meshdim);
+    cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
+    cmeshHDiv->SetDefaultOrder(porder);
+>>>>>>> master
     TPZVecL2 *matl2 = new TPZVecL2(1);
     cmeshHDiv->InsertMaterialObject(matl2);
     matl2 = new TPZVecL2(2);
@@ -1667,7 +1862,11 @@ TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
 void DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh)
 {
     TPZGeoMesh *gmesh = HDivMesh->Reference();
+<<<<<<< HEAD
     int dim = gmesh->Dimension();
+=======
+    int dimension = gmesh->Dimension();
+>>>>>>> master
     gmesh->ResetReference();
     HDivMesh->LoadReferences();
     HDivMesh->ComputeNodElCon();
@@ -1675,7 +1874,11 @@ void DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh)
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = HDivMesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
+<<<<<<< HEAD
         if (!gel || gel->Dimension() != dim) {
+=======
+        if (!gel || gel->Dimension() != dimension) {
+>>>>>>> master
             continue;
         }
         int nc = cel->NConnects();
@@ -1741,7 +1944,11 @@ TPZCompMesh * CreateHDivPressureMHMMesh(TPZVec<TPZCompMesh * > & cmeshes)
     
     // Material medio poroso
     TPZMixedPoisson * mat = new TPZMixedPoisson(1,dim);
+<<<<<<< HEAD
 //    mat->SetSymmetric();
+=======
+    mat->SetSymmetric();
+>>>>>>> master
     //    mat->SetForcingFunction(One);
     MixedFluxPressureCmesh->InsertMaterialObject(mat);
     
@@ -1781,17 +1988,20 @@ TPZCompMesh * CreateHDivPressureMHMMesh(TPZVec<TPZCompMesh * > & cmeshes)
 
 }
 
-void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian)
+void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian, TPZVec<long> &coarseindices)
 {
     typedef std::set<long> TCompIndexes;
     std::map<long, TCompIndexes> ElementGroups;
     TPZGeoMesh *gmesh = Multiphysics->Reference();
     int dim = gmesh->Dimension();
     gmesh->ResetReference();
+    int dim = gmesh->Dimension();
     Multiphysics->LoadReferences();
-    long nelg = gmesh->NElements();
-    for (long el=0; el<nelg; el++) {
+    long nelg = coarseindices.NElements();
+    for (long iel=0; iel<nelg; iel++) {
+        long el = coarseindices[iel];
         TPZGeoEl *gel = gmesh->Element(el);
+<<<<<<< HEAD
         if (gel->Father() != NULL) {
             continue;
         }
@@ -1805,32 +2015,37 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian)
                 DebugStop();
             }
             mapindex= neighbour.Element()->Index();
+=======
+        if (gel->Dimension() != dim && gel->MaterialId() > 0) {
+            DebugStop();
+>>>>>>> master
         }
+        // we took any neighbour of gel and identified a mapindex with it??
         TPZStack<TPZCompElSide> highlevel;
         TPZGeoElSide gelside(gel,gel->NSides()-1);
         gelside.HigherLevelCompElementList3(highlevel, 0, 0);
         long nelst = highlevel.size();
         for (long elst=0; elst<nelst; elst++) {
-            ElementGroups[mapindex].insert(highlevel[elst].Element()->Index());
+            ElementGroups[el].insert(highlevel[elst].Element()->Index());
         }
         if (gel->Reference()) {
             if (nelst) {
                 DebugStop();
             }
-            ElementGroups[mapindex].insert(gel->Reference()->Index());
+            ElementGroups[el].insert(gel->Reference()->Index());
         }
     }
     std::cout << "Number of element groups " << ElementGroups.size() << std::endl;
-//    std::map<long,TCompIndexes>::iterator it;
-//    for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
-//        std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
-//        std::cout << " elements ";
-//        std::set<long>::iterator its;
-//        for (its = it->second.begin(); its != it->second.end(); its++) {
-//            std::cout << *its << " ";
-//        }
-//        std::cout << std::endl;
-//    }
+    std::map<long,TCompIndexes>::iterator it;
+    for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
+        std::cout << "Group " << it->first << " group size " << it->second.size() << std::endl;
+        std::cout << " elements ";
+        std::set<long>::iterator its;
+        for (its = it->second.begin(); its != it->second.end(); its++) {
+            std::cout << *its << " ";
+        }
+        std::cout << std::endl;
+    }
     
     std::set<long> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(Multiphysics, ElementGroups, submeshindices, KeepOneLagrangian);
@@ -1853,3 +2068,237 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian)
     Multiphysics->CleanUpUnconnectedNodes();
     std::cout << "Finished substructuring\n";
 }
+
+TPZAutoPointer<TPZRefPattern> DivideQuadbyTriangles(const std::string refpatname)
+{
+    TPZGeoMesh gmesh;
+    gmesh.NodeVec().Resize(5);
+    REAL nodeco[][3] =
+    {
+        {-1,-1,0},
+        {1,-1,0},
+        {1,1,0},
+        {-1,1,0},
+        {0,0,0}
+    };
+    long nodeindexes[][3] = {
+        {0,1,4},
+        {1,2,4},
+        {2,3,4},
+        {3,0,4}
+    };
+    for (int i=0; i<5; i++) {
+        TPZManVector<REAL,3> coord(3);
+        for (int c=0; c<3; c++) {
+            coord[c] = nodeco[i][c];
+        }
+        gmesh.NodeVec()[i].Initialize(coord, gmesh);
+    }
+    TPZManVector<long> corners(4);
+    for (long i=0; i<4; i++) {
+        corners[i] = i;
+    }
+    long elindex;
+    gmesh.CreateGeoElement(EQuadrilateral, corners, 1, elindex);
+    
+    long fatherindex = elindex;
+    
+    for (int is=0; is<4; is++)
+    {
+        for (long i=0; i<3; i++) {
+            corners[i] = nodeindexes[is][i];
+        }
+        gmesh.CreateGeoElement(ETriangle, corners, 1, elindex);
+        gmesh.Element(elindex)->SetFather(fatherindex);
+    }
+    gmesh.BuildConnectivity();
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gmesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(gmesh);
+    refpat->SetName(refpatname);
+    if(!gRefDBase.FindRefPattern(refpat))
+    {
+        gRefDBase.InsertRefPattern(refpat);
+        refpat->InsertPermuted();
+    }
+    return refpat;
+}
+
+
+TPZAutoPointer<TPZRefPattern> DivideTriangleby9Triangles(const std::string refpatname)
+{
+    TPZGeoMesh gmesh;
+    gmesh.NodeVec().Resize(10);
+    REAL nodeco[][3] =
+    {
+        {0,0,0}, //0
+        {1,0,0}, //1
+        {2,0,0},  //2
+        {3,0,0},  //3
+        {0,1,0},  //4
+        {1,1,0},  //5
+        {2,1,0},  //6
+        {0,2,0},  //7
+        {1,2,0},  //8
+        {0,3,0} //9
+    };
+    long nodeindexes[][3] = {
+        {0,3,9},
+        {0,1,4},
+        {1,5,4},
+        {1,2,5},
+        {2,6,5},
+        {2,3,6},
+        {4,5,7},
+        {5,8,7},
+        {5,6,8},
+        {7,8,9}
+    };
+    for (int i=0; i<10; i++) {
+        TPZManVector<REAL,3> coord(3);
+        for (int c=0; c<3; c++) {
+            coord[c] = nodeco[i][c];
+        }
+        gmesh.NodeVec()[i].Initialize(coord, gmesh);
+    }
+    TPZManVector<long> corners(3);
+    for (long i=0; i<3; i++) {
+        corners[i] = nodeindexes[0][i];
+    }
+    long elindex;
+    gmesh.CreateGeoElement(ETriangle, corners, 1, elindex);
+    
+    long fatherindex = elindex;
+    
+    for (int is=1; is<10; is++)
+    {
+        for (long i=0; i<3; i++) {
+            corners[i] = nodeindexes[is][i];
+        }
+        gmesh.CreateGeoElement(ETriangle, corners, 1, elindex);
+        gmesh.Element(elindex)->SetFather(fatherindex);
+    }
+    gmesh.BuildConnectivity();
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        gmesh.Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+    TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(gmesh);
+    refpat->SetName(refpatname);
+    if(!gRefDBase.FindRefPattern(refpat))
+    {
+        gRefDBase.InsertRefPattern(refpat);
+        refpat->InsertPermuted();
+    }
+    return refpat;
+
+}
+
+TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices)
+{
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    int dimension = 2;
+    gmesh->SetDimension(dimension);
+    TPZManVector<int,2> nx(2,3);
+    nx[0] = nelx;
+    nx[1] = nely;
+    TPZManVector<REAL> x0(3,0.),x1(3,0.);
+    x1[0] = 3.;
+    x1[1] = 1.;
+    TPZGenGrid gengrid(nx, x0, x1);
+    gengrid.SetRefpatternElements(true);
+    gengrid.Read(gmesh, 1);
+    gengrid.SetBC(gmesh, 4, -1);
+    gengrid.SetBC(gmesh, 5, -2);
+    gengrid.SetBC(gmesh, 6, -1);
+    gengrid.SetBC(gmesh, 7, -2);
+    
+    TPZAutoPointer<TPZRefPattern> refquad,reftriangle;
+    refquad = gRefDBase.FindRefPattern(quad);
+    reftriangle = gRefDBase.FindRefPattern(triangle);
+    if (!refquad || ! reftriangle) {
+        DebugStop();
+    }
+    long nel = gmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (gel->Type() == EQuadrilateral   ) {
+            gel->SetRefPattern(refquad);
+            TPZManVector<TPZGeoEl *,4> subs;
+            gel->Divide(subs);
+        }
+    }
+    nel = gmesh->NElements();
+
+    coarseindices.resize(nel);
+    long elcount = 0;
+    for (long el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (gel->HasSubElement() ||  gel->Dimension() != dimension) {
+            continue;
+        }
+        coarseindices[elcount] = el;
+        elcount++;
+    }
+    coarseindices.resize(elcount);
+    
+    if(1)
+    {
+    
+        for (long el=0; el<nel; el++) {
+            TPZGeoEl *gel = gmesh->Element(el);
+            if (!gel->HasSubElement() &&  gel->Type() == ETriangle) {
+                gel->SetRefPattern(reftriangle);
+                TPZManVector<TPZGeoEl *,12> subs;
+                gel->Divide(subs);
+            }
+        }
+        nel = gmesh->NElements();
+        
+        for (long el=0; el<nel; el++) {
+            TPZGeoEl *gel = gmesh->Element(el);
+            if (!gel->HasSubElement() &&  gel->Type() == EOned) {
+                TPZAutoPointer<TPZRefPattern> refpat = TPZRefPatternTools::PerfectMatchRefPattern(gel);
+                if (!refpat) {
+                    DebugStop();
+                }
+                gel->SetRefPattern(refpat);
+                TPZManVector<TPZGeoEl *,12> subs;
+                gel->Divide(subs);
+            }
+        }
+    }
+//    InsertInterfaceElements(gmesh,1,2);
+
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+#ifdef PZDEBUG
+    {
+        std::ofstream file("GMeshFred.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file);
+    }
+#endif
+    
+    return gmesh;
+}
+
