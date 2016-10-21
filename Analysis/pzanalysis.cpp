@@ -91,6 +91,15 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 	this->SetCompMesh(mesh, mustOptimizeBandwidth);
 }
 
+TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, std::ostream &out) :
+fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+{
+	fGraphMesh[0] = 0;
+	fGraphMesh[1] = 0;
+	fGraphMesh[2] = 0;
+	this->SetCompMesh(mesh, true);
+}
+
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
@@ -106,7 +115,7 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
-	this->SetCompMesh(mesh.operator ->(), false);
+	this->SetCompMesh(mesh.operator ->(), true);
 }
 
 void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {

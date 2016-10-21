@@ -448,7 +448,7 @@ int main2(int argc, char *argv[])
 //Malha Hdiv
 bool HDivMaisMais = false;
 bool hp_method = true;
-REAL alpha_param = 100.;
+REAL alpha_param = 200.;
 int main(int argc, char *argv[])
 {
     //#ifdef LOG4CXX
@@ -488,7 +488,7 @@ int main(int argc, char *argv[])
         myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
         "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
         
-        for(int ndiv=1; ndiv<5; ndiv++){
+        for(int ndiv=1; ndiv<6; ndiv++){
             
             if(hp_method){
                 if(dim_problema==2){
