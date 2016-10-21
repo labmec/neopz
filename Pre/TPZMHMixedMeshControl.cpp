@@ -12,6 +12,11 @@
 #include "TPZMatLaplacian.h"
 #include "mixedpoisson.h"
 
+#include <iostream>
+#include <sstream>
+#include <iterator>
+#include <numeric>
+
 #include "pzsubcmesh.h"
 
 #include "pzbuildmultiphysicsmesh.h"
