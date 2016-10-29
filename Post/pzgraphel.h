@@ -69,6 +69,10 @@ public:
 	
 	/** @brief Number of equations */
 	virtual long EqNum(TPZVec<int> &co) = 0;
+    
+    
+//    /** @brief Defines the position of the coordinates */
+//    void CoordinatesPosition(int coordp, REAL direction, REAL inclination);
 	
 	
 protected:
@@ -84,6 +88,16 @@ protected:
 	/** @brief Returns the number of the graphical node in the vector of connects */
 	int ConnectNum(TPZGraphNode *n);
 	
+//    /** @brief Variable for definition of position */
+//    int fCoordPositioning;
+//    
+//    /** @brief Variable for definition of direction */
+//    int fDirection;
+//    
+//    /** @brief Variable for definition of inclination */
+//    int fInclination;
+    
+    
 protected:
 	/** @brief Id of the graphical element */
 	long fId;

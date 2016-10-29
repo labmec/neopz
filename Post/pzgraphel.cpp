@@ -78,6 +78,15 @@ int TPZGraphEl::ConnectNum(TPZGraphNode *n) {
 }
 
 
+
+//void  TPZGraphEl::CoordinatesPosition(int coordp, REAL direction, REAL inclination){
+//    fCoordPositioning = coordp;
+//    fDirection = direction;
+//    fInclination = inclination;
+//}
+
+
+//******* MODIFICADOS POR NATHALIA PARA PROJECAO E ROTACAO *********
 void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
 {
 	int in = ConnectNum(n);
@@ -101,13 +110,16 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         TPZMatElasticity2D projectmaterial;
         REAL Pi = M_PI;
         
-        //******* angulos colocados a mao para fazer teste *********
-        REAL alpha = (60.*(Pi/180)); // azimuth
-        REAL beta = (30.*(Pi/180)); // inclination
+        //******* angulos COLOCADOS A MAO para fazer teste *********
+        REAL alpha = (30.*(Pi/180)); // azimuth
+        REAL beta = (50.*(Pi/180)); // inclination
         
-        int projection = 0;
-        //obtem angulos da rotacao do poco (como??)
-        projectmaterial.GetWellboreAngles(alpha, beta, projection);
+        //* defines mesh's position , COLOCADO A MAO AINDA
+        //  position == 1 -> mesh projected over a horizontal plane
+        //  position == 2 -> mesh rotated
+        //  position =! 1 or 2 -> normal position, in plane
+        int position = 2; //
+
         
 //        //Print Rotated Coordinate
 //        std::cout << "Coord: " << endl;
@@ -116,7 +128,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         //************ O codigo nao esta pegando os dados do material ja inseridos no main, pois estou criando um novo construtor, como faco????  *****************//
         
 
-        if (projection==1) {
+        if (position==1) {
             
             
             // Por este metodo, eh preciso rotacionar a malha geometrica para obter projecao.
@@ -157,6 +169,24 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
             
             fGraphMesh->Out() << x[0] << " " << x[1] << " " << x[2] << endl;
         }
+        
+        
+        else if (position==2) {
+            
+            REAL xR = 0., yR = 0., zR = 0.;
+            
+            xR = x[0]*cos(alpha)*cos(beta) + x[1]*cos(beta)*sin(alpha) - x[2]*sin(beta);
+            yR = x[1]*cos(alpha) - x[0]*sin(alpha);
+            zR = x[2]*cos(beta) + x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta);
+            
+            x[0] = xR;
+            x[1] = yR;
+            x[2] = zR;
+            
+                        fGraphMesh->Out() << x[0] << " " << x[1] << " " << x[2] << endl;
+            
+        }
+        
         
         else{
             

@@ -183,6 +183,8 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
         }
         //  ////////////////////////// Jacobian Matrix ///////////////////////////////////
     this->Contribute(data,weight,ef);
+    
+    
 }
 
 void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) {
