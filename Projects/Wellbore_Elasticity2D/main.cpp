@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
 {
 
 //    Problem3D();
-    Problem2D();
+    //Problem2D();
 //
-//    ApproximationRates();
+    ApproximationRates();
 
     return 0;
 }
@@ -130,8 +130,8 @@ int ApproximationRates(){
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
     REAL rext = 2.0;
-    int ncircle = 30;
-    int nradial = 25;
+    int ncircle = 15;
+    int nradial = 10;
     REAL drdcirc = 2.5;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
@@ -145,8 +145,8 @@ int ApproximationRates(){
     beta = inclination*(Pi/180); // rad
     
     int numthreads = 1;
-    int nh = 2;
-    int np = 2;
+    int nh = 5;
+    int np = 3;
 
     
     TPZVec<REAL> errorvec;
@@ -448,7 +448,7 @@ int Problem2D(){
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
     direction   = 30.; // Azimuth em graus********
-    inclination = 50.; // Polar Inclination em graus********
+    inclination = 30.; // Polar Inclination em graus********
     
     // transforma graus em rad
     REAL alpha = 0., beta = 0.; // inicializa
@@ -607,6 +607,11 @@ int Problem2D(){
         scalarnames.Push("Exx");
         scalarnames.Push("Eyy");
         scalarnames.Push("Exy");
+        scalarnames.Push("SigmaXProjected");
+        scalarnames.Push("SigmaYProjected");
+        scalarnames.Push("SigmaZProjected");
+        scalarnames.Push("TauXYProjected");
+        scalarnames.Push("SolidPressureProjected");
         //vecnames[1] = "";
         an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
         
@@ -990,7 +995,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
     direction   = 30.; // graus********
-    inclination = 50.; // graus********
+    inclination = 30.; // graus********
     
     // transforma graus em rad
     REAL directionT = 0.,inclinationT = 0.; // inicializa

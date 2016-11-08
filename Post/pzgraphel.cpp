@@ -112,13 +112,13 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         
         //******* angulos COLOCADOS A MAO para fazer teste *********
         REAL alpha = (30.*(Pi/180)); // azimuth
-        REAL beta = (50.*(Pi/180)); // inclination
+        REAL beta = (30.*(Pi/180)); // inclination
         
         //* defines mesh's position , COLOCADO A MAO AINDA
         //  position == 1 -> mesh projected over a horizontal plane
         //  position == 2 -> mesh rotated
         //  position =! 1 or 2 -> normal position, in plane
-        int position = 2; //
+        int position = 0; //
 
         
 //        //Print Rotated Coordinate
