@@ -130,8 +130,8 @@ int ApproximationRates(){
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
     REAL rext = 2.0;
-    int ncircle = 15;
-    int nradial = 10;
+    int ncircle = 10;
+    int nradial = 5;
     REAL drdcirc = 2.5;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
@@ -144,8 +144,8 @@ int ApproximationRates(){
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
     
-    int numthreads = 1;
-    int nh = 5;
+    int numthreads = 16;
+    int nh = 6;
     int np = 3;
 
     
@@ -170,12 +170,12 @@ int ApproximationRates(){
             const std::string nm("wellbore");
             gmesh->SetName(nm);
             
-#ifdef LOG4CXX
-            std::ofstream outtxt("gmesh.txt"); //define arquivo de saida para impressao dos dados da malha
-            gmesh->Print(outtxt);
-            std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
-            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
-#endif
+//#ifdef LOG4CXX
+//            std::ofstream outtxt("gmesh.txt"); //define arquivo de saida para impressao dos dados da malha
+//            gmesh->Print(outtxt);
+//            std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
+//            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
+//#endif
             
             
             //******** Apply geometric refinement ***************/
