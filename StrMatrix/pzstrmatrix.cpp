@@ -585,8 +585,8 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
     {
         std::stringstream sout;
         //stiffness.Print("Matriz de Rigidez: ",sout);
-        mat.Print("Matriz de Rigidez: ",sout,EMathematicaInput);
-        rhs.Print("Right Handside", sout,EMathematicaInput);
+        //mat.Print("Matriz de Rigidez: ",sout,EMathematicaInput);
+        //rhs.Print("Right Handside", sout,EMathematicaInput);
         LOGPZ_DEBUG(loggerCheck,sout.str())
     }
 #endif

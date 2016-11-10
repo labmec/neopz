@@ -144,9 +144,9 @@ int ApproximationRates(){
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
     
-    int numthreads = 16;
-    int nh = 6;
-    int np = 3;
+    int numthreads = 1;
+    int nh = 5;
+    int np = 1;
 
     
     TPZVec<REAL> errorvec;
