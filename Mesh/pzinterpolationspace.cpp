@@ -282,6 +282,7 @@ void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jv
 
 void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     
+    
     TPZMaterial * material = Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
@@ -316,21 +317,30 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     
     TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
     
+    //#ifdef PZDEBUG
+    //    {
     
+    TPZManVector<int,3> intorder(dim,this->MaxOrder()*2);
+    TPZAutoPointer<TPZIntPoints> intrule_clone = intrule->Clone();
+    intrule_clone->SetOrder(intorder);
     
-//    if(material->HasForcingFunction())
-//    {
-//        int maxorder = intrule->GetMaxOrder();
-//        if (maxorder > order) {
-//            order = maxorder;
-//        }
-//    }
+    if(intrule_clone->NPoints() > intrule->NPoints()){
+        std::cout << "Element " << fIndex << " Bad integration rule points needed = " << intrule_clone->NPoints() << "; points obtained  = " <<  intrule->NPoints() << std::endl;
+        intrule = intrule_clone;
+    }
     
-    // MODIFICADO NANANANA
-    //TPZManVector<int,3> intorder(dim, 10);
-    TPZManVector<int,3> intorder(dim, this->MaxOrder()*6);
-    intrule->SetOrder(intorder);
+    //    }
+    //#endif
     
+    //    if(material->HasForcingFunction())
+    //    {
+    //        int maxorder = intrule->GetMaxOrder();
+    //        if (maxorder > order) {
+    //            order = maxorder;
+    //        }
+    //    }
+    //    TPZManVector<int,3> intorder(dim,order);
+    //    intrule->SetOrder(intorder);
     
     int intrulepoints = intrule->NPoints();
     for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){

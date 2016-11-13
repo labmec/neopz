@@ -131,7 +131,7 @@ int ApproximationRates(){
     REAL rw = 0.1;
     REAL rext = 4.0;
     int ncircle = 24;
-    int nradial = 10;
+    int nradial = 40;
     REAL drdcirc = 5.0;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
@@ -144,8 +144,8 @@ int ApproximationRates(){
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
     
-    int numthreads = 1;
-    int nh = 3;
+    int numthreads = 16;
+    int nh = 4;
     int np = 1;
 
     
@@ -171,12 +171,12 @@ int ApproximationRates(){
             const std::string nm("wellbore");
             gmesh->SetName(nm);
             
-#ifdef LOG4CXX
+//#ifdef LOG4CXX
             std::ofstream outtxt("gmesh.txt"); //define arquivo de saida para impressao dos dados da malha
             gmesh->Print(outtxt);
             std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
-#endif
+//#endif
             
             
             //******** Apply geometric refinement ***************/
@@ -201,37 +201,6 @@ int ApproximationRates(){
             an.Assemble();
             an.Solve();
             std::cout << "problem solved. " << std::endl;
-            
-            std::cout << "Entering into Post processing ..." << std::endl;
-            // Post processing
-            int ndiv = 2;
-            
-            TPZStack<std::string> scalarnames, vecnames;
-            scalarnames.Push("SigmaX");
-            scalarnames.Push("SigmaY");
-            scalarnames.Push("SigmaZ");
-            scalarnames.Push("TauXY");
-            scalarnames.Push("SolidPressure");
-            scalarnames.Push("SigmaXAnalytic");
-            scalarnames.Push("SigmaYAnalytic");
-            scalarnames.Push("SigmaZAnalytic");
-            scalarnames.Push("TauXYAnalytic");
-            scalarnames.Push("SolidPressureAnalytic");
-            vecnames.Push("Displacement");
-            scalarnames.Push("ExxAnalytic");
-            scalarnames.Push("EyyAnalytic");
-            scalarnames.Push("ExyAnalytic");
-            scalarnames.Push("Exx");
-            scalarnames.Push("Eyy");
-            scalarnames.Push("Exy");
-            scalarnames.Push("SigmaXProjected");
-            scalarnames.Push("SigmaYProjected");
-            scalarnames.Push("SigmaZProjected");
-            scalarnames.Push("TauXYProjected");
-            scalarnames.Push("SolidPressureProjected");
-            //vecnames[1] = "";
-            an.DefineGraphMesh(2,scalarnames,vecnames,plotfile);
-            an.PostProcess(ndiv);
             
             cmesh->LoadSolution(an.Solution());
             REAL error = 0.0;
