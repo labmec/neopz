@@ -1,4 +1,4 @@
-#ifdef HAVE_CONFIG_H
+ #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
@@ -129,10 +129,10 @@ int ApproximationRates(){
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
-    REAL rext = 2.0;
-    int ncircle = 10;
-    int nradial = 5;
-    REAL drdcirc = 2.5;
+    REAL rext = 4.0;
+    int ncircle = 24;
+    int nradial = 10;
+    REAL drdcirc = 5.0;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
@@ -145,10 +145,11 @@ int ApproximationRates(){
     beta = inclination*(Pi/180); // rad
     
     int numthreads = 1;
-    int nh = 5;
+    int nh = 3;
     int np = 1;
 
     
+    std::string plotfile = "ElasticitySolutions2D.vtk";
     TPZVec<REAL> errorvec;
     errorvec.Resize(nh);
     
@@ -170,12 +171,12 @@ int ApproximationRates(){
             const std::string nm("wellbore");
             gmesh->SetName(nm);
             
-//#ifdef LOG4CXX
-//            std::ofstream outtxt("gmesh.txt"); //define arquivo de saida para impressao dos dados da malha
-//            gmesh->Print(outtxt);
-//            std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
-//            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
-//#endif
+#ifdef LOG4CXX
+            std::ofstream outtxt("gmesh.txt"); //define arquivo de saida para impressao dos dados da malha
+            gmesh->Print(outtxt);
+            std::ofstream out("gmesh.vtk"); //define arquivo de saida para impressao da malha no paraview
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out, true); //imprime a malha no formato vtk
+#endif
             
             
             //******** Apply geometric refinement ***************/
@@ -200,6 +201,37 @@ int ApproximationRates(){
             an.Assemble();
             an.Solve();
             std::cout << "problem solved. " << std::endl;
+            
+            std::cout << "Entering into Post processing ..." << std::endl;
+            // Post processing
+            int ndiv = 2;
+            
+            TPZStack<std::string> scalarnames, vecnames;
+            scalarnames.Push("SigmaX");
+            scalarnames.Push("SigmaY");
+            scalarnames.Push("SigmaZ");
+            scalarnames.Push("TauXY");
+            scalarnames.Push("SolidPressure");
+            scalarnames.Push("SigmaXAnalytic");
+            scalarnames.Push("SigmaYAnalytic");
+            scalarnames.Push("SigmaZAnalytic");
+            scalarnames.Push("TauXYAnalytic");
+            scalarnames.Push("SolidPressureAnalytic");
+            vecnames.Push("Displacement");
+            scalarnames.Push("ExxAnalytic");
+            scalarnames.Push("EyyAnalytic");
+            scalarnames.Push("ExyAnalytic");
+            scalarnames.Push("Exx");
+            scalarnames.Push("Eyy");
+            scalarnames.Push("Exy");
+            scalarnames.Push("SigmaXProjected");
+            scalarnames.Push("SigmaYProjected");
+            scalarnames.Push("SigmaZProjected");
+            scalarnames.Push("TauXYProjected");
+            scalarnames.Push("SolidPressureProjected");
+            //vecnames[1] = "";
+            an.DefineGraphMesh(2,scalarnames,vecnames,plotfile);
+            an.PostProcess(ndiv);
             
             cmesh->LoadSolution(an.Solution());
             REAL error = 0.0;
@@ -392,11 +424,12 @@ void ComputeErrorL2(TPZCompMesh * cmesh, REAL &error){
     
 }
 
-REAL Inner_Product(TPZFNMatrix<4,REAL> S, TPZFNMatrix<4,REAL> T){
+REAL Inner_Product(TPZFNMatrix<4,REAL> S , TPZFNMatrix<4,REAL> T){
     
     if ((S.Rows() != T.Rows()) && (S.Cols() != T.Cols())) {
         DebugStop();
     }
+    
     
     //** Tr[Transpose[s].t] = S00 T00 + S01 T01 + S10 T10 + S11 T11 */
     REAL inner_product = S(0,0) * T(0,0) + S(0,1) * T(0,1) + S(1,0) * T(1,0) + S(1,1) * T(1,1);
@@ -439,7 +472,7 @@ int Problem2D(){
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
-    REAL rext = 2.0;
+    REAL rext = 4.0;
     int ncircle = 30;
     int nradial = 25;
     REAL drdcirc = 2.5;
@@ -796,7 +829,7 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
     ny = ncirc+1;
     
     
-//    // Geometric Progression of the elements
+    // Geometric Progression of the elements
     REAL q;
     if(nrad >1)
     {
@@ -807,7 +840,7 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
         q=radiallength;
     }
     
-    //q = 1;
+//    q = 1; // CALCULAR TAXAS DE CONVERGENCIA, malha com mesmo tamanho de elementos
 //     std::cout<< "valor de q " << q << endl; // imprime razao da PG
     
    
@@ -828,7 +861,19 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
     
     // aloca valor acumulado dos raios
     REAL rsum = 0.;
-    REAL sz = szmin;
+    REAL sz = 0.;
+    
+    if (q == 1) {
+    sz = radiallength/nrad;
+    }
+    else {
+    
+     sz = szmin; // para taxas
+    
+    }
+    
+   
+    
    
     
     //Nodes initialization
@@ -872,8 +917,17 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
         }
         
         
-        rsum += sz; //valor acumulado dos raios
-        sz *= q ;
+
+        
+        if (q == 1) {
+             rsum = sz  * i * q; // para taxas
+        }
+        else {
+            
+            rsum += sz; //valor acumulado dos raios
+            sz *= q;
+            
+        }
 
 //        std::cout << "sz: " << sz << endl;
 //
