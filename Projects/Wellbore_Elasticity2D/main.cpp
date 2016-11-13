@@ -146,7 +146,7 @@ int ApproximationRates(){
     
     int numthreads = 16;
     int nh = 4;
-    int np = 1;
+    int np = 3;
 
     
     std::string plotfile = "ElasticitySolutions2D.vtk";
