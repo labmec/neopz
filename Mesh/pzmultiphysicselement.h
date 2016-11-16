@@ -10,6 +10,7 @@
 
 #include "pzcompel.h"
 #include "pzgeoelbc.h"
+#include "pzfunction.h"
 
 class TPZMultiphysicsInterfaceElement;
 
@@ -71,7 +72,10 @@ public:
 	 */
 	virtual void EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                                TPZVec<REAL> &errors,TPZBlock<REAL> * flux );
-	
+
+    virtual void EvaluateError(TPZFunction<STATE> &func,
+                               TPZVec<REAL> &errors);
+
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) = 0;
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)=0;

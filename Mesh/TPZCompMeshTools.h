@@ -38,6 +38,11 @@ public:
     
     /// created condensed elements for the elements that have internal nodes
     static void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian);
+
+    /// compute the norm of the difference between two meshes
+    /// put the computed error in the element solution
+    static void ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
+
 };
 
 #endif /* defined(__PZ__TPZCompMeshTools__) */

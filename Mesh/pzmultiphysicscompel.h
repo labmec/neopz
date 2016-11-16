@@ -72,6 +72,10 @@ public:
 	virtual void EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                                TPZVec<REAL> &errors,TPZBlock<REAL> * flux );
     
+    virtual void EvaluateError(TPZFunction<STATE> &func,
+                               TPZVec<REAL> &errors);
+    
+
 	/**
 	 * @brief Method to obtain an reference index set of multiphysics computational elements.
 	 * @param cmeshVec Vector of computational meshes

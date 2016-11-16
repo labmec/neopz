@@ -1122,7 +1122,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 		}
 	}
 	
-	// look for ribs which touch the boundary but which do no lay on the boundary
+	// look for ribs which touch the boundary but which do not lay on the boundary
 	for(int is = gel->NCornerNodes(); is < gel->NSides(); is++)
 	{
 		// we are only interested in ribs

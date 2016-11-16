@@ -15,6 +15,9 @@
 #include "pzelementgroup.h"
 #include "pzsubcmesh.h"
 #include "pzcondensedcompel.h"
+#include "pzmultiphysicselement.h"
+#include "TPZMeshSolution.h"
+
 #include <algorithm>
 
 static TPZOneShapeRestraint SetupPyramidRestraint(TPZCompEl *cel, int side);
@@ -503,3 +506,94 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
     cmesh->CleanUpUnconnectedNodes();
     
 }
+
+static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
+
+static void ComputeError(TPZCondensedCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    TPZCompEl *ref = cel->ReferenceCompEl();
+    ComputeError(ref, func, mesh2, square_errors);
+}
+
+static void ComputeError(TPZMultiphysicsElement *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    TPZManVector<STATE,3> errors(3,0.);
+    cel->EvaluateError(func, errors);
+    long index = cel->Index();
+    TPZCompMesh *mesh = cel->Mesh();
+    for (int i=0; i<3; i++) {
+        mesh->ElementSolution()(index,i) = errors[i];
+        square_errors[i] += errors[i]*errors[i];
+    }
+}
+
+static void ComputeError(TPZElementGroup *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    DebugStop();
+}
+
+static void ComputeError(TPZInterpolationSpace *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    DebugStop();
+}
+
+
+static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
+    // acumulate the errors of the submeshes
+    if (sub) {
+        TPZCompMeshTools::ComputeDifferenceNorm(sub, mesh2, square_errors);
+        return;
+    }
+    TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+    if(elgr)
+    {
+        ComputeError(elgr, func, mesh2, square_errors);
+        return;
+    }
+    TPZCondensedCompEl *cond = dynamic_cast<TPZCondensedCompEl *>(cel);
+    if (cond) {
+        ComputeError(cond, func, mesh2, square_errors);
+        return;
+    }
+    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+    if (intel) {
+        ComputeError(intel, func, mesh2, square_errors);
+        return;
+    }
+    TPZMultiphysicsElement *mphys = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    if(mphys)
+    {
+        ComputeError(mphys, func, mesh2, square_errors);
+        return;
+    }
+    
+}
+/// compute the norm of the difference between two meshes
+/// square of the errors are computed for each element of mesh1
+void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    long nel = mesh1->NElements();
+    int dim = mesh1->Dimension();
+    if(square_errors.size() != 3)
+    {
+        DebugStop();
+    }
+    mesh1->ElementSolution().Redim(mesh1->NElements(), 3);
+    
+    int materialid = 1;
+    TPZMeshSolution func(mesh2,materialid);
+    
+//    mesh2->Reference()->ResetReference();
+//    mesh2->LoadReferences();
+    
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = mesh1->Element(el);
+        if (!cel) {
+            continue;
+        }
+        ComputeError(cel, func, mesh2, square_errors);
+    }
+}
+

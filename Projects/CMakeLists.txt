@@ -188,7 +188,7 @@ ENABLE_TESTING()
 			add_subdirectory(MatLib)
 			add_subdirectory(TrabalhosLNCC15)
 
-			#add_subdirectory(MHM)
+			add_subdirectory(MHM)
 
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
