@@ -295,6 +295,7 @@ TPZPardisoControl<TVar>::~TPZPardisoControl()
     if (Error) {
         DebugStop();
     }
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     
 }
 

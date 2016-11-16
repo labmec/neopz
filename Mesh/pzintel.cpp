@@ -1631,6 +1631,7 @@ void TPZInterpolatedElement::PRefine(int order) {
     SetPreferredOrder(order);
     
 #ifdef LOG4CXX
+    if (loggerdiv->isDebugEnabled())
     {
         std::stringstream sout;
         sout << (void*)Mesh() << " PRefine " << Index() << " " << Reference()->Index() << " " << order;

@@ -239,19 +239,6 @@ BOOST_AUTO_TEST_CASE(shape_order)
 }
     
 
-/// Check that the Div of the vector functions can be represented
-BOOST_AUTO_TEST_CASE(drham_check)
-{
-    std::cout << "Initializing DRham consistency check\n";
-    VerifyDRhamCompatibility(EPiramide);
-    VerifyDRhamCompatibility(ETetraedro);
-    VerifyDRhamCompatibility(EPrisma);
-    VerifyDRhamCompatibility(ECube);
-    VerifyDRhamCompatibility(EQuadrilateral);
-    VerifyDRhamCompatibility(ETriangle);
-    std::cout << "Leaving  DRham consistency check\n";
-}
-
 BOOST_AUTO_TEST_CASE(drham_permute_check)
 {
     std::cout << "Initializing  DRham consistency under permutation check\n";
@@ -291,7 +278,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         grid.SetElementType(ETriangle);
     }
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
-    grid.Read(gmesh);
+    grid.Read(gmesh.operator->());
     grid.SetBC(gmesh, 4, -1);
     grid.SetBC(gmesh, 5, -1);
     grid.SetBC(gmesh, 6, -1);
@@ -911,6 +898,12 @@ static void CheckDRham(TPZCompEl *cel)
         }
         GlobalProjectionMatrix(cel, L2, HDivSize, PressureSize);
         std::set<int> pressureNot, HDivNot;
+        {
+            std::ofstream out("Projections.nb");
+            out << "NumHDiv = " << HDivSize << std::endl;
+            out << "NumPres = " << PressureSize << std::endl;
+            L2.Print("Proj =",out,EMathematicaInput);
+        }
         
         VerifyThroughDecomposition(L2, PressureSize, HDivSize, HDivNot, pressureNot);
         int nwrong = 0;
@@ -1924,9 +1917,12 @@ void VerifyDRhamCompatibility(MElementType eltype)
     TPZVec<TPZCompMesh *>  meshvec(2);
     int nelem =2;
     int fluxorder = gfluxorder;
+    if(eltype == EPiramide) fluxorder = 1;
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(meshvec,eltype,nelem,fluxorder);
-    std::ofstream arg1("cmesh.txt");
-    cmesh.operator->()->Print(arg1);
+    {
+        std::ofstream arg1("cmesh.txt");
+        cmesh.operator->()->Print(arg1);
+    }
     // for each computational element (not boundary) verify if the Div(vecspace) is included in the pressure space
     int nel = cmesh->NElements();
     int meshdim = cmesh->Dimension();

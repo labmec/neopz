@@ -238,7 +238,7 @@ int main2(int argc, char *argv[])
     std::string dirname = PZSOURCEDIR;
     std::string FileName = dirname;
     FileName = dirname + projectpath;
-    FileName += "log4cxx.cfg";
+    FileName += "pyramlogfile.cfg";
     InitializePZLOG(FileName);
 #endif
     
@@ -1368,9 +1368,12 @@ TPZCompMesh * CreateCmeshMulti(TPZVec<TPZCompMesh *> &meshvec)
     
     
 #ifdef LOG4CXX
-    std::stringstream sout;
-    mphysics->Print(sout);
-    LOGPZ_DEBUG(logger,sout.str())
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        mphysics->Print(sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
 #endif
     
     return mphysics;
@@ -2664,17 +2667,16 @@ void GenerateMathematicaWithConvergenceRates(TPZVec<REAL> &neqVec, TPZVec<REAL> 
     // ---------------- Defining filename ---------------
     std::string mathematicaFilename = "NoName.nb";
     std::stringstream Mathsout;
-    if(runtype == ETetrahedra){Mathsout << "../convergenceRatesTetMesh";}
-    if(runtype == EPyramid){Mathsout << "../convergenceRatesPyrMesh";}
-    if(runtype == EDividedPyramid){Mathsout << "../convergenceRatesDividedPyrMesh";}
-    if(runtype == EDividedPyramidIncreasedOrder){Mathsout << "../convergenceRatesDivPyrIncOrdMesh";}
+    if(runtype == ETetrahedra){Mathsout << "convergenceRatesTetMesh";}
+    if(runtype == EPyramid){Mathsout << "convergenceRatesPyrMesh";}
+    if(runtype == EDividedPyramid){Mathsout << "convergenceRatesDividedPyrMesh";}
+    if(runtype == EDividedPyramidIncreasedOrder){Mathsout << "convergenceRatesDivPyrIncOrdMesh";}
     Mathsout << pFlux;
     if (HDivMaisMais) {
         Mathsout << "MaisMais";
     }
     Mathsout << ".nb";
     mathematicaFilename = Mathsout.str();
-    
     std::ofstream out(mathematicaFilename.c_str());
     
     
@@ -2721,6 +2723,9 @@ void GenerateMathematicaWithConvergenceRates(TPZVec<REAL> &neqVec, TPZVec<REAL> 
     out << convrateh1str << endl;
     out << convratel2str << endl;
     out << convratesemih1str << endl;
+    
+    std::cout << "WRITTEN OUTPUT FILE ********* " << mathematicaFilename << " *****************" << std::endl;
+
     
 }
 
