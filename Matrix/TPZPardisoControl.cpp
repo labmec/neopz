@@ -237,6 +237,7 @@ void TPZPardisoControl<TVar>::Decompose()
 
     std::cout << "Done\n";
     if (Error) {
+        std::cout << __PRETTY_FUNCTION__ << " error code " << Error << std::endl;
         DebugStop();
     }
 }

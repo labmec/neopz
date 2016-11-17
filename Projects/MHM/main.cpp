@@ -180,8 +180,8 @@ int main(int argc, char *argv[])
     
     {
         std::ifstream pores("../porous.txt");
-        for (int i=0; i<500; i++) {
-            for (int j=0; j<100; j++) {
+        for (int j=0; j<100; j++) {
+            for (int i=0; i<500; i++) {
                 pores >> porous(i,j);
                 if (!pores) {
                     DebugStop();
@@ -2150,6 +2150,9 @@ TPZCompMesh *CreateReferenceCMesh(TPZGeoMesh *gmesh, TPZVec<TPZCompMesh *> &mesh
     int dimension = 2;
     meshvec[0] = CreateHDivMHMMesh(gmesh,porder);
     meshvec[1] = CreatePressureMHMMesh(gmesh, porder, dimension);
+    int hdivplusplus=1;
+    TPZCompMeshTools::AdjustFluxPolynomialOrders(meshvec[0], hdivplusplus);
+    TPZCompMeshTools::SetPressureOrders(meshvec[0], meshvec[1]);
     TPZCompMesh *cmesh = CreateHDivPressureMHMMesh(meshvec);
     for (int i=0; i<10; i++) {
         TPZMaterial *mat = cmesh->FindMaterial(i);
@@ -2164,6 +2167,8 @@ TPZCompMesh *CreateReferenceCMesh(TPZGeoMesh *gmesh, TPZVec<TPZCompMesh *> &mesh
             mixed->SetPermeabilityFunction(func);
         }
     }
+    TPZCompMeshTools::GroupElements(cmesh);
+    TPZCompMeshTools::CreatedCondensedElements(cmesh, true);
     return cmesh;
 }
 

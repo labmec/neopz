@@ -597,3 +597,94 @@ void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *me
     }
 }
 
+/// adjust the polynomial orders of the hdiv elements such that the internal order is higher than the sideorders
+void TPZCompMeshTools::AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
+{
+    int dim = fluxmesh->Dimension();
+    /// loop over all the elements
+    long nel = fluxmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fluxmesh->Element(el);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        if (gel->Dimension() != dim) {
+            continue;
+        }
+        // compute the maxorder
+        int maxorder = -1;
+        int ncon = intel->NConnects();
+        for (int i=0; i<ncon-1; i++) {
+            int conorder = intel->Connect(i).Order();
+            maxorder = maxorder < conorder ? conorder : maxorder;
+        }
+        int nsides = gel->NSides();
+        int nconside = intel->NSideConnects(nsides-1);
+        // tive que tirar para rodar H1
+        //        if (nconside != 1 || maxorder == -1) {
+        //            DebugStop();
+        //        }
+        long cindex = intel->SideConnectIndex(nconside-1, nsides-1);
+        TPZConnect &c = fluxmesh->ConnectVec()[cindex];
+        if (c.NElConnected() != 1) {
+            DebugStop();
+        }
+        if (c.Order() != maxorder+hdivplusplus) {
+            //            std::cout << "Changing the order of the central connect " << cindex << " from " << c.Order() << " to " << maxorder+hdivplusplus << std::endl;
+            // change the internal connect order to be equal do maxorder
+            intel->SetSideOrder(nsides-1, maxorder+hdivplusplus);
+        }
+    }
+    fluxmesh->ExpandSolution();
+}
+
+/// set the pressure order acording to the order of internal connect of the elements of the fluxmesh
+void TPZCompMeshTools::SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
+{
+    // build a vector with the required order of each element in the pressuremesh
+    // if an element of the mesh dimension of the fluxmesh does not have a corresponding element in the pressuremesh DebugStop is called
+    int meshdim = fluxmesh->Dimension();
+    pressuremesh->Reference()->ResetReference();
+    pressuremesh->LoadReferences();
+    TPZManVector<long> pressorder(pressuremesh->NElements(),-1);
+    long nel = fluxmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fluxmesh->Element(el);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        if (gel->Dimension() != meshdim) {
+            continue;
+        }
+        int nsides = gel->NSides();
+        long cindex = intel->SideConnectIndex(0, nsides-1);
+        TPZConnect &c = fluxmesh->ConnectVec()[cindex];
+        int order = c.Order();
+        TPZCompEl *pressureel = gel->Reference();
+        TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(pressureel);
+        if (!pintel) {
+            DebugStop();
+        }
+        pressorder[pintel->Index()] = order;
+    }
+    pressuremesh->Reference()->ResetReference();
+    nel = pressorder.size();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = pressuremesh->Element(el);
+        TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!pintel) {
+            continue;
+        }
+        if (pressorder[el] == -1) {
+            continue;
+        }
+        pintel->PRefine(pressorder[el]);
+    }
+    
+    pressuremesh->ExpandSolution();
+}
+
