@@ -217,10 +217,12 @@ int main(int argc, char *argv[])
         meshvec[0]->Write(meshfile, false);
         meshvec[1]->Write(meshfile, false);
         //       cmesh->Write(meshfile, false);
+        if(0)
         {
             ofstream out("gmesh1.txt");
             gmesh->Print(out);
         }
+        if(0)
         {
             ofstream out1("cmeshwrite0.txt");
             meshvec[0]->Print(out1);
@@ -229,6 +231,7 @@ int main(int argc, char *argv[])
         }
         UnwrapMesh(cmesh);
 
+        if(0)
         {
             ofstream out1("mfmeshwrite.txt");
             cmesh->Print(out1);
@@ -244,6 +247,7 @@ int main(int argc, char *argv[])
         meshfile.OpenRead("Ref.bin");
         TPZGeoMesh *gmesh = new TPZGeoMesh;
         gmesh->Read(meshfile, 0);
+        if(0)
         {
             ofstream out("gmesh2.txt");
             gmesh->Print(out);
@@ -253,6 +257,7 @@ int main(int argc, char *argv[])
         meshvec[1] = new TPZCompMesh;
         meshvec[0]->Read(meshfile, gmesh);
         meshvec[1]->Read(meshfile, gmesh);
+        if(0)
         {
             ofstream out1("cmeshread0.txt");
             meshvec[0]->Print(out1);
@@ -281,6 +286,7 @@ int main(int argc, char *argv[])
         vecnames.Push("Derivative");
         vecnames.Push("Flux");
         TPZAnalysis an(cmesh);
+        if(0)
         {
             ofstream out1("mfmeshread.txt");
             cmesh->Print(out1);
