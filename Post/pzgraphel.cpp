@@ -90,7 +90,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
 	imax = 1 << res;
 	int np = NPoints(n);
 	int point=0;
-	TPZVec<REAL> qsi(3,0.),x(4,0.);
+	TPZManVector<REAL,3> qsi(3,0.),x(4,0.);
 	while(point < np) {
 		QsiEta(co,imax,qsi);
 		fCompEl->Reference()->X(qsi,x);

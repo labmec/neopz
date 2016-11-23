@@ -366,6 +366,9 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
     buf.Write(&fNumLoadCases);
     int linearcontext = fLinearContext;
     buf.Write(&linearcontext);
+    
+    int checksum = 99999;
+    buf.Write(&checksum);
     /*
 	 int forcingIdx = -1;
 	 if (fForcingFunction)
@@ -412,6 +415,13 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
     else {
         fLinearContext = false;
     }
+    int checksum = 99999;
+    buf.Read(&checksum);
+    if(checksum != 99999)
+    {
+        DebugStop();
+    }
+
     /*
 	 int forcingIdx = -1;
 	 buf.Read( &forcingIdx,1 );

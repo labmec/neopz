@@ -8,6 +8,8 @@
 #include "pzfstrmatrix.h"
 #include "pzlog.h"
 
+#include "pzbfilestream.h"
+
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
@@ -120,6 +122,9 @@ TPZCompMesh *ComputeReferenceSolution(TPZGeoMesh *gmesh, int porder, TPZVec<TPZC
 /// create the computational mesh of the reference solution
 TPZCompMesh *CreateReferenceCMesh(TPZGeoMesh *gmesh, TPZVec<TPZCompMesh *> &meshvec, int porder);
 
+
+void UnwrapMesh(TPZCompMesh *cmesh);
+
 void Porosity(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &diff);
 
 #ifdef LOG4CXX
@@ -194,22 +199,97 @@ int main(int argc, char *argv[])
     gRefDBase.InitializeUniformRefPattern(ETriangle);
 //    gRefDBase.InitializeUniformRefPattern(ECube);
     
-    gRefDBase.InitializeRefPatterns();
-    
+
+    //    gRefDBase.InitializeRefPatterns();
+    if(1)
     {
-        int nelx = 100, nely = 100;
-        REAL xsize = 1., ysize = 1.;
-        int numref = 1;
+        int nelx = 500, nely = 100;
+        REAL xsize = 5, ysize = 1;
+        int numref = 0;
         TPZGeoMesh *gmesh = CreateReferenceGMesh(nelx, nely, xsize, ysize, numref);
         TPZManVector<TPZCompMesh *,2> meshvec(2);
         int porder = 1;
         TPZCompMesh *cmesh = ComputeReferenceSolution(gmesh,porder,meshvec);
+        TPZBFileStream meshfile;
+        meshfile.OpenWrite("Ref.bin");
+        gmesh->ResetReference();
+        gmesh->Write(meshfile, false);
+        meshvec[0]->Write(meshfile, false);
+        meshvec[1]->Write(meshfile, false);
+        //       cmesh->Write(meshfile, false);
+        {
+            ofstream out("gmesh1.txt");
+            gmesh->Print(out);
+        }
+        {
+            ofstream out1("cmeshwrite0.txt");
+            meshvec[0]->Print(out1);
+            ofstream out2("cmeshwrite1.txt");
+            meshvec[1]->Print(out2);
+        }
+        UnwrapMesh(cmesh);
+
+        {
+            ofstream out1("mfmeshwrite.txt");
+            cmesh->Print(out1);
+        }
+
         delete cmesh;
         delete meshvec[0];
         delete meshvec[1];
         delete gmesh;
     }
-    exit(0);
+    {
+        TPZBFileStream meshfile;
+        meshfile.OpenRead("Ref.bin");
+        TPZGeoMesh *gmesh = new TPZGeoMesh;
+        gmesh->Read(meshfile, 0);
+        {
+            ofstream out("gmesh2.txt");
+            gmesh->Print(out);
+        }
+        TPZManVector<TPZCompMesh *,2> meshvec(2);
+        meshvec[0] = new TPZCompMesh;
+        meshvec[1] = new TPZCompMesh;
+        meshvec[0]->Read(meshfile, gmesh);
+        meshvec[1]->Read(meshfile, gmesh);
+        {
+            ofstream out1("cmeshread0.txt");
+            meshvec[0]->Print(out1);
+            ofstream out2("cmeshread1.txt");
+            meshvec[1]->Print(out2);
+        }
+        TPZCompMesh *cmesh = CreateHDivPressureMHMMesh(meshvec);
+        for (int i=0; i<10; i++) {
+            TPZMaterial *mat = cmesh->FindMaterial(i);
+            if (mat) {
+                TPZMixedPoisson *mixed = dynamic_cast<TPZMixedPoisson *>(mat);
+                if (!mixed) {
+                    DebugStop();
+                }
+                TPZDummyFunction<STATE> *dummy = new TPZDummyFunction<STATE>(Porosity);
+                dummy->SetPolynomialOrder(0);
+                TPZAutoPointer<TPZFunction<STATE> > func(dummy);
+                mixed->SetPermeabilityFunction(func);
+            }
+        }
+
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, cmesh);
+        std::string plotfile("referencesolutionRead.vtk");
+        TPZStack<std::string> scalnames,vecnames;
+        scalnames.Push("Pressure");
+        vecnames.Push("Derivative");
+        vecnames.Push("Flux");
+        TPZAnalysis an(cmesh);
+        {
+            ofstream out1("mfmeshread.txt");
+            cmesh->Print(out1);
+        }
+        an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile);
+        int resolution = 0;
+        an.PostProcess(resolution,cmesh->Dimension());
+
+    }
     std::string quad = "QuadByTriangles";
     std::string triangle = "TriangleBy9Triangles";
     TPZAutoPointer<TPZRefPattern> refpatquad = DivideQuadbyTriangles(quad);
@@ -218,8 +298,8 @@ int main(int argc, char *argv[])
     
     TPZAutoPointer<TPZRefPattern> refpattriangle = DivideTriangleby9Triangles(triangle);
     
-    int nelx = 5;
-    int nely = 1;
+    int nelx = 30;
+    int nely = 10;
     TPZVec<long> coarseindices;
     TPZGeoMesh *gmesh = MalhaGeomFred(nelx, nely, quad, triangle, coarseindices);
     
@@ -1550,9 +1630,11 @@ TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     cmeshHDiv->SetDefaultOrder(porder);
     TPZVecL2 *matl2 = new TPZVecL2(1);
+    matl2->SetDimension(2);
     cmeshHDiv->InsertMaterialObject(matl2);
     for (int matid = 2; matid<10; matid++) {
         TPZVecL2 *matl2 = new TPZVecL2(matid);
+        matl2->SetDimension(2);
         cmeshHDiv->InsertMaterialObject(matl2);
     }
     TPZFNMatrix<1,STATE> val1(1,1,0.),val2(1,1,0.);
@@ -2004,9 +2086,9 @@ TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, REAL xsize, REAL ysize, int
     TPZManVector<int,3> nx(2);
     nx[0] = nelx;
     nx[1] = nely;
-    TPZManVector<REAL,3> x0(2,0.),x1(2,0.);
-    x1[0] = xsize;
-    x1[1] = ysize;
+    TPZManVector<REAL,3> x0(2,0.0),x1(2,0.);
+    x1[0] = x0[0]+xsize;
+    x1[1] = x0[1]+ysize;
     TPZGenGrid gengrid(nx,x0,x1);
     gengrid.SetRefpatternElements(true);
     TPZGeoMesh *result = new TPZGeoMesh;
@@ -2131,6 +2213,7 @@ TPZCompMesh *ComputeReferenceSolution(TPZGeoMesh *gmesh, int porder, TPZVec<TPZC
     //    }
     //    cmeshes[0]->Solution().Print("solq = ");
     //    cmeshes[1]->Solution().Print("solp = ");
+    UnwrapMesh(an.Mesh());
     std::string plotfile("referencesolution.vtk");
     TPZStack<std::string> scalnames,vecnames;
     scalnames.Push("Pressure");
@@ -2172,3 +2255,27 @@ TPZCompMesh *CreateReferenceCMesh(TPZGeoMesh *gmesh, TPZVec<TPZCompMesh *> &mesh
     return cmesh;
 }
 
+void UnwrapMesh(TPZCompMesh *cmesh)
+{
+    long nel = cmesh->NElements();
+    bool change = true;
+    while(change)
+    {
+        change = false;
+        for (long el=0; el<nel; el++) {
+            
+            TPZCompEl *cel = cmesh->Element(el);
+            TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
+            if (condense) {
+                condense->Unwrap();
+                change = true;
+            }
+            cel = cmesh->Element(el);
+            TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+            if (elgr) {
+                elgr->Unwrap();
+                change = true;
+            }
+        }
+    }
+}
