@@ -70,7 +70,7 @@ TPZMultiphysicsCompEl<TGeometry>::~TPZMultiphysicsCompEl(){
 }
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform> &trVec) const
+void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZVec<TPZTransform> &trVec) const
 {
 	long nel;
 	int side, dim, dimmf;

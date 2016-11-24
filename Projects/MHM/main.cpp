@@ -76,7 +76,7 @@ using namespace std;
 
 TPZGeoMesh *MalhaGeom2(REAL Lx, REAL Ly);
 
-TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices);
+TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices, int ndiv);
 
 TPZAutoPointer<TPZRefPattern> DivideQuadbyTriangles(const std::string refpatname);
 
@@ -315,11 +315,12 @@ int main(int argc, char *argv[])
     int nelx = 30;
     int nely = 10;
     TPZVec<long> coarseindices;
-    TPZGeoMesh *gmesh = MalhaGeomFred(nelx, nely, quad, triangle, coarseindices);
+    int ndiv = 1;
+    TPZGeoMesh *gmesh = MalhaGeomFred(nelx, nely, quad, triangle, coarseindices, ndiv);
     
     TPZAutoPointer<TPZGeoMesh> gmeshauto(gmesh);
     
-    TPZMHMixedMeshControl meshcontrol(gmeshauto, coarseindices);
+    TPZMHMeshControl meshcontrol(gmeshauto, coarseindices);
     
     meshcontrol.SetLagrangeAveragePressure(true);
     
@@ -2013,7 +2014,7 @@ TPZAutoPointer<TPZRefPattern> DivideTriangleby9Triangles(const std::string refpa
 
 }
 
-TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices)
+TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices, int ndiv)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     int dimension = 2;
@@ -2087,6 +2088,8 @@ TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std:
             }
         }
     }
+    TPZCheckGeom geom(gmesh);
+    geom.UniformRefine(1);
 //    InsertInterfaceElements(gmesh,1,2);
 
 #ifdef LOG4CXX

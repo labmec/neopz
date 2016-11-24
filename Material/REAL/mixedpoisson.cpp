@@ -16,6 +16,7 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
+static LoggerPtr logerror(Logger::getLogger("pz.mixedpoisson.error"));
 #endif
 
 TPZMixedPoisson::TPZMixedPoisson(): TPZMatPoisson3d(), fDim(1) {
@@ -760,7 +761,19 @@ void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exa
     this->Solution(data,VariableIndex("Derivative"), deriv);
     this->Solution(data,VariableIndex("Pressure"), pressure);
     
-    
+#ifdef LOG4CXX
+    if(logerror->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout.precision(14);
+        sout << "x " << data[0].x << std::endl;
+        sout << "u_exact " << u_exact << std::endl;
+        du_exact.Print("du_exact",sout);
+        sout << "deriv " << deriv << std::endl;
+        sout << "pressure " << pressure << std::endl;
+        LOGPZ_DEBUG(logerror, sout.str())
+    }
+#endif
     int id;
     //values[1] : eror em norma L2
     STATE diff = pressure[0] - u_exact[0];

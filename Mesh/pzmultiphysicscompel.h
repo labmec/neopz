@@ -60,7 +60,7 @@ public:
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
 	 * @param trVec Transform 
 	 **/
-	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const;
+	virtual void AffineTransform(TPZVec<TPZTransform> &trVec) const;
     
 
     /**

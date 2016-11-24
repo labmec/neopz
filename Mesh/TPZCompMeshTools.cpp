@@ -597,10 +597,14 @@ void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *me
             continue;
         }
         ComputeError(cel, func, mesh2, square_errors);
+
         if (nel >= 1000 && (el+1)%1000 == 0) {
             std::cout << "*";
         }
-        if(el%(20*1000) == 0) std::cout << std::endl;
+        if(el%(20*1000) == 0)
+        {
+            std::cout << square_errors <<  std::endl;
+        }
     }
     if(nel >= 1000) std::cout << std::endl;
 }
