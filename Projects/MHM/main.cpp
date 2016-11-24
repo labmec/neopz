@@ -199,9 +199,12 @@ int main(int argc, char *argv[])
     gRefDBase.InitializeUniformRefPattern(ETriangle);
 //    gRefDBase.InitializeUniformRefPattern(ECube);
     
+    TPZManVector<TPZCompMesh *,2> ReferenceMeshVec(2,0);
+    TPZGeoMesh *ReferenceGMesh = 0;
+    TPZCompMesh *ReferenceCMesh = 0;
 
     //    gRefDBase.InitializeRefPatterns();
-    if(1)
+    if(0)
     {
         int nelx = 500, nely = 100;
         REAL xsize = 5, ysize = 1;
@@ -244,9 +247,10 @@ int main(int argc, char *argv[])
     }
     {
         TPZBFileStream meshfile;
-        meshfile.OpenRead("Ref.bin");
+        meshfile.OpenRead("../Ref.bin");
         TPZGeoMesh *gmesh = new TPZGeoMesh;
         gmesh->Read(meshfile, 0);
+        ReferenceGMesh = gmesh;
         if(0)
         {
             ofstream out("gmesh2.txt");
@@ -257,6 +261,7 @@ int main(int argc, char *argv[])
         meshvec[1] = new TPZCompMesh;
         meshvec[0]->Read(meshfile, gmesh);
         meshvec[1]->Read(meshfile, gmesh);
+        ReferenceMeshVec = meshvec;
         if(0)
         {
             ofstream out1("cmeshread0.txt");
@@ -280,21 +285,24 @@ int main(int argc, char *argv[])
         }
 
         TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, cmesh);
-        std::string plotfile("referencesolutionRead.vtk");
-        TPZStack<std::string> scalnames,vecnames;
-        scalnames.Push("Pressure");
-        vecnames.Push("Derivative");
-        vecnames.Push("Flux");
-        TPZAnalysis an(cmesh);
+        ReferenceCMesh = cmesh;
         if(0)
         {
-            ofstream out1("mfmeshread.txt");
-            cmesh->Print(out1);
+            std::string plotfile("referencesolutionRead.vtk");
+            TPZStack<std::string> scalnames,vecnames;
+            scalnames.Push("Pressure");
+            vecnames.Push("Derivative");
+            vecnames.Push("Flux");
+            TPZAnalysis an(cmesh,false);
+            if(0)
+            {
+                ofstream out1("mfmeshread.txt");
+                cmesh->Print(out1);
+            }
+            an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile);
+            int resolution = 0;
+            an.PostProcess(resolution,cmesh->Dimension());
         }
-        an.DefineGraphMesh(cmesh->Dimension(), scalnames, vecnames, plotfile);
-        int resolution = 0;
-        an.PostProcess(resolution,cmesh->Dimension());
-
     }
     std::string quad = "QuadByTriangles";
     std::string triangle = "TriangleBy9Triangles";
@@ -391,12 +399,20 @@ int main(int argc, char *argv[])
     
     //calculo solution
     TPZAnalysis an(CHDivPressureMesh);
-    TPZSkylineStructMatrix skyl(CHDivPressureMesh);
+#ifdef USING_MKL
+    TPZSymetricSpStructMatrix strmat(CHDivPressureMesh);
+    strmat.SetNumThreads(16);
+    an.SetStructuralMatrix(strmat);
+    
+#else
+    TPZSkylineStructMatrix strmat(CHDivPressureMesh);
+#endif
+
 #ifndef PZDEBUG
 //    skyl.SetNumThreads(16);
 #endif
     
-    an.SetStructuralMatrix(skyl);
+    an.SetStructuralMatrix(strmat);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     an.SetSolver(step);
@@ -436,13 +452,18 @@ int main(int argc, char *argv[])
     vecnames.Push("Derivative");
     vecnames.Push("Flux");
     an.DefineGraphMesh(CHDivPressureMesh->Dimension(), scalnames, vecnames, plotfile);
-    int resolution = 1;
+    int resolution = 0;
     an.PostProcess(resolution,CHDivPressureMesh->Dimension());
 
     TPZManVector<STATE,10> square_errors(3,0.);
     CHDivPressureMesh->Reference()->ResetReference();
     CHDivPressureMesh->LoadReferences();
-    TPZCompMeshTools::ComputeDifferenceNorm(CHDivPressureMesh, CHDivPressureMesh, square_errors);
+    TPZCompMeshTools::ComputeDifferenceNorm(ReferenceCMesh, CHDivPressureMesh, square_errors);
+    
+    for (int i=0; i<square_errors.size(); i++) {
+        square_errors[i] = sqrt(square_errors[i]);
+    }
+    std::cout << "The error norms of the differences are " << square_errors << std::endl;
     return 0;
 }
 

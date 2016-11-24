@@ -587,6 +587,9 @@ void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *me
     
 //    mesh2->Reference()->ResetReference();
 //    mesh2->LoadReferences();
+    if (nel >= 1000) {
+        std::cout << "ComputeDifferenceNorm nelem " << nel << std::endl;
+    }
     
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = mesh1->Element(el);
@@ -594,7 +597,12 @@ void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *me
             continue;
         }
         ComputeError(cel, func, mesh2, square_errors);
+        if (nel >= 1000 && (el+1)%1000 == 0) {
+            std::cout << "*";
+        }
+        if(el%(20*1000) == 0) std::cout << std::endl;
     }
+    if(nel >= 1000) std::cout << std::endl;
 }
 
 /// adjust the polynomial orders of the hdiv elements such that the internal order is higher than the sideorders

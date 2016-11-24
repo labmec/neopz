@@ -961,10 +961,21 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
-	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
+	TPZManVector<int,3> prevorder(dim);
 	//end
 	intrule->GetOrder(prevorder);
 	
+    if(maxIntOrder > 5)
+    {
+        if (prevorder[0] > 5) {
+            maxIntOrder = prevorder[0];
+        }
+        else
+        {
+            maxIntOrder = 5;
+        }
+    }
+    TPZManVector<int,3> maxorder(dim, maxIntOrder);
 	intrule->SetOrder(maxorder);
 	
 	int ndof = material->NStateVariables();
@@ -1049,10 +1060,21 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
     int dim = Dimension();
     TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
     int maxIntOrder = intrule->GetMaxOrder();
-    TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
+    TPZManVector<int,3> prevorder(dim);
     //end
     intrule->GetOrder(prevorder);
     
+    if(maxIntOrder > 5)
+    {
+        if (prevorder[0] > 5) {
+            maxIntOrder = prevorder[0];
+        }
+        else
+        {
+            maxIntOrder = 5;
+        }
+    }
+    TPZManVector<int,3> maxorder(dim,maxIntOrder);
     intrule->SetOrder(maxorder);
     
     int ndof = material->NStateVariables();
