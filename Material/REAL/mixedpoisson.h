@@ -134,6 +134,10 @@ public:
         fPermeabilityFunction = fp;
     }
 
+    TPZAutoPointer<TPZFunction<STATE> > PermeabilityFunction()
+    {
+        return fPermeabilityFunction;
+    }
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.

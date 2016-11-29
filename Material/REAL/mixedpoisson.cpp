@@ -590,6 +590,9 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
     if (!strcmp("Derivative",name.c_str())) {
         return 42;
     }
+    if (!strcmp("Permeability",name.c_str())) {
+        return 43;
+    }
 	
     DebugStop();
     return -1;
@@ -606,6 +609,7 @@ int TPZMixedPoisson::NSolutionVariables(int var){
     if(var == 39) return fDim;
     if(var == 40 || var == 41) return 1;
     if(var == 42) return 3;
+    if(var == 43) return 1;
     DebugStop();
     return -1;
 }
@@ -726,6 +730,11 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
                 Solout[i] -= InvPermTensor(i,j)*datavec[0].sol[0][i];
             }
         }
+        return;
+    }
+    if(var ==43)
+    {
+        Solout[0] = PermTensor(0,0);
         return;
     }
     DebugStop();
