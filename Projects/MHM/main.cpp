@@ -76,7 +76,7 @@ using namespace std;
 
 TPZGeoMesh *MalhaGeom2(REAL Lx, REAL Ly);
 
-TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices, int ndiv);
+TPZGeoMesh *MalhaGeomFred(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices, int ndiv);
 
 TPZAutoPointer<TPZRefPattern> DivideQuadbyTriangles(const std::string refpatname);
 
@@ -114,7 +114,7 @@ void GetElIndexCoarseMesh(TPZGeoMesh *  gmesh, std::set<long> &coarseindex);
 void InterfaceToCoarse(TPZCompMesh *cmesh, int matvolume, int matskeleton, int matinterface);
 
 /// Create a reference geometric mesh starting with nelx by nely domains
-TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, REAL xsize, REAL ysize, int numref);
+TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numref);
 
 /// compute the reference solution and return created mesh
 TPZCompMesh *ComputeReferenceSolution(TPZGeoMesh *gmesh, int porder, TPZVec<TPZCompMesh *> &meshvec);
@@ -203,13 +203,18 @@ int main(int argc, char *argv[])
     TPZGeoMesh *ReferenceGMesh = 0;
     TPZCompMesh *ReferenceCMesh = 0;
 
-    //    gRefDBase.InitializeRefPatterns();
+    gRefDBase.InitializeRefPatterns();
+    TPZManVector<REAL,3> x0(2,0.),x1(2,0.);
+    x0[0] = 1.;
+    int nelxref = 250;
+    int nelyref = 50;
+    x1[0] = x0[0]+0.01*nelxref;
+    x1[1] = x0[1]+0.01*nelyref;
     if(0)
     {
-        int nelx = 500, nely = 100;
-        REAL xsize = 5, ysize = 1;
-        int numref = 0;
-        TPZGeoMesh *gmesh = CreateReferenceGMesh(nelx, nely, xsize, ysize, numref);
+        int nelx = nelxref, nely = nelyref;
+        int numref = 1;
+        TPZGeoMesh *gmesh = CreateReferenceGMesh(nelx, nely, x0, x1, numref);
         TPZManVector<TPZCompMesh *,2> meshvec(2);
         int porder = 1;
         TPZCompMesh *cmesh = ComputeReferenceSolution(gmesh,porder,meshvec);
@@ -247,7 +252,7 @@ int main(int argc, char *argv[])
     }
     {
         TPZBFileStream meshfile;
-        meshfile.OpenRead("../Ref.bin");
+        meshfile.OpenRead("Ref.bin");
         TPZGeoMesh *gmesh = new TPZGeoMesh;
         gmesh->Read(meshfile, 0);
         ReferenceGMesh = gmesh;
@@ -291,6 +296,7 @@ int main(int argc, char *argv[])
             std::string plotfile("referencesolutionRead.vtk");
             TPZStack<std::string> scalnames,vecnames;
             scalnames.Push("Pressure");
+            scalnames.Push("Permeability");
             vecnames.Push("Derivative");
             vecnames.Push("Flux");
             TPZAnalysis an(cmesh,false);
@@ -304,6 +310,7 @@ int main(int argc, char *argv[])
             an.PostProcess(resolution,cmesh->Dimension());
         }
     }
+    exit(0);
     std::string quad = "QuadByTriangles";
     std::string triangle = "TriangleBy9Triangles";
     TPZAutoPointer<TPZRefPattern> refpatquad = DivideQuadbyTriangles(quad);
@@ -312,11 +319,11 @@ int main(int argc, char *argv[])
     
     TPZAutoPointer<TPZRefPattern> refpattriangle = DivideTriangleby9Triangles(triangle);
     
-    int nelx = 30;
-    int nely = 10;
+    int nelx = 15;
+    int nely = 5;
     TPZVec<long> coarseindices;
     int ndiv = 1;
-    TPZGeoMesh *gmesh = MalhaGeomFred(nelx, nely, quad, triangle, coarseindices, ndiv);
+    TPZGeoMesh *gmesh = MalhaGeomFred(nelx, nely, x0, x1, quad, triangle, coarseindices, ndiv);
     
     TPZAutoPointer<TPZGeoMesh> gmeshauto(gmesh);
     
@@ -450,6 +457,7 @@ int main(int argc, char *argv[])
     std::string plotfile("mixed_solution.vtk");
     TPZStack<std::string> scalnames,vecnames;
     scalnames.Push("Pressure");
+    scalnames.Push("Permeability");
     vecnames.Push("Derivative");
     vecnames.Push("Flux");
     an.DefineGraphMesh(CHDivPressureMesh->Dimension(), scalnames, vecnames, plotfile);
@@ -2014,7 +2022,7 @@ TPZAutoPointer<TPZRefPattern> DivideTriangleby9Triangles(const std::string refpa
 
 }
 
-TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices, int ndiv)
+TPZGeoMesh *MalhaGeomFred(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, const std::string quad, const std::string triangle, TPZVec<long> &coarseindices, int ndiv)
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     int dimension = 2;
@@ -2022,9 +2030,6 @@ TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std:
     TPZManVector<int,2> nx(2,3);
     nx[0] = nelx;
     nx[1] = nely;
-    TPZManVector<REAL> x0(3,0.),x1(3,0.);
-    x1[0] = 5.;
-    x1[1] = 1.;
     TPZGenGrid gengrid(nx, x0, x1);
     gengrid.SetRefpatternElements(true);
     gengrid.Read(gmesh, 1);
@@ -2111,14 +2116,11 @@ TPZGeoMesh *MalhaGeomFred(int nelx, int nely, const std::string quad, const std:
 }
 
 /// Create a reference geometric mesh starting with nelx by nely domains
-TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, REAL xsize, REAL ysize, int numref)
+TPZGeoMesh *CreateReferenceGMesh(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numref)
 {
     TPZManVector<int,3> nx(2);
     nx[0] = nelx;
     nx[1] = nely;
-    TPZManVector<REAL,3> x0(2,0.0),x1(2,0.);
-    x1[0] = x0[0]+xsize;
-    x1[1] = x0[1]+ysize;
     TPZGenGrid gengrid(nx,x0,x1);
     gengrid.SetRefpatternElements(true);
     TPZGeoMesh *result = new TPZGeoMesh;
@@ -2202,7 +2204,7 @@ TPZCompMesh *ComputeReferenceSolution(TPZGeoMesh *gmesh, int porder, TPZVec<TPZC
     
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(CHDivPressureMesh);
-    strmat.SetNumThreads(8);
+    strmat.SetNumThreads(0);
     an.SetStructuralMatrix(strmat);
 
 #else
@@ -2247,6 +2249,7 @@ TPZCompMesh *ComputeReferenceSolution(TPZGeoMesh *gmesh, int porder, TPZVec<TPZC
     std::string plotfile("referencesolution.vtk");
     TPZStack<std::string> scalnames,vecnames;
     scalnames.Push("Pressure");
+    scalnames.Push("Permeability");
     vecnames.Push("Derivative");
     vecnames.Push("Flux");
     an.DefineGraphMesh(CHDivPressureMesh->Dimension(), scalnames, vecnames, plotfile);
