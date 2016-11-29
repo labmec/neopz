@@ -114,7 +114,8 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 	int in = ConnectNum(n);
 	//int i,j,incr;
 	int incr;
-	TPZVec<int> co(3,0);
+    int dim = Dimension();
+	TPZManVector<int,3> co(dim,0);
 	FirstIJ(in,co,incr);
 	//	ComputeSequence(n, ibound, incr);
 	int res = fGraphMesh->Res();
@@ -124,8 +125,8 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle s
 	imax = 1 << res;
 	int np = NPoints(n);
 	int point=0;
-	TPZManVector<REAL> qsi(3,0.),x(4,0.);
-	TPZManVector<STATE> sol(6,0.);
+	TPZManVector<REAL,4> qsi(dim,0.),x(4,0.);
+	TPZManVector<STATE,10> sol(6,0.);
 	long ip = n->FirstPoint();
 	while(point < np) 
 	{
