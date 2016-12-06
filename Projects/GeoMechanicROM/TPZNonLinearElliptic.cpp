@@ -94,8 +94,9 @@ void TPZNonLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
             dot += Gradu_xy(i,0)*Grad_phiu_xy(i,iu);
         }
         
-//        ef(iu + first_u, 0)   += weight * ( fmu_0 * dot + (fmu_1 * ((exp(-fmu_2*u[0])-1.0)/fmu_2) - f[0]) * phiu(iu, 0) );
-        ef(iu + first_u, 0)   += weight * ( fmu_0 * dot + (0.0*fmu_1 * u[0] - f[0]/fmu_2) * phiu(iu, 0) );// Linear case
+//        ef(iu + first_u, 0)   += weight * ( fmu_0 * dot + (fmu_1 * ((exp(fmu_2*u[0])-1.0)/fmu_2) - f[0]) * phiu(iu, 0) );
+        ef(iu + first_u, 0)   += weight * ( fmu_0 * dot + (fmu_1 * ((fmu_2*u[0]*u[0]-1.0)/fmu_2) - f[0]) * phiu(iu, 0) );
+//        ef(iu + first_u, 0)   += weight * ( fmu_0 * dot + (0.0*fmu_1 * u[0] - f[0]/fmu_2) * phiu(iu, 0) );// Linear case
         
         for (int ju = 0; ju < nphi_u; ju++) {
             
@@ -104,8 +105,9 @@ void TPZNonLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
                 dot += Grad_phiu_xy(i,ju)*Grad_phiu_xy(i,iu);
             }
             
-//            ek(iu + first_u, ju + first_u)   += weight * (fmu_0 * dot + fmu_1 * exp(-fmu_2*u[0]) * phiu(ju, 0) * phiu(iu, 0));
-            ek(iu + first_u, ju + first_u)   += weight * (fmu_0 * dot + 0.0*fmu_1 * phiu(ju, 0) * phiu(iu, 0));// Linear case
+//            ek(iu + first_u, ju + first_u)   += weight * (fmu_0 * dot + fmu_1 * exp(fmu_2*u[0]) * phiu(ju, 0) * phiu(iu, 0));
+            ek(iu + first_u, ju + first_u)   += weight * (fmu_0 * dot +  2.0 * fmu_1 * u[0] * phiu(ju, 0) * phiu(iu, 0));
+//            ek(iu + first_u, ju + first_u)   += weight * (fmu_0 * dot + 0.0*fmu_1 * phiu(ju, 0) * phiu(iu, 0));// Linear case
             
         }
         

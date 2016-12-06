@@ -133,9 +133,9 @@ int Geomechanic();
 int main(int argc, char *argv[])
 {
     
-//    NonLinearElliptic();
+    NonLinearElliptic();
     
-    Geomechanic();
+//    Geomechanic();
 }
 
 int NonLinearElliptic(){
@@ -179,10 +179,10 @@ int NonLinearElliptic(){
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
     
     TPZGeoMesh * gmesh = RockBox(dx_dy,n);
-    UniformRefinement(gmesh, 2);
+    UniformRefinement(gmesh, 4);
     std::cout<< "Geometry done. " << std::endl;
 
-    int n_data = 3;
+    int n_data = 3; // @omar:: ??
     TPZFMatrix<REAL> projections, sel_projections;
     TPZVec<TPZCompMesh * > mesh_vector;
     std::cout<< "off line process. " << std::endl;
@@ -251,8 +251,8 @@ int Geomechanic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 1; // x - direction
-    n[1] = 1; // y - direction
+    n[0] = 2; // x - direction
+    n[1] = 5; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -738,20 +738,34 @@ TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data
     // Set up the empirical interpolation
     std::string plotfile("Nonlinear_Elliptic.vtk");
     TPZManVector<REAL,3> mu_vector(3,0.0);
-    int n0 = 1;
-    int n1 = n;
-    int n2 = n;
+    
+    TPZManVector<REAL,3> mu_1(3,0.0),mu_2(3,0.0),mu_3(3,0.0);
+    mu_1[0] = 0.1;
+    mu_1[1] = 1.0;
+    mu_1[2] = 10.0;
+    
+    mu_2[0] = 0.1;
+    mu_2[1] = 1.0;
+    mu_2[2] = 10.0;
+    
+    mu_2[0] = 0.1;
+    mu_2[1] = 1.0;
+    mu_2[2] = 10.0;
+    
+    int n0 = mu_1.size();
+    int n1 = mu_2.size();
+    int n2 = mu_3.size();
     
     G_projts.Resize(ndof,n0*n1*n2);
     G_projts.Zero();
     
     int count = 0;
     for (int i = 0; i < n0; i++) {
-        mu_vector[0] = 1.0 + REAL(i) * 0.0;
+        mu_vector[0] = mu_1[i];
         for (int j = 0; j < n1; j++) {
-            mu_vector[1] = 0.1 + REAL(j) * 1.0;
+            mu_vector[1] = mu_2[j];
             for (int k = 0; k < n2; k++) {
-                mu_vector[2] = 0.1 + REAL(k) * 1.0;
+                mu_vector[2] = mu_3[k];
                 SetParameters(time_analysis->Mesh(), mu_vector);
                 time_analysis->ExcecuteOneStep();
                 time_analysis->PostNonlinearProcessStep(plotfile);
@@ -973,6 +987,7 @@ TPZCompMeshReferred * CMesh_Elliptic_RB(TPZCompMesh * cmesh){
     cmesh_rb->AdjustBoundaryElements();
     cmesh_rb->CleanUpUnconnectedNodes();
     cmesh_rb->LoadReferred(cmesh);
+    
 #ifdef PZDEBUG
     std::ofstream out("CmeshEllipticRB.txt");
     cmesh_rb->Print(out);
@@ -997,7 +1012,7 @@ TPZCompMesh * CMesh_Elliptic_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     int dim = 2;
     
     REAL mu_0 = 1.0;
-    REAL mu_1 = M_PI/10000000.0;
+    REAL mu_1 = M_PI/10000.0;
     REAL mu_2 = 4.0*M_PI;
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
@@ -1146,6 +1161,11 @@ TPZCompMesh * CMesh_Elliptic_M_RB(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mes
         if (!mfcel) {
             continue;
         }
+        
+//        if(mfcel->Dimension()){
+//            continue;
+//        }
+        
         mfcel->InitializeIntegrationRule();       
         mfcel->PrepareIntPtIndices();
     }

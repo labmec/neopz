@@ -305,26 +305,22 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
     
     
-//    TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
-//    
-//#ifdef PZDEBUG
-//    
-//    if(!mf_cel){
-//        DebugStop();
-//    }
-//
-//#endif
-//    
-//    TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: garbage solution
-//    if(intel_mf){
-//        return intel_mf;
-//    }
+    TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
 
 #ifdef PZDEBUG
-    if (!intel) {
+    if (!intel && !mf_cel) {
         DebugStop();
     }
 #endif
+    
+    if (intel) {
+        return intel;
+    }
+    
+    TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: garbage solution
+    if(intel_mf){
+        return intel_mf;
+    }
     
     return intel;
 }
@@ -341,7 +337,7 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol)
 {
-    const int dim = this->Reference()->Dimension();
+    const int dim = axes.Rows();//this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     
 #ifdef PZDEBUG
@@ -371,31 +367,59 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     long pos = block.Position(dfseq);
     for(int jn=0; jn<dfvar; jn++) {
 #ifdef PZDEBUG
+//        {
+//            if(phi.Rows() != dfvar)
+//            {
+//                DebugStop();
+//            }
+//            if (phi.Cols() != numdof) {
+//                DebugStop();
+//            }
+//            if (dphix.Rows() != dfvar*dim) {
+//                DebugStop();
+//            }
+//            if (dphix.Cols() != numdof) {
+//                DebugStop();
+//            }
+//            
+//        }
+        
         {
-            if(phi.Rows() != dfvar)
+            if(phi.Rows() != numdof)
             {
                 DebugStop();
             }
-            if (phi.Cols() != numdof) {
+            if (phi.Cols() != dfvar) {
                 DebugStop();
             }
-            if (dphix.Rows() != dfvar*dim) {
+            if (dphix.Rows() != dim*numdof) {
                 DebugStop();
             }
-            if (dphix.Cols() != numdof) {
+            if (dphix.Cols() != dfvar) {
                 DebugStop();
             }
             
         }
+        
 #endif
+//        for (long is=0; is<numbersol; is++) {
+//            for(d=0; d<numdof; d++){
+//                sol[is][d%numdof] += (STATE)phi(jn,d)*MeshSol(pos+jn,is);
+//            }
+//            for(d=0; d<dim*numdof; d++){
+//                dsol[is](d%dim,d/dim) += (STATE)dphix(jn,d)*MeshSol(pos+jn,is);
+//            }
+//        }
+        
         for (long is=0; is<numbersol; is++) {
             for(d=0; d<numdof; d++){
-                sol[is][d%numdof] += (STATE)phi(jn,d)*MeshSol(pos+jn,is);
+                sol[is][d%numdof] += (STATE)phi(d,jn)*MeshSol(pos+jn,is);
             }
             for(d=0; d<dim*numdof; d++){
-                dsol[is](d%dim,d/dim) += (STATE)dphix(jn,d)*MeshSol(pos+jn,is);
+                dsol[is](d%dim,d/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);
             }
         }
+        
     }
 }
 
