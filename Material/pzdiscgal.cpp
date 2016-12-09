@@ -19,6 +19,8 @@ TPZDiscontinuousGalerkin::~TPZDiscontinuousGalerkin(){}
 std::string TPZDiscontinuousGalerkin::Name() { return "TPZDiscontinuousGalerkin"; }
 
 void TPZDiscontinuousGalerkin::FillDataRequirementsInterface(TPZMaterialData &data){
+    
+    data.fShapeType = TPZMaterialData::EVecShape;
 	data.SetAllRequirements(true);
 	data.fNeedsSol = false;
 	if(fLinearContext == false){

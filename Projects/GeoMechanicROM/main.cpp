@@ -133,9 +133,9 @@ int Geomechanic();
 int main(int argc, char *argv[])
 {
     
-    NonLinearElliptic();
+//    NonLinearElliptic();
     
-//    Geomechanic();
+    Geomechanic();
 }
 
 int NonLinearElliptic(){
@@ -742,15 +742,15 @@ TPZCompMesh * OffLine_Benchmark(TPZGeoMesh * gmesh, TPZSimulationData * sim_data
     TPZManVector<REAL,3> mu_1(3,0.0),mu_2(3,0.0),mu_3(3,0.0);
     mu_1[0] = 0.1;
     mu_1[1] = 1.0;
-    mu_1[2] = 10.0;
+    mu_1[2] = M_PI;
     
     mu_2[0] = 0.1;
     mu_2[1] = 1.0;
-    mu_2[2] = 10.0;
+    mu_2[2] = M_PI;
     
     mu_2[0] = 0.1;
     mu_2[1] = 1.0;
-    mu_2[2] = 10.0;
+    mu_2[2] = M_PI;
     
     int n0 = mu_1.size();
     int n1 = mu_2.size();

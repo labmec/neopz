@@ -175,6 +175,11 @@ void TPZLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     int u_b = 0;
     int p_b = 1;
     
+    TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
+    if(shapetype == datavec[u_b].EVecShape){
+        this->Constribut
+    }
+    
     // Getting the space functions
     TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
     TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
@@ -550,10 +555,25 @@ void TPZLinearElliptic::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weigh
     
 }
 
+
+void TPZLinearElliptic::ContributeVec(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+    DebugStop();
+}
+
+void TPZLinearElliptic::ContributeVec(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+    DebugStop();
+}
+
+void TPZLinearElliptic::ContributeVecBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+    DebugStop();
+}
+
 void TPZLinearElliptic::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
 {
     int nref = datavec.size();
+    datavec[0].fShapeType = TPZMaterialData::EVecShape;
     for(int i = 0; i<nref; i++)
     {
         datavec[i].SetAllRequirements(false);
