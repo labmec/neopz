@@ -222,7 +222,7 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 2;
+    int div = 0;
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("s_x");
     scalnames.Push("s_y");
@@ -259,10 +259,10 @@ void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile
         this->SimulationData()->SetTime(time);
         this->ExcecuteOneStep();
         this->PostProcessStep(plotfile);
-        this->AppendStrain_Stress(x);
-        this->AppendStrain_Pososity(x);
-        this->AppendStrain_Permeability(x);
-        this->AppendStrain_Pressure(x);
+//        this->AppendStrain_Stress(x);
+//        this->AppendStrain_Pososity(x);
+//        this->AppendStrain_Permeability(x);
+//        this->AppendStrain_Pressure(x);
         
     }
     

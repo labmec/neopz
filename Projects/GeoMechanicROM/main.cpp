@@ -32,6 +32,8 @@
 #include "pzlog.h"
 
 // Materials
+#include "pzelast3d.h"
+#include "TPZVecL2.h"
 #include "pzl2projection.h"
 #include "pzbndcond.h"
 #include "TPZPoroPermCoupling.h"
@@ -231,8 +233,8 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.00001;
-    int n_steps = 20;
+    REAL dt = 1.0;
+    int n_steps = 1;
     REAL epsilon_res = 1.0e-4;
     REAL epsilon_corr = 1.0e-8;
     int n_corrections = 50;
@@ -251,8 +253,8 @@ int Geomechanic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 2; // x - direction
-    n[1] = 5; // y - direction
+    n[0] = 4; // x - direction
+    n[1] = 4; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -262,13 +264,13 @@ int Geomechanic(){
     std::cout<< "Geometry done. " << std::endl;
     int order = 2;
     
-    TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order);
+//    TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order);
 
     // Computing reference solution
-    cmesh_gp->Solution().Print("sol = ");
+//    cmesh_gp->Solution().Print("sol = ");
     TPZVec<TPZCompMesh * > mesh_vector(2);
-//    mesh_vector[0] = CMesh_Deformation(gmesh, order);
-    mesh_vector[0] = CMesh_Deformation_rb(cmesh_gp);
+    mesh_vector[0] = CMesh_Deformation(gmesh, order);
+//    mesh_vector[0] = CMesh_Deformation_rb(cmesh_gp);
     mesh_vector[1] = CMesh_PorePressure(gmesh, order-1);
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data);
     
@@ -280,13 +282,13 @@ int Geomechanic(){
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
-        TPZSkylineStructMatrix struct_mat(geomechanic);
+//    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
+    TPZSkylineStructMatrix struct_mat(geomechanic);
     //    TPZSymetricSpStructMatrix struct_mat(geomechanic);
     //    struct_mat.SetNumThreads(number_threads);
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
 //    struct_mat.SetDecomposeType(ELDLt);
-    
+
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
     step.SetDirect(ELDLt);
@@ -325,14 +327,10 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    //    TPZSkylineNSymStructMatrix struct_mat(geo_modes);
-//    TPZSkylineStructMatrix struct_mat(geo_modes);
-    
+
     TPZSymetricSpStructMatrix struct_mat(geo_modes);
     struct_mat.SetNumThreads(number_threads);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-//    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -347,10 +345,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SimulationData()->SetCurrentStateQ(true);
     time_analysis->Assemble();
     
-    // Set up the empirical interpolation based on unitary pressures
+    // Setting up the empirical interpolation based on unitary pressures
     std::string plotfile("Geo_Modes.vtk");
     
     REAL unit_p = 1.0e6;
+    
     int n_blocks = mesh_vector[1]->Solution().Rows();
     int ndof_elastic = mesh_vector[0]->NEquations();
     TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
@@ -370,7 +369,6 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         galerkin_projts.AddSub(0, ip, mesh_vector[0]->Solution());
     }
     
-//    mesh_vector[0]->Solution() = galerkin_projts;
     mesh_vector[0]->LoadSolution(galerkin_projts);
     return mesh_vector[0];
     
@@ -427,6 +425,7 @@ TPZCompMesh * CMesh_Elasticity(TPZGeoMesh * gmesh, int order){
     int nstate = 2;
     TPZVec<STATE> sol;
     TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+
     cmesh->InsertMaterialObject(material);
     
     // Inserting boundary conditions
@@ -481,18 +480,18 @@ TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     // Getting mesh dimension
     int dim = 2;
     
-    int kmodel = 3;
-    REAL l = 15.3333e8;
-    REAL mu = 5.1111e8;
-    REAL l_u = 16.3333e8;
-    REAL alpha = 0.8;
-    REAL Se = 1.0e-7;
-    REAL k = 1.0e-14;
-    REAL porosity = 0.25;
-    REAL eta = 0.001;
+    int kmodel      = 0;
+    REAL l          = 40.38e9;
+    REAL mu         = 26.92e9;
+    REAL l_u        = 40.38e9;
+    REAL alpha      = 1.0;
+    REAL Se         = 0.0;
+    REAL k          = 1.0e-13;
+    REAL porosity   = 1.0;
+    REAL eta        = 0.001;
     
-    REAL c = 27.2*MPa;
-    REAL phi_f = 30.0*rad;
+    REAL c = 0.0;
+    REAL phi_f = 0.0;
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
@@ -1200,18 +1199,18 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     // Getting mesh dimension
     int dim = 2;
     
-    int kmodel = 0;
-    REAL l = 15.3333e8;
-    REAL mu = 5.1111e8;
-    REAL l_u = 16.3333e8;
-    REAL alpha = 0.8;
-    REAL Se = 1.0e-7;
-    REAL k = 1.0e-14;
-    REAL porosity = 0.25;
-    REAL eta = 0.001;
+    int kmodel      = 0;
+    REAL l          = 40.38e9;
+    REAL mu         = 26.92e9;
+    REAL l_u        = 40.38e9;
+    REAL alpha      = 1.0;
+    REAL Se         = 0.0;
+    REAL k          = 1.0e-13;
+    REAL porosity   = 1.0;
+    REAL eta        = 0.001;
     
-    REAL c = 27.2*MPa;
-    REAL phi_f = 30.0*rad;
+    REAL c = 0.0;
+    REAL phi_f = 0.0;
 
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
@@ -1234,13 +1233,12 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     int dirichlet_y_p    = 2;
 
     REAL s_n = -10.0*MPa;
-//    REAL u_y = -0.000333333;
     
     TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    val2(2,0) = 0.0;//0.0013801;
+    val2(2,0) = 0.0;
     TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_y_vn, val1, val2);
     cmesh->InsertMaterialObject(bc_bottom_mat);
     
@@ -1254,8 +1252,6 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     val2(1,0) = s_n;
     val2(2,0) = 0.0;
     TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, neumann_y_p, val1, val2);
-//    TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(Sigma);
-//    bc_top_mat->SetTimedependentBCForcingFunction(boundary_data);
     cmesh->InsertMaterialObject(bc_top_mat);
     
     val2(0,0) = 0.0;
@@ -1267,7 +1263,6 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     // Setting up multiphysics functions
     cmesh->SetDimModel(dim);
     cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
-//    cmesh->SetAllCreateFunctionsMultiphysicElem();
     cmesh->AutoBuild();
     
     cmesh->AdjustBoundaryElements();
@@ -1368,7 +1363,7 @@ TPZCompMesh * CMesh_PorePressure(TPZGeoMesh * gmesh, int order){
     
     
     // Creating a material object
-    int nstate = 1;
+    int nstate = 2;
     TPZVec<STATE> sol;
     TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
     cmesh->InsertMaterialObject(material);

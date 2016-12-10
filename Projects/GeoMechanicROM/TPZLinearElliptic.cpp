@@ -172,13 +172,15 @@ REAL TPZLinearElliptic::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T)
 
 void TPZLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef){
     
+    
     int u_b = 0;
     int p_b = 1;
-    
+
     TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
     if(shapetype == datavec[u_b].EVecShape){
-        this->Constribut
+        this->ContributeVec(datavec, weight, ek, ef);
     }
+
     
     // Getting the space functions
     TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
@@ -313,6 +315,12 @@ void TPZLinearElliptic::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weigh
     
     int u_b = 0;
     int p_b = 1;
+    
+    TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
+    if(shapetype == datavec[u_b].EVecShape){
+        this->ContributeVecBC(datavec, weight, ek, ef, bc);
+        return;
+    }
     
     TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
     TPZFMatrix<REAL>  &phip = datavec[p_b].phi;
@@ -557,8 +565,123 @@ void TPZLinearElliptic::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weigh
 
 
 void TPZLinearElliptic::ContributeVec(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+
+    int u_b = 0;
+    int p_b = 1;
     
-    DebugStop();
+    // Getting the space functions
+    TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
+    TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
+    
+    TPZFMatrix<REAL>    &dphiu   =   datavec[u_b].dphix;
+    TPZFMatrix<REAL>    &dphip   =   datavec[p_b].dphix;
+    
+    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
+    TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
+    
+    // Getting the solutions and derivatives
+    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
+    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    
+    TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
+    TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
+    
+    TPZFNMatrix<6,REAL> Grad_p(2,1,0.0),Grad_phi_i(2,1,0.0),Grad_phi_j(2,1,0.0);
+    Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0);
+    Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1);
+    
+    int nphi_u = phiu.Rows();
+    int nphi_p = phip.Rows();
+    
+    int first_u = 0;
+    int first_p = 2*nphi_u;
+    
+    
+    // Compute porosity poroelastic correction
+    REAL phi_poro = porosoty_corrected(datavec);
+    
+    REAL dt = fSimulationData->dt();
+    if (!fSimulationData->IsCurrentStateQ()) {
+        
+        return;
+    }
+    
+    REAL rho_avg = (1.0-phi_poro)*frho_s+phi_poro*frho_f;
+    fb[0] = rho_avg*fSimulationData->Gravity()[0];
+    fb[1] = rho_avg*fSimulationData->Gravity()[1];
+    
+    // Computing Gradient of the Solution
+    TPZFNMatrix<6,REAL> Grad_u(3,3,0.0),Grad_u_n,e_e,e_p,S;
+    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
+    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
+    
+    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
+    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
+    
+    // Get the pressure at the integrations points
+    long global_point_index = datavec[0].intGlobPtIndex;
+    TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
+    e_e = point_memory.epsilon_e_n();
+    e_p = point_memory.epsilon_p_n();
+    Grad_u_n = point_memory.grad_u_n();
+    
+    Compute_Sigma(S, Grad_u);
+    
+    
+    TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0),Si_x;
+    TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0),Si_y;
+    
+    TPZFNMatrix<6,REAL> Grad_v(2,2,0.0),T(2,2,0.0);
+    TPZFNMatrix<6,REAL> Grad_vx_j(2,1,0.0),Tj_x;
+    TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0),Tj_y;
+    
+    
+    for (int iu = 0; iu < nphi_u; iu++) {
+        
+        // Computing Gradient of the test function for each component
+        Grad_vx_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvx/dx
+        Grad_vx_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvx/dy
+        
+        Grad_vy_i(0,0) = dphiu(2,iu)*axes_u(0,0)+dphiu(3,iu)*axes_u(1,0); // dvy/dx
+        Grad_vy_i(1,0) = dphiu(2,iu)*axes_u(0,1)+dphiu(3,iu)*axes_u(1,1); // dvy/dy
+
+        
+        ef(2*iu + first_u, 0)   += weight * ((S(0,0) + falpha * p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - fb[0] * phiu(iu, 0));
+        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) + falpha * p[0]) * Grad_vy_i(1,0) - fb[1] * phiu(iu, 0));
+        
+        
+        for (int ju = 0; ju < nphi_u; ju++) {
+            
+            
+            // Computing Gradient of the test function for each component
+            Grad_vx_j(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0); // dvx/dx
+            Grad_vx_j(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1); // dvx/dy
+            
+            Grad_vy_j(0,0) = dphiu(2,ju)*axes_u(0,0)+dphiu(3,ju)*axes_u(1,0); // dvy/dx
+            Grad_vy_j(1,0) = dphiu(2,ju)*axes_u(0,1)+dphiu(3,ju)*axes_u(1,1); // dvy/dy
+            
+            
+            ek(2*iu + first_u, 2*ju + first_u)      += weight * ( ( (2.0*fmu + flambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + fmu * Grad_vx_j(1,0) * Grad_vx_i(1,0) );
+            ek(2*iu + first_u, 2*ju+1 + first_u)    += weight * ( (flambda * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + fmu * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
+            ek(2*iu+1 + first_u, 2*ju + first_u)	+= weight * ( fmu * Grad_vx_j(1,0) * Grad_vy_i(0,0) + flambda * Grad_vx_j(0,0) * Grad_vy_i(1,0));
+            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= weight * ( (2.0*fmu + flambda) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + fmu * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
+            
+        }
+        
+    }
+    
+    
+    for (int ip = 0; ip < nphi_p; ip++) {
+        
+        ef(ip + first_p, 0)		+= weight *  ( 0.0 * phip(ip,0));
+        
+        for (int jp = 0; jp < nphi_p; jp++) {
+            
+            ek(ip + first_p, jp + first_p)		+= weight * phip(jp,0) * phip(ip,0);
+        }
+        
+    }
+
 }
 
 void TPZLinearElliptic::ContributeVec(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
@@ -566,14 +689,14 @@ void TPZLinearElliptic::ContributeVec(TPZVec<TPZMaterialData> &datavec, REAL wei
 }
 
 void TPZLinearElliptic::ContributeVecBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
-    DebugStop();
+    return;
 }
 
 void TPZLinearElliptic::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
 {
+//    datavec[0].fShapeType = TPZMaterialData::EVecShape;
     int nref = datavec.size();
-    datavec[0].fShapeType = TPZMaterialData::EVecShape;
     for(int i = 0; i<nref; i++)
     {
         datavec[i].SetAllRequirements(false);
@@ -585,6 +708,8 @@ void TPZLinearElliptic::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 }
 
 void TPZLinearElliptic::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec){
+
+//    datavec[0].fShapeType = TPZMaterialData::EVecShape;
     int nref = datavec.size();
     for(int i = 0; i<nref; i++)
     {

@@ -150,7 +150,7 @@ public:
     {
         if(alpha==0){
             std::cout << "Biot constan should be at leats equal to the intact porosity, alpha = " << alpha  << std::endl;
-            DebugStop();
+//            DebugStop();
         }
         falpha = alpha;
         fSe = Se;
