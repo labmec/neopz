@@ -253,8 +253,8 @@ int Geomechanic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 4; // x - direction
-    n[1] = 4; // y - direction
+    n[0] = 1; // x - direction
+    n[1] = 1; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -282,16 +282,15 @@ int Geomechanic(){
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
-    TPZSkylineStructMatrix struct_mat(geomechanic);
-    //    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-    //    struct_mat.SetNumThreads(number_threads);
+    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
+//    TPZSkylineStructMatrix struct_mat(geomechanic);
+
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
 //    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
-    step.SetDirect(ELDLt);
+    step.SetDirect(ELU);
     time_analysis->SetSolver(step);
     time_analysis->SetStructuralMatrix(struct_mat);
     

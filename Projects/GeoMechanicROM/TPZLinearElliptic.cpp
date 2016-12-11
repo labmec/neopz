@@ -219,8 +219,7 @@ void TPZLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
         return;
     }
     
-    
-    
+
     REAL rho_avg = (1.0-phi_poro)*frho_s+phi_poro*frho_f;
     fb[0] = rho_avg*fSimulationData->Gravity()[0];
     fb[1] = rho_avg*fSimulationData->Gravity()[1];
