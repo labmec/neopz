@@ -213,8 +213,8 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 3;
-    common.n_p_levels = 2;
+    common.n_h_levels = 1;
+    common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
     common.domain_type = "sphere";
@@ -284,13 +284,21 @@ int main()
 //    simulations.Push(HdivplusCase_3);
 
     
-    // Primal Formulation over the solid sphere
-    struct SimulationCase H1Case_3 = common;
-    H1Case_3.IsHdivQ = false;
-    H1Case_3.domain_type = "cylinder";
-    H1Case_3.mesh_type = "linear";
-    H1Case_3.dump_folder = "H1_cylinder";
-    simulations.Push(H1Case_3);
+    // Primal Formulation over the solid cylinder
+    struct SimulationCase H1Case_1_cyl = common;
+    H1Case_1_cyl.IsHdivQ = false;
+    H1Case_1_cyl.domain_type = "cylinder";
+    H1Case_1_cyl.mesh_type = "linear";
+    H1Case_1_cyl.dump_folder = "H1_cylinder";
+    simulations.Push(H1Case_1_cyl);
+    
+    // Dual Formulation over the solid cylinder
+    struct SimulationCase HdivCase_1_cyl = common;
+    HdivCase_1_cyl.IsHdivQ = true;
+    HdivCase_1_cyl.domain_type = "cylinder";
+    HdivCase_1_cyl.mesh_type = "linear";
+    HdivCase_1_cyl.dump_folder = "Hdiv_cylinder";
+    simulations.Push(HdivCase_1_cyl);
     
     ComputeCases(simulations);
     
