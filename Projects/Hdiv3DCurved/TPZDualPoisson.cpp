@@ -227,6 +227,27 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     int ub = 0;
     int pb = 1;
     
+//    // Computing the radius
+//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
+//    x_spatial(0,0) = datavec[0].x[0];
+//    x_spatial(1,0) = datavec[0].x[1];
+//    REAL r = Norm(x_spatial);
+//    REAL s = 1.0;
+//    
+//    if (true) {
+////        s *= 2.0*M_PI*r;
+//        s *= r;
+//        
+////        weight *= s;
+//        datavec[0].phi *= 1.0/s;
+////        datavec[0].sol[0][0]   *= 1.0/s;
+////        datavec[0].sol[0][1]   *= 1.0/s;
+////        datavec[0].sol[0][2]   *= 1.0/s;
+////        datavec[0].dsol[0]   *= 1.0/s;
+//        
+//    }
+    
+    
     TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
     TPZFNMatrix<100,STATE> phi_ps       = datavec[pb].phi;
     TPZFNMatrix<300,STATE> dphi_us      = datavec[ub].dphix;
@@ -252,6 +273,7 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     
     int s_i, s_j;
     int v_i, v_j;
+    
     
     for (int iu = 0; iu < nphiu; iu++)
     {

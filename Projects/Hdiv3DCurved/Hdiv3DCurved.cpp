@@ -213,8 +213,8 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 1;
-    common.n_p_levels = 1;
+    common.n_h_levels = 2;
+    common.n_p_levels = 2;
     common.int_order  = 8;
     common.n_threads  = 16;
     common.domain_type = "sphere";
@@ -292,13 +292,13 @@ int main()
     H1Case_1_cyl.dump_folder = "H1_cylinder";
     simulations.Push(H1Case_1_cyl);
     
-    // Dual Formulation over the solid cylinder
-    struct SimulationCase HdivCase_1_cyl = common;
-    HdivCase_1_cyl.IsHdivQ = true;
-    HdivCase_1_cyl.domain_type = "cylinder";
-    HdivCase_1_cyl.mesh_type = "linear";
-    HdivCase_1_cyl.dump_folder = "Hdiv_cylinder";
-    simulations.Push(HdivCase_1_cyl);
+//    // Dual Formulation over the solid cylinder
+//    struct SimulationCase HdivCase_1_cyl = common;
+//    HdivCase_1_cyl.IsHdivQ = true;
+//    HdivCase_1_cyl.domain_type = "cylinder";
+//    HdivCase_1_cyl.mesh_type = "linear";
+//    HdivCase_1_cyl.dump_folder = "Hdiv_cylinder";
+//    simulations.Push(HdivCase_1_cyl);
     
     ComputeCases(simulations);
     
@@ -2343,7 +2343,8 @@ TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase  & sim_data){
     
     std::string dirname = PZSOURCEDIR;
     std::string grid_name;
-    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWell.dump";
+//    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWell.dump";
+    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWellQ.dump";
     
     TPZReadGIDGrid GeometryInfo;
     REAL s = 1.0;
@@ -2436,10 +2437,10 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
         CreateGridFrom2D.SetTriangleExtrusion();
         CreateGridFrom2D.SetTetrahedonExtrusion();
     }
-    else{
-//        CreateGridFrom2D.SetTriangleExtrusion();
-        CreateGridFrom2D.SetPrismExtrusion();
-    }
+//    else{
+////        CreateGridFrom2D.SetTriangleExtrusion();
+//        CreateGridFrom2D.SetPrismExtrusion();
+//    }
 
     
     dt = dz[0];
