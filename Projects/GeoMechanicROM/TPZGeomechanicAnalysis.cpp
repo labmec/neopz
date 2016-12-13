@@ -110,7 +110,7 @@ void TPZGeomechanicAnalysis::QuasiNewtonIteration(){
     }
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
-
+    
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
@@ -170,6 +170,7 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
 
         
 #ifdef PZDEBUG
+//        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
 //        fX.Print("X = ", std::cout,EMathematicaInput);
 //        fR.Print("R = ", std::cout,EMathematicaInput);
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
@@ -224,9 +225,9 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
     const int dim = this->Mesh()->Dimension();
     int div = 0;
     TPZStack<std::string>scalnames, vecnames;
-    scalnames.Push("s_x");
-    scalnames.Push("s_y");
-    scalnames.Push("t_xy");
+//    scalnames.Push("s_x");
+//    scalnames.Push("s_y");
+//    scalnames.Push("t_xy");
 //    scalnames.Push("e_x");
 //    scalnames.Push("e_y");
 //    scalnames.Push("e_xy");

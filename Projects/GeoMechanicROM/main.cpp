@@ -234,10 +234,10 @@ int Geomechanic(){
     TPZSimulationData * sim_data = new TPZSimulationData;
     
     REAL dt = 1.0;
-    int n_steps = 1;
+    int n_steps = 10;
     REAL epsilon_res = 1.0e-4;
-    REAL epsilon_corr = 1.0e-8;
-    int n_corrections = 50;
+    REAL epsilon_corr = 1.0e-7;
+    int n_corrections = 10;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
@@ -253,8 +253,8 @@ int Geomechanic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 1; // x - direction
-    n[1] = 1; // y - direction
+    n[0] = 5; // x - direction
+    n[1] = 10; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -1204,7 +1204,7 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     REAL l_u        = 40.38e9;
     REAL alpha      = 1.0;
     REAL Se         = 0.0;
-    REAL k          = 1.0e-13;
+    REAL k          = 1.0e-14;
     REAL porosity   = 1.0;
     REAL eta        = 0.001;
     
@@ -1362,7 +1362,7 @@ TPZCompMesh * CMesh_PorePressure(TPZGeoMesh * gmesh, int order){
     
     
     // Creating a material object
-    int nstate = 2;
+    int nstate = 1;
     TPZVec<STATE> sol;
     TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
     cmesh->InsertMaterialObject(material);

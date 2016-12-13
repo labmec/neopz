@@ -242,7 +242,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++) {
             
-            ef(ip + first_p, 0)		+= -1.0 * weight *  (-1.0) * (1.0/dt) * (falpha * (Grad_u(0,0) + Grad_u(1,1))) * phip(ip,0);
+            ef(ip + first_p, 0)		+= weight *  (-1.0) * (1.0/dt) * (falpha * (Grad_u(0,0) + Grad_u(1,1))) * phip(ip,0);
         }
         
         return;
@@ -257,11 +257,11 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
         Grad_vy_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvy/dx
         Grad_vy_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvy/dy
         
-        ef(2*iu + first_u, 0)   += weight * (S(0,0) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - (0.0*falpha * Grad_p(0,0) - fb[0])*phiu(iu, 0));
-        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + S(1,1) * Grad_vy_i(1,0) - (0.0*falpha * Grad_p(1,0) - fb[1])*phiu(iu, 0));
+//        ef(2*iu + first_u, 0)   += weight * (S(0,0) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - (0.0*falpha * Grad_p(0,0) - fb[0])*phiu(iu, 0));
+//        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + S(1,1) * Grad_vy_i(1,0) - (0.0*falpha * Grad_p(1,0) - fb[1])*phiu(iu, 0));
         
-//        ef(2*iu + first_u, 0)   += weight * ((S(0,0) - 0.0*falpha * p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - fb[0] * phiu(iu, 0));
-//        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - 0.0*falpha * p[0]) * Grad_vy_i(1,0) - fb[1] * phiu(iu, 0));
+        ef(2*iu + first_u, 0)   += weight * ((S(0,0) - falpha * p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - fb[0] * phiu(iu, 0));
+        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - falpha * p[0]) * Grad_vy_i(1,0) - fb[1] * phiu(iu, 0));
 
         
         for (int ju = 0; ju < nphi_u; ju++) {
@@ -288,25 +288,18 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     for(int iu = 0; iu < nphi_u; iu++ )
     {
         
-//        // Computing Gradient of the test function for each component
-//        Grad_vx_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvx/dx
-//        Grad_vx_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvx/dy
-//        
-//        Grad_vy_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvy/dx
-//        Grad_vy_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvy/dy
+        // Computing Gradient of the test function for each component
+        Grad_vx_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvx/dx
+        Grad_vx_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvx/dy
+        
+        Grad_vy_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvy/dx
+        Grad_vy_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvy/dy
         
         for(int jp = 0; jp < nphi_p; jp++)
         {
             
-            // Computing Gradient of the test function for each component
-            Grad_phi_j(0,0) = dphip(0,jp)*axes_p(0,0)+dphip(1,jp)*axes_p(1,0); // dvx/dx
-            Grad_phi_j(1,0) = dphip(0,jp)*axes_p(0,1)+dphip(1,jp)*axes_p(1,1); // dvx/dy
-            
-            ek(2*iu,first_p+jp)     += (-0.0)* weight * falpha * phiu(iu,0) * Grad_phi_j(0,0);
-            ek(2*iu+1,first_p+jp)   += (-0.0)* weight * falpha * phiu(iu,0) * Grad_phi_j(1,0);
-            
-//            ek(first_p+jp,2*iu) += (-1.0)* weight * falpha * phip(jp,0) * Grad_vx_i(0,0);
-//            ek(first_p+jp,2*iu+1) += (-1.0)* weight * falpha * phip(jp,0) * Grad_vy_i(1,0);
+            ek(2*iu,first_p+jp) += (-1.0)* weight * falpha * phip(jp,0) * Grad_vx_i(0,0);
+            ek(2*iu + 1,first_p+jp) += (-1.0)* weight * falpha * phip(jp,0) * Grad_vy_i(1,0);
         }
     }
     
@@ -317,7 +310,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 
     REAL k = 0.0;
     k_permeability(phi_poro,k);
-    REAL c = (k/feta);
+    REAL c = (k/feta);//*(flambda + 2.0 * fmu);
     
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++) {
@@ -330,7 +323,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
             dot += Grad_p(i,0) * Grad_phi_i(i,0);
         }
         
-        ef(ip + first_p, 0)		+= -1.0 * weight * (c * dot + (1.0/dt) * (falpha * (Grad_u(0,0) + Grad_u(1,1))) * phip(ip,0));
+        ef(ip + first_p, 0)		+= 1.0 * weight * (c * dot + (1.0/dt) * (falpha * (Grad_u(0,0) + Grad_u(1,1))) * phip(ip,0));
         
         //	Coupling matrix
         for(int ju = 0; ju < nphi_u; ju++ )
@@ -342,8 +335,8 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
             Grad_vy_i(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0); // dvy/dx
             Grad_vy_i(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1); // dvy/dy
             
-            ek(ip + first_p,2*ju)   += (-1.0)* weight * falpha * phip(ip,0) * Grad_vx_i(0,0);
-            ek(ip + first_p,2*ju+1)   += (-1.0)* weight * falpha * phip(ip,0) * Grad_vy_i(1,0);
+            ek(ip + first_p,2*ju)   += (1.0)* (1.0/dt)  * weight * falpha * phip(ip,0) * Grad_vx_i(0,0);
+            ek(ip + first_p,2*ju+1)   += (1.0)* (1.0/dt) * weight * falpha * phip(ip,0) * Grad_vy_i(1,0);
         }
         
         for (int jp = 0; jp < nphi_p; jp++) {
@@ -356,7 +349,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
                 dot += Grad_phi_j(i,0) * Grad_phi_i(i,0);
             }
             
-            ek(ip + first_p, jp + first_p)		+= -1.0 * weight * ( c * dot + (1.0/dt) * (fSe * phip(jp,0)) * phip(ip,0) );
+            ek(ip + first_p, jp + first_p)		+= 1.0 * weight * ( c * dot + (1.0/dt) * (fSe * phip(jp,0)) * phip(ip,0) );
         }
         
     }
