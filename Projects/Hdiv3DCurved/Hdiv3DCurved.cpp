@@ -213,8 +213,8 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 2;
-    common.n_p_levels = 2;
+    common.n_h_levels = 0;
+    common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
     common.domain_type = "sphere";
@@ -284,21 +284,21 @@ int main()
 //    simulations.Push(HdivplusCase_3);
 
     
-    // Primal Formulation over the solid cylinder
-    struct SimulationCase H1Case_1_cyl = common;
-    H1Case_1_cyl.IsHdivQ = false;
-    H1Case_1_cyl.domain_type = "cylinder";
-    H1Case_1_cyl.mesh_type = "linear";
-    H1Case_1_cyl.dump_folder = "H1_cylinder";
-    simulations.Push(H1Case_1_cyl);
+//    // Primal Formulation over the solid cylinder
+//    struct SimulationCase H1Case_1_cyl = common;
+//    H1Case_1_cyl.IsHdivQ = false;
+//    H1Case_1_cyl.domain_type = "cylinder";
+//    H1Case_1_cyl.mesh_type = "linear";
+//    H1Case_1_cyl.dump_folder = "H1_cylinder";
+//    simulations.Push(H1Case_1_cyl);
     
-//    // Dual Formulation over the solid cylinder
-//    struct SimulationCase HdivCase_1_cyl = common;
-//    HdivCase_1_cyl.IsHdivQ = true;
-//    HdivCase_1_cyl.domain_type = "cylinder";
-//    HdivCase_1_cyl.mesh_type = "linear";
-//    HdivCase_1_cyl.dump_folder = "Hdiv_cylinder";
-//    simulations.Push(HdivCase_1_cyl);
+    // Dual Formulation over the solid cylinder
+    struct SimulationCase HdivCase_1_cyl = common;
+    HdivCase_1_cyl.IsHdivQ = true;
+    HdivCase_1_cyl.domain_type = "cylinder";
+    HdivCase_1_cyl.mesh_type = "linear";
+    HdivCase_1_cyl.dump_folder = "Hdiv_cylinder";
+    simulations.Push(HdivCase_1_cyl);
     
     ComputeCases(simulations);
     
@@ -442,6 +442,7 @@ void ComputeApproximation(SimulationCase sim_data){
             sol_vtk_name    << sim_data.dump_folder << "/" "sol" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
             std::string file(sol_vtk_name.str());
             PosProcess(analysis, file, sim_data);
+            PosProcess(analysis, file, sim_data);            
             
             
             // compute the error
@@ -599,7 +600,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
     gradu.Resize(4,1);
    
-    REAL r0 = 100.0;
+    REAL r0 = 1.0;
     r = sqrt(x*x+y*y);
     theta = atan2(y,x);
     
@@ -616,15 +617,16 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     Thetaunity = costheta;
     Thetaunitz = 0.0;
     
-    u[0] = log(r/r0);
+    u[0] = r*r;//log(r/r0);
     
-    REAL dfdr = 1.0/r;
+    REAL dfdr = 2.0*r;//1.0/r;
     REAL dfdTheta = 0.0;
     
     gradu(0,0) = -1.0*(dfdr * Radialunitx + dfdTheta * Thetaunitx);
     gradu(1,0) = -1.0*(dfdr * Radialunity + dfdTheta * Thetaunity);
     gradu(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz);
     
+    gradu(3,0) = -4.0;
     
 #endif
     
@@ -674,11 +676,11 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
     
 #ifdef Thiem
     
-    REAL r0 = 100.0;
+    REAL r0 = 1.0;
     r = sqrt(x*x+y*y);
     theta = atan2(y,x);
     
-    f[0] = log(r/r0);
+    f[0] = r*r;//log(r/r0);
     
     
 #endif
@@ -687,6 +689,7 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
 }
 
 void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
+    
     REAL x,y,z;
     x = p[0];
     y = p[1];
@@ -728,9 +731,8 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
 #endif
     
 #ifdef Thiem
-    
-    f[0] = 0.0;
-    
+ 
+    f[0] = -4.0;
     
 #endif
     
@@ -2347,7 +2349,7 @@ TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase  & sim_data){
     grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWellQ.dump";
     
     TPZReadGIDGrid GeometryInfo;
-    REAL s = 1.0;
+    REAL s = 100.0;
     GeometryInfo.SetfDimensionlessL(s);
     TPZGeoMesh * geomesh = GeometryInfo.GeometricGIDMesh(grid_name);
     
@@ -2364,7 +2366,7 @@ TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase  & sim_data){
     if (ExtrudeMeshQ) {
         int nel_z = 1;
         TPZManVector<REAL,2> dz(2,nel_z);
-        dz[0] = 20.0/REAL(nel_z);
+        dz[0] = 20.0/REAL(nel_z)/s;
         geomesh_3d = ExtrudedGIDMesh(geomesh, sim_data, dz);
         
         TPZVec<TPZGeoEl *> sons;

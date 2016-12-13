@@ -141,29 +141,29 @@ void TPZDualPoisson::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<S
 
 void TPZDualPoisson::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
 {
-    int ublock = 0;
+    int ub = 0;
     int dim = this->Dimension();
     // Getting test and basis functions
-    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
-    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
-    TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
-    TPZFNMatrix<9,STATE> gradu = datavec[ublock].dsol[0];
+    TPZFMatrix<REAL> phiuH1         = datavec[ub].phi;   // For H1  test functions Q
+    TPZFMatrix<STATE> dphiuH1       = datavec[ub].dphi; // Derivative For H1  test functions
+    TPZFMatrix<STATE> dphiuH1axes   = datavec[ub].dphix; // Derivative For H1  test functions
+    TPZFNMatrix<9,STATE> gradu = datavec[ub].dsol[0];
     TPZFNMatrix<9,STATE> graduMaster;
     gradu.Transpose();
     
     TPZFNMatrix<660> GradphiuH1;
-    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
+    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ub].axes);
     
-    int nphiuHdiv = datavec[ublock].fVecShapeIndex.NElements();
+    int nphiuHdiv = datavec[ub].fVecShapeIndex.NElements();
     
     DivergenceofPhi.Resize(nphiuHdiv,1);
     
-    REAL JacobianDet = datavec[ublock].detjac;
+    REAL JacobianDet = datavec[ub].detjac;
     
-    TPZFMatrix<STATE> Qaxes = datavec[ublock].axes;
+    TPZFMatrix<STATE> Qaxes = datavec[ub].axes;
     TPZFMatrix<STATE> QaxesT;
-    TPZFMatrix<STATE> Jacobian = datavec[ublock].jacobian;
-    TPZFMatrix<STATE> JacobianInverse = datavec[ublock].jacinv;
+    TPZFMatrix<STATE> Jacobian = datavec[ub].jacobian;
+    TPZFMatrix<STATE> JacobianInverse = datavec[ub].jacinv;
     
     TPZFMatrix<STATE> GradOfX;
     TPZFMatrix<STATE> GradOfXInverse;
@@ -180,11 +180,11 @@ void TPZDualPoisson::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec,
     {
         for (int iq = 0; iq < nphiuHdiv; iq++)
         {
-            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+            ivectorindex = datavec[ub].fVecShapeIndex[iq].first;
+            ishapeindex = datavec[ub].fVecShapeIndex[iq].second;
             
             for (int k = 0; k < dim; k++) {
-                VectorOnXYZ(k,0) = datavec[ublock].fNormalVec(k,ivectorindex);
+                VectorOnXYZ(k,0) = datavec[ub].fNormalVec(k,ivectorindex);
             }
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
@@ -207,12 +207,12 @@ void TPZDualPoisson::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec,
     {
         for (int iq = 0; iq < nphiuHdiv; iq++)
         {
-            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+            ivectorindex = datavec[ub].fVecShapeIndex[iq].first;
+            ishapeindex = datavec[ub].fVecShapeIndex[iq].second;
             
             /* Computing the divergence for constant jacobian elements */
             for (int k = 0; k < dim; k++) {
-                DivergenceofPhi(iq,0) +=  datavec[ublock].fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
+                DivergenceofPhi(iq,0) +=  datavec[ub].fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
             }
         }
     }
@@ -226,27 +226,6 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     
     int ub = 0;
     int pb = 1;
-    
-//    // Computing the radius
-//    TPZFMatrix<REAL> x_spatial(3,1,0.0);
-//    x_spatial(0,0) = datavec[0].x[0];
-//    x_spatial(1,0) = datavec[0].x[1];
-//    REAL r = Norm(x_spatial);
-//    REAL s = 1.0;
-//    
-//    if (true) {
-////        s *= 2.0*M_PI*r;
-//        s *= r;
-//        
-////        weight *= s;
-//        datavec[0].phi *= 1.0/s;
-////        datavec[0].sol[0][0]   *= 1.0/s;
-////        datavec[0].sol[0][1]   *= 1.0/s;
-////        datavec[0].sol[0][2]   *= 1.0/s;
-////        datavec[0].dsol[0]   *= 1.0/s;
-//        
-//    }
-    
     
     TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
     TPZFNMatrix<100,STATE> phi_ps       = datavec[pb].phi;
@@ -353,6 +332,7 @@ void TPZDualPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,T
 void TPZDualPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     int ub = 0;
+    
     TPZFNMatrix<100,STATE> phi_us       = datavec[ub].phi;
     
     int nphiu       = phi_us.Rows();
