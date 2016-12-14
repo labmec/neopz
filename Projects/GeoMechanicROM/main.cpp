@@ -264,13 +264,12 @@ int Geomechanic(){
     std::cout<< "Geometry done. " << std::endl;
     int order = 2;
     
-//    TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order);
+    TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order);
 
     // Computing reference solution
-//    cmesh_gp->Solution().Print("sol = ");
     TPZVec<TPZCompMesh * > mesh_vector(2);
-    mesh_vector[0] = CMesh_Deformation(gmesh, order);
-//    mesh_vector[0] = CMesh_Deformation_rb(cmesh_gp);
+//    mesh_vector[0] = CMesh_Deformation(gmesh, order);
+    mesh_vector[0] = CMesh_Deformation_rb(cmesh_gp);
     mesh_vector[1] = CMesh_PorePressure(gmesh, order-1);
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data);
     
@@ -283,10 +282,10 @@ int Geomechanic(){
     time_analysis->AdjustVectors();
     
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
-//    TPZSkylineStructMatrix struct_mat(geomechanic);
+    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+//    struct_mat.SetNumThreads(number_threads);
     
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
 //    struct_mat.SetDecomposeType(ELDLt);
@@ -298,6 +297,7 @@ int Geomechanic(){
     time_analysis->SetStructuralMatrix(struct_mat);
     
     int ndof = geomechanic->NEquations();
+    std::cout << " Number of modes =  " << cmesh_gp->Solution().Cols() << std::endl;
     std::cout << " Full order model ndof =  " << ndof << std::endl;
     
     TPZVec<REAL> x(3);
@@ -488,7 +488,7 @@ TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     REAL l_u        = 40.38e9;
     REAL alpha      = 1.0;
     REAL Se         = 0.0;
-    REAL k          = 1.0e-13;
+    REAL k          = 1.0e-14;
     REAL porosity   = 1.0;
     REAL eta        = 0.001;
     
