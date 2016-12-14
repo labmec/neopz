@@ -253,8 +253,8 @@ int Geomechanic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 5; // x - direction
-    n[1] = 10; // y - direction
+    n[0] = 10; // x - direction
+    n[1] = 20; // y - direction
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -366,7 +366,9 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         time_analysis->Solve();
         time_analysis->Solution() += time_analysis->X_n();
         time_analysis->LoadSolution();
+#ifdef PZDEGUG
         time_analysis->PostProcessStep(plotfile);
+#endif
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(mesh_vector, time_analysis->Mesh());
         galerkin_projts.AddSub(0, ip, mesh_vector[0]->Solution());
     }
