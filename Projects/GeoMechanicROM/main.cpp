@@ -254,21 +254,30 @@ int Geomechanic(){
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
     
-    REAL Lx = 1.0; // meters
+    REAL Lx = 10.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 1; // x - direction
-    n[1] = 10; // y - direction
+    n[0] = 5; // x - direction
+    n[1] = 5; // y - direction
     
     int order = 2;
-    int level = 3;
-    int hlevel = 3;
+    int level = 0;
+    int hlevel = 2;
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
     
     TPZGeoMesh * gmesh = RockBox(dx_dy,n);
     UniformRefinement(gmesh, hlevel);
+    
+    {
+        //  Print Geometrical Base Mesh
+        std::ofstream argument("Geometry.txt");
+        gmesh->Print(argument);
+        std::ofstream Dummyfile("Geometry.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
+    }
+    
     std::cout<< "Geometry done. " << std::endl;
 
     TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order,level);
@@ -312,7 +321,7 @@ int Geomechanic(){
     x[0] = Lx/2.0;
     x[1] = Ly/2.0;
     x[2] = 0.0;
-    std::string plotfile("geomechanic_rb_3.vtk");
+    std::string plotfile("geomechanic_rb_0.vtk");
     // Run Transient analysis
     time_analysis->Run_Evolution(x,plotfile);
     
@@ -354,7 +363,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->Assemble();
     
     // Setting up the empirical interpolation based on unitary pressures
-    std::string plotfile("Geo_Modes_rb_3.vtk");
+    std::string plotfile("Geo_Modes_rb_0.vtk");
     
     REAL unit_p = 1.0e6;
     TPZStack<TPZVec<long> > cts_pressures;
@@ -1728,13 +1737,6 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh3 = CreateGridFrom2.ComputeExtrusion(t, dy, n_elements);
-    {
-        //  Print Geometrical Base Mesh
-        std::ofstream argument("Geometry.txt");
-        GeoMesh3->Print(argument);
-        std::ofstream Dummyfile("Geometry.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(GeoMesh3,Dummyfile, true);
-    }
     
     long last_node = GeoMesh3->NNodes() - 1;
     long last_element = GeoMesh3->NElements() - 1;
