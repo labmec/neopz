@@ -258,11 +258,11 @@ int Geomechanic(){
     REAL Ly = 10.0; // meters
     
     n[0] = 1; // x - direction
-    n[1] = 4; // y - direction
+    n[1] = 10; // y - direction
     
     int order = 2;
-    int level = 2;
-    int hlevel = 2;
+    int level = 3;
+    int hlevel = 3;
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -273,7 +273,7 @@ int Geomechanic(){
 
     TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order,level);
     
-    order = 2;
+//    order = 2;
     // Computing reference solution
     TPZVec<TPZCompMesh * > mesh_vector(2);
 //    mesh_vector[0] = CMesh_Deformation(gmesh, order);
@@ -282,7 +282,7 @@ int Geomechanic(){
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data);
     
     bool mustOptimizeBandwidth = false;
-    int number_threads = 0;
+    int number_threads = 16;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -290,13 +290,13 @@ int Geomechanic(){
     time_analysis->AdjustVectors();
     
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
-    TPZSkylineStructMatrix struct_mat(geomechanic);
+//    TPZSkylineStructMatrix struct_mat(geomechanic);
 
 //    TPZSymetricSpStructMatrix struct_mat(geomechanic);
 //    struct_mat.SetNumThreads(number_threads);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
-//    struct_mat.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
+    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -305,14 +305,14 @@ int Geomechanic(){
     time_analysis->SetStructuralMatrix(struct_mat);
     
     int ndof = geomechanic->NEquations();
-    std::cout << " Number of modes =  " << cmesh_gp->Solution().Cols() << std::endl;
+//    std::cout << " Number of modes =  " << cmesh_gp->Solution().Cols() << std::endl;
     std::cout << " Full order model ndof =  " << ndof << std::endl;
     
     TPZVec<REAL> x(3);
     x[0] = Lx/2.0;
     x[1] = Ly/2.0;
     x[2] = 0.0;
-    std::string plotfile("geomechanic_ref_rb.vtk");
+    std::string plotfile("geomechanic_rb_3.vtk");
     // Run Transient analysis
     time_analysis->Run_Evolution(x,plotfile);
     
@@ -330,7 +330,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     TPZCompMesh * geo_modes = CMesh_GeoModes_M(gmesh, mesh_vector, sim_data);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 0;
+    int number_threads = 16;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geo_modes,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -348,13 +348,13 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     
     int ndof = geo_modes->NEquations();
     
-    std::cout<< "ndof = " << ndof << std::endl;
+    std::cout<< "ROM:: strategy ndof = " << ndof << std::endl;
     
     time_analysis->SimulationData()->SetCurrentStateQ(true);
     time_analysis->Assemble();
     
     // Setting up the empirical interpolation based on unitary pressures
-    std::string plotfile("Geo_Modes.vtk");
+    std::string plotfile("Geo_Modes_rb_3.vtk");
     
     REAL unit_p = 1.0e6;
     TPZStack<TPZVec<long> > cts_pressures;
@@ -363,6 +363,8 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     int ndof_elastic = mesh_vector[0]->NEquations();
     TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
     galerkin_projts.Zero();
+    
+    std::cout<< "ROM:: number of geomodes = " << n_blocks << std::endl;
     for (int ip = 0; ip < n_blocks; ip++) {
         
         mesh_vector[0]->Solution().Zero();
@@ -378,9 +380,9 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         time_analysis->Solve();
         time_analysis->Solution() += time_analysis->X_n();
         time_analysis->LoadSolution();
-#ifdef PZDEBUG
+//#ifdef PZDEBUG
         time_analysis->PostProcessStep(plotfile);
-#endif
+//#endif
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(mesh_vector, time_analysis->Mesh());
         galerkin_projts.AddSub(0, ip, mesh_vector[0]->Solution());
     }
