@@ -282,15 +282,18 @@ int Geomechanic(){
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
+//    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
 //    TPZSkylineStructMatrix struct_mat(geomechanic);
 
+    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+    struct_mat.SetNumThreads(number_threads);
+    
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
 //    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
-    step.SetDirect(ELU);
+    step.SetDirect(ELDLt);
     time_analysis->SetSolver(step);
     time_analysis->SetStructuralMatrix(struct_mat);
     

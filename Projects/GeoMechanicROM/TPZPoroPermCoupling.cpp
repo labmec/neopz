@@ -260,8 +260,8 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 //        ef(2*iu + first_u, 0)   += weight * (S(0,0) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - (0.0*falpha * Grad_p(0,0) - fb[0])*phiu(iu, 0));
 //        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + S(1,1) * Grad_vy_i(1,0) - (0.0*falpha * Grad_p(1,0) - fb[1])*phiu(iu, 0));
         
-        ef(2*iu + first_u, 0)   += weight * ((S(0,0) - falpha * p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - fb[0] * phiu(iu, 0));
-        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - falpha * p[0]) * Grad_vy_i(1,0) - fb[1] * phiu(iu, 0));
+        ef(2*iu + first_u, 0)   += (-1.0/dt) * weight * ((S(0,0) - falpha * p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) - fb[0] * phiu(iu, 0));
+        ef(2*iu+1 + first_u, 0)	+= (-1.0/dt) * weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - falpha * p[0]) * Grad_vy_i(1,0) - fb[1] * phiu(iu, 0));
 
         
         for (int ju = 0; ju < nphi_u; ju++) {
@@ -274,10 +274,10 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
             Grad_vy_j(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0); // dvy/dx
             Grad_vy_j(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1); // dvy/dy
             
-            ek(2*iu + first_u, 2*ju + first_u)      += weight * ( ( (2.0*fmu + flambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + fmu * Grad_vx_j(1,0) * Grad_vx_i(1,0) );
-            ek(2*iu + first_u, 2*ju+1 + first_u)    += weight * ( (flambda * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + fmu * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
-            ek(2*iu+1 + first_u, 2*ju + first_u)	+= weight * ( fmu * Grad_vx_j(1,0) * Grad_vy_i(0,0) + flambda * Grad_vx_j(0,0) * Grad_vy_i(1,0));
-            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= weight * ( (2.0*fmu + flambda) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + fmu * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
+            ek(2*iu + first_u, 2*ju + first_u)      += (-1.0/dt) * weight * ( ( (2.0*fmu + flambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + fmu * Grad_vx_j(1,0) * Grad_vx_i(1,0));
+            ek(2*iu + first_u, 2*ju+1 + first_u)    += (-1.0/dt) * weight * ( (flambda * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + fmu * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
+            ek(2*iu+1 + first_u, 2*ju + first_u)	+= (-1.0/dt) * weight * ( fmu * Grad_vx_j(1,0) * Grad_vy_i(0,0) + flambda * Grad_vx_j(0,0) * Grad_vy_i(1,0));
+            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= (-1.0/dt) * weight * ( (2.0*fmu + flambda) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + fmu * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
             
         }
         
@@ -298,8 +298,8 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
         for(int jp = 0; jp < nphi_p; jp++)
         {
             
-            ek(2*iu,first_p+jp) += (-1.0)* weight * falpha * phip(jp,0) * Grad_vx_i(0,0);
-            ek(2*iu + 1,first_p+jp) += (-1.0)* weight * falpha * phip(jp,0) * Grad_vy_i(1,0);
+            ek(2*iu,first_p+jp) += (-1.0/dt) * (-1.0)* weight * falpha * phip(jp,0) * Grad_vx_i(0,0);
+            ek(2*iu + 1,first_p+jp) += (-1.0/dt) * (-1.0)* weight * falpha * phip(jp,0) * Grad_vy_i(1,0);
         }
     }
     
@@ -391,6 +391,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
     v[2] = bc.Val2()(2,0);	//	Pressure
     
     REAL time = this->SimulationData()->t();
+    REAL dt  = this->SimulationData()->dt();
     REAL Value = bc.Val2()(0,0);
     if (bc.HasfTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(3);
@@ -510,8 +511,8 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(2*in,0)		+= -1.0*v[0]*phiu(in,0)*weight;		//	Tnx
-                ef(2*in+1,0)	+= -1.0*v[1]*phiu(in,0)*weight;		//	Tny
+                ef(2*in,0)		+= -1.0*(-1.0/dt) * v[0]*phiu(in,0)*weight;		//	Tnx
+                ef(2*in+1,0)	+= -1.0*(-1.0/dt) * v[1]*phiu(in,0)*weight;		//	Tny
             }
             
             //	Diffusion Equation
@@ -536,7 +537,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(2*in,0)		+= -1.0*v[0]*phiu(in,0)*weight;		//	Tnx
+                ef(2*in,0)		+= -1.0*(-1.0/dt) * v[0]*phiu(in,0)*weight;		//	Tnx
             }
             
             //	Diffusion Equation
@@ -561,7 +562,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(2*in+1,0)	+= -1.0*v[1]*phiu(in,0)*weight;		//	Tny
+                ef(2*in+1,0)	+= -1.0*(-1.0/dt) * v[1]*phiu(in,0)*weight;		//	Tny
             }
             
             //	Diffusion Equation
@@ -665,8 +666,8 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(2*in,0)		+= -1.0*v[0]*phiu(in,0)*weight;		//	Tnx
-                ef(2*in+1,0)	+= -1.0*v[1]*phiu(in,0)*weight;		//	Tny
+                ef(2*in,0)		+= -1.0*(-1.0/dt) * v[0]*phiu(in,0)*weight;		//	Tnx
+                ef(2*in+1,0)	+= -1.0*(-1.0/dt) * v[1]*phiu(in,0)*weight;		//	Tny
             }
             
             //	Diffusion Equation
@@ -685,7 +686,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(2*in,0)		+= -1.0*v[0]*phiu(in,0)*weight;		//	Tnx
+                ef(2*in,0)		+= -1.0*(-1.0/dt) * v[0]*phiu(in,0)*weight;		//	Tnx
             }
             
             //	Diffusion Equation
@@ -704,7 +705,7 @@ void TPZPoroPermCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(2*in+1,0)	+= -1.0*v[1]*phiu(in,0)*weight;		//	Tny
+                ef(2*in+1,0)	+= -1.0*(-1.0/dt) * v[1]*phiu(in,0)*weight;		//	Tny
             }
             
             //	Diffusion Equation
