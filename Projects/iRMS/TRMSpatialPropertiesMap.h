@@ -23,21 +23,20 @@ private:
     /** @brief spatial properties model */
     int fMap_model; // map_model = {0 -> constan map, 1 -> linear map, 2 -> kriged map}
     
-    // @}
-    
-    
-    /**
-     * @defgroup Constant map models models
-     * @{
-     */
+    // Constant case
     
     void Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
     
     void phi_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars);
     
-    // @}
+    // CGAL interpoaltion
+    
+    void Kappa_f(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
+    
+    void phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars);
     
     
+    double phi_cdf(double x);
     
 public:
     

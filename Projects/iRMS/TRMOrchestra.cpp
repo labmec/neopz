@@ -85,8 +85,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 2;
-        int nel_y = 1;
+        int nel_x = 30;
+        int nel_y = 15;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -111,7 +111,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 1;
+    int ref = 3;
     fSpaceGenerator->UniformRefinement(ref);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 12);
@@ -189,7 +189,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
-    bool UseMHMQ = true;
+    bool UseMHMQ = false;
     
     if(UseMHMQ){
         int skeleton_id = 0;

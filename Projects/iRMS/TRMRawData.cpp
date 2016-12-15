@@ -362,8 +362,12 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     // Time control parameters
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
-    
+
+    fReportingTimes.Push(200.0*day);
+    fReportingTimes.Push(150.0*day);
+    fReportingTimes.Push(125.0*day);
     fReportingTimes.Push(100.0*day);
+    fReportingTimes.Push(75.0*day);
     fReportingTimes.Push(50.0*day);
     fReportingTimes.Push(40.0*day);
     fReportingTimes.Push(30.0*day);

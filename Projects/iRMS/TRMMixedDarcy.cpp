@@ -63,6 +63,8 @@ int TRMMixedDarcy::VariableIndex(const std::string &name) {
     if (!strcmp("u", name.c_str())) return 1;
     if (!strcmp("div_u", name.c_str())) return 2;
     if (!strcmp("cfl", name.c_str())) return 3;
+    if (!strcmp("kappa", name.c_str())) return 4;
+    if (!strcmp("phi", name.c_str())) return 5;
     return TPZMatWithMem::VariableIndex(name);
 }
 
@@ -75,6 +77,10 @@ int TRMMixedDarcy::NSolutionVariables(int var) {
         case 2:
             return 1; // Scalar
         case 3:
+            return 1; // Scalar
+        case 4:
+            return fdimension; // Vector
+        case 5:
             return 1; // Scalar
     }
     return TPZMatWithMem::NSolutionVariables(var);
@@ -801,6 +807,27 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             Solout[0] = cfl;
         }
             break;
+        case 4:
+        {
+            int nvars = 4;
+            TPZFMatrix<STATE> kappa,inv_kappa;
+            TPZManVector<STATE, 10> v(nvars);
+            v[0] = p;
+            fSimulationData->Map()->Kappa(datavec[ub].x, kappa, inv_kappa, v);
+            Solout[0] = kappa(0,0);
+            Solout[1] = kappa(1,1);
+        }
+            break;
+        case 5:
+        {
+            int nvars = 4;
+            TPZManVector<STATE, 10> phi;
+            TPZManVector<STATE, 10> v(nvars);
+            v[0] = p;
+            fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+            Solout[0] = phi[0];
+        }
+            break;
         default:
         {
             DebugStop();
@@ -1335,6 +1362,27 @@ void TRMMixedDarcy::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
             Solout[0] = cfl;
         }
             break;
+        case 4:
+        {
+            int nvars = 4;
+            TPZFMatrix<STATE> kappa,inv_kappa;
+            TPZManVector<STATE, 10> v(nvars);
+            v[0] = p;
+            fSimulationData->Map()->Kappa(datavec[ub].x, kappa, inv_kappa, v);
+            Solout[0] = kappa(0,0);
+            Solout[1] = kappa(1,1);
+        }
+            break;
+        case 5:
+        {
+            int nvars = 4;
+            TPZManVector<STATE, 10> phi;
+            TPZManVector<STATE, 10> v(nvars);
+            v[0] = p;
+            fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+            Solout[0] = phi[0];
+        }
+            break;
         default:
         {
             DebugStop();
@@ -1861,6 +1909,27 @@ void TRMMixedDarcy::Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZV
             
             REAL cfl = flux_norm*(dt/volume*phi[0]);
             Solout[0] = cfl;
+        }
+            break;
+        case 4:
+        {
+            int nvars = 4;
+            TPZFMatrix<STATE> kappa,inv_kappa;
+            TPZManVector<STATE, 10> v(nvars);
+            v[0] = p;
+            fSimulationData->Map()->Kappa(datavec[ub].x, kappa, inv_kappa, v);
+            Solout[0] = kappa(0,0);
+            Solout[1] = kappa(1,1);
+        }
+            break;
+        case 5:
+        {
+            int nvars = 4;
+            TPZManVector<STATE, 10> phi;
+            TPZManVector<STATE, 10> v(nvars);
+            v[0] = p;
+            fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+            Solout[0] = phi[0];
         }
             break;
         default:
