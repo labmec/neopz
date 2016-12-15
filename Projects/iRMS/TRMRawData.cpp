@@ -363,23 +363,22 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
 
-    fReportingTimes.Push(200.0*day);
-    fReportingTimes.Push(150.0*day);
-    fReportingTimes.Push(125.0*day);
+    fReportingTimes.Push(500.0*day);
+//    fReportingTimes.Push(180.0*day);
+//    fReportingTimes.Push(160.0*day);
+//    fReportingTimes.Push(140.0*day);
+//    fReportingTimes.Push(120.0*day);
     fReportingTimes.Push(100.0*day);
-    fReportingTimes.Push(75.0*day);
-    fReportingTimes.Push(50.0*day);
-    fReportingTimes.Push(40.0*day);
-    fReportingTimes.Push(30.0*day);
-    fReportingTimes.Push(20.0*day);
-    fReportingTimes.Push(10.0*day);
+//    fReportingTimes.Push(80.0*day);
+//    fReportingTimes.Push(40.0*day);
+//    fReportingTimes.Push(20.0*day);
     fReportingTimes.Push(0.0*day);
     
     fn_steps  = 100;
-    fdt = 10.0*day;
-    fdt_max = 30.0*day;
+    fdt = 50.0*day;
+    fdt_max = 100.0*day;
     fdt_min = 0.1*day;
-    fdt_up = 1.5;
+    fdt_up = 2.0;
     fdt_down = 0.1;
     
     // Numeric controls
@@ -460,7 +459,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux_b = -0.0184, S = 1.0;
+    REAL flux_b = -0.00184/2.0, S = 1.0;
     
     REAL day = 86400;
     REAL flux = flux_b + 0.00*(sin((time/day)/100));

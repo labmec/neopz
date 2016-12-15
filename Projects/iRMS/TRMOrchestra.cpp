@@ -85,8 +85,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-        int nel_x = 30;
-        int nel_y = 15;
+        int nel_x = 8;
+        int nel_y = 4;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -111,7 +111,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-    int ref = 3;
+    int ref = 5;
     fSpaceGenerator->UniformRefinement(ref);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 12);
@@ -469,7 +469,7 @@ void TRMOrchestra::RunStaticProblem(){
     
     std::cout<< "iRMS:: Finding Initial State" << std::endl;
     
-    int n = 2;
+    int n = 1;
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
     
