@@ -64,6 +64,7 @@
 
 #include "pzgmesh.h"
 #include "TPZVTKGeoMesh.h"
+#include "pzcheckmesh.h"
 
 #ifdef USING_BOOST
 #include "boost/date_time/posix_time/posix_time.hpp"
@@ -135,6 +136,7 @@ static void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf)
 TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data);
 void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data);
 void UniformRefinement(TPZGeoMesh * gmesh, int n_ref);
+void UniformRefineTetrahedrons(TPZGeoMesh * gmesh, int n_ref);
 
 
 TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & sim_data);
@@ -213,7 +215,7 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 0;
+    common.n_h_levels = 1;
     common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -365,7 +367,17 @@ void ComputeApproximation(SimulationCase sim_data){
             
             // Compute the geometry
             TPZGeoMesh * gmesh = GeomtricMesh(h_base, sim_data);
-            UniformRefinement(gmesh, h);
+    
+
+#ifdef PZDEBUG
+            TPZCheckGeom check(gmesh);
+            int checkQ = check.PerformCheck();
+            if (checkQ) {
+                DebugStop();
+            }
+#endif
+//            UniformRefinement(gmesh, h);
+            UniformRefineTetrahedrons(gmesh, h);
 
 #ifdef PZDEBUG
             
@@ -408,6 +420,7 @@ void ComputeApproximation(SimulationCase sim_data){
             analysis->Assemble();
             
             ndof_cond = analysis->Rhs().Rows();
+            
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -423,7 +436,6 @@ void ComputeApproximation(SimulationCase sim_data){
 #ifdef USING_BOOST
                 boost::posix_time::ptime int_unwrap_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-                
                 UnwrapMesh(cmesh);
                 analysis->LoadSolution();
                 cmesh->Solution() *= -1.0; /* consequence of newton correction */
@@ -442,7 +454,7 @@ void ComputeApproximation(SimulationCase sim_data){
             sol_vtk_name    << sim_data.dump_folder << "/" "sol" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
             std::string file(sol_vtk_name.str());
             PosProcess(analysis, file, sim_data);
-            PosProcess(analysis, file, sim_data);            
+//            PosProcess(analysis, file, sim_data);            
             
             
             // compute the error
@@ -600,7 +612,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
     gradu.Resize(4,1);
    
-    REAL r0 = 1.0;
+    REAL r0 = 100.0;
     r = sqrt(x*x+y*y);
     theta = atan2(y,x);
     
@@ -617,9 +629,9 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     Thetaunity = costheta;
     Thetaunitz = 0.0;
     
-    u[0] = r*r;//log(r/r0);
+    u[0] = log(r/r0);
     
-    REAL dfdr = 2.0*r;//1.0/r;
+    REAL dfdr = 1.0/r;
     REAL dfdTheta = 0.0;
     
     gradu(0,0) = -1.0*(dfdr * Radialunitx + dfdTheta * Thetaunitx);
@@ -676,11 +688,11 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
     
 #ifdef Thiem
     
-    REAL r0 = 1.0;
+    REAL r0 = 100.0;
     r = sqrt(x*x+y*y);
     theta = atan2(y,x);
     
-    f[0] = r*r;//log(r/r0);
+    f[0] = log(r/r0);
     
     
 #endif
@@ -732,7 +744,7 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     
 #ifdef Thiem
  
-    f[0] = -4.0;
+    f[0] = 0.0;//-4.0;
     
 #endif
     
@@ -2337,7 +2349,7 @@ TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase  & sim_data){
     }
 #endif
     
-    bool ExtrudeMeshQ = true;
+    bool ExtrudeMeshQ = false;
     
     // changin id internally
     sim_data.gamma_ids[0] = 2;
@@ -2346,10 +2358,11 @@ TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase  & sim_data){
     std::string dirname = PZSOURCEDIR;
     std::string grid_name;
 //    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWell.dump";
-    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWellQ.dump";
+    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWell3D.dump";
+//    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWellQ.dump";
     
     TPZReadGIDGrid GeometryInfo;
-    REAL s = 100.0;
+    REAL s = 1.0;
     GeometryInfo.SetfDimensionlessL(s);
     TPZGeoMesh * geomesh = GeometryInfo.GeometricGIDMesh(grid_name);
     
@@ -2425,7 +2438,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     REAL t=0.0;
     REAL dt;
     int n;
-    bool IsTetrahedronMeshQ = false;
+    bool IsTetrahedronMeshQ = true;
     
     int bc_B =  sim_data.gamma_ids[1];
     int bc_T =  sim_data.gamma_ids[1];
@@ -2458,7 +2471,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     gmesh_3d->SetName(name);
     gmesh_3d->SetMaxNodeId(node_id);
     gmesh_3d->SetMaxElementId(element_id);
-    
+    gmesh_3d->SetDimension(3);
     return gmesh_3d;
     
 }
@@ -2536,6 +2549,75 @@ void UniformRefinement(TPZGeoMesh * gmesh, int n_ref){
         }//for i
     }//ref
     gmesh->BuildConnectivity();
+}
+
+void UniformRefineTetrahedrons(TPZGeoMesh *gmesh, int n_ref){
+    
+    TPZAutoPointer<TPZRefPattern> refp3D;
+    
+    {// needed!
+        char buf[] =
+        "10 9 "
+        "-50 Tet0000111111111 "
+        "0 0 0 "
+        "1 0 0 "
+        "0 1 0 "
+        "0 0 1 "
+        "0.5 0 0 "
+        "0 0.5 0 "
+        "0 0 0.5 "
+        "0.5 0.5 0 "
+        "0 0.5 0.5 "
+        "0.5 0 0.5 "
+        "4 4 0  1  2  3 "
+        "4 4 0  4  5  6 "
+        "4 4 4  1  7  9 "
+        "4 4 7  2  5  8 "
+        "4 4 6  9  8  3 "
+        "4 4 4  9  6  5 "
+        "4 4 5  8  6  9 "
+        "4 4 7  8  9  5 "
+        "4 4 4  7  5  9 ";
+        std::istringstream str(buf);
+        refp3D = new TPZRefPattern(str);
+        refp3D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp3D);
+        if(!refp3D)
+        {
+            DebugStop();
+        }
+    }
+    
+    //    TPZAutoPointer<TPZRefPattern> refp3D = gRefDBase.FindRefPattern("UnifTet");
+    
+    if(!refp3D)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < n_ref; r++)
+    {
+        int nels = gmesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = gmesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            if(gel->Dimension()==2)
+            {
+                //                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            
+        }
+    }
 }
 
 void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)

@@ -113,10 +113,12 @@ void TPZPrimalPoisson::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<S
         this->fForcingFunction->Execute(data.x, f, df);
     }
    
+    int dim = this->Dimension();
+    
     for (int ip = 0; ip < nphi_p; ip++) {
         
         STATE dp_dot_dphi_i = 0.0;
-        for (int i = 0; i < this->Dimension(); i++) {
+        for (int i = 0; i < dim; i++) {
             dp_dot_dphi_i += dpdx[i]*dphix(i,ip);
         }
         
