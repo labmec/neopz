@@ -127,7 +127,8 @@ struct SimulationCase {
 //#define Solution6
 #define Thiem
 
-
+// MHM rates subtructuring level
+static int level_mhm = 0;
 
 static void Analytic(const TPZVec<REAL> &x, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu);
 static void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &f);
@@ -215,7 +216,7 @@ int main()
     struct SimulationCase common;
     common.UsePardisoQ = true;
     common.UseFrontalQ = false;
-    common.n_h_levels = 1;
+    common.n_h_levels = 2;
     common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -286,6 +287,8 @@ int main()
 //    simulations.Push(HdivplusCase_3);
 
     
+// Cylinder
+    
 //    // Primal Formulation over the solid cylinder
 //    struct SimulationCase H1Case_1_cyl = common;
 //    H1Case_1_cyl.IsHdivQ = false;
@@ -294,13 +297,23 @@ int main()
 //    H1Case_1_cyl.dump_folder = "H1_cylinder";
 //    simulations.Push(H1Case_1_cyl);
     
-    // Dual Formulation over the solid cylinder
-    struct SimulationCase HdivCase_1_cyl = common;
-    HdivCase_1_cyl.IsHdivQ = true;
-    HdivCase_1_cyl.domain_type = "cylinder";
-    HdivCase_1_cyl.mesh_type = "linear";
-    HdivCase_1_cyl.dump_folder = "Hdiv_cylinder";
-    simulations.Push(HdivCase_1_cyl);
+//    // Dual Formulation over the solid cylinder
+//    struct SimulationCase HdivCase_1_cyl = common;
+//    HdivCase_1_cyl.IsHdivQ = true;
+//    HdivCase_1_cyl.domain_type = "cylinder";
+//    HdivCase_1_cyl.mesh_type = "linear";
+//    HdivCase_1_cyl.dump_folder = "Hdiv_cylinder";
+//    simulations.Push(HdivCase_1_cyl);
+    
+    
+    // MHM Dual Formulation over the solid cylinder
+    struct SimulationCase HdivMHMCase_1_cyl = common;
+    HdivMHMCase_1_cyl.IsHdivQ = true;
+    HdivMHMCase_1_cyl.IsMHMQ = true;
+    HdivMHMCase_1_cyl.domain_type = "cylinder";
+    HdivMHMCase_1_cyl.mesh_type = "linear";
+    HdivMHMCase_1_cyl.dump_folder = "HdivMHM_cylinder";
+    simulations.Push(HdivMHMCase_1_cyl);
     
     ComputeCases(simulations);
     
@@ -363,6 +376,9 @@ void ComputeApproximation(SimulationCase sim_data){
         convergence << setw(5)  << " h" << setw(25) << " ndof" << setw(25) << " ndof_cond" << setw(25) << " assemble_time (msec)" << setw(25) << " solving_time (msec)" << setw(25) << " error_time (msec)" << setw(25) << " Primal l2 error" << setw(25) << " Dual l2 error"  << setw(25) << " H error (H1 or Hdiv)" << endl;
         
         int h_base = 0;
+        if (sim_data.IsMHMQ) {
+            h_base = n_h_levels;
+        }
         for (int h = 0; h <= n_h_levels; h++) {
             
             // Compute the geometry
@@ -376,8 +392,14 @@ void ComputeApproximation(SimulationCase sim_data){
                 DebugStop();
             }
 #endif
-//            UniformRefinement(gmesh, h);
-            UniformRefineTetrahedrons(gmesh, h);
+            if (!sim_data.IsMHMQ) {
+                UniformRefinement(gmesh, h);
+//            UniformRefineTetrahedrons(gmesh, h);
+            }
+            else{
+                level_mhm = h;
+            }
+
 
 #ifdef PZDEBUG
             
@@ -393,6 +415,7 @@ void ComputeApproximation(SimulationCase sim_data){
             
             std::cout << "Domain volume = " << volume << "; Time for integration = " << int_t2-int_t1 <<std::endl;
             
+#endif
             std::stringstream text_name;
             std::stringstream vtk_name;
             text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".txt";
@@ -402,8 +425,7 @@ void ComputeApproximation(SimulationCase sim_data){
             
             std::ofstream vtkfile(vtk_name.str());
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
-        
-#endif
+
             
             // Compute the geometry
             long ndof, ndof_cond;
@@ -638,7 +660,7 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     gradu(1,0) = -1.0*(dfdr * Radialunity + dfdTheta * Thetaunity);
     gradu(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz);
     
-    gradu(3,0) = -4.0;
+    gradu(3,0) = 0.0;//-4.0;
     
 #endif
     
@@ -1143,7 +1165,7 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, cmesh);
     
     if (sim_data.IsMHMQ) {
-        BuildMacroElements(cmesh);
+//        BuildMacroElements(cmesh);
         cmesh->CleanUpUnconnectedNodes();
         cmesh->ExpandSolution();
     }
@@ -1322,7 +1344,8 @@ TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
         cmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
         cmesh->SetDefaultOrder(p);
         if (p > 1) {
-            cmesh->SetDefaultOrder(p-1);
+//            cmesh->SetDefaultOrder(p-1);
+            cmesh->SetDefaultOrder(p);
         }
         
         cmesh->AutoBuild(set_skeleton);
@@ -2349,7 +2372,7 @@ TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase  & sim_data){
     }
 #endif
     
-    bool ExtrudeMeshQ = false;
+    bool ExtrudeMeshQ = true;
     
     // changin id internally
     sim_data.gamma_ids[0] = 2;
@@ -2358,8 +2381,9 @@ TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase  & sim_data){
     std::string dirname = PZSOURCEDIR;
     std::string grid_name;
 //    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWell.dump";
-    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWell3D.dump";
+//    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWell3D.dump";
 //    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWellQ.dump";
+    grid_name = dirname + "/Projects/Hdiv3DCurved/gid_meshes/CircularMeshVerticalWellQII.dump";
     
     TPZReadGIDGrid GeometryInfo;
     REAL s = 1.0;
@@ -2377,6 +2401,8 @@ TPZGeoMesh * MakeCylinderFromLinearFaces(int ndiv, SimulationCase  & sim_data){
     
     TPZGeoMesh * geomesh_3d;
     if (ExtrudeMeshQ) {
+        geomesh->SetDimension(2);
+        
         int nel_z = 1;
         TPZManVector<REAL,2> dz(2,nel_z);
         dz[0] = 20.0/REAL(nel_z)/s;
@@ -2438,7 +2464,7 @@ TPZGeoMesh * ExtrudedGIDMesh(TPZGeoMesh * gmesh, SimulationCase sim_data, TPZMan
     REAL t=0.0;
     REAL dt;
     int n;
-    bool IsTetrahedronMeshQ = true;
+    bool IsTetrahedronMeshQ = false;
     
     int bc_B =  sim_data.gamma_ids[1];
     int bc_T =  sim_data.gamma_ids[1];
@@ -2529,8 +2555,8 @@ TPZManVector<STATE,3> ParametricCylinder(REAL radius, REAL theta, REAL z)
 void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data){
     std::stringstream text_name;
     std::stringstream vtk_name;
-    text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << ".txt";
-    vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << ".vtk";
+    text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << "_l" << level_mhm << ".txt";
+    vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << "_l" << level_mhm << ".vtk";
     ofstream textfile(text_name.str());
     gmesh->Print(textfile);
     
@@ -2831,13 +2857,13 @@ void InsertSkeletonInterfaces(TPZGeoMesh * gmesh){
     long nel = gmesh->NElements();
     for (long el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
-//        if (!gel || gel->Level() != 0 || gel->Dimension() != gmesh->Dimension()) {
-//            continue;
-//        }
-        
-        if (!gel || gel->HasSubElement() || gel->Dimension() != gmesh->Dimension()) {
+        if (!gel || gel->Level() != level_mhm || gel->Dimension() != gmesh->Dimension()) {
             continue;
         }
+        
+//        if (!gel || gel->HasSubElement() || gel->Dimension() != gmesh->Dimension()) {
+//            continue;
+//        }
         
         int nsides = gel->NSides();
         for (int is = gel->NCornerNodes(); is<nsides; is++) {
