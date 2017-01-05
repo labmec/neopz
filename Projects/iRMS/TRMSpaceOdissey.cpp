@@ -341,7 +341,7 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
     long nel = fGeoMesh->NElements();
     for (long el = 0; el<nel; el++) {
         TPZGeoEl *gel = fGeoMesh->Element(el);
-        if (!gel || gel->Level() != 4 || gel->Dimension() != fGeoMesh->Dimension()) {
+        if (!gel || gel->Level() != 0 || gel->Dimension() != fGeoMesh->Dimension()) {
             continue;
         }
         int nsides = gel->NSides();

@@ -39,9 +39,10 @@ Point(7) = {1,1,1,lcar1};     Point(8) = {1,0,1,lcar1};
  Line(5) = {5,6};    Line(6) = {6,7};   Line(7) = {7,8};  Line(8) = {8,5};
  Line(9) = {1,5};    Line(10) = {2,6};  Line(11) = {3,7}; Line(12) = {4,8};
 
- Line Loop(1) = {1,2,3,4};   Plane Surface(1) = {1};
- Line Loop(2) = {5,6,7,8};   Plane Surface(2) = {2};
- Line Loop(3) = {1,5,6,2};   Plane Surface(3) = {3};
+ Line Loop(1) = {1,2,3,4};    Plane Surface(1) = {1};
+ Line Loop(2) = {5,6,7,8};    Plane Surface(2) = {2};
+ Line Loop(3) = {1,10,5,9};   Plane Surface(3) = {3};
+
  //Line Loop(4) = {2,3,7,6};   Plane Surface(4) = {4};
  //Line Loop(5) = {3,4,8,7};   Plane Surface(5) = {5};
  //Line Loop(6) = {1,4,8,5};   Plane Surface(6) = {6};
@@ -101,7 +102,7 @@ Return
 
 x = 0 ; y = 0.75 ; z = 0 ; r = 0.09 ;
 
-For t In {1:1}
+For t In {1:0}
 
   x += 0.166 ;
   z += 0.166 ;

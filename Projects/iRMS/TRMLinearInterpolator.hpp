@@ -285,9 +285,9 @@ public:
                 cell_index[dim] = c;
             }
             // sort xi's and get the permutation
-            std::sort(xipair.begin(), xipair.end(), [](std::pair<T, int> const &a, std::pair<T, int> const &b) {
-                return (a.first < b.first);
-            });
+//            std::sort(xipair.begin(), xipair.end(), [](std::pair<T, int> const &a, std::pair<T, int> const &b) {
+//                return (a.first < b.first);
+//            });
             // walk the vertices of the simplex determined by the permutation
             for (int j=0; j<N; j++) {
                 v_index[j] = 1;
