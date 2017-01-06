@@ -131,12 +131,12 @@ int ApproximationRates(){
     REAL rw = 0.1;
     REAL rext = 4.0;
     int ncircle = 24;
-    int nradial = 40;
+    int nradial = 30;
     REAL drdcirc = 5.0;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 30.; // Azimuth em graus********
+    direction   = 60.; // Azimuth em graus********
     inclination = 30.; // Polar Inclination em graus********
     
     // transforma graus em rad
@@ -144,9 +144,9 @@ int ApproximationRates(){
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
     
-    int numthreads = 16;
+    int numthreads = 1;
     int nh = 4;
-    int np = 3;
+    int np = 2;
 
     
     std::string plotfile = "ElasticitySolutions2D.vtk";
@@ -206,6 +206,8 @@ int ApproximationRates(){
             REAL error = 0.0;
             ComputeErrorL2(cmesh, error);
             std::cout << "error computed. " << std::endl;
+            
+            std::cout << error << endl;
             
             errorvec[ih] = sqrt(error);
             error_array(ip-1,ih) = errorvec[ih];
@@ -441,7 +443,7 @@ int Problem2D(){
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
-    REAL rext = 4.0;
+    REAL rext = 2.0;
     int ncircle = 30;
     int nradial = 25;
     REAL drdcirc = 2.5;
@@ -449,7 +451,7 @@ int Problem2D(){
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 30.; // Azimuth em graus********
+    direction   = 60.; // Azimuth em graus********
     inclination = 30.; // Polar Inclination em graus********
     
     // transforma graus em rad
@@ -809,7 +811,7 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
         q=radiallength;
     }
     
-//    q = 1; // CALCULAR TAXAS DE CONVERGENCIA, malha com mesmo tamanho de elementos
+   // q = 1; // CALCULAR TAXAS DE CONVERGENCIA, malha com mesmo tamanho de elementos
 //     std::cout<< "valor de q " << q << endl; // imprime razao da PG
     
    
@@ -1017,7 +1019,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 30.; // graus********
+    direction   = 60.; // graus********
     inclination = 30.; // graus********
     
     // transforma graus em rad

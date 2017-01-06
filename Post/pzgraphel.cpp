@@ -111,7 +111,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         REAL Pi = M_PI;
         
         //******* angulos COLOCADOS A MAO para fazer teste *********
-        REAL alpha = (30.*(Pi/180)); // azimuth
+        REAL alpha = (60.*(Pi/180)); // azimuth
         REAL beta = (30.*(Pi/180)); // inclination
         
         //* defines mesh's position , COLOCADO A MAO AINDA
@@ -165,6 +165,24 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
             x[0] = xP;
             x[1] = yP;
             x[2] = zP;
+            
+            
+//            
+//            //            //********* Essa transformacao assume uma matriz de rotacao do poco inclinado diferente, ou seja, rotacoes no sentido anti-horario em z e depois em y  **********//
+//            REAL xP = 0., yP = 0., zP = 0.;
+//            
+//            xP =  x[0]*cos(alpha)*cos(beta) - x[1]*cos(beta)*sin(alpha) + x[2]*sin(beta) - (x[2]*cos(beta) - x[0]*cos(alpha)*sin(beta) + x[1]*sin(alpha)*sin(beta))*tan(beta);
+//            //x*Cos(\[Alpha])*Cos(\[Beta]) - y*Cos(\[Beta])*Sin(\[Alpha]) + z*Sin(\[Beta]) - (z*Cos(\[Beta]) - x*Cos(\[Alpha])*Sin(\[Beta]) + y*Sin(\[Alpha])*Sin(\[Beta]))*Tan(\[Beta])
+//            
+//            yP = x[1]*cos(alpha) + x[0]*sin(alpha);
+//            //y*Cos(\[Alpha]) + x*Sin(\[Alpha])
+//            
+//            zP = 0;
+//            
+//            x[0] = xP;
+//            x[1] = yP;
+//            x[2] = zP;
+            
             
             
             fGraphMesh->Out() << x[0] << " " << x[1] << " " << x[2] << endl;
