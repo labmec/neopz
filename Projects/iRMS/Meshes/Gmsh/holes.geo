@@ -35,16 +35,18 @@ Point(3) = {1,1,0,lcar1};     Point(4) = {0,1,0,lcar1};
 Point(5) = {0,0,1,lcar1};     Point(6) = {1,0,1,lcar1};
 Point(7) = {1,1,1,lcar1};     Point(8) = {0,1,1,lcar1};
 
- Line(1) = {1,2};    Line(2) = {2,3};   Line(3) = {3,4};  Line(4) = {4,1};
- Line(5) = {5,6};    Line(6) = {6,7};   Line(7) = {7,8};  Line(8) = {8,5};
- Line(9) = {5,1};    Line(10) = {6,2};  Line(11) = {7,3}; Line(12) = {8,4};
+Line(1) = {1,2};    Line(2) = {2,3};   Line(3) = {3,4};  Line(4) = {4,1};
+Line(5) = {5,6};    Line(6) = {6,7};   Line(7) = {7,8};  Line(8) = {8,5};
+Line(9) = {5,1};    Line(10) = {6,2};  Line(11) = {7,3}; Line(12) = {8,4};
 
- Line Loop(1) = {1,2,3,4};    Plane Surface(1) = {1};
- Line Loop(2) = {5,6,7,8};    Plane Surface(2) = {2};
- Line Loop(3) = {1,-10,-5,9};   Plane Surface(3) = {3};
- Line Loop(4) = {2,-11,-6,10};   Plane Surface(4) = {4};
- Line Loop(5) = {3,-12,-7,11};   Plane Surface(5) = {5};
- Line Loop(6) = {-4,-12,8,9};   Plane Surface(6) = {6};
+Line Loop(1) = {1,2,3,4};    Plane Surface(1) = {1};
+Line Loop(2) = {5,6,7,8};    Plane Surface(2) = {2};
+Line Loop(3) = {1,-10,-5,9};   Plane Surface(3) = {3};
+Line Loop(4) = {2,-11,-6,10};   Plane Surface(4) = {4};
+Line Loop(5) = {3,-12,-7,11};   Plane Surface(5) = {5};
+Line Loop(6) = {-4,-12,8,9};   Plane Surface(6) = {6};
+
+
 
 // Instead of using included files, we now use a user-defined macro in order
 // to carve some holes in the cube:
@@ -66,12 +68,18 @@ Macro CheeseHole
   p6 = newp; Point(p6) = {x,  y-r,z,  lcar3} ;
   p7 = newp; Point(p7) = {x,  y,  z-r,lcar3} ;
 
-  c1 = newreg; Circle(c1) = {p2,p1,p7}; c2 = newreg; Circle(c2) = {p7,p1,p5};
-  c3 = newreg; Circle(c3) = {p5,p1,p4}; c4 = newreg; Circle(c4) = {p4,p1,p2};
-  c5 = newreg; Circle(c5) = {p2,p1,p3}; c6 = newreg; Circle(c6) = {p3,p1,p5};
-  c7 = newreg; Circle(c7) = {p5,p1,p6}; c8 = newreg; Circle(c8) = {p6,p1,p2};
-  c9 = newreg; Circle(c9) = {p7,p1,p3}; c10 = newreg; Circle(c10) = {p3,p1,p4};
-  c11 = newreg; Circle(c11) = {p4,p1,p6}; c12 = newreg; Circle(c12) = {p6,p1,p7};
+  c1 = newreg; Circle(c1) = {p2,p1,p7}; 
+  c2 = newreg; Circle(c2) = {p7,p1,p5};
+  c3 = newreg; Circle(c3) = {p5,p1,p4}; 
+  c4 = newreg; Circle(c4) = {p4,p1,p2};
+  c5 = newreg; Circle(c5) = {p2,p1,p3}; 
+  c6 = newreg; Circle(c6) = {p3,p1,p5};
+  c7 = newreg; Circle(c7) = {p5,p1,p6}; 
+  c8 = newreg; Circle(c8) = {p6,p1,p2};
+  c9 = newreg; Circle(c9) = {p7,p1,p3}; 
+  c10 = newreg; Circle(c10) = {p3,p1,p4};
+  c11 = newreg; Circle(c11) = {p4,p1,p6}; 
+  c12 = newreg; Circle(c12) = {p6,p1,p7};
 
   // We need non-plane surfaces to define the spherical holes. Here we use ruled
   // surfaces, which can have 3 or 4 sides:
@@ -88,18 +96,21 @@ Macro CheeseHole
   // We then store the surface loops identification numbers in a list for later
   // reference (we will need these to define the final volume):
 
-  theloops[t] = newreg ;
+  holes[t] = newreg ;
 
-  Surface Loop(theloops[t]) = {l8+1,l5+1,l1+1,l2+1,l3+1,l7+1,l6+1,l4+1};
+  Surface Loop(holes[t]) = {l8+1,l5+1,l1+1,l2+1,l3+1,l7+1,l6+1,l4+1};
+  perforation = newreg;
+  Compound Surface(perforation) = {l8+1,l5+1,l1+1,l2+1,l3+1,l7+1,l6+1,l4+1};
+  Physical Surface("well") = {perforation};
 
-  thehole = newreg ;
-  Volume(thehole) = theloops[t] ;
+ // thehole = newreg ;
+//  Volume(thehole) = holes[t] ;
 
 Return
 
-// We can use a `For' loop to generate five holes in the cube:
+// We can use a `For' loop to generate one hole in the cube:
 
-x = 0 ; y = 0.75 ; z = 0 ; r = 0.09 ;
+x = 0.25 ; y = 0.5 ; z = 0.25 ; r = 0.09 ;
 
 For t In {1:1}
 
@@ -112,45 +123,48 @@ For t In {1:1}
 
   // We define a physical volume for each hole:
 
-  Physical Volume (t) = thehole ;
+  // Physical Volume (t) = thehole ;
 
   // We also print some variables on the terminal (note that, since all
   // variables are treated internally as floating point numbers, the format
   // string should only contain valid floating point format specifiers like
   // `%g', `%f', '%e', etc.):
 
-  Printf("Hole %g (center = {%g,%g,%g}, radius = %g) has number %g!",
-	 t, x, y, z, r, thehole) ;
+  //Printf("Hole %g (center = {%g,%g,%g}, radius = %g) has number %g!",t, x, y, z, r, thehole) ;
 
 EndFor
+
+
 
 // We can then define the surface loop for the exterior surface of the cube:
 
 theloops[0] = newreg ;
 
-Surface Loop(theloops[0]) = {1,2,3,4,5,6} ;
+Surface Loop(holes[0]) = {1,2,3,4,5,6};
 
 // The volume of the cube, without the 5 holes, is now defined by 6 surface
 // loops: the first surface loop defines the exterior surface; the surface loops
 // other than the first one define holes.  (Again, to reference an array of
 // variables, its identifier is followed by square brackets):
 
-Volume(1) = {theloops[]} ;
+Volume(2) = holes[0] ;
 
-// transform to hexahedra mesh
-// Transfinite Line "*" = 5 Using Bump 1.0;
-// Transfinite Surface "*";
-// Recombine Surface "*";
-// Transfinite Volume "*";
+ // transform to hexahedra mesh
+
+ Transfinite Line "*" = 10 Using Bump 0.25;
+ Transfinite Surface "*";
+ // Recombine Surface "*";
+ Transfinite Volume "*";
 
 // We finally define a physical volume for the elements discretizing the cube,
 // without the holes (whose elements were already tagged with numbers 1 to 5 in
 // the `For' loop):
 
-Physical Surface("sb_top") = {2};
-Physical Surface("sb_bottom") = {1};
-Physical Surface("sb_sides") = {3, 4, 5, 6};
-Physical Volume("sideburden") = {1};
+Physical Surface("res_top") = {2};
+Physical Surface("res_bottom") = {1};
+Physical Surface("res_sides") = {3, 4, 5, 6};
+
+Physical Volume("reservoir") = {2};
 
 // We could make only part of the model visible to only mesh this subset:
 //
@@ -158,3 +172,5 @@ Physical Volume("sideburden") = {1};
 // Recursive Show { Volume{129}; }
 // Mesh.MeshOnlyVisible=1;
 //+
+//+
+Coherence;
