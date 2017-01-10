@@ -9,7 +9,7 @@
 // We start by defining some target mesh sizes:
 
 lcar1 = .25;
-lcar2 = .25;
+lcar2 = .01;
 lcar3 = .25;
 
 // If we wanted to change these mesh sizes globally (without changing the above
@@ -60,13 +60,13 @@ Macro CheeseHole
   // amongst currently defined curves, surfaces, volumes and `any entities other
   // than points', respectively.)
 
-  p1 = newp; Point(p1) = {x,  y,  z,  lcar3} ;
-  p2 = newp; Point(p2) = {x+r,y,  z,  lcar3} ;
-  p3 = newp; Point(p3) = {x,  y+r,z,  lcar3} ;
-  p4 = newp; Point(p4) = {x,  y,  z+r,lcar3} ;
-  p5 = newp; Point(p5) = {x-r,y,  z,  lcar3} ;
-  p6 = newp; Point(p6) = {x,  y-r,z,  lcar3} ;
-  p7 = newp; Point(p7) = {x,  y,  z-r,lcar3} ;
+  p1 = newp; Point(p1) = {x,  y,  z,  lcar2} ;
+  p2 = newp; Point(p2) = {x+r,y,  z,  lcar2} ;
+  p3 = newp; Point(p3) = {x,  y+r,z,  lcar2} ;
+  p4 = newp; Point(p4) = {x,  y,  z+r,lcar2} ;
+  p5 = newp; Point(p5) = {x-r,y,  z,  lcar2} ;
+  p6 = newp; Point(p6) = {x,  y-r,z,  lcar2} ;
+  p7 = newp; Point(p7) = {x,  y,  z-r,lcar2} ;
 
   c1 = newreg; Circle(c1) = {p2,p1,p7}; 
   c2 = newreg; Circle(c2) = {p7,p1,p5};
@@ -96,21 +96,22 @@ Macro CheeseHole
   // We then store the surface loops identification numbers in a list for later
   // reference (we will need these to define the final volume):
 
-  holes[t] = newreg ;
+  holes[t] = newreg;
 
   Surface Loop(holes[t]) = {l8+1,l5+1,l1+1,l2+1,l3+1,l7+1,l6+1,l4+1};
-  perforation = newreg;
-  Compound Surface(perforation) = {l8+1,l5+1,l1+1,l2+1,l3+1,l7+1,l6+1,l4+1};
-  Physical Surface("well") = {perforation};
 
- // thehole = newreg ;
-//  Volume(thehole) = holes[t] ;
+  // Solid hole
+  //solidholes = newreg ;
+  //Volume(solidholes) = holes[t] ;
+
+  // Define a physical volume for each hole:
+  //Physical Volume ("wellbore_region") = solidholes ;
 
 Return
 
 // We can use a `For' loop to generate one hole in the cube:
 
-x = 0.25 ; y = 0.5 ; z = 0.25 ; r = 0.09 ;
+x = 0.25 ; y = 0.5 ; z = 0.25 ; r = 0.01 ;
 
 
 For t In {1:1}
@@ -120,11 +121,7 @@ For t In {1:1}
 
   // We call the `CheeseHole' macro:
 
-  Call CheeseHole ;
-
-  // We define a physical volume for each hole:
-
-  // Physical Volume (t) = thehole ;
+  Call CheeseHole;
 
   // We also print some variables on the terminal (note that, since all
   // variables are treated internally as floating point numbers, the format
@@ -148,30 +145,34 @@ Surface Loop(holes[0]) = {1,2,3,4,5,6};
 // other than the first one define holes.  (Again, to reference an array of
 // variables, its identifier is followed by square brackets):
 
-Volume(2) = holes[0] ;
+Volume(1) = {holes[]} ;
 
  // transform to hexahedra mesh
 
- Transfinite Line "*" = 10 Using Bump 0.25;
- Transfinite Surface "*";
- // Recombine Surface "*";
- Transfinite Volume "*";
+//  Transfinite Line "*" = 10 Using Bump 0.25;
+//  Transfinite Surface "*";
+//  Recombine Surface "*";
+//  Transfinite Volume "*";
 
 // We finally define a physical volume for the elements discretizing the cube,
 // without the holes (whose elements were already tagged with numbers 1 to 5 in
 // the `For' loop):
 
+Physical Volume("reservoir") = {1};
 Physical Surface("res_top") = {2};
 Physical Surface("res_bottom") = {1};
 Physical Surface("res_sides") = {3, 4, 5, 6};
+Physical Surface("well") = {holes[1]};
 
-Physical Volume("reservoir") = {2};
+  Printf("Hole %g (center = {%g,%g,%g}, radius = %g) has number %g!",t, x, y, z, r, holes) ;
+
+
 
 // We could make only part of the model visible to only mesh this subset:
 //
 // Hide "*";
 // Recursive Show { Volume{129}; }
-// Mesh.MeshOnlyVisible=1;
+// Mesh.MeshOnlyVisible = 1;
 //+
 //+
 Coherence;
