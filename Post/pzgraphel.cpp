@@ -118,7 +118,7 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         //  position == 1 -> mesh projected over a horizontal plane
         //  position == 2 -> mesh rotated
         //  position =! 1 or 2 -> normal position, in plane
-        int position = 0; //
+        int position = 1; //
 
         
 //        //Print Rotated Coordinate

@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
 {
 
 //    Problem3D();
-    //Problem2D();
+    Problem2D();
 //
-    ApproximationRates();
+//    ApproximationRates();
 
     return 0;
 }
@@ -1044,10 +1044,10 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     //analytic=0 nao usa sol analitica como prestress e BC
     //analytic=1 usa sol analitica como prestress e BC (zerar BCond0 e BCond1)
     //analytic=2 nao usa sol analitica como prestress mas usa como BC (zerar BCond0 e BCond1)
-    int analytic = 2;
+    int analytic = 0;
     
     // para projecao horizontal, projection == 1
-    int projection = 0;
+    int projection = 1;
     
     // Seta os parametros do poco
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);
