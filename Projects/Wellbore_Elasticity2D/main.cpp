@@ -451,7 +451,7 @@ int Problem2D(){
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 60.; // Azimuth em graus********
+    direction   = 30.; // Azimuth em graus********
     inclination = 30.; // Polar Inclination em graus********
     
     // transforma graus em rad
@@ -1019,7 +1019,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 60.; // graus********
+    direction   = 30.; // graus********
     inclination = 30.; // graus********
     
     // transforma graus em rad
@@ -1047,7 +1047,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     int analytic = 0;
     
     // para projecao horizontal, projection == 1
-    int projection = 1;
+    int projection = 0;
     
     // Seta os parametros do poco
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);
