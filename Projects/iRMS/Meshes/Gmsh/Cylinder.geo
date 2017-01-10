@@ -11,12 +11,12 @@
 // element sizes at various Points
 cl1 = 6;
 cl2 = .03;
-cl3 = 10;
+cl3 = 50;
 
-radius = 1;
+radius = 1.0;
 outer = 10;
 numinner = 30; 
-extr = -1;
+extr = 1;
 
 // Exterior (bounding box) of mesh
 Point(1) = {-30, -30, 0, cl1};
@@ -56,7 +56,7 @@ Circle(16) = {12, 5, 8};
 
 
 Transfinite Line {5,6,7,8,13,14,15,16} = 20; // We want 40 points along each of these lines
-Transfinite Line {9,10,11,12} = numinner Using Progression 0.9;    // And 10 points along each of these lines
+Transfinite Line {9,10,11,12} = numinner Using Progression 1.2;    // And 10 points along each of these lines
 
 //Using Progression 1.1
 
