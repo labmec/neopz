@@ -452,7 +452,7 @@ int Problem2D(){
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
     direction   = 30.; // Azimuth em graus********
-    inclination = 30.; // Polar Inclination em graus********
+    inclination = 50.; // Polar Inclination em graus********
     
     // transforma graus em rad
     REAL alpha = 0., beta = 0.; // inicializa
@@ -572,7 +572,7 @@ int Problem2D(){
     int ndiv = 2;
     
     
-    int projection = 0; // define se havera projecao no plano horizontal
+    int projection = 1; // define se havera projecao no plano horizontal
     
     if (projection==1) {
         TPZStack<std::string> scalarnames, vecnames;
@@ -1020,7 +1020,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
     direction   = 30.; // graus********
-    inclination = 30.; // graus********
+    inclination = 50.; // graus********
     
     // transforma graus em rad
     REAL directionT = 0.,inclinationT = 0.; // inicializa
@@ -1047,7 +1047,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     int analytic = 0;
     
     // para projecao horizontal, projection == 1
-    int projection = 0;
+    int projection = 1;
     
     // Seta os parametros do poco
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);
