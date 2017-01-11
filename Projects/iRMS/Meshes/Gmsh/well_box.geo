@@ -14,7 +14,7 @@ cl2 = 1;
 cl3 = 20;
 cl4 = 20;
 
-radius = 0.1;
+radius = 1.0;
 outer = 20;
 inner_box = 2.0*outer;
 outer_box = 2.0*inner_box;
@@ -59,7 +59,7 @@ Circle(16) = {12, 5, 8};
 
 
 Transfinite Line {5,6,7,8,13,14,15,16} = 4; // We want 40 points along each of these lines
-Transfinite Line {9,10,11,12} = numinner Using Progression 1.1;    // And 10 points along each of these lines
+Transfinite Line {9,10,11,12} = numinner Using Progression 1.5;    // And 10 points along each of these lines
 
 
 
@@ -94,6 +94,8 @@ Plane Surface(5) = {5}; // LH inner structured region
 // Change layer to increase z subdivision
 //Extrude {0, 0, 10} { Surface{1,2,3,4,5}; Layers{1}; Recombine; Transfinite;}
 Extrude {0, 0, 10} { Surface{1,2,3,4,5}; Layers{1};}
+Transfinite Line {43,44,48,52,92,65,96,74,32,36,27,28} = 4;
+
 
 
 ////////////////////////////////////////////////////////////////////////////
