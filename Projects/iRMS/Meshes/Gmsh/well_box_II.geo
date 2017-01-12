@@ -11,18 +11,24 @@
 // element sizes at various Points
 cl1 = 1;
 cl2 = 0.1;
-cl4 = 100;
-cl5 = 100;
+cl3 = 10.0;
+cl4 = 50.0;
+cl5 = 250.0;
+
+// well location
+wx = 200.0;
+wy = 200.0;
+wz = -10.0;
 
 // well dimensions
 radius = 0.1;
-outer = 2;
-length = 1.0;
+outer = 10;
+length = 10.0;
 
 // reservoir box dimensions
 x_length = 500.0;
 y_length = 500.0;
-z_length = 100.0;
+z_length = 150.0;
 
 // side-burden box dimensions
 sb_x_length = 1000.0;
@@ -30,26 +36,26 @@ sb_y_length = 1000.0;
 sb_z_length = 500.0;
 
 // mesh controls
-alpha = 1.2;
+alpha = 1.5;
 n_radial = 10;
 n_azimuthal = 4;
-n_axial = 4; 
+n_axial = 8; 
 
 
 // Circle & Surrounding structured-quad region
-Point(1) = {0,   0, 0, cl2};
+Point(1) = {0+wx, 0+wy, 0+wz, cl2};
 
 // well bore points
-Point(2) = {0,  radius, 0, cl2};
-Point(3) = {radius,  0, 0, cl2};
-Point(4) = {0, -radius, 0, cl2};
-Point(5) = {-radius, 0, 0, cl2};
+Point(2) = {0+wx,  radius+wy, 0+wz, cl2};
+Point(3) = {radius+wx,  0+wy, 0+wz, cl2};
+Point(4) = {0+wx, -radius+wy, 0+wz, cl2};
+Point(5) = {-radius+wx, 0+wy, 0+wz, cl2};
 
 // well bore region points
-Point(6) = {0,  outer, 0, cl2};
-Point(7) = {outer,  0, 0, cl2};
-Point(8) = {0, -outer, 0, cl2};
-Point(9) = {-outer, 0, 0, cl2};
+Point(6) = {0+wx,  outer+wy, 0+wz, cl3};
+Point(7) = {outer+wx,  0+wy, 0+wz, cl3};
+Point(8) = {0+wx, -outer+wy, 0+wz, cl3};
+Point(9) = {-outer+wx, 0+wy, 0+wz, cl3};
 
 
 Circle(1) = {2, 1, 3};
@@ -101,6 +107,8 @@ Plane Surface(4) = {4}; // -+ side of quad
 
 // Change layer to increase z subdivision
 Extrude {0, 0, length} { Surface{1,2,3,4}; Layers{n_axial};}
+//Extrude { {0, length, 0},{500,500,100}, -Pi/40.0} { Surface{1,2,3,4}; Layers{n_axial};}
+
 
 ////////////////////////////////////////////////////////////////////////////
 /// Well box
@@ -125,12 +133,12 @@ Plane Surface(6) = {6}; // clossing the well
 
 // outer well box
 
- Point(1001) = {-x_length/1.5, -y_length/1.5, -z_length/2.0, cl4};
+ Point(1001) = {-x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
  Point(1002) = { x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
  Point(1003) = { x_length/2.0,  y_length/2.0, -z_length/2.0, cl4};
  Point(1004) = {-x_length/2.0,  y_length/2.0, -z_length/2.0, cl4};
 
- Point(1005) = {-x_length/1.5, -y_length/1.5, z_length/2.0, cl4};
+ Point(1005) = {-x_length/2.0, -y_length/2.0, z_length/2.0, cl4};
  Point(1006) = { x_length/2.0, -y_length/2.0, z_length/2.0, cl4};
  Point(1007) = { x_length/2.0,  y_length/2.0, z_length/2.0, cl4};
  Point(1008) = {-x_length/2.0,  y_length/2.0, z_length/2.0, cl4};
@@ -201,15 +209,15 @@ Line(20010) = {10006,10002};
 Line(20011) = {10007,10003};
 Line(20012) = {10008,10004};
 
- Line Loop(30001) = {20001, 20002, 20003, 20004}; // Bottom
- Line Loop(30002) = {20005, 20006, 20007, 20008}; // Top
+ Line Loop(30001) = {20001, 20002, 20003, 20004}; // Top
+ Line Loop(30002) = {20005, 20006, 20007, 20008}; // Bottom
  Line Loop(30003) = {20001, -20010, -20005, 20009}; // South
  Line Loop(30004) = {20002, -20011, -20006, 20010}; // East
  Line Loop(30005) = {20003, -20012, -20007, 20011}; // North
  Line Loop(30006) = {20004, -20009, -20008, 20012}; // West
 
- Plane Surface(30001) = {30001}; // Bottom unstructured region
- Plane Surface(30002) = {30002}; // Top unstructured region
+ Plane Surface(30001) = {30001}; // Top unstructured region
+ Plane Surface(30002) = {30002}; // Bottom unstructured region
  Plane Surface(30003) = {30003}; // South unstructured region
  Plane Surface(30004) = {30004}; // East unstructured region
  Plane Surface(30005) = {30005}; // North unstructured region
@@ -230,6 +238,19 @@ Volume(7) = {40000} ;
 Physical Surface("well") = {21,43,65,87};
 Physical Surface("well_closed") = {5,6};
 Physical Volume("Reservoir") = {1, 2, 4, 3, 5, 6};
-Physical Volume("side_burden") = {7};
 Physical Volume("well_region") = {1, 2, 4, 3, 5};
+
+Physical Surface("Reservoir_bottom") = {3001};
+Physical Surface("Reservoir_top") = {3002};
+Physical Surface("Reservoir_South") = {3003};
+Physical Surface("Reservoir_East") = {3004};
+Physical Surface("Reservoir_North") = {3005};
+Physical Surface("Reservoir_West") = {3006};
+
+Physical Volume("side_burden") = {7};
+
+Physical Surface("side_burden_bottom") = {30001};
+Physical Surface("side_burden_top") = {30002};
+Physical Surface("side_burden_laterals") = {30003,30004,30005,30006};
+
 
