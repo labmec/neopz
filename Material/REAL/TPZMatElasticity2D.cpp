@@ -1079,6 +1079,61 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         return;
     }
 
+    
+    
+    
+    ///////////////************************************************ ELASTOPLASTICIDADE ****************************************************///////////////
+    
+    
+    //Stress Tensor
+    TPZFNMatrix<9> T(3,3,0.);
+  
+    
+    //T = STRESS TENSOR
+    T.PutVal(0,0, SigX);
+    T.PutVal(0,1, Tau);
+    T.PutVal(0,2, 0);  /// ZERO MESMO????
+    T.PutVal(1,0, Tau);
+    T.PutVal(1,1, SigY);
+    T.PutVal(1,2, 0); /// ZERO MESMO????
+    T.PutVal(2,0, 0); /// ZERO MESMO????
+    T.PutVal(2,1, 0); /// ZERO MESMO????
+    T.PutVal(2,2, SigZ);
+    
+    
+    long NumIt = 1000;
+    REAL tol = 1.E-5;
+    TPZVec<REAL> EigValues(3,0.);
+    TPZFNMatrix<9,REAL> EigVectors(3,3,0.);
+    bool EigenWorks;
+    EigenWorks = T.SolveEigensystemJacobi(NumIt, tol, EigValues, EigVectors);
+    
+    
+    REAL Sigma1 = 0., Sigma2 = 0., Sigma3 = 0.;
+    
+    //**********// Criar metodo para garantir que Sig1 > Sig2 > Sig3
+    if (EigValues[0] > EigValues[1] && EigValues[0] > EigValues[2]) {
+        Sigma1 = EigValues[0];
+    }
+    
+    
+    
+    REAL i1, i2, i3, j1, j2, j3;
+    
+    i1 = T(0,0) + T(1,1) + T(2,2);
+    TPZFMatrix<REAL> T2(3,3,0.);
+    T.Multiply(T,T2); // Multiplica o Tensor?
+    
+    i2 = 0.5*( i1*i1 - (T2(0,0) + T2(1,1) + T2(2,2)) );
+    
+    i3 = T(0,0)*T(1,1)*T(2,2) + T(0,1)*T(1,2)*T(2,0) + T(0,2)*T(1,0)*T(2,1) - T(0,2)*T(1,1)*T(2,0) - T(1,2)*T(2,1)*T(0,0) - T(2,2)*T(0,1)*T(1,0);
+    
+    j1 = 0.;
+    j2 = 1./3.*(i1*i1 - 3.*i2);
+    j3 = 1./27.*(2.*i1*i1*i1 - 9.*i1*i2 + 27.*i3);
+    
+    
+    
 }
 
 

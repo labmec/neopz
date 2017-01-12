@@ -477,7 +477,7 @@ int Problem2D(){
     
     //******** Configura malha Computacional ***************/
     
-    int p = 2;
+    int p = 1;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
@@ -572,7 +572,7 @@ int Problem2D(){
     int ndiv = 2;
     
     
-    int projection = 1; // define se havera projecao no plano horizontal
+    int projection = 0; // define se havera projecao no plano horizontal
     
     if (projection==1) {
         TPZStack<std::string> scalarnames, vecnames;
@@ -1047,7 +1047,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     int analytic = 0;
     
     // para projecao horizontal, projection == 1
-    int projection = 1;
+    int projection = 0;
     
     // Seta os parametros do poco
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);
