@@ -118,6 +118,14 @@ protected:
     int fProjection;
     
     
+    /** @brief Material Constants Sandler-DiMaggio
+     * @note \fA  =>  A
+     * @note \fB  =>  B
+     * @note \fC  =>  C
+     */
+    REAL fA;
+    REAL fB;
+    REAL fC;
     
 public:
     TPZMatElasticity2D();
@@ -413,6 +421,20 @@ public:
         alpha = falpha;
         beta = fbeta;
         projection = fProjection;
+        
+    }
+    
+    
+    /** @brief Set Material Constants Sandler-DiMaggio
+     * @note \fA  =>  A
+     * @note \fB  =>  B
+     * @note \fC  =>  C
+     */
+    void SetSandlerDiMaggioParameters(REAL A, REAL B, REAL C)
+    {
+        fA = A;
+        fB = B;
+        fC = C;
         
     }
     

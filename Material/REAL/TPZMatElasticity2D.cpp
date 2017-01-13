@@ -625,6 +625,11 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("Exx",name.c_str()))                             return	25;
     if(!strcmp("Eyy",name.c_str()))                             return	26;
     if(!strcmp("Exy",name.c_str()))                             return	27;
+    if(!strcmp("F_VM1",name.c_str()))                           return	28;
+    if(!strcmp("F_VM2",name.c_str()))                           return	29;
+    if(!strcmp("F_VM3",name.c_str()))                           return	30;
+    if(!strcmp("Sqrt(J2)",name.c_str()))                        return	31;
+    if(!strcmp("F1",name.c_str()))                              return	32;
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
     
@@ -697,6 +702,11 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 25)	return 1;
     if(var == 26)	return 1;
     if(var == 27)	return 1;
+    if(var == 28)	return 1;
+    if(var == 29)	return 1;
+    if(var == 30)	return 1;
+    if(var == 31)	return 1;
+    if(var == 32)	return 1;
 
     
     return TPZMaterial::NSolutionVariables(var);
@@ -1082,7 +1092,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     
     
-    ///////////////************************************************ ELASTOPLASTICIDADE ****************************************************///////////////
+    ///////////////************************************************ ELASTOPLASTICITY ****************************************************///////////////
     
     
     //Stress Tensor
@@ -1090,15 +1100,18 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
   
     
     //T = STRESS TENSOR
-    T.PutVal(0,0, SigX);
-    T.PutVal(0,1, Tau);
+    T.PutVal(0,0, (SigX+SigmaX));
+    T.PutVal(0,1, (Tau+SigmaXY));
     T.PutVal(0,2, 0);  /// ZERO MESMO????
-    T.PutVal(1,0, Tau);
-    T.PutVal(1,1, SigY);
+    T.PutVal(1,0, (Tau+SigmaXY));
+    T.PutVal(1,1, (SigY+SigmaY));
     T.PutVal(1,2, 0); /// ZERO MESMO????
     T.PutVal(2,0, 0); /// ZERO MESMO????
     T.PutVal(2,1, 0); /// ZERO MESMO????
-    T.PutVal(2,2, SigZ);
+    T.PutVal(2,2, (SigZ+SigmaZ));
+    
+    
+   // std::cout << T << std::endl;
     
     
     long NumIt = 1000;
@@ -1112,10 +1125,23 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     REAL Sigma1 = 0., Sigma2 = 0., Sigma3 = 0.;
     
     //**********// Criar metodo para garantir que Sig1 > Sig2 > Sig3
-    if (EigValues[0] > EigValues[1] && EigValues[0] > EigValues[2]) {
-        Sigma1 = EigValues[0];
-    }
     
+    REAL temp;
+    for (int i = 0; i < EigValues.size() - 1; i++) {
+        for (int j = 1; j < EigValues.size() - i; j++) {
+            if (EigValues[j - 1] < EigValues[j]) {
+                temp = EigValues[j - 1];
+                EigValues[j - 1] = EigValues[j];
+                EigValues[j] = temp;
+            }
+        }
+ }
+
+        Sigma1 = EigValues[0];
+        Sigma2 = EigValues[1];
+        Sigma3 = EigValues[2];
+    
+   // std::cout << EigValues << std::endl;
     
     
     REAL i1, i2, i3, j1, j2, j3;
@@ -1132,6 +1158,92 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     j2 = 1./3.*(i1*i1 - 3.*i2);
     j3 = 1./27.*(2.*i1*i1*i1 - 9.*i1*i2 + 27.*i3);
     
+    
+    REAL F_VM1 = 0., F_VM2 = 0., F_VM3 = 0. ;
+    
+       // std::cout << sqrt(j2) << std::endl;
+    
+    //********* Checking for Von Misses  *********// If principal stresses <=0 --> failure
+    
+    if (Sigma1 < sqrt(j2)) {
+        F_VM1 = 1.0;
+    }
+        else {
+            F_VM1 = -1.0;
+        }
+    
+    
+    if (Sigma2 < sqrt(j2)) {
+        F_VM2 = 1.0;
+    }
+    else {
+        F_VM2 = -1.0;
+    }
+    
+    if (Sigma3 < sqrt(j2)) {
+        F_VM3 = 1.0;
+    }
+    else {
+        F_VM3 = -1.0;
+    }
+    
+    
+    
+    /******** Von Misses ********/
+    
+    //	Sig1 (<ou>0)
+    if(var == 28)
+    {
+        Solout[0] = F_VM1;
+        return;
+    }
+    
+    //	Sig2 (<ou>0)
+    if(var == 29)
+    {
+        Solout[0] = F_VM2;
+        return;
+    }
+    
+    //	Sig3 (<ou>0)
+    if(var == 30)
+    {
+        Solout[0] = F_VM3;
+        return;
+    }
+    
+    
+    //	Sig3 (<ou>0)
+    if(var == 31)
+    {
+        Solout[0] = sqrt(j2);
+        return;
+    }
+    
+    
+    
+    
+    
+    //********* Checking for Sandler-DiMaggio  *********// If F1 <=0 --> failure
+    
+    REAL F1 = 0., Ff = 0., OmBeta = 0.;
+    
+    Ff = fA - pow(fC,fB*i1);
+    
+    OmBeta = 1.0; // Modelo clássico de Sandler-DiMaggio (tese Diogo)
+    
+    F1 = sqrt(j2) - (Ff/OmBeta);
+    
+    
+    /******** Sandler-DiMaggio ********/
+    
+    //	F1 <= 0   -> Failure
+    if(var == 32)
+    {
+        Solout[0] = F1;
+        return;
+    }
+
     
     
 }

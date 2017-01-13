@@ -477,7 +477,7 @@ int Problem2D(){
     
     //******** Configura malha Computacional ***************/
     
-    int p = 1;
+    int p = 2;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
@@ -616,6 +616,11 @@ int Problem2D(){
         scalarnames.Push("SigmaZProjected");
         scalarnames.Push("TauXYProjected");
         scalarnames.Push("SolidPressureProjected");
+        scalarnames.Push("F_VM1");
+        scalarnames.Push("F_VM2");
+        scalarnames.Push("F_VM3");
+        scalarnames.Push("Sqrt(J2)");
+        scalarnames.Push("F1");
         //vecnames[1] = "";
         an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
         
@@ -1051,6 +1056,13 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     // Seta os parametros do poco
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);
+    
+    
+    REAL A = 0., B = 0., C = 0.;
+    A = 0.;
+    B = 0.;
+    C = 0.;
+    material->SetSandlerDiMaggioParameters(A, B, C);
     
     
     //Obtem tensor de tensoes iniciais
