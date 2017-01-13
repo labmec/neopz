@@ -1059,9 +1059,11 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     
     REAL A = 0., B = 0., C = 0.;
-    A = 0.;
-    B = 0.;
-    C = 0.;
+    
+    //Dados tese Diogo
+    A = 152.54; //MPa
+    B = 0.0015489; // MPae-1
+    C = 146.29; //MPa
     material->SetSandlerDiMaggioParameters(A, B, C);
     
     
