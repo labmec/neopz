@@ -1,4 +1,4 @@
-// ---- 2D Circular Cylinder Gmsh Tutorial ----
+// ---- Cylinder wellbore Region Gmsh scritp ----
 // 2D_cylinder_tutorial.geo
 // Creates a mesh with an inner structured-quad region and 
 // an outer unstructured tri region
@@ -7,12 +7,24 @@
 // Labmec, State University of Campinas
 // --------------------------------------------
 
+// Settings
+ExpertMode = 1;
+Mesh.Algorithm3D = 1 ;
+
+
+// general structures
+
+
+
+well_bores = {};
+well_regions = {};
+
 // Gmsh allows variables; these will be used to set desired
 // element sizes at various Points
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 50.0;
+cl4 = 100.0;
 cl5 = 250.0;
 
 
@@ -30,39 +42,65 @@ sb_z_length = 500.0;
 alpha = 1.5;
 n_radial = 10;
 n_azimuthal = 4;
-n_axial = 8; 
+n_axial = 2; 
 
 
 // new well data
 well_index = 1;
 
 // well location
-wx = 0.0;
+wx = 50.0;
 wy = 0.0;
 wz = 0.0;
 
 // well and wellbore region dimensions
-radius = 2.0;
-outer = 40;
+radius = 0.1;
+outer = 20;
 length = 10.0;
+angle = 0.5;
+beta = 0.5;
 
+xdir = Cos(beta);
+ydir = Sin(beta);
 
 // Circle & Surrounding structured-quad region
 
-p1=newp; Point(p1) = {0+wx, 0+wy, 0+wz, cl2};
+p1=newp; Point(p1) = {0, 0, 0, cl2};
 
 // well bore points
-p2=newp; Point(p2) = {0+wx,  radius+wy, 0+wz, cl2};
-p3=newp; Point(p3) = {radius+wx,  0+wy, 0+wz, cl2};
-p4=newp; Point(p4) = {0+wx, -radius+wy, 0+wz, cl2};
-p5=newp; Point(p5) = {-radius+wx, 0+wy, 0+wz, cl2};
+p2=newp; Point(p2) = {0,  radius, 0, cl2};
+p3=newp; Point(p3) = {radius,  0, 0, cl2};
+p4=newp; Point(p4) = {0, -radius, 0, cl2};
+p5=newp; Point(p5) = {-radius, 0, 0, cl2};
 
 // well bore region points
-p6=newp; Point(p6) = {0+wx,  outer+wy, 0+wz, cl3};
-p7=newp; Point(p7) = {outer+wx,  0+wy, 0+wz, cl3};
-p8=newp; Point(p8) = {0+wx, -outer+wy, 0+wz, cl3};
-p9=newp; Point(p9) = {-outer+wx, 0+wy, 0+wz, cl3};
+p6=newp; Point(p6) = {0,  outer, 0, cl3};
+p7=newp; Point(p7) = {outer,  0, 0, cl3};
+p8=newp; Point(p8) = {0, -outer, 0, cl3};
+p9=newp; Point(p9) = {-outer, 0, 0, cl3};
 
+// Apply translation
+translate_s[] = Translate {wx, wy, wz} { 
+Point {p1,p2,p3,p4,p5,p6,p7,p8,p9};
+};
+
+// Apply rotation
+rotate_s[] = Rotate { { xdir, ydir,0}, {0,0,0}, angle } {
+Point {p1,p2,p3,p4,p5,p6,p7,p8,p9};
+};
+
+c1[] = Point{p1};
+c2[] = Point{p2};
+c3[] = Point{p3};
+
+u[] = {}; v[] = {};
+For i In {0:3-1}
+	u[i] =  c2[i] - c1[i];
+	v[i] =  c3[i] - c1[i];
+EndFor
+
+a[] = {-u[2]*v[1]+u[1]*v[2],u[2]*v[0]-u[0]*v[2],-u[1]*v[0]+u[0]*v[1]};
+norm = Sqrt( a[0]*a[0] + a[1]*a[1] + a[2]*a[2] ) / length;
 
 l1=newl; Circle(l1) = {p2, p1, p3};
 l2=newl; Circle(l2) = {p3, p1, p4};
@@ -79,10 +117,11 @@ l10=newl; Line(l10) = {p3, p7};
 l11=newl; Line(l11) = {p4, p8};
 l12=newl; Line(l12) = {p5, p9};
 
+Printf ("Mehser:: Drawing well");
+
 Transfinite Line {l1,l2,l3,l4,l5,l6,l7,l8} = n_azimuthal;
 Transfinite Line {l9,l10,l11,l12} = n_radial Using Progression alpha;
 
-//Using Progression 1.1
 
 // Each region which to be independently meshed must have a line loop
 // Regions which will be meshed with Transfinite Surface must have 4 lines
@@ -99,29 +138,36 @@ s3 = news; Plane Surface(s3) = {3}; // -- side of quad
 s4 = news; Plane Surface(s4) = {4}; // -+ side of quad
 
 
-
-// Mesh these surfaces in a structured manner
-Transfinite Surface{s1,s2,s3,s4};
-
-// Turn into quads (optional, but Transfinite Surface looks best with quads)
-// Recombine Surface {s1,s2,s3,s4}; 
-// Turn outer region into unstructured quads (optional) 
-// Recombine Surface {1};
+out[] = Extrude {a[0]/norm, a[1]/norm, a[2]/norm} { Surface{s1,s2,s3,s4}; Layers{n_axial}; };
+//out[] = Extrude {a[0]/norm, a[1]/norm, a[2]/norm} { Surface{s1,s2,s3,s4}; Layers{n_axial}; Recombine; QuadTriNoNewVerts Recomblaterals;};
 
 
-// Change layer to increase z subdivision
-out[] = Extrude {0, 0, length} { Surface{s1,s2,s3,s4}; Layers{n_axial};};
-//Extrude { {0, length, 0},{500,500,100}, -Pi/40.0} { Surface{s1,s2,s3,s4}; Layers{n_axial};}
+//N = #out[];
+//Printf ("size = %g", N);
+//For i In {0:N-1}
+//	Printf ("out[%g] = %g", i, out[i]);
+//EndFor
 
-top[] = out[0];
-N = #out[] ;
-Printf ("size = %g",  N);
-For i In {0:N-1}
-	Printf ("out[%g] = %g", i, out[i]);
-EndFor
+s1_ext = out[0];
+s2_ext = out[6];
+s3_ext = out[12];
+s4_ext = out[18];
 
-suf = Surface {38};
-Printf ("suf[%g] = %g", 0, suf );
+s1_lat = out[4];
+s2_lat = out[10];
+s3_lat = out[16];
+s4_lat = out[22];
+
+well_1 = out[2];
+well_2 = out[8];
+well_3 = out[14];
+well_4 = out[20];
+
+wing_1 = out[3];
+wing_2 = out[5];
+wing_3 = out[9];
+wing_4 = out[15];
+
 
 ////////////////////////////////////////////////////////////////////////////
 /// Well box
@@ -129,16 +175,48 @@ Printf ("suf[%g] = %g", 0, suf );
 // well closed regions
 
 Line Loop(5) = {l1, l2, l3, l4}; // clossing the well
-Plane Surface(5) = {5}; // clossing the well
+s5 = news; Plane Surface(s5) = {5}; // clossing the well
 
-Line Loop(6) = {14, 36, 80, 58}; // clossing the well
-Plane Surface(6) = {6}; // clossing the well
+Line Loop(6) = {l1 + 17, l2 + 38, l3 + 59, l4 + 80}; // clossing the well
+s6 = news; Plane Surface(s6) = {6}; // clossing the well
 
-//well_closed[well_index] = newreg;
-//Surface Loop(well_closed[well_index]) = {5,6};
+well_region[] = {s1,s2,s3,s4,s5,s6,s1_ext,s2_ext,s3_ext,s4_ext,s1_lat,s2_lat,s3_lat,s4_lat};
+well_bore[] = {well_1,well_2,well_3,well_4};
 
- Transfinite Surface{5,6};
-// Recombine Surface {5,6};
+
+N = #well_region[];
+M = #well_regions[];
+For i In {0:N-1}
+	well_regions[i + M] = well_region[i];
+EndFor
+
+//M = #well_regions[];
+//For i In {0:N-1}
+//	Printf ("well_regions[%g] = %g", i, well_regions[i]);
+//EndFor
+
+
+N = #well_bore[];
+M = #well_bores[];
+For i In {0:N-1}
+	well_bores[i + M] = well_bore[i];
+EndFor
+
+//M = #well_bores[];
+//For i In {0:N-1}
+//	Printf ("well_bores[%g] = %g", i, well_bores[i]);
+//EndFor
+
+
+Surface Loop(1) = {s1,s2,s3,s4,s1_ext,s2_ext,s3_ext,s4_ext,well_1,well_2,well_3,well_4,s1_lat,s2_lat,s3_lat,s4_lat}; 
+
+// wellbore region volume
+vregion = newv; Volume(newv) = {1};
+
+// Tagging boundary conditions for wells
+Physical Surface("well_p") = well_bores[];
+Physical Surface("well_closed") = {s5,s6};
+Physical Volume("well_p_region") = {vregion};
 
 // outer well box
 
@@ -174,20 +252,25 @@ Line(2012) = {1008,1004};
  Line Loop(3005) = {2003, -2012, -2007, 2011}; // North
  Line Loop(3006) = {2004, -2009, -2008, 2012}; // West
 
- //Plane Surface(3001) = {3001}; // Bottom unstructured region
- //Plane Surface(3002) = {3002}; // Top unstructured region
- //Plane Surface(3003) = {3003}; // South unstructured region
- //Plane Surface(3004) = {3004}; // East unstructured region
- //Plane Surface(3005) = {3005}; // North unstructured region
- //Plane Surface(3006) = {3006}; // West unstructured region
+ Plane Surface(3001) = {3001}; // Bottom unstructured region
+ Plane Surface(3002) = {3002}; // Top unstructured region
+ Plane Surface(3003) = {3003}; // South unstructured region
+ Plane Surface(3004) = {3004}; // East unstructured region
+ Plane Surface(3005) = {3005}; // North unstructured region
+ Plane Surface(3006) = {3006}; // West unstructured region
 
 
-// Recombine Surface {3001,3002,3003,3004,3005,3006};
+//Recombine Surface {3001,3002,3003,3004,3005,3006};
 
 // Build the well box volume
 
-//Surface Loop(4000) = {1,2,3,4,5,6,29,51,73,95,34,56,78,100,3001,3002,3003,3004,3005,3006};
-//Volume(6) = {4000} ;
+reservoir_region[] = {well_regions[],3001,3002,3003,3004,3005,3006};
+Surface Loop(4000) = reservoir_region[];
+Volume(6) = {4000} ;
+
+//Transfinite Surface "*";
+//Recombine Surface "*";
+//Recombine Volume "*";
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -225,12 +308,12 @@ Line(20012) = {10008,10004};
  Line Loop(30005) = {20003, -20012, -20007, 20011}; // North
  Line Loop(30006) = {20004, -20009, -20008, 20012}; // West
 
-// Plane Surface(30001) = {30001}; // Top unstructured region
-// Plane Surface(30002) = {30002}; // Bottom unstructured region
-// Plane Surface(30003) = {30003}; // South unstructured region
-// Plane Surface(30004) = {30004}; // East unstructured region
-// Plane Surface(30005) = {30005}; // North unstructured region
-// Plane Surface(30006) = {30006}; // West unstructured region
+//Plane Surface(30001) = {30001}; // Top unstructured region
+//Plane Surface(30002) = {30002}; // Bottom unstructured region
+//Plane Surface(30003) = {30003}; // South unstructured region
+//Plane Surface(30004) = {30004}; // East unstructured region
+//Plane Surface(30005) = {30005}; // North unstructured region
+//Plane Surface(30006) = {30006}; // West unstructured region
 
 
 // Recombine Surface {30001,30002,3003,30004,30005,30006};
@@ -242,24 +325,20 @@ Line(20012) = {10008,10004};
 
 ////////////////////////////////////////////////////////////////////////////
 
-// Tagging boundary conditions
 
-Physical Surface("well") = {21,43,65,87};
-Physical Surface("well_closed") = {5,6};
 Physical Volume("Reservoir") = {1, 2, 4, 3, 5, 6};
-Physical Volume("well_region") = {1, 2, 4, 3, 5};
 
-//Physical Surface("Reservoir_bottom") = {3001};
-//Physical Surface("Reservoir_top") = {3002};
-//Physical Surface("Reservoir_South") = {3003};
-//Physical Surface("Reservoir_East") = {3004};
-//Physical Surface("Reservoir_North") = {3005};
-//Physical Surface("Reservoir_West") = {3006};
 
-//Physical Volume("side_burden") = {7};
+Physical Surface("Reservoir_bottom") = {3001};
+Physical Surface("Reservoir_top") = {3002};
+Physical Surface("Reservoir_South") = {3003};
+Physical Surface("Reservoir_East") = {3004};
+Physical Surface("Reservoir_North") = {3005};
+Physical Surface("Reservoir_West") = {3006};
 
-//Physical Surface("side_burden_bottom") = {30001};
-//Physical Surface("side_burden_top") = {30002};
-//Physical Surface("side_burden_laterals") = {30003,30004,30005,30006};
+Physical Volume("side_burden") = {7};
+Physical Surface("side_burden_bottom") = {30001};
+Physical Surface("side_burden_top") = {30002};
+Physical Surface("side_burden_laterals") = {30003,30004,30005,30006};
 
 
