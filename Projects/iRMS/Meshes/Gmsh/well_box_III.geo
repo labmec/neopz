@@ -29,14 +29,14 @@ cl5 = 250.0;
 
 
 // reservoir box dimensions
-x_length = 500.0;
-y_length = 500.0;
-z_length = 150.0;
+x_length = 1000.0;
+y_length = 1000.0;
+z_length = 100.0;
 
 // side-burden box dimensions
-sb_x_length = 1000.0;
-sb_y_length = 1000.0;
-sb_z_length = 500.0;
+sb_x_length = 5000.0;
+sb_y_length = 5000.0;
+sb_z_length = 1000.0;
 
 // mesh controls on wellbore region
 alpha = 1.5;
@@ -59,6 +59,9 @@ outer = 20;
 length = 10.0;
 angle = 0.5;
 beta = 0.5;
+
+
+// Scripting
 
 xdir = Cos(beta);
 ydir = Sin(beta);
@@ -308,20 +311,20 @@ Line(20012) = {10008,10004};
  Line Loop(30005) = {20003, -20012, -20007, 20011}; // North
  Line Loop(30006) = {20004, -20009, -20008, 20012}; // West
 
-//Plane Surface(30001) = {30001}; // Top unstructured region
-//Plane Surface(30002) = {30002}; // Bottom unstructured region
-//Plane Surface(30003) = {30003}; // South unstructured region
-//Plane Surface(30004) = {30004}; // East unstructured region
-//Plane Surface(30005) = {30005}; // North unstructured region
-//Plane Surface(30006) = {30006}; // West unstructured region
+Plane Surface(30001) = {30001}; // Top unstructured region
+Plane Surface(30002) = {30002}; // Bottom unstructured region
+Plane Surface(30003) = {30003}; // South unstructured region
+Plane Surface(30004) = {30004}; // East unstructured region
+Plane Surface(30005) = {30005}; // North unstructured region
+Plane Surface(30006) = {30006}; // West unstructured region
 
 
 // Recombine Surface {30001,30002,3003,30004,30005,30006};
 
 // Build the well box volume
 
-//Surface Loop(40000) = {3001,3002,3003,3004,3005,3006,30001,30002,30003,30004,30005,30006};
-//Volume(7) = {40000} ;
+Surface Loop(40000) = {3001,3002,3003,3004,3005,3006,30001,30002,30003,30004,30005,30006};
+Volume(7) = {40000} ;
 
 ////////////////////////////////////////////////////////////////////////////
 
