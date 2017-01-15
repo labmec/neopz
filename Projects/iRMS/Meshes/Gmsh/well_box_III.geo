@@ -21,8 +21,8 @@ well_regions = {};
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 75.0;
-cl5 = 500.0;
+cl4 = 100.0;
+cl5 = 1000.0;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -33,136 +33,26 @@ cl5 = 500.0;
 well_index = 1;
 
 // mesh controls on wellbore region
-alpha = 1.5;
+alpha = 1.1;
 n_radial = 10;
 n_azimuthal = 4;
-n_axial = 3; 
-
-// well location
-wx = 450.0;
-wy = 450.0;
-wz = 0.0;
-
-// Geometry well and wellbore region dimensions
-radius = 1.0;
-outer = 20;
-length = 10.0;
-angle = 0.0;
-beta = 0.0;
-
-Call DrillProducer;
-
-
-////////////////////////////////////////////////////////////////////////////
-// Drill producer 2 
-////////////////////////////////////////////////////////////////////////////
-
-// new well data
-well_index = 2;
-
-// mesh controls on wellbore region
-alpha = 1.5;
-n_radial = 10;
-n_azimuthal = 4;
-n_axial = 3; 
-
-// well location
-wx = -450.0;
-wy = -450.0;
-wz = 0.0;
-
-// Geometry well and wellbore region dimensions
-radius = 1.0;
-outer = 20;
-length = 10.0;
-angle = 0.0;
-beta = 0.0;
-
-Call DrillProducer;
-
-
-////////////////////////////////////////////////////////////////////////////
-// Drill producer 3 
-////////////////////////////////////////////////////////////////////////////
-
-// new well data
-well_index = 3;
-
-// mesh controls on wellbore region
-alpha = 1.5;
-n_radial = 10;
-n_azimuthal = 4;
-n_axial = 3; 
-
-// well location
-wx = 450.0;
-wy = -450.0;
-wz = 0.0;
-
-// Geometry well and wellbore region dimensions
-radius = 1.0;
-outer = 20;
-length = 10.0;
-angle = 0.0;
-beta = 0.0;
-
-Call DrillProducer;
-
-
-////////////////////////////////////////////////////////////////////////////
-// Drill producer 4 
-////////////////////////////////////////////////////////////////////////////
-
-// new well data
-well_index = 4;
-
-// mesh controls on wellbore region
-alpha = 1.5;
-n_radial = 10;
-n_azimuthal = 4;
-n_axial = 3; 
-
-// well location
-wx = -450.0;
-wy = 450.0;
-wz = 0.0;
-
-// Geometry well and wellbore region dimensions
-radius = 1.0;
-outer = 20;
-length = 10.0;
-angle = 0.0;
-beta = 0.0;
-
-Call DrillProducer;
-
-
-////////////////////////////////////////////////////////////////////////////
-// Drill producer 5 
-////////////////////////////////////////////////////////////////////////////
-
-// new well data
-well_index = 5;
-
-// mesh controls on wellbore region
-alpha = 1.5;
-n_radial = 10;
-n_azimuthal = 4;
-n_axial = 3; 
+n_axial = 10; 
 
 // well location
 wx = 0.0;
-wy = 0.0;
+wy = -50.0;
 wz = 0.0;
 
 // Geometry well and wellbore region dimensions
-radius = 1.0;
-outer = 20;
-length = 10.0;
-angle = 0.0;
+radius = 0.1;
+length = 100.0;
+outer = 40;
+angle = Pi/2.0;
 beta = 0.0;
 
 Call DrillProducer;
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////
