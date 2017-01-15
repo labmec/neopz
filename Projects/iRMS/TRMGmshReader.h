@@ -22,29 +22,26 @@ class TPZGeoMesh;
 struct MaterialDataS {
 
     int fMatID;
-    int fMatID;    
-    std::string fMaterial;
-    TPZStack<REAL> fProperties;
+    TPZStack<std::pair<int ,std::string> >  fMaterial;
     
-    MaterialDataV() : fMatID(-1), fMaterial(), fProperties()
-    {
+    MaterialDataS() : fMatID(-1), fMaterial(){
         
     }
-    MaterialDataV(int num) : fMatID(-1), fMaterial(), fProperties()
-    {
+    
+    MaterialDataS(int num) : fMatID(-1), fMaterial(){
         
     }
-    MaterialDataV(const MaterialDataV &copy) : fMatID(copy.fMatID),
-    fMaterial(copy.fMaterial), fProperties(copy.fProperties)
-    {
+    
+    MaterialDataS(const MaterialDataS &copy) : fMatID(copy.fMatID),
+    fMaterial(copy.fMaterial) {
     }
-    MaterialDataV &operator=(const MaterialDataV &copy)
-    {
+    
+    MaterialDataS &operator=(const MaterialDataS &copy){
         fMatID = copy.fMatID;
         fMaterial = copy.fMaterial;
-        fProperties = copy.fProperties;
         return *this;
     }
+    
 };
 
 
