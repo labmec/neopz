@@ -268,7 +268,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
         for (int is = 0; is < nphis_a; is++)
         {
             
-            ef(is + firsts_a) += weight * (-1.0/dt) * sa_avg * rho_a[0] * phi[0] * phi_ss(is,0);
+            ef(is + firsts_a) += weight * (-1.0/dt) * sa * rho_a[0] * phi[0] * phi_ss(is,0);
             
         }
         
@@ -279,7 +279,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     for (int is = 0; is < nphis_a; is++)
     {
         
-        ef(is + firsts_a) += weight * (1.0/dt) * sa_avg_n * rho_a[0] * phi[0] * phi_ss(is,0);
+        ef(is + firsts_a) += weight * (1.0/dt) * sa * rho_a[0] * phi[0] * phi_ss(is,0);
         
         for (int js = 0; js < nphis_a; js++)
         {
@@ -297,7 +297,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     int sb_a    = 0;
     
     TPZFNMatrix<100,STATE> phi_ss       = datavec[sb_a].phi;
-//    REAL sa = datavec[sb_a].sol[0][0];
+    REAL sa = datavec[sb_a].sol[0][0];
     
     int nphis_a     = phi_ss.Rows();
     int firsts_a    = 0;
@@ -319,7 +319,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     TPZManVector<STATE, 10> v(nvars);
     v[0] = p_avg_n;
-    v[1] = sa_avg_n;
+    v[1] = sa;//sa_avg_n;
     
     //  Computing closure relationship at given average values
     
@@ -348,7 +348,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
         for (int is = 0; is < nphis_a; is++)
         {
             
-            ef(is + firsts_a) += weight * (-1.0/dt) * sa_avg * rho_a[0] * phi[0] * phi_ss(is,0);
+            ef(is + firsts_a) += weight * (-1.0/dt) * sa * rho_a[0] * phi[0] * phi_ss(is,0);
             
         }
         
@@ -359,7 +359,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     for (int is = 0; is < nphis_a; is++)
     {
         
-        ef(is + firsts_a) += weight * (1.0/dt) * sa_avg_n * rho_a[0] * phi[0] * phi_ss(is,0);
+        ef(is + firsts_a) += weight * (1.0/dt) * sa * rho_a[0] * phi[0] * phi_ss(is,0);
         
     }
     

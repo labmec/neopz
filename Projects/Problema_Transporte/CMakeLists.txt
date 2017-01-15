@@ -5,5 +5,5 @@ file(GLOB source *.cpp)
 
 add_executable(Problema_Transporte ${source} ${header})
 
-target_link_libraries(Problema_Transporte pz ${CBLAS_LIB} ${LAPACK_LIB})
+target_link_libraries(Problema_Transporte pz)
 

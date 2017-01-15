@@ -245,13 +245,13 @@ public:
     TPZAutoPointer<TRMPhaseProperties> & GammaProp();
     
     /** @brief Setup reporting times and time step size */
-    void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min);
+    void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< STATE , 500 > ReportingTimes);
     
     /** @brief Setup reporting times and time step size */
     void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ);
     
     /** @brief Store time values to be reported */
-    TPZStack< STATE , 500 > ReportingTimes(){
+    TPZStack< STATE , 500 > & ReportingTimes(){
         return fReportingTimes;
     }
     
@@ -361,8 +361,18 @@ public:
     }
     
     /** @brief L2 projection material id for gradient reconstruction */
+    void SetL2_Projection_material_Id(int l2_projection){
+        fl2_projection_material_id = l2_projection;
+    }
+    
+    /** @brief L2 projection material id for gradient reconstruction */
     int L2_Projection_material_Id(){
         return fl2_projection_material_id;
+    }
+    
+    /** @brief Set the Skeleton material id for MHM substructuring */
+    void SetSkeleton_material_Id(int skeleton_id){
+        fSkeleton_material_id = skeleton_id;
     }
     
     /** @brief Skeleton dfault material id for MHM substructuring */

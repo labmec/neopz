@@ -108,7 +108,7 @@ fSolution(0,1)
 
 TPZCompMesh::~TPZCompMesh() {
 	
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         Print(sout);
@@ -460,9 +460,9 @@ void TPZCompMesh::LoadReferences() {
 
 void TPZCompMesh::CleanUpUnconnectedNodes() {
 	ComputeNodElCon();
-	long i, nelem = NConnects();
+	long i, nconnects = NConnects();
 	long ndepblocks = 0, nvalidblocks = 0, nremoved = 0, ncondensed = 0;
-	for (i=0;i<nelem;i++)
+	for (i=0;i<nconnects;i++)
     {
 		TPZConnect &no = fConnectVec[i];
 		long seq = no.SequenceNumber();
@@ -475,7 +475,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		else if(no.HasDependency() && no.NElConnected()) ndepblocks++;
     }
 	int need = 0;
-	for (i=0;i<nelem;i++) {
+	for (i=0;i<nconnects;i++) {
 		TPZConnect &no = fConnectVec[i];
 		if (no.SequenceNumber() == -1) continue;
 		if (no.HasDependency() && no.NElConnected() == 0) {
@@ -506,7 +506,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	long idepblocks = 0, iremovedblocks= 0, icondensed = 0;
 	
 	if (need) {
-		for(i=0; i<nelem; i++) {
+		for(i=0; i<nconnects; i++) {
 			TPZConnect &no = fConnectVec[i];
 			if(no.SequenceNumber() == -1) continue;
 			int seq = no.SequenceNumber();
@@ -557,9 +557,9 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	if (need) {
 #ifdef PZDEBUG
 		std::set<long> check;
-		nelem = permute.NElements();
-		for(i=0; i<nelem; i++) check.insert(permute[i]);
-		if(static_cast<int>(check.size()) != nelem)
+		nconnects = permute.NElements();
+		for(i=0; i<nconnects; i++) check.insert(permute[i]);
+		if(static_cast<int>(check.size()) != nconnects)
 		{
 			cout << __PRETTY_FUNCTION__ << " The permutation vector is not a permutation!\n" << permute << endl;
 			DebugStop();
@@ -2214,39 +2214,59 @@ void TPZCompMesh::SaddlePermute()
         permutegather[i] = i;
         permutescatter[i] = i;
     }
+    long numconnects = ConnectVec().NElements();
+    long numindepconnects = NIndependentConnects();
+    if (numconnects==0) {
+        return;
+    }
+    int minlagrange = 0;
+    int maxlagrange = 0;
+    for (long ic=0; ic<numconnects; ic++) {
+        TPZConnect &c = ConnectVec()[ic];
+        if(c.HasDependency() || c.IsCondensed()) continue;
+        if (c.SequenceNumber() < 0) {
+            continue;
+        }
+        minlagrange = c.LagrangeMultiplier();
+        maxlagrange = c.LagrangeMultiplier();
+        break;
+    }
+    for (int ic=0; ic<numconnects; ic++) {
+        TPZConnect &c = ConnectVec()[ic];
+        if(c.HasDependency() || c.IsCondensed()) continue;
+        int lagrange = c.LagrangeMultiplier();
+        minlagrange = min(lagrange, minlagrange);
+        maxlagrange = max(lagrange,maxlagrange);
+    }
+
     long nel = NElements();
-    for (long el = 0; el<nel ; el++) {
-        TPZCompEl *cel = ElementVec()[el];
-        if (!cel) {
-            continue;
-        }
-        int nc = cel->NConnects();
-        if (nc <= 1) {
-            continue;
-        }
-        
-#ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout << "Before renumbering : ";
-            for (int ic=0; ic<nc; ic++) {
-                sout << permutescatter[cel->Connect(ic).SequenceNumber()] << "/" << (int)cel->Connect(ic).LagrangeMultiplier() << " ";
+    for (int lagr = minlagrange+1; lagr <= maxlagrange; lagr++)
+    {
+        for (long el = 0; el<nel ; el++) {
+            TPZCompEl *cel = ElementVec()[el];
+            if (!cel) {
+                continue;
             }
-            LOGPZ_DEBUG(logger, sout.str())
-        }
+            int nc = cel->NConnects();
+            if (nc <= 1) {
+                continue;
+            }
+        
+#ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "el " << el << " Before renumbering : ";
+                for (int ic=0; ic<nc; ic++) {
+                    TPZConnect &c = cel->Connect(ic);
+                    if (c.HasDependency() || c.IsCondensed()) {
+                        continue;
+                    }
+                    sout << permutescatter[c.SequenceNumber()] << "/" << (int)c.LagrangeMultiplier() << " ";
+                }
+                LOGPZ_DEBUG(logger, sout.str())
+            }
 #endif
-        TPZConnect &c0 = cel->Connect(0);
-        int minlagrange = c0.LagrangeMultiplier();
-        int maxlagrange = c0.LagrangeMultiplier();
-        for (int ic=0; ic<nc; ic++) {
-            TPZConnect &c = cel->Connect(ic);
-            if(c.HasDependency() || c.IsCondensed()) continue;
-            int lagrange = c.LagrangeMultiplier();
-            minlagrange = min(lagrange, minlagrange);
-            maxlagrange = max(lagrange,maxlagrange);
-        }
-        for (int lagr = minlagrange+1; lagr <= maxlagrange; lagr++) {
             // put all connects after the connect largest seqnum and lower lagrange number
             long maxseq = -1;
             for (int ic=0; ic<nc ; ic++) {
@@ -2279,7 +2299,7 @@ void TPZCompMesh::SaddlePermute()
             long count = 0;
             for (it = seteq.rbegin(); it != seteq.rend(); it++) {
                 long eq = *it;
-#ifdef LOG4CXX2
+#ifdef LOG4CXX
                 if (logger->isDebugEnabled()) {
                     std::stringstream sout;
                     sout << "Switch ceq = " << eq << " with maxeq = " << maxseq-count;
@@ -2324,19 +2344,23 @@ void TPZCompMesh::SaddlePermute()
                 }
             }
 #endif
+#ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "el " << el << " After renumbering  : ";
+                for (int ic=0; ic<nc; ic++) {
+                    TPZConnect &c = cel->Connect(ic);
+                    if (c.HasDependency() || c.IsCondensed()) {
+                        continue;
+                    }
+                    sout << permutescatter[c.SequenceNumber()] << "/" << (int)c.LagrangeMultiplier() << " ";
+                }
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
         }
         
-#ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout << "After renumbering  : ";
-            for (int ic=0; ic<nc; ic++) {
-                sout << permutescatter[cel->Connect(ic).SequenceNumber()] << "/" << (int)cel->Connect(ic).LagrangeMultiplier() << " ";
-            }
-            LOGPZ_DEBUG(logger, sout.str())
-        }
-#endif
     }
 #ifdef LOG4CXX2
     if (logger->isDebugEnabled())
@@ -2361,6 +2385,12 @@ void TPZCompMesh::SaddlePermute()
     Permute(permutescatter);
 #ifdef PZDEBUG
     
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        LOGPZ_DEBUG(logger, "******************* AFTER PERMUTATION **************************")
+    }
+#endif
+    
     for (long i=0L; i<numinternalconnects; i++) {
         permutegather[i] = i;
         permutescatter[i] = i;
@@ -2374,6 +2404,21 @@ void TPZCompMesh::SaddlePermute()
         if (nc == 0) {
             continue;
         }
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "el " << el << " Final numbering : ";
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+                if (c.HasDependency() || c.IsCondensed()) {
+                    continue;
+                }
+                sout << permutescatter[c.SequenceNumber()] << "/" << (int)c.LagrangeMultiplier() << " ";
+            }
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
         TPZConnect &c0 = cel->Connect(0);
         int minlagrange = c0.LagrangeMultiplier();
         int maxlagrange = c0.LagrangeMultiplier();

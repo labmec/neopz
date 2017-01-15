@@ -12,6 +12,10 @@
 #include "pzsysmp.h"
 #include "pzysmp.h"
 
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
+
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
 TPZPardisoControl<TVar>::TPZPardisoControl() : fSystemType(ENonSymmetric),
@@ -218,28 +222,53 @@ void TPZPardisoControl<TVar>::Decompose()
             DebugStop();
         }
     }
-//    std::cout << std::endl;
+
     long long *perm = 0,nrhs = 0;
     long long Error = 0;
     nrhs = 0;
     fPermutation.resize(n);
+    
     perm = &fPermutation[0];
     fParam[34] = 1;
-    /// analyse and factor the equations
     
-    /// testing RTFM = READ THE FUCKING MANUAL
+    for(long i = 0; i < n; i++){
+        fPermutation[i] = i;
+    }
+    
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
+<<<<<<< HEAD
         fParam[10] = 1;
         fParam[12] = 1;
         // @omar:: find the parameter ....
+=======
+//        fParam[9] = -1; // avoid any pivot permutation ()
+        
+//        // Note: other values unused
+//        fParam[0 ] = 0; // use default values (2, 4..64), 3 MUST be set .. this will overwrite the following config with defaults (it mostly here for documentation)
+//        fParam[1 ] = 2; // fill-in reducing ordering (0: min-degree, 2: METIS)
+////        fParam[2 ] = 1; // number of processors: must match OMP_NUM_THREADS TODO  -- NOTE this is an *upper-limit* on the number of processors...
+//        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
+        fParam[4 ] = 1; // user permutation PERM
+        
+>>>>>>> iRMS_MHM
     }
     long long phase = 12;
+
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
     
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    std::cout  << "Pardiso:: Done. Overal execution time = " << (t2-t1) << std::endl;
+#endif
 
-    std::cout << "Done\n";
     if (Error) {
         DebugStop();
     }
@@ -278,10 +307,6 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
-//    std::cout << "Norm RHS " << Norm(rhs) << std::endl;
-//    std::cout << "Norm sol " << Norm(sol) << std::endl;
-//    rhs.Print("rhs");
-//    sol.Print("sol");
     if (Error) {
         DebugStop();
     }

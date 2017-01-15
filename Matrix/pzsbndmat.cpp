@@ -145,7 +145,7 @@ TPZSBMatrix< std::complex<double> >::PutVal(const long r,const long c,const std:
     // inicializando row e col para trabalhar com a triangular superior
     long row(r),col(c);
     if ( row > col )
-        DebugStop();//this->Swap( &row, &col );
+        this->Swap( &row, &col );
     
     long index;
     if ( (index = col-row) > fBand )

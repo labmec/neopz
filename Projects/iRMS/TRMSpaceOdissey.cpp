@@ -348,13 +348,13 @@ void TRMSpaceOdissey::SeparateConnectsByNeighborhood(){
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = fFluxCmesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
-        if (!gel || gel->Dimension() != gmesh->Dimension()) {
+        if (!gel || (gel->Dimension() != gmesh->Dimension() && gel->MaterialId() != fSimulationData->Skeleton_material_Id()) ) {
             continue;
         }
         int nc = cel->NConnects();
         for (int ic =0; ic<nc; ic++) {
             TPZConnect &c = cel->Connect(ic);
-            if (c.HasDependency() && c.NElConnected() == 2) // @omar:: Hdiv connects have this invariant characteristic
+            if ((c.HasDependency() && c.NElConnected() == 2) || (gel->MaterialId() == fSimulationData->Skeleton_material_Id() && c.NElConnected() == 2)) // @omar:: Hdiv connects have this invariant characteristic
             {
                 // duplicate the connect
                 long cindex = fFluxCmesh->AllocateNewConnect(c);
@@ -370,13 +370,17 @@ void TRMSpaceOdissey::SeparateConnectsByNeighborhood(){
 }
 
 /** @brief Build MHM form the current hdvi mesh */
-void TRMSpaceOdissey::InsertSkeletonInterfaces(){
+void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
     
 #ifdef PZDEBUG
     if(!fGeoMesh){
         DebugStop();
     }
 #endif
+    
+    if(skeleton_id != 0){
+        fSimulationData->SetSkeleton_material_Id(skeleton_id);
+    }
     
     long nel = fGeoMesh->NElements();
     for (long el = 0; el<nel; el++) {
@@ -518,7 +522,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
-        mat->SetSimulationData(fSimulationData);        
+        mat->SetSimulationData(this->SimulationData());        
         fMixedFluxPressureCmesh->InsertMaterialObject(mat);
         
         // Inserting boundary materials
@@ -570,6 +574,8 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         mfcel->InitializeIntegrationRule();
         mfcel->PrepareIntPtIndices();
     }
+    
+    fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
     
 //    TPZCompMeshTools::OptimizeBandwidth(fMixedFluxPressureCmesh);
     
@@ -1387,13 +1393,103 @@ void TRMSpaceOdissey::CMeshRefinement(TPZCompMesh  *cmesh, int ndiv)
 /** @brief Apply uniform refinement on the Geometric mesh */
 void TRMSpaceOdissey::UniformRefinement(int n_ref){
     for ( int ref = 0; ref < n_ref; ref++ ){
-        TPZVec<TPZGeoEl *> filhos;
+        TPZVec<TPZGeoEl *> sons;
         long n = fGeoMesh->NElements();
         for ( long i = 0; i < n; i++ ){
             TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
-            if (gel->Dimension() != 0) gel->Divide (filhos);
+            if (gel->Dimension() != 0) gel->Divide (sons);
         }//for i
     }//ref
+    fGeoMesh->BuildConnectivity();
+}
+
+/** @brief Apply uniform refinement at specific material id */
+void TRMSpaceOdissey::UniformRefinement_at_MaterialId(int n_ref, int mat_id){
+    
+    int dim = fGeoMesh->Dimension();
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> sons;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if (gel->Dimension() == dim || gel->Dimension() == dim - 1){
+                if (gel->MaterialId()== mat_id){
+                    gel->Divide(sons);
+                }
+            }
+        }//for i
+    }//ref
+}
+
+/** @brief Apply uniform refinement around at specific material id */
+void TRMSpaceOdissey::UniformRefinement_Around_MaterialId(int n_ref, int mat_id){
+    
+    int dim = fGeoMesh->Dimension();
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> sons;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if (gel->Dimension() == dim || gel->Dimension() == dim - 1){
+                
+                if(gel->HasSubElement()){
+                    continue;
+                }
+                
+                if (gel->MaterialId()== mat_id){
+                    
+                    int gel_nsides = gel->NSides();
+                    TPZGeoElSide gel_itself =  gel->Neighbour(gel_nsides-1);
+                    
+                    if(!gel_itself.Element()){
+                        continue;
+                    }
+                    
+                    if(gel_itself.Element()->HasSubElement()){
+                        continue;
+                    }
+                    
+                    int high_gel_nsides = gel_itself.Element()->NSides() - 1;
+                    for (int is = gel_itself.Element()->NNodes() ; is < high_gel_nsides; is++) {
+                        TPZGeoElSide side = gel_itself.Element()->Neighbour(is);
+                        if(!side.Element()){
+                            continue;
+                        }
+                        
+                        if(side.Element()->Dimension() != dim-1 || side.Element()->HasSubElement()){
+                            continue;
+                        }
+                        
+                        side.Element()->Divide(sons);
+                    }
+                    
+                    gel_itself.Element()->Divide(sons);
+                    
+                }
+            }
+        }//for i
+    }//ref
+    
+    fGeoMesh->BuildConnectivity();
+}
+
+/** @brief Apply uniform refinement on the Geometric mesh */
+void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> sons;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if(gel->HasSubElement()){
+                continue;
+            }
+            if(gel->Index() == father_index ){
+                if (gel->Dimension() != 0) gel->Divide (sons);
+            }
+
+        }//for i
+    }//ref
+    
     fGeoMesh->BuildConnectivity();
 }
 

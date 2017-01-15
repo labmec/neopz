@@ -144,6 +144,26 @@ public:
     /** @brief Resize and fill residue and solution vectors */
     void AdjustVectors();
     
+    /** @brief Get current error */
+    REAL error_norm(){
+        return ferror;
+    }
+    
+    /** @brief Set dx error */
+    void Set_error_norm(REAL error){
+        ferror = error;
+    }
+    
+    /** @brief Get dx error */
+    REAL dx_norm(){
+        return fdx_norm;
+    }
+    
+    /** @brief Set current error */
+    void Set_dx_norm(REAL dx_norm){
+        fdx_norm = dx_norm;
+    }
+    
     /** @brief Get k iterations */
     int k_ietrarions(){
         return fk_iterations;

@@ -29,23 +29,23 @@ private:
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 2> fmeshvec;
     
-    /** @brief Part of residue at n state  */
-    TPZFMatrix<STATE> fR_n;
+    /** @brief Part of residue at n REAL  */
+    TPZFMatrix<REAL> fR_n;
     
-    /** @brief Part of residue at past state  */
-    TPZFMatrix<STATE> fR;
+    /** @brief Part of residue at past REAL  */
+    TPZFMatrix<REAL> fR;
     
-    /** @brief Solution ate n state */
-    TPZFMatrix<STATE> fX_n;
+    /** @brief Solution ate n REAL */
+    TPZFMatrix<REAL> fX_n;
     
-    /** @brief Solution at past state */
-    TPZFMatrix<STATE> fX;
+    /** @brief Solution at past REAL */
+    TPZFMatrix<REAL> fX;
     
     /** @brief Residue error */
-    STATE ferror;
+    REAL ferror;
     
     /** @brief Correction variation */
-    STATE fdx_norm;
+    REAL fdx_norm;
     
     /** @brief number of newton corrections */
     int fk_iterations;
@@ -70,23 +70,23 @@ public:
      * @{
      */
     
-    /** @brief Set Solution at n state */
-    void SetX_n(TPZFMatrix<STATE> &x){
+    /** @brief Set Solution at n REAL */
+    void SetX_n(TPZFMatrix<REAL> &x){
         fX_n = x;
     }
     
-    /** @brief Set Solution at n state */
-    TPZFMatrix<STATE> & X_n(){
+    /** @brief Set Solution at n REAL */
+    TPZFMatrix<REAL> & X_n(){
         return fX_n;
     }
     
-    /** @brief Set Solution at past state */
-    void SetX(TPZFMatrix<STATE> &x){
+    /** @brief Set Solution at past REAL */
+    void SetX(TPZFMatrix<REAL> &x){
         fX = x;
     }
     
-    /** @brief Set Solution at past state */
-    TPZFMatrix<STATE> & X(){
+    /** @brief Set Solution at past REAL */
+    TPZFMatrix<REAL> & X(){
         return fX;
     }
     
@@ -129,6 +129,26 @@ public:
     /** @brief Resize and fill residue and solution vectors */
     void AdjustVectors();
     
+    /** @brief Get current error */
+    REAL error_norm(){
+        return ferror;
+    }
+    
+    /** @brief Set dx error */
+    void Set_error_norm(REAL error){
+        ferror = error;
+    }
+    
+    /** @brief Get dx error */
+    REAL dx_norm(){
+        return fdx_norm;
+    }
+    
+    /** @brief Set current error */
+    void Set_dx_norm(REAL dx_norm){
+        fdx_norm = dx_norm;
+    }
+    
     /** @brief Get k iterations */
     int k_ietrarions(){
         return fk_iterations;
@@ -158,7 +178,7 @@ public:
     /** @brief PostProcess results */
     void PostProcessStep();
     
-    /** @brief Update memory using the Transfer object at state n */
+    /** @brief Update memory using the Transfer object at REAL n */
     void UpdateMemory_at_n();
 
     /** @brief Update memory using the Transfer object */

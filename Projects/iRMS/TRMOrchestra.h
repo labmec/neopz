@@ -17,6 +17,7 @@
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
+#include "TPZSpStructMatrix.h"
 
 #include "TRMSpaceOdissey.h"
 #include "TRMSimulationData.h"
@@ -262,6 +263,9 @@ public:
     
     /** @brief Run a single time step */
     void ExecuteOneTimeStep();
+    
+    /** @brief Must report time */
+    bool MustResporTimeQ(REAL time);
     
     /** @brief Computes the post processed results */
     void PostProcess();

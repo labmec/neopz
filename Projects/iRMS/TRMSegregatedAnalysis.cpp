@@ -79,100 +79,118 @@ void TRMSegregatedAnalysis::AdjustVectors(){
     fHyperbolic->AdjustVectors();
 }
 
-void TRMSegregatedAnalysis::SegregatedIteration(bool IsActiveQ){
+void TRMSegregatedAnalysis::SegregatedIteration(){
     
 
     this->UpdateMemory();
-    this->UpdateMemory_at_n();
-    if (IsActiveQ) {
-        fParabolic->ExcecuteOneStep();
-        if (fSimulationData->IsOnePhaseQ()) {
-            return;
-        }
-        this->UpdateFluxes_at_n();
-    }
+    this->UpdateMemory_at_n(); // @omar:: It is time to verify
     
+    fParabolic->ExcecuteOneStep();
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }
+    this->UpdateFluxes_at_n();
     
+
     this->UpdateMemory_at_n();
     
     fHyperbolic->ExcecuteOneStep();
-
-//    
-//    this->UpdateMemory_at_n();
+    
+    this->UpdateMemory_at_n();    
 
     
 }
 
-void TRMSegregatedAnalysis::ExcecuteOneStep(bool IsActiveQ){
+void TRMSegregatedAnalysis::ExcecuteOneStep(){
 
-   this->SegregatedIteration(IsActiveQ);
     
-//    STATE epsilon_res = this->SimulationData()->epsilon_res();
-//    STATE epsilon_cor = this->SimulationData()->epsilon_cor();
-//    int n  =   this->SimulationData()->n_corrections();
+    REAL dt_min    = fSimulationData->dt_min();
+    REAL dt_max    = fSimulationData->dt_max();
+    REAL dt_up     = fSimulationData->dt_up();
+    REAL dt_down   = fSimulationData->dt_down();
+    REAL dt        = fSimulationData->dt();
     
-//    for (int k = 1; k <= n; k++) {
+    REAL epsilon_res = this->SimulationData()->epsilon_res();
+    REAL epsilon_cor = this->SimulationData()->epsilon_cor();
+    int n  =   this->SimulationData()->n_corrections();
+    
+    ferror_flux_pressure = 1.0;
+    ferror_saturation = 1.0;
+    fdx_norm_flux_pressure = 1.0;
+    fdx_norm_saturation = 1.0;
+    
+    bool IsConverged_eQ = false;
+    bool IsConverged_dQ = false;
+    bool IsConverged_iQ = false;
+    
+    for (int k = 1; k <= n; k++) {
 
-//        this->SegregatedIteration(IsActiveQ);
-
-//        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
-//        {
-//            std::cout << "Hyperbolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-//            if (k == 1 && dt_max > dt && dt_up > 1.0) {
-//                dt *= dt_up;
-//                if(dt_max < dt ){
-//                    fSimulationData->Setdt(dt_max);
-//                }
-//                else{
-//                    fSimulationData->Setdt(dt);
-//                }
-//                std::cout << "Hyperbolic:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-//            }
-//            
-//            fX = fX_n;
-//            return;
-//        }
-//        
-//        if(k == n  && dt > dt_min && dt_down < 1.0){
-//            dt *= dt_down;
-//            if(dt_min > dt ){
-//                fSimulationData->Setdt(dt_min);
-//            }
-//            else{
-//                fSimulationData->Setdt(dt);
-//            }
-//            std::cout << "Hyperbolic:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-//            std::cout << "Hyperbolic:: Restarting current time step correction " << std::endl;
-//            
-//            this->SimulationData()->SetCurrentStateQ(false);
-//            this->LoadSolution(fX);
-//            
-//            this->UpdateMemory();
-//            this->AssembleResidual();
-//            fR = this->Rhs();
-//            
-//            this->SimulationData()->SetCurrentStateQ(true);
-//            this->UpdateMemory_at_n();
-//            fX_n = fX;
-//            k = 1;
-//        }
-//        
-//        
-//    }
-//    
-//    std::cout << "Hyperbolic:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+        this->SegregatedIteration();
+        
+        ferror_flux_pressure = fParabolic->error_norm();
+        ferror_saturation = fHyperbolic->error_norm();
+        
+        fdx_norm_flux_pressure = fParabolic->dx_norm();
+        fdx_norm_saturation = fHyperbolic->dx_norm();
+        
+        IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
+        IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
+        IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) &&  (fHyperbolic->k_ietrarions() <= 10);
+        
+        if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
+        {
+            std::cout << "Segregated:: Converged with iterations:  " << k << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
+            
+            // update Time value
+            REAL current_time = fSimulationData->t() + fSimulationData->dt();
+            fSimulationData->SetTime(current_time);
+            
+            if (k <= 1 && dt_max > dt && dt_up > 1.0) {
+                dt *= dt_up;
+                if(dt_max < dt ){
+                    fSimulationData->Setdt(dt_max);
+                }
+                else{
+                    fSimulationData->Setdt(dt);
+                }
+                std::cout << "Segregated:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+            }
+            
+            this->UpdateGlobalSolution();
+            return;
+        }
+        
+        if(k == n  && dt > dt_min && dt_down < 1.0){
+            dt *= dt_down;
+            if(dt_min > dt ){
+                fSimulationData->Setdt(dt_min);
+            }
+            else{
+                fSimulationData->Setdt(dt);
+            }
+            std::cout << "Segregated:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+            std::cout << "Segregated:: Restarting current time step correction " << std::endl;
+            
+            this->KeepGlobalSolution();
+            k = 1;
+        }
+        
+        
+    }
     
+    // update Time value
+    REAL current_time = fSimulationData->t() + fSimulationData->dt();
+    fSimulationData->SetTime(current_time);
+    
+    std::cout << "Segregated:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
 
 }
 
-/** @brief Update memory using the Transfer object at state n */
+/** @brief Update memory using the Transfer object at REAL n */
 void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     
     fSimulationData->SetCurrentStateQ(true);
-    Parabolic()->UpdateMemory_at_n();
+    fParabolic->UpdateMemory_at_n();
     
     if (fSimulationData->IsOnePhaseQ()) {
         return;
@@ -187,7 +205,7 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
 void TRMSegregatedAnalysis::UpdateMemory(){
     
     fSimulationData->SetCurrentStateQ(false);
-    Parabolic()->UpdateMemory();
+    fParabolic->UpdateMemory();
     
     if (fSimulationData->IsOnePhaseQ()) {
         return;
@@ -198,7 +216,7 @@ void TRMSegregatedAnalysis::UpdateMemory(){
     
 }
 
-/** @brief Update memory using the Transfer object at state n */
+/** @brief Update memory using the Transfer object at REAL n */
 void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
 
     fParabolic->UpdateMemory_at_n();
@@ -208,11 +226,25 @@ void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
     
 }
 
-void TRMSegregatedAnalysis::PostProcessStep(bool IsActiveQ){
+/** @brief update global state for the new euler step */
+void TRMSegregatedAnalysis::UpdateGlobalSolution(){
     
-    if(IsActiveQ){
-        fParabolic->PostProcessStep();
-    }
+    fParabolic->X() = fParabolic->X_n();
+    fHyperbolic->X() = fHyperbolic->X_n();
+    
+}
+
+/** @brief keep global last state for restart a euler step */
+void TRMSegregatedAnalysis::KeepGlobalSolution(){
+    
+    fParabolic->X_n() = fParabolic->X();
+    fHyperbolic->X_n() = fHyperbolic->X();
+    
+}
+
+void TRMSegregatedAnalysis::PostProcessStep(){
+    
+    fParabolic->PostProcessStep();
     
     if (fSimulationData->IsOnePhaseQ()) {
         return;

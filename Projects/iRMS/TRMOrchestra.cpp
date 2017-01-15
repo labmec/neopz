@@ -54,18 +54,18 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = true;
+    bool IsReservoirBoxQ = false;
     
     if (Is3DGeometryQ) {
         
-        int nel_x = 20;
-        int nel_y = 10;
+        int nel_x = 5;
+        int nel_y = 1;
         int nel_z = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
         dx[0] = 1000.0/REAL(nel_x);
         dy[0] = 100.0/REAL(nel_y);
-        dz[0] = 10.0/REAL(nel_z);
+        dz[0] = 20.0/REAL(nel_z);
         
         if (IsReservoirBoxQ) {
             fSpaceGenerator->CreateGeometricBoxMesh(dx, dy, dz);
@@ -74,7 +74,9 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
-            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            file = dirname + "/Projects/iRMS/Meshes/CircularMeshVerticalWellQII.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
             fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
@@ -84,7 +86,11 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
+<<<<<<< HEAD
         int nel_x = 4;
+=======
+        int nel_x = 8;
+>>>>>>> iRMS_MHM
         int nel_y = 4;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
@@ -98,8 +104,10 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
         {
             std::string dirname = PZSOURCEDIR;
             std::string file;
+//            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
-            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
+            file = dirname + "/Projects/iRMS/Meshes/CircularMeshVerticalWellQII.dump";
+//            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
             fSpaceGenerator->CreateGeometricGIDMesh(file);
@@ -109,10 +117,18 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
+<<<<<<< HEAD
     int ref = 0;
+=======
+    int ref = 5;
+>>>>>>> iRMS_MHM
     fSpaceGenerator->UniformRefinement(ref);
+//    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
+//    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 12);
     fSpaceGenerator->PrintGeometry();
-    
+//    int father_index = 9;
+//    fSpaceGenerator->UniformRefinement_at_Father(1, father_index);
+//    fSpaceGenerator->PrintGeometry();
 }
 
 /** @brief Create a primal analysis using space odissey */
@@ -161,7 +177,7 @@ void TRMOrchestra::CreateAnalysisPrimal()
 void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
-    BuildGeometry(false);
+    this->BuildGeometry(false);
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
@@ -183,11 +199,11 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
-    
-    bool UseMHMQ = false;
+    bool UseMHMQ = true;
     
     if(UseMHMQ){
-        fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
+        int skeleton_id = 0;
+        fSpaceGenerator->InsertSkeletonInterfaces(skeleton_id); // @omar:: Primitive use of the mhm capabilities
         fSpaceGenerator->BuildMHM_Mesh();
     }
     else{
@@ -214,15 +230,15 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 16;
+    int numofThreads_p = 0;
     bool mustOptimizeBandwidth_parabolic = true;
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
-    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    strmat_p.SetDecomposeType(ELDLt);
+//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    strmat_p.SetDecomposeType(ELDLt);
 
 //    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
@@ -258,8 +274,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
 #ifdef PZDEBUG
-    std::ofstream out("CmeshParabolic.txt");
-    parabolic->Mesh()->Print(out);
+    {
+        std::ofstream out("CmeshParabolic.txt");
+        parabolic->Mesh()->Print(out);
+    }
 #endif
     
     std::cout << "ndof parabolic = " << parabolic->Mesh()->Solution().Rows() << std::endl;
@@ -267,28 +285,59 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 16;
+        int numofThreads_t = 0;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
-        TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
+//        TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
+//        strmat_t.SetNumThreads(numofThreads_t);
+//        step_t.SetDirect(ELU);
+//        hyperbolic->SetStructuralMatrix(strmat_t);
+//        hyperbolic->SetSolver(step_t);
+//        hyperbolic->AdjustVectors();
+//        hyperbolic->SetSimulationData(fSimulationData);
+//        hyperbolic->FilterEquations();
+        
+        TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;
 
+        const long numiterations = 20;
+        const REAL tol = 1.0e-8;
+        step_t.SetJacobi(numiterations, tol, 1);
+
         strmat_t.SetNumThreads(numofThreads_t);
-        step_t.SetDirect(ELU);
         hyperbolic->SetStructuralMatrix(strmat_t);
         hyperbolic->SetSolver(step_t);
         hyperbolic->AdjustVectors();
         hyperbolic->SetSimulationData(fSimulationData);
         hyperbolic->FilterEquations();
+        
+        
+//        TPZAutoPointer<TPZMatrix<STATE> > nsyma = strmat_t.Create();
+//        TPZAutoPointer<TPZMatrix<STATE> > nsymaClone = nsyma->Clone();
+//        
+//        TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(nsymaClone);
+//        TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(nsyma);
+//        
+//        const long numiterations = 20;
+//        const REAL tol = 1.0e-6;
+//        step_t.SetJacobi(numiterations, tol, 1);
+//        stepre->SetReferenceMatrix(nsyma);
+//        stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
+//        strmat_t.SetNumThreads(numofThreads_t);
+//        hyperbolic->SetStructuralMatrix(strmat_t);
+//        hyperbolic->SetSolver(*stepGMRES);
+//        hyperbolic->AdjustVectors();
+//        hyperbolic->SetSimulationData(fSimulationData);
+//        hyperbolic->FilterEquations();
+
+        
+        
         std::cout << "ndof hyperbolic = " << hyperbolic->Solution().Rows() << std::endl;
     }
 
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    parabolic->Mesh()->ComputeNodElCon();
-    parabolic->Mesh()->CleanUpUnconnectedNodes();
-    
+       
     // Transfer object
     TRMBuildTransfers * Transfer = new TRMBuildTransfers;
     Transfer->SetSimulationData(fSimulationData);
@@ -439,7 +488,7 @@ void TRMOrchestra::RunStaticProblem(){
     
     std::cout<< "iRMS:: Finding Initial State" << std::endl;
     
-    int n = 2;//fSimulationData->n_steps();
+    int n = 1;
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
     
@@ -450,8 +499,8 @@ void TRMOrchestra::RunStaticProblem(){
         }
         
         if (IsSegregatedQ()) {
-            fSegregatedAnalysis_I->ExcecuteOneStep(true);
-            fSegregatedAnalysis_I->PostProcessStep(true);
+            fSegregatedAnalysis_I->ExcecuteOneStep();
+            fSegregatedAnalysis_I->PostProcessStep();
         }
         
     }
@@ -471,9 +520,9 @@ void TRMOrchestra::RunStaticProblem(){
 //        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[0]->Solution()(i,0) = 0.0;
 //        fSegregatedAnalysis_I->Hyperbolic()->Meshvec()[1]->Solution()(i,0) = 0.8;
 //    }
-//
-//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fSegregatedAnalysis_I->Hyperbolic()->Meshvec(), fSegregatedAnalysis_I->Hyperbolic()->Mesh());
-//    fSegregatedAnalysis_I->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution());
+
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(fSegregatedAnalysis_I->Hyperbolic()->Meshvec(), fSegregatedAnalysis_I->Hyperbolic()->Mesh());
+    fSegregatedAnalysis_I->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution());
     
 //    fSegregatedAnalysis_I->Hyperbolic()->Mesh()->Solution().Print("ah = ");
 //    fSegregatedAnalysis_I->Hyperbolic()->X_n().Print("ah = ");
@@ -488,8 +537,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     if (IsMonolithicQ()) {
         fMonolithicMultiphaseAnalysis->SetX(fMonolithicMultiphaseAnalysis_I->X_n());
         fMonolithicMultiphaseAnalysis->SetX_n(fMonolithicMultiphaseAnalysis_I->X_n());
-        fMonolithicMultiphaseAnalysis->LoadSolution(fMonolithicMultiphaseAnalysis_I->X_n());
-        fMonolithicMultiphaseAnalysis->PostProcessStep();        
+        fMonolithicMultiphaseAnalysis->LoadSolution(fMonolithicMultiphaseAnalysis_I->X_n());     
     }
     
     if (IsSegregatedQ()) {
@@ -501,30 +549,93 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         
-        fSegregatedAnalysis->PostProcessStep(true);
     }
     
     // Evolutionary problem
     int n = fSimulationData->n_steps();
+    REAL time = 0.0;
+    fSimulationData->SetTime(time);
+    bool MustReportQ = false;
+    
+    if (fSimulationData->ReportingTimes().size() == 0) {
+        return;
+    }
+    
+    time = fSimulationData->t();
+    MustReportQ = MustResporTimeQ(time);
+    
+    if (MustReportQ) {
+        std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+        fSegregatedAnalysis->PostProcessStep();
+    }
+    
     for (int i = 0; i < n; i++) {
+        
         if (IsMonolithicQ()) {
+            
+            if (MustReportQ) {
+                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                fMonolithicMultiphaseAnalysis->PostProcessStep();
+            }
+            
+            if (fSimulationData->ReportingTimes().size() == 0) {
+                return;
+            }
+            
             fMonolithicMultiphaseAnalysis->ExcecuteOneStep();
-            fMonolithicMultiphaseAnalysis->PostProcessStep();
+
         }
         
         if (IsSegregatedQ()) {
-            if(i==0){
-                fSegregatedAnalysis->ExcecuteOneStep(true);
-                fSegregatedAnalysis->PostProcessStep(true);
-                continue;
+
+            fSegregatedAnalysis->ExcecuteOneStep();
+
+            time = fSimulationData->t();
+            MustReportQ = MustResporTimeQ(time);
+            
+            if (MustReportQ) {
+                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                fSegregatedAnalysis->PostProcessStep();
             }
-            fSegregatedAnalysis->ExcecuteOneStep(true);
-            fSegregatedAnalysis->PostProcessStep(true);
+            
+            if (fSimulationData->ReportingTimes().size() == 0) {
+                return;
+            }
         }
 
     }
 }
 
+/** @brief Must report time */
+bool TRMOrchestra::MustResporTimeQ(REAL time){
+    
+    int index = fSimulationData->ReportingTimes().size();
+    REAL time_r = fSimulationData->ReportingTimes()[index-1];
+    REAL dt = fSimulationData->dt();
+    REAL t_range = dt;
+    REAL deltat = time-time_r;
+    REAL tolerance = 1.0e-3;
+    
+    if(index > 1){
+        REAL c_dt_max = fSimulationData->ReportingTimes()[index-2] - time_r;
+        if(dt > c_dt_max){
+            fSimulationData->Setdt(c_dt_max);
+            std::cout << "Segregated:: Reporting time:: Set time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+        }
+    }
+    
+    if(fabs(deltat) <= tolerance){
+        fSimulationData->ReportingTimes().Pop();
+        return true;
+    }
+    
+    if (fabs(deltat) < t_range) {
+        fSimulationData->Setdt(fabs(deltat));
+            std::cout << "Segregated:: Reporting time:: Set time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;        
+    }
+    
+    return false;
+}
 
 /** @brief Computes the post processed results */
 void TRMOrchestra::PostProcess(){

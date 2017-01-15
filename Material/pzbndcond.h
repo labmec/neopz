@@ -153,7 +153,7 @@ protected:
     {
         if (loadcase == 0) {
             fForcingFunction = func;
-            fMaterial->SetForcingFunction(func);
+//            fMaterial->SetForcingFunction(func);
         }
         else {
             fBCs[loadcase].fForcingFunction = func;
