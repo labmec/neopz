@@ -86,11 +86,7 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
-<<<<<<< HEAD
-        int nel_x = 4;
-=======
         int nel_x = 8;
->>>>>>> iRMS_MHM
         int nel_y = 4;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
@@ -117,11 +113,8 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
-<<<<<<< HEAD
-    int ref = 0;
-=======
-    int ref = 5;
->>>>>>> iRMS_MHM
+
+    int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
 //    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 12);

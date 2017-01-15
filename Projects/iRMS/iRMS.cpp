@@ -115,9 +115,6 @@ void BoxLinearTracerDual()
         //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
     }
     
-<<<<<<< HEAD
-
-=======
 //    On box reservoir
 //   RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
 //   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
@@ -127,7 +124,6 @@ void BoxLinearTracerDual()
 //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
     RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
 //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
->>>>>>> iRMS_MHM
     
     
     TRMSimulationData * SimData = new TRMSimulationData;

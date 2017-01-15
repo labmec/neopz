@@ -23,20 +23,12 @@ private:
     /** @brief spatial properties model */
     int fMap_model; // map_model = {0 -> constan map, 1 -> linear map, 2 -> kriged map}
     
-<<<<<<< HEAD
-    // @}
-    
-    
-    /** @brief Constant map models models */
-=======
     // Constant case
->>>>>>> iRMS_MHM
     
     void Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
     
     void phi_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars);
     
-<<<<<<< HEAD
     void lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars);
     
     void lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars);
@@ -45,14 +37,11 @@ private:
     
     void alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars);
     
-=======
     // CGAL interpoaltion
     
     void Kappa_f(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
     
     void phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars);
->>>>>>> iRMS_MHM
-    
     
     double phi_cdf(double x);
     

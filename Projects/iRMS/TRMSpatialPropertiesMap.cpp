@@ -261,7 +261,6 @@ void TRMSpatialPropertiesMap::phi_c(TPZManVector<STATE,3> &x, TPZManVector<STATE
     
 }
 
-<<<<<<< HEAD
 /** @brief first lamé parameter $\lambda$ */
 void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars){
     
@@ -299,8 +298,8 @@ void TRMSpatialPropertiesMap::alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STA
     alpha.Resize(10, 0.0);
     STATE val = 0.8;
     alpha[0] = val;
-    
-=======
+}
+
 /** @brief Absolute Permeability m2  $\kappa$ */
 void TRMSpatialPropertiesMap::Kappa_f(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars){
 
@@ -354,5 +353,4 @@ double TRMSpatialPropertiesMap::phi_cdf(double x)
         }
     }
     return x<=0.0 ? c : 1-c;
->>>>>>> iRMS_MHM
 }

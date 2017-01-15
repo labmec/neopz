@@ -236,11 +236,7 @@ void TPZPardisoControl<TVar>::Decompose()
     }
     
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
-<<<<<<< HEAD
-        fParam[10] = 1;
-        fParam[12] = 1;
-        // @omar:: find the parameter ....
-=======
+
 //        fParam[9] = -1; // avoid any pivot permutation ()
         
 //        // Note: other values unused
@@ -250,7 +246,6 @@ void TPZPardisoControl<TVar>::Decompose()
 //        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
         fParam[4 ] = 1; // user permutation PERM
         
->>>>>>> iRMS_MHM
     }
     long long phase = 12;
 
