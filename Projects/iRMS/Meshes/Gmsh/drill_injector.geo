@@ -8,7 +8,7 @@
 // --------------------------------------------
 
 
-Macro DrillProducer
+Macro DrillInjector
 
 xdir = Cos(beta);
 ydir = Sin(beta);
@@ -144,16 +144,16 @@ For i In {0:N-1}
 EndFor
 
 N = #well_region[];
-M = #well_p_regions[];
+M = #well_i_regions[];
 For i In {0:N-1}
-	well_p_regions[i + M] = well_region[i];
+	well_i_regions[i + M] = well_region[i];
 EndFor
 
 
 N = #well_bore[];
-M = #well_p_bores[];
+M = #well_i_bores[];
 For i In {0:N-1}
-	well_p_bores[i + M] = well_bore[i];
+	well_i_bores[i + M] = well_bore[i];
 EndFor
 
 sl1 = newsl; Surface Loop(sl1) = {s1,s2,s3,s4,s1_ext,s2_ext,s3_ext,s4_ext,well_1,well_2,well_3,well_4,s1_lat,s2_lat,s3_lat,s4_lat}; 
@@ -161,12 +161,12 @@ sl1 = newsl; Surface Loop(sl1) = {s1,s2,s3,s4,s1_ext,s2_ext,s3_ext,s4_ext,well_1
 // wellbore region volume
 vregion = newv; Volume(vregion) = {sl1};
 j=(well_index-1)*114;
-well_p_v_region[] = {1+j,2+j,3+j,4+j};
+well_i_v_region[] = {1+j,2+j,3+j,4+j};
 
-N = #well_p_v_region[];
-M = #well_p_v_regions[];
+N = #well_i_v_region[];
+M = #well_i_v_regions[];
 For i In {0:N-1}
-	well_p_v_regions[i + M] = well_p_v_region[i];
+	well_i_v_regions[i + M] = well_i_v_region[i];
 EndFor
 
 Printf ("Mesher:: Drilled producer well = %g, at position {%g,%g,%g}", well_index, wx,wy,wz);

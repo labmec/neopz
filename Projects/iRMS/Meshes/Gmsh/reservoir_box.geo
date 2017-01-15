@@ -7,12 +7,21 @@
 // Labmec, State University of Campinas
 // --------------------------------------------
 
+
 Include "drill_producer.geo";
 Include "drill_injector.geo";
 
+
 // Settings
+hexahedronsQ = 0;
 ExpertMode = 1;
+
+If (hexahedronsQ == 0)
 Mesh.Algorithm3D = 1 ;
+Else
+Mesh.Algorithm3D = 6 ;
+EndIf
+
 
 well_lids = {};
 
@@ -29,8 +38,8 @@ well_i_v_regions = {};
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 50.0;
-cl5 = 100.0;
+cl4 = 100.0;
+cl5 = 1000.0;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -41,10 +50,10 @@ cl5 = 100.0;
 well_index = 1;
 
 // mesh controls on wellbore region
-alpha = 1.1;
+alpha = 1.5;
 n_radial = 10;
-n_azimuthal = 4;
-n_axial = 10; 
+n_azimuthal = 5;
+n_axial = 20; 
 
 // well location
 wx = 0.0;
@@ -52,8 +61,8 @@ wy = -50.0;
 wz = 0.0;
 
 // Geometry well and wellbore region dimensions
-radius = 0.1;
-length = 100.0;
+radius = 1.0;
+length = 200.0;
 outer = 40;
 angle = Pi/2.0;
 beta = 0.0;
@@ -62,59 +71,14 @@ Call DrillProducer;
 
 
 ////////////////////////////////////////////////////////////////////////////
-// Drill Injector 1 
+// Converting wellbore regions to hexahedron mesh ! very experimental
 ////////////////////////////////////////////////////////////////////////////
 
-// new well data
-well_index = 2;
-
-// mesh controls on wellbore region
-alpha = 1.1;
-n_radial = 10;
-n_azimuthal = 4;
-n_axial = 10; 
-
-// well location
-wx = 400.0;
-wy = -50.0;
-wz = 0.0;
-
-// Geometry well and wellbore region dimensions
-radius = 0.1;
-length = 100.0;
-outer = 40;
-angle = Pi/2.0;
-beta = 0.0;
-
-Call DrillInjector;
-
-
-////////////////////////////////////////////////////////////////////////////
-// Drill Injector 2 
-////////////////////////////////////////////////////////////////////////////
-
-// new well data
-well_index = 3;
-
-// mesh controls on wellbore region
-alpha = 1.1;
-n_radial = 10;
-n_azimuthal = 4;
-n_axial = 10; 
-
-// well location
-wx = -400.0;
-wy = -50.0;
-wz = 0.0;
-
-// Geometry well and wellbore region dimensions
-radius = 0.1;
-length = 100.0;
-outer = 40;
-angle = Pi/2.0;
-beta = 0.0;
-
-Call DrillInjector;
+If (hexahedronsQ != 0)
+Transfinite Surface "*";
+Recombine Surface "*";
+Recombine Volume "*";
+EndIf
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -173,10 +137,6 @@ Line(2012) = {1008,1004};
 reservoir_region[] = {well_p_regions[],well_i_regions[],3001,3002,3003,3004,3005,3006};
 Surface Loop(4000) = reservoir_region[];
 Volume(6) = {4000} ;
-
-Transfinite Surface "*";
-//Recombine Surface "*";
-//Recombine Volume "*";
 
 ////////////////////////////////////////////////////////////////////////////
 // Side-burden rocks
@@ -243,7 +203,7 @@ Physical Volume("producers_region") = well_p_v_regions[];
 Physical Surface("injectors") = well_i_bores[];
 Physical Volume("injectors_region") = well_i_v_regions[];
 
-Physical Volume("Reservoir") = {1, 2, 4, 3, 5, 6};
+Physical Volume("Reservoir") = {6};
 
 
 Physical Surface("Reservoir_bottom") = {3001};
