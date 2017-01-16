@@ -1298,12 +1298,12 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
     }
 #endif
     
-//#ifdef PZDEBUG
-//    if (this->SimulationData()->RawData()->fOmegaIds[0] != 1) {
-//        DebugStop();
-//    }
-//    
-//#endif
+#ifdef PZDEBUG
+    if (this->SimulationData()->RawData()->fOmegaIds[0] != 4) {
+        DebugStop();
+    }
+    
+#endif
     
     TPZManVector<long,30>  point_index_trans;
     TPZManVector<long,30>  point_index_l;

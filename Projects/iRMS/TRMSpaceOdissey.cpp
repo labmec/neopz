@@ -968,12 +968,6 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     int sorder = fSOrder;
     int interface_id = fSimulationData->InterfacesMatId();
     
-    fGeoMesh->AddInterfaceMaterial(3, 3,interface_id);
-    fGeoMesh->AddInterfaceMaterial(5, 5,interface_id);
-    fGeoMesh->AddInterfaceMaterial(6, 6,interface_id);
-    fGeoMesh->AddInterfaceMaterial(6, 5,interface_id);
-    fGeoMesh->AddInterfaceMaterial(3, 6,interface_id);
-    
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     std::pair< int, TPZFunction<REAL> * > bc_item;
     TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
@@ -993,8 +987,7 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         TRMPhaseInterfaceTransport * matint = new TRMPhaseInterfaceTransport(interface_id);
         matint->SetSimulationData(fSimulationData);
         fTransportMesh->InsertMaterialObject(matint);
-        
-
+        fGeoMesh->AddInterfaceMaterial(rock_id, rock_id,interface_id);
         
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();

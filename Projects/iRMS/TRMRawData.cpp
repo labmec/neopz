@@ -148,21 +148,15 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     
     
     // Rock materials ids
-    int productors = 3;
-    int injectors = 5;
-    int Rock = 6;
-    
+    int Rock = 4;
     fOmegaIds.Push(Rock);
-    fOmegaIds.Push(productors);
-    fOmegaIds.Push(injectors);
     
-    
-    int bc_W = 12;
-    int bc_E = 10;
-    int bc_S = 9;
-    int bc_N = 11;
-    int bc_B = 7;
-    int bc_T = 8;
+    int bc_W = 10;
+    int bc_E = 8;
+    int bc_S = 7;
+    int bc_N = 9;
+    int bc_B = 5;
+    int bc_T = 6;
     
     TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
     TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);
@@ -209,7 +203,7 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
 
     int bc_lids = 1;
     int bc_Prod = 2;
-    int bc_Inj  = 4;
+    int bc_Inj  = 3;
 
     TPZVec< std::pair< int, TPZFunction<REAL> * > > WLids(n_data);
     TPZVec< std::pair< int, TPZFunction<REAL> * > > WPro(n_data);
@@ -410,21 +404,15 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     
     
     // Rock materials ids
-    int productors = 3;
-    int injectors = 5;
-    int Rock = 6;
-    
+    int Rock = 4;
     fOmegaIds.Push(Rock);
-    fOmegaIds.Push(productors);
-    fOmegaIds.Push(injectors);
     
-    
-    int bc_W = 12;
-    int bc_E = 10;
-    int bc_S = 9;
-    int bc_N = 11;
-    int bc_B = 7;
-    int bc_T = 8;
+    int bc_W = 10;
+    int bc_E = 8;
+    int bc_S = 7;
+    int bc_N = 9;
+    int bc_B = 5;
+    int bc_T = 6;
     
     TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
     TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);
@@ -471,7 +459,7 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     
     int bc_lids = 1;
     int bc_Prod = 2;
-    int bc_Inj  = 4;
+    int bc_Inj  = 3;
     
     TPZVec< std::pair< int, TPZFunction<REAL> * > > WLids(n_data);
     TPZVec< std::pair< int, TPZFunction<REAL> * > > WPro(n_data);

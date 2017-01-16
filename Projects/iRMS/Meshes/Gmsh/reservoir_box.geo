@@ -101,7 +101,7 @@ wx = -300.0;
 wy = -50.0;
 wz = 0.0;
 
-//Call DrillInjector;
+Call DrillInjector;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -232,12 +232,12 @@ Line Loop(30006) = {20004, -20009, -20008, 20012}; // West
 Physical Surface("well_lids") = well_lids[];
 
 Physical Surface("producers") = well_p_bores[];
-Physical Volume("producers_region") = well_p_v_regions[];
+//Physical Volume("producers_region") = well_p_v_regions[];
 
 Physical Surface("injectors") = well_i_bores[];
-Physical Volume("injectors_region") = well_i_v_regions[];
+//Physical Volume("injectors_region") = well_i_v_regions[];
 
-Physical Volume("Reservoir") = {6};
+Physical Volume("Reservoir") = {6,well_p_v_regions[],well_i_v_regions[]};
 
 
 Physical Surface("Reservoir_bottom") = {3001};
