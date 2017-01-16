@@ -1987,6 +1987,7 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
         
 #ifdef PZDEBUG
         if (!mixed_cel) {
+            //continue;
             DebugStop();
         }
 #endif

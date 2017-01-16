@@ -94,8 +94,8 @@ void BoxLinearTracerDual()
     
     if(IsGeoMechanic){
         //    On box reservoir
-        RawData->WaterGeoReservoirBox(Is3DGeometry); // Single-phase flow
-        //   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
+        RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
+        //RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
         //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
         
         //    On cricular reservoir
@@ -122,7 +122,7 @@ void BoxLinearTracerDual()
     
 //    On cricular reservoir
 //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
-    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
+//    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
 //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
     
     

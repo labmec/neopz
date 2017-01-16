@@ -1139,6 +1139,18 @@ void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
     
 }
 
+/** @brief Create a reservoir-box geometry with cylindrical wells */
+void TRMSpaceOdissey::CreateGeometricGmshMesh(std::string &grid){
+    
+    TRMGmshReader Geometry;
+    REAL s = 1.0;
+    Geometry.SetfDimensionlessL(s);
+    fGeoMesh = Geometry.GeometricGmshMesh(grid);
+    
+    const std::string name("Reservoir with cylindrical wells");
+    fGeoMesh->SetName(name);
+}
+
 /** @brief Create a reservoir-box geometry */
 void TRMSpaceOdissey::CreateGeometricExtrudedGIDMesh(std::string &grid, TPZManVector<REAL,2> dz){
 

@@ -21,6 +21,7 @@
 #include "pzcondensedcompel.h"
 
 #include "TPZReadGIDGrid.h"
+#include "TRMGmshReader.h"
 #include "TPZVTKGeoMesh.h"
 
 
@@ -199,6 +200,9 @@ public:
     
     /** @brief Print the reservoir geometry */
     void PrintGeometry();
+    
+    /** @brief Create a reservoir-box geometry with cylindrical wells */
+    void CreateGeometricGmshMesh(std::string &grid);
     
     /** @brief Create a reservoir-box geometry */
     void CreateGeometricGIDMesh(std::string &grid);

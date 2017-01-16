@@ -124,6 +124,20 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 //    fSpaceGenerator->PrintGeometry();
 }
 
+/** @brief Create geometric mesh being used by space odissey */
+void TRMOrchestra::BuildGeometry2(){
+    
+    std::string dirname = PZSOURCEDIR;
+    std::string file;
+    file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir_box.msh";
+    fSpaceGenerator->CreateGeometricGmshMesh(file);
+    
+//    int ref = 1;
+//    fSpaceGenerator->UniformRefinement(ref);
+    
+    fSpaceGenerator->PrintGeometry();
+}
+
 /** @brief Create a primal analysis using space odissey */
 void TRMOrchestra::CreateAnalysisPrimal()
 {
@@ -170,7 +184,8 @@ void TRMOrchestra::CreateAnalysisPrimal()
 void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
-    this->BuildGeometry(false);
+//    this->BuildGeometry(false);
+    this->BuildGeometry2();
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
@@ -192,7 +207,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
-    bool UseMHMQ = true;
+    bool UseMHMQ = false;
     
     if(UseMHMQ){
         int skeleton_id = 0;
@@ -223,7 +238,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     bool IsGCQ = true;
     
     // Analysis for parabolic part
-    int numofThreads_p = 0;
+    int numofThreads_p = 8;
     bool mustOptimizeBandwidth_parabolic = true;
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();

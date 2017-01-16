@@ -38,9 +38,26 @@ well_i_v_regions = {};
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 100.0;
-cl5 = 1000.0;
+cl4 = 150.0;
+cl5 = 2000.0;
 
+
+////////////////////////////////////////////////////////////////////////////
+// well bore regions geometry
+////////////////////////////////////////////////////////////////////////////
+
+// mesh controls on wellbore region
+alpha = 1.2;
+n_radial = 3;
+n_azimuthal = 3;
+n_axial = 3; 
+
+// Geometry well and wellbore region dimensions
+radius = 2.0;
+length = 100.0;
+outer = 20;
+angle = Pi/2.0;
+beta = 0.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // Drill producer 1 
@@ -49,25 +66,42 @@ cl5 = 1000.0;
 // new well data
 well_index = 1;
 
-// mesh controls on wellbore region
-alpha = 1.5;
-n_radial = 10;
-n_azimuthal = 5;
-n_axial = 20; 
-
 // well location
 wx = 0.0;
 wy = -50.0;
 wz = 0.0;
 
-// Geometry well and wellbore region dimensions
-radius = 1.0;
-length = 200.0;
-outer = 40;
-angle = Pi/2.0;
-beta = 0.0;
+
 
 Call DrillProducer;
+
+////////////////////////////////////////////////////////////////////////////
+// Drill injector 1 
+////////////////////////////////////////////////////////////////////////////
+
+// new well data
+well_index = 2;
+
+// well location
+wx = 300.0;
+wy = -50.0;
+wz = 0.0;
+
+Call DrillInjector;
+
+////////////////////////////////////////////////////////////////////////////
+// Drill injector 2 
+////////////////////////////////////////////////////////////////////////////
+
+// new well data
+well_index = 3;
+
+// well location
+wx = -300.0;
+wy = -50.0;
+wz = 0.0;
+
+Call DrillInjector;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -179,15 +213,15 @@ Line Loop(30004) = {20002, -20011, -20006, 20010}; // East
 Line Loop(30005) = {20003, -20012, -20007, 20011}; // North
 Line Loop(30006) = {20004, -20009, -20008, 20012}; // West
 
-Plane Surface(30001) = {30001}; // Top unstructured region
-Plane Surface(30002) = {30002}; // Bottom unstructured region
-Plane Surface(30003) = {30003}; // South unstructured region
-Plane Surface(30004) = {30004}; // East unstructured region
-Plane Surface(30005) = {30005}; // North unstructured region
-Plane Surface(30006) = {30006}; // West unstructured region
+//Plane Surface(30001) = {30001}; // Top unstructured region
+//Plane Surface(30002) = {30002}; // Bottom unstructured region
+//Plane Surface(30003) = {30003}; // South unstructured region
+//Plane Surface(30004) = {30004}; // East unstructured region
+//Plane Surface(30005) = {30005}; // North unstructured region
+//Plane Surface(30006) = {30006}; // West unstructured region
 
-Surface Loop(40000) = {3001,3002,3003,3004,3005,3006,30001,30002,30003,30004,30005,30006};
-Volume(7) = {40000} ;
+//Surface Loop(40000) = {3001,3002,3003,3004,3005,3006,30001,30002,30003,30004,30005,30006};
+//Volume(7) = {40000} ;
 
 
 ////////////////////////////////////////////////////////////////////////////
