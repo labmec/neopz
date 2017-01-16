@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
 {
 
 //    Problem3D();
-    Problem2D();
+    //Problem2D();
 //
-//    ApproximationRates();
+    ApproximationRates();
 
     return 0;
 }
@@ -129,10 +129,10 @@ int ApproximationRates(){
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
-    REAL rext = 4.0;
-    int ncircle = 24;
-    int nradial = 30;
-    REAL drdcirc = 5.0;
+    REAL rext = 2.0;
+    int ncircle = 20;
+    int nradial = 16;
+    REAL drdcirc = 2.5;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
@@ -1024,8 +1024,8 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 30.; // graus********
-    inclination = 50.; // graus********
+    direction   = 60.; // graus********
+    inclination = 30.; // graus********
     
     // transforma graus em rad
     REAL directionT = 0.,inclinationT = 0.; // inicializa
@@ -1049,7 +1049,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     //analytic=0 nao usa sol analitica como prestress e BC
     //analytic=1 usa sol analitica como prestress e BC (zerar BCond0 e BCond1)
     //analytic=2 nao usa sol analitica como prestress mas usa como BC (zerar BCond0 e BCond1)
-    int analytic = 0;
+    int analytic = 2;
     
     // para projecao horizontal, projection == 1
     int projection = 0;
