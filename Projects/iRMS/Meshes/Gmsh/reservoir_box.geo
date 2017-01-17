@@ -14,7 +14,8 @@ Include "drill_injector.geo";
 
 // Settings
 dimension = 2;
-hexahedronsQ = 0;
+hexahedronsQ = 1;
+hexahedronsOutQ = 0;
 ExpertMode = 1;
 
 If (hexahedronsQ == 0)
@@ -42,6 +43,27 @@ cl3 = 10.0;
 cl4 = 50.0;
 cl5 = 1000.0;
 
+n_bc_res = 100;
+n_bc_sb = 1000;
+
+
+////////////////////////////////////////////////////////////////////////////
+// reservoir region geometry
+////////////////////////////////////////////////////////////////////////////
+
+// reservoir box dimensions
+x_length = 1000.0;
+y_length = 1000.0;
+z_length = 100.0;
+
+////////////////////////////////////////////////////////////////////////////
+// side-burden region geometry
+////////////////////////////////////////////////////////////////////////////
+
+// side-burden box dimensions
+sb_x_length = 5000.0;
+sb_y_length = 5000.0;
+sb_z_length = 5000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // well bore regions geometry
@@ -106,7 +128,7 @@ Call DrillInjector;
 
 
 ////////////////////////////////////////////////////////////////////////////
-// Converting wellbore regions to hexahedron mesh ! very experimental
+// Converting wellbore regions to hexahedron mesh ! very experimental in 3D
 ////////////////////////////////////////////////////////////////////////////
 
 If (hexahedronsQ != 0)
@@ -120,11 +142,6 @@ If (dimension == 3)
 ////////////////////////////////////////////////////////////////////////////
 // Reservoir rocks
 ////////////////////////////////////////////////////////////////////////////
-
-// reservoir box dimensions
-x_length = 1000.0;
-y_length = 1000.0;
-z_length = 100.0;
 
 Point(1001) = {-x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
 Point(1002) = { x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
@@ -178,11 +195,6 @@ Volume(6) = {4000} ;
 // Side-burden rocks
 ////////////////////////////////////////////////////////////////////////////
 
-// side-burden box dimensions
-sb_x_length = 5000.0;
-sb_y_length = 5000.0;
-sb_z_length = 1000.0;
-
 Point(10001) = {-sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
 Point(10002) = { sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
 Point(10003) = { sb_x_length/2.0,  sb_y_length/2.0, -sb_z_length/2.0, cl5};
@@ -225,6 +237,15 @@ Line Loop(30006) = {20004, -20009, -20008, 20012}; // West
 //Surface Loop(40000) = {3001,3002,3003,3004,3005,3006,30001,30002,30003,30004,30005,30006};
 //Volume(7) = {40000} ;
 
+////////////////////////////////////////////////////////////////////////////
+// Converting reservoir and side burden regions to hexahedron mesh ! very experimental in 3D
+////////////////////////////////////////////////////////////////////////////
+
+If (hexahedronsOutQ != 0)
+Transfinite Surface "*";
+Recombine Surface "*";
+Recombine Volume "*";
+EndIf
 
 ////////////////////////////////////////////////////////////////////////////
 // Mark physical entities
@@ -263,10 +284,8 @@ Else
 // Reservoir rocks
 ////////////////////////////////////////////////////////////////////////////
 
-// reservoir box dimensions
-x_length = 1000.0;
+// reservoir box dimensions on y-plane
 y_length = 0.0;
-z_length = 100.0;
 
 Point(1001) = {-x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
 Point(1002) = { x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
@@ -286,10 +305,8 @@ Plane Surface(3001) = {3001}; // unstructured region
 // Side-burden rocks
 ////////////////////////////////////////////////////////////////////////////
 
-// side-burden box dimensions
-sb_x_length = 5000.0;
+// side-burden box dimensions  on y-plane
 sb_y_length = 0.0;
-sb_z_length = 1000.0;
 
 Point(10001) = {-sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
 Point(10002) = { sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
@@ -305,6 +322,18 @@ Line(20004) = {10004,10001};
 Line Loop(30001) = {2001, 2002, 2003, 2004, 20001, 20002, 20003, 20004};
 
 Plane Surface(30001) = {30001}; // unstructured region
+
+////////////////////////////////////////////////////////////////////////////
+// Converting reservoir and side burden regions to hexahedron mesh ! very experimental in 3D
+////////////////////////////////////////////////////////////////////////////
+
+If (hexahedronsOutQ != 0)
+//Transfinite Line {2001,2002,2003,2004} = n_bc_res;
+//Transfinite Line {20001,20002,20003,20004} = n_bc_sb;
+Transfinite Surface {3001};
+Recombine Surface "*";
+Recombine Volume "*";
+EndIf
 
 ////////////////////////////////////////////////////////////////////////////
 // Mark physical entities
