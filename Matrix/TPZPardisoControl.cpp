@@ -253,17 +253,17 @@ void TPZPardisoControl<TVar>::Decompose()
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-<<<<<<< HEAD
-=======
-    for(long i = 0; i < n; i++){
-        fPermutation[i] = i;
-    }
-    if (fSystemType == ESymmetric && fProperty == EIndefinite) {
-        fParam[4] = 1;
-    }
-
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
->>>>>>> Pyramid
+//<<<<<<< HEAD
+//=======
+//    for(long i = 0; i < n; i++){
+//        fPermutation[i] = i;
+//    }
+//    if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+//        fParam[4] = 1;
+//    }
+//
+//    std::cout << __PRETTY_FUNCTION__ << std::endl;
+//>>>>>>> Pyramid
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     

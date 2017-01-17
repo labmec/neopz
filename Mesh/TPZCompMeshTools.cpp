@@ -444,15 +444,6 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
         }
     }
     cmesh->ComputeNodElCon();
-<<<<<<< HEAD
-    for (std::set<long>::iterator it = indices.begin(); it != indices.end(); it++) {
-        TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cmesh->Element(*it));
-        if (!subcmesh) {
-            DebugStop();
-        }
-        if (KeepOneLagrangian)
-        {
-=======
     if (KeepOneLagrangian)
     {
         for (std::set<long>::iterator it = indices.begin(); it != indices.end(); it++) {
@@ -460,8 +451,6 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set
             if (!subcmesh) {
                 DebugStop();
             }
-
->>>>>>> Pyramid
             long nconnects = subcmesh->NConnects();
             for (long ic=0; ic<nconnects; ic++) {
                 TPZConnect &c = subcmesh->Connect(ic);
