@@ -15,6 +15,8 @@
 //#define USING_DGER
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
+#elif USING_MKL
+#include <mkl.h>
 #else
 #include "cblas.h"
 //#define USING_DGER

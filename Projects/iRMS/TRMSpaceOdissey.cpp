@@ -250,8 +250,8 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
         newnod.SetLagrangeMultiplier(1);
     }
     
-    TPZDummyFunction<STATE> dummy(PressFunc);
-    TPZCompMeshTools::LoadSolution(fPressureCmesh, dummy);
+//    TPZDummyFunction<STATE> dummy(PressFunc);
+//    TPZCompMeshTools::LoadSolution(fPressureCmesh, dummy);
 #ifdef PZDEBUG
     std::ofstream out("CmeshPress.txt");
     fPressureCmesh->Print(out);

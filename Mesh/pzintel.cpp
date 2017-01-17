@@ -238,9 +238,16 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
 	TPZStack<TPZCompElSide> elvecall,elvecequal;
     elvecall.Push(thisside);
     thisside.EqualLevelElementList(elvecall,1,0);
+    int index = MidSideConnectLocId(side);
+    long sideconnectindex = ConnectIndex(index);
 	int i;
 	for(i=0; i<elvecall.NElements(); i++)
 	{
+        long elvecconnectindex = elvecall[i].ConnectIndex();
+        // skip the element/sides which have a different connect than my own
+        if (sideconnectindex != -1 && sideconnectindex != elvecconnectindex) {
+            continue;
+        }
 		if(elvecall[i].ConnectIndex() != -1) elvecequal.Push(elvecall[i]);
 	}
 	
@@ -1623,6 +1630,7 @@ void TPZInterpolatedElement::PRefine(int order) {
     SetPreferredOrder(order);
     
 #ifdef LOG4CXX
+    if (loggerdiv->isDebugEnabled())
     {
         std::stringstream sout;
         sout << (void*)Mesh() << " PRefine " << Index() << " " << Reference()->Index() << " " << order;

@@ -24,6 +24,8 @@ class TPZEqnArray;
 #ifdef USING_BLAS
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
+#elif USING_MKL
+#include <mkl.h>
 #else
 extern "C"{
 #include "cblas.h"
