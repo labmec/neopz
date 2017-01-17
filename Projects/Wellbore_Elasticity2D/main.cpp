@@ -129,10 +129,10 @@ int ApproximationRates(){
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
-    REAL rext = 2.0;
-    int ncircle = 20;
+    REAL rext = 4.0;
+    int ncircle = 40;
     int nradial = 16;
-    REAL drdcirc = 2.5;
+    REAL drdcirc = 5.0;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
