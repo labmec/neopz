@@ -497,7 +497,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux_b = -0.0184, S = 1.0;
+    REAL flux_b = -0.0184*2, S = 1.0;
     
     REAL day = 86400;
     REAL flux = flux_b + 0.00*(sin((time/day)/100));

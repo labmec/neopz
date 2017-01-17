@@ -139,11 +139,6 @@ void BoxLinearTracerDual()
     SymphonyX->CreateAnalysisDualonBox(false);  // Evolutionary Solution
     SymphonyX->RunEvolutionaryProblem();
 
-//    SymphonyX->SetMonolithicQ(true);
-//    SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution
-//    SymphonyX->RunStaticProblem();
-//    SymphonyX->CreateMonolithicAnalysis(false); // Evolutionary Solution
-//    SymphonyX->RunEvolutionaryProblem();
 
     
     std::cout << "Dual complete normally." << std::endl;

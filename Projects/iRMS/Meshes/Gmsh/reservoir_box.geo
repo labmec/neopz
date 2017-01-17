@@ -48,14 +48,14 @@ cl5 = 2000.0;
 
 // mesh controls on wellbore region
 alpha = 1.2;
-n_radial = 3;
-n_azimuthal = 3;
-n_axial = 3; 
+n_radial = 4;
+n_azimuthal = 4;
+n_axial = 6; 
 
 // Geometry well and wellbore region dimensions
-radius = 2.0;
+radius = 1.0;
 length = 100.0;
-outer = 20;
+outer = 30;
 angle = Pi/2.0;
 beta = 0.0;
 
