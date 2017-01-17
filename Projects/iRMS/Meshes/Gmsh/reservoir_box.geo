@@ -46,8 +46,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 400.0;
-cl5 = 1000.0;
+cl4 = 100.0;
+cl5 = 500.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -78,7 +78,7 @@ n_azimuthal = 5;
 n_axial = 6; 
 
 // Geometry well and wellbore region dimensions
-radius = 5.0;
+radius = 1.0;
 length = 100.0;
 outer = 20;
 angle = Pi/2.0;
@@ -123,6 +123,32 @@ wy = -400.0;
 wz = -10.0;
 Call DrillInjector;
 
+
+////////////////////////////////////////////////////////////////////////////
+// Drill injector 3 
+////////////////////////////////////////////////////////////////////////////
+
+// new well data
+well_index = 4;
+
+// well location
+wx = -400.0;
+wy = 400.0;
+wz = -10.0;
+Call DrillInjector;
+
+////////////////////////////////////////////////////////////////////////////
+// Drill injector 4 
+////////////////////////////////////////////////////////////////////////////
+
+// new well data
+well_index = 4;
+
+// well location
+wx = 400.0;
+wy = -400.0;
+wz = -10.0;
+Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
 // Converting wellbore regions to hexahedron mesh ! very experimental in 3D
