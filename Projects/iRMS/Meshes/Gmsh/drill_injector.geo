@@ -15,6 +15,8 @@ ydir = Sin(beta);
 
 // Circle & Surrounding structured-quad region
 
+If (dimension == 3)
+
 p1=newp; Point(p1) = {0, 0, 0, cl2};
 
 // well bore points
@@ -34,10 +36,39 @@ rotate_s[] = Rotate { { xdir, ydir,0}, {0,0,0}, angle } {
 Point {p1,p2,p3,p4,p5,p6,p7,p8,p9};
 };
 
+Else
+
+p1=newp; Point(p1) = {0, 0, 0, cl2};
+
+// well bore points
+p2=newp; Point(p2) = {0,  0, radius, cl2};
+p3=newp; Point(p3) = {radius,  0, 0, cl2};
+p4=newp; Point(p4) = {0, 0, -radius, cl2};
+p5=newp; Point(p5) = {-radius, 0, 0, cl2};
+
+// well bore region points
+p6=newp; Point(p6) = {0,  0, outer, cl3};
+p7=newp; Point(p7) = {outer,  0, 0, cl3};
+p8=newp; Point(p8) = {0, 0, -outer, cl3};
+p9=newp; Point(p9) = {-outer, 0, 0, cl3};
+
+EndIf
+
 // Apply translation
+If (dimension == 3)
+
 translate_s[] = Translate {wx, wy, wz} { 
 Point {p1,p2,p3,p4,p5,p6,p7,p8,p9};
 };
+
+Else
+
+translate_s[] = Translate {wx, 0, wz} { 
+Point {p1,p2,p3,p4,p5,p6,p7,p8,p9};
+};
+
+EndIf
+
 
 c1[] = Point{p1};
 c2[] = Point{p2};
@@ -84,6 +115,8 @@ s1 = news; Plane Surface(s1) = {ll1}; // ++ side of quad
 s2 = news; Plane Surface(s2) = {ll2}; // +- side of quad
 s3 = news; Plane Surface(s3) = {ll3}; // -- side of quad
 s4 = news; Plane Surface(s4) = {ll4}; // -+ side of quad
+
+If (dimension == 3)
 
 out[] = {};
 If (hexahedronsQ == 0)
@@ -137,6 +170,16 @@ well_lid[] = {s5,s6};
 well_region[] = {s1,s2,s3,s4,s5,s6,s1_ext,s2_ext,s3_ext,s4_ext,s1_lat,s2_lat,s3_lat,s4_lat};
 well_bore[] = {well_1,well_2,well_3,well_4};
 
+Else
+
+well_lid[] = {};
+well_region[] = {l5,l6,l7,l8};
+well_bore[] = {l1,l2,l3,l4};
+
+EndIf
+
+
+
 N = #well_lid[];
 M = #well_lids[];
 For i In {0:N-1}
@@ -149,19 +192,27 @@ For i In {0:N-1}
 	well_i_regions[i + M] = well_region[i];
 EndFor
 
-
 N = #well_bore[];
 M = #well_i_bores[];
 For i In {0:N-1}
 	well_i_bores[i + M] = well_bore[i];
 EndFor
 
-sl1 = newsl; Surface Loop(sl1) = {s1,s2,s3,s4,s1_ext,s2_ext,s3_ext,s4_ext,well_1,well_2,well_3,well_4,s1_lat,s2_lat,s3_lat,s4_lat}; 
+If (dimension == 3)
 
 // wellbore region volume
+sl1 = newsl; Surface Loop(sl1) = {s1,s2,s3,s4,s1_ext,s2_ext,s3_ext,s4_ext,well_1,well_2,well_3,well_4,s1_lat,s2_lat,s3_lat,s4_lat}; 
 vregion = newv; Volume(vregion) = {sl1};
+
 j=(well_index-1)*114;
 well_i_v_region[] = {1+j,2+j,3+j,4+j};
+
+Else
+
+well_i_v_region[] = {s1,s2,s3,s4};
+
+EndIf
+
 
 N = #well_i_v_region[];
 M = #well_i_v_regions[];
@@ -169,6 +220,6 @@ For i In {0:N-1}
 	well_i_v_regions[i + M] = well_i_v_region[i];
 EndFor
 
-Printf ("Mesher:: Drilled producer well = %g, at position {%g,%g,%g}", well_index, wx,wy,wz);
+Printf ("Mesher:: Drilled injector well = %g, at position {%g,%g,%g}", well_index, wx,wy,wz);
 
 Return

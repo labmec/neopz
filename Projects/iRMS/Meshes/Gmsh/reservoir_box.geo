@@ -13,6 +13,7 @@ Include "drill_injector.geo";
 
 
 // Settings
+dimension = 2;
 hexahedronsQ = 0;
 ExpertMode = 1;
 
@@ -38,8 +39,8 @@ well_i_v_regions = {};
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 150.0;
-cl5 = 2000.0;
+cl4 = 50.0;
+cl5 = 1000.0;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -47,13 +48,13 @@ cl5 = 2000.0;
 ////////////////////////////////////////////////////////////////////////////
 
 // mesh controls on wellbore region
-alpha = 1.2;
-n_radial = 4;
+alpha = 1.5;
+n_radial = 10;
 n_azimuthal = 4;
 n_axial = 6; 
 
 // Geometry well and wellbore region dimensions
-radius = 1.0;
+radius = 0.1;
 length = 100.0;
 outer = 30;
 angle = Pi/2.0;
@@ -101,7 +102,7 @@ wx = -300.0;
 wy = -50.0;
 wz = 0.0;
 
-//Call DrillInjector;
+Call DrillInjector;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -114,6 +115,7 @@ Recombine Surface "*";
 Recombine Volume "*";
 EndIf
 
+If (dimension == 3)
 
 ////////////////////////////////////////////////////////////////////////////
 // Reservoir rocks
@@ -149,19 +151,19 @@ Line(2010) = {1006,1002};
 Line(2011) = {1007,1003};
 Line(2012) = {1008,1004};
 
- Line Loop(3001) = {2001, 2002, 2003, 2004}; // Bottom
- Line Loop(3002) = {2005, 2006, 2007, 2008}; // Top
- Line Loop(3003) = {2001, -2010, -2005, 2009}; // South
- Line Loop(3004) = {2002, -2011, -2006, 2010}; // East
- Line Loop(3005) = {2003, -2012, -2007, 2011}; // North
- Line Loop(3006) = {2004, -2009, -2008, 2012}; // West
+Line Loop(3001) = {2001, 2002, 2003, 2004}; // Bottom
+Line Loop(3002) = {2005, 2006, 2007, 2008}; // Top
+Line Loop(3003) = {2001, -2010, -2005, 2009}; // South
+Line Loop(3004) = {2002, -2011, -2006, 2010}; // East
+Line Loop(3005) = {2003, -2012, -2007, 2011}; // North
+Line Loop(3006) = {2004, -2009, -2008, 2012}; // West
 
- Plane Surface(3001) = {3001}; // Bottom unstructured region
- Plane Surface(3002) = {3002}; // Top unstructured region
- Plane Surface(3003) = {3003}; // South unstructured region
- Plane Surface(3004) = {3004}; // East unstructured region
- Plane Surface(3005) = {3005}; // North unstructured region
- Plane Surface(3006) = {3006}; // West unstructured region
+Plane Surface(3001) = {3001}; // Bottom unstructured region
+Plane Surface(3002) = {3002}; // Top unstructured region
+Plane Surface(3003) = {3003}; // South unstructured region
+Plane Surface(3004) = {3004}; // East unstructured region
+Plane Surface(3005) = {3005}; // North unstructured region
+Plane Surface(3006) = {3006}; // West unstructured region
 
 
 //Recombine Surface {3001,3002,3003,3004,3005,3006};
@@ -255,3 +257,78 @@ Physical Surface("side_burden_East") = {30004};
 Physical Surface("side_burden_North") = {30005};
 Physical Surface("side_burden_West") = {30006};
 
+Else
+
+////////////////////////////////////////////////////////////////////////////
+// Reservoir rocks
+////////////////////////////////////////////////////////////////////////////
+
+// reservoir box dimensions
+x_length = 1000.0;
+y_length = 0.0;
+z_length = 100.0;
+
+Point(1001) = {-x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
+Point(1002) = { x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
+Point(1003) = { x_length/2.0,  y_length/2.0, +z_length/2.0, cl4};
+Point(1004) = {-x_length/2.0,  y_length/2.0, +z_length/2.0, cl4};
+
+Line(2001) = {1001,1002};
+Line(2002) = {1002,1003};
+Line(2003) = {1003,1004};
+Line(2004) = {1004,1001};
+
+
+Line Loop(3001) = {well_p_regions[],well_i_regions[],2001, 2002, 2003, 2004}; // Bottom
+Plane Surface(3001) = {3001}; // unstructured region
+
+////////////////////////////////////////////////////////////////////////////
+// Side-burden rocks
+////////////////////////////////////////////////////////////////////////////
+
+// side-burden box dimensions
+sb_x_length = 5000.0;
+sb_y_length = 0.0;
+sb_z_length = 1000.0;
+
+Point(10001) = {-sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
+Point(10002) = { sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
+Point(10003) = { sb_x_length/2.0,  sb_y_length/2.0, +sb_z_length/2.0, cl5};
+Point(10004) = {-sb_x_length/2.0,  sb_y_length/2.0, +sb_z_length/2.0, cl5};
+
+
+Line(20001) = {10001,10002};
+Line(20002) = {10002,10003};
+Line(20003) = {10003,10004};
+Line(20004) = {10004,10001};
+
+Line Loop(30001) = {2001, 2002, 2003, 2004, 20001, 20002, 20003, 20004};
+
+Plane Surface(30001) = {30001}; // unstructured region
+
+////////////////////////////////////////////////////////////////////////////
+// Mark physical entities
+////////////////////////////////////////////////////////////////////////////
+
+// Tagging boundary conditions for prodution wells
+Physical Line("well_lids") = well_lids[];
+
+Physical Line("producers") = well_p_bores[];
+
+Physical Line("injectors") = well_i_bores[];
+
+Physical Surface("Reservoir") = {3001,well_p_v_regions[],well_i_v_regions[]};
+Physical Line("Reservoir_bottom") = {2001};
+Physical Line("Reservoir_West") = {2002};
+Physical Line("Reservoir_top") = {2003};
+Physical Line("Reservoir_East") = {2004};
+
+
+
+Physical Surface("side_burden") = {30001};
+Physical Line("side_burden_bottom") = {20001};
+Physical Line("side_burden_West") = {20002};
+Physical Line("side_burden_top") = {20003};
+Physical Line("side_burden_East") = {20004};
+
+EndIf
