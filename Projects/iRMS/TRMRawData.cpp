@@ -130,7 +130,7 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
 //    fReportingTimes.Push(40.0*day);
 //    fReportingTimes.Push(30.0*day);
 //    fReportingTimes.Push(20.0*day);
-    fReportingTimes.Push(10.0*day);
+//    fReportingTimes.Push(10.0*day);
     fReportingTimes.Push(0.0*day);
     
     fn_steps  = 100;
@@ -157,6 +157,15 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     int bc_N = 9;
     int bc_B = 5;
     int bc_T = 6;
+    
+    if (!Is3DGeometryQ) {
+        bc_W = 6;
+        bc_E = 8;
+        bc_S = 100;
+        bc_N = 100;
+        bc_B = 5;
+        bc_T = 7;
+    }
     
     TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
     TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);
@@ -413,6 +422,15 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     int bc_N = 9;
     int bc_B = 5;
     int bc_T = 6;
+    
+    if (!Is3DGeometryQ) {
+        bc_W = 6;
+        bc_E = 8;
+        bc_S = 100;
+        bc_N = 100;
+        bc_B = 5;
+        bc_T = 7;
+    }
     
     TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
     TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);

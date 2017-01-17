@@ -94,8 +94,8 @@ void BoxLinearTracerDual()
     
     if(IsGeoMechanic){
         //    On box reservoir
-        //RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
-        RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
+        RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
+        //RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
         //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
         
         //    On cricular reservoir
@@ -136,8 +136,8 @@ void BoxLinearTracerDual()
     SymphonyX->SetSegregatedQ(true);
     SymphonyX->CreateAnalysisDualonBox(true); //  Static Solution
     SymphonyX->RunStaticProblem();
-    SymphonyX->CreateAnalysisDualonBox(false);  // Evolutionary Solution
-    SymphonyX->RunEvolutionaryProblem();
+//    SymphonyX->CreateAnalysisDualonBox(false);  // Evolutionary Solution
+//    SymphonyX->RunEvolutionaryProblem();
 
 
     

@@ -205,6 +205,17 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     line >> elementary_id;
     
     switch (type_id) {
+        case 1:
+        {
+            // Triangle
+            line >> TopolLine[0]; //node 1
+            line >> TopolLine[1]; //node 2
+            element_id--;
+            TopolLine[0]--;
+            TopolLine[1]--;
+            new TPZGeoElRefPattern< pzgeom::TPZGeoLinear> (element_id, TopolLine, physical_id, *gmesh);
+        }
+            break;
         case 2:
         {
             // Triangle
@@ -217,6 +228,22 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolTriangle[2]--;
             new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (element_id, TopolTriangle, physical_id, *gmesh);
            
+        }
+            break;
+        case 3:
+        {
+            // Tetrahedron
+            line >> TopolQuad[0]; //node 1
+            line >> TopolQuad[1]; //node 2
+            line >> TopolQuad[2]; //node 3
+            line >> TopolQuad[3]; //node 4
+            element_id--;
+            TopolQuad[0]--;
+            TopolQuad[1]--;
+            TopolQuad[2]--;
+            TopolQuad[3]--;
+            new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (element_id, TopolQuad, physical_id, *gmesh);
+            
         }
             break;
         case 4:

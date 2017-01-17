@@ -79,7 +79,7 @@ int TRMMixedDarcy::NSolutionVariables(int var) {
         case 3:
             return 1; // Scalar
         case 4:
-            return fdimension; // Vector
+            return 3; // Vector
         case 5:
             return 1; // Scalar
     }
@@ -354,7 +354,6 @@ void TRMMixedDarcy::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
 // ------------------------------------------------------------------- //
 
 void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-    
     
     int nvars = 4; // {p,sa,sb,t}
     
@@ -816,6 +815,7 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             fSimulationData->Map()->Kappa(datavec[ub].x, kappa, inv_kappa, v);
             Solout[0] = kappa(0,0);
             Solout[1] = kappa(1,1);
+            Solout[2] = kappa(2,2);
         }
             break;
         case 5:

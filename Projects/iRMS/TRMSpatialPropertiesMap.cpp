@@ -227,11 +227,12 @@ void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE
     kappa.Zero();
     STATE val = 1.0e-13;
     REAL epsilon = 500.0;
-    REAL kx = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[1]/epsilon));
-    REAL ky = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[0]/epsilon));
-    kappa(0,0) = val*fabs(kx+ky);
-    kappa(1,1) = val*fabs(kx+ky);
-    kappa(2,2) = val;
+    REAL kx = (2.0 + 1.8*sin(2.0*M_PI*x[0]*x[2]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*(x[1]+x[2])/epsilon));
+    REAL ky = (2.0 + 1.8*sin(2.0*M_PI*x[1]*x[2]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*(x[0]+x[2])/epsilon));
+    REAL kz = (2.0 + 1.8*sin(2.0*M_PI*x[2]*x[2]/epsilon))/(2.0 + 1.8*sin(2.0*M_PI*x[2]/epsilon));
+    kappa(0,0) = val*fabs(kx);
+    kappa(1,1) = val*fabs(ky);
+    kappa(2,2) = val*fabs(kz);
     
     inv_kappa.Resize(3,3);
     inv_kappa.Zero();

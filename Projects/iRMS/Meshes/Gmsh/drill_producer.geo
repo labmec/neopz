@@ -40,6 +40,8 @@ Else
 
 p1=newp; Point(p1) = {0, 0, 0, cl2};
 
+If (xzQ == 1)
+
 // well bore points
 p2=newp; Point(p2) = {0,  0, radius, cl2};
 p3=newp; Point(p3) = {radius,  0, 0, cl2};
@@ -52,6 +54,23 @@ p7=newp; Point(p7) = {outer,  0, 0, cl3};
 p8=newp; Point(p8) = {0, 0, -outer, cl3};
 p9=newp; Point(p9) = {-outer, 0, 0, cl3};
 
+Else
+
+// well bore points
+p2=newp; Point(p2) = {0,  radius, 0, cl2};
+p3=newp; Point(p3) = {radius,  0, 0, cl2};
+p4=newp; Point(p4) = {0, -radius, 0, cl2};
+p5=newp; Point(p5) = {-radius, 0, 0, cl2};
+
+// well bore region points
+p6=newp; Point(p6) = {0,  outer, 0, cl3};
+p7=newp; Point(p7) = {outer,  0, 0, cl3};
+p8=newp; Point(p8) = {0, -outer, 0, cl3};
+p9=newp; Point(p9) = {-outer, 0, 0, cl3};
+
+EndIf
+
+
 EndIf
 
 // Apply translation
@@ -63,9 +82,19 @@ Point {p1,p2,p3,p4,p5,p6,p7,p8,p9};
 
 Else
 
+If (xzQ == 1)
+
 translate_s[] = Translate {wx, 0, wz} { 
 Point {p1,p2,p3,p4,p5,p6,p7,p8,p9};
 };
+
+Else
+
+translate_s[] = Translate {wx, wy, 0} { 
+Point {p1,p2,p3,p4,p5,p6,p7,p8,p9};
+};
+
+EndIf
 
 EndIf
 

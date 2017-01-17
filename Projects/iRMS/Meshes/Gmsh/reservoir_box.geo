@@ -11,20 +11,6 @@
 Include "drill_producer.geo";
 Include "drill_injector.geo";
 
-
-// Settings
-dimension = 2;
-hexahedronsQ = 1;
-hexahedronsOutQ = 0;
-ExpertMode = 1;
-
-If (hexahedronsQ == 0)
-Mesh.Algorithm3D = 1 ;
-Else
-Mesh.Algorithm3D = 6 ;
-EndIf
-
-
 well_lids = {};
 
 well_p_bores = {};
@@ -35,17 +21,33 @@ well_i_bores = {};
 well_i_regions = {};
 well_i_v_regions = {};
 
+// Settings
+ExpertMode = 1;
+
+dimension = 2;
+xzQ = 0;
+hexahedronsQ = 1;
+hexahedronsOutQ = 0;
+
+If (hexahedronsOutQ != 0)
+n_bc_res = 100;
+n_bc_sb = 1000;
+EndIf
+
+If (hexahedronsQ == 0)
+Mesh.Algorithm3D = 1 ;
+Else
+Mesh.Algorithm3D = 6 ;
+EndIf
+
+
 // Gmsh allows variables; these will be used to set desired
 // element sizes at various Points
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 50.0;
+cl4 = 400.0;
 cl5 = 1000.0;
-
-n_bc_res = 100;
-n_bc_sb = 1000;
-
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -63,7 +65,7 @@ z_length = 100.0;
 // side-burden box dimensions
 sb_x_length = 5000.0;
 sb_y_length = 5000.0;
-sb_z_length = 5000.0;
+sb_z_length = 4000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // well bore regions geometry
@@ -71,14 +73,14 @@ sb_z_length = 5000.0;
 
 // mesh controls on wellbore region
 alpha = 1.5;
-n_radial = 10;
-n_azimuthal = 4;
+n_radial = 5;
+n_azimuthal = 5;
 n_axial = 6; 
 
 // Geometry well and wellbore region dimensions
-radius = 0.1;
+radius = 5.0;
 length = 100.0;
-outer = 30;
+outer = 20;
 angle = Pi/2.0;
 beta = 0.0;
 
@@ -92,10 +94,7 @@ well_index = 1;
 // well location
 wx = 0.0;
 wy = -50.0;
-wz = 0.0;
-
-
-
+wz = 10.0;
 Call DrillProducer;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -106,10 +105,9 @@ Call DrillProducer;
 well_index = 2;
 
 // well location
-wx = 300.0;
-wy = -50.0;
-wz = 0.0;
-
+wx = 400.0;
+wy = 400.0;
+wz = -10.0;
 Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -120,10 +118,9 @@ Call DrillInjector;
 well_index = 3;
 
 // well location
-wx = -300.0;
-wy = -50.0;
-wz = 0.0;
-
+wx = -400.0;
+wy = -400.0;
+wz = -10.0;
 Call DrillInjector;
 
 
@@ -284,13 +281,25 @@ Else
 // Reservoir rocks
 ////////////////////////////////////////////////////////////////////////////
 
+
+If (xzQ == 1)
+
 // reservoir box dimensions on y-plane
 y_length = 0.0;
 
+Else
+
+// reservoir box dimensions on y-plane
+z_length = 0.0;
+
+EndIf
+
+
+
 Point(1001) = {-x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
 Point(1002) = { x_length/2.0, -y_length/2.0, -z_length/2.0, cl4};
-Point(1003) = { x_length/2.0,  y_length/2.0, +z_length/2.0, cl4};
-Point(1004) = {-x_length/2.0,  y_length/2.0, +z_length/2.0, cl4};
+Point(1003) = { x_length/2.0, +y_length/2.0, +z_length/2.0, cl4};
+Point(1004) = {-x_length/2.0, +y_length/2.0, +z_length/2.0, cl4};
 
 Line(2001) = {1001,1002};
 Line(2002) = {1002,1003};
@@ -305,8 +314,19 @@ Plane Surface(3001) = {3001}; // unstructured region
 // Side-burden rocks
 ////////////////////////////////////////////////////////////////////////////
 
+If (xzQ == 1)
+
 // side-burden box dimensions  on y-plane
 sb_y_length = 0.0;
+
+Else
+
+// side-burden box dimensions  on z-plane
+sb_z_length = 0.0;
+
+EndIf
+
+
 
 Point(10001) = {-sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
 Point(10002) = { sb_x_length/2.0, -sb_y_length/2.0, -sb_z_length/2.0, cl5};
@@ -314,14 +334,14 @@ Point(10003) = { sb_x_length/2.0,  sb_y_length/2.0, +sb_z_length/2.0, cl5};
 Point(10004) = {-sb_x_length/2.0,  sb_y_length/2.0, +sb_z_length/2.0, cl5};
 
 
-Line(20001) = {10001,10002};
-Line(20002) = {10002,10003};
-Line(20003) = {10003,10004};
-Line(20004) = {10004,10001};
+//Line(20001) = {10001,10002};
+//Line(20002) = {10002,10003};
+//Line(20003) = {10003,10004};
+//Line(20004) = {10004,10001};
 
 Line Loop(30001) = {2001, 2002, 2003, 2004, 20001, 20002, 20003, 20004};
 
-Plane Surface(30001) = {30001}; // unstructured region
+//Plane Surface(30001) = {30001}; // unstructured region
 
 ////////////////////////////////////////////////////////////////////////////
 // Converting reservoir and side burden regions to hexahedron mesh ! very experimental in 3D

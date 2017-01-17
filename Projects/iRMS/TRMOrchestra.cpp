@@ -132,7 +132,7 @@ void TRMOrchestra::BuildGeometry2(){
     file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir_box.msh";
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
-    int ref = 1;
+    int ref = 0;
     fSpaceGenerator->UniformRefinement(ref);
     
     fSpaceGenerator->PrintGeometry();
@@ -246,10 +246,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 //    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
 
-    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    strmat_p.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    strmat_p.SetDecomposeType(ELDLt);
 
-   TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//   TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
@@ -497,7 +497,7 @@ void TRMOrchestra::RunStaticProblem(){
     
     std::cout<< "iRMS:: Finding Initial State" << std::endl;
     
-    int n = 1;
+    int n = 2;
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
     
