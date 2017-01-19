@@ -89,42 +89,17 @@ void BoxLinearTracerDual()
     // Materials ids and boundary settings
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
-    bool Is3DGeometry = false;
-    bool IsGeoMechanic = true;
+    bool Is3DGeometry = true;
     
-    if(IsGeoMechanic){
-        //    On box reservoir
-        RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
-//        RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
-        //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
-        
-        //    On cricular reservoir
-        //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
-        //    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
-        //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
-    }
-    else{
-        //    On box reservoir
-        RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
-        //   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
-        //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
-        
-        //    On cricular reservoir
-        //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
-        //    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
-        //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
-    }
+    //    On box reservoir
+//    RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
+    RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
+    //    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
     
-//    On box reservoir
-//   RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
-//   RawData->WaterOilReservoirBox(Is3DGeometry); // Two-phase flow
-//    RawData->WaterOilGasReservoirBox(Is3DGeometry); // Three-phase flow
-    
-//    On cricular reservoir
-//    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
-//    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
-//    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
-    
+    //    On cricular reservoir
+    //    RawData->WaterReservoirCircle(Is3DGeometry);  // Single-phase flow
+    //    RawData->WaterOilReservoirCircular(Is3DGeometry); // Two-phase flow
+    //    RawData->WaterOilGasReservoirCircular(Is3DGeometry); // Three-phase flow
     
     TRMSimulationData * SimData = new TRMSimulationData;
     SimData->SetRawData(RawData);
@@ -139,8 +114,6 @@ void BoxLinearTracerDual()
     SymphonyX->CreateAnalysisDualonBox(false);  // Evolutionary Solution
     SymphonyX->RunEvolutionaryProblem();
 
-
-    
     std::cout << "Dual complete normally." << std::endl;
     
 }

@@ -24,10 +24,10 @@ well_i_v_regions = {};
 // Settings
 ExpertMode = 1;
 
-dimension = 2;
+dimension = 3;
 xzQ = 0;
-hexahedronsQ = 1;
-hexahedronsOutQ = 1;
+hexahedronsQ = 0;
+hexahedronsOutQ = 0;
 
 If (hexahedronsOutQ != 0)
 n_bc_res = 100;
@@ -108,7 +108,7 @@ well_index = 2;
 wx = 400.0;
 wy = 400.0;
 wz = -10.0;
-//Call DrillInjector;
+Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
 // Drill injector 2 
@@ -121,7 +121,7 @@ well_index = 3;
 wx = -400.0;
 wy = -400.0;
 wz = -10.0;
-//Call DrillInjector;
+Call DrillInjector;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -135,14 +135,14 @@ well_index = 4;
 wx = -400.0;
 wy = 400.0;
 wz = -10.0;
-//Call DrillInjector;
+Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
 // Drill injector 4 
 ////////////////////////////////////////////////////////////////////////////
 
 // new well data
-well_index = 4;
+well_index = 5;
 
 // well location
 wx = 400.0;
@@ -407,3 +407,4 @@ Physical Line("side_burden_top") = {20003};
 Physical Line("side_burden_East") = {20004};
 
 EndIf
+

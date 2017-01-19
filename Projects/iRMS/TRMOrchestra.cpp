@@ -132,7 +132,7 @@ void TRMOrchestra::BuildGeometry2(){
     file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir_box.msh";
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
-    int ref = 1;
+    int ref = 0;
     fSpaceGenerator->UniformRefinement(ref);
     
     fSpaceGenerator->PrintGeometry();
@@ -188,7 +188,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     this->BuildGeometry2();
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
-    TRMFluxPressureAnalysis * parabolic_mhm = new TRMFluxPressureAnalysis;
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
     TRMTransportAnalysis * hyperbolic = new TRMTransportAnalysis;
     
@@ -208,7 +207,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
-    bool UseMHMQ = true;
+    bool UseMHMQ = false;
     
     if(UseMHMQ){
         int skeleton_id = 0;
@@ -255,24 +254,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->SetSolver(step_p);
     parabolic->AdjustVectors();
     parabolic->SetSimulationData(fSimulationData);
-    
-    /////////////////////////////////////////// Subtructures ///////////////////////////////////////////
-    // Analysis for parabolic mhm part
-    parabolic_mhm->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-    parabolic_mhm->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-    parabolic_mhm->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmeshMHM(), mustOptimizeBandwidth_parabolic);
-    TPZSkylineStructMatrix strmat_p_mhm(fSpaceGenerator->MixedFluxPressureCmeshMHM());
-    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    //    strmat_p.SetDecomposeType(ELDLt);
-//    TPZSymetricSpStructMatrix strmat_p_mhm(fSpaceGenerator->MixedFluxPressureCmeshMHM());
-    
-    TPZStepSolver<STATE> step_p_mhm;
-    step_p_mhm.SetDirect(ELDLt);
-    strmat_p_mhm.SetNumThreads(numofThreads_p);
-    parabolic_mhm->SetStructuralMatrix(strmat_p_mhm);
-    parabolic_mhm->SetSolver(step_p_mhm);
-    parabolic_mhm->AdjustVectors();
-    parabolic_mhm->SetSimulationData(fSimulationData);
     
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
@@ -336,11 +317,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     Transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
     Transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
     
-//    TRMBuildTransfers * Transfer_mhm = new TRMBuildTransfers;
-//    Transfer_mhm->SetSimulationData(fSimulationData);
-//    Transfer_mhm->Fill_u_To_Mixed(parabolic_mhm->Mesh(), 0);
-//    Transfer_mhm->Fill_p_To_Mixed(parabolic_mhm->Mesh(), 1);
-    
     if(fSimulationData->IsOnePhaseQ()){
         Transfer->FillComputationalElPairs(parabolic->Mesh(),parabolic->Mesh());
     }
@@ -364,7 +340,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     parabolic->SetTransfer(Transfer);
-    parabolic_mhm->SetTransfer(Transfer);
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
         hyperbolic->SetTransfer(Transfer);
     }
@@ -373,7 +348,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     segregated->SetTransfer(Transfer);
     segregated->SetSimulationData(fSimulationData);
     segregated->SetParabolic(parabolic);
-//    segregated->SetParabolicMHM(parabolic_mhm);
     segregated->SetHyperbolic(hyperbolic);
     
     if (IsInitialQ) {
@@ -487,7 +461,7 @@ void TRMOrchestra::RunStaticProblem(){
     
     std::cout<< "iRMS:: Finding Initial State" << std::endl;
     
-    int n = 2;
+    int n = 1;
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
     

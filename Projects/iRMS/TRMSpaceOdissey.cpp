@@ -318,17 +318,16 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     SeparateConnectsByNeighborhood();
     
     this->CreateMixedCmesh();
-    
-    this->CreateMixedCmeshMHM();
-    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
-    
-#ifdef PZDEBUG
-    std::ofstream out("CmeshMixedMHM.txt");
-    this->MixedFluxPressureCmeshMHM()->Print(out);
-#endif
-    
     std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
-    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    
+    
+//    this->CreateMixedCmeshMHM();
+//    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
+//#ifdef PZDEBUG
+//    std::ofstream out("CmeshMixedMHM.txt");
+//    this->MixedFluxPressureCmeshMHM()->Print(out);
+//#endif
+//    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
     
     
 }

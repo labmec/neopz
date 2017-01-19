@@ -81,7 +81,7 @@ void TRMSegregatedAnalysis::AdjustVectors(){
 
 void TRMSegregatedAnalysis::SegregatedIteration(){
 
-    this->UpdateMemory();
+//    this->UpdateMemory();
     this->UpdateMemory_at_n(); // @omar:: It is time to verify
     fParabolic->ExcecuteOneStep();
 
@@ -91,11 +91,11 @@ void TRMSegregatedAnalysis::SegregatedIteration(){
     this->UpdateFluxes_at_n();
     
     
-    this->UpdateMemory_at_n();
+//    this->UpdateMemory_at_n();
 
     fHyperbolic->ExcecuteOneStep();
     
-    this->UpdateMemory_at_n();    
+//    this->UpdateMemory_at_n();    
 
     
 }
