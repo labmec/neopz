@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 {
 
 //    Problem3D();
-    //Problem2D();
+  //  Problem2D();
 //
     ApproximationRates();
 
@@ -129,10 +129,10 @@ int ApproximationRates(){
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
-    REAL rext = 4.0;
+    REAL rext = 2.0;
     int ncircle = 40;
     int nradial = 16;
-    REAL drdcirc = 5.0;
+    REAL drdcirc = 1.0;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
@@ -145,7 +145,7 @@ int ApproximationRates(){
     beta = inclination*(Pi/180); // rad
     
     int numthreads = 1;
-    int nh = 4;
+    int nh = 1;
     int np = 2;
 
     
@@ -770,7 +770,7 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
     // calcula comprimento radial do primeiro elemento
     REAL szmin;
     REAL Pi = M_PI;
-    szmin = (Pi/2)*(rwb/ncirc)*(DrDcirc);
+    szmin = (2*Pi)*(rwb/ncirc)*(DrDcirc); //NNNNNNNNN
     
     // calcula comprimento radial da parede do poco ate contorno
     REAL radiallength;

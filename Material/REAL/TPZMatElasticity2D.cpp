@@ -1121,6 +1121,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     bool EigenWorks;
     EigenWorks = T.SolveEigensystemJacobi(NumIt, tol, EigValues, EigVectors);
     
+   // std::cout << EigValues << std::endl;
     
     REAL Sigma1 = 0., Sigma2 = 0., Sigma3 = 0.;
     
@@ -1233,6 +1234,8 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     OmBeta = 1.0; // Modelo clássico de Sandler-DiMaggio (tese Diogo)
     
     F1 = sqrt(j2) - (Ff/OmBeta);
+    
+   // std::cout << F1 << std::endl;
     
     
     /******** Sandler-DiMaggio ********/
