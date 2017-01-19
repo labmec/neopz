@@ -111,8 +111,8 @@ void TPZGraphEl::DrawCo(TPZGraphNode *n, TPZDrawStyle st)
         REAL Pi = M_PI;
         
         //******* angulos COLOCADOS A MAO para fazer teste *********
-        REAL alpha = (30.*(Pi/180)); // azimuth
-        REAL beta = (50.*(Pi/180)); // inclination
+        REAL alpha = (60.*(Pi/180)); // azimuth
+        REAL beta = (30.*(Pi/180)); // inclination
         
         //* defines mesh's position , COLOCADO A MAO AINDA
         //  position == 1 -> mesh projected over a horizontal plane

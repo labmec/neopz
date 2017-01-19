@@ -130,9 +130,9 @@ int ApproximationRates(){
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
     REAL rext = 2.0;
-    int ncircle = 40;
-    int nradial = 16;
-    REAL drdcirc = 1.0;
+    int ncircle = 16;
+    int nradial = 20;
+    REAL drdcirc = 0.5;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
