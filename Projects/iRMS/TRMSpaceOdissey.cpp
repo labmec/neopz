@@ -318,10 +318,17 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     SeparateConnectsByNeighborhood();
     
     this->CreateMixedCmesh();
-
-    std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
-//    this->BuildMacroElements(); // @omar:: require the use of sofisticated transfer structures ....
+    this->CreateMixedCmeshMHM();
+    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshMixedMHM.txt");
+    this->MixedFluxPressureCmeshMHM()->Print(out);
+#endif
+    
+    std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
+    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
     
     
 }
@@ -417,7 +424,7 @@ void TRMSpaceOdissey::BuildMacroElements()
     std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
 #ifdef PZDEBUG
-    if(!fMixedFluxPressureCmesh){
+    if(!fMixedFluxPressureCmeshMHM){
         DebugStop();
     }
 #endif
@@ -425,9 +432,9 @@ void TRMSpaceOdissey::BuildMacroElements()
     bool KeepOneLagrangian = true;
     typedef std::set<long> TCompIndexes;
     std::map<long, TCompIndexes> ElementGroups;
-    TPZGeoMesh *gmesh = fMixedFluxPressureCmesh->Reference();
+    TPZGeoMesh *gmesh = fMixedFluxPressureCmeshMHM->Reference();
     gmesh->ResetReference();
-    fMixedFluxPressureCmesh->LoadReferences();
+    fMixedFluxPressureCmeshMHM->LoadReferences();
     long nelg = gmesh->NElements();
     for (long el=0; el<nelg; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
@@ -474,13 +481,13 @@ void TRMSpaceOdissey::BuildMacroElements()
 #endif
     
     std::set<long> submeshindices;
-    TPZCompMeshTools::PutinSubmeshes(fMixedFluxPressureCmesh, ElementGroups, submeshindices, KeepOneLagrangian);
+    TPZCompMeshTools::PutinSubmeshes(fMixedFluxPressureCmeshMHM, ElementGroups, submeshindices, KeepOneLagrangian);
  
     std::cout << "Inserting " << ElementGroups.size()  <<  " macro elements into MHM substructures" << std::endl;
-    fMixedFluxPressureCmesh->ComputeNodElCon();
-    fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
+    fMixedFluxPressureCmeshMHM->ComputeNodElCon();
+    fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
     for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
-        TPZCompEl *cel = fMixedFluxPressureCmesh->Element(*it);
+        TPZCompEl *cel = fMixedFluxPressureCmeshMHM->Element(*it);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
         if (!subcmesh) {
             DebugStop();
@@ -490,8 +497,8 @@ void TRMSpaceOdissey::BuildMacroElements()
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->SetAnalysisSkyline(0, 0, 0);
     }
-    fMixedFluxPressureCmesh->ComputeNodElCon();
-    fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
+//    fMixedFluxPressureCmeshMHM->ComputeNodElCon();
+//    fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
 
 }
 
@@ -583,6 +590,92 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     std::ofstream out("CmeshMixed.txt");
     fMixedFluxPressureCmesh->Print(out);
 #endif
+    
+}
+
+/** @brief Create a Mixed MHM computational mesh Hdiv-L2 */
+void TRMSpaceOdissey::CreateMixedCmeshMHM(){
+    
+#ifdef PZDEBUG
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    int dim = fGeoMesh->Dimension();
+    int flux_or_pressure = 0;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
+    
+    // Malha computacional
+    fMixedFluxPressureCmeshMHM = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
+        mat->SetSimulationData(this->SimulationData());
+        fMixedFluxPressureCmeshMHM->InsertMaterialObject(mat);
+        
+        // Inserting boundary materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[flux_or_pressure];
+            
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            fMixedFluxPressureCmeshMHM->InsertMaterialObject(boundary_c);
+            
+        }
+        
+    }
+    
+    fMixedFluxPressureCmeshMHM->SetDimModel(dim);
+    fMixedFluxPressureCmeshMHM->SetAllCreateFunctionsMultiphysicElemWithMem();
+    fMixedFluxPressureCmeshMHM->AutoBuild();
+    
+    TPZManVector<TPZCompMesh * ,2> meshvector(2);
+    meshvector[0] = fFluxCmesh;
+    meshvector[1] = fPressureCmesh;
+    
+    // Trensfer information
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, fMixedFluxPressureCmeshMHM);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmeshMHM);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmeshMHM);
+    
+    long nel = fMixedFluxPressureCmeshMHM->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = fMixedFluxPressureCmeshMHM->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
+    
+    fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
+    
+    //    TPZCompMeshTools::OptimizeBandwidth(fMixedFluxPressureCmesh);
     
 }
 

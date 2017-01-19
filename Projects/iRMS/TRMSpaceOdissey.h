@@ -109,7 +109,10 @@ private:
     /** @brief Mixed computational mesh for a dual analysis */
     TPZCompMesh * fMixedFluxPressureCmesh;
     
-    /** @brief H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */
+    /** @brief Mixed computational mhm mesh for a dual analysis */
+    TPZCompMesh * fMixedFluxPressureCmeshMHM;
+    
+    /** @brief H1-L2 for computational mesh for a primal analysis with Global postprocessing of fluxes */
     TPZCompMesh * fPressureSaturationCmesh;
     
     /** @brief Computational mesh for multiphase monolithic approach */
@@ -173,6 +176,9 @@ public:
     
     /** @brief Create a Mixed computational mesh Hdiv-L2 */
     void CreateMixedCmesh();
+    
+    /** @brief Create a Mixed computational mesh Hdiv-L2 */
+    void CreateMixedCmeshMHM();
     
     /** @brief Create a Mixed-Transport multiphase computational mesh Hdiv-L2-L2-L2 */
     void CreateMultiphaseCmesh();
@@ -346,6 +352,16 @@ public:
     /** @brief Get autopointer of Mixed computational mesh for a dual analysis */
     TPZCompMesh * MixedFluxPressureCmesh(){
         return fMixedFluxPressureCmesh;
+    }
+    
+    /** @brief Set autopointer of Mixed computational mesh for a dual analysis */
+    void SetMixedFluxPressureCmeshMHM(TPZCompMesh * MixedFluxPressureCmeshMHM){
+        fMixedFluxPressureCmeshMHM = MixedFluxPressureCmeshMHM;
+    }
+    
+    /** @brief Get autopointer of Mixed computational mesh for a dual analysis */
+    TPZCompMesh * MixedFluxPressureCmeshMHM(){
+        return fMixedFluxPressureCmeshMHM;
     }
     
     /** @brief Set autopointer of H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */

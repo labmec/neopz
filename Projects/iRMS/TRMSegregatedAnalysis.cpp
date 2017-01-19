@@ -80,20 +80,19 @@ void TRMSegregatedAnalysis::AdjustVectors(){
 }
 
 void TRMSegregatedAnalysis::SegregatedIteration(){
-    
 
     this->UpdateMemory();
     this->UpdateMemory_at_n(); // @omar:: It is time to verify
-    
     fParabolic->ExcecuteOneStep();
+
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }
     this->UpdateFluxes_at_n();
     
-
-    this->UpdateMemory_at_n();
     
+    this->UpdateMemory_at_n();
+
     fHyperbolic->ExcecuteOneStep();
     
     this->UpdateMemory_at_n();    
@@ -135,7 +134,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
         
         IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
         IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
-        IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) &&  (fHyperbolic->k_ietrarions() <= 5);
+        IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) &&  (fHyperbolic->k_ietrarions() <= 10);
         
         if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
         {

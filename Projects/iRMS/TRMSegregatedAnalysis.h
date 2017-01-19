@@ -29,6 +29,9 @@ private:
     
     /** @brief define the transfer matrices */
     TRMBuildTransfers * fTransfer;
+
+    /** @brief define the parabolic system */
+    TRMFluxPressureAnalysis * fParabolic_mhm;
     
     /** @brief define the parabolic system */
     TRMFluxPressureAnalysis * fParabolic;
@@ -92,6 +95,18 @@ public:
     TRMBuildTransfers * Transfer()
     {
         return fTransfer;
+    }
+    
+    /** @brief Set the parabolic mhm part */
+    void SetParabolicMHM(TRMFluxPressureAnalysis * parabolic_mhm)
+    {
+        fParabolic_mhm = parabolic_mhm;
+    }
+    
+    /** @brief Get the parabolic mhm part  */
+    TRMFluxPressureAnalysis * ParabolicMHM()
+    {
+        return fParabolic_mhm;
     }
 
     /** @brief Set the parabolic part */

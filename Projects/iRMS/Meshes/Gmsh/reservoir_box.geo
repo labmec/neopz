@@ -27,7 +27,7 @@ ExpertMode = 1;
 dimension = 2;
 xzQ = 0;
 hexahedronsQ = 1;
-hexahedronsOutQ = 0;
+hexahedronsOutQ = 1;
 
 If (hexahedronsOutQ != 0)
 n_bc_res = 100;
@@ -46,7 +46,7 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 100.0;
+cl4 = 250.0;
 cl5 = 500.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -72,13 +72,13 @@ sb_z_length = 4000.0;
 ////////////////////////////////////////////////////////////////////////////
 
 // mesh controls on wellbore region
-alpha = 1.5;
+alpha = 1.1;
 n_radial = 5;
 n_azimuthal = 5;
 n_axial = 6; 
 
 // Geometry well and wellbore region dimensions
-radius = 1.0;
+radius = 0.1;
 length = 100.0;
 outer = 20;
 angle = Pi/2.0;
@@ -93,7 +93,7 @@ well_index = 1;
 
 // well location
 wx = 0.0;
-wy = -50.0;
+wy = 0.0;
 wz = 10.0;
 Call DrillProducer;
 
@@ -108,7 +108,7 @@ well_index = 2;
 wx = 400.0;
 wy = 400.0;
 wz = -10.0;
-Call DrillInjector;
+//Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
 // Drill injector 2 
@@ -121,7 +121,7 @@ well_index = 3;
 wx = -400.0;
 wy = -400.0;
 wz = -10.0;
-Call DrillInjector;
+//Call DrillInjector;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -135,7 +135,7 @@ well_index = 4;
 wx = -400.0;
 wy = 400.0;
 wz = -10.0;
-Call DrillInjector;
+//Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
 // Drill injector 4 

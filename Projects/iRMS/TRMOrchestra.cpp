@@ -132,7 +132,7 @@ void TRMOrchestra::BuildGeometry2(){
     file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir_box.msh";
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
-    int ref = 0;
+    int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
     
     fSpaceGenerator->PrintGeometry();
@@ -188,6 +188,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     this->BuildGeometry2();
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
+    TRMFluxPressureAnalysis * parabolic_mhm = new TRMFluxPressureAnalysis;
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
     TRMTransportAnalysis * hyperbolic = new TRMTransportAnalysis;
     
@@ -207,7 +208,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
-    bool UseMHMQ = false;
+    bool UseMHMQ = true;
     
     if(UseMHMQ){
         int skeleton_id = 0;
@@ -233,22 +234,18 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         hyperbolic->Meshvec()[1] = fSpaceGenerator->BetaSaturationMesh();
         fSpaceGenerator->CreateTransportMesh();
     }
-    
-    bool IsIterativeSolverQ = false;
-    bool IsGCQ = true;
-    
-    // Analysis for parabolic part
-    int numofThreads_p = 8;
+        
+    int numofThreads_p = 16;
     bool mustOptimizeBandwidth_parabolic = true;
+    
+    /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
+    // Analysis for parabolic part
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-    
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
-//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
 
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
 //    strmat_p.SetDecomposeType(ELDLt);
-
    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
@@ -259,42 +256,28 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->AdjustVectors();
     parabolic->SetSimulationData(fSimulationData);
     
-    if (IsIterativeSolverQ) {
-        
-        TPZAutoPointer<TPZMatrix<STATE> > skylnsyma = strmat_p.Create();
-        TPZAutoPointer<TPZMatrix<STATE> > skylnsymaClone = skylnsyma->Clone();
-        
-        TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(skylnsymaClone);
-        TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(skylnsyma);
-        TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(skylnsyma);
-        
-        stepre->SetDirect(ELDLt);
-        stepre->SetReferenceMatrix(skylnsyma);
-        stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
-        stepGC->SetCG(10, *stepre, 1.0e-10, 0);
-        
-        if (IsGCQ) {
-            parabolic->SetSolver(*stepGC);
-        }
-        else{
-            parabolic->SetSolver(*stepGMRES);
-        }
-        
-    }
+    /////////////////////////////////////////// Subtructures ///////////////////////////////////////////
+    // Analysis for parabolic mhm part
+    parabolic_mhm->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
+    parabolic_mhm->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
+    parabolic_mhm->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmeshMHM(), mustOptimizeBandwidth_parabolic);
+    TPZSkylineStructMatrix strmat_p_mhm(fSpaceGenerator->MixedFluxPressureCmeshMHM());
+    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    //    strmat_p.SetDecomposeType(ELDLt);
+//    TPZSymetricSpStructMatrix strmat_p_mhm(fSpaceGenerator->MixedFluxPressureCmeshMHM());
     
-#ifdef PZDEBUG
-    {
-        std::ofstream out("CmeshParabolic.txt");
-        parabolic->Mesh()->Print(out);
-    }
-#endif
-    
-    std::cout << "ndof parabolic = " << parabolic->Mesh()->Solution().Rows() << std::endl;
+    TPZStepSolver<STATE> step_p_mhm;
+    step_p_mhm.SetDirect(ELDLt);
+    strmat_p_mhm.SetNumThreads(numofThreads_p);
+    parabolic_mhm->SetStructuralMatrix(strmat_p_mhm);
+    parabolic_mhm->SetSolver(step_p_mhm);
+    parabolic_mhm->AdjustVectors();
+    parabolic_mhm->SetSimulationData(fSimulationData);
     
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 8;
+        int numofThreads_t = 16;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 //        TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
@@ -353,6 +336,11 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     Transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
     Transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
     
+//    TRMBuildTransfers * Transfer_mhm = new TRMBuildTransfers;
+//    Transfer_mhm->SetSimulationData(fSimulationData);
+//    Transfer_mhm->Fill_u_To_Mixed(parabolic_mhm->Mesh(), 0);
+//    Transfer_mhm->Fill_p_To_Mixed(parabolic_mhm->Mesh(), 1);
+    
     if(fSimulationData->IsOnePhaseQ()){
         Transfer->FillComputationalElPairs(parabolic->Mesh(),parabolic->Mesh());
     }
@@ -376,6 +364,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     parabolic->SetTransfer(Transfer);
+    parabolic_mhm->SetTransfer(Transfer);
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
         hyperbolic->SetTransfer(Transfer);
     }
@@ -384,6 +373,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     segregated->SetTransfer(Transfer);
     segregated->SetSimulationData(fSimulationData);
     segregated->SetParabolic(parabolic);
+//    segregated->SetParabolicMHM(parabolic_mhm);
     segregated->SetHyperbolic(hyperbolic);
     
     if (IsInitialQ) {

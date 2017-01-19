@@ -198,7 +198,22 @@ int main(int argc, char *argv[])
     
     TPZMHMeshControl meshcontrol(gmeshauto, coarseindices);
     
-<<<<<<< HEAD
+//    std::string quad = "QuadByTriangles";
+//    std::string triangle = "TriangleBy9Triangles";
+//    TPZAutoPointer<TPZRefPattern> refpatquad = DivideQuadbyTriangles(quad);
+//    
+//    
+//    TPZAutoPointer<TPZRefPattern> refpattriangle = DivideTriangleby9Triangles(triangle);
+//    
+//    int nelx = 30;
+//    int nely = 10;
+//    TPZVec<long> coarseindices;
+//    TPZGeoMesh *gmesh = MalhaGeomFred(nelx, nely, quad, triangle, coarseindices);
+//    
+//    TPZAutoPointer<TPZGeoMesh> gmeshauto(gmesh);
+//    
+//    TPZMHMeshControl meshcontrol(gmeshauto, coarseindices);
+    
     meshcontrol.SetLagrangeAveragePressure(false);
     
     InsertMaterialObjects(meshcontrol);
@@ -211,40 +226,6 @@ int main(int argc, char *argv[])
         int matskeleton = 2;
         meshcontrol.CreateSkeletonElements(matskeleton);
         meshcontrol.DivideSkeletonElements(1);
-        
-
-=======
-    std::string quad = "QuadByTriangles";
-    std::string triangle = "TriangleBy9Triangles";
-    TPZAutoPointer<TPZRefPattern> refpatquad = DivideQuadbyTriangles(quad);
-    
-    
-    TPZAutoPointer<TPZRefPattern> refpattriangle = DivideTriangleby9Triangles(triangle);
-    
-    int nelx = 30;
-    int nely = 10;
-    TPZVec<long> coarseindices;
-    TPZGeoMesh *gmesh = MalhaGeomFred(nelx, nely, quad, triangle, coarseindices);
-    
-    TPZAutoPointer<TPZGeoMesh> gmeshauto(gmesh);
-    
-    TPZMHMeshControl meshcontrol(gmeshauto, coarseindices);
-    
-    meshcontrol.SetLagrangeAveragePressure(true);
-    
-    InsertMaterialObjects(meshcontrol);
-
-    meshcontrol.SetInternalPOrder(1);
-    meshcontrol.SetSkeletonPOrder(1);
-    
-    if(1)
-    {
-        int matskeleton = 2;
-        meshcontrol.CreateSkeletonElements(matskeleton);
-        meshcontrol.DivideSkeletonElements(1);
-        
-
->>>>>>> Pyramid
         meshcontrol.BuildComputationalMesh(true);
     }
 //    REAL Lx = 1.,Ly = 1., Lz = 0.5;
@@ -299,15 +280,9 @@ int main(int argc, char *argv[])
     //calculo solution
     TPZAnalysis an(CHDivPressureMesh);
     TPZSkylineStructMatrix skyl(CHDivPressureMesh);
-<<<<<<< HEAD
 
 #ifndef PZDEBUG
 //    skyl.SetNumThreads(16);
-
-=======
-#ifndef PZDEBUG
-//    skyl.SetNumThreads(16);
->>>>>>> Pyramid
 #endif
     
     an.SetStructuralMatrix(skyl);
@@ -340,6 +315,7 @@ int main(int argc, char *argv[])
     TPZManVector<TPZCompMesh *,5> cmeshes;
     meshcontrol.GetMeshVec(cmeshes);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(cmeshes, an.Mesh());
+    
 //    TPZBuildMultiphysicsMesh::TransferFromMeshes(cmeshes, an.Mesh());
 //    for (int i=0; i<cmeshes.size(); i++) {
 //        cmeshes[i]->Solution().Print("sol = ");
@@ -353,6 +329,7 @@ int main(int argc, char *argv[])
     an.DefineGraphMesh(CHDivPressureMesh->Dimension(), scalnames, vecnames, plotfile);
     an.PostProcess(0,CHDivPressureMesh->Dimension());
 
+//    delete an.Mesh();
     return 0;
 }
 
@@ -1467,19 +1444,11 @@ static void InsertInterfaceElements(TPZGeoMesh * gmesh, int level, int levelinte
     int dim = gmesh->Dimension();
     for (long el = 0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
-<<<<<<< HEAD
-
-=======
->>>>>>> Pyramid
         if (!gel || gel->Level() != levelinterface || gel->Dimension() != dimension) {
             continue;
         }
         int nsides = gel->NSides();
         for (int is = gel->NCornerNodes(); is<nsides; is++) {
-<<<<<<< HEAD
-
-=======
->>>>>>> Pyramid
             if (gel->SideDimension(is) != dimension-1) {
                 continue;
             }
@@ -1803,10 +1772,7 @@ void ParametricfunctionZ(const TPZVec<STATE> &par, TPZVec<STATE> &X)
 
 TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
 {
-<<<<<<< HEAD
 
-=======
->>>>>>> Pyramid
     int meshdim = gmesh->Dimension();
     TPZCompMesh * cmeshHDiv = new TPZCompMesh(gmesh);
     cmeshHDiv->SetDimModel(meshdim);
@@ -1854,13 +1820,7 @@ TPZCompMesh * CreateHDivMHMMesh(TPZGeoMesh * gmesh, int porder)
 void DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh)
 {
     TPZGeoMesh *gmesh = HDivMesh->Reference();
-<<<<<<< HEAD
-
     int dimension = gmesh->Dimension();
-
-=======
-    int dimension = gmesh->Dimension();
->>>>>>> Pyramid
     gmesh->ResetReference();
     HDivMesh->LoadReferences();
     HDivMesh->ComputeNodElCon();
@@ -1868,13 +1828,7 @@ void DuplicateNeighbouringConnects(TPZCompMesh * HDivMesh)
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = HDivMesh->Element(el);
         TPZGeoEl *gel = cel->Reference();
-<<<<<<< HEAD
-
         if (!gel || gel->Dimension() != dimension) {
-
-=======
-        if (!gel || gel->Dimension() != dimension) {
->>>>>>> Pyramid
             continue;
         }
         int nc = cel->NConnects();
@@ -1940,10 +1894,6 @@ TPZCompMesh * CreateHDivPressureMHMMesh(TPZVec<TPZCompMesh * > & cmeshes)
     
     // Material medio poroso
     TPZMixedPoisson * mat = new TPZMixedPoisson(1,dim);
-<<<<<<< HEAD
-
-=======
->>>>>>> Pyramid
     mat->SetSymmetric();
 
     //    mat->SetForcingFunction(One);
@@ -1990,13 +1940,8 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian, TPZVec<
     typedef std::set<long> TCompIndexes;
     std::map<long, TCompIndexes> ElementGroups;
     TPZGeoMesh *gmesh = Multiphysics->Reference();
-    int dim = gmesh->Dimension();
     gmesh->ResetReference();
-<<<<<<< HEAD
-
-=======
     int dim = gmesh->Dimension();
->>>>>>> Pyramid
     Multiphysics->LoadReferences();
     long nelg = coarseindices.NElements();
     for (long iel=0; iel<nelg; iel++) {
