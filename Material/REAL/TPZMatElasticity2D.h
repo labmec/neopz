@@ -127,6 +127,15 @@ protected:
     REAL fB;
     REAL fC;
     
+    
+    /** @brief Material Constants Mohr-COulomb and Mogi-Coulomb
+     * @note \fc         =>  cohesion angle
+     * @note \ffriction  =>  friction angle
+     */
+    REAL fc;
+    REAL ffriction;
+
+    
 public:
     TPZMatElasticity2D();
     
@@ -437,6 +446,20 @@ public:
         fC = C;
         
     }
+    
+    
+    
+    /** @brief Material Constants Mohr-COulomb and Mogi-Coulomb
+     * @note \fc         =>  cohesion angle
+     * @note \ffriction  =>  friction angle
+     */
+    void SetMogiAndMohrCoulombParameters(REAL c, REAL frict)
+    {
+        fc        = c;
+        ffriction = frict;
+        
+    }
+    
     
     
     /** @brief Get Eyoung and Poisson

@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
 {
 
 //    Problem3D();
-  //  Problem2D();
+    Problem2D();
 //
-    ApproximationRates();
+   // ApproximationRates();
 
     return 0;
 }
@@ -129,10 +129,10 @@ int ApproximationRates(){
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
-    REAL rext = 2.0;
-    int ncircle = 16;
-    int nradial = 20;
-    REAL drdcirc = 0.5;
+    REAL rext = 4.0;
+    int ncircle = 40;
+    int nradial = 16;
+    REAL drdcirc = 2.0;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
@@ -446,13 +446,13 @@ int Problem2D(){
     REAL rext = 2.0;
     int ncircle = 30;
     int nradial = 25;
-    REAL drdcirc = 2.5;
+    REAL drdcirc = 0.5;
     
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 30.; // Azimuth em graus********
-    inclination = 50.; // Polar Inclination em graus********
+    direction   = 0.; // Azimuth em graus******** 30
+    inclination = 0.; // Polar Inclination em graus******** 50
     
     // transforma graus em rad
     REAL alpha = 0., beta = 0.; // inicializa
@@ -616,12 +616,17 @@ int Problem2D(){
         scalarnames.Push("SigmaZProjected");
         scalarnames.Push("TauXYProjected");
         scalarnames.Push("SolidPressureProjected");
-        scalarnames.Push("F_VM1");
-        scalarnames.Push("F_VM2");
-        scalarnames.Push("F_VM3");
-        scalarnames.Push("Sqrt(J2)");
+        scalarnames.Push("J2");
         scalarnames.Push("F1");
-        //vecnames[1] = "";
+        scalarnames.Push("SigmaVonMises");
+        scalarnames.Push("Sigma1");
+        scalarnames.Push("Sigma2");
+        scalarnames.Push("Sigma3");
+        scalarnames.Push("CheckingVM1");
+        scalarnames.Push("CheckingVM2");
+        scalarnames.Push("CheckingVM3");
+        scalarnames.Push("F_Mogi-Coulomb");
+         //vecnames[1] = "";
         an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
         
     }
@@ -1012,7 +1017,8 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     // Setting up paremeters
     //  copy this link http://ceae.colorado.edu/~amadei/CVEN5768/PDF/NOTES5.pdf
-    REAL Eyoung = 15300, ni = 0.24, fbx = 0., fby = 0.;
+   // REAL Eyoung = 15300, ni = 0.24, fbx = 0., fby = 0.;
+      REAL Eyoung = 29269, ni = 0.203, fbx = 0., fby = 0.; //Dados tese Diogo
     material->SetElasticity(Eyoung, ni, fbx, fby);
        
     /******* Calculating Inicial Stresses *******/
@@ -1024,8 +1030,8 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 60.; // graus********
-    inclination = 30.; // graus********
+    direction   = 0.; // graus******** 30
+    inclination = 0.; // graus******** 50
     
     // transforma graus em rad
     REAL directionT = 0.,inclinationT = 0.; // inicializa
@@ -1034,22 +1040,23 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     // define disposicao do poco
     // inclined == 1
-    int inclinedwellbore = 1;
+    int inclinedwellbore = 0;
     
     // pressao da lama de perfuracao
-    REAL Pwb = -30.0; // MPa
+    REAL Pwb = 19.0; // MPa
     
     // Tensoes in Situ, horizontais e vertical em MPa
     REAL SigmaVV = 0., Sigmahh = 0., SigmaHH = 0.; // inicializa
-    SigmaVV = -50.0, Sigmahh = -40.0, SigmaHH = -60.0; //preenche
-//    SigmaVV = -30.0, Sigmahh = -30.0, SigmaHH = -30.0; //preenche
+  //  SigmaVV = -50.0, Sigmahh = -40.0, SigmaHH = -60.0; //preenche
+    SigmaVV = -48.2, Sigmahh = -45.9, SigmaHH = -62.1; //preenche //Dados Diogo
+//  SigmaVV = -30.0, Sigmahh = -30.0, SigmaHH = -30.0; //preenche
     
     REAL rw = 0.1;
     
     //analytic=0 nao usa sol analitica como prestress e BC
     //analytic=1 usa sol analitica como prestress e BC (zerar BCond0 e BCond1)
     //analytic=2 nao usa sol analitica como prestress mas usa como BC (zerar BCond0 e BCond1)
-    int analytic = 2;
+    int analytic = 0;
     
     // para projecao horizontal, projection == 1
     int projection = 0;
@@ -1065,6 +1072,17 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     B = 0.0015489; // MPae-1
     C = 146.29; //MPa
     material->SetSandlerDiMaggioParameters(A, B, C);
+    
+    
+    
+    REAL c = 0., frict = 0., frictRad = 0.;
+    
+    //Dados tese Diogo, angulo de friccao e coesao
+    c = 27.38; //MPa
+    frict = 11.7; // graus
+    
+    frictRad = frict*(Pi/180); // rad
+    material->SetMogiAndMohrCoulombParameters(c, frictRad);
     
     
     //Obtem tensor de tensoes iniciais

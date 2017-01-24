@@ -625,11 +625,16 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("Exx",name.c_str()))                             return	25;
     if(!strcmp("Eyy",name.c_str()))                             return	26;
     if(!strcmp("Exy",name.c_str()))                             return	27;
-    if(!strcmp("F_VM1",name.c_str()))                           return	28;
-    if(!strcmp("F_VM2",name.c_str()))                           return	29;
-    if(!strcmp("F_VM3",name.c_str()))                           return	30;
-    if(!strcmp("Sqrt(J2)",name.c_str()))                        return	31;
-    if(!strcmp("F1",name.c_str()))                              return	32;
+    if(!strcmp("J2",name.c_str()))                              return	28;
+    if(!strcmp("F1",name.c_str()))                              return	29;
+    if(!strcmp("SigmaVonMises",name.c_str()))                   return	30;
+    if(!strcmp("Sigma1",name.c_str()))                          return	31;
+    if(!strcmp("Sigma2",name.c_str()))                          return	32;
+    if(!strcmp("Sigma3",name.c_str()))                          return	33;
+    if(!strcmp("CheckingVM1",name.c_str()))                     return	34;
+    if(!strcmp("CheckingVM2",name.c_str()))                     return	35;
+    if(!strcmp("CheckingVM3",name.c_str()))                     return	36;
+    if(!strcmp("F_Mogi-Coulomb",name.c_str()))                  return	37;
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
     
@@ -707,7 +712,11 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 30)	return 1;
     if(var == 31)	return 1;
     if(var == 32)	return 1;
-
+    if(var == 33)	return 1;
+    if(var == 34)	return 1;
+    if(var == 35)	return 1;
+    if(var == 36)	return 1;
+    if(var == 37)	return 1;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -1102,16 +1111,16 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //T = STRESS TENSOR
     T.PutVal(0,0, (SigX+SigmaX));
     T.PutVal(0,1, (Tau+SigmaXY));
-    T.PutVal(0,2, 0);  /// ZERO MESMO????
+    T.PutVal(0,2, SigmaAnXZ);  /// ZERO MESMO????
     T.PutVal(1,0, (Tau+SigmaXY));
     T.PutVal(1,1, (SigY+SigmaY));
-    T.PutVal(1,2, 0); /// ZERO MESMO????
-    T.PutVal(2,0, 0); /// ZERO MESMO????
-    T.PutVal(2,1, 0); /// ZERO MESMO????
+    T.PutVal(1,2, SigmaAnYZ); /// ZERO MESMO????
+    T.PutVal(2,0, SigmaAnXZ); /// ZERO MESMO????
+    T.PutVal(2,1, SigmaAnYZ); /// ZERO MESMO????
     T.PutVal(2,2, (SigZ+SigmaZ));
     
     
-   // std::cout << T << std::endl;
+  //  std::cout << T << std::endl;
     
     
     long NumIt = 1000;
@@ -1125,12 +1134,11 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     REAL Sigma1 = 0., Sigma2 = 0., Sigma3 = 0.;
     
-    //**********// Criar metodo para garantir que Sig1 > Sig2 > Sig3
-    
-    REAL temp;
+    //**********// Criar metodo para garantir que Sig1 > Sig2 > Sig3 (em modulo)
+        REAL temp;
     for (int i = 0; i < EigValues.size() - 1; i++) {
         for (int j = 1; j < EigValues.size() - i; j++) {
-            if (EigValues[j - 1] < EigValues[j]) {
+            if (fabs(EigValues[j - 1]) < fabs(EigValues[j])) {
                 temp = EigValues[j - 1];
                 EigValues[j - 1] = EigValues[j];
                 EigValues[j] = temp;
@@ -1142,8 +1150,12 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Sigma2 = EigValues[1];
         Sigma3 = EigValues[2];
     
-   // std::cout << EigValues << std::endl;
     
+ //   std::cout << EigValues << std::endl;
+    
+   // std::cout << (EigValues[0]+EigValues[1]+EigValues[2])/3 << std::endl;
+    
+   
     
     REAL i1, i2, i3, j1, j2, j3;
     
@@ -1160,76 +1172,39 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     j3 = 1./27.*(2.*i1*i1*i1 - 9.*i1*i2 + 27.*i3);
     
     
-    REAL F_VM1 = 0., F_VM2 = 0., F_VM3 = 0. ;
     
        // std::cout << sqrt(j2) << std::endl;
     
-    //********* Checking for Von Misses  *********// If principal stresses <=0 --> failure
+       //  std::cout << j2 << std::endl;
     
-    if (Sigma1 < sqrt(j2)) {
-        F_VM1 = 1.0;
-    }
-        else {
-            F_VM1 = -1.0;
-        }
-    
-    
-    if (Sigma2 < sqrt(j2)) {
-        F_VM2 = 1.0;
-    }
-    else {
-        F_VM2 = -1.0;
-    }
-    
-    if (Sigma3 < sqrt(j2)) {
-        F_VM3 = 1.0;
-    }
-    else {
-        F_VM3 = -1.0;
-    }
+      //  std::cout << sqrt(3*j2) << std::endl;
     
     
     
-    /******** Von Misses ********/
+    //********* J2  *********//
     
+   
     //	Sig1 (<ou>0)
     if(var == 28)
     {
-        Solout[0] = F_VM1;
+        Solout[0] = j2;
         return;
     }
+
     
-    //	Sig2 (<ou>0)
-    if(var == 29)
-    {
-        Solout[0] = F_VM2;
-        return;
-    }
-    
-    //	Sig3 (<ou>0)
-    if(var == 30)
-    {
-        Solout[0] = F_VM3;
-        return;
-    }
-    
-    
-    //	Sig3 (<ou>0)
-    if(var == 31)
-    {
-        Solout[0] = sqrt(j2);
-        return;
-    }
-    
-    
-    
-    
-    
-    //********* Checking for Sandler-DiMaggio  *********// If F1 <=0 --> failure
+
+    //********* Sandler-DiMaggio  *********// If F1 <=0 --> ok
     
     REAL F1 = 0., Ff = 0., OmBeta = 0.;
     
-    Ff = fA - pow(fC,fB*i1);
+//    std::cout << fA << std::endl;
+//    std::cout << fC << std::endl;
+//    std::cout << fB << std::endl;
+//    
+    
+//    Ff = fA - pow(fC,fB*i1);
+    
+    Ff = fA - (fC * exp(fB*i1));
     
     OmBeta = 1.0; // Modelo clássico de Sandler-DiMaggio (tese Diogo)
     
@@ -1241,12 +1216,158 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     /******** Sandler-DiMaggio ********/
     
     //	F1 <= 0   -> Failure
-    if(var == 32)
+    if(var == 29)
     {
         Solout[0] = F1;
         return;
     }
 
+    
+    
+    //********* Tensões Princiais *********//
+    
+    
+    //	Sig1 (<ou>0)
+    if(var == 30)
+    {
+        Solout[0] = sqrt(3*j2);
+        return;
+    }
+    
+    
+    if(var == 31)
+    {
+        Solout[0] = Sigma1;
+        return;
+    }
+    
+
+    if(var == 32)
+    {
+        Solout[0] = Sigma2;
+        return;
+    }
+    
+    
+    if(var == 33)
+    {
+        Solout[0] = Sigma3;
+        return;
+    }
+    
+    
+    
+    
+    //********* Checking Von Misses *********//
+    
+    
+    //	Sig1 (<ou>0)
+    if(var == 34)
+    {
+        if (fabs(Sigma1) < fabs(sqrt(3*j2))){
+            Solout[0] = -1;
+        }
+        else{
+            Solout[0] = 1;
+        }
+        
+        return;
+    }
+    
+    
+    if(var == 35)
+    {
+        if (fabs(Sigma2) < fabs(sqrt(3*j2))){
+            Solout[0] = -1;
+        }
+        else{
+            Solout[0] = 1;
+        }
+        
+        return;
+    }
+    
+    
+    if(var == 36)
+    {
+        if (fabs(Sigma3) < fabs(sqrt(3*j2))){
+            Solout[0] = -1;
+        }
+        else{
+            Solout[0] = 1;
+        }
+        
+        return;
+        
+    }
+    
+//    //********* Checking Von Misses *********//
+//    
+//    
+//    //	Sig1 (<ou>0)
+//    if(var == 34)
+//    {
+//        if (Sigma1 < sqrt(3*j2)){
+//            Solout[0] = -1;
+//        }
+//        else{
+//            Solout[0] = 1;
+//        }
+//        
+//        return;
+//    }
+//    
+//    
+//    if(var == 35)
+//    {
+//        if (Sigma2 < sqrt(3*j2)){
+//            Solout[0] = -1;
+//        }
+//        else{
+//            Solout[0] = 1;
+//        }
+//        
+//        return;
+//    }
+//    
+//    
+//    if(var == 36)
+//    {
+//        if (Sigma3 < sqrt(3*j2)){
+//            Solout[0] = -1;
+//        }
+//        else{
+//            Solout[0] = 1;
+//        }
+//        
+//        return;
+//    }
+    
+    
+    
+    //********* Mogi-Coulomb *********////	F (<ou=0)
+    
+    
+    REAL SigM2 = 0., TauOct = 0., a = 0., b = 0., FMC = 0.;
+    
+    
+    SigM2 = (EigValues[0]+EigValues[2])/2;
+    
+    TauOct = 1/3*(sqrt(pow((EigValues[0]-EigValues[1]), 2)+pow((EigValues[1]-EigValues[2]), 2)+pow((EigValues[2]-EigValues[0]), 2)));
+                  
+    a = ((2*sqrt(2))/3)*fc*cos(ffriction);
+    
+    b = ((2*sqrt(2))/3)*sin(ffriction);
+    
+    FMC = (a + b*SigM2) - TauOct;
+    
+    
+    if(var == 37)
+    {
+         Solout[0] = FMC;
+             return;
+    }
+    
     
     
 }
