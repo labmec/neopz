@@ -442,8 +442,8 @@ int Problem2D(){
     // ncircle = nro elementos na parede do poco
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
-    REAL rw = 0.1;
-    REAL rext = 2.0;
+    REAL rw = 0.10795;
+    REAL rext = 3.0;
     int ncircle = 30;
     int nradial = 25;
     REAL drdcirc = 0.5;
@@ -451,7 +451,7 @@ int Problem2D(){
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 0.; // Azimuth em graus******** 30
+    direction   = 30.; // Azimuth em graus******** 30
     inclination = 0.; // Polar Inclination em graus******** 50
     
     // transforma graus em rad
@@ -586,6 +586,10 @@ int Problem2D(){
         scalarnames.Push("SigmaZAnalyticProjected");
         scalarnames.Push("TauXYAnalyticProjected");
         scalarnames.Push("SolidPressureAnalyticProjected");
+        scalarnames.Push("J2_Projected");
+        scalarnames.Push("F1_Projected");
+        scalarnames.Push("I1_Projected");
+        
         //vecnames[1] = "";
         an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions2D.vtk");
 
@@ -618,7 +622,7 @@ int Problem2D(){
         scalarnames.Push("SolidPressureProjected");
         scalarnames.Push("J2");
         scalarnames.Push("F1");
-        scalarnames.Push("SigmaVonMises");
+        scalarnames.Push("I1");
         scalarnames.Push("Sigma1");
         scalarnames.Push("Sigma2");
         scalarnames.Push("Sigma3");
@@ -1030,7 +1034,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 0.; // graus******** 30
+    direction   = 30.; // graus******** 30
     inclination = 0.; // graus******** 50
     
     // transforma graus em rad
@@ -1040,18 +1044,19 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     // define disposicao do poco
     // inclined == 1
-    int inclinedwellbore = 0;
+    int inclinedwellbore = 1;
     
     // pressao da lama de perfuracao
-    REAL Pwb = 19.0; // MPa
+    REAL Pwb = -19.5; // MPa
     
     // Tensoes in Situ, horizontais e vertical em MPa
     REAL SigmaVV = 0., Sigmahh = 0., SigmaHH = 0.; // inicializa
   //  SigmaVV = -50.0, Sigmahh = -40.0, SigmaHH = -60.0; //preenche
-    SigmaVV = -48.2, Sigmahh = -45.9, SigmaHH = -62.1; //preenche //Dados Diogo
+//    SigmaVV = -48.2, Sigmahh = -62.1, SigmaHH = -45.9; //preenche //Dados Diogo //NANANANA INVERTIDAS AS TENSOES
+     SigmaVV = -48.2, Sigmahh = -45.9, SigmaHH = -62.1; //preenche //Dados Diogo //NANANANA
 //  SigmaVV = -30.0, Sigmahh = -30.0, SigmaHH = -30.0; //preenche
     
-    REAL rw = 0.1;
+    REAL rw = 0.10795;
     
     //analytic=0 nao usa sol analitica como prestress e BC
     //analytic=1 usa sol analitica como prestress e BC (zerar BCond0 e BCond1)
@@ -1061,7 +1066,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     // para projecao horizontal, projection == 1
     int projection = 0;
     
-    // Seta os parametros do poco
+    // Seta os parametros do poco (Inclined or not)
     material->SetInclinedWellboreParameters(SigmaHH, Sigmahh, SigmaVV, directionT, inclinationT, inclinedwellbore, Pwb, rw, analytic, projection);
     
     

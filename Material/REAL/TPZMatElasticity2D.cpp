@@ -627,7 +627,7 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("Exy",name.c_str()))                             return	27;
     if(!strcmp("J2",name.c_str()))                              return	28;
     if(!strcmp("F1",name.c_str()))                              return	29;
-    if(!strcmp("SigmaVonMises",name.c_str()))                   return	30;
+    if(!strcmp("I1",name.c_str()))                   return	30;
     if(!strcmp("Sigma1",name.c_str()))                          return	31;
     if(!strcmp("Sigma2",name.c_str()))                          return	32;
     if(!strcmp("Sigma3",name.c_str()))                          return	33;
@@ -635,6 +635,10 @@ int TPZMatElasticity2D::VariableIndex(const std::string &name)
     if(!strcmp("CheckingVM2",name.c_str()))                     return	35;
     if(!strcmp("CheckingVM3",name.c_str()))                     return	36;
     if(!strcmp("F_Mogi-Coulomb",name.c_str()))                  return	37;
+    if(!strcmp("J2_Projected",name.c_str()))                     return	38;
+    if(!strcmp("F1_Projected",name.c_str()))                     return	39;
+    if(!strcmp("I1_Projected",name.c_str()))                  return	40;
+    
     PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
     return -1;
     
@@ -717,6 +721,9 @@ int TPZMatElasticity2D::NSolutionVariables(int var){
     if(var == 35)	return 1;
     if(var == 36)	return 1;
     if(var == 37)	return 1;
+    if(var == 38)	return 1;
+    if(var == 39)	return 1;
+    if(var == 40)	return 1;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -758,7 +765,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //***** Analytic PreStresses *******//
     REAL SigmaX = 0., SigmaY = 0., SigmaXY = 0., SigmaZ = 0., SigmaXZ = 0., SigmaYZ = 0.;
 
-    if (fAnalytics == 1) {
+    if (fAnalytics == 1) { //E fAnalytics == 2???
         REAL theta = 0.;
         REAL coordY = 0.;
         REAL coordX = 0.;
@@ -778,6 +785,13 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         SigmaXY = fPreStressXY;
         SigmaZ = fPreStressZZ;
     }
+    
+    
+//    std::cout<< SigmaX << std::endl;
+//    std::cout<< SigmaY << std::endl;
+//    std::cout<< SigmaXY << std::endl;
+//    std::cout<< SigmaZ << std::endl;
+
     
     
     //************ Calculates Variation ***********//
@@ -819,6 +833,12 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
         Tau = 2.0*fmu*epsxy;		
     }
     
+    
+//    std::cout<< SigX << std::endl;
+//    std::cout<< SigY << std::endl;
+//    std::cout<< Tau << std::endl;
+//    std::cout<< SigZ << std::endl;
+
     
     
     //********** Stresses Solution ***********//
@@ -981,7 +1001,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     /******** Analytical Projected Solution ********/
     //*******  Cod feito com rotacao inversa ***********//
     
-    REAL SigmaXP = 0., SigmaYP = 0., SigmaXYP = 0., SigmaZP = 0.;
+    REAL SigmaXP = 0., SigmaYP = 0., SigmaXYP = 0., SigmaZP = 0., SigmaXZP=0., SigmaYZP = 0.;
     
     // *********** What????? *******************
     //******** SigXZ e SigYZ nao sao calculados!!! **********
@@ -1001,6 +1021,13 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     SigmaXYP   = pow(cos(falpha),2)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) - pow(sin(falpha),2)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) + (sin(2.0*falpha)*(SigmaAnX - 2.0*SigmaAnY + SigmaAnZ + (SigmaAnX - SigmaAnZ)*cos(2.0*fbeta) + 2*SigmaAnXZ*sin(2.0*fbeta)))/4.;
     //Power(Cos(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) - Power(Sin(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) +     (Sin(2*Degree*\[Alpha])*(Sigx - 2*Sigy + Sigz + (Sigx - Sigz)*Cos(2*Degree*\[Beta]) + 2*Sigxz*Sin(2*Degree*\[Beta])))/4.
+    
+    SigmaXZP = sin(falpha)*(-(SigmaAnYZ*cos(fbeta)) + SigmaAnXY*sin(fbeta)) + (cos(falpha)*(2.0*SigmaAnXZ*cos(2.0*fbeta) + (-SigmaAnX + SigmaAnZ)*sin(2.0*fbeta)))/2.;
+    //Sin(Degree*\[Alpha])*(-(Sigyz*Cos(Degree*\[Beta])) + Sigxy*Sin(Degree*\[Beta])) + (Cos(Degree*\[Alpha])*(2*Sigxz*Cos(2*Degree*\[Beta]) + (-Sigx + Sigz)*Sin(2*Degree*\[Beta])))/2.
+    
+    
+    SigmaYZP = cos(falpha)*(SigmaAnYZ*cos(fbeta) - SigmaAnXY*sin(fbeta)) + (sin(falpha)*(2.0*SigmaAnXZ*cos(2.0*fbeta) + (-SigmaAnX + SigmaAnZ)*sin(2.0*fbeta)))/2.;
+    //Cos(Degree*\[Alpha])*(Sigyz*Cos(Degree*\[Beta]) - Sigxy*Sin(Degree*\[Beta])) + (Sin(Degree*\[Alpha])*(2*Sigxz*Cos(2*Degree*\[Beta]) + (-Sigx + Sigz)*Sin(2*Degree*\[Beta])))/2.
     
     
     //	Projected Stress x-direction
@@ -1120,7 +1147,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     T.PutVal(2,2, (SigZ+SigmaZ));
     
     
-  //  std::cout << T << std::endl;
+//    std::cout << T << std::endl;
     
     
     long NumIt = 1000;
@@ -1230,7 +1257,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     //	Sig1 (<ou>0)
     if(var == 30)
     {
-        Solout[0] = sqrt(3*j2);
+        Solout[0] = i1;
         return;
     }
     
@@ -1345,7 +1372,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     
     
-    //********* Mogi-Coulomb *********////	F (<ou=0)
+    //********* Mogi-Coulomb *********////	F (<ou=0) //Referencia: Aslannezhad, Manshad, Jalalifar
     
     
     REAL SigM2 = 0., TauOct = 0., a = 0., b = 0., FMC = 0.;
@@ -1359,7 +1386,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     
     b = ((2*sqrt(2))/3)*sin(ffriction);
     
-    FMC = (a + b*SigM2) - TauOct;
+    FMC = (a + b * SigM2) - TauOct;
     
     
     if(var == 37)
@@ -1367,6 +1394,142 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
          Solout[0] = FMC;
              return;
     }
+    
+    
+    
+    
+    
+    ///////////////************************************************     ELASTOPLASTICITY PROJECTED!!!!!!!!!!     ****************************************************///////////////
+    
+    
+    //Stress Tensor
+    TPZFNMatrix<9> TP(3,3,0.);
+    
+    
+    //T = STRESS TENSOR
+    TP.PutVal(0,0, (SigXP));
+    TP.PutVal(0,1, (TauP));
+    TP.PutVal(0,2, SigmaXZP);  /// ZERO MESMO????
+    TP.PutVal(1,0, (TauP));
+    TP.PutVal(1,1, (SigYP));
+    TP.PutVal(1,2, SigmaYZP); /// ZERO MESMO????
+    TP.PutVal(2,0, SigmaXZP); /// ZERO MESMO????
+    TP.PutVal(2,1, SigmaYZP); /// ZERO MESMO????
+    TP.PutVal(2,2, (SigZP));
+    
+    
+    //    std::cout << T << std::endl;
+    
+    
+//    long NumIt = 1000;
+//    REAL tol = 1.E-5;
+    TPZVec<REAL> EigValuesP(3,0.);
+    TPZFNMatrix<9,REAL> EigVectorsP(3,3,0.);
+    bool EigenWorksP;
+    EigenWorksP = TP.SolveEigensystemJacobi(NumIt, tol, EigValuesP, EigVectorsP);
+    
+    // std::cout << EigValues << std::endl;
+    
+    REAL Sigma1P = 0., Sigma2P = 0., Sigma3P = 0.;
+    
+    //**********// Criar metodo para garantir que Sig1 > Sig2 > Sig3 (em modulo)
+    REAL tempP;
+    for (int i = 0; i < EigValuesP.size() - 1; i++) {
+        for (int j = 1; j < EigValuesP.size() - i; j++) {
+            if (fabs(EigValuesP[j - 1]) < fabs(EigValuesP[j])) {
+                tempP = EigValuesP[j - 1];
+                EigValuesP[j - 1] = EigValuesP[j];
+                EigValuesP[j] = tempP;
+            }
+        }
+    }
+    
+    Sigma1P = EigValuesP[0];
+    Sigma2P = EigValuesP[1];
+    Sigma3P = EigValuesP[2];
+    
+    
+    //   std::cout << EigValues << std::endl;
+    
+    // std::cout << (EigValues[0]+EigValues[1]+EigValues[2])/3 << std::endl;
+    
+    
+    
+    REAL i1P, i2P, i3P, j1P, j2P, j3P;
+    
+    i1P = TP(0,0) + TP(1,1) + TP(2,2);
+    TPZFMatrix<REAL> T2P(3,3,0.);
+    TP.Multiply(TP,T2P); // Multiplica o Tensor?
+    
+    i2P = 0.5*( i1P*i1P - (T2P(0,0) + T2P(1,1) + T2P(2,2)) );
+    
+    i3P = TP(0,0)*TP(1,1)*TP(2,2) + TP(0,1)*TP(1,2)*TP(2,0) + TP(0,2)*TP(1,0)*TP(2,1) - TP(0,2)*TP(1,1)*TP(2,0) - TP(1,2)*TP(2,1)*TP(0,0) - TP(2,2)*TP(0,1)*TP(1,0);
+    
+    j1P = 0.;
+    j2P = 1./3.*(i1P*i1P - 3.*i2P);
+    j3P = 1./27.*(2.*i1P*i1P*i1P - 9.*i1P*i2P + 27.*i3P);
+    
+    
+    
+    // std::cout << sqrt(j2) << std::endl;
+    
+    //  std::cout << j2 << std::endl;
+    
+    //  std::cout << sqrt(3*j2) << std::endl;
+    
+    
+    
+    //********* J2  *********//
+    
+    
+    //	Sig1 (<ou>0)
+    if(var == 38)
+    {
+        Solout[0] = j2P;
+        return;
+    }
+    
+    
+    
+    //********* Sandler-DiMaggio  *********// If F1 <=0 --> ok
+    
+    REAL F1P = 0., FfP = 0., OmBetaP = 0.;
+    
+    //    std::cout << fA << std::endl;
+    //    std::cout << fC << std::endl;
+    //    std::cout << fB << std::endl;
+    //
+    
+    //    Ff = fA - pow(fC,fB*i1);
+    
+    FfP = fA - (fC * exp(fB*i1P));
+    
+    OmBetaP = 1.0; // Modelo clássico de Sandler-DiMaggio (tese Diogo)
+    
+    F1P = sqrt(j2P) - (FfP/OmBetaP);
+    
+    // std::cout << F1 << std::endl;
+    
+    
+    /******** Sandler-DiMaggio ********/
+    
+    //	F1 <= 0   -> Failure
+    if(var == 39)
+    {
+        Solout[0] = F1P;
+        return;
+    }
+    
+    
+    //	Sig1 (<ou>0)
+    if(var == 40)
+    {
+        Solout[0] = i1P;
+        return;
+    }
+    
+   
+    
     
     
     

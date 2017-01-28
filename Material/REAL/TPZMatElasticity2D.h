@@ -302,15 +302,39 @@ public:
         fAnalytics = analytics;
         fProjection = projection;
         
-        // Sets inclined wellbore PreStress
+        // Sets wellbore PreStress (Inclined or not)
         REAL SigXX, SigXY, SigYY, SigZZ;
-        SetInclinedWellborePreStress(SigXX, SigXY, SigYY, SigZZ);
-        fPreStressXX = SigXX;
-        fPreStressXY = SigXY;
-        fPreStressYY = SigYY;
-        fPreStressZZ = SigZZ;
         
-        SetInclinedWellProblem(wellborestate);
+        SetInclinedWellborePreStress(SigXX, SigXY, SigYY, SigZZ);
+                    fPreStressXX = SigXX;
+                    fPreStressXY = SigXY;
+                    fPreStressYY = SigYY;
+                    fPreStressZZ = SigZZ;
+        
+                    SetInclinedWellProblem(wellborestate);
+        
+        if (fInclinedWell==0) {
+            SetPlaneStrain();
+        }
+        
+//        if (fInclinedWell==1) {
+//            SetInclinedWellborePreStress(SigXX, SigXY, SigYY, SigZZ);
+//            fPreStressXX = SigXX;
+//            fPreStressXY = SigXY;
+//            fPreStressYY = SigYY;
+//            fPreStressZZ = SigZZ;
+//            
+//            SetInclinedWellProblem(wellborestate);
+//        }
+//        else {
+//            fPreStressXX = SigmaH;
+//            fPreStressXY = 0.;
+//            fPreStressYY = Sigmah;
+//            fPreStressZZ = SigmaV;
+//            
+//            SetPlaneStrain();
+//        }
+     
         
     }
     
