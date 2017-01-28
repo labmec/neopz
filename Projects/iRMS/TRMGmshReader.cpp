@@ -232,7 +232,7 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             break;
         case 3:
         {
-            // Tetrahedron
+            // Quadrilateral
             line >> TopolQuad[0]; //node 1
             line >> TopolQuad[1]; //node 2
             line >> TopolQuad[2]; //node 3
@@ -270,5 +270,6 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
         }
             break;
     }
-    
+   
+    return true;
 }

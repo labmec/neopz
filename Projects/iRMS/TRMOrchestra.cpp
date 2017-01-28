@@ -255,6 +255,8 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->AdjustVectors();
     parabolic->SetSimulationData(fSimulationData);
     
+    std::cout << "ndof parabolic = " << parabolic->Solution().Rows() << std::endl;
+    
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part

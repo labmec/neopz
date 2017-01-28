@@ -125,11 +125,11 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-//    fReportingTimes.Push(100.0*day);
-//    fReportingTimes.Push(50.0*day);
-//    fReportingTimes.Push(40.0*day);
-//    fReportingTimes.Push(30.0*day);
-//    fReportingTimes.Push(20.0*day);
+    fReportingTimes.Push(100.0*day);
+    fReportingTimes.Push(50.0*day);
+    fReportingTimes.Push(40.0*day);
+    fReportingTimes.Push(30.0*day);
+    fReportingTimes.Push(20.0*day);
     fReportingTimes.Push(10.0*day);
     fReportingTimes.Push(0.0*day);
     
@@ -525,7 +525,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux_b = -0.0058569, S = 1.0;
+    REAL flux_b = -0.058569, S = 1.0;
     
     REAL day = 86400;
     REAL flux = flux_b + 0.00*(sin((time/day)/100));
