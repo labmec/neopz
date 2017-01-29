@@ -11,9 +11,6 @@
 Include "drill_producer.geo";
 Include "drill_injector.geo";
 
-//Mesh.ElementOrder = 2;
-//Mesh.SecondOrderLinear = 0;
-
 well_lids = {};
 
 well_p_bores = {};
@@ -28,19 +25,26 @@ well_i_v_regions = {};
 ExpertMode = 1;
 
 dimension = 2;
-xzQ = 0;
-hexahedronsQ = 0;
-hexahedronsOutQ = 0;
+nolinearQ = 0;
 
-If (hexahedronsOutQ != 0)
+xzQ = 0;
+hexahedronsQ = 1;
+hexahedronsOutQ = 1;
+
+If (nolinearQ == 1)
+Mesh.ElementOrder = 2;
+Mesh.SecondOrderLinear = 0;
+EndIf
+
+If (hexahedronsOutQ == 1)
 n_bc_res = 100;
 n_bc_sb = 1000;
 EndIf
 
-If (hexahedronsQ == 0)
-Mesh.Algorithm3D = 1 ;
-Else
+If (hexahedronsQ == 1)
 Mesh.Algorithm3D = 6 ;
+Else
+Mesh.Algorithm3D = 1 ;
 EndIf
 
 
@@ -49,8 +53,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 200.0;
-cl5 = 500.0;
+cl4 = 500.0;
+cl5 = 2000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -59,7 +63,7 @@ cl5 = 500.0;
 // reservoir box dimensions
 x_length = 1000.0;
 y_length = 1000.0;
-z_length = 100.0;
+z_length = 200.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // side-burden region geometry
@@ -75,10 +79,10 @@ sb_z_length = 4000.0;
 ////////////////////////////////////////////////////////////////////////////
 
 // mesh controls on wellbore region
-alpha = 1.5;
+alpha = 4.0;
 n_radial = 4;
-n_azimuthal = 2;
-n_axial = 6; 
+n_azimuthal = 3;
+n_axial = 4; 
 
 // Geometry well and wellbore region dimensions
 radius = 0.1;
@@ -100,6 +104,7 @@ wy = 0.0;
 wz = 10.0;
 Call DrillProducer;
 
+
 ////////////////////////////////////////////////////////////////////////////
 // Drill injector 1 
 ////////////////////////////////////////////////////////////////////////////
@@ -109,9 +114,9 @@ well_index = 2;
 
 // well location
 wx = 400.0;
-wy = 400.0;
-wz = -10.0;
-//Call DrillInjector;
+wy = 350.0;
+wz = -50.0;
+Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
 // Drill injector 2 
@@ -123,8 +128,8 @@ well_index = 3;
 // well location
 wx = -400.0;
 wy = -400.0;
-wz = -10.0;
-//Call DrillInjector;
+wz = -50.0;
+Call DrillInjector;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -136,8 +141,8 @@ well_index = 4;
 
 // well location
 wx = -400.0;
-wy = 400.0;
-wz = -10.0;
+wy = 350.0;
+wz = -50.0;
 //Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -150,18 +155,8 @@ well_index = 5;
 // well location
 wx = 400.0;
 wy = -400.0;
-wz = -10.0;
+wz = -50.0;
 //Call DrillInjector;
-
-////////////////////////////////////////////////////////////////////////////
-// Converting wellbore regions to hexahedron mesh ! very experimental in 3D
-////////////////////////////////////////////////////////////////////////////
-
-If (hexahedronsQ != 0)
-Transfinite Surface "*";
-Recombine Surface "*";
-Recombine Volume "*";
-EndIf
 
 If (dimension == 3)
 
@@ -264,11 +259,12 @@ Line Loop(30006) = {20004, -20009, -20008, 20012}; // West
 //Volume(7) = {40000} ;
 
 ////////////////////////////////////////////////////////////////////////////
-// Converting reservoir and side burden regions to hexahedron mesh ! very experimental in 3D
+// Converting wellbore regions to hexahedron mesh ! very experimental in 3D
 ////////////////////////////////////////////////////////////////////////////
 
-If (hexahedronsOutQ != 0)
+If (hexahedronsQ == 1)
 Transfinite Surface "*";
+Transfinite Volume "*";
 Recombine Surface "*";
 Recombine Volume "*";
 EndIf
@@ -376,17 +372,13 @@ Line Loop(30001) = {2001, 2002, 2003, 2004, 20001, 20002, 20003, 20004};
 // Converting reservoir and side burden regions to hexahedron mesh ! very experimental in 3D
 ////////////////////////////////////////////////////////////////////////////
 
-If (hexahedronsOutQ != 0)
+
+If (hexahedronsOutQ == 1)
 //Transfinite Line {2001,2002,2003,2004} = n_bc_res;
 //Transfinite Line {20001,20002,20003,20004} = n_bc_sb;
-Transfinite Surface {3001};
+Transfinite Surface {3001} = n_bc_res;
 Recombine Surface "*";
 Recombine Volume "*";
-Else
-//Transfinite Line {2001,2002,2003,2004} = n_bc_res;
-//Transfinite Line {20001,20002,20003,20004} = n_bc_sb;
-//Transfinite Line "*";
-//Transfinite Surface "*";
 EndIf
 
 ////////////////////////////////////////////////////////////////////////////
@@ -415,4 +407,3 @@ Physical Line("side_burden_top") = {20003};
 Physical Line("side_burden_East") = {20004};
 
 EndIf
-

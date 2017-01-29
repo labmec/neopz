@@ -235,9 +235,21 @@ vregion = newv; Volume(vregion) = {sl1};
 j=(well_index-1)*114;
 well_i_v_region[] = {1+j,2+j,3+j,4+j};
 
+
+If (hexahedronsQ == 1)
+Transfinite Volume {well_i_v_region[]};
+Recombine Volume {well_i_v_region[]};
+EndIf
+
 Else
 
 well_i_v_region[] = {s1,s2,s3,s4};
+
+
+If (hexahedronsQ == 1)
+Transfinite Surface {well_i_v_region[]};
+Recombine Surface {well_i_v_region[]};
+EndIf
 
 EndIf
 

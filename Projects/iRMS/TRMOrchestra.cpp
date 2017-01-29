@@ -463,7 +463,7 @@ void TRMOrchestra::RunStaticProblem(){
     
     std::cout<< "iRMS:: Finding Initial State" << std::endl;
     
-    int n = 1;
+    int n = 2;
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
     

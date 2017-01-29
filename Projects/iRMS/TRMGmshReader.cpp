@@ -13,6 +13,11 @@
 #include "TPZGeoCube.h"
 #include "pzgeotetrahedra.h"
 #include "tpzcube.h"
+
+
+#include "tpzquadraticline.h"
+#include "tpzquadratictrig.h"
+#include "tpzquadraticquad.h"
 #include "tpzgeoblend.h"
 
 #include "pzgeoelside.h"
@@ -193,6 +198,13 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     TPZManVector <long,5> TopolPyr(5);
     TPZManVector <long,8> TopolHex(8);
     
+    TPZManVector <long,2> TopolLineQ(3);
+    TPZManVector <long,6> TopolTriangleQ(6);
+    TPZManVector <long,8> TopolQuadQ(8);
+    TPZManVector <long,10> TopolTetQ(10);
+    TPZManVector <long,5> TopolPyrQ(5);
+    TPZManVector <long,8> TopolHexQ(8);
+    
 
     long element_id, type_id, div_id, physical_id, elementary_id;
     
@@ -262,7 +274,61 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             
         }
             break;
-            
+        case 8:
+        {
+            // Triangle
+            line >> TopolLineQ[0]; //node 1
+            line >> TopolLineQ[1]; //node 2
+            line >> TopolLineQ[2]; //node 2
+            element_id--;
+            TopolLineQ[0]--;
+            TopolLineQ[1]--;
+            TopolLineQ[2]--;
+            new TPZGeoElRefPattern< pzgeom::TPZQuadraticLine> (element_id, TopolLineQ, physical_id, *gmesh);
+        }
+            break;
+        case 9:
+        {
+            // Triangle
+            line >> TopolTriangleQ[0]; //node 1
+            line >> TopolTriangleQ[1]; //node 2
+            line >> TopolTriangleQ[2]; //node 3
+            line >> TopolTriangleQ[3]; //node 4
+            line >> TopolTriangleQ[4]; //node 5
+            line >> TopolTriangleQ[5]; //node 6
+            element_id--;
+            TopolTriangleQ[0]--;
+            TopolTriangleQ[1]--;
+            TopolTriangleQ[2]--;
+            TopolTriangleQ[3]--;
+            TopolTriangleQ[4]--;
+            TopolTriangleQ[5]--;
+            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig> (element_id, TopolTriangleQ, physical_id, *gmesh);
+        }
+            break;
+        case 10:
+        {
+            // Quadrilateral
+            line >> TopolQuadQ[0]; //node 1
+            line >> TopolQuadQ[1]; //node 2
+            line >> TopolQuadQ[2]; //node 3
+            line >> TopolQuadQ[3]; //node 4
+            line >> TopolQuadQ[4]; //node 5
+            line >> TopolQuadQ[5]; //node 6
+            line >> TopolQuadQ[6]; //node 7
+            line >> TopolQuadQ[7]; //node 8
+            element_id--;
+            TopolQuadQ[0]--;
+            TopolQuadQ[1]--;
+            TopolQuadQ[2]--;
+            TopolQuadQ[3]--;
+            TopolQuadQ[4]--;
+            TopolQuadQ[5]--;
+            TopolQuadQ[6]--;
+            TopolQuadQ[7]--;
+            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (element_id, TopolQuadQ, physical_id, *gmesh);
+        }
+            break;
         default:
         {
             std::cout << "Element not impelemented." << std::endl;
