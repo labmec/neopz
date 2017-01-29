@@ -75,9 +75,9 @@ sb_z_length = 4000.0;
 ////////////////////////////////////////////////////////////////////////////
 
 // mesh controls on wellbore region
-alpha = 1.75;
-n_radial = 6;
-n_azimuthal = 4;
+alpha = 1.5;
+n_radial = 4;
+n_azimuthal = 2;
 n_axial = 6; 
 
 // Geometry well and wellbore region dimensions
@@ -385,8 +385,8 @@ Recombine Volume "*";
 Else
 //Transfinite Line {2001,2002,2003,2004} = n_bc_res;
 //Transfinite Line {20001,20002,20003,20004} = n_bc_sb;
-Transfinite Line "*";
-Transfinite Surface "*";
+//Transfinite Line "*";
+//Transfinite Surface "*";
 EndIf
 
 ////////////////////////////////////////////////////////////////////////////
