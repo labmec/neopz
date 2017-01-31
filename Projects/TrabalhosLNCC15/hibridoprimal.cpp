@@ -669,6 +669,8 @@ int main(int argc, char *argv[])
             ErrorH1(cmesh2, ErroP /*,myerrorfile*/);
             ErrorHDiv(cmesh1, ErroF /*,myerrorfile*/);
             
+            std::ofstream sout("flux_cmesh.txt");
+            cmesh1->Print(sout);
             
             REAL totalbanda = NDoFCond*NDoFCond;
             REAL NumZeros = totalbanda - nNzeros;
