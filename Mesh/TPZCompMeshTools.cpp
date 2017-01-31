@@ -408,6 +408,38 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
     cmesh->ComputeNodElCon();
 }
 
+/// ungroup all embedded elements of the computational mesh
+void TPZCompMeshTools::UnGroupElements(TPZCompMesh *cmesh){
+    
+    long nelem = cmesh->NElements();
+   
+    //unwrapping element groups
+    for(long i=0; i<nelem; i++){
+        TPZCompEl *el = cmesh->ElementVec()[i];
+        TPZElementGroup * group = dynamic_cast<TPZElementGroup*>(el);
+        if(group){
+            group->Unwrap();
+        }
+    }
+    
+}
+
+/// uncondensed elements for the elements that have internal nodes
+void TPZCompMeshTools::UnCondensedElements(TPZCompMesh *cmesh){
+    
+    long nelem = cmesh->NElements();
+    
+    //unwrapping condensed compel
+    for(long i=0; i<nelem; i++){
+        TPZCompEl *el = cmesh->ElementVec()[i];
+        TPZCondensedCompEl * cond = dynamic_cast<TPZCondensedCompEl*>(el);
+        if(cond){
+            cond->Unwrap();
+        }
+    }
+    
+}
+
 /// Put the element set into a subcompmesh and make the connects internal
 void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<long,std::set<long> >&elindices, std::set<long> &indices, bool KeepOneLagrangian)
 {

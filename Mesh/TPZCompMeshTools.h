@@ -38,6 +38,12 @@ public:
     
     /// created condensed elements for the elements that have internal nodes
     static void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian);
+    
+    /// ungroup all embedded elements of the computational mesh
+    static void UnGroupElements(TPZCompMesh *cmesh);
+    
+    /// uncondensed elements for the elements that have internal nodes
+    static void UnCondensedElements(TPZCompMesh *cmesh);
 
     /// compute the norm of the difference between two meshes
     /// put the computed error in the element solution
