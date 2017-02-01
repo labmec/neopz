@@ -109,7 +109,7 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    water->SetRhoModel(1);
+    water->SetRhoModel(0);
     fPhases.Push(water);
     int n_data = fSystemType.size();
     
@@ -125,21 +125,21 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fReportingTimes.Push(5000.0*day);
-    fReportingTimes.Push(4500.0*day);
-    fReportingTimes.Push(4000.0*day);
-    fReportingTimes.Push(3500.0*day);
-    fReportingTimes.Push(3000.0*day);
-    fReportingTimes.Push(2500.0*day);
-    fReportingTimes.Push(2000.0*day);
-    fReportingTimes.Push(1500.0*day);
-    fReportingTimes.Push(1000.0*day);
-    fReportingTimes.Push(500.0*day);
-    fReportingTimes.Push(400.0*day);
-    fReportingTimes.Push(300.0*day);
-    fReportingTimes.Push(200.0*day);
-    fReportingTimes.Push(100.0*day);
-    fReportingTimes.Push(10.0*day);
+//    fReportingTimes.Push(5000.0*day);
+//    fReportingTimes.Push(4500.0*day);
+//    fReportingTimes.Push(4000.0*day);
+//    fReportingTimes.Push(3500.0*day);
+//    fReportingTimes.Push(3000.0*day);
+//    fReportingTimes.Push(2500.0*day);
+//    fReportingTimes.Push(2000.0*day);
+//    fReportingTimes.Push(1500.0*day);
+//    fReportingTimes.Push(1000.0*day);
+//    fReportingTimes.Push(500.0*day);
+//    fReportingTimes.Push(400.0*day);
+//    fReportingTimes.Push(300.0*day);
+//    fReportingTimes.Push(200.0*day);
+//    fReportingTimes.Push(100.0*day);
+//    fReportingTimes.Push(10.0*day);
     fReportingTimes.Push(1.0*day);
     fReportingTimes.Push(0.0*day);
     
@@ -185,15 +185,15 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
     E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    E[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
@@ -232,7 +232,7 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     fGammaIds.Push(bc_lids);
     WLids[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(WLids);
-    WLids[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Impervious));
+    WLids[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Prod);

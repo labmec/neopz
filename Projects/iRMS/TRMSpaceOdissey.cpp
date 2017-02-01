@@ -1,4 +1,4 @@
-//
+  //
 //  TRMSpaceOdissey.cpp
 //  PZ
 //
@@ -321,13 +321,20 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
     
-//    this->CreateMixedCmeshMHM();
-//    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
-//#ifdef PZDEBUG
-//    std::ofstream out("CmeshMixedMHM.txt");
-//    this->MixedFluxPressureCmeshMHM()->Print(out);
-//#endif
-//    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    this->CreateMixedCmeshMHM();
+    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
+#ifdef PZDEBUG
+    std::ofstream out("CmeshMixedMHM.txt");
+    this->MixedFluxPressureCmeshMHM()->Print(out);
+#endif
+    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    
+    this->UnwrapMacroElements();
+    
+#ifdef PZDEBUG
+    std::ofstream out_unwrap("CmeshMixedMHMUnWrap.txt");
+    this->MixedFluxPressureCmeshMHM()->Print(out_unwrap);
+#endif
     
     
 }
@@ -420,7 +427,7 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
 void TRMSpaceOdissey::BuildMacroElements()
 {
     
-    std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
+    std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
     
 #ifdef PZDEBUG
     if(!fMixedFluxPressureCmeshMHM){
@@ -499,6 +506,44 @@ void TRMSpaceOdissey::BuildMacroElements()
 //    fMixedFluxPressureCmeshMHM->ComputeNodElCon();
 //    fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
 
+}
+
+/** @brief Destruct computational macro elements */
+void TRMSpaceOdissey::UnwrapMacroElements()
+{
+    
+    std::cout << "ndof parabolic with MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    
+#ifdef PZDEBUG
+    if(!fMixedFluxPressureCmeshMHM){
+        DebugStop();
+    }
+#endif
+    
+    long nelem = fMixedFluxPressureCmeshMHM->NElements();
+    //deleting subcompmesh
+    for(long i=0; i<nelem; i++){
+        TPZCompEl *el = fMixedFluxPressureCmeshMHM->ElementVec()[i];
+        TPZSubCompMesh * subc = dynamic_cast<TPZSubCompMesh*>(el);
+        if(subc){
+            long sub_nel = subc->NElements();
+            long elindex;
+            for (long isubcel = 0; isubcel < sub_nel; isubcel++) {
+                
+                TPZCompEl * cel =  subc->Element(isubcel);
+                elindex = cel->Index();
+                subc->TPZCompMesh::TransferElementTo(fMixedFluxPressureCmeshMHM, elindex);
+            }
+
+            delete subc;
+        }
+    }
+    
+    TPZCompMeshTools::UnCondensedElements(fMixedFluxPressureCmeshMHM);
+    TPZCompMeshTools::UnGroupElements(fMixedFluxPressureCmeshMHM);
+    
+    std::cout << "ndof parabolic without MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    
 }
 
 /** @brief Create a Mixed computational mesh Hdiv-L2 */

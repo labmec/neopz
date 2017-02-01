@@ -410,6 +410,9 @@ public:
     /** @brief Construc computational macro elements */
     void BuildMacroElements();
     
+    /** @brief Destruct computational macro elements */
+    void UnwrapMacroElements();
+    
     /** @brief Computational element refinement by index */
     void CElemtentRefinement(TPZCompMesh  *cmesh, int element_index);
     

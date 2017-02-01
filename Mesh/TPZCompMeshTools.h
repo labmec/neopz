@@ -40,6 +40,12 @@ public:
     /// created condensed elements for the elements that have internal nodes
     static void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian);
     
+    /// ungroup all embedded elements of the computational mesh
+    static void UnGroupElements(TPZCompMesh *cmesh);
+    
+    /// uncondensed elements for the elements that have internal nodes
+    static void UnCondensedElements(TPZCompMesh *cmesh);
+    
     static void OptimizeBandwidth(TPZCompMesh *cmesh);
 };
 

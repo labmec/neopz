@@ -53,7 +53,7 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 500.0;
+cl4 = 1000.0;
 cl5 = 2000.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ well_index = 1;
 wx = 0.0;
 wy = 0.0;
 wz = 10.0;
-Call DrillProducer;
+//Call DrillProducer;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -116,7 +116,7 @@ well_index = 2;
 wx = 400.0;
 wy = 350.0;
 wz = -50.0;
-Call DrillInjector;
+//Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
 // Drill injector 2 
@@ -129,7 +129,7 @@ well_index = 3;
 wx = -400.0;
 wy = -400.0;
 wz = -50.0;
-Call DrillInjector;
+//Call DrillInjector;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -376,7 +376,8 @@ Line Loop(30001) = {2001, 2002, 2003, 2004, 20001, 20002, 20003, 20004};
 If (hexahedronsOutQ == 1)
 //Transfinite Line {2001,2002,2003,2004} = n_bc_res;
 //Transfinite Line {20001,20002,20003,20004} = n_bc_sb;
-Transfinite Surface {3001} = n_bc_res;
+//Transfinite Surface {3001} = n_bc_res;
+Transfinite Surface {3001};
 Recombine Surface "*";
 Recombine Volume "*";
 EndIf
