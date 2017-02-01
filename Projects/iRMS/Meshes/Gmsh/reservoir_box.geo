@@ -55,7 +55,7 @@ cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
 cl4 = 500.0;
-cl5 = 2000.0;
+cl5 = 500.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -86,7 +86,7 @@ n_azimuthal = 3;
 n_axial = 4; 
 
 // Geometry well and wellbore region dimensions
-radius = 0.1;
+radius = 5.0;
 length = 100.0;
 outer = 20;
 angle = Pi/2.0;
@@ -103,7 +103,7 @@ well_index = 1;
 wx = 0.0;
 wy = 50.0;
 wz = -50.0;
-//Call DrillProducer;
+Call DrillProducer;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,7 @@ well_index = 2;
 wx = 400.0;
 wy = 350.0;
 wz = -50.0;
-//Call DrillInjector;
+Call DrillInjector;
 
 ////////////////////////////////////////////////////////////////////////////
 // Drill injector 2 
@@ -130,7 +130,7 @@ well_index = 3;
 wx = -400.0;
 wy = -400.0;
 wz = -50.0;
-//Call DrillInjector;
+Call DrillInjector;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -167,11 +167,15 @@ If (dimension == 3)
 
 If(YReservoirQ == 1)
 
-point_id = newl;
-line_id = newl;
-face_id = news;
+Include "YReservoir.geo";
 
-bottom = {face_id};
+line_id = newl-28;
+face_id = news-6;
+
+Printf ("Mesher:: line_id = %g", line_id);
+Printf ("Mesher:: face_id = %g", face_id);
+
+bottom[] = {face_id};
 top[] = {face_id + 5};
 south[] = {face_id + 4};
 east[] = {face_id + 3};
@@ -179,21 +183,17 @@ north[] = {face_id + 2};
 west[] = {face_id + 1};
 
 
-Include "YReservoir.geo";
+line_id = 1;
+res_edges_h[] = {
+line_id,line_id+1,line_id+2,line_id+3,line_id+5,line_id+8,line_id+9,line_id+11};
+res_edges_v[] = {
+line_id+4,line_id+6,line_id+7,line_id+10};
 
-res_points[] = {point_id+2,point_id+11};
-
-//res_edges[] = {
-//line_id,line_id+1,line_id+2,line_id+3,line_id+4,line_id+5,line_id+6,line_id+7,line_id+8,line_id+9,line_id+10,
-//line_id+11,line_id+12,line_id+13,line_id+14,line_id+15,line_id+16,line_id+17,line_id+18,line_id+19,line_id+20};
-
-res_edges[] = {
-line_id,line_id+1,line_id+2,line_id+3,line_id+4,line_id+5,line_id+6,line_id+7,line_id+8,line_id+9,line_id+10,
-line_id+11};
-
-Transfinite Line {res_edges[]} = 25.0;
+Transfinite Line {res_edges_h[]} = 25.0;
+Transfinite Line {res_edges_v[]} = 4.0;
 
 res_boundaries[] = {top[],bottom[],east[],west[],north[],south[]};
+
 
 Compound Surface(3001) = {bottom[]}; // Bottom unstructured region
 Compound Surface(3002) = {top[]}; // Top unstructured region
@@ -296,12 +296,12 @@ Line Loop(30004) = {20002, -20011, -20006, 20010}; // East
 Line Loop(30005) = {20003, -20012, -20007, 20011}; // North
 Line Loop(30006) = {20004, -20009, -20008, 20012}; // West
 
-//Plane Surface(30001) = {30001}; // Top unstructured region
-//Plane Surface(30002) = {30002}; // Bottom unstructured region
-//Plane Surface(30003) = {30003}; // South unstructured region
-//Plane Surface(30004) = {30004}; // East unstructured region
-//Plane Surface(30005) = {30005}; // North unstructured region
-//Plane Surface(30006) = {30006}; // West unstructured region
+Plane Surface(30001) = {30001}; // Top unstructured region
+Plane Surface(30002) = {30002}; // Bottom unstructured region
+Plane Surface(30003) = {30003}; // South unstructured region
+Plane Surface(30004) = {30004}; // East unstructured region
+Plane Surface(30005) = {30005}; // North unstructured region
+Plane Surface(30006) = {30006}; // West unstructured region
 
 //Surface Loop(40000) = {3001,3002,3003,3004,3005,3006,30001,30002,30003,30004,30005,30006};
 //Volume(7) = {40000} ;
