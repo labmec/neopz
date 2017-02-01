@@ -8,6 +8,9 @@ sl1 = newsl; Surface Loop(sl1) = {well_p_regions[],well_i_regions[],reservoir_bo
 v1  = newv; Volume(v1) = {sl1} ;
 reservoir[] = {v1};
 
+Transfinite Surface {reservoir_boundaries[]};
+Transfinite Volume {v1};
+
 If (hexahedronsRQ == 1)
 Transfinite Surface {reservoir_boundaries[]};
 Recombine Surface {reservoir_boundaries[]};
@@ -21,6 +24,9 @@ sl2 = newsl; Surface Loop(sl2) = {reservoir_boundaries[],sb_boundaries[]};
 v2  = newv; Volume(v2) = {sl2} ;
 side_burden[] = {v2};
 EndIf
+
+Transfinite Surface {sb_boundaries[]};
+Transfinite Volume {v2};
 
 If (hexahedronsSBQ == 1)
 Transfinite Surface {sb_boundaries[]};

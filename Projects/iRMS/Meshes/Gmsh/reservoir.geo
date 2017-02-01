@@ -31,10 +31,10 @@ well_i_regions = {};
 well_i_v_regions = {};
 
 
-geomechanicQ = 0;
+geomechanicQ = 1;
 dimension = 3;
 nolinearQ = 0;
-CADReservoirQ = 0;
+CADReservoirQ = 1;
 
 xzQ = 0;
 hexahedronsWQ = 1;
@@ -75,8 +75,8 @@ z_length = 200.0;
 ////////////////////////////////////////////////////////////////////////////
 
 // side-burden box dimensions
-sb_x_length = 5000.0;
-sb_y_length = 5000.0;
+sb_x_length = 10000.0;
+sb_y_length = 10000.0;
 sb_z_length = 4000.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -133,7 +133,7 @@ well_index = 1;
 wx = 0.0;
 wy = 50.0;
 wz = 10.0;
-Call DrillProducer;
+//Call DrillProducer;
 
 
 ////////////////////////////////////////////////////////////////////////////
