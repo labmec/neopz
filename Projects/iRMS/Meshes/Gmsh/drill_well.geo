@@ -109,16 +109,13 @@ lidst1[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi/2} {Duplicata{Surface{as
 lidst2[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi} {Duplicata{Surface{as1,bs1};}}; 
 lidst3[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},3*Pi/2} {Duplicata{Surface{as1,bs1};}};
 
-
 wellbore_t1[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi/2} {Duplicata{Surface{cs1};}}; 
 wellbore_t2[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi} {Duplicata{Surface{cs1};}}; 
 wellbore_t3[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},3*Pi/2} {Duplicata{Surface{cs1};}};
 
-
 wellregion_t1[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi/2} {Duplicata{Surface{wr_as1,wr_bs1};}}; 
 wellregion_t2[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi} {Duplicata{Surface{wr_as1,wr_bs1};}}; 
 wellregion_t3[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},3*Pi/2} {Duplicata{Surface{wr_as1,wr_bs1};}};
-
 
 
 
