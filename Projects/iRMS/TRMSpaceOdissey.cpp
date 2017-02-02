@@ -324,8 +324,8 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     this->CreateMixedCmeshMHM();
     this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
 #ifdef PZDEBUG
-    std::ofstream out("CmeshMixedMHM.txt");
-    this->MixedFluxPressureCmeshMHM()->Print(out);
+    std::ofstream out_mhm("CmeshMixedMHM.txt");
+    this->MixedFluxPressureCmeshMHM()->Print(out_mhm);
 #endif
     std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
     
@@ -473,6 +473,8 @@ void TRMSpaceOdissey::BuildMacroElements()
         }
     }
     
+    // omar:: Volumetric methodology for the creation macroblocks/macroelements
+    
 #ifdef PZDEBUG
     std::map<long,TCompIndexes>::iterator it;
     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
@@ -503,8 +505,8 @@ void TRMSpaceOdissey::BuildMacroElements()
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->SetAnalysisSkyline(0, 0, 0);
     }
-//    fMixedFluxPressureCmeshMHM->ComputeNodElCon();
-//    fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
+    fMixedFluxPressureCmeshMHM->ComputeNodElCon();
+    fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
 
 }
 
