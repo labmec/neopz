@@ -171,10 +171,10 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     if (!Is3DGeometryQ) {
         bc_W = 6;
         bc_E = 8;
-        bc_S = 100;
-        bc_N = 100;
-        bc_B = 5;
-        bc_T = 7;
+        bc_S = 5;
+        bc_N = 7;
+        bc_B = 100;
+        bc_T = 100;
     }
     
     TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
@@ -185,15 +185,15 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
     E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
+    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
@@ -266,6 +266,14 @@ void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TP
     REAL flux = flux_b + 0.00*(sin((time/day)/100));
     
     F[0] = flux;
+    return;
+}
+
+void TRMRawData::FluxAquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
+{
+    
+    REAL flux_aquifer = -0.000000184;
+    F[0] = flux_aquifer;
     return;
 }
 

@@ -129,10 +129,11 @@ void TRMOrchestra::BuildGeometry2(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir_box.msh";
+//    file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir_box.msh";
+    file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir.msh";
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
-    int ref = 1;
+    int ref = 0;
     fSpaceGenerator->UniformRefinement(ref);
     
     fSpaceGenerator->PrintGeometry();
@@ -207,7 +208,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
-    bool UseMHMQ = true;
+    bool UseMHMQ = false;
     
     if(UseMHMQ){
         int skeleton_id = 0;
@@ -243,10 +244,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    strmat_p.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    strmat_p.SetDecomposeType(ELDLt);
 
-    //   TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
