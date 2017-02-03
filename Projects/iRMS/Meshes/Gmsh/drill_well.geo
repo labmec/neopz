@@ -1,49 +1,69 @@
 
+// ---- Gmsh Macro ----
+// ---- drill a cylindrical wellbore and ellipsoidal wellbore region  ----
+// Created 10/01/2016 by Omar Duran
+// Labmec, State University of Campinas
+// --------------------------------------------
 
-alfa = 0.2;
-beta = 0.5;
-
-wcx = 0.0;
-wcy = 0.0;
-wcz = 0.0;
-
-wl = 1.0;
-
-rw = 0.1;
-rw_cell= 0.1;
-
-LensA = 2.0;
-LensB = 4.0; 
-wr_cell= 2.0;
+Macro DrillWell
 
 xdir = Cos(beta);
 ydir = Sin(beta);
-zdir = Cos(alfa);
 
+If(dimension == 3)
 
-ap1 = newp; Point(ap1) = {0, 0, 0, rw_cell};   	// Sphere center
-ap2 = newp; Point(ap2) = {rw, 0, 0, rw_cell};  //Sphere X radius
-ap3 = newp; Point(ap3) = {0, rw, 0, rw_cell};  //Sphere y radius
-ap4 = newp; Point(ap4) = {0, 0, rw, rw_cell};  //Sphere z radius
+////////////////////////////////////////////////////////////////////////////
+// 3D model
+////////////////////////////////////////////////////////////////////////////
+
+ap1 = newp; Point(ap1) = {0, 0, +0.5*wl, rw_cell};   	// Sphere center
+ap2 = newp; Point(ap2) = {rw, 0, +0.5*wl, rw_cell};  //Sphere X radius
+ap3 = newp; Point(ap3) = {0, rw, +0.5*wl, rw_cell};  //Sphere y radius
+ap4 = newp; Point(ap4) = {0, 0, rw+0.5*wl, rw_cell};  //Sphere z radius
 ap[] = {ap1,ap2,ap3,ap4};
 
-bp1 = newp; Point(bp1) = {0, 0, -wl, rw_cell};   	// Sphere center
-bp2 = newp; Point(bp2) = {rw, 0, -wl, rw_cell};  //Sphere X radius
-bp3 = newp; Point(bp3) = {0, rw, -wl, rw_cell};  //Sphere y radius
-bp4 = newp; Point(bp4) = {0, 0, -rw-wl, rw_cell};  //Sphere z radius
+bp1 = newp; Point(bp1) = {0, 0, -wl+0.5*wl, rw_cell};   	// Sphere center
+bp2 = newp; Point(bp2) = {rw, 0, -wl+0.5*wl, rw_cell};  //Sphere X radius
+bp3 = newp; Point(bp3) = {0, rw, -wl+0.5*wl, rw_cell};  //Sphere y radius
+bp4 = newp; Point(bp4) = {0, 0, -rw-wl+0.5*wl, rw_cell};  //Sphere z radius
 bp[] = {bp1,bp2,bp3,bp4};
 
 
-wr_pc = newp; Point(wr_pc) = {0, 0, -0.5*wl, wr_cell};   	// Sphere center
-wr_pc1 = newp; Point(wr_pc1) = {LensA, 0, -0.5*wl, wr_cell};  //Sphere X radius
-wr_pc2 = newp; Point(wr_pc2) = {0, LensA, -0.5*wl, wr_cell};  //Sphere y radius
-wr_ap1 = newp; Point(wr_ap1) = {0, 0, LensB-0.5*wl, wr_cell};  //Sphere z radius
-wr_bp1 = newp; Point(wr_bp1) = {0, 0, -LensB-0.5*wl, wr_cell};  //Sphere z radius
+wr_pc = newp; Point(wr_pc) = {0, 0, 0, wr_cell};   	// Sphere center
+wr_pc1 = newp; Point(wr_pc1) = {wbr, 0, 0, wr_cell};  //Sphere X radius
+wr_pc2 = newp; Point(wr_pc2) = {0, wbr, 0, wr_cell};  //Sphere y radius
+wr_ap1 = newp; Point(wr_ap1) = {0, 0, ela, wr_cell};  //Sphere z radius
+wr_bp1 = newp; Point(wr_bp1) = {0, 0, -ela, wr_cell};  //Sphere z radius
 wr_p[] = {wr_pc,wr_pc1,wr_pc2,wr_ap1,wr_bp1};
 
 
+// Apply translation
+If (dimension == 3)
+
+translate_p[] = Translate {wcx, wcy, wcz} { 
+Point {ap[],bp[],wr_p[]};
+};
+
+Else
+
+If (xzQ == 1)
+
+translate_p[] = Translate {wcx, 0, wcz} { 
+Point {ap[],bp[],wr_p[]};
+};
+
+Else
+
+translate_p[] = Translate {wcx, wcy, 0} { 
+Point {ap[],bp[],wr_p[]};
+};
+
+EndIf
+
+EndIf
+
 // Apply rotation
-rotate_p[] = Rotate { { xdir, ydir,0}, {0,0,0}, alfa } {
+rotate_p[] = Rotate { { xdir, ydir,0}, {wcx, wcy, wcz}, alfa } {
 Point {ap[],bp[],wr_p[]};
 };
 
@@ -105,17 +125,185 @@ wr_bs1 = news; Ruled Surface (wr_bs1) = {wr_bll1};    //Sphere slice surface
 
 axis[] = {a[0]/norm, a[1]/norm, a[2]/norm};
 
-lidst1[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi/2} {Duplicata{Surface{as1,bs1};}}; 
-lidst2[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi} {Duplicata{Surface{as1,bs1};}}; 
-lidst3[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},3*Pi/2} {Duplicata{Surface{as1,bs1};}};
+lidst1[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi/2} {Duplicata{Surface{as1,bs1};}}; 
+lidst2[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi} {Duplicata{Surface{as1,bs1};}}; 
+lidst3[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},3*Pi/2} {Duplicata{Surface{as1,bs1};}};
 
-wellbore_t1[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi/2} {Duplicata{Surface{cs1};}}; 
-wellbore_t2[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi} {Duplicata{Surface{cs1};}}; 
-wellbore_t3[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},3*Pi/2} {Duplicata{Surface{cs1};}};
+wellbore_t1[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi/2} {Duplicata{Surface{cs1};}}; 
+wellbore_t2[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi} {Duplicata{Surface{cs1};}}; 
+wellbore_t3[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},3*Pi/2} {Duplicata{Surface{cs1};}};
 
-wellregion_t1[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi/2} {Duplicata{Surface{wr_as1,wr_bs1};}}; 
-wellregion_t2[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},Pi} {Duplicata{Surface{wr_as1,wr_bs1};}}; 
-wellregion_t3[] = Rotate {{axis[0],axis[1],axis[2]},{0,0,0},3*Pi/2} {Duplicata{Surface{wr_as1,wr_bs1};}};
+wellregion_t1[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi/2} {Duplicata{Surface{wr_as1,wr_bs1};}}; 
+wellregion_t2[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi} {Duplicata{Surface{wr_as1,wr_bs1};}}; 
+wellregion_t3[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},3*Pi/2} {Duplicata{Surface{wr_as1,wr_bs1};}};
+
+
+well_lid[] = {as1,bs1,lidst1[],lidst2[],lidst3[]};
+well_bore[] = {cs1,wellbore_t1[],wellbore_t2[],wellbore_t3[]};
+well_region[] = {wr_as1,wr_bs1,wellregion_t1[],wellregion_t2[],wellregion_t3[]};
+
+// wellbore region volume
+wr_sl1 = newsl; Surface Loop(wr_sl1) = {well_lid[],well_bore[],well_region[]}; 
+wr_v1 = newv; Volume(wr_v1) = {wr_sl1};
+well_v_region[] = {wr_v1};
+
+
+Else
+
+////////////////////////////////////////////////////////////////////////////
+// 2D model
+////////////////////////////////////////////////////////////////////////////
+
+// mesh controls on wellbore region on 2D
+alpha = 1.5;
+n_radial = 10;
+n_azimuthal = 3;
+
+apc = newp; Point(apc) = {0, 0, 0, rw_cell};   	// Sphere center
+
+If (xzQ == 1)
+
+ap1 = newp; Point(ap1) = {rw, 0, 0, rw_cell};  //Sphere X radius
+ap2 = newp; Point(ap2) = {0, 0, rw, rw_cell};  //Sphere z radius
+
+bp1 = newp; Point(bp1) = {wbr, 0, 0, wr_cell};  //Sphere X radius
+bp2 = newp; Point(bp2) = {0, 0, wbr, wr_cell};  //Sphere z radius
+
+Else
+
+ap1 = newp; Point(ap1) = {rw, 0, 0, rw_cell};  //Sphere X radius
+ap2 = newp;Point(ap2) = {0, rw, 0, rw_cell};  //Sphere z radius
+
+bp1 = newp; Point(bp1) = {wbr, 0, 0, wr_cell};  //Sphere X radius
+bp2 = newp; Point(bp2) = {0, wbr, 0, wr_cell};  //Sphere z radius
+
+EndIf
+
+ap[] = {ap1,ap2,apc};
+bp[] = {bp1,bp2};
+
+If (xzQ == 1)
+wcy = 0;
+Else
+wcz = 0;
+EndIf
+
+translate_p[] = Translate {wcx, wcy, wcz} { 
+Point {ap[],bp[]};
+};
+
+al1 = newl; Circle(al1) = {ap1, apc, ap2};    //Sphere XY arc
+bl1 = newl; Circle(bl1) = {bp1, apc, bp2};    //Sphere XY arc
+cl1 = newl; Line(cl1) = {ap2, bp2};    //Line XY arc
+
+If (xzQ == 1)
+axis[] = {0, -1, 0};
+
+Else
+axis[] = {0, 0, 1};
+
+EndIf
+
+
+wellbore_t1[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi/2} {Duplicata{Line{al1};}};
+wellbore_t2[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi} {Duplicata{Line{al1};}};
+wellbore_t3[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},3*Pi/2} {Duplicata{Line{al1};}};
+
+wellregion_t1[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi/2} {Duplicata{Line{bl1};}};
+wellregion_t2[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi} {Duplicata{Line{bl1};}};
+wellregion_t3[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},3*Pi/2} {Duplicata{Line{bl1};}};
+
+radial_t1[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi/2} {Duplicata{Line{cl1};}};
+radial_t2[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},Pi} {Duplicata{Line{cl1};}};
+radial_t3[] = Rotate {{axis[0],axis[1],axis[2]},{wcx,wcy,wcz},3*Pi/2} {Duplicata{Line{cl1};}};
+
+
+well_bore[] = {al1,wellbore_t1[0],wellbore_t2[0],wellbore_t3[0]};
+well_region[] = {bl1,wellregion_t1[0],wellregion_t2[0],wellregion_t3[0]};
+radial[] = {cl1,radial_t1[0],radial_t2[0],radial_t3[0]};
+well_lid[] = {};
 
 
 
+// wellbore region volume
+wr_ll1 = newll; Line Loop(wr_ll1) = {-al1,radial_t3[0],bl1,-cl1}; 
+wr_ll2 = newll; Line Loop(wr_ll2) = {-wellbore_t1[0],cl1,wellregion_t1[0],-radial_t1[0]}; 
+wr_ll3 = newll; Line Loop(wr_ll3) = {-wellbore_t2[0],radial_t1[0],wellregion_t2[0],-radial_t2[0]}; 
+wr_ll4 = newll; Line Loop(wr_ll4) = {-wellbore_t3[0],radial_t2[0],wellregion_t3[0],-radial_t3[0]}; 
+wr_s1 = news; Plane Surface(wr_s1) = {wr_ll1};
+wr_s2 = news; Plane Surface(wr_s2) = {wr_ll2};
+wr_s3 = news; Plane Surface(wr_s3) = {wr_ll3};
+wr_s4 = news; Plane Surface(wr_s4) = {wr_ll4};
+well_v_region[] = {wr_s1,wr_s2,wr_s3,wr_s4};
+
+If (hexahedronsWQ == 1)
+Transfinite Surface {well_v_region[]};
+Recombine Surface {well_v_region[]};
+EndIf
+
+Transfinite Line {well_bore[],well_region[]} = n_azimuthal;
+Transfinite Line {radial[]} = n_radial Using Progression alpha;
+
+EndIf
+
+
+
+////////////////////////////////////////////////////////////////////////////
+// Transfering indexes
+////////////////////////////////////////////////////////////////////////////
+
+
+N = #well_lid[];
+M = #well_lids[];
+For i In {0:N-1}
+	well_lids[i + M] = well_lid[i];
+EndFor
+
+N = #well_bore[];
+If(IsInjectorQ == 1)
+M = #well_i_regions[];
+For i In {0:N-1}
+	well_i_bores[i + M] = well_bore[i];
+EndFor
+Else
+M = #well_p_regions[];
+For i In {0:N-1}
+	well_p_bores[i + M] = well_bore[i];
+EndFor
+EndIf
+
+N = #well_region[];
+If(IsInjectorQ == 1)
+M = #well_i_regions[];
+For i In {0:N-1}
+	well_i_regions[i + M] = well_region[i];
+EndFor
+Else
+M = #well_p_regions[];
+For i In {0:N-1}
+	well_p_regions[i + M] = well_region[i];
+EndFor
+EndIf
+
+N = #well_v_region[];
+If(IsInjectorQ == 1)
+M = #well_i_v_regions[];
+For i In {0:N-1}
+	well_i_v_regions[i + M] = well_v_region[i];
+EndFor
+Else
+M = #well_p_v_regions[];
+For i In {0:N-1}
+	well_p_v_regions[i + M] = well_v_region[i];
+EndFor
+EndIf
+
+well_index = well_index + 1;
+
+If(IsInjectorQ == 1)
+Printf ("Mesher:: Drilled injector  well = %g, at position {%g,%g,%g}", well_index, wcx,wcy,wcz);
+Else
+Printf ("Mesher:: Drilled productor well = %g, at position {%g,%g,%g}", well_index, wcx,wcy,wcz);
+EndIf
+
+Return

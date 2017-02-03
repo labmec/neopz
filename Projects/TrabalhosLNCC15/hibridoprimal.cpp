@@ -73,8 +73,8 @@ int const bc5=-6;
 REAL const Pi = 4.*atan(1.);
 
 
-#define SolutionPoly
-//#define SolutionShock
+//#define SolutionPoly
+#define SolutionShock
 
 //with hybrid method
 
@@ -463,7 +463,7 @@ int main2(int argc, char *argv[])
 
 //Malha Hdiv
 bool HDivMaisMais = false;
-bool hp_method = false;
+bool hp_method = true;
 REAL alpha_param = 200.;
 int main(int argc, char *argv[])
 {
@@ -505,7 +505,7 @@ int main(int argc, char *argv[])
         myerrorfile << "ndiv" << setw(10) <<"NDoF"<< setw(12)<<"NDoFCond" << "     Entradas" <<"       NumZeros" <<
         "       Razao" <<setw(19)<< "Assemble"<< setw(20)<<"Solve" << setw(20) <<"Ttotal" <<setw(12) <<"Error u" << setw(16)<<"Error gradU\n"<<std::endl;
         
-        for(int ndiv=1; ndiv<4; ndiv++){
+        for(int ndiv=1; ndiv<5; ndiv++){
             
 //            TPZGeoMesh *gmesh;
 //            TPZCompMesh * cmesh1;
@@ -520,7 +520,7 @@ int main(int argc, char *argv[])
                     AjustarContorno(gmesh);
                 }
                 else{
-                    flevel = 0;
+                    flevel = 2;
                     gmesh = CreateOneCubo(flevel);
                     //gmesh = CreateOneCuboWithTetraedrons(ndiv);
                     RefiningNearCircunference(dim_problema, gmesh,ndiv,1);
@@ -592,17 +592,17 @@ int main(int argc, char *argv[])
                 TPZSkylMatrix<STATE> matsky(neq,skyline);
                 nNzeros = matsky.GetNelemts();
                 
-                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
-                strmat.SetDecomposeType(ELDLt);
-                strmat.SetNumThreads(16);
-                analysis.SetStructuralMatrix(strmat);
+//                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
+//                strmat.SetDecomposeType(ELDLt);
+//                strmat.SetNumThreads(16);
+//                analysis.SetStructuralMatrix(strmat);
                 
 //                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
 //                analysis.SetStructuralMatrix(skylstr);
                 
-//                TPZSymetricSpStructMatrix strmat_p(mphysics);
-//                strmat_p.SetNumThreads(16);
-//                analysis.SetStructuralMatrix(strmat_p);
+                TPZSymetricSpStructMatrix strmat_p(mphysics);
+                strmat_p.SetNumThreads(16);
+                analysis.SetStructuralMatrix(strmat_p);
 
                 
 //                TPZStepSolver<STATE> step_p;
@@ -2441,7 +2441,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         
         
 //        TPZCompMeshTools::GroupElements(mphysics);
-//        TPZCompMeshTools::CreatedCondensedElements(mphysics, true);
+        TPZCompMeshTools::CreatedCondensedElements(mphysics, true);
         
         
 //        //Condensacao Estatica
