@@ -129,13 +129,11 @@ void TRMOrchestra::BuildGeometry2(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-//    file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir_box.msh";
     file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir.msh";
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
     int ref = 0;
     fSpaceGenerator->UniformRefinement(ref);
-    
     fSpaceGenerator->PrintGeometry();
 }
 
@@ -171,7 +169,7 @@ void TRMOrchestra::CreateAnalysisPrimal()
     std::cout << "Primal dof: " << AnalysisPrimal->Rhs().Rows() << std::endl;
     
     const int dim = 3;
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "PrimalDarcy.vtk";
     scalnames.Push("Pressure");
@@ -476,8 +474,22 @@ void TRMOrchestra::RunStaticProblem(){
         }
         
         if (IsSegregatedQ()) {
+
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
             fSegregatedAnalysis_I->ExcecuteOneStep();
             fSegregatedAnalysis_I->PostProcessStep();
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            std::cout  << "iRMS:: OneStep execution time = " << (t2-t1) << std::endl;
+#endif
+            
         }
         
     }
@@ -542,8 +554,20 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     MustReportQ = MustResporTimeQ(time);
     
     if (MustReportQ) {
+#ifdef USING_BOOST
+        boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
         std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
         fSegregatedAnalysis->PostProcessStep();
+        
+#ifdef USING_BOOST
+        boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+        
+#ifdef USING_BOOST
+        std::cout  << "iRMS:: PostProcess execution time = " << (t2-t1) << std::endl;
+#endif
+        
     }
     
     for (int i = 0; i < n; i++) {
@@ -551,28 +575,75 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         if (IsMonolithicQ()) {
             
             if (MustReportQ) {
+#ifdef USING_BOOST
+                boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
                 std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
                 fMonolithicMultiphaseAnalysis->PostProcessStep();
+#ifdef USING_BOOST
+                boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+#ifdef USING_BOOST
+                std::cout  << "iRMS:: PostProcess execution time = " << (t2-t1) << std::endl;
+#endif
             }
             
             if (fSimulationData->ReportingTimes().size() == 0) {
                 return;
             }
             
+            
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
             fMonolithicMultiphaseAnalysis->ExcecuteOneStep();
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            std::cout  << "iRMS:: OneStep execution time = " << (t2-t1) << std::endl;
+#endif
 
         }
         
         if (IsSegregatedQ()) {
 
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
             fSegregatedAnalysis->ExcecuteOneStep();
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            std::cout  << "iRMS:: OneStep execution time = " << (t2-t1) << std::endl;
+#endif
 
             time = fSimulationData->t();
             MustReportQ = MustResporTimeQ(time);
             
             if (MustReportQ) {
+
+                
+#ifdef USING_BOOST
+                boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
                 std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
                 fSegregatedAnalysis->PostProcessStep();
+                
+#ifdef USING_BOOST
+                boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+#ifdef USING_BOOST
+                std::cout  << "iRMS:: PostProcess execution time = " << (t2-t1) << std::endl;
+#endif
+                
             }
             
             if (fSimulationData->ReportingTimes().size() == 0) {

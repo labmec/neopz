@@ -246,6 +246,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
         plotfile =  "DualSegregatedDarcyOnBox_I.vtk";
+        return;
     }
     else{
         plotfile =  "DualSegregatedDarcyOnBox.vtk";

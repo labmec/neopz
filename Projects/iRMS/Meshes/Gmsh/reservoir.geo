@@ -30,13 +30,13 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 0;
-dimension = 3;
+dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
-hexahedronsWQ = 0;
-hexahedronsRQ = 0;
+hexahedronsWQ = 1;
+hexahedronsRQ = 1;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -56,8 +56,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 200.0;
-cl5 = 1000.0;
+cl4 = 500.0;
+cl5 = 5000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -65,8 +65,8 @@ cl5 = 1000.0;
 
 // reservoir box dimensions
 x_length = 1000.0;
-y_length = 1000.0;
-z_length = 200.0;
+y_length = 100.0;
+z_length = 100.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // side-burden region geometry
@@ -100,16 +100,16 @@ EndIf
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 0.1;
+rw = 1.0;
 wl = 10.0;
 
-wbr = 5.0;
-ela = 10.0;
+wbr = 10.0;
+ela = 20.0;
 rw_cell= 1.0;
-wr_cell= 10.0;
+wr_cell= 20.0;
 
 // Orientation and length
-alfa = Pi/2.0;
+alfa = 0.0*Pi/2.0;
 beta = 0.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -121,7 +121,7 @@ wcx = 0.0;
 wcy = 0.0;
 wcz = 0.0;
 IsInjectorQ = 0;
-Call DrillWell;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -132,8 +132,8 @@ Call DrillWell;
 wcx = 400.0;
 wcy = 400.0;
 wcz = 0.0;
-IsInjectorQ = 1;
-Call DrillWell;
+IsInjectorQ = 0;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -145,7 +145,7 @@ wcx = -400.0;
 wcy = -400.0;
 wcz = 0.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 // well 4 
@@ -156,7 +156,7 @@ wcx = -400.0;
 wcy = +400.0;
 wcz = 0.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -168,7 +168,7 @@ wcx = +400.0;
 wcy = -400.0;
 wcz = 0.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////

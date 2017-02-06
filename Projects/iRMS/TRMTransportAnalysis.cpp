@@ -276,6 +276,11 @@ void TRMTransportAnalysis::PostProcessStep(){
     scalnames.Push("s_a");
     scalnames.Push("s_b");
     
+    if (fSimulationData->IsInitialStateQ()) {
+        plotfile =  "DualSegregatedDarcyOnBox_I.vtk";
+        return;
+    }
+    
     if (fSimulationData->IsThreePhaseQ()) {
         scalnames.Push("s_c");
     }
