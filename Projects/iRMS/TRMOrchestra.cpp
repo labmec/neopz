@@ -464,6 +464,7 @@ void TRMOrchestra::RunStaticProblem(){
     std::cout<< "iRMS:: Finding Initial State" << std::endl;
     
     int n = 2;
+    bool draw_mixed_mapQ = false;
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
     
@@ -480,7 +481,7 @@ void TRMOrchestra::RunStaticProblem(){
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
             fSegregatedAnalysis_I->ExcecuteOneStep();
-            fSegregatedAnalysis_I->PostProcessStep();
+            fSegregatedAnalysis_I->PostProcessStep(draw_mixed_mapQ);
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
@@ -541,6 +542,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     }
     
     // Evolutionary problem
+    bool draw_mixed_mapQ = false;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     fSimulationData->SetTime(time);
@@ -551,14 +553,14 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     }
     
     time = fSimulationData->t();
-    MustReportQ = MustResporTimeQ(time);
+    MustReportQ = MustResporTimeQ(time,draw_mixed_mapQ);
     
     if (MustReportQ) {
 #ifdef USING_BOOST
         boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
         std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
-        fSegregatedAnalysis->PostProcessStep();
+        fSegregatedAnalysis->PostProcessStep(draw_mixed_mapQ);
         
 #ifdef USING_BOOST
         boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
@@ -624,7 +626,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #endif
 
             time = fSimulationData->t();
-            MustReportQ = MustResporTimeQ(time);
+            MustReportQ = MustResporTimeQ(time,draw_mixed_mapQ);
             
             if (MustReportQ) {
 
@@ -634,7 +636,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #endif
                 
                 std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
-                fSegregatedAnalysis->PostProcessStep();
+                fSegregatedAnalysis->PostProcessStep(draw_mixed_mapQ);
                 
 #ifdef USING_BOOST
                 boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
@@ -655,10 +657,11 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 }
 
 /** @brief Must report time */
-bool TRMOrchestra::MustResporTimeQ(REAL time){
+bool TRMOrchestra::MustResporTimeQ(REAL time, bool & draw_mixed_mapQ){
     
     int index = fSimulationData->ReportingTimes().size();
     REAL time_r = fSimulationData->ReportingTimes()[index-1];
+    draw_mixed_mapQ = fSimulationData->ReportingTimesMixedQ()[index-1];
     REAL dt = fSimulationData->dt();
     REAL t_range = dt;
     REAL deltat = time-time_r;

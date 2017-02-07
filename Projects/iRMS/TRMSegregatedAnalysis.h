@@ -153,7 +153,7 @@ public:
     void SegregatedIteration();
     
     /** @brief PostProcess results */
-    void PostProcessStep();
+    void PostProcessStep(bool draw_mixed_mapQ);
 
     /** @brief Update memory using the Transfer object at REAL n */
     void UpdateFluxes_at_n();

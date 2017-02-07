@@ -20,6 +20,8 @@
  * @ingroup geometry
  */
 
+namespace pzgeom {
+
 class TPZQuadraticCube : public pzgeom::TPZNodeRep<20,pztopology::TPZCube> {
 	
 public:
@@ -95,4 +97,5 @@ public:
 	TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);	
 };
 
+};
 #endif

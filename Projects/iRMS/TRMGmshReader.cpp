@@ -18,6 +18,8 @@
 #include "tpzquadraticline.h"
 #include "tpzquadratictrig.h"
 #include "tpzquadraticquad.h"
+#include "tpzquadraticcube.h"
+#include "tpzquadratictetra.h"
 #include "tpzgeoblend.h"
 
 #include "pzgeoelside.h"
@@ -202,8 +204,8 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     TPZManVector <long,6> TopolTriangleQ(6);
     TPZManVector <long,8> TopolQuadQ(8);
     TPZManVector <long,10> TopolTetQ(10);
-    TPZManVector <long,5> TopolPyrQ(5);
-    TPZManVector <long,8> TopolHexQ(8);
+    TPZManVector <long,5> TopolPyrQ(14);
+    TPZManVector <long,8> TopolHexQ(20);
     
 
     long element_id, type_id, div_id, physical_id, elementary_id;
@@ -274,6 +276,29 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             
         }
             break;
+        case 5:
+        {
+            // Hexahedra
+            line >> TopolHex[0]; //node 1
+            line >> TopolHex[1]; //node 2
+            line >> TopolHex[2]; //node 3
+            line >> TopolHex[3]; //node 4
+            line >> TopolHex[4]; //node 5
+            line >> TopolHex[5]; //node 6
+            line >> TopolHex[6]; //node 7
+            line >> TopolHex[7]; //node 8
+            element_id--;
+            TopolHex[0]--;
+            TopolHex[1]--;
+            TopolHex[2]--;
+            TopolHex[3]--;
+            TopolHex[4]--;
+            TopolHex[5]--;
+            TopolHex[6]--;
+            TopolHex[7]--;
+            new TPZGeoElRefPattern< pzgeom::TPZGeoCube> (element_id, TopolHex, physical_id, *gmesh);
+        }
+            break;
         case 8:
         {
             // Triangle
@@ -327,6 +352,89 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
             TopolQuadQ[6]--;
             TopolQuadQ[7]--;
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (element_id, TopolQuadQ, physical_id, *gmesh);
+        }
+            break;
+        case 111:
+        {
+            // Tetrahedron
+            line >> TopolTetQ[0]; //node 1
+            line >> TopolTetQ[1]; //node 2
+            line >> TopolTetQ[2]; //node 3
+            line >> TopolTetQ[3]; //node 4
+            
+            line >> TopolTetQ[4]; //node 5
+            line >> TopolTetQ[5]; //node 6
+            line >> TopolTetQ[6]; //node 7
+            line >> TopolTetQ[7]; //node 8
+            line >> TopolTetQ[8]; //node 9
+            line >> TopolTetQ[9]; //node 10
+            
+            element_id--;
+            TopolTetQ[0]--;
+            TopolTetQ[1]--;
+            TopolTetQ[2]--;
+            TopolTetQ[3]--;
+            
+            TopolTetQ[4]--;
+            TopolTetQ[5]--;
+            TopolTetQ[6]--;
+            TopolTetQ[7]--;
+            TopolTetQ[8]--;
+            TopolTetQ[9]--;
+            DebugStop();            
+            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra> (element_id, TopolTetQ, physical_id, *gmesh);
+            
+        }
+            break;
+        case 122:
+        {
+            // Hexahedra
+            line >> TopolHexQ[0]; //node 1
+            line >> TopolHexQ[1]; //node 2
+            line >> TopolHexQ[2]; //node 3
+            line >> TopolHexQ[3]; //node 4
+            line >> TopolHexQ[4]; //node 5
+            line >> TopolHexQ[5]; //node 6
+            line >> TopolHexQ[6]; //node 7
+            line >> TopolHexQ[7]; //node 8
+            
+            line >> TopolHexQ[8]; //node 9
+            line >> TopolHexQ[9]; //node 10
+            line >> TopolHexQ[10]; //node 11
+            line >> TopolHexQ[11]; //node 12
+            line >> TopolHexQ[12]; //node 13
+            line >> TopolHexQ[13]; //node 14
+            line >> TopolHexQ[14]; //node 15
+            line >> TopolHexQ[15]; //node 16
+            line >> TopolHexQ[16]; //node 17
+            line >> TopolHexQ[17]; //node 18
+            line >> TopolHexQ[18]; //node 19
+            line >> TopolHexQ[19]; //node 20
+            
+            element_id--;
+            TopolHexQ[0]--;
+            TopolHexQ[1]--;
+            TopolHexQ[2]--;
+            TopolHexQ[3]--;
+            TopolHexQ[4]--;
+            TopolHexQ[5]--;
+            TopolHexQ[6]--;
+            TopolHexQ[7]--;
+            
+            TopolHexQ[8]--;
+            TopolHexQ[9]--;
+            TopolHexQ[10]--;
+            TopolHexQ[11]--;
+            TopolHexQ[12]--;
+            TopolHexQ[13]--;
+            TopolHexQ[14]--;
+            TopolHexQ[15]--;
+            TopolHexQ[16]--;
+            TopolHexQ[17]--;
+            TopolHexQ[18]--;
+            TopolHexQ[19]--;
+            DebugStop();
+            new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube> (element_id, TopolHexQ, physical_id, *gmesh);
         }
             break;
         default:

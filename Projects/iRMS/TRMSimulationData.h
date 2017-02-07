@@ -49,6 +49,9 @@ protected:
     /** @brief Store time values to be reported */
     TPZStack< STATE , 500 > fReportingTimes;
     
+    /** @brief Store flags values of mixed problem to be reported */
+    TPZStack< bool , 500 > fReportingTimesMixedQ;
+    
     /** @brief ntime steps */
     int fn_steps;
     
@@ -245,7 +248,7 @@ public:
     TPZAutoPointer<TRMPhaseProperties> & GammaProp();
     
     /** @brief Setup reporting times and time step size */
-    void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< STATE , 500 > ReportingTimes);
+    void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< std::pair< STATE , bool> , 500 > ReportingTimes);
     
     /** @brief Setup reporting times and time step size */
     void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ);
@@ -253,6 +256,11 @@ public:
     /** @brief Store time values to be reported */
     TPZStack< STATE , 500 > & ReportingTimes(){
         return fReportingTimes;
+    }
+    
+    /** @brief Store time values to be reported */
+    TPZStack< bool, 500 > & ReportingTimesMixedQ(){
+        return fReportingTimesMixedQ;
     }
     
     /** @brief Initial time */

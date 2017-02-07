@@ -241,9 +241,11 @@ void TRMSegregatedAnalysis::KeepGlobalSolution(){
     
 }
 
-void TRMSegregatedAnalysis::PostProcessStep(){
+void TRMSegregatedAnalysis::PostProcessStep(bool draw_mixed_mapQ){
     
-    fParabolic->PostProcessStep();
+    if (draw_mixed_mapQ) {
+        fParabolic->PostProcessStep();
+    }
     
     if (fSimulationData->IsOnePhaseQ()) {
         return;

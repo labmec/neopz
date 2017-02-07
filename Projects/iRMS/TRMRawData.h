@@ -93,7 +93,8 @@ public:
     int fn_steps;
     
     /** @brief Store time values to be reported */
-    TPZStack< STATE , 500 > fReportingTimes;
+    TPZStack< std::pair< STATE , bool> , 500 > fReportingTimes;
+    
     
     /** @brief Time step */
     STATE fdt;
@@ -180,6 +181,8 @@ public:
     static void PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     static void FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
+    static void Aquifer_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     static void Impervious_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     

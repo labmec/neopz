@@ -111,10 +111,15 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
 }
 
 /** @brief Setup reporting times and time step size */
-void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< STATE , 500 > ReportingTimes){
+void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< std::pair< STATE , bool> , 500 > ReportingTimes){
     fdt = dt;
     fn_steps = n_times;
-    fReportingTimes = ReportingTimes;
+
+    for (int it = 0; it < ReportingTimes.size(); it++) {
+        fReportingTimes.Push(ReportingTimes[it].first);
+        fReportingTimesMixedQ.Push(ReportingTimes[it].second);
+    }
+
     fdt_max     = dt_max;
     fdt_min     = dt_min;
     fdt_up      = dt_in;

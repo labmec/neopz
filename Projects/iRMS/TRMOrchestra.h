@@ -253,7 +253,7 @@ public:
     void ExecuteOneTimeStep();
     
     /** @brief Must report time */
-    bool MustResporTimeQ(REAL time);
+    bool MustResporTimeQ(REAL time, bool & draw_mixed_mapQ);
     
     /** @brief Computes the post processed results */
     void PostProcess();
