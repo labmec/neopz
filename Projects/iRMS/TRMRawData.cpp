@@ -408,26 +408,25 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
 
-    fReportingTimes.Push(std::make_pair(500.0*day,true));
-    fReportingTimes.Push(std::make_pair(450.0*day,false));
+    fReportingTimes.Push(std::make_pair(5000.0*day,true));
+    fReportingTimes.Push(std::make_pair(4500.0*day,false));
+    fReportingTimes.Push(std::make_pair(4000.0*day,false));
+    fReportingTimes.Push(std::make_pair(3500.0*day,false));
+    fReportingTimes.Push(std::make_pair(3000.0*day,false));
+    fReportingTimes.Push(std::make_pair(2500.0*day,false));
+    fReportingTimes.Push(std::make_pair(2000.0*day,false));
+    fReportingTimes.Push(std::make_pair(1500.0*day,false));
+    fReportingTimes.Push(std::make_pair(1000.0*day,true));
+    fReportingTimes.Push(std::make_pair(500.0*day,false));
     fReportingTimes.Push(std::make_pair(400.0*day,false));
-    fReportingTimes.Push(std::make_pair(350.0*day,false));
     fReportingTimes.Push(std::make_pair(300.0*day,false));
-    fReportingTimes.Push(std::make_pair(250.0*day,false));
     fReportingTimes.Push(std::make_pair(200.0*day,false));
-    fReportingTimes.Push(std::make_pair(150.0*day,false));
-    fReportingTimes.Push(std::make_pair(100.0*day,true));
-    fReportingTimes.Push(std::make_pair(50.0*day,false));
-    fReportingTimes.Push(std::make_pair(40.0*day,false));
-    fReportingTimes.Push(std::make_pair(30.0*day,false));
-    fReportingTimes.Push(std::make_pair(20.0*day,false));
-    fReportingTimes.Push(std::make_pair(10.0*day,false));
-    fReportingTimes.Push(std::make_pair(1.0*day,false));
+    fReportingTimes.Push(std::make_pair(100.0*day,false));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
     fdt = 1.0*day;
-    fdt_max = 10.0*day;
+    fdt_max = 100.0*day;
     fdt_min = 0.1*day;
     fdt_up = 1.5;
     fdt_down = 0.1;
@@ -542,7 +541,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux_b = -0.058569, S = 1.0;
+    REAL flux_b = -0.0058569, S = 1.0;
     
     REAL day = 86400;
     REAL flux = flux_b + 0.00*(sin((time/day)/100));
