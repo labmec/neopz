@@ -247,12 +247,11 @@ void TPZPardisoControl<TVar>::Decompose()
         
     }
     long long phase = 12;
-<<<<<<< HEAD
 
 #ifdef USING_BOOST
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-=======
+
     fPermutation.resize(n);
     for (long i=0; i<n; i++) {
         fPermutation[i] = i;
@@ -270,8 +269,6 @@ void TPZPardisoControl<TVar>::Decompose()
         fParam[4 ] = 1; // user permutation PERM
         
     }
-
->>>>>>> master
     
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
@@ -281,7 +278,7 @@ void TPZPardisoControl<TVar>::Decompose()
 #endif
     
 #ifdef USING_BOOST
-    std::cout  << "Pardiso:: Done. Overal execution time = " << (t2-t1) << std::endl;
+    std::cout  << "Pardiso:: Overal execution time = " << (t2-t1) << std::endl;
 #endif
 
     if (Error) {

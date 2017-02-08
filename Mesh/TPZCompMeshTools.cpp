@@ -553,64 +553,6 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
     
 }
 
-<<<<<<< HEAD
-void TPZCompMeshTools::OptimizeBandwidth(TPZCompMesh *cmesh){
-    
-    /** @brief Renumbering scheme */
-    TPZAutoPointer<TPZRenumbering> fRenumber(new RENUMBER);
-    
-    //enquanto nao compilamos o BOOST no windows, vai o sloan antigo
-#ifdef WIN32
-    if(!fCompMesh) return;
-    cmesh->InitializeBlock();
-    TPZVec<long> perm,iperm;
-    
-    TPZStack<long> elgraph;
-    TPZStack<long> elgraphindex;
-    long nindep = cmesh->NIndependentConnects();
-    cmesh->ComputeElGraph(elgraph,elgraphindex);
-    long nel = elgraphindex.NElements()-1;
-    TPZSloan sloan(nel,nindep);
-    sloan.SetElementGraph(elgraph,elgraphindex);
-    sloan.Resequence(perm,iperm);
-    cmesh->Permute(perm);
-#else
-    if(!cmesh) return;
-    cmesh->InitializeBlock();
-    
-    TPZVec<long> perm,iperm;
-    
-    TPZStack<long> elgraph,elgraphindex;
-    long nindep = cmesh->NIndependentConnects();
-    cmesh->ComputeElGraph(elgraph,elgraphindex);
-    long nel = elgraphindex.NElements()-1;
-    long el,ncel = cmesh->NElements();
-    int maxelcon = 0;
-    for(el = 0; el<ncel; el++)
-    {
-        TPZCompEl *cel = cmesh->ElementVec()[el];
-        if(!cel) continue;
-        std::set<long> indepconlist,depconlist;
-        cel->BuildConnectList(indepconlist,depconlist);
-        long locnindep = indepconlist.size();
-        maxelcon = maxelcon < locnindep ? locnindep : maxelcon;
-    }
-    fRenumber->SetElementsNodes(nel,nindep);
-    fRenumber->SetElementGraph(elgraph,elgraphindex);
-    fRenumber->Resequence(perm,iperm);
-    cmesh->Permute(perm);
-    if (nel > 100000) {
-        std::cout << "Applying Saddle Permute\n";
-        }
-        cmesh->SaddlePermute();
-    
-    std::cout << "perm = " << perm << std::endl;
-    std::cout << "iperm = " << iperm << std::endl;
-    
-#endif
-        
-}
-=======
 static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
 
 static void ComputeError(TPZCondensedCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
@@ -804,4 +746,3 @@ void TPZCompMeshTools::SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pre
     pressuremesh->ExpandSolution();
 }
 
->>>>>>> master

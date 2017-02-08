@@ -128,8 +128,8 @@ struct SimulationCase {
     }
 };
 
-#define Solution1
-//#define Solution6
+//#define Solution1
+#define Solution6
 //#define Thiem
 
 // MHM rates subtructuring level
@@ -223,8 +223,8 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 1;
-    common.n_p_levels = 2;
+    common.n_h_levels = 3;
+    common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
     common.domain_type = "sphere";
@@ -233,52 +233,50 @@ int main()
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     
-//    // Primal Formulation over the solid sphere
-//    struct SimulationCase H1Case_1 = common;
-//    H1Case_1.IsHdivQ = false;
-//    H1Case_1.mesh_type = "linear";
-//    H1Case_1.elemen_type = 2;
-//    H1Case_1.dump_folder = "H1_sphere";
-//    simulations.Push(H1Case_1);
-
     // Primal Formulation over the solid sphere
-    struct SimulationCase H1Case_2 = common;
-    H1Case_2.IsHdivQ = false;
-    H1Case_2.mesh_type = "quadratic";
-    H1Case_2.elemen_type = 2;
-    H1Case_2.dump_folder = "H1_sphere";
-    simulations.Push(H1Case_2);
+    struct SimulationCase H1Case_1 = common;
+    H1Case_1.IsHdivQ = false;
+    H1Case_1.mesh_type = "linear";
+    H1Case_1.elemen_type = 2;
+    H1Case_1.dump_folder = "H1_sphere";
+    simulations.Push(H1Case_1);
 
-    
 //    // Primal Formulation over the solid sphere
-//    struct SimulationCase H1Case_3 = common;
-//    H1Case_3.IsHdivQ = false;
-//    H1Case_3.mesh_type = "blended";
-//    H1Case_3.dump_folder = "H1_sphere";
-//    simulations.Push(H1Case_3);
+//    struct SimulationCase H1Case_2 = common;
+//    H1Case_2.IsHdivQ = false;
+//    H1Case_2.mesh_type = "quadratic";
+//    H1Case_2.elemen_type = 2;
+//    H1Case_2.dump_folder = "H1_sphere";
+//    simulations.Push(H1Case_2);
 
     
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivCase_1 = common;
-//    HdivCase_1.IsHdivQ = true;
-//    HdivCase_1.mesh_type = "linear";
-//    HdivCase_1.elemen_type = 0;
-//    HdivCase_1.dump_folder = "Hdiv_sphere";
-//    simulations.Push(HdivCase_1);
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivCase_1 = common;
+    HdivCase_1.IsHdivQ = true;
+    HdivCase_1.mesh_type = "linear";
+    HdivCase_1.elemen_type = 2;
+    HdivCase_1.dump_folder = "Hdiv_sphere";
+    simulations.Push(HdivCase_1);
+    
     
 //    // Dual Formulation over the solid sphere
 //    struct SimulationCase HdivCase_2 = common;
 //    HdivCase_2.IsHdivQ = true;
 //    HdivCase_2.mesh_type = "quadratic";
+//    HdivCase_2.elemen_type = 2;
 //    HdivCase_2.dump_folder = "Hdiv_sphere";
 //    simulations.Push(HdivCase_2);
     
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivCase_3 = common;
-//    HdivCase_3.IsHdivQ = true;
-//    HdivCase_3.mesh_type = "blended";
-//    HdivCase_3.dump_folder = "Hdiv_sphere";
-//    simulations.Push(HdivCase_3);
+
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivplusCase_1 = common;
+    HdivplusCase_1.IsHdivQ = true;
+    HdivplusCase_1.n_acc_terms = 1;
+    HdivplusCase_1.mesh_type = "linear";
+    HdivplusCase_1.elemen_type = 2;
+    HdivplusCase_1.dump_folder = "Hdivplus_sphere";
+    simulations.Push(HdivplusCase_1);
+    
     
 //    // Dual Formulation over the solid sphere
 //    struct SimulationCase HdivplusCase_2 = common;
@@ -288,13 +286,6 @@ int main()
 //    HdivplusCase_2.dump_folder = "Hdivplus_sphere";
 //    simulations.Push(HdivplusCase_2);
     
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivplusCase_3 = common;
-//    HdivplusCase_3.IsHdivQ = true;
-//    HdivplusCase_3.n_acc_terms = 1;
-//    HdivplusCase_3.mesh_type = "blended";
-//    HdivplusCase_3.dump_folder = "Hdivplus_sphere";
-//    simulations.Push(HdivplusCase_3);
 
     
 // Cylinder
@@ -1023,7 +1014,7 @@ void PosProcess(TPZAnalysis  * an, std::string file, SimulationCase sim_data)
         scalnames.Push("f_exact");
     }
 
-    int div = 0;
+    int div = 1;
     an->DefineGraphMesh(dim,scalnames,vecnames,file);
     an->PostProcess(div,dim);
     

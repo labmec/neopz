@@ -20,8 +20,8 @@ n2 = 3;
 // Type of elements
 ////////////////////////////////////////////////////////////////
 
-NonLinearQ = 1;
-IsTetraQ =  1;
+NonLinearQ = 0;
+IsTetraQ =  0;
 IsPrismQ = 0;
 
 Call MakeSphere;

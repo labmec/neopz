@@ -248,10 +248,3 @@ ENABLE_TESTING()
 		
 		
 	endif(BUILD_PROJECTS)
-<<<<<<< HEAD
-=======
-
-
-   
-add_subdirectory(artigoPira)
->>>>>>> master

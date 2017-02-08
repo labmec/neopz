@@ -750,18 +750,13 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
 		std::stringstream sout;
 		sout << "Error at " << __PRETTY_FUNCTION__ << " - nMaxIter was reached before tolerance is achieved - ElementId" << this->Id() << std::endl;
 		PZError << "\n" << sout.str() << "\n";
-<<<<<<< HEAD
         Print(std::cout);
         int nnodes = NNodes();
         for (int i=0; i<NNodes(); i++) {
             NodePtr(i)->Print();
         }
         
-        #ifdef LOG4CXX
-=======
-		
 #ifdef LOG4CXX
->>>>>>> master
 		LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
 	}

@@ -222,11 +222,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
     InitMaterialData(datavecleft, leftel);
     InitMaterialData(datavecright, rightel);
     
-<<<<<<< HEAD
     TPZManVector<TPZTransform<> > leftcomptr, rightcomptr;
-=======
-    TPZManVector<TPZTransform,6> leftcomptr, rightcomptr;
->>>>>>> master
     leftel->AffineTransform(leftcomptr);
     rightel->AffineTransform(rightcomptr);
        

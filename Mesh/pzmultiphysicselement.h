@@ -58,11 +58,7 @@ public:
 	
 	virtual void SetConnectIndexes(TPZVec<long> &indexes) = 0;
 	
-<<<<<<< HEAD
 	virtual void AffineTransform(TPZManVector<TPZTransform<> > &trVec) const = 0;
-=======
-	virtual void AffineTransform(TPZVec<TPZTransform> &trVec) const = 0;
->>>>>>> master
 	
 	virtual void InitMaterialData(TPZVec<TPZMaterialData > &dataVec) = 0;	
     

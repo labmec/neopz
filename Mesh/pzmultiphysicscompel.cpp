@@ -70,11 +70,7 @@ TPZMultiphysicsCompEl<TGeometry>::~TPZMultiphysicsCompEl(){
 }
 
 template <class TGeometry>
-<<<<<<< HEAD
 void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform<> > &trVec) const
-=======
-void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZVec<TPZTransform> &trVec) const
->>>>>>> master
 {
 	long nel;
 	int side, dim, dimmf;
@@ -968,13 +964,9 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
-<<<<<<< HEAD
     // tototototo
     maxIntOrder = 8;
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
-=======
-	TPZManVector<int,3> prevorder(dim);
->>>>>>> master
 	//end
 	intrule->GetOrder(prevorder);
 	
@@ -988,7 +980,6 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
             maxIntOrder = 5;
         }
     }
-    TPZManVector<int,3> maxorder(dim, maxIntOrder);
 	intrule->SetOrder(maxorder);
 	
 	int ndof = material->NStateVariables();
@@ -1108,7 +1099,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
     datavec[0].fNeedsSol = true;
     datavec[1].fNeedsSol = true;
     
-    TPZManVector<TPZTransform> trvec;
+    TPZManVector<TPZTransform<> > trvec;
     AffineTransform(trvec);
     
     int nintpoints = intrule->NPoints();

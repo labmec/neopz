@@ -40,9 +40,6 @@ public:
     /// created condensed elements for the elements that have internal nodes
     static void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian);
     
-<<<<<<< HEAD
-    static void OptimizeBandwidth(TPZCompMesh *cmesh);
-=======
     /// ungroup all embedded elements of the computational mesh
     static void UnGroupElements(TPZCompMesh *cmesh);
     
@@ -59,7 +56,6 @@ public:
     /// set the pressure order acording to the order of internal connect of the elements of the fluxmesh
     static void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh);
 
->>>>>>> master
 };
 
 #endif /* defined(__PZ__TPZCompMeshTools__) */
