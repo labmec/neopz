@@ -257,38 +257,70 @@ public:
         DebugStop();
     }
 #endif
+//    /** @brief Return the Jacobian matrix at the point*/
+//    virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
+//
+//            /// Creating Variables
+//            TPZGeoEl *father = TBase::Father();
+//            if(!father)
+//            {
+//                TBase::GradX(qsi,gradx);
+//                return;
+//            }
+//        
+//            TPZGeoEl *nextfather = 0;
+//            if(father) nextfather = father->Father();
+//            while(nextfather)
+//            {
+//                father = nextfather;
+//                nextfather = father->Father();
+//            }
+//        
+//            const int dim = Geo::Dimension;
+//            const int father_dim = father->Dimension();
+//            TPZManVector<REAL,3> ksibar(father_dim,0.0);
+//        
+//            TPZFNMatrix<9> gradxlocal(father_dim,dim);
+//            Geo::X(fCornerCo,qsi,ksibar);
+//            Geo::GradX(fCornerCo,qsi,gradxlocal);
+//        
+//            TPZFNMatrix<9> gradxfather;
+//            father->GradX(ksibar, gradxfather);
+//
+//            // @brief Combining Variables
+//            gradxfather.Multiply(gradxlocal, gradx);
+//    }
+    
     /** @brief Return the Jacobian matrix at the point*/
     virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
-
-            /// Creating Variables
-            TPZGeoEl *father = TBase::Father();
-            if(!father)
-            {
-                TBase::GradX(qsi,gradx);
-                return;
-            }
         
-            TPZGeoEl *nextfather = 0;
-            if(father) nextfather = father->Father();
-            while(nextfather)
-            {
-                father = nextfather;
-                nextfather = father->Father();
-            }
+        /// Creating Variables
+        TPZGeoEl *father = TBase::Father();
+        if(!father)
+        {
+            TBase::GradX(qsi,gradx);
+            return;
+        }
         
-            const int dim = Geo::Dimension;
-            const int father_dim = father->Dimension();
-            TPZManVector<REAL,3> ksibar(father_dim,0.0);
+        TPZGeoEl *nextfather = 0;
+        if(father) nextfather = father->Father();
+        while(nextfather)
+        {
+            father = nextfather;
+            nextfather = father->Father();
+        }
         
-            TPZFNMatrix<9> gradxlocal(father_dim,dim);
-            Geo::X(fCornerCo,qsi,ksibar);
-            Geo::GradX(fCornerCo,qsi,gradxlocal);
+        const int dim = Geo::Dimension;
+        TPZManVector<REAL,3> ksibar(father->Dimension());
         
-            TPZFNMatrix<9> gradxfather;
-            father->GradX(ksibar, gradxfather);
-
-            // @brief Combining Variables
-            gradxfather.Multiply(gradxlocal, gradx);
+        TPZFNMatrix<9> gradxlocal;
+        this->GradX(qsi,gradxlocal);
+        Geo::X(fCornerCo,qsi,ksibar);
+        TPZFNMatrix<9> gradxfather;
+        father->GradX(ksibar, gradxfather);
+        
+        /// @brief Combining Variables
+        gradxfather.Multiply(gradxlocal, gradx);
     }
 	
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
