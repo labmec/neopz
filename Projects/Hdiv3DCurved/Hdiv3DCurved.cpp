@@ -223,7 +223,7 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 2;
+    common.n_h_levels = 4;
     common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -233,7 +233,7 @@ int main()
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     
-    
+    // Case_XXX.elemen_type = {0,1,2} as follows:
     //    Case_XXX.elemen_type = 0; -> Tetra
     //    Case_XXX.elemen_type = 1; -> Prism
     //    Case_XX.elemen_type  = 2; -> Hexa
@@ -251,7 +251,7 @@ int main()
     struct SimulationCase H1Case_2 = common;
     H1Case_2.IsHdivQ = false;
     H1Case_2.mesh_type = "quadratic";
-    H1Case_2.elemen_type = 2; // -> Hexa
+    H1Case_2.elemen_type = 2;
     H1Case_2.dump_folder = "H1_sphere";
     simulations.Push(H1Case_2);
 
@@ -284,17 +284,17 @@ int main()
 //    simulations.Push(HdivplusCase_1);
     
     
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivplusCase_2 = common;
-//    HdivplusCase_2.IsHdivQ = true;
-//    HdivplusCase_2.n_acc_terms = 1;
-//    HdivplusCase_2.mesh_type = "quadratic";
-//    HdivplusCase_2.dump_folder = "Hdivplus_sphere";
-//    simulations.Push(HdivplusCase_2);
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivplusCase_2 = common;
+    HdivplusCase_2.IsHdivQ = true;
+    HdivplusCase_2.n_acc_terms = 1;
+    HdivplusCase_2.mesh_type = "quadratic";
+    HdivplusCase_2.elemen_type = 2;
+    HdivplusCase_2.dump_folder = "Hdivplus_sphere";
+    simulations.Push(HdivplusCase_2);
     
-
     
-// Cylinder
+// Cylinder Darcy formulation for Thiem solution in a vertical well
     
 //    // Primal Formulation over the solid cylinder
 //    struct SimulationCase H1Case_1_cyl = common;
@@ -1020,7 +1020,7 @@ void PosProcess(TPZAnalysis  * an, std::string file, SimulationCase sim_data)
         scalnames.Push("f_exact");
     }
 
-    int div = 1;
+    int div = 2;
     an->DefineGraphMesh(dim,scalnames,vecnames,file);
     an->PostProcess(div,dim);
     
