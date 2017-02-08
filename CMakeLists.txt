@@ -312,23 +312,25 @@ if(USING_HWLOC)
         endif()
 endif(USING_HWLOC)
 
+
+	
 #enabling MKL library 
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
         add_definitions(-DUSING_MKL)
-        find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include)
+        find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
         find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
-		${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/)
+                ${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
         find_library(MKL_LIB_CORE NAMES libmkl_core.so libmkl_core.dylib PATHS ${SEARCH_DIRS}
-		/opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/)
+                /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
         find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.so libmkl_intel_thread.dylib PATHS
-		${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/)
-find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
-/opt/intel/composer_xe/compiler/lib
-/opt/intel/composerxe/lib/intel64
-/opt/intel/lib)
-#find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
-#include_directories(${OMP_INCLUDE})
+                ${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+        find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
+                /opt/intel/composer_xe/compiler/lib
+                /opt/intel/composerxe/lib/intel64
+                /opt/intel/lib /softwares/intel/lib/intel64)
+        #find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
+        #include_directories(${OMP_INCLUDE})
         if(MKL_INCLUDE-NOTFOUND)
                 set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
         else()
@@ -336,11 +338,11 @@ find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
         endif()
         if(MKL_LIB-NOTFOUND)
                 set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
-	else()
-		link_libraries(${MKL_LIB_INTEL})
-		link_libraries(${MKL_LIB_CORE})
-		link_libraries(${MKL_LIB_THREAD})
-		link_libraries(${COMPOSER_OMP})
+        else()
+                link_libraries(${MKL_LIB_INTEL})
+                link_libraries(${MKL_LIB_CORE})
+                link_libraries(${MKL_LIB_THREAD})
+                link_libraries(${COMPOSER_OMP})
         endif()
 endif(USING_MKL)
 

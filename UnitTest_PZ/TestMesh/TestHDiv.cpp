@@ -265,7 +265,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         grid.SetElementType(ETriangle);
     }
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
-    grid.Read(gmesh);
+    grid.Read(gmesh.operator->());
     grid.SetBC(gmesh, 4, -1);
     grid.SetBC(gmesh, 5, -1);
     grid.SetBC(gmesh, 6, -1);
@@ -637,7 +637,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         for (ish=0; ish<nshapeA; ish++) {
             REAL Aval = phiA(ish,0);
             REAL Bval = phiB(ish,0);
-            if(abs(Aval-Bval) > 1.e-6) 
+            if(fabs(Aval-Bval) > 1.e-6)
             {
                 std::cout << "i " << ish << " " << Aval << " " << Bval << std::endl;
                 nwrong++;   

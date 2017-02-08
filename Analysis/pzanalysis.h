@@ -98,10 +98,10 @@ protected:
 	
 	/** @brief Create an TPZAnalysis object from one mesh pointer */
 	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-	
+    	
 	/** @brief Create an TPZAnalysis object from one mesh auto pointer object */
 	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
-	
+    
 	/** @brief Defines gui interface object */
 	void SetGuiInterface(TPZAutoPointer<TPZGuiInterface> gui){
 		fGuiInterface = gui;

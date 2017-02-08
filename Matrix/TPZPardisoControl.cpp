@@ -247,10 +247,31 @@ void TPZPardisoControl<TVar>::Decompose()
         
     }
     long long phase = 12;
+<<<<<<< HEAD
 
 #ifdef USING_BOOST
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
+=======
+    fPermutation.resize(n);
+    for (long i=0; i<n; i++) {
+        fPermutation[i] = i;
+    }
+    perm = &fPermutation[0];
+    /// analyse and factor the equations
+    if (fProperty == EIndefinite && fSystemType == ESymmetric) {
+        //        fParam[9] = -1; // avoid any pivot permutation ()
+        
+        //        // Note: other values unused
+        //        fParam[0 ] = 0; // use default values (2, 4..64), 3 MUST be set .. this will overwrite the following config with defaults (it mostly here for documentation)
+        //        fParam[1 ] = 2; // fill-in reducing ordering (0: min-degree, 2: METIS)
+        ////        fParam[2 ] = 1; // number of processors: must match OMP_NUM_THREADS TODO  -- NOTE this is an *upper-limit* on the number of processors...
+        //        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
+        fParam[4 ] = 1; // user permutation PERM
+        
+    }
+
+>>>>>>> master
     
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
@@ -264,6 +285,7 @@ void TPZPardisoControl<TVar>::Decompose()
 #endif
 
     if (Error) {
+        std::cout << __PRETTY_FUNCTION__ << " error code " << Error << std::endl;
         DebugStop();
     }
 }

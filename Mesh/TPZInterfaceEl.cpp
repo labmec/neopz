@@ -596,8 +596,20 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &no
 	
 	normal.Resize(3);
 	
-	TPZCompEl * fLeftEl = this->LeftElement();
-	TPZCompEl * fRightEl = this->RightElement();
+	TPZCompEl * LeftEl = this->LeftElement();
+	TPZCompEl * RightEl = this->RightElement();
+    
+    TPZMaterial *LeftElMaterial = LeftEl->Material();
+    TPZMaterial *RightElMaterial = RightEl->Material();
+    
+    if (!LeftElMaterial || !RightElMaterial) {
+        std::cout << "Interface elements created between elements without material\n";
+        std::cout << "Material Ids missing ";
+        if(!LeftElMaterial) std::cout << LeftEl->Reference()->MaterialId() << " ";
+        if(!RightElMaterial) std::cout << RightEl->Reference()->MaterialId() << " ";
+        std::cout << std::endl;
+        DebugStop();
+    }
 	
 	//  int dim = Reference()->Dimension();
 	// TPZGeoEl *ref = Reference();
@@ -612,16 +624,16 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &no
 	REAL normalize;
 	int i;
 	
-	faceleft = fLeftEl->Reference()->NSides()-1;//lado interior do elemento esquerdo
-	faceright = fRightEl->Reference()->NSides()-1; // lado interior do element direito
-	fLeftEl->Reference()->CenterPoint(faceleft,centleft);//ponto centro do elemento de volume
-	fRightEl->Reference()->CenterPoint(faceright,centright);
-	fLeftEl->Reference()->X(centleft,xvolleft);
-	fRightEl->Reference()->X(centright,xvolright);
+	faceleft = LeftEl->Reference()->NSides()-1;//lado interior do elemento esquerdo
+	faceright = RightEl->Reference()->NSides()-1; // lado interior do element direito
+	LeftEl->Reference()->CenterPoint(faceleft,centleft);//ponto centro do elemento de volume
+	RightEl->Reference()->CenterPoint(faceright,centright);
+	LeftEl->Reference()->X(centleft,xvolleft);
+	RightEl->Reference()->X(centright,xvolright);
 	for(i=0;i<3;i++) vec[i] = xvolright[i]-xvolleft[i];//n� deve ser nulo
 	
 	int myinterfacedim = Reference()->Dimension();
-	int InterfaceDimension =  fLeftEl->Material()->Dimension() - 1;
+	int InterfaceDimension =  LeftEl->Material()->Dimension() - 1;
 	if (myinterfacedim != InterfaceDimension) {
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << "the dimension of the interface element " << myinterfacedim << " is not compatible with the dimension of the material " << InterfaceDimension <<

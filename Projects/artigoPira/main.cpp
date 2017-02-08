@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
         
         //mesh1
         TPZCompMesh * cmesh1= CMeshFlux(gmesh, pq);
-        //Prefinamento(cmesh1, ndiv,pq);
+        Prefinamento(cmesh1, ndiv,pq);
         if(HDivMaisMais)
         {
             ChangeInternalConnectOrder(cmesh1);
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
         
         //mesh2
         TPZCompMesh * cmesh2= CMeshPressure(gmesh, pp);
-        // Prefinamento(cmesh2, ndiv,pp);
+         Prefinamento(cmesh2, ndiv,pp);
         {
             std::ofstream out("cmesh2.txt");
             cmesh2->Print(out);

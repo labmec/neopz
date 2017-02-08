@@ -172,6 +172,7 @@ void TPZIntQuad::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 void TPZIntQuad::SetOrder(TPZVec<int> &ord,int type) {
     int prevtype = fIntKsi->Type();
     if (fOrdKsi != ord[0] || type != prevtype) {
+<<<<<<< HEAD
         fIntKsi = gIntRuleList.GetRule(ord[0],type);
         fOrdKsi = fIntKsi->Order();
     }
@@ -179,6 +180,15 @@ void TPZIntQuad::SetOrder(TPZVec<int> &ord,int type) {
     if (fOrdEta != ord[1] || prevtype != type) {
         fIntEta = gIntRuleList.GetRule(ord[1],type);
         fOrdEta = fIntEta->Order();
+=======
+        fOrdKsi = ord[0];
+        fIntKsi = gIntRuleList.GetRule(fOrdKsi,type);
+    }
+    prevtype = fIntEta->Type();
+    if (fOrdEta != ord[1] || prevtype != type) {
+        fOrdEta = ord[1];
+        fIntEta = gIntRuleList.GetRule(fOrdEta,type);
+>>>>>>> master
     }
 }
 

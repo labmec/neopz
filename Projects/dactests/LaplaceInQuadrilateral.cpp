@@ -1331,7 +1331,6 @@ TPZCompMesh *LaplaceInQuadrilateral::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCo
     
     //solucao exata
 //     TPZAutoPointer<TPZFunction<STATE> > solexata;
-//     
 //     solexata = new TPZDummyFunction<STATE>(SolExata);
 //     material->SetForcingFunctionExact(solexata);
     

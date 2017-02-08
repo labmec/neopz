@@ -14,7 +14,7 @@
 
 #include "mkl_pardiso.h"
 #include "pzmanvector.h"
-#include "TPZAutoPointer.h"
+#include "tpzautopointer.h"
 
 template<class TVar>
 class TPZFYsmpMatrix;

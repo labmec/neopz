@@ -13,6 +13,12 @@
 /** CBlas Math Library */
 #ifdef MACOSX
 #include <Accelerate/Accelerate.h>
+typedef __CLPK_doublecomplex vardoublecomplex;
+typedef __CLPK_complex varfloatcomplex;
+#elif USING_MKL
+#include <mkl.h>
+typedef MKL_Complex16 vardoublecomplex;
+typedef MKL_Complex8 varfloatcomplex;
 #else
 #include "cblas.h"
 #define BLAS_MULT
@@ -145,7 +151,7 @@ TPZSBMatrix< std::complex<double> >::PutVal(const long r,const long c,const std:
     // inicializando row e col para trabalhar com a triangular superior
     long row(r),col(c);
     if ( row > col )
-        DebugStop();//this->Swap( &row, &col );
+        this->Swap( &row, &col );
     
     long index;
     if ( (index = col-row) > fBand )
@@ -654,7 +660,7 @@ TPZSBMatrix<std::complex< float > >::Decompose_Cholesky()
     int kd = this->fBand;
     int info = -666;
     
-    cpbtrf_(uplo, &n, &kd , (__CLPK_complex*) fDiag.begin(), &lda, &info);
+    cpbtrf_(uplo, &n, &kd , (varfloatcomplex*) fDiag.begin(), &lda, &info);
     if( info > 0){
         TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
     }
@@ -684,7 +690,7 @@ TPZSBMatrix<std::complex< double > >::Decompose_Cholesky()
     int lda = this->fBand + 1;
     int kd = this->fBand;
     int info = -666;
-    zpbtrf_(uplo, &n, &kd, (__CLPK_doublecomplex *) fDiag.begin(), &lda, &info);
+    zpbtrf_(uplo, &n, &kd, (vardoublecomplex *) fDiag.begin(), &lda, &info);
     if( info > 0){
         TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
     }
@@ -1366,7 +1372,7 @@ TPZSBMatrix<complex <double> >::SolveEigenProblem(TPZVec <complex<double> > &eig
     TPZVec < double > rwork( 3 *this->Dim() );
     int info = -666;
     
-    zhbev_(&jobz, &uplo, &n, &kd, (__CLPK_doublecomplex *)fDiag.begin(), &ldab,  w.begin(), (__CLPK_doublecomplex *)z.begin(), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
+    zhbev_(&jobz, &uplo, &n, &kd, (vardoublecomplex *)fDiag.begin(), &ldab,  w.begin(), (vardoublecomplex *)z.begin(), &ldz, (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
@@ -1444,7 +1450,7 @@ TPZSBMatrix<complex <double> >::SolveEigenProblem(TPZVec <complex<double> > &eig
     TPZVec < double > rwork( 3 *this->Dim() );
     int info = -666;
     
-    zhbev_(&jobz, &uplo, &n, &kd, (__CLPK_doublecomplex *)fDiag.begin(), &ldab, w.begin(), (__CLPK_doublecomplex *)&z(0,0), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
+    zhbev_(&jobz, &uplo, &n, &kd, (vardoublecomplex *)fDiag.begin(), &ldab, w.begin(), (vardoublecomplex *)&z(0,0), &ldz, (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
@@ -1519,7 +1525,7 @@ TPZSBMatrix<complex <float> >::SolveEigenProblem(TPZVec <complex<double> > &eige
     TPZVec < float > rwork( 3 *this->Dim() );
     int info = -666;
     
-    chbev_(&jobz, &uplo, &n, &kd, (__CLPK_complex *)fDiag.begin(), &ldab,  w.begin(), (__CLPK_complex *)z.begin(), &ldz, (__CLPK_complex *)work.begin(),rwork.begin(), &info);
+    chbev_(&jobz, &uplo, &n, &kd, (varfloatcomplex *)fDiag.begin(), &ldab,  w.begin(), (varfloatcomplex *)z.begin(), &ldz, (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
@@ -1597,7 +1603,7 @@ TPZSBMatrix<complex <float> >::SolveEigenProblem(TPZVec <complex<double> > &eige
     TPZVec < float > rwork( 3 *this->Dim() );
     int info = -666;
     
-    chbev_(&jobz, &uplo, &n, &kd, (__CLPK_complex *)fDiag.begin(), &ldab, w.begin(), (__CLPK_complex *)&z(0,0), &ldz, (__CLPK_complex *)work.begin(),rwork.begin(), &info);
+    chbev_(&jobz, &uplo, &n, &kd, (varfloatcomplex *)fDiag.begin(), &ldab, w.begin(), (varfloatcomplex *)&z(0,0), &ldz, (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
@@ -1746,7 +1752,7 @@ TPZSBMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<f
     TPZVec < float > rwork( 3 *this->Dim() );
     int info = -666;
     
-    chbgv_(&jobz, &uplo, &n, &ka, &kb, (__CLPK_complex *)fDiag.begin(), &ldab,  (__CLPK_complex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_complex *)&z(0,0), &ldz, (__CLPK_complex *)work.begin(),rwork.begin(), &info);
+    chbgv_(&jobz, &uplo, &n, &ka, &kb, (varfloatcomplex *)fDiag.begin(), &ldab,  (varfloatcomplex *)B.fDiag.begin(), &ldbb, w.begin(), (varfloatcomplex *)&z(0,0), &ldz, (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
     }
@@ -1793,7 +1799,7 @@ TPZSBMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<f
     TPZVec < float > rwork( 3 *this->Dim() );
     int info = -666;
     
-    chbgv_(&jobz, &uplo, &n, &ka, &kb, (__CLPK_complex *)fDiag.begin(), &ldab,  (__CLPK_complex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_complex *)&z(0,0), &ldz, (__CLPK_complex *)work.begin(),rwork.begin(), &info);
+    chbgv_(&jobz, &uplo, &n, &ka, &kb, (varfloatcomplex *)fDiag.begin(), &ldab,  (varfloatcomplex *)B.fDiag.begin(), &ldbb, w.begin(), (varfloatcomplex *)&z(0,0), &ldz, (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
     }
@@ -1922,7 +1928,7 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
     TPZVec < double > rwork( 3 *this->Dim() );
     int info = -666;
     
-    zhbgv_(&jobz, &uplo, &n, &ka, &kb, (__CLPK_doublecomplex *)fDiag.begin(), &ldab,  (__CLPK_doublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_doublecomplex *)&z(0,0), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
+    zhbgv_(&jobz, &uplo, &n, &ka, &kb, (vardoublecomplex *)fDiag.begin(), &ldab,  (vardoublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (vardoublecomplex *)&z(0,0), &ldz, (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
     }
@@ -1969,7 +1975,7 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
     TPZVec < double > rwork( 3 *this->Dim() );
     int info = -666;
     
-    zhbgv_(&jobz, &uplo, &n, &ka, &kb, (__CLPK_doublecomplex *)fDiag.begin(), &ldab,  (__CLPK_doublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (__CLPK_doublecomplex *)&z(0,0), &ldz, (__CLPK_doublecomplex *)work.begin(),rwork.begin(), &info);
+    zhbgv_(&jobz, &uplo, &n, &ka, &kb, (vardoublecomplex *)fDiag.begin(), &ldab,  (vardoublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (vardoublecomplex *)&z(0,0), &ldz, (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
         TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
     }

@@ -53,6 +53,9 @@ public:
 	virtual int NElements() = 0;
 	/** @brief Sets a ith graphical node */
 	virtual void SetNode(long i,TPZGraphNode *n);
+    
+    /** @brief the parametric dimension of the element */
+    virtual int Dimension() = 0;
 	
 	/** @brief Set dx style for connectivity information */
 	virtual void Connectivity(TPZDrawStyle st = EDXStyle) = 0;

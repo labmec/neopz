@@ -86,6 +86,12 @@ public:
 	
 	void SetPermeability(REAL perm) {
 		fk = perm;
+        fTensorK.Zero();
+        fInvK.Zero();
+        for (int i=0; i<fDim; i++) {
+            fTensorK(i,i) = perm;
+            fInvK(i,i) = 1./perm;
+        }
 	}
     
     //Set the permeability tensor and inverser tensor
@@ -128,6 +134,10 @@ public:
         fPermeabilityFunction = fp;
     }
 
+    TPZAutoPointer<TPZFunction<STATE> > PermeabilityFunction()
+    {
+        return fPermeabilityFunction;
+    }
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.

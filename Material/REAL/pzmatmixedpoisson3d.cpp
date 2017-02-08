@@ -600,13 +600,14 @@ int TPZMatMixedPoisson3D::VariableIndex(const std::string &name){
     if(!strcmp("GradP",name.c_str()))          return 9;
     if(!strcmp("Divergence",name.c_str()))      return  10;
     if(!strcmp("ExactDiv",name.c_str()))        return  11;
+    if(!strcmp("POrder",name.c_str()))        return  12;
     
     return TPZMaterial::VariableIndex(name);
 }
 
 int TPZMatMixedPoisson3D::NSolutionVariables(int var){
     if(var == 1) return fDim;
-    if(var == 2) return 1;
+    if(var == 2 || var == 12) return 1;
     if(var == 3) return 3;
     if(var == 4) return 3;
     if(var == 5) return 3;
@@ -722,6 +723,11 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     if(var==11){
         fForcingFunctionExact->Execute(datavec[0].x,solExata,flux);
         Solout[0]=flux(fDim,0);
+        return;
+    }
+    
+    if(var==12){
+        Solout[0] = datavec[1].p;
         return;
     }
 }
