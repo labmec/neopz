@@ -13,16 +13,16 @@ Include "Sphere.geo";
 
 r1 = 1.0; // outer r
 r2 = 0.25; // inner r
-n1 = 5;
-n2 = 5;
+n1 = 8;
+n2 = 8;
 
 ////////////////////////////////////////////////////////////////
 // Type of elements
 ////////////////////////////////////////////////////////////////
 
 NonLinearQ = 0;
-IsTetraQ =  1;
-IsPrismQ = 1;
+IsTetraQ =  0;
+IsPrismQ = 0;
 
 Call MakeSphere;
 

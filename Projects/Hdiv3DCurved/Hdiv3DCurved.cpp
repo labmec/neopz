@@ -223,7 +223,7 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 3;
+    common.n_h_levels = 2;
     common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -232,6 +232,12 @@ int main()
     common.omega_ids.Push(1);     // Domain
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
+    
+    
+    //    Case_XXX.elemen_type = 0; -> Tetra
+    //    Case_XXX.elemen_type = 1; -> Prism
+    //    Case_XX.elemen_type  = 2; -> Hexa
+    
     
 //    // Primal Formulation over the solid sphere
 //    struct SimulationCase H1Case_1 = common;
@@ -245,8 +251,6 @@ int main()
     struct SimulationCase H1Case_2 = common;
     H1Case_2.IsHdivQ = false;
     H1Case_2.mesh_type = "quadratic";
-//    H1Case_2.elemen_type = 0; -> Tetra
-//    H1Case_2.elemen_type = 1; -> Prism
     H1Case_2.elemen_type = 2; // -> Hexa
     H1Case_2.dump_folder = "H1_sphere";
     simulations.Push(H1Case_2);
@@ -261,13 +265,13 @@ int main()
 //    simulations.Push(HdivCase_1);
     
     
-//    // Dual Formulation over the solid sphere
-//    struct SimulationCase HdivCase_2 = common;
-//    HdivCase_2.IsHdivQ = true;
-//    HdivCase_2.mesh_type = "quadratic";
-//    HdivCase_2.elemen_type = 2;
-//    HdivCase_2.dump_folder = "Hdiv_sphere";
-//    simulations.Push(HdivCase_2);
+    // Dual Formulation over the solid sphere
+    struct SimulationCase HdivCase_2 = common;
+    HdivCase_2.IsHdivQ = true;
+    HdivCase_2.mesh_type = "quadratic";
+    HdivCase_2.elemen_type = 2;
+    HdivCase_2.dump_folder = "Hdiv_sphere";
+    simulations.Push(HdivCase_2);
     
 
 //    // Dual Formulation over the solid sphere
