@@ -233,30 +233,32 @@ int main()
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     
-    // Primal Formulation over the solid sphere
-    struct SimulationCase H1Case_1 = common;
-    H1Case_1.IsHdivQ = false;
-    H1Case_1.mesh_type = "linear";
-    H1Case_1.elemen_type = 2;
-    H1Case_1.dump_folder = "H1_sphere";
-    simulations.Push(H1Case_1);
-
 //    // Primal Formulation over the solid sphere
-//    struct SimulationCase H1Case_2 = common;
-//    H1Case_2.IsHdivQ = false;
-//    H1Case_2.mesh_type = "quadratic";
-//    H1Case_2.elemen_type = 2;
-//    H1Case_2.dump_folder = "H1_sphere";
-//    simulations.Push(H1Case_2);
+//    struct SimulationCase H1Case_1 = common;
+//    H1Case_1.IsHdivQ = false;
+//    H1Case_1.mesh_type = "linear";
+//    H1Case_1.elemen_type = 2;
+//    H1Case_1.dump_folder = "H1_sphere";
+//    simulations.Push(H1Case_1);
+
+    // Primal Formulation over the solid sphere
+    struct SimulationCase H1Case_2 = common;
+    H1Case_2.IsHdivQ = false;
+    H1Case_2.mesh_type = "quadratic";
+//    H1Case_2.elemen_type = 0; -> Tetra
+//    H1Case_2.elemen_type = 1; -> Prism
+    H1Case_2.elemen_type = 2; // -> Hexa
+    H1Case_2.dump_folder = "H1_sphere";
+    simulations.Push(H1Case_2);
 
     
-    // Dual Formulation over the solid sphere
-    struct SimulationCase HdivCase_1 = common;
-    HdivCase_1.IsHdivQ = true;
-    HdivCase_1.mesh_type = "linear";
-    HdivCase_1.elemen_type = 2;
-    HdivCase_1.dump_folder = "Hdiv_sphere";
-    simulations.Push(HdivCase_1);
+//    // Dual Formulation over the solid sphere
+//    struct SimulationCase HdivCase_1 = common;
+//    HdivCase_1.IsHdivQ = true;
+//    HdivCase_1.mesh_type = "linear";
+//    HdivCase_1.elemen_type = 2;
+//    HdivCase_1.dump_folder = "Hdiv_sphere";
+//    simulations.Push(HdivCase_1);
     
     
 //    // Dual Formulation over the solid sphere
@@ -268,14 +270,14 @@ int main()
 //    simulations.Push(HdivCase_2);
     
 
-    // Dual Formulation over the solid sphere
-    struct SimulationCase HdivplusCase_1 = common;
-    HdivplusCase_1.IsHdivQ = true;
-    HdivplusCase_1.n_acc_terms = 1;
-    HdivplusCase_1.mesh_type = "linear";
-    HdivplusCase_1.elemen_type = 2;
-    HdivplusCase_1.dump_folder = "Hdivplus_sphere";
-    simulations.Push(HdivplusCase_1);
+//    // Dual Formulation over the solid sphere
+//    struct SimulationCase HdivplusCase_1 = common;
+//    HdivplusCase_1.IsHdivQ = true;
+//    HdivplusCase_1.n_acc_terms = 1;
+//    HdivplusCase_1.mesh_type = "linear";
+//    HdivplusCase_1.elemen_type = 2;
+//    HdivplusCase_1.dump_folder = "Hdivplus_sphere";
+//    simulations.Push(HdivplusCase_1);
     
     
 //    // Dual Formulation over the solid sphere
