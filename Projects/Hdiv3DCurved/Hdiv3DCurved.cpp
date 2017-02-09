@@ -219,8 +219,8 @@ int main()
     
     // Formulations over the sphere 
     struct SimulationCase common;
-    common.UsePardisoQ = true;
-    common.UseFrontalQ = false;
+    common.UsePardisoQ = false;
+    common.UseFrontalQ = true;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
     common.n_h_levels = 3;
@@ -251,7 +251,7 @@ int main()
     struct SimulationCase H1Case_2 = common;
     H1Case_2.IsHdivQ = false;
     H1Case_2.mesh_type = "quadratic";
-    H1Case_2.elemen_type = 2;
+    H1Case_2.elemen_type = 1;
     H1Case_2.dump_folder = "H1_sphere";
     simulations.Push(H1Case_2);
 
