@@ -180,11 +180,11 @@ void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus);
 void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh);
 
 
-TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase sim_data);
-void PosProcess(TPZAnalysis * an, std::string file, SimulationCase sim_data);
+TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase & sim_data);
+void PosProcess(TPZAnalysis * an, std::string file, SimulationCase & sim_data);
 
 void ComputeCases(TPZStack<SimulationCase> cases);
-void ComputeApproximation(SimulationCase sim_data);
+void ComputeApproximation(SimulationCase & sim_data);
 void ComputeConvergenceRates(TPZVec<STATE> &error, TPZVec<STATE> &convergence);
 
 STATE IntegrateVolume(TPZGeoMesh * geometry, SimulationCase sim_data);
@@ -223,7 +223,7 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 4;
+    common.n_h_levels = 3;
     common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -348,7 +348,7 @@ void ComputeCases(TPZStack<SimulationCase> cases){
     
 }
 
-void ComputeApproximation(SimulationCase sim_data){
+void ComputeApproximation(SimulationCase & sim_data){
     
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
@@ -953,7 +953,7 @@ TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim
     return mesh;
 }
 
-TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase sim_data){
+TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase & sim_data){
     
     TPZAnalysis * analysis = new TPZAnalysis(cmesh, true);
     
@@ -999,7 +999,7 @@ TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase sim_data){
     
 }
 
-void PosProcess(TPZAnalysis  * an, std::string file, SimulationCase sim_data)
+void PosProcess(TPZAnalysis  * an, std::string file, SimulationCase & sim_data)
 {
     int dim = 3;
     TPZStack<std::string,10> scalnames, vecnames;
@@ -1020,7 +1020,7 @@ void PosProcess(TPZAnalysis  * an, std::string file, SimulationCase sim_data)
         scalnames.Push("f_exact");
     }
 
-    int div = 2;
+    int div = 1;
     an->DefineGraphMesh(dim,scalnames,vecnames,file);
     an->PostProcess(div,dim);
     
