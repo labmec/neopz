@@ -219,8 +219,8 @@ int main()
     
     // Formulations over the sphere 
     struct SimulationCase common;
-    common.UsePardisoQ = false;
-    common.UseFrontalQ = true;
+    common.UsePardisoQ = true;
+    common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
     common.n_h_levels = 3;
@@ -960,6 +960,7 @@ TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase & sim_data){
     if (sim_data.UsePardisoQ) {
         
         TPZSymetricSpStructMatrix matrix(cmesh);
+//        TPZSkylineStructMatrix matrix(cmesh);
         matrix.SetNumThreads(sim_data.n_threads);
         analysis->SetStructuralMatrix(matrix);
         TPZStepSolver<STATE> step;

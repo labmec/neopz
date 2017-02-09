@@ -212,7 +212,7 @@ namespace pzgeom {
         TShape(loc,phi,dphi);
         for(int i = 0; i < 3; i++)
         {
-            for(int j = 0; j < NNodes; j++)
+            for(int j = 0; j < space; j++)
             {
                 gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
                 gradx(j,1) += nodes.GetVal(j,i)*dphi(1,i);
