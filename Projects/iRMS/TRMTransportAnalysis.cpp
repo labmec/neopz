@@ -102,7 +102,10 @@ void TRMTransportAnalysis::AdjustVectors(){
         DebugStop();
     }
     
+<<<<<<< HEAD
     
+=======
+>>>>>>> iRMS_Biot
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
     fX_n.Resize(fSolution.Rows(),1);
@@ -276,6 +279,11 @@ void TRMTransportAnalysis::PostProcessStep(){
     std::string plotfile =  "DualSegregatedDarcyOnBox_Saturations.vtk";
     scalnames.Push("s_a");
     scalnames.Push("s_b");
+    
+    if (fSimulationData->IsInitialStateQ()) {
+        plotfile =  "DualSegregatedDarcyOnBox_I.vtk";
+        return;
+    }
     
     if (fSimulationData->IsThreePhaseQ()) {
         scalnames.Push("s_c");

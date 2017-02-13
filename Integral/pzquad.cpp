@@ -174,11 +174,16 @@ void TPZIntQuad::SetOrder(TPZVec<int> &ord,int type) {
     if (fOrdKsi != ord[0] || type != prevtype) {
         fOrdKsi = ord[0];
         fIntKsi = gIntRuleList.GetRule(fOrdKsi,type);
+        fOrdKsi = fIntKsi->Order();
     }
     prevtype = fIntEta->Type();
     if (fOrdEta != ord[1] || prevtype != type) {
         fOrdEta = ord[1];
         fIntEta = gIntRuleList.GetRule(fOrdEta,type);
+<<<<<<< HEAD
+=======
+        fOrdEta = fIntEta->Order();
+>>>>>>> iRMS_Biot
     }
 }
 

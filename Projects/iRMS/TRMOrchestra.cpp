@@ -54,12 +54,17 @@ TRMOrchestra::~TRMOrchestra(){
 /** @brief Create geometric mesh being used by space odissey */
 void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     
-    bool IsReservoirBoxQ = true;
+    bool IsReservoirBoxQ = false;
     
     if (Is3DGeometryQ) {
         
+<<<<<<< HEAD
         int nel_x = 20;
         int nel_y = 2;
+=======
+        int nel_x = 5;
+        int nel_y = 1;
+>>>>>>> iRMS_Biot
         int nel_z = 1;
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
@@ -75,7 +80,12 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
+<<<<<<< HEAD
             file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+=======
+//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            file = dirname + "/Projects/iRMS/Meshes/CircularMeshVerticalWellQII.dump";
+>>>>>>> iRMS_Biot
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
             fSpaceGenerator->CreateGeometricExtrudedGIDMesh(file, dz);
@@ -85,8 +95,13 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
     }
     else{
         
+<<<<<<< HEAD
         int nel_x = 2;
         int nel_y = 1;
+=======
+        int nel_x = 8;
+        int nel_y = 4;
+>>>>>>> iRMS_Biot
         
         TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y);
         dx[0] = 1000.0/REAL(nel_x);
@@ -100,7 +115,12 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
             std::string dirname = PZSOURCEDIR;
             std::string file;
 //            file = dirname + "/Projects/iRMS/Meshes/BarriesGeo.dump";
+<<<<<<< HEAD
             file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+=======
+//            file = dirname + "/Projects/iRMS/Meshes/Ciruclar_ReservoirC.dump";
+            file = dirname + "/Projects/iRMS/Meshes/CircularMeshVerticalWellQII.dump";
+>>>>>>> iRMS_Biot
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/FiveSpotBarriesQ.dump";
 //            file = dirname + "/Projects/iRMS/Meshes/TwoWellQ.dump";
@@ -111,12 +131,31 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
     }
     
+
     int ref = 1;
     fSpaceGenerator->UniformRefinement(ref);
+//    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 11);
+//    fSpaceGenerator->UniformRefinement_Around_MaterialId(ref, 12);
     fSpaceGenerator->PrintGeometry();
 //    int father_index = 9;
 //    fSpaceGenerator->UniformRefinement_at_Father(1, father_index);
 //    fSpaceGenerator->PrintGeometry();
+<<<<<<< HEAD
+=======
+}
+
+/** @brief Create geometric mesh being used by space odissey */
+void TRMOrchestra::BuildGeometry2(){
+    
+    std::string dirname = PZSOURCEDIR;
+    std::string file;
+    file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir.msh";
+    fSpaceGenerator->CreateGeometricGmshMesh(file);
+    
+    int ref = 0;
+    fSpaceGenerator->UniformRefinement(ref);
+    fSpaceGenerator->PrintGeometry();
+>>>>>>> iRMS_Biot
 }
 
 /** @brief Create a primal analysis using space odissey */
@@ -151,7 +190,7 @@ void TRMOrchestra::CreateAnalysisPrimal()
     std::cout << "Primal dof: " << AnalysisPrimal->Rhs().Rows() << std::endl;
     
     const int dim = 3;
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "PrimalDarcy.vtk";
     scalnames.Push("Pressure");
@@ -165,7 +204,12 @@ void TRMOrchestra::CreateAnalysisPrimal()
 void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
+<<<<<<< HEAD
     this->BuildGeometry(false);
+=======
+//    this->BuildGeometry(false);
+    this->BuildGeometry2();
+>>>>>>> iRMS_Biot
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
@@ -187,11 +231,19 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
+<<<<<<< HEAD
     bool UseMHMQ = true;
     
     if(UseMHMQ){
         int skeleton_id = 0;
         fSpaceGenerator->InsertSkeletonInterfaces(); // @omar:: Primitive use of the mhm capabilities
+=======
+    bool UseMHMQ = false;
+    
+    if(UseMHMQ){
+        int skeleton_id = 0;
+        fSpaceGenerator->InsertSkeletonInterfaces(skeleton_id); // @omar:: Primitive use of the mhm capabilities
+>>>>>>> iRMS_Biot
         fSpaceGenerator->BuildMHM_Mesh();
     }
     else{
@@ -213,18 +265,20 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         hyperbolic->Meshvec()[1] = fSpaceGenerator->BetaSaturationMesh();
         fSpaceGenerator->CreateTransportMesh();
     }
-    
-    bool IsIterativeSolverQ = false;
-    bool IsGCQ = true;
-    
-    // Analysis for parabolic part
+        
     int numofThreads_p = 16;
     bool mustOptimizeBandwidth_parabolic = true;
+    
+    /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
+    // Analysis for parabolic part
     parabolic->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-    
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
+<<<<<<< HEAD
 //    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+=======
+
+>>>>>>> iRMS_Biot
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
 //    strmat_p.SetDecomposeType(ELDLt);
 
@@ -238,35 +292,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->AdjustVectors();
     parabolic->SetSimulationData(fSimulationData);
     
-    if (IsIterativeSolverQ) {
-        
-        TPZAutoPointer<TPZMatrix<STATE> > skylnsyma = strmat_p.Create();
-        TPZAutoPointer<TPZMatrix<STATE> > skylnsymaClone = skylnsyma->Clone();
-        
-        TPZStepSolver<STATE> *stepre = new TPZStepSolver<STATE>(skylnsymaClone);
-        TPZStepSolver<STATE> *stepGMRES = new TPZStepSolver<STATE>(skylnsyma);
-        TPZStepSolver<STATE> *stepGC = new TPZStepSolver<STATE>(skylnsyma);
-        
-        stepre->SetDirect(ELDLt);
-        stepre->SetReferenceMatrix(skylnsyma);
-        stepGMRES->SetGMRES(10, 20, *stepre, 1.0e-10, 0);
-        stepGC->SetCG(10, *stepre, 1.0e-10, 0);
-        
-        if (IsGCQ) {
-            parabolic->SetSolver(*stepGC);
-        }
-        else{
-            parabolic->SetSolver(*stepGMRES);
-        }
-        
-    }
-    
-#ifdef PZDEBUG
-    std::ofstream out("CmeshParabolic.txt");
-    parabolic->Mesh()->Print(out);
-#endif
-    
-    std::cout << "ndof parabolic = " << parabolic->Mesh()->Solution().Rows() << std::endl;
+    std::cout << "ndof parabolic = " << parabolic->Solution().Rows() << std::endl;
     
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
@@ -287,7 +313,11 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         TPZStepSolver<STATE> step_t;
 
         const long numiterations = 20;
+<<<<<<< HEAD
         const REAL tol = 1.0e-6;
+=======
+        const REAL tol = 1.0e-8;
+>>>>>>> iRMS_Biot
         step_t.SetJacobi(numiterations, tol, 1);
 
         strmat_t.SetNumThreads(numofThreads_t);
@@ -323,10 +353,14 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+<<<<<<< HEAD
     
 //    parabolic->Mesh()->ComputeNodElCon();
 //    parabolic->Mesh()->CleanUpUnconnectedNodes();
     
+=======
+       
+>>>>>>> iRMS_Biot
     // Transfer object
     TRMBuildTransfers * Transfer = new TRMBuildTransfers;
     Transfer->SetSimulationData(fSimulationData);
@@ -380,6 +414,8 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 /** @brief Create a monolithic dual analysis on box geometry using space odissey */
 void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
+    this->BuildGeometry(false);
+    
     fSimulationData->SetInitialStateQ(IsInitialQ);
     
     TRMMonolithicMultiphaseAnalysis * mono_analysis = new TRMMonolithicMultiphaseAnalysis;
@@ -392,39 +428,45 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     fSpaceGenerator->PrintGeometry();
 #endif
     
-    fSpaceGenerator->SetDefaultPOrder(1);
+    fSpaceGenerator->SetDefaultUOrder(2);
+    fSpaceGenerator->SetDefaultPOrder(2);
     fSpaceGenerator->SetDefaultSOrder(0);
 
     // Structure for one-phase flow
     if(fSimulationData->IsOnePhaseQ()){
         
+        fSpaceGenerator->CreateBiotCmesh();
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateMultiphaseCmesh();
-        
-        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
+
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->FluxCmesh();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->PressureCmesh();
         
     }
     
     if(fSimulationData->IsTwoPhaseQ()){
-        mono_analysis->Meshvec().Resize(3);
+        mono_analysis->Meshvec().Resize(4);
+        fSpaceGenerator->CreateBiotCmesh();
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateAlphaTransportMesh();
         fSpaceGenerator->CreateMultiphaseCmesh();
         fSpaceGenerator->CreateInterfacesInside(fSpaceGenerator->MonolithicMultiphaseCmesh());
-        
-        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-        mono_analysis->Meshvec()[2] = fSpaceGenerator->AlphaSaturationMesh();
+
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->FluxCmesh();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->PressureCmesh();
+        mono_analysis->Meshvec()[3] = fSpaceGenerator->AlphaSaturationMesh();
         
     }
     
     
     if(fSimulationData->IsThreePhaseQ()){
         
-        mono_analysis->Meshvec().Resize(4);
+        mono_analysis->Meshvec().Resize(5);
+        fSpaceGenerator->CreateBiotCmesh();        
         fSpaceGenerator->CreateFluxCmesh();
         fSpaceGenerator->CreatePressureCmesh();
         fSpaceGenerator->CreateAlphaTransportMesh();
@@ -432,10 +474,11 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
         fSpaceGenerator->CreateMultiphaseCmesh();
         fSpaceGenerator->CreateInterfacesInside(fSpaceGenerator->MonolithicMultiphaseCmesh());
         
-        mono_analysis->Meshvec()[0] = fSpaceGenerator->FluxCmesh();
-        mono_analysis->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
-        mono_analysis->Meshvec()[2] = fSpaceGenerator->AlphaSaturationMesh();
-        mono_analysis->Meshvec()[3] = fSpaceGenerator->BetaSaturationMesh();
+        mono_analysis->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+        mono_analysis->Meshvec()[1] = fSpaceGenerator->FluxCmesh();
+        mono_analysis->Meshvec()[2] = fSpaceGenerator->PressureCmesh();
+        mono_analysis->Meshvec()[3] = fSpaceGenerator->AlphaSaturationMesh();
+        mono_analysis->Meshvec()[4] = fSpaceGenerator->BetaSaturationMesh();
         
     }
     
@@ -446,7 +489,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     // Use this matrix for a linear tracer
     TPZSkylineNSymStructMatrix skyns_mat(fSpaceGenerator->MonolithicMultiphaseCmesh());
     TPZStepSolver<STATE> step;
-    int numofThreads = 16;
+    int numofThreads = 0;
     skyns_mat.SetNumThreads(numofThreads);
     step.SetDirect(ELU);
     mono_analysis->SetStructuralMatrix(skyns_mat);
@@ -469,6 +512,10 @@ void TRMOrchestra::RunStaticProblem(){
     std::cout<< "iRMS:: Finding Initial State" << std::endl;
     
     int n = 2;
+<<<<<<< HEAD
+=======
+    bool draw_mixed_mapQ = false;
+>>>>>>> iRMS_Biot
     REAL dt = fSimulationData->dt();
     fSimulationData->Setdt(1.0e10);
     
@@ -479,8 +526,27 @@ void TRMOrchestra::RunStaticProblem(){
         }
         
         if (IsSegregatedQ()) {
+<<<<<<< HEAD
             fSegregatedAnalysis_I->ExcecuteOneStep();
             fSegregatedAnalysis_I->PostProcessStep();
+=======
+
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+            fSegregatedAnalysis_I->ExcecuteOneStep();
+            fSegregatedAnalysis_I->PostProcessStep(draw_mixed_mapQ);
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            std::cout  << "iRMS:: OneStep execution time = " << (t2-t1) << std::endl;
+#endif
+            
+>>>>>>> iRMS_Biot
         }
         
     }
@@ -532,6 +598,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     }
     
     // Evolutionary problem
+    bool draw_mixed_mapQ = false;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     fSimulationData->SetTime(time);
@@ -542,11 +609,31 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     }
     
     time = fSimulationData->t();
+<<<<<<< HEAD
     MustReportQ = MustResporTimeQ(time);
     
     if (MustReportQ) {
         std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
         fSegregatedAnalysis->PostProcessStep();
+=======
+    MustReportQ = MustResporTimeQ(time,draw_mixed_mapQ);
+    
+    if (MustReportQ) {
+#ifdef USING_BOOST
+        boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+        std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+        fSegregatedAnalysis->PostProcessStep(draw_mixed_mapQ);
+        
+#ifdef USING_BOOST
+        boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+        
+#ifdef USING_BOOST
+        std::cout  << "iRMS:: PostProcess execution time = " << (t2-t1) << std::endl;
+#endif
+        
+>>>>>>> iRMS_Biot
     }
     
     for (int i = 0; i < n; i++) {
@@ -554,20 +641,52 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         if (IsMonolithicQ()) {
             
             if (MustReportQ) {
+<<<<<<< HEAD
                 std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
                 fMonolithicMultiphaseAnalysis->PostProcessStep();
+=======
+#ifdef USING_BOOST
+                boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                fMonolithicMultiphaseAnalysis->PostProcessStep();
+#ifdef USING_BOOST
+                boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+#ifdef USING_BOOST
+                std::cout  << "iRMS:: PostProcess execution time = " << (t2-t1) << std::endl;
+#endif
+>>>>>>> iRMS_Biot
             }
             
             if (fSimulationData->ReportingTimes().size() == 0) {
                 return;
             }
             
+<<<<<<< HEAD
             fMonolithicMultiphaseAnalysis->ExcecuteOneStep();
+=======
+            
+            
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+            fMonolithicMultiphaseAnalysis->ExcecuteOneStep();
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            std::cout  << "iRMS:: OneStep execution time = " << (t2-t1) << std::endl;
+#endif
+>>>>>>> iRMS_Biot
 
         }
         
         if (IsSegregatedQ()) {
 
+<<<<<<< HEAD
             fSegregatedAnalysis->ExcecuteOneStep();
 
             time = fSimulationData->t();
@@ -576,6 +695,41 @@ void TRMOrchestra::RunEvolutionaryProblem(){
             if (MustReportQ) {
                 std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
                 fSegregatedAnalysis->PostProcessStep();
+=======
+#ifdef USING_BOOST
+            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+            fSegregatedAnalysis->ExcecuteOneStep();
+#ifdef USING_BOOST
+            boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            std::cout  << "iRMS:: OneStep execution time = " << (t2-t1) << std::endl;
+#endif
+
+            time = fSimulationData->t();
+            MustReportQ = MustResporTimeQ(time,draw_mixed_mapQ);
+            
+            if (MustReportQ) {
+
+                
+#ifdef USING_BOOST
+                boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                fSegregatedAnalysis->PostProcessStep(draw_mixed_mapQ);
+                
+#ifdef USING_BOOST
+                boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+                
+#ifdef USING_BOOST
+                std::cout  << "iRMS:: PostProcess execution time = " << (t2-t1) << std::endl;
+#endif
+                
+>>>>>>> iRMS_Biot
             }
             
             if (fSimulationData->ReportingTimes().size() == 0) {
@@ -587,10 +741,18 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 }
 
 /** @brief Must report time */
+<<<<<<< HEAD
 bool TRMOrchestra::MustResporTimeQ(REAL time){
     
     int index = fSimulationData->ReportingTimes().size();
     REAL time_r = fSimulationData->ReportingTimes()[index-1];
+=======
+bool TRMOrchestra::MustResporTimeQ(REAL time, bool & draw_mixed_mapQ){
+    
+    int index = fSimulationData->ReportingTimes().size();
+    REAL time_r = fSimulationData->ReportingTimes()[index-1];
+    draw_mixed_mapQ = fSimulationData->ReportingTimesMixedQ()[index-1];
+>>>>>>> iRMS_Biot
     REAL dt = fSimulationData->dt();
     REAL t_range = dt;
     REAL deltat = time-time_r;

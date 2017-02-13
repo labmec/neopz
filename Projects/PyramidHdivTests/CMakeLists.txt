@@ -6,3 +6,5 @@ set(main_SRCS ${sources} ${headers})
 add_executable(PyramidHdivTests ${main_SRCS})
 target_link_libraries(PyramidHdivTests pz)
 
+configure_file(testsequence.txt testsequence.txt COPYONLY)
+

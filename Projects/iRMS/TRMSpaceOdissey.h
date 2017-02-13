@@ -21,15 +21,39 @@
 #include "pzcondensedcompel.h"
 
 #include "TPZReadGIDGrid.h"
+#include "TRMGmshReader.h"
 #include "TPZVTKGeoMesh.h"
 
+
 #include "pzpoisson3d.h"
+#include "TRMMultiphase.h"
+#include "TRMMixedDarcy.h"
+#include "TRMBiotPoroelasticity.h"
+#include "TPZMatLaplacian.h"
+#include "pzbndcond.h"
+#include "TRMPhaseTransport.h"
+#include "TRMPhaseInterfaceTransport.h"
 
 #include "pzelementgroup.h"
 #include "TPZCompMeshTools.h"
 #include "pzsubcmesh.h"
-
 #include "pzcheckgeom.h"
+
+#include "tpzgeoelrefpattern.h"
+#include "TPZRefPatternTools.h"
+#include "tpzhierarquicalgrid.h"
+#include "pzgeopoint.h"
+#include "TRMSimworxMeshGenerator.h"
+#include "TPZCompMeshTools.h"
+#include "pzelchdivbound2.h"
+#include "pzl2projection.h"
+#include "pzshapequad.h"
+
+#include "pzbndcond.h"
+#include "TPZMultiphysicsInterfaceEl.h"
+#include "pzcompelwithmem.h"
+
+#include "pzcreateapproxspace.h"
 
 class TRMSpaceOdissey{
     
@@ -43,6 +67,9 @@ public:
     
 private:
     
+    /** @brief order of approximation displacements */
+    int fUOrder;
+    
     /** @brief order of approximation flux and pressure */
     int fPOrder;
     
@@ -54,6 +81,9 @@ private:
     
     /** @brief Autopointer of Simulation data */
     TRMSimulationData * fSimulationData;
+    
+    /** @brief H1 computational mesh for biot linear poroelasticity approach */
+    TPZCompMesh * fBiotCmesh;
     
     /** @brief H1 computational mesh for primal approach */
     TPZCompMesh * fH1Cmesh;
@@ -79,7 +109,10 @@ private:
     /** @brief Mixed computational mesh for a dual analysis */
     TPZCompMesh * fMixedFluxPressureCmesh;
     
-    /** @brief H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */
+    /** @brief Mixed computational mhm mesh for a dual analysis */
+    TPZCompMesh * fMixedFluxPressureCmeshMHM;
+    
+    /** @brief H1-L2 for computational mesh for a primal analysis with Global postprocessing of fluxes */
     TPZCompMesh * fPressureSaturationCmesh;
     
     /** @brief Computational mesh for multiphase monolithic approach */
@@ -111,6 +144,12 @@ public:
     /** @brief Initialize the simulation data */
     void InitializeSimulationData(TRMRawData &rawdata);
     
+    /** @brief Set the order of approximation displacements */
+    void SetDefaultUOrder(int porder)
+    {
+        fUOrder = porder;
+    }
+    
     /** @brief Set the order of approximation flux and pressure */
     void SetDefaultPOrder(int porder)
     {
@@ -123,6 +162,9 @@ public:
         fSOrder = sorder;
     }
     
+    /** @brief Create a Biot H1 computational mesh */
+    void CreateBiotCmesh();
+    
     /** @brief Create a H1 computational mesh */
     void CreateH1Cmesh();
     
@@ -134,6 +176,9 @@ public:
     
     /** @brief Create a Mixed computational mesh Hdiv-L2 */
     void CreateMixedCmesh();
+    
+    /** @brief Create a Mixed computational mesh Hdiv-L2 */
+    void CreateMixedCmeshMHM();
     
     /** @brief Create a Mixed-Transport multiphase computational mesh Hdiv-L2-L2-L2 */
     void CreateMultiphaseCmesh();
@@ -161,6 +206,9 @@ public:
     
     /** @brief Print the reservoir geometry */
     void PrintGeometry();
+    
+    /** @brief Create a reservoir-box geometry with cylindrical wells */
+    void CreateGeometricGmshMesh(std::string &grid);
     
     /** @brief Create a reservoir-box geometry */
     void CreateGeometricGIDMesh(std::string &grid);
@@ -199,6 +247,15 @@ public:
     /** @brief Apply uniform refinement on the given father index mesh */
     void UniformRefinement_at_Father(int n_ref, int father_index);
     
+<<<<<<< HEAD
+=======
+    /** @brief Apply uniform refinement at specific material id */
+    void UniformRefinement_at_MaterialId(int n_ref, int mat_id);
+    
+    /** @brief Apply uniform refinement around at specific material id */
+    void UniformRefinement_Around_MaterialId(int n_ref, int mat_id);
+    
+>>>>>>> iRMS_Biot
     /** @brief Set autopointer of Simulation data */
     void SetSimulationData(TRMSimulationData * SimulationData){
         fSimulationData = SimulationData;
@@ -207,6 +264,17 @@ public:
     /** @brief Get autopointer of Simulation data */
     TRMSimulationData *  SimulationData(){
         return fSimulationData;
+    }
+    
+    
+    /** @brief Set autopointer of Biot H1 computational mesh for primal approach */
+    void SetBiotCMesh(TPZCompMesh * BiotCmesh){
+        fBiotCmesh = BiotCmesh;
+    }
+    
+    /** @brief Get autopointer of Biot H1 computational mesh for primal approach */
+    TPZCompMesh *  BiotCMesh(){
+        return fBiotCmesh;
     }
     
     /** @brief Set autopointer of H1 computational mesh for primal approach */
@@ -289,6 +357,16 @@ public:
         return fMixedFluxPressureCmesh;
     }
     
+    /** @brief Set autopointer of Mixed computational mesh for a dual analysis */
+    void SetMixedFluxPressureCmeshMHM(TPZCompMesh * MixedFluxPressureCmeshMHM){
+        fMixedFluxPressureCmeshMHM = MixedFluxPressureCmeshMHM;
+    }
+    
+    /** @brief Get autopointer of Mixed computational mesh for a dual analysis */
+    TPZCompMesh * MixedFluxPressureCmeshMHM(){
+        return fMixedFluxPressureCmeshMHM;
+    }
+    
     /** @brief Set autopointer of H1-L2 for computational mesh fora primal analysis with Global postprocessing of fluxes */
     void SetPressureSaturationCmesh(TPZCompMesh * PressureSaturationCmesh){
         fPressureSaturationCmesh = PressureSaturationCmesh;
@@ -334,6 +412,9 @@ public:
     
     /** @brief Construc computational macro elements */
     void BuildMacroElements();
+    
+    /** @brief Destruct computational macro elements */
+    void UnwrapMacroElements();
     
     /** @brief Computational element refinement by index */
     void CElemtentRefinement(TPZCompMesh  *cmesh, int element_index);

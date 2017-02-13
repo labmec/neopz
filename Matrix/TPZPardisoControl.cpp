@@ -236,6 +236,10 @@ void TPZPardisoControl<TVar>::Decompose()
     }
     
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
+<<<<<<< HEAD
+=======
+
+>>>>>>> iRMS_Biot
 //        fParam[9] = -1; // avoid any pivot permutation ()
         
 //        // Note: other values unused
@@ -251,6 +255,7 @@ void TPZPardisoControl<TVar>::Decompose()
 #ifdef USING_BOOST
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
+<<<<<<< HEAD
 
     fPermutation.resize(n);
     for (long i=0; i<n; i++) {
@@ -270,6 +275,20 @@ void TPZPardisoControl<TVar>::Decompose()
         
     }
     
+=======
+    
+//<<<<<<< HEAD
+//=======
+//    for(long i = 0; i < n; i++){
+//        fPermutation[i] = i;
+//    }
+//    if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+//        fParam[4] = 1;
+//    }
+//
+//    std::cout << __PRETTY_FUNCTION__ << std::endl;
+//>>>>>>> Pyramid
+>>>>>>> iRMS_Biot
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
@@ -278,7 +297,11 @@ void TPZPardisoControl<TVar>::Decompose()
 #endif
     
 #ifdef USING_BOOST
+<<<<<<< HEAD
     std::cout  << "Pardiso:: Overal execution time = " << (t2-t1) << std::endl;
+=======
+    std::cout  << "Pardiso:: Done. Overal execution time = " << (t2-t1) << std::endl;
+>>>>>>> iRMS_Biot
 #endif
 
     if (Error) {
@@ -348,6 +371,7 @@ TPZPardisoControl<TVar>::~TPZPardisoControl()
     if (Error) {
         DebugStop();
     }
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     
 }
 

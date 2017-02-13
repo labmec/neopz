@@ -88,6 +88,10 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
         DebugStop();
     }
     
+<<<<<<< HEAD
+=======
+    
+>>>>>>> iRMS_Biot
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
     fX_n.Resize(fSolution.Rows(),1);
@@ -245,6 +249,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
         plotfile =  "DualSegregatedDarcyOnBox_I.vtk";
+        return;
     }
     else{
         plotfile =  "DualSegregatedDarcyOnBox.vtk";
@@ -253,7 +258,9 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     scalnames.Push("p");
     scalnames.Push("div_u");
     scalnames.Push("cfl");
+    scalnames.Push("phi");
     vecnames.Push("u");
+    vecnames.Push("kappa");
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

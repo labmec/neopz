@@ -79,13 +79,13 @@ if(PTHREAD_LIB-NOTFOUND)
 endif()
 include_directories(${PTHREAD_INCLUDE})
 
-IF(APPLE)
+IF(APPLE2)
    # Mac OS X specific code
    add_definitions(-DMACOSX)
    FIND_LIBRARY(ACCELERATE_LIB Accelerate)
    link_libraries(${ACCELERATE_LIB})
 #   SET(OperatingSystem "Mac OS X")
-ENDIF(APPLE)
+ENDIF(APPLE2)
 
 #enabling Boost library 
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
@@ -317,6 +317,7 @@ endif(USING_HWLOC)
 #enabling MKL library 
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
+	
         add_definitions(-DUSING_MKL)
         find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
         find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
@@ -344,6 +345,15 @@ if(USING_MKL)
                 link_libraries(${MKL_LIB_THREAD})
                 link_libraries(${COMPOSER_OMP})
         endif()
+	
+	# Setting number of threads for Pardiso as number of processors#
+	if(APPLE)
+		execute_process(COMMAND sysctl -n hw.ncpu OUTPUT_VARIABLE USER_NPROCESSORS) # get compile version
+		#message("USER_NPROCESSORS = ${USER_NPROCESSORS}")
+		add_definitions(-DMKL_NUM_THREADS=${USER_NPROCESSORS})		 
+	endif(APPLE)
+		
+
 endif(USING_MKL)
 
 

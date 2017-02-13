@@ -102,12 +102,6 @@ public:
         return *this;
     }
     
-    /**
-     * @defgroup Access Methods
-     * @brief    Implements Access methods:
-     * @{
-     */
-    
     /** @brief Set autopointer of the global geometry being used */
     void SetGMesh(TPZGeoMesh * gmesh)
     {
@@ -227,18 +221,12 @@ public:
     bool IsSegregatedwithCGQ(){
         return fIsSegregatedwithCGQ;
     }
-
-    
-    // @}
-    
-    /**
-     * @defgroup Methods for run different analysis
-     * @brief    Analysis creation and excecution:
-     * @{
-     */
     
     /** @brief Create geometric mesh being used by space odissey */
     void BuildGeometry(bool Is3DGeometryQ);
+    
+    /** @brief Create geometric mesh being used by space odissey */
+    void BuildGeometry2();
     
     /** @brief Create computational meshes using space odissey */
     void CreateCompMeshes();
@@ -265,7 +253,11 @@ public:
     void ExecuteOneTimeStep();
     
     /** @brief Must report time */
+<<<<<<< HEAD
     bool MustResporTimeQ(REAL time);
+=======
+    bool MustResporTimeQ(REAL time, bool & draw_mixed_mapQ);
+>>>>>>> iRMS_Biot
     
     /** @brief Computes the post processed results */
     void PostProcess();

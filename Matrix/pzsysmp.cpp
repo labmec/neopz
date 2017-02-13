@@ -189,6 +189,16 @@ void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const Mat
 // ****************************************************************************
 
 template<class TVar>
+int TPZSYsmpMatrix<TVar>::Zero()
+{
+    fA.Fill(TVar(0.));
+    fDiag.resize(0)
+    
+    ;
+    return 1;
+}
+
+template<class TVar>
 void TPZSYsmpMatrix<TVar>::ComputeDiagonal() {
 	if(!fDiag.size()) fDiag.resize(this->Rows());
 	for(int ir=0; ir<this->Rows(); ir++) {

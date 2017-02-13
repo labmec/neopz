@@ -68,6 +68,8 @@ ENABLE_TESTING()
 
 			add_subdirectory(proDG)
 			
+			#Project which generates pyramid HDiv elements
+			add_subdirectory(PyramidHdivTests)
 
 		endif(BUILD_COMPLEX_PROJECTS)
 
@@ -139,6 +141,7 @@ ENABLE_TESTING()
 			#projeto Diogo
 			add_subdirectory(Plasticity)
 
+<<<<<<< HEAD
 			#add_subdirectory(projteste)
 		
 			# MHM project
@@ -192,6 +195,14 @@ ENABLE_TESTING()
 
 
 			add_subdirectory(Elasticity2D)			
+=======
+			add_subdirectory(PermeabilityCoupling)
+			add_subdirectory(GeoMechanicROM)
+			add_subdirectory(iRMS)			
+			add_subdirectory(PoroElasticAnalysis)
+			add_subdirectory(Elasticity2D)
+			add_subdirectory(MHM)			
+>>>>>>> iRMS_Biot
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
 			#add_subdirectory(Andrade)

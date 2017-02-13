@@ -45,6 +45,7 @@ public:
     
     /// uncondensed elements for the elements that have internal nodes
     static void UnCondensedElements(TPZCompMesh *cmesh);
+<<<<<<< HEAD
 
     /// compute the norm of the difference between two meshes
     /// put the computed error in the element solution
@@ -56,6 +57,10 @@ public:
     /// set the pressure order acording to the order of internal connect of the elements of the fluxmesh
     static void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh);
 
+=======
+    
+    static void OptimizeBandwidth(TPZCompMesh *cmesh);
+>>>>>>> iRMS_Biot
 };
 
 #endif /* defined(__PZ__TPZCompMeshTools__) */

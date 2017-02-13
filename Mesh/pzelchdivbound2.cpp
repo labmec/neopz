@@ -214,9 +214,16 @@ TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
         if (!intel) {
             DebugStop();
         }
-        int cindex = intel->SideConnectLocId(0, celside.Side());
-        TPZConnect &c = intel->Connect(cindex);
-        c.RemoveDepend();
+        TPZGeoEl *gelst = cel->Reference();
+        if (gelst->SideDimension(celside.Side()) != gel->Dimension()) {
+            continue;
+        }
+        if (intel->NSideConnects(celside.Side()))
+        {
+            int cindex = intel->MidSideConnectLocId( celside.Side());
+            TPZConnect &c = intel->Connect(cindex);
+            c.RemoveDepend();
+        }
     }
     gel->ResetReference();
 

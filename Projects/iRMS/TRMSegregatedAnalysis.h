@@ -29,6 +29,9 @@ private:
     
     /** @brief define the transfer matrices */
     TRMBuildTransfers * fTransfer;
+
+    /** @brief define the parabolic system */
+    TRMFluxPressureAnalysis * fParabolic_mhm;
     
     /** @brief define the parabolic system */
     TRMFluxPressureAnalysis * fParabolic;
@@ -93,6 +96,18 @@ public:
     {
         return fTransfer;
     }
+    
+    /** @brief Set the parabolic mhm part */
+    void SetParabolicMHM(TRMFluxPressureAnalysis * parabolic_mhm)
+    {
+        fParabolic_mhm = parabolic_mhm;
+    }
+    
+    /** @brief Get the parabolic mhm part  */
+    TRMFluxPressureAnalysis * ParabolicMHM()
+    {
+        return fParabolic_mhm;
+    }
 
     /** @brief Set the parabolic part */
     void SetParabolic(TRMFluxPressureAnalysis * parabolic)
@@ -138,7 +153,11 @@ public:
     void SegregatedIteration();
     
     /** @brief PostProcess results */
+<<<<<<< HEAD
     void PostProcessStep();
+=======
+    void PostProcessStep(bool draw_mixed_mapQ);
+>>>>>>> iRMS_Biot
 
     /** @brief Update memory using the Transfer object at REAL n */
     void UpdateFluxes_at_n();

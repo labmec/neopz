@@ -1,4 +1,4 @@
-//
+  //
 //  TRMSpaceOdissey.cpp
 //  PZ
 //
@@ -7,30 +7,7 @@
 //
 
 #include "TRMSpaceOdissey.h"
-#include "TRMFlowConstants.h"
 
-#include "TRMMultiphase.h"
-#include "TRMMixedDarcy.h"
-#include "TPZMatLaplacian.h"
-#include "pzbndcond.h"
-#include "TRMPhaseTransport.h"
-#include "TRMPhaseInterfaceTransport.h"
-
-#include "tpzgeoelrefpattern.h"
-#include "TPZRefPatternTools.h"
-#include "tpzhierarquicalgrid.h"
-#include "pzgeopoint.h"
-#include "TRMSimworxMeshGenerator.h"
-#include "TPZCompMeshTools.h"
-#include "pzelchdivbound2.h"
-#include "pzl2projection.h"
-#include "pzshapequad.h"
-
-#include "pzbndcond.h"
-#include "TPZMultiphysicsInterfaceEl.h"
-#include "pzcompelwithmem.h"
-
-#include "pzcreateapproxspace.h"
 
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
@@ -91,6 +68,73 @@ TRMSpaceOdissey::~TRMSpaceOdissey(){
     
 }
 
+/** @brief Create a Biot H1 computational mesh */
+void TRMSpaceOdissey::CreateBiotCmesh(){
+    
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+    
+    int dim = fGeoMesh->Dimension();
+    int Sigma_or_displacement = 0;
+    int uorder = fUOrder;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
+    
+    // Malha computacional
+    fBiotCmesh = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        
+        TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(rock_id,dim);
+        fBiotCmesh->InsertMaterialObject(mat);
+        
+        
+        // Inserting volumetric materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[Sigma_or_displacement];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            fBiotCmesh->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+    
+    fBiotCmesh->SetDimModel(dim);
+    fBiotCmesh->SetDefaultOrder(uorder);
+    fBiotCmesh->SetAllCreateFunctionsContinuous();
+    fBiotCmesh->AutoBuild();
+    
+    fBiotCmesh->AdjustBoundaryElements();
+    fBiotCmesh->CleanUpUnconnectedNodes();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshBiot.txt");
+    fBiotCmesh->Print(out);
+#endif
+    
+}
 
 /** @brief Create a Hdiv computational mesh Hdiv */
 void TRMSpaceOdissey::CreateFluxCmesh(){
@@ -206,8 +250,8 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
         newnod.SetLagrangeMultiplier(1);
     }
     
-    TPZDummyFunction<STATE> dummy(PressFunc);
-    TPZCompMeshTools::LoadSolution(fPressureCmesh, dummy);
+//    TPZDummyFunction<STATE> dummy(PressFunc);
+//    TPZCompMeshTools::LoadSolution(fPressureCmesh, dummy);
 #ifdef PZDEBUG
     std::ofstream out("CmeshPress.txt");
     fPressureCmesh->Print(out);
@@ -274,10 +318,23 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     SeparateConnectsByNeighborhood();
     
     this->CreateMixedCmesh();
-
     std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
-//    this->BuildMacroElements(); // @omar:: require the use of sofisticated transfer structures ....
+    
+    this->CreateMixedCmeshMHM();
+    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
+#ifdef PZDEBUG
+    std::ofstream out_mhm("CmeshMixedMHM.txt");
+    this->MixedFluxPressureCmeshMHM()->Print(out_mhm);
+#endif
+    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    
+    this->UnwrapMacroElements();
+    
+#ifdef PZDEBUG
+    std::ofstream out_unwrap("CmeshMixedMHMUnWrap.txt");
+    this->MixedFluxPressureCmeshMHM()->Print(out_unwrap);
+#endif
     
     
 }
@@ -370,10 +427,10 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
 void TRMSpaceOdissey::BuildMacroElements()
 {
     
-    std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
+    std::cout << "ndof parabolic before MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
     
 #ifdef PZDEBUG
-    if(!fMixedFluxPressureCmesh){
+    if(!fMixedFluxPressureCmeshMHM){
         DebugStop();
     }
 #endif
@@ -381,9 +438,9 @@ void TRMSpaceOdissey::BuildMacroElements()
     bool KeepOneLagrangian = true;
     typedef std::set<long> TCompIndexes;
     std::map<long, TCompIndexes> ElementGroups;
-    TPZGeoMesh *gmesh = fMixedFluxPressureCmesh->Reference();
+    TPZGeoMesh *gmesh = fMixedFluxPressureCmeshMHM->Reference();
     gmesh->ResetReference();
-    fMixedFluxPressureCmesh->LoadReferences();
+    fMixedFluxPressureCmeshMHM->LoadReferences();
     long nelg = gmesh->NElements();
     for (long el=0; el<nelg; el++) {
         TPZGeoEl *gel = gmesh->Element(el);
@@ -416,6 +473,8 @@ void TRMSpaceOdissey::BuildMacroElements()
         }
     }
     
+    // omar:: Volumetric methodology for the creation macroblocks/macroelements
+    
 #ifdef PZDEBUG
     std::map<long,TCompIndexes>::iterator it;
     for (it=ElementGroups.begin(); it != ElementGroups.end(); it++) {
@@ -430,13 +489,13 @@ void TRMSpaceOdissey::BuildMacroElements()
 #endif
     
     std::set<long> submeshindices;
-    TPZCompMeshTools::PutinSubmeshes(fMixedFluxPressureCmesh, ElementGroups, submeshindices, KeepOneLagrangian);
+    TPZCompMeshTools::PutinSubmeshes(fMixedFluxPressureCmeshMHM, ElementGroups, submeshindices, KeepOneLagrangian);
  
     std::cout << "Inserting " << ElementGroups.size()  <<  " macro elements into MHM substructures" << std::endl;
-    fMixedFluxPressureCmesh->ComputeNodElCon();
-    fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
+    fMixedFluxPressureCmeshMHM->ComputeNodElCon();
+    fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
     for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
-        TPZCompEl *cel = fMixedFluxPressureCmesh->Element(*it);
+        TPZCompEl *cel = fMixedFluxPressureCmeshMHM->Element(*it);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
         if (!subcmesh) {
             DebugStop();
@@ -446,9 +505,47 @@ void TRMSpaceOdissey::BuildMacroElements()
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->SetAnalysisSkyline(0, 0, 0);
     }
-    fMixedFluxPressureCmesh->ComputeNodElCon();
-    fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
+    fMixedFluxPressureCmeshMHM->ComputeNodElCon();
+    fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
 
+}
+
+/** @brief Destruct computational macro elements */
+void TRMSpaceOdissey::UnwrapMacroElements()
+{
+    
+    std::cout << "ndof parabolic with MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    
+#ifdef PZDEBUG
+    if(!fMixedFluxPressureCmeshMHM){
+        DebugStop();
+    }
+#endif
+    
+    long nelem = fMixedFluxPressureCmeshMHM->NElements();
+    //deleting subcompmesh
+    for(long i=0; i<nelem; i++){
+        TPZCompEl *el = fMixedFluxPressureCmeshMHM->ElementVec()[i];
+        TPZSubCompMesh * subc = dynamic_cast<TPZSubCompMesh*>(el);
+        if(subc){
+            long sub_nel = subc->NElements();
+            long elindex;
+            for (long isubcel = 0; isubcel < sub_nel; isubcel++) {
+                
+                TPZCompEl * cel =  subc->Element(isubcel);
+                elindex = cel->Index();
+                subc->TPZCompMesh::TransferElementTo(fMixedFluxPressureCmeshMHM, elindex);
+            }
+
+            delete subc;
+        }
+    }
+    
+    TPZCompMeshTools::UnCondensedElements(fMixedFluxPressureCmeshMHM);
+    TPZCompMeshTools::UnGroupElements(fMixedFluxPressureCmeshMHM);
+    
+    std::cout << "ndof parabolic without MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    
 }
 
 /** @brief Create a Mixed computational mesh Hdiv-L2 */
@@ -531,12 +628,100 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         mfcel->PrepareIntPtIndices();
     }
     
+    fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
+    
 //    TPZCompMeshTools::OptimizeBandwidth(fMixedFluxPressureCmesh);
     
 #ifdef PZDEBUG
     std::ofstream out("CmeshMixed.txt");
     fMixedFluxPressureCmesh->Print(out);
 #endif
+    
+}
+
+/** @brief Create a Mixed MHM computational mesh Hdiv-L2 */
+void TRMSpaceOdissey::CreateMixedCmeshMHM(){
+    
+#ifdef PZDEBUG
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    int dim = fGeoMesh->Dimension();
+    int flux_or_pressure = 0;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
+    
+    // Malha computacional
+    fMixedFluxPressureCmeshMHM = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
+        mat->SetSimulationData(this->SimulationData());
+        fMixedFluxPressureCmeshMHM->InsertMaterialObject(mat);
+        
+        // Inserting boundary materials
+        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        int bc_id = 0;
+        
+        for (int j = 0; j < n_boundauries; j++) {
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[flux_or_pressure];
+            
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            fMixedFluxPressureCmeshMHM->InsertMaterialObject(boundary_c);
+            
+        }
+        
+    }
+    
+    fMixedFluxPressureCmeshMHM->SetDimModel(dim);
+    fMixedFluxPressureCmeshMHM->SetAllCreateFunctionsMultiphysicElemWithMem();
+    fMixedFluxPressureCmeshMHM->AutoBuild();
+    
+    TPZManVector<TPZCompMesh * ,2> meshvector(2);
+    meshvector[0] = fFluxCmesh;
+    meshvector[1] = fPressureCmesh;
+    
+    // Trensfer information
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, fMixedFluxPressureCmeshMHM);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, fMixedFluxPressureCmeshMHM);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fMixedFluxPressureCmeshMHM);
+    
+    long nel = fMixedFluxPressureCmeshMHM->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = fMixedFluxPressureCmeshMHM->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
+    
+    fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
+    
+    //    TPZCompMeshTools::OptimizeBandwidth(fMixedFluxPressureCmesh);
     
 }
 
@@ -590,32 +775,34 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
         }
         
     }
-    
-    
+
     fMonolithicMultiphaseCmesh->SetDimModel(dim);
     fMonolithicMultiphaseCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
     fMonolithicMultiphaseCmesh->AutoBuild();
     
-    TPZManVector<TPZCompMesh * ,2> meshvector(2);
+    TPZManVector<TPZCompMesh * ,2> meshvector(3);
     
     if (fSimulationData->IsOnePhaseQ()) {
-        meshvector[0] = fFluxCmesh;
-        meshvector[1] = fPressureCmesh;
+        meshvector[0] = fBiotCmesh;
+        meshvector[1] = fFluxCmesh;
+        meshvector[2] = fPressureCmesh;
     }
     
     if (fSimulationData->IsTwoPhaseQ()) {
-        meshvector.Resize(3);
-        meshvector[0] = fFluxCmesh;
-        meshvector[1] = fPressureCmesh;
-        meshvector[2] = fAlphaSaturationMesh;
+        meshvector.Resize(4);
+        meshvector[0] = fBiotCmesh;
+        meshvector[1] = fFluxCmesh;
+        meshvector[2] = fPressureCmesh;
+        meshvector[3] = fAlphaSaturationMesh;
     }
     
     if (fSimulationData->IsThreePhaseQ()) {
-        meshvector.Resize(4);
-        meshvector[0] = fFluxCmesh;
-        meshvector[1] = fPressureCmesh;
-        meshvector[2] = fAlphaSaturationMesh;
-        meshvector[3] = fBetaSaturationMesh;
+        meshvector.Resize(5);
+        meshvector[0] = fBiotCmesh;
+        meshvector[2] = fFluxCmesh;
+        meshvector[3] = fPressureCmesh;
+        meshvector[4] = fAlphaSaturationMesh;
+        meshvector[5] = fBetaSaturationMesh;
     }
 
     
@@ -639,6 +826,7 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     std::ofstream out("CmeshMultiphase.txt");
     fMonolithicMultiphaseCmesh->Print(out);
 #endif
+    
 }
 
 /** @brief Create computational interfaces for jumps  */
@@ -941,7 +1129,6 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         matint->SetSimulationData(fSimulationData);
         fTransportMesh->InsertMaterialObject(matint);
         fGeoMesh->AddInterfaceMaterial(rock_id, rock_id,interface_id);
-
         
         // Inserting volumetric materials
         int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
@@ -1090,6 +1277,18 @@ void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
     fGeoMesh->SetMaxNodeId(node_id);
     fGeoMesh->SetMaxElementId(element_id);
     
+}
+
+/** @brief Create a reservoir-box geometry with cylindrical wells */
+void TRMSpaceOdissey::CreateGeometricGmshMesh(std::string &grid){
+    
+    TRMGmshReader Geometry;
+    REAL s = 1.0;
+    Geometry.SetfDimensionlessL(s);
+    fGeoMesh = Geometry.GeometricGmshMesh(grid);
+    
+    const std::string name("Reservoir with cylindrical wells");
+    fGeoMesh->SetName(name);
 }
 
 /** @brief Create a reservoir-box geometry */
@@ -1346,13 +1545,103 @@ void TRMSpaceOdissey::CMeshRefinement(TPZCompMesh  *cmesh, int ndiv)
 /** @brief Apply uniform refinement on the Geometric mesh */
 void TRMSpaceOdissey::UniformRefinement(int n_ref){
     for ( int ref = 0; ref < n_ref; ref++ ){
-        TPZVec<TPZGeoEl *> filhos;
+        TPZVec<TPZGeoEl *> sons;
         long n = fGeoMesh->NElements();
         for ( long i = 0; i < n; i++ ){
             TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
-            if (gel->Dimension() != 0) gel->Divide (filhos);
+            if (gel->Dimension() != 0) gel->Divide (sons);
         }//for i
     }//ref
+    fGeoMesh->BuildConnectivity();
+}
+
+/** @brief Apply uniform refinement at specific material id */
+void TRMSpaceOdissey::UniformRefinement_at_MaterialId(int n_ref, int mat_id){
+    
+    int dim = fGeoMesh->Dimension();
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> sons;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if (gel->Dimension() == dim || gel->Dimension() == dim - 1){
+                if (gel->MaterialId()== mat_id){
+                    gel->Divide(sons);
+                }
+            }
+        }//for i
+    }//ref
+}
+
+/** @brief Apply uniform refinement around at specific material id */
+void TRMSpaceOdissey::UniformRefinement_Around_MaterialId(int n_ref, int mat_id){
+    
+    int dim = fGeoMesh->Dimension();
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> sons;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if (gel->Dimension() == dim || gel->Dimension() == dim - 1){
+                
+                if(gel->HasSubElement()){
+                    continue;
+                }
+                
+                if (gel->MaterialId()== mat_id){
+                    
+                    int gel_nsides = gel->NSides();
+                    TPZGeoElSide gel_itself =  gel->Neighbour(gel_nsides-1);
+                    
+                    if(!gel_itself.Element()){
+                        continue;
+                    }
+                    
+                    if(gel_itself.Element()->HasSubElement()){
+                        continue;
+                    }
+                    
+                    int high_gel_nsides = gel_itself.Element()->NSides() - 1;
+                    for (int is = gel_itself.Element()->NNodes() ; is < high_gel_nsides; is++) {
+                        TPZGeoElSide side = gel_itself.Element()->Neighbour(is);
+                        if(!side.Element()){
+                            continue;
+                        }
+                        
+                        if(side.Element()->Dimension() != dim-1 || side.Element()->HasSubElement()){
+                            continue;
+                        }
+                        
+                        side.Element()->Divide(sons);
+                    }
+                    
+                    gel_itself.Element()->Divide(sons);
+                    
+                }
+            }
+        }//for i
+    }//ref
+    
+    fGeoMesh->BuildConnectivity();
+}
+
+/** @brief Apply uniform refinement on the Geometric mesh */
+void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> sons;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if(gel->HasSubElement()){
+                continue;
+            }
+            if(gel->Index() == father_index ){
+                if (gel->Dimension() != 0) gel->Divide (sons);
+            }
+
+        }//for i
+    }//ref
+    
     fGeoMesh->BuildConnectivity();
 }
 

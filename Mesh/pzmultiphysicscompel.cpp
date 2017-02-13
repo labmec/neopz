@@ -969,6 +969,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);
+<<<<<<< HEAD
 	
     if(maxIntOrder > 5)
     {
@@ -980,6 +981,21 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(  void (*fp)(const TPZVec<R
             maxIntOrder = 5;
         }
     }
+=======
+
+    // totototototototo
+    for (int i=0; i<prevorder.size(); i++) {
+        if (prevorder[i] < 4) {
+            maxorder[i] = 4;
+        }
+        else
+        {
+            maxorder[i] = prevorder[i];
+        }
+    }
+
+    
+>>>>>>> iRMS_Biot
 	intrule->SetOrder(maxorder);
 	
 	int ndof = material->NStateVariables();

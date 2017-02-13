@@ -23,21 +23,27 @@ private:
     /** @brief spatial properties model */
     int fMap_model; // map_model = {0 -> constan map, 1 -> linear map, 2 -> kriged map}
     
-    // @}
-    
-    
-    /**
-     * @defgroup Constant map models models
-     * @{
-     */
+    // Constant case
     
     void Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
     
     void phi_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars);
     
-    // @}
+    void lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars);
     
+    void lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars);
     
+    void mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars);
+    
+    void alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars);
+    
+    // CGAL interpoaltion
+    
+    void Kappa_f(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
+    
+    void phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars);
+    
+    double phi_cdf(double x);
     
 public:
     
@@ -75,22 +81,24 @@ public:
     {
         return fMap_model;
     }
-    
-    
-    /**
-     * @defgroup map models models
-     * @{
-     */
+
+    /** @brief Geological Stress $\sigma_{0}$ */    
+    void S_0(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &s_0);
     
     void Kappa(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
     
     void phi(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars);
     
-    // @}
+    void lambda(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars);
+    
+    void lambda_u(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars);
+    
+    void mu(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars);
+    
+    void alpha(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars);
+    
     
 
-    
-    
 };
 
 #endif /* defined(__PZ__TRMSpatialPropertiesMap__) */

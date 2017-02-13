@@ -21,6 +21,18 @@
  */
 
 namespace pzgeom {
+<<<<<<< HEAD
+=======
+
+class TPZQuadraticCube : public pzgeom::TPZNodeRep<20,pztopology::TPZCube> {
+	
+public:
+	/** @brief Number of nodes (3 by edge) */
+	enum {NNodes = 20};
+    
+    //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
+    
+>>>>>>> iRMS_Biot
 
     class TPZQuadraticCube : public pzgeom::TPZNodeRep<20,pztopology::TPZCube> {
         
@@ -117,4 +129,5 @@ namespace pzgeom {
     
 };
 
+};
 #endif

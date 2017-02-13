@@ -460,9 +460,9 @@ void TPZCompMesh::LoadReferences() {
 
 void TPZCompMesh::CleanUpUnconnectedNodes() {
 	ComputeNodElCon();
-	long i, nelem = NConnects();
+	long i, nconnects = NConnects();
 	long ndepblocks = 0, nvalidblocks = 0, nremoved = 0, ncondensed = 0;
-	for (i=0;i<nelem;i++)
+	for (i=0;i<nconnects;i++)
     {
 		TPZConnect &no = fConnectVec[i];
 		long seq = no.SequenceNumber();
@@ -475,7 +475,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		else if(no.HasDependency() && no.NElConnected()) ndepblocks++;
     }
 	int need = 0;
-	for (i=0;i<nelem;i++) {
+	for (i=0;i<nconnects;i++) {
 		TPZConnect &no = fConnectVec[i];
 		if (no.SequenceNumber() == -1) continue;
 		if (no.HasDependency() && no.NElConnected() == 0) {
@@ -506,7 +506,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	long idepblocks = 0, iremovedblocks= 0, icondensed = 0;
 	
 	if (need) {
-		for(i=0; i<nelem; i++) {
+		for(i=0; i<nconnects; i++) {
 			TPZConnect &no = fConnectVec[i];
 			if(no.SequenceNumber() == -1) continue;
 			int seq = no.SequenceNumber();
@@ -557,9 +557,9 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	if (need) {
 #ifdef PZDEBUG
 		std::set<long> check;
-		nelem = permute.NElements();
-		for(i=0; i<nelem; i++) check.insert(permute[i]);
-		if(static_cast<int>(check.size()) != nelem)
+		nconnects = permute.NElements();
+		for(i=0; i<nconnects; i++) check.insert(permute[i]);
+		if(static_cast<int>(check.size()) != nconnects)
 		{
 			cout << __PRETTY_FUNCTION__ << " The permutation vector is not a permutation!\n" << permute << endl;
 			DebugStop();
