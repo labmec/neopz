@@ -422,19 +422,11 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
     cmesh->ComputeNodElCon();
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> iRMS_Biot
 /// ungroup all embedded elements of the computational mesh
 void TPZCompMeshTools::UnGroupElements(TPZCompMesh *cmesh){
     
     long nelem = cmesh->NElements();
-<<<<<<< HEAD
-   
-=======
-    
->>>>>>> iRMS_Biot
+
     //unwrapping element groups
     for(long i=0; i<nelem; i++){
         TPZCompEl *el = cmesh->ElementVec()[i];

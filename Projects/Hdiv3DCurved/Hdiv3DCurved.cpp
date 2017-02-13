@@ -219,12 +219,12 @@ int main()
     
     // Formulations over the sphere 
     struct SimulationCase common;
-    common.UsePardisoQ = false;
-    common.UseFrontalQ = true;
+    common.UsePardisoQ = true;
+    common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 4;
-    common.n_p_levels = 4;
+    common.n_h_levels = 3;
+    common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
     common.domain_type = "sphere";
@@ -278,9 +278,9 @@ int main()
 //    HdivCase_2.elemen_type = 0;
 //    HdivCase_2.dump_folder = "Hdiv_sphere_T";
 //    simulations.Push(HdivCase_2);
-    HdivCase_2.elemen_type = 1;
-    HdivCase_2.dump_folder = "Hdiv_sphere_P";
-    simulations.Push(HdivCase_2);
+//    HdivCase_2.elemen_type = 1;
+//    HdivCase_2.dump_folder = "Hdiv_sphere_P";
+//    simulations.Push(HdivCase_2);
     HdivCase_2.elemen_type = 2;
     HdivCase_2.dump_folder = "Hdiv_sphere_H";
     simulations.Push(HdivCase_2);
@@ -513,7 +513,21 @@ void ComputeApproximation(SimulationCase & sim_data){
 #endif
             
             if (sim_data.IsHdivQ) {
-                ErrorHdiv(cmesh, p_error[h], d_error[h], h_error[h]);
+                
+                bool par_errorQ = true;
+                if(par_errorQ){
+                    int nthreadsForError = sim_data.n_threads;
+                    analysis->SetExact(Analytic);
+                    TPZManVector<REAL,3> errors(3,1);
+                    analysis->SetThreadsForError(nthreadsForError);
+                    analysis->PostProcessError(errors);
+                    p_error[h] = errors[0];
+                    d_error[h] = errors[1];
+                    h_error[h] = errors[2];
+                }
+                else{
+                    ErrorHdiv(cmesh, p_error[h], d_error[h], h_error[h]);
+                }
             }
             else{
                 ErrorH1(cmesh, p_error[h], d_error[h], h_error[h]);
@@ -973,7 +987,7 @@ TPZCompMesh * ComputationalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim
 TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase & sim_data){
     
     TPZAnalysis * analysis = new TPZAnalysis(cmesh, true);
-    
+
     if (sim_data.UsePardisoQ) {
         
         TPZSymetricSpStructMatrix matrix(cmesh);

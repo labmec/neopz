@@ -646,13 +646,7 @@ template<class TVar>
 int TPZFYsmpMatrix<TVar>::Zero()
 {
     fA.Fill(TVar(0.));
-    fDiag.resize(0)
-    
-<<<<<<< HEAD
-    
-=======
->>>>>>> iRMS_Biot
-    ;
+    fDiag.resize(0);
     return 1;
 }
 
