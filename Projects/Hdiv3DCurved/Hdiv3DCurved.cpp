@@ -223,8 +223,8 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 3;
-    common.n_p_levels = 1;
+    common.n_h_levels = 4;
+    common.n_p_levels = 4;
     common.int_order  = 8;
     common.n_threads  = 16;
     common.domain_type = "sphere";
