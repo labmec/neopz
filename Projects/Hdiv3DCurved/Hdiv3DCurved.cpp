@@ -219,12 +219,12 @@ int main()
     
     // Formulations over the sphere 
     struct SimulationCase common;
-    common.UsePardisoQ = true;
-    common.UseFrontalQ = false;
+    common.UsePardisoQ = false;
+    common.UseFrontalQ = true;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 3;
-    common.n_p_levels = 1;
+    common.n_h_levels = 4;
+    common.n_p_levels = 4;
     common.int_order  = 8;
     common.n_threads  = 16;
     common.domain_type = "sphere";
@@ -233,7 +233,7 @@ int main()
     common.gamma_ids.Push(-1);    // Gamma_D outer surface
     common.gamma_ids.Push(-2);    // Gamma_D inner surface
     
-    // Case_XXX.elemen_type = {0,1,2} as follows:
+    //    Case_XXX.elemen_type = {0,1,2} as follows:
     //    Case_XXX.elemen_type = 0; -> Tetra
     //    Case_XXX.elemen_type = 1; -> Prism
     //    Case_XX.elemen_type  = 2; -> Hexa
@@ -247,14 +247,20 @@ int main()
 //    H1Case_1.dump_folder = "H1_sphere";
 //    simulations.Push(H1Case_1);
 
-    // Primal Formulation over the solid sphere
-    struct SimulationCase H1Case_2 = common;
-    H1Case_2.IsHdivQ = false;
-    H1Case_2.mesh_type = "quadratic";
-    H1Case_2.elemen_type = 1;
-    H1Case_2.dump_folder = "H1_sphere";
-    simulations.Push(H1Case_2);
-
+//    // Primal Formulation over the solid sphere
+//    struct SimulationCase H1Case_2 = common;
+//    H1Case_2.IsHdivQ = false;
+//    H1Case_2.mesh_type = "quadratic";
+//    H1Case_2.elemen_type = 0;
+//    H1Case_2.dump_folder = "H1_sphere_T";
+//    simulations.Push(H1Case_2);
+//    H1Case_2.elemen_type = 1;
+//    H1Case_2.dump_folder = "H1_sphere_P";
+//    simulations.Push(H1Case_2);
+//    H1Case_2.elemen_type = 2;
+//    H1Case_2.dump_folder = "H1_sphere_H";
+//    simulations.Push(H1Case_2);
+    
     
 //    // Dual Formulation over the solid sphere
 //    struct SimulationCase HdivCase_1 = common;
@@ -269,8 +275,14 @@ int main()
     struct SimulationCase HdivCase_2 = common;
     HdivCase_2.IsHdivQ = true;
     HdivCase_2.mesh_type = "quadratic";
+//    HdivCase_2.elemen_type = 0;
+//    HdivCase_2.dump_folder = "Hdiv_sphere_T";
+//    simulations.Push(HdivCase_2);
+    HdivCase_2.elemen_type = 1;
+    HdivCase_2.dump_folder = "Hdiv_sphere_P";
+    simulations.Push(HdivCase_2);
     HdivCase_2.elemen_type = 2;
-    HdivCase_2.dump_folder = "Hdiv_sphere";
+    HdivCase_2.dump_folder = "Hdiv_sphere_H";
     simulations.Push(HdivCase_2);
     
 
@@ -284,14 +296,20 @@ int main()
 //    simulations.Push(HdivplusCase_1);
     
     
-    // Dual Formulation over the solid sphere
-    struct SimulationCase HdivplusCase_2 = common;
-    HdivplusCase_2.IsHdivQ = true;
-    HdivplusCase_2.n_acc_terms = 1;
-    HdivplusCase_2.mesh_type = "quadratic";
-    HdivplusCase_2.elemen_type = 2;
-    HdivplusCase_2.dump_folder = "Hdivplus_sphere";
-    simulations.Push(HdivplusCase_2);
+//    // Dual Formulation over the solid sphere
+//    struct SimulationCase HdivplusCase_2 = common;
+//    HdivplusCase_2.IsHdivQ = true;
+//    HdivplusCase_2.n_acc_terms = 1;
+//    HdivplusCase_2.mesh_type = "quadratic";
+//    HdivplusCase_2.elemen_type = 0;
+//    HdivplusCase_2.dump_folder = "Hdivplus_sphere_T";
+//    simulations.Push(HdivplusCase_2);
+//    HdivplusCase_2.elemen_type = 1;
+//    HdivplusCase_2.dump_folder = "Hdivplus_sphere_P";
+//    simulations.Push(HdivplusCase_2);
+//    HdivplusCase_2.elemen_type = 2;
+//    HdivplusCase_2.dump_folder = "Hdivplus_sphere_H";
+//    simulations.Push(HdivplusCase_2);
     
     
 // Cylinder Darcy formulation for Thiem solution in a vertical well
@@ -432,10 +450,10 @@ void ComputeApproximation(SimulationCase & sim_data){
             text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".txt";
             vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
             ofstream textfile(text_name.str());
-            gmesh->Print(textfile);
+//            gmesh->Print(textfile);
             
             std::ofstream vtkfile(vtk_name.str());
-            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
+//            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
 
             
             // Compute the geometry
@@ -486,8 +504,7 @@ void ComputeApproximation(SimulationCase & sim_data){
             std::stringstream sol_vtk_name;
             sol_vtk_name    << sim_data.dump_folder << "/" "sol" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
             std::string file(sol_vtk_name.str());
-            PosProcess(analysis, file, sim_data);
-//            PosProcess(analysis, file, sim_data);            
+//            PosProcess(analysis, file, sim_data);
             
             
             // compute the error
@@ -988,7 +1005,7 @@ TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh, SimulationCase & sim_data){
         TPZSkylineStructMatrix matrix(cmesh);
         matrix.SetNumThreads(sim_data.n_threads);        
         TPZStepSolver<STATE> step;
-        step.SetDirect(ECholesky);
+        step.SetDirect(ELDLt);
         analysis->SetSolver(step);
         analysis->SetStructuralMatrix(matrix);
         return analysis;
