@@ -305,6 +305,40 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     }
 }
 
+/// Release memory
+template<class TVar>
+void TPZPardisoControl<TVar>::Zero() const
+{
+    long long n=0;
+    TVar *a,*b, *x;
+    long long *ia,*ja;
+    if (fSymmetricSystem) {
+        a = &(fSymmetricSystem->fA[0]);
+        ia = (long long *) &(fSymmetricSystem->fIA[0]);
+        ja = (long long *) &(fSymmetricSystem->fJA[0]);
+    }
+    if (fNonSymmetricSystem) {
+        a = &(fNonSymmetricSystem->fA[0]);
+        ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
+        ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
+        
+    }
+    
+    long long *perm,nrhs;
+    long long Error = 0;
+    perm = &fPermutation[0];
+    
+    /// Release internal memory for L and U matrix number MNUM
+    long long phase = -1;
+    
+    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    
+    if (Error) {
+        DebugStop();
+    }
+}
+
 template<class TVar>
 TPZPardisoControl<TVar>::~TPZPardisoControl()
 {

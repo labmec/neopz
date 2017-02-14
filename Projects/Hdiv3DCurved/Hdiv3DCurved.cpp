@@ -223,8 +223,8 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 4;
-    common.n_p_levels = 1;
+    common.n_h_levels = 3;
+    common.n_p_levels = 2;
     common.int_order  = 8;
     common.n_threads  = 16;
     common.domain_type = "sphere";
@@ -540,11 +540,14 @@ void ComputeApproximation(SimulationCase & sim_data){
             
             // current summary
             convergence << setw(5) << h << setw(25) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
-            
+
+            // release memory
+            analysis->Solver().Matrix()->Zero();
             delete cmesh;
             for (int i = 0; i < meshvec.size(); i++) {
                 delete meshvec[i];
             }
+            analysis->CleanUp();
             delete gmesh;
         }
         
