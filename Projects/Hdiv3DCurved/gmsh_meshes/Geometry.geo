@@ -13,7 +13,7 @@ Include "Sphere.geo";
 
 r1 = 1.0; // outer r
 r2 = 0.25; // inner r
-n1 = 5;
+n1 = 4;
 n2 = 3;
 
 ////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@ n2 = 3;
 
 NonLinearQ = 0;
 IsTetraQ =  0;
-IsPrismQ = 1;
+IsPrismQ = 0;
 
 Call MakeSphere;
 
