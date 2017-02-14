@@ -129,7 +129,8 @@ struct SimulationCase {
 };
 
 //#define Solution1
-#define Solution6
+#define Solution2
+//#define Solution6
 //#define Thiem
 
 // MHM rates subtructuring level
@@ -223,7 +224,7 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 3;
+    common.n_h_levels = 1;
     common.n_p_levels = 2;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -275,15 +276,15 @@ int main()
     struct SimulationCase HdivCase_2 = common;
     HdivCase_2.IsHdivQ = true;
     HdivCase_2.mesh_type = "quadratic";
-//    HdivCase_2.elemen_type = 0;
-//    HdivCase_2.dump_folder = "Hdiv_sphere_T";
-//    simulations.Push(HdivCase_2);
+    HdivCase_2.elemen_type = 0;
+    HdivCase_2.dump_folder = "Hdiv_sphere_T";
+    simulations.Push(HdivCase_2);
 //    HdivCase_2.elemen_type = 1;
 //    HdivCase_2.dump_folder = "Hdiv_sphere_P";
 //    simulations.Push(HdivCase_2);
-    HdivCase_2.elemen_type = 2;
-    HdivCase_2.dump_folder = "Hdiv_sphere_H";
-    simulations.Push(HdivCase_2);
+//    HdivCase_2.elemen_type = 2;
+//    HdivCase_2.dump_folder = "Hdiv_sphere_H";
+//    simulations.Push(HdivCase_2);
     
 
 //    // Dual Formulation over the solid sphere
@@ -449,10 +450,10 @@ void ComputeApproximation(SimulationCase & sim_data){
             std::stringstream vtk_name;
             text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".txt";
             vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
-            ofstream textfile(text_name.str());
+//            ofstream textfile(text_name.str());
 //            gmesh->Print(textfile);
             
-            std::ofstream vtkfile(vtk_name.str());
+//            std::ofstream vtkfile(vtk_name.str());
 //            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
 
             
@@ -503,7 +504,7 @@ void ComputeApproximation(SimulationCase & sim_data){
             // PostProccessing
             std::stringstream sol_vtk_name;
             sol_vtk_name    << sim_data.dump_folder << "/" "sol" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
-            std::string file(sol_vtk_name.str());
+//            std::string file(sol_vtk_name.str());
 //            PosProcess(analysis, file, sim_data);
             
             
@@ -541,7 +542,7 @@ void ComputeApproximation(SimulationCase & sim_data){
             // current summary
             convergence << setw(5) << h << setw(25) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
 
-            // release memory
+            // Release memory
             analysis->Solver().Matrix()->Zero();
             delete cmesh;
             for (int i = 0; i < meshvec.size(); i++) {
@@ -549,6 +550,7 @@ void ComputeApproximation(SimulationCase & sim_data){
             }
             analysis->CleanUp();
             delete gmesh;
+            
         }
         
         // compute rates
@@ -610,9 +612,13 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     STATE phi = atan2(y,x);
     
     STATE costheta = cos(theta);
+    STATE cos2theta = cos(2.0*theta);
     STATE cosphi = cos(phi);
+    STATE cos2phi = cos(2.0*phi);
     STATE sintheta = sin(theta);
+    STATE sin2theta = sin(2.0*theta);
     STATE sinphi = sin(phi);
+    STATE sin2phi = sin(2.0*phi);
     
     // Gradient computations
     
@@ -641,6 +647,22 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     gradu(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz + dfdPhi * Phiunitz);
     
     gradu(3,0) = -6.0;
+    
+#endif
+    
+#ifdef Solution2
+    
+    STATE dfdr       = 4.0*r*r*r*sintheta*sintheta*sinphi*sinphi;
+    STATE dfdTheta   = r*r*r*sin2theta*sinphi*sinphi;
+    STATE dfdPhi     = r*r*r*sintheta*sin2phi;
+    
+    u[0] = r*r*r*r*sintheta*sintheta*(1.0-cosphi*cosphi);
+    
+    gradu(0,0) = -1.0*(dfdr * Radialunitx + dfdTheta * Thetaunitx + dfdPhi * Phiunitx);
+    gradu(1,0) = -1.0*(dfdr * Radialunity + dfdTheta * Thetaunity + dfdPhi * Phiunity);
+    gradu(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz + dfdPhi * Phiunitz);
+    
+    gradu(3,0) = -r*r*(2.0*cosphi*cosphi+(9.0-7.0*cos2theta)*sinphi*sinphi);
     
 #endif
     
@@ -727,6 +749,15 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
     f[0] = r*r;
     
 #endif
+   
+#ifdef Solution2
+    
+    STATE cosphi = cos(phi);;
+    STATE sintheta = sin(theta);
+    
+    f[0] = r*r*r*r*sintheta*sintheta*(1.0-cosphi*cosphi);
+
+#endif
     
 #ifdef Solution6
     
@@ -783,6 +814,17 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     f[0] = -6.0;
     
 #endif
+    
+#ifdef Solution2
+    
+    STATE cos2theta = cos(2.0*theta);
+    STATE cosphi = cos(phi);
+    STATE sinphi = sin(phi);
+
+    f[0] = -r*r*(2.0*cosphi*cosphi+(9.0-7.0*cos2theta)*sinphi*sinphi);
+    
+#endif
+    
     
 #ifdef Solution6
     
