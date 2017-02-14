@@ -15,6 +15,7 @@ Include "BoxReservoir.geo";
 Include "BoxSideBurden.geo";
 Include "BuildOmegas.geo";
 Include "drill_well.geo";
+Include "drill_well_box.geo";
 Include "PhysicalEntities.geo";
 
 well_index = 0;
@@ -40,7 +41,7 @@ xzQ = 1;
 geomechanicQ = 0;
 dimension = 3;
 nolinearQ = 0;
-CADReservoirQ = 1;
+CADReservoirQ = 0;
 
 xzQ = 0;
 >>>>>>> iRMS_Biot
@@ -164,11 +165,15 @@ beta = 0.0;
 ////////////////////////////////////////////////////////////////////////////
 
 // well location
-wcx = -200.0;
-wcy = 100.0;
-wcz = 150.0;
+wcx = 0.0;
+wcy = 0.0;
+wcz = 0.0;
+
+//wcx = -200.0;
+//wcy = 100.0;
+//wcz = 150.0;
 IsInjectorQ = 0;
-Call DrillWell;
+Call DrillWellBox;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -180,7 +185,7 @@ wcx = 150.0;
 wcy = 0.0;
 wcz = 40.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -192,7 +197,7 @@ wcx = -650.0;
 wcy = 500.0;
 wcz = 20.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 // well 4 
@@ -203,7 +208,7 @@ wcx = -650.0;
 wcy = -500.0;
 wcz = 20.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -215,7 +220,7 @@ wcx = -150.0;
 wcy = -300.0;
 wcz = 120.0;
 IsInjectorQ = 0;
-Call DrillWell;
+//Call DrillWell;
 
 
 >>>>>>> iRMS_Biot
