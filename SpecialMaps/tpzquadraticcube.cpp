@@ -23,6 +23,9 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
+namespace pzgeom
+{
+    
 void TPZQuadraticCube::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
 	REAL qsi = param[0], eta = param[1], zeta = param[2];
@@ -394,14 +397,14 @@ TPZGeoEl *TPZQuadraticCube::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 //    }
 //}
 
-
+};
 
 template<>
-int TPZGeoElRefPattern<TPZQuadraticCube>::ClassId() const {
+int TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>::ClassId() const {
 	return TPZGEOELEMENTQUADRATICCUBEID;
 }
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticCube>, TPZGEOELEMENTQUADRATICCUBEID>;
+template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>, TPZGEOELEMENTQUADRATICCUBEID>;
 
 
-template class pzgeom::TPZNodeRep<20,TPZQuadraticCube>;
-template class TPZGeoElRefLess<TPZQuadraticCube>;
+template class pzgeom::TPZNodeRep<20,pzgeom::TPZQuadraticCube>;
+template class TPZGeoElRefLess<pzgeom::TPZQuadraticCube>;

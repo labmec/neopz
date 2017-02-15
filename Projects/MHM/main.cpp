@@ -1871,7 +1871,8 @@ void HideTheElements(TPZCompMesh * Multiphysics, bool KeepOneLagrangian, TPZVec<
         subcmesh->ComputeNodElCon();
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->CleanUpUnconnectedNodes();
-        subcmesh->SetAnalysisSkyline(16, 0, 0);
+        TPZGuiInterface *gui = 0;
+        subcmesh->SetAnalysisSkyline(16, 0, gui);
     }
 //    Multiphysics->ComputeNodElCon();
 //    Multiphysics->CleanUpUnconnectedNodes();

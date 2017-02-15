@@ -1,10 +1,9 @@
-########### next target ###############
-file(GLOB sources *.cpp)
-file(GLOB headers *.h)
 
+file(GLOB header *.h)
 
+set(main_SRCS HDiv.cpp)
 
-set(main_SRCS ${sources} ${headers})
-add_executable(Hdiv3D ${main_SRCS})
-target_link_libraries(Hdiv3D pz)
+add_executable(HDivGirkmann ${main_SRCS} ${header})
+
+target_link_libraries(HDivGirkmann pz)
 
