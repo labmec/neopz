@@ -302,6 +302,7 @@ void TRMTransportAnalysis::FilterSaturationGradients()
     {
         TPZConnect &con = Mesh()->ConnectVec()[i];
         int seqnum = con.SequenceNumber();
+        if(seqnum == -1) {continue;}
         int pos = Mesh()->Block().Position(seqnum);
         int blocksize = Mesh()->Block().Size(seqnum);
         int vs = factive_sa.size();
@@ -316,6 +317,7 @@ void TRMTransportAnalysis::FilterSaturationGradients()
     {
         TPZConnect &con = Mesh()->ConnectVec()[i];
         int seqnum = con.SequenceNumber();
+        if(seqnum == -1) {continue;}
         int pos = Mesh()->Block().Position(seqnum);
         int blocksize = Mesh()->Block().Size(seqnum);
         int vs = fno_active_sa.size();
@@ -336,6 +338,7 @@ void TRMTransportAnalysis::FilterSaturationGradients()
     {
         TPZConnect &con = Mesh()->ConnectVec()[i];
         int seqnum = con.SequenceNumber();
+        if(seqnum == -1) {continue;}
         int pos = Mesh()->Block().Position(seqnum);
         int blocksize = Mesh()->Block().Size(seqnum);
         int vs = factive_sa.size();
@@ -350,6 +353,7 @@ void TRMTransportAnalysis::FilterSaturationGradients()
     {
         TPZConnect &con = Mesh()->ConnectVec()[i];
         int seqnum = con.SequenceNumber();
+        if(seqnum == -1) {continue;}        
         int pos = Mesh()->Block().Position(seqnum);
         int blocksize = Mesh()->Block().Size(seqnum);
         int vs = fno_active_sa.size();

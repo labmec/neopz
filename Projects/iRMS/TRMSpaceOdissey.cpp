@@ -398,7 +398,7 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
     long nel = fGeoMesh->NElements();
     for (long el = 0; el<nel; el++) {
         TPZGeoEl *gel = fGeoMesh->Element(el);
-        if (!gel || gel->Level() != 0 || gel->Dimension() != fGeoMesh->Dimension()) {
+        if (!gel || gel->Level() != 3 || gel->Dimension() != fGeoMesh->Dimension()) {
             continue;
         }
         int nsides = gel->NSides();
@@ -1012,9 +1012,16 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
     fAlphaSaturationMesh->SetAllCreateFunctionsDiscontinuous();
     fAlphaSaturationMesh->AutoBuild();
     
+    int n_ref = 1;
+    this->UniformRefinement_cmesh(fAlphaSaturationMesh, n_ref);
+    fAlphaSaturationMesh->AdjustBoundaryElements();
+    fAlphaSaturationMesh->CleanUpUnconnectedNodes();
+    fAlphaSaturationMesh->AutoBuild();
+    
 #ifdef PZDEBUG
     std::ofstream out("CmeshS_alpha.txt");
     fAlphaSaturationMesh->Print(out);
+    PrintGeometry();
 #endif
     
 }
@@ -1085,9 +1092,17 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
     fBetaSaturationMesh->SetAllCreateFunctionsDiscontinuous();
     fBetaSaturationMesh->AutoBuild();
     
+    int n_ref = 1;
+    this->UniformRefinement_cmesh(fBetaSaturationMesh, n_ref);
+    fBetaSaturationMesh->AdjustBoundaryElements();
+    fBetaSaturationMesh->CleanUpUnconnectedNodes();
+    fBetaSaturationMesh->AutoBuild();
+    
+    
 #ifdef PZDEBUG
     std::ofstream out("CmeshS_beta.txt");
     fBetaSaturationMesh->Print(out);
+    PrintGeometry();
 #endif
     
 }
@@ -1238,9 +1253,6 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         mf_cel->PrepareIntPtIndices();
     }
     
-    int n_ref = 0;
-    this->UniformRefinement_cmesh(fTransportMesh, n_ref);
-    
 #ifdef PZDEBUG
     std::ofstream out("CmeshTransport.txt");
     fTransportMesh->Print(out);
@@ -1253,6 +1265,9 @@ void TRMSpaceOdissey::CreateTransportMesh(){
 void TRMSpaceOdissey::UniformRefinement_cmesh(TPZCompMesh  *cmesh, int n_ref)
 {
     TPZVec<long > subindex;
+    if (n_ref == 0) {
+        return;
+    }
     for (long iref = 0; iref < n_ref; iref++) {
         TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
         long nel = elvec.NElements();
@@ -1260,14 +1275,13 @@ void TRMSpaceOdissey::UniformRefinement_cmesh(TPZCompMesh  *cmesh, int n_ref)
             TPZCompEl * cel = elvec[el];
             if(!cel) continue;
             long ind = cel->Index();
-            cel->Divide(ind, subindex, 0);
+            cel->Divide(ind, subindex);
         }
     }
 }
 
 void TRMSpaceOdissey::PrintGeometry()
 {
-    
     //  Print Geometrical Base Mesh
     std::ofstream planefile("GeometricMesh.txt");
     fGeoMesh->Print(planefile);
@@ -1301,7 +1315,6 @@ void TRMSpaceOdissey::CreateGeometricGmshMesh(std::string &grid){
     REAL s = 1.0;
     Geometry.SetfDimensionlessL(s);
     fGeoMesh = Geometry.GeometricGmshMesh(grid);
-    
     const std::string name("Reservoir with cylindrical wells");
     fGeoMesh->SetName(name);
 }

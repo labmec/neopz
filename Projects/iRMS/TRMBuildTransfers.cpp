@@ -1265,7 +1265,6 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
             face_gel->Jacobian(par_duplet, jac, axes, detjac, jacinv);
             intel_vol->SideShapeFunction(face_side, par_duplet, phi, dphidxi);
             
-            
             for (int jp = 0; jp < nshapes; jp++) {
                 block_integral(0,jp) +=  w * detjac * phi(jp,0)/ElementMeasure;
             }
