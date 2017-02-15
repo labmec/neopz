@@ -249,6 +249,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 		ef(numvec+i,0) += (STATE)((-1.)*weight*data.phi(numprimalshape+i,0))*fXfLoc;//calcula o termo da matriz f
         
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled()) 
 		{
             std::stringstream sout;
             sout<< "Verificando termo fonte\n";

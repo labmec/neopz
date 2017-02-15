@@ -22,13 +22,35 @@ using namespace std;
 
 TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh), fReducableStiff(0){
 	fMesh = mesh;
-    fReferenceSolution.Redim(fCompMesh->NEquations(),1);
+    if (fMesh)
+    {
+        fReferenceSolution.Redim(fCompMesh->NEquations(),1);
+    }
 }
 
 TPZSubMeshAnalysis::~TPZSubMeshAnalysis()
 {
 	
 }
+
+/** @brief Set the computational mesh of the analysis. */
+void TPZSubMeshAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth)
+{
+    TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(mesh);
+    if (submesh) {
+        fMesh = submesh;
+    }
+    else
+    {
+        DebugStop();
+    }
+    TPZAnalysis::SetCompMesh(mesh, mustOptimizeBandwidth);
+    if (fCompMesh) {
+        fReferenceSolution.Redim(fCompMesh->NEquations(), 1);
+    }
+}
+
+
 
 void TPZSubMeshAnalysis::Assemble(){
 	

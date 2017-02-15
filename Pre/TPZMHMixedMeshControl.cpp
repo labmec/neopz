@@ -255,7 +255,8 @@ void TPZMHMixedMeshControl::HideTheElements()
         subcmesh->CleanUpUnconnectedNodes();
         int numthreads = 16;
         int preconditioned = 0;
-        subcmesh->SetAnalysisSkyline(numthreads, preconditioned, 0);
+        TPZGuiInterface *gui = 0;
+        subcmesh->SetAnalysisSkyline(numthreads, preconditioned, gui);
     }
     //    Multiphysics->ComputeNodElCon();
     //    Multiphysics->CleanUpUnconnectedNodes();

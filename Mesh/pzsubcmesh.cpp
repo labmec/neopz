@@ -1249,6 +1249,74 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	
 }
 
+void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZRenumbering> renumber){
+    fAnalysis = new TPZSubMeshAnalysis;
+    fAnalysis->SetRenumber(renumber);
+    fAnalysis->SetCompMesh(this, true);
+    TPZAutoPointer<TPZStructMatrix> str = NULL;
+    
+    if(numThreads > 0){
+        str = new TPZSkylineStructMatrix(this);
+        str->SetNumThreads(numThreads);
+    }
+    else{
+        str = new TPZSkylineStructMatrix(this);
+    }
+    
+    SaddlePermute();
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    PermuteExternalConnects();
+    
+    
+    
+    str->SetNumThreads(numThreads);
+    long numinternal = NumInternalEquations();
+    str->EquationFilter().SetMinMaxEq(0, numinternal);
+    TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    str->EquationFilter().Reset();
+    TPZAutoPointer<TPZMatrix<STATE> > mat2 = mat->Clone();
+    
+    fAnalysis->SetStructuralMatrix(str);
+    TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
+    TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
+    step->SetReferenceMatrix(mat2);
+    step->SetDirect(ELDLt);
+    gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
+    if(preconditioned)
+    {
+        fAnalysis->SetSolver(autogmres);
+    }
+    else
+    {
+        fAnalysis->SetSolver(autostep);
+    }
+    
+    
+#ifdef PZDEBUG
+    {
+        TPZFMatrix<REAL> fillin;
+        int resolution = 100;
+        ComputeFillIn(resolution,fillin);
+#ifdef USING_BOOST
+        std::string out("matrix_boost.vtk");
+#else
+        std::string out("matrix_native.vtk");
+#endif
+        VisualMatrix(fillin,out);
+    }
+#endif
+    
+}
+
 void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);

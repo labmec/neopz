@@ -43,6 +43,8 @@
 
 #include "TPZRefPattern.h"
 
+#include "TPZCutHillMcKee.h"
+
 
 #ifdef LOG4CXX
 
@@ -86,9 +88,9 @@ int main()
 	}
 #endif
 	
-	for (int porder= 4; porder<5; porder++) {
+	for (int porder= 1; porder<2; porder++) {
 		
-		for(int h=1;h<5;h++){
+		for(int h=1;h<2;h++){
 			
 			
 			TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
@@ -127,13 +129,14 @@ int main()
 				{
 					submeshindex = SubStructure(cmesh,1);//monto a submalha com os elementos q serao condesados (externos) e retorna o numero de elementos computacionais da malha
 					submesh = dynamic_cast<TPZSubCompMesh *> (cmesh->ElementVec()[submeshindex]);//converte os elementos computacionais para um objeto do tipo TPZSubCompMesh
-					submesh->SetNumberRigidBodyModes(1);//aq defino o numero de pivos nulos que podera ter o sistema?
+                    submesh->SetNumberRigidBodyModes(1);//aq defino o numero de pivos nulos que podera ter o sistema?
 					cmesh->ExpandSolution();//ajusta o vetor de solucao
-					TPZAutoPointer<TPZGuiInterface> guiInter = new TPZGuiInterface;
 					int numThreads=0;
-					submesh->SetAnalysisSkyline(numThreads,1, guiInter);
-						cmesh->SetName("Malha depois de SubStructure-----");
+                    TPZAutoPointer<TPZRenumbering> renumber = new TPZCutHillMcKee;
+					submesh->SetAnalysisSkyline(numThreads,1, renumber);
+                    cmesh->SetName("Malha depois de SubStructure-----");
 #ifdef LOG4CXX
+                    if(logger->isDebugEnabled())
 						{
 								std::stringstream sout;
 								cmesh->Print(sout);
@@ -279,7 +282,7 @@ int main()
 TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	TPZCompEl::SetgOrder(porder);
 	TPZCompMeshReferred *comp = new TPZCompMeshReferred(&gmesh);
-	
+    comp->SetDimModel(2);
 	
 	
 	// Criar e inserir os materiais na malha

@@ -894,7 +894,7 @@ void TPZMatrix<TVar>::SolveGMRES(long &numiterations, TPZSolver<TVar> &precondit
         long col;
         //preconditioner.Solve(F, result);
         for (col=0; col<ncol; col++) {
-            std::cout << "Column " << col << std::endl;
+//            std::cout << "Column " << col << std::endl;
             numiterations = locnumiter;
             tol = loctol;
             TPZFMatrix<TVar> FCol(nrow,1);

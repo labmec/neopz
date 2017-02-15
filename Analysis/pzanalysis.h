@@ -121,7 +121,7 @@ protected:
 	}
 	
 	/** @brief Set the computational mesh of the analysis. */
-	void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
+	virtual void SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth);
 	
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();

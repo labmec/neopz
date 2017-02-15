@@ -132,6 +132,21 @@ public:
         }
     }
 
+    /** @brief Updates the values of the matrix based on the values of the matrix */
+    virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> >  mat)
+    {
+        TPZMatrix<TVar> *matptr = mat.operator->();
+        TPZFMatrix<TVar> *from = dynamic_cast<TPZFMatrix<TVar> *>(matptr);
+        if (from) {
+            *this = *from;
+        }
+        else
+        {
+            std::cout << "TPZMatrix<TVar>::UdateFrom is not implemented\n";
+            DebugStop();
+        }
+    }
+
     int PutVal(const long row,const long col,const TVar & value );
     const TVar &GetVal(const long row,const long col ) const;
     

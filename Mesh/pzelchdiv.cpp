@@ -220,7 +220,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
         DebugStop();
     }
 #endif
-     if (connect < this->NConnects()-1) {
+    if (connect < TPZCompElHDiv<TSHAPE>::NConnects()-1) {
          long connectindex = ConnectIndex(connect);
 //         int order = 0;
 //         if (connectindex >= 0) {

@@ -1239,7 +1239,8 @@ void TPZMHMeshControl::SubStructure()
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        submesh->SetAnalysisSkyline(numthreads, preconditioned, 0);
+        TPZGuiInterface *gui = 0;
+        submesh->SetAnalysisSkyline(numthreads, preconditioned, gui);
         itsub++;
     }
     

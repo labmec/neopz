@@ -88,7 +88,7 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
-	this->SetCompMesh(mesh, mustOptimizeBandwidth);
+    this->SetCompMesh(mesh, mustOptimizeBandwidth);
 }
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
@@ -142,7 +142,8 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         this->SetSolver(defaultSolver);
       
     }
-    if(!this->fStructMatrix){
+    if(!this->fStructMatrix && mesh)
+    {
         //seta default do StructMatrix como Full Matrix
         TPZSkylineNSymStructMatrix  defaultMatrix(mesh);
         this->SetStructuralMatrix(defaultMatrix);

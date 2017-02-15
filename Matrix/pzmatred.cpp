@@ -339,8 +339,9 @@ void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMat
 	if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		fF0.Print("fF0 ",sout);
-		u0.Print("u0 " ,sout);
+        U1.Print("U1 = ",sout,EMathematicaInput);
+		fF0.Print("fF0 ",sout,EMathematicaInput);
+		u0.Print("u0 " ,sout,EMathematicaInput);
 		LOGPZ_DEBUG(logger,sout.str())   
 		
 	}
@@ -423,11 +424,12 @@ void TPZMatRed<TVar, TSideMatrix>::Print(const char *name , std::ostream &out ,c
 	if(form != EInputFormat) {
 		out << "Writing matrix 'TPZMatRed<TSideMatrix>::" << name;
 		out << "' (" << this->Dim() << " x " << this->Dim() << "):\n";
+        out << "K01 overwritten " << this->fK01IsComputed << std::endl;
 		
-		fK00->Print("K(0,0)",out,form);
-		fK01.Print("K(0,1)",out,form);
-		fK10.Print("K(1,0)",out,form);
-		fK11.Print("K(1,1)",out,form);
+		fK00->Print("K00=",out,form);
+		fK01.Print("K01",out,form);
+		fK10.Print("K10",out,form);
+		fK11.Print("K11",out,form);
 		
 		
 		fF0.Print("F(0)",out,form);
@@ -472,6 +474,7 @@ int TPZMatRed<TVar, TSideMatrix>::Zero(){
 	fK11.Zero();
 	fF0.Zero();
 	fF1.Zero();
+    TPZMatrix<TVar>::Redim(fDim0+fDim1,fDim0+fDim1);
 	return 0;
 }
 
