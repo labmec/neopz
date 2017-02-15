@@ -11,18 +11,18 @@ Include "Sphere.geo";
 // Geometry dimensions
 ///////////////////////////////////////////////////////////////
 
-r1 = 1.0; // outer r
-r2 = 0.25; // inner r
-n1 = 1;
-n2 = 1;
+outer_r = 1.0; // outer r
+inner_r = 0.25; // inner r
+n1 = 3;
+n2 = 3;
 
 ////////////////////////////////////////////////////////////////
 // Type of elements
 ////////////////////////////////////////////////////////////////
 
 NonLinearQ = 0;
-IsTetraQ =  1;
-IsPrismQ = 1;
+IsTetraQ =  0;
+IsPrismQ = 0;
 
 Call MakeSphere;
 

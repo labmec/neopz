@@ -129,8 +129,9 @@ struct SimulationCase {
 };
 
 //#define Solution1
-#define Solution2
-//#define Solution6
+//#define Solution2
+//#define Solution3
+#define Solution6
 //#define Thiem
 
 // MHM rates subtructuring level
@@ -224,7 +225,7 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 1;
+    common.n_h_levels = 4;
     common.n_p_levels = 2;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -276,15 +277,15 @@ int main()
     struct SimulationCase HdivCase_2 = common;
     HdivCase_2.IsHdivQ = true;
     HdivCase_2.mesh_type = "quadratic";
-    HdivCase_2.elemen_type = 0;
-    HdivCase_2.dump_folder = "Hdiv_sphere_T";
-    simulations.Push(HdivCase_2);
+//    HdivCase_2.elemen_type = 0;
+//    HdivCase_2.dump_folder = "Hdiv_sphere_T";
+//    simulations.Push(HdivCase_2);
 //    HdivCase_2.elemen_type = 1;
 //    HdivCase_2.dump_folder = "Hdiv_sphere_P";
 //    simulations.Push(HdivCase_2);
-//    HdivCase_2.elemen_type = 2;
-//    HdivCase_2.dump_folder = "Hdiv_sphere_H";
-//    simulations.Push(HdivCase_2);
+    HdivCase_2.elemen_type = 2;
+    HdivCase_2.dump_folder = "Hdiv_sphere_H";
+    simulations.Push(HdivCase_2);
     
 
 //    // Dual Formulation over the solid sphere
@@ -666,6 +667,22 @@ void Analytic(const TPZVec<REAL> &p, TPZVec<STATE> &u,TPZFMatrix<STATE> &gradu){
     
 #endif
     
+#ifdef Solution3
+    
+    STATE dfdr       = -4.0*M_PI*r*sin(2.0*M_PI*r*r);
+    STATE dfdTheta   = 0.0;
+    STATE dfdPhi     = 0.0;
+    
+    u[0] = cos(2.0*M_PI*r*r);
+    
+    gradu(0,0) = -1.0*(dfdr * Radialunitx + dfdTheta * Thetaunitx + dfdPhi * Phiunitx);
+    gradu(1,0) = -1.0*(dfdr * Radialunity + dfdTheta * Thetaunity + dfdPhi * Phiunity);
+    gradu(2,0) = -1.0*(dfdr * Radialunitz + dfdTheta * Thetaunitz + dfdPhi * Phiunitz);
+    
+    gradu(3,0) = 4.0*M_PI*(4.0*M_PI*r*r*cos(2.0*M_PI*r*r) + 3.0*sin(2.0*M_PI*r*r));
+    
+#endif
+    
 #ifdef Solution6
     
     REAL a = +5.0/4.0;
@@ -759,6 +776,13 @@ void Solution(const TPZVec<REAL> &p, TPZVec<STATE> &f){
 
 #endif
     
+    
+#ifdef Solution3
+    
+    f[0] = cos(2.0*M_PI*r*r);
+    
+#endif
+    
 #ifdef Solution6
     
     REAL a = +5.0/4.0;
@@ -822,6 +846,12 @@ void f(const TPZVec<REAL> &p, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
     STATE sinphi = sin(phi);
 
     f[0] = -r*r*(2.0*cosphi*cosphi+(9.0-7.0*cos2theta)*sinphi*sinphi);
+    
+#endif
+    
+#ifdef Solution3
+    
+    f[0] = 4.0*M_PI*(4.0*M_PI*r*r*cos(2.0*M_PI*r*r) + 3.0*sin(2.0*M_PI*r*r));
     
 #endif
     

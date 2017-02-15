@@ -14,6 +14,9 @@ EndIf
 l = 1.0;
 progr = 1.0;
 
+r1 = outer_r/Sqrt(3.0);
+r2 = inner_r/Sqrt(3.0);
+
 Point(1) = {0,0,0,l};
 
 // exterior sphere
