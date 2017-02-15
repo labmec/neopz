@@ -15,6 +15,9 @@
 #include "pzelementgroup.h"
 #include "pzsubcmesh.h"
 #include "pzcondensedcompel.h"
+#include "pzmultiphysicselement.h"
+#include "TPZMeshSolution.h"
+
 #include <algorithm>
 
 #include "pzmetis.h"
@@ -385,35 +388,22 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
         
         std::set<long> connectlist;
         cel->BuildConnectList(connectlist);
-//        std::cout << "cel " << cel->Index() << " connects ";
-//        for (std::set<long>::iterator it=connectlist.begin(); it != connectlist.end(); it++) {
-//            std::cout << *it << " ";
-//        }
-//        std::cout << std::endl;
         int ns = gel->NSides();
         for (int is=0; is<ns; is++) {
-//            std::cout << "side " << is << std::endl;
             TPZGeoElSide gelside(gel,is);
             TPZStack<TPZCompElSide> celstack;
             gelside.ConnectedCompElementList(celstack, 0, 0);
             long nelstack = celstack.size();
             for (long elst=0; elst<nelstack; elst++) {
                 TPZCompElSide celst=celstack[elst];
-                //                TPZGeoElSide gelst =celst.Reference();
                 TPZCompEl *celsidelement = celst.Element();
                 if (grouped.find(celsidelement->Index()) != grouped.end()) {
                     continue;
                 }
                 std::set<long> smallset;
                 celsidelement->BuildConnectList(smallset);
-//                std::cout << "neigh " << celsidelement->Index() << " connects ";
-//                for (std::set<long>::iterator it=smallset.begin(); it != smallset.end(); it++) {
-//                    std::cout << *it << " ";
-//                }
-//                std::cout << std::endl;
                 if (std::includes(connectlist.begin(), connectlist.end(), smallset.begin(), smallset.end()))
                 {
-//                    std::cout << "Is included\n";
                     elgroup.insert(celsidelement->Index());
                 }
             }
@@ -432,12 +422,11 @@ void TPZCompMeshTools::GroupElements(TPZCompMesh *cmesh)
     cmesh->ComputeNodElCon();
 }
 
-
 /// ungroup all embedded elements of the computational mesh
 void TPZCompMeshTools::UnGroupElements(TPZCompMesh *cmesh){
     
     long nelem = cmesh->NElements();
-    
+
     //unwrapping element groups
     for(long i=0; i<nelem; i++){
         TPZCompEl *el = cmesh->ElementVec()[i];
@@ -564,59 +553,196 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
     
 }
 
-void TPZCompMeshTools::OptimizeBandwidth(TPZCompMesh *cmesh){
-    
-    /** @brief Renumbering scheme */
-    TPZAutoPointer<TPZRenumbering> fRenumber(new RENUMBER);
-    
-    //enquanto nao compilamos o BOOST no windows, vai o sloan antigo
-#ifdef WIN32
-    if(!fCompMesh) return;
-    cmesh->InitializeBlock();
-    TPZVec<long> perm,iperm;
-    
-    TPZStack<long> elgraph;
-    TPZStack<long> elgraphindex;
-    long nindep = cmesh->NIndependentConnects();
-    cmesh->ComputeElGraph(elgraph,elgraphindex);
-    long nel = elgraphindex.NElements()-1;
-    TPZSloan sloan(nel,nindep);
-    sloan.SetElementGraph(elgraph,elgraphindex);
-    sloan.Resequence(perm,iperm);
-    cmesh->Permute(perm);
-#else
-    if(!cmesh) return;
-    cmesh->InitializeBlock();
-    
-    TPZVec<long> perm,iperm;
-    
-    TPZStack<long> elgraph,elgraphindex;
-    long nindep = cmesh->NIndependentConnects();
-    cmesh->ComputeElGraph(elgraph,elgraphindex);
-    long nel = elgraphindex.NElements()-1;
-    long el,ncel = cmesh->NElements();
-    int maxelcon = 0;
-    for(el = 0; el<ncel; el++)
-    {
-        TPZCompEl *cel = cmesh->ElementVec()[el];
-        if(!cel) continue;
-        std::set<long> indepconlist,depconlist;
-        cel->BuildConnectList(indepconlist,depconlist);
-        long locnindep = indepconlist.size();
-        maxelcon = maxelcon < locnindep ? locnindep : maxelcon;
-    }
-    fRenumber->SetElementsNodes(nel,nindep);
-    fRenumber->SetElementGraph(elgraph,elgraphindex);
-    fRenumber->Resequence(perm,iperm);
-    cmesh->Permute(perm);
-    if (nel > 100000) {
-        std::cout << "Applying Saddle Permute\n";
-        }
-        cmesh->SaddlePermute();
-    
-    std::cout << "perm = " << perm << std::endl;
-    std::cout << "iperm = " << iperm << std::endl;
-    
-#endif
-        
+static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
+
+static void ComputeError(TPZCondensedCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    TPZCompEl *ref = cel->ReferenceCompEl();
+    ComputeError(ref, func, mesh2, square_errors);
 }
+
+static void ComputeError(TPZMultiphysicsElement *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    TPZManVector<STATE,3> errors(3,0.);
+    cel->EvaluateError(func, errors);
+    long index = cel->Index();
+    TPZCompMesh *mesh = cel->Mesh();
+    for (int i=0; i<3; i++) {
+        mesh->ElementSolution()(index,i) = errors[i];
+        square_errors[i] += errors[i]*errors[i];
+    }
+}
+
+static void ComputeError(TPZElementGroup *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    DebugStop();
+}
+
+static void ComputeError(TPZInterpolationSpace *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    DebugStop();
+}
+
+
+static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
+    // acumulate the errors of the submeshes
+    if (sub) {
+        TPZCompMeshTools::ComputeDifferenceNorm(sub, mesh2, square_errors);
+        return;
+    }
+    TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+    if(elgr)
+    {
+        ComputeError(elgr, func, mesh2, square_errors);
+        return;
+    }
+    TPZCondensedCompEl *cond = dynamic_cast<TPZCondensedCompEl *>(cel);
+    if (cond) {
+        ComputeError(cond, func, mesh2, square_errors);
+        return;
+    }
+    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+    if (intel) {
+        ComputeError(intel, func, mesh2, square_errors);
+        return;
+    }
+    TPZMultiphysicsElement *mphys = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    if(mphys)
+    {
+        ComputeError(mphys, func, mesh2, square_errors);
+        return;
+    }
+    
+}
+/// compute the norm of the difference between two meshes
+/// square of the errors are computed for each element of mesh1
+void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+{
+    long nel = mesh1->NElements();
+    int dim = mesh1->Dimension();
+    if(square_errors.size() != 3)
+    {
+        DebugStop();
+    }
+    mesh1->ElementSolution().Redim(mesh1->NElements(), 3);
+    
+    int materialid = 1;
+    TPZMeshSolution func(mesh2,materialid);
+    
+//    mesh2->Reference()->ResetReference();
+//    mesh2->LoadReferences();
+    if (nel >= 1000) {
+        std::cout << "ComputeDifferenceNorm nelem " << nel << std::endl;
+    }
+    
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = mesh1->Element(el);
+        if (!cel) {
+            continue;
+        }
+        ComputeError(cel, func, mesh2, square_errors);
+
+        if (nel >= 1000 && (el+1)%1000 == 0) {
+            std::cout << "*";
+        }
+        if(el%(20*1000) == 0)
+        {
+            std::cout << square_errors <<  std::endl;
+        }
+    }
+    if(nel >= 1000) std::cout << std::endl;
+}
+
+/// adjust the polynomial orders of the hdiv elements such that the internal order is higher than the sideorders
+void TPZCompMeshTools::AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus)
+{
+    int dim = fluxmesh->Dimension();
+    /// loop over all the elements
+    long nel = fluxmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fluxmesh->Element(el);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        if (gel->Dimension() != dim) {
+            continue;
+        }
+        // compute the maxorder
+        int maxorder = -1;
+        int ncon = intel->NConnects();
+        for (int i=0; i<ncon-1; i++) {
+            int conorder = intel->Connect(i).Order();
+            maxorder = maxorder < conorder ? conorder : maxorder;
+        }
+        int nsides = gel->NSides();
+        int nconside = intel->NSideConnects(nsides-1);
+        // tive que tirar para rodar H1
+        //        if (nconside != 1 || maxorder == -1) {
+        //            DebugStop();
+        //        }
+        long cindex = intel->SideConnectIndex(nconside-1, nsides-1);
+        TPZConnect &c = fluxmesh->ConnectVec()[cindex];
+        if (c.NElConnected() != 1) {
+            DebugStop();
+        }
+        if (c.Order() != maxorder+hdivplusplus) {
+            //            std::cout << "Changing the order of the central connect " << cindex << " from " << c.Order() << " to " << maxorder+hdivplusplus << std::endl;
+            // change the internal connect order to be equal do maxorder
+            intel->SetSideOrder(nsides-1, maxorder+hdivplusplus);
+        }
+    }
+    fluxmesh->ExpandSolution();
+}
+
+/// set the pressure order acording to the order of internal connect of the elements of the fluxmesh
+void TPZCompMeshTools::SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh)
+{
+    // build a vector with the required order of each element in the pressuremesh
+    // if an element of the mesh dimension of the fluxmesh does not have a corresponding element in the pressuremesh DebugStop is called
+    int meshdim = fluxmesh->Dimension();
+    pressuremesh->Reference()->ResetReference();
+    pressuremesh->LoadReferences();
+    TPZManVector<long> pressorder(pressuremesh->NElements(),-1);
+    long nel = fluxmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fluxmesh->Element(el);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        if (gel->Dimension() != meshdim) {
+            continue;
+        }
+        int nsides = gel->NSides();
+        long cindex = intel->SideConnectIndex(0, nsides-1);
+        TPZConnect &c = fluxmesh->ConnectVec()[cindex];
+        int order = c.Order();
+        TPZCompEl *pressureel = gel->Reference();
+        TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(pressureel);
+        if (!pintel) {
+            DebugStop();
+        }
+        pressorder[pintel->Index()] = order;
+    }
+    pressuremesh->Reference()->ResetReference();
+    nel = pressorder.size();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = pressuremesh->Element(el);
+        TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!pintel) {
+            continue;
+        }
+        if (pressorder[el] == -1) {
+            continue;
+        }
+        pintel->PRefine(pressorder[el]);
+    }
+    
+    pressuremesh->ExpandSolution();
+}
+

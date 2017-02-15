@@ -144,14 +144,25 @@ int TPZVecL2::ClassId() const
 void TPZVecL2::Write(TPZStream &buf, int withclassid)
 {
 	TPZMaterial::Write(buf,withclassid);
+    if (fDim < 1 || fDim >3) {
+        DebugStop();
+    }
+    buf.Write(&fDim);
 }
 
 /* Reads the element data from a stream */
 void TPZVecL2::Read(TPZStream &buf, void *context)
 {
 	TPZMaterial::Read(buf,context);
+    buf.Read(&fDim);
+#ifdef PZDEBUG
+    if (fDim < 1 || fDim >3) {
+        DebugStop();
+    }
+#endif
 }
 
+template class TPZRestoreClass<TPZVecL2, TPZVECL2ID>;
 /**
  * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
  * @param datavec [in] stores all input data

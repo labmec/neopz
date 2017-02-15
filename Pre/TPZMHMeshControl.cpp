@@ -20,6 +20,11 @@
 #include "TPZRefPatternTools.h"
 #include "pzlog.h"
 
+#include <iostream>
+#include <sstream>
+#include <iterator>
+#include <numeric>
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mhmeshcontrol"));
 #endif

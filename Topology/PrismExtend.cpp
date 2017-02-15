@@ -110,20 +110,20 @@ namespace pztopology {
 	}
 	
 	template<class TFather>
-	TPZTransform Pr<TFather>::TransformElementToSide(int side){
+	TPZTransform<> Pr<TFather>::TransformElementToSide(int side){
 		
 		if(side<0 || side>=NSides)
 		{
 			PZError << "Pr<TFather>::TransformElementToSide called with side error\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
 		
 		int sidedim = SideDimension(side);
-		TPZTransform t(sidedim,Dimension);//t(dimto,2)
+		TPZTransform<> t(sidedim,Dimension);//t(dimto,2)
 		if(side == NSides) return t;
 		int ftns = side/TFather::NSides;
 		int fatherside = side%TFather::NSides;
-		TPZTransform fathert = TFather::TransformElementToSide(fatherside);
+		TPZTransform<> fathert = TFather::TransformElementToSide(fatherside);
 		int fathersidedimension = sidedim;
 		if(ftns == 2) fathersidedimension--;
 		int id,jd;
@@ -143,18 +143,18 @@ namespace pztopology {
 	}
 	
 	template<class TFather>
-	TPZTransform Pr<TFather>::TransformSideToElement(int side){
+	TPZTransform<> Pr<TFather>::TransformSideToElement(int side){
 		
 		if(side<0 || side>=NSides){
 			PZError << "Pr<TFather>::TransformSideToElement side out range\n";
-			return TPZTransform(0,0);
+			return TPZTransform<>(0,0);
 		}
 		int sidedim = SideDimension(side);
-		TPZTransform t(Dimension,sidedim);
+		TPZTransform<> t(Dimension,sidedim);
 		if(Dimension == sidedim) return t;
 		int ftns = side/TFather::NSides;
 		int fatherside = side%TFather::NSides;
-		TPZTransform fathert = TFather::TransformSideToElement(fatherside);
+		TPZTransform<> fathert = TFather::TransformSideToElement(fatherside);
 		int fathersidedimension = sidedim;
 		if(ftns == 2) fathersidedimension--;
 		int id,jd;
@@ -183,15 +183,15 @@ namespace pztopology {
 	}
 	
 	template<class TFather>
-	TPZTransform Pr<TFather>::SideToSideTransform(int sidefrom, int sideto)
+	TPZTransform<> Pr<TFather>::SideToSideTransform(int sidefrom, int sideto)
 	{
 		if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {
 			PZError << "Pr<TFather>::HigherDimensionSides sidefrom "<< sidefrom << 
 			' ' << sideto << endl;
-			return TPZTransform(0);
+			return TPZTransform<>(0);
 		}
 		if(sidefrom == sideto) {
-			return TPZTransform(SideDimension(sidefrom));
+			return TPZTransform<>(SideDimension(sidefrom));
 		}
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
@@ -204,7 +204,7 @@ namespace pztopology {
 			if(highsides[is] == sideto) {
 				int dfr = SideDimension(sidefrom);
 				int dto = SideDimension(sideto);
-				TPZTransform trans(dto,dfr),toelement(Dimension,sidefrom),toside(sideto,Dimension);
+				TPZTransform<> trans(dto,dfr),toelement(Dimension,sidefrom),toside(sideto,Dimension);
 				toelement = TransformSideToElement(sidefrom);
 				toside = TransformElementToSide(sideto);
 				trans = toside.Multiply(toelement);
@@ -213,7 +213,7 @@ namespace pztopology {
 		}
 		PZError << "Pr<TFather>::SideToSideTransform highside not found sidefrom "
 		<< sidefrom << ' ' << sideto << endl;
-		return TPZTransform(0);
+		return TPZTransform<>(0);
 	}
 	
 	template<class TFather>
@@ -306,7 +306,7 @@ namespace pztopology {
 	
 	template<class TFather>
 	bool Pr<TFather>::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
-		TPZTransform Transf = SideToSideTransform(NSides - 1, side);
+		TPZTransform<> Transf = SideToSideTransform(NSides - 1, side);
 		SidePar.Resize(SideDimension(side));
 		Transf.Apply(InternalPar,SidePar);
 		
@@ -434,7 +434,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		
-		//  static TPZTransform SideToSideTransform(int sidefrom, int sideto);
+		//  static TPZTransform<> SideToSideTransform(int sidefrom, int sideto);
         if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -448,14 +448,14 @@ namespace pztopology {
 				int il;
 				for(il=0; il<nl; il++)
 				{
-					TPZTransform tr;
+					TPZTransform<> tr;
 					tr = SideToSideTransform(is,lower[il]);
 					sout << "Transform from " << is << " to side " << lower[il] << " " << tr; 
 				}
 			}
 			LOGPZ_DEBUG(logger,sout.str());
 		}
-		//  static TPZTransform TransformElementToSide(int side);
+		//  static TPZTransform<> TransformElementToSide(int side);
         if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -463,12 +463,12 @@ namespace pztopology {
 			int is;
 			for(is=0; is<NSides; is++)
 			{
-				TPZTransform tr = TransformElementToSide(is);
+				TPZTransform<> tr = TransformElementToSide(is);
 				sout << "side " << is << " transform " << tr;
 			}
 			LOGPZ_DEBUG(logger,sout.str());
 		}
-		//  static TPZTransform TransformSideToElement(int side);
+		//  static TPZTransform<> TransformSideToElement(int side);
         if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;

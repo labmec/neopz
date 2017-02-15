@@ -31,9 +31,9 @@ void TestingSideProjections2() {
         int sidedim = top::SideDimension(is);
         TPZManVector<REAL,3> pt1(dim),pt2(dim),pt3(sidedim);
         top::CenterPoint(nsides-1,pt1);
-        TPZTransform tr1 = top::TransformSideToElement(is);
-        TPZTransform tr2 = top::TransformElementToSide(is);
-        TPZTransform tr3;
+        TPZTransform<> tr1 = top::TransformSideToElement(is);
+        TPZTransform<> tr2 = top::TransformElementToSide(is);
+        TPZTransform<> tr3;
         tr3 = tr2.Multiply(tr1);
         BOOST_CHECK_EQUAL(tr3.Mult().Rows(), sidedim);
     }

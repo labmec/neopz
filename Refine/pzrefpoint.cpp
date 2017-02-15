@@ -121,8 +121,8 @@ namespace pzrefine {
 		return nsubeldata[side];
 	}
 	
-	TPZTransform TPZRefPoint::GetTransform(int side,int whichsubel) {
-		return TPZTransform (0,0);
+	TPZTransform<> TPZRefPoint::GetTransform(int side,int whichsubel) {
+		return TPZTransform<> (0,0);
 	}
 	
 	int TPZRefPoint::FatherSide(int side,int whichsubel) {

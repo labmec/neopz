@@ -325,7 +325,6 @@ void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMat
         //compute [F0]=[A00^-1][F0]
         DecomposeK00();
         fSolver->Solve(fF0,F0);
-
 		//make [u0]=[F0]-[U1]
 		fK01.MultAdd(U1,(F0),u0,-1,1);
 	} else {

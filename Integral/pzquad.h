@@ -45,6 +45,7 @@ public:
     {
         fOrdKsi = copy.fOrdKsi;
         fIntP = copy.fIntP;
+        return *this;
     }
 	virtual ~TPZInt1d() {
 	}

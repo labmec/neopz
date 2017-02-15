@@ -45,8 +45,19 @@ public:
     
     /// uncondensed elements for the elements that have internal nodes
     static void UnCondensedElements(TPZCompMesh *cmesh);
+
+    /// compute the norm of the difference between two meshes
+    /// put the computed error in the element solution
+    static void ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
+
+    /// adjust the polynomial orders of the hdiv elements such that the internal order is higher than the sideorders
+    static void AdjustFluxPolynomialOrders(TPZCompMesh *fluxmesh, int hdivplusplus);
+
+    /// set the pressure order acording to the order of internal connect of the elements of the fluxmesh
+    static void SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pressuremesh);
     
     static void OptimizeBandwidth(TPZCompMesh *cmesh);
+
 };
 
 #endif /* defined(__PZ__TPZCompMeshTools__) */

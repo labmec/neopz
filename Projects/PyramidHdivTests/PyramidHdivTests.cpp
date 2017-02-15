@@ -674,9 +674,19 @@ void ApproximationError(int nref, int porder, TPZVec<STATE> &errors, bool hdivmm
     if (!mat) {
         DebugStop();
     }
+<<<<<<< HEAD
+    TPZAutoPointer<TPZFunction<STATE> > laplaceExact = new TPZDummyFunction<STATE>(LaplaceExact);
+    mat->SetForcingFunction(laplaceExact);
+=======
     mat->SetForcingFunction(LaplaceExact, porder);
+<<<<<<< HEAD
+>>>>>>> master
+//    GroupElements(cmeshMult);
+
+=======
     //    GroupElements(cmeshMult);
     
+>>>>>>> iRMS_Biot
     
     TPZAnalysis an(cmeshMult,false);
     an.SetExact(ExactSolution);
@@ -1265,7 +1275,12 @@ TPZCompMesh * CreateCmeshFlux(TPZGeoMesh *gmesh, int p, bool hdivmm)
     cmesh->SetDefaultOrder(p);
     
     TPZVecL2 *mymat = new TPZVecL2(matid);
+<<<<<<< HEAD
+    TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(FluxFunc);
+    mymat->SetForcingFunction(forcef);
+=======
     mymat->SetForcingFunction(FluxFunc, p);
+>>>>>>> master
     cmesh->InsertMaterialObject(mymat);
     
     TPZFMatrix<> val1(3,3,0.);
@@ -2318,7 +2333,10 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             {
                 nwrong++;
                 std::cout << "flux number " << jsh << " did not project: diff: "<<diff<<"\n";
+<<<<<<< HEAD
+=======
                 //StopError();
+>>>>>>> master
                 DebugStop();
             }
         }

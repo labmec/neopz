@@ -111,6 +111,12 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
 }
 
 /** @brief Setup reporting times and time step size */
+<<<<<<< HEAD
+void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< STATE , 500 > ReportingTimes){
+    fdt = dt;
+    fn_steps = n_times;
+    fReportingTimes = ReportingTimes;
+=======
 void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< std::pair< STATE , bool> , 500 > ReportingTimes){
     fdt = dt;
     fn_steps = n_times;
@@ -120,6 +126,7 @@ void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STAT
         fReportingTimesMixedQ.Push(ReportingTimes[it].second);
     }
 
+>>>>>>> iRMS_Biot
     fdt_max     = dt_max;
     fdt_min     = dt_min;
     fdt_up      = dt_in;

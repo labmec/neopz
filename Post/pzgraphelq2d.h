@@ -38,7 +38,13 @@ public:
 	virtual long EqNum(TPZVec<int> &co);
 	
 	virtual void Connectivity(TPZDrawStyle st = EDXStyle);
-	
+
+    /** @brief the parametric dimension of the element */
+    virtual int Dimension()
+    {
+        return 2;
+    }
+
 	
 protected:
 	

@@ -916,7 +916,9 @@ void TRMSpaceOdissey::CreateH1Cmesh()
     fH1Cmesh->SetDimModel(3);
     
     TPZMatLaplacian *material = new TPZMatLaplacian(_ReservMatId,3);
+    TPZAutoPointer<TPZFunction<STATE> > one = new TPZDummyFunction<STATE>(One);
     material->SetForcingFunction(One,fPOrder);
+
     fH1Cmesh->InsertMaterialObject(material);
 
     TPZFNMatrix<1> val1(1,1,0.),val2(1,1,0);
@@ -1639,6 +1641,30 @@ void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
 
         }//for i
     }//ref
+    
+    fGeoMesh->BuildConnectivity();
+}
+
+/** @brief Apply uniform refinement on the Geometric mesh */
+void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
+    for ( int ref = 0; ref < n_ref; ref++ ){
+        TPZVec<TPZGeoEl *> filhos;
+        long n = fGeoMesh->NElements();
+        for ( long i = 0; i < n; i++ ){
+            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
+            if(gel->HasSubElement()){
+                continue;
+            }
+            if(gel->Index() == father_index ){
+                if (gel->Dimension() != 0) gel->Divide (filhos);
+            }
+
+        }//for i
+    }//ref
+    
+//    int side;
+//    TPZStack<TPZGeoElSide> subel;
+//    gel->GetSubElements2(<#int side#>, subel)
     
     fGeoMesh->BuildConnectivity();
 }

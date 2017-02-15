@@ -83,6 +83,15 @@ public:
     TPZCompEl * ReferenceCompEl(){
         return fReferenceCompEl;
     }
+    
+    virtual void LoadElementReference()
+    {
+        if(fReferenceCompEl)
+        {
+            fReferenceCompEl->LoadElementReference();
+        }
+    }
+
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<long> &connectindexes) const;
 	

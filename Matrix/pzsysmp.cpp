@@ -192,9 +192,8 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Zero()
 {
     fA.Fill(TVar(0.));
-    fDiag.resize(0)
-    
-    ;
+    fDiag.resize(0);
+    fPardisoControl.Zero();
     return 1;
 }
 
@@ -275,7 +274,6 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
 {
     
-//    std::cout << "Norm of Matrix " << Norm(*this) << std::endl;
     if(this->IsDecomposed() == ELDLt) return 1;
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();

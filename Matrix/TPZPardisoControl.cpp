@@ -236,15 +236,12 @@ void TPZPardisoControl<TVar>::Decompose()
     }
     
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
-
 //        fParam[9] = -1; // avoid any pivot permutation ()
+//        fParam[4 ] = 1; // user permutation PERM
         
-//        // Note: other values unused
-//        fParam[0 ] = 0; // use default values (2, 4..64), 3 MUST be set .. this will overwrite the following config with defaults (it mostly here for documentation)
-//        fParam[1 ] = 2; // fill-in reducing ordering (0: min-degree, 2: METIS)
-////        fParam[2 ] = 1; // number of processors: must match OMP_NUM_THREADS TODO  -- NOTE this is an *upper-limit* on the number of processors...
-//        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
-        fParam[4 ] = 1; // user permutation PERM
+        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
+        fParam[10] = 1;
+        fParam[12] = 1;
         
     }
     long long phase = 12;
@@ -253,17 +250,6 @@ void TPZPardisoControl<TVar>::Decompose()
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-//<<<<<<< HEAD
-//=======
-//    for(long i = 0; i < n; i++){
-//        fPermutation[i] = i;
-//    }
-//    if (fSystemType == ESymmetric && fProperty == EIndefinite) {
-//        fParam[4] = 1;
-//    }
-//
-//    std::cout << __PRETTY_FUNCTION__ << std::endl;
-//>>>>>>> Pyramid
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
@@ -272,10 +258,11 @@ void TPZPardisoControl<TVar>::Decompose()
 #endif
     
 #ifdef USING_BOOST
-    std::cout  << "Pardiso:: Done. Overal execution time = " << (t2-t1) << std::endl;
+    std::cout  << "Pardiso:: Overal execution time = " << (t2-t1) << std::endl;
 #endif
 
     if (Error) {
+        std::cout << __PRETTY_FUNCTION__ << " error code " << Error << std::endl;
         DebugStop();
     }
 }
@@ -309,6 +296,40 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     
     /// forward and backward substitution
     long long phase = 33;
+    
+    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    
+    if (Error) {
+        DebugStop();
+    }
+}
+
+/// Release memory
+template<class TVar>
+void TPZPardisoControl<TVar>::Zero() const
+{
+    long long n=0;
+    TVar *a,*b, *x;
+    long long *ia,*ja;
+    if (fSymmetricSystem) {
+        a = &(fSymmetricSystem->fA[0]);
+        ia = (long long *) &(fSymmetricSystem->fIA[0]);
+        ja = (long long *) &(fSymmetricSystem->fJA[0]);
+    }
+    if (fNonSymmetricSystem) {
+        a = &(fNonSymmetricSystem->fA[0]);
+        ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
+        ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
+        
+    }
+    
+    long long *perm,nrhs;
+    long long Error = 0;
+    perm = &fPermutation[0];
+    
+    /// Release internal memory for L and U matrix number MNUM
+    long long phase = -1;
     
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);

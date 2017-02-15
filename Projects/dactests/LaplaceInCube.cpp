@@ -1763,11 +1763,18 @@ void LaplaceInCube::ChangeExternalOrderConnects(TPZCompMesh *mesh){
                 nshape = co.NShape();
                 if(corder!=cordermin){
                     cordermin = corder-1;
+<<<<<<< HEAD
+                    co.SetOrder(cordermin,1);
+                    
+                    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+                    nshape = intel->NConnectShapeF(icon,co.Order());
+=======
                     long cindex = cel->ConnectIndex(icon);
                     co.SetOrder(cordermin,cindex);
                     
                     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
                     nshape = intel->NConnectShapeF(icon,cordermin);
+>>>>>>> iRMS_MHM
                     
                     co.SetNShape(nshape);
                     mesh->Block().Set(co.SequenceNumber(),nshape);

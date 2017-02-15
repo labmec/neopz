@@ -49,6 +49,7 @@ class TPZStack;
 class TPZGraphMesh;
 class TPZIntPoints;
 
+template<class T>
 class TPZTransform;
 
 template<class TVar>

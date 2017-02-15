@@ -94,7 +94,7 @@ public:
      and the indicated position. position = 0 indicate first subelement, ...*/
 	TPZGeoElSide SideSubElement(int side,int position);
 	
-	TPZTransform GetTransform(int side,int son);
+	TPZTransform<> GetTransform(int side,int son);
 	
 	virtual int FatherSide(int side, int son) {
 		return TRef::FatherSide(side,son);

@@ -153,7 +153,11 @@ public:
     void SegregatedIteration();
     
     /** @brief PostProcess results */
+<<<<<<< HEAD
+    void PostProcessStep();
+=======
     void PostProcessStep(bool draw_mixed_mapQ);
+>>>>>>> iRMS_Biot
 
     /** @brief Update memory using the Transfer object at REAL n */
     void UpdateFluxes_at_n();

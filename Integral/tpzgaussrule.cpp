@@ -339,7 +339,7 @@ int TPZGaussRule::ComputingGaussLobattoQuadrature(int order) {
 			fWeight.Resize(0);
 			fLocation.Resize(0);
 			cout << "Maxime number of iterations allowed in quadrature GaussLobatto. \n" ;
-			return;
+			return -1; // to compile in linux
 		}
 		
 		fLocation[k] = r;
@@ -370,7 +370,7 @@ int TPZGaussRule::ComputingGaussLobattoQuadrature(int order) {
 
 /** Gauss Jacobi quadrature */
 int TPZGaussRule::ComputingGaussJacobiQuadrature(int order,long double alpha, long double beta) {
-	// Computing number of points appropriated to the wished order = 2*npoints - 1. Note: If odd we need increment one point more
+	// Computing number of points appropriated to the wished order = 2*npoints - 1. Note: If odd we return -1;need increment one point more
 	fNumInt = (int)(0.51*(order+2));
 	if(fNumInt < 0)
 		fNumInt = 1;

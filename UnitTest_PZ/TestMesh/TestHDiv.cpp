@@ -638,7 +638,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         TPZManVector<REAL,3> pointA(gelsideA.Dimension()),pointB(gelsideB.Dimension());
         REAL weight;
         intrule->Point(ip, pointA, weight);
-        TPZTransform tr = gelsideA.NeighbourSideTransform(gelsideB);
+        TPZTransform<> tr = gelsideA.NeighbourSideTransform(gelsideB);
         tr.Apply(pointA, pointB);
         TPZFNMatrix<200> phiA(nshapeA,1),dphiA(sidedimension,nshapeA),phiB(nshapeA,1),dphiB(sidedimension,nshapeA);
         interA->SideShapeFunction(sideA, pointA, phiA, dphiA);
@@ -650,7 +650,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         for (ish=0; ish<nshapeA; ish++) {
             REAL Aval = phiA(ish,0);
             REAL Bval = phiB(ish,0);
-            if(abs(Aval-Bval) > 1.e-6) 
+            if(fabs(Aval-Bval) > 1.e-6)
             {
                 std::cout << "i " << ish << " " << Aval << " " << Bval << std::endl;
                 nwrong++;   
@@ -681,11 +681,11 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
     TPZMaterialData dataB;
     interA->InitMaterialData(dataA);
     interB->InitMaterialData(dataB);
-    TPZTransform tr = gelsideA.NeighbourSideTransform(gelsideB);
+    TPZTransform<> tr = gelsideA.NeighbourSideTransform(gelsideB);
     TPZGeoEl *gelA = gelsideA.Element();
-    TPZTransform trA = gelA->SideToSideTransform(gelsideA.Side(), gelA->NSides()-1);
+    TPZTransform<> trA = gelA->SideToSideTransform(gelsideA.Side(), gelA->NSides()-1);
     TPZGeoEl *gelB = gelsideB.Element();
-    TPZTransform trB = gelB->SideToSideTransform(gelsideB.Side(), gelB->NSides()-1);
+    TPZTransform<> trB = gelB->SideToSideTransform(gelsideB.Side(), gelB->NSides()-1);
     
     int vecZeroA = -1;
     if(gelA->Type() == EPiramide)
@@ -1495,7 +1495,7 @@ void VectorDirections()
         }
         Mysides.insert(side);
         int sidedim = tshape::SideDimension(side);
-        TPZTransform tr = tshape::TransformSideToElement(side);
+        TPZTransform<> tr = tshape::TransformSideToElement(side);
         for (int sd=0; sd < sidedim; sd++) {
             for (int d=0; d<dimension; d++) {
                 NormalVectors(d,normalcount) = tr.Mult()(d,sd);

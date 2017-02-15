@@ -40,7 +40,7 @@ void TPZOneDRef::IntegrateMatrices() {
     TPZVec<long> ids(2);
     ids[0] = 0;
     ids[1] = 1;
-    TPZTransform t1(1),t2(1);
+    TPZTransform<> t1(1),t2(1);
     t1.Mult()(0,0) = 0.5;
     t2.Mult()(0,0) = 0.5;
     t1.Sum()(0,0) = -0.5;

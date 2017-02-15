@@ -109,7 +109,7 @@ void FullModelMixtaCoarsePcFH(bool IsDimensionlessQ, bool IsNonlinearKr,  std::s
 
 
 
-static bool axisy = true;
+static bool axisy = false;
 
 int main()
 {
@@ -184,6 +184,13 @@ int main()
 
     // Cases with quadratic relative permeabilities
     IsNonlinearKr = false;
+<<<<<<< HEAD
+
+    IsNonlinearKr = false;
+
+//    output = "CaseFullModelTrianglesPc";
+//    FullModel(IsDimensionlessQ, IsNonlinearKr, output);
+=======
  
     IsNonlinearKr = true;
     
@@ -274,6 +281,7 @@ int main()
     
     
 
+>>>>>>> iRMS_MHM
     
     
 //    output = "CASO_FINA_MIXTA_COARSE_NO_PC_H";
@@ -316,6 +324,15 @@ int main()
 //    CaseELC(IsDimensionlessQ, IsNonlinearKr, output);
 //    output = "CaseEQAR";
 //    CaseELCR(IsDimensionlessQ, IsNonlinearKr, output);
+<<<<<<< HEAD
+    
+//    output = "CaseUQARec";
+//    CaseULC(IsDimensionlessQ, IsNonlinearKr, output);
+    output = "CaseUQAR";
+    CaseULCR(IsDimensionlessQ, IsNonlinearKr, output);
+    
+    
+=======
 //    
 //    output = "CaseUQA";
 //    CaseULC(IsDimensionlessQ, IsNonlinearKr, output);
@@ -323,6 +340,7 @@ int main()
 //    CaseULCR(IsDimensionlessQ, IsNonlinearKr, output);
 //    
 //    
+>>>>>>> iRMS_MHM
 //    output = "CaseImexGravity";
 //    ImexGravity(IsDimensionlessQ, IsNonlinearKr, output);
 //    output = "CaseImexGravityR";
@@ -20290,13 +20308,18 @@ void CaseUQCPc(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     int qorder      = 1;
     int porder      = 1;
-    int sorder      = 0;
+    int sorder      = 1;
     int hrefinement = 0;
     int hpostref    = 0;
     
     // Time control parameters
+<<<<<<< HEAD
+    int n_times  = 50;
+    int n_sub_dt = 100;
+=======
     int n_times  = 20;
     int n_sub_dt = 75;
+>>>>>>> iRMS_MHM
     int which_dt = n_times;
     TPZManVector<REAL,20> Reporting_times(n_times,0.0);
     REAL scale = ((Kstr*Pstr)/(Lstr*Lstr*Mustr));
@@ -20323,14 +20346,14 @@ void CaseUQCPc(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     }
     REAL dxD        =(x_l/nelemX)/Lstr;
     
-    int nelemY      =2;
+    int nelemY      =10;
     if (GR && nelemY == 1 && IsTMesh ) {
         nelemY++;
     }
     REAL dyD        =(y_l/nelemY)/Lstr;
     
     Gravity(0,0)= -0.0*((Lstr*Rhostr)/Pstr);
-    Gravity(1,0)= -0.0*((Lstr*Rhostr)/Pstr);
+    Gravity(1,0)= -10.0*((Lstr*Rhostr)/Pstr);
     bool LinearSegregation = false;
     
     REAL angle = 0.0;
@@ -20439,7 +20462,11 @@ void CaseUQCPc(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
+<<<<<<< HEAD
+    inlet[1] = -0.0184; // 100 bbl/day or 15.898 m3/day
+=======
     inlet[1] = -0.184004629; // 100 bbl/day or 15.898 m3/day
+>>>>>>> iRMS_MHM
     inlet[2] = 0.8;
     inlet[3] = 0;
     
@@ -20619,8 +20646,13 @@ void CaseUQCPcR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     TPZAutoPointer<SimulationData> Dataset  = new SimulationData;
     
     int maxiter     = 30;
+<<<<<<< HEAD
+    int nthread     = 8;
+    bool GR         = false;    // Use Gradient Reconstruction
+=======
     int nthread     = 10;
     bool GR         = true;    // Use Gradient Reconstruction
+>>>>>>> iRMS_MHM
     bool SC         = false;    // Use Static Condensation not working for nonlinear and transient problems
     bool IsDirect   = true;     // No Use broyden with Iterative !!!
     bool IsCG       = false;    // false means GMRES
@@ -20637,7 +20669,7 @@ void CaseUQCPcR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     int qorder      = 1;
     int porder      = 1;
-    int sorder      = 1;
+    int sorder      = 0;
     int hrefinement = 0;
     int hpostref    = 0;
     
@@ -20786,7 +20818,11 @@ void CaseUQCPcR(bool IsDimensionlessQ, bool IsNonlinearKr, std::string output)
     
     TPZVec<REAL> inlet(4,0.0);
     inlet[0] = 1;
+<<<<<<< HEAD
+    inlet[1] = -0.184; // 100 bbl/day or 15.898 m3/day
+=======
     inlet[1] = -0.184004629; // 100 bbl/day or 15.898 m3/day
+>>>>>>> iRMS_MHM
     inlet[2] = 0.8;
     inlet[3] = 0;
     
