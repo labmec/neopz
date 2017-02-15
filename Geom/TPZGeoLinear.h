@@ -177,7 +177,7 @@ namespace pzgeom
         int space = nodes.Rows();
         int ncol = nodes.Cols();
         
-        gradx.Resize(space,2);
+        gradx.Resize(space,1);
         gradx.Zero();
         
 #ifdef PZDEBUG
