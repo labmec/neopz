@@ -89,7 +89,7 @@ void BoxLinearTracerDual()
     // Materials ids and boundary settings
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
-    bool Is3DGeometry = true;
+    bool Is3DGeometry = false;
     
     //    On box reservoir
     //RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
@@ -114,16 +114,6 @@ void BoxLinearTracerDual()
     SymphonyX->CreateAnalysisDualonBox(false);  // Evolutionary Solution
     SymphonyX->RunEvolutionaryProblem();
 
-<<<<<<< HEAD
-//    SymphonyX->SetMonolithicQ(true);
-//    SymphonyX->CreateMonolithicAnalysis(true); //  Static Solution
-//    SymphonyX->RunStaticProblem();
-//    SymphonyX->CreateMonolithicAnalysis(false); // Evolutionary Solution
-//    SymphonyX->RunEvolutionaryProblem();
-
-    
-=======
->>>>>>> iRMS_Biot
     std::cout << "Dual complete normally." << std::endl;
     
 }

@@ -57,7 +57,7 @@ template<class TVar>
 TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp) : TPZMatrix<TVar>
 ()
 {
-    *this = cp;
+    *this = cp;    
 }
 
 template<class TVar>
@@ -73,6 +73,10 @@ TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator=(const TPZFYsmpMatrix<TVar>
     fA = cp.fA;
     fJA = cp.fJA;
     fDiag = cp.fDiag;
+#ifdef USING_MKL
+    fPardisoControl = cp.fPardisoControl;
+    fPardisoControl.SetMatrix(this);
+#endif
     return *this;
 }
 
@@ -322,6 +326,11 @@ TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix(const long rows,const long cols ) : TPZMatr
     fA = 0;
     fIA = 0;
     fJA = 0;
+    
+#ifdef USING_MKL
+    fPardisoControl.SetMatrix(this);
+#endif
+    
 #ifdef CONSTRUCTOR
     cerr << "TPZFYsmpMatrix(int rows,int cols)\n";
 #endif
@@ -914,6 +923,7 @@ void TPZFYsmpMatrix<TVar>::AutoFill(long nrow, long ncol, int symmetric)
 }
 
 
+
 /**
  * Decomposes the current matrix using LU decomposition.
  */
@@ -922,6 +932,47 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU(std::list<long> &singular)
 {
     return Decompose_LU();
 }
+
+#ifdef USING_MKL
+
+#include "TPZPardisoControl.h"
+
+template<class TVar>
+int TPZFYsmpMatrix<TVar>::Decompose_LU()
+{
+    
+    if(this->IsDecomposed() == ELU) return 1;
+    if (this->IsDecomposed() != ENoDecompose) {
+        DebugStop();
+    }
+    
+    fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ENonSymmetric,TPZPardisoControl<TVar>::EPositiveDefinite);
+    fPardisoControl.Decompose();
+    this->SetIsDecomposed(ELU);
+    return 1;
+    
+//    this->fDecomposed=1;
+//    return 1;
+}
+
+
+
+template<class TVar>
+int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
+{
+
+    TPZFMatrix<TVar> x(*B);
+    //    std::cout << __PRETTY_FUNCTION__ << " norm b " << Norm(*b) << std::endl;
+    fPardisoControl.Solve(*B,x);
+    *B = x;
+    //    std::cout << __PRETTY_FUNCTION__ << " norm x " << Norm(*b) << std::endl;
+    
+    return 1;
+    
+}
+
+#else
+
 template<class TVar>
 int TPZFYsmpMatrix<TVar>::Decompose_LU()
 {
@@ -942,6 +993,8 @@ int TPZFYsmpMatrix<TVar>::Decompose_LU()
     this->fDecomposed=1;
     return 1;
 }
+
+
 
 template<class TVar>
 int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
@@ -996,6 +1049,9 @@ int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
     }
     return 1;
 }
+
+
+#endif
 
 template class TPZFYsmpMatrix<long double>;
 template class TPZFYsmpMatrix<double>;

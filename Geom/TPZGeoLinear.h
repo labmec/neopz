@@ -173,12 +173,15 @@ namespace pzgeom
     template<class T>
     inline void TPZGeoLinear::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
         
-        gradx.Resize(3,1);
-        gradx.Zero();
-        int nrow = nodes.Rows();
+   
+        int space = nodes.Rows();
         int ncol = nodes.Cols();
+        
+        gradx.Resize(space,2);
+        gradx.Zero();
+        
 #ifdef PZDEBUG
-        if(nrow != 3 || ncol  != 2){
+        if(/* nrow != 3 || */ ncol  != 2){
             std::cout << "Objects of incompatible lengths, gradient cannot be computed." << std::endl;
             std::cout << "nodes matrix must be 3x2." << std::endl;
             DebugStop();
@@ -190,7 +193,7 @@ namespace pzgeom
         TShape(loc,phi,dphi);
         for(int i = 0; i < 2; i++)
         {
-            for(int j = 0; j < 3; j++)
+            for(int j = 0; j < space; j++)
             {
                 gradx(j,0) += nodes.GetVal(j,i)*dphi(0,i);
             }

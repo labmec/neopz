@@ -102,10 +102,6 @@ void TRMTransportAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-<<<<<<< HEAD
-    
-=======
->>>>>>> iRMS_Biot
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
     fX_n.Resize(fSolution.Rows(),1);

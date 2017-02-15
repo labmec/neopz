@@ -30,23 +30,14 @@ well_i_regions = {};
 well_i_v_regions = {};
 
 
-<<<<<<< HEAD
-geomechanicQ = 1;
-dimension = 3;
-nolinearQ = 0;
-CADReservoirQ = 0;
-
-xzQ = 1;
-=======
 geomechanicQ = 0;
-dimension = 3;
+dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
->>>>>>> iRMS_Biot
 hexahedronsWQ = 0;
-hexahedronsRQ = 0;
+hexahedronsRQ = 1;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -66,13 +57,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-<<<<<<< HEAD
-cl4 = 150.0;
-cl5 = 1000.0;
-=======
-cl4 = 100.0;
+cl4 = 250.0;
 cl5 = 5000.0;
->>>>>>> iRMS_Biot
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -80,12 +66,8 @@ cl5 = 5000.0;
 
 // reservoir box dimensions
 x_length = 1000.0;
-y_length = 1000.0;
-<<<<<<< HEAD
-z_length = 200.0;
-=======
+y_length = 100.0;
 z_length = 100.0;
->>>>>>> iRMS_Biot
 
 ////////////////////////////////////////////////////////////////////////////
 // side-burden region geometry
@@ -119,44 +101,20 @@ EndIf
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
-<<<<<<< HEAD
-rw = 0.1;
-wl = 50.0;
-
-wbr = 20.0;
-ela = 50.0;
-=======
 
 ////////////////////////////////////////////////////////////////////////////
 // well geometry and settings
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 1.0;
-wl = 10.0;
+rw = 0.5;
+wl = 5.0;
 
 wbr = 10.0;
 ela = 20.0;
->>>>>>> iRMS_Biot
 rw_cell= 1.0;
 wr_cell= 20.0;
 
 // Orientation and length
-<<<<<<< HEAD
-alfa = Pi/2.0;
-beta = 0.0;
-
-////////////////////////////////////////////////////////////////////////////
-// Drill producer 1 
-////////////////////////////////////////////////////////////////////////////
-
-// well location
-wcx = 50.0;
-wcy = 100.0;
-wcz = 0.0;
-IsInjectorQ = 0;
-Call DrillWell;
-
-=======
 alfa = 0.0*Pi/2.0;
 beta = 0.0;
 
@@ -165,15 +123,20 @@ beta = 0.0;
 ////////////////////////////////////////////////////////////////////////////
 
 // well location
-wcx = 0.0;
-wcy = 0.0;
+//wcx = 0.0;
+//wcy = 0.0;
+//wcz = 0.0;
+
+wcx = -200.0;
+wcy = 100.0;
+wcz = 150.0;
+
+wcx = 38;
+wcy = 50.0;
 wcz = 0.0;
 
-//wcx = -200.0;
-//wcy = 100.0;
-//wcz = 150.0;
 IsInjectorQ = 0;
-Call DrillWellBox;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -181,6 +144,10 @@ Call DrillWellBox;
 ////////////////////////////////////////////////////////////////////////////
 
 // well location
+//wcx = 400.0;
+//wcy = 400.0;
+//wcz = 0.0;
+
 wcx = 150.0;
 wcy = 0.0;
 wcz = 40.0;
@@ -193,6 +160,10 @@ IsInjectorQ = 1;
 ////////////////////////////////////////////////////////////////////////////
 
 // well location
+//wcx = -400.0;
+//wcy = -400.0;
+//wcz = 0.0;
+
 wcx = -650.0;
 wcy = 500.0;
 wcz = 20.0;
@@ -222,8 +193,6 @@ wcz = 120.0;
 IsInjectorQ = 0;
 //Call DrillWell;
 
-
->>>>>>> iRMS_Biot
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 // Computational domain, boundaries:: Tagging physical entities
@@ -232,6 +201,3 @@ IsInjectorQ = 0;
 
 Call DefineOmegas;
 Call DrawBoundaries;
-
-
-

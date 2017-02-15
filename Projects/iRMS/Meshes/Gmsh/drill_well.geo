@@ -155,7 +155,7 @@ Else
 ////////////////////////////////////////////////////////////////////////////
 
 // mesh controls on wellbore region on 2D
-alpha = 1.5;
+alpha = 1.2;
 n_radial = 10;
 n_azimuthal = 3;
 

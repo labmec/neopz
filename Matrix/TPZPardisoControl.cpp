@@ -129,7 +129,7 @@ long long TPZPardisoControl<TVar>::MatrixType()
         fMatrixType = 1;
     }
     if (fSystemType == ENonSymmetric && fProperty == EPositiveDefinite) {
-        DebugStop();
+        fMatrixType = 11;
     }
     
 //    void pardiso (_MKL_DSS_HANDLE_t pt, const MKL_INT *maxfct, const MKL_INT *mnum, const
@@ -237,11 +237,11 @@ void TPZPardisoControl<TVar>::Decompose()
     
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
 //        fParam[9] = -1; // avoid any pivot permutation ()
-//        fParam[4 ] = 1; // user permutation PERM
+        fParam[4 ] = 1; // user permutation PERM
         
-        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
-        fParam[10] = 1;
-        fParam[12] = 1;
+//        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
+//        fParam[10] = 1;
+//        fParam[12] = 1;
         
     }
     long long phase = 12;

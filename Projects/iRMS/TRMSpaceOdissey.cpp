@@ -321,20 +321,20 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
     
-    this->CreateMixedCmeshMHM();
-    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
-#ifdef PZDEBUG
-    std::ofstream out_mhm("CmeshMixedMHM.txt");
-    this->MixedFluxPressureCmeshMHM()->Print(out_mhm);
-#endif
-    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
-    
-    this->UnwrapMacroElements();
-    
-#ifdef PZDEBUG
-    std::ofstream out_unwrap("CmeshMixedMHMUnWrap.txt");
-    this->MixedFluxPressureCmeshMHM()->Print(out_unwrap);
-#endif
+//    this->CreateMixedCmeshMHM();
+//    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
+//#ifdef PZDEBUG
+//    std::ofstream out_mhm("CmeshMixedMHM.txt");
+//    this->MixedFluxPressureCmeshMHM()->Print(out_mhm);
+//#endif
+//    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+//    
+//    this->UnwrapMacroElements();
+//    
+//#ifdef PZDEBUG
+//    std::ofstream out_unwrap("CmeshMixedMHMUnWrap.txt");
+//    this->MixedFluxPressureCmeshMHM()->Print(out_unwrap);
+//#endif
     
     
 }
@@ -720,8 +720,6 @@ void TRMSpaceOdissey::CreateMixedCmeshMHM(){
     }
     
     fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
-    
-    //    TPZCompMeshTools::OptimizeBandwidth(fMixedFluxPressureCmesh);
     
 }
 
@@ -1240,6 +1238,9 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         mf_cel->PrepareIntPtIndices();
     }
     
+    int n_ref = 0;
+    this->UniformRefinement_cmesh(fTransportMesh, n_ref);
+    
 #ifdef PZDEBUG
     std::ofstream out("CmeshTransport.txt");
     fTransportMesh->Print(out);
@@ -1249,6 +1250,20 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     
 }
 
+void TRMSpaceOdissey::UniformRefinement_cmesh(TPZCompMesh  *cmesh, int n_ref)
+{
+    TPZVec<long > subindex;
+    for (long iref = 0; iref < n_ref; iref++) {
+        TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
+        long nel = elvec.NElements();
+        for(long el=0; el < nel; el++){
+            TPZCompEl * cel = elvec[el];
+            if(!cel) continue;
+            long ind = cel->Index();
+            cel->Divide(ind, subindex, 0);
+        }
+    }
+}
 
 void TRMSpaceOdissey::PrintGeometry()
 {
@@ -1555,6 +1570,77 @@ void TRMSpaceOdissey::UniformRefinement(int n_ref){
     fGeoMesh->BuildConnectivity();
 }
 
+void TRMSpaceOdissey::UniformRefineTetrahedrons(int n_ref){
+    
+    TPZAutoPointer<TPZRefPattern> refp3D;
+    
+    {// needed!
+        char buf[] =
+        "10 9 "
+        "-50 Tet0000111111111 "
+        "0 0 0 "
+        "1 0 0 "
+        "0 1 0 "
+        "0 0 1 "
+        "0.5 0 0 "
+        "0 0.5 0 "
+        "0 0 0.5 "
+        "0.5 0.5 0 "
+        "0 0.5 0.5 "
+        "0.5 0 0.5 "
+        "4 4 0  1  2  3 "
+        "4 4 0  4  5  6 "
+        "4 4 4  1  7  9 "
+        "4 4 7  2  5  8 "
+        "4 4 6  9  8  3 "
+        "4 4 4  9  6  5 "
+        "4 4 5  8  6  9 "
+        "4 4 7  8  9  5 "
+        "4 4 4  7  5  9 ";
+        std::istringstream str(buf);
+        refp3D = new TPZRefPattern(str);
+        refp3D->GenerateSideRefPatterns();
+        gRefDBase.InsertRefPattern(refp3D);
+        if(!refp3D)
+        {
+            DebugStop();
+        }
+    }
+    
+    //    TPZAutoPointer<TPZRefPattern> refp3D = gRefDBase.FindRefPattern("UnifTet");
+    
+    if(!refp3D)
+    {
+        DebugStop();
+    }
+    
+    TPZGeoEl * gel = NULL;
+    for(int r = 0; r < n_ref; r++)
+    {
+        int nels = fGeoMesh->NElements();
+        for(int iel = 0; iel < nels; iel++)
+        {
+            gel = fGeoMesh->ElementVec()[iel];
+            if(!gel) DebugStop();
+            if(gel->Dimension()==3)
+            {
+                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            if(gel->Dimension()==2)
+            {
+                //                gel->SetRefPattern(refp3D);
+                TPZVec<TPZGeoEl*> sons;
+                gel->Divide(sons);
+            }
+            
+        }
+    }
+    fGeoMesh->BuildConnectivity();
+}
+
+
 /** @brief Apply uniform refinement at specific material id */
 void TRMSpaceOdissey::UniformRefinement_at_MaterialId(int n_ref, int mat_id){
     
@@ -1641,30 +1727,6 @@ void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
 
         }//for i
     }//ref
-    
-    fGeoMesh->BuildConnectivity();
-}
-
-/** @brief Apply uniform refinement on the Geometric mesh */
-void TRMSpaceOdissey::UniformRefinement_at_Father(int n_ref, int father_index){
-    for ( int ref = 0; ref < n_ref; ref++ ){
-        TPZVec<TPZGeoEl *> filhos;
-        long n = fGeoMesh->NElements();
-        for ( long i = 0; i < n; i++ ){
-            TPZGeoEl * gel = fGeoMesh->ElementVec() [i];
-            if(gel->HasSubElement()){
-                continue;
-            }
-            if(gel->Index() == father_index ){
-                if (gel->Dimension() != 0) gel->Divide (filhos);
-            }
-
-        }//for i
-    }//ref
-    
-//    int side;
-//    TPZStack<TPZGeoElSide> subel;
-//    gel->GetSubElements2(<#int side#>, subel)
     
     fGeoMesh->BuildConnectivity();
 }

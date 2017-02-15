@@ -88,10 +88,6 @@ void TRMFluxPressureAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-<<<<<<< HEAD
-=======
-    
->>>>>>> iRMS_Biot
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
     fX_n.Resize(fSolution.Rows(),1);
@@ -124,7 +120,7 @@ void TRMFluxPressureAnalysis::NewtonIteration(){
 
 void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
     
-    if (k_ietrarions() <= 4) {
+    if (k_ietrarions() <= 1) {
         this->Assemble();
     }
     else{
@@ -135,6 +131,8 @@ void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
     this->Rhs() *= -1.0;
     
     this->Solve(); // update correction
+    
+    this->LoadSolution();
 
     fdx_norm = Norm(this->Solution()); // correction variation
     
