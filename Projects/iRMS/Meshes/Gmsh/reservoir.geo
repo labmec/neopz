@@ -31,7 +31,7 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 0;
-dimension = 3;
+dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
@@ -57,7 +57,7 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 250.0;
+cl4 = 500.0;
 cl5 = 5000.0;
 
 ////////////////////////////////////////////////////////////////////////////

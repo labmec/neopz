@@ -133,9 +133,9 @@ void TRMOrchestra::BuildGeometry2(){
     file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir.msh";
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
-    int ref = 0;
-    fSpaceGenerator->UniformRefinement(ref);
-//    fSpaceGenerator->UniformRefineTetrahedrons(ref);
+    int ref = 2;
+//    fSpaceGenerator->UniformRefinement(ref);
+    fSpaceGenerator->UniformRefineTetrahedrons(ref);
     fSpaceGenerator->PrintGeometry();
 }
 
@@ -220,9 +220,9 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
     if(!fSimulationData->IsOnePhaseQ()){
-        int ref = 2;
-//        fSpaceGenerator->UniformRefinement(ref);
-        fSpaceGenerator->UniformRefineTetrahedrons(ref);
+        int ref = 0;
+        fSpaceGenerator->UniformRefinement(ref);
+//        fSpaceGenerator->UniformRefineTetrahedrons(ref);
     }
 
     
