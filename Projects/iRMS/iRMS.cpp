@@ -89,7 +89,7 @@ void BoxLinearTracerDual()
     // Materials ids and boundary settings
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
-    bool Is3DGeometry = false;
+    bool Is3DGeometry = true;
     
     //    On box reservoir
     //RawData->WaterReservoirBox(Is3DGeometry); // Single-phase flow
@@ -106,7 +106,6 @@ void BoxLinearTracerDual()
     
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
-//    SymphonyX->BuildGeometry(Is3DGeometry); // @omar:: This mesh must to be unique???
     
     SymphonyX->SetSegregatedQ(true);
     SymphonyX->CreateAnalysisDualonBox(true); //  Static Solution

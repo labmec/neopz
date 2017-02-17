@@ -1,5 +1,5 @@
 
-YShapeReservoirQ = 1;
+YShapeReservoirQ = 0;
 
 Macro ReservoirCAD
 
@@ -85,8 +85,8 @@ res_W[] = {s4};
 res_edges_h[] = {res_S[],res_N[]};
 res_edges_v[] = {res_W[],res_E[]};
 
-Transfinite Line {res_edges_h[]} = 20.0;
-Transfinite Line {res_edges_v[]} = 1.0;
+Transfinite Line {res_edges_h[]} = 10.0;
+Transfinite Line {res_edges_v[]} = 5.0;
 
 reservoir_boundaries[] = {res_N[],res_E[],-res_S[],-res_W[]};
 
