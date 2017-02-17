@@ -44,17 +44,17 @@ Physical Line("injectors") = well_i_bores[];
 
 Physical Surface("Reservoir") = {s1,well_p_v_regions[],well_i_v_regions[]};
 Physical Line("Reservoir_south") = {res_S[]};
-Physical Line("Reservoir_West") = {res_E[]};
+Physical Line("Reservoir_West") = {res_W[]};
 Physical Line("Reservoir_north") = {res_N[]};
-Physical Line("Reservoir_East") = {res_W[]};
+Physical Line("Reservoir_East") = {res_E[]};
 
 // side-burden
 If (geomechanicQ == 1)
 Physical Surface("side_burden") = {s2};
 Physical Line("side_burden_south") = {sb_S[]};
-Physical Line("side_burden_West") = {sb_E[]};
+Physical Line("side_burden_West") = {sb_W[]};
 Physical Line("side_burden_north") = {sb_N[]};
-Physical Line("side_burden_East") = {sb_W[]};
+Physical Line("side_burden_East") = {sb_E[]};
 EndIf
 
 EndIf

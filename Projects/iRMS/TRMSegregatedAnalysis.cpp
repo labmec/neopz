@@ -196,7 +196,7 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     }
     
     Hyperbolic()->UpdateMemory_at_n();
-    fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
+    fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
 
 }
 
@@ -221,6 +221,8 @@ void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
     fParabolic->UpdateMemory_at_n();
     fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
     fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
+
+//    fTransfer->un_To_Transport_MeshII(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
     
     
 }

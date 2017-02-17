@@ -125,21 +125,23 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-//    fReportingTimes.Push(std::make_pair(500.0*day,true));
-//    fReportingTimes.Push(std::make_pair(450.0*day,false));
-//    fReportingTimes.Push(std::make_pair(400.0*day,false));
-//    fReportingTimes.Push(std::make_pair(350.0*day,false));
-//    fReportingTimes.Push(std::make_pair(300.0*day,false));
-//    fReportingTimes.Push(std::make_pair(250.0*day,false));
-//    fReportingTimes.Push(std::make_pair(200.0*day,false));
-//    fReportingTimes.Push(std::make_pair(150.0*day,false));
-//    fReportingTimes.Push(std::make_pair(100.0*day,true));
-//    fReportingTimes.Push(std::make_pair(50.0*day,false));
-//    fReportingTimes.Push(std::make_pair(40.0*day,false));
-//    fReportingTimes.Push(std::make_pair(30.0*day,false));
-//    fReportingTimes.Push(std::make_pair(20.0*day,false));
-//    fReportingTimes.Push(std::make_pair(10.0*day,false));
-    fReportingTimes.Push(std::make_pair(1.0*day,false));
+    fReportingTimes.Push(std::make_pair(5000.0*day,true));
+    fReportingTimes.Push(std::make_pair(4500.0*day,true));
+    fReportingTimes.Push(std::make_pair(4000.0*day,true));
+    fReportingTimes.Push(std::make_pair(3500.0*day,true));
+    fReportingTimes.Push(std::make_pair(3000.0*day,true));
+    fReportingTimes.Push(std::make_pair(2500.0*day,true));
+    fReportingTimes.Push(std::make_pair(2000.0*day,true));
+    fReportingTimes.Push(std::make_pair(1500.0*day,true));
+    fReportingTimes.Push(std::make_pair(1000.0*day,true));
+    fReportingTimes.Push(std::make_pair(500.0*day,true));
+    fReportingTimes.Push(std::make_pair(400.0*day,true));
+    fReportingTimes.Push(std::make_pair(300.0*day,true));
+    fReportingTimes.Push(std::make_pair(200.0*day,true));
+    fReportingTimes.Push(std::make_pair(100.0*day,true));
+//    fReportingTimes.Push(std::make_pair(3.0*day,true));
+//    fReportingTimes.Push(std::make_pair(2.0*day,true));
+//    fReportingTimes.Push(std::make_pair(1.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
@@ -186,13 +188,13 @@ void TRMRawData::WaterReservoirBox(bool Is3DGeometryQ){
     fGammaIds.Push(bc_W);
     W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(FluxAquifer));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
-    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
@@ -270,7 +272,7 @@ void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TP
 void TRMRawData::FluxAquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
     
-    REAL flux_aquifer = -0.000000184;
+    REAL flux_aquifer = -0.001;
     F[0] = flux_aquifer;
     return;
 }
@@ -408,21 +410,21 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
 
-    fReportingTimes.Push(std::make_pair(5000.0*day,false));
-    fReportingTimes.Push(std::make_pair(4500.0*day,false));
-    fReportingTimes.Push(std::make_pair(4000.0*day,false));
-    fReportingTimes.Push(std::make_pair(3500.0*day,false));
-    fReportingTimes.Push(std::make_pair(3000.0*day,false));
-    fReportingTimes.Push(std::make_pair(2500.0*day,false));
-    fReportingTimes.Push(std::make_pair(2000.0*day,false));
-    fReportingTimes.Push(std::make_pair(1500.0*day,false));
+    fReportingTimes.Push(std::make_pair(5000.0*day,true));
+    fReportingTimes.Push(std::make_pair(4500.0*day,true));
+    fReportingTimes.Push(std::make_pair(4000.0*day,true));
+    fReportingTimes.Push(std::make_pair(3500.0*day,true));
+    fReportingTimes.Push(std::make_pair(3000.0*day,true));
+    fReportingTimes.Push(std::make_pair(2500.0*day,true));
+    fReportingTimes.Push(std::make_pair(2000.0*day,true));
+    fReportingTimes.Push(std::make_pair(1500.0*day,true));
     fReportingTimes.Push(std::make_pair(1000.0*day,true));
-    fReportingTimes.Push(std::make_pair(500.0*day,false));
-    fReportingTimes.Push(std::make_pair(400.0*day,false));
-    fReportingTimes.Push(std::make_pair(300.0*day,false));
-    fReportingTimes.Push(std::make_pair(200.0*day,false));
-    fReportingTimes.Push(std::make_pair(100.0*day,false));
-    fReportingTimes.Push(std::make_pair(0.0*day,false));
+    fReportingTimes.Push(std::make_pair(500.0*day,true));
+    fReportingTimes.Push(std::make_pair(400.0*day,true));
+    fReportingTimes.Push(std::make_pair(300.0*day,true));
+    fReportingTimes.Push(std::make_pair(200.0*day,true));
+    fReportingTimes.Push(std::make_pair(100.0*day,true));
+    fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
     fdt = 100.0*day;

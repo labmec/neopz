@@ -219,7 +219,14 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         fSpaceGenerator->BuildMixed_Mesh();
     }
     
+    if(!fSimulationData->IsOnePhaseQ()){
+        int ref = 0;
+        fSpaceGenerator->UniformRefinement(ref);
+    }
+
+    
     if(fSimulationData->IsTwoPhaseQ()){
+        
         fSpaceGenerator->CreateAlphaTransportMesh();
         hyperbolic->Meshvec().Resize(1);
         hyperbolic->Meshvec()[0] = fSpaceGenerator->AlphaSaturationMesh();
@@ -235,7 +242,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         fSpaceGenerator->CreateTransportMesh();
     }
         
-    int numofThreads_p = 16;
+    int numofThreads_p = 0;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -244,10 +251,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    strmat_p.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    strmat_p.SetDecomposeType(ELDLt);
 
-    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
@@ -262,18 +269,9 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 16;
+        int numofThreads_t = 0;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
-//        TPZSkylineNSymStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
-//        strmat_t.SetNumThreads(numofThreads_t);
-//        step_t.SetDirect(ELU);
-//        hyperbolic->SetStructuralMatrix(strmat_t);
-//        hyperbolic->SetSolver(step_t);
-//        hyperbolic->AdjustVectors();
-//        hyperbolic->SetSimulationData(fSimulationData);
-//        hyperbolic->FilterEquations();
-        
 
 //        TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
 //        TPZStepSolver<STATE> step_t;
@@ -307,19 +305,21 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     Transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
     
     if(fSimulationData->IsOnePhaseQ()){
-        Transfer->FillComputationalElPairs(parabolic->Mesh(),parabolic->Mesh());
+//        Transfer->FillGeometricalElPairs(parabolic->Mesh(),parabolic->Mesh());
+        Transfer->FillComputationalElPairsII(parabolic->Mesh(),parabolic->Mesh());
     }
     
     if(fSimulationData->IsTwoPhaseQ()){
-        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
+        Transfer->FillComputationalElPairsII(parabolic->Mesh(),hyperbolic->Mesh());
         Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
-        Transfer->ComputeLeftRight(hyperbolic->Mesh());
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
+//        Transfer->ComputeLeftRight(hyperbolic->Mesh());
+        Transfer->ComputeLeftRightII(hyperbolic->Mesh());
+        Transfer->Fill_un_To_TransportII(parabolic->Mesh(),hyperbolic->Mesh(),true);
+        Transfer->Fill_un_To_TransportII(parabolic->Mesh(),hyperbolic->Mesh(),false);
     }
     
     if(fSimulationData->IsThreePhaseQ()){
-        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
+        Transfer->FillGeometricalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
         Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
         Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 1);
         Transfer->ComputeLeftRight(hyperbolic->Mesh());

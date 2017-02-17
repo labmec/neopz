@@ -775,7 +775,7 @@ void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &qsiSon, TP
 		qsiAncestor.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
 	}
 	
-	TPZVec<REAL> xson;
+	TPZVec<REAL> xson(3,0.0);
 	X(qsiSon,xson);
 	
 	TPZGeoEl *father = this;

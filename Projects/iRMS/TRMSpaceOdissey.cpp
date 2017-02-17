@@ -1012,12 +1012,6 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
     fAlphaSaturationMesh->SetAllCreateFunctionsDiscontinuous();
     fAlphaSaturationMesh->AutoBuild();
     
-    int n_ref = 1;
-    this->UniformRefinement_cmesh(fAlphaSaturationMesh, n_ref);
-    fAlphaSaturationMesh->AdjustBoundaryElements();
-    fAlphaSaturationMesh->CleanUpUnconnectedNodes();
-    fAlphaSaturationMesh->AutoBuild();
-    
 #ifdef PZDEBUG
     std::ofstream out("CmeshS_alpha.txt");
     fAlphaSaturationMesh->Print(out);

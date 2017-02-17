@@ -193,7 +193,7 @@ int TPZSYsmpMatrix<TVar>::Zero()
 {
     fA.Fill(TVar(0.));
     fDiag.resize(0);
-    fPardisoControl.Zero();
+//    fPardisoControl.Zero();
     return 1;
 }
 

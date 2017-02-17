@@ -41,24 +41,10 @@ class TRMBuildTransfers{
 private:
     
     
-    
-    /**
-     * @defgroup Attributes
-     * @{
-     */
-    
     /** @brief Autopointer of simulation data */
     TRMSimulationData * fSimulationData;
     
-    // @}
-
-    
     /** @brief Autopointer of simulation data */
-    
-    /**
-     * @defgroup Sparses Matrices to transfer information to the mixed problem on Omega
-     * @{
-     */
     
     /** @brief Diagonal block matrix to transfer u flux solution to integrations points of the mixed mesh */
     TRMIrregularBlockDiagonal<STATE> fu_To_Mixed;
@@ -96,14 +82,24 @@ private:
     /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh over Gamma */
     TRMIrregularBlockDiagonal<STATE> fun_To_Transport_Gamma;
     
+    
+    /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh over interfaces */
+    TRMIrregularBlockDiagonal<STATE> fun_To_Transport;
+    
     /** @brief normal flux dof indexes per interface element on gamma (inner interfaces)*/
     TPZVec< TPZVec<long> > fun_dof_scatter_gamma;
     
     /** @brief normal flux dof indexes per interface element on Gamma (boundary interfaces) */
     TPZVec< TPZVec<long> > fun_dof_scatter_Gamma;
+    
+    /** @brief normal flux dof indexes per interface on inner and boundary interfaces */
+    TPZVec< TPZVec<long> > fun_dof_scatter;
 
     /** @brief mixed and transpor computational multiphysics element indexes, every element is indexed by geometric element */
     TPZStack< std::pair<long, std::pair<long, long> >  > fmixed_transport_cindexes;
+
+    /** @brief mixed and transpor computational multiphysics element indexes, every element is indexed by correponding geometric element index */
+    TPZStack< std::pair<long, std::pair<long, std::vector<long> > >  > fmixed_transport_comp_indexes;
     
     /** @brief left and right geometric element indexes on gamma */
     TPZStack < std::pair<long, long> > fleft_right_g_indexes_gamma;
@@ -111,11 +107,23 @@ private:
     /** @brief geometric interface element indexes on Gamma */
     TPZStack < long > finterface_g_indexes_gamma;
     
-    /** @brief left and right geometric element indexes on Gamma */
+    /** @brief left and right geometric element indexes on gamma */
     TPZStack < std::pair<long, long> > fleft_right_g_indexes_Gamma;
     
     /** @brief geometric interface element indexes on Gamma */
     TPZStack < long > finterface_g_indexes_Gamma;
+    
+//    /** @brief left and right geometric element indexes */
+//    TPZStack < std::pair<long, long> > fleft_right_g_indexes;
+//    
+//    /** @brief geometric interface element indexes */
+//    TPZStack < long > finterface_g_indexes;
+
+    /** @brief computational interface element and associated mixed computational element */
+    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcinterface_ctransport_cmixed_indexes_gamma;
+    
+    /** @brief computational interface element and associated mixed computational element */
+    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcinterface_ctransport_cmixed_indexes_Gamma;
     
     //    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
     //    TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_V;
@@ -273,11 +281,20 @@ public:
     /** @brief Transfer average pressure to integration points of multiphysics mixed meshes over volumetric elements */
     void p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed);
     
+    /** @brief Transfer average pressure to integration points of multiphysics mixed meshes over volumetric elements */
+    void p_avg_Memory_TransferII(TPZCompMesh * cmesh_mf_mixed);
+    
     /** @brief Transfer average quantities to integration points of multiphysics mixed/ transpor meshes over volumetric elements */
     void Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_trans);
     
+    /** @brief Transfer average quantities to integration points of multiphysics mixed/ transpor meshes over volumetric elements */
+    void Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_trans);
+    
     /** @brief Transfer normal fluxes to integration points of transport meshes */
     void un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_transport, bool IsBoundaryQ);
+    
+    /** @brief Transfer normal fluxes to integration points of transport meshes */
+    void un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_transport, bool IsBoundaryQ);
     
     // @}
     
@@ -325,11 +342,18 @@ public:
     /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh over Gamma or gamma */
     void Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ);
     
+    /** @brief Initializate  diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh over Gamma or gamma */
+    void Initialize_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ);
+    
+    /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh over Gamma or gamma */
+    void Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ);
+
     
     /** @brief Get the sparse matrix to transfer average normal flux solution to integrations points of the transport mesh  */
     TRMIrregularBlockDiagonal<STATE> Transfer_un_To_Transport_gamma(){
         return fun_To_Transport_gamma;
     }
+    
     
     /** @brief Get the sparse matrix to transfer average normal flux solution to integrations points of the transport mesh  */
     TRMIrregularBlockDiagonal<STATE> Transfer_un_To_Transport_Gamma(){
@@ -346,6 +370,9 @@ public:
 
     /** @brief Compute left and right geometric element indexes associated with the transport mesh */
     void ComputeLeftRight(TPZCompMesh * transport_mesh);
+    
+    /** @brief Compute left and right geometric element indexes associated with the transport mesh */
+    void ComputeLeftRightII(TPZCompMesh * transport_mesh);
     
     
     // @}
@@ -372,9 +399,11 @@ public:
     // Computational mesh operations
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    /** @brief Compute compuational mesh pair (mixed, transport) indexed by geometric volumetic element index */
-    void FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);
-    
+    /** @brief Compute geometric mesh pair (mixed, transport) indexed by geometric volumetic element index */
+    void FillGeometricalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);
+
+    /** @brief Compute computational mesh pair (mixed, transport) indexed by geometric volumetic element index */
+    void FillComputationalElPairsII(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Computational element operations
@@ -405,6 +434,9 @@ public:
     
     /** @brief Compute sides associated to faces on 3D topologies */
     void ComputeFaceNormals(TPZGeoEl * gel , TPZVec<int> &sides, TPZFMatrix<STATE> &normals);
+    
+    /** @brief Compute indices associated to faces on 3D topologies */
+    void ComputeTransformationAndNormal(TPZGeoEl * face_gel_origin, TPZGeoEl * gel_origin , TPZGeoEl * gel_target, TPZVec<REAL> & origin, TPZVec<REAL> & target, TPZFMatrix<REAL> & n);
     
     
     // @}
