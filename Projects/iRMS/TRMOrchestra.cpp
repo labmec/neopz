@@ -220,7 +220,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
     if(!fSimulationData->IsOnePhaseQ()){
-        int ref = 0;
+        int ref = 3;
         fSpaceGenerator->UniformRefinement(ref);
     }
 
@@ -242,7 +242,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         fSpaceGenerator->CreateTransportMesh();
     }
         
-    int numofThreads_p = 0;
+    int numofThreads_p = 4;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -269,7 +269,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 0;
+        int numofThreads_t = 4;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 
@@ -312,7 +312,6 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     if(fSimulationData->IsTwoPhaseQ()){
         Transfer->FillComputationalElPairsII(parabolic->Mesh(),hyperbolic->Mesh());
         Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
-//        Transfer->ComputeLeftRight(hyperbolic->Mesh());
         Transfer->ComputeLeftRightII(hyperbolic->Mesh());
         Transfer->Fill_un_To_TransportII(parabolic->Mesh(),hyperbolic->Mesh(),true);
         Transfer->Fill_un_To_TransportII(parabolic->Mesh(),hyperbolic->Mesh(),false);

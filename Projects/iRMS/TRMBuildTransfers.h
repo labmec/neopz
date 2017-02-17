@@ -412,6 +412,9 @@ public:
     /** @brief Compute element dof indexes */
     void ElementDofIndexes(TPZInterpolationSpace * &intel,  TPZVec<long> &dof_indexes);
     
+    /** @brief Compute element dof indexes */    
+    void ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes);
+    
     /** @brief Compute element dof indexes at given connect */
     void ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
     
@@ -436,7 +439,7 @@ public:
     void ComputeFaceNormals(TPZGeoEl * gel , TPZVec<int> &sides, TPZFMatrix<STATE> &normals);
     
     /** @brief Compute indices associated to faces on 3D topologies */
-    void ComputeTransformationAndNormal(TPZGeoEl * face_gel_origin, TPZGeoEl * gel_origin , TPZGeoEl * gel_target, TPZVec<REAL> & origin, TPZVec<REAL> & target, TPZFMatrix<REAL> & n);
+    void ComputeTransformation(TPZGeoEl * face_gel_origin, TPZGeoEl * gel_origin , TPZGeoEl * gel_target, TPZVec<REAL> & origin, TPZVec<REAL> & target);
     
     
     // @}

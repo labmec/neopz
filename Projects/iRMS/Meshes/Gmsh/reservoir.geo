@@ -37,7 +37,7 @@ CADReservoirQ = 0;
 
 xzQ = 0;
 hexahedronsWQ = 0;
-hexahedronsRQ = 1;
+hexahedronsRQ = 0;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -57,7 +57,7 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 1000.0;
+cl4 = 250.0;
 cl5 = 5000.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ cl5 = 5000.0;
 
 // reservoir box dimensions
 x_length = 1000.0;
-y_length = 100.0;
+y_length = 1000.0;
 z_length = 100.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -131,8 +131,8 @@ wcx = -200.0;
 wcy = 100.0;
 wcz = 150.0;
 
-wcx = 38;
-wcy = 50.0;
+wcx = -138;
+wcy = 100.0;
 wcz = 0.0;
 
 IsInjectorQ = 0;
