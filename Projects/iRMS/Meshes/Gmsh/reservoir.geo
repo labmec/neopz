@@ -31,13 +31,13 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 0;
-dimension = 3;
+dimension = 2;
 nolinearQ = 0;
-CADReservoirQ = 1;
+CADReservoirQ = 0;
 
 xzQ = 0;
 hexahedronsWQ = 0;
-hexahedronsRQ = 0;
+hexahedronsRQ = 1;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)

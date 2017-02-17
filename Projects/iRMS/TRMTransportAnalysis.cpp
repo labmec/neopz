@@ -270,7 +270,7 @@ void TRMTransportAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());    
     const int dim = this->Mesh()->Reference()->Dimension();
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "DualSegregatedDarcyOnBox_Saturations.vtk";
     scalnames.Push("s_a");

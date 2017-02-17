@@ -1766,7 +1766,7 @@ void TRMBuildTransfers::Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompM
     TPZGeoEl * face_gel;
     TPZGeoEl * mixed_gel;
     
-    int int_order_interfaces = 10;
+    int int_order_interfaces = 5;
     
     TPZManVector<long> indices;
     std::pair<long, long> duplet;
@@ -1893,9 +1893,7 @@ void TRMBuildTransfers::Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompM
                 s_i = data.fVecShapeIndex[iu].second;
                 
                 for (int k = 0; k < intel_vol_dim; k++) {
-//                    for (int j = 0; j < nshapes; j++) {
                         phi_dot_n(iu,0) += 1.0 * phi_qs(s_i,0) * data.fNormalVec(k,v_i) * face_data.normal[k];
-//                    }
                 }
                 
             }
