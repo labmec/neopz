@@ -1766,7 +1766,7 @@ void TRMBuildTransfers::Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompM
     TPZGeoEl * face_gel;
     TPZGeoEl * mixed_gel;
     
-    int int_order_interfaces = 15;
+    int int_order_interfaces = 10;
     
     TPZManVector<long> indices;
     std::pair<long, long> duplet;

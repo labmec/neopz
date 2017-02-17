@@ -220,8 +220,9 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
     if(!fSimulationData->IsOnePhaseQ()){
-        int ref = 3;
-        fSpaceGenerator->UniformRefinement(ref);
+        int ref = 2;
+//        fSpaceGenerator->UniformRefinement(ref);
+        fSpaceGenerator->UniformRefineTetrahedrons(ref);
     }
 
     
