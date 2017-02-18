@@ -241,7 +241,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     //  Computing closure relationship at given average values
     TPZManVector<STATE, 10> v(nvars);
     v[0] = p_avg_n;
-    v[1] = sa_avg_n;
+    v[1] = sa;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho_a,rho_b,l;
@@ -259,7 +259,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     if(! fSimulationData->IsCurrentStateQ()){
         v[0] = p_avg;
-        v[1] = sa_avg;
+        v[1] = sa;
         fSimulationData->AlphaProp()->Density(rho_a, v);
         fSimulationData->BetaProp()->Density(rho_b, v);
         fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
@@ -340,7 +340,7 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     if(! fSimulationData->IsCurrentStateQ()){
         
         v[0] = p_avg;
-        v[1] = sa_avg;
+        v[1] = sa;
         fSimulationData->AlphaProp()->Density(rho_a, v);
         fSimulationData->BetaProp()->Density(rho_b, v);
         fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);

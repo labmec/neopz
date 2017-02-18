@@ -156,7 +156,7 @@ Else
 
 // mesh controls on wellbore region on 2D
 alpha = 1.2;
-n_radial = 10;
+n_radial = 5;
 n_azimuthal = 3;
 
 apc = newp; Point(apc) = {0, 0, 0, rw_cell};   	// Sphere center

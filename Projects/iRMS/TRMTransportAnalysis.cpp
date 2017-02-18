@@ -207,6 +207,15 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
         this->Set_k_ietrarions(k);
         this->NewtonIteration();// @omar:: I prefer no linearize this matrix
         
+//        this->Set_k_ietrarions(k);
+//        
+//        if (fSimulationData->IsQuasiNewtonQ()) {
+//            this->QuasiNewtonIteration();
+//        }
+//        else{
+//            this->NewtonIteration();
+//        }
+        
 //#ifdef PZDEBUG
 //        fR.Print("R = ", std::cout,EMathematicaInput);
 //        fX.Print("X = ", std::cout,EMathematicaInput);

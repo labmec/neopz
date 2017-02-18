@@ -220,7 +220,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
     if(!fSimulationData->IsOnePhaseQ()){
-        int ref = 0;
+        int ref = 1;
         fSpaceGenerator->UniformRefinement(ref);
 //        fSpaceGenerator->UniformRefineTetrahedrons(ref);
     }
@@ -453,7 +453,7 @@ void TRMOrchestra::RunStaticProblem(){
     int n = 2;
     bool draw_mixed_mapQ = false;
     REAL dt = fSimulationData->dt();
-    fSimulationData->Setdt(1.0e10);
+    fSimulationData->Setdt(1.0e14);
     
     for (int i = 0; i < n; i++) {
         if (IsMonolithicQ()) {

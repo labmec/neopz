@@ -81,21 +81,20 @@ void TRMSegregatedAnalysis::AdjustVectors(){
 
 void TRMSegregatedAnalysis::SegregatedIteration(){
 
-//    this->UpdateMemory();
     this->UpdateMemory_at_n(); // @omar:: It is time to verify
+    
     fParabolic->ExcecuteOneStep();
-
 
     if (fSimulationData->IsOnePhaseQ()) {
         return;
     }
     this->UpdateFluxes_at_n();
     
-//    this->UpdateMemory_at_n();
+    this->UpdateMemory_at_n();
 
     fHyperbolic->ExcecuteOneStep();
     
-//    this->UpdateMemory_at_n();    
+    this->UpdateMemory_at_n();
 
     
 }
@@ -120,7 +119,9 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
     
     bool IsConverged_eQ = false;
     bool IsConverged_dQ = false;
-    bool IsConverged_iQ = false;
+    bool IsConverged_iQ = true;
+    
+    this->UpdateMemory(); // last average values
     
     for (int k = 1; k <= n; k++) {
 
@@ -134,7 +135,11 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
         
         IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
         IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
-        IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) &&  (fHyperbolic->k_ietrarions() <= 10);
+        
+        if (!fSimulationData->IsOnePhaseQ()) {
+            IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) &&  (fHyperbolic->k_ietrarions() <= 10);
+        }
+
         
         if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
         {
@@ -211,7 +216,7 @@ void TRMSegregatedAnalysis::UpdateMemory(){
     }
     
     Hyperbolic()->UpdateMemory();
-    fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
+    fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
     
 }
 
@@ -221,10 +226,6 @@ void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
     fParabolic->UpdateMemory_at_n();
     fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
     fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
-
-//    fTransfer->un_To_Transport_MeshII(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
-    
-    
 }
 
 /** @brief update global state for the new euler step */

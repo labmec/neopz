@@ -909,6 +909,11 @@ void TRMBuildTransfers::Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixe
         // for each transport subelement
         int n_subcels = fmixed_transport_comp_indexes[ivol].second.second.size();
         
+        REAL avg_sa      = 0.0;
+        REAL avg_sa_n    = 0.0;
+        REAL avg_sb      = 0.0;
+        REAL avg_sb_n    = 0.0;
+        
         for (int icel = 0; icel < n_subcels; icel++) {
             TPZCompEl * trans_cel = cmesh_mf_trans->Element( fmixed_transport_comp_indexes[ivol].second.second[icel]);
             
@@ -918,7 +923,8 @@ void TRMBuildTransfers::Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixe
             }
 #endif
             
-            REAL element_measure = DimensionalMeasure(mixed_cel->Reference());
+            REAL element_measure_mixed = DimensionalMeasure(mixed_cel->Reference());
+            REAL element_measure_transport = DimensionalMeasure(trans_cel->Reference());
             
             GlobalPointIndexes(mixed_cel, p_point_indexes);
             GlobalPointIndexes(trans_cel, s_point_indexes);
@@ -961,10 +967,12 @@ void TRMBuildTransfers::Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixe
                 int_points_mixed.Point(ip, triplet, w);
                 gel->Jacobian(triplet, jac, axes, detjac, jacinv);
                 
-                p_avg_n += w * detjac * mixed_memory->GetMemory()[p_point_indexes[ip]].p_n()/element_measure;
-                p_avg +=  w * detjac * mixed_memory->GetMemory()[p_point_indexes[ip]].p()/element_measure;
+                p_avg_n += w * detjac * mixed_memory->GetMemory()[p_point_indexes[ip]].p_n()/element_measure_mixed;
+                p_avg +=  w * detjac * mixed_memory->GetMemory()[p_point_indexes[ip]].p()/element_measure_mixed;
                 
             }
+            
+            TPZGeoEl  * gel_transport = mf_trans_cel->Reference();
             
             REAL sa      = 0.0;
             REAL sa_n    = 0.0;
@@ -975,12 +983,12 @@ void TRMBuildTransfers::Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixe
             for (int ip = 0; ip < np_trans_cel; ip++) {
                 
                 int_points_trans.Point(ip, triplet, w);
-                gel->Jacobian(triplet, jac, axes, detjac, jacinv);
+                gel_transport->Jacobian(triplet, jac, axes, detjac, jacinv);
                 
-                sa_n += w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sa_n()/element_measure;
-                sb_n += w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sb_n()/element_measure;
-                sa +=  w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sa()/element_measure;
-                sb +=  w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sb()/element_measure;
+                sa_n += w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sa_n()/element_measure_transport;
+                sb_n += w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sb_n()/element_measure_transport;
+                sa +=  w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sa()/element_measure_transport;
+                sb +=  w * detjac * trans_memory->GetMemory()[s_point_indexes[ip]].sb()/element_measure_transport;
                 
             }
             
@@ -989,18 +997,25 @@ void TRMBuildTransfers::Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixe
             //
             //        std::cout << "sa_n = "<< sa_n << std::endl;
             //        std::cout << "sa = "<< sa << std::endl;
-            
+            if (fSimulationData->IsCurrentStateQ()) {
+                avg_sa_n += sa_n*element_measure_transport/element_measure_mixed;
+                avg_sb_n += sb_n*element_measure_transport/element_measure_mixed;
+            }
+            else{
+                avg_sa += sa*element_measure_transport/element_measure_mixed;
+                avg_sb += sb*element_measure_transport/element_measure_mixed;
+            }
             // Inserting average pressure and saturation in mixed memory
             for (int ip = 0; ip < np_mixed_cel; ip++) {
                 if (fSimulationData->IsCurrentStateQ()) {
                     mixed_memory->GetMemory()[p_point_indexes[ip]].Set_p_avg_n(p_avg_n);
-                    mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa_n(sa_n);
-                    mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb_n(sb_n);
+                    mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa_n(avg_sa_n);
+                    mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb_n(avg_sb_n);
                 }
                 else{
                     mixed_memory->GetMemory()[p_point_indexes[ip]].Set_p_avg(p_avg);
-                    mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa(sa);
-                    mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb(sb);
+                    mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sa(avg_sa);
+                    mixed_memory->GetMemory()[p_point_indexes[ip]].Set_sb(avg_sb);
                 }
                 
             }
@@ -1766,7 +1781,7 @@ void TRMBuildTransfers::Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompM
     TPZGeoEl * face_gel;
     TPZGeoEl * mixed_gel;
     
-    int int_order_interfaces = 5;
+    int int_order_interfaces = 1;
     
     TPZManVector<long> indices;
     std::pair<long, long> duplet;
@@ -2864,7 +2879,7 @@ REAL TRMBuildTransfers::DimensionalMeasure(TPZGeoEl * gel){
     }
 #endif
     REAL measure = 0.0;
-    int order = 5;
+    int order = 10;
     int element_itself  = gel->NSides() - 1;
     TPZIntPoints * int_points = gel->CreateSideIntegrationRule(element_itself, order);
     REAL detjac, w;
