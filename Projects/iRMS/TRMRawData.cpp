@@ -399,32 +399,33 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     //fg[1] = -9.81;
     
-    int map_model = 0; // constant
+    int map_model = 1; // constant -> 0, function -> 1
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
+
     
     // Time control parameters
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
 
-    fReportingTimes.Push(std::make_pair(5000.0*day,true));
-    fReportingTimes.Push(std::make_pair(4500.0*day,true));
-    fReportingTimes.Push(std::make_pair(4000.0*day,true));
-    fReportingTimes.Push(std::make_pair(3500.0*day,true));
-    fReportingTimes.Push(std::make_pair(3000.0*day,true));
-    fReportingTimes.Push(std::make_pair(2500.0*day,true));
-    fReportingTimes.Push(std::make_pair(2000.0*day,true));
-    fReportingTimes.Push(std::make_pair(1500.0*day,true));
+    fReportingTimes.Push(std::make_pair(5000.0*day,false));
+    fReportingTimes.Push(std::make_pair(4500.0*day,false));
+    fReportingTimes.Push(std::make_pair(4000.0*day,false));
+    fReportingTimes.Push(std::make_pair(3500.0*day,false));
+    fReportingTimes.Push(std::make_pair(3000.0*day,false));
+    fReportingTimes.Push(std::make_pair(2500.0*day,false));
+    fReportingTimes.Push(std::make_pair(2000.0*day,false));
+    fReportingTimes.Push(std::make_pair(1500.0*day,false));
     fReportingTimes.Push(std::make_pair(1000.0*day,true));
-    fReportingTimes.Push(std::make_pair(500.0*day,true));
-    fReportingTimes.Push(std::make_pair(400.0*day,true));
-    fReportingTimes.Push(std::make_pair(300.0*day,true));
-    fReportingTimes.Push(std::make_pair(200.0*day,true));
-    fReportingTimes.Push(std::make_pair(100.0*day,true));
+    fReportingTimes.Push(std::make_pair(500.0*day,false));
+    fReportingTimes.Push(std::make_pair(400.0*day,false));
+    fReportingTimes.Push(std::make_pair(300.0*day,false));
+    fReportingTimes.Push(std::make_pair(200.0*day,false));
+    fReportingTimes.Push(std::make_pair(100.0*day,false));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
-    fdt = 100.0*day;
+    fdt = 10.0*day;
     fdt_max = 500.0*day;
     fdt_min = 0.1*day;
     fdt_up = 10.0;
@@ -467,14 +468,14 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fGammaIds.Push(bc_W);
     W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fIntial_bc_data.Push(W);
-//    W[0] = std::make_pair(3,new TPZDummyFunction<REAL>(Aquifer_2p));
-    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    W[0] = std::make_pair(3,new TPZDummyFunction<REAL>(Aquifer_2p));
+//    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
-    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
@@ -541,7 +542,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux_b = -0.058569, S = 1.0;
+    REAL flux_b = -0.058569*2.0, S = 1.0;
     
     REAL day = 86400;
     REAL flux = flux_b + 0.00*(sin((time/day)/100));

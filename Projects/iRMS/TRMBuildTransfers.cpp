@@ -2381,6 +2381,11 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
     
 }
 
+//TPZVec<STATE> x(3,0.0);
+//TPZFMatrix<STATE> kappa, inv_kappa;
+//REAL phi;
+//this->ComputePropertieSPE10Map(x, kappa, inv_kappa, phi);
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Utility Methods

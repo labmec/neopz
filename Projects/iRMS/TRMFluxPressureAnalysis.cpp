@@ -254,8 +254,8 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     }
     
     scalnames.Push("p");
-    scalnames.Push("div_u");
-    scalnames.Push("cfl");
+//    scalnames.Push("div_u");
+//    scalnames.Push("cfl");
     scalnames.Push("phi");
     vecnames.Push("u");
     vecnames.Push("kappa");

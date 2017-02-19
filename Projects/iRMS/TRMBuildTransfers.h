@@ -264,11 +264,6 @@ public:
     TRMBuildTransfers &operator=(const TRMBuildTransfers &other);
     
 
-    /**
-     * @defgroup Apply transfers to different meshes
-     * @{
-     */
-
     /** @brief Transfer Flux to integration points of multiphysics mesh over volumetric elements */
     void u_To_Mixed_Memory(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_multiphysics);
     
@@ -295,13 +290,6 @@ public:
     
     /** @brief Transfer normal fluxes to integration points of transport meshes */
     void un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_transport, bool IsBoundaryQ);
-    
-    // @}
-    
-    /**
-     * @defgroup Create, compute and get transfer matrices
-     * @{
-     */
 
     /** @brief Initializate diagonal block matrix to transfer flux to multiphysics mesh  */
     void Initialize_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index);
@@ -347,7 +335,6 @@ public:
     
     /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh over Gamma or gamma */
     void Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ);
-
     
     /** @brief Get the sparse matrix to transfer average normal flux solution to integrations points of the transport mesh  */
     TRMIrregularBlockDiagonal<STATE> Transfer_un_To_Transport_gamma(){
