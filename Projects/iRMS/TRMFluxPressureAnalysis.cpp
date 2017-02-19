@@ -254,11 +254,14 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     }
     
     scalnames.Push("p");
+    vecnames.Push("u");
 //    scalnames.Push("div_u");
 //    scalnames.Push("cfl");
-    scalnames.Push("phi");
-    vecnames.Push("u");
-    vecnames.Push("kappa");
+    
+    if(!fSimulationData->IsInitialStateQ() && fSimulationData->t() == 0.0){
+        vecnames.Push("kappa");
+        scalnames.Push("phi");
+    }
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

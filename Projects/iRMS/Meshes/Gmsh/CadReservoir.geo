@@ -1,5 +1,5 @@
 
-YShapeReservoirQ = 1;
+YShapeReservoirQ = 0;
 
 Macro ReservoirCAD
 

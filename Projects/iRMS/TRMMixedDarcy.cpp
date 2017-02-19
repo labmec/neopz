@@ -1375,6 +1375,7 @@ void TRMMixedDarcy::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
             fSimulationData->Map()->Kappa(datavec[ub].x, kappa, inv_kappa, v);
             Solout[0] = kappa(0,0);
             Solout[1] = kappa(1,1);
+            Solout[2] = kappa(2,2);
         }
             break;
         case 5:
