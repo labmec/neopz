@@ -394,7 +394,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /** @brief Compute geometric mesh pair (mixed, transport) indexed by geometric volumetic element index */
-    void FillGeometricalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);
+    void FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);
 
     /** @brief Compute computational mesh pair (mixed, transport) indexed by geometric volumetic element index */
     void FillComputationalElPairsII(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);

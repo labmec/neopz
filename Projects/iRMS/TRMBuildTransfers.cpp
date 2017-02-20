@@ -595,7 +595,7 @@ void TRMBuildTransfers::kappa_phi_To_Mixed_Memory(TPZCompMesh * cmesh_multiphysi
             continue;
         }
         
-        int order  = cel->GetgOrder()+1;
+        int order  = (cel->GetgOrder()+1)*2;
         TPZIntPoints * int_points = gel->CreateSideIntegrationRule(gel->NSides()-1, order);
         int np = int_points->NPoints();
         GlobalPointIndexes(cel, indexes);
@@ -1725,21 +1725,15 @@ void TRMBuildTransfers::Initialize_un_To_TransportII(TPZCompMesh * flux_mesh, TP
 /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
 void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ){
     
-
-#ifdef USING_BOOST
-    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
-#endif
-
+    
+    if (fSimulationData->TransporResolution().first) {
+        this->Fill_un_To_TransportII(flux_mesh,transport_mesh,IsBoundaryQ);
+        return;
+    }
+    
     // It verify the consistency of dynamic_cast and mesh structure and at the end Initialize diagonal matrix blocks
     Initialize_un_To_Transport(flux_mesh,transport_mesh,IsBoundaryQ);
     
-#ifdef USING_BOOST
-    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-
-#ifdef USING_BOOST
-    std::cout  << "Time for Matrix Initialization " << (t2-t1) << std::endl;
-#endif
     int mesh_index = 0;
     TPZGeoMesh * geometry = flux_mesh->Reference();
     
@@ -1747,7 +1741,6 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
     flux_mesh->LoadReferences();
     TPZManVector<long,10> dof_indexes;
     
-    TPZCompEl * cel_face;
     TPZGeoEl * left_gel;
     TPZGeoEl * right_gel;
     TPZGeoEl * face_gel;
@@ -1803,16 +1796,10 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
             DebugStop();
         }
         
-//        // Computing face connect index associated to the element face being integrated
-//        // The method is really simple the inteface is detected by connect shared between hdiv volumetric elements
-//        this->ComputeFaceNormals(left_gel,face_sides,normals);
 
         TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(left_cel);
         TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
         
-//        TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace *> (left_cel);
-        
-        int nfaces = face_sides.size();
         
         int face_side       = -1;
         int connect_index   = -1;
@@ -2152,20 +2139,11 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
             // Trasnfering integrated normal fluxes values
             int counter = 0;
             int i = 0;
-            int face_g_index, left_mixed_g_index, right_mixed_g_index;
             for (int iface = 0; iface < n_interfaces; iface++) {
                 
-//                TPZGeoEl *gel    = geometry->Element(finterface_g_indexes_Gamma[iface]);
-//                TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_Gamma[iface].first);
-//                TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_Gamma[iface].second);
-
-                face_g_index = fcinterface_ctransport_cmixed_indexes_Gamma[iface].first;
-                left_mixed_g_index = fcinterface_ctransport_cmixed_indexes_Gamma[iface].second.second.first;
-                right_mixed_g_index = fcinterface_ctransport_cmixed_indexes_Gamma[iface].second.second.second;
-                
-                TPZGeoEl *gel    = cmesh_transport->Element(face_g_index)->Reference();
-                TPZGeoEl *gel_l  = cmesh_flux->Element(left_mixed_g_index)->Reference();
-                TPZGeoEl *gel_r  = cmesh_flux->Element(right_mixed_g_index)->Reference();
+                TPZGeoEl *gel    = geometry->Element(finterface_g_indexes_Gamma[iface]);
+                TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_Gamma[iface].first);
+                TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_Gamma[iface].second);
 
                 
 #ifdef PZDEBUG
@@ -2236,8 +2214,6 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
         TPZFMatrix<STATE> un_at_intpoints;
         fun_To_Transport_gamma.Multiply(ScatterFluxes,un_at_intpoints);
         
-//        un_at_intpoints.Print("u_gamma = ");        
-        
         // Step three
         // Trasnfering integrated normal fluxes values
         for(long i = 0; i < np_cmesh; i++){
@@ -2250,14 +2226,8 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
         int left_mixed_g_index, right_mixed_g_index;        
         for (int iface = 0; iface < n_interfaces; iface++) {
 
-//            TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_gamma[iface].first);
-//            TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_gamma[iface].second);
-            
-            left_mixed_g_index = fcinterface_ctransport_cmixed_indexes_gamma[iface].second.second.first;
-            right_mixed_g_index = fcinterface_ctransport_cmixed_indexes_gamma[iface].second.second.second;
-            
-            TPZGeoEl *gel_l  = cmesh_flux->Element(left_mixed_g_index)->Reference();
-            TPZGeoEl *gel_r  = cmesh_flux->Element(right_mixed_g_index)->Reference();
+            TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_gamma[iface].first);
+            TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_gamma[iface].second);
             
 #ifdef PZDEBUG
             if (!gel_l || !gel_r) {
@@ -2328,10 +2298,6 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
     TPZGeoMesh * geometry = cmesh_transport->Reference();
     long n_interfaces;
     int dimension = geometry->Dimension();
-    if (!IsBoundaryQ) {
-        DebugStop();
-    }
-    
     if (IsBoundaryQ) {
         n_interfaces = fleft_right_g_indexes_Gamma.size();
     }
@@ -2344,19 +2310,12 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
     TPZMaterial * rock_material = cmesh_flux->FindMaterial(rock_id);
     TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material);
     
-    geometry->ResetReference();
-    cmesh_flux->LoadReferences();
     
-    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>  * material_bc_mem;
-    TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin>  * material_mem;
-    
-    
-    
-    
-    if (IsBoundaryQ) { // boudary case
+    if (IsBoundaryQ) {
         
-
-        int nbc = 1;// this->SimulationData()->RawData()->fGammaIds.size();
+        geometry->ResetReference();
+        cmesh_flux->LoadReferences();
+        int nbc = this->SimulationData()->RawData()->fGammaIds.size();
         
         for (int ibc = 0; ibc < nbc; ibc++) {
             
@@ -2364,7 +2323,7 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
             //  Getting the total integration point of the destination cmesh
             TPZMaterial * material = cmesh_transport->FindMaterial(material_id);
             
-            material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> *>(material);
+            TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>  * material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> *>(material);
             
             if (!material_bc_mem) {
                 DebugStop();
@@ -2374,8 +2333,8 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
             TPZFMatrix<STATE> ScatterFluxes(fun_To_Transport_Gamma.Cols(),1,0.0);
             long pos = 0;
             for (int iface = 0; iface < n_interfaces; iface++) {
-                for(int iflux = 0; iflux < fun_dof_scatter[iface].size(); iflux++) {
-                    ScatterFluxes(pos,0) = cmesh_flux->Solution()(fun_dof_scatter[iface][iflux],0);
+                for(int iflux = 0; iflux < fun_dof_scatter_Gamma[iface].size(); iflux++) {
+                    ScatterFluxes(pos,0) = cmesh_flux->Solution()(fun_dof_scatter_Gamma[iface][iflux],0);
                     pos++;
                 }
             }
@@ -2384,16 +2343,24 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
             TPZFMatrix<STATE> un_at_intpoints;
             fun_To_Transport_Gamma.Multiply(ScatterFluxes,un_at_intpoints);
             
-            //            un_at_intpoints.Print("u_Gamma = ");
-            
             // Step three
             // Trasnfering integrated normal fluxes values
             int counter = 0;
             int i = 0;
+            int face_g_index, left_mixed_g_index, right_mixed_g_index;
             for (int iface = 0; iface < n_interfaces; iface++) {
-                TPZGeoEl *gel    = geometry->Element(finterface_g_indexes_Gamma[iface]);
-                TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_Gamma[iface].first);
-                TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_Gamma[iface].second);
+                
+                //                TPZGeoEl *gel    = geometry->Element(finterface_g_indexes_Gamma[iface]);
+                //                TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_Gamma[iface].first);
+                //                TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_Gamma[iface].second);
+                
+                face_g_index = fcinterface_ctransport_cmixed_indexes_Gamma[iface].first;
+                left_mixed_g_index = fcinterface_ctransport_cmixed_indexes_Gamma[iface].second.second.first;
+                right_mixed_g_index = fcinterface_ctransport_cmixed_indexes_Gamma[iface].second.second.second;
+                
+                TPZGeoEl *gel    = cmesh_transport->Element(face_g_index)->Reference();
+                TPZGeoEl *gel_l  = cmesh_flux->Element(left_mixed_g_index)->Reference();
+                TPZGeoEl *gel_r  = cmesh_flux->Element(right_mixed_g_index)->Reference();
                 
                 
 #ifdef PZDEBUG
@@ -2464,20 +2431,26 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
         TPZFMatrix<STATE> un_at_intpoints;
         fun_To_Transport_gamma.Multiply(ScatterFluxes,un_at_intpoints);
         
-        //        un_at_intpoints.Print("u_gamma = ");
-        
         // Step three
         // Trasnfering integrated normal fluxes values
         for(long i = 0; i < np_cmesh; i++){
             material_mem->GetMemory()[i].Set_un(un_at_intpoints(i,0));
         }
         
+        geometry->ResetReference();
+        cmesh_flux->LoadReferences();
         int i = 0;
+        int left_mixed_g_index, right_mixed_g_index;
         for (int iface = 0; iface < n_interfaces; iface++) {
             
-            TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_gamma[iface].first);
-            TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_gamma[iface].second);
+            //            TPZGeoEl *gel_l  = geometry->Element(fleft_right_g_indexes_gamma[iface].first);
+            //            TPZGeoEl *gel_r  = geometry->Element(fleft_right_g_indexes_gamma[iface].second);
             
+            left_mixed_g_index = fcinterface_ctransport_cmixed_indexes_gamma[iface].second.second.first;
+            right_mixed_g_index = fcinterface_ctransport_cmixed_indexes_gamma[iface].second.second.second;
+            
+            TPZGeoEl *gel_l  = cmesh_flux->Element(left_mixed_g_index)->Reference();
+            TPZGeoEl *gel_r  = cmesh_flux->Element(right_mixed_g_index)->Reference();
             
 #ifdef PZDEBUG
             if (!gel_l || !gel_r) {
@@ -2518,11 +2491,6 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
     return;
     
 }
-
-//TPZVec<STATE> x(3,0.0);
-//TPZFMatrix<STATE> kappa, inv_kappa;
-//REAL phi;
-//this->ComputePropertieSPE10Map(x, kappa, inv_kappa, phi);
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2836,6 +2804,11 @@ void TRMBuildTransfers::ComputeFaceNormals(TPZGeoEl * gel , TPZVec<int> &sides, 
 /** @brief Compute left and right geometric element indexes */
 void TRMBuildTransfers::ComputeLeftRight(TPZCompMesh * transport_mesh){
     
+    if (fSimulationData->TransporResolution().first) {
+        this->ComputeLeftRightII(transport_mesh);
+        return;
+    }
+    
     fleft_right_g_indexes_Gamma.Resize(0);
     fleft_right_g_indexes_gamma.Resize(0);
     
@@ -3146,7 +3119,13 @@ void TRMBuildTransfers::ElementDofFaceIndexes(int connect_index, TPZMultiphysics
 
 
 /** @brief Compute compuational mesh pair (mixed, transport) indexed by geometric volumetic element index */
-void TRMBuildTransfers::FillGeometricalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport){
+void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport){
+    
+    
+    if (fSimulationData->TransporResolution().first) {
+        this->FillComputationalElPairsII(cmesh_mf_mixed,cmesh_mf_transport);
+        return;
+    }
 
     fmixed_transport_cindexes.Resize(0);
     

@@ -226,7 +226,7 @@ public:
     void BuildGeometry(bool Is3DGeometryQ);
     
     /** @brief Create geometric mesh being used by space odissey */
-    void BuildGeometry2();
+    void BuildGeometry();
     
     /** @brief Create computational meshes using space odissey */
     void CreateCompMeshes();

@@ -233,8 +233,8 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
     
-    REAL sa_avg_n    = point_memory.sa_n();
-    REAL sa_avg      = point_memory.sa();
+//    REAL sa_avg_n    = point_memory.sa_n();
+//    REAL sa_avg      = point_memory.sa();
     
     //  Average values p_a
     
@@ -318,8 +318,8 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
     
-    REAL sa_avg_n    = point_memory.sa_n();
-    REAL sa_avg      = point_memory.sa();
+//    REAL sa_avg_n    = point_memory.sa_n();
+//    REAL sa_avg      = point_memory.sa();
     
     
     //  Average values p_a
@@ -440,11 +440,11 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
     
-    REAL sa_avg_n    = point_memory.sa_n();
-    REAL sa_avg      = point_memory.sa();
-
-    REAL sb_avg_n    = point_memory.sb_n();
-    REAL sb_avg      = point_memory.sb();
+//    REAL sa_avg_n    = point_memory.sa_n();
+//    REAL sa_avg      = point_memory.sa();
+//
+//    REAL sb_avg_n    = point_memory.sb_n();
+//    REAL sb_avg      = point_memory.sb();
     
     
     
@@ -453,8 +453,8 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     //  Computing closure relationship at given average values
     TPZManVector<STATE, 10> v(nvars);
     v[0] = p_avg_n;
-    v[1] = sa_avg_n;
-    v[2] = sb_avg_n;
+    v[1] = sa;
+    v[2] = sb;
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho_a,rho_b,l;
@@ -479,8 +479,8 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     
     if(! fSimulationData->IsCurrentStateQ()){
         v[0] = p_avg;
-        v[1] = sa_avg;
-        v[2] = sb_avg;
+        v[1] = sa;
+        v[2] = sb;
         fSimulationData->AlphaProp()->Density(rho_a, v);
         fSimulationData->BetaProp()->Density(rho_b, v);
         fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
@@ -489,14 +489,14 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
         for (int is = 0; is < nphis_a; is++)
         {
             
-            ef(is + firsts_a) += weight * (-1.0/dt) * sa_avg * rho_a[0] * phi[0] * phi_ssa(is,0);
+            ef(is + firsts_a) += weight * (-1.0/dt) * sa * rho_a[0] * phi[0] * phi_ssa(is,0);
             
         }
         
         for (int is = 0; is < nphis_b; is++)
         {
             
-            ef(is + firsts_b) += weight * (-1.0/dt) * sb_avg * rho_b[0] * phi[0] * phi_ssb(is,0);
+            ef(is + firsts_b) += weight * (-1.0/dt) * sb * rho_b[0] * phi[0] * phi_ssb(is,0);
             
         }
         
@@ -507,7 +507,7 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     for (int is = 0; is < nphis_a; is++)
     {
         
-        ef(is + firsts_a) += weight * (1.0/dt) * sa_avg_n * rho_a[0] * phi[0] * phi_ssa(is,0);
+        ef(is + firsts_a) += weight * (1.0/dt) * sa * rho_a[0] * phi[0] * phi_ssa(is,0);
         
         for (int js = 0; js < nphis_a; js++)
         {
@@ -519,7 +519,7 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     for (int is = 0; is < nphis_b; is++)
     {
         
-        ef(is + firsts_b) += weight * (1.0/dt) * sb_avg_n * rho_b[0] * phi[0] * phi_ssb(is,0);
+        ef(is + firsts_b) += weight * (1.0/dt) * sb * rho_b[0] * phi[0] * phi_ssb(is,0);
         
         for (int js = 0; js < nphis_a; js++)
         {
@@ -557,19 +557,20 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     REAL p_avg_n    = point_memory.p_avg_n();
     REAL p_avg      = point_memory.p_avg();
     
-    REAL sa_avg_n    = point_memory.sa_n();
-    REAL sa_avg      = point_memory.sa();
-    
-    REAL sb_avg_n    = point_memory.sb_n();
-    REAL sb_avg      = point_memory.sb();
+//    REAL sa_avg_n    = point_memory.sa_n();
+//    REAL sa_avg      = point_memory.sa();
+//    
+//    REAL sb_avg_n    = point_memory.sb_n();
+//    REAL sb_avg      = point_memory.sb();
     
     //  Average values
     
     //  Computing closure relationship at given average values
     TPZManVector<STATE, 10> v(nvars);
     v[0] = p_avg_n;
-    v[1] = sa_avg_n;
-    v[2] = sb_avg_n;
+    v[1] = sa;
+    v[2] = sb;
+
     
     // Fluid parameters
     TPZManVector<STATE, 10> rho_a,rho_b,l;
@@ -594,8 +595,8 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     
     if(! fSimulationData->IsCurrentStateQ()){
         v[0] = p_avg;
-        v[1] = sa_avg;
-        v[2] = sb_avg;
+        v[1] = sa;
+        v[2] = sb;
         fSimulationData->AlphaProp()->Density(rho_a, v);
         fSimulationData->BetaProp()->Density(rho_b, v);
         fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
@@ -604,14 +605,14 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
         for (int is = 0; is < nphis_a; is++)
         {
             
-            ef(is + firsts_a) += weight * (-1.0/dt) * sa_avg * rho_a[0] * phi[0] * phi_ssa(is,0);
+            ef(is + firsts_a) += weight * (-1.0/dt) * sa * rho_a[0] * phi[0] * phi_ssa(is,0);
             
         }
         
         for (int is = 0; is < nphis_b; is++)
         {
             
-            ef(is + firsts_b) += weight * (-1.0/dt) * sb_avg * rho_b[0] * phi[0] * phi_ssb(is,0);
+            ef(is + firsts_b) += weight * (-1.0/dt) * sb * rho_b[0] * phi[0] * phi_ssb(is,0);
             
         }
         
@@ -622,14 +623,14 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     for (int is = 0; is < nphis_a; is++)
     {
         
-        ef(is + firsts_a) += weight * (1.0/dt) * sa_avg_n * rho_a[0] * phi[0] * phi_ssa(is,0);
+        ef(is + firsts_a) += weight * (1.0/dt) * sa * rho_a[0] * phi[0] * phi_ssa(is,0);
         
     }
     
     for (int is = 0; is < nphis_b; is++)
     {
         
-        ef(is + firsts_b) += weight * (1.0/dt) * sb_avg_n * rho_b[0] * phi[0] * phi_ssb(is,0);
+        ef(is + firsts_b) += weight * (1.0/dt) * sb * rho_b[0] * phi[0] * phi_ssb(is,0);
         
     }
     

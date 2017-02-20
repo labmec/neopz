@@ -69,6 +69,15 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Use of quasi newton method */
     fIsQuasiNewtonQ = false;
     
+    /** @brief Use, level and resolution of MHM process */
+    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.second.first = 0;
+    fMHMResolutionQ.second.second = 0;
+    
+    /** @brief Use of increased transpor resolution transfers operators */
+    fIncreaseTransporResolutionQ.first = false;
+    fIncreaseTransporResolutionQ.second = 0;
+    
     /** @brief Autopointer of all the petrophysics data */
     fPetroPhysics = NULL;
     
@@ -108,6 +117,9 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     SetSystemType(RawData->fSystemType,RawData->fPhases);
     SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_down, RawData->fdt_max, RawData->fdt_min, RawData->fReportingTimes);
     SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ);
+    SetTransporResolution(RawData->fIncreaseTransporResolutionQ);
+    SetMHMResolution(RawData->fMHMResolutionQ);
+
 }
 
 /** @brief Setup reporting times and time step size */

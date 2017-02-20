@@ -91,6 +91,13 @@ protected:
     /** @brief Use of quasi newton method */
     bool fIsQuasiNewtonQ;
     
+    /** @brief Use, level and resolution of MHM process */
+    std::pair<bool, std::pair<int, int> > fMHMResolutionQ;
+    
+    /** @brief Use of increased transpor resolution transfers operators */
+    std::pair<bool, int> fIncreaseTransporResolutionQ;
+    
+    
     /** @brief Autopointer of the RawData */
     TPZAutoPointer<TRMRawData> fRawData;
     
@@ -253,6 +260,26 @@ public:
     /** @brief Setup reporting times and time step size */
     void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ);
     
+    /** @brief Setup Use, level and resolution of MHM process */
+    void SetMHMResolution(std::pair<bool, std::pair<int, int> > MHMResolutionQ){
+        fMHMResolutionQ = MHMResolutionQ;
+    }
+    
+    /** @brief Get Use, level and resolution of MHM process */
+    std::pair<bool, std::pair<int, int> > & MHMResolution(){
+        return fMHMResolutionQ;
+    }
+    
+    /** @brief Setup transpor resolution options */
+    void SetTransporResolution(std::pair<bool, int> IncreaseTransporResolutionQ){
+        fIncreaseTransporResolutionQ = IncreaseTransporResolutionQ;
+    }
+    
+    /** @brief Get transpor resolution options */
+    std::pair<bool, int> & TransporResolution(){
+        return fIncreaseTransporResolutionQ;
+    }
+    
     /** @brief Store time values to be reported */
     TPZStack< STATE , 500 > & ReportingTimes(){
         return fReportingTimes;
@@ -312,7 +339,7 @@ public:
     int InterfacesMatId() { return fInterface_mat_Id; }
     
     /** @brief Set the directive for use of gradient reconstruction */
-    void SetUseGradientR(bool UseGR) { return fUseGradientRQ = UseGR; }
+    void SetUseGradientR(bool UseGR) { fUseGradientRQ = UseGR; }
     
     /** @brief Get the directive for use of gradient reconstruction */
     int UseGradientR() { return fUseGradientRQ; }

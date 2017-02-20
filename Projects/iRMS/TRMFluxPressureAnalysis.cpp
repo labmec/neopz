@@ -220,7 +220,13 @@ void TRMFluxPressureAnalysis::UpdateMemory_at_n(){
     // Volumetric update    
     fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
     fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
-    fTransfer->p_avg_Memory_TransferII(Mesh());
+    
+    if (fSimulationData->TransporResolution().first) {
+        fTransfer->p_avg_Memory_TransferII(Mesh());
+    }
+    else{
+        fTransfer->p_avg_Memory_Transfer(Mesh());
+    }
     
 }
 
@@ -233,7 +239,14 @@ void TRMFluxPressureAnalysis::UpdateMemory(){
     // Volumetric update
     fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
     fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
-    fTransfer->p_avg_Memory_TransferII(Mesh());
+    
+    if (fSimulationData->TransporResolution().first) {
+        fTransfer->p_avg_Memory_TransferII(Mesh());
+    }
+    else{
+        fTransfer->p_avg_Memory_Transfer(Mesh());
+    }
+
     
 }
 

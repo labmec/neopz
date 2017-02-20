@@ -394,11 +394,11 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
     if(skeleton_id != 0){
         fSimulationData->SetSkeleton_material_Id(skeleton_id);
     }
-    
+    int level = fSimulationData->MHMResolution().second.first;
     long nel = fGeoMesh->NElements();
     for (long el = 0; el<nel; el++) {
         TPZGeoEl *gel = fGeoMesh->Element(el);
-        if (!gel || gel->Level() != 0 || gel->Dimension() != fGeoMesh->Dimension()) {
+        if (!gel || gel->Level() != level || gel->Dimension() != fGeoMesh->Dimension()) {
             continue;
         }
         int nsides = gel->NSides();

@@ -201,7 +201,13 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     }
     
     Hyperbolic()->UpdateMemory_at_n();
-    fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
+    
+    if (fSimulationData->TransporResolution().first) {
+        fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
+    }
+    else{
+        fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
+    }
 
 }
 
@@ -216,7 +222,13 @@ void TRMSegregatedAnalysis::UpdateMemory(){
     }
     
     Hyperbolic()->UpdateMemory();
-    fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
+    
+    if (fSimulationData->TransporResolution().first) {
+        fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
+    }
+    else{
+        fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
+    }
     
 }
 
@@ -224,8 +236,16 @@ void TRMSegregatedAnalysis::UpdateMemory(){
 void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
 
     fParabolic->UpdateMemory_at_n();
-    fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
-    fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
+    
+    if (fSimulationData->TransporResolution().first) {
+        fTransfer->un_To_Transport_MeshII(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
+        fTransfer->un_To_Transport_MeshII(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
+    }
+    else{
+        fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
+        fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
+    }
+    
 }
 
 /** @brief update global state for the new euler step */

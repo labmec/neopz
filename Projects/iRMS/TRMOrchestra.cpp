@@ -125,19 +125,6 @@ void TRMOrchestra::BuildGeometry(bool Is3DGeometryQ){
 
 }
 
-/** @brief Create geometric mesh being used by space odissey */
-void TRMOrchestra::BuildGeometry2(){
-    
-    std::string dirname = PZSOURCEDIR;
-    std::string file;
-    file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir.msh";
-    fSpaceGenerator->CreateGeometricGmshMesh(file);
-    
-    int ref = 0;
-//    fSpaceGenerator->UniformRefinement(ref);
-    fSpaceGenerator->UniformRefineTetrahedrons(ref);
-    fSpaceGenerator->PrintGeometry();
-}
 
 /** @brief Create a primal analysis using space odissey */
 void TRMOrchestra::CreateAnalysisPrimal()
@@ -181,12 +168,26 @@ void TRMOrchestra::CreateAnalysisPrimal()
     
 }
 
+/** @brief Create geometric mesh being used by space odissey */
+void TRMOrchestra::BuildGeometry(){
+    
+    std::string dirname = PZSOURCEDIR;
+    std::string file;
+    file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir.msh";
+    fSpaceGenerator->CreateGeometricGmshMesh(file);
+    
+    int ref = fSimulationData->MHMResolution().second.second;
+        fSpaceGenerator->UniformRefinement(ref);
+//    fSpaceGenerator->UniformRefineTetrahedrons(ref);
+    fSpaceGenerator->PrintGeometry();
+
+}
+
 /** @brief Create a dual analysis using space odissey */
 void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 {
 
-//    this->BuildGeometry(false);
-    this->BuildGeometry2();
+    this->BuildGeometry();
     
     fSimulationData->SetInitialStateQ(IsInitialQ);
     TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
@@ -205,10 +206,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
 #endif
     
-    fSpaceGenerator->SetDefaultPOrder(1);
+    fSpaceGenerator->SetDefaultPOrder(2);
     fSpaceGenerator->SetDefaultSOrder(0);
 
-    bool UseMHMQ = false;
+    bool UseMHMQ = fSimulationData->MHMResolution().first;
     
     if(UseMHMQ){
         int skeleton_id = 0;
@@ -219,10 +220,11 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         fSpaceGenerator->BuildMixed_Mesh();
     }
     
-    if(!fSimulationData->IsOnePhaseQ()){
-        int ref = 0;
-//        fSpaceGenerator->UniformRefinement(ref);
-        fSpaceGenerator->UniformRefineTetrahedrons(ref);
+
+    // Setting for increase transport resolution
+    if(fSimulationData->TransporResolution().first){
+        fSpaceGenerator->UniformRefinement(fSimulationData->TransporResolution().second);
+//        fSpaceGenerator->UniformRefineTetrahedrons(ref);
     }
 
     
@@ -311,21 +313,20 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     Transfer->kappa_phi_To_Mixed_Memory(parabolic->Mesh());
     
     if(fSimulationData->IsOnePhaseQ()){
-//        Transfer->FillGeometricalElPairs(parabolic->Mesh(),parabolic->Mesh());
-        Transfer->FillComputationalElPairsII(parabolic->Mesh(),parabolic->Mesh());
+        Transfer->FillComputationalElPairs(parabolic->Mesh(),parabolic->Mesh());
     }
     
     if(fSimulationData->IsTwoPhaseQ()){
         Transfer->kappa_phi_To_Transport_Memory(hyperbolic->Mesh());
-        Transfer->FillComputationalElPairsII(parabolic->Mesh(),hyperbolic->Mesh());
+        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
         Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
-        Transfer->ComputeLeftRightII(hyperbolic->Mesh());
-        Transfer->Fill_un_To_TransportII(parabolic->Mesh(),hyperbolic->Mesh(),true);
-        Transfer->Fill_un_To_TransportII(parabolic->Mesh(),hyperbolic->Mesh(),false);
+        Transfer->ComputeLeftRight(hyperbolic->Mesh());
+        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
+        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
     }
     
     if(fSimulationData->IsThreePhaseQ()){
-        Transfer->FillGeometricalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
+        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
         Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
         Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 1);
         Transfer->ComputeLeftRight(hyperbolic->Mesh());

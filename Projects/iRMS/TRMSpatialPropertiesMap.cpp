@@ -272,7 +272,7 @@ void TRMSpatialPropertiesMap::phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE
     REAL epsilon = 500.0;
     REAL cx = (2.0 + 1.8*sin(20.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*x[1]/epsilon));
     REAL cy = (2.0 + 1.8*sin(20.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*x[0]/epsilon));
-    val *= fabs(cx + cy)*0.1;
+    val *= fabs(cx + cy)*0.05;
     phi[0] = val;
     
 }
