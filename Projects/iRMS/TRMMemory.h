@@ -25,11 +25,7 @@
  */
 
 class TRMMemory {
-
-    /**
-     * @defgroup Required Memory quantities
-     * @{
-     */
+    
     
     /** @brief Total flux */
     TPZManVector<REAL,3> fu;
@@ -60,14 +56,7 @@ class TRMMemory {
     
     /** @brief Beta saturation at the previous timestep */
     REAL fsb_n;
-    
-    //@}
-    
-    /**
-     * @defgroup Memory quantities being transfered, tentative use
-     * @{
-     */
-    
+
     /** @brief Total flux divergence */
     REAL fdivu;
     
@@ -79,6 +68,9 @@ class TRMMemory {
 
     /** @brief Absolute permeability */
     TPZFNMatrix<9,REAL> fK;
+    
+    /** @brief Absolute permeability inverse */
+    TPZFNMatrix<9,REAL> fKinv;
     
     /** @brief Integration weight */
     REAL fw;
@@ -92,8 +84,6 @@ class TRMMemory {
     /** @brief Spatial coordinate */
     TPZManVector<REAL,3> fx;
 
-    
-    //@}
     
 public:
     
@@ -120,6 +110,7 @@ public:
         fsb_n = copy.fsb_n;
         fporosity = copy.fporosity;
         fK = copy.fK;
+        fKinv = copy.fKinv;
         fw = copy.fw;
         fdet = copy.fdet;
         frhs = copy.frhs;
@@ -144,6 +135,7 @@ public:
         fdivu_n = cp.fdivu_n;
         fporosity = cp.fporosity;
         fK = cp.fK;
+        fKinv = cp.fKinv;
         fw = cp.fw;
         fdet = cp.fdet;
         frhs = cp.frhs;
@@ -263,16 +255,46 @@ public:
         return fsb_n;
     }
     
-    //@}
+    /** @brief Set intact rock Porosity */
+    void Set_phi_0(REAL porosity){
+        fporosity = porosity;
+    }
     
+    /** @brief Get intact rock Porosity */
+    REAL phi_0(){
+        return fporosity;
+    }
     
+    /** @brief Set intact absolute permeability */
+    void Set_K_0(TPZFNMatrix<9,REAL> K){
+        fK = K;
+    }
     
+    /** @brief Get intact absolute permeability */
+    TPZFNMatrix<9,REAL> & K_0(){
+        return fK;
+    }
     
-  
-    /**
-     * @defgroup Write, Read and Print methods
-     * @{
-     */
+    /** @brief Set intact absolute permeability inv */
+    void Set_Kinv_0(TPZFNMatrix<9,REAL> Kinv){
+        fKinv = Kinv;
+    }
+    
+    /** @brief Get intact absolute permeability inv */
+    TPZFNMatrix<9,REAL> & Kinv_0(){
+        return fKinv;
+    }
+    
+    /** @brief Set x coordinate */
+    void Set_x(TPZManVector<REAL,3> x){
+        fx = x;
+    }
+    
+    /** @brief Get x coordinate */
+    TPZManVector<REAL,3> & x(){
+        return fx;
+    }
+    
     
     void Write(TPZStream &buf, int withclassid)
     {

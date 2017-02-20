@@ -250,9 +250,16 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[sb_a].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     
     // Integration point contribution
@@ -330,9 +337,16 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[sb_a].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     
     // Integration point contribution
@@ -449,9 +463,16 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[sb_a].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     
     // Integration point contribution
@@ -557,9 +578,16 @@ void TRMPhaseTransport::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL we
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[sb_a].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     
     // Integration point contribution

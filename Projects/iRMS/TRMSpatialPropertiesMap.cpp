@@ -36,7 +36,7 @@ void TRMSpatialPropertiesMap::Kappa(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> 
             break;
         case 2:
         {
-            DebugStop();
+            this->Kappa_int(x, kappa, inv_kappa, state_vars);
         }
             break;
         default:
@@ -65,7 +65,7 @@ void TRMSpatialPropertiesMap::phi(TPZManVector<STATE,3> &x, TPZManVector<STATE,1
             break;
         case 2:
         {
-            DebugStop();
+            this->phi_int(x, phi, state_vars);
         }
             break;
         default:
@@ -224,23 +224,6 @@ void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE
     inv_kappa(1,1) = 1.0/kappa(1,1);
     inv_kappa(2,2) = 1.0/kappa(2,2);
     
-//    kappa.Resize(3,3);
-//    kappa.Zero();
-//    STATE val = 1.0e-14;
-//    REAL epsilon = 500.0;
-//    REAL kx = (2.0 + 1.8*sin(20.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*(x[1])/epsilon));
-//    REAL ky = (2.0 + 1.8*sin(20.0*M_PI*x[1]*x[0]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*(x[0])/epsilon));
-//    REAL kz = (2.0 + 1.8*sin(20.0*M_PI*x[2]*x[2]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*x[2]/epsilon));
-//    kappa(0,0) = val*fabs(kx)*100.0;
-//    kappa(1,1) = val*fabs(ky);
-//    kappa(2,2) = val*fabs(kz);
-//    
-//    inv_kappa.Resize(3,3);
-//    inv_kappa.Zero();
-//    inv_kappa(0,0) = 1.0/kappa(0,0);
-//    inv_kappa(1,1) = 1.0/kappa(1,1);
-//    inv_kappa(2,2) = 1.0/kappa(2,2);
-    
 }
 
 
@@ -253,15 +236,47 @@ void TRMSpatialPropertiesMap::phi_c(TPZManVector<STATE,3> &x, TPZManVector<STATE
     STATE val = 0.25;
     phi[0] = val;
     
-//    phi.Resize(10, 0.0);
-//    STATE val = 0.25;
-//    REAL epsilon = 500.0;
-//    REAL cx = (2.0 + 1.8*sin(20.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*x[1]/epsilon));
-//    REAL cy = (2.0 + 1.8*sin(20.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*x[0]/epsilon));
-//    val *= fabs(cx + cy)*0.1;
-//    phi[0] = val;
+}
+
+/** @brief Absolute Permeability m2 function  $\kappa$ */
+void TRMSpatialPropertiesMap::Kappa_f(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars){
+    
+    kappa.Resize(3,3);
+    kappa.Zero();
+    STATE val = 1.0e-14;
+    REAL epsilon = 500.0;
+    REAL kx = (2.0 + 1.8*sin(20.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*(x[1])/epsilon));
+    REAL ky = (2.0 + 1.8*sin(20.0*M_PI*x[1]*x[0]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*(x[0])/epsilon));
+    REAL kz = (2.0 + 1.8*sin(20.0*M_PI*x[2]*x[2]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*x[2]/epsilon));
+    kappa(0,0) = val*fabs(kx)*100.0;
+    kappa(1,1) = val*fabs(ky);
+    kappa(2,2) = val*fabs(kz);
+
+    inv_kappa.Resize(3,3);
+    inv_kappa.Zero();
+    inv_kappa(0,0) = 1.0/kappa(0,0);
+    inv_kappa(1,1) = 1.0/kappa(1,1);
+    inv_kappa(2,2) = 1.0/kappa(2,2);
     
 }
+
+
+
+
+/** @brief Porosity fraction function  $\phi$ */
+void TRMSpatialPropertiesMap::phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+    
+    
+    phi.Resize(10, 0.0);
+    STATE val = 0.25;
+    REAL epsilon = 500.0;
+    REAL cx = (2.0 + 1.8*sin(20.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*x[1]/epsilon));
+    REAL cy = (2.0 + 1.8*sin(20.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*x[0]/epsilon));
+    val *= fabs(cx + cy)*0.1;
+    phi[0] = val;
+    
+}
+
 
 /** @brief first lamé parameter $\lambda$ */
 void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars){
@@ -303,7 +318,7 @@ void TRMSpatialPropertiesMap::alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STA
 }
 
 /** @brief Absolute Permeability m2  $\kappa$ */
-void TRMSpatialPropertiesMap::Kappa_f(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars){
+void TRMSpatialPropertiesMap::Kappa_int(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars){
 
     long index = 0;
     REAL phi;
@@ -311,7 +326,7 @@ void TRMSpatialPropertiesMap::Kappa_f(TPZManVector<STATE,3> &x, TPZFMatrix<STATE
 }
 
 /** @brief Porosity fraction  $\phi$ */
-void TRMSpatialPropertiesMap::phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
+void TRMSpatialPropertiesMap::phi_int(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars){
     
     TPZFMatrix<STATE> kappa, inv_kappa;
     long index = 0;
@@ -426,17 +441,19 @@ void TRMSpatialPropertiesMap::LoadSPE10Map()
     int n_data = nel_x * nel_y * nel_z;
     this->Insert_Inside_Map(n_data);
     
-    TPZAnalysis * an_map = new TPZAnalysis(fSPE10Cmesh,false);
-    an_map->LoadSolution();
     
-    int div = 0;
-    TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile =  "Spatial_map.vtk";
-    scalnames.Push("phi");
-    vecnames.Push("kappa");
     
-    an_map->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-    an_map->PostProcess(div);
+//    TPZAnalysis * an_map = new TPZAnalysis(fSPE10Cmesh,false);
+//    an_map->LoadSolution();
+//    
+//    int div = 0;
+//    TPZStack<std::string> scalnames, vecnames;
+//    std::string plotfile =  "Spatial_map.vtk";
+//    scalnames.Push("phi");
+//    vecnames.Push("kappa");
+//    
+//    an_map->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+//    an_map->PostProcess(div);
     
 }
 

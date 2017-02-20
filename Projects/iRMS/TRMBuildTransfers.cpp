@@ -548,6 +548,83 @@ void TRMBuildTransfers::Fill_s_To_Transport(TPZCompMesh * cmesh_multiphysics, in
 /// Transfer Methods
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+void TRMBuildTransfers::kappa_phi_To_Mixed_Memory(TPZCompMesh * cmesh_multiphysics){
+    
+    
+#ifdef PZDEBUG
+    if (!cmesh_multiphysics) {
+        DebugStop();
+    }
+#endif
+    
+    int dim = cmesh_multiphysics->Dimension();
+    
+    // For the imat
+    int imat = 0;
+    int rockid = this->SimulationData()->RawData()->fOmegaIds[imat];
+    
+    //  Getting the total integration point of the destination cmesh
+    TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
+    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
+    
+    TPZFMatrix<STATE> kappa, kappa_inv;
+    TPZManVector<STATE, 10> vars;
+    TPZManVector<STATE, 10> porosity;
+    // Step one
+    int n_elements = cmesh_multiphysics->NElements();
+    TPZManVector<long, 30> indexes;
+    for (int icel = 0; icel < n_elements; icel++) {
+        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
+        
+#ifdef PZDEBUG
+        if (!cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZGeoEl * gel = cel->Reference();
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->Dimension()!= dim) {
+            continue;
+        }
+        
+        int order  = cel->GetgOrder()+1;
+        TPZIntPoints * int_points = gel->CreateSideIntegrationRule(gel->NSides()-1, order);
+        int np = int_points->NPoints();
+        GlobalPointIndexes(cel, indexes);
+        
+#ifdef PZDEBUG
+        if (indexes.size() != np) {
+            DebugStop();
+        }
+#endif
+        
+        TPZManVector<REAL,3> par_triplet(3,0.0);
+        TPZManVector<REAL,3> x(3,0.0);
+        REAL w;
+        for (int ip = 0; ip<np; ip++) {
+            int_points->Point(ip, par_triplet, w);
+            gel->X(par_triplet, x);
+            
+            associated_material->GetMemory()[indexes[ip]].Set_x(x);
+            fSimulationData->Map()->Kappa(x, kappa, kappa_inv, vars);
+            fSimulationData->Map()->phi(x, porosity, vars);
+            associated_material->GetMemory()[indexes[ip]].Set_K_0(kappa);
+            associated_material->GetMemory()[indexes[ip]].Set_Kinv_0(kappa_inv);
+            associated_material->GetMemory()[indexes[ip]].Set_phi_0(porosity[0]);
+        }
+    }
+    
+}
+
+
 void TRMBuildTransfers::u_To_Mixed_Memory(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_multiphysics){
     
 
@@ -645,11 +722,85 @@ void TRMBuildTransfers::p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompM
     
 }
 
-void TRMBuildTransfers::s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TPZCompMesh * cmesh_multiphysics, int mesh_index){
+void TRMBuildTransfers::kappa_phi_To_Transport_Memory(TPZCompMesh * cmesh_multiphysics){
     
-//    if(fSimulationData->IsThreePhaseQ()){
-//        DebugStop();
-//    }
+    
+#ifdef PZDEBUG
+    if (!cmesh_multiphysics) {
+        DebugStop();
+    }
+#endif
+    
+    int dim = cmesh_multiphysics->Dimension();
+    
+    // For the imat
+    int imat = 0;
+    int rockid = this->SimulationData()->RawData()->fOmegaIds[imat];
+    
+    //  Getting the total integration point of the destination cmesh
+    TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
+    TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
+    
+
+    TPZFMatrix<STATE> kappa, kappa_inv;
+    TPZManVector<STATE, 10> vars;
+    TPZManVector<STATE, 10> porosity;
+    // Step one
+    int n_elements = cmesh_multiphysics->NElements();
+    TPZManVector<long, 30> indexes;
+    for (int icel = 0; icel < n_elements; icel++) {
+        TPZCompEl * cel = cmesh_multiphysics->Element(icel);
+        
+#ifdef PZDEBUG
+        if (!cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZGeoEl * gel = cel->Reference();
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->Dimension()!= dim) {
+            continue;
+        }
+        
+        int order  = cel->GetgOrder()-1;
+        TPZIntPoints * int_points = gel->CreateSideIntegrationRule(gel->NSides()-1, order);
+        int np = int_points->NPoints();
+        GlobalPointIndexes(cel, indexes);
+        
+#ifdef PZDEBUG
+        if (indexes.size() != np) {
+            DebugStop();
+        }
+#endif
+        
+        TPZManVector<REAL,3> par_triplet(3,0.0);
+        TPZManVector<REAL,3> x(3,0.0);
+        REAL w;
+        for (int ip = 0; ip<np; ip++) {
+            int_points->Point(ip, par_triplet, w);
+            gel->X(par_triplet, x);
+            
+            associated_material->GetMemory()[indexes[ip]].Set_x(x);
+            fSimulationData->Map()->Kappa(x, kappa, kappa_inv, vars);
+            fSimulationData->Map()->phi(x, porosity, vars);
+            associated_material->GetMemory()[indexes[ip]].Set_K_0(kappa);
+            associated_material->GetMemory()[indexes[ip]].Set_Kinv_0(kappa_inv);
+            associated_material->GetMemory()[indexes[ip]].Set_phi_0(porosity[0]);
+        }
+    }
+    
+}
+
+
+void TRMBuildTransfers::s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TPZCompMesh * cmesh_multiphysics, int mesh_index){
+
     
 #ifdef PZDEBUG
     if (!cmesh_multiphysics) {
@@ -710,11 +861,10 @@ void TRMBuildTransfers::s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TP
                 associated_material->GetMemory()[i].Set_sb(Saturation_at_intpoints(i,0));
             }
         }
-    
+        
     }
     
 }
-
 
 /** @brief Reciprocal (mixed <-> transpor) transfer average quantities to integration points of multiphysics meshes over volumetric elements */
 void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_trans){
@@ -1751,21 +1901,9 @@ void TRMBuildTransfers::Fill_un_To_Transport(TPZCompMesh * flux_mesh, TPZCompMes
 /** @brief Initializate diagonal block matrix to transfer average normal flux solution to integrations points of the transport mesh  */
 void TRMBuildTransfers::Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompMesh * transport_mesh, bool IsBoundaryQ){
     
-    
-#ifdef USING_BOOST
-    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
-#endif
-    
     // It verify the consistency of dynamic_cast and mesh structure and at the end Initialize diagonal matrix blocks
     Initialize_un_To_TransportII(flux_mesh,transport_mesh,IsBoundaryQ);
     
-#ifdef USING_BOOST
-    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-    
-#ifdef USING_BOOST
-    std::cout  << "Time for Matrix Initialization " << (t2-t1) << std::endl;
-#endif
     
     int mesh_index = 0;
     TPZGeoMesh * geometry = flux_mesh->Reference();

@@ -265,10 +265,17 @@ public:
     
 
     /** @brief Transfer Flux to integration points of multiphysics mesh over volumetric elements */
+    void kappa_phi_To_Mixed_Memory(TPZCompMesh * cmesh_multiphysics);
+    
+    /** @brief Transfer Flux to integration points of multiphysics mesh over volumetric elements */
     void u_To_Mixed_Memory(TPZCompMesh * cmesh_flux, TPZCompMesh * cmesh_multiphysics);
     
     /** @brief Transfer Pressure to integration points of multiphysics mesh over volumetric elements */
     void p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompMesh * cmesh_multiphysics);
+    
+    
+    /** @brief Transfer saturations to integration points of multiphysics transport mesh over volumetric elements */
+    void kappa_phi_To_Transport_Memory(TPZCompMesh * cmesh_multiphysics);
     
     /** @brief Transfer saturations to integration points of multiphysics transport mesh over volumetric elements */
     void s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TPZCompMesh * cmesh_multiphysics, int mesh_index);

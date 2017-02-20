@@ -194,7 +194,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
 #ifdef PZDEBUG
     if (!fSpaceGenerator->Gmesh()) {
-        std::cout << "iRMS:: Call BuildGeometry " << std::endl;
+        std::cout << "iMRS:: Call BuildGeometry " << std::endl;
         DebugStop();
     }
     
@@ -252,10 +252,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    strmat_p.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    strmat_p.SetDecomposeType(ELDLt);
 
-    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
@@ -298,12 +298,17 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-       
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
     // Transfer object
     TRMBuildTransfers * Transfer = new TRMBuildTransfers;
     Transfer->SetSimulationData(fSimulationData);
     Transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
     Transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
+    Transfer->kappa_phi_To_Mixed_Memory(parabolic->Mesh());
     
     if(fSimulationData->IsOnePhaseQ()){
 //        Transfer->FillGeometricalElPairs(parabolic->Mesh(),parabolic->Mesh());
@@ -311,6 +316,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     }
     
     if(fSimulationData->IsTwoPhaseQ()){
+        Transfer->kappa_phi_To_Transport_Memory(hyperbolic->Mesh());
         Transfer->FillComputationalElPairsII(parabolic->Mesh(),hyperbolic->Mesh());
         Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
         Transfer->ComputeLeftRightII(hyperbolic->Mesh());
@@ -327,7 +333,17 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
     }
     
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    std::cout  << "iRMS:: Time for construction of transfer object " << (t2-t1) << std::endl;
+#endif
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
     parabolic->SetTransfer(Transfer);
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
         hyperbolic->SetTransfer(Transfer);
@@ -361,7 +377,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
     
 #ifdef PZDEBUG
     if (!fSpaceGenerator->Gmesh()) {
-        std::cout << "iRMS:: Call BuildGeometry " << std::endl;
+        std::cout << "iMRS:: Call BuildGeometry " << std::endl;
         DebugStop();
     }
     fSpaceGenerator->PrintGeometry();
@@ -448,7 +464,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
 /** @brief Run the static problem over a single large time step */
 void TRMOrchestra::RunStaticProblem(){
     
-    std::cout<< "iRMS:: Finding Initial State" << std::endl;
+    std::cout<< "iMRS:: Finding Initial State" << std::endl;
     
     int n = 2;
     bool draw_mixed_mapQ = false;
@@ -475,7 +491,7 @@ void TRMOrchestra::RunStaticProblem(){
 #endif
             
 #ifdef USING_BOOST
-            std::cout  << "iRMS:: OneStep execution time = " << (t2-t1) << std::endl;
+            std::cout  << "iMRS:: OneStep execution time = " << (t2-t1) << std::endl;
 #endif
             
         }
@@ -509,7 +525,7 @@ void TRMOrchestra::RunStaticProblem(){
 /** @brief Run the evolutionary problem for all steps set in the simulation data */
 void TRMOrchestra::RunEvolutionaryProblem(){
     
-    std::cout<< "iRMS:: Running Evolutionary problem" << std::endl;
+    std::cout<< "iMRS:: Running Evolutionary problem" << std::endl;
     
     if (IsMonolithicQ()) {
         fMonolithicMultiphaseAnalysis->SetX(fMonolithicMultiphaseAnalysis_I->X_n());
@@ -546,7 +562,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #ifdef USING_BOOST
         boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-        std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+        std::cout << "iMRS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
         fSegregatedAnalysis->PostProcessStep(draw_mixed_mapQ);
         
 #ifdef USING_BOOST
@@ -554,7 +570,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #endif
         
 #ifdef USING_BOOST
-        std::cout  << "iRMS:: PostProcess execution time = " << (t2-t1) << std::endl;
+        std::cout  << "iMRS:: PostProcess execution time = " << (t2-t1) << std::endl;
 #endif
         
     }
@@ -567,14 +583,14 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #ifdef USING_BOOST
                 boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                std::cout << "iMRS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
                 fMonolithicMultiphaseAnalysis->PostProcessStep();
 #ifdef USING_BOOST
                 boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
                 
 #ifdef USING_BOOST
-                std::cout  << "iRMS:: PostProcess execution time = " << (t2-t1) << std::endl;
+                std::cout  << "iMRS:: PostProcess execution time = " << (t2-t1) << std::endl;
 #endif
             }
             
@@ -591,7 +607,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #endif
             
 #ifdef USING_BOOST
-            std::cout  << "iRMS:: OneStep execution time = " << (t2-t1) << std::endl;
+            std::cout  << "iMRS:: OneStep execution time = " << (t2-t1) << std::endl;
 #endif
 
         }
@@ -607,7 +623,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #endif
             
 #ifdef USING_BOOST
-            std::cout  << "iRMS:: OneStep execution time = " << (t2-t1) << std::endl;
+            std::cout  << "iMRS:: OneStep execution time = " << (t2-t1) << std::endl;
 #endif
 
             time = fSimulationData->t();
@@ -620,7 +636,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
                 boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
                 
-                std::cout << "iRMS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
+                std::cout << "iMRS:: Reporting at: " << fSimulationData->t()/86400.0 << "; (day): " << std::endl;
                 fSegregatedAnalysis->PostProcessStep(draw_mixed_mapQ);
                 
 #ifdef USING_BOOST
@@ -628,7 +644,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #endif
                 
 #ifdef USING_BOOST
-                std::cout  << "iRMS:: PostProcess execution time = " << (t2-t1) << std::endl;
+                std::cout  << "iMRS:: PostProcess execution time = " << (t2-t1) << std::endl;
 #endif
                 
             }

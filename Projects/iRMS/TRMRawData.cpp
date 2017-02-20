@@ -399,7 +399,7 @@ void TRMRawData::WaterOilReservoirBox(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     //fg[1] = -9.81;
     
-    int map_model = 1; // constant -> 0, function -> 1
+    int map_model = 1; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
 
@@ -555,7 +555,7 @@ void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL 
 
 void TRMRawData::Aquifer_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux = -0.0001, S = 1.0;
+    REAL flux = -0.001, S = 1.0;
     
     f[0] = flux;
     f[1] = S;

@@ -50,11 +50,17 @@ private:
     
     void alpha_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars);
     
-    // Omar Interpolation
+    // Omar function
     
     void Kappa_f(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
     
     void phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars);
+    
+    // Omar Interpolation
+    
+    void Kappa_int(TPZManVector<STATE,3> &x, TPZFMatrix<STATE> &kappa, TPZFMatrix<STATE> &inv_kappa, TPZManVector<STATE,10> &state_vars);
+    
+    void phi_int(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &phi, TPZManVector<STATE,10> &state_vars);
     
     double phi_cdf(double x);
     
@@ -87,7 +93,7 @@ public:
     /** @brief Set spatial properties model */
     void SetMapModel(int model){
         fMap_model = model;
-        if(fMap_model == 1){
+        if(fMap_model == 2){
            this->LoadSPE10Map();
         }
     }

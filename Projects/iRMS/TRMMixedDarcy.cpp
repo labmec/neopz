@@ -404,9 +404,16 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1),lambda_dp_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
@@ -577,9 +584,16 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1);
@@ -902,9 +916,16 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1),lambda_dp_K_inv_u(3,1), lambda_ds_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
@@ -1082,9 +1103,16 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1);
@@ -1465,9 +1493,16 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1),lambda_dp_K_inv_u(3,1), lambda_dsa_K_inv_u(3,1), lambda_dsb_K_inv_u(3,1), lambda_K_inv_phi_u_j(3,1);
@@ -1659,9 +1694,16 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi;
-    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    TPZManVector<STATE, 10> phi(nvars,0.0);
+    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
+    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+    
+    // Rock parameters form point memory
+    REAL phi_0;
+    K       = point_memory.K_0();
+    Kinv    = point_memory.Kinv_0();
+    phi_0   = point_memory.phi_0();
+    phi[0] = phi_0;
     
     // Defining local variables
     TPZFNMatrix<3,STATE> lambda_K_inv_u(3,1);

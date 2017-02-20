@@ -20,6 +20,18 @@ TRMPhaseMemory::TRMPhaseMemory(){
     fsb         = 0.0;
     fsb_n       = 0.0;
     
+    fporosity           = 0.0;
+    
+    fK.Resize(3,3);
+    fK.Zero();
+    fK.Identity();
+    
+    fKinv.Resize(3,3);
+    fKinv.Zero();
+    fKinv.Identity();
+    
+    fx.Resize(3,0.0);
+    
 }
 
 /** @brief Default destructor */

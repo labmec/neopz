@@ -1,6 +1,6 @@
-// ---- Cylinder wellbore Region Gmsh scritp ----
+// ---- iMRS reservoir geometry Gmsh scritp ----
 // Creates a mesh with an inner structured-quad region and 
-// an outer unstructured tri region
+// an outer unstructured triangle region
 //
 // Created 10/01/2016 by Omar Duran
 // Labmec, State University of Campinas
@@ -31,9 +31,9 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 0;
-dimension = 3;
+dimension = 2;
 nolinearQ = 0;
-CADReservoirQ = 1;
+CADReservoirQ = 0;
 
 xzQ = 0;
 hexahedronsWQ = 0;
@@ -57,7 +57,7 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 100.0;
+cl4 = 250.0;
 cl5 = 1000.0;
 
 ////////////////////////////////////////////////////////////////////////////

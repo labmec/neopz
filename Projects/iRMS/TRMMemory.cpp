@@ -35,6 +35,10 @@ TRMMemory::TRMMemory(){
     fK.Zero();
     fK.Identity();
     
+    fKinv.Resize(3,3);
+    fKinv.Zero();
+    fKinv.Identity();
+    
     fx.Resize(3,0.0);
     fw = 0.0;
     fdet = 0.0;
