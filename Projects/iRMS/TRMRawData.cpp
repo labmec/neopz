@@ -394,7 +394,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     //fg[1] = -9.81;
     
-    int map_model = 1; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
 
@@ -433,9 +433,9 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fIsQuasiNewtonQ = true;
     fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0;
-    fMHMResolutionQ.second.second = 2;
+    fMHMResolutionQ.second.second = 3;
     fIncreaseTransporResolutionQ.first = true;
-    fIncreaseTransporResolutionQ.second = 0;
+    fIncreaseTransporResolutionQ.second = 1;
     
     // Rock materials ids
     int Rock = 4;
