@@ -135,7 +135,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
         IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
         
         if (!fSimulationData->IsOnePhaseQ()) {
-            IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) &&  (fHyperbolic->k_ietrarions() <= 5);
+            IsConverged_iQ = (fParabolic->k_ietrarions() <= 10) &&  (fHyperbolic->k_ietrarions() <= 10);
         }
 
         MustRestartQ = MustRestartStep();

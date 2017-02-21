@@ -385,8 +385,8 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fSystemType.Push("oil");
     water->SetRhoModel(1);
     oil->SetRhoModel(1);
-    fPhases.Push(oil);
     fPhases.Push(water);
+    fPhases.Push(oil);
 
     int n_data = fSystemType.size();
     
@@ -394,7 +394,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     //fg[1] = -9.81;
     
-    int map_model = 1; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
 
@@ -423,12 +423,12 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fReportingTimes.Push(std::make_pair(100.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
-    fn_steps  = 100;
-    fdt = 10.0*day;
+    fn_steps  = 500;
+    fdt = 1.0*day;
     fdt_max = 50.0*day;
-    fdt_min = 0.1*day;
-    fdt_up = 1.5;
-    fdt_down = 0.5;
+    fdt_min = 0.01*day;
+    fdt_up = 10.0;
+    fdt_down = 0.1;
     
     // Numeric controls
     fn_corrections = 50;
@@ -439,7 +439,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fMHMResolutionQ.second.first = 0;
     fMHMResolutionQ.second.second = 1;
     fIncreaseTransporResolutionQ.first = true;
-    fIncreaseTransporResolutionQ.second = 1;
+    fIncreaseTransporResolutionQ.second = 2;
     
     // Rock materials ids
     int Rock = 4;
@@ -471,14 +471,14 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fGammaIds.Push(bc_W);
     W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(3,new TPZDummyFunction<REAL>(Aquifer_2p));
-//    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+//    W[0] = std::make_pair(3,new TPZDummyFunction<REAL>(Aquifer_2p));
+    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
-    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
+    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
+    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
