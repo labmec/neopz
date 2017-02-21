@@ -269,7 +269,6 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
         v[1] = sa;
         fSimulationData->AlphaProp()->Density(rho_a, v);
         fSimulationData->BetaProp()->Density(rho_b, v);
-        fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
         
         
         for (int is = 0; is < nphis_a; is++)
@@ -357,7 +356,6 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
         v[1] = sa;
         fSimulationData->AlphaProp()->Density(rho_a, v);
         fSimulationData->BetaProp()->Density(rho_b, v);
-        fSimulationData->Map()->phi(datavec[sb_a].x, phi, v);
         
         for (int is = 0; is < nphis_a; is++)
         {

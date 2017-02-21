@@ -231,11 +231,12 @@ void TPZPardisoControl<TVar>::Decompose()
     perm = &fPermutation[0];
     fParam[34] = 1;
     
-    for(long i = 0; i < n; i++){
-        fPermutation[i] = i;
-    }
-    
     if (fProperty == EIndefinite && fSystemType == ESymmetric) {
+        
+        for(long i = 0; i < n; i++){
+            fPermutation[i] = i;
+        }
+        
 //        fParam[9] = -1; // avoid any pivot permutation ()
         fParam[4 ] = 1; // user permutation PERM
         

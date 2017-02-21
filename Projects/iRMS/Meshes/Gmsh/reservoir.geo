@@ -31,7 +31,7 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 0;
-dimension = 2;
+dimension = 3;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
@@ -57,8 +57,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 250.0;
-cl5 = 1000.0;
+cl4 = 25.0;
+cl5 = 5000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -106,12 +106,12 @@ EndIf
 // well geometry and settings
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 2.0;
+rw = 0.5;
 wl = 30.0;
 
 wbr = 30.0;
 ela = 30.0;
-rw_cell= 5.0;
+rw_cell= 1.0;
 wr_cell= 40.0;
 
 // Orientation and length
@@ -136,7 +136,7 @@ wcy = 0.0;
 wcz = 0.0;
 
 IsInjectorQ = 0;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -152,7 +152,7 @@ wcz = 0.0;
 //wcy = 0.0;
 //wcz = 40.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -168,7 +168,7 @@ wcz = 0.0;
 //wcy = 500.0;
 //wcz = 20.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 // well 4 

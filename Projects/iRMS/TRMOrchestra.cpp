@@ -177,8 +177,8 @@ void TRMOrchestra::BuildGeometry(){
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
     int ref = fSimulationData->MHMResolution().second.second;
-        fSpaceGenerator->UniformRefinement(ref);
-//    fSpaceGenerator->UniformRefineTetrahedrons(ref);
+//        fSpaceGenerator->UniformRefinement(ref);
+    fSpaceGenerator->UniformRefineTetrahedrons(ref);
     fSpaceGenerator->PrintGeometry();
 
 }
@@ -206,7 +206,7 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     
 #endif
     
-    fSpaceGenerator->SetDefaultPOrder(2);
+    fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
 
     bool UseMHMQ = fSimulationData->MHMResolution().first;
@@ -223,8 +223,8 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
 
     // Setting for increase transport resolution
     if(fSimulationData->TransporResolution().first){
-        fSpaceGenerator->UniformRefinement(fSimulationData->TransporResolution().second);
-//        fSpaceGenerator->UniformRefineTetrahedrons(ref);
+//        fSpaceGenerator->UniformRefinement(fSimulationData->TransporResolution().second);
+        fSpaceGenerator->UniformRefineTetrahedrons(fSimulationData->TransporResolution().second);
     }
 
     
@@ -254,10 +254,10 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    strmat_p.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    strmat_p.SetDecomposeType(ELDLt);
 
-//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
@@ -276,17 +276,17 @@ void TRMOrchestra::CreateAnalysisDualonBox(bool IsInitialQ)
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 
-//        TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
-//        TPZStepSolver<STATE> step_t;
-//        step_t.SetDirect(ELU);
-//        strmat_t.SetNumThreads(numofThreads_t);
-        
         TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
         TPZStepSolver<STATE> step_t;
-        const long numiterations = 20;
-        const REAL tol = 1.0e-8;
-        step_t.SetJacobi(numiterations, tol, 1);
+        step_t.SetDirect(ELU);
         strmat_t.SetNumThreads(numofThreads_t);
+        
+//        TPZSpStructMatrix strmat_t(fSpaceGenerator->TransportMesh());
+//        TPZStepSolver<STATE> step_t;
+//        const long numiterations = 20;
+//        const REAL tol = 1.0e-8;
+//        step_t.SetJacobi(numiterations, tol, 1);
+//        strmat_t.SetNumThreads(numofThreads_t);
         
         hyperbolic->SetStructuralMatrix(strmat_t);
         hyperbolic->SetSolver(step_t);

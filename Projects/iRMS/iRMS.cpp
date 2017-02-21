@@ -27,7 +27,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.iRMS"));
 
 void LinearTracerPrimal();
 void LinearTracerDual();
-void BoxLinearTracerDual();
+void MultiScaleSimulation();
 void CheckQuarterPoint();
 void BuildGeometry(TRMOrchestra  * SymphonyX);
 void CreateExampleRawData(TRMRawData &data);
@@ -40,29 +40,23 @@ int main()
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
     TPZMaterial::gBigNumber = 1.0e14;
-    // Running primal problem
-//    LinearTracerPrimal();
     
 #ifdef USING_BOOST
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
     // Running dual problem on box shape
-    BoxLinearTracerDual();
+    MultiScaleSimulation();
     
 #ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
     
 #ifdef USING_BOOST
-    std::cout  << "Overal execution time = " << (t2-t1) << std::endl;
+    std::cout  << "iMRS:: Overal execution time = " << (t2-t1) << std::endl;
 #endif
     
-//    // Running dual problem on Reservoir
-    //LinearTracerDual();
-    
-    
-    std::cout << "Process complete normally." << std::endl;
+    std::cout << "iMRS:: Process complete normally." << std::endl;
     return 0;
 }
 
@@ -84,13 +78,13 @@ void LinearTracerDual()
     
 }
 
-void BoxLinearTracerDual()
+void MultiScaleSimulation()
 {
     // Materials ids and boundary settings
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
-    //    On gmsh reservoir    
-    bool Is3DGeometry = false;
+    //  Dimension on gmsh reservoir    
+    bool Is3DGeometry = true;
     
     bool IsSinglePhaseQ = false;
     if(IsSinglePhaseQ){

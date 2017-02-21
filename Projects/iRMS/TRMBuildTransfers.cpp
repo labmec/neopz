@@ -571,6 +571,8 @@ void TRMBuildTransfers::kappa_phi_To_Mixed_Memory(TPZCompMesh * cmesh_multiphysi
     TPZFMatrix<STATE> kappa, kappa_inv;
     TPZManVector<STATE, 10> vars;
     TPZManVector<STATE, 10> porosity;
+//    REAL porosity;
+//    long index = 0;
     // Step one
     int n_elements = cmesh_multiphysics->NElements();
     TPZManVector<long, 30> indexes;
@@ -591,13 +593,20 @@ void TRMBuildTransfers::kappa_phi_To_Mixed_Memory(TPZCompMesh * cmesh_multiphysi
         }
 #endif
         
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+        
+#ifdef PZDEBUG
+        if (!mf_cel) {
+            DebugStop();
+        }
+#endif
+        
         if (gel->Dimension()!= dim) {
             continue;
         }
         
-        int order  = (cel->GetgOrder()+1)*2;
-        TPZIntPoints * int_points = gel->CreateSideIntegrationRule(gel->NSides()-1, order);
-        int np = int_points->NPoints();
+        const TPZIntPoints & int_points = mf_cel->GetIntegrationRule();
+        int np = int_points.NPoints();
         GlobalPointIndexes(cel, indexes);
         
 #ifdef PZDEBUG
@@ -610,10 +619,11 @@ void TRMBuildTransfers::kappa_phi_To_Mixed_Memory(TPZCompMesh * cmesh_multiphysi
         TPZManVector<REAL,3> x(3,0.0);
         REAL w;
         for (int ip = 0; ip<np; ip++) {
-            int_points->Point(ip, par_triplet, w);
+            int_points.Point(ip, par_triplet, w);
             gel->X(par_triplet, x);
             
             associated_material->GetMemory()[indexes[ip]].Set_x(x);
+//            fSimulationData->Map()->ComputePropertieSPE10Map(index, x, kappa, kappa_inv, porosity);
             fSimulationData->Map()->Kappa(x, kappa, kappa_inv, vars);
             fSimulationData->Map()->phi(x, porosity, vars);
             associated_material->GetMemory()[indexes[ip]].Set_K_0(kappa);
@@ -745,6 +755,8 @@ void TRMBuildTransfers::kappa_phi_To_Transport_Memory(TPZCompMesh * cmesh_multip
     TPZFMatrix<STATE> kappa, kappa_inv;
     TPZManVector<STATE, 10> vars;
     TPZManVector<STATE, 10> porosity;
+//    REAL porosity;
+//    long index = 0;
     // Step one
     int n_elements = cmesh_multiphysics->NElements();
     TPZManVector<long, 30> indexes;
@@ -765,13 +777,20 @@ void TRMBuildTransfers::kappa_phi_To_Transport_Memory(TPZCompMesh * cmesh_multip
         }
 #endif
         
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+        
+#ifdef PZDEBUG
+        if (!mf_cel) {
+            DebugStop();
+        }
+#endif
+        
         if (gel->Dimension()!= dim) {
             continue;
         }
         
-        int order  = cel->GetgOrder()-1;
-        TPZIntPoints * int_points = gel->CreateSideIntegrationRule(gel->NSides()-1, order);
-        int np = int_points->NPoints();
+        const TPZIntPoints & int_points = mf_cel->GetIntegrationRule();
+        int np = int_points.NPoints();
         GlobalPointIndexes(cel, indexes);
         
 #ifdef PZDEBUG
@@ -784,10 +803,11 @@ void TRMBuildTransfers::kappa_phi_To_Transport_Memory(TPZCompMesh * cmesh_multip
         TPZManVector<REAL,3> x(3,0.0);
         REAL w;
         for (int ip = 0; ip<np; ip++) {
-            int_points->Point(ip, par_triplet, w);
+            int_points.Point(ip, par_triplet, w);
             gel->X(par_triplet, x);
             
             associated_material->GetMemory()[indexes[ip]].Set_x(x);
+            //            fSimulationData->Map()->ComputePropertieSPE10Map(index, x, kappa, kappa_inv, porosity);
             fSimulationData->Map()->Kappa(x, kappa, kappa_inv, vars);
             fSimulationData->Map()->phi(x, porosity, vars);
             associated_material->GetMemory()[indexes[ip]].Set_K_0(kappa);

@@ -198,8 +198,8 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     ferror = Norm(fR+fR_n);
     this->Set_k_ietrarions(0);
     
-    REAL epsilon_res = this->SimulationData()->epsilon_res() * 0.01;
-    REAL epsilon_cor = this->SimulationData()->epsilon_cor() * 0.01;
+    REAL epsilon_res = this->SimulationData()->epsilon_res();
+    REAL epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
     
     for (int k = 1; k <= n; k++) {
