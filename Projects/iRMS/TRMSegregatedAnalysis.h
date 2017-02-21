@@ -66,12 +66,6 @@ public:
     /** @brief Copy assignemnt operator $ */
     TRMSegregatedAnalysis &operator=(const TRMSegregatedAnalysis &other);
     
-    /**
-     * @defgroup Access Methods
-     * @brief    Implements Access methods:
-     * @{
-     */
-    
     
     /** @brief Set the simulation data */
     void SetSimulationData(TRMSimulationData * SimulationData)
@@ -136,12 +130,6 @@ public:
     /** @brief Resize and fill residue and solution vectors */
     void AdjustVectors();
     
-    // @}
-    
-    /**
-     * @defgroup Time foward methods
-     * @{
-     */
     
     /** @brief Execute a euler method step */
     void ExcecuteOneStep();
@@ -170,11 +158,10 @@ public:
     /** @brief keep global last state for restart a euler step */
     void KeepGlobalSolution();
     
-    // @}
+    /** @brief keep global last state for restart a euler step */
+    bool MustRestartStep();
     
-    
-    
-    
+
 };
 
 

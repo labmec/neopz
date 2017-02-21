@@ -31,13 +31,13 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 0;
-dimension = 3;
+dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
-hexahedronsWQ = 0;
-hexahedronsRQ = 0;
+hexahedronsWQ = 1;
+hexahedronsRQ = 1;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -57,7 +57,7 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 25.0;
+cl4 = 200.0;
 cl5 = 5000.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ cl5 = 5000.0;
 
 // reservoir box dimensions
 x_length = 1000.0;
-y_length = 1000.0;
+y_length = 100.0;
 z_length = 100.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -136,7 +136,7 @@ wcy = 0.0;
 wcz = 0.0;
 
 IsInjectorQ = 0;
-Call DrillWell;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -152,7 +152,7 @@ wcz = 0.0;
 //wcy = 0.0;
 //wcz = 40.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -168,7 +168,7 @@ wcz = 0.0;
 //wcy = 500.0;
 //wcz = 20.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 // well 4 

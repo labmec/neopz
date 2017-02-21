@@ -777,6 +777,10 @@ void TRMBuildTransfers::kappa_phi_To_Transport_Memory(TPZCompMesh * cmesh_multip
         }
 #endif
         
+        if (gel->Dimension()!= dim) {
+            continue;
+        }
+        
         TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
         
 #ifdef PZDEBUG
@@ -785,9 +789,6 @@ void TRMBuildTransfers::kappa_phi_To_Transport_Memory(TPZCompMesh * cmesh_multip
         }
 #endif
         
-        if (gel->Dimension()!= dim) {
-            continue;
-        }
         
         const TPZIntPoints & int_points = mf_cel->GetIntegrationRule();
         int np = int_points.NPoints();
@@ -1162,11 +1163,6 @@ void TRMBuildTransfers::Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixe
                 
             }
             
-            //        std::cout << "p_avg_n = "<< p_avg_n << std::endl;
-            //        std::cout << "p_avg = "<< p_avg << std::endl;
-            //
-            //        std::cout << "sa_n = "<< sa_n << std::endl;
-            //        std::cout << "sa = "<< sa << std::endl;
             if (fSimulationData->IsCurrentStateQ()) {
                 avg_sa_n += sa_n*element_measure_transport/element_measure_mixed;
                 avg_sb_n += sb_n*element_measure_transport/element_measure_mixed;
@@ -1175,6 +1171,7 @@ void TRMBuildTransfers::Reciprocal_Memory_TransferII(TPZCompMesh * cmesh_mf_mixe
                 avg_sa += sa*element_measure_transport/element_measure_mixed;
                 avg_sb += sb*element_measure_transport/element_measure_mixed;
             }
+            
             // Inserting average pressure and saturation in mixed memory
             for (int ip = 0; ip < np_mixed_cel; ip++) {
                 if (fSimulationData->IsCurrentStateQ()) {

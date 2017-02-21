@@ -81,7 +81,7 @@ void TRMSegregatedAnalysis::AdjustVectors(){
 
 void TRMSegregatedAnalysis::SegregatedIteration(){
 
-    this->UpdateMemory_at_n(); // @omar:: It is time to verify
+    this->UpdateMemory_at_n();
     
     fParabolic->ExcecuteOneStep();
 
@@ -93,10 +93,7 @@ void TRMSegregatedAnalysis::SegregatedIteration(){
     this->UpdateMemory_at_n();
 
     fHyperbolic->ExcecuteOneStep();
-    
-    this->UpdateMemory_at_n();
-
-    
+        
 }
 
 void TRMSegregatedAnalysis::ExcecuteOneStep(){
@@ -120,6 +117,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
     bool IsConverged_eQ = false;
     bool IsConverged_dQ = false;
     bool IsConverged_iQ = true;
+    bool MustRestartQ = false;
     
     this->UpdateMemory(); // last average values
     
@@ -137,9 +135,29 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
         IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
         
         if (!fSimulationData->IsOnePhaseQ()) {
-            IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) &&  (fHyperbolic->k_ietrarions() <= 10);
+            IsConverged_iQ = (fParabolic->k_ietrarions() <= 5) &&  (fHyperbolic->k_ietrarions() <= 5);
         }
 
+        MustRestartQ = MustRestartStep();
+        
+        if((k == n || MustRestartQ)  && dt > dt_min && dt_down < 1.0){
+            dt *= dt_down;
+            if(dt_min > dt ){
+                fSimulationData->Setdt(dt_min);
+            }
+            else{
+                fSimulationData->Setdt(dt);
+            }
+            std::cout << "Segregated:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+            if (MustRestartQ) {
+                std::cout << "Segregated:: Force restarting current time step correction " << std::endl;
+            }
+            std::cout << "Segregated:: Restarting current time step correction " << std::endl;
+            
+            this->KeepGlobalSolution();
+            k = 0;
+            continue;
+        }
         
         if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
         {
@@ -163,23 +181,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
             this->UpdateGlobalSolution();
             return;
         }
-        
-        if(k == n  && dt > dt_min && dt_down < 1.0){
-            dt *= dt_down;
-            if(dt_min > dt ){
-                fSimulationData->Setdt(dt_min);
-            }
-            else{
-                fSimulationData->Setdt(dt);
-            }
-            std::cout << "Segregated:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-            std::cout << "Segregated:: Restarting current time step correction " << std::endl;
-            
-            this->KeepGlobalSolution();
-            k = 1;
-        }
-        
-        
+    
     }
     
     // update Time value
@@ -263,6 +265,27 @@ void TRMSegregatedAnalysis::KeepGlobalSolution(){
     fHyperbolic->X_n() = fHyperbolic->X();
     
 }
+
+/** @brief keep global last state for restart a euler step */
+bool TRMSegregatedAnalysis::MustRestartStep(){
+    
+    int n_data = fHyperbolic->X_n().Rows();
+    REAL epsilon = 1.0e-4;
+    
+    for (long i = 0; i < n_data; i++) {
+        if ( (1.0 - fHyperbolic->X_n()(i,0)) < + epsilon ) {
+            return true;
+        }
+        
+        if ( (fHyperbolic->X_n()(i,0)) < - epsilon ) {
+            return true;
+        }
+    }
+    
+    return false;
+    
+}
+
 
 void TRMSegregatedAnalysis::PostProcessStep(bool draw_mixed_mapQ){
     

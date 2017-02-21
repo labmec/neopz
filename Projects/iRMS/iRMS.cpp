@@ -84,7 +84,7 @@ void MultiScaleSimulation()
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
     //  Dimension on gmsh reservoir    
-    bool Is3DGeometry = true;
+    bool Is3DGeometry = false;
     
     bool IsSinglePhaseQ = false;
     if(IsSinglePhaseQ){
