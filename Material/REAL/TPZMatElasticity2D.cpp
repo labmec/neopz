@@ -1019,7 +1019,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     SigmaZP  = SigmaAnZ*pow(cos(fbeta),2) + SigmaAnX*pow(sin(fbeta),2) - SigmaAnXZ*sin(2.0*fbeta);
     //Sigz*Power(Cos(Degree*\[Beta]),2) + Sigx*Power(Sin(Degree*\[Beta]),2) - Sigxz*Sin(2*Degree*\[Beta])
     
-    SigmaXYP   = pow(cos(falpha),2)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) - pow(sin(falpha),2)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) + (sin(2.0*falpha)*(SigmaAnX - 2.0*SigmaAnY + SigmaAnZ + (SigmaAnX - SigmaAnZ)*cos(2.0*fbeta) + 2*SigmaAnXZ*sin(2.0*fbeta)))/4.;
+    SigmaXYP   = pow(cos(falpha),2)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) - pow(sin(falpha),2)*(SigmaAnXY*cos(fbeta) + SigmaAnYZ*sin(fbeta)) + (sin(2.0*falpha)*(SigmaAnX - 2.0*SigmaAnY + SigmaAnZ + (SigmaAnX - SigmaAnZ)*cos(2.0*fbeta) + 2.0*SigmaAnXZ*sin(2.0*fbeta)))/4.;
     //Power(Cos(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) - Power(Sin(Degree*\[Alpha]),2)*(Sigxy*Cos(Degree*\[Beta]) + Sigyz*Sin(Degree*\[Beta])) +     (Sin(2*Degree*\[Alpha])*(Sigx - 2*Sigy + Sigz + (Sigx - Sigz)*Cos(2*Degree*\[Beta]) + 2*Sigxz*Sin(2*Degree*\[Beta])))/4.
     
     SigmaXZP = sin(falpha)*(-(SigmaAnYZ*cos(fbeta)) + SigmaAnXY*sin(fbeta)) + (cos(falpha)*(2.0*SigmaAnXZ*cos(2.0*fbeta) + (-SigmaAnX + SigmaAnZ)*sin(2.0*fbeta)))/2.;
@@ -1146,8 +1146,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     T.PutVal(2,1, SigmaAnYZ); /// ZERO MESMO????
     T.PutVal(2,2, (SigZ+SigmaZ));
     
-    
-//    std::cout << T << std::endl;
+    //    std::cout << T << std::endl;
     
     
     long NumIt = 1000;
@@ -1418,7 +1417,7 @@ void TPZMatElasticity2D::Solution(TPZMaterialData &data, int var, TPZVec<STATE> 
     TP.PutVal(2,2, (SigZP));
     
     
-    //    std::cout << T << std::endl;
+    //    std::cout << TP << std::endl;
     
     
 //    long NumIt = 1000;

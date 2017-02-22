@@ -452,7 +452,7 @@ int Problem2D(){
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
     direction   = 30.; // Azimuth em graus******** 30
-    inclination = 0.; // Polar Inclination em graus******** 50
+    inclination = 60.; // Polar Inclination em graus******** 50
     
     // transforma graus em rad
     REAL alpha = 0., beta = 0.; // inicializa
@@ -825,7 +825,7 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
         q=radiallength;
     }
     
-   // q = 1; // CALCULAR TAXAS DE CONVERGENCIA, malha com mesmo tamanho de elementos
+  //  q = 1; // CALCULAR TAXAS DE CONVERGENCIA, malha com mesmo tamanho de elementos
 //     std::cout<< "valor de q " << q << endl; // imprime razao da PG
     
    
@@ -1035,7 +1035,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
     direction   = 30.; // graus******** 30
-    inclination = 0.; // graus******** 50
+    inclination = 60.; // graus******** 50
     
     // transforma graus em rad
     REAL directionT = 0.,inclinationT = 0.; // inicializa
