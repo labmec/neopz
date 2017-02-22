@@ -60,8 +60,8 @@ line_id,line_id+1,line_id+2,line_id+3,line_id+5,line_id+8,line_id+9,line_id+11};
 res_edges_v[] = {
 line_id+4,line_id+6,line_id+7,line_id+10};
 
-Transfinite Line {res_edges_h[]} = 15.0;
-Transfinite Line {res_edges_v[]} = 10.0;
+Transfinite Line {res_edges_h[]} = 20.0;
+Transfinite Line {res_edges_v[]} = 2.0;
 
 reservoir_boundaries[] = {res_B[],res_T[],res_S[],res_E[],res_N[],res_W[]};
 

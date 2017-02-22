@@ -8,7 +8,7 @@
 
 // Settings
 ExpertMode = 1;
-
+Mesh.Optimize = 1;
 
 Include "CadReservoir.geo";
 Include "BoxReservoir.geo";
@@ -31,13 +31,13 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 0;
-dimension = 2;
+dimension = 3;
 nolinearQ = 0;
-CADReservoirQ = 0;
+CADReservoirQ = 1;
 
 xzQ = 0;
-hexahedronsWQ = 1;
-hexahedronsRQ = 1;
+hexahedronsWQ = 0;
+hexahedronsRQ = 0;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -57,7 +57,7 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 200.0;
+cl4 = 100.0;
 cl5 = 5000.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -106,16 +106,20 @@ EndIf
 // well geometry and settings
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 0.5;
-wl = 30.0;
+rw = 1.0;
+wl = 10.0;
 
-wbr = 30.0;
-ela = 30.0;
-rw_cell= 1.0;
-wr_cell= 40.0;
+wbr = 10.0;
+ela = 20.0;
+rw_cell= 2.0;
+wr_cell= 20.0;
+
+If(dimension == 2)
+rw = 0.2;
+EndIf
 
 // Orientation and length
-alfa = 0.0*Pi/2.0;
+alfa = 1.0*Pi/2.0;
 beta = 0.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -133,7 +137,7 @@ wcz = 150.0;
 
 wcx = 0.0;
 wcy = 0.0;
-wcz = 0.0;
+wcz = 80.0;
 
 IsInjectorQ = 0;
 Call DrillWell;
@@ -152,7 +156,7 @@ wcz = 0.0;
 //wcy = 0.0;
 //wcz = 40.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -162,7 +166,7 @@ Call DrillWell;
 // well location
 wcx = -300.0;
 wcy = -300.0;
-wcz = 0.0;
+wcz = 100.0;
 
 //wcx = -650.0;
 //wcy = 500.0;
@@ -195,7 +199,7 @@ IsInjectorQ = 1;
 
 wcx = +400.0;
 wcy = -400.0;
-wcz = 0.0;
+wcz = 100.0;
 
 //wcx = -150.0;
 //wcy = -300.0;

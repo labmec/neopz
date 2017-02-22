@@ -8,8 +8,6 @@ sl1 = newsl; Surface Loop(sl1) = {well_p_regions[],well_i_regions[],reservoir_bo
 v1  = newv; Volume(v1) = {sl1} ;
 reservoir[] = {v1};
 
-//Transfinite Surface {reservoir_boundaries[]};
-//Transfinite Volume {v1};
 
 If (hexahedronsRQ == 1)
 Transfinite Surface {reservoir_boundaries[]};

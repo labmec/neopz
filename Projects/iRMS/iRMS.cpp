@@ -84,9 +84,9 @@ void MultiScaleSimulation()
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
     //  Dimension on gmsh reservoir    
-    bool Is3DGeometry = false;
+    bool Is3DGeometry = true;
     
-    bool IsSinglePhaseQ = false;
+    bool IsSinglePhaseQ = true;
     if(IsSinglePhaseQ){
         RawData->SinglePhaseReservoir(Is3DGeometry); // Single-phase flow
     }
@@ -94,12 +94,10 @@ void MultiScaleSimulation()
         RawData->TwoPhaseWaterOilReservoir(Is3DGeometry); // Two-phase flow
     }
     
-    
     TRMSimulationData * SimData = new TRMSimulationData;
     SimData->SetRawData(RawData);
     TRMOrchestra  * SymphonyX           = new TRMOrchestra;
     SymphonyX->SetSimulationData(SimData);
-    
     
     SymphonyX->SetSegregatedQ(true);
     SymphonyX->CreateAnalysisDualonBox(true); //  Static Solution

@@ -700,7 +700,7 @@ void TRMMixedDarcy::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
     if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<STATE,2> f(1);
         TPZFMatrix<double> gradf;
-        REAL time = 0.0;
+        REAL time = fSimulationData->t();
         bc.TimedependentBCForcingFunction()->Execute(datavec[pb].x, time, f, gradf);
         Value = f[0];
     }

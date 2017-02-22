@@ -110,16 +110,16 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("gas");
-    gas->SetRhoModel(1);
-    fPhases.Push(gas);
+    fSystemType.Push("water");
+    water->SetRhoModel(1);
+    fPhases.Push(water);
     int n_data = fSystemType.size();
     
     // Setting up gravity
     fg.Resize(3, 0.0);
     //fg[1] = -9.81;
     
-    int map_model = 1; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
@@ -127,37 +127,32 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    //    fReportingTimes.Push(std::make_pair(5000.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(4500.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(4000.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(3500.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(3000.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(2500.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(2000.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(1500.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(1000.0*day,true));
-    fReportingTimes.Push(std::make_pair(5.0*day,true));
-    fReportingTimes.Push(std::make_pair(4.0*day,true));
-    fReportingTimes.Push(std::make_pair(3.0*day,true));
-    fReportingTimes.Push(std::make_pair(2.0*day,true));
-    fReportingTimes.Push(std::make_pair(1.0*day,true));
+    fReportingTimes.Push(std::make_pair(1000.0*day,true));
+    fReportingTimes.Push(std::make_pair(900.0*day,true));
+    fReportingTimes.Push(std::make_pair(800.0*day,true));
+    fReportingTimes.Push(std::make_pair(700.0*day,true));
+    fReportingTimes.Push(std::make_pair(600.0*day,true));
+    fReportingTimes.Push(std::make_pair(400.0*day,true));
+    fReportingTimes.Push(std::make_pair(300.0*day,true));
+    fReportingTimes.Push(std::make_pair(200.0*day,true));
+    fReportingTimes.Push(std::make_pair(100.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
     fdt = 1.0*day;
-    fdt_max = 100.0*day;
+    fdt_max = 30.0*day;
     fdt_min = 0.1*day;
     fdt_up = 1.5;
     fdt_down = 0.1;
     
     // Numeric controls
-    fn_corrections = 20;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.0001;
+    fn_corrections = 30;
+    fepsilon_res = 0.1;
+    fepsilon_cor = 0.01;
     fIsQuasiNewtonQ = true;
-    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0;
-    fMHMResolutionQ.second.second = 0;
+    fMHMResolutionQ.second.second = 1;
     
     
     // Rock materials ids
@@ -188,15 +183,15 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Aquifer));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
-    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
@@ -239,7 +234,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Prod);
-    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fIntial_bc_data.Push(WPro);
     WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(WPro);
@@ -262,10 +257,14 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL flux_b = -0.0001;
+    REAL flux_b = -0.58569;
     
     REAL day = 86400;
-    REAL flux = flux_b + 0.00*(sin((time/day)/100));
+    REAL flux = 0.0;
+    REAL c_time = time/day;
+    if (c_time > 400.0) {
+        flux = flux_b;
+    }
     
     F[0] = flux;
     return;
@@ -274,8 +273,10 @@ void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TP
 void TRMRawData::Aquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
     
-    REAL flux_aquifer = -0.001;
-    F[0] = flux_aquifer;
+    REAL MPa = 1.0e6;
+    REAL pressure_aquifer = 25.0*MPa;
+    F[0] = pressure_aquifer;
+    
     return;
 }
 
@@ -382,11 +383,11 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("oil");
-    water->SetRhoModel(1);
-    oil->SetRhoModel(1);
+    fSystemType.Push("water");
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(oil);
+    fPhases.Push(water);
 
     int n_data = fSystemType.size();
     
@@ -411,35 +412,35 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
 //    fReportingTimes.Push(std::make_pair(2500.0*day,false));
 //    fReportingTimes.Push(std::make_pair(2000.0*day,false));
 //    fReportingTimes.Push(std::make_pair(1500.0*day,false));
-    fReportingTimes.Push(std::make_pair(1000.0*day,true));
-    fReportingTimes.Push(std::make_pair(900.0*day,true));
-    fReportingTimes.Push(std::make_pair(800.0*day,true));
-    fReportingTimes.Push(std::make_pair(700.0*day,true));
-    fReportingTimes.Push(std::make_pair(600.0*day,true));
-    fReportingTimes.Push(std::make_pair(500.0*day,true));
-    fReportingTimes.Push(std::make_pair(400.0*day,true));
-    fReportingTimes.Push(std::make_pair(300.0*day,true));
-    fReportingTimes.Push(std::make_pair(200.0*day,true));
     fReportingTimes.Push(std::make_pair(100.0*day,true));
+    fReportingTimes.Push(std::make_pair(90.0*day,false));
+    fReportingTimes.Push(std::make_pair(80.0*day,false));
+    fReportingTimes.Push(std::make_pair(70.0*day,false));
+    fReportingTimes.Push(std::make_pair(60.0*day,false));
+    fReportingTimes.Push(std::make_pair(50.0*day,false));
+    fReportingTimes.Push(std::make_pair(40.0*day,false));
+    fReportingTimes.Push(std::make_pair(30.0*day,false));
+    fReportingTimes.Push(std::make_pair(20.0*day,false));
+    fReportingTimes.Push(std::make_pair(10.0*day,false));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 500;
-    fdt = 1.0*day;
+    fdt = 10.0*day;
     fdt_max = 50.0*day;
     fdt_min = 0.01*day;
-    fdt_up = 10.0;
-    fdt_down = 0.1;
+    fdt_up = 1.5;
+    fdt_down = 0.5;
     
     // Numeric controls
     fn_corrections = 50;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.0001;
+    fepsilon_res = 0.1;
+    fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0;
-    fMHMResolutionQ.second.second = 1;
-    fIncreaseTransporResolutionQ.first = true;
-    fIncreaseTransporResolutionQ.second = 2;
+    fMHMResolutionQ.second.second = 0;
+    fIncreaseTransporResolutionQ.first = false;
+    fIncreaseTransporResolutionQ.second = 0;
     
     // Rock materials ids
     int Rock = 4;
@@ -543,7 +544,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL flux_b = -0.058569*2.0, S = 1.0;
+    REAL flux_b = -0.19523, S = 1.0;
     
     REAL day = 86400;
     REAL flux = flux_b + 0.00*(sin((time/day)/100));
