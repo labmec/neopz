@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
 {
 
 //    Problem3D();
-    Problem2D();
+  //  Problem2D();
 //
-   // ApproximationRates();
+    ApproximationRates();
 
     return 0;
 }
@@ -130,9 +130,9 @@ int ApproximationRates(){
     // drdcirc = proporcao do primeiro elemento
     REAL rw = 0.1;
     REAL rext = 4.0;
-    int ncircle = 40;
-    int nradial = 16;
-    REAL drdcirc = 2.0;
+    int ncircle = 30;
+    int nradial = 40;
+    REAL drdcirc = 0.5;
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
@@ -1021,8 +1021,8 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     // Setting up paremeters
     //  copy this link http://ceae.colorado.edu/~amadei/CVEN5768/PDF/NOTES5.pdf
-   // REAL Eyoung = 15300, ni = 0.24, fbx = 0., fby = 0.;
-      REAL Eyoung = 29269, ni = 0.203, fbx = 0., fby = 0.; //Dados tese Diogo
+    REAL Eyoung = 15300, ni = 0.24, fbx = 0., fby = 0.;
+//      REAL Eyoung = 29269, ni = 0.203, fbx = 0., fby = 0.; //Dados tese Diogo
     material->SetElasticity(Eyoung, ni, fbx, fby);
        
     /******* Calculating Inicial Stresses *******/
@@ -1047,21 +1047,24 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     int inclinedwellbore = 1;
     
     // pressao da lama de perfuracao
-    REAL Pwb = -19.5; // MPa
+//    REAL Pwb = -19.5; // MPa
+      REAL Pwb = -30.; // MPa
+
     
     // Tensoes in Situ, horizontais e vertical em MPa
     REAL SigmaVV = 0., Sigmahh = 0., SigmaHH = 0.; // inicializa
-  //  SigmaVV = -50.0, Sigmahh = -40.0, SigmaHH = -60.0; //preenche
+    SigmaVV = -50.0, Sigmahh = -40.0, SigmaHH = -60.0; //preenche
 //    SigmaVV = -48.2, Sigmahh = -62.1, SigmaHH = -45.9; //preenche //Dados Diogo //NANANANA INVERTIDAS AS TENSOES
-     SigmaVV = -48.2, Sigmahh = -45.9, SigmaHH = -62.1; //preenche //Dados Diogo //NANANANA
+//     SigmaVV = -48.2, Sigmahh = -45.9, SigmaHH = -62.1; //preenche //Dados Diogo //NANANANA
 //  SigmaVV = -30.0, Sigmahh = -30.0, SigmaHH = -30.0; //preenche
     
-    REAL rw = 0.10795;
+   // REAL rw = 0.10795;
+      REAL rw = 0.1;
     
     //analytic=0 nao usa sol analitica como prestress e BC
     //analytic=1 usa sol analitica como prestress e BC (zerar BCond0 e BCond1)
     //analytic=2 nao usa sol analitica como prestress mas usa como BC (zerar BCond0 e BCond1)
-    int analytic = 0;
+    int analytic = 2;
     
     // para projecao horizontal, projection == 1
     int projection = 0;
