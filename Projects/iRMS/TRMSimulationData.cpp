@@ -78,6 +78,19 @@ TRMSimulationData::TRMSimulationData(){
     fIncreaseTransporResolutionQ.first = false;
     fIncreaseTransporResolutionQ.second = 0;
     
+    /** @brief Gmsh grid file */
+    fGridName = "";
+    
+    /** @brief SPE10 fields file */
+    fPermPorFields.first  = "";
+    fPermPorFields.second = "";
+    
+    /** @brief number of blocks i, j and k  */
+    fNBlocks.resize(0);
+    
+    /** @brief size of blocks dx, dy and dz  */
+    fBlocks_sizes.resize(0);
+    
     /** @brief Autopointer of all the petrophysics data */
     fPetroPhysics = NULL;
     
@@ -119,6 +132,8 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ);
     SetTransporResolution(RawData->fIncreaseTransporResolutionQ);
     SetMHMResolution(RawData->fMHMResolutionQ);
+    SetGridName(RawData->fGridName);
+    SetSpatialFields(RawData->fNBlocks, RawData->fBlocks_sizes, RawData->fPermPorFields);
 
 }
 

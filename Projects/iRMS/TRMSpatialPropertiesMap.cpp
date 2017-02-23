@@ -13,6 +13,16 @@
 TRMSpatialPropertiesMap::TRMSpatialPropertiesMap(){
  
     fSPE10Cmesh = NULL;
+    
+    /** @brief SPE10 fields file */
+    fPermPorFields.first  = "";
+    fPermPorFields.second = "";
+    
+    /** @brief number of blocks i, j and k  */
+    fNBlocks.resize(0);
+    
+    /** @brief size of blocks dx, dy and dz  */
+    fBlocks_sizes.resize(0);
 }
 
 /** @brief default destructor */
@@ -381,29 +391,33 @@ double TRMSpatialPropertiesMap::phi_cdf(double x)
 }
 
 
-void TRMSpatialPropertiesMap::LoadSPE10Map()
+void TRMSpatialPropertiesMap::LoadSPE10Map(bool PrintMapQ)
 {
 
-    REAL ftTom = 0.3048;
     // Cartesian mesh for SPE10 spatial properties
     // http://www.spe.org/web/csp/datasets/set02.htm
     
-    int nel_x = 30;
-    int nel_y = 50; // 220 pz to slow for one million of cells
-    int nel_z = 50; // 85 pz to slow for one million of cells
+    int nel_x = fNBlocks[0];
+    int nel_y = fNBlocks[1];
+    int nel_z = fNBlocks[2];
     TPZManVector<REAL,2> dx(2,nel_x), dy(2,nel_y), dz(2,nel_z);
-    dx[0] = 20.0*ftTom;
-    dy[0] = 20*ftTom;
-    dz[0] = 4*ftTom;
+    dx[0] = fBlocks_sizes[0];
+    dy[0] = fBlocks_sizes[1];
+    dz[0] = fBlocks_sizes[2];
     TPZGeoMesh * gmesh =this->CreateGeometricBoxMesh(dx, dy, dz);
     
-    TPZVec<REAL> t_vec(3,0.0);
-    t_vec[0] = -1.0*REAL(nel_x*dx[0])/2.0;
-    t_vec[1] = -1.4*REAL(nel_x*dy[0])/2.0;
-    t_vec[2] = -1.75*REAL(nel_x*dz[0])/2.0;
-    this->TraslateGeomesh(gmesh, t_vec);
-    REAL s = 10.0;
-    this->ExpandGeomesh(gmesh, s,s,s);
+//    TPZVec<REAL> t_vec(3,0.0);
+//    t_vec[0] = -1.0*REAL(nel_x*dx[0])/2.0;
+//    t_vec[1] = -1.0*REAL(nel_x*dy[0])/2.0;
+//    t_vec[2] = -1.0*REAL(nel_x*dz[0])/2.0;
+//    this->TraslateGeomesh(gmesh, t_vec);
+    
+    REAL angle = -90.0;
+    int axis = 3; // z -axis;
+    this->RotateGeomesh(gmesh, angle, axis);
+    
+    REAL s = 1.1;
+    this->ExpandGeomesh(gmesh, s, s, s);
     
     if(!gmesh)
     {
@@ -441,19 +455,19 @@ void TRMSpatialPropertiesMap::LoadSPE10Map()
     int n_data = nel_x * nel_y * nel_z;
     this->Insert_Inside_Map(n_data);
     
-    
-    
-//    TPZAnalysis * an_map = new TPZAnalysis(fSPE10Cmesh,false);
-//    an_map->LoadSolution();
-//    
-//    int div = 0;
-//    TPZStack<std::string> scalnames, vecnames;
-//    std::string plotfile =  "Spatial_map.vtk";
-//    scalnames.Push("phi");
-//    vecnames.Push("kappa");
-//    
-//    an_map->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
-//    an_map->PostProcess(div);
+    if (PrintMapQ) {
+        TPZAnalysis * an_map = new TPZAnalysis(fSPE10Cmesh,false);
+        an_map->LoadSolution();
+        
+        int div = 0;
+        TPZStack<std::string> scalnames, vecnames;
+        std::string plotfile =  "Spatial_map.vtk";
+        scalnames.Push("phi");
+        vecnames.Push("kappa");
+        
+        an_map->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+        an_map->PostProcess(div);
+    }
     
 }
 
@@ -479,22 +493,20 @@ bool TRMSpatialPropertiesMap::Insert_Inside_Map(int n_data){
     TPZFMatrix<REAL> properties(n_data,4);
     properties.Zero();
     std::string dirname = PZSOURCEDIR;
-    std::string permx_file, permy_file, permz_file, phi_file;
-    permx_file = dirname + "/Projects/iRMS/Por_Perm_ijk/spe_perm_x.dat";
-    permy_file = dirname + "/Projects/iRMS/Por_Perm_ijk/spe_perm_y.dat";
-    permz_file = dirname + "/Projects/iRMS/Por_Perm_ijk/spe_perm_z.dat";
-    phi_file  = dirname + "/Projects/iRMS/Por_Perm_ijk/spe_phi.dat";
+    std::string perm_file, phi_file;
+    perm_file = dirname + "/Projects/iRMS/" + fPermPorFields.first;
+    phi_file  = dirname + "/Projects/iRMS/" + fPermPorFields.second;
     
     //////////////////////////////////////////////// perm data /////////////////////////////////////
     
-    REAL k = 1.0e-14;
+    REAL kab = 1.0e-13;
     REAL phi = 0.25;
     
     if (IsConstantQ) {
         for (int i = 0; i < n_data; i++) {
-            properties(i,0) = k;
-            properties(i,1) = k;
-            properties(i,2) = k;
+            properties(i,0) = kab;
+            properties(i,1) = kab;
+            properties(i,2) = kab;
             properties(i,3) = phi;
         }
     }
@@ -502,37 +514,66 @@ bool TRMSpatialPropertiesMap::Insert_Inside_Map(int n_data){
         
         // reading a cartesian porosity file
         std::ifstream read_por (phi_file.c_str());
-        double phi_val;
-        for (int i = 0; i < n_data; i++) {
-            read_por >> phi_val;
-            properties(i,3) = phi_val + 0.01;
-            if (UseKozenyCarmanQ) {
-                double k_val, c = 0.0001;
-                k_val = phi_val*phi_val*phi_val/(c*(1.0-phi_val)*(1.0-phi_val));
-                properties(i,0) = k_val*mdTom2;
-                properties(i,1) = k_val*mdTom2;
-                properties(i,2) = k_val*mdTom2;
+        REAL phi_val;
+        int count = 0;
+        for (int k = 0; k < fNBlocks[2]; k++) {
+            for (int j = 0; j < fNBlocks[1]; j++) {
+                for (int i = 0; i < fNBlocks[0]; i++) {
+                    read_por >> phi_val;
+                    properties(count,3) = phi_val + 0.001;
+                    if (UseKozenyCarmanQ) {
+                        double k_val, c = 0.0001;
+                        k_val = phi_val*phi_val*phi_val/(c*(1.0-phi_val)*(1.0-phi_val));
+                        properties(count,0) = k_val*mdTom2;
+                        properties(count,1) = k_val*mdTom2;
+                        properties(count,2) = k_val*mdTom2;
+                    }
+                    count++;
+                }
             }
         }
+        
         read_por.close();
         
         if (!UseKozenyCarmanQ) {
             // reading a cartesian permeability file
-            std::ifstream read_permx(permx_file.c_str());
-            std::ifstream read_permy(permy_file.c_str());
-            std::ifstream read_permz(permz_file.c_str());
-            double k_val;
-            for (int i = 0; i < n_data; i++) {
-                read_permx >> k_val;
-                properties(i,0) = k_val*mdTom2 + k;
-                read_permy >> k_val;
-                properties(i,1) = k_val*mdTom2 + k;
-                read_permz >> k_val;
-                properties(i,2) = k_val*mdTom2 + k;
+            std::ifstream read_perm(perm_file.c_str());
+            
+            REAL k_val;
+            int count = 0;
+            for (int k = 0; k < fNBlocks[2]; k++) {
+                for (int j = 0; j < fNBlocks[1]; j++) {
+                    for (int i = 0; i < fNBlocks[0]; i++) {
+                        read_perm >> k_val;
+                        properties(count,0) = k_val*mdTom2 + kab;
+                        count++;
+                    }
+                }
             }
-            read_permx.close();
-            read_permy.close();
-            read_permz.close();
+            
+            count = 0;
+            for (int k = 0; k < fNBlocks[2]; k++) {
+                for (int j = 0; j < fNBlocks[1]; j++) {
+                    for (int i = 0; i < fNBlocks[0]; i++) {
+                        read_perm >> k_val;
+                        properties(count,1) = k_val*mdTom2 + kab;
+                        count++;
+                    }
+                }
+            }
+            
+            count = 0;
+            for (int k = 0; k < fNBlocks[2]; k++) {
+                for (int j = 0; j < fNBlocks[1]; j++) {
+                    for (int i = 0; i < fNBlocks[0]; i++) {
+                        read_perm >> k_val;
+                        properties(count,2) = k_val*mdTom2 + kab;
+                        count++;
+                    }
+                }
+            }
+            
+            read_perm.close();
         }
 
     }
@@ -621,7 +662,8 @@ bool TRMSpatialPropertiesMap::ComputePropertieSPE10Map(long & index, TPZVec<STAT
 #endif
     TPZVec<REAL> qsi;
     int target_dim = 3;
-    TPZGeoEl * gel = geometry->FindApproxElement(x, qsi, index, target_dim);
+//    TPZGeoEl * gel = geometry->FindApproxElement(x, qsi, index, target_dim);
+    TPZGeoEl * gel = geometry->FindElement(x, qsi, index, target_dim);
     
     if(!gel)
     {
@@ -702,6 +744,7 @@ TPZGeoMesh *  TRMSpatialPropertiesMap::CreateGeometricBoxMesh(TPZManVector<REAL,
     CreateGridFrom0D.SetFrontBackMatId(bcs,bcs);
     
     dt = dz[0];
+    t  = -dz[1]*(dz[0]/2.0);
     n = int(dz[1]);
     // Computing Mesh extruded along the parametric curve Parametricfunction
     TPZGeoMesh * GeoMesh1D = CreateGridFrom0D.ComputeExtrusion(t, dt, n);
@@ -716,6 +759,7 @@ TPZGeoMesh *  TRMSpatialPropertiesMap::CreateGeometricBoxMesh(TPZManVector<REAL,
     
     
     dt = dy[0];
+    t  = -dy[1]*(dy[0]/2.0);
     n = int(dy[1]);
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh2D = CreateGridFrom1D.ComputeExtrusion(t, dt, n);
@@ -731,6 +775,7 @@ TPZGeoMesh *  TRMSpatialPropertiesMap::CreateGeometricBoxMesh(TPZManVector<REAL,
     
     
     dt = dx[0];
+    t  = -dx[1]*(dx[0]/2.0);
     n = int(dx[1]);
     // Computing Mesh extruded along the parametric curve Parametricfunction2
     TPZGeoMesh * GeoMesh3D = CreateGridFrom2D.ComputeExtrusion(t, dt, n);

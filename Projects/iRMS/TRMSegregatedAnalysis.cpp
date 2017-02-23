@@ -81,7 +81,7 @@ void TRMSegregatedAnalysis::AdjustVectors(){
 
 void TRMSegregatedAnalysis::SegregatedIteration(){
 
-//    this->UpdateMemory_at_n();
+    this->UpdateMemory_at_n();
     
     fParabolic->ExcecuteOneStep();
 
@@ -89,7 +89,7 @@ void TRMSegregatedAnalysis::SegregatedIteration(){
         return;
     }
     this->UpdateFluxes_at_n();
-//    this->UpdateMemory_at_n();
+    this->UpdateMemory_at_n();
 
     fHyperbolic->ExcecuteOneStep();
     this->UpdateMemory_at_n();    
@@ -269,7 +269,7 @@ void TRMSegregatedAnalysis::KeepGlobalSolution(){
 bool TRMSegregatedAnalysis::MustRestartStep(){
     
     int n_data = fHyperbolic->X_n().Rows();
-    REAL epsilon = 1.0e-3;
+    REAL epsilon = 1.0e-1;
     
     for (long i = 0; i < n_data; i++) {
         if ( (1.0 - fHyperbolic->X_n()(i,0)) < + epsilon ) {

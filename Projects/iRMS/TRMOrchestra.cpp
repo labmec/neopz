@@ -173,11 +173,11 @@ void TRMOrchestra::BuildGeometry(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/iRMS/Meshes/Gmsh/reservoir.msh";
+    file = dirname + "/Projects/iRMS/" + fSimulationData->GridName();
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
     int ref = fSimulationData->MHMResolution().second.second;
-//        fSpaceGenerator->UniformRefinement(ref);
+//    fSpaceGenerator->UniformRefinement(ref);
     fSpaceGenerator->UniformRefineTetrahedrons(ref);
     fSpaceGenerator->PrintGeometry();
 

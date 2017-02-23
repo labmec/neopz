@@ -45,7 +45,7 @@ int main()
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-    // Running dual problem on box shape
+    // Running whole process
     MultiScaleSimulation();
     
 #ifdef USING_BOOST
@@ -86,12 +86,13 @@ void MultiScaleSimulation()
     //  Dimension on gmsh reservoir    
     bool Is3DGeometry = true;
     
-    bool IsSinglePhaseQ = true;
+    bool IsSinglePhaseQ = false;
     if(IsSinglePhaseQ){
         RawData->SinglePhaseReservoir(Is3DGeometry); // Single-phase flow
     }
     else{
-        RawData->TwoPhaseWaterOilReservoir(Is3DGeometry); // Two-phase flow
+        RawData->CaseTracerTransport(Is3DGeometry); // Case 1 and 2 Tracer transport
+//        RawData->TwoPhaseWaterOilReservoir(Is3DGeometry); // Two-phase flow
     }
     
     TRMSimulationData * SimData = new TRMSimulationData;

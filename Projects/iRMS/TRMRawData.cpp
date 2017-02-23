@@ -87,6 +87,19 @@ TRMRawData::TRMRawData()
     fIncreaseTransporResolutionQ.first = false;
     fIncreaseTransporResolutionQ.second = 0;
     
+    /** @brief Gmsh grid file */
+    fGridName = "";
+    
+    /** @brief Set SPE10 fields file */
+    fPermPorFields.first  = "";
+    fPermPorFields.second = "";
+    
+    /** @brief number of blocks i, j and k  */
+    fNBlocks.resize(0);
+    
+    /** @brief size of blocks dx, dy and dz  */
+    fBlocks_sizes.resize(0);
+    
     /** @brief phases = {alpha, beta, gamma} */
     fPhases.resize(0);
     
@@ -152,7 +165,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fIsQuasiNewtonQ = true;
     fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0;
-    fMHMResolutionQ.second.second = 1;
+    fMHMResolutionQ.second.second = 2;
     
     
     // Rock materials ids
@@ -274,7 +287,16 @@ void TRMRawData::Aquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F,
 {
     
     REAL MPa = 1.0e6;
+    
+    // Aquifer properties
     REAL pressure_aquifer = 25.0*MPa;
+    REAL mu_w = 0.001;
+    REAL k = 1.0e-13;
+    REAL h = 100.0;
+    REAL phi = 0.25;
+    REAL ct = 
+    
+    
     F[0] = pressure_aquifer;
     
     return;
@@ -566,6 +588,201 @@ void TRMRawData::Aquifer_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >&
 }
 
 void TRMRawData::Impervious_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
+    
+    REAL flux = 0.0, S = 0.0;
+    f[0] = flux;
+    f[1] = S;
+    return;
+}
+
+
+/** @brief Define the materials for a primitive two-phase flow example and their functions associated */
+void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
+    
+    // Single flow
+    TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
+    TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
+    TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
+    fSystemType.Push("water");
+    fSystemType.Push("water");
+    water->SetRhoModel(0);
+    water->SetRhoModel(0);
+    fPhases.Push(water);
+    fPhases.Push(water);
+    
+    int n_data = fSystemType.size();
+    
+    // Setting up gravity
+    fg.Resize(3, 0.0);
+    //fg[1] = -9.81;
+    
+    int map_model = 2; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    fMap = new TRMSpatialPropertiesMap;
+    fMap->SetMapModel(map_model);
+    
+//    fGridName = "case_2/reservoir_2D_T.msh";
+//    fGridName = "case_2/reservoir_2D_Q.msh";
+    fGridName = "case_2/reservoir_3D_T.msh";
+//    fGridName = "case_2/reservoir_3D_H.msh";
+    fPermPorFields.first = "case_2/spe_perm.dat";
+    fPermPorFields.second = "case_2/spe_phi.dat";
+    fNBlocks.Push(60);
+    fNBlocks.Push(220);
+    fNBlocks.Push(2);
+    fBlocks_sizes.Push(1.6666666667);
+    fBlocks_sizes.Push(4.5454545455);
+    fBlocks_sizes.Push(50.0);
+    fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
+    fMap->LoadSPE10Map(true);
+    
+    // Time control parameters
+    REAL hour       = 3600.0;
+    REAL day        = hour * 24.0;
+    
+    fReportingTimes.Push(std::make_pair(1000.0*day,true));
+    fReportingTimes.Push(std::make_pair(900.0*day,false));
+    fReportingTimes.Push(std::make_pair(800.0*day,false));
+    fReportingTimes.Push(std::make_pair(700.0*day,false));
+    fReportingTimes.Push(std::make_pair(600.0*day,false));
+    fReportingTimes.Push(std::make_pair(500.0*day,false));
+    fReportingTimes.Push(std::make_pair(400.0*day,false));
+    fReportingTimes.Push(std::make_pair(300.0*day,false));
+    fReportingTimes.Push(std::make_pair(200.0*day,false));
+    fReportingTimes.Push(std::make_pair(100.0*day,false));
+    fReportingTimes.Push(std::make_pair(0.0*day,true));
+    
+    fn_steps  = 500;
+    fdt = 50.0*day;
+    fdt_max = 50.0*day;
+    fdt_min = 0.01*day;
+    fdt_up = 1.0;
+    fdt_down = 1.0;
+    
+    // Numeric controls
+    fn_corrections = 50;
+    fepsilon_res = 0.1;
+    fepsilon_cor = 0.001;
+    fIsQuasiNewtonQ = true;
+    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.second.first = 0;
+    fMHMResolutionQ.second.second = 2;
+    fIncreaseTransporResolutionQ.first = false;
+    fIncreaseTransporResolutionQ.second = 2;
+    
+    // Rock materials ids
+    int Rock = 4;
+    fOmegaIds.Push(Rock);
+    
+    int bc_W = 10;
+    int bc_E = 8;
+    int bc_S = 7;
+    int bc_N = 9;
+    int bc_B = 5;
+    int bc_T = 6;
+    
+    if (!Is3DGeometryQ) {
+        bc_W = 6;
+        bc_E = 8;
+        bc_S = 100;
+        bc_N = 100;
+        bc_B = 5;
+        bc_T = 7;
+    }
+    
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > S(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > N(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
+    
+    fGammaIds.Push(bc_W);
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(CTracer_PressureOutlet_2p));
+//    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fIntial_bc_data.Push(W);
+    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(CTracer_PressureInlet_2p));
+//    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fRecurrent_bc_data.Push(W);
+    
+    fGammaIds.Push(bc_E);
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(CTracer_PressureOutlet_2p));
+//    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fIntial_bc_data.Push(E);
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(CTracer_PressureOutlet_2p));
+//    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fRecurrent_bc_data.Push(E);
+    
+    fGammaIds.Push(bc_S);
+    S[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fIntial_bc_data.Push(S);
+    S[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fRecurrent_bc_data.Push(S);
+    
+    fGammaIds.Push(bc_N);
+    N[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fIntial_bc_data.Push(N);
+    N[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fRecurrent_bc_data.Push(N);
+    
+    fGammaIds.Push(bc_B);
+    B[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fIntial_bc_data.Push(B);
+    B[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fRecurrent_bc_data.Push(B);
+    
+    fGammaIds.Push(bc_T);
+    T[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fIntial_bc_data.Push(T);
+    T[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fRecurrent_bc_data.Push(T);
+    
+    int bc_lids = 1;
+    int bc_Prod = 2;
+    int bc_Inj  = 3;
+    
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > WLids(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > WPro(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > WInj(n_data);
+    
+    fGammaIds.Push(bc_lids);
+    WLids[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fIntial_bc_data.Push(WLids);
+    WLids[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+    fRecurrent_bc_data.Push(WLids);
+    
+    fGammaIds.Push(bc_Prod);
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(CTracer_PressureOutlet_2p));
+    fIntial_bc_data.Push(WPro);
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(CTracer_PressureOutlet_2p));
+    fRecurrent_bc_data.Push(WPro);
+    
+    fGammaIds.Push(bc_Inj);
+    WInj[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_PressureInlet_2p));
+    fIntial_bc_data.Push(WInj);
+    WInj[0] = std::make_pair(3,new TPZDummyFunction<REAL>(CTracer_PressureInlet_2p));
+    fRecurrent_bc_data.Push(WInj);
+    
+}
+
+void TRMRawData::CTracer_PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
+    
+    REAL p = 1.0e+6;// 150.0 psi
+    f[0] = p;
+    return;
+    
+}
+
+void TRMRawData::CTracer_PressureInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
+    
+    REAL p = 1.0e+7;// 1500 psi
+    REAL S = 1.0;
+    f[0] = p;
+    f[1] = S;
+    return;
+    
+}
+
+void TRMRawData::CTracer_Impervious_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
     REAL flux = 0.0, S = 0.0;
     f[0] = flux;

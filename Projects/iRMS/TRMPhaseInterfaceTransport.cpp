@@ -242,7 +242,7 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_ab(TPZMaterialData &data,
     if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<STATE,2> f(2);
         TPZFMatrix<double> gradf;
-        REAL time = 0.0;
+        REAL time = fSimulationData->t();
         bc.TimedependentBCForcingFunction()->Execute(datavecleft[sb_a].x, time, f, gradf);
         Value_m = f[0];
         Value_s = f[1];
@@ -316,7 +316,7 @@ void TRMPhaseInterfaceTransport::ContributeBCInterface_ab(TPZMaterialData &data,
         {
             
             // upwinding
-            if (un_l > 0) {
+            if (un_l < 0) {
                 beta = 1.0;
             }
             

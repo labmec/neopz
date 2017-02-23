@@ -123,6 +123,18 @@ public:
     /** @brief Use of increased transpor resolution transfers operators */
     std::pair<bool, int> fIncreaseTransporResolutionQ;
     
+    /** @brief Gmsh grid file */
+    std::string fGridName;
+    
+    /** @brief Set SPE10 fields file */
+    std::pair< std::string , std::string > fPermPorFields;
+    
+    /** @brief number of blocks i, j and k  */
+    TPZStack<int> fNBlocks;
+    
+    /** @brief size of blocks dx, dy and dz  */
+    TPZStack<REAL> fBlocks_sizes;
+    
     /** @brief phases = {alpha, beta, gamma} */
     TPZStack< TPZAutoPointer<TRMPhaseProperties> > fPhases;
     
@@ -141,6 +153,15 @@ public:
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
     void WaterReservoirCircle(bool Is3DGeometryQ);
+    
+    /** @brief Define the materials for case 1 and 2: A water and gas transport tracer */
+    void CaseTracerTransport(bool Is3DGeometryQ);
+    
+    static void CTracer_PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
+    static void CTracer_PressureInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+    
+    static void CTracer_Impervious_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */

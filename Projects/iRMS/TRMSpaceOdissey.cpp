@@ -321,20 +321,20 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     std::cout << "ndof parabolic MHM = " << fMixedFluxPressureCmesh->Solution().Rows() << std::endl;
     
     
-//    this->CreateMixedCmeshMHM();
-//    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
-//#ifdef PZDEBUG
-//    std::ofstream out_mhm("CmeshMixedMHM.txt");
-//    this->MixedFluxPressureCmeshMHM()->Print(out_mhm);
-//#endif
-//    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
-//    
+    this->CreateMixedCmeshMHM();
+    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
+#ifdef PZDEBUG
+    std::ofstream out_mhm("CmeshMixedMHM.txt");
+    this->MixedFluxPressureCmeshMHM()->Print(out_mhm);
+#endif
+    std::cout << "ndof parabolic MHM substructures = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    
 //    this->UnwrapMacroElements();
-//    
-//#ifdef PZDEBUG
-//    std::ofstream out_unwrap("CmeshMixedMHMUnWrap.txt");
-//    this->MixedFluxPressureCmeshMHM()->Print(out_unwrap);
-//#endif
+    
+#ifdef PZDEBUG
+    std::ofstream out_unwrap("CmeshMixedMHMUnWrap.txt");
+    this->MixedFluxPressureCmeshMHM()->Print(out_unwrap);
+#endif
     
     
 }

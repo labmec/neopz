@@ -97,6 +97,17 @@ protected:
     /** @brief Use of increased transpor resolution transfers operators */
     std::pair<bool, int> fIncreaseTransporResolutionQ;
     
+    /** @brief Gmsh grid file */
+    std::string fGridName;
+    
+    /** @brief Set SPE10 fields file */
+    std::pair< std::string , std::string > fPermPorFields;
+    
+    /** @brief number of blocks i, j and k  */
+    TPZStack<int> fNBlocks;
+    
+    /** @brief size of blocks dx, dy and dz  */
+    TPZStack<REAL> fBlocks_sizes;
     
     /** @brief Autopointer of the RawData */
     TPZAutoPointer<TRMRawData> fRawData;
@@ -278,6 +289,38 @@ public:
     /** @brief Get transpor resolution options */
     std::pair<bool, int> & TransporResolution(){
         return fIncreaseTransporResolutionQ;
+    }
+    
+    /** @brief Set Gmsh grid file */
+    void SetGridName(std::string GridName){
+        fGridName = GridName;
+    }
+    
+    /** @brief Get Gmsh grid file */
+    std::string & GridName(){
+        return fGridName;
+    }
+    
+    /** @brief Set SPE10 fields file */
+    void SetSpatialFields(TPZStack<int> NBlocks, TPZStack<REAL> Blocks_sizes, std::pair< std::string , std::string > PermPorFields){
+        fNBlocks = NBlocks;
+        fBlocks_sizes = Blocks_sizes;
+        fPermPorFields = PermPorFields;
+    }
+    
+    /** @brief Set SPE10 fields file */
+    std::pair< std::string , std::string > & SpatialFields(){
+        return fPermPorFields;
+    }
+    
+    /** @brief Get SPE10 fields file */
+    TPZStack<int> & NBlocks(){
+        return fNBlocks;
+    }
+    
+    /** @brief Get SPE10 fields file */
+    TPZStack<REAL> & Blocks_sizes(){
+        return fBlocks_sizes;
     }
     
     /** @brief Store time values to be reported */
