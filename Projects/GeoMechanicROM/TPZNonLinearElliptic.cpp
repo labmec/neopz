@@ -80,7 +80,7 @@ void TPZNonLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     TPZManVector<STATE,1> f(1,0.0);
     
-    if(HasfTimedependentForcingFunction())
+    if(HasTimedependentForcingFunction())
     {
         TPZFMatrix<double> gradf;
         REAL time = 0.;
@@ -142,7 +142,7 @@ void TPZNonLinearElliptic::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL we
     
     REAL time = this->SimulationData()->t();
     REAL Value = bc.Val2()(0,0);
-    if (bc.HasfTimedependentBCForcingFunction()) {
+    if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(1);
         TPZFMatrix<REAL> gradf;
         bc.TimedependentBCForcingFunction()->Execute(datavec[u_b].x, time, f, gradf);

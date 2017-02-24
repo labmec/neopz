@@ -338,7 +338,7 @@ void TPZLinearElliptic::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weigh
     
     REAL time = this->SimulationData()->t();
     REAL Value = bc.Val2()(0,0);
-    if (bc.HasfTimedependentBCForcingFunction()) {
+    if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(3);
         TPZFMatrix<REAL> gradf;
         bc.TimedependentBCForcingFunction()->Execute(datavec[p_b].x, time, f, gradf);

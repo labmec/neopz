@@ -665,9 +665,9 @@ void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
     fIsQuasiNewtonQ = true;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0;
-    fMHMResolutionQ.second.second = 2;
+    fMHMResolutionQ.second.second = 1;
     fIncreaseTransporResolutionQ.first = false;
-    fIncreaseTransporResolutionQ.second = 2;
+    fIncreaseTransporResolutionQ.second = 0;
     
     // Rock materials ids
     int Rock = 4;

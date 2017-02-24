@@ -225,7 +225,7 @@ int main()
     common.UseFrontalQ = false;
     common.IsMHMQ      = false;
     common.UseGmshMeshQ = true;
-    common.n_h_levels = 1;
+    common.n_h_levels = 3;
     common.n_p_levels = 1;
     common.int_order  = 8;
     common.n_threads  = 16;
@@ -505,8 +505,8 @@ void ComputeApproximation(SimulationCase & sim_data){
             // PostProccessing
             std::stringstream sol_vtk_name;
             sol_vtk_name    << sim_data.dump_folder << "/" "sol" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
-//            std::string file(sol_vtk_name.str());
-//            PosProcess(analysis, file, sim_data);
+            std::string file(sol_vtk_name.str());
+            PosProcess(analysis, file, sim_data);
             
             
             // compute the error

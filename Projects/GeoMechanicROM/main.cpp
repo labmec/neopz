@@ -254,10 +254,10 @@ int Geomechanic(){
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
     
-    REAL Lx = 10.0; // meters
+    REAL Lx = 1.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 5; // x - direction
+    n[0] = 1; // x - direction
     n[1] = 5; // y - direction
     
     int order = 2;

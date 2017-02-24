@@ -9,6 +9,7 @@
 // Settings
 ExpertMode = 1;
 Mesh.Optimize = 1;
+Mesh.CharacteristicLengthExtendFromBoundary = 1;
 
 Include "CadReservoir.geo";
 Include "BoxReservoir.geo";
@@ -67,7 +68,7 @@ cl5 = 5000.0;
 // reservoir box dimensions
 x_length = 1000.0;
 y_length = 100.0;
-z_length = 10.0;
+z_length = 20.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // side-burden region geometry
