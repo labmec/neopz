@@ -249,7 +249,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++) {
             
-            ef(ip + first_p, 0)		+= weight *  (-1.0) * (1.0/dt) * (falpha * (Grad_u(0,0) + Grad_u(1,1))) * phip(ip,0);
+            ef(ip + first_p, 0)		+= weight *  (-1.0) * (1.0/dt) * (falpha * (Grad_u(0,0) + Grad_u(1,1)) + fSe * p[0]) * phip(ip,0);
         }
         
         return;
@@ -327,7 +327,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
             dot += Grad_p(i,0) * Grad_phi_i(i,0);
         }
         
-        ef(ip + first_p, 0)		+= 1.0 * weight * (c * dot + (1.0/dt) * (falpha * (Grad_u(0,0) + Grad_u(1,1))) * phip(ip,0));
+        ef(ip + first_p, 0)		+= 1.0 * weight * (c * dot + (1.0/dt) * (falpha * (Grad_u(0,0) + Grad_u(1,1)) + fSe * p[0]) * phip(ip,0) );
         
         //	Coupling matrix
         for(int ju = 0; ju < nphi_u; ju++ )
@@ -1351,11 +1351,17 @@ int TPZPoroPermCoupling::VariableIndex(const std::string &name)
     if(!strcmp("e_x",name.c_str()))             return	11;
     if(!strcmp("e_y",name.c_str()))             return	12;
     if(!strcmp("e_xy",name.c_str()))            return	13;
-    if(!strcmp("ep_x",name.c_str()))             return	14;
-    if(!strcmp("ep_y",name.c_str()))             return	15;
-    if(!strcmp("ep_xy",name.c_str()))            return	16;
+    if(!strcmp("ep_x",name.c_str()))            return	14;
+    if(!strcmp("ep_y",name.c_str()))            return	15;
+    if(!strcmp("ep_xy",name.c_str()))           return	16;
     
-    if(!strcmp("K_0",name.c_str()))            return	17;
+    if(!strcmp("K_0",name.c_str()))             return	17;
+    
+    if(!strcmp("pe_ex",name.c_str()))			return	18;
+    if(!strcmp("ve",name.c_str()))				return	19;
+    if(!strcmp("ue_x",name.c_str()))            return	20;
+    if(!strcmp("ue_y",name.c_str()))            return	21;
+    
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -1378,6 +1384,11 @@ int TPZPoroPermCoupling::NSolutionVariables(int var){
     if(var == 15)	return 1;
     if(var == 16)	return 1;
     if(var == 17)	return 1;
+    
+    if(var == 18)	return 1;
+    if(var == 19)	return fDim;
+    if(var == 20)	return 1;
+    if(var == 21)	return 1;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -1405,7 +1416,7 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     
     
     REAL to_Mpa     = 1.0e-6;
-    REAL to_Darcy   = 1.013249966e+12;
+    REAL to_Darcy   = 1.013249966e+15; //md
     
     // Computing Gradient of the Solution
     TPZFNMatrix<6,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;
@@ -1533,6 +1544,24 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
         Solout[0] = S(0,0)/S(1,1);
         return;
     }
+    
+    // Pressure exact
+    if(var == 18) {
+        
+        TPZManVector<STATE,5> f(1,0.0);
+        TPZFNMatrix<4,STATE> df(4,1,0.0);
+        if (this->HasTimedependentForcingFunction()) {
+            REAL time = fSimulationData->t();
+            this->fTimeDependentForcingFunction->Execute(datavec[u_b].x, time, f, df);
+        }
+        
+        Solout[0] = f[2]*to_Mpa;
+        
+        return;
+    }
+    
+    std::cout  << "not implemented. " << std::endl;
+    DebugStop();
     
 }
 

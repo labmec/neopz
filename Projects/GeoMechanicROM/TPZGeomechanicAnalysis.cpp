@@ -234,11 +234,12 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
 //    scalnames.Push("ep_x");
 //    scalnames.Push("ep_y");
 //    scalnames.Push("ep_xy");
-//    scalnames.Push("k_x");
-//    scalnames.Push("k_y");
+    scalnames.Push("k_x");
+    scalnames.Push("k_y");
 //    scalnames.Push("K_0");
-//    scalnames.Push("phi");    
+    scalnames.Push("phi");    
     scalnames.Push("p_ex");
+    scalnames.Push("pe_ex");    
     vecnames.Push("u");
 //    vecnames.Push("v");
 
@@ -254,12 +255,12 @@ void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
     
-    for (int i = 0; i <= n; i++) {
+    for (int i = 1; i <= n; i++) {
         time = i * dt;
-        std::cout<< "Geomechanic Coupling:: Current time (s) = " << time << std::endl;
         this->SimulationData()->SetTime(time);
         this->ExcecuteOneStep();
         this->PostProcessStep(plotfile);
+        std::cout<< "Geomechanic Coupling:: Current time (s) = " << time << std::endl;
 //        this->AppendStrain_Stress(x);
 //        this->AppendStrain_Pososity(x);
 //        this->AppendStrain_Permeability(x);
