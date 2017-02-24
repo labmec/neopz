@@ -295,6 +295,9 @@ int mainMISMIP(int argc, char *argv[]);
 
 int mainAMR(int argc, char *argv[]);
 
+//just to debug anything
+int mainDebug(int argc, char *argv[]);
+
 int main(int argc, char *argv[]){
     
     
@@ -308,6 +311,9 @@ int main(int argc, char *argv[]){
     //para testar o AMR
     int value = mainAMR(argc, argv);
     
+    //para debugar
+    //int value = mainDebug(argc, argv);
+    
     
  //   int value = omp_get_num_threads();
 
@@ -319,6 +325,126 @@ int main(int argc, char *argv[]){
   //  }
     
     return value;
+}
+//###################################################
+int mainDebug(int argc, char *argv[]){
+
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+    
+    int nnodes = 4;
+    gmesh->NodeVec().Resize( nnodes );
+    
+    TPZManVector<REAL,3> coord(3,0.);
+    //nó 0
+    coord[0] = 0.;
+    coord[1] = 0.;
+    gmesh->NodeVec()[0].SetCoord(coord);
+    gmesh->NodeVec()[0].SetNodeId(0);
+
+    //nó 1
+    coord[0] = 10.;
+    coord[1] = 0.;
+    gmesh->NodeVec()[1].SetCoord(coord);
+    gmesh->NodeVec()[1].SetNodeId(1);
+    
+    //nó 2
+    coord[0] = 10.;
+    coord[1] = 10.;
+    gmesh->NodeVec()[2].SetCoord(coord);
+    gmesh->NodeVec()[2].SetNodeId(2);
+    
+    //nó 3
+    coord[0] = 0.;
+    coord[1] = 10.;
+    gmesh->NodeVec()[3].SetCoord(coord);
+    gmesh->NodeVec()[3].SetNodeId(3);
+    
+    //materials ID
+    long id;
+    const int mat = 1;
+    
+    //elemento quadrilatero
+    TPZManVector<long,3> tria(3,0);
+    
+    const int reftype = 1;
+    //element tria 0
+    tria[0] = 3;
+    tria[1] = 2;
+    tria[2] = 1;
+    gmesh->CreateGeoElement(ETriangle, tria, mat, id,reftype);
+    gmesh->ElementVec()[id]->SetId(0);
+
+    //element tria 1
+    tria[0] = 0;
+    tria[1] = 3;
+    tria[2] = 1;
+    gmesh->CreateGeoElement(ETriangle, tria, mat, id,reftype);
+    gmesh->ElementVec()[id]->SetId(1);
+
+    gmesh->BuildConnectivity();
+    
+    std::ofstream file1("/Users/santos/Desktop/mesh0.txt");
+    gmesh->Print(file1);
+    
+    std::ofstream filevtk1("/Users/santos/Desktop/mesh0.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk1 );
+    
+    //refinement, once
+    SetRefPatterns();
+    long nelem = gmesh->NElements();
+    for(long i=0;i<1;i++){
+        TPZVec<TPZGeoEl *> sons;
+        gmesh->Element(i)->Divide(sons);
+    }
+    
+    // delete the sons
+    long nsubelem = gmesh->Element(0)->NSubElements();
+    for(long i=0;i<nsubelem;i++){
+        gmesh->DeleteElement(gmesh->Element(0)->SubElement(i));
+    }
+    
+    
+    std::ofstream file2("/Users/santos/Desktop/mesh1.txt");
+    gmesh->Print(file2);
+    std::ofstream filevtk2("/Users/santos/Desktop/mesh1.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk2 );
+    
+    
+    gmesh->Element(0)->ResetSubElements();
+
+    if(gmesh->Element(0)->HasSubElement()){
+        DebugStop();
+    }
+    
+    if(gmesh->Element(0)->NSubElements()>0){
+        DebugStop();
+    }
+    
+    
+    
+    nelem = gmesh->NElements();
+    for(long i = 0; i < nelem; i++){
+        
+        /*Get the refinement pattern for this element and refine it*/
+        TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(gmesh->Element(i));
+        if(refp){
+            TPZVec<TPZGeoEl *> Sons;
+            gmesh->Element(i)->SetRefPattern(refp);
+            gmesh->Element(i)->Divide(Sons);
+        }
+        
+   	}
+    gmesh->BuildConnectivity();
+
+    std::ofstream file3("/Users/santos/Desktop/mesh2.txt");
+    gmesh->Print(file3);
+    
+    std::ofstream filevtk3("/Users/santos/Desktop/mesh2.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh,filevtk3 );
+    
+
+    
+    return 0;
 }
 
 //###################################################
@@ -334,6 +460,9 @@ int mainAMR(int argc, char *argv[]){
     AdaptiveMeshRefinement *AMR = new AdaptiveMeshRefinement();
     
     if(isrestart){
+        
+        /* type of process. 0: refine the same mesh; 1 refine the mesh 0 (unrefine process) */
+        int type_process = atoi(argv[5]); /* 0=refinement; 1=unrefinement*/
         
         /* read refpattern*/
         SetRefPatterns();
@@ -358,7 +487,6 @@ int mainAMR(int argc, char *argv[]){
         long **newelements;
         long **newsegments;
         long newnumberofvertices, newnumberofelements, newnumberofsegments;
-        int type_process = 0; /* 0=refinement; 1=unrefinement*/
         AMR->ExecuteRefinement(type_process,vx,vy,masklevelset,newnumberofvertices,newnumberofelements,newnumberofsegments,&newx,&newy,&newz,&newelements,&newsegments);
     
         /* Printing new mesh */
@@ -384,8 +512,8 @@ int mainAMR(int argc, char *argv[]){
         long **elements;
         long **segments;
         long nvertices, nelements, nsegments;
-        int hmax        = atoi(argv[5]);
-        std::ifstream InitialMeshFile(argv[6]);
+        int hmax        = atoi(argv[6]);
+        std::ifstream InitialMeshFile(argv[7]);
         bool IsOk = ReadMesh(InitialMeshFile,nvertices,nelements,nsegments,&x,&y,&z,&elements,&segments);
         if(!IsOk) DebugStop();
     
