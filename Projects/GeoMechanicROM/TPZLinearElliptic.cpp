@@ -768,8 +768,7 @@ int TPZLinearElliptic::VariableIndex(const std::string &name)
     
     if(!strcmp("pe_ex",name.c_str()))			return	18;
     if(!strcmp("ve",name.c_str()))				return	19;
-    if(!strcmp("ue_x",name.c_str()))            return	20;
-    if(!strcmp("ue_y",name.c_str()))            return	21;
+    if(!strcmp("ue",name.c_str()))            return	20;
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -795,8 +794,7 @@ int TPZLinearElliptic::NSolutionVariables(int var){
     
     if(var == 18)	return 1;
     if(var == 19)	return fDim;
-    if(var == 20)	return 1;
-    if(var == 21)	return 1;
+    if(var == 20)	return fDim;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -955,6 +953,13 @@ void TPZLinearElliptic::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
     
     // Pressure exact
     if(var == 18) {
+        
+        Solout[0] = 0.0;
+        return;
+    }
+    
+    // displacement exact
+    if(var == 20) {
         
         Solout[0] = 0.0;
         return;

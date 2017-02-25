@@ -227,6 +227,7 @@ void TPZPoroPermCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
     Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
     
+    
     // Get the pressure at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
@@ -1359,8 +1360,7 @@ int TPZPoroPermCoupling::VariableIndex(const std::string &name)
     
     if(!strcmp("pe_ex",name.c_str()))			return	18;
     if(!strcmp("ve",name.c_str()))				return	19;
-    if(!strcmp("ue_x",name.c_str()))            return	20;
-    if(!strcmp("ue_y",name.c_str()))            return	21;
+    if(!strcmp("ue",name.c_str()))              return	20;
     
     
     return TPZMaterial::VariableIndex(name);
@@ -1387,8 +1387,7 @@ int TPZPoroPermCoupling::NSolutionVariables(int var){
     
     if(var == 18)	return 1;
     if(var == 19)	return fDim;
-    if(var == 20)	return 1;
-    if(var == 21)	return 1;
+    if(var == 20)	return fDim;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -1556,6 +1555,22 @@ void TPZPoroPermCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
         }
         
         Solout[0] = f[2]*to_Mpa;
+        
+        return;
+    }
+    
+    // displacement exact
+    if(var == 20) {
+        
+        TPZManVector<STATE,5> f(1,0.0);
+        TPZFNMatrix<4,STATE> df(4,1,0.0);
+        if (this->HasTimedependentForcingFunction()) {
+            REAL time = fSimulationData->t();
+            this->fTimeDependentForcingFunction->Execute(datavec[u_b].x, time, f, df);
+        }
+        
+        Solout[0] = f[0];
+        Solout[1] = f[1];
         
         return;
     }

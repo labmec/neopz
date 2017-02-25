@@ -223,7 +223,7 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 2;
+    int div = 0;
     TPZStack<std::string>scalnames, vecnames;
 //    scalnames.Push("s_x");
 //    scalnames.Push("s_y");
@@ -241,6 +241,7 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
     scalnames.Push("p_ex");
     scalnames.Push("pe_ex");    
     vecnames.Push("u");
+    vecnames.Push("ue");
 //    vecnames.Push("v");
 
     this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);

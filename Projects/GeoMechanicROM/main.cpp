@@ -244,7 +244,7 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1.0;
+    REAL dt = 10.0;
     int n_steps = 10;
     REAL epsilon_res = 1.0e-4;
     REAL epsilon_corr = 1.0e-7;
@@ -298,7 +298,7 @@ int Geomechanic(){
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data);
     
     bool mustOptimizeBandwidth = false;
-    int number_threads = 16;
+    int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -308,11 +308,11 @@ int Geomechanic(){
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
 //    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+//    struct_mat.SetNumThreads(number_threads);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
-//    struct_mat.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
+    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -1795,7 +1795,7 @@ void Analytic(const TPZVec<REAL> &x, REAL time, TPZVec<STATE> &u,TPZFMatrix<STAT
     REAL yD = (h-y_c)/h;
     REAL tD = (l+2.0*mu)*kappa*time/(eta*h*h);
     
-    int n = 100;
+    int n = 10;
     REAL sump = 0.0;
     REAL sumu = 0.0;
     REAL M;
@@ -1806,7 +1806,7 @@ void Analytic(const TPZVec<REAL> &x, REAL time, TPZVec<STATE> &u,TPZFMatrix<STAT
     }
 
     u[0] = 0.0;
-    u[0] = ((p0*h)/(l + 2.0*mu))*(1.0 - yD - sumu);
+    u[1] = -((p0*h)/(l + 2.0*mu))*(1.0 - yD - sumu);
     u[2] = p0*sump;
 }
 
