@@ -118,7 +118,7 @@ public:
     
     
     /** @brief Parameters of rock and fluid: */
-    void SetParameters(REAL perm, REAL fporosity, REAL eta)
+    void SetFlowParameters(REAL perm, REAL fporosity, REAL eta)
     {
         fk = perm;
         feta = eta;

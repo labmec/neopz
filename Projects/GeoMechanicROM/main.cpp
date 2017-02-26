@@ -39,6 +39,7 @@
 #include "TPZPoroPermCoupling.h"
 #include "TPZNonLinearElliptic.h"
 #include "TPZLinearElliptic.h"
+#include "TPZBiotPoroelasticity.h"
 
 // Analysis
 #include "pzanalysis.h"
@@ -153,7 +154,7 @@ int main(int argc, char *argv[])
 
 int NonLinearElliptic(){
     
-    TPZMaterial::gBigNumber = 1.0e14;
+    TPZMaterial::gBigNumber = 1.0e12;
     
 #ifdef LOG4CXX
     std::string dirname = PZSOURCEDIR;
@@ -244,15 +245,14 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 10.0;
-    int n_steps = 10;
+    REAL dt = 0.05;
+    int n_steps = 100;
     REAL epsilon_res = 1.0e-4;
     REAL epsilon_corr = 1.0e-7;
     int n_corrections = 10;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
-    g[1] = -0.0*9.81;
     
     sim_data->SetGravity(g);
     sim_data->SetTimeControls(n_steps, dt);
@@ -264,12 +264,12 @@ int Geomechanic(){
     REAL Lx = 1.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 2; // x - direction
+    n[0] = 1; // x - direction
     n[1] = 10; // y - direction
     
     int order = 2;
     int level = 0;
-    int hlevel = 2;
+    int hlevel = 1;
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -289,7 +289,7 @@ int Geomechanic(){
 
 //    TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order,level);
     
-    order = 2;
+    order = 3;
     // Computing reference solution
     TPZVec<TPZCompMesh * > mesh_vector(2);
     mesh_vector[0] = CMesh_Deformation(gmesh, order);
@@ -305,18 +305,18 @@ int Geomechanic(){
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
+    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
 //    TPZSkylineStructMatrix struct_mat(geomechanic);
 
 //    TPZSymetricSpStructMatrix struct_mat(geomechanic);
 //    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
+//    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
-    step.SetDirect(ELDLt);
+    step.SetDirect(ELU);
     time_analysis->SetSolver(step);
     time_analysis->SetStructuralMatrix(struct_mat);
     
@@ -1337,9 +1337,6 @@ TPZCompMesh * CMesh_Elliptic_M_RB(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mes
 
 TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data){
     
-    // Plane strain assumption
-    int planestress = 0;
-    
     // Material identifiers
     int matid =1;
     int bc_bottom, bc_right, bc_top, bc_left;
@@ -1349,48 +1346,36 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     bc_left = -4;
     
     REAL MPa = 1.0e6;
-    REAL rad = M_PI/180.0;
     
     // Getting mesh dimension
     int dim = 2;
     
-    int kmodel      = 0;
-    REAL l          = 40.38e9;
-    REAL mu         = 26.92e9;
-    REAL l_u        = 40.38e9;
+    REAL l          = 4.0e9;
+    REAL mu         = 6.0e9;
+    REAL l_u        = 4.0e9;
     REAL alpha      = 1.0;
     REAL Se         = 0.0;
-    REAL k          = 1.0e-14;
+    REAL k          = 1.0e-13;
     REAL porosity   = 0.25;
     REAL eta        = 0.001;
     
-    REAL c = 0.0;
-    REAL phi_f = 0.0;
-
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
     // Creating a material object
-    TPZPoroPermCoupling * material = new TPZPoroPermCoupling(matid,dim);
+    TPZBiotPoroelasticity * material = new TPZBiotPoroelasticity(matid,dim);
     material->SetSimulationData(sim_data);
-    material->SetPlaneProblem(planestress);
     material->SetPorolasticParameters(l, mu, l_u);
     material->SetBiotParameters(alpha, Se);
-    material->SetParameters(k, porosity, eta);
-    material->SetKModel(kmodel);
-    material->SetDruckerPragerParameters(phi_f, c);
-    
+    material->SetFlowParameters(k, porosity, eta);
     
     TPZAutoPointer<TPZFunction<STATE> > f_analytic = new TPZDummyFunction<STATE>(Analytic);
     material->SetTimeDependentForcingFunction(f_analytic);
-    
     cmesh->InsertMaterialObject(material);
-    
     
     // Inserting boundary conditions
     int dirichlet_x_vn   = 7;
     int dirichlet_y_vn   = 8;
     int neumann_y_p      = 5;
-    int dirichlet_y_p    = 2;
 
     REAL s_n = -10.0*MPa;
     
@@ -1785,28 +1770,32 @@ void Analytic(const TPZVec<REAL> &x, REAL time, TPZVec<STATE> &u,TPZFMatrix<STAT
     
     REAL y_c = x[1];
     
-    REAL kappa = 1.0e-14;
+    REAL kappa = 1.0e-13;
     REAL eta = 0.001;
-    REAL l = 40.38e9;
-    REAL mu = 26.92e9;
+    REAL l = 4.0e9;
+    REAL mu = 6.0e9;
     REAL h = 10.0;
     REAL p0 = 10.0e6;
 
     REAL yD = (h-y_c)/h;
     REAL tD = (l+2.0*mu)*kappa*time/(eta*h*h);
     
-    int n = 10;
+    int n = 100;
     REAL sump = 0.0;
     REAL sumu = 0.0;
+    REAL sumv = 0.0;
     REAL M;
     for (int k = 0; k < n; k++) {
         M = 0.5*M_PI*REAL(2*k+1);
         sump += (2.0/M)*sin(M*yD)*exp(-M*M*tD);
         sumu += (2.0/(M*M))*cos(M*yD)*exp(-M*M*tD);
+        sumv += (-2.0*cos(M*yD)*exp(-M*M*tD));
     }
 
     u[0] = 0.0;
     u[1] = -((p0*h)/(l + 2.0*mu))*(1.0 - yD - sumu);
     u[2] = p0*sump;
+    u[3] = 0.0;
+    u[4] = -1.0*(kappa/eta)*(p0/h)*sumv;
 }
 

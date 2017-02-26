@@ -131,6 +131,11 @@ void TPZGeomechanicAnalysis::NewtonIteration(){
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
     
+#ifdef PZDEBUG
+//    this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
+//    this->Rhs().Print("Rn = ", std::cout,EMathematicaInput);
+#endif
+    
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
@@ -167,15 +172,6 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
         this->Set_k_ietrarions(k);
 //        this->QuasiNewtonIteration();
         this->NewtonIteration();
-
-        
-#ifdef PZDEBUG
-//        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
-//        fX.Print("X = ", std::cout,EMathematicaInput);
-//        fR.Print("R = ", std::cout,EMathematicaInput);
-//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
-//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-#endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
@@ -225,24 +221,12 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
     const int dim = this->Mesh()->Dimension();
     int div = 0;
     TPZStack<std::string>scalnames, vecnames;
-//    scalnames.Push("s_x");
-//    scalnames.Push("s_y");
-//    scalnames.Push("t_xy");
-//    scalnames.Push("e_x");
-//    scalnames.Push("e_y");
-//    scalnames.Push("e_xy");
-//    scalnames.Push("ep_x");
-//    scalnames.Push("ep_y");
-//    scalnames.Push("ep_xy");
-    scalnames.Push("k_x");
-    scalnames.Push("k_y");
-//    scalnames.Push("K_0");
-    scalnames.Push("phi");    
     scalnames.Push("p_ex");
     scalnames.Push("pe_ex");    
     vecnames.Push("u");
     vecnames.Push("ue");
-//    vecnames.Push("v");
+    vecnames.Push("v");
+    vecnames.Push("ve");    
 
     this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     this->PostProcess(div,dim);
@@ -252,6 +236,7 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
 /** @brief execute the evolutionary problem */
 void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile){
     
+    int interval = 5;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
@@ -260,7 +245,13 @@ void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile
         time = i * dt;
         this->SimulationData()->SetTime(time);
         this->ExcecuteOneStep();
-        this->PostProcessStep(plotfile);
+        
+        if (i%interval == 0) {
+            std::cout<< "Geomechanic Coupling:: Reporting at time (s) = " << time << std::endl;
+            this->PostProcessStep(plotfile);
+        }
+        
+
         std::cout<< "Geomechanic Coupling:: Current time (s) = " << time << std::endl;
 //        this->AppendStrain_Stress(x);
 //        this->AppendStrain_Pososity(x);
