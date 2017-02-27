@@ -40,6 +40,7 @@
 #include "TPZNonLinearElliptic.h"
 #include "TPZLinearElliptic.h"
 #include "TPZBiotPoroelasticity.h"
+#include "TPZPoroelasticModes.h"
 
 // Analysis
 #include "pzanalysis.h"
@@ -97,8 +98,14 @@ TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order);
 // Create a computational mesh for pore pressure excess
 TPZCompMesh * CMesh_PorePressure(TPZGeoMesh * gmesh, int order);
 
+// Create a computational mesh for flux
+TPZCompMesh * CMesh_Flux(TPZGeoMesh * gmesh, int order);
+
+// Create a computational mesh for mixed pressure
+TPZCompMesh * CMesh_MFPorePressure(TPZGeoMesh * gmesh, int order);
+
 // Create a computational mesh for pore pressure excess
-TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data, bool IsMixedQ);
 
 #ifdef LOG4CXX
 static LoggerPtr log_data(Logger::getLogger("pz.permeabilityc"));
@@ -168,8 +175,8 @@ int NonLinearElliptic(){
     
     REAL dt = 1.0;
     int n_steps = 30;
-    REAL epsilon_res = 1.0e-4;
-    REAL epsilon_corr = 1.0e-8;
+    REAL epsilon_res = 1.0e-2;
+    REAL epsilon_corr = 1.0e-6;
     int n_corrections = 50;
     
     /** @brief Definition gravity field */
@@ -233,6 +240,7 @@ int NonLinearElliptic(){
 
 int Geomechanic(){
     
+    HDivPiola = 1;
     TPZMaterial::gBigNumber = 1.0e14;
     
 #ifdef LOG4CXX
@@ -245,11 +253,13 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.05;
+    REAL dt = 0.1;
     int n_steps = 100;
-    REAL epsilon_res = 1.0e-4;
-    REAL epsilon_corr = 1.0e-7;
-    int n_corrections = 10;
+    REAL epsilon_res = 1.0e-3;
+    REAL epsilon_corr = 1.0e-5;
+    int n_corrections = 20;
+    bool IsMixedQ = false;
+    bool IsRBQ    = true;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
@@ -261,10 +271,10 @@ int Geomechanic(){
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
     
-    REAL Lx = 1.0; // meters
+    REAL Lx = 5.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 1; // x - direction
+    n[0] = 4; // x - direction
     n[1] = 10; // y - direction
     
     int order = 2;
@@ -287,36 +297,55 @@ int Geomechanic(){
     
     std::cout<< "Geometry done. " << std::endl;
 
-//    TPZCompMesh * cmesh_gp = Galerkin_Projections(gmesh, sim_data, order,level);
+    TPZCompMesh * cmesh_gp = new TPZCompMesh;
+    if (IsRBQ) {
+        cmesh_gp = Galerkin_Projections(gmesh, sim_data, order,level);
+    }
     
-    order = 3;
-    // Computing reference solution
-    TPZVec<TPZCompMesh * > mesh_vector(2);
-    mesh_vector[0] = CMesh_Deformation(gmesh, order);
-//    mesh_vector[0] = CMesh_Deformation_rb(cmesh_gp);
-    mesh_vector[1] = CMesh_PorePressure(gmesh, order-1);
-    TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data);
+    int n_meshes = 2;
+    if (IsMixedQ) {
+        n_meshes = 3;
+    }
+
+    TPZVec<TPZCompMesh * > mesh_vector(n_meshes);
+
+    if (IsRBQ) {
+        mesh_vector[0] = CMesh_Deformation_rb(cmesh_gp); // RB mesh
+    }
+    else{
+        mesh_vector[0] = CMesh_Deformation(gmesh, order); // Full order mesh
+    }
     
-    bool mustOptimizeBandwidth = false;
-    int number_threads = 0;
+    if (IsMixedQ) {
+        mesh_vector[1] = CMesh_Flux(gmesh, order-1);
+        mesh_vector[2] = CMesh_MFPorePressure(gmesh, order-1);
+    }
+    else{
+        mesh_vector[1] = CMesh_PorePressure(gmesh, order-1);
+    }
+
+    TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data,IsMixedQ);
+    
+    bool mustOptimizeBandwidth = true;
+    int number_threads = 16;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
+//    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
 //    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+    struct_mat.SetNumThreads(number_threads);
     
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
 //    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
-    step.SetDirect(ELU);
+    step.SetDirect(ELDLt);
     time_analysis->SetSolver(step);
     time_analysis->SetStructuralMatrix(struct_mat);
     
@@ -364,7 +393,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     
     int ndof = geo_modes->NEquations();
     
-    std::cout<< "ROM:: strategy ndof = " << ndof << std::endl;
+    std::cout<< "RB:: offline strategy ndof = " << ndof << std::endl;
     
     time_analysis->SimulationData()->SetCurrentStateQ(true);
     time_analysis->Assemble();
@@ -372,7 +401,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     // Setting up the empirical interpolation based on unitary pressures
     std::string plotfile("Geo_Modes_rb_0.vtk");
     
-    REAL unit_p = 1.0e6;
+    REAL unit_p = 10.0e6;
     TPZStack<TPZVec<long> > cts_pressures;
     
     int n_blocks = DrawUnitPressuresBlocks(mesh_vector[1],cts_pressures,level);
@@ -380,7 +409,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
     galerkin_projts.Zero();
     
-    std::cout<< "ROM:: number of geomodes = " << n_blocks << std::endl;
+    std::cout<< "RB:: number of geomodes = " << n_blocks * geo_modes->Dimension()  << std::endl;
     for (int ip = 0; ip < n_blocks; ip++) {
         
         mesh_vector[0]->Solution().Zero();
@@ -393,6 +422,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, time_analysis->Mesh());
         time_analysis->X_n() = time_analysis->Mesh()->Solution();
         time_analysis->AssembleResidual();
+        time_analysis->Rhs() *= -1.0;
         time_analysis->Solve();
         time_analysis->Solution() += time_analysis->X_n();
         time_analysis->LoadSolution();
@@ -618,9 +648,7 @@ TPZCompMesh * CMesh_Elasticity(TPZGeoMesh * gmesh, int order){
 // Create a computational mesh for basis generation multiphysisc version
 TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data){
     
-    // Plane strain assumption
-    int planestress = 0;
-    
+  
     // Material identifiers
     int matid =1;
     int bc_bottom, bc_right, bc_top, bc_left;
@@ -630,35 +658,28 @@ TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     bc_left = -4;
     
     REAL MPa = 1.0e6;
-    REAL rad = M_PI/180.0;
     
     // Getting mesh dimension
     int dim = 2;
     
-    int kmodel      = 0;
-    REAL l          = 40.38e9;
-    REAL mu         = 26.92e9;
-    REAL l_u        = 40.38e9;
+    REAL l          = 4.0e9;
+    REAL mu         = 6.0e9;
+    REAL l_u        = 4.0e9;
     REAL alpha      = 1.0;
     REAL Se         = 0.0;
-    REAL k          = 1.0e-14;
+    REAL k          = 1.0e-13;
     REAL porosity   = 0.25;
     REAL eta        = 0.001;
-    
-    REAL c = 0.0;
-    REAL phi_f = 0.0;
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
     // Creating a material object
-    TPZLinearElliptic * material = new TPZLinearElliptic(matid,dim);
+   
+    TPZPoroelasticModes * material = new TPZPoroelasticModes(matid,dim);
     material->SetSimulationData(sim_data);
-    material->SetPlaneProblem(planestress);
     material->SetPorolasticParameters(l, mu, l_u);
     material->SetBiotParameters(alpha, Se);
-    material->SetParameters(k, porosity, eta);
-    material->SetKModel(kmodel);
-    material->SetDruckerPragerParameters(phi_f, c);
+    material->SetFlowParameters(k, porosity, eta);
     cmesh->InsertMaterialObject(material);
     
     
@@ -1335,7 +1356,7 @@ TPZCompMesh * CMesh_Elliptic_M_RB(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mes
 
 
 
-TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data, bool IsMixedQ){
     
     // Material identifiers
     int matid =1;
@@ -1367,6 +1388,8 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     material->SetPorolasticParameters(l, mu, l_u);
     material->SetBiotParameters(alpha, Se);
     material->SetFlowParameters(k, porosity, eta);
+    material->SetMixedFormulation(IsMixedQ);
+    material->SetSymmetricFormulation(true);
     
     TPZAutoPointer<TPZFunction<STATE> > f_analytic = new TPZDummyFunction<STATE>(Analytic);
     material->SetTimeDependentForcingFunction(f_analytic);
@@ -1486,7 +1509,7 @@ void u_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< RE
     return;
 }
 
-// Create a computational mesh for deformation;
+// Create a computational mesh for H1 pore pressure;
 TPZCompMesh * CMesh_PorePressure(TPZGeoMesh * gmesh, int order){
     
     // Plane strain assumption
@@ -1541,6 +1564,111 @@ TPZCompMesh * CMesh_PorePressure(TPZGeoMesh * gmesh, int order){
     cmesh->Print(out);
 #endif
 
+    return cmesh;
+}
+
+// Create a computational mesh for deformation;
+TPZCompMesh * CMesh_Flux(TPZGeoMesh * gmesh, int order){
+    
+    // Plane strain assumption
+    //    int planestress = 0;
+    
+    // Material identifiers
+    int matid =1;
+    int bc_bottom, bc_right, bc_top, bc_left;
+    bc_bottom = -1;
+    bc_right = -2;
+    bc_top = -3;
+    bc_left = -4;
+    
+    // Getting mesh dimension
+    int dim = 2;
+    
+    // Aproximation Space of order -> pOrder
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    
+    // Creating a material object
+    int nstate = 1;
+    TPZVec<STATE> sol;
+    TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+    cmesh->InsertMaterialObject(material);
+    
+    // Inserting boundary conditions
+    int dirichlet = 0;
+    
+    TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_bottom_mat);
+    
+    TPZMaterial * bc_right_mat = material->CreateBC(material, bc_right, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_right_mat);
+    
+    TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_top_mat);
+    
+    TPZMaterial * bc_left_mat = material->CreateBC(material, bc_left, dirichlet, val1, val2);
+    cmesh->InsertMaterialObject(bc_left_mat);
+    
+    // Setting H1 approximation space
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(order);
+    cmesh->SetAllCreateFunctionsHDiv();
+    cmesh->AutoBuild();
+
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshFlux.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+}
+
+// Create a computational mesh for mixed pore pressure;
+TPZCompMesh * CMesh_MFPorePressure(TPZGeoMesh * gmesh, int order){
+    
+    // Plane strain assumption
+    //    int planestress = 0;
+    
+    // Material identifiers
+    int matid =1;
+    int bc_bottom, bc_right, bc_top, bc_left;
+    bc_bottom = -1;
+    bc_right = -2;
+    bc_top = -3;
+    bc_left = -4;
+    
+    // Getting mesh dimension
+    int dim = 2;
+    
+    // Aproximation Space of order -> pOrder
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    
+    // Creating a material object
+    int nstate = 1;
+    TPZVec<STATE> sol;
+    TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+    cmesh->InsertMaterialObject(material);
+    
+    // Setando L2
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(order);
+    
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshMFPorePressure.txt");
+    cmesh->Print(out);
+#endif
+    
     return cmesh;
 }
 

@@ -170,8 +170,8 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
     for (int k = 1; k <= n; k++) {
         
         this->Set_k_ietrarions(k);
-//        this->QuasiNewtonIteration();
-        this->NewtonIteration();
+        this->QuasiNewtonIteration();
+//        this->NewtonIteration();
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {

@@ -1,13 +1,13 @@
 //
-//  TPZBiotPoroelasticity.h
+//  TPZPoroelasticModes.h
 //  PZ
 //
-//  Created by Omar on 2/25/17.
+//  Created by Omar on 2/26/17.
 //
 //
 
-#ifndef TPZBiotPoroelasticity_h
-#define TPZBiotPoroelasticity_h
+#ifndef TPZPoroelasticModes_h
+#define TPZPoroelasticModes_h
 
 #include <stdio.h>
 #include <iostream>
@@ -21,7 +21,7 @@
 #include "TPZPoroPermMemory.h"
 #include "pzaxestools.h"
 
-class TPZBiotPoroelasticity : public TPZMatWithMem< TPZPoroPermMemory,TPZDiscontinuousGalerkin> {
+class TPZPoroelasticModes : public TPZMatWithMem< TPZPoroPermMemory,TPZDiscontinuousGalerkin> {
     
 private:
     
@@ -30,12 +30,6 @@ private:
     
     /** @brief material dimension */
     int fdimension;
-    
-    /** @brief Material parameter for symetric system mixed */
-    REAL fMFsymetric;
-
-    /** @brief Material parameter for symetric coupled system */
-    REAL fCsymetric;
     
     /** @brief Poisson coeficient */
     REAL fnu;
@@ -51,8 +45,8 @@ private:
     
     /** @brief Bulk modulus */
     REAL fK;
-
-    /** @brief undrained Bulk modulus */    
+    
+    /** @brief undrained Bulk modulus */
     REAL fKu;
     
     /** @brief Second Lame Parameter */
@@ -72,34 +66,28 @@ private:
     
     /** @brief Fluid viscosity */
     REAL feta;
-
-    /** @brief Define the use of mixed formulation */
-    bool fIsMixedQ;
-    
-    /** @brief Define the use of symmetric factors */
-    bool fIsSymmetricQ;
     
 public:
     
     
     /** @brief Default constructor */
-    TPZBiotPoroelasticity();
+    TPZPoroelasticModes();
     
     /** @brief Constructor based on a material id */
-    TPZBiotPoroelasticity(int matid, int dimension);
+    TPZPoroelasticModes(int matid, int dimension);
     
     /** @brief Constructor based on a Biot Poroelasticity  object */
-    TPZBiotPoroelasticity(const TPZBiotPoroelasticity &mat);
+    TPZPoroelasticModes(const TPZPoroelasticModes &mat);
     
     /** @brief Constructor based on a Biot Poroelasticity  object */
-    TPZBiotPoroelasticity &operator=(const TPZBiotPoroelasticity &mat)
+    TPZPoroelasticModes &operator=(const TPZPoroelasticModes &mat)
     {
         DebugStop();
         return *this;
     }
     
     /** @brief Default destructor */
-    ~TPZBiotPoroelasticity();
+    ~TPZPoroelasticModes();
     
     /** @brief Set the required data at each integration point */
     void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
@@ -120,7 +108,7 @@ public:
     
     virtual TPZMaterial *NewMaterial()
     {
-        return new TPZBiotPoroelasticity(*this);
+        return new TPZPoroelasticModes(*this);
     }
     
     /** print out the data associated with the material */
@@ -171,15 +159,6 @@ public:
     void SetSimulationData(TPZSimulationData * SimulationData)
     {
         fSimulationData = SimulationData;
-    }
-    
-    void SetMixedFormulation(bool IsMixedQ){
-        fIsMixedQ = IsMixedQ;
-    }
-    
-    /** @brief Define the use of symmetric factors */
-    void SetSymmetricFormulation(bool IsSymmetricQ){
-        fIsSymmetricQ = IsSymmetricQ;
     }
     
     /** @brief Get the space generator */
@@ -237,44 +216,6 @@ public:
      */
     void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
-    
-    /** Computes the divergence over the parametric space */
-    void ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &Divergence_of_q);
-    
-    /**
-     * It computes a contribution to the stiffness matrix and load vector at one integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ek[out] is the stiffness matrix
-     * @param ef[out] is the load vector
-     * @since April 16, 2007
-     */
-    void ContributeMF(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    
-    /**
-     * It computes a contribution to the load vector at one integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ef[out] is the load vector
-     * @since April 16, 2007
-     */
-    void ContributeMF(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
-    
-    /**
-     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ek[out] is the stiffness matrix
-     * @param ef[out] is the load vector
-     * @param bc[in] is the boundary condition material
-     * @since April 16, 2007
-     */
-    void ContributeMFBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-    
-    /** returns the solution associated with the var index based on
-     * the finite element approximation */
-    void SolutionMF(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
-    
     /** @brief Unique identifier for serialization purposes */
     int ClassId() const;
     
@@ -286,4 +227,4 @@ public:
     
 };
 
-#endif /* TPZBiotPoroelasticity_h */
+#endif /* TPZPoroelasticModes_h */
