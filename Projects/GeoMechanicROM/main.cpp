@@ -142,7 +142,7 @@ int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & const
 void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
 
 // Create a computational mesh for reduced deformation
-TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh);
+TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh, int order);
 
 
 void SetParameters(TPZCompMesh * cmesh, TPZVec<REAL> mu_vector);
@@ -254,10 +254,10 @@ int Geomechanic(){
     TPZSimulationData * sim_data = new TPZSimulationData;
     
     REAL dt = 0.1;
-    int n_steps = 100;
-    REAL epsilon_res = 1.0e-2;
-    REAL epsilon_corr = 1.0e-4;
-    int n_corrections = 20;
+    int n_steps = 10;
+    REAL epsilon_res = 1.0e-1;
+    REAL epsilon_corr = 1.0e-3;
+    int n_corrections = 1;
     bool IsMixedQ = false;
     bool IsRBQ    = true;
     
@@ -275,7 +275,7 @@ int Geomechanic(){
     REAL Ly = 10.0; // meters
     
     n[0] = 2; // x - direction
-    n[1] = 10; // y - direction
+    n[1] = 1; // y - direction
     
     int order = 2;
     int level = 0;
@@ -310,7 +310,7 @@ int Geomechanic(){
     TPZVec<TPZCompMesh * > mesh_vector(n_meshes);
 
     if (IsRBQ) {
-        mesh_vector[0] = CMesh_Deformation_rb(cmesh_gp); // RB mesh
+        mesh_vector[0] = CMesh_Deformation_rb(cmesh_gp, order); // RB mesh
     }
     else{
         mesh_vector[0] = CMesh_Deformation(gmesh, order); // Full order mesh
@@ -335,10 +335,10 @@ int Geomechanic(){
     time_analysis->AdjustVectors();
     
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
-    TPZSkylineStructMatrix struct_mat(geomechanic);
+//    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+    struct_mat.SetNumThreads(number_threads);
     
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
 //    struct_mat.SetDecomposeType(ELDLt);
@@ -350,8 +350,13 @@ int Geomechanic(){
     time_analysis->SetStructuralMatrix(struct_mat);
     
     int ndof = geomechanic->NEquations();
-//    std::cout << " Number of modes =  " << cmesh_gp->Solution().Cols() << std::endl;
-    std::cout << " Full order model ndof =  " << ndof << std::endl;
+    
+    if (IsRBQ) {
+        std::cout << " RB order model ndof =  " << ndof << std::endl;
+    }
+    else{
+        std::cout << " Full order model ndof =  " << ndof << std::endl;
+    }
     
     TPZVec<REAL> x(3);
     x[0] = Lx/2.0;
@@ -382,11 +387,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+//    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -412,7 +417,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
     galerkin_projts.Zero();
     
-    std::cout<< "RB:: number of geomodes = " << n_blocks * geo_modes->Dimension()  << std::endl;
+    std::cout<< "RB:: number of geomodes = " << n_blocks << std::endl;
     for (int ip = 0; ip < n_blocks; ip++) {
         
         mesh_vector[0]->Solution().Zero();
@@ -436,6 +441,8 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         galerkin_projts.AddSub(0, ip, mesh_vector[0]->Solution());
     }
     
+//    galerkin_projts.Print("Galerkin projections = ");
+    
     mesh_vector[0]->LoadSolution(galerkin_projts);
     return mesh_vector[0];
     
@@ -448,6 +455,9 @@ int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & const
         DebugStop();
     }
 #endif
+    
+//    TPZVec<long> drained(0,0);
+//    constant_pressures.Push(drained);
 
     TPZGeoMesh * gmesh = cmesh->Reference();
     int dim = gmesh->Dimension();
@@ -1676,7 +1686,7 @@ TPZCompMesh * CMesh_MFPorePressure(TPZGeoMesh * gmesh, int order){
 }
 
 // Create a computational mesh for deformation;
-TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh){
+TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh, int order){
         
     // Plane strain assumption
 //    int planestress = 0;
@@ -1691,7 +1701,7 @@ TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh){
     bc_left = -4;
     
     // Getting mesh dimension
-    int dim = 2;
+    int dim = gmesh->Dimension();
     
     TPZCompMeshReferred * cmesh_rb = new TPZCompMeshReferred(gmesh);
 
@@ -1723,7 +1733,7 @@ TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh){
     // Setting RB approximation space
     cmesh_rb->SetDimModel(dim);
     int numsol = cmesh->Solution().Cols();
-    cmesh_rb->AllocateNewConnect(numsol, 2, 1);
+    cmesh_rb->AllocateNewConnect(numsol, dim, order);
     TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh_rb);
     cmesh_rb->AutoBuild();
     
@@ -1860,6 +1870,7 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     CreateGridFrom2.SetFrontBackMatId(bc_bottom,bc_top);
+//    CreateGridFrom2.SetTriangleExtrusion();
     dy = dx_dy[1];
     n_elements = n[1];
     

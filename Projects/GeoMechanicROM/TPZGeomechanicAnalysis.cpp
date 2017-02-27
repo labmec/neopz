@@ -172,7 +172,6 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
         this->Set_k_ietrarions(k);
 //        this->QuasiNewtonIteration();
         this->NewtonIteration();
-        
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Geomechanic Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
@@ -248,6 +247,7 @@ void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile
         
         if (i%interval == 0) {
             std::cout<< "Geomechanic Coupling:: Reporting at time (s) = " << time << std::endl;
+            this->Meshvec()[0]->Solution().Print("Sol = ");
             this->PostProcessStep(plotfile);
         }
         
