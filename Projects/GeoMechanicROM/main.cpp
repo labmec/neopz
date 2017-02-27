@@ -255,8 +255,8 @@ int Geomechanic(){
     
     REAL dt = 0.1;
     int n_steps = 100;
-    REAL epsilon_res = 1.0e-3;
-    REAL epsilon_corr = 1.0e-5;
+    REAL epsilon_res = 1.0e-2;
+    REAL epsilon_corr = 1.0e-4;
     int n_corrections = 20;
     bool IsMixedQ = false;
     bool IsRBQ    = true;
@@ -274,12 +274,12 @@ int Geomechanic(){
     REAL Lx = 5.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 4; // x - direction
+    n[0] = 2; // x - direction
     n[1] = 10; // y - direction
     
     int order = 2;
     int level = 0;
-    int hlevel = 1;
+    int hlevel = 0;
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -327,7 +327,7 @@ int Geomechanic(){
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data,IsMixedQ);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 16;
+    int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -335,10 +335,10 @@ int Geomechanic(){
     time_analysis->AdjustVectors();
     
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
-//    TPZSkylineStructMatrix struct_mat(geomechanic);
+    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+//    struct_mat.SetNumThreads(number_threads);
     
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
 //    struct_mat.SetDecomposeType(ELDLt);
@@ -382,8 +382,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+//    struct_mat.SetNumThreads(number_threads);
+    
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);

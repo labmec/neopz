@@ -92,6 +92,8 @@ int TPZBiotPoroelasticity::VariableIndex(const std::string &name){
     if(!strcmp("pe_ex",name.c_str()))			return	4;
     if(!strcmp("ve",name.c_str()))				return	5;
     
+    return -1;
+    
 }
 
 /** returns the number of variables associated with the variable
@@ -163,7 +165,7 @@ void TPZBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     TPZManVector<REAL,2> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
     
-    TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
+    TPZFNMatrix <15,REAL> du = datavec[u_b].dsol[0];
     TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
     
     
