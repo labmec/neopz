@@ -187,7 +187,7 @@ void TPZBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
     }
     
-
+//    phiu.Print("RB basis = ");
     
     TPZFNMatrix<9,REAL> grad_phi_p;
     TPZAxesTools<STATE>::Axes2XYZ(dphip, grad_phi_p, axes_p);
@@ -368,7 +368,7 @@ void TPZBiotPoroelasticity::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
     {
         ux_id = 0;
         uy_id = 1;
-        c_big = 0.0;
+        c_big = 1.0/gBigNumber;
     }
     
     TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;

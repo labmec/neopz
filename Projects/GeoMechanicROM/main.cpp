@@ -254,11 +254,11 @@ int Geomechanic(){
     TPZSimulationData * sim_data = new TPZSimulationData;
     
     REAL dt = 0.1;
-    int n_steps = 100;
+    int n_steps = 10;
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
     int n_corrections = 1;
-    bool IsTriangleMeshQ = true;
+    bool IsTriangleMeshQ = false;
     bool IsMixedQ = false;
     bool IsRBQ    = true;
     
@@ -275,10 +275,10 @@ int Geomechanic(){
     REAL Lx = 2.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 1; // x - direction
+    n[0] = 2; // x - direction
     n[1] = 10; // y - direction
     
-    int order = 2;
+    int order = 3;
     int level = 0;
     int hlevel = 0;
     
@@ -328,7 +328,7 @@ int Geomechanic(){
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data,IsMixedQ);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 16;
+    int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -338,11 +338,11 @@ int Geomechanic(){
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
 //    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+//    struct_mat.SetNumThreads(number_threads);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
-//    struct_mat.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
+    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -375,10 +375,12 @@ int Geomechanic(){
 TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_data, int order, int level){
     
     TPZVec<TPZCompMesh * > mesh_vector(2);
-    mesh_vector[0] = CMesh_Elasticity(gmesh, order);
+    mesh_vector[0] = CMesh_Elasticity(gmesh, order-1);
     mesh_vector[1] = CMesh_Pressures(gmesh);
     
     TPZCompMesh * geo_modes = CMesh_GeoModes_M(gmesh, mesh_vector, sim_data);
+    
+//    TPZMaterial::gBigNumber = 1.0e24;
     
     bool mustOptimizeBandwidth = true;
     int number_threads = 16;
@@ -388,11 +390,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+//    struct_mat.SetNumThreads(number_threads);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-//    struct_mat.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -443,6 +445,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     }
     
 //    galerkin_projts.Print("Galerkin projections = ");
+//    TPZMaterial::gBigNumber = 1.0e14;
     
     mesh_vector[0]->LoadSolution(galerkin_projts);
     return mesh_vector[0];
