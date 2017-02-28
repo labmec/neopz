@@ -275,8 +275,8 @@ int Geomechanic(){
     REAL Lx = 2.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 2; // x - direction
-    n[1] = 20; // y - direction
+    n[0] = 1; // x - direction
+    n[1] = 10; // y - direction
     
     int order = 2;
     int level = 0;
