@@ -254,9 +254,9 @@ int Geomechanic(){
     TPZSimulationData * sim_data = new TPZSimulationData;
     
     REAL dt = 0.1;
-    int n_steps = 10;
-    REAL epsilon_res = 1.0e-1;
-    REAL epsilon_corr = 1.0e-3;
+    int n_steps = 100;
+    REAL epsilon_res = 1.0e-2;
+    REAL epsilon_corr = 1.0e-5;
     int n_corrections = 1;
     bool IsMixedQ = false;
     bool IsRBQ    = true;
@@ -271,11 +271,11 @@ int Geomechanic(){
     TPZVec<REAL> dx_dy(2);
     TPZVec<int> n(2);
     
-    REAL Lx = 5.0; // meters
+    REAL Lx = 2.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 2; // x - direction
-    n[1] = 1; // y - direction
+    n[0] = 1; // x - direction
+    n[1] = 10; // y - direction
     
     int order = 2;
     int level = 0;
@@ -327,7 +327,7 @@ int Geomechanic(){
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data,IsMixedQ);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 0;
+    int number_threads = 16;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);

@@ -368,7 +368,7 @@ void TPZBiotPoroelasticity::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
     {
         ux_id = 0;
         uy_id = 1;
-        c_big = 1.0;
+        c_big = 0.0;
     }
     
     TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
@@ -1161,10 +1161,12 @@ void TPZBiotPoroelasticity::ContributeMFBC(TPZVec<TPZMaterialData> &datavec, REA
     int ux_id = 0;
     int uy_id = 0;
     TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
+    REAL c_big = 1.0;
     if(shapetype == datavec[u_b].EVecShape)
     {
         ux_id = 0;
         uy_id = 1;
+        c_big = 0.0;
     }
     
     TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
@@ -1216,14 +1218,14 @@ void TPZBiotPoroelasticity::ContributeMFBC(TPZVec<TPZMaterialData> &datavec, REA
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
-                ef(2*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
+                ef(2*in,0)		+= c_big*gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
+                ef(2*in+1,0)	+= c_big*gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
-                    ek(2*in+1,2*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
+                    ek(2*in,2*jn)		+= c_big*gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
+                    ek(2*in+1,2*jn+1)	+= c_big*gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
                 }
             }
             
@@ -1243,12 +1245,12 @@ void TPZBiotPoroelasticity::ContributeMFBC(TPZVec<TPZMaterialData> &datavec, REA
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
+                ef(2*in,0)		+= c_big*gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
+                    ek(2*in,2*jn)		+= c_big*gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
                 }
             }
             
@@ -1267,12 +1269,12 @@ void TPZBiotPoroelasticity::ContributeMFBC(TPZVec<TPZMaterialData> &datavec, REA
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
+                ef(2*in+1,0)	+= c_big*gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(2*in+1,2*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
+                    ek(2*in+1,2*jn+1)	+= c_big*gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
                 }
             }
             
@@ -1348,14 +1350,14 @@ void TPZBiotPoroelasticity::ContributeMFBC(TPZVec<TPZMaterialData> &datavec, REA
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
-                ef(2*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
+                ef(2*in,0)		+= c_big*gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
+                ef(2*in+1,0)	+= c_big*gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
-                    ek(2*in+1,2*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
+                    ek(2*in,2*jn)		+= c_big*gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
+                    ek(2*in+1,2*jn+1)	+= c_big*gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
                 }
             }
             
@@ -1380,12 +1382,12 @@ void TPZBiotPoroelasticity::ContributeMFBC(TPZVec<TPZMaterialData> &datavec, REA
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
+                ef(2*in,0)		+= c_big*gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
+                    ek(2*in,2*jn)		+= c_big*gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
                 }
             }
             
@@ -1411,12 +1413,12 @@ void TPZBiotPoroelasticity::ContributeMFBC(TPZVec<TPZMaterialData> &datavec, REA
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
+                ef(2*in+1,0)	+= c_big*gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(2*in+1,2*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
+                    ek(2*in+1,2*jn+1)	+= c_big*gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
                 }
             }
             

@@ -127,9 +127,9 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
     dphix.Resize(nsol,nstate*dim);
     for (int isol =0; isol<nsol; isol++) {
         for (int istate=0; istate<nstate; istate++) {
-            phi(isol,istate) = sol[isol][istate];
+            phi(isol,istate) = sol[isol][istate]; // {i,j} == {i -> phi_i, phi_i_x, phi_i_y }
             for (int id=0; id<dim; id++) {
-                dphix(isol,id+istate*dim) = dsol[isol](id,istate);
+                dphix(isol,id+istate*dim) = dsol[isol](id,istate); // {i,j} == {i -> grad_phi_i, {grad_phi_i_x}, {grad_phi_i_y} }
             }
         }
     }
@@ -338,7 +338,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol)
 {
     const int dim = axes.Rows();//this->Reference()->Dimension();
-    const int nstate = this->Material()->NStateVariables() + 1;
+    const int nstate = phi.Cols();
     
 #ifdef PZDEBUG
     const int ncon = this->NConnects();

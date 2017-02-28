@@ -247,7 +247,7 @@ void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile
         
         if (i%interval == 0) {
             std::cout<< "Geomechanic Coupling:: Reporting at time (s) = " << time << std::endl;
-            this->Meshvec()[0]->Solution().Print("Sol = ");
+//            this->Meshvec()[0]->Solution().Print("Sol = ");
             this->PostProcessStep(plotfile);
         }
         
