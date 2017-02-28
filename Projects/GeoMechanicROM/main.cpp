@@ -67,7 +67,7 @@ static void Analytic(const TPZVec<REAL> &x, REAL time, TPZVec<STATE> &u,TPZFMatr
 
 
 // Rectangular geometry
-TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n);
+TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n, bool IsTriangleMeshQ);
 void ParametricfunctionX(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 void ParametricfunctionY(const TPZVec<STATE> &par, TPZVec<STATE> &X);
 
@@ -198,8 +198,8 @@ int NonLinearElliptic(){
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
-    
-    TPZGeoMesh * gmesh = RockBox(dx_dy,n);
+
+    TPZGeoMesh * gmesh = RockBox(dx_dy,n,false);
     UniformRefinement(gmesh, 4);
     std::cout<< "Geometry done. " << std::endl;
 
@@ -258,6 +258,7 @@ int Geomechanic(){
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
     int n_corrections = 1;
+    bool IsTriangleMeshQ = true;
     bool IsMixedQ = false;
     bool IsRBQ    = true;
     
@@ -274,8 +275,8 @@ int Geomechanic(){
     REAL Lx = 2.0; // meters
     REAL Ly = 10.0; // meters
     
-    n[0] = 1; // x - direction
-    n[1] = 10; // y - direction
+    n[0] = 2; // x - direction
+    n[1] = 20; // y - direction
     
     int order = 2;
     int level = 0;
@@ -284,7 +285,7 @@ int Geomechanic(){
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
     
-    TPZGeoMesh * gmesh = RockBox(dx_dy,n);
+    TPZGeoMesh * gmesh = RockBox(dx_dy,n,IsTriangleMeshQ);
     UniformRefinement(gmesh, hlevel);
     
     {
@@ -445,6 +446,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     
     mesh_vector[0]->LoadSolution(galerkin_projts);
     return mesh_vector[0];
+    
     
 }
 
@@ -1811,7 +1813,7 @@ TPZCompMesh * CMesh_Deformation(TPZGeoMesh * gmesh, int order){
 }
 
 
-TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
+TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n, bool IsTriangleMeshQ){
     
     REAL t=0.0,dx,dy;
     int n_elements;
@@ -1870,7 +1872,10 @@ TPZGeoMesh * RockBox(TPZVec<REAL> dx_dy, TPZVec<int> n){
     TPZAutoPointer<TPZFunction<STATE> > ParFunc2 = new TPZDummyFunction<STATE>(ParametricfunctionY);
     CreateGridFrom2.SetParametricFunction(ParFunc2);
     CreateGridFrom2.SetFrontBackMatId(bc_bottom,bc_top);
-//    CreateGridFrom2.SetTriangleExtrusion();
+    if (IsTriangleMeshQ) {
+        CreateGridFrom2.SetTriangleExtrusion();
+    }
+
     dy = dx_dy[1];
     n_elements = n[1];
     
