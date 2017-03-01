@@ -269,7 +269,7 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1.0;
+    REAL dt = 10.0;
     int n_steps = 20;
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
@@ -311,7 +311,7 @@ int Geomechanic(){
 
     int order = 2;
     int level = 0; // deprecated
-    int hlevel = 2;
+    int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
     
@@ -465,9 +465,9 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         time_analysis->Solve();
         time_analysis->Solution() += time_analysis->X_n();
         time_analysis->LoadSolution();
-//#ifdef PZDEBUG
+#ifdef PZDEBUG
         time_analysis->PostProcessStep(plotfile);
-//#endif
+#endif
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(mesh_vector, time_analysis->Mesh());
         galerkin_projts.AddSub(0, ip, mesh_vector[0]->Solution());
     }
@@ -608,8 +608,8 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
     }
     
     
-    int ni = 10;
-    int nj = 10;
+    int ni = 100;
+    int nj = 100;
     int nk = 1;
 //    int n_blocks = ni*nj*nk;
     
