@@ -326,7 +326,7 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
         return intel;
     }
     
-    TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: garbage solution
+    TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: partial solution
     if(intel_mf){
         return intel_mf;
     }
