@@ -13,6 +13,7 @@
 #include "pzmaterial.h"
 #include "pzelmat.h"
 #include "pzlog.h"
+#include "pzaxestools.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZInterpolationSpace"));
@@ -105,7 +106,7 @@ void TPZReducedSpace::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<R
  * @brief Computes the shape function set at the point x. 
  * @param qsi point in master element coordinates
  * @param phi vector of values of shapefunctions, dimension (numshape,1)
- * @param dphix matrix of derivatives of shapefunctions, dimension (dim,numshape)
+ * @param dphix matrix of derivatives of shapefunctions, dimension (numshape,dim)
  */
 /**
  * This method uses the order of interpolation
@@ -123,13 +124,21 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
     int nsol = sol.size();
     int nstate = sol[0].size();
     int dim = axes.Rows();
+
+    // Reduce basis on euclidean space.
+    TPZVec<TPZFNMatrix <15,REAL> > dsoldx;
+    dsoldx.Resize(nsol);
+    for (int i =0 ; i < nsol; i++) {
+        TPZAxesTools<STATE>::Axes2XYZ(dsol[i], dsoldx[i], axes);
+    }
+
     phi.Resize(nsol,nstate);
     dphix.Resize(nsol,nstate*dim);
     for (int isol =0; isol<nsol; isol++) {
         for (int istate=0; istate<nstate; istate++) {
             phi(isol,istate) = sol[isol][istate]; // {i,j} == {i -> phi_i, phi_i_x, phi_i_y }
             for (int id=0; id<dim; id++) {
-                dphix(isol,id+istate*dim) = dsol[isol](id,istate); // {i,j} == {i -> grad_phi_i, {grad_phi_i_x}, {grad_phi_i_y} }
+                dphix(isol,id+istate*dim) = dsoldx[isol](id,istate); // {i,j} == {i -> grad_phi_i, {grad_phi_i_x}, {grad_phi_i_y} }
             }
         }
     }
@@ -338,7 +347,8 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol)
 {
     const int dim = axes.Rows();//this->Reference()->Dimension();
-    const int nstate = phi.Cols();
+    const int ndir = phi.Cols(); // scalar -> 1, vectorial variable ndir > 1
+    const int nstate = this->Material()->NStateVariables();
     
 #ifdef PZDEBUG
     const int ncon = this->NConnects();
@@ -353,7 +363,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
 //    TPZFMatrix<REAL> axes_t = axes;
 //    intel->ComputeSolution(qsi, sol_t, dsol_t, axes_t);
     
-    int nsol = phi.Rows();//sol_t.size();
+    int ndof = phi.Rows();//sol_t.size();
 //    int numdof = sol_t[0].size();
 //    int dim = axes_t.Rows();
     
@@ -364,9 +374,9 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     dsol.Resize(numbersol);
 	
     for (long is=0 ; is<numbersol; is++) {
-        sol[is].Resize(nstate);
+        sol[is].Resize(ndir);
         sol[is].Fill(0.);
-        dsol[is].Redim(nstate, nstate*dim);
+        dsol[is].Redim(ndir, ndir*dim);
         dsol[is].Zero();
     }
     
@@ -378,7 +388,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     
 #ifdef PZDEBUG
     {
-        if(nsol * nstate != dfvar)
+        if(ndof != dfvar)
         {
             DebugStop();
         }
@@ -388,15 +398,15 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     
 #endif
     
-    for(int ib=0; ib < nsol; ib++) {
+    for(int idof=0; idof < ndof; idof++) {
 
         for (long is=0; is<numbersol; is++) {
             
-            for(long iv = 0; iv < nstate; iv++){
-                sol[is][iv%nstate] += (STATE)phi(ib,iv)*MeshSol(pos+ib*nstate+iv,is);
+            for(long iv = 0; iv < ndir; iv++){
+                sol[is][iv%ndir] += (STATE)phi(idof,iv)*MeshSol(pos+idof*nstate,is);
                 
                 for(long id = 0; id < dim; id++){
-                    dsol[is](iv%nstate,id) += (STATE)dphix(ib,id+iv*dim)*MeshSol(pos+ib*nstate+iv,is);
+                    dsol[is](iv%ndir,id) += (STATE)dphix(idof,id+iv*dim)*MeshSol(pos+idof*nstate,is);
                 }
             }
         }

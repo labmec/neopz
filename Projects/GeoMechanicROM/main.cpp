@@ -139,6 +139,10 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
 
 int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, int level);
 
+int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures);
+
+bool DrawingGeometryOutline(TPZGeoMesh * gmesh, TPZStack< REAL > & min_x, TPZStack< REAL > & max_x);
+
 void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
 
 // Create a computational mesh for reduced deformation
@@ -254,11 +258,11 @@ int Geomechanic(){
     TPZSimulationData * sim_data = new TPZSimulationData;
     
     REAL dt = 0.1;
-    int n_steps = 10;
+    int n_steps = 100;
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
     int n_corrections = 1;
-    bool IsTriangleMeshQ = false;
+    bool IsTriangleMeshQ = true;
     bool IsMixedQ = false;
     bool IsRBQ    = true;
     
@@ -278,9 +282,9 @@ int Geomechanic(){
     n[0] = 2; // x - direction
     n[1] = 10; // y - direction
     
-    int order = 3;
+    int order = 2;
     int level = 0;
-    int hlevel = 0;
+    int hlevel = 3;
     
     dx_dy[0] = Lx/REAL(n[0]); // x - direction
     dx_dy[1] = Ly/REAL(n[1]); // y - direction
@@ -328,7 +332,7 @@ int Geomechanic(){
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data,IsMixedQ);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 0;
+    int number_threads = 16;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -338,11 +342,11 @@ int Geomechanic(){
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
 //    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
+//    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -375,12 +379,11 @@ int Geomechanic(){
 TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_data, int order, int level){
     
     TPZVec<TPZCompMesh * > mesh_vector(2);
-    mesh_vector[0] = CMesh_Elasticity(gmesh, order-1);
+    mesh_vector[0] = CMesh_Elasticity(gmesh, 1);
     mesh_vector[1] = CMesh_Pressures(gmesh);
     
     TPZCompMesh * geo_modes = CMesh_GeoModes_M(gmesh, mesh_vector, sim_data);
     
-//    TPZMaterial::gBigNumber = 1.0e24;
     
     bool mustOptimizeBandwidth = true;
     int number_threads = 16;
@@ -390,11 +393,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+//    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -415,7 +418,9 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     REAL unit_p = 10.0e6;
     TPZStack<TPZVec<long> > cts_pressures;
     
-    int n_blocks = DrawUnitPressuresBlocks(mesh_vector[1],cts_pressures,level);
+//    int n_blocks = DrawUnitPressuresBlocks(mesh_vector[1],cts_pressures,level);
+    int n_blocks = DrawingPressureBlocks(mesh_vector[1],cts_pressures);
+    
     int ndof_elastic = mesh_vector[0]->NEquations();
     TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
     galerkin_projts.Zero();
@@ -443,9 +448,6 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(mesh_vector, time_analysis->Mesh());
         galerkin_projts.AddSub(0, ip, mesh_vector[0]->Solution());
     }
-    
-//    galerkin_projts.Print("Galerkin projections = ");
-//    TPZMaterial::gBigNumber = 1.0e14;
     
     mesh_vector[0]->LoadSolution(galerkin_projts);
     return mesh_vector[0];
@@ -490,6 +492,8 @@ int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & const
         if(gel->Level() != level || gel->Dimension() != dim){
             continue;
         }
+        
+        // For a selectec group of elements
         
         TPZVec<TPZGeoEl *> unrefined_sons;
         gel->GetHigherSubElements(unrefined_sons);
@@ -552,6 +556,302 @@ int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & const
     int n_modes = constant_pressures.size();
     return n_modes;
 }
+
+int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures){
+    
+#ifdef PZDEBUG
+    if(!cmesh){
+        DebugStop();
+    }
+#endif
+
+    TPZGeoMesh * geometry = cmesh->Reference();
+    
+#ifdef PZDEBUG
+    if(!geometry){
+        DebugStop();
+    }
+#endif
+    
+    int dim = geometry->Dimension();
+    cmesh->LoadReferences();
+    
+    TPZStack<REAL> min_x;
+    TPZStack<REAL> max_x;
+    bool Outline_is_rightQ = DrawingGeometryOutline(geometry, min_x, max_x);
+    
+    if(!Outline_is_rightQ){
+        DebugStop();
+    }
+    
+    
+    int ni = 2;
+    int nj = 10;
+    int nk = 1;
+//    int n_blocks = ni*nj*nk;
+    
+    TPZManVector<REAL,3> x0(3,0.0);
+    
+    TPZStack<REAL> rule_x;
+    REAL dx = (max_x[0]-min_x[0])/ni;
+    REAL xv;
+    for (int i = 0; i < ni + 1; i++) {
+        xv = REAL(i)*dx;
+        rule_x.Push(xv);
+    }
+    
+    TPZStack<REAL> rule_y;
+    REAL dy = (max_x[1]-min_x[1])/nj;
+    REAL yv;
+    for (int j = 0; j < nj + 1; j++) {
+        yv = REAL(j)*dy;
+        rule_y.Push(yv);
+    }
+    
+    TPZStack<REAL> rule_z;
+    REAL dz = (max_x[2]-min_x[2])/nk;
+    REAL zv;
+    for (int k = 0; k < nk + 1; k++) {
+        zv = REAL(k)*dz;
+        rule_z.Push(zv);
+    }
+    
+    if (rule_z[0] == rule_z[1] && dim == 2) {
+        std::cout << "RB:: Drawing Pressure Blocks for 2D geometry " <<std::endl;
+    }
+    
+    if (dim == 3) {
+        std::cout << "RB:: Drawing Pressure Blocks for 3D geometry " <<std::endl;
+        DebugStop();
+    }
+    
+    // counting volumetric elements
+    int nel = geometry->NElements();
+    int n_volumes = 0;
+    for (int iel = 0; iel < nel; iel++) {
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if(!gel){
+            DebugStop();
+        }
+#endif
+        
+        if(gel->HasSubElement() || gel->Dimension() != dim){
+            continue;
+        }
+        n_volumes++;
+    }
+    
+    // goup elements by Cartesian Grid
+    
+    TPZStack< TPZStack<long> > geo_groups;
+    // Check if the element belong to the cartesian block
+    for (int i = 0; i < rule_x.size() - 1; i++) {
+        for (int j = 0; j < rule_y.size() - 1; j++) {
+            
+            // for each i,j,k box
+            TPZStack<long> box_group;
+            
+            TPZManVector<REAL,3> x_c(3,0.0);
+            TPZManVector<REAL,3> par_c(dim,0.0);
+            int nel = geometry->NElements();
+            for (int iel = 0; iel < nel; iel++) {
+                TPZGeoEl * gel = geometry->Element(iel);
+                
+#ifdef PZDEBUG
+                if(!gel){
+                    DebugStop();
+                }
+#endif
+                
+                if(gel->Level() != 0 || gel->Dimension() != dim){
+                    continue;
+                }
+                
+                gel->CenterPoint(gel->NSides()-1, par_c);
+                gel->X(par_c, x_c);
+                
+                // It is inside x
+                if(rule_x[i] <= x_c[0] && x_c[0] < rule_x[i+1]){
+                    if(rule_y[j] <= x_c[1] && x_c[1] < rule_y[j+1]){
+                        
+//                        std::cout << " box x dimension " << rule_x[i] << " x " << rule_x[i+1] << std::endl;
+//                        std::cout << " box y dimension " << rule_y[j] << " x " << rule_y[j+1] << std::endl;
+//                        std::cout << " x_c " << x_c << std::endl;
+                        
+                        box_group.Push(gel->Index());
+                    }
+                }
+                
+            }
+            geo_groups.Push(box_group);
+//            std::cout << " group of geo elements with indexes =  " << box_group << std::endl;
+        }
+    }
+    
+#ifdef PZDEBUG
+    if(geo_groups.size() == 0){
+        DebugStop();
+    }
+#endif
+    
+    // Pick blocks dofs
+    TPZVec<long> dof_indexes;
+    TPZVec<long> igroup;
+    int n_groups = geo_groups.size();
+    
+    // For all groups
+    int group_n_vol = 0;
+    for (int ig = 0; ig < n_groups; ig++) {
+        igroup = geo_groups[ig];
+
+        // For a selecteced group of elements
+        TPZStack<long> dof_stack;
+        for(int igel = 0; igel < igroup.size(); igel++){
+
+            TPZGeoEl * gel = geometry->Element(igroup[igel]);
+            
+#ifdef PZDEBUG
+            if(!gel || gel->Dimension() != dim){
+                DebugStop();
+            }
+#endif
+            
+            TPZVec<TPZGeoEl *> unrefined_sons;
+            gel->GetHigherSubElements(unrefined_sons);
+            int nsub = unrefined_sons.size();
+            for (int isub = 0; isub < nsub; isub++) {
+                TPZGeoEl * subgel = unrefined_sons[isub];
+                
+                if (subgel->Dimension() != dim) {
+                    continue;
+                }
+                
+                TPZCompEl *cel = subgel->Reference();
+#ifdef PZDEBUG
+                if(!cel){
+                    DebugStop();
+                }
+#endif
+                
+                TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(cel);
+#ifdef PZDEBUG
+                if(!intel){
+                    DebugStop();
+                }
+#endif
+                group_n_vol++;
+                ElementDofIndexes(intel, dof_indexes);
+                for (int i = 0;  i < dof_indexes.size(); i++) {
+                    dof_stack.Push(dof_indexes[i]);
+                }
+                
+            }
+            
+            if(nsub == 0){
+                TPZCompEl *cel = gel->Reference();
+#ifdef PZDEBUG
+                if(!cel){
+                    DebugStop();
+                }
+#endif
+                
+                TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(cel);
+#ifdef PZDEBUG
+                if(!intel){
+                    DebugStop();
+                }
+#endif
+                
+                group_n_vol++;
+                ElementDofIndexes(intel, dof_indexes);
+                for (int i = 0;  i < dof_indexes.size(); i++) {
+                    dof_stack.Push(dof_indexes[i]);
+                }
+            }
+        }
+        
+        TPZVec<long> dofs(dof_stack);
+        constant_pressures.Push(dofs);
+        
+    }
+    
+    
+    if(group_n_vol != n_volumes){
+        std::cout << "RB:: Drawing Pressure Blocks left some elements out! " <<std::endl;
+        DebugStop();
+    }
+    
+    int n_pressure_blocks = constant_pressures.size();
+    if(n_pressure_blocks == 0){
+        DebugStop();
+    }
+    
+    return n_pressure_blocks;
+}
+
+bool DrawingGeometryOutline(TPZGeoMesh * gmesh, TPZStack< REAL > & min_x, TPZStack< REAL > & max_x){
+    
+#ifdef PZDEBUG
+    if(!gmesh){
+        DebugStop();
+    }
+#endif
+    
+    long n_nodes = gmesh->NNodes();
+    REAL min_xc = +1.0e12;
+    REAL max_xc = -1.0e12;
+    REAL min_yc = +1.0e12;
+    REAL max_yc = -1.0e12;
+    REAL min_zc = +1.0e12;
+    REAL max_zc = -1.0e12;
+    
+    TPZManVector<REAL,3> co(3,0.0);
+    for (long inode = 0; inode < n_nodes; inode++) {
+        TPZGeoNode node = gmesh->NodeVec()[inode];
+        node.GetCoordinates(co);
+        
+        // x limits
+        if (min_xc > co[0]) {
+            min_xc = co[0];
+        }
+        
+        if (max_xc < co[0]) {
+            max_xc = co[0];
+        }
+        
+        // y limits
+        if (min_yc > co[1]) {
+            min_yc = co[1];
+        }
+        
+        if (max_yc < co[1]) {
+            max_yc = co[1];
+        }
+        
+        // z limits
+        if (min_zc > co[2]) {
+            min_zc = co[2];
+        }
+        
+        if (max_zc < co[2]) {
+            max_zc = co[2];
+        }
+        
+    }
+    
+    min_x.Push(min_xc);
+    min_x.Push(min_yc);
+    min_x.Push(min_zc);
+    
+    max_x.Push(max_xc);
+    max_x.Push(max_yc);
+    max_x.Push(max_zc);
+
+    return true;
+}
+
 
 void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
     
@@ -1738,7 +2038,7 @@ TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh, int order){
     // Setting RB approximation space
     cmesh_rb->SetDimModel(dim);
     int numsol = cmesh->Solution().Cols();
-    cmesh_rb->AllocateNewConnect(numsol, dim, order);
+    cmesh_rb->AllocateNewConnect(numsol, 1, order);
     TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh_rb);
     cmesh_rb->AutoBuild();
     

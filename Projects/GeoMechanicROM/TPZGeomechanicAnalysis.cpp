@@ -142,7 +142,7 @@ void TPZGeomechanicAnalysis::NewtonIteration(){
     fX_n += this->Solution(); // update state
     
     this->Update_at_n_State();
-    
+
     this->AssembleResidual();
     fR_n = this->Rhs();
     fR_n += fR; // total residue
@@ -182,7 +182,6 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
     }
     
     std::cout << "Geomechanic Coupling:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-    
     
 }
 
@@ -235,7 +234,7 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
 /** @brief execute the evolutionary problem */
 void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile){
     
-    int interval = 5;
+    int interval = 10;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
@@ -247,7 +246,7 @@ void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile
         
         if (i%interval == 0) {
             std::cout<< "Geomechanic Coupling:: Reporting at time (s) = " << time << std::endl;
-            this->Meshvec()[0]->Solution().Print("Sol = ");
+//            this->Meshvec()[0]->Solution().Print("Sol = ");
             this->PostProcessStep(plotfile);
         }
         
