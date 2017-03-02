@@ -59,6 +59,10 @@
 
 #include "tpzautopointer.h"
 #include "pzfunction.h"
+
+// Transfer object
+#include "TPZTransferFunctions.h"
+
 // Solutions
 #define Solution1
 
@@ -269,7 +273,7 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 10.0;
+    REAL dt = 1.0;
     int n_steps = 20;
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
@@ -305,8 +309,8 @@ int Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
 
     int order = 2;
@@ -325,9 +329,11 @@ int Geomechanic(){
     
     std::cout<< "Geometry done. " << std::endl;
 
+    TPZTransferFunctions * transfer = new TPZTransferFunctions;
     TPZCompMesh * cmesh_gp = new TPZCompMesh;
     if (IsRBQ) {
         cmesh_gp = Galerkin_Projections(gmesh, sim_data, order,level);
+        transfer->SetCmeshGalerkingProjections(cmesh_gp);
     }
     
     int n_meshes = 2;
@@ -355,21 +361,26 @@ int Geomechanic(){
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data,IsMixedQ);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 16;
+    int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
+    if (IsRBQ) {
+        transfer->Fill_phi_u_To_Mixed(geomechanic, 0);
+        transfer->phi_u_To_Geomechanic_Memory(geomechanic);
+    }
+    
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
 //    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
+//    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -416,11 +427,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+//    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -438,7 +449,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     // Setting up the empirical interpolation based on unitary pressures
     std::string plotfile("Geo_Modes_rb_0.vtk");
     
-    REAL unit_p = 10.0e6;
+    REAL unit_p = 1.0e3;
     TPZStack<TPZVec<long> > cts_pressures;
     
 //    int n_blocks = DrawUnitPressuresBlocks(mesh_vector[1],cts_pressures,level);
@@ -448,6 +459,8 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
     galerkin_projts.Zero();
     
+    int progress = (n_blocks/10) + 1;
+    REAL percent = -10.0;
     std::cout<< "RB:: number of geomodes = " << n_blocks << std::endl;
     for (int ip = 0; ip < n_blocks; ip++) {
         
@@ -465,14 +478,24 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         time_analysis->Solve();
         time_analysis->Solution() += time_analysis->X_n();
         time_analysis->LoadSolution();
-#ifdef PZDEBUG
-        time_analysis->PostProcessStep(plotfile);
-#endif
+//        time_analysis->PostProcessStep(plotfile);
+        
+        if(ip%progress == 0){
+            percent += 10.0;
+            std::cout << " Progress on offline stage " << setw(3) << percent << setw(2)  << " % " <<std::endl;
+        }
+        
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(mesh_vector, time_analysis->Mesh());
         galerkin_projts.AddSub(0, ip, mesh_vector[0]->Solution());
     }
     
     mesh_vector[0]->LoadSolution(galerkin_projts);
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshElasticity.txt");
+    mesh_vector[0]->Print(out);
+#endif
+    
     return mesh_vector[0];
     
     
@@ -665,6 +688,8 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
         }
         n_volumes++;
     }
+    
+    std::cout << "RB:: Number of volumetric elements =  " << n_volumes << std::endl;
     
     // goup elements by Cartesian Grid
     
@@ -1017,7 +1042,7 @@ TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     
     // Inserting boundary conditions
     int dirichlet_x_vn   = 7;
-    int dirichlet_y_vn   = 8;
+    int dirichlet_xy_vn  = 6;
     int neumann_y_p      = 5;
     int neumann_y_vn     = 11;
     
@@ -1028,7 +1053,7 @@ TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_y_vn, val1, val2);
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_xy_vn, val1, val2);
     cmesh->InsertMaterialObject(bc_bottom_mat);
     
     val2(0,0) = 0.0;
@@ -1730,7 +1755,7 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     
     // Inserting boundary conditions
     int dirichlet_x_vn   = 7;
-    int dirichlet_y_vn   = 8;
+    int dirichlet_xy_vn   = 6;
     int neumann_y_p      = 5;
     int neumann_y_vn     = 11;
 
@@ -1741,7 +1766,7 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_y_vn, val1, val2);
+    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_xy_vn, val1, val2);
     cmesh->InsertMaterialObject(bc_bottom_mat);
     
     val2(0,0) = 0.0;
@@ -1771,6 +1796,7 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     // Setting up multiphysics functions
     cmesh->SetDimModel(dim);
     cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    cmesh->ApproxSpace().CreateWithMemory(true);
     cmesh->AutoBuild();
     
     cmesh->AdjustBoundaryElements();

@@ -9,8 +9,8 @@
 Include "rock_box.geo";
 
 dimension = 2;
-cl = 0.1;
-hexahedronsRQ = 0;
+cl = 0.5;
+hexahedronsRQ = 1;
 
 bottoms = {};
 tops = {};

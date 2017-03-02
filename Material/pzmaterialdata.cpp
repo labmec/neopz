@@ -40,6 +40,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fNeedsHSize = cp.fNeedsHSize;
     this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
     this->fNeedsNormal = cp.fNeedsNormal;
+    this->fNeedsBasis = cp.fNeedsBasis;
     this->phi = cp.phi;
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
@@ -75,6 +76,7 @@ void TPZMaterialData::SetAllRequirements(bool set){
     this->fNeedsHSize = set;
     this->fNeedsNeighborCenter = set;
     this->fNeedsNormal = set;
+    this->fNeedsBasis = set;
 }
 
 /** @brief Compare the object for identity with the object pointed to, eventually copy the object */

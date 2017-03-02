@@ -15,7 +15,9 @@
 #include "pzfmatrix.h"
 
 class TPZPoroPermMemory {
-    
+   
+    /** @brief RB functions */
+    TPZVec< TPZManVector<REAL,3> > fphi_u;
     
     /** @brief displacements */
     TPZManVector<REAL,3> fu_n;
@@ -58,10 +60,14 @@ public:
         return *this;
     }
     
-    void UpdateSolutionMemory()///// @omar:: I think this method is completely useless!!
-    {
-        //update saturation and pressure and total flux (un = unp1)
-        DebugStop();
+    /** @brief Set RB i function */
+    void Set_phi_u_n(int i, TPZManVector<REAL,3> & phi_u){
+        fphi_u[i] = phi_u;
+    }
+    
+    /** @brief Get RB functions  */
+    TPZVec< TPZManVector<REAL,3> > & phi_u(){
+        return fphi_u;
     }
     
     /** @brief Set displacement at last state */

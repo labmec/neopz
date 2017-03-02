@@ -11,6 +11,9 @@
 /** @brief Default constructor */
 TPZPoroPermMemory::TPZPoroPermMemory(){
     
+    /** @brief RB functions */
+    fphi_u.Resize(0);
+    
     /** @brief displacements */
     fu_n.Resize(3, 0);
     

@@ -52,8 +52,9 @@ ll2 = newll; Line Loop(ll2) = {1,2,3,4};
 s2  = news; Plane Surface(s2) = {ll2};
 rock[] = {s1,s2};
 
-//Transfinite Line{7,3} = 20 Using Bump 0.1;
-//Transfinite Line{4,8} = 20 Using Progression 1.2;
+Transfinite Line{7} = 50;
+Transfinite Line{-3} = 40 Using Progression 1.1;
+Transfinite Line{4,8} = 40 Using Progression 1.1;
 
 If (hexahedronsRQ == 1)
 Transfinite Surface {s1,s2};
