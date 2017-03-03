@@ -54,6 +54,17 @@ void TPZBiotPoroelasticity::FillDataRequirements(TPZVec<TPZMaterialData> &datave
         datavec[idata].SetAllRequirements(false);
         datavec[idata].fNeedsSol = true;
     }
+    
+    TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
+    if(shapetype == datavec[0].EVecShape)
+    {
+        // RB case
+        datavec[0].fNeedsBasis = false;
+        datavec[0].fNeedsSol = false;
+        DebugStop();
+        return;
+    }
+    
 }
 
 /** @brief Set the required data at each integration point */
@@ -62,9 +73,22 @@ void TPZBiotPoroelasticity::FillBoundaryConditionDataRequirement(int type, TPZVe
     int ndata = datavec.size();
     for (int idata=0; idata < ndata ; idata++) {
         datavec[idata].SetAllRequirements(false);
+        datavec[idata].fNeedsBasis = true;
         datavec[idata].fNeedsSol = true;
         datavec[idata].fNeedsNormal = true;
     }
+    
+    
+    TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
+    if(shapetype == datavec[0].EVecShape)
+    {
+        // RB case
+        datavec[0].fNeedsBasis = false;
+        datavec[0].fNeedsSol = false;
+        datavec[0].fNeedsNormal = false;
+        return;
+    }
+    
 }
 
 
@@ -687,6 +711,24 @@ void TPZBiotPoroelasticity::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL 
     
     // RB functions must to include axes transformations .
     
+    // Getting RB functions and solution form integration points
+    // Get the data at the integrations points
+    TPZVec< TPZFNMatrix<3,REAL> >  int_phi_u;
+    TPZVec< TPZFNMatrix<9,REAL> >  int_dphi_u;
+    TPZFNMatrix<3,REAL>  int_u, int_u_n;
+    TPZFNMatrix<9,REAL>  int_grad_u, int_grad_u_n;
+    long global_point_index = datavec[u_b].intGlobPtIndex;
+    TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
+    int_phi_u = point_memory.phi_u();
+    int_dphi_u = point_memory.grad_phi_u();
+    
+    int_u = point_memory.u();
+    int_u_n = point_memory.u_n();
+    
+    int_grad_u = point_memory.grad_u();
+    int_grad_u_n = point_memory.grad_u_n();
+    
+    
     // Getting the space functions
     TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
     TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
@@ -694,7 +736,6 @@ void TPZBiotPoroelasticity::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL 
     TPZFMatrix<REAL>    &dphiu   =   datavec[u_b].dphix;
     TPZFMatrix<REAL>    &dphip   =   datavec[p_b].dphix;
     
-    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
     
     // Getting the solutions and derivatives
@@ -703,6 +744,45 @@ void TPZBiotPoroelasticity::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL 
     
     TPZFNMatrix <15,REAL> du = datavec[u_b].dsol[0];
     TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
+    
+    // Transfering from integration points
+    int n_rb = int_phi_u.size();
+    phiu.Redim(n_rb, fdimension);
+    dphiu.Redim(n_rb, fdimension*fdimension);
+    phiu.Zero();
+    dphiu.Zero();
+    for (int i = 0; i < n_rb; i++) {
+        int cd = 0;
+        for (int id = 0; id < fdimension; id++) {
+            phiu(i,id) = int_phi_u[i](id,0);
+            for (int jd = 0; jd < fdimension; jd++) {
+                dphiu(i,cd) = int_dphi_u[i](jd,id);
+                cd++;
+            }
+        }
+    }
+    
+    u.Resize(fdimension, 0.0);
+    du.Resize(fdimension, fdimension);
+    du.Zero();
+    
+    if (fSimulationData->IsCurrentStateQ()) {
+        for (int i = 0; i <fdimension; i++) {
+            u[i] = int_u_n(i,0);
+            for (int j = 0; j <fdimension; j++) {
+                du(i,j) = int_grad_u_n(i,j);
+            }
+        }
+    }
+    else{
+        for (int i = 0; i <fdimension; i++) {
+            u[i] = int_u(i,0);
+            for (int j = 0; j <fdimension; j++) {
+                du(i,j) = int_grad_u(i,j);
+            }
+        }
+    }
+    
     
     // Transformations
     TPZFNMatrix<27,REAL> grad_phi_u;
@@ -740,28 +820,6 @@ void TPZBiotPoroelasticity::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL 
     TPZFNMatrix<9,REAL> Grad_vx_j(fdimension,1,0.0);
     TPZFNMatrix<9,REAL> Grad_vy_j(fdimension,1,0.0);
     
-    // Get the data at the integrations points
-    TPZVec< TPZFNMatrix<3,REAL> >  int_phi_u;
-    TPZVec< TPZFNMatrix<9,REAL> >  int_dphi_u;
-    TPZFNMatrix<3,REAL>  int_u, int_u_n;
-    TPZFNMatrix<9,REAL>  int_grad_u, int_grad_u_n;
-    long global_point_index = datavec[u_b].intGlobPtIndex;
-    TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
-    int_phi_u = point_memory.phi_u();
-    int_dphi_u = point_memory.grad_phi_u();
-
-    int_u = point_memory.u();
-    int_u_n = point_memory.u_n();
-    
-    int_grad_u = point_memory.grad_u();
-    int_grad_u_n = point_memory.grad_u_n();
-    
-    grad_u.Print("grad_u from pz ");
-    for (int i = 0; i < int_phi_u.size(); i++) {
-        int_grad_u.Print("grad_u from omar ");
-        int_grad_u_n.Print("grad_u_n from omar ");
-    }
-    
     if (!fSimulationData->IsCurrentStateQ()) {
         
         // Darcy mono-phascis flow
@@ -770,6 +828,19 @@ void TPZBiotPoroelasticity::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL 
         }
         return;
     }
+    
+//    phiu.Print("phi form pz = ");
+//    for (int i = 0; i < int_phi_u.size(); i++) {
+//        int_phi_u[i].Print(" phi from omar ");
+//    }
+    
+//    dphiu.Print("dphi form pz = ");
+//    for (int i = 0; i < int_dphi_u.size(); i++) {
+//        int_dphi_u[i].Print(" dphi from omar ");
+//    }
+    
+//    std::cout << " u from pz = " << u << std::endl;
+//    int_u_n.Print(" u_n from omar ");
     
     for (int iu = 0; iu < nphi_u; iu++) {
 
@@ -880,8 +951,27 @@ void TPZBiotPoroelasticity::ContributeRB_BC(TPZVec<TPZMaterialData> &datavec, RE
     
     int ux_id = 0;
     int uy_id = 1;
-    TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
     REAL c_big = 1.0;
+    
+    
+    // Getting RB functions and solution form integration points
+    // Get the data at the integrations points
+    TPZMatWithMem<TPZPoroPermMemory,TPZBndCond>  & material_bc_mem = dynamic_cast<TPZMatWithMem<TPZPoroPermMemory,TPZBndCond > & >(bc);
+    TPZVec< TPZFNMatrix<3,REAL> >  int_phi_u;
+    TPZVec< TPZFNMatrix<9,REAL> >  int_dphi_u;
+    TPZFNMatrix<3,REAL>  int_u, int_u_n;
+    TPZFNMatrix<9,REAL>  int_grad_u, int_grad_u_n;
+    long global_point_index = datavec[u_b].intGlobPtIndex;
+    TPZPoroPermMemory &point_memory = material_bc_mem.GetMemory()[global_point_index];
+    int_phi_u = point_memory.phi_u();
+    int_dphi_u = point_memory.grad_phi_u();
+    
+    int_u = point_memory.u();
+    int_u_n = point_memory.u_n();
+    
+    int_grad_u = point_memory.grad_u();
+    int_grad_u_n = point_memory.grad_u_n();
+    
     
     TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
     TPZFMatrix<REAL>  &phip = datavec[p_b].phi;
@@ -889,6 +979,29 @@ void TPZBiotPoroelasticity::ContributeRB_BC(TPZVec<TPZMaterialData> &datavec, RE
     // Getting the solutions and derivatives
     TPZManVector<REAL,2> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    
+    // Transfering from integration points
+    int n_rb = int_phi_u.size();
+    phiu.Redim(n_rb, fdimension);
+    phiu.Zero();
+    for (int i = 0; i < n_rb; i++) {
+        for (int id = 0; id < fdimension; id++) {
+            phiu(i,id) = int_phi_u[i](id,0);
+        }
+    }
+    
+    u.Resize(fdimension, 0.0);
+    
+    if (fSimulationData->IsCurrentStateQ()) {
+        for (int i = 0; i <fdimension; i++) {
+            u[i] = int_u_n(i,0);
+        }
+    }
+    else{
+        for (int i = 0; i <fdimension; i++) {
+            u[i] = int_u(i,0);
+        }
+    }
     
     int phru = phiu.Rows();
     int phrp = phip.Rows();
@@ -916,6 +1029,7 @@ void TPZBiotPoroelasticity::ContributeRB_BC(TPZVec<TPZMaterialData> &datavec, RE
     else{
         Value = bc.Val2()(0,0);
     }
+    
     
     // Dirichlet in Pressure
     switch (bc.Type())

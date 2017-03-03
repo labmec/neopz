@@ -59,8 +59,6 @@ void TPZTransferFunctions::Initialize_RB_basis_To_Geomechanic(TPZCompMesh * cmes
 #endif
     
     
-    int material_id = 1; // rock target
-    
     fCmeshRB_projections->LoadReferences();
     
     long nel = fCmeshRB_projections->NElements();
@@ -143,8 +141,6 @@ void TPZTransferFunctions::Fill_RB_basis_To_Geomechanic(TPZCompMesh * cmesh_mult
     // It verify the consistency of dynamic_cast operations and mesh structure, and  finally it initialize diagonal matrix blocks
     Initialize_RB_basis_To_Geomechanic(cmesh_multiphysics);
     
-
-    int material_id = 1; // rock target
     
     fCmeshRB_projections->LoadReferences();
     
@@ -238,10 +234,8 @@ void TPZTransferFunctions::Fill_RB_basis_To_Geomechanic(TPZCompMesh * cmesh_mult
             
             // Get the phi and dphix for H1 elasticity
             intel_GP->Shape(qsi, phi, dphi);
-        
             gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
             
-            int ieq;
             switch(gel_dim) {
                 case 0:
                     break;
@@ -250,20 +244,20 @@ void TPZTransferFunctions::Fill_RB_basis_To_Geomechanic(TPZCompMesh * cmesh_mult
                     dphix_axes *= (1./detjac);
                     break;
                 case 2:
-                    for(ieq = 0; ieq < nshape; ieq++) {
+                    for(int ieq = 0; ieq < nshape; ieq++) {
                         dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
                         dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
                     }
                     break;
                 case 3:
-                    for(ieq = 0; ieq < nshape; ieq++) {
+                    for(int ieq = 0; ieq < nshape; ieq++) {
                         dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
                         dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
                         dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
                     }
                     break;
                 default:
-                    stringstream sout;
+                    std::stringstream sout;
                     sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
                     LOGPZ_ERROR(logger,sout.str());
             }
@@ -275,18 +269,17 @@ void TPZTransferFunctions::Fill_RB_basis_To_Geomechanic(TPZCompMesh * cmesh_mult
                 DebugStop();
             }
 #endif
-
-            for (int id = 0; id < n_var_dim; id++) {
-                for (int jp = 0; jp < phi.Rows(); jp++) {
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < n_var_dim; id++) {
                     block_phi(ip*n_var_dim+id,jp*n_var_dim+id) = phi(jp,0);
                 }
             }
             
-            for (int id = 0; id < n_var_dim; id++) {
-                for (int jp = 0; jp < phi.Rows(); jp++) {
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < n_var_dim; id++) {
                     for (int jd = 0; jd < gel_dim; jd++) {
                         if(gel_dim == n_var_dim){
-                            block_grad_phi(ip*n_var_dim*gel_dim+id*gel_dim + jd,jp*n_var_dim+id) = dphidx(jd,jp);
+                            block_grad_phi(ip*n_var_dim*gel_dim + id*gel_dim + jd,jp*n_var_dim+id) = dphidx(jd,jp);
                         }
                         else{
                             block_grad_phi(ip*n_var_dim*gel_dim+id*gel_dim + jd,jp*n_var_dim+id) = 0.0;
@@ -318,10 +311,6 @@ void TPZTransferFunctions::RB_basis_To_Geomechanic_Memory(TPZCompMesh * cmesh_mu
     int dim = cmesh_multiphysics->Dimension();
     int n_rb = fCmeshRB_projections->Solution().Cols();
     
-//    fCmeshRB_projections->Solution().Print("GP = ",std::cout, EMathematicaInput);
-    
-    // For the imat
-    int imat = 0;
 //    for all RB functions
     for(int i_rb = 0; i_rb < n_rb; i_rb++){
     
@@ -335,20 +324,21 @@ void TPZTransferFunctions::RB_basis_To_Geomechanic_Memory(TPZCompMesh * cmesh_mu
             }
         }
         
-//        ScatterDisplacements.Print(" alpha scatter = ");
         // Step two
         TPZFMatrix<STATE> u_at_intpoints,grad_u_at_intpoints;
         fphi_u_To_Geomechanic.Multiply(ScatterDisplacements,u_at_intpoints);
         fgrad_phi_u_To_Geomechanic.Multiply(ScatterDisplacements, grad_u_at_intpoints);
         
-//        u_at_intpoints.Print(" u  at points ");
-        grad_u_at_intpoints.Print(" grad u at points ");
         
         long iblock = 0;
-        long first_int_point = 0;
-        std::pair<long, long> block_size;
-        block_size.first = 0;
-        block_size.second = 0;
+        long first_point_phi = 0;
+        long first_point_dphi = 0;
+        std::pair<long, long> b_size_phi, b_size_dphi;
+        b_size_phi.first = 0;
+        b_size_phi.second = 0;
+        b_size_dphi.first = 0;
+        b_size_dphi.second = 0;
+        
         for (int icel = 0; icel < nel; icel++) {
             fCmeshRB_projections->LoadReferences();
             TPZCompEl *cel_GP = fCmeshRB_projections->Element(icel);
@@ -365,8 +355,10 @@ void TPZTransferFunctions::RB_basis_To_Geomechanic_Memory(TPZCompMesh * cmesh_mu
             }
 #endif
             
-            first_int_point += block_size.first;
-            block_size = fphi_u_To_Geomechanic.GetSizeofBlock(iblock);
+            first_point_phi += b_size_phi.first;
+            first_point_dphi += b_size_dphi.first;
+            b_size_phi = fphi_u_To_Geomechanic.GetSizeofBlock(iblock);
+            b_size_dphi = fgrad_phi_u_To_Geomechanic.GetSizeofBlock(iblock);
             iblock++;
             
             //  Getting the total integration point of the destination cmesh
@@ -376,7 +368,7 @@ void TPZTransferFunctions::RB_basis_To_Geomechanic_Memory(TPZCompMesh * cmesh_mu
                 TPZMaterial * material = cmesh_multiphysics->FindMaterial(matd_id);
                 TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin> *>(material);
                 
-                int np_cmesh = associated_material->GetMemory().NElements();
+                long np_cmesh = associated_material->GetMemory().NElements();
 
                 for(long i = 0; i <  np_cmesh; i++) {
                     associated_material->GetMemory()[i].phi_u().resize(n_rb);
@@ -395,12 +387,12 @@ void TPZTransferFunctions::RB_basis_To_Geomechanic_Memory(TPZCompMesh * cmesh_mu
                 for(long ip = 0; ip <  n_points; ip++){
                     
                     for (int id = 0; id < dim ; id++) {
-                        phi_u(id,0) = u_at_intpoints(first_int_point + ip*dim + id,0);
+                        phi_u(id,0) = u_at_intpoints(first_point_phi + ip*dim + id,0);
                     }
                     
                     for (int id = 0; id < dim ; id++) {
                         for (int jd = 0; jd < dim ; jd++) {
-                            grad_phi_u(id,jd)= grad_u_at_intpoints(first_int_point + ip*dim*dim + id*dim + jd,0);
+                            grad_phi_u(id,jd)= grad_u_at_intpoints(first_point_dphi + ip*dim*dim + id*dim + jd,0);
                         }
                     }
                     associated_material->GetMemory()[int_point_indexes[ip]].Set_phi_u_n(i_rb, phi_u);
@@ -413,7 +405,7 @@ void TPZTransferFunctions::RB_basis_To_Geomechanic_Memory(TPZCompMesh * cmesh_mu
                 TPZMaterial * material = cmesh_multiphysics->FindMaterial(matd_id);
                 TPZMatWithMem<TPZPoroPermMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TPZPoroPermMemory,TPZBndCond> *>(material);
                 
-                int np_cmesh = associated_material->GetMemory().NElements();
+                long np_cmesh = associated_material->GetMemory().NElements();
                 
                 for(long i = 0; i <  np_cmesh; i++) {
                     associated_material->GetMemory()[i].phi_u().Resize(n_rb);
@@ -429,7 +421,7 @@ void TPZTransferFunctions::RB_basis_To_Geomechanic_Memory(TPZCompMesh * cmesh_mu
                 TPZFNMatrix<3,STATE> phi_u(dim,1,0.0);
                 for(long ip = 0; ip <  n_points; ip++){
                     for (int id = 0; id < dim ; id++) {
-                        phi_u(id,0)= u_at_intpoints(first_int_point + ip*dim + id,0);
+                        phi_u(id,0)= u_at_intpoints(first_point_phi + ip*dim + id,0);
                     }
                     associated_material->GetMemory()[int_point_indexes[ip]].Set_phi_u_n(i_rb, phi_u);
                 }
@@ -460,9 +452,7 @@ void TPZTransferFunctions::RB_Solution_To_Geomechanic(TPZCompMesh * cmesh_multip
         DebugStop();
     }
 #endif
-        
-    long iblock = 0;
-    long first_int_point = 0;
+    
     std::pair<long, long> block_size;
     block_size.first = 0;
     block_size.second = 0;
@@ -490,7 +480,6 @@ void TPZTransferFunctions::RB_Solution_To_Geomechanic(TPZCompMesh * cmesh_multip
             TPZMaterial * material = cmesh_multiphysics->FindMaterial(matd_id);
             TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TPZPoroPermMemory,TPZDiscontinuousGalerkin> *>(material);
             
-            int np_cmesh = associated_material->GetMemory().NElements();
             
             TPZManVector<long, 30> int_point_indexes;
             cmesh_multiphysics->LoadReferences();
@@ -498,18 +487,18 @@ void TPZTransferFunctions::RB_Solution_To_Geomechanic(TPZCompMesh * cmesh_multip
             GlobalPointIndexes(mf_cel, int_point_indexes);
             
             // Transfering values
-            int n_points = int_point_indexes.size();
+            long n_points = int_point_indexes.size();
             TPZFNMatrix<3,REAL> u(dim,1);
-            u.Zero();
             TPZFNMatrix<9,REAL> grad_u(dim,dim);
-            grad_u.Zero();
-            int i_pos;
+            
+            long i_pos;
             for(long ip = 0; ip <  n_points; ip++){
-                
                 i_pos = int_point_indexes[ip];
+                u.Zero();
+                grad_u.Zero();
                 int n_gp = associated_material->GetMemory()[i_pos].phi_u().size();
-                for (int igp = 0; igp <n_gp; igp++) {
-                    for (int id = 0; id <dim; id++) {
+                for (int id = 0; id <dim; id++) {
+                    for (int igp = 0; igp <n_gp; igp++) {
                         u(id,0) += associated_material->GetMemory()[i_pos].phi_u()[igp](id,0) * rb_solution(igp,0);
                         for (int jd = 0; jd <dim; jd++) {
                             grad_u(id,jd) += associated_material->GetMemory()[i_pos].grad_phi_u()[igp](id,jd) * rb_solution(igp,0);
@@ -532,18 +521,30 @@ void TPZTransferFunctions::RB_Solution_To_Geomechanic(TPZCompMesh * cmesh_multip
             TPZMaterial * material = cmesh_multiphysics->FindMaterial(matd_id);
             TPZMatWithMem<TPZPoroPermMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TPZPoroPermMemory,TPZBndCond> *>(material);
             
-            int np_cmesh = associated_material->GetMemory().NElements();
-            
             TPZManVector<long, 30> int_point_indexes;
             cmesh_multiphysics->LoadReferences();
             TPZCompEl * mf_cel = gel->Reference();
             GlobalPointIndexes(mf_cel, int_point_indexes);
             
             // Transfering values
-            int n_points = int_point_indexes.size();
-            TPZFNMatrix<3,STATE> phi_u(dim,1,0.0);
+            long n_points = int_point_indexes.size();
+            TPZFNMatrix<3,REAL> u(dim,1);
+            long i_pos;
             for(long ip = 0; ip <  n_points; ip++){
-//                associated_material->GetMemory()[int_point_indexes[ip]].Set_phi_u_n(i_rb, phi_u);
+                i_pos = int_point_indexes[ip];
+                u.Zero();
+                int n_gp = associated_material->GetMemory()[i_pos].phi_u().size();
+                for (int id = 0; id <dim; id++) {
+                    for (int igp = 0; igp <n_gp; igp++) {
+                        u(id,0) += associated_material->GetMemory()[i_pos].phi_u()[igp](id,0) * rb_solution(igp,0);
+                    }
+                }
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[i_pos].Set_u_n(u);
+                }
+                else{
+                    associated_material->GetMemory()[i_pos].Set_u(u);
+                }
             }
             
         }
@@ -935,23 +936,10 @@ void TPZTransferFunctions::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZ
         long seqnumber = con.SequenceNumber();
         long position = intel->Mesh()->Block().Position(seqnumber);
         long b_size = intel->Mesh()->Block().Size(seqnumber);
-        int nshape = con.NShape();
-        for (int ish=0; ish < nshape; ish++) {
             for(int jb=0; jb<b_size; jb++) {
                 index.Push(position + jb);
             }
-        }
     }
-    
-//    for (int icon = 0; icon < nconnect; icon++) {
-//        TPZConnect  & con = intel->Connect(icon);
-//        long seqnumber = con.SequenceNumber();
-//        long position = intel->Mesh()->Block().Position(seqnumber);
-//        int nvars = intel->Mesh()->Block().Size(seqnumber); // @omar:: must Verify
-//        for (int ish=0; ish < nvars; ish++) {
-//                index.Push(position + ish);
-//        }
-//    }
     
     dof_indexes = index;
     return;

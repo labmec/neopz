@@ -195,7 +195,9 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
                                  TPZVec<REAL> &qsi)
 {
     data.intGlobPtIndex = -1;
-    ShapeX(qsi, data.phi, data.dphix, data.axes);
+    if (data.fNeedsBasis) {
+            ShapeX(qsi, data.phi, data.dphix, data.axes);
+    }
     
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
@@ -207,13 +209,16 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
     if(data.fNeedsNormal){
         this->ComputeNormal(data);
     }
-    data.x.Resize(3., 0.);
-    Reference()->X(qsi, data.x);
     
-    int dim = Reference()->Dimension();
-    data.jacobian.Resize(dim,dim);
-    data.jacinv.Resize(dim,dim);
-    Reference()->Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
+    if (data.fNeedsBasis) {
+        data.x.Resize(3., 0.);
+        Reference()->X(qsi, data.x);
+        
+        int dim = Reference()->Dimension();
+        data.jacobian.Resize(dim,dim);
+        data.jacinv.Resize(dim,dim);
+        Reference()->Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
+    }
 }
 
 

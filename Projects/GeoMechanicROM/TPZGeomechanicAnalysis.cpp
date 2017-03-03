@@ -199,7 +199,7 @@ void TPZGeomechanicAnalysis::UpdateState(){
 void TPZGeomechanicAnalysis::Update_at_n_State(){
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());    
+    ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());
 }
 
 /** @brief PostProcess results for nonlinear case */
