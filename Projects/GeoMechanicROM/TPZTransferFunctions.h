@@ -134,11 +134,8 @@ public:
         this->SetGalerkingProjections(fCmeshRB_projections->Solution());
     }
     
-    /** @brief Transfer phi_u to integration points of multiphysics mesh over volumetric elements */
-    void phi_u_To_Geomechanic_Memory(TPZCompMesh * cmesh_multiphysics);
-    
-    /** @brief Transfer grad_phi_u to integration points of multiphysics mesh over volumetric elements */
-    void grad_phi_u_To_Geomechanic_Memory(TPZCompMesh * cmesh_elastic, TPZCompMesh * cmesh_multiphysics);
+    /** @brief Transfer RB basis to integration points of multiphysics mesh over volumetric elements */
+    void RB_basis_To_Geomechanic_Memory(TPZCompMesh * cmesh_multiphysics);
     
     /** @brief Transfer u to integration points of multiphysics mesh over volumetric elements */
     void u_To_Geomechanic_Memory(TPZCompMesh * cmesh_elastic, TPZCompMesh * cmesh_multiphysics);
@@ -148,17 +145,18 @@ public:
     
     
     /** @brief Initializate diagonal block matrix to transfer u to multiphysics mesh  */
-    void Initialize_phi_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index);
+    void Initialize_RB_basis_To_Geomechanic(TPZCompMesh * cmesh_multiphysics);
     
     /** @brief Initializate diagonal block matrix to transfer u to multiphysics mesh  */
-    void Fill_phi_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int mesh_index);
+    void Fill_RB_basis_To_Geomechanic(TPZCompMesh * cmesh_multiphysics);
     
     /** @brief Get the sparse matrix to transfer Pressure to multiphysics mesh  */
     TPZBiotIrregularBlockDiagonal<STATE> Transfer_phi_u_To_Geomechanic(){
         return fphi_u_To_Geomechanic;
     }
     
-
+    /** @brief Transfer the RB Solution to multiphysics mesh  */
+    void RB_Solution_To_Geomechanic(TPZCompMesh * cmesh_multiphysics, TPZFMatrix<STATE> & rb_solution);
     
     /** @brief Compute left and right geometric element indexes associated with the transport mesh */
     void ComputeLeftRight(TPZCompMesh * transport_mesh);

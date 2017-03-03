@@ -144,6 +144,10 @@ protected:
 	TPZBndCond(TPZBndCond &copy, TPZMaterial * ref) : TPZDiscontinuousGalerkin(copy), fBCs(copy.fBCs), fType(copy.fType),
 	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
 	
+    void SetValues(TPZFMatrix<STATE> &Val1, TPZFMatrix<STATE> &Val2){
+        fBCVal1 = Val1;
+        fBCVal2 = Val2;
+    }
 	
 	void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType)){
 		fValFunction = fp;

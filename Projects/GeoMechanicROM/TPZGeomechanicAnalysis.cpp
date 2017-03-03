@@ -14,6 +14,9 @@ TPZGeomechanicAnalysis::TPZGeomechanicAnalysis() : TPZAnalysis() {
     /** @brief define the simulation data */
     fSimulationData = NULL;
     
+    /** @brief define the tranfer object data */
+    ftransfer = NULL;
+    
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     fmeshvec.Resize(2);
     
@@ -85,10 +88,10 @@ void TPZGeomechanicAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
+//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
@@ -189,12 +192,14 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
 void TPZGeomechanicAnalysis::UpdateState(){
     this->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());
 }
 
 /** @brief update current state solution */
 void TPZGeomechanicAnalysis::Update_at_n_State(){
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());    
 }
 
 /** @brief PostProcess results for nonlinear case */

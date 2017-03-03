@@ -12,22 +12,24 @@
 TPZPoroPermMemory::TPZPoroPermMemory(){
     
     /** @brief RB functions */
-    fphi_u.Resize(0);
+    fphi_u.resize(0);
+    fgrad_phi_u.resize(0);
     
     /** @brief displacements */
-    fu_n.Resize(3, 0);
+    fu_n.Resize(3,1);
+    fu_n.Zero();
     
     /** @brief gradient of u_n */
     fgrad_u_n.Resize(3, 3);
     fgrad_u_n.Zero();
     
-    /** @brief elastic strain at n */
-    fepsilon_e_n.Resize(3, 3);
-    fepsilon_e_n.Zero();
+    /** @brief displacements */
+    fu.Resize(3,1);
+    fu.Zero();
     
-    /** @brief plastic strain at n */
-    fepsilon_p_n.Resize(3, 3);
-    fepsilon_p_n.Zero();
+    /** @brief gradient of u_n */
+    fgrad_u.Resize(3, 3);
+    fgrad_u.Zero();
 }
 
 /** @brief Default destructor */

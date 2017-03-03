@@ -706,7 +706,7 @@ void TPZBiotPoroelasticity::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL 
     
     // Transformations
     TPZFNMatrix<27,REAL> grad_phi_u;
-    TPZFNMatrix<3,REAL> grad_u;
+    TPZFNMatrix<9,REAL> grad_u;
     
     grad_u.Resize(fdimension, fdimension);
     
@@ -740,15 +740,26 @@ void TPZBiotPoroelasticity::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL 
     TPZFNMatrix<9,REAL> Grad_vx_j(fdimension,1,0.0);
     TPZFNMatrix<9,REAL> Grad_vy_j(fdimension,1,0.0);
     
-    // Get the pressure at the integrations points
-    TPZVec< TPZManVector<REAL,3> >  int_phi_u;
-    long global_point_index = datavec[0].intGlobPtIndex;
+    // Get the data at the integrations points
+    TPZVec< TPZFNMatrix<3,REAL> >  int_phi_u;
+    TPZVec< TPZFNMatrix<9,REAL> >  int_dphi_u;
+    TPZFNMatrix<3,REAL>  int_u, int_u_n;
+    TPZFNMatrix<9,REAL>  int_grad_u, int_grad_u_n;
+    long global_point_index = datavec[u_b].intGlobPtIndex;
     TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
     int_phi_u = point_memory.phi_u();
+    int_dphi_u = point_memory.grad_phi_u();
+
+    int_u = point_memory.u();
+    int_u_n = point_memory.u_n();
     
-    phiu.Print("phi from pz ");
+    int_grad_u = point_memory.grad_u();
+    int_grad_u_n = point_memory.grad_u_n();
+    
+    grad_u.Print("grad_u from pz ");
     for (int i = 0; i < int_phi_u.size(); i++) {
-        std::cout << int_phi_u[i] << std::endl;
+        int_grad_u.Print("grad_u from omar ");
+        int_grad_u_n.Print("grad_u_n from omar ");
     }
     
     if (!fSimulationData->IsCurrentStateQ()) {

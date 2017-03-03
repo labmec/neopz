@@ -17,19 +17,23 @@
 class TPZPoroPermMemory {
    
     /** @brief RB functions */
-    TPZVec< TPZManVector<REAL,3> > fphi_u;
+    TPZVec< TPZFNMatrix<3,STATE> > fphi_u;
+    
+    /** @brief RB functions */
+    TPZVec< TPZFNMatrix<9,STATE> > fgrad_phi_u;
     
     /** @brief displacements */
-    TPZManVector<REAL,3> fu_n;
+    TPZFNMatrix<3,REAL> fu_n;
     
     /** @brief gradient of u_n */
-    TPZFMatrix<REAL> fgrad_u_n;
+    TPZFNMatrix<9,REAL> fgrad_u_n;
     
-   /** @brief elastic strain at n */
-    TPZFMatrix<REAL> fepsilon_e_n;
-
-   /** @brief plastic strain at n */
-    TPZFMatrix<REAL> fepsilon_p_n;
+    /** @brief displacements */
+    TPZFNMatrix<3,REAL> fu;
+    
+    /** @brief gradient of u_n */
+    TPZFNMatrix<9,REAL> fgrad_u;
+    
     
 public:
     
@@ -44,8 +48,6 @@ public:
         
         fu_n = copy.fu_n;
         fgrad_u_n = copy.fgrad_u_n;
-        fepsilon_e_n = copy.fepsilon_e_n;
-        fepsilon_p_n = copy.fepsilon_p_n;
 
     }
     
@@ -54,60 +56,68 @@ public:
         
         fu_n = copy.fu_n;
         fgrad_u_n = copy.fgrad_u_n;
-        fepsilon_e_n = copy.fepsilon_e_n;
-        fepsilon_p_n = copy.fepsilon_p_n;
         
         return *this;
     }
     
     /** @brief Set RB i function */
-    void Set_phi_u_n(int i, TPZManVector<REAL,3> & phi_u){
+    void Set_phi_u_n(int i, TPZFNMatrix<3,STATE> & phi_u){
         fphi_u[i] = phi_u;
     }
     
     /** @brief Get RB functions  */
-    TPZVec< TPZManVector<REAL,3> > & phi_u(){
+    TPZVec< TPZFNMatrix<3,STATE> > & phi_u(){
         return fphi_u;
     }
     
+    /** @brief Set RB i function */
+    void Set_grad_phi_u_n(int i, TPZFNMatrix<9,STATE> & grad_phi_u){
+        fgrad_phi_u[i] = grad_phi_u;
+    }
+    
+    /** @brief Get RB functions  */
+    TPZVec< TPZFNMatrix<9,STATE> > & grad_phi_u(){
+        return fgrad_phi_u;
+    }
+    
     /** @brief Set displacement at last state */
-    void Set_u_n(TPZManVector<REAL,3> &u_n){
+    void Set_u_n(TPZFNMatrix<3,REAL> &u_n){
         fu_n = u_n;
     }
     
     /** @brief Get displacement at last state */
-    TPZManVector<REAL,3> u_n(){
+    TPZFNMatrix<3,REAL> u_n(){
         return fu_n;
     }
     
     /** @brief Set gradient of u_n */
-    void Set_grad_u_n(TPZFMatrix<REAL> & grad_u_n){
+    void Set_grad_u_n(TPZFNMatrix<9,REAL> & grad_u_n){
         fgrad_u_n = grad_u_n;
     }
     
     /** @brief Get gradient of u_n */
-    TPZFMatrix<REAL> grad_u_n(){
+    TPZFNMatrix<9,REAL>grad_u_n(){
         return fgrad_u_n;
     }
     
-    /** @brief Set elastic strain at n */
-    void Set_epsilon_e_n(TPZFMatrix<REAL> & epsilon_e_n){
-        fepsilon_e_n = epsilon_e_n;
+    /** @brief Set displacement at last state */
+    void Set_u(TPZFNMatrix<3,REAL> &u){
+        fu = u;
     }
     
-    /** @brief Get elastic strain at n */
-    TPZFMatrix<REAL> epsilon_e_n(){
-        return fepsilon_e_n;
+    /** @brief Get displacement at last state */
+    TPZFNMatrix<3,REAL> u(){
+        return fu;
     }
     
-    /** @brief Set plastic strain at n */
-    void Set_epsilon_p_n(TPZFMatrix<REAL> & epsilon_p_n){
-        fepsilon_p_n = epsilon_p_n;
+    /** @brief Set gradient of u */
+    void Set_grad_u(TPZFNMatrix<9,REAL> & grad_u){
+        fgrad_u = grad_u;
     }
     
-    /** @brief Get plastic strain at n */
-    TPZFMatrix<REAL> epsilon_p_n(){
-        return fepsilon_p_n;
+    /** @brief Get gradient of u */
+    TPZFNMatrix<9,REAL>grad_u(){
+        return fgrad_u;
     }
     
     void Write(TPZStream &buf, int withclassid)
@@ -126,9 +136,7 @@ public:
     
     void Print(std::ostream &out) const
     {
-        //        out << fPressure_n;
-        //        out << fPressure;
-        DebugStop();
+        out << "Fancy print!" << std::endl;
     }
     
     

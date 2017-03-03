@@ -16,6 +16,7 @@
 #include "pzstepsolver.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSimulationData.h"
+#include "TPZTransferFunctions.h"
 
 class TPZGeomechanicAnalysis : public TPZAnalysis {
     
@@ -23,6 +24,9 @@ private:
     
     /** @brief define the simulation data */
     TPZSimulationData * fSimulationData;
+    
+    /** @brief define the tranfer object data */
+    TPZTransferFunctions * ftransfer;
     
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 2> fmeshvec;
@@ -74,12 +78,6 @@ public:
     /** @brief Copy assignemnt operator $ */
     TPZGeomechanicAnalysis &operator=(const TPZGeomechanicAnalysis &other);
     
-    /**
-     * @defgroup Access Methods
-     * @brief    Implements Access methods:
-     * @{
-     */
-    
     /** @brief Set Solution at n state */
     void SetX_n(TPZFMatrix<STATE> &x){
         fX_n = x;
@@ -112,7 +110,18 @@ public:
     {
         return fSimulationData;
     }
-
+    
+    /** @brief Set the tranfer object */
+    void SetTransfer_object(TPZTransferFunctions * transfer)
+    {
+        ftransfer = transfer;
+    }
+    
+    /** @brief Get the tranfer object */
+    TPZTransferFunctions * Transfer_object()
+    {
+        return ftransfer;
+    }
     
     /** @brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
     void SetMeshvec(TPZVec<TPZCompMesh * > &Meshvec)

@@ -235,8 +235,6 @@ void TPZLinearElliptic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     // Get the pressure at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
-    e_e = point_memory.epsilon_e_n();
-    e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
     
     Compute_Sigma(S, Grad_u);
@@ -620,8 +618,6 @@ void TPZLinearElliptic::ContributeVec(TPZVec<TPZMaterialData> &datavec, REAL wei
     // Get the pressure at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
-    e_e = point_memory.epsilon_e_n();
-    e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
     
     Compute_Sigma(S, Grad_u);

@@ -288,25 +288,6 @@ int Geomechanic(){
     sim_data->SetTimeControls(n_steps, dt);
     sim_data->SetNumericControls(n_corrections, epsilon_res, epsilon_corr);
     
-//    bool IsTriangleMeshQ = true;
-//    TPZVec<REAL> dx_dy(2);
-//    TPZVec<int> n(2);
-//    
-//    REAL Lx = 2.0; // meters
-//    REAL Ly = 10.0; // meters
-//    
-//    n[0] = 2; // x - direction
-//    n[1] = 10; // y - direction
-//    
-//    int order = 2;
-//    int level = 0;
-//    int hlevel = 3;
-//    
-//    dx_dy[0] = Lx/REAL(n[0]); // x - direction
-//    dx_dy[1] = Ly/REAL(n[1]); // y - direction
-//    
-//    TPZGeoMesh * gmesh = RockBox(dx_dy,n,IsTriangleMeshQ);
-    
     std::string dirname = PZSOURCEDIR;
     std::string file;
     file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
@@ -334,6 +315,7 @@ int Geomechanic(){
     if (IsRBQ) {
         cmesh_gp = Galerkin_Projections(gmesh, sim_data, order,level);
         transfer->SetCmeshGalerkingProjections(cmesh_gp);
+        transfer->SetSimulationData(sim_data);
     }
     
     int n_meshes = 2;
@@ -369,8 +351,8 @@ int Geomechanic(){
     time_analysis->AdjustVectors();
     
     if (IsRBQ) {
-        transfer->Fill_phi_u_To_Mixed(geomechanic, 0);
-        transfer->phi_u_To_Geomechanic_Memory(geomechanic);
+        transfer->RB_basis_To_Geomechanic_Memory(geomechanic);
+        time_analysis->SetTransfer_object(transfer);
     }
     
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
@@ -478,7 +460,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
         time_analysis->Solve();
         time_analysis->Solution() += time_analysis->X_n();
         time_analysis->LoadSolution();
-//        time_analysis->PostProcessStep(plotfile);
+        time_analysis->PostProcessStep(plotfile);
         
         if(ip%progress == 0){
             percent += 10.0;
@@ -1766,31 +1748,57 @@ TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZMaterial * bc_bottom_mat = material->CreateBC(material, bc_bottom, dirichlet_xy_vn, val1, val2);
+    TPZMatWithMem<TPZPoroPermMemory,TPZBndCond> * bc_bottom_mat = new TPZMatWithMem<TPZPoroPermMemory,TPZBndCond>;
+    bc_bottom_mat->SetNumLoadCases(1);
+    bc_bottom_mat->SetMaterial(material);
+    bc_bottom_mat->SetId(bc_bottom);
+    bc_bottom_mat->SetType(dirichlet_xy_vn);
+    bc_bottom_mat->SetValues(val1, val2);
     cmesh->InsertMaterialObject(bc_bottom_mat);
+    
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZMaterial * bc_right_mat = material->CreateBC(material, bc_right, dirichlet_x_vn, val1, val2);
+    TPZMatWithMem<TPZPoroPermMemory,TPZBndCond> * bc_right_mat = new TPZMatWithMem<TPZPoroPermMemory,TPZBndCond>;
+    bc_right_mat->SetNumLoadCases(1);
+    bc_right_mat->SetMaterial(material);
+    bc_right_mat->SetId(bc_right);
+    bc_right_mat->SetType(dirichlet_x_vn);
+    bc_right_mat->SetValues(val1, val2);
     cmesh->InsertMaterialObject(bc_right_mat);
     
     val2(0,0) = 0.0;
     val2(1,0) = s_n;
     val2(2,0) = 0.0;
-    TPZMaterial * bc_top_mat = material->CreateBC(material, bc_top, neumann_y_p, val1, val2);
+    TPZMatWithMem<TPZPoroPermMemory,TPZBndCond> * bc_top_mat = new TPZMatWithMem<TPZPoroPermMemory,TPZBndCond>;
+    bc_top_mat->SetNumLoadCases(1);
+    bc_top_mat->SetMaterial(material);
+    bc_top_mat->SetId(bc_top);
+    bc_top_mat->SetType(neumann_y_p);
+    bc_top_mat->SetValues(val1, val2);
     cmesh->InsertMaterialObject(bc_top_mat);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZMaterial * bc_left_mat = material->CreateBC(material, bc_left, dirichlet_x_vn, val1, val2);
+    TPZMatWithMem<TPZPoroPermMemory,TPZBndCond> * bc_left_mat = new TPZMatWithMem<TPZPoroPermMemory,TPZBndCond>;
+    bc_left_mat->SetNumLoadCases(1);
+    bc_left_mat->SetMaterial(material);
+    bc_left_mat->SetId(bc_left);
+    bc_left_mat->SetType(dirichlet_x_vn);
+    bc_left_mat->SetValues(val1, val2);
     cmesh->InsertMaterialObject(bc_left_mat);
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZMaterial * bc_top_null_mat = material->CreateBC(material, bc_top_null, neumann_y_vn, val1, val2);
+    TPZMatWithMem<TPZPoroPermMemory,TPZBndCond> * bc_top_null_mat = new TPZMatWithMem<TPZPoroPermMemory,TPZBndCond>;
+    bc_top_null_mat->SetNumLoadCases(1);
+    bc_top_null_mat->SetMaterial(material);
+    bc_top_null_mat->SetId(bc_top_null);
+    bc_top_null_mat->SetType(neumann_y_vn);
+    bc_top_null_mat->SetValues(val1, val2);
     cmesh->InsertMaterialObject(bc_top_null_mat);
     
     // Setting up multiphysics functions
