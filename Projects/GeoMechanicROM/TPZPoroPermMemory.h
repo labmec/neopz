@@ -17,10 +17,10 @@
 class TPZPoroPermMemory {
    
     /** @brief RB functions */
-    TPZVec< TPZFNMatrix<3,STATE> > fphi_u;
+    TPZFMatrix<STATE> fphi_u;
     
     /** @brief RB functions */
-    TPZVec< TPZFNMatrix<9,STATE> > fgrad_phi_u;
+    TPZFMatrix<STATE> fgrad_phi_u;
     
     /** @brief displacements */
     TPZFNMatrix<3,REAL> fu_n;
@@ -61,22 +61,22 @@ public:
     }
     
     /** @brief Set RB i function */
-    void Set_phi_u_n(int i, TPZFNMatrix<3,STATE> & phi_u){
-        fphi_u[i] = phi_u;
+    void Set_phi_u(TPZFMatrix<STATE> & phi_u){
+        fphi_u = phi_u;
     }
     
     /** @brief Get RB functions  */
-    TPZVec< TPZFNMatrix<3,STATE> > & phi_u(){
+    TPZFMatrix<STATE> & phi_u(){
         return fphi_u;
     }
     
     /** @brief Set RB i function */
-    void Set_grad_phi_u_n(int i, TPZFNMatrix<9,STATE> & grad_phi_u){
-        fgrad_phi_u[i] = grad_phi_u;
+    void Set_grad_phi_u(TPZFMatrix<STATE>& grad_phi_u){
+        fgrad_phi_u = grad_phi_u;
     }
     
     /** @brief Get RB functions  */
-    TPZVec< TPZFNMatrix<9,STATE> > & grad_phi_u(){
+    TPZFMatrix<STATE> & grad_phi_u(){
         return fgrad_phi_u;
     }
     
@@ -86,7 +86,7 @@ public:
     }
     
     /** @brief Get displacement at last state */
-    TPZFNMatrix<3,REAL> u_n(){
+    TPZFNMatrix<3,REAL> & u_n(){
         return fu_n;
     }
     
@@ -96,7 +96,7 @@ public:
     }
     
     /** @brief Get gradient of u_n */
-    TPZFNMatrix<9,REAL>grad_u_n(){
+    TPZFNMatrix<9,REAL> & grad_u_n(){
         return fgrad_u_n;
     }
     
@@ -106,7 +106,7 @@ public:
     }
     
     /** @brief Get displacement at last state */
-    TPZFNMatrix<3,REAL> u(){
+    TPZFNMatrix<3,REAL> & u(){
         return fu;
     }
     
@@ -116,7 +116,7 @@ public:
     }
     
     /** @brief Get gradient of u */
-    TPZFNMatrix<9,REAL>grad_u(){
+    TPZFNMatrix<9,REAL> & grad_u(){
         return fgrad_u;
     }
     

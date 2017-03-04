@@ -23,6 +23,9 @@ protected:
     /** @brief current time REAL */
     bool fIsCurrentStateQ;
     
+    /** @brief Reduced basis approximation question */
+    bool fIsRBApproxQ;
+    
     /** @brief Definition gravity field */
     TPZVec<REAL> fg;
     
@@ -100,6 +103,12 @@ public:
     
     /** @brief current time REAL */
     bool IsCurrentStateQ() {return fIsCurrentStateQ;}
+
+    /** @brief Set Reduced basis approximation question */
+    void SetRBApproxQ(bool state) { fIsRBApproxQ = state; }
+    
+    /** @brief Get Reduced basis approximation question */
+    bool IsRBApproxQ() {return fIsRBApproxQ;}
 
     /** @brief Setup reporting times and time step size */
     void SetTimeControls(int n_times, REAL dt);

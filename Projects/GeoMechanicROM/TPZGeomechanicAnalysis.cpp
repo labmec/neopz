@@ -114,6 +114,11 @@ void TPZGeomechanicAnalysis::QuasiNewtonIteration(){
     this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
     
+#ifdef PZDEBUG
+//        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
+//        this->Rhs().Print("Rn = ", std::cout,EMathematicaInput);
+#endif
+    
     this->Solve(); // update correction
     fdx_norm = Norm(this->Solution()); // correction variation
     
@@ -173,8 +178,8 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
     for (int k = 1; k <= n; k++) {
         
         this->Set_k_ietrarions(k);
-//        this->QuasiNewtonIteration();
-        this->NewtonIteration();
+        this->QuasiNewtonIteration();
+//        this->NewtonIteration();
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Geomechanic Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
@@ -192,14 +197,19 @@ void TPZGeomechanicAnalysis::ExcecuteOneStep(){
 void TPZGeomechanicAnalysis::UpdateState(){
     this->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());
+    if (fSimulationData->IsRBApproxQ()) {
+        ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());
+    }
+
 }
 
 /** @brief update current state solution */
 void TPZGeomechanicAnalysis::Update_at_n_State(){
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());
+    if (fSimulationData->IsRBApproxQ()) {
+        ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());
+    }
 }
 
 /** @brief PostProcess results for nonlinear case */

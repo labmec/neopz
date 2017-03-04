@@ -59,54 +59,12 @@ private:
     /** @brief Diagonal block matrix to transfer u displacement solution to integrations points of the coupled mesh */
     TPZBiotIrregularBlockDiagonal<STATE> fu_To_Geomechanic;
     
-    /** @brief displacement dof indexes per element */
-    TPZVec< TPZVec<long> > fu_dof_scatter;
-    
     /** @brief Diagonal block matrix to transfer grad of u displacement solution to integrations points of the coupled mesh */
     TPZBiotIrregularBlockDiagonal<STATE> fgrad_u_To_Geomechanic;
-    
 
     
-     /** @brief normal flux dof indexes per interface element on gamma (inner interfaces)*/
-    TPZVec< TPZVec<long> > fun_dof_scatter_gamma;
-    
-    /** @brief normal flux dof indexes per interface element on Gamma (boundary interfaces) */
-    TPZVec< TPZVec<long> > fun_dof_scatter_Gamma;
-    
-    /** @brief normal flux dof indexes per interface on inner and boundary interfaces */
-    TPZVec< TPZVec<long> > fun_dof_scatter;
-    
-    /** @brief mixed and transpor computational multiphysics element indexes, every element is indexed by geometric element */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fmixed_transport_cindexes;
-    
-    /** @brief mixed and transpor computational multiphysics element indexes, every element is indexed by correponding geometric element index */
-    TPZStack< std::pair<long, std::pair<long, std::vector<long> > >  > fmixed_transport_comp_indexes;
-    
-    /** @brief left and right geometric element indexes on gamma */
-    TPZStack < std::pair<long, long> > fleft_right_g_indexes_gamma;
-    
-    /** @brief geometric interface element indexes on Gamma */
-    TPZStack < long > finterface_g_indexes_gamma;
-    
-    /** @brief left and right geometric element indexes on gamma */
-    TPZStack < std::pair<long, long> > fleft_right_g_indexes_Gamma;
-    
-    /** @brief geometric interface element indexes on Gamma */
-    TPZStack < long > finterface_g_indexes_Gamma;
-    
-    //    /** @brief left and right geometric element indexes */
-    //    TPZStack < std::pair<long, long> > fleft_right_g_indexes;
-    //
-    //    /** @brief geometric interface element indexes */
-    //    TPZStack < long > finterface_g_indexes;
-    
-    /** @brief computational interface element and associated mixed computational element */
-    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcinterface_ctransport_cmixed_indexes_gamma;
-    
-    /** @brief computational interface element and associated mixed computational element */
-    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcinterface_ctransport_cmixed_indexes_Gamma;
-    
-
+    /** @brief geomechanic and galerkin projection mesh computational multiphysics element indexes, every element is indexed by geometric element */
+    TPZStack< std::pair<long, std::pair<long, long> >  > fgeomechanic_galerkinp_cindexes;
     
     
 public:
@@ -179,11 +137,9 @@ public:
     // Computational mesh operations
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    /** @brief Compute geometric mesh pair (mixed, transport) indexed by geometric volumetic element index */
-    void FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);
+    /** @brief Compute geometric mesh pair (geomechanic, gp cmesh) indexed by geometric volumetic element index */
+    void FillGeomechanicElPairs(TPZCompMesh * cmesh_mphysics);
     
-    /** @brief Compute computational mesh pair (mixed, transport) indexed by geometric volumetic element index */
-    void FillComputationalElPairsII(TPZCompMesh * cmesh_mf_mixed, TPZCompMesh * cmesh_mf_transport);
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Computational element operations

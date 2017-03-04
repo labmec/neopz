@@ -616,13 +616,14 @@ void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     //fg[1] = -9.81;
     
-    int map_model = 2; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
 //    fGridName = "case_2/reservoir_2D_T.msh";
 //    fGridName = "case_2/reservoir_2D_Q.msh";
-    fGridName = "case_2/reservoir_3D_T.msh";
+//    fGridName = "case_2/reservoir_3D_T.msh";
+    fGridName = "Meshes/Gmsh/reservoir.msh";
 //    fGridName = "case_2/reservoir_3D_H.msh";
     fPermPorFields.first = "case_2/spe_perm.dat";
     fPermPorFields.second = "case_2/spe_phi.dat";
@@ -633,7 +634,7 @@ void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
     fBlocks_sizes.Push(4.5454545455);
     fBlocks_sizes.Push(50.0);
     fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
-    fMap->LoadSPE10Map(true);
+    fMap->LoadSPE10Map(false);
     
     // Time control parameters
     REAL hour       = 3600.0;
@@ -649,7 +650,7 @@ void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
     fReportingTimes.Push(std::make_pair(300.0*day,false));
     fReportingTimes.Push(std::make_pair(200.0*day,false));
     fReportingTimes.Push(std::make_pair(100.0*day,false));
-    fReportingTimes.Push(std::make_pair(0.0*day,true));
+    fReportingTimes.Push(std::make_pair(0.000*day,true));
     
     fn_steps  = 500;
     fdt = 50.0*day;
@@ -660,14 +661,14 @@ void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 50;
-    fepsilon_res = 0.1;
+    fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0;
-    fMHMResolutionQ.second.second = 1;
-    fIncreaseTransporResolutionQ.first = false;
-    fIncreaseTransporResolutionQ.second = 0;
+    fMHMResolutionQ.second.second = 0;
+    fIncreaseTransporResolutionQ.first = true;
+    fIncreaseTransporResolutionQ.second = 2;
     
     // Rock materials ids
     int Rock = 4;
@@ -705,11 +706,11 @@ void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
-    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(CTracer_PressureOutlet_2p));
-//    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+//    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(CTracer_PressureOutlet_2p));
+    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(CTracer_PressureOutlet_2p));
-//    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
+//    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(CTracer_PressureOutlet_2p));
+    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(CTracer_Impervious_2p));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);

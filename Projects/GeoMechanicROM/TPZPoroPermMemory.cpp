@@ -12,8 +12,8 @@
 TPZPoroPermMemory::TPZPoroPermMemory(){
     
     /** @brief RB functions */
-    fphi_u.resize(0);
-    fgrad_phi_u.resize(0);
+    fphi_u.Resize(0,0);
+    fgrad_phi_u.Resize(0,0);
     
     /** @brief displacements */
     fu_n.Resize(3,1);

@@ -292,20 +292,22 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.1;
+    REAL dt = 1.0;
     int n_steps = 20;
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
-    int n_corrections = 1;
-    bool IsMixedQ = false;
-    bool IsRBQ    = true;
+    int n_corrections = 10;
+    bool IsMixedQ = true;
+    bool IsRBQ    = false;
     
+
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
     
     sim_data->SetGravity(g);
     sim_data->SetTimeControls(n_steps, dt);
     sim_data->SetNumericControls(n_corrections, epsilon_res, epsilon_corr);
+    sim_data->SetRBApproxQ(IsRBQ);
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
@@ -315,7 +317,7 @@ int Geomechanic(){
 
     int order = 2;
     int level = 0; // deprecated
-    int hlevel = 0;
+    int hlevel = 5;
     
     UniformRefinement(gmesh, hlevel);
     
@@ -374,6 +376,7 @@ int Geomechanic(){
 #ifdef USING_BOOST
         boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
+        transfer->FillGeomechanicElPairs(geomechanic);
         transfer->RB_basis_To_Geomechanic_Memory(geomechanic);
         time_analysis->SetTransfer_object(transfer);
         
@@ -389,11 +392,11 @@ int Geomechanic(){
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
 //    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
+//    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -429,7 +432,12 @@ int Geomechanic(){
 #endif
     
 #ifdef USING_BOOST
-    std::cout  << "RB:: online stage execution time = " << (t2-t1) << std::endl;
+    if (IsRBQ) {
+        std::cout  << "RB:: online stage execution time = " << (t2-t1) << std::endl;
+    }
+    else{
+        std::cout  << "Full order:: execution time = " << (t2-t1) << std::endl;
+    }
 #endif
 
     
@@ -455,11 +463,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+//    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -660,8 +668,8 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
     }
     
     
-    int ni = 10;
-    int nj = 10;
+    int ni = 50;
+    int nj = 50;
     int nk = 1;
 //    int n_blocks = ni*nj*nk;
     
@@ -771,6 +779,12 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
 //            std::cout << " group of geo elements with indexes =  " << box_group << std::endl;
         }
     }
+    
+//    // divide groups by max number of elements, adapted case
+//    int max_n_elemens = 2;
+//    TPZStack< TPZStack<long> > geo_groups_adapted;
+//    TPZStack<long> adapted_group;
+    
     
 #ifdef PZDEBUG
     if(geo_groups.size() == 0){

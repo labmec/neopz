@@ -68,7 +68,7 @@ cl5 = 5000.0;
 // reservoir box dimensions
 x_length = 1000.0;
 y_length = 100.0;
-z_length = 20.0;
+z_length = 30.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // side-burden region geometry
@@ -107,12 +107,12 @@ EndIf
 // well geometry and settings
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 2.0;
-wl = 10.0;
+rw = 0.5;
+wl = 20.0;
 
 wbr = 10.0;
 ela = 20.0;
-rw_cell= 2.0;
+rw_cell= 0.5;
 wr_cell= 5.0;
 
 If(dimension == 2)
@@ -136,12 +136,12 @@ wcx = -200.0;
 wcy = 100.0;
 wcz = 150.0;
 
-wcx = 450.0;
+wcx = 50.0;
 wcy = 0.0;
 wcz = 0.0;
 
 IsInjectorQ = 0;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////

@@ -18,6 +18,9 @@ TPZSimulationData::TPZSimulationData(){
     /** @brief current time state */
     fIsCurrentStateQ =  false;
     
+    /** @brief Reduced basis approximation question */
+    fIsRBApproxQ = false;
+    
     /** @brief Definition gravity field */
     fg.Resize(0);
     
