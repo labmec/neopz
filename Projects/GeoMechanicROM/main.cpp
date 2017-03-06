@@ -167,6 +167,8 @@ int NonLinearElliptic();
 
 int Geomechanic();
 
+int Segregated_Geomechanic();
+
 // Material identifiers
 const int matid = 1;
 const int bc_bottom = 2;
@@ -187,7 +189,9 @@ int main(int argc, char *argv[])
 #endif
     
     // Running whole process
-    Geomechanic();
+//    Geomechanic();
+    
+    Segregated_Geomechanic();
     
 #ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
@@ -297,7 +301,7 @@ int Geomechanic(){
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
     int n_corrections = 10;
-    bool IsMixedQ = true;
+    bool IsMixedQ = false;
     bool IsRBQ    = false;
     
 
@@ -317,7 +321,7 @@ int Geomechanic(){
 
     int order = 2;
     int level = 0; // deprecated
-    int hlevel = 5;
+    int hlevel = 6;
     
     UniformRefinement(gmesh, hlevel);
     
@@ -443,6 +447,97 @@ int Geomechanic(){
     
     std::cout << " Execution finished " << std::endl;
     return EXIT_SUCCESS;
+    
+}
+
+int Segregated_Geomechanic(){
+    
+    HDivPiola = 1;
+    TPZMaterial::gBigNumber = 1.0e14;
+    
+#ifdef LOG4CXX
+    std::string dirname = PZSOURCEDIR;
+    std::string FileName = dirname;
+    FileName = dirname + "/Projects/PermeabilityCoupling/";
+    FileName += "geomechanics_rom_log.cfg";
+    InitializePZLOG(FileName);
+#endif
+    
+    TPZSimulationData * sim_data = new TPZSimulationData;
+    
+    REAL dt = 1.0;
+    int n_steps = 20;
+    REAL epsilon_res = 1.0e-2;
+    REAL epsilon_corr = 1.0e-5;
+    int n_corrections = 10;
+    bool IsMixedQ = false;
+    bool IsRBQ    = false;
+    
+    
+    /** @brief Definition gravity field */
+    TPZVec<REAL> g(2,0.0);
+    
+    sim_data->SetGravity(g);
+    sim_data->SetTimeControls(n_steps, dt);
+    sim_data->SetNumericControls(n_corrections, epsilon_res, epsilon_corr);
+    sim_data->SetRBApproxQ(IsRBQ);
+    
+    std::string dirname = PZSOURCEDIR;
+    std::string file;
+    //    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+    TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
+    
+    int order = 2;
+    int hlevel = 0;
+    
+    UniformRefinement(gmesh, hlevel);
+    
+    {
+        //  Print Geometrical Base Mesh
+        std::ofstream argument("Geometry.txt");
+        gmesh->Print(argument);
+        std::ofstream Dummyfile("Geometry.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile, true);
+    }
+    
+    std::cout<< "Geometry done. " << std::endl;
+    
+    
+    TPZTransferFunctions * transfer = new TPZTransferFunctions;
+    
+    TPZCompMesh * cmesh_gp = new TPZCompMesh;
+    if (IsRBQ) {
+        cmesh_gp = Galerkin_Projections(gmesh, sim_data, order,0);
+        transfer->SetCmeshGalerkingProjections(cmesh_gp);
+    }
+    
+    int n_meshes = 1;
+    if (IsMixedQ) {
+        n_meshes = 2;
+    }
+    
+    TPZVec<TPZCompMesh * > mesh_vector(n_meshes);
+    TPZCompMesh * cmesh_deformation = NULL;
+    if (IsRBQ) {
+         cmesh_deformation = CMesh_Deformation_rb(cmesh_gp, order); // RB mesh
+    }
+    else{
+        cmesh_deformation   = CMesh_Deformation(gmesh, order); // Full order mesh
+    }
+    
+    if (IsMixedQ) {
+        mesh_vector[1] = CMesh_Flux(gmesh, order-1);
+        mesh_vector[2] = CMesh_MFPorePressure(gmesh, order-1);
+    }
+    else{
+        mesh_vector[1] = CMesh_PorePressure(gmesh, order-1);
+    }
+    
+    // Filling the transfer object
+    transfer->SetSimulationData(sim_data);
+    
+    return 0;
     
 }
 
