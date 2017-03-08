@@ -10,20 +10,20 @@
 
 
 /** @brief Default constructor */
-TPZElasticBiot::TPZElasticBiot() : TPZMatWithMem<TPZPoroPermMemory, TPZDiscontinuousGalerkin>(){
+TPZElasticBiot::TPZElasticBiot() : TPZMatWithMem<TPZElasticBiotMemory, TPZDiscontinuousGalerkin>(){
     
     fdimension = 0;
     
 }
 
 /** @brief Constructor based on a material id */
-TPZElasticBiot::TPZElasticBiot(int matid, int dimension) : TPZMatWithMem<TPZPoroPermMemory, TPZDiscontinuousGalerkin>(matid){
+TPZElasticBiot::TPZElasticBiot(int matid, int dimension) : TPZMatWithMem<TPZElasticBiotMemory, TPZDiscontinuousGalerkin>(matid){
     
     fdimension = dimension;
 }
 
 /** @brief Constructor based on a Biot Poroelasticity  object */
-TPZElasticBiot::TPZElasticBiot(const TPZElasticBiot &mat) : TPZMatWithMem<TPZPoroPermMemory, TPZDiscontinuousGalerkin>(mat){
+TPZElasticBiot::TPZElasticBiot(const TPZElasticBiot &mat) : TPZMatWithMem<TPZElasticBiotMemory, TPZDiscontinuousGalerkin>(mat){
     
     this->fdimension    = mat.fdimension;
 }
@@ -49,6 +49,7 @@ void TPZElasticBiot::FillDataRequirements(TPZVec<TPZMaterialData> &datavec){
         // RB case
         datavec[0].fNeedsBasis = false;
         datavec[0].fNeedsSol = false;
+        DebugStop();
         return;
     }
     
@@ -73,6 +74,7 @@ void TPZElasticBiot::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMa
         datavec[0].fNeedsBasis = false;
         datavec[0].fNeedsSol = false;
         datavec[0].fNeedsNormal = false;
+        DebugStop();
         return;
     }
     
@@ -130,25 +132,35 @@ void TPZElasticBiot::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_
 }
 
 // Contribute Methods being used
-void TPZElasticBiot::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 
+    int u_b = 0;
     
-    TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
-    if(shapetype == data.EVecShape){
-        this->ContributeRB(data, weight, ek, ef);
+    TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
+    if(shapetype == datavec[u_b].EVecShape){
+        this->ContributeRB(datavec, weight, ek, ef);
         return;
     }
     
-    // Getting the space functions
-    TPZFMatrix<REAL>    &phiu   =   data.phi;
-    TPZFMatrix<REAL>    &dphiu   =   data.dphix;
+//    // Getting the space functions from memory
+//    long global_point_index = datavec[u_b].intGlobPtIndex;
+//    TPZElasticBiotMemory &point_memory = GetMemory()[global_point_index];
+//    
+//    TPZFMatrix<REAL> & phi_u = point_memory.phi_u();
+//    TPZFMatrix<REAL> & grad_phi_u = point_memory.grad_phi_u();
+//
+//    TPZFMatrix<REAL> & u_n = point_memory.u_n();
+//    TPZFMatrix<REAL> & grad_u_n = point_memory.grad_u_n();
     
-    TPZFNMatrix <9,REAL>	&axes_u	=	data.axes;
+    
+    // Getting the space functions
+    TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
+    TPZFMatrix<REAL>    &dphiu   =   datavec[u_b].dphix;
+    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = data.sol[0];
-    
-    TPZFNMatrix <15,REAL> du = data.dsol[0];
+    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
+    TPZFNMatrix <15,REAL> du = datavec[u_b].dsol[0];
     
     // Transformations
     TPZFNMatrix<27,REAL> grad_phi_u;
@@ -157,17 +169,29 @@ void TPZElasticBiot::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<S
     TPZAxesTools<STATE>::Axes2XYZ(dphiu, grad_phi_u, axes_u);
     TPZAxesTools<STATE>::Axes2XYZ(du, grad_u, axes_u);
     
-    // Getting memory values
+//    grad_u_n.Print("grad_u_n omar = ");
+//    grad_u.Print("grad_u pz = ");
+    
+//    u_n.Print("u_n = ");
+//    std::cout << "u = " <<  u << std::endl;
+//    std::cout << std::endl;
+    
+//    grad_u_n.Print("du_n = ");
+//    du.Print("du  = ");
+//    std::cout << std::endl;
+    
+//    grad_u_n.Print("grad_u_n omar = ");
+//    grad_u.Print("grad_u pz = ");
+    
     REAL p = 0.0;
     
     int nphi_u = phiu.Rows();
     int first_u = 0;
     
-    REAL dt = fSimulationData->dt();
     REAL div_u = grad_u(0,0) + grad_u(1,1);
     
     TPZFNMatrix<6,REAL> Grad_u(3,3,0.0);
-    TPZFNMatrix<9,REAL> S;
+    TPZFNMatrix<9,REAL> S(3,3,0.0);
     grad_u.Resize(3, 3);
     this->Compute_Sigma(S,grad_u);
     
@@ -211,47 +235,45 @@ void TPZElasticBiot::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<S
 }
 
 
-void TPZElasticBiot::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
+void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
-    this->Contribute(data, weight, ek_fake, ef);
+    this->Contribute(datavec, weight, ek_fake, ef);
 }
 
-void TPZElasticBiot::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+void TPZElasticBiot::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
     if (!fSimulationData->IsCurrentStateQ()) {
         return;
     }
+    int u_b = 0;
     
-    int ux_id = 0;
-    int uy_id = 0;
-    TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
+    TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
     REAL c_big = 1.0;
-    if(shapetype == data.EVecShape)
+    if(shapetype == datavec[u_b].EVecShape)
     {
-        this->ContributeRB_BC(data, weight, ek, ef, bc);
+        this->ContributeRB_BC(datavec, weight, ek, ef, bc);
         return;
     }
     
-    TPZFMatrix<REAL>  &phiu = data.phi;
+    TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = data.sol[0];
+    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
     
     int phru = phiu.Rows();
     short in,jn;
-    REAL v[3];
+    REAL v[2];
     v[0] = bc.Val2()(0,0);	//	Ux displacement
     v[1] = bc.Val2()(1,0);	//	Uy displacement
-    v[2] = bc.Val2()(2,0);	//	Pressure
     
     REAL time = this->SimulationData()->t();
     REAL dt  = this->SimulationData()->dt();
     REAL Value = bc.Val2()(0,0);
     if (bc.HasTimedependentBCForcingFunction()) {
-        TPZManVector<REAL,3> f(3);
+        TPZManVector<REAL,3> f(2);
         TPZFMatrix<REAL> gradf;
-        bc.TimedependentBCForcingFunction()->Execute(data.x, time, f, gradf);
+        bc.TimedependentBCForcingFunction()->Execute(datavec[u_b].x, time, f, gradf);
         v[0] = f[0];	//	Ux displacement or Tx
         v[1] = f[1];	//	Uy displacement or Ty
     }
@@ -266,28 +288,93 @@ void TPZElasticBiot::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(2*in,0)		+= c_big*gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
-                ef(2*in+1,0)	+= c_big*gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
+                ef(2*in,0)		+= c_big*gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(2*in+1,0)	+= c_big*gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)		+= c_big*gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
-                    ek(2*in+1,2*jn+1)	+= c_big*gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
+                    ek(2*in,2*jn)		+= c_big*gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(2*in+1,2*jn+1)	+= c_big*gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
+            break;            
 
         }
             
         case 1 :
+        {
+            //	Dirichlet condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(2*in,0)		+= c_big*gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(2*in,2*jn)		+= c_big*gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                }
+            }
+            break;
+            
+        }
+            
+        case 2 :
+        {
+            //	Dirichlet condition for y each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(2*in+1,0)	+= c_big*gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(2*in+1,2*jn+1)	+= c_big*gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                }
+            }
+            break;
+            
+        }
+            
+        case 3 :
         {
             //	Neumann condition for each state variable
             //	Elasticity Equation
             for(in = 0 ; in <phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(2*in,0)		+= -1.0* v[0]*phiu(in,ux_id)*weight;		//	Tnx
-                ef(2*in+1,0)	+= -1.0* v[1]*phiu(in,uy_id)*weight;		//	Tny
+                ef(2*in,0)		+= -1.0* v[0]*phiu(in,0)*weight;		//	Tnx
+                ef(2*in+1,0)	+= -1.0* v[1]*phiu(in,0)*weight;		//	Tny
+            }
+            
+            break;
+        }
+            
+        case 4 :
+        {
+            //	Neumann condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //	Normal Tension Components on neumman boundary
+                ef(2*in,0)		+= -1.0* v[0]*phiu(in,0)*weight;		//	Tnx
+            }
+            
+            break;
+        }
+            
+        case 5 :
+        {
+            //	Neumann condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //	Normal Tension Components on neumman boundary
+                ef(2*in+1,0)	+= -1.0* v[1]*phiu(in,0)*weight;		//	Tny
             }
             
             break;
@@ -304,15 +391,17 @@ void TPZElasticBiot::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix
 
 
 // Reduce basis methods
-void TPZElasticBiot::ContributeRB(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+void TPZElasticBiot::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+    int u_b = 0;
     
     // RB functions must to include axes transformations .
     
     // Getting RB functions and solution form integration points
     // Get the data at the integrations points
     
-    long global_point_index = data.intGlobPtIndex;
-    TPZPoroPermMemory &point_memory = GetMemory()[global_point_index];
+    long global_point_index = datavec[u_b].intGlobPtIndex;
+    TPZElasticBiotMemory &point_memory = GetMemory()[global_point_index];
     TPZFMatrix<REAL> & phiu = point_memory.phi_u();
     TPZFMatrix<REAL> & dphiu = point_memory.grad_phi_u();
     
@@ -326,8 +415,8 @@ void TPZElasticBiot::ContributeRB(TPZMaterialData &data, REAL weight, TPZFMatrix
     //    TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,10> & u = data.sol[0];
-    TPZFNMatrix <15,REAL> & du = data.dsol[0];
+    TPZManVector<REAL,10> & u = datavec[u_b].sol[0];
+    TPZFNMatrix <15,REAL> & du = datavec[u_b].dsol[0];
     
     //    // Transfering from integration points
     //    int n_rb = int_phi_u.size();
@@ -431,7 +520,9 @@ void TPZElasticBiot::ContributeRB(TPZMaterialData &data, REAL weight, TPZFMatrix
     
 }
 
-void TPZElasticBiot::ContributeRB_BC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+void TPZElasticBiot::ContributeRB_BC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+    int u_b = 0;
     
     int ux_id = 0;
     int uy_id = 1;
@@ -439,12 +530,12 @@ void TPZElasticBiot::ContributeRB_BC(TPZMaterialData &data, REAL weight, TPZFMat
     
     // Getting RB functions and solution form integration points
     // Get the data at the integrations points
-    TPZMatWithMem<TPZPoroPermMemory,TPZBndCond>  & material_bc_mem = dynamic_cast<TPZMatWithMem<TPZPoroPermMemory,TPZBndCond > & >(bc);
+    TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond>  & material_bc_mem = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond > & >(bc);
     
     TPZFNMatrix<3,REAL>  int_u, int_u_n;
     TPZFNMatrix<9,REAL>  int_grad_u, int_grad_u_n;
-    long global_point_index = data.intGlobPtIndex;
-    TPZPoroPermMemory &point_memory = material_bc_mem.GetMemory()[global_point_index];
+    long global_point_index = datavec[u_b].intGlobPtIndex;
+    TPZElasticBiotMemory &point_memory = material_bc_mem.GetMemory()[global_point_index];
     TPZFMatrix<REAL> & phiu = point_memory.phi_u();
     
     int_u = point_memory.u();
@@ -457,7 +548,7 @@ void TPZElasticBiot::ContributeRB_BC(TPZMaterialData &data, REAL weight, TPZFMat
     //    TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = data.sol[0];
+    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
     
     u.Resize(fdimension, 0.0);
     
@@ -488,7 +579,7 @@ void TPZElasticBiot::ContributeRB_BC(TPZMaterialData &data, REAL weight, TPZFMat
     if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(3);
         TPZFMatrix<REAL> gradf;
-        bc.TimedependentBCForcingFunction()->Execute(data.x, time, f, gradf);
+        bc.TimedependentBCForcingFunction()->Execute(datavec[u_b].x, time, f, gradf);
         v[0] = f[0];	//	Ux displacement or Tx
         v[1] = f[1];	//	Uy displacement or Ty
         v[2] = f[2];	//	Pressure
@@ -545,24 +636,24 @@ void TPZElasticBiot::ContributeRB_BC(TPZMaterialData &data, REAL weight, TPZFMat
 
 
 /** returns the solution associated with the var index based on the finite element approximation */
-void TPZElasticBiot::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
+void TPZElasticBiot::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
     
     Solout.Resize( this->NSolutionVariables(var));
     
     int u_b = 0;
     
     // Getting the space functions
-    TPZFNMatrix <9,REAL>	&axes_u	=	data.axes;
+    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = data.sol[0];
-    TPZFNMatrix <6,REAL> du = data.dsol[0];
+    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
+    TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
     
     
     REAL to_Mpa     = 1.0e-6;
     
     // Computing Gradient of the Solution
-    TPZFNMatrix<6,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;
+    TPZFNMatrix<6,REAL> Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;
     
     Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
     Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
@@ -579,7 +670,17 @@ void TPZElasticBiot::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solo
     
     //	darcy
     if(var == 1) {
-        DebugStop();
+        
+        TPZManVector<STATE,5> f(1,0.0);
+        TPZFNMatrix<4,STATE> df(4,1,0.0);
+        if (this->HasTimedependentForcingFunction()) {
+            REAL time = fSimulationData->t();
+            this->fTimeDependentForcingFunction->Execute(datavec[u_b].x, time, f, df);
+        }
+        
+        Solout[0] = f[0];
+        Solout[1] = f[1];
+        
         return;
     }
     

@@ -107,8 +107,8 @@ void TPZFLuxPressureAnalysis::QuasiNewtonIteration(){
     this->Rhs() *= -1.0;
     
 #ifdef PZDEBUG
-    //        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
-    //        this->Rhs().Print("Rn = ", std::cout,EMathematicaInput);
+//            this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
+//    this->Rhs().Print("Rn = ", std::cout,EMathematicaInput);
 #endif
     
     this->Solve(); // update correction

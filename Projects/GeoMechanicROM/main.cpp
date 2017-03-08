@@ -42,10 +42,14 @@
 #include "TPZLinearElliptic.h"
 #include "TPZBiotPoroelasticity.h"
 #include "TPZPoroelasticModes.h"
+#include "TPZElasticBiot.h"
+#include "TPZDarcyFlow.h"
 
 // Analysis
 #include "pzanalysis.h"
 #include "TPZGeomechanicAnalysis.h"
+#include "TPZElasticAnalysis.h"
+#include "TPZFLuxPressureAnalysis.h"
 
 // Matrix
 #include "pzskylstrmatrix.h"
@@ -53,6 +57,7 @@
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
 #include "pzstepsolver.h"
+#include "TPZBiotIrregularBlockDiagonal.h"
 
 // Simulation data structure
 #include "TPZSimulationData.h"
@@ -145,6 +150,11 @@ TPZCompMesh * CMesh_Elasticity(TPZGeoMesh * gmesh, int order);
 
 // Create a computational mesh for basis generation multiphysisc version
 TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data);
+
+// New segregated scheme
+TPZCompMesh * CMesh_Elliptic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data);
+
+TPZCompMesh * CMesh_Parabolic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data, bool IsMixedQ);
 
 // Compute Galerkin projections of unit pressures
 TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_data, int order, int level);
@@ -296,8 +306,8 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1.0;
-    int n_steps = 20;
+    REAL dt = 1000.0;
+    int n_steps = 1;
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
     int n_corrections = 10;
@@ -315,13 +325,13 @@ int Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
 
     int order = 2;
     int level = 0; // deprecated
-    int hlevel = 6;
+    int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
     
@@ -396,11 +406,11 @@ int Geomechanic(){
 //    TPZSkylineNSymStructMatrix struct_mat(geomechanic);
 //    TPZSkylineStructMatrix struct_mat(geomechanic);
 
-    TPZSymetricSpStructMatrix struct_mat(geomechanic);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geomechanic);
+//    struct_mat.SetNumThreads(number_threads);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
-//    struct_mat.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geomechanic);
+    struct_mat.SetDecomposeType(ELDLt);
 
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -473,7 +483,6 @@ int Segregated_Geomechanic(){
     bool IsMixedQ = false;
     bool IsRBQ    = false;
     
-    
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
     
@@ -484,15 +493,14 @@ int Segregated_Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    //    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+    //file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
-    int order = 2;
+    int order = 1;
     int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
-    
     {
         //  Print Geometrical Base Mesh
         std::ofstream argument("Geometry.txt");
@@ -517,25 +525,106 @@ int Segregated_Geomechanic(){
         n_meshes = 2;
     }
     
-    TPZVec<TPZCompMesh * > mesh_vector(n_meshes);
-    TPZCompMesh * cmesh_deformation = NULL;
+    TPZVec<TPZCompMesh * > elliptic_mesh_vec(1);
+    TPZVec<TPZCompMesh * > parabolic_mesh_vec(n_meshes);
+    
+    //    Space Creation
     if (IsRBQ) {
-         cmesh_deformation = CMesh_Deformation_rb(cmesh_gp, order); // RB mesh
+        elliptic_mesh_vec[0] = CMesh_Deformation_rb(cmesh_gp, order); // RB mesh
     }
     else{
-        cmesh_deformation   = CMesh_Deformation(gmesh, order); // Full order mesh
+        elliptic_mesh_vec[0]  = CMesh_Deformation(gmesh, order); // Full order mesh
     }
     
     if (IsMixedQ) {
-        mesh_vector[1] = CMesh_Flux(gmesh, order-1);
-        mesh_vector[2] = CMesh_MFPorePressure(gmesh, order-1);
+        parabolic_mesh_vec[0] = CMesh_Flux(gmesh, order);
+        parabolic_mesh_vec[1] = CMesh_MFPorePressure(gmesh, order);
     }
     else{
-        mesh_vector[1] = CMesh_PorePressure(gmesh, order-1);
+        parabolic_mesh_vec[0] = CMesh_PorePressure(gmesh, order);
     }
     
     // Filling the transfer object
     transfer->SetSimulationData(sim_data);
+    int number_threads = 0;
+    
+    // Elliptic problem
+    TPZCompMesh * cmesh_elliptic = CMesh_Elliptic(gmesh, elliptic_mesh_vec, sim_data);
+    TPZElasticAnalysis * elliptic = new TPZElasticAnalysis;
+    bool OptimizeBand_e = true;
+    elliptic->SetCompMesh(cmesh_elliptic,OptimizeBand_e);
+    elliptic->SetSimulationData(sim_data);
+    elliptic->SetMeshvec(elliptic_mesh_vec);
+    elliptic->AdjustVectors();
+    elliptic->SetTransfer_object(transfer);
+    
+    
+    TPZSkylineStructMatrix struct_mat_e(cmesh_elliptic);
+//    TPZSkylineNSymStructMatrix struct_mat_e(cmesh_elliptic);
+    
+    
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_e(cmesh_elliptic);
+//    struct_mat_e.SetDecomposeType(ELDLt);
+    
+    TPZStepSolver<STATE> step_e;
+    struct_mat_e.SetNumThreads(number_threads);
+    step_e.SetDirect(ELDLt);
+    elliptic->SetSolver(step_e);
+    elliptic->SetStructuralMatrix(struct_mat_e);
+    
+    
+//    // Parabolic problem
+//    TPZCompMesh * cmesh_parabolic = CMesh_Parabolic(gmesh, parabolic_mesh_vec, sim_data, IsMixedQ);
+//    TPZFLuxPressureAnalysis * parabolic = new TPZFLuxPressureAnalysis;
+//    bool OptimizeBand_p = true;
+//    parabolic->SetCompMesh(cmesh_parabolic,OptimizeBand_p);
+//    parabolic->SetSimulationData(sim_data);
+//    parabolic->SetMeshvec(parabolic_mesh_vec);
+//    parabolic->AdjustVectors();
+//    parabolic->SetTransfer_object(transfer);
+//    
+//    TPZSkylineStructMatrix struct_mat_p(cmesh_parabolic);
+//    
+////    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_p(cmesh_parabolic);
+////    struct_mat_p.SetDecomposeType(ELDLt);
+//    
+//    TPZStepSolver<STATE> step_p;
+//    struct_mat_p.SetNumThreads(number_threads);
+//    step_p.SetDirect(ELDLt);
+//    parabolic->SetSolver(step_p);
+//    parabolic->SetStructuralMatrix(struct_mat_p);
+    
+    // Transfer object
+    
+    // Build linear tranformations
+//    transfer->Fill_elliptic_To_elliptic(cmesh_elliptic);
+//    transfer->Fill_elliptic_To_parabolic(cmesh_elliptic, cmesh_parabolic);
+//    transfer->Fill_parabolic_To_parabolic(cmesh_parabolic);
+//    transfer->Fill_parabolic_To_elliptic(cmesh_parabolic, cmesh_elliptic);
+    
+    // transfer approximation space to integration points
+//    transfer->space_To_elliptic(cmesh_elliptic);
+//    transfer->space_To_parabolic(cmesh_parabolic);
+    
+    // Step one load each space on integration points
+
+    // Run segregated solution
+    sim_data->Setdt(1.0e3);
+    sim_data->SetTime(1.0e3);
+    elliptic->ExcecuteOneStep();
+//    elliptic->LoadSolution();
+//    transfer->elliptic_To_elliptic(cmesh_elliptic);
+    std::string elliptic_file = "elliptic.vtk";
+    elliptic->PostProcessStep(elliptic_file);
+    elliptic->PostProcessStep(elliptic_file);
+    
+//    // Run segregated solution
+//    sim_data->Setdt(1.0e3);
+//    sim_data->SetTime(1.0e3);
+//    parabolic->ExcecuteOneStep();
+//    std::string parabolic_file = "parabolic.vtk";
+//    parabolic->PostProcessStep(parabolic_file);
+//    parabolic->PostProcessStep(parabolic_file);
     
     return 0;
     
@@ -1854,6 +1943,245 @@ TPZCompMesh * CMesh_Elliptic_M_RB(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mes
     
 }
 
+TPZCompMesh * CMesh_Elliptic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data){
+    
+    
+    REAL MPa = 1.0e6;
+    
+    // Getting mesh dimension
+    int dim = gmesh->Dimension();
+    
+    // soil parameters
+    // http://www.sciencedirect.com/science/article/pii/S0045782505001532
+    
+    REAL l          = 8.333e3;
+    REAL mu         = 12.50e3;
+    REAL l_u        = 8.333e3;
+    REAL alpha      = 1.0;
+    REAL Se         = 0.0;
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    // Creating a material object
+    
+    TPZElasticBiot * material = new TPZElasticBiot(matid,dim);
+    material->SetSimulationData(sim_data);
+    material->SetPorolasticParameters(l, mu, l_u);
+    material->SetBiotParameters(alpha, Se);
+    
+    TPZAutoPointer<TPZFunction<STATE> > f_analytic = new TPZDummyFunction<STATE>(Analytic);
+    material->SetTimeDependentForcingFunction(f_analytic);
+    cmesh->InsertMaterialObject(material);
+    
+    // Inserting boundary conditions
+    int dirichlet_v   = 0;
+    int dirichlet_x   = 1;
+    int neumann_y     = 5;
+    
+    REAL s_n = -(1.0e-3)*MPa;
+    
+    TPZFMatrix<STATE> val1(dim,dim,0.), val2(dim,1,0.);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> * bc_bottom_mat = new TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond>;
+    bc_bottom_mat->SetNumLoadCases(1);
+    bc_bottom_mat->SetMaterial(material);
+    bc_bottom_mat->SetId(bc_bottom);
+    bc_bottom_mat->SetType(dirichlet_v);
+    bc_bottom_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_bottom_mat);
+    
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> * bc_right_mat = new TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond>;
+    bc_right_mat->SetNumLoadCases(1);
+    bc_right_mat->SetMaterial(material);
+    bc_right_mat->SetId(bc_right);
+    bc_right_mat->SetType(dirichlet_x);
+    bc_right_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_right_mat);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = s_n;
+    TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> * bc_top_mat = new TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond>;
+    bc_top_mat->SetNumLoadCases(1);
+    bc_top_mat->SetMaterial(material);
+    bc_top_mat->SetId(bc_top);
+    bc_top_mat->SetType(neumann_y);
+    bc_top_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_top_mat);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> * bc_left_mat = new TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond>;
+    bc_left_mat->SetNumLoadCases(1);
+    bc_left_mat->SetMaterial(material);
+    bc_left_mat->SetId(bc_left);
+    bc_left_mat->SetType(dirichlet_x);
+    bc_left_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_left_mat);
+    
+    val2(0,0) = 0.0;
+    val2(1,0) = 0.0;
+    TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> * bc_top_null_mat = new TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond>;
+    bc_top_null_mat->SetNumLoadCases(1);
+    bc_top_null_mat->SetMaterial(material);
+    bc_top_null_mat->SetId(bc_top_null);
+    bc_top_null_mat->SetType(neumann_y);
+    bc_top_null_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_top_null_mat);
+    
+    // Setting up multiphysics functions
+    cmesh->SetDimModel(dim);
+    cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    cmesh->ApproxSpace().CreateWithMemory(true);
+    cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    // Transferindo para a multifisica
+    TPZBuildMultiphysicsMesh::AddElements(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
+    
+    
+    long nel = cmesh->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
+    
+#ifdef PZDEBUG
+    std::ofstream out("CMeshEllipticMultiPhysics.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
+}
+
+TPZCompMesh * CMesh_Parabolic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data, bool IsMixedQ){
+    
+//    REAL MPa = 1.0e6;
+    
+    // Getting mesh dimension
+    int dim = gmesh->Dimension();
+    
+    // soil parameters
+    // http://www.sciencedirect.com/science/article/pii/S0045782505001532
+    
+    REAL k          = 1.0e-10;
+    REAL porosity   = 0.25;
+    REAL eta        = 0.001;
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    // Creating a material object
+    
+    TPZDarcyFlow * material = new TPZDarcyFlow(matid,dim);
+    material->SetSimulationData(sim_data);
+    material->SetFlowParameters(k, porosity, eta);
+    material->SetMixedFormulation(IsMixedQ);
+    
+    TPZAutoPointer<TPZFunction<STATE> > f_analytic = new TPZDummyFunction<STATE>(Analytic);
+    material->SetTimeDependentForcingFunction(f_analytic);
+    cmesh->InsertMaterialObject(material);
+    
+    // Inserting boundary conditions
+    int dirichlet   = 0;
+    int neumann     = 1;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    
+    val2(0,0) = 0.0;
+    TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> * bc_bottom_mat = new TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond>;
+    bc_bottom_mat->SetNumLoadCases(1);
+    bc_bottom_mat->SetMaterial(material);
+    bc_bottom_mat->SetId(bc_bottom);
+    bc_bottom_mat->SetType(neumann);
+    bc_bottom_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_bottom_mat);
+    
+    val2(0,0) = 0.0;
+    TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> * bc_right_mat = new TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond>;
+    bc_right_mat->SetNumLoadCases(1);
+    bc_right_mat->SetMaterial(material);
+    bc_right_mat->SetId(bc_right);
+    bc_right_mat->SetType(neumann);
+    bc_right_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_right_mat);
+    
+    val2(0,0) = 1.0;
+    TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> * bc_top_mat = new TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond>;
+    bc_top_mat->SetNumLoadCases(1);
+    bc_top_mat->SetMaterial(material);
+    bc_top_mat->SetId(bc_top);
+    bc_top_mat->SetType(dirichlet);
+    bc_top_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_top_mat);
+    
+    val2(0,0) = 0.0;
+    TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> * bc_left_mat = new TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond>;
+    bc_left_mat->SetNumLoadCases(1);
+    bc_left_mat->SetMaterial(material);
+    bc_left_mat->SetId(bc_left);
+    bc_left_mat->SetType(neumann);
+    bc_left_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_left_mat);
+    
+    val2(0,0) = 0.0;
+    TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> * bc_top_null_mat = new TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond>;
+    bc_top_null_mat->SetNumLoadCases(1);
+    bc_top_null_mat->SetMaterial(material);
+    bc_top_null_mat->SetId(bc_top_null);
+    bc_top_null_mat->SetType(neumann);
+    bc_top_null_mat->SetValues(val1, val2);
+    cmesh->InsertMaterialObject(bc_top_null_mat);
+    
+    // Setting up multiphysics functions
+    cmesh->SetDimModel(dim);
+    cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    cmesh->ApproxSpace().CreateWithMemory(true);
+    cmesh->AutoBuild();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    
+    // Transferindo para a multifisica
+    TPZBuildMultiphysicsMesh::AddElements(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
+    
+    
+    long nel = cmesh->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
+    
+#ifdef PZDEBUG
+    std::ofstream out("CMeshParabolicMultiPhysics.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
+}
+
 
 
 TPZCompMesh * CMesh_GeomechanicCoupling(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vector, TPZSimulationData * sim_data, bool IsMixedQ){
@@ -2145,19 +2473,8 @@ TPZCompMesh * CMesh_Flux(TPZGeoMesh * gmesh, int order){
 // Create a computational mesh for mixed pore pressure;
 TPZCompMesh * CMesh_MFPorePressure(TPZGeoMesh * gmesh, int order){
     
-    // Plane strain assumption
-    //    int planestress = 0;
-    
-    // Material identifiers
-    int matid =1;
-    int bc_bottom, bc_right, bc_top, bc_left;
-    bc_bottom = -1;
-    bc_right = -2;
-    bc_top = -3;
-    bc_left = -4;
-    
     // Getting mesh dimension
-    int dim = 2;
+    int dim = gmesh->Dimension();
     
     // Aproximation Space of order -> pOrder
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);

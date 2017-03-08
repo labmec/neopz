@@ -464,7 +464,7 @@ void TPZBiotIrregularBlockDiagonal<TVar>::Transpose (TPZMatrix<TVar> *const T) c
 template<class TVar>
 int TPZBiotIrregularBlockDiagonal<TVar>::Decompose_LU(std::list<long> &singular)
 {
-    return Decompose_LU(singular);
+    return 0;
 }
 
 template<class TVar>

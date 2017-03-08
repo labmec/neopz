@@ -13,13 +13,16 @@
 
 #include "tpzintpoints.h"
 #include "pzmatwithmem.h"
-#include "TPZPoroPermMemory.h"
 #include "pzmaterial.h"
 #include "pzinterpolationspace.h"
 #include "pzmultiphysicselement.h"
 #include "pzcondensedcompel.h"
 #include "TPZBiotPoroelasticity.h"
 
+// Memory
+#include "TPZPoroPermMemory.h"
+#include "TPZElasticBiotMemory.h"
+#include "TPZDarcyFlowMemory.h"
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
@@ -65,6 +68,54 @@ private:
     
     /** @brief geomechanic and galerkin projection mesh computational multiphysics element indexes, every element is indexed by geometric element */
     TPZStack< std::pair<long, std::pair<long, long> >  > fgeomechanic_galerkinp_cindexes;
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) :: Attributes Elliptic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /** @brief full order dof indexes per element */
+    TPZVec< TPZVec<long> > fu_dof_scatter;
+
+    /** @brief integration point indexes */
+    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fe_p_intp_indexes;
+    
+    TPZStack< std::pair<long, std::pair<long, long> >  > fe_p_cindexes;
+    
+    /** @brief linear application u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fu_To_elliptic;
+    
+    /** @brief linear application grad_u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fgrad_u_To_elliptic;
+    
+    /** @brief linear application u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fu_To_parabolic;
+    
+    /** @brief linear application grad_u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fgrad_u_To_parabolic;
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) :: Attributes Parabolic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /** @brief  p dof indexes per element */
+    TPZVec< TPZVec<long> > fp_dof_scatter;
+    
+    /** @brief integration point indexes */
+    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fp_e_intp_indexes;
+    
+    TPZStack< std::pair<long, std::pair<long, long> >  > fp_e_cindexes;
+    
+    /** @brief linear application u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fp_To_elliptic;
+    
+    /** @brief linear application grad_u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fgrad_p_To_elliptic;
+    
+    /** @brief linear application u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fp_To_parabolic;
+    
+    /** @brief linear application grad_u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fgrad_p_To_parabolic;
     
     
 public:
@@ -121,6 +172,37 @@ public:
     
     /** @brief Compute left and right geometric element indexes associated with the transport mesh */
     void ComputeLeftRightII(TPZCompMesh * transport_mesh);
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) Elliptic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    void Fill_elliptic_To_elliptic(TPZCompMesh * elliptic);
+    
+    void Fill_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMesh * parabolic);
+    
+    void space_To_elliptic(TPZCompMesh * elliptic);
+    
+    void elliptic_To_elliptic(TPZCompMesh * elliptic);
+    
+    void elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMesh * parabolic);
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) Parabolic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    void Fill_parabolic_To_parabolic(TPZCompMesh * parabolic);
+    
+    void Fill_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic);
+
+    void space_To_parabolic(TPZCompMesh * parabolic);
+    
+    void parabolic_To_parabolic(TPZCompMesh * parabolic);
+    
+    void parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic);
+    
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////

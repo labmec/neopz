@@ -18,11 +18,11 @@
 #include "pzbndcond.h"
 #include "pzvec.h"
 #include "TPZSimulationData.h"
-#include "TPZPoroPermMemory.h"
+#include "TPZElasticBiotMemory.h"
 #include "pzaxestools.h"
 
 
-class TPZElasticBiot : public TPZMatWithMem< TPZPoroPermMemory,TPZDiscontinuousGalerkin> {
+class TPZElasticBiot : public TPZMatWithMem< TPZElasticBiotMemory,TPZDiscontinuousGalerkin> {
     
 private:
     
@@ -31,12 +31,6 @@ private:
     
     /** @brief material dimension */
     int fdimension;
-    
-    /** @brief Poisson coeficient */
-    REAL fnu;
-    
-    /** @brief undrained poisson coeficient */
-    REAL fnuu;
     
     /** @brief first Lame Parameter */
     REAL flambda;
@@ -118,7 +112,7 @@ public:
     
     /** returns the solution associated with the var index based on
      * the finite element approximation */
-    void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
     // Attribute
     
@@ -166,30 +160,30 @@ public:
         DebugStop();
     }
     
-    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
         DebugStop();
     }
     
-    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
         DebugStop();
     }
     
-    void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
         DebugStop();
     }
     
     // GC basis methods
-    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
-    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
     
-    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
     
     // Reduce basis methods
-    void ContributeRB(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    void ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
-    void ContributeRB_BC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    void ContributeRB_BC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
     
     /** @brief Unique identifier for serialization purposes */

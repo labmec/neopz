@@ -37,12 +37,6 @@ private:
     /** @brief Material parameter for symetric coupled system */
     REAL fCsymetric;
     
-    /** @brief Poisson coeficient */
-    REAL fnu;
-    
-    /** @brief undrained poisson coeficient */
-    REAL fnuu;
-    
     /** @brief first Lame Parameter */
     REAL flambda;
     

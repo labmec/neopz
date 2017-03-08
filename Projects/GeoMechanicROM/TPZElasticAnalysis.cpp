@@ -106,8 +106,8 @@ void TPZElasticAnalysis::QuasiNewtonIteration(){
     this->Rhs() *= -1.0;
     
 #ifdef PZDEBUG
-    //        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
-    //        this->Rhs().Print("Rn = ", std::cout,EMathematicaInput);
+//            this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
+//            this->Rhs().Print("Rn = ", std::cout,EMathematicaInput);
 #endif
     
     this->Solve(); // update correction
@@ -131,8 +131,8 @@ void TPZElasticAnalysis::NewtonIteration(){
     this->Rhs() *= -1.0;
     
 #ifdef PZDEBUG
-    //    this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
-    //    this->Rhs().Print("Rn = ", std::cout,EMathematicaInput);
+//        this->Solver().Matrix()->Print("K = ", std::cout,EMathematicaInput);
+//        this->Rhs().Print("Rn = ", std::cout,EMathematicaInput);
 #endif
     
     this->Solve(); // update correction
@@ -188,8 +188,9 @@ void TPZElasticAnalysis::ExcecuteOneStep(){
 void TPZElasticAnalysis::UpdateState(){
     this->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+//    ftransfer->elliptic_To_elliptic(this->Mesh());
     if (fSimulationData->IsRBApproxQ()) {
-        ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());
+        DebugStop();
     }
     
 }
@@ -198,8 +199,9 @@ void TPZElasticAnalysis::UpdateState(){
 void TPZElasticAnalysis::Update_at_n_State(){
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+//    ftransfer->elliptic_To_elliptic(this->Mesh());
     if (fSimulationData->IsRBApproxQ()) {
-        ftransfer->RB_Solution_To_Geomechanic(this->Mesh(), fmeshvec[0]->Solution());
+        DebugStop();
     }
 }
 

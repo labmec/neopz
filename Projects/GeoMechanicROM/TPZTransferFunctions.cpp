@@ -293,6 +293,2103 @@ void TPZTransferFunctions::Fill_RB_basis_To_Geomechanic(TPZCompMesh * cmesh_mult
     
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Segregated Transfer methods (Gamma and Omega) Elliptic
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TPZTransferFunctions::Fill_elliptic_To_elliptic(TPZCompMesh * elliptic){
+    
+#ifdef PZDEBUG
+    if (!elliptic) {
+        DebugStop();
+    }
+#endif
+    
+    fe_p_cindexes.resize(0);
+    
+    
+    elliptic->LoadReferences();
+    TPZGeoMesh * geometry = elliptic->Reference();
+    
+#ifdef PZDEBUG
+    if (!geometry) {
+        DebugStop();
+    }
+#endif
+    
+    std::pair<long, std::pair <long,long> > chunk_indexes;
+    long valid_elements = 0;
+    // inserting geometric indexes
+    for (long i = 0; i < geometry->NElements(); i++) {
+        TPZGeoEl * gel = geometry->Element(i);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        valid_elements++;
+    }
+    
+    
+    long nel = geometry->NElements();
+    int n_var_dim = geometry->Dimension();
+    
+    // Compute destination index scatter by element (Omega and Gamma)
+    
+    fu_dof_scatter.resize(valid_elements);
+    std::pair<long, std::pair <TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    
+    // Block size structue including (Omega and Gamma)
+    TPZVec< std::pair<long, long> > blocks_dimensions_phi(nel);
+    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(nel);
+    
+    long element_index = 0;
+    for (long iel = 0; iel < nel; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+    
+        TPZCompEl * e_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_e_cel = dynamic_cast<TPZMultiphysicsElement * >(e_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_e_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        // Getting local integration index
+        TPZManVector<long> e_int_point_indexes(0,0);
+        TPZManVector<long> dof_indexes(0,0);
+        
+        int gel_dim = gel->Dimension();
+        
+        mf_e_cel->GetMemoryIndices(e_int_point_indexes);
+        
+        this->ElementDofIndexes(mf_e_cel, dof_indexes);
+        fu_dof_scatter[element_index] = dof_indexes;
+        blocks_dimensions_phi[element_index].first = e_int_point_indexes.size()*n_var_dim;
+        blocks_dimensions_phi[element_index].second = dof_indexes.size();
+        
+        blocks_dimensions_grad_phi[element_index].first = e_int_point_indexes.size()*n_var_dim*gel_dim;
+        blocks_dimensions_grad_phi[element_index].second = dof_indexes.size();
+        
+        element_index++;
+    }
+    
+    // Initialize the matrix
+    fu_To_elliptic.Initialize(blocks_dimensions_phi);
+    fgrad_u_To_elliptic.Initialize(blocks_dimensions_grad_phi);
+    
+    
+    element_index = 0;
+    
+    TPZManVector<long> e_int_point_indexes(0,0);
+    TPZManVector<long> dof_indexes(0,0);
+    
+    std::pair<long, long> block_dim;
+    for (long iel = 0; iel < nel; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        
+        TPZCompEl * e_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        
+        TPZMultiphysicsElement * mf_e_cel = dynamic_cast<TPZMultiphysicsElement * >(e_cel);
+
+        
+#ifdef PZDEBUG
+        if(!mf_e_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        
+        TPZInterpolationSpace * e_intel = dynamic_cast<TPZInterpolationSpace * >(mf_e_cel->Element(0));
+        
+        // Getting local integration index
+        mf_e_cel->GetMemoryIndices(e_int_point_indexes);
+        dof_indexes = fu_dof_scatter[element_index];
+        
+        block_dim.first = e_int_point_indexes.size();
+        block_dim.second = dof_indexes.size();
+        
+        // Computing the local integration points indexes
+        const TPZIntPoints & int_points_geomechanic = mf_e_cel->GetIntegrationRule();
+        int np_cel = int_points_geomechanic.NPoints();
+        
+#ifdef PZDEBUG
+        if (e_int_point_indexes.size() != np_cel) {
+            DebugStop();
+        }
+#endif
+        
+        // Computing over all integration points of the compuational element cel
+        int gel_dim = gel->Dimension();
+        TPZFMatrix<double> block_phi, block_grad_phi;
+        
+        block_phi.Resize(block_dim.first*n_var_dim,block_dim.second);
+        block_grad_phi.Resize(block_dim.first*n_var_dim*gel_dim,block_dim.second);
+        
+        // for derivatives in real space
+        int nshape = e_intel->NShapeF();
+        TPZFNMatrix<220> phi(nshape,1);
+        TPZFNMatrix<660> dphi(gel_dim,nshape),dphix_axes(gel_dim,nshape);
+        TPZFMatrix<double> dphidx;
+        TPZFNMatrix<9,STATE> jacobian(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> jacinv(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> axes;
+        REAL detjac;
+        
+        for (int ip = 0; ip < block_dim.first ; ip++)
+        {
+            TPZManVector<REAL,3> qsi(gel_dim,0.0);
+            STATE w;
+            int_points_geomechanic.Point(ip, qsi, w);
+            
+            // Get the phi and dphix for H1 elasticity
+            e_intel->Shape(qsi, phi, dphi);
+            gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
+            
+            switch(gel_dim) {
+                case 0:
+                    break;
+                case 1:
+                    dphix_axes = dphi;
+                    dphix_axes *= (1./detjac);
+                    break;
+                case 2:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+                    }
+                    break;
+                case 3:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
+                        dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
+                    }
+                    break;
+                default:
+                    std::stringstream sout;
+                    sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
+                    LOGPZ_ERROR(logger,sout.str());
+            }
+            
+            TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
+            
+#ifdef PZDEBUG
+            if(block_dim.second != phi.Rows() * n_var_dim){
+                DebugStop();
+            }
+#endif
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < n_var_dim; id++) {
+                    block_phi(ip*n_var_dim+id,jp*n_var_dim+id) = phi(jp,0);
+                }
+            }
+            
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < n_var_dim; id++) {
+                    for (int jd = 0; jd < gel_dim; jd++) {
+                        if(gel_dim == n_var_dim){
+                            block_grad_phi(ip*n_var_dim*gel_dim + id*gel_dim + jd,jp*n_var_dim+id) = dphidx(jd,jp);
+                        }
+                        else{
+                            block_grad_phi(ip*n_var_dim*gel_dim+id*gel_dim + jd,jp*n_var_dim+id) = 0.0;
+                        }
+                    }
+                }
+            }
+            
+        }
+        
+        fu_To_elliptic.SetBlock(element_index, block_phi);
+        fgrad_u_To_elliptic.SetBlock(element_index, block_grad_phi);
+        
+        element_index++;
+    }
+    
+//    fu_To_elliptic.Print(" u_to_e ");
+//    fgrad_u_To_elliptic.Print(" grad_u_to_e ");
+    
+    return;
+    
+}
+
+void TPZTransferFunctions::Fill_elliptic_To_parabolic(TPZCompMesh * origin, TPZCompMesh * target){
+    
+#ifdef PZDEBUG
+    if (!origin || !target) {
+        DebugStop();
+    }
+#endif
+    
+    fe_p_cindexes.resize(0);
+    
+    
+    origin->LoadReferences();
+    TPZGeoMesh * geometry = origin->Reference();
+    
+#ifdef PZDEBUG
+    if (!geometry) {
+        DebugStop();
+    }
+#endif
+    
+    std::pair<long, std::pair <long,long> > chunk_indexes;
+
+    // inserting geometric indexes
+    for (long i = 0; i < geometry->NElements(); i++) {
+        TPZGeoEl * gel = geometry->Element(i);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        chunk_indexes.first = gel->Index();
+        chunk_indexes.second.first = -1;
+        chunk_indexes.second.second = -1;
+        fe_p_cindexes.Push(chunk_indexes);
+        
+    }
+    
+    // counting volumetric elements
+    long n_elements = fe_p_cindexes.size();
+    
+    // inserting origin indexes
+    origin->LoadReferences();
+    for(long iel = 0; iel < n_elements; iel++){
+        
+        TPZCompEl * cel = geometry->Element(fe_p_cindexes[iel].first)->Reference();
+        
+#ifdef PZDEBUG
+        if (!cel) {
+            //continue;
+            DebugStop();
+        }
+#endif
+        fe_p_cindexes[iel].second.first = cel->Index();
+        
+    }
+    
+    // inserting target indexes
+    target->LoadReferences();
+    for(long iel = 0; iel < n_elements; iel++){
+        
+        TPZCompEl * cel = geometry->Element(fe_p_cindexes[iel].first)->Reference();
+        
+#ifdef PZDEBUG
+        if (!cel) {
+            DebugStop();
+        }
+#endif
+        fe_p_cindexes[iel].second.second = cel->Index();
+        
+    }
+    
+//    for (int k = 0; k < comp_indexes.size(); k++) {
+//        std::cout << " volume k : " << k <<std::endl;
+//        std::cout << " volume gel : " << fe_p_cindexes[k].first <<std::endl;
+//        std::cout << " volume c_o : " << fe_p_cindexes[k].second.first <<std::endl;
+//        std::cout << " volume c_t : " << fe_p_cindexes[k].second.second <<std::endl;
+//    }
+    
+    
+    origin->LoadReferences();
+    geometry = origin->Reference();
+    
+    long nel = fe_p_cindexes.size();
+    int n_var_dim = origin->Reference()->Dimension();
+    long element_index = 0;
+    
+    // Compute destination index scatter by element (Omega and Gamma)
+    
+    fu_dof_scatter.resize(nel);
+    std::pair<long, std::pair <TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    
+    // Block size structue including (Omega and Gamma)
+    TPZVec< std::pair<long, long> > blocks_dimensions_phi(nel);
+    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(nel);
+    
+    long gel_index, o_index, t_index;
+    for (long iel = 0; iel < nel; iel++) {
+        
+        gel_index = fe_p_cindexes[iel].first;
+        TPZGeoEl * gel = geometry->Element(gel_index);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        o_index   = fe_p_cindexes[iel].second.first;
+        t_index   = fe_p_cindexes[iel].second.second;
+        
+        TPZCompEl * o_cel = origin->Element(o_index);
+        TPZCompEl * t_cel = target->Element(t_index);
+        
+#ifdef PZDEBUG
+        if (!o_cel || !t_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_o_cel = dynamic_cast<TPZMultiphysicsElement * >(o_cel);
+        TPZMultiphysicsElement * mf_t_cel = dynamic_cast<TPZMultiphysicsElement * >(t_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_o_cel || !mf_t_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        // Getting local integration index
+        TPZManVector<long> o_int_point_indexes(0,0);
+        TPZManVector<long> t_int_point_indexes(0,0);
+        TPZManVector<long> dof_indexes(0,0);
+        
+        int gel_dim = gel->Dimension();
+        
+        mf_o_cel->GetMemoryIndices(o_int_point_indexes);
+        mf_t_cel->GetMemoryIndices(t_int_point_indexes);
+        
+        chunk_intp_indexes.first = gel->Index();
+        chunk_intp_indexes.second.first  = o_int_point_indexes;
+        chunk_intp_indexes.second.second = t_int_point_indexes;
+        fe_p_intp_indexes.Push(chunk_intp_indexes);
+        
+        this->ElementDofIndexes(mf_o_cel, dof_indexes);
+        fu_dof_scatter[element_index] = dof_indexes;
+        blocks_dimensions_phi[element_index].first = t_int_point_indexes.size()*n_var_dim;
+        blocks_dimensions_phi[element_index].second = dof_indexes.size();
+        
+        blocks_dimensions_grad_phi[element_index].first = t_int_point_indexes.size()*n_var_dim*gel_dim;
+        blocks_dimensions_grad_phi[element_index].second = dof_indexes.size();
+        
+        element_index++;
+    }
+    
+    // Initialize the matrix
+    fu_To_parabolic.Initialize(blocks_dimensions_phi);
+    fgrad_u_To_parabolic.Initialize(blocks_dimensions_grad_phi);
+    
+    
+    origin->LoadReferences();
+    element_index = 0;
+    
+    TPZManVector<long> int_point_indexes(0,0);
+    TPZManVector<long> dof_indexes(0,0);
+    
+    std::pair<long, long> block_dim;
+    for (long iel = 0; iel < nel; iel++) {
+        
+        gel_index = fe_p_cindexes[iel].first;
+        TPZGeoEl * gel = geometry->Element(gel_index);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        o_index   = fe_p_cindexes[iel].second.first;
+        t_index   = fe_p_cindexes[iel].second.second;
+        
+        TPZCompEl * o_cel = origin->Element(o_index);
+        TPZCompEl * t_cel = target->Element(t_index);
+        
+#ifdef PZDEBUG
+        if (!o_cel || !t_cel) {
+            DebugStop();
+        }
+#endif
+        
+        
+        TPZMultiphysicsElement * mf_o_cel = dynamic_cast<TPZMultiphysicsElement * >(o_cel);
+        TPZMultiphysicsElement * mf_t_cel = dynamic_cast<TPZMultiphysicsElement * >(t_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_o_cel || !mf_t_cel)
+        {
+            DebugStop();
+        }
+#endif
+      
+        
+        TPZInterpolationSpace * o_intel = dynamic_cast<TPZInterpolationSpace * >(mf_o_cel->Element(0));
+
+        // Getting local integration index
+        int_point_indexes = fe_p_intp_indexes[element_index].second.second;
+        dof_indexes = fu_dof_scatter[element_index];
+        
+        block_dim.first = int_point_indexes.size();
+        block_dim.second = dof_indexes.size();
+        
+        // Computing the local integration points indexes
+        const TPZIntPoints & int_points_geomechanic = mf_t_cel->GetIntegrationRule();
+        int np_cel = int_points_geomechanic.NPoints();
+        
+#ifdef PZDEBUG
+        if (int_point_indexes.size() != np_cel) {
+            DebugStop();
+        }
+#endif
+        
+        // Computing over all integration points of the compuational element cel
+        int gel_dim = gel->Dimension();
+        TPZFMatrix<double> block_phi, block_grad_phi;
+        
+        block_phi.Resize(block_dim.first*n_var_dim,block_dim.second);
+        block_grad_phi.Resize(block_dim.first*n_var_dim*gel_dim,block_dim.second);
+        
+        // for derivatives in real space
+        int nshape = o_intel->NShapeF();
+        TPZFNMatrix<220> phi(nshape,1);
+        TPZFNMatrix<660> dphi(gel_dim,nshape),dphix_axes(gel_dim,nshape);
+        TPZFMatrix<double> dphidx;
+        TPZFNMatrix<9,STATE> jacobian(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> jacinv(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> axes;
+        REAL detjac;
+        
+        for (int ip = 0; ip < block_dim.first ; ip++)
+        {
+            TPZManVector<REAL,3> qsi(gel_dim,0.0);
+            STATE w;
+            int_points_geomechanic.Point(ip, qsi, w);
+            
+            // Get the phi and dphix for H1 elasticity
+            o_intel->Shape(qsi, phi, dphi);
+            gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
+            
+            switch(gel_dim) {
+                case 0:
+                    break;
+                case 1:
+                    dphix_axes = dphi;
+                    dphix_axes *= (1./detjac);
+                    break;
+                case 2:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+                    }
+                    break;
+                case 3:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
+                        dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
+                    }
+                    break;
+                default:
+                    std::stringstream sout;
+                    sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
+                    LOGPZ_ERROR(logger,sout.str());
+            }
+            
+            TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
+            
+#ifdef PZDEBUG
+            if(block_dim.second != phi.Rows() * n_var_dim){
+                DebugStop();
+            }
+#endif
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < n_var_dim; id++) {
+                    block_phi(ip*n_var_dim+id,jp*n_var_dim+id) = phi(jp,0);
+                }
+            }
+            
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < n_var_dim; id++) {
+                    for (int jd = 0; jd < gel_dim; jd++) {
+                        if(gel_dim == n_var_dim){
+                            block_grad_phi(ip*n_var_dim*gel_dim + id*gel_dim + jd,jp*n_var_dim+id) = dphidx(jd,jp);
+                        }
+                        else{
+                            block_grad_phi(ip*n_var_dim*gel_dim+id*gel_dim + jd,jp*n_var_dim+id) = 0.0;
+                        }
+                    }
+                }
+            }
+            
+        }
+        
+        fu_To_parabolic.SetBlock(element_index, block_phi);
+        fgrad_u_To_parabolic.SetBlock(element_index, block_grad_phi);
+        
+        element_index++;
+    }
+    
+//    fu_To_parabolic.Print(" u_to_p ");
+//    fgrad_u_To_parabolic.Print(" grad_u_to_p ");
+
+    return;
+    
+}
+
+void TPZTransferFunctions::space_To_elliptic(TPZCompMesh * elliptic){
+    
+    
+#ifdef PZDEBUG
+    if (!elliptic || fu_To_elliptic.Rows() == 0 || fgrad_u_To_elliptic.Rows() == 0) {
+        DebugStop();
+    }
+#endif
+    
+    elliptic->LoadReferences();
+    TPZGeoMesh * geometry = elliptic->Reference();
+    long nel = fe_p_cindexes.size();
+    int dim = elliptic->Dimension();
+
+    
+    long iblock = 0;
+    long first_point_phi = 0;
+    long first_point_dphi = 0;
+    std::pair<long, long> b_size_phi, b_size_dphi;
+    b_size_phi.first = 0;
+    b_size_phi.second = 0;
+    b_size_dphi.first = 0;
+    b_size_dphi.second = 0;
+    
+    TPZFMatrix<double> block_phi;
+    TPZFMatrix<double> block_grad_phi;
+    
+    for (int iel = 0; iel < nel; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        TPZCompEl * e_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_e_cel = dynamic_cast<TPZMultiphysicsElement * >(e_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_e_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        first_point_phi += b_size_phi.first;
+        first_point_dphi += b_size_dphi.first;
+        b_size_phi = fu_To_elliptic.GetSizeofBlock(iblock);
+        b_size_dphi = fgrad_u_To_elliptic.GetSizeofBlock(iblock);
+        fu_To_elliptic.GetBlock(iblock, block_phi);
+        fgrad_u_To_elliptic.GetBlock(iblock, block_grad_phi);
+        
+        //  Getting the total integration point of the destination cmesh
+        int matd_id = gel->MaterialId();
+        if(matd_id == 1){ // The volumetric ones!
+            
+            TPZMaterial * material = elliptic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZElasticBiotMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZDiscontinuousGalerkin> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            mf_e_cel->GetMemoryIndices(int_point_indexes);
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            int gel_dim = gel->Dimension();
+            int nshapes = b_size_phi.second/dim;
+            TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
+            TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                for (int is = 0; is < nshapes; is++) {
+                    phi_u(is,0) = block_phi(ip*dim,is*dim);
+                    
+                }
+                
+                for (int is = 0; is < nshapes; is++) {
+                    for (int id = 0 ; id < dim; id++) {
+                        grad_phi_u(id,is) = block_grad_phi(ip*dim*gel_dim + id,is*dim);
+                    }
+                    
+                }
+                
+                associated_material->GetMemory()[ipos].Set_phi_u(phi_u);
+                associated_material->GetMemory()[ipos].Set_grad_phi_u(grad_phi_u);
+            }
+            
+            
+        }
+        else{
+            
+            TPZMaterial * material = elliptic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            mf_e_cel->GetMemoryIndices(int_point_indexes);
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            int gel_dim = gel->Dimension();
+            int nshapes = b_size_phi.second/dim;
+            TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
+            TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                for (int is = 0; is < nshapes; is++) {
+                    phi_u(is,0) = block_phi(ip*dim,is*dim);
+                    
+                }
+                
+                for (int is = 0; is < nshapes; is++) {
+                    for (int id = 0 ; id < dim; id++) {
+                            grad_phi_u(id,is) = block_grad_phi(ip*dim*gel_dim + id,is*dim);
+                    }
+                    
+                }
+                
+                associated_material->GetMemory()[ipos].Set_phi_u(phi_u);
+                associated_material->GetMemory()[ipos].Set_grad_phi_u(grad_phi_u);
+            }
+            
+        }
+        
+        iblock++;
+        
+    }
+    
+    
+}
+
+
+void TPZTransferFunctions::elliptic_To_elliptic(TPZCompMesh * elliptic){
+    
+    
+#ifdef PZDEBUG
+    if (!elliptic) {
+        DebugStop();
+    }
+#endif
+    
+    elliptic->LoadReferences();
+    TPZGeoMesh * geometry = elliptic->Reference();
+    long nel = fe_p_cindexes.size();
+    int dim = elliptic->Dimension();
+    
+    
+    // Step zero scatter
+    TPZFMatrix<STATE> Scatter_u(fu_To_parabolic.Cols(),1,0.0);
+    
+    long pos = 0;
+    for (int el = 0; el < nel; el++) {
+        for(int iequ = 0; iequ < fu_dof_scatter[el].size(); iequ++) {
+            Scatter_u(pos,0) = elliptic->Solution()(fu_dof_scatter[el][iequ],0);
+            pos++;
+        }
+    }
+    
+    
+    
+    // Step two
+    TPZFMatrix<STATE> u_at_elliptic,grad_u_at_elliptic;
+    fu_To_elliptic.Multiply(Scatter_u,u_at_elliptic);
+    fgrad_u_To_elliptic.Multiply(Scatter_u, grad_u_at_elliptic);
+    
+//    if (fSimulationData->IsCurrentStateQ()) {
+//        u_at_elliptic.Print("u_n = ");
+//        grad_u_at_elliptic.Print("grad_u_n = ");
+//    }
+
+    
+    long iblock = 0;
+    long first_point_phi = 0;
+    long first_point_dphi = 0;
+    std::pair<long, long> b_size_phi, b_size_dphi;
+    b_size_phi.first = 0;
+    b_size_phi.second = 0;
+    b_size_dphi.first = 0;
+    b_size_dphi.second = 0;
+    
+    for (int iel = 0; iel < nel; iel++) {
+    
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        TPZCompEl * e_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_e_cel = dynamic_cast<TPZMultiphysicsElement * >(e_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_e_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        first_point_phi += b_size_phi.first;
+        first_point_dphi += b_size_dphi.first;
+        b_size_phi = fu_To_elliptic.GetSizeofBlock(iblock);
+        b_size_dphi = fgrad_u_To_elliptic.GetSizeofBlock(iblock);
+        
+        //  Getting the total integration point of the destination cmesh
+        int matd_id = gel->MaterialId();
+        if(matd_id == 1){ // The volumetric ones!
+            
+            TPZMaterial * material = elliptic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZElasticBiotMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZDiscontinuousGalerkin> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            mf_e_cel->GetMemoryIndices(int_point_indexes);
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            TPZFNMatrix<3,STATE> u(1,dim,0.0);
+            TPZFNMatrix<9,STATE> grad_u(dim,dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                for (int id = 0; id < dim ; id++) {
+                    u(0,id) = u_at_elliptic(first_point_phi + ip*dim + id,0);
+                }
+                
+                for (int id = 0; id < dim ; id++) {
+                    for (int jd = 0; jd < dim ; jd++) {
+                        grad_u(jd,id)= grad_u_at_elliptic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                    }
+                }
+                
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[ipos].Set_u_n(u);
+                    associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
+                }
+                else{
+                    associated_material->GetMemory()[ipos].Set_u(u);
+                    associated_material->GetMemory()[ipos].Set_grad_u(grad_u);
+                }
+                
+            }
+            
+            
+        }
+        else{
+            
+            TPZMaterial * material = elliptic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            mf_e_cel->GetMemoryIndices(int_point_indexes);
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            TPZFNMatrix<3,STATE> u(1,dim,0.0);
+            TPZFNMatrix<9,STATE> grad_u(dim,dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                for (int id = 0; id < dim ; id++) {
+                    u(0,id) = u_at_elliptic(first_point_phi + ip*dim + id,0);
+                }
+                
+                for (int id = 0; id < dim ; id++) {
+                    for (int jd = 0; jd < dim ; jd++) {
+                        grad_u(jd,id)= grad_u_at_elliptic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                    }
+                }
+                
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[ipos].Set_u_n(u);
+                    associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
+                }
+                else{
+                    associated_material->GetMemory()[ipos].Set_u(u);
+                    associated_material->GetMemory()[ipos].Set_grad_u(grad_u);
+                }
+                
+            }
+            
+        }
+        
+        iblock++;
+        
+    }
+    
+    
+}
+
+void TPZTransferFunctions::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMesh * parabolic){
+    
+    
+#ifdef PZDEBUG
+    if (!elliptic || !parabolic) {
+        DebugStop();
+    }
+#endif
+    
+    
+    TPZGeoMesh * geometry = elliptic->Reference();
+    long nel = fe_p_cindexes.size();
+    int dim = elliptic->Dimension();
+    
+    
+    // Step zero scatter
+    TPZFMatrix<STATE> Scatter_u(fu_To_parabolic.Cols(),1,0.0);
+    
+    long pos = 0;
+    for (int el = 0; el < nel; el++) {
+        for(int iequ = 0; iequ < fu_dof_scatter[el].size(); iequ++) {
+            Scatter_u(pos,0) = elliptic->Solution()(fu_dof_scatter[el][iequ],0);
+            pos++;
+        }
+    }
+    
+    
+    
+    // Step two
+    TPZFMatrix<STATE> u_at_parabolic,grad_u_at_parabolic;
+    fu_To_parabolic.Multiply(Scatter_u,u_at_parabolic);
+    fgrad_u_To_parabolic.Multiply(Scatter_u, grad_u_at_parabolic);
+    
+    
+    long iblock = 0;
+    long first_point_phi = 0;
+    long first_point_dphi = 0;
+    std::pair<long, long> b_size_phi, b_size_dphi;
+    b_size_phi.first = 0;
+    b_size_phi.second = 0;
+    b_size_dphi.first = 0;
+    b_size_dphi.second = 0;
+    
+    long gel_index, e_index, p_index;
+    for (int iel = 0; iel < nel; iel++) {
+        
+        
+        gel_index = fgeomechanic_galerkinp_cindexes[iel].first;
+        TPZGeoEl * gel = geometry->Element(gel_index);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        e_index   = fe_p_cindexes[iel].second.first;
+        p_index   = fe_p_cindexes[iel].second.second;
+        
+        TPZCompEl * e_cel = elliptic->Element(e_index);
+        TPZCompEl * p_cel = parabolic->Element(p_index);
+        
+#ifdef PZDEBUG
+        if (!e_cel || !p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        first_point_phi += b_size_phi.first;
+        first_point_dphi += b_size_dphi.first;
+        b_size_phi = fu_To_parabolic.GetSizeofBlock(iblock);
+        b_size_dphi = fgrad_u_To_parabolic.GetSizeofBlock(iblock);
+
+        //  Getting the total integration point of the destination cmesh
+        int matd_id = gel->MaterialId();
+        if(matd_id == 1){ // The volumetric ones!
+            
+            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZDarcyFlowMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TPZDarcyFlowMemory,TPZDiscontinuousGalerkin> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            int_point_indexes = fe_p_intp_indexes[iblock].second.second;
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            TPZFNMatrix<3,STATE> u(1,dim,0.0);
+            TPZFNMatrix<9,STATE> grad_u(1,dim*dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                for (int id = 0; id < dim ; id++) {
+                    u(0,id) = u_at_parabolic(first_point_phi + ip*dim + id,0);
+                }
+                
+                for (int id = 0; id < dim ; id++) {
+                    for (int jd = 0; jd < dim ; jd++) {
+                        grad_u(id,jd)= grad_u_at_parabolic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                    }
+                }
+                
+                associated_material->GetMemory()[ipos].Set_u_n(u);
+                associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
+            }
+            
+            
+        }
+        else{
+            
+            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            int_point_indexes = fe_p_intp_indexes[iblock].second.second;
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            TPZFNMatrix<3,STATE> u(1,dim,0.0);
+            TPZFNMatrix<9,STATE> grad_u(1,dim*dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                for (int id = 0; id < dim ; id++) {
+                    u(0,id) = u_at_parabolic(first_point_phi + ip*dim + id,0);
+                }
+                
+                for (int id = 0; id < dim ; id++) {
+                    for (int jd = 0; jd < dim ; jd++) {
+                        grad_u(id,jd)= grad_u_at_parabolic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                    }
+                }
+                
+                associated_material->GetMemory()[ipos].Set_u_n(u);
+                associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
+            }
+            
+        }
+        
+        iblock++;
+        
+    }
+    
+    
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Segregated Transfer methods (Gamma and Omega) Parabolic
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TPZTransferFunctions::Fill_parabolic_To_parabolic(TPZCompMesh * parabolic){
+    
+#ifdef PZDEBUG
+    if (!parabolic) {
+        DebugStop();
+    }
+#endif
+    
+    fp_e_cindexes.resize(0);
+    
+    
+    parabolic->LoadReferences();
+    TPZGeoMesh * geometry = parabolic->Reference();
+    
+#ifdef PZDEBUG
+    if (!geometry) {
+        DebugStop();
+    }
+#endif
+    
+    std::pair<long, std::pair <long,long> > chunk_indexes;
+    long valid_elements = 0;
+    // inserting geometric indexes
+    for (long i = 0; i < geometry->NElements(); i++) {
+        TPZGeoEl * gel = geometry->Element(i);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        valid_elements++;
+    }
+    
+    
+    long nel = geometry->NElements();
+    int n_var_dim = geometry->Dimension();
+    
+    // Compute destination index scatter by element (Omega and Gamma)
+    
+    fp_dof_scatter.resize(valid_elements);
+    std::pair<long, std::pair <TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    
+    // Block size structue including (Omega and Gamma)
+    TPZVec< std::pair<long, long> > blocks_dimensions_phi(nel);
+    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(nel);
+    
+    long element_index = 0;
+    for (long iel = 0; iel < nel; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        TPZCompEl * p_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        // Getting local integration index
+        TPZManVector<long> p_int_point_indexes(0,0);
+        TPZManVector<long> dof_indexes(0,0);
+        
+        mf_p_cel->GetMemoryIndices(p_int_point_indexes);
+        
+        this->ElementDofIndexes(mf_p_cel, dof_indexes);
+        fp_dof_scatter[element_index] = dof_indexes;
+        blocks_dimensions_phi[element_index].first = p_int_point_indexes.size();
+        blocks_dimensions_phi[element_index].second = dof_indexes.size();
+        
+        blocks_dimensions_grad_phi[element_index].first = p_int_point_indexes.size()*n_var_dim;
+        blocks_dimensions_grad_phi[element_index].second = dof_indexes.size();
+        
+        element_index++;
+    }
+    
+    // Initialize the matrix
+    fp_To_parabolic.Initialize(blocks_dimensions_phi);
+    fgrad_p_To_parabolic.Initialize(blocks_dimensions_grad_phi);
+    
+    
+    element_index = 0;
+    
+    TPZManVector<long> p_int_point_indexes(0,0);
+    TPZManVector<long> dof_indexes(0,0);
+    
+    std::pair<long, long> block_dim;
+    for (long iel = 0; iel < nel; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        
+        TPZCompEl * p_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        
+        TPZInterpolationSpace * p_intel = dynamic_cast<TPZInterpolationSpace * >(mf_p_cel->Element(0));
+        
+        // Getting local integration index
+        mf_p_cel->GetMemoryIndices(p_int_point_indexes);
+        dof_indexes = fp_dof_scatter[element_index];
+        
+        block_dim.first = p_int_point_indexes.size();
+        block_dim.second = dof_indexes.size();
+        
+        // Computing the local integration points indexes
+        const TPZIntPoints & int_points = mf_p_cel->GetIntegrationRule();
+        int np_cel = int_points.NPoints();
+        
+#ifdef PZDEBUG
+        if (p_int_point_indexes.size() != np_cel) {
+            DebugStop();
+        }
+#endif
+        
+        // Computing over all integration points of the compuational element cel
+        int gel_dim = gel->Dimension();
+        TPZFMatrix<double> block_phi, block_grad_phi;
+        
+        block_phi.Resize(block_dim.first*n_var_dim,block_dim.second);
+        block_grad_phi.Resize(block_dim.first*n_var_dim*gel_dim,block_dim.second);
+        
+        // for derivatives in real space
+        int nshape = p_intel->NShapeF();
+        TPZFNMatrix<220> phi(nshape,1);
+        TPZFNMatrix<660> dphi(gel_dim,nshape),dphix_axes(gel_dim,nshape);
+        TPZFMatrix<double> dphidx;
+        TPZFNMatrix<9,STATE> jacobian(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> jacinv(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> axes;
+        REAL detjac;
+        
+        for (int ip = 0; ip < block_dim.first ; ip++)
+        {
+            TPZManVector<REAL,3> qsi(gel_dim,0.0);
+            STATE w;
+            int_points.Point(ip, qsi, w);
+            
+            // Get the phi and dphix for H1 elasticity
+            p_intel->Shape(qsi, phi, dphi);
+            gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
+            
+            switch(gel_dim) {
+                case 0:
+                    break;
+                case 1:
+                    dphix_axes = dphi;
+                    dphix_axes *= (1./detjac);
+                    break;
+                case 2:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+                    }
+                    break;
+                case 3:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
+                        dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
+                    }
+                    break;
+                default:
+                    std::stringstream sout;
+                    sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
+                    LOGPZ_ERROR(logger,sout.str());
+            }
+            
+            TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
+            
+#ifdef PZDEBUG
+            if(block_dim.second != phi.Rows()){
+                DebugStop();
+            }
+#endif
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                block_phi(ip,jp) = phi(jp,0);
+            }
+            
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < n_var_dim; id++) {
+                    block_grad_phi(ip*n_var_dim + id,jp) = dphidx(id,jp);
+                }
+            }
+            
+        }
+        
+        fp_To_parabolic.SetBlock(element_index, block_phi);
+        fgrad_p_To_parabolic.SetBlock(element_index, block_grad_phi);
+        
+        element_index++;
+    }
+    
+//    fp_To_parabolic.Print(" p_to_p ");
+//    fgrad_p_To_parabolic.Print(" grad_p_to_p ");
+    
+    return;
+    
+}
+
+void TPZTransferFunctions::Fill_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic){
+    
+#ifdef PZDEBUG
+    if (!parabolic || !elliptic) {
+        DebugStop();
+    }
+#endif
+    
+    fp_e_cindexes.resize(0);
+    
+    
+    parabolic->LoadReferences();
+    TPZGeoMesh * geometry = parabolic->Reference();
+    
+#ifdef PZDEBUG
+    if (!geometry) {
+        DebugStop();
+    }
+#endif
+    
+    std::pair<long, std::pair <long,long> > chunk_indexes;
+    
+    // inserting geometric indexes
+    for (long i = 0; i < geometry->NElements(); i++) {
+        TPZGeoEl * gel = geometry->Element(i);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        chunk_indexes.first = gel->Index();
+        chunk_indexes.second.first = -1;
+        chunk_indexes.second.second = -1;
+        fp_e_cindexes.Push(chunk_indexes);
+        
+    }
+    
+    // counting volumetric elements
+    long n_elements = fp_e_cindexes.size();
+    
+    // inserting origin indexes
+    parabolic->LoadReferences();
+    for(long iel = 0; iel < n_elements; iel++){
+        
+        TPZCompEl * cel = geometry->Element(fp_e_cindexes[iel].first)->Reference();
+        
+#ifdef PZDEBUG
+        if (!cel) {
+            //continue;
+            DebugStop();
+        }
+#endif
+        fp_e_cindexes[iel].second.first = cel->Index();
+        
+    }
+    
+    // inserting target indexes
+    elliptic->LoadReferences();
+    for(long iel = 0; iel < n_elements; iel++){
+        
+        TPZCompEl * cel = geometry->Element(fp_e_cindexes[iel].first)->Reference();
+        
+#ifdef PZDEBUG
+        if (!cel) {
+            DebugStop();
+        }
+#endif
+        fp_e_cindexes[iel].second.second = cel->Index();
+        
+    }
+    
+    //    for (int k = 0; k < fp_e_cindexes.size(); k++) {
+    //        std::cout << " volume k : " << k <<std::endl;
+    //        std::cout << " volume gel : " << fp_e_cindexes[k].first <<std::endl;
+    //        std::cout << " volume c_o : " << fp_e_cindexes[k].second.first <<std::endl;
+    //        std::cout << " volume c_t : " << fp_e_cindexes[k].second.second <<std::endl;
+    //    }
+    
+    
+    parabolic->LoadReferences();
+    geometry = parabolic->Reference();
+    
+    long nel = fp_e_cindexes.size();
+    int n_var_dim = parabolic->Reference()->Dimension();
+    long element_index = 0;
+    
+    // Compute destination index scatter by element (Omega and Gamma)
+    
+    fp_dof_scatter.resize(nel);
+    std::pair<long, std::pair <TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    
+    // Block size structue including (Omega and Gamma)
+    TPZVec< std::pair<long, long> > blocks_dimensions_phi(nel);
+    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(nel);
+    
+    long gel_index, p_index, e_index;
+    for (long iel = 0; iel < nel; iel++) {
+        
+        gel_index = fp_e_cindexes[iel].first;
+        TPZGeoEl * gel = geometry->Element(gel_index);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        p_index   = fp_e_cindexes[iel].second.first;
+        e_index   = fp_e_cindexes[iel].second.second;
+        
+        TPZCompEl * p_cel = parabolic->Element(p_index);
+        TPZCompEl * e_cel = elliptic->Element(e_index);
+        
+#ifdef PZDEBUG
+        if (!p_cel || !e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        TPZMultiphysicsElement * mf_e_cel = dynamic_cast<TPZMultiphysicsElement * >(e_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel || !mf_e_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        // Getting local integration index
+        TPZManVector<long> p_int_point_indexes(0,0);
+        TPZManVector<long> e_int_point_indexes(0,0);
+        TPZManVector<long> dof_indexes(0,0);
+        
+//        int gel_dim = gel->Dimension();
+        
+        mf_p_cel->GetMemoryIndices(p_int_point_indexes);
+        mf_e_cel->GetMemoryIndices(e_int_point_indexes);
+        
+        chunk_intp_indexes.first = gel->Index();
+        chunk_intp_indexes.second.first  = p_int_point_indexes;
+        chunk_intp_indexes.second.second = e_int_point_indexes;
+        fp_e_intp_indexes.Push(chunk_intp_indexes);
+        
+        this->ElementDofIndexes(mf_p_cel, dof_indexes);
+        fp_dof_scatter[element_index] = dof_indexes;
+        blocks_dimensions_phi[element_index].first = e_int_point_indexes.size();
+        blocks_dimensions_phi[element_index].second = dof_indexes.size();
+        
+        blocks_dimensions_grad_phi[element_index].first = e_int_point_indexes.size()*n_var_dim;
+        blocks_dimensions_grad_phi[element_index].second = dof_indexes.size();
+        
+        element_index++;
+    }
+    
+    // Initialize the matrix
+    fp_To_elliptic.Initialize(blocks_dimensions_phi);
+    fgrad_p_To_elliptic.Initialize(blocks_dimensions_grad_phi);
+    
+    
+    parabolic->LoadReferences();
+    element_index = 0;
+    
+    TPZManVector<long> int_point_indexes(0,0);
+    TPZManVector<long> dof_indexes(0,0);
+    
+    std::pair<long, long> block_dim;
+    for (long iel = 0; iel < nel; iel++) {
+        
+        gel_index = fp_e_cindexes[iel].first;
+        TPZGeoEl * gel = geometry->Element(gel_index);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        p_index   = fp_e_cindexes[iel].second.first;
+        e_index   = fp_e_cindexes[iel].second.second;
+        
+        TPZCompEl * p_cel = parabolic->Element(p_index);
+        TPZCompEl * e_cel = elliptic->Element(e_index);
+        
+#ifdef PZDEBUG
+        if (!p_cel || !e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        TPZMultiphysicsElement * mf_e_cel = dynamic_cast<TPZMultiphysicsElement * >(e_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel || !mf_e_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        
+        TPZInterpolationSpace * p_intel = dynamic_cast<TPZInterpolationSpace * >(mf_p_cel->Element(0));
+        
+        // Getting local integration index
+        int_point_indexes = fp_e_intp_indexes[element_index].second.second;
+        dof_indexes = fp_dof_scatter[element_index];
+        
+        block_dim.first = int_point_indexes.size();
+        block_dim.second = dof_indexes.size();
+        
+        // Computing the local integration points indexes
+        const TPZIntPoints & int_points_geomechanic = mf_e_cel->GetIntegrationRule();
+        int np_cel = int_points_geomechanic.NPoints();
+        
+#ifdef PZDEBUG
+        if (int_point_indexes.size() != np_cel) {
+            DebugStop();
+        }
+#endif
+        
+        // Computing over all integration points of the compuational element cel
+        int gel_dim = gel->Dimension();
+        TPZFMatrix<double> block_phi, block_grad_phi;
+        
+        block_phi.Resize(block_dim.first*n_var_dim,block_dim.second);
+        block_grad_phi.Resize(block_dim.first*n_var_dim*gel_dim,block_dim.second);
+        
+        // for derivatives in real space
+        int nshape = p_intel->NShapeF();
+        TPZFNMatrix<220> phi(nshape,1);
+        TPZFNMatrix<660> dphi(gel_dim,nshape),dphix_axes(gel_dim,nshape);
+        TPZFMatrix<double> dphidx;
+        TPZFNMatrix<9,STATE> jacobian(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> jacinv(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> axes;
+        REAL detjac;
+        
+        for (int ip = 0; ip < block_dim.first ; ip++)
+        {
+            TPZManVector<REAL,3> qsi(gel_dim,0.0);
+            STATE w;
+            int_points_geomechanic.Point(ip, qsi, w);
+            
+            // Get the phi and dphix for H1 elasticity
+            p_intel->Shape(qsi, phi, dphi);
+            gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
+            
+            switch(gel_dim) {
+                case 0:
+                    break;
+                case 1:
+                    dphix_axes = dphi;
+                    dphix_axes *= (1./detjac);
+                    break;
+                case 2:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+                    }
+                    break;
+                case 3:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
+                        dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
+                    }
+                    break;
+                default:
+                    std::stringstream sout;
+                    sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
+                    LOGPZ_ERROR(logger,sout.str());
+            }
+            
+            TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
+            
+#ifdef PZDEBUG
+            if(block_dim.second != phi.Rows()){
+                DebugStop();
+            }
+#endif
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                block_phi(ip,jp) = phi(jp,0);
+            }
+            
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < n_var_dim; id++) {
+                    block_grad_phi(ip*n_var_dim + id,jp) = dphidx(id,jp);
+                }
+            }
+            
+        }
+        
+        fp_To_elliptic.SetBlock(element_index, block_phi);
+        fgrad_p_To_elliptic.SetBlock(element_index, block_grad_phi);
+        
+        element_index++;
+    }
+    
+//    fp_To_elliptic.Print(" p_to_e ");
+//    fgrad_p_To_elliptic.Print(" grad_p_to_e ");
+    
+    return;
+    
+}
+
+void TPZTransferFunctions::space_To_parabolic(TPZCompMesh * parabolic){
+    
+    
+#ifdef PZDEBUG
+    if (!parabolic) {
+        DebugStop();
+    }
+#endif
+    
+    parabolic->LoadReferences();
+    TPZGeoMesh * geometry = parabolic->Reference();
+    long nel = fe_p_cindexes.size();
+    int dim = parabolic->Dimension();
+    
+    
+    // Step zero scatter
+    TPZFMatrix<STATE> Scatter_p(fp_To_parabolic.Cols(),1,0.0);
+    
+    long pos = 0;
+    for (int el = 0; el < nel; el++) {
+        for(int iequ = 0; iequ < fp_dof_scatter[el].size(); iequ++) {
+            Scatter_p(pos,0) = parabolic->Solution()(fp_dof_scatter[el][iequ],0);
+            pos++;
+        }
+    }
+    
+    
+    
+    // Step two
+    TPZFMatrix<STATE> p_at_parabolic,grad_p_at_parabolic;
+    fp_To_parabolic.Multiply(Scatter_p,p_at_parabolic);
+    fgrad_p_To_parabolic.Multiply(Scatter_p, grad_p_at_parabolic);
+    
+    
+    long iblock = 0;
+    long first_point_phi = 0;
+    long first_point_dphi = 0;
+    std::pair<long, long> b_size_phi, b_size_dphi;
+    b_size_phi.first = 0;
+    b_size_phi.second = 0;
+    b_size_dphi.first = 0;
+    b_size_dphi.second = 0;
+    
+    TPZFMatrix<double> block_phi;
+    TPZFMatrix<double> block_grad_phi;
+    
+    for (int iel = 0; iel < nel; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        TPZCompEl * p_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        first_point_phi += b_size_phi.first;
+        first_point_dphi += b_size_dphi.first;
+        b_size_phi = fp_To_parabolic.GetSizeofBlock(iblock);
+        b_size_dphi = fgrad_p_To_parabolic.GetSizeofBlock(iblock);
+        
+        fp_To_parabolic.GetBlock(iblock, block_phi);
+        fgrad_p_To_parabolic.GetBlock(iblock, block_grad_phi);
+        
+        //  Getting the total integration point of the destination cmesh
+        int matd_id = gel->MaterialId();
+        if(matd_id == 1){ // The volumetric ones!
+            
+            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZDarcyFlowMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TPZDarcyFlowMemory,TPZDiscontinuousGalerkin> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            mf_p_cel->GetMemoryIndices(int_point_indexes);
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            int gel_dim = gel->Dimension();
+            int nshapes = b_size_phi.second;
+            TPZFNMatrix<3,STATE> phi_p(nshapes,1,0.0);
+            TPZFNMatrix<9,STATE> grad_phi_p(nshapes,dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                for (int is = 0; is < nshapes; is++) {
+                    phi_p(is,0) = block_phi(ip,is);
+                    
+                }
+                
+                for (int is = 0; is < nshapes; is++) {
+                    for (int id = 0 ; id < dim; id++) {
+                        grad_phi_p(is,id) = block_grad_phi(ip*gel_dim + id,is);
+                    }
+                    
+                }
+                
+                associated_material->GetMemory()[ipos].Set_phi_p(phi_p);
+                associated_material->GetMemory()[ipos].Set_grad_phi_p(grad_phi_p);
+            }
+            
+            
+        }
+        else{
+            
+            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            mf_p_cel->GetMemoryIndices(int_point_indexes);
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            int gel_dim = gel->Dimension();
+            int nshapes = b_size_phi.second;
+            TPZFNMatrix<3,STATE> phi_p(nshapes,1,0.0);
+            TPZFNMatrix<9,STATE> grad_phi_p(nshapes,dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                for (int is = 0; is < nshapes; is++) {
+                    phi_p(is,0) = block_phi(ip,is);
+                    
+                }
+                
+                for (int is = 0; is < nshapes; is++) {
+                    for (int id = 0 ; id < dim; id++) {
+                        grad_phi_p(is,id) = block_grad_phi(ip*gel_dim + id,is);
+                    }
+                    
+                }
+                
+                associated_material->GetMemory()[ipos].Set_phi_p(phi_p);
+                associated_material->GetMemory()[ipos].Set_grad_phi_p(grad_phi_p);
+            }
+            
+        }
+        
+        iblock++;
+        
+    }
+    
+    
+}
+
+
+void TPZTransferFunctions::parabolic_To_parabolic(TPZCompMesh * parabolic){
+    
+    
+#ifdef PZDEBUG
+    if (!parabolic) {
+        DebugStop();
+    }
+#endif
+    
+    
+    TPZGeoMesh * geometry = parabolic->Reference();
+    long nel = fe_p_cindexes.size();
+    int dim = parabolic->Dimension();
+    
+    
+    // Step zero scatter
+    TPZFMatrix<STATE> Scatter_p(fp_To_parabolic.Cols(),1,0.0);
+    
+    long pos = 0;
+    for (int el = 0; el < nel; el++) {
+        for(int iequ = 0; iequ < fp_dof_scatter[el].size(); iequ++) {
+            Scatter_p(pos,0) = parabolic->Solution()(fp_dof_scatter[el][iequ],0);
+            pos++;
+        }
+    }
+    
+    
+    
+    // Step two
+    TPZFMatrix<STATE> p_at_parabolic,grad_p_at_parabolic;
+    fp_To_parabolic.Multiply(Scatter_p,p_at_parabolic);
+    fgrad_p_To_parabolic.Multiply(Scatter_p, grad_p_at_parabolic);
+    
+    
+    long iblock = 0;
+    long first_point_phi = 0;
+    long first_point_dphi = 0;
+    std::pair<long, long> b_size_phi, b_size_dphi;
+    b_size_phi.first = 0;
+    b_size_phi.second = 0;
+    b_size_dphi.first = 0;
+    b_size_dphi.second = 0;
+    
+    for (int iel = 0; iel < nel; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        TPZCompEl * p_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        first_point_phi += b_size_phi.first;
+        first_point_dphi += b_size_dphi.first;
+        b_size_phi = fp_To_parabolic.GetSizeofBlock(iblock);
+        b_size_dphi = fgrad_p_To_parabolic.GetSizeofBlock(iblock);
+        
+        //  Getting the total integration point of the destination cmesh
+        int matd_id = gel->MaterialId();
+        if(matd_id == 1){ // The volumetric ones!
+            
+            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZDarcyFlowMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TPZDarcyFlowMemory,TPZDiscontinuousGalerkin> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            mf_p_cel->GetMemoryIndices(int_point_indexes);
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            REAL p;
+            TPZFNMatrix<9,STATE> grad_p(1,dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                p = p_at_parabolic(first_point_phi + ip,0);
+                
+                for (int id = 0; id < dim ; id++) {
+                    grad_p(0,id)= grad_p_at_parabolic(first_point_dphi + ip*dim + id,0);
+                }
+                
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[ipos].Set_p_n(p);
+                    associated_material->GetMemory()[ipos].Set_grad_p_n(grad_p);
+                }
+                else{
+                    associated_material->GetMemory()[ipos].Set_p(p);
+                    associated_material->GetMemory()[ipos].Set_grad_p(grad_p);
+                }
+            }
+            
+            
+        }
+        else{
+            
+            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            mf_p_cel->GetMemoryIndices(int_point_indexes);
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            REAL p;
+            TPZFNMatrix<9,STATE> grad_p(1,dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                p = p_at_parabolic(first_point_phi + ip,0);
+                
+                for (int id = 0; id < dim ; id++) {
+                    grad_p(0,id)= grad_p_at_parabolic(first_point_dphi + ip*dim + id,0);
+                }
+                
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[ipos].Set_p_n(p);
+                    associated_material->GetMemory()[ipos].Set_grad_p_n(grad_p);
+                }
+                else{
+                    associated_material->GetMemory()[ipos].Set_p(p);
+                    associated_material->GetMemory()[ipos].Set_grad_p(grad_p);
+                }
+                
+
+            }
+            
+        }
+        
+        iblock++;
+        
+    }
+    
+    
+}
+
+void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic){
+    
+    
+#ifdef PZDEBUG
+    if (!parabolic || !elliptic) {
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh * geometry = parabolic->Reference();
+    long nel = fe_p_cindexes.size();
+    int dim = parabolic->Dimension();
+    
+    
+    // Step zero scatter
+    TPZFMatrix<STATE> Scatter_p(fp_To_elliptic.Cols(),1,0.0);
+    
+    long pos = 0;
+    for (int el = 0; el < nel; el++) {
+        for(int iequ = 0; iequ < fp_dof_scatter[el].size(); iequ++) {
+            Scatter_p(pos,0) = elliptic->Solution()(fp_dof_scatter[el][iequ],0);
+            pos++;
+        }
+    }
+    
+    
+    
+    // Step two
+    TPZFMatrix<STATE> p_at_elliptic,grad_p_at_elliptic;
+    fu_To_parabolic.Multiply(Scatter_p,p_at_elliptic);
+    fgrad_u_To_parabolic.Multiply(Scatter_p, grad_p_at_elliptic);
+    
+    
+    long iblock = 0;
+    long first_point_phi = 0;
+    long first_point_dphi = 0;
+    std::pair<long, long> b_size_phi, b_size_dphi;
+    b_size_phi.first = 0;
+    b_size_phi.second = 0;
+    b_size_dphi.first = 0;
+    b_size_dphi.second = 0;
+    
+    long gel_index, e_index, p_index;
+    for (int iel = 0; iel < nel; iel++) {
+        
+        
+        gel_index = fgeomechanic_galerkinp_cindexes[iel].first;
+        TPZGeoEl * gel = geometry->Element(gel_index);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        p_index   = fp_e_cindexes[iel].second.first;
+        e_index   = fp_e_cindexes[iel].second.second;
+        
+        TPZCompEl * p_cel = elliptic->Element(p_index);
+        TPZCompEl * e_cel = parabolic->Element(e_index);
+        
+#ifdef PZDEBUG
+        if (!p_cel || !e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        first_point_phi += b_size_phi.first;
+        first_point_dphi += b_size_dphi.first;
+        b_size_phi = fp_To_elliptic.GetSizeofBlock(iblock);
+        b_size_dphi = fgrad_p_To_elliptic.GetSizeofBlock(iblock);
+        
+        //  Getting the total integration point of the destination cmesh
+        int matd_id = gel->MaterialId();
+        if(matd_id == 1){ // The volumetric ones!
+            
+            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZElasticBiotMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZDiscontinuousGalerkin> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            int_point_indexes = fp_e_intp_indexes[iblock].second.second;
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            REAL p;
+            TPZFNMatrix<9,STATE> grad_p(1,dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                p = p_at_elliptic(first_point_phi + ip,0);
+                
+                for (int id = 0; id < dim ; id++) {
+                    grad_p(0,id)= grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
+                }
+                
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[ipos].Set_p_n(p);
+                    associated_material->GetMemory()[ipos].Set_grad_p_n(grad_p);
+                }
+                else{
+                    associated_material->GetMemory()[ipos].Set_p(p);
+                    associated_material->GetMemory()[ipos].Set_grad_p(grad_p);
+                }
+            }
+            
+            
+        }
+        else{
+            
+            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            int_point_indexes = fe_p_intp_indexes[iblock].second.second;
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            
+            REAL p;
+            TPZFNMatrix<9,STATE> grad_p(1,dim);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                p = p_at_elliptic(first_point_phi + ip,0);
+                
+                for (int id = 0; id < dim ; id++) {
+                    grad_p(0,id)= grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
+                }
+                
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[ipos].Set_p_n(p);
+                    associated_material->GetMemory()[ipos].Set_grad_p_n(grad_p);
+                }
+                else{
+                    associated_material->GetMemory()[ipos].Set_p(p);
+                    associated_material->GetMemory()[ipos].Set_grad_p(grad_p);
+                }
+            }
+            
+        }
+        
+        iblock++;
+        
+    }
+    
+    
+}
+
 void TPZTransferFunctions::RB_basis_To_Geomechanic_Memory(TPZCompMesh * cmesh_multiphysics){
     
     
@@ -1009,9 +3106,9 @@ void TPZTransferFunctions::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZ
         TPZConnect  & con = m_el->Connect(icon);
         long seqnumber = con.SequenceNumber();
         long position = m_el->Mesh()->Block().Position(seqnumber);
-        int nshape = con.NShape();
-        for (int ish=0; ish < nshape; ish++) {
-            index.Push(position+ ish);
+        int b_size = m_el->Mesh()->Block().Size(seqnumber);
+        for (int ib=0; ib < b_size; ib++) {
+            index.Push(position+ ib);
         }
     }
     
