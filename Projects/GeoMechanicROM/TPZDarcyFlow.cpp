@@ -155,7 +155,7 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
 //    REAL div_u = grad_u(0,0) + grad_u(1,1);
 //    REAL div_u_n = grad_u_n(0,0) + grad_u_n(1,1);
     REAL alpha = 1.0;
-//    REAL Se = 0.0;
+    REAL Se = 0.0;
     
     grad_u.Redim(3, 3);
     grad_u_n.Redim(3, 3);
@@ -166,16 +166,16 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
     REAL lambda     = 8.333e3;
     REAL mu         = 12.50e3;
     REAL Kdr = lambda + (2.0/3.0)*mu;
-    REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
-    REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
-    
+    REAL S_v = 1.0*(S(0,0) + S(1,1) + S(2,2))/3.0;
+    REAL S_n_v = 1.0*(S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
+    REAL Ss = (Se + alpha*alpha/Kdr/2.0);
     
     if (!fSimulationData->IsCurrentStateQ()) {
         
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++) {
 //            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * div_u + Se * p) * phip(ip,0);
-            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * S_v / Kdr + alpha * p / Kdr) * phip(ip,0);
+            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * S_v / Kdr + Ss * p ) * phip(ip,0);
         }
 //        std::cout << "p = " << p << std::endl;
         return;
@@ -191,7 +191,7 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
         }
         
 //        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * div_u_n + Se * p_n) * phip(ip,0) );
-        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * S_n_v / Kdr + alpha * p_n / Kdr) * phip(ip,0) );
+        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * S_n_v / Kdr + Ss * p_n) * phip(ip,0) );
         
         for (int jp = 0; jp < nphi_p; jp++) {
             
@@ -200,7 +200,7 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
                 dot += grad_phi_p(i,jp) * grad_phi_p(i,ip);
             }
             
-            ek(ip + first_p, jp + first_p)  += weight * ( c * dot + (1.0/dt) * (alpha * phip(jp,0) / Kdr ) * phip(ip,0) );
+            ek(ip + first_p, jp + first_p)  += weight * ( c * dot + (1.0/dt) * (Ss * phip(jp,0) ) * phip(ip,0) );
         }
         
     }

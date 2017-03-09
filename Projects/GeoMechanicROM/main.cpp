@@ -478,10 +478,10 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1.0;
-    int n_steps = 10;
+    REAL dt = 0.05;
+    int n_steps = 40;
     REAL epsilon_res = 1.0e-2;
-    REAL epsilon_corr = 1.0e-5;
+    REAL epsilon_corr = 1.0e-6;
     int n_corrections = 10;
     bool IsMixedQ = false;
     bool IsRBQ    = false;
@@ -497,11 +497,11 @@ int Segregated_Geomechanic(){
     std::string dirname = PZSOURCEDIR;
     std::string file;
     file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-    //file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
     int order = 2;
-    int hlevel = 2;
+    int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
     {
@@ -549,7 +549,7 @@ int Segregated_Geomechanic(){
     
     // Filling the transfer object
     transfer->SetSimulationData(sim_data);
-    int number_threads = 0;
+    int number_threads = 16;
     
     // Elliptic problem
     TPZCompMesh * cmesh_elliptic = CMesh_Elliptic(gmesh, elliptic_mesh_vec, sim_data);
@@ -562,12 +562,10 @@ int Segregated_Geomechanic(){
     elliptic->SetTransfer_object(transfer);
     
     
-    TPZSkylineStructMatrix struct_mat_e(cmesh_elliptic);
-//    TPZSkylineNSymStructMatrix struct_mat_e(cmesh_elliptic);
+//    TPZSkylineStructMatrix struct_mat_e(cmesh_elliptic);
     
-    
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_e(cmesh_elliptic);
-//    struct_mat_e.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_e(cmesh_elliptic);
+    struct_mat_e.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step_e;
     struct_mat_e.SetNumThreads(number_threads);
@@ -586,10 +584,10 @@ int Segregated_Geomechanic(){
     parabolic->AdjustVectors();
     parabolic->SetTransfer_object(transfer);
     
-    TPZSkylineStructMatrix struct_mat_p(cmesh_parabolic);
+//    TPZSkylineStructMatrix struct_mat_p(cmesh_parabolic);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_p(cmesh_parabolic);
-//    struct_mat_p.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_p(cmesh_parabolic);
+    struct_mat_p.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step_p;
     struct_mat_p.SetNumThreads(number_threads);
@@ -625,6 +623,9 @@ int Segregated_Geomechanic(){
     std::string elliptic_file = "elliptic.vtk";
     std::string parabolic_file = "parabolic.vtk";
     segregated->Run_Evolution(elliptic_file, parabolic_file);
+    
+    std::cout << " elliptic DoF = " << elliptic->Solution().Rows() << std::endl;
+    std::cout << " parabolic DoF = " << parabolic->Solution().Rows() << std::endl;
     
     return 0;
     
