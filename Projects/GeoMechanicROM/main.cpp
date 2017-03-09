@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 #endif
     
 #ifdef USING_BOOST
-    std::cout  << "RB:: Overal execution time = " << (t2-t1) << std::endl;
+    std::cout  << " Overal execution time = " << (t2-t1) << std::endl;
 #endif
 }
 
@@ -309,8 +309,8 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1000.0;
-    int n_steps = 1;
+    REAL dt = 0.5;
+    int n_steps = 40;
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
     int n_corrections = 10;
@@ -457,6 +457,7 @@ int Geomechanic(){
     }
 #endif
 
+    std::cout << " Full coupled DoF = " << time_analysis->Solution().Rows() << std::endl;
     
     std::cout << " Execution finished " << std::endl;
     return EXIT_SUCCESS;
@@ -478,10 +479,10 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.05;
+    REAL dt = 0.5;
     int n_steps = 40;
     REAL epsilon_res = 1.0e-2;
-    REAL epsilon_corr = 1.0e-6;
+    REAL epsilon_corr = 1.0e-5;
     int n_corrections = 10;
     bool IsMixedQ = false;
     bool IsRBQ    = false;
@@ -562,10 +563,10 @@ int Segregated_Geomechanic(){
     elliptic->SetTransfer_object(transfer);
     
     
-//    TPZSkylineStructMatrix struct_mat_e(cmesh_elliptic);
+    TPZSkylineStructMatrix struct_mat_e(cmesh_elliptic);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_e(cmesh_elliptic);
-    struct_mat_e.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_e(cmesh_elliptic);
+//    struct_mat_e.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step_e;
     struct_mat_e.SetNumThreads(number_threads);
@@ -584,10 +585,10 @@ int Segregated_Geomechanic(){
     parabolic->AdjustVectors();
     parabolic->SetTransfer_object(transfer);
     
-//    TPZSkylineStructMatrix struct_mat_p(cmesh_parabolic);
+    TPZSkylineStructMatrix struct_mat_p(cmesh_parabolic);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_p(cmesh_parabolic);
-    struct_mat_p.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_p(cmesh_parabolic);
+//    struct_mat_p.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step_p;
     struct_mat_p.SetNumThreads(number_threads);
@@ -622,7 +623,26 @@ int Segregated_Geomechanic(){
     
     std::string elliptic_file = "elliptic.vtk";
     std::string parabolic_file = "parabolic.vtk";
+
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
     segregated->Run_Evolution(elliptic_file, parabolic_file);
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    if (IsRBQ) {
+        std::cout  << "RB Fixed-stress split :: online stage execution time = " << (t2-t1) << std::endl;
+    }
+    else{
+        std::cout  << "Fixed-stress split with full order:: execution time = " << (t2-t1) << std::endl;
+    }
+#endif
     
     std::cout << " elliptic DoF = " << elliptic->Solution().Rows() << std::endl;
     std::cout << " parabolic DoF = " << parabolic->Solution().Rows() << std::endl;

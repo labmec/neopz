@@ -71,7 +71,7 @@ void TPZSegregatedSolver::Run_Evolution(std::string elliptic, std::string parabo
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
     
-    this->PostProcessStep(elliptic,parabolic);    // Initial condition
+//    this->PostProcessStep(elliptic,parabolic);    // Initial condition
     
     for (int i = 1; i <= n; i++) {
         
@@ -114,9 +114,11 @@ void TPZSegregatedSolver::ExcecuteOneStep(){
         IsConverged_eQ = (error_e < epsilon_res) &&  (error_p < epsilon_res);
         IsConverged_dQ = (dx_norm_e < epsilon_cor) &&  (dx_norm_p < epsilon_cor);
         
-        if(/* IsConverged_eQ || */ IsConverged_dQ)
+        if( IsConverged_eQ ||  IsConverged_dQ)
         {
-            std::cout << "Geomechanic Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+            ferror = felliptic->error_norm() + fparabolic->error_norm();
+            fdx_norm = felliptic->dx_norm() + fparabolic->dx_norm();
+            std::cout << "Segregated Solver:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             this->UpdateGlobalSolution();
             this->Update_at_n_State();
             return;
@@ -124,7 +126,7 @@ void TPZSegregatedSolver::ExcecuteOneStep(){
         
     }
     
-    std::cout << "Geomechanic Coupling:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    std::cout << "Segregated Solver:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
     
 }
 

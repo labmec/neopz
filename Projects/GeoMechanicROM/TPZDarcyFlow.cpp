@@ -166,9 +166,9 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
     REAL lambda     = 8.333e3;
     REAL mu         = 12.50e3;
     REAL Kdr = lambda + (2.0/3.0)*mu;
-    REAL S_v = 1.0*(S(0,0) + S(1,1) + S(2,2))/3.0;
-    REAL S_n_v = 1.0*(S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
-    REAL Ss = (Se + alpha*alpha/Kdr/2.0);
+    REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
+    REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
+    REAL Ss = (Se + alpha*alpha/Kdr)/2.0;
     
     if (!fSimulationData->IsCurrentStateQ()) {
         
@@ -176,6 +176,7 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
         for (int ip = 0; ip < nphi_p; ip++) {
 //            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * div_u + Se * p) * phip(ip,0);
             ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * S_v / Kdr + Ss * p ) * phip(ip,0);
+//            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * ( (Se + alpha / Kdr ) * p ) * phip(ip,0);
         }
 //        std::cout << "p = " << p << std::endl;
         return;
@@ -192,6 +193,7 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
         
 //        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * div_u_n + Se * p_n) * phip(ip,0) );
         ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * S_n_v / Kdr + Ss * p_n) * phip(ip,0) );
+//        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * ((Se - alpha / Kdr ) * p_n) * phip(ip,0) );
         
         for (int jp = 0; jp < nphi_p; jp++) {
             
