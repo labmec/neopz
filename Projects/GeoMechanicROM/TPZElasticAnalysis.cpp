@@ -173,14 +173,14 @@ void TPZElasticAnalysis::ExcecuteOneStep(){
         //        this->NewtonIteration();
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
-            std::cout << "Geomechanic Coupling:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-            fX = fX_n;
+            std::cout << "elliptic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+//            fX = fX_n;
             return;
         }
         
     }
     
-    std::cout << "Geomechanic Coupling:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
+    std::cout << "elliptic:: Exit max iterations with min dt:  " << fSimulationData->dt() << "; (secs) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
     
 }
 
@@ -188,7 +188,7 @@ void TPZElasticAnalysis::ExcecuteOneStep(){
 void TPZElasticAnalysis::UpdateState(){
     this->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-//    ftransfer->elliptic_To_elliptic(this->Mesh());
+    ftransfer->elliptic_To_elliptic(this->Mesh());
     if (fSimulationData->IsRBApproxQ()) {
         DebugStop();
     }
@@ -199,7 +199,7 @@ void TPZElasticAnalysis::UpdateState(){
 void TPZElasticAnalysis::Update_at_n_State(){
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-//    ftransfer->elliptic_To_elliptic(this->Mesh());
+    ftransfer->elliptic_To_elliptic(this->Mesh());
     if (fSimulationData->IsRBApproxQ()) {
         DebugStop();
     }

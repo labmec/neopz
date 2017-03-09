@@ -344,8 +344,8 @@ void TPZTransferFunctions::Fill_elliptic_To_elliptic(TPZCompMesh * elliptic){
     std::pair<long, std::pair <TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
     
     // Block size structue including (Omega and Gamma)
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi(nel);
-    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(nel);
+    TPZVec< std::pair<long, long> > blocks_dimensions_phi(valid_elements);
+    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(valid_elements);
     
     long element_index = 0;
     for (long iel = 0; iel < nel; iel++) {
@@ -890,7 +890,7 @@ void TPZTransferFunctions::space_To_elliptic(TPZCompMesh * elliptic){
     
     elliptic->LoadReferences();
     TPZGeoMesh * geometry = elliptic->Reference();
-    long nel = fe_p_cindexes.size();
+    long nel = geometry->NElements();
     int dim = elliptic->Dimension();
 
     
@@ -1034,36 +1034,29 @@ void TPZTransferFunctions::elliptic_To_elliptic(TPZCompMesh * elliptic){
     }
 #endif
     
-    elliptic->LoadReferences();
-    TPZGeoMesh * geometry = elliptic->Reference();
-    long nel = fe_p_cindexes.size();
-    int dim = elliptic->Dimension();
     
     
     // Step zero scatter
     TPZFMatrix<STATE> Scatter_u(fu_To_parabolic.Cols(),1,0.0);
-    
+    int n = fe_p_cindexes.size();
     long pos = 0;
-    for (int el = 0; el < nel; el++) {
-        for(int iequ = 0; iequ < fu_dof_scatter[el].size(); iequ++) {
-            Scatter_u(pos,0) = elliptic->Solution()(fu_dof_scatter[el][iequ],0);
+    for (int i = 0; i < n; i++) {
+        for(int iequ = 0; iequ < fu_dof_scatter[i].size(); iequ++) {
+            Scatter_u(pos,0) = elliptic->Solution()(fu_dof_scatter[i][iequ],0);
             pos++;
         }
     }
-    
-    
-    
+
     // Step two
     TPZFMatrix<STATE> u_at_elliptic,grad_u_at_elliptic;
     fu_To_elliptic.Multiply(Scatter_u,u_at_elliptic);
     fgrad_u_To_elliptic.Multiply(Scatter_u, grad_u_at_elliptic);
-    
-//    if (fSimulationData->IsCurrentStateQ()) {
-//        u_at_elliptic.Print("u_n = ");
-//        grad_u_at_elliptic.Print("grad_u_n = ");
-//    }
 
-    
+    elliptic->LoadReferences();
+    TPZGeoMesh * geometry = elliptic->Reference();
+    long nel = geometry->NElements();
+    int dim = elliptic->Dimension();
+
     long iblock = 0;
     long first_point_phi = 0;
     long first_point_dphi = 0;
@@ -1243,7 +1236,7 @@ void TPZTransferFunctions::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZComp
     for (int iel = 0; iel < nel; iel++) {
         
         
-        gel_index = fgeomechanic_galerkinp_cindexes[iel].first;
+        gel_index = fe_p_cindexes[iel].first;
         TPZGeoEl * gel = geometry->Element(gel_index);
         
 #ifdef PZDEBUG
@@ -1287,7 +1280,7 @@ void TPZTransferFunctions::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZComp
             
             
             TPZFNMatrix<3,STATE> u(1,dim,0.0);
-            TPZFNMatrix<9,STATE> grad_u(1,dim*dim);
+            TPZFNMatrix<9,STATE> grad_u(dim,dim);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
@@ -1301,8 +1294,15 @@ void TPZTransferFunctions::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZComp
                     }
                 }
                 
-                associated_material->GetMemory()[ipos].Set_u_n(u);
-                associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[ipos].Set_u_n(u);
+                    associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
+                }
+                else{
+                    associated_material->GetMemory()[ipos].Set_u(u);
+                    associated_material->GetMemory()[ipos].Set_grad_u(grad_u);
+                }
+
             }
             
             
@@ -1319,7 +1319,7 @@ void TPZTransferFunctions::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZComp
             
             
             TPZFNMatrix<3,STATE> u(1,dim,0.0);
-            TPZFNMatrix<9,STATE> grad_u(1,dim*dim);
+            TPZFNMatrix<9,STATE> grad_u(dim,dim);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
@@ -1333,8 +1333,15 @@ void TPZTransferFunctions::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZComp
                     }
                 }
                 
-                associated_material->GetMemory()[ipos].Set_u_n(u);
-                associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[ipos].Set_u_n(u);
+                    associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
+                }
+                else{
+                    associated_material->GetMemory()[ipos].Set_u(u);
+                    associated_material->GetMemory()[ipos].Set_grad_u(grad_u);
+                }
+                
             }
             
         }
@@ -1397,8 +1404,8 @@ void TPZTransferFunctions::Fill_parabolic_To_parabolic(TPZCompMesh * parabolic){
     std::pair<long, std::pair <TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
     
     // Block size structue including (Omega and Gamma)
-    TPZVec< std::pair<long, long> > blocks_dimensions_phi(nel);
-    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(nel);
+    TPZVec< std::pair<long, long> > blocks_dimensions_phi(valid_elements);
+    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(valid_elements);
     
     long element_index = 0;
     for (long iel = 0; iel < nel; iel++) {
@@ -1923,28 +1930,8 @@ void TPZTransferFunctions::space_To_parabolic(TPZCompMesh * parabolic){
     
     parabolic->LoadReferences();
     TPZGeoMesh * geometry = parabolic->Reference();
-    long nel = fe_p_cindexes.size();
+    long nel = geometry->NElements();
     int dim = parabolic->Dimension();
-    
-    
-    // Step zero scatter
-    TPZFMatrix<STATE> Scatter_p(fp_To_parabolic.Cols(),1,0.0);
-    
-    long pos = 0;
-    for (int el = 0; el < nel; el++) {
-        for(int iequ = 0; iequ < fp_dof_scatter[el].size(); iequ++) {
-            Scatter_p(pos,0) = parabolic->Solution()(fp_dof_scatter[el][iequ],0);
-            pos++;
-        }
-    }
-    
-    
-    
-    // Step two
-    TPZFMatrix<STATE> p_at_parabolic,grad_p_at_parabolic;
-    fp_To_parabolic.Multiply(Scatter_p,p_at_parabolic);
-    fgrad_p_To_parabolic.Multiply(Scatter_p, grad_p_at_parabolic);
-    
     
     long iblock = 0;
     long first_point_phi = 0;
@@ -2013,7 +2000,7 @@ void TPZTransferFunctions::space_To_parabolic(TPZCompMesh * parabolic){
             int gel_dim = gel->Dimension();
             int nshapes = b_size_phi.second;
             TPZFNMatrix<3,STATE> phi_p(nshapes,1,0.0);
-            TPZFNMatrix<9,STATE> grad_phi_p(nshapes,dim);
+            TPZFNMatrix<9,STATE> grad_phi_p(dim,nshapes);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
@@ -2024,7 +2011,7 @@ void TPZTransferFunctions::space_To_parabolic(TPZCompMesh * parabolic){
                 
                 for (int is = 0; is < nshapes; is++) {
                     for (int id = 0 ; id < dim; id++) {
-                        grad_phi_p(is,id) = block_grad_phi(ip*gel_dim + id,is);
+                        grad_phi_p(id,is) = block_grad_phi(ip*gel_dim + id,is);
                     }
                     
                 }
@@ -2049,7 +2036,7 @@ void TPZTransferFunctions::space_To_parabolic(TPZCompMesh * parabolic){
             int gel_dim = gel->Dimension();
             int nshapes = b_size_phi.second;
             TPZFNMatrix<3,STATE> phi_p(nshapes,1,0.0);
-            TPZFNMatrix<9,STATE> grad_phi_p(nshapes,dim);
+            TPZFNMatrix<9,STATE> grad_phi_p(dim,nshapes);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
@@ -2060,7 +2047,7 @@ void TPZTransferFunctions::space_To_parabolic(TPZCompMesh * parabolic){
                 
                 for (int is = 0; is < nshapes; is++) {
                     for (int id = 0 ; id < dim; id++) {
-                        grad_phi_p(is,id) = block_grad_phi(ip*gel_dim + id,is);
+                        grad_phi_p(id,is) = block_grad_phi(ip*gel_dim + id,is);
                     }
                     
                 }
@@ -2089,22 +2076,17 @@ void TPZTransferFunctions::parabolic_To_parabolic(TPZCompMesh * parabolic){
 #endif
     
     
-    TPZGeoMesh * geometry = parabolic->Reference();
-    long nel = fe_p_cindexes.size();
-    int dim = parabolic->Dimension();
-    
-    
     // Step zero scatter
     TPZFMatrix<STATE> Scatter_p(fp_To_parabolic.Cols(),1,0.0);
     
     long pos = 0;
-    for (int el = 0; el < nel; el++) {
-        for(int iequ = 0; iequ < fp_dof_scatter[el].size(); iequ++) {
-            Scatter_p(pos,0) = parabolic->Solution()(fp_dof_scatter[el][iequ],0);
+    int n = fp_e_cindexes.size();
+    for (int i = 0; i < n; i++) {
+        for(int iequ = 0; iequ < fp_dof_scatter[i].size(); iequ++) {
+            Scatter_p(pos,0) = parabolic->Solution()(fp_dof_scatter[i][iequ],0);
             pos++;
         }
     }
-    
     
     
     // Step two
@@ -2112,6 +2094,10 @@ void TPZTransferFunctions::parabolic_To_parabolic(TPZCompMesh * parabolic){
     fp_To_parabolic.Multiply(Scatter_p,p_at_parabolic);
     fgrad_p_To_parabolic.Multiply(Scatter_p, grad_p_at_parabolic);
     
+    parabolic->LoadReferences();
+    TPZGeoMesh * geometry = parabolic->Reference();
+    long nel = geometry->NElements();
+    int dim = parabolic->Dimension();
     
     long iblock = 0;
     long first_point_phi = 0;
@@ -2172,14 +2158,14 @@ void TPZTransferFunctions::parabolic_To_parabolic(TPZCompMesh * parabolic){
             
             
             REAL p;
-            TPZFNMatrix<9,STATE> grad_p(1,dim);
+            TPZFNMatrix<9,STATE> grad_p(dim,1);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 p = p_at_parabolic(first_point_phi + ip,0);
                 
                 for (int id = 0; id < dim ; id++) {
-                    grad_p(0,id)= grad_p_at_parabolic(first_point_dphi + ip*dim + id,0);
+                    grad_p(id,0)= grad_p_at_parabolic(first_point_dphi + ip*dim + id,0);
                 }
                 
                 if (fSimulationData->IsCurrentStateQ()) {
@@ -2206,14 +2192,14 @@ void TPZTransferFunctions::parabolic_To_parabolic(TPZCompMesh * parabolic){
             
             
             REAL p;
-            TPZFNMatrix<9,STATE> grad_p(1,dim);
+            TPZFNMatrix<9,STATE> grad_p(dim,1);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 p = p_at_parabolic(first_point_phi + ip,0);
                 
                 for (int id = 0; id < dim ; id++) {
-                    grad_p(0,id)= grad_p_at_parabolic(first_point_dphi + ip*dim + id,0);
+                    grad_p(id,0)= grad_p_at_parabolic(first_point_dphi + ip*dim + id,0);
                 }
                 
                 if (fSimulationData->IsCurrentStateQ()) {
@@ -2247,7 +2233,7 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
 #endif
     
     TPZGeoMesh * geometry = parabolic->Reference();
-    long nel = fe_p_cindexes.size();
+    long nel = fp_e_cindexes.size();
     int dim = parabolic->Dimension();
     
     
@@ -2257,18 +2243,16 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
     long pos = 0;
     for (int el = 0; el < nel; el++) {
         for(int iequ = 0; iequ < fp_dof_scatter[el].size(); iequ++) {
-            Scatter_p(pos,0) = elliptic->Solution()(fp_dof_scatter[el][iequ],0);
+            Scatter_p(pos,0) = parabolic->Solution()(fp_dof_scatter[el][iequ],0);
             pos++;
         }
     }
     
     
-    
     // Step two
     TPZFMatrix<STATE> p_at_elliptic,grad_p_at_elliptic;
-    fu_To_parabolic.Multiply(Scatter_p,p_at_elliptic);
-    fgrad_u_To_parabolic.Multiply(Scatter_p, grad_p_at_elliptic);
-    
+    fp_To_elliptic.Multiply(Scatter_p,p_at_elliptic);
+    fgrad_p_To_elliptic.Multiply(Scatter_p, grad_p_at_elliptic);
     
     long iblock = 0;
     long first_point_phi = 0;
@@ -2283,7 +2267,7 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
     for (int iel = 0; iel < nel; iel++) {
         
         
-        gel_index = fgeomechanic_galerkinp_cindexes[iel].first;
+        gel_index = fp_e_cindexes[iel].first;
         TPZGeoEl * gel = geometry->Element(gel_index);
         
 #ifdef PZDEBUG
@@ -2299,8 +2283,8 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
         p_index   = fp_e_cindexes[iel].second.first;
         e_index   = fp_e_cindexes[iel].second.second;
         
-        TPZCompEl * p_cel = elliptic->Element(p_index);
-        TPZCompEl * e_cel = parabolic->Element(e_index);
+        TPZCompEl * p_cel = parabolic->Element(p_index);
+        TPZCompEl * e_cel = elliptic->Element(e_index);
         
 #ifdef PZDEBUG
         if (!p_cel || !e_cel) {
@@ -2317,7 +2301,7 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
         int matd_id = gel->MaterialId();
         if(matd_id == 1){ // The volumetric ones!
             
-            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMaterial * material = elliptic->FindMaterial(matd_id);
             TPZMatWithMem<TPZElasticBiotMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZDiscontinuousGalerkin> *>(material);
             
             TPZManVector<long, 30> int_point_indexes;
@@ -2327,14 +2311,14 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
             
             
             REAL p;
-            TPZFNMatrix<9,STATE> grad_p(1,dim);
+            TPZFNMatrix<9,STATE> grad_p(dim,1);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 p = p_at_elliptic(first_point_phi + ip,0);
                 
                 for (int id = 0; id < dim ; id++) {
-                    grad_p(0,id)= grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
+                    grad_p(id,0)= grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
                 }
                 
                 if (fSimulationData->IsCurrentStateQ()) {
@@ -2351,24 +2335,24 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
         }
         else{
             
-            TPZMaterial * material = parabolic->FindMaterial(matd_id);
+            TPZMaterial * material = elliptic->FindMaterial(matd_id);
             TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> * associated_material = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond> *>(material);
             
             TPZManVector<long, 30> int_point_indexes;
-            int_point_indexes = fe_p_intp_indexes[iblock].second.second;
+            int_point_indexes = fp_e_intp_indexes[iblock].second.second;
             int n_points = int_point_indexes.size();
             long ipos;
             
             
             REAL p;
-            TPZFNMatrix<9,STATE> grad_p(1,dim);
+            TPZFNMatrix<9,STATE> grad_p(dim,1);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 p = p_at_elliptic(first_point_phi + ip,0);
                 
                 for (int id = 0; id < dim ; id++) {
-                    grad_p(0,id)= grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
+                    grad_p(id,0)= grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
                 }
                 
                 if (fSimulationData->IsCurrentStateQ()) {

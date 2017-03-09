@@ -45,7 +45,7 @@ void TPZDarcyFlow::FillDataRequirements(TPZVec<TPZMaterialData> &datavec){
     int ndata = datavec.size();
     for (int idata=0; idata < ndata ; idata++) {
         datavec[idata].SetAllRequirements(false);
-        datavec[idata].fNeedsSol = true;
+        datavec[idata].fNeedsSol = false;
     }
     
 }
@@ -56,9 +56,9 @@ void TPZDarcyFlow::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMate
     int ndata = datavec.size();
     for (int idata=0; idata < ndata ; idata++) {
         datavec[idata].SetAllRequirements(false);
-        datavec[idata].fNeedsBasis = true;
-        datavec[idata].fNeedsSol = true;
-        datavec[idata].fNeedsNormal = true;
+        datavec[idata].fNeedsBasis = false;
+        datavec[idata].fNeedsSol = false;
+        datavec[idata].fNeedsNormal = false;
     }
     
 }
@@ -104,6 +104,23 @@ int TPZDarcyFlow::NSolutionVariables(int var){
     
 }
 
+void TPZDarcyFlow::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u){
+
+    REAL flambda     = 8.333e3;
+    REAL fmu         = 12.50e3;
+    
+    REAL trace;
+    for (int i = 0; i < 3; i++) {
+        trace = 0.0;
+        for (int j = 0; j < 3; j++) {
+            S(i,j) = fmu * (Grad_u(i,j) + Grad_u(j,i));
+            trace +=  Grad_u(j,j);
+        }
+        S(i,i) += flambda * trace;
+    }
+    
+    
+}
 
 // Contribute Methods being used
 void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
@@ -116,38 +133,51 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
     
     int p_b = 0;
     
+    // Getting the space functions from memory
+    long global_point_index = datavec[p_b].intGlobPtIndex;
+    TPZDarcyFlowMemory &point_memory = GetMemory()[global_point_index];
     
-    // Getting the space functions
-    TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
-    TPZFMatrix<REAL>    &dphip   =   datavec[p_b].dphix;
-    TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
+    TPZFMatrix<REAL>    &phip   =   point_memory.phi_p();
+    TPZFMatrix<REAL>    &grad_phi_p   =   point_memory.grad_phi_p();
     
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
-    TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
+    REAL   & p_n = point_memory.p_n();
+    REAL   & p   = point_memory.p();
     
-    // Transformations
-    TPZFNMatrix<9,REAL> grad_phi_p;
-    TPZAxesTools<STATE>::Axes2XYZ(dphip, grad_phi_p, axes_p);
+    TPZFMatrix<REAL>    &grad_u   =   point_memory.grad_u();
+    TPZFMatrix<REAL>    &grad_u_n   =   point_memory.grad_u_n();
     
-    TPZFNMatrix<3,REAL> grad_p;
-    TPZAxesTools<STATE>::Axes2XYZ(dp, grad_p, axes_p);
+    TPZFMatrix<REAL>    &grad_p = point_memory.grad_p_n();
     
     int nphi_p = phip.Rows();
     int first_p = 0;
     
     REAL dt = fSimulationData->dt();
-    REAL div_u = 0.0;
-    REAL alpha = 0.0;
-    REAL Se = 0.0;
+//    REAL div_u = grad_u(0,0) + grad_u(1,1);
+//    REAL div_u_n = grad_u_n(0,0) + grad_u_n(1,1);
+    REAL alpha = 1.0;
+//    REAL Se = 0.0;
+    
+    grad_u.Redim(3, 3);
+    grad_u_n.Redim(3, 3);
+    TPZFNMatrix<9,REAL> S(3,3),S_n(3,3);
+    Compute_Sigma(S, grad_u);
+    Compute_Sigma(S_n, grad_u_n);
+    
+    REAL lambda     = 8.333e3;
+    REAL mu         = 12.50e3;
+    REAL Kdr = lambda + (2.0/3.0)*mu;
+    REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
+    REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
     
     
     if (!fSimulationData->IsCurrentStateQ()) {
         
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++) {
-            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * div_u + Se * p[0]) * phip(ip,0);
+//            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * div_u + Se * p) * phip(ip,0);
+            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * S_v / Kdr + alpha * p / Kdr) * phip(ip,0);
         }
+//        std::cout << "p = " << p << std::endl;
         return;
     }
     
@@ -160,7 +190,8 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
             dot += grad_p(i,0) * grad_phi_p(i,ip);
         }
         
-        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * div_u + Se * p[0]) * phip(ip,0) );
+//        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * div_u_n + Se * p_n) * phip(ip,0) );
+        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * S_n_v / Kdr + alpha * p_n / Kdr) * phip(ip,0) );
         
         for (int jp = 0; jp < nphi_p; jp++) {
             
@@ -169,7 +200,7 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
                 dot += grad_phi_p(i,jp) * grad_phi_p(i,ip);
             }
             
-            ek(ip + first_p, jp + first_p)  += weight * ( c * dot + (1.0/dt) * (Se * phip(jp,0)) * phip(ip,0) );
+            ek(ip + first_p, jp + first_p)  += weight * ( c * dot + (1.0/dt) * (alpha * phip(jp,0) / Kdr ) * phip(ip,0) );
         }
         
     }
@@ -203,8 +234,17 @@ void TPZDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     int p_b = 0;
     
     // Getting the solutions and derivatives
-    TPZFMatrix<REAL>  &phip = datavec[p_b].phi;
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
+    // Get the data at the integrations points
+    TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond>  & material_mem = dynamic_cast<TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond > & >(bc);
+    
+    long global_point_index = datavec[p_b].intGlobPtIndex;
+    TPZDarcyFlowMemory &point_memory = material_mem.GetMemory()[global_point_index];
+    
+    TPZFMatrix<REAL>  & phip = point_memory.phi_p();
+    REAL p_n = point_memory.p_n();
+    
+    TPZManVector<REAL,1> p(1);
+    p[0] = p_n;
     
     int phrp = phip.Rows();
     short in,jn;
@@ -212,16 +252,11 @@ void TPZDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     v[0] = bc.Val2()(0,0);	//	Pressure or Flux
     
     REAL time = this->SimulationData()->t();
-    REAL dt  = this->SimulationData()->dt();
-    REAL Value = bc.Val2()(0,0);
     if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(1);
         TPZFMatrix<REAL> gradf;
         bc.TimedependentBCForcingFunction()->Execute(datavec[p_b].x, time, f, gradf);
         v[0] = f[0];	//	Pressure or flux
-    }
-    else{
-        Value = bc.Val2()(0,0);
     }
     
     // Dirichlet in Pressure
@@ -252,7 +287,7 @@ void TPZDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, T
             for(in = 0 ; in < phrp; in++)
             {
                 //	Normal Flux on neumman boundary
-                ef(in,0)	+= -1.0 * weight * v[0]*phip(in,0);	// Qnormal
+                ef(in,0)	+= -1.0 * weight * v[0] * phip(in,0);	// Qnormal
             }
             break;
         }

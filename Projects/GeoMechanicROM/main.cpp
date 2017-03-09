@@ -50,6 +50,7 @@
 #include "TPZGeomechanicAnalysis.h"
 #include "TPZElasticAnalysis.h"
 #include "TPZFLuxPressureAnalysis.h"
+#include "TPZSegregatedSolver.h"
 
 // Matrix
 #include "pzskylstrmatrix.h"
@@ -169,6 +170,8 @@ void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes
 
 // Create a computational mesh for reduced deformation
 TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh, int order);
+
+bool SegregateIteration(TPZCompMesh * elliptic, TPZCompMesh * parabolic, TPZTransferFunctions * transfer);
 
 
 void SetParameters(TPZCompMesh * cmesh, TPZVec<REAL> mu_vector);
@@ -476,7 +479,7 @@ int Segregated_Geomechanic(){
     TPZSimulationData * sim_data = new TPZSimulationData;
     
     REAL dt = 1.0;
-    int n_steps = 20;
+    int n_steps = 10;
     REAL epsilon_res = 1.0e-2;
     REAL epsilon_corr = 1.0e-5;
     int n_corrections = 10;
@@ -497,8 +500,8 @@ int Segregated_Geomechanic(){
     //file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
-    int order = 1;
-    int hlevel = 0;
+    int order = 2;
+    int hlevel = 2;
     
     UniformRefinement(gmesh, hlevel);
     {
@@ -537,11 +540,11 @@ int Segregated_Geomechanic(){
     }
     
     if (IsMixedQ) {
-        parabolic_mesh_vec[0] = CMesh_Flux(gmesh, order);
-        parabolic_mesh_vec[1] = CMesh_MFPorePressure(gmesh, order);
+        parabolic_mesh_vec[0] = CMesh_Flux(gmesh, order-1);
+        parabolic_mesh_vec[1] = CMesh_MFPorePressure(gmesh, order-1);
     }
     else{
-        parabolic_mesh_vec[0] = CMesh_PorePressure(gmesh, order);
+        parabolic_mesh_vec[0] = CMesh_PorePressure(gmesh, order-1);
     }
     
     // Filling the transfer object
@@ -573,60 +576,70 @@ int Segregated_Geomechanic(){
     elliptic->SetStructuralMatrix(struct_mat_e);
     
     
-//    // Parabolic problem
-//    TPZCompMesh * cmesh_parabolic = CMesh_Parabolic(gmesh, parabolic_mesh_vec, sim_data, IsMixedQ);
-//    TPZFLuxPressureAnalysis * parabolic = new TPZFLuxPressureAnalysis;
-//    bool OptimizeBand_p = true;
-//    parabolic->SetCompMesh(cmesh_parabolic,OptimizeBand_p);
-//    parabolic->SetSimulationData(sim_data);
-//    parabolic->SetMeshvec(parabolic_mesh_vec);
-//    parabolic->AdjustVectors();
-//    parabolic->SetTransfer_object(transfer);
-//    
-//    TPZSkylineStructMatrix struct_mat_p(cmesh_parabolic);
-//    
-////    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_p(cmesh_parabolic);
-////    struct_mat_p.SetDecomposeType(ELDLt);
-//    
-//    TPZStepSolver<STATE> step_p;
-//    struct_mat_p.SetNumThreads(number_threads);
-//    step_p.SetDirect(ELDLt);
-//    parabolic->SetSolver(step_p);
-//    parabolic->SetStructuralMatrix(struct_mat_p);
+    // Parabolic problem
+    TPZCompMesh * cmesh_parabolic = CMesh_Parabolic(gmesh, parabolic_mesh_vec, sim_data, IsMixedQ);
+    TPZFLuxPressureAnalysis * parabolic = new TPZFLuxPressureAnalysis;
+    bool OptimizeBand_p = true;
+    parabolic->SetCompMesh(cmesh_parabolic,OptimizeBand_p);
+    parabolic->SetSimulationData(sim_data);
+    parabolic->SetMeshvec(parabolic_mesh_vec);
+    parabolic->AdjustVectors();
+    parabolic->SetTransfer_object(transfer);
+    
+    TPZSkylineStructMatrix struct_mat_p(cmesh_parabolic);
+    
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_p(cmesh_parabolic);
+//    struct_mat_p.SetDecomposeType(ELDLt);
+    
+    TPZStepSolver<STATE> step_p;
+    struct_mat_p.SetNumThreads(number_threads);
+    step_p.SetDirect(ELDLt);
+    parabolic->SetSolver(step_p);
+    parabolic->SetStructuralMatrix(struct_mat_p);
     
     // Transfer object
     
     // Build linear tranformations
-//    transfer->Fill_elliptic_To_elliptic(cmesh_elliptic);
-//    transfer->Fill_elliptic_To_parabolic(cmesh_elliptic, cmesh_parabolic);
-//    transfer->Fill_parabolic_To_parabolic(cmesh_parabolic);
-//    transfer->Fill_parabolic_To_elliptic(cmesh_parabolic, cmesh_elliptic);
+    transfer->Fill_elliptic_To_elliptic(cmesh_elliptic);
+    transfer->Fill_elliptic_To_parabolic(cmesh_elliptic, cmesh_parabolic);
+    transfer->Fill_parabolic_To_parabolic(cmesh_parabolic);
+    transfer->Fill_parabolic_To_elliptic(cmesh_parabolic, cmesh_elliptic);
     
     // transfer approximation space to integration points
-//    transfer->space_To_elliptic(cmesh_elliptic);
-//    transfer->space_To_parabolic(cmesh_parabolic);
+    transfer->space_To_elliptic(cmesh_elliptic);
+    transfer->space_To_parabolic(cmesh_parabolic);
     
-    // Step one load each space on integration points
-
     // Run segregated solution
-    sim_data->Setdt(1.0e3);
-    sim_data->SetTime(1.0e3);
-    elliptic->ExcecuteOneStep();
-//    elliptic->LoadSolution();
-//    transfer->elliptic_To_elliptic(cmesh_elliptic);
-    std::string elliptic_file = "elliptic.vtk";
-    elliptic->PostProcessStep(elliptic_file);
-    elliptic->PostProcessStep(elliptic_file);
+    TPZSegregatedSolver * segregated = new TPZSegregatedSolver;
+    segregated->Set_elliptic(elliptic);
+    segregated->Set_parabolic(parabolic);
+    segregated->SetTransfer_object(transfer);
+    segregated->SetSimulationData(sim_data);
     
-//    // Run segregated solution
-//    sim_data->Setdt(1.0e3);
-//    sim_data->SetTime(1.0e3);
-//    parabolic->ExcecuteOneStep();
-//    std::string parabolic_file = "parabolic.vtk";
-//    parabolic->PostProcessStep(parabolic_file);
-//    parabolic->PostProcessStep(parabolic_file);
+    for (int i = 0 ; i <cmesh_parabolic->Solution().Rows(); i++) {
+        cmesh_parabolic->Solution()(i,0) = 1000.0;
+        parabolic->X()(i,0) = 1000.0;
+        parabolic->X_n()(i,0) = 1000.0;
+    }
+    
+    std::string elliptic_file = "elliptic.vtk";
+    std::string parabolic_file = "parabolic.vtk";
+    segregated->Run_Evolution(elliptic_file, parabolic_file);
     
     return 0;
+    
+}
+
+bool SegregateIteration(TPZCompMesh * elliptic, TPZCompMesh * parabolic, TPZTransferFunctions * transfer){
+    
+#ifdef PZDEBUG
+    if (!elliptic || !parabolic) {
+        DebugStop();
+    }
+#endif
+    
+    
+    
     
 }
 
@@ -2119,7 +2132,7 @@ TPZCompMesh * CMesh_Parabolic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_ve
     bc_right_mat->SetValues(val1, val2);
     cmesh->InsertMaterialObject(bc_right_mat);
     
-    val2(0,0) = 1.0;
+    val2(0,0) = 0.0;
     TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond> * bc_top_mat = new TPZMatWithMem<TPZDarcyFlowMemory,TPZBndCond>;
     bc_top_mat->SetNumLoadCases(1);
     bc_top_mat->SetMaterial(material);

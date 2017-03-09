@@ -40,7 +40,7 @@ void TPZElasticBiot::FillDataRequirements(TPZVec<TPZMaterialData> &datavec){
     int ndata = datavec.size();
     for (int idata=0; idata < ndata ; idata++) {
         datavec[idata].SetAllRequirements(false);
-        datavec[idata].fNeedsSol = true;
+        datavec[idata].fNeedsSol = false;
     }
     
     TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
@@ -61,9 +61,9 @@ void TPZElasticBiot::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMa
     int ndata = datavec.size();
     for (int idata=0; idata < ndata ; idata++) {
         datavec[idata].SetAllRequirements(false);
-        datavec[idata].fNeedsBasis = true;
-        datavec[idata].fNeedsSol = true;
-        datavec[idata].fNeedsNormal = true;
+        datavec[idata].fNeedsBasis = false;
+        datavec[idata].fNeedsSol = false;
+        datavec[idata].fNeedsNormal = false;
     }
     
     
@@ -131,6 +131,7 @@ void TPZElasticBiot::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_
     
 }
 
+
 // Contribute Methods being used
 void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 
@@ -142,58 +143,29 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
         return;
     }
     
-//    // Getting the space functions from memory
-//    long global_point_index = datavec[u_b].intGlobPtIndex;
-//    TPZElasticBiotMemory &point_memory = GetMemory()[global_point_index];
-//    
-//    TPZFMatrix<REAL> & phi_u = point_memory.phi_u();
-//    TPZFMatrix<REAL> & grad_phi_u = point_memory.grad_phi_u();
-//
+    // Getting the space functions from memory
+    long global_point_index = datavec[u_b].intGlobPtIndex;
+    TPZElasticBiotMemory &point_memory = GetMemory()[global_point_index];
+    
+    TPZFMatrix<REAL> & phi_u = point_memory.phi_u();
+    TPZFMatrix<REAL> & grad_phi_u = point_memory.grad_phi_u();
+
 //    TPZFMatrix<REAL> & u_n = point_memory.u_n();
-//    TPZFMatrix<REAL> & grad_u_n = point_memory.grad_u_n();
+    TPZFMatrix<REAL> & grad_u_n = point_memory.grad_u_n();
     
     
-    // Getting the space functions
-    TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
-    TPZFMatrix<REAL>    &dphiu   =   datavec[u_b].dphix;
-    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
+    REAL & p_n = point_memory.p_n();
+//    REAL & p = point_memory.p();
     
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
-    TPZFNMatrix <15,REAL> du = datavec[u_b].dsol[0];
-    
-    // Transformations
-    TPZFNMatrix<27,REAL> grad_phi_u;
-    TPZFNMatrix<3,REAL> grad_u;
-    
-    TPZAxesTools<STATE>::Axes2XYZ(dphiu, grad_phi_u, axes_u);
-    TPZAxesTools<STATE>::Axes2XYZ(du, grad_u, axes_u);
-    
-//    grad_u_n.Print("grad_u_n omar = ");
-//    grad_u.Print("grad_u pz = ");
-    
-//    u_n.Print("u_n = ");
-//    std::cout << "u = " <<  u << std::endl;
-//    std::cout << std::endl;
-    
-//    grad_u_n.Print("du_n = ");
-//    du.Print("du  = ");
-//    std::cout << std::endl;
-    
-//    grad_u_n.Print("grad_u_n omar = ");
-//    grad_u.Print("grad_u pz = ");
-    
-    REAL p = 0.0;
-    
-    int nphi_u = phiu.Rows();
+    int nphi_u = phi_u.Rows();
     int first_u = 0;
     
-    REAL div_u = grad_u(0,0) + grad_u(1,1);
+//    REAL div_u = grad_u_n(0,0) + grad_u_n(1,1);
     
     TPZFNMatrix<6,REAL> Grad_u(3,3,0.0);
     TPZFNMatrix<9,REAL> S(3,3,0.0);
-    grad_u.Resize(3, 3);
-    this->Compute_Sigma(S,grad_u);
+    grad_u_n.Resize(3, 3);
+    this->Compute_Sigma(S,grad_u_n);
     
     TPZFNMatrix<9,REAL> Grad_vx_i(fdimension,1,0.0);
     TPZFNMatrix<9,REAL> Grad_vy_i(fdimension,1,0.0);
@@ -213,8 +185,8 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
             Grad_vy_i(d,0) = grad_phi_u(d,iu);
         }
         
-        ef(2*iu + first_u, 0)   += weight * ((S(0,0) - falpha * p) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0));
-        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - falpha * p) * Grad_vy_i(1,0));
+        ef(2*iu + first_u, 0)   += weight * ((S(0,0) - falpha * p_n) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0));
+        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - falpha * p_n) * Grad_vy_i(1,0));
         
         for (int ju = 0; ju < nphi_u; ju++) {
             
@@ -256,10 +228,16 @@ void TPZElasticBiot::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,
         return;
     }
     
-    TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
+    // Get the data at the integrations points
+    TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond>  & material_mem = dynamic_cast<TPZMatWithMem<TPZElasticBiotMemory,TPZBndCond > & >(bc);
+    long global_point_index = datavec[u_b].intGlobPtIndex;
+    TPZElasticBiotMemory &point_memory = material_mem.GetMemory()[global_point_index];
     
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
+    TPZFMatrix<REAL>  &phiu = point_memory.phi_u();
+    TPZFNMatrix<3,REAL> u_m = point_memory.u_n();
+    TPZManVector<REAL,2> u(2,0.0);
+    u[0] = u_m(0,0);
+    u[1] = u_m(0,1);
     
     int phru = phiu.Rows();
     short in,jn;
@@ -268,8 +246,6 @@ void TPZElasticBiot::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,
     v[1] = bc.Val2()(1,0);	//	Uy displacement
     
     REAL time = this->SimulationData()->t();
-    REAL dt  = this->SimulationData()->dt();
-    REAL Value = bc.Val2()(0,0);
     if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(2);
         TPZFMatrix<REAL> gradf;

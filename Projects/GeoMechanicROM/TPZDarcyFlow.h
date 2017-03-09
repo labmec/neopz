@@ -134,7 +134,6 @@ public:
     
     void Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v);
     
-    void Compute_Sigma_fast(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v);
     
     // Contribute Methods being used
     void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){

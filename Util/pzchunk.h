@@ -173,7 +173,7 @@ inline T &TPZChunkVector<T,EXP>::operator[](const int nelem) const {
 #ifndef NODEBUG
 	if(nelem<0 || nelem >= NElements()) {
 		PZError << "TPZChunkVector::operator[]. "
-		<< "Bad parameter nelem." << nelem << " NElements "
+		<< "Bad parameter nelem = " << nelem << ", max NElements "
 		<< NElements() << std::endl;
 		DebugStop();
 		PZError.flush();
