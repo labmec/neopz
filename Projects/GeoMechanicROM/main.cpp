@@ -309,10 +309,10 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.5;
-    int n_steps = 40;
+    REAL dt = 1.0;
+    int n_steps = 20;
     REAL epsilon_res = 1.0e-2;
-    REAL epsilon_corr = 1.0e-5;
+    REAL epsilon_corr = 1.0e-4;
     int n_corrections = 10;
     bool IsMixedQ = false;
     bool IsRBQ    = false;
@@ -328,13 +328,13 @@ int Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
 
-    int order = 2;
+    int order = 3;
     int level = 0; // deprecated
-    int hlevel = 0;
+    int hlevel = 2;
     
     UniformRefinement(gmesh, hlevel);
     
@@ -479,13 +479,13 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.5;
-    int n_steps = 40;
+    REAL dt = 1.0;
+    int n_steps = 20;
     REAL epsilon_res = 1.0e-2;
-    REAL epsilon_corr = 1.0e-5;
+    REAL epsilon_corr = 1.0e-4;
     int n_corrections = 10;
     bool IsMixedQ = false;
-    bool IsRBQ    = false;
+    bool IsRBQ    = true;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
@@ -502,7 +502,7 @@ int Segregated_Geomechanic(){
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
     int order = 2;
-    int hlevel = 0;
+    int hlevel = 1;
     
     UniformRefinement(gmesh, hlevel);
     {
@@ -598,15 +598,36 @@ int Segregated_Geomechanic(){
     
     // Transfer object
     
-    // Build linear tranformations
-    transfer->Fill_elliptic_To_elliptic(cmesh_elliptic);
-    transfer->Fill_elliptic_To_parabolic(cmesh_elliptic, cmesh_parabolic);
-    transfer->Fill_parabolic_To_parabolic(cmesh_parabolic);
-    transfer->Fill_parabolic_To_elliptic(cmesh_parabolic, cmesh_elliptic);
-    
-    // transfer approximation space to integration points
-    transfer->space_To_elliptic(cmesh_elliptic);
-    transfer->space_To_parabolic(cmesh_parabolic);
+    if (IsRBQ) {
+        // Build linear tranformations
+        transfer->Fill_gp_elliptic_To_rb_elliptic(cmesh_gp, cmesh_elliptic);
+        transfer->Fill_gp_elliptic_To_parabolic(cmesh_gp, cmesh_parabolic);
+        
+//        transfer->Load_gp_elliptic_To_rb_elliptic(cmesh_gp, cmesh_elliptic);
+//        transfer->Fill_gp_elliptic_To_parabolic(cmesh_gp, cmesh_parabolic);
+        
+        transfer->Fill_elliptic_To_elliptic(cmesh_elliptic);
+        transfer->Fill_elliptic_To_parabolic(cmesh_elliptic, cmesh_parabolic);
+        
+        
+        transfer->Fill_parabolic_To_parabolic(cmesh_parabolic);
+        transfer->Fill_parabolic_To_elliptic(cmesh_parabolic, cmesh_elliptic);
+        
+        // transfer approximation space to integration points
+//        transfer->space_To_elliptic(cmesh_elliptic);
+//        transfer->space_To_parabolic(cmesh_parabolic);
+    }
+    else{
+        // Build linear tranformations
+        transfer->Fill_elliptic_To_elliptic(cmesh_elliptic);
+        transfer->Fill_elliptic_To_parabolic(cmesh_elliptic, cmesh_parabolic);
+        transfer->Fill_parabolic_To_parabolic(cmesh_parabolic);
+        transfer->Fill_parabolic_To_elliptic(cmesh_parabolic, cmesh_elliptic);
+        
+        // transfer approximation space to integration points
+        transfer->space_To_elliptic(cmesh_elliptic);
+        transfer->space_To_parabolic(cmesh_parabolic);
+    }
     
     // Run segregated solution
     TPZSegregatedSolver * segregated = new TPZSegregatedSolver;
@@ -614,12 +635,6 @@ int Segregated_Geomechanic(){
     segregated->Set_parabolic(parabolic);
     segregated->SetTransfer_object(transfer);
     segregated->SetSimulationData(sim_data);
-    
-    for (int i = 0 ; i <cmesh_parabolic->Solution().Rows(); i++) {
-        cmesh_parabolic->Solution()(i,0) = 1000.0;
-        parabolic->X()(i,0) = 1000.0;
-        parabolic->X_n()(i,0) = 1000.0;
-    }
     
     std::string elliptic_file = "elliptic.vtk";
     std::string parabolic_file = "parabolic.vtk";
@@ -681,11 +696,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+//    struct_mat.SetNumThreads(number_threads);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-//    struct_mat.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -2780,7 +2795,7 @@ void Analytic(const TPZVec<REAL> &x, REAL time, TPZVec<STATE> &u,TPZFMatrix<STAT
     REAL yD = (h-(y_c+h/2))/h;
     REAL tD = (l+2.0*mu)*kappa*time/(eta*h*h);
     
-    int n = 100;
+    int n = 200;
     REAL sump = 0.0;
     REAL sumu = 0.0;
     REAL sumv = 0.0;

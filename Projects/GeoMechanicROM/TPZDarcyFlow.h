@@ -152,6 +152,8 @@ public:
         DebugStop();
     }
     
+    void ContributeUndrained(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
     /**
      * It computes a contribution to the stiffness matrix and load vector at one integration point.
      * @param data[in] stores all input data

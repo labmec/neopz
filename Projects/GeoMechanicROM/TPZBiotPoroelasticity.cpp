@@ -1375,8 +1375,7 @@ void TPZBiotPoroelasticity::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
     
     
-    REAL to_Mpa     = 1.0e-6;
-    REAL to_Darcy   = 1.013249966e+15; //md
+    REAL to_Mpa     = 1.0;//1.0e-6;
     
     // Computing Gradient of the Solution
     TPZFNMatrix<6,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;

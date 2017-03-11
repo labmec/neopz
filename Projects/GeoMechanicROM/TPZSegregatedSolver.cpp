@@ -66,13 +66,29 @@ TPZSegregatedSolver & TPZSegregatedSolver::operator=(const TPZSegregatedSolver &
 /** @brief execute the evolutionary problem */
 void TPZSegregatedSolver::Run_Evolution(std::string elliptic, std::string parabolic){
     
-    int interval = 20;
+    int interval = 10;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
     
-//    this->PostProcessStep(elliptic,parabolic);    // Initial condition
+    std::cout << "Initial condition from undarined response " << std::endl;
+    {
+        // Initial condition transfer undarined response with epsilon_v = 0 sigma_v = p
+        fSimulationData->SetInitialStateQ(true);
+        felliptic->ExcecuteOneStep();
+        ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+        fparabolic->ExcecuteOneStep();
+        felliptic->X().Zero();
+        felliptic->X_n().Zero();
+        fSimulationData->SetInitialStateQ(false);
+        Update_at_n_State();
+        UpdateGlobalSolution();
+        
+        this->PostProcessStep(elliptic,parabolic);    // Initial condition
+    }
+    std::cout << std::endl;
     
+    std::cout << "Evolution with fixed-stress split " << std::endl;    
     for (int i = 1; i <= n; i++) {
         
         time = i * dt;
@@ -111,10 +127,10 @@ void TPZSegregatedSolver::ExcecuteOneStep(){
         REAL dx_norm_e = felliptic->dx_norm();
         REAL dx_norm_p = fparabolic->dx_norm();
         
-        IsConverged_eQ = (error_e < epsilon_res) &&  (error_p < epsilon_res);
-        IsConverged_dQ = (dx_norm_e < epsilon_cor) &&  (dx_norm_p < epsilon_cor);
+        IsConverged_eQ = (error_e < epsilon_res) &&  (error_p < epsilon_res && error_p != 0.0);
+        IsConverged_dQ = (dx_norm_e < epsilon_cor) &&  (dx_norm_p < epsilon_cor && dx_norm_p != 0.0);
         
-        if( IsConverged_eQ ||  IsConverged_dQ)
+        if( /* IsConverged_eQ || */ IsConverged_dQ)
         {
             ferror = felliptic->error_norm() + fparabolic->error_norm();
             fdx_norm = felliptic->dx_norm() + fparabolic->dx_norm();
@@ -133,7 +149,7 @@ void TPZSegregatedSolver::ExcecuteOneStep(){
 /** @brief Execute a segregated iteration  */
 void TPZSegregatedSolver::SegregatedIteration(){
     
-    // Fixed-Stress split
+    // Fixed-Stress split    
     fparabolic->ExcecuteOneStep();
     ftransfer->parabolic_To_elliptic(fparabolic->Mesh(), felliptic->Mesh());
     

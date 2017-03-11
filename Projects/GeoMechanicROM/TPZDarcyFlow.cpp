@@ -122,9 +122,75 @@ void TPZDarcyFlow::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u)
     
 }
 
+void TPZDarcyFlow::ContributeUndrained(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+    if (fIsMixedQ) {
+        ContributeMF(datavec, weight, ek, ef);
+        return;
+    }
+    
+    int p_b = 0;
+    
+    // Getting the space functions from memory
+    long global_point_index = datavec[p_b].intGlobPtIndex;
+    TPZDarcyFlowMemory &point_memory = GetMemory()[global_point_index];
+    
+    TPZFMatrix<REAL>    &phip   =   point_memory.phi_p();
+//    TPZFMatrix<REAL>    &grad_phi_p   =   point_memory.grad_phi_p();
+    
+    REAL   & p_n = point_memory.p_n();
+//    REAL   & p   = point_memory.p();
+    
+//    TPZFMatrix<REAL>    &grad_u   =   point_memory.grad_u();
+    TPZFMatrix<REAL>    &grad_u_n   =   point_memory.grad_u_n();
+    
+//    TPZFMatrix<REAL>    &grad_p = point_memory.grad_p_n();
+    
+    int nphi_p = phip.Rows();
+    int first_p = 0;
+    
+//    REAL dt = fSimulationData->dt();
+//    REAL alpha = 1.0;
+//    REAL Se = 0.0;
+    
+    TPZFNMatrix<9,REAL> S(3,3),S_n(3,3);
+//    Compute_Sigma(S, grad_u);
+    Compute_Sigma(S_n, grad_u_n);
+    
+//    REAL lambda     = 8.333e3;
+//    REAL mu         = 12.50e3;
+//    REAL v          = lambda/(2.0*(lambda+mu));
+//    REAL Kdr = lambda + (2.0/3.0)*mu;
+//    REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
+    REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
+//    REAL Ss = (Se + alpha*alpha/Kdr)/2.0;
+
+    if (!fSimulationData->IsCurrentStateQ()) {
+        
+        return;
+    }
+    
+
+    for (int ip = 0; ip < nphi_p; ip++) {
+        
+        ef(ip + first_p, 0)		+= weight * ( (p_n + 2.0*S_n_v) * phip(ip,0) );
+        
+        for (int jp = 0; jp < nphi_p; jp++) {
+            
+            ek(ip + first_p, jp + first_p)  += weight * phip(jp,0) * phip(ip,0) ;
+        }
+        
+    }
+    
+}
+
 // Contribute Methods being used
 void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
+    if (fSimulationData->IsInitialStateQ()) {
+        ContributeUndrained(datavec, weight, ek, ef);
+        return;
+    }
     
     if (fIsMixedQ) {
         ContributeMF(datavec, weight, ek, ef);
@@ -152,13 +218,9 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
     int first_p = 0;
     
     REAL dt = fSimulationData->dt();
-//    REAL div_u = grad_u(0,0) + grad_u(1,1);
-//    REAL div_u_n = grad_u_n(0,0) + grad_u_n(1,1);
     REAL alpha = 1.0;
     REAL Se = 0.0;
     
-    grad_u.Redim(3, 3);
-    grad_u_n.Redim(3, 3);
     TPZFNMatrix<9,REAL> S(3,3),S_n(3,3);
     Compute_Sigma(S, grad_u);
     Compute_Sigma(S_n, grad_u_n);
@@ -169,18 +231,17 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
     REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
     REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
     REAL Ss = (Se + alpha*alpha/Kdr)/2.0;
-    
+    S_v = S_n_v;
     if (!fSimulationData->IsCurrentStateQ()) {
         
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++) {
 //            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * div_u + Se * p) * phip(ip,0);
             ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * S_v / Kdr + Ss * p ) * phip(ip,0);
-//            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * ( (Se + alpha / Kdr ) * p ) * phip(ip,0);
         }
-//        std::cout << "p = " << p << std::endl;
         return;
     }
+
     
     REAL c = fk/feta;
     // Darcy mono-phasic flow
@@ -193,7 +254,6 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
         
 //        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * div_u_n + Se * p_n) * phip(ip,0) );
         ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * S_n_v / Kdr + Ss * p_n) * phip(ip,0) );
-//        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * ((Se - alpha / Kdr ) * p_n) * phip(ip,0) );
         
         for (int jp = 0; jp < nphi_p; jp++) {
             
@@ -223,6 +283,9 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
 
 void TPZDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
+    if (fSimulationData->IsInitialStateQ()) {
+        return;
+    }
     
     if (fIsMixedQ) {
         this->ContributeMFBC(datavec, weight, ek, ef, bc);
@@ -323,8 +386,7 @@ void TPZDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<RE
     TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
     
     
-    REAL to_Mpa     = 1.0e-6;
-    REAL to_Darcy   = 1.013249966e+15; //md
+    REAL to_Mpa     = 1.0;//1.0e-6;
     
     // Computing Gradient of the Solution
     TPZFNMatrix<6,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;

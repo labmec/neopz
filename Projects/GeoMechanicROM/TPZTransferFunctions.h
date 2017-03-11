@@ -94,6 +94,35 @@ private:
     TPZBiotIrregularBlockDiagonal<STATE> fgrad_u_To_parabolic;
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) :: Attributes Elliptic RB
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /** @brief full order dof indexes per element */
+    TPZVec< TPZVec<long> > fgp_u_dof_scatter;
+    
+    TPZStack< std::pair<long, std::pair<long, long> >  > fgp_rb_e_cindexes;
+    
+    TPZStack< std::pair<long, std::pair<long, long> >  > fgp_rb_p_cindexes;
+    
+    /** @brief integration point indexes */
+    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > frb_e_p_intp_indexes;
+    
+    TPZStack< std::pair<long, std::pair<long, long> >  > frb_e_p_cindexes;
+    
+    /** @brief linear application u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> frb_u_To_rb_elliptic;
+    
+    /** @brief linear application grad_u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> frb_grad_u_To_rb_elliptic;
+    
+    /** @brief linear application u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> frb_u_To_parabolic;
+    
+    /** @brief linear application grad_u to elliptic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> frb_grad_u_To_parabolic;
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Segregated Transfer methods (Gamma and Omega) :: Attributes Parabolic
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
@@ -187,6 +216,14 @@ public:
     void elliptic_To_elliptic(TPZCompMesh * elliptic);
     
     void elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMesh * parabolic);
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) Elliptic RB
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    void Fill_gp_elliptic_To_rb_elliptic(TPZCompMesh * gp_mesh, TPZCompMesh * elliptic);
+    
+    void Fill_gp_elliptic_To_parabolic(TPZCompMesh * gp_mesh, TPZCompMesh * parabolic);
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -249,7 +249,7 @@ void TPZGeomechanicAnalysis::PostProcessStep(std::string plotfile){
 /** @brief execute the evolutionary problem */
 void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile){
     
-    int interval = 20;
+    int interval = 10;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();

@@ -49,7 +49,6 @@ void TPZElasticBiot::FillDataRequirements(TPZVec<TPZMaterialData> &datavec){
         // RB case
         datavec[0].fNeedsBasis = false;
         datavec[0].fNeedsSol = false;
-        DebugStop();
         return;
     }
     
@@ -74,7 +73,6 @@ void TPZElasticBiot::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMa
         datavec[0].fNeedsBasis = false;
         datavec[0].fNeedsSol = false;
         datavec[0].fNeedsNormal = false;
-        DebugStop();
         return;
     }
     
@@ -93,9 +91,10 @@ int TPZElasticBiot::VariableIndex(const std::string &name){
     
     //	Elasticity Variables
     if(!strcmp("u",name.c_str()))              return	0;
-    
-    //	Elasticity Variables
     if(!strcmp("ue",name.c_str()))              return	1;
+    if(!strcmp("sx",name.c_str()))              return	2;
+    if(!strcmp("sy",name.c_str()))              return	3;
+    if(!strcmp("sxy",name.c_str()))              return	4;
     
     return -1;
     
@@ -110,6 +109,12 @@ int TPZElasticBiot::NSolutionVariables(int var){
             return fdimension; // Vector
         case 1:
             return fdimension; // Vector
+        case 2:
+            return 1; // Scalar
+        case 3:
+            return 1; // Scalar
+        case 4:
+            return 1; // Scalar
     }
     return TPZMatWithMem::NSolutionVariables(var);
     
@@ -164,7 +169,6 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     
     TPZFNMatrix<6,REAL> Grad_u(3,3,0.0);
     TPZFNMatrix<9,REAL> S(3,3,0.0);
-    grad_u_n.Resize(3, 3);
     this->Compute_Sigma(S,grad_u_n);
     
     TPZFNMatrix<9,REAL> Grad_vx_i(fdimension,1,0.0);
@@ -626,16 +630,18 @@ void TPZElasticBiot::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
     
     
-    REAL to_Mpa     = 1.0e-6;
+    REAL to_Mpa     = 1.0;//1.0e-6;
     
     // Computing Gradient of the Solution
-    TPZFNMatrix<6,REAL> Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;
+    TPZFNMatrix<6,REAL> Grad_u(3,3,0.0),S(3,3,0.0);
     
     Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
     Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
     
     Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
     Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
+    
+    Compute_Sigma(S, Grad_u);
     
     //	Displacements
     if(var == 0){
@@ -644,7 +650,7 @@ void TPZElasticBiot::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
         return;
     }
     
-    //	darcy
+    //	Displacements exact
     if(var == 1) {
         
         TPZManVector<STATE,5> f(1,0.0);
@@ -657,6 +663,24 @@ void TPZElasticBiot::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
         Solout[0] = f[0];
         Solout[1] = f[1];
         
+        return;
+    }
+    
+    //	Sigma x
+    if(var == 2) {
+        Solout[0] = S(0,0)*to_Mpa;
+        return;
+    }
+    
+    //	Sigma y
+    if(var == 3) {
+        Solout[0] = S(1,1)*to_Mpa;
+        return;
+    }
+    
+    //	Sigma xy
+    if(var == 4) {
+        Solout[0] = S(0,1)*to_Mpa;
         return;
     }
     

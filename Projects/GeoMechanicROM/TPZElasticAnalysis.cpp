@@ -212,6 +212,9 @@ void TPZElasticAnalysis::PostProcessStep(std::string plotfile){
     const int dim = this->Mesh()->Dimension();
     int div = 0;
     TPZStack<std::string>scalnames, vecnames;
+    scalnames.Push("sx");
+    scalnames.Push("sy");
+    scalnames.Push("sxy");
     vecnames.Push("u");
     vecnames.Push("ue");
     
