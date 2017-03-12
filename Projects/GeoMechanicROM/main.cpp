@@ -502,7 +502,7 @@ int Segregated_Geomechanic(){
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
     int order = 2;
-    int hlevel = 1;
+    int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
     {
@@ -550,7 +550,7 @@ int Segregated_Geomechanic(){
     
     // Filling the transfer object
     transfer->SetSimulationData(sim_data);
-    int number_threads = 16;
+    int number_threads = 0;
     
     // Elliptic problem
     TPZCompMesh * cmesh_elliptic = CMesh_Elliptic(gmesh, elliptic_mesh_vec, sim_data);
@@ -602,20 +602,15 @@ int Segregated_Geomechanic(){
         // Build linear tranformations
         transfer->Fill_gp_elliptic_To_rb_elliptic(cmesh_gp, cmesh_elliptic);
         transfer->Fill_gp_elliptic_To_parabolic(cmesh_gp, cmesh_parabolic);
-        
-//        transfer->Load_gp_elliptic_To_rb_elliptic(cmesh_gp, cmesh_elliptic);
-//        transfer->Fill_gp_elliptic_To_parabolic(cmesh_gp, cmesh_parabolic);
-        
-        transfer->Fill_elliptic_To_elliptic(cmesh_elliptic);
-        transfer->Fill_elliptic_To_parabolic(cmesh_elliptic, cmesh_parabolic);
-        
+        transfer->rb_elliptic_To_rb_elliptic(cmesh_elliptic);
+        transfer->rb_elliptic_To_parabolic(cmesh_elliptic, cmesh_parabolic);
         
         transfer->Fill_parabolic_To_parabolic(cmesh_parabolic);
         transfer->Fill_parabolic_To_elliptic(cmesh_parabolic, cmesh_elliptic);
         
         // transfer approximation space to integration points
-//        transfer->space_To_elliptic(cmesh_elliptic);
-//        transfer->space_To_parabolic(cmesh_parabolic);
+        transfer->rb_space_To_rb_elliptic(cmesh_elliptic);
+        transfer->space_To_parabolic(cmesh_parabolic);
     }
     else{
         // Build linear tranformations
@@ -696,11 +691,11 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+//    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);

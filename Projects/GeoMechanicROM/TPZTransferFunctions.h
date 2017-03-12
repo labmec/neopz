@@ -110,16 +110,30 @@ private:
     TPZStack< std::pair<long, std::pair<long, long> >  > frb_e_p_cindexes;
     
     /** @brief linear application u to elliptic mesh */
-    TPZBiotIrregularBlockDiagonal<STATE> frb_u_To_rb_elliptic;
+    TPZBiotIrregularBlockDiagonal<STATE> fgp_u_To_rb_elliptic;
     
     /** @brief linear application grad_u to elliptic mesh */
-    TPZBiotIrregularBlockDiagonal<STATE> frb_grad_u_To_rb_elliptic;
+    TPZBiotIrregularBlockDiagonal<STATE> fgp_grad_u_To_rb_elliptic;
     
-    /** @brief linear application u to elliptic mesh */
-    TPZBiotIrregularBlockDiagonal<STATE> frb_u_To_parabolic;
+    /** @brief linear application u to parabolic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fgp_u_To_parabolic;
     
-    /** @brief linear application grad_u to elliptic mesh */
-    TPZBiotIrregularBlockDiagonal<STATE> frb_grad_u_To_parabolic;
+    /** @brief linear application grad_u to parabolic mesh */
+    TPZBiotIrregularBlockDiagonal<STATE> fgp_grad_u_To_parabolic;
+    
+    
+    /** @brief linear application rb u to elliptic mesh */
+    TPZFMatrix<STATE> frb_u_To_rb_elliptic;
+    
+    /** @brief linear application rb grad_u to elliptic mesh */
+    TPZFMatrix<STATE> frb_grad_u_To_rb_elliptic;
+    
+    
+    /** @brief linear application u to parabolic mesh */
+    TPZFMatrix<STATE> frb_u_To_parabolic;
+    
+    /** @brief linear application grad_u to parabolic mesh */
+    TPZFMatrix<STATE> frb_grad_u_To_parabolic;
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -224,6 +238,12 @@ public:
     void Fill_gp_elliptic_To_rb_elliptic(TPZCompMesh * gp_mesh, TPZCompMesh * elliptic);
     
     void Fill_gp_elliptic_To_parabolic(TPZCompMesh * gp_mesh, TPZCompMesh * parabolic);
+    
+    void rb_space_To_rb_elliptic(TPZCompMesh * elliptic);
+    
+    void rb_elliptic_To_rb_elliptic(TPZCompMesh * elliptic);
+    
+    void rb_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMesh * parabolic);
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
