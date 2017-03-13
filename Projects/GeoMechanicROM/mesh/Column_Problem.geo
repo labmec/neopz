@@ -9,7 +9,7 @@
 Include "rock_box.geo";
 
 dimension = 2;
-cl = 0.5;
+cl = 1.0;
 hexahedronsRQ = 1;
 
 bottoms = {};
@@ -39,11 +39,11 @@ ll1 = newll; Line Loop(ll1) = {1,2,3,4};
 s1  = news; Plane Surface(s1) = {ll1};
 rock[] = {s1};
 
-//Transfinite Line{1,3} = 1 Using Progression 1.0;
-//Transfinite Line{2,4} = 11 Using Progression 1.0;
+Transfinite Line{1,3} = 1 Using Progression 1.0;
+Transfinite Line{2,4} = 11 Using Progression 1.0;
 
 If (hexahedronsRQ == 1)
-//Transfinite Surface {s1};
+Transfinite Surface {s1};
 Recombine Surface {s1};
 EndIf
 

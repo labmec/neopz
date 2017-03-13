@@ -76,7 +76,13 @@ void TPZSegregatedSolver::Run_Evolution(std::string elliptic, std::string parabo
         // Initial condition transfer undarined response with epsilon_v = 0 sigma_v = p
         fSimulationData->SetInitialStateQ(true);
         felliptic->ExcecuteOneStep();
-        ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+        if (fSimulationData->IsRBApproxQ()) {
+            ftransfer->rb_elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+        }
+        else{
+            ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+        }
+        
         fparabolic->ExcecuteOneStep();
         felliptic->X().Zero();
         felliptic->X_n().Zero();
@@ -167,6 +173,12 @@ void TPZSegregatedSolver::UpdateState(){
     felliptic->UpdateState();
     fparabolic->UpdateState();
     
+    if(fSimulationData->IsRBApproxQ()){
+        ftransfer->rb_elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+        ftransfer->parabolic_To_elliptic(fparabolic->Mesh(), felliptic->Mesh());
+        return;
+    }
+    
     ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
     ftransfer->parabolic_To_elliptic(fparabolic->Mesh(), felliptic->Mesh());
     
@@ -179,8 +191,15 @@ void TPZSegregatedSolver::Update_at_n_State(){
     felliptic->Update_at_n_State();
     fparabolic->Update_at_n_State();
     
+    if(fSimulationData->IsRBApproxQ()){
+        ftransfer->rb_elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+        ftransfer->parabolic_To_elliptic(fparabolic->Mesh(), felliptic->Mesh());
+        return;
+    }
+
     ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
     ftransfer->parabolic_To_elliptic(fparabolic->Mesh(), felliptic->Mesh());
+
 }
 
 void TPZSegregatedSolver::PostProcessStep(std::string elliptic, std::string parabolic){

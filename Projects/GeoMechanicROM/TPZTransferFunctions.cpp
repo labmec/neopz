@@ -631,7 +631,6 @@ void TPZTransferFunctions::Fill_gp_elliptic_To_rb_elliptic(TPZCompMesh * gp_mesh
     fgp_u_To_rb_elliptic.Multiply(ScatterDisplacements,frb_u_To_rb_elliptic);
     fgp_grad_u_To_rb_elliptic.Multiply(ScatterDisplacements, frb_grad_u_To_rb_elliptic);
     
-    
     return;
 
 }
@@ -649,7 +648,7 @@ void TPZTransferFunctions::rb_space_To_rb_elliptic(TPZCompMesh * elliptic){
     TPZGeoMesh * geometry = elliptic->Reference();
     long nel = geometry->NElements();
     int dim = elliptic->Dimension();
-    
+    int n_rb = elliptic->Solution().Rows();
     
     long iblock = 0;
     long first_point_phi = 0;
@@ -697,7 +696,7 @@ void TPZTransferFunctions::rb_space_To_rb_elliptic(TPZCompMesh * elliptic){
         first_point_phi += b_size_phi.first;
         first_point_dphi += b_size_dphi.first;
         b_size_phi = fgp_u_To_rb_elliptic.GetSizeofBlock(iblock);
-        b_size_dphi = fgp_u_To_rb_elliptic.GetSizeofBlock(iblock);
+        b_size_dphi = fgp_grad_u_To_rb_elliptic.GetSizeofBlock(iblock);
         
         //  Getting the total integration point of the destination cmesh
         int matd_id = gel->MaterialId();
@@ -712,24 +711,27 @@ void TPZTransferFunctions::rb_space_To_rb_elliptic(TPZCompMesh * elliptic){
             long ipos;
             
             int gel_dim = gel->Dimension();
-            int nshapes = b_size_phi.second/dim;
-            TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
-            TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
+            int nshapes = n_rb;
+            TPZFNMatrix<3,STATE> phi_u(nshapes,dim,0.0);
+            TPZFNMatrix<9,STATE> grad_phi_u(nshapes,dim*dim);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int is = 0; is < nshapes; is++) {
                     for (int id = 0; id < dim; id++) {
-                        phi_u(is,id) = frb_u_To_rb_elliptic(ip*dim,id);
+                        phi_u(is,id) = frb_u_To_rb_elliptic(first_point_phi + ip*dim + id,is);
                     }
                     
                     
                 }
                 
+                
                 for (int is = 0; is < nshapes; is++) {
+                    int count = 0;
                     for (int id = 0 ; id < dim; id++) {
                         for (int jd = 0; jd < dim; jd++) {
-                            grad_phi_u(id,is) = frb_grad_u_To_rb_elliptic(ip*dim*gel_dim + id,jd);
+                            grad_phi_u(is,count) = frb_grad_u_To_rb_elliptic(first_point_dphi+ ip*dim*gel_dim + id*gel_dim + jd,is);
+                            count++;
                         }
                     }
                     
@@ -753,24 +755,27 @@ void TPZTransferFunctions::rb_space_To_rb_elliptic(TPZCompMesh * elliptic){
             
             
             int gel_dim = gel->Dimension();
-            int nshapes = b_size_phi.second/dim;
-            TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
-            TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
+            int nshapes = n_rb;
+            TPZFNMatrix<3,STATE> phi_u(nshapes,dim,0.0);
+            TPZFNMatrix<9,STATE> grad_phi_u(nshapes,dim*dim);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int is = 0; is < nshapes; is++) {
                     for (int id = 0; id < dim; id++) {
-                        phi_u(is,id) = frb_u_To_rb_elliptic(ip*dim,id);
+                        phi_u(is,id) = frb_u_To_rb_elliptic(first_point_phi + ip*dim + id,is);
                     }
 
                     
                 }
+
                 
                 for (int is = 0; is < nshapes; is++) {
+                    int count = 0;
                     for (int id = 0 ; id < dim; id++) {
                         for (int jd = 0; jd < dim; jd++) {
-                            grad_phi_u(id,is) = frb_grad_u_To_rb_elliptic(ip*dim*gel_dim + id,jd);
+                            grad_phi_u(is,count) = frb_grad_u_To_rb_elliptic(first_point_dphi+ ip*dim*gel_dim + id*gel_dim + jd,is);
+                            count++;
                         }
                     }
                     
@@ -868,18 +873,18 @@ void TPZTransferFunctions::rb_elliptic_To_rb_elliptic(TPZCompMesh * elliptic){
             long ipos;
             
             
-            TPZFNMatrix<3,STATE> u(1,3,0.0);
+            TPZFNMatrix<3,STATE> u(3,1,0.0);
             TPZFNMatrix<9,STATE> grad_u(3,3,0.0);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int id = 0; id < dim ; id++) {
-                    u(0,id) = u_at_elliptic(first_point_phi + ip*dim + id,0);
+                    u(id,0) = u_at_elliptic(first_point_phi + ip*dim + id,0);
                 }
                 
                 for (int id = 0; id < dim ; id++) {
                     for (int jd = 0; jd < dim ; jd++) {
-                        grad_u(jd,id)= grad_u_at_elliptic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                        grad_u(id,jd)= grad_u_at_elliptic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
                     }
                 }
                 
@@ -907,18 +912,18 @@ void TPZTransferFunctions::rb_elliptic_To_rb_elliptic(TPZCompMesh * elliptic){
             long ipos;
             
             
-            TPZFNMatrix<3,STATE> u(1,3,0.0);
+            TPZFNMatrix<3,STATE> u(3,1,0.0);
             TPZFNMatrix<9,STATE> grad_u(3,3,0.0);
             for(long ip = 0; ip <  n_points; ip++) {
                 ipos  = int_point_indexes[ip];
                 
                 for (int id = 0; id < dim ; id++) {
-                    u(0,id) = u_at_elliptic(first_point_phi + ip*dim + id,0);
+                    u(id,0) = u_at_elliptic(first_point_phi + ip*dim + id,0);
                 }
                 
                 for (int id = 0; id < dim ; id++) {
                     for (int jd = 0; jd < dim ; jd++) {
-                        grad_u(jd,id)= grad_u_at_elliptic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                        grad_u(id,jd)= grad_u_at_elliptic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
                     }
                 }
                 
@@ -1684,8 +1689,8 @@ void TPZTransferFunctions::Fill_elliptic_To_elliptic(TPZCompMesh * elliptic){
         element_index++;
     }
     
-    fu_To_elliptic.Print(" u_to_e ");
-    fgrad_u_To_elliptic.Print(" grad_u_to_e ");
+//    fu_To_elliptic.Print(" u_to_e ");
+//    fgrad_u_To_elliptic.Print(" grad_u_to_e ");
     
     return;
     
@@ -3452,7 +3457,7 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
                 p = p_at_elliptic(first_point_phi + ip,0);
                 
                 for (int id = 0; id < dim ; id++) {
-                    grad_p(id,0)= grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
+                    grad_p(id,0) = grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
                 }
                 
                 if (fSimulationData->IsCurrentStateQ()) {

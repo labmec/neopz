@@ -47,8 +47,8 @@ void TPZElasticBiot::FillDataRequirements(TPZVec<TPZMaterialData> &datavec){
     if(shapetype == datavec[0].EVecShape)
     {
         // RB case
+        datavec[0].SetAllRequirements(false);
         datavec[0].fNeedsBasis = false;
-        datavec[0].fNeedsSol = false;
         return;
     }
     
@@ -70,9 +70,8 @@ void TPZElasticBiot::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMa
     if(shapetype == datavec[0].EVecShape)
     {
         // RB case
+        datavec[0].SetAllRequirements(false);
         datavec[0].fNeedsBasis = false;
-        datavec[0].fNeedsSol = false;
-        datavec[0].fNeedsNormal = false;
         return;
     }
     
@@ -398,21 +397,6 @@ void TPZElasticBiot::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZManVector<REAL,10> & u = datavec[u_b].sol[0];
     TPZFNMatrix <15,REAL> & du = datavec[u_b].dsol[0];
     
-    //    // Transfering from integration points
-    //    int n_rb = int_phi_u.size();
-    //    phiu.Redim(n_rb, fdimension);
-    //    dphiu.Redim(n_rb, fdimension*fdimension);
-    //    for (int i = 0; i < n_rb; i++) {
-    //        int cd = 0;
-    //        for (int id = 0; id < fdimension; id++) {
-    //            phiu(i,id) = int_phi_u[i](id,0);
-    //            for (int jd = 0; jd < fdimension; jd++) {
-    //                dphiu(i,cd) = int_dphi_u[i](jd,id);
-    //                cd++;
-    //            }
-    //        }
-    //    }
-    
     u.Resize(fdimension, 0.0);
     du.Resize(fdimension, fdimension);
     
@@ -443,7 +427,7 @@ void TPZElasticBiot::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL weight,
     grad_u(1,0) = du(0,1); // duy/dx
     grad_u(1,1) = du(1,1); // duy/dy
     
-    REAL p = 0.0;
+    REAL & p_n = point_memory.p_n();
     
     int nphi_u = phiu.Rows();
     
@@ -465,6 +449,8 @@ void TPZElasticBiot::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL weight,
         return;
     }
     
+//    phiu.Print("phiu = ");
+//    dphiu.Print("dphiu = ");
     
     for (int iu = 0; iu < nphi_u; iu++) {
         
@@ -475,8 +461,8 @@ void TPZElasticBiot::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL weight,
         Grad_vy_i(0,0) = dphiu(iu,2); // dvy/dx
         Grad_vy_i(1,0) = dphiu(iu,3); // dvy/dy
         
-        REAL iterm1 = weight * ((S(0,0) - falpha * p) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0));
-        REAL iterm2 = weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - falpha * p) * Grad_vy_i(1,0));
+        REAL iterm1 = weight * ((S(0,0) - falpha * p_n) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0));
+        REAL iterm2 = weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - falpha * p_n) * Grad_vy_i(1,0));
         ef(iu + first_u, 0) += iterm1 + iterm2;
         
         for (int ju = 0; ju < nphi_u; ju++) {
@@ -506,7 +492,7 @@ void TPZElasticBiot::ContributeRB_BC(TPZVec<TPZMaterialData> &datavec, REAL weig
     
     int ux_id = 0;
     int uy_id = 1;
-    REAL c_big = 1.0;
+    REAL c_big = 0.0;
     
     // Getting RB functions and solution form integration points
     // Get the data at the integrations points
@@ -548,23 +534,19 @@ void TPZElasticBiot::ContributeRB_BC(TPZVec<TPZMaterialData> &datavec, REAL weig
     int first_u = 0;
     
     short in,jn;
-    REAL v[3];
+    REAL v[2];
     v[0] = bc.Val2()(0,0);	//	Ux displacement
     v[1] = bc.Val2()(1,0);	//	Uy displacement
-    v[2] = bc.Val2()(2,0);	//	Pressure
     
     REAL time = this->SimulationData()->t();
-    REAL dt  = this->SimulationData()->dt();
-    REAL Value = bc.Val2()(0,0);
+
     if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(3);
         TPZFMatrix<REAL> gradf;
         bc.TimedependentBCForcingFunction()->Execute(datavec[u_b].x, time, f, gradf);
         v[0] = f[0];	//	Ux displacement or Tx
         v[1] = f[1];	//	Uy displacement or Ty
-        v[2] = f[2];	//	Pressure
     }
-    
     
     // Dirichlet in Pressure
     switch (bc.Type())
@@ -593,7 +575,76 @@ void TPZElasticBiot::ContributeRB_BC(TPZVec<TPZMaterialData> &datavec, REAL weig
             
         case 1 :
         {
-            //	Neumann condition for y state variable
+            //	Dirichlet condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                REAL iterm1		 = c_big*gBigNumber*(u[0] - v[0])*phiu(in,ux_id)*weight;	// X displacement Value
+                ef(in + first_u,0) += iterm1;
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    REAL jterm1		= c_big*gBigNumber*phiu(in,0)*phiu(jn,ux_id)*weight;	// X displacement
+                    ek(in + first_u,jn + first_u)   += jterm1;
+                }
+            }
+            break;
+        }
+          
+        case 2 :
+        {
+            //	Dirichlet condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                REAL iterm2      = c_big*gBigNumber*(u[1] - v[1])*phiu(in,uy_id)*weight;	// y displacement Value
+                ef(in + first_u,0) += iterm2;
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    REAL jterm2		= c_big*gBigNumber*phiu(in,0)*phiu(jn,uy_id)*weight;	// Y displacement
+                    ek(in + first_u,jn + first_u)   += jterm2;
+                }
+            }
+            break;
+        }
+            
+        case 3 :
+        {
+            //	Neumann condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //	Normal Tension Components on neumman boundary
+                REAL iterm1		= -1.0* v[0]*phiu(in,ux_id)*weight;		//	Tnx
+                REAL iterm2		= -1.0* v[1]*phiu(in,uy_id)*weight;		//	Tny
+                ef(in + first_u,0) += iterm1 + iterm2;
+            }
+
+            break;
+        }
+            
+        case 4 :
+        {
+            //	Neumann condition for each state variable
+            //	Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //	Normal Tension Components on neumman boundary
+                REAL iterm1		= -1.0* v[0]*phiu(in,ux_id)*weight;		//	Tnx
+                ef(in + first_u,0) += iterm1;
+            }
+            
+            break;
+        }
+
+        case 5 :
+        {
+            //	Neumann condition for each state variable
             //	Elasticity Equation
             for(in = 0 ; in <phru; in++)
             {
@@ -601,7 +652,7 @@ void TPZElasticBiot::ContributeRB_BC(TPZVec<TPZMaterialData> &datavec, REAL weig
                 REAL iterm2		= -1.0* v[1]*phiu(in,uy_id)*weight;		//	Tny
                 ef(in + first_u,0) += iterm2;
             }
-
+            
             break;
         }
             

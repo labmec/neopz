@@ -253,6 +253,7 @@ void TPZGeomechanicAnalysis::Run_Evolution(TPZVec<REAL> &x, std::string plotfile
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
+    this->PostProcessStep(plotfile);
     
     for (int i = 1; i <= n; i++) {
         time = i * dt;

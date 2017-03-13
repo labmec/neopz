@@ -105,16 +105,15 @@ int TPZPoroelasticModes::NSolutionVariables(int var){
 
 void TPZPoroelasticModes::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u){
     
-    TPZFNMatrix<6,REAL> Grad_ut(3,3,0.0), epsilon(3,3,0.0), I(3,3,0.0);
-    Grad_u.Transpose(&Grad_ut);
-    
-    epsilon = Grad_u + Grad_ut;
-    epsilon *= 0.5;
-    
-    I.Identity();
-    
-    REAL trace = (epsilon(0,0) + epsilon(1,1));
-    S = 2.0 * fmu * epsilon + flambda * trace * I;
+    REAL trace;
+    for (int i = 0; i < 3; i++) {
+        trace = 0.0;
+        for (int j = 0; j < 3; j++) {
+            S(i,j) = fmu * (Grad_u(i,j) + Grad_u(j,i));
+            trace +=  Grad_u(j,j);
+        }
+        S(i,i) += flambda * trace;
+    }
     
 }
 
@@ -171,7 +170,7 @@ void TPZPoroelasticModes::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     REAL div_u = grad_u(0,0) + grad_u(1,1);
     
     TPZFNMatrix<6,REAL> Grad_u(3,3,0.0);
-    TPZFNMatrix<9,REAL> S;
+    TPZFNMatrix<9,REAL> S(3,3);
     grad_u.Resize(3, 3);
     this->Compute_Sigma(S,grad_u);
     
@@ -187,21 +186,10 @@ void TPZPoroelasticModes::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     
     for (int iu = 0; iu < nphi_u; iu++) {
         
-        if(shapetype == datavec[u_b].EVecShape) // RB functions
-        {
-            // Computing Gradient of the test function for each component
-            Grad_vx_i(0,0) = dphiu(iu,0)*axes_u(0,0)+dphiu(iu,1)*axes_u(1,0); // dvx/dx
-            Grad_vx_i(1,0) = dphiu(iu,0)*axes_u(0,1)+dphiu(iu,1)*axes_u(1,1); // dvx/dy
-            
-            Grad_vy_i(0,0) = dphiu(iu,2)*axes_u(0,0)+dphiu(iu,3)*axes_u(1,0); // dvy/dx
-            Grad_vy_i(1,0) = dphiu(iu,2)*axes_u(0,1)+dphiu(iu,3)*axes_u(1,1); // dvy/dy
-        }
-        else{
-            // Computing Gradient of the test function for each component
-            for (int d = 0; d < fdimension; d++) {
-                Grad_vx_i(d,0) = grad_phi_u(d,iu);
-                Grad_vy_i(d,0) = grad_phi_u(d,iu);
-            }
+        // Computing Gradient of the test function for each component
+        for (int d = 0; d < fdimension; d++) {
+            Grad_vx_i(d,0) = grad_phi_u(d,iu);
+            Grad_vy_i(d,0) = grad_phi_u(d,iu);
         }
         
         ef(2*iu + first_u, 0)   += weight * ((S(0,0) - falpha * p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0));
@@ -209,33 +197,16 @@ void TPZPoroelasticModes::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
         
         for (int ju = 0; ju < nphi_u; ju++) {
             
-            if(shapetype == datavec[u_b].EVecShape) // RB functions
-            {
-                // Computing Gradient of the test function for each component
-                Grad_vx_j(0,0) = dphiu(ju,0)*axes_u(0,0)+dphiu(ju,1)*axes_u(1,0); // dvx/dx
-                Grad_vx_j(1,0) = dphiu(ju,0)*axes_u(0,1)+dphiu(ju,1)*axes_u(1,1); // dvx/dy
-                
-                Grad_vy_j(0,0) = dphiu(ju,2)*axes_u(0,0)+dphiu(ju,3)*axes_u(1,0); // dvy/dx
-                Grad_vy_j(1,0) = dphiu(ju,2)*axes_u(0,1)+dphiu(ju,3)*axes_u(1,1); // dvy/dy
-            }
-            else{
-                // Computing Gradient of the test function for each component
-                for (int d = 0; d < fdimension; d++) {
-                    Grad_vx_j(d,0) = grad_phi_u(d,ju);
-                    Grad_vy_j(d,0) = grad_phi_u(d,ju);
-                }
+            // Computing Gradient of the test function for each component
+            for (int d = 0; d < fdimension; d++) {
+                Grad_vx_j(d,0) = grad_phi_u(d,ju);
+                Grad_vy_j(d,0) = grad_phi_u(d,ju);
             }
             
             ek(2*iu + first_u, 2*ju + first_u)      += weight * ( ( (2.0*fmu + flambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + fmu * Grad_vx_j(1,0) * Grad_vx_i(1,0));
             ek(2*iu + first_u, 2*ju+1 + first_u)    += weight * ( (flambda * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + fmu * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
             ek(2*iu+1 + first_u, 2*ju + first_u)	+= weight * ( fmu * Grad_vx_j(1,0) * Grad_vy_i(0,0) + flambda * Grad_vx_j(0,0) * Grad_vy_i(1,0));
             ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= weight * ( (2.0*fmu + flambda) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + fmu * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
-        }
-        
-        for(int jp = 0; jp < nphi_p; jp++)
-        {
-            ek(2*iu,first_p+jp) +=      (-1.0)* weight * falpha * phip(jp,0) * Grad_vx_i(0,0);
-            ek(2*iu + 1,first_p+jp) +=  (-1.0)* weight * falpha * phip(jp,0) * Grad_vy_i(1,0);
         }
         
     }
@@ -294,7 +265,6 @@ void TPZPoroelasticModes::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL we
     v[2] = bc.Val2()(2,0);	//	Pressure
     
     REAL time = this->SimulationData()->t();
-    REAL dt  = this->SimulationData()->dt();
     REAL Value = bc.Val2()(0,0);
     if (bc.HasTimedependentBCForcingFunction()) {
         TPZManVector<REAL,3> f(3);
@@ -303,9 +273,6 @@ void TPZPoroelasticModes::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL we
         v[0] = f[0];	//	Ux displacement or Tx
         v[1] = f[1];	//	Uy displacement or Ty
         v[2] = f[2];	//	Pressure
-    }
-    else{
-        Value = bc.Val2()(0,0);
     }
     
     // Dirichlet in Pressure
@@ -545,8 +512,7 @@ void TPZPoroelasticModes::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
     
     
-    REAL to_Mpa     = 1.0e-6;
-    REAL to_Darcy   = 1.013249966e+15; //md
+    REAL to_Mpa     = 1.0;//1.0e-6;
     
     // Computing Gradient of the Solution
     TPZFNMatrix<6,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;

@@ -188,9 +188,11 @@ void TPZElasticAnalysis::ExcecuteOneStep(){
 void TPZElasticAnalysis::UpdateState(){
     this->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    ftransfer->elliptic_To_elliptic(this->Mesh());
     if (fSimulationData->IsRBApproxQ()) {
-        DebugStop();
+        ftransfer->rb_elliptic_To_rb_elliptic(this->Mesh());
+    }
+    else{
+       ftransfer->elliptic_To_elliptic(this->Mesh());
     }
     
 }
@@ -199,9 +201,11 @@ void TPZElasticAnalysis::UpdateState(){
 void TPZElasticAnalysis::Update_at_n_State(){
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    ftransfer->elliptic_To_elliptic(this->Mesh());
     if (fSimulationData->IsRBApproxQ()) {
-        DebugStop();
+        ftransfer->rb_elliptic_To_rb_elliptic(this->Mesh());
+    }
+    else{
+        ftransfer->elliptic_To_elliptic(this->Mesh());
     }
 }
 
@@ -210,7 +214,7 @@ void TPZElasticAnalysis::PostProcessStep(std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 0;
+    int div = 2;
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("sx");
     scalnames.Push("sy");
