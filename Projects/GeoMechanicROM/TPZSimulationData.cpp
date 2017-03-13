@@ -18,6 +18,9 @@ TPZSimulationData::TPZSimulationData(){
     /** @brief current time state */
     fIsCurrentStateQ =  false;
     
+    /** @brief Mixed approximation question */
+    fIsMixedApproxQ = false;
+    
     /** @brief Reduced basis approximation question */
     fIsRBApproxQ = false;
     

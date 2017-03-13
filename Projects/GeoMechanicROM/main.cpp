@@ -171,8 +171,6 @@ void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes
 // Create a computational mesh for reduced deformation
 TPZCompMesh * CMesh_Deformation_rb(TPZCompMesh * cmesh, int order);
 
-bool SegregateIteration(TPZCompMesh * elliptic, TPZCompMesh * parabolic, TPZTransferFunctions * transfer);
-
 
 void SetParameters(TPZCompMesh * cmesh, TPZVec<REAL> mu_vector);
 
@@ -493,6 +491,7 @@ int Segregated_Geomechanic(){
     sim_data->SetGravity(g);
     sim_data->SetTimeControls(n_steps, dt);
     sim_data->SetNumericControls(n_corrections, epsilon_res, epsilon_corr);
+    sim_data->SetMixedApproxQ(IsMixedQ);
     sim_data->SetRBApproxQ(IsRBQ);
     
     std::string dirname = PZSOURCEDIR;
@@ -501,7 +500,7 @@ int Segregated_Geomechanic(){
 //    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
-    int order = 4;
+    int order = 2;
     int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
@@ -550,7 +549,7 @@ int Segregated_Geomechanic(){
     
     // Filling the transfer object
     transfer->SetSimulationData(sim_data);
-    int number_threads = 16;
+    int number_threads = 0;
     
     // Elliptic problem
     TPZCompMesh * cmesh_elliptic = CMesh_Elliptic(gmesh, elliptic_mesh_vec, sim_data);
@@ -563,12 +562,12 @@ int Segregated_Geomechanic(){
     elliptic->SetTransfer_object(transfer);
     
     
-//    TPZSkylineStructMatrix struct_mat_e(cmesh_elliptic);
+    TPZSkylineStructMatrix struct_mat_e(cmesh_elliptic);
 
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_e(cmesh_elliptic);
 //    struct_mat_e.SetDecomposeType(ELDLt);
 
-    TPZSymetricSpStructMatrix struct_mat_e(cmesh_elliptic);
+//    TPZSymetricSpStructMatrix struct_mat_e(cmesh_elliptic);
     
     TPZStepSolver<STATE> step_e;
     struct_mat_e.SetNumThreads(number_threads);
@@ -668,18 +667,6 @@ int Segregated_Geomechanic(){
     
 }
 
-bool SegregateIteration(TPZCompMesh * elliptic, TPZCompMesh * parabolic, TPZTransferFunctions * transfer){
-    
-#ifdef PZDEBUG
-    if (!elliptic || !parabolic) {
-        DebugStop();
-    }
-#endif
-    
-    
-    
-    
-}
 
 TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_data, int order, int level){
     
@@ -691,18 +678,18 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 16;
+    int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geo_modes,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-    struct_mat.SetNumThreads(number_threads);
+//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+//    struct_mat.SetNumThreads(number_threads);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-//    struct_mat.SetDecomposeType(ELDLt);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);

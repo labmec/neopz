@@ -143,6 +143,9 @@ private:
     /** @brief  p dof indexes per element */
     TPZVec< TPZVec<long> > fp_dof_scatter;
     
+    /** @brief  flux dof indexes per element */
+    TPZVec< TPZVec<long> > fq_dof_scatter;
+    
     /** @brief integration point indexes */
     TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fp_e_intp_indexes;
     
@@ -252,11 +255,17 @@ public:
     
     void Fill_parabolic_To_parabolic(TPZCompMesh * parabolic);
     
+    void Fill_M_parabolic_To_parabolic(TPZCompMesh * parabolic);
+    
     void Fill_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic);
 
     void space_To_parabolic(TPZCompMesh * parabolic);
     
+    void space_M_To_parabolic(TPZCompMesh * parabolic);
+    
     void parabolic_To_parabolic(TPZCompMesh * parabolic);
+    
+    void M_parabolic_To_parabolic(TPZCompMesh * parabolic);
     
     void parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic);
     
@@ -289,6 +298,8 @@ public:
     
     /** @brief Compute element dof indexes */
     void ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes);
+    
+    void ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes, int el_index);
     
     /** @brief Compute element dof indexes at given connect */
     void ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);

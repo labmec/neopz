@@ -23,6 +23,9 @@ protected:
     /** @brief current time REAL */
     bool fIsCurrentStateQ;
     
+    /** @brief Mixed approximation question */
+    bool fIsMixedApproxQ;
+    
     /** @brief Reduced basis approximation question */
     bool fIsRBApproxQ;
     
@@ -104,6 +107,12 @@ public:
     /** @brief current time REAL */
     bool IsCurrentStateQ() {return fIsCurrentStateQ;}
 
+    /** @brief Set Mixed basis approximation question */
+    void SetMixedApproxQ(bool state) { fIsMixedApproxQ = state; }
+    
+    /** @brief Get Mixed basis approximation question */
+    bool IsMixedApproxQ() {return fIsMixedApproxQ;}
+    
     /** @brief Set Reduced basis approximation question */
     void SetRBApproxQ(bool state) { fIsRBApproxQ = state; }
     
