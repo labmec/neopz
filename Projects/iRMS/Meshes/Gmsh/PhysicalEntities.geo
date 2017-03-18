@@ -4,14 +4,17 @@ Macro DrawBoundaries
 If (dimension == 3)
 
 // Tagging boundary conditions for prodution wells
-Physical Surface("well_lids") = well_lids[];
+
+Physical Surface("well_p_lids") = well_p_lids[];
+Physical Surface("well_i_lids") = well_i_lids[];
 
 Physical Surface("producers") = well_p_bores[];
-
 Physical Surface("injectors") = well_i_bores[];
 
-
-Physical Volume("Reservoir") = {v1,well_p_v_regions[],well_i_v_regions[]};
+//Physical Volume("Reservoir") = {v1,well_p_v_regions[],well_i_v_regions[]};
+Physical Volume("Reservoir") = {v1};
+Physical Volume("Wellbore_p") = {well_p_v_regions[]};
+Physical Volume("Wellbore_i") = {well_i_v_regions[]};
 Physical Surface("Reservoir_bottom") = {res_B[]};
 Physical Surface("Reservoir_top") = {res_T[]};
 Physical Surface("Reservoir_South") = {res_S[]};
@@ -36,13 +39,17 @@ EndIf
 Else
 
 // Tagging boundary conditions for prodution wells
-Physical Line("well_lids") = well_lids[];
+
+Physical Line("well_p_lids") = well_p_lids[];
+Physical Line("well_i_lids") = well_i_lids[];
 
 Physical Line("producers") = well_p_bores[];
-
 Physical Line("injectors") = well_i_bores[];
 
-Physical Surface("Reservoir") = {s1,well_p_v_regions[],well_i_v_regions[]};
+//Physical Surface("Reservoir") = {s1,well_p_v_regions[],well_i_v_regions[]};
+Physical Surface("Reservoir") = {s1};
+Physical Surface("Wellbore_p") = {well_p_v_regions[]};
+Physical Surface("Wellbore_i") = {well_i_v_regions[]};
 Physical Line("Reservoir_south") = {res_S[]};
 Physical Line("Reservoir_West") = {res_W[]};
 Physical Line("Reservoir_north") = {res_N[]};

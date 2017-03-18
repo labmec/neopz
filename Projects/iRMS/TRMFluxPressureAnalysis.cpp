@@ -259,14 +259,15 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
-        plotfile =  "DualSegregatedDarcyOnBox_I.vtk";
+        plotfile =  "parabolic_I.vtk";
         return;
     }
     else{
-        plotfile =  "DualSegregatedDarcyOnBox.vtk";
+        plotfile =  "parabolic.vtk";
     }
     
     scalnames.Push("p");
+    scalnames.Push("order");
     vecnames.Push("u");
 //    scalnames.Push("div_u");
 //    scalnames.Push("cfl");

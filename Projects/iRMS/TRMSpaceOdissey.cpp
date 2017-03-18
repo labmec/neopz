@@ -158,8 +158,13 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
+        
+        // Inserting volumetric materials
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         TRMMixedDarcy * mat = new TRMMixedDarcy(rock_id,dim);
         fFluxCmesh->InsertMaterialObject(mat);
@@ -167,11 +172,26 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
         TRMMixedDarcy * mat_skeleton = new TRMMixedDarcy(fSimulationData->Skeleton_material_Id(),dim-1);
         fFluxCmesh->InsertMaterialObject(mat_skeleton); // @omar::  skeleton material inserted
         
-        // Inserting volumetric materials
-        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 6;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
         int bc_id = 0;
 
-        for (int j = 0; j < n_boundauries; j++) {
+        // Inserting boundary materials associated to the current mat
+        for (int j = initial_bc; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
             if (fSimulationData->IsInitialStateQ()) {
@@ -195,6 +215,36 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     fFluxCmesh->SetAllCreateFunctionsHDiv();
     fFluxCmesh->AutoBuild();
     
+    bool IncreaseAccQ = true;
+    int wellbore_order = 2;
+    
+    if(IncreaseAccQ){
+        
+        int n_el = fFluxCmesh->NElements();
+        for (int icel = 0; icel < n_el; icel++) {
+            TPZCompEl * cel = fFluxCmesh->Element(icel);
+            if(!cel) continue;
+            
+            TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace *>(cel);
+            if(!sp) continue;
+            if (sp->Reference()->Dimension() == dim - 1) {
+                continue;
+            }
+            if (sp->Reference()->MaterialId() == 6) {
+                sp->PRefine(wellbore_order);
+            }
+            if (sp->Reference()->MaterialId() == 7) {
+                sp->PRefine(wellbore_order);
+            }
+            
+        }
+        
+        fFluxCmesh->AdjustBoundaryElements();
+        fFluxCmesh->CleanUpUnconnectedNodes();
+        fFluxCmesh->ExpandSolution();
+    }
+
+
 #ifdef PZDEBUG
     std::ofstream out("CmeshFlux.txt");
     fFluxCmesh->Print(out);
@@ -243,6 +293,35 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     fPressureCmesh->AdjustBoundaryElements();
     fPressureCmesh->CleanUpUnconnectedNodes();
     
+    bool IncreaseAccQ = true;
+    int wellbore_order = 2;
+    
+    if(IncreaseAccQ){
+
+        int n_el = fPressureCmesh->NElements();
+        for (int icel = 0; icel < n_el; icel++) {
+            TPZCompEl * cel = fPressureCmesh->Element(icel);
+            if(!cel) continue;
+            
+            TPZInterpolationSpace *sp = dynamic_cast<TPZInterpolationSpace *>(cel);
+            if(!sp) continue;
+            if (sp->Reference()->Dimension() == dim - 1) {
+                continue;
+            }
+            if (sp->Reference()->MaterialId() == 6) {
+                sp->PRefine(wellbore_order);
+            }
+            if (sp->Reference()->MaterialId() == 7) {
+                sp->PRefine(wellbore_order);
+            }
+
+        }
+
+        fPressureCmesh->AdjustBoundaryElements();
+        fPressureCmesh->CleanUpUnconnectedNodes();
+        fPressureCmesh->ExpandSolution();
+    }
+
     int ncon = fPressureCmesh->NConnects();
     for(int i=0; i<ncon; i++)
     {
@@ -250,8 +329,6 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
         newnod.SetLagrangeMultiplier(1);
     }
     
-//    TPZDummyFunction<STATE> dummy(PressFunc);
-//    TPZCompMeshTools::LoadSolution(fPressureCmesh, dummy);
 #ifdef PZDEBUG
     std::ofstream out("CmeshPress.txt");
     fPressureCmesh->Print(out);
@@ -571,6 +648,9 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
@@ -579,10 +659,24 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
         fMixedFluxPressureCmesh->InsertMaterialObject(mat);
         
         // Inserting boundary materials
-        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 6;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
         int bc_id = 0;
 
-        for (int j = 0; j < n_boundauries; j++) {
+        for (int j = initial_bc; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
             if (fSimulationData->IsInitialStateQ()) {
@@ -630,8 +724,6 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
     
     fMixedFluxPressureCmesh->CleanUpUnconnectedNodes();
     
-//    TPZCompMeshTools::OptimizeBandwidth(fMixedFluxPressureCmesh);
-    
 #ifdef PZDEBUG
     std::ofstream out("CmeshMixed.txt");
     fMixedFluxPressureCmesh->Print(out);
@@ -662,6 +754,9 @@ void TRMSpaceOdissey::CreateMixedCmeshMHM(){
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
@@ -670,7 +765,22 @@ void TRMSpaceOdissey::CreateMixedCmeshMHM(){
         fMixedFluxPressureCmeshMHM->InsertMaterialObject(mat);
         
         // Inserting boundary materials
-        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 6;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
         int bc_id = 0;
         
         for (int j = 0; j < n_boundauries; j++) {
@@ -743,6 +853,9 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
@@ -751,10 +864,25 @@ void TRMSpaceOdissey::CreateMultiphaseCmesh(){
         fMonolithicMultiphaseCmesh->InsertMaterialObject(mat);
         
         // Inserting boundary materials
-        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 6;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
         int bc_id = 0;
 
-        for (int j = 0; j < n_boundauries; j++) {
+        for (int j = initial_bc; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
             if (fSimulationData->IsInitialStateQ()) {
@@ -971,6 +1099,9 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
@@ -985,11 +1116,26 @@ void TRMSpaceOdissey::CreateAlphaTransportMesh()
         }
         
         // Inserting volumetric materials
-        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 6;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
         int bc_id = 0;
         std::pair< int, TPZFunction<REAL> * > bc_item;
         TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
-        for (int j = 0; j < n_boundauries; j++) {
+        for (int j = initial_bc; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
             if (fSimulationData->IsInitialStateQ()) {
@@ -1045,6 +1191,9 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
@@ -1059,11 +1208,26 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
         }
         
         // Inserting volumetric materials
-        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 6;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
         int bc_id = 0;
         std::pair< int, TPZFunction<REAL> * > bc_item;
         TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
-        for (int j = 0; j < n_boundauries; j++) {
+        for (int j = initial_bc; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
             if (fSimulationData->IsInitialStateQ()) {
@@ -1085,13 +1249,6 @@ void TRMSpaceOdissey::CreateBetaTransportMesh()
     fBetaSaturationMesh->SetDefaultOrder(sorder);
     fBetaSaturationMesh->SetAllCreateFunctionsDiscontinuous();
     fBetaSaturationMesh->AutoBuild();
-    
-    int n_ref = 1;
-    this->UniformRefinement_cmesh(fBetaSaturationMesh, n_ref);
-    fBetaSaturationMesh->AdjustBoundaryElements();
-    fBetaSaturationMesh->CleanUpUnconnectedNodes();
-    fBetaSaturationMesh->AutoBuild();
-    
     
 #ifdef PZDEBUG
     std::ofstream out("CmeshS_beta.txt");
@@ -1125,6 +1282,9 @@ void TRMSpaceOdissey::CreateTransportMesh(){
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
@@ -1138,10 +1298,24 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         fGeoMesh->AddInterfaceMaterial(rock_id, rock_id,interface_id);
         
         // Inserting volumetric materials
-        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 6;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
         int bc_id = 0;
 
-        for (int j = 0; j < n_boundauries; j++) {
+        for (int j = initial_bc; j < n_boundauries; j++) {
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
             if (fSimulationData->IsInitialStateQ()) {

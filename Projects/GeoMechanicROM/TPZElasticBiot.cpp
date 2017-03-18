@@ -175,6 +175,13 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     TPZFNMatrix<9,REAL> Grad_vx_j(fdimension,1,0.0);
     TPZFNMatrix<9,REAL> Grad_vy_j(fdimension,1,0.0);
     
+    REAL l1 = 1.0;
+    REAL l2 = 1.0;
+    if (fSimulationData->IsInitialStateQ()) {
+        l1 = 1.0;
+        l2 = 1.0;
+    }
+    
     if (!fSimulationData->IsCurrentStateQ()) {
         
         return;
@@ -199,10 +206,10 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
                 Grad_vy_j(d,0) = grad_phi_u(d,ju);
             }
             
-            ek(2*iu + first_u, 2*ju + first_u)      += weight * ( ( (2.0*fmu + flambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + fmu * Grad_vx_j(1,0) * Grad_vx_i(1,0));
-            ek(2*iu + first_u, 2*ju+1 + first_u)    += weight * ( (flambda * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + fmu * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
-            ek(2*iu+1 + first_u, 2*ju + first_u)	+= weight * ( fmu * Grad_vx_j(1,0) * Grad_vy_i(0,0) + flambda * Grad_vx_j(0,0) * Grad_vy_i(1,0));
-            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= weight * ( (2.0*fmu + flambda) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + fmu * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
+            ek(2*iu + first_u, 2*ju + first_u)      += weight * ( ( (l2*2.0*fmu + l1*flambda) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + l2*fmu * Grad_vx_j(1,0) * Grad_vx_i(1,0));
+            ek(2*iu + first_u, 2*ju+1 + first_u)    += weight * ( (l1*flambda * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + l2*fmu * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
+            ek(2*iu+1 + first_u, 2*ju + first_u)	+= weight * ( l2*fmu * Grad_vx_j(1,0) * Grad_vy_i(0,0) + l1*flambda * Grad_vx_j(0,0) * Grad_vy_i(1,0));
+            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= weight * ( (l2*2.0*fmu + l1*flambda) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + l2*fmu * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
         }
         
     }

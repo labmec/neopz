@@ -204,9 +204,6 @@ void TPZDarcyFlow::ContributeUndrainedMF(TPZVec<TPZMaterialData> &datavec, REAL 
     int first_q = 0;
     int first_p = first_q + nphi_q;
 
-//    
-//    int nphi_p = phip.Rows();
-//    int first_p = 0;
     
     TPZFNMatrix<9,REAL> S(3,3),S_n(3,3);
     Compute_Sigma(S_n, grad_u_n);

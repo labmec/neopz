@@ -24,22 +24,12 @@ well_i_v_regions = {};
 // Settings
 ExpertMode = 1;
 
-<<<<<<< HEAD
-dimension = 3;
-nolinearQ = 0;
-YReservoirQ = 1;
-
-xzQ = 0;
-hexahedronsQ = 0;
-hexahedronsOutQ = 0;
-=======
 dimension = 2;
 nolinearQ = 0;
 
 xzQ = 0;
 hexahedronsQ = 1;
 hexahedronsOutQ = 1;
->>>>>>> iRMS_Biot
 
 If (nolinearQ == 1)
 Mesh.ElementOrder = 2;

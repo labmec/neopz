@@ -4544,10 +4544,21 @@ void TPZTransferFunctions::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZ
     }
 #endif
     
+
+    
     int start = 0;
     if (el_index == 1) {
-        start = 5;
+      
+        TPZInterpolationSpace * intel_vol_q = dynamic_cast<TPZInterpolationSpace * >(m_el->Element(0));
+        
+#ifdef PZDEBUG
+        if (!intel_vol_q) {
+            DebugStop();
+        }
+#endif
+        start = intel_vol_q->NConnects();
     }
+    
     
     TPZStack<long> index(0,0);
     int nconnect = m_el->NConnects();

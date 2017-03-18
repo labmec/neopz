@@ -560,19 +560,11 @@ void TRMBuildTransfers::kappa_phi_To_Mixed_Memory(TPZCompMesh * cmesh_multiphysi
     
     int dim = cmesh_multiphysics->Dimension();
     
-    // For the imat
-    int imat = 0;
-    int rockid = this->SimulationData()->RawData()->fOmegaIds[imat];
-    
-    //  Getting the total integration point of the destination cmesh
-    TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
     
     TPZFMatrix<STATE> kappa, kappa_inv;
     TPZManVector<STATE, 10> vars;
     TPZManVector<STATE, 10> porosity;
-//    REAL porosity;
-//    long index = 0;
+
     // Step one
     int n_elements = cmesh_multiphysics->NElements();
     TPZManVector<long, 30> indexes;
@@ -614,6 +606,12 @@ void TRMBuildTransfers::kappa_phi_To_Mixed_Memory(TPZCompMesh * cmesh_multiphysi
             DebugStop();
         }
 #endif
+        
+        int rockid = gel->MaterialId();
+        
+        //  Getting the total integration point of the destination cmesh
+        TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
+        TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
         
         TPZManVector<REAL,3> par_triplet(3,0.0);
         TPZManVector<REAL,3> x(3,0.0);
@@ -1227,14 +1225,6 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
     cmesh_mf_mixed->LoadReferences();
     TPZGeoMesh * geometry = cmesh_mf_mixed->Reference();
     
-    // For the imat
-    int imat = 0;
-    int rockid = this->SimulationData()->RawData()->fOmegaIds[imat];
-    
-    //  Getting the total integration point of the destination cmesh
-    TPZMaterial * mixed_material = cmesh_mf_mixed->FindMaterial(rockid);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * mixed_memory = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(mixed_material);
-    
     TPZManVector<long,30> p_point_indexes;
     long nvolumes = fmixed_transport_cindexes.size();
     
@@ -1270,6 +1260,11 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
             DebugStop();
         }
 #endif
+        
+        int rockid = gel->MaterialId();
+        //  Getting the total integration point of the destination cmesh
+        TPZMaterial * mixed_material = cmesh_mf_mixed->FindMaterial(rockid);
+        TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * mixed_memory = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(mixed_material);
         
         REAL w;
         TPZManVector<REAL,3> triplet(3,0.0);
@@ -3177,7 +3172,7 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
             DebugStop();
         }
 #endif
-        if (gel->Dimension() != dimension || gel->HasSubElement()) {
+        if (gel->Dimension() != dimension || gel->HasSubElement() || gel->MaterialId() > 7) {
             continue;
         }
         gel_indexes.first = gel->Index();

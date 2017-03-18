@@ -237,8 +237,8 @@ public:
     /** @brief Create a dual analysis using space odissey */
     void CreateAnalysisDual();
     
-    /** @brief Create a dual analysis on box geometry using space odissey */
-    void CreateAnalysisDualonBox(bool IsInitialQ);
+    /** @brief Create a segregated analysis using space odissey */
+    void CreateSegregatedAnalysis(bool IsInitialQ);
     
     /** @brief Create a monolithic dual analysis on box geometry using space odissey */
     void CreateMonolithicAnalysis(bool IsInitialQ);

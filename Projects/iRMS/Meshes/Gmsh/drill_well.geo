@@ -252,12 +252,18 @@ EndIf
 // Transfering indexes
 ////////////////////////////////////////////////////////////////////////////
 
-
 N = #well_lid[];
-M = #well_lids[];
+If(IsInjectorQ == 1)
+M = #well_i_lids[];
 For i In {0:N-1}
-	well_lids[i + M] = well_lid[i];
+	well_i_lids[i + M] = well_lid[i];
 EndFor
+Else
+M = #well_p_lids[];
+For i In {0:N-1}
+	well_p_lids[i + M] = well_lid[i];
+EndFor
+EndIf
 
 N = #well_bore[];
 If(IsInjectorQ == 1)
