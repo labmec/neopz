@@ -136,8 +136,8 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fMap->SetMapModel(map_model);
     
 //    fGridName = "ch_fem_thiem/reservoir_3D_H_C.msh";
-//    fGridName = "ch_fem_thiem/reservoir_3D_P_C.msh";
-    fGridName = "ch_fem_thiem/reservoir_3D_T_C.msh";
+    fGridName = "ch_fem_thiem/reservoir_3D_P_C.msh";
+//    fGridName = "ch_fem_thiem/reservoir_3D_T_C.msh";
     fPermPorFields.first = "ch_fem_thiem/spe_perm.dat";
     fPermPorFields.second = "ch_fem_thiem/spe_phi.dat";
     fNBlocks.Push(60);
@@ -180,7 +180,7 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 2; // fine
+    fMHMResolutionQ.second.second = 0; // fine
     
     
     // Rock materials ids

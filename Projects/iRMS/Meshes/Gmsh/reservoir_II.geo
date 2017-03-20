@@ -8,7 +8,7 @@
 
 Mesh.Algorithm3D = 6 ;
 
-IsHexaQ = 1;
+IsHexaQ = 0;
 
 xSize = 20;
 ySize = 20;
@@ -17,7 +17,7 @@ esize = 0.5;
 deg = 2*Pi/360;
 alpha = 90*deg; // angle between hor plane and well
 beta = 0*deg; // angle between x and well
-n_axial = 1;
+n_axial = 4;
 
 r = 0.5; // wellbore radius
 // parameters of the horizontal cross-section
@@ -121,7 +121,7 @@ EndIf
 out[] = Extrude{ zSize*Cos(alpha)*Cos(beta), zSize*Cos(alpha)*Sin(beta), zSize}{
 Surface{wellbore[],reservoir[]};
 Layers{n_axial}; 
-Recombine;
+//Recombine;
 };
 
 // taging

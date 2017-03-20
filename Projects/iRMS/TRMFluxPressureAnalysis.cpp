@@ -255,7 +255,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
