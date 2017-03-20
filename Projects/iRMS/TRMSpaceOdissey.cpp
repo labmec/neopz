@@ -215,7 +215,7 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     fFluxCmesh->SetAllCreateFunctionsHDiv();
     fFluxCmesh->AutoBuild();
     
-    bool IncreaseAccQ = true;
+    bool IncreaseAccQ = fSimulationData->IsAdataptedQ();
     int wellbore_order = 2;
     
     if(IncreaseAccQ){
@@ -293,7 +293,7 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
     fPressureCmesh->AdjustBoundaryElements();
     fPressureCmesh->CleanUpUnconnectedNodes();
     
-    bool IncreaseAccQ = true;
+    bool IncreaseAccQ = fSimulationData->IsAdataptedQ();
     int wellbore_order = 2;
     
     if(IncreaseAccQ){
@@ -335,6 +335,91 @@ void TRMSpaceOdissey::CreatePressureCmesh(){
 #endif
     
 }
+
+/// adjust the polynomial orders of the hdiv elements such that the internal order is higher than the sideorders
+void TRMSpaceOdissey::AdjustFluxPolynomialOrders(int n_acc_terms)
+{
+    int dim = fFluxCmesh->Dimension();
+    /// loop over all the elements
+    long nel = fFluxCmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fFluxCmesh->Element(el);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        if (gel->Dimension() != dim) {
+            continue;
+        }
+        // compute the maxorder
+        int maxorder = -1;
+        int ncon = intel->NConnects();
+        for (int i=0; i<ncon-1; i++) {
+            int conorder = intel->Connect(i).Order();
+            maxorder = maxorder < conorder ? conorder : maxorder;
+        }
+        int nsides = gel->NSides();
+        int nconside = intel->NSideConnects(nsides-1);
+        long cindex = intel->SideConnectIndex(nconside-1, nsides-1);
+        TPZConnect &c = fFluxCmesh->ConnectVec()[cindex];
+        if (c.NElConnected() != 1) {
+            DebugStop();
+        }
+        if (c.Order()+n_acc_terms != maxorder) {
+            intel->SetSideOrder(nsides-1, maxorder+n_acc_terms);
+        }
+    }
+    fFluxCmesh->ExpandSolution();
+}
+
+void TRMSpaceOdissey::SetPressureOrders()
+{
+    // build a vector with the required order of each element in the pressuremesh
+    // if an element of the mesh dimension of the fluxmesh does not have a corresponding element in the pressuremesh DebugStop is called
+    int meshdim = fPressureCmesh->Dimension();
+    fPressureCmesh->Reference()->ResetReference();
+    fPressureCmesh->LoadReferences();
+    TPZManVector<long> pressorder(fPressureCmesh->NElements(),-1);
+    long nel = fFluxCmesh->NElements();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fFluxCmesh->Element(el);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        if (gel->Dimension() != meshdim) {
+            continue;
+        }
+        int nsides = gel->NSides();
+        long cindex = intel->SideConnectIndex(0, nsides-1);
+        TPZConnect &c = fFluxCmesh->ConnectVec()[cindex];
+        int order = c.Order();
+        TPZCompEl *pressureel = gel->Reference();
+        TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(pressureel);
+        if (!pintel) {
+            DebugStop();
+        }
+        pressorder[pintel->Index()] = order;
+    }
+    fPressureCmesh->Reference()->ResetReference();
+    nel = pressorder.size();
+    for (long el=0; el<nel; el++) {
+        TPZCompEl *cel = fPressureCmesh->Element(el);
+        TPZInterpolatedElement *pintel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!pintel) {
+            continue;
+        }
+        if (pressorder[el] == -1) {
+            continue;
+        }
+        pintel->PRefine(pressorder[el]);
+    }
+    
+    fPressureCmesh->ExpandSolution();
+}
+
 
 void One(const TPZVec<REAL> &x, TPZVec<STATE> &f)
 {
@@ -382,6 +467,13 @@ void TRMSpaceOdissey::BuildMixed_Mesh(){
     
     this->CreateFluxCmesh();
     this->CreatePressureCmesh();
+    
+    if (fSimulationData->EnhancedPressureQ()) {
+        int n_acc_terms = 1;
+        this->AdjustFluxPolynomialOrders(n_acc_terms);
+        this->SetPressureOrders();
+    }
+    
     this->CreateMixedCmesh();
     
 }
@@ -391,6 +483,12 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     
     this->CreateFluxCmesh();
     this->CreatePressureCmesh();
+
+    if (fSimulationData->EnhancedPressureQ()) {
+        int n_acc_terms = 1;
+        this->AdjustFluxPolynomialOrders(n_acc_terms);
+        this->SetPressureOrders();
+    }
     
     SeparateConnectsByNeighborhood();
     

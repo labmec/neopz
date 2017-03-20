@@ -91,6 +91,12 @@ protected:
     /** @brief Use of quasi newton method */
     bool fIsQuasiNewtonQ;
     
+    /** @brief set the use p adaptation on wellbores */
+    bool fIsAdataptedQ;
+    
+    /** @brief set the use enhanced pressure accuracy */
+    bool fEnhancedPressureQ;
+    
     /** @brief Use, level and resolution of MHM process */
     std::pair<bool, std::pair<int, int> > fMHMResolutionQ;
     
@@ -269,7 +275,8 @@ public:
     void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< std::pair< STATE , bool> , 500 > ReportingTimes);
     
     /** @brief Setup reporting times and time step size */
-    void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ);
+    void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ, bool IsAdataptedQ, bool EnhancedPressureQ);
+
     
     /** @brief Setup Use, level and resolution of MHM process */
     void SetMHMResolution(std::pair<bool, std::pair<int, int> > MHMResolutionQ){
@@ -377,6 +384,12 @@ public:
     
     /** @brief Get directive for the use of quasi newton method */
     bool IsQuasiNewtonQ() {return fIsQuasiNewtonQ;}
+    
+    /** @brief Get the use p adaptation on wellbores */
+    bool IsAdataptedQ() {return fIsAdataptedQ;}
+    
+    /** @brief Get the use enhanced pressure accuracy */
+    bool EnhancedPressureQ() {return fEnhancedPressureQ;}
     
     /** @brief Material identifier for interfaces */
     int InterfacesMatId() { return fInterface_mat_Id; }

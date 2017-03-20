@@ -477,10 +477,10 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1.0;
-    int n_steps = 20;
-    REAL epsilon_res = 1.0e-2;
-    REAL epsilon_corr = 1.0e-4;
+    REAL dt = 0.05;
+    int n_steps = 400;
+    REAL epsilon_res = 1.0e-4;
+    REAL epsilon_corr = 1.0e-6;
     int n_corrections = 10;
     bool IsMixedQ = true;
     bool IsRBQ    = true;
@@ -500,7 +500,7 @@ int Segregated_Geomechanic(){
     file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
-    int order = 3;
+    int order = 2;
     int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
@@ -549,7 +549,7 @@ int Segregated_Geomechanic(){
     
     // Filling the transfer object
     transfer->SetSimulationData(sim_data);
-    int number_threads = 0;
+    int number_threads = 16;
     
     // Elliptic problem
     TPZCompMesh * cmesh_elliptic = CMesh_Elliptic(gmesh, elliptic_mesh_vec, sim_data);
@@ -678,18 +678,18 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 0;
+    int number_threads = 16;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geo_modes,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//    TPZSymetricSpStructMatrix struct_mat(geo_modes);
-//    struct_mat.SetNumThreads(number_threads);
+    TPZSymetricSpStructMatrix struct_mat(geo_modes);
+    struct_mat.SetNumThreads(number_threads);
     
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
-    struct_mat.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(geo_modes);
+//    struct_mat.SetDecomposeType(ELDLt);
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);

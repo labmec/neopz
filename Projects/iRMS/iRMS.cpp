@@ -61,11 +61,12 @@ void MultiScaleSimulation()
     TPZAutoPointer<TRMRawData> RawData  = new TRMRawData;
     
     //  Dimension on gmsh reservoir    
-    bool Is3DGeometry = false;
+    bool Is3DGeometry = true;
     
     bool IsSinglePhaseQ = true;
     if(IsSinglePhaseQ){
-        RawData->SinglePhaseReservoir(Is3DGeometry); // Single-phase flow
+        RawData->SinglePhaseReservoirHMM(Is3DGeometry); // FEM and HMM chapter
+//        RawData->SinglePhaseReservoir(Is3DGeometry); // Single-phase flow
     }
     else{
         RawData->CaseTracerTransport(Is3DGeometry); // Case 1 and 2 Tracer transport

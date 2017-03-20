@@ -117,6 +117,12 @@ public:
     /** @brief set the use of quasi newton method */
     bool fIsQuasiNewtonQ;
     
+    /** @brief set the use p adaptation on wellbores */
+    bool fIsAdataptedQ;
+    
+    /** @brief set the use enhanced pressure accuracy */
+    bool fEnhancedPressureQ;
+    
     /** @brief Use, level and resolution of MHM process */
     std::pair<bool, std::pair<int, int> > fMHMResolutionQ;
     
@@ -138,6 +144,13 @@ public:
     /** @brief phases = {alpha, beta, gamma} */
     TPZStack< TPZAutoPointer<TRMPhaseProperties> > fPhases;
     
+    
+    /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
+    void SinglePhaseReservoirHMM(bool Is3DGeometryQ);
+    
+    static void PressureThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);
+    
+    static void FluxThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF);
     
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
     void SinglePhaseReservoir(bool Is3DGeometryQ);

@@ -177,8 +177,8 @@ void TRMOrchestra::BuildGeometry(){
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
     int ref = fSimulationData->MHMResolution().second.second;
-    fSpaceGenerator->UniformRefinement(ref);
-//    fSpaceGenerator->UniformRefineTetrahedrons(ref);
+//    fSpaceGenerator->UniformRefinement(ref);
+    fSpaceGenerator->UniformRefineTetrahedrons(ref);
     fSpaceGenerator->PrintGeometry();
 
 }
@@ -247,7 +247,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         fSpaceGenerator->CreateTransportMesh();
     }
         
-    int numofThreads_p = 4;
+    int numofThreads_p = 16;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -256,12 +256,12 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    strmat_p.SetDecomposeType(ELDLt);
+//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    strmat_p.SetDecomposeType(ELDLt);
 
 //    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
-//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);

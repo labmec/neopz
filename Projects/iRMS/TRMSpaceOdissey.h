@@ -241,6 +241,12 @@ public:
         return fGeoMesh;
     }
     
+    /** @brief Apply adjust fluxes for enhanced pressure accuracy */
+    void AdjustFluxPolynomialOrders(int n_acc_terms);
+    
+    /** @brief Apply enhanced pressure accuracy */
+    void SetPressureOrders();
+    
     /** @brief Apply uniform refinement on the Geometric mesh */
     void UniformRefinement(int n_ref);
     

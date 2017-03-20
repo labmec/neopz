@@ -21,9 +21,9 @@ laterals = {};
 ////////////////////////////////////////////////////////////////////////////
 
 // rock box dimensions
-x_length = 0.25;
+x_length = 0.1;
 y_length = 1.0;
-z_length = 0.25;
+z_length = 0.1;
 
 wcx = 0.0;
 wcy = 0.0;

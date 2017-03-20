@@ -113,6 +113,202 @@ TRMRawData::~TRMRawData()
     
 }
 
+/** @brief Define the materials for a primitive mono-phasic example */
+void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
+    
+    std::pair< int, TPZFunction<REAL> * > bc;
+    
+    // Single flow
+    TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
+    TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
+    TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
+    fSystemType.Push("water");
+    water->SetRhoModel(0);
+    fPhases.Push(water);
+    int n_data = fSystemType.size();
+    
+    // Setting up gravity
+    fg.Resize(3, 0.0);
+    //fg[1] = -9.81;
+    
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    fMap = new TRMSpatialPropertiesMap;
+    fMap->SetMapModel(map_model);
+    
+//    fGridName = "ch_fem_thiem/reservoir_3D_H_C.msh";
+//    fGridName = "ch_fem_thiem/reservoir_3D_P_C.msh";
+    fGridName = "ch_fem_thiem/reservoir_3D_T_C.msh";
+    fPermPorFields.first = "ch_fem_thiem/spe_perm.dat";
+    fPermPorFields.second = "ch_fem_thiem/spe_phi.dat";
+    fNBlocks.Push(60);
+    fNBlocks.Push(220);
+    fNBlocks.Push(2);
+    fBlocks_sizes.Push(1.6666666667);
+    fBlocks_sizes.Push(4.5454545455);
+    fBlocks_sizes.Push(50.0);
+    fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
+    fMap->LoadSPE10Map(false);
+    
+    // Time control parameters
+    REAL hour       = 3600.0;
+    REAL day        = hour * 24.0;
+    
+    //    fReportingTimes.Push(std::make_pair(1000.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(900.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(800.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(700.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(600.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(400.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(300.0*day,true));
+    //    fReportingTimes.Push(std::make_pair(200.0*day,true));
+    fReportingTimes.Push(std::make_pair(100.0*day,true));
+    fReportingTimes.Push(std::make_pair(0.0*day,true));
+    
+    fn_steps  = 100;
+    fdt = 100.0*day;
+    fdt_max = 100.0*day;
+    fdt_min = 0.1*day;
+    fdt_up = 1.5;
+    fdt_down = 0.1;
+    
+    // Numeric controls
+    fn_corrections = 20;
+    fepsilon_res = 0.001;
+    fepsilon_cor = 0.00001;
+    fIsQuasiNewtonQ = true;
+    fIsAdataptedQ = false;
+    fEnhancedPressureQ = false;
+    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.second.first = 0; // level
+    fMHMResolutionQ.second.second = 2; // fine
+    
+    
+    // Rock materials ids
+    int Rock = 5;
+    int wellbore_p = 6;
+    int wellbore_i = 7;
+    fOmegaIds.Push(Rock);
+    fOmegaIds.Push(wellbore_p);
+    fOmegaIds.Push(wellbore_i);
+    
+    int bc_W = 13;
+    int bc_N = 12;
+    int bc_E = 11;
+    int bc_S = 10;
+    int bc_T = 9;
+    int bc_B = 8;
+    
+    if (!Is3DGeometryQ) {
+        bc_W = 9;
+        bc_E = 11;
+        bc_S = 8;
+        bc_N = 10;
+        bc_B = 100; // inserted but not being used
+        bc_T = 100; // inserted but not being used
+    }
+    
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > S(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > N(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
+    
+    fGammaIds.Push(bc_W);
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fIntial_bc_data.Push(W);
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fRecurrent_bc_data.Push(W);
+    
+    fGammaIds.Push(bc_E);
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fIntial_bc_data.Push(E);
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fRecurrent_bc_data.Push(E);
+    
+    fGammaIds.Push(bc_S);
+    S[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fIntial_bc_data.Push(S);
+    S[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fRecurrent_bc_data.Push(S);
+    
+    fGammaIds.Push(bc_N);
+    N[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fIntial_bc_data.Push(N);
+    N[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fRecurrent_bc_data.Push(N);
+    
+    fGammaIds.Push(bc_B);
+    B[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fIntial_bc_data.Push(B);
+    B[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fRecurrent_bc_data.Push(B);
+    
+    fGammaIds.Push(bc_T);
+    T[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fIntial_bc_data.Push(T);
+    T[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fRecurrent_bc_data.Push(T);
+    
+    int bc_p_lids = 1;
+    int bc_i_lids = 2;
+    int bc_Prod = 3;
+    int bc_Inj  = 4;
+    
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > WLids(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > WPro(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > WInj(n_data);
+    
+    
+    fGammaIds.Push(bc_p_lids);
+    WLids[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fIntial_bc_data.Push(WLids);
+    WLids[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fRecurrent_bc_data.Push(WLids);
+    
+    fGammaIds.Push(bc_Prod);
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fIntial_bc_data.Push(WPro);
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fRecurrent_bc_data.Push(WPro);
+    
+    fGammaIds.Push(bc_i_lids);
+    WLids[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fIntial_bc_data.Push(WLids);
+    WLids[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    fRecurrent_bc_data.Push(WLids);
+    
+    fGammaIds.Push(bc_Inj);
+    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fIntial_bc_data.Push(WInj);
+    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    fRecurrent_bc_data.Push(WInj);
+    
+    
+}
+
+void TRMRawData::PressureThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP){
+    
+    REAL Q = -0.01;
+    REAL mu = 0.001;
+    REAL h = 10.0;
+    REAL Kappa =  1.0e-13;
+    REAL p0 = 25.0e6;
+    REAL r0 = 50.0;
+    REAL r;
+    r = sqrt(pt[0]*pt[0] + pt[1]*pt[1]);
+    REAL p = p0 - (mu*Q)/(2.0*M_PI*h*Kappa)*log(r/r0);
+    
+    P[0] = p;
+    return;
+    
+}
+
+void TRMRawData::FluxThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF){
+    
+    DebugStop();
+}
+
 
 /** @brief Define the materials for a primitive mono-phasic example */
 void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
@@ -177,7 +373,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fIsQuasiNewtonQ = true;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 1; // fine
+    fMHMResolutionQ.second.second = 0; // fine
     
     
     // Rock materials ids
@@ -212,27 +408,27 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
     
     fGammaIds.Push(bc_W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    W[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
-    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
-    S[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    S[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fIntial_bc_data.Push(S);
-    S[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    S[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fRecurrent_bc_data.Push(S);
     
     fGammaIds.Push(bc_N);
-    N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    N[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fIntial_bc_data.Push(N);
-    N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    N[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
     fRecurrent_bc_data.Push(N);
     
     fGammaIds.Push(bc_B);
@@ -278,7 +474,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fGammaIds.Push(bc_Inj);
     WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fIntial_bc_data.Push(WInj);
-    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
+    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(WInj);
 
     
@@ -293,7 +489,7 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL flux_b = -1.0;//-0.58569;
+    REAL flux_b = 0.795775;//-0.58569;
     
     REAL day = 86400;
     REAL flux = 0.0;
@@ -302,7 +498,7 @@ void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TP
         flux = flux_b;
     }
     
-    F[0] = flux;
+    F[0] = flux_b;
     return;
 }
 
@@ -312,7 +508,7 @@ void TRMRawData::Aquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F,
     REAL MPa = 1.0e6;
     
     // Aquifer properties
-    REAL pressure_aquifer = 15.0*MPa;
+    REAL pressure_aquifer = 25.0*MPa;
     REAL mu_w = 0.001;
     REAL k = 1.0e-13;
     REAL h = 100.0;

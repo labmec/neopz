@@ -69,6 +69,12 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Use of quasi newton method */
     fIsQuasiNewtonQ = false;
     
+    /** @brief set the use p adaptation on wellbores */
+    fIsAdataptedQ = false;
+    
+    /** @brief set the use enhanced pressure accuracy */
+    fEnhancedPressureQ = false;
+    
     /** @brief Use, level and resolution of MHM process */
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0;
@@ -129,7 +135,7 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     SetGravity(RawData->fg);
     SetSystemType(RawData->fSystemType,RawData->fPhases);
     SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_down, RawData->fdt_max, RawData->fdt_min, RawData->fReportingTimes);
-    SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ);
+    SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ, RawData->fIsAdataptedQ, RawData->fEnhancedPressureQ);
     SetTransporResolution(RawData->fIncreaseTransporResolutionQ);
     SetMHMResolution(RawData->fMHMResolutionQ);
     SetGridName(RawData->fGridName);
@@ -156,11 +162,13 @@ void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STAT
 }
 
 /** @brief Setup reporting times and time step size */
-void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ){
+void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ, bool IsAdataptedQ, bool EnhancedPressureQ){
     fn_corrections  = n_corrections;
     fepsilon_res    = epsilon_res;
     fepsilon_cor    = epsilon_cor;
     fIsQuasiNewtonQ = IsQuasiNewtonQ;
+    fIsAdataptedQ   = IsAdataptedQ;
+    fEnhancedPressureQ = EnhancedPressureQ;
 }
 
 /** @brief Set phase alpha */

@@ -66,7 +66,7 @@ TPZSegregatedSolver & TPZSegregatedSolver::operator=(const TPZSegregatedSolver &
 /** @brief execute the evolutionary problem */
 void TPZSegregatedSolver::Run_Evolution(std::string elliptic, std::string parabolic){
     
-    int interval = 10;
+    int interval = 200;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
