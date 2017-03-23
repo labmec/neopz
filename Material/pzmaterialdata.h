@@ -83,6 +83,9 @@ public:
     //Id of associated geo element
     int gelElId;
     
+    //Id of associated material
+    int gelMatId;
+    
     /// correspondence between normal vector index and index of the shape functions
     TPZManVector<std::pair<int,long> > fVecShapeIndex;
     /// list of normal vectors

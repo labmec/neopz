@@ -255,7 +255,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 0;
+    int div = 1;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
@@ -268,6 +268,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     
     scalnames.Push("p");
     scalnames.Push("order");
+    scalnames.Push("id");    
     vecnames.Push("u");
 //    scalnames.Push("div_u");
 //    scalnames.Push("cfl");

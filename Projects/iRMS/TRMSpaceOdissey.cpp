@@ -36,6 +36,9 @@ TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
    
     fPOrder = 1;
     fSOrder = 0;
+    fIsHexaDominatedQ           = false;
+    fIsTetraDominatedQ          = false;
+    fIsPrismDominatedQ          = false;
     fGeoMesh                    = NULL;
     fSimulationData             = NULL;
     fH1Cmesh                    = NULL;
@@ -1583,6 +1586,18 @@ void TRMSpaceOdissey::CreateGeometricGmshMesh(std::string &grid){
     fGeoMesh = Geometry.GeometricGmshMesh(grid);
     const std::string name("Reservoir with cylindrical wells");
     fGeoMesh->SetName(name);
+    
+    if (fGeoMesh->Dimension() == 3) {
+        if (Geometry.n_hexahedra() != 0 &&  Geometry.n_tetrahedral() == 0 && Geometry.n_prism() == 0) {
+            fIsHexaDominatedQ = true;
+        }
+        if (Geometry.n_hexahedra() == 0 &&  Geometry.n_tetrahedral() != 0 && Geometry.n_prism() == 0) {
+            fIsTetraDominatedQ = true;
+        }
+        if (Geometry.n_hexahedra() == 0 &&  Geometry.n_tetrahedral() == 0 && Geometry.n_prism() != 0) {
+            fIsPrismDominatedQ = true;
+        }
+    }
 }
 
 /** @brief Create a reservoir-box geometry */

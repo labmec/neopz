@@ -177,8 +177,13 @@ void TRMOrchestra::BuildGeometry(){
     fSpaceGenerator->CreateGeometricGmshMesh(file);
     
     int ref = fSimulationData->MHMResolution().second.second;
-//    fSpaceGenerator->UniformRefinement(ref);
-    fSpaceGenerator->UniformRefineTetrahedrons(ref);
+    if(fSpaceGenerator->IsTetraDominatedQ()){
+        fSpaceGenerator->UniformRefineTetrahedrons(ref);
+    }
+    else{
+        fSpaceGenerator->UniformRefinement(ref);
+    }
+
     fSpaceGenerator->PrintGeometry();
 
 }
@@ -225,7 +230,12 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 
     // Setting for increase transport resolution
     if(fSimulationData->TransporResolution().first){
-//        fSpaceGenerator->UniformRefinement(fSimulationData->TransporResolution().second);
+        if(fSpaceGenerator->IsTetraDominatedQ()){
+            fSpaceGenerator->UniformRefineTetrahedrons(fSimulationData->TransporResolution().second);
+        }
+        else{
+            fSpaceGenerator->UniformRefinement(fSimulationData->TransporResolution().second);
+        }
         fSpaceGenerator->UniformRefineTetrahedrons(fSimulationData->TransporResolution().second);
     }
 

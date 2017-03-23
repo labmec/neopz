@@ -78,6 +78,15 @@ private:
     
     /** @brief Autopointer of the Geometric mesh shared with all the classes involved */
     TPZGeoMesh * fGeoMesh;
+
+    /** @brief Directive that gives if the geometry is dominated by hexahedra */
+    bool fIsHexaDominatedQ;
+    
+    /** @brief Directive that gives if the geometry is dominated by tetrahedra */
+    bool fIsTetraDominatedQ;
+    
+    /** @brief Directive that gives if the geometry is dominated by prism */
+    bool fIsPrismDominatedQ;
     
     /** @brief Autopointer of Simulation data */
     TRMSimulationData * fSimulationData;
@@ -160,6 +169,21 @@ public:
     void SetDefaultSOrder(int sorder)
     {
         fSOrder = sorder;
+    }
+    
+    /** @brief Answer if the geometry is dominated by hexahedra */
+    bool IsHexaDominatedQ(){
+        return fIsHexaDominatedQ;
+    }
+    
+    /** @brief Answer if the geometry is dominated by tetrahedra */
+    bool IsTetraDominatedQ(){
+        return fIsTetraDominatedQ;
+    }
+    
+    /** @brief Answer if the geometry is dominated by prism */
+    bool IsPrismDominatedQ(){
+        return fIsPrismDominatedQ;
     }
     
     /** @brief Create a Biot H1 computational mesh */

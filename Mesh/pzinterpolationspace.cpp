@@ -122,7 +122,7 @@ REAL TPZInterpolationSpace::InnerRadius(){
 }
 
 void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
-  data.gelElId = this->Reference()->Id();
+    data.gelElId = this->Reference()->Id();
 	this->Material()->FillDataRequirements(data);
 	const int dim = this->Dimension();
 	const int nshape = this->NShapeF();

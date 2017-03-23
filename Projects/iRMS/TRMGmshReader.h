@@ -69,6 +69,55 @@ public:
     /** @brief Convert Gmsh msh files in a TPZGeoMesh object */
     TPZGeoMesh * GeometricGmshMesh(std::string file_name);
     
+    /** @brief Characteristic domain dimension for dimensionless geometry. */
+    /** Set Max dimension for geometric domain default = 1.0. */
+    void SetfDimensionlessL(REAL dimensionlessL);
+    
+    /** @brief Insert elements following msh file format */
+    bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);
+    
+    /** @brief Get the number of point elements */
+    int n_points() {
+        return fn_point;
+    }
+    
+    /** @brief Get the number of line elements */
+    int n_lines() {
+        return fn_line;
+    }
+    
+    /** @brief Get the number of triangle elements */
+    int n_triangle() {
+        return fn_triangle;
+    }
+    
+    /** @brief Get the number of quadrilateral elements */
+    int n_quadrilateral() {
+        return fn_quadrilateral;
+    }
+    
+    /** @brief Get the number of tetrahedra elements */
+    int n_tetrahedral() {
+        return fn_tetrahedral;
+    }
+    
+    /** @brief Get the number of prism elements */
+    int n_prism() {
+        return fn_prism;
+    }
+    
+    /** @brief Get the number of hexahedra elements */
+    int n_hexahedra() {
+        return fn_hexahedra;
+    }
+    
+    /** @brief Get the number of pyramids elements */
+    int n_prymarid() {
+        return fn_prymarid;
+    }
+    
+private:
+    
     /** @brief Number of Materials */
     /** Number of volumetric materials */
     int fVolNumber;
@@ -76,6 +125,30 @@ public:
     /** @brief Number of Boundary Conditions */
     /** Number of Boundary Conditions */
     int fBCNumber;
+    
+    /** @brief Number of 0D elements */
+    int fn_point;
+    
+    /** @brief Number of 1D elements */
+    int fn_line;
+    
+    /** @brief Number of 2D  triangles elements */
+    int fn_triangle;
+    
+    /** @brief Number of 2D  quadrilaterals elements */
+    int fn_quadrilateral;
+    
+    /** @brief Number of 3D  tetrahedrals elements */
+    int fn_tetrahedral;
+    
+    /** @brief Number of 3D  prism elements */
+    int fn_prism;
+    
+    /** @brief Number of 3D  hexahedra elements */
+    int fn_hexahedra;
+    
+    /** @brief Number of 3D  pyramids elements */
+    int fn_prymarid;
     
     /** @brief Mesh Dimension */
     /** Mesh Dimension */
@@ -88,17 +161,6 @@ public:
     /** @brief MaterialVec */
     /** Structure of both, physical entities dimension and names */
     MaterialDataS fMaterialDataVec;
-    
-    
-    /** @brief Characteristic domain dimension for dimensionless geometry. */
-    /** Set Max dimension for geometric domain default = 1.0. */
-    void SetfDimensionlessL(REAL dimensionlessL);
-    
-    /** @brief Insert elements following msh file format */
-    bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);
-    
-private:
-    
     
 };
 

@@ -135,9 +135,9 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
-//    fGridName = "ch_fem_thiem/reservoir_3D_H_C.msh";
-    fGridName = "ch_fem_thiem/reservoir_3D_P_C.msh";
-//    fGridName = "ch_fem_thiem/reservoir_3D_T_C.msh";
+    fGridName = "ch_fem_thiem/reservoir_3D_H.msh";
+//    fGridName = "ch_fem_thiem/reservoir_3D_P_A.msh";
+//    fGridName = "ch_fem_thiem/reservoir_3D_T.msh";
     fPermPorFields.first = "ch_fem_thiem/spe_perm.dat";
     fPermPorFields.second = "ch_fem_thiem/spe_phi.dat";
     fNBlocks.Push(60);
@@ -172,11 +172,11 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fdt_down = 0.1;
     
     // Numeric controls
-    fn_corrections = 20;
-    fepsilon_res = 0.001;
-    fepsilon_cor = 0.00001;
+    fn_corrections = 10;
+    fepsilon_res = 0.1;
+    fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
-    fIsAdataptedQ = false;
+    fIsAdataptedQ = true;
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
@@ -267,9 +267,9 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Prod);
-    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    WPro[0] = std::make_pair(1,new TPZDummyFunction<REAL>(FluxThiem));
     fIntial_bc_data.Push(WPro);
-    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
+    WPro[0] = std::make_pair(1,new TPZDummyFunction<REAL>(FluxThiem));
     fRecurrent_bc_data.Push(WPro);
     
     fGammaIds.Push(bc_i_lids);
@@ -306,7 +306,11 @@ void TRMRawData::PressureThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL
 
 void TRMRawData::FluxThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF){
     
-    DebugStop();
+    REAL r;
+    r = sqrt(pt[0]*pt[0] + pt[1]*pt[1]);
+    REAL flux_b = (0.159155/r);//*((coordsX/r)*iHat+(coordsY/r)*jHat)
+    F[0] = flux_b;
+    return;
 }
 
 

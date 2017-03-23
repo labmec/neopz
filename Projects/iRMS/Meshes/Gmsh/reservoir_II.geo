@@ -17,14 +17,14 @@ esize = 0.5;
 deg = 2*Pi/360;
 alpha = 90*deg; // angle between hor plane and well
 beta = 0*deg; // angle between x and well
-n_axial = 4;
+n_axial = 1;
 
-r = 0.5; // wellbore radius
+r = 0.3; // wellbore radius
 // parameters of the horizontal cross-section
 e = Cos(alpha);
 a = r/Sin(alpha);
 b = a*Sqrt(1-e^2);
-esize = 1.0;
+esize = r;
 
 // creating ellipse inner
 p1 = newp; Point(p1) = {a*Cos(beta),a*Sin(beta),0,esize}; // first point of the arc
@@ -87,7 +87,11 @@ wbl3 = newl; Line(wbl3) = {p5,mp5};
 wbl4 = newl; Line(wbl4) = {p6,mp6};
 
 radial[] = {wbl1,wbl2,wbl3,wbl4};
-Transfinite Line {radial[]} = 4 Using Progression 5.0;
+aximutal[] = {l1,l2,l3,l4,ml1,ml2,ml3,ml4,rl1,rl2,rl3,rl4};
+
+
+Transfinite Line {radial[]} = 3 Using Progression 8.0;
+Transfinite Line {aximutal[]} = 3 Using Progression 1.0;
 
 // reservoir connectors
 resl1 = newl; Line(resl1) = {mp1,rp1};

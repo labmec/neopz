@@ -34,7 +34,7 @@ int main()
 #endif
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
-    TPZMaterial::gBigNumber = 1.0e14;
+    TPZMaterial::gBigNumber = 1.0e12;
     
 #ifdef USING_BOOST
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();

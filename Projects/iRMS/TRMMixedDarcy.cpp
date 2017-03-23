@@ -66,6 +66,7 @@ int TRMMixedDarcy::VariableIndex(const std::string &name) {
     if (!strcmp("kappa", name.c_str())) return 4;
     if (!strcmp("phi", name.c_str())) return 5;
     if (!strcmp("order", name.c_str())) return 6;
+    if (!strcmp("id", name.c_str())) return 7;
     return TPZMatWithMem::VariableIndex(name);
 }
 
@@ -84,6 +85,8 @@ int TRMMixedDarcy::NSolutionVariables(int var) {
         case 5:
             return 1; // Scalar
         case 6:
+            return 1; // Scalar
+        case 7:
             return 1; // Scalar
     }
     return TPZMatWithMem::NSolutionVariables(var);
@@ -849,6 +852,11 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         case 6:
         {
             Solout[0] = datavec[pb].p;
+        }
+            break;
+        case 7:
+        {
+            Solout[0] = this->Id();
         }
             break;
         default:
