@@ -477,13 +477,13 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.05;
-    int n_steps = 400;
+    REAL dt = 0.1;
+    int n_steps = 200;
     REAL epsilon_res = 1.0e-4;
-    REAL epsilon_corr = 1.0e-6;
+    REAL epsilon_corr = 1.0e-4;
     int n_corrections = 10;
     bool IsMixedQ = true;
-    bool IsRBQ    = true;
+    bool IsRBQ    = false;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
@@ -496,8 +496,8 @@ int Segregated_Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
     int order = 2;

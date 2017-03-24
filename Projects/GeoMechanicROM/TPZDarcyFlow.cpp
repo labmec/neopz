@@ -117,6 +117,11 @@ void TPZDarcyFlow::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u)
     REAL flambda     = 8.333e3;
     REAL fmu         = 12.50e3;
     
+    if (fSimulationData->IsInitialStateQ()) {
+        flambda = 4.99999e9;
+        fmu = 10000.;
+    }
+    
     REAL trace;
     for (int i = 0; i < 3; i++) {
         trace = 0.0;
@@ -162,7 +167,7 @@ void TPZDarcyFlow::ContributeUndrained(TPZVec<TPZMaterialData> &datavec, REAL we
 
     for (int ip = 0; ip < nphi_p; ip++) {
         
-        ef(ip + first_p, 0)		+= weight * ( (p_n + 2.0*S_n_v) * phip(ip,0) );
+        ef(ip + first_p, 0)		+= weight * ( (p_n + S_n_v) * phip(ip,0) );
         
         for (int jp = 0; jp < nphi_p; jp++) {
             
@@ -258,7 +263,7 @@ void TPZDarcyFlow::ContributeUndrainedMF(TPZVec<TPZMaterialData> &datavec, REAL 
     
     for (int ip = 0; ip < nphi_p; ip++) {
         
-        ef(ip + first_p, 0)		+= weight * ( (p_n + 2.0*S_n_v) * phip(ip,0) );
+        ef(ip + first_p, 0)		+= weight * ( (p_n + S_n_v) * phip(ip,0) );
         
         for (int jp = 0; jp < nphi_p; jp++) {
             

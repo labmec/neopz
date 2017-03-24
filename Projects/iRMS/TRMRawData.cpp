@@ -135,7 +135,7 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
-    fGridName = "ch_fem_thiem/reservoir_3D_H.msh";
+    fGridName = "ch_fem_thiem/reservoir_3D_H_C.msh";
 //    fGridName = "ch_fem_thiem/reservoir_3D_P_A.msh";
 //    fGridName = "ch_fem_thiem/reservoir_3D_T.msh";
     fPermPorFields.first = "ch_fem_thiem/spe_perm.dat";
@@ -176,11 +176,11 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fepsilon_res = 0.1;
     fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
-    fIsAdataptedQ = true;
+    fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = false;
-    fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 0; // fine
+    fMHMResolutionQ.first = true;
+    fMHMResolutionQ.second.first = 1; // level
+    fMHMResolutionQ.second.second = 2; // fine
     
     
     // Rock materials ids
@@ -267,9 +267,9 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Prod);
-    WPro[0] = std::make_pair(1,new TPZDummyFunction<REAL>(FluxThiem));
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
     fIntial_bc_data.Push(WPro);
-    WPro[0] = std::make_pair(1,new TPZDummyFunction<REAL>(FluxThiem));
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureThiem));
     fRecurrent_bc_data.Push(WPro);
     
     fGammaIds.Push(bc_i_lids);
