@@ -17,6 +17,9 @@ class TPZSimulationData {
     
 protected:
     
+    /** @brief check the full coupled residue */
+    bool fCheckCouplingQ;
+    
     /** @brief initial REAL */
     bool fIsInitialStateQ;
     
@@ -94,6 +97,14 @@ public:
     
     /** @brief destructor */
     ~TPZSimulationData();
+    
+
+
+    /** @brief Set coupling check */
+    void SetCheckCouplingQQ(bool state) { fCheckCouplingQ = state; }
+    
+    /** @brief Get coupling check */
+    bool CheckCouplingQ() {return fCheckCouplingQ;}
     
     /** @brief Set initial REAL */
     void SetInitialStateQ(bool state) { fIsInitialStateQ = state; }

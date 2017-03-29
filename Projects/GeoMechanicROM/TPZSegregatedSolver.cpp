@@ -66,31 +66,29 @@ TPZSegregatedSolver & TPZSegregatedSolver::operator=(const TPZSegregatedSolver &
 /** @brief execute the evolutionary problem */
 void TPZSegregatedSolver::Run_Evolution(std::string elliptic, std::string parabolic){
     
-    int interval = 100;
+    int interval = 10;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
     
-    std::cout << "Initial condition from undarined response " << std::endl;
+    std::cout << "Initial condition from incompressible solid-fluid response " << std::endl;
     {
         // Initial condition transfer undarined response with epsilon_v = 0 sigma_v = p
         fSimulationData->SetInitialStateQ(true);
-        felliptic->ExcecuteOneStep();
-        if (fSimulationData->IsRBApproxQ()) {
-            ftransfer->rb_elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
-        }
-        else{
-            ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
-        }
-        
+        felliptic_ini->ExcecuteOneStep();
+
+        ftransfer->elliptic_To_parabolic(felliptic_ini->Mesh(), fparabolic->Mesh());
         fparabolic->ExcecuteOneStep();
-//        felliptic->X().Zero();
-//        felliptic->X_n().Zero();
-        fSimulationData->SetInitialStateQ(false);
-        Update_at_n_State();
+
+//        felliptic->X() = felliptic_ini->X();
+//        felliptic->X_n() = felliptic_ini->X_n();
+//
+//        this->Update_at_n_State();        
         UpdateGlobalSolution();
         
         this->PostProcessStep(elliptic,parabolic);    // Initial condition
+        fSimulationData->SetInitialStateQ(false);
+    
     }
     std::cout << std::endl;
     
@@ -135,11 +133,20 @@ void TPZSegregatedSolver::ExcecuteOneStep(){
         
         IsConverged_eQ = (error_e < epsilon_res) &&  (error_p < epsilon_res && error_p != 0.0);
         IsConverged_dQ = (dx_norm_e < epsilon_cor) &&  (dx_norm_p < epsilon_cor && dx_norm_p != 0.0);
-        
-        if( /* IsConverged_eQ || */ IsConverged_dQ)
+
+        if( IsConverged_eQ && k == 6)
+//        if( IsConverged_eQ || IsConverged_dQ)
         {
+            
+//            // check original equations
+//            fSimulationData->SetCheckCouplingQQ(true);
+//            this->SegregatedIteration();
+//            fSimulationData->SetCheckCouplingQQ(false);
+            
             ferror = felliptic->error_norm() + fparabolic->error_norm();
             fdx_norm = felliptic->dx_norm() + fparabolic->dx_norm();
+
+            
             std::cout << "Segregated Solver:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             this->UpdateGlobalSolution();
             this->Update_at_n_State();
@@ -155,12 +162,21 @@ void TPZSegregatedSolver::ExcecuteOneStep(){
 /** @brief Execute a segregated iteration  */
 void TPZSegregatedSolver::SegregatedIteration(){
     
-    // Fixed-Stress split    
+    // Fixed-Stress split
+    
+    // parabolic step
     fparabolic->ExcecuteOneStep();
     ftransfer->parabolic_To_elliptic(fparabolic->Mesh(), felliptic->Mesh());
     
+    // elliptic step
     felliptic->ExcecuteOneStep();
-    ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+    if(fSimulationData->IsRBApproxQ()){
+        ftransfer->rb_elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+    }
+    else{
+        ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+    }
+
     
     Update_at_n_State();
     

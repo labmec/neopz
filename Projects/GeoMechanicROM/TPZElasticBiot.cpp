@@ -122,6 +122,15 @@ int TPZElasticBiot::NSolutionVariables(int var){
 
 void TPZElasticBiot::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u){
     
+    
+    REAL flambda     = 8.333e3;
+    REAL fmu         = 12.50e3;
+    
+    if (fSimulationData->IsInitialStateQ()) {
+        flambda = 4.99993e8;
+        fmu     = 10000.1;
+    }
+    
     REAL trace;
     for (int i = 0; i < 3; i++) {
         trace = 0.0;
@@ -155,20 +164,18 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     TPZFMatrix<REAL> & grad_phi_u = point_memory.grad_phi_u();
 
 //    TPZFMatrix<REAL> & u_n = point_memory.u_n();
+    TPZFMatrix<REAL> & grad_u = point_memory.grad_u();
     TPZFMatrix<REAL> & grad_u_n = point_memory.grad_u_n();
     
     
     REAL & p_n = point_memory.p_n();
-//    REAL & p = point_memory.p();
+    REAL & p = point_memory.p();
     
     int nphi_u = phi_u.Rows();
     int first_u = 0;
     
 //    REAL div_u = grad_u_n(0,0) + grad_u_n(1,1);
     
-    TPZFNMatrix<6,REAL> Grad_u(3,3,0.0);
-    TPZFNMatrix<9,REAL> S(3,3,0.0);
-    this->Compute_Sigma(S,grad_u_n);
     
     TPZFNMatrix<9,REAL> Grad_vx_i(fdimension,1,0.0);
     TPZFNMatrix<9,REAL> Grad_vy_i(fdimension,1,0.0);
@@ -178,18 +185,32 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     REAL l1 = 1.0;
     REAL l2 = 1.0;
     if (fSimulationData->IsInitialStateQ()) {
-        flambda = 4.99999e9;
-        fmu = 10000.;
+        flambda = 4.99993e8;
+        fmu     = 10000.1;
     }
     else{
-        flambda          = 8.333e3;
-        fmu         = 12.50e3;
+        flambda = 8.333e3;
+        fmu     = 12.50e3;
     }
     
     if (!fSimulationData->IsCurrentStateQ()) {
         
         return;
     }
+    
+    TPZFNMatrix<9,REAL> S(3,3),S_n(3,3);
+    Compute_Sigma(S, grad_u);
+    Compute_Sigma(S_n, grad_u_n);
+    
+    REAL div_u = grad_u(0,0) + grad_u(1,1);
+    REAL div_u_n = grad_u_n(0,0) + grad_u_n(1,1);
+
+    REAL Kdr = flambda + (2.0/3.0)*fmu;
+    REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
+    REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
+    REAL Ss = (fSe + falpha*falpha/Kdr);
+    
+    REAL source = falpha * p_n;
     
     for (int iu = 0; iu < nphi_u; iu++) {
         
@@ -199,8 +220,8 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
             Grad_vy_i(d,0) = grad_phi_u(d,iu);
         }
         
-        ef(2*iu + first_u, 0)   += weight * ((S(0,0) - falpha * p_n) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0));
-        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - falpha * p_n) * Grad_vy_i(1,0));
+        ef(2*iu + first_u, 0)   += weight * ((S_n(0,0) - source) * Grad_vx_i(0,0) + S_n(0,1) * Grad_vx_i(1,0));
+        ef(2*iu+1 + first_u, 0)	+= weight * (S_n(1,0) * Grad_vy_i(0,0) + (S_n(1,1) - source) * Grad_vy_i(1,0));
         
         for (int ju = 0; ju < nphi_u; ju++) {
             
@@ -456,21 +477,18 @@ void TPZElasticBiot::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZFNMatrix<9,REAL> Grad_vy_j(fdimension,1,0.0);
     
     if (fSimulationData->IsInitialStateQ()) {
-        flambda = 4.99999e9;
-        fmu = 10000.;
+        flambda = 4.99993e8;
+        fmu     = 10000.1;
     }
     else{
-        flambda          = 8.333e3;
-        fmu         = 12.50e3;
+        flambda = 8.333e3;
+        fmu     = 12.50e3;
     }
     
     if (!fSimulationData->IsCurrentStateQ()) {
         
         return;
     }
-    
-//    phiu.Print("phiu = ");
-//    dphiu.Print("dphiu = ");
     
     for (int iu = 0; iu < nphi_u; iu++) {
         
@@ -706,13 +724,35 @@ void TPZElasticBiot::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     // Computing Gradient of the Solution
     TPZFNMatrix<6,REAL> Grad_u(3,3,0.0),S(3,3,0.0);
     
+//    TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
+//    if(shapetype == datavec[u_b].EVecShape){
+//        
+//        Grad_u(0,0) = du(0,0); // dux/dx
+//        Grad_u(0,1) = du(1,0); // dux/dy
+//        
+//        Grad_u(1,0) = du(0,1); // duy/dx
+//        Grad_u(1,1) = du(1,1); // duy/dy
+//        
+//    }
+//    else{
+//        
+//        Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
+//        Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
+//        
+//        Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
+//        Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
+//        
+//        
+//    }
+    
     Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
     Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
     
     Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
     Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
-    
+
     Compute_Sigma(S, Grad_u);
+
     
     //	Displacements
     if(var == 0){

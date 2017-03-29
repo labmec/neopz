@@ -118,8 +118,8 @@ void TPZDarcyFlow::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u)
     REAL fmu         = 12.50e3;
     
     if (fSimulationData->IsInitialStateQ()) {
-        flambda = 4.99999e9;
-        fmu = 10000.;
+        flambda = 4.99993e8;
+        fmu     = 10000.1;
     }
     
     REAL trace;
@@ -240,7 +240,8 @@ void TPZDarcyFlow::ContributeUndrainedMF(TPZVec<TPZMaterialData> &datavec, REAL 
             Kl_inv_dot_q        += (1.0/c)*q[k]*phi_q_i(k,0);
         }
         
-        ef(iq + first_q) +=  weight * ( Kl_inv_dot_q - (1.0/jac_det) * p_n * div_on_master(iq,0));
+//        ef(iq + first_q) +=  weight * ( Kl_inv_dot_q - (1.0/jac_det) * p_n * div_on_master(iq,0));
+        ef(iq + first_q) +=  weight * ( 0.0 );
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
@@ -314,20 +315,28 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
     TPZFNMatrix<9,REAL> S(3,3),S_n(3,3);
     Compute_Sigma(S, grad_u);
     Compute_Sigma(S_n, grad_u_n);
-    
+
+    REAL div_u = grad_u(0,0) + grad_u(1,1);
+    REAL div_u_n = grad_u_n(0,0) + grad_u_n(1,1);
     REAL lambda     = 8.333e3;
     REAL mu         = 12.50e3;
     REAL Kdr = lambda + (2.0/3.0)*mu;
     REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
     REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
-    REAL Ss = (Se + alpha*alpha/Kdr)/2.0;
-    S_v = S_n_v;
+    REAL Ss = (Se + alpha*alpha/Kdr);
+//    S_v = S_n_v;
+    
     if (!fSimulationData->IsCurrentStateQ()) {
         
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++) {
+            if(fSimulationData->CheckCouplingQ()){
+                ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * div_u + Se * p ) * phip(ip,0);
+            }
+            else{
+                ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * S_v / Kdr + Ss * p ) * phip(ip,0);
+            }
 
-            ef(ip + first_p, 0)		+=  weight *  (-1.0) * (1.0/dt) * (alpha * S_v / Kdr + Ss * p ) * phip(ip,0);
             
         }
         return;
@@ -343,16 +352,35 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
             dot += grad_p(i,0) * grad_phi_p(i,ip);
         }
         
-        ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * S_n_v / Kdr + Ss * p_n) * phip(ip,0) );
-        
-        for (int jp = 0; jp < nphi_p; jp++) {
+        if(fSimulationData->CheckCouplingQ()){
             
-            REAL dot = 0.0;
-            for (int i = 0;  i < fdimension; i++) {
-                dot += grad_phi_p(i,jp) * grad_phi_p(i,ip);
+            ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * div_u_n + Se * p_n) * phip(ip,0) );
+            
+            for (int jp = 0; jp < nphi_p; jp++) {
+                
+                REAL dot = 0.0;
+                for (int i = 0;  i < fdimension; i++) {
+                    dot += grad_phi_p(i,jp) * grad_phi_p(i,ip);
+                }
+                
+                ek(ip + first_p, jp + first_p)  += weight * ( c * dot + (1.0/dt) * (Se * phip(jp,0) ) * phip(ip,0) );
             }
             
-            ek(ip + first_p, jp + first_p)  += weight * ( c * dot + (1.0/dt) * (Ss * phip(jp,0) ) * phip(ip,0) );
+        }
+        else{
+            
+            ef(ip + first_p, 0)		+= weight * (c * dot + (1.0/dt) * (alpha * S_n_v / Kdr + Ss * p_n) * phip(ip,0) );
+            
+            for (int jp = 0; jp < nphi_p; jp++) {
+                
+                REAL dot = 0.0;
+                for (int i = 0;  i < fdimension; i++) {
+                    dot += grad_phi_p(i,jp) * grad_phi_p(i,ip);
+                }
+                
+                ek(ip + first_p, jp + first_p)  += weight * ( c * dot + (1.0/dt) * (Ss * phip(jp,0) ) * phip(ip,0) );
+            }
+            
         }
         
     }
@@ -664,7 +692,7 @@ void TPZDarcyFlow::ContributeMF(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     REAL Kdr = lambda + (2.0/3.0)*mu;
     REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
     REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
-    REAL Ss = (Se + alpha*alpha/Kdr)/2.0;
+    REAL Ss = (Se + alpha*alpha/Kdr);
     S_v = S_n_v;
     
     if (!fSimulationData->IsCurrentStateQ()) {

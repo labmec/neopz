@@ -26,6 +26,9 @@ private:
     TPZSimulationData * fSimulationData;
     
     /** @brief define the elliptic component */
+    TPZElasticAnalysis * felliptic_ini;
+    
+    /** @brief define the elliptic component */
     TPZElasticAnalysis * felliptic;
     
     /** @brief define the parabolic component */
@@ -68,6 +71,18 @@ public:
     TPZSimulationData * SimulationData()
     {
         return fSimulationData;
+    }
+    
+    /** @brief Set elliptic_ini */
+    void Set_elliptic_ini(TPZElasticAnalysis * elliptic_ini)
+    {
+        felliptic_ini = elliptic_ini;
+    }
+    
+    /** @brief Get elliptic_ini */
+    TPZElasticAnalysis * elliptic_ini()
+    {
+        return felliptic_ini;
     }
     
     /** @brief Set elliptic */

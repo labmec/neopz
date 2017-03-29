@@ -188,7 +188,7 @@ void TPZElasticAnalysis::ExcecuteOneStep(){
 void TPZElasticAnalysis::UpdateState(){
     this->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    if (fSimulationData->IsRBApproxQ()) {
+    if (fSimulationData->IsRBApproxQ() && !fSimulationData->IsInitialStateQ()) {
         ftransfer->rb_elliptic_To_rb_elliptic(this->Mesh());
     }
     else{
@@ -201,7 +201,7 @@ void TPZElasticAnalysis::UpdateState(){
 void TPZElasticAnalysis::Update_at_n_State(){
     this->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    if (fSimulationData->IsRBApproxQ()) {
+    if (fSimulationData->IsRBApproxQ() && !fSimulationData->IsInitialStateQ()) {
         ftransfer->rb_elliptic_To_rb_elliptic(this->Mesh());
     }
     else{

@@ -308,9 +308,9 @@ int Geomechanic(){
     TPZSimulationData * sim_data = new TPZSimulationData;
     
     REAL dt = 1.0;
-    int n_steps = 20;
-    REAL epsilon_res = 1.0e-2;
-    REAL epsilon_corr = 1.0e-4;
+    int n_steps = 10;
+    REAL epsilon_res = 1.0e-8;
+    REAL epsilon_corr = 1.0e-10;
     int n_corrections = 10;
     bool IsMixedQ = false;
     bool IsRBQ    = false;
@@ -477,12 +477,12 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.1;
-    int n_steps = 200;
+    REAL dt = 1.0;
+    int n_steps = 10;
     REAL epsilon_res = 1.0e-4;
-    REAL epsilon_corr = 1.0e-4;
+    REAL epsilon_corr = 1.0e-1;
     int n_corrections = 10;
-    bool IsMixedQ = true;
+    bool IsMixedQ = false;
     bool IsRBQ    = false;
     
     /** @brief Definition gravity field */
@@ -528,6 +528,7 @@ int Segregated_Geomechanic(){
         n_meshes = 2;
     }
     
+    TPZVec<TPZCompMesh * > elliptic_ini_mesh_vec(1);
     TPZVec<TPZCompMesh * > elliptic_mesh_vec(1);
     TPZVec<TPZCompMesh * > parabolic_mesh_vec(n_meshes);
     
@@ -539,12 +540,16 @@ int Segregated_Geomechanic(){
         elliptic_mesh_vec[0]  = CMesh_Deformation(gmesh, order); // Full order mesh
     }
     
+    elliptic_ini_mesh_vec[0]  = CMesh_Deformation(gmesh, order); // Full order mesh
+
     if (IsMixedQ) {
-        parabolic_mesh_vec[0] = CMesh_Flux(gmesh, order-1);
-        parabolic_mesh_vec[1] = CMesh_MFPorePressure(gmesh, order-1);
+        order--;        
+        parabolic_mesh_vec[0] = CMesh_Flux(gmesh, order);
+        parabolic_mesh_vec[1] = CMesh_MFPorePressure(gmesh, order);
     }
     else{
-        parabolic_mesh_vec[0] = CMesh_PorePressure(gmesh, order-1);
+        order--;
+        parabolic_mesh_vec[0] = CMesh_PorePressure(gmesh, order);
     }
     
     // Filling the transfer object
@@ -552,23 +557,32 @@ int Segregated_Geomechanic(){
     int number_threads = 16;
     
     // Elliptic problem
-    TPZCompMesh * cmesh_elliptic = CMesh_Elliptic(gmesh, elliptic_mesh_vec, sim_data);
-    TPZElasticAnalysis * elliptic = new TPZElasticAnalysis;
+    TPZCompMesh * cmesh_elliptic_ini = CMesh_Elliptic(gmesh, elliptic_ini_mesh_vec, sim_data);
+    TPZCompMesh * cmesh_elliptic     = CMesh_Elliptic(gmesh, elliptic_mesh_vec, sim_data);
+    
     bool OptimizeBand_e = true;
+    TPZElasticAnalysis * elliptic_ini = new TPZElasticAnalysis;
+    elliptic_ini->SetCompMesh(cmesh_elliptic_ini,OptimizeBand_e);
+    elliptic_ini->SetSimulationData(sim_data);
+    elliptic_ini->SetMeshvec(elliptic_ini_mesh_vec);
+    elliptic_ini->AdjustVectors();
+    elliptic_ini->SetTransfer_object(transfer);
+    
+    TPZSkylineStructMatrix struct_mat_e_ini(cmesh_elliptic_ini);
+    TPZStepSolver<STATE> step_e_ini;
+    struct_mat_e_ini.SetNumThreads(number_threads);
+    step_e_ini.SetDirect(ELDLt);
+    elliptic_ini->SetSolver(step_e_ini);
+    elliptic_ini->SetStructuralMatrix(struct_mat_e_ini);
+    
+    TPZElasticAnalysis * elliptic = new TPZElasticAnalysis;
     elliptic->SetCompMesh(cmesh_elliptic,OptimizeBand_e);
     elliptic->SetSimulationData(sim_data);
     elliptic->SetMeshvec(elliptic_mesh_vec);
     elliptic->AdjustVectors();
     elliptic->SetTransfer_object(transfer);
     
-    
     TPZSkylineStructMatrix struct_mat_e(cmesh_elliptic);
-
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_e(cmesh_elliptic);
-//    struct_mat_e.SetDecomposeType(ELDLt);
-
-//    TPZSymetricSpStructMatrix struct_mat_e(cmesh_elliptic);
-    
     TPZStepSolver<STATE> step_e;
     struct_mat_e.SetNumThreads(number_threads);
     step_e.SetDirect(ELDLt);
@@ -587,12 +601,6 @@ int Segregated_Geomechanic(){
     parabolic->SetTransfer_object(transfer);
     
     TPZSkylineStructMatrix struct_mat_p(cmesh_parabolic);
-//
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat_p(cmesh_parabolic);
-//    struct_mat_p.SetDecomposeType(ELDLt);
-
-//    TPZSymetricSpStructMatrix struct_mat_p(cmesh_parabolic);
-    
     TPZStepSolver<STATE> step_p;
     struct_mat_p.SetNumThreads(number_threads);
     step_p.SetDirect(ELDLt);
@@ -602,6 +610,11 @@ int Segregated_Geomechanic(){
     // Transfer object
     
     if (IsRBQ) {
+        
+        // Build linear tranformations initial
+        transfer->Fill_elliptic_To_elliptic(cmesh_elliptic_ini);
+        transfer->Fill_elliptic_To_parabolic(cmesh_elliptic_ini, cmesh_parabolic);
+        
         // Build linear tranformations
         transfer->Fill_gp_elliptic_To_rb_elliptic(cmesh_gp, cmesh_elliptic);
         transfer->Fill_gp_elliptic_To_parabolic(cmesh_gp, cmesh_parabolic);
@@ -615,10 +628,16 @@ int Segregated_Geomechanic(){
         transfer->parabolic_To_parabolic(cmesh_parabolic);
         
         // transfer approximation space to integration points
+        transfer->space_To_elliptic(cmesh_elliptic_ini);        
         transfer->rb_space_To_rb_elliptic(cmesh_elliptic);
         transfer->space_To_parabolic(cmesh_parabolic);
     }
     else{
+
+        // Build linear tranformations initial
+        transfer->Fill_elliptic_To_elliptic(cmesh_elliptic_ini);
+        transfer->Fill_elliptic_To_parabolic(cmesh_elliptic_ini, cmesh_parabolic);
+        
         // Build linear tranformations
         transfer->Fill_elliptic_To_elliptic(cmesh_elliptic);
         transfer->Fill_elliptic_To_parabolic(cmesh_elliptic, cmesh_parabolic);
@@ -626,12 +645,14 @@ int Segregated_Geomechanic(){
         transfer->Fill_parabolic_To_elliptic(cmesh_parabolic, cmesh_elliptic);
         
         // transfer approximation space to integration points
+        transfer->space_To_elliptic(cmesh_elliptic_ini);
         transfer->space_To_elliptic(cmesh_elliptic);
         transfer->space_To_parabolic(cmesh_parabolic);
     }
     
     // Run segregated solution
     TPZSegregatedSolver * segregated = new TPZSegregatedSolver;
+    segregated->Set_elliptic_ini(elliptic_ini);
     segregated->Set_elliptic(elliptic);
     segregated->Set_parabolic(parabolic);
     segregated->SetTransfer_object(transfer);
@@ -639,6 +660,11 @@ int Segregated_Geomechanic(){
     
     std::string elliptic_file = "elliptic.vtk";
     std::string parabolic_file = "parabolic.vtk";
+    
+    if (IsRBQ) {
+        elliptic_file = "elliptic_rb.vtk";
+        parabolic_file = "parabolic_rb.vtk";
+    }
 
     
 #ifdef USING_BOOST
@@ -721,6 +747,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     REAL percent = -10.0;
     std::cout<< "RB:: number of geomodes = " << n_blocks << std::endl;
     for (int ip = 0; ip < n_blocks; ip++) {
+
         
         mesh_vector[0]->Solution().Zero();
         mesh_vector[1]->Solution().Zero();
@@ -890,8 +917,8 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
     }
     
     
-    int ni = 10;
-    int nj = 10;
+    int ni = 2;
+    int nj = 2;
     int nk = 1;
     
     TPZManVector<REAL,3> x0(3,0.0);
@@ -1002,9 +1029,26 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
     }
     
 //    // divide groups by max number of elements, adapted case
-//    int max_n_elemens = 2;
-//    TPZStack< TPZStack<long> > geo_groups_adapted;
+//    int div = 2;
+//    int cut_off = 2;
+////    TPZStack< TPZStack<long> > geo_groups_adapted;
 //    TPZStack<long> adapted_group;
+//    int groups = geo_groups.size();
+//    for (int ig = 0; ig < groups; ig++) {
+//        adapted_group.Resize(0);
+//        int n_elements = geo_groups[ig].size();
+//        
+//        if (groups >= cut_off) {
+//            int n_newgroups = int(n_elements/div);
+//            for (int iel = n_newgroups - 1 ; iel >= 0; iel--) {
+//                adapted_group.Push(geo_groups[ig][iel]);
+//                geo_groups[ig].Pop();
+//            }
+//            geo_groups.Push(adapted_group);
+//        }
+//
+//    
+//    }
     
     
 #ifdef PZDEBUG
@@ -2785,7 +2829,7 @@ void Analytic(const TPZVec<REAL> &x, REAL time, TPZVec<STATE> &u,TPZFMatrix<STAT
     REAL yD = (h-(y_c+h/2))/h;
     REAL tD = (l+2.0*mu)*kappa*time/(eta*h*h);
     
-    int n = 200;
+    int n = 500;
     REAL sump = 0.0;
     REAL sumu = 0.0;
     REAL sumv = 0.0;

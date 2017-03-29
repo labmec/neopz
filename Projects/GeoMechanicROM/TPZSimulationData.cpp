@@ -12,6 +12,9 @@
 /** @brief Initialize the raw data */
 TPZSimulationData::TPZSimulationData(){
     
+    /** @brief check the full coupled residue */
+    fCheckCouplingQ = false;
+    
     /** @brief initial state */
     fIsInitialStateQ = false;
     
