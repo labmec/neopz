@@ -35,7 +35,7 @@ private:
     REAL fCsymetric;
     
     /** @brief Intact rock porosity */
-    REAL fporosity_0;
+    REAL fphi_0;
     
     /** @brief Permeability of the rock */
     REAL fk;
@@ -45,6 +45,35 @@ private:
     
     /** @brief Define the use of mixed formulation */
     bool fIsMixedQ;
+    
+    // Poroelastic data
+    
+    /** @brief first Lame Parameter */
+    REAL flambda;
+    
+    /** @brief undrained first Lame Parameter */
+    REAL flambdau;
+    
+    /** @brief Bulk modulus */
+    REAL fK;
+    
+    /** @brief undrained Bulk modulus */
+    REAL fKu;
+    
+    /** @brief Second Lame Parameter */
+    REAL fmu;
+    
+    /** @brief Quase incompressible first Lame Parameter */
+    REAL flambda_quase_in;
+    
+    /** @brief Quase incompressible second Lame Parameter */
+    REAL fmu_quase_in;
+    
+    /** @brief constants Biot poroelasticity */
+    REAL falpha;
+    
+    /** @brief Storage coefficient poroelasticity */
+    REAL fSe;
 
     
 public:
@@ -108,11 +137,34 @@ public:
     // Attribute
     
     /** @brief Parameters of rock and fluid: */
-    void SetFlowParameters(REAL perm, REAL fporosity, REAL eta)
+    void SetFlowParameters(REAL perm, REAL eta)
     {
         fk = perm;
         feta = eta;
-        fporosity_0 = fporosity;
+    }
+    
+    // Attribute
+    void SetPorolasticParameters(REAL l, REAL mu, REAL l_u, REAL l_quase_in, REAL mu_quase_in)
+    {
+        flambda = l;
+        fmu = mu;
+        flambdau = l_u;
+        flambda_quase_in = l_quase_in;
+        fmu_quase_in    = mu_quase_in;
+        fK = flambda + (2.0/3.0)*fmu;
+        fKu = flambdau + (2.0/3.0)*fmu;
+    }
+    
+    void SetBiotParameters(REAL alpha, REAL Se, REAL phi_0)
+    {
+        if(alpha==0){
+            std::cout << "Biot constan should be at leats equal to the intact porosity, alpha = " << alpha  << std::endl;
+            DebugStop();
+        }
+        
+        falpha = alpha;
+        fSe = Se;
+        fphi_0 = phi_0;
     }
     
     /** @brief Set the simulation data */
@@ -132,8 +184,9 @@ public:
         return fSimulationData;
     }
     
-    void Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v);
+    void Compute_Sigma_qin(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v);    
     
+    void Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v);
     
     // Contribute Methods being used
     void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){

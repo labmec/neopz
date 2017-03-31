@@ -71,23 +71,29 @@ void TPZSegregatedSolver::Run_Evolution(std::string elliptic, std::string parabo
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
     
+    
+    // Fixing Iterative solution.
     std::cout << "Initial condition from incompressible solid-fluid response " << std::endl;
     {
         // Initial condition transfer undarined response with epsilon_v = 0 sigma_v = p
-        fSimulationData->SetInitialStateQ(true);
-        felliptic_ini->ExcecuteOneStep();
+        fSimulationData->SetInitialStateQ(true);         // Requirement:: Trasnfering Initial state at integration points.
+        felliptic->ExcecuteOneStep();
+        ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
 
-        ftransfer->elliptic_To_parabolic(felliptic_ini->Mesh(), fparabolic->Mesh());
         fparabolic->ExcecuteOneStep();
+        ftransfer->parabolic_To_elliptic(fparabolic->Mesh(),felliptic->Mesh());
 
-//        felliptic->X() = felliptic_ini->X();
-//        felliptic->X_n() = felliptic_ini->X_n();
-//
-//        this->Update_at_n_State();        
-        UpdateGlobalSolution();
+        felliptic->X().Zero();        
+        felliptic->X_n().Zero();
+        
+        this->Update_at_n_State();
+        this->UpdateGlobalSolution();
         
         this->PostProcessStep(elliptic,parabolic);    // Initial condition
         fSimulationData->SetInitialStateQ(false);
+        
+
+        
     
     }
     std::cout << std::endl;
@@ -134,7 +140,7 @@ void TPZSegregatedSolver::ExcecuteOneStep(){
         IsConverged_eQ = (error_e < epsilon_res) &&  (error_p < epsilon_res && error_p != 0.0);
         IsConverged_dQ = (dx_norm_e < epsilon_cor) &&  (dx_norm_p < epsilon_cor && dx_norm_p != 0.0);
 
-        if( IsConverged_eQ && k == 6)
+        if( IsConverged_eQ && k == 2)
 //        if( IsConverged_eQ || IsConverged_dQ)
         {
             

@@ -50,6 +50,10 @@ TPZElasticBiotMemory::TPZElasticBiotMemory(){
     fgrad_u_0.Resize(3, 3);
     fgrad_u_0.Zero();
     
+    /** @brief sigma at intial state*/
+    fsigma_0.Resize(3, 3);
+    fsigma_0.Zero();
+    
     /** @brief pressure at current state */
     fp_n = 0.0;
     

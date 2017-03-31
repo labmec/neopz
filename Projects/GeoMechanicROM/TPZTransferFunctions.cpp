@@ -2270,6 +2270,10 @@ void TPZTransferFunctions::elliptic_To_elliptic(TPZCompMesh * elliptic){
                     }
                 }
                 
+                if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                    associated_material->GetMemory()[ipos].Set_grad_u_0(grad_u);
+                }
+                
                 if (fSimulationData->IsCurrentStateQ()) {
                     associated_material->GetMemory()[ipos].Set_u_n(u);
                     associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
@@ -2309,6 +2313,10 @@ void TPZTransferFunctions::elliptic_To_elliptic(TPZCompMesh * elliptic){
                     }
                 }
                 
+                if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                    associated_material->GetMemory()[ipos].Set_grad_u_0(grad_u);
+                }
+
                 if (fSimulationData->IsCurrentStateQ()) {
                     associated_material->GetMemory()[ipos].Set_u_n(u);
                     associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
@@ -2430,6 +2438,10 @@ void TPZTransferFunctions::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZComp
                     }
                 }
                 
+                if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                    associated_material->GetMemory()[ipos].Set_grad_u_0(grad_u);
+                }
+                
                 if (fSimulationData->IsCurrentStateQ()) {
                     associated_material->GetMemory()[ipos].Set_u_n(u);
                     associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
@@ -2467,6 +2479,10 @@ void TPZTransferFunctions::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZComp
                     for (int jd = 0; jd < dim ; jd++) {
                         grad_u(id,jd)= grad_u_at_parabolic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
                     }
+                }
+                
+                if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                    associated_material->GetMemory()[ipos].Set_grad_u_0(grad_u);
                 }
                 
                 if (fSimulationData->IsCurrentStateQ()) {
@@ -3603,6 +3619,10 @@ void TPZTransferFunctions::parabolic_To_parabolic(TPZCompMesh * parabolic){
                     grad_p(id,0)= grad_p_at_parabolic(first_point_dphi + ip*dim + id,0);
                 }
                 
+                if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                    associated_material->GetMemory()[ipos].Set_p_0(p);
+                }
+                
                 if (fSimulationData->IsCurrentStateQ()) {
                     associated_material->GetMemory()[ipos].Set_p_n(p);
                     associated_material->GetMemory()[ipos].Set_grad_p_n(grad_p);
@@ -3637,6 +3657,10 @@ void TPZTransferFunctions::parabolic_To_parabolic(TPZCompMesh * parabolic){
                     grad_p(id,0)= grad_p_at_parabolic(first_point_dphi + ip*dim + id,0);
                 }
                 
+                if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                    associated_material->GetMemory()[ipos].Set_p_0(p);
+                }
+                
                 if (fSimulationData->IsCurrentStateQ()) {
                     associated_material->GetMemory()[ipos].Set_p_n(p);
                     associated_material->GetMemory()[ipos].Set_grad_p_n(grad_p);
@@ -3666,9 +3690,7 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
         DebugStop();
     }
 #endif
-    
 
-    
     
     // Step zero scatter
     TPZFMatrix<STATE> Scatter_p(fp_To_elliptic.Cols(),1,0.0);
@@ -3703,7 +3725,6 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
     
     long gel_index, e_index, p_index;
     for (int iel = 0; iel < nel; iel++) {
-        
         
         gel_index = fp_e_cindexes[iel].first;
         TPZGeoEl * gel = geometry->Element(gel_index);
@@ -3759,6 +3780,10 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
                     grad_p(id,0) = grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
                 }
                 
+                if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                    associated_material->GetMemory()[ipos].Set_p_0(p);
+                }
+                
                 if (fSimulationData->IsCurrentStateQ()) {
                     associated_material->GetMemory()[ipos].Set_p_n(p);
                     associated_material->GetMemory()[ipos].Set_grad_p_n(grad_p);
@@ -3791,6 +3816,10 @@ void TPZTransferFunctions::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCom
                 
                 for (int id = 0; id < dim ; id++) {
                     grad_p(id,0)= grad_p_at_elliptic(first_point_dphi + ip*dim + id,0);
+                }
+                
+                if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                    associated_material->GetMemory()[ipos].Set_p_0(p);
                 }
                 
                 if (fSimulationData->IsCurrentStateQ()) {

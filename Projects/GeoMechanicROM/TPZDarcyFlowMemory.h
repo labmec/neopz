@@ -52,6 +52,9 @@ class TPZDarcyFlowMemory {
     /** @brief gradient of u_n at intial state*/
     TPZFNMatrix<9,REAL> fgrad_u_0;
     
+    /** @brief sigma at intial state*/
+    TPZFNMatrix<9,REAL> fsigma_0;
+    
     /** @brief pressure at current state */
     REAL fp_n;
     
@@ -180,6 +183,16 @@ public:
         return fgrad_u_0;
     }
     
+    /** @brief Set sigma at initial condition */
+    void Set_sigma_0(TPZFNMatrix<9,REAL> & sigma_0){
+        fsigma_0 = sigma_0;
+    }
+    
+    /** @brief Get sigma at initial condition */
+    TPZFNMatrix<9,REAL> & sigma_0(){
+        return fsigma_0;
+    }
+    
     /** @brief Set porosity */
     void Set_porosity_0(REAL & porosity_0){
         fporosity_0 = porosity_0;
@@ -191,7 +204,7 @@ public:
     }
     
     /** @brief Set pressure */
-    void Set_pressure_0(REAL & p_0){
+    void Set_p_0(REAL & p_0){
         fp_0 = p_0;
     }
     

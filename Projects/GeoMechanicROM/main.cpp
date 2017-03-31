@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 #endif
     
     // Running whole process
-//    Geomechanic();
+    Geomechanic();
     
     Segregated_Geomechanic();
     
@@ -326,13 +326,13 @@ int Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
 
-    int order = 3;
+    int order = 2;
     int level = 0; // deprecated
-    int hlevel = 2;
+    int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
     
@@ -379,7 +379,7 @@ int Geomechanic(){
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data,IsMixedQ);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 16;
+    int number_threads = 0;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -432,8 +432,14 @@ int Geomechanic(){
     x[0] = 0.0;
     x[1] = 0.0;
     x[2] = 0.0;
-    std::string plotfile("geomechanic_rb_0.vtk");
+    
+    
+    std::string plotfile("geomechanic_0.vtk");
 
+    if (IsRBQ) {
+        plotfile = "geomechanic_rb_0.vtk";
+    }
+    
 #ifdef USING_BOOST
     boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -480,7 +486,7 @@ int Segregated_Geomechanic(){
     REAL dt = 1.0;
     int n_steps = 10;
     REAL epsilon_res = 1.0e-4;
-    REAL epsilon_corr = 1.0e-1;
+    REAL epsilon_corr = 1.0e-8;
     int n_corrections = 10;
     bool IsMixedQ = false;
     bool IsRBQ    = false;
@@ -496,9 +502,10 @@ int Segregated_Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
+    
     
     int order = 2;
     int hlevel = 0;
@@ -554,7 +561,7 @@ int Segregated_Geomechanic(){
     
     // Filling the transfer object
     transfer->SetSimulationData(sim_data);
-    int number_threads = 16;
+    int number_threads = 0;
     
     // Elliptic problem
     TPZCompMesh * cmesh_elliptic_ini = CMesh_Elliptic(gmesh, elliptic_ini_mesh_vec, sim_data);
@@ -1028,27 +1035,27 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
         }
     }
     
-//    // divide groups by max number of elements, adapted case
-//    int div = 2;
-//    int cut_off = 2;
-////    TPZStack< TPZStack<long> > geo_groups_adapted;
-//    TPZStack<long> adapted_group;
-//    int groups = geo_groups.size();
-//    for (int ig = 0; ig < groups; ig++) {
-//        adapted_group.Resize(0);
-//        int n_elements = geo_groups[ig].size();
-//        
-//        if (groups >= cut_off) {
-//            int n_newgroups = int(n_elements/div);
-//            for (int iel = n_newgroups - 1 ; iel >= 0; iel--) {
-//                adapted_group.Push(geo_groups[ig][iel]);
-//                geo_groups[ig].Pop();
-//            }
-//            geo_groups.Push(adapted_group);
-//        }
-//
-//    
-//    }
+    // divide groups by max number of elements, adapted case
+    int div = 2;
+    int cut_off = 2;
+//    TPZStack< TPZStack<long> > geo_groups_adapted;
+    TPZStack<long> adapted_group;
+    int groups = geo_groups.size();
+    for (int ig = 0; ig < groups; ig++) {
+        adapted_group.Resize(0);
+        int n_elements = geo_groups[ig].size();
+        
+        if (n_elements >= cut_off) {
+            int n_newgroups = int(n_elements/div);
+            for (int iel = n_newgroups - 1 ; iel >= 0; iel--) {
+                adapted_group.Push(geo_groups[ig][iel]);
+                geo_groups[ig].Pop();
+            }
+            geo_groups.Push(adapted_group);
+        }
+
+    
+    }
     
     
 #ifdef PZDEBUG
@@ -2040,16 +2047,19 @@ TPZCompMesh * CMesh_Elliptic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vec
     REAL l          = 8.333e3;
     REAL mu         = 12.50e3;
     REAL l_u        = 8.333e3;
+    REAL l_qin      = 4.99993e8;
+    REAL mu_qin     = 10000.1;
     REAL alpha      = 1.0;
     REAL Se         = 0.0;
+    REAL phi        = 0.25;
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
     // Creating a material object
     
     TPZElasticBiot * material = new TPZElasticBiot(matid,dim);
     material->SetSimulationData(sim_data);
-    material->SetPorolasticParameters(l, mu, l_u);
-    material->SetBiotParameters(alpha, Se);
+    material->SetPorolasticParameters(l, mu, l_u, l_qin, mu_qin);
+    material->SetBiotParameters(alpha, Se, phi);
     
     TPZAutoPointer<TPZFunction<STATE> > f_analytic = new TPZDummyFunction<STATE>(Analytic);
     material->SetTimeDependentForcingFunction(f_analytic);
@@ -2162,17 +2172,26 @@ TPZCompMesh * CMesh_Parabolic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_ve
     // http://www.sciencedirect.com/science/article/pii/S0045782505001532
     
     REAL k          = 1.0e-10;
-    REAL porosity   = 0.25;
     REAL eta        = 0.001;
     
+    REAL l          = 8.333e3;
+    REAL mu         = 12.50e3;
+    REAL l_u        = 8.333e3;
+    REAL l_qin      = 4.99993e8;
+    REAL mu_qin     = 10000.1;
+    REAL alpha      = 1.0;
+    REAL Se         = 0.0;
+    REAL phi        = 0.25;
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
     // Creating a material object
     
     TPZDarcyFlow * material = new TPZDarcyFlow(matid,dim);
     material->SetSimulationData(sim_data);
-    material->SetFlowParameters(k, porosity, eta);
+    material->SetFlowParameters(k, eta);
     material->SetMixedFormulation(IsMixedQ);
+    material->SetPorolasticParameters(l, mu, l_u, l_qin, mu_qin);
+    material->SetBiotParameters(alpha, Se, phi);
     
     TPZAutoPointer<TPZFunction<STATE> > f_analytic = new TPZDummyFunction<STATE>(Analytic);
     material->SetTimeDependentForcingFunction(f_analytic);

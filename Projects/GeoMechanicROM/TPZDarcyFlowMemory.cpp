@@ -47,6 +47,10 @@ TPZDarcyFlowMemory::TPZDarcyFlowMemory(){
     /** @brief gradient of u_n at intial state*/
     fgrad_u_0.Resize(0, 0);
     
+    /** @brief sigma at intial state*/
+    fsigma_0.Resize(3, 3);
+    fsigma_0.Zero();
+    
     /** @brief pressure at current state */
     fp_n = 0.0;
     

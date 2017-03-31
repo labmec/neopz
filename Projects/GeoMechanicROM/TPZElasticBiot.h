@@ -47,6 +47,12 @@ private:
     /** @brief Second Lame Parameter */
     REAL fmu;
     
+    /** @brief Quase incompressible first Lame Parameter */
+    REAL flambda_quase_in;
+    
+    /** @brief Quase incompressible second Lame Parameter */
+    REAL fmu_quase_in;
+    
     /** @brief constants Biot poroelasticity */
     REAL falpha;
     
@@ -54,7 +60,7 @@ private:
     REAL fSe;
     
     /** @brief Intact rock porosity */
-    REAL fporosity_0;
+    REAL fphi_0;
     
 public:
     
@@ -116,16 +122,18 @@ public:
     
     // Attribute
     
-    void SetPorolasticParameters(REAL l, REAL mu, REAL l_u)
+    void SetPorolasticParameters(REAL l, REAL mu, REAL l_u, REAL l_quase_in, REAL mu_quase_in)
     {
         flambda = l;
         fmu = mu;
         flambdau = l_u;
+        flambda_quase_in = l_quase_in;
+        fmu_quase_in    = mu_quase_in;
         fK = flambda + (2.0/3.0)*fmu;
         fKu = flambdau + (2.0/3.0)*fmu;
     }
     
-    void SetBiotParameters(REAL alpha, REAL Se)
+    void SetBiotParameters(REAL alpha, REAL Se, REAL phi_0)
     {
         if(alpha==0){
             std::cout << "Biot constan should be at leats equal to the intact porosity, alpha = " << alpha  << std::endl;
@@ -134,6 +142,7 @@ public:
         
         falpha = alpha;
         fSe = Se;
+        fphi_0 = phi_0;
     }
 
     
@@ -148,6 +157,8 @@ public:
     {
         return fSimulationData;
     }
+    
+    void Compute_Sigma_quase_in(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u);
     
     void Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u);
     
