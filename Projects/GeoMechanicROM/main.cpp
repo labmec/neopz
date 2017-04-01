@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 #endif
     
     // Running whole process
-    Geomechanic();
+//    Geomechanic();
     
     Segregated_Geomechanic();
     
@@ -307,8 +307,8 @@ int Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1.0;
-    int n_steps = 10;
+    REAL dt = 0.1;
+    int n_steps = 100;
     REAL epsilon_res = 1.0e-8;
     REAL epsilon_corr = 1.0e-10;
     int n_corrections = 10;
@@ -483,11 +483,11 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1.0;
-    int n_steps = 10;
-    REAL epsilon_res = 1.0e-4;
-    REAL epsilon_corr = 1.0e-8;
-    int n_corrections = 10;
+    REAL dt = 0.1;
+    int n_steps = 100;
+    REAL epsilon_res = 1.0e-2;
+    REAL epsilon_corr = 1.0e-1;
+    int n_corrections = 30;
     bool IsMixedQ = false;
     bool IsRBQ    = false;
     
@@ -561,7 +561,7 @@ int Segregated_Geomechanic(){
     
     // Filling the transfer object
     transfer->SetSimulationData(sim_data);
-    int number_threads = 0;
+    int number_threads = 16;
     
     // Elliptic problem
     TPZCompMesh * cmesh_elliptic_ini = CMesh_Elliptic(gmesh, elliptic_ini_mesh_vec, sim_data);
@@ -578,7 +578,7 @@ int Segregated_Geomechanic(){
     TPZSkylineStructMatrix struct_mat_e_ini(cmesh_elliptic_ini);
     TPZStepSolver<STATE> step_e_ini;
     struct_mat_e_ini.SetNumThreads(number_threads);
-    step_e_ini.SetDirect(ELDLt);
+    step_e_ini.SetDirect(ECholesky);
     elliptic_ini->SetSolver(step_e_ini);
     elliptic_ini->SetStructuralMatrix(struct_mat_e_ini);
     
@@ -2047,8 +2047,8 @@ TPZCompMesh * CMesh_Elliptic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_vec
     REAL l          = 8.333e3;
     REAL mu         = 12.50e3;
     REAL l_u        = 8.333e3;
-    REAL l_qin      = 4.99993e8;
-    REAL mu_qin     = 10000.1;
+    REAL l_qin      = 5.0e11;
+    REAL mu_qin     = 10000.0;
     REAL alpha      = 1.0;
     REAL Se         = 0.0;
     REAL phi        = 0.25;
@@ -2177,8 +2177,8 @@ TPZCompMesh * CMesh_Parabolic(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_ve
     REAL l          = 8.333e3;
     REAL mu         = 12.50e3;
     REAL l_u        = 8.333e3;
-    REAL l_qin      = 4.99993e8;
-    REAL mu_qin     = 10000.1;
+    REAL l_qin      = 5.0e11;
+    REAL mu_qin     = 10000.0;
     REAL alpha      = 1.0;
     REAL Se         = 0.0;
     REAL phi        = 0.25;

@@ -184,9 +184,9 @@ public:
         return fSimulationData;
     }
     
-    void Compute_Sigma_qin(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v);    
+    void Compute_Sigma_qin(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v, REAL & p);
     
-    void Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v);
+    void Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v, REAL & p);
     
     // Contribute Methods being used
     void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){

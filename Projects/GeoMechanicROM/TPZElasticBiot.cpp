@@ -181,8 +181,9 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
     TPZFMatrix<REAL> & grad_u_n = point_memory.grad_u_n();
     TPZFMatrix<REAL> & S_0 = point_memory.sigma_0();
     
-    REAL & p_n = point_memory.p_n();
-    REAL & p_0 = point_memory.p_0();
+    REAL & p_n  = point_memory.p_n();
+    REAL & p    = point_memory.p();
+    REAL & p_0  = point_memory.p_0();
     
     int nphi_u = phi_u.Rows();
     int first_u = 0;
@@ -207,9 +208,10 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
 //    REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
 //    REAL Ss = (fSe + falpha*falpha/Kdr);
 
-    REAL source = falpha * (p_n - p_0);
-    S_n += S_0;
+//    REAL source = falpha * (p_n - p_0);
+//    S_n += S_0;
 
+    REAL source = falpha * p_n;
     if (fSimulationData->IsInitialStateQ()) {
         flambda = flambda_quase_in;
         fmu     = fmu_quase_in;
