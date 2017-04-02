@@ -212,6 +212,7 @@ void TPZElasticBiot::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
 //    S_n += S_0;
 
     REAL source = falpha * p_n;
+    
     if (fSimulationData->IsInitialStateQ()) {
         flambda = flambda_quase_in;
         fmu     = fmu_quase_in;
@@ -487,8 +488,8 @@ void TPZElasticBiot::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZFNMatrix<9,REAL> Grad_vy_j(fdimension,1,0.0);
     
     if (fSimulationData->IsInitialStateQ()) {
-        flambda = 4.99993e8;
-        fmu     = 10000.1;
+        flambda = flambda_quase_in;
+        fmu     = fmu_quase_in;
     }
     else{
         flambda = 8.333e3;

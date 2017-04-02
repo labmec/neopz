@@ -335,13 +335,16 @@ void TPZDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZ
     REAL div_u_n = grad_u_n(0,0) + grad_u_n(1,1);
     REAL Kdr = flambda + (2.0/3.0)*fmu;
     
-    REAL S_v_0 = (S_0(0,0) + S_0(1,1) + S_0(2,2))/3.0;
+//    REAL S_v_0 = (S_0(0,0) + S_0(1,1) + S_0(2,2))/3.0;
     REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
     REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
     REAL Ss = (Se + alpha*alpha/Kdr);
     
-    REAL phi = fphi_0 + alpha * (S_v - S_v_0) / Kdr + Ss * (p - p_0);
-    REAL phi_n = fphi_0 + alpha * (S_n_v - S_v_0) / Kdr + Ss * (p_n - p_0);
+//    REAL phi = fphi_0 + alpha * (S_v - S_v_0) / Kdr + Ss * (p - p_0);
+//    REAL phi_n = fphi_0 + alpha * (S_n_v - S_v_0) / Kdr + Ss * (p_n - p_0);
+
+    REAL phi = fphi_0 + alpha * S_v / Kdr + Ss * (p - p_0);
+    REAL phi_n = fphi_0 + alpha * S_n_v / Kdr + Ss * (p_n - p_0);
     
     if (!fSimulationData->IsCurrentStateQ()) {
         

@@ -74,22 +74,39 @@ void TPZSegregatedSolver::Run_Evolution(std::string elliptic, std::string parabo
     
     // Fixing Iterative solution.
     std::cout << "Initial condition from incompressible solid-fluid response " << std::endl;
+//    {
+//        // Initial condition transfer undarined response with epsilon_v = 0 sigma_v = p
+//        fSimulationData->SetInitialStateQ(true);         // Requirement:: Trasnfering Initial state at integration points.
+//        felliptic->ExcecuteOneStep();
+//        ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
+//
+//        fparabolic->ExcecuteOneStep();
+//        ftransfer->parabolic_To_elliptic(fparabolic->Mesh(),felliptic->Mesh());
+//
+//        fSimulationData->SetInitialStateQ(false);
+//        
+//        felliptic->X().Zero();        
+//        felliptic->X_n().Zero();
+//        
+//        this->UpdateGlobalSolution();
+//        
+//        this->PostProcessStep(elliptic,parabolic);    // Initial condition
+//    }
+    
     {
         // Initial condition transfer undarined response with epsilon_v = 0 sigma_v = p
         fSimulationData->SetInitialStateQ(true);         // Requirement:: Trasnfering Initial state at integration points.
-        felliptic->ExcecuteOneStep();
-        ftransfer->elliptic_To_parabolic(felliptic->Mesh(), fparabolic->Mesh());
-
+        felliptic_ini->ExcecuteOneStep();
+        ftransfer->elliptic_To_parabolic(felliptic_ini->Mesh(), fparabolic->Mesh());
+        
         fparabolic->ExcecuteOneStep();
         ftransfer->parabolic_To_elliptic(fparabolic->Mesh(),felliptic->Mesh());
-
-        fSimulationData->SetInitialStateQ(false);
-//        felliptic->ExcecuteOneStep();
         
-        felliptic->X().Zero();        
+        fSimulationData->SetInitialStateQ(false);
+        
+        felliptic->X().Zero();
         felliptic->X_n().Zero();
         
-        this->Update_at_n_State();
         this->UpdateGlobalSolution();
         
         this->PostProcessStep(elliptic,parabolic);    // Initial condition

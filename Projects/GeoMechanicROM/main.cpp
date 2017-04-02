@@ -308,7 +308,7 @@ int Geomechanic(){
     TPZSimulationData * sim_data = new TPZSimulationData;
     
     REAL dt = 0.1;
-    int n_steps = 100;
+    int n_steps = 10;
     REAL epsilon_res = 1.0e-8;
     REAL epsilon_corr = 1.0e-10;
     int n_corrections = 10;
@@ -326,8 +326,8 @@ int Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
 
     int order = 2;
@@ -379,7 +379,7 @@ int Geomechanic(){
     TPZCompMesh * geomechanic = CMesh_GeomechanicCoupling(gmesh, mesh_vector, sim_data,IsMixedQ);
     
     bool mustOptimizeBandwidth = true;
-    int number_threads = 0;
+    int number_threads = 16;
     TPZGeomechanicAnalysis * time_analysis = new TPZGeomechanicAnalysis;
     time_analysis->SetCompMesh(geomechanic,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -483,13 +483,13 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.1;
+    REAL dt = 0.01;
     int n_steps = 100;
-    REAL epsilon_res = 1.0e-2;
-    REAL epsilon_corr = 1.0e-1;
-    int n_corrections = 30;
+    REAL epsilon_res = 1.0e-3;
+    REAL epsilon_corr = 1.0;
+    int n_corrections = 50;
     bool IsMixedQ = false;
-    bool IsRBQ    = false;
+    bool IsRBQ    = true;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
@@ -502,8 +502,8 @@ int Segregated_Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
     
@@ -925,7 +925,7 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
     
     
     int ni = 2;
-    int nj = 2;
+    int nj = 20;
     int nk = 1;
     
     TPZManVector<REAL,3> x0(3,0.0);
