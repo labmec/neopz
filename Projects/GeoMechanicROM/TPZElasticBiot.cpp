@@ -476,8 +476,8 @@ void TPZElasticBiot::ContributeRB(TPZVec<TPZMaterialData> &datavec, REAL weight,
     
     int first_u = 0;
     
-    REAL dt = fSimulationData->dt();
-    REAL div_u = grad_u(0,0) + grad_u(1,1);
+//    REAL dt = fSimulationData->dt();
+//    REAL div_u = grad_u(0,0) + grad_u(1,1);
     
     TPZFNMatrix<9,REAL> S(3,3,0.0);
     Compute_Sigma(S,grad_u);
@@ -735,32 +735,32 @@ void TPZElasticBiot::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     // Computing Gradient of the Solution
     TPZFNMatrix<6,REAL> Grad_u(3,3,0.0),S(3,3,0.0);
     
-//    TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
-//    if(shapetype == datavec[u_b].EVecShape){
-//        
-//        Grad_u(0,0) = du(0,0); // dux/dx
-//        Grad_u(0,1) = du(1,0); // dux/dy
-//        
-//        Grad_u(1,0) = du(0,1); // duy/dx
-//        Grad_u(1,1) = du(1,1); // duy/dy
-//        
-//    }
-//    else{
-//        
-//        Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
-//        Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
-//        
-//        Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
-//        Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
-//        
-//        
-//    }
+    TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;
+    if(shapetype == datavec[u_b].EVecShape){
+        
+        Grad_u(0,0) = du(0,0); // dux/dx
+        Grad_u(0,1) = du(1,0); // dux/dy
+        
+        Grad_u(1,0) = du(0,1); // duy/dx
+        Grad_u(1,1) = du(1,1); // duy/dy
+        
+    }
+    else{
+        
+        Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
+        Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
+        
+        Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
+        Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
+        
+        
+    }
     
-    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
-    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
-    
-    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
-    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
+//    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
+//    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
+//    
+//    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
+//    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
 
     Compute_Sigma(S, Grad_u);
 

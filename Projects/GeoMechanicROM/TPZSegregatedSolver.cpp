@@ -108,7 +108,6 @@ void TPZSegregatedSolver::Run_Evolution(std::string elliptic, std::string parabo
         felliptic->X_n().Zero();
         
         this->UpdateGlobalSolution();
-        
         this->PostProcessStep(elliptic,parabolic);    // Initial condition
     }
     std::cout << std::endl;
@@ -155,7 +154,7 @@ void TPZSegregatedSolver::ExcecuteOneStep(){
         IsConverged_eQ = (error_e < epsilon_res) &&  (error_p < epsilon_res && error_p != 0.0);
         IsConverged_dQ = (dx_norm_e < epsilon_cor) &&  (dx_norm_p < epsilon_cor && dx_norm_p != 0.0);
 
-//        if( IsConverged_eQ )
+//        if( IsConverged_eQ && k == 3 )
         if( IsConverged_eQ && IsConverged_dQ)
         {
             

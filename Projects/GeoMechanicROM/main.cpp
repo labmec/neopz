@@ -483,13 +483,13 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.01;
-    int n_steps = 100;
-    REAL epsilon_res = 1.0e-3;
-    REAL epsilon_corr = 1.0;
-    int n_corrections = 50;
-    bool IsMixedQ = false;
-    bool IsRBQ    = true;
+    REAL dt = 1.0;
+    int n_steps = 10;
+    REAL epsilon_res  = 1.0e-3;
+    REAL epsilon_corr = 1.0e-1;
+    int n_corrections = 20;
+    bool IsMixedQ = true;
+    bool IsRBQ    = false;
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
@@ -507,7 +507,7 @@ int Segregated_Geomechanic(){
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
     
-    int order = 2;
+    int order = 3;
     int hlevel = 0;
     
     UniformRefinement(gmesh, hlevel);
@@ -924,8 +924,8 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
     }
     
     
-    int ni = 2;
-    int nj = 20;
+    int ni = 1;
+    int nj = 100;
     int nk = 1;
     
     TPZManVector<REAL,3> x0(3,0.0);
@@ -1035,27 +1035,27 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
         }
     }
     
-    // divide groups by max number of elements, adapted case
-    int div = 2;
-    int cut_off = 2;
-//    TPZStack< TPZStack<long> > geo_groups_adapted;
-    TPZStack<long> adapted_group;
-    int groups = geo_groups.size();
-    for (int ig = 0; ig < groups; ig++) {
-        adapted_group.Resize(0);
-        int n_elements = geo_groups[ig].size();
-        
-        if (n_elements >= cut_off) {
-            int n_newgroups = int(n_elements/div);
-            for (int iel = n_newgroups - 1 ; iel >= 0; iel--) {
-                adapted_group.Push(geo_groups[ig][iel]);
-                geo_groups[ig].Pop();
-            }
-            geo_groups.Push(adapted_group);
-        }
-
-    
-    }
+//    // divide groups by max number of elements, adapted case
+//    int div = 2;
+//    int cut_off = 2;
+////    TPZStack< TPZStack<long> > geo_groups_adapted;
+//    TPZStack<long> adapted_group;
+//    int groups = geo_groups.size();
+//    for (int ig = 0; ig < groups; ig++) {
+//        adapted_group.Resize(0);
+//        int n_elements = geo_groups[ig].size();
+//        
+//        if (n_elements >= cut_off) {
+//            int n_newgroups = int(n_elements/div);
+//            for (int iel = n_newgroups - 1 ; iel >= 0; iel--) {
+//                adapted_group.Push(geo_groups[ig][iel]);
+//                geo_groups[ig].Pop();
+//            }
+//            geo_groups.Push(adapted_group);
+//        }
+//
+//    
+//    }
     
     
 #ifdef PZDEBUG
