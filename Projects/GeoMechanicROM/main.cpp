@@ -483,12 +483,12 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 1.0;
-    int n_steps = 10;
+    REAL dt = 0.1;
+    int n_steps = 100;
     REAL epsilon_res  = 1.0e-3;
-    REAL epsilon_corr = 1.0e-1;
+    REAL epsilon_corr = 1.0e-3;
     int n_corrections = 20;
-    bool IsMixedQ = true;
+    bool IsMixedQ = false;
     bool IsRBQ    = false;
     
     /** @brief Definition gravity field */
@@ -507,8 +507,8 @@ int Segregated_Geomechanic(){
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
     
-    int order = 3;
-    int hlevel = 0;
+    int order = 2;
+    int hlevel = 2;
     
     UniformRefinement(gmesh, hlevel);
     {
