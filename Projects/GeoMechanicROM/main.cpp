@@ -483,12 +483,12 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.1;
-    int n_steps = 100;
+    REAL dt = 0.01;
+    int n_steps = 1000;
     REAL epsilon_res  = 1.0e-3;
-    REAL epsilon_corr = 1.0e-3;
-    int n_corrections = 20;
-    bool IsMixedQ = false;
+    REAL epsilon_corr = 1.0e-6;
+    int n_corrections = 50;
+    bool IsMixedQ = true;
     bool IsRBQ    = false;
     
     /** @brief Definition gravity field */
@@ -508,7 +508,7 @@ int Segregated_Geomechanic(){
     
     
     int order = 2;
-    int hlevel = 2;
+    int hlevel = 3;
     
     UniformRefinement(gmesh, hlevel);
     {
@@ -614,6 +614,9 @@ int Segregated_Geomechanic(){
     parabolic->SetSolver(step_p);
     parabolic->SetStructuralMatrix(struct_mat_p);
     
+    std::cout << " elliptic DoF = " << elliptic->Solution().Rows() << std::endl;
+    std::cout << " parabolic DoF = " << parabolic->Solution().Rows() << std::endl;
+    
     // Transfer object
     
     if (IsRBQ) {
@@ -667,6 +670,22 @@ int Segregated_Geomechanic(){
     
     std::string elliptic_file = "elliptic.vtk";
     std::string parabolic_file = "parabolic.vtk";
+    
+//    if(IsMixedQ){
+//        elliptic_file = "elliptic_mf.vtk";
+//        parabolic_file = "parabolic_mf.vtk";
+//        
+//        if (IsRBQ) {
+//            elliptic_file = "elliptic_mf_rb.vtk";
+//            parabolic_file = "parabolic_mf_rb.vtk";
+//        }
+//    }
+//    else{
+//        if (IsRBQ) {
+//            elliptic_file = "elliptic_rb.vtk";
+//            parabolic_file = "parabolic_rb.vtk";
+//        }
+//    }
     
     if (IsRBQ) {
         elliptic_file = "elliptic_rb.vtk";
@@ -2848,7 +2867,7 @@ void Analytic(const TPZVec<REAL> &x, REAL time, TPZVec<STATE> &u,TPZFMatrix<STAT
     REAL yD = (h-(y_c+h/2))/h;
     REAL tD = (l+2.0*mu)*kappa*time/(eta*h*h);
     
-    int n = 500;
+    int n = 1000;
     REAL sump = 0.0;
     REAL sumu = 0.0;
     REAL sumv = 0.0;

@@ -214,7 +214,7 @@ void TPZElasticAnalysis::PostProcessStep(std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 4;
+    int div = 5;
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("sx");
     scalnames.Push("sy");

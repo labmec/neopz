@@ -66,7 +66,7 @@ TPZSegregatedSolver & TPZSegregatedSolver::operator=(const TPZSegregatedSolver &
 /** @brief execute the evolutionary problem */
 void TPZSegregatedSolver::Run_Evolution(std::string elliptic, std::string parabolic){
     
-    int interval = 100;
+    int interval = 1000;
     int n = fSimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
@@ -154,7 +154,7 @@ void TPZSegregatedSolver::ExcecuteOneStep(){
         IsConverged_eQ = (error_e < epsilon_res) &&  (error_p < epsilon_res && error_p != 0.0);
         IsConverged_dQ = (dx_norm_e < epsilon_cor) &&  (dx_norm_p < epsilon_cor && dx_norm_p != 0.0);
 
-//        if( IsConverged_eQ && k == 3 )
+//        if( IsConverged_eQ && k == 5)
         if( IsConverged_eQ && IsConverged_dQ)
         {
             
