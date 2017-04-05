@@ -56,6 +56,8 @@ protected:
     /** @brief correction overal tolerance */
     REAL fepsilon_cor;
     
+    /** @brief number of blocks */
+    TPZStack< int > fblocks;
     
 public:
     
@@ -174,6 +176,16 @@ public:
     TPZVec<REAL> & Gravity()
     {
         return fg;
+    }
+    
+    void SetBlocks(TPZStack< int > & blocks)
+    {
+        fblocks = blocks;
+    }
+    
+    TPZStack< int > & Blocks()
+    {
+        return fblocks;
     }
     
 };

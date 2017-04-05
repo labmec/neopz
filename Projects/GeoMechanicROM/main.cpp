@@ -162,7 +162,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
 
 int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, int level);
 
-int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures);
+int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, TPZSimulationData * sim_data);
 
 bool DrawingGeometryOutline(TPZGeoMesh * gmesh, TPZStack< REAL > & min_x, TPZStack< REAL > & max_x);
 
@@ -483,13 +483,24 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.01;
-    int n_steps = 1000;
+    REAL dt = 0.1;
+    int n_steps = 100;
     REAL epsilon_res  = 1.0e-3;
-    REAL epsilon_corr = 1.0e-6;
-    int n_corrections = 50;
-    bool IsMixedQ = true;
-    bool IsRBQ    = false;
+    REAL epsilon_corr = 1.0e-1;
+    int n_corrections = 100;
+    bool IsMixedQ = false;
+    bool IsRBQ    = true;
+    
+    int order = 3;
+    int hlevel = 0;
+    
+    TPZStack< int > blocks;
+    blocks.Push(1);
+    blocks.Push(40);
+    blocks.Push(1);
+    
+    std::string elliptic_file   = "elliptic.vtk";
+    std::string parabolic_file  = "parabolic.vtk";
     
     /** @brief Definition gravity field */
     TPZVec<REAL> g(2,0.0);
@@ -499,16 +510,13 @@ int Segregated_Geomechanic(){
     sim_data->SetNumericControls(n_corrections, epsilon_res, epsilon_corr);
     sim_data->SetMixedApproxQ(IsMixedQ);
     sim_data->SetRBApproxQ(IsRBQ);
+    sim_data->SetBlocks(blocks);
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
     file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
 //    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
-    
-    
-    int order = 2;
-    int hlevel = 3;
     
     UniformRefinement(gmesh, hlevel);
     {
@@ -668,9 +676,6 @@ int Segregated_Geomechanic(){
     segregated->SetTransfer_object(transfer);
     segregated->SetSimulationData(sim_data);
     
-    std::string elliptic_file = "elliptic.vtk";
-    std::string parabolic_file = "parabolic.vtk";
-    
 //    if(IsMixedQ){
 //        elliptic_file = "elliptic_mf.vtk";
 //        parabolic_file = "parabolic_mf.vtk";
@@ -688,8 +693,8 @@ int Segregated_Geomechanic(){
 //    }
     
     if (IsRBQ) {
-        elliptic_file = "elliptic_rb.vtk";
-        parabolic_file = "parabolic_rb.vtk";
+        elliptic_file = "elliptic_rb_" + to_string(elliptic->Solution().Rows()) + ".vtk";
+        parabolic_file = "parabolic_rb_" + to_string(elliptic->Solution().Rows()) + ".vtk";
     }
 
     
@@ -763,7 +768,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     TPZStack<TPZVec<long> > cts_pressures;
     
 //    int n_blocks = DrawUnitPressuresBlocks(mesh_vector[1],cts_pressures,level);
-    int n_blocks = DrawingPressureBlocks(mesh_vector[1],cts_pressures);
+    int n_blocks = DrawingPressureBlocks(mesh_vector[1], cts_pressures, sim_data);
     
     int ndof_elastic = mesh_vector[0]->NEquations();
     TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
@@ -915,7 +920,7 @@ int DrawUnitPressuresBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & const
     return n_modes;
 }
 
-int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures){
+int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, TPZSimulationData * sim_data){
     
 #ifdef PZDEBUG
     if(!cmesh){
@@ -942,10 +947,9 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
         DebugStop();
     }
     
-    
-    int ni = 1;
-    int nj = 100;
-    int nk = 1;
+    int ni = sim_data->Blocks()[0];
+    int nj = sim_data->Blocks()[1];
+    int nk = sim_data->Blocks()[2];
     
     TPZManVector<REAL,3> x0(3,0.0);
     

@@ -42,6 +42,8 @@ TPZSimulationData::TPZSimulationData(){
     /** @brief Time step */
     ftime = 0.0;
     
+    /** @brief number of blocks */
+    fblocks.Resize(0);
 }
 
 /** @brief destructor */
