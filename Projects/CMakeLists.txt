@@ -179,6 +179,9 @@ ENABLE_TESTING()
 			#Projetos de Thiago Dias dos Santos
 			#add_subdirectory(SantosProjects)
 
+			#GPU project
+			add_subdirectory(GPU)
+
 			add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
