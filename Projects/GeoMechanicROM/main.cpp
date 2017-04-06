@@ -483,20 +483,20 @@ int Segregated_Geomechanic(){
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     
-    REAL dt = 0.1;
-    int n_steps = 100;
-    REAL epsilon_res  = 1.0e-3;
-    REAL epsilon_corr = 1.0e-1;
-    int n_corrections = 100;
-    bool IsMixedQ = false;
+    REAL dt = 1.0;
+    int n_steps = 10;
+    REAL epsilon_res  = 1.0e-1;
+    REAL epsilon_corr = 100.0;
+    int n_corrections = 150;
+    bool IsMixedQ = true;
     bool IsRBQ    = true;
     
-    int order = 3;
+    int order = 2;
     int hlevel = 0;
     
     TPZStack< int > blocks;
-    blocks.Push(1);
-    blocks.Push(40);
+    blocks.Push(100);
+    blocks.Push(100);
     blocks.Push(1);
     
     std::string elliptic_file   = "elliptic.vtk";
@@ -514,8 +514,8 @@ int Segregated_Geomechanic(){
     
     std::string dirname = PZSOURCEDIR;
     std::string file;
-    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
-//    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
+//    file = dirname + "/Projects/GeoMechanicROM/mesh/Column_Problem.msh";
+    file = dirname + "/Projects/GeoMechanicROM/mesh/Footing_Problem.msh";
     TPZGeoMesh * gmesh = CreateGeometricGmshMesh(file);
     
     UniformRefinement(gmesh, hlevel);
@@ -764,7 +764,7 @@ TPZCompMesh * Galerkin_Projections(TPZGeoMesh * gmesh, TPZSimulationData * sim_d
     // Setting up the empirical interpolation based on unitary pressures
     std::string plotfile("Geo_Modes_rb_0.vtk");
     
-    REAL unit_p = 1.0e3;
+    REAL unit_p = 1.0e2;
     TPZStack<TPZVec<long> > cts_pressures;
     
 //    int n_blocks = DrawUnitPressuresBlocks(mesh_vector[1],cts_pressures,level);
@@ -1087,9 +1087,9 @@ int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constan
     }
 #endif
     
-//    // drained response mode
-//    TPZVec<long> dofs(0);
-//    constant_pressures.Push(dofs);
+    // drained response mode
+    TPZVec<long> dofs(0);
+    constant_pressures.Push(dofs);
     
     // Pick blocks dofs
     TPZVec<long> dof_indexes;
@@ -1386,7 +1386,6 @@ TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     int dirichlet_x_vn   = 7;
     int dirichlet_xy_vn  = 6;
     int neumann_y_p      = 5;
-    int neumann_y_vn     = 11;
     
     REAL s_n = -(1.0e-3)*MPa;
     
@@ -1419,7 +1418,7 @@ TPZCompMesh * CMesh_GeoModes_M(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh * > mesh_v
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
     val2(2,0) = 0.0;
-    TPZMaterial * bc_top_null_mat = material->CreateBC(material, bc_top_null, neumann_y_vn, val1, val2);
+    TPZMaterial * bc_top_null_mat = material->CreateBC(material, bc_top_null, neumann_y_p, val1, val2);
     cmesh->InsertMaterialObject(bc_top_null_mat);
     
     // Setting up multiphysics functions

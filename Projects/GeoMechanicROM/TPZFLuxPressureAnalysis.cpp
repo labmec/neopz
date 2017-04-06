@@ -219,7 +219,7 @@ void TPZFLuxPressureAnalysis::PostProcessStep(std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 5;
+    int div = 2;
     TPZStack<std::string>scalnames, vecnames;
     scalnames.Push("p_ex");
     scalnames.Push("pe_ex");
