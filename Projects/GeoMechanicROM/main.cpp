@@ -488,15 +488,15 @@ int Segregated_Geomechanic(){
     REAL epsilon_res  = 1.0e-1;
     REAL epsilon_corr = 100.0;
     int n_corrections = 150;
-    bool IsMixedQ = true;
-    bool IsRBQ    = true;
+    bool IsMixedQ = false;
+    bool IsRBQ    = false;
     
     int order = 2;
     int hlevel = 0;
     
     TPZStack< int > blocks;
-    blocks.Push(100);
-    blocks.Push(100);
+    blocks.Push(20);
+    blocks.Push(20);
     blocks.Push(1);
     
     std::string elliptic_file   = "elliptic.vtk";

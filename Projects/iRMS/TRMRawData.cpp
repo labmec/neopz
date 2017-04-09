@@ -135,8 +135,8 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
-    fGridName = "ch_fem_thiem/reservoir_3D_H_C.msh";
-//    fGridName = "ch_fem_thiem/reservoir_3D_P_A.msh";
+    fGridName = "ch_fem_thiem/reservoir_3D_H.msh";
+//    fGridName = "ch_fem_thiem/reservoir_3D_P.msh";
 //    fGridName = "ch_fem_thiem/reservoir_3D_T.msh";
     fPermPorFields.first = "ch_fem_thiem/spe_perm.dat";
     fPermPorFields.second = "ch_fem_thiem/spe_phi.dat";
@@ -179,7 +179,7 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
-    fMHMResolutionQ.second.first = 1; // level
+    fMHMResolutionQ.second.first = 2; // level
     fMHMResolutionQ.second.second = 2; // fine
     
     

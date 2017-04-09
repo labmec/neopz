@@ -237,10 +237,10 @@ void TPZPardisoControl<TVar>::Decompose()
             fPermutation[i] = i;
         }
         
-        fParam[4 ] = 1; // user permutation PERM
+//        fParam[4 ] = 1; // user permutation PERM
         
-//        fParam[9] = -1; // avoid any pivot permutation ()
-//        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
+        fParam[9] = -1; // avoid any pivot permutation ()
+        fParam[3 ] = 0; // LU preconditioned CGS (10*L+K) where K=1:CGS,2:CG L=10^-L stopping threshold
 //        fParam[10] = 1;
 //        fParam[12] = 1;
         

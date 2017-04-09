@@ -259,11 +259,22 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
-        plotfile =  "parabolic_I.vtk";
+        
+        if (fSimulationData->MHMResolution().first) {
+            plotfile =  "parabolic_I_HMM_l_" + to_string(fSimulationData->MHMResolution().second.first) + ".vtk";
+        }
+        else{
+            plotfile =  "parabolic_I.vtk";
+        }
         return;
     }
     else{
-        plotfile =  "parabolic.vtk";
+        if (fSimulationData->MHMResolution().first) {
+            plotfile =  "parabolic_HMM_l_" + to_string(fSimulationData->MHMResolution().second.first) + ".vtk";
+        }
+        else{
+            plotfile =  "parabolic.vtk";
+        }
     }
     
     scalnames.Push("p");
