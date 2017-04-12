@@ -21,6 +21,8 @@
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 
+#include "TPZVTKGeoMesh.h"
+
 using namespace pzgeom;
 /*}}}*/
 
@@ -32,7 +34,10 @@ TPZCompMesh *CreateCompMesh(TPZGeoMesh *gmesh);
 int main(int argc, char *argv[]){/*{{{*/
 
 	TPZGeoMesh	*gmesh = CreateGeoMesh();
-	TPZCompMesh *cmesh = CreateCompMesh(gmesh);
+    //std::ofstream file("/Users/santos/Desktop/CUDAgeomesh.vtk");
+    //TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file);
+    
+    TPZCompMesh *cmesh = CreateCompMesh(gmesh);
     
     TPZSkylineStructMatrix skylstruct(cmesh);
     TPZStepSolver<STATE> step;
@@ -41,6 +46,15 @@ int main(int argc, char *argv[]){/*{{{*/
     an.SetStructuralMatrix(skylstruct);
     an.SetSolver(step);
     an.Run();
+    
+    //post process
+    int dimension = 2, resolution = 1;
+    std::string plotfile("/Users/santos/Desktop/CUDAsolution.vtk");
+    TPZVec <std::string> scalnames(1), vecnames(0);
+    scalnames[0] = "Pressure";
+    
+    an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
+    an.PostProcess(resolution);
 
 	return 1;
 }
@@ -48,17 +62,17 @@ int main(int argc, char *argv[]){/*{{{*/
 
 TPZGeoMesh *CreateGeoMesh(){/*{{{*/
 
-	int nnodes 			= 4;
-   long id				= 0;
-   int mat 				= 1;
+    int nnodes 			= 4;
+    long id				= 0;
+    int mat 			= 1;
 	int reftype 		= 0;
-	TPZGeoMesh *gmesh = NULL;
+	TPZGeoMesh *gmesh   = NULL;
 	TPZManVector<REAL,3> coord(3,0);
-   TPZManVector<long,4> quad(4,0);
+    TPZManVector<long,4> quad(4,0);
 	TPZManVector<long,2> boundary(2,0);
 
 	gmesh = new TPZGeoMesh();
-   gmesh->NodeVec().Resize( nnodes );
+    gmesh->NodeVec().Resize( nnodes );
 
 	//vertex 0
 	coord[0]=0.; coord[1]=0.;
@@ -78,9 +92,9 @@ TPZGeoMesh *CreateGeoMesh(){/*{{{*/
 	gmesh->NodeVec()[3].SetNodeId(3);
 
 	//element quad 0
-   quad[0]=0; quad[1]=1; quad[2]=2; quad[3]=3;
-   gmesh->CreateGeoElement(EQuadrilateral,quad,mat,id,reftype);
-   gmesh->ElementVec()[id]->SetId(0);
+    quad[0]=0; quad[1]=1; quad[2]=2; quad[3]=3;
+    gmesh->CreateGeoElement(EQuadrilateral,quad,mat,id,reftype);
+    gmesh->ElementVec()[id]->SetId(0);
 
 	//element line
 	for(long i=1;i<5;i++){
@@ -100,6 +114,10 @@ TPZCompMesh *CreateCompMesh(TPZGeoMesh *gmesh){/*{{{*/
 	const int dim                   = 2;
 	const int pOrder                = 1;
 	const int mat                   = 1;
+    const int dirichlet             = 0;
+    const int neumann               = 1;
+    const int matface_in            = 5;
+    const int matface_out           = 3;
 	TPZMatLaplacian* matlaplacian 	= NULL;
 	TPZCompMesh* cmesh              = NULL;
 
@@ -121,11 +139,11 @@ TPZCompMesh *CreateCompMesh(TPZGeoMesh *gmesh){/*{{{*/
     
     val2(0,0) = 0.0;
     val2(1,0) = 0.0;
-    TPZMaterial * BCond1 = matlaplacian->CreateBC(matlaplacian,3,1, val1, val2);
+    TPZMaterial * BCond1 = matlaplacian->CreateBC(matlaplacian,matface_out,dirichlet, val1, val2);
     
     val2(0,0) = 1.0*1000.0;
     val2(1,0) = 0.0;
-    TPZMaterial * BCond2 = matlaplacian->CreateBC(matlaplacian,5,1, val1, val2);
+    TPZMaterial * BCond2 = matlaplacian->CreateBC(matlaplacian,matface_in,dirichlet, val1, val2);
 
     //Inserting materials
     cmesh->InsertMaterialObject(matlaplacian);
