@@ -8,7 +8,7 @@
 
 Mesh.Algorithm3D = 6 ;
 
-IsHexaQ = 0;
+IsHexaQ = 1;
 
 xSize = 20;
 ySize = 20;
@@ -125,7 +125,7 @@ EndIf
 out[] = Extrude{ zSize*Cos(alpha)*Cos(beta), zSize*Cos(alpha)*Sin(beta), zSize}{
 Surface{wellbore[],reservoir[]};
 Layers{n_axial}; 
-//Recombine;
+Recombine;
 };
 
 // taging

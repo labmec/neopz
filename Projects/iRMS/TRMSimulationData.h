@@ -389,7 +389,7 @@ public:
     bool IsAdataptedQ() {return fIsAdataptedQ;}
     
     /** @brief Get the use enhanced pressure accuracy */
-    bool EnhancedPressureQ() {return fEnhancedPressureQ;}
+    bool IsEnhancedPressureQ() {return fEnhancedPressureQ;}
     
     /** @brief Material identifier for interfaces */
     int InterfacesMatId() { return fInterface_mat_Id; }

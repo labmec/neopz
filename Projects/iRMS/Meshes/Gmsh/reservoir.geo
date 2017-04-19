@@ -40,7 +40,7 @@ CADReservoirQ = 0;
 xzQ = 0;
 hexahedronsWQ = 1;
 hexahedronsRQ = 1;
-hexahedronsSBQ = 1;
+hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
 Mesh.ElementOrder = 2;
@@ -59,8 +59,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 50.0;
-cl5 = 1000.0;
+cl4 = 75.0;
+cl5 = 5000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry

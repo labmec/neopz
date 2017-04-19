@@ -131,7 +131,7 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     //fg[1] = -9.81;
     
-    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 1; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
@@ -176,10 +176,10 @@ void TRMRawData::SinglePhaseReservoirHMM(bool Is3DGeometryQ){
     fepsilon_res = 0.1;
     fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
-    fIsAdataptedQ = false;
+    fIsAdataptedQ = true;
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
-    fMHMResolutionQ.second.first = 2; // level
+    fMHMResolutionQ.second.first = 0; // level
     fMHMResolutionQ.second.second = 2; // fine
     
     
@@ -332,7 +332,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     //fg[1] = -9.81;
     
-    int map_model = 2; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
@@ -346,7 +346,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fBlocks_sizes.Push(4.5454545455);
     fBlocks_sizes.Push(50.0);
     fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
-    fMap->LoadSPE10Map(true);
+    fMap->LoadSPE10Map(false);
     
     // Time control parameters
     REAL hour       = 3600.0;
@@ -364,17 +364,19 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
-    fdt = 1.0*day;
+    fdt = 50.0*day;
     fdt_max = 30.0*day;
     fdt_min = 0.1*day;
     fdt_up = 1.5;
     fdt_down = 0.1;
     
     // Numeric controls
-    fn_corrections = 20;
-    fepsilon_res = 0.001;
-    fepsilon_cor = 0.00001;
+    fn_corrections = 10;
+    fepsilon_res = 0.01;
+    fepsilon_cor = 0.0001;
     fIsQuasiNewtonQ = true;
+    fIsAdataptedQ = false;
+    fEnhancedPressureQ = false;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
     fMHMResolutionQ.second.second = 0; // fine
@@ -424,15 +426,15 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
-    S[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
+    S[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(S);
-    S[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
+    S[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(S);
     
     fGammaIds.Push(bc_N);
-    N[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
+    N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(N);
-    N[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Aquifer));
+    N[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fRecurrent_bc_data.Push(N);
     
     fGammaIds.Push(bc_B);
@@ -493,7 +495,7 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 
 void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF)
 {
-    REAL flux_b = 0.795775;//-0.58569;
+    REAL flux_b = -0.195775;//-0.58569;
     
     REAL day = 86400;
     REAL flux = 0.0;
@@ -512,7 +514,7 @@ void TRMRawData::Aquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F,
     REAL MPa = 1.0e6;
     
     // Aquifer properties
-    REAL pressure_aquifer = 25.0*MPa;
+    REAL pressure_aquifer = -25.0*MPa;
     REAL mu_w = 0.001;
     REAL k = 1.0e-13;
     REAL h = 100.0;
