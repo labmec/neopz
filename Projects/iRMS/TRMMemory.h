@@ -312,9 +312,8 @@ public:
 
     void Print(std::ostream &out) const
     {
-//        out << fPressure_n;
-//        out << fPressure;
-        DebugStop();
+        out << fp_avg; // Dummy
+
     }
     
     //@}

@@ -855,11 +855,16 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
             else{
                 bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
             }
-            
+
             bc_item = bc[Sigma_or_displacement];
-            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            TPZMatWithMem<TRMMemory,TPZBndCond> * boundary_c = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+            boundary_c->SetNumLoadCases(1);
+            boundary_c->SetMaterial(mat);
+            boundary_c->SetId(bc_id);
+            boundary_c->SetType(bc_item.first);
+            boundary_c->SetValues(val1, val2);
             TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
-            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            boundary_c->SetTimedependentBCForcingFunction(0,boundary_data);
             fGeoMechanicsCmesh->InsertMaterialObject(boundary_c);
         }
         
@@ -891,22 +896,52 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
     fGeoMechanicsCmesh->InsertMaterialObject(mat);
     
-    TPZMaterial * W_bndc = mat->CreateBC(mat, bc_W, Sigma_or_displacement, val1, val2);
+    TPZMatWithMem<TRMMemory,TPZBndCond> * W_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+    W_bndc->SetNumLoadCases(1);
+    W_bndc->SetMaterial(mat);
+    W_bndc->SetId(bc_W);
+    W_bndc->SetType(Sigma_or_displacement);
+    W_bndc->SetValues(val1, val2);
     fGeoMechanicsCmesh->InsertMaterialObject(W_bndc);
     
-    TPZMaterial * N_bndc = mat->CreateBC(mat, bc_N, Sigma_or_displacement, val1, val2);
+    TPZMatWithMem<TRMMemory,TPZBndCond> * N_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+    N_bndc->SetNumLoadCases(1);
+    N_bndc->SetMaterial(mat);
+    N_bndc->SetId(bc_N);
+    N_bndc->SetType(Sigma_or_displacement);
+    N_bndc->SetValues(val1, val2);
     fGeoMechanicsCmesh->InsertMaterialObject(N_bndc);
     
-    TPZMaterial * E_bndc = mat->CreateBC(mat, bc_E, Sigma_or_displacement, val1, val2);
+    TPZMatWithMem<TRMMemory,TPZBndCond> * E_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+    E_bndc->SetNumLoadCases(1);
+    E_bndc->SetMaterial(mat);
+    E_bndc->SetId(bc_E);
+    E_bndc->SetType(Sigma_or_displacement);
+    E_bndc->SetValues(val1, val2);
     fGeoMechanicsCmesh->InsertMaterialObject(E_bndc);
     
-    TPZMaterial * S_bndc = mat->CreateBC(mat, bc_S, Sigma_or_displacement, val1, val2);
+    TPZMatWithMem<TRMMemory,TPZBndCond> * S_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+    S_bndc->SetNumLoadCases(1);
+    S_bndc->SetMaterial(mat);
+    S_bndc->SetId(bc_S);
+    S_bndc->SetType(Sigma_or_displacement);
+    S_bndc->SetValues(val1, val2);
     fGeoMechanicsCmesh->InsertMaterialObject(S_bndc);
     
-    TPZMaterial * T_bndc = mat->CreateBC(mat, bc_T, Sigma_or_displacement, val1, val2);
+    TPZMatWithMem<TRMMemory,TPZBndCond> * T_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+    T_bndc->SetNumLoadCases(1);
+    T_bndc->SetMaterial(mat);
+    T_bndc->SetId(bc_T);
+    T_bndc->SetType(Sigma_or_displacement);
+    T_bndc->SetValues(val1, val2);
     fGeoMechanicsCmesh->InsertMaterialObject(T_bndc);
     
-    TPZMaterial * B_bndc = mat->CreateBC(mat, bc_B, Sigma_or_displacement, val1, val2);
+    TPZMatWithMem<TRMMemory,TPZBndCond> * B_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+    B_bndc->SetNumLoadCases(1);
+    B_bndc->SetMaterial(mat);
+    B_bndc->SetId(bc_B);
+    B_bndc->SetType(Sigma_or_displacement);
+    B_bndc->SetValues(val1, val2);
     fGeoMechanicsCmesh->InsertMaterialObject(B_bndc);
     
     fGeoMechanicsCmesh->SetDimModel(dim);

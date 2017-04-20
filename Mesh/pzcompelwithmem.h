@@ -213,7 +213,7 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
   
   fIntPtIndices.Resize(intrulepoints);
   
-  for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+  for(int int_ind = 0; int_ind < intrulepoints; int_ind++){
     fIntPtIndices[int_ind] = this->Material()->PushMemItem();
     // Pushing a new entry in the material memory
   } //Loop over integratin points generating a reference vector of memory
@@ -253,7 +253,7 @@ inline void TPZCompElWithMem<TBASE>::ForcePrepareIntPtIndices() {
   
   fIntPtIndices.Resize(intrulepoints);
   
-  for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+  for(int int_ind = 0; int_ind < intrulepoints; int_ind++){
     fIntPtIndices[int_ind] = this->Material()->PushMemItem();
     // Pushing a new entry in the material memory
   } //Loop over integratin points generating a reference vector of memory

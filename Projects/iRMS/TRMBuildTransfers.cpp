@@ -308,8 +308,8 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
 
     }
     
-//    fu_To_elliptic.Print(" u_to_e ");
-//    fgrad_u_To_elliptic.Print(" grad_u_to_e ");
+    fu_To_elliptic.Print(" u_to_e ");
+    fgrad_u_To_elliptic.Print(" grad_u_to_e ");
     
     return;
     
