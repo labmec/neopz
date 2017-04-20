@@ -311,11 +311,12 @@ void TPZSandlerExtended::FromPrincipalToHWCyl(const TPZVec<STATE> &PrincipalCoor
 
 void TPZSandlerExtended::F1Cyl(STATE xi, STATE beta, TPZVec<STATE> &f1cyl) const
 {
-    STATE sqrt2=sqrt(2);
-    STATE sqrt3=sqrt(3);
+    STATE sqrt2=M_SQRT2;
+    STATE sqrt3=sqrt(3.);
     STATE gamma = 0.5*(1 + (1 - sin(3*beta))/fPsi + sin(3*beta));
     STATE I1 = xi*sqrt3;
-    STATE sqrtj2 = ( F(I1) - fN )/gamma;
+    STATE F1 = F(I1);
+    STATE sqrtj2 = ( F1 - fN )/gamma;
     STATE rho = sqrt2*sqrtj2;
     f1cyl[0]=xi,
     f1cyl[1]=rho;
@@ -740,6 +741,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
 
     TPZManVector<STATE,3> sigprojcyl(3);
     F1Cyl(xn[0], xn[1], sigprojcyl);
+    
     FromHWCylToPrincipal(sigprojcyl, sigproj);
     
   
@@ -776,6 +778,14 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &sigmatrial, STATE kprev,
         count++;
     }
     
+#ifdef PZDEBUG
+    {
+        if(count >= 30)
+        {
+            DebugStop();
+        }
+    }
+#endif
     
     kproj = kguess;
    
@@ -1330,7 +1340,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
         treeEigEqual=true;
     }
     
-    
+    // kprev corresponde a L do artigo
     if (I1<kprev)
     {
         if (yield[1]>0. && treeEigEqual==false)
@@ -1493,6 +1503,16 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             }
 #endif
             ProjectF1(sigtrial,kprev,sigproj,kproj);
+#ifdef PZDEBUG
+            {
+                TPZManVector<STATE,2> yieldcopy(2);
+                YieldFunction(sigproj,kprev,yieldcopy);
+                if(fabs(yieldcopy[0]) > 1.e-6)
+                {
+                    DebugStop();
+                }
+            }
+#endif
             
             I1 = 0.;
             for (int i=0; i<3; i++) {

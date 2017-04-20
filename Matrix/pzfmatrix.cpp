@@ -1156,7 +1156,11 @@ int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU(std::list<long> &singular) {
     //return Decompose_LU();
+#ifndef USING_LAPACK
     if (  this->fDecomposed && this->fDecomposed != ELU)  Error( "Decompose_LU <Matrix already Decomposed with other scheme>" );
+#else
+    if (  this->fDecomposed && this->fDecomposed != ELUPivot)  Error( "Decompose_LU <Matrix already Decomposed with other scheme>" );
+#endif
     if (this->fDecomposed) return 1;
     
     const int  min = ( this->Cols() < (this->Rows()) ) ? this->Cols() : this->Rows();

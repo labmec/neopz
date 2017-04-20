@@ -61,6 +61,7 @@
 #include "TPZSkylineNSymStructMatrix.h"
 
 using namespace std;
+#include <algorithm>
 
 int const matId =1;
 int const bc0=-1;
@@ -467,9 +468,9 @@ bool hp_method = true;
 REAL alpha_param = 200.;
 int main(int argc, char *argv[])
 {
-    //#ifdef LOG4CXX
-    //    InitializePZLOG();
-    //#endif
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
     
     ///Refinamento
     gRefDBase.InitializeUniformRefPattern(EOned);
@@ -562,6 +563,33 @@ int main(int argc, char *argv[])
             meshvec[0] = cmesh1;
             meshvec[1] = cmesh2;
             mphysics = MalhaCompMultifisica(meshvec, gmesh,hdivskeleton, ndiv);
+            mphysics->Reference()->ResetReference();
+            mphysics->LoadReferences();
+            std::set<long> cindex;
+            
+            TPZCompEl *cel = mphysics->Element(0);
+            TPZGeoEl *gel = cel->Reference();
+            gel = gmesh->Element(274);
+            TPZGeoElSide gelside(gel,gel->NSides()-1);
+            TPZStack<TPZCompElSide> celstack;
+            gelside.ConnectedCompElementList(celstack, false, false);
+            for (int elst=0; elst<celstack.size(); elst++)
+            {
+                TPZCompEl *cel = celstack[elst].Element();
+                int nc = cel->NConnects();
+                for (int ic=0; ic<nc; ic++) {
+                    cindex.insert(cel->ConnectIndex(ic));
+                }
+            }
+            std::ostream_iterator< double > output( cout, " " );
+            std::copy( cindex.begin(), cindex.end(), output );
+//            std::cout << "Connect indexes " << cindex << std::endl;
+            std::cout << std::endl;
+
+//            TPZCompMeshTools::GroupElements(mphysics);
+//            TPZCompMeshTools::CreatedCondensedElements(mphysics, true);
+//            mphysics->CleanUpUnconnectedNodes();
+//            mphysics->ExpandSolution();
             
             NDoFCond = mphysics->NEquations();
             
@@ -586,6 +614,8 @@ int main(int argc, char *argv[])
                 analysis.SetStructuralMatrix(strmat);
             }
             else{
+                //Resolver problema
+                TPZAnalysis loc_analysis(mphysics,false);
                 long neq = NDoFCond;
                 TPZVec<long> skyline;
                 mphysics->Skyline(skyline);
@@ -597,8 +627,10 @@ int main(int argc, char *argv[])
 //                strmat.SetNumThreads(16);
 //                analysis.SetStructuralMatrix(strmat);
                 
-//                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
-//                analysis.SetStructuralMatrix(skylstr);
+                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+                skylstr.SetNumThreads(8);
+                loc_analysis.SetStructuralMatrix(skylstr);
+                analysis.SetStructuralMatrix(skylstr);
                 
                 TPZSymetricSpStructMatrix strmat_p(mphysics);
                 strmat_p.SetNumThreads(16);
@@ -607,35 +639,81 @@ int main(int argc, char *argv[])
                 
 //                TPZStepSolver<STATE> step_p;
 //                step_p.SetDirect(ELDLt);
+                TPZAutoPointer<TPZMatrix<STATE> > mat = loc_analysis.StructMatrix()->Create();
+                TPZAutoPointer<TPZMatrix<STATE> > mat2 = mat->Clone();
+                
+                TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
+                TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
+                step->SetReferenceMatrix(mat2);
+                step->SetDirect(ELDLt);
+                gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
+                TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+                TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
+                
+                loc_analysis.SetSolver(autogmres);
+                loc_analysis.Assemble();
+                loc_analysis.Solve();
+                TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+
+//                for (std::set<long>::iterator ic=cindex.begin(); ic!=cindex.end(); ic++) {
+//                    mphysics->ConnectVec()[*ic].Print(*mphysics,cout);
+//                }
+
+//                TPZCompMeshTools::UnGroupElements(mphysics);
+//                TPZCompMeshTools::UnCondensedElements(mphysics);
                 
             }
-            
-            TPZStepSolver<STATE> step;
-            step.SetDirect(ELDLt); //caso simetrico
-            //step.SetDirect(ELU);
-            analysis.SetSolver(step);
+            TPZCompMeshTools::GroupElements(mphysics);
+            TPZCompMeshTools::CreatedCondensedElements(mphysics, true);
+            mphysics->CleanUpUnconnectedNodes();
+            mphysics->ExpandSolution();
             
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
+            TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+            skylstr.SetNumThreads(8);
+            analysis.SetStructuralMatrix(skylstr);
+
             analysis.Assemble();
+            TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+            
+//            for (std::set<long>::iterator ic=cindex.begin(); ic!=cindex.end(); ic++) {
+//                mphysics->ConnectVec()[*ic].Print(*mphysics,cout);
+//            }
+
+            analysis.LoadSolution(mphysics->Solution());
             //            std::stringstream sout;
             //            analysis.StructMatrix()->Print("Matriz de RigidezBLABLA: ",sout,EMathematicaInput);F
+            
+            TPZMatrixSolver<STATE> &solve = analysis.Solver();
+            TPZMatrix<STATE> *mat = solve.Matrix().operator->();
+            TPZFMatrix<STATE> locsol(analysis.Solution()),rhs;
+            locsol.Resize(mat->Rows(), 1);
+            mat->Multiply(locsol, rhs);
+            rhs-= analysis.Rhs();
+            
+            std::cout << "residual norm " << Norm(rhs) << std::endl;
+            
+            {
+                ofstream out("elementres.txt");
+                analysis.PrintVectorByElement(out, rhs);
+            }
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
-            analysis.Solve();
+//            analysis.Solve();
             
 #ifdef USING_BOOST
             boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
 #endif
             //REAL t1=0., t2=0., t3=0.;
-            
-            //            std::ofstream out("cmeshHib22.txt");
-            //            cmesh->Print(out);
-            
+            {
+                std::ofstream out("mphysics.txt");
+                mphysics->Print(out);
+            }
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             
             if(ndiv!=5  && p!=5){
@@ -661,16 +739,22 @@ int main(int argc, char *argv[])
             
             //            myerrorfile << ndiv <<  setw(13) << NDoF << setw(15)<< NDoFCond <<"    "<< (t2-t1) << "     "<< (t3-t2) <<"     "<<(t2-t1)+(t3-t2) << setw(18);
             
-            TPZCompMeshTools::UnGroupElements(mphysics);
-            TPZCompMeshTools::UnCondensedElements(mphysics);
-            
+
+            {
+                std::ofstream sout("flux_cmesh.txt");
+                for (std::set<long>::iterator ic=cindex.begin(); ic!=cindex.end(); ic++) {
+                    sout << "index " << *ic << " ";
+                    mphysics->ConnectVec()[*ic].Print(*mphysics,sout);
+                }
+
+                cmesh1->Print(sout);
+            }
+
+            std::cout << "Computing the error\n";
             TPZVec<STATE> ErroP;
             TPZVec<STATE> ErroF;
             ErrorH1(cmesh2, ErroP /*,myerrorfile*/);
             ErrorHDiv(cmesh1, ErroF /*,myerrorfile*/);
-            
-            std::ofstream sout("flux_cmesh.txt");
-            cmesh1->Print(sout);
             
             REAL totalbanda = NDoFCond*NDoFCond;
             REAL NumZeros = totalbanda - nNzeros;
@@ -2359,16 +2443,18 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     TPZAutoPointer<TPZFunction<STATE> > bc1exata;
     TPZDummyFunction<STATE> *dum1;
     dum1 = new TPZDummyFunction<STATE>(NeumannBC1);
+    //    dum1 = new TPZDummyFunction<STATE>(Dirichlet);
     dum1->SetPolynomialOrder(int_order);
     bc1exata = dum1;
     bnd->SetForcingFunction(bc1exata);
     mphysics->InsertMaterialObject(bnd);
     
     //bc2
-    bnd = mat->CreateBC (mat, bc2, 1, val1, val2);
+    bnd = mat->CreateBC (mat, bc2, 0, val1, val2);
     TPZAutoPointer<TPZFunction<STATE> > bc2exata;
     TPZDummyFunction<STATE> *dum2;
-    dum2 = new TPZDummyFunction<STATE>(NeumannBC2);
+//    dum2 = new TPZDummyFunction<STATE>(NeumannBC2);
+    dum2 = new TPZDummyFunction<STATE>(Dirichlet);
     dum2->SetPolynomialOrder(int_order);
     bc2exata = dum2;
     bnd->SetForcingFunction(bc2exata);
@@ -2415,10 +2501,11 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
         //        bnd->SetForcingFunction(NeumannAcima);
         //        mphysics->InsertMaterialObject(bnd);
         
-        bnd = mat->CreateBC (mat, bc5, 1, val1, val2);
+        bnd = mat->CreateBC (mat, bc5, 0, val1, val2);
         TPZAutoPointer<TPZFunction<STATE> > bc5exata;
         TPZDummyFunction<STATE> *dum5;
-        dum5 = new TPZDummyFunction<STATE>(NeumannAcima);
+//        dum5 = new TPZDummyFunction<STATE>(NeumannAcima);
+        dum5 = new TPZDummyFunction<STATE>(Dirichlet);
         dum5->SetPolynomialOrder(int_order);
         bc5exata = dum5;
         bnd->SetForcingFunction(bc5exata);
@@ -2465,8 +2552,6 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
 //            }
 //            new TPZCondensedCompEl(cel);
 //        }
-        mphysics->CleanUpUnconnectedNodes();
-        mphysics->ExpandSolution();
     }
     
     //Creating multiphysic elements containing skeletal elements.

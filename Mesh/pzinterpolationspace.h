@@ -94,6 +94,11 @@ public:
     /** @brief Adjust the integration rule according to the polynomial order of shape functions. */
     virtual void AdjustIntegrationRule();
 	
+    virtual void SetIntegrationRule(int order) {
+        std::cout << "TPZInterpolationSpace::SetIntegrationRule called\n";
+    }
+    
+
 	/** 
 	 * @brief Computes the shape function set at the point x. 
 	 * @param qsi point in master element coordinates

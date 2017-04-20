@@ -79,8 +79,7 @@ void TPZInterpolationSpace::AdjustIntegrationRule()
     {
         integrationruleorder = order + order;
     }
-    TPZManVector<int,3> vecorder(3,integrationruleorder);
-    GetIntegrationRule().SetOrder(vecorder);
+    SetIntegrationRule(integrationruleorder);
 }
 
 

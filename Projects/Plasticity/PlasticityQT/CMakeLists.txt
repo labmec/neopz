@@ -1,4 +1,8 @@
-FIND_PACKAGE(Qt4 REQUIRED)
+FIND_PROGRAM(QT_QMAKE_EXECUTABLE NAMES qmake PATHS "/usr/local/opt/qt5/bin")
+
+
+
+FIND_PACKAGE(Qt REQUIRED)
 INCLUDE(${QT_USE_FILE})
 
 IF (UNIX)
@@ -7,13 +11,13 @@ IF (UNIX)
 ENDIF()
 
 IF (APPLE)
-  include_directories(/usr/local/qwt-6.0.3-svn/lib/qwt.framework/Headers)
-  set (QWT_LIB /usr/local/qwt-6.0.3-svn/lib/qwt.framework/qwt)
+  include_directories(/usr/local/Cellar/qwt/6.1.3_3/lib/qwt.framework/Headers)
+  set (QWT_LIB /usr/local/Cellar/qwt/6.1.3_3/lib/qwt.framework)
 ENDIF()
 
 # UI Files
-QT4_WRAP_UI(UISrcs mainwindow.ui globalconfig.ui)
-QT4_WRAP_CPP(MOCSrcs mainwindow.h globalconfig.h canvaspicker.h plot.h)
+QT5_WRAP_UI(UISrcs mainwindow.ui globalconfig.ui)
+QT5_WRAP_CPP(MOCSrcs mainwindow.h globalconfig.h canvaspicker.h plot.h)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 

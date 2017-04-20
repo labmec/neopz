@@ -209,8 +209,18 @@ void TPZCondensedCompEl::Resequence()
 	TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint, nint, 0.);
     //TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
     TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
-	step->SetDirect(ELDLt);
-    fCondensed.SetSolver(step);
+    TPZAutoPointer<TPZMatrix<STATE> > mat2 = k00->Clone();
+    
+    TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
+    step->SetReferenceMatrix(mat2);
+    step->SetDirect(ELDLt);
+    gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
+    
+
+    
+    fCondensed.SetSolver(autostep);
     fCondensed.Redim(nint+next,nint);
 }
 
@@ -225,8 +235,8 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
+        sout << "Connect indices " << ek.fConnect << std::endl;
         ek.fMat.Print("EKOrig = ",sout,EMathematicaInput);
-        sout << "fIndices " << fIndexes;
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -235,7 +245,10 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
+        sout << "Permutations " << fIndexes << std::endl;
+        sout << "Connect indices " << ek.fConnect << std::endl;
         ek.fMat.Print("EKPermute = ",sout,EMathematicaInput);
+        ef.fMat.Print("EFPermute = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -349,16 +362,19 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     long dim1 = fCondensed.Dim1();
     TPZFNMatrix<200,STATE> K11(dim1,dim1),F1(dim1,ef.fMat.Cols());
     //const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
+    
+	fCondensed.K11Reduced(K11, F1);
+
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger->isDebugEnabled() && (Index() == 927 || Index() == 923))
     {
         std::stringstream sout;
-        fCondensed.Print("Reduced",sout,EMathematicaInput);
+        sout << "Index = " << Index() << std::endl;
+        fCondensed.Print("Reduced = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
     
-	fCondensed.K11Reduced(K11, F1);
     fCondensed.SetReduced();
     
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
@@ -467,6 +483,7 @@ void TPZCondensedCompEl::LoadSolution()
     int nc = NConnects(),nc0 = 0, nc1 = 0;
     int ic;
     for (ic=0; ic<nc ; ic++) {
+        long connectindex = ConnectIndex(ic);
         TPZConnect &con = Connect(ic);
         int sz = con.NShape()*con.NState();
         if (con.IsCondensed()) {
@@ -499,7 +516,10 @@ void TPZCondensedCompEl::LoadSolution()
             u1(count++,0) = bl(seqnum,0,ibl,0);
         }
     }
-
+#ifdef LOG4CXX
+        LOGPZ_DEBUG(logger, "Computing UGlobal")
+    }
+#endif
     fCondensed.UGlobal(u1, elsol);
     count = 0;
     for (ic=0; ic<nc0 ; ic++) {

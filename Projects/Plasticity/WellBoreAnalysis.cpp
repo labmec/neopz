@@ -669,6 +669,8 @@ fGMesh(), fCMesh(), fSolution(), fZDeformation(0.), fHasCompletion(0), fLinerRad
 
 {
     fCMesh.SetReference(&fGMesh);
+    fGMesh.SetDimension(2);
+    fCMesh.SetDimModel(2);
 }
 
 
@@ -2338,7 +2340,7 @@ void TPZWellBoreAnalysis::TConfig::PRefineElementsAbove(REAL sqj2, int porder, s
         TPZStack<long> subels;
         long index = cel->Index();
         elindices.insert(index);
-        intel->SetPreferredOrder(porder);
+        intel->PRefine(porder);
     }
     fCMesh.AdjustBoundaryElements();
     fCMesh.InitializeBlock();
