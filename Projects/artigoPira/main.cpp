@@ -2356,7 +2356,10 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
         
         TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(100);
         QPIntRule->SetCorner(cornerpoint);
-        intel->SetIntegrationRule(QPIntRule);
+        {
+            TPZCompEl *cel = intel;
+            cel->SetIntegrationRule((TPZIntPoints *)QPIntRule);
+        }
         int npoints1 = intel->GetIntegrationRule().NPoints();
         cel->CalcStiff(ek,ef);
         RefMat2 = ek.fMat;
@@ -2370,11 +2373,16 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
             int order =1;
             TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(order);
             QPIntRule->SetCorner(cornerpoint);
-            
-            intel->SetIntegrationRule(QPIntRule);
+            {
+                TPZCompEl *cel = intel;
+                cel->SetIntegrationRule(QPIntRule);
+            }
         }else{
             TPZIntQuad *QIntRule = new TPZIntQuad(1);
-            intel->SetIntegrationRule(QIntRule);
+            {
+                TPZCompEl *cel = intel;
+                cel->SetIntegrationRule(QIntRule);
+            }
             intel->GetIntegrationRule().SetType(0, 1);
         }
         
@@ -2486,7 +2494,10 @@ void ChangeIntegrationRule(TPZCompMesh *cmesh, int porder, bool IsQPrule){
                 TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
                 TPZIntQuadQuarterPoint *QPIntRule = new TPZIntQuadQuarterPoint(1);
                 QPIntRule->SetCorner(cornerpoint);
-                intel->SetIntegrationRule(QPIntRule);
+                {
+                    TPZCompEl *cel = intel;
+                    cel->SetIntegrationRule(QPIntRule);
+                }
                 
                 TPZManVector<int,3> order(2, porder);
                 intel->GetIntegrationRule().SetOrder(order);
