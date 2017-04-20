@@ -69,7 +69,7 @@ cl5 = 5000.0;
 // reservoir box dimensions
 x_length = 1000.0;
 y_length = 100.0;
-z_length = 30.0;
+z_length = 300.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // side-burden region geometry

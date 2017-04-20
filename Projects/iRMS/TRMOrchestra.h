@@ -243,6 +243,9 @@ public:
     
     /** @brief Create a monolithic dual analysis on box geometry using space odissey */
     void CreateMonolithicAnalysis(bool IsInitialQ);
+    
+    /** build the transfers and cross transfers for all: elliptic, parabolic and hyperbolic **/
+    void BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAnalysis  * elliptic, TRMFluxPressureAnalysis  * parabolic, TRMTransportAnalysis  * hyperbolic);
 
     /** @brief Run the static problem for a single step with a large time step */
     void RunStaticProblem();

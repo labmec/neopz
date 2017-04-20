@@ -216,6 +216,8 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
     
+    
+    // Create multiphysisc meshes
     bool IsGeomechanicQ = true;
     
     if (IsGeomechanicQ) {
@@ -263,6 +265,8 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         fSpaceGenerator->CreateTransportMesh();
     }
     
+    
+    // Create analysis for each operator
     int numofThreads_e = 16;
     bool mustOptimizeBandwidth_elliptic = true;
     
@@ -343,6 +347,8 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     }
 
     
+    
+    // create the transfers
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
 #ifdef USING_BOOST
@@ -350,34 +356,10 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 #endif
     
     // Transfer object
-    TRMBuildTransfers * Transfer = new TRMBuildTransfers;
-    Transfer->SetSimulationData(fSimulationData);
-    Transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
-    Transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
-    Transfer->kappa_phi_To_Mixed_Memory(parabolic->Mesh());
-    
-    if(fSimulationData->IsOnePhaseQ()){
-        Transfer->FillComputationalElPairs(parabolic->Mesh(),parabolic->Mesh());
-    }
-    
-    if(fSimulationData->IsTwoPhaseQ()){
-        Transfer->kappa_phi_To_Transport_Memory(hyperbolic->Mesh());
-        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
-        Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
-        Transfer->ComputeLeftRight(hyperbolic->Mesh());
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
-    }
-    
-    if(fSimulationData->IsThreePhaseQ()){
-        Transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
-        Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
-        Transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 1);
-        Transfer->ComputeLeftRight(hyperbolic->Mesh());
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
-        Transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
-    }
-    
+    TRMBuildTransfers * transfer = new TRMBuildTransfers;
+    transfer->SetSimulationData(fSimulationData);
+    this->BuildTransfers(transfer, elliptic, parabolic, hyperbolic);
+
 #ifdef USING_BOOST
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -389,13 +371,13 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     
-    parabolic->SetTransfer(Transfer);
+    parabolic->SetTransfer(transfer);
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
-        hyperbolic->SetTransfer(Transfer);
+        hyperbolic->SetTransfer(transfer);
     }
     
     TRMSegregatedAnalysis * segregated = new TRMSegregatedAnalysis;
-    segregated->SetTransfer(Transfer);
+    segregated->SetTransfer(transfer);
     segregated->SetSimulationData(fSimulationData);
     segregated->SetElliptic(elliptic);
     segregated->SetParabolic(parabolic);
@@ -409,6 +391,42 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     }
     
     
+    
+}
+
+
+/** build the transfers and cross transfers for all: elliptic, parabolic and hyperbolic **/
+void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAnalysis  * elliptic, TRMFluxPressureAnalysis  * parabolic, TRMTransportAnalysis  * hyperbolic){
+    
+    
+    transfer->Build_elliptic_To_elliptic(elliptic->Mesh());
+    
+    
+    transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
+    transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
+    transfer->kappa_phi_To_Mixed_Memory(parabolic->Mesh());
+    
+    if(fSimulationData->IsOnePhaseQ()){
+        transfer->FillComputationalElPairs(parabolic->Mesh(),parabolic->Mesh());
+    }
+    
+    if(fSimulationData->IsTwoPhaseQ()){
+        transfer->kappa_phi_To_Transport_Memory(hyperbolic->Mesh());
+        transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
+        transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
+        transfer->ComputeLeftRight(hyperbolic->Mesh());
+        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
+        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
+    }
+    
+    if(fSimulationData->IsThreePhaseQ()){
+        transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
+        transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
+        transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 1);
+        transfer->ComputeLeftRight(hyperbolic->Mesh());
+        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
+        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
+    }
     
 }
 

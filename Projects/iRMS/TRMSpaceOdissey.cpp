@@ -106,7 +106,7 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
         
         
         if (rock_id == 5) { // Reservoir
-            n_boundauries = 0;
+            n_boundauries = 6;
             initial_bc = 0;
         }
         
@@ -191,8 +191,8 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
     fBiotCmesh->SetAllCreateFunctionsContinuous();
     fBiotCmesh->AutoBuild();
     
-    fBiotCmesh->AdjustBoundaryElements();
-    fBiotCmesh->CleanUpUnconnectedNodes();
+//    fBiotCmesh->AdjustBoundaryElements();
+//    fBiotCmesh->CleanUpUnconnectedNodes();
     
 #ifdef PZDEBUG
     std::ofstream out("CmeshBiot.txt");
@@ -806,7 +806,6 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     
     int dim = fGeoMesh->Dimension();
     int Sigma_or_displacement = 0;
-    int uorder = fUOrder;
     
     TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
     std::pair< int, TPZFunction<REAL> * > bc_item;
@@ -830,7 +829,7 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         
         
         if (rock_id == 5) { // Reservoir
-            n_boundauries = 0;
+            n_boundauries = 6;
             initial_bc = 0;
         }
         
@@ -912,7 +911,11 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     
     fGeoMechanicsCmesh->SetDimModel(dim);
     fGeoMechanicsCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    fGeoMechanicsCmesh->ApproxSpace().CreateWithMemory(true);
     fGeoMechanicsCmesh->AutoBuild();
+    
+    fGeoMechanicsCmesh->AdjustBoundaryElements();
+    fGeoMechanicsCmesh->CleanUpUnconnectedNodes();
     
     TPZManVector<TPZCompMesh * ,1> meshvector(1);
     meshvector[0] = fBiotCmesh;
@@ -921,6 +924,18 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     TPZBuildMultiphysicsMesh::AddElements(meshvector, fGeoMechanicsCmesh);
     TPZBuildMultiphysicsMesh::AddConnects(meshvector, fGeoMechanicsCmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fGeoMechanicsCmesh);
+    
+    long nel = fGeoMechanicsCmesh->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = fGeoMechanicsCmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
     
 #ifdef PZDEBUG
     std::ofstream out("CmeshGeomechanic.txt");
@@ -1003,6 +1018,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
 
     fMixedFluxPressureCmesh->SetDimModel(dim);
     fMixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+//    fMixedFluxPressureCmesh->ApproxSpace().CreateWithMemory(true);
     fMixedFluxPressureCmesh->AutoBuild();
     
     TPZManVector<TPZCompMesh * ,2> meshvector(2);

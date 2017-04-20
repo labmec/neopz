@@ -43,6 +43,371 @@ TRMBuildTransfers & TRMBuildTransfers::operator=(const TRMBuildTransfers &other)
 
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Segregated Transfer methods (Gamma and Omega) :: Build methods Elliptic
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/** @brief bluid linear applications: u and grad_u to elliptic $ */
+void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
+    
+#ifdef PZDEBUG
+    if (!elliptic) {
+        DebugStop();
+    }
+#endif
+    
+    // Loading the links to the geometry (expensive for big geometric meshes)
+    elliptic->LoadReferences();    
+    TPZGeoMesh * geometry = elliptic->Reference();
+    int dim = geometry ->Dimension();
+    
+#ifdef PZDEBUG
+    if (!geometry) {
+        DebugStop();
+    }
+#endif
+    
+    
+    fe_e_cindexes.resize(0);
+    std::pair< long, long > chunk_geo_cel_indexes;
+    
+    // Step 1 :: Counting for valid elements (apply all the needed filters in this step)
+    for (long i = 0; i < geometry->NElements(); i++) {
+        
+        TPZGeoEl * gel = geometry->Element(i);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
+        int mat_id = gel->MaterialId();
+        if ((dim == 2 && (mat_id >= 8 && mat_id <= 11)) || (dim == 3 && (mat_id >= 8 && mat_id <= 13))) { // Filtering bc reservoir elements
+            continue;
+        }
+        
+        chunk_geo_cel_indexes.first = gel->Index();
+        chunk_geo_cel_indexes.second = -1;
+        fe_e_cindexes.Push(chunk_geo_cel_indexes);
+    }
+    
+    long n_el = fe_e_cindexes.size();
+    fu_dof_scatter.resize(n_el);
+    fe_e_intp_indexes.resize(n_el);
+
+    
+    // Block size structue including (Omega and Gamma)
+    std::pair<long, TPZVec<long> > chunk_intp_indexes;
+    TPZVec< std::pair<long, long> > blocks_dimensions_phi(n_el);
+    TPZVec< std::pair<long, long> > blocks_dimensions_grad_phi(n_el);
+    
+    // Step 2 :: filling linking vectors
+    for (long iel = 0; iel < n_el; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(fe_e_cindexes[iel].first);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZCompEl * e_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_e_cel = dynamic_cast<TPZMultiphysicsElement * >(e_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_e_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        int gel_dim = gel->Dimension();
+        
+        // Geometry and cel link
+        fe_e_cindexes[iel].second = e_cel->Index();
+        
+        // Getting local integration index
+        TPZManVector<long> e_int_point_indexes(0,0);
+        TPZManVector<long> dof_indexes(0,0);
+        
+        mf_e_cel->GetMemoryIndices(e_int_point_indexes);
+        
+        chunk_intp_indexes.first = gel->Index();
+        chunk_intp_indexes.second  = e_int_point_indexes;
+        fe_e_intp_indexes.Push(chunk_intp_indexes);
+        
+        this->ElementDofIndexes(mf_e_cel, dof_indexes);
+        fu_dof_scatter[iel] = dof_indexes;
+        
+        
+        blocks_dimensions_phi[iel].first = e_int_point_indexes.size()*dim;
+        blocks_dimensions_phi[iel].second = dof_indexes.size();
+        
+        blocks_dimensions_grad_phi[iel].first = e_int_point_indexes.size()*dim*gel_dim;
+        blocks_dimensions_grad_phi[iel].second = dof_indexes.size();
+    }
+    
+    // Step 3 :: Initialize the matrix
+    fu_To_elliptic.Initialize(blocks_dimensions_phi);
+    fgrad_u_To_elliptic.Initialize(blocks_dimensions_grad_phi);
+    
+    
+    TPZManVector<long> e_int_point_indexes(0,0);
+    TPZManVector<long> dof_indexes(0,0);
+    
+    // Step 4 :: Filling the matrix
+    std::pair<long, long> block_dim;
+    for (long iel = 0; iel < n_el; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(fe_e_cindexes[iel].first);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZCompEl * e_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        
+        TPZMultiphysicsElement * mf_e_cel = dynamic_cast<TPZMultiphysicsElement * >(e_cel);
+        
+        
+#ifdef PZDEBUG
+        if(!mf_e_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        
+        TPZInterpolationSpace * e_intel = dynamic_cast<TPZInterpolationSpace * >(mf_e_cel->Element(0));
+        
+        // Getting local integration index
+        mf_e_cel->GetMemoryIndices(e_int_point_indexes);
+        dof_indexes = fu_dof_scatter[iel];
+        
+        block_dim.first = e_int_point_indexes.size();
+        block_dim.second = dof_indexes.size();
+        
+        // Computing the local integration points indexes
+        const TPZIntPoints & int_points_geomechanic = mf_e_cel->GetIntegrationRule();
+        int np_cel = int_points_geomechanic.NPoints();
+        
+#ifdef PZDEBUG
+        if (e_int_point_indexes.size() != np_cel) {
+            DebugStop();
+        }
+#endif
+        
+        // Computing over all integration points of the compuational element cel
+        int gel_dim = gel->Dimension();
+        TPZFMatrix<double> block_phi, block_grad_phi;
+        
+        block_phi.Resize(block_dim.first*dim,block_dim.second);
+        block_grad_phi.Resize(block_dim.first*dim*gel_dim,block_dim.second);
+        
+        // for derivatives in real space
+        int nshape = e_intel->NShapeF();
+        TPZFNMatrix<220> phi(nshape,1);
+        TPZFNMatrix<660> dphi(gel_dim,nshape),dphix_axes(gel_dim,nshape);
+        TPZFMatrix<double> dphidx;
+        TPZFNMatrix<9,STATE> jacobian(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> jacinv(gel_dim,gel_dim);
+        TPZFNMatrix<9,STATE> axes;
+        REAL detjac;
+        
+        for (int ip = 0; ip < block_dim.first ; ip++)
+        {
+            TPZManVector<REAL,3> qsi(gel_dim,0.0);
+            STATE w;
+            int_points_geomechanic.Point(ip, qsi, w);
+            
+            // Get the phi and dphix for H1 elasticity
+            e_intel->Shape(qsi, phi, dphi);
+            gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
+            
+            switch(gel_dim) {
+                case 0:
+                    break;
+                case 1:
+                    dphix_axes = dphi;
+                    dphix_axes *= (1./detjac);
+                    break;
+                case 2:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+                    }
+                    break;
+                case 3:
+                    for(int ieq = 0; ieq < nshape; ieq++) {
+                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
+                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
+                        dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
+                    }
+                    break;
+                default:
+                    std::stringstream sout;
+                    sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
+                    LOGPZ_ERROR(logger,sout.str());
+            }
+            
+            TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
+            
+#ifdef PZDEBUG
+            if(block_dim.second != phi.Rows() * dim){
+                DebugStop();
+            }
+#endif
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < dim; id++) {
+                    block_phi(ip*dim+id,jp*dim+id) = phi(jp,0);
+                }
+            }
+            
+            for (int jp = 0; jp < phi.Rows(); jp++) {
+                for (int id = 0; id < dim; id++) {
+                    for (int jd = 0; jd < gel_dim; jd++) {
+                        if(gel_dim == dim){
+                            block_grad_phi(ip*dim*gel_dim + id*gel_dim + jd,jp*dim+id) = dphidx(jd,jp);
+                        }
+                        else{
+                            block_grad_phi(ip*dim*gel_dim+id*gel_dim + jd,jp*dim+id) = 0.0;
+                        }
+                    }
+                }
+            }
+            
+        }
+        
+        fu_To_elliptic.SetBlock(iel, block_phi);
+        fgrad_u_To_elliptic.SetBlock(iel, block_grad_phi);
+
+    }
+    
+//    fu_To_elliptic.Print(" u_to_e ");
+//    fgrad_u_To_elliptic.Print(" grad_u_to_e ");
+    
+    return;
+    
+}
+
+void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
+    
+    DebugStop();
+}
+
+void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
+    
+    DebugStop();
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Segregated Transfer methods (Gamma and Omega) :: Build methods Parabolic
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
+    
+    DebugStop();
+}
+
+void TRMBuildTransfers::space_To_parabolic(TPZCompMesh * parabolic){
+    
+    DebugStop();
+}
+
+void TRMBuildTransfers::parabolic_To_parabolic(TPZCompMesh * parabolic){
+    
+    DebugStop();
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Segregated Transfer methods (Gamma and Omega) :: Build methods Hyperbolic
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
+    
+    DebugStop();
+}
+
+void TRMBuildTransfers::space_To_hyperbolic(TPZCompMesh * hyperbolic){
+    
+    DebugStop();
+}
+
+void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
+    
+    DebugStop();
+}
+
+
+////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Matrices Initialization Methods
@@ -3067,15 +3432,31 @@ void TRMBuildTransfers::ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec
     }
 #endif
     
+//    TPZStack<long> index(0,0);
+//    int nconnect = intel_vol->NConnects();
+//    for (int icon = 0; icon < nconnect; icon++) {
+//        TPZConnect  & con = m_el->Connect(icon);
+//        long seqnumber = con.SequenceNumber();
+//        long position = m_el->Mesh()->Block().Position(seqnumber);
+//        int nshape = con.NShape();
+//        for (int ish=0; ish < nshape; ish++) {
+//            index.Push(position+ ish);
+//        }
+//    }
+//    
+//    dof_indexes = index;
+//    return;
+    
+    
     TPZStack<long> index(0,0);
     int nconnect = intel_vol->NConnects();
     for (int icon = 0; icon < nconnect; icon++) {
         TPZConnect  & con = m_el->Connect(icon);
         long seqnumber = con.SequenceNumber();
         long position = m_el->Mesh()->Block().Position(seqnumber);
-        int nshape = con.NShape();
-        for (int ish=0; ish < nshape; ish++) {
-            index.Push(position+ ish);
+        int b_size = m_el->Mesh()->Block().Size(seqnumber);
+        for (int ib=0; ib < b_size; ib++) {
+            index.Push(position+ ib);
         }
     }
     

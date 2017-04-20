@@ -39,10 +39,89 @@ class TRMBuildTransfers{
     
     
 private:
-    
-    
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
+
     /** @brief Autopointer of simulation data */
     TRMSimulationData * fSimulationData;
+
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) :: Attributes Elliptic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /** @brief full order u dof indexes per element */
+    TPZVec< TPZVec<long> > fu_dof_scatter;
+
+    /** @brief integration point indexes geo_intp_o_intp_t */
+    TPZStack< std::pair< long, long >  > fe_e_cindexes;
+    
+    /** @brief integration point indexes geo_intp_o_intp_t */
+    TPZStack< std::pair<long, std::pair<long, long> >  > fe_p_cindexes;
+    
+    /** @brief integration point indexes geo_cel_o_cel_t */
+    TPZStack< std::pair<long, TPZVec<long> >  > fe_e_intp_indexes;
+    
+    /** @brief integration point indexes geo_cel_o_cel_t */
+    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fe_p_intp_indexes;
+    
+    
+    /** @brief linear application u to elliptic mesh */
+    TRMIrregularBlockDiagonal<STATE> fu_To_elliptic;
+    
+    /** @brief linear application grad_u to elliptic mesh */
+    TRMIrregularBlockDiagonal<STATE> fgrad_u_To_elliptic;
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) :: Attributes Parabolic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /** @brief pressure dof indexes per element */
+    TPZVec< TPZVec<long> > fp_dof_scatter;
+    
+    /** @brief total velocity dof indexes per element */
+    TPZVec< TPZVec<long> > fq_dof_scatter;
+    
+    /** @brief integration point indexes geo_intp_o_intp_t */
+    TPZStack< std::pair<long, std::pair<long, long> >  > fp_p_cindexes;
+    
+    /** @brief integration point indexes geo_cel_o_cel_t */
+    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fp_p_intp_indexes;
+    
+    
+    /** @brief linear application p to parabolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fp_To_elliptic;
+    
+    /** @brief linear application q to parabolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fq_To_elliptic;
+    
+    /** @brief linear application div_q to parabolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fdiv_q_To_elliptic;
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) :: Attributes Hyperbolic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    /** @brief s_w dof indexes per element */
+    TPZVec< TPZVec<long> > fsw_dof_scatter;
+    
+    /** @brief s_o dof indexes per element */
+    TPZVec< TPZVec<long> > fso_dof_scatter;
+    
+    /** @brief integration point indexes geo_intp_o_intp_t */
+    TPZStack< std::pair<long, std::pair<long, long> >  > fh_h_cindexes;
+    
+    /** @brief integration point indexes geo_cel_o_cel_t */
+    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fh_h_intp_indexes;
+    
+
+    ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     
     /** @brief Autopointer of simulation data */
     
@@ -50,13 +129,13 @@ private:
     TRMIrregularBlockDiagonal<STATE> fu_To_Mixed;
     
     /** @brief flux dof indexes per element */
-    TPZVec< TPZVec<long> > fu_dof_scatter;
+//    TPZVec< TPZVec<long> > fu_dof_scatter;
     
     /** @brief Diagonal block matrix to transfer Pressure solution to integrations points of the mixed mesh */
     TRMIrregularBlockDiagonal<STATE> fp_To_Mixed;
     
     /** @brief pressure dof indexes per element */
-    TPZVec< TPZVec<long> > fp_dof_scatter;
+//    TPZVec< TPZVec<long> > fp_dof_scatter;
     
     /** @brief Diagonal block matrix to transfer saturation solution to integrations points of the transport mesh */
     TRMIrregularBlockDiagonal<STATE> fs_To_Transport;
@@ -125,128 +204,7 @@ private:
     /** @brief computational interface element and associated mixed computational element */
     TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcinterface_ctransport_cmixed_indexes_Gamma;
     
-    //    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_V;
-    //
-    //    /** @brief Sparse matrix to transfer y-Flux solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransfer_Y_Flux_To_Mixed_V;
-    //
-    //    /** @brief Sparse matrix to transfer z-Flux solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransfer_Z_Flux_To_Mixed_V;
-    //
-    //    /** @brief Sparse matrix to transfer divergence of flux solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransferDivergenceTo_Mixed_V;
-    //
-    //    /** @brief Sparse matrix to transfer Sw solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransferSw_To_Mixed_V;
-    //
-    //    /** @brief Sparse matrix to transfer So solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransferSo_To_Mixed_V;
-    
-    // @}
-    
-    /**
-     * @defgroup Sparses Matrices to transfer information to saturations meshes on Omega
-     * @{
-     */
-    
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of water saturation mesh */
-    //    TPZBlockDiagonal<REAL> fTransferPressure_To_Sw_V;
-    //
-    //    /** @brief Sparse matrix to transfer flux solution to integrations points of the water saturation mesh */
-    //    TPZBlockDiagonal<REAL> fTransferFlux_To_Sw_V;
-    //
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of oil saturation mesh */
-    //    TPZBlockDiagonal<REAL> fTransferPressure_To_So_V;
-    //
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of oil saturation mesh */
-    //    TPZBlockDiagonal<REAL> fTransferFlux_To_So_V;
-    
-    // @}
-    
-    /**
-     * @defgroup Sparses Matrices to transfer information to the mixed problem on Omega
-     * @{
-     */
-    
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransferPressure_To_Mixed_S;
-    //
-    //    /** @brief Sparse matrix to transfer x-Flux solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransfer_X_Flux_To_Mixed_S;
-    //
-    //    /** @brief Sparse matrix to transfer y-Flux solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransfer_Y_Flux_To_Mixed_S;
-    //
-    //    /** @brief Sparse matrix to transfer z-Flux solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransfer_Z_Flux_To_Mixed_S;
-    //
-    //    /** @brief Sparse matrix to transfer divergence of flux solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransferDivergenceTo_Mixed_S;
-    //
-    //    /** @brief Sparse matrix to transfer Sw solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransferSw_To_Mixed_S;
-    //
-    //    /** @brief Sparse matrix to transfer So solution to integrations points of the mixed mesh */
-    //    TPZBlockDiagonal<REAL> fTransferSo_To_Mixed_S;
-    
-    // @}
-    
-    /**
-     * @defgroup Sparses Matrices to transfer information to saturations meshes on Omega
-     * @{
-     */
-    
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of water saturation mesh */
-    //    TPZBlockDiagonal<REAL> fTransferPressure_To_Sw_S;
-    //
-    //    /** @brief Sparse matrix to transfer flux solution to integrations points of the water saturation mesh */
-    //    TPZBlockDiagonal<REAL> fTransferFlux_To_Sw_S;
-    //
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of oil saturation mesh */
-    //    TPZBlockDiagonal<REAL> fTransferPressure_To_So_S;
-    //
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of oil saturation mesh */
-    //    TPZBlockDiagonal<REAL> fTransferFlux_To_So_S;
-    
-    // @}
-    
-    /**
-     * @defgroup Vectors to transfer geometric information to integration points at volumes on Omega
-     * @{
-     */
-    
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of water saturation mesh */
-    //    TPZBlockDiagonal<REAL> fIntegrationWeights_V;
-    //
-    //    /** @brief Sparse matrix to transfer flux solution to integrations points of the water saturation mesh */
-    //    TPZBlockDiagonal<REAL> fJacobianDet_V;
-    //
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of oil saturation mesh */
-    //    TPZBlockDiagonal<REAL> fRhs_V;
-    
-    
-    // @}
-    
-    /**
-     * @defgroup Vectors to transfer geometric information to integration points at volumes on Gamma
-     * @{
-     */
-    
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of water saturation mesh */
-    //    TPZBlockDiagonal<REAL> fIntegrationWeights_S;
-    //
-    //    /** @brief Sparse matrix to transfer flux solution to integrations points of the water saturation mesh */
-    //    TPZBlockDiagonal<REAL> fJacobianDet_S;
-    //    
-    //    /** @brief Sparse matrix to transfer Pressure solution to integrations points of oil saturation mesh */
-    //    TPZBlockDiagonal<REAL> fRhs_S;
-    
-    
-    // @}
-    
-    //    /** @brief exact laplacian */
-    //    void ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &f);
+
     
     
 public:
@@ -262,6 +220,48 @@ public:
     
     /** @brief Copy assignemnt operator $ */
     TRMBuildTransfers &operator=(const TRMBuildTransfers &other);
+    
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) :: Build methods Elliptic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /** @brief bluid linear applications: u and grad_u to elliptic $ */
+    void Build_elliptic_To_elliptic(TPZCompMesh * elliptic);
+    
+    void space_To_elliptic(TPZCompMesh * elliptic);
+    
+    void elliptic_To_elliptic(TPZCompMesh * elliptic);
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) :: Build methods Parabolic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    void Build_parabolic_To_parabolic(TPZCompMesh * parabolic);
+    
+    void space_To_parabolic(TPZCompMesh * parabolic);
+    
+    void parabolic_To_parabolic(TPZCompMesh * parabolic);
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Transfer methods (Gamma and Omega) :: Build methods Hyperbolic
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    void Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic);
+    
+    void space_To_hyperbolic(TPZCompMesh * hyperbolic);
+    
+    void hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic);
+    
+    
+    ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
 
     /** @brief Transfer Flux to integration points of multiphysics mesh over volumetric elements */
@@ -354,13 +354,8 @@ public:
         return fun_To_Transport_Gamma;
     }
     
-    // @}
     
     
-    /**
-     * @defgroup Fill class attributes
-     * @{
-     */
 
     /** @brief Compute left and right geometric element indexes associated with the transport mesh */
     void ComputeLeftRight(TPZCompMesh * transport_mesh);
@@ -368,15 +363,7 @@ public:
     /** @brief Compute left and right geometric element indexes associated with the transport mesh */
     void ComputeLeftRightII(TPZCompMesh * transport_mesh);
     
-    
-    // @}
-    
-    
-    
-    /**
-     * @defgroup Utility Methods
-     * @{
-     */
+
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -434,9 +421,6 @@ public:
     
     /** @brief Compute indices associated to faces on 3D topologies */
     void ComputeTransformation(TPZGeoEl * face_gel_origin, TPZGeoEl * gel_origin , TPZGeoEl * gel_target, TPZVec<REAL> & origin, TPZVec<REAL> & target);
-    
-    
-    // @}
     
 
     
