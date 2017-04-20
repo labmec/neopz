@@ -517,6 +517,7 @@ void TPZCondensedCompEl::LoadSolution()
         }
     }
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
         LOGPZ_DEBUG(logger, "Computing UGlobal")
     }
 #endif
