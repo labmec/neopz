@@ -17,6 +17,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"
+#include "TRMGeomechanicAnalysis.h"
 #include "TRMFluxPressureAnalysis.h"
 #include "TRMTransportAnalysis.h"
 
@@ -30,6 +31,9 @@ private:
     /** @brief define the transfer matrices */
     TRMBuildTransfers * fTransfer;
 
+    /** @brief define the elliptic system */
+    TRMGeomechanicAnalysis * felliptic;
+    
     /** @brief define the parabolic system */
     TRMFluxPressureAnalysis * fParabolic_mhm;
     
@@ -91,6 +95,19 @@ public:
         return fTransfer;
     }
     
+    
+    /** @brief Set the elliptic part */
+    void SetElliptic(TRMGeomechanicAnalysis * elliptic)
+    {
+        felliptic = elliptic;
+    }
+    
+    /** @brief Get the elliptic part  */
+    TRMGeomechanicAnalysis * Elliptic()
+    {
+        return felliptic;
+    }
+    
     /** @brief Set the parabolic mhm part */
     void SetParabolicMHM(TRMFluxPressureAnalysis * parabolic_mhm)
     {
@@ -130,15 +147,20 @@ public:
     /** @brief Resize and fill residue and solution vectors */
     void AdjustVectors();
     
-    
     /** @brief Execute a euler method step */
     void ExcecuteOneStep();
+    
+    /** @brief Execute a euler method step with Fixed Stress split */
+    void ExcecuteOneStep_Fixed_Stress();
     
     /** @brief Execute a newton iteration  */
     void NewtonIteration();
     
     /** @brief Execute a segregated iteration  */
     void SegregatedIteration();
+    
+    /** @brief Execute a segregated iteration  */
+    void SegregatedIteration_Fixed_Stress();
     
     /** @brief PostProcess results */
     void PostProcessStep(bool draw_mixed_mapQ);

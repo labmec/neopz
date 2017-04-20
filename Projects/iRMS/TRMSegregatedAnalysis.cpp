@@ -17,6 +17,9 @@ TRMSegregatedAnalysis::TRMSegregatedAnalysis() : TPZAnalysis() {
     /** @brief define the transfer matrices */
     fTransfer = NULL;
     
+    /** @brief define the elliptic system */
+    felliptic = NULL;
+    
     /** @brief define the parabolic system */
     fParabolic = NULL;
     
@@ -46,6 +49,7 @@ TRMSegregatedAnalysis::TRMSegregatedAnalysis(const TRMSegregatedAnalysis &copy)
 {
     fSimulationData         = copy.fSimulationData;
     fTransfer               = copy.fTransfer;
+    felliptic               = copy.felliptic;
     fParabolic              = copy.fParabolic;
     fHyperbolic             = copy.fHyperbolic;
     ferror_flux_pressure    = copy.ferror_flux_pressure;
@@ -62,6 +66,7 @@ TRMSegregatedAnalysis & TRMSegregatedAnalysis::operator=(const TRMSegregatedAnal
         
         fSimulationData         = other.fSimulationData;
         fTransfer               = other.fTransfer;
+        felliptic               = other.felliptic;
         fParabolic              = other.fParabolic;
         fHyperbolic             = other.fHyperbolic;
         ferror_flux_pressure    = other.ferror_flux_pressure;
@@ -75,6 +80,7 @@ TRMSegregatedAnalysis & TRMSegregatedAnalysis::operator=(const TRMSegregatedAnal
 /** @brief Resize and fill residue and solution vectors */
 void TRMSegregatedAnalysis::AdjustVectors(){
     
+    felliptic->AdjustVectors();
     fParabolic->AdjustVectors();
     fHyperbolic->AdjustVectors();
 }
@@ -189,6 +195,109 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
     
     std::cout << "Segregated:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
 
+}
+
+/** @brief Execute a segregated iteration with fixed stress  */
+void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
+    
+    DebugStop();
+}
+
+void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
+    
+    
+    REAL dt_min    = fSimulationData->dt_min();
+    REAL dt_max    = fSimulationData->dt_max();
+    REAL dt_up     = fSimulationData->dt_up();
+    REAL dt_down   = fSimulationData->dt_down();
+    REAL dt        = fSimulationData->dt();
+    
+    REAL epsilon_res = this->SimulationData()->epsilon_res();
+    REAL epsilon_cor = this->SimulationData()->epsilon_cor();
+    int n  =   this->SimulationData()->n_corrections();
+    
+    ferror_flux_pressure = 1.0;
+    ferror_saturation = 1.0;
+    fdx_norm_flux_pressure = 1.0;
+    fdx_norm_saturation = 1.0;
+    
+    bool IsConverged_eQ = false;
+    bool IsConverged_dQ = false;
+    bool IsConverged_iQ = true;
+    bool MustRestartQ = false;
+    
+    this->UpdateMemory(); // last average values
+    
+    for (int k = 1; k <= n; k++) {
+        
+        this->SegregatedIteration();
+        this->SegregatedIteration_Fixed_Stress();
+        
+        ferror_flux_pressure = fParabolic->error_norm();
+        ferror_saturation = fHyperbolic->error_norm();
+        
+        fdx_norm_flux_pressure = fParabolic->dx_norm();
+        fdx_norm_saturation = fHyperbolic->dx_norm();
+        
+        IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
+        IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
+        
+        if (!fSimulationData->IsOnePhaseQ()) {
+            IsConverged_iQ = (fParabolic->k_ietrarions() <= 10) &&  (fHyperbolic->k_ietrarions() <= 10);
+        }
+        
+        MustRestartQ = MustRestartStep();
+        
+        if((k == n || MustRestartQ)  && dt > dt_min && dt_down < 1.0){
+            dt *= dt_down;
+            if(dt_min > dt ){
+                fSimulationData->Setdt(dt_min);
+            }
+            else{
+                fSimulationData->Setdt(dt);
+            }
+            std::cout << "Segregated:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+            if (MustRestartQ) {
+                std::cout << "Segregated:: Force restarting current time step correction " << std::endl;
+            }
+            std::cout << "Segregated:: Restarting current time step correction " << std::endl;
+            
+            this->KeepGlobalSolution();
+            k = 0;
+            continue;
+        }
+        
+        if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
+        {
+            std::cout << "Segregated:: Converged with iterations:  " << k << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
+            
+            // update Time value
+            REAL current_time = fSimulationData->t() + fSimulationData->dt();
+            fSimulationData->SetTime(current_time);
+            
+            if (k <= 1 && dt_max > dt && dt_up > 1.0) {
+                dt *= dt_up;
+                if(dt_max < dt ){
+                    fSimulationData->Setdt(dt_max);
+                }
+                else{
+                    fSimulationData->Setdt(dt);
+                }
+                std::cout << "Segregated:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
+            }
+            
+            this->UpdateGlobalSolution();
+            return;
+        }
+        
+    }
+    
+    // update Time value
+    REAL current_time = fSimulationData->t() + fSimulationData->dt();
+    fSimulationData->SetTime(current_time);
+    
+    std::cout << "Segregated:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
+    
 }
 
 /** @brief Update memory using the Transfer object at REAL n */

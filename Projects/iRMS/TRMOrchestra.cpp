@@ -195,10 +195,9 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     this->BuildGeometry();
     fSimulationData->SetInitialStateQ(IsInitialQ);
     
-    
-    
-    TRMFluxPressureAnalysis * parabolic = new TRMFluxPressureAnalysis;
-    TRMTransportAnalysis * hyperbolic = new TRMTransportAnalysis;
+    TRMGeomechanicAnalysis  * elliptic      = new TRMGeomechanicAnalysis;
+    TRMFluxPressureAnalysis * parabolic     = new TRMFluxPressureAnalysis;
+    TRMTransportAnalysis    * hyperbolic    = new TRMTransportAnalysis;
     
 #ifdef PZDEBUG
     if (!fSpaceGenerator->Gmesh()) {
@@ -213,8 +212,15 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
+    fSpaceGenerator->SetDefaultUOrder(2);
     fSpaceGenerator->SetDefaultPOrder(1);
     fSpaceGenerator->SetDefaultSOrder(0);
+    
+    bool IsGeomechanicQ = true;
+    
+    if (IsGeomechanicQ) {
+        fSpaceGenerator->BuildGeomechanic_Mesh();
+    }
 
     bool UseMHMQ = fSimulationData->MHMResolution().first;
     
@@ -256,6 +262,30 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         hyperbolic->Meshvec()[1] = fSpaceGenerator->BetaSaturationMesh();
         fSpaceGenerator->CreateTransportMesh();
     }
+    
+    int numofThreads_e = 16;
+    bool mustOptimizeBandwidth_elliptic = true;
+    
+    // Analysis for elliptic part
+    elliptic->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
+    elliptic->SetCompMesh(fSpaceGenerator->GeoMechanicsCmesh(), mustOptimizeBandwidth_elliptic);
+    
+    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->MixedFluxPressureCmesh());
+    //    strmat_e.SetDecomposeType(ELDLt);
+    
+    //    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->MixedFluxPressureCmesh());
+    
+    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->MixedFluxPressureCmesh());
+    
+    TPZStepSolver<STATE> step_e;
+    step_e.SetDirect(ELDLt);
+    strmat_e.SetNumThreads(numofThreads_e);
+    elliptic->SetStructuralMatrix(strmat_e);
+    parabolic->SetSolver(step_e);
+    elliptic->AdjustVectors();
+    elliptic->SetSimulationData(fSimulationData);
+    
+    std::cout << "ndof elliptic = " << elliptic->Solution().Rows() << std::endl;
         
     int numofThreads_p = 16;
     bool mustOptimizeBandwidth_parabolic = true;
@@ -367,6 +397,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     TRMSegregatedAnalysis * segregated = new TRMSegregatedAnalysis;
     segregated->SetTransfer(Transfer);
     segregated->SetSimulationData(fSimulationData);
+    segregated->SetElliptic(elliptic);
     segregated->SetParabolic(parabolic);
     segregated->SetHyperbolic(hyperbolic);
     

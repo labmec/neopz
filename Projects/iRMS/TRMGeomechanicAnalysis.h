@@ -26,8 +26,8 @@ private:
     /** @brief define the transfer matrices */
     TRMBuildTransfers * fTransfer;
     
-    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
-    TPZManVector<TPZCompMesh * , 2> fmeshvec;
+    /** @brief Vector of compmesh pointers. fmeshvec[0] = displacementsH1 */
+    TPZManVector<TPZCompMesh * , 1> fmeshvec;
     
     /** @brief Part of residue at n state  */
     TPZFMatrix<STATE> fR_n;
@@ -115,7 +115,7 @@ public:
         fmeshvec = Meshvec;
     }
     /** @brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
-    TPZManVector<TPZCompMesh * , 2> & Meshvec()
+    TPZManVector<TPZCompMesh * , 1> & Meshvec()
     {
         return fmeshvec;
     }

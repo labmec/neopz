@@ -93,19 +93,37 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
     int rock_id = 0;
     for (int i = 0; i < n_rocks; i++) {
+        
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         
         TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(rock_id,dim);
         fBiotCmesh->InsertMaterialObject(mat);
         
         
-        // Inserting volumetric materials
-        int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 0;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
         int bc_id = 0;
         
-        for (int j = 0; j < n_boundauries; j++) {
+        for (int j = initial_bc; j < n_boundauries; j++) {
+            
             bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
             
             if (fSimulationData->IsInitialStateQ()) {
@@ -123,6 +141,50 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
         }
         
     }
+    
+    
+    // Sideburden
+    int side_burden_rock = 13;
+    int bc_W = 13;
+    int bc_N = 12;
+    int bc_E = 11;
+    int bc_S = 10;
+    int bc_T = 9;
+    int bc_B = 8;
+    
+    if (dim != 3) {
+        side_burden_rock = 12;
+        bc_W = 14;
+        bc_N = 15;
+        bc_E = 16;
+        bc_S = 13;
+        bc_T = 1000;
+        bc_B = 1000;
+    }
+    else{
+        DebugStop();
+    }
+    
+    TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
+    fBiotCmesh->InsertMaterialObject(mat);
+
+    TPZMaterial * W_bndc = mat->CreateBC(mat, bc_W, Sigma_or_displacement, val1, val2);
+    fBiotCmesh->InsertMaterialObject(W_bndc);
+    
+    TPZMaterial * N_bndc = mat->CreateBC(mat, bc_N, Sigma_or_displacement, val1, val2);
+    fBiotCmesh->InsertMaterialObject(N_bndc);
+    
+    TPZMaterial * E_bndc = mat->CreateBC(mat, bc_E, Sigma_or_displacement, val1, val2);
+    fBiotCmesh->InsertMaterialObject(E_bndc);
+    
+    TPZMaterial * S_bndc = mat->CreateBC(mat, bc_S, Sigma_or_displacement, val1, val2);
+    fBiotCmesh->InsertMaterialObject(S_bndc);
+    
+    TPZMaterial * T_bndc = mat->CreateBC(mat, bc_T, Sigma_or_displacement, val1, val2);
+    fBiotCmesh->InsertMaterialObject(T_bndc);
+    
+    TPZMaterial * B_bndc = mat->CreateBC(mat, bc_B, Sigma_or_displacement, val1, val2);
+    fBiotCmesh->InsertMaterialObject(B_bndc);
     
     fBiotCmesh->SetDimModel(dim);
     fBiotCmesh->SetDefaultOrder(uorder);
@@ -465,6 +527,13 @@ void ExactLaplacian(const TPZVec<REAL> &pt, TPZVec<STATE> &f)
     f[0] = rhs;
 }
 
+/** @brief Build Geomechanic mesh form the current H1/RB mesh */
+void TRMSpaceOdissey::BuildGeomechanic_Mesh(){
+    
+    this->CreateBiotCmesh();
+    this->CreateGeoMechanicMesh();
+}
+
 /** @brief Build MHM form the current hdvi mesh */
 void TRMSpaceOdissey::BuildMixed_Mesh(){
     
@@ -723,6 +792,140 @@ void TRMSpaceOdissey::UnwrapMacroElements()
     TPZCompMeshTools::UnGroupElements(fMixedFluxPressureCmeshMHM);
     
     std::cout << "ndof parabolic without MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    
+}
+
+/** @brief Create a H1 computational mesh for Maurice Biot Linear Poroelasticity */
+void TRMSpaceOdissey::CreateGeoMechanicMesh(){
+    
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+    
+    int dim = fGeoMesh->Dimension();
+    int Sigma_or_displacement = 0;
+    int uorder = fUOrder;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
+    
+    // Malha computacional
+    fGeoMechanicsCmesh = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        
+        TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(rock_id,dim);
+        fGeoMechanicsCmesh->InsertMaterialObject(mat);
+        
+        
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 0;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
+        int bc_id = 0;
+        
+        for (int j = initial_bc; j < n_boundauries; j++) {
+            
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[Sigma_or_displacement];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            fGeoMechanicsCmesh->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+    
+    
+    // Sideburden
+    int side_burden_rock = 13;
+    int bc_W = 13;
+    int bc_N = 12;
+    int bc_E = 11;
+    int bc_S = 10;
+    int bc_T = 9;
+    int bc_B = 8;
+    
+    if (dim != 3) {
+        side_burden_rock = 12;
+        bc_W = 14;
+        bc_N = 15;
+        bc_E = 16;
+        bc_S = 13;
+        bc_T = 1000;
+        bc_B = 1000;
+    }
+    else{
+        DebugStop();
+    }
+    
+    TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
+    fGeoMechanicsCmesh->InsertMaterialObject(mat);
+    
+    TPZMaterial * W_bndc = mat->CreateBC(mat, bc_W, Sigma_or_displacement, val1, val2);
+    fGeoMechanicsCmesh->InsertMaterialObject(W_bndc);
+    
+    TPZMaterial * N_bndc = mat->CreateBC(mat, bc_N, Sigma_or_displacement, val1, val2);
+    fGeoMechanicsCmesh->InsertMaterialObject(N_bndc);
+    
+    TPZMaterial * E_bndc = mat->CreateBC(mat, bc_E, Sigma_or_displacement, val1, val2);
+    fGeoMechanicsCmesh->InsertMaterialObject(E_bndc);
+    
+    TPZMaterial * S_bndc = mat->CreateBC(mat, bc_S, Sigma_or_displacement, val1, val2);
+    fGeoMechanicsCmesh->InsertMaterialObject(S_bndc);
+    
+    TPZMaterial * T_bndc = mat->CreateBC(mat, bc_T, Sigma_or_displacement, val1, val2);
+    fGeoMechanicsCmesh->InsertMaterialObject(T_bndc);
+    
+    TPZMaterial * B_bndc = mat->CreateBC(mat, bc_B, Sigma_or_displacement, val1, val2);
+    fGeoMechanicsCmesh->InsertMaterialObject(B_bndc);
+    
+    fGeoMechanicsCmesh->SetDimModel(dim);
+    fGeoMechanicsCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    fGeoMechanicsCmesh->AutoBuild();
+    
+    TPZManVector<TPZCompMesh * ,1> meshvector(1);
+    meshvector[0] = fBiotCmesh;
+    
+    // Transfer information
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, fGeoMechanicsCmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, fGeoMechanicsCmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fGeoMechanicsCmesh);
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshGeomechanic.txt");
+    fGeoMechanicsCmesh->Print(out);
+#endif
     
 }
 

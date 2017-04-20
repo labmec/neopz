@@ -25,6 +25,7 @@
 #include "TRMMonolithicMultiphaseAnalysis.h"
 #include "TRMSegregatedAnalysis.h"
 
+#include "TRMGeomechanicAnalysis.h"
 #include "TRMFluxPressureAnalysis.h"
 #include "TRMTransportAnalysis.h"
 #include "TPZCompMeshTools.h"

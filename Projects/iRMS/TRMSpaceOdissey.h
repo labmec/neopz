@@ -420,6 +420,9 @@ public:
         return fMonolithicMultiphaseCmesh;
     }
     
+    /** @brief Build Geomechanic mesh form the current H1/RB mesh */    
+    void BuildGeomechanic_Mesh();
+    
     /** @brief Build MHM form the current hdvi mesh */
     void BuildMixed_Mesh();
     

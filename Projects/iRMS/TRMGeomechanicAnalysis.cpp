@@ -17,7 +17,7 @@ TRMGeomechanicAnalysis::TRMGeomechanicAnalysis() : TPZAnalysis() {
     fTransfer = NULL;
     
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
-    fmeshvec.Resize(2);
+    fmeshvec.Resize(1);
     
     /** @brief Part of residue at n state  */
     fR_n.Resize(0,0);

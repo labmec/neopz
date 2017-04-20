@@ -66,6 +66,9 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Decrement dt factor */
     fdt_down = 0.0;
     
+    /** @brief Use of geomechanic */
+    fIsGeomechanicQ = false;
+    
     /** @brief Use of quasi newton method */
     fIsQuasiNewtonQ = false;
     

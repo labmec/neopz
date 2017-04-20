@@ -88,6 +88,9 @@ protected:
     /** @brief correction overal tolerance */
     STATE fepsilon_cor;
 
+    /** @brief Use of geomechanic */
+    bool fIsGeomechanicQ;
+    
     /** @brief Use of quasi newton method */
     bool fIsQuasiNewtonQ;
     
@@ -381,6 +384,12 @@ public:
     
     /** @brief correction overal tolerance */
     STATE epsilon_cor() { return fepsilon_cor; }
+    
+    /** @brief Set directive for the use of quasi newton method */
+    void SetGeomechanicQ(bool IsGeomechanicQ) { fIsQuasiNewtonQ = IsGeomechanicQ;}
+    
+    /** @brief Get directive for the use geomechanic coupling */
+    bool IsGeomechanicQ() {return fIsGeomechanicQ;}
     
     /** @brief Get directive for the use of quasi newton method */
     bool IsQuasiNewtonQ() {return fIsQuasiNewtonQ;}
