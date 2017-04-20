@@ -871,12 +871,12 @@ TPZCompMesh *CMeshMixed2dseno(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     
     //criando material
     int dim = gmesh->Dimension();
-    bool interface;
-    TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); interface = true; // nesse material tem que ser true
-    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); interface = false; // nesse material tem que ser false
+    bool intface;
+    TPZMatPoissonD3 *material = new TPZMatPoissonD3(matId,dim); intface = true; // nesse material tem que ser true
+    //TPZMixedPoisson *material = new TPZMixedPoisson(matId,dim); intface = false; // nesse material tem que ser false
     
     //incluindo os dados do problema
-    //    if (!interface) {
+    //    if (!intface) {
     //        TPZFNMatrix<2,REAL> PermTensor(dim,dim,0.);
     //        TPZFNMatrix<2,REAL> InvPermTensor(dim,dim,0.);
     //
@@ -1004,7 +1004,7 @@ TPZCompMesh *CMeshMixed2dseno(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
     mphysics->LoadReferences();
     
     // Creation of interface elements
-    if (interface)
+    if (intface)
     {
         int nel = mphysics->ElementVec().NElements();
         for(int el = 0; el < nel; el++)
