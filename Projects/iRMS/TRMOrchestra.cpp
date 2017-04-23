@@ -412,9 +412,11 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     
     // iMRS::Transfer:: parabolic to parabolic
     transfer->parabolic_To_parabolic(parabolic->Mesh());
+    transfer->kappa_phi_To_parabolic(parabolic->Mesh());
     
     
     
+    return;
     transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
     transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
     transfer->kappa_phi_To_Mixed_Memory(parabolic->Mesh());
