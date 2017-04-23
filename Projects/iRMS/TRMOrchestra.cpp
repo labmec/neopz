@@ -275,12 +275,12 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     elliptic->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
     elliptic->SetCompMesh(fSpaceGenerator->GeoMechanicsCmesh(), mustOptimizeBandwidth_elliptic);
     
-    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->MixedFluxPressureCmesh());
+    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     //    strmat_e.SetDecomposeType(ELDLt);
     
-    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     
-//    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     
     TPZStepSolver<STATE> step_e;
     step_e.SetDirect(ELDLt);
