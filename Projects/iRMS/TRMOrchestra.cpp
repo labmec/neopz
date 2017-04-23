@@ -398,8 +398,21 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 /** build the transfers and cross transfers for all: elliptic, parabolic and hyperbolic **/
 void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAnalysis  * elliptic, TRMFluxPressureAnalysis  * parabolic, TRMTransportAnalysis  * hyperbolic){
     
-    
+    // iMRS:: elliptic transfer
     transfer->Build_elliptic_To_elliptic(elliptic->Mesh());
+    transfer->space_To_elliptic(elliptic->Mesh());
+    
+    // iMRS::Transfer:: elliptic to elliptic
+    transfer->elliptic_To_elliptic(elliptic->Mesh());
+
+    
+    // iMRS:: parabolic transfer
+    transfer->Build_parabolic_To_parabolic(parabolic->Mesh());
+    transfer->space_To_parabolic(parabolic->Mesh());
+    
+    // iMRS::Transfer:: parabolic to parabolic
+    transfer->parabolic_To_parabolic(parabolic->Mesh());
+    
     
     
     transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);

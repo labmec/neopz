@@ -83,22 +83,25 @@ private:
     
     /** @brief total velocity dof indexes per element */
     TPZVec< TPZVec<long> > fq_dof_scatter;
+
+    /** @brief integration point indexes geo_intp_o_intp_t */
+    TPZStack< std::pair<long, long >  > fp_p_cindexes;
     
     /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fp_p_cindexes;
+    TPZStack< std::pair<long, std::pair<long, long> >  > fp_e_cindexes;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
     TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fp_p_intp_indexes;
     
     
     /** @brief linear application p to parabolic mesh */
-    TRMIrregularBlockDiagonal<STATE> fp_To_elliptic;
+    TRMIrregularBlockDiagonal<STATE> fp_To_parabolic;
     
     /** @brief linear application q to parabolic mesh */
-    TRMIrregularBlockDiagonal<STATE> fq_To_elliptic;
+    TRMIrregularBlockDiagonal<STATE> fq_To_parabolic;
     
     /** @brief linear application div_q to parabolic mesh */
-    TRMIrregularBlockDiagonal<STATE> fdiv_q_To_elliptic;
+    TRMIrregularBlockDiagonal<STATE> fdiv_q_To_parabolic;
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,6 +248,8 @@ public:
     void Build_parabolic_To_parabolic(TPZCompMesh * parabolic);
     
     void space_To_parabolic(TPZCompMesh * parabolic);
+    
+    void kappa_phi_To_parabolic(TPZCompMesh * parabolic);
     
     void parabolic_To_parabolic(TPZCompMesh * parabolic);
     
@@ -395,6 +400,9 @@ public:
     
     /** @brief Compute element dof indexes */    
     void ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes);
+
+    /** @brief Compute element dof indexes */        
+    void ElementDofIndexes(TPZMultiphysicsElement * &m_el, TPZVec<long> &dof_indexes, int el_index);
     
     /** @brief Compute element dof indexes at given connect */
     void ElementDofFaceIndexes(int connect,TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);

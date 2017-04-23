@@ -1042,9 +1042,20 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
             
             bc_item = bc[flux_or_pressure];
             
-            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+//            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+//            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+//            boundary_c->SetTimedependentBCForcingFunction(boundary_data);
+//            fMixedFluxPressureCmesh->InsertMaterialObject(boundary_c);
+            
+            bc_item = bc[flux_or_pressure];
+            TPZMatWithMem<TRMMemory,TPZBndCond> * boundary_c = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+            boundary_c->SetNumLoadCases(1);
+            boundary_c->SetMaterial(mat);
+            boundary_c->SetId(bc_id);
+            boundary_c->SetType(bc_item.first);
+            boundary_c->SetValues(val1, val2);
             TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
-            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            boundary_c->SetTimedependentBCForcingFunction(0,boundary_data);
             fMixedFluxPressureCmesh->InsertMaterialObject(boundary_c);
 
         }
@@ -1053,7 +1064,7 @@ void TRMSpaceOdissey::CreateMixedCmesh(){
 
     fMixedFluxPressureCmesh->SetDimModel(dim);
     fMixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
-//    fMixedFluxPressureCmesh->ApproxSpace().CreateWithMemory(true);
+    fMixedFluxPressureCmesh->ApproxSpace().CreateWithMemory(true);
     fMixedFluxPressureCmesh->AutoBuild();
     
     TPZManVector<TPZCompMesh * ,2> meshvector(2);
