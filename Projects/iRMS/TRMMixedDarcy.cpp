@@ -411,8 +411,6 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
     TPZManVector<STATE, 10> phi(nvars,0.0);
-    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
     
     // Rock parameters form point memory
     REAL phi_0;
@@ -509,7 +507,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
     }
     
-    
+
     TPZManVector<STATE,1> f(1,0.0);
     if(fForcingFunction)
     {
@@ -539,6 +537,11 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 }
 
 void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+    
+    TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
+    this->Contribute_a(datavec, weight, ek_fake, ef);
+    return;
+    
     
     int nvars = 4; // {p,sa,sb,t}
     

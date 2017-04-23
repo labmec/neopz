@@ -7,7 +7,7 @@
 //
 
 #include "TRMSegregatedAnalysis.h"
-
+#define NS
 
 TRMSegregatedAnalysis::TRMSegregatedAnalysis() : TPZAnalysis() {
     
@@ -18,7 +18,7 @@ TRMSegregatedAnalysis::TRMSegregatedAnalysis() : TPZAnalysis() {
     fTransfer = NULL;
     
     /** @brief define the elliptic system */
-    felliptic = NULL;
+    fElliptic = NULL;
     
     /** @brief define the parabolic system */
     fParabolic = NULL;
@@ -26,11 +26,17 @@ TRMSegregatedAnalysis::TRMSegregatedAnalysis() : TPZAnalysis() {
     /** @brief define the hyperbolic system */
     fHyperbolic = NULL;
     
+    /** @brief Residue error for displacement */
+    ferror_displacement = 0.0;
+    
     /** @brief Residue error for flux - pressure */
     ferror_flux_pressure = 0.0;
     
     /** @brief Residue error for saturations */
     ferror_saturation = 0.0;
+    
+    /** @brief Correction variation for displacement */
+    fdx_norm_displacement = 0.0;
     
     /** @brief Correction variation for flux - pressure */
     fdx_norm_flux_pressure = 0.0;
@@ -49,11 +55,13 @@ TRMSegregatedAnalysis::TRMSegregatedAnalysis(const TRMSegregatedAnalysis &copy)
 {
     fSimulationData         = copy.fSimulationData;
     fTransfer               = copy.fTransfer;
-    felliptic               = copy.felliptic;
+    fElliptic               = copy.fElliptic;
     fParabolic              = copy.fParabolic;
     fHyperbolic             = copy.fHyperbolic;
+    ferror_displacement     = copy.ferror_displacement;
     ferror_flux_pressure    = copy.ferror_flux_pressure;
     ferror_saturation       = copy.ferror_saturation;
+    fdx_norm_displacement   = copy.fdx_norm_displacement;
     fdx_norm_flux_pressure  = copy.fdx_norm_flux_pressure;
     fdx_norm_saturation     = copy.fdx_norm_saturation;
     
@@ -66,11 +74,13 @@ TRMSegregatedAnalysis & TRMSegregatedAnalysis::operator=(const TRMSegregatedAnal
         
         fSimulationData         = other.fSimulationData;
         fTransfer               = other.fTransfer;
-        felliptic               = other.felliptic;
+        fElliptic               = other.fElliptic;
         fParabolic              = other.fParabolic;
         fHyperbolic             = other.fHyperbolic;
+        ferror_displacement     = other.ferror_displacement;
         ferror_flux_pressure    = other.ferror_flux_pressure;
         ferror_saturation       = other.ferror_saturation;
+        fdx_norm_displacement   = other.fdx_norm_displacement;
         fdx_norm_flux_pressure  = other.fdx_norm_flux_pressure;
         fdx_norm_saturation     = other.fdx_norm_saturation;
     }
@@ -80,7 +90,7 @@ TRMSegregatedAnalysis & TRMSegregatedAnalysis::operator=(const TRMSegregatedAnal
 /** @brief Resize and fill residue and solution vectors */
 void TRMSegregatedAnalysis::AdjustVectors(){
     
-    felliptic->AdjustVectors();
+    fElliptic->AdjustVectors();
     fParabolic->AdjustVectors();
     fHyperbolic->AdjustVectors();
 }
@@ -200,7 +210,15 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
 /** @brief Execute a segregated iteration with fixed stress  */
 void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
     
-    DebugStop();
+
+    this->UpdateMemory_at_n();
+    
+    fParabolic->ExcecuteOneStep();
+    if (fSimulationData->IsGeomechanicQ()) {
+        fElliptic->ExcecuteOneStep();
+    }
+
+    
 }
 
 void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
@@ -216,8 +234,10 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
     REAL epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
     
+    ferror_displacement = 1.0;
     ferror_flux_pressure = 1.0;
     ferror_saturation = 1.0;
+    fdx_norm_displacement = 1.0;
     fdx_norm_flux_pressure = 1.0;
     fdx_norm_saturation = 1.0;
     
@@ -230,14 +250,16 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
     
     for (int k = 1; k <= n; k++) {
         
-        this->SegregatedIteration();
+//        this->SegregatedIteration();
         this->SegregatedIteration_Fixed_Stress();
         
+        ferror_displacement  = fElliptic->error_norm();
         ferror_flux_pressure = fParabolic->error_norm();
-        ferror_saturation = fHyperbolic->error_norm();
+        ferror_saturation    = fHyperbolic->error_norm();
         
-        fdx_norm_flux_pressure = fParabolic->dx_norm();
-        fdx_norm_saturation = fHyperbolic->dx_norm();
+        fdx_norm_displacement   = fElliptic->dx_norm();
+        fdx_norm_flux_pressure  = fParabolic->dx_norm();
+        fdx_norm_saturation     = fHyperbolic->dx_norm();
         
         IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
         IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
@@ -304,6 +326,16 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
 void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     
     fSimulationData->SetCurrentStateQ(true);
+    
+#ifdef NS
+    
+    if (fSimulationData->IsGeomechanicQ()) {
+        fElliptic->UpdateMemory_at_n();
+    }
+    fParabolic->UpdateMemory_at_n();
+    
+#else
+    
     fParabolic->UpdateMemory_at_n();
     
     if (fSimulationData->IsOnePhaseQ()) {
@@ -318,6 +350,8 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     else{
         fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
     }
+    
+#endif
 
 }
 
@@ -325,6 +359,16 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
 void TRMSegregatedAnalysis::UpdateMemory(){
     
     fSimulationData->SetCurrentStateQ(false);
+    
+#ifdef NS
+    
+    if (fSimulationData->IsGeomechanicQ()) {
+        fElliptic->UpdateMemory_at_n();
+    }
+    fParabolic->UpdateMemory_at_n();
+    
+#else
+    
     fParabolic->UpdateMemory();
     
     if (fSimulationData->IsOnePhaseQ()) {
@@ -340,7 +384,10 @@ void TRMSegregatedAnalysis::UpdateMemory(){
         fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
     }
     
+#endif
+    
 }
+
 
 /** @brief Update memory using the Transfer object at REAL n */
 void TRMSegregatedAnalysis::UpdateFluxes_at_n(){

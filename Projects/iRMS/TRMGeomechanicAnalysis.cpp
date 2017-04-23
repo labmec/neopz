@@ -86,11 +86,6 @@ void TRMGeomechanicAnalysis::AdjustVectors(){
         DebugStop();
     }
     
-    TPZBuildMultiphysicsMesh::AddElements(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::AddConnects(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, this->Mesh());
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    
     fX.Resize(fSolution.Rows(),1);
     fX.Zero();
     fX_n.Resize(fSolution.Rows(),1);
@@ -166,12 +161,6 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
     
     ferror = 1.0;
     
-    STATE dt_min    = fSimulationData->dt_min();
-    //    STATE dt_max    = fSimulationData->dt_max();
-    //    STATE dt_up     = fSimulationData->dt_up();
-    STATE dt_down   = fSimulationData->dt_down();
-    STATE dt        = fSimulationData->dt();
-    
     STATE epsilon_res = this->SimulationData()->epsilon_res();
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
@@ -199,50 +188,13 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
-            std::cout << "Parabolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-            //            if (k == 1 && dt_max > dt && dt_up > 1.0) {
-            //                dt *= dt_up;
-            //                if(dt_max < dt ){
-            //                    fSimulationData->Setdt(dt_max);
-            //                }
-            //                else{
-            //                    fSimulationData->Setdt(dt);
-            //                }
-            //                std::cout << "Parabolic:: Increasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-            //            }
-            
-            fX = fX_n;
+            std::cout << "Elliptic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             return;
         }
         
-        if(k == n  && dt > dt_min && dt_down < 1.0){
-            dt *= dt_down;
-            if(dt_min > dt ){
-                fSimulationData->Setdt(dt_min);
-            }
-            else{
-                fSimulationData->Setdt(dt);
-            }
-            std::cout << "Parabolic:: Decreasing time step to " << fSimulationData->dt()/86400.0 << "; (day): " << std::endl;
-            std::cout << "Parabolic:: Restarting current time step correction " << std::endl;
-            
-            this->SimulationData()->SetCurrentStateQ(false);
-            this->LoadSolution(fX);
-            
-            TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-            this->AssembleResidual();
-            fR = this->Rhs();
-            
-            this->SimulationData()->SetCurrentStateQ(true);
-            fX_n = fX;
-            k = 1;
-        }
-        
-        
     }
     
-    std::cout << "Parabolic:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
-    
+    std::cout << "Elliptic:: Exit max iterations with min dt:  " << fSimulationData->dt()/86400.0 << "; (day) " << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
     
 }
 
@@ -252,10 +204,7 @@ void TRMGeomechanicAnalysis::UpdateMemory_at_n(){
     Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
     
-    // Volumetric update
-    fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
-    fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
-    fTransfer->p_avg_Memory_Transfer(Mesh());
+    fTransfer->elliptic_To_elliptic(Mesh());
     
 }
 
@@ -265,10 +214,7 @@ void TRMGeomechanicAnalysis::UpdateMemory(){
     Mesh()->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
     
-    // Volumetric update
-    fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
-    fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
-    fTransfer->p_avg_Memory_Transfer(Mesh());
+    fTransfer->elliptic_To_elliptic(Mesh());
     
 }
 

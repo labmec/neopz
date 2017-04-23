@@ -8,7 +8,7 @@
 
 #include "TRMFluxPressureAnalysis.h"
 #include "pzcheckmesh.h"
-
+#define NS
 
 TRMFluxPressureAnalysis::TRMFluxPressureAnalysis() : TPZAnalysis() {
     
@@ -217,6 +217,12 @@ void TRMFluxPressureAnalysis::UpdateMemory_at_n(){
     Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
     
+#ifdef NS
+    
+    fTransfer->parabolic_To_parabolic(Mesh());
+    
+#else
+    
     // Volumetric update    
     fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
     fTransfer->p_To_Mixed_Memory(fmeshvec[1], Mesh());
@@ -228,6 +234,8 @@ void TRMFluxPressureAnalysis::UpdateMemory_at_n(){
         fTransfer->p_avg_Memory_Transfer(Mesh());
     }
     
+#endif
+    
 }
 
 /** @brief Update memory using the Transfer object */
@@ -235,6 +243,12 @@ void TRMFluxPressureAnalysis::UpdateMemory(){
     
     Mesh()->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
+    
+#ifdef NS
+    
+    fTransfer->parabolic_To_parabolic(Mesh());
+    
+#else
     
     // Volumetric update
     fTransfer->u_To_Mixed_Memory(fmeshvec[0], Mesh());
@@ -247,6 +261,7 @@ void TRMFluxPressureAnalysis::UpdateMemory(){
         fTransfer->p_avg_Memory_Transfer(Mesh());
     }
 
+#endif
     
 }
 
@@ -261,7 +276,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     if (fSimulationData->IsInitialStateQ()) {
         
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "parabolic_I_MHMdiv_l_" + to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "parabolic_I_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
         }
         else{
             plotfile =  "parabolic_I";
@@ -270,7 +285,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     }
     else{
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "parabolic_MHMdiv_l_" + to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "parabolic_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
         }
         else{
             plotfile =  "parabolic";

@@ -386,7 +386,7 @@ public:
     STATE epsilon_cor() { return fepsilon_cor; }
     
     /** @brief Set directive for the use of quasi newton method */
-    void SetGeomechanicQ(bool IsGeomechanicQ) { fIsQuasiNewtonQ = IsGeomechanicQ;}
+    void SetGeomechanicQ(bool IsGeomechanicQ) { fIsGeomechanicQ = IsGeomechanicQ;}
     
     /** @brief Get directive for the use geomechanic coupling */
     bool IsGeomechanicQ() {return fIsGeomechanicQ;}

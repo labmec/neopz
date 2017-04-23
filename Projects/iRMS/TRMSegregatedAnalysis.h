@@ -32,7 +32,7 @@ private:
     TRMBuildTransfers * fTransfer;
 
     /** @brief define the elliptic system */
-    TRMGeomechanicAnalysis * felliptic;
+    TRMGeomechanicAnalysis * fElliptic;
     
     /** @brief define the parabolic system */
     TRMFluxPressureAnalysis * fParabolic_mhm;
@@ -42,12 +42,18 @@ private:
     
     /** @brief define the hyperbolic system */
     TRMTransportAnalysis * fHyperbolic;
+
+    /** @brief Residue error for displacement */
+    REAL ferror_displacement;
     
     /** @brief Residue error for flux - pressure */
     REAL ferror_flux_pressure;
     
     /** @brief Residue error for saturations */
     REAL ferror_saturation;
+
+    /** @brief Correction variation for displacement */
+    REAL fdx_norm_displacement;
     
     /** @brief Correction variation for flux - pressure */
     REAL fdx_norm_flux_pressure;
@@ -99,13 +105,13 @@ public:
     /** @brief Set the elliptic part */
     void SetElliptic(TRMGeomechanicAnalysis * elliptic)
     {
-        felliptic = elliptic;
+        fElliptic = elliptic;
     }
     
     /** @brief Get the elliptic part  */
     TRMGeomechanicAnalysis * Elliptic()
     {
-        return felliptic;
+        return fElliptic;
     }
     
     /** @brief Set the parabolic mhm part */

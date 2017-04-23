@@ -90,7 +90,11 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
         }
         
         int mat_id = gel->MaterialId();
-        if ((dim == 2 && (mat_id >= 8 && mat_id <= 11)) || (dim == 3 && (mat_id >= 8 && mat_id <= 13))) { // Filtering bc reservoir elements
+        if ((dim == 2 && (mat_id >= 8 && mat_id <= 11)) && (gel->Dimension() == dim-1)) { // Filtering bc reservoir elements
+            continue;
+        }
+        
+        if ((gel->Dimension() == dim-1) && (dim == 3 && (mat_id >= 8 && mat_id <= 13))) { // Filtering bc reservoir elements
             continue;
         }
         
@@ -480,7 +484,7 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
     int dim = elliptic->Dimension();
     int n_el = fe_e_cindexes.size();
     
-    long iblock = 0;
+
     long first_point_phi = 0;
     long first_point_dphi = 0;
     std::pair<long, long> b_size_phi, b_size_dphi;
@@ -499,7 +503,7 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
         }
 #endif
         
-        TPZCompEl * e_cel = elliptic->Element(fe_e_cindexes[iel].first);
+        TPZCompEl * e_cel = elliptic->Element(fe_e_cindexes[iel].second);
         
 #ifdef PZDEBUG
         if (!e_cel) {
@@ -518,8 +522,8 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
         
         first_point_phi += b_size_phi.first;
         first_point_dphi += b_size_dphi.first;
-        b_size_phi = fu_To_elliptic.GetSizeofBlock(iblock);
-        b_size_dphi = fgrad_u_To_elliptic.GetSizeofBlock(iblock);
+        b_size_phi = fu_To_elliptic.GetSizeofBlock(iel);
+        b_size_dphi = fgrad_u_To_elliptic.GetSizeofBlock(iel);
         
         //  Getting the total integration point of the destination cmesh
         int matd_id = gel->MaterialId();
@@ -608,8 +612,6 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
             }
             
         }
-        
-        iblock++;
         
     }
     
@@ -875,7 +877,7 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
 
                         GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
                         VectorOnMaster *= JacobianDet;
-                        
+
                         for (int id = 0; id < dim; id++) {
                             block_phi_q(ip*dim+id,jp) = phi(shape_index,0)*VectorOnXYZ(id,0);
                             block_div_phi_q(ip,jp) += dphi(id,shape_index)*VectorOnMaster(id,0);
@@ -922,7 +924,7 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
         }
         
         fq_To_parabolic.SetBlock(iel, block_phi_q);
-        fdiv_q_To_parabolic.SetBlock(iel, block_phi_q);
+        fdiv_q_To_parabolic.SetBlock(iel, block_div_phi_q);
         fp_To_parabolic.SetBlock(iel, block_phi_p);
         
     }
@@ -1023,7 +1025,7 @@ void TRMBuildTransfers::space_To_parabolic(TPZCompMesh * parabolic){
                     for (int d = 0; d < dim; d++) {
                         phi_q(is,d) = block_phi_q(ip*dim+d,is);
                     }
-                    div_phi_q(is,0) = block_phi_q(ip,is);
+                    div_phi_q(is,0) = block_div_phi_q(ip,is);
                 }
                 
                 for (int is = 0; is < n_phi_p; is++) {

@@ -106,7 +106,7 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
         
         
         if (rock_id == 5) { // Reservoir
-            n_boundauries = 6;
+            n_boundauries = 0;
             initial_bc = 0;
         }
         
@@ -152,7 +152,7 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
     int bc_T = 9;
     int bc_B = 8;
     
-    if (dim != 3) {
+    if (dim == 2) {
         side_burden_rock = 12;
         bc_W = 14;
         bc_N = 15;
@@ -829,7 +829,7 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         
         
         if (rock_id == 5) { // Reservoir
-            n_boundauries = 6;
+            n_boundauries = 0;
             initial_bc = 0;
         }
         
@@ -880,7 +880,7 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     int bc_T = 9;
     int bc_B = 8;
     
-    if (dim != 3) {
+    if (dim == 2) {
         side_burden_rock = 12;
         bc_W = 14;
         bc_N = 15;
