@@ -255,6 +255,8 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     
     plotfile += ".vtk";
     
+    scalnames.Push("id");
+    scalnames.Push("s_v");    
     vecnames.Push("u");
     vecnames.Push("s_x");
     vecnames.Push("s_y");

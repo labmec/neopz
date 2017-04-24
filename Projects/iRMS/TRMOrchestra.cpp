@@ -212,8 +212,10 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    fSpaceGenerator->SetDefaultUOrder(2);
-    fSpaceGenerator->SetDefaultPOrder(1);
+    int order = 1;
+    
+    fSpaceGenerator->SetDefaultUOrder(order+1);
+    fSpaceGenerator->SetDefaultPOrder(order);
     fSpaceGenerator->SetDefaultSOrder(0);
     
     
@@ -222,6 +224,9 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     fSimulationData->SetGeomechanicQ(IsGeomechanicQ);
     
     if (fSimulationData->IsGeomechanicQ()) {
+        if (fSimulationData->IsAdataptedQ()){
+            fSpaceGenerator->SetDefaultUOrder(order+2);
+        }
         fSpaceGenerator->BuildGeomechanic_Mesh();
     }
 
@@ -400,14 +405,23 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 /** build the transfers and cross transfers for all: elliptic, parabolic and hyperbolic **/
 void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAnalysis  * elliptic, TRMFluxPressureAnalysis  * parabolic, TRMTransportAnalysis  * hyperbolic){
     
+    // Elliptic
     // iMRS:: elliptic transfer
     transfer->Build_elliptic_To_elliptic(elliptic->Mesh());
     transfer->space_To_elliptic(elliptic->Mesh());
     
+    // iMRS:: elliptic to parabolic transfer
+    transfer->Build_elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());
+    
     // iMRS::Transfer:: elliptic to elliptic
     transfer->elliptic_To_elliptic(elliptic->Mesh());
-
     
+    // iMRS::Transfer:: elliptic to parabolic
+    transfer->elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());
+    
+    
+    
+    // Parabolic
     // iMRS:: parabolic transfer
     transfer->Build_parabolic_To_parabolic(parabolic->Mesh());
     transfer->space_To_parabolic(parabolic->Mesh());
@@ -416,7 +430,11 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     transfer->parabolic_To_parabolic(parabolic->Mesh());
     transfer->kappa_phi_To_parabolic(parabolic->Mesh());
     
+    // iMRS:: parabolic to elliptic transfer
+    transfer->Build_parabolic_To_elliptic(parabolic->Mesh(), elliptic->Mesh());
     
+    // iMRS::Transfer:: parabolic to elliptic
+    transfer->parabolic_To_elliptic(parabolic->Mesh(), elliptic->Mesh());
     
     return;
     transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
@@ -706,7 +724,8 @@ void TRMOrchestra::RunEvolutionaryProblem(){
 #ifdef USING_BOOST
             boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-            fSegregatedAnalysis->ExcecuteOneStep();
+//            fSegregatedAnalysis->ExcecuteOneStep();
+            fSegregatedAnalysis->ExcecuteOneStep_Fixed_Stress();
 #ifdef USING_BOOST
             boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
 #endif

@@ -39,7 +39,7 @@ CADReservoirQ = 0;
 
 xzQ = 0;
 hexahedronsWQ = 1;
-hexahedronsRQ = 1;
+hexahedronsRQ = 0;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -59,7 +59,7 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 75.0;
+cl4 = 100.0;
 cl5 = 2500.0;
 
 ////////////////////////////////////////////////////////////////////////////
@@ -112,7 +112,7 @@ rw = 0.5;
 wl = 20.0;
 
 wbr = 20.0;
-ela = 20.0;
+ela = 30.0;
 rw_cell= 0.5;
 wr_cell= 5.0;
 

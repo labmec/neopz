@@ -71,10 +71,12 @@ void TRMBiotPoroelasticity::Print(std::ostream &out) {
 }
 
 int TRMBiotPoroelasticity::VariableIndex(const std::string &name) {
-    if (!strcmp("u", name.c_str())) return 0;
+    if (!strcmp("u", name.c_str()))   return 0;
     if (!strcmp("s_x", name.c_str())) return 1;
     if (!strcmp("s_y", name.c_str())) return 2;
     if (!strcmp("s_z", name.c_str())) return 3;
+    if (!strcmp("s_v", name.c_str())) return 4;
+    if (!strcmp("id", name.c_str()))  return 5;
     return TPZMatWithMem::VariableIndex(name);
 }
 
@@ -88,6 +90,10 @@ int TRMBiotPoroelasticity::NSolutionVariables(int var) {
             return fdimension; // vector
         case 3:
             return fdimension; // vector
+        case 4:
+            return 1; // scalar
+        case 5:
+            return 1; // integer
     }
     
     DebugStop();
@@ -141,6 +147,7 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     
     REAL l_dr   = 2.30769e9;
     REAL mu_dr  = 1.53846e9;
+    REAL alpha  = 0.8;
     REAL rho    = 2500.0;
     TPZManVector<REAL,2> b(2,0.0);
     b[0] = 0.0*rho;
@@ -150,7 +157,7 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     Compute_Sigma(l_dr, mu_dr, S, grad_u);
     Compute_Sigma(l_dr, mu_dr, S_n, grad_u_n);
     
-    REAL source = 1.0 * p_n;
+    REAL source = alpha * p_n;
     
     for (int iu = 0; iu < nphi_u; iu++) {
         
@@ -424,12 +431,25 @@ void TRMBiotPoroelasticity::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         return;
     }
     
-//    if(var == 1){
+//    if(var == 3){
 //        for (int d = 0; d < Dimension(); d++) {
 //            Solout[d] = S(0,d);
 //        }
 //        return;
 //    }
+    
+    if(var == 4){
+        for (int d = 0; d < Dimension(); d++) {
+            Solout[0] += S(d,d);
+        }
+        Solout[0] *= 1.0/3.0;
+        return;
+    }
+    
+    if(var == 5){
+        Solout[0] = this->Id();
+        return;
+    }
     
     std::cout  << " not implemented. " << std::endl;
     DebugStop();

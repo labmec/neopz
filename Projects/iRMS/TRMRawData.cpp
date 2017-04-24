@@ -466,7 +466,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Prod);
-    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    WPro[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(WPro);
     WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(WPro);
@@ -478,7 +478,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Inj);
-    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
+    WInj[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(WInj);
     WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(WInj);
@@ -514,7 +514,7 @@ void TRMRawData::Aquifer(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F,
     REAL MPa = 1.0e6;
     
     // Aquifer properties
-    REAL pressure_aquifer = -25.0*MPa;
+    REAL pressure_aquifer = 25.0*MPa;
     REAL mu_w = 0.001;
     REAL k = 1.0e-13;
     REAL h = 100.0;

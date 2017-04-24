@@ -53,26 +53,33 @@ private:
     
     /** @brief full order u dof indexes per element */
     TPZVec< TPZVec<long> > fu_dof_scatter;
+    
+    /** @brief full order u dof indexes per element to parabolic */
+    TPZVec< TPZVec<long> > fu_p_dof_scatter;
 
     /** @brief integration point indexes geo_intp_o_intp_t */
     TPZStack< std::pair< long, long >  > fe_e_cindexes;
+    
+    /** @brief integration point indexes geo_cel_o_cel_t */
+    TPZStack< std::pair<long, TPZVec<long> >  > fe_e_intp_indexes;
     
     /** @brief integration point indexes geo_intp_o_intp_t */
     TPZStack< std::pair<long, std::pair<long, long> >  > fe_p_cindexes;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, TPZVec<long> >  > fe_e_intp_indexes;
-    
-    /** @brief integration point indexes geo_cel_o_cel_t */
     TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fe_p_intp_indexes;
-    
     
     /** @brief linear application u to elliptic mesh */
     TRMIrregularBlockDiagonal<STATE> fu_To_elliptic;
     
     /** @brief linear application grad_u to elliptic mesh */
     TRMIrregularBlockDiagonal<STATE> fgrad_u_To_elliptic;
+
+    /** @brief linear application u to parabolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fu_To_parabolic;
     
+    /** @brief linear application grad_u to parabolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fgrad_u_To_parabolic;
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Segregated Transfer methods (Gamma and Omega) :: Attributes Parabolic
@@ -81,18 +88,23 @@ private:
     /** @brief pressure dof indexes per element */
     TPZVec< TPZVec<long> > fp_dof_scatter;
     
+    /** @brief pressure dof indexes per element to elliptic */
+    TPZVec< TPZVec<long> > fp_e_dof_scatter;
+    
     /** @brief total velocity dof indexes per element */
     TPZVec< TPZVec<long> > fq_dof_scatter;
 
     /** @brief integration point indexes geo_intp_o_intp_t */
     TPZStack< std::pair<long, long >  > fp_p_cindexes;
     
-    /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fp_e_cindexes;
-    
     /** @brief integration point indexes geo_cel_o_cel_t */
     TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fp_p_intp_indexes;
     
+    /** @brief integration point indexes geo_intp_o_intp_t */
+    TPZStack< std::pair<long, std::pair<long, long> >  > fp_e_cindexes;
+
+    /** @brief integration point indexes geo_cel_o_cel_t */
+    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fp_e_intp_indexes;
     
     /** @brief linear application p to parabolic mesh */
     TRMIrregularBlockDiagonal<STATE> fp_To_parabolic;
@@ -102,6 +114,9 @@ private:
     
     /** @brief linear application div_q to parabolic mesh */
     TRMIrregularBlockDiagonal<STATE> fdiv_q_To_parabolic;
+    
+    /** @brief linear application p to elliptic mesh */
+    TRMIrregularBlockDiagonal<STATE> fp_To_elliptic;
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,6 +255,11 @@ public:
     
     void elliptic_To_elliptic(TPZCompMesh * elliptic);
     
+    /** @brief bluid linear applications: u and grad_u to parabolic $ */
+    void Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMesh * parabolic);
+    
+    void elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMesh * parabolic);
+    
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Segregated Transfer methods (Gamma and Omega) :: Build methods Parabolic
@@ -253,6 +273,9 @@ public:
     
     void parabolic_To_parabolic(TPZCompMesh * parabolic);
     
+    void Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic);
+    
+    void parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic);
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Segregated Transfer methods (Gamma and Omega) :: Build methods Hyperbolic

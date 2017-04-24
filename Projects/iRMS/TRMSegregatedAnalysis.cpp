@@ -213,11 +213,24 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
 
     this->UpdateMemory_at_n();
     
+    if (fSimulationData->IsInitialStateQ()) {
+
+        if (fSimulationData->IsGeomechanicQ()) {
+            fElliptic->ExcecuteOneStep();
+            fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+            
+            fParabolic->ExcecuteOneStep();            
+            fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+        }
+        return;
+    }
+    
     fParabolic->ExcecuteOneStep();
     if (fSimulationData->IsGeomechanicQ()) {
+        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
         fElliptic->ExcecuteOneStep();
+        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
     }
-
     
 }
 
