@@ -264,6 +264,7 @@ void TPZElasticBiot::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight,
     if (!fSimulationData->IsCurrentStateQ()) {
         return;
     }
+    
     int u_b = 0;
     
     TPZMaterialData::MShapeFunctionType shapetype = datavec[u_b].fShapeType;

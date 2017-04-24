@@ -484,7 +484,6 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
     int dim = elliptic->Dimension();
     int n_el = fe_e_cindexes.size();
     
-
     long first_point_phi = 0;
     long first_point_dphi = 0;
     std::pair<long, long> b_size_phi, b_size_dphi;

@@ -373,6 +373,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     elliptic->SetTransfer(transfer);
     parabolic->SetTransfer(transfer);
+    
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
         hyperbolic->SetTransfer(transfer);
     }
@@ -615,6 +616,11 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     }
     
     if (IsSegregatedQ()) {
+        
+        fSegregatedAnalysis->Elliptic()->SetX(fSegregatedAnalysis_I->Elliptic()->X_n());
+        fSegregatedAnalysis->Elliptic()->SetX_n(fSegregatedAnalysis_I->Elliptic()->X_n());
+        fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis_I->Elliptic()->X_n());
+        
         fSegregatedAnalysis->Parabolic()->SetX(fSegregatedAnalysis_I->Parabolic()->X_n());
         fSegregatedAnalysis->Parabolic()->SetX_n(fSegregatedAnalysis_I->Parabolic()->X_n());
         fSegregatedAnalysis->Parabolic()->LoadSolution(fSegregatedAnalysis_I->Parabolic()->X_n());
@@ -640,6 +646,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
     MustReportQ = MustResporTimeQ(time,draw_mixed_mapQ);
     
     if (MustReportQ) {
+        
 #ifdef USING_BOOST
         boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -661,6 +668,7 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         if (IsMonolithicQ()) {
             
             if (MustReportQ) {
+                
 #ifdef USING_BOOST
                 boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 #endif

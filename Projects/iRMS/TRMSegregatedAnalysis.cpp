@@ -260,7 +260,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
         fdx_norm_displacement   = fElliptic->dx_norm();
         fdx_norm_flux_pressure  = fParabolic->dx_norm();
         fdx_norm_saturation     = fHyperbolic->dx_norm();
-        
+                
         IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
         IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
         
@@ -332,6 +332,7 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     if (fSimulationData->IsGeomechanicQ()) {
         fElliptic->UpdateMemory_at_n();
     }
+    
     fParabolic->UpdateMemory_at_n();
     
 #else
@@ -408,16 +409,34 @@ void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
 /** @brief update global state for the new euler step */
 void TRMSegregatedAnalysis::UpdateGlobalSolution(){
     
+#ifdef NS
+
+    fElliptic->X()  = fElliptic->X_n();
+    fParabolic->X() = fParabolic->X_n();
+    
+#else
+    
     fParabolic->X() = fParabolic->X_n();
     fHyperbolic->X() = fHyperbolic->X_n();
+    
+#endif
     
 }
 
 /** @brief keep global last state for restart a euler step */
 void TRMSegregatedAnalysis::KeepGlobalSolution(){
     
-    fParabolic->X_n() = fParabolic->X();
-    fHyperbolic->X_n() = fHyperbolic->X();
+#ifdef NS
+    
+    fElliptic->X()  = fElliptic->X();
+    fParabolic->X() = fParabolic->X();
+    
+#else
+    
+    fParabolic->X() = fParabolic->X();
+    fHyperbolic->X() = fHyperbolic->X();
+    
+#endif
     
 }
 
@@ -445,6 +464,11 @@ bool TRMSegregatedAnalysis::MustRestartStep(){
 void TRMSegregatedAnalysis::PostProcessStep(bool draw_mixed_mapQ){
     
     if (draw_mixed_mapQ) {
+        
+        if (fSimulationData->IsGeomechanicQ()) {
+            fElliptic->PostProcessStep();
+        }
+    
         fParabolic->PostProcessStep();
     }
     

@@ -223,19 +223,42 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 0;
+    int div = 2;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
-        plotfile =  "DualSegregatedDarcyOnBox_I.vtk";
+        
+        if (fSimulationData->MHMResolution().first) {
+            plotfile =  "elliptic_I_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+        }
+        else{
+            plotfile =  "elliptic_I";
+        }
+        return;
     }
     else{
-        plotfile =  "DualSegregatedDarcyOnBox.vtk";
+        if (fSimulationData->MHMResolution().first) {
+            plotfile =  "elliptic_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+        }
+        else{
+            plotfile =  "elliptic";
+        }
     }
     
-    scalnames.Push("u");
-    scalnames.Push("div_u");
-    scalnames.Push("s");
+    if (fSimulationData->IsAdataptedQ()) {
+        plotfile += "_A";
+    }
+    
+    if (fSimulationData->IsEnhancedPressureQ()) {
+        plotfile += "_E";
+    }
+    
+    plotfile += ".vtk";
+    
+    vecnames.Push("u");
+    vecnames.Push("s_x");
+    vecnames.Push("s_y");
+//    vecnames.Push("s_z");
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

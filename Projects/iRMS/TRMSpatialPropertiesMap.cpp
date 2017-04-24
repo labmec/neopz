@@ -291,9 +291,10 @@ void TRMSpatialPropertiesMap::phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE
 /** @brief first lamé parameter $\lambda$ */
 void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars){
     
+    // E = 4.0*10^9, v = 0.3
     REAL GPa = 1.0e9;
     lambda.Resize(10, 0.0);
-    STATE val = 9.4541*GPa;
+    STATE val = 2.30769*GPa;
     lambda[0] = val;
     
 }
@@ -302,9 +303,10 @@ void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<ST
 /** @brief undrained first lamé parameter  $\lambda_{u}$ */
 void TRMSpatialPropertiesMap::lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars){
     
+
     REAL GPa = 1.0e9;
     lambda_u.Resize(10, 0.0);
-    STATE val = 0.95541*GPa;
+    STATE val = 1.53846*GPa;
     lambda_u[0] = val;
     
 }
@@ -312,9 +314,10 @@ void TRMSpatialPropertiesMap::lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<
 /** @brief second lamé parameter  $\mu$ */
 void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars){
     
+    // E = 4.0*10^9, v = 0.3    
     REAL GPa = 1.0e9;
     mu.Resize(10, 0.0);
-    STATE val = 0.965*GPa;
+    STATE val = 1.53846*GPa;
     mu[0] = val;
     
 }

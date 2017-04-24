@@ -805,14 +805,19 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     }
     
     int dim = fGeoMesh->Dimension();
-    int Sigma_or_displacement = 0;
     
-    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    TPZFMatrix<STATE> val1(1,1,0.), val2(dim,1,0.);
     std::pair< int, TPZFunction<REAL> * > bc_item;
     TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
     
     // Malha computacional
     fGeoMechanicsCmesh = new TPZCompMesh(fGeoMesh);
+    
+    // bc types
+    int u_fixed   = 0;
+    int u_h_fixed = 1;
+    int s_v_free  = 3;
+    int p_normal  = 6;
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
@@ -825,6 +830,7 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         
         TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(rock_id,dim);
+        mat->SetSimulationData(this->SimulationData());
         fGeoMechanicsCmesh->InsertMaterialObject(mat);
         
         
@@ -856,12 +862,12 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
                 bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
             }
 
-            bc_item = bc[Sigma_or_displacement];
+            bc_item = bc[0];
             TPZMatWithMem<TRMMemory,TPZBndCond> * boundary_c = new TPZMatWithMem<TRMMemory,TPZBndCond>;
             boundary_c->SetNumLoadCases(1);
             boundary_c->SetMaterial(mat);
             boundary_c->SetId(bc_id);
-            boundary_c->SetType(bc_item.first);
+            boundary_c->SetType(p_normal);
             boundary_c->SetValues(val1, val2);
             TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
             boundary_c->SetTimedependentBCForcingFunction(0,boundary_data);
@@ -869,7 +875,6 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         }
         
     }
-    
     
     // Sideburden
     int side_burden_rock = 13;
@@ -888,61 +893,120 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         bc_S = 13;
         bc_T = 1000;
         bc_B = 1000;
+        
+        TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
+        mat->SetSimulationData(this->SimulationData());
+        fGeoMechanicsCmesh->InsertMaterialObject(mat);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * W_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        W_bndc->SetNumLoadCases(1);
+        W_bndc->SetMaterial(mat);
+        W_bndc->SetId(bc_W);
+        W_bndc->SetType(u_h_fixed);
+        W_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(W_bndc);
+        
+//        val2(0,0) = 0.0;
+//        val2(1,0) = -10.0e+6;
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * N_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        N_bndc->SetNumLoadCases(1);
+        N_bndc->SetMaterial(mat);
+        N_bndc->SetId(bc_N);
+        N_bndc->SetType(s_v_free);
+        N_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(N_bndc);
+//        val2.Zero();
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * E_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        E_bndc->SetNumLoadCases(1);
+        E_bndc->SetMaterial(mat);
+        E_bndc->SetId(bc_E);
+        E_bndc->SetType(u_h_fixed);
+        E_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(E_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * S_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        S_bndc->SetNumLoadCases(1);
+        S_bndc->SetMaterial(mat);
+        S_bndc->SetId(bc_S);
+        S_bndc->SetType(u_fixed);
+        S_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(S_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * T_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        T_bndc->SetNumLoadCases(1);
+        T_bndc->SetMaterial(mat);
+        T_bndc->SetId(bc_T);
+        T_bndc->SetType(u_fixed);
+        T_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(T_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * B_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        B_bndc->SetNumLoadCases(1);
+        B_bndc->SetMaterial(mat);
+        B_bndc->SetId(bc_B);
+        B_bndc->SetType(u_fixed);
+        B_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(B_bndc);
+        
     }
     else{
+        
+        TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
+        fGeoMechanicsCmesh->InsertMaterialObject(mat);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * W_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        W_bndc->SetNumLoadCases(1);
+        W_bndc->SetMaterial(mat);
+        W_bndc->SetId(bc_W);
+        W_bndc->SetType(u_h_fixed);
+        W_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(W_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * N_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        N_bndc->SetNumLoadCases(1);
+        N_bndc->SetMaterial(mat);
+        N_bndc->SetId(bc_N);
+        N_bndc->SetType(u_h_fixed);
+        N_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(N_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * E_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        E_bndc->SetNumLoadCases(1);
+        E_bndc->SetMaterial(mat);
+        E_bndc->SetId(bc_E);
+        E_bndc->SetType(u_h_fixed);
+        E_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(E_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * S_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        S_bndc->SetNumLoadCases(1);
+        S_bndc->SetMaterial(mat);
+        S_bndc->SetId(bc_S);
+        S_bndc->SetType(u_h_fixed);
+        S_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(S_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * T_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        T_bndc->SetNumLoadCases(1);
+        T_bndc->SetMaterial(mat);
+        T_bndc->SetId(bc_T);
+        T_bndc->SetType(s_v_free);
+        T_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(T_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * B_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        B_bndc->SetNumLoadCases(1);
+        B_bndc->SetMaterial(mat);
+        B_bndc->SetId(bc_B);
+        B_bndc->SetType(u_fixed);
+        B_bndc->SetValues(val1, val2);
+        fGeoMechanicsCmesh->InsertMaterialObject(B_bndc);
+        
         DebugStop();
     }
     
-    TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
-    fGeoMechanicsCmesh->InsertMaterialObject(mat);
-    
-    TPZMatWithMem<TRMMemory,TPZBndCond> * W_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
-    W_bndc->SetNumLoadCases(1);
-    W_bndc->SetMaterial(mat);
-    W_bndc->SetId(bc_W);
-    W_bndc->SetType(Sigma_or_displacement);
-    W_bndc->SetValues(val1, val2);
-    fGeoMechanicsCmesh->InsertMaterialObject(W_bndc);
-    
-    TPZMatWithMem<TRMMemory,TPZBndCond> * N_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
-    N_bndc->SetNumLoadCases(1);
-    N_bndc->SetMaterial(mat);
-    N_bndc->SetId(bc_N);
-    N_bndc->SetType(Sigma_or_displacement);
-    N_bndc->SetValues(val1, val2);
-    fGeoMechanicsCmesh->InsertMaterialObject(N_bndc);
-    
-    TPZMatWithMem<TRMMemory,TPZBndCond> * E_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
-    E_bndc->SetNumLoadCases(1);
-    E_bndc->SetMaterial(mat);
-    E_bndc->SetId(bc_E);
-    E_bndc->SetType(Sigma_or_displacement);
-    E_bndc->SetValues(val1, val2);
-    fGeoMechanicsCmesh->InsertMaterialObject(E_bndc);
-    
-    TPZMatWithMem<TRMMemory,TPZBndCond> * S_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
-    S_bndc->SetNumLoadCases(1);
-    S_bndc->SetMaterial(mat);
-    S_bndc->SetId(bc_S);
-    S_bndc->SetType(Sigma_or_displacement);
-    S_bndc->SetValues(val1, val2);
-    fGeoMechanicsCmesh->InsertMaterialObject(S_bndc);
-    
-    TPZMatWithMem<TRMMemory,TPZBndCond> * T_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
-    T_bndc->SetNumLoadCases(1);
-    T_bndc->SetMaterial(mat);
-    T_bndc->SetId(bc_T);
-    T_bndc->SetType(Sigma_or_displacement);
-    T_bndc->SetValues(val1, val2);
-    fGeoMechanicsCmesh->InsertMaterialObject(T_bndc);
-    
-    TPZMatWithMem<TRMMemory,TPZBndCond> * B_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
-    B_bndc->SetNumLoadCases(1);
-    B_bndc->SetMaterial(mat);
-    B_bndc->SetId(bc_B);
-    B_bndc->SetType(Sigma_or_displacement);
-    B_bndc->SetValues(val1, val2);
-    fGeoMechanicsCmesh->InsertMaterialObject(B_bndc);
     
     fGeoMechanicsCmesh->SetDimModel(dim);
     fGeoMechanicsCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();

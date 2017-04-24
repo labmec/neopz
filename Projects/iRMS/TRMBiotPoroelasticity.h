@@ -72,7 +72,6 @@ public:
         return new TRMBiotPoroelasticity(*this);
     }
     
-    
     /** print out the data associated with the material */
     void Print(std::ostream &out = std::cout);
     
@@ -92,7 +91,10 @@ public:
         fSimulationData = SimulationData;
     }
     
-   
+    /** @brief Compute effective stress */
+    void Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u);
+    
+    
     void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
         DebugStop();
     }

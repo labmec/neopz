@@ -272,6 +272,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     const int dim = this->Mesh()->Dimension();
     int div = 1;
     TPZStack<std::string> scalnames, vecnames;
+    
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
         
@@ -300,16 +301,13 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
         plotfile += "_E";
     }
     
-    
     plotfile += ".vtk";
     
     scalnames.Push("p");
     scalnames.Push("order");
     scalnames.Push("id");    
     vecnames.Push("u");
-//    scalnames.Push("div_u");
-//    scalnames.Push("cfl");
-    
+
     if(!fSimulationData->IsInitialStateQ() && fSimulationData->t() == 0.0){
         vecnames.Push("kappa");
         scalnames.Push("phi");
