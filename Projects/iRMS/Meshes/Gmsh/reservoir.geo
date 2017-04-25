@@ -9,7 +9,7 @@
 // Settings
 ExpertMode = 1;
 Mesh.Optimize = 1;
-Mesh.CharacteristicLengthExtendFromBoundary = 1;
+//Mesh.CharacteristicLengthExtendFromBoundary = 1;
 
 Include "CadReservoir.geo";
 Include "BoxReservoir.geo";
@@ -33,12 +33,12 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 1;
-dimension = 2;
+dimension = 3;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
-hexahedronsWQ = 1;
+hexahedronsWQ = 0;
 hexahedronsRQ = 0;
 hexahedronsSBQ = 0;
 
@@ -59,8 +59,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 100.0;
-cl5 = 2500.0;
+cl4 = 50.0;
+cl5 = 1000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -69,7 +69,7 @@ cl5 = 2500.0;
 // reservoir box dimensions
 x_length = 1000.0;
 y_length = 100.0;
-z_length = 300.0;
+z_length = 100.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // side-burden region geometry
@@ -77,8 +77,8 @@ z_length = 300.0;
 
 // side-burden box dimensions
 sb_x_length = 10000.0;
-sb_y_length = 5000.0;
-sb_z_length = 4000.0;
+sb_y_length = 10000.0;
+sb_z_length = 5000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir rock
@@ -109,12 +109,12 @@ EndIf
 ////////////////////////////////////////////////////////////////////////////
 
 rw = 0.5;
-wl = 20.0;
+wl = 5.0;
 
-wbr = 20.0;
-ela = 30.0;
-rw_cell= 0.5;
-wr_cell= 5.0;
+wbr = 5.0;
+ela = 10.0;
+rw_cell= 1.0;
+wr_cell= 2.5;
 
 If(dimension == 2)
 rw = 0.2;

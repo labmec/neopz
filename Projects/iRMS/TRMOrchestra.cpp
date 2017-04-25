@@ -283,9 +283,9 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     //    strmat_e.SetDecomposeType(ELDLt);
     
-    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+//    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     
-//    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     
     TPZStepSolver<STATE> step_e;
     step_e.SetDirect(ELDLt);
@@ -309,9 +309,9 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
 //    strmat_p.SetDecomposeType(ELDLt);
 
-    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
-//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
@@ -647,6 +647,28 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSegregatedAnalysis->Hyperbolic()->SetX_n(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         fSegregatedAnalysis->Hyperbolic()->LoadSolution(fSegregatedAnalysis_I->Hyperbolic()->X_n());
         
+        // Loading initial configuration on integration points memory
+        fSimulationData->SetInitialStateQ(true);
+        
+        fSimulationData->SetCurrentStateQ(false);
+        fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
+        fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
+        fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
+        fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
+        
+        fSimulationData->SetCurrentStateQ(true);
+        fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
+        fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
+        fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
+        fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
+        
+        fSimulationData->SetInitialStateQ(false);
+        
+        // Clean initial displacements
+        fSegregatedAnalysis->Elliptic()->X().Zero();
+        fSegregatedAnalysis->Elliptic()->X_n().Zero();
+        fSegregatedAnalysis->Elliptic()->LoadSolution(fSegregatedAnalysis->Elliptic()->X_n());
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fSegregatedAnalysis->Elliptic()->Meshvec(), fSegregatedAnalysis->Elliptic()->Mesh());
     }
     
     // Evolutionary problem

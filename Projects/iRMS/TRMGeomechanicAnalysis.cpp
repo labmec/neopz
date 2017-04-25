@@ -125,7 +125,6 @@ void TRMGeomechanicAnalysis::QuasiNewtonIteration(){
         this->AssembleResidual();
     }
     
-    this->Rhs() += fR; // total residue
     this->Rhs() *= -1.0;
     
     this->Solve(); // update correction
@@ -138,7 +137,6 @@ void TRMGeomechanicAnalysis::QuasiNewtonIteration(){
     
     this->AssembleResidual();
     fR_n = this->Rhs();
-    fR_n += fR; // total residue
     ferror =  Norm(fR_n); // residue error
     
 }
@@ -146,26 +144,26 @@ void TRMGeomechanicAnalysis::QuasiNewtonIteration(){
 void TRMGeomechanicAnalysis::ExcecuteOneStep(){
     
     this->SimulationData()->SetCurrentStateQ(false);
-    this->LoadSolution(fX);
     this->UpdateMemory();
     
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    
-    this->AssembleResidual();
-    fR = this->Rhs();
-    
     this->SimulationData()->SetCurrentStateQ(true);
-    this->LoadSolution(fX_n);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     this->UpdateMemory_at_n();
     
-    ferror = 1.0;
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    this->AssembleResidual();
+    fR_n = this->Rhs();
+    ferror = Norm(fR_n);
+    
+    this->Set_k_ietrarions(0);
     
     STATE epsilon_res = this->SimulationData()->epsilon_res();
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
     
-    
+    // check if the new state is almost stationary
+    if(ferror < epsilon_res){
+        return;
+    }
     
     for (int k = 1; k <= n; k++) {
         
@@ -223,7 +221,7 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 2;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {

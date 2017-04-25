@@ -1325,7 +1325,7 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
 
                         for (int id = 0; id < dim; id++) {
                             block_phi_q(ip*dim+id,jp) = phi(shape_index,0)*VectorOnXYZ(id,0);
-                            block_div_phi_q(ip,jp) += dphi(id,shape_index)*VectorOnMaster(id,0);
+                            block_div_phi_q(ip,jp) += dphi(id,shape_index)*VectorOnMaster(id,0)/JacobianDet;
                         }
                     }
                 }

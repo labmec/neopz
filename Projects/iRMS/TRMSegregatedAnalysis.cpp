@@ -213,6 +213,7 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
 
     this->UpdateMemory_at_n();
     
+    // Undarined response
     if (fSimulationData->IsInitialStateQ()) {
 
         if (fSimulationData->IsGeomechanicQ()) {
@@ -223,8 +224,18 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
             fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
         }
         return;
+        
     }
     
+    // Fixed stress Iteration 1
+    fParabolic->ExcecuteOneStep();
+    if (fSimulationData->IsGeomechanicQ()) {
+        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+        fElliptic->ExcecuteOneStep();
+        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+    }
+
+    // Fixed stress Iteration 2    
     fParabolic->ExcecuteOneStep();
     if (fSimulationData->IsGeomechanicQ()) {
         fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
@@ -263,7 +274,6 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
     
     for (int k = 1; k <= n; k++) {
         
-//        this->SegregatedIteration();
         this->SegregatedIteration_Fixed_Stress();
         
         ferror_displacement  = fElliptic->error_norm();

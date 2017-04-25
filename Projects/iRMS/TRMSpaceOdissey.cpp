@@ -144,13 +144,13 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
     
     
     // Sideburden
-    int side_burden_rock = 13;
-    int bc_W = 13;
-    int bc_N = 12;
-    int bc_E = 11;
-    int bc_S = 10;
-    int bc_T = 9;
-    int bc_B = 8;
+    int side_burden_rock = 14;
+    int bc_W = 20;
+    int bc_N = 19;
+    int bc_E = 18;
+    int bc_S = 17;
+    int bc_T = 16;
+    int bc_B = 15;
     
     if (dim == 2) {
         side_burden_rock = 12;
@@ -161,9 +161,7 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
         bc_T = 1000;
         bc_B = 1000;
     }
-    else{
-        DebugStop();
-    }
+
     
     TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
     fBiotCmesh->InsertMaterialObject(mat);
@@ -191,8 +189,6 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
     fBiotCmesh->SetAllCreateFunctionsContinuous();
     fBiotCmesh->AutoBuild();
     
-//    fBiotCmesh->AdjustBoundaryElements();
-//    fBiotCmesh->CleanUpUnconnectedNodes();
     
 #ifdef PZDEBUG
     std::ofstream out("CmeshBiot.txt");
@@ -877,13 +873,13 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     }
     
     // Sideburden
-    int side_burden_rock = 13;
-    int bc_W = 13;
-    int bc_N = 12;
-    int bc_E = 11;
-    int bc_S = 10;
-    int bc_T = 9;
-    int bc_B = 8;
+    int side_burden_rock = 14;
+    int bc_W = 20;
+    int bc_N = 19;
+    int bc_E = 18;
+    int bc_S = 17;
+    int bc_T = 16;
+    int bc_B = 15;
     
     if (dim == 2) {
         side_burden_rock = 12;
@@ -954,6 +950,7 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     else{
         
         TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
+        mat->SetSimulationData(this->SimulationData());
         fGeoMechanicsCmesh->InsertMaterialObject(mat);
         
         TPZMatWithMem<TRMMemory,TPZBndCond> * W_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
@@ -1004,7 +1001,6 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         B_bndc->SetValues(val1, val2);
         fGeoMechanicsCmesh->InsertMaterialObject(B_bndc);
         
-        DebugStop();
     }
     
     
