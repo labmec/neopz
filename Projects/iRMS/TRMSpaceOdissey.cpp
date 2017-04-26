@@ -810,10 +810,15 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     fGeoMechanicsCmesh = new TPZCompMesh(fGeoMesh);
     
     // bc types
+//    int u_fixed   = 0;
+//    int u_h_fixed = 1;
+//    int s_v_free  = 3;
+//    int p_normal  = 6;
+    
     int u_fixed   = 0;
-    int u_h_fixed = 1;
+    int u_h_fixed = 0;
     int s_v_free  = 3;
-    int p_normal  = 6;
+    int p_normal  = 0;
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
