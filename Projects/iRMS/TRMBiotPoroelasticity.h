@@ -65,7 +65,7 @@ public:
     /** returns the number of state variables associated with the material */
     int NStateVariables() {
         return fdimension;
-    } // for 2d Cases Plane Strain is being considered
+    } // for 2d Case: Plane Strain is considered
     
     virtual TPZMaterial *NewMaterial()
     {

@@ -123,12 +123,7 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         return;
     }
     
-    
     int u_b = 0;
-    
-    if (!fSimulationData->IsCurrentStateQ()) {
-        return;
-    }
     
     // Getting the space functions from memory
     long global_point_index = datavec[u_b].intGlobPtIndex;
@@ -173,6 +168,12 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     }
     
     REAL source = alpha * (p_n - p_0);
+    
+    REAL dvxdx, dvxdy;
+    REAL dvydx, dvydy;
+    
+    REAL duxdx, duxdy;
+    REAL duydx, duydy;
 
     for (int iu = 0; iu < nphi_u; iu++) {
         
@@ -181,6 +182,12 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             Grad_vx_i(d,0) = grad_phi_u(d,iu);
             Grad_vy_i(d,0) = grad_phi_u(d,iu);
         }
+        
+        dvxdx = Grad_vx_i(0,0);
+        dvxdy = Grad_vx_i(1,0);
+        
+        dvydx = Grad_vy_i(0,0);
+        dvydy = Grad_vy_i(1,0);
         
         ef(2*iu + first_u, 0)   += weight * ((S_n(0,0) - source) * Grad_vx_i(0,0) + S_n(0,1) * Grad_vx_i(1,0) - b[0] * phi_u(iu,0));
         ef(2*iu+1 + first_u, 0)	+= weight * (S_n(1,0) * Grad_vy_i(0,0) + (S_n(1,1) - source) * Grad_vy_i(1,0) - b[1] * phi_u(iu,0));
@@ -193,10 +200,17 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
                 Grad_vy_j(d,0) = grad_phi_u(d,ju);
             }
             
-            ek(2*iu + first_u, 2*ju + first_u)      += weight * ( ( (2.0*mu_dr + l_dr) * Grad_vx_j(0,0) ) * Grad_vx_i(0,0) + mu_dr * Grad_vx_j(1,0) * Grad_vx_i(1,0));
-            ek(2*iu + first_u, 2*ju+1 + first_u)    += weight * ( (l_dr * Grad_vy_j(1,0) ) * Grad_vx_i(0,0) + mu_dr * Grad_vy_j(0,0) * Grad_vx_i(1,0)  );
-            ek(2*iu+1 + first_u, 2*ju + first_u)	+= weight * ( mu_dr * Grad_vx_j(1,0) * Grad_vy_i(0,0) + l_dr * Grad_vx_j(0,0) * Grad_vy_i(1,0));
-            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= weight * ( (2.0*mu_dr + l_dr) * Grad_vy_j(1,0) * Grad_vy_i(1,0) + mu_dr * Grad_vy_j(0,0) * Grad_vy_i(0,0) );
+            duxdx = Grad_vx_j(0,0);
+            duxdy = Grad_vx_j(1,0);
+            
+            duydx = Grad_vy_j(0,0);
+            duydy = Grad_vy_j(1,0);
+            
+            ek(2*iu + first_u, 2*ju + first_u)      += weight * ( (2.0*mu_dr + l_dr)*duxdx*dvxdx + mu_dr*duxdy*dvxdy);
+            ek(2*iu + first_u, 2*ju+1 + first_u)    += weight * ( l_dr*duydy*dvxdx + mu_dr*duydx*dvxdy);
+            ek(2*iu+1 + first_u, 2*ju + first_u)	+= weight * ( l_dr*duxdx*dvydy + mu_dr*duxdy*dvydx);
+            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= weight * ( (2.0*mu_dr + l_dr)*duydy*dvydy + mu_dr*duydx*dvydx);
+            
         }
         
     }
@@ -212,14 +226,15 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 
 void TRMBiotPoroelasticity::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
 
-    if (!fSimulationData->IsCurrentStateQ()) {
-        return;
-    }
-    
     if (Dimension() == 3) {
         this->ContributeBC_3D(datavec, weight, ek, ef, bc);
         return;
     }
+    
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
     
     int u_b = 0;
 
@@ -403,15 +418,18 @@ void TRMBiotPoroelasticity::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
 //    phi_u.Print("u omar = ");
 //    phi_u_pz.Print("u pz = ");
 //
-//    TPZFMatrix<REAL> Grad_u;
-//    TPZAxesTools<STATE>::Axes2XYZ(datavec[u_b].dsol[0], Grad_u, datavec[u_b].axes);
-//
-//    grad_u_n.Print("grad u omar = ");
-//    Grad_u.Print("grad u pz = ");
     
     TPZFMatrix<REAL> & grad_u_0 = memory.grad_u_0();
     TPZFMatrix<REAL> & grad_u   = memory.grad_u();
     TPZFMatrix<REAL> & grad_u_n = memory.grad_u_n();
+    
+    TPZFMatrix<REAL> Grad_phi_u,Grad_u;
+    TPZAxesTools<STATE>::Axes2XYZ(datavec[u_b].dphix, Grad_phi_u, datavec[u_b].axes);
+    TPZAxesTools<STATE>::Axes2XYZ(datavec[u_b].dsol[0], Grad_u, datavec[u_b].axes);
+//    Grad_u.Redim(3, 3);
+//    grad_u_n.Print("grad u omar = ");
+//    Grad_u.Print("grad u pz = ");
+//    (Grad_u-grad_u_n).Print("diff grad_u  = ");
     
     REAL & p_n  = memory.p_n();
     REAL & p_0  = memory.p_0();
@@ -433,7 +451,7 @@ void TRMBiotPoroelasticity::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     TPZManVector<REAL,3> b(3,0.0);
     b[0] = 0.0*rho;
     b[1] = 0.0*rho;
-    b[2] = -0.000001*9.81*rho;
+    b[2] = -1.0*9.81*rho;
     
     TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
     Compute_Sigma(l_dr, mu_dr, S_0, grad_u_0);
@@ -444,7 +462,7 @@ void TRMBiotPoroelasticity::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
         S_0.Zero();
     }
     else{
-        S_n += S_0;
+        S_n += S_0; // S_0 is the total initial stress
     }
     
     REAL source = alpha * (p_n - p_0);
@@ -456,7 +474,6 @@ void TRMBiotPoroelasticity::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     REAL duxdx, duxdy, duxdz;
     REAL duydx, duydy, duydz;
     REAL duzdx, duzdy, duzdz;
-    
     
     for (int iu = 0; iu < nphi_u; iu++) {
 
@@ -512,34 +529,19 @@ void TRMBiotPoroelasticity::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
             duzdz = Grad_vz_j(2,0);
             
             // Gradient 1
-            ek(3*iu + first_u, 3*ju + first_u)      += weight * (duxdx*dvxdx*(l_dr + 2.*mu_dr) + mu_dr*duxdy*dvydx + mu_dr*duxdz*dvzdx);
-            ek(3*iu + first_u, 3*ju+1  + first_u)   += weight * (l_dr*duydy*dvxdx + mu_dr*duydx*dvydx);
-            ek(3*iu + first_u, 3*ju+2  + first_u)   += weight * (l_dr*duzdz*dvxdx + mu_dr*duzdx*dvzdx);
+            ek(3*iu + first_u, 3*ju + first_u)      += weight * ((l_dr + 2.*mu_dr)*duxdx*dvxdx + mu_dr*duxdy*dvxdy + mu_dr*duxdz*dvxdz);
+            ek(3*iu + first_u, 3*ju+1  + first_u)   += weight * (l_dr*duydy*dvxdx + mu_dr*duydx*dvxdy);
+            ek(3*iu + first_u, 3*ju+2  + first_u)   += weight * (l_dr*duzdz*dvxdx + mu_dr*duzdx*dvxdz);
 
             // Gradient 2
-            ek(3*iu+1 + first_u, 3*ju  + first_u)   += weight * (l_dr*duxdx*dvydy + mu_dr*duxdy*dvxdy);
-            ek(3*iu+1 + first_u, 3*ju+1  + first_u) += weight * (duydy*dvydy*(l_dr + 2.*mu_dr) + mu_dr*duydx*dvxdy + mu_dr*duydz*dvzdy);
-            ek(3*iu+1 + first_u, 3*ju+2  + first_u) += weight * (l_dr*duzdz*dvydy + mu_dr*duzdy*dvzdy);
+            ek(3*iu+1 + first_u, 3*ju  + first_u)   += weight * (l_dr*duxdx*dvydy + mu_dr*duxdy*dvydx);
+            ek(3*iu+1 + first_u, 3*ju+1  + first_u) += weight * ((l_dr + 2.*mu_dr)*duydy*dvydy + mu_dr*duydx*dvydx + mu_dr*duydz*dvydz);
+            ek(3*iu+1 + first_u, 3*ju+2  + first_u) += weight * (l_dr*duzdz*dvydy + mu_dr*duzdy*dvydz);
             
             // Gradient 3
-            ek(3*iu+2 + first_u, 3*ju  + first_u)   += weight * (l_dr*duxdx*dvzdz + mu_dr*duxdz*dvxdz);
-            ek(3*iu+2 + first_u, 3*ju+1  + first_u) += weight * (l_dr*duydy*dvzdz + mu_dr*duydz*dvydz);
-            ek(3*iu+2 + first_u, 3*ju+2  + first_u) += weight * (duzdz*dvzdz*(l_dr + 2.*mu_dr) + mu_dr*duzdx*dvxdz + mu_dr*duzdy*dvydz);
-
-//            // Gradient 1
-//            ek(3*iu + first_u, 3*ju + first_u)      += weight * (duxdx*dvxdx*(l_dr + 2.*mu_dr) + mu_dr*duxdy*dvxdy + mu_dr*duxdz*dvxdz);
-//            ek(3*iu + first_u, 3*ju+1  + first_u)   += weight * (l_dr*duydy*dvxdx + mu_dr*duydx*dvxdy);
-//            ek(3*iu + first_u, 3*ju+2  + first_u)   += weight * (l_dr*duzdz*dvxdx + mu_dr*duzdx*dvxdz);
-//            
-//            // Gradient 2
-//            ek(3*iu+1 + first_u, 3*ju  + first_u)   += weight * (l_dr*duxdx*dvydy + mu_dr*duxdy*dvydx);
-//            ek(3*iu+1 + first_u, 3*ju+1  + first_u) += weight * (duydy*dvydy*(l_dr + 2.*mu_dr) + mu_dr*duydx*dvydx + mu_dr*duydz*dvydz);
-//            ek(3*iu+1 + first_u, 3*ju+2  + first_u) += weight * (l_dr*duzdz*dvydy + mu_dr*duzdy*dvzdy);
-//            
-//            // Gradient 3
-//            ek(3*iu+2 + first_u, 3*ju  + first_u)   += weight * (l_dr*duxdx*dvzdz + mu_dr*duxdz*dvzdx);
-//            ek(3*iu+2 + first_u, 3*ju+1  + first_u) += weight * (l_dr*duydy*dvzdz + mu_dr*duydz*dvzdy);
-//            ek(3*iu+2 + first_u, 3*ju+2  + first_u) += weight * (duzdz*dvzdz*(l_dr + 2.*mu_dr) + mu_dr*duzdx*dvzdx + mu_dr*duzdy*dvydz);
+            ek(3*iu+2 + first_u, 3*ju  + first_u)   += weight * (l_dr*duxdx*dvzdz + mu_dr*duxdz*dvzdx);
+            ek(3*iu+2 + first_u, 3*ju+1  + first_u) += weight * (l_dr*duydy*dvzdz + mu_dr*duydz*dvzdy);
+            ek(3*iu+2 + first_u, 3*ju+2  + first_u) += weight * ((l_dr + 2.*mu_dr)*duzdz*dvzdz + mu_dr*duzdx*dvzdx + mu_dr*duzdy*dvzdy);
             
         }
     }
@@ -551,6 +553,7 @@ void TRMBiotPoroelasticity::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
     if (!fSimulationData->IsCurrentStateQ()) {
         return;
     }
+    
     
     int u_b = 0;
     
@@ -601,6 +604,7 @@ void TRMBiotPoroelasticity::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             
         case 1 :
         {
+
             //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
             {
@@ -628,6 +632,7 @@ void TRMBiotPoroelasticity::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             
         case 3 :
         {
+
             //	Neumann condition for each state variable
             //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
@@ -655,7 +660,7 @@ void TRMBiotPoroelasticity::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             
         case 6 :
         {
-            
+
             //	Neumann condition for each state variable
             //	Elasticity Equation
             

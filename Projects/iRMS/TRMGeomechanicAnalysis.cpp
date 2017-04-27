@@ -134,7 +134,7 @@ void TRMGeomechanicAnalysis::QuasiNewtonIteration(){
     fX_n += this->Solution(); // update state
     
     this->UpdateMemory_at_n();
-    
+
     this->AssembleResidual();
     fR_n = this->Rhs();
     ferror =  Norm(fR_n); // residue error

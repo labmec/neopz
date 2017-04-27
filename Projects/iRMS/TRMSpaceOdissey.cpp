@@ -816,7 +816,7 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
 //    int p_normal  = 6;
     
     int u_fixed   = 0;
-    int u_h_fixed = 0;
+    int u_h_fixed = 1;
     int s_v_free  = 3;
     int p_normal  = 0;
     
@@ -907,9 +907,6 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         W_bndc->SetValues(val1, val2);
         fGeoMechanicsCmesh->InsertMaterialObject(W_bndc);
         
-//        val2(0,0) = 0.0;
-//        val2(1,0) = -10.0e+6;
-        
         TPZMatWithMem<TRMMemory,TPZBndCond> * N_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
         N_bndc->SetNumLoadCases(1);
         N_bndc->SetMaterial(mat);
@@ -917,7 +914,6 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         N_bndc->SetType(s_v_free);
         N_bndc->SetValues(val1, val2);
         fGeoMechanicsCmesh->InsertMaterialObject(N_bndc);
-//        val2.Zero();
         
         TPZMatWithMem<TRMMemory,TPZBndCond> * E_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
         E_bndc->SetNumLoadCases(1);

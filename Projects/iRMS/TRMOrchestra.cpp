@@ -274,7 +274,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     // Create analysis for each operator
     int numofThreads_e = 0;
-    bool mustOptimizeBandwidth_elliptic = true;
+    bool mustOptimizeBandwidth_elliptic = false;
     
     // Analysis for elliptic part
     elliptic->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
@@ -283,9 +283,9 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     //    strmat_e.SetDecomposeType(ELDLt);
     
-//    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     
-    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+//    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     
     TPZStepSolver<STATE> step_e;
     step_e.SetDirect(ELDLt);
@@ -309,9 +309,9 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
 //    strmat_p.SetDecomposeType(ELDLt);
 
-//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
-    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
