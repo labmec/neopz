@@ -183,7 +183,7 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
         //        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
         //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
-        this->PostProcessStep();
+        
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Elliptic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
@@ -232,7 +232,7 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
         else{
             plotfile =  "elliptic_I";
         }
-//        return;
+        return;
     }
     else{
         if (fSimulationData->MHMResolution().first) {

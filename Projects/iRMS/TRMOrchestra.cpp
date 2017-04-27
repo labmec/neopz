@@ -273,8 +273,8 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     
     // Create analysis for each operator
-    int numofThreads_e = 0;
-    bool mustOptimizeBandwidth_elliptic = false;
+    int numofThreads_e = 2;
+    bool mustOptimizeBandwidth_elliptic = true;
     
     // Analysis for elliptic part
     elliptic->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
@@ -297,7 +297,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     std::cout << "ndof elliptic = " << elliptic->Solution().Rows() << std::endl;
         
-    int numofThreads_p = 0;
+    int numofThreads_p = 2;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
