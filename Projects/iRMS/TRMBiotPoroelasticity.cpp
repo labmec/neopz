@@ -735,14 +735,10 @@ void TRMBiotPoroelasticity::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     TPZFNMatrix<9,REAL> Grad_u(3,3,0.0),S(3,3,0.0);
     TPZAxesTools<STATE>::Axes2XYZ(du, Grad_u, axes_u);
     
-//    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
-//    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
-//    
-//    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
-//    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
-    
     Grad_u.Resize(3, 3);
     this->Compute_Sigma(l_dr, mu_dr, S, Grad_u);
+    S *= 1.0e-6;
+    
     
     //	Displacements
     if(var == 0){
@@ -774,6 +770,7 @@ void TRMBiotPoroelasticity::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 //    }
     
     if(var == 4){
+        Solout[0]  = 0.0;
         for (int d = 0; d < Dimension(); d++) {
             Solout[0] += S(d,d);
         }

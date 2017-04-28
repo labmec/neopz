@@ -818,7 +818,7 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     int u_fixed   = 0;
     int u_h_fixed = 1;
     int s_v_free  = 3;
-    int p_normal  = 0;
+    int p_normal  = 6;
     
     // Inserting volumetric materials
     int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();

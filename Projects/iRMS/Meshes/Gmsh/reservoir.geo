@@ -33,13 +33,13 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 1;
-dimension = 3;
+dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
-hexahedronsWQ = 0;
-hexahedronsRQ = 0;
+hexahedronsWQ = 1;
+hexahedronsRQ = 1;
 hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
@@ -59,8 +59,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 100.0;
-cl5 = 250.0;
+cl4 = 25.0;
+cl5 = 1000.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -76,9 +76,14 @@ z_length = 100.0;
 ////////////////////////////////////////////////////////////////////////////
 
 // side-burden box dimensions
-sb_x_length = 2000.0;
-sb_y_length = 2000.0;
-sb_z_length = 500.0;
+sb_x_length = 4000.0;
+sb_y_length = 4000.0;
+sb_z_length = 4000.0;
+
+If(dimension == 2)
+y_length = 100.0;
+sb_x_length = 8000.0;
+EndIf
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir rock
@@ -108,7 +113,7 @@ EndIf
 // well geometry and settings
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 0.5;
+rw = 0.3;
 wl = 5.0;
 
 wbr = 5.0;
@@ -117,8 +122,8 @@ rw_cell= 1.0;
 wr_cell= 5.0;
 
 If(dimension == 2)
-rw = 0.2;
-rw_cell= 5.0;
+rw = 0.3;
+rw_cell= 1.0;
 EndIf
 
 // Orientation and length
@@ -159,7 +164,7 @@ wcz = 0.0;
 //wcy = 0.0;
 //wcz = 40.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -175,7 +180,7 @@ wcz = 0.0;
 //wcy = 500.0;
 //wcz = 20.0;
 IsInjectorQ = 1;
-Call DrillWell;
+//Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 // well 4 
