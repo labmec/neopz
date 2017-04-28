@@ -359,21 +359,21 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
 //    fReportingTimes.Push(std::make_pair(600.0*day,true));
 //    fReportingTimes.Push(std::make_pair(400.0*day,true));
 //    fReportingTimes.Push(std::make_pair(300.0*day,true));
-    fReportingTimes.Push(std::make_pair(100.0*day,true));
-    fReportingTimes.Push(std::make_pair(50.0*day,true));
-    fReportingTimes.Push(std::make_pair(10.0*day,true));
+    fReportingTimes.Push(std::make_pair(7.0*day,true));
+    fReportingTimes.Push(std::make_pair(6.0*day,true));
+    fReportingTimes.Push(std::make_pair(1.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
-    fdt = 10.0*day;
-    fdt_max = 30.0*day;
-    fdt_min = 0.1*day;
-    fdt_up = 1.5;
-    fdt_down = 0.1;
+    fdt       = 1.0*day;
+    fdt_max   = 10.0*day;
+    fdt_min   = 0.1*day;
+    fdt_up    = 1.0;
+    fdt_down  = 1.0;
     
     // Numeric controls
-    fn_corrections = 15;
-    fepsilon_res = 0.1;
+    fn_corrections = 20;
+    fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true;
     fIsAdataptedQ = false;
@@ -489,8 +489,15 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
 
 void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP)
 {
-    REAL p = 1.0e+7;// 1.0342e+7; // 1500 psi
+    REAL p = 10.0e+6;// 1.0342e+7; // 1500 psi
     P[0] = p;
+    
+    REAL day = 86400;
+    REAL c_time = time/day;
+    if (c_time > 5.0) {
+        P[0] = p/2;
+    }
+    
     return;
 }
 
