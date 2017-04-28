@@ -219,7 +219,6 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
         if (fSimulationData->IsGeomechanicQ()) {
             fElliptic->ExcecuteOneStep();
             fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
-            
             fParabolic->ExcecuteOneStep();            
             fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
         }
@@ -236,6 +235,22 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
     }
 
     // Fixed stress Iteration 2    
+    fParabolic->ExcecuteOneStep();
+    if (fSimulationData->IsGeomechanicQ()) {
+        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+        fElliptic->ExcecuteOneStep();
+        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+    }
+    
+    // Fixed stress Iteration 3
+    fParabolic->ExcecuteOneStep();
+    if (fSimulationData->IsGeomechanicQ()) {
+        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+        fElliptic->ExcecuteOneStep();
+        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+    }
+    
+    // Fixed stress Iteration 4
     fParabolic->ExcecuteOneStep();
     if (fSimulationData->IsGeomechanicQ()) {
         fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());

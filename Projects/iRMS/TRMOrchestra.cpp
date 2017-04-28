@@ -273,7 +273,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     
     // Create analysis for each operator
-    int numofThreads_e = 8;
+    int numofThreads_e = 0;
     bool mustOptimizeBandwidth_elliptic = true;
     
     // Analysis for elliptic part
@@ -297,7 +297,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     std::cout << "ndof elliptic = " << elliptic->Solution().Rows() << std::endl;
         
-    int numofThreads_p = 8;
+    int numofThreads_p = 0;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -415,6 +415,7 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     
     // iMRS::Transfer:: elliptic to elliptic
     transfer->elliptic_To_elliptic(elliptic->Mesh());
+    transfer->phi_To_elliptic(elliptic->Mesh());
     
     // iMRS::Transfer:: elliptic to parabolic
     transfer->elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());

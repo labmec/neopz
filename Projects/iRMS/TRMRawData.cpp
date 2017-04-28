@@ -330,7 +330,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-    //fg[1] = -9.81;
+    fg[1] = -9.81;
     
     int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
@@ -358,15 +358,14 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
 //    fReportingTimes.Push(std::make_pair(700.0*day,true));
 //    fReportingTimes.Push(std::make_pair(600.0*day,true));
 //    fReportingTimes.Push(std::make_pair(400.0*day,true));
-//    fReportingTimes.Push(std::make_pair(300.0*day,true));
-    fReportingTimes.Push(std::make_pair(7.0*day,true));
-    fReportingTimes.Push(std::make_pair(6.0*day,true));
-    fReportingTimes.Push(std::make_pair(1.0*day,true));
+    fReportingTimes.Push(std::make_pair(300.0*day,true));
+    fReportingTimes.Push(std::make_pair(200.0*day,true));
+    fReportingTimes.Push(std::make_pair(100.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
-    fdt       = 1.0*day;
-    fdt_max   = 10.0*day;
+    fdt       = 50.0*day;
+    fdt_max   = 100.0*day;
     fdt_min   = 0.1*day;
     fdt_up    = 1.0;
     fdt_down  = 1.0;
@@ -491,20 +490,20 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 {
     REAL p = 10.0e+6;// 1.0342e+7; // 1500 psi
     P[0] = p;
-    
-    REAL day = 86400;
-    REAL c_time = time/day;
-    if (c_time > 5.0) {
-        P[0] = p/2;
-    }
-    
     return;
 }
 
 void TRMRawData::Pressure_inj(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP)
 {
     REAL p = 2.0e+7;// 1.0342e+7; // 1500 psi
-    P[0] = p;
+    P[0] = 0.0;
+    
+    REAL day = 86400;
+    REAL c_time = time/day;
+    if (c_time >= 100.0) {
+        P[0] = p;
+    }
+    
     return;
 }
 

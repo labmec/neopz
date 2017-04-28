@@ -253,6 +253,8 @@ public:
     
     void space_To_elliptic(TPZCompMesh * elliptic);
     
+    void phi_To_elliptic(TPZCompMesh * elliptic);
+    
     void elliptic_To_elliptic(TPZCompMesh * elliptic);
     
     /** @brief bluid linear applications: u and grad_u to parabolic $ */

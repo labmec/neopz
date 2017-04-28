@@ -455,6 +455,90 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
     
 }
 
+void TRMBuildTransfers::phi_To_elliptic(TPZCompMesh * elliptic){
+    
+    
+#ifdef PZDEBUG
+    if (!elliptic) {
+        DebugStop();
+    }
+#endif
+    
+    int dim = elliptic->Dimension();
+    
+    
+    TPZFMatrix<STATE> kappa, kappa_inv;
+    TPZManVector<STATE, 10> vars;
+    TPZManVector<STATE, 10> porosity;
+    
+    // Step one
+    int n_elements = elliptic->NElements();
+    TPZManVector<long, 30> indexes;
+    for (int icel = 0; icel < n_elements; icel++) {
+        TPZCompEl * cel = elliptic->Element(icel);
+        
+#ifdef PZDEBUG
+        if (!cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZGeoEl * gel = cel->Reference();
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+        
+#ifdef PZDEBUG
+        if (!mf_cel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->Dimension()!= dim) {
+            continue;
+        }
+        
+        const TPZIntPoints & int_points = mf_cel->GetIntegrationRule();
+        int np = int_points.NPoints();
+        GlobalPointIndexes(cel, indexes);
+        
+#ifdef PZDEBUG
+        if (indexes.size() != np) {
+            DebugStop();
+        }
+#endif
+        
+        int rockid = gel->MaterialId();
+        
+        //  Getting the total integration point of the destination cmesh
+        TPZMaterial * material = elliptic->FindMaterial(rockid);
+        TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
+        
+        TPZManVector<REAL,3> par_triplet(3,0.0);
+        TPZManVector<REAL,3> x(3,0.0);
+        REAL w;
+        for (int ip = 0; ip<np; ip++) {
+            int_points.Point(ip, par_triplet, w);
+            gel->X(par_triplet, x);
+            
+            associated_material->GetMemory()[indexes[ip]].Set_x(x);
+            //            fSimulationData->Map()->ComputePropertieSPE10Map(index, x, kappa, kappa_inv, porosity);
+//            fSimulationData->Map()->Kappa(x, kappa, kappa_inv, vars);
+            fSimulationData->Map()->phi(x, porosity, vars);
+//            associated_material->GetMemory()[indexes[ip]].Set_K_0(kappa);
+//            associated_material->GetMemory()[indexes[ip]].Set_Kinv_0(kappa_inv);
+            associated_material->GetMemory()[indexes[ip]].Set_phi_0(porosity[0]);
+        }
+    }
+    
+}
+
+
 void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
     
 #ifdef PZDEBUG

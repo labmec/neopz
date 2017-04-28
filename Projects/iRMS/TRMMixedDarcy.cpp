@@ -497,7 +497,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     for (int i = 0; i < Dimension(); i++) {
         STATE dot = 0.0;
         for (int j =0; j < Dimension(); j++) {
-            dot += Kinv(i,j)*q[j];
+            dot    += Kinv(i,j)*q[j];
         }
         Kl_inv_q(i,0)     = (1.0/l[0]) * dot;
     }
@@ -512,13 +512,14 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     for (int iq = 0; iq < nphi_q; iq++)
     {
         
-        STATE Kl_inv_dot_q = 0.0;
+        STATE Kl_inv_dot_q = 0.0, Gl_dot_phi_q = 0.0;
         for (int i = 0; i < Dimension(); i++) {
             phi_q_i(i,0) = memory.phi_q()(iq,i);
-            Kl_inv_dot_q        += Kl_inv_q(i,0)*phi_q_i(i,0);
+            Kl_inv_dot_q    += Kl_inv_q(i,0)*phi_q_i(i,0);
+            Gl_dot_phi_q    +=  Gravity[i]*phi_q_i(i,0);
         }
 
-        ef(iq + firstq) += weight * ( Kl_inv_dot_q - (p_n) * memory.div_phi_q()(iq,0));
+        ef(iq + firstq) += weight * ( Kl_inv_dot_q - (p_n) * memory.div_phi_q()(iq,0) - rho[0]*Gl_dot_phi_q);
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
@@ -561,12 +562,12 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     REAL S_v_n = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
     REAL Ss = (Se + alpha*alpha/Kdr);
     
-//    REAL phi = phi_0 + alpha * (S_v - S_v_0) / Kdr + Ss * (p - p_0);
-//    REAL phi_n = phi_0 + alpha * (S_v_n - S_v_0) / Kdr + Ss * (p_n - p_0);
+    REAL phi = phi_0 + alpha * (S_v - S_v_0) / Kdr + Ss * (p - p_0);
+    REAL phi_n = phi_0 + alpha * (S_v_n - S_v_0) / Kdr + Ss * (p_n - p_0);
 
-    REAL phi = phi_0;
-    REAL phi_n = phi_0;
-    Ss = 0.0;
+//    REAL phi = phi_0;
+//    REAL phi_n = phi_0;
+//    Ss = 0.0;
     
     for (int ip = 0; ip < nphi_p; ip++)
     {

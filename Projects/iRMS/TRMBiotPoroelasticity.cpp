@@ -123,6 +123,7 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         return;
     }
     
+    int nvars = 4; // {p,sa,sb,t}
     int u_b = 0;
     
     // Getting the space functions from memory
@@ -138,6 +139,7 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 
     REAL & p_n  = memory.p_n();
     REAL & p_0  = memory.p_0();
+    REAL phi_0  = memory.phi_0();
 
     int nphi_u = phi_u.Rows();
     int first_u = 0;
@@ -147,13 +149,33 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     TPZFNMatrix<9,REAL> Grad_vx_j(fdimension,1,0.0);
     TPZFNMatrix<9,REAL> Grad_vy_j(fdimension,1,0.0);
     
+    //  Computing closure relationship at given average values
+    TPZManVector<STATE, 10> v_n(nvars);
+    v_n[0]        = p_n;
+    
     REAL l_dr   = 2.30769e9;
     REAL mu_dr  = 1.53846e9;
     REAL alpha  = 0.8;
+    REAL Se = 1.0e-9;
+
     REAL rho    = 2500.0;
+    REAL rho_avg = 0.0;
     TPZManVector<REAL,2> b(2,0.0);
-    b[0] = 0.0*rho;
-    b[1] = -1.0*9.81*rho;
+    
+    
+    // Fluid parameters
+    TPZManVector<STATE, 10> rho_n;
+    fSimulationData->AlphaProp()->Density(rho_n, v_n);
+    if (fSimulationData->IsOnePhaseQ()) {
+        rho_avg = (1.0-phi_0)*rho + phi_0*rho_n[0];
+    }
+    else{
+        DebugStop();
+    }
+    
+    
+    b[0] =  0.0*rho_avg;
+    b[1] = -9.81*rho_avg;
     
     TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
     Compute_Sigma(l_dr, mu_dr, S_0, grad_u_0);
