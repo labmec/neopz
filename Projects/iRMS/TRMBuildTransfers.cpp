@@ -98,6 +98,10 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
             continue;
         }
         
+        if (mat_id == fSimulationData->Skeleton_material_Id() || mat_id == fSimulationData->InterfacesMatId()) { // Filtering skeleton reservoir elements
+            continue;
+        }
+        
         chunk_geo_cel_indexes.first = gel->Index();
         chunk_geo_cel_indexes.second = -1;
         fe_e_cindexes.Push(chunk_geo_cel_indexes);
@@ -747,6 +751,10 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
             continue;
         }
         
+        if (mat_id == fSimulationData->Skeleton_material_Id() || mat_id == fSimulationData->InterfacesMatId()) { // Filtering skeleton reservoir elements
+            continue;
+        }
+        
         chunk_geo_cel_indexes.first = gel->Index();
         chunk_geo_cel_indexes.second.first  = -1;
         chunk_geo_cel_indexes.second.second = -1;
@@ -1191,6 +1199,10 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
         
         int mat_id = gel->MaterialId();
         if ( (dim == 2 && mat_id > 11) || (dim == 3 && mat_id > 13) ) { // Filtering bc reservoir elements
+            continue;
+        }
+        
+        if (mat_id == fSimulationData->Skeleton_material_Id() || mat_id == fSimulationData->InterfacesMatId()) { // Filtering skeleton reservoir elements
             continue;
         }
         
@@ -1900,6 +1912,10 @@ void TRMBuildTransfers::Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZ
             continue;
         }
         
+        if (mat_id == fSimulationData->Skeleton_material_Id() || mat_id == fSimulationData->InterfacesMatId()) { // Filtering skeleton reservoir elements
+            continue;
+        }
+        
         chunk_geo_cel_indexes.first = gel->Index();
         chunk_geo_cel_indexes.second.first  = -1;
         chunk_geo_cel_indexes.second.second = -1;
@@ -2192,7 +2208,7 @@ void TRMBuildTransfers::parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMe
 #endif
         
         first_point_phi_p     += b_size_phi_p.first;
-        b_size_phi_p        = fp_To_parabolic.GetSizeofBlock(iel);
+        b_size_phi_p        = fp_To_elliptic.GetSizeofBlock(iel);
         
         
         //  Getting the total integration point of the destination cmesh

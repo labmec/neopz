@@ -26,6 +26,9 @@ protected:
     REAL fPRef;
     
 private:
+
+    /** @brief Formation volume factor -  $B$ */
+    TPZManVector<STATE,10> fB;
     
     /** @brief Density - kg/m3  $\rho$ */
     TPZManVector<STATE,10> frho;
@@ -65,6 +68,13 @@ public:
     
     /** @brief default destructor */
     ~TRMPhaseProperties();
+    
+    /**
+     * @brief B  $B$. Formation volume factor
+     * @param state_vars = {P,T,S1,S2,S3}.
+     * @return f = {f,dfdP,dfdT,dfdS1,dfdS2,dfdS3}
+     */
+    virtual void B(TPZManVector<STATE,10> &rho, TPZManVector<STATE,10> &state_vars) = 0;
 
     /**
      * @brief Density - kg/m3  $\rho$. Compute the propertie f and partial derivatives

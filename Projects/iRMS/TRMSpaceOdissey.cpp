@@ -565,7 +565,7 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     
     
     this->CreateMixedCmeshMHM();
-//    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
+    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
 #ifdef PZDEBUG
     std::ofstream out_mhm("CmeshMixedMHM.txt");
     this->MixedFluxPressureCmeshMHM()->Print(out_mhm);
@@ -641,9 +641,14 @@ void TRMSpaceOdissey::InsertSkeletonInterfaces(int skeleton_id){
     long nel = fGeoMesh->NElements();
     for (long el = 0; el<nel; el++) {
         TPZGeoEl *gel = fGeoMesh->Element(el);
-        if (!gel || gel->Level() != level || gel->Dimension() != fGeoMesh->Dimension() || gel->MaterialId() == 13 ) { // sideburden material
+        if (!gel || gel->Level() != level || gel->Dimension() != fGeoMesh->Dimension()) {
             continue;
         }
+        
+        if (gel->MaterialId() == 12 || gel->MaterialId() == 14) { // sideburden material
+            continue;
+        }
+        
         int nsides = gel->NSides();
         for (int is = gel->NCornerNodes(); is<nsides; is++) {
             if (gel->SideDimension(is) != fGeoMesh->Dimension() - 1) {

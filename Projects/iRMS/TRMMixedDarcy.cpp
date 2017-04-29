@@ -484,9 +484,10 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     v_avg[0]    = p_avg_n;
     
     // Fluid parameters
-    TPZManVector<STATE, 10> rho_n,rho,l;
+    TPZManVector<STATE, 10> rho,B_n,B,l;
     fSimulationData->AlphaProp()->Density(rho, v);
-    fSimulationData->AlphaProp()->Density(rho_n, v);
+    fSimulationData->AlphaProp()->B(B, v);
+    fSimulationData->AlphaProp()->B(B_n, v_n);
     fSimulationData->PetroPhysics()->l(l, v_avg);
 
     
@@ -572,7 +573,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     for (int ip = 0; ip < nphi_p; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (div_q + (1.0/dt) * ( rho_n[0] * phi_n - rho[0] * phi )) * memory.phi_p()(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (div_q + (1.0/dt) * ( phi_n/B_n[0] - phi/B[0] )) * memory.phi_p()(ip,0);
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
@@ -581,7 +582,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * (rho_n[1] * phi_n + rho_n[0] * Ss) * memory.phi_p()(ip,0) ) * memory.phi_p()(jp,0);
+            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((- B_n[1] * phi_n/(B_n[0]*B_n[0])) + (Ss)/B_n[0]) * memory.phi_p()(ip,0) ) * memory.phi_p()(jp,0);
         }
         
     }
@@ -689,14 +690,14 @@ void TRMMixedDarcy::ContributeBC_a(TPZVec<TPZMaterialData> &datavec, REAL weight
 
 void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) {
     
-    int ub = 0;
-    int pb = 1;
+    int q_b = 0;
+    int p_b = 1;
     
-    TPZManVector<REAL,3> u = datavec[ub].sol[0];
-    REAL p = datavec[pb].sol[0][0];
+    TPZManVector<REAL,3> q = datavec[q_b].sol[0];
+    REAL p = datavec[p_b].sol[0][0];
     
-    TPZFMatrix<STATE> dudx = datavec[ub].dsol[0];
-    TPZFMatrix<STATE> dpdx = datavec[pb].dsol[0];
+    TPZFMatrix<STATE> dqdx = datavec[q_b].dsol[0];
+    TPZFMatrix<STATE> dpdx = datavec[p_b].dsol[0];
     
     Solout.Resize(this->NSolutionVariables(var));
     
@@ -710,13 +711,13 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         case 1:
         {
             for (int i = 0; i < fdimension; i++) {
-                Solout[i] = u[i]; // Bulk mass velocity
+                Solout[i] = q[i]; // Bulk mass velocity
             }
         }
             break;
         case 2:
         {
-            Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
+            Solout[0] = dqdx(0,0) + dqdx(1,1) + dqdx(2,2);
         }
             break;
         case 3:
@@ -727,11 +728,11 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             TPZManVector<STATE, 10> phi;
             TPZManVector<STATE, 10> v(nvars);
             v[0] = p;
-            fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+            fSimulationData->Map()->phi(datavec[q_b].x, phi, v);
             
             REAL flux_norm = 0.0;
             for (int i = 0; i < Dimension() ; i++) {
-                flux_norm += u[i]*u[i];
+                flux_norm += q[i]*q[i];
             }
             flux_norm = sqrt(flux_norm);
             
@@ -745,7 +746,7 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             TPZFMatrix<STATE> kappa,inv_kappa;
             TPZManVector<STATE, 10> v(nvars);
             v[0] = p;
-            fSimulationData->Map()->Kappa(datavec[ub].x, kappa, inv_kappa, v);
+            fSimulationData->Map()->Kappa(datavec[q_b].x, kappa, inv_kappa, v);
             Solout[0] = kappa(0,0);
             Solout[1] = kappa(1,1);
             Solout[2] = kappa(2,2);
@@ -757,13 +758,13 @@ void TRMMixedDarcy::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             TPZManVector<STATE, 10> phi;
             TPZManVector<STATE, 10> v(nvars);
             v[0] = p;
-            fSimulationData->Map()->phi(datavec[ub].x, phi, v);
+            fSimulationData->Map()->phi(datavec[q_b].x, phi, v);
             Solout[0] = phi[0];
         }
             break;
         case 6:
         {
-            Solout[0] = datavec[pb].p;
+            Solout[0] = datavec[q_b].p;
         }
             break;
         case 7:

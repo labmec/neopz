@@ -114,16 +114,16 @@ void TRMPetrophysicsProperties::l_single(TPZManVector<STATE,10> &l, TPZManVector
     int n = x.size() + 1;
     l.Resize(n,0.0);
     
-    TPZManVector<STATE,10> rho,mu,kr;
-    this->fPhase_alpha->Density(rho, x);
+    TPZManVector<STATE,10> B,mu,kr;
+    this->fPhase_alpha->B(B, x);
     this->fPhase_alpha->Viscosity(mu, x);
     this->Kr(kr, x);
     
-    l[0] = kr[0]*rho[0]/mu[0];
-    l[1] = kr[0]*((rho[1]/mu[0])-(rho[0]*mu[1]/(mu[0]*mu[0])));
-    l[2] = kr[2]*rho[0]/mu[0];
-    l[3] = kr[3]*rho[0]/mu[0];
-    l[4] = kr[0]*((rho[4]/mu[0])-(rho[0]*mu[4]/(mu[0]*mu[0])));
+    l[0] = kr[0]/(mu[0]*B[0]);
+    l[1] = - (B[1]*kr[0]/mu[0])/(B[0]*B[0]) - (mu[1]*kr[0]/B[0])/(mu[0]*mu[0]);
+    l[2] = kr[2]/(mu[0]*B[0]);
+    l[3] = kr[3]/(mu[0]*B[0]);
+    l[4] = - (B[4]*kr[0]/mu[0])/(B[0]*B[0]) - (mu[4]*kr[0]/B[0])/(mu[0]*mu[0]);
     
 }
 
@@ -468,6 +468,7 @@ void TRMPetrophysicsProperties::l(TPZManVector<STATE,10> &l, TPZManVector<STATE,
             break;
         case 2:
         {
+            DebugStop();
             TPZManVector<STATE,10> l_a,l_b;
             this->la(l_a, x);
             this->lb(l_b, x);

@@ -224,7 +224,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     fSimulationData->SetGeomechanicQ(IsGeomechanicQ);
     
     if (fSimulationData->IsGeomechanicQ()) {
-        if (fSimulationData->IsAdataptedQ()){
+        if (fSimulationData->IsAdataptedQ() || fSimulationData->IsEnhancedPressureQ()){
             fSpaceGenerator->SetDefaultUOrder(order+2);
         }
         fSpaceGenerator->BuildGeomechanic_Mesh();

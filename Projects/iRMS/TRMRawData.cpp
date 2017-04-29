@@ -323,9 +323,9 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
-    fSystemType.Push("water");
-    water->SetRhoModel(0);
-    fPhases.Push(water);
+    fSystemType.Push("oil");
+    oil->SetRhoModel(1);
+    fPhases.Push(oil);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -372,14 +372,14 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 20;
-    fepsilon_res = 0.01;
+    fepsilon_res = 0.5;
     fepsilon_cor = 0.001;
-    fIsQuasiNewtonQ = true;
+    fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 1; // fine
+    fMHMResolutionQ.second.second = 0; // fine
     
     
     // Rock materials ids
@@ -478,9 +478,9 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Inj);
-    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Impervious));
+    WInj[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(WInj);
-    WInj[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
+    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure_inj));
     fRecurrent_bc_data.Push(WInj);
 
     
@@ -496,14 +496,7 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 void TRMRawData::Pressure_inj(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP)
 {
     REAL p = 2.0e+7;// 1.0342e+7; // 1500 psi
-    P[0] = 10.0e+6;
-    
-    REAL day = 86400;
-    REAL c_time = time/day;
-    if (c_time >= 300.0) {
-        P[0] = p;
-    }
-    
+    P[0] = p;
     return;
 }
 
