@@ -29,6 +29,12 @@ private:
     /** @brief contains the volumetric average pressure at last time step */
     REAL fp_avg_n;
     
+    /** @brief contains the volumetric saturation of alpha phase at initial state */
+    REAL fsa_0;
+    
+    /** @brief contains the volumetric saturation of beta phase at initial state */
+    REAL fsb_0;
+    
     /** @brief contains the volumetric saturation of alpha phase */
     REAL fsa;
     
@@ -67,6 +73,8 @@ public:
     {
         fp_avg      = copy.fp_avg;
         fp_avg_n    = copy.fp_avg_n;
+        fsa_0         = copy.fsa_0;
+        fsb_0         = copy.fsb_0;
         fsa         = copy.fsa;
         fsa_n       = copy.fsa_n;
         fsb         = copy.fsb;
@@ -86,6 +94,8 @@ public:
         {
             fp_avg      = other.fp_avg;
             fp_avg_n    = other.fp_avg_n;
+            fsa_0       = other.fsa_0;
+            fsb_0       = other.fsb_0;
             fsa         = other.fsa;
             fsa_n       = other.fsa_n;
             fsb         = other.fsb;
@@ -130,6 +140,26 @@ public:
     /** @brief Get the average weighted pressure at the previous timestep */
     REAL p_avg_n(){
         return fp_avg_n;
+    }
+    
+    /** @brief Set alpha saturation at initial state */
+    void Set_sa_0(REAL sa_0){
+        fsa_0 = sa_0;
+    }
+    
+    /** @brief Get alpha saturation at initial state */
+    REAL sa_0(){
+        return fsa_0;
+    }
+    
+    /** @brief Set beta saturation at initial state */
+    void Set_sb_0(REAL sb_0){
+        fsb_0 = sb_0;
+    }
+    
+    /** @brief Get beta saturation at initial state */
+    REAL sb_0(){
+        return fsb_0;
     }
     
     /** @brief Set alpha saturation */

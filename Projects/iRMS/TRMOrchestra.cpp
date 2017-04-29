@@ -420,8 +420,7 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     // iMRS::Transfer:: elliptic to parabolic
     transfer->elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());
     
-    
-    
+
     // Parabolic
     // iMRS:: parabolic transfer
     transfer->Build_parabolic_To_parabolic(parabolic->Mesh());
@@ -437,7 +436,25 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     // iMRS::Transfer:: parabolic to elliptic
     transfer->parabolic_To_elliptic(parabolic->Mesh(), elliptic->Mesh());
     
+    
+    if(fSimulationData->IsTwoPhaseQ()){
+    
+        transfer->Build_hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
+        transfer->hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
+        
+//        transfer->kappa_phi_To_Transport_Memory(hyperbolic->Mesh());
+//        transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
+
+        transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh()); // average values p < - > h
+        transfer->ComputeLeftRight(hyperbolic->Mesh());
+        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true); // u -> q
+        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false); // u -> q
+
+    }
     return;
+    
+    
+    // old methods
     transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
     transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
     transfer->kappa_phi_To_Mixed_Memory(parabolic->Mesh());

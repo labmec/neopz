@@ -7,7 +7,7 @@
 //
 
 #include "TRMTransportAnalysis.h"
-
+#define NS
 
 TRMTransportAnalysis::TRMTransportAnalysis() : TPZAnalysis() {
     
@@ -243,6 +243,12 @@ void TRMTransportAnalysis::UpdateMemory_at_n(){
     Mesh()->LoadSolution(fX_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
     
+#ifdef NS
+    
+    fTransfer->hyperbolic_To_hyperbolic(Mesh());    
+    
+#else
+    
     // Volumetric update
     if (fSimulationData->IsTwoPhaseQ()) {
         fTransfer->s_To_Transport_Memory(fmeshvec[0], Mesh(),0);
@@ -253,6 +259,8 @@ void TRMTransportAnalysis::UpdateMemory_at_n(){
         fTransfer->s_To_Transport_Memory(fmeshvec[0], Mesh(),0);
         fTransfer->s_To_Transport_Memory(fmeshvec[1], Mesh(),1);
     }
+    
+#endif
     
 }
 
@@ -262,16 +270,24 @@ void TRMTransportAnalysis::UpdateMemory(){
     Mesh()->LoadSolution(fX);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());
     
+#ifdef NS
+    
+    fTransfer->hyperbolic_To_hyperbolic(Mesh());
+    
+#else
+    
     // Volumetric update
     if (fSimulationData->IsTwoPhaseQ()) {
         fTransfer->s_To_Transport_Memory(fmeshvec[0], Mesh(),0);
     }
-
+    
     // Volumetric update
     if (fSimulationData->IsThreePhaseQ()) {
-        fTransfer->s_To_Transport_Memory(fmeshvec[0], Mesh(),0);        
+        fTransfer->s_To_Transport_Memory(fmeshvec[0], Mesh(),0);
         fTransfer->s_To_Transport_Memory(fmeshvec[1], Mesh(),1);
     }
+    
+#endif
     
 }
 

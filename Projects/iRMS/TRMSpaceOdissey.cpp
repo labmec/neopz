@@ -1727,7 +1727,6 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         TRMPhaseInterfaceTransport * matint = new TRMPhaseInterfaceTransport(interface_id);
         matint->SetSimulationData(fSimulationData);
         fTransportMesh->InsertMaterialObject(matint);
-        fGeoMesh->AddInterfaceMaterial(rock_id, rock_id,interface_id);
         
         // Inserting volumetric materials
         if (rock_id == 5) { // Reservoir
@@ -1770,10 +1769,20 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         
     }
     
+    { // It Works but doesn't have sense
+        int res_id = 5;
+        int pro_id = 6;
+        int inj_id = 7;
+        
+        fGeoMesh->AddInterfaceMaterial(res_id, pro_id,interface_id);
+        fGeoMesh->AddInterfaceMaterial(pro_id, res_id,interface_id);
+        fGeoMesh->AddInterfaceMaterial(res_id, inj_id,interface_id);
+        fGeoMesh->AddInterfaceMaterial(inj_id, res_id,interface_id);
+    }
     fTransportMesh->SetDimModel(dim);
     fTransportMesh->SetDefaultOrder(sorder);
     fTransportMesh->SetAllCreateFunctionsMultiphysicElemWithMem();
-    fTransportMesh->ApproxSpace().CreateWithMemory(true);// Force the creating of interfaces with memory.
+    fTransportMesh->ApproxSpace().CreateWithMemory(true);// Force the creation of interfaces with memory.
     fTransportMesh->AutoBuild();
     
     TPZManVector<TPZCompMesh * ,2> meshvector;

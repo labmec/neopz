@@ -129,12 +129,21 @@ private:
     
     /** @brief s_o dof indexes per element */
     TPZVec< TPZVec<long> > fso_dof_scatter;
-    
+
     /** @brief integration point indexes geo_intp_o_intp_t */
-    TPZStack< std::pair<long, std::pair<long, long> >  > fh_h_cindexes;
+    TPZStack< std::pair<long, long >  > fh_h_cindexes;
     
     /** @brief integration point indexes geo_cel_o_cel_t */
-    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fh_h_intp_indexes;
+    TPZStack< std::pair<long, TPZVec<long> >  > fh_h_intp_indexes;
+    
+    /** @brief integration point indexes geo_intp_o_intp_t */
+    TPZStack< std::pair<long, std::pair<long, long> >  > fh_p_cindexes;
+    
+    /** @brief integration point indexes geo_cel_o_cel_t */
+    TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fh_p_intp_indexes;
+    
+    /** @brief linear application sw to hyperbolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fsw_To_hyperbolic;
     
 
     ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
@@ -278,6 +287,7 @@ public:
     void Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic);
     
     void parabolic_To_elliptic(TPZCompMesh * parabolic, TPZCompMesh * elliptic);
+    
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Segregated Transfer methods (Gamma and Omega) :: Build methods Hyperbolic

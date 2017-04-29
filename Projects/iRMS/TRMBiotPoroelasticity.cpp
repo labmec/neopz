@@ -170,9 +170,9 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     if (fSimulationData->IsOnePhaseQ()) {
         rho_avg = (1.0-phi_0)*rho + phi_0*rho_n[0];
     }
-    else{
-        DebugStop();
-    }
+//    else{
+//        DebugStop();
+//    }
     
     
     b[0] =  rho_avg*g[0];
@@ -388,7 +388,7 @@ void TRMBiotPoroelasticity::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
             
             REAL well_pressure = bc.Val2()(0,0);
             if (bc.HasTimedependentBCForcingFunction()) {
-                TPZManVector<STATE,2> f(1);
+                TPZManVector<STATE,2> f(2);
                 TPZFMatrix<double> gradf;
                 REAL time = fSimulationData->t();
                 bc.TimedependentBCForcingFunction()->Execute(datavec[u_b].x, time, f, gradf);
@@ -689,7 +689,7 @@ void TRMBiotPoroelasticity::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             
             REAL well_pressure = bc.Val2()(0,0);
             if (bc.HasTimedependentBCForcingFunction()) {
-                TPZManVector<STATE,2> f(1);
+                TPZManVector<STATE,2> f(2);
                 TPZFMatrix<double> gradf;
                 REAL time = fSimulationData->t();
                 bc.TimedependentBCForcingFunction()->Execute(datavec[u_b].x, time, f, gradf);

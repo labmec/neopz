@@ -373,6 +373,20 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     
     fParabolic->UpdateMemory_at_n();
     
+    
+    if (fSimulationData->IsOnePhaseQ()) {
+        return;
+    }
+    
+    Hyperbolic()->UpdateMemory();
+    
+    if (fSimulationData->TransporResolution().first) {
+        fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
+    }
+    else{
+        fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
+    }
+    
 #else
     
     fParabolic->UpdateMemory_at_n();
@@ -405,6 +419,19 @@ void TRMSegregatedAnalysis::UpdateMemory(){
         fElliptic->UpdateMemory_at_n();
     }
     fParabolic->UpdateMemory_at_n();
+    
+    if (fSimulationData->IsOnePhaseQ()) {
+        return;
+    }
+    
+    Hyperbolic()->UpdateMemory();
+    
+    if (fSimulationData->TransporResolution().first) {
+        fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
+    }
+    else{
+        fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
+    }
     
 #else
     
