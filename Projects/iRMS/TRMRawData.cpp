@@ -358,17 +358,17 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
 //    fReportingTimes.Push(std::make_pair(700.0*day,true));
 //    fReportingTimes.Push(std::make_pair(600.0*day,true));
 //    fReportingTimes.Push(std::make_pair(400.0*day,true));
-    fReportingTimes.Push(std::make_pair(300.0*day,true));
-    fReportingTimes.Push(std::make_pair(200.0*day,true));
+    fReportingTimes.Push(std::make_pair(500.0*day,true));
     fReportingTimes.Push(std::make_pair(100.0*day,true));
+    fReportingTimes.Push(std::make_pair(50.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
     fdt       = 50.0*day;
     fdt_max   = 100.0*day;
     fdt_min   = 0.1*day;
-    fdt_up    = 1.0;
-    fdt_down  = 1.0;
+    fdt_up    = 1.5;
+    fdt_down  = 0.1;
     
     // Numeric controls
     fn_corrections = 20;
@@ -379,7 +379,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 0; // fine
+    fMHMResolutionQ.second.second = 1; // fine
     
     
     // Rock materials ids
@@ -466,7 +466,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Prod);
-    WPro[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fIntial_bc_data.Push(WPro);
     WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure));
     fRecurrent_bc_data.Push(WPro);
@@ -478,9 +478,9 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Inj);
-    WInj[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious));
+    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Impervious));
     fIntial_bc_data.Push(WInj);
-    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(Pressure_inj));
+    WInj[0] = std::make_pair(1,new TPZDummyFunction<REAL>(Flux));
     fRecurrent_bc_data.Push(WInj);
 
     
@@ -496,11 +496,11 @@ void TRMRawData::Pressure(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P
 void TRMRawData::Pressure_inj(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP)
 {
     REAL p = 2.0e+7;// 1.0342e+7; // 1500 psi
-    P[0] = 0.0;
+    P[0] = 10.0e+6;
     
     REAL day = 86400;
     REAL c_time = time/day;
-    if (c_time >= 100.0) {
+    if (c_time >= 300.0) {
         P[0] = p;
     }
     
@@ -514,7 +514,7 @@ void TRMRawData::Flux(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TP
     REAL day = 86400;
     REAL flux = 0.0;
     REAL c_time = time/day;
-    if (c_time > 400.0) {
+    if (c_time > 300.0) {
         flux = flux_b;
     }
     

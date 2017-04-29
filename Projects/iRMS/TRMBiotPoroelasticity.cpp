@@ -160,7 +160,8 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 
     REAL rho    = 2500.0;
     REAL rho_avg = 0.0;
-    TPZManVector<REAL,2> b(2,0.0);
+    TPZManVector<REAL,3> g = fSimulationData->Gravity();
+    TPZManVector<REAL,3> b(3,0.0);
     
     
     // Fluid parameters
@@ -174,8 +175,8 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     }
     
     
-    b[0] =  0.0*rho_avg;
-    b[1] = -9.81*rho_avg;
+    b[0] =  rho_avg*g[0];
+    b[1] =  rho_avg*g[1];
     
     TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
     Compute_Sigma(l_dr, mu_dr, S_0, grad_u_0);
