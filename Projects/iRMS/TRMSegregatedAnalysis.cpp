@@ -314,6 +314,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
         }
         
         MustRestartQ = MustRestartStep();
+        MustRestartQ = false;
         
         if((k == n || MustRestartQ)  && dt > dt_min && dt_down < 1.0){
             dt *= dt_down;
@@ -385,14 +386,11 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
         return;
     }
     
-    Hyperbolic()->UpdateMemory();
+    fHyperbolic->UpdateMemory_at_n();
     
-    if (fSimulationData->TransporResolution().first) {
-        fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
-    }
-    else{
-        fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
-    }
+    // average values Ah - Ap operators
+    fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
+    fTransfer->hyperbolic_To_parabolic_volumetric(fHyperbolic->Mesh(), fParabolic->Mesh());
     
 #else
     
@@ -431,14 +429,12 @@ void TRMSegregatedAnalysis::UpdateMemory(){
         return;
     }
     
-    Hyperbolic()->UpdateMemory();
+    fHyperbolic->UpdateMemory();
     
-    if (fSimulationData->TransporResolution().first) {
-        fTransfer->Reciprocal_Memory_TransferII(fParabolic->Mesh(), fHyperbolic->Mesh());
-    }
-    else{
-        fTransfer->Reciprocal_Memory_Transfer(fParabolic->Mesh(), fHyperbolic->Mesh());
-    }
+    // average values Ah - Ap operators
+    fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
+    fTransfer->hyperbolic_To_parabolic_volumetric(fHyperbolic->Mesh(), fParabolic->Mesh());
+    
     
 #else
     
@@ -467,15 +463,9 @@ void TRMSegregatedAnalysis::UpdateFluxes_at_n(){
 
     fParabolic->UpdateMemory_at_n();
     
-    if (fSimulationData->TransporResolution().first) {
-        fTransfer->un_To_Transport_MeshII(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
-        fTransfer->un_To_Transport_MeshII(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
-    }
-    else{
-        fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
-        fTransfer->un_To_Transport_Mesh(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
-    }
-    
+    fTransfer->parabolic_To_hyperbolic_interfaces(fParabolic->Mesh(), fHyperbolic->Mesh(),true);
+    fTransfer->parabolic_To_hyperbolic_interfaces(fParabolic->Mesh(), fHyperbolic->Mesh(),false);
+
 }
 
 /** @brief update global state for the new euler step */
@@ -485,6 +475,7 @@ void TRMSegregatedAnalysis::UpdateGlobalSolution(){
 
     fElliptic->X()  = fElliptic->X_n();
     fParabolic->X() = fParabolic->X_n();
+    fHyperbolic->X() = fHyperbolic->X_n();
     
 #else
     
@@ -502,6 +493,7 @@ void TRMSegregatedAnalysis::KeepGlobalSolution(){
     
     fElliptic->X()  = fElliptic->X();
     fParabolic->X() = fParabolic->X();
+    fHyperbolic->X() = fHyperbolic->X();    
     
 #else
     
@@ -516,7 +508,7 @@ void TRMSegregatedAnalysis::KeepGlobalSolution(){
 bool TRMSegregatedAnalysis::MustRestartStep(){
     
     int n_data = fHyperbolic->X_n().Rows();
-    REAL epsilon = 1.0e-1;
+    REAL epsilon = 1.0e-2;
     
     for (long i = 0; i < n_data; i++) {
         if ( (1.0 - fHyperbolic->X_n()(i,0)) < + epsilon ) {

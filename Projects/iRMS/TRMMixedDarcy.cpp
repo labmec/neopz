@@ -931,7 +931,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     for (int ip = 0; ip < nphi_p; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * weight * (div_q + (1.0/dt) * ( phi_n*(sw_n/Bw_n[0] + (1.0-sw_n)/Bo_n[0]) - phi*(sw_n/Bw_n[0] + (1.0-sw_n)/Bo_n[0]) )) * memory.phi_p()(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (div_q + (1.0/dt) * ( phi_n*(sw_n/Bw_n[0] + (1.0-sw_n)/Bo_n[0]) - phi*(sw/Bw[0] + (1.0-sw)/Bo[0]) )) * memory.phi_p()(ip,0);
         
         for (int jq = 0; jq < nphi_q; jq++)
         {

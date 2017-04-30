@@ -135,7 +135,7 @@ void TRMTransportAnalysis::NewtonIteration(){
     
     this->AssembleResidual();
     fR_n = this->Rhs();
-    fR_n += fR; // total residue
+//    fR_n += fR; // total residue
     ferror =  Norm(fR_n); // residue error
     
 }
@@ -178,24 +178,21 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     
     
     this->SimulationData()->SetCurrentStateQ(false);
-    this->LoadSolution(fX);
     this->UpdateMemory();
     
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-    this->AssembleResidual();
-    fR = this->Rhs();
+//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+//    this->AssembleResidual();
+//    fR = this->Rhs();
     
     this->SimulationData()->SetCurrentStateQ(true);
-    this->LoadSolution(fX_n);
-    
     this->UpdateMemory_at_n();    
     
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-
-    this->AssembleResidual();
-    fR_n = this->Rhs();
+//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+//    this->AssembleResidual();
+//    fR_n = this->Rhs();
+//    ferror = Norm(fR_n);
+    ferror = 1.0;
     
-    ferror = Norm(fR+fR_n);
     this->Set_k_ietrarions(0);
     
     REAL epsilon_res = this->SimulationData()->epsilon_res();
@@ -296,19 +293,40 @@ void TRMTransportAnalysis::PostProcessStep(){
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, Mesh());    
     const int dim = this->Mesh()->Reference()->Dimension();
     int div = 0;
-    TPZStack<std::string> scalnames, vecnames;
-    std::string plotfile =  "DualSegregatedDarcyOnBox_Saturations.vtk";
-    scalnames.Push("sw");
-    scalnames.Push("so");
     
+    std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
-        plotfile =  "DualSegregatedDarcyOnBox_I.vtk";
+        
+        if (fSimulationData->MHMResolution().first) {
+            plotfile =  "hyperbolic_I_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+        }
+        else{
+            plotfile =  "hyperbolic_I";
+        }
         return;
     }
-    
-    if (fSimulationData->IsThreePhaseQ()) {
-        scalnames.Push("sg");
+    else{
+        if (fSimulationData->MHMResolution().first) {
+            plotfile =  "hyperbolic_MHMdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+        }
+        else{
+            plotfile =  "hyperbolic";
+        }
     }
+    
+    if (fSimulationData->IsAdataptedQ()) {
+        plotfile += "_A";
+    }
+    
+    if (fSimulationData->IsEnhancedPressureQ()) {
+        plotfile += "_E";
+    }
+    
+    plotfile += ".vtk";
+
+    TPZStack<std::string> scalnames, vecnames;
+    scalnames.Push("sw");
+    scalnames.Push("so");
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

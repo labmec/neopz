@@ -214,6 +214,10 @@ void TRMPhaseTransport::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, T
 
 void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
+    if (!fSimulationData->IsCurrentStateQ()) {
+        return;
+    }
+    
     int nvars = 4; // {p,sa,sb,t}
     
     int sb_a    = 0;
@@ -229,67 +233,50 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     // Get the pressure at the integrations points
     long global_point_index = datavec[sb_a].intGlobPtIndex;
-    TRMPhaseMemory &point_memory = GetMemory()[global_point_index];
-    REAL p_avg_n    = point_memory.p_avg_n();
-    REAL p_avg      = point_memory.p_avg();
+    TRMPhaseMemory & memory = GetMemory()[global_point_index];
+
+    REAL sw      = memory.sa();
+    REAL sw_n    = memory.sa_n();
     
-//    REAL sa_avg_n    = point_memory.sa_n();
-//    REAL sa_avg      = point_memory.sa();
+    REAL p      = memory.p_avg();
+    REAL p_n    = memory.p_avg_n();
     
-    //  Average values p_a
-    
-    //  Computing closure relationship at given average values
-    TPZManVector<STATE, 10> v(nvars);
-    v[0] = p_avg_n;
-    v[1] = sa;
-    
-    // Fluid parameters
-    TPZManVector<STATE, 10> rho_a,rho_b,l;
-    fSimulationData->AlphaProp()->Density(rho_a, v);
-//    fSimulationData->BetaProp()->Density(rho_b, v);
     
     // Rock parameters
     TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi(nvars,0.0);
-    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
     
     // Rock parameters form point memory
     REAL phi_0;
-    K       = point_memory.K_0();
-    Kinv    = point_memory.Kinv_0();
-    phi_0   = point_memory.phi_0();
-    phi[0] = phi_0;
+    K       = memory.K_0();
+    Kinv    = memory.Kinv_0();
+    phi_0   = memory.phi_0();
     
     
-    // Integration point contribution
+    //  Computing closure relationship at given average values
+    TPZManVector<STATE, 10> v(nvars), v_n(nvars);
+    v[0]        = p;
+    v[1]        = sw;
+    v_n[0]      = p_n;
+    v_n[1]      = sw_n;
     
-    if(! fSimulationData->IsCurrentStateQ()){
-        v[0] = p_avg;
-        v[1] = sa;
-        fSimulationData->AlphaProp()->Density(rho_a, v);
-        fSimulationData->BetaProp()->Density(rho_b, v);
-        
-        
-        for (int is = 0; is < nphis_a; is++)
-        {
-            
-            ef(is + firsts_a) += weight * (-1.0/dt) * sa * rho_a[0] * phi[0] * phi_ss(is,0);
-            
-        }
-        
-        return;
-    }
+    // Fluid parameters
+    TPZManVector<STATE, 10> rho_w,rho_o,Bw_n,Bw;
+    fSimulationData->AlphaProp()->Density(rho_w, v);
+    fSimulationData->AlphaProp()->B(Bw, v);
+    fSimulationData->AlphaProp()->B(Bw_n, v_n);
     
+    REAL phi = phi_0;
+    REAL phi_n = phi_0;
+//    REAL Ss = 0.0;
     
     for (int is = 0; is < nphis_a; is++)
     {
         
-        ef(is + firsts_a) += weight * (1.0/dt) * sa * rho_a[0] * phi[0] * phi_ss(is,0);
+        ef(is + firsts_a) += weight * (1.0/dt) * (phi_n*(sw_n/Bw_n[0]) - phi*(sw/Bw[0]) )* phi_ss(is,0);
         
         for (int js = 0; js < nphis_a; js++)
         {
-            ek(is + firsts_a, js + firsts_a) += weight * (1.0/dt) * rho_a[0] * phi[0] * phi_ss(js,0) * phi_ss(is,0);
+            ek(is + firsts_a, js + firsts_a) += weight * (1.0/dt) * phi_n*(1.0/Bw_n[0]) * phi_ss(js,0) * phi_ss(is,0);
         }
         
     }
@@ -298,83 +285,9 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
 
 void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
-    int nvars = 4; // {p,sa,sb,t}
-    
-    int sb_a    = 0;
-    
-    TPZFNMatrix<100,STATE> phi_ss       = datavec[sb_a].phi;
-    REAL sa = datavec[sb_a].sol[0][0];
-    
-    int nphis_a     = phi_ss.Rows();
-    int firsts_a    = 0;
-    
-    // Time
-    STATE dt = fSimulationData->dt();
-    
-    // Get the pressure at the integrations points
-    long global_point_index = datavec[sb_a].intGlobPtIndex;
-    TRMPhaseMemory &point_memory = GetMemory()[global_point_index];
-    REAL p_avg_n    = point_memory.p_avg_n();
-    REAL p_avg      = point_memory.p_avg();
-    
-//    REAL sa_avg_n    = point_memory.sa_n();
-//    REAL sa_avg      = point_memory.sa();
-    
-    
-    //  Average values p_a
-    
-    TPZManVector<STATE, 10> v(nvars);
-    v[0] = p_avg_n;
-    v[1] = sa;//sa_avg_n;
-    
-    //  Computing closure relationship at given average values
-    
-    // Fluid parameters
-    TPZManVector<STATE, 10> rho_a,rho_b,l;
-    fSimulationData->AlphaProp()->Density(rho_a, v);
-//    fSimulationData->BetaProp()->Density(rho_b, v);
-    
-    // Rock parameters
-    TPZFNMatrix<9,STATE> K,Kinv;
-    TPZManVector<STATE, 10> phi(nvars,0.0);
-    //    fSimulationData->Map()->Kappa(datavec[ub].x, K, Kinv, v);
-    //    fSimulationData->Map()->phi(datavec[ub].x, phi, v);
-    
-    // Rock parameters form point memory
-    REAL phi_0;
-    K       = point_memory.K_0();
-    Kinv    = point_memory.Kinv_0();
-    phi_0   = point_memory.phi_0();
-    phi[0] = phi_0;
-    
-    
-    // Integration point contribution
-    
-    if(! fSimulationData->IsCurrentStateQ()){
-        
-        v[0] = p_avg;
-        v[1] = sa;
-        fSimulationData->AlphaProp()->Density(rho_a, v);
-        fSimulationData->BetaProp()->Density(rho_b, v);
-        
-        for (int is = 0; is < nphis_a; is++)
-        {
-            
-            ef(is + firsts_a) += weight * (-1.0/dt) * sa * rho_a[0] * phi[0] * phi_ss(is,0);
-            
-        }
-        
-        return;
-    }
-    
-    
-    for (int is = 0; is < nphis_a; is++)
-    {
-        
-        ef(is + firsts_a) += weight * (1.0/dt) * sa * rho_a[0] * phi[0] * phi_ss(is,0);
-        
-    }
-    
+    TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
+    this->Contribute_ab(datavec, weight, ek_fake, ef);
+    return;
 }
 
 

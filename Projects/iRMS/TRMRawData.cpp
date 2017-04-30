@@ -648,7 +648,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     fg[1] = -9.81;
     
-    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 1; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
@@ -683,12 +683,12 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fdt       = 50.0*day;
     fdt_max   = 100.0*day;
     fdt_min   = 0.1*day;
-    fdt_up    = 1.5;
-    fdt_down  = 0.1;
+    fdt_up    = 1.0;
+    fdt_down  = 1.0;
     
     // Numeric controls
     fn_corrections = 20;
-    fepsilon_res = 0.5;
+    fepsilon_res = 0.01;
     fepsilon_cor = 0.001;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
@@ -697,7 +697,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fMHMResolutionQ.second.first = 0; // level
     fMHMResolutionQ.second.second = 0; // fine
     fIncreaseTransporResolutionQ.first = true;
-    fIncreaseTransporResolutionQ.second = 0;
+    fIncreaseTransporResolutionQ.second = 3;
     
     
     // Rock materials ids
@@ -798,7 +798,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fGammaIds.Push(bc_Inj);
     WInj[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
     fIntial_bc_data.Push(WInj);
-    WInj[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureInlet_2p));
+    WInj[0] = std::make_pair(2,new TPZDummyFunction<REAL>(PressureInlet_2p));
     fRecurrent_bc_data.Push(WInj);
     
 }
@@ -806,7 +806,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
 void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
     REAL p = 1.0e+7;// 1.0342e+7; // 1500 psi
-    REAL S = 1.0;
+    REAL S = 0.0;
     f[0] = p;
     f[1] = S;
     return;
@@ -815,8 +815,10 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::PressureInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.0e+7;// 1.0342e+7; // 1500 psi
+    REAL p = 2.0e+7;// 1.0342e+7; // 3000 psi
+    REAL S = 1.0;
     f[0] = p;
+    f[1] = S;
     return;
     
 }
