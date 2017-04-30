@@ -165,6 +165,9 @@ public:
     /** @brief Execute a segregated iteration  */
     void SegregatedIteration();
     
+    /** @brief Execute a segregated iteration between parabolic and hyperbolic operators  */
+    void Segregated_p_h_Iteration();
+    
     /** @brief Execute a segregated iteration  */
     void SegregatedIteration_Fixed_Stress();
     

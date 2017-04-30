@@ -298,8 +298,8 @@ void TRMTransportAnalysis::PostProcessStep(){
     int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile =  "DualSegregatedDarcyOnBox_Saturations.vtk";
-    scalnames.Push("s_a");
-    scalnames.Push("s_b");
+    scalnames.Push("sw");
+    scalnames.Push("so");
     
     if (fSimulationData->IsInitialStateQ()) {
         plotfile =  "DualSegregatedDarcyOnBox_I.vtk";
@@ -307,7 +307,7 @@ void TRMTransportAnalysis::PostProcessStep(){
     }
     
     if (fSimulationData->IsThreePhaseQ()) {
-        scalnames.Push("s_c");
+        scalnames.Push("sg");
     }
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);

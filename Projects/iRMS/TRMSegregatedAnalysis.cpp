@@ -227,37 +227,44 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
     }
     
     // Fixed stress Iteration 1
-    fParabolic->ExcecuteOneStep();
+    if (fSimulationData->IsOnePhaseQ()) {
+        fParabolic->ExcecuteOneStep();
+    }
+    else{
+        this->Segregated_p_h_Iteration();
+    }
     if (fSimulationData->IsGeomechanicQ()) {
         fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
         fElliptic->ExcecuteOneStep();
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
     }
 
-    // Fixed stress Iteration 2    
-    fParabolic->ExcecuteOneStep();
+    // Fixed stress Iteration 2
+    if (fSimulationData->IsOnePhaseQ()) {
+        fParabolic->ExcecuteOneStep();
+    }
+    else{
+        this->Segregated_p_h_Iteration();
+    }
+    
     if (fSimulationData->IsGeomechanicQ()) {
         fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
         fElliptic->ExcecuteOneStep();
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
     }
     
-    // Fixed stress Iteration 3
-    fParabolic->ExcecuteOneStep();
-    if (fSimulationData->IsGeomechanicQ()) {
-        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
-        fElliptic->ExcecuteOneStep();
-        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
-    }
+}
+
+/** @brief Execute a segregated iteration between parabolic and hyperbolic operators  */
+void TRMSegregatedAnalysis::Segregated_p_h_Iteration(){
     
-    // Fixed stress Iteration 4
     fParabolic->ExcecuteOneStep();
-    if (fSimulationData->IsGeomechanicQ()) {
-        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
-        fElliptic->ExcecuteOneStep();
-        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
-    }
     
+    this->UpdateFluxes_at_n();
+    this->UpdateMemory_at_n();
+    
+    fHyperbolic->ExcecuteOneStep();
+    this->UpdateMemory_at_n();
 }
 
 void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){

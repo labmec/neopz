@@ -128,7 +128,7 @@ public:
     }
     
     /** @brief Get the average weighted pressure */
-    REAL p_avg(){
+    REAL & p_avg(){
         return fp_avg;
     }
     
@@ -138,7 +138,7 @@ public:
     }
     
     /** @brief Get the average weighted pressure at the previous timestep */
-    REAL p_avg_n(){
+    REAL & p_avg_n(){
         return fp_avg_n;
     }
     
@@ -148,7 +148,7 @@ public:
     }
     
     /** @brief Get alpha saturation at initial state */
-    REAL sa_0(){
+    REAL & sa_0(){
         return fsa_0;
     }
     
@@ -158,7 +158,7 @@ public:
     }
     
     /** @brief Get beta saturation at initial state */
-    REAL sb_0(){
+    REAL & sb_0(){
         return fsb_0;
     }
     

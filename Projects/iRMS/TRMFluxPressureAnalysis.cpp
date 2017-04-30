@@ -298,7 +298,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     scalnames.Push("p");
     scalnames.Push("order");
     scalnames.Push("id");    
-    vecnames.Push("u");
+    vecnames.Push("q");
 
     if(!fSimulationData->IsInitialStateQ() && fSimulationData->t() == 0.0){
         vecnames.Push("kappa");

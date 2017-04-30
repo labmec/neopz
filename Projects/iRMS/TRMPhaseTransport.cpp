@@ -75,9 +75,9 @@ void TRMPhaseTransport::Print(std::ostream &out) {
 }
 
 int TRMPhaseTransport::VariableIndex(const std::string &name) {
-    if (!strcmp("s_a", name.c_str())) return 0;
-    if (!strcmp("s_b", name.c_str())) return 1;
-    if (!strcmp("s_c", name.c_str())) return 2;
+    if (!strcmp("sw", name.c_str())) return 0;
+    if (!strcmp("so", name.c_str())) return 1;
+    if (!strcmp("sg", name.c_str())) return 2;
 
     return TPZMatWithMem::VariableIndex(name);
 }

@@ -250,7 +250,6 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         else{
             fSpaceGenerator->UniformRefinement(fSimulationData->TransporResolution().second);
         }
-        fSpaceGenerator->UniformRefineTetrahedrons(fSimulationData->TransporResolution().second);
     }
 
     
@@ -441,15 +440,24 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     
         transfer->Build_hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
         transfer->hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
+        transfer->kappa_phi_To_hyperbolic(hyperbolic->Mesh()); // ok
         
-//        transfer->kappa_phi_To_Transport_Memory(hyperbolic->Mesh());
-//        transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
+        // group
+        transfer->Build_parabolic_hyperbolic_cel_pairs(parabolic->Mesh(),hyperbolic->Mesh()); // ok
+        transfer->Build_parabolic_hyperbolic_volumetric(parabolic->Mesh(),hyperbolic->Mesh()); // ok
+        transfer->Build_hyperbolic_parabolic_volumetric(hyperbolic->Mesh(), parabolic->Mesh()); // ok
+        
+        transfer->parabolic_To_hyperbolic_volumetric(parabolic->Mesh(),hyperbolic->Mesh()); // ok
+        transfer->hyperbolic_To_parabolic_volumetric(hyperbolic->Mesh(), parabolic->Mesh()); // ok
+    
+        transfer->Build_parabolic_hyperbolic_left_right_pairs(hyperbolic->Mesh()); //ok
+        
+        transfer->Build_parabolic_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), false);
+        transfer->Build_parabolic_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), true);
 
-        transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh()); // average values p < - > h
-        transfer->ComputeLeftRight(hyperbolic->Mesh());
-        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true); // u -> q
-        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false); // u -> q
-
+        transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), false);
+        transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), true);
+        
     }
     return;
     

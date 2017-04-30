@@ -129,6 +129,18 @@ private:
     
     /** @brief s_o dof indexes per element */
     TPZVec< TPZVec<long> > fso_dof_scatter;
+    
+    /** @brief p_avg dof indexes per element */
+    TPZVec< TPZVec<long> > fp_avg_dof_scatter;
+    
+    /** @brief p_avg dof indexes per element */
+    TPZVec< TPZVec<long> > fqn_avg_dof_scatter_Gamma;
+    
+    /** @brief p_avg dof indexes per element */
+    TPZVec< TPZVec<long> > fqn_avg_dof_scatter_gamma;
+    
+    /** @brief sw_avg dof indexes per element */
+    TPZVec< TPZVec<long> > fsw_avg_dof_scatter;
 
     /** @brief integration point indexes geo_intp_o_intp_t */
     TPZStack< std::pair<long, long >  > fh_h_cindexes;
@@ -142,8 +154,35 @@ private:
     /** @brief integration point indexes geo_cel_o_cel_t */
     TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fh_p_intp_indexes;
     
+    /** @brief integration point indexes geo_cel_o_cel_t */
+    TPZStack< std::pair<long, std::pair<long, std::vector<long> > >  > fparabolic_hyperbolic_cel_pairs;
+    
+    /** @brief left and right geo/cel element pairs indexes by inner interfaces gamma */
+    TPZStack < std::pair< TPZVec<long>, std::pair< TPZVec<long>, TPZVec<long> > >  > fleft_right_g_c_indexes_gamma;
+    
+    /** @brief left and right geo/cel element pairs indexes by boundaries interfaces partial Omega */
+    TPZStack < std::pair< TPZVec<long>, std::pair< TPZVec<long>, TPZVec<long> > >  > fleft_right_g_c_indexes_Gamma;
+    
+    /** @brief computational interface element and associated mixed computational element */
+    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcelint_celh_celp_gamma;
+    
+    /** @brief computational interface element and associated mixed computational element */
+    TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcelint_celh_celp_Gamma;
+    
     /** @brief linear application sw to hyperbolic mesh */
     TRMIrregularBlockDiagonal<STATE> fsw_To_hyperbolic;
+    
+    /** @brief linear application p_avg to hyperbolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fp_avg_To_hyperbolic;
+    
+    /** @brief linear application p_avg to hyperbolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fqn_avg_To_hyperbolic_gamma;
+    
+    /** @brief linear application p_avg to hyperbolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fqn_avg_To_hyperbolic_Gamma;
+    
+    /** @brief linear application sw_avg to parabolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fsw_avg_To_parabolic;
     
 
     ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
@@ -218,12 +257,6 @@ private:
     
     /** @brief geometric interface element indexes on Gamma */
     TPZStack < long > finterface_g_indexes_Gamma;
-    
-//    /** @brief left and right geometric element indexes */
-//    TPZStack < std::pair<long, long> > fleft_right_g_indexes;
-//    
-//    /** @brief geometric interface element indexes */
-//    TPZStack < long > finterface_g_indexes;
 
     /** @brief computational interface element and associated mixed computational element */
     TPZStack < std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   > fcinterface_ctransport_cmixed_indexes_gamma;
@@ -295,10 +328,25 @@ public:
     
     void Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic);
     
-    void space_To_hyperbolic(TPZCompMesh * hyperbolic);
+    void kappa_phi_To_hyperbolic(TPZCompMesh * hyperbolic);
     
     void hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic);
     
+    void Build_parabolic_hyperbolic_cel_pairs(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic);
+    
+    void Build_parabolic_hyperbolic_volumetric(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic);
+    
+    void Build_parabolic_hyperbolic_interfaces(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic, bool bc_interfaceQ);
+    
+    void Build_parabolic_hyperbolic_left_right_pairs(TPZCompMesh * hyperbolic);
+    
+    void Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hyperbolic, TPZCompMesh * parabolic);
+    
+    void parabolic_To_hyperbolic_volumetric(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic);
+    
+    void parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic, bool bc_interfaceQ);
+    
+    void hyperbolic_To_parabolic_volumetric(TPZCompMesh * hyperbolic, TPZCompMesh * parabolic);
     
     ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////

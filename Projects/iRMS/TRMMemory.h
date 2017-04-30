@@ -549,7 +549,7 @@ public:
     }
     
     /** @brief Get alpha saturation */
-    REAL sa(){
+    REAL & sa(){
         return fsa;
     }
     
@@ -559,7 +559,7 @@ public:
     }
     
     /** @brief Get alpha saturation at last step */
-    REAL sa_n(){
+    REAL & sa_n(){
         return fsa_n;
     }
     
@@ -569,7 +569,7 @@ public:
     }
     
     /** @brief Get beta saturation */
-    REAL sb(){
+    REAL & sb(){
         return fsb;
     }
     
@@ -579,7 +579,7 @@ public:
     }
     
     /** @brief Get beta saturation at last step */
-    REAL sb_n(){
+    REAL & sb_n(){
         return fsb_n;
     }
     

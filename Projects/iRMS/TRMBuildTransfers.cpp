@@ -85,7 +85,8 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
             DebugStop();
         }
 #endif
-        if (gel->HasSubElement()) {
+        int parabolic_res = fSimulationData->MHMResolution().second.second;
+        if (gel->Level() != parabolic_res) {
             continue;
         }
         
@@ -744,7 +745,8 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
             DebugStop();
         }
 #endif
-        if (gel->HasSubElement()) {
+        int parabolic_res = fSimulationData->MHMResolution().second.second;
+        if (gel->Level() != parabolic_res) {
             continue;
         }
         
@@ -1202,7 +1204,8 @@ void TRMBuildTransfers::Build_parabolic_To_parabolic(TPZCompMesh * parabolic){
             DebugStop();
         }
 #endif
-        if (gel->HasSubElement()) {
+        int parabolic_res = fSimulationData->MHMResolution().second.second;
+        if (gel->Level() != parabolic_res) {
             continue;
         }
         
@@ -1916,7 +1919,8 @@ void TRMBuildTransfers::Build_parabolic_To_elliptic(TPZCompMesh * parabolic, TPZ
             DebugStop();
         }
 #endif
-        if (gel->HasSubElement()) {
+        int parabolic_res = fSimulationData->MHMResolution().second.second;
+        if (gel->Level() != parabolic_res) {
             continue;
         }
         
@@ -2505,9 +2509,215 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
     
 }
 
-void TRMBuildTransfers::space_To_hyperbolic(TPZCompMesh * hyperbolic){
+void TRMBuildTransfers::kappa_phi_To_hyperbolic(TPZCompMesh * hyperbolic){
     
-    DebugStop();
+#ifdef PZDEBUG
+    if (!hyperbolic) {
+        DebugStop();
+    }
+#endif
+    
+    int dim = hyperbolic->Dimension();
+    
+    
+    TPZFMatrix<STATE> kappa, kappa_inv;
+    TPZManVector<STATE, 10> vars;
+    TPZManVector<STATE, 10> porosity;
+    
+    // Step one
+    int n_elements = hyperbolic->NElements();
+    TPZManVector<long, 30> indexes;
+    for (int icel = 0; icel < n_elements; icel++) {
+        TPZCompEl * cel = hyperbolic->Element(icel);
+        
+#ifdef PZDEBUG
+        if (!cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZGeoEl * gel = cel->Reference();
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->Dimension()!= dim) {
+            continue;
+        }
+        
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+        
+#ifdef PZDEBUG
+        if (!mf_cel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->Dimension()!= dim) {
+            continue;
+        }
+        
+        const TPZIntPoints & int_points = mf_cel->GetIntegrationRule();
+        int np = int_points.NPoints();
+        GlobalPointIndexes(cel, indexes);
+        
+#ifdef PZDEBUG
+        if (indexes.size() != np) {
+            DebugStop();
+        }
+#endif
+        
+        int rockid = gel->MaterialId();
+        
+        //  Getting the total integration point of the destination cmesh
+        TPZMaterial * material = hyperbolic->FindMaterial(rockid);
+        TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
+        
+        TPZManVector<REAL,3> par_triplet(3,0.0);
+        TPZManVector<REAL,3> x(3,0.0);
+        REAL w;
+        for (int ip = 0; ip<np; ip++) {
+            int_points.Point(ip, par_triplet, w);
+            gel->X(par_triplet, x);
+            
+            associated_material->GetMemory()[indexes[ip]].Set_x(x);
+            //            fSimulationData->Map()->ComputePropertieSPE10Map(index, x, kappa, kappa_inv, porosity);
+            fSimulationData->Map()->Kappa(x, kappa, kappa_inv, vars);
+            fSimulationData->Map()->phi(x, porosity, vars);
+            associated_material->GetMemory()[indexes[ip]].Set_K_0(kappa);
+            associated_material->GetMemory()[indexes[ip]].Set_Kinv_0(kappa_inv);
+            associated_material->GetMemory()[indexes[ip]].Set_phi_0(porosity[0]);
+        }
+    }
+    
+}
+
+void TRMBuildTransfers::Build_parabolic_hyperbolic_cel_pairs(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic){
+    
+    fparabolic_hyperbolic_cel_pairs.Resize(0);
+    
+#ifdef PZDEBUG
+    if (!parabolic) {
+        DebugStop();
+    }
+    
+    if (!fSimulationData->IsOnePhaseQ() && !hyperbolic) {
+        DebugStop();
+    }
+    
+    if (!fSimulationData->TransporResolution().first) {
+        DebugStop();
+    }
+    
+#endif
+    
+    parabolic->LoadReferences();
+    TPZGeoMesh * geometry = parabolic->Reference();
+    int dimension = geometry->Dimension();
+    
+#ifdef PZDEBUG
+    if (!geometry) {
+        DebugStop();
+    }
+#endif
+    
+    std::pair<long, std::pair <long, std::vector<long> > > gel_cel_indexes;
+    
+    for (long igel = 0; igel < geometry->NElements(); igel++) {
+        
+        TPZGeoEl * gel = geometry->Element(igel);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        if (gel->Dimension() != dimension) {
+            continue;
+        }
+        int mat_id = gel->MaterialId();
+        bool filter_check = (mat_id == 5) || (mat_id == 6) || (mat_id == 7);
+        if (!filter_check) {
+            continue;
+        }
+        
+        int parabolic_res = fSimulationData->MHMResolution().second.second;
+        if (gel->Level() != parabolic_res) {
+            continue;
+        }
+        
+        TPZCompEl * mixed_cel = gel->Reference();
+        
+#ifdef PZDEBUG
+        if (!mixed_cel) {
+            DebugStop();
+        }
+#endif
+    
+        gel_cel_indexes.first = gel->Index();
+        gel_cel_indexes.second.first = mixed_cel->Index();
+        gel_cel_indexes.second.second.resize(0);
+        fparabolic_hyperbolic_cel_pairs.Push(gel_cel_indexes);
+        
+    }
+    
+    // counting volumetric elements
+    int nvol_elements = fparabolic_hyperbolic_cel_pairs.size();
+    
+    if(fSimulationData->IsOnePhaseQ()){
+        
+        //        for (int k = 0; k < fmixed_transport_comp_indexes.size(); k++) {
+        //            std::cout << " volume k : " << k <<std::endl;
+        //            std::cout << " volume gel : " << fmixed_transport_comp_indexes[k].first <<std::endl;
+        //            std::cout << " volume cmixed : " << fmixed_transport_comp_indexes[k].second.first <<std::endl;
+        //        }
+        
+        return;
+    }
+    
+    // inserting transport indexes
+    hyperbolic->LoadReferences();
+    TPZVec<TPZGeoEl *> n_refined_sons;
+    int cel_index;
+    for(long ivol = 0; ivol < nvol_elements; ivol++){
+        
+        TPZGeoEl * father_gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[ivol].first);
+        
+#ifdef PZDEBUG
+        if (!father_gel) {
+            DebugStop();
+        }
+#endif
+        n_refined_sons.resize(0);
+        father_gel->GetHigherSubElements(n_refined_sons);
+        
+        if (n_refined_sons.size() == 0) {
+            n_refined_sons.resize(1);
+            n_refined_sons[0] = father_gel;
+        }
+        
+        int n_sons = n_refined_sons.size();
+        for (int igel = 0; igel < n_sons; igel++) {
+            cel_index = geometry->Element(n_refined_sons[igel]->Index())->Reference()->Index();
+            fparabolic_hyperbolic_cel_pairs[ivol].second.second.push_back(cel_index);
+        }
+        
+    }
+    
+//    for (int k = 0; k < fparabolic_hyperbolic_cel_pairs.size(); k++) {
+//        std::cout << " volume k : " << k <<std::endl;
+//        std::cout << " volume gel : " << fparabolic_hyperbolic_cel_pairs[k].first <<std::endl;
+//        std::cout << " volume cmixed : " << fparabolic_hyperbolic_cel_pairs[k].second.first <<std::endl;
+//        int n_sons = n_refined_sons.size();
+//        for (int igel = 0; igel < n_sons; igel++) {
+//            int index = fparabolic_hyperbolic_cel_pairs[k].second.second[igel]; ;
+//            std::cout << " volume ctransport : " << index <<std::endl;
+//        }
+//    }
+    
 }
 
 void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
@@ -2627,6 +2837,1336 @@ void TRMBuildTransfers::hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic){
     
 }
 
+void TRMBuildTransfers::Build_parabolic_hyperbolic_volumetric(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic){
+ 
+#ifdef PZDEBUG
+    if (!parabolic || !hyperbolic) {
+        DebugStop();
+    }
+#endif
+    
+#ifdef PZDEBUG
+    if (fparabolic_hyperbolic_cel_pairs.size() == 0) {
+        DebugStop();
+    }
+#endif
+    
+    // Loading the links to the geometry (expensive for big geometric meshes)
+    TPZGeoMesh * geometry = parabolic->Reference();
+    int dim = geometry ->Dimension();
+    
+#ifdef PZDEBUG
+    if (!geometry) {
+        DebugStop();
+    }
+#endif
+    
+    long n_el = fparabolic_hyperbolic_cel_pairs.size();
+    fp_avg_dof_scatter.Resize(n_el);
+    
+    std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    
+    // Block size structue for Omega
+    TPZVec< std::pair<long, long> > blocks_dimensions_phi_p_avg(n_el);
+    
+    int p_avg_index = 1;
+    int p_avg_points = 0;
+    
+    for (long iel = 0; iel < n_el; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZCompEl * p_cel = parabolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.first);
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        p_avg_points = fparabolic_hyperbolic_cel_pairs[iel].second.second.size();
+        
+        // Getting local integration index
+        TPZManVector<long> p_avg_dof_indexes(0,0);
+        
+        if (gel->Dimension() == dim) {
+            this->ElementDofIndexes(mf_p_cel, p_avg_dof_indexes, p_avg_index);
+        }
+        else{
+            DebugStop();
+        }
+        
+        fp_avg_dof_scatter[iel] = p_avg_dof_indexes;
+        
+        blocks_dimensions_phi_p_avg[iel].first = p_avg_points;
+        blocks_dimensions_phi_p_avg[iel].second = p_avg_dof_indexes.size();
+        
+        
+    }
+    
+    // Initialize the matrix
+    fp_avg_To_hyperbolic.Initialize(blocks_dimensions_phi_p_avg);
+    
+    
+    TPZManVector<long> sw_int_point_indexes(0,0);
+    std::pair<long, long> p_avg_block_dim;
+    
+    // for velocity functions
+    TPZMaterialData data;
+    
+    for (long iel = 0; iel < n_el; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZCompEl * p_cel = parabolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.first);
+
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        int n_sons = fparabolic_hyperbolic_cel_pairs[iel].second.second.size();
+        p_avg_block_dim     = fp_avg_To_hyperbolic.GetSizeofBlock(iel);
+        
+        TPZFMatrix<double> block_phi_p_avg(p_avg_block_dim.first,p_avg_block_dim.second,0.0);
+        
+        for (int ison = 0; ison < n_sons ; ison++) {
+            TPZCompEl * h_cel = hyperbolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.second[ison]);
+            
+#ifdef PZDEBUG
+            if (!h_cel) {
+                DebugStop();
+            }
+#endif
+            
+            TPZMultiphysicsElement * mf_h_cel = dynamic_cast<TPZMultiphysicsElement * >(h_cel);
+            
+#ifdef PZDEBUG
+            if(!mf_h_cel)
+            {
+                DebugStop();
+            }
+#endif
+            
+            TPZGeoEl * sub_gel = h_cel->Reference();
+            
+#ifdef PZDEBUG
+            if(!sub_gel)
+            {
+                DebugStop();
+            }
+#endif
+            
+            // Getting local integration index
+            mf_h_cel->GetMemoryIndices(sw_int_point_indexes);
+            
+            // Pressure functions
+            TPZInterpolationSpace * p_intel = dynamic_cast<TPZInterpolationSpace * >(mf_p_cel->Element(1));
+            int gel_dim = sub_gel->Dimension();
+            TPZManVector<REAL,3> xi_origin_vol(gel_dim),xi_target(gel_dim);
+            REAL sub_volume = this->DimensionalMeasure(sub_gel);
+            
+            REAL detjac,w;
+            TPZFMatrix<REAL> jac;
+            TPZFMatrix<REAL> axes;
+            TPZFMatrix<REAL> jacinv;
+            
+            if(p_intel)
+            {
+                // for derivatives in real space
+                int nshape = p_intel->NShapeF();
+                TPZFNMatrix<220> phi(nshape,1);
+                TPZFNMatrix<660> dphi(gel_dim,nshape);
+                
+                int order = 4; // increase to 4 o 5
+                TPZIntPoints * int_points = sub_gel->CreateSideIntegrationRule(sub_gel->NSides()-1, order);
+                int n_points = int_points->NPoints();
+                for (int ip = 0; ip < n_points; ip++) {
+
+  
+                    int_points->Point(ip, xi_origin_vol, w);
+                    sub_gel->Jacobian(xi_origin_vol, jac, axes, detjac, jacinv);
+                    
+                    if (sub_gel->FatherIndex() == -1) {
+                        xi_target = xi_origin_vol;
+                    }
+                    else{
+                        sub_gel->TransformSonToFather(sub_gel->Father(), xi_origin_vol, xi_target);
+                    }
+        
+                    p_intel->Shape(xi_target, phi, dphi);
+                    
+                    
+                    for (int jp = 0; jp < phi.Rows(); jp++) {
+                        block_phi_p_avg(ison,jp) += w * detjac * phi(jp,0)/sub_volume;
+                    }
+                    
+                    
+                }
+
+            }
+            
+        }
+        
+        fp_avg_To_hyperbolic.SetBlock(iel, block_phi_p_avg);
+        
+    }
+    
+//    fp_avg_To_hyperbolic.Print(" p_avg_to_h ");
+    
+    return;
+    
+}
+
+void TRMBuildTransfers::Build_parabolic_hyperbolic_left_right_pairs(TPZCompMesh * hyperbolic){
+ 
+    fleft_right_g_c_indexes_Gamma.Resize(0);
+    fleft_right_g_c_indexes_gamma.Resize(0);
+    
+    fcelint_celh_celp_Gamma.resize(0);
+    fcelint_celh_celp_gamma.resize(0);
+    
+#ifdef PZDEBUG
+    if (!hyperbolic) {
+        std::cout << "There is no computational transport mesh, transport_mesh = Null." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    hyperbolic->LoadReferences();
+    TPZGeoMesh * geometry = hyperbolic->Reference();
+    int dim = geometry->Dimension();
+    
+    long n_el = hyperbolic->NElements();
+    
+    std::pair< TPZVec<long> , std::pair< TPZVec<long>, TPZVec<long> > >  chunk;
+    
+    for (long icel = 0; icel < n_el; icel++) {
+        
+        TPZCompEl * h_cel = hyperbolic->Element(icel);
+        
+#ifdef PZDEBUG
+        if (!h_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsInterfaceElement * interface = dynamic_cast<TPZMultiphysicsInterfaceElement * >(h_cel);
+        
+        if (!interface) {
+            continue;
+        }
+        
+        TPZCompEl * left_cel = interface->LeftElement();
+        TPZCompEl * right_cel = interface->RightElement();
+        
+#ifdef PZDEBUG
+        
+        if(!left_cel || !right_cel){
+            DebugStop();
+        }
+#endif
+        
+        if(interface->Reference()->HasSubElement()) {
+            continue;
+        }
+        
+//        if( dim == 2 && (left_cel->Reference()->MaterialId() == 12 || right_cel->Reference()->MaterialId() == 12)) {
+//            continue;
+//        }
+//        
+//        if( dim == 3 && (left_cel->Reference()->MaterialId() == 14 || right_cel->Reference()->MaterialId() == 14)) {
+//            continue;
+//        }
+        
+        chunk.first.Resize(2);
+        chunk.second.first.Resize(2);
+        chunk.second.second.Resize(2);
+        
+        chunk.first[0] = h_cel->Reference()->Index();
+        chunk.first[1] = h_cel->Index();
+        
+        chunk.second.first[0] = left_cel->Reference()->Index();
+        chunk.second.first[1] = left_cel->Index();
+        
+        chunk.second.second[0] = right_cel->Reference()->Index();
+        chunk.second.second[1] = right_cel->Index();
+        
+//#ifdef PZDEBUG
+//        
+//        std::cout << "h:: face index  = " << chunk.first <<  std::endl;
+//        std::cout << "h:: volume index  = " << chunk.second.first <<  std::endl;
+//        std::cout << "p:: volume index  = " << chunk.second.second <<  std::endl;
+//        
+//#endif
+        
+        if(left_cel->Dimension() != dim ||  right_cel->Dimension() != dim){
+            
+            fleft_right_g_c_indexes_Gamma.Push(chunk);
+            continue;
+        }
+        
+        fleft_right_g_c_indexes_gamma.Push(chunk);
+        
+    }
+    
+//#ifdef PZDEBUG
+//    
+//    std::cout << " on Gamma " << std::endl;
+//    for (int k = 0; k < fleft_right_g_c_indexes_Gamma.size(); k++) {
+//        std::cout << " index k : " << k << std::endl;
+//        std::cout << " face : " << fleft_right_g_c_indexes_Gamma[k].first << std::endl;
+//        std::cout << " volume left : " << fleft_right_g_c_indexes_Gamma[k].second.first << std::endl;
+//        std::cout << " volume ritgh : " << fleft_right_g_c_indexes_Gamma[k].second.second <<std::endl;
+//    }
+//
+//    std::cout << " on gamma " << std::endl;
+//    for (int k = 0; k < fleft_right_g_c_indexes_gamma.size(); k++) {
+//        std::cout << " index k : " << k << std::endl;
+//        std::cout << " face : " << fleft_right_g_c_indexes_gamma[k].first << std::endl;
+//        std::cout << " volume left : " << fleft_right_g_c_indexes_gamma[k].second.first << std::endl;
+//        std::cout << " volume ritgh : " << fleft_right_g_c_indexes_gamma[k].second.second <<std::endl;
+//    }
+//    
+//#endif
+    
+#ifdef PZDEBUG
+    if (fleft_right_g_c_indexes_Gamma.size() == 0) {
+        DebugStop();
+    }
+    if (fleft_right_g_c_indexes_gamma.size() == 0) {
+        std::cout << "Warning:: No inner interfaces were found" << std::endl;
+    }
+#endif
+    
+}
+
+void TRMBuildTransfers::Build_parabolic_hyperbolic_interfaces(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic, bool bc_interfaceQ){
+ 
+    
+#ifdef PZDEBUG
+    if (!parabolic || !hyperbolic) {
+        std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh * geometry = parabolic->Reference();
+    parabolic->LoadReferences();
+    
+    TPZManVector<long,10> qn_dof_indexes;
+    int n_shapes;
+    
+    
+    TPZManVector<long> indices;
+    std::pair<TPZVec<long> , std::pair< TPZVec<long>, TPZVec<long> > > h_chunk;
+    std::pair<long, std::pair< std::pair<long, long> , std::pair<long, long> > >   celint_celh_cp_chunk;
+    TPZManVector<int,10> face_sides;
+    
+    long n_interfaces;
+    
+    if (bc_interfaceQ) {
+        n_interfaces = fleft_right_g_c_indexes_Gamma.size();
+        fqn_avg_dof_scatter_Gamma.Resize(n_interfaces);
+        fqn_avg_To_hyperbolic_Gamma.Resize(0, 0);
+        fcelint_celh_celp_Gamma.Resize(n_interfaces);
+    }
+    else{
+        n_interfaces = fleft_right_g_c_indexes_gamma.size();
+        fqn_avg_dof_scatter_gamma.Resize(n_interfaces);
+        fqn_avg_To_hyperbolic_gamma.Resize(0, 0);
+        fcelint_celh_celp_gamma.Resize(n_interfaces);
+    }
+    
+    
+    // Block size structue Gamma and gamma (inner element interfaces)
+    TPZVec< std::pair<long, long> > blocks_dimensions(n_interfaces);
+    
+    for (int k_face = 0; k_face < n_interfaces; k_face++) {
+        
+        if (bc_interfaceQ) {
+            h_chunk      = fleft_right_g_c_indexes_Gamma[k_face];
+        }
+        else{
+            h_chunk      = fleft_right_g_c_indexes_gamma[k_face];
+        }
+        
+        
+        TPZGeoEl * left_gel    = geometry->Element(h_chunk.second.first[0]);
+        TPZGeoEl * right_gel   = geometry->Element(h_chunk.second.second[0]);
+        
+        TPZCompEl *left_cel = hyperbolic->Element(h_chunk.second.first[1]);
+        TPZCompEl *right_cel = hyperbolic->Element(h_chunk.second.second[1]);
+        
+        
+        if (!left_cel || !right_cel) {
+            DebugStop();
+        }
+        
+        // New method
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Identify the father element in mixed mesh that touch or contain the left element in transport mesh
+        
+        int n_l = fSimulationData->TransporResolution().second;
+        
+        TPZCompEl * left_mixed_cel = NULL;
+        TPZCompEl * right_mixed_cel= NULL;
+        
+        TPZGeoEl * father_left_gel  = left_gel->Father();
+        TPZGeoEl * father_right_gel = right_gel->Father();
+        
+        if (!father_left_gel && !father_right_gel) {
+            
+#ifdef PZDEBUG
+            
+            if (fSimulationData->TransporResolution().second !=0) {
+                DebugStop();
+            }
+            
+#endif
+
+            left_mixed_cel = left_gel->Reference();
+            right_mixed_cel = right_gel->Reference();
+        }
+        else{
+            for (int l = 0; l < n_l - 1; l++) {
+                father_left_gel     = father_left_gel->Father();
+                father_right_gel    = father_right_gel->Father();
+            }
+            
+            left_mixed_cel = father_left_gel->Reference();
+            right_mixed_cel = father_right_gel->Reference();
+        }
+
+        
+#ifdef PZDEBUG
+        
+        if (bc_interfaceQ) {
+            
+            if(!left_mixed_cel){
+                DebugStop();
+            }
+        }
+        else{
+            
+            if(!left_mixed_cel || !right_mixed_cel){
+                DebugStop();
+            }
+        }
+        
+#endif
+        
+        
+        // End
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        
+        // Left based element
+        this->ComputeFaceIndex(left_mixed_cel->Reference(),face_sides);
+        
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(left_mixed_cel);
+        
+        this->ElementDofIndexes(mf_cel, qn_dof_indexes);
+        n_shapes = qn_dof_indexes.size();
+#ifdef PZDEBUG
+        if (qn_dof_indexes.size()==0) {
+            DebugStop();
+        }
+#endif
+        
+        
+        blocks_dimensions[k_face].first = 1;
+        blocks_dimensions[k_face].second = n_shapes;
+        
+        // hyperbolic mesh intercaes and pairs
+        celint_celh_cp_chunk.first = h_chunk.first[1];
+        celint_celh_cp_chunk.second.first.first     = left_cel->Index();
+        celint_celh_cp_chunk.second.first.second    = right_cel->Index();
+        
+        
+        if (bc_interfaceQ) {
+            celint_celh_cp_chunk.second.second.first = left_mixed_cel->Index();
+            celint_celh_cp_chunk.second.second.second = left_mixed_cel->Index(); // @omar:: left
+            fqn_avg_dof_scatter_Gamma[k_face] = qn_dof_indexes;
+            fcelint_celh_celp_Gamma[k_face] = celint_celh_cp_chunk;
+        }
+        else{
+            celint_celh_cp_chunk.second.second.first = left_mixed_cel->Index();
+            celint_celh_cp_chunk.second.second.second = right_mixed_cel->Index();
+            fqn_avg_dof_scatter_gamma[k_face] = qn_dof_indexes;
+            fcelint_celh_celp_gamma[k_face] = celint_celh_cp_chunk;
+        }
+        
+    }
+    
+    // Initialize the matrix
+    
+    if (bc_interfaceQ) {
+        fqn_avg_To_hyperbolic_Gamma.Initialize(blocks_dimensions);
+    }
+    else{
+        fqn_avg_To_hyperbolic_gamma.Initialize(blocks_dimensions);
+    }
+    
+    
+    /////////////////////////////////////////////// linear application entries /////////////////////////////////////////
+    
+    int mesh_index = 0;
+    TPZManVector<long,10> dof_indexes;
+    
+    TPZCompEl * face_cel;
+    TPZCompEl * mixed_cel;
+    TPZGeoEl * left_gel;
+    TPZGeoEl * right_gel;
+    TPZGeoEl * face_gel;
+    TPZGeoEl * mixed_gel;
+    
+    int int_order_interfaces = 1;
+    
+//    TPZManVector<long> indices;
+    std::pair<long, long> duplet;
+//    TPZManVector<int,10> face_sides;
+    TPZFMatrix<REAL> normals;
+//    long face_index;
+    
+    TPZFNMatrix<100,double> block;
+    
+    for (int k_face = 0; k_face < n_interfaces; k_face++) {
+        
+        if (bc_interfaceQ) {
+            celint_celh_cp_chunk      = fcelint_celh_celp_Gamma[k_face];
+        }
+        else{
+            celint_celh_cp_chunk      = fcelint_celh_celp_gamma[k_face];
+        }
+        
+        face_cel = hyperbolic->Element(celint_celh_cp_chunk.first);
+        
+#ifdef PZDEBUG
+        if (!face_cel) {
+            DebugStop();
+        }
+#endif
+        
+        face_gel = face_cel->Reference();
+      
+#ifdef PZDEBUG
+        if (!face_gel) {
+            DebugStop();
+        }
+#endif
+        
+        left_gel =  hyperbolic->Element(celint_celh_cp_chunk.second.first.first)->Reference(); // left
+        
+#ifdef PZDEBUG
+        if (!left_gel) {
+            DebugStop();
+        }
+#endif
+        
+        if (bc_interfaceQ) {
+            mixed_cel = parabolic->Element(celint_celh_cp_chunk.second.second.first); // left
+            mixed_gel = mixed_cel->Reference();
+        }
+        else{
+            mixed_cel = parabolic->Element(celint_celh_cp_chunk.second.second.first); // left
+            mixed_gel = mixed_cel->Reference();
+        }
+        
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(mixed_cel);
+        TPZInterpolationSpace * intel_vol = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(mesh_index));
+        
+        TPZMultiphysicsInterfaceElement * mf_face_cel = dynamic_cast<TPZMultiphysicsInterfaceElement * >(face_cel);
+        
+        
+        this->ElementDofIndexes(intel_vol, dof_indexes);
+        TPZIntPoints *int_points   = face_gel->CreateSideIntegrationRule(face_gel->NSides()-1, int_order_interfaces);
+        
+        int npoints = int_points->NPoints();
+        int nshapes = dof_indexes.size();
+        
+        // Computing over all integration points of the compuational element mf_cel
+        TPZFNMatrix<100,REAL> phi_dot_n(nshapes,1,0.0);
+        int face_gel_dim = face_gel->Dimension();
+        int intel_vol_dim = intel_vol->Dimension();
+        TPZFNMatrix<50,double> block(npoints,nshapes);
+        TPZFNMatrix<50,double> block_integral(1,nshapes,0.0);
+        
+        REAL w;
+        TPZManVector<STATE,2> par_duplet(face_gel_dim,0.0);
+        TPZManVector<STATE,3> par_mixed_duplet(intel_vol_dim,0.0);
+        
+        REAL ElementMeasure   = DimensionalMeasure(face_gel);
+        
+        REAL detjac;
+        TPZFMatrix<REAL> jac,axes,jacinv;
+        TPZFNMatrix<3,REAL> n;
+        TPZVec<int> vectorsides;
+        TPZMaterialData data, face_data;
+        face_data.fNeedsNormal = true;
+        TPZFNMatrix<100,STATE> phi_qs;
+        int nphiu,s_i,v_i;
+        
+        for (int ip = 0; ip < npoints; ip++) {
+            
+            // Get the vectorial phi
+            int_points->Point(ip, par_duplet, w);
+            face_gel->Jacobian(par_duplet, jac, axes, detjac, jacinv);
+            
+            mf_face_cel->ComputeRequiredData(face_data, par_duplet);
+            ComputeTransformation(face_gel, left_gel, mixed_gel, par_duplet, par_mixed_duplet);
+            
+            //            std::cout << "normal = " << face_data.normal <<  std::endl;
+            
+            intel_vol->InitMaterialData(data);
+            intel_vol->ComputeRequiredData(data, par_mixed_duplet);
+            
+            phi_qs       = data.phi;
+            nphiu       = data.fVecShapeIndex.NElements();
+            
+            for (int iu = 0; iu < nphiu; iu++)
+            {
+                
+                v_i = data.fVecShapeIndex[iu].first;
+                s_i = data.fVecShapeIndex[iu].second;
+                
+                for (int k = 0; k < intel_vol_dim; k++) {
+                    phi_dot_n(iu,0) += 1.0 * phi_qs(s_i,0) * data.fNormalVec(k,v_i) * face_data.normal[k];
+                }
+                
+            }
+            
+            for (int j = 0; j < nshapes; j++) {
+                block_integral(0,j) +=  w * detjac * phi_dot_n(j,0)/ElementMeasure;
+            }
+            
+        }
+        
+//        std::cout << "face index = " << face_gel->Index() <<  std::endl;
+//        std::cout << "mat id = " << face_gel->MaterialId() <<  std::endl;
+//        std::cout << "k_face = " << k_face <<  std::endl;
+//        std::cout << "dof_indexes = " << dof_indexes <<  std::endl;
+//        block_integral.Print(std::cout);
+        
+        if (bc_interfaceQ) {
+            fqn_avg_To_hyperbolic_Gamma.SetBlock(k_face, block_integral);
+        }
+        else{
+            fqn_avg_To_hyperbolic_gamma.SetBlock(k_face, block_integral);
+        }
+        
+    }
+    
+//    fqn_avg_To_hyperbolic_Gamma.Print(" qn to h G = ");
+//    fqn_avg_To_hyperbolic_gamma.Print(" qn to h g = ");
+    
+    return;
+}
+
+void TRMBuildTransfers::Build_hyperbolic_parabolic_volumetric(TPZCompMesh * hyperbolic, TPZCompMesh * parabolic){
+    
+#ifdef PZDEBUG
+    if (!hyperbolic || !parabolic) {
+        DebugStop();
+    }
+#endif
+    
+#ifdef PZDEBUG
+    if (fparabolic_hyperbolic_cel_pairs.size() == 0) {
+        DebugStop();
+    }
+#endif
+    
+    // Loading the links to the geometry (expensive for big geometric meshes)
+    TPZGeoMesh * geometry = parabolic->Reference();
+    int dim = geometry ->Dimension();
+    
+#ifdef PZDEBUG
+    if (!geometry) {
+        DebugStop();
+    }
+#endif
+    
+    long n_el = fparabolic_hyperbolic_cel_pairs.size();
+    fsw_avg_dof_scatter.Resize(n_el);
+    
+    std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > > chunk_intp_indexes;
+    
+    // Block size structue for Omega
+    TPZVec< std::pair<long, long> > blocks_dimensions_phi_sw_avg(n_el);
+    
+    int sw_avg_index = 0;
+    int sw_avg_points = 0;
+    
+    for (long iel = 0; iel < n_el; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZCompEl * p_cel = parabolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.first);
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        sw_avg_points = fparabolic_hyperbolic_cel_pairs[iel].second.second.size();
+        
+        // Getting local integration index
+        TPZManVector<long> sw_avg_dof_index(0,0);
+        TPZStack<long> sw_avg_dof_indexes;
+        
+        for (int ison = 0; ison < sw_avg_points ; ison++) {
+            
+            TPZCompEl * h_cel = hyperbolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.second[ison]);
+            
+#ifdef PZDEBUG
+            if (!h_cel) {
+                DebugStop();
+            }
+#endif
+            
+            TPZMultiphysicsElement * mf_h_cel = dynamic_cast<TPZMultiphysicsElement * >(h_cel);
+            
+#ifdef PZDEBUG
+            if(!mf_h_cel)
+            {
+                DebugStop();
+            }
+#endif
+            
+            TPZGeoEl * sub_gel = h_cel->Reference();
+            
+#ifdef PZDEBUG
+            if(!sub_gel)
+            {
+                DebugStop();
+            }
+#endif
+            if (sub_gel->Dimension() == dim) {
+                this->ElementDofIndexes(mf_h_cel, sw_avg_dof_index, sw_avg_index);
+            }
+            else{
+                DebugStop();
+            }
+            
+            sw_avg_dof_indexes.Push(sw_avg_dof_index[0]);
+            
+        }
+
+        
+        
+        fsw_avg_dof_scatter[iel] = sw_avg_dof_indexes;
+        
+        blocks_dimensions_phi_sw_avg[iel].first = 1;
+        blocks_dimensions_phi_sw_avg[iel].second = sw_avg_dof_indexes.size();
+        
+        
+    }
+    
+    // Initialize the matrix
+    fsw_avg_To_parabolic.Initialize(blocks_dimensions_phi_sw_avg);
+    
+    
+    TPZManVector<long> sw_int_point_indexes(0,0);
+    std::pair<long, long> sw_avg_block_dim;
+    
+    // for velocity functions
+    TPZMaterialData data;
+    
+    for (long iel = 0; iel < n_el; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZCompEl * p_cel = parabolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.first);
+        
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        int n_sons = fparabolic_hyperbolic_cel_pairs[iel].second.second.size();
+        sw_avg_block_dim     = fsw_avg_To_parabolic.GetSizeofBlock(iel);
+        
+        TPZFMatrix<double> block_phi_sw_avg(sw_avg_block_dim.first,sw_avg_block_dim.second,0.0);
+        
+        for (int ison = 0; ison < n_sons ; ison++) {
+            TPZCompEl * h_cel = hyperbolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.second[ison]);
+            
+#ifdef PZDEBUG
+            if (!h_cel) {
+                DebugStop();
+            }
+#endif
+            
+            TPZMultiphysicsElement * mf_h_cel = dynamic_cast<TPZMultiphysicsElement * >(h_cel);
+            
+#ifdef PZDEBUG
+            if(!mf_h_cel)
+            {
+                DebugStop();
+            }
+#endif
+            
+            TPZGeoEl * sub_gel = h_cel->Reference();
+            
+#ifdef PZDEBUG
+            if(!sub_gel)
+            {
+                DebugStop();
+            }
+#endif
+            
+            REAL volume = this->DimensionalMeasure(gel);
+            REAL sub_volume = this->DimensionalMeasure(sub_gel);
+            
+            block_phi_sw_avg(0,ison) = sub_volume/volume;
+            
+        }
+        
+        fsw_avg_To_parabolic.SetBlock(iel, block_phi_sw_avg);
+        
+    }
+    
+//    fsw_avg_To_parabolic.Print(" p_avg_to_h ");
+    
+    return;
+    
+}
+
+
+void TRMBuildTransfers::parabolic_To_hyperbolic_volumetric(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic){
+    
+#ifdef PZDEBUG
+    if (!parabolic || !hyperbolic) {
+        DebugStop();
+    }
+#endif
+    
+    
+    // Step zero scatter
+    TPZFMatrix<STATE> Scatter_p(fp_avg_To_hyperbolic.Cols(),1,0.0);
+    
+    int n = fparabolic_hyperbolic_cel_pairs.size();
+    long pos = 0;
+    for (int i = 0; i < n; i++) {
+        for(int iequ = 0; iequ < fp_avg_dof_scatter[i].size(); iequ++) {
+            Scatter_p(pos,0) = parabolic->Solution()(fp_avg_dof_scatter[i][iequ],0);
+            pos++;
+        }
+    }
+    
+    // Step two
+    TPZFMatrix<STATE> p_avg_at_hyperbolic;
+    fp_avg_To_hyperbolic.Multiply(Scatter_p,p_avg_at_hyperbolic);
+    
+    
+    TPZGeoMesh * geometry = parabolic->Reference();
+    int dim = parabolic->Dimension();
+    int n_el = fparabolic_hyperbolic_cel_pairs.size();
+    
+    long first_point_phi_p_avg = 0;
+    
+    std::pair<long, long> b_size_phi_p_avg;
+    
+    b_size_phi_p_avg.first = 0;
+    b_size_phi_p_avg.second = 0;
+    
+    TPZFMatrix<STATE> block_phi_p_avg;
+    
+    for (int iel = 0; iel < n_el; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZCompEl * p_cel = parabolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.first);
+
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        first_point_phi_p_avg     += b_size_phi_p_avg.first;
+        b_size_phi_p_avg        = fp_avg_To_hyperbolic.GetSizeofBlock(iel);
+        
+        
+        int n_sons = fparabolic_hyperbolic_cel_pairs[iel].second.second.size();
+        
+        for (int ison = 0; ison < n_sons ; ison++) {
+            
+            TPZCompEl * h_cel = hyperbolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.second[ison]);
+            
+#ifdef PZDEBUG
+            if (!h_cel) {
+                DebugStop();
+            }
+#endif
+            
+            TPZMultiphysicsElement * mf_h_cel = dynamic_cast<TPZMultiphysicsElement * >(h_cel);
+            
+#ifdef PZDEBUG
+            if(!mf_h_cel)
+            {
+                DebugStop();
+            }
+#endif
+            
+            TPZGeoEl * sub_gel = h_cel->Reference();
+            
+#ifdef PZDEBUG
+            if(!sub_gel)
+            {
+                DebugStop();
+            }
+#endif
+            
+            //  Getting the total integration point of the destination cmesh
+            int matd_id = sub_gel->MaterialId();
+            TPZMaterial * material = hyperbolic->FindMaterial(matd_id);
+            
+            if(gel->Dimension() == dim){ // The volumetric ones!
+                
+                TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
+                
+                TPZManVector<long, 30> int_point_indexes;
+                mf_h_cel->GetMemoryIndices(int_point_indexes);
+                int n_points = int_point_indexes.size();
+                long ipos;
+                
+                REAL p_avg;
+                for(long ip = 0; ip <  n_points; ip++) {
+                    ipos  = int_point_indexes[ip];
+                    
+                    p_avg       = p_avg_at_hyperbolic(first_point_phi_p_avg + ip,0);
+                    
+                    if (fSimulationData->IsCurrentStateQ()) {
+                        associated_material->GetMemory()[ipos].Set_p_avg_n(p_avg);
+                    }
+                    else{
+                        associated_material->GetMemory()[ipos].Set_p_avg(p_avg);
+                    }
+                    
+                }
+                
+                
+            }
+            else{
+                DebugStop(); // Just volumetric coupling
+            }
+        }
+        
+    }
+    
+    
+}
+
+void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic, bool bc_interfaceQ){
+    
+#ifdef PZDEBUG
+    if (!parabolic || !hyperbolic) {
+        std::cout << "There is no computational mesh cmesh_multiphysics, cmesh_multiphysics = Null." << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    TPZManVector<long,30>  point_index_trans;
+    TPZManVector<long,30>  point_index_l;
+    TPZManVector<long,30>  point_index_r;
+    
+    
+    TPZGeoMesh * geometry = hyperbolic->Reference();
+    long n_interfaces;
+//    int dim = geometry->Dimension();
+    
+    if (bc_interfaceQ) {
+        n_interfaces = fleft_right_g_c_indexes_Gamma.size();
+    }
+    else{
+        n_interfaces = fleft_right_g_c_indexes_gamma.size();
+    }
+    
+    if (bc_interfaceQ) {
+        
+        // Step one
+        TPZFMatrix<STATE> ScatterFluxes(fqn_avg_To_hyperbolic_Gamma.Cols(),1,0.0);
+        long pos = 0;
+        for (int iface = 0; iface < n_interfaces; iface++) {
+            for(int iflux = 0; iflux < fqn_avg_dof_scatter_Gamma[iface].size(); iflux++) {
+                ScatterFluxes(pos,0) = parabolic->Solution()(fqn_avg_dof_scatter_Gamma[iface][iflux],0);
+                pos++;
+            }
+        }
+        
+        // Step two
+        TPZFMatrix<STATE> qn_at_intpoints;
+        fqn_avg_To_hyperbolic_Gamma.Multiply(ScatterFluxes,qn_at_intpoints);
+    
+        
+        // Step three
+        // Trasnfering integrated normal fluxes values
+        TPZVec<long> p_point_indices;
+        TPZVec<long> left_p_point_indices;
+        
+        for (int iface = 0; iface < n_interfaces; iface++) {
+            
+            int material_id = geometry->Element(fleft_right_g_c_indexes_Gamma[iface].first[0])->MaterialId();
+            TPZMaterial * material = hyperbolic->FindMaterial(material_id);
+            TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond>  * material_bc_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZBndCond> *>(material);
+            
+#ifdef PZDEBUG
+            if (!material_bc_mem) {
+                DebugStop();
+            }
+            
+#endif
+            TPZCompEl * face_cel = hyperbolic->Element(fcelint_celh_celp_Gamma[iface].first);
+            TPZCompEl * left_cel = hyperbolic->Element(fcelint_celh_celp_Gamma[iface].second.first.first); // left cel
+            
+            
+#ifdef PZDEBUG
+            if (!face_cel || !left_cel) {
+                DebugStop();
+            }
+            
+#endif
+            
+            TPZMultiphysicsInterfaceElement * mf_face_cel = dynamic_cast<TPZMultiphysicsInterfaceElement * >(face_cel);
+            TPZMultiphysicsElement * mf_left_cel = dynamic_cast<TPZMultiphysicsElement * >(left_cel);
+            
+#ifdef PZDEBUG
+            if (!mf_face_cel || !mf_left_cel) {
+                DebugStop();
+            }
+            
+#endif
+            
+            mf_face_cel->GetMemoryIndices(p_point_indices);
+            mf_left_cel->GetMemoryIndices(left_p_point_indices);
+            
+            int n_points = p_point_indices.size();
+            
+#ifdef PZDEBUG
+            if (n_points != 1 || left_p_point_indices.size() == 0) {
+                DebugStop();
+            }
+            
+#endif
+            
+            int left_material_id = geometry->Element(fleft_right_g_c_indexes_Gamma[iface].second.first[0])->MaterialId();
+            TPZMaterial * left_material = hyperbolic->FindMaterial(left_material_id);
+            TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin>  * left_material_mem = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(left_material);
+            
+#ifdef PZDEBUG
+            if (!left_material_mem) {
+                DebugStop();
+            }
+            
+#endif
+            int left_pos = left_p_point_indices[0];
+            REAL & p_avg_n = left_material_mem->GetMemory()[left_pos].p_avg_n();
+            
+            int pos = p_point_indices[0];
+            material_bc_mem->GetMemory()[pos].Set_un(qn_at_intpoints(iface,0));
+            material_bc_mem->GetMemory()[pos].Set_p_avg_n_l(p_avg_n);
+            
+        }
+        
+        
+    }
+    else{
+        
+        // Step one
+        TPZFMatrix<STATE> ScatterFluxes(fqn_avg_To_hyperbolic_gamma.Cols(),1,0.0);
+        long pos = 0;
+        for (int iface = 0; iface < n_interfaces; iface++) {
+            for(int iflux = 0; iflux < fqn_avg_dof_scatter_gamma[iface].size(); iflux++) {
+                ScatterFluxes(pos,0) = parabolic->Solution()(fqn_avg_dof_scatter_gamma[iface][iflux],0);
+                pos++;
+            }
+        }
+        
+        // Step two
+        TPZFMatrix<STATE> qn_at_intpoints;
+        fqn_avg_To_hyperbolic_gamma.Multiply(ScatterFluxes,qn_at_intpoints);
+        
+        
+        // Step three
+        // Trasnfering integrated normal fluxes values
+        TPZVec<long> p_point_indices;
+        TPZVec<long> left_p_point_indices,right_p_point_indices;
+        
+        for (int iface = 0; iface < n_interfaces; iface++) {
+            
+            int material_id = geometry->Element(fleft_right_g_c_indexes_gamma[iface].first[0])->MaterialId();
+            TPZMaterial * material = hyperbolic->FindMaterial(material_id);
+            TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin>  * material_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> *>(material);
+            
+#ifdef PZDEBUG
+            if (!material_mem) {
+                DebugStop();
+            }
+            
+#endif
+            TPZCompEl * face_cel = hyperbolic->Element(fcelint_celh_celp_gamma[iface].first);
+            TPZCompEl * left_cel = hyperbolic->Element(fcelint_celh_celp_gamma[iface].second.first.first); // left cel
+            TPZCompEl * right_cel = hyperbolic->Element(fcelint_celh_celp_gamma[iface].second.first.second); // right cel
+            
+            
+#ifdef PZDEBUG
+            if (!face_cel || !left_cel || !right_cel) {
+                DebugStop();
+            }
+            
+#endif
+            
+            TPZMultiphysicsInterfaceElement * mf_face_cel = dynamic_cast<TPZMultiphysicsInterfaceElement * >(face_cel);
+            TPZMultiphysicsElement * mf_left_cel = dynamic_cast<TPZMultiphysicsElement * >(left_cel);
+            TPZMultiphysicsElement * mf_right_cel = dynamic_cast<TPZMultiphysicsElement * >(right_cel);
+            
+#ifdef PZDEBUG
+            if (!mf_face_cel || !mf_left_cel || !mf_right_cel) {
+                DebugStop();
+            }
+            
+#endif
+            
+            mf_face_cel->GetMemoryIndices(p_point_indices);
+            mf_left_cel->GetMemoryIndices(left_p_point_indices);
+            mf_right_cel->GetMemoryIndices(right_p_point_indices);
+            
+            int n_points = p_point_indices.size();
+            
+#ifdef PZDEBUG
+            if (n_points != 1 || left_p_point_indices.size() == 0 || right_p_point_indices.size() == 0) {
+                DebugStop();
+            }
+            
+#endif
+            
+            int left_material_id = geometry->Element(fleft_right_g_c_indexes_gamma[iface].second.first[0])->MaterialId();
+            TPZMaterial * left_material = hyperbolic->FindMaterial(left_material_id);
+            TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin>  * left_material_mem = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(left_material);
+            
+            int right_material_id = geometry->Element(fleft_right_g_c_indexes_gamma[iface].second.second[0])->MaterialId();
+            TPZMaterial * right_material = hyperbolic->FindMaterial(right_material_id);
+            TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin>  * right_material_mem = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(right_material);
+            
+#ifdef PZDEBUG
+            if (!left_material_mem || !right_material_mem) {
+                DebugStop();
+            }
+            
+#endif
+            int left_pos = left_p_point_indices[0];
+            int right_pos = right_p_point_indices[0];
+            
+            REAL & p_avg_n_l = left_material_mem->GetMemory()[left_pos].p_avg_n();
+            REAL & p_avg_n_r = right_material_mem->GetMemory()[right_pos].p_avg_n();
+            
+            int pos = p_point_indices[0];
+            material_mem->GetMemory()[pos].Set_un(qn_at_intpoints(iface,0));
+            material_mem->GetMemory()[pos].Set_p_avg_n_l(p_avg_n_l);
+            material_mem->GetMemory()[pos].Set_p_avg_n_r(p_avg_n_r);
+            
+        }
+        
+    }
+    
+    
+    return;
+
+}
+
+void TRMBuildTransfers::hyperbolic_To_parabolic_volumetric(TPZCompMesh * hyperbolic, TPZCompMesh * parabolic){
+    
+#ifdef PZDEBUG
+    if (!hyperbolic || !parabolic) {
+        DebugStop();
+    }
+#endif
+    
+    
+    // Step zero scatter
+    TPZFMatrix<STATE> Scatter_sw(fsw_avg_To_parabolic.Cols(),1,0.0);
+    
+    int n = fparabolic_hyperbolic_cel_pairs.size();
+    long pos = 0;
+    for (int i = 0; i < n; i++) {
+        for(int iequ = 0; iequ < fsw_avg_dof_scatter[i].size(); iequ++) {
+            Scatter_sw(pos,0) = hyperbolic->Solution()(fsw_avg_dof_scatter[i][iequ],0);
+            pos++;
+        }
+    }
+    
+    // Step two
+    TPZFMatrix<STATE> sw_avg_at_parabolic;
+    fsw_avg_To_parabolic.Multiply(Scatter_sw,sw_avg_at_parabolic);
+    
+    
+    TPZGeoMesh * geometry = hyperbolic->Reference();
+    int dim = hyperbolic->Dimension();
+    int n_el = fparabolic_hyperbolic_cel_pairs.size();
+    
+    long first_point_phi_sw_avg = 0;
+    
+    std::pair<long, long> b_size_phi_sw_avg;
+    
+    b_size_phi_sw_avg.first = 0;
+    b_size_phi_sw_avg.second = 0;
+    
+    TPZFMatrix<STATE> block_phi_sw_avg;
+    
+    for (int iel = 0; iel < n_el; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(fparabolic_hyperbolic_cel_pairs[iel].first);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZCompEl * p_cel = parabolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.first);
+        
+        
+#ifdef PZDEBUG
+        if (!p_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_p_cel = dynamic_cast<TPZMultiphysicsElement * >(p_cel);
+        
+        
+#ifdef PZDEBUG
+        if(!mf_p_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        first_point_phi_sw_avg     += b_size_phi_sw_avg.first;
+        b_size_phi_sw_avg        = fsw_avg_To_parabolic.GetSizeofBlock(iel);
+        
+        //  Getting the total integration point of the destination cmesh
+        int matd_id = gel->MaterialId();
+        TPZMaterial * material = parabolic->FindMaterial(matd_id);
+        
+        if(gel->Dimension() == dim){ // The volumetric ones!
+            
+            TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
+            
+            TPZManVector<long, 30> int_point_indexes;
+            mf_p_cel->GetMemoryIndices(int_point_indexes);
+            int n_points = int_point_indexes.size();
+            long ipos;
+            
+            REAL sw_avg;
+            sw_avg       = sw_avg_at_parabolic(first_point_phi_sw_avg,0);
+            for(long ip = 0; ip <  n_points; ip++) {
+                ipos  = int_point_indexes[ip];
+                
+                if (fSimulationData->IsCurrentStateQ()) {
+                    associated_material->GetMemory()[ipos].Set_sa_n(sw_avg);
+                }
+                else{
+                    associated_material->GetMemory()[ipos].Set_sa(sw_avg);
+                }
+                
+            }
+            
+            
+        }
+        else{
+            DebugStop(); // Just volumetric coupling
+        }
+    }
+    
+    
+}
 
 ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4696,6 +6236,8 @@ void TRMBuildTransfers::Fill_un_To_TransportII(TPZCompMesh * flux_mesh, TPZCompM
         
     }
     
+    fun_To_Transport_Gamma.Print(" qn to h G = ");
+    fun_To_Transport_gamma.Print(" qn to h g = ");
     
 }
 
@@ -4709,12 +6251,12 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
     }
 #endif
     
-#ifdef PZDEBUG
-    if (this->SimulationData()->RawData()->fOmegaIds[0] != 4) {
-        DebugStop();
-    }
-    
-#endif
+//#ifdef PZDEBUG
+//    if (this->SimulationData()->RawData()->fOmegaIds[0] != 4) {
+//        DebugStop();
+//    }
+//    
+//#endif
     
     TPZManVector<long,30>  point_index_trans;
     TPZManVector<long,30>  point_index_l;
@@ -4733,12 +6275,6 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
     else{
         n_interfaces = fleft_right_g_indexes_gamma.size();
     }
-    
-    int rock_id = this->SimulationData()->RawData()->fOmegaIds[0];
-    //  Getting the total integration point of the destination cmesh
-    TPZMaterial * rock_material = cmesh_flux->FindMaterial(rock_id);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material);
-
     
     if (IsBoundaryQ) {
         
@@ -4808,6 +6344,11 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
                 }
                 
 #endif
+                
+                int rock_id = gel_l->MaterialId();
+                //  Getting the total integration point of the destination cmesh
+                TPZMaterial * rock_material = cmesh_flux->FindMaterial(rock_id);
+                TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material);
                 
                 GlobalPointIndexes(mixed_cel_l, point_index_l);
                 
@@ -4886,12 +6427,22 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
             }
             
 #endif
+            
+            int rock_id_l = gel_l->MaterialId();
+            //  Getting the total integration point of the destination cmesh
+            TPZMaterial * rock_material_l = cmesh_flux->FindMaterial(rock_id_l);
+            TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem_l = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material_l);
+            
+            int rock_id_r = gel_r->MaterialId();
+            //  Getting the total integration point of the destination cmesh
+            TPZMaterial * rock_material_r = cmesh_flux->FindMaterial(rock_id_r);
+            TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem_r = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material_r);
 
             GlobalPointIndexes(mixed_cel_l, point_index_l);
             GlobalPointIndexes(mixed_cel_r, point_index_r);
             
-            p_avg_n_l = material_mixe_mem->GetMemory()[point_index_l[0]].p_avg_n();
-            p_avg_n_r = material_mixe_mem->GetMemory()[point_index_r[0]].p_avg_n();
+            p_avg_n_l = material_mixe_mem_l->GetMemory()[point_index_l[0]].p_avg_n();
+            p_avg_n_r = material_mixe_mem_r->GetMemory()[point_index_r[0]].p_avg_n();
             
             material_mem->GetMemory()[i].Set_p_avg_n_l(p_avg_n_l);
             material_mem->GetMemory()[i].Set_p_avg_n_r(p_avg_n_r);
@@ -4917,13 +6468,6 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
     }
 #endif
     
-#ifdef PZDEBUG
-    if (this->SimulationData()->RawData()->fOmegaIds[0] != 4) {
-        DebugStop();
-    }
-    
-#endif
-    
     TPZManVector<long,30>  point_index_trans;
     TPZManVector<long,30>  point_index_l;
     TPZManVector<long,30>  point_index_r;
@@ -4941,12 +6485,6 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
     else{
         n_interfaces = fleft_right_g_indexes_gamma.size();
     }
-    
-    int rock_id = this->SimulationData()->RawData()->fOmegaIds[0];
-    //  Getting the total integration point of the destination cmesh
-    TPZMaterial * rock_material = cmesh_flux->FindMaterial(rock_id);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material);
-    
     
     if (IsBoundaryQ) {
         
@@ -5025,6 +6563,11 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
                 }
                 
 #endif
+                
+                int rock_id = gel_l->MaterialId();
+                //  Getting the total integration point of the destination cmesh
+                TPZMaterial * rock_material = cmesh_flux->FindMaterial(rock_id);
+                TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material);
                 
                 GlobalPointIndexes(mixed_cel_l, point_index_l);
                 
@@ -5110,11 +6653,21 @@ void TRMBuildTransfers::un_To_Transport_MeshII(TPZCompMesh * cmesh_flux, TPZComp
             
 #endif
             
+            int rock_id_l = gel_l->MaterialId();
+            //  Getting the total integration point of the destination cmesh
+            TPZMaterial * rock_material_l = cmesh_flux->FindMaterial(rock_id_l);
+            TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem_l = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material_l);
+            
+            int rock_id_r = gel_r->MaterialId();
+            //  Getting the total integration point of the destination cmesh
+            TPZMaterial * rock_material_r = cmesh_flux->FindMaterial(rock_id_r);
+            TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem_r = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material_r);
+            
             GlobalPointIndexes(mixed_cel_l, point_index_l);
             GlobalPointIndexes(mixed_cel_r, point_index_r);
             
-            p_avg_n_l = material_mixe_mem->GetMemory()[point_index_l[0]].p_avg_n();
-            p_avg_n_r = material_mixe_mem->GetMemory()[point_index_r[0]].p_avg_n();
+            p_avg_n_l = material_mixe_mem_l->GetMemory()[point_index_l[0]].p_avg_n();
+            p_avg_n_r = material_mixe_mem_r->GetMemory()[point_index_r[0]].p_avg_n();
             
             material_mem->GetMemory()[i].Set_p_avg_n_l(p_avg_n_l);
             material_mem->GetMemory()[i].Set_p_avg_n_r(p_avg_n_r);
@@ -5827,6 +7380,9 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
         this->FillComputationalElPairsII(cmesh_mf_mixed,cmesh_mf_transport);
         return;
     }
+    else{
+        DebugStop();
+    }
 
     fmixed_transport_cindexes.Resize(0);
     
@@ -5861,9 +7417,21 @@ void TRMBuildTransfers::FillComputationalElPairs(TPZCompMesh * cmesh_mf_mixed, T
             DebugStop();
         }
 #endif
-        if (gel->Dimension() != dimension || gel->HasSubElement() || gel->MaterialId() > 7) {
+        
+        if (gel->Dimension() != dimension) {
             continue;
         }
+        int mat_id = gel->MaterialId();
+        bool filter_check = (mat_id == 5) || (mat_id == 6) || (mat_id == 7);
+        if (!filter_check) {
+            continue;
+        }
+        
+        int parabolic_res = fSimulationData->MHMResolution().second.second;
+        if (gel->Level() != parabolic_res) {
+            continue;
+        }
+        
         gel_indexes.first = gel->Index();
         gel_indexes.second.first = -1;
         gel_indexes.second.second = -1;
@@ -5972,9 +7540,21 @@ void TRMBuildTransfers::FillComputationalElPairsII(TPZCompMesh * cmesh_mf_mixed,
             DebugStop();
         }
 #endif
+        
         if (gel->Dimension() != dimension) {
             continue;
         }
+        int mat_id = gel->MaterialId();
+        bool filter_check = (mat_id == 5) || (mat_id == 6) || (mat_id == 7);
+        if (!filter_check) {
+            continue;
+        }
+        
+        int parabolic_res = fSimulationData->MHMResolution().second.second;
+        if (gel->Level() != parabolic_res) {
+            continue;
+        }
+        
         gel_cel_indexes.first = gel->Index();
         gel_cel_indexes.second.first = mixed_cel->Index();
         gel_cel_indexes.second.second.resize(0);

@@ -192,16 +192,16 @@ void TRMPetrophysicsProperties::la(TPZManVector<STATE,10> &l, TPZManVector<STATE
     int n = x.size() + 1;
     l.Resize(n,0.0);
     
-    TPZManVector<STATE,10> rho_a,mu_a,kr_a;
-    this->fPhase_alpha->Density(rho_a, x);
+    TPZManVector<STATE,10> B_a,mu_a,kr_a;
+    this->fPhase_alpha->B(B_a, x);
     this->fPhase_alpha->Viscosity(mu_a, x);
     this->Kra(kr_a, x);
     
-    l[0] = kr_a[0]*rho_a[0]/mu_a[0];
-    l[1] = kr_a[0]*((rho_a[1]/mu_a[0])-(rho_a[0]*mu_a[1]/(mu_a[0]*mu_a[0])));
-    l[2] = kr_a[2]*rho_a[0]/mu_a[0];
-    l[3] = kr_a[3]*rho_a[0]/mu_a[0];
-    l[4] = kr_a[0]*((rho_a[4]/mu_a[0])-(rho_a[0]*mu_a[4]/(mu_a[0]*mu_a[0])));
+    l[0] = kr_a[0]/(B_a[0]*mu_a[0]);
+    l[1] = kr_a[0]*(-B_a[1]/(B_a[0]*B_a[0]*mu_a[0]) - mu_a[1]/(B_a[0]*mu_a[0]*mu_a[0]));
+    l[2] = kr_a[2]/(B_a[0]*mu_a[0]);
+    l[3] = kr_a[3]/(B_a[0]*mu_a[0]);
+    l[1] = kr_a[0]*(-B_a[4]/(B_a[0]*B_a[0]*mu_a[0]) - mu_a[4]/(B_a[0]*mu_a[0]*mu_a[0]));
     
 }
 
@@ -211,16 +211,16 @@ void TRMPetrophysicsProperties::lb(TPZManVector<STATE,10> &l, TPZManVector<STATE
     int n = x.size() + 1;
     l.Resize(n,0.0);
     
-    TPZManVector<STATE,10> rho_b,mu_b,kr_b;
-    this->fPhase_beta->Density(rho_b, x);
+    TPZManVector<STATE,10> B_b,mu_b,kr_b;
+    this->fPhase_beta->B(B_b, x);
     this->fPhase_beta->Viscosity(mu_b, x);
     this->Krb(kr_b, x);
     
-    l[0] = kr_b[0]*rho_b[0]/mu_b[0];
-    l[1] = kr_b[0]*((rho_b[1]/mu_b[0])-(rho_b[0]*mu_b[1]/(mu_b[0]*mu_b[0])));
-    l[2] = kr_b[2]*rho_b[0]/mu_b[0];
-    l[3] = kr_b[3]*rho_b[0]/mu_b[0];
-    l[4] = kr_b[0]*((rho_b[4]/mu_b[0])-(rho_b[0]*mu_b[4]/(mu_b[0]*mu_b[0])));
+    l[0] = kr_b[0]/(B_b[0]*mu_b[0]);
+    l[1] = kr_b[0]*(-B_b[1]/(B_b[0]*B_b[0]*mu_b[0]) - mu_b[1]/(B_b[0]*mu_b[0]*mu_b[0]));
+    l[2] = kr_b[2]/(B_b[0]*mu_b[0]);
+    l[3] = kr_b[3]/(B_b[0]*mu_b[0]);
+    l[1] = kr_b[0]*(-B_b[4]/(B_b[0]*B_b[0]*mu_b[0]) - mu_b[4]/(B_b[0]*mu_b[0]*mu_b[0]));
     
 }
 
@@ -468,7 +468,6 @@ void TRMPetrophysicsProperties::l(TPZManVector<STATE,10> &l, TPZManVector<STATE,
             break;
         case 2:
         {
-            DebugStop();
             TPZManVector<STATE,10> l_a,l_b;
             this->la(l_a, x);
             this->lb(l_b, x);

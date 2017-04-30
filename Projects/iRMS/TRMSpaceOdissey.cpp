@@ -1778,7 +1778,12 @@ void TRMSpaceOdissey::CreateTransportMesh(){
         fGeoMesh->AddInterfaceMaterial(pro_id, res_id,interface_id);
         fGeoMesh->AddInterfaceMaterial(res_id, inj_id,interface_id);
         fGeoMesh->AddInterfaceMaterial(inj_id, res_id,interface_id);
+        
+        fGeoMesh->AddInterfaceMaterial(res_id, res_id,interface_id);
+        fGeoMesh->AddInterfaceMaterial(pro_id, pro_id,interface_id);
+        fGeoMesh->AddInterfaceMaterial(inj_id, inj_id,interface_id);
     }
+    
     fTransportMesh->SetDimModel(dim);
     fTransportMesh->SetDefaultOrder(sorder);
     fTransportMesh->SetAllCreateFunctionsMultiphysicElemWithMem();
