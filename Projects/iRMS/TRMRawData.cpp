@@ -638,8 +638,8 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
     fSystemType.Push("oil");
-    water->SetRhoModel(1);
-    oil->SetRhoModel(1);
+    water->SetRhoModel(0);
+    oil->SetRhoModel(0);
     fPhases.Push(water);
     fPhases.Push(oil);
     int n_data = fSystemType.size();
@@ -674,13 +674,13 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     //    fReportingTimes.Push(std::make_pair(700.0*day,true));
     //    fReportingTimes.Push(std::make_pair(600.0*day,true));
     //    fReportingTimes.Push(std::make_pair(400.0*day,true));
-    fReportingTimes.Push(std::make_pair(500.0*day,true));
+    fReportingTimes.Push(std::make_pair(150.0*day,true));
     fReportingTimes.Push(std::make_pair(100.0*day,true));
     fReportingTimes.Push(std::make_pair(50.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
-    fdt       = 10.0*day;
+    fdt       = 50.0*day;
     fdt_max   = 100.0*day;
     fdt_min   = 0.1*day;
     fdt_up    = 1.0;
@@ -697,7 +697,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fMHMResolutionQ.second.first = 0; // level
     fMHMResolutionQ.second.second = 0; // fine
     fIncreaseTransporResolutionQ.first = true;
-    fIncreaseTransporResolutionQ.second = 4;
+    fIncreaseTransporResolutionQ.second = 0;
     
     
     // Rock materials ids
