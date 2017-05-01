@@ -180,17 +180,10 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     this->SimulationData()->SetCurrentStateQ(false);
     this->UpdateMemory();
     
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-//    this->AssembleResidual();
-//    fR = this->Rhs();
     
     this->SimulationData()->SetCurrentStateQ(true);
     this->UpdateMemory_at_n();    
     
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-//    this->AssembleResidual();
-//    fR_n = this->Rhs();
-//    ferror = Norm(fR_n);
     ferror = 1.0;
     
     this->Set_k_ietrarions(0);
@@ -327,6 +320,7 @@ void TRMTransportAnalysis::PostProcessStep(){
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("sw");
     scalnames.Push("so");
+    scalnames.Push("id");    
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

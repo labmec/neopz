@@ -78,6 +78,7 @@ int TRMPhaseTransport::VariableIndex(const std::string &name) {
     if (!strcmp("sw", name.c_str())) return 0;
     if (!strcmp("so", name.c_str())) return 1;
     if (!strcmp("sg", name.c_str())) return 2;
+    if (!strcmp("id", name.c_str())) return 3;
 
     return TPZMatWithMem::VariableIndex(name);
 }
@@ -89,6 +90,8 @@ int TRMPhaseTransport::NSolutionVariables(int var) {
         case 1:
             return 1; // Vector
         case 2:
+            return 1; // Scalar
+        case 3:
             return 1; // Scalar
     }
     return TPZMatWithMem::NSolutionVariables(var);
@@ -199,9 +202,9 @@ void TRMPhaseTransport::Solution_ab(TPZVec<TPZMaterialData> &datavec, int var, T
             Solout[0] = 1.0-sa;
         }
             break;
-        case 2:
+        case 3:
         {
-            DebugStop();
+            Solout[0] = this->Id();
         }
             break;
         default:

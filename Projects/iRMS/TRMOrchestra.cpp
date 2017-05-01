@@ -272,7 +272,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     
     // Create analysis for each operator
-    int numofThreads_e = 0;
+    int numofThreads_e = 4;
     bool mustOptimizeBandwidth_elliptic = true;
     
     // Analysis for elliptic part
@@ -296,7 +296,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     std::cout << "ndof elliptic = " << elliptic->Solution().Rows() << std::endl;
         
-    int numofThreads_p = 0;
+    int numofThreads_p = 4;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -325,7 +325,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 0;
+        int numofThreads_t = 4;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 
