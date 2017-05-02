@@ -942,7 +942,7 @@ void TRMSpaceOdissey::RB_Generator(){
         RB_generator->Solve();
         RB_generator->Solution() += RB_generator->X_n();
         RB_generator->LoadSolution();
-//        RB_generator->PostProcessStep();
+        RB_generator->PostProcessStep();
         
         if(ip%progress == 0){
             percent += 10.0;
@@ -1066,8 +1066,9 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
         }
         
 //        bool target_regionQ = gel->MaterialId() == target_id;
-        bool target_regionQ = gel->MaterialId() == 5 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
-        if(!target_regionQ){
+//        bool target_regionQ = gel->MaterialId() == 5 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
+        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+        if(target_regionQ){
             continue;
         }
         
@@ -1101,6 +1102,11 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
 #endif
                         
                         if(gel->Level() != 0 || gel->Dimension() != dim){
+                            continue;
+                        }
+                        
+                        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+                        if(target_regionQ){
                             continue;
                         }
                         
@@ -1151,6 +1157,11 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
 #endif
                         
                         if(gel->Level() != 0 || gel->Dimension() != dim){
+                            continue;
+                        }
+                        
+                        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+                        if(target_regionQ){
                             continue;
                         }
                         
@@ -1214,6 +1225,11 @@ int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<
                 DebugStop();
             }
 #endif
+            
+            bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+            if(target_regionQ){
+                continue;
+            }
             
             TPZVec<TPZGeoEl *> unrefined_sons;
             gel->GetHigherSubElements(unrefined_sons);
@@ -1324,9 +1340,10 @@ bool TRMSpaceOdissey::DrawingGeometryOutline(TPZStack< REAL > & min_x, TPZStack<
             continue;
         }
         
-        bool target_regionQ = gel->MaterialId() == 5 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
-//        bool target_regionQ = gel->MaterialId() == target_id;        
-        if(!target_regionQ){
+//        bool target_regionQ = gel->MaterialId() == target_id;                
+//        bool target_regionQ = gel->MaterialId() == 5 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
+        bool target_regionQ = gel->MaterialId() == 12 || gel->MaterialId()== 14;
+        if(target_regionQ){
             continue;
         }
         

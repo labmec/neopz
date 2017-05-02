@@ -31,8 +31,8 @@ line_id = 1;
 res_edges_h[] = {1,2,3,4,5,6,7,9,12,14,16,18,20,21};
 res_edges_v[] = {8,10,11,13,15,17,19};
 
-Transfinite Line {res_edges_h[]} = 50.0;
-Transfinite Line {res_edges_v[]} = 10.0;
+Transfinite Line {res_edges_h[]} = 15.0;
+Transfinite Line {res_edges_v[]} = 5.0;
 
 reservoir_boundaries[] = {res_B[],res_T[],res_S[],res_E[],res_N[],res_W[]};
 
@@ -57,7 +57,7 @@ res_T[] = {s6};
 res_edges_h[] = {1,2,3,4,6,9,10,12};
 res_edges_v[] = {5,7,8,11};
 
-Transfinite Line {res_edges_h[]} = 35.0;
+Transfinite Line {res_edges_h[]} = 15.0;
 Transfinite Line {res_edges_v[]} = 2.0;
 
 reservoir_boundaries[] = {res_B[],res_T[],res_S[],res_E[],res_N[],res_W[]};
@@ -82,8 +82,8 @@ res_W[] = {s4};
 res_edges_h[] = {res_S[],res_N[]};
 res_edges_v[] = {res_W[],res_E[]};
 
-Transfinite Line {res_edges_h[]} = 20.0;
-Transfinite Line {res_edges_v[]} = 1.0;
+Transfinite Line {res_edges_h[]} = 35.0;
+Transfinite Line {res_edges_v[]} = 2.0;
 
 reservoir_boundaries[] = {res_N[],res_E[],-res_S[],-res_W[]};
 

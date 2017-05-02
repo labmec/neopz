@@ -664,7 +664,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
-    fGridName = "Meshes/Gmsh/reservoir.msh";
+    fGridName = "Meshes/Gmsh/reservoir_cad.msh";
     fPermPorFields.first = "case_2/spe_perm.dat";
     fPermPorFields.second = "case_2/spe_phi.dat";
     fNBlocks.Push(60);
@@ -712,7 +712,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fIncreaseTransporResolutionQ.second = 0;
     
     // RB controls
-    fReduceBasisQ.first = false;
+    fReduceBasisQ.first = true;
     fReduceBasisQ.second.first = false;
     fReduceBasisQ.second.second.Push(2); // x
     fReduceBasisQ.second.second.Push(2); // y
