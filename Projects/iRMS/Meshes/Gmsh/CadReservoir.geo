@@ -3,7 +3,7 @@ YShapeReservoirQ = 0;
 
 Macro ReservoirCAD
 
-Geometry.Tolerance = 0.01; // Geometrical tolerance
+//Geometry.Tolerance = 0.01; // Geometrical tolerance
 Geometry.OCCSewFaces = 1; // Sew faces in STEP, IGES and BRep models
 
 If(dimension == 3)
@@ -31,7 +31,7 @@ line_id = 1;
 res_edges_h[] = {1,2,3,4,5,6,7,9,12,14,16,18,20,21};
 res_edges_v[] = {8,10,11,13,15,17,19};
 
-Transfinite Line {res_edges_h[]} = 20.0;
+Transfinite Line {res_edges_h[]} = 50.0;
 Transfinite Line {res_edges_v[]} = 10.0;
 
 reservoir_boundaries[] = {res_B[],res_T[],res_S[],res_E[],res_N[],res_W[]};
@@ -54,13 +54,10 @@ res_E[] = {s4};
 res_S[] = {s5};
 res_T[] = {s6};
 
-line_id = 1;
-res_edges_h[] = {
-line_id,line_id+1,line_id+2,line_id+3,line_id+5,line_id+8,line_id+9,line_id+11};
-res_edges_v[] = {
-line_id+4,line_id+6,line_id+7,line_id+10};
+res_edges_h[] = {1,2,3,4,6,9,10,12};
+res_edges_v[] = {5,7,8,11};
 
-Transfinite Line {res_edges_h[]} = 20.0;
+Transfinite Line {res_edges_h[]} = 35.0;
 Transfinite Line {res_edges_v[]} = 2.0;
 
 reservoir_boundaries[] = {res_B[],res_T[],res_S[],res_E[],res_N[],res_W[]};

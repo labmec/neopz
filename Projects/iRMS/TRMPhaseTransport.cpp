@@ -254,7 +254,6 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     Kinv    = memory.Kinv_0();
     phi_0   = memory.phi_0();
     
-    
     //  Computing closure relationship at given average values
     TPZManVector<STATE, 10> v(nvars), v_n(nvars);
     v[0]        = p;
@@ -267,6 +266,11 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     fSimulationData->AlphaProp()->Density(rho_w, v);
     fSimulationData->AlphaProp()->B(Bw, v);
     fSimulationData->AlphaProp()->B(Bw_n, v_n);
+    
+    REAL l_dr   = memory.lambda();
+    REAL mu_dr  = memory.mu();
+    REAL alpha  = memory.alpha();
+    REAL Se = memory.S_e();
     
     REAL phi = phi_0;
     REAL phi_n = phi_0;

@@ -82,6 +82,9 @@ protected:
     /** @brief number of corrections steps */
     int fn_corrections;
     
+    /** @brief number of Reduced basis */
+    int fm_rb_functions;
+    
     /** @brief residue overal tolerance */
     STATE fepsilon_res;
     
@@ -99,12 +102,16 @@ protected:
     
     /** @brief set the use enhanced pressure accuracy */
     bool fEnhancedPressureQ;
+
     
     /** @brief Use, level and resolution of MHM process */
     std::pair<bool, std::pair<int, int> > fMHMResolutionQ;
     
     /** @brief Use of increased transpor resolution transfers operators */
     std::pair<bool, int> fIncreaseTransporResolutionQ;
+    
+    /** @brief Use of RB method that surrogates */
+    std::pair<bool, std::pair<bool, TPZStack<int> > > fReduceBasisQ;
     
     /** @brief Gmsh grid file */
     std::string fGridName;
@@ -171,12 +178,6 @@ public:
     /** @brief destructor */
     ~TRMSimulationData();
     
-    /**
-     * @defgroup Access methods
-     * @brief    Implements several set/get attributes for the simulation data:
-     *
-     * @{
-     */
 
     /** @brief Set initial state */
     void SetInitialStateQ(bool state) { fIsInitialStateQ = state; }
@@ -301,6 +302,16 @@ public:
         return fIncreaseTransporResolutionQ;
     }
     
+    /** @brief Setup RB method options */
+    void SetReducedBasisResolution(std::pair<bool, std::pair<bool, TPZStack<int> > > ReduceBasisQ){
+        fReduceBasisQ = ReduceBasisQ;
+    }
+    
+    /** @brief Get RB method options */
+    std::pair<bool, std::pair<bool, TPZStack<int> > > & ReducedBasisResolution(){
+        return fReduceBasisQ;
+    }
+    
     /** @brief Set Gmsh grid file */
     void SetGridName(std::string GridName){
         fGridName = GridName;
@@ -378,6 +389,12 @@ public:
     
     /** @brief number of corrections steps */
     int n_corrections() { return fn_corrections; }
+    
+    /** @brief set number of corrections steps */
+    void Set_m_RB_functions(int m) { fm_rb_functions = m; }
+    
+    /** @brief get number of corrections steps */
+    int m_RB_functions() { return fm_rb_functions; }
     
     /** @brief residue overal tolerance */
     STATE epsilon_res() { return fepsilon_res; }
@@ -479,8 +496,6 @@ public:
     int Skeleton_material_Id(){
         return fSkeleton_material_id;
     }
-    
-    // @}
     
 
 };

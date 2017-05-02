@@ -260,57 +260,83 @@ void TRMBuildTransfers::Build_elliptic_To_elliptic(TPZCompMesh * elliptic){
             STATE w;
             int_points_geomechanic.Point(ip, qsi, w);
             
-            // Get the phi and dphix for H1 elasticity
+            // Get the phi and dphix for H1/rb elasticity
             e_intel->Shape(qsi, phi, dphi);
-            gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
             
-            switch(gel_dim) {
-                case 0:
-                    break;
-                case 1:
-                    dphix_axes = dphi;
-                    dphix_axes *= (1./detjac);
-                    break;
-                case 2:
-                    for(int ieq = 0; ieq < nshape; ieq++) {
-                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
-                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
-                    }
-                    break;
-                case 3:
-                    for(int ieq = 0; ieq < nshape; ieq++) {
-                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
-                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
-                        dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
-                    }
-                    break;
-                default:
-                    std::stringstream sout;
-                    sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
-                    LOGPZ_ERROR(logger,sout.str());
+            if (!fSimulationData->ReducedBasisResolution().first){
+                gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
+                
+                switch(gel_dim) {
+                    case 0:
+                        break;
+                    case 1:
+                        dphix_axes = dphi;
+                        dphix_axes *= (1./detjac);
+                        break;
+                    case 2:
+                        for(int ieq = 0; ieq < nshape; ieq++) {
+                            dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+                            dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+                        }
+                        break;
+                    case 3:
+                        for(int ieq = 0; ieq < nshape; ieq++) {
+                            dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
+                            dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
+                            dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
+                        }
+                        break;
+                    default:
+                        std::stringstream sout;
+                        sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
+                        LOGPZ_ERROR(logger,sout.str());
+                }
+                
+                TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
             }
-            
-            TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
             
 #ifdef PZDEBUG
+            
             if(block_dim.second != phi.Rows() * dim){
-                DebugStop();
+                if (fSimulationData->ReducedBasisResolution().first) {
+                    if (block_dim.second != phi.Rows()) {
+                        DebugStop();
+                    }
+                }
+                else{
+                    DebugStop();
+                }
+
             }
 #endif
+            
             for (int jp = 0; jp < phi.Rows(); jp++) {
                 for (int id = 0; id < dim; id++) {
-                    block_phi(ip*dim+id,jp*dim+id) = phi(jp,0);
+                    if (!fSimulationData->ReducedBasisResolution().first){
+                        block_phi(ip*dim+id,jp*dim+id) = phi(jp,0);
+                    }
+                    else{
+                        block_phi(ip*dim+id,jp) = phi(jp,id);
+                    }
                 }
             }
             
             for (int jp = 0; jp < phi.Rows(); jp++) {
+                int d_count = 0;
                 for (int id = 0; id < dim; id++) {
                     for (int jd = 0; jd < gel_dim; jd++) {
                         if(gel_dim == dim){
-                            block_grad_phi(ip*dim*gel_dim + id*gel_dim + jd,jp*dim+id) = dphidx(jd,jp);
+
+                            if (!fSimulationData->ReducedBasisResolution().first){
+                                block_grad_phi(ip*dim*gel_dim + id*gel_dim + jd,jp*dim+id) = dphidx(jd,jp);
+                            }
+                            else{
+                                block_grad_phi(ip*dim*gel_dim + id*gel_dim + jd,jp) = dphi(jp,d_count);
+                                d_count++;
+                            }
                         }
                         else{
-                            block_grad_phi(ip*dim*gel_dim+id*gel_dim + jd,jp*dim+id) = 0.0;
+                            block_grad_phi(ip*dim*gel_dim+id*gel_dim + jd,jp) = 0.0;
                         }
                     }
                 }
@@ -403,26 +429,60 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
             
             int gel_dim = gel->Dimension();
             int nshapes = b_size_phi.second/dim;
-            TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
-            TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
-            for(long ip = 0; ip <  n_points; ip++) {
-                ipos  = int_point_indexes[ip];
-                
-                for (int is = 0; is < nshapes; is++) {
-                    phi_u(is,0) = block_phi(ip*dim,is*dim);
+            
+            if(fSimulationData->ReducedBasisResolution().first){
+
+                nshapes = b_size_phi.second;
+                TPZFNMatrix<3,STATE> phi_u(nshapes,dim,0.0);
+                TPZFNMatrix<9,STATE> grad_phi_u(dim*dim,nshapes);
+                for(long ip = 0; ip <  n_points; ip++) {
+                    ipos  = int_point_indexes[ip];
                     
-                }
-                
-                for (int is = 0; is < nshapes; is++) {
-                    for (int id = 0 ; id < dim; id++) {
-                        grad_phi_u(id,is) = block_grad_phi(ip*dim*gel_dim + id,is*dim);
+                    for (int is = 0; is < nshapes; is++) {
+                        for (int id = 0 ; id < dim; id++) {
+                            phi_u(is,id) = block_phi(ip*dim+id,is);
+                        }
                     }
                     
+                    for (int is = 0; is < nshapes; is++) {
+                        int dcout = 0;
+                        for (int id = 0 ; id < dim; id++) {
+                            for (int jd = 0 ; jd < gel_dim; jd++) {
+                                grad_phi_u(dcout,is) = block_grad_phi(ip*dim*gel_dim + id*gel_dim + jd,is);
+                                dcout++;
+                            }
+                        }
+                        
+                    }
+                    
+                    associated_material->GetMemory()[ipos].Set_phi_u(phi_u);
+                    associated_material->GetMemory()[ipos].Set_grad_phi_u(grad_phi_u);
                 }
                 
-                associated_material->GetMemory()[ipos].Set_phi_u(phi_u);
-                associated_material->GetMemory()[ipos].Set_grad_phi_u(grad_phi_u);
             }
+            else{
+                TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
+                TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
+                for(long ip = 0; ip <  n_points; ip++) {
+                    ipos  = int_point_indexes[ip];
+                    
+                    for (int is = 0; is < nshapes; is++) {
+                        phi_u(is,0) = block_phi(ip*dim,is*dim);
+                        
+                    }
+                    
+                    for (int is = 0; is < nshapes; is++) {
+                        for (int id = 0 ; id < dim; id++) {
+                            grad_phi_u(id,is) = block_grad_phi(ip*dim*gel_dim + id,is*dim);
+                        }
+                        
+                    }
+                    
+                    associated_material->GetMemory()[ipos].Set_phi_u(phi_u);
+                    associated_material->GetMemory()[ipos].Set_grad_phi_u(grad_phi_u);
+                }
+            }
+
             
             
         }
@@ -438,31 +498,173 @@ void TRMBuildTransfers::space_To_elliptic(TPZCompMesh * elliptic){
             
             int gel_dim = gel->Dimension();
             int nshapes = b_size_phi.second/dim;
-            TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
-            TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
-            for(long ip = 0; ip <  n_points; ip++) {
-                ipos  = int_point_indexes[ip];
+            
+            if(fSimulationData->ReducedBasisResolution().first){
                 
-                for (int is = 0; is < nshapes; is++) {
-                    phi_u(is,0) = block_phi(ip*dim,is*dim);
+                nshapes = b_size_phi.second;
+                TPZFNMatrix<3,STATE> phi_u(nshapes,dim,0.0);
+                TPZFNMatrix<9,STATE> grad_phi_u(dim*dim,nshapes);
+                for(long ip = 0; ip <  n_points; ip++) {
+                    ipos  = int_point_indexes[ip];
                     
-                }
-                
-                for (int is = 0; is < nshapes; is++) {
-                    for (int id = 0 ; id < dim; id++) {
-                        grad_phi_u(id,is) = block_grad_phi(ip*dim*gel_dim + id,is*dim);
+                    for (int is = 0; is < nshapes; is++) {
+                        for (int id = 0 ; id < dim; id++) {
+                            phi_u(is,id) = block_phi(ip*dim+id,is);
+                        }
                     }
                     
+                    for (int is = 0; is < nshapes; is++) {
+                        int dcout = 0;
+                        for (int id = 0 ; id < dim; id++) {
+                            for (int jd = 0 ; jd < gel_dim; jd++) {
+                                grad_phi_u(dcout,is) = block_grad_phi(ip*dim*gel_dim + id*gel_dim + jd,is);
+                                dcout++;
+                            }
+                        }
+                        
+                    }
+                    
+                    associated_material->GetMemory()[ipos].Set_phi_u(phi_u);
+                    associated_material->GetMemory()[ipos].Set_grad_phi_u(grad_phi_u);
+                }
+            }
+            else{
+
+                TPZFNMatrix<3,STATE> phi_u(nshapes,1,0.0);
+                TPZFNMatrix<9,STATE> grad_phi_u(dim,nshapes);
+                for(long ip = 0; ip <  n_points; ip++) {
+                    ipos  = int_point_indexes[ip];
+                    
+                    for (int is = 0; is < nshapes; is++) {
+                        phi_u(is,0) = block_phi(ip*dim,is*dim);
+                        
+                    }
+                    
+                    for (int is = 0; is < nshapes; is++) {
+                        for (int id = 0 ; id < dim; id++) {
+                            grad_phi_u(id,is) = block_grad_phi(ip*dim*gel_dim + id,is*dim);
+                        }
+                        
+                    }
+                    
+                    associated_material->GetMemory()[ipos].Set_phi_u(phi_u);
+                    associated_material->GetMemory()[ipos].Set_grad_phi_u(grad_phi_u);
                 }
                 
-                associated_material->GetMemory()[ipos].Set_phi_u(phi_u);
-                associated_material->GetMemory()[ipos].Set_grad_phi_u(grad_phi_u);
             }
             
         }
 
         
     }
+    
+}
+
+void TRMBuildTransfers::spatial_props_To_elliptic(TPZCompMesh * elliptic){
+    
+#ifdef PZDEBUG
+    if (!elliptic) {
+        DebugStop();
+    }
+#endif
+    
+    int dim = elliptic->Dimension();
+    
+    TPZManVector<STATE, 10> vars;
+    TPZManVector<STATE, 10> porosity;
+    TPZManVector<STATE, 10> lambda,mu,S_e,alpha;
+    
+    // Step one
+    int n_elements = elliptic->NElements();
+    TPZManVector<long, 30> indexes;
+    for (int icel = 0; icel < n_elements; icel++) {
+        TPZCompEl * cel = elliptic->Element(icel);
+        
+#ifdef PZDEBUG
+        if (!cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZGeoEl * gel = cel->Reference();
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement * >(cel);
+        
+#ifdef PZDEBUG
+        if (!mf_cel) {
+            DebugStop();
+        }
+#endif
+        
+        if (gel->Dimension()!= dim) {
+            continue;
+        }
+        
+        const TPZIntPoints & int_points = mf_cel->GetIntegrationRule();
+        int np = int_points.NPoints();
+        GlobalPointIndexes(cel, indexes);
+        
+#ifdef PZDEBUG
+        if (indexes.size() != np) {
+            DebugStop();
+        }
+#endif
+        
+        int rockid = gel->MaterialId();
+        
+        //  Getting the total integration point of the destination cmesh
+        TPZMaterial * material = elliptic->FindMaterial(rockid);
+        TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
+        
+        TPZManVector<REAL,3> par_triplet(3,0.0);
+        TPZManVector<REAL,3> x(3,0.0);
+        REAL w;
+        for (int ip = 0; ip<np; ip++) {
+            int_points.Point(ip, par_triplet, w);
+            gel->X(par_triplet, x);
+            
+            associated_material->GetMemory()[indexes[ip]].Set_x(x);
+            int map_model = fSimulationData->Map()->MapModel();
+            if (map_model != 0 && (rockid == 12 || rockid == 14)) {
+                fSimulationData->Map()->SetMapModel(0);
+                fSimulationData->Map()->phi(x, porosity, vars);
+                fSimulationData->Map()->lambda(x, lambda, vars);
+                fSimulationData->Map()->mu(x, mu, vars);
+                fSimulationData->Map()->S_e(x, S_e, vars);
+                fSimulationData->Map()->alpha(x, alpha, vars);
+                fSimulationData->Map()->SetMapModel(map_model);
+            }
+            else{
+
+                fSimulationData->Map()->phi(x, porosity, vars);
+                fSimulationData->Map()->lambda(x, lambda, vars);
+                fSimulationData->Map()->mu(x, mu, vars);
+                fSimulationData->Map()->S_e(x, S_e, vars);
+                fSimulationData->Map()->alpha(x, alpha, vars);
+                
+                if (map_model != 0) {
+                    lambda[0]   *= cos(porosity[0]);
+                    mu[0]       *= cos(porosity[0]);
+                    S_e[0]      *= sin(porosity[0]);
+                    alpha[0]    *= sin(porosity[0]);
+                }
+                
+            }
+            
+            associated_material->GetMemory()[indexes[ip]].Set_phi_0(porosity[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_lambda(lambda[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_mu(mu[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_S_e(S_e[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_alpha(alpha[0]);
+        }
+    }
+    
     
 }
 
@@ -643,7 +845,13 @@ void TRMBuildTransfers::elliptic_To_elliptic(TPZCompMesh * elliptic){
                 
                 for (int id = 0; id < dim ; id++) {
                     for (int jd = 0; jd < dim ; jd++) {
-                        grad_u(jd,id)= grad_u_at_elliptic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                        if(fSimulationData->ReducedBasisResolution().first){
+                            grad_u(id,jd) = grad_u_at_elliptic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                        }
+                        else{
+                            grad_u(jd,id) = grad_u_at_elliptic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                        }
+
                     }
                 }
                 
@@ -971,60 +1179,85 @@ void TRMBuildTransfers::Build_elliptic_To_parabolic(TPZCompMesh * elliptic, TPZC
             
             // Get the phi and dphix for H1 elasticity
             e_intel->Shape(qsi, phi, dphi);
-            gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
             
-            switch(gel_dim) {
-                case 0:
-                    break;
-                case 1:
-                    dphix_axes = dphi;
-                    dphix_axes *= (1./detjac);
-                    break;
-                case 2:
-                    for(int ieq = 0; ieq < nshape; ieq++) {
-                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
-                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
-                    }
-                    break;
-                case 3:
-                    for(int ieq = 0; ieq < nshape; ieq++) {
-                        dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
-                        dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
-                        dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
-                    }
-                    break;
-                default:
-                    std::stringstream sout;
-                    sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
-                    LOGPZ_ERROR(logger,sout.str());
+            if (!fSimulationData->ReducedBasisResolution().first){
+                gel->Jacobian( qsi, jacobian, axes, detjac , jacinv);
+                
+                switch(gel_dim) {
+                    case 0:
+                        break;
+                    case 1:
+                        dphix_axes = dphi;
+                        dphix_axes *= (1./detjac);
+                        break;
+                    case 2:
+                        for(int ieq = 0; ieq < nshape; ieq++) {
+                            dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq);
+                            dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq);
+                        }
+                        break;
+                    case 3:
+                        for(int ieq = 0; ieq < nshape; ieq++) {
+                            dphix_axes(0,ieq) = jacinv(0,0)*dphi(0,ieq) + jacinv(1,0)*dphi(1,ieq) + jacinv(2,0)*dphi(2,ieq);
+                            dphix_axes(1,ieq) = jacinv(0,1)*dphi(0,ieq) + jacinv(1,1)*dphi(1,ieq) + jacinv(2,1)*dphi(2,ieq);
+                            dphix_axes(2,ieq) = jacinv(0,2)*dphi(0,ieq) + jacinv(1,2)*dphi(1,ieq) + jacinv(2,2)*dphi(2,ieq);
+                        }
+                        break;
+                    default:
+                        std::stringstream sout;
+                        sout << "pzintel.c please implement the " << gel_dim << "d Jacobian and inverse\n";
+                        LOGPZ_ERROR(logger,sout.str());
+                }
+                
+                TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
             }
-            
-            TPZAxesTools<STATE>::Axes2XYZ(dphix_axes, dphidx, axes);
             
 #ifdef PZDEBUG
+            
             if(block_dim.second != phi.Rows() * dim){
-                DebugStop();
+                if (fSimulationData->ReducedBasisResolution().first) {
+                    if (block_dim.second != phi.Rows()) {
+                        DebugStop();
+                    }
+                }
+                else{
+                    DebugStop();
+                }
+                
             }
 #endif
+            
             for (int jp = 0; jp < phi.Rows(); jp++) {
                 for (int id = 0; id < dim; id++) {
-                    block_phi(ip*dim+id,jp*dim+id) = phi(jp,0);
+                    if (!fSimulationData->ReducedBasisResolution().first){
+                        block_phi(ip*dim+id,jp*dim+id) = phi(jp,0);
+                    }
+                    else{
+                        block_phi(ip*dim+id,jp) = phi(jp,id);
+                    }
                 }
             }
             
             for (int jp = 0; jp < phi.Rows(); jp++) {
+                int d_count = 0;
                 for (int id = 0; id < dim; id++) {
                     for (int jd = 0; jd < gel_dim; jd++) {
                         if(gel_dim == dim){
-                            block_grad_phi(ip*dim*gel_dim + id*gel_dim + jd,jp*dim+id) = dphidx(jd,jp);
+                            
+                            if (!fSimulationData->ReducedBasisResolution().first){
+                                block_grad_phi(ip*dim*gel_dim + id*gel_dim + jd,jp*dim+id) = dphidx(jd,jp);
+                            }
+                            else{
+                                block_grad_phi(ip*dim*gel_dim + id*gel_dim + jd,jp) = dphi(jp,d_count);
+                                d_count++;
+                            }
                         }
                         else{
-                            block_grad_phi(ip*dim*gel_dim+id*gel_dim + jd,jp*dim+id) = 0.0;
+                            block_grad_phi(ip*dim*gel_dim+id*gel_dim + jd,jp) = 0.0;
                         }
                     }
                 }
             }
-            
         }
         
         fu_To_parabolic.SetBlock(iel, block_phi);
@@ -1135,7 +1368,12 @@ void TRMBuildTransfers::elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMes
                 
                 for (int id = 0; id < dim ; id++) {
                     for (int jd = 0; jd < dim ; jd++) {
-                        grad_u(jd,id)= grad_u_at_parabolic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                        if(fSimulationData->ReducedBasisResolution().first){
+                            grad_u(id,jd) = grad_u_at_parabolic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                        }
+                        else{
+                            grad_u(jd,id) = grad_u_at_parabolic(first_point_dphi + ip*dim*dim + id*dim + jd,0);
+                        }
                     }
                 }
                 
@@ -1628,7 +1866,7 @@ void TRMBuildTransfers::space_To_parabolic(TPZCompMesh * parabolic){
     
 }
 
-void TRMBuildTransfers::kappa_phi_To_parabolic(TPZCompMesh * parabolic){
+void TRMBuildTransfers::spatial_props_To_parabolic(TPZCompMesh * parabolic){
     
     
 #ifdef PZDEBUG
@@ -1643,6 +1881,7 @@ void TRMBuildTransfers::kappa_phi_To_parabolic(TPZCompMesh * parabolic){
     TPZFMatrix<STATE> kappa, kappa_inv;
     TPZManVector<STATE, 10> vars;
     TPZManVector<STATE, 10> porosity;
+    TPZManVector<STATE, 10> lambda,mu,S_e,alpha;
     
     // Step one
     int n_elements = parabolic->NElements();
@@ -1700,12 +1939,29 @@ void TRMBuildTransfers::kappa_phi_To_parabolic(TPZCompMesh * parabolic){
             gel->X(par_triplet, x);
             
             associated_material->GetMemory()[indexes[ip]].Set_x(x);
-            //            fSimulationData->Map()->ComputePropertieSPE10Map(index, x, kappa, kappa_inv, porosity);
+
+            int map_model = fSimulationData->Map()->MapModel();
             fSimulationData->Map()->Kappa(x, kappa, kappa_inv, vars);
             fSimulationData->Map()->phi(x, porosity, vars);
+            fSimulationData->Map()->lambda(x, lambda, vars);
+            fSimulationData->Map()->mu(x, mu, vars);
+            fSimulationData->Map()->S_e(x, S_e, vars);
+            fSimulationData->Map()->alpha(x, alpha, vars);
+            
+            if (map_model != 0) {
+                lambda[0]   *= cos(porosity[0]);
+                mu[0]       *= cos(porosity[0]);
+                S_e[0]      *= sin(porosity[0]);
+                alpha[0]    *= sin(porosity[0]);
+            }
+            
             associated_material->GetMemory()[indexes[ip]].Set_K_0(kappa);
             associated_material->GetMemory()[indexes[ip]].Set_Kinv_0(kappa_inv);
             associated_material->GetMemory()[indexes[ip]].Set_phi_0(porosity[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_lambda(lambda[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_mu(mu[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_S_e(S_e[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_alpha(alpha[0]);
         }
     }
     
@@ -2509,7 +2765,7 @@ void TRMBuildTransfers::Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic)
     
 }
 
-void TRMBuildTransfers::kappa_phi_To_hyperbolic(TPZCompMesh * hyperbolic){
+void TRMBuildTransfers::spatial_props_To_hyperbolic(TPZCompMesh * hyperbolic){
     
 #ifdef PZDEBUG
     if (!hyperbolic) {
@@ -2523,6 +2779,7 @@ void TRMBuildTransfers::kappa_phi_To_hyperbolic(TPZCompMesh * hyperbolic){
     TPZFMatrix<STATE> kappa, kappa_inv;
     TPZManVector<STATE, 10> vars;
     TPZManVector<STATE, 10> porosity;
+    TPZManVector<STATE, 10> lambda,mu,S_e,alpha;
     
     // Step one
     int n_elements = hyperbolic->NElements();
@@ -2584,12 +2841,29 @@ void TRMBuildTransfers::kappa_phi_To_hyperbolic(TPZCompMesh * hyperbolic){
             gel->X(par_triplet, x);
             
             associated_material->GetMemory()[indexes[ip]].Set_x(x);
-            //            fSimulationData->Map()->ComputePropertieSPE10Map(index, x, kappa, kappa_inv, porosity);
+            
+            int map_model = fSimulationData->Map()->MapModel();
             fSimulationData->Map()->Kappa(x, kappa, kappa_inv, vars);
             fSimulationData->Map()->phi(x, porosity, vars);
+            fSimulationData->Map()->lambda(x, lambda, vars);
+            fSimulationData->Map()->mu(x, mu, vars);
+            fSimulationData->Map()->S_e(x, S_e, vars);
+            fSimulationData->Map()->alpha(x, alpha, vars);
+            
+            if (map_model != 0) {
+                lambda[0]   *= cos(porosity[0]);
+                mu[0]       *= cos(porosity[0]);
+                S_e[0]      *= sin(porosity[0]);
+                alpha[0]    *= sin(porosity[0]);
+            }
+            
             associated_material->GetMemory()[indexes[ip]].Set_K_0(kappa);
             associated_material->GetMemory()[indexes[ip]].Set_Kinv_0(kappa_inv);
             associated_material->GetMemory()[indexes[ip]].Set_phi_0(porosity[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_lambda(lambda[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_mu(mu[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_S_e(S_e[0]);
+            associated_material->GetMemory()[indexes[ip]].Set_alpha(alpha[0]);
         }
     }
     
@@ -3248,7 +3522,10 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_interfaces(TPZCompMesh * para
         TPZGeoEl * father_left_gel  = left_gel->Father();
         TPZGeoEl * father_right_gel = right_gel->Father();
         
-        if (!father_left_gel && !father_right_gel) {
+        int mhm_div_l = fSimulationData->MHMResolution().second.second;
+        bool mhm_div_level_check = (left_gel->Level() == mhm_div_l && right_gel->Level() == mhm_div_l);
+        
+        if ((!father_left_gel && !father_right_gel) || mhm_div_level_check) {
             
 #ifdef PZDEBUG
             
@@ -3262,13 +3539,22 @@ void TRMBuildTransfers::Build_parabolic_hyperbolic_interfaces(TPZCompMesh * para
             right_mixed_cel = right_gel->Reference();
         }
         else{
-            for (int l = 0; l < n_l - 1; l++) {
-                father_left_gel     = father_left_gel->Father();
-                father_right_gel    = father_right_gel->Father();
+            
+        bool hyperbolic_level_check = (left_gel->Level() == mhm_div_l + n_l && right_gel->Level() == mhm_div_l + n_l);
+
+            if (hyperbolic_level_check) {
+                for (int l = 0; l < n_l - 1; l++) {
+                    father_left_gel     = father_left_gel->Father();
+                    father_right_gel    = father_right_gel->Father();
+                }
+                
+                left_mixed_cel = father_left_gel->Reference();
+                right_mixed_cel = father_right_gel->Reference();
+            }
+            else{
+                DebugStop();
             }
             
-            left_mixed_cel = father_left_gel->Reference();
-            right_mixed_cel = father_right_gel->Reference();
         }
 
         

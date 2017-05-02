@@ -20,6 +20,22 @@ class TRMPhaseMemory
 
 private:
     
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Memory (\partial Gamma and Omega) :: Spatial memory items
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /** @brief first lame undrained parameter */
+    REAL f_lambda;
+    
+    /** @brief second lame undrained parameter */
+    REAL f_mu;
+    
+    /** @brief Storage constrained modulus */
+    REAL f_S_e;
+    
+    /** @brief Maurice Biot coefficient */
+    REAL f_alpha;
+    
     /** @brief contains the normal flux per surface area */
     REAL fun;
     
@@ -109,6 +125,50 @@ public:
         }
         return *this;
         
+    }
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Segregated Memory (\partial Gamma and Omega) :: Spatial memory items
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /** @brief Set first lame undrained parameter */
+    void Set_lambda(REAL lambda){
+        f_lambda = lambda;
+    }
+    
+    /** @brief Get first lame undrained parameter */
+    REAL lambda(){
+        return f_lambda;
+    }
+    
+    /** @brief Set second lame undrained parameter */
+    void Set_mu(REAL mu){
+        f_mu = mu;
+    }
+    
+    /** @brief Get second lame undrained parameter */
+    REAL mu(){
+        return f_mu;
+    }
+    
+    /** @brief Set storage constrained modulus */
+    void Set_S_e(REAL S_e){
+        f_S_e = S_e;
+    }
+    
+    /** @brief Get storage constrained modulus */
+    REAL S_e(){
+        return f_S_e;
+    }
+    
+    /** @brief Set Maurice Biot coefficient */
+    void Set_alpha(REAL alpha){
+        f_alpha = alpha;
+    }
+    
+    /** @brief Get Maurice Biot coefficient */
+    REAL alpha(){
+        return f_alpha;
     }
     
    

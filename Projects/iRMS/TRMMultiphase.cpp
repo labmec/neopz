@@ -490,7 +490,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     
     fSimulationData->Map()->S_0(datavec[ub].x, S_geo);
     fSimulationData->Map()->lambda(datavec[ub].x, lambda, v);
-    fSimulationData->Map()->lambda_u(datavec[ub].x, lambda_u, v);
+    fSimulationData->Map()->S_e(datavec[ub].x, lambda_u, v);
     fSimulationData->Map()->mu(datavec[ub].x, mu, v);
     fSimulationData->Map()->alpha(datavec[ub].x, alpha, v);
     
@@ -731,7 +731,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     fSimulationData->Map()->phi(datavec[qb].x, phi, v);
     
     fSimulationData->Map()->lambda(datavec[ub].x, lambda, v);
-    fSimulationData->Map()->lambda_u(datavec[ub].x, lambda_u, v);
+    fSimulationData->Map()->S_e(datavec[ub].x, lambda_u, v);
     fSimulationData->Map()->mu(datavec[ub].x, mu, v);
     fSimulationData->Map()->alpha(datavec[ub].x, alpha, v);
     
@@ -959,7 +959,7 @@ void TRMMultiphase::Solution_a(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
     fSimulationData->Map()->lambda(datavec[ub].x, lambda, v);
-    fSimulationData->Map()->lambda_u(datavec[ub].x, lambda_u, v);
+    fSimulationData->Map()->S_e(datavec[ub].x, lambda_u, v);
     fSimulationData->Map()->mu(datavec[ub].x, mu, v);
     fSimulationData->Map()->alpha(datavec[ub].x, alpha, v);
     

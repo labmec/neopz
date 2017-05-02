@@ -57,7 +57,7 @@ private:
     
     void lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars);
     
-    void lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars);
+    void S_e_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &S_e, TPZManVector<STATE,10> &state_vars);
     
     void mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars);
     
@@ -124,7 +124,7 @@ public:
     
     void lambda(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars);
     
-    void lambda_u(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars);
+    void S_e(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &S_e, TPZManVector<STATE,10> &state_vars);
     
     void mu(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars);
     

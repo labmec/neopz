@@ -1,13 +1,13 @@
 //
-//  TRMBiotPoroelasticity.h
+//  TRMPoroelasticModes.h
 //  PZ
 //
-//  Created by omar duran on 5/05/2015.
+//  Created by Omar on 5/1/17.
 //
 //
 
-#ifndef __PZ__TRMBiotPoroelasticity__
-#define __PZ__TRMBiotPoroelasticity__
+#ifndef TRMPoroelasticModes_h
+#define TRMPoroelasticModes_h
 
 #include <stdio.h>
 #include "pzmatwithmem.h"
@@ -21,7 +21,7 @@
 #include "TRMSimulationData.h"
 #include "pzlog.h"
 
-class TRMBiotPoroelasticity : public TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> {
+class TRMPoroelasticModes : public TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> {
     
 private:
     
@@ -37,19 +37,19 @@ private:
 public:
     
     /** @brief Default constructor */
-    TRMBiotPoroelasticity();
+    TRMPoroelasticModes();
     
     /** @brief Constructor based on a material id */
-    TRMBiotPoroelasticity(int matid, int dimension);
+    TRMPoroelasticModes(int matid, int dimension, int nstate);
     
     /** @brief Default desconstructor */
-    ~TRMBiotPoroelasticity();
+    ~TRMPoroelasticModes();
     
     /** @brief Copy constructor $ */
-    TRMBiotPoroelasticity(const TRMBiotPoroelasticity& other);
+    TRMPoroelasticModes(const TRMPoroelasticModes& other);
     
     /** @brief Copy assignemnt operator $ */
-    TRMBiotPoroelasticity & operator = (const TRMBiotPoroelasticity& other);
+    TRMPoroelasticModes & operator = (const TRMPoroelasticModes& other);
     
     /** @brief Set the required data at each integration point */
     void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
@@ -59,7 +59,7 @@ public:
     
     /** @brief Returns the name of the material */
     std::string Name() {
-        return "TRMBiotPoroelasticity";
+        return "TRMPoroelasticModes";
     }
     
     /** returns the integrable dimension of the material */
@@ -70,13 +70,9 @@ public:
         return fnstate;
     }
     
-    void Set_NStateVariables(int nstate){
-        fnstate = nstate;
-    }
-    
     virtual TPZMaterial *NewMaterial()
     {
-        return new TRMBiotPoroelasticity(*this);
+        return new TRMPoroelasticModes(*this);
     }
     
     /** print out the data associated with the material */
@@ -117,7 +113,7 @@ public:
     void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
         DebugStop();
     }
-
+    
     // Contribute Methods being used
     
     void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
@@ -126,19 +122,10 @@ public:
     
     void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
-    void Contribute_RB(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    
-    void Contribute_RB_BC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-    
     // Contribute 3D Methods being used
     void Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
     void ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-    
-    void Contribute_RB_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    
-    void Contribute_RB_BC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-    
     
     void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
@@ -163,4 +150,5 @@ public:
     
 };
 
-#endif /* defined(__PZ__TRMBiotPoroelasticity__) */
+
+#endif /* TRMPoroelasticModes_h */

@@ -99,7 +99,8 @@ int TPZReducedSpace::MaxOrder()
  */
 void TPZReducedSpace::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
 {
-    DebugStop();
+    TPZFMatrix<REAL> fake_axes;
+    this->ShapeX(qsi, phi, dphi,fake_axes);
 }
 
 /** 
@@ -196,7 +197,13 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
 {
     data.intGlobPtIndex = -1;
     if (data.fNeedsBasis) {
-            ShapeX(qsi, data.phi, data.dphix, data.axes);
+        ShapeX(qsi, data.phi, data.dphix, data.axes);
+    }
+    else{
+        TPZFMatrix<REAL> jac;
+        TPZFMatrix<REAL> jacinv;
+        REAL detjac;
+        this->Reference()->Jacobian(qsi, jac, data.axes, detjac, jacinv);
     }
     
     if (data.fNeedsSol) {

@@ -1,4 +1,5 @@
-  //
+
+;//
 //  TRMSpaceOdissey.cpp
 //  PZ
 //
@@ -8,7 +9,9 @@
 
 #include "TRMSpaceOdissey.h"
 
-
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
 
 void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
     f.Resize(1,0.);
@@ -19,8 +22,8 @@ void Forcing(const TPZVec<REAL> &pt, TPZVec<STATE> &f) {
 static void CreateExampleRawData(TRMRawData &data)
 {
     data.fLw = 500.;
-    data.fHasLiner = false; //AQUINATHAN esta false para gerar uma malha sem os refinamentos do meio que geram hangnodes
-    data.fHasCasing = false; //AQUINATHAN esta false para gerar uma malha sem os refinamentos do meio que geram hangnodes
+    data.fHasLiner = false;
+    data.fHasCasing = false;
     
     data.fReservoirWidth = 500.;
     data.fReservoirLength = 1000.;
@@ -42,10 +45,14 @@ TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
     fGeoMesh                    = NULL;
     fSimulationData             = NULL;
     fH1Cmesh                    = NULL;
+    fBiotCmesh                  = NULL;
+    fGP_BiotCmesh               = NULL;
+    fGeoPressureCmesh           = NULL;
     fFluxCmesh                  = NULL;
     fPressureCmesh              = NULL;
     fAlphaSaturationMesh        = NULL;
     fBetaSaturationMesh         = NULL;
+    fGalerkinProjectionsCmesh   = NULL;
     fGeoMechanicsCmesh          = NULL;
     fTransportMesh              = NULL;
     fMixedFluxPressureCmesh     = NULL;
@@ -59,10 +66,14 @@ TRMSpaceOdissey::TRMSpaceOdissey() : fMeshType(TRMSpaceOdissey::EBox)
 TRMSpaceOdissey::~TRMSpaceOdissey(){
     
     if(fH1Cmesh)                    fH1Cmesh->CleanUp();
+    if(fBiotCmesh)                  fBiotCmesh->CleanUp();
+    if(fGP_BiotCmesh)               fGP_BiotCmesh->CleanUp();
+    if(fGeoPressureCmesh)           fGeoPressureCmesh->CleanUp();
     if(fFluxCmesh)                  fFluxCmesh->CleanUp();
     if(fPressureCmesh)              fPressureCmesh->CleanUp();
     if(fAlphaSaturationMesh)        fAlphaSaturationMesh->CleanUp();
     if(fBetaSaturationMesh)         fBetaSaturationMesh->CleanUp();
+    if(fGalerkinProjectionsCmesh)   fGalerkinProjectionsCmesh->CleanUp();
     if(fGeoMechanicsCmesh)          fGeoMechanicsCmesh->CleanUp();
     if(fTransportMesh)              fTransportMesh->CleanUp();
     if(fMixedFluxPressureCmesh)     fMixedFluxPressureCmesh->CleanUp();
@@ -197,6 +208,310 @@ void TRMSpaceOdissey::CreateBiotCmesh(){
     
 }
 
+/** @brief Create a Biot poroelastic elastic space for RB generation computational mesh */
+void TRMSpaceOdissey::CreateGeoPressureBiotCmesh(){
+    
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+    
+    int dim = fGeoMesh->Dimension();
+    int Sigma_or_displacement = 0;
+    int uorder = fUOrder;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
+    
+    // Malha computacional
+    fGP_BiotCmesh = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        
+        TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(rock_id,dim);
+        fGP_BiotCmesh->InsertMaterialObject(mat);
+        
+        
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 0;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
+        int bc_id = 0;
+        
+        for (int j = initial_bc; j < n_boundauries; j++) {
+            
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[Sigma_or_displacement];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            fGP_BiotCmesh->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+    
+    
+    // Sideburden
+    int side_burden_rock = 14;
+    int bc_W = 20;
+    int bc_N = 19;
+    int bc_E = 18;
+    int bc_S = 17;
+    int bc_T = 16;
+    int bc_B = 15;
+    
+    if (dim == 2) {
+        side_burden_rock = 12;
+        bc_W = 14;
+        bc_N = 15;
+        bc_E = 16;
+        bc_S = 13;
+        bc_T = 1000;
+        bc_B = 1000;
+    }
+    
+    
+    TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
+    fGP_BiotCmesh->InsertMaterialObject(mat);
+    
+    TPZMaterial * W_bndc = mat->CreateBC(mat, bc_W, Sigma_or_displacement, val1, val2);
+    fGP_BiotCmesh->InsertMaterialObject(W_bndc);
+    
+    TPZMaterial * N_bndc = mat->CreateBC(mat, bc_N, Sigma_or_displacement, val1, val2);
+    fGP_BiotCmesh->InsertMaterialObject(N_bndc);
+    
+    TPZMaterial * E_bndc = mat->CreateBC(mat, bc_E, Sigma_or_displacement, val1, val2);
+    fGP_BiotCmesh->InsertMaterialObject(E_bndc);
+    
+    TPZMaterial * S_bndc = mat->CreateBC(mat, bc_S, Sigma_or_displacement, val1, val2);
+    fGP_BiotCmesh->InsertMaterialObject(S_bndc);
+    
+    TPZMaterial * T_bndc = mat->CreateBC(mat, bc_T, Sigma_or_displacement, val1, val2);
+    fGP_BiotCmesh->InsertMaterialObject(T_bndc);
+    
+    TPZMaterial * B_bndc = mat->CreateBC(mat, bc_B, Sigma_or_displacement, val1, val2);
+    fGP_BiotCmesh->InsertMaterialObject(B_bndc);
+    
+    fGP_BiotCmesh->SetDimModel(dim);
+    fGP_BiotCmesh->SetDefaultOrder(uorder);
+    fGP_BiotCmesh->SetAllCreateFunctionsContinuous();
+    fGP_BiotCmesh->AutoBuild();
+    
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshGProjections.txt");
+    fGP_BiotCmesh->Print(out);
+#endif
+    
+}
+
+/** @brief Create a Biot RB computational mesh */
+TPZCompMesh * TRMSpaceOdissey::CreateRB_BiotCmesh(){
+    
+    if(!fGeoMesh || !fGP_BiotCmesh)
+    {
+        std::cout<< "Geometric mesh or GP mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+    
+    int dim = fGeoMesh->Dimension();
+    int Sigma_or_displacement = 0;
+    int uorder = 0;
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
+    
+    TPZCompMeshReferred * cmesh_rb = new TPZCompMeshReferred(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        
+        TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(rock_id,dim);
+        if (fSimulationData->ReducedBasisResolution().first) {
+            mat->Set_NStateVariables(1);
+        }
+        cmesh_rb->InsertMaterialObject(mat);
+        
+        
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 0;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
+        int bc_id = 0;
+        
+        for (int j = initial_bc; j < n_boundauries; j++) {
+            
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[Sigma_or_displacement];
+            TPZMaterial * boundary_c = mat->CreateBC(mat, bc_id, bc_item.first, val1, val2);
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(boundary_data); // @Omar:: Modified for multiple rock materials and set the polynomial order of the functions
+            cmesh_rb->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+    
+    
+    // Sideburden
+    int side_burden_rock = 14;
+    int bc_W = 20;
+    int bc_N = 19;
+    int bc_E = 18;
+    int bc_S = 17;
+    int bc_T = 16;
+    int bc_B = 15;
+    
+    if (dim == 2) {
+        side_burden_rock = 12;
+        bc_W = 14;
+        bc_N = 15;
+        bc_E = 16;
+        bc_S = 13;
+        bc_T = 1000;
+        bc_B = 1000;
+    }
+    
+    
+    TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
+    if (fSimulationData->ReducedBasisResolution().first) {
+        mat->Set_NStateVariables(1);
+    }
+    cmesh_rb->InsertMaterialObject(mat);
+    
+    TPZMaterial * W_bndc = mat->CreateBC(mat, bc_W, Sigma_or_displacement, val1, val2);
+    cmesh_rb->InsertMaterialObject(W_bndc);
+    
+    TPZMaterial * N_bndc = mat->CreateBC(mat, bc_N, Sigma_or_displacement, val1, val2);
+    cmesh_rb->InsertMaterialObject(N_bndc);
+    
+    TPZMaterial * E_bndc = mat->CreateBC(mat, bc_E, Sigma_or_displacement, val1, val2);
+    cmesh_rb->InsertMaterialObject(E_bndc);
+    
+    TPZMaterial * S_bndc = mat->CreateBC(mat, bc_S, Sigma_or_displacement, val1, val2);
+    cmesh_rb->InsertMaterialObject(S_bndc);
+    
+    TPZMaterial * T_bndc = mat->CreateBC(mat, bc_T, Sigma_or_displacement, val1, val2);
+    cmesh_rb->InsertMaterialObject(T_bndc);
+    
+    TPZMaterial * B_bndc = mat->CreateBC(mat, bc_B, Sigma_or_displacement, val1, val2);
+    cmesh_rb->InsertMaterialObject(B_bndc);
+    
+    // Setting RB approximation space
+    cmesh_rb->SetDimModel(dim);
+    int numsol = fGP_BiotCmesh->Solution().Cols();
+    cmesh_rb->AllocateNewConnect(numsol, 1, uorder);
+    TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh_rb);
+    cmesh_rb->AutoBuild();
+    
+    cmesh_rb->AdjustBoundaryElements();
+    cmesh_rb->CleanUpUnconnectedNodes();
+    cmesh_rb->LoadReferred(fGP_BiotCmesh);
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshRB_Biot.txt");
+    cmesh_rb->Print(out);
+#endif
+    
+    return cmesh_rb;
+    
+}
+
+
+/** @brief Create a constant pressure computational mesh */
+void TRMSpaceOdissey::CreateGeoPressuresCmesh(){
+    
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+    
+    int dim = fGeoMesh->Dimension();
+    int porder = 0;
+    
+    // Malha computacional
+    fGeoPressureCmesh = new TPZCompMesh(fGeoMesh);
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        TRMPoroelasticModes * mat = new TRMPoroelasticModes(rock_id,dim,1);
+        fGeoPressureCmesh->InsertMaterialObject(mat);
+        
+    }
+    
+    // Setando L2
+    fGeoPressureCmesh->SetDimModel(dim);
+    fGeoPressureCmesh->SetDefaultOrder(porder);
+    
+    fGeoPressureCmesh->SetAllCreateFunctionsDiscontinuous();
+    fGeoPressureCmesh->AutoBuild();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshGeoPress.txt");
+    fGeoPressureCmesh->Print(out);
+#endif
+    
+}
+
 /** @brief Create a Hdiv computational mesh Hdiv */
 void TRMSpaceOdissey::CreateFluxCmesh(){
     
@@ -321,6 +636,7 @@ void PressFunc(const TPZVec<REAL> &x, TPZVec<STATE> &func)
 
 /** @brief Create a Discontinuous computational mesh L2 */
 void TRMSpaceOdissey::CreatePressureCmesh(){
+
     if(!fGeoMesh)
     {
         std::cout<< "Geometric mesh doesn't exist" << std::endl;
@@ -530,6 +846,563 @@ void TRMSpaceOdissey::BuildGeomechanic_Mesh(){
     this->CreateGeoMechanicMesh();
 }
 
+/** @brief Create a RB computational mesh for Maurice Biot Linear Poroelasticity */
+void TRMSpaceOdissey::BuildRBGeomechanic_Mesh(){
+    
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+    // offline split
+    fSimulationData->ReducedBasisResolution().second.first = true;    // offline split
+    this->CreateGeoPressureBiotCmesh();
+    this->CreateGeoPressuresCmesh();
+    this->CreateGeoModesCmesh();
+    this->RB_Generator();
+    fBiotCmesh = this->CreateRB_BiotCmesh();
+    this->CreateGeoMechanicMesh();
+    fSimulationData->ReducedBasisResolution().second.first = false;    // offline split
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    std::cout  << "iRMS::RB:: Time for offline process " << (t2-t1) << std::endl;
+#endif
+
+}
+
+/** @brief Create The reduced basis */
+void TRMSpaceOdissey::RB_Generator(){
+
+    TRMBuildTransfers * transfer = new TRMBuildTransfers;
+    transfer->SetSimulationData(fSimulationData);    
+    bool mustOptimizeBandwidth_e = true;
+    int numofThreads_e = 16;
+    TRMGeomechanicAnalysis  * RB_generator      = new TRMGeomechanicAnalysis;
+
+    RB_generator->Meshvec().Resize(2);
+    // Analysis for elliptic part
+    RB_generator->Meshvec()[0] = this->GP_BiotCmesh();
+    RB_generator->Meshvec()[1] = this->GeoPressureCMesh();
+    RB_generator->SetCompMesh(this->GalerkinProjectionsCMesh(),mustOptimizeBandwidth_e);
+    
+    
+    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(this->GalerkinProjectionsCMesh());
+    //    strmat_e.SetDecomposeType(ELDLt);
+    
+    //    TPZSkylineStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
+    
+    TPZSymetricSpStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
+    
+    TPZStepSolver<STATE> step_e;
+    step_e.SetDirect(ELDLt);
+    strmat_e.SetNumThreads(numofThreads_e);
+    RB_generator->SetStructuralMatrix(strmat_e);
+    RB_generator->SetSolver(step_e);
+    RB_generator->AdjustVectors();
+    RB_generator->SetSimulationData(fSimulationData);
+    transfer->spatial_props_To_elliptic(RB_generator->Mesh()); // load properties inside memory
+
+    RB_generator->SimulationData()->SetInitialStateQ(false);
+    RB_generator->SimulationData()->SetCurrentStateQ(true);
+    RB_generator->Assemble();
+    
+    // Setting up the empirical interpolation based on unitary pressures
+    
+    REAL unit_p = 1.0e6;
+    TPZStack<TPZVec<long> > cts_pressures;
+    
+    int n_blocks = DrawingPressureBlocks(RB_generator->Meshvec()[1], cts_pressures,5);
+    
+    int ndof_elastic = RB_generator->Meshvec()[0]->NEquations();
+    TPZFMatrix<REAL> galerkin_projts(ndof_elastic,n_blocks);
+    galerkin_projts.Zero();
+    
+    int progress = (n_blocks/10) + 1;
+    REAL percent = -10.0;
+    fSimulationData->Set_m_RB_functions(n_blocks);
+    std::cout<< "RB:: number of geomodes = " << n_blocks << std::endl;
+    for (int ip = 0; ip < n_blocks; ip++) {
+        
+        
+        RB_generator->Meshvec()[0]->Solution().Zero();
+        RB_generator->Meshvec()[1]->Solution().Zero();
+        
+        for (int jp = 0; jp < cts_pressures[ip].size(); jp++) {
+            RB_generator->Meshvec()[1]->Solution()(cts_pressures[ip][jp],0) = unit_p;
+        }
+        
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(RB_generator->Meshvec(), RB_generator->Mesh());
+        RB_generator->X_n() = RB_generator->Mesh()->Solution();
+        RB_generator->AssembleResidual();
+        RB_generator->Rhs() *= -1.0;
+        RB_generator->Solve();
+        RB_generator->Solution() += RB_generator->X_n();
+        RB_generator->LoadSolution();
+//        RB_generator->PostProcessStep();
+        
+        if(ip%progress == 0){
+            percent += 10.0;
+            std::cout << " Progress on offline stage " << percent  << " % " <<std::endl;
+            //            std::cout << " Progress on offline stage " << setw(3) << percent << setw(2)  << " % " <<std::endl;
+        }
+        
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(RB_generator->Meshvec(), RB_generator->Mesh());
+        galerkin_projts.AddSub(0, ip, RB_generator->Meshvec()[0]->Solution());
+    }
+    
+    RB_generator->Meshvec()[0]->LoadSolution(galerkin_projts);
+    
+//    fGP_BiotCmesh = RB_generator->Meshvec()[0];
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshGeoModesLoaded.txt");
+    fGP_BiotCmesh->Print(out);
+#endif
+    
+    std::cout << "ndof rb generator = " << fGP_BiotCmesh->Solution().Rows() << std::endl;
+
+}
+
+/** @brief Select regions for pressure fields */
+int TRMSpaceOdissey::DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, int target_id){
+    
+#ifdef PZDEBUG
+    if(!cmesh){
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh * geometry = cmesh->Reference();
+    
+#ifdef PZDEBUG
+    if(!geometry){
+        DebugStop();
+    }
+#endif
+    
+    int dim = geometry->Dimension();
+    cmesh->LoadReferences();
+    
+    TPZStack<REAL> min_x;
+    TPZStack<REAL> max_x;
+    bool Outline_is_doneQ = DrawingGeometryOutline(min_x, max_x,5);
+    
+    if(!Outline_is_doneQ){
+        DebugStop();
+    }
+    
+#ifdef PZDEBUG
+    if(fSimulationData->ReducedBasisResolution().second.second.size() == 0){
+        DebugStop();
+    }
+#endif
+    
+    int ni,nj,nk;
+    
+    if (dim == 2) {
+        ni = fSimulationData->ReducedBasisResolution().second.second[0];
+        nj = fSimulationData->ReducedBasisResolution().second.second[1];
+        nk = 1;
+    }
+    else{
+        ni = fSimulationData->ReducedBasisResolution().second.second[0];
+        nj = fSimulationData->ReducedBasisResolution().second.second[1];
+        nk = fSimulationData->ReducedBasisResolution().second.second[2];
+    }
+ 
+    
+    TPZManVector<REAL,3> x0(3,0.0);
+    
+    TPZStack<REAL> rule_x;
+    REAL dx = (max_x[0]-min_x[0])/ni;
+    REAL xv;
+    for (int i = 0; i < ni + 1; i++) {
+        xv = REAL(i)*dx + min_x[0];
+        rule_x.Push(xv);
+    }
+    
+    TPZStack<REAL> rule_y;
+    REAL dy = (max_x[1]-min_x[1])/nj;
+    REAL yv;
+    for (int j = 0; j < nj + 1; j++) {
+        yv = REAL(j)*dy + min_x[1];
+        rule_y.Push(yv);
+    }
+    
+    TPZStack<REAL> rule_z;
+    REAL dz = (max_x[2]-min_x[2])/nk;
+    REAL zv;
+    for (int k = 0; k < nk + 1; k++) {
+        zv = REAL(k)*dz + min_x[2];
+        rule_z.Push(zv);
+    }
+    
+    if (rule_z[0] == rule_z[1] && dim == 2) {
+        std::cout << "RB:: Drawing Pressure Blocks for 2D geometry " <<std::endl;
+    }
+    
+    if (dim == 3) {
+        std::cout << "RB:: Drawing Pressure Blocks for 3D geometry " <<std::endl;
+    }
+    
+    // counting volumetric elements
+    int nel = geometry->NElements();
+    int n_volumes = 0;
+    for (int iel = 0; iel < nel; iel++) {
+        TPZGeoEl * gel = geometry->Element(iel);
+        
+#ifdef PZDEBUG
+        if(!gel){
+            DebugStop();
+        }
+#endif
+        
+        if(gel->HasSubElement() || gel->Dimension() != dim){
+            continue;
+        }
+        
+//        bool target_regionQ = gel->MaterialId() == target_id;
+        bool target_regionQ = gel->MaterialId() == 5 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
+        if(!target_regionQ){
+            continue;
+        }
+        
+        n_volumes++;
+    }
+    
+    std::cout << "RB:: Number of volumetric elements =  " << n_volumes << std::endl;
+    
+    // goup elements by Cartesian Grid
+    TPZStack< TPZStack<long> > geo_groups;
+    
+    if (dim == 2) {
+        // Check if the element belong to the cartesian block
+        for (int i = 0; i < rule_x.size() - 1; i++) {
+            for (int j = 0; j < rule_y.size() - 1; j++) {
+                for (int k = 0; k < rule_z.size() - 1; k++) {
+                    
+                    // for each i,j,k box
+                    TPZStack<long> box_group;
+                    
+                    TPZManVector<REAL,3> x_c(3,0.0);
+                    TPZManVector<REAL,3> par_c(dim,0.0);
+                    int nel = geometry->NElements();
+                    for (int iel = 0; iel < nel; iel++) {
+                        TPZGeoEl * gel = geometry->Element(iel);
+                        
+#ifdef PZDEBUG
+                        if(!gel){
+                            DebugStop();
+                        }
+#endif
+                        
+                        if(gel->Level() != 0 || gel->Dimension() != dim){
+                            continue;
+                        }
+                        
+                        gel->CenterPoint(gel->NSides()-1, par_c);
+                        gel->X(par_c, x_c);
+                        
+                        // It is inside x
+                        if(rule_x[i] <= x_c[0] && x_c[0] < rule_x[i+1]){
+                            // It is inside y
+                            if(rule_y[j] <= x_c[1] && x_c[1] < rule_y[j+1]){
+                                // It is inside y
+                                box_group.Push(gel->Index());
+                            }
+                        }
+                        
+                    }
+                    
+                    if (box_group.size() == 0) {
+                        continue;
+                    }
+                    
+                    geo_groups.Push(box_group);
+                    //            std::cout << " group of geo elements with indexes =  " << box_group << std::endl;
+                }
+                
+            }
+        }
+    }
+    else{
+        // Check if the element belong to the cartesian block
+        for (int i = 0; i < rule_x.size() - 1; i++) {
+            for (int j = 0; j < rule_y.size() - 1; j++) {
+                for (int k = 0; k < rule_z.size() - 1; k++) {
+                    
+                    // for each i,j,k box
+                    TPZStack<long> box_group;
+                    
+                    TPZManVector<REAL,3> x_c(3,0.0);
+                    TPZManVector<REAL,3> par_c(dim,0.0);
+                    int nel = geometry->NElements();
+                    for (int iel = 0; iel < nel; iel++) {
+                        TPZGeoEl * gel = geometry->Element(iel);
+                        
+#ifdef PZDEBUG
+                        if(!gel){
+                            DebugStop();
+                        }
+#endif
+                        
+                        if(gel->Level() != 0 || gel->Dimension() != dim){
+                            continue;
+                        }
+                        
+                        gel->CenterPoint(gel->NSides()-1, par_c);
+                        gel->X(par_c, x_c);
+                        
+                        // It is inside x
+                        if(rule_x[i] <= x_c[0] && x_c[0] < rule_x[i+1]){
+                            // It is inside y
+                            if(rule_y[j] <= x_c[1] && x_c[1] < rule_y[j+1]){
+                                // It is inside z
+
+                                if(rule_z[k] <= x_c[2] && x_c[2] < rule_z[k+1]){
+                                    
+                                    box_group.Push(gel->Index());
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    if (box_group.size() == 0) {
+                        continue;
+                    }
+                    
+                    geo_groups.Push(box_group);
+                }
+                
+            }
+        }
+    }
+    
+#ifdef PZDEBUG
+    if(geo_groups.size() == 0){
+        DebugStop();
+    }
+#endif
+    
+    // drained response mode
+    TPZVec<long> dofs(0);
+    constant_pressures.Push(dofs);
+    
+    // Pick blocks dofs
+    TPZVec<long> dof_indexes;
+    TPZVec<long> igroup;
+    int n_groups = geo_groups.size();
+    
+    // For all groups
+    int group_n_vol = 0;
+    for (int ig = 0; ig < n_groups; ig++) {
+        igroup = geo_groups[ig];
+        
+        // For a selecteced group of elements
+        TPZStack<long> dof_stack;
+        for(int igel = 0; igel < igroup.size(); igel++){
+            
+            TPZGeoEl * gel = geometry->Element(igroup[igel]);
+            
+#ifdef PZDEBUG
+            if(!gel || gel->Dimension() != dim){
+                DebugStop();
+            }
+#endif
+            
+            TPZVec<TPZGeoEl *> unrefined_sons;
+            gel->GetHigherSubElements(unrefined_sons);
+            int nsub = unrefined_sons.size();
+            for (int isub = 0; isub < nsub; isub++) {
+                TPZGeoEl * subgel = unrefined_sons[isub];
+                
+                if (subgel->Dimension() != dim) {
+                    continue;
+                }
+                
+                TPZCompEl *cel = subgel->Reference();
+#ifdef PZDEBUG
+                if(!cel){
+                    DebugStop();
+                }
+#endif
+                
+                TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(cel);
+#ifdef PZDEBUG
+                if(!intel){
+                    DebugStop();
+                }
+#endif
+                group_n_vol++;
+                ElementDofIndexes(intel, dof_indexes);
+                for (int i = 0;  i < dof_indexes.size(); i++) {
+                    dof_stack.Push(dof_indexes[i]);
+                }
+                
+            }
+            
+            if(nsub == 0){
+                TPZCompEl *cel = gel->Reference();
+#ifdef PZDEBUG
+                if(!cel){
+                    DebugStop();
+                }
+#endif
+                
+                TPZInterpolationSpace * intel = dynamic_cast<TPZInterpolationSpace * >(cel);
+#ifdef PZDEBUG
+                if(!intel){
+                    DebugStop();
+                }
+#endif
+                
+                group_n_vol++;
+                ElementDofIndexes(intel, dof_indexes);
+                for (int i = 0;  i < dof_indexes.size(); i++) {
+                    dof_stack.Push(dof_indexes[i]);
+                }
+            }
+        }
+        
+        TPZVec<long> dofs(dof_stack);
+        constant_pressures.Push(dofs);
+        
+    }
+    
+    
+    if(group_n_vol != n_volumes){
+        std::cout << "RB:: Drawing Pressure Blocks left some elements out! " <<std::endl;
+        //        DebugStop();
+    }
+    
+    int n_pressure_blocks = constant_pressures.size();
+    if(n_pressure_blocks == 0){
+        DebugStop();
+    }
+    
+    return n_pressure_blocks;
+    
+    
+}
+
+/** @brief Compute reservoir outline */
+bool TRMSpaceOdissey::DrawingGeometryOutline(TPZStack< REAL > & min_x, TPZStack< REAL > & max_x, int target_id){
+    
+#ifdef PZDEBUG
+    if(!fGeoMesh){
+        DebugStop();
+    }
+#endif
+    
+    long n_elemtens = fGeoMesh->NElements();
+    int dim = fGeoMesh->Dimension();
+    
+    REAL min_xc = +1.0e12;
+    REAL max_xc = -1.0e12;
+    REAL min_yc = +1.0e12;
+    REAL max_yc = -1.0e12;
+    REAL min_zc = +1.0e12;
+    REAL max_zc = -1.0e12;
+    
+    TPZManVector<REAL,3> co(3,0.0);
+    for (long iel = 0; iel < n_elemtens; iel++) {
+        
+        TPZGeoEl * gel = fGeoMesh->Element(iel);
+        
+#ifdef PZDEBUG
+        if(!gel){
+            DebugStop();
+        }
+#endif
+        
+        if(gel->HasSubElement() || gel->Dimension() != dim){// apply RB process on lowest level
+            continue;
+        }
+        
+        bool target_regionQ = gel->MaterialId() == 5 || gel->MaterialId()== 6 || gel->MaterialId() == 7;
+//        bool target_regionQ = gel->MaterialId() == target_id;        
+        if(!target_regionQ){
+            continue;
+        }
+        
+        int n_nodes = gel->NNodes();
+        
+        for (long inode = 0; inode < n_nodes; inode++) {
+
+            TPZGeoNode node = gel->Node(inode);
+            node.GetCoordinates(co);
+
+            // x limits
+            if (min_xc > co[0]) {
+            min_xc = co[0];
+            }
+
+            if (max_xc < co[0]) {
+            max_xc = co[0];
+            }
+
+            // y limits
+            if (min_yc > co[1]) {
+            min_yc = co[1];
+            }
+
+            if (max_yc < co[1]) {
+            max_yc = co[1];
+            }
+
+            // z limits
+            if (min_zc > co[2]) {
+            min_zc = co[2];
+            }
+
+            if (max_zc < co[2]) {
+            max_zc = co[2];
+            }
+        }
+    }
+    
+    min_x.Push(min_xc);
+    min_x.Push(min_yc);
+    min_x.Push(min_zc);
+    
+    max_x.Push(max_xc);
+    max_x.Push(max_yc);
+    max_x.Push(max_zc);
+    
+    return true;
+    
+}
+
+void TRMSpaceOdissey::ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes){
+    
+#ifdef PZDEBUG
+    if (!intel) {
+        DebugStop();
+    }
+#endif
+    
+    TPZStack<long> index(0,0);
+    int nconnect = intel->NConnects();
+    for (int icon = 0; icon < nconnect; icon++) {
+        TPZConnect  & con = intel->Connect(icon);
+        long seqnumber = con.SequenceNumber();
+        long position = intel->Mesh()->Block().Position(seqnumber);
+        int nshape = con.NShape();
+        for (int ish=0; ish < nshape; ish++) {
+            index.Push(position+ ish);
+        }
+    }
+    
+    dof_indexes = index;
+    return;
+}
+
+
 /** @brief Build MHM form the current hdvi mesh */
 void TRMSpaceOdissey::BuildMixed_Mesh(){
     
@@ -565,7 +1438,7 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     
     
     this->CreateMixedCmeshMHM();
-    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
+//    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
 #ifdef PZDEBUG
     std::ofstream out_mhm("CmeshMixedMHM.txt");
     this->MixedFluxPressureCmeshMHM()->Print(out_mhm);
@@ -815,11 +1688,6 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
     fGeoMechanicsCmesh = new TPZCompMesh(fGeoMesh);
     
     // bc types
-//    int u_fixed   = 0;
-//    int u_h_fixed = 1;
-//    int s_v_free  = 3;
-//    int p_normal  = 6;
-    
     int u_fixed   = 0;
     int u_h_fixed = 1;
     int s_v_free  = 3;
@@ -836,6 +1704,9 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
         
         TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(rock_id,dim);
+        if (fSimulationData->ReducedBasisResolution().first) {
+            mat->Set_NStateVariables(1);
+        }
         mat->SetSimulationData(this->SimulationData());
         fGeoMechanicsCmesh->InsertMaterialObject(mat);
         
@@ -901,6 +1772,9 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
         bc_B = 1000;
         
         TRMBiotPoroelasticity * mat = new TRMBiotPoroelasticity(side_burden_rock,dim);
+        if (fSimulationData->ReducedBasisResolution().first) {
+            mat->Set_NStateVariables(1);
+        }
         mat->SetSimulationData(this->SimulationData());
         fGeoMechanicsCmesh->InsertMaterialObject(mat);
         
@@ -1044,6 +1918,252 @@ void TRMSpaceOdissey::CreateGeoMechanicMesh(){
 #endif
     
 }
+
+/** @brief Create Geomodes computational mesh */
+void TRMSpaceOdissey::CreateGeoModesCmesh(){
+    
+    if(!fGeoMesh)
+    {
+        std::cout<< "Geometric mesh doesn't exist" << std::endl;
+        DebugStop();
+    }
+    
+    int dim = fGeoMesh->Dimension();
+    
+    TPZFMatrix<STATE> val1(1,1,0.), val2(dim,1,0.);
+    std::pair< int, TPZFunction<REAL> * > bc_item;
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
+    
+    // Malha computacional
+    fGalerkinProjectionsCmesh = new TPZCompMesh(fGeoMesh);
+    
+    // bc types
+    int u_fixed   = 0;
+    int u_h_fixed = 1;
+    int s_v_free  = 3;
+    int p_normal  = 6;
+    
+    // Inserting volumetric materials
+    int n_rocks = this->SimulationData()->RawData()->fOmegaIds.size();
+    int n_boundauries = this->SimulationData()->RawData()->fGammaIds.size();
+    
+    int initial_bc = 0;
+    int rock_id = 0;
+    for (int i = 0; i < n_rocks; i++) {
+        
+        rock_id = this->SimulationData()->RawData()->fOmegaIds[i];
+        
+        TRMPoroelasticModes * mat = new TRMPoroelasticModes(rock_id,dim,1);
+        mat->SetSimulationData(this->SimulationData());
+        fGalerkinProjectionsCmesh->InsertMaterialObject(mat);
+        
+        
+        if (rock_id == 5) { // Reservoir
+            n_boundauries = 0;
+            initial_bc = 0;
+        }
+        
+        if (rock_id == 6) { // Wellbore productors
+            n_boundauries = 8;
+            initial_bc = 6;
+        }
+        
+        if (rock_id == 7) { // Wellbore injectors
+            n_boundauries = 10;
+            initial_bc = 8;
+        }
+        
+        int bc_id = 0;
+        
+        for (int j = initial_bc; j < n_boundauries; j++) {
+            
+            bc_id   = this->SimulationData()->RawData()->fGammaIds[j];
+            
+            if (fSimulationData->IsInitialStateQ()) {
+                bc      = this->SimulationData()->RawData()->fIntial_bc_data[j];
+            }
+            else{
+                bc      = this->SimulationData()->RawData()->fRecurrent_bc_data[j];
+            }
+            
+            bc_item = bc[0];
+            TPZMatWithMem<TRMMemory,TPZBndCond> * boundary_c = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+            boundary_c->SetNumLoadCases(1);
+            boundary_c->SetMaterial(mat);
+            boundary_c->SetId(bc_id);
+            boundary_c->SetType(p_normal);
+            boundary_c->SetValues(val1, val2);
+            TPZAutoPointer<TPZFunction<STATE> > boundary_data = bc_item.second;
+            boundary_c->SetTimedependentBCForcingFunction(0,boundary_data);
+            fGalerkinProjectionsCmesh->InsertMaterialObject(boundary_c);
+        }
+        
+    }
+    
+    // Sideburden
+    int side_burden_rock = 14;
+    int bc_W = 20;
+    int bc_N = 19;
+    int bc_E = 18;
+    int bc_S = 17;
+    int bc_T = 16;
+    int bc_B = 15;
+    
+    if (dim == 2) {
+        side_burden_rock = 12;
+        bc_W = 14;
+        bc_N = 15;
+        bc_E = 16;
+        bc_S = 13;
+        bc_T = 1000;
+        bc_B = 1000;
+        
+        TRMPoroelasticModes * mat = new TRMPoroelasticModes(side_burden_rock,dim,1);
+        mat->SetSimulationData(this->SimulationData());
+        fGalerkinProjectionsCmesh->InsertMaterialObject(mat);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * W_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        W_bndc->SetNumLoadCases(1);
+        W_bndc->SetMaterial(mat);
+        W_bndc->SetId(bc_W);
+        W_bndc->SetType(u_h_fixed);
+        W_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(W_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * N_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        N_bndc->SetNumLoadCases(1);
+        N_bndc->SetMaterial(mat);
+        N_bndc->SetId(bc_N);
+        N_bndc->SetType(s_v_free);
+        N_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(N_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * E_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        E_bndc->SetNumLoadCases(1);
+        E_bndc->SetMaterial(mat);
+        E_bndc->SetId(bc_E);
+        E_bndc->SetType(u_h_fixed);
+        E_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(E_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * S_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        S_bndc->SetNumLoadCases(1);
+        S_bndc->SetMaterial(mat);
+        S_bndc->SetId(bc_S);
+        S_bndc->SetType(u_fixed);
+        S_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(S_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * T_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        T_bndc->SetNumLoadCases(1);
+        T_bndc->SetMaterial(mat);
+        T_bndc->SetId(bc_T);
+        T_bndc->SetType(u_fixed);
+        T_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(T_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * B_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        B_bndc->SetNumLoadCases(1);
+        B_bndc->SetMaterial(mat);
+        B_bndc->SetId(bc_B);
+        B_bndc->SetType(u_fixed);
+        B_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(B_bndc);
+        
+    }
+    else{
+        
+        TRMPoroelasticModes * mat = new TRMPoroelasticModes(side_burden_rock,dim,1);
+        mat->SetSimulationData(this->SimulationData());
+        fGalerkinProjectionsCmesh->InsertMaterialObject(mat);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * W_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        W_bndc->SetNumLoadCases(1);
+        W_bndc->SetMaterial(mat);
+        W_bndc->SetId(bc_W);
+        W_bndc->SetType(u_h_fixed);
+        W_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(W_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * N_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        N_bndc->SetNumLoadCases(1);
+        N_bndc->SetMaterial(mat);
+        N_bndc->SetId(bc_N);
+        N_bndc->SetType(u_h_fixed);
+        N_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(N_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * E_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        E_bndc->SetNumLoadCases(1);
+        E_bndc->SetMaterial(mat);
+        E_bndc->SetId(bc_E);
+        E_bndc->SetType(u_h_fixed);
+        E_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(E_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * S_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        S_bndc->SetNumLoadCases(1);
+        S_bndc->SetMaterial(mat);
+        S_bndc->SetId(bc_S);
+        S_bndc->SetType(u_h_fixed);
+        S_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(S_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * T_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        T_bndc->SetNumLoadCases(1);
+        T_bndc->SetMaterial(mat);
+        T_bndc->SetId(bc_T);
+        T_bndc->SetType(s_v_free);
+        T_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(T_bndc);
+        
+        TPZMatWithMem<TRMMemory,TPZBndCond> * B_bndc = new TPZMatWithMem<TRMMemory,TPZBndCond>;
+        B_bndc->SetNumLoadCases(1);
+        B_bndc->SetMaterial(mat);
+        B_bndc->SetId(bc_B);
+        B_bndc->SetType(u_fixed);
+        B_bndc->SetValues(val1, val2);
+        fGalerkinProjectionsCmesh->InsertMaterialObject(B_bndc);
+        
+    }
+    
+    
+    fGalerkinProjectionsCmesh->SetDimModel(dim);
+    fGalerkinProjectionsCmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    fGalerkinProjectionsCmesh->ApproxSpace().CreateWithMemory(true);
+    fGalerkinProjectionsCmesh->AutoBuild();
+    
+    fGalerkinProjectionsCmesh->AdjustBoundaryElements();
+    fGalerkinProjectionsCmesh->CleanUpUnconnectedNodes();
+    
+    TPZManVector<TPZCompMesh * ,2> meshvector(2);
+    meshvector[0] = fGP_BiotCmesh;
+    meshvector[1] = fGeoPressureCmesh;
+    
+    // Transfer information
+    TPZBuildMultiphysicsMesh::AddElements(meshvector, fGalerkinProjectionsCmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(meshvector, fGalerkinProjectionsCmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvector, fGalerkinProjectionsCmesh);
+    
+    long nel = fGalerkinProjectionsCmesh->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = fGalerkinProjectionsCmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshGalerkinProjections.txt");
+    fGalerkinProjectionsCmesh->Print(out);
+#endif
+    
+}
+
 
 /** @brief Create a Mixed computational mesh Hdiv-L2 */
 void TRMSpaceOdissey::CreateMixedCmesh(){

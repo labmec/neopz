@@ -29,6 +29,7 @@
 #include "TRMMultiphase.h"
 #include "TRMMixedDarcy.h"
 #include "TRMBiotPoroelasticity.h"
+#include "TRMPoroelasticModes.h"
 #include "TPZMatLaplacian.h"
 #include "pzbndcond.h"
 #include "TRMPhaseTransport.h"
@@ -53,7 +54,19 @@
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzcompelwithmem.h"
 
+#include "tpzcompmeshreferred.h"
+#include "pzcompel.h"
+#include "pzreducedspace.h"
+
 #include "pzcreateapproxspace.h"
+
+// For RB generation
+#include "TRMGeomechanicAnalysis.h"
+// Type of structural matrices
+#include "TPZSkylineNSymStructMatrix.h"
+#include "TPZSSpStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
+#include "TPZSpStructMatrix.h"
 
 class TRMSpaceOdissey{
     
@@ -94,6 +107,12 @@ private:
     /** @brief H1 computational mesh for biot linear poroelasticity approach */
     TPZCompMesh * fBiotCmesh;
     
+    /** @brief GP computational mesh for biot linear poroelasticity approach */
+    TPZCompMesh * fGP_BiotCmesh;
+    
+    /** @brief L2 zero order mesh */
+    TPZCompMesh * fGeoPressureCmesh;
+    
     /** @brief H1 computational mesh for primal approach */
     TPZCompMesh * fH1Cmesh;
     
@@ -108,6 +127,9 @@ private:
 
     /** @brief L2 computational mesh beta saturation equations */
     TPZCompMesh * fBetaSaturationMesh;
+    
+    /** @brief Galerkin Projection for RB generation */
+    TPZCompMesh * fGalerkinProjectionsCmesh;
     
     /** @brief H1 computational mesh for Maurice Biot linear poroelasticity */
     TPZCompMesh * fGeoMechanicsCmesh;
@@ -189,6 +211,30 @@ public:
     /** @brief Create a Biot H1 computational mesh */
     void CreateBiotCmesh();
     
+    /** @brief Create a Biot poroelastic elastic space for RB generation computational mesh */
+    void CreateGeoPressureBiotCmesh();
+    
+    /** @brief Create a Biot RB computational mesh */    
+    TPZCompMesh * CreateRB_BiotCmesh();
+    
+    /** @brief Create a constant pressure computational mesh */
+    void CreateGeoPressuresCmesh();
+    
+    /** @brief Create Geomodes computational mesh */
+    void CreateGeoModesCmesh();
+    
+    /** @brief Create the reduced basis */
+    void RB_Generator();
+    
+    /** @brief Select regions for pressure fields */
+    int DrawingPressureBlocks(TPZCompMesh * cmesh, TPZStack<TPZVec<long> > & constant_pressures, int target_id);
+    
+    /** @brief Compute reservoir outline */
+    bool DrawingGeometryOutline(TPZStack< REAL > & min_x, TPZStack< REAL > & max_x, int target_id);
+    
+    /** @brief Compute constant pressure dof index */
+    void ElementDofIndexes(TPZInterpolationSpace * &intel, TPZVec<long> &dof_indexes);
+    
     /** @brief Create a H1 computational mesh */
     void CreateH1Cmesh();
     
@@ -222,8 +268,12 @@ public:
     /** @brief Create a multiphysics computational mesh L2 */
     void CreateTransportMesh();
     
-    /** @brief Create a H1 computational mesh for Maurice Biot Linear Poroelasticity */
+    /** @brief Create a H1/RB computational mesh for Maurice Biot Linear Poroelasticity */
     void CreateGeoMechanicMesh();
+    
+    
+    /** @brief Create a RB computational mesh for Maurice Biot Linear Poroelasticity */
+    void BuildRBGeomechanic_Mesh();
     
     /** @brief Create the reservoir geometry */
     void CreateGeometricReservoirMesh();
@@ -310,6 +360,26 @@ public:
         return fBiotCmesh;
     }
     
+    /** @brief Set autopointer of Biot H1 computational mesh for RB approach */
+    void SetGP_BiotCmesh(TPZCompMesh * GP_BiotCmesh){
+        fGP_BiotCmesh = GP_BiotCmesh;
+    }
+    
+    /** @brief Get autopointer of Biot H1 computational mesh for RB approach */
+    TPZCompMesh *  GP_BiotCmesh(){
+        return fGP_BiotCmesh;
+    }
+    
+    /** @brief Set autopointer of constant pressure computational mesh */
+    void SetGeoPressureCMesh(TPZCompMesh * GeoPressureCmesh){
+        fGeoPressureCmesh = GeoPressureCmesh;
+    }
+    
+    /** @brief Get autopointer of constant pressure computational mesh */
+    TPZCompMesh *  GeoPressureCMesh(){
+        return fGeoPressureCmesh;
+    }
+    
     /** @brief Set autopointer of H1 computational mesh for primal approach */
     void SetH1CMesh(TPZCompMesh * H1Cmesh){
         fH1Cmesh = H1Cmesh;
@@ -368,6 +438,16 @@ public:
     /** @brief Get autopointer of L2 computational mesh oil saturation equations */
     TPZCompMesh * BetaSaturationMesh(){
         return fBetaSaturationMesh;
+    }
+    
+    /** @brief Set autopointer of geomodes computational mesh */
+    void SetGalerkinProjectionsCMesh(TPZCompMesh * GalerkinProjectionsCmesh){
+        fGalerkinProjectionsCmesh = GalerkinProjectionsCmesh;
+    }
+    
+    /** @brief Get autopointer of geomodes computational mesh */
+    TPZCompMesh *  GalerkinProjectionsCMesh(){
+        return fGalerkinProjectionsCmesh;
     }
     
     /** @brief Set autopointer of H1 computational mesh for Maurice Biot linear poroelasticity */

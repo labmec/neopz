@@ -547,10 +547,10 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
     }
     
-    REAL l_dr   = 2.30769e9;
-    REAL mu_dr  = 1.53846e9;
-    REAL alpha  = 0.8;
-    REAL Se = 1.0e-9;
+    REAL l_dr   = memory.lambda();
+    REAL mu_dr  = memory.mu();
+    REAL alpha  = memory.alpha();
+    REAL Se = memory.S_e();
     
     TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
     Compute_Sigma(l_dr, mu_dr, alpha, p_0, S_0, grad_u_0);
@@ -905,10 +905,10 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         
     }
     
-    REAL l_dr   = 2.30769e9;
-    REAL mu_dr  = 1.53846e9;
-    REAL alpha  = 0.8;
-    REAL Se = 1.0e-9;
+    REAL l_dr   = memory.lambda();
+    REAL mu_dr  = memory.mu();
+    REAL alpha  = memory.alpha();
+    REAL Se = memory.S_e();
     
     TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
     Compute_Sigma(l_dr, mu_dr, alpha, p_0, S_0, grad_u_0);
@@ -925,8 +925,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
 //    REAL phi_n = phi_0 + alpha * (S_v_n - S_v_0) / Kdr + Ss * (p_n - p_0);
     
     REAL phi = phi_0;
-    REAL phi_n = phi_0;
-    Ss = 0.0;
+    REAL phi_n = phi_0;     Ss = 0.0;
     
     for (int ip = 0; ip < nphi_p; ip++)
     {

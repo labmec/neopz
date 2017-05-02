@@ -35,7 +35,7 @@ well_i_v_regions = {};
 geomechanicQ = 1;
 dimension = 3;
 nolinearQ = 0;
-CADReservoirQ = 0;
+CADReservoirQ = 1;
 
 xzQ = 0;
 hexahedronsWQ = 0;
@@ -59,8 +59,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 150.0;
-cl5 = 1500.0;
+cl4 = 100.0;
+cl5 = 500.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -115,16 +115,16 @@ EndIf
 // well geometry and settings
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 0.2;
-wl = 50.0;
+rw = 0.5;
+wl = 40.0;
 
-wbr = 30.0;
-ela = 50.0;
+wbr = 20.0;
+ela = 30.0;
 rw_cell= 1.0;
-wr_cell= 10.0;
+wr_cell= 20.0;
 
 If(dimension == 2)
-rw = 0.2;
+rw = 0.3;
 rw_cell= 1.0;
 EndIf
 
@@ -141,48 +141,48 @@ beta = 0.0;
 //wcy = 0.0;
 //wcz = 0.0;
 
-wcx = -200.0;
-wcy = 100.0;
-wcz = 150.0;
-
-wcx = 0.0;
+wcx = -250.0;
 wcy = 0.0;
-wcz = 0.0;
+wcz = 125.0;
 
 IsInjectorQ = 0;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
 // well 2 
 ////////////////////////////////////////////////////////////////////////////
 
-// well location
-wcx = -450.0;
-wcy = 0.0;
-wcz = 0.0;
+// Orientation and length
+alfa = 1.0*Pi/2.0;
+beta = 0.0;
 
-//wcx = 150.0;
-//wcy = 0.0;
-//wcz = 40.0;
+// well location
+wcx = 150.0;
+wcy = 0.0;
+wcz = 30.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
 // well 3 
 ////////////////////////////////////////////////////////////////////////////
 
+// Orientation and length
+alfa = 1.0*Pi/2.0;
+beta = 0.0;
+
 // well location
 wcx = 450.0;
 wcy = 0.0;
 wcz = 0.0;
 
-//wcx = -650.0;
-//wcy = 500.0;
-//wcz = 20.0;
+wcx = -650.0;
+wcy = 500.0;
+wcz = 20.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 // well 4 
@@ -194,11 +194,11 @@ wcx = -400.0;
 wcy = +400.0;
 wcz = 0.0;
 
-//wcx = -650.0;
-//wcy = -500.0;
-//wcz = 20.0;
+wcx = -650.0;
+wcy = -500.0;
+wcz = 20.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -207,15 +207,35 @@ IsInjectorQ = 1;
 
 // well location
 
-wcx = +400.0;
-wcy = -400.0;
-wcz = 100.0;
+// Orientation and length
+alfa = -0.9*Pi/2.0;
+beta = 0.0*Pi/2.0;
 
-//wcx = -150.0;
-//wcy = -300.0;
-//wcz = 120.0;
+
+wcx = 100.0;
+wcy = -600.0;
+wcz = 80.0;
+IsInjectorQ = 0;
+Call DrillWell;
+
+
+
+////////////////////////////////////////////////////////////////////////////
+// well 6 
+////////////////////////////////////////////////////////////////////////////
+
+// well location
+
+// Orientation and length
+alfa = 0.9*Pi/2.0;
+beta = 0.0*Pi/2.0;
+
+
+wcx = 100.0;
+wcy = 600.0;
+wcz = 80.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////

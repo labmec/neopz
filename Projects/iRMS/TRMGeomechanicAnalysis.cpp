@@ -149,12 +149,10 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
     this->SimulationData()->SetCurrentStateQ(true);
     this->UpdateMemory_at_n();
     
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-//    this->AssembleResidual();
-//    fR_n = this->Rhs();
-//    ferror = Norm(fR_n);
-    
-    ferror = 1.0;
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    this->AssembleResidual();
+    fR_n = this->Rhs();
+    ferror = Norm(fR_n);
     
     this->Set_k_ietrarions(0);
     
@@ -163,7 +161,7 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
     int n  =   this->SimulationData()->n_corrections();
     
     // check if the new state is almost stationary
-    if(ferror < epsilon_res){
+    if(ferror < epsilon_res*10.0){
         return;
     }
     
@@ -180,10 +178,8 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
         
         
 #ifdef PZDEBUG
-        //        fR.Print("R = ", std::cout,EMathematicaInput);
-        //        fX.Print("X = ", std::cout,EMathematicaInput);
-        //        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
-        //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
+//        fR_n.Print("Rn = ", std::cout,EMathematicaInput);
+//        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
         
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
@@ -223,7 +219,7 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {
@@ -245,6 +241,10 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
         }
     }
     
+    if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
+        plotfile += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+    }
+    
     if (fSimulationData->IsAdataptedQ()) {
         plotfile += "_A";
     }
@@ -253,14 +253,29 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
         plotfile += "_E";
     }
     
+    if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
+        plotfile += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+    }
+    
     plotfile += ".vtk";
     
-    scalnames.Push("id");
-    scalnames.Push("s_v");    
-    vecnames.Push("u");
-    vecnames.Push("s_x");
-    vecnames.Push("s_y");
-//    vecnames.Push("s_z");
+    if (fSimulationData->ReducedBasisResolution().first && fSimulationData->ReducedBasisResolution().second.first) {
+        plotfile = "Geological_pressures.vtk";
+        scalnames.Push("id");
+        scalnames.Push("p");
+        vecnames.Push("u");
+    }
+    else{
+        scalnames.Push("id");
+        scalnames.Push("s_v");
+        vecnames.Push("u");
+        vecnames.Push("s_x");
+        vecnames.Push("s_y");
+        if (dim == 3) {
+            vecnames.Push("s_z");
+        }
+        
+    }
     
     this->DefineGraphMesh(dim, scalnames, vecnames, plotfile);
     this->PostProcess(div);

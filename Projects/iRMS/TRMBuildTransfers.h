@@ -295,6 +295,8 @@ public:
     
     void space_To_elliptic(TPZCompMesh * elliptic);
     
+    void spatial_props_To_elliptic(TPZCompMesh * elliptic);
+    
     void phi_To_elliptic(TPZCompMesh * elliptic);
     
     void elliptic_To_elliptic(TPZCompMesh * elliptic);
@@ -313,7 +315,7 @@ public:
     
     void space_To_parabolic(TPZCompMesh * parabolic);
     
-    void kappa_phi_To_parabolic(TPZCompMesh * parabolic);
+    void spatial_props_To_parabolic(TPZCompMesh * parabolic);
     
     void parabolic_To_parabolic(TPZCompMesh * parabolic);
     
@@ -328,7 +330,7 @@ public:
     
     void Build_hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic);
     
-    void kappa_phi_To_hyperbolic(TPZCompMesh * hyperbolic);
+    void spatial_props_To_hyperbolic(TPZCompMesh * hyperbolic);
     
     void hyperbolic_To_hyperbolic(TPZCompMesh * hyperbolic);
     

@@ -224,10 +224,18 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     fSimulationData->SetGeomechanicQ(IsGeomechanicQ);
     
     if (fSimulationData->IsGeomechanicQ()) {
+        
         if (fSimulationData->IsAdataptedQ() || fSimulationData->IsEnhancedPressureQ()){
             fSpaceGenerator->SetDefaultUOrder(order+2);
         }
-        fSpaceGenerator->BuildGeomechanic_Mesh();
+        
+        if (fSimulationData->ReducedBasisResolution().first) {
+            fSpaceGenerator->BuildRBGeomechanic_Mesh();
+        }
+        else{
+            fSpaceGenerator->BuildGeomechanic_Mesh();
+        }
+
     }
 
     bool UseMHMQ = fSimulationData->MHMResolution().first;
@@ -272,7 +280,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     
     // Create analysis for each operator
-    int numofThreads_e = 4;
+    int numofThreads_e = 0;
     bool mustOptimizeBandwidth_elliptic = true;
     
     // Analysis for elliptic part
@@ -282,9 +290,10 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     //    strmat_e.SetDecomposeType(ELDLt);
     
-    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+//    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+//    TPZSkylineNSymStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     
-//    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
     
     TPZStepSolver<STATE> step_e;
     step_e.SetDirect(ELDLt);
@@ -295,8 +304,8 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     elliptic->SetSimulationData(fSimulationData);
     
     std::cout << "ndof elliptic = " << elliptic->Solution().Rows() << std::endl;
-        
-    int numofThreads_p = 4;
+    
+    int numofThreads_p = 0;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -308,9 +317,9 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
 //    strmat_p.SetDecomposeType(ELDLt);
 
-    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
-//    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
     TPZStepSolver<STATE> step_p;
     step_p.SetDirect(ELDLt);
@@ -325,7 +334,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 4;
+        int numofThreads_t = 0;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 
@@ -414,7 +423,7 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     
     // iMRS::Transfer:: elliptic to elliptic
     transfer->elliptic_To_elliptic(elliptic->Mesh());
-    transfer->phi_To_elliptic(elliptic->Mesh());
+    transfer->spatial_props_To_elliptic(elliptic->Mesh());
     
     // iMRS::Transfer:: elliptic to parabolic
     transfer->elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());
@@ -427,7 +436,7 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     
     // iMRS::Transfer:: parabolic to parabolic
     transfer->parabolic_To_parabolic(parabolic->Mesh());
-    transfer->kappa_phi_To_parabolic(parabolic->Mesh());
+    transfer->spatial_props_To_parabolic(parabolic->Mesh());
     
     // iMRS:: parabolic to elliptic transfer
     transfer->Build_parabolic_To_elliptic(parabolic->Mesh(), elliptic->Mesh());
@@ -440,7 +449,7 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     
         transfer->Build_hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
         transfer->hyperbolic_To_hyperbolic(hyperbolic->Mesh()); // ok
-        transfer->kappa_phi_To_hyperbolic(hyperbolic->Mesh()); // ok
+        transfer->spatial_props_To_hyperbolic(hyperbolic->Mesh()); // ok
         
         // group
         transfer->Build_parabolic_hyperbolic_cel_pairs(parabolic->Mesh(),hyperbolic->Mesh()); // ok
@@ -590,6 +599,7 @@ void TRMOrchestra::CreateMonolithicAnalysis(bool IsInitialQ){
 void TRMOrchestra::RunStaticProblem(){
     
     std::cout<< "iMRS:: Finding Initial State" << std::endl;
+    fSimulationData->SetInitialStateQ(true);
     
     int n = 2;
     bool draw_mixed_mapQ = false;

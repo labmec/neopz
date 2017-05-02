@@ -42,6 +42,9 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief ntime steps */
     fn_steps = 0;
     
+    /** @brief number of Reduced basis */
+    fm_rb_functions = 0;
+    
     /** @brief Initial time */
     ftime_0 = 0.0;
     
@@ -86,6 +89,11 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Use of increased transpor resolution transfers operators */
     fIncreaseTransporResolutionQ.first = false;
     fIncreaseTransporResolutionQ.second = 0;
+    
+    /** @brief Use of RB method that surrogates */
+    fReduceBasisQ.first = false;
+    fReduceBasisQ.second.first = false;
+    fReduceBasisQ.second.second.Resize(0);
     
     /** @brief Gmsh grid file */
     fGridName = "";
@@ -141,6 +149,7 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ, RawData->fIsAdataptedQ, RawData->fEnhancedPressureQ);
     SetTransporResolution(RawData->fIncreaseTransporResolutionQ);
     SetMHMResolution(RawData->fMHMResolutionQ);
+    SetReducedBasisResolution(RawData->fReduceBasisQ);
     SetGridName(RawData->fGridName);
     SetSpatialFields(RawData->fNBlocks, RawData->fBlocks_sizes, RawData->fPermPorFields);
 

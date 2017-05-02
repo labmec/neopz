@@ -154,11 +154,10 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     this->UpdateMemory_at_n();
     
     
-//    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
-//    this->AssembleResidual();
-//    fR_n = this->Rhs();
-//    ferror = Norm(fR_n);
-    ferror = 1.0;
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
+    this->AssembleResidual();
+    fR_n = this->Rhs();
+    ferror = Norm(fR_n);
     
     this->Set_k_ietrarions(0);
     
@@ -262,7 +261,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     
     std::string plotfile;
@@ -285,12 +284,20 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
         }
     }
     
+    if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
+        plotfile += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+    }
+    
     if (fSimulationData->IsAdataptedQ()) {
         plotfile += "_A";
     }
     
     if (fSimulationData->IsEnhancedPressureQ()) {
         plotfile += "_E";
+    }
+    
+    if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
+        plotfile += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
     }
     
     plotfile += ".vtk";

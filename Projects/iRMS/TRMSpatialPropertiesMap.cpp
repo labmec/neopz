@@ -91,117 +91,29 @@ void TRMSpatialPropertiesMap::phi(TPZManVector<STATE,3> &x, TPZManVector<STATE,1
 /** @brief first lamé parameter $\lambda$ */
 void TRMSpatialPropertiesMap::lambda(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars){
     
-    switch (this->MapModel()) {
-        case 0:
-        {
-            this->lambda_c(x, lambda, state_vars);
-        }
-            break;
-        case 1:
-        {
-            DebugStop();
-        }
-            break;
-        case 2:
-        {
-            DebugStop();
-        }
-            break;
-        default:
-        {
-            std::cout << "Error: Model not implemented." << std::endl;
-            DebugStop();
-        }
-            break;
-    }
+    this->lambda_c(x, lambda, state_vars);
     
 }
 
 
 /** @brief undrained first lamé parameter  $\lambda_{u}$ */
-void TRMSpatialPropertiesMap::lambda_u(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars){
+void TRMSpatialPropertiesMap::S_e(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &S_e, TPZManVector<STATE,10> &state_vars){
     
-    switch (this->MapModel()) {
-        case 0:
-        {
-            this->lambda_u_c(x, lambda_u, state_vars);
-        }
-            break;
-        case 1:
-        {
-            DebugStop();
-        }
-            break;
-        case 2:
-        {
-            DebugStop();
-        }
-            break;
-        default:
-        {
-            std::cout << "Error: Model not implemented." << std::endl;
-            DebugStop();
-        }
-            break;
-    }
+    this->S_e_c(x, S_e, state_vars);
     
 }
 
 /** @brief second lamé parameter  $\mu$ */
 void TRMSpatialPropertiesMap::mu(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars){
     
-    switch (this->MapModel()) {
-        case 0:
-        {
-            this->mu_c(x, mu, state_vars);
-        }
-            break;
-        case 1:
-        {
-            DebugStop();
-        }
-            break;
-        case 2:
-        {
-            DebugStop();
-        }
-            break;
-        default:
-        {
-            std::cout << "Error: Model not implemented." << std::endl;
-            DebugStop();
-        }
-            break;
-    }
+    this->mu_c(x, mu, state_vars);
     
 }
 
 /** @brief Biot's poroelastic parameter  $\alpha$ */
 void TRMSpatialPropertiesMap::alpha(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &alpha, TPZManVector<STATE,10> &state_vars){
     
-    switch (this->MapModel()) {
-        case 0:
-        {
-            this->alpha_c(x, alpha, state_vars);
-        }
-            break;
-        case 1:
-        {
-            DebugStop();
-        }
-            break;
-        case 2:
-        {
-            DebugStop();
-        }
-            break;
-        default:
-        {
-            std::cout << "Error: Model not implemented." << std::endl;
-            DebugStop();
-        }
-            break;
-    }
+    this->alpha_c(x, alpha, state_vars);
     
 }
 
@@ -300,14 +212,17 @@ void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<ST
 }
 
 
-/** @brief undrained first lamé parameter  $\lambda_{u}$ */
-void TRMSpatialPropertiesMap::lambda_u_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda_u, TPZManVector<STATE,10> &state_vars){
-    
+/** @brief Se inverse of biot parameter  $S_{\epsilon}$ */
+void TRMSpatialPropertiesMap::S_e_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &S_e, TPZManVector<STATE,10> &state_vars){
 
-    REAL GPa = 1.0e9;
-    lambda_u.Resize(10, 0.0);
-    STATE val = 1.53846*GPa;
-    lambda_u[0] = val;
+    REAL l_dr   = 2.30769e9;
+    REAL mu_dr  = 1.53846e9;
+    REAL alpha  = 0.8;
+    REAL Se = 1.0e-9;
+
+    S_e.Resize(10, 0.0);
+    STATE val = 1.0e-9;
+    S_e[0] = val;
     
 }
 

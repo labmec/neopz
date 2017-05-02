@@ -253,34 +253,6 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
     }
     
-    // Fixed stress Iteration 3
-    if (fSimulationData->IsOnePhaseQ()) {
-        fParabolic->ExcecuteOneStep();
-    }
-    else{
-        this->Segregated_p_h_Iteration();
-    }
-    
-    if (fSimulationData->IsGeomechanicQ()) {
-        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
-        fElliptic->ExcecuteOneStep();
-        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
-    }
-    
-    // Fixed stress Iteration 4
-    if (fSimulationData->IsOnePhaseQ()) {
-        fParabolic->ExcecuteOneStep();
-    }
-    else{
-        this->Segregated_p_h_Iteration();
-    }
-    
-    if (fSimulationData->IsGeomechanicQ()) {
-        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
-        fElliptic->ExcecuteOneStep();
-        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
-    }
-    
 }
 
 /** @brief Execute a segregated iteration between parabolic and hyperbolic operators  */

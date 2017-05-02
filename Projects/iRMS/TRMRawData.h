@@ -129,6 +129,9 @@ public:
     /** @brief Use of increased transpor resolution transfers operators */
     std::pair<bool, int> fIncreaseTransporResolutionQ;
     
+    /** @brief Use of RB method that surrogates linear poroelasticity */
+    std::pair<bool, std::pair<bool, TPZStack<int> > > fReduceBasisQ;
+    
     /** @brief Gmsh grid file */
     std::string fGridName;
     
