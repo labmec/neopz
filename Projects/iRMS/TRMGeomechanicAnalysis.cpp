@@ -152,7 +152,7 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     this->AssembleResidual();
     fR_n = this->Rhs();
-    ferror = Norm(fR_n);
+    ferror = Norm(fR_n)*1.0e6;
     
     this->Set_k_ietrarions(0);
     
@@ -161,7 +161,7 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
     int n  =   this->SimulationData()->n_corrections();
     
     // check if the new state is almost stationary
-    if(ferror < epsilon_res*10.0){
+    if(ferror < epsilon_res){
         return;
     }
     
@@ -219,7 +219,7 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-    int div = 1;
+    int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
     if (fSimulationData->IsInitialStateQ()) {

@@ -75,6 +75,9 @@ TRMSimulationData::TRMSimulationData(){
     /** @brief Use of quasi newton method */
     fIsQuasiNewtonQ = false;
     
+    /** @brief set the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    fUsePardisoQ = false;
+    
     /** @brief set the use p adaptation on wellbores */
     fIsAdataptedQ = false;
     
@@ -146,7 +149,7 @@ void TRMSimulationData::SetRawData(TPZAutoPointer<TRMRawData> &RawData){
     SetGravity(RawData->fg);
     SetSystemType(RawData->fSystemType,RawData->fPhases);
     SetTimeControls(RawData->fn_steps, RawData->fdt, RawData->fdt_up, RawData->fdt_down, RawData->fdt_max, RawData->fdt_min, RawData->fReportingTimes);
-    SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ, RawData->fIsAdataptedQ, RawData->fEnhancedPressureQ);
+    SetNumericControls(RawData->fn_corrections, RawData->fepsilon_res, RawData->fepsilon_cor, RawData->fIsQuasiNewtonQ, RawData->fIsAdataptedQ, RawData->fEnhancedPressureQ,RawData->fUsePardisoQ);
     SetTransporResolution(RawData->fIncreaseTransporResolutionQ);
     SetMHMResolution(RawData->fMHMResolutionQ);
     SetReducedBasisResolution(RawData->fReduceBasisQ);
@@ -174,13 +177,14 @@ void TRMSimulationData::SetTimeControls(int n_times, STATE dt, STATE dt_in, STAT
 }
 
 /** @brief Setup reporting times and time step size */
-void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ, bool IsAdataptedQ, bool EnhancedPressureQ){
+void TRMSimulationData::SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ, bool IsAdataptedQ, bool EnhancedPressureQ,  bool UsePardisoQ){
     fn_corrections  = n_corrections;
     fepsilon_res    = epsilon_res;
     fepsilon_cor    = epsilon_cor;
     fIsQuasiNewtonQ = IsQuasiNewtonQ;
     fIsAdataptedQ   = IsAdataptedQ;
     fEnhancedPressureQ = EnhancedPressureQ;
+    fUsePardisoQ    = UsePardisoQ;
 }
 
 /** @brief Set phase alpha */

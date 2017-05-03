@@ -97,6 +97,9 @@ protected:
     /** @brief Use of quasi newton method */
     bool fIsQuasiNewtonQ;
     
+    /** @brief set the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    bool fUsePardisoQ;
+    
     /** @brief set the use p adaptation on wellbores */
     bool fIsAdataptedQ;
     
@@ -279,7 +282,7 @@ public:
     void SetTimeControls(int n_times, STATE dt, STATE dt_in, STATE dt_de, STATE dt_max, STATE dt_min, TPZStack< std::pair< STATE , bool> , 500 > ReportingTimes);
     
     /** @brief Setup reporting times and time step size */
-    void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ, bool IsAdataptedQ, bool EnhancedPressureQ);
+    void SetNumericControls(int n_corrections, STATE epsilon_res, STATE epsilon_cor, bool IsQuasiNewtonQ, bool IsAdataptedQ, bool EnhancedPressureQ,  bool UsePardisoQ);
 
     
     /** @brief Setup Use, level and resolution of MHM process */
@@ -407,6 +410,12 @@ public:
     
     /** @brief Get directive for the use geomechanic coupling */
     bool IsGeomechanicQ() {return fIsGeomechanicQ;}
+    
+    /** @brief Set the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    void SetUsePardisoQ(bool UsePardisoQ) { fUsePardisoQ = UsePardisoQ;}
+    
+    /** @brief Get the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    bool UsePardisoQ() {return fUsePardisoQ;}
     
     /** @brief Get directive for the use of quasi newton method */
     bool IsQuasiNewtonQ() {return fIsQuasiNewtonQ;}

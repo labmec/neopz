@@ -890,22 +890,39 @@ void TRMSpaceOdissey::RB_Generator(){
     RB_generator->SetCompMesh(this->GalerkinProjectionsCMesh(),mustOptimizeBandwidth_e);
     
     
-    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(this->GalerkinProjectionsCMesh());
-    //    strmat_e.SetDecomposeType(ELDLt);
+    if(fSimulationData->UsePardisoQ()){
+        TPZSymetricSpStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
+        
+        TPZStepSolver<STATE> step_e;
+        step_e.SetDirect(ELDLt);
+        strmat_e.SetNumThreads(numofThreads_e);
+        RB_generator->SetStructuralMatrix(strmat_e);
+        RB_generator->SetSolver(step_e);
+        RB_generator->AdjustVectors();
+        RB_generator->SetSimulationData(fSimulationData);
+    }
+    else{
+        
+//        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(this->GalerkinProjectionsCMesh());
+//        strmat_e.SetDecomposeType(ELDLt);
+        
+        TPZSkylineStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
+        
+        TPZStepSolver<STATE> step_e;
+        step_e.SetDirect(ELDLt);
+        strmat_e.SetNumThreads(numofThreads_e);
+        RB_generator->SetStructuralMatrix(strmat_e);
+        RB_generator->SetSolver(step_e);
+        RB_generator->AdjustVectors();
+        RB_generator->SetSimulationData(fSimulationData);
+    }
+        
     
-    //    TPZSkylineStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
+
     
-    TPZSymetricSpStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
-    
-    TPZStepSolver<STATE> step_e;
-    step_e.SetDirect(ELDLt);
-    strmat_e.SetNumThreads(numofThreads_e);
-    RB_generator->SetStructuralMatrix(strmat_e);
-    RB_generator->SetSolver(step_e);
-    RB_generator->AdjustVectors();
-    RB_generator->SetSimulationData(fSimulationData);
     transfer->spatial_props_To_elliptic(RB_generator->Mesh()); // load properties inside memory
 
+    bool state = RB_generator->SimulationData()->IsInitialStateQ();
     RB_generator->SimulationData()->SetInitialStateQ(false);
     RB_generator->SimulationData()->SetCurrentStateQ(true);
     RB_generator->Assemble();
@@ -963,6 +980,7 @@ void TRMSpaceOdissey::RB_Generator(){
     fGP_BiotCmesh->Print(out);
 #endif
     
+    RB_generator->SimulationData()->SetInitialStateQ(state);
     std::cout << "ndof rb generator = " << fGP_BiotCmesh->Solution().Rows() << std::endl;
 
 }

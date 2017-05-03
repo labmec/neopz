@@ -117,7 +117,6 @@ void TRMPoroelasticModes::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
         return;
     }
     
-    int nvars = 4; // {p,sa,sb,t}
     int u_b = 0;
     int p_b = 1;
     
@@ -135,9 +134,6 @@ void TRMPoroelasticModes::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     
     if (this->Id() != 12) {
         p_n = datavec[p_b].sol[0][0];
-    }
-    else{
-        int aja = 0;
     }
     
     REAL phi_0  = 0.25;
@@ -159,9 +155,13 @@ void TRMPoroelasticModes::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     REAL l_dr   = memory.lambda();
     REAL mu_dr  = memory.mu();
     REAL alpha  = memory.alpha();
-    REAL sw     = memory.sa_n();
     
+    REAL rho_r = 2500.0;
+    TPZManVector<REAL,3> g = fSimulationData->Gravity();
     TPZManVector<REAL,3> b(3,0.0);
+    b[0] = - rho_r*g[0];
+    b[1] = - rho_r*g[1];
+    b[2] = - rho_r*g[2];
     
     TPZFNMatrix<9,REAL> S_n(3,3);
     grad_u_n.Resize(3, 3);

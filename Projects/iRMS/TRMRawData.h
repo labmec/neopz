@@ -117,11 +117,15 @@ public:
     /** @brief set the use of quasi newton method */
     bool fIsQuasiNewtonQ;
     
+    /** @brief set the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    bool fUsePardisoQ;
+    
     /** @brief set the use p adaptation on wellbores */
     bool fIsAdataptedQ;
     
     /** @brief set the use enhanced pressure accuracy */
     bool fEnhancedPressureQ;
+
     
     /** @brief Use, level and resolution of MHM process */
     std::pair<bool, std::pair<int, int> > fMHMResolutionQ;
@@ -188,6 +192,8 @@ public:
     static void PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     static void PressureInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
+
+    static void WellBorePressure_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     
     static void FluxInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
     

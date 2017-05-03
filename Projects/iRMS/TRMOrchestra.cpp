@@ -287,23 +287,32 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     elliptic->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
     elliptic->SetCompMesh(fSpaceGenerator->GeoMechanicsCmesh(), mustOptimizeBandwidth_elliptic);
     
-    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
-    //    strmat_e.SetDecomposeType(ELDLt);
-    
-//    TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
-//    TPZSkylineNSymStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
-    
-    TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
-    
-    TPZStepSolver<STATE> step_e;
-    step_e.SetDirect(ELDLt);
-    strmat_e.SetNumThreads(numofThreads_e);
-    elliptic->SetStructuralMatrix(strmat_e);
-    elliptic->SetSolver(step_e);
-    elliptic->AdjustVectors();
-    elliptic->SetSimulationData(fSimulationData);
-    
+    if(fSimulationData->UsePardisoQ()){
+        TPZSymetricSpStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+        TPZStepSolver<STATE> step_e;
+        step_e.SetDirect(ELDLt);
+        strmat_e.SetNumThreads(numofThreads_e);
+        elliptic->SetStructuralMatrix(strmat_e);
+        elliptic->SetSolver(step_e);
+        elliptic->AdjustVectors();
+        elliptic->SetSimulationData(fSimulationData);
+    }
+    else{
+        //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+        //    strmat_e.SetDecomposeType(ELDLt);
+        
+//        TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+        TPZSkylineNSymStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+        TPZStepSolver<STATE> step_e;
+        step_e.SetDirect(ELU);
+        strmat_e.SetNumThreads(numofThreads_e);
+        elliptic->SetStructuralMatrix(strmat_e);
+        elliptic->SetSolver(step_e);
+        elliptic->AdjustVectors();
+        elliptic->SetSimulationData(fSimulationData);
+    }
     std::cout << "ndof elliptic = " << elliptic->Solution().Rows() << std::endl;
+    
     
     int numofThreads_p = 0;
     bool mustOptimizeBandwidth_parabolic = true;
@@ -314,20 +323,33 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     parabolic->Meshvec()[1] = fSpaceGenerator->PressureCmesh();
     parabolic->SetCompMesh(fSpaceGenerator->MixedFluxPressureCmesh(), mustOptimizeBandwidth_parabolic);
 
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//    strmat_p.SetDecomposeType(ELDLt);
-
-//    TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
     
-    TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    
-    TPZStepSolver<STATE> step_p;
-    step_p.SetDirect(ELDLt);
-    strmat_p.SetNumThreads(numofThreads_p);
-    parabolic->SetStructuralMatrix(strmat_p);
-    parabolic->SetSolver(step_p);
-    parabolic->AdjustVectors();
-    parabolic->SetSimulationData(fSimulationData);
+    if(fSimulationData->UsePardisoQ()){
+        TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+        
+        TPZStepSolver<STATE> step_p;
+        step_p.SetDirect(ELDLt);
+        strmat_p.SetNumThreads(numofThreads_p);
+        parabolic->SetStructuralMatrix(strmat_p);
+        parabolic->SetSolver(step_p);
+        parabolic->AdjustVectors();
+        parabolic->SetSimulationData(fSimulationData);
+    }
+    else{
+        
+        //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+        //    strmat_p.SetDecomposeType(ELDLt);
+        
+        TPZSkylineStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+        
+        TPZStepSolver<STATE> step_p;
+        step_p.SetDirect(ELDLt);
+        strmat_p.SetNumThreads(numofThreads_p);
+        parabolic->SetStructuralMatrix(strmat_p);
+        parabolic->SetSolver(step_p);
+        parabolic->AdjustVectors();
+        parabolic->SetSimulationData(fSimulationData);
+    }
     
     std::cout << "ndof parabolic = " << parabolic->Solution().Rows() << std::endl;
     
@@ -362,7 +384,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 
     
     
-    // create the transfers
+    // creates the transfers
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
 #ifdef USING_BOOST

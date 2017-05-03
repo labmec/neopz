@@ -253,16 +253,28 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
     }
     
+    // Fixed stress Iteration 2
+    if (fSimulationData->IsOnePhaseQ()) {
+        fParabolic->ExcecuteOneStep();
+    }
+    else{
+        this->Segregated_p_h_Iteration();
+    }
+    
+    if (fSimulationData->IsGeomechanicQ()) {
+        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+        fElliptic->ExcecuteOneStep();
+        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+    }
+    
 }
 
 /** @brief Execute a segregated iteration between parabolic and hyperbolic operators  */
 void TRMSegregatedAnalysis::Segregated_p_h_Iteration(){
     
     fParabolic->ExcecuteOneStep();
-    
     this->UpdateFluxes_at_n();
     this->UpdateMemory_at_n();
-    
     fHyperbolic->ExcecuteOneStep();
     this->UpdateMemory_at_n();
 }
@@ -377,6 +389,10 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     
     if (fSimulationData->IsGeomechanicQ()) {
         fElliptic->UpdateMemory_at_n();
+        
+        // values Ae - Ap operators
+        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
     }
     
     fParabolic->UpdateMemory_at_n();
@@ -391,6 +407,8 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     // average values Ah - Ap operators
     fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
     fTransfer->hyperbolic_To_parabolic_volumetric(fHyperbolic->Mesh(), fParabolic->Mesh());
+    
+    // average values Ah - Ae operators
     
 #else
     
@@ -422,7 +440,12 @@ void TRMSegregatedAnalysis::UpdateMemory(){
     
     if (fSimulationData->IsGeomechanicQ()) {
         fElliptic->UpdateMemory_at_n();
+        
+        // values Ae - Ap operators
+        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
     }
+    
     fParabolic->UpdateMemory_at_n();
     
     if (fSimulationData->IsOnePhaseQ()) {

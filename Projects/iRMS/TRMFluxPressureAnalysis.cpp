@@ -157,7 +157,7 @@ void TRMFluxPressureAnalysis::ExcecuteOneStep(){
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     this->AssembleResidual();
     fR_n = this->Rhs();
-    ferror = Norm(fR_n);
+    ferror = Norm(fR_n)*1.0e6;
     
     this->Set_k_ietrarions(0);
     

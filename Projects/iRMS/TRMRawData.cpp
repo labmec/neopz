@@ -78,6 +78,9 @@ TRMRawData::TRMRawData()
     /** @brief set the use of quasi newton method */
     fIsQuasiNewtonQ = false;
     
+    /** @brief set the use of pardiso for elliptic and parabolic operators Ae and Ap */
+    fUsePardisoQ = false;
+    
     /** @brief Use, level and resolution of MHM process */
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0;
@@ -650,7 +653,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fSystemType.Push("water");
     fSystemType.Push("water");
     water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    oil->SetRhoModel(0);
     fPhases.Push(water);
     fPhases.Push(water);
     int n_data = fSystemType.size();
@@ -660,11 +663,11 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fg[1] = -9.81;
 //    fg[2] = -9.81;
     
-    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 2; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
-    fGridName = "Meshes/Gmsh/reservoir_cad.msh";
+    fGridName = "Meshes/Gmsh/reservoir.msh";
     fPermPorFields.first = "case_2/spe_perm.dat";
     fPermPorFields.second = "case_2/spe_phi.dat";
     fNBlocks.Push(60);
@@ -674,25 +677,36 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fBlocks_sizes.Push(4.5454545455);
     fBlocks_sizes.Push(50.0);
     fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
-    fMap->LoadSPE10Map(false);
+    fMap->LoadSPE10Map(true);
     
     // Time control parameters
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    //    fReportingTimes.Push(std::make_pair(1000.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(900.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(800.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(700.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(600.0*day,true));
-    //    fReportingTimes.Push(std::make_pair(400.0*day,true));
-    fReportingTimes.Push(std::make_pair(1000.0*day,false));
-    fReportingTimes.Push(std::make_pair(500.0*day,false));
+    fReportingTimes.Push(std::make_pair(1000.0*day,true));
+    fReportingTimes.Push(std::make_pair(950.0*day,false));
+    fReportingTimes.Push(std::make_pair(900.0*day,true));
+    fReportingTimes.Push(std::make_pair(850.0*day,false));
+    fReportingTimes.Push(std::make_pair(800.0*day,true));
+    fReportingTimes.Push(std::make_pair(750.0*day,false));
+    fReportingTimes.Push(std::make_pair(700.0*day,true));
+    fReportingTimes.Push(std::make_pair(650.0*day,false));
+    fReportingTimes.Push(std::make_pair(600.0*day,true));
+    fReportingTimes.Push(std::make_pair(550.0*day,false));
+    fReportingTimes.Push(std::make_pair(500.0*day,true));
+    fReportingTimes.Push(std::make_pair(450.0*day,false));
+    fReportingTimes.Push(std::make_pair(400.0*day,true));
+    fReportingTimes.Push(std::make_pair(350.0*day,false));
+    fReportingTimes.Push(std::make_pair(300.0*day,true));
+    fReportingTimes.Push(std::make_pair(250.0*day,false));
+    fReportingTimes.Push(std::make_pair(200.0*day,true));
+    fReportingTimes.Push(std::make_pair(150.0*day,false));
     fReportingTimes.Push(std::make_pair(100.0*day,true));
+    fReportingTimes.Push(std::make_pair(50.0*day,false));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 100;
-    fdt       = 100.0*day;
+    fdt       = 50.0*day;
     fdt_max   = 100.0*day;
     fdt_min   = 0.1*day;
     fdt_up    = 1.0;
@@ -700,22 +714,22 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 20;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.001;
+    fepsilon_res = 0.001;
+    fepsilon_cor = 0.0001;
+    fUsePardisoQ  = false;    
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 0; // fine
+    fMHMResolutionQ.second.second = 2; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
     // RB controls
-    fReduceBasisQ.first = true;
-    fReduceBasisQ.second.first = false;
-    fReduceBasisQ.second.second.Push(2); // x
-    fReduceBasisQ.second.second.Push(2); // y
+    fReduceBasisQ.first = false;
+    fReduceBasisQ.second.second.Push(100); // x
+    fReduceBasisQ.second.second.Push(100); // y
     fReduceBasisQ.second.second.Push(2); // z
     
     // Rock materials ids
@@ -802,7 +816,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Prod);
-    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
+    WPro[0] = std::make_pair(2,new TPZDummyFunction<REAL>(WellBorePressure_2p));
     fIntial_bc_data.Push(WPro);
     WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
     fRecurrent_bc_data.Push(WPro);
@@ -814,7 +828,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fRecurrent_bc_data.Push(WLids);
     
     fGammaIds.Push(bc_Inj);
-    WInj[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    WInj[0] = std::make_pair(2,new TPZDummyFunction<REAL>(WellBorePressure_2p));
     fIntial_bc_data.Push(WInj);
     WInj[0] = std::make_pair(2,new TPZDummyFunction<REAL>(PressureInlet_2p));
     fRecurrent_bc_data.Push(WInj);
@@ -831,9 +845,17 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
     
 }
 
+void TRMRawData::WellBorePressure_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
+    
+    REAL p = 2.5e+7;
+    REAL S = 0.0;
+    f[0] = p;
+    f[1] = S;
+}
+
 void TRMRawData::PressureInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.0e+7;// 1.0342e+7; // 3000 psi
+    REAL p = 2.5e+7;
     REAL S = 1.0;
     f[0] = p;
     f[1] = S;

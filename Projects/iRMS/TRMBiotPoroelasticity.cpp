@@ -422,8 +422,8 @@ void TRMBiotPoroelasticity::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
             for(in = 0 ; in < phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(2*in,0)		+= 1.0 * weight * Tn[0] * phiu(in,0);		//	Tnx
-                ef(2*in+1,0)	+= 1.0 * weight * Tn[1] * phiu(in,0);		//	Tny
+                ef(2*in,0)		+= -1.0 * weight * Tn[0] * phiu(in,0);		//	Tnx
+                ef(2*in+1,0)	+= -1.0 * weight * Tn[1] * phiu(in,0);		//	Tny
             }
             
             break;
@@ -1021,8 +1021,8 @@ void TRMBiotPoroelasticity::Contribute_RB_BC(TPZVec<TPZMaterialData> &datavec, R
             for(in = 0 ; in < phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(in,0)	+= 1.0 * weight * Tn[0] * phiu(in,x);		//	Tnx
-                ef(in,0)	+= 1.0 * weight * Tn[1] * phiu(in,y);		//	Tny
+                ef(in,0)	+= -1.0 * weight * Tn[0] * phiu(in,x);		//	Tnx
+                ef(in,0)	+= -1.0 * weight * Tn[1] * phiu(in,y);		//	Tny
             }
             
             break;
