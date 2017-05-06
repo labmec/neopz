@@ -4233,10 +4233,16 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
 #endif
             int left_pos = left_p_point_indices[0];
             REAL & p_avg_n = left_material_mem->GetMemory()[left_pos].p_avg_n();
+            REAL & p_avg = left_material_mem->GetMemory()[left_pos].p_avg();
+            REAL s_a_n = left_material_mem->GetMemory()[left_pos].sa_n();
+            REAL s_a = left_material_mem->GetMemory()[left_pos].sa();
             
             int pos = p_point_indices[0];
             material_bc_mem->GetMemory()[pos].Set_un(qn_at_intpoints(iface,0));
             material_bc_mem->GetMemory()[pos].Set_p_avg_n_l(p_avg_n);
+            material_bc_mem->GetMemory()[pos].Set_sa_n_l(s_a_n);
+            material_bc_mem->GetMemory()[pos].Set_p_avg_l(p_avg);
+            material_bc_mem->GetMemory()[pos].Set_sa_l(s_a);
             
         }
         
@@ -4331,12 +4337,38 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
             
             REAL & p_avg_n_l = left_material_mem->GetMemory()[left_pos].p_avg_n();
             REAL & p_avg_n_r = right_material_mem->GetMemory()[right_pos].p_avg_n();
+            REAL & p_avg_l = left_material_mem->GetMemory()[left_pos].p_avg();
+            REAL & p_avg_r = right_material_mem->GetMemory()[right_pos].p_avg();
+            
+            REAL s_a_n_l = left_material_mem->GetMemory()[left_pos].sa_n();
+            REAL s_a_n_r = right_material_mem->GetMemory()[right_pos].sa_n();
+            REAL s_a_l = left_material_mem->GetMemory()[left_pos].sa();
+            REAL s_a_r = right_material_mem->GetMemory()[right_pos].sa();
+            
+            TPZFMatrix<REAL> & k_l =  right_material_mem->GetMemory()[left_pos].K_0();
+            TPZFMatrix<REAL> & k_r =  right_material_mem->GetMemory()[right_pos].K_0();
+            TPZFMatrix<REAL>  k_avg(3,3);
+            REAL epsilon = 1.0e-25;
+            
+            for (int i=0; i<3; i++) {
+                for (int j=0; j<3; j++) {
+                    k_avg(i,j) = 2.0*(k_l(i,j)*k_r(i,j))/(k_l(i,j) + k_r(i,j) + epsilon);
+                }
+            }
             
             int pos = p_point_indices[0];
             material_mem->GetMemory()[pos].Set_un(qn_at_intpoints(iface,0));
             material_mem->GetMemory()[pos].Set_p_avg_n_l(p_avg_n_l);
             material_mem->GetMemory()[pos].Set_p_avg_n_r(p_avg_n_r);
+            material_mem->GetMemory()[pos].Set_sa_n_l(s_a_n_l);
+            material_mem->GetMemory()[pos].Set_sa_n_r(s_a_n_r);
             
+            material_mem->GetMemory()[pos].Set_p_avg_l(p_avg_l);
+            material_mem->GetMemory()[pos].Set_p_avg_r(p_avg_r);
+            material_mem->GetMemory()[pos].Set_sa_l(s_a_l);
+            material_mem->GetMemory()[pos].Set_sa_r(s_a_r);
+            
+            material_mem->GetMemory()[pos].Set_K_0(k_avg);
         }
         
     }

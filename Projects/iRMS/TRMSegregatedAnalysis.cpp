@@ -277,6 +277,13 @@ void TRMSegregatedAnalysis::Segregated_p_h_Iteration(){
     this->UpdateMemory_at_n();
     fHyperbolic->ExcecuteOneStep();
     this->UpdateMemory_at_n();
+    
+//    fParabolic->ExcecuteOneStep();
+//    this->UpdateFluxes_at_n();
+//    this->UpdateMemory_at_n();
+//    fHyperbolic->ExcecuteOneStep();
+//    this->UpdateMemory_at_n();
+    
 }
 
 void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){

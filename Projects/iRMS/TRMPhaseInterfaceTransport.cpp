@@ -435,8 +435,6 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     un_l = point_memory.un();
     p_avg_l = point_memory.p_avg_n_l();
     p_avg_r = point_memory.p_avg_n_r();
-    //    sa_avg_l = point_memory.sa_n_l(); @omar:: saturation is not updated
-    //    sa_avg_r = point_memory.sa_n_r();
     
     //  Average values p_a
     STATE p_a_l    = p_avg_l;
@@ -444,13 +442,11 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     STATE p_a_r    = p_avg_r;
     STATE s_a_r    = sa_avg_r;
     
-    STATE beta = 0.0;
-    // upwinding
-    if (un_l > 0.0) {
-        beta = 1.0;
-    }
-    
     TPZManVector<STATE, 10> fa_l,v_l(nvars+1),fa_r,v_r(nvars+1);
+    TPZManVector<STATE, 10> rho_w_l,rho_w_r;
+    TPZManVector<STATE, 10> rho_o_l,rho_o_r;
+    TPZManVector<STATE, 10> f_l,f_r;
+    TPZManVector<STATE, 10> l_l,l_r;
     v_l[0] = p_a_l;
     v_l[1] = s_a_l;
     v_r[0] = p_a_r;
@@ -458,6 +454,88 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     
     this->fSimulationData->PetroPhysics()->fa(fa_l, v_l);
     this->fSimulationData->PetroPhysics()->fa(fa_r, v_r);
+
+    v_l[0] = point_memory.p_avg_n_l(); // last state saturations
+    v_r[0] = point_memory.p_avg_n_r(); // last state saturations
+    v_l[1] = point_memory.sa_l(); // last state saturations
+    v_r[1] = point_memory.sa_r(); // last state saturations
+    
+    this->fSimulationData->PetroPhysics()->fa(f_l, v_l);
+    this->fSimulationData->PetroPhysics()->fa(f_r, v_r);
+    
+    this->fSimulationData->PetroPhysics()->l(l_l, v_l);
+    this->fSimulationData->PetroPhysics()->l(l_r, v_r);
+    
+    this->fSimulationData->AlphaProp()->Density(rho_w_l, v_l);
+    this->fSimulationData->AlphaProp()->Density(rho_w_r, v_r);
+
+    this->fSimulationData->BetaProp()->Density(rho_o_l, v_l);
+    this->fSimulationData->BetaProp()->Density(rho_o_r, v_r);
+    
+    
+    // Explicit Upstream Differencing for Gravity term
+    // Upstream Differencing for Multiphase Flow in Reservoir Simulation
+    // Yann Brenier and Jérôme Jaffré
+    
+    TPZFMatrix<REAL> & k_avg = point_memory.K_0();
+    TPZManVector<REAL,3>  g = fSimulationData->Gravity();
+    REAL n_dot_K_g = 0.0;
+    for (int i = 0; i < 3; i++) {
+        REAL K_g = 0.0;
+        for (int j =0; j<3; j++) {
+             K_g += k_avg(i,j)*g[j];
+        }
+        n_dot_K_g += n[i]*K_g;
+    }
+    
+    n_dot_K_g *= 0.0;
+    
+    REAL delta_rho_l =rho_w_l[0]-rho_o_l[0];
+    REAL delta_rho_r =rho_w_r[0]-rho_o_r[0];
+
+    REAL theta_1 = un_l + l_l[0]*(delta_rho_l)*(1.0-f_l[0])*n_dot_K_g; // last state saturations
+    REAL theta_2 = un_l - l_r[0]*(delta_rho_r)*(f_r[0])*n_dot_K_g; // last state saturations
+    
+    bool take_l = false;
+    bool take_r = false;
+    
+    if (un_l >= 0.0) {
+        take_l = (0.0 <= theta_1) && (theta_1 <= theta_2);
+        take_r = (theta_1 <= 0.0) && (0.0 <= theta_2);
+    }
+    else{
+        take_l = (0.0 >= theta_1) && (theta_1 >= theta_2);
+        take_r = (theta_1 >= 0.0) && (0.0 >= theta_2);
+    }
+    
+    REAL qgn_l = l_l[0]*(delta_rho_l)*(1.0-f_l[0])*n_dot_K_g; // last state saturations
+    REAL qgn_r = l_r[0]*(delta_rho_r)*(1.0-f_r[0])*n_dot_K_g; // last state saturations
+    
+    if (take_l && take_r) {
+        std::cout << "Jaffré:: both true! " << std::endl;
+        DebugStop();
+    }
+    
+//    if (!take_l && !take_r) {
+//        std::cout << "Jaffré:: Just water up and down! " << std::endl;
+//    }
+    
+    // apply gravity segregation
+    if(take_l){
+        un_l += qgn_l;
+    }
+    
+    if(take_r){
+        un_l += qgn_r;
+    }
+    
+    
+    
+    STATE beta = 0.0;
+    // upwinding
+    if (un_l > 0.0) {
+        beta = 1.0;
+    }
     
     
     for (int is = 0; is < nphis_a_l; is++) {

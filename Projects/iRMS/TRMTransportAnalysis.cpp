@@ -235,7 +235,7 @@ void TRMTransportAnalysis::UpdateMemory_at_n(){
     
 #ifdef NS
     
-    fTransfer->hyperbolic_To_hyperbolic(Mesh());    
+    fTransfer->hyperbolic_To_hyperbolic(Mesh());
     
 #else
     

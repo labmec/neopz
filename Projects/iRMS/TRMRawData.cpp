@@ -651,11 +651,11 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("water");
+    fSystemType.Push("oil");
     water->SetRhoModel(0);
-    oil->SetRhoModel(0);
+    oil->SetRhoModel(1);
     fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(oil);
     int n_data = fSystemType.size();
     
     // Setting up gravity
@@ -663,7 +663,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fg[1] = -9.81;
 //    fg[2] = -9.81;
     
-    int map_model = 2; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
@@ -705,8 +705,8 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fReportingTimes.Push(std::make_pair(50.0*day,false));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
-    fn_steps  = 100;
-    fdt       = 50.0*day;
+    fn_steps  = 150;
+    fdt       = 25.0*day;
     fdt_max   = 100.0*day;
     fdt_min   = 0.1*day;
     fdt_up    = 1.0;
@@ -722,7 +722,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 2; // fine
+    fMHMResolutionQ.second.second = 1; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
@@ -847,7 +847,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::WellBorePressure_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.5e+7;
+    REAL p = 2.0e+7;
     REAL S = 0.0;
     f[0] = p;
     f[1] = S;
@@ -855,7 +855,7 @@ void TRMRawData::WellBorePressure_2p(const TPZVec< REAL >& pt, REAL time, TPZVec
 
 void TRMRawData::PressureInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.5e+7;
+    REAL p = 2.0e+7;
     REAL S = 1.0;
     f[0] = p;
     f[1] = S;

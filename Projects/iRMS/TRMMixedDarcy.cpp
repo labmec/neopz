@@ -853,6 +853,10 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZFNMatrix<3,STATE> Kl_inv_q(3,1),Kl_inv_phi_q_j(3,1);
     TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
+    Gravity[0] = 0.0;
+    Gravity[1] = 0.0;
+    Gravity[2] = 0.0;
+    
     for (int i = 0; i < Dimension(); i++) {
         STATE dot = 0.0;
         for (int j =0; j < Dimension(); j++) {
@@ -925,7 +929,8 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
 //    REAL phi_n = phi_0 + alpha * (S_v_n - S_v_0) / Kdr + Ss * (p_n - p_0);
     
     REAL phi = phi_0;
-    REAL phi_n = phi_0;     Ss = 0.0;
+    REAL phi_n = phi_0;
+    Ss = 0.0;
     
     for (int ip = 0; ip < nphi_p; ip++)
     {
