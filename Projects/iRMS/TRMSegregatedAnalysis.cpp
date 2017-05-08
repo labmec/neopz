@@ -221,6 +221,10 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
             fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
             fParabolic->ExcecuteOneStep();            
             fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+            if (!fSimulationData->IsOnePhaseQ()) {
+                fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
+                fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+            }
         }
         return;
         
@@ -237,6 +241,9 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
         fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
         fElliptic->ExcecuteOneStep();
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
+        if (!fSimulationData->IsTwoPhaseQ()) {
+            fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+        }
     }
 
     // Fixed stress Iteration 2
@@ -253,7 +260,7 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
     }
     
-    // Fixed stress Iteration 2
+    // Fixed stress Iteration 3
     if (fSimulationData->IsOnePhaseQ()) {
         fParabolic->ExcecuteOneStep();
     }
@@ -266,6 +273,8 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
         fElliptic->ExcecuteOneStep();
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
     }
+    
+    
     
 }
 
@@ -278,11 +287,11 @@ void TRMSegregatedAnalysis::Segregated_p_h_Iteration(){
     fHyperbolic->ExcecuteOneStep();
     this->UpdateMemory_at_n();
     
-//    fParabolic->ExcecuteOneStep();
-//    this->UpdateFluxes_at_n();
-//    this->UpdateMemory_at_n();
-//    fHyperbolic->ExcecuteOneStep();
-//    this->UpdateMemory_at_n();
+    fParabolic->ExcecuteOneStep();
+    this->UpdateFluxes_at_n();
+    this->UpdateMemory_at_n();
+    fHyperbolic->ExcecuteOneStep();
+    this->UpdateMemory_at_n();
     
 }
 
@@ -405,17 +414,20 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
     fParabolic->UpdateMemory_at_n();
     
     
-    if (fSimulationData->IsOnePhaseQ()) {
-        return;
+    if (!fSimulationData->IsOnePhaseQ()) {
+        fHyperbolic->UpdateMemory_at_n();
+        
+        // average values Ah - Ap operators
+        fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
+        fTransfer->hyperbolic_To_parabolic_volumetric(fHyperbolic->Mesh(), fParabolic->Mesh());
+        
+        // average values Ah - Ae operators
+        fTransfer->hyperbolic_To_elliptic(fHyperbolic->Mesh(), fElliptic->Mesh());
+        fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+        
     }
     
-    fHyperbolic->UpdateMemory_at_n();
-    
-    // average values Ah - Ap operators
-    fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
-    fTransfer->hyperbolic_To_parabolic_volumetric(fHyperbolic->Mesh(), fParabolic->Mesh());
-    
-    // average values Ah - Ae operators
+
     
 #else
     
@@ -446,25 +458,27 @@ void TRMSegregatedAnalysis::UpdateMemory(){
 #ifdef NS
     
     if (fSimulationData->IsGeomechanicQ()) {
-        fElliptic->UpdateMemory_at_n();
+        fElliptic->UpdateMemory();
         
         // values Ae - Ap operators
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
         fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
     }
     
-    fParabolic->UpdateMemory_at_n();
+    fParabolic->UpdateMemory();
     
-    if (fSimulationData->IsOnePhaseQ()) {
-        return;
+    if (!fSimulationData->IsOnePhaseQ()) {
+        fHyperbolic->UpdateMemory();
+        
+        // average values Ah - Ap operators
+        fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
+        fTransfer->hyperbolic_To_parabolic_volumetric(fHyperbolic->Mesh(), fParabolic->Mesh());
+        
+        // average values Ah - Ae operators
+        fTransfer->hyperbolic_To_elliptic(fHyperbolic->Mesh(), fElliptic->Mesh());
+        fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+        
     }
-    
-    fHyperbolic->UpdateMemory();
-    
-    // average values Ah - Ap operators
-    fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
-    fTransfer->hyperbolic_To_parabolic_volumetric(fHyperbolic->Mesh(), fParabolic->Mesh());
-    
     
 #else
     

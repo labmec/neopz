@@ -3515,9 +3515,6 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
         
         u_avg_points = felliptic_hyperbolic_cel_pairs[iel].second.second.size()*dim*dim;
         
-        if(u_avg_points == 32){
-            int why = 0;
-        }
         
         // Getting local integration index
         TPZManVector<long> u_avg_dof_indexes(0,0);
@@ -3707,48 +3704,13 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
                         }
                     }
                     
-                    
-//                    if(p_intel)
-//                    {
-//                        // for derivatives in real space
-//                        int nshape = p_intel->NShapeF();
-//                        TPZFNMatrix<220> phi(nshape,1);
-//                        TPZFNMatrix<660> dphi(gel_dim,nshape);
-//                        
-//                        int order = 4; // increase to 4 o 5
-//                        TPZIntPoints * int_points = sub_gel->CreateSideIntegrationRule(sub_gel->NSides()-1, order);
-//                        int n_points = int_points->NPoints();
-//                        for (int ip = 0; ip < n_points; ip++) {
-//                            
-//                            
-//                            int_points->Point(ip, xi_origin_vol, w);
-//                            sub_gel->Jacobian(xi_origin_vol, jac, axes, detjac, jacinv);
-//                            
-//                            if (sub_gel->FatherIndex() == -1) {
-//                                xi_target = xi_origin_vol;
-//                            }
-//                            else{
-//                                sub_gel->TransformSonToFather(sub_gel->Father(), xi_origin_vol, xi_target);
-//                            }
-//                            
-//                            p_intel->Shape(xi_target, phi, dphi);
-//                            
-//                            
-//                            for (int jp = 0; jp < phi.Rows(); jp++) {
-//                                block_phi_p_avg(ison,jp) += w * detjac * phi(jp,0)/sub_volume;
-//                            }
-//                            
-//                            
-//                        }
-                    
-                    
                 }
                 
             }
             
         }
         
-//        fgrad_u_avg_To_hyperbolic.SetBlock(iel, block_grad_phi_u_avg);
+        fgrad_u_avg_To_hyperbolic.SetBlock(iel, block_grad_phi_u_avg);
         
     }
     
@@ -4745,6 +4707,10 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_volumetric(TPZCompMesh * parabol
                     
                     p_avg       = p_avg_at_hyperbolic(first_point_phi_p_avg + ison,0); // ip -> ison
                     
+                    if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                        associated_material->GetMemory()[ipos].Set_p_0(p_avg);
+                    }
+                    
                     if (fSimulationData->IsCurrentStateQ()) {
                         associated_material->GetMemory()[ipos].Set_p_avg_n(p_avg);
                     }
@@ -5247,7 +5213,6 @@ void TRMBuildTransfers::elliptic_To_hyperbolic_volumetric(TPZCompMesh * elliptic
                 int n_points = int_point_indexes.size();
                 long ipos;
                 
-                REAL p_avg;
                 TPZFMatrix<REAL> grad_u(dim,dim,0.0);
                 for(long ip = 0; ip <  n_points; ip++) {
                     ipos  = int_point_indexes[ip];

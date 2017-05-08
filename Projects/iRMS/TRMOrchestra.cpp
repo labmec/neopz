@@ -280,7 +280,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     
     // Create analysis for each operator
-    int numofThreads_e = 0;
+    int numofThreads_e = 6;
     bool mustOptimizeBandwidth_elliptic = true;
     
     // Analysis for elliptic part
@@ -314,7 +314,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     std::cout << "ndof elliptic = " << elliptic->Solution().Rows() << std::endl;
     
     
-    int numofThreads_p = 0;
+    int numofThreads_p = 6;
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -356,7 +356,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 0;
+        int numofThreads_t = 6;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 
@@ -691,14 +691,19 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSimulationData->SetCurrentStateQ(false);
         fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
         fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
+        fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
         fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
         fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
+        fSegregatedAnalysis->Transfer()->parabolic_To_hyperbolic_volumetric(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+
         
         fSimulationData->SetCurrentStateQ(true);
         fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
         fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
+        fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
         fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
         fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
+        fSegregatedAnalysis->Transfer()->parabolic_To_hyperbolic_volumetric(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
         
         fSimulationData->SetInitialStateQ(false);
         

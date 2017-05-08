@@ -421,8 +421,8 @@ void TRMMixedDarcy::Contribute_Undrained(TPZVec<TPZMaterialData> &datavec, REAL 
         }
     }
     
-    alpha  = 0.8;
-
+    alpha  = memory.alpha();
+    
     for (int ip = 0; ip < nphi_p; ip++)
     {
         ef(ip + firstp) += weight * ( (alpha * p_n + S_n_v) * memory.phi_p()(ip,0) );
@@ -853,9 +853,9 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     TPZFNMatrix<3,STATE> Kl_inv_q(3,1),Kl_inv_phi_q_j(3,1);
     TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
-    Gravity[0] = 0.0;
-    Gravity[1] = 0.0;
-    Gravity[2] = 0.0;
+//    Gravity[0] = 0.0;
+//    Gravity[1] = 0.0;
+//    Gravity[2] = 0.0;
     
     for (int i = 0; i < Dimension(); i++) {
         STATE dot = 0.0;
@@ -931,6 +931,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     REAL phi = phi_0;
     REAL phi_n = phi_0;
     Ss = 0.0;
+
     
     for (int ip = 0; ip < nphi_p; ip++)
     {

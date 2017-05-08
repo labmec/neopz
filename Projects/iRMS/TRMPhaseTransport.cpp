@@ -305,6 +305,9 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     REAL Ss = (Se + alpha*alpha/Kdr);
     
     
+//    REAL phi = phi_0 + alpha * (S_v - S_v_0) / Kdr + Ss * (p - p_0);
+//    REAL phi_n = phi_0 + alpha * (S_v_n - S_v_0) / Kdr + Ss * (p_n - p_0);
+    
     REAL phi = phi_0;
     REAL phi_n = phi_0;
 //    REAL Ss = 0.0;

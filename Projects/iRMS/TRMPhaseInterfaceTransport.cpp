@@ -488,25 +488,20 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
         n_dot_K_g += n[i]*K_g;
     }
     
-    n_dot_K_g *= 0.0;
+    n_dot_K_g *= 2.0;
     
     REAL delta_rho_l =rho_w_l[0]-rho_o_l[0];
     REAL delta_rho_r =rho_w_r[0]-rho_o_r[0];
 
-    REAL theta_1 = un_l + l_l[0]*(delta_rho_l)*(1.0-f_l[0])*n_dot_K_g; // last state saturations
-    REAL theta_2 = un_l - l_r[0]*(delta_rho_r)*(f_r[0])*n_dot_K_g; // last state saturations
+    REAL theta_1 = un_l + l_l[0]*(delta_rho_l)*(1.0-f_l[0])*n_dot_K_g;
+    REAL theta_2 = un_l - l_r[0]*(delta_rho_r)*(f_r[0])*n_dot_K_g;
     
     bool take_l = false;
     bool take_r = false;
+
+    take_l = (0.0 <= theta_1) && (theta_1 <= theta_2);
+    take_r = (theta_1 <= 0.0) && (0.0 <= theta_2);
     
-    if (un_l >= 0.0) {
-        take_l = (0.0 <= theta_1) && (theta_1 <= theta_2);
-        take_r = (theta_1 <= 0.0) && (0.0 <= theta_2);
-    }
-    else{
-        take_l = (0.0 >= theta_1) && (theta_1 >= theta_2);
-        take_r = (theta_1 >= 0.0) && (0.0 >= theta_2);
-    }
     
     REAL qgn_l = l_l[0]*(delta_rho_l)*(1.0-f_l[0])*n_dot_K_g; // last state saturations
     REAL qgn_r = l_r[0]*(delta_rho_r)*(1.0-f_r[0])*n_dot_K_g; // last state saturations
@@ -520,16 +515,18 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
 //        std::cout << "Jaffré:: Just water up and down! " << std::endl;
 //    }
     
-    // apply gravity segregation
-    if(take_l){
-        un_l += qgn_l;
-    }
+//    // apply gravity segregation
+//    if(take_l){
+//        un_l += qgn_l;
+//    }
+//    
+//    if(take_r){
+//        un_l += qgn_r;
+//    }
     
-    if(take_r){
-        un_l += qgn_r;
-    }
-    
-    
+    REAL epsilon = 1.0e-20;
+    REAL qgn_avg = 2.0*(qgn_l*qgn_r)/(qgn_l + qgn_r + epsilon);
+    un_l += qgn_avg;
     
     STATE beta = 0.0;
     // upwinding
