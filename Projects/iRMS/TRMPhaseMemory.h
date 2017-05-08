@@ -99,6 +99,8 @@ private:
     /** @brief gradient of u_n */
     TPZFNMatrix<9,REAL> f_e_grad_u_n;
 
+    /** @brief weighted pressure at intial state */
+    REAL f_p_p_0;
     
 public:
 
@@ -371,6 +373,16 @@ public:
         return f_e_grad_u_n;
     }
     
+    
+    /** @brief set weighted pressure at intial state */
+    void Set_p_0(STATE & p_p_0){
+        f_p_p_0 = p_p_0;
+    }
+    
+    /** @brief get weighted pressure at intial state */
+    STATE & p_0(){
+        return f_p_p_0;
+    }
     
     
     /** @brief Get x coordinate */

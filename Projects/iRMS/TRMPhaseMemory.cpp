@@ -75,6 +75,9 @@ TRMPhaseMemory::TRMPhaseMemory(){
     /** @brief gradient of u_n */
     f_e_grad_u_n.Resize(3, 0.0);
     
+    /** @brief weighted pressure at intial state */
+    f_p_p_0 = 0.0;
+    
 }
 
 /** @brief Default destructor */

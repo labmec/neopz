@@ -124,6 +124,22 @@ void TRMPhaseTransport::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
     
 }
 
+void TRMPhaseTransport::Compute_Sigma(REAL & l, REAL & mu, REAL & alpha, REAL & p, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u){
+    
+    
+    REAL trace;
+    for (int i = 0; i < 3; i++) {
+        trace = 0.0;
+        for (int j = 0; j < 3; j++) {
+            S(i,j) = mu * (Grad_u(i,j) + Grad_u(j,i));
+            trace +=  Grad_u(j,j);
+        }
+        S(i,i) += l * trace - alpha * p;
+    }
+    
+    return;
+}
+
 // Jacobian contribution
 void TRMPhaseTransport::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
@@ -241,8 +257,13 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     REAL sw      = memory.sa();
     REAL sw_n    = memory.sa_n();
     
+    REAL p_0    = memory.p_0();
     REAL p      = memory.p_avg();
     REAL p_n    = memory.p_avg_n();
+    
+    TPZFMatrix<REAL> & grad_u_0 = memory.grad_u_0();
+    TPZFMatrix<REAL> & grad_u   = memory.grad_u();
+    TPZFMatrix<REAL> & grad_u_n = memory.grad_u_n();
     
     
     // Rock parameters
@@ -271,6 +292,18 @@ void TRMPhaseTransport::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL wei
     REAL mu_dr  = memory.mu();
     REAL alpha  = memory.alpha();
     REAL Se = memory.S_e();
+    
+    TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
+    Compute_Sigma(l_dr, mu_dr, alpha, p_0, S_0, grad_u_0);
+    Compute_Sigma(l_dr, mu_dr, alpha, p, S, grad_u);
+    Compute_Sigma(l_dr, mu_dr, alpha, p_n, S_n, grad_u_n);
+    
+    REAL Kdr = l_dr + (2.0/3.0)*mu_dr;
+    REAL S_v_0 = (S_0(0,0) + S_0(1,1) + S_0(2,2))/3.0;
+    REAL S_v = (S(0,0) + S(1,1) + S(2,2))/3.0;
+    REAL S_v_n = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
+    REAL Ss = (Se + alpha*alpha/Kdr);
+    
     
     REAL phi = phi_0;
     REAL phi_n = phi_0;
