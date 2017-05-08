@@ -489,36 +489,16 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
         transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), false);
         transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), true);
         
+        // A_e-h and A_h-e
+        transfer->Build_elliptic_hyperbolic_cel_pairs(elliptic->Mesh(),hyperbolic->Mesh()); // ok
+        transfer->Build_elliptic_hyperbolic_volumetric(elliptic->Mesh(),hyperbolic->Mesh()); // ok
+        transfer->Build_hyperbolic_elliptic_volumetric(hyperbolic->Mesh(), elliptic->Mesh()); //ok
+        
+        transfer->elliptic_To_hyperbolic(elliptic->Mesh(), hyperbolic->Mesh()); //ok
+        transfer->hyperbolic_To_elliptic(hyperbolic->Mesh(), elliptic->Mesh()); //ok
+        
     }
     return;
-    
-    
-    // old methods
-    transfer->Fill_u_To_Mixed(parabolic->Mesh(), 0);
-    transfer->Fill_p_To_Mixed(parabolic->Mesh(), 1);
-    transfer->kappa_phi_To_Mixed_Memory(parabolic->Mesh());
-    
-    if(fSimulationData->IsOnePhaseQ()){
-        transfer->FillComputationalElPairs(parabolic->Mesh(),parabolic->Mesh());
-    }
-    
-    if(fSimulationData->IsTwoPhaseQ()){
-        transfer->kappa_phi_To_Transport_Memory(hyperbolic->Mesh());
-        transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
-        transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
-        transfer->ComputeLeftRight(hyperbolic->Mesh());
-        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
-        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
-    }
-    
-    if(fSimulationData->IsThreePhaseQ()){
-        transfer->FillComputationalElPairs(parabolic->Mesh(),hyperbolic->Mesh());
-        transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 0);
-        transfer->Fill_s_To_Transport(hyperbolic->Mesh(), 1);
-        transfer->ComputeLeftRight(hyperbolic->Mesh());
-        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),true);
-        transfer->Fill_un_To_Transport(parabolic->Mesh(),hyperbolic->Mesh(),false);
-    }
     
 }
 

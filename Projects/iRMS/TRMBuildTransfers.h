@@ -66,6 +66,9 @@ private:
     /** @brief integration point indexes geo_intp_o_intp_t */
     TPZStack< std::pair<long, std::pair<long, long> >  > fe_p_cindexes;
     
+    /** @brief integration point indexes geo_intp_o_intp_t */
+    TPZStack< std::pair<long, std::pair<long, long> >  > fe_h_cindexes;
+    
     /** @brief integration point indexes geo_cel_o_cel_t */
     TPZStack< std::pair<long, std::pair< TPZVec<long>, TPZVec<long> > >  > fe_p_intp_indexes;
     
@@ -80,6 +83,9 @@ private:
     
     /** @brief linear application grad_u to parabolic mesh */
     TRMIrregularBlockDiagonal<STATE> fgrad_u_To_parabolic;
+    
+    /** @brief linear application grad_u to hyperbolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fgrad_u_To_hyperbolic;
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Segregated Transfer methods (Gamma and Omega) :: Attributes Parabolic
@@ -134,6 +140,9 @@ private:
     TPZVec< TPZVec<long> > fp_avg_dof_scatter;
     
     /** @brief p_avg dof indexes per element */
+    TPZVec< TPZVec<long> > fu_avg_dof_scatter;
+    
+    /** @brief p_avg dof indexes per element */
     TPZVec< TPZVec<long> > fqn_avg_dof_scatter_Gamma;
     
     /** @brief p_avg dof indexes per element */
@@ -157,6 +166,9 @@ private:
     /** @brief integration point indexes geo_cel_o_cel_t */
     TPZStack< std::pair<long, std::pair<long, std::vector<long> > >  > fparabolic_hyperbolic_cel_pairs;
     
+    /** @brief integration point indexes geo_cel_o_cel_t */
+    TPZStack< std::pair<long, std::pair<long, std::vector<long> > >  > felliptic_hyperbolic_cel_pairs;
+    
     /** @brief left and right geo/cel element pairs indexes by inner interfaces gamma */
     TPZStack < std::pair< TPZVec<long>, std::pair< TPZVec<long>, TPZVec<long> > >  > fleft_right_g_c_indexes_gamma;
     
@@ -175,6 +187,9 @@ private:
     /** @brief linear application p_avg to hyperbolic mesh */
     TRMIrregularBlockDiagonal<STATE> fp_avg_To_hyperbolic;
     
+    /** @brief linear application grad_u_avg to hyperbolic mesh */
+    TRMIrregularBlockDiagonal<STATE> fgrad_u_avg_To_hyperbolic;
+    
     /** @brief linear application p_avg to hyperbolic mesh */
     TRMIrregularBlockDiagonal<STATE> fqn_avg_To_hyperbolic_gamma;
     
@@ -183,6 +198,9 @@ private:
     
     /** @brief linear application sw_avg to parabolic mesh */
     TRMIrregularBlockDiagonal<STATE> fsw_avg_To_parabolic;
+    
+    /** @brief linear application sw_avg to elliptic mesh */
+    TRMIrregularBlockDiagonal<STATE> fsw_avg_To_elliptic;
     
 
     ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
@@ -226,7 +244,6 @@ private:
     
     /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh over Gamma */
     TRMIrregularBlockDiagonal<STATE> fun_To_Transport_Gamma;
-    
     
     /** @brief Diagonal block matrix to transfer Average normal flux solution to integrations points of the transport mesh over interfaces */
     TRMIrregularBlockDiagonal<STATE> fun_To_Transport;
@@ -306,7 +323,6 @@ public:
     
     void elliptic_To_parabolic(TPZCompMesh * elliptic, TPZCompMesh * parabolic);
     
-    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Segregated Transfer methods (Gamma and Omega) :: Build methods Parabolic
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -349,6 +365,22 @@ public:
     void parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabolic, TPZCompMesh * hyperbolic, bool bc_interfaceQ);
     
     void hyperbolic_To_parabolic_volumetric(TPZCompMesh * hyperbolic, TPZCompMesh * parabolic);
+    
+    
+    void Build_elliptic_hyperbolic_cel_pairs(TPZCompMesh * elliptic, TPZCompMesh * hyperbolic);
+    
+    /** @brief bluid linear applications: u and grad_u to hyperbolic $ */
+    void Build_elliptic_hyperbolic_volumetric(TPZCompMesh * elliptic, TPZCompMesh * hyperbolic);
+    
+    void Build_hyperbolic_elliptic_volumetric(TPZCompMesh * hyperbolic, TPZCompMesh * elliptic);
+    
+    void elliptic_To_hyperbolic(TPZCompMesh * elliptic, TPZCompMesh * hyperbolic);
+    
+    void hyperbolic_To_elliptic(TPZCompMesh * hyperbolic,TPZCompMesh * elliptic);
+    
+    void elliptic_To_hyperbolic_volumetric(TPZCompMesh * elliptic, TPZCompMesh * hyperbolic);
+    
+    void hyperbolic_To_elliptic_volumetric(TPZCompMesh * hyperbolic, TPZCompMesh * elliptic);
     
     ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////

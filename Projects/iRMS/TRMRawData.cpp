@@ -683,25 +683,25 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fReportingTimes.Push(std::make_pair(1000.0*day,true));
-    fReportingTimes.Push(std::make_pair(950.0*day,false));
-    fReportingTimes.Push(std::make_pair(900.0*day,true));
-    fReportingTimes.Push(std::make_pair(850.0*day,false));
-    fReportingTimes.Push(std::make_pair(800.0*day,true));
-    fReportingTimes.Push(std::make_pair(750.0*day,false));
-    fReportingTimes.Push(std::make_pair(700.0*day,true));
-    fReportingTimes.Push(std::make_pair(650.0*day,false));
-    fReportingTimes.Push(std::make_pair(600.0*day,true));
-    fReportingTimes.Push(std::make_pair(550.0*day,false));
-    fReportingTimes.Push(std::make_pair(500.0*day,true));
-    fReportingTimes.Push(std::make_pair(450.0*day,false));
-    fReportingTimes.Push(std::make_pair(400.0*day,true));
-    fReportingTimes.Push(std::make_pair(350.0*day,false));
-    fReportingTimes.Push(std::make_pair(300.0*day,true));
-    fReportingTimes.Push(std::make_pair(250.0*day,false));
-    fReportingTimes.Push(std::make_pair(200.0*day,true));
-    fReportingTimes.Push(std::make_pair(150.0*day,false));
-    fReportingTimes.Push(std::make_pair(100.0*day,true));
+//    fReportingTimes.Push(std::make_pair(1000.0*day,true));
+//    fReportingTimes.Push(std::make_pair(950.0*day,false));
+//    fReportingTimes.Push(std::make_pair(900.0*day,true));
+//    fReportingTimes.Push(std::make_pair(850.0*day,false));
+//    fReportingTimes.Push(std::make_pair(800.0*day,true));
+//    fReportingTimes.Push(std::make_pair(750.0*day,false));
+//    fReportingTimes.Push(std::make_pair(700.0*day,true));
+//    fReportingTimes.Push(std::make_pair(650.0*day,false));
+//    fReportingTimes.Push(std::make_pair(600.0*day,true));
+//    fReportingTimes.Push(std::make_pair(550.0*day,false));
+//    fReportingTimes.Push(std::make_pair(500.0*day,true));
+//    fReportingTimes.Push(std::make_pair(450.0*day,false));
+//    fReportingTimes.Push(std::make_pair(400.0*day,true));
+//    fReportingTimes.Push(std::make_pair(350.0*day,false));
+//    fReportingTimes.Push(std::make_pair(300.0*day,true));
+//    fReportingTimes.Push(std::make_pair(250.0*day,false));
+//    fReportingTimes.Push(std::make_pair(200.0*day,true));
+//    fReportingTimes.Push(std::make_pair(150.0*day,false));
+//    fReportingTimes.Push(std::make_pair(100.0*day,true));
     fReportingTimes.Push(std::make_pair(50.0*day,false));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
@@ -724,7 +724,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fMHMResolutionQ.second.first = 0; // level
     fMHMResolutionQ.second.second = 1; // fine
     fIncreaseTransporResolutionQ.first = true;
-    fIncreaseTransporResolutionQ.second = 0;
+    fIncreaseTransporResolutionQ.second = 1;
     
     // RB controls
     fReduceBasisQ.first = false;

@@ -50,6 +50,31 @@ TRMPhaseMemory::TRMPhaseMemory(){
     
     fx.Resize(3,0.0);
     
+    // initial state items
+    
+    /** @brief gradient of u_n at intial state*/
+    f_e_grad_u_0.Resize(3, 0.0);
+    
+    /** @brief sigma at intial state*/
+    f_e_sigma_0.Resize(3, 0.0);
+    
+    
+    // last time state items
+    
+    /** @brief displacements */
+    f_e_u.Resize(3, 0.0);
+    
+    /** @brief gradient of u_n */
+    f_e_grad_u.Resize(3, 0.0);
+    
+    // current time state items
+    
+    /** @brief displacements */
+    f_e_u_n.Resize(3, 0.0);
+    
+    /** @brief gradient of u_n */
+    f_e_grad_u_n.Resize(3, 0.0);
+    
 }
 
 /** @brief Default destructor */

@@ -74,6 +74,30 @@ private:
     
     /** @brief Spatial coordinate */
     TPZManVector<REAL,3> fx;
+    
+    // initial state items
+    
+    /** @brief gradient of u_n at intial state*/
+    TPZFNMatrix<9,REAL> f_e_grad_u_0;
+    
+    /** @brief sigma at intial state*/
+    TPZFNMatrix<9,REAL> f_e_sigma_0;
+    
+    // last time state items
+    
+    /** @brief displacements */
+    TPZFNMatrix<3,REAL> f_e_u;
+    
+    /** @brief gradient of u_n */
+    TPZFNMatrix<9,REAL> f_e_grad_u;
+    
+    // current time state items
+    
+    /** @brief displacements */
+    TPZFNMatrix<3,REAL> f_e_u_n;
+    
+    /** @brief gradient of u_n */
+    TPZFNMatrix<9,REAL> f_e_grad_u_n;
 
     
 public:
@@ -296,6 +320,58 @@ public:
     void Set_x(TPZManVector<REAL,3> x){
         fx = x;
     }
+    
+    
+    ///////// elliptic data
+    
+    // initial state items
+    
+    /** @brief set gradient of u_n at intial state */
+    void Set_grad_u_0(TPZFMatrix<STATE> & grad_u_0){
+        f_e_grad_u_0 = grad_u_0;
+    }
+    
+    /** @brief get gradient of u_n at intial state */
+    TPZFMatrix<STATE> & grad_u_0(){
+        return f_e_grad_u_0;
+    }
+    
+    /** @brief set sigma at intial state */
+    void Set_sigma_0(TPZFMatrix<STATE> & sigma_0){
+        f_e_sigma_0 = sigma_0;
+    }
+    
+    /** @brief get sigma at intial state */
+    TPZFMatrix<STATE> & sigma_0(){
+        return f_e_sigma_0;
+    }
+    
+    
+    // last time state items
+    
+    /** @brief set grad_u at last time */
+    void Set_grad_u(TPZFMatrix<STATE> & grad_u){
+        f_e_grad_u = grad_u;
+    }
+    
+    /** @brief get grad_u at last time */
+    TPZFMatrix<STATE> & grad_u(){
+        return f_e_grad_u;
+    }
+    
+    // current time state items
+    
+    /** @brief set grad_u at current time */
+    void Set_grad_u_n(TPZFMatrix<STATE> & grad_u_n){
+        f_e_grad_u_n = grad_u_n;
+    }
+    
+    /** @brief get grad_u at current time */
+    TPZFMatrix<STATE> & grad_u_n(){
+        return f_e_grad_u_n;
+    }
+    
+    
     
     /** @brief Get x coordinate */
     TPZManVector<REAL,3> & x(){
