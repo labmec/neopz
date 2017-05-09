@@ -396,9 +396,12 @@ void TRMMixedDarcy::Contribute_Undrained(TPZVec<TPZMaterialData> &datavec, REAL 
     
     REAL alpha = 0; // Total stress
     REAL p_null = 0;
-    TPZFNMatrix<9,REAL> S(3,3),S_n(3,3);
-    Compute_Sigma(l_dr, mu_dr, alpha, p_null, S_n, grad_u_n);
+    TPZFNMatrix<9,REAL> S(3,3,0.0),S_n(3,3,0.0);
+    if (fSimulationData->IsGeomechanicQ()) {
+        Compute_Sigma(l_dr, mu_dr, alpha, p_null, S_n, grad_u_n);
+    }
     REAL S_n_v = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
+    
     
     if(! fSimulationData->IsCurrentStateQ()){
         return;
@@ -423,6 +426,14 @@ void TRMMixedDarcy::Contribute_Undrained(TPZVec<TPZMaterialData> &datavec, REAL 
     
     alpha  = memory.alpha();
     
+<<<<<<< Updated upstream
+=======
+    if (!fSimulationData->IsGeomechanicQ()) {
+        S_n_v = -10.0e6;
+        alpha = 1.0;
+    }
+    
+>>>>>>> Stashed changes
     for (int ip = 0; ip < nphi_p; ip++)
     {
         ef(ip + firstp) += weight * ( (alpha * p_n + S_n_v) * memory.phi_p()(ip,0) );
@@ -495,6 +506,10 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     TPZFNMatrix<3,STATE> Kl_inv_q(3,1),Kl_inv_phi_q_j(3,1);
     TPZManVector<STATE,3> Gravity = fSimulationData->Gravity();
     
+    Gravity[0] = 0.0;
+    Gravity[1] = 0.0;
+    Gravity[2] = 0.0;
+    
     for (int i = 0; i < Dimension(); i++) {
         STATE dot = 0.0;
         for (int j =0; j < Dimension(); j++) {
@@ -566,9 +581,11 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     REAL phi = phi_0 + alpha * (S_v - S_v_0) / Kdr + Ss * (p - p_0);
     REAL phi_n = phi_0 + alpha * (S_v_n - S_v_0) / Kdr + Ss * (p_n - p_0);
 
-//    REAL phi = phi_0;
-//    REAL phi_n = phi_0;
-//    Ss = 0.0;
+    if (!fSimulationData->IsGeomechanicQ()) {
+        phi = phi_0;
+        phi_n = phi_0;
+        Ss = 0.0;
+    }
     
     for (int ip = 0; ip < nphi_p; ip++)
     {
@@ -914,10 +931,14 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     REAL alpha  = memory.alpha();
     REAL Se = memory.S_e();
     
-    TPZFNMatrix<9,REAL> S_0(3,3),S(3,3),S_n(3,3);
-    Compute_Sigma(l_dr, mu_dr, alpha, p_0, S_0, grad_u_0);
-    Compute_Sigma(l_dr, mu_dr, alpha, p, S, grad_u);
-    Compute_Sigma(l_dr, mu_dr, alpha, p_n, S_n, grad_u_n);
+    TPZFNMatrix<9,REAL> S_0(3,3,0.0),S(3,3,0.0),S_n(3,3,0.0);
+    
+    if (fSimulationData->IsGeomechanicQ()) {
+        Compute_Sigma(l_dr, mu_dr, alpha, p_0, S_0, grad_u_0);
+        Compute_Sigma(l_dr, mu_dr, alpha, p, S, grad_u);
+        Compute_Sigma(l_dr, mu_dr, alpha, p_n, S_n, grad_u_n);
+    }
+
     
     REAL Kdr = l_dr + (2.0/3.0)*mu_dr;
     REAL S_v_0 = (S_0(0,0) + S_0(1,1) + S_0(2,2))/3.0;
@@ -925,13 +946,22 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
     REAL S_v_n = (S_n(0,0) + S_n(1,1) + S_n(2,2))/3.0;
     REAL Ss = (Se + alpha*alpha/Kdr);
     
-//    REAL phi = phi_0 + alpha * (S_v - S_v_0) / Kdr + Ss * (p - p_0);
-//    REAL phi_n = phi_0 + alpha * (S_v_n - S_v_0) / Kdr + Ss * (p_n - p_0);
+    REAL phi = phi_0 + alpha * (S_v - S_v_0) / Kdr + Ss * (p - p_0);
+    REAL phi_n = phi_0 + alpha * (S_v_n - S_v_0) / Kdr + Ss * (p_n - p_0);
+
+    if (!fSimulationData->IsGeomechanicQ()) {
+        phi = phi_0;
+        phi_n = phi_0;
+        Ss = 0.0;
+    }
     
+<<<<<<< Updated upstream
     REAL phi = phi_0;
     REAL phi_n = phi_0;
     Ss = 0.0;
 
+=======
+>>>>>>> Stashed changes
     
     for (int ip = 0; ip < nphi_p; ip++)
     {

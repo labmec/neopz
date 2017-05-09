@@ -176,13 +176,13 @@ void TRMBiotPoroelasticity::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     // Fluid parameters
     TPZManVector<STATE, 10> rho_w_n,rho_o_n;
     fSimulationData->AlphaProp()->Density(rho_w_n, v_n);
-    fSimulationData->BetaProp()->Density(rho_o_n, v_n);
     
     bool side_burden_Omega = (this->Id() == 12 || this->Id() == 14);
-    if (fSimulationData->IsOnePhaseQ() && side_burden_Omega) {
+    if (fSimulationData->IsOnePhaseQ() || side_burden_Omega) {
         rho_avg = (1.0-phi_0)*rho + phi_0*rho_w_n[0];
     }
     else{
+        fSimulationData->BetaProp()->Density(rho_o_n, v_n);        
         rho_avg = (1.0-phi_0)*rho + phi_0*(sw*rho_w_n[0] + (1.0-sw)*rho_o_n[0]);
     }
     
@@ -789,13 +789,13 @@ void TRMBiotPoroelasticity::Contribute_RB(TPZVec<TPZMaterialData> &datavec, REAL
     // Fluid parameters
     TPZManVector<STATE, 10> rho_w_n,rho_o_n;
     fSimulationData->AlphaProp()->Density(rho_w_n, v_n);
-    fSimulationData->BetaProp()->Density(rho_o_n, v_n);
     
     bool side_burden_Omega = (this->Id() == 12 || this->Id() == 14);
-    if (fSimulationData->IsOnePhaseQ() && side_burden_Omega) {
+    if (fSimulationData->IsOnePhaseQ() || side_burden_Omega) {
         rho_avg = (1.0-phi_0)*rho + phi_0*rho_w_n[0];
     }
     else{
+        fSimulationData->BetaProp()->Density(rho_o_n, v_n);        
         rho_avg = (1.0-phi_0)*rho + phi_0*(sw*rho_w_n[0] + (1.0-sw)*rho_o_n[0]);
     }
     

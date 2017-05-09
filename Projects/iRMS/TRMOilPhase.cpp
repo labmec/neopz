@@ -157,7 +157,11 @@ void TRMOilPhase::Viscosity_c(TPZManVector<STATE,10> &mu, TPZManVector<STATE,10>
 #endif
     
     int n = state_vars.size() + 1;
+<<<<<<< Updated upstream
     STATE val = 0.02;
+=======
+    STATE val = 0.001;
+>>>>>>> Stashed changes
     mu.Resize(n,0.0);
     mu[0] = val;
     

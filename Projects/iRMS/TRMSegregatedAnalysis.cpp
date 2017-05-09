@@ -221,11 +221,17 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
             fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
             fParabolic->ExcecuteOneStep();            
             fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
+<<<<<<< Updated upstream
             if (!fSimulationData->IsOnePhaseQ()) {
                 fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
                 fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
             }
+=======
+        }else{
+            fParabolic->ExcecuteOneStep();
+>>>>>>> Stashed changes
         }
+        
         return;
         
     }

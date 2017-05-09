@@ -32,7 +32,7 @@ well_i_regions = {};
 well_i_v_regions = {};
 
 
-geomechanicQ = 1;
+geomechanicQ = 0;
 dimension = 3;
 nolinearQ = 0;
 CADReservoirQ = 1;
@@ -115,16 +115,16 @@ EndIf
 // well geometry and settings
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 0.5;
+rw = 1.0;
 wl = 40.0;
 
 wbr = 20.0;
 ela = 30.0;
-rw_cell= 1.0;
-wr_cell= 20.0;
+rw_cell= 2.0;
+wr_cell= 30.0;
 
 If(dimension == 2)
-rw = 0.3;
+rw = 0.2;
 rw_cell= 1.0;
 EndIf
 
@@ -146,7 +146,7 @@ wcy = 0.0;
 wcz = 125.0;
 
 IsInjectorQ = 0;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -162,7 +162,7 @@ wcx = 150.0;
 wcy = 0.0;
 wcz = 30.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -182,7 +182,7 @@ wcx = -650.0;
 wcy = 500.0;
 wcz = 20.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 // well 4 
@@ -198,7 +198,7 @@ wcx = -650.0;
 wcy = -500.0;
 wcz = 20.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ wcx = 100.0;
 wcy = -600.0;
 wcz = 80.0;
 IsInjectorQ = 0;
-//Call DrillWell;
+Call DrillWell;
 
 
 
@@ -235,7 +235,7 @@ wcx = 100.0;
 wcy = 600.0;
 wcz = 80.0;
 IsInjectorQ = 1;
-//Call DrillWell;
+Call DrillWell;
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////

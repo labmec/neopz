@@ -215,11 +215,6 @@ void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<ST
 /** @brief Se inverse of biot parameter  $S_{\epsilon}$ */
 void TRMSpatialPropertiesMap::S_e_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &S_e, TPZManVector<STATE,10> &state_vars){
 
-    REAL l_dr   = 2.30769e9;
-    REAL mu_dr  = 1.53846e9;
-    REAL alpha  = 0.8;
-    REAL Se = 1.0e-9;
-
     S_e.Resize(10, 0.0);
     STATE val = 1.0e-9;
     S_e[0] = val;

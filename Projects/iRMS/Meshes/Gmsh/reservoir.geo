@@ -32,7 +32,7 @@ well_i_regions = {};
 well_i_v_regions = {};
 
 
-geomechanicQ = 1;
+geomechanicQ = 0;
 dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
@@ -82,9 +82,9 @@ sb_z_length = 4000.0;
 
 If(dimension == 2)
 y_length = 100.0;
-sb_x_length = 4000.0;
-sb_y_length = 2000.0;
-sb_z_length = 2000.0;
+sb_x_length = 20000.0;
+sb_y_length = 10000.0;
+sb_z_length = 10000.0;
 EndIf
 
 ////////////////////////////////////////////////////////////////////////////
@@ -115,13 +115,13 @@ EndIf
 // well geometry and settings
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 0.2;
+rw = 0.5;
 wl = 50.0;
 
 wbr = 30.0;
 ela = 50.0;
-rw_cell= 1.0;
-wr_cell= 10.0;
+rw_cell= 2.0;
+wr_cell= 30.0;
 
 If(dimension == 2)
 rw = 0.2;

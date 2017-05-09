@@ -159,9 +159,9 @@ void TRMPoroelasticModes::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     REAL rho_r = 2500.0;
     TPZManVector<REAL,3> g = fSimulationData->Gravity();
     TPZManVector<REAL,3> b(3,0.0);
-    b[0] = - rho_r*g[0];
-    b[1] = - rho_r*g[1];
-    b[2] = - rho_r*g[2];
+//    b[0] = - rho_r*g[0];
+//    b[1] = - rho_r*g[1];
+//    b[2] = - rho_r*g[2];
     
     TPZFNMatrix<9,REAL> S_n(3,3);
     grad_u_n.Resize(3, 3);

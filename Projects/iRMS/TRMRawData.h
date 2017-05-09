@@ -159,6 +159,11 @@ public:
     
     static void FluxThiem(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& F, TPZFMatrix< REAL >& GradF);
     
+    /** @brief Verification of Elliptic operator */
+    void SinglePhaseReservoir_Ae(bool Is3DGeometryQ);
+    
+    static void Pressure_Ae(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& P, TPZFMatrix< REAL >& GradP);    
+    
     /** @brief Define the materials for a primitive one-phase flow example and their functions associated */
     void SinglePhaseReservoir(bool Is3DGeometryQ);
     

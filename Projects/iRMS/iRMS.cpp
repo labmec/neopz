@@ -66,7 +66,8 @@ void MultiScaleSimulation()
     bool IsSinglePhaseQ = false;
     if(IsSinglePhaseQ){
 //        RawData->SinglePhaseReservoirHMM(Is3DGeometry); // FEM and HMM chapter
-        RawData->SinglePhaseReservoir(Is3DGeometry); // Single-phase flow
+//        RawData->SinglePhaseReservoir(Is3DGeometry); // Single-phase flow
+        RawData->SinglePhaseReservoir_Ae(Is3DGeometry); // Ae verification
     }
     else{
 //        RawData->CaseTracerTransport(Is3DGeometry); // Case 1 and 2 Tracer transport // recomposed
