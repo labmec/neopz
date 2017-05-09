@@ -33,14 +33,14 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 0;
-dimension = 2;
+dimension = 3;
 nolinearQ = 0;
 CADReservoirQ = 0;
 
 xzQ = 0;
-hexahedronsWQ = 1;
-hexahedronsRQ = 1;
-hexahedronsSBQ = 1;
+hexahedronsWQ = 0;
+hexahedronsRQ = 0;
+hexahedronsSBQ = 0;
 
 If (nolinearQ == 1)
 Mesh.ElementOrder = 2;
@@ -59,8 +59,8 @@ EndIf
 cl1 = 1;
 cl2 = 0.1;
 cl3 = 10.0;
-cl4 = 25.0;
-cl5 = 500.0;
+cl4 = 50.0;
+cl5 = 100.0;
 
 ////////////////////////////////////////////////////////////////////////////
 // reservoir region geometry
@@ -115,11 +115,12 @@ EndIf
 // well geometry and settings
 ////////////////////////////////////////////////////////////////////////////
 
-rw = 0.5;
-wl = 50.0;
 
-wbr = 30.0;
-ela = 50.0;
+rw = 1.0;
+wl = 40.0;
+
+wbr = 20.0;
+ela = 30.0;
 rw_cell= 2.0;
 wr_cell= 30.0;
 

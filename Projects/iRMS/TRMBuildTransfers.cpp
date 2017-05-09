@@ -3693,7 +3693,7 @@ void TRMBuildTransfers::Build_elliptic_hyperbolic_volumetric(TPZCompMesh * ellip
                                         block_grad_phi_u_avg(ison*dim*dim + id*gel_dim + jd,jp*dim+id) += dphidx(jd,jp);
                                     }
                                     else{
-                                        block_grad_phi_u_avg(ison*dim*dim + id*gel_dim + jd,jp) += dphi(jp,d_count);
+                                        block_grad_phi_u_avg(ison*dim*dim + id*gel_dim + jd,jp) += w*dphi(jp,d_count)/sub_volume;
                                         d_count++;
                                     }
                                 }
@@ -5089,7 +5089,7 @@ void TRMBuildTransfers::hyperbolic_To_parabolic_volumetric(TPZCompMesh * hyperbo
     
 }
 void TRMBuildTransfers::elliptic_To_hyperbolic(TPZCompMesh * elliptic, TPZCompMesh * hyperbolic){
-    this->elliptic_To_hyperbolic_volumetric(elliptic,hyperbolic);
+    this->elliptic_To_hyperbolic_volumetricII(elliptic,hyperbolic);
     return;
 }
 
@@ -5258,6 +5258,155 @@ void TRMBuildTransfers::elliptic_To_hyperbolic_volumetric(TPZCompMesh * elliptic
     
     
 }
+
+void TRMBuildTransfers::elliptic_To_hyperbolic_volumetricII(TPZCompMesh * elliptic, TPZCompMesh * hyperbolic){
+
+#ifdef PZDEBUG
+    if (!elliptic || !hyperbolic) {
+        DebugStop();
+    }
+#endif
+    
+    TPZGeoMesh * geometry = elliptic->Reference();
+    int dim = elliptic->Dimension();
+    int n_el = felliptic_hyperbolic_cel_pairs.size();
+    
+    for (int iel = 0; iel < n_el; iel++) {
+        
+        TPZGeoEl * gel = geometry->Element(felliptic_hyperbolic_cel_pairs[iel].first);
+        
+#ifdef PZDEBUG
+        if (!gel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZCompEl * e_cel = elliptic->Element(felliptic_hyperbolic_cel_pairs[iel].second.first);
+        
+        
+#ifdef PZDEBUG
+        if (!e_cel) {
+            DebugStop();
+        }
+#endif
+        
+        TPZMultiphysicsElement * mf_e_cel = dynamic_cast<TPZMultiphysicsElement * >(e_cel);
+        
+        
+#ifdef PZDEBUG
+        if(!mf_e_cel)
+        {
+            DebugStop();
+        }
+#endif
+        
+        REAL vol_e = DimensionalMeasure(gel);
+        int matd_id_e = gel->MaterialId();
+        TPZMaterial * material_e = elliptic->FindMaterial(matd_id_e);
+        
+        TPZManVector<long, 30> int_point_indexes_e;
+        mf_e_cel->GetMemoryIndices(int_point_indexes_e);
+        int n_points_e = int_point_indexes_e.size();
+        long ipos_e;
+        
+        TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material_e = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material_e);
+        
+        TPZFMatrix<REAL> grad_u_avg(3,3,0.0);
+        for(long ip = 0; ip <  n_points_e; ip++) {
+            ipos_e = int_point_indexes_e[ip];
+            if(fSimulationData->IsCurrentStateQ()){
+                TPZFMatrix<REAL> & grad_u = associated_material_e->GetMemory()[ipos_e].grad_u_n();
+                grad_u *= 1.0/vol_e;
+                grad_u_avg += grad_u;
+            }
+            else{
+                TPZFMatrix<REAL> & grad_u = associated_material_e->GetMemory()[ipos_e].grad_u();
+                grad_u *= 1.0/vol_e;
+                grad_u_avg += grad_u;
+            }
+            
+        }
+        
+        
+        int n_sons = felliptic_hyperbolic_cel_pairs[iel].second.second.size();
+        
+        for (int ison = 0; ison < n_sons ; ison++) {
+            
+            TPZCompEl * h_cel = hyperbolic->Element(fparabolic_hyperbolic_cel_pairs[iel].second.second[ison]);
+            
+#ifdef PZDEBUG
+            if (!h_cel) {
+                DebugStop();
+            }
+#endif
+            
+            TPZMultiphysicsElement * mf_h_cel = dynamic_cast<TPZMultiphysicsElement * >(h_cel);
+            
+#ifdef PZDEBUG
+            if(!mf_h_cel)
+            {
+                DebugStop();
+            }
+#endif
+            
+            TPZGeoEl * sub_gel = h_cel->Reference();
+            
+#ifdef PZDEBUG
+            if(!sub_gel)
+            {
+                DebugStop();
+            }
+#endif
+            
+            //  Getting the total integration point of the destination cmesh
+            int matd_id = sub_gel->MaterialId();
+            TPZMaterial * material = hyperbolic->FindMaterial(matd_id);
+            
+            if(gel->Dimension() == dim){ // The volumetric ones!
+                
+                TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
+                
+                TPZManVector<long, 30> int_point_indexes;
+                mf_h_cel->GetMemoryIndices(int_point_indexes);
+                int n_points = int_point_indexes.size();
+                long ipos;
+                
+                TPZFMatrix<REAL> grad_u(3,3,0.0);
+                for(long ip = 0; ip <  n_points; ip++) {
+                    ipos  = int_point_indexes[ip];
+                    
+                    TPZFNMatrix<9,STATE> grad_u(3,3,0.0);
+                    for(long ip = 0; ip <  n_points; ip++) {
+                        ipos  = int_point_indexes[ip];
+                        
+                        REAL vol_h = DimensionalMeasure(sub_gel);
+                        grad_u = (vol_h)*grad_u_avg;
+                        
+                        if(fSimulationData->IsInitialStateQ() && fSimulationData->IsCurrentStateQ()){
+                            associated_material->GetMemory()[ipos].Set_grad_u_0(grad_u);
+                        }
+                        
+                        if (fSimulationData->IsCurrentStateQ()) {
+                            associated_material->GetMemory()[ipos].Set_grad_u_n(grad_u);
+                        }
+                        else{
+                            associated_material->GetMemory()[ipos].Set_grad_u(grad_u);
+                        }
+                    }
+                }
+                
+                
+            }
+            else{
+                DebugStop(); // Just volumetric coupling
+            }
+        }
+        
+    }
+    
+}
+
+
 
 void TRMBuildTransfers::hyperbolic_To_elliptic_volumetric(TPZCompMesh * hyperbolic, TPZCompMesh * elliptic){
     

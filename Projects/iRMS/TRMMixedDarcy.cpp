@@ -426,14 +426,11 @@ void TRMMixedDarcy::Contribute_Undrained(TPZVec<TPZMaterialData> &datavec, REAL 
     
     alpha  = memory.alpha();
     
-<<<<<<< Updated upstream
-=======
     if (!fSimulationData->IsGeomechanicQ()) {
         S_n_v = -10.0e6;
         alpha = 1.0;
     }
     
->>>>>>> Stashed changes
     for (int ip = 0; ip < nphi_p; ip++)
     {
         ef(ip + firstp) += weight * ( (alpha * p_n + S_n_v) * memory.phi_p()(ip,0) );
@@ -954,14 +951,6 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         phi_n = phi_0;
         Ss = 0.0;
     }
-    
-<<<<<<< Updated upstream
-    REAL phi = phi_0;
-    REAL phi_n = phi_0;
-    Ss = 0.0;
-
-=======
->>>>>>> Stashed changes
     
     for (int ip = 0; ip < nphi_p; ip++)
     {

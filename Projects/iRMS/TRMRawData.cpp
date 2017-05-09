@@ -830,7 +830,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fSystemType.Push("water");
     fSystemType.Push("oil");
     water->SetRhoModel(0);
-    oil->SetRhoModel(0);
+    oil->SetRhoModel(1);
     fPhases.Push(water);
     fPhases.Push(oil);
     int n_data = fSystemType.size();
@@ -864,62 +864,43 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-<<<<<<< Updated upstream
-
-=======
-    fReportingTimes.Push(std::make_pair(1000.0*day,false));
-    fReportingTimes.Push(std::make_pair(950.0*day,false));
-    fReportingTimes.Push(std::make_pair(900.0*day,false));
-    fReportingTimes.Push(std::make_pair(850.0*day,false));
-    fReportingTimes.Push(std::make_pair(800.0*day,false));
-    fReportingTimes.Push(std::make_pair(750.0*day,false));
-    fReportingTimes.Push(std::make_pair(700.0*day,false));
-    fReportingTimes.Push(std::make_pair(650.0*day,false));
-    fReportingTimes.Push(std::make_pair(600.0*day,false));
-    fReportingTimes.Push(std::make_pair(550.0*day,false));
->>>>>>> Stashed changes
-    fReportingTimes.Push(std::make_pair(500.0*day,false));
+    fReportingTimes.Push(std::make_pair(500.0*day,true));
     fReportingTimes.Push(std::make_pair(450.0*day,false));
     fReportingTimes.Push(std::make_pair(400.0*day,false));
     fReportingTimes.Push(std::make_pair(350.0*day,false));
     fReportingTimes.Push(std::make_pair(300.0*day,false));
-    fReportingTimes.Push(std::make_pair(250.0*day,false));
+    fReportingTimes.Push(std::make_pair(250.0*day,true));
     fReportingTimes.Push(std::make_pair(200.0*day,false));
     fReportingTimes.Push(std::make_pair(150.0*day,false));
     fReportingTimes.Push(std::make_pair(100.0*day,false));
-<<<<<<< Updated upstream
     fReportingTimes.Push(std::make_pair(50.0*day,false));
-    fReportingTimes.Push(std::make_pair(0.0*day,false));
-=======
-    fReportingTimes.Push(std::make_pair(50.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
->>>>>>> Stashed changes
     
     fn_steps  = 150;
-    fdt       = 50.0*day;
+    fdt       = 10.0*day;
     fdt_max   = 100.0*day;
     fdt_min   = 0.1*day;
     fdt_up    = 1.0;
     fdt_down  = 1.0;
     
     // Numeric controls
-    fn_corrections = 10;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 0.0001;
-    fUsePardisoQ  = false;
+    fn_corrections = 40;
+    fepsilon_res = 0.1;
+    fepsilon_cor = 0.1;
+    fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 0; // fine
+    fMHMResolutionQ.second.second = 1; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
     // RB controls
-    fReduceBasisQ.first = false;
-    fReduceBasisQ.second.second.Push(100); // x
-    fReduceBasisQ.second.second.Push(100); // y
+    fReduceBasisQ.first = true;
+    fReduceBasisQ.second.second.Push(10); // x
+    fReduceBasisQ.second.second.Push(10); // y
     fReduceBasisQ.second.second.Push(2); // z
     
     // Rock materials ids

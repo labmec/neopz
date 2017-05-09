@@ -488,11 +488,8 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
         n_dot_K_g += n[i]*K_g;
     }
     
-<<<<<<< Updated upstream
-    n_dot_K_g *= 2.0;
-=======
-//    n_dot_K_g *= 0.0;
->>>>>>> Stashed changes
+
+//    n_dot_K_g *= 2.0;
     
     REAL delta_rho_l =rho_w_l[0]-rho_o_l[0];
     REAL delta_rho_r =rho_w_r[0]-rho_o_r[0];
@@ -506,22 +503,7 @@ void TRMPhaseInterfaceTransport::ContributeInterface_ab(TPZMaterialData &data, T
     take_l = (0.0 <= theta_1) && (theta_1 <= theta_2);
     take_r = (theta_1 <= 0.0) && (0.0 <= theta_2);
     
-<<<<<<< Updated upstream
-=======
-    take_l = (0.0 <= theta_1) && (theta_1 <= theta_2);
-    take_r = (theta_1 <= 0.0) && (0.0 <= theta_2);
-    
-//    if (un_l >= 0.0) {
-//
-//    }
-//    else{
-//        take_l = (0.0 >= theta_1) && (theta_1 >= theta_2);
-//        take_r = (theta_1 >= 0.0) && (0.0 >= theta_2);
-//    }
->>>>>>> Stashed changes
-    
     REAL qgn_l = l_l[0]*(delta_rho_l)*(1.0-f_l[0])*n_dot_K_g; // last
-    state saturations
     REAL qgn_r = l_r[0]*(delta_rho_r)*(1.0-f_r[0])*n_dot_K_g; // last state saturations
     
     if (take_l && take_r) {

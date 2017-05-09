@@ -221,15 +221,13 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
             fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
             fParabolic->ExcecuteOneStep();            
             fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
-<<<<<<< Updated upstream
+            
             if (!fSimulationData->IsOnePhaseQ()) {
                 fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
                 fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
             }
-=======
         }else{
             fParabolic->ExcecuteOneStep();
->>>>>>> Stashed changes
         }
         
         return;
@@ -251,6 +249,10 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
             fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
         }
     }
+    
+    if (!fSimulationData->IsGeomechanicQ()) {
+        return;
+    }
 
     // Fixed stress Iteration 2
     if (fSimulationData->IsOnePhaseQ()) {
@@ -266,19 +268,7 @@ void TRMSegregatedAnalysis::SegregatedIteration_Fixed_Stress(){
         fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
     }
     
-    // Fixed stress Iteration 3
-    if (fSimulationData->IsOnePhaseQ()) {
-        fParabolic->ExcecuteOneStep();
-    }
-    else{
-        this->Segregated_p_h_Iteration();
-    }
-    
-    if (fSimulationData->IsGeomechanicQ()) {
-        fTransfer->parabolic_To_elliptic(fParabolic->Mesh(), fElliptic->Mesh());
-        fElliptic->ExcecuteOneStep();
-        fTransfer->elliptic_To_parabolic(fElliptic->Mesh(), fParabolic->Mesh());
-    }
+
     
     
     
@@ -427,9 +417,10 @@ void TRMSegregatedAnalysis::UpdateMemory_at_n(){
         fTransfer->parabolic_To_hyperbolic_volumetric(fParabolic->Mesh(), fHyperbolic->Mesh());
         fTransfer->hyperbolic_To_parabolic_volumetric(fHyperbolic->Mesh(), fParabolic->Mesh());
         
-        // average values Ah - Ae operators
-        fTransfer->hyperbolic_To_elliptic(fHyperbolic->Mesh(), fElliptic->Mesh());
-        fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+        if (fSimulationData->IsGeomechanicQ()) {
+            fTransfer->hyperbolic_To_elliptic(fHyperbolic->Mesh(), fElliptic->Mesh());
+            fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+        }
         
     }
     
@@ -481,8 +472,10 @@ void TRMSegregatedAnalysis::UpdateMemory(){
         fTransfer->hyperbolic_To_parabolic_volumetric(fHyperbolic->Mesh(), fParabolic->Mesh());
         
         // average values Ah - Ae operators
-        fTransfer->hyperbolic_To_elliptic(fHyperbolic->Mesh(), fElliptic->Mesh());
-        fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+        if (fSimulationData->IsGeomechanicQ()) {
+            fTransfer->hyperbolic_To_elliptic(fHyperbolic->Mesh(), fElliptic->Mesh());
+            fTransfer->elliptic_To_hyperbolic(fElliptic->Mesh(), fHyperbolic->Mesh());
+        }
         
     }
     
@@ -558,7 +551,7 @@ void TRMSegregatedAnalysis::KeepGlobalSolution(){
 bool TRMSegregatedAnalysis::MustRestartStep(){
     
     int n_data = fHyperbolic->X_n().Rows();
-    REAL epsilon = 1.0e-2;
+    REAL epsilon = 1.0e-3;
     
     for (long i = 0; i < n_data; i++) {
         if ( (1.0 - fHyperbolic->X_n()(i,0)) < + epsilon ) {

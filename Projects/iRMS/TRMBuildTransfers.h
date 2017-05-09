@@ -380,6 +380,8 @@ public:
     
     void elliptic_To_hyperbolic_volumetric(TPZCompMesh * elliptic, TPZCompMesh * hyperbolic);
     
+    void elliptic_To_hyperbolic_volumetricII(TPZCompMesh * elliptic, TPZCompMesh * hyperbolic);
+    
     void hyperbolic_To_elliptic_volumetric(TPZCompMesh * hyperbolic, TPZCompMesh * elliptic);
     
     ////////////////////////// Transfers:: Iterative Coupling by Operator Splitting //////////////////////////////

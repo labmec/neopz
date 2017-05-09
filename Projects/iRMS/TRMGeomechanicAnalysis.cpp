@@ -152,7 +152,7 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, this->Mesh());
     this->AssembleResidual();
     fR_n = this->Rhs();
-    ferror = Norm(fR_n)*1.0e3;
+    ferror = Norm(fR_n)*1.0e5;
     
     this->Set_k_ietrarions(0);
     
@@ -182,7 +182,7 @@ void TRMGeomechanicAnalysis::ExcecuteOneStep(){
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 #endif
         
-        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
+        if(ferror < epsilon_res && fdx_norm < epsilon_cor)
         {
             std::cout << "Elliptic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             return;

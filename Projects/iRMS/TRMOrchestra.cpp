@@ -295,17 +295,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     }
     
     
-<<<<<<< Updated upstream
-    // Create analysis for each operator
-    int numofThreads_e = 6;
-    bool mustOptimizeBandwidth_elliptic = true;
-    
-    // Analysis for elliptic part
-    elliptic->Meshvec()[0] = fSpaceGenerator->BiotCMesh();
-    elliptic->SetCompMesh(fSpaceGenerator->GeoMechanicsCmesh(), mustOptimizeBandwidth_elliptic);
-=======
     if (fSimulationData->IsGeomechanicQ()) {
->>>>>>> Stashed changes
     
         // Create analysis for each operator
         int numofThreads_e = 16;
@@ -343,12 +333,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         
     }
     
-    
-<<<<<<< Updated upstream
-    int numofThreads_p = 6;
-=======
     int numofThreads_p = 16;
->>>>>>> Stashed changes
     bool mustOptimizeBandwidth_parabolic = true;
     
     /////////////////////////////////////////// No subtructures ///////////////////////////////////////////
@@ -359,18 +344,39 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
 
     
     if(fSimulationData->UsePardisoQ()){
-        TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-    
-//        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
-//        strmat_p.SetDecomposeType(ELDLt);
         
-        TPZStepSolver<STATE> step_p;
-        step_p.SetDirect(ELDLt);
-        strmat_p.SetNumThreads(numofThreads_p);
-        parabolic->SetStructuralMatrix(strmat_p);
-        parabolic->SetSolver(step_p);
-        parabolic->AdjustVectors();
-        parabolic->SetSimulationData(fSimulationData);
+        if (fSpaceGenerator->Gmesh()->Dimension() == 3) {
+            
+            TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+            
+//            TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+//            strmat_p.SetDecomposeType(ELDLt);
+            
+            TPZStepSolver<STATE> step_p;
+            step_p.SetDirect(ELDLt);
+            strmat_p.SetNumThreads(numofThreads_p);
+            parabolic->SetStructuralMatrix(strmat_p);
+            parabolic->SetSolver(step_p);
+            parabolic->AdjustVectors();
+            parabolic->SetSimulationData(fSimulationData);
+        }
+        else{
+            
+//            TPZSymetricSpStructMatrix strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+            
+            TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_p(fSpaceGenerator->MixedFluxPressureCmesh());
+            strmat_p.SetDecomposeType(ELDLt);
+            
+            TPZStepSolver<STATE> step_p;
+            step_p.SetDirect(ELDLt);
+            strmat_p.SetNumThreads(numofThreads_p);
+            parabolic->SetStructuralMatrix(strmat_p);
+            parabolic->SetSolver(step_p);
+            parabolic->AdjustVectors();
+            parabolic->SetSimulationData(fSimulationData);
+        }
+        
+
     }
     else{
         
@@ -392,12 +398,8 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
-        // Analysis for hyperbolic part
-<<<<<<< Updated upstream
-        int numofThreads_t = 6;
-=======
+        // Analysis for hyperbolic par
         int numofThreads_t = 16;
->>>>>>> Stashed changes
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
 
@@ -486,12 +488,12 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
         // iMRS:: elliptic to parabolic transfer
         transfer->Build_elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());
         
-        // iMRS::Transfer:: elliptic to elliptic
-        transfer->elliptic_To_elliptic(elliptic->Mesh());
+//        // iMRS::Transfer:: elliptic to elliptic
+//        transfer->elliptic_To_elliptic(elliptic->Mesh());
         transfer->spatial_props_To_elliptic(elliptic->Mesh());
         
-        // iMRS::Transfer:: elliptic to parabolic
-        transfer->elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());
+//        // iMRS::Transfer:: elliptic to parabolic
+//        transfer->elliptic_To_parabolic(elliptic->Mesh(), parabolic->Mesh());
     }
     
  
@@ -503,15 +505,15 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
     transfer->space_To_parabolic(parabolic->Mesh());
     
     // iMRS::Transfer:: parabolic to parabolic
-    transfer->parabolic_To_parabolic(parabolic->Mesh());
+//    transfer->parabolic_To_parabolic(parabolic->Mesh());
     transfer->spatial_props_To_parabolic(parabolic->Mesh());
     
     if (fSimulationData->IsGeomechanicQ()) {
         // iMRS:: parabolic to elliptic transfer
         transfer->Build_parabolic_To_elliptic(parabolic->Mesh(), elliptic->Mesh());
         
-        // iMRS::Transfer:: parabolic to elliptic
-        transfer->parabolic_To_elliptic(parabolic->Mesh(), elliptic->Mesh());
+//        // iMRS::Transfer:: parabolic to elliptic
+//        transfer->parabolic_To_elliptic(parabolic->Mesh(), elliptic->Mesh());
     }
     
     
@@ -526,24 +528,27 @@ void TRMOrchestra::BuildTransfers(TRMBuildTransfers * transfer, TRMGeomechanicAn
         transfer->Build_parabolic_hyperbolic_volumetric(parabolic->Mesh(),hyperbolic->Mesh()); // ok
         transfer->Build_hyperbolic_parabolic_volumetric(hyperbolic->Mesh(), parabolic->Mesh()); // ok
         
-        transfer->parabolic_To_hyperbolic_volumetric(parabolic->Mesh(),hyperbolic->Mesh()); // ok
-        transfer->hyperbolic_To_parabolic_volumetric(hyperbolic->Mesh(), parabolic->Mesh()); // ok
+//        transfer->parabolic_To_hyperbolic_volumetric(parabolic->Mesh(),hyperbolic->Mesh()); // ok
+//        transfer->hyperbolic_To_parabolic_volumetric(hyperbolic->Mesh(), parabolic->Mesh()); // ok
     
         transfer->Build_parabolic_hyperbolic_left_right_pairs(hyperbolic->Mesh()); //ok
         
         transfer->Build_parabolic_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), false);
         transfer->Build_parabolic_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), true);
 
-        transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), false);
-        transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), true);
+//        transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), false);
+//        transfer->parabolic_To_hyperbolic_interfaces(parabolic->Mesh(), hyperbolic->Mesh(), true);
+        
         
         // A_e-h and A_h-e
-        transfer->Build_elliptic_hyperbolic_cel_pairs(elliptic->Mesh(),hyperbolic->Mesh()); // ok
-        transfer->Build_elliptic_hyperbolic_volumetric(elliptic->Mesh(),hyperbolic->Mesh()); // ok
-        transfer->Build_hyperbolic_elliptic_volumetric(hyperbolic->Mesh(), elliptic->Mesh()); //ok
-        
-        transfer->elliptic_To_hyperbolic(elliptic->Mesh(), hyperbolic->Mesh()); //ok
-        transfer->hyperbolic_To_elliptic(hyperbolic->Mesh(), elliptic->Mesh()); //ok
+        if (fSimulationData->IsGeomechanicQ()) {
+            transfer->Build_elliptic_hyperbolic_cel_pairs(elliptic->Mesh(),hyperbolic->Mesh()); // ok
+            transfer->Build_elliptic_hyperbolic_volumetric(elliptic->Mesh(),hyperbolic->Mesh()); // ok
+            transfer->Build_hyperbolic_elliptic_volumetric(hyperbolic->Mesh(), elliptic->Mesh()); //ok
+            
+//            transfer->elliptic_To_hyperbolic(elliptic->Mesh(), hyperbolic->Mesh()); //ok
+//            transfer->hyperbolic_To_elliptic(hyperbolic->Mesh(), elliptic->Mesh()); //ok
+        }
         
     }
     return;
@@ -737,38 +742,26 @@ void TRMOrchestra::RunEvolutionaryProblem(){
         fSimulationData->SetInitialStateQ(true);
         
         fSimulationData->SetCurrentStateQ(false);
-<<<<<<< Updated upstream
-        fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
-        fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
-        fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+
+        if (fSimulationData->IsGeomechanicQ()) {
+            fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
+            fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
+            fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+            fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
+        }
         fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
-        fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
         fSegregatedAnalysis->Transfer()->parabolic_To_hyperbolic_volumetric(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
 
         
         fSimulationData->SetCurrentStateQ(true);
-        fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
-        fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
-        fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+        if (fSimulationData->IsGeomechanicQ()) {
+            fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
+            fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
+            fSegregatedAnalysis->Transfer()->elliptic_To_hyperbolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
+            fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
+        }
         fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
-        fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
         fSegregatedAnalysis->Transfer()->parabolic_To_hyperbolic_volumetric(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Hyperbolic()->Mesh());
-=======
-        if (fSimulationData->IsGeomechanicQ()) {
-            fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
-            fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
-            fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
-        }
-        fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
-        
-        fSimulationData->SetCurrentStateQ(true);
-        if (fSimulationData->IsGeomechanicQ()) {
-            fSegregatedAnalysis->Transfer()->elliptic_To_elliptic(fSegregatedAnalysis->Elliptic()->Mesh());
-            fSegregatedAnalysis->Transfer()->elliptic_To_parabolic(fSegregatedAnalysis->Elliptic()->Mesh(),fSegregatedAnalysis->Parabolic()->Mesh());
-            fSegregatedAnalysis->Transfer()->parabolic_To_elliptic(fSegregatedAnalysis->Parabolic()->Mesh(),fSegregatedAnalysis->Elliptic()->Mesh());
-        }
-        fSegregatedAnalysis->Transfer()->parabolic_To_parabolic(fSegregatedAnalysis->Parabolic()->Mesh());
->>>>>>> Stashed changes
         
         fSimulationData->SetInitialStateQ(false);
         if (fSimulationData->IsGeomechanicQ()) {
