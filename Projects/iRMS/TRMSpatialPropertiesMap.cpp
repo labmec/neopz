@@ -204,9 +204,10 @@ void TRMSpatialPropertiesMap::phi_f(TPZManVector<STATE,3> &x, TPZManVector<STATE
 void TRMSpatialPropertiesMap::lambda_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &lambda, TPZManVector<STATE,10> &state_vars){
     
     // E = 4.0*10^9, v = 0.3
+    // E = 1.0*10^9, v = 0.3
     REAL GPa = 1.0e9;
     lambda.Resize(10, 0.0);
-    STATE val = 2.30769*GPa;
+    STATE val = 5.76923*GPa;//2.30769*GPa;
     lambda[0] = val;
     
 }
@@ -224,10 +225,11 @@ void TRMSpatialPropertiesMap::S_e_c(TPZManVector<STATE,3> &x, TPZManVector<STATE
 /** @brief second lamé parameter  $\mu$ */
 void TRMSpatialPropertiesMap::mu_c(TPZManVector<STATE,3> &x, TPZManVector<STATE,10> &mu, TPZManVector<STATE,10> &state_vars){
     
-    // E = 4.0*10^9, v = 0.3    
+    // E = 4.0*10^9, v = 0.3
+    // E = 1.0*10^9, v = 0.3
     REAL GPa = 1.0e9;
     mu.Resize(10, 0.0);
-    STATE val = 1.53846*GPa;
+    STATE val = 3.84615*GPa;//1.53846*GPa;
     mu[0] = val;
     
 }
@@ -319,18 +321,18 @@ void TRMSpatialPropertiesMap::LoadSPE10Map(bool PrintMapQ)
     dz[0] = fBlocks_sizes[2];
     TPZGeoMesh * gmesh =this->CreateGeometricBoxMesh(dx, dy, dz);
     
-//    TPZVec<REAL> t_vec(3,0.0);
-//    t_vec[0] = -1.0*REAL(nel_x*dx[0])/2.0;
-//    t_vec[1] = -1.0*REAL(nel_x*dy[0])/2.0;
-//    t_vec[2] = -1.0*REAL(nel_x*dz[0])/2.0;
-//    this->TraslateGeomesh(gmesh, t_vec);
-    
-    REAL angle = -90.0;
+    REAL angle = 0.0;
     int axis = 3; // z -axis;
     this->RotateGeomesh(gmesh, angle, axis);
     
     REAL s = 1.1;
     this->ExpandGeomesh(gmesh, s, s, s);
+    
+    TPZVec<REAL> t_vec(3,0.0);
+    t_vec[0] = -50.0;
+    t_vec[1] = 0.0;
+    t_vec[2] = 15.0;
+    this->TraslateGeomesh(gmesh, t_vec);
     
     if(!gmesh)
     {

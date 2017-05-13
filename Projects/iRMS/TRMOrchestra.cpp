@@ -316,13 +316,13 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
             elliptic->SetSimulationData(fSimulationData);
         }
         else{
-            //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
-            //    strmat_e.SetDecomposeType(ELDLt);
+            TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+            strmat_e.SetDecomposeType(ELDLt);
             
-            TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
+//            TPZSkylineStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
             //        TPZSkylineNSymStructMatrix strmat_e(fSpaceGenerator->GeoMechanicsCmesh());
             TPZStepSolver<STATE> step_e;
-            step_e.SetDirect(ELU);
+            step_e.SetDirect(ELDLt);
             strmat_e.SetNumThreads(numofThreads_e);
             elliptic->SetStructuralMatrix(strmat_e);
             elliptic->SetSolver(step_e);

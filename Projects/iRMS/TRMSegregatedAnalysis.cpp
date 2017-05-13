@@ -283,11 +283,11 @@ void TRMSegregatedAnalysis::Segregated_p_h_Iteration(){
     fHyperbolic->ExcecuteOneStep();
     this->UpdateMemory_at_n();
     
-    fParabolic->ExcecuteOneStep();
-    this->UpdateFluxes_at_n();
-    this->UpdateMemory_at_n();
-    fHyperbolic->ExcecuteOneStep();
-    this->UpdateMemory_at_n();
+//    fParabolic->ExcecuteOneStep();
+//    this->UpdateFluxes_at_n();
+//    this->UpdateMemory_at_n();
+//    fHyperbolic->ExcecuteOneStep();
+//    this->UpdateMemory_at_n();
     
 }
 
@@ -334,7 +334,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
         IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
         
         if (!fSimulationData->IsOnePhaseQ()) {
-            IsConverged_iQ = (fParabolic->k_ietrarions() <= 10) &&  (fHyperbolic->k_ietrarions() <= 10);
+            IsConverged_iQ = (fParabolic->k_ietrarions() <= 15) &&  (fHyperbolic->k_ietrarions() <= 15);
         }
         
         MustRestartQ = MustRestartStep();

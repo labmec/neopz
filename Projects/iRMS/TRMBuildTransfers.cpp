@@ -4948,7 +4948,7 @@ void TRMBuildTransfers::parabolic_To_hyperbolic_interfaces(TPZCompMesh * parabol
             REAL s_a_l = left_material_mem->GetMemory()[left_pos].sa();
             REAL s_a_r = right_material_mem->GetMemory()[right_pos].sa();
             
-            TPZFMatrix<REAL> & k_l =  right_material_mem->GetMemory()[left_pos].K_0();
+            TPZFMatrix<REAL> & k_l =  left_material_mem->GetMemory()[left_pos].K_0();
             TPZFMatrix<REAL> & k_r =  right_material_mem->GetMemory()[right_pos].K_0();
             TPZFMatrix<REAL>  k_avg(3,3);
             REAL epsilon = 1.0e-25;

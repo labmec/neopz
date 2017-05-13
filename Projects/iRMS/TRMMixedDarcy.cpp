@@ -38,7 +38,7 @@ void TRMMixedDarcy::FillDataRequirements(TPZVec<TPZMaterialData> &datavec)
     for (int idata=0; idata < ndata ; idata++) {
         datavec[idata].SetAllRequirements(false);
         datavec[idata].fNeedsBasis = false;
-        datavec[idata].fNeedsSol = true;
+        datavec[idata].fNeedsSol = false;
     }
     
 }

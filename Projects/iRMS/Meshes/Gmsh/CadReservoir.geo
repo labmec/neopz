@@ -58,7 +58,7 @@ res_edges_h[] = {1,2,3,4,6,9,10,12};
 res_edges_v[] = {5,7,8,11};
 
 Transfinite Line {res_edges_h[]} = 25.0;
-Transfinite Line {res_edges_v[]} = 4.0;
+Transfinite Line {res_edges_v[]} = 2.0;
 
 reservoir_boundaries[] = {res_B[],res_T[],res_S[],res_E[],res_N[],res_W[]};
 

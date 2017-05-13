@@ -903,10 +903,12 @@ void TRMSpaceOdissey::RB_Generator(){
     }
     else{
         
+        TPZSymetricSpStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
+        
 //        TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat_e(this->GalerkinProjectionsCMesh());
 //        strmat_e.SetDecomposeType(ELDLt);
         
-        TPZSkylineStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
+//        TPZSkylineStructMatrix strmat_e(this->GalerkinProjectionsCMesh());
         
         TPZStepSolver<STATE> step_e;
         step_e.SetDirect(ELDLt);
@@ -942,6 +944,7 @@ void TRMSpaceOdissey::RB_Generator(){
     REAL percent = -10.0;
     fSimulationData->Set_m_RB_functions(n_blocks);
     std::cout<< "RB:: number of geomodes = " << n_blocks << std::endl;
+    std::cout << "RB:: ndof rb generator = " << fGP_BiotCmesh->Solution().Rows() << std::endl;
     for (int ip = 0; ip < n_blocks; ip++) {
         
         
@@ -981,7 +984,6 @@ void TRMSpaceOdissey::RB_Generator(){
 #endif
     
     RB_generator->SimulationData()->SetInitialStateQ(state);
-    std::cout << "ndof rb generator = " << fGP_BiotCmesh->Solution().Rows() << std::endl;
 
 }
 
@@ -3081,7 +3083,7 @@ void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
 void TRMSpaceOdissey::CreateGeometricGmshMesh(std::string &grid){
     
     TRMGmshReader Geometry;
-    REAL s = 1.0;
+    REAL s = 5.0;
     Geometry.SetfDimensionlessL(s);
     fGeoMesh = Geometry.GeometricGmshMesh(grid);
     const std::string name("Reservoir with cylindrical wells");
