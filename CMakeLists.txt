@@ -1,4 +1,4 @@
-# @file neopz/CMakeList.txt  -- First file to read for CMake 
+# @file neopz/CMakeList.txt  -- First file to read for CMake
 
 cmake_minimum_required (VERSION 2.8.0)
 
@@ -32,7 +32,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/Analysis"
 	"${PROJECT_SOURCE_DIR}/SubStruct"
 	"${PROJECT_SOURCE_DIR}/LinearSolvers"
-	"${PROJECT_SOURCE_DIR}/External" 
+	"${PROJECT_SOURCE_DIR}/External"
 	"${PROJECT_SOURCE_DIR}/External/sloan"
 	"${PROJECT_SOURCE_DIR}/Publications"
 )
@@ -87,7 +87,7 @@ IF(APPLE)
 #   SET(OperatingSystem "Mac OS X")
 ENDIF(APPLE)
 
-#enabling Boost library 
+#enabling Boost library
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
 if(USING_BOOST)
 	IF (WIN32)
@@ -114,6 +114,10 @@ endif(USING_BOOST)
 
 
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
+if(BUILD_SUBMODULES)
+	set(USING_FAD ON CACHE BOOL "Whether the FAD package will be linked with the library" FORCE)
+endif(BUILD_SUBMODULES)
+
 if(USING_FAD)
 	#Adding a variable to hold this definition
 	set(_AUTODIFF _AUTODIFF)
@@ -252,8 +256,8 @@ if(USING_MATLAB_ENGINE)
 		message(FATAL_ERROR "Error! Please create matlab symlink on /usr/bin by typing on terminal:\nsudo ln -sf PATH_TO_YOUR_MATLAB/bin/matlab /usr/bin/matlab")
 	endif()
 
-	include_directories(${Matlab_ROOT_DIR}/extern/include)	
-	
+	include_directories(${Matlab_ROOT_DIR}/extern/include)
+
 endif(USING_MATLAB_ENGINE)
 
 #enabling BLAS library
@@ -281,7 +285,7 @@ option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
 if(USING_LAPACK)
 	add_definitions(-DUSING_LAPACK)
 	if(APPLE)
-	else()	
+	else()
 		find_path(LAPACK_INCLUDE clapack.h PATHS ${SEARCH_DIRS})
 		find_library(LAPACK_LIB NAMES libclapack.dylib PATHS ${SEARCH_DIRS})
 		if(LAPACK_INCLUDE-NOTFOUND)
@@ -295,13 +299,13 @@ if(USING_LAPACK)
 	endif(APPLE)
 endif(USING_LAPACK)
 
-#enabling the new skyline matrix format 
+#enabling the new skyline matrix format
 option(USING_NEW_SKYLMAT "Enable the new skyline matrix format" OFF)
 if(USING_NEW_SKYLMAT)
         add_definitions(-DUSING_NEW_SKYLMAT)
 endif(USING_NEW_SKYLMAT)
 
-#enabling PAPI library 
+#enabling PAPI library
 option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
 if(USING_PAPI)
         add_definitions(-DUSING_PAPI)
@@ -315,7 +319,7 @@ if(USING_PAPI)
         endif()
 endif(USING_PAPI)
 
-#enabling HWLOC library 
+#enabling HWLOC library
 option(USING_HWLOC "Whether the HWLOC library will be linked in" OFF)
 if(USING_HWLOC)
         add_definitions(-DUSING_HWLOC)
@@ -330,8 +334,8 @@ if(USING_HWLOC)
 endif(USING_HWLOC)
 
 
-	
-#enabling MKL library 
+
+#enabling MKL library
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
         add_definitions(-DUSING_MKL)
@@ -408,7 +412,9 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 
 #To building all the plasticity materials
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
-
+if(BUILD_SUBMODULES)
+	set(BUILD_PLASTICITY_MATERIALS ON CACHE BOOL "To build plasticity materials." FORCE)
+endif(BUILD_SUBMODULES)
 #To select type of REAL
 set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
@@ -501,12 +507,12 @@ if(NOT BUILD_COMPLEX_PROJECTS)
     endif()
 endif()
 
-#enabling to use HDIVPIOLA the contravariant Piola Mapping 
+#enabling to use HDIVPIOLA the contravariant Piola Mapping
 option(USING_HDIVPIOLA "Whether the HDIVPIOLA is being used" OFF)
 if(USING_HDIVPIOLA)
 	#Adding a variable to hold this definition
 	set(HDIVPIOLA HDIVPIOLA)
-	add_definitions(-D${HDIVPIOLA})  
+	add_definitions(-D${HDIVPIOLA})
 endif(USING_HDIVPIOLA)
 
 add_subdirectory(PerfUtil)
@@ -538,9 +544,15 @@ add_subdirectory(lib)
 
 option(BUILD_SUBMODULES "Whether to build projects in Git submodules." OFF)
 
-if(BUILD_PROJECTS OR BUILD_TUTORIAL OR BUILD_SUBMODULES)
+if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
 endif()
+
+if(BUILD_SUBMODULES)
+	add_subdirectory(Projects/Petrobras/PlasticityQT)
+	add_subdirectory(Projects/Petrobras/WellboreQT)
+endif(BUILD_SUBMODULES)
+
 if(BUILD_UNITTESTING)
 	add_subdirectory(UnitTest_PZ)
 endif()
@@ -548,12 +560,12 @@ endif()
 #Enabling tests
 ENABLE_TESTING()
 
-#To insert cmakelist files as a group 
+#To insert cmakelist files as a group
 if(BUILD_TUTORIAL)
 	#Grouping CMakeList.txt for pz Projects - UnitTest_PZ
 	file(GLOB_RECURSE makefiles *Lists.txt)
 
-	#creating text files group 
+	#creating text files group
 	source_group(CMakefilesPZ FILES ${makefilespz})
 	source_group(CMakefilesProjects FILES ${makefilesproject})
 	source_group(CMakefilesUnitTest FILES ${makefilesunittest})
@@ -568,4 +580,3 @@ add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 #SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 
 set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
-

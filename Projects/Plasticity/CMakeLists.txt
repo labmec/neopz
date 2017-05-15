@@ -9,8 +9,8 @@ set(main3_SRCS mainPV.cpp)
 
 #Plasticity works only with double type.
 if ( STATE_TYPE STREQUAL "double" AND
-     REAL_TYPE STREQUAL "double" AND 
-     USING_FAD AND 
+     REAL_TYPE STREQUAL "double" AND
+     USING_FAD AND
      BUILD_PLASTICITY_MATERIALS )
 
 	  add_executable(Plasticity ${main1_SRCS})
@@ -20,8 +20,8 @@ if ( STATE_TYPE STREQUAL "double" AND
 	  target_link_libraries(PlasticityPV pz)
 
 	#Note: you will need QT and QWT libraries to compile PlasticityQT
-#          add_subdirectory(PlasticityQT)
-#          add_subdirectory(interfaces_petro/WellboreQT)
+          add_subdirectory(interfaces_petro/PlasticityQT)
+          add_subdirectory(interfaces_petro/WellboreQT)
 
 	  file(COPY SnubDodecahedron.txt DESTINATION .)
 	  file(COPY wellcil.txt DESTINATION .)
