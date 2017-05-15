@@ -203,6 +203,10 @@ ENABLE_TESTING()
 		
 	endif(BUILD_PROJECTS)
 
-
+	if(BUILD_SUBMODULES)
+		set(USING_FAD ON CACHE BOOL "Whether the FAD package will be linked with the library" FORCE)
+		add_subdirectory(Petrobras/PlasticityQT)
+		add_subdirectory(Petrobras/WellboreQT)
+	endif(BUILD_SUBMODULES)
    
 add_subdirectory(artigoPira)

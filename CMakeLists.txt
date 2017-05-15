@@ -535,7 +535,10 @@ add_subdirectory(Publications)
 
 
 add_subdirectory(lib)
-if(BUILD_PROJECTS OR BUILD_TUTORIAL)
+
+option(BUILD_SUBMODULES "Whether to build projects in Git submodules." OFF)
+
+if(BUILD_PROJECTS OR BUILD_TUTORIAL OR BUILD_SUBMODULES)
 	add_subdirectory(Projects)
 endif()
 if(BUILD_UNITTESTING)
@@ -565,3 +568,4 @@ add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 #SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 
 set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
+
