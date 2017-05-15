@@ -1,0 +1,6 @@
+[submodule "Projects/Petrobras/PlasticityQT"]
+	path = Projects/Petrobras/PlasticityQT
+	url = gitserver:/home/git/Petrobras/PlasticityQT
+[submodule "Projects/Petrobras/WellboreQT"]
+	path = Projects/Petrobras/WellboreQT
+	url = gitserver:/home/git/Petrobras/WellboreQT
