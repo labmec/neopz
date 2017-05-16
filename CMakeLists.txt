@@ -375,6 +375,15 @@ if(USING_MKL)
 endif(USING_MKL)
 
 
+#enabling QWT library
+option(USING_QWT "Whether the QWT library will be linked in" OFF)
+if(USING_QWT)
+        add_definitions(-DUSING_QWT)
+
+        set (QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
+endif(USING_QWT)
+
+
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
