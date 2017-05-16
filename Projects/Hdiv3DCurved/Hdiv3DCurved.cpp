@@ -344,7 +344,9 @@ void ComputeCases(TPZStack<SimulationCase> cases){
     boost::posix_time::ptime int_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
     
+#ifdef USING_BOOST
     std::cout << "End:: Overal time = " << int_t2-int_t1 << std::endl;
+#endif
     
 }
 
@@ -360,7 +362,7 @@ void ComputeApproximation(SimulationCase & sim_data){
     
     std::stringstream summary;
     summary   << sim_data.dump_folder << "/" "conv" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << ".txt";
-    std::ofstream convergence(summary.str(),std::ios::app);
+    std::ofstream convergence(summary.str().c_str(),std::ios::app);
     
     TPZManVector<STATE,10> p_error(sim_data.n_h_levels+1,1.0);
     TPZManVector<STATE,10> d_error(sim_data.n_h_levels+1,1.0);
@@ -431,10 +433,10 @@ void ComputeApproximation(SimulationCase & sim_data){
             std::stringstream vtk_name;
             text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".txt";
             vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "p" << p << "h" <<  h << ".vtk";
-            ofstream textfile(text_name.str());
+            ofstream textfile(text_name.str().c_str());
             gmesh->Print(textfile);
             
-            std::ofstream vtkfile(vtk_name.str());
+            std::ofstream vtkfile(vtk_name.str().c_str());
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
 
             
@@ -479,7 +481,9 @@ void ComputeApproximation(SimulationCase & sim_data){
                 boost::posix_time::ptime int_unwrap_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
                 
+#ifdef USING_BOOST
             std::cout << "StaticCondensation::Time for uncondense equations = " << int_unwrap_t2-int_unwrap_t1 <<std::endl;
+#endif
 
             
             // PostProccessing
@@ -505,10 +509,13 @@ void ComputeApproximation(SimulationCase & sim_data){
 #ifdef USING_BOOST
             boost::posix_time::ptime error_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
+            
+#ifdef USING_BOOST
             STATE error_time = boost::numeric_cast<double>((error_t2 - error_t1).total_milliseconds());
             
             // current summary
             convergence << setw(5) << h << setw(25) << ndof << setw(25) << ndof_cond << setw(25) << assemble_time << setw(25) << solving_time << setw(25) << error_time << setw(25) << p_error[h] << setw(25) << d_error[h]  << setw(25) << h_error[h] << endl;
+#endif
             
             delete cmesh;
             for (int i = 0; i < meshvec.size(); i++) {
@@ -544,9 +551,11 @@ void ComputeApproximation(SimulationCase & sim_data){
     STATE case_solving_time = boost::numeric_cast<double>((int_case_t2-int_case_t1).total_milliseconds());
 #endif
     
+#ifdef USING_BOOST
     convergence <<  "Case closed in :" << setw(10) <<  case_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
     std::cout << "Case closed in :" << setw(10) <<  case_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
     std::cout << std::endl;
+#endif
     
 }
 
@@ -1092,7 +1101,7 @@ TPZCompMesh * PrimalMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, 
 #ifdef PZDEBUG
     std::stringstream file_name;
     file_name   << sim_data.dump_folder << "/" << "Primal_cmesh" << ".txt";
-    std::ofstream sout(file_name.str());
+    std::ofstream sout(file_name.str().c_str());
     cmesh->Print(sout);
 #endif
     
@@ -1194,7 +1203,7 @@ TPZCompMesh *DualMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data, TPZ
 #ifdef PZDEBUG
     std::stringstream file_name;
     file_name   << sim_data.dump_folder << "/" << "Dual_cmesh" << ".txt";
-    std::ofstream sout(file_name.str());
+    std::ofstream sout(file_name.str().c_str());
     cmesh->Print(sout);
 #endif
     
@@ -1368,7 +1377,7 @@ TPZCompMesh * qMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
 #ifdef PZDEBUG
     std::stringstream file_name;
     file_name   << sim_data.dump_folder << "/" << "q_cmesh" << ".txt";
-    std::ofstream sout(file_name.str());
+    std::ofstream sout(file_name.str().c_str());
     cmesh->Print(sout);
 #endif
     
@@ -1434,7 +1443,7 @@ TPZCompMesh * pMesh(TPZGeoMesh * geometry, int p, SimulationCase sim_data){
 #ifdef PZDEBUG
     std::stringstream file_name;
     file_name   << sim_data.dump_folder << "/" << "p_cmesh" << ".txt";
-    std::ofstream sout(file_name.str());
+    std::ofstream sout(file_name.str().c_str());
     cmesh->Print(sout);
 #endif
     
@@ -2660,10 +2669,10 @@ void PrintGeometry(TPZGeoMesh * gmesh, SimulationCase & sim_data){
     std::stringstream vtk_name;
     text_name   << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << "_l" << level_mhm << ".txt";
     vtk_name    << sim_data.dump_folder << "/" "geo" << "_" << sim_data.mesh_type << "_" << sim_data.domain_type << "_" << "mhm" << "_l" << level_mhm << ".vtk";
-    ofstream textfile(text_name.str());
+    std::ofstream textfile(text_name.str().c_str());
     gmesh->Print(textfile);
     
-    std::ofstream vtkfile(vtk_name.str());
+    std::ofstream vtkfile(vtk_name.str().c_str());
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, true);
 }
 

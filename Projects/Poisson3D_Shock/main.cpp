@@ -296,7 +296,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel, struct SimulationCase s
 	
 	// Output files
     std::string file_name = sim_case.dir_name + "/" + "ErrorsHP_Poisson.txt";
-	std::ofstream fileerrors(file_name,ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
+	std::ofstream fileerrors(file_name.c_str(),ios::app);   // To store all errors calculated by TPZAnalysis (PosProcess)
 	// Initial message to print computed errors
 	time(&sttime);
 	ptime = ctime(&sttime);
@@ -594,7 +594,7 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel, struct SimulationCase s
 #ifdef PZDEBUG
         {
             std::string mesh_file = sim_case.dir_name + "/" + "CheckMesh.txt";
-            std::ofstream outcheck(mesh_file);
+            std::ofstream outcheck(mesh_file.c_str());
             TPZCheckMesh check(cmesh, NULL);
             if(check.CheckElementShapeDimension() != 0)
             {
@@ -2825,7 +2825,7 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolutionAndGradient(TPZCompMesh *cm
 
 void Replay(TPZCompMesh *cmesh, std::string filename, long countmax)
 {
-    std::ifstream input(filename);
+    std::ifstream input(filename.c_str());
     long count = 0;
     char once = 0;
     while(input && count < countmax)

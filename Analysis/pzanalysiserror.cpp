@@ -19,7 +19,7 @@
 
 using namespace std;
 
-TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
+TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,true,out),fElIndexes(0),fElErrors(0),
 fSingular(),fTotalError(0.),fAdmissibleError(0.0),fEtaAdmissible(0.05),fNIterations(4) {}
 
 void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, long NIterations) {
