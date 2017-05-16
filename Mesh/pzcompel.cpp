@@ -41,6 +41,7 @@ using namespace std;
 #include "pzlog.h"
 
 #include <algorithm>
+#include <iterator>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
