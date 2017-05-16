@@ -3175,7 +3175,6 @@ int TPZWellBoreAnalysis::TConfig::CheckAxisValidity(REAL MaiorAxis, REAL MinorAx
     if (MaiorAxis < fInnerRadius) {
         return 0;
     }
-    fGreater.Resize(fGreater.size()+1, MaiorAxis);
     if (fSmaller.size() && fSmaller[fSmaller.size()-1] < MinorAxis) {
         return 0;
     }
@@ -3898,7 +3897,7 @@ bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
     FromPhysicalDomaintoComputationalDomainStress(fConfinementTotal, boundarytensor);
     Sh1=boundarytensor.XX();
     Sh2=boundarytensor.YY();
-    
+
     for (ellips = fGreater.size()-1; ellips >=0; ellips--) {
         
         if(fabs(Sh1)<fabs(Sh2))
@@ -3997,12 +3996,7 @@ REAL TPZWellBoreAnalysis::TConfig::MaxYfromLastBreakout()
     
     if(fGreater.size() == 1)
     {
-        REAL a =fGreater[0];
-        REAL b =fSmaller[0];
-        num=sqrt(a*a-r*r);
-        denom=sqrt(( (a*a)/(b*b) ) -1 );
-        y=num/denom;
-        return y;
+        return r;
     }
     else
     {
@@ -4016,10 +4010,6 @@ REAL TPZWellBoreAnalysis::TConfig::MaxYfromLastBreakout()
         y=num/denom;
         return y;
     }
-    
-    
-    
-    
 }
 
 
