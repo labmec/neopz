@@ -534,9 +534,9 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	 */
     int numthreads = 2;
     if(opt) numthreads = 1;
-	pthread_t allthreads[numthreads];
-	TPZMThread alldata[numthreads];
-	int res[numthreads];
+	TPZVec<pthread_t> allthreads(numthreads);
+	TPZVec<TPZMThread> alldata(numthreads);
+	TPZVec<int> res(numthreads);
 	int i;
 	int eqperthread = r/numthreads;
 	int firsteq = 0;
