@@ -4,6 +4,13 @@ cmake_minimum_required (VERSION 2.8.0)
 
 project (PZ)
 
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 #Specify where the headers files must be finded
 include_directories(
 	"${PROJECT_SOURCE_DIR}/Python"
