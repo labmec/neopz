@@ -913,7 +913,7 @@ void TPZMatElastoPlastic<T,TMEM>::CheckConvergence(TPZMaterialData & data, TPZFM
     int intPt = data.intGlobPtIndex;//, plasticSteps;
     T plasticloc(fPlasticity);
     plasticloc.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
-    TPZTensor<REAL> deps, sigma1,sigma2,sigmatrash,sigma3;
+    TPZTensor<REAL> deps;
     deps.CopyFrom(DeltaStrain);
     
     REAL alfa =1.e-6;
@@ -923,7 +923,6 @@ void TPZMatElastoPlastic<T,TMEM>::CheckConvergence(TPZMaterialData & data, TPZFM
     Alfa1DeltaEps.CopyFrom(DeltaStrain);
     Alfa2DeltaEps.CopyFrom(DeltaStrain);
     TPZFNMatrix<36,REAL> DEP(6,6);
-    
     
     Alfa1DeltaEps*=alfa;
     Alfa2DeltaEps*=alfa2;
