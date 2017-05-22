@@ -151,7 +151,7 @@ int main() {
     
     //   return 0;
     
-    TPZAnalysis an(secondmesh,outcm1);
+    TPZAnalysis an(secondmesh,true,outcm1);
     secondmesh->Print(outcm1);
     outcm1.flush();
     TPZSkylineStructMatrix stiff (secondmesh);
