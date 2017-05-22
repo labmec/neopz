@@ -10,7 +10,7 @@
 #include "pzdxmesh.h"
 using namespace std;
 
-TPZIterativeAnalysis::TPZIterativeAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out), fBegin(0),fInit(0) {
+TPZIterativeAnalysis::TPZIterativeAnalysis(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,true,out), fBegin(0),fInit(0) {
 
   //fBegin = 0.0;
   //fInit = 0.0;
