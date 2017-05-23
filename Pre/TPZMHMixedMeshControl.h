@@ -13,6 +13,7 @@
 
 #include "TPZMHMeshControl.h"
 
+/// class for creating TPZMHMM with Mixed Meshes
 class TPZMHMixedMeshControl : public TPZMHMeshControl
 {
     
