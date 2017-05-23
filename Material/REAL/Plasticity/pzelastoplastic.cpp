@@ -1007,7 +1007,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     locstate.fEpsT = EpsT;
 //    plasticloc.SetState(locstate);
 #ifdef PZDEBUG
-    CheckConvergence(data,DeltaStrain);
+    //CheckConvergence(data,DeltaStrain);
 #endif
 	
     plasticloc.ApplyStrainComputeDep(EpsT, Sigma, Dep);

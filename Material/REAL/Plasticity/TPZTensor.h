@@ -37,11 +37,10 @@ public:
         unsigned int fDistinctEigenvalues;
         TPZManVector<unsigned int, 3> fGeometricMultiplicity;
         TPZManVector<T, 3> fEigenvalues;
-        TPZManVector<TPZManVector<T>, 3> fEigenvectors;
+        TPZManVector<TPZManVector<T, 3>, 3> fEigenvectors;
         TPZManVector<TPZTensor<T>, 3> fEigentensors; // Tensors of the spectral decomposition. If there is a repeated eigenvalue, only the first occurrence should be filled.
 
         TPZDecomposed() : fDistinctEigenvalues(0), fGeometricMultiplicity(3, 0), fEigenvalues(3, 0.), fEigenvectors(3), fEigentensors(3) {
-
         }
 
         TPZDecomposed(const TPZDecomposed &copy) : fDistinctEigenvalues(copy.fDistinctEigenvalues), fGeometricMultiplicity(copy.fGeometricMultiplicity), fEigenvalues(copy.fEigenvalues), fEigenvectors(copy.fEigenvectors), fEigentensors(copy.fEigentensors) {
@@ -268,7 +267,12 @@ public:
 	TPZTensor(const TPZDecomposed &eigensystem) : fData(6, T(0.))
 	{
         (*this).Scale(0.);
-        for (int i = 0; i < 3; i++) {
+        for (unsigned int i = 0; i < eigensystem.fDistinctEigenvalues; i+=eigensystem.fGeometricMultiplicity[i]) {
+#ifdef PZDEBUG
+            if (i > 2){
+                DebugStop();
+            }
+#endif
             Add(eigensystem.fEigentensors[i], eigensystem.fEigenvalues[i]);
         }
     }

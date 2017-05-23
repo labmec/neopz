@@ -3636,8 +3636,12 @@ void TPZWellBoreAnalysis::TConfig::ModifyWellElementsToQuadratic()
     {
         TPZGeoEl * bcGel = fGMesh.ElementVec()[el];
         
+        if (bcGel && !bcGel->IsLinearMapping()) {
+            continue;
+        }
+        
 #ifdef PZDEBUG
-        if(!bcGel || !bcGel->IsLinearMapping())
+        if(!bcGel)
         {
             DebugStop();
         }
@@ -3944,8 +3948,12 @@ bool TPZWellBoreAnalysis::TConfig::ProjectNode(TPZVec<REAL> &co)
         if (fabs(radius-fInnerRadius) > 1.e-7) {
             wasadjusted = true;
         }
-        co[0] *= fInnerRadius/radius;
-        co[1] *= fInnerRadius/radius;
+        if (IsZero(radius)){
+            co[0] = fInnerRadius;
+        } else {
+            co[0] *= fInnerRadius/radius;
+            co[1] *= fInnerRadius/radius;
+        }
     }
     
     return wasadjusted;

@@ -534,7 +534,7 @@ void TaylorCheck3() // Tomara que o ultimo!!
 			REAL factor = deigensig * deij / deigeneps;
 			tempMat.Redim(3, 3);
 //			tempMat.Print("tempMat");
-                        TPZManVector<REAL> epsegveFromProji(3), epsegveFromProjj(3);
+                        TPZManVector<REAL, 3> epsegveFromProji(3), epsegveFromProjj(3);
                         for (unsigned int k = 0; k < 3; ++k) {
                             epsegveFromProji[k] = epsegveFromProj[i](k,0);
                             epsegveFromProjj[k] = epsegveFromProj[j](k,0);

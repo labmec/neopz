@@ -89,7 +89,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     }
 #endif
 
-    // ReturMap in the principal values
+    // ReturnMap in the principal values
     STATE nextalpha = -6378.;
     STATE printPlastic = fN.Alpha();
     TPZFNMatrix<9> GradSigma(3, 3, 0.);
@@ -364,7 +364,7 @@ REAL InnerVecOfMat(TPZFMatrix<REAL> &m1,TPZFMatrix<REAL> &m2)
     return dot;
 }
 
-TPZFMatrix<REAL> ProdT(TPZManVector<REAL> &v1, TPZManVector<REAL> &v2) {
+TPZFMatrix<REAL> ProdT(TPZManVector<REAL,3> &v1, TPZManVector<REAL,3> &v2) {
     TPZFMatrix<REAL> mat(3, 3, 0.);
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
