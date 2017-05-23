@@ -1365,7 +1365,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
 #ifdef PZDEBUG
             {
                 TPZManVector<STATE, 2> yieldcopy(2);
-                YieldFunction(sigproj, kprev, yieldcopy);
+                YieldFunction(sigproj, kproj, yieldcopy);
                 if (fabs(yieldcopy[0]) > 1.e-3) {
                     DebugStop();
                 }
