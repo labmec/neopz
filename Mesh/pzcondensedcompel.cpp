@@ -401,6 +401,11 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
+        int nc = NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            sout << "ic = " << ic << ' ';
+            Connect(ic).Print(*Mesh(),sout);
+        }
         ek.fMat.Print("EK11Reduced",sout,EMathematicaInput);
         ef.fMat.Print("EF11Reduced",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
