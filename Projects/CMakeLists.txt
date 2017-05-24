@@ -136,9 +136,6 @@ ENABLE_TESTING()
 			#Adaptivity based on mesh cloning (Edimar Cesar thesis)
 			#add_subdirectory(Poisson_ArcTan)
 
-			#projeto Diogo
-			add_subdirectory(Plasticity)
-
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
@@ -196,17 +193,6 @@ ENABLE_TESTING()
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
 			endif(USING_MKL)
-
-
 		endif(BUILD_COMPLEX_PROJECTS)
-
-
 	endif(BUILD_PROJECTS)
-
-	# if(BUILD_SUBMODULES)
-	# 	set(USING_FAD ON CACHE BOOL "Whether the FAD package will be linked with the library" FORCE)
-	# 	set(BUILD_PLASTICITY_MATERIALS ON CACHE BOOL "To build plasticity materials." FORCE)
-	# 	add_subdirectory(Petrobras/PlasticityQT)
-	# 	add_subdirectory(Petrobras/WellboreQT)
-	# endif(BUILD_SUBMODULES)
 add_subdirectory(artigoPira)
