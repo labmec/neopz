@@ -598,6 +598,10 @@ void TPZFMatrix<double>::MultAdd(const TPZFMatrix<double> &x,const TPZFMatrix<do
     }
     if(this->Cols() == 0) {
         z.Zero();
+        if (beta != 0) {
+            z = y;
+            z *= beta;
+        }
         return;
     }
     if (beta != (double)0.) {
