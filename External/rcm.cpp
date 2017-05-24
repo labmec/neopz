@@ -10,6 +10,10 @@ using namespace std;
 
 # include "rcm.h"
 
+#ifdef WIN32
+#include <minmax.h>
+#endif
+
 //****************************************************************************80
 
 int adj_bandwidth ( int node_num, int adj_num, int adj_row[], int adj[] )
