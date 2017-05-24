@@ -538,7 +538,7 @@ int TPZFrontStructMatrix<front>::main() {
 	ofstream output("outputNon.dat");
 	//	ofstream output2("outputNon.dat");
 	cmesh.Print(output);
-	TPZAnalysis an(&cmesh,output);
+	TPZAnalysis an(&cmesh,true,output);
 	//	TPZAnalysis an2(&cmesh,output);
 	
 	TPZVec<int> numelconnected(cmesh.NEquations(),0);

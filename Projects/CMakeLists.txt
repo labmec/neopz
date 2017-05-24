@@ -1,4 +1,4 @@
-# @file neopz/Projects/CMakeList.txt  -- First CMake file for Projects directory 
+# @file neopz/Projects/CMakeList.txt  -- First CMake file for Projects directory
 
 ENABLE_TESTING()
 
@@ -28,13 +28,13 @@ ENABLE_TESTING()
 
 			#Testing and using shape functions
 			#add_subdirectory(testshape)
-            
+
 			#Generic Example 2D with elasticity and 2D linear problem showing an example call to Contribute
 			#add_subdirectory(testmat)
 
 			#Using visual matrix of the DX
 			add_subdirectory(visualmatrix)
-			
+
 
 			# project to save and load a computational mesh
 			add_subdirectory(SaveAndLoad)
@@ -58,16 +58,16 @@ ENABLE_TESTING()
 
 			#Example of the hybrid mesh
 			add_subdirectory(HybridMesh)
-			
+
 			#Example of the  convection problem
 			add_subdirectory(Problema_Transporte)
 
-	
+
 			# Simple project to test rational function defined by Cedric on pyramids
 			add_subdirectory(RationalFunctionPyramid)
 
 			add_subdirectory(proDG)
-			
+
 
 		endif(BUILD_COMPLEX_PROJECTS)
 
@@ -84,12 +84,12 @@ ENABLE_TESTING()
 			#exercise on gradient reconstruction, but the results are wrong!
 			add_subdirectory(Poisson2D_ArcTan_Disc)
 
-			
+
 		endif(BUILD_COMPLEX_PROJECTS)
 	endif(BUILD_BROKEN)
-	
+
 	if(BUILD_PROJECTS)
-		
+
 		#
 		# COMPLEX NUMBER PROJECTS
 		#
@@ -102,7 +102,7 @@ ENABLE_TESTING()
 			add_subdirectory(StriplineFran)
 			add_subdirectory(ValidacaoHCurlFran1)
 			add_subdirectory(ValidacaoHCurlFran2)
-			
+
 			#add_subdirectory(HDiv_demo)
 
 			#Examples used as tutorial for FEEC group (Prof Hugo)
@@ -125,19 +125,16 @@ ENABLE_TESTING()
 			##########################
 			#Testes Douglas
 			add_subdirectory(dactests)
- 
+
 			#Using discontinuous approximation functions - masters thesis of Erick Slis
 			add_subdirectory(descontinuo)
 
- 
+
 			#Testing generating ellipse from a vector of points by least square method
 			add_subdirectory(EllipseGenerator)
 
 			#Adaptivity based on mesh cloning (Edimar Cesar thesis)
 			#add_subdirectory(Poisson_ArcTan)
-
-			#projeto Diogo
-			add_subdirectory(Plasticity)
 
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(Gridgeneration)
@@ -148,7 +145,7 @@ ENABLE_TESTING()
 			add_subdirectory(SubStruct)
 			add_subdirectory(MultiphysicsSimulation)
 			add_subdirectory(ProblemGirkmann)
-			
+
 			add_subdirectory(multplaca)
 
 			#Projeto Lua 2012
@@ -187,7 +184,7 @@ ENABLE_TESTING()
 #			add_subdirectory(MetodosEstab)
 			#
 			# Colaboration with Laurent Stainier
-			
+
 			add_subdirectory(MatLib)
 			add_subdirectory(TrabalhosLNCC15)
 
@@ -196,13 +193,6 @@ ENABLE_TESTING()
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
 			endif(USING_MKL)
-			
-
 		endif(BUILD_COMPLEX_PROJECTS)
-		
-		
 	endif(BUILD_PROJECTS)
-
-
-   
 add_subdirectory(artigoPira)

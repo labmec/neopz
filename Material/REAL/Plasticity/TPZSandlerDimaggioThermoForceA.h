@@ -11,53 +11,53 @@ Classe que implementa o calculo da forca termodinamica (Souza Neto p. 144) e sua
 Esta implementacao considera que A=alpha. Embora esteja conceitualmente
 errado, a implementacao do criterio de plastificacao com A=alpha
 conduz a um modelo correto.
-*/
+ */
 class TPZSandlerDimaggioThermoForceA {
 public:
 
     TPZSandlerDimaggioThermoForceA() 
     {
     }
-	
+
     TPZSandlerDimaggioThermoForceA(const TPZSandlerDimaggioThermoForceA & source)
     {
     }
 
     TPZSandlerDimaggioThermoForceA & operator=(const TPZSandlerDimaggioThermoForceA & source)
     {
-		return *this;
+        return *this;
     }
 
 	const char * Name() const
     {
-	   return "TPZSandlerDimaggioThermoForceA";	
+        return "TPZSandlerDimaggioThermoForceA";
     }
-	
+
     void Print(std::ostream & out) const
     {
-		out << "\n" << this->Name();
+        out << "\n" << this->Name();
     }
-	
+
     /**
     Calculo do valor da forca termo dinamica
-    */
+     */
     template <class T>
     T Compute(const T & alpha) const;
 
     /**
     Calculo da derivada da forca termodinamica
-    */
+     */
     template <class T>
     T ComputeTangent(const T & alpha) const;
 
     void Write(TPZStream &buf) const
     {
-        
+
     }
-    
+
     void Read(TPZStream &buf)
     {
-        
+
     }
 private:
 
@@ -66,13 +66,13 @@ private:
 template < class T >
 T TPZSandlerDimaggioThermoForceA::Compute(const T & alpha) const
 {
-   return alpha; 
+    return alpha;
 }
 
 template < class T >
 T TPZSandlerDimaggioThermoForceA::ComputeTangent(const T & alpha) const
 {
-   return 1.;
+    return 1.;
 }
 
 #endif //TPZSANDLERDIMAGGIOTHERMOFORCEA_H
