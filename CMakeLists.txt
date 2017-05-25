@@ -119,6 +119,7 @@ if(USING_BOOST)
    	endif()
 endif(USING_BOOST)
 
+
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 
 if(USING_FAD)
@@ -373,6 +374,7 @@ endif(USING_MKL)
 
 #enabling QWT library
 option(USING_QWT "Whether the QWT library will be linked in" OFF)
+
 if(USING_QWT)
         add_definitions(-DUSING_QWT)
 
@@ -424,7 +426,6 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 
 #To building all the plasticity materials
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
-
 #To select type of REAL
 set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
@@ -494,6 +495,8 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
 	#define use of pthread static lib.
 	add_definitions(-DPTW32_STATIC_LIB)
+        #enabling /bigobj
+        add_definitions("/bigobj")
 endif()
 
 # Begin of config.h part
@@ -555,6 +558,7 @@ add_subdirectory(lib)
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
 endif()
+
 
 if(BUILD_UNITTESTING)
 	add_subdirectory(UnitTest_PZ)
