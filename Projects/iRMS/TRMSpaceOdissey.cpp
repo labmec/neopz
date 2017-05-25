@@ -1475,7 +1475,7 @@ void TRMSpaceOdissey::BuildMHM_Mesh(){
     
     
     this->CreateMixedCmeshMHM();
-//    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
+    this->BuildMacroElements(); // @omar:: require the destruction and construction of the substrutucture mhm mesh
 #ifdef PZDEBUG
     std::ofstream out_mhm("CmeshMixedMHM.txt");
     this->MixedFluxPressureCmeshMHM()->Print(out_mhm);
@@ -1608,6 +1608,12 @@ void TRMSpaceOdissey::BuildMacroElements()
         if (gel->Dimension() == gmesh->Dimension() - 1 && gel->MaterialId() == fSimulationData->Skeleton_material_Id()) {
             continue;
         }
+        
+        bool IsSideBurden_Rock = gel->MaterialId() == 12 || gel->MaterialId() == 14;
+        if (IsSideBurden_Rock) {
+            continue;
+        }
+        
         long mapindex = gel->Index();
         if (gel->Dimension() == gmesh->Dimension() - 1) {
             TPZGeoElSide neighbour = gel->Neighbour(gel->NSides()-1);
@@ -1630,7 +1636,7 @@ void TRMSpaceOdissey::BuildMacroElements()
             ElementGroups[mapindex].insert(gel->Reference()->Index());
         }
     }
-    
+
     // omar:: Volumetric methodology for the creation macroblocks/macroelements
     
 #ifdef PZDEBUG
@@ -1649,9 +1655,10 @@ void TRMSpaceOdissey::BuildMacroElements()
     std::set<long> submeshindices;
     TPZCompMeshTools::PutinSubmeshes(fMixedFluxPressureCmeshMHM, ElementGroups, submeshindices, KeepOneLagrangian);
  
-    std::cout << "Inserting " << ElementGroups.size()  <<  " macro elements into MHM substructures" << std::endl;
+
     fMixedFluxPressureCmeshMHM->ComputeNodElCon();
     fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
+    int n_dof;
     for (std::set<long>::iterator it=submeshindices.begin(); it != submeshindices.end(); it++) {
         TPZCompEl *cel = fMixedFluxPressureCmeshMHM->Element(*it);
         TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *>(cel);
@@ -1662,17 +1669,27 @@ void TRMSpaceOdissey::BuildMacroElements()
         subcmesh->ComputeNodElCon();
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, KeepOneLagrangian);
         subcmesh->SetAnalysisSkyline(0, 0, 0);
+        n_dof = subcmesh->Analysis()->Solution().Rows();
     }
     fMixedFluxPressureCmeshMHM->ComputeNodElCon();
     fMixedFluxPressureCmeshMHM->CleanUpUnconnectedNodes();
 
+    {
+        std::ofstream file_mhm("mhm_report.txt");
+        file_mhm << "MHM-Hdiv:: Number of macro elements " << ElementGroups.size()  << std::endl;
+        std::map<long,TCompIndexes>::iterator it;
+        it=ElementGroups.begin();
+        file_mhm << "MHM-Hdiv:: Number of micro elements per macro element = " << it->second.size() << std::endl;
+        file_mhm << "MHM-Hdiv:: Number of dof per macro element = " << n_dof << std::endl;
+        file_mhm.flush();
+    }
 }
 
 /** @brief Destruct computational macro elements */
 void TRMSpaceOdissey::UnwrapMacroElements()
 {
     
-    std::cout << "ndof parabolic with MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
+    std::cout << " ndof parabolic with MHM substructuring = " << fMixedFluxPressureCmeshMHM->Solution().Rows() << std::endl;
     
 #ifdef PZDEBUG
     if(!fMixedFluxPressureCmeshMHM){

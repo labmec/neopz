@@ -470,7 +470,34 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         fSegregatedAnalysis   =  segregated;
     }
     
-    
+    if(true){
+        
+        std::string file = "irms_report";
+        
+        if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
+            file += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+        }
+        
+        if (fSimulationData->IsAdataptedQ()) {
+            file += "_A";
+        }
+        
+        if (fSimulationData->IsEnhancedPressureQ()) {
+            file += "_E";
+        }
+        
+        if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
+            file += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+        }
+        
+        file += ".txt";
+        
+        std::ofstream file_imrs(file.c_str());
+        file_imrs << "iMRS:: dof number for the elliptic part = " << elliptic->Solution().Rows()  << std::endl;
+        file_imrs << "iMRS:: dof number for the parabolic part = " << parabolic->Solution().Rows()  << std::endl;
+        file_imrs << "iMRS:: dof number for the hyperbolic part = " << hyperbolic->Solution().Rows()  << std::endl;
+        file_imrs.flush();
+    }
     
 }
 

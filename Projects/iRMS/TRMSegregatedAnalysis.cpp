@@ -359,7 +359,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
             continue;
         }
         
-        if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
+        if((IsConverged_eQ && IsConverged_dQ) &&  IsConverged_iQ)
         {
             std::cout << "Segregated:: Converged with iterations:  " << k << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
             
