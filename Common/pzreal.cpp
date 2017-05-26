@@ -12,22 +12,6 @@ using namespace std;
 
 int HDivPiola = 0;
 
-#ifdef PZDEBUG
-struct StaticBlock {
-    StaticBlock(){
-#ifdef WIN32
-        _controlfp(0, _EM_OVERFLOW);
-        _controlfp(0, _EM_INVALID);
-#else
-        feenableexcept(FE_INVALID | FE_OVERFLOW);
-#endif
-    }
-};
-
-
-static StaticBlock staticBlock;
-#endif //PZDEBUG
-
 #ifndef ELLIPS
 
 TPZCounter TPZFlopCounter::gCount;

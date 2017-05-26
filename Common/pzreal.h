@@ -21,12 +21,11 @@
 #include <iostream>
 #include <complex>
 #include <config.h>
+#include "fpo_exceptions.h"
 
 void DebugStop();
 
-#ifdef PZDEBUG
-#include "fpo_exceptions.h"
-#endif
+
 /** @brief Gets maxime value between a and b */
 #ifndef MAX
 #define MAX( a, b )   ( (a) > (b) ? (a) : (b) )

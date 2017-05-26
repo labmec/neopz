@@ -6,40 +6,7 @@
  */
 #ifndef __FPO_EXCEPTIONS_H
 #define __FPO_EXCEPTIONS_H
-//
-//#ifndef WIN32
-//
-//#ifdef PZDEBUG
-//#include <iostream>
-//#include <stdlib.h>
-//#include <xmmintrin.h>
-//#include <signal.h>
-//#include <fenv.h>
-//
-///** 
-// * @ingroup common
-// * @brief Declares a handler function to deal with SIGFPE exception
-// */
-//void InvalidFPOHandler(int signo) {
-//    switch(signo) {
-//        case SIGFPE: std::cout << "ERROR : Invalid Arithmetic operation." << std::endl; break;
-//    }
-//    exit(signo);
-//}
-//
-///** 
-// * @ingroup common
-// * @brief This macro enable exceptions during invalid FP operations. (Use this macro inside the main function)
-// */
-//#define ENABLE_FPO_EXCEPTIONS _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_INVALID);
-//
-///** 
-// * @ingroup common
-// * @brief This macro link the handler function to the SIGFPE. (Use this macro inside the main function)
-// */
-//#define ATTACH_FPO_SIGNAL struct sigaction act = {};\
-//    act.sa_handler = InvalidFPOHandler;\
-//    sigaction(SIGFPE, &act, NULL);
+
 #ifndef WIN32
 #include <fenv.h>
 
@@ -180,5 +147,36 @@ fhdl ( int sig, siginfo_t *sip, ucontext_t *scp )
 #endif//_EM_INVALID
 
 #endif //WIN32
+
+struct TExceptionManager {
+#ifndef WIN32
+private:
+    fenv_t fPrevConfig;
+#endif //WIN32
+public:
+    TExceptionManager(){
+#ifdef WIN32
+        _controlfp(1, _EM_OVERFLOW);
+        _controlfp(1, _EM_UNDERFLOW);
+        _controlfp(1, _EM_INVALID);
+        _controlfp(1, _EM_DIVIDEBYZERO);
+#else
+        fegetenv(&fPrevConfig);
+        feenableexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO);
+#endif //WIN32
+    }
+    
+    ~TExceptionManager(){
+#ifdef WIN32
+        _controlfp(0, _EM_OVERFLOW);
+        _controlfp(0, _EM_UNDERFLOW);
+        _controlfp(0, _EM_INVALID);
+        _controlfp(0, _EM_DIVIDEBYZERO);
+#else
+        fesetenv(&fPrevConfig);
+#endif //WIN32
+    }
+};
+
 
 #endif //__FPO_EXCEPTIONS_H

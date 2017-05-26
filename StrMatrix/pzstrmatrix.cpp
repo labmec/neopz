@@ -148,7 +148,9 @@ void TPZStructMatrixOR::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiIn
 
 
 void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface ){
-    
+#ifdef PZDEBUG
+    TExceptionManager activateExceptions;
+#endif
     if(!fMesh){
         LOGPZ_ERROR(logger,"Serial_Assemble called without mesh")
         DebugStop();
@@ -710,6 +712,9 @@ TPZStructMatrixOR::ThreadData::~ThreadData()
 
 void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid)
 {
+#ifdef PZDEBUG
+    TExceptionManager activateExceptions;
+#endif
     ThreadData *data = (ThreadData *) datavoid;
     // compute the next element (this method is threadsafe)
     long iel = data->NextElement();
