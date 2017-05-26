@@ -40,6 +40,7 @@
 //#define ATTACH_FPO_SIGNAL struct sigaction act = {};\
 //    act.sa_handler = InvalidFPOHandler;\
 //    sigaction(SIGFPE, &act, NULL);
+#ifndef WIN32
 #include <fenv.h>
 
 #ifdef MACOSX
@@ -167,6 +168,17 @@ fhdl ( int sig, siginfo_t *sip, ucontext_t *scp )
 #endif //MACOSX
 //#endif //DEBUG
 //
-//#endif //WIN32
+#else
+#include <float.h>
+
+#ifndef _EM_OVERFLOW
+#define _EM_OVERFLOW EM_OVERFLOW
+#endif//_EM_OVERFLOW
+
+#ifndef _EM_INVALID
+#define _EM_INVALID EM_INVALID
+#endif//_EM_INVALID
+
+#endif //WIN32
 
 #endif //__FPO_EXCEPTIONS_H
