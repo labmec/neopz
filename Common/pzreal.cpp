@@ -14,16 +14,18 @@ int HDivPiola = 0;
 
 #ifdef PZDEBUG
 struct StaticBlock {
-    StaticBlock(){
+
+    StaticBlock() {
 #ifdef WIN32
-        _controlfp(0, _EM_OVERFLOW);
-        _controlfp(0, _EM_INVALID);
+        _controlfp(1, _EM_INVALID);
+        _controlfp(1, _EM_OVERFLOW);
+        _controlfp(1, _EM_UNDERFLOW);
+        _controlfp(1, _EM_ZERODIVIDE);
 #else
-        feenableexcept(FE_INVALID | FE_OVERFLOW);
+        feenableexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO);
 #endif
     }
 };
-
 
 static StaticBlock staticBlock;
 #endif //PZDEBUG
