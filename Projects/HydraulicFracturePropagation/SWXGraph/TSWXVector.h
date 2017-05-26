@@ -121,7 +121,7 @@ public:
 
   void Write(std::ostream &file) const;
   void Read(std::istream &file);
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined (SWX_BUILDER_XE2)
   void Write(_di_IXMLNode &myNode) const;
   void Read(_di_IXMLNode &myNode);
 #endif
@@ -172,7 +172,7 @@ inline void vector< T >::Write(std::ostream &file) const{
   DebugStop();
 }///void
 
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined (SWX_BUILDER_XE2)
 template< class T >
 inline void vector< T >::Write(_di_IXMLNode &myNode) const{
   std::stringstream writeSSTR;
@@ -227,7 +227,7 @@ inline void vector< T >::Read(std::istream &file){
   DebugStop();
 }///void
 
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined (SWX_BUILDER_XE2)
 template< class T >
 inline void vector< T >::Read(_di_IXMLNode &myNode){
   std::stringstream readSSTR;

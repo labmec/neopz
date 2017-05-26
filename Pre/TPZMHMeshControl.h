@@ -15,7 +15,7 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 
-/// class oriented towards the creation of multiscale hybrid meshes
+/// class oriented towards the creation of multiscale hybrid meshes - YES
 class TPZMHMeshControl
 {
     
