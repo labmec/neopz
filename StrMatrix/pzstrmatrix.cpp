@@ -27,6 +27,8 @@
 #include "pzmaterial.h"
 #include "run_stats_table.h"
 
+#include <cmath>
+
 using namespace std;
 
 #include "pzlog.h"
@@ -286,7 +288,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef PZDEBUG
             STATE rhsnorm = Norm(ef.fMat);
-            if(isnan(rhsnorm))
+            if(isnan(rhsnorm)) 
             {
                 std::cout << "element " << iel << " has norm " << rhsnorm << std::endl;
             }
