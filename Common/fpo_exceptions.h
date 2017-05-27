@@ -148,32 +148,34 @@ fhdl ( int sig, siginfo_t *sip, ucontext_t *scp )
 
 #endif //WIN32
 
+
 struct TExceptionManager {
-#ifndef WIN32
-private:
+	private:
+#ifdef WIN32
+	unsigned int fPrevConfig;
+#else
     fenv_t fPrevConfig;
 #endif //WIN32
 public:
     TExceptionManager(){
 #ifdef WIN32
+		_controlfp_s(&fPrevConfig, 0, 0);//saves current state of fpu
         _controlfp(1, _EM_OVERFLOW);
         _controlfp(1, _EM_UNDERFLOW);
         _controlfp(1, _EM_INVALID);
         _controlfp(1, _EM_DIVIDEBYZERO);
 #else
-        fegetenv(&fPrevConfig);
+        fegetenv(&fPrevConfig);//saves current state of fpu
         feenableexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO);
 #endif //WIN32
     }
     
     ~TExceptionManager(){
 #ifdef WIN32
-        _controlfp(0, _EM_OVERFLOW);
-        _controlfp(0, _EM_UNDERFLOW);
-        _controlfp(0, _EM_INVALID);
-        _controlfp(0, _EM_DIVIDEBYZERO);
+		unsigned int temp;
+        _controlfp_s(&temp, fpu_oldcw, _MCW_PC);//restores previous sates of fpu
 #else
-        fesetenv(&fPrevConfig);
+        fesetenv(&fPrevConfig);//restores previous sates of fpu
 #endif //WIN32
     }
 };
