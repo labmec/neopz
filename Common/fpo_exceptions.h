@@ -7,7 +7,28 @@
 #ifndef __FPO_EXCEPTIONS_H
 #define __FPO_EXCEPTIONS_H
 
-#ifndef WIN32
+#ifdef WIN32
+
+#include <float.h>
+
+#ifndef _EM_OVERFLOW
+#define _EM_OVERFLOW EM_OVERFLOW
+#endif//_EM_OVERFLOW
+
+#ifndef _EM_UNDERFLOW
+#define _EM_UNDERFLOW EM_UNDERFLOW
+#endif//_EM_UNDERFLOW
+
+#ifndef _EM_INVALID
+#define _EM_INVALID EM_INVALID
+#endif//_EM_INVALID
+
+#ifndef _EM_ZERODIVIDE
+#define _EM_ZERODIVIDE EM_ZERODIVIDE
+#endif//_EM_ZERODIVIDE
+
+#else 
+
 #include <fenv.h>
 
 #ifdef MACOSX
@@ -134,17 +155,6 @@ fhdl ( int sig, siginfo_t *sip, ucontext_t *scp )
 }
 #endif //MACOSX
 //#endif //DEBUG
-//
-#else
-#include <float.h>
-
-#ifndef _EM_OVERFLOW
-#define _EM_OVERFLOW EM_OVERFLOW
-#endif//_EM_OVERFLOW
-
-#ifndef _EM_INVALID
-#define _EM_INVALID EM_INVALID
-#endif//_EM_INVALID
 
 #endif //WIN32
 
@@ -159,11 +169,11 @@ struct TExceptionManager {
 public:
     TExceptionManager(){
 #ifdef WIN32
-		_controlfp_s(&fPrevConfig, 0, 0);//saves current state of fpu
+        _controlfp_s(&fPrevConfig, 0, 0);//saves current state of fpu
         _controlfp(1, _EM_OVERFLOW);
         _controlfp(1, _EM_UNDERFLOW);
         _controlfp(1, _EM_INVALID);
-        _controlfp(1, _EM_DIVIDEBYZERO);
+        _controlfp(1, _EM_ZERODIVIDE);
 #else
         fegetenv(&fPrevConfig);//saves current state of fpu
         feenableexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO);
@@ -172,8 +182,8 @@ public:
     
     ~TExceptionManager(){
 #ifdef WIN32
-		unsigned int temp;
-        _controlfp_s(&temp, fpu_oldcw, _MCW_PC);//restores previous sates of fpu
+        unsigned int temp;
+        _controlfp_s(&temp, fPrevConfig, _MCW_PC);//restores previous sates of fpu
 #else
         fesetenv(&fPrevConfig);//restores previous sates of fpu
 #endif //WIN32
