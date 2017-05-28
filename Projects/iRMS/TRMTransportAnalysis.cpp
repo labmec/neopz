@@ -189,7 +189,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     this->Set_k_ietrarions(0);
     
     REAL epsilon_res = this->SimulationData()->epsilon_res();
-    REAL epsilon_cor = this->SimulationData()->epsilon_cor()*0.01;
+    REAL epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_corrections();
     
     for (int k = 1; k <= n; k++) {
@@ -214,7 +214,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
 //        this->Solver().Matrix()->Print("K = ",std::cout,EMathematicaInput);
 //#endif
         
-        if(ferror < epsilon_res || fdx_norm < epsilon_cor)
+        if(ferror < epsilon_res && fdx_norm < epsilon_cor)
         {
             std::cout << "Hyperbolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;
             return;

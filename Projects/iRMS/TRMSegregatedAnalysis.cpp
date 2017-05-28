@@ -153,7 +153,8 @@ void TRMSegregatedAnalysis::ExcecuteOneStep(){
             IsConverged_iQ = (fParabolic->k_ietrarions() <= 10) &&  (fHyperbolic->k_ietrarions() <= 10);
         }
 
-        MustRestartQ = MustRestartStep();
+//        MustRestartQ = MustRestartStep();
+        MustRestartQ = false;
         
         if((k == n || MustRestartQ)  && dt > dt_min && dt_down < 1.0){
             dt *= dt_down;
@@ -359,7 +360,7 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
             continue;
         }
         
-        if((IsConverged_eQ && IsConverged_dQ) &&  IsConverged_iQ)
+        if((IsConverged_eQ || IsConverged_dQ) &&  IsConverged_iQ)
         {
             std::cout << "Segregated:: Converged with iterations:  " << k << "; error: " << ferror_flux_pressure + ferror_saturation <<  "; dx: " << fdx_norm_flux_pressure + fdx_norm_saturation << std::endl;
             
@@ -552,13 +553,15 @@ bool TRMSegregatedAnalysis::MustRestartStep(){
     
     int n_data = fHyperbolic->X_n().Rows();
     REAL epsilon = 1.0e-3;
-    
+
     for (long i = 0; i < n_data; i++) {
         if ( (1.0 - fHyperbolic->X_n()(i,0)) < + epsilon ) {
+//            fHyperbolic->X_n().Print("sw = ");
             return true;
         }
         
         if ( (fHyperbolic->X_n()(i,0)) < - epsilon ) {
+//            fHyperbolic->X_n().Print("sw = ");
             return true;
         }
     }
