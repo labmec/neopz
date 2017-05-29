@@ -150,7 +150,7 @@ inline void vector<int>::Write(std::ostream &file) const{
   }
   file << "\n";
 }///void
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined(SWX_BUILDER_XE2)
 template< >
 inline void vector< System::UnicodeString >::Write(std::ostream &file) const{
   file << this->size() << "\t";
@@ -204,7 +204,7 @@ inline void vector<int>::Read(std::istream &file){
     file >> this->operator[](i);
   }
 }///void
-#ifndef __GNUC__
+#if defined(SWX_BUILDER_2010) || defined(SWX_BUILDER_XE2)
 template< >
 inline void vector< System::UnicodeString >::Read(std::istream &file){
   unsigned int n;
