@@ -81,9 +81,12 @@ using namespace std;
 
 
 TPZGeoMesh *GetMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc);
-TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder);
-TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc, REAL alpha, REAL beta);
-TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder);
+
+TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder, TPZFMatrix<REAL> SetKCorr);
+
+TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc, REAL alpha, REAL beta, TPZFMatrix<REAL> GetKCorr);
+
+TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, TPZFMatrix<REAL> SetKCorr);
 
 TPZCompMesh *CMesh3D(TPZGeoMesh *gmesh, int pOrder, bool Is3DQ);
 
@@ -158,8 +161,11 @@ int ApproximationRates(){
     TPZVec<REAL> rates;
     rates.Resize(nh-1);
     
+    int nelemtsr = nradial*ncircle;
+    
     TPZFNMatrix<10,REAL> rates_array(np,nh-1,0.0);
     TPZFNMatrix<10,REAL> error_array(np,nh,0.0);
+    TPZFMatrix<REAL> GetKCorr(nelemtsr,nelemtsr,0.0);
     
     int current_p = 0;
     
@@ -169,7 +175,7 @@ int ApproximationRates(){
         for (int ih = 0; ih < nh; ih++) {
             
             //******** geometric mesh ***************/
-            TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta); //funcao para criar a malha GEOMETRICA de todo o poco
+            TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, GetKCorr); //funcao para criar a malha GEOMETRICA de todo o poco
             const std::string nm("wellbore");
             gmesh->SetName(nm);
             
@@ -186,7 +192,7 @@ int ApproximationRates(){
             
             //******** Configura malha Computacional ***************/
             
-            TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p); //funcao para criar a malha COMPUTACIONAL de todo o poco
+            TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p, GetKCorr); //funcao para criar a malha COMPUTACIONAL de todo o poco
             TPZAnalysis an (cmesh);
             
             TPZSkylineStructMatrix strskyl(cmesh);
@@ -463,9 +469,12 @@ int Problem2D(){
     REAL alpha = 0., beta = 0.; // inicializa
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
- 
     
-    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta); //funcao para criar a malha GEOMETRICA de todo o poco
+    int nelemtsr = nradial*ncircle;
+ 
+    TPZFMatrix<REAL> GetKCorr(nelemtsr,nelemtsr,0.0);
+    
+    TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta, GetKCorr); //funcao para criar a malha GEOMETRICA de todo o poco
     //TPZGeoMesh *gmesh = GetMesh(rw, rext, ncircle, nradial, drdcirc); //funcao para criar a malha GEOMETRICA de 1/4 do poco
     
     
@@ -484,7 +493,11 @@ int Problem2D(){
     
     int p = 2;
     TPZCompEl::SetgOrder(p);
-    TPZCompMesh *cmesh = CircularCMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de todo o poco
+    
+    TPZFMatrix<REAL> SetKCorr(nelemtsr,nelemtsr,0.0);
+    SetKCorr = GetKCorr;
+    
+    TPZCompMesh *cmesh = CircularCMesh(gmesh, p, SetKCorr); //funcao para criar a malha COMPUTACIONAL de todo o poco
     //TPZCompMesh *cmesh = CMesh(gmesh, p); //funcao para criar a malha COMPUTACIONAL de 1/4 do poco
     
     // Solving linear equations
@@ -778,7 +791,7 @@ int Problem3D(){
 // nrad -> nro elem da parede do poco ate contorno externo
 // DrDcirc -> proporcao dos elementos da parede do poco
 
-TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc, REAL alpha, REAL beta) {
+TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcirc, REAL alpha, REAL beta, TPZFMatrix<REAL> GetKCorr) {
     
     
     // calcula comprimento radial do primeiro elemento
@@ -862,9 +875,6 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
     
     }
     
-   
-    
-   
     
     //Nodes initialization
     for(i = 1; i < nx+1; i++){
@@ -1002,8 +1012,80 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
     
     // bc -4 -> Mixed, ponto fixo canto externo do poco (farfield) lateral direita
     TPZGeoElBC gbc2(gmesh->ElementVec()[(ncirc*nrad)-(ncirc/4)],1,-4);
+    
+    
+    
+    
+    
+    //****** Cria matriz da norma entre os centroides (para a matriz de correlacao) *****//
+    
+    TPZManVector<REAL> centerpsi(3), center(3);
+    // Refinamento de elementos selecionados
+    TPZGeoEl *gel;
+    TPZVec<TPZGeoEl *> sub;
+    
+    //int nelem = 0;
+    //int ngelem=gmesh->NElements();
+    
+    REAL nelemtsr = nrad*ncirc; //Nro de elementos - quadrilateros
+    
+    TPZFMatrix<REAL> CenterNorm(nelemtsr,nelemtsr,0.0);
+    
+    TPZManVector<REAL,3> CenterPoint1;
+    TPZManVector<REAL,3> CenterPoint2;
+    
+    // Matriz da distancia entre os centroides
+    for (i = 0; i < nelemtsr; i++) {
+          for (j = 0; j < nelemtsr; j++) {
+        
+        gel = gmesh->ElementVec()[i];
+        
+        gel->CenterPoint(8,centerpsi);
+        
+        gel->X(centerpsi,center);
+            
+        CenterPoint1 = center;
+         
+        gel = gmesh->ElementVec()[j];
+              
+        gel->CenterPoint(8,centerpsi);
+              
+        gel->X(centerpsi,center);
+            
+        CenterPoint2 = center;
+              
+              CenterNorm(i,j) = sqrt(pow((CenterPoint2[0]-CenterPoint1[0]),2)+pow((CenterPoint2[1]-CenterPoint1[1]),2)+pow((CenterPoint2[2]-CenterPoint1[2]),2));
+        }
+        
+    }
+    
+    
+    // Matriz de correlacao
+    
+    TPZFMatrix<REAL> KCorr(nelemtsr,nelemtsr,0.0);
+    REAL r = 0.;        // define distancia r entre cada centroide
+    REAL e = M_E;       //Numero de Euler
+    REAL scale = 0.;    //Valor de alpha, escala normalizada
+    
+    for (i = 0; i < nelemtsr; i++) {
+        for (j = 0; j < nelemtsr; j++) {
+            
+            r = CenterNorm(i,j);
+            
+            KCorr(i,j) = pow(e, (-scale*(pow(r, 2))));
+            
+        }
+    }
+    
+    GetKCorr = KCorr;
+    
+    
+  //  std::cout << center[0] << ";" << center[1] << ";" << center[2] << ";" << std::endl;
+    
    
     return gmesh;
+
+
     
 }
 
@@ -1014,7 +1096,7 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad, REAL DrDcir
 
 //************************************ Cria malha Computacional para malha 360 graus ***********************************************************//
 
-TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
+TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, TPZFMatrix<REAL> SetKCorr)
 {
     int matId = 1;
     const int dim = 2; //dimensao do problema
@@ -1266,6 +1348,9 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     TPZAutoPointer<TPZFunction<STATE> > force  = new TPZRandomField<STATE>();
     material->SetForcingFunction(force);
     
+    
+    //St Correlation Matrix
+    material->SetCorrelationMatrix(SetKCorr);
     
     return cmesh;
     

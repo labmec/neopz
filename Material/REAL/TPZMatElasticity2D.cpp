@@ -142,7 +142,7 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     
         if(ForcingFunction())
         {
-            this->fForcingFunction->Execute(data.x,res);
+            this->fForcingFunction->Execute(data.x,res, fCorrelationMatrix);
             E = res[0];
             nu = fnu;
             

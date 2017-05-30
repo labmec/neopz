@@ -136,6 +136,11 @@ protected:
     REAL ffriction;
 
     
+    /** @brief Matriz de Correlacao, baseada na distancia entre os centroides
+     */
+    TPZFMatrix<REAL> fCorrelationMatrix;
+    
+    
 public:
     TPZMatElasticity2D();
     
@@ -493,12 +498,23 @@ public:
     STATE GetEyoung() {return fE;}
     STATE GetNu() {return fnu;}
     
+    
     /** @brief Get lame parameters
      * Lambda first lame
      * Mu Second lame
      */
     STATE GetLambda() {return flambda;}
     STATE GetMu() {return fmu;}
+    
+    
+    /**
+     * @brief Set CorrelationMatrix:
+     */
+    void SetCorrelationMatrix(TPZFMatrix<REAL> KCorr)
+    {
+        fCorrelationMatrix = KCorr;
+        
+    }
 
     
     virtual void FillDataRequirements(TPZMaterialData &data);
