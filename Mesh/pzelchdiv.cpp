@@ -1347,6 +1347,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     
 //    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
 
+    TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
 
     if (HDivPiola != 2)
     {
@@ -1420,7 +1421,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     
 
 }//void
