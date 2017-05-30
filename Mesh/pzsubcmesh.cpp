@@ -29,7 +29,7 @@
 
 
 #ifndef STATE_COMPLEX
-#include "pzmathyperelastic.h"
+//#include "pzmathyperelastic.h"
 #endif
 
 #include <stdio.h>
@@ -103,7 +103,9 @@ int TPZSubCompMesh::main() {
 	TPZCompMesh mesh(&geo);
 	
 	// Insert the materials
-	TPZMaterial * meumat = new TPZMatHyperElastic(1,1.e5,0.25);
+    TPZMaterial * meumat = 0;
+    DebugStop();
+    //new TPZMatHyperElastic(1,1.e5,0.25);
 	mesh.InsertMaterialObject(meumat);
 	
 	//int numeq;
@@ -564,6 +566,7 @@ void TPZSubCompMesh::MakeInternalFast(long local){
 	TransferDependencies(local);
 	long localindex = fExternalLocIndex[local];
 	long fatherindex = fConnectIndex[localindex];
+    Mesh()->ConnectVec()[fatherindex].RemoveDepend();
 	fConnectIndex[localindex] = -1;
 	fFatherToLocal.erase(fatherindex);
 	fExternalLocIndex[local]= -1;
@@ -589,8 +592,17 @@ void TPZSubCompMesh::MakeAllInternal(){
 #ifdef PZDEBUG
 	//father->ComputeNodElCon();
 #endif
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Connect indexes " << fConnectIndex;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+
 	//father->ComputeNodElCon(nelcon);
-	//#ifdef PZDEBUG 
+	//#ifdef PZDEBUG
 	//	int in;
 	//	int nn = nelcon.NElements();
 	//	for (in=0; in<nn; in++) {
@@ -644,7 +656,11 @@ void TPZSubCompMesh::MakeAllInternal(){
             if (logger->isDebugEnabled())
             {
 				std::stringstream sout;
-				sout << "Making the connect index " << *itset << " internal";
+                long localindex = fExternalLocIndex[*itset];
+                long fatherindex = fConnectIndex[localindex];
+                father->ConnectVec()[fatherindex].Print(*father,sout);
+                sout << "Making the connect index " << *itset << " internal " << " index in the father mesh " << fatherindex << std::endl;
+                sout << "Connect indexes " << fConnectIndex;
 				LOGPZ_DEBUG(logger,sout.str())				
 			}
 #endif
@@ -1059,7 +1075,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 				DebugStop();
 			}
 		}
-		long numinteq2 = Block().Position(numintconnects);
+		long numinteq2 = Block().Position(numintconnects-1)+Block().Size(numintconnects-1);
 		if (numinteq != numinteq2) {
 			DebugStop();
 		}
@@ -1107,6 +1123,8 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	ef.fNumStateVars = nstate;
 	ek.fMat.Redim(numeq,numeq);
 	ef.fMat.Redim(numeq,numloadcases);
+    ek.fType = TPZElementMatrix::EK;
+    ef.fType = TPZElementMatrix::EF;
 	
 	int nelemnodes = NConnects();
 	
@@ -1233,7 +1251,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     }
 	
     
-#ifdef PZDEBUG 
+#ifdef PZDEBUG2
 	{
 		TPZFMatrix<REAL> fillin;
 		int resolution = 100;
@@ -1322,7 +1340,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 	fAnalysis = new TPZSubMeshFrontalAnalysis(this);
 	fAnalysis->SetGuiInterface(guiInterface);
 	
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
 	{
 		TPZFMatrix<REAL> fillin;
 		int resolution = 100;

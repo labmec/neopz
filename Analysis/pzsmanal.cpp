@@ -20,7 +20,7 @@ using namespace std;
 
 // Construction/Destruction
 
-TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh), fReducableStiff(0){
+TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh,true), fReducableStiff(0){
 	fMesh = mesh;
     if (fMesh)
     {

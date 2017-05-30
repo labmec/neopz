@@ -52,6 +52,7 @@ void TPZElementMatrix::Print(std::ostream &out){
         out << "Connect vector\n";
         for(ic=0; ic<ncon; ic++) {
             //	out << "Connect index " << fConnect[ic] << endl;
+            out << "ic = " << ic << " index " << fConnect[ic] << " ";
             this->fMesh->ConnectVec()[fConnect[ic]].Print(*fMesh,out);
         }
         out << "Constrained connect vector\n";
@@ -59,13 +60,14 @@ void TPZElementMatrix::Print(std::ostream &out){
         ncon = fConstrConnect.NElements();
         for(ic=0; ic<ncon; ic++) {
             //	out << "Connect index " << fConstrConnect[ic] << endl;
+            out << "ic = " << ic << ' ';
             this->fMesh->ConnectVec()[fConstrConnect[ic]].Print(*fMesh,out);
         }
 		ComputeDestinationIndices();
 		bool hasdepend = HasDependency();
 		long size = fSourceIndex.NElements();
 		//TPZFMatrix<REAL> constrmatrix(size,size,0.);
-		TPZFMatrix<STATE> constrmatrix(size,size,0.);
+		TPZFNMatrix<400,STATE> constrmatrix(size,size,0.);
 		long in,jn;
 		for(in=0; in<size; in++)
 		{
@@ -80,6 +82,8 @@ void TPZElementMatrix::Print(std::ostream &out){
 				
 			}
 		}
+        out << "SourceIndex = " << fSourceIndex << std::endl;
+        fConstrMat.Print("EKOrig=",out,EMathematicaInput);
 		std::stringstream sout;
         sout << "EK = ";
 		//out << "Matrix size " << constrmatrix.Rows() << "\n";
@@ -113,6 +117,10 @@ void TPZElementMatrix::Print(std::ostream &out){
 		//sout << "ConstrainedMatrix = ";
 		constrmatrix.Print(sout.str().c_str(), out, EMathematicaInput);
 	}
+    else
+    {
+        DebugStop();
+    }
 }
 
 void TPZElementMatrix::ComputeDestinationIndices(){

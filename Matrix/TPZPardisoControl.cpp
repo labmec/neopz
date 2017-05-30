@@ -184,6 +184,9 @@ void TPZPardisoControl<TVar>::Decompose()
     TVar *a,*b = &bval, *x = &xval;
     long long *ia,*ja;
     if (fSymmetricSystem) {
+        if (fSymmetricSystem->Rows()==0) {
+            return;
+        }
         a = &(fSymmetricSystem->fA[0]);
         ia = (long long *) &(fSymmetricSystem->fIA[0]);
         ja = (long long *) &(fSymmetricSystem->fJA[0]);
@@ -250,6 +253,10 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     TVar *a,*b, *x;
     long long *ia,*ja;
     if (fSymmetricSystem) {
+        if(fSymmetricSystem->Rows() == 0)
+        {
+            return;
+        }
         a = &(fSymmetricSystem->fA[0]);
         ia = (long long *) &(fSymmetricSystem->fIA[0]);
         ja = (long long *) &(fSymmetricSystem->fJA[0]);

@@ -122,7 +122,15 @@ REAL TPZInterpolationSpace::InnerRadius(){
 
 void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
   data.gelElId = this->Reference()->Id();
-	this->Material()->FillDataRequirements(data);
+    TPZMaterial *mat = Material();
+#ifdef PZDEBUG
+    if(!mat)
+    {
+        mat= Material();
+        DebugStop();
+    }
+#endif
+	mat->FillDataRequirements(data);
 	const int dim = this->Dimension();
 	const int nshape = this->NShapeF();
 	const int nstate = this->Material()->NStateVariables();
@@ -510,6 +518,9 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &so
 	this->ComputeSolution(qsi,data);
     
 	data.x.Resize(3);
+    for (int i=0; i<qsi.size(); i++) {
+        qsi[i] *= 0.999;
+    }
 	this->Reference()->X(qsi, data.x);
 	
 	int solSize = material->NSolutionVariables(var);

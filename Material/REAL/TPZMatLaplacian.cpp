@@ -108,6 +108,15 @@ void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         fXfLoc = res[0];
     }
     
+    STATE KPerm = fK;
+    if (fPermeabilityFunction) {
+        TPZFNMatrix<9,STATE> perm, invperm;
+        TPZManVector<STATE,3> func;
+        TPZFNMatrix<18,STATE> dfunc(6,3,0.);
+        fPermeabilityFunction->Execute(x, func, dfunc);
+        KPerm = dfunc(0,0);
+    }
+
     //Equacao de Poisson
     for( int in = 0; in < phr; in++ ) {
         int kd;
@@ -115,7 +124,7 @@ void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         for( int jn = 0; jn < phr; jn++ ) {
             //ek(in,jn) += (STATE)weight*((STATE)(phi(in,0)*phi(jn,0)));
             for(kd=0; kd<fDim; kd++) {
-                ek(in,jn) += (STATE)weight*(fK*(STATE)(dphi(kd,in)*dphi(kd,jn)));
+                ek(in,jn) += (STATE)weight*(KPerm*(STATE)(dphi(kd,in)*dphi(kd,jn)));
             }
         }
     }

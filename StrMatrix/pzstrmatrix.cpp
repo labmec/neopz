@@ -320,7 +320,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
                     sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
                 }
                 else {
-                    sout << "Stiffness for computational element without associated geometric element\n";
+                    sout << "Stiffness for computational element without associated geometric element index " << el->Index() << "\n";
                 }
                 ek.Print(sout);
                 ef.Print(sout);
@@ -342,7 +342,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
 //            GF.AddFel(ef.fConstrMat, ek.fSourceIndex,ek.fDestinationIndex);
 
 #ifdef LOG4CXX
-            if(loggerel->isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(fMesh))
+            if(loggerel->isDebugEnabled())
             {
                 std::stringstream sout;
                 TPZGeoEl *gel = el->Reference();
