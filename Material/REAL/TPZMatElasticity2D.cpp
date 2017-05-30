@@ -15,6 +15,7 @@
 #include "pzlog.h"
 #include <cmath>
 
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 #endif
@@ -127,11 +128,32 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     int phrU = phiU.Rows();
     int FirstU  = 0;
     
-    REAL LambdaL, MuL;
+    REAL LambdaL, MuL, E, nu;
     
     // Functions computed at point x_{k} for each integration point
-    LambdaL     = flambda;
-    MuL         = fmu;
+//    LambdaL     = flambda;
+//    MuL         = fmu;
+    
+    //data.XCenter
+    
+    // Forcing Function -> Stochastic
+    //TPZVec<REAL> res; // vector for E and nu
+    TPZVec<STATE> res(2,0.0);
+    
+        if(ForcingFunction())
+        {
+            this->fForcingFunction->Execute(data.x,res);
+            E = res[0];
+            nu = fnu;
+            
+            LambdaL = (E*nu)/((1+nu)*(1-2*nu));
+            MuL = E/(2*(1+nu));
+            
+            flambda=LambdaL;
+            fmu = MuL;
+            
+        }
+    
     
         //  ////////////////////////// Jacobian Matrix ///////////////////////////////////
         //  Contribution of domain integrals for Jacobian matrix
@@ -198,14 +220,36 @@ void TPZMatElasticity2D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatr
     
     TPZManVector<STATE,3> sol_u =data.sol[0]; /// vector of the solutions at the integration point
     TPZFNMatrix<4,STATE> dsol_u = data.dsol[0]; /// vector of the derivatives of the solution at the integration point
+    
+    
+    //REAL LambdaL, MuL, E, nu;
+    
     REAL LambdaL, MuL;
     
+    // Functions computed at point x_{k} for each integration point
+    LambdaL     = flambda;
+    MuL         = fmu;
     
-    LambdaL = flambda;
-    MuL     = fmu;
     
-    TPZVec<STATE> P(1,0.0);
-    TPZFMatrix<STATE> GradP(2,1,0.0);
+    //data.XCenter
+//    
+//    // Forcing Function -> Stochastic
+//    //TPZVec<REAL> res; // vector for E and nu
+//    TPZVec<STATE> res(2,0.0);
+//    
+//    if(ForcingFunction())
+//    {
+//        this->fForcingFunction->Execute(data.x,res);
+//        E = res[0];
+//        nu = res[1];
+//        
+//        LambdaL = (E*nu)/((1+nu)*(1-2*nu));
+//        MuL = E/(2*(1+nu));
+//        
+//    }
+//    
+//    TPZVec<STATE> P(1,0.0);
+//    TPZFMatrix<STATE> GradP(2,1,0.0);
     
 //    if(this->HasffBCForcingFunction())
 //    {

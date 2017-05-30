@@ -63,6 +63,8 @@
 #include "pzelast3d.h"
 #include <pzgengrid.h>
 
+#include "pzrandomfield.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 //static LoggerPtr loggeradap(Logger::getLogger("pz.adaptivity"));
@@ -111,9 +113,9 @@ int main(int argc, char *argv[])
 {
 
 //    Problem3D();
-  //  Problem2D();
+    Problem2D();
 //
-    ApproximationRates();
+    //ApproximationRates();
 
     return 0;
 }
@@ -144,8 +146,8 @@ int ApproximationRates(){
     alpha = direction*(Pi/180); // rad
     beta = inclination*(Pi/180); // rad
     
-    int numthreads = 1;
-    int nh = 1;
+    int numthreads = 2;
+    int nh = 2;
     int np = 2;
 
     
@@ -442,7 +444,10 @@ int Problem2D(){
     // ncircle = nro elementos na parede do poco
     // nradial = nro de elementos da parede do poco ate o raio externo
     // drdcirc = proporcao do primeiro elemento
-    REAL rw = 0.10795;
+    
+    //REAL rw = 0.10795;
+    REAL rw = 0.1;
+    
     REAL rext = 3.0;
     int ncircle = 30;
     int nradial = 25;
@@ -451,8 +456,8 @@ int Problem2D(){
     REAL Pi = M_PI;
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 30.; // Azimuth em graus******** 30
-    inclination = 60.; // Polar Inclination em graus******** 50
+    direction   = 0.; // Azimuth em graus******** 30
+    inclination = 0.; // Polar Inclination em graus******** 50
     
     // transforma graus em rad
     REAL alpha = 0., beta = 0.; // inicializa
@@ -1034,8 +1039,8 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     /************ Define Posicao do Poco **************/
     REAL direction = 0., inclination = 0.; //inicializa angulos
-    direction   = 30.; // graus******** 30
-    inclination = 60.; // graus******** 50
+    direction   = 0.; // graus******** 30
+    inclination = 0.; // graus******** 50
     
     // transforma graus em rad
     REAL directionT = 0.,inclinationT = 0.; // inicializa
@@ -1044,11 +1049,11 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     
     // define disposicao do poco
     // inclined == 1
-    int inclinedwellbore = 1;
+    int inclinedwellbore = 0;
     
     // pressao da lama de perfuracao
-//    REAL Pwb = -19.5; // MPa
-      REAL Pwb = -30.; // MPa
+    REAL Pwb = -10.5; // MPa
+//  REAL Pwb = -30.; // MPa
 
     
     // Tensoes in Situ, horizontais e vertical em MPa
@@ -1064,7 +1069,7 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
     //analytic=0 nao usa sol analitica como prestress e BC
     //analytic=1 usa sol analitica como prestress e BC (zerar BCond0 e BCond1)
     //analytic=2 nao usa sol analitica como prestress mas usa como BC (zerar BCond0 e BCond1)
-    int analytic = 2;
+    int analytic = 0;
     
     // para projecao horizontal, projection == 1
     int projection = 0;
@@ -1255,6 +1260,11 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder)
 //        LOGPZ_DEBUG(logger, sout.str())
 //    }
 //#endif
+    
+    
+    // Set Forcing Function for Stochastic Analysis
+    TPZAutoPointer<TPZFunction<STATE> > force  = new TPZRandomField<STATE>();
+    material->SetForcingFunction(force);
     
     
     return cmesh;
