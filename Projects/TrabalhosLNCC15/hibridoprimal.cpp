@@ -62,6 +62,7 @@
 
 using namespace std;
 #include <algorithm>
+#include <iterator>
 
 int const matId =1;
 int const bc0=-1;
@@ -762,8 +763,13 @@ int main(int argc, char *argv[])
             
             
             myerrorfile << ndiv <<  setw(13) << NDoF << setw(12) << NDoFCond << setw(13)<< NDoFCond*NDoFCond
-            << setw(15) << NumZeros << setw(12) << razao << "    " << (t2-t1) << "     " << (t3-t2) << "     "
-            << (t2-t1)+(t3-t2) << setw(12) << ErroP[1] << setw(15) << ErroF[1] <<std::endl;
+            << setw(15) << NumZeros << setw(12) << razao << "    ";
+            
+#ifdef USING_BOOST
+            myerrorfile << (t2-t1) << "     " << (t3-t2) << "     " << (t2-t1)+(t3-t2);
+#endif
+            
+            myerrorfile << setw(12) << ErroP[1] << setw(15) << ErroF[1] <<std::endl;
             
 //            myerrorfile_fluxo << cmesh2->Solution() << std::endl;
             myerrorfile_fluxo << cmesh1->Solution() << std::endl;
