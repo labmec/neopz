@@ -167,11 +167,19 @@ static LoggerPtr  logger(Logger::getLogger("pz.refine"));
 
 // Simulation Case
 struct SimulationCase {
-    bool  IsHdivQ = false;
-    int   n_acc_terms = 0;
-    int   eltype = 7;
-    int   nthreads = 0;
-    std::string  dir_name = "dump";
+    bool  IsHdivQ;
+    int   n_acc_terms;
+    int   eltype;
+    int   nthreads;
+    std::string  dir_name;
+    
+    SimulationCase() : IsHdivQ(false), n_acc_terms(0), eltype(7), nthreads(0), dir_name("dump") {
+        
+    }
+    
+    SimulationCase(const SimulationCase &other) : IsHdivQ(other.IsHdivQ), n_acc_terms(other.n_acc_terms), eltype(other.eltype), nthreads(other.nthreads), dir_name(other.dir_name) {
+        
+    }
 };
 
 REAL GlobScale = 1.;
