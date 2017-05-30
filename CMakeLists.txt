@@ -119,7 +119,6 @@ if(USING_BOOST)
    	endif()
 endif(USING_BOOST)
 
-
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 
 if(USING_FAD)
@@ -343,20 +342,31 @@ endif(USING_HWLOC)
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
         add_definitions(-DUSING_MKL)
-        find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
-        find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
-                ${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
-        find_library(MKL_LIB_CORE NAMES libmkl_core.so libmkl_core.dylib PATHS ${SEARCH_DIRS}
-                /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
-        find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.so libmkl_intel_thread.dylib PATHS
-                ${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
-        find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
-                /opt/intel/composer_xe/compiler/lib
-                /opt/intel/composerxe/lib/intel64
-                /opt/intel/lib /softwares/intel/lib/intel64)
-        #find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
-        #include_directories(${OMP_INCLUDE})
-        if(MKL_INCLUDE-NOTFOUND)
+		
+		if (WIN32)
+			set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")			
+			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)			
+			find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
+			find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
+			find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
+            find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
+		else()		
+			find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
+			find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
+					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
+			find_library(MKL_LIB_CORE NAMES libmkl_core.so libmkl_core.dylib PATHS ${SEARCH_DIRS}
+					/opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+			find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.so libmkl_intel_thread.dylib PATHS
+					${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+			find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
+					/opt/intel/composer_xe/compiler/lib
+					/opt/intel/composerxe/lib/intel64
+					/opt/intel/lib /softwares/intel/lib/intel64)
+			#find_path(OMP_INCLUDE NAMES omp.h PATHS ${SEARCH_DIRS} /opt/intel/composer_xe_2013_sp1.1.103/compiler/include)
+			#include_directories(${OMP_INCLUDE})        
+		endif()
+		
+		if(MKL_INCLUDE-NOTFOUND)
                 set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
         else()
                 include_directories(${MKL_INCLUDE})
@@ -378,7 +388,11 @@ option(USING_QWT "Whether the QWT library will be linked in" OFF)
 if(USING_QWT)
         add_definitions(-DUSING_QWT)
 
-        set (QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
+		if (WIN32)
+			set(QWT_ROOT "C:/Qwt-6.1.3")			
+		else()
+			set(QWT_ROOT "" CACHE PATH "Root directory where the QWT library is istalled")
+		endif()
 endif(USING_QWT)
 
 
@@ -426,6 +440,7 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 
 #To building all the plasticity materials
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
+
 #To select type of REAL
 set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
@@ -495,8 +510,8 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
 	#define use of pthread static lib.
 	add_definitions(-DPTW32_STATIC_LIB)
-        #enabling /bigobj
-        add_definitions("/bigobj")
+    #enabling /bigobj
+    add_definitions("/bigobj")
 endif()
 
 # Begin of config.h part
@@ -558,7 +573,6 @@ add_subdirectory(lib)
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
 endif()
-
 
 if(BUILD_UNITTESTING)
 	add_subdirectory(UnitTest_PZ)

@@ -92,6 +92,7 @@ template<class TVar>
 int DataType(TVar a)
 {
     DebugStop();
+	return 0;
 }
 
 
