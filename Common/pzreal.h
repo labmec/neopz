@@ -683,4 +683,11 @@ inline const T& Min( const T & a, const T &b ) {
 REAL erf(REAL arg);
 
 #endif // not C++11
+
+#if defined(_MSC_VER) && _MSC_VER < 1900 // Microsoft Visual Studio < 2015
+
+#define isnan(x) _isnan(x)
+
+#endif
+
 #endif
