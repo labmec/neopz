@@ -557,10 +557,9 @@ void SolveProblem(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<TPZAutoPointer<TPZCo
 #ifdef USING_MKL
     TPZSymetricSpStructMatrix strmat(cmesh.operator->());
     strmat.SetNumThreads(0);
-    an.SetStructuralMatrix(strmat);
     
 #else
-    TPZSkylineStructMatrix strmat(CHDivPressureMesh);
+    TPZSkylineStructMatrix strmat(cmesh.operator->());
     strmat.SetNumThreads(0);
 #endif
     
