@@ -95,15 +95,15 @@ void TPZPlaneFractCouplingMat::Contribute(TPZVec<TPZMaterialData> &datavec,
 
 void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datavec,
                                                   REAL weight,
-                                                  TPZFMatrix<REAL> &ek,
-                                                  TPZFMatrix<REAL> &ef)
+                                                  TPZFMatrix<STATE> &ek,
+                                                  TPZFMatrix<STATE> &ef)
 {
     if(!datavec[1].phi) return;
     
     TPZFMatrix<REAL>  & phi_p = datavec[1].phi;
     TPZFMatrix<REAL>  & dphi_p = datavec[1].dphix;
-    TPZManVector<REAL,3> sol_p = datavec[1].sol[0];
-    TPZFMatrix<REAL> & dsol_p = datavec[1].dsol[0];
+    TPZManVector<STATE,3> sol_p = datavec[1].sol[0];
+    TPZFMatrix<STATE> & dsol_p = datavec[1].dsol[0];
     TPZFMatrix<REAL> & phi_u = datavec[0].phi;
     
     int phipRows = phi_p.Rows();
@@ -113,7 +113,7 @@ void TPZPlaneFractCouplingMat::ContributePressure(TPZVec<TPZMaterialData> &datav
     
 	if(gState == EActualState) //current state (n+1): Matrix stiffnes
     {
-        TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
+        TPZManVector<STATE,3> sol_u = datavec[0].sol[0];
         REAL uy = sol_u[1];
         REAL w = 2. * uy;
 
@@ -248,8 +248,8 @@ void TPZPlaneFractCouplingMat::Solution(TPZVec<TPZMaterialData> &datavec,
 
 void TPZPlaneFractCouplingMat::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec,
                                                 STATE weight,
-                                                TPZFMatrix<> &ek,
-                                                TPZFMatrix<> &ef,
+                                                TPZFMatrix<STATE> &ek,
+                                                TPZFMatrix<STATE> &ef,
                                                 TPZBndCond &bc)
 {
     if(gState == EPastState)
@@ -264,8 +264,8 @@ void TPZPlaneFractCouplingMat::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec
 
 void TPZPlaneFractCouplingMat::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec,
                                               STATE weight,
-                                              TPZFMatrix<> &ek,
-                                              TPZFMatrix<> &ef,
+                                              TPZFMatrix<STATE> &ek,
+                                              TPZFMatrix<STATE> &ef,
                                               TPZBndCond &bc)
 {
     if(gState == EPastState)
@@ -274,7 +274,7 @@ void TPZPlaneFractCouplingMat::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec,
     }
     else
     {
-        TPZManVector<REAL,3> sol_p = datavec[1].sol[0];
+        TPZManVector<STATE,3> sol_p = datavec[1].sol[0];
         
         bc.Val2().Zero();
         bc.Val2()(1,0) = sol_p[0];
@@ -303,8 +303,8 @@ void TPZPlaneFractCouplingMat::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec,
 
 void TPZPlaneFractCouplingMat::ApplyBlockedDir_U(TPZVec<TPZMaterialData> &datavec,
                                                  STATE weight,
-                                                 TPZFMatrix<> &ek,
-                                                 TPZFMatrix<> &ef,
+                                                 TPZFMatrix<STATE> &ek,
+                                                 TPZFMatrix<STATE> &ef,
                                                  TPZBndCond &bc)
 {
     if(gState == EPastState)
@@ -319,8 +319,8 @@ void TPZPlaneFractCouplingMat::ApplyBlockedDir_U(TPZVec<TPZMaterialData> &datave
 
 void TPZPlaneFractCouplingMat::ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec,
                                                 STATE weight,
-                                                TPZFMatrix<> &ek,
-                                                TPZFMatrix<> &ef,
+                                                TPZFMatrix<STATE> &ek,
+                                                TPZFMatrix<STATE> &ef,
                                                 TPZBndCond &bc)
 {
     if(gState == EPastState)
@@ -334,7 +334,7 @@ void TPZPlaneFractCouplingMat::ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec
     TPZFMatrix<REAL> & phi_p = datavec[1].phi;
     int  phrp = phi_p.Rows();
     
-    TPZManVector<REAL> sol_pMat = datavec[1].sol[0];
+    TPZManVector<STATE> sol_pMat = datavec[1].sol[0];
     REAL solpress = sol_pMat[0];
     REAL imposedPress = bc.Val2()(0,0);
     
@@ -353,8 +353,8 @@ void TPZPlaneFractCouplingMat::ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec
 
 void TPZPlaneFractCouplingMat::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec,
                                               STATE weight,
-                                              TPZFMatrix<> &ek,
-                                              TPZFMatrix<> &ef,
+                                              TPZFMatrix<STATE> &ek,
+                                              TPZFMatrix<STATE> &ef,
                                               TPZBndCond &bc)
 {
     if(gState == EPastState)

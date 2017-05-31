@@ -268,7 +268,7 @@ void TPZMHMixedMeshControl::DuplicateNeighbouringConnects()
                     newc.SetSequenceNumber(newcindex);
                     // put dependency
                     int nshape = c.NShape();
-                    TPZFMatrix<STATE> dep(nshape,nshape);
+                    TPZFMatrix<REAL> dep(nshape,nshape);
                     dep.Identity();
                     newc.AddDependency(newcindex, connectindex, dep, 0, 0, nshape, nshape);
                     celst->SetConnectIndex(sideconnectlocid, newcindex);

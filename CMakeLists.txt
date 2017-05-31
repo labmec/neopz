@@ -580,6 +580,7 @@ endif()
 
 #Enabling tests
 ENABLE_TESTING()
+include(CTest)
 
 #To insert cmakelist files as a group
 if(BUILD_TUTORIAL)

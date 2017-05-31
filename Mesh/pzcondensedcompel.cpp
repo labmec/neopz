@@ -176,10 +176,20 @@ void TPZCondensedCompEl::Resequence()
     TPZStack<int> condensed;
     TPZStack<int> notcondensed;
     int nint=0,next=0;
+    std::set<long> depreceive;
     int ncon = NConnects();
+    for (int ic=0; ic<ncon; ic++) {
+        TPZConnect &c = Connect(ic);
+        TPZConnect::TPZDepend * dep = c.FirstDepend();
+        while (dep) {
+            depreceive.insert(dep->fDepConnectIndex);
+            dep = dep->fNext;
+        }
+    }
     for (int i=0; i<ncon ; ++i) {
         TPZConnect &c = Connect(i);
-        if(c.NElConnected() == 1 && c.HasDependency() == 0)
+        long cindex = ConnectIndex(i);
+        if(c.NElConnected() == 1 && c.HasDependency() == 0 && depreceive.find(cindex) == depreceive.end())
         {
             c.SetCondensed(true);
         }
@@ -235,8 +245,9 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
-        sout << "Connect indices " << ek.fConnect << std::endl;
-        ek.fMat.Print("EKOrig = ",sout,EMathematicaInput);
+        Print(sout);
+        sout << "Connect indices of element stiffness" << ek.fConnect << std::endl;
+        //ek.fMat.Print("EKOrig = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -245,8 +256,15 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
+        sout << "Element connects\n";
+        int nc = NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            sout << "ic = " << ic << ' ' << " index " << ConnectIndex(ic) << ' ';
+            Connect(ic).Print(*Mesh(),sout);
+        }
         sout << "Permutations " << fIndexes << std::endl;
         sout << "Connect indices " << ek.fConnect << std::endl;
+
         ek.fMat.Print("EKPermute = ",sout,EMathematicaInput);
         ef.fMat.Print("EFPermute = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
@@ -441,6 +459,7 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
 void TPZCondensedCompEl::Print(std::ostream &out) const
 {
     out << "Output for a condensed element\n";
+    TPZCompEl::Print(out);
     
     out << "Index of grouped elements: ";
     TPZElementGroup *eg = dynamic_cast<TPZElementGroup *>(fReferenceCompEl);
@@ -451,6 +470,15 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
             out << eg->GetElGroup()[i]->Index() <<", ";
         }
         out << eg->GetElGroup()[nel-1]->Index() <<std::endl;
+        out << "Connect indexes of the contained elements\n";
+        for(int i=0; i<nel; i++){
+            TPZCompEl *cel = eg->GetElGroup()[i];
+            int nc = cel->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                out << cel->ConnectIndex(ic) << " ";
+            }
+            out << std::endl;
+        }
     }
     else
     {
@@ -462,7 +490,6 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
             DebugStop();
         }
     }
-    TPZCompEl::Print(out);
     out << "Internal index resequencing: " << fIndexes << std::endl;
     fCondensed.Print("Condensed matrix",out);
 }
