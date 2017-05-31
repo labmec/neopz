@@ -1075,7 +1075,9 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 				DebugStop();
 			}
 		}
-		long numinteq2 = Block().Position(numintconnects-1)+Block().Size(numintconnects-1);
+        
+        long numinteq2 = 0;
+        if(numintconnects != 0) numinteq2 = Block().Position(numintconnects-1)+Block().Size(numintconnects-1);
 		if (numinteq != numinteq2) {
 			DebugStop();
 		}
