@@ -74,7 +74,7 @@ public:
                                TPZVec<REAL> &errors,TPZBlock<REAL> * flux );
 
     virtual void EvaluateError(TPZFunction<STATE> &func,
-                               TPZVec<REAL> &errors);
+                               TPZVec<STATE> &errors);
 
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) = 0;
 	

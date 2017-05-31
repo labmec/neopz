@@ -265,7 +265,7 @@ public:
 	 * @param depmat [in] dependency matrix which defines the relation between the connects
 	 * @param ipos, jpos, isize, jsize are parameters which define the submatrix within depmat which is to be used
 	 */
-	TPZDepend *AddDependency(long myindex, long dependindex,TPZFMatrix<STATE> &depmat,long ipos,long jpos, int isize, int jsize);
+	TPZDepend *AddDependency(long myindex, long dependindex,TPZFMatrix<REAL> &depmat,long ipos,long jpos, int isize, int jsize);
 	
 	/**
 	 * @brief Remove dependency between connects if exist
