@@ -12,6 +12,11 @@
 #include "pzmanvector.h"
 #include "pzreal.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
+
 /**
  * @ingroup save
  * @brief Defines the interface for saving and reading data. \ref save "Persistency"
@@ -53,6 +58,16 @@ public:
 	virtual void Write(const std::complex< double > *p, int size=1)=0;
 	
 	virtual void Write(const std::complex< long double > *p, int size=1)=0;
+    
+#ifdef _AUTODIFF
+    
+    virtual void Write(const Fad< float > *p, int size=1)=0;
+    
+    virtual void Write(const Fad< double > *p, int size=1)=0;
+    
+    virtual void Write(const Fad< long double > *p, int size=1)=0;
+    
+#endif
 	
 #ifndef ELLIPS
 	void Write(TPZFlopCounter *p, int size=1) 
@@ -86,7 +101,17 @@ public:
 	virtual void Read(std::complex< double > *p, int size=1)=0;
 	
 	virtual void Read(std::complex< long double > *p, int size=1)=0;
-	
+    
+#ifdef _AUTODIFF
+    
+    virtual void Read(Fad< float > *p, int size=1)=0;
+    
+    virtual void Read(Fad< double > *p, int size=1)=0;
+    
+    virtual void Read(Fad< long double > *p, int size=1)=0;
+    
+#endif
+    
 #ifndef ELLIPS
 	void Read(TPZFlopCounter *p, int size=1)
 	{
@@ -174,6 +199,22 @@ public:
 	virtual void Write(const std::complex <long double> *p, int size) {
 		Writes< std::complex <long double> >(p,size);
 	}
+    
+#ifdef _AUTODIFF
+    
+    virtual void Write(const Fad <float> *p, int size) {
+        Writes< Fad <float> >(p,size);
+    }
+    
+    virtual void Write(const Fad <double> *p, int size) {
+        Writes< Fad <double> >(p,size);
+    }
+    
+    virtual void Write(const Fad <long double> *p, int size) {
+        Writes< Fad <long double> >(p,size);
+    }
+    
+#endif
 
 	template<class T>
 	void  Writes(const T *p, int size) 
@@ -231,6 +272,22 @@ public:
 	virtual void Read(std::complex <long double> *p, int size) {
 		Reads< std::complex <long double> >(p,size);
 	}
+    
+#ifdef _AUTODIFF
+    
+    virtual void Read(Fad <float> *p, int size) {
+        Reads< Fad <float> >(p,size);
+    }
+    
+    virtual void Read(Fad <double> *p, int size) {
+        Reads< Fad <double> >(p,size);
+    }
+    
+    virtual void Read(Fad <long double> *p, int size) {
+        Reads< Fad <long double> >(p,size);
+    }
+    
+#endif
 
 	template<class T>
 	void Reads(T *p, int size) {

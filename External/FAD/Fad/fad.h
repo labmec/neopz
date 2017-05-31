@@ -108,8 +108,17 @@ public:
   template <class ExprT> Fad<T>& operator/= (const FadExpr<ExprT>& fadexpr);
   template <class ExprT> Fad<T>& operator+= (const FadExpr<ExprT>& fadexpr);
   template <class ExprT> Fad<T>& operator-= (const FadExpr<ExprT>& fadexpr);
-
-
+    
+  friend std::ostream& operator<< (std::ostream& stream, const Fad<T>& x)
+  {
+      return stream << x.val();
+  }
+    
+  friend std::istream& operator>> (std::istream& stream, Fad<T>& x)
+  {
+      return stream >> x.val();
+  }
+    
 };
 
 template<class T> inline

@@ -48,7 +48,7 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 		M.Solve(r,z);
 		M.Solve(rtilde,ztilde);
 		rho_1(0) = Dot(z, rtilde);
-		if (rho_1(0) == ((Real)0.)) { 
+		if (TPZExtractVal::val(rho_1(0)) == ((Real)0.)) {
 			tol = (TPZExtractVal::val(Norm(r))) / normb;
 			max_iter = i;
 			return 2;
