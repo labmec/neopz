@@ -112,7 +112,7 @@ void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> m
 
 void ForcingInicial(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 void Permeability(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
-void CondCFL(TPZFMatrix<REAL> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT);
+void CondCFL(TPZFMatrix<STATE> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT);
 
 void SolExata(const TPZVec<REAL> &pt, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
@@ -896,7 +896,7 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
 //------------- Filtrar Equacaoes da pressao-flux -----------
     FilterPressureFluxEquation(material, meshvec, mphysics, an);
     an.Solve();
-    TPZAutoPointer< TPZMatrix<REAL> > matKPressureFlux;
+    TPZAutoPointer< TPZMatrix<STATE> > matKPressureFlux;
 	TPZFMatrix<STATE> fvecPressureFlux;
     matKPressureFlux = an.Solver().Matrix();
     fvecPressureFlux = an.Rhs();
@@ -914,8 +914,8 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
     //posprocessar solucao
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-    TPZFMatrix<REAL> SolutionQ = meshvec[1]->Solution();
-    TPZFMatrix<REAL> SolutionP = meshvec[2]->Solution();
+    TPZFMatrix<STATE> SolutionQ = meshvec[1]->Solution();
+    TPZFMatrix<STATE> SolutionP = meshvec[2]->Solution();
 
 //--------- Calculando DeltaT maximo para a cond. CFL ------
     REAL deltaT=0.;
@@ -947,7 +947,7 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
 
     //---- Filtrar Equacaoes da saturacao ----
     //Criando matriz de rigidez (matK) e vetor de carga
-    TPZAutoPointer< TPZMatrix<REAL> > matK;
+    TPZAutoPointer< TPZMatrix<STATE> > matK;
 	TPZFMatrix<STATE> fvecK;
     FilterSaturationEquation(material, meshvec, mphysics, an, true);
     matK = an.Solver().Matrix();
@@ -1052,7 +1052,7 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
     //------------- Filtrar Equacaoes da pressao-flux -----------
     FilterPressureFluxEquation(material, meshvec, mphysics, an);
     an.Solve();
-    TPZAutoPointer< TPZMatrix<REAL> > matKPressureFlux;
+    TPZAutoPointer< TPZMatrix<STATE> > matKPressureFlux;
 	TPZFMatrix<STATE> fvecPressureFlux;
     matKPressureFlux = an.Solver().Matrix();
     fvecPressureFlux = an.Rhs();
@@ -1070,8 +1070,8 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
     //posprocessar solucao
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-    TPZFMatrix<REAL> SolutionQ = meshvec[1]->Solution();
-    TPZFMatrix<REAL> SolutionP = meshvec[2]->Solution();
+    TPZFMatrix<STATE> SolutionQ = meshvec[1]->Solution();
+    TPZFMatrix<STATE> SolutionP = meshvec[2]->Solution();
     
     //--------- Calculando DeltaT maximo para a cond. CFL ------
     REAL deltaT=0.;
@@ -1097,7 +1097,7 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
     
     //---- Filtrar Equacaoes da saturacao ----
     //Criando matriz de rigidez (matK) e vetor de carga
-    TPZAutoPointer< TPZMatrix<REAL> > matK;
+    TPZAutoPointer< TPZMatrix<STATE> > matK;
 	TPZFMatrix<STATE> fvecK;
     FilterSaturationEquation(material, meshvec, mphysics, an, true);
     matK = an.Solver().Matrix();
@@ -1165,7 +1165,7 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
 }
 
 
-void CondCFL(TPZFMatrix<REAL> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT)
+void CondCFL(TPZFMatrix<STATE> SolutionQ, REAL deltaX, REAL maxTime, REAL &deltaT)
 {
     int nr = SolutionQ.Rows();
     int nc = SolutionQ.Cols();
@@ -1480,7 +1480,7 @@ TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZTracerFlow * mymaterial, TPZCom
     return matK2;
 }
 
-void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<REAL> > &matK1, TPZFMatrix<STATE> &fvec){
+void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZAutoPointer< TPZMatrix<STATE> > &matK1, TPZFMatrix<STATE> &fvec){
     
     mymaterial->SetCurrentState();
     

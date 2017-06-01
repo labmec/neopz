@@ -645,7 +645,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
   an->Rhs() += fLastStepRhs;
   an->Rhs() *= -1.0; //- [R(U0)];
   
-  TPZAutoPointer< TPZMatrix<REAL> > matK; // getting X(Uatn)
+  TPZAutoPointer< TPZMatrix<STATE> > matK; // getting X(Uatn)
   
   bool notconverged = true;
   while(notconverged && iter < numiter) {
@@ -831,8 +831,8 @@ void TPZDarcyAnalysis::RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAng
     RotationMatrix(1,0) =   +sin(theta);
     RotationMatrix(1,1) =   +cos(theta);
     RotationMatrix(2,2) = 1.0;
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     
     RotationMatrix.Print("Rotation = ");
     
@@ -1114,7 +1114,8 @@ REAL TPZDarcyAnalysis::Qtip()
     TPZMatfrac1dhdiv * MaterialOfFract = dynamic_cast<TPZMatfrac1dhdiv *>(Material);
 
     
-    TPZVec<REAL> qsi(3,1.), sol(1,0.);
+    TPZVec<REAL> qsi(3,1.);
+    TPZManVector<STATE,2> sol(1,0.);
     const int varQ = MaterialOfFract->VariableIndex("Flow");
     cel->Solution(qsi, varQ, sol);
     const REAL qTip = sol[0];
