@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	TPZAnalysis an(cmesh, optimizeBandwidth); //cria objeto de analise que gerenciaria a analise do problema
 	an.Run();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
     
-	TPZFMatrix<REAL> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
+	TPZFMatrix<STATE> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj
 	solucao.Print("Sol",cout,EMathematicaInput);//imprime na formatacao do Mathematica
 	
     //fazendo pos processamento para paraview
@@ -140,7 +140,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 	cmesh->InsertMaterialObject(material);
 		
 	///Inserir condicao de contorno esquerda
-	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
 	TPZMaterial * BCond0 = material->CreateBC(material, bc0, dirichlet, val1, val2);//cria material que implementa a condicao de contorno da esquerda
 	
 	// Condicao de contorno da direita

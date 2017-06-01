@@ -72,7 +72,7 @@ static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatri
 }
 
 static void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
-    TPZFNMatrix<10,REAL> fake(2,1);
+    TPZFNMatrix<10,STATE> fake(2,1);
     SolExataSteklov(loc,result,fake);
 }
 static void Dirichlet2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
@@ -100,7 +100,7 @@ static void SolExataSteklovSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZF
 }
 
 static void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
-    TPZFNMatrix<10,REAL> fake(2,1);
+    TPZFNMatrix<10,STATE> fake(2,1);
     SolExataSteklovSuave(loc,result,fake);
 }
 
@@ -596,8 +596,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh)
             const REAL dudnval = Compute_dudn(sp,qsi,faceNormal);
             TPZManVector<REAL> xVec(3,0.);
             gel->X(qsi,xVec);
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<2,STATE> duExato(2,1);
             SolExataSteklovSuave(xVec, uExato, duExato);
             const REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
             error += weight*(dudnval - dudnExato)*(dudnval - dudnExato);
@@ -659,8 +659,8 @@ REAL Compute_dudn(TPZInterpolationSpace * sp, TPZVec<REAL> &intpoint, TPZVec<REA
 //        neighequal[i].Element()->Print();
 //    }
     
-    TPZFMatrix<REAL> dsoldxL, dsoldxR;
-    TPZStack<TPZFMatrix<REAL>,2> dsolVec;
+    TPZFNMatrix<5,STATE> dsoldxL, dsoldxR;
+    TPZStack<TPZFNMatrix<5,STATE>,2> dsolVec;
     for(i=0; i<nneighs; i++){
     
         TPZInterfaceElement *face = dynamic_cast<TPZInterfaceElement *>(neighequal[i].Element());
@@ -697,8 +697,8 @@ REAL Compute_dudn(TPZInterpolationSpace * sp, TPZVec<REAL> &intpoint, TPZVec<REA
         TPZInterpolationSpace * RightEl = dynamic_cast<TPZInterpolationSpace*>(RightSide.Element());
         
         TPZManVector<REAL,3> LeftIntPoint(2), RightIntPoint(2);
-        TPZVec<REAL> solL, solR;
-        TPZFMatrix<REAL> dsoldaxes(2,1);
+        TPZVec<STATE> solL, solR;
+        TPZFMatrix<STATE> dsoldaxes(2,1);
         
         //Calculo da solucao
         int count = 0;

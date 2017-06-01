@@ -83,7 +83,7 @@ void UniformRefinement(TPZGeoMesh  *gMesh, int nh);
 void UniformRefinement(TPZGeoMesh *gMesh, int nh, int MatId);
 void RefinElemComp(TPZCompMesh  *cMesh, int indexEl);
 void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
-void ReservoirPressure(const TPZVec<STATE> &x, TPZVec<STATE> &p,  TPZFMatrix<STATE> &gradp);
+void ReservoirPressure(const TPZVec<REAL> &x, TPZVec<STATE> &p,  TPZFMatrix<STATE> &gradp);
 
 int main(int argc, char *argv[])
 {
@@ -347,7 +347,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
     an->Assemble();
     an->Rhs() *= -1.0; //- [R(U0)];
     
-    TPZAutoPointer< TPZMatrix<REAL> > matK; // getting X(Uatn)
+    TPZAutoPointer< TPZMatrix<STATE> > matK; // getting X(Uatn)
     
     bool converged = false;
     while(!converged && iter < numiter) {
@@ -421,7 +421,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
     
 }
 
-void ReservoirPressure(const TPZVec<STATE> &x, TPZVec<STATE> &p,  TPZFMatrix<STATE> &gradp)
+void ReservoirPressure(const TPZVec<REAL> &x, TPZVec<STATE> &p,  TPZFMatrix<STATE> &gradp)
 {
   p[0] = 1.0e7;
 }

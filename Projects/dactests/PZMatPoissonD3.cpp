@@ -159,7 +159,7 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     if(fPermeabilityFunction){
         PermTensor.Redim(fDim,fDim);
         InvPermTensor.Redim(fDim,fDim);
-        TPZFNMatrix<3,REAL> resultMat;
+        TPZFNMatrix<3,STATE> resultMat;
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
@@ -688,8 +688,10 @@ void TPZMatPoissonD3::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }//var8
     if(var==9){
         
-        TPZFNMatrix<660> GradofP;
-        TPZAxesTools<REAL>::Axes2XYZ(datavec[1].dsol[0], GradofP, datavec[1].axes);
+        TPZFNMatrix<660,STATE> GradofP;
+        TPZFMatrix<STATE> &dsol = datavec[1].dsol[0];
+//        TPZFMatrix<REAL> axs;
+        TPZAxesTools<STATE>::Axes2XYZ(dsol, GradofP, datavec[1].axes);
         //        int nc = GradofP.Cols();
         //        int nl = GradofP.Rows();
         

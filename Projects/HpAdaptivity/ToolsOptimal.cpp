@@ -233,7 +233,7 @@ void StateVar(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
     
 }
 
-void OptForcing(const TPZVec<REAL> &pt, TPZVec<REAL> &res){
+void OptForcing(const TPZVec<REAL> &pt, TPZVec<STATE> &res){
 	
     res[0]=0;
     res[1]=0;

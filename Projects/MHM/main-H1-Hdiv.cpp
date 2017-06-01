@@ -106,7 +106,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2);
 
 void SolProblema(const TPZVec<REAL> &pt, TPZVec<STATE> &p, TPZFMatrix<STATE> &flux);
 void ForcingTang2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
-void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp);
+void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<STATE> &res,TPZFMatrix<STATE> &disp);
 
 
 void ChangeSideConnectOrderConnects(TPZCompMesh *mesh, int sideorder);
@@ -1075,7 +1075,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out, TPZVec<STATE> &errorHD
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolProblema, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -1121,7 +1121,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, STATE &errorL2)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolProblema, elerror, NULL);
         
@@ -1248,7 +1248,7 @@ void ForcingTang2(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
     }
 }
 
-void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<REAL> &res,TPZFMatrix<STATE> &disp)
+void ForcingTang3(const TPZVec<REAL> &pt, TPZVec<STATE> &res,TPZFMatrix<STATE> &disp)
 {
     double x = pt[0];
     double y = pt[1];
