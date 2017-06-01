@@ -383,17 +383,10 @@ void TPZConnect::ExpandShape(long cind, TPZVec<long> &connectlist, TPZVec<int> &
         long r,c,d;
         for(r=0; r<rows; r++) {
             for(c=0; c<cols; c++) {
-#ifdef STATE_COMPLEX
-                phi(eqrem+c,0) += phi(eqloc+r)*dep->fDepMatrix(r,c).real();
-                for(d=0; d<dim; d++) {
-                    dphi(d,eqrem+c) += dphi(d,eqloc+r)*dep->fDepMatrix(r,c).real();
-                }
-#else
                 phi(eqrem+c,0) += phi(eqloc+r)*(REAL)(dep->fDepMatrix(r,c));
                 for(d=0; d<dim; d++) {
                     dphi(d,eqrem+c) += dphi(d,eqloc+r)*(REAL)(dep->fDepMatrix(r,c));
                 }
-#endif
             }
         }
         dep = dep->fNext;

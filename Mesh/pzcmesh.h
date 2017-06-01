@@ -83,7 +83,7 @@ protected:
 	TPZBlock<STATE>		fBlock;
 	
 	/** @brief Solution vectors organized by element */
-	TPZFMatrix<REAL> fElementSolution;
+	TPZFMatrix<STATE> fElementSolution;
 	
 	/* @brief set the dimension of the simulation or the model */
 	int fDimModel;
@@ -215,7 +215,7 @@ public:
 	TPZFMatrix<STATE> &Solution(){ return fSolution;}
 	
 	/** @brief Access method for the element solution vectors */
-	TPZFMatrix<REAL> &ElementSolution() { return fElementSolution;}
+	TPZFMatrix<STATE> &ElementSolution() { return fElementSolution;}
 	
 	/** @} */
 	
@@ -260,7 +260,7 @@ public:
 	 */
 	
 	/** @brief Set a ith element solution, expanding the element-solution matrix if necessary */
-	void SetElementSolution(long i, TPZVec<REAL> &sol);
+	void SetElementSolution(long i, TPZVec<STATE> &sol);
 	
 	/** @} */
 	

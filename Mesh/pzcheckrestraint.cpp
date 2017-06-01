@@ -178,11 +178,7 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
 					cin >> a;
 					return;
 				}
-#ifdef STATE_COMPLEX
-				fRestraint(il,ic) += dependmatrix(line,column).real();
-#else
 				fRestraint(il,ic) += (REAL)dependmatrix(line,column);
-#endif
 			}
 		}
 	} else {

@@ -10,7 +10,6 @@
 #include "TPZVecL2.h"
 #include "pzbndcond.h"
 #include "TPZMatLaplacian.h"
-#include "mixedpoisson.h"
 #include "TPZLagrangeMultiplier.h"
 
 

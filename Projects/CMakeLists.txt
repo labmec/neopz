@@ -68,7 +68,6 @@ ENABLE_TESTING()
 
 			add_subdirectory(proDG)
 
-
 		endif(BUILD_COMPLEX_PROJECTS)
 
 
@@ -193,6 +192,8 @@ ENABLE_TESTING()
 			if(USING_MKL)
 				add_subdirectory(PardisoSample)
 			endif(USING_MKL)
+
+                        add_subdirectory(artigoPira)
+
 		endif(BUILD_COMPLEX_PROJECTS)
 	endif(BUILD_PROJECTS)
-add_subdirectory(artigoPira)

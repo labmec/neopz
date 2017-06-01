@@ -25,7 +25,6 @@
 #include "pzstepsolver.h"
 #include "pzquad.h"
 #include "pzmaterial.h"
-#include "TPZDiffusionConsLaw.h"
 #include "pzdxmesh.h"
 #include "pzsolve.h"
 #include "tpzagglomeratemesh.h"
