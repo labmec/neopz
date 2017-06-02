@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains TPZSpMatrix class which defines sparce matrix class.
+ * @brief Contains TPZSpMatrix class which defines sparse matrix class.
  */
 
 #ifndef TESPMATH
@@ -24,10 +24,8 @@
 #endif
 
 template<class TVar>
-class TPZFMatrix;
-
-template<class TVar>
 class TPZSSpMatrix;
+
 /**
  * @brief Defines sparce matrix class. \ref matrix "Matrix"
  * @ingroup matrix
@@ -205,5 +203,7 @@ TPZSpMatrix<TVar>::Swap( long *a, long *b )
 	*a = *b;
 	*b = c;
 }
+
+#include "pzsespmat.h"
 
 #endif

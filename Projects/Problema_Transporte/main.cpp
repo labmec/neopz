@@ -1422,7 +1422,7 @@ TPZCompMesh *MalhaComp2(TPZGeoMesh * gmesh, int pOrder/*,TPZMatConvectionProblem
     cmesh->SetDimModel(dim);
     
     
-	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
     
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,1, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,1, val1, val2);
@@ -1545,7 +1545,7 @@ void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
     //TPZBandStructMatrix full(Cmesh);
     //TPZSkylineStructMatrix full(Cmesh);
 	an.SetStructuralMatrix(full);
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ELU);//caso nao simetrico
 	an.SetSolver(step);
 	an.Run();
@@ -1589,7 +1589,7 @@ void FilterEquation(TPZCompMesh *cmesh, TPZAnalysis &an)
 void DirichletCond(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
    
     //TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolucaoExata(loc,result,du);
 }
 

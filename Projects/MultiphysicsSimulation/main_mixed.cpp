@@ -1126,8 +1126,8 @@ void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -1137,8 +1137,8 @@ void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {+1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -1148,8 +1148,8 @@ void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,+1};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -1208,8 +1208,8 @@ void DirichletSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannEsquerdaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklovSuave(loc,u,du);
     
     result.Resize(1);
@@ -1219,8 +1219,8 @@ void NeumannEsquerdaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannDireitaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {+1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklovSuave(loc,u,du);
     
     result.Resize(1);
@@ -1230,8 +1230,8 @@ void NeumannDireitaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannAcimaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,+1};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklovSuave(loc,u,du);
     
     result.Resize(1);
@@ -1316,8 +1316,8 @@ void Compute_dudnQuadrado(TPZCompMesh *cmesh){
         REAL dudnval = flux[0]*normal[0] + flux[1]*normal[1];
         dudn[s] = dudnval;
         
-        TPZManVector<REAL> uExato(1);
-        TPZFNMatrix<100> duExato(2,1);
+        TPZManVector<STATE> uExato(1);
+        TPZFNMatrix<100,STATE> duExato(2,1);
         SolExataSteklov(xVec, uExato, duExato);
         
         dudnExato[s] = duExato(0,0)*normal[0]+duExato(1,0)*normal[1];
@@ -1418,8 +1418,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
             
             geoside.X(qsi,xVec);
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             SolExataSteklovSuave(xVec, uExato, duExato);
             REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
             
@@ -1484,8 +1484,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
             
             geoside.X(qsi,xVec);
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             SolExataSteklov(xVec, uExato, duExato);
             REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
             
@@ -1550,8 +1550,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
             REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
             
             geoside.X(qsi,xVec);
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             SolExataSteklov(xVec, uExato, duExato);
             REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
             
@@ -1618,8 +1618,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
                 REAL dudnval = flux[0]*faceNormal[0] + flux[1]*faceNormal[1];
                 
                 geoside.X(qsi,xVec);
-                TPZManVector<REAL> uExato(1);
-                TPZFNMatrix<100> duExato(2,1);
+                TPZManVector<STATE> uExato(1);
+                TPZFNMatrix<100,STATE> duExato(2,1);
                 SolExataSteklov(xVec, uExato, duExato);
                 REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
                 
@@ -1722,8 +1722,8 @@ REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
             flux[0]=data.sol[0][0];
             REAL dudnval = flux[0]*sign;
             
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             gel->X(qsi,xVec);
             SolExataSteklovSuave(xVec, uExato, duExato);
             REAL dudnExato = duExato(0,0)*faceNormal[0]+duExato(1,0)*faceNormal[1];
@@ -1861,7 +1861,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
@@ -1871,7 +1871,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolExataSteklovSuave, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {

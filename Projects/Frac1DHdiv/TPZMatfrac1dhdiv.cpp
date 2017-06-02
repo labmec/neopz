@@ -17,14 +17,14 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
 TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(): TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >()
 {
   fDim = 1;
-  TPZFNMatrix<3,STATE> Vl(1,1,0.);
+  TPZFNMatrix<3,REAL> Vl(1,1,0.);
   this->SetDefaultMem(Vl);
 }
 
 TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(int matid): TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >(matid)
 {
   fDim = 1;
-  TPZFNMatrix<3,STATE> Vl(1,1,0.);
+  TPZFNMatrix<3,REAL> Vl(1,1,0.);
   this->SetDefaultMem(Vl);
 }
 
@@ -103,7 +103,7 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
   // Leak off
   
   const int intGlobPtIndex = datavec[0].intGlobPtIndex;
-  TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
+  TPZFMatrix<REAL> Vl = this->MemItem(intGlobPtIndex);
   const REAL ql = 2.*fData->QlFVl(Vl(0,0),p);
   const REAL dqldp = 2.*fData->dQlFVl(Vl(0,0), p);
 
@@ -152,7 +152,7 @@ void TPZMatfrac1dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 void TPZMatfrac1dhdiv::UpdateMemory(TPZVec<TPZMaterialData> &datavec)
 {
   const int intGlobPtIndex = datavec[0].intGlobPtIndex;
-  TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
+  TPZFMatrix<REAL> Vl = this->MemItem(intGlobPtIndex);
   const STATE pfrac = datavec[1].sol[0][0];
   const REAL deltaT = fData->TimeStep();
   
@@ -166,7 +166,7 @@ void TPZMatfrac1dhdiv::UpdateMemory(TPZVec<TPZMaterialData> &datavec)
 void TPZMatfrac1dhdiv::UpdateMemory(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavec)
 {
   const int intGlobPtIndex = data.intGlobPtIndex;
-  TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
+  TPZFMatrix<REAL> Vl = this->MemItem(intGlobPtIndex);
   const STATE pfrac = datavec[1].sol[0][0];
   const REAL deltaT = fData->TimeStep();
   
@@ -194,17 +194,17 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
   REAL n1 = normal[0];
   REAL n2 = normal[1];
   
-  TPZManVector<REAL,3> sol_qL =dataleft[0].sol[0];
-  TPZManVector<REAL,3> sol_pL =dataleft[1].sol[0];
+  TPZManVector<STATE,3> sol_qL =dataleft[0].sol[0];
+  TPZManVector<STATE,3> sol_pL =dataleft[1].sol[0];
   
   
   //  Getting Q solution for left and right side
-  REAL qxL = sol_qL[0];
-  REAL qyL = sol_qL[1];
-  REAL qnL = (qxL*n1) + (qyL*n2);
+  STATE qxL = sol_qL[0];
+  STATE qyL = sol_qL[1];
+  STATE qnL = (qxL*n1) + (qyL*n2);
   
   //  Getting P solution for left and right side
-  REAL PressureL = sol_pL[0];
+  STATE PressureL = sol_pL[0];
   
   //  Getting another required data
   REAL TimeStep = fData->TimeStep();
@@ -234,7 +234,7 @@ void TPZMatfrac1dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMate
   
   // Leak off
   const int intGlobPtIndex = data.intGlobPtIndex;
-  TPZFMatrix<STATE> Vl = this->MemItem(intGlobPtIndex);
+  TPZFMatrix<REAL> Vl = this->MemItem(intGlobPtIndex);
   REAL ql, dqldp, dqldpomar;
   if (fData->IsCoupled()) {
     ql = 2.*fData->QlFVl(Vl(0,0), p, PressureL);

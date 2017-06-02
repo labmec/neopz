@@ -328,7 +328,8 @@ bool SolveSymmetricPoissonProblemOnCubeMesh(int itypeel, struct SimulationCase s
 	gmesh = CreateGeomMesh(typeel,materialId,id_bc0,id_bc1);
 	ModelDimension = DefineDimensionOverElementType(typeel);
 			
-    TPZManVector<STATE> x(3,0.5),sol(1),ddsol(6);
+    TPZManVector<REAL> x(3,0.5);
+    TPZManVector<STATE> sol(1),ddsol(6);
     TPZFNMatrix<9,STATE> dsol(3,1);
     ExactSolutionArcTangent(x, sol, dsol);
     std::cout << "Solution at center "<< sol << std::endl;
@@ -1016,8 +1017,8 @@ bool ApplyingStrategyHPAdaptiveBasedOnErrorOfSolution(TPZCompMesh *cmesh,TPZVec<
 	REAL SmallError = factorError*MaxErrorByElement + (1.-factorError)*MinErrorByElement;
 	REAL MaxGrad = factorGrad*gradervecbyel[nels] + (1.-factorGrad)*MinGrad;
 
-	TPZVec<REAL> Laplacian(1);
-	TPZFMatrix<REAL> dLap(3);
+	TPZVec<STATE> Laplacian(1);
+	TPZFMatrix<STATE> dLap(3);
 	TPZVec<REAL> psi(3,0.);
 	TPZVec<REAL> center(3,0.);
 

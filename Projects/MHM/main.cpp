@@ -674,19 +674,19 @@ void InsertMaterialObjects(TPZMHMeshControl &control)
     
     //BC -2
 	TPZMaterial * BCondD2 = material1->CreateBC(mat1, bc2,neumann, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet2 = new TPZDummyFunction<REAL>(DirichletValidacao);
+    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet2 = new TPZDummyFunction<STATE>(DirichletValidacao);
     BCondD2->SetForcingFunction(bcmatDirichlet2);
     cmesh.InsertMaterialObject(BCondD2);
     
     //BC -3
 	TPZMaterial * BCondD3 = material1->CreateBC(mat1, bc3,dirichlet, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet3 = new TPZDummyFunction<REAL>(DirichletValidacao);
+    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet3 = new TPZDummyFunction<STATE>(DirichletValidacao);
     BCondD3->SetForcingFunction(bcmatDirichlet3);
     cmesh.InsertMaterialObject(BCondD3);
     
     //BC -4
 	TPZMaterial * BCondD4 = material1->CreateBC(mat1, bc4,dirichlet, val1, val2);
-    TPZAutoPointer<TPZFunction<REAL> > bcmatDirichlet4 = new TPZDummyFunction<REAL>(DirichletValidacao);
+    TPZAutoPointer<TPZFunction<STATE> > bcmatDirichlet4 = new TPZDummyFunction<STATE>(DirichletValidacao);
     BCondD4->SetForcingFunction(bcmatDirichlet4);
     cmesh.InsertMaterialObject(BCondD4);
     

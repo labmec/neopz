@@ -47,8 +47,8 @@ static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatri
 static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -58,8 +58,8 @@ static void NeumannEsquerda(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {+1,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);
@@ -69,8 +69,8 @@ static void NeumannDireita(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 static void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,+1};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolExataSteklov(loc,u,du);
     
     result.Resize(1);

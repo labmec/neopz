@@ -161,7 +161,6 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         InvPermTensor.Redim(fDim,fDim);
         TPZFNMatrix<9,STATE> resultMat;
         TPZManVector<STATE,3> res;
-
         fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
         
         for(int id=0; id<fDim; id++){

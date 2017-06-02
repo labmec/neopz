@@ -18,6 +18,11 @@
 
 #include "pzlog.h"
 
+#ifdef _AUTODIFF
+#include "tfad.h"
+#include "fad.h"
+#endif
+
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
@@ -285,7 +290,6 @@ void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &Tran
 }
 
 #ifdef _AUTODIFF
-#include "fad.h"
 template <>
 void TPZFMatrix<TFad<6,REAL> >::GramSchmidt(TPZFMatrix<TFad<6,REAL> > &Orthog, TPZFMatrix<TFad<6, REAL> > &TransfToOrthog)
 {
@@ -318,7 +322,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
         double norm = 0.;
         for(long i = 0; i < this->Rows(); i++)
         {
-            norm += fabs(this->GetVal(i,j)*this->GetVal(i,j));
+            norm += fabs(TPZExtractVal::val(this->GetVal(i,j)*this->GetVal(i,j)));
         }
         norm = sqrt(norm);
         if(norm > 1.e-10)
@@ -2020,14 +2024,19 @@ long Dot(const TPZFMatrix<long> &A, const TPZFMatrix<long> &B);
 template
 int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B);
 
+#ifdef _AUTODIFF
+template
+Fad<float> Dot(const TPZFMatrix<Fad<float> > &A, const TPZFMatrix<Fad<float> > &B);
+
+template
+Fad<double> Dot(const TPZFMatrix<Fad<double> > &A, const TPZFMatrix<Fad<double> > &B);
+
+template
+Fad<long double> Dot(const TPZFMatrix<Fad<long double> > &A, const TPZFMatrix<Fad<long double> > &B);
+#endif
+
 template
 TPZFlopCounter Dot(const TPZFMatrix<TPZFlopCounter> &A, const TPZFMatrix<TPZFlopCounter> &B);
-
-#ifdef _AUTODIFF
-#include "fad.h"
-template
-Fad<REAL> Dot(const TPZFMatrix<Fad<REAL> > &A, const TPZFMatrix<Fad<REAL> > &B);
-#endif
 
 /** @brief Increments value over all entries of the matrix A. */
 template <class TVar>
@@ -3096,6 +3105,8 @@ template class TPZRestoreClass< TPZFMatrix<long double> , TPZFMATRIX_LONG_DOUBLE
 #include "fad.h"
 template class TPZFMatrix<TFad<6,REAL> >;
 template class TPZFMatrix<Fad<double> >;
+template class TPZFMatrix<Fad<float> >;
+template class TPZFMatrix<Fad<long double> >;
 
 //template class TPZFMatrix<TFad<6,double> >;
 //template class TPZFMatrix<TFad<6,float> >;

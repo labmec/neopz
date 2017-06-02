@@ -6,13 +6,11 @@
 #ifndef TPZSKYLINESTRUCTMATRIX_H
 #define TPZSKYLINESTRUCTMATRIX_H
 
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzstrmatrix.h"
 
 class TPZCompMesh;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
 
 /**
  * @brief Implements SkyLine Structural Matrices. \ref structural "Structural Matrix"

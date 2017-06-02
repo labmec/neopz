@@ -8,13 +8,11 @@
 #define SYSMPMATH
 
 #include "pzmatrix.h"
+#include "pzfmatrix.h"
 
 #ifdef USING_MKL
 #include "TPZPardisoControl.h"
 #endif
-
-template<class TVar>
-class TPZFMatrix;
 
  /**
   * @brief Implements a symmetric sparse matrix. \ref matrix "Matrix"

@@ -14,7 +14,6 @@
 #include <iostream>
 
 class TPZCompMesh;
-class TPZFMatrix;
 class TPZFStructMatrix;
 class TMTFaceData;
 

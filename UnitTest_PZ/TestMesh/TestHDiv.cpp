@@ -146,16 +146,16 @@ template<class tshape>
 void VectorDirections();
 //static TPZCompMesh *HDivMesh, *PressureMesh;
 
-static void ExactPressure(const TPZVec<REAL> &x, TPZVec<REAL> &force)
+static void ExactPressure(const TPZVec<REAL> &x, TPZVec<STATE> &force)
 {
     force[0] =  5. + 3. * x[0] + 2. * x[1] + 4. * x[0] * x[1];
 }
-static void ExactNormalFluxTop(const TPZVec<REAL> &x, TPZVec<REAL> &force)
+static void ExactNormalFluxTop(const TPZVec<REAL> &x, TPZVec<STATE> &force)
 {
     force[0] = 0.;
 }
 
-static void ExactNormalFluxBottom(const TPZVec<REAL> &x, TPZVec<REAL> &force)
+static void ExactNormalFluxBottom(const TPZVec<REAL> &x, TPZVec<STATE> &force)
 {
     force[0] = 0.;
 }
@@ -1583,7 +1583,8 @@ void RunBilinear(MElementType eltype)
         for(int ip=0; ip<np; ip++)
         {
             //TPZManVector<REAL,3> xi(2), xco(3), sol(1), exactsol(1);
-            TPZManVector<REAL,3> xi(3), xco(3), sol(1), exactsol(1);
+            TPZManVector<REAL,3> xi(3), xco(3);
+            TPZManVector<STATE,3> sol(1), exactsol(1);
             REAL weight;
             rule->Point(ip, xi, weight);
             gel->X(xi, xco);
@@ -2231,8 +2232,8 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
             break;
     }
     
-    TPZVec<STATE> iCoords(3,0.0);
-    TPZVec<STATE> iCoordsRotated(3,0.0);
+    TPZVec<REAL> iCoords(3,0.0);
+    TPZVec<REAL> iCoordsRotated(3,0.0);
     
     //RotationMatrix.Print("Rotation = ");
     

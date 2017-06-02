@@ -6,13 +6,10 @@
 #ifndef TPZSBANDSTRUCTMATRIX_H
 #define TPZSBANDSTRUCTMATRIX_H
 
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
 #include "pzstrmatrix.h"
-
-class TPZCompMesh;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
+#include "pzcmesh.h"
 
 /**
  * @brief Implements Symmetric Banded Structural Matrices. \ref structural "Structural Matrix"

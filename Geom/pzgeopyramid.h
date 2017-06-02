@@ -10,9 +10,8 @@
 #include "pzvec.h"
 #include "pzeltype.h"
 #include "tpzpyramid.h"
+#include "pzfmatrix.h"
 
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
 

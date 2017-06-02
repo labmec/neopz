@@ -663,8 +663,8 @@ void SolSuaveH1(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du
 void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,-1.};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
     result.Resize(1);
@@ -674,8 +674,8 @@ void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {1.,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
     result.Resize(1);
@@ -685,8 +685,8 @@ void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {0,1.};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
     result.Resize(1);
@@ -696,8 +696,8 @@ void NeumannBC3(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[2] = {-1.,0};
     
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<10> du(2,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<10,STATE> du(2,1);
     SolSuave(loc,u,du);
     
     result.Resize(1);
@@ -835,7 +835,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = hdivmesh->ElementVec()[el];
         if (!cel) {
@@ -845,7 +845,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(SolSuave, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -864,7 +864,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
 {
     long nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
@@ -874,7 +874,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(SolSuave, elerror, NULL);
         

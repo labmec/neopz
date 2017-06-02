@@ -537,10 +537,10 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh()
     cmesh->SetDimModel(2);
     cmesh->SetDefaultOrder(2);
     
-    TPZFMatrix<REAL> xk(1,1,1.);
-    TPZFMatrix<REAL> xc(1,1,0.);
+    TPZFMatrix<STATE> xk(1,1,1.);
+    TPZFMatrix<STATE> xc(1,1,0.);
     TPZFMatrix<REAL> xb(1,1,0.);
-    TPZFMatrix<REAL> xf(1,1,-2.);
+    TPZFMatrix<STATE> xf(1,1,-2.);
     int neumannFluxIn = 4;
     
     for(int lay = 0; lay < globLayerStruct.NLayers(); lay++)
@@ -556,7 +556,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh()
                 cmesh->InsertMaterialObject(mat);
                 
                 ///////////bullet
-                TPZFMatrix<REAL> k(2,2,0.), f(2,1,0.);
+                TPZFMatrix<STATE> k(2,2,0.), f(2,1,0.);
                 TPZBndCond * fluxInBC = new TPZBndCond(mat, globMaterialIdGen.BulletMatId(lay), neumannFluxIn, k, f);
                 cmesh->InsertMaterialObject(fluxInBC);
             }
@@ -576,7 +576,7 @@ TPZCompMesh * TPZPlaneFractureMesh::GetPressureCompMesh()
                     ///////////bullet
                     if(stripe == 0)
                     {
-                        TPZFMatrix<REAL> k(2,2,0.), f(2,1,0.);
+                        TPZFMatrix<STATE> k(2,2,0.), f(2,1,0.);
                         TPZBndCond * fluxInBC = new TPZBndCond(mat, globMaterialIdGen.BulletMatId(lay), neumannFluxIn, k, f);
                         cmesh->InsertMaterialObject(fluxInBC);
                     }

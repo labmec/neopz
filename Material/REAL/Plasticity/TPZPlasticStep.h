@@ -17,9 +17,6 @@
 #include <set>
 #include <ostream>
 
-template <class TVar>
-class TPZFMatrix;
-
 enum EElastoPlastic
 {
 	EAuto = 0,

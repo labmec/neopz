@@ -1655,8 +1655,8 @@ void Dirichlet(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     
     REAL normal[3] = {0.,-1.,0.};
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<5> du(3,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<5,STATE> du(3,1);
     
 #ifdef SolutionPoly
     PolyProblem(loc,u,du);
@@ -1673,8 +1673,8 @@ void NeumannBC1(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     
     REAL normal[3] = {1.,0.,0.};
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<5> du(3,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<5,STATE> du(3,1);
     
 #ifdef SolutionPoly
     PolyProblem(loc,u,du);
@@ -1690,8 +1690,8 @@ void NeumannBC2(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 
 void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[3] = {0.,0.,1.};
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<5> du(3,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<5,STATE> du(3,1);
     
 #ifdef SolutionPoly
     PolyProblem(loc,u,du);
@@ -1707,8 +1707,8 @@ void NeumannAcima(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
 
 void NeumannAbaixo(const TPZVec<REAL> &loc, TPZVec<STATE> &result){
     REAL normal[3] = {0.,0.,-1.};
-    TPZManVector<REAL> u(1);
-    TPZFNMatrix<5> du(3,1);
+    TPZManVector<STATE> u(1);
+    TPZFNMatrix<5,STATE> du(3,1);
     
     
 #ifdef SolutionPoly
@@ -2786,7 +2786,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, TPZVec<STATE> &Error /*,std::ostream &out*
 {
     long nel = hdivmesh->NElements();
     int dim = hdivmesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     TPZStack<REAL> vech;
     
     for (long el=0; el<nel; el++) {
@@ -2799,7 +2799,7 @@ void ErrorHDiv(TPZCompMesh *hdivmesh, TPZVec<STATE> &Error /*,std::ostream &out*
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         cel->EvaluateError(ExactSolution, elerror, NULL);
         int nerr = elerror.size();
         for (int i=0; i<nerr; i++) {
@@ -2822,7 +2822,7 @@ void ErrorH1(TPZCompMesh *l2mesh, TPZVec<STATE> &Error /*,std::ostream &out*/)
 {
     long nel = l2mesh->NElements();
     int dim = l2mesh->Dimension();
-    TPZManVector<STATE,10> globerrors(10,0.);
+    TPZManVector<REAL,10> globerrors(10,0.);
     for (long el=0; el<nel; el++) {
         TPZCompEl *cel = l2mesh->ElementVec()[el];
         if (!cel) {
@@ -2832,7 +2832,7 @@ void ErrorH1(TPZCompMesh *l2mesh, TPZVec<STATE> &Error /*,std::ostream &out*/)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         elerror.Fill(0.);
         cel->EvaluateError(ExactSolution, elerror, NULL);
         

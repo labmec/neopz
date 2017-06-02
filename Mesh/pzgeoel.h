@@ -8,13 +8,13 @@
 
 #include <iostream>
 
-
 #include "pzsave.h"
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzgmesh.h"
 #include "pztrnsform.h"
 #include "doxmesh.h"
+#include "pzfmatrix.h"
 
 #include "pzgeoelside.h"
 #ifdef _AUTODIFF
@@ -24,8 +24,6 @@
 class TPZGeoNode;
 class TPZCompMesh;
 class TPZCompEl;
-template<class TVar>
-class TPZFMatrix;
 class TPZGeoMesh;
 class TPZCompElSide;
 class TPZIntPoints;

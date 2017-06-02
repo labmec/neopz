@@ -10,11 +10,8 @@
 #include "pzcompel.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
+#include "pzcmesh.h"
 #include <iostream>
-class TPZCompMesh;
-
-template<class TVar> 
-class TPZFMatrix;
 
 /**
  * @brief Derived class from TPZAnalysis implements non linear analysis (Newton's method). \ref analysis "Analysis"

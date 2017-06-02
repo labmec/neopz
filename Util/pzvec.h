@@ -363,7 +363,7 @@ void TPZVec<T>::Resize(const long newsize) {
 		PZError.flush();
 	}
 #ifdef WIN32
-	// Parece que o limite no windows é
+	// Parece que o limite no windows Ã©
 	int sz = sizeof(T);
 	long nlongsize = 1704792168;
 	if((newsize+1) > (1./sz)*nlongsize) {

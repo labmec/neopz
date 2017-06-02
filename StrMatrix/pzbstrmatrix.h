@@ -6,13 +6,10 @@
 #ifndef TPZBANDSTRUCTMATRIX_H
 #define TPZBANDSTRUCTMATRIX_H
 
+#include "pzmatrix.h"
 #include "pzstrmatrix.h"
-
-class TPZCompMesh;
-template<class TVar>
-class TPZFMatrix;
-template<class TVar>
-class TPZMatrix;
+#include "pzfmatrix.h"
+#include "pzcmesh.h"
 
 /**
  * @brief Implements Banded Structural Matrices. \ref structural "Structural Matrix"

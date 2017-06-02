@@ -3,14 +3,11 @@
  * @brief Contains TPZMatrixclass which implements full matrix (using column major representation).
  */
 
-#ifndef _TMATRIXHH_
-#include "pzmatrix.h"
-#endif
-
 
 #ifndef _TFULLMATRIXH_
 #define _TFULLMATRIXH_
 
+#include "pzmatrix.h"
 
 #include <iostream>
 #include <memory.h>
@@ -20,6 +17,11 @@
 #include "pzsave.h"
 #include "pzmatrixid.h"
 
+#ifdef _AUTODIFF
+#include "tfad.h"
+#include "fad.h"
+#include "pzextractval.h"
+#endif
 
 template <class T>
 class TPZVec;
@@ -614,6 +616,20 @@ inline long double Norm(const TPZFMatrix< std::complex <long double> > &A) {
     return sqrt(Dot(A,A).real());
 }
 
+#ifdef _AUTODIFF
+inline float Norm(const TPZFMatrix< Fad <float> > &A) {
+    return TPZExtractVal::val(sqrt(Dot(A,A)));
+}
+
+inline double Norm(const TPZFMatrix< Fad <double> > &A) {
+    return TPZExtractVal::val(sqrt(Dot(A,A)));
+}
+
+inline long double Norm(const TPZFMatrix< Fad <long double> > &A) {
+    return TPZExtractVal::val(sqrt(Dot(A,A)));
+}
+#endif
+
 inline TPZFlopCounter Norm(const TPZFMatrix<TPZFlopCounter> &A)
 {
     return sqrt(Dot(A, A));
@@ -671,5 +687,6 @@ public:
     
 };
 
+#include "tpzverysparsematrix.h"
 
 #endif

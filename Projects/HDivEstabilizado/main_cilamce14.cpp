@@ -1153,8 +1153,8 @@ void NeumannAbaixoXMenorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     if(x>0.) DebugStop();
     
     REAL normal[2] = {0.,-1.};
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1168,8 +1168,8 @@ void NeumannAbaixoXMaiorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     if(x<0.) DebugStop();
     
     REAL normal[2] = {0.,-1.};
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1184,8 +1184,8 @@ void DirichletXIgualUm(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL y = pt[1];
     if(x != 1.) DebugStop();
     
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1198,8 +1198,8 @@ void NeumannAcimaXMaiorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     if(x<0.) DebugStop();
     
     REAL normal[2] = {0.,1.};
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1212,8 +1212,8 @@ void NeumannAcimaXMenorZero(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     if(x>0.) DebugStop();
     
     REAL normal[2] = {0.,1.};
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1226,8 +1226,8 @@ void DirichletXIgualMenosUm(const TPZVec<REAL> &pt, TPZVec<STATE> &disp)
     REAL y = pt[1];
     if(x != -1.) DebugStop();
     
-    TPZManVector<REAL> p(1);
-    TPZFNMatrix<10> fluxo(2,1);
+    TPZManVector<STATE> p(1);
+    TPZFNMatrix<10,STATE> fluxo(2,1);
     SolFluxoHeter(pt,p,fluxo);
     
     disp.Resize(1);
@@ -1302,7 +1302,7 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         if(IsHomogeneo==true){
             cel->EvaluateError(SolExataMista, elerror, NULL);
         }else{
@@ -1335,7 +1335,7 @@ void ErrorL22(TPZCompMesh *l2mesh, std::ostream &out)
         if (!gel || gel->Dimension() != dim) {
             continue;
         }
-        TPZManVector<STATE,10> elerror(10,0.);
+        TPZManVector<REAL,10> elerror(10,0.);
         if(IsHomogeneo==true){
             cel->EvaluateError(SolExataPressao, elerror, NULL);
         }else{
@@ -1397,19 +1397,19 @@ void ComputeFluxError(TPZCompMesh *cmesh, std::ostream &out){
             weight *= fabs(data.detjac);
             sp->ComputeSolution(qsi,data);
             
-            TPZManVector<REAL,2> flux(2,0.);
-            REAL divfluxo;
+            TPZManVector<STATE,2> flux(2,0.);
+            STATE divfluxo;
             flux[0]=data.sol[0][0];
             flux[1]=data.sol[0][1];
             divfluxo =  data.dsol[0](0,0)+data.dsol[0](1,1);
             
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             gel->X(qsi,xVec);
             SolExataMista(xVec, uExato, duExato);
         
             
-            TPZManVector<REAL,2> diff(2,0.);
+            TPZManVector<STATE,2> diff(2,0.);
             diff[0] = flux[0]- duExato(0,0);
             diff[1] = flux[1]- duExato(1,0);
             
@@ -1417,7 +1417,7 @@ void ComputeFluxError(TPZCompMesh *cmesh, std::ostream &out){
             errors[0] += weight*(diff[0]*diff[0] + diff[1]*diff[1]);
             
             //erro L2 do divergente do fluxo
-            REAL diffDiv = abs(divfluxo - duExato(2,0));
+            STATE diffDiv = abs(divfluxo - duExato(2,0));
             errors[1] += weight*diffDiv*diffDiv;
             
             //erro Hdiv para o fluxo
@@ -1480,8 +1480,8 @@ void ComputePressureError(TPZCompMesh *cmesh, std::ostream &out){
             TPZManVector<REAL,2> gradP(2,0.);
             REAL diffP;
             
-            TPZManVector<REAL> uExato(1);
-            TPZFNMatrix<100> duExato(2,1);
+            TPZManVector<STATE> uExato(1);
+            TPZFNMatrix<100,STATE> duExato(2,1);
             gel->X(qsi,xVec);
             SolExataPressao(xVec, uExato, duExato);
             

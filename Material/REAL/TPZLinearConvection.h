@@ -3,14 +3,13 @@
  * @brief Contains the TPZLinearConvection class which implements a linear scalar convection equation.
  */
 
-template<class TVar>
-class TPZFMatrix;
-class TPZBndCond;
-
 #ifndef TPZLINEARCONVECTION_H
 #define TPZLINEARCONVECTION_H
-#include "pzmaterial.h"
 
+#include "pzmaterial.h"
+#include "pzfmatrix.h"
+
+class TPZBndCond;
 /**
  * @ingroup material
  * @brief Implements a linear scalar convection equation with modified SUPG difusion
