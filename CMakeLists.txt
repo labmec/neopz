@@ -119,12 +119,7 @@ if(USING_BOOST)
    	endif()
 endif(USING_BOOST)
 
-option(BUILD_SUBMODULES "Whether to build projects in Git submodules." OFF)
-
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
-if(BUILD_SUBMODULES)
-	set(USING_FAD ON CACHE BOOL "Whether the FAD package will be linked with the library" FORCE)
-endif(BUILD_SUBMODULES)
 
 if(USING_FAD)
 	#Adding a variable to hold this definition
@@ -389,9 +384,6 @@ endif(USING_MKL)
 
 #enabling QWT library
 option(USING_QWT "Whether the QWT library will be linked in" OFF)
-if(BUILD_SUBMODULES)
-	set(USING_QWT ON CACHE BOOL "Whether the QWT library will be linked in" FORCE)
-endif(BUILD_SUBMODULES)
 
 if(USING_QWT)
         add_definitions(-DUSING_QWT)
@@ -448,9 +440,7 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 
 #To building all the plasticity materials
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
-if(BUILD_SUBMODULES)
-	set(BUILD_PLASTICITY_MATERIALS ON CACHE BOOL "To build plasticity materials." FORCE)
-endif(BUILD_SUBMODULES)
+
 #To select type of REAL
 set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
@@ -584,16 +574,6 @@ if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
 endif()
 
-if (BUILD_SUBMODULES)
-    if (USING_FAD AND BUILD_PLASTICITY_MATERIALS)
-        if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
-            add_subdirectory(Projects/Petrobras)
-        else()
-            message ("Petrobras projects will not be built (set REAL_TYPE=double and STATE_TYPE=double to build them) !")
-        endif()
-    endif()
-endif(BUILD_SUBMODULES)
-
 if(BUILD_UNITTESTING)
 	add_subdirectory(UnitTest_PZ)
 endif()
@@ -622,3 +602,4 @@ add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 #SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
 
 set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
+
