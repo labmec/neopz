@@ -689,6 +689,7 @@ REAL erf(REAL arg);
 
 #if defined(_MSC_VER) && _MSC_VER < 1900 // Microsoft Visual Studio < 2015
 
+#include <cfloat>
 #define isnan(x) _isnan(x)
 
 #endif

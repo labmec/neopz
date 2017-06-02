@@ -1621,7 +1621,7 @@ void AnalyseRegularity(const TPZVec<int> &pos0,const TPZVec<int> &nelx, TPZVec<i
             perm(0,1) = gPorous(pos0[0]+ir,pos0[1]+ic+1);
             perm(1,1) = gPorous(pos0[0]+ir+1,pos0[1]+ic+1);
             lowestexp(ir,ic) = SolutionRegularity(perm);
-            if (lowestexp(ir,ic) < 0 || lowestexp(ir,ic) > 1. || std::isnan(lowestexp(ir,ic))) {
+            if (lowestexp(ir,ic) < 0 || lowestexp(ir,ic) > 1. || isnan(lowestexp(ir,ic))) {
                 DebugStop();
             }
         }
