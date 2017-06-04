@@ -16,8 +16,11 @@
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
 #include "pzfmatrix.h"
-#include "pzysmp.h"
-#include "pzsysmp.h"
+template<class TVar>
+class TPZSYsmpMatrix;
+
+template<class TVar>
+class TPZFYsmpMatrix;
 
 /// class to control the pardiso solution process
 // inspired by PardisoSolver by Armando Duarte

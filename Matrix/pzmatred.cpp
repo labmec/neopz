@@ -12,6 +12,7 @@ using namespace std;
 #include "pzmatred.h"
 #include "pzfmatrix.h"
 #include "pzstepsolver.h"
+#include "tpzverysparsematrix.h"
 
 #include <sstream>
 #include "pzlog.h"

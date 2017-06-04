@@ -368,3 +368,4 @@ int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
 
 template class TPZSYsmpMatrix<double>;
 template class TPZSYsmpMatrix<float>;
+template class TPZSYsmpMatrix<long double>;

@@ -11,7 +11,6 @@
 #include "pzstepsolver.h"
 #include "pzysmp.h"
 #include "pzmatred.h"
-#include "tpzverysparsematrix.h"
 
 /**
  * @brief To condense matrix divided in sub structures. \ref substructure "Sub Structure"
