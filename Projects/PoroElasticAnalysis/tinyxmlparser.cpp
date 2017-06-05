@@ -30,7 +30,7 @@ distribution.
 //#define DEBUG_PARSER
 #if defined( DEBUG_PARSER )
 #	if defined( DEBUG ) && defined( _MSC_VER )
-#ifndef (NOMINMAX)
+#ifndef NOMINMAX
 #define NOMINMAX // Preventing the redefinition of min and max as macros
 #endif
 #		include <windows.h>

@@ -146,7 +146,7 @@ typedef std::complex<long double> STATE;
 
 #ifdef VC
 #include <io.h>
-#ifndef (NOMINMAX)
+#ifndef NOMINMAX
 #define NOMINMAX // Preventing the redefinition of min and max as macros
 #endif
 #include <Windows.h>
