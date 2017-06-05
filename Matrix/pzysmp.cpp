@@ -12,6 +12,7 @@
 #include <map>
 #include <pthread.h>
 
+#include "tpzverysparsematrix.h"
 #include "pz_pthread.h"
 
 // #ifdef USING_BLAS

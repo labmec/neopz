@@ -4,6 +4,7 @@
  */
 
 #include "tpzdohrsubstructCondense.h"
+#include "tpzverysparsematrix.h"
 #include <iostream>
 #include "pzlog.h"
 #include "TPZfTime.h"
